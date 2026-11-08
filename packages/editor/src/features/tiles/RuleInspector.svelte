@@ -286,8 +286,8 @@ function rename(event: Event): void {
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--size-hit);
+    min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -308,8 +308,8 @@ function rename(event: Event): void {
     border-radius: var(--edge-sm);
   }
   .output {
-    width: 44px;
-    height: 44px;
+    width: var(--size-hit);
+    height: var(--size-hit);
     padding: 0;
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -330,7 +330,7 @@ function rename(event: Event): void {
     gap: var(--space-1);
   }
   input {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);

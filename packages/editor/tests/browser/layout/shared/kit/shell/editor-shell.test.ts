@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import {
   byTestId,
@@ -16,6 +17,10 @@ import { page } from 'vitest/browser'
 import type { ShellMode } from '#src/shared/kit/shell/shell-mode.ts'
 import ShellFixture from '#src/testing/kit/ShellFixture.svelte'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The shell with production CSS in a real browser, at the window sizes the 2D editor is designed for
 //. `inert` and `visibility` are only real here; jsdom keeps neither.
@@ -86,7 +91,7 @@ describe.each(SIZES)('shell layout at $name ($width x $height)', (size) => {
     ['every region opened', REST, { panelOpen: true, inspectorOpen: true, dockOpen: true }],
   ] as const)('%s: no clipped, overlapping, small or unreachable controls', async (_name, variant, props) => {
     await page.viewport(size.width, size.height)
-    const conditions = publishConditions(document.documentElement, size, variant)
+    const conditions = publishConditions(document.documentElement, size, variant, targets)
     mounted = mountFixture(ShellFixture, { geometry: { current: conditions.geometry }, ...props })
     await settleLayout()
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
@@ -107,7 +112,7 @@ const near = (actual: number, expected: number, slack = 1): void => {
 /** Publishes `size` the way the geometry owner would and mounts the fixture; the afterEach unmounts it. */
 async function open(size: EditorSize, props: Record<string, unknown> = {}, variant = REST) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, variant)
+  const conditions = publishConditions(document.documentElement, size, variant, targets)
   mounted = mountFixture(ShellFixture, { geometry: { current: conditions.geometry }, ...props })
   await settleLayout()
   return conditions
@@ -304,8 +309,8 @@ describe('sheets and their detents', () => {
     await open(size('phone-portrait'), { panelOpen: true })
     near(rect('panel').bottom, rect('canvas').bottom)
     const handle = region('panel').querySelector<HTMLElement>('[data-sheet-handle]') as HTMLElement
-    expect(handle.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
-    expect(handle.getBoundingClientRect().width).toBeGreaterThanOrEqual(44)
+    expect(handle.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
+    expect(handle.getBoundingClientRect().width).toBeGreaterThanOrEqual(targets.hit)
   })
 
   test('peek is the strip, half 50% and full 92% of the room above the status line', async () => {
@@ -359,7 +364,7 @@ describe('when the window turns or the keyboard comes up', () => {
     const landscape = size('ipad-pro-11-landscape')
     const portrait = size('ipad-pro-11-portrait')
     await page.viewport(landscape.width, landscape.height)
-    publishConditions(document.documentElement, landscape, REST)
+    publishConditions(document.documentElement, landscape, REST, targets)
     const geometry = stubGeometry(landscape.width, landscape.height)
     mounted = mountFixture(ShellFixture, { geometry })
     await settleLayout()
@@ -370,7 +375,7 @@ describe('when the window turns or the keyboard comes up', () => {
     expect(document.activeElement).toBe(field)
 
     await page.viewport(portrait.width, portrait.height)
-    publishConditions(document.documentElement, portrait, REST)
+    publishConditions(document.documentElement, portrait, REST, targets)
     geometry.resize(portrait.width, portrait.height)
     await settleLayout()
 
@@ -386,7 +391,7 @@ describe('when the window turns or the keyboard comes up', () => {
     const landscape = size('ipad-pro-11-landscape')
     const portrait = size('ipad-pro-11-portrait')
     await page.viewport(landscape.width, landscape.height)
-    publishConditions(document.documentElement, landscape, REST)
+    publishConditions(document.documentElement, landscape, REST, targets)
     const geometry = stubGeometry(landscape.width, landscape.height)
     mounted = mountFixture(ShellFixture, { geometry })
     await settleLayout()
@@ -399,14 +404,14 @@ describe('when the window turns or the keyboard comes up', () => {
     expect(body.scrollTop).toBe(100)
 
     await page.viewport(portrait.width, portrait.height)
-    publishConditions(document.documentElement, portrait, REST)
+    publishConditions(document.documentElement, portrait, REST, targets)
     geometry.resize(portrait.width, portrait.height)
     await settleLayout()
     expect(region('panel').querySelector('[data-scroll-region]')).toBe(body)
     expect(body.scrollTop).toBe(100)
 
     await page.viewport(landscape.width, landscape.height)
-    publishConditions(document.documentElement, landscape, REST)
+    publishConditions(document.documentElement, landscape, REST, targets)
     geometry.resize(landscape.width, landscape.height)
     await settleLayout()
     expect(body.scrollTop).toBe(100)
@@ -415,7 +420,7 @@ describe('when the window turns or the keyboard comes up', () => {
   test('the keyboard shrinks the shell above it without moving focus off the canvas field', async () => {
     const tablet = size('ipad-pro-11-portrait')
     await page.viewport(tablet.width, tablet.height)
-    publishConditions(document.documentElement, tablet, REST)
+    publishConditions(document.documentElement, tablet, REST, targets)
     const geometry = stubGeometry(tablet.width, tablet.height)
     mounted = mountFixture(ShellFixture, { geometry })
     await settleLayout()
@@ -423,7 +428,7 @@ describe('when the window turns or the keyboard comes up', () => {
     const field = byTestId('canvas-field') as HTMLInputElement
     field.focus()
 
-    const conditions = publishConditions(document.documentElement, tablet, KEYBOARD)
+    const conditions = publishConditions(document.documentElement, tablet, KEYBOARD, targets)
     await settleLayout()
 
     const keyboardTop = tablet.height - (KEYBOARD.keyboard?.(tablet) ?? 0)
@@ -468,8 +473,8 @@ describe('a broken region shows its error panel inside its own box (kit spec §6
       const conditions = await open(size(name), { broken, ...props })
       const button = copyButton(broken).getBoundingClientRect()
       const box = rect(broken)
-      expect(button.width).toBeGreaterThanOrEqual(44)
-      expect(button.height).toBeGreaterThanOrEqual(44)
+      expect(button.width).toBeGreaterThanOrEqual(targets.hit)
+      expect(button.height).toBeGreaterThanOrEqual(targets.hit)
       expect(button.left).toBeGreaterThanOrEqual(box.left - 0.5)
       expect(button.right).toBeLessThanOrEqual(box.right + 0.5)
       expect(button.top).toBeGreaterThanOrEqual(box.top - 0.5)

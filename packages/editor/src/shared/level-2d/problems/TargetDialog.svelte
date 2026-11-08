@@ -60,7 +60,7 @@ let { open = $bindable(), name, choices, onchoose }: Props = $props()
   .choice {
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-default);
     border-radius: var(--edge-sm);

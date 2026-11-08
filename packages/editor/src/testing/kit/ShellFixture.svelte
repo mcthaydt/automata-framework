@@ -66,7 +66,8 @@ const toasts = createToasts()
 if (toast !== undefined) toasts.push({ kind: 'info', message: toast, duration: 0 })
 
 const destinations = ['Stage', 'Path', 'Parts', 'Checks', 'Export']
-const layers = [
+// Twice as many layers as a drawer is tall even at 32 px rows (a mouse), so the panel always scrolls.
+const layerNames = [
   'rain',
   'steam',
   'signs',
@@ -92,6 +93,7 @@ const layers = [
   'fog',
   'light',
 ]
+const layers = [...layerNames, ...layerNames.map((name) => `${name} copy`)]
 const fields = ['depth', 'sink', 'haze', 'seed', 'phrase', 'extension', 'set piece', 'name']
 const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6']
 </script>
@@ -224,6 +226,11 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
   .scenes {
     display: flex;
     gap: var(--space-2);
+  }
+
+  /* A scene button is as wide as its words, never squeezed to the hit area's square. */
+  .scenes button {
+    flex: none;
   }
 
   .stage {

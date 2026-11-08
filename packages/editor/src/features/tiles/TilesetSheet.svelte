@@ -142,14 +142,14 @@ function addTag(event: SubmitEvent): void {
   }
   .tiles {
     display: grid;
-    grid-template-columns: repeat(var(--columns), 44px);
+    grid-template-columns: repeat(var(--columns), var(--size-hit));
     gap: 2px;
     width: max-content;
   }
   .tile {
     position: relative;
-    width: 44px;
-    height: 44px;
+    width: var(--size-hit);
+    height: var(--size-hit);
     padding: 0;
     border: 0;
     border-radius: var(--edge-sm);
@@ -194,7 +194,7 @@ function addTag(event: SubmitEvent): void {
     font: var(--text-label-12);
   }
   .tag {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -221,7 +221,7 @@ function addTag(event: SubmitEvent): void {
   .new-tag input {
     flex: 1 1 140px;
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -230,8 +230,8 @@ function addTag(event: SubmitEvent): void {
     font: var(--text-body-13);
   }
   .new-tag button {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--size-hit);
+    min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);

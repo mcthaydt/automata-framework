@@ -22,6 +22,18 @@ import type { ReferenceSize, Variant } from '../layout/reference-sizes.ts'
 
 const NO_INSETS = { top: 0, right: 0, bottom: 0, left: 0 }
 
+/** The smallest a control may be drawn, in CSS px before the display's scale: `hit` for any control, `primary` for one marked `data-primary`. */
+export interface Targets {
+  readonly hit: number
+  readonly primary: number
+}
+
+/**
+ * The touch rule, every game screen's default: a control is at least 44 px, a primary 48. Only a screen held with a
+ * mouse (an editor on a desktop) may pass smaller targets, and then it proves the touch rule again with touch.
+ */
+export const TOUCH_TARGETS: Targets = { hit: 44, primary: 48 }
+
 /**
  * The conditions a layout test runs under: the geometry published for a size and variant, and the regions
  * that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
@@ -30,10 +42,17 @@ export interface Conditions {
   readonly geometry: Geometry
   /** What covers the page in this variant: the keyboard, Ruken's strip. Nothing may sit under it. */
   readonly reserved: LayoutRect[]
+  /** The sizes every control is held to (`TOUCH_TARGETS` unless the screen is held with a mouse). */
+  readonly targets: Targets
 }
 
-/** Measures and publishes the geometry for `size` under `variant`, as the owner would. */
-export function publishConditions(root: HTMLElement, size: ReferenceSize, variant: Variant): Conditions {
+/** Measures and publishes the geometry for `size` under `variant`, as the owner would; `targets` are the control sizes the checks hold. */
+export function publishConditions(
+  root: HTMLElement,
+  size: ReferenceSize,
+  variant: Variant,
+  targets: Targets = TOUCH_TARGETS,
+): Conditions {
   const keyboard = variant.keyboard?.(size) ?? 0
   const strip = variant.hostReserved
   const host =
@@ -54,7 +73,7 @@ export function publishConditions(root: HTMLElement, size: ReferenceSize, varian
     const x = strip.edge === 'right' ? size.width - strip.width : 0
     reserved.push({ x, y: 0, width: strip.width, height: size.height })
   }
-  return { geometry, reserved }
+  return { geometry, reserved, targets }
 }
 
 /** An ActionBar that had to wrap, putting its primary on a row of its own (never level 3). */
@@ -284,7 +303,7 @@ function findTouchIntrusions(root: ParentNode): string[] {
 }
 
 /**
- * The checks every screen shares: the document never scrolls; every control is at least the target
+ * The checks every screen shares: the document never scrolls; every control is at least the conditions' target
  * (primaries the primary target) at this scale, on screen unless in a declared scroll region,
  * never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
  * `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
@@ -296,7 +315,7 @@ export function checkLayout(conditions: Conditions, essentials: readonly Element
   const scale = conditions.geometry.scale
   return [
     ...documentScrolls(document),
-    ...findSmallTargets(document.body, 44 * scale, 48 * scale),
+    ...findSmallTargets(document.body, conditions.targets.hit * scale, conditions.targets.primary * scale),
     ...findOffscreenControls(document.body),
     ...findIntrusions(document.body, conditions.reserved),
     ...findTouchIntrusions(document.body),

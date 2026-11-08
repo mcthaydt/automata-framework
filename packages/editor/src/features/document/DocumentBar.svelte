@@ -1,7 +1,8 @@
 <!--
-  The document's top bar, essentials only: Back, the document's name and beside it where the view is (`place`: the
-  Level view's level picker), the view switcher, Problems and Share when they
-  apply (`tools`), Undo and Redo as icon buttons, and Save, the one
+  The document's top bar, essentials only, laid out as the approved mockup draws it: Back (an icon), the document's
+  name and beside it, after a slash, where the view is (`place`: the Level view's level picker, a quiet menu), the
+  views as quiet tabs, then on the right Problems and Share when they apply (`tools`), Undo and Redo as icon buttons,
+  and Save, the one
   primary button, which also says where the level stands: "Save" with changes to keep, "Saving…" while it writes,
   "Saved" when nothing is left to keep. The file's path and format are not here (the level's Details on Home has
   them); the bar carries the path as `data-path` for whoever needs it without reading it. Undo and Redo are named with
@@ -79,8 +80,8 @@ onMount(() => {
 </script>
 
 <div class="bar" data-testid="document-bar" data-path={heading.file} data-compact={compact}>
-  <span class="back"><Button disabled={busy} onclick={onback}>Back</Button></span>
-  <span class="title">
+  <span class="back"><IconButton icon="back" label="Back" disabled={busy} onclick={onback} /></span>
+  <span class="title" data-place={place !== undefined}>
     <h1 tabindex="-1" bind:this={title}>
       {#if onrename}
         <button type="button" class="name" title="Rename" onclick={onrename}><span>{heading.title}</span></button>
@@ -88,7 +89,7 @@ onMount(() => {
         {heading.title}
       {/if}
     </h1>
-    {#if place}<span class="place">{@render place()}</span>{/if}
+    {#if place}<span class="sep" aria-hidden="true">/</span><span class="place">{@render place()}</span>{/if}
   </span>
   <span class="lower">
     <span class="switch">{@render switcher?.()}</span>
@@ -116,14 +117,15 @@ onMount(() => {
 </div>
 
 <style>
-  /* Wide: one row, the name taking what is left. Compact: Back, the name and Save on top, the rest below. */
+  /* Wide: one row, Back, the name and the views on the left, a gap that takes what is left, then the tools and
+     Save; the name gives way first when the row is tight. Compact: Back, the name and Save on top, the rest below. */
   .bar {
     display: grid;
     flex: 1;
-    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
-    grid-template-areas: 'back title switch tools save';
+    grid-template-columns: auto minmax(0, max-content) auto minmax(0, 1fr) auto auto;
+    grid-template-areas: 'back title switch . tools save';
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-1);
     min-width: 0;
   }
   .bar[data-compact='true'] {
@@ -152,18 +154,21 @@ onMount(() => {
   .switch {
     grid-area: switch;
     display: flex;
-    justify-content: center;
+    align-self: stretch;
+    align-items: stretch;
+    margin-left: var(--space-3);
     min-width: 0;
   }
   .bar[data-compact='true'] .switch {
     justify-content: flex-start;
+    margin-left: 0;
   }
   .tools {
     grid-area: tools;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: var(--space-2);
+    gap: var(--space-1);
   }
   .save {
     grid-area: save;
@@ -181,9 +186,25 @@ onMount(() => {
     flex: 0 1 auto;
     min-width: 0;
   }
+  /* The level menu reads as part of the path, not as a boxed button: no frame until the pointer is on it. */
   .place :global(.trigger) {
     max-width: 100%;
     overflow: hidden;
+    padding: 0 var(--space-2);
+    border-color: transparent;
+    background: none;
+    font: var(--text-title-15);
+  }
+  .place :global(.trigger:hover) {
+    background: var(--surface);
+  }
+  /* With a place beside it, the document's name is the quiet start of the path. */
+  .title[data-place='true'] h1 {
+    color: var(--muted);
+    font: var(--text-body-13);
+  }
+  .sep {
+    color: var(--muted);
   }
   h1 {
     flex: 0 10 auto;

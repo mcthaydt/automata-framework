@@ -113,8 +113,8 @@ function shortcut(event: KeyboardEvent): void {
   }
   button {
     flex: 0 0 auto;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--size-hit);
+    min-height: var(--size-hit);
     padding: 0;
     border: 0;
     border-radius: var(--edge-sm);

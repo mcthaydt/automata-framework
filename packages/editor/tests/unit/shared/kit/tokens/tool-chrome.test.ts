@@ -44,6 +44,18 @@ describe('the tool chrome', () => {
     }
   })
 
+  test('is 32 px dense with a mouse and keeps the touch rule wherever a finger may point', () => {
+    // The mockup's density: rows and controls 32 px on a fine pointer that hovers, 44 (a primary 48) once any coarse
+    // pointer is present, so a touch laptop or an iPad with a trackpad keeps finger-sized targets. The touch block
+    // comes last, so it wins when both match.
+    const mouse = chrome.indexOf('@media (hover: hover) and (pointer: fine)')
+    const touch = chrome.indexOf('@media (any-pointer: coarse)')
+    expect(mouse).toBeGreaterThan(-1)
+    expect(touch).toBeGreaterThan(mouse)
+    expect(chrome.slice(mouse, touch)).toMatch(/--size-hit:\s*32px;\s*--size-primary:\s*32px;/)
+    expect(chrome.slice(touch)).toMatch(/--size-hit:\s*44px;\s*--size-primary:\s*48px;/)
+  })
+
   test('every editor page loads it after the shared tokens', () => {
     for (const app of ['editor-2d', 'suite', 'design']) {
       const main = read(`src/app/${app}/main.ts`)

@@ -112,7 +112,7 @@ async function ship(): Promise<void> {
   textarea {
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -149,7 +149,7 @@ async function ship(): Promise<void> {
   a {
     display: inline-flex;
     align-items: center;
-    min-height: 44px;
+    min-height: var(--size-hit);
     color: var(--color-accent-default);
   }
 </style>

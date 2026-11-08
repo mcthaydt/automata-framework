@@ -31,6 +31,15 @@ describe('Segmented', () => {
     expect(radio('Grid')).toHaveAttribute('aria-checked', 'false')
   })
 
+  test('draws a track by default and quiet tabs when asked (a top bar), with the same radio behaviour', () => {
+    mount()
+    expect(screen.getByRole('radiogroup', { name: 'Layout' })).toHaveAttribute('data-look', 'track')
+    document.body.innerHTML = ''
+    mount({ look: 'tabs' })
+    expect(screen.getByRole('radiogroup', { name: 'Layout' })).toHaveAttribute('data-look', 'tabs')
+    expect(radio('Free')).toHaveAttribute('aria-checked', 'true')
+  })
+
   test('only the checked option is in the tab order', () => {
     mount({ value: 'grid' })
     expect(radio('Grid')).toHaveAttribute('tabindex', '0')

@@ -277,7 +277,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
     font: var(--text-label-12);
   }
   input {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -286,7 +286,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
     font: var(--text-body-13);
   }
   .toggle {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -309,7 +309,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
     align-content: center;
     width: 100%;
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-1) var(--space-2);
     border: 1px solid transparent;
     border-radius: var(--edge-sm);

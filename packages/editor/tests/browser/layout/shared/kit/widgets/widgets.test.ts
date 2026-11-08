@@ -1,11 +1,14 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import { type MountedFixture, mountFixture, settleLayout } from '@mcthaydt/automata/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import WidgetGallery from '#src/testing/kit/WidgetGallery.svelte'
 
-// The widgets with production CSS in a real browser: every control has its hit area (44 px, a primary action 48 px),
+// The widgets with production CSS in a real browser: every control has its hit area (32 px with a mouse; with touch
+// 44 px, a primary action 48 px),
 // the page never scrolls sideways, every kind of control shows its 2 px cobalt focus ring, and a dialog stays on a
 // phone screen, where it is a sheet from the bottom with its primary action in view.
 interface Size {
@@ -22,8 +25,8 @@ const SIZES: readonly Size[] = [
   { name: 'window-900x600', width: 900, height: 600, presentation: 'popover' },
 ]
 
-const HIT = 44
-const PRIMARY = 48
+/** The hit areas under this run's pointer (`editorTargets`). */
+const { hit: HIT, primary: PRIMARY } = editorTargets()
 
 let mounted: MountedFixture | undefined
 afterEach(async () => {
@@ -55,7 +58,7 @@ function tooSmall(controls: readonly HTMLElement[]): string[] {
   return controls.flatMap((element) => {
     const box = element.getBoundingClientRect()
     const needed = element.matches('[data-primary]') ? PRIMARY : HIT
-    // A hair under 44 is a rounding artifact of a fractional layout, not a small target.
+    // A hair under the target is a rounding artifact of a fractional layout, not a small target.
     return box.width < needed - 0.5 || box.height < needed - 0.5
       ? [`${describeControl(element)} is ${box.width.toFixed(1)} x ${box.height.toFixed(1)}, needs ${needed}`]
       : []
@@ -90,7 +93,7 @@ describe.each(SIZES)('widgets at $name ($width x $height)', (size) => {
     expect(primary?.getBoundingClientRect().height).toBeGreaterThanOrEqual(PRIMARY - 0.5)
   })
 
-  test('buttons are 44 px, a primary one 48 px, and an icon button a 44 px circle with a name', async () => {
+  test('buttons are at their hit area, a primary at its own, and an icon button a square of the hit area with a name', async () => {
     await open(size)
     const plain = page.getByRole('button', { name: 'Duplicate level' }).element() as HTMLElement
     const primary = page.getByRole('button', { name: 'New level' }).element() as HTMLElement

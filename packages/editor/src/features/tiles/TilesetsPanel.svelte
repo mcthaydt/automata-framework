@@ -203,7 +203,7 @@ function thumb(tile: number | undefined): string {
     align-content: center;
     width: 100%;
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-1) var(--space-2);
     border: 1px solid transparent;
     border-radius: var(--edge-sm);

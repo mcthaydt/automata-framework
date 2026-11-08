@@ -204,7 +204,7 @@ function onTextBlur(event: FocusEvent): void {
   .text {
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2);
     border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);

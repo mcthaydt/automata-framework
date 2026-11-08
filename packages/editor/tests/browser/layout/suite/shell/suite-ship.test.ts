@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/suite/main.css'
 import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -10,8 +11,12 @@ import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // Ship, the Review desk and Import with the production CSS in real browsers at the sizes of spec §10: each dialog's
 // primary action (Ship, Apply) is reachable at 48 px inside the window, the Review desk's diff stays inside the canvas,
@@ -53,7 +58,7 @@ afterEach(async () => {
 
 async function open(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const load = loadEditorList(LIST)
   if (!load.ok) throw new Error(JSON.stringify(load.problems))
   const memory = await createMemoryPorts({
@@ -124,7 +129,7 @@ function noPageScroll(): void {
 /** The button's box is at least 48 px tall and inside the window. */
 function reachable(name: string, within: ParentNode, size: EditorSize): void {
   const box = button(name, within).getBoundingClientRect()
-  expect(box.height, name).toBeGreaterThanOrEqual(48)
+  expect(box.height, name).toBeGreaterThanOrEqual(targets.primary)
   expect(box.bottom, name).toBeLessThanOrEqual(size.height + 0.5)
   expect(box.right, name).toBeLessThanOrEqual(size.width + 0.5)
   expect(box.left, name).toBeGreaterThanOrEqual(-0.5)
@@ -185,8 +190,8 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
     expect(rows.map((row) => row.dataset.gate)).toEqual(['g-feel', 'g-speed'])
     for (const row of rows) {
       const link = row.querySelector('a')?.getBoundingClientRect()
-      expect(link?.height, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(44)
-      expect(link?.width, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(44)
+      expect(link?.height, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(targets.hit)
+      expect(link?.width, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(targets.hit)
     }
     // Each record link sits at the row's right edge, beside its state however that wraps, with one gap between rows.
     const rights = rows.map((row) => row.querySelector('a')?.getBoundingClientRect().right)
@@ -222,8 +227,8 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
     await settleLayout()
     reachable('Apply', dialog, size)
     const chooser = button('Choose a file', dialog).getBoundingClientRect()
-    expect(chooser.height).toBeGreaterThanOrEqual(44)
-    expect(chooser.width).toBeGreaterThanOrEqual(44)
+    expect(chooser.height).toBeGreaterThanOrEqual(targets.hit)
+    expect(chooser.width).toBeGreaterThanOrEqual(targets.hit)
     expect(button('Apply', dialog)).not.toHaveProperty('disabled', true)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/interchange-${size.name}.png` })

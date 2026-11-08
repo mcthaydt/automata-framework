@@ -932,6 +932,28 @@ logic that is not markup lives in the view's `*-model.ts`.
   chosen; three layouts by the container (wide 1180 px and up, medium, compact at 760 px and down or under 520 px
   high, with the tools in a dock and sheets); lock before eye on layer rows; (3) the same on Map, Tiles, Characters,
   the Tuner, the suite page and the dialogs.
+- **12.3, density and the top bar (session 16).** *Density:* `tool-chrome.css` sets `--size-hit` and
+  `--size-primary` to 32 px under `(hover: hover) and (pointer: fine)` and back to 44 and 48 under `(any-pointer:
+  coarse)`, which comes last so a touch laptop or an iPad with a trackpad keeps finger targets; the views' 31
+  hard-coded `44px` read `--size-hit`. The framework's layout contract first learned the pointer (TDD, a new browser
+  test `targets.test.ts`): `publishConditions` takes `targets` (`Conditions.targets`, default `TOUCH_TARGETS`, 44/48),
+  `checkLayout` holds controls to them, `Targets` and `TOUCH_TARGETS` are exported (changeset, API report). The
+  editors' layout tests import `tool-chrome.css` like the pages and pass `editorTargets()` (the same media queries:
+  the touch rule once any coarse pointer is present, else 32/32); the `layout` project runs again as `layout
+  (chromium, touch)` with Playwright's `hasTouch`, the one engine whose touch emulation turns the pointer queries
+  coarse. The shell fixture's layer list doubled and its dock buttons stopped shrinking, so its tests prove the same
+  things at 32 px rows. *Top bar:* Back is an icon button (still named "Back"); with a place beside it the game's
+  name is the quiet start of a path ("Mossgate / Moss Steps"), the level menu drawn without a frame until hovered;
+  the views are quiet tabs (`Segmented look="tabs"`: grey words, the open view ink with a 2 px ink underline, the
+  same radio group); a flexible gap pushes the tools, Undo, Redo and Save right. *Layers:* the lock comes before the
+  eye, so every eye sits in the same place; with a mouse both show only on the row under the pointer, on focus, or
+  when on; Layers and Paint with are small-capital section labels. **Cut (essential features only):** the mockup's
+  zoom minus, percentage and plus; Fit stays, and pinch and the wheel zoom. Gates: editor unit (level, document,
+  widgets) 474, automata `targets` browser test 2, Chromium layout with a mouse 435 and with touch 435, the
+  Chromium journeys 26, `pnpm check`'s affected unit tests in the commit hook; WebKit, Firefox and hosted
+  CI not run. **Left for 12.3:** the save state as a status with one lime primary (Save on a game folder, Share in
+  browser storage), Problems in the top bar instead of an inspector tab, the label-left inspector showing the level
+  with nothing chosen, the three container layouts with a tool dock on compact, and Step 3.
 - [ ] **Step 3:** The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
 - [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`

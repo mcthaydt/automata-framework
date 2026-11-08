@@ -231,7 +231,7 @@
 ### `import { … } from '@mcthaydt/automata/testing'`
 
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
-- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
+- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 - `describeHostingContract(name, create, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.
@@ -274,7 +274,7 @@
 - `NullRendererOptions` (interface): Options for `nullRenderer`: `fail` makes it fail `RendererUnavailable`.
 - `openRuntimeTest(options?)`: Boots the runtime for screen and integration tests, as `runGame` does but without the loader or failure panel: `openHostingTest` behind the scenes, page layers and geometry, the settings, the save, the services, and the flow started when there are screens.
 - `pressedPart(control)`: What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a press anywhere on it toggles the input), else the control itself.
-- `publishConditions(root, size, variant)`: Measures and publishes the geometry for `size` under `variant`, as the owner would.
+- `publishConditions(root, size, variant, targets?)`: Measures and publishes the geometry for `size` under `variant`, as the owner would; `targets` are the control sizes the checks hold.
 - `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.
 - `ReferenceFormFactor` (type): The geometry owner's `FormFactor`.
 - `ReferenceHeightTier` (type): The geometry owner's `HeightTier`.
@@ -284,8 +284,10 @@
 - `Settle` (type): Lets the fake Ruken host answer over its in-memory ports (for example one macrotask).
 - `settleLayout()`: Waits until a freshly mounted fixture has finished laying out: fonts loaded, then two frames, so ResizeObserver callbacks (ActionBar's collapse, ScrollList's measure) and the re-layout they cause have run.
 - `Submission` (interface): One leaderboard submission the host received.
+- `Targets` (interface): The smallest a control may be drawn, in CSS px before the display's scale: `hit` for any control, `primary` for one marked `data-primary`.
 - `textSnippet(text, tag?, trusted?)`: A Svelte 5 snippet rendering `<tag>text</tag>`, so a test can pass `children`, `body` or an icon to a component without writing a wrapper component (Ruken `packages/ui/src/test-snippets.ts`).
 - `TIGHT_SIZES` (const): Sideways phones shorter than 780x270, where an open keyboard leaves the least room (framework audit of #7, 2026-10-11).
+- `TOUCH_TARGETS` (const): The touch rule, every game screen's default: a control is at least 44 px, a primary 48.
 - `TrackedEvent` (interface): One analytics event the host received.
 - `Variant` (interface): A condition layered over a reference size.
 - `VARIANTS` (const): The conditions each size is also checked under: at rest, with the on-screen keyboard open, with Ruken's reserved strip on the right or the left, and at its TV scale.

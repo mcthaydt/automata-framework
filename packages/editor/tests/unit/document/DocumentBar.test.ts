@@ -56,8 +56,9 @@ describe('DocumentBar', () => {
     expect(document.querySelectorAll('[data-kind="primary"]')).toHaveLength(1)
   })
 
-  it('Undo and Redo are icon buttons', () => {
+  it('Back, Undo and Redo are icon buttons, as the approved mockup draws them', () => {
     mount()
+    expect(screen.getByRole('button', { name: 'Back' }).querySelector('svg')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Undo' }).querySelector('svg')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Redo' }).querySelector('svg')).not.toBeNull()
   })

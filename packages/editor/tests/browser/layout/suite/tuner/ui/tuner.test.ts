@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/suite/main.css'
 import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -11,7 +12,11 @@ import { samplePorts } from '#src/features/suite/shell/sample-ports.ts'
 import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The Tuner in the suite's one shell with the production CSS in Chromium, WebKit and Firefox at the eight window sizes
 //: every control is a 44 px target in a declared scroll region (reached by scrolling
@@ -33,7 +38,7 @@ const GAME_PAGE = 'data:text/html,<body style="margin:0;background:%23243">game<
 
 async function open(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
   started = await startSuite(target, {
