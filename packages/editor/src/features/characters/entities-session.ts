@@ -2,6 +2,8 @@
 // break instances is refused with the list of uses, unless the person confirms it.
 import type { FieldDef, FieldType } from '@automata/content/level-2d'
 import type { History } from '../../shared/kit/history/history.ts'
+import { projectHistory } from '../../shared/level-2d/editor/edit-history'
+import { commitEdit, type FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import type { DefinitionUse, GuardedEdit } from '../../shared/level-2d/model/commands/def-lookup'
 import { deleteDefinition } from '../../shared/level-2d/model/commands/definition-uses'
 import {
@@ -11,8 +13,6 @@ import {
   renameEntityDef,
 } from '../../shared/level-2d/model/commands/entity-def-edits'
 import { addField, renameField, retypeField } from '../../shared/level-2d/model/commands/field-edits'
-import { projectHistory } from '../../shared/level-2d/model/edit-history'
-import { commitEdit, type FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
 import {

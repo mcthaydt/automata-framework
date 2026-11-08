@@ -15,17 +15,18 @@ import {
 } from '../../features/document/document-controller'
 import ErrorPanel from '../../features/document/ErrorPanel.svelte'
 import ProfileChoice from '../../features/document/ProfileChoice.svelte'
-import type { LevelCanvasProps, ObjectUrls } from '../../features/document/view-props'
 import Home from '../../features/home/Home.svelte'
 import { createHomeController, type LastOpened } from '../../features/home/home-controller'
 import type { LifecycleDocument, LifecycleWindow } from '../../shared/kit/storage/page-lifecycle'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
-import type { EditorApp } from '../../shared/level-2d/documents/editor-app'
-import type { ChoiceOutcome, PanelOutcome } from '../../shared/level-2d/documents/open-flow-model'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
+import type { EditorApp } from '../../shared/level-2d/session/editor-app-types'
+import type { ChoiceOutcome, PanelOutcome } from '../../shared/level-2d/session/open-flow-model'
+import type { LevelCanvasProps, ObjectUrls } from '../../shared/level-2d/session/view-props'
+import { componentOf } from './views'
 
 interface Props {
   geometry: GeometryState
@@ -126,6 +127,7 @@ onDestroy(() => {
   <DocumentScreen
     {geometry}
     controller={open}
+    viewOf={componentOf}
     {toasts}
     {clock}
     read={(path) => workspace.store.read(path)}

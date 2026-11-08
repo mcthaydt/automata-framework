@@ -3,9 +3,8 @@ import { baseName } from '../../shared/kit/storage/store-path.ts'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import type { ToastKind } from '../../shared/kit/widgets/toasts.ts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
-import type { CopyOutcome, ImportOutcome } from '../../shared/level-2d/documents/editor-app'
-import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
+import type { CopyOutcome, ImportOutcome, ProjectEntry } from '../../shared/level-2d/session/editor-app-types'
 
 // What the 2D editor's Home decides before anything is drawn: how an entry reads on
 // its card, the template cards and the message for each way an action can end. Plain functions of the list and the

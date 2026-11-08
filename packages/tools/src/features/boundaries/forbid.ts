@@ -3,17 +3,17 @@ import type { Finding } from './check.ts'
 import { readImports } from './imports.ts'
 import { collectPlatformSources } from './platform-imports.ts'
 
-// The `--forbid` check: a package names the packages it may never import (the 2D editor and `@pixi/3d`), so one
-// dimension cannot leak into another's package. Every source under the package counts, tests and Svelte components
-// included, and so do type-only imports, which tie the package to the other one all the same. A name in a string
-// or a comment is not an import (the same reader as the platform check).
+// The `--forbid` check: a package names other packages it may never import. The 2D editor package, for one, must not
+// reach for 3D code, because the 3D editor depends on it and the build would loop. Tests and Svelte components count
+// as well as src/, type-only imports too (a type still ties the two packages), and only real imports count, read
+// from the AST, so a name in a string or a comment is not a break.
 
-/** True when `specifier` is `name` or a path inside it (`@pixi/3d` matches `@pixi/3d/loader`, not `@pixi/3d-extras`). */
-function names(specifier: string, name: string): boolean {
+/** True when `specifier` is the package `name` or a path inside it (`@pixi/3d/extras`, not `@pixi/3d-lookalike`). */
+function isPackage(specifier: string, name: string): boolean {
   return specifier === name || specifier.startsWith(`${name}/`)
 }
 
-/** The files checked and the findings for one package folder and the packages it may not import. */
+/** The files checked and the findings, for one package folder and the package names it may not import. */
 export function forbidFindings(
   packageRoot: string,
   forbidden: readonly string[],
@@ -24,7 +24,7 @@ export function forbidFindings(
     const { imports, errors } = readImports(file, readFileSync(file, 'utf8'))
     findings.push(...errors)
     for (const { specifier, line, col } of imports) {
-      if (!forbidden.some((name) => names(specifier, name))) continue
+      if (!forbidden.some((name) => isPackage(specifier, name))) continue
       findings.push({
         file,
         line,
