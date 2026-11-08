@@ -27,6 +27,7 @@
   "dependencies": {
     "@automata/audio-synth": "workspace:*",
     "@automata/editor": "workspace:*",
+    "@automata/feel": "workspace:*",
     "svelte": "5.57.1",
     "zod": "4.6.6"
   },
@@ -36,6 +37,7 @@
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/svelte": "5.4.2",
+    "@testing-library/user-event": "14.6.7",
     "@types/node": "24.19.1",
     "jsdom": "30.1.1",
     "svelte-check": "4.7.6",
