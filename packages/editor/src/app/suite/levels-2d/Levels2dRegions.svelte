@@ -4,6 +4,7 @@
   suite keeps. The suite owns the top bar (Undo and Redo among it) and the Panel and Details toggles.
 -->
 <script module lang="ts">
+import type { CanvasContext } from '../../../shared/kit/ports/suite-editor'
 import Levels2dPane from './Levels2dPane.svelte'
 import Levels2dStatus from './Levels2dStatus.svelte'
 import Levels2dTools from './Levels2dTools.svelte'
@@ -16,8 +17,8 @@ export { canvas, inspector, panel, status, tools }
   <Levels2dPane {session} part="panel" />
 {/snippet}
 
-{#snippet canvas(session: Levels2dSession)}
-  <Levels2dPane {session} part="canvas" />
+{#snippet canvas(session: Levels2dSession, context: CanvasContext)}
+  <Levels2dPane {session} part="canvas" mode={context.mode} />
 {/snippet}
 
 {#snippet inspector(session: Levels2dSession)}

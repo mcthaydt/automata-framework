@@ -100,6 +100,20 @@ const { label, at = 'bottom', testId, children, second }: Props = $props()
     flex: 1 1 auto;
     justify-content: space-around;
   }
+  /* A phone held sideways has the height of a bar, not the width of one: the dock stands at the stage's right edge, its
+     controls in a column, and scrolls if the stage is too short for them. */
+  :global([data-editor-shell][data-standing]) .toolbar[data-at='dock'] {
+    top: 0;
+    left: auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: hidden auto;
+    border-width: 0 0 0 1px;
+  }
+  :global([data-editor-shell][data-standing]) .toolbar[data-at='dock'] :global(.segmented) {
+    flex: 0 0 auto;
+    flex-direction: column;
+  }
   .main,
   .second {
     display: flex;
@@ -123,6 +137,12 @@ const { label, at = 'bottom', testId, children, second }: Props = $props()
   :global(.shell[data-mode='compact']:has(.toolbar[data-at='dock']) [data-presentation='sheet']) {
     margin-bottom: calc(var(--size-hit) + 2 * var(--space-1) + 1px);
     max-height: calc(100% - var(--size-hit) - 2 * var(--space-1) - 1px);
+  }
+  /* Standing, the dock is at the side: the sheet keeps clear of it there instead of above it. */
+  :global(.shell[data-standing]:has(.toolbar[data-at='dock']) [data-presentation='sheet']) {
+    margin-right: calc(var(--size-hit) + 2 * var(--space-1) + 1px);
+    margin-bottom: 0;
+    max-height: 100%;
   }
   /* On a phone a sheet rises from the foot: a floating toolbar moves to the top while one is open. */
   :global(.shell[data-mode='compact']:has(:is([data-region='panel'], [data-region='inspector'])[data-open='true']))

@@ -5,10 +5,11 @@
 -->
 <script lang="ts">
 import type { Cue, Voice } from '@automata/audio-synth'
-import { Button } from '@automata/editor/kit'
+import { Block, Button, EmptyState } from '@automata/editor/kit'
 import { problemAt } from '../../shared/content-session.svelte.ts'
 import type { Field } from '../../shared/fields.ts'
 import { setOrInsert } from '../../shared/fields.ts'
+import Check from '../../shared/ui/Check.svelte'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
@@ -134,7 +135,7 @@ $effect(() => {
 {#snippet soundView(sound: Cue, index: number)}
   <header class="actions">
     <h2>{sound.id}</h2>
-    <Button variant="primary" disabled={playing} onclick={() => void play(sound.id)}>
+    <Button disabled={playing} onclick={() => void play(sound.id)}>
       {session.heard ? 'Play' : 'Tap to hear'}
     </Button>
   </header>
@@ -143,37 +144,26 @@ $effect(() => {
   <div class="fields">
     {#each soundFields(sound) as one (one.key)}{@render field(['cue', index], sound, one)}{/each}
     {#each soundFlags(sound) as flag (flag.key)}
-      <label class="check">
-        <input
-          type="checkbox"
-          checked={flag.on}
-          onchange={(event) =>
-            void session.change(`Change ${flag.label.toLowerCase()}`, flagEdit(index, sound, flag.key, event.currentTarget.checked))}
-        />
+      <Check
+        checked={flag.on}
+        onchange={(on) => void session.change(`Change ${flag.label.toLowerCase()}`, flagEdit(index, sound, flag.key, on))}
+      >
         {flag.label}
-      </label>
+      </Check>
     {/each}
   </div>
   {#each voiceLines(sound) as voice (voice.index)}
-    <article class="card" aria-label={voice.words}>
-      <header>
-        <h3>{voice.words}</h3>
-        <Button
-          variant="quiet"
-          aria-label={`Remove this ${voice.words.toLowerCase()}`}
-          onclick={() => void session.change(`Remove a ${voice.words.toLowerCase()}`, [removeEdit('cue', index, 'voices', voice.index)])}
-        >
-          Remove
-        </Button>
-      </header>
-      <div class="fields">
+    <Block
+      title={voice.words}
+      icon="volume"
+      onremove={() => void session.change(`Remove a ${voice.words.toLowerCase()}`, [removeEdit('cue', index, 'voices', voice.index)])}
+    >
         {#each voice.fields as one (one.key)}
           {@render field(['cue', index, 'voices', voice.index], sound.voices[voice.index] ?? {}, one, (value) =>
             setVoice(index, voice.index, sound.voices[voice.index] as Voice, one, value),
           )}
         {/each}
-      </div>
-    </article>
+    </Block>
   {:else}
     <p>This sound is silent. Add a tone or a hiss to hear it.</p>
   {/each}
@@ -205,9 +195,12 @@ $effect(() => {
 <EditorPage label="Audio">
   {#if session.message !== undefined}<p class="bad" role="alert">{session.message}</p>{/if}
   {#if read.kind === 'missing'}
-    <h2>This game has no audio file yet.</h2>
-    <p>An audio file holds the game's sounds, which music track plays when, and which sound plays when something happens.</p>
-    <div class="actions"><Button variant="primary" onclick={() => void session.start()}>Start an audio file</Button></div>
+    <EmptyState
+      icon="volume"
+      title="This game has no audio file yet."
+      why="An audio file holds the game's sounds, which music track plays when, and which sound plays when something happens."
+      action={{ label: 'Start an audio file', onclick: () => void session.start() }}
+    />
   {:else if read.kind === 'syntax'}
     <h2>The audio file has a mistake{read.line === undefined ? '' : ` on line ${String(read.line)}`}.</h2>
     <p>It opens read only until the mistake is fixed. Your file is unchanged.</p>
@@ -248,7 +241,6 @@ $effect(() => {
         <div class="actions">
           {#if late !== undefined}
             <Button
-              variant="primary"
               onclick={() => void session.change(`Move ${line.words.toLowerCase()} up`, moveEventEdits(content, line.index, late.by))}
             >
               Move up
@@ -303,7 +295,7 @@ $effect(() => {
           oncancel={() => (adding = false)}
         />
       {:else}
-        <div class="actions"><Button variant="primary" onclick={() => (adding = true)}>Add what happens</Button></div>
+        <div class="actions"><Button onclick={() => (adding = true)}>Add what happens</Button></div>
       {/if}
     {:else}
       <p>Add a sound first, then choose when it plays.</p>
@@ -321,19 +313,7 @@ $effect(() => {
 </EditorPage>
 
 <style>
-  .check {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: var(--size-hit);
-    color: var(--color-text-primary);
-    font: var(--text-body-13);
-  }
   .warn {
     color: var(--color-state-warn);
-  }
-  .check input {
-    width: 1.25rem;
-    height: 1.25rem;
   }
 </style>

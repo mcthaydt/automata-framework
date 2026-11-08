@@ -4,7 +4,7 @@
   and says where the mistake is.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button, EmptyState } from '@automata/editor/kit'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import SequenceAdd from './SequenceAdd.svelte'
 import SequenceInspector from './SequenceInspector.svelte'
@@ -20,11 +20,13 @@ const seconds = (value: number): string => String(Math.round(value * 10) / 10)
 
 <EditorPage label="Sequence">
   {#if session.current === undefined}
-    <div class="empty">
-      <h2>This game has no cutscenes yet.</h2>
-      <p>A cutscene is the game taking the camera for a moment. Give the first one a name and a length.</p>
+    <EmptyState
+      icon="clapper"
+      title="This game has no cutscenes yet."
+      why="A cutscene is the game taking the camera for a moment. Give the first one a name and a length."
+    >
       <SequenceAdd {session} />
-    </div>
+    </EmptyState>
   {:else if read?.kind === 'syntax'}
     <div class="empty">
       <h2>This cutscene has a mistake{read.line === undefined ? '' : ` on line ${String(read.line)}`}.</h2>
@@ -40,9 +42,9 @@ const seconds = (value: number): string => String(Math.round(value * 10) / 10)
       <SequencePreview {session} />
       <div class="transport" role="group" aria-label="Playing">
         {#if session.playing}
-          <Button variant="primary" onclick={() => session.pause()}>Pause</Button>
+          <Button onclick={() => session.pause()}>Pause</Button>
         {:else}
-          <Button variant="primary" onclick={() => session.play()}>Play</Button>
+          <Button onclick={() => session.play()}>Play</Button>
         {/if}
         <span class="time" aria-live="off">{seconds(session.playhead)} s of {seconds(script.duration)} s</span>
         <Button variant="quiet" onclick={() => (session.zoom = Math.max(20, session.zoom / 1.5))}>Zoom out</Button>

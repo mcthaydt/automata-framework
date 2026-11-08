@@ -74,7 +74,7 @@ function speakerOf(index: number): string {
       <input id="writer-scene" bind:value={name} />
       <div class="actions">
         <Button variant="quiet" onclick={() => (adding = false)}>Cancel</Button>
-        <Button variant="primary" disabled={name.trim() === ''} onclick={() => void addScene()}>Add</Button>
+        <Button disabled={name.trim() === ''} onclick={() => void addScene()}>Add</Button>
       </div>
     </form>
   {:else}

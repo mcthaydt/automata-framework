@@ -84,7 +84,8 @@ function onTextBlur(event: FocusEvent): void {
 <Field
   label={row.label}
   labelled={SELF_LABELLED.has(row.widget)}
-  warning={row.widget === 'stepper' ? undefined : message}
+  hint={row.hint}
+  warning={row.widget === 'stepper' ? undefined : (message ?? row.missing)}
   data-widget={row.widget}
   data-field={row.id}
 >

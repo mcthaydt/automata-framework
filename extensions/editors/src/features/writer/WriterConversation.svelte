@@ -157,7 +157,7 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
     <h2>{session.nameOf(graph.speaker)}</h2>
     <div class="actions">
       <Button aria-pressed={showMap} onclick={() => (mapChoice = !showMap)}>Map</Button>
-      <Button variant="primary" onclick={() => (playing = !playing)}>{playing ? 'Stop playing' : 'Play it'}</Button>
+      <Button onclick={() => (playing = !playing)}>{playing ? 'Stop playing' : 'Play it'}</Button>
     </div>
   </header>
 
@@ -207,7 +207,7 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
               {#if ifRefusal !== undefined}<p class="bad" role="alert">{ifRefusal}</p>{/if}
               <div class="actions">
                 <Button variant="quiet" onclick={() => (conditioning = undefined)}>Cancel</Button>
-                <Button variant="primary" onclick={() => void addOnlyIf(part)}>Add this condition</Button>
+                <Button onclick={() => void addOnlyIf(part)}>Add this condition</Button>
               </div>
             </div>
           {:else}
@@ -231,7 +231,7 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
               <WordsField label="What do they say?" value={lineDraft} oninput={(words) => (lineDraft = words)} />
               <div class="actions">
                 <Button variant="quiet" onclick={() => (addingLine = undefined)}>Cancel</Button>
-                <Button variant="primary" disabled={lineDraft.trim() === ''} onclick={() => void addLineTo(part)}>Add this line</Button>
+                <Button disabled={lineDraft.trim() === ''} onclick={() => void addLineTo(part)}>Add this line</Button>
               </div>
             </div>
           {:else}
@@ -283,7 +283,7 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
                   <FieldRow label="It is" kind="choice" value={rememberValue} options={[{ value: 'true', label: 'yes' }, { value: 'false', label: 'no' }]} onchange={(value) => (rememberValue = String(value))} />
                   <div class="actions">
                     <Button variant="quiet" onclick={() => (remembering = undefined)}>Cancel</Button>
-                    <Button variant="primary" disabled={rememberName.trim() === ''} onclick={() => void remember(part, at)}>Remember</Button>
+                    <Button disabled={rememberName.trim() === ''} onclick={() => void remember(part, at)}>Remember</Button>
                   </div>
                 </div>
               {:else}
@@ -313,7 +313,7 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
               {/if}
               <div class="actions">
                 <Button variant="quiet" onclick={() => (adding = undefined)}>Cancel</Button>
-                <Button variant="primary" disabled={draft.trim() === ''} onclick={() => void addChoice(part)}>Add this choice</Button>
+                <Button disabled={draft.trim() === ''} onclick={() => void addChoice(part)}>Add this choice</Button>
               </div>
             </div>
           {:else}
@@ -328,7 +328,7 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
               <input id={`rename-${part}`} bind:value={renameTo} />
               <div class="actions">
                 <Button variant="quiet" onclick={() => (renaming = undefined)}>Cancel</Button>
-                <Button variant="primary" onclick={() => void rename(part)}>Rename</Button>
+                <Button onclick={() => void rename(part)}>Rename</Button>
               </div>
             </div>
           {:else}

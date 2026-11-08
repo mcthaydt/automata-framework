@@ -2,6 +2,7 @@
 // suite (a host) composes them with `createSuite`, which is the suite's own; this is only the shape and its helper.
 // Svelte appears as the `Snippet` type alone, so the headless layers load this file without the compiler.
 import type { Snippet } from 'svelte'
+import type { ShellMode } from '../shell/shell-mode'
 import type { SuitePorts, WorkspaceFile } from './suite-ports'
 
 /**
@@ -10,11 +11,16 @@ import type { SuitePorts, WorkspaceFile } from './suite-ports'
  */
 export type ContributionPoint = 'tuner.source' | 'audio.panel'
 
+/** What the suite tells the canvas about the window it is drawn in, so it can place its own tools (a dock on a phone). */
+export interface CanvasContext {
+  readonly mode: ShellMode
+}
+
 /** The shell regions an editor fills, each drawn from its session. The suite owns the top bar; `tools` sits in it. */
 export interface SuiteRegions<S> {
   /** Optional: an editor with nothing to list or inspect (the Tuner) gives its column to the canvas. */
   readonly panel?: Snippet<[S]> | undefined
-  readonly canvas: Snippet<[S]>
+  readonly canvas: Snippet<[S, CanvasContext]>
   readonly inspector?: Snippet<[S]> | undefined
   readonly dock?: Snippet<[S]> | undefined
   readonly status?: Snippet<[S]> | undefined

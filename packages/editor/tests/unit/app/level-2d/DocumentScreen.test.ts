@@ -340,17 +340,18 @@ describe('DocumentScreen: Share', () => {
     expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 
-  // The approved mockups: in browser storage the level leaves by Share, so Share is the one primary button, with its
-  // word beside the icon; on a game folder Save writes the game, so Save is the primary and there is no Share.
-  it('makes Share the primary action in browser storage and Save the plain one', async () => {
+  // In browser storage the level leaves by Share, with its word beside the icon; on a game folder Save writes the game
+  // and there is no Share. Neither is lime: Publish is the editors' one lime button.
+  it('has Share beside Save in browser storage, both plain', async () => {
     await mountLevel([1194, 834], { share: true })
-    expect(screen.getByRole('button', { name: 'Share' })).toHaveAttribute('data-kind', 'primary')
+    expect(screen.getByRole('button', { name: 'Share' })).toHaveAttribute('data-kind', 'secondary')
     expect(screen.getByRole('button', { name: 'Share' })).toHaveTextContent('Share')
     expect(screen.getByTestId('save')).toHaveAttribute('data-kind', 'secondary')
   })
 
-  it('keeps Save the primary action on a game folder', async () => {
+  it('has Save and no Share on a game folder', async () => {
     await mountLevel()
-    expect(screen.getByTestId('save')).toHaveAttribute('data-kind', 'primary')
+    expect(screen.getByTestId('save')).toHaveAttribute('data-kind', 'secondary')
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

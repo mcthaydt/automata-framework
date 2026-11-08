@@ -3,9 +3,8 @@
   name and beside it, after a slash, where the view is (`place`: the Level view's level picker, a quiet menu), the
   views as quiet tabs, then on the right Problems when they apply (`tools`), Undo and Redo as icon buttons,
   where the level stands on saving as a quiet status ("Saved" with a tick, "Not saved" with an amber dot, "Saving…",
-  "Couldn't save" or "Not kept on this device" in the warning colour), and Save, the one primary button (in browser
-  storage Share is, and Save sits beside it as a plain button), which always says Save so its word never moves under a
-  finger. The status is a live region only when saving went wrong or cannot
+  "Couldn't save" or "Not kept on this device" in the warning colour), and Save, a plain button (Publish is the editors'
+  one lime button, and it is in the suite's header), which always says Save so its word never moves under a finger. The status is a live region only when saving went wrong or cannot
   happen here: a screen reader is not told "Not saved" after every brush stroke. The file's path and format are not here (the level's Details on Home has
   them); the bar carries the path as `data-path` for whoever needs it without reading it. Undo and Redo are named with
   the step they act on and are disabled when there is none; Save and Back wait while a save or a conflict choice runs.
@@ -38,10 +37,7 @@ interface Props {
   place?: Snippet | undefined
   /** Problems, where they apply. */
   tools?: Snippet | undefined
-  /**
-   * The bar's primary action when it is not Save: Share, in browser storage, where a level leaves by a file. Save then
-   * turns plain and sits beside it; without it, Save is the primary (a game folder, where Save writes the game).
-   */
+  /** The bar's other action beside Save: Share, in browser storage, where a level leaves by a file. */
   primary?: Snippet | undefined
   /** A save or a conflict choice is running: Save, and Back (which would close the document under it), wait. */
   busy: boolean
@@ -140,7 +136,7 @@ onMount(() => {
     </span>
   </span>
   <span class="actions">
-    <Button variant={primary ? 'secondary' : 'primary'} disabled={busy} data-testid="save" onclick={onsave}>Save</Button>
+    <Button disabled={busy} data-testid="save" onclick={onsave}>Save</Button>
     {@render primary?.()}
   </span>
 </div>

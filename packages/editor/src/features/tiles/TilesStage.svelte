@@ -43,7 +43,7 @@ const preview = $derived(
   {#if tileset === undefined}
     <div class="none">
       <p role="status">No tiles yet. Add a picture of your tiles to paint with them.</p>
-      {#if files !== undefined}<Button variant="primary" onclick={() => (adding = true)}>Add tiles</Button>{/if}
+      {#if files !== undefined}<Button onclick={() => (adding = true)}>Add tiles</Button>{/if}
     </div>
   {:else}
     <TilesetSheet

@@ -44,13 +44,13 @@ describe('Feel', () => {
     expect(within(list).getByRole('button', { name: 'When player hit' })).toBeInTheDocument()
     expect(within(list).getByRole('button', { name: 'When any door event' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'When player hit happens' })).toBeInTheDocument()
-    const shake = screen.getByRole('article', { name: 'Shake the screen' })
+    const shake = screen.getByRole('region', { name: 'Shake the screen' })
     expect(within(shake).getByLabelText('How hard')).toHaveValue(0.2)
   })
 
   it('writes a changed value into the file and keeps its comments', async () => {
     const { ports } = await open({ [FEEL_PATH]: FILE })
-    const field = within(screen.getByRole('article', { name: 'Shake the screen' })).getByLabelText('How hard')
+    const field = within(screen.getByRole('region', { name: 'Shake the screen' })).getByLabelText('How hard')
     await userEvent.clear(field)
     await userEvent.type(field, '0.4{Enter}')
     await vi.waitFor(async () => expect(await text(ports)).toContain('shake = 0.4 }] # a light knock'))
@@ -58,7 +58,7 @@ describe('Feel', () => {
 
   it('refuses a value out of range in words and writes nothing', async () => {
     const { ports } = await open({ [FEEL_PATH]: FILE })
-    const field = within(screen.getByRole('article', { name: 'Shake the screen' })).getByLabelText('How hard')
+    const field = within(screen.getByRole('region', { name: 'Shake the screen' })).getByLabelText('How hard')
     await userEvent.clear(field)
     await userEvent.type(field, '3{Enter}')
     expect(await screen.findByText('The most is 1.')).toBeInTheDocument()
@@ -73,7 +73,7 @@ describe('Feel', () => {
     expect(await screen.findByRole('heading', { name: 'When enemy died happens' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Add an effect' }))
     await userEvent.click(screen.getByRole('button', { name: 'Freeze the action' }))
-    const freeze = await screen.findByRole('article', { name: 'Freeze the action' })
+    const freeze = await screen.findByRole('region', { name: 'Freeze the action' })
     expect(within(freeze).getByLabelText('How long')).toHaveValue(60)
     const written = (await text(ports)) ?? ''
     expect(written).toContain('on = "enemy.died"')
@@ -85,7 +85,7 @@ describe('Feel', () => {
     const { ports } = await open({ [FEEL_PATH]: FILE })
     await userEvent.click(screen.getByRole('button', { name: 'Add an effect' }))
     await userEvent.click(screen.getByRole('button', { name: 'Show a word' }))
-    const word = await screen.findByRole('article', { name: 'Show a word' })
+    const word = await screen.findByRole('region', { name: 'Show a word' })
     const says = within(word).getByLabelText('What it says')
     expect(says).toHaveValue('Pow!')
     expect(screen.queryByLabelText('Which word')).toBeNull()
@@ -127,6 +127,11 @@ describe('Feel', () => {
   it('offers to start a feel file when the game has none', async () => {
     const { ports } = await open({})
     expect(screen.getByRole('heading', { name: 'This game has no feel file yet.' })).toBeInTheDocument()
+    // The start page is an empty state: one heading, one line and one way forward.
+    const start = document.querySelector<HTMLElement>('[data-widget="empty-state"]')
+    expect(start).not.toBeNull()
+    expect(within(start as HTMLElement).getAllByRole('heading')).toHaveLength(1)
+    expect(within(start as HTMLElement).getAllByRole('button')).toHaveLength(1)
     await userEvent.click(screen.getByRole('button', { name: 'Start a feel file' }))
     expect(await screen.findByRole('heading', { name: 'Nothing has a feel yet.' })).toBeInTheDocument()
     expect(await text(ports)).toMatch(/^# What the player feels/)
@@ -245,7 +250,7 @@ describe('Feel', () => {
   it('plays the chosen feel again after a change, and on Play again', async () => {
     const { session } = await open({ [FEEL_PATH]: FILE })
     const before = session.replay
-    const field = within(screen.getByRole('article', { name: 'Shake the screen' })).getByLabelText('How hard')
+    const field = within(screen.getByRole('region', { name: 'Shake the screen' })).getByLabelText('How hard')
     await userEvent.clear(field)
     await userEvent.type(field, '0.5{Enter}')
     await vi.waitFor(() => expect(session.replay).toBe(before + 1))

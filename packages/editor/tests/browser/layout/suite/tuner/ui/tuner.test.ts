@@ -13,6 +13,7 @@ import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
+import { screenChecks } from '#src/testing/screen-checks.ts'
 import { chooseEditor } from '#src/testing/suite/suite-layout.ts'
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
@@ -103,6 +104,32 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/tuner-rows-${size.name}.png` })
   })
+
+  test.each(['dark', 'light'] as const)(
+    'passes the screen checks in %s, and the running game says Playing with the lime dot',
+    async (theme) => {
+      document.documentElement.dataset.theme = theme
+      await open(size)
+      await expect.poll(() => document.querySelector('iframe[title="Your game"]')).not.toBeNull()
+      expect(
+        await screenChecks(
+          document,
+          { name: size.name, width: size.width, height: size.height, touch: targets.hit >= 44 },
+          { contrast: true },
+        ),
+      ).toEqual([])
+      const dot = document.querySelector<HTMLElement>('[data-testid="tuner-game"] .dot')
+      expect(dot, 'the Playing dot').not.toBeNull()
+      const lime = document.createElement('i')
+      lime.style.background = 'var(--lime)'
+      document.body.append(lime)
+      expect(getComputedStyle(dot as HTMLElement).backgroundColor).toBe(
+        getComputedStyle(lime).backgroundColor,
+      )
+      lime.remove()
+      delete document.documentElement.dataset.theme
+    },
+  )
 
   test('the game runs beside the settings: side by side in a canvas 560 px wide and up with the game the larger pane, the game on top below that', async () => {
     await open(size)

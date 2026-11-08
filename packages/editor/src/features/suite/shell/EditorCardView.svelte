@@ -87,6 +87,7 @@ const line = $derived(cardLine(card.editor))
     font: var(--text-title-15);
   }
   .open {
+    min-width: var(--size-hit);
     min-height: var(--size-hit);
     padding: 0;
     border: 0;

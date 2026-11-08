@@ -73,6 +73,7 @@ onDestroy(() => {
     <p class="note">Your game shows here when you open the editors in your game's folder.</p>
   {:else if running}
     <iframe title="Your game" src={address} bind:this={frame}></iframe>
+    <p class="playing" role="status"><span class="dot" aria-hidden="true"></span>Playing</p>
   {:else}
     <p class="note">Start your game with pnpm dev to see your changes here.</p>
   {/if}
@@ -80,6 +81,7 @@ onDestroy(() => {
 
 <style>
   .game {
+    position: relative;
     display: grid;
     place-items: center;
     min-height: 0;
@@ -89,6 +91,28 @@ onDestroy(() => {
     width: 100%;
     height: 100%;
     border: 0;
+  }
+  /* The one lime in the Tuner: the game is running, and a change shows in it. */
+  .playing {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 2px var(--space-2);
+    border-radius: var(--edge-sm);
+    background: var(--charcoal);
+    color: var(--color-text-dim);
+    font: var(--text-eyebrow-11);
+    pointer-events: none;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--lime);
   }
   .note {
     max-width: 32ch;

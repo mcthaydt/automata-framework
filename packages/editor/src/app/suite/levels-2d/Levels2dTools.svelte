@@ -37,7 +37,6 @@ const choose = (id: string) => view.set(id === 'tiles' || id === 'characters' ? 
   {#if session.share !== undefined}
     <Menu
       label="Share"
-      variant="primary"
       items={shareItems(session.options.share?.canShare ?? false)}
       onselect={(action) => void session.share?.(action as ShareAction)}
     >

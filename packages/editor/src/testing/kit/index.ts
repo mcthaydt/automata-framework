@@ -3,6 +3,8 @@
 // own copy of them.
 
 export { contrast } from '../../shared/kit/tokens/contrast'
+export { type ScreenCheckOptions, screenChecks } from '../screen-checks'
+export { WINDOW_SIZES, type WindowSize } from './at-every-size'
 export { IPAD_PROFILES, type IpadProfile, turned } from './ipad-profiles'
 export {
   IPAD_USER_AGENT,

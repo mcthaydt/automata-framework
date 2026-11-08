@@ -6,7 +6,7 @@ import DocumentBar from '#src/features/document/DocumentBar.svelte'
 import type { SaveState } from '#src/shared/kit/storage/save-state.ts'
 
 // The document's top bar, essentials only: Back, the level's name, Undo and Redo as icon buttons, where the level
-// stands on saving as a quiet status ("Saved", "Not saved", "Saving…"), and Save, the one primary action.
+// stands on saving as a quiet status ("Saved", "Not saved", "Saving…"), and Save, a plain button (Publish is the one lime button).
 
 interface Props {
   canUndo?: boolean
@@ -42,7 +42,7 @@ describe('DocumentBar', () => {
     expect(screen.getByTestId('document-bar')).toHaveAttribute('data-path', 'levels/mossgate.af2d.json')
   })
 
-  it('Save is the one primary button and keeps its word; the status beside it says where the level stands', () => {
+  it('Save is a plain button that keeps its word; the status beside it says where the level stands', () => {
     const words: ReadonlyArray<readonly [SaveState, string]> = [
       ['saved', 'Saved'],
       ['dirty', 'Not saved'],
@@ -53,12 +53,12 @@ describe('DocumentBar', () => {
     for (const [save, said] of words) {
       mount({ save })
       const button = screen.getByTestId('save')
-      expect(button).toHaveAttribute('data-kind', 'primary')
+      expect(button).toHaveAttribute('data-kind', 'secondary')
       expect(button).toHaveTextContent(/^Save$/)
       const status = screen.getByTestId('save-state')
       expect(status).toHaveAttribute('data-save', save)
       expect(status).toHaveTextContent(said)
-      expect(document.querySelectorAll('[data-kind="primary"]')).toHaveLength(1)
+      expect(document.querySelectorAll('[data-kind="primary"]')).toHaveLength(0)
       cleanup()
     }
   })

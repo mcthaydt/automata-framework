@@ -4,6 +4,7 @@
 -->
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
+import Check from '../../shared/ui/Check.svelte'
 import FeelStage from './FeelStage.svelte'
 import { eventWords } from './feel-model.ts'
 import type { FeelSession } from './feel-session.svelte.ts'
@@ -45,30 +46,9 @@ const STRENGTHS = [
 <section class="settings-part" aria-label="What the player sets">
   <fieldset>
     <legend>What the player sets</legend>
-    <label class="check">
-      <input
-        type="checkbox"
-        checked={session.preview.reduceFlashing}
-        onchange={(event) => (session.preview = { ...session.preview, reduceFlashing: event.currentTarget.checked })}
-      />
-      Less flashing
-    </label>
-    <label class="check">
-      <input
-        type="checkbox"
-        checked={session.preview.haptics}
-        onchange={(event) => (session.preview = { ...session.preview, haptics: event.currentTarget.checked })}
-      />
-      Rumble
-    </label>
-    <label class="check">
-      <input
-        type="checkbox"
-        checked={session.preview.reduced}
-        onchange={(event) => (session.preview = { ...session.preview, reduced: event.currentTarget.checked })}
-      />
-      Reduce motion
-    </label>
+    <Check checked={session.preview.reduceFlashing} onchange={(on) => (session.preview = { ...session.preview, reduceFlashing: on })}>Less flashing</Check>
+    <Check checked={session.preview.haptics} onchange={(on) => (session.preview = { ...session.preview, haptics: on })}>Rumble</Check>
+    <Check checked={session.preview.reduced} onchange={(on) => (session.preview = { ...session.preview, reduced: on })}>Reduce motion</Check>
     <label class="pick">
       Strength
       <select
@@ -144,7 +124,6 @@ const STRENGTHS = [
     color: var(--color-text-dim);
     font: var(--text-body-13);
   }
-  .check,
   .pick {
     display: flex;
     align-items: center;

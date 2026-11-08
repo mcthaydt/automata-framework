@@ -135,7 +135,7 @@ const entities: EntityDef2D[] = [
     label: 'Enemy',
     color: '#ef4444',
     fields: [
-      { id: 'hp', type: 'int', label: 'Hit points', min: 1, max: 99, default: 3 },
+      { id: 'hp', type: 'int', label: 'Hits to beat it', min: 1, max: 99, default: 3 },
       { id: 'aggro', type: 'int', label: 'Aggro range (tiles)', min: 0, max: 16, default: 4 },
     ],
     shape: 'rect',

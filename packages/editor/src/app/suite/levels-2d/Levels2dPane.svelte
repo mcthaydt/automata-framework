@@ -16,15 +16,19 @@ import LevelStage from '../../../features/level/LevelStage.svelte'
 import TilesInspector from '../../../features/tiles/TilesInspector.svelte'
 import TilesPanel from '../../../features/tiles/TilesPanel.svelte'
 import TilesStage from '../../../features/tiles/TilesStage.svelte'
+import type { ShellMode } from '../../../shared/kit/shell/shell-mode'
+import EmptyState from '../../../shared/kit/states/EmptyState.svelte'
 import Levels2dConflict from './Levels2dConflict.svelte'
 import type { Levels2dSession } from './levels-2d-session'
 
 interface Props {
   session: Levels2dSession
   part: 'panel' | 'canvas' | 'inspector'
+  /** The window's layout, for the canvas's tools: a dock across the foot on a phone, a pill at the top elsewhere. */
+  mode?: ShellMode
 }
 
-const { session, part }: Props = $props()
+const { session, part, mode = 'wide' }: Props = $props()
 
 // svelte-ignore state_referenced_locally
 const view = session.view
@@ -92,6 +96,7 @@ async function start(profileId: string, templateId: string): Promise<void> {
       {read}
       ids={session.options.ids}
       canvas={session.options.canvas}
+      toolsAt={mode === 'compact' ? 'dock' : 'top'}
     />
     <Levels2dConflict {session} />
   {:else}
@@ -99,9 +104,9 @@ async function start(profileId: string, templateId: string): Promise<void> {
   {/if}
 {:else if part === 'canvas' && $current.kind === 'empty'}
   <div class="starts" data-testid="levels-2d-starts">
-    <h2>New level</h2>
-    <p>Pick a starting point. You can change everything later.</p>
-    <TemplateRow cards={$current.cards} busy={starting} oncreate={(profile, template) => void start(profile, template)} />
+    <EmptyState icon="levels" title="No level yet" why="Pick a starting point. You can change everything later.">
+      <TemplateRow cards={$current.cards} busy={starting} oncreate={(profile, template) => void start(profile, template)} />
+    </EmptyState>
     {#if $refused !== undefined}<p role="alert">Not made: {$refused}</p>{/if}
   </div>
 {:else if part === 'canvas' && $current.kind === 'error'}
@@ -118,18 +123,15 @@ async function start(profileId: string, templateId: string): Promise<void> {
     box-sizing: border-box;
     max-width: 480px;
     height: 100%;
+    margin: 0 auto;
     padding: var(--space-5);
     overflow-y: auto;
     color: var(--color-text-dim);
     font: var(--text-body-13);
   }
-  .starts h2 {
-    margin: 0 0 var(--space-2);
-    color: var(--color-text-primary);
-    font: var(--text-title-15);
-  }
-  .starts p {
-    margin: 0 0 var(--space-3);
+  .starts :global(ul) {
+    width: 100%;
+    text-align: left;
   }
   .refused {
     padding: var(--space-5);

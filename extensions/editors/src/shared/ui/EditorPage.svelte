@@ -14,7 +14,8 @@ const { label, children }: { label: string; children: Snippet } = $props()
   .page {
     display: grid;
     align-content: start;
-    grid-template-columns: minmax(0, 40rem);
+    grid-template-columns: minmax(0, 720px);
+    justify-content: center;
     gap: var(--space-4);
     box-sizing: border-box;
     height: 100%;
@@ -37,13 +38,13 @@ const { label, children }: { label: string; children: Snippet } = $props()
     color: var(--color-text-dim);
     font: var(--text-body-13);
   }
+  /* A section of a page is divided from the one above by a hairline, not boxed: the only boxes in an editor are the kit's
+     blocks, so a field never sits in a box inside a box. */
   .page :global(.card) {
     display: grid;
     gap: var(--space-3);
-    padding: var(--space-4);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--edge-md);
-    background: var(--color-bg-surface);
+    padding: var(--space-4) 0 0;
+    box-shadow: inset 0 1px 0 var(--color-border-default);
   }
   .page :global(.card > header) {
     display: flex;

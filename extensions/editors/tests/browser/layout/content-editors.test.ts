@@ -2,7 +2,7 @@ import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { editorTargets, SIZES } from '@automata/editor/kit/testing'
+import { editorTargets, SIZES, screenChecks } from '@automata/editor/kit/testing'
 import { fixtureEditor } from '@automata/editor/suite/testing'
 import { inShell, noPageScroll, type OpenedSuite, openSuite } from '@automata/editor/suite/testing/layout'
 import { settleLayout } from '@automata/framework/testing'
@@ -85,6 +85,32 @@ describe.each(sizes)('Content editors at $name ($width x $height)', (size) => {
       await page.screenshot({ path: `.vitest/shots/content-${name.toLowerCase()}-${size.name}.png` })
     },
   )
+})
+
+// The v2 look in Dark and in Light: no page scrolls sideways, every control is a whole target, no text is too faint
+// to read, and no layer shows more than the one lime button.
+describe.each(['dark', 'light'] as const)('Content editors in %s', (theme) => {
+  describe.each(sizes)('at $name ($width x $height)', (size) => {
+    test.each(Object.keys(READY))('%s passes the screen checks', async (name) => {
+      document.documentElement.dataset.theme = theme
+      opened = await openSuite(
+        size,
+        [fixtureEditor as SuiteEditor<unknown>, ...contentEditors()],
+        CONTENT_SAMPLE_GAME,
+        READY[name] as string,
+        name,
+      )
+      const touch = editorTargets().hit >= 44
+      expect(
+        await screenChecks(
+          document,
+          { name: size.name, width: size.width, height: size.height, touch },
+          { contrast: true },
+        ),
+      ).toEqual([])
+      delete document.documentElement.dataset.theme
+    })
+  })
 })
 
 describe.each(sizes)('Sequence’s step sheet at $name ($width x $height)', (size) => {

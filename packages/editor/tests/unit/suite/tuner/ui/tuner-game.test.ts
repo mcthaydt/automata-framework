@@ -21,6 +21,19 @@ describe('TunerGame', () => {
     expect(frame.getAttribute('src')).toBe(GAME)
   })
 
+  it('says Playing beside the running game, and not before it runs', async () => {
+    vi.useFakeTimers()
+    let up = false
+    render(TunerGame, { url: GAME, answers: async () => up })
+    await vi.waitFor(() =>
+      expect(screen.getByText('Start your game with pnpm dev to see your changes here.')).toBeTruthy(),
+    )
+    expect(screen.queryByText('Playing')).toBeNull()
+    up = true
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(await screen.findByText('Playing')).toBeTruthy()
+  })
+
   it('says how to start the game while nothing answers, and shows it once it does', async () => {
     vi.useFakeTimers()
     let up = false

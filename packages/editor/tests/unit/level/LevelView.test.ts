@@ -170,7 +170,10 @@ describe('Level view: toolbar and canvas', () => {
     expect(canvas()).toHaveAttribute('data-tool', 'fill')
     expect(screen.queryByRole('button', { name: /^Brush size/ })).toBeNull()
     await userEvent.click(within(tool).getByRole('radio', { name: 'Eraser' }))
-    // Beside the tools the size is the mockup's − 1 +, each a 44 px button.
+    // Beside the tools the size is the mockup's − 1 +, the toolbar's second group, named for what it changes.
+    const group = screen.getByRole('group', { name: 'Brush size' })
+    expect(within(group).getByRole('button', { name: 'Smaller brush' })).toBeInTheDocument()
+    expect(within(group).getByRole('button', { name: 'Bigger brush' })).toBeInTheDocument()
     expect(screen.getByRole('status', { name: 'Brush size' })).toHaveTextContent(/^1$/)
     await userEvent.click(screen.getByRole('button', { name: 'Bigger brush' }))
     expect(screen.getByRole('status', { name: 'Brush size' })).toHaveTextContent(/^2$/)
@@ -322,11 +325,11 @@ describe('Level view: inspector journey (flow 3, G-e)', () => {
     await mount()
     await placeSlime()
     expect(inspectorHeading()).toHaveTextContent('Slime')
-    expect(stepper('Hit points')).toBe('3')
+    expect(stepper('Hits to beat it')).toBe('3')
 
-    await userEvent.click(screen.getByRole('button', { name: 'Increase Hit points' }))
-    expect(stepper('Hit points')).toBe('4')
-    expect(screen.getByRole('button', { name: 'Undo Set Hit points' })).toBeEnabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Increase Hits to beat it' }))
+    expect(stepper('Hits to beat it')).toBe('4')
+    expect(screen.getByRole('button', { name: 'Undo Set Hits to beat it' })).toBeEnabled()
 
     await userEvent.click(screen.getByRole('button', { name: 'Tint: #7c3aed' }))
     const swatches = within(screen.getByRole('listbox', { name: 'Tint palette' })).getAllByRole('option')
@@ -337,15 +340,15 @@ describe('Level view: inspector journey (flow 3, G-e)', () => {
     expect(screen.getByRole('button', { name: `Tint: ${picked}` })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Undo Set Tint' })).toBeEnabled()
 
-    await userEvent.click(screen.getByRole('spinbutton', { name: 'Hit points' }))
+    await userEvent.click(screen.getByRole('spinbutton', { name: 'Hits to beat it' }))
     await userEvent.keyboard('{Control>}a{/Control}12{Enter}')
     expect(screen.getByRole('alert')).toHaveTextContent(/9/)
     expect(screen.getByRole('button', { name: 'Undo Set Tint' })).toBeEnabled()
 
     await userEvent.click(screen.getByRole('button', { name: 'Undo Set Tint' }))
     expect(screen.getByRole('button', { name: 'Tint: #7c3aed' })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Undo Set Hit points' }))
-    expect(stepper('Hit points')).toBe('3')
+    await userEvent.click(screen.getByRole('button', { name: 'Undo Set Hits to beat it' }))
+    expect(stepper('Hits to beat it')).toBe('3')
   })
 })
 

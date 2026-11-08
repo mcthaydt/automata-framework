@@ -259,6 +259,10 @@ describe('A level to try, on the sample game with none', () => {
       await screen.findByText('Pick a starting point. You can change everything later.'),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Platformer/ })).toBeInTheDocument()
+    // With no level yet the canvas is an empty state: what is missing, why, and the starting points to choose from.
+    const starts = screen.getByTestId('levels-2d-starts')
+    expect(within(starts).getByRole('heading', { name: 'No level yet' })).toBeInTheDocument()
+    expect(within(starts).getAllByRole('heading')).toHaveLength(1)
   })
 
   it('draws the chosen starting point and keeps it in the game folder', async () => {
@@ -273,13 +277,13 @@ describe('A level to try, on the sample game with none', () => {
     expect(screen.queryByText('Pick a starting point. You can change everything later.')).toBeNull()
   })
 
-  it('has Share as the one primary action once there is a level, and Download hands the level over', async () => {
+  it('has Share, a plain button, once there is a level, and Download hands the level over', async () => {
     await tryIt()
     expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
     await userEvent.click(await screen.findByRole('button', { name: 'New level' }))
     await userEvent.click(await screen.findByRole('button', { name: /Platformer/ }))
     const button = await screen.findByRole('button', { name: 'Share' })
-    expect(button).toHaveAttribute('data-kind', 'primary')
+    expect(button).toHaveAttribute('data-kind', 'secondary')
     await userEvent.click(button)
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Download' }))
     expect(await screen.findByText('Downloaded your level.')).toBeInTheDocument()

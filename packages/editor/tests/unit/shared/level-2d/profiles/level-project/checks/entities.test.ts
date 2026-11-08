@@ -35,7 +35,7 @@ describe('entity checks', () => {
         expect.objectContaining({
           severity: 'error',
           path: 'levels[level-1].layers[entities].items[door-1].fields.target',
-          message: expect.stringContaining('target'),
+          message: "The Door doesn't lead anywhere yet. Choose where it goes.",
         }),
       ])
     })

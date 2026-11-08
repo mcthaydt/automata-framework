@@ -245,7 +245,7 @@ function openCard(card: EditorCard): void {
         <ReadOnlyFile file={reading} workspace={ports.workspace} onback={() => (reading = undefined)} />
       </div>
     {:else if mounted}
-      {@render mounted.editor.regions.canvas(mounted.session)}
+      {@render mounted.editor.regions.canvas(mounted.session, { mode })}
     {:else if entry === undefined}
       <SuiteHome {home} {sample} onopen={openCard} onread={(file) => (reading = file)} />
     {:else}

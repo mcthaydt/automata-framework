@@ -60,7 +60,7 @@ describe('commitField (G-e)', () => {
     const stored = (project: Project) =>
       project.levels[0]?.layers.find((layer) => layer.kind === 'entities' && layer.def === 'entities')
     expect(JSON.stringify(stored(edits.state))).toContain('"hp":5')
-    expect(history.undoLabel).toBe('Set Hit points')
+    expect(history.undoLabel).toBe('Set Hits to beat it')
     history.undo()
     expect(edits.state).toBe(before)
   })

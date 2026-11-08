@@ -49,7 +49,7 @@ const entities: EntityDef2D[] = [
     label: 'Slime',
     color: '#a855f7',
     fields: [
-      { id: 'hp', type: 'int', label: 'Hit points', min: 1, max: 9, default: 3 },
+      { id: 'hp', type: 'int', label: 'Hits to beat it', min: 1, max: 9, default: 3 },
       { id: 'patrol', type: 'point', label: 'Patrol path', list: true },
       { id: 'tint', type: 'color', label: 'Tint', default: '#7c3aed' },
     ],

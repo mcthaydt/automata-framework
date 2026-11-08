@@ -31,7 +31,7 @@ async function add(): Promise<void> {
   {#if refusal !== undefined}<p class="bad" role="alert">{refusal}</p>{/if}
   <div class="actions">
     {#if oncancel !== undefined}<Button variant="quiet" onclick={oncancel}>Cancel</Button>{/if}
-    <Button variant="primary" disabled={name.trim() === ''} onclick={() => void add()}>Add</Button>
+    <Button disabled={name.trim() === ''} onclick={() => void add()}>Add</Button>
   </div>
 </form>
 

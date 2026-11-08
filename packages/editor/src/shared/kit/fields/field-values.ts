@@ -8,13 +8,29 @@ export const hasValue = (values: FieldValues, id: string): boolean =>
   Object.hasOwn(values, id) && values[id] !== undefined
 
 /**
- * The problem with one field of an instance, or `undefined`: a missing required field is `fieldMissing`, a present
- * value is checked against the field. Shared by `checkValues` and `checkRetype`.
+ * What a person reads when a required field has no value: the thing's own name and what to do, never the field's key.
+ * `owner` is what the holder is called ("Door", "level"); a Leads to field says where the thing goes.
  */
-export function checkFieldInstance(field: FieldDef, values: FieldValues): InstanceProblem | undefined {
+function missingWords(field: FieldDef, owner: string): string {
+  const label = field.label ?? field.id
+  return field.type === 'ref' && label === 'Leads to'
+    ? `The ${owner} doesn't lead anywhere yet. Choose where it goes.`
+    : `The ${owner} needs a ${label}. Fill it in.`
+}
+
+/**
+ * The problem with one field of an instance, or `undefined`: a missing required field is `fieldMissing`, a present
+ * value is checked against the field. Shared by `checkValues` and `checkRetype`. `owner` names the holder in the
+ * words of a missing value.
+ */
+export function checkFieldInstance(
+  field: FieldDef,
+  values: FieldValues,
+  owner = 'thing',
+): InstanceProblem | undefined {
   if (!hasValue(values, field.id)) {
     return field.required
-      ? { code: 'fieldMissing', message: `${field.id} is required`, fieldId: field.id }
+      ? { code: 'fieldMissing', message: missingWords(field, owner), fieldId: field.id }
       : undefined
   }
   const misfit = checkFieldValue(field, values[field.id])
@@ -25,10 +41,14 @@ export function checkFieldInstance(field: FieldDef, values: FieldValues): Instan
  * Problems for a whole instance: each field in definition order (a missing required field is `fieldMissing`),
  * then every value whose id has no field as `unknownField`, in sorted order.
  */
-export function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[] {
+export function checkValues(
+  fields: readonly FieldDef[],
+  values: FieldValues,
+  owner?: string,
+): readonly InstanceProblem[] {
   const problems: InstanceProblem[] = []
   for (const field of fields) {
-    const problem = checkFieldInstance(field, values)
+    const problem = checkFieldInstance(field, values, owner)
     if (problem) problems.push(problem)
   }
   const known = new Set(fields.map((field) => field.id))

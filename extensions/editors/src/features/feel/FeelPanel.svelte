@@ -48,7 +48,7 @@ async function add(on: string): Promise<void> {
     {#if adding}
       <EventPicker events={session.events} {answered} onpick={(on) => void add(on)} oncancel={() => (adding = false)} />
     {:else}
-      <Button variant="primary" onclick={() => (adding = true)}>Add a feel</Button>
+      <Button onclick={() => (adding = true)}>Add a feel</Button>
     {/if}
   </nav>
 {/if}

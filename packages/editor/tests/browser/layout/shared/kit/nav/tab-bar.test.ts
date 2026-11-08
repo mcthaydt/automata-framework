@@ -21,7 +21,13 @@ afterEach(async () => {
 
 async function open(standing: boolean): Promise<void> {
   await (standing ? page.viewport(844, 390) : page.viewport(390, 844))
-  mounted = mountFixture(NavFixture, { layout: 'tabbar' as const, standing, width: 72, entries, current: 'tuner' })
+  mounted = mountFixture(NavFixture, {
+    layout: 'tabbar' as const,
+    standing,
+    width: 72,
+    entries,
+    current: 'tuner',
+  })
   await settleLayout()
 }
 

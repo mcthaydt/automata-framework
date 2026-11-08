@@ -3,7 +3,7 @@
   hard 0.3"). A missing file offers to start one; a file with a mistake opens read only and says where the mistake is.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Block, Button, EmptyState } from '@automata/editor/kit'
 import { type FeelEntry, resolveLimits } from '@automata/feel'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
@@ -104,11 +104,12 @@ async function removeFeel(chosen: FeelEntry) {
   <div class="sentences">
 
   {#if read.kind === 'missing'}
-    <div class="empty">
-      <h2>This game has no feel file yet.</h2>
-      <p>A feel file says what the player feels when something happens: a shake, a freeze, a flash, a rumble.</p>
-      <Button variant="primary" onclick={() => void session.start()}>Start a feel file</Button>
-    </div>
+    <EmptyState
+      icon="zap"
+      title="This game has no feel file yet."
+      why="A feel file says what the player feels when something happens: a shake, a freeze, a flash, a rumble."
+      action={{ label: 'Start a feel file', onclick: () => void session.start() }}
+    />
   {:else if read.kind === 'syntax'}
     <div class="empty">
       <h2>The feel file has a mistake{read.line === undefined ? '' : ` on line ${String(read.line)}`}.</h2>
@@ -171,18 +172,11 @@ async function removeFeel(chosen: FeelEntry) {
     {/if}
     {#if problemAt('on') !== undefined}<p class="refused" role="alert">{problemAt('on')}</p>{/if}
     {#each effectLines(entry, resolveLimits(content ?? {}), session.cues) as line (`${line.channel}.${String(line.index)}`)}
-      <article class="effect" aria-label={line.words}>
-        <header>
-          <h3>{line.words}</h3>
-          <Button
-            variant="quiet"
-            aria-label={`Remove ${line.words.toLowerCase()}`}
-            onclick={() => void session.change(`Remove ${line.words.toLowerCase()}`, [removeEffectEdit(index ?? 0, line)])}
-          >
-            Remove
-          </Button>
-        </header>
-        <div class="fields">
+      <Block
+        title={line.words}
+        icon="zap"
+        onremove={() => void session.change(`Remove ${line.words.toLowerCase()}`, [removeEffectEdit(index ?? 0, line)])}
+      >
           {#each line.fields as field (field.key)}
             {@const note = content === undefined ? undefined : limitNote(content, line, field.key)}
             <FieldRow
@@ -207,8 +201,7 @@ async function removeFeel(chosen: FeelEntry) {
               {#if said !== undefined && field.key === line.fields[0]?.key}<p class="note" role="status">{said}</p>{/if}
             {/if}
           {/each}
-        </div>
-      </article>
+      </Block>
     {:else}
       <p class="lead">Nothing happens yet. Add an effect the player will feel.</p>
     {/each}
@@ -224,7 +217,7 @@ async function removeFeel(chosen: FeelEntry) {
       </div>
     {:else}
       <div class="actions">
-        <Button variant="primary" disabled={session.adding} onclick={() => (choosing = true)}>Add an effect</Button>
+        <Button disabled={session.adding} onclick={() => (choosing = true)}>Add an effect</Button>
         {#if removing}
           <span class="confirm" role="group" aria-label="Remove this feel?">
             Remove this feel?
@@ -296,11 +289,6 @@ async function removeFeel(chosen: FeelEntry) {
     color: var(--color-text-primary);
     font: var(--text-title-15);
   }
-  h3 {
-    margin: 0;
-    color: var(--color-text-primary);
-    font: var(--text-body-13-medium);
-  }
   .lead,
   .empty p {
     margin: 0;
@@ -310,20 +298,6 @@ async function removeFeel(chosen: FeelEntry) {
   .empty {
     display: grid;
     justify-items: start;
-    gap: var(--space-3);
-  }
-  .effect {
-    display: grid;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--edge-md);
-    background: var(--color-bg-surface);
-  }
-  .effect header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     gap: var(--space-3);
   }
   .fields {

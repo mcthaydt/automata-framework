@@ -56,7 +56,7 @@ const kinds = $derived(
     <input {id} bind:value={typed} />
     <div class="actions">
       <Button variant="quiet" onclick={oncancel}>Cancel</Button>
-      <Button variant="primary" disabled={typed.trim() === ''} onclick={() => onpick(typed.trim())}>{addLabel}</Button>
+      <Button disabled={typed.trim() === ''} onclick={() => onpick(typed.trim())}>{addLabel}</Button>
     </div>
   </form>
 </div>

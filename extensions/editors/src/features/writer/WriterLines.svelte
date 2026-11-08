@@ -90,12 +90,12 @@ const removing = $derived(session.removing)
     <WordsField label="What do they say?" value={draft} oninput={(words) => (draft = words)} />
     <div class="actions">
       <Button variant="quiet" onclick={() => (adding = false)}>Cancel</Button>
-      <Button variant="primary" disabled={draft.trim() === ''} onclick={() => void add()}>Add this line</Button>
+      <Button disabled={draft.trim() === ''} onclick={() => void add()}>Add this line</Button>
     </div>
   </div>
 {:else}
   <div class="actions">
-    <Button variant="primary" onclick={() => (adding = true)}>
+    <Button onclick={() => (adding = true)}>
       {rows.length === 0 ? 'Write the first line' : 'Add a line'}
     </Button>
   </div>

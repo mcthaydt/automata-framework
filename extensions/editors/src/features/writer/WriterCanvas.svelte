@@ -3,7 +3,7 @@
   next; a file with a mistake opens read only and says where the mistake is.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button, EmptyState } from '@automata/editor/kit'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import WriterConversation from './WriterConversation.svelte'
 import WriterLines from './WriterLines.svelte'
@@ -20,17 +20,19 @@ const broken = $derived(lines?.kind === 'syntax' ? lines : dialogue?.kind === 's
 
 <EditorPage label="Writer">
   {#if session.scene === undefined}
-    <div class="empty">
-      <h2>This game has no words yet.</h2>
-      <p>Words belong to a scene, a place in your story. Give the first one a name.</p>
+    <EmptyState
+      icon="message"
+      title="This game has no words yet."
+      why="Words belong to a scene, a place in your story. Give the first one a name."
+    >
       <div class="fields">
         <label for="writer-first-scene">What is this place called?</label>
         <input id="writer-first-scene" bind:value={name} />
       </div>
-      <Button variant="primary" disabled={name.trim() === ''} onclick={() => void session.addScene(name)}>
+      <Button disabled={name.trim() === ''} onclick={() => void session.addScene(name)}>
         Start writing
       </Button>
-    </div>
+    </EmptyState>
   {:else if broken !== undefined}
     <div class="empty">
       <h2>A file of this scene has a mistake{broken.line === undefined ? '' : ` on line ${String(broken.line)}`}.</h2>

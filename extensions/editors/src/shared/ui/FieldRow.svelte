@@ -4,6 +4,8 @@
   range is refused in words beside the field and not written.
 -->
 <script lang="ts">
+import { Field } from '@automata/editor/kit'
+
 interface Props {
   label: string
   kind: 'number' | 'text' | 'choice'
@@ -60,7 +62,8 @@ function commit(event: Event & { currentTarget: HTMLInputElement }): void {
 }
 </script>
 
-<div class="row">
+<Field {label} labelled warning={refusal ?? problem}>
+  <span class="line">
   <label for={id}>{label}</label>
   <span class="input">
     {#if kind === 'choice'}
@@ -75,35 +78,33 @@ function commit(event: Event & { currentTarget: HTMLInputElement }): void {
         {#each options as option (option.value)}<option value={option.value}>{option.label}</option>{/each}
       </select>
     {:else}
-    <input
-      {id}
-      type={kind === 'number' ? 'number' : 'text'}
-      inputmode={kind === 'number' ? 'decimal' : undefined}
-      value={String(value)}
-      {min}
-      {max}
-      {step}
-      {disabled}
-      aria-invalid={problem !== undefined || refusal !== undefined}
-      onchange={commit}
-      onkeydown={(event) => {
-        if (event.key === 'Enter') event.currentTarget.blur()
-      }}
-    />
+      <input
+        {id}
+        type={kind === 'number' ? 'number' : 'text'}
+        inputmode={kind === 'number' ? 'decimal' : undefined}
+        value={String(value)}
+        {min}
+        {max}
+        {step}
+        {disabled}
+        aria-invalid={problem !== undefined || refusal !== undefined}
+        onchange={commit}
+        onkeydown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur()
+        }}
+      />
     {/if}
     {#if unit !== undefined}<span class="unit">{unit}</span>{/if}
   </span>
-  {#if refusal !== undefined || problem !== undefined}
-    <p class="problem" role="alert">{refusal ?? problem}</p>
-  {/if}
-</div>
+  </span>
+</Field>
 
 <style>
-  .row {
+  .line {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: 108px minmax(0, 1fr);
     align-items: center;
-    gap: var(--space-1) var(--space-3);
+    gap: var(--space-2);
   }
   label {
     color: var(--color-text-dim);
@@ -134,12 +135,6 @@ function commit(event: Event & { currentTarget: HTMLInputElement }): void {
   }
   .unit {
     color: var(--color-text-faint);
-    font: var(--text-body-13);
-  }
-  .problem {
-    grid-column: 1 / -1;
-    margin: 0;
-    color: var(--color-state-bad);
     font: var(--text-body-13);
   }
 </style>
