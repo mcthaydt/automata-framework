@@ -10,8 +10,8 @@ name: ci
 # Emberwick's game CI run for a pull request only when it is ready for review and changes more than docs/ and
 # Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are unchanged.
 #
-# What it leaves to other workflows (core-and-2D refactor, spec section 3.4): the 3D and editor suites run in
-# 3d-and-editors.yml, and the release-only checks (build, API report, API index, agent skills, plugin validation,
+# What it leaves to other workflows (core-and-2D refactor, spec section 3.4): the 3D suites run in
+# 3d.yml, and the release-only checks (build, API report, API index, agent skills, plugin validation,
 # consumer smoke) in release-checks.yml, which release-packages.yml calls before it publishes.
 #
 # Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
@@ -104,7 +104,7 @@ jobs:
       - run: pnpm style
       # QB.1 (QB spec §4.1): unused files, exports and dependencies (knip.jsonc).
       - run: pnpm knip
-      - run: pnpm test:unit:core
+      - run: pnpm test:unit:2d
       # QB.1: each of these first proves it fails on its planted fixture, then checks the repository. The audit is
       # `pnpm audit --prod --audit-level=high`; the secret scan runs the pinned gitleaks over the full history
       # (fetch-depth 0 above).
@@ -174,9 +174,9 @@ jobs:
       - run: echo "HOME=/root" >> "$GITHUB_ENV"
         if: runner.os == 'Linux'
       # Every core and 2D package with a browsers vitest project (sim, content, ui, ...) runs its parity suite (the 3D
-      # and editor packages run theirs in 3d-and-editors.yml): on
+      # packages run theirs in 3d.yml): on
       # pushes to main, the nightly, and a pull request that changes something outside the workspace packages.
-      - run: pnpm test:browser:core
+      - run: pnpm test:browser:2d
         if: github.event_name != 'pull_request' || needs.checks.outputs.parity_full == 'true'
       # Any other pull request runs only the suites of the packages it affects, dependents included (turbo
       # --affected). The checkout is GitHub's merge commit, whose first parent is the base tip.

@@ -1277,3 +1277,15 @@ logic that is not markup lives in the view's `*-model.ts`.
 
 (Each session appends: date, tasks touched, counts before and after, engines run, first-attempt failures, deviations
 from this plan with their reason, and a two-line handoff.)
+
+### 2026-11-06, session 1 (Sonnet, high)
+
+- Tasks 1.1 and 1.2 (phase 1). Node 24.22 from `/opt/node24`; `pnpm install --frozen-lockfile` works in the cloud
+  session. `pnpm check` passed: 25 unit tasks, editor-kit 1,373, editor-2d 1,552, `automata` 1,841, `-tools` 673,
+  repo-hygiene 82 (before the new gate test; 90 with it).
+- Chromium only: editor-2d `layout`, `canvas` and `browsers` projects 259 passed, 6 skipped (the plan's 252 + 6; the canvas
+  project now counts); editor-kit `layout` 129 passed. The journeys projects need WebKit, which does not install here:
+  first attempt failed with the WebKit launch error, expected, left to the Owner's `pnpm ci:local`.
+- Deviations: the editors' `test:browser` also gained `canvas` (editor-2d) so the canvas tests run in a workflow, as the
+  task text asks. `actionlint` needs Docker: not run; the three workflow files parse as YAML.
+- Handoff: phase 1 committed on `claude/project-thread-s8zs6m` (draft PR). Next: phase 2, task 2.1 (the stranger's journey).

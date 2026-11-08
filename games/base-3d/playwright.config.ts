@@ -9,7 +9,7 @@ import { devices } from '@playwright/test'
 import { gameBuildPath, gamePort, gameUrl } from './e2e/origin.ts'
 
 // The 3D journeys: `pnpm test:e2e` in this folder. The base 3D game and the 3D examples (render3d-*, figures-*)
-// run here, not in the 2D gate; the 3D and editors workflow runs them (.github/workflows/3d-and-editors.yml).
+// run here, not in the 2D gate; the 3D workflow runs them (.github/workflows/3d.yml).
 
 const reuse = process.env.CI === undefined
 

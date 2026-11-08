@@ -1,7 +1,7 @@
-name: 3d-and-editors
+name: 3d
 
-# The 3D and editor suites (core-and-2D refactor spec section 3.4, C1): the editors, the 3D renderer, figures, the
-# sector format, the base 3D game and the 3D examples. A core or 2D pull request is not blocked by them in ci.yml;
+# The 3D suites: the 3D editor and the suite shell, the 3D renderer, figures, the sector format, the base 3D game
+# and the 3D examples. The 2D editors run in the 2D gate (ci.yml). A core or 2D pull request is not blocked by them in ci.yml;
 # this workflow runs them on any pull request that touches their files or a core package (so a codemod's changes to
 # their imports are checked), on every push to main, nightly, and by hand.
 #
@@ -23,10 +23,10 @@ on:
       - "examples/tests/e2e/render3d-*"
       - "examples/tests/e2e/figures-*"
       - "agents/**"
-      # Every package: the 3D and editor packages, and the core ones they build on.
+      # Every package: the 3D packages, and the core ones they build on.
       - "packages/**"
       - pnpm-lock.yaml
-      - .github/workflows/3d-and-editors.yml
+      - .github/workflows/3d.yml
   schedule:
     - cron: "0 9 * * *"
   workflow_dispatch:
@@ -35,12 +35,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: 3d-and-editors-${{ github.ref }}-${{ github.event_name }}
+  group: 3d-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   unit-and-journeys:
-    name: 3D and editors - unit and iPad journeys
+    name: 3D - unit and iPad journeys
     if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
     runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 20
@@ -58,13 +58,13 @@ jobs:
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:unit:3d
-      # The editors' iPad journeys (CI.JRN1; EDK.6b's harness: WebKit with touch and a 2x screen). They take seconds,
-      # so they run in full. A self-hosted runner has WebKit's system libraries installed once.
+      # The 3D editor's and the suite's iPad journeys (WebKit with touch and a 2x screen; the 2D editors' run in
+      # ci.yml). They take seconds, so they run in full. A self-hosted runner has WebKit's system libraries installed once.
       - run: pnpm exec playwright install --with-deps webkit
         if: runner.environment == 'github-hosted'
       - run: pnpm exec playwright install webkit
         if: runner.environment == 'self-hosted'
-      - run: pnpm test:journeys
+      - run: pnpm test:journeys:3d
 
   e2e-3d:
     name: 3D journeys (base-3d and the 3D examples)
@@ -96,7 +96,7 @@ jobs:
           retention-days: 7
 
   parity-3d:
-    name: 3D and editors - parity (chromium, webkit, firefox)
+    name: 3D - parity (chromium, webkit, firefox)
     # A draft pull request skips it, as ci.yml's parity does.
     if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
     # The Owner's Mac (2026-10-17), so parity no longer queues behind Ruken on the shared af-linux PC.
@@ -134,7 +134,7 @@ jobs:
       # holds for every later step (parity and evidence). On the Mac host the runner's own HOME is right.
       - run: echo "HOME=/root" >> "$GITHUB_ENV"
         if: runner.os == 'Linux'
-      # Every 3D and editor package with a browsers vitest project runs its parity suite.
+      # Every 3D package with a browsers vitest project runs its parity suite.
       - run: pnpm test:browser:3d
       # The container runs as root in the runner's shared work folder (/__w is _work, /__t the tool cache). Hand
       # everything back to the runner user, the owner of /__w, or the next job's checkout cannot delete the
