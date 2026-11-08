@@ -1,9 +1,12 @@
 # Refactor progress
 
-**Overall: 21% (5 of 24 stages done).**
+**Overall: 33% (6 of 18 stages done).**
 
-The Owner's order (2026-11-05): finish one area completely before starting the next, in this order:
-core and 2D, then 3D, then the editors, then the website. Each stage runs in its own session.
+The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
+the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
+refactors that 2D touch and website refactor as if it's ready to ship with 2D alone, then we do the same for 3D". So the
+slices are core and 2D, then the 2D editors and the website, then 3D (its core, editors and site). Each stage runs in its
+own session.
 
 Every area goes through the same six stages:
 
@@ -187,14 +190,25 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 3D: 0% (0 of 6)
+## 2D editors and website: 17% (1 of 6)
 
-Not started. Starts when core and 2D are done.
+Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
+repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone.
 
-## Editors: 0% (0 of 6)
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md) |
+| 2. Plan and spec | Not started | |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
 
-Not started. Starts when 3D is done.
+Done means: someone new finds the site, makes a 2D game with `create-game`, edits its level with `automata editor`, sees
+the change in the game and publishes it, with nothing from 3D in the way; and journeys prove each step on every pull
+request.
 
-## Website: 0% (0 of 6)
+## 3D (core, editors, website): 0% (0 of 6)
 
-Not started. Starts when the editors are done.
+Not started. Starts when the 2D editors and the website are done. It may split in two (3D core, then the 3D editors
+and site) at its audit.
