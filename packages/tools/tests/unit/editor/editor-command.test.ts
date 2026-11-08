@@ -14,6 +14,7 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
   const served: EditorServerOptions[] = []
   const closed = vi.fn()
   const started: string[] = []
+  const reach: boolean[] = []
   const stopped = vi.fn()
   const deps: EditorCommandDeps = {
     serve: async (options) => {
@@ -30,8 +31,9 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
     lanAddresses: () => ['192.168.1.20'],
     makeToken: () => 'tok123',
     untilStopped: async () => {},
-    startGame: async (root) => {
+    startGame: async (root, options) => {
       started.push(root)
+      reach.push(options.lan === true)
       return { url: 'http://localhost:5199/', stop: async () => stopped() }
     },
     publishGame: async () => ({ ok: true, file: '/work/my-game-0.1.0-itch.zip' }),
@@ -39,7 +41,7 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
     ...overrides,
   }
   const io = { stdout: (text: string) => out.push(text), stderr: (text: string) => err.push(text) }
-  return { deps, io, out, err, served, closed, started, stopped }
+  return { deps, io, out, err, served, closed, started, stopped, reach }
 }
 
 describe('editorCommand', () => {
@@ -93,6 +95,13 @@ describe('editorCommand', () => {
     expect(served[0]?.gameUrl).toBe('http://localhost:5199/')
     expect(out.join('')).toContain('Your game is running: http://localhost:5199/')
     expect(stopped).toHaveBeenCalled()
+  })
+
+  it('with --lan, starts the game where a tablet can reach it too', async () => {
+    const { deps, io, reach } = setup()
+    await editorCommand([], io, deps)
+    await editorCommand(['--lan'], io, deps)
+    expect(reach).toEqual([false, true])
   })
 
   it('uses the game page it was given and starts no game of its own', async () => {

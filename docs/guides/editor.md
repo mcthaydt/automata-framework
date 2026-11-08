@@ -66,7 +66,8 @@ automata editor --lan
 ```
 
 It prints an address with a token in it (`http://192.168.1.20:4173/?token=...`). Open that on the tablet; a reload
-needs no token. Give your own with `--token <text>`. The editors write files, so they never listen beyond this
+needs no token. Give your own with `--token <text>`. Your game runs on the network too, so **Play** on the tablet
+opens it. The editors write files, so they never listen beyond this
 computer without a token.
 
 ## What it can change

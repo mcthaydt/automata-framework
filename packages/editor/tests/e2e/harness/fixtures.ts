@@ -52,14 +52,18 @@ export async function openRoom(page: Page, editor: RunningEditor, level = 'Room 
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
 }
 
-/** Chooses the Collision layer and the Brush, then taps one cell of the level (`tile` px cells) with a pointer. */
+/**
+ * Chooses a layer (the Collision layer unless named, by its button's name) and the Brush, then taps one cell of the
+ * level (`tile` px cells) with a pointer.
+ */
 export async function paintWall(
   page: Page,
   cell: { col: number; row: number },
   tile: number = ROOM_TILE,
+  layerName = 'Collision Walls and floors',
 ): Promise<void> {
   // Below the wide layout the layers sit in a sheet behind the top bar's Panel button.
-  const layer = page.getByRole('button', { name: 'Collision Walls and floors' })
+  const layer = page.getByRole('button', { name: layerName })
   if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
   await layer.click()
   await page.getByRole('radio', { name: 'Brush' }).click()

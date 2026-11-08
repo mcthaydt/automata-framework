@@ -7,7 +7,7 @@ import { networkInterfaces } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { type EditorApp, parseEditorArgs } from './editor-args.ts'
-import { gameVite, type RunningGame, startGame } from './game-runner.ts'
+import { gameVite, type RunningGame, type StartGameOptions, startGame } from './game-runner.ts'
 import { type PublishOutcome, publishGame, runStep } from './publish-game.ts'
 import { type EditorServerOptions, gameName, type RunningEditor, serveEditor } from './serve-editor.ts'
 
@@ -29,7 +29,7 @@ export interface EditorCommandDeps {
   /** Resolves when the person stops the command (Ctrl+C). */
   readonly untilStopped: () => Promise<void>
   /** Starts the game in this folder as `pnpm dev` does, for Play and the Tuner; throws a sentence the person can act on. */
-  readonly startGame: (root: string) => Promise<RunningGame>
+  readonly startGame: (root: string, options: StartGameOptions) => Promise<RunningGame>
   /** Builds the game in this folder and makes the zip to upload (the editor's Publish). */
   readonly publishGame: (root: string) => Promise<PublishOutcome>
   readonly cwd: string
@@ -108,7 +108,7 @@ export async function editorCommand(
   let gameProblem: string | undefined
   if (gameUrl === undefined)
     try {
-      game = await deps.startGame(root)
+      game = await deps.startGame(root, { lan })
     } catch (error) {
       gameProblem = error instanceof Error ? error.message : String(error)
     }

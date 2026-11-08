@@ -416,7 +416,11 @@ holds `index.html` and the wall. All 20 journeys pass twice in Chromium at iPad 
 run (not in cloud sessions). `pnpm check`: green except `serve-editor.test.ts` "writes an mtime a later guarded write
 can use", which fails on this PR's base too (the container's file clock), not touched here. For 15.2 and 15.3: the default
 is already the suite; 15.3 cuts the change-set Publish, Export changes and Import changes, and keeps Play and the game's
-Publish. Screens: `/mnt/project-files/whole-game-loop/`.
+Publish. Screens: `/mnt/project-files/whole-game-loop/`. Follow-up the same day: the loop's Play step reads the screen
+past the game's title (the painted wall is drawn at its cell, the next cell is empty); a second journey, `a tile painted
+in the editor is drawn in the running game`, is marked `test.fail` until 2D core draws tile layers (PR #479) and fails
+today at the screen check, after the save; under `--lan` the game listens on the network and a tablet's Play and
+Tuner point at the computer's address.
 
 **Where to resume (2026-11-08, session us0s9k, 15.1b (a) to (d) and (f) half done):** branch `claude/project-thread-us0s9k`, PR #473 stacked on #472. Next is 15.1b (e), then the last journey and the site's Try-it page, then 15.2 to 15.4; the plan's log ("Task 15.1b" entries) has each ruling and a design note for (e). `pnpm install --frozen-lockfile` first in a fresh container; a commit that exports a type needs `pnpm build`, `pnpm api-report --update` first or the hook fails on the editor report; the served journeys run with `pnpm exec playwright test -c playwright.journeys.config.ts --project=editor-ipad-chromium` in `packages/editor` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, tools built).
 

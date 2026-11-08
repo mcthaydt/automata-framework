@@ -89,6 +89,21 @@ export interface ServedStore {
   readonly publish: PublishClient | undefined
 }
 
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'])
+
+/**
+ * The game's page as this browser can reach it. The server names it on its own computer (`localhost`); a tablet that
+ * opened the editor over the network (`automata editor --lan`) reaches the same game at the computer's address, which
+ * is the host it opened the editor on.
+ */
+function reachableFrom(gameUrl: string, origin: string): string {
+  const game = new URL(gameUrl)
+  const page = new URL(origin)
+  if (!LOOPBACK_HOSTS.has(game.hostname) || LOOPBACK_HOSTS.has(page.hostname)) return game.href
+  game.hostname = page.hostname
+  return game.href
+}
+
 /**
  * The checkout of an editor served by `automata editor`, over HTTP: the page asks its own origin whether it is an editor
  * server, and answers `undefined` when it is not (a static host, a dev server). A token given in the address is kept
@@ -108,7 +123,7 @@ export async function openServedStore(
       return undefined
     if ('game' in body && typeof body.game === 'string' && body.game !== '') game = body.game
     if ('gameUrl' in body && typeof body.gameUrl === 'string' && URL.canParse(body.gameUrl))
-      gameUrl = body.gameUrl
+      gameUrl = reachableFrom(body.gameUrl, env.origin)
     publishes = 'publish' in body && body.publish === true
   } catch {
     return undefined

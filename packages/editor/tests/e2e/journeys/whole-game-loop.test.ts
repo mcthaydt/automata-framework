@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { checkLevels, EMBERWICK, expect, openRoom, paintWall, test } from '../harness/fixtures.ts'
+import { cellColour, type LevelFrame } from '../harness/game-screen.ts'
 import { newGame } from '../harness/new-game.ts'
 import { readZip } from '../harness/read-zip.ts'
 import { runEditor } from '../harness/run-editor.ts'
@@ -15,6 +16,11 @@ const STARTER_TILE = 16
 /** Row 2 of the starter level, before and after a wall at column 5. */
 const EMPTY_ROW = '".*32", ".*32", ".*32", ".*32"'
 const WALLED_ROW = '".*32", ".*32", ".*5 1 .*26", ".*32"'
+/** The starter level: 32 by 18 cells of 16 px. */
+const STARTER: LevelFrame = { width: 512, height: 288, tile: STARTER_TILE }
+/** The starter game's colour for a wall (`features/level/level.view.ts`), and the empty level behind it. */
+const WALL_COLOUR = '73737f'
+const EMPTY_COLOUR = '000000'
 /** Where Vite serves the compiled content module the game imports. */
 const CONTENT_MODULE = '@id/__x00__virtual:automata/content'
 
@@ -61,6 +67,42 @@ test('a new game is made, edited, saved, played and published from the editors a
     expect(files.has('index.html')).toBe(true)
     const code = [...files].filter(([name]) => name.endsWith('.js')).map(([, text]) => text)
     expect(code.some((text) => text.includes('.*5 1 .*26'))).toBe(true)
+  } finally {
+    await editor.stop()
+    game.remove()
+  }
+})
+
+// The level's tiles, drawn: a tile painted on the starter level's Decor layer, where no wall is, shows in the running
+// game. Expected to fail until 2D core draws a level's tile layers (PR #479); the starter game draws only its walls
+// today. When this starts passing, take out `test.fail`.
+test('a tile painted in the editor is drawn in the running game', async ({ page, context }) => {
+  test.fail(true, 'the 2D core draws no tile layers yet (PR #479)')
+  test.setTimeout(120_000)
+  const game = await newGame(EMBERWICK)
+  const editor = await runEditor(game.dir)
+  try {
+    const levelFile = join(game.dir, 'content/levels/start.toml')
+    await openRoom(page, editor, 'Start')
+    await paintWall(page, { col: 5, row: 4 }, STARTER_TILE, 'Decor Tiles')
+    // Saved: the Decor layer's fifth row is no longer empty.
+    await expect
+      .poll(
+        () =>
+          /def = "decor"[\s\S]*?rows = \[(.*)\]/.exec(readFileSync(levelFile, 'utf8'))?.[1]?.split(', ')[4],
+        {
+          timeout: 30_000,
+        },
+      )
+      .not.toBe('".*32"')
+    const [play] = await Promise.all([
+      context.waitForEvent('page'),
+      page.getByRole('link', { name: 'Play' }).click(),
+    ])
+    await play.getByRole('button', { name: 'Play' }).click()
+    await expect
+      .poll(() => cellColour(play, STARTER, { col: 5, row: 4 }), { timeout: 15_000 })
+      .not.toBe(EMPTY_COLOUR)
   } finally {
     await editor.stop()
     game.remove()
