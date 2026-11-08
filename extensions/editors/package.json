@@ -1,0 +1,45 @@
+{
+  "name": "@automata/extension-editors",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css",
+    "*.svelte"
+  ],
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": {
+      "svelte": "./src/entries/index.ts",
+      "default": "./src/entries/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+  },
+  "dependencies": {
+    "@automata/editor": "workspace:*",
+    "@automata/feel": "workspace:*",
+    "svelte": "5.57.1",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@automata/vitest-preset": "workspace:*",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/svelte": "5.4.2",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "24.19.1",
+    "jsdom": "30.1.1",
+    "svelte-check": "4.7.6",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
