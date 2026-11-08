@@ -7,6 +7,7 @@ import { mount, unmount } from 'svelte'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import CharacterCanvas from '#src/features/schematic/CharacterCanvas.svelte'
+import { reveal } from '#src/features/schematic/diagram/reveal.ts'
 import { SchematicSession } from '#src/features/schematic/schematic-session.svelte.ts'
 
 // The diagram with the production CSS in a real browser, at a phone (390x844) and an iPad (820x1180): every box and label
@@ -24,6 +25,13 @@ const ports = {
     generated: async () => undefined,
   },
 } as unknown as SuitePorts
+
+/** Presses a button by its words and waits for the page to settle. */
+async function press(words: string): Promise<void> {
+  const button = [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === words)
+  button?.click()
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+}
 
 const SIZES = [
   { name: 'phone', width: 390, height: 844 },
@@ -77,17 +85,56 @@ describe.each(SIZES)('the diagram on a $name', (size) => {
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth)
   })
 
-  test('Fit puts the diagram back at its smallest size', async () => {
+  test('Fit takes the diagram back from Bigger, to no more than its natural size', async () => {
     await start(size)
     const svg = document.querySelector<SVGSVGElement>('svg.diagram')
     const before = svg?.getBoundingClientRect().width ?? 0
-    const buttons = [...document.querySelectorAll('button')]
-    buttons.find((b) => b.textContent?.trim() === 'Bigger')?.click()
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await press('Bigger')
     expect(svg?.getBoundingClientRect().width ?? 0).toBeGreaterThan(before)
-    buttons.find((b) => b.textContent?.trim() === 'Fit')?.click()
-    await new Promise((resolve) => requestAnimationFrame(resolve))
-    expect(svg?.getBoundingClientRect().width ?? 0).toBeCloseTo(before, 0)
+    await press('Fit')
+    expect(svg?.getBoundingClientRect().width ?? 0).toBeLessThanOrEqual(before)
+  })
+
+  test('Smaller shrinks the diagram below its natural size, and no target goes under 44 px', async () => {
+    await start(size)
+    const svg = document.querySelector<SVGSVGElement>('svg.diagram')
+    const before = svg?.getBoundingClientRect().width ?? 0
+    for (let i = 0; i < 4; i++) await press('Smaller')
+    expect(svg?.getBoundingClientRect().width ?? 0).toBeLessThan(before)
+    for (const target of document.querySelectorAll<SVGGElement>('svg [role="button"]')) {
+      const box = target.getBoundingClientRect()
+      expect(box.height, target.getAttribute('aria-label') ?? '').toBeGreaterThanOrEqual(44)
+      expect(box.width, target.getAttribute('aria-label') ?? '').toBeGreaterThanOrEqual(44)
+    }
+  })
+
+  test('Fit shows the box where the character starts', async () => {
+    await start(size)
+    await press('Bigger')
+    await press('Bigger')
+    await press('Fit')
+    const region = document.querySelector<HTMLElement>('.scroll')?.getBoundingClientRect()
+    const where = document.querySelector<SVGGElement>('svg .box[data-start="true"]')?.getBoundingClientRect()
+    expect(where).toBeDefined()
+    expect(where?.left).toBeGreaterThanOrEqual((region?.left ?? 0) - 1)
+    expect(where?.right).toBeLessThanOrEqual((region?.right ?? 0) + 1)
+    expect(where?.top).toBeGreaterThanOrEqual((region?.top ?? 0) - 1)
+    expect(where?.bottom).toBeLessThanOrEqual((region?.bottom ?? 0) + 1)
+  })
+
+  test('reveal brings a box that is off the edge into the region', async () => {
+    await start(size)
+    await press('Bigger')
+    await press('Bigger')
+    const region = document.querySelector<HTMLElement>('.scroll') as HTMLElement
+    const far = [...region.querySelectorAll<SVGGElement>('svg .box')].find(
+      (box) => box.getBoundingClientRect().right > region.getBoundingClientRect().right,
+    )
+    expect(far, 'a box past the right edge').toBeDefined()
+    reveal(region, far?.dataset.mode as string)
+    const at = far?.getBoundingClientRect()
+    expect(at?.right).toBeLessThanOrEqual(region.getBoundingClientRect().right + 1)
+    expect(at?.left).toBeGreaterThanOrEqual(region.getBoundingClientRect().left - 1)
   })
 })
 

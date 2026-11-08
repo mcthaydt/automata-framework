@@ -16,7 +16,7 @@ interface Props {
   character: AgentDef
   names: Names
   selected: Selection | undefined
-  /** How much bigger than the smallest size the diagram is drawn; never below 1, so no target is under 44 px. */
+  /** How big the diagram is drawn, 1 being its natural size; never below `MIN_ZOOM`, so no target is under 44 px. */
   zoom: number
   onselect: (selection: Selection) => void
   /** While Watch runs: the mode this character is in now, and the switch that fired last. */
@@ -34,7 +34,7 @@ const { character, names, selected, zoom, onselect, live }: Props = $props()
 const fired = (from: string, to: string): boolean =>
   live?.flash !== undefined && live.flash.to === to && (from === live.flash.from || from === '*')
 
-// Drawn at the smallest size a finger can use: a box is 64 px tall and a label 52.
+// Drawn at the size a finger can use: a box is 64 px tall and a label 52 (44 px at `MIN_ZOOM`).
 const SIZE = { box: { w: 160, h: 64 }, gap: 168, label: 52, labelW: 144 }
 const PAD = 12
 const diagram = $derived(layoutAgent(character, SIZE))
@@ -120,6 +120,7 @@ const TAGS = { always: '', hears: 'when it hears', stops: 'when it stops' } as c
     {@const notes = box.mode === '*' ? [] : modeNotes(character, box.mode)}
     <g
       class="box"
+      data-mode={box.mode}
       role="button"
       tabindex="0"
       data-start={box.start}

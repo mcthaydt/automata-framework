@@ -4,8 +4,10 @@
 -->
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
+import { tick } from 'svelte'
 import { DECIDE_LINES, modeNotes } from './decide-words.ts'
 import Diagram from './diagram/Diagram.svelte'
+import { reveal } from './diagram/reveal.ts'
 import { namesOf } from './names.ts'
 import { modeWords } from './pieces/piece.ts'
 import SwitchList from './SwitchList.svelte'
@@ -22,7 +24,10 @@ const names = $derived(
     : namesOf(session.def, index, Object.keys(session.places?.nodes ?? {})),
 )
 let tab = $state<'diagram' | 'list'>('diagram')
+// The smallest the diagram draws: the 52 px labels are then still 44 px, a finger's floor.
+const MIN_ZOOM = 0.85
 let zoom = $state(1)
+let scroller = $state<HTMLElement>()
 let watching = $state(false)
 let heard = $state<WatchState>(EMPTY_WATCH)
 const live = $derived(
@@ -33,6 +38,25 @@ const live = $derived(
       }
     : undefined,
 )
+
+/** Fit: as much of the diagram as the pane holds without going under the finger floor, opened on where it starts. */
+async function fit(): Promise<void> {
+  const width = scroller?.querySelector('svg')?.viewBox.baseVal.width ?? 0
+  const room = scroller?.clientWidth ?? 0
+  zoom = width > 0 && room > 0 ? Math.max(MIN_ZOOM, Math.min(1, room / width)) : 1
+  await tick()
+  if (scroller !== undefined && character !== undefined) {
+    scroller.scrollTo(0, 0)
+    reveal(scroller, character.initial)
+  }
+}
+
+// Watch lights one box at a time; the lit one is brought into view so the person sees it light.
+$effect(() => {
+  const lit = live?.mode
+  if (lit !== undefined && scroller !== undefined) reveal(scroller, lit)
+})
+
 const notes = $derived(
   character === undefined
     ? []
@@ -61,10 +85,10 @@ const notes = $derived(
   <section class="panel" data-active={tab === 'diagram'} aria-label="Diagram">
     <div class="tools">
       <Button onclick={() => (zoom = Math.min(2, zoom + 0.25))}>Bigger</Button>
-      <Button onclick={() => (zoom = Math.max(1, zoom - 0.25))}>Smaller</Button>
-      <Button onclick={() => (zoom = 1)}>Fit</Button>
+      <Button onclick={() => (zoom = Math.max(MIN_ZOOM, zoom - 0.25))}>Smaller</Button>
+      <Button onclick={fit}>Fit</Button>
     </div>
-    <div class="scroll" tabindex="-1">
+    <div class="scroll" tabindex="-1" bind:this={scroller}>
       <Diagram {character} {names} selected={session.selected} {zoom} {live} onselect={(selection) => (session.selected = selection)} />
     </div>
     {#if notes.length > 0}
