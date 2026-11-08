@@ -1600,6 +1600,12 @@ interface TapGesture {
 }
 ```
 
+### `ThemeChoice` (svelte)
+
+```ts
+component from '../shared/kit/theme/ThemeChoice.svelte'
+```
+
 ### `TilePreview` (interface)
 
 ```ts
@@ -2624,6 +2630,24 @@ interface StoredEntry {
 
 ```ts
 function storePathProblem(path: string): string | undefined;
+```
+
+### `THEME_BOOT` (const)
+
+```ts
+const THEME_BOOT: string;
+```
+
+### `THEME_KEY` (const)
+
+```ts
+const THEME_KEY = "automata-editor:theme";
+```
+
+### `ThemeChoice` (type)
+
+```ts
+type ThemeChoice = 'light' | 'dark' | 'device';
 ```
 
 ### `Toast` (interface)

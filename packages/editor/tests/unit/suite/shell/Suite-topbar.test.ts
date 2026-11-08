@@ -44,6 +44,12 @@ async function start(options: { sample?: boolean; game?: string } = {}) {
 }
 
 describe("the suite's top bar", () => {
+  it('the Home has the Editor colours control, under the cards', async () => {
+    await start({ game: 'Emberwick' })
+    await screen.findByRole('heading', { name: 'What do you want to change?' })
+    expect(screen.getByRole('radiogroup', { name: 'Editor colours' })).toBeInTheDocument()
+  })
+
   it('names the game and says the changes are saved in its folder; a pill with nothing to say is not shown', async () => {
     await start({ game: 'Emberwick' })
     expect(await screen.findByText('Emberwick')).toBeInTheDocument()

@@ -6,6 +6,7 @@
 <script lang="ts">
 import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
+import ThemeChoice from '../../../shared/kit/theme/ThemeChoice.svelte'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
@@ -34,6 +35,7 @@ const { home, sample, onopen, onread, oninterchange }: Props = $props()
       <Button title="Copy your game's settings as text, to keep or to share" onclick={() => oninterchange('export')}>Export changes</Button>
       <Button title="Bring in settings someone sent you as text" onclick={() => oninterchange('import')}>Import changes</Button>
     {/snippet}
+    {#snippet foot()}<ThemeChoice />{/snippet}
   </Home>
 </div>
 

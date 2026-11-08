@@ -17,6 +17,7 @@ import UnavailableNotice from '../../shared/kit/home/UnavailableNotice.svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import type { Workspace } from '../../shared/kit/storage/workspace'
+import ThemeChoice from '../../shared/kit/theme/ThemeChoice.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
@@ -185,6 +186,8 @@ function onSearchKeydown(event: KeyboardEvent): void {
 
         <!-- The browser's technical reason for keeping nothing is the tooltip, for whoever asks; the line is hers. -->
         <p class="storage" data-testid="home-storage" title={workspace.reason}>{storageLine(workspace)}</p>
+
+        <ThemeChoice />
       </div>
     </div>
   {/snippet}

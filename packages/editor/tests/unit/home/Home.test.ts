@@ -98,6 +98,11 @@ describe('Home', () => {
         expect(shell()).toHaveAttribute(`data-${region}`, 'none')
     })
 
+    it('has the Editor colours control at the foot', async () => {
+      await setup()
+      expect(screen.getByRole('radiogroup', { name: 'Editor colours' })).toBeInTheDocument()
+    })
+
     it('says when each level changed, in words, against the clock it is given', async () => {
       const { clock, controller } = await setup()
       clock.advance(5 * 60_000)

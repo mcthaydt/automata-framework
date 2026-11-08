@@ -80,6 +80,12 @@ describe('HomeScreen', () => {
     expect(await screen.findByText('Import a folder to start.')).toBeInTheDocument()
   })
 
+  it('has the Editor colours control at the foot of the list', async () => {
+    mount()
+    await screen.findByRole('option', { name: /Depot/ })
+    expect(screen.getByRole('radiogroup', { name: 'Editor colours' })).toBeInTheDocument()
+  })
+
   it('searches as the person types, and Escape clears the search', async () => {
     mount()
     await screen.findByRole('option', { name: /Depot/ })

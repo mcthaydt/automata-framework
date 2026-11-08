@@ -21,9 +21,11 @@ interface Props {
   onread: (file: WorkspaceFile) => void
   /** Buttons at the end of the heading's row. */
   actions?: Snippet | undefined
+  /** What goes under the cards, inside the scrolling page (Home's Editor colours). */
+  foot?: Snippet | undefined
 }
 
-const { title, home, editors, empty, onopen, onread, actions }: Props = $props()
+const { title, home, editors, empty, onopen, onread, actions, foot }: Props = $props()
 
 const cards = $derived(
   home.kind === 'cards'
@@ -48,6 +50,7 @@ const cards = $derived(
       {/each}
     </div>
   {/if}
+  {#if foot}<footer>{@render foot()}</footer>{/if}
 </div>
 
 <style>
@@ -86,6 +89,11 @@ const cards = $derived(
   .note {
     margin: 0;
     color: var(--muted);
+  }
+  footer {
+    width: 100%;
+    max-width: 960px;
+    margin-top: auto;
   }
   .cards {
     max-width: 960px;
