@@ -114,10 +114,11 @@ describe('the Controls section', () => {
     render(TunerRows, { controller: await open() })
     const left = rowOf('left')
     expect(within(left).getByRole('textbox', { name: 'Name' })).toHaveProperty('value', 'Left')
-    // ArrowLeft, and the pad's D-pad left (button 14), are both drawn as an arrow.
-    expect(within(left).getAllByText('←')).toHaveLength(2)
+    // ArrowLeft is "←"; the pad's D-pad left (button 14) says it is a pad, so a key and a pad button are never alike.
+    expect(within(left).getAllByText('←')).toHaveLength(1)
+    expect(within(left).getByText(`Pad ${padLabel(14, 'generic', PROMPT_COPY)}`)).toBeTruthy()
     expect(within(left).getByText('A')).toBeTruthy()
-    expect(within(left).getByText(padLabel(0, 'generic', PROMPT_COPY))).toBeTruthy()
+    expect(within(left).getByText(`Pad ${padLabel(0, 'generic', PROMPT_COPY)}`)).toBeTruthy()
   })
 
   it('renames an action in place', async () => {
