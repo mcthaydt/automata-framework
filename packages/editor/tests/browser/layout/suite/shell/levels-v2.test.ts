@@ -44,8 +44,17 @@ afterEach(async () => {
   delete document.documentElement.dataset['theme']
 })
 
-/** Chooses a view as a person does: its tab in the header, or on a phone the title's sheet. */
+/** Chooses a view as a person does: Characters is its own entry on the rail; Tiles is a tab in the header, or on a phone the title's sheet. */
 async function chooseView(name: 'Tiles' | 'Characters'): Promise<void> {
+  if (name === 'Characters') {
+    const tab = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
+      (each) => each.textContent?.trim() === name,
+    )
+    if (tab === undefined) throw new Error('no Characters entry on the rail')
+    tab.click()
+    await settleLayout()
+    return
+  }
   const direct = [...document.querySelectorAll<HTMLElement>('[role="radio"]')].find(
     (radio) => radio.textContent?.trim() === name && radio.getBoundingClientRect().width > 0,
   )

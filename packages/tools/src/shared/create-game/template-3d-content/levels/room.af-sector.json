@@ -20,6 +20,10 @@
     { "id": "barrel-1", "use": "barrel", "at": [-3.5, 1.7] },
     { "id": "barrel-2", "use": "barrel", "at": [3.5, -2.8] }
   ],
+  "cast": [
+    { "id": "keeper", "who": "keeper", "at": [0, 0.8], "angle": 180 },
+    { "id": "guard", "who": "guard", "at": [2.5, 3.2], "angle": 270 }
+  ],
   "entityDefs": [{ "id": "spawn" }],
   "entities": [{ "def": "spawn", "id": "spawn", "x": 0, "z": -2 }]
 }

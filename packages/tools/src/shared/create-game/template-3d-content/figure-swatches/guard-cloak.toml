@@ -1,0 +1,5 @@
+# `guard-cloak`: a colour from the DUEL palette.
+# Colour: DUEL ramp flame, step 3.
+
+ramp = "flame"
+step = 3

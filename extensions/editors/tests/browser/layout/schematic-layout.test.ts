@@ -49,11 +49,7 @@ afterEach(() => {
 
 async function start(size: (typeof SIZES)[number], gameUrl?: string) {
   await page.viewport(size.width, size.height)
-  const session = new SchematicSession(
-    ports,
-    { usesSystems: true, listsSystems: true, listsNav: true, gameUrl, twoD: false },
-    ['bay'],
-  )
+  const session = new SchematicSession(ports, { hasPlayer: true, gameUrl, twoD: false }, ['bay'])
   await session.select('bay')
   // `bay` has two characters; the larger is the second.
   session.choose(Math.max(0, (session.def?.agents.length ?? 1) - 1))

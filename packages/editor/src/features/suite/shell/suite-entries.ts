@@ -1,15 +1,19 @@
-// The suite rail's entries: one per editor the page registers, in the order it registers them. Cmd 1 to 9 choose them
-// in this order, so the rail never offers an editor the build does not have. Each entry opens its one editor.
+// The suite rail's entries: one per editor the page registers (less those for a kind the game is not), in the order the
+// page registers them. Cmd 1 to 9 choose them in this order.
 import type { IconName } from '../../../shared/kit/icons/paths.ts'
-import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
+import type { EditorKind, SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
 
 export interface SuiteEntry {
   readonly id: string
   readonly label: string
   /** Drawn above the label in the rail. */
   readonly icon: IconName
+  /** The kind of game it is for; none means both. */
+  readonly kind?: EditorKind
   /** The editor-list ids this entry opens. */
   readonly editors: readonly string[]
+  /** The view of the editor's session it opens, for an editor that gives more than one entry. */
+  readonly view?: string
 }
 
 /**
@@ -29,34 +33,92 @@ export function iconFor(id: string): IconName {
   return 'list'
 }
 
-type Named = Pick<SuiteEditor<unknown>, 'id' | 'label'>
+type Named = Pick<SuiteEditor<unknown>, 'id' | 'label' | 'kind' | 'entries'>
 
-const isLevels = (id: string): boolean => id.startsWith('levels-')
-
-/**
- * The one name an editor goes by in the rail, on Home's cards and in the Editors menu, so they never disagree. A game
- * with one level editor calls it "Levels"; a game with both says "Levels 2D" and "Levels 3D". `listed` is the editor
- * list's ids; when the list did not load the editor keeps its own label.
- */
-export function editorLabel(editor: Named, listed: readonly string[] | undefined): string {
-  if (listed === undefined || !isLevels(editor.id)) return editor.label
-  const levels = listed.filter(isLevels).length
-  if (levels <= 1) return 'Levels'
-  return editor.id === 'levels-2d' ? 'Levels 2D' : editor.id === 'levels-3d' ? 'Levels 3D' : editor.label
+/** What the rail draws for one entry before the labels are settled. */
+interface Slot {
+  readonly id: string
+  readonly label: string
+  readonly icon: IconName
+  readonly kind: EditorKind | undefined
+  readonly editor: string
+  readonly view: string | undefined
 }
 
 /**
- * The rail, from the registered editors that the game lists, in the order the page registers them. `listed` is the
- * editor list's ids, or undefined when the list did not load: then every installed editor shows, read only.
+ * The kinds of game the editor list describes: 2D when it names `levels-2d`, 3D when it names `levels-3d`. A list that
+ * names neither, or that did not load (`undefined`), counts as both, so every editor shows.
+ */
+export function gameKinds(listed: readonly string[] | undefined): ReadonlySet<EditorKind> {
+  const kinds = new Set<EditorKind>()
+  if (listed?.includes('levels-2d')) kinds.add('2d')
+  if (listed?.includes('levels-3d')) kinds.add('3d')
+  return kinds.size === 0 ? new Set<EditorKind>(['2d', '3d']) : kinds
+}
+
+/** An editor's entries (one, itself, unless it gives several) for the kinds of game the list describes. */
+function slotsOf(editors: readonly Named[], listed: readonly string[] | undefined): Slot[] {
+  const kinds = gameKinds(listed)
+  const slots = editors.flatMap((editor): Slot[] =>
+    editor.entries === undefined
+      ? [
+          {
+            id: editor.id,
+            label: editor.label,
+            icon: iconFor(editor.id),
+            kind: editor.kind,
+            editor: editor.id,
+            view: undefined,
+          },
+        ]
+      : editor.entries.map((entry) => ({
+          id: entry.id,
+          label: entry.label,
+          icon: entry.icon,
+          kind: entry.kind,
+          editor: editor.id,
+          view: entry.view,
+        })),
+  )
+  return slots.filter((slot) => slot.kind === undefined || kinds.has(slot.kind))
+}
+
+/** An entry's name once the entries shown are known: its own label, plus " 2D" or " 3D" when both kinds show. */
+function labelIn(
+  slot: { label: string; kind?: EditorKind | undefined },
+  shown: readonly { kind?: EditorKind | undefined }[],
+): string {
+  const both = shown.some((other) => other.kind === '2d') && shown.some((other) => other.kind === '3d')
+  return both && slot.kind !== undefined ? `${slot.label} ${slot.kind === '2d' ? '2D' : '3D'}` : slot.label
+}
+
+/**
+ * The one name an editor goes by in the rail, on Home's cards and in the Editors menu, so they never disagree. A game
+ * with one kind calls the level editor "Levels"; a game with both says "Levels 2D" and "Levels 3D". `listed` is the
+ * editor list's ids; `editors` are the ones the page registers.
+ */
+export function editorLabel(
+  editor: Pick<Named, 'label' | 'kind'>,
+  listed: readonly string[] | undefined,
+  editors: readonly Named[] = [],
+): string {
+  return labelIn(editor, slotsOf(editors, listed))
+}
+
+/**
+ * The rail: every editor the page registers, in the order it registers them, except an editor for a kind the game is
+ * not. The game's kinds come from the editor list's ids (`listed`), which says which files each editor edits, not which
+ * editors exist; an editor the list does not name still shows, and opens on its start page. An editor with several
+ * entries gives one rail entry each, which open its one session at their own view.
  */
 export function suiteEntries(editors: readonly Named[], listed?: readonly string[]): SuiteEntry[] {
-  const shown = listed === undefined ? editors : editors.filter((editor) => listed.includes(editor.id))
-  // A list that did not load still names two level editors apart when the build has both.
-  const basis = listed ?? shown.map((editor) => editor.id)
-  return shown.map((editor) => ({
-    id: editor.id,
-    label: editorLabel(editor, basis),
-    icon: iconFor(editor.id),
-    editors: [editor.id],
+  const shown = slotsOf(editors, listed)
+  return shown.map((slot) => ({
+    id: slot.id,
+    label: labelIn(slot, shown),
+    icon: slot.icon,
+    ...(slot.kind === undefined ? {} : { kind: slot.kind }),
+    editors: [slot.editor],
+    ...(slot.view === undefined ? {} : { view: slot.view }),
   }))
 }

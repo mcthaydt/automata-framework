@@ -10,10 +10,43 @@ export const WICK_FILES: readonly TemplateFile[] = [
     content: () => `import { defineComponent } from '@automata/sim'
 
 /**
- * Wick: where his feet are on the floor (metres, y up), the way he faces (radians, 0 toward +z and growing toward +x)
- * and whether he is walking. The screen reads these to place and pose his figure.
+ * Wick: where his feet are on the floor (metres, y up), the way he faces (radians, 0 toward +z and growing toward +x),
+ * whether he is walking, and whether he was pressed into a wall last tick. The screen reads these to place and pose his
+ * figure.
  */
-export const Wick = defineComponent('wick', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32', walking: 'bool' })
+export const Wick = defineComponent('wick', {
+  x: 'f32',
+  y: 'f32',
+  z: 'f32',
+  yaw: 'f32',
+  walking: 'bool',
+  blocked: 'bool',
+})
+`,
+  },
+  {
+    path: 'src/features/wick/bumped.event.ts',
+    content: () => `import { defineEvent } from '@automata/sim'
+import { z } from 'zod'
+
+/**
+ * Wick met a wall or a prop he was pushed into. Feel and Audio answer events like this one: open \`content/feel/feel.toml\`
+ * or \`content/audio/audio.toml\` in the editors and change what the player feels and hears. \`entity\` is who bumped:
+ * Feel squashes that character and shows a word over it.
+ */
+export const Bumped = defineEvent('wick.bumped', z.object({ entity: z.number().int() }))
+`,
+  },
+  {
+    path: 'src/features/wick/hold.resource.ts',
+    content: () => `import { defineResource } from '@automata/sim'
+import { z } from 'zod'
+
+/**
+ * Whether Wick is held still: set by whatever has the player's attention (a conversation, a cutscene), cleared when it
+ * lets go. Part of the sim, so a saved game and a replay carry it.
+ */
+export const Hold = defineResource('hold', z.strictObject({ held: z.boolean() }), () => ({ held: false }))
 `,
   },
   {
@@ -35,18 +68,24 @@ import { defineSystem } from '@automata/sim'
 import { atan2 } from '@automata/sim/math'
 import { playIn, standsAt } from '../room/read-room.ts'
 import { TICK_HZ, WICK_HALF } from '../../shared/constants.ts'
+import { Bumped } from './bumped.event.ts'
+import { Hold } from './hold.resource.ts'
 import { Move } from './move.command.ts'
 import { Wick } from './wick.component.ts'
 
+/** A centred stick: what Wick is given while he is held still. */
+const IDLE = { x: 0, y: 0 }
+
 /**
  * Walks Wick the way the stick points, seen from the camera, at the walking speed scaled by how far the stick is
- * pushed. He faces the way he goes. Walls and props stop him. Only the sim changes the game, so a replay ends where
- * play did.
+ * pushed. He faces the way he goes. Walls and props stop him, and he says so once when he first is. Only the sim
+ * changes the game, so a replay ends where play did.
  */
 export const walk = defineSystem('walk', (ctx) => {
   const { room, tuning } = playIn(ctx.content)
   const moves = ctx.commands.of(Move)
-  const stick = moves[moves.length - 1]?.payload ?? { x: 0, y: 0 }
+  // Held still (in a conversation, in a cutscene), he is given a centred stick whatever the player pushes.
+  const stick = ctx.resource(Hold).held ? IDLE : (moves[moves.length - 1]?.payload ?? IDLE)
   const step = tuning.WALK_SPEED / TICK_HZ
   for (const wick of ctx.query(Wick, CameraHeading)) {
     const mapped = moveDirection(wick.get(CameraHeading), stick)
@@ -58,12 +97,11 @@ export const walk = defineSystem('walk', (ctx) => {
     const x = standsAt(room, here.x + dx, here.z, WICK_HALF) ? here.x + dx : here.x
     const z = standsAt(room, x, here.z + dz, WICK_HALF) ? here.z + dz : here.z
     const pushing = dx !== 0 || dz !== 0
-    wick.set(Wick, {
-      x,
-      z,
-      yaw: pushing ? atan2(dx, dz) : here.yaw,
-      walking: x !== here.x || z !== here.z,
-    })
+    const walking = x !== here.x || z !== here.z
+    // Pressed into something: a move was asked for and none of it happened. Said once, not every tick it is held.
+    const blocked = pushing && !walking
+    if (blocked && !here.blocked) ctx.emit(Bumped, { entity: wick.sid })
+    wick.set(Wick, { x, z, yaw: pushing ? atan2(dx, dz) : here.yaw, walking, blocked })
   }
 })
 `,
@@ -74,6 +112,8 @@ export const walk = defineSystem('walk', (ctx) => {
 import { definePlugin, type PluginDef, type Sim } from '@automata/sim'
 import { FOLLOW } from '../../shared/constants.ts'
 import type { Room } from '../room/read-room.ts'
+import { Bumped } from './bumped.event.ts'
+import { Hold } from './hold.resource.ts'
 import { Move } from './move.command.ts'
 import { walk } from './walk.system.ts'
 import { Wick } from './wick.component.ts'
@@ -82,13 +122,14 @@ import { Wick } from './wick.component.ts'
 export const wickPlugin: PluginDef = definePlugin({
   name: 'wick',
   dependsOn: ['camera-heading'],
-  defs: [Wick, Move, walk],
+  resources: [Hold],
+  defs: [Wick, Move, Bumped, walk],
 })
 
-/** Puts Wick on the room's start point, facing away from the camera, with the camera on him. */
-export function spawnWick(sim: Sim, room: Room): void {
-  sim.spawn([
-    [Wick, { x: room.start.x, y: 0, z: room.start.z, yaw: 0, walking: false }],
+/** Puts Wick on the room's start point, facing away from the camera, with the camera on him. Gives his sid. */
+export function spawnWick(sim: Sim, room: Room): number {
+  return sim.spawn([
+    [Wick, { x: room.start.x, y: 0, z: room.start.z, yaw: 0, walking: false, blocked: false }],
     [CameraHeading, enterView(START, FOLLOW, { x: 0, y: 0 })],
   ])
 }
@@ -135,65 +176,17 @@ export function cameraTurnUnits(reading: AnalogReading, held: { readonly units: 
   },
   {
     path: 'src/features/wick/wick.view.ts',
-    content: () => `import { figure, type View3dFactory } from '@automata/3d'
-import {
-  clipsWithActions,
-  type FigureDef,
-  type FigureLibrary,
-  type MotionLibrary,
-} from '@automata/3d/figures'
+    content: () => `import type { View3dFactory } from '@automata/3d'
+import { personView } from '../../shared/person.view.ts'
 import type { Tuning } from '../../shared/tuning.ts'
 import { Wick } from './wick.component.ts'
 
-type Kind<T> = Readonly<Record<string, T>>
-
-/** The figure kinds as the compiled content holds them (content/figures, content/figure-swatches, ...). */
-interface FigureKinds {
-  readonly figure?: Kind<FigureDef>
-  readonly 'figure-swatch'?: FigureLibrary['swatches']
-  readonly 'figure-hair'?: FigureLibrary['hair']
-  readonly 'figure-headwear'?: FigureLibrary['headwear']
-  readonly 'figure-item'?: FigureLibrary['items']
-  readonly 'figure-gait'?: MotionLibrary['gaits']
-  readonly 'figure-pose'?: MotionLibrary['poses']
-  readonly 'figure-clip'?: Parameters<typeof clipsWithActions>[0]
-  readonly 'figure-action'?: Parameters<typeof clipsWithActions>[1]
-  readonly 'figure-stand'?: MotionLibrary['stands']
-  readonly 'figure-rig'?: MotionLibrary['rigs']
-}
-
 /**
  * How Wick looks: his figure from content/figures/wick.toml, drawn one mesh a part and posed from his gait. He walks
- * while the sim says so, at the walking speed, and stands otherwise. The compiler checked every record with the
- * figure kinds' schemas, so each is that schema's output; the cast says so once.
+ * while the sim says so, at the walking speed, and stands otherwise.
  */
-export function wickView(content: unknown, tuning: Tuning): View3dFactory {
-  const kinds = content as FigureKinds
-  const wick = kinds.figure?.wick
-  if (wick === undefined) throw new Error('There is no figure "wick". Check content/figures/wick.toml.')
-  const library: FigureLibrary = {
-    swatches: kinds['figure-swatch'] ?? {},
-    hair: kinds['figure-hair'] ?? {},
-    headwear: kinds['figure-headwear'] ?? {},
-    items: kinds['figure-item'] ?? {},
-  }
-  const motion: MotionLibrary = {
-    gaits: kinds['figure-gait'] ?? {},
-    poses: kinds['figure-pose'] ?? {},
-    clips: clipsWithActions(kinds['figure-clip'] ?? {}, kinds['figure-action'] ?? {}),
-    items: library.items,
-    stands: kinds['figure-stand'] ?? {},
-    rigs: kinds['figure-rig'] ?? {},
-  }
-  return figure(wick, {
-    library,
-    motion,
-    state: (components) => {
-      const walking = components[Wick.id]?.walking === true
-      return { moving: walking, speed: walking ? tuning.WALK_SPEED : 0 }
-    },
-  })
-}
+export const wickView = (content: unknown, tuning: Tuning): View3dFactory =>
+  personView(content, 'wick', Wick.id, tuning.WALK_SPEED)
 `,
   },
 ]

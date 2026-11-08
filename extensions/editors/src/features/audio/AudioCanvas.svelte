@@ -13,6 +13,7 @@ import Check from '../../shared/ui/Check.svelte'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import AudioChecks from './AudioChecks.svelte'
 import AudioMix from './AudioMix.svelte'
 import AudioMusic from './AudioMusic.svelte'
@@ -199,8 +200,10 @@ $effect(() => {
       icon="volume"
       title="This game has no audio file yet."
       why="An audio file holds the game's sounds, which music track plays when, and which sound plays when something happens."
-      action={{ label: 'Start an audio file', onclick: () => void session.start() }}
-    />
+    >
+      {#if !session.hasPlayer}<NoPlayer editor="audio" />{/if}
+      <Button onclick={() => void session.start()}>Start an audio file</Button>
+    </EmptyState>
   {:else if read.kind === 'syntax'}
     <h2>The audio file has a mistake{read.line === undefined ? '' : ` on line ${String(read.line)}`}.</h2>
     <p>It opens read only until the mistake is fixed. Your file is unchanged.</p>

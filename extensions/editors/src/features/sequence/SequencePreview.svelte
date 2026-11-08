@@ -1,10 +1,10 @@
 <!--
-  The scene at the playhead seen from above: the walls of a 2D level the person picks, each person as a dot with a name
+  The scene at the playhead seen from above: the walls of a level (2D or 3D) the person picks, each person as a dot with a name
   and the way they face, the camera as a wedge showing what it sees, the words on screen under the plan, and the fade as
   darkening. It is drawn from the director's state; it never runs the game.
 -->
 <script lang="ts">
-import { NO_WALLS_WORDS, planView } from './plan-view.ts'
+import { planView } from './plan-view.ts'
 import type { SequenceSession } from './sequence-session.svelte.ts'
 
 const { session }: { session: SequenceSession } = $props()
@@ -26,21 +26,17 @@ function wedge(camera: NonNullable<typeof plan>['camera']): string {
 </script>
 
 <section class="preview" aria-label="Preview">
-  {#if session.is2d}
-    {#if session.levels.length > 0}
-      <label class="over">
-        Show over:
-        <select
-          value={session.level ?? ''}
-          onchange={(event) => void session.showOver(event.currentTarget.value === '' ? undefined : event.currentTarget.value)}
-        >
-          <option value="">Nothing</option>
-          {#each session.levels as level (level.path)}<option value={level.path}>{level.name}</option>{/each}
-        </select>
-      </label>
-    {/if}
-  {:else}
-    <p class="hint">{NO_WALLS_WORDS}</p>
+  {#if session.levels.length > 0}
+    <label class="over">
+      Show over:
+      <select
+        value={session.level ?? ''}
+        onchange={(event) => void session.showOver(event.currentTarget.value === '' ? undefined : event.currentTarget.value)}
+      >
+        <option value="">Nothing</option>
+        {#each session.levels as level (level.path)}<option value={level.path}>{level.name}</option>{/each}
+      </select>
+    </label>
   {/if}
   {#if plan !== undefined}
     <svg viewBox="0 0 {SIZE.w} {SIZE.h}" role="img" aria-label="The scene from above">
@@ -112,7 +108,6 @@ function wedge(camera: NonNullable<typeof plan>['camera']): string {
     pointer-events: none;
   }
   .over,
-  .hint,
   .words {
     margin: 0;
     color: var(--color-text-dim);

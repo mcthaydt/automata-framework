@@ -14,8 +14,8 @@ interface Props {
   /** One line under the title: what to do here, and where changes are kept. */
   lede?: string | undefined
   home: HomeState
-  /** Only these editors' cards; every card on Home. */
-  editors?: readonly string[] | undefined
+  /** Only this rail entry's cards; every card on Home. */
+  entry?: string | undefined
   /** Said when no card is left to show. */
   empty: string
   onopen: (card: EditorCard) => void
@@ -26,28 +26,29 @@ interface Props {
   foot?: Snippet | undefined
 }
 
-const { title, lede, home, editors, empty, onopen, onread, starts, foot }: Props = $props()
+const { title, lede, home, entry, empty, onopen, onread, starts, foot }: Props = $props()
 
 const cards = $derived(
-  home.kind === 'cards'
-    ? home.cards.filter((card) => editors === undefined || editors.includes(card.editor))
-    : [],
+  home.kind === 'cards' ? home.cards.filter((card) => entry === undefined || card.entry === entry) : [],
 )
 </script>
 
 <div class="scroll" data-scroll-region data-testid="suite-home">
-  <header>
-    <h1>{title}</h1>
-    {#if lede}<p class="lede">{lede}</p>{/if}
-  </header>
+  <!-- An entry's own page has one card, which names the editor: the title would say it twice. -->
+  {#if entry === undefined || cards.length === 0}
+    <header>
+      <h1>{title}</h1>
+      {#if lede}<p class="lede">{lede}</p>{/if}
+    </header>
+  {/if}
   {#if home.kind === 'problems'}
     <ListProblems problems={home.problems} />
   {:else if cards.length === 0}
     <p class="note">{empty}</p>
   {:else}
     <div class="cards">
-      {#each cards as card (card.editor)}
-        <EditorCardView {card} {onopen} {onread} start={starts?.[card.editor]} />
+      {#each cards as card (card.entry ?? card.editor)}
+        <EditorCardView {card} {onopen} {onread} start={starts?.[card.entry ?? card.editor]} />
       {/each}
     </div>
   {/if}

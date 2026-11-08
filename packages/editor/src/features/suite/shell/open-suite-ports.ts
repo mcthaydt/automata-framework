@@ -11,7 +11,8 @@ import {
   openServedStore,
   type ServedWorkspaceEnv,
 } from '../../../shared/kit/storage/workspace.ts'
-import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
+import { EDITOR_LIST_PATH } from '../core'
+import { createLiveList } from '../memory/live-list.ts'
 import { createMemoryPorts } from '../memory/memory-ports.ts'
 import { SAMPLE_GAME, samplePorts } from '../memory/sample-ports.ts'
 
@@ -30,6 +31,9 @@ export interface OpenedSuitePorts {
 }
 
 const decoder = new TextDecoder()
+
+/** Where the content build writes what it makes. */
+const GENERATED_FOLDER = 'content/generated/'
 
 export interface SuitePortsEnv
   extends Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage' | 'storage'> {
@@ -58,13 +62,13 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
   }
   const { store, gameUrl, playOff, game, publish } = served
   const bytes = await store.read(EDITOR_LIST_PATH)
-  const load = loadEditorList(bytes === undefined ? undefined : decoder.decode(bytes))
+  const list = createLiveList(bytes === undefined ? undefined : decoder.decode(bytes))
   const { ports } = await createMemoryPorts({
     store,
-    classify: (path) =>
-      load.ok
-        ? workspaceFile(load.list, path)
-        : { path, writable: false, why: 'The editor list has a problem.' },
+    classify: list.classify,
+    // The compiler's outputs (`tuning-meta.json`, `events.json`) are read from the checkout, never written.
+    generated: (path) => path.startsWith(GENERATED_FOLDER),
+    listChanged: list.replace,
   })
   return { ports, sample: false, gameUrl, playOff, game, publish }
 }

@@ -10,6 +10,16 @@ export interface SuitePorts {
   readonly workspace: SuiteWorkspace
   readonly checks: ChecksRunner
   readonly gates?: Gates | undefined
+  /** Added by the suite, not by an adapter: the editor list's one way to grow (see {@link EditorListPort}). */
+  readonly list?: EditorListPort | undefined
+}
+
+/**
+ * What an editor asks of the game's list of editors before it starts a file: to be listed. The suite fills it from its
+ * raw ports, so the rows are not an undo step. An editor with no rows, and a game with no list, are `unchanged`.
+ */
+export interface EditorListPort {
+  ensure(editor: string): Promise<WriteResult | { readonly ok: true; readonly unchanged: true }>
 }
 
 /** `edit`: direct value and structure edits (an editor-list row's `modes`). */

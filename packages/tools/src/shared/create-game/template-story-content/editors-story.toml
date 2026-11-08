@@ -1,0 +1,24 @@
+
+# The words people say and the conversations they are in, which Writer edits.
+[[file]]
+glob = "content/lines/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/dialogue/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+
+# The scenes that play on their own, which Sequence edits.
+[[file]]
+glob = "content/cutscenes/*.toml"
+editor = "sequence"
+modes = ["edit"]
+gates = []
+checks = []
+

@@ -2,11 +2,13 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { editorRows } from '@automata/editor/editor-list'
 import { Effect } from 'effect'
 import { parse } from 'smol-toml'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createGame } from '#src/shared/create-game/create-game.ts'
 import { TEMPLATE_3D_CONTENT_PATHS } from '#src/shared/create-game/template-3d-content.ts'
+import { feelAudioFile } from '#src/shared/create-game/template-feel-audio.ts'
 import { THREE_D_NOT_PUBLIC } from '#src/shared/create-game/three-d-gate.ts'
 
 // What a new 3D game is made of: one room, Wick walking in it, a tuning file, the editor list, and the same feature
@@ -41,11 +43,27 @@ describe('the new 3D game’s files', () => {
   it('keeps its code in features, with the app and the shared numbers beside them', () => {
     expect(files.filter((file) => file.startsWith('src/') || file.startsWith('tests/'))).toEqual([
       'src/app/controls.ts',
+      'src/app/feel-audio.ts',
       'src/app/game.ts',
+      'src/app/story-sim.ts',
+      'src/features/guard/actor.component.ts',
+      'src/features/guard/actor.system.ts',
+      'src/features/guard/guard.plugin.ts',
+      'src/features/guard/guard.view.ts',
+      'src/features/keeper/keeper.component.ts',
+      'src/features/keeper/keeper.plugin.ts',
+      'src/features/keeper/keeper.view.ts',
       'src/features/room/compiled-content.d.ts',
       'src/features/room/read-room.ts',
       'src/features/room/room.ts',
       'src/features/room/room.view.ts',
+      'src/features/story/story-content.ts',
+      'src/features/story/story.extensions.ts',
+      'src/features/story/story.plugin.ts',
+      'src/features/story/story.resource.ts',
+      'src/features/story/story.system.ts',
+      'src/features/wick/bumped.event.ts',
+      'src/features/wick/hold.resource.ts',
       'src/features/wick/move.command.ts',
       'src/features/wick/walk.system.ts',
       'src/features/wick/wick.component.ts',
@@ -53,9 +71,12 @@ describe('the new 3D game’s files', () => {
       'src/features/wick/wick.view.ts',
       'src/main.ts',
       'src/shared/constants.ts',
+      'src/shared/person.view.ts',
+      'src/shared/screen.ts',
       'src/shared/tuning.ts',
       'tests/unit/content/content.test.ts',
       'tests/unit/room/read-room.test.ts',
+      'tests/unit/story/story-run.test.ts',
       'tests/unit/wick/wick-walk.test.ts',
     ])
   })
@@ -72,6 +93,15 @@ describe('the new 3D game’s files', () => {
       ['content/levels/*.af-sector.json', 'levels-3d'],
       ['content/figure*/*.toml', 'studio'],
       ['content/tuning.toml', 'tuner'],
+      ['content/feel/*.toml', 'feel'],
+      ['content/audio/*.toml', 'audio'],
+      ['assets/music/*', 'audio'],
+      ['content/lines/*.toml', 'writer'],
+      ['content/dialogue/*.toml', 'writer'],
+      ['content/cutscenes/*.toml', 'sequence'],
+      ['content/systems/*.toml', 'schematic'],
+      ['content/nav/*.toml', 'schematic'],
+      ['content/puzzles/*.toml', 'schematic'],
     ])
   })
 
@@ -100,6 +130,52 @@ describe('the new 3D game’s files', () => {
     expect(game).not.toMatch(/shade/i)
   })
 
+  it('has something to feel and hear at once: Wick bumping into a wall', () => {
+    expect(read('src/features/wick/bumped.event.ts')).toContain("defineEvent('wick.bumped'")
+    expect(read('src/features/wick/walk.system.ts')).toContain('ctx.emit(Bumped')
+    // Feel finds the character to squash and the word's place from who the event says it is about.
+    expect(read('src/features/wick/bumped.event.ts')).toContain('entity: z.number().int()')
+    expect(read('src/features/wick/walk.system.ts')).toContain('ctx.emit(Bumped, { entity: wick.sid })')
+    expect(read('content/feel/feel.toml')).toContain('on = "wick.bumped"')
+    // The word shows over the one that bumped, which is what the event's `entity` is for.
+    expect(read('content/feel/feel.toml')).toContain('at = "subject"')
+    expect(read('content/audio/audio.toml')).toContain('on = "wick.bumped"')
+    for (const row of ['feel', 'audio'])
+      expect(editorRows(row)?.match(/glob = "([^"]+)"/g)?.length, row).toBeGreaterThan(0)
+    const rows = (parse(read('content/editors.toml')) as { file: { glob: string; editor: string }[] }).file
+    for (const id of ['feel', 'audio'])
+      for (const glob of (editorRows(id)?.match(/glob = "([^"]+)"/g) ?? []).map((line) => line.slice(8, -1)))
+        expect(
+          rows.some((row) => row.glob === glob && row.editor === id),
+          `${id} ${glob}`,
+        ).toBe(true)
+  })
+
+  it('plays what Feel and Audio make: on the renderer and on the audio, read from the files the editors write', () => {
+    const game = read('src/app/game.ts')
+    expect(game).toContain('setup: feelOnStage')
+    expect(game).toContain('audio,')
+    const wiring = read('src/app/feel-audio.ts')
+    expect(wiring).toContain('feelSchema.parse(content.feel?.feel ?? {})')
+    expect(wiring).toContain('audioSchema.parse(content.audio?.audio ?? {})')
+    expect(wiring).toContain('/assets/music/*')
+    expect(read('src/shared/screen.ts')).toContain('targetSize(')
+  })
+
+  it('plays Feel and Audio the way the 2D game does, differing only in where the size comes from', () => {
+    const twoD = feelAudioFile({
+      import: "import { LEVEL } from '../features/level/level.ts'",
+      expr: '{ width: LEVEL.width, height: LEVEL.height }',
+    }).content({ id: 'g', title: 'G' } as never)
+    const swapped = twoD
+      .replace(
+        "import { LEVEL } from '../features/level/level.ts'",
+        "import { SIZE } from '../shared/screen.ts'",
+      )
+      .replace('{ width: LEVEL.width, height: LEVEL.height }', 'SIZE')
+    expect(read('src/app/feel-audio.ts')).toBe(swapped)
+  })
+
   it('names no source project and no plan id in anything it writes', () => {
     for (const file of files) expect(read(file), file).not.toMatch(NO_SOURCE_NAMES)
   })
@@ -107,6 +183,84 @@ describe('the new 3D game’s files', () => {
   it('keeps the sim free of the renderer, so its tests need no browser', () => {
     for (const file of files.filter((each) => /^src\/features\/(wick|room)\/(?!\w+\.view)/.test(each)))
       expect(read(file), file).not.toMatch(/from '@automata\/framework'|from '@automata\/3d'|pixi/)
+  })
+})
+
+describe('the new 3D game’s story', () => {
+  it('has what each content editor changes: the keeper’s words, the scene, the guard and where he walks', () => {
+    expect(
+      files.filter((file) => /^content\/(lines|dialogue|cutscenes|systems|nav|words)\//.test(file)),
+    ).toEqual([
+      'content/cutscenes/look.toml',
+      'content/dialogue/keeper.toml',
+      'content/lines/keeper.toml',
+      'content/nav/guard.toml',
+      'content/systems/guard.toml',
+      'content/words/en.json',
+    ])
+  })
+
+  it('places a keeper and a guard in the room’s cast, by name, and gives each a figure', () => {
+    const room = JSON.parse(read('content/levels/room.af-sector.json')) as {
+      cast: { id: string; who: string }[]
+    }
+    expect(room.cast.map((person) => person.id).sort()).toEqual(['guard', 'keeper'])
+    for (const person of room.cast) expect(files, person.who).toContain(`content/figures/${person.who}.toml`)
+  })
+
+  it('lists every editor the game plays, with the rows the editors themselves would add', () => {
+    const rows = (parse(read('content/editors.toml')) as { file: { glob: string; editor: string }[] }).file
+    for (const id of ['tuner', 'feel', 'audio', 'writer', 'sequence', 'schematic']) {
+      // The 3D game's keys are in its code, so it has no controls file for the Tuner to list.
+      const wanted = (editorRows(id)?.match(/glob = "([^"]+)"/g) ?? [])
+        .map((line) => line.slice(8, -1))
+        .filter((glob) => glob !== 'content/controls.toml')
+      expect(wanted.length, id).toBeGreaterThan(0)
+      for (const glob of wanted)
+        expect(
+          rows.some((row) => row.glob === glob && row.editor === id),
+          `${id} ${glob}`,
+        ).toBe(true)
+    }
+  })
+
+  it('asks for the packages the story plays on, in the version that made the game', () => {
+    const { dependencies } = JSON.parse(read('package.json')) as { dependencies: Record<string, string> }
+    for (const name of ['narrative', 'cutscenes', 'systems', 'nav', 'puzzle', 'sectors'])
+      expect(dependencies[`@automata/${name}`], name).toBe(dependencies['@automata/framework'])
+  })
+
+  it('compiles the keeper’s words, the cutscene and the guard with the content plugin', () => {
+    const config = read('vite.config.ts')
+    for (const kind of [
+      'linesContent',
+      'dialogueContent',
+      'cutsceneContent',
+      'navGraphContent',
+      'systemsContent',
+    ])
+      expect(config).toContain(kind)
+  })
+
+  it('plays the story: the extensions, the cutscene on the room’s camera, and the keeper and guard drawn as figures', () => {
+    const game = read('src/app/game.ts')
+    expect(game).toContain('extensions: [render3dExtension, ...EXTENSIONS]')
+    expect(game).toContain('cutsceneStage3d(')
+    expect(game).toContain('showScene3d(')
+    expect(read('src/features/story/story.system.ts')).toMatch(/stays code/)
+    expect(read('src/features/story/story.extensions.ts')).toContain('sectorAnchors(')
+  })
+
+  it('keeps the sim free of the renderer, so its tests need no browser', () => {
+    for (const file of files.filter((each) =>
+      /^src\/features\/(wick|room|story|guard|keeper)\/(?!\w+\.view)/.test(each),
+    ))
+      expect(read(file), file).not.toMatch(/from '@automata\/3d'|pixi/)
+  })
+
+  it('has a play of the story on the sim alone', () => {
+    expect(files).toContain('tests/unit/story/story-run.test.ts')
+    expect(read('tests/unit/story/story-run.test.ts')).toContain('starts the keeper')
   })
 })
 
@@ -128,6 +282,9 @@ describe('the new 3D game’s project', () => {
       '@pixi/3d',
     ])
       expect(dependencies[name], name).toBeDefined()
+    // Feel and Audio play what their editors make, in the version that made the game.
+    expect(dependencies['@automata/feel']).toBe(dependencies['@automata/framework'])
+    expect(dependencies['@automata/audio-synth']).toBe(dependencies['@automata/framework'])
   })
 
   it('tests and checks with one command each, like the 2D game', () => {
@@ -143,6 +300,8 @@ describe('the new 3D game’s project', () => {
     expect(config).toContain('figuresExtension.content')
     expect(config).toContain('worldSwatchContent')
     expect(config).toContain('worldPropContent')
+    expect(config).toContain('feelContent')
+    expect(config).toContain('audioContent')
     expect(read('.gitignore').split('\n')).toContain('content/generated/')
   })
 

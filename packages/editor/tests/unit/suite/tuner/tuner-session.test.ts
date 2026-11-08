@@ -145,4 +145,34 @@ describe('create', () => {
     expect((await ports.workspace.read(PATH))?.text).toMatch(/^# /)
     expect(tuner.history.undoLabel).toBe('Create content/tuning.toml')
   })
+
+  it('lists the Tuner in the game first, then makes the file', async () => {
+    const ports = await tunerFixturePorts({})
+    const asked: string[] = []
+    const tuner = await openTuner({
+      ...ports,
+      list: {
+        ensure: async (id) => {
+          asked.push(id)
+          return { ok: true, unchanged: true }
+        },
+      },
+    })
+    expect(await tuner.create()).toEqual({ ok: true })
+    expect(asked).toEqual(['tuner'])
+    expect(await ports.workspace.read(PATH)).toBeDefined()
+  })
+
+  it('makes nothing, and says why, when the game’s list cannot take the Tuner', async () => {
+    const ports = await tunerFixturePorts({})
+    const tuner = await openTuner({
+      ...ports,
+      list: {
+        ensure: async () => ({ ok: false, reason: 'policy', message: 'The list has a problem.' }),
+      },
+    })
+    expect(await tuner.create()).toEqual({ ok: false, message: 'The list has a problem.' })
+    expect(tuner.hasFile()).toBe(false)
+    expect(await ports.workspace.read(PATH)).toBeUndefined()
+  })
 })

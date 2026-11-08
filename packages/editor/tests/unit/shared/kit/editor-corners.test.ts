@@ -18,6 +18,7 @@ const DOTS = [
   'shared/kit/home/SourcesPanel.svelte',
   'features/characters/DefinitionPreview.svelte',
   'features/document/DocumentBar.svelte',
+  'features/suite/tuner/ui/TunerGame.svelte',
 ]
 
 function svelteFiles(dir: string): string[] {
@@ -29,7 +30,11 @@ function svelteFiles(dir: string): string[] {
 }
 
 // The two places the spec draws the lime outside Publish: the game's mark (3 px foot) and the open tab's 2 px bar.
-const LIME = ['shared/kit/nav/Sidebar.svelte', 'shared/kit/nav/TabBar.svelte']
+const LIME = [
+  'shared/kit/nav/Sidebar.svelte',
+  'shared/kit/nav/TabBar.svelte',
+  'features/suite/tuner/ui/TunerGame.svelte',
+]
 
 function styles(): Array<{ file: string; code: string }> {
   return svelteFiles(SRC).map((path) => {

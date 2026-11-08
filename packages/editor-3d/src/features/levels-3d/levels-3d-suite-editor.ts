@@ -34,7 +34,8 @@ export function createLevels3d(options: Levels3dSuiteOptions): SuiteEditor<Level
   const frames = options.frames ?? NO_FRAMES
   return defineSuiteEditor<Levels3dSuiteSession>({
     id: 'levels-3d',
-    label: 'Levels 3D',
+    label: 'Levels',
+    kind: '3d',
     icon: 'cube',
     hue: 'color/ed/levels',
     async open(files, ports) {

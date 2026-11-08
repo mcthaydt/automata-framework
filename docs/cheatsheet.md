@@ -102,7 +102,7 @@
 - `MusicPlayer` (interface): Plays the slot the game's state calls for.
 - `MusicPlayerOptions` (interface): What the player needs: the context and bus input of core's audio graph, and where the tracks' files are.
 - `trackAlias(path)`: The name the game knows a track's sound by: the file's own name, lower case, words joined with dashes.
-- `tracksFrom(found)`: The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true, query: '?url', import: 'default' })`): each file's name to the address it is served from.
+- `tracksFrom(found)`: The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('../../assets/music/*', { eager: true, query: '?url', import: 'default' })`): each file's name to the address it is served from.
 
 ## `@automata/content`
 
@@ -201,7 +201,7 @@
 - `RESERVED_KEYS` (const): Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
 - `RESERVED_PAD_BUTTONS` (const): Never bindable in a game's profile: Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the one back path and Tab moves focus.
 - `STANDARD_PAD_BUTTON_MAX` (const): The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home).
-- `STICK_DIRECTIONS` (const)
+- `STICK_DIRECTIONS` (const): The eight stick pushes a profile can bind: each stick up, down, left or right.
 - `StickDirection` (type): A stick pushed past its dead zone in one direction (the input service reads them).
 
 ### `import { … } from '@automata/content/game-config'`
@@ -582,7 +582,7 @@
 - `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
 - `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
 - `PresentationBus` (interface): The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear.
-- `PROMPT_COPY` (const)
+- `PROMPT_COPY` (const): What a binding is called when its key, pad button or tap is shown in the settings.
 - `PromptCopy` (interface): Every word a prompt shows, in the game's language.
 - `QualityTier` (type): A graphics quality tier: `high`, `medium` or `low`.
 - `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
@@ -633,6 +633,7 @@
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
 - `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
 - `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+- `StageCharacters` (interface): The stage's port for characters, keyed by the sim's stable id of the character.
 - `startGame(game, start?)`: Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
 - `StartOptions` (interface): How a game starts.
 - `StepResult` (interface): What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were rejected.

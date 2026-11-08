@@ -13,9 +13,9 @@ import { runEditor } from '../harness/run-editor.ts'
 
 /** The starter level's cells: 512 px across 32 of them. */
 const STARTER_TILE = 16
-/** Row 2 of the starter level, before and after a wall at column 5. */
+/** Row 2 of the starter level, before and after a wall at column 5. The starter's own wall down column 16 is in every row. */
 const EMPTY_ROW = '".*32", ".*32", ".*32", ".*32"'
-const WALLED_ROW = '".*32", ".*32", ".*5 1 .*26", ".*32"'
+const WALLED = '".*5 1 .*10 1 .*15"'
 /** Where Vite serves the compiled content module the game imports. */
 const CONTENT_MODULE = '@id/__x00__virtual:automata/content'
 
@@ -32,7 +32,7 @@ test('a new game is made, edited, saved, played and published from the editors a
     expect(readFileSync(levelFile, 'utf8')).toContain(EMPTY_ROW)
     await openRoom(page, editor, 'Start')
     await paintWall(page, { col: 5, row: 2 }, STARTER_TILE)
-    await expect.poll(() => readFileSync(levelFile, 'utf8'), { timeout: 30_000 }).toContain(WALLED_ROW)
+    await expect.poll(() => readFileSync(levelFile, 'utf8'), { timeout: 30_000 }).toContain(WALLED)
     const check = await checkLevels(game.dir)
     expect(check.code, check.output).toBe(0)
 
@@ -43,7 +43,7 @@ test('a new game is made, edited, saved, played and published from the editors a
     const gameOrigin = new URL(play.url()).origin
     await expect
       .poll(async () => (await fetch(`${gameOrigin}/${CONTENT_MODULE}`)).text(), { timeout: 30_000 })
-      .toContain('".*5 1 .*26"')
+      .toContain(WALLED)
     await play.getByRole('button', { name: 'Play' }).click()
     // The wall's cell is drawn, and the cell beside it is still the empty level behind.
     const cell = (col: number) => cellOnScreen(play, { col, row: 2 }, STARTER_TILE)
@@ -65,7 +65,7 @@ test('a new game is made, edited, saved, played and published from the editors a
     const files = readZip(await download.path())
     expect(files.has('index.html')).toBe(true)
     const code = [...files].filter(([name]) => name.endsWith('.js')).map(([, text]) => text)
-    expect(code.some((text) => text.includes('.*5 1 .*26'))).toBe(true)
+    expect(code.some((text) => text.includes('.*5 1 .*10 1 .*15'))).toBe(true)
   } finally {
     await editor.stop()
     game.remove()

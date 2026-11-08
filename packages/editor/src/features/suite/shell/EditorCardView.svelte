@@ -6,7 +6,7 @@
 <script lang="ts">
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import Button from '../../../shared/kit/widgets/Button.svelte'
-import { cardContents, cardLine, type EditorCard, fileTitle } from './home-model'
+import { cardContents, cardLine, type EditorCard, rowName } from './home-model'
 
 interface Props {
   card: EditorCard
@@ -18,8 +18,8 @@ interface Props {
 
 const { card, onopen, onread, start }: Props = $props()
 
-const headingId = $derived(`card-${card.editor}`)
-const line = $derived(cardLine(card.editor))
+const headingId = $derived(`card-${card.entry ?? card.editor}`)
+const line = $derived(cardLine(card.entry ?? card.editor))
 </script>
 
 <section class="card" aria-labelledby={headingId} data-editor={card.editor} data-installed={card.installed}>
@@ -40,13 +40,13 @@ const line = $derived(cardLine(card.editor))
       {#each card.rows as file (file.path)}
         <li>
           <button type="button" class="file" onclick={() => onread(file)}>
-            <span class="name">{fileTitle(file.path)}</span>
+            <span class="name">{rowName(card, file)}</span>
             {#if !file.writable}<span class="why">Read only{file.why ? `: ${file.why}` : ''}</span>{/if}
           </button>
         </li>
       {/each}
     </ul>
-  {:else}
+  {:else if !card.viewOnly}
     <p class="contents">{cardContents(card)}</p>
     {#if card.rows.length === 0 && start !== undefined}
       <span class="start"><Button onclick={() => onopen(card)}>{start}</Button></span>

@@ -114,6 +114,14 @@ export async function openTuner(ports: SuitePorts): Promise<TunerSession> {
 
   /** Writes what changed between two states through the port: the tuning file, then the controls. */
   async function sync(from: TunerState, to: TunerState): Promise<TunerOutcome> {
+    // Making either file first lists the Tuner in the game, as one more rows' worth of the list (not an undo step).
+    if (
+      (from.text === undefined && to.text !== undefined) ||
+      (from.controls === undefined && to.controls !== undefined)
+    ) {
+      const listed = await ports.list?.ensure('tuner')
+      if (listed !== undefined && !listed.ok) return refused(listed.message)
+    }
     if (from.text !== to.text && to.text !== undefined) {
       const result = await workspace.write(
         TUNING_PATH,

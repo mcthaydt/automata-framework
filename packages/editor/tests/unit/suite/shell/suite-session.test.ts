@@ -41,6 +41,12 @@ const NO_NINES: MemoryCheck = {
       : { status: 'pass', findings: [], output: '' },
 }
 
+function loadedList() {
+  const load = loadEditorList(LIST)
+  if (!load.ok) throw new Error('fixture list does not load')
+  return load.list
+}
+
 async function setup(checks: readonly MemoryCheck[] = []) {
   const load = loadEditorList(LIST)
   if (!load.ok) throw new Error('fixture list does not load')
@@ -88,6 +94,21 @@ describe('the session behind the suite’s editors', () => {
     await session.follow(outcome)
     const [pill] = session.pills()
     expect(pill).toMatchObject({ icon: 'checks', tone: 'pass', label: 'Checks pass' })
+  })
+
+  test('an editor lists itself through the suite’s raw ports, so the rows are not an undo step', async () => {
+    const memory = await createMemoryPorts({
+      files: FILES,
+      classify: (path) => workspaceFile(loadedList(), path),
+      listChanged: () => undefined,
+    })
+    const session = createSuiteSession(memory.ports)
+    const mine = session.portsFor('feel')
+    expect(await mine.list?.ensure('feel')).toMatchObject({ ok: true })
+    expect((await memory.ports.workspace.read(EDITOR_LIST_PATH))?.text).toContain('content/feel/*.toml')
+    expect(session.writePath.undoLabel('feel')).toBeUndefined()
+    // A second ask has nothing to add.
+    expect(await mine.list?.ensure('feel')).toEqual({ ok: true, unchanged: true })
   })
 
   test('listeners hear each change to the pill', async () => {

@@ -98,6 +98,7 @@ export function standsAt(room: Room, x: number, z: number, half: number): boolea
   {
     path: 'src/features/room/room.ts',
     content: () => `import { readLevel } from '@automata/3d/level'
+import { readSectorMap, type SectorMap } from '@automata/sectors/sim'
 import file from '../../../content/levels/room.af-sector.json' with { type: 'json' }
 import { type PropShape, type Room, roomOf } from './read-room.ts'
 
@@ -107,21 +108,47 @@ import { type PropShape, type Room, roomOf } from './read-room.ts'
 /** The room file as the editor wrote it (an older format is brought up to date). */
 export const ROOM_LEVEL = readLevel(file).level
 
+/** The room as the story's extensions read it: its floor plan, its walls and its doorways. */
+export const ROOM_MAP: SectorMap = readSectorMap(file).level
+
 /** The room as the sim plays it; the props' footprints come from the game's content (content/world-props). */
 export function roomIn(content: unknown): Room {
   const kinds = content as { readonly 'world-prop'?: Readonly<Record<string, PropShape>> }
   return roomOf(ROOM_LEVEL, kinds['world-prop'] ?? {})
 }
+
+/** Where the room puts a person, in metres, and the way they face in radians (0 toward +z, growing toward +x). */
+function personAt(id: string): { readonly x: number; readonly z: number; readonly yaw: number } {
+  const person = ROOM_LEVEL.cast?.find((each) => each.id === id)
+  if (person === undefined)
+    throw new Error(\`The room needs a "\${id}". Place one in the level editor and press Save.\`)
+  return { x: person.at[0] ?? 0, z: person.at[1] ?? 0, yaw: ((person.angle ?? 0) * Math.PI) / 180 }
+}
+
+/** Where the room puts the keeper. */
+export const keeperAt = () => personAt('keeper')
+
+/** Where the room puts the guard. */
+export const guardAt = () => personAt('guard')
 `,
   },
   {
     path: 'src/features/room/compiled-content.d.ts',
     content:
-      () => `// The content plugin's module (vite.config.ts), typed as far as this game reads it: everything the content folder
-// compiles to, by kind and name. The plugin also writes a full declaration into content/generated/ on the first
+      () => `// The content plugin's module (vite.config.ts), typed as far as this game reads it: the story's files by kind (each
+// kind's files by id), and what Feel and Audio write. The plugin also writes a full declaration into content/generated/ on the first
 // \`pnpm dev\` or build; this one lets the game type-check before that.
 declare module 'virtual:automata/content' {
-  export const content: unknown
+  type Files = Readonly<Record<string, unknown>> | undefined
+  export const content: {
+    readonly lines?: Files
+    readonly dialogue?: Files
+    readonly cutscene?: Files
+    readonly 'nav-graph'?: Files
+    readonly systems?: Files
+    readonly feel?: Readonly<Record<string, unknown>>
+    readonly audio?: Readonly<Record<string, unknown>>
+  }
 }
 `,
   },

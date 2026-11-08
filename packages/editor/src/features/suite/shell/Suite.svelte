@@ -81,19 +81,19 @@ const mode = $derived(shellModeAt(geometry.current))
 // Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
 const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
 const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
-// The rail: the editors this page registered.
-// and only the ones the game's editor list names; when the list did not load, every installed one (read only).
+// The rail: every editor this page registered, less those for a kind the game is not. The list says which kind(s) the
+// game is; an editor it does not name still shows and opens on its start page.
 const entries = $derived(
   suiteEntries(suite.editors, home.kind === 'cards' ? home.cards.map((card) => card.editor) : undefined),
 )
 const entry = $derived(entries.find((candidate) => candidate.id === current))
 const gameName = $derived(sample ? 'Sample game' : (game ?? 'Your game'))
 
-// The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
+// The installed editor the chosen entry opens: the card whose entry it is. An editor with two entries has two cards,
+// which open the same editor (and its one session) at different views.
 const target = $derived.by((): { editor: SuiteEditor<unknown>; card: EditorCard } | undefined => {
   if (entry === undefined || home.kind !== 'cards') return undefined
-  const installed = home.cards.filter((card) => card.installed && entry.editors.includes(card.editor))
-  const card = installed.length === 1 ? installed[0] : undefined
+  const card = home.cards.find((candidate) => candidate.installed && candidate.entry === entry.id)
   const editor = card === undefined ? undefined : suite.editor(card.editor)
   return card === undefined || editor === undefined ? undefined : { editor, card }
 })
@@ -108,8 +108,13 @@ $effect(() => {
   const { editor, card } = target
   if (editor.id in sessions || opening.has(editor.id)) return
   opening.add(editor.id)
+  const asked = entry?.view
   void editor.open(card.files, editing.portsFor(editor.id)).then(
     (session) => {
+      // The view of the entry now chosen if it is still this editor's, else the one that asked: the right view draws
+      // first, and an effect would paint the old one for a frame.
+      const now = entries.find((candidate) => candidate.id === current)
+      showView(editor, session, now?.editors[0] === editor.id ? now.view : asked)
       sessions = { ...sessions, [editor.id]: session }
     },
     () => opening.delete(editor.id),
@@ -174,9 +179,16 @@ function shortcuts(event: KeyboardEvent): void {
   }
 }
 
+function showView(editor: SuiteEditor<unknown>, session: unknown, view: string | undefined): void {
+  if (view !== undefined) editor.showView?.(session, view)
+}
+
 function choose(id: string | undefined): void {
   // Opened sessions are kept whatever Home now lists; only the cards change.
   void reread?.().then((read) => (latest = read))
+  const chosen = entries.find((candidate) => candidate.id === id)
+  const kept = chosen === undefined ? undefined : suite.editor(chosen.editors[0] ?? '')
+  if (kept !== undefined && kept.id in sessions) showView(kept, sessions[kept.id], chosen?.view)
   current = id
   reading = undefined
   panelOpen = false
@@ -252,7 +264,7 @@ function openCard(card: EditorCard): void {
       <Home
         title={entry.label}
         {home}
-        editors={entry.editors}
+        entry={entry.id}
         empty={`Nothing to edit in ${entry.label} yet.`}
         onopen={openCard}
         onread={(file) => (reading = file)}

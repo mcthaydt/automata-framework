@@ -22,6 +22,8 @@ export async function newGame(
   installedFrom: string,
   template: '2d' | '3d' = '2d',
   name = 'my-game',
+  /** Link every `@automata/*` package from the workspace (its build), as `pnpm install` would, so the game typechecks against them. */
+  fromWorkspace = false,
 ): Promise<TempGame> {
   const folder = mkdtempSync(join(tmpdir(), 'af-journey-new-'))
   await promisify(execFile)(process.execPath, [BIN, 'create-game', name, '--template', template], {
@@ -36,9 +38,10 @@ export async function newGame(
   const scoped = join(dir, 'node_modules', '@automata')
   mkdirSync(scoped)
   for (const name of automataPackages(dir)) {
-    const from = existsSync(join(installed, '@automata', name))
-      ? join(installed, '@automata', name)
-      : WORKSPACE.get(name)
+    const from =
+      !fromWorkspace && existsSync(join(installed, '@automata', name))
+        ? join(installed, '@automata', name)
+        : WORKSPACE.get(name)
     if (from !== undefined) symlinkSync(from, join(scoped, name), 'dir')
   }
   return { dir, remove: () => rmSync(folder, { recursive: true, force: true }) }

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from '#src/features/suite/core/index.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
-import { fileTitle, homeOf, keyPathText } from '#src/features/suite/shell/home-model.ts'
+import { fileTitle, homeOf, keyPathText, rowName } from '#src/features/suite/shell/home-model.ts'
 import type { WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
 /** The sample game's list sits beside the in-memory ports the suite page uses; the others are test fixtures. */
@@ -60,18 +60,113 @@ modes = ["edit"]
 gates = []
 checks = ["content"]
 `
-    const installed = (id: string, label: string) => ({ id, label, regions: {} }) as never
+    const installed = (id: string, label: string, kind?: string) =>
+      ({ id, label, kind, regions: {} }) as never
     const suite = createSuite({
       editors: [
         installed('tuner', 'Tuner'),
-        installed('levels-2d', 'Levels'),
-        installed('levels-3d', 'Levels 3D'),
-        installed('studio', 'Characters'),
+        installed('levels-2d', 'Levels', '2d'),
+        installed('levels-3d', 'Levels', '3d'),
+        installed('studio', 'Characters', '3d'),
       ],
     })
     const state = homeOf(loadEditorList(list), new Map(), suite)
     if (state.kind !== 'cards') throw new Error(state.kind)
     expect(state.cards.map((card) => card.label)).toEqual(['Tuner', 'Levels', 'Characters'])
+  })
+
+  it('gives a second rail entry of an editor its own card, which opens that view', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+`
+    const levels = {
+      id: 'levels-2d',
+      label: 'Levels',
+      kind: '2d',
+      regions: {},
+      entries: [
+        { id: 'levels-2d', label: 'Levels', icon: 'grid', kind: '2d', view: 'level' },
+        { id: 'characters-2d', label: 'Characters', icon: 'person', kind: '2d', view: 'characters' },
+      ],
+    } as never
+    const world = file('content/levels/world.af2d.json', 'levels-2d')
+    const state = homeOf(
+      loadEditorList(list),
+      new Map([['levels-2d', [world]]]),
+      createSuite({ editors: [levels] }),
+    )
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards.map((card) => [card.editor, card.label, card.entry])).toEqual([
+      ['levels-2d', 'Levels', 'levels-2d'],
+      ['levels-2d', 'Characters', 'characters-2d'],
+    ])
+    // A second entry is another view of the level's file, not another list of levels: its card just opens it.
+    expect(state.cards[0]?.rows).toEqual([world])
+    expect(state.cards[1]).toMatchObject({ rows: [], viewOnly: true })
+    expect(state.cards[0]?.viewOnly).toBe(false)
+  })
+
+  it('gives a card to every editor of the game’s kinds the page registers, listed or not', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+gates = []
+checks = []
+`
+    const installed = (id: string, label: string, kind?: string) =>
+      ({ id, label, kind, regions: {} }) as never
+    const suite = createSuite({
+      editors: [
+        installed('feel', 'Feel'),
+        installed('levels-2d', 'Levels', '2d'),
+        installed('levels-3d', 'Levels', '3d'),
+        installed('studio', 'Characters', '3d'),
+      ],
+    })
+    const state = homeOf(loadEditorList(list), new Map(), suite)
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards.map((card) => [card.editor, card.entry, card.installed, card.files])).toEqual([
+      ['feel', 'feel', true, []],
+      ['levels-2d', 'levels-2d', true, []],
+    ])
+  })
+
+  it('puts the editors the page lacks after the rail’s cards, in the list’s order', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/a.toml"
+editor = "sequence"
+modes = ["edit"]
+gates = []
+checks = []
+[[file]]
+glob = "content/b.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = []
+[[file]]
+glob = "content/c.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+`
+    const suite = createSuite({ editors: [{ id: 'tuner', label: 'Tuner', regions: {} } as never] })
+    const state = homeOf(loadEditorList(list), new Map(), suite)
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards.map((card) => [card.editor, card.installed])).toEqual([
+      ['tuner', true],
+      ['sequence', false],
+      ['writer', false],
+    ])
   })
 
   it('names a studio card Characters when the build lacks the editor', () => {
@@ -158,7 +253,7 @@ checks = ["content"]
     const tuner = { id: 'tuner' } as never
     const state = homeOf(loadEditorList(list), new Map(), createSuite({ editors: [tuner] }))
     if (state.kind !== 'cards') throw new Error(state.kind)
-    expect(state.cards[0]).toMatchObject({
+    expect(state.cards.find((card) => card.editor === 'feel')).toMatchObject({
       editor: 'feel',
       label: 'Feel',
       entry: undefined,
@@ -248,5 +343,42 @@ describe('fileTitle', () => {
     ['README', 'README'],
   ])('%s reads as %s', (path, title) => {
     expect(fileTitle(path)).toBe(title)
+  })
+})
+
+// A card names each row by what it holds, never twice the same and never the card's own name under itself.
+describe('rowName', () => {
+  const card = (label: string, paths: string[]) => {
+    const rows = paths.map((path) => file(path, 'x'))
+    return { card: { label, rows, installed: true } as never, rows }
+  }
+
+  it('is the file in words', () => {
+    const { card: c, rows } = card('Tuner', ['content/controls.toml', 'content/tuning.toml'])
+    expect(rows.map((row) => rowName(c, row))).toEqual(['Controls', 'Tuning'])
+  })
+
+  it('says Open for the one file that only repeats the card’s name', () => {
+    const { card: c, rows } = card('Feel', ['content/feel/feel.toml'])
+    expect(rowName(c, rows[0] as WorkspaceFile)).toBe('Open')
+  })
+
+  it('keeps the name for a file of an editor this build lacks, which opens it read only', () => {
+    const rows = [file('content/feel/feel.toml', 'feel')]
+    expect(rowName({ label: 'Feel', rows, installed: false }, rows[0] as WorkspaceFile)).toBe('Feel')
+  })
+
+  it('keeps a file that is named like the card when it is one of several', () => {
+    const { card: c, rows } = card('Audio', ['content/audio/audio.toml', 'content/audio/mix.toml'])
+    expect(rows.map((row) => rowName(c, row))).toEqual(['Audio', 'Mix'])
+  })
+
+  it('says which folder each of two files named alike is from', () => {
+    const { card: c, rows } = card('Writer', [
+      'content/lines/keeper.toml',
+      'content/conversations/keeper.toml',
+      'content/lines/guard.toml',
+    ])
+    expect(rows.map((row) => rowName(c, row))).toEqual(['Keeper (lines)', 'Keeper (conversations)', 'Guard'])
   })
 })

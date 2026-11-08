@@ -6,6 +6,7 @@ import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
 import { type FeelContent, feelSchema } from '@automata/feel'
 import type { AudioPlay } from '../../shared/audio-play.ts'
 import { audioCues, audioFileWith, gameEvents } from '../../shared/game-events.ts'
+import { gameHasPlayer } from '../../shared/game-player.ts'
 import { undoOf } from '../../shared/session-hooks.ts'
 import { openTomlSession } from '../../shared/toml-session.ts'
 import { canvas, panel, status } from './FeelRegions.svelte'
@@ -32,8 +33,14 @@ export function createFeel(options: FeelOptions = {}): SuiteEditor<FeelSession> 
     async open(files, ports) {
       const play = options.audio
       const path = files.find((file) => file.path.endsWith('.toml'))?.path ?? FEEL_PATH
-      const toml = await openTomlSession<FeelContent>({ path, ports, schema: feelSchema, empty: EMPTY })
-      return new FeelSession(toml, {
+      const toml = await openTomlSession<FeelContent>({
+        path,
+        ports,
+        schema: feelSchema,
+        empty: EMPTY,
+        editor: 'feel',
+      })
+      const session = new FeelSession(toml, {
         events: await gameEvents(ports.workspace),
         cues: await audioCues(ports.workspace),
         ...(options.outputs === undefined ? {} : { outputs: options.outputs }),
@@ -50,6 +57,8 @@ export function createFeel(options: FeelOptions = {}): SuiteEditor<FeelSession> 
               },
             }),
       })
+      session.hasPlayer = await gameHasPlayer(ports.workspace, 'feel')
+      return session
     },
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),

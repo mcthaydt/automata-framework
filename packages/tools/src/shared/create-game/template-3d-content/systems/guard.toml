@@ -1,0 +1,54 @@
+# The guard: walks to and fro along the back of the room, goes after what he sees, and gives up after a while.
+scene = "room"
+objects = []
+matrix = []
+rules = []
+scenarios = []
+
+[tunables]
+
+[fairness]
+cautiousWin = 0.9
+firstThreatAfter = 20
+telegraph = 1.5
+maxDeathsPerRun = 1
+safeWindowMargin = 1.3
+
+[[agents]]
+id = "guard"
+modes = [ "patrol", "hunt" ]
+initial = "patrol"
+
+[agents.speed]
+patrol = 1
+hunt = 2
+
+[[agents.senses]]
+[agents.senses.sight]
+range = 3
+
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.5
+
+[[agents.transitions]]
+from = "*"
+to = "hunt"
+priority = 70
+when = [ { sees = true } ]
+do = [ { goTo = "player" } ]
+
+[[agents.transitions]]
+from = "hunt"
+to = "patrol"
+priority = 30
+when = [ { fact = "self.idle", is = true }, { not = { sees = true } }, { timer = 3 } ]
+do = [ { set = "self.timer", to = 0 } ]
+
+[[agents.routine]]
+node = "east"
+dwell = 0.5
+
+[[agents.routine]]
+node = "west"
+dwell = 0.5

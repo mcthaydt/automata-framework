@@ -1000,7 +1000,7 @@ function trackAlias(path: string): string;
 
 #### `tracksFrom` (function)
 
-The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true,
+The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('../../assets/music/*', { eager: true,
 query: '?url', import: 'default' })`): each file's name to the address it is served from.
 
 ```ts
@@ -2000,7 +2000,7 @@ const STANDARD_PAD_BUTTON_MAX = 16;
 
 #### `STICK_DIRECTIONS` (const)
 
-_No doc comment._
+The eight stick pushes a profile can bind: each stick up, down, left or right.
 
 ```ts
 const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
@@ -6465,6 +6465,13 @@ interface PixiStage {
     readonly backdrop: Container;
     /** The delta consumer tracking entity views. */
     readonly consumer: RenderDeltaConsumer;
+    /**
+     * How characters are squashed, held and found for a word above them. Read it each frame: a renderer that draws
+     * characters its own way replaces it (`useCharacters`) when it mounts.
+     */
+    readonly characters: StageCharacters;
+    /** Replaces `characters` with this renderer's own answer. */
+    useCharacters(characters: StageCharacters): void;
     /** The fixed-resolution composite the world and UI draw into, when it is on. */
     readonly composite?: CompositeTarget | undefined;
     /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
@@ -6607,7 +6614,7 @@ interface PresentationBus<Facts = RuntimeFacts> {
 
 #### `PROMPT_COPY` (const)
 
-_No doc comment._
+What a binding is called when its key, pad button or tap is shown in the settings.
 
 ```ts
 const PROMPT_COPY: PromptCopy;
@@ -7543,6 +7550,26 @@ interface SpriteViewOptions {
      * `automata-content assets` writes, and `frame` names one of its frames. Not with `frames`.
      */
     readonly frame?: string | undefined;
+}
+```
+
+#### `StageCharacters` (interface)
+
+The stage's port for characters, keyed by the sim's stable id of the character.
+
+```ts
+interface StageCharacters {
+    /** Where a word above a character sits, in `stage.ui`'s coordinates, or `undefined` when it has no view. */
+    point(ref: number): {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+    /** Scales a character's view by `x` and `y` from the scale it rests at. */
+    squash(ref: number, x: number, y: number): void;
+    /** Puts a squashed character's scale back. */
+    rest(ref: number): void;
+    /** Holds these characters' poses until the next call. */
+    hold(refs: ReadonlySet<number>): void;
 }
 ```
 

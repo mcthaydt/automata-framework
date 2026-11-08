@@ -1,0 +1,33 @@
+# The keeper walks two cells towards the gate while a caption is up. Points are in metres: one cell is one metre.
+# He starts where Levels places him (`at = "actor:keeper"`), so moving him in Levels moves this scene with him.
+id = "gate"
+duration = 6
+
+[[camera]]
+t = 0
+pos = [ 12.5, 8, 14 ]
+look = [ 12.5, 0, 14 ]
+cut = true
+
+[[actor]]
+who = "keeper"
+t = 0
+at = "actor:keeper"
+
+[[actor]]
+who = "keeper"
+t = 1
+at = "actor:keeper"
+moving = true
+
+[[actor]]
+who = "keeper"
+t = 3
+x = 14.5
+z = 16
+moving = false
+
+[[caption]]
+t = 0.5
+until = 5.5
+line = "keeper.later"

@@ -2,6 +2,7 @@
 // suite (a host) composes them with `createSuite`, which is the suite's own; this is only the shape and its helper.
 // Svelte appears as the `Snippet` type alone, so the headless layers load this file without the compiler.
 import type { Snippet } from 'svelte'
+import type { IconName } from '../icons/paths'
 import type { ShellMode } from '../shell/shell-mode'
 import type { SuitePorts, WorkspaceFile } from './suite-ports'
 
@@ -67,10 +68,30 @@ export interface SuiteUndo {
   subscribe(listener: () => void): () => void
 }
 
+/** The kind of game an editor is for: the level editors and the figure editors differ between them. */
+export type EditorKind = '2d' | '3d'
+
+/**
+ * One rail entry of an editor that has more than one. Each names the view of the editor's one session it opens.
+ * The first entry's id is the editor's own id.
+ */
+export interface SuiteEntryDef {
+  readonly id: string
+  /** The entry's name for one kind of game (the rail adds " 2D" or " 3D" when it shows both kinds). */
+  readonly label: string
+  readonly icon: IconName
+  readonly kind?: EditorKind | undefined
+  /** What `showView` is asked to show when the entry is chosen. */
+  readonly view: string
+}
+
 export interface SuiteEditor<S> {
   /** The id the editor list names: `tuner`, `studio`, `feel`, `levels-2d`, ... */
   readonly id: string
+  /** The editor's name for one kind of game; the rail adds " 2D" or " 3D" only when it shows both kinds. */
   readonly label: string
+  /** The kind of game it is for; none means both. */
+  readonly kind?: EditorKind | undefined
   /** The icon's name in the suite's icon set. */
   readonly icon: string
   /** The editor's `color/ed/*` token. */
@@ -89,6 +110,13 @@ export interface SuiteEditor<S> {
   readonly contributions?: readonly ContributionPoint[] | undefined
   /** The header's breadcrumb for this session; without it the header shows the editor's name alone. */
   readonly header?: ((session: S) => EditorHeader | undefined) | undefined
+  /**
+   * The rail entries this editor gives, when it gives more than one: they share the editor's one session, history and
+   * write queue, and differ in the view they show. Absent: one entry, the editor itself.
+   */
+  readonly entries?: readonly SuiteEntryDef[] | undefined
+  /** Shows the view a chosen entry names, before the editor's regions draw. Required with `entries`. */
+  readonly showView?: ((session: S, view: string) => void) | undefined
   /** The session's history; an editor without it has no Undo in the top bar. */
   readonly undo?: ((session: S) => SuiteUndo) | undefined
 }

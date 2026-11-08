@@ -23,6 +23,8 @@ export type AudioCheck = (content: AudioContent) => Promise<SoundFinding[]>
 export type CheckState = 'unchecked' | 'current' | 'stale'
 
 export class AudioSession extends ContentSession<AudioContent, AudioChoice> {
+  /** The game's code has the part that plays what this editor makes, found when the editor opened. */
+  hasPlayer = true
   readonly play: AudioPlay
   readonly #check: AudioCheck
   /** Whether the page has made a sound yet: until it has, Play says "Tap to hear" (a browser needs a tap first). */

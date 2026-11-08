@@ -104,7 +104,7 @@ onDestroy(() => {
     padding: 2px var(--space-2);
     border-radius: var(--edge-sm);
     background: var(--charcoal);
-    color: var(--color-text-dim);
+    color: var(--stage-muted);
     font: var(--text-eyebrow-11);
     pointer-events: none;
   }

@@ -15,9 +15,10 @@ import { browserPublish } from '../../shared/kit/storage/publish-client.ts'
 import { randomIds } from '../../shared/level-2d/model/ids.ts'
 import { createLevels2d } from './levels-2d/levels-2d-suite-editor.ts'
 
-// The suite's page for this package: the editors it has (the Tuner and Levels 2D) and nothing from 3D, so its build
-// carries no `@pixi/3d` (`-tools`' build scans it for the beta). Only these two: the other suite editors are 3D (Levels
-// 3D and the Studio, which `editor-3d`'s own suite page adds) or not built yet. The rail lists what is registered here.
+// The suite's page for this package: the editors it has (the Tuner, and Levels 2D with its Characters entry) and nothing
+// from 3D, so its build carries no `@pixi/3d` (`-tools`' build scans it for the beta). The 3D editors and the content
+// editors are on the full page (`extensions/editors`), which `automata editor` serves a game whose list names one. The
+// rail lists what is registered here, whether or not the game has files for it yet.
 // The only file that reaches for the page's globals. It opens the checkout it is served on or, when none answers, a
 // sample game kept in this browser, and says so in the top bar (`open-suite-ports.ts`).
 

@@ -14,6 +14,7 @@ export {
   type Sector,
 } from '../shared/sim/resolve'
 export { resolvedMap } from '../shared/sim/resolved-map'
+export { type SectorAnchorOf, sectorAnchors } from '../shared/sim/sector-anchors'
 export { InSector } from '../shared/sim/sectors.component'
 export {
   SectorEntered,

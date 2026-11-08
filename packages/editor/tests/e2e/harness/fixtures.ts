@@ -14,8 +14,8 @@ import {
   type TestType,
 } from '@playwright/test'
 import { cellOnCanvas } from './canvas-pointer.ts'
-import { BIN, type RunningEditor, runEditor } from './run-editor.ts'
 import { pressInList } from './press-in-list.ts'
+import { BIN, type RunningEditor, runEditor } from './run-editor.ts'
 import { copyGame, type TempGame } from './temp-game.ts'
 
 /** The committed game the journeys copy. */

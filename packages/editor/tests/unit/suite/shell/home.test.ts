@@ -29,6 +29,7 @@ const card = (
   installed,
   files,
   rows: files,
+  viewOnly: false,
 })
 
 const LINES: readonly (readonly [string, string, string])[] = [

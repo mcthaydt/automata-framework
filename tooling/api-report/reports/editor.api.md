@@ -25,6 +25,12 @@ interface AttachOptions extends GestureOptions {
 function autosaveProblem(problem: Problem): string;
 ```
 
+### `Block` (svelte)
+
+```ts
+component from '../shared/kit/rows/Block.svelte'
+```
+
 ### `BlockedProps` (interface)
 
 ```ts
@@ -88,7 +94,7 @@ function checkRetype(oldDef: FieldDef, newDef: FieldDef, instances: readonly Fie
 ### `checkValues` (function)
 
 ```ts
-function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[];
+function checkValues(fields: readonly FieldDef[], values: FieldValues, owner?: string): readonly InstanceProblem[];
 ```
 
 ### `Chips` (svelte)
@@ -420,6 +426,12 @@ interface EditorTokens {
 type EditPhase = 'set' | 'start' | 'update' | 'commit' | 'cancel';
 ```
 
+### `EmptyState` (svelte)
+
+```ts
+component from '../shared/kit/states/EmptyState.svelte'
+```
+
 ### `ENTITY_ID` (const)
 
 ```ts
@@ -484,6 +496,12 @@ const entityDefShape: {
     single: z.ZodOptional<z.ZodBoolean>;
     fields: z.ZodArray<z.ZodType<FieldDef>>;
 };
+```
+
+### `Field` (svelte)
+
+```ts
+component from '../shared/kit/rows/Field.svelte'
 ```
 
 ### `FIELD_ID` (const)
@@ -579,6 +597,8 @@ interface FieldRow {
         readonly step: number;
     };
     readonly options?: readonly string[];
+    readonly missing?: string;
+    readonly hint?: string;
     readonly ref?: {
         readonly name: string | undefined;
         readonly targets: readonly RefTargetGroup[];
@@ -589,7 +609,7 @@ interface FieldRow {
 ### `fieldRow` (function)
 
 ```ts
-function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow;
+function fieldRow(def: FieldDef, value: FieldValue | undefined, missing?: string): FieldRow;
 ```
 
 ### `FieldType` (type)
@@ -659,6 +679,12 @@ function filterEntries<E>(entries: readonly E[], query: string, words: (entry: E
 
 ```ts
 function findRecovery(store: ProjectStore, journal: ProjectStore, path: string): Promise<Recovery | undefined>;
+```
+
+### `FloatingToolbar` (svelte)
+
+```ts
+component from '../shared/kit/toolbar/FloatingToolbar.svelte'
 ```
 
 ### `flushOnHide` (function)
@@ -1352,6 +1378,12 @@ interface RetypeBreakage {
 }
 ```
 
+### `Row` (svelte)
+
+```ts
+component from '../shared/kit/rows/Row.svelte'
+```
+
 ### `savedCopyMessage` (function)
 
 ```ts
@@ -1385,6 +1417,12 @@ type SaveOutcome = {
 
 ```ts
 type SaveState = 'saved' | 'dirty' | 'saving' | 'error' | 'device';
+```
+
+### `Section` (svelte)
+
+```ts
+component from '../shared/kit/rows/Section.svelte'
 ```
 
 ### `Segmented` (svelte)
@@ -3232,7 +3270,7 @@ function checkRetype(oldDef: FieldDef, newDef: FieldDef, instances: readonly Fie
 ### `checkValues` (function)
 
 ```ts
-function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[];
+function checkValues(fields: readonly FieldDef[], values: FieldValues, owner?: string): readonly InstanceProblem[];
 ```
 
 ### `defaultFieldValue` (function)
@@ -3394,6 +3432,8 @@ interface FieldRow {
         readonly step: number;
     };
     readonly options?: readonly string[];
+    readonly missing?: string;
+    readonly hint?: string;
     readonly ref?: {
         readonly name: string | undefined;
         readonly targets: readonly RefTargetGroup[];
@@ -3404,7 +3444,7 @@ interface FieldRow {
 ### `fieldRow` (function)
 
 ```ts
-function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow;
+function fieldRow(def: FieldDef, value: FieldValue | undefined, missing?: string): FieldRow;
 ```
 
 ### `FieldType` (type)
@@ -3661,6 +3701,17 @@ function defineSuiteEditor<S>(editor: SuiteEditor<S>): SuiteEditor<S>;
 type EditMode = 'edit';
 ```
 
+### `EditorListPort` (interface)
+
+```ts
+interface EditorListPort {
+    ensure(editor: string): Promise<WriteResult | {
+        readonly ok: true;
+        readonly unchanged: true;
+    }>;
+}
+```
+
 ### `Gates` (interface)
 
 ```ts
@@ -3687,12 +3738,16 @@ interface GateState {
 interface SuiteEditor<S> {
     readonly id: string;
     readonly label: string;
+    readonly kind?: EditorKind | undefined;
     readonly icon: string;
     readonly hue: string;
     open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>;
     readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined;
     readonly regions: SuiteRegions<S>;
     readonly contributions?: readonly ContributionPoint[] | undefined;
+    readonly header?: ((session: S) => EditorHeader | undefined) | undefined;
+    readonly entries?: readonly SuiteEntryDef[] | undefined;
+    readonly showView?: ((session: S, view: string) => void) | undefined;
     readonly undo?: ((session: S) => SuiteUndo) | undefined;
 }
 ```
@@ -3704,6 +3759,7 @@ interface SuitePorts {
     readonly workspace: SuiteWorkspace;
     readonly checks: ChecksRunner;
     readonly gates?: Gates | undefined;
+    readonly list?: EditorListPort | undefined;
 }
 ```
 
@@ -3712,7 +3768,7 @@ interface SuitePorts {
 ```ts
 interface SuiteRegions<S> {
     readonly panel?: Snippet<[S]> | undefined;
-    readonly canvas: Snippet<[S]>;
+    readonly canvas: Snippet<[S, CanvasContext]>;
     readonly inspector?: Snippet<[S]> | undefined;
     readonly dock?: Snippet<[S]> | undefined;
     readonly status?: Snippet<[S]> | undefined;
@@ -3913,6 +3969,7 @@ interface MemoryPortsOptions {
     readonly store?: ProjectStore | undefined;
     readonly checks?: readonly MemoryCheck[] | undefined;
     readonly gates?: GateRecords | 'unreadable' | undefined;
+    readonly listChanged?: ((text: string) => void) | undefined;
 }
 ```
 
@@ -3924,6 +3981,7 @@ interface MemoryWorkspaceOptions {
     readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
     readonly generated?: ((path: string) => boolean) | undefined;
     readonly store?: ProjectStore | undefined;
+    readonly listChanged?: ((text: string) => void) | undefined;
 }
 ```
 
@@ -4117,6 +4175,21 @@ interface ResizableGeometry extends GeometryState {
 const REST: (typeof VARIANTS)[number];
 ```
 
+### `ScreenCheckOptions` (interface)
+
+```ts
+interface ScreenCheckOptions {
+    readonly contrast?: boolean;
+    readonly lime?: number;
+}
+```
+
+### `screenChecks` (function)
+
+```ts
+function screenChecks(doc: Document, size: WindowSize, options?: ScreenCheckOptions): Promise<string[]>;
+```
+
 ### `SIZES` (const)
 
 ```ts
@@ -4133,6 +4206,23 @@ function stubGeometry(width: number, height: number): ResizableGeometry;
 
 ```ts
 const turned: (profile: IpadProfile) => IpadProfile;
+```
+
+### `WINDOW_SIZES` (const)
+
+```ts
+const WINDOW_SIZES: readonly WindowSize[];
+```
+
+### `WindowSize` (interface)
+
+```ts
+interface WindowSize {
+    readonly name: string;
+    readonly width: number;
+    readonly height: number;
+    readonly touch: boolean;
+}
 ```
 
 ## `./kit/journey-project`
@@ -4441,12 +4531,6 @@ function editorControl(name: string): HTMLElement;
 const editorList: (glob: string, editor: string) => string;
 ```
 
-### `editorsMenu` (function)
-
-```ts
-function editorsMenu(): HTMLElement | undefined;
-```
-
 ### `inShell` (function)
 
 ```ts
@@ -4457,6 +4541,12 @@ function inShell(selector: string): HTMLElement;
 
 ```ts
 function inView(element: HTMLElement, size: EditorSize): void;
+```
+
+### `moreButton` (function)
+
+```ts
+function moreButton(): HTMLElement | undefined;
 ```
 
 ### `noPageScroll` (function)
@@ -4478,6 +4568,12 @@ interface OpenedSuite {
 
 ```ts
 function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string, entry: string, game?: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'>): Promise<OpenedSuite>;
+```
+
+### `openSuiteHome` (function)
+
+```ts
+function openSuiteHome(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, game?: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'>): Promise<OpenedSuite>;
 ```
 
 ### `tab` (function)
@@ -4569,6 +4665,18 @@ interface EditorListProblem {
 const editorListSchema: z.ZodType<EditorList>;
 ```
 
+### `editorRows` (function)
+
+```ts
+function editorRows(id: string): string | undefined;
+```
+
+### `ensureListed` (function)
+
+```ts
+function ensureListed(workspace: Pick<SuiteWorkspace, 'read' | 'write'>, id: string): Promise<WriteResult | typeof UNCHANGED>;
+```
+
 ### `FileAccess` (type)
 
 ```ts
@@ -4624,6 +4732,12 @@ function globMatch(glob: string, path: string, options?: {
 }): {
     readonly scene?: string;
 } | undefined;
+```
+
+### `listGrowsBy` (function)
+
+```ts
+function listGrowsBy(before: string, after: string): boolean;
 ```
 
 ### `loadEditorList` (function)

@@ -32,6 +32,7 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `@dimforge/rapier3d-deterministic-compat` | 0.21.0 | 2026-11-07 | 3D physics in `@automata/physics`; the same deterministic build and the same version as the 2D one |
 | `@modelcontextprotocol/sdk` | 1.32.1 | 2026-11-07 | The MCP server in `@automata/pipelines`, which lets an agent read and decide the review gates |
 | `@vitest/browser-playwright` | 5.0.3 | 2026-10-01 | Cross-engine parity runs; same major as `vitest` |
+| `axe-core` | 4.13.0 | 2026-11-08 | The screen checks every editor screen runs in the tests (`packages/editor`, `testing/kit/screen-checks.ts`): contrast, names and roles on each screen at phone, iPad and desktop size. Test-only; no editor build imports it |
 | `effect` | 3.22.2 | 2026-10-11 | Services, scopes and the clock outside the sim, in the tools (ADR 0003). Effect 3, not 4.0: 4.0 renamed the Context API and was ten days old when chosen. `ship` uses it without `@effect/platform-node`, whose 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers |
 | `fflate` | 0.8.3 | 2026-10-30 | Reads a zip imported into the 3D editor's OPFS workspace (`packages/editor-3d`, `app/import-files.ts`) (MIT, no dependencies); `unzipSync` with a size filter, so an entry over 16 MB is never inflated. Published 2026-05-16 |
 | `fontkit` | 2.0.4 | 2026-10-18 | Reads a font subset back for the glyph-coverage gate in `automata-content assets`. Only the `./assets` subpath imports it, so it stays out of browser graphs |

@@ -48,9 +48,12 @@ const rename = (row: ControlRow, event: Event & { currentTarget: HTMLInputElemen
 }
 </script>
 
-{#if read !== undefined}
-  <section class="controls" aria-label="Controls" data-testid="tuner-controls">
-    <h3>Controls</h3>
+<section class="controls" aria-label="Controls" data-testid="tuner-controls">
+  <h3>Controls</h3>
+  {#if read === undefined}
+    <!-- A game that sets its keys in code has no controls file to change here. -->
+    <p class="hint">This game’s controls are in its code.</p>
+  {:else}
     <p class="hint">What a new player starts with. Players can change their own in Settings.</p>
     {#if 'problem' in read}
       <p class="problem" role="alert">{read.problem}</p>
@@ -104,8 +107,8 @@ const rename = (row: ControlRow, event: Event & { currentTarget: HTMLInputElemen
         </div>
       {/each}
     {/if}
-  </section>
-{/if}
+  {/if}
+</section>
 
 <style>
   .controls {

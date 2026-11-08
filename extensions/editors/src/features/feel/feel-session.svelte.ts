@@ -22,6 +22,8 @@ export interface FeelExtras {
 }
 
 export class FeelSession extends ContentSession<FeelContent, number | 'limits'> {
+  /** The game's code has the part that plays what this editor makes, found when the editor opened. */
+  hasPlayer = true
   /** What the game can answer, best first; read when the editor opened. */
   readonly events: readonly GameEvent[]
   readonly cues: readonly string[]

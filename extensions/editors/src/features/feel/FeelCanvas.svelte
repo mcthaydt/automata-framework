@@ -7,6 +7,7 @@ import { Block, Button, EmptyState } from '@automata/editor/kit'
 import { type FeelEntry, resolveLimits } from '@automata/feel'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import FeelPlayer from './FeelPlayer.svelte'
 import {
   addEffectEdit,
@@ -108,8 +109,10 @@ async function removeFeel(chosen: FeelEntry) {
       icon="zap"
       title="This game has no feel file yet."
       why="A feel file says what the player feels when something happens: a shake, a freeze, a flash, a rumble."
-      action={{ label: 'Start a feel file', onclick: () => void session.start() }}
-    />
+    >
+      {#if !session.hasPlayer}<NoPlayer editor="feel" />{/if}
+      <Button onclick={() => void session.start()}>Start a feel file</Button>
+    </EmptyState>
   {:else if read.kind === 'syntax'}
     <div class="empty">
       <h2>The feel file has a mistake{read.line === undefined ? '' : ` on line ${String(read.line)}`}.</h2>

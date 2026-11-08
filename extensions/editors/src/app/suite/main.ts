@@ -22,7 +22,9 @@ import { openContentSuite } from './open-content-suite.ts'
 
 // The page with every editor, which `automata editor` serves a game whose list names a content or 3D editor: the core
 // editors (the Tuner, Levels 2D), Levels 3D and the Studio, then Feel, Audio, Writer, Sequence and Schematic. The rail
-// shows only the ones the game lists. The only file that reaches for the page's globals. It opens the game it is served on (its content, its
+// shows every one of them except those for another kind of game (a 2D game has no Levels 3D), whether or not the game
+// has their files yet: an editor without files opens on a page that offers to start one. The only file that reaches for
+// the page's globals. It opens the game it is served on (its content, its
 // Play and its Publish); with no editor server it opens a sample game held in memory and says so in the top bar.
 
 const target = document.getElementById('app')

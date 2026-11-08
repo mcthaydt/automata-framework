@@ -19,14 +19,14 @@ $effect(() => {
   void (session.chosen.kind === 'character' ? session.chosen.index : 0)
   session.message = undefined
 })
-const ready = $derived(session.facts.usesSystems && session.def !== undefined)
+const ready = $derived(session.def !== undefined)
 </script>
 
 <EditorPage label="Schematic">
   {#if session.message !== undefined}
     <p class="refused" role="alert">{session.message}</p>
   {/if}
-  {#if session.facts.usesSystems && session.chosen.kind === 'places' && session.read.kind !== 'syntax'}
+  {#if session.chosen.kind === 'places' && session.read.kind !== 'syntax'}
     <!-- A new game has no characters yet, but its places can be laid out first. -->
     <PlacesCanvas {session} />
   {:else if !ready}

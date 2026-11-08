@@ -9,6 +9,11 @@ import type { RunningEditor } from './run-editor.ts'
 
 export { pressInList }
 
+/** Asserts the rail offers an editor by this name, as a tab or under More, without opening it. */
+export async function expectOnRail(page: Page, name: string): Promise<void> {
+  await expect(await railHas(page, name)).toBeVisible()
+}
+
 /**
  * Whether the rail offers an editor by this name (the game's editor list names it and the page has it): its tab, or on a
  * phone, where four tabs and More share the width, its row in the sheet More opens. A sheet left open by an earlier look
@@ -26,6 +31,11 @@ export async function railHas(page: Page, name: string): Promise<Locator> {
   if (!(await more.isVisible())) return tab
   await more.click()
   return sheet.getByRole('button', { name, exact: true })
+}
+
+/** Opens one editor from the rail: its tab, or its row under More. */
+export async function openFromRail(page: Page, name: string): Promise<void> {
+  await (await railHas(page, name)).click()
 }
 
 /** Opens the editors and one editor from the rail: tabs of a bar on a phone, a column of buttons on a wide screen. */
@@ -86,6 +96,18 @@ export async function publishFromEditors(
 /** The game's canvas, as pixels. */
 export async function gamePixels(play: Page): Promise<Pixels> {
   return readPng(await play.locator('#game canvas').screenshot())
+}
+
+/** How much of the picture differs between two pictures of the same size, 0 to 1: a pixel counts when any colour moves by more than 8. */
+export function fractionChanged(before: Pixels, after: Pixels): number {
+  let changed = 0
+  for (let y = 0; y < before.height; y += 2)
+    for (let x = 0; x < before.width; x += 2) {
+      const [r, g, b] = before.at(x, y)
+      const [r2, g2, b2] = after.at(x, y)
+      if (Math.abs(r - r2) > 8 || Math.abs(g - g2) > 8 || Math.abs(b - b2) > 8) changed += 1
+    }
+  return changed / (Math.ceil(before.height / 2) * Math.ceil(before.width / 2))
 }
 
 /**
@@ -211,4 +233,26 @@ export async function cellOnScreen(
     Math.round(field.x + (cell.col + 0.5) * tile * scale),
     Math.round(field.y + (cell.row + 0.5) * tile * scale),
   )
+}
+
+/**
+ * Waits until the game the command started serves content with `text` in it. The game's dev server compiles a saved file a
+ * moment after it lands, so a game opened the instant the editor has saved could still play the old content. Looks at
+ * what the server answers, never at a game file.
+ */
+export async function servedWith(editor: RunningEditor, text: string): Promise<void> {
+  const bare = (value: string): string => value.replace(/\s+/g, '')
+  await expect
+    .poll(
+      async () => {
+        const base = editor.gameUrl
+        if (base === undefined) return ''
+        return fetch(`${base}@id/__x00__virtual:automata/content`).then(
+          (answer) => answer.text().then(bare),
+          () => '',
+        )
+      },
+      { message: `the game serves "${text}"`, timeout: 30_000 },
+    )
+    .toContain(bare(text))
 }

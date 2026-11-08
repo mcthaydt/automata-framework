@@ -1,6 +1,7 @@
 // The names a person picks from in Sequence, read from the whole game, because a cutscene names no scene or level: every
-// lines file (shown by its words), the characters placed with a name in the game's 2D levels, and whatever the cutscenes
-// already use. Anything that does not read is skipped; Sequence reports on its own file, not on the game's others.
+// lines file (shown by its words), the characters placed with a name in the game's 2D levels, the people, lamps, doors and
+// props of its 3D rooms, and whatever the cutscenes already use. Anything that does not read is skipped; Sequence reports on its own file, not on the game's others.
+import { readLevel } from '@automata/3d/level'
 import { levelContentSchema } from '@automata/content/level-2d'
 import type { CutsceneScript } from '@automata/cutscenes/sim'
 import { openDocument } from '@automata/editor/kit/documents'
@@ -11,15 +12,18 @@ import type { SequenceNames } from './key-fields.ts'
 
 const LINES_FILE = /^content\/lines\/([^/]+)\.toml$/
 const LEVEL_FILE = /^content\/levels\/([^/]+)\.toml$/
+const ROOM_FILE = /^content\/levels\/([^/]+)\.af-sector\.json$/
 const CUTSCENE_FILE = /^content\/cutscenes\/([^/]+)\.toml$/
 
 export interface GameNames {
   readonly lines: SequenceNames['lines']
   /** A placed character: its name and where it stands, in metres (one metre a cell). */
   readonly people: readonly { readonly name: string; readonly x: number; readonly z: number }[]
+  /** The lamps, doors and props of the game's 3D rooms, by the id the level editor gave them. */
+  readonly pieces: Pick<SequenceNames, 'lamps' | 'doors' | 'props'>
   /** What the game's other cutscenes use. */
   readonly used: Pick<SequenceNames, 'actors' | 'anchors' | 'lamps' | 'doors' | 'clips'>
-  /** The 2D levels a preview can show walls from. */
+  /** The levels, 2D and 3D, a preview can show walls from. */
   readonly levels: readonly { readonly name: string; readonly path: string }[]
 }
 
@@ -68,6 +72,7 @@ export async function readGameNames(
   const lines: { id: string; words: string; file: string }[] = []
   const people: { name: string; x: number; z: number }[] = []
   const levels: { name: string; path: string }[] = []
+  const pieces: Record<'lamps' | 'doors' | 'props', string[]> = { lamps: [], doors: [], props: [] }
   const used: Record<'actors' | 'anchors' | 'lamps' | 'doors', Set<string>> = {
     actors: new Set(),
     anchors: new Set(),
@@ -93,9 +98,30 @@ export async function readGameNames(
         if (layer.kind !== 'entities') continue
         for (const item of layer.items) {
           const name = item.fields.name
+          // A named region (a Hall, a Yard) is a place; only a point is someone to ask to speak or walk.
+          if (item.w !== undefined || item.h !== undefined) continue
           if (typeof name === 'string' && name !== '') people.push({ name, x: item.x / 16, z: item.y / 16 })
         }
       }
+      continue
+    }
+    const roomFile = ROOM_FILE.exec(file.path)
+    if (roomFile?.[1] !== undefined) {
+      const read = await ports.workspace.read(file.path)
+      if (read === undefined) continue
+      let room: ReturnType<typeof readLevel>
+      try {
+        room = readLevel(JSON.parse(read.text))
+      } catch {
+        continue
+      }
+      if (room.level.sectors.length === 0) continue
+      levels.push({ name: room.level.title ?? room.level.name, path: file.path })
+      for (const person of room.level.cast ?? [])
+        people.push({ name: person.id, x: person.at[0] ?? 0, z: person.at[1] ?? 0 })
+      for (const lamp of room.level.lamps ?? []) pieces.lamps.push(lamp.id)
+      for (const sector of room.level.sectors) if (sector.door !== undefined) pieces.doors.push(sector.id)
+      for (const prop of room.level.props ?? []) pieces.props.push(prop.id)
       continue
     }
     if (CUTSCENE_FILE.test(file.path)) {
@@ -117,6 +143,7 @@ export async function readGameNames(
     lines,
     people,
     levels,
+    pieces,
     used: {
       actors: [...used.actors],
       anchors: [...used.anchors],
@@ -149,7 +176,8 @@ export function namesFor(game: GameNames, script: CutsceneScript | undefined): S
       own?.anchors,
     ),
     clips: { ...game.used.clips, ...own?.clips },
-    lamps: unique(game.used.lamps, own?.lamps),
-    doors: unique(game.used.doors, own?.doors),
+    lamps: unique(game.pieces.lamps, game.used.lamps, own?.lamps),
+    doors: unique(game.pieces.doors, game.used.doors, own?.doors),
+    props: unique(game.pieces.props),
   }
 }

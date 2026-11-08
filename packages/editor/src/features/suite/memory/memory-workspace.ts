@@ -4,6 +4,8 @@
 // path no row matches is refused, a read-only file is refused with its reason, a path outside the root reads as
 // nothing, and `remove` takes only a file this workspace created.
 
+import { listGrowsBy } from '../../../shared/editor-list/editor-rows'
+import { EDITOR_LIST_PATH } from '../../../shared/editor-list/editors.schema'
 import type { SuiteWorkspace, UnlistedFile, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import { createMemoryStore } from '../../../shared/kit/storage/memory-store'
 import { type ProjectStore, statPath, type WriteResult } from '../../../shared/kit/storage/project-store'
@@ -18,11 +20,18 @@ export interface MemoryWorkspaceOptions {
   readonly generated?: ((path: string) => boolean) | undefined
   /** The store underneath (default: a fresh memory store). */
   readonly store?: ProjectStore | undefined
+  /**
+   * Lets the editor list grow by an editor's own rows (`listGrowsBy`), and says what it now reads, so the owner of
+   * `classify` can class the next write by the new list. Without it the list is never written, as a contract run has it.
+   */
+  readonly listChanged?: ((text: string) => void) | undefined
 }
 
 const decoder = new TextDecoder()
 
 const refused = (message: string): WriteResult => ({ ok: false, reason: 'policy', message })
+
+const LIST_GROWS_ONLY = "The editors can only add to this game's list of editors."
 
 export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Promise<SuiteWorkspace> {
   const store = options.store ?? createMemoryStore()
@@ -86,6 +95,13 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
     },
 
     async write(path, text, expected) {
+      if (path === EDITOR_LIST_PATH && options.listChanged !== undefined) {
+        const before = await readText(path)
+        if (before === undefined || !listGrowsBy(before, text)) return refused(LIST_GROWS_ONLY)
+        const written = await store.write(path, text, expected)
+        if (written.ok) options.listChanged(text)
+        return written
+      }
       const refusal = writeRefusal(path)
       if (refusal !== undefined) return refused(refusal)
       const written = await store.write(path, text, expected)

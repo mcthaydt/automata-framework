@@ -22,6 +22,7 @@
     "./sim": "./src/entries/sim.ts",
     "./director": "./src/entries/director.ts",
     "./stage-2d": "./src/entries/stage-2d.ts",
+    "./stage-3d": "./src/entries/stage-3d.ts",
     "./tools": "./src/entries/tools.ts"
   },
   "automata": {

@@ -9,6 +9,7 @@ import type { LanguageCopy } from './language-section.ts'
 import type { TouchCopy } from './touch-section.ts'
 import type { VibrationCopy } from './vibration-section.ts'
 
+/** What a binding is called when its key, pad button or tap is shown in the settings. */
 export const PROMPT_COPY: PromptCopy = {
   unbound: 'Not set',
   touch: 'Tap',

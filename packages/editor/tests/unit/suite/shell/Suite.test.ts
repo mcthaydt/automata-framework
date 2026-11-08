@@ -86,6 +86,49 @@ describe('Suite Home', () => {
   })
 })
 
+// What a person reads on Home is about their game, not about where it keeps its files: no path, file kind or package name.
+// (A list that cannot be read is the exception: it has to say which file to fix, and where in it.)
+const FILE_TALK = /content\/|\.toml|@automata\/|editors\.toml/
+
+describe('the words on Home', () => {
+  it('name no file, folder or package, for a game with a list and for a game with an editor the build lacks', async () => {
+    await start(SAMPLE_GAME)
+    await screen.findByRole('region', { name: 'Tuner' })
+    expect(document.body.textContent ?? '').not.toMatch(FILE_TALK)
+    await started?.dispose()
+    document.body.innerHTML = ''
+    await start({ [EDITOR_LIST_PATH]: feelList, 'content/feel.toml': '[limits]\nshake = 0.4\n' })
+    await screen.findByRole('region', { name: 'Feel' })
+    expect(document.body.textContent ?? '').not.toMatch(FILE_TALK)
+  })
+})
+
+describe('Home for an editor the game has no files for', () => {
+  const feelEditor = {
+    id: 'feel',
+    label: 'Feel',
+    open: async () => ({}),
+    regions: {
+      canvas: createRawSnippet(() => ({ render: () => '<p>Start a feel file</p>' })),
+    },
+  } as unknown as SuiteEditor<unknown>
+
+  it('says "Nothing made yet. Open it to start." under the editor’s name, once, and opens its start page', async () => {
+    await start(SAMPLE_GAME, [feelEditor])
+    const feel = await screen.findByRole('region', { name: 'Feel' })
+    expect(within(feel).getByText('Nothing made yet. Open it to start.')).toBeInTheDocument()
+    expect(within(feel).queryByText('No files yet.')).toBeNull()
+    await userEvent.click(within(feel).getByRole('button', { name: 'Feel' }))
+    expect(await screen.findByText('Start a feel file')).toBeInTheDocument()
+  })
+
+  it('names the editor once on its own page while it opens', async () => {
+    await start(SAMPLE_GAME, [{ ...feelEditor, open: () => new Promise(() => {}) } as SuiteEditor<unknown>])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Feel' }))
+    expect(await screen.findAllByRole('heading', { name: 'Feel' })).toHaveLength(1)
+  })
+})
+
 describe('Suite entries', () => {
   it('lists only the registered editors', async () => {
     const editor = (id: string, label: string) =>

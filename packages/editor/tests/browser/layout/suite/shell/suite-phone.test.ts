@@ -89,7 +89,7 @@ describe.each(PHONES)('Suite on a phone: $name ($width x $height)', (size) => {
     async () => {
       const conditions = await open(size)
       const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
-      expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
+      expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels', 'Characters'])
       for (const tab of tabs) expect(tab.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
       const rail = region('rail').getBoundingClientRect()
       if (landscape) {

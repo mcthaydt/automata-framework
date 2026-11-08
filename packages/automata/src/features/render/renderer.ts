@@ -16,6 +16,7 @@ import { tryFilter } from './filter/try-filter.js'
 import { canvasResolutionFor } from './letterbox/canvas-resolution.js'
 import { CompositeTarget } from './letterbox/composite-target.js'
 import { LetterboxFrame } from './letterbox/letterbox.js'
+import { characters2d, type StageCharacters } from './stage-characters.js'
 
 /** The renderer backend: `webgl` (WebGL2, the default) or `webgpu` (opt-in). */
 export type RendererPreference = 'webgl' | 'webgpu'
@@ -89,6 +90,13 @@ export interface PixiStage {
   readonly backdrop: Container
   /** The delta consumer tracking entity views. */
   readonly consumer: RenderDeltaConsumer
+  /**
+   * How characters are squashed, held and found for a word above them. Read it each frame: a renderer that draws
+   * characters its own way replaces it (`useCharacters`) when it mounts.
+   */
+  readonly characters: StageCharacters
+  /** Replaces `characters` with this renderer's own answer. */
+  useCharacters(characters: StageCharacters): void
   /** The fixed-resolution composite the world and UI draw into, when it is on. */
   readonly composite?: CompositeTarget | undefined
   /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
@@ -250,6 +258,7 @@ export function createPixiRenderer(
       app.renderer.resolution = canvasResolutionFor(formFactor, devicePixelRatio(), quality)
     }
 
+    let characters = characters2d(consumer, ui)
     const stage: PixiStage = {
       app,
       frame,
@@ -257,6 +266,12 @@ export function createPixiRenderer(
       ui,
       backdrop,
       consumer,
+      get characters(): StageCharacters {
+        return characters
+      },
+      useCharacters(next: StageCharacters): void {
+        characters = next
+      },
       composite,
       get filters(): Filter[] | null {
         return sceneFilters.filters

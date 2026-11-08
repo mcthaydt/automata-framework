@@ -76,6 +76,22 @@ interface Prepared {
   readonly checks: readonly string[]
 }
 
+/**
+ * A served game may have taken a file's row out of its list since this page opened it: the server then refuses the
+ * file's reads. That refuses this step, in the server's words; it is not a fault to throw.
+ */
+async function refusedBy(job: () => Promise<WriteOutcome>): Promise<WriteOutcome> {
+  try {
+    return await job()
+  } catch (error) {
+    // A store's refusal (`StorageError`), told by its reason: this file stays free of the store's code.
+    const refusal = error as { readonly reason?: unknown; readonly message?: unknown }
+    if (refusal?.reason === 'policy' && typeof refusal.message === 'string')
+      return { refused: 'policy', why: refusal.message }
+    throw error
+  }
+}
+
 const unique = (ids: readonly string[]): string[] => [...new Set(ids)]
 
 export function createWritePath({ ports }: WritePathOptions): WritePath {
@@ -190,7 +206,10 @@ export function createWritePath({ ports }: WritePathOptions): WritePath {
    * Writes one side of a step back: every file must still read what this path wrote, or nothing is written and the
    * first that moved on is named. A file whose side is `undefined` (it did not exist) is removed after the writes.
    */
-  async function replay(step: Step, side: 'before' | 'after'): Promise<WriteOutcome> {
+  const replay = (step: Step, side: 'before' | 'after'): Promise<WriteOutcome> =>
+    refusedBy(() => replayStep(step, side))
+
+  async function replayStep(step: Step, side: 'before' | 'after'): Promise<WriteOutcome> {
     const from = side === 'before' ? 'after' : 'before'
     const reads = []
     for (const file of step.files) {
@@ -214,7 +233,14 @@ export function createWritePath({ ports }: WritePathOptions): WritePath {
     return outcome
   }
 
-  async function writeAll(files: readonly FileWrite[], label: string, owner = ''): Promise<WriteOutcome> {
+  const writeAll = (files: readonly FileWrite[], label: string, owner = ''): Promise<WriteOutcome> =>
+    refusedBy(() => writeSteps(files, label, owner))
+
+  async function writeSteps(
+    files: readonly FileWrite[],
+    label: string,
+    owner: string,
+  ): Promise<WriteOutcome> {
     const befores = await Promise.all(files.map(async (file) => (await workspace.read(file.path))?.text))
     const outcome = await applyAll(files)
     if ('written' in outcome) {

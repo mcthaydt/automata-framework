@@ -9,6 +9,8 @@ export const BIN: string = fileURLToPath(new URL('../../../../tools/dist/bin.js'
 export interface RunningEditor {
   /** The address the command printed under "This computer". */
   readonly url: string
+  /** The address of the game the command started ("Your game is running"), once it has printed it. */
+  readonly gameUrl: string | undefined
   /** Stops the command (Ctrl+C) and waits for it to exit. */
   readonly stop: () => Promise<void>
 }
@@ -38,8 +40,14 @@ export function runEditor(gameDir: string, args: readonly string[] = []): Promis
       const url = printedAddress(output)
       if (url === undefined) return
       clearTimeout(timer)
-      child.stdout?.off('data', read)
-      resolve({ url, stop: () => stopProcess(child) })
+      // The game's address is the next line, and may come after this chunk, so it is read when asked for.
+      resolve({
+        url,
+        get gameUrl() {
+          return /Your game is running: (http:\/\/\S+)/.exec(output)?.[1]
+        },
+        stop: () => stopProcess(child),
+      })
     }
     child.stdout?.on('data', read)
     child.stderr?.on('data', (chunk: Buffer) => {
