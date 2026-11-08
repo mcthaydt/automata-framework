@@ -15,6 +15,7 @@ import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
 import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
+import { keepStorage } from '../../../shared/kit/storage/keep-storage'
 import { guardLeaving } from '../../../shared/kit/storage/leave-guard'
 import { flushOnHide } from '../../../shared/kit/storage/page-lifecycle'
 import type { GamePublish } from '../../../shared/kit/storage/publish-client'
@@ -149,7 +150,9 @@ const drafts = createTypingDrafts({
   scope: game ?? 'sample',
 })
 setTypingDrafts(drafts)
-const editing = $derived(createSuiteSession(ports, { drafts }))
+// svelte-ignore state_referenced_locally
+const keep = keepStorage()
+const editing = $derived(createSuiteSession(ports, { drafts, keep }))
 
 // The saved line: fields holding typed text plus writes in flight, what a store last refused, and where the files live.
 let pending = $state(0)

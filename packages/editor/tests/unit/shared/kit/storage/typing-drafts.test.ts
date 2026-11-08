@@ -194,7 +194,7 @@ describe('a typing field', () => {
 })
 
 describe('drafts kept for a closed page', () => {
-  it('writes the text to storage on every input, before any timer, and removes it once committed', () => {
+  it('writes the text to storage on every input, before any timer, and removes it once the write has finished', () => {
     const storage = fakeStorage()
     const { drafts, timers } = setup({ drafts: storage })
     const field = drafts.field(() => undefined, { key: 'writer/line', current: () => 'old' })
@@ -202,6 +202,11 @@ describe('drafts kept for a closed page', () => {
     expect(storage.entries.size).toBe(1)
     expect(JSON.parse([...storage.entries.values()][0] ?? '')).toMatchObject({ value: 'n', base: 'old' })
     timers.advance(TYPING_DELAY_MS)
+    // The commit started a write; a page that goes away now has not kept the words, so the draft stays.
+    expect(storage.entries.size).toBe(1)
+    drafts.wrote(false)
+    expect(storage.entries.size).toBe(1)
+    drafts.wrote(true)
     expect(storage.entries.size).toBe(0)
   })
 
@@ -226,6 +231,9 @@ describe('drafts kept for a closed page', () => {
     second.drafts.field((value) => void committed.push(value), { key: 'writer/line', current: () => 'old' })
     await Promise.resolve()
     expect(committed).toEqual(['Typed words'])
+    // Still a draft until the write it started has finished.
+    expect(storage.entries.size).toBe(1)
+    second.drafts.wrote()
     expect(storage.entries.size).toBe(0)
   })
 

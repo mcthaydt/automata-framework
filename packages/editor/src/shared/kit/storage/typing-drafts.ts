@@ -81,8 +81,12 @@ export interface TypingDrafts {
   place: string
   /** The key of the open visit; writes made during it join one Undo step. */
   visit(): string | undefined
-  /** The write path saw a write; a visit whose field was left closes. */
-  wrote(): void
+  /**
+   * A write finished; a visit whose field was left closes. With `idle` (nothing else is running) the drafts of text
+   * already committed are let go: until then they stay, since a page that goes away with a write still running has
+   * lost it.
+   */
+  wrote(idle?: boolean): void
   subscribe(listener: () => void): () => void
 }
 
@@ -129,6 +133,8 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
     visitLeft = false
   }
 
+  /** Drafts of text that was committed, kept until the write that carries it has finished. */
+  const awaiting = new Set<string>()
   const storeKey = (key: string) => `${PREFIX}\u0001${scope}\u0001${key}`
   function readDraft(key: string): Draft | undefined {
     try {
@@ -172,8 +178,9 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
         refused = true
       }
     }
-    // A text the field refused stays a draft until the person has left the field and been told why.
-    if (!refused || leaving) removeDraft(state.key)
+    // A text the field refused stays a draft until the person has left the field and been told why. A committed text
+    // stays one until its write has finished: a page that goes away mid-write has not kept it.
+    if (state.key !== undefined && (!refused || leaving)) awaiting.add(state.key)
     notify()
   }
 
@@ -201,7 +208,7 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
             queueMicrotask(() => {
               state.sent = draft.value
               commit(draft.value, false)
-              removeDraft(key)
+              awaiting.add(key)
             })
           } else removeDraft(key)
         }
@@ -247,8 +254,11 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
       return count
     },
     visit: () => visitKey,
-    wrote() {
+    wrote(idle = true) {
       if (visitLeft) closeVisit()
+      if (!idle) return
+      for (const key of awaiting) removeDraft(key)
+      awaiting.clear()
     },
     subscribe(listener) {
       listeners.add(listener)
