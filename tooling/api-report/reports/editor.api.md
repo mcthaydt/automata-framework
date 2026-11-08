@@ -1784,6 +1784,7 @@ interface Workspace {
     readonly persistent: boolean;
     readonly reason: string | undefined;
     readonly served?: boolean;
+    readonly game?: string | undefined;
 }
 ```
 
@@ -2759,6 +2760,7 @@ interface Workspace {
     readonly persistent: boolean;
     readonly reason: string | undefined;
     readonly served?: boolean;
+    readonly game?: string | undefined;
 }
 ```
 

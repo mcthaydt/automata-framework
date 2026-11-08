@@ -154,7 +154,7 @@ describe.runIf(inject('writeVisuals'))('canvas images for review', () => {
         }),
     })
     await expect
-      .poll(() => document.querySelectorAll('[role="option"] img').length, { timeout: 10_000 })
+      .poll(() => document.querySelectorAll('[aria-label="Levels"] .open img').length, { timeout: 10_000 })
       .toBe(2)
     await Promise.all([...document.querySelectorAll('img')].map((image) => image.decode()))
     await page.screenshot({ path: `${OUT}/home-thumbnails-1194x834.png` })

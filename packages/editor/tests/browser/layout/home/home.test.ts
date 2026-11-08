@@ -13,14 +13,17 @@ import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
 
 // Home with the production CSS in a real browser, at the window sizes the 2D editor is designed for. jsdom has no layout, so everything about room (overflow, target sizes, what covers what,
 // which region scrolls) is only checked here. The editor is started the way `main.ts` starts it, with the real window
-// and so the real geometry owner; only the workspace is a memory one, filled with projects.
+// and so the real geometry owner; only the workspace is a memory one, filled with levels. The redesigned Home is one column: no side panel or inspector at any size.
 
 const region = (name: string): HTMLElement => {
   const found = document.querySelector<HTMLElement>(`[data-region="${name}"]`)
   if (found === null) throw new Error(`no ${name} region`)
   return found
 }
-const cards = (): HTMLElement[] => [...document.querySelectorAll<HTMLElement>('[role="option"]')]
+const cards = (): HTMLElement[] => [...document.querySelectorAll<HTMLElement>('[aria-label="Levels"] .open')]
+const moreButtons = (): HTMLElement[] => [
+  ...document.querySelectorAll<HTMLElement>('[aria-label="Levels"] button.trigger'),
+]
 
 let started: EditorHandle | undefined
 let target: HTMLElement | undefined
@@ -64,71 +67,93 @@ async function open(size: EditorSize, projects = 4) {
   return conditions
 }
 
-/** The controls a person must reach without scrolling: the search, and the buttons that open the drawers below `wide`. */
-const essentials = (size: EditorSize): HTMLElement[] =>
-  ['home-search', ...(size.mode === 'wide' ? [] : ['toggle-sources', 'toggle-details'])].map(byTestId)
+/** What a person must reach without scrolling: New level, the source control and the search. */
+const essentials = (): HTMLElement[] => [byTestId('new-level'), byTestId('home-search')]
 
 describe.each(SIZES)('Home layout at $name ($width x $height)', (size) => {
   test('rest: no clipped, overlapping, small or unreachable controls, and the page never scrolls', async () => {
     const conditions = await open(size)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
-    expect(checkLayout(conditions, essentials(size))).toEqual([])
+    expect(checkLayout(conditions, essentials())).toEqual([])
+    expect(
+      byTestId('new-level').getBoundingClientRect().height,
+      'New level is a primary action',
+    ).toBeGreaterThanOrEqual(48)
     await page.screenshot({ path: `.vitest/shots/home-${size.name}.png` })
   })
 
-  test('the canvas has one scroll region, and it holds the projects and the templates', async () => {
+  test('one column, no side regions, and every card and its More button inside the viewport', async () => {
+    await open(size)
+    const shell = document.querySelector('[data-editor-shell]') as HTMLElement
+    for (const name of ['panel', 'inspector']) expect(shell).toHaveAttribute(`data-${name}`, 'none')
+    const lefts = new Set(cards().map((card) => Math.round(card.getBoundingClientRect().left)))
+    expect(lefts.size, 'every card starts at the same left edge').toBe(1)
+    const more = moreButtons()
+    expect(more).toHaveLength(cards().length)
+    for (const button of more) {
+      const box = button.getBoundingClientRect()
+      expect(box.right).toBeLessThanOrEqual(window.innerWidth)
+      expect(box.left).toBeGreaterThanOrEqual(0)
+      expect(box.width).toBeGreaterThanOrEqual(44)
+      expect(box.height).toBeGreaterThanOrEqual(44)
+    }
+    for (const card of cards()) expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    expect(document.documentElement.scrollWidth, 'no horizontal scroll').toBeLessThanOrEqual(
+      window.innerWidth,
+    )
+  })
+
+  test('the canvas has one scroll region, and it holds the source, the search, the cards and the storage line', async () => {
     await open(size)
     const regions = region('canvas').querySelectorAll<HTMLElement>('[data-scroll-region]')
     expect(regions).toHaveLength(1)
     const scroller = regions[0] as HTMLElement
     expect(getComputedStyle(scroller).overflowY).toBe('auto')
     expect(getComputedStyle(scroller).touchAction).toBe('pan-y')
-    expect(scroller).toContainElement(document.querySelector('[role="listbox"]'))
-    expect(scroller).toContainElement(document.querySelector('[data-testid="home-search"]'))
-    expect(scroller).toContainElement(document.querySelector('section.templates'))
+    for (const id of ['home-search', 'home-storage']) expect(scroller).toContainElement(byTestId(id))
+    expect(scroller).toContainElement(document.querySelector('[aria-label="Levels"]'))
   })
 
-  test('a selected project’s actions are reachable, in the inspector or the drawer or sheet it opens', async () => {
+  test('New level opens its sheet with every template a full-size target, and Import files is one too', async () => {
     const conditions = await open(size)
-    ;(cards()[1] as HTMLElement).click()
+    byTestId('new-level').click()
     await arrived()
-    expect(region('inspector')).toHaveAttribute('data-open', 'true')
-    expect(checkLayout(conditions, [byTestId('summary-open')])).toEqual([])
-    const openButton = byTestId('summary-open').getBoundingClientRect()
-    expect(openButton.height, 'Open is a primary action').toBeGreaterThanOrEqual(48)
-    await page.screenshot({ path: `.vitest/shots/home-${size.name}-selected.png` })
-  })
-
-  test('the sources panel opens and Import is a full-size target', async () => {
-    const conditions = await open(size)
-    if (size.mode !== 'wide') {
-      byTestId('toggle-sources').click()
-      await arrived()
+    const sheet = document.querySelector<HTMLElement>('[role="dialog"]') as HTMLElement
+    const templates = [...sheet.querySelectorAll<HTMLElement>('[aria-label="Templates"] button')]
+    expect(templates.length).toBeGreaterThan(0)
+    // On a short screen the sheet's body is its scroll region, so each template is checked once scrolled to.
+    for (const template of templates) {
+      template.scrollIntoView({ block: 'nearest' })
+      await settleLayout()
+      expect(checkLayout(conditions, [template])).toEqual([])
     }
-    expect(region('panel')).toHaveAttribute('data-open', 'true')
-    const input = region('panel').querySelector<HTMLElement>('input[type="file"]') as HTMLElement
+    await page.screenshot({ path: `.vitest/shots/home-${size.name}-new.png` })
+    ;(sheet.querySelector('[data-kind="plain"]') as HTMLElement).click()
+    await arrived()
+    ;(document.querySelector('[role="radio"]:not([aria-checked="true"])') as HTMLElement).click()
+    await settleLayout()
+    const input = document.querySelector<HTMLElement>('input[type="file"]') as HTMLElement
     const box = input.getBoundingClientRect()
     expect(box.width).toBeGreaterThanOrEqual(44)
     expect(box.height).toBeGreaterThanOrEqual(44)
     expect(checkLayout(conditions, [])).toEqual([])
   })
 
-  test('with many projects the list scrolls inside its region and the page and the shell stay put', async () => {
+  test('with many levels the cards scroll inside their region and the page and the shell stay put', async () => {
     await open(size, 24)
     const scroller = region('canvas').querySelector<HTMLElement>('[data-scroll-region]') as HTMLElement
     expect(scroller.scrollHeight).toBeGreaterThan(scroller.clientHeight)
-    const list = document.querySelector<HTMLElement>('[role="listbox"]') as HTMLElement
-    list.focus()
-    list.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }))
+    const first = cards()[0] as HTMLElement
+    first.focus()
+    first.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }))
     await settleLayout()
     const last = cards().at(-1) as HTMLElement
-    expect(last).toHaveAttribute('aria-selected', 'true')
+    expect(last).toHaveFocus()
     const view = scroller.getBoundingClientRect()
     const box = last.getBoundingClientRect()
-    expect(box.top, 'the selected card is scrolled into view').toBeGreaterThanOrEqual(view.top - 1)
+    expect(box.top, 'the focused card is scrolled into view').toBeGreaterThanOrEqual(view.top - 1)
     expect(box.bottom).toBeLessThanOrEqual(view.bottom + 1)
     expect(scroller.scrollTop).toBeGreaterThan(0)
-    // The shell's own canvas and the document must not have been dragged along by scrollIntoView.
     expect(region('canvas').scrollTop).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
     expect(document.scrollingElement?.scrollHeight).toBeLessThanOrEqual(window.innerHeight)
@@ -143,21 +168,19 @@ describe('rotation', () => {
     search.value = 'o'
     search.dispatchEvent(new Event('input', { bubbles: true }))
     await settleLayout()
-    ;(cards()[3] as HTMLElement).click()
+    ;(cards()[3] as HTMLElement).focus()
     await settleLayout()
     const scroller = region('canvas').querySelector<HTMLElement>('[data-scroll-region]') as HTMLElement
     scroller.scrollTop = 120
-    const before = {
-      scroller,
-      selected: cards().findIndex((card) => card.getAttribute('aria-selected') === 'true'),
-    }
+    const selected = (): number => cards().findIndex((card) => card.getAttribute('tabindex') === '0')
+    const before = { scroller, selected: selected() }
 
     await page.viewport(portrait.width, portrait.height)
     await settleLayout()
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', 'medium')
     expect(region('canvas').querySelector('[data-scroll-region]')).toBe(before.scroller)
     expect((byTestId('home-search') as HTMLInputElement).value).toBe('o')
-    expect(cards().findIndex((card) => card.getAttribute('aria-selected') === 'true')).toBe(before.selected)
+    expect(selected()).toBe(before.selected)
     expect(before.scroller.scrollTop).toBeGreaterThan(0)
   })
 })

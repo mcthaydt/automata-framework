@@ -59,6 +59,8 @@ export interface DocumentController {
   /** Writes the edits beside the file; the document keeps its own path. */
   saveCopy(): Promise<void>
   dismissConflict(): void
+  /** Leaves the document and throws its unsaved edits away, autosave included ("Don't save"). */
+  closeWithoutSaving(): Promise<void>
   /** Applies the offered autosave as one undoable step. */
   restore(): void
   /** Throws the offered autosave away. */
@@ -238,6 +240,14 @@ export function createDocumentController(options: DocumentControllerOptions): Do
           message: `The autosave could not be removed: ${classifyStorageError(error).message}`,
         })
       }
+    },
+    async closeWithoutSaving() {
+      if (closed) return
+      closed = true
+      detach()
+      // "Don't save": the edits and their autosave go, so the next open offers nothing to restore.
+      await document.session.discardJournal().catch(() => undefined)
+      document.dispose()
     },
     async close() {
       if (closed) return

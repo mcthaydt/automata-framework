@@ -9,7 +9,7 @@ import { createReadStream } from 'node:fs'
 import { readFile, realpath, rm, stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { extname, join, resolve, sep } from 'node:path'
+import { basename, extname, join, resolve, sep } from 'node:path'
 import { type Checkout, openCheckout } from './checkout.ts'
 import { type EditorPolicy, editorPolicy } from './editor-policy.ts'
 
@@ -115,7 +115,16 @@ async function fileRoute(
   return reply(res, 200, { mtime: outcome.mtime })
 }
 
-/** The `/api` routes: ping, list and file; a token is checked first when the server has one. */
+/**
+ * What Home calls the game: its folder's name in words ("emberwick" is "Emberwick", "my-cool-game" is "My cool
+ * game"). The folder is the one name every game has whatever its targets; a title lives in a target's own config.
+ */
+function gameName(root: string): string {
+  const words = basename(root).replace(/[-_]+/g, ' ').trim()
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+/** The `/api` routes: ping (with the game's name), list and file; a token is checked first when the server has one. */
 async function api(
   req: IncomingMessage,
   res: ServerResponse,
@@ -123,8 +132,10 @@ async function api(
   token: string | undefined,
   policy: EditorPolicy,
   checkout: Checkout,
+  game: string,
 ): Promise<void> {
-  if (url.pathname === '/api/ping') return reply(res, 200, { automata: 'editor', token: token !== undefined })
+  if (url.pathname === '/api/ping')
+    return reply(res, 200, { automata: 'editor', token: token !== undefined, game })
   if (token !== undefined) {
     const bearer = /^Bearer (.+)$/.exec(req.headers.authorization ?? '')?.[1]
     if (!sameToken(bearer, token))
@@ -181,6 +192,7 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
     options.policy ??
     editorPolicy(await readFile(join(root, 'content/editors.toml'), 'utf8').catch(() => undefined))
   const checkout = openCheckout(root, policy)
+  const game = gameName(root)
 
   const server: Server = createServer((req, res) => {
     void (async () => {
@@ -188,7 +200,7 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
         const refused = refusal(req, isLoopback(host))
         if (refused !== undefined) return reply(res, 403, { message: refused })
         const url = new URL(req.url ?? '/', 'http://editor')
-        if (url.pathname.startsWith('/api/')) return await api(req, res, url, token, policy, checkout)
+        if (url.pathname.startsWith('/api/')) return await api(req, res, url, token, policy, checkout, game)
         return await staticFile(res, appDir, url.pathname)
       } catch (error) {
         if (!res.headersSent)

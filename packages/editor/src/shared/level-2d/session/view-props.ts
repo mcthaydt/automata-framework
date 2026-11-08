@@ -10,13 +10,12 @@ import type { WorldRect } from '../model/world/world-model'
 import type { OpenDocument } from './editor-app-types'
 
 // What every rail destination is given. The document screen draws the parts every view
-// shares (the top bar, the rail, the status line, the dialogs and toasts) as snippets, and the view places them in its
+// shares (the top bar, the rail, the dialogs and toasts; no status bar) as snippets, and the view places them in its
 // own kit shell beside its panel, canvas and inspector.
 
 export interface ViewFrame {
   readonly topbar: Snippet
   readonly rail: Snippet<[{ orientation: 'vertical' | 'horizontal' }]>
-  readonly status: Snippet
   readonly sheets: Snippet
 }
 

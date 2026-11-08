@@ -14,6 +14,12 @@ import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
 
+/** Opens Home's New level sheet and answers its list of templates. */
+async function openNewLevel(): Promise<HTMLElement> {
+  await userEvent.click(await screen.findByTestId('new-level'))
+  return screen.getByRole('list', { name: 'Templates' })
+}
+
 // The editor's boot: a function of its environment, so a test hands it a window, a document, a
 // clock and a workspace and gets the real app. The journey: list, New, the document frame, Back.
 
@@ -109,31 +115,33 @@ async function boot(options: BootOptions = {}) {
 describe('startEditor', () => {
   it('shows Home over the workspace it is given', async () => {
     await boot()
-    expect(await screen.findByRole('option', { name: /Mossgate/ })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /Hollowmere/ })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /^(Mossgate)/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^(Hollowmere)/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Your levels' })).toBeInTheDocument()
   })
 
   it('journey: New makes a project and opens it in the Level view; Back returns to a list that holds it', async () => {
     const { workspace } = await boot()
-    await screen.findByRole('listbox', { name: 'Projects' })
-    const templates = screen.getByRole('region', { name: 'Start a new project' })
+    await screen.findByRole('list', { name: 'Levels' })
+    const templates = await openNewLevel()
     await userEvent.click(within(templates).getAllByRole('button')[0] as HTMLElement)
 
     const bar = await screen.findByTestId('document-bar')
-    const path = bar.querySelector('.file')?.textContent ?? ''
+    const path = bar.getAttribute('data-path') ?? ''
     expect(path).toMatch(/\.af2d\.json$/)
     expect(await workspace.store.read(path)).toBeDefined()
-    expect(screen.queryByRole('listbox', { name: 'Projects' })).toBeNull()
+    expect(screen.queryByRole('list', { name: 'Levels' })).toBeNull()
 
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
-    expect(await screen.findByRole('listbox', { name: 'Projects' })).toBeInTheDocument()
-    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(3))
+    expect(await screen.findByRole('list', { name: 'Levels' })).toBeInTheDocument()
+    await waitFor(() =>
+      expect(within(screen.getByRole('list', { name: 'Levels' })).getAllByRole('listitem')).toHaveLength(3),
+    )
   })
 
   it('journey: New opens the Level view, a tap paints a cell as one undo step, and Back leaves', async () => {
     await boot()
-    const templates = await screen.findByRole('region', { name: 'Start a new project' })
+    const templates = await openNewLevel()
     const platformer = within(templates).getByRole('button', { name: /Platformer/ })
     await userEvent.click(platformer)
     expect(await screen.findByTestId('level-view')).toBeInTheDocument()
@@ -150,40 +158,41 @@ describe('startEditor', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Undo Paint' }))
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
 
+    // An undo is a change of its own to the history, so Back asks; Don't save leaves.
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
-    expect(await screen.findByRole('listbox', { name: 'Projects' })).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Don’t save' }))
+    expect(await screen.findByRole('list', { name: 'Levels' })).toBeInTheDocument()
   })
 
-  it('journey: Enter on the list opens the selected project', async () => {
+  it('journey: Enter on the selected card opens that level', async () => {
     await boot()
-    const list = await screen.findByRole('listbox', { name: 'Projects' })
-    list.focus()
+    const list = await screen.findByRole('list', { name: 'Levels' })
+    ;(list.querySelector('[tabindex="0"]') as HTMLElement).focus()
     await userEvent.keyboard('{Enter}')
     expect(await screen.findByRole('heading', { level: 1, name: 'Hollowmere' })).toBeInTheDocument()
   })
 
   it('Home keeps its search and its selection across a visit to a document', async () => {
     await boot()
-    await userEvent.type(await screen.findByRole('searchbox', { name: 'Search projects' }), 'moss')
-    await userEvent.dblClick(screen.getByRole('option', { name: /Mossgate/ }))
+    await userEvent.type(await screen.findByRole('searchbox', { name: 'Search levels' }), 'moss')
+    await userEvent.click(screen.getByRole('button', { name: /^(Mossgate)/ }))
     await screen.findByRole('heading', { level: 1, name: 'Mossgate' })
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
-    expect(await screen.findByRole('searchbox', { name: 'Search projects' })).toHaveValue('moss')
-    expect(screen.getByRole('option', { name: /Mossgate/ })).toHaveAttribute('aria-selected', 'true')
+    expect(await screen.findByRole('searchbox', { name: 'Search levels' })).toHaveValue('moss')
+    expect(screen.getByRole('button', { name: /^(Mossgate)/ })).toHaveAttribute('tabindex', '0')
   })
 
   it('opens the browser’s storage itself, and says so when it keeps nothing', async () => {
     await boot({ seed: false, own: true })
-    expect(await screen.findByText('No projects yet')).toBeInTheDocument()
-    expect(screen.getByText('This browser has no private file storage (OPFS).')).toBeInTheDocument()
-    expect(document.querySelector('[data-widget="status-line"]')).toHaveTextContent(
-      'Not saved on this device',
+    expect(await screen.findByText('No levels yet')).toBeInTheDocument()
+    expect(screen.getByTestId('home-storage')).toHaveTextContent(
+      'Not saved on this device. Download your level to keep it.',
     )
   })
 
   it('lays the shell out from the window it was given, and again when that resizes', async () => {
     const { win } = await boot()
-    await screen.findByRole('listbox', { name: 'Projects' })
+    await screen.findByRole('list', { name: 'Levels' })
     const shell = (): Element | null => document.querySelector('[data-editor-shell]')
     expect(shell()).toHaveAttribute('data-mode', 'wide')
     win.resize(834, 1194)
@@ -210,7 +219,11 @@ describe('startEditor', () => {
         },
       },
     })
-    expect(await screen.findByText('Private file storage is unavailable: boom')).toBeInTheDocument()
+    // The browser's own reason is for whoever asks (the line's tooltip), not the line itself.
+    expect(await screen.findByTestId('home-storage')).toHaveAttribute(
+      'title',
+      'Private file storage is unavailable: boom',
+    )
   })
 
   it('publishes the window’s geometry on the document root, and follows the window', async () => {
@@ -225,7 +238,7 @@ describe('startEditor', () => {
       crypto.getRandomValues(bytes)
     })
     await boot({ seed: false, fillRandom })
-    const templates = await screen.findByRole('region', { name: 'Start a new project' })
+    const templates = await openNewLevel()
     expect(fillRandom).not.toHaveBeenCalled()
     await userEvent.click(within(templates).getAllByRole('button')[0] as HTMLElement)
     await screen.findByRole('button', { name: 'Back' })
@@ -234,7 +247,8 @@ describe('startEditor', () => {
 
   it('times its toasts by the clock it is given', async () => {
     const { clock } = await boot()
-    await userEvent.click(await screen.findByRole('button', { name: 'Duplicate' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'More for Mossgate' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Duplicate' }))
     expect(await screen.findByText(/^Copied to /)).toBeInTheDocument()
     clock.advance(60_000)
     await waitFor(() => expect(screen.queryByText(/^Copied to /)).toBeNull())
@@ -242,7 +256,7 @@ describe('startEditor', () => {
 
   it('dispose twice is the same as once', async () => {
     const { handle, target } = await boot()
-    await screen.findByRole('listbox', { name: 'Projects' })
+    await screen.findByRole('list', { name: 'Levels' })
     await handle.dispose()
     await expect(handle.dispose()).resolves.toBeUndefined()
     expect(target.childElementCount).toBe(0)
@@ -250,20 +264,20 @@ describe('startEditor', () => {
 
   it('listens for the page hiding while a document is open, and stops after Back', async () => {
     const { win } = await boot()
-    await screen.findByRole('listbox', { name: 'Projects' })
+    await screen.findByRole('list', { name: 'Levels' })
     const onHome = win.count()
-    await userEvent.dblClick(screen.getByRole('option', { name: /Mossgate/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^(Mossgate)/ }))
     await screen.findByRole('heading', { level: 1, name: 'Mossgate' })
     expect(win.count()).toBe(onHome + 1)
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
-    await screen.findByRole('listbox', { name: 'Projects' })
+    await screen.findByRole('list', { name: 'Levels' })
     expect(win.count()).toBe(onHome)
   })
 
   it('a project from a newer editor shows the profile’s message and is never rewritten (G-o)', async () => {
     const text = `${JSON.stringify({ ...JSON.parse(printProject(mossgate())), version: 9 }, null, 2)}\n`
     const { workspace } = await boot({ seed: false, files: { 'newer.af2d.json': text } })
-    await userEvent.dblClick(await screen.findByRole('option', { name: /newer\.af2d\.json/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /^(newer\.af2d\.json)/ }))
     const panel = await screen.findByRole('dialog', { name: 'newer.af2d.json does not open' })
     expect(panel).toHaveTextContent(/made by a newer editor/)
     expect(within(panel).getByTestId('text-view')).toBeInTheDocument()
@@ -273,7 +287,7 @@ describe('startEditor', () => {
   it('a project with keys this editor does not know lists their paths (G-p)', async () => {
     const text = JSON.stringify({ ...JSON.parse(printProject(mossgate())), extra: 1, more: 2 })
     await boot({ seed: false, files: { 'keys.af2d.json': text } })
-    await userEvent.dblClick(await screen.findByRole('option', { name: /keys\.af2d\.json/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /^(keys\.af2d\.json)/ }))
     const panel = await screen.findByRole('dialog', { name: 'keys.af2d.json does not open' })
     const places = [...panel.querySelectorAll('.where')].map((where) => where.textContent)
     expect(places).toEqual(['extra', 'more'])
@@ -316,7 +330,7 @@ describe('startEditor', () => {
       },
       workspace: { ...workspace, journal },
     })
-    await userEvent.dblClick(await screen.findByRole('option', { name: /Renamed|Mossgate/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /^(Renamed|Mossgate)/ }))
     await userEvent.click(await screen.findByRole('button', { name: 'Restore edits' }))
     hold = true
     let done = false
@@ -332,7 +346,7 @@ describe('startEditor', () => {
 
   it('dispose takes the editor off the page and lets go of the window', async () => {
     const { target, win, handle } = await boot()
-    await screen.findByRole('listbox', { name: 'Projects' })
+    await screen.findByRole('list', { name: 'Levels' })
     expect(win.count()).toBeGreaterThan(0)
     await handle.dispose()
     expect(target.childElementCount).toBe(0)
@@ -345,7 +359,7 @@ describe('startEditor', () => {
     const make = vi.fn(() => ({ thumbnail, dispose }))
     const { workspace, handle } = await boot({ thumbnails: make })
     expect(make).toHaveBeenCalledWith(workspace)
-    const card = await screen.findByRole('option', { name: /Mossgate/ })
+    const card = await screen.findByRole('button', { name: /^(Mossgate)/ })
     await waitFor(() =>
       expect(card.querySelector('img')?.getAttribute('src')).toBe('data:image/png;base64,AAAA'),
     )

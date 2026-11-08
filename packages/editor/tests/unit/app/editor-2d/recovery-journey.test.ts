@@ -18,6 +18,12 @@ import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { withLayer } from '#src/testing/level-2d/project-edit.ts'
 
+/** Opens Home's New level sheet and answers its list of templates. */
+async function openNewLevel(): Promise<HTMLElement> {
+  await userEvent.click(await screen.findByTestId('new-level'))
+  return screen.getByRole('list', { name: 'Templates' })
+}
+
 // G-l end to end: three edits, the tab killed before a save, the
 // editor opened again over the same device storage: Restore is offered first and brings back exactly the state the
 // edits had made.
@@ -62,7 +68,7 @@ describe('recovery (G-l)', () => {
     const clock = createTestClock()
     const workspace = memoryWorkspace(clock)
     const first = boot(workspace, clock)
-    const templates = await screen.findByRole('region', { name: 'Start a new project' })
+    const templates = await openNewLevel()
     await userEvent.click(within(templates).getAllByRole('button')[0] as HTMLElement)
     await screen.findByRole('button', { name: 'Back' })
     const [document] = first.documents
@@ -98,9 +104,13 @@ describe('recovery (G-l)', () => {
     first.unmount()
 
     const second = boot(workspace, clock)
-    await userEvent.dblClick(
-      await screen.findByRole('option', { name: new RegExp(document.path.replace('.', '\\.')) }),
-    )
+    // The card is named by the level's title, so it is found by its file.
+    const card = await vi.waitFor(() => {
+      const found = globalThis.document.querySelector<HTMLElement>(`.open[data-path="${document.path}"]`)
+      if (found === null) throw new Error(`no card for ${document.path}`)
+      return found
+    })
+    await userEvent.click(card)
     const offer = await screen.findByRole('dialog', { name: 'Restore your unsaved work?' })
     await userEvent.click(within(offer).getByRole('button', { name: 'Restore edits' }))
     const [reopened] = second.documents

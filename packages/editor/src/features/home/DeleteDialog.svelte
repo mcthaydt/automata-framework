@@ -1,6 +1,6 @@
 <!--
   Asks once before a level goes. Names the level as people know it (its title, never its file) and says it cannot
-  come back. Cancel has focus first, so a stray Enter keeps the level; the kit's dialog returns focus to where it was.
+  come back: on a game folder, that it leaves the game. Cancel has focus first, so a stray Enter keeps the level; the kit's dialog returns focus to where it was.
 -->
 <script lang="ts">
 import Button from '../../shared/kit/widgets/Button.svelte'
@@ -10,14 +10,18 @@ interface Props {
   open: boolean
   /** The level's name, as its card shows it. */
   name: string
+  /** The level is in a game folder, so deleting it takes it out of the game. */
+  served?: boolean
   onconfirm: () => void
 }
 
-let { open = $bindable(), name, onconfirm }: Props = $props()
+let { open = $bindable(), name, served = false, onconfirm }: Props = $props()
 </script>
 
 <Dialog bind:open title={`Delete ${name}?`}>
-  <p>This level is deleted for good. You can’t undo this.</p>
+  <p>
+    {served ? 'It’s removed from your game for good.' : 'This level is deleted for good.'} You can’t undo this.
+  </p>
   {#snippet actions({ close })}
     <Button data-autofocus onclick={close}>Cancel</Button>
     <Button

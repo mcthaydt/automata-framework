@@ -528,6 +528,20 @@ describe('the document controller', () => {
       expect(dispose).toHaveBeenCalledOnce()
     })
 
+    it('close without saving throws the edits away: no autosave is left to offer, and the file is as saved', async () => {
+      const { controller, page, opened, workspace } = await setup()
+      edit(controller, 'thrown away')
+      await opened.document.session.flush()
+      const dispose = vi.spyOn(opened.document, 'dispose')
+      await controller.closeWithoutSaving()
+      expect(await findRecovery(workspace.store, workspace.journal, 'a.note')).toBeUndefined()
+      expect(new TextDecoder().decode(await workspace.store.read('a.note'))).toBe(noteText('hello'))
+      expect(dispose).toHaveBeenCalledOnce()
+      expect(page.count()).toBe(0)
+      await controller.close()
+      expect(dispose).toHaveBeenCalledOnce()
+    })
+
     it('after close, Save writes nothing', async () => {
       const { controller, workspace } = await setup()
       edit(controller, 'x')

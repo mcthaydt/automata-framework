@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from '#src/shared/editor-list/editor-list.ts'
 import type { EditorList } from '#src/shared/editor-list/editors.schema.ts'
-import { fileAccess, workspaceFile } from '#src/shared/editor-list/workspace-policy.ts'
+import { fileAccess, newFilePath, workspaceFile } from '#src/shared/editor-list/workspace-policy.ts'
 
 function list(toml: string): EditorList {
   const load = loadEditorList(`format = "af-editors/1"\n${toml}`)
@@ -209,5 +209,47 @@ describe('workspaceFile', () => {
       writable: false,
       why: expect.stringContaining('root'),
     })
+  })
+})
+
+describe('newFilePath', () => {
+  const ROOMS = list(`
+[[file]]
+glob = "content/rooms/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+`)
+
+  it('puts a new file in the folder of the first row that lets the editor write it there', () => {
+    expect(newFilePath(ROOMS, 'untitled-platformer.af2d.json')).toBe(
+      'content/rooms/untitled-platformer.af2d.json',
+    )
+  })
+
+  it('answers nothing when no row would let the editor write a file of that name', () => {
+    expect(newFilePath(ROOMS, 'notes.txt')).toBeUndefined()
+  })
+
+  it('skips a folder that is never written or generated', () => {
+    const generated = list(`
+generated = ["content/generated/**"]
+
+[[file]]
+glob = "content/generated/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+`)
+    expect(newFilePath(generated, 'a.af2d.json')).toBe('content/levels/a.af2d.json')
   })
 })

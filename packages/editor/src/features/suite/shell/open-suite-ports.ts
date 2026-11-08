@@ -21,7 +21,7 @@ const decoder = new TextDecoder()
 export async function openSuitePorts(
   env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>,
 ): Promise<OpenedSuitePorts> {
-  const store = await openServedStore(env)
+  const store = (await openServedStore(env))?.store
   if (store === undefined) return { ports: await samplePorts(SAMPLE_GAME), sample: true }
   const bytes = await store.read(EDITOR_LIST_PATH)
   const load = loadEditorList(bytes === undefined ? undefined : decoder.decode(bytes))

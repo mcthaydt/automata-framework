@@ -7,6 +7,7 @@ import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { exportContent } from '#src/shared/level-2d/profiles/level-project/content-export.ts'
 import type { OpenDocument } from '#src/shared/level-2d/session/editor-app-types.ts'
+import { openProblem } from '#src/shared/level-2d/session/open-problem.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
@@ -167,5 +168,41 @@ describe('Save without exports', () => {
       expect(await document.save()).toMatchObject({ status: 'saved' })
       expect(setup.writes).toEqual([PROJECT])
     }
+  })
+})
+
+describe('A new level on a checkout', () => {
+  it('is made in the folder the editor list lets the editor write, and opens', async () => {
+    const setup = checkout()
+    await setup.base.store.write('content/editors.toml', LIST)
+    const app = createEditorApp({
+      workspace: setup.workspace,
+      registry: createAppProfiles(),
+      ids: counterIds(),
+      clock: setup.clock,
+    })
+    const outcome = await app.create('level-project', 'platformer')
+    expect(outcome).toMatchObject({ status: 'opened' })
+    expect(setup.writes).toEqual(['content/rooms/untitled-platformer.af2d.json'])
+  })
+
+  it('says plainly where levels go when the list gives the editor no folder for one', async () => {
+    const setup = checkout()
+    await setup.base.store.write(
+      'content/editors.toml',
+      LIST.replace('content/rooms/*.af2d.json', 'content/rooms/room-1.af2d.json'),
+    )
+    const app = createEditorApp({
+      workspace: setup.workspace,
+      registry: createAppProfiles(),
+      ids: counterIds(),
+      clock: setup.clock,
+    })
+    const outcome = await app.create('level-project', 'platformer')
+    expect(outcome).toMatchObject({ status: 'storageFailed', path: '' })
+    expect(outcome.status === 'storageFailed' && openProblem(outcome)).toBe(
+      'Your game has no folder for new levels yet. Add one to content/editors.toml, then try again.',
+    )
+    expect(setup.writes).toEqual([])
   })
 })

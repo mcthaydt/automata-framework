@@ -202,14 +202,15 @@ describe('/examples/<id>', () => {
     )
   })
 
-  // The site build precompiles each example the same way (scripts/build-demos.ts); its output is not committed.
-  it('precompiles every catalog example, named by its path in the examples folder', () => {
+  // The originals are compiled by scripts/build-demos.ts with this same call. Compiling here, not reading
+  // static/playground/compiled/, keeps the check in a fresh checkout, where that build output does not exist.
+  it('compiles every catalog example to an original that names its file', () => {
     for (const example of getExamples()) {
       const result = compileExample(example.source, {
         id: example.id,
         moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,
       })
-      expect(result.ok ? result.code : result.diagnostics).toContain(`//# sourceURL=examples/${example.path}`)
+      expect(result.ok && result.code).toContain('//# sourceURL=examples/' + example.path)
     }
   })
 })

@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/svelte'
+import { cleanup, render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import DocumentBar from '#src/features/document/DocumentBar.svelte'
+import type { SaveState } from '#src/shared/kit/storage/save-state.ts'
 
-// The document's top bar: Back, the title over the path, the
-// profile, then Undo, Redo and Save.
+// The document's top bar, essentials only: Back, the level's name, Undo and Redo as icon buttons, and Save, the one
+// primary action, which says where the level stands ("Save", "Saving…", "Saved").
 
 interface Props {
   canUndo?: boolean
@@ -13,32 +14,52 @@ interface Props {
   undoLabel?: string | undefined
   redoLabel?: string | undefined
   busy?: boolean
-  compact?: boolean
+  save?: SaveState
 }
 
 function mount(props: Props = {}) {
   const handlers = { onback: vi.fn(), onundo: vi.fn(), onredo: vi.fn(), onsave: vi.fn() }
   render(DocumentBar, {
     heading: { title: 'Mossgate', file: 'levels/mossgate.af2d.json' },
-    profileLabel: 'Level project',
     canUndo: props.canUndo ?? false,
     canRedo: props.canRedo ?? false,
     undoLabel: props.undoLabel,
     redoLabel: props.redoLabel,
     busy: props.busy ?? false,
-    compact: props.compact ?? false,
+    save: props.save ?? 'dirty',
     ...handlers,
   })
   return handlers
 }
 
 describe('DocumentBar', () => {
-  it('heads the page with the document’s title, its path and its profile, and takes focus', () => {
+  it('heads the page with the level’s name, which takes focus; no file path or format on the bar', () => {
     mount()
     const heading = screen.getByRole('heading', { level: 1, name: 'Mossgate' })
     expect(heading).toHaveFocus()
-    expect(screen.getByText('levels/mossgate.af2d.json')).toBeInTheDocument()
-    expect(screen.getByText('Level project')).toBeInTheDocument()
+    expect(screen.queryByText('levels/mossgate.af2d.json')).toBeNull()
+    expect(screen.queryByText('Level project')).toBeNull()
+    expect(screen.getByTestId('document-bar')).toHaveAttribute('data-path', 'levels/mossgate.af2d.json')
+  })
+
+  it('Save is the one primary button and says where the level stands', () => {
+    mount({ save: 'dirty' })
+    const save = screen.getByTestId('save')
+    expect(save).toHaveAttribute('data-kind', 'primary')
+    expect(save).toHaveTextContent('Save')
+    cleanup()
+    mount({ save: 'saving' })
+    expect(screen.getByTestId('save')).toHaveTextContent('Saving…')
+    cleanup()
+    mount({ save: 'saved' })
+    expect(screen.getByTestId('save')).toHaveTextContent('Saved')
+    expect(document.querySelectorAll('[data-kind="primary"]')).toHaveLength(1)
+  })
+
+  it('Undo and Redo are icon buttons', () => {
+    mount()
+    expect(screen.getByRole('button', { name: 'Undo' }).querySelector('svg')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Redo' }).querySelector('svg')).not.toBeNull()
   })
 
   it('Undo and Redo are disabled with nothing to do', () => {
@@ -61,12 +82,6 @@ describe('DocumentBar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     expect(handlers.onback).toHaveBeenCalledOnce()
     expect(handlers.onsave).toHaveBeenCalledOnce()
-  })
-
-  it('leaves the profile out on a phone, where the title needs the room', () => {
-    mount({ compact: true })
-    expect(screen.queryByText('Level project')).toBeNull()
-    expect(screen.getByRole('heading', { level: 1, name: 'Mossgate' })).toBeInTheDocument()
   })
 
   it('Save and Back are disabled while a save or a conflict choice runs', () => {

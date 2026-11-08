@@ -93,6 +93,22 @@ export function fileAccess(list: EditorList, path: string): FileAccess {
 }
 
 /**
+ * Where a new file called `name` goes in a checkout: the folder of the first row whose glob would match it there and
+ * that the editor may write (so never a generated or never-written folder). The folder is the glob's text up to its
+ * last `/` before the first wildcard, so `content/rooms/*.af2d.json` gives `content/rooms/`. None when no row would
+ * take it: the caller says so rather than writing a file the server refuses.
+ */
+export function newFilePath(list: EditorList, name: string): string | undefined {
+  for (const row of list.file) {
+    const wild = row.glob.search(/[*?{[]/)
+    const head = wild === -1 ? row.glob : row.glob.slice(0, wild)
+    const candidate = `${head.slice(0, head.lastIndexOf('/') + 1)}${name}`
+    if (fileAccess(list, candidate).writable) return candidate
+  }
+  return undefined
+}
+
+/**
  * The workspace port's view of `path`: the row's editor, scene,
  * gates, checks and modes, and whether the suite may write it. A path no row matches (or outside the root) has no
  * editor, only the reason. The memory workspace and the disk adapter both class paths through this.

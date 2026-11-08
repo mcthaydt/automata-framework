@@ -1,7 +1,7 @@
 <!--
   An open document (it keeps what the older frame did: the top bar, the dialogs and the toasts). The profile's views are the rail; the chosen one fills the shell with its panel,
   canvas and inspector, and this screen hands it what every view shares: the top bar (Back, the title, Undo, Redo, Save),
-  the rail, the status line, the Restore and conflict dialogs and the toasts. Switching views remounts the view only;
+  the rail (no status bar: Save says where the level stands, and problems are toasts), the Restore, conflict and leave dialogs and the toasts. Back with unsaved changes asks first. Switching views remounts the view only;
   the document, its history and its save state stay. A document replaced by Take theirs remounts the view on the new
   one. Everything it does goes through the document controller; nothing here names a profile.
 -->
@@ -10,9 +10,7 @@ import type { GeometryState } from '@mcthaydt/automata'
 import type { Component } from 'svelte'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
-import { shellModeOf } from '../../shared/kit/shell/shell-mode'
 import type { Workspace } from '../../shared/kit/storage/workspace'
-import StatusLine from '../../shared/kit/widgets/StatusLine.svelte'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
@@ -25,6 +23,7 @@ import type {
 } from '../../shared/level-2d/session/view-props'
 import DocumentBar from './DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document-controller'
+import LeaveDialog from './LeaveDialog.svelte'
 import ViewRail from './ViewRail.svelte'
 import { routeOf, viewsOf } from './view-router'
 
@@ -87,7 +86,21 @@ function redo(): void {
   if (label !== undefined) heard = { text: `Redid ${label}`, count: heard.count + 1 }
 }
 
-const compact = $derived(shellModeOf(geometry.current.formFactor) === 'compact')
+/** Back with changes not yet saved asks first (`LeaveDialog`); with none it leaves at once. */
+let leaving = $state(false)
+function back(): void {
+  if (shown.save === 'dirty' || shown.save === 'error') leaving = true
+  else onback()
+}
+async function saveAndLeave(): Promise<void> {
+  await controller.save()
+  // A save that conflicted or failed has its own dialog or toast: stay, so she sees it.
+  if (shown.save === 'saved') onback()
+}
+async function leaveWithoutSaving(): Promise<void> {
+  await controller.closeWithoutSaving()
+  onback()
+}
 
 // svelte-ignore state_referenced_locally
 let shown = $state.raw<DocumentState>(snapshot(controller))
@@ -125,16 +138,15 @@ const services = $derived<ViewServices>({
 {#snippet topbar()}
   <DocumentBar
     heading={shown.heading}
-    profileLabel={shown.document.profile.label}
+    save={shown.save}
     canUndo={shown.canUndo}
     canRedo={shown.canRedo}
     undoLabel={shown.undoLabel}
     redoLabel={shown.redoLabel}
     busy={shown.busy !== undefined}
-    {compact}
     autofocus={!arrived}
     onfocused={() => (arrived = true)}
-    {onback}
+    onback={back}
     onundo={undo}
     onredo={redo}
     onsave={() => controller.save()}
@@ -155,10 +167,6 @@ const services = $derived<ViewServices>({
   />
 {/snippet}
 
-{#snippet status()}
-  <StatusLine save={shown.save} />
-{/snippet}
-
 {#snippet sheets()}
   <RecoveryDialog
     path={shown.document.path}
@@ -177,6 +185,12 @@ const services = $derived<ViewServices>({
     oncopy={() => controller.saveCopy()}
     oncancel={() => controller.dismissConflict()}
   />
+  <LeaveDialog
+    bind:open={leaving}
+    name={shown.heading.title}
+    onsave={() => void saveAndLeave()}
+    ondiscard={() => void leaveWithoutSaving()}
+  />
   <ToastRegion {toasts} />
   {#key heard.count}
     <p class="heard" aria-live="polite" data-testid="history-announcement">{heard.text}</p>
@@ -189,7 +203,7 @@ const services = $derived<ViewServices>({
       {geometry}
       document={shown.document}
       label={route?.label ?? shown.document.profile.label}
-      frame={{ topbar, rail, status, sheets }}
+      frame={{ topbar, rail, sheets }}
       {services}
       {focus}
     />

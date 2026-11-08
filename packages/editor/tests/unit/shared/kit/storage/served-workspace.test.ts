@@ -44,6 +44,12 @@ describe('openServedWorkspace', () => {
     expect(workspace?.journal.kind).not.toBe('http')
   })
 
+  it('carries the game’s name from the ping, and none from a server too old to send one', async () => {
+    const named = page('', () => json({ automata: 'editor', token: false, game: 'Emberwick' }))
+    expect((await openServedWorkspace(named.env))?.game).toBe('Emberwick')
+    expect((await openServedWorkspace(page().env))?.game).toBeUndefined()
+  })
+
   it('is nothing when the origin is not an editor server (a plain page)', async () => {
     const { env } = page('', () => new Response('<html>', { status: 200 }))
     expect(await openServedWorkspace(env)).toBeUndefined()

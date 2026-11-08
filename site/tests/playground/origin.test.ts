@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { getExample } from '../../src/data/examples'
 import { compileExample } from '../../src/lib/playground/compile'
 import { atOrigin } from '../../src/lib/playground/origin'
 import { SITE_ORIGIN } from '../../src/lib/site.js'
@@ -30,8 +31,9 @@ describe('atOrigin', () => {
   })
 
   it('moves the literal in a real precompiled original', () => {
-    const example = playgroundExamples().find((entry) => entry.id === 'audio-sound')
-    if (!example) throw new Error('audio-sound left the catalog')
+    // Compiled as scripts/build-demos.ts compiles it, so the test needs no build output.
+    const example = getExample('audio-sound')
+    if (example === undefined) throw new Error('the catalog has no audio-sound')
     const result = compileExample(example.source, {
       id: example.id,
       moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,

@@ -62,19 +62,15 @@ async function mount(options: { persistent?: boolean; autosave?: boolean; size?:
   return { opened, controller, toasts, workspace, onback }
 }
 
-const status = (): HTMLElement => document.querySelector('[data-widget="status-line"]') as HTMLElement
+/** Save says where the level stands (there is no status bar); `data-save` is its state. */
+const status = (): HTMLElement => screen.getByTestId('save')
 
 describe('DocumentScreen', () => {
-  it('heads the page with the document, which takes focus, and its profile', async () => {
+  it('heads the page with the document, which takes focus, and no status bar', async () => {
     await mount()
     expect(screen.getByRole('heading', { level: 1, name: 'a.note' })).toHaveFocus()
-    expect(screen.getByText('notes/a.note')).toBeInTheDocument()
-    expect(screen.getByText('Planted note')).toBeInTheDocument()
-  })
-
-  it('leaves the profile out of the top bar on a phone', async () => {
-    await mount({ size: [390, 844] })
-    expect(screen.queryByText('Planted note')).toBeNull()
+    expect(screen.queryByText('notes/a.note')).toBeNull()
+    expect(document.querySelector('[data-widget="status-line"]')).toBeNull()
   })
 
   it('shows a view that is not built yet in plain words, saying the project is safe', async () => {
@@ -90,13 +86,53 @@ describe('DocumentScreen', () => {
     expect(onback).toHaveBeenCalledOnce()
   })
 
+  describe('Back with unsaved changes', () => {
+    const edited = async () => {
+      const mounted = await mount()
+      mounted.opened.document.history.apply('Type', () => ({ text: 'unsaved' }))
+      flushSync()
+      await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+      return { ...mounted, dialog: screen.getByRole('dialog', { name: 'Save your changes to a.note?' }) }
+    }
+
+    it('asks first, with Save, Don’t save and Cancel, Save the primary one', async () => {
+      const { dialog, onback } = await edited()
+      expect(onback).not.toHaveBeenCalled()
+      expect(within(dialog).getByRole('button', { name: 'Save' })).toHaveAttribute('data-kind', 'primary')
+      expect(within(dialog).getByRole('button', { name: 'Don’t save' })).toBeInTheDocument()
+      expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+    })
+
+    it('Save writes the file, then goes back', async () => {
+      const { dialog, onback, workspace } = await edited()
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+      await vi.waitFor(() => expect(onback).toHaveBeenCalledOnce())
+      expect(textOf(await workspace.store.read('notes/a.note'))).toBe(noteText('unsaved', 1))
+    })
+
+    it('Don’t save goes back and leaves the file as it was', async () => {
+      const { dialog, onback, workspace } = await edited()
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Don’t save' }))
+      await vi.waitFor(() => expect(onback).toHaveBeenCalledOnce())
+      expect(textOf(await workspace.store.read('notes/a.note'))).toBe(noteText('hello'))
+    })
+
+    it('Cancel stays on the level with the edits', async () => {
+      const { dialog, onback, opened } = await edited()
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(onback).not.toHaveBeenCalled()
+      expect(opened.document.history.state).toEqual({ text: 'unsaved' })
+    })
+  })
+
   it('follows the save state, and Undo and Redo follow the history', async () => {
     const { opened } = await mount()
-    expect(status()).toHaveTextContent('Saved')
+    expect(status()).toHaveAttribute('data-save', 'saved')
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
     opened.document.history.apply('Type', () => ({ text: 'x' }))
     flushSync()
-    expect(status()).toHaveTextContent('Unsaved changes')
+    expect(status()).toHaveAttribute('data-save', 'dirty')
     await userEvent.click(screen.getByRole('button', { name: 'Undo Type' }))
     expect(opened.document.history.state).toEqual({ text: 'hello' })
     await userEvent.click(screen.getByRole('button', { name: 'Redo Type' }))
@@ -119,8 +155,9 @@ describe('DocumentScreen', () => {
   it('Save writes the file', async () => {
     const { opened, workspace } = await mount()
     opened.document.history.apply('Type', () => ({ text: 'saved' }))
+    flushSync()
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
-    await vi.waitFor(() => expect(status()).toHaveTextContent('Saved'))
+    await vi.waitFor(() => expect(status()).toHaveAttribute('data-save', 'saved'))
     expect(textOf(await workspace.store.read('notes/a.note'))).toBe(noteText('saved', 1))
   })
 
@@ -144,7 +181,7 @@ describe('DocumentScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Take theirs' }))
     expect(await screen.findByText('Reloaded a.note from the file.')).toBeInTheDocument()
-    expect(status()).toHaveTextContent('Saved')
+    expect(status()).toHaveAttribute('data-save', 'saved')
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
   })
 
@@ -158,7 +195,7 @@ describe('DocumentScreen', () => {
       text = state.document.history.state
     })()
     expect(text).toEqual({ text: 'kept' })
-    expect(status()).toHaveTextContent('Unsaved changes')
+    expect(status()).toHaveAttribute('data-save', 'dirty')
     expect(screen.getByRole('button', { name: 'Undo Restore autosave' })).toBeEnabled()
   })
 
@@ -171,7 +208,7 @@ describe('DocumentScreen', () => {
     await mount({ autosave: true })
     await userEvent.click(screen.getByRole('button', { name: 'Discard' }))
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(status()).toHaveTextContent('Saved')
+    expect(status()).toHaveAttribute('data-save', 'saved')
   })
 
   it('shows the toasts', async () => {
@@ -182,7 +219,7 @@ describe('DocumentScreen', () => {
 
   it('says so when this device keeps nothing', async () => {
     await mount({ persistent: false })
-    expect(status()).toHaveTextContent('Not saved on this device')
+    expect(status()).toHaveAttribute('data-save', 'device')
   })
 })
 
