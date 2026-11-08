@@ -18,6 +18,11 @@ import {
 import { schematicProblems } from './schematic-problems.ts'
 import { newAgent, newSystemsFile, systemsFileText } from './starter.ts'
 
+/** What is selected on a character: a mode, or a switch by its place in the file. */
+export type Selection =
+  | { readonly kind: 'mode'; readonly mode: string }
+  | { readonly kind: 'switch'; readonly index: number }
+
 export const SYSTEMS_DIR = 'content/systems/'
 export const NAV_DIR = 'content/nav/'
 export const PUZZLE_DIR = 'content/puzzles/'
@@ -73,6 +78,8 @@ export class SchematicSession {
   /** The scene being edited. */
   scene: string = $state('')
   chosen: SchematicChoice = $state({ kind: 'character', index: 0 })
+  /** What is selected on the open character, if anything. */
+  selected: Selection | undefined = $state()
   /** Why the last change was not made, until the next one is. */
   message: string | undefined = $state()
   #files: SceneFiles | undefined = $state.raw()
@@ -104,6 +111,7 @@ export class SchematicSession {
     this.#files = { scene, systems, nav, puzzle }
     this.scene = scene
     this.chosen = { kind: 'character', index: 0 }
+    this.selected = undefined
     this.message = undefined
     this.#changed()
   }
@@ -181,6 +189,12 @@ export class SchematicSession {
     if (outcome.ok)
       this.chosen = { kind: 'character', index: this.def?.agents.length ? this.def.agents.length - 1 : 0 }
     return outcome
+  }
+
+  /** Chooses a character; nothing is selected on it yet. */
+  choose(index: number): void {
+    this.chosen = { kind: 'character', index }
+    this.selected = undefined
   }
 
   /** The character the panel chose, or `undefined`. */

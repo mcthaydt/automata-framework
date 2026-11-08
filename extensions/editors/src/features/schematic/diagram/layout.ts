@@ -8,8 +8,10 @@ export interface Size {
   readonly box: { readonly w: number; readonly h: number }
   /** The space between columns, and between rows. */
   readonly gap: number
-  /** A label's height; its width is a box's. */
+  /** A label's height. */
   readonly label: number
+  /** A label's width; a box's when left out. A label is meant to fit in the gap between two columns. */
+  readonly labelW?: number
 }
 
 export interface Box {
@@ -97,16 +99,19 @@ function columns(agent: AgentDef): string[][] {
 
 export function layoutAgent(agent: AgentDef, size: Size): Diagram {
   const { box: cell, gap, label } = size
+  const labelW = size.labelW ?? cell.w
+  // Rows are closer than columns: a label sits in the gap beside an arrow, and above a loop.
+  const rowGap = label + 40
   const usesAny = agent.transitions.some((t) => t.from === ANY_MODE)
   const grid = columns(agent)
   if (usesAny) grid.unshift([ANY_MODE])
   // The first row leaves room above for loops and for arrows that pass over a column.
-  const top = gap
+  const top = label + 56
   const boxes: Box[] = grid.flatMap((column, c) =>
     column.map((mode, r) => ({
       mode,
       x: c * (cell.w + gap),
-      y: top + r * (cell.h + gap),
+      y: top + r * (cell.h + rowGap),
       w: cell.w,
       h: cell.h,
       start: mode === agent.initial,
@@ -144,15 +149,15 @@ export function layoutAgent(agent: AgentDef, size: Size): Diagram {
       const cx = a.x + a.w / 2
       points = [
         [cx - 14, a.y],
-        [cx - 14, a.y - gap / 2],
-        [cx + 14, a.y - gap / 2],
+        [cx - 14, a.y - 28],
+        [cx + 14, a.y - 28],
         [cx + 14, a.y],
       ]
-      anchor = { x: cx, y: a.y - gap / 2 }
+      anchor = { x: cx, y: a.y - 28 - label / 2 }
     } else if (cb > ca + 1) {
       // Over the columns between, along a lane above every box.
       lane += 1
-      const laneY = Math.max(2, top - 4 * (1 + (lane % 6)))
+      const laneY = top - 6 - 5 * (lane % 6)
       const x1 = a.x + a.w
       const x2 = b.x
       points = [
@@ -163,7 +168,7 @@ export function layoutAgent(agent: AgentDef, size: Size): Diagram {
         [x2 - gap / 3, b.y + b.h / 2],
         [x2, b.y + b.h / 2],
       ]
-      anchor = { x: (x1 + x2) / 2, y: laneY }
+      anchor = { x: (x1 + x2) / 2, y: laneY - label / 2 - 2 }
     } else if (cb === ca + 1) {
       const mx = a.x + a.w + gap / 2
       points = [
@@ -172,11 +177,11 @@ export function layoutAgent(agent: AgentDef, size: Size): Diagram {
         [mx, b.y + b.h / 2],
         [b.x, b.y + b.h / 2],
       ]
-      anchor = { x: mx, y: (a.y + b.y + a.h) / 2 }
+      anchor = { x: mx, y: a.y + a.h / 2 - 6 - label / 2 }
     } else {
       // Back, or down the same column: round the far side, below the boxes.
       lane += 1
-      const laneY = bottom + gap / 2 + 6 * (lane % 8)
+      const laneY = bottom + 28 + 6 * (lane % 8)
       const x1 = a.x + a.w / 2
       const x2 = b.x + b.w / 2
       points = [
@@ -185,9 +190,9 @@ export function layoutAgent(agent: AgentDef, size: Size): Diagram {
         [x2, laneY],
         [x2, b.y + b.h],
       ]
-      anchor = { x: (x1 + x2) / 2, y: laneY }
+      anchor = { x: (x1 + x2) / 2, y: laneY + label / 2 + 2 }
     }
-    const spot = freeLabel(anchor, cell.w, label, placed)
+    const spot = freeLabel(anchor, labelW, label, placed)
     placed.push(spot)
     arrows.push({
       from: group.from,

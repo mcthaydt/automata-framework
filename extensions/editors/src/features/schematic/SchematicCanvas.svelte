@@ -17,7 +17,7 @@ const ready = $derived(session.facts.usesSystems && session.def !== undefined)
   {#if !ready}
     <SchematicStart {session} />
   {:else if character !== undefined}
-    <CharacterCanvas {character} />
+    <CharacterCanvas {session} />
   {:else if (session.def?.agents.length ?? 0) === 0}
     <SchematicStart {session} />
   {/if}

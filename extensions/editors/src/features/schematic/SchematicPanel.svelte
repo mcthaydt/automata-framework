@@ -31,7 +31,7 @@ const chosen = $derived(session.chosen)
           <button
             type="button"
             aria-current={chosen.kind === 'character' && chosen.index === index}
-            onclick={() => (session.chosen = { kind: 'character', index })}
+            onclick={() => session.choose(index)}
           >
             {modeWords(character.id)}
           </button>
