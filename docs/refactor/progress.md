@@ -680,3 +680,25 @@ Audio answering his bump. Made by hand in both kinds and played, at iPad and pho
 browser projects need the other engines, so `pnpm test:browser:2d` stops here); `stranger-3d.test.ts` pending. `pnpm check`
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
 (`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
+
+## Every editor free on the web (2026-11-08)
+
+Branch `claude/project-thread-szjdbh`, stacked on #522. The Owner: all editors are free on the web, nothing marked "Not in
+this build", and the 3D editors are not held back because the launch waits for Pixi 3D to go public.
+
+- `automata editor` serves one page, the editors extension's, whatever the game's editor list names (`page-for.ts` is gone), and
+  `-tools` packs that page into `dist/editors/suite`. Its build scan now refuses only Pixi 3D's `./extras`, which breaks under a strict
+  CSP; the full page carries none, so the copy passes.
+- The site's try-it page (`/editor/app/`) is that page, opening a sample with a file for every editor: a hall and Wick for
+  Levels 3D and the Studio, the content editors' files, and Levels 2D starting a level from a template. Its sample is kept in the
+  browser's private storage like the 2D page's (it was held in memory and lost every edit), and a browser that cannot keep it says
+  "Your changes are lost when you close this page." The site's build scan allows Pixi 3D too and refuses its extras.
+- Run: unit tests of `-tools`, `editors`, `editor`, `editor-3d` and `site` (the one fix to an existing test: `senses.test.ts` now strips
+  the sample's 3D rows to make a 2D-only game); the editors' layout test in Chromium; `site/tests/e2e/editor-try.e2e.ts` in Chromium
+  (every editor on the rail, none missing, a platformer level draws, an edit survives a reload and a closed and reopened browser);
+  `complete-game-2d` and `complete-game-3d` at iPad size in Chromium (a 2D and a 3D game made in the editors, played); lint, typecheck,
+  boundaries, style, source-names and knip green. `check-changesets` still fails on `stage-characters-3d.md` (#522).
+- Not run: WebKit, Firefox, the GPU runner, hosted CI, the phone-size journeys. `whole-game-loop` fails at iPad size on #522 too: its
+  wall at column 5 no longer matches the story template's level, which now has a wall column at 16 (stale expectation, not changed here).
+  `standalone-exemption.test.ts` failed once in the site's unit run before a build and passed after; it fails the same on #522.
+- Do not publish `@automata/tools` or deploy the site before `@pixi/3d` is public: both now carry it.

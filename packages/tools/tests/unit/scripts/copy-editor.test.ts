@@ -5,8 +5,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { PIXI3D_EXTRAS_MARKERS, PIXI3D_MARKERS } from '#src/shared/ship/prepare/pixi3d-markers.ts'
 import { copyEditor } from '../../../scripts/copy-editor.ts'
 
-// The build of `-tools` copies the suite's 2D page (the editor package's only page) into `dist/editors/suite`, after the
-// closed-beta scan has read it: the published package must never carry the private Pixi 3D beta.
+// The build of `-tools` copies the editors' one page (every editor, 3D ones too) into `dist/editors/suite`. The page may
+// carry Pixi 3D itself, since the launch waits for it to go public; it may not carry the `./extras` entry, which probes
+// `new Function` at load and so breaks under a strict CSP.
 
 const made: string[] = []
 
@@ -52,21 +53,26 @@ describe('copyEditor', () => {
     expect(readFileSync(join(outDir, 'editors/suite/assets/other.js'), 'utf8')).toBe('x')
   })
 
-  it.each([PIXI3D_MARKERS[0], PIXI3D_EXTRAS_MARKERS[0]])(
-    'refuses a suite build that holds the private Pixi 3D beta, naming the file, and copies nothing (%s)',
-    (marker) => {
-      const { editorDist, outDir } = folders({ 'suite/assets/leak.js': `var a = "${marker}"` })
-      expect(() => copyEditor(editorDist, outDir)).toThrow(
-        'This build contains the private Pixi 3D beta (suite/assets/leak.js). It cannot be published.',
-      )
-      expect(() => readFileSync(join(outDir, 'editors/suite/index.html'))).toThrow()
-    },
-  )
+  it('copies a page that holds Pixi 3D: the 3D editors are part of the free editors', () => {
+    const { editorDist, outDir } = folders({ 'suite/assets/3d.js': `var a = "${PIXI3D_MARKERS[0]}"` })
+    copyEditor(editorDist, outDir)
+    expect(readFileSync(join(outDir, 'editors/suite/assets/3d.js'), 'utf8')).toContain(PIXI3D_MARKERS[0])
+  })
+
+  it('refuses a page that holds Pixi 3D extras, naming the file, and copies nothing', () => {
+    const { editorDist, outDir } = folders({
+      'suite/assets/leak.js': `var a = "${PIXI3D_EXTRAS_MARKERS[0]}"`,
+    })
+    expect(() => copyEditor(editorDist, outDir)).toThrow(
+      'This build contains Pixi 3D extras (suite/assets/leak.js), which break under a strict CSP.',
+    )
+    expect(() => readFileSync(join(outDir, 'editors/suite/index.html'))).toThrow()
+  })
 
   it('says to build the editor first when there is no suite build', () => {
     const { outDir } = folders()
     expect(() => copyEditor(join(outDir, 'missing'), outDir)).toThrow(
-      'There is no editor build to copy. Build it first: pnpm --filter @automata/editor build',
+      'There is no editor build to copy. Build it first: pnpm --filter @automata/editors build',
     )
   })
 })

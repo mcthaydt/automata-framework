@@ -26,13 +26,14 @@ describe('scanClosedBeta', () => {
     expect(scanClosedBeta(build('export const game = 1'))).toEqual([])
   })
 
-  it('names the file that carries the closed beta, and the marker it found', () => {
-    expect(scanClosedBeta(build('throw new Error("View3D.screenToRay:degenerate")'))).toEqual([
-      '_app/immutable/chunks/game.js: carries the Pixi 3D closed beta ("View3D.screenToRay:degenerate"); it cannot go on a public site',
-    ])
+  // The launch waits for Pixi 3D to go public, so the free editors (Levels 3D, the Studio) carry it until then.
+  it('passes a build that carries Pixi 3D itself', () => {
+    expect(scanClosedBeta(build('throw new Error("View3D.screenToRay:degenerate")'))).toEqual([])
   })
 
-  it('catches the extras too', () => {
-    expect(scanClosedBeta(build('function generateSpawnBurst(){}'))).toHaveLength(1)
+  it('names the file that carries the extras, which a strict policy breaks', () => {
+    expect(scanClosedBeta(build('function generateSpawnBurst(){}'))).toEqual([
+      '_app/immutable/chunks/game.js: carries Pixi 3D extras ("generateSpawnBurst"), which break under the site\'s policy',
+    ])
   })
 })

@@ -12,18 +12,23 @@ interface Props {
   home: HomeState
   /** The suite shows a sample, not the person's game (no server). */
   sample: boolean
+  /** The sample is kept in this browser; when it is not, the banner says what is made here is lost with the page. */
+  kept: boolean
   onopen: (card: EditorCard) => void
   onread: (file: WorkspaceFile) => void
 }
 
-const { home, sample, onopen, onread }: Props = $props()
+const { home, sample, kept, onopen, onread }: Props = $props()
 </script>
 
 <div class="home">
   {#if sample}
     <p class="banner" role="note">
       <Icon name="alert" size={16} />
-      <span>This is a sample game, not yours. Run automata editor inside your game's folder to edit it.</span>
+      <span>
+        This is a sample game, not yours. Run automata editor inside your game's folder to edit it.
+        {#if !kept}Your changes are lost when you close this page.{/if}
+      </span>
     </p>
   {/if}
   <Home

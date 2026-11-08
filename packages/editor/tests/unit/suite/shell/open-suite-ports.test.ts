@@ -153,6 +153,20 @@ describe('openSuitePorts', () => {
     expect((await again.ports.workspace.read(EDITOR_LIST_PATH))?.text).toBe(SAMPLE_GAME[EDITOR_LIST_PATH])
   })
 
+  it('says whether the sample is kept: yes with private storage, no when the browser has none, and a checkout always', async () => {
+    const opfs = createFakeOpfs()
+    expect(
+      (
+        await openSuitePorts({
+          ...page(undefined).env,
+          storage: { getDirectory: () => Promise.resolve(opfs) },
+        })
+      ).kept,
+    ).toBe(true)
+    expect((await openSuitePorts({ ...page(undefined).env, storage: {} })).kept).toBe(false)
+    expect((await openSuitePorts(page({ [EDITOR_LIST_PATH]: LIST }).env)).kept).toBe(true)
+  })
+
   it('opens the sample game only when no editor server answers', async () => {
     const opened = await openSuitePorts(page(undefined).env)
     expect(opened.sample).toBe(true)

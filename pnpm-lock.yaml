@@ -1866,6 +1866,9 @@ importers:
       '@automata/editor':
         specifier: workspace:*
         version: link:../editor
+      '@automata/editors':
+        specifier: workspace:*
+        version: link:../../extensions/editors
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset

@@ -26,7 +26,7 @@ const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
 openSuitePorts({ origin: location.origin, search: location.search, sessionStorage })
-  .then(({ ports, sample, gameUrl, playOff, game, publish }) => {
+  .then(({ ports, sample, kept, gameUrl, playOff, game, publish }) => {
     // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
     const editors = [
       createTuner({ gameUrl }),
@@ -47,6 +47,7 @@ openSuitePorts({ origin: location.origin, search: location.search, sessionStorag
       ports,
       suite: createSuite({ editors: editors as SuiteEditor<unknown>[] }),
       sample,
+      kept,
       game,
       playUrl: gameUrl,
       playOff,

@@ -1,6 +1,6 @@
 <!--
-  The Editor page: what the 2D level editor does in three pictures, "Try the editor" (the page `automata editor`
-  serves a 2D game, here on a sample game kept in this browser) and the command that opens it on a game. Home's look: one
+  The Editor page: what the editors do in three pictures, "Try the editor" (the page `automata editor` serves every game,
+  here on a sample game kept in this browser) and the command that opens it on a game. Home's look: one
   lime button, white panels on hairlines, 4/6/8 px corners.
 -->
 <script lang="ts">
@@ -13,21 +13,22 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
 </script>
 
 <PageMeta
-  title="The level editor"
-  description="Draw your game's levels in the browser: paint rooms and place characters, and every change is saved. Try it here, nothing to install."
+  title="The editors"
+  description="Make your whole game in the browser: levels in 2D and 3D, characters, how it feels, sounds, words, scenes and enemy behaviour. Every editor is free on the web. Try it here, nothing to install."
 />
 <div class="wrap">
   <header class="top">
     <p class="kicker">Editor</p>
-    <h1>Draw your levels in the browser.</h1>
+    <h1>Make your whole game in the browser.</h1>
     <p class="lead">
-      The level editor opens on your game's folder. Paint the rooms and place the characters: each change is saved into
-      the game, and the running game picks it up.
+      The editors open on your game's folder. Levels paints the rooms, Characters dresses the people in them, and the Tuner,
+      Feel, Audio, Writer, Sequence and Schematic set how it plays, sounds and reads. Every editor is free on the web, and
+      each change is saved into the game, which picks it up.
     </p>
     <!-- The editor is a page of its own, not one of the site's routes, so the browser loads it whole. -->
     <p class="cta"><a class="button" href="/editor/app/" data-sveltekit-reload>Try the editor <Icon name="arrowRight" /></a></p>
     <p class="note">
-      Nothing to install. The try-it editor keeps your levels in this browser and nowhere else. Share sends one out as a
+      Nothing to install. The try-it editors keep your work in this browser and nowhere else. Share sends a level out as a
       file.
     </p>
   </header>
@@ -52,7 +53,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
 
   <section class="own">
     <h2>On your own game</h2>
-    <p>In your game's folder, this opens the same editor on your levels, and every change goes straight into the game.</p>
+    <p>In your game's folder, this opens the same editors on your game, and every change goes straight into it.</p>
     <TerminalBox command={EDITOR_COMMAND} />
     <p><a href="/docs/editor">Draw levels in the editor</a> says more.</p>
   </section>

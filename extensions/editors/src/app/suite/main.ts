@@ -7,6 +7,7 @@ import '@automata/editor/suite.css'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
 import {
   browserPublish,
+  createDownloadStore,
   createLevels2d,
   createSuite,
   createTuner,
@@ -19,7 +20,7 @@ import { browserOutputs } from '../../features/feel/feel-stage.ts'
 import { contentEditors } from './content-editors.ts'
 import { openContentSuite } from './open-content-suite.ts'
 
-// The page with every editor, which `automata editor` serves a game whose list names a content or 3D editor: the core
+// The page with every editor, which `automata editor` serves every game and the site's try-it page opens: the core
 // editors (the Tuner, Levels 2D), Levels 3D and the Studio, then Feel, Audio, Writer, Sequence and Schematic. The rail
 // shows every one of them except those for another kind of game (a 2D game has no Levels 3D), whether or not the game
 // has their files yet: an editor without files opens on a page that offers to start one. The only file that reaches for
@@ -30,11 +31,14 @@ const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
 openContentSuite({ origin: location.origin, search: location.search, sessionStorage })
-  .then(({ ports, sample, gameUrl, playOff, game, publish }) => {
+  .then(({ ports, sample, kept, gameUrl, playOff, game, publish }) => {
     // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
     const editors = [
       createTuner({ gameUrl }),
       createLevels2d({
+        // The sample has no game folder to keep a level in, so a visitor starts from a template and shares the result.
+        templates: sample ? 'content/levels' : undefined,
+        share: sample ? createDownloadStore() : undefined,
         ids: randomIds((bytes) => crypto.getRandomValues(bytes)),
         objectUrls: {
           create: (bytes) => URL.createObjectURL(new Blob([bytes as Uint8Array<ArrayBuffer>])),
@@ -54,6 +58,7 @@ openContentSuite({ origin: location.origin, search: location.search, sessionStor
       ports,
       suite: createSuite({ editors: editors as SuiteEditor<unknown>[] }),
       sample,
+      kept,
       game,
       playUrl: gameUrl,
       playOff,

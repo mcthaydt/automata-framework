@@ -41,6 +41,8 @@ interface Props {
   suite: Suite
   ports: SuitePorts
   sample: boolean
+  /** Whether the sample is kept in this browser; false says its changes are lost with the page. */
+  kept?: boolean
   /** The game's name in words, from the server; the title. */
   game?: string | undefined
   /** The running game's page, from the server: Play opens it. */
@@ -59,6 +61,7 @@ const {
   suite,
   ports,
   sample,
+  kept = true,
   game,
   playUrl,
   playOff,
@@ -268,7 +271,7 @@ function openCard(card: EditorCard): void {
     {:else if mounted}
       {@render mounted.editor.regions.canvas(mounted.session)}
     {:else if entry === undefined}
-      <SuiteHome {home} {sample} onopen={openCard} onread={(file) => (reading = file)} />
+      <SuiteHome {home} {sample} {kept} onopen={openCard} onread={(file) => (reading = file)} />
     {:else}
       <Home
         title={entry.label}

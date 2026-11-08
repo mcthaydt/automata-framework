@@ -159,7 +159,13 @@ describe('the character in the inspector', () => {
   })
 
   it('shows the 2D words beside light and warmth when the game has only a 2D level editor', async () => {
-    const list = `${LIST}\n[[file]]\nglob = "content/levels/*.toml"\neditor = "levels-2d"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
+    // The sample names both kinds of level editor; a 2D-only game names Levels 2D alone.
+    const [head = '', ...rows] = LIST.split('[[file]]')
+    const without3d = [
+      head,
+      ...rows.filter((row) => !/editor = "(levels-3d|levels-2d|studio)"/.test(row)),
+    ].join('[[file]]')
+    const list = `${without3d}\n[[file]]\nglob = "content/levels/*.toml"\neditor = "levels-2d"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
     const session = await open({ list })
     expect(session.facts.twoD).toBe(true)
     await userEvent.selectOptions(await screen.findByLabelText('Add a sense'), 'light')

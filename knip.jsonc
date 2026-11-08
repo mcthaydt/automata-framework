@@ -90,8 +90,9 @@
     "extensions/debug": { "entry": ["src/testing/bundle/*.ts"] },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     // yauzl and yazl are Ruken's, needed at runtime by the code tsdown bundles; smol-toml the tools import themselves.
+    // @automata/editors is a build-order dependency: `scripts/copy-editor.ts` packs its `dist/suite` (read by path).
     "packages/tools": {
-      "ignoreDependencies": ["yauzl", "yazl"]
+      "ignoreDependencies": ["yauzl", "yazl", "@automata/editors"]
     },
     // PRODUCT.L2: compile-messages.ts loads Paraglide with a dynamic import of a constant and resolves the inlang
     // plugin by name (createRequire().resolve), neither of which knip follows.

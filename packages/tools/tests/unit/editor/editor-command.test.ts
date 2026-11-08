@@ -1,17 +1,12 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
 import { type EditorCommandDeps, editorCommand, liveEditorDeps } from '#src/features/editor/editor-command.ts'
 import type { EditorServerOptions } from '#src/features/editor/serve-editor.ts'
 
-// `automata editor` (plan task 15.2): what it says, which page it serves (the game's editor list picks), and when it will not start. The server itself
+// `automata editor`: what it says, the one page it serves (every editor, whatever the game's editor list names), and when it will not start. The server itself
 // is `serve-editor.test.ts`'s; here it is a stand-in that records what it was asked to serve.
-
-/** A valid editor list with one row for `editor`. */
-const listOf = (editor: string): string =>
-  `format = "af-editors/1"\n[[file]]\nglob = "content/x/*.toml"\neditor = "${editor}"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
 
 function setup(overrides: Partial<EditorCommandDeps> = {}) {
   const out: string[] = []
@@ -30,8 +25,7 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
         close: async () => closed(),
       }
     },
-    builtApp: (page) => `/repo/builds/${page}`,
-    readEditorList: () => undefined,
+    builtApp: () => '/repo/builds/suite',
     inRepository: true,
     exists: () => true,
     lanAddresses: () => ['192.168.1.20'],
@@ -54,12 +48,12 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
 const opened = (out: readonly string[]): string | undefined => out.find((text) => text.startsWith('Opened'))
 
 describe('editorCommand', () => {
-  it('serves the 2D page against the working folder on the loopback and says where', async () => {
+  it('serves the editors against the working folder on the loopback and says where', async () => {
     const { deps, io, out, served, closed } = setup()
     expect(await editorCommand([], io, deps)).toBe(0)
     expect(served[0]).toMatchObject({
       root: '/work',
-      appDir: '/repo/builds/suite-2d',
+      appDir: '/repo/builds/suite',
       host: '127.0.0.1',
       token: undefined,
     })
@@ -89,27 +83,6 @@ describe('editorCommand', () => {
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
-  })
-
-  it('serves the full page when the game’s editor list names a 3D editor, and the 2D page otherwise', async () => {
-    const full = setup({ readEditorList: () => listOf('levels-3d') })
-    await editorCommand(['../game'], full.io, full.deps)
-    expect(full.served[0]).toMatchObject({ root: '/game', appDir: '/repo/builds/suite-full' })
-    const plain = setup()
-    await editorCommand(['../game'], plain.io, plain.deps)
-    expect(plain.served[0]).toMatchObject({ root: '/game', appDir: '/repo/builds/suite-2d' })
-  })
-
-  it('reads the list from the game’s own folder', async () => {
-    const asked: string[] = []
-    const { deps, io } = setup({
-      readEditorList: (root) => {
-        asked.push(root)
-        return undefined
-      },
-    })
-    await editorCommand(['../game'], io, deps)
-    expect(asked).toEqual(['/game'])
   })
 
   it('says --app is gone, and starts nothing', async () => {
@@ -221,31 +194,7 @@ describe('editorCommand', () => {
     expect(out.join('')).toContain('?token=mine')
   })
 
-  it('says the 3D editors are not in this release when a game needs them outside the repository, and starts nothing', async () => {
-    const { deps, io, err, served } = setup({
-      inRepository: false,
-      exists: () => false,
-      readEditorList: () => listOf('studio'),
-    })
-    expect(await editorCommand([], io, deps)).toBe(2)
-    expect(err.join('')).toContain('The 3D editors are not in this release yet.')
-    expect(served).toEqual([])
-  })
-
-  it('opens the 2D page outside the repository for a 2D game that lists content editors, and says which are not in this release', async () => {
-    const { deps, io, out, served } = setup({
-      inRepository: false,
-      readEditorList: () =>
-        `${listOf('levels-2d')}\n[[file]]\nglob = "content/feel/*.toml"\neditor = "feel"\nmodes = ["edit"]\ngates = []\nchecks = []\n`,
-    })
-    expect(await editorCommand(['../game'], io, deps)).toBe(0)
-    expect(served[0]).toMatchObject({ appDir: '/repo/builds/suite-2d' })
-    expect(out.join('')).toContain(
-      'Feel is not in this release yet, so the editors show Levels and the Tuner.',
-    )
-  })
-
-  it('says the editors are missing from a copy of the tools without the 2D page, and starts nothing', async () => {
+  it('says the editors are missing from a copy of the tools without them, and starts nothing', async () => {
     const { deps, io, err, served } = setup({ inRepository: false, exists: () => false })
     expect(await editorCommand([], io, deps)).toBe(2)
     expect(err.join('')).toContain(
@@ -254,17 +203,16 @@ describe('editorCommand', () => {
     expect(served).toEqual([])
   })
 
-  it('opens the 2D page from the tools’ own copy outside the repository: that is where a stranger finds the Tuner', async () => {
-    const { deps, io, served } = setup({ inRepository: false })
+  it('opens the same page outside the repository, from the tools’ own copy, and holds no editor back', async () => {
+    const { deps, io, out, err, served } = setup({ inRepository: false })
     expect(await editorCommand([], io, deps)).toBe(0)
     expect(served).toHaveLength(1)
+    expect(served[0]).toMatchObject({ appDir: '/repo/builds/suite' })
+    expect(out.join('') + err.join('')).not.toMatch(/not in this release/)
   })
 
   it('serves a build given with --app-dir even outside the repository', async () => {
-    const { deps, io, served } = setup({
-      inRepository: false,
-      readEditorList: () => listOf('levels-3d'),
-    })
+    const { deps, io, served } = setup({ inRepository: false })
     expect(await editorCommand(['--app-dir', '/builds/mine'], io, deps)).toBe(0)
     expect(served[0]).toMatchObject({ appDir: '/builds/mine' })
   })
@@ -272,7 +220,7 @@ describe('editorCommand', () => {
   it('says to build the editor when its build is not there, and starts nothing', async () => {
     const { deps, io, err, served } = setup({ exists: () => false })
     expect(await editorCommand([], io, deps)).toBe(2)
-    expect(err.join('')).toContain('pnpm --filter @automata/editor build')
+    expect(err.join('')).toContain('pnpm --filter @automata/editors build')
     expect(served).toEqual([])
   })
 
@@ -302,24 +250,13 @@ describe('editorCommand', () => {
 })
 
 describe('liveEditorDeps', () => {
-  it('finds each page where its package writes it', () => {
-    const { builtApp } = liveEditorDeps()
-    // From source there is no copy next to the bin, so the 2D page is the repository's build.
-    expect(builtApp('suite-2d')).toMatch(/packages\/editor\/dist\/suite$/)
-    // The page with every editor is the editors extension's: Levels 3D and Characters, Feel, Audio, Writer, Sequence and
-    // Schematic beside the core ones.
-    expect(builtApp('suite-full')).toMatch(/extensions\/editors\/dist\/suite$/)
+  it('finds the page with every editor where the editors extension writes it', () => {
+    // From source there is no copy next to the bin, so the page is the repository's build: Levels 2D and 3D,
+    // Characters, the Studio and the Tuner, Feel, Audio, Writer, Sequence and Schematic.
+    expect(liveEditorDeps().builtApp()).toMatch(/extensions\/editors\/dist\/suite$/)
   })
 
   it('knows it runs inside the repository from source', () => {
     expect(liveEditorDeps().inRepository).toBe(true)
-  })
-
-  it('reads a game’s editor list from its folder, or nothing when it has none', () => {
-    const { readEditorList } = liveEditorDeps()
-    expect(
-      readEditorList(fileURLToPath(new URL('../../../../../games/emberwick', import.meta.url))),
-    ).toContain('levels-2d')
-    expect(readEditorList('/no/such/game')).toBeUndefined()
   })
 })

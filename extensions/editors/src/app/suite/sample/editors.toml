@@ -1,5 +1,7 @@
-# The sample game's editor list: its tuning (the Tuner) and a file of each kind the content editors edit. The page opens
-# this game when no checkout answers, so every editor has something to show.
+# The sample game's editor list: its tuning (the Tuner), a level of each kind (Levels 2D starts one from a template; Levels
+# 3D opens a hall), Wick (the Studio) and a file of each kind the content editors edit. The page opens this game when no
+# checkout answers, so every editor has something to show, and naming both kinds of level editor puts Levels 2D and Levels
+# 3D on the rail.
 format = "af-editors/1"
 generated = ["content/generated/**"]
 never = ["package.json", ".github/**", ".claude/**"]
@@ -7,6 +9,29 @@ never = ["package.json", ".github/**", ".claude/**"]
 [[file]]
 glob = "content/tuning.toml"
 editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = []
+
+# Levels 2D writes the game's files beside the level it keeps here (`exports`).
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+exports = "content"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/levels/*.af-sector.json"
+editor = "levels-3d"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/figure*/*.toml"
+editor = "studio"
 modes = ["edit"]
 gates = []
 checks = []

@@ -7,8 +7,8 @@ import { EDITOR_COMMAND, PICTURES } from '../../../src/features/editor/editor-co
 
 const staticFile = (url: string) => resolve(process.cwd(), 'static', url.slice(1))
 
-// Spec 10.2 (Editor): what the editor does in three pictures, and "Try the editor", which opens the page
-// `automata editor` serves a 2D game, on a sample game kept in this browser's storage.
+// Spec 10.2 (Editor): what the editors do in three pictures, and "Try the editor", which opens the page `automata
+// editor` serves every game (every editor, 2D and 3D), on a sample game kept in this browser's storage.
 describe('/editor', () => {
   it('shows what the editor does in three pictures, each one a real file with words for it', () => {
     const view = render(EditorPage)
@@ -21,10 +21,10 @@ describe('/editor', () => {
     }
   })
 
-  it('opens the try-it editor, says where it keeps levels, and how to open it on a game', () => {
+  it('opens the try-it editors, says where they keep your work, and how to open it on a game', () => {
     const view = render(EditorPage)
     expect(view.getByRole('link', { name: 'Try the editor' }).getAttribute('href')).toBe('/editor/app/')
-    expect(view.container.textContent).toContain('keeps your levels in this browser')
+    expect(view.container.textContent).toContain('keep your work in this browser')
     expect(EDITOR_COMMAND).toBe('pnpm exec automata editor')
     expect(view.getByText(EDITOR_COMMAND)).toBeTruthy()
   })
@@ -36,9 +36,21 @@ describe('/editor', () => {
     expect(text).toContain('Share')
   })
 
-  it('names no editor the 2D release does not ship', () => {
+  it('names every editor and says they are all free on the web, with none held back', () => {
     const text = render(EditorPage).container.textContent ?? ''
-    for (const later of ['Levels 3D', 'Studio', 'Feel', 'Writer', 'Schematic', 'Sequence', 'Plus'])
-      expect(text, later).not.toContain(later)
+    for (const editor of [
+      'Levels',
+      'Characters',
+      'Tuner',
+      'Feel',
+      'Audio',
+      'Writer',
+      'Sequence',
+      'Schematic',
+    ])
+      expect(text, editor).toContain(editor)
+    expect(text).toContain('free on the web')
+    for (const held of ['Plus', 'not in this release', 'coming soon', 'Not in this build'])
+      expect(text, held).not.toContain(held)
   })
 })

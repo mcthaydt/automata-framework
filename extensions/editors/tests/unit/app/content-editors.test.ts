@@ -38,7 +38,11 @@ describe('the sample game', () => {
     expect(editorOf('content/systems/hall.toml')).toBe('schematic')
     expect(editorOf('content/nav/hall.toml')).toBe('schematic')
     expect(editorOf('content/tuning.toml')).toBe('tuner')
+    expect(editorOf('content/levels/hall.af-sector.json')).toBe('levels-3d')
+    expect(editorOf('content/figures/wick.toml')).toBe('studio')
+    // The world's props and swatches are the library Levels 3D draws from; as in base-3d, no editor writes them.
     for (const path of Object.keys(CONTENT_SAMPLE_GAME))
-      if (path !== EDITOR_LIST_PATH) expect(editorOf(path), path).toBeDefined()
+      if (path !== EDITOR_LIST_PATH && !path.startsWith('content/world-'))
+        expect(editorOf(path), path).toBeDefined()
   })
 })

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { screen } from '@testing-library/svelte'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
 import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import { samplePorts } from '#src/features/suite/memory/sample-ports.ts'
@@ -31,7 +31,7 @@ async function gameFolder() {
   return (await createMemoryPorts({ files, classify })).ports
 }
 
-async function start(options: { sample?: boolean; game?: string } = {}) {
+async function start(options: { sample?: boolean; game?: string; kept?: boolean } = {}) {
   const target = document.body.appendChild(document.createElement('div'))
   const files = { ...tunerFixtureFiles(), [EDITOR_LIST_PATH]: LIST }
   started = await startSuite(target, {
@@ -113,5 +113,18 @@ describe("the suite's top bar", () => {
     expect(screen.queryByText('Saved in your game folder')).toBeNull()
     // The title says it too, in place of the small chip beside it.
     expect(screen.getAllByText('Sample game')).toHaveLength(1)
+  })
+
+  it('on a sample the browser cannot keep, the banner says the changes are lost when the page closes', async () => {
+    await start({ sample: true, kept: false })
+    expect(
+      await screen.findByText('Your changes are lost when you close this page.', { exact: false }),
+    ).toBeInTheDocument()
+  })
+
+  it('on a sample the browser keeps, the banner promises no loss', async () => {
+    await start({ sample: true, kept: true })
+    await screen.findByText('This is a sample game, not yours.', { exact: false })
+    expect(screen.queryByText('lost when you close', { exact: false })).toBeNull()
   })
 })

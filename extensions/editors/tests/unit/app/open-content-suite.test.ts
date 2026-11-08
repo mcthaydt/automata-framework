@@ -1,3 +1,4 @@
+import { createFakeOpfs } from '@automata/editor/kit/testing'
 import { describe, expect, it } from 'vitest'
 import { openContentSuite } from '#src/app/suite/open-content-suite.ts'
 
@@ -53,5 +54,50 @@ describe('openContentSuite', () => {
     expect(opened.sample).toBe(true)
     const paths = (await opened.ports.workspace.files('schematic')).map((file) => file.path)
     expect(paths).toContain('content/systems/hall.toml')
+  })
+
+  // The try-it page is the free web editor, so it holds back nothing: a visitor finds something to open in every editor
+  // the page has, the 3D ones too.
+  it.each([
+    ['tuner', 'content/tuning.toml'],
+    ['levels-3d', 'content/levels/hall.af-sector.json'],
+    ['studio', 'content/figures/wick.toml'],
+    ['feel', 'content/feel/feel.toml'],
+    ['audio', 'content/audio/audio.toml'],
+    ['writer', 'content/lines/shop.toml'],
+    ['sequence', 'content/cutscenes/opening.toml'],
+    ['schematic', 'content/nav/hall.toml'],
+  ])('on its own opens the sample with a file for %s', async (editor, path) => {
+    const opened = await openContentSuite(page(false))
+    expect((await opened.ports.workspace.files(editor)).map((file) => file.path)).toContain(path)
+  })
+
+  it('on its own opens a sample that names both kinds of level editor, so the rail shows Levels 2D and Levels 3D', async () => {
+    const opened = await openContentSuite(page(false))
+    const bytes = await opened.ports.workspace.read('content/editors.toml')
+    const list = bytes === undefined ? '' : bytes.text
+    expect(list).toContain('editor = "levels-2d"')
+    expect(list).toContain('editor = "levels-3d"')
+  })
+
+  // The sign-in thread found the page lost every edit on reload: the sample was kept in memory only.
+  it('keeps the sample in the browser’s own storage: an edit is still there after a reload', async () => {
+    const opfs = createFakeOpfs()
+    const storage = { getDirectory: () => Promise.resolve(opfs) }
+    const first = await openContentSuite({ ...page(false), storage })
+    const lines = 'content/lines/shop.toml'
+    const before = await first.ports.workspace.read(lines)
+    expect(before).toBeDefined()
+    const edited = `${before?.text}\n# edited by a visitor\n`
+    expect(await first.ports.workspace.write(lines, edited, { mtime: before?.mtime ?? 0 })).toMatchObject({
+      ok: true,
+    })
+    const level = 'content/levels/my-level.af2d.json'
+    expect(await first.ports.workspace.write(level, '{}', 'absent')).toMatchObject({ ok: true })
+
+    const again = await openContentSuite({ ...page(false), storage })
+    expect(again.sample).toBe(true)
+    expect((await again.ports.workspace.read(lines))?.text).toBe(edited)
+    expect((await again.ports.workspace.files('levels-2d')).map((file) => file.path)).toEqual([level])
   })
 })

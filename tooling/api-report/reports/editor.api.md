@@ -3979,6 +3979,14 @@ interface ContactExtras {
 function contrastRatio(foreground: string, background: string): number;
 ```
 
+### `createFakeOpfs` (function)
+
+```ts
+function createFakeOpfs(options?: {
+    now?: () => number;
+}): FakeOpfs;
+```
+
 ### `createPointers` (function)
 
 ```ts
@@ -3997,6 +4005,14 @@ interface EditorSize extends ReferenceSize {
 
 ```ts
 function editorTargets(): Targets;
+```
+
+### `FakeOpfs` (type)
+
+```ts
+type FakeOpfs = DirectoryLike & {
+    readonly controls: FakeFsControls;
+};
 ```
 
 ### `IPAD_PROFILES` (const)
@@ -4220,6 +4236,12 @@ type ProviderFactory<P> = (options: {
 function browserPublish(client: PublishClient, page: Document): GamePublish;
 ```
 
+### `createDownloadStore` (function)
+
+```ts
+function createDownloadStore(env?: DownloadEnv): DownloadStore;
+```
+
 ### `createLevels2d` (function)
 
 ```ts
@@ -4311,6 +4333,7 @@ type Levels2dState = {
 interface OpenedSuitePorts {
     readonly ports: SuitePorts;
     readonly sample: boolean;
+    readonly kept: boolean;
     readonly gameUrl: string | undefined;
     readonly playOff: string | undefined;
     readonly game: string | undefined;
@@ -4368,6 +4391,7 @@ interface SuiteEnv {
     readonly ports: SuitePorts;
     readonly suite: Suite;
     readonly sample?: boolean;
+    readonly kept?: boolean;
     readonly game?: string | undefined;
     readonly playUrl?: string | undefined;
     readonly playOff?: string | undefined;

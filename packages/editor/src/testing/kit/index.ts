@@ -3,6 +3,7 @@
 // own copy of them.
 
 export { contrastRatio } from '../../shared/kit/tokens/contrast'
+export { createFakeOpfs, type FakeOpfs } from './fake-fs'
 export { IPAD_PROFILES, type IpadProfile, turned } from './ipad-profiles'
 export {
   IPAD_USER_AGENT,

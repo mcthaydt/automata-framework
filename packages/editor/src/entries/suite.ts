@@ -17,5 +17,6 @@ export {
   type SuitePortsEnv,
 } from '../features/suite/shell/open-suite-ports'
 export { createTuner, type TunerSuiteSession } from '../features/suite/tuner/tuner-suite-editor'
+export { createDownloadStore } from '../shared/kit/storage/download-store'
 export { browserPublish } from '../shared/kit/storage/publish-client'
 export { randomIds } from '../shared/level-2d/model/ids'
