@@ -681,11 +681,18 @@ browser projects need the other engines, so `pnpm test:browser:2d` stops here); 
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
 (`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
 
-## Crisp in-game text (2026-11-08)
+## Crisp in-game text: 33% (2 of 6: stages 1 and 2)
 
 The Owner picked MSDF `BitmapText` on a crisp layer for the text a game draws on its canvas (`draw(ctx).text` and Feel's
 words), 2026-11-08 21:11. Stage 1 (audit) done: [audit](2026-11-08-in-game-text-audit.md), made on #522's head. 3 high
 (T1 the text is drawn inside the pixel picture, T2 5.5 px letters on a phone, T3 a loaded font drops letters it lacks), 7
 medium, 5 low. A new 2D and a new 3D game were made in the editors, a Feel word changed and played at iPad and phone size:
 blurry today, sharp with a throwaway prototype in both (screens in `/mnt/project-files/text-rendering/audit/`). Not run:
-WebKit, Firefox, the GPU runner, real devices. Next: spec and plan.
+WebKit, Firefox, the GPU runner, real devices.
+
+Stage 2 (plan and spec) done, 2026-11-08: [spec](2026-11-08-in-game-text-spec.md), [plan](2026-11-08-in-game-text-plan.md),
+branch `claude/project-thread-d34lnk` stacked on #524. Nine tasks: the bake tool, page choice and size floor, the page
+loader, the `hud` layer (a sibling of the post-filtered scene), the labels with their fallback, `ctx.text` and the six
+examples, Feel's words, Feel's preview face, and the played journeys. Two Geist SemiBold MSDF pages cover the queued
+localization languages (`latin`: en, es, fr, de, it, pt-BR, pl, tr; `cyrillic`: ru, uk); Chinese, Japanese and Korean
+draw whole strings as a crisp device-face `Text`, so no letter vanishes. Next: plan audit (Opus, medium).
