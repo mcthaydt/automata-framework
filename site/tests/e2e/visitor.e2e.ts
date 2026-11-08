@@ -108,7 +108,7 @@ async function drawAndShareALevel(page: Page): Promise<void> {
   await page.mouse.click(box.x + cx + 16.5 * 16 * scale, box.y + cy + 4.5 * 16 * scale)
   const painted = await canvasPicture(page, canvas)
   expect(painted.equals(before), 'the brush changed the level').toBe(false)
-  // The sample keeps nothing, so Share is how the painted level leaves.
+  // The sample is saved in the browser, and Share is how the painted level leaves it.
   await page.getByRole('button', { name: 'Share' }).click()
   const download = page.waitForEvent('download')
   await page.getByRole('menuitem', { name: 'Download' }).click()

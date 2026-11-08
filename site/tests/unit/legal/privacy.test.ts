@@ -14,12 +14,13 @@ function editorStorageKeys(): string[] {
 }
 
 describe('Privacy and the try-it editor', () => {
-  it('names the key the try-it keeps, and says its levels are not kept', () => {
+  it('names the key the try-it keeps, and says the levels it saves stay in this browser', () => {
     const keys = editorStorageKeys()
     expect(keys).not.toEqual([])
     const text = render(Privacy).container.textContent ?? ''
     for (const key of keys) expect(text, key).toContain(key)
-    expect(text).toContain('levels you make stay in the page')
-    expect(text).not.toContain('keeps the levels you make')
+    expect(text).toContain("saves the levels you make in this browser's private file storage")
+    expect(text).toContain('sent nowhere')
+    expect(text).not.toContain('stay in the page')
   })
 })
