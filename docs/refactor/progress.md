@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 44% (8 of 18 stages done).**
+**Overall: 42% (10 of 24 stages done; the sign-in area's six stages counted from its stage 2).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -540,7 +540,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## Sign-in that syncs, and the try-it apart from the editors (stage 1 of 6 done, 2026-11-08)
+## Sign-in that syncs, and the try-it apart from the editors: 33% (2 of 6 stages done, 2026-11-08)
 
 The Owner, 2026-11-08 21:34: "The try it page and editors should be separated? We should have sign in that syncs
 progress by account", and "Why wasn't it caught that progress doesn't actually save lol".
@@ -548,4 +548,8 @@ progress by account", and "Why wasn't it caught that progress doesn't actually s
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-08: 6 high (P1 to P5, P14), 5 medium (P6 to P10), 3 low (P11 to P13), two decisions for the Owner (D1, how people sign in: decided 22:30, sign in with GitHub; D2, whether the web gets sync free: decided 22:30, free on the web). Reproduced: the every-editor page with no server keeps nothing (a Writer edit is gone after a reload; being fixed in "Show every editor in the free web editor"), while today's 2D try-it keeps a level in Chromium even though the site says it is gone. A new game made with `automata editor`: three coins and a changed keeper line kept through a reload and seen in play, but typed words are lost when the page reloads before the field loses focus (P14). Recommended: save on the device first, `/try` apart from "Your games", sign in with GitHub with each game in the person's own repository and one small sign-in step on the site's host that stores nothing | [audit](2026-11-08-sign-in-sync-audit.md) |
-| 2. Plan and spec | Not started; both decisions are settled (D1: sign in with GitHub; D2: sync free on the web). Section 6.2 (saving on the device) comes first, because it is the bug fix | |
+| 2. Plan and spec | Done, 2026-11-08: the spec (saving on the device first, typed words written 0.5 s after the last key with one Undo step per field visit, the saved line at every size; `/try` with starting points that play and "Make this game"; Your games in OPFS `games/<id>/`, the old `sample-game/` kept as "Your first game"; sign in with GitHub through one Cloudflare Pages Function that stores nothing; sync over GitHub's REST API as a second `GitEngine` for #531's `kit/sync` loop) and an 18-task plan in six phases | [spec](2026-11-08-sign-in-sync-spec.md), [plan](2026-11-08-sign-in-sync-plan.md) |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
