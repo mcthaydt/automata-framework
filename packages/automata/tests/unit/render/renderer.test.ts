@@ -504,6 +504,61 @@ void main() { finalColor = texture(uTexture, vTextureCoord); }`
     })
   })
 
+  describe('the hud layer', () => {
+    it('is added to the stage after the scene and its mask, before the bars', async () => {
+      const target = createFakeTarget()
+      const program = scoped(async () => {
+        const renderer = await built(createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(target))
+        return renderer.stage.app.stage.children.map((child) => child.label)
+      })
+      expect(await program).toEqual(['scene', 'hud-mask', 'hud', 'bars'])
+    })
+
+    it('without a letterbox sits after a scene that carries the backdrop, world, ui and the post filters', async () => {
+      const crt = { name: 'crt' } as unknown as Filter
+      const program = scoped(async () => {
+        const renderer = await built(
+          createPixiRenderer({ setup: (stage) => void stage.postFilters.set('retro', [crt]) })(
+            createFakeTarget(),
+          ),
+        )
+        const { app, hud, world, ui, backdrop } = renderer.stage
+        const [scene, top] = app.stage.children
+        return {
+          order: app.stage.children.map((child) => child.label),
+          top: top === hud,
+          sceneHolds: [backdrop, world, ui].every((layer) => layer.parent === scene),
+          sceneFilters: scene?.filters,
+          stageFilters: app.stage.filters,
+        }
+      })
+      expect(await program).toEqual({
+        order: ['scene', 'hud'],
+        top: true,
+        sceneHolds: true,
+        sceneFilters: [{ name: 'crt' }],
+        stageFilters: undefined,
+      })
+    })
+
+    it('answers hudScale from the letterbox, the renderer resolution and the host hint', async () => {
+      const target = createFakeTarget({ width: 960, height: 540 })
+      const program = scoped(async () => {
+        const renderer = await built(createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(target))
+        return renderer.stage.hudScale()
+      })
+      expect(await program).toEqual({ cssPerLogical: 3, devicePerCss: 1, hostScale: 1 })
+    })
+
+    it('answers a cssPerLogical of 1 without a letterbox', async () => {
+      const program = scoped(async () => {
+        const renderer = await built(createPixiRenderer()(createFakeTarget()))
+        return renderer.stage.hudScale().cssPerLogical
+      })
+      expect(await program).toBe(1)
+    })
+  })
+
   describe('the fixed-resolution composite (M4 spec §4.11)', () => {
     it('is on for a letterboxed pixel-art stage: draw renders the world and UI into it before app.render', async () => {
       const target = createFakeTarget()

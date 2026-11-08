@@ -111,4 +111,38 @@ describe('LetterboxFrame', () => {
     expect(frame.root.mask == null).toBe(true)
     expect(frame.root.destroyed).toBe(true)
   })
+
+  describe('the hud layer', () => {
+    it("shares the root's scale and position, so it keeps logical coordinates", () => {
+      const frame = new LetterboxFrame({ logicalWidth: 512, logicalHeight: 256 })
+      frame.layout(834, 1194)
+      expect(frame.hud.scale.x).toBe(frame.root.scale.x)
+      expect(frame.hud.scale.y).toBe(frame.root.scale.y)
+      expect(frame.hud.position.x).toBe(frame.root.position.x)
+      expect(frame.hud.position.y).toBe(frame.root.position.y)
+    })
+
+    it('is masked by its own copy of the field mask, redrawn with it', () => {
+      const frame = new LetterboxFrame({ logicalWidth: 512, logicalHeight: 256 })
+      expect(frame.hud.mask).toBe(frame.hudMask)
+      frame.layout(834, 1194)
+      expect(frame.hudMask.getLocalBounds()).toEqual(frame.mask.getLocalBounds())
+      expect(frame.hudMask.getLocalBounds().height).toBeGreaterThan(0)
+      frame.layout(0, 0)
+      expect(frame.hudMask.getLocalBounds().height).toBe(0)
+    })
+
+    it('lives outside the scene, which holds the post filters', () => {
+      const frame = new LetterboxFrame({ logicalWidth: 512, logicalHeight: 256 })
+      expect(frame.hud.parent).toBeNull()
+      expect(frame.scene.children).not.toContain(frame.hud)
+    })
+
+    it('is destroyed with the frame', () => {
+      const frame = new LetterboxFrame({ logicalWidth: 512, logicalHeight: 256 })
+      frame.destroy()
+      expect(frame.hud.destroyed).toBe(true)
+      expect(frame.hudMask.destroyed).toBe(true)
+    })
+  })
 })

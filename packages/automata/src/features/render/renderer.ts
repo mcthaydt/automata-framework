@@ -1,5 +1,6 @@
 import type { StepResult } from '@automata/sim'
 import { Application, Container, type Filter, TextureSource } from 'pixi.js'
+import type { HudScale } from '../../shared/draw/hud-scale.ts'
 import { ok, type Result, refused } from '../../shared/lib/result.ts'
 import { RendererUnavailable } from '../../shared/runtime/boot-error.ts'
 import { DEFAULT_QUALITY, type QualityTier } from '../../shared/runtime/display-settings.schema.ts'
@@ -88,6 +89,14 @@ export interface PixiStage {
   readonly ui: Container
   /** The unclipped background scenery container. */
   readonly backdrop: Container
+  /**
+   * The canvas layer for crisp overlays such as `ctx.text` and Feel's words: above every shape and sprite whatever the
+   * call order, outside every post filter, and clipped to the playfield. It has the stage's logical coordinates.
+   * Not the DOM `hud.overlay` slot.
+   */
+  readonly hud: Container
+  /** How big a logical pixel is on this screen now, which canvas text sizes itself by. */
+  hudScale(): HudScale
   /** The delta consumer tracking entity views. */
   readonly consumer: RenderDeltaConsumer
   /**
@@ -202,6 +211,8 @@ export function createPixiRenderer(
     let world: Container
     let ui: Container
     let backdrop: Container
+    let hud: Container
+    let bareScene: Container | undefined
     let composite: CompositeTarget | undefined
 
     if (options.logicalWidth != null && options.logicalHeight != null) {
@@ -212,10 +223,13 @@ export function createPixiRenderer(
         barColor: options.barColor,
       })
       app.stage.addChild(frame.scene)
+      app.stage.addChild(frame.hudMask)
+      app.stage.addChild(frame.hud)
       app.stage.addChild(frame.bars)
       world = frame.world
       ui = frame.ui
       backdrop = frame.backdrop
+      hud = frame.hud
       const { fieldHeight } = frame.layout(initialGeometry.usable.width, initialGeometry.usable.height)
       if ((options.composite ?? true) && options.pixelArt !== false) {
         composite = new CompositeTarget({ width: options.logicalWidth, height: options.logicalHeight })
@@ -226,9 +240,11 @@ export function createPixiRenderer(
       backdrop = new Container()
       world = new Container()
       ui = new Container()
-      app.stage.addChild(backdrop)
-      app.stage.addChild(world)
-      app.stage.addChild(ui)
+      // The post filters go on `scene`, not on the stage, so the hud added after it stays outside them.
+      bareScene = new Container({ label: 'scene' })
+      bareScene.addChild(backdrop, world, ui)
+      hud = new Container({ label: 'hud' })
+      app.stage.addChild(bareScene, hud)
     }
 
     const consumer = new RenderDeltaConsumer(world, options.entityViews)
@@ -238,15 +254,15 @@ export function createPixiRenderer(
     const sceneFilters: PostFilterTarget = {
       get filters(): Filter[] | null {
         if (composite) return composite.stage.filters as Filter[] | null
-        return (frame ? frame.scene.filters : app.stage.filters) as Filter[] | null
+        return (frame ? frame.scene.filters : bareScene?.filters) as Filter[] | null
       },
       set filters(val: Filter[] | null) {
         if (composite) {
           composite.stage.filters = val
         } else if (frame) {
           frame.scene.filters = val
-        } else {
-          app.stage.filters = val
+        } else if (bareScene) {
+          bareScene.filters = val
         }
       },
     }
@@ -265,6 +281,12 @@ export function createPixiRenderer(
       world,
       ui,
       backdrop,
+      hud,
+      hudScale: (): HudScale => ({
+        cssPerLogical: frame?.root.scale.x ?? 1,
+        devicePerCss: app.renderer.resolution,
+        hostScale: target.geometry.geometry.current.scale,
+      }),
       consumer,
       get characters(): StageCharacters {
         return characters

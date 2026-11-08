@@ -55,7 +55,7 @@ export function portraitFieldHeight(
 }
 
 /**
- * The containers a letterboxed scene is built from (backdrop, world, ui, mask and bars), laid out for a view
+ * The containers a letterboxed scene is built from (backdrop, world, ui, mask, hud and bars), laid out for a view
  * size by `layout`.
  */
 export class LetterboxFrame {
@@ -66,6 +66,13 @@ export class LetterboxFrame {
   readonly ui: Container = new Container()
   readonly field: Graphics = new Graphics()
   readonly mask: Graphics = new Graphics()
+  /**
+   * Canvas text and other crisp overlays: a sibling of `scene` (the renderer adds it to the stage after it), so no
+   * post filter reaches it. It takes the root's scale and position, so it keeps logical coordinates.
+   */
+  readonly hud: Container = new Container()
+  /** `mask`'s copy for `hud`, which the stage keeps in its display list just before it, as `scene` keeps `mask`. */
+  readonly hudMask: Graphics = new Graphics()
   readonly bars: Container = new Container()
   readonly topBar: Graphics = new Graphics()
   readonly bottomBar: Graphics = new Graphics()
@@ -89,6 +96,8 @@ export class LetterboxFrame {
     this.ui.label = 'ui'
     this.field.label = 'field'
     this.mask.label = 'letterbox-mask'
+    this.hud.label = 'hud'
+    this.hudMask.label = 'hud-mask'
 
     this.backdrop.addChild(this.field)
     this.root.addChild(this.world, this.ui)
@@ -100,11 +109,13 @@ export class LetterboxFrame {
     this.bars.addChild(this.topBar, this.bottomBar)
 
     this.root.mask = this.mask
+    this.hud.mask = this.hudMask
   }
 
   layout(viewWidth: number, viewHeight: number): LetterboxGeometry {
     if (viewWidth <= 0 || viewHeight <= 0) {
       this.mask.clear()
+      this.hudMask.clear()
       this.field.clear()
       this.topBar.clear()
       this.bottomBar.clear()
@@ -141,10 +152,16 @@ export class LetterboxFrame {
     this.root.position.set(x, y)
     this.backdrop.scale.set(scale)
     this.backdrop.position.set(x, y)
+    this.hud.scale.set(scale)
+    this.hud.position.set(x, y)
 
     const clipTop = Math.max(0, y)
     const clipBottom = Math.min(viewHeight, y + height)
     this.mask
+      .clear()
+      .rect(0, clipTop, viewWidth, Math.max(0, clipBottom - clipTop))
+      .fill(0xffffff)
+    this.hudMask
       .clear()
       .rect(0, clipTop, viewWidth, Math.max(0, clipBottom - clipTop))
       .fill(0xffffff)
@@ -199,7 +216,10 @@ export class LetterboxFrame {
 
   destroy(): void {
     this.root.mask = null
+    this.hud.mask = null
     this.scene.destroy({ children: true })
+    this.hud.destroy({ children: true })
+    this.hudMask.destroy()
     this.bars.destroy({ children: true })
   }
 }
