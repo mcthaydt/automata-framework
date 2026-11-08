@@ -12,8 +12,10 @@ export { type SuiteEnv, type SuiteHandle, startSuite } from '../features/suite/s
 export { createSuite, type Suite } from '../features/suite/shell/create-suite'
 export { fileTitle } from '../features/suite/shell/home-model'
 export {
+  type LocalGame,
   type OpenedSuitePorts,
   openSuitePorts,
+  pageIsServed,
   type SuitePortsEnv,
 } from '../features/suite/shell/open-suite-ports'
 export { createTuner, type TunerSuiteSession } from '../features/suite/tuner/tuner-suite-editor'

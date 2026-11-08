@@ -5,6 +5,7 @@
 import { createGeometryOwner, type ViewportWindow } from '@automata/framework'
 import { mount, unmount } from 'svelte'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
+import type { Where } from '../../../shared/kit/storage/save-line.ts'
 import type { GamePublish } from '../../../shared/kit/storage/publish-client.ts'
 import { EDITOR_LIST_PATH, loadEditorList } from '../core'
 import type { Suite } from './create-suite'
@@ -24,6 +25,14 @@ export interface SuiteEnv {
   readonly kept?: boolean
   /** The game's name in words, from the server's ping: the top bar's title. */
   readonly game?: string | undefined
+  /** Which game this is, so two games' unsaved words never meet. */
+  readonly gameKey?: string | undefined
+  /** Where the files live, when it is the person's own game in this browser. */
+  readonly where?: Where | undefined
+  /** The editor to open on, when the person left one open last time. */
+  readonly initialEditor?: string | undefined
+  /** Tells the page which editor is open, so it can open there next time. */
+  readonly onEditor?: ((id: string | undefined) => void) | undefined
   /** The running game's page, from the server's ping: Play opens it. */
   readonly playUrl?: string | undefined
   /** Why Play is off (the game could not start), from the server's ping: Play says it when pressed. */
@@ -59,6 +68,10 @@ export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<Su
       sample: env.sample ?? false,
       kept: env.kept ?? true,
       game: env.game,
+      gameKey: env.gameKey,
+      where: env.where,
+      initialEditor: env.initialEditor,
+      onEditor: env.onEditor,
       playUrl: env.playUrl,
       playOff: env.playOff,
       publish: env.publish,

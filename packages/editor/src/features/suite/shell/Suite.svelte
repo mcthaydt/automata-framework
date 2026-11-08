@@ -18,6 +18,7 @@ import { keepStorage } from '../../../shared/kit/storage/keep-storage'
 import { guardLeaving } from '../../../shared/kit/storage/leave-guard'
 import { flushOnHide } from '../../../shared/kit/storage/page-lifecycle'
 import type { GamePublish } from '../../../shared/kit/storage/publish-client'
+import type { Where } from '../../../shared/kit/storage/save-line'
 import { saveLine } from '../../../shared/kit/storage/save-line'
 import {
   browserDraftStorage,
@@ -53,8 +54,16 @@ interface Props {
   sample: boolean
   /** Whether the sample is kept in this browser; false says its changes are lost with the page. */
   kept?: boolean
-  /** The game's name in words, from the server; the title. */
+  /** The game's name in words, from the server or the person's own list of games; the title. */
   game?: string | undefined
+  /** Which game this is, so two games' unsaved words never meet; the name when there is none. */
+  gameKey?: string | undefined
+  /** Where the files live, when the page knows better than "sample or folder" (the person's games in this browser). */
+  where?: Where | undefined
+  /** The editor to open on, when the person left one open last time and it is still there. */
+  initialEditor?: string | undefined
+  /** Tells the page which editor is open (undefined is Home), so it can open there next time. */
+  onEditor?: ((id: string | undefined) => void) | undefined
   /** The running game's page, from the server: Play opens it. */
   playUrl?: string | undefined
   /** Why Play is off (the game could not start), from the server: Play says it when pressed. */
@@ -73,6 +82,10 @@ const {
   sample,
   kept = true,
   game,
+  gameKey,
+  where,
+  initialEditor,
+  onEditor,
   playUrl,
   playOff,
   publish,
@@ -81,7 +94,16 @@ const {
 let latest = $state<HomeState>()
 const home = $derived(latest ?? given)
 
-let current = $state<string | undefined>()
+// svelte-ignore state_referenced_locally
+const startOn =
+  initialEditor !== undefined &&
+  suiteEntries(
+    suite.editors,
+    given.kind === 'cards' ? given.cards.map((card) => card.editor) : undefined,
+  ).some((candidate) => candidate.id === initialEditor)
+    ? initialEditor
+    : undefined
+let current = $state<string | undefined>(startOn)
 let reading = $state<WorkspaceFile | undefined>()
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
@@ -152,7 +174,7 @@ $effect(() => {
 const drafts = createTypingDrafts({
   timers: pageTimers,
   drafts: browserDraftStorage(),
-  scope: game ?? 'sample',
+  scope: gameKey ?? game ?? 'sample',
 })
 setTypingDrafts(drafts)
 // svelte-ignore state_referenced_locally
@@ -176,7 +198,7 @@ $effect(() => {
     stopDrafts()
   }
 })
-const line = $derived(saveLine({ pending, failed, where: sample ? (kept ? 'device' : 'nowhere') : 'folder' }))
+const line = $derived(saveLine({ pending, failed, where: where ?? (sample ? (kept ? 'device' : 'nowhere') : 'folder') }))
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
 // Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.
@@ -255,6 +277,7 @@ function choose(id: string | undefined): void {
   const kept = chosen === undefined ? undefined : suite.editor(chosen.editors[0] ?? '')
   if (kept !== undefined && kept.id in sessions) showView(kept, sessions[kept.id], chosen?.view)
   current = id
+  onEditor?.(id)
   reading = undefined
   panelOpen = false
   inspectorOpen = false

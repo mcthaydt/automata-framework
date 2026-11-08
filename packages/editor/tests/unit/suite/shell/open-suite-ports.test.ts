@@ -4,6 +4,7 @@ import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
 import { SAMPLE_GAME } from '#src/features/suite/memory/sample-ports.ts'
 import { openSuitePorts } from '#src/features/suite/shell/open-suite-ports.ts'
 import { editorRows, ensureListed } from '#src/shared/editor-list/editor-rows.ts'
+import { createMemoryStore } from '#src/shared/kit/storage/memory-store.ts'
 import { createFakeOpfs } from '#src/testing/kit/fake-fs.ts'
 
 // The suite page opens the game it is served on: when its own origin answers `/api/ping` as an editor server, the
@@ -187,5 +188,57 @@ describe('openSuitePorts', () => {
     expect(opened.sample).toBe(true)
     expect(opened.gameUrl).toBeUndefined()
     expect((await opened.ports.workspace.read(EDITOR_LIST_PATH))?.text).toBe(SAMPLE_GAME[EDITOR_LIST_PATH])
+  })
+})
+
+describe('openSuitePorts: the person’s own game, kept in this browser', () => {
+  async function ownGame() {
+    const store = createMemoryStore()
+    await store.write(EDITOR_LIST_PATH, LIST)
+    await store.write('content/rooms/room-1.af2d.json', '{}')
+    return store
+  }
+
+  it('opens the game’s files as theirs: not the sample, saved on this device, named for the game', async () => {
+    const store = await ownGame()
+    const opened = await openSuitePorts({
+      ...page(undefined).env,
+      local: { store, title: 'Lantern Run', where: 'device' },
+    })
+    expect(opened.sample).toBe(false)
+    expect(opened.where).toBe('device')
+    expect(opened.game).toBe('Lantern Run')
+    expect((await opened.ports.workspace.files('levels-2d')).map((file) => file.path)).toEqual([
+      'content/rooms/room-1.af2d.json',
+    ])
+  })
+
+  it('writes to the game’s own store, and never reads the sample', async () => {
+    const store = await ownGame()
+    const opened = await openSuitePorts({
+      ...page(undefined).env,
+      local: { store, title: 'Lantern Run', where: 'device' },
+    })
+    expect(await opened.ports.workspace.write('content/rooms/room-2.af2d.json', '{}', 'absent')).toMatchObject({
+      ok: true,
+    })
+    expect((await store.list()).map((entry) => entry.path)).toContain('content/rooms/room-2.af2d.json')
+    expect((await opened.ports.workspace.read('content/tuning.toml'))).toBeUndefined()
+  })
+
+  it('says nothing is kept, and why, when the browser keeps nothing', async () => {
+    const opened = await openSuitePorts({
+      ...page(undefined).env,
+      local: { store: await ownGame(), title: 'Lantern Run', where: 'nowhere', reason: 'No private storage.' },
+    })
+    expect(opened).toMatchObject({ kept: false, where: 'nowhere', reason: 'No private storage.' })
+  })
+
+  it('is ignored on a page served by automata editor, which shows its checkout', async () => {
+    const opened = await openSuitePorts({
+      ...page({ [EDITOR_LIST_PATH]: LIST }).env,
+      local: { store: await ownGame(), title: 'Lantern Run', where: 'device' },
+    })
+    expect(opened.where).toBe('folder')
   })
 })

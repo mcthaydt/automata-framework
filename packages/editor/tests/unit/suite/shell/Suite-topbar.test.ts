@@ -31,7 +31,16 @@ async function gameFolder() {
   return (await createMemoryPorts({ files, classify })).ports
 }
 
-async function start(options: { sample?: boolean; game?: string; kept?: boolean } = {}) {
+async function start(
+  options: {
+    sample?: boolean
+    game?: string
+    kept?: boolean
+    where?: 'device' | 'nowhere' | 'folder'
+    initialEditor?: string
+    onEditor?: (id: string | undefined) => void
+  } = {},
+) {
   const target = document.body.appendChild(document.createElement('div'))
   const files = { ...tunerFixtureFiles(), [EDITOR_LIST_PATH]: LIST }
   started = await startSuite(target, {
@@ -126,5 +135,28 @@ describe("the suite's top bar", () => {
     await start({ sample: true, kept: true })
     await screen.findByText('This is a sample game, not yours.', { exact: false })
     expect(screen.queryByText('lost when you close', { exact: false })).toBeNull()
+  })
+
+  it('on the person’s own game in this browser: its name, saved on this device, and no sample banner', async () => {
+    await start({ game: 'Lantern Run', where: 'device' })
+    expect(await screen.findByText('Lantern Run')).toBeInTheDocument()
+    expect(screen.getByText('Saved on this device')).toBeInTheDocument()
+    expect(screen.queryByText('This is a sample game, not yours.', { exact: false })).toBeNull()
+  })
+
+  it('says so, in the same place, when the browser keeps nothing', async () => {
+    await start({ game: 'Lantern Run', where: 'nowhere' })
+    expect(
+      await screen.findByText('Not saved: this browser can’t keep files. Save a copy to keep your work.'),
+    ).toBeInTheDocument()
+  })
+
+  it('opens on the editor left open last time, and tells the page when another is chosen', async () => {
+    const heard: (string | undefined)[] = []
+    await start({ game: 'Lantern Run', where: 'device', initialEditor: 'tuner', onEditor: (id) => heard.push(id) })
+    await screen.findByTestId('tuner-rows')
+    screen.getByRole('button', { name: 'Home' }).click()
+    await screen.findByRole('heading', { name: 'What do you want to change?' })
+    expect(heard).toEqual([undefined])
   })
 })

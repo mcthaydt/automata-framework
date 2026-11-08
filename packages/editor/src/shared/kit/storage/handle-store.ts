@@ -226,7 +226,8 @@ export async function createOpfsStore(
 ): Promise<ProjectStore> {
   const getRoot = options.getRoot ?? (() => navigator.storage.getDirectory())
   let root = await getRoot()
-  if (options.directory !== undefined)
-    root = await root.getDirectoryHandle(options.directory, { create: true })
+  // `a/b` is the directory `b` inside `a`: one game's folder inside the folder of all of them.
+  for (const segment of options.directory?.split('/') ?? [])
+    root = await root.getDirectoryHandle(segment, { create: true })
   return createHandleStore(root, { kind: 'opfs' })
 }
