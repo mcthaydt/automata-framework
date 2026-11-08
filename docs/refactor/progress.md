@@ -663,3 +663,24 @@ deploy (`site.yml`, the runbook's launch steps), the domain `automataframework.c
 the audit's sections 3 to 7. The rename (C1) to `@automataframework` (D1, the Owner's) waits for the Plus port to merge,
 and the Owner creates the organisation on npmjs.org; the deploy (C3) waits for D2 and D3; the findings tagged "Recheck
 after 3D/Plus merge" are read again on the merged `main` first.
+
+## Site motion: smooth scrolling and subtle animation: 33% (2 of 6)
+
+The Owner, 2026-11-08: "Add lucide, I think that's what it's called, to the website for SUPER SUBTLE smooth page
+scrolling and gsap for SUPER SUBTLE microanimations and page transitions, do the same for the editors, we can do that
+when it makes sense to." The smooth-scroll library is Lenis; Lucide is the icon set the site already uses. Scope: `site/`
+only; the editors wait for the editors v2 build and its audit.
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08, with stage 2 in one document (on AF #520's branch, tip `09d5a347`): today's motion (CSS smooth anchors, button lift, the marquee; two transition rules for one control, M1; two unused keyframes, M2), the guards motion could break (Lighthouse, the 48,000-byte preload budget, the CSP, nested scroll boxes, the demo frame, boundaries, pinned versions, credits). Measured: Lenis 1.3.27 5,445 B gzip, GSAP 3.15.0 core 27,605 B; in Chromium a 300 px wheel notch with `lerp: 0.14` reaches 90% at 264 ms (Lenis's default 0.1: 363 ms), nested boxes keep the wheel, anchors land as before (96 px), PageDown works, GSAP evaluates in 13 ms on a 4x slowed CPU. The GSAP licence is free but not open source, and its terms are a question for the paid editor apps | [spec](2026-11-08-site-motion-spec.md) sections 1 and 2 |
+| 2. Plan and spec | Done, 2026-11-08 (superpowers `brainstorming` and `writing-plans`, native): Lenis on fine pointers only, off on the playground; GSAP core for the page settle (220 ms, 6 px, no exit) and Home's section reveals (8 px, 480 ms, 60 ms apart, at most 6 starts per section, only parts below the window); CSS for search, the phone menu and copy; nothing downloaded under reduced motion or Save-Data; a 36,000-byte gzip budget in `check:site`. 7 tasks. For the editors later: the same tokens through the browser's own animation, no smooth scrolling (the Owner to confirm) | [spec](2026-11-08-site-motion-spec.md), [plan](2026-11-08-site-motion-plan.md) |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
+
+**Where to resume (2026-11-08, stage 2 done):** the plan audit (Opus, medium) reads the spec and plan against the newest
+site tip (#520, plus #521 and the copy rewrite on `claude/project-thread-fvbpvx` if they are open), checks the GSAP pin
+is at least 14 days old on the build day, and challenges the page-change mark (`data-page-change`) and the 36,000-byte
+budget. WebKit was not measured in the audit (not installed in the cloud container); the build's journeys run there.
