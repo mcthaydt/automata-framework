@@ -244,6 +244,12 @@ describe('A level to try, on the sample game with none', () => {
     expect(await screen.findByText('Downloaded your level.')).toBeInTheDocument()
     expect(downloads.at(-1)?.name).toBe('untitled-platformer.af2d.json')
     expect(JSON.parse(downloads.at(-1)?.text ?? '{}').levels.length).toBeGreaterThan(0)
+
+    // Home lists the level that was made, and it opens the same level again.
+    await userEvent.click(screen.getByRole('button', { name: 'Home' }))
+    const levels = await screen.findByRole('region', { name: 'Levels' })
+    await userEvent.click(await within(levels).findByRole('button', { name: 'Untitled platformer' }))
+    expect(await screen.findByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
   })
 
   it('shows no New level on a game folder, where a missing level is a file that is not there', async () => {

@@ -54,3 +54,11 @@ test('Copy puts the level on the clipboard, ready to paste anywhere', async ({
   const text = await page.evaluate(() => navigator.clipboard.readText())
   expect(JSON.parse(text).levels.length).toBeGreaterThan(0)
 })
+
+test('the level a visitor made is still there after a reload, kept in this browser', async ({ page }) => {
+  await newPlatformer(page)
+  await page.reload()
+  const levels = page.getByRole('region', { name: 'Levels' })
+  await levels.getByRole('button', { name: 'Untitled platformer' }).click()
+  await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
+})

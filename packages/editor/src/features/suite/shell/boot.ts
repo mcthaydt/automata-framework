@@ -29,17 +29,22 @@ export interface SuiteHandle {
 }
 
 export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<SuiteHandle> {
-  const load = loadEditorList((await env.ports.workspace.read(EDITOR_LIST_PATH))?.text)
-  const files = new Map<string, readonly WorkspaceFile[]>()
-  if (load.ok)
-    for (const editor of new Set(load.list.file.map((row) => row.editor)))
-      files.set(editor, await env.ports.workspace.files(editor))
+  // Home is read again on each return to it, so a file an editor made since (a level from a template) is listed.
+  const readHome = async () => {
+    const load = loadEditorList((await env.ports.workspace.read(EDITOR_LIST_PATH))?.text)
+    const files = new Map<string, readonly WorkspaceFile[]>()
+    if (load.ok)
+      for (const editor of new Set(load.list.file.map((row) => row.editor)))
+        files.set(editor, await env.ports.workspace.files(editor))
+    return homeOf(load, files, env.suite)
+  }
   const owner = createGeometryOwner({ window: env.window, root: env.document.documentElement })
   const root = mount(SuiteView, {
     target,
     props: {
       geometry: owner.geometry,
-      home: homeOf(load, files, env.suite),
+      home: await readHome(),
+      reread: readHome,
       suite: env.suite,
       ports: env.ports,
       sample: env.sample ?? false,

@@ -11,7 +11,7 @@ import { writeApiIndex } from './write-api-index.ts'
 // `node scripts/build-demos.ts`: the built games the site serves, written into static/ (git ignores both folders),
 // where Vite and the static build pick them up:
 // - static/demos/<slug>/: Emberwick and each feature demo, built by their own packages;
-// - static/editor/app/: the 2D editor, the same build `automata editor` serves, for "Try the editor" (its files are
+// - static/editor/app/: the editors' 2D suite, the page `automata editor` serves a 2D game, for "Try the editor" (its files are
 //   named relative to its page, so it runs at that address unchanged);
 // - static/playground/: the playground's runtime, frame pages, resources and goldens (playground/build.ts), with
 //   every example precompiled (compiled/<id>.js), so an example's first run needs no compiler.
@@ -59,7 +59,10 @@ function copyDemos(): number {
   return demos.length
 }
 
-/** The editor suite's 2D page, copied as it is: on the site it finds no game folder and opens its sample game. */
+/**
+ * The editors' 2D suite, copied as it is: on the site no editor server answers, so it opens the sample game, where a
+ * visitor starts a level from a template and keeps it with Share (`share-leaves-the-browser` serves the same build).
+ */
 function copyEditor(): void {
   const dist = join(repositoryRoot, 'packages/editor/dist/suite')
   if (!existsSync(join(dist, 'index.html')))
