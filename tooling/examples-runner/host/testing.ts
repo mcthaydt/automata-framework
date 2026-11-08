@@ -3,13 +3,19 @@ import { expect, type Frame, type Page } from '@playwright/test'
 import { type HostedOptions, hostedUrl } from './ports.ts'
 
 /**
- * Every console error, uncaught page error and CSP violation from here on, in the page and its frames; the
- * smoke tests expect none. Call it before `goto`.
+ * A WebGL call the driver refused. Chromium logs these as warnings, WebKit as errors, so a check that read only errors
+ * passed in Chromium what WebKit failed.
+ */
+const GL_REFUSED = /GL_INVALID_|WebGL: INVALID_|Feedback loop/
+
+/**
+ * Every console error, refused WebGL call, uncaught page error and CSP violation from here on, in the page and its
+ * frames; the smoke tests expect none. Call it before `goto`.
  */
 export async function collectErrors(page: Page): Promise<string[]> {
   const errors: string[] = []
   page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text())
+    if (message.type() === 'error' || GL_REFUSED.test(message.text())) errors.push(message.text())
   })
   page.on('pageerror', (error) => errors.push(String(error)))
   // Ruken's CSP blocks quietly in some engines; report each violation as a console error so the check sees it.

@@ -26,6 +26,7 @@ import {
 } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { createLookPasses, type LookPasses } from '../features/look/look-pass.ts'
+import { compositeDepthHooks } from '../features/renderer/composite-depth.ts'
 import { type ContextWatch, watchContextLoss } from '../features/renderer/context-loss.ts'
 import { pixi3dUniformSyncInstalled } from '../features/renderer/no-eval/pixi3d-uniform-sync.ts'
 import { lampSwitches } from '../shared/render/light/lamp-switches.ts'
@@ -171,15 +172,18 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   for (const [id, factory] of Object.entries(options.views))
     resolver[id] = (row, componentId) => factory(row, componentId, models, light)
   const consumer = new RenderDeltaConsumer<Container3D>(view.root, resolver)
-  const entities: PixiStageHooks = {
-    apply: (result) => {
-      const levels = switches?.apply(result.render)
-      if (levels !== undefined) light?.setLevels(levels)
-      consumer.apply(result.render)
+  const entities: PixiStageHooks = mergeHooks(
+    {
+      apply: (result) => {
+        const levels = switches?.apply(result.render)
+        if (levels !== undefined) light?.setLevels(levels)
+        consumer.apply(result.render)
+      },
+      draw: (frame) => consumer.interpolate(frame.alpha),
+      reset: () => consumer.reset(),
     },
-    draw: (frame) => consumer.interpolate(frame.alpha),
-    reset: () => consumer.reset(),
-  }
+    compositeDepthHooks(stage),
+  )
   const occluders = createOccluders(view.root)
   if (options.camera === undefined)
     return { view, occluders, consumer, hooks: entities, light, camera: undefined, passes }
