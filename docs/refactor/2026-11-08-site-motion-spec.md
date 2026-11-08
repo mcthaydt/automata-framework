@@ -274,15 +274,15 @@ Could a drunk grandma tell what is happening and what to press?
 ## 9. The editors, later
 
 The Owner: "do the same for the editors, we can do that when it makes sense to". That is after the editors v2 build
-(AF #519's plan) and its audit land. Recommendation for that stage, for the Owner to confirm:
+(AF #519's plan) and its audit land. For that stage:
 
 - **No smooth scrolling in the editors.** Their panels, lists and inspector are tools: a wheel there should move exactly
   as far as the hand did, and on the canvas the wheel zooms and pans. Lenis also cannot smooth the many nested scroll
   regions (`data-scroll-region`) without one instance each.
-- **The same motion language without GSAP:** the same tokens and curve, through the browser's own Web Animations API
-  and CSS. It costs nothing to download, and it keeps the GSAP licence out of the paid apps, which charge users and
-  include animation tools (Sequence's timeline, Feel) that could read as a "Competitive Product" (section 2.4). If the
-  Owner prefers GSAP there, ask Webflow first.
+- **Decided by the Owner, 2026-11-08 23:33: "Use gsap for the editor UI motion".** The editors use GSAP core with the
+  same tokens and curve as the site, for their own interface only (the moves listed below). GSAP is never the engine
+  behind what a user animates in a game (Sequence's timeline, Feel); those stay AF's own code. The licence facts in
+  section 2.4 stand; the editors' plan records them and re-reads the licence page before pinning, as the site does.
 - **Where it fits:**
   - switching editors in the sidebar or tab bar: the work panel's content fades in, 160 ms, no travel;
   - dialogs and phone sheets (New level, Publish, Export, Import, Ask, the conflict and recovery dialogs): the dialog
@@ -305,7 +305,7 @@ The Owner: "do the same for the editors, we can do that when it makes sense to".
 
 ## 11. For the Owner
 
-1. The editors: the browser's own animation and no smooth scrolling (recommended), or GSAP and Lenis like the site
-   after a word with Webflow. Asked on a card; nothing is built until the editors' turn.
+1. The editors: decided, GSAP for the editor UI motion (section 9). Smooth scrolling in the editors stays out, as
+   recommended, unless the Owner says otherwise.
 2. GSAP on the credits page reads "GSAP Standard License: free to use, not open source". Say if it should be worded
    differently.
