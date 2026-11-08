@@ -3,6 +3,7 @@ import { createLevelSession, type LevelSession } from '../../../features/level/l
 import { createHistory, type History } from '../../../shared/kit/history/history.ts'
 import type { SuiteUndo } from '../../../shared/kit/ports/suite-editor.ts'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
+import type { WriteExpectation } from '../../../shared/kit/storage/project-store.ts'
 import { readDocument } from '../../../shared/level-2d/documents/read-document'
 import type { LevelCanvasProps } from '../../../shared/level-2d/documents/view-props'
 import type { IdSource } from '../../../shared/level-2d/model/ids'
@@ -101,6 +102,19 @@ export async function openLevels2d(
 
   const base = read.text
   let mtime = read.mtime
+  // A game that exports has its files written with the project, as one step, so the game reads what was drawn. Each is
+  // expected as it was found (or absent); once written here, the write path itself watches it.
+  const folder = files.find((each) => each.path === path)?.exports
+  const target = profile.exports.find((each) => each.id === profile.gameTarget)
+  const gameFiles = (value: unknown, text: string) =>
+    folder === undefined || target === undefined || ports.workspace.writeAll === undefined
+      ? []
+      : target.files(value, text).map((file) => ({ path: `${folder}/${file.path}`, text: file.contents }))
+  const expectations = new Map<string, WriteExpectation>()
+  for (const file of gameFiles(history.state, base)) {
+    const found = await ports.workspace.read(file.path).catch(() => undefined)
+    expectations.set(file.path, found === undefined ? 'absent' : { mtime: found.mtime })
+  }
   let quiet = false
   let queue: Promise<void> = Promise.resolve()
   const session = {
@@ -124,10 +138,22 @@ export async function openLevels2d(
   history.subscribe(() => {
     if (quiet) return
     const text = profile.print(base, history.state)
+    const value = history.state
     queue = queue.then(async () => {
-      const result = await ports.workspace.write(path, text, { mtime })
+      const exported = gameFiles(value, base)
+      const result =
+        exported.length === 0 || ports.workspace.writeAll === undefined
+          ? await ports.workspace.write(path, text, { mtime })
+          : await ports.workspace.writeAll([
+              ...exported.map((file) => {
+                const expected = expectations.get(file.path)
+                return expected === undefined ? file : { ...file, expected }
+              }),
+              { path, text, expected: { mtime } },
+            ])
       if (result.ok) {
         mtime = result.mtime
+        for (const file of exported) expectations.delete(file.path)
         session.refusal = undefined
         return
       }

@@ -3826,6 +3826,11 @@ interface SuiteWorkspace {
         readonly mtime: number;
     } | undefined>;
     write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>;
+    writeAll?(files: readonly {
+        readonly path: string;
+        readonly text: string;
+        readonly expected?: WriteExpectation;
+    }[]): Promise<WriteResult>;
     remove(path: string, expected: {
         readonly mtime: number;
     }): Promise<WriteResult>;
@@ -3854,6 +3859,7 @@ interface WorkspaceFile {
     readonly gates: readonly string[];
     readonly checks: readonly string[];
     readonly modes: readonly EditMode[];
+    readonly exports?: string | undefined;
     readonly writable: boolean;
     readonly why?: string | undefined;
 }
