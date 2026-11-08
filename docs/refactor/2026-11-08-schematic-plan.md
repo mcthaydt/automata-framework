@@ -174,8 +174,8 @@ patrol scene and its Task 16 `examples/2d-story`. Tasks 1 to 7 and 9 to 13 need 
 
 **Files:** `puzzle/puzzle-pieces.ts` (the puzzle's condition and effect kinds as pieces), `puzzle/solver.worker.ts`, `PuzzleCanvas.svelte`; tests.
 
-- [ ] **Step 1: Failing tests:** items, facts with starting values, actions as "At {hotspot}, using {item}: when …, …", the goal; systemic and lethal entries read as sentences under "How the characters open the way" and "What can kill the player", read only (H10); "Can it be finished?" posts the edited puzzle to the worker, which runs `createSolver(def)` and answers "Yes, in 14 steps" or "No: the player can get stuck after …"; the answer is stale after an edit; the page bundle imports no Node module (a build test).
-- [ ] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit.
+- [x] **Step 1: Failing tests:** items, facts with starting values, actions as "At {hotspot}, using {item}: when …, …", the goal; systemic and lethal entries read as sentences under "How the characters open the way" and "What can kill the player", read only (H10); "Can it be finished?" posts the edited puzzle to the worker, which runs `createSolver(def)` and answers "Yes, in 14 steps" or "No: the player can get stuck after …"; the answer is stale after an edit; the page bundle imports no Node module (a build test).
+- [x] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit `feat(editors): Schematic's puzzle`.
 
 ### Task 14: Served journey: AI edited in Schematic changes play, 2D
 
@@ -278,3 +278,12 @@ template's controls. It moves no other 3D hash, golden or replay.
   `{ id, ok, detail }` list, so a game's `fair-play` check is a small command of the game's own (Task 14 writes
   `examples/2d-story`'s). The run passes the current file as a candidate, so it plays what is on screen, saved or not.
   Editors unit 327 pass.
+- 2026-11-08, Task 13 (Puzzle) done: the puzzle's conditions and effects as pieces (`puzzle/puzzle-pieces.ts`), items and
+  facts added and taken out, with a refusal that names what still uses them (`puzzle/puzzle-edits.ts`), "Can it be
+  finished?" in a worker (`puzzle/solve.ts`, `solver.worker.ts`, `solver-client.ts`; a test builds the worker for the page and
+  finds no Node module in it). Ruling: the rule-list text rewrite became `table-list-text.ts` (a rule list, a puzzle's actions
+  and goal) so the two share one tested path. Ruling: the solver is told each of the game's `call`s changes nothing, so
+  the answer says which calls were not counted ("What the game's code does (wake) is not counted."); the solver throws
+  without a model for a call, and an answer that threw would help nobody. Cost if wrong: an answer can say yes where a
+  call would have closed a way. Not done: renaming an item or a fact, editing hotspots and ways in (read only). Editors unit 384
+  pass.

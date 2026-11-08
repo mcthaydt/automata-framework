@@ -24,7 +24,7 @@ import {
   removePlaceEdits,
   renamePlaceEdits,
 } from './places-edits.ts'
-import { changeRuleText, type RuleChange } from './rule-text.ts'
+import { addFactEdits, addItemEdits, removeFactEdits, removeItemEdits } from './puzzle/puzzle-edits.ts'
 import {
   addModeEdits,
   diffEdits,
@@ -37,6 +37,13 @@ import {
 import { schematicProblems } from './schematic-problems.ts'
 import { newAgent, newSystemsFile, systemsFileText } from './starter.ts'
 import { type CharacterList, changeListText, type ListChange, type SwitchChange } from './switch-text.ts'
+import {
+  changeRuleText,
+  changeTableListText,
+  type ItemChange,
+  type RuleChange,
+  type TableList,
+} from './table-list-text.ts'
 
 /** What is selected on a character: a mode, or a switch by its place in the file. */
 export type Selection =
@@ -428,6 +435,81 @@ export class SchematicSession {
       'refused' in result ? { ok: false, message: result.refused } : await systems.accept(result.text, label)
     this.message = outcome.ok ? undefined : outcome.message
     return outcome
+  }
+
+  /** The scene's puzzle, when it has a file and the file reads. */
+  get puzzleDef(): PuzzleDef | undefined {
+    void this.#revision
+    const puzzle = this.files.puzzle
+    return puzzle === undefined ? undefined : contentOf(puzzle.read())
+  }
+
+  /** Runs a puzzle edit: `edits` for the puzzle file, or why not. */
+  async puzzleEdit(
+    label: string,
+    edits: readonly ContentEdit[] | { readonly refused: string },
+  ): Promise<Outcome> {
+    const puzzle = this.files.puzzle
+    if (puzzle === undefined) return this.#refuse('This scene has no puzzle.')
+    if ('refused' in edits) return this.#refuse(edits.refused)
+    const outcome = await puzzle.edit(label, edits)
+    this.message = outcome.ok ? undefined : outcome.message
+    return outcome
+  }
+
+  /** One item of the puzzle's actions or goal replaced, removed or added, as its own tables (`table-list-text.ts`). */
+  async puzzleList(label: string, key: TableList, change: ItemChange): Promise<Outcome> {
+    const puzzle = this.files.puzzle
+    if (puzzle === undefined) return this.#refuse('This scene has no puzzle.')
+    const text = puzzle.history.state.text
+    const result =
+      text === undefined
+        ? { refused: 'There is no file to change yet.' }
+        : changeTableListText(puzzle.path, text, key, change)
+    if ('refused' in result) return this.#refuse(result.refused)
+    const outcome = await puzzle.accept(result.text, label)
+    this.message = outcome.ok ? undefined : outcome.message
+    return outcome
+  }
+
+  /** Whether the scene has a puzzle file. */
+  get hasPuzzle(): boolean {
+    void this.#revision
+    return this.#files?.puzzle !== undefined
+  }
+
+  /** The puzzle file's text, which an answer about the puzzle is tied to. */
+  get puzzleText(): string | undefined {
+    void this.#revision
+    return this.files.puzzle?.history.state.text
+  }
+
+  async addPuzzleItem(name: string): Promise<Outcome> {
+    const def = this.puzzleDef
+    return def === undefined
+      ? this.#refuse('This scene has no puzzle.')
+      : this.puzzleEdit('Add an item', addItemEdits(def, name))
+  }
+
+  async removePuzzleItem(name: string): Promise<Outcome> {
+    const def = this.puzzleDef
+    return def === undefined
+      ? this.#refuse('This scene has no puzzle.')
+      : this.puzzleEdit('Remove an item', removeItemEdits(def, name))
+  }
+
+  async addPuzzleFact(name: string): Promise<Outcome> {
+    const def = this.puzzleDef
+    return def === undefined
+      ? this.#refuse('This scene has no puzzle.')
+      : this.puzzleEdit('Add a fact', addFactEdits(def, name))
+  }
+
+  async removePuzzleFact(name: string): Promise<Outcome> {
+    const def = this.puzzleDef
+    return def === undefined
+      ? this.#refuse('This scene has no puzzle.')
+      : this.puzzleEdit('Remove a fact', removeFactEdits(def, name))
   }
 
   /** Whether the game declares the check Fair play runs. */

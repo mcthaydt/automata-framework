@@ -5,6 +5,7 @@ import CharacterCanvas from './CharacterCanvas.svelte'
 import FairCanvas from './FairCanvas.svelte'
 import NumbersCanvas from './NumbersCanvas.svelte'
 import PlacesCanvas from './PlacesCanvas.svelte'
+import PuzzleCanvas from './PuzzleCanvas.svelte'
 import RulesCanvas from './RulesCanvas.svelte'
 import SchematicStart from './SchematicStart.svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
@@ -22,6 +23,8 @@ const ready = $derived(session.facts.usesSystems && session.def !== undefined)
     <SchematicStart {session} />
   {:else if session.chosen.kind === 'rules'}
     <RulesCanvas {session} />
+  {:else if session.chosen.kind === 'puzzle'}
+    <PuzzleCanvas {session} />
   {:else if session.chosen.kind === 'fair'}
     <FairCanvas {session} />
   {:else if session.chosen.kind === 'numbers'}

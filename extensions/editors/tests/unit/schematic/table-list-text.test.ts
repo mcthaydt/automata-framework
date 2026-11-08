@@ -1,9 +1,9 @@
 import { type SystemsDef, systemsDefShape } from '@automata/systems/sim'
 import { parse as strictParse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
-import { changeRuleText, ruleTables } from '#src/features/schematic/rule-text.ts'
 import { newAgent, newSystemsFile, systemsFileText } from '#src/features/schematic/starter.ts'
-import { fixture, fixtureText } from '../../fixtures/systems-fixtures.ts'
+import { changeRuleText, changeTableListText, ruleTables } from '#src/features/schematic/table-list-text.ts'
+import { fixture, fixtureText, puzzleFixture, puzzleText } from '../../fixtures/systems-fixtures.ts'
 
 type Rule = SystemsDef['rules'][number]
 
@@ -108,5 +108,63 @@ describe('a world rule changed as text', () => {
     expect(changeRuleText('hall.toml', 'rules = [', { kind: 'add', next: alarm })).toEqual({
       refused: 'This file has a mistake, so it is read only until the mistake is fixed.',
     })
+  })
+})
+
+describe('a puzzle’s lists changed as text', () => {
+  const read = (text: string): ReturnType<typeof puzzleFixture> => {
+    const value = strictParse(text)
+    return value as unknown as ReturnType<typeof puzzleFixture>
+  }
+
+  it('gives an action a condition and an effect, and leaves every other action as it was', () => {
+    const text = puzzleText('prologue')
+    const def = puzzleFixture('prologue')
+    const index = def.actions.findIndex((a) => (a.when ?? []).length > 0 && a.then.length > 0)
+    const action = def.actions[index] as (typeof def.actions)[number]
+    const next = {
+      ...action,
+      when: [...(action.when ?? []), { has: 'torch' }],
+      then: [...action.then, { give: 'torch' }],
+    }
+    const result = changeTableListText('prologue.puzzle.toml', text, 'actions', {
+      kind: 'replace',
+      index,
+      next,
+    })
+    if ('refused' in result) throw new Error(result.refused)
+    const after = read(result.text)
+    expect(after.actions[index]).toEqual(next)
+    expect(after.actions.filter((_, i) => i !== index)).toEqual(def.actions.filter((_, i) => i !== index))
+    expect(after.goal).toEqual(def.goal)
+  })
+
+  it('takes an action out and adds one at the end', () => {
+    const text = puzzleText('prologue')
+    const def = puzzleFixture('prologue')
+    const removed = changeTableListText('p.toml', text, 'actions', { kind: 'remove', index: 0 })
+    if ('refused' in removed) throw new Error(removed.refused)
+    expect(read(removed.text).actions).toEqual(def.actions.slice(1))
+    const added = changeTableListText('p.toml', removed.text, 'actions', {
+      kind: 'add',
+      next: { id: 'wave', at: 'floor', then: [{ set: 'waved', to: true }], say: 'You wave.' },
+    })
+    if ('refused' in added) throw new Error(added.refused)
+    expect(read(added.text).actions.at(-1)?.id).toBe('wave')
+    expect(read(added.text).actions).toHaveLength(def.actions.length)
+  })
+
+  it('changes the goal, a list of conditions some of which hold others', () => {
+    const text = puzzleText('prologue')
+    const def = puzzleFixture('prologue')
+    const next = [...def.goal, { not: { fact: 'caught', is: true } }]
+    let current = text
+    for (const [i, cond] of next.entries()) {
+      if (i < def.goal.length) continue
+      const result = changeTableListText('p.toml', current, 'goal', { kind: 'add', next: cond })
+      if ('refused' in result) throw new Error(result.refused)
+      current = result.text
+    }
+    expect(read(current).goal).toEqual(next)
   })
 })

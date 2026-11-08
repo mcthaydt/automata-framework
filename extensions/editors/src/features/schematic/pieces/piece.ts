@@ -11,6 +11,8 @@ export interface Names {
   readonly places: readonly string[]
   readonly hooks: readonly string[]
   readonly doorways: readonly string[]
+  /** A puzzle's items; a behaviour file has none. */
+  readonly items?: readonly string[]
 }
 
 export const NO_NAMES: Names = { modes: [], agents: [], facts: [], places: [], hooks: [], doorways: [] }
