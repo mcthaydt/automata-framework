@@ -16,6 +16,7 @@ import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
 import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
 import type { GamePublish } from '../../../shared/kit/storage/publish-client'
 import Button from '../../../shared/kit/widgets/Button.svelte'
+import Dialog from '../../../shared/kit/widgets/Dialog.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
@@ -49,11 +50,13 @@ interface Props {
   game?: string | undefined
   /** The running game's page, from the server: Play opens it. */
   playUrl?: string | undefined
+  /** Why Play is off (the game could not start), from the server: Play says it when pressed. */
+  playOff?: string | undefined
   /** Builds the game into a zip to upload, on a game's own folder: Publish opens it. */
   publish?: GamePublish | undefined
 }
 
-const { geometry, home, suite, ports, sample, game, playUrl, publish }: Props = $props()
+const { geometry, home, suite, ports, sample, game, playUrl, playOff, publish }: Props = $props()
 
 let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
@@ -155,6 +158,7 @@ function refused(outcome: WriteOutcome | undefined): void {
 // Publish (Ship in the spec, flow 9), the Review desk (flow 10) and Export and Import (flow 11).
 let publishing = $state(false)
 let publishingGame = $state(false)
+let playOffOpen = $state(false)
 let reviews = $state<readonly ReviewChangeSet[]>()
 let interchange = $state<'export' | 'import'>()
 
@@ -227,6 +231,10 @@ function openCard(card: EditorCard): void {
       onredo={history.redo}
       onask={ask === undefined ? undefined : () => (askOpen = true)}
       {playUrl}
+      {playOff}
+      onplayoff={() => (playOffOpen = true)}
+      gameMenu={mode === 'compact'}
+      publishIsGame={!editing.canShip() && publish !== undefined}
       onpublish={editing.canShip()
         ? () => (publishing = true)
         : publish !== undefined
@@ -294,6 +302,12 @@ function openCard(card: EditorCard): void {
     onrefused={refused}
   />
 {/if}
+<Dialog open={playOffOpen} title="Play is off" width="wide" onclose={() => (playOffOpen = false)}>
+  {#each (playOff ?? '').split('\n') as line, index (index)}
+    {#if index === 0}<p>{line}</p>{:else}<pre>{line}</pre>{/if}
+  {/each}
+  {#snippet actions()}<Button variant="primary" onclick={() => (playOffOpen = false)}>Close</Button>{/snippet}
+</Dialog>
 {#if publish !== undefined}<PublishGameDialog {publish} bind:open={publishingGame} />{/if}
 <SuitePublish
   session={editing}
@@ -314,5 +328,18 @@ function openCard(card: EditorCard): void {
     height: 100%;
     padding: var(--space-5);
     background: var(--color-bg-app);
+  }
+  /* The "Play is off" dialog: a sentence, then (when the game printed something) what it printed. */
+  pre {
+    max-height: 12rem;
+    margin: var(--space-2) 0 0;
+    overflow: auto;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--edge-sm);
+    background: var(--color-bg-field);
+    font: var(--text-mono-12);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 </style>

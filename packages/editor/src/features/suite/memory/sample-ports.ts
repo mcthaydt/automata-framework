@@ -6,7 +6,11 @@ import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
 import { createMemoryPorts } from './memory-ports.ts'
 import sampleList from './platformer.editors.toml?raw'
 
-export async function samplePorts(files: Readonly<Record<string, string>>): Promise<SuitePorts> {
+/** `changeSet: false` makes ports like a served game's: edits write the files directly and there is no change set to publish. */
+export async function samplePorts(
+  files: Readonly<Record<string, string>>,
+  options: { readonly changeSet?: false } = {},
+): Promise<SuitePorts> {
   const load = loadEditorList(files[EDITOR_LIST_PATH])
   const { ports } = await createMemoryPorts({
     files,
@@ -14,6 +18,7 @@ export async function samplePorts(files: Readonly<Record<string, string>>): Prom
       load.ok
         ? workspaceFile(load.list, path)
         : { path, writable: false, why: 'The editor list has a problem.' },
+    ...(options.changeSet === undefined ? {} : { changeSet: options.changeSet }),
   })
   return ports
 }

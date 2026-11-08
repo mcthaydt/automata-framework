@@ -7,8 +7,8 @@ import { networkInterfaces } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { type EditorApp, parseEditorArgs } from './editor-args.ts'
-import { gameVite, type RunningGame, startGame } from './game-runner.ts'
-import { type PublishOutcome, publishGame, runStep } from './publish-game.ts'
+import { gameVite, type RunningGame, type StartGameOptions, startGame } from './game-runner.ts'
+import { type PublishOutcome, publishGame, runStep, scanBuildForEval } from './publish-game.ts'
 import { type EditorServerOptions, gameName, type RunningEditor, serveEditor } from './serve-editor.ts'
 
 export interface EditorCommandIo {
@@ -29,7 +29,7 @@ export interface EditorCommandDeps {
   /** Resolves when the person stops the command (Ctrl+C). */
   readonly untilStopped: () => Promise<void>
   /** Starts the game in this folder as `pnpm dev` does, for Play and the Tuner; throws a sentence the person can act on. */
-  readonly startGame: (root: string) => Promise<RunningGame>
+  readonly startGame: (root: string, options: StartGameOptions) => Promise<RunningGame>
   /** Builds the game in this folder and makes the zip to upload (the editor's Publish). */
   readonly publishGame: (root: string) => Promise<PublishOutcome>
   readonly cwd: string
@@ -44,6 +44,7 @@ Only this computer can open it, unless you add --lan: then a tablet on your netw
 The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
 you were editing. Without content/editors.toml, it opens only level files (*.af2d.json and *.af-sector.json).
 It starts your game too, so Play and the Tuner can show it, and Publish builds it into a zip to upload.
+With --lan the game is open to your network too, and it has no token: use --lan only on a network you trust.
 If your game is already running (pnpm dev), give its address with --game-url and it starts no other.
 `
 
@@ -106,12 +107,15 @@ export async function editorCommand(
   // working, with Play off and the reason printed.
   let game: RunningGame | undefined
   let gameProblem: string | undefined
-  if (gameUrl === undefined)
+  if (gameUrl === undefined) {
+    // Vite can take a while on a cold cache; say so before waiting, so the silence is not mistaken for a hang.
+    io.stdout('Starting your game…\n')
     try {
-      game = await deps.startGame(root)
+      game = await deps.startGame(root, { lan })
     } catch (error) {
       gameProblem = error instanceof Error ? error.message : String(error)
     }
+  }
   let running: RunningEditor
   try {
     running = await deps.serve({
@@ -121,6 +125,7 @@ export async function editorCommand(
       port,
       token: secret,
       gameUrl: gameUrl ?? game?.url,
+      playOff: gameProblem,
       publish: () => deps.publishGame(root),
     })
   } catch (error) {
@@ -134,6 +139,11 @@ export async function editorCommand(
     for (const address of deps.lanAddresses())
       io.stdout(`  On the network: http://${address}:${running.port}${query}\n`)
   if (game !== undefined) io.stdout(`  Your game is running: ${game.url}\n`)
+  // The editor's API wants the token; the game's own page is Vite's and has none. Say so where --lan is chosen.
+  if (lan && game !== undefined)
+    io.stdout(
+      '  Anyone on your network can open your game and see its files, with no token. Use --lan only on a network you trust.\n',
+    )
   if (gameProblem !== undefined) io.stdout(`  Play is off: ${gameProblem}\n`)
   io.stdout('Press Ctrl+C to stop.\n')
   await deps.untilStopped()
@@ -171,7 +181,12 @@ export function liveEditorDeps(): EditorCommandDeps {
       }),
     startGame,
     publishGame: (root) =>
-      publishGame(root, { vite: gameVite(root), bin: process.argv[1] ?? '', run: runStep }),
+      publishGame(root, {
+        vite: gameVite(root),
+        bin: process.argv[1] ?? '',
+        run: runStep,
+        evalFindings: scanBuildForEval,
+      }),
     cwd: process.cwd(),
   }
 }

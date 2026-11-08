@@ -42,7 +42,7 @@ function close(): void {
 }
 </script>
 
-<Dialog {open} title="Put your game online" width="wide" dismissible={phase !== 'building'} onclose={close}>
+<Dialog {open} title="Make your game ready to upload" width="wide" dismissible={phase !== 'building'} onclose={close}>
   {#if phase === 'building'}
     <p class="result" role="status">Building your game… this can take a minute.</p>
   {:else if phase === 'done' && result?.ok === true}
@@ -52,7 +52,7 @@ function close(): void {
     <p class="result" role="alert">{result.problem}</p>
     {#if result.detail !== ''}<pre>{result.detail}</pre>{/if}
   {:else}
-    <p>Publish builds your game and checks it is ready for the web. You get one zip file to upload to itch.io or any website host.</p>
+    <p>This builds your game and checks it is ready for the web. Nothing goes online yet: you get one zip file to upload to itch.io or any website host.</p>
   {/if}
   {#snippet actions()}
     {#if phase === 'done' && result?.ok === true}

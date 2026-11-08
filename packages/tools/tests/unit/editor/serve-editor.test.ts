@@ -248,11 +248,24 @@ describe('serveEditor: Publish', () => {
     expect(await (await api(url, '/api/ping')).json()).toMatchObject({ publish: true })
   })
 
+  it('says in the ping why Play is off, and names no game page', async () => {
+    const { url } = await start({ playOff: 'Your game’s packages are not installed.' })
+    const ping = (await (await api(url, '/api/ping')).json()) as Record<string, unknown>
+    expect(ping.playOff).toBe('Your game’s packages are not installed.')
+    expect(ping).not.toHaveProperty('gameUrl')
+    const fine = await start()
+    expect(await (await api(fine.url, '/api/ping')).json()).not.toHaveProperty('playOff')
+  })
+
   it('publishes on a POST and then hands over the zip it made, as a download', async () => {
     const zip = join(root, 'my-game-0.1.0-itch.zip')
     await writeFile(zip, 'PK zip bytes')
     const { url } = await start({ publish: async () => ({ ok: true, file: zip }) })
-    expect(await (await api(url, '/api/publish/file')).status).toBe(404)
+    const early = await api(url, '/api/publish/file')
+    expect(early.status).toBe(404)
+    expect(await early.json()).toEqual({
+      message: 'Nothing has been built yet. Open Publish and press Build my game.',
+    })
     const done = await api(url, '/api/publish', { method: 'POST' })
     expect(done.status).toBe(200)
     expect(await done.json()).toEqual({ ok: true, name: 'my-game-0.1.0-itch.zip' })
@@ -288,6 +301,9 @@ describe('serveEditor: Publish', () => {
     await new Promise((resolveSoon) => setTimeout(resolveSoon, 50))
     const second = await api(url, '/api/publish', { method: 'POST' })
     expect(second.status).toBe(409)
+    expect(await second.json()).toEqual({
+      message: 'Your game is already being built. Wait for it to finish.',
+    })
     finish()
     expect((await first).status).toBe(200)
   })

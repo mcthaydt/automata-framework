@@ -4456,6 +4456,7 @@ interface OpenedSuitePorts {
     readonly ports: SuitePorts;
     readonly sample: boolean;
     readonly gameUrl: string | undefined;
+    readonly playOff: string | undefined;
     readonly game: string | undefined;
     readonly publish: PublishClient | undefined;
 }
@@ -4482,7 +4483,9 @@ const SAMPLE_GAME: Readonly<Record<string, string>>;
 ### `samplePorts` (function)
 
 ```ts
-function samplePorts(files: Readonly<Record<string, string>>): Promise<SuitePorts>;
+function samplePorts(files: Readonly<Record<string, string>>, options?: {
+    readonly changeSet?: false;
+}): Promise<SuitePorts>;
 ```
 
 ### `startSuite` (function)
@@ -4511,6 +4514,7 @@ interface SuiteEnv {
     readonly sample?: boolean;
     readonly game?: string | undefined;
     readonly playUrl?: string | undefined;
+    readonly playOff?: string | undefined;
     readonly publish?: GamePublish | undefined;
 }
 ```
@@ -4584,7 +4588,7 @@ interface OpenedSuite {
 ### `openSuite` (function)
 
 ```ts
-function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string, entry: string): Promise<OpenedSuite>;
+function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string, entry: string, game?: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'>): Promise<OpenedSuite>;
 ```
 
 ### `tab` (function)

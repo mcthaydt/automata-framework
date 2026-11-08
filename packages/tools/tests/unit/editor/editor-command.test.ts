@@ -14,6 +14,7 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
   const served: EditorServerOptions[] = []
   const closed = vi.fn()
   const started: string[] = []
+  const reach: boolean[] = []
   const stopped = vi.fn()
   const deps: EditorCommandDeps = {
     serve: async (options) => {
@@ -30,8 +31,9 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
     lanAddresses: () => ['192.168.1.20'],
     makeToken: () => 'tok123',
     untilStopped: async () => {},
-    startGame: async (root) => {
+    startGame: async (root, options) => {
       started.push(root)
+      reach.push(options.lan === true)
       return { url: 'http://localhost:5199/', stop: async () => stopped() }
     },
     publishGame: async () => ({ ok: true, file: '/work/my-game-0.1.0-itch.zip' }),
@@ -39,8 +41,11 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
     ...overrides,
   }
   const io = { stdout: (text: string) => out.push(text), stderr: (text: string) => err.push(text) }
-  return { deps, io, out, err, served, closed, started, stopped }
+  return { deps, io, out, err, served, closed, started, stopped, reach }
 }
+
+/** What the command printed once the editor was open (the line it opens with is the game's name). */
+const opened = (out: readonly string[]): string | undefined => out.find((text) => text.startsWith('Opened'))
 
 describe('editorCommand', () => {
   it('serves the editors page against the working folder on the loopback and says where', async () => {
@@ -56,13 +61,13 @@ describe('editorCommand', () => {
     expect(closed).toHaveBeenCalled()
   })
 
-  it('names the game by its title on the first line, whichever editor opens', async () => {
+  it('names the game by its title once it is open, whichever editor opens', async () => {
     const { deps, io, out } = setup({ cwd: '/home/ada/my-game' })
     await editorCommand([], io, deps)
-    expect(out[0]).toMatch(/^Opened My game\.\n {2}This computer: http/)
+    expect(opened(out)).toMatch(/^Opened My game\.\n {2}This computer: http/)
     const suite = setup()
     await editorCommand(['../emberwick', '--app', 'suite'], suite.io, suite.deps)
-    expect(suite.out[0]).toMatch(/^Opened Emberwick\.\n/)
+    expect(opened(suite.out)).toMatch(/^Opened Emberwick\.\n/)
   })
 
   it('names a game by the title in its package.json, as the editor shows it', async () => {
@@ -74,7 +79,7 @@ describe('editorCommand', () => {
       )
       const { deps, io, out } = setup()
       await editorCommand([dir], io, deps)
-      expect(out[0]).toMatch(/^Opened Ember Hall\.\n/)
+      expect(opened(out)).toMatch(/^Opened Ember Hall\.\n/)
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
@@ -95,6 +100,13 @@ describe('editorCommand', () => {
     expect(stopped).toHaveBeenCalled()
   })
 
+  it('with --lan, starts the game where a tablet can reach it too', async () => {
+    const { deps, io, reach } = setup()
+    await editorCommand([], io, deps)
+    await editorCommand(['--lan'], io, deps)
+    expect(reach).toEqual([false, true])
+  })
+
   it('uses the game page it was given and starts no game of its own', async () => {
     const { deps, io, served, started } = setup()
     await editorCommand(['--app', 'suite', '--game-url', 'http://localhost:5180'], io, deps)
@@ -111,6 +123,47 @@ describe('editorCommand', () => {
     expect(await editorCommand([], io, deps)).toBe(0)
     expect(served[0]?.gameUrl).toBeUndefined()
     expect(out.join('')).toContain('Play is off: Your game’s packages are not installed.')
+  })
+
+  it('tells the editor why Play is off, so the page can say it too', async () => {
+    const { deps, io, served } = setup({
+      startGame: async () => {
+        throw new Error('Your game’s packages are not installed. Run pnpm install in its folder.')
+      },
+    })
+    await editorCommand([], io, deps)
+    expect(served[0]?.playOff).toBe('Your game’s packages are not installed. Run pnpm install in its folder.')
+    const fine = setup()
+    await editorCommand([], fine.io, fine.deps)
+    expect(fine.served[0]?.playOff).toBeUndefined()
+  })
+
+  it('says it is starting the game before it waits for it, so a slow start does not look like a hang', async () => {
+    const { deps, io, out } = setup({
+      startGame: async () => {
+        expect(out.join('')).toContain('Starting your game…')
+        return { url: 'http://localhost:5199/', stop: async () => {} }
+      },
+    })
+    await editorCommand([], io, deps)
+    expect(out[0]).toBe('Starting your game…\n')
+  })
+
+  it('starts no game and says nothing of one when it was given a game address', async () => {
+    const { deps, io, out } = setup()
+    await editorCommand(['--game-url', 'http://localhost:5180'], io, deps)
+    expect(out.join('')).not.toContain('Starting your game')
+  })
+
+  it('with --lan, warns that the game itself has no token, and says so in nothing else', async () => {
+    const lan = setup()
+    await editorCommand(['--lan'], lan.io, lan.deps)
+    expect(lan.out.join('')).toContain(
+      'Anyone on your network can open your game and see its files, with no token. Use --lan only on a network you trust.',
+    )
+    const local = setup()
+    await editorCommand([], local.io, local.deps)
+    expect(local.out.join('')).not.toContain('Anyone on your network')
   })
 
   it('hands the server the way to publish the game it opened', async () => {

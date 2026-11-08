@@ -29,6 +29,8 @@ export interface EditorServerOptions {
   readonly gameUrl?: string | undefined
   /** What may be touched; the checkout's editor list decides when this is left out. */
   readonly policy?: EditorPolicy | undefined
+  /** Why the game cannot be played from here (it could not start), a sentence for the editor to show where Play would be. */
+  readonly playOff?: string | undefined
   /** Builds the game and makes the zip to upload (Publish); without it the editor has no Publish for the game. */
   readonly publish?: (() => Promise<PublishOutcome>) | undefined
 }
@@ -144,10 +146,11 @@ function packageTitle(root: string): string | undefined {
   }
 }
 
-/** What the ping tells the editor: the game's name and, when there are, its dev page and whether it can publish. */
+/** What the ping tells the editor: the game's name and, when there are, its dev page (or why there is none) and whether it can publish. */
 interface PingFacts {
   readonly game: string
   readonly gameUrl?: string | undefined
+  readonly playOff?: string | undefined
   readonly publish?: true
 }
 
@@ -164,7 +167,9 @@ function publishRoute(
     if (url.pathname === '/api/publish/file' && req.method === 'GET') {
       const info = made === undefined ? undefined : await stat(made).catch(() => undefined)
       if (made === undefined || info === undefined || !info.isFile())
-        return reply(res, 404, { message: 'nothing published yet: press Publish first' })
+        return reply(res, 404, {
+          message: 'Nothing has been built yet. Open Publish and press Build my game.',
+        })
       res.writeHead(200, {
         'content-type': 'application/zip',
         'content-disposition': `attachment; filename="${basename(made)}"`,
@@ -176,7 +181,8 @@ function publishRoute(
     }
     if (url.pathname !== '/api/publish' || req.method !== 'POST')
       return reply(res, 404, { message: 'no such route' })
-    if (running) return reply(res, 409, { message: 'your game is already being published' })
+    if (running)
+      return reply(res, 409, { message: 'Your game is already being built. Wait for it to finish.' })
     running = true
     try {
       const outcome = await publish()
@@ -262,6 +268,7 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
   const facts: PingFacts = {
     game: gameName(root),
     ...(options.gameUrl === undefined ? {} : { gameUrl: options.gameUrl }),
+    ...(options.gameUrl === undefined && options.playOff !== undefined ? { playOff: options.playOff } : {}),
     ...(options.publish === undefined ? {} : { publish: true }),
   }
   const publish = options.publish === undefined ? undefined : publishRoute(options.publish)

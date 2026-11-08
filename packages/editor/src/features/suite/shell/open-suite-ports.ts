@@ -16,6 +16,8 @@ export interface OpenedSuitePorts {
   readonly sample: boolean
   /** The game's dev page, from the server's ping; none for the sample game. */
   readonly gameUrl: string | undefined
+  /** Why Play is off, from the server's ping, when the game could not start; none otherwise. */
+  readonly playOff: string | undefined
   /** The game's name in words, from the server's ping; none for the sample game. */
   readonly game: string | undefined
   /** Builds the game into a zip to upload, from a server that can; none for the sample game. */
@@ -33,10 +35,11 @@ export async function openSuitePorts(
       ports: await samplePorts(SAMPLE_GAME),
       sample: true,
       gameUrl: undefined,
+      playOff: undefined,
       game: undefined,
       publish: undefined,
     }
-  const { store, gameUrl, game, publish } = served
+  const { store, gameUrl, playOff, game, publish } = served
   const bytes = await store.read(EDITOR_LIST_PATH)
   const load = loadEditorList(bytes === undefined ? undefined : decoder.decode(bytes))
   const { ports } = await createMemoryPorts({
@@ -47,5 +50,5 @@ export async function openSuitePorts(
         : { path, writable: false, why: 'The editor list has a problem.' },
     changeSet: false,
   })
-  return { ports, sample: false, gameUrl, game, publish }
+  return { ports, sample: false, gameUrl, playOff, game, publish }
 }

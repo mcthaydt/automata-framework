@@ -11,7 +11,9 @@ import { CheckToolError } from './csp-probe.ts'
 // the editor list that names `exports`, every matching project is opened, exported, and the bytes compared with the
 // files on disk. A game with no editor list, or no such row, has nothing to check.
 
-const LAST_LINE = 'Open the level in the editor and press Save.'
+// The editor has no Save button: each change it makes saves itself, so the way to save again is a change.
+const LAST_LINE =
+  'Open the level in the editor, change anything, then undo it. The editor saves the game’s files again.'
 
 const finding = (file: string, message: string): CheckFinding => ({
   file,

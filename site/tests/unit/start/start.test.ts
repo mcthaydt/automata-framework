@@ -26,13 +26,16 @@ describe('Start', () => {
   })
 
   it('gives only commands the framework answers to', () => {
-    // What create-game prints next, the editor's command and the web build's scripts.
-    expect(read('packages/tools/src/app/cli.ts')).toContain('cd ${dir} && pnpm install && pnpm dev')
+    // What create-game prints next, and the scripts and bin the site's two commands run: `pnpm dev` is the game's own
+    // script, and `pnpm exec automata editor` is what the game's `pnpm editor` script runs.
+    expect(read('packages/tools/src/app/cli.ts')).toContain('cd ${dir} && pnpm install && pnpm editor')
     expect(STEPS[1]?.command).toBe('cd my-game && pnpm install && pnpm dev')
-    expect(read('packages/tools/src/shared/create-game/template-level.ts')).toContain(
-      'pnpm exec automata editor',
-    )
+    expect(read('packages/tools/src/shared/create-game/template-project.ts')).toContain("dev: 'vite'")
+    expect(read('packages/tools/src/shared/create-game/template-level.ts')).toContain('pnpm editor')
     expect(STEPS[2]?.command).toBe('pnpm exec automata editor')
+    expect(read('packages/tools/src/shared/create-game/template-project.ts')).toContain(
+      "editor: 'automata editor'",
+    )
     expect(read('docs/guides/publish-to-web.md')).toContain(STEPS[3]?.command)
   })
 

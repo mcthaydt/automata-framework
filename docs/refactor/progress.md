@@ -416,7 +416,37 @@ holds `index.html` and the wall. All 20 journeys pass twice in Chromium at iPad 
 run (not in cloud sessions). `pnpm check`: green except `serve-editor.test.ts` "writes an mtime a later guarded write
 can use", which fails on this PR's base too (the container's file clock), not touched here. For 15.2 and 15.3: the default
 is already the suite; 15.3 cuts the change-set Publish, Export changes and Import changes, and keeps Play and the game's
-Publish. Screens: `/mnt/project-files/whole-game-loop/`.
+Publish. Screens: `/mnt/project-files/whole-game-loop/`. Follow-up the same day: the loop's Play step reads the screen
+past the game's title (the painted wall is drawn at its cell, the next cell is empty); a second journey, `a tile painted
+in the editor is drawn in the running game`, is marked `test.fail` until 2D core draws tile layers (PR #479) and fails
+today at the screen check, after the save; under `--lan` the game listens on the network and a tablet's Play and
+Tuner point at the computer's address.
+
+**Whole game loop build audit (2026-11-08, session pv36dl, PR stacked on #480).** Done by hand: create-game outside the
+repository, `automata editor`, paint a wall, Play (the wall is in the running game), Publish, the zip unzipped and
+played. E1 to E5 hold on the stack; E6 is partly fixed (Play and Publish work; Ask, checks and gates hidden, not wired).
+12 findings in `2026-11-08-whole-game-loop-audit.md`: W1 (High, painted tiles not drawn in play) waits for #479;
+Medium W2 (`--lan` game open without the token), W3 (colour codes and stack frames in a failed Publish), W4 (Play
+vanishes with no reason), W5 (Publish cut off at phone size), W6 (Publish runs no `automata check`); Low W7 to W12.
+Journeys `whole-game-loop` pass at iPad and phone in Chromium; WebKit and Firefox not run; `pnpm check` not run in
+full. Next: Sonnet high fixes.
+
+**Whole game loop fixes (2026-11-08, session 8ps35v, stacked on the audit PR #483; W1 waits for #479):** W2 to W12 fixed,
+each test first. W2 under `--lan` the command now says the game's own page has no token and to use `--lan` only on a trusted
+network (the game stays open; a token proxy for Vite's page and live reload was left out as too big); W3 Publish's steps
+run with `NO_COLOR` and no stack frames, last 20 lines; W4 the ping carries `playOff`, Play stays on the bar and says why
+when pressed; W5 on a phone Play and Publish are one **Game** menu outside the scrolling tools (real-browser layout test
+at all eight sizes: whole in view, targets, no page scroll); W6 Publish runs `check --only levels|inputs|orientation`
+before the build and scans the itch build for `eval` after it (the guide now says what it does and does not check); W7 the
+tile journey asserts today's behaviour (saved, game runs, cell still empty) instead of `test.fail`; W8 and W9
+create-game's next line and README say `pnpm editor`, add the `editor` script and write `automata.title`; W10 "Starting your
+game…" prints first and the journeys' harness waits 90 s; W11 dialog title "Make your game ready to upload", server
+sentences start with a capital and say what to do; W12 the guide gives `pnpm build:itch && pnpm prepare:itch`. Also: the
+`levels` check no longer says "press Save" (there is no Save button), and the site's Start-page test follows the new
+create-game line. Run: tools unit 775, editor unit and layout (Chromium) for the changed files, all 22 journeys at iPad and
+phone size in Chromium, the loop by hand outside the repository (create-game, editor, Game menu on a phone, Publish, a
+failed Publish with a syntax error, with `eval`, with a hand-edited level, Play off with no packages, `--lan`), `pnpm
+check` green except the site Start test, which is fixed and passes. Not run: WebKit, Firefox, the GPU runner. CI's layout suites then caught that the phone Game menu also swallowed a change set's Publish (`pnpm check` runs no browser layout suites): the menu now takes only the game's own zip, with a unit test and the layout suites in Chromium (mouse and touch) green.
 
 **Where to resume (2026-11-08, session us0s9k, 15.1b (a) to (d) and (f) half done):** branch `claude/project-thread-us0s9k`, PR #473 stacked on #472. Next is 15.1b (e), then the last journey and the site's Try-it page, then 15.2 to 15.4; the plan's log ("Task 15.1b" entries) has each ruling and a design note for (e). `pnpm install --frozen-lockfile` first in a fresh container; a commit that exports a type needs `pnpm build`, `pnpm api-report --update` first or the hook fails on the editor report; the served journeys run with `pnpm exec playwright test -c playwright.journeys.config.ts --project=editor-ipad-chromium` in `packages/editor` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, tools built).
 

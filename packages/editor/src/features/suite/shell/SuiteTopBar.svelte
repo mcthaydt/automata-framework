@@ -12,6 +12,7 @@ import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { CheckFinding } from '../../../shared/kit/ports/suite-ports'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
+import Menu from '../../../shared/kit/widgets/Menu.svelte'
 import type { Pill } from '../core/pills-model'
 import SuitePills from './SuitePills.svelte'
 
@@ -37,8 +38,15 @@ interface Props {
   onredo: () => void
   /** Opens Ask; `undefined` hides it. */
   onask: (() => void) | undefined
-  /** The running game's page: Play opens it in a new tab; `undefined` hides Play. */
+  /** The running game's page: Play opens it in a new tab; `undefined` hides Play (unless `playOff` says why). */
   playUrl: string | undefined
+  /** Why the game cannot be played (it could not start): Play stays, off, and `onplayoff` says why. */
+  playOff: string | undefined
+  onplayoff: () => void
+  /** A phone: Play and Publish share one Game menu that stays in view, instead of two buttons the bar has no room for. */
+  gameMenu: boolean
+  /** Publish is the game's own zip (not a change set's Publish): on a phone only that one moves into the Game menu. */
+  publishIsGame: boolean
   /** Opens Publish; `undefined` hides it. */
   onpublish: (() => void) | undefined
   /** There is something to publish: Publish is the primary; otherwise it is quiet and its dialog says why. */
@@ -58,10 +66,32 @@ const {
   onredo,
   onask,
   playUrl,
+  playOff,
+  onplayoff,
+  gameMenu,
+  publishIsGame,
   onpublish,
   shippable,
   tools,
 }: Props = $props()
+
+const gameItems = $derived([
+  ...(playUrl !== undefined || playOff !== undefined
+    ? [
+        // Not disabled when it is off: a press closes the menu and then says why (a disabled item would leave the menu
+        // open over the explanation).
+        { id: 'play', label: 'Play your game', detail: playUrl === undefined ? 'Off' : undefined },
+      ]
+    : []),
+  ...(publishIsGame && onpublish !== undefined ? [{ id: 'publish', label: 'Make it ready to upload' }] : []),
+])
+
+function chooseGame(id: string): void {
+  if (id === 'play') {
+    if (playUrl === undefined) onplayoff()
+    else window.open(playUrl, '_blank', 'noopener')
+  } else if (id === 'publish') onpublish?.()
+}
 </script>
 
 {#if title !== undefined}<span class="brand">{title}</span>{/if}
@@ -84,10 +114,19 @@ const {
     />
   {/if}
   {#if onask !== undefined}<Button onclick={onask}>Ask</Button>{/if}
-  {#if playUrl !== undefined}<a class="play" href={playUrl} target="_blank" rel="noreferrer">Play</a>{/if}
-  {#if onpublish !== undefined}<Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>{/if}
+  {#if !gameMenu}
+    {#if playUrl !== undefined}<a class="play" href={playUrl} target="_blank" rel="noreferrer">Play</a>
+    {:else if playOff !== undefined}<Button aria-disabled="true" class="play-off" onclick={onplayoff}>Play</Button>{/if}
+  {/if}
+  {#if onpublish !== undefined && !(gameMenu && publishIsGame)}
+    <Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>
+  {/if}
   {@render tools?.()}
 </div>
+<!-- Outside the scrolling tools, so it is never cut off however narrow the bar is. -->
+{#if gameMenu && gameItems.length > 0}
+  <span class="game"><Menu label="Game" items={gameItems} presentation="sheet" onselect={chooseGame} /></span>
+{/if}
 
 <style>
   .brand {
@@ -120,6 +159,9 @@ const {
     text-decoration: none;
     white-space: nowrap;
   }
+  .game {
+    flex: none;
+  }
   .spacer {
     flex: 1;
   }
@@ -131,6 +173,10 @@ const {
     min-width: 0;
     overflow-x: auto;
     scrollbar-width: none;
+  }
+  /* Play when the game could not start: drawn as a quiet, dimmed button that still answers a press with why. */
+  .tools :global(.play-off) {
+    color: var(--muted);
   }
   .tools > :global(*) {
     flex-shrink: 0;

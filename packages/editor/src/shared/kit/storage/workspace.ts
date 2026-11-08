@@ -85,8 +85,25 @@ export interface ServedStore {
   readonly game: string | undefined
   /** The game's page, which `automata editor` runs beside the editor: Play opens it and the Tuner shows it. */
   readonly gameUrl: string | undefined
+  /** Why there is no game page to open (the game could not start), a sentence; undefined when there is a page or no reason was given. */
+  readonly playOff: string | undefined
   /** Builds the game into a zip to upload, from a server that can; none from one that cannot. */
   readonly publish: PublishClient | undefined
+}
+
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'])
+
+/**
+ * The game's page as this browser can reach it. The server names it on its own computer (`localhost`); a tablet that
+ * opened the editor over the network (`automata editor --lan`) reaches the same game at the computer's address, which
+ * is the host it opened the editor on.
+ */
+function reachableFrom(gameUrl: string, origin: string): string {
+  const game = new URL(gameUrl)
+  const page = new URL(origin)
+  if (!LOOPBACK_HOSTS.has(game.hostname) || LOOPBACK_HOSTS.has(page.hostname)) return game.href
+  game.hostname = page.hostname
+  return game.href
 }
 
 /**
@@ -100,6 +117,7 @@ export async function openServedStore(
   const fetchFn = env.fetch ?? ((...args: Parameters<typeof fetch>) => fetch(...args))
   let game: string | undefined
   let gameUrl: string | undefined
+  let playOff: string | undefined
   let publishes = false
   try {
     const ping = await fetchFn(`${env.origin}/api/ping`)
@@ -108,7 +126,9 @@ export async function openServedStore(
       return undefined
     if ('game' in body && typeof body.game === 'string' && body.game !== '') game = body.game
     if ('gameUrl' in body && typeof body.gameUrl === 'string' && URL.canParse(body.gameUrl))
-      gameUrl = body.gameUrl
+      gameUrl = reachableFrom(body.gameUrl, env.origin)
+    if ('playOff' in body && typeof body.playOff === 'string' && body.playOff.trim() !== '')
+      playOff = body.playOff
     publishes = 'publish' in body && body.publish === true
   } catch {
     return undefined
@@ -120,6 +140,7 @@ export async function openServedStore(
     store: createHttpStore({ base: env.origin, token, fetch: fetchFn }),
     game,
     gameUrl,
+    playOff,
     publish: publishes ? createPublishClient({ base: env.origin, token, fetch: fetchFn }) : undefined,
   }
 }

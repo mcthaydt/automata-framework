@@ -284,6 +284,24 @@ describe('createGame', () => {
       )
     })
 
+    it('has an editor script, and the game’s title for the editor to show, as the game itself does', async () => {
+      const { read, pkg } = await generate()
+      expect(pkg.scripts.editor).toBe('automata editor')
+      expect((JSON.parse(read('package.json')) as { automata?: { title?: string } }).automata?.title).toBe(
+        'Peer Game',
+      )
+    })
+
+    it('tells a first-time maker how the editors, Play and Publish work, with no Save button to look for', async () => {
+      const { read } = await generate()
+      const readme = read('README.md')
+      expect(readme).toContain('`pnpm editor`')
+      expect(readme).toMatch(/saves? (as|when|each)/i)
+      expect(readme).toContain('Play')
+      expect(readme).toContain('Publish')
+      expect(readme).not.toMatch(/press Save/i)
+    })
+
     it("lists the chosen targets' commands in the README", async () => {
       const { read } = await generate(['web', 'tauri'])
       const readme = read('README.md')

@@ -118,7 +118,7 @@ describe('the new game’s README', () => {
       'src/shared/constants.ts',
       'src/app/game.ts',
       'content/levels/start.af2d.json',
-      'automata editor',
+      'pnpm editor',
     ])
       expect(readme, where).toContain(where)
     expect(readme).toContain('pnpm test')
