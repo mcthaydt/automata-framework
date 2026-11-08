@@ -23,6 +23,7 @@ import { boxOf } from '../harness/read-png.ts'
 import { readZip } from '../harness/read-zip.ts'
 import { runEditor } from '../harness/run-editor.ts'
 import { tilesPng } from '../harness/tiles-picture.ts'
+import { wordJourney } from '../harness/word-journey.ts'
 
 // A complete 2D game, made in the editors alone (the Owner, 2026-11-08: the complete-game test uses every editor). A
 // person runs `automata create-game`, then `automata editor`, and works every editor the new game has: Levels 2D (Add
@@ -226,11 +227,23 @@ test('a new 2D game is made with every editor it has, played and published', asy
     expect(names.some((name) => /kit.*\.png$/i.test(name))).toBe(true)
     const scripts = names.filter((name) => name.endsWith('.js')).map((name) => files.get(name) ?? '')
     expect(scripts.some((text) => text.includes('flash_frames'))).toBe(true)
+    // The words Feel draws are set in the baked face, which the zip carries with the game.
+    expect(scripts.some((text) => text.includes('af-hud-latin'))).toBe(true)
     expect(scripts.some((text) => new RegExp(`from:\\s*${BUMP_PITCH}\\b`).test(text))).toBe(true)
   } finally {
     await editor.stop()
     game.remove()
   }
+})
+
+// Feel's word, as the player sees it: a word written in Feel reads at a readable size with a sharp edge in the played game,
+// and the work is still there after the editor page is reloaded and after the editor is closed and opened again.
+test('Feel: a word is sharp and readable in play, and is still there after a reload and a restart', async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(420_000)
+  await wordJourney(page, context, '2d', EMBERWICK)
 })
 
 // Writer, Sequence and Schematic work on the story a new 2D game plays (a keeper to talk to, a cutscene his answer starts, a

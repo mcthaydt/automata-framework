@@ -22,6 +22,7 @@ import { newGame } from '../harness/new-game.ts'
 import { type Pixels, readPng } from '../harness/read-png.ts'
 import { readZip } from '../harness/read-zip.ts'
 import { runEditor } from '../harness/run-editor.ts'
+import { wordJourney } from '../harness/word-journey.ts'
 
 // A complete 3D game, made in the editors alone (the Owner, 2026-11-08: one complete-game test for 2D and one for 3D,
 // each using every editor the game can). A person runs `automata create-game --template 3d`, then `automata editor`,
@@ -287,6 +288,14 @@ async function walkToTheKeeper(play: Page, words: string): Promise<void> {
     await play.keyboard.up('KeyW')
   }
 }
+
+test('Feel: a word is sharp and readable in play, and is still there after a reload and a restart', async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(420_000)
+  await wordJourney(page, context, '3d', BASE_3D)
+})
 
 test('Writer: the keeper says the words written there', async ({ page, context }) => {
   test.setTimeout(180_000)
