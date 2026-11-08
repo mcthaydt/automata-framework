@@ -44,6 +44,8 @@ export async function pressInList(page: Page, name: string | RegExp): Promise<vo
 /** Plays or publishes: two buttons where the top bar has room, the two choices of the Game menu on a phone. */
 export async function pressGame(page: Page, action: 'Play' | 'Publish'): Promise<void> {
   const menu = page.getByRole('button', { name: 'Game' })
+  // The top bar has one or the other once the page is up: the Game menu on a phone, Publish where there is room.
+  await expect(menu.or(page.getByRole('button', { name: 'Publish' })).first()).toBeVisible()
   if (await menu.isVisible()) {
     await menu.click()
     await page
@@ -53,9 +55,17 @@ export async function pressGame(page: Page, action: 'Play' | 'Publish'): Promise
   else await page.getByRole('button', { name: 'Publish' }).click()
 }
 
-/** Play from the top bar: the running game opens in a new tab, and its own Play button is pressed. */
-export async function playFromEditors(page: Page, context: BrowserContext): Promise<Page> {
+/**
+ * Play from the top bar: the running game opens in a new tab, and its own Play button is pressed. `hold` is how the
+ * person holds the device for the game (a 3D game is played sideways), done once the tab is open.
+ */
+export async function playFromEditors(
+  page: Page,
+  context: BrowserContext,
+  hold?: (play: Page) => Promise<void> | undefined,
+): Promise<Page> {
   const [play] = await Promise.all([context.waitForEvent('page'), pressGame(page, 'Play')])
+  await hold?.(play)
   await expect(play.locator('#game canvas')).toBeVisible({ timeout: 30_000 })
   await play.getByRole('button', { name: /play/i }).first().click()
   return play
@@ -72,7 +82,10 @@ export async function publishFromEditors(
   await pressGame(page, 'Publish')
   const dialog = page.getByRole('dialog', { name: 'Make your game ready to upload' })
   await dialog.getByRole('button', { name: 'Build my game' }).click()
-  await expect(dialog.getByText('Your game is ready to upload.')).toBeVisible({ timeout: 120_000 })
+  const ready = dialog.getByText('Your game is ready to upload.')
+  const refused = dialog.getByRole('alert')
+  await expect(ready.or(refused).first()).toBeVisible({ timeout: 120_000 })
+  if (await refused.isVisible()) throw new Error(`Publish refused the game: ${await dialog.innerText()}`)
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     dialog.getByRole('button', { name: 'Download the zip' }).click(),
@@ -86,20 +99,6 @@ export async function publishFromEditors(
 /** The game's canvas, as pixels. */
 export async function gamePixels(play: Page): Promise<Pixels> {
   return readPng(await play.locator('#game canvas').screenshot())
-}
-
-/** The canvas's mean brightness, 0 to 255: a flash over the whole screen raises it. */
-export function brightness(picture: Pixels): number {
-  let sum = 0
-  let count = 0
-  const step = Math.max(1, Math.floor(Math.min(picture.width, picture.height) / 64))
-  for (let y = 0; y < picture.height; y += step)
-    for (let x = 0; x < picture.width; x += step) {
-      const [r, g, b] = picture.at(x, y)
-      sum += (r + g + b) / 3
-      count += 1
-    }
-  return count === 0 ? 0 : sum / count
 }
 
 /**
@@ -139,7 +138,9 @@ export async function recordBrightness(context: BrowserContext): Promise<void> {
       return getContext.call(this, kind, keep)
     } as typeof HTMLCanvasElement.prototype.getContext
     const seen: number[] = []
+    const times: number[] = []
     ;(globalThis as unknown as { __brightness: number[] }).__brightness = seen
+    ;(globalThis as unknown as { __frameTimes: number[] }).__frameTimes = times
     const small = document.createElement('canvas')
     small.width = 32
     small.height = 32
@@ -153,6 +154,7 @@ export async function recordBrightness(context: BrowserContext): Promise<void> {
         for (let i = 0; i < data.length; i += 4)
           sum += ((data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0)) / 3
         seen.push(sum / (32 * 32))
+        times.push(performance.now())
       }
       requestAnimationFrame(measure)
     }
@@ -171,6 +173,30 @@ export function brightestSince(play: Page, mark: number): Promise<{ first: numbe
     const seen = (globalThis as unknown as { __brightness?: number[] }).__brightness?.slice(from) ?? []
     return { first: seen[0] ?? 0, brightest: Math.max(0, ...seen) }
   }, mark)
+}
+
+/**
+ * How long, in the game's own seconds from the mark's frame, the picture kept changing: up to the frame after which every
+ * measured frame is within `still` of the one before it. Holding a key that walks into a wall, it is how long the walk to
+ * the wall took (the camera follows, so the picture stops when the walker does). The game's loop counts a slow frame as
+ * at most 100 ms (`MAX_FRAME_MS`), so a slow browser plays slower; each frame here counts the same, so two walks compare
+ * whatever the browser's frame rate.
+ */
+export function secondsMoving(play: Page, mark: number, still = 0.05): Promise<number> {
+  return play.evaluate(
+    ({ from, still }) => {
+      const page = globalThis as unknown as { __brightness?: number[]; __frameTimes?: number[] }
+      const seen = page.__brightness?.slice(from) ?? []
+      const times = page.__frameTimes?.slice(from) ?? []
+      let last = 0
+      for (let i = 1; i < seen.length; i++)
+        if (Math.abs((seen[i] ?? 0) - (seen[i - 1] ?? 0)) > still) last = i
+      let seconds = 0
+      for (let i = 1; i <= last; i++) seconds += Math.min((times[i] ?? 0) - (times[i - 1] ?? 0), 100) / 1000
+      return seconds
+    },
+    { from: mark, still },
+  )
 }
 
 export function pitchesPlayed(play: Page): Promise<number[]> {

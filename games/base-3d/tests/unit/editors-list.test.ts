@@ -23,11 +23,11 @@ describe('the editor list', () => {
     expect(load.ok).toBe(true)
   })
 
-  it('opens the room in Levels 3D, Wick in Characters and the numbers in the Tuner, each with no gates', () => {
+  it('opens the room in Levels 3D, Wick and what he is made of in Characters and the numbers in the Tuner, each with no gates', () => {
     if (!load.ok) throw new Error('the list did not parse')
     expect(load.list.file.map((row) => [row.glob, row.editor])).toEqual([
       ['content/levels/*.af-sector.json', 'levels-3d'],
-      ['content/figures/*.toml', 'studio'],
+      ['content/figure*/*.toml', 'studio'],
       ['content/tuning.toml', 'tuner'],
     ])
     expect(load.list.file.every((row) => row.gates.length === 0)).toBe(true)

@@ -1,7 +1,8 @@
 format = "af-editors/1"
 
-# Ember Hall's room is a 3D level, edited in Levels 3D; Wick is a figure, edited in Characters (the Studio); and the
-# walk and the roll open in the Tuner (content/tuning.toml). The game has no gates: every row says so with `gates = []`.
+# Ember Hall's room is a 3D level, edited in Levels 3D; Wick is a figure, edited in Characters (the Studio) with every
+# content/figure* folder his look and walk come from; and the walk and the roll open in the Tuner (content/tuning.toml).
+# The game has no gates: every row says so with `gates = []`.
 [[file]]
 glob = "content/levels/*.af-sector.json"
 editor = "levels-3d"
@@ -10,7 +11,7 @@ gates = []
 checks = ["content"]
 
 [[file]]
-glob = "content/figures/*.toml"
+glob = "content/figure*/*.toml"
 editor = "studio"
 modes = ["edit"]
 gates = []

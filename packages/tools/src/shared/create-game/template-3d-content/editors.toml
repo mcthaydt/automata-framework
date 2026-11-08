@@ -1,7 +1,8 @@
 format = "af-editors/1"
 
-# The room opens in the 3D level editor (Levels 3D), Wick in Characters, and the walk speed in the Tuner. The game has no
-# gates, so every row says `gates = []`.
+# The room opens in the 3D level editor (Levels 3D), Wick and what he is made of in Characters (every content/figure*
+# folder: he names his swatches and gait), and the walk speed in the Tuner. The game has no gates, so every row says
+# `gates = []`.
 [[file]]
 glob = "content/levels/*.af-sector.json"
 editor = "levels-3d"
@@ -10,7 +11,7 @@ gates = []
 checks = ["content"]
 
 [[file]]
-glob = "content/figures/*.toml"
+glob = "content/figure*/*.toml"
 editor = "studio"
 modes = ["edit"]
 gates = []

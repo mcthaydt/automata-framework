@@ -3,7 +3,8 @@
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import type { Canon, LineKind, LinesFile } from '@automata/narrative/sim'
 import { appendEdits } from '../../shared/fields.ts'
-import { humanize, KIND_WORDS } from './writer-words.ts'
+import { humanize } from '../../shared/id-words.ts'
+import { KIND_WORDS } from './writer-words.ts'
 
 export interface ScriptLine {
   readonly index: number

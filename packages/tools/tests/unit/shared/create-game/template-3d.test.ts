@@ -60,7 +60,7 @@ describe('the new 3D game’s files', () => {
     ])
   })
 
-  it('has one room, Wick, a tuning file and the editor list that opens them', () => {
+  it('has one room, Wick, a tuning file and the editor list that opens them (Characters gets every figure folder: Wick names his swatches and gait)', () => {
     expect(files.filter((file) => file.startsWith('content/'))).toEqual(
       TEMPLATE_3D_CONTENT_PATHS.map((path) => `content/${path}`).sort(),
     )
@@ -70,7 +70,7 @@ describe('the new 3D game’s files', () => {
     const list = parse(read('content/editors.toml')) as { file: { glob: string; editor: string }[] }
     expect(list.file.map((row) => [row.glob, row.editor])).toEqual([
       ['content/levels/*.af-sector.json', 'levels-3d'],
-      ['content/figures/*.toml', 'studio'],
+      ['content/figure*/*.toml', 'studio'],
       ['content/tuning.toml', 'tuner'],
     ])
   })

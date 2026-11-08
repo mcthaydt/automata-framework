@@ -6,9 +6,9 @@ import { type CutsceneScript, cutsceneSchema, type PlacedScript, placeScript } f
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import type { SuitePorts, WorkspaceFile } from '@automata/editor/kit/ports'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
+import { humanize } from '../../shared/id-words.ts'
 import { type Outcome, openTomlSession } from '../../shared/toml-session.ts'
 import { UndoTrail } from '../../shared/undo-many.ts'
-import { humanize } from '../writer/writer-words.ts'
 import {
   addKeyEdits,
   durationEdits,

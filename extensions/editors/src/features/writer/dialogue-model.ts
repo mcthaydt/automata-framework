@@ -5,7 +5,7 @@ import type { ContentEdit } from '@automata/editor/kit/documents'
 import type { Choice, DialogueGraph, DialogueNode } from '@automata/narrative/sim'
 import type { Cond, Value } from '@automata/puzzle/sim'
 import { appendEdits } from '../../shared/fields.ts'
-import { humanize } from './writer-words.ts'
+import { humanize } from '../../shared/id-words.ts'
 
 export const partWords: (id: string) => string = humanize
 

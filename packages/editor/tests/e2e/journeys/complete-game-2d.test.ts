@@ -46,6 +46,12 @@ const KIT: readonly (readonly [number, number, number])[] = [
   [130, 20, 250],
 ]
 const PLAYER_TILE = 2
+/** A tile's colour in the picture. */
+function kit(tile: number): readonly [number, number, number] {
+  const colour = KIT[tile]
+  if (colour === undefined) throw new Error(`the picture has no tile ${tile}`)
+  return colour
+}
 const PAINTED_TILE = 5
 const PAINTED = { col: 10, row: 4 }
 /** The pitch the bump starts at once Audio has changed it (the new game's bump starts at 220 Hz). */
@@ -163,7 +169,7 @@ test('a new 2D game is made with every editor it has, played and published', asy
     expect(at(48, 256 - 12), 'the player start').toEqual(KIT[PLAYER_TILE])
 
     // J (the Tuner's key) moves the square left, to the wall.
-    const squareX = async (): Promise<number> => boxOf(await gamePixels(play), KIT[PLAYER_TILE])?.x ?? -1
+    const squareX = async (): Promise<number> => boxOf(await gamePixels(play), kit(PLAYER_TILE))?.x ?? -1
     const before = await squareX()
     await play.keyboard.down('KeyJ')
     try {
@@ -178,7 +184,10 @@ test('a new 2D game is made with every editor it has, played and published', asy
     await play.keyboard.down('KeyJ')
     try {
       await expect
-        .poll(async () => (await framesMeasured(play)) - mark, { message: 'the game draws frames' })
+        .poll(async () => (await framesMeasured(play)) - mark, {
+          message: 'the game draws frames',
+          timeout: 30_000,
+        })
         .toBeGreaterThan(30)
     } finally {
       await play.keyboard.up('KeyJ')

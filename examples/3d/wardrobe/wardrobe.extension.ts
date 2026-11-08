@@ -1,6 +1,6 @@
 // The streetwear wardrobe: eleven garments (tee, hoodie, puffer, jacket, bomber, wide-legs, cargos, sneakers, chain,
 // hoops, shades) for the procedural figures, as an extension. It is the worked example of a wardrobe: core's
-// figure builder knows only seven garments (and @automata/character-kit adds eight more), and this registers its own the way any game's wardrobe
+// figures know only seven garments (and @automata/character-kit adds eight more), and this registers its own the way any game's wardrobe
 // would (`registerGarment` from `@automata/3d/figures-kit`), then sets the outfit hook that picks the openings a
 // hand can reach.
 //

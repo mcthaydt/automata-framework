@@ -1,5 +1,6 @@
 import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
 import type { StageRendererFactory } from './stage/stage-renderer'
+import { kindOf } from './studio-content'
 import { createStudioController, type StudioController } from './studio-controller'
 import type { Frames } from './ui/StudioCanvas.svelte'
 import { canvas, dock, inspector, panel } from './ui/StudioRegions.svelte'
@@ -37,6 +38,9 @@ export function createStudio(options: StudioSuiteOptions): SuiteEditor<StudioSui
         background: options.background ?? 0x14161a,
       }
     },
+    // The list gives the Studio every figure folder (a figure names its swatches and gait), but a person opens a
+    // character: Home lists the figures.
+    homeFiles: (files) => files.filter((file) => kindOf(file.path) === 'figure'),
     regions: { panel, canvas, inspector, dock },
     undo: (session) => ({
       canUndo: () => session.controller.session.history.canUndo,

@@ -458,6 +458,28 @@ phone size in Chromium, the loop by hand outside the repository (create-game, ed
 failed Publish with a syntax error, with `eval`, with a hand-edited level, Play off with no packages, `--lan`), `pnpm
 check` green except the site Start test, which is fixed and passes. Not run: WebKit, Firefox, the GPU runner. CI's layout suites then caught that the phone Game menu also swallowed a change set's Publish (`pnpm check` runs no browser layout suites): the menu now takes only the game's own zip, with a unit test and the layout suites in Chromium (mouse and touch) green.
 
+**The complete-game journeys (2026-11-08, session 6rfl3t, on the merge of #494, #497, #498 and #499; the Owner: "The
+complete game test should also use ALL editors", then "We likely have to do 2, one for 2D, one for 3D").** `automata
+editor` now serves one page with every editor (`extensions/editors`' suite page, which imports Levels 3D and Characters
+from `@automata/editor-3d/suite`) wherever the game's list names a 3D or content editor (`page-for.ts`), with Play and
+Publish on it. `complete-game-2d`: a new 2D game made in every editor it lists (Add tiles, a painted Decor cell, the
+player start's tile in Characters, J added in the Tuner, a 30-frame flash on the bump in Feel, the bump at 880 Hz in
+Audio), played (each change seen on the canvas, the flash in a per-frame brightness record, the pitch in the tones the
+page starts), published (the zip holds the picture, `flash_frames` and `from: 880`). `complete-game-3d`: a new 3D game
+played once as it comes, then made in every editor it lists (the walls in the crates' wood in Levels 3D, Wick at 240 cm
+in Characters, the walk at 8 m/s in the Tuner) and played again (the far wall turns brown, Wick's cloak stands about
+twice as tall, the walk to the wall takes about 0.6 of the time, counted in the game's own clamped frame time). Marked
+`test.fail` with the reason, one journey each: Writer and Sequence on a 2D game (not in its list), Schematic on a 2D game
+(no systems extension); Feel, Audio, Writer, Sequence and Schematic on a 3D game (not in its list); a floor's material in
+Levels 3D (Change materials changes only the walls); Publish on a 3D game (Pixi 3D is a closed beta, refused by design).
+Found and fixed on the way, each test first: Levels 2D exported the game's files from the unprinted project, so after
+Add tiles `check --only levels` saw drift and Publish refused the game; a new game's pictures and music were globbed from
+`/assets/`, a root-absolute path Publish refuses (now relative, with a test that no template file globs from `/`); the
+3D template, base-3d and 3d-story gave Characters only `content/figures/*.toml`, so it opened Wick with none of his
+swatches or gait and drew nothing (now `content/figure*/*.toml`, and Home lists only the figures). Run: both journeys and
+`whole-game-loop` at iPad and phone size in Chromium, the 3D one three times each; tools, editor-3d, base-3d and 3d-story
+unit tests. Not run: WebKit, Firefox, the GPU runner.
+
 **Where to resume (2026-11-08, session us0s9k, 15.1b (a) to (d) and (f) half done):** branch `claude/project-thread-us0s9k`, PR #473 stacked on #472. Next is 15.1b (e), then the last journey and the site's Try-it page, then 15.2 to 15.4; the plan's log ("Task 15.1b" entries) has each ruling and a design note for (e). `pnpm install --frozen-lockfile` first in a fresh container; a commit that exports a type needs `pnpm build`, `pnpm api-report --update` first or the hook fails on the editor report; the served journeys run with `pnpm exec playwright test -c playwright.journeys.config.ts --project=editor-ipad-chromium` in `packages/editor` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, tools built).
 
 **Where to resume (2026-11-08, session m6iu2z, after 15.3 slice B):** branch `claude/project-thread-m6iu2z` (PR #476). 15.1b, 15.2 and 15.3 slices A and B are done (the plan's log has the rulings): the change-set desk, the change-set port and journal, the Tuner's locks and the `ask` mode are gone. Next: the standalone-app dead code (Map, Home, `TilesetsView`, `App.svelte`, `boot.ts`; about 43 test files use `boot.ts` and `main.css`, so move those first; the 2D Characters view waits for the Owner's word), then 15.4 (the suite on a phone) and 16.x. Owner questions: remove the gate records and check measures that now have no screen? Does the 2D Characters view stay? A commit that moves an export needs `pnpm build`, then `pnpm api-report --update` first (the hook takes up to 5 minutes). `save-reaches-the-game` can fail once under load.

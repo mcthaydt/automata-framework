@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
-import { screen } from '@testing-library/svelte'
+import { createSuite, fileTitle, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
+import { screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { writable } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -94,5 +94,27 @@ describe('the Studio in the suite', () => {
     expect((await ports.workspace.read(WICK))?.text).toBe(files[WICK])
     // The shell wrote the file back once; the Studio's hook did not write it a second time.
     expect(writes.length - afterEdit).toBe(1)
+  })
+
+  // The Studio needs every figure folder (a figure names its swatches and gait), but a person opens a character, not a
+  // swatch: Home's Characters card lists the figures only.
+  it('lists only the characters on Home, though it opens every figure folder', async () => {
+    const target = document.body.appendChild(document.createElement('div'))
+    const files: Record<string, string> = { ...studioFixtureFiles(), [EDITOR_LIST_PATH]: LIST }
+    expect(Object.keys(files).some((path) => path.startsWith('content/figure-swatches/'))).toBe(true)
+    const studio = createStudio({ stage: standin, frames: { request: () => 0, cancel: () => {} } })
+    started = await startSuite(target, {
+      window,
+      document,
+      ports: await samplePorts(files),
+      suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
+    })
+    const card = await screen.findByRole('region', { name: 'Characters' })
+    const figures = Object.keys(files).filter((path) => path.startsWith('content/figures/'))
+    expect(
+      within(card)
+        .getAllByRole('button')
+        .map((button) => button.textContent?.trim()),
+    ).toEqual(figures.map((path) => fileTitle(path)))
   })
 })
