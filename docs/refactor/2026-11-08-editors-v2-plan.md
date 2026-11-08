@@ -25,8 +25,9 @@ branch `claude/project-thread-6mtkk6` merged in by Task 1. Paths were read on #5
 ## Global Constraints
 
 - The framework's laws and `AGENTS.md` hold: test first, feature folders, tests in `tests/` importing `#src/…`,
-  kebab-case files with role suffixes, at most 600 lines a file (split `EditorShell.svelte`, 632 lines on #508, when
-  Task 4 touches it), comments say why and never name this plan.
+  kebab-case files with role suffixes, at most 600 lines a file (`EditorShell.svelte` is 332 lines on #508; Task 4
+  moves its region sheets into `shell-sheets.svelte` so Task 8 can change them alone), comments say why and never name
+  this plan.
 - No feature is added or removed; every action a screen has at a desktop size it has at every size (spec §2, §5).
 - Every touch target is at least 44 px and every primary action 48 px; fields are 44 px on touch, not the mockup's 40
   (spec §4, §5). Never shrink a control or hide an action to fit.
@@ -36,6 +37,12 @@ branch `claude/project-thread-6mtkk6` merged in by Task 1. Paths were read on #5
 - Publish is the only lime button on a screen; a dialog may have one of its own (spec §9).
 - The words in spec §10 are exact, and pass the drunk grandma test: could a drunk grandma tell what is happening and
   what to press? No file key, glob, package name or event id as page text.
+- The editors are still found by role: the sidebar, the rail and the tab bar are a `tablist` named "Editors" whose
+  `tab`s are named by the editor's name alone, because every journey opens an editor with
+  `getByRole('tab', { name, exact: true })` (`tests/e2e/harness/complete-game.ts`). No Review page (spec §2).
+- Packages are `@automata/editor`, `@automata/editors` and `@automata/editor-3d` (the `@mcthaydt/automata-*` names
+  are the published scope of other packages, not these). Playwright journeys are `test:e2e` of each package, not
+  `test:browser:2d`, and need `pnpm build` first.
 - No sim file changes and no hash moves. `@automata/editor`, `-editors` and `-3d` are private: no changeset.
 - `pnpm format` and `pnpm check` before every commit; Conventional Commits; ordinary commits only, never a force-push.
 - Visual baselines that move are looked at (expected, actual, diff) and each change is named in this plan's log.
@@ -80,21 +87,23 @@ branch `claude/project-thread-6mtkk6` merged in by Task 1. Paths were read on #5
 - Modify: `packages/editor/src/shared/kit/tokens/tool-theme.json`, `tool-theme-to-css.ts`, `tokens.json`
   (`"colorScheme": "dark"`), `packages/editor/src/shared/kit/theme/theme-choice.ts`, `ThemeChoice.svelte`,
   `packages/editor/src/shared/kit/tool-chrome.css`, the generated `tokens.css` and `tool-theme.css` (by
-  `pnpm --filter @mcthaydt/automata-editor tokens`), the three `public/theme-boot.js` (from `THEME_BOOT`).
+  `pnpm --filter @automata/editor tokens`), the three `public/theme-boot.js` (`packages/editor/public/`,
+  `packages/editor-3d/public/` and `extensions/editors/public/`, from `THEME_BOOT`).
 - Test: `packages/editor/tests/unit/shared/kit/tokens/tool-theme.test.ts`, `tool-theme-dom.test.ts`,
   `packages/editor/tests/unit/shared/kit/editor-colours.test.ts`, `tests/unit/shared/kit/theme/theme-choice.test.ts`
-  (create if absent), `theme-choice-widget.test.ts`, `theme-pages.test.ts`, `packages/editor/tests/e2e/theme.test.ts`.
+  (create if absent), `theme-choice-widget.test.ts`, `theme-pages.test.ts`, `packages/editor/tests/e2e/theme.test.ts`,
+  `packages/editor/tests/browser/layout/shared/kit/theme/theme.test.ts` (no attribute now means dark).
 
 **Interfaces:**
 - Produces: `readThemeChoice(storage): ThemeChoice` returns `'dark'` for a missing or unknown value;
   `writeThemeChoice(choice, storage)` always writes the choice (`device` included);
   `applyThemeChoice(choice, root)` always sets `root.dataset.theme = choice`. New tokens `--tool-raise`, `--tool-dot`,
-  `--lime-hover`; new size token `--size-field` (28 px mouse, 44 px touch) and `--shell-topbar` 48/56 in
+  `--lime-hover`, `--tool-line-hover`; new size token `--size-field` (28 px mouse, 44 px touch) and `--shell-topbar` 48/56 in
   `tool-chrome.css`.
 
 - [ ] **Step 1: Write the failing tests.**
       `tool-theme.test.ts`: the JSON's dark and light values equal spec §4's table, key by key, and both hold
-      `tool-raise`, `tool-dot`, `lime-hover`. `toolThemeToCss` output: `:root` holds the dark values and
+      `tool-raise`, `tool-dot`, `lime-hover`, `tool-line-hover`; every other key of today's file is still there. `toolThemeToCss` output: `:root` holds the dark values and
       `color-scheme: dark`; `:root[data-theme="light"]` holds the light values; `@media (prefers-color-scheme: light)`
       wraps `:root[data-theme="device"]` with the light values; no `prefers-color-scheme: dark` block remains.
       `editor-colours.test.ts`: `contrast(front, back) >= 4.5` for every pair listed in spec §4's Contrast paragraph,
@@ -103,7 +112,7 @@ branch `claude/project-thread-6mtkk6` merged in by Task 1. Paths were read on #5
       `dark`, `device` round-trip; `writeThemeChoice('device')` calls `setItem(THEME_KEY, 'device')`.
       `theme-choice-widget.test.ts`: the radio names in order are `Dark`, `Light`, `Match device`, and `Dark` is
       checked with an empty store. `tokens-to-css.test.ts`: `color-scheme: dark;` is the first line.
-- [ ] **Step 2: Run** `pnpm --filter @mcthaydt/automata-editor test:unit -- tool-theme editor-colours theme-choice tokens-to-css`.
+- [ ] **Step 2: Run** `pnpm --filter @automata/editor test:unit -- tool-theme editor-colours theme-choice tokens-to-css`.
       Expected: FAIL on the values, the CSS default, the stored default and the order.
 - [ ] **Step 3: Implement.** Put spec §4's values in `tool-theme.json`; change `toolThemeToCss`'s template to the
       dark-default shape; flip `colorScheme`; change the three functions and `THEME_BOOT` to "set `data-theme` to the
@@ -112,25 +121,29 @@ branch `claude/project-thread-6mtkk6` merged in by Task 1. Paths were read on #5
 - [ ] **Step 4: Update the e2e** `theme.test.ts`: a fresh context with `colorScheme: 'light'` and no storage opens
       with `data-theme="dark"` and the dark `--tool-panel`; stored `light` opens light; choosing Match device in a
       light device shows light, survives a reload, and the store holds `device` (Review Focus 1).
-- [ ] **Step 5: Run** the unit tests above, `pnpm test:browser:2d -- theme`, and `pnpm check`. Expected: PASS.
+- [ ] **Step 5: Run** the unit tests above, `pnpm --filter @automata/editor exec vitest run --project layout
+      tests/browser/layout/shared/kit/theme`, then `pnpm build` and
+      `pnpm --filter @automata/editor exec playwright test tests/e2e/theme.test.ts --project desktop --trace off`, and
+      `pnpm check`. Expected: PASS.
 - [ ] **Step 6: Commit** `feat(editor): the v2 colours, and the editors open in the dark look`.
 
 ### Task 3: The site keeps its own colour scheme, and every page is checked
 
 **Files:**
-- Modify: the site's own tokens file (`site/src/app.css` on #506's line, `site/src/shared/styles/tokens.css` once the
-  site slice is in), adding `color-scheme` beside its `--bg`.
-- Create: `site/tests/e2e/contrast.e2e.ts`.
+- Modify: the site's own tokens file (`site/src/app.css`'s `:root` on #506's line, `site/src/shared/styles/tokens.css`
+  once the site slice #517 is in), adding `color-scheme` beside its `--bg`; `site/tests/e2e/site.e2e.ts`.
 
 **Interfaces:**
-- Consumes: `axeViolations(page, exclude?)` from `site/tests/e2e/gates.ts` (run with only the `color-contrast` rule;
-  add a `rules?: string[]` option there if it has none).
+- Consumes: `axeViolations(page, exclude?)` from `site/tests/e2e/gates.ts` (WCAG 2.2 AA, `color-contrast` included)
+  and `site.e2e.ts`'s own `PAGES` list. No second route list and no new file: `site.e2e.ts` already runs axe on every
+  page at 375 and 1280 px.
 
-- [ ] **Step 1: Write the failing test** `contrast.e2e.ts`: for each route in spec §8 at 1440 × 900 and 390 × 844, in a
-      context with `colorScheme: 'dark'`, `axeViolations` with `color-contrast` is `[]`, and
+- [ ] **Step 1: Write the failing test** in `site.e2e.ts`: a `describe` that, for each of `PAGES` at 375 × 667 and
+      1280 × 800, in a context with `colorScheme: 'dark'`, asserts `axeViolations(page)` is `[]` and
       `getComputedStyle(document.documentElement).colorScheme` equals the site's own scheme (`'light'` on today's
-      site). Routes come from one array; the doc, API and example pages are the first of each list.
-- [ ] **Step 2: Run** the site's e2e for this file. Expected: FAIL on `colorScheme` (it inherits `dark` from Task 2).
+      site; `'dark'` once the site's v2 is in).
+- [ ] **Step 2: Run** `pnpm --filter @automata/site test:e2e -- site.e2e --project chromium --trace off`
+      (after `pnpm build`). Expected: FAIL on `colorScheme` (it inherits `dark` from Task 2).
 - [ ] **Step 3: Implement:** set the site's `color-scheme` in its own `:root`. Fix any pair axe still reports by
       moving the site to an existing token, and name each in the log.
 - [ ] **Step 4: Run** the file and the site's whole e2e suite. Expected: PASS. Then `pnpm check`.
@@ -148,25 +161,29 @@ helper, `atEverySize(run)`, created in Task 4.
 - Modify: `packages/editor/src/shared/kit/shell/EditorShell.svelte` (split its region sheets into
   `shell-sheets.svelte` to stay under 600 lines), `shell-layout.css`, `shell-regions.css`,
   `packages/editor/src/shared/kit/icons/paths.ts`, `packages/editor/src/features/suite/shell/suite-entries.ts`
-  (`iconFor`), `packages/editor-3d/src/features/studio/studio-suite-editor.ts` and Levels 3D's entry (icons).
+  (`iconFor`), `packages/editor/src/app/suite/levels-2d/levels-2d-suite-editor.ts` (its entry definitions' icons),
+  `packages/editor-3d/src/features/studio/studio-suite-editor.ts` and Levels 3D's entry (icons).
 - Create: `packages/editor/src/testing/at-every-size.ts`.
 - Test: `packages/editor/tests/unit/shared/kit/icons/paths.test.ts`, `tests/unit/suite/shell/suite-entries.test.ts`,
   `tests/browser/layout/shared/kit/shell/editor-shell.test.ts`.
 
 **Interfaces:**
 - Produces: icons `levels`, `person` (if the shared-editors build lacks it), `zap`, `volume`, `message`, `clapper`,
-  `workflow`, `minus`, `maximize`, `upload`, `eye-off`, copied verbatim from the mockup's `icons.js`.
-  `iconFor(id: string): IconName` per spec §7.3. `atEverySize(run: (size: { name: string; width: number; height:
+  `workflow`, `maximize`, `upload`, copied verbatim from the mockup's `icons.js` (`minus`, `eye-off`, `home`,
+  `sliders` and `review` are already in `paths.ts`). `iconFor(id: string): IconName` per spec §7.3, exported for its
+  test; Levels 2D's `SuiteEntryDef`s in `levels-2d-suite-editor.ts` get `levels` and `person`. `atEverySize(run: (size: { name: string; width: number; height:
   number; touch: boolean }) => Promise<void>)`. The shell's regions: `sidebar` (was `rail`) in wide and medium,
   `tabbar` in compact; `data-mode` unchanged. Shell variables `--shell-sidebar` 224 px, `--shell-rail` 76 px,
   `--shell-tabbar` 56 px, `--shell-inset` 8 px.
 
 - [ ] **Step 1: Write the failing tests.** `suite-entries.test.ts`: `iconFor` gives spec §7.3's icon for every id, and
-      the icons of the entries a suite with every editor shows are all different. `editor-shell.test.ts`, at each
+      the icons of the entries a suite with every editor shows are all different (`levels-2d` and `levels-3d` share
+      `levels` only because no game shows both under one name; with both kinds they are "Levels 2D" and "Levels 3D",
+      and that is allowed). `editor-shell.test.ts`, at each
       size: wide shows the sidebar at 224 px and the panel inset 8 px with a 1 px edge and 8 px corners; medium shows
       a 76 px rail on the left and no tab bar at the foot, with the inspector floating over the work (296 px) only
       when something is chosen and a header button to open it otherwise; compact shows no sidebar, the panel at the window's edges and
-      the tab bar; `document.documentElement.scrollWidth <= innerWidth` at every size.
+      the tab bar; Home shows the sidebar too; `document.documentElement.scrollWidth <= innerWidth` at every size.
 - [ ] **Step 2: Run** them. Expected: FAIL (`list` icons; today's 56 px rail; today's medium foot bar).
 - [ ] **Step 3: Implement** the grid in `shell-layout.css` (spec §6) and the icons.
 - [ ] **Step 4: Run** the tests, `pnpm test:browser:2d -- shell`, and `pnpm check`. Expected: PASS.
@@ -178,16 +195,22 @@ helper, `atEverySize(run)`, created in Task 4.
 - Create: `packages/editor/src/shared/kit/nav/Sidebar.svelte`.
 - Modify: `packages/editor/src/features/suite/shell/SuiteRail.svelte` (becomes a thin switch: `Sidebar` in wide and
   medium, `TabBar` in compact, Task 8), `Suite.svelte`.
+- Create: `packages/editor/src/features/suite/core/problem-counts.ts`.
 - Test: `tests/unit/shared/kit/nav/sidebar.test.ts`, `tests/browser/layout/shared/kit/nav/sidebar.test.ts`.
 
 **Interfaces:**
 - Produces: `Sidebar` props `{ game: { name: string; letter: string }; entries: readonly SuiteEntry[]; current:
-  string | undefined; counts: Readonly<Record<string, { n: number; tone: 'warn' | 'plain' }>>; layout: 'sidebar' |
-  'rail'; onselect: (id: string) => void; onhome: () => void; ongame: () => void }`. Review is shown under "Waiting
-  for you", every other entry under "Editors".
+  string | undefined; counts: Readonly<Record<string, number>>; layout: 'sidebar' | 'rail'; onselect: (id: string) =>
+  void; onhome: () => void; ongame: () => void }`. Every entry is under "Editors". `counts` comes from
+  `problemCounts(findings: readonly CheckFinding[], list: EditorList): Record<string, number>` in
+  `packages/editor/src/features/suite/core/problem-counts.ts` (new): each finding with a `path` counts once for the
+  editor the list gives that path to.
 
-- [ ] **Step 1: Write the failing tests.** DOM: the group labels "Editors" and "Waiting for you"; rows in entry order
-      with their icon and whole name; Schematic's count in `warn`; one tab stop, arrows, Home, End and Cmd/Ctrl 1-9
+- [ ] **Step 1: Write the failing tests.** DOM: the group label "Editors" and no "Waiting for you"; a `tablist` named
+      "Editors" whose `tab`s, in entry order, have their icon and are named exactly by the editor's name, a count
+      included (`getByRole('tab', { name: 'Schematic', exact: true })` finds Schematic with 1 problem, and the tab is
+      described by "1 problem"); Home is a button outside the list; Schematic's count in `warn`; `problemCounts` gives
+      a finding in `content/systems/guard.toml` to `schematic` and a finding with no `path` to none; one tab stop, arrows, Home, End and Cmd/Ctrl 1-9
       keep today's rail behaviour (move today's rail keyboard tests here). Layout: no row label is cut
       (`scrollWidth <= clientWidth`) in either layout; rows are 32 px with a mouse and 44 px on touch; rail items 52 px
       and 56 px on touch.
@@ -209,11 +232,13 @@ helper, `atEverySize(run)`, created in Task 4.
 - Consumes: today's `SuiteTopBar` props (`title`, `saved`, `history`, `onundo`, `onredo`, `playUrl`, publish).
 - Produces: `SuiteHeader` props `{ editor: { label: string; icon: IconName } | undefined; doc: { name: string;
   menu: readonly MenuItem[] } | undefined; views?: { options: readonly { id: string; label: string }[]; value: string;
-  onchange: (id: string) => void }; problems: readonly CheckFinding[]; save: 'saved' | 'saving' | { failed: string };
+  onchange: (id: string) => void }; checks: Pill (today's `checksPill` result, `pills-model.ts`); onlocate; save: 'saved' | 'saving' | { failed: string };
   history; onundo; onredo; playUrl; onpublish; mode: ShellMode }`.
 
 - [ ] **Step 1: Write the failing tests.** DOM: "Levels / Start" with the chevron opens the document menu; Level ·
-      Tiles is a radio group; "1 problem" and "No problems"; "Saved", "Saving…" and the failure words; Undo and Redo
+      Tiles is a radio group; the problem count's words for each `Pill` tone (spec §7.4): "Checking…", "Not checked
+      yet", "No problems", "1 problem", "3 problems", "Couldn't check"; its menu lists the findings and Locate selects
+      one; "Saved", "Saving…" and the failure words; Undo and Redo
       named with the step; Play and Publish; exactly one lime button. In compact: the title menu holds the view tabs,
       the problem count and Saved, so every one is still reachable. Layout at 360 × 640 with the name "The Very Long
       Level Of Many Rooms": the title ellipsises, Undo, Redo, Play and Publish are whole and at least 44 px, Publish 48
@@ -276,7 +301,9 @@ helper, `atEverySize(run)`, created in Task 4.
       844 × 390: the sheet is open, the field focused, its value "Shop", and the tab bar at the left.
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement**; `railFit` from the shared-editors build is replaced by `tabSlots` (spec §7.8), and its
-      tests move.
+      tests move. The tab bar keeps `role="tablist"` "Editors" and its `tab` names, and the journeys' `railHas` and
+      `openFromRail` (`packages/editor/tests/e2e/harness/complete-game.ts`) keep finding a tab or More's item; run
+      `complete-game-2d` with `--project editor-phone-chromium` to prove it.
 - [ ] **Step 4: Run** and `pnpm check`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(editor): bottom sheets and a tab bar of four editors and More`.
 
@@ -284,18 +311,20 @@ helper, `atEverySize(run)`, created in Task 4.
 
 **Files:**
 - Create: `packages/editor/src/shared/kit/states/EmptyState.svelte`.
-- Modify: `packages/editor/src/shared/kit/widgets/StatusLine.svelte`, `packages/editor/src/features/suite/shell/ReviewDesk.svelte`.
-- Test: `tests/unit/shared/kit/states/empty-state.test.ts`, `tests/unit/suite/shell/review-desk.test.ts`.
+- Modify: `packages/editor/src/shared/kit/widgets/StatusLine.svelte`, `packages/editor/src/features/characters/EntitiesPanel.svelte`
+  (its "No characters yet" becomes an `EmptyState`).
+- Test: `tests/unit/shared/kit/states/empty-state.test.ts`, the Characters panel's DOM test.
 
 **Interfaces:**
 - Produces: `EmptyState { icon: IconName; title: string; why: string; action: { label: string; onclick: () => void } }`.
 
-- [ ] **Step 1: Write the failing tests.** `EmptyState` has one heading, one line and one button. Review with nothing
-      waiting shows spec §7.9's three exact strings, and "Back to Home" opens Home. `StatusLine` is hidden in compact.
+- [ ] **Step 1: Write the failing tests.** `EmptyState` has one heading, one line and one button. Characters with no
+      character shows "No characters yet", "Add one to place it in your levels." and its one add button.
+      `StatusLine` is hidden in compact and uses `text-mono-12`.
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run** and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(editor): an empty state with one way forward; Review uses it`.
+- [ ] **Step 5: Commit** `feat(editor): an empty state with one way forward, and the status line as the panel's foot`.
 
 ## Phase 3: the screens
 
@@ -309,14 +338,17 @@ and log what differs and why.
 
 **Files:**
 - Modify: `packages/editor/src/features/suite/shell/Home.svelte`, `SuiteHome.svelte`, `EditorCardView.svelte`,
-  `packages/editor/src/shared/kit/home/CardTile.svelte`, `ShipDialog.svelte`, `SuitePublish.svelte`.
+  `packages/editor/src/shared/kit/home/CardTile.svelte`, `PublishGameDialog.svelte` (today titled "Make your game ready
+  to upload", with "Build my game" already its confirm).
 - Create: `packages/editor/src/testing/screen-checks.ts`.
-- Test: `tests/unit/suite/shell/home.test.ts`, `tests/unit/suite/shell/ship-dialog.test.ts`,
+- Test: `tests/unit/suite/shell/home.test.ts`, `tests/unit/suite/shell/publish-game-dialog.test.ts`,
   `tests/browser/layout/suite/shell/home-v2.test.ts`.
 
 - [ ] **Step 1: Write the failing tests.** Home's heading and lede (spec §10); each card's name, line (spec §10's
-      table) and contents, "Nothing yet" for an editor with no file; the colours control at the foot. Publish: the
-      title "Put your game online", three steps, and "Build my game" as the dialog's one lime. Layout: three cards a
+      table) and contents, "Nothing made yet. Open it to start." for an editor with no file; the colours control at the foot. Publish: the
+      title "Put your game online", the mockup's line ("Publish builds your game and checks it is ready for the web. You
+      get one zip file to upload to itch.io or any website host."), three steps, and "Build my game" as the dialog's
+      one lime; "Download the zip" and "Try again" are the dialog's one lime only in their own phase. Layout: three cards a
       row in wide, two in medium, one a row in compact; `screenChecks` passes.
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
@@ -329,15 +361,18 @@ and log what differs and why.
 - Modify: `packages/editor/src/app/suite/levels-2d/*` (tools and panes), `packages/editor/src/features/level/*`
   (layers and palette as `Section` and `Row`, inspector as `Field`, the canvas toolbar as `FloatingToolbar` with the
   brush size as its second group, zoom bottom right), `packages/editor/src/features/tiles/*`,
-  `packages/editor/src/features/characters/*`, the platformer template's `hp` label
-  (`packages/editor/src/shared/level-2d/profiles/level-project/templates/platformer.ts`), the link check's words for a
-  link with no target, and every `variant="primary"` here (to `secondary`).
+  `packages/editor/src/features/characters/*`, the `hp` label in
+  `packages/editor/src/shared/level-2d/profiles/level-project/templates/platformer.ts` (Slime) and `topdown-rpg.ts`
+  (Enemy), the required-field words in `packages/editor/src/shared/kit/fields/field-values.ts:17` (today
+  `` `${field.id} is required` ``, a key as page text; it gains the thing's label so a ref says "The Door doesn't lead
+  anywhere yet. Choose where it goes." and any other field "The Slime needs a Patrol path. Fill it in."), and every
+  `variant="primary"` here (to `secondary`).
 - Test: the existing `tests/browser/layout/level/level-view.test.ts`, `characters/*.test.ts`, the tiles layout test,
   `tests/unit/features/level/inspector-words.test.ts` (create).
 
 - [ ] **Step 1: Write the failing tests.** "Hits to beat it" with its value alone and its range in the hint; a Door
-      whose link has no target shows "The Door doesn't lead anywhere yet. Choose the level it opens." under the field
-      and in Problems; a level project with no level shows `EmptyState` with today's one action; the stage has the
+      whose Leads to is empty shows "The Door doesn't lead anywhere yet. Choose where it goes." under the field and in
+      Problems, and a top-down Warp says the same with "Warp"; no problem's words hold a field id; a level project with no level shows `EmptyState` with today's one action; the stage has the
       dotted `tool-stage` in both looks; `screenChecks` on Level, Tiles and Characters; on a phone the tool dock sits
       above the tab bar, and at 844 × 390 at the right edge.
 - [ ] **Step 2: Run.** Expected: FAIL.
@@ -387,14 +422,24 @@ and log what differs and why.
 
 **Files:**
 - Modify: `extensions/editors/tests/e2e/journeys/dark-game-loop.test.ts` (no stored choice; presses Play),
-  `packages/editor/tests/e2e/journeys/dark-levels-3d.test.ts`, the visual baselines that moved,
+  `packages/editor/tests/e2e/journeys/dark-levels-3d.test.ts`, every `variant="primary"` outside a dialog in
+  `packages/editor-3d/src` (11 uses on #508, to `secondary`; spec §9), the visual baselines that moved,
   `docs/refactor/progress.md`, this plan's log.
 
 - [ ] **Step 1:** Change `dark-game-loop.test.ts` to start with an empty store and `colorScheme: 'light'`, check the
-      editors open dark, make the small game (paint tiles and place a coin, change the jump, add a shake, a sound and
-      a line), press Play and assert each shows in the played game. Run it. Expected: PASS.
-- [ ] **Step 2:** Run the 3D editors: `.github/workflows/3d.yml`'s commands, including `dark-levels-3d.test.ts`.
-      Levels 3D and the Studio show in the new shell, header, sidebar and tab bar; their insides are unchanged.
+      editors open dark, make the small game with the complete-game helpers (`tests/e2e/harness/complete-game.ts`):
+      paint a Decor cell, change the player's picture in Characters, add a key in the Tuner, add a flash in Feel,
+      start the bump at 880 Hz in Audio, and change the keeper's line in Writer (the shared-editors build's 2D
+      template has the keeper; if this branch's template has none, leave Writer out and say so in the log). Press Play
+      and assert each shows in the played game, as `complete-game-2d` does. Run `pnpm build`, then
+      `pnpm --filter @automata/editors test:e2e -- dark-game-loop --trace off`. Expected: PASS on both projects.
+      Then run `complete-game-2d` and `complete-game-3d` (`pnpm --filter @automata/editor test:e2e -- complete-game
+      --trace off`): every editor in both kinds of game, in the new look. Expected: PASS, with the `test.fail` journeys
+      the shared-editors build left failing for their stated reasons.
+- [ ] **Step 2:** Turn the 3D editors' `variant="primary"` buttons outside a dialog to `secondary`, then run the 3D
+      editors: `.github/workflows/3d.yml`'s commands, including `dark-levels-3d.test.ts`.
+      Levels 3D and the Studio show in the new shell, header, sidebar and tab bar with Publish their only lime; their
+      insides are otherwise unchanged.
       Expected: PASS. If it cannot run here, leave the step unchecked and say so.
 - [ ] **Step 3:** Run every visual test; for each baseline that moved, look at expected, actual and diff, re-record
       it only when the change is the v2 look, and name each in the log.
@@ -403,12 +448,17 @@ and log what differs and why.
       results in the log and in `progress.md`.
 - [ ] **Step 5: Commit** `test(editors): the v2 look proven in play; record the build`.
 
-**For the build audit (stage 5), the thread's instructions must say:** make a small game in the rebuilt editors, play
-it, and confirm that what was made shows up in play (spec §11's list), at a phone size and an iPad size, in Dark and
-once in Light; and apply the drunk grandma test to every screen.
+**For the build audit (stage 5), the thread's instructions must say:** make a small 2D game and a small 3D game in the
+rebuilt editors, play each, and confirm that what was made shows up in play (spec §11's list), at a phone size and an
+iPad size, in Dark and once in Light; and apply the drunk grandma test to every screen.
 
 ## Log
 
 - 2026-11-08: spec and plan written (stage 2). The shared-editors build had no branch yet, so this plan is stacked on
   the shared-editors plan's branch (`claude/project-thread-9t2qxf`, PR #512); the build starts from the shared-editors
   build head once it exists, and merges #506 first (Task 1).
+- 2026-11-08: plan audit (stage 3), [`2026-11-08-editors-v2-plan-audit.md`](2026-11-08-editors-v2-plan-audit.md):
+  17 findings checked against #508 at `89db7336`, #506 at `30667aa3` and #517 at `87619dbb`, all fixed in the spec and
+  this plan. The biggest: Review does not exist (deleted in `a15c7b36`), so it is out (A1); the editors stay a
+  `tablist` of `tab`s so the journeys still find them (A2); the problem count keeps every checks state (A3); the 3D
+  editors' 11 lime buttons turn secondary (A4); the Door's words were wrong about what a Door leads to (A5).
