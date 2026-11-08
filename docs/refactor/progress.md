@@ -679,4 +679,9 @@ Audio answering his bump. Made by hand in both kinds and played, at iPad and pho
 `complete-game-3d` journeys: 22 pass at both sizes. Not run: WebKit, Firefox, the GPU runner, hosted CI (the editor
 browser projects need the other engines, so `pnpm test:browser:2d` stops here); `stranger-3d.test.ts` pending. `pnpm check`
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
-(`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
+(`stage-characters-3d.md`). Details and rulings: the plan's log.
+
+Stage 5 (build audit) done: [build audit](2026-11-08-shared-editors-build-audit.md). A 3D cutscene never moves the camera
+(C1: the stage writes it per step, the follow camera per frame); an edit is lost without a word when the list stops
+naming its file (H1); the failing changeset is this build's own (`9a7127af`, H2); plus M1-M4 and L1-L4. `pnpm check`
+red only on that changeset; journeys 21 of 22 (the one timeout passed alone). Stage 6 (fixes) not started.
