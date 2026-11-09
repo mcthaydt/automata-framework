@@ -44,10 +44,47 @@ const wickFixture: BrowserCommand<[], WickFixture> = async (ctx) => {
   return { wick, library, motion: played }
 }
 
+// The painter's oracle frames, as Node paints them, for a page that paints the same ones and compares: each frame's
+// input over the wire and the hash of the cell Node made (the unit tests hold Node's cells to the oracle's bytes).
+export interface PaintedWire {
+  readonly id: string
+  readonly input: string
+  readonly hash: string
+}
+const WIRED = ['base-m-D1-stand-45', 'base-m-D1-hero', 'base-m-D2-hero', 'base-f-D2-walk3-90']
+const paintedCells: BrowserCommand<[], PaintedWire[]> = async (ctx) => {
+  const oracles =
+    await ctx.project.import<typeof import('./src/testing/oracles.ts')>('./src/testing/oracles.ts')
+  const inputs = await ctx.project.import<typeof import('./tests/unit/figures/paint/cell-input.ts')>(
+    './tests/unit/figures/paint/cell-input.ts',
+  )
+  const paint = await ctx.project.import<typeof import('./src/features/figures/paint/paint-cell.ts')>(
+    './src/features/figures/paint/paint-cell.ts',
+  )
+  const wire = await ctx.project.import<typeof import('./src/testing/wire.ts')>('./src/testing/wire.ts')
+  const { frames } = oracles.figureBuilderFrames()
+  const out: PaintedWire[] = []
+  for (const frame of frames.filter((f) => WIRED.includes(f.id))) {
+    const input = inputs.inputOf(frame)
+    out.push({ id: frame.id, input: wire.toWire(input), hash: await wire.cellHash(paint.paintCell(input)) })
+  }
+  return out
+}
+
+// A photo's PNG as base64, for a page that makes tiles from the library (the game fetches the same bytes by URL).
+const photoFile: BrowserCommand<[string], string> = async (ctx, name) => {
+  const files = await ctx.project.import<typeof import('./src/testing/photo-files.ts')>(
+    './src/testing/photo-files.ts',
+  )
+  return Buffer.from(files.photoBytes(name)).toString('base64')
+}
+
 // Pre-bundled browser-side deps: on a cold cache Vite otherwise reloads test pages mid-run (A0 spec §11).
 const config: ReturnType<typeof defineTests> = defineTests({
   svelte: true,
   optimizeDeps: ['zod'],
-  browserCommands: { figureFixture, wickFixture } as NonNullable<TestOptions['browserCommands']>,
+  browserCommands: { figureFixture, wickFixture, paintedCells, photoFile } as NonNullable<
+    TestOptions['browserCommands']
+  >,
 })
 export default config
