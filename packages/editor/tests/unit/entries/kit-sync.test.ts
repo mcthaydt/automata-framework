@@ -19,17 +19,24 @@ function reachable(entry: string, seen = new Set<string>()): Set<string> {
 }
 
 describe('the kit sync entry', () => {
-  test('gives a host sign-in, the loop and the merges', () => {
+  test('gives a host sign-in, the loop, the merges, and a way to keep a game over GitHub’s REST API', () => {
     expect(Object.keys(sync).sort()).toEqual([
       'OfflineError',
       'SIGN_IN_WORDS',
       'STATUS_LINES',
+      'SyncStopped',
+      'createRestEngine',
       'generatedFolders',
       'generatedNote',
+      'getGame',
       'githubToken',
+      'installUrl',
       'isGeneratedPath',
       'keepBothName',
+      'listGitHubGames',
       'mergeFile',
+      'newRepoUrl',
+      'repoReachable',
       'signIn',
       'startSync',
     ])

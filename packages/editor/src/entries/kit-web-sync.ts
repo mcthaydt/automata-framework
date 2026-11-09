@@ -2,6 +2,7 @@
 
 export {
   createWebGitHubSession,
+  githubApp,
   githubReady,
   type WebGitHubDeps,
   type WebGitHubSession,

@@ -241,5 +241,6 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | A zip that is not a game | (nothing) | `This isn’t an Automata game. Pick a .zip you saved from Automata.` | 1 |
 | New game | (nothing) | `What’s your game called?`, `Its files will be called lantern-run.`, `Make my game` | 1 |
 | Sign in card | (nothing) | `Keep your games on all your devices` / `Your games are kept in your own GitHub account. Automata keeps nothing.` / `Sign in with GitHub (free)`; refused: `GitHub said no. Start again if you want to connect.` | 1 and 5 |
-| Signed in | (nothing) | `Signed in as {login}.` / `Your games stay on this device.` / `Sign out` / `Sign out and remove my games from this browser` | 1 |
-
+| Signed in | (nothing) | `Signed in as {login}.` / `Your games stay on this device until you keep one on GitHub.` / `Sign out` / `Sign out and remove my games from this browser` | 1 |
+| GitHub games | (nothing) | `Your games on GitHub` (only games the app was let into that this device does not have), each with `Get it` (`Getting it…`); too big: `This game is too big to get on the web. Use the Automata app.` | 5 |
+| Keep a game on GitHub | (nothing) | `Keep this game on GitHub` → `Make an empty place for your game on GitHub, then come back.` / `I made it` / `Never mind`; not seen: `Automata can’t reach this game on GitHub yet.` / `Let Automata see this game` → `Choose your games on GitHub, then come back here.` / `Check again`; kept: `On this device and GitHub: {owner/name}` | 5 |

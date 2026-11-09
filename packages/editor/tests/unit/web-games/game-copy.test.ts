@@ -45,7 +45,10 @@ describe('Save a copy and Open a copy', () => {
   })
 
   it('reads a zip whose files all sit in one folder as if they were at the top', async () => {
-    const zip = zipSync({ 'my-game/content/editors.toml': strToU8(LIST), 'my-game/content/a.toml': strToU8('a = 1') })
+    const zip = zipSync({
+      'my-game/content/editors.toml': strToU8(LIST),
+      'my-game/content/a.toml': strToU8('a = 1'),
+    })
     const games = await browser()
     const opened = await openCopy(zip, games)
     expect(opened).toMatchObject({ ok: true, game: { title: 'my-game' } })
@@ -53,7 +56,10 @@ describe('Save a copy and Open a copy', () => {
 
   it('refuses a zip with no editor list, in words', async () => {
     const games = await browser()
-    expect(await openCopy(zipSync({ 'readme.txt': strToU8('hi') }), games)).toEqual({ ok: false, why: NOT_A_GAME })
+    expect(await openCopy(zipSync({ 'readme.txt': strToU8('hi') }), games)).toEqual({
+      ok: false,
+      why: NOT_A_GAME,
+    })
     expect(await openCopy(strToU8('not a zip at all'), games)).toEqual({ ok: false, why: NOT_A_GAME })
   })
 
@@ -61,7 +67,10 @@ describe('Save a copy and Open a copy', () => {
     const games = await browser()
     const climbing = zipSync({ 'content/editors.toml': strToU8(LIST), '../outside.txt': strToU8('x') })
     expect(await openCopy(climbing, games)).toMatchObject({ ok: false })
-    const big = zipSync({ 'content/editors.toml': strToU8(LIST), 'content/big.bin': new Uint8Array(16 * 1024 * 1024 + 1) })
+    const big = zipSync({
+      'content/editors.toml': strToU8(LIST),
+      'content/big.bin': new Uint8Array(16 * 1024 * 1024 + 1),
+    })
     expect(await openCopy(big, games)).toMatchObject({ ok: false, why: expect.stringContaining('too big') })
     expect(await games.list()).toEqual([])
   })

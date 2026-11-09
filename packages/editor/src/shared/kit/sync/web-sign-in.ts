@@ -27,6 +27,21 @@ export interface WebGitHubDeps {
   navigate(url: string): void
 }
 
+/**
+ * The name of the GitHub App the site's function signs in with (its public address is `github.com/apps/<name>`), or
+ * nothing when the site has no sign-in set up or cannot be reached.
+ */
+export async function githubApp(fetchFn: typeof fetch): Promise<string | undefined> {
+  try {
+    const response = await fetchFn('/api/github/ping')
+    if (!response.ok) return undefined
+    const body = (await response.json()) as { github?: unknown; app?: unknown }
+    return body.github === 'ready' && typeof body.app === 'string' ? body.app : undefined
+  } catch {
+    return undefined
+  }
+}
+
 /** Whether the site has the sign-in function set up; a page that has not shows no sign-in. */
 export async function githubReady(fetchFn: typeof fetch): Promise<boolean> {
   try {

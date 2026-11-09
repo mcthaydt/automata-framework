@@ -219,17 +219,24 @@ describe('openSuitePorts: the person’s own game, kept in this browser', () => 
       ...page(undefined).env,
       local: { store, title: 'Lantern Run', where: 'device' },
     })
-    expect(await opened.ports.workspace.write('content/rooms/room-2.af2d.json', '{}', 'absent')).toMatchObject({
+    expect(
+      await opened.ports.workspace.write('content/rooms/room-2.af2d.json', '{}', 'absent'),
+    ).toMatchObject({
       ok: true,
     })
     expect((await store.list()).map((entry) => entry.path)).toContain('content/rooms/room-2.af2d.json')
-    expect((await opened.ports.workspace.read('content/tuning.toml'))).toBeUndefined()
+    expect(await opened.ports.workspace.read('content/tuning.toml')).toBeUndefined()
   })
 
   it('says nothing is kept, and why, when the browser keeps nothing', async () => {
     const opened = await openSuitePorts({
       ...page(undefined).env,
-      local: { store: await ownGame(), title: 'Lantern Run', where: 'nowhere', reason: 'No private storage.' },
+      local: {
+        store: await ownGame(),
+        title: 'Lantern Run',
+        where: 'nowhere',
+        reason: 'No private storage.',
+      },
     })
     expect(opened).toMatchObject({ kept: false, where: 'nowhere', reason: 'No private storage.' })
   })

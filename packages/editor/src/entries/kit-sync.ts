@@ -9,7 +9,18 @@ export {
   OfflineError,
   type PullOutcome,
   type PushResult,
+  SyncStopped,
 } from '../shared/kit/sync/git-engine'
+export {
+  type GameShelf,
+  type GitHubGame,
+  type GotGame,
+  getGame,
+  installUrl,
+  listGitHubGames,
+  newRepoUrl,
+  repoReachable,
+} from '../shared/kit/sync/github-games'
 export {
   type Clock,
   githubToken,
@@ -21,6 +32,7 @@ export {
   signIn,
 } from '../shared/kit/sync/github-sign-in'
 export { keepBothName, type MergeOutcome, mergeFile, type Versions } from '../shared/kit/sync/merge-drivers'
+export { createRestEngine, type RestEngineOptions, type SyncFile } from '../shared/kit/sync/rest-engine'
 export {
   type SyncHandle,
   type SyncOptions,

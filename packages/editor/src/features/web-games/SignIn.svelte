@@ -21,6 +21,7 @@ interface Props {
 
 const { session, back, denied = false, onremoveall }: Props = $props()
 
+// svelte-ignore state_referenced_locally
 let signedIn = $state<boolean | undefined>(session.signedIn)
 let login = $state<string | undefined>()
 let confirming = $state(false)
@@ -42,7 +43,7 @@ $effect(() => {
   <section class="card" aria-label="Sign in" data-testid="sign-in">
     {#if signedIn}
       <p class="who">Signed in{login ? ` as ${login}` : ''}.</p>
-      <p class="note">Your games stay on this device.</p>
+      <p class="note">Your games stay on this device until you keep one on GitHub.</p>
       <div class="acts">
         <Button onclick={() => void session.signOut()}>Sign out</Button>
         <Button variant="quiet" onclick={() => (confirming = true)}>Sign out and remove my games from this browser</Button>

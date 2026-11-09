@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest'
-import { createWebGitHubSession, githubReady } from '#src/shared/kit/sync/web-sign-in.ts'
+import { createWebGitHubSession, githubApp, githubReady } from '#src/shared/kit/sync/web-sign-in.ts'
 
 // The page's side of signing in with GitHub on the web (spec 7.2): the access token lives in memory, is renewed a minute
 // before it ends through the site's function, and two tabs never spend the same rotating refresh token.
@@ -21,7 +21,7 @@ function site(options: { signedIn?: boolean } = {}) {
       headers: new Headers(init?.headers),
       body: String(init?.body ?? ''),
     })
-    if (url === '/api/github/ping') return json({ github: 'ready' })
+    if (url === '/api/github/ping') return json({ github: 'ready', app: 'automata' })
     if (url === '/api/github/token') {
       if (!signedIn) return new Response(null, { status: 401 })
       issued += 1
@@ -88,6 +88,18 @@ describe('githubReady', () => {
         throw new TypeError('offline')
       }) as typeof fetch),
     ).toBe(false)
+  })
+})
+
+describe('githubApp', () => {
+  it('names the app the function signs in with, or nothing when sign-in is not set up', async () => {
+    expect(await githubApp(site().fetchFn)).toBe('automata')
+    expect(await githubApp((async () => new Response(null, { status: 404 })) as typeof fetch)).toBeUndefined()
+    expect(
+      await githubApp((async () => {
+        throw new TypeError('offline')
+      }) as typeof fetch),
+    ).toBeUndefined()
   })
 })
 

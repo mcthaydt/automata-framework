@@ -198,7 +198,9 @@ $effect(() => {
     stopDrafts()
   }
 })
-const line = $derived(saveLine({ pending, failed, where: where ?? (sample ? (kept ? 'device' : 'nowhere') : 'folder') }))
+const line = $derived(
+  saveLine({ pending, failed, where: where ?? (sample ? (kept ? 'device' : 'nowhere') : 'folder') }),
+)
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
 // Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.

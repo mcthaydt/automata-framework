@@ -35,11 +35,13 @@ interface Configured {
   readonly secret: string
   readonly key: string
   readonly origin: string
+  /** The app's public name on GitHub: the page links to its install page. */
+  readonly slug: string
 }
 
 function configured(env: GitHubEnv): Configured | undefined {
   const { GITHUB_CLIENT_ID: id, GITHUB_APP_SLUG: slug, GITHUB_CLIENT_SECRET: secret, COOKIE_KEY: key } = env
-  return id && slug && secret && key ? { id, secret, key, origin: env.SITE_ORIGIN } : undefined
+  return id && slug && secret && key ? { id, secret, key, slug, origin: env.SITE_ORIGIN } : undefined
 }
 
 function respond(
@@ -144,7 +146,7 @@ export async function handleGitHub(request: Request, env: GitHubEnv, deps: GitHu
   if (config === undefined) return respond(url, 404)
 
   if (route === 'ping')
-    return request.method === 'GET' ? respond(url, 200, { json: { github: 'ready' } }) : respond(url, 405)
+    return request.method === 'GET' ? respond(url, 200, { json: { github: 'ready', app: config.slug } }) : respond(url, 405)
 
   if (route === 'start') {
     if (request.method !== 'GET') return respond(url, 405)

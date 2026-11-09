@@ -31,26 +31,41 @@ describe('the sign-in card', () => {
     const session = fakeSession({ signedIn: false })
     render(SignIn, { session, back: '/editor/app/?games', onremoveall: () => undefined })
     expect(await screen.findByText('Keep your games on all your devices')).toBeInTheDocument()
-    expect(screen.getByText('Your games are kept in your own GitHub account. Automata keeps nothing.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Your games are kept in your own GitHub account. Automata keeps nothing.'),
+    ).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Sign in with GitHub (free)' }))
     expect(session.signIn).toHaveBeenCalledWith('/editor/app/?games')
   })
 
   it('shows nothing until it knows, so a card never flashes the wrong thing', () => {
-    render(SignIn, { session: fakeSession({ signedIn: undefined }), back: '/editor/app/', onremoveall: () => undefined })
+    render(SignIn, {
+      session: fakeSession({ signedIn: undefined }),
+      back: '/editor/app/',
+      onremoveall: () => undefined,
+    })
     expect(screen.queryByTestId('sign-in')).toBeNull()
   })
 
   it('says GitHub was refused when the address says so', async () => {
-    render(SignIn, { session: fakeSession({ signedIn: false }), back: '/editor/app/', denied: true, onremoveall: () => undefined })
-    expect(await screen.findByRole('alert')).toHaveTextContent('GitHub said no. Start again if you want to connect.')
+    render(SignIn, {
+      session: fakeSession({ signedIn: false }),
+      back: '/editor/app/',
+      denied: true,
+      onremoveall: () => undefined,
+    })
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'GitHub said no. Start again if you want to connect.',
+    )
   })
 
   it('signed in, names the person, says the games stay here, and signs out', async () => {
     const session = fakeSession({ signedIn: true, login: 'mcthaydt' })
     render(SignIn, { session, back: '/editor/app/', onremoveall: () => undefined })
     expect(await screen.findByText('Signed in as mcthaydt.')).toBeInTheDocument()
-    expect(screen.getByText('Your games stay on this device.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Your games stay on this device until you keep one on GitHub.'),
+    ).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(session.signOut).toHaveBeenCalled()
   })
@@ -59,11 +74,15 @@ describe('the sign-in card', () => {
     const session = fakeSession({ signedIn: true, login: 'mcthaydt' })
     const onremoveall = vi.fn()
     render(SignIn, { session, back: '/editor/app/', onremoveall })
-    await userEvent.click(await screen.findByRole('button', { name: 'Sign out and remove my games from this browser' }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Sign out and remove my games from this browser' }),
+    )
     expect(screen.getByText(/A copy on GitHub stays/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Keep them' }))
     expect(onremoveall).not.toHaveBeenCalled()
-    await userEvent.click(screen.getByRole('button', { name: 'Sign out and remove my games from this browser' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Sign out and remove my games from this browser' }),
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Sign out and remove' }))
     await vi.waitFor(() => expect(onremoveall).toHaveBeenCalled())
   })

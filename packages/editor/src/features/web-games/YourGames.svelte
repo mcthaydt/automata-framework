@@ -1,13 +1,30 @@
 <!--
   Your games: the games kept in this browser, newest change first. Each says what it is called, when it last changed and
   where it is kept, and has Open, Save a copy and Remove (which asks first). Above them, New game and Open a copy.
-  Nothing here talks to storage: the page that mounts it hands in the games and hears what the person chose.
+  Signed in with GitHub, it also lists the person's GitHub games this device does not have (Get it) and lets a game
+  here be kept on GitHub (Keep this game on GitHub: make an empty place, say so, and the page checks it can reach it).
+  Nothing here talks to storage or the network: the page that mounts it hands in the games and hears what the person chose.
 -->
 <script lang="ts">
+import { newRepoUrl } from '../../shared/kit/sync/github-games'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import type { GameEntry } from './games-index'
 import { since } from './since'
+
+/** What signing in with GitHub adds; absent when the person is not signed in. */
+export interface GitHubOffer {
+  /** GitHub games this device does not have. */
+  readonly remote: readonly { readonly repo: string; readonly title: string }[]
+  /** Where the person lets Automata see more of their repositories. */
+  readonly installUrl: string
+  /** Whether the game's place on GitHub (named for it, in the person's account) can be reached; if it can, the game is linked to it. */
+  check(id: string): Promise<boolean>
+  /** Gets a GitHub game onto this device; rejects with the reason in words. */
+  get(repo: string): Promise<void>
+  /** Opens an address in a new tab. */
+  open(url: string): void
+}
 
 interface Props {
   games: readonly GameEntry[]
@@ -24,6 +41,9 @@ interface Props {
   oncopy: (id: string) => void
   onimport: (file: File) => void
   onremove: (id: string) => void
+  github?: GitHubOffer | undefined
+  /** A game was linked to its place on GitHub. */
+  onlinked?: (id: string) => void
 }
 
 const {
@@ -37,11 +57,19 @@ const {
   oncopy,
   onimport,
   onremove,
+  github,
+  onlinked,
 }: Props = $props()
 
 let removing = $state<GameEntry | undefined>()
 let removeOpen = $state(false)
 let picker = $state<HTMLInputElement>()
+/** The game being kept on GitHub: first making its place, then (if Automata cannot see it) letting Automata see it. */
+let keeping = $state<{ id: string; step: 'make' | 'missing' } | undefined>()
+let checking = $state(false)
+let letSee = $state(false)
+let gettingTrouble = $state<string | undefined>()
+let getting = $state<string | undefined>()
 
 const NOTE = $derived(
   canSignIn
@@ -49,6 +77,47 @@ const NOTE = $derived(
     : 'Saved in this browser only. Save a copy to keep it safe.',
 )
 const NOT_KEPT = 'Not saved: this browser can’t keep files. Save a copy to keep your work.'
+
+function keep(id: string): void {
+  keeping = { id, step: 'make' }
+  letSee = false
+  github?.open(newRepoUrl(id))
+}
+
+async function check(): Promise<void> {
+  const mine = keeping
+  if (mine === undefined || github === undefined || checking) return
+  checking = true
+  try {
+    if (await github.check(mine.id)) {
+      keeping = undefined
+      onlinked?.(mine.id)
+    } else keeping = { id: mine.id, step: 'missing' }
+  } finally {
+    checking = false
+  }
+}
+
+async function get(repo: string): Promise<void> {
+  gettingTrouble = undefined
+  getting = repo
+  try {
+    await github?.get(repo)
+  } catch (error) {
+    gettingTrouble = error instanceof Error ? error.message : String(error)
+  } finally {
+    getting = undefined
+  }
+}
+
+// Coming back from GitHub's tab is the moment to look again.
+$effect(() => {
+  const back = () => {
+    if (document.visibilityState === 'visible' && keeping?.step === 'missing') void check()
+  }
+  document.addEventListener('visibilitychange', back)
+  return () => document.removeEventListener('visibilitychange', back)
+})
 
 function ask(game: GameEntry): void {
   removing = game
@@ -86,16 +155,66 @@ function ask(game: GameEntry): void {
           <div class="who">
             <strong>{game.title}</strong>
             <span>Changed {since(game.changed, now)}</span>
-            <span>{game.github !== undefined ? `On GitHub: ${game.github}` : kept ? 'On this device' : 'In this tab only'}</span>
+            <span>{game.github !== undefined ? `On this device and GitHub: ${game.github}` : kept ? 'On this device' : 'In this tab only'}</span>
           </div>
           <div class="acts">
             <Button variant="primary" aria-label={`Open ${game.title}`} onclick={() => onopen(game.id)}>Open</Button>
             <Button aria-label={`Save a copy of ${game.title}`} onclick={() => oncopy(game.id)}>Save a copy</Button>
+            {#if github !== undefined && game.github === undefined}
+              <Button onclick={() => keep(game.id)}>Keep this game on GitHub</Button>
+            {/if}
             <Button variant="danger" aria-label={`Remove ${game.title}`} onclick={() => ask(game)}>Remove</Button>
+          </div>
+          {#if github !== undefined && keeping?.id === game.id}
+            <div class="keep" role="group" aria-label={`Keep ${game.title} on GitHub`}>
+              {#if keeping.step === 'make'}
+                <p>Make an empty place for your game on GitHub, then come back.</p>
+              {:else}
+                <p role="status">Automata can’t reach this game on GitHub yet.</p>
+                {#if letSee}<p>Choose your games on GitHub, then come back here.</p>{/if}
+              {/if}
+              <div class="acts">
+                {#if keeping.step === 'make'}
+                  <Button variant="primary" disabled={checking} onclick={() => void check()}>I made it</Button>
+                {:else}
+                  <Button
+                    variant="primary"
+                    onclick={() => {
+                      letSee = true
+                      github?.open(github.installUrl)
+                    }}>Let Automata see this game</Button
+                  >
+                  <Button disabled={checking} onclick={() => void check()}>Check again</Button>
+                {/if}
+                <Button variant="quiet" onclick={() => (keeping = undefined)}>Never mind</Button>
+              </div>
+            </div>
+          {/if}
+        </li>
+      {/each}
+    </ul>
+  {/if}
+  {#if github !== undefined && github.remote.length > 0}
+    <h2>Your games on GitHub</h2>
+    <ul>
+      {#each github.remote as game (game.repo)}
+        <li>
+          <div class="who">
+            <strong>{game.title}</strong>
+            <span>On GitHub: {game.repo}</span>
+          </div>
+          <div class="acts">
+            <Button
+              variant="primary"
+              aria-label={`Get ${game.title}`}
+              disabled={getting !== undefined}
+              onclick={() => void get(game.repo)}>{getting === game.repo ? 'Getting it…' : 'Get it'}</Button
+            >
           </div>
         </li>
       {/each}
     </ul>
+    {#if gettingTrouble}<p class="trouble" role="alert">{gettingTrouble}</p>{/if}
   {/if}
 </main>
 
@@ -127,7 +246,8 @@ function ask(game: GameEntry): void {
     color: var(--ink);
     font: var(--text-body-13);
   }
-  h1 {
+  h1,
+  h2 {
     margin: 0;
     font: var(--text-title-20);
   }
@@ -175,6 +295,20 @@ function ask(game: GameEntry): void {
   }
   .who span {
     color: var(--muted);
+  }
+  h2 {
+    font: var(--text-title-15);
+    margin-top: var(--space-2);
+  }
+  .keep {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--line);
+  }
+  .keep p {
+    margin: 0;
   }
   .empty {
     margin: 0;

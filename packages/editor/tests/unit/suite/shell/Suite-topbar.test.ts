@@ -154,7 +154,12 @@ describe("the suite's top bar", () => {
 
   it('opens on the editor left open last time, and tells the page when another is chosen', async () => {
     const heard: (string | undefined)[] = []
-    await start({ game: 'Lantern Run', where: 'device', initialEditor: 'tuner', onEditor: (id) => heard.push(id) })
+    await start({
+      game: 'Lantern Run',
+      where: 'device',
+      initialEditor: 'tuner',
+      onEditor: (id) => heard.push(id),
+    })
     await screen.findByTestId('tuner-rows')
     screen.getByRole('button', { name: 'Home' }).click()
     await screen.findByRole('heading', { name: 'What do you want to change?' })

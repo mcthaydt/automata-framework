@@ -111,7 +111,7 @@ describe('ping', () => {
   it('says ready when everything is set', async () => {
     const response = await call('/api/github/ping')
     expect(response.status).toBe(200)
-    expect(await response.json()).toEqual({ github: 'ready' })
+    expect(await response.json()).toEqual({ github: 'ready', app: 'automata' })
   })
 
   it.each(['GITHUB_CLIENT_ID', 'GITHUB_APP_SLUG', 'GITHUB_CLIENT_SECRET', 'COOKIE_KEY'] as const)(
