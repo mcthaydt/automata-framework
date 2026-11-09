@@ -1,4 +1,4 @@
-// The one function behind "Sign in with GitHub" on the web (spec 7.1). GitHub's web flow needs the app's secret for the
+// The one function behind "Sign in with GitHub" on the web. GitHub's web flow needs the app's secret for the
 // code exchange and for every refresh, so it can't run in a page; this does only that. It keeps nothing: the refresh
 // token travels in a sealed cookie the browser holds, the access token goes to the page in memory, and no game data
 // passes through. Nothing is logged. Every response is uncacheable and carries the site's security headers, because the
