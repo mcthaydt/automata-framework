@@ -3,14 +3,17 @@
 // floors, walls and ceilings) with a lip along each channel. Not sim code: `pnpm boundaries` does not scan it, and the sim never reads it
 // back (law 1).
 
+import type { CameraRig, TimeOfDay } from '@automata/3d'
 import {
   type Box3,
-  drawWorld,
+  drawLevel,
   type FigureViewState,
+  type LevelView,
   type Look,
   type Occluders,
   type SceneFog,
   swatchColour,
+  type TileStore,
   type View3dFactory,
 } from '@automata/3d'
 import type {
@@ -102,22 +105,69 @@ const LIP_COLOUR = 0xffb108
 /** The lip's height and width. */
 const LIP = { height: 0.06, width: 0.12 } as const
 
-/** Draws the room under the view's root (the renderer's `scene` hook): the world builder's floors, walls and ceilings, the walls cut away by the occluder rule, and the lip along each channel. */
+/** What the scene needs besides the room: the look, the tiles' store, the camera rig and the time the room is lit at. */
+export interface SceneInput {
+  readonly look: Look
+  readonly tiles: TileStore
+  readonly time: TimeOfDay
+  /** The camera's views as the tiles see them: the room's own. */
+  readonly views: readonly { readonly distance: number; readonly tiltDeg: number }[]
+  /** The rig, which the room follows to show each view's tiles; none without a camera. */
+  readonly camera?: CameraRig | undefined
+}
+
+/**
+ * Draws the room under the view's root (the renderer's `scene` hook) through core's `drawLevel`: the world builder's floors,
+ * walls and ceilings in their tiles under the room's baked light, the walls cut away by the occluder rule, and the lip along
+ * each channel. `ready` resolves when every view's tiles are made; `frame` makes one waiting tile between frames.
+ */
 export function buildScene(
   view: View3D,
   occluders: Occluders,
   area: AreaSource,
   room: RoomWorld,
-  look?: Look,
-): void {
+  input: SceneInput,
+): { readonly ready: Promise<LevelView>; frame(): void } {
   const colourOf = (swatch: string) => swatchColour(room.library, swatch)
   view.environment = {
     // The day's colours: the renderer lights them by the level's time of day (`Pixi3dOptions.time`).
     skyColor: 0xcdd2da,
     groundColor: colourOf('floor') ?? 0x8690b2,
   }
-  drawWorld({ parent: view.root, occluders, colourOf, look }, room.world.pieces)
   for (const box of lipBoxes(area)) occluders.box(box.box, box.colour)
+  const first = input.views[0] ?? { distance: 5, tiltDeg: 25 }
+  let level: LevelView | undefined
+  const ready = drawLevel(view, {
+    level: room.level,
+    library: room.library,
+    look: input.look,
+    time: input.time,
+    tiles: input.tiles,
+    camera: first,
+    views: input.views,
+    occluders,
+    field: input.look.pixel,
+  }).then((drawn) => {
+    level = drawn
+    // Each view shows the tiles made for its distance and tilt.
+    const camera = input.camera
+    if (camera !== undefined) {
+      const activate = camera.activate.bind(camera)
+      camera.activate = (id, how) => {
+        activate(id, how)
+        const shown = camera.viewOf(id)
+        if (shown !== undefined) drawn.setCamera(shown)
+      }
+    }
+    return drawn
+  })
+  return {
+    ready,
+    frame() {
+      if (level === undefined || input.tiles.pending === 0) return
+      void input.tiles.step().then(() => level?.refresh())
+    },
+  }
 }
 
 /** A bright lip along each long edge of a channel, on the platforms' sides (the pits run the room's width). */

@@ -49,6 +49,8 @@ export interface WorldView {
   readonly pieces: readonly WorldPiece[]
   /** A piece's mesh by its id. */
   readonly mesh: (id: string) => Mesh3D | undefined
+  /** Gives each piece the tiles `tiles` has for it now: one not given keeps the tile it shows, so a tile still being made leaves the old one up. */
+  retile(tiles: (piece: WorldPiece) => PieceTiles | undefined): void
   /** Where the haze begins: the view depth (metres) of what the camera looks at. A no-op without a look. */
   setFocus(depth: number): void
   /** Takes the meshes down and frees their geometry and materials. */
@@ -161,6 +163,14 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     node,
     pieces,
     mesh: (id) => meshes.get(id),
+    retile(tiles) {
+      for (const piece of pieces) {
+        const material = meshes.get(piece.id)?.material
+        const next = tiles(piece)
+        if (!(material instanceof TileMaterial) || next === undefined) continue
+        material.setTiles(next.floor ?? material.floorTile, next.wall ?? material.wallTile)
+      }
+    },
     setFocus(depth) {
       for (const mesh of meshes.values())
         if (mesh.material instanceof TileMaterial) mesh.material.focus = depth

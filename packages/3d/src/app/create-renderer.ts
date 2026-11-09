@@ -39,6 +39,14 @@ import { lightByTime, lightHemisphere } from '../shared/time-of-day/time-light.t
 import { type TimeOfDay, timeOfDay } from '../shared/time-of-day/time-of-day.ts'
 import { characters3d } from './characters-3d.ts'
 
+/**
+ * What the `scene` hook may also hand back: a promise the renderer waits for before the first frame, as it waits for the
+ * models (the level's tiles are made in it).
+ */
+export interface SceneReady {
+  readonly ready?: Promise<unknown> | undefined
+}
+
 export interface Pixi3dOptions extends PixiRendererOptions {
   /** Component id → its 3D view (`mesh`, `box`). `entityViews` stays the 2D layer's, drawn over the 3D view. */
   readonly views: EntityViewResolver3d
@@ -56,7 +64,8 @@ export interface Pixi3dOptions extends PixiRendererOptions {
         occluders: Occluders,
         light: SceneLight | undefined,
         models: ModelLibrary,
-      ) => PixiStageHooks | undefined)
+        camera: CameraRig | undefined,
+      ) => (PixiStageHooks & SceneReady) | undefined)
     | undefined
   /**
    * Model files the `scene` hook draws itself (static props with no sim entity), loaded with the views' before the
@@ -310,6 +319,7 @@ async function buildInstance(
   onGone: () => void,
 ): Promise<BuildResult> {
   let mounted: Mounted | undefined
+  let ready: Promise<unknown> | undefined
   const made = await createPixiRenderer({
     ...options,
     backgroundColor: skyOf(options),
@@ -318,12 +328,19 @@ async function buildInstance(
       const made = mount(stage, options, models)
       mounted = made
       const own = options.setup?.(stage) ?? undefined
-      const scene = options.scene?.(made.view, stage, made.occluders, made.light, models)
+      const scene = options.scene?.(made.view, stage, made.occluders, made.light, models, made.camera)
+      ready = scene?.ready
       lightEnvironment(made.view, options.time)
       return mergeHooks(made.hooks, own, scene)
     },
   })(target)
   if (!made.ok) return made
+  try {
+    await ready
+  } catch (error) {
+    made.value.dispose()
+    throw error
+  }
   const base = made.value
   const cleanup = disposables()
   // Added first, so it runs last: the app is destroyed after the views that draw in it.

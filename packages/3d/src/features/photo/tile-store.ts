@@ -43,6 +43,8 @@ export interface TileStore {
     grime: number,
     turn?: boolean,
   ): Promise<TileImage | undefined>
+  /** The tile if it has been made already, without waiting or asking for it: for a view that shows the old tile until the new is made. */
+  peek(name: string, pair: readonly [number, number], grime: number, turn?: boolean): TileImage | undefined
   /** Makes every request. */
   prewarm(requests: readonly TileRequest[]): Promise<void>
   /** Asks for a tile to be made later, one at a time by `step`. */
@@ -95,6 +97,7 @@ export function createTileStore(
   }
   const maker = options.maker ?? own
   const done = new Map<string, Promise<TileImage | undefined>>()
+  const ready = new Map<string, TileImage>()
   const waiting: TileRequest[] = []
   const warned = new Set<string>()
   let chain: Promise<unknown> = Promise.resolve()
@@ -145,11 +148,18 @@ export function createTileStore(
         hit = job
       }
       done.set(key, hit)
+      void hit.then((tile) => {
+        if (tile !== undefined) ready.set(key, tile)
+      })
     }
     return hit
   }
 
   return {
+    peek: (name, pair, grime, turned) =>
+      ready.get(
+        keyOf({ name, pair, grime, ...(turned === undefined ? {} : { turn: turned }) } as TileRequest),
+      ),
     tile: (name, swatch, pair, grime, turned) =>
       ask({ name, swatch, pair, grime, ...(turned === undefined ? {} : { turn: turned }) }, true),
     async prewarm(requests) {

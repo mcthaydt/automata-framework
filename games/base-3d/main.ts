@@ -8,7 +8,13 @@
 // @automata/3d; @automata/content (its Vite plugin) and @automata/tools.
 import '@automata/3d/no-eval'
 import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automata/3d'
+import {
+  createBrowserTileStore,
+  createPixi3dRenderer,
+  DEFAULT_LOOK,
+  figure,
+  render3dExtension,
+} from '@automata/3d'
 import type { FigureDef } from '@automata/3d/figures'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import type { QualityTier } from '@automata/framework'
@@ -94,6 +100,8 @@ export const input = endGroup(inputs(MOVE, TURN, ROLL_KEYS), { Space: KEYS.roll 
 const { figures, library, motion } = figureContent(content)
 // The room's world, from the game's own swatches and props (content/world-*), built once at boot.
 const ROOM_WORLD = roomWorld(content)
+/** The room's tiles, made in workers from its photos before the first frame and kept for the session. */
+const TILES = createBrowserTileStore(ROOM_WORLD.library.swatches)
 // A journeys build also writes where the room's props stand and how high its floors are (testing/route.ts).
 if (typeof document !== 'undefined') showRoom(ROOM_WORLD, JOURNEYS, document.documentElement, ROOM_TIME.name)
 
@@ -176,10 +184,17 @@ export const base3d = defineGame({
         follow: Hero.id,
         position: (c) => placed(c.hero),
       },
-      scene: (view, _stage, occluders) => {
-        buildScene(view, occluders, ROOM, ROOM_WORLD, DEFAULT_LOOK)
+      scene: (view, _stage, occluders, _light, _models, camera) => {
+        const scene = buildScene(view, occluders, ROOM, ROOM_WORLD, {
+          look: DEFAULT_LOOK,
+          tiles: TILES,
+          time: ROOM_TIME,
+          views: AREA.views,
+          camera,
+        })
         return {
-          draw: () => {},
+          ready: scene.ready,
+          draw: () => scene.frame(),
           reset: () => {},
           apply(result) {
             simTick = result.tick

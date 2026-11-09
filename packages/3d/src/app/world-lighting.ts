@@ -25,6 +25,9 @@ const normalized = (v: V3): V3 => {
   return [v[0] / length, v[1] / length, v[2] / length]
 }
 
+/** The times a street lamp is lit at: the lamps of a level come on after the day and the golden hour. */
+export const isNight = (time: TimeOfDay): boolean => !(time.name === 'day' || time.name === 'golden')
+
 /** The key toward its source in a view pitched down by `pitch` (rad), as world space: `viewToWorld` of the time's key. */
 export function sunDirection(time: TimeOfDay, pitch: number): V3 {
   const [x, y, z] = normalized(time.figure.key ?? FIGURE_KEY)

@@ -25,5 +25,6 @@ export function roomWorld(content: unknown): RoomWorld {
     readonly 'world-prop': NonNullable<WorldLibrary['props']>
   }
   const library: WorldLibrary = { swatches: kinds['world-swatch'], props: kinds['world-prop'] }
-  return { world: buildWorld(readLevel(file).level, library), library }
+  const { level } = readLevel(file)
+  return { level, world: buildWorld(level, library), library }
 }

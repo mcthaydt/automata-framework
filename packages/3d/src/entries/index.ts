@@ -3,13 +3,21 @@
 // Import `@automata/3d/no-eval` first, before anything else. The view's schema, the lens and the
 // heading maths are the pure `./camera-view` entry; the heading's sim plugin is the `./sim` entry.
 
+export { type BrowserTileStore, createBrowserTileStore } from '../app/browser-tiles.ts'
 export {
   acceptsRenderer,
   createPixi3dRenderer,
   type Pixi3dOptions,
   type Pixi3dRenderer,
   type RendererKind,
+  type SceneReady,
 } from '../app/create-renderer.ts'
+export {
+  type DrawLevelInput,
+  drawLevel,
+  type LevelView,
+  type TileCamera,
+} from '../app/draw-level.ts'
 export { render3dExtension } from '../app/render3d.extension.ts'
 export { updatePieces } from '../app/update-pieces.ts'
 export { DIORAMA_PITCH, type WorldLightingInput, worldLighting } from '../app/world-lighting.ts'
@@ -91,6 +99,7 @@ export { StarsEffect } from '../features/look/passes/stars-effect.ts'
 export { lightSteps, rampLit } from '../features/look/ramp-light.ts'
 export { RampMaterial, type RampMaterialOptions } from '../features/look/ramp-light-material.ts'
 export { targetSize } from '../features/look/target-size.ts'
+export type { TileStore } from '../features/photo/tile-store.ts'
 export {
   buildWorld,
   type World,

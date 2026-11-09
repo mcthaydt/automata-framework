@@ -210,7 +210,7 @@ export class TileMaterial extends BaseMaterial3D {
   private depth = 0
   private floor: TileImage | undefined
   private wall: TileImage | undefined
-  private readonly owned: Texture[] = []
+  private readonly owned: { floorTile?: Texture | undefined; wallTile?: Texture | undefined } = {}
 
   constructor(options: TileMaterialOptions) {
     const { colour, floor, wall, place, glowing, haze, gain, ...rest } = options
@@ -252,19 +252,21 @@ export class TileMaterial extends BaseMaterial3D {
     ]
   }
 
-  /** The tiles drawn from now: a floor-like face's and a wall's. A tile not given draws the swatch's colour. */
+  /** The floor-like tile now drawn, and the wall's. */
+  get floorTile(): TileImage | undefined {
+    return this.floor
+  }
+
+  get wallTile(): TileImage | undefined {
+    return this.wall
+  }
+
+  /** The tiles drawn from now: a floor-like face's and a wall's. A tile not given draws the swatch's colour; one already drawn is kept as it is. */
   setTiles(floor: TileImage | undefined, wall: TileImage | undefined): void {
-    for (const texture of this.owned.splice(0)) texture.destroy(true)
+    if (floor !== this.floor) this.put('floorTile', floor)
+    if (wall !== this.wall) this.put('wallTile', wall)
     this.floor = floor
     this.wall = wall
-    const put = (slot: 'floorTile' | 'wallTile', tile: TileImage | undefined): void => {
-      if (tile === undefined) return
-      const texture = textureOf(tile)
-      this.owned.push(texture)
-      this.textures[slot] = texture
-    }
-    put('floorTile', floor)
-    put('wallTile', wall)
     const f = placement(floor, this.place, false)
     const w = placement(wall, this.place, true)
     this.data.floorScale = f.scale
@@ -276,8 +278,18 @@ export class TileMaterial extends BaseMaterial3D {
     this.writeTiles()
   }
 
+  private put(slot: 'floorTile' | 'wallTile', tile: TileImage | undefined): void {
+    this.owned[slot]?.destroy(true)
+    this.owned[slot] = undefined
+    if (tile === undefined) return
+    const texture = textureOf(tile)
+    this.owned[slot] = texture
+    this.textures[slot] = texture
+  }
+
   override destroy(options?: Parameters<BaseMaterial3D['destroy']>[0]): void {
-    for (const texture of this.owned.splice(0)) texture.destroy(true)
+    this.owned.floorTile?.destroy(true)
+    this.owned.wallTile?.destroy(true)
     super.destroy(options)
   }
 }

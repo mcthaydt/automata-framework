@@ -1,4 +1,6 @@
 import { content } from 'virtual:automata/content'
+import { DEFAULT_LOOK, drawLevel, type TileStore, timeOfDay } from '@automata/3d'
+import { View3D } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { ROOM, roomWorld } from '#src/features/room/room.ts'
 import { heroFigureState, lipBoxes, placed } from '#src/features/scene/scene.ts'
@@ -75,5 +77,37 @@ describe('lipBoxes', () => {
     expect(boxes).toHaveLength(ROOM.pits.length * 2)
     expect(new Set(boxes.map((entry) => entry.colour)).size).toBe(1)
     for (const lip of boxes) expect(lip.box.max[1]).toBeLessThan(0.2)
+  })
+})
+
+describe('Ember Hall through core’s drawLevel', () => {
+  it('draws every piece of the room under the look’s light and asks for no tile of a flat swatch', async () => {
+    const asked: string[] = []
+    const tiles: TileStore = {
+      pending: 0,
+      made: 0,
+      tile: async () => undefined,
+      peek: () => undefined,
+      prewarm: async (requests) => void asked.push(...requests.map((request) => request.name)),
+      queue: (request) => void asked.push(request.name),
+      step: async () => false,
+    }
+    const world = roomWorld(content)
+    const view = new View3D({ width: 640, height: 360 })
+    const level = await drawLevel(view, {
+      level: world.level,
+      library: world.library,
+      look: DEFAULT_LOOK,
+      time: timeOfDay('day'),
+      tiles,
+      camera: { distance: 5, tiltDeg: 25 },
+      views: [{ distance: 5, tiltDeg: 25 }],
+      field: DEFAULT_LOOK.pixel,
+    })
+    expect(level.world.pieces.length).toBeGreaterThan(5)
+    expect(level.light).toBeDefined()
+    // The room's swatches are flat colours until its art pass gives them photos, so no tile is asked for yet.
+    expect(asked).toEqual([])
+    level.dispose()
   })
 })

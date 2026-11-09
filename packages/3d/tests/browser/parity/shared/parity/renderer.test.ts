@@ -130,6 +130,39 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
     expect(seen).toBeDefined()
   })
 
+  // The level's tiles are made while the renderer starts: the first frame waits for them, and a failure stops the boot.
+  it('waits for the scene hook’s ready before it hands the renderer over, and refuses to boot when ready fails', async () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    let finish: () => void = () => undefined
+    let settled = false
+    const waiting = new Promise<void>((resolve) => (finish = resolve))
+    const factory = createPixi3dRenderer({
+      logicalWidth: 160,
+      logicalHeight: 90,
+      views: {},
+      scene: () => ({ ready: waiting }),
+    })
+    const building = factory(testTarget(host, {})).then((built) => {
+      settled = true
+      return built
+    })
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(settled).toBe(false)
+    finish()
+    const built = await building
+    expect(built.ok).toBe(true)
+    if (built.ok) built.value.dispose()
+
+    const failing = createPixi3dRenderer({
+      logicalWidth: 160,
+      logicalHeight: 90,
+      views: {},
+      scene: () => ({ ready: Promise.reject(new Error('no tiles')) }),
+    })
+    await expect(failing(testTarget(host, {}))).rejects.toThrow('no tiles')
+  })
+
   it('adds, moves (interpolated) and removes views over the Container3D root', async () => {
     const { renderer } = await start()
     const root = renderer.view.root

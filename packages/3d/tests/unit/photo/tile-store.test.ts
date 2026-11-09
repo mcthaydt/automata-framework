@@ -151,3 +151,13 @@ describe('a tile’s texel at a place on its surface', () => {
     expect(tileTexel(tile, 0.5, 0, false, { anchored: true, pan: [0.25, 0] })).toEqual([1, 0])
   })
 })
+
+describe('the tile store, asked without waiting', () => {
+  it('peeks at a tile that has been made, and at nothing that has not', async () => {
+    const store = createTileStore(disk, silent, options)
+    expect(store.peek('oakFloor', [64, 64], 1)).toBeUndefined()
+    const made = await store.tile('oakFloor', oak, [64, 64], 1)
+    expect(store.peek('oakFloor', [64, 64], 1)).toBe(made)
+    expect(store.peek('oakFloor', [64, 64], 2)).toBeUndefined()
+  })
+})
