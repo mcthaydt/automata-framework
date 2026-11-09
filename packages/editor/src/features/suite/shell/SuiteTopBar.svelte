@@ -63,8 +63,8 @@ const {
 
 {#if title !== undefined}<span class="brand">{title}</span>{/if}
 {#if line !== undefined}
-  <span class="where" data-state={line.state} role="status">
-    <Icon name={line.state === 'failed' ? 'alert' : 'check'} size={16} />{line.words}
+  <span class="where" data-state={line.state} role="status" title={line.words}>
+    <Icon name={line.state === 'failed' ? 'alert' : 'check'} size={16} /><span class="words">{line.words}</span>
   </span>
 {/if}
 <div class="tools" data-scroll-region="both">
@@ -105,8 +105,19 @@ const {
     color: var(--muted);
     font: var(--text-body-13);
     white-space: nowrap;
-    /* The words are short and they are the one thing that says the work is safe: they never give way to the title. */
+    /* The words say the work is safe, so they keep the room they need until the bar runs short: then they shorten with
+       an ellipsis (the whole line is still the status and the title) rather than push Play, Publish or an editor's own
+       tools off the screen. */
+    flex: 0 1 auto;
+    min-width: 5.5rem;
+  }
+  .where > :global(svg) {
     flex: none;
+  }
+  .words {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .where[data-state='failed'] {
     color: var(--color-state-bad);

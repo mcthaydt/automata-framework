@@ -436,7 +436,7 @@ the rest. The page has no editors v2 header, so the header is `SuiteTopBar.svelt
 | 0.1 The base | 0 | Done, 2026-11-08: `pnpm install`, unit tests of the touched packages green; `pnpm check` not run whole | |
 | 1.1 Typed words are written as they are typed | 1 | Done, 2026-11-08 (jsdom unit tests; Chromium and WebKit journeys are task 1.4) | |
 | 1.2 One Undo step per field visit | 1 | Done, 2026-11-08 (unit) | |
-| 1.3 The saved line, at every size | 1 | Done, 2026-11-08 (unit; the phone-size layout test is with 1.4) | |
+| 1.3 The saved line, at every size | 1 | Done, 2026-11-08 (unit; the phone-size layout test is with 1.4). 2026-11-09: the line first kept its full width and pushed the 3D studio's Dock off a phone screen (the `3D - parity` check was red on this branch from its first push); it now shortens with an ellipsis when the bar runs short, and the layout suites of the editor (suite-edit, suite-levels) and editor-3d pass | |
 | 1.4 Journeys that reload without leaving the field | 1 | Not started | |
 | 2.1 to 2.4 Your games on this device | 2 | Not started | |
 | 3.1 to 3.2 `/try` and the site's words | 3 | Not started | |
