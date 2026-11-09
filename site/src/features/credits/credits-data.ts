@@ -405,7 +405,7 @@ export const CREDITS: readonly Credit[] = [
   },
   {
     name: 'Geist',
-    what: 'The typeface in the editors and on this website, with its matching monospace.',
+    what: 'The typeface in the editors, on this website and in the words a game draws on screen.',
     licence: 'SIL Open Font 1.1',
     url: 'https://fontsource.org/fonts/geist',
     group: 'art',
