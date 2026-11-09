@@ -5,7 +5,7 @@
 // carries `lag` as data and does not ease. The view is render-pixi3d's `camera-view` (one owner, M3 spec §4.2 amended
 // 2026-10-30): the editor keeps no copy of its fields, defaults or ranges.
 
-import { type CameraView, degToHeading, wrapHeading } from '@mcthaydt/automata-render-pixi3d/camera-view'
+import { type CameraView, degToHeading, wrapHeading } from '@automata/render-pixi3d/camera-view'
 import { type Camera3D, orbitCamera } from './camera-3d'
 import { headingToYaw, type WallsSeen, wallsSeenFrom } from './heading'
 import type { SectorMesh, Vec3 } from './sector-mesh'

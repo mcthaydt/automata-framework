@@ -68,7 +68,7 @@ function project(options: { binAt?: string | null; packageJson?: object; dir?: s
   writeFileSync(join(dir, 'src/features/jump/jump.system.ts'), 'export const a = 1\n')
   writeFileSync(
     join(dir, 'package.json'),
-    JSON.stringify(options.packageJson ?? { devDependencies: { '@mcthaydt/automata-tools': '0.0.2' } }),
+    JSON.stringify(options.packageJson ?? { devDependencies: { '@automata/tools': '0.0.2' } }),
   )
   const binAt = options.binAt === undefined ? '.' : options.binAt
   if (binAt !== null) {
@@ -278,10 +278,10 @@ describe('a project without the automata bin', () => {
   })
 
   it('is blocked, naming the package to add, when it is an Automata game', () => {
-    const p = project({ binAt: null, packageJson: { dependencies: { '@mcthaydt/automata-sim': '0.0.2' } } })
+    const p = project({ binAt: null, packageJson: { dependencies: { '@automata/sim': '0.0.2' } } })
     const run = runHook(p, 'post-edit', edit(p, 'src/features/jump/jump.system.ts'))
     expect(run.status).toBe(2)
-    expect(run.stderr).toContain('@mcthaydt/automata-tools')
+    expect(run.stderr).toContain('@automata/tools')
   })
 })
 

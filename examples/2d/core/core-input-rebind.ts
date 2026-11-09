@@ -4,7 +4,7 @@
 //   rebinding one saves it through the host and play reads it at once; a key taken from another action leaves
 //   that one "Not set"; Escape cancels a capture. A reload keeps the player's keys.
 // Controls: the arrows move, Space jumps, F fires; Escape or P to pause, then the gear for Settings
-// Packages: @mcthaydt/automata, zod
+// Packages: @automata/framework, zod
 // Difficulty: ★★☆☆
 // Tier: core
 // Golden: 120
@@ -16,7 +16,7 @@ import {
   defineSystem,
   keys,
   rect,
-} from '@mcthaydt/automata'
+} from '@automata/framework'
 import { z } from 'zod'
 
 const Runner = defineComponent('runner', { x: 'f32', y: 'f32', flash: 'f32' })

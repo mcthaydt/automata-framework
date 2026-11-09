@@ -1,3 +1,3 @@
-// The expansion of a blockout into the engine's own data is core's `@mcthaydt/automata-sector-format` (M6-D18), re-exported
+// The expansion of a blockout into the engine's own data is core's `@automata/sector-format` (M6-D18), re-exported
 // unchanged so the editor's files and its public entry keep their names.
-export * from '@mcthaydt/automata-sector-format/blockout'
+export * from '@automata/sector-format/blockout'

@@ -155,6 +155,3 @@ export const shownName = (tunable: Tunable): string => tunable.label ?? tunable.
  */
 export const shownNote = (tunable: Tunable): string | undefined =>
   tunable.feel ?? (tunable.label === undefined ? tunable.note : undefined)
-
-/** What Keep does, as its tooltip says. */
-export const KEEP_TIP = 'Keep this value: nothing changes it until you let it go.'

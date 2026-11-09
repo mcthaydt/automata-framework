@@ -1,4 +1,4 @@
-import { type CompiledContentData, contentHashOf } from '@mcthaydt/automata'
+import { type CompiledContentData, contentHashOf } from '@automata/framework'
 
 interface Content {
   readonly data: CompiledContentData

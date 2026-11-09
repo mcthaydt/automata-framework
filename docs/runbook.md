@@ -15,12 +15,11 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 | Credential | Where it lives | What it can do |
 |---|---|---|
 | The Owner's GitHub account (password, sessions, SSH keys, personal access tokens) | GitHub | Everything: push, approve the `release` environment, change settings |
-| `AF_READ_TOKEN` (classic token, `read:packages`) | Secrets of each game repository | Install `@mcthaydt` packages from GitHub Packages |
 | `RUKEN_TOKEN` | Secrets of each game repository | `ruken publish` for that game |
 | `SHIP_DEV_SSH_KEY`, `SHIP_DEV_KNOWN_HOSTS` | Secrets of each game repository | Deploy a game to the dev host |
 | The `af-linux` runner registration | The runner PC (`owner-pc-wsl-af`, the Owner's Windows PC under WSL2 Ubuntu-24.04; service `actions.runner.mcthaydt-automata-framework.owner-pc-wsl-af`) | Run the games' CI and the browser journeys for this repository (the checks and the consumer smoke moved to `af-mac` on 2026-11-09; `AF_CHECKS_RUNNER` moves them back) |
 | The `af-mac` runner registrations | The Owner's Mac | Run parity, the checks and the consumer smoke (since 2026-11-09) and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
-| The npm token for npmjs.org | Not created yet | Will publish the public packages |
+| `NPM_TOKEN` (an npm automation token for the `@automata` organisation) | The `release` environment's secrets (not created yet) | Publish the public packages from `release-packages.yml`; games install them with no token |
 | `SITE_DEPLOY_TOKEN` | This repository's secrets (not created yet) | Upload the website to its host from `main` (`site.yml`); without it the deploy says "No host configured yet." |
 | `SKILLS_TOKEN` | This repository's secrets (not created yet) | Push the agent package to `mcthaydt/automata-skills` after each release; without it the release says "No skills token yet." and the mirror waits |
 
@@ -29,9 +28,9 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 1. **GitHub account.** Change the password. In Settings → Sessions, sign out every other session. In SSH and
    GPG keys and in Developer settings → Personal access tokens, delete every key and token the lost device
    held. Check that two-factor authentication is still yours, and regenerate the recovery codes.
-2. **Tokens in game repositories.** Revoke the old `AF_READ_TOKEN`, create a new classic token with
-   `read:packages` only, and update the secret in each game repository. Rotate `RUKEN_TOKEN` in Ruken and the
-   dev host's SSH key the same way.
+2. **Tokens.** Revoke `NPM_TOKEN` on npmjs.org and create a new automation token for the `@automata` organisation,
+   then update the `release` environment's secret. Rotate `RUKEN_TOKEN` in Ruken and the dev host's SSH key in each
+   game repository the same way. Games need no token to install AF: its packages are public.
 3. **Runner.** If the runner PC was lost, remove `af-linux` in Settings → Actions → Runners. Jobs then wait in
    the queue instead of running anywhere else (`ci.yml`).
 4. **Check what happened.** Read the security log (Settings → Security log), the Actions runs and the packages'
@@ -51,7 +50,7 @@ Everything that builds, tests and publishes AF is in this repository:
 - Ruken's packages as vendored tarballs (`vendor/ruken/`);
 - the workflows, the plans, the specs and the decisions (`docs/`).
 
-Published versions live in GitHub Packages, and from the first public release also on npmjs.org.
+Published versions live on npmjs.org, public, under the `@automata` organisation.
 
 **Not in Git, and where each is kept:**
 
@@ -72,7 +71,7 @@ Published versions live in GitHub Packages, and from the first public release al
 2. Run `pnpm ci:local`. It checks, builds and tests everything CI does, including parity in three browsers.
    It needs the full history, not a shallow clone, for `pnpm secrets` and `changeset status`.
 3. Push to a new GitHub repository, then restore the settings in the table above.
-4. If GitHub Packages lost the published versions, run the release workflow from `main` again. Changesets
+4. If npmjs.org lost the published versions, run the release workflow from `main` again. Changesets
    publishes every version the registry is missing, and `verify-published.ts` checks the result.
 5. Record what was rebuilt, and when, in [03 Continuation](archive/03-continuation-prompt.md).
 
@@ -88,8 +87,9 @@ step 4 in one pull request.
    written yet.
 2. **Point the domain at it.** `automataframework.com`: an apex record (or the host's `ALIAS`, `ANAME` or flattened
    `CNAME`), `www` redirecting to the apex, and HTTPS on at the host.
-3. **Name the project's addresses**, one for questions and one for security reports, on the project's own domain.
-   `pnpm --filter @mcthaydt/automata-site check:launch` refuses a personal mailbox, so the deploy waits for them.
+3. **Make the project's address work.** The site names `hello@automataframework.com` for questions and security reports
+   (the Owner chose a project address over a personal mailbox, 2026-11-07); set up that mailbox or forward on the domain.
+   `pnpm --filter @automata/site check:launch` refuses a personal mailbox, and also fails until `@automata/tools` is on npmjs.org.
 4. **The agent's pull request:** the addresses in `site/src/shared/site.js` and `site/static/.well-known/security.txt`
    (a unit test keeps the two the same), the host's upload step in `site.yml` with the headers of
    `site/src/shared/html/security-headers.ts`, and these steps marked done. Merging it deploys.

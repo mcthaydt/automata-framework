@@ -74,7 +74,7 @@ export function publishedBuild(configUrl: string, options: PublishedBuildOptions
       onlyBundle: bundleRuken.map(packageAndSubpaths),
       ...(rukenTypes.length === 0 ? {} : { neverBundle: rukenTypes }),
       // Node built-ins stay external and are always allowed: a browser-platform package may still reach for
-      // them behind a runtime guard (e.g. `@mcthaydt/automata-sim/testing` reads files in Node, and reads
+      // them behind a runtime guard (e.g. `@automata/sim/testing` reads files in Node, and reads
       // golden files through a Vitest command in a browser).
       onlyImport: [...external.map(packageAndSubpaths), ...rukenTypes, /^node:/],
     },

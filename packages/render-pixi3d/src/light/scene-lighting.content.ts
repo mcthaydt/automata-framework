@@ -4,7 +4,7 @@
 // This registration rides in `render3dExtension`, so it is in every 3D game's page: it imports content's
 // browser-safe `/schema` entry. The root entry is the compiler; a production build tree-shakes its Node built-ins
 // away, but Vite's dev server loads them and the page throws at boot.
-import { type ContentSchemaDef, defineContentSchema } from '@mcthaydt/automata-content/schema'
+import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
 import { sceneLightingSchema } from './scene-lighting.schema.js'
 
 export const sceneLightingContent: ContentSchemaDef<'scene-lighting', typeof sceneLightingSchema> =

@@ -1,6 +1,5 @@
 <!--
-  The level picker, beside the document's name in the top bar (spec 11.4: "the level strip becomes a level picker in
-  the top bar"). Its button shows the open level's name; its menu lists the levels of the open level's world in the
+  The level picker, beside the document's name in the top bar, in place of a strip of level cards. Its button shows the open level's name; its menu lists the levels of the open level's world in the
   world's order, the open one marked, then "New level". Choosing a level opens it and fits it in view; New level adds
   the first free "Level N" beside the world's levels (the Map view's Add level, `newLevelInput`), as one undo step, and
   opens it. A project already holding the most levels it may keeps New level in the menu, saying why it cannot add one.

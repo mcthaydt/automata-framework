@@ -23,6 +23,9 @@ const { layer, items, word, entityDef, imageUrl, onchoose }: Props = $props()
 const CELL = 44
 const tiles = $derived(items.length > 0 && items.every((item) => item.kind === 'tile'))
 
+/** Entity and IntGrid rows carry their number key, for the first nine (`level-shortcuts`); a tileset's tiles carry none. */
+const keyed = (index: number): number | undefined => (tiles || index >= 9 ? undefined : index + 1)
+
 const keyOf = (item: PaletteItem): string =>
   item.kind === 'entity' ? `entity-${item.def}` : `word-${item.word}`
 </script>
@@ -33,7 +36,7 @@ const keyOf = (item: PaletteItem): string =>
     <p class="empty">Nothing to paint on this layer yet.</p>
   {:else}
     <div class="choices" class:tiles role="radiogroup" aria-labelledby="palette-heading">
-      {#each items as item (keyOf(item))}
+      {#each items as item, index (keyOf(item))}
         {@const chosen = isChosen(item, { word, entityDef })}
         {#if item.kind === 'tile'}
           {@const drawn = item.image !== undefined && imageUrl(item.image.path) !== undefined}
@@ -58,6 +61,7 @@ const keyOf = (item: PaletteItem): string =>
           >
             <span class="swatch" style={`background-color: ${item.color}`}></span>
             <span class="name">{item.label}</span>
+            {#if keyed(index) !== undefined}<span class="key" aria-hidden="true">{keyed(index)}</span>{/if}
           </button>
         {/if}
       {/each}
@@ -140,9 +144,16 @@ const keyOf = (item: PaletteItem): string =>
     border-radius: var(--edge-sm);
   }
   .name {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  /* The number key that chooses the row, quiet at its right edge. */
+  .key {
+    flex: 0 0 auto;
+    color: var(--muted);
+    font: var(--text-mono-12);
   }
 </style>

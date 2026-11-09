@@ -111,7 +111,7 @@ describe('PSEUDO_LOCALE', () => {
 })
 
 // A game makes its xx-long catalog, and ui's layout contracts their words, from the browser-safe subpath.
-describe('@mcthaydt/automata-content/locale', () => {
+describe('@automata/content/locale', () => {
   it.each(['PSEUDO_LOCALE', 'pseudoLocalize', 'pseudoMessages', 'hasRawText'])('exports %s', (name) => {
     expect(locale).toHaveProperty(name)
   })

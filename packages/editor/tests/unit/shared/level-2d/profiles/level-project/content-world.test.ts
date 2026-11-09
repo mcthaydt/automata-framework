@@ -1,4 +1,4 @@
-import { worldContentSchema } from '@mcthaydt/automata-content/level-2d'
+import { worldContentSchema } from '@automata/content/level-2d'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'

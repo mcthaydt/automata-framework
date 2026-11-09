@@ -95,7 +95,7 @@ onDestroy(() => {
       <div class="stage" data-scroll-region data-pill={wide ? undefined : pillAt}>
         {#if selection.def === undefined}
           <div class="none" role="status">
-            <h2>Settings for every level</h2>
+            <h2>Settings every level has</h2>
             <p>
               Every level has these settings ({project.levels.length === 1
                 ? '1 level'

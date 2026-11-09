@@ -1,6 +1,6 @@
 // Structural diff of two snapshot views: what differs, field by field, in a fixed order so a
 // report reads the same in every engine: header, rng, resources, nextId, entities, plugin bytes.
-import type { SnapshotView } from '@mcthaydt/automata-sim'
+import type { SnapshotView } from '@automata/sim'
 
 /**
  * One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's

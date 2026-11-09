@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/versions",
+  "name": "@automata/versions",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "typecheck": "tsc -p ."
   },
   "devDependencies": {
-    "@mcthaydt/vitest-preset": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "vitest": "5.0.3"
   }

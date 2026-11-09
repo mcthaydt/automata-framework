@@ -1,5 +1,5 @@
 <!--
-  The pill that floats over an editor's stage (spec 11.4): one row of controls, centred at the stage's top or foot
+  The pill that floats over an editor's stage: one row of controls, centred at the stage's top or foot
   (`at`), or, in the compact layout, a dock: a plain bar across the stage's foot, under the thumb (the approved
   mockup's tool dock). The Level view's tools live in one; Map, Tiles and
   Characters put the buttons that open their list and their details in one, so every view has the same frame.

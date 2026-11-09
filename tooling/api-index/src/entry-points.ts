@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
 
 export interface EntryPoint {
-  /** The package name, e.g. `@mcthaydt/automata-sim`. */
+  /** The package name, e.g. `@automata/sim`. */
   readonly package: string
   /** The `exports` key, e.g. `.` or `./math`. */
   readonly entryPoint: string

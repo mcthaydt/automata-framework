@@ -56,6 +56,26 @@ export function exportPathsMatch(exports: string, path: string): boolean {
   return rest.startsWith('levels/') && rest.endsWith('.toml') && !rest.slice('levels/'.length).includes('/')
 }
 
+/**
+ * The pictures Add tiles writes: one image file directly in `assets/`, where every picture a level project draws
+ * lives. A level project row (the one that names `exports`) owns them, since its project points at them.
+ */
+export function tilePicturePath(path: string): boolean {
+  return /^assets\/[^/]+\.(png|webp|jpe?g)$/i.test(path) && !path.startsWith('assets/.')
+}
+
+/**
+ * Whether `path` is writable only because a level project's Save writes it (its game files and the pictures it
+ * draws), and no row's glob lists it as a file in its own right. Home names the files a person opens and leaves these
+ * out: they are how the game stores a level, not something to choose.
+ */
+export function writtenBySave(list: EditorList, path: string): boolean {
+  if (list.file.some((row) => globMatch(row.glob, path) !== undefined)) return false
+  return list.file.some(
+    (row) => row.exports !== undefined && (exportPathsMatch(row.exports, path) || tilePicturePath(path)),
+  )
+}
+
 /** The first row whose glob matches `path`, with the scene its `{scene}` matched. */
 function firstRow(list: EditorList, path: string): { row: FileRow; scene?: string } | undefined {
   for (const row of list.file) {
@@ -63,8 +83,10 @@ function firstRow(list: EditorList, path: string): { row: FileRow; scene?: strin
     if (match === undefined) continue
     return match.scene === undefined ? { row } : { row, scene: match.scene }
   }
-  // No row lists the file: it may still be a game file some level project exports.
-  const exporter = list.file.find((row) => row.exports !== undefined && exportPathsMatch(row.exports, path))
+  // No row lists the file: it may still be a game file some level project exports, or a picture it draws.
+  const exporter = list.file.find(
+    (row) => row.exports !== undefined && (exportPathsMatch(row.exports, path) || tilePicturePath(path)),
+  )
   return exporter === undefined ? undefined : { row: exporter }
 }
 

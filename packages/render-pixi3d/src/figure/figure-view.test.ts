@@ -1,7 +1,7 @@
-import { DEFAULT_PALETTE } from '@mcthaydt/automata-content'
-import { build, type EvaluateOptions, type FigureState, J, skeleton } from '@mcthaydt/automata-figures'
-import { fixtureFigures, fixtureMotion } from '@mcthaydt/automata-figures/testing'
-import type { RenderRow } from '@mcthaydt/automata-sim'
+import { DEFAULT_PALETTE } from '@automata/content'
+import { build, type EvaluateOptions, type FigureState, J, skeleton } from '@automata/figures'
+import { fixtureFigures, fixtureMotion } from '@automata/figures/testing'
+import type { RenderRow } from '@automata/sim'
 import { Container3D, type FlatMaterial, Mesh3D } from '@pixi/3d'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSceneLight } from '../light/scene-light.js'
@@ -18,8 +18,8 @@ const calls = vi.hoisted(() => ({
   build: 0,
   seen: [] as { state: FigureState; time: number; options: EvaluateOptions | undefined }[],
 }))
-vi.mock('@mcthaydt/automata-figures', async (original) => {
-  const real = await original<typeof import('@mcthaydt/automata-figures')>()
+vi.mock('@automata/figures', async (original) => {
+  const real = await original<typeof import('@automata/figures')>()
   return {
     ...real,
     evaluate: (...args: Parameters<typeof real.evaluate>) => {

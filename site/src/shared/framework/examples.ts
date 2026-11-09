@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { readCatalog } from '@mcthaydt/examples-runner/catalog'
+import { readCatalog } from '@automata/examples-runner/catalog'
 import { type PlaygroundExample, playgroundCatalog } from '../../../playground/src/playground-catalog.ts'
 import { repositoryRoot } from './root.ts'
 

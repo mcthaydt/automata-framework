@@ -6,7 +6,13 @@ import { execFileSync } from 'node:child_process'
 import { appendFileSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { describeDependencies, formatReport, type Manifest, newDependencies } from './new-deps.ts'
+import {
+  describeDependencies,
+  formatReport,
+  type Manifest,
+  newDependencies,
+  scopeRegistries,
+} from './new-deps.ts'
 import { newDepsBase } from './new-deps-base.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
@@ -20,17 +26,9 @@ const base = newDepsBase(git, baseRef)
 const isManifest = (path: string): boolean =>
   (path === 'package.json' || path.endsWith('/package.json')) && !path.split('/').includes('fixtures')
 
-/** `@scope:registry=url` lines of the root .npmrc; none when the repository has no .npmrc (every scope is on npmjs.org). */
-function scopeRegistries(): Record<string, string> {
-  const scopes: Record<string, string> = {}
-  const file = join(root, '.npmrc')
-  if (!existsSync(file)) return scopes
-  for (const line of readFileSync(file, 'utf8').split('\n')) {
-    const match = /^(@[^:]+):registry=(\S+)$/.exec(line.trim())
-    if (match?.[1] !== undefined && match[2] !== undefined) scopes[match[1]] = match[2].replace(/\/$/, '')
-  }
-  return scopes
-}
+const npmrcPath = join(root, '.npmrc')
+// The packages publish to npmjs.org, so the repository may have no .npmrc at all.
+const npmrc = existsSync(npmrcPath) ? readFileSync(npmrcPath, 'utf8') : undefined
 
 const headManifests: Record<string, Manifest> = {}
 for (const path of git('ls-files').split('\n').filter(isManifest)) {
@@ -42,7 +40,7 @@ for (const path of git('ls-tree', '-r', '--name-only', base).split('\n').filter(
 }
 
 const reports = await describeDependencies(
-  newDependencies(baseManifests, headManifests, scopeRegistries()),
+  newDependencies(baseManifests, headManifests, scopeRegistries(npmrc)),
   (url) => fetch(url),
 )
 const report = formatReport(

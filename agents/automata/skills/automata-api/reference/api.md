@@ -1,10 +1,1893 @@
 # Automata API reference, version 0.0.5
 
-> Every export of every published `@mcthaydt/automata-*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
+> Every export of every published `@automata/*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
 
-## `@mcthaydt/automata`
+## `@automata/content`
 
-### `import { … } from '@mcthaydt/automata'`
+### `import { … } from '@automata/content'`
+
+#### `AssetsSource` (interface)
+
+What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
+folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and
+`fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list.
+
+```ts
+interface AssetsSource {
+  readonly screens: Readonly<Record<string, {
+    readonly files: readonly string[];
+    /** Atlases named in `content/atlases.toml`: each page's Spritesheet JSON and image. */
+    readonly atlases?: readonly string[] | undefined;
+    /** Fonts named in `content/fonts.toml`: the subset of every language `fonts.json` lists. */
+    readonly fonts?: readonly string[] | undefined;
+  }>>;
+}
+```
+
+#### `buildContent` (const)
+
+Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
+
+```ts
+const buildContent: (options: ContentOptions) => Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig | ContentWriteFailed>;
+```
+
+#### `checkTuningLayer` (function)
+
+Checks one layer of tuning against code-owned declarations. `complete` is true for the base layer, which
+must name every tunable; false for a partial override (a stage or mode layer).
+
+Invariants are rejected before unknown names so the more specific answer wins, then non-numbers, then
+integer declarations, then the inclusive range.
+
+```ts
+function checkTuningLayer(layer: Readonly<Record<string, unknown>>, options: TuningOptions & {
+  readonly tunables: TunableDeclarations;
+}, { complete }: {
+  readonly complete: boolean;
+}): Problem[];
+```
+
+#### `compileContent` (const)
+
+Compiles `<root>/content` in memory. Writes nothing.
+
+```ts
+const compileContent: (options: ContentOptions) => Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>;
+```
+
+#### `CompiledContent` (interface)
+
+The result of a compile: the content and its hash, the sim partition, every output file's text, warnings,
+the languages and each language's message catalog.
+
+```ts
+interface CompiledContent {
+  readonly data: ContentData;
+  /** Over all of `data`: the boot check and evidence identity. Never compared with `sim.hash`. */
+  readonly hash: string;
+  /** What the sim receives, and the hash that gates snapshots and replays. */
+  readonly sim: SimPartition;
+  /** Each output path, relative to the output folder, to its exact text. Build and verify use the same bytes. */
+  readonly files: ReadonlyMap<string, string>;
+  /** Problems that do not stop a compile (`skippedFile`), sorted. They are not part of the hash or the outputs. */
+  readonly warnings: readonly Diagnostic[];
+  /** The source language, then each translation's language, sorted. */
+  readonly languages: readonly string[];
+  /**
+   * Each language's checked catalog (without `$schema`), in `languages` order. Derived beside the hashed data,
+   * never inside it, so a translation edit moves neither hash. Paraglide and the glyph sets read these.
+   */
+  readonly catalogs: ReadonlyMap<string, MessageCatalog>;
+  /**
+   * Where each language's messages are written, in `languages` order: a source message at its text in the
+   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
+   */
+  readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
+}
+```
+
+#### `ContentCompileFailed` (class)
+
+The authored content has problems. Every one is listed, sorted; nothing was written.
+
+```ts
+class ContentCompileFailed extends CompileFailedBase {}
+```
+
+#### `ContentConfig` (type)
+
+The default export of `automata.content.ts`.
+
+```ts
+type ContentConfig = Omit<ContentOptions, "root"> & {
+  /** The authoring guide whose tunable table `docs` writes and `--verify-artifact` checks. */
+  readonly guide?: string | undefined;
+};
+```
+
+#### `ContentData` (type)
+
+The compiled content as it is written to `content.json` and hashed.
+
+```ts
+type ContentData = Readonly<Record<string, unknown>>;
+```
+
+#### `ContentGenerator` (interface)
+
+A generator: a unique name and a pure `generate` that turns compiled content into extra files. Create one
+with `defineContentGenerator`.
+
+```ts
+interface ContentGenerator {
+  readonly name: string;
+  generate(input: GeneratorInput): GeneratorOutput;
+}
+```
+
+#### `contentHash` (function)
+
+16 lowercase hex digits.
+
+```ts
+function contentHash(data: unknown): string;
+```
+
+#### `ContentOptions` (interface)
+
+What the content compiler is given: the project root, the registered kinds, and optionally tunables,
+invariants, flow capabilities, generators, an output folder and Paraglide.
+
+```ts
+interface ContentOptions {
+  /** The project root; content is read from `<root>/content`. */
+  readonly root: string;
+  readonly schemas: readonly ContentSchemaDef[];
+  /** Code-owned tunable names and ranges. Absent: ranges are authored in `tuning.toml`. */
+  readonly tunables?: TunableDeclarations | undefined;
+  /** Code-only constants an author may not write in `tuning.toml`. */
+  readonly invariants?: readonly string[] | undefined;
+  /** Code-owned screens, pairs and styles for `flow.toml`. */
+  readonly flow?: FlowCapabilities | undefined;
+  readonly generators?: readonly ContentGenerator[] | undefined;
+  /** Relative to `root`. Default `content/generated`. */
+  readonly outDir?: string | undefined;
+  /** Compile the catalogs with Paraglide on each build. Absent: no Paraglide output. */
+  readonly paraglide?: ParaglideOptions | undefined;
+}
+```
+
+#### `contentRef` (function)
+
+The ID of another content item of `kind`. Checked to exist, and to be that kind, after parsing.
+
+```ts
+function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
+```
+
+#### `ContentSchemaDef` (interface)
+
+A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
+and whether the sim receives it. Create one with `defineContentSchema`.
+
+```ts
+interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
+  readonly kind: K;
+  readonly schema: S;
+  readonly place: ContentSchemaPlace;
+  /**
+   * Whether the sim receives this kind. Default true: content is gameplay unless the game
+   * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
+   */
+  readonly sim: boolean;
+}
+```
+
+#### `ContentSchemaOptions` (interface)
+
+Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
+
+```ts
+interface ContentSchemaOptions {
+  readonly sim?: boolean;
+}
+```
+
+#### `ContentSchemaPlace` (type)
+
+Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
+
+```ts
+type ContentSchemaPlace = {
+  readonly folder: string;
+} | {
+  readonly file: string;
+};
+```
+
+#### `ContentWriteFailed` (class)
+
+An output could not be written. Files already replaced are whole; none is half written.
+
+```ts
+class ContentWriteFailed extends WriteFailedBase {}
+```
+
+#### `DEFAULT_OUT_DIR` (const)
+
+Where outputs go when `outDir` is not set: `content/generated`, relative to the project root.
+
+```ts
+const DEFAULT_OUT_DIR = "content/generated";
+```
+
+#### `DEFAULT_PALETTE` (const)
+
+The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+
+```ts
+const DEFAULT_PALETTE: Palette;
+```
+
+#### `defineContentGenerator` (function)
+
+Defines a generator by name and `generate` function. Generators do no I/O: the compiler writes their files.
+A generator that throws, repeats another's name, returns a path outside the output folder or writes a file
+another generator wrote is reported as `InvalidContentConfig`.
+
+```ts
+function defineContentGenerator(name: string, generate: (input: GeneratorInput) => GeneratorOutput): ContentGenerator;
+```
+
+#### `defineContentSchema` (function)
+
+Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
+file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
+that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
+name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
+
+```ts
+function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
+```
+
+#### `Diagnostic` (interface)
+
+One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key
+inside it and a message that says what to write instead.
+
+```ts
+interface Diagnostic {
+  readonly code: DiagnosticCode;
+  /** Project-relative, `/`-separated, e.g. `content/tuning.toml`. */
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  /** Dotted path inside the file (`transitions.3.to`), or '' for the whole file. */
+  readonly keyPath: string;
+  readonly message: string;
+}
+```
+
+#### `DiagnosticCode` (type)
+
+Stable codes. Tests and tools match on these, so a code is never renamed, only added.
+
+```ts
+type DiagnosticCode = "invalidToml" | "invalidType" | "missingField" | "unknownField" | "invalidId" | "unknownReference" | "wrongKind" | "outOfRange" | "invariantNotAuthorable" | "invalidFlow" | "invalidPalette" | "invalidGame" | "missingAsset" | "invalidAsset" | "offPalette" | "missingGlyph" | "duplicateMessageKey" | "staleTranslation" | "staleArtifact" | "reservedKey" | "simReference" | "skippedFile";
+```
+
+#### `FlowCapabilities` (interface)
+
+What the game's code implements: the screens, and optionally the pairs and destinations each allows.
+
+```ts
+interface FlowCapabilities {
+  /** The only screen a session may begin on. */
+  readonly entry?: string;
+  readonly screens: readonly string[];
+  /** For each screen and event, the destinations that screen is prepared to enter. */
+  readonly targets?: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>;
+  /** Transition styles the runtime draws. Default: only `cut`. */
+  readonly styles?: readonly string[];
+}
+```
+
+#### `FlowGraph` (interface)
+
+The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every
+transition, in a fixed order.
+
+```ts
+interface FlowGraph {
+  readonly entry: string;
+  /** Sorted. */
+  readonly screens: readonly string[];
+  /** Sorted. */
+  readonly terminal: readonly string[];
+  /** Sorted by from, event, then to: declaration order means nothing. */
+  readonly transitions: readonly FlowTransition[];
+}
+```
+
+#### `FlowTransition` (interface)
+
+One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the
+`transition` style (`cut` when unwritten).
+
+```ts
+interface FlowTransition {
+  readonly from: string;
+  readonly event: string;
+  readonly to: string;
+  readonly transition: string;
+}
+```
+
+#### `formatDiagnostic` (function)
+
+`content/tuning.toml:12:1  GRAVITY  outOfRange: expected -1200..-100, received -2000`
+
+```ts
+function formatDiagnostic(d: Diagnostic): string;
+```
+
+#### `GAME_ID_PATTERN` (const)
+
+A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+
+```ts
+const GAME_ID_PATTERN: RegExp;
+```
+
+#### `GameConfig` (interface)
+
+What every target knows about a game.
+
+```ts
+interface GameConfig {
+  readonly game: {
+    readonly id: string;
+    readonly title: string;
+    readonly version: string;
+    /** The entry page in the build. */
+    readonly entry: string;
+    /** The Ruken SDK's version range; the Ruken target requires it. */
+    readonly sdk?: string;
+  };
+  readonly runtime: {
+    readonly renderer: Renderer;
+    readonly orientation: Orientation;
+    readonly inputs: readonly Input[];
+    readonly pause_behavior: "pause" | "continue";
+  };
+  /** The origins the game connects to; empty means it works offline. */
+  readonly network: {
+    readonly connect: readonly string[];
+  };
+  readonly content: {
+    readonly languages: readonly string[];
+    readonly rating: Rating;
+    readonly estimated_hours?: number;
+    readonly descriptors: readonly string[];
+  };
+  /** The analytics events the game may send (`Hosting.track` drops any other). */
+  readonly analytics?: {
+    readonly custom_events: readonly string[];
+  };
+  /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
+  readonly loading?: {
+    readonly preload: readonly string[];
+  };
+  readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+}
+```
+
+#### `gameConfigSchema` (const)
+
+Checks a game's config.
+
+```ts
+const gameConfigSchema: z.ZodType<GameConfig>;
+```
+
+#### `GameSource` (interface)
+
+What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated
+hours, the analytics events it may send, and the screens whose files are preloaded.
+
+```ts
+interface GameSource {
+  /** The language the TOML is written in. Default `en`. */
+  readonly source_language: string;
+  readonly rating: Rating;
+  readonly descriptors: string[];
+  readonly estimated_hours?: number | undefined;
+  readonly custom_events: string[];
+  /** The screens whose files Ruken preloads, in order. Default: the flow's entry. */
+  readonly preload_screens?: string[] | undefined;
+}
+```
+
+#### `GeneratorInput` (interface)
+
+Everything a generator is given: the compiled content and its hash, the sim partition, the registered
+schemas, the message catalog and the tuning metadata.
+
+```ts
+interface GeneratorInput {
+  readonly data: ContentData;
+  readonly hash: string;
+  /** The sim partition and its hash, so a generator never re-derives it from `schemas`. */
+  readonly sim: SimPartition;
+  readonly schemas: readonly ContentSchemaDef[];
+  readonly messages: MessageCatalog;
+  readonly tuning: TuningMeta;
+}
+```
+
+#### `GeneratorOutput` (interface)
+
+What a generator returns: files to write and diagnostics to report. Both are optional.
+
+```ts
+interface GeneratorOutput {
+  /** Path relative to the output folder → the file's exact text. */
+  readonly files?: Readonly<Record<string, string>>;
+  readonly diagnostics?: readonly Diagnostic[];
+}
+```
+
+#### `Input` (type)
+
+One input a game can be played with.
+
+```ts
+type Input = (typeof INPUTS)[number];
+```
+
+#### `INPUTS` (const)
+
+The inputs a game can be played with.
+
+```ts
+const INPUTS: readonly ["touch", "keyboard", "gamepad"];
+```
+
+#### `InvalidContentConfig` (class)
+
+The game's code registered something unusable (a duplicate kind, a clashing generator).
+
+```ts
+class InvalidContentConfig extends InvalidConfigBase {}
+```
+
+#### `LEADERBOARD_ORDERS` (const)
+
+The orders a score board sorts in.
+
+```ts
+const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
+```
+
+#### `LeaderboardConfig` (interface)
+
+A score board a game declares.
+
+```ts
+interface LeaderboardConfig {
+  readonly order: (typeof LEADERBOARD_ORDERS)[number];
+  readonly min: number;
+  readonly max: number;
+  readonly title?: string;
+}
+```
+
+#### `localized` (function)
+
+Text a player reads, written in the source language. It gets a message key for translators.
+
+```ts
+function localized(): z.ZodType<string, string>;
+```
+
+#### `MessageCatalog` (type)
+
+One locale's messages: message key to translated text.
+
+```ts
+type MessageCatalog = Readonly<Record<string, string>>;
+```
+
+#### `messageKey` (function)
+
+The message key of one text. `id` is absent for a single-document kind.
+
+```ts
+function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+#### `MessageLocation` (interface)
+
+A message's place in its file, 1-based.
+
+```ts
+interface MessageLocation {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+}
+```
+
+#### `Orientation` (type)
+
+One orientation a game supports.
+
+```ts
+type Orientation = (typeof ORIENTATIONS)[number];
+```
+
+#### `ORIENTATIONS` (const)
+
+The orientations a game supports.
+
+```ts
+const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
+```
+
+#### `Palette` (interface)
+
+The game's palette: a name and its colors.
+
+```ts
+interface Palette {
+  readonly name: string;
+  /** `#rrggbb`, lowercase, in authored order. */
+  readonly colors: readonly string[];
+}
+```
+
+#### `ParaglideOptions` (interface)
+
+Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
+
+```ts
+interface ParaglideOptions {
+  /** Where the generated `runtime.js` and `messages.js` go, relative to the root. Emptied on each compile. */
+  readonly outdir: string;
+  /** The game's own catalogs, `{locale}` path patterns relative to the root (`messages/ui/{locale}.json`). */
+  readonly catalogs?: readonly string[] | undefined;
+}
+```
+
+#### `PreloadInput` (interface)
+
+What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset
+build's outputs below `outDir`) and the built game folder.
+
+```ts
+interface PreloadInput {
+  readonly options: ContentOptions;
+  /** The built game folder (Vite's `dist/`). */
+  readonly distDir: string;
+}
+```
+
+#### `preloadList` (const)
+
+The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens`
+screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and
+every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir`
+and the build serves in `atlases/` and `fonts/`; without repeats. Empty without a `game.toml`. Fails with
+`ContentCompileFailed` carrying a diagnostic for every file the build lacks (`missingAsset`), every atlas or
+font not declared (`unknownReference`) or not built (`missingAsset`), all at once, or with
+`InvalidContentConfig`.
+
+```ts
+const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;
+```
+
+#### `Rating` (type)
+
+One content rating.
+
+```ts
+type Rating = (typeof RATINGS)[number];
+```
+
+#### `RATINGS` (const)
+
+The content ratings a game declares.
+
+```ts
+const RATINGS: readonly ["everyone", "teen", "mature"];
+```
+
+#### `Renderer` (type)
+
+One renderer a game may ask for.
+
+```ts
+type Renderer = (typeof RENDERERS)[number];
+```
+
+#### `RENDERERS` (const)
+
+The renderers a game may ask for.
+
+```ts
+const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
+```
+
+#### `renderTuningTable` (function)
+
+Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
+
+```ts
+function renderTuningTable(meta: TuningMeta): string;
+```
+
+#### `RukenFields` (type)
+
+The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out
+from `game.toml` and the languages present and written to `ruken-fields.json`.
+
+```ts
+type RukenFields = {
+  readonly content: GameConfig["content"];
+  readonly analytics: NonNullable<GameConfig["analytics"]>;
+};
+```
+
+#### `SimPartition` (interface)
+
+The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash,
+which gates snapshots and replays.
+
+```ts
+interface SimPartition {
+  /** `tuning` and each sim kind, the same objects as in the full data. */
+  readonly data: ContentData;
+  /** `contentHash(data)`: exactly what `createSim` computes from the same data. */
+  readonly hash: string;
+}
+```
+
+#### `sortDiagnostics` (function)
+
+Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing
+the input. The order never depends on locale.
+
+```ts
+function sortDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[];
+```
+
+#### `TunableDeclaration` (interface)
+
+A tunable a game declares in code: `int` or `float`, an inclusive range and a default. Content selects a
+value inside the range and never widens it.
+
+```ts
+interface TunableDeclaration {
+  readonly type: TunableType;
+  /** Inclusive lower bound. */
+  readonly min: number;
+  /** Inclusive upper bound. */
+  readonly max: number;
+  readonly default: number;
+}
+```
+
+#### `TunableDeclarations` (type)
+
+A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`).
+
+```ts
+type TunableDeclarations = Readonly<Record<string, TunableDeclaration>>;
+```
+
+#### `TuningMeta` (type)
+
+Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for
+debug sliders.
+
+```ts
+type TuningMeta = Readonly<Record<string, TuningEntryMeta>>;
+```
+
+#### `verifyContent` (const)
+
+Fails with `staleArtifact` for each committed output that differs from a fresh compile.
+
+```ts
+const verifyContent: (options: ContentOptions) => Effect.Effect<void, ContentCompileFailed | InvalidContentConfig>;
+```
+
+#### `withTuningTable` (function)
+
+The guide with its generated section replaced, or undefined when it has no markers.
+
+```ts
+function withTuningTable(guide: string, meta: TuningMeta): string | undefined;
+```
+
+### `import { … } from '@automata/content/assets'`
+
+#### `ATLAS_EXTRUDE` (const)
+
+Pixels of each frame's edge repeated around it, so filtering never samples a neighbour.
+
+```ts
+const ATLAS_EXTRUDE = 1;
+```
+
+#### `ATLAS_PADDING` (const)
+
+Transparent pixels between cells, and between a cell and the page edge.
+
+```ts
+const ATLAS_PADDING = 1;
+```
+
+#### `ATLAS_PAGE_MAX` (const)
+
+The largest atlas page side, in pixels: WebGL2's guaranteed `MAX_TEXTURE_SIZE`.
+
+```ts
+const ATLAS_PAGE_MAX = 2048;
+```
+
+#### `AtlasFrameTooLarge` (class)
+
+A frame that cannot fit a page even alone.
+
+```ts
+class AtlasFrameTooLarge extends Error {
+  readonly frame: FrameSize;
+  constructor(frame: FrameSize);
+}
+```
+
+#### `AtlasOutputs` (interface)
+
+What `buildAtlases` produces; the caller writes it.
+
+```ts
+interface AtlasOutputs {
+  /** `<atlas>-<page>.png` and `<atlas>-<page>.json`, sorted by name. */
+  readonly files: ReadonlyMap<string, Uint8Array>;
+}
+```
+
+#### `buildAtlases` (const)
+
+Builds every atlas `<root>/content/atlases.toml` names, or fails with every problem found. Without the file
+there is nothing to build.
+
+```ts
+const buildAtlases: (root: string) => Effect.Effect<AtlasOutputs, ContentCompileFailed>;
+```
+
+#### `buildFonts` (const)
+
+Builds every subset `<root>/content/fonts.toml` names, or fails with every problem found. Without the file
+there is nothing to build, and the content is not compiled.
+
+```ts
+const buildFonts: (options: ContentOptions) => Effect.Effect<FontOutputs, ContentCompileFailed | InvalidContentConfig>;
+```
+
+#### `fontCoverage` (function)
+
+Whether a font file (TrueType, OpenType, woff or woff2) has a glyph for each character.
+
+```ts
+function fontCoverage(font: Uint8Array): (character: string) => boolean;
+```
+
+#### `FontOutputs` (interface)
+
+What `buildFonts` produces; the caller writes it.
+
+```ts
+interface FontOutputs {
+  /** `<font>-<locale>-<hash8>.woff2` and `fonts.json` (`{ font: { locale: file } }`), sorted by name. */
+  readonly files: ReadonlyMap<string, Uint8Array>;
+}
+```
+
+#### `FontsFile` (interface)
+
+`content/fonts.toml`: each source font by name.
+
+```ts
+interface FontsFile {
+  readonly font: Readonly<Record<string, FontSource>>;
+}
+```
+
+#### `FontSource` (interface)
+
+One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves.
+
+```ts
+interface FontSource {
+  readonly file: string;
+  readonly sha256: string;
+  readonly license: string;
+  readonly locales: readonly string[];
+}
+```
+
+#### `FrameSize` (interface)
+
+A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
+
+```ts
+interface FrameSize {
+  readonly name: string;
+  readonly width: number;
+  readonly height: number;
+}
+```
+
+#### `PackedAtlas` (interface)
+
+Every frame's placement, and the pages they fill.
+
+```ts
+interface PackedAtlas {
+  /** Each page's side, in pixels. */
+  readonly pageSizes: readonly number[];
+  /** In code-unit order of the frame names. */
+  readonly placements: readonly Placement[];
+}
+```
+
+#### `packFrames` (function)
+
+Packs `frames` into atlas pages. Throws `AtlasFrameTooLarge` for a frame no page can hold.
+
+```ts
+function packFrames(frames: readonly FrameSize[]): PackedAtlas;
+```
+
+#### `Placement` (interface)
+
+Where a frame's own pixels are: inside its extrusion, on page `page`.
+
+```ts
+interface Placement {
+  readonly name: string;
+  readonly page: number;
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+```
+
+#### `subsetWoff2` (function)
+
+The font cut to `characters`, as woff2. A character the font lacks is simply not in the subset.
+
+```ts
+function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+```
+
+### `import { … } from '@automata/content/game-config'`
+
+#### `GAME_ID_PATTERN` (const)
+
+A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+
+```ts
+const GAME_ID_PATTERN: RegExp;
+```
+
+#### `GameConfig` (interface)
+
+What every target knows about a game.
+
+```ts
+interface GameConfig {
+  readonly game: {
+    readonly id: string;
+    readonly title: string;
+    readonly version: string;
+    /** The entry page in the build. */
+    readonly entry: string;
+    /** The Ruken SDK's version range; the Ruken target requires it. */
+    readonly sdk?: string;
+  };
+  readonly runtime: {
+    readonly renderer: Renderer;
+    readonly orientation: Orientation;
+    readonly inputs: readonly Input[];
+    readonly pause_behavior: "pause" | "continue";
+  };
+  /** The origins the game connects to; empty means it works offline. */
+  readonly network: {
+    readonly connect: readonly string[];
+  };
+  readonly content: {
+    readonly languages: readonly string[];
+    readonly rating: Rating;
+    readonly estimated_hours?: number;
+    readonly descriptors: readonly string[];
+  };
+  /** The analytics events the game may send (`Hosting.track` drops any other). */
+  readonly analytics?: {
+    readonly custom_events: readonly string[];
+  };
+  /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
+  readonly loading?: {
+    readonly preload: readonly string[];
+  };
+  readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+}
+```
+
+#### `gameConfigSchema` (const)
+
+Checks a game's config.
+
+```ts
+const gameConfigSchema: z.ZodType<GameConfig>;
+```
+
+#### `Input` (type)
+
+One input a game can be played with.
+
+```ts
+type Input = (typeof INPUTS)[number];
+```
+
+#### `INPUTS` (const)
+
+The inputs a game can be played with.
+
+```ts
+const INPUTS: readonly ["touch", "keyboard", "gamepad"];
+```
+
+#### `LEADERBOARD_ORDERS` (const)
+
+The orders a score board sorts in.
+
+```ts
+const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
+```
+
+#### `LeaderboardConfig` (interface)
+
+A score board a game declares.
+
+```ts
+interface LeaderboardConfig {
+  readonly order: (typeof LEADERBOARD_ORDERS)[number];
+  readonly min: number;
+  readonly max: number;
+  readonly title?: string;
+}
+```
+
+#### `Orientation` (type)
+
+One orientation a game supports.
+
+```ts
+type Orientation = (typeof ORIENTATIONS)[number];
+```
+
+#### `ORIENTATIONS` (const)
+
+The orientations a game supports.
+
+```ts
+const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
+```
+
+#### `Rating` (type)
+
+One content rating.
+
+```ts
+type Rating = (typeof RATINGS)[number];
+```
+
+#### `RATINGS` (const)
+
+The content ratings a game declares.
+
+```ts
+const RATINGS: readonly ["everyone", "teen", "mature"];
+```
+
+#### `Renderer` (type)
+
+One renderer a game may ask for.
+
+```ts
+type Renderer = (typeof RENDERERS)[number];
+```
+
+#### `RENDERERS` (const)
+
+The renderers a game may ask for.
+
+```ts
+const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
+```
+
+### `import { … } from '@automata/content/level-2d'`
+
+#### `checkEntityDef` (function)
+
+Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and
+index, with a repeated field id reported at its later occurrence.
+
+```ts
+function checkEntityDef(def: EntityDef): readonly EntityDefProblem[];
+```
+
+#### `checkFieldDef` (function)
+
+Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
+
+```ts
+function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode>[];
+```
+
+#### `checkFieldValue` (function)
+
+Whether `value` fits the field: `undefined` when it does, else the first problem. It checks the value's shape
+and the field's own rules; whether a reference resolves is the editor's check.
+
+```ts
+function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
+```
+
+#### `ContentEntityDef` (type)
+
+An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
+
+```ts
+type ContentEntityDef = EntityDef & {
+  readonly shape: "rect" | "ellipse" | "point" | "tile";
+  readonly size: ContentSize;
+  readonly pivot: {
+    readonly x: number;
+    readonly y: number;
+  };
+  readonly resizable: "none" | "x" | "y" | "xy";
+  readonly tile?: {
+    readonly tileset: string;
+    readonly index: number;
+  } | undefined;
+  readonly tags: readonly string[];
+  readonly min?: {
+    readonly per: "level" | "project";
+    readonly count: number;
+  } | undefined;
+};
+```
+
+#### `ContentEntityItem` (interface)
+
+One placed entity in a level: its definition, its position (and size when resizable) and its field values.
+
+```ts
+interface ContentEntityItem {
+  readonly id: string;
+  readonly def: string;
+  readonly x: number;
+  readonly y: number;
+  readonly w?: number | undefined;
+  readonly h?: number | undefined;
+  readonly fields: FieldValues;
+}
+```
+
+#### `ContentLevel` (interface)
+
+A level as `levels/<id>.toml` holds it, after parsing the TOML.
+
+```ts
+interface ContentLevel {
+  readonly format: "af2d-content";
+  readonly version: 1;
+  readonly id: string;
+  readonly name: string;
+  readonly size: ContentSize;
+  readonly background: {
+    readonly color: string;
+    readonly image?: string | undefined;
+    readonly mode: "fit" | "cover" | "repeat" | "repeat-x";
+  };
+  readonly fields: FieldValues;
+  readonly layers: readonly ContentLevelLayer[];
+}
+```
+
+#### `ContentLevelLayer` (type)
+
+One layer of a level, by kind: tile rows, IntGrid rows, auto-tile stacks, entities or objects.
+
+```ts
+type ContentLevelLayer = {
+  readonly def: string;
+  readonly kind: "tiles";
+  readonly rows: readonly string[];
+} | {
+  readonly def: string;
+  readonly kind: "intgrid";
+  readonly rows: readonly string[];
+} | {
+  readonly def: string;
+  readonly kind: "auto";
+  readonly stack: readonly ContentRows[];
+} | {
+  readonly def: string;
+  readonly kind: "entities";
+  readonly items: readonly ContentEntityItem[];
+} | {
+  readonly def: string;
+  readonly kind: "objects";
+  readonly items: readonly ContentObjectItem[];
+};
+```
+
+#### `ContentNeighbours` (interface)
+
+One level's neighbours in `world.toml`, each side ordered by position and then id. The editor computes them.
+
+```ts
+interface ContentNeighbours {
+  readonly level: string;
+  readonly north: readonly string[];
+  readonly east: readonly string[];
+  readonly south: readonly string[];
+  readonly west: readonly string[];
+}
+```
+
+#### `ContentObjectItem` (interface)
+
+One placed tile object in an objects layer.
+
+```ts
+interface ContentObjectItem {
+  readonly id: string;
+  readonly tile: number;
+  readonly x: number;
+  readonly y: number;
+  readonly flipX: boolean;
+  readonly flipY: boolean;
+}
+```
+
+#### `ContentProject` (interface)
+
+The project as `project.toml` holds it: the layer, tileset and entity definitions every level uses.
+
+```ts
+interface ContentProject {
+  readonly format: "af2d-content";
+  readonly version: 1;
+  readonly name: string;
+  readonly template: string;
+  readonly layers: readonly ContentProjectLayer[];
+  readonly tilesets: readonly ContentTileset[];
+  readonly entities: readonly ContentEntityDef[];
+  readonly levelFields: readonly FieldDef[];
+}
+```
+
+#### `ContentProjectLayer` (type)
+
+A layer definition in `project.toml`, by kind.
+
+```ts
+type ContentProjectLayer = {
+  readonly id: string;
+  readonly kind: "tiles";
+  readonly grid: number;
+  readonly tileset: string;
+} | {
+  readonly id: string;
+  readonly kind: "intgrid";
+  readonly grid: number;
+  readonly values: readonly {
+    readonly value: number;
+    readonly id: string;
+  }[];
+} | {
+  readonly id: string;
+  readonly kind: "auto";
+  readonly grid: number;
+  readonly source: string;
+  readonly tileset: string;
+} | {
+  readonly id: string;
+  readonly kind: "entities";
+  readonly grid: number;
+  readonly snap: boolean;
+} | {
+  readonly id: string;
+  readonly kind: "objects";
+  readonly tileset: string;
+  readonly snap: number;
+};
+```
+
+#### `ContentRows` (interface)
+
+One stack entry of an auto layer: run-length row strings.
+
+```ts
+interface ContentRows {
+  readonly rows: readonly string[];
+}
+```
+
+#### `ContentSize` (interface)
+
+A width and height in pixels.
+
+```ts
+interface ContentSize {
+  readonly w: number;
+  readonly h: number;
+}
+```
+
+#### `ContentTileset` (interface)
+
+A tileset in `project.toml`: its tile size, grid, optional image and tags.
+
+```ts
+interface ContentTileset {
+  readonly id: string;
+  readonly tile: ContentSize;
+  readonly columns: number;
+  readonly rows: number;
+  readonly spacing: number;
+  readonly padding: number;
+  readonly image?: string | undefined;
+  readonly placeholder: boolean;
+  readonly tags: readonly {
+    readonly tag: string;
+    readonly tiles: readonly number[];
+  }[];
+}
+```
+
+#### `ContentWorld` (interface)
+
+The worlds as `world.toml` holds them: layout, level placements and, for a grid world, each level's neighbours.
+
+```ts
+interface ContentWorld {
+  readonly format: "af2d-content";
+  readonly version: 1;
+  readonly worlds: readonly {
+    readonly id: string;
+    readonly layout: "free" | "grid" | "horizontal" | "vertical";
+    readonly grid?: ContentSize | undefined;
+    readonly placements: readonly {
+      readonly level: string;
+      readonly x: number;
+      readonly y: number;
+      readonly depth: number;
+    }[];
+    /** Only in a `grid` world: for each level, the levels whose edge touches its own along a span of positive length. */
+    readonly neighbours?: readonly ContentNeighbours[] | undefined;
+  }[];
+}
+```
+
+#### `defaultFieldValue` (function)
+
+The value an instance gets when it has none: the field's `default`, else the type's zero (moved into a number's
+bounds), else `[]` for a list. `undefined` for a required field, which has no stand-in, and for a ref until one
+is picked.
+
+```ts
+function defaultFieldValue(def: FieldDef): FieldValue | undefined;
+```
+
+#### `entitiesOf` (function)
+
+The items of an entities layer, in file order. Throws for a missing or other layer.
+
+```ts
+function entitiesOf(level: ContentLevel, layer: string): readonly ContentEntityItem[];
+```
+
+#### `ENTITY_ID` (const)
+
+An entity definition id.
+
+```ts
+const ENTITY_ID: RegExp;
+```
+
+#### `EntityDef` (interface)
+
+A thing a game places: an id, a label and the typed fields its instances carry.
+
+```ts
+interface EntityDef {
+  readonly id: string;
+  readonly label?: string | undefined;
+  /** A token name or `#rrggbb`. */
+  readonly color?: string | undefined;
+  /** At most one instance per scope the editor names (2D: per level; 3D: per map). */
+  readonly single?: boolean | undefined;
+  readonly fields: readonly FieldDef[];
+}
+```
+
+#### `EntityDefCode` (type)
+
+The reasons `checkEntityDef` can refuse an entity definition.
+
+```ts
+type EntityDefCode = FieldDefCode | "badEntityId" | "badEntityColor" | "duplicateFieldId";
+```
+
+#### `EntityDefIssue` (interface)
+
+One problem found in a parsed entity definition, with the path of the field at fault.
+
+```ts
+interface EntityDefIssue {
+  readonly message: string;
+  /** Mutable, so it can be handed to `ctx.addIssue` as it is. */
+  readonly path: (string | number)[];
+}
+```
+
+#### `entityDefIssues` (function)
+
+The entity-level problems of a definition, for `superRefine`: its id and color, and a repeated field id at the later
+field's path. A field's own problems are reported by `fieldDefSchema` at the field's path, so they are not repeated.
+
+```ts
+function entityDefIssues(def: EntityDef): readonly EntityDefIssue[];
+```
+
+#### `EntityDefProblem` (interface)
+
+A problem with a definition; `fieldId` and `fieldIndex` (its place in `fields`) say which field when the problem is in one.
+
+```ts
+interface EntityDefProblem extends FieldProblem<EntityDefCode> {
+  readonly fieldId?: string;
+  readonly fieldIndex?: number;
+}
+```
+
+#### `entityDefSchema` (const)
+
+The schema of an entity definition: strict shape, then the rules `checkEntityDef` applies.
+
+```ts
+const entityDefSchema: z.ZodType<EntityDef>;
+```
+
+#### `entityDefShape` (const)
+
+The keys of an entity definition, for an editor to extend (`z.strictObject({ ...entityDefShape, shape: … })`) so
+its own entity schema never copies the kit's keys (`EntityDef2D = EntityDef & { shape, size, … }`).
+
+```ts
+const entityDefShape: {
+  id: z.ZodString;
+  label: z.ZodOptional<z.ZodString>;
+  color: z.ZodOptional<z.ZodString>;
+  single: z.ZodOptional<z.ZodBoolean>;
+  fields: z.ZodArray<z.ZodType<FieldDef>>;
+};
+```
+
+#### `FIELD_ID` (const)
+
+A field id as an inspector shows it and a file stores it.
+
+```ts
+const FIELD_ID: RegExp;
+```
+
+#### `FIELD_TYPES` (const)
+
+Every field type, in the order a picker lists them.
+
+```ts
+const FIELD_TYPES: readonly FieldType[];
+```
+
+#### `FieldDef` (interface)
+
+The definition of one typed field: its id, type and the bounds, options or target its type needs.
+
+```ts
+interface FieldDef {
+  readonly id: string;
+  readonly type: FieldType;
+  readonly label?: string | undefined;
+  /** An ordered array of this type (a patrol path is a list of points). */
+  readonly list?: boolean | undefined;
+  /** No default stands in: an instance without a value is a `fieldMissing` problem. */
+  readonly required?: boolean | undefined;
+  readonly default?: FieldValue | undefined;
+  /** `int` and `float`: inclusive bounds. */
+  readonly min?: number | undefined;
+  readonly max?: number | undefined;
+  /** `int` and `float`: the stepper's increment (1 for an `int` without one). */
+  readonly step?: number | undefined;
+  /** `enum`: non-empty and unique. */
+  readonly options?: readonly string[] | undefined;
+  /** `text`: an editor shows a multi-line box. */
+  readonly multiline?: boolean | undefined;
+  /** `ref`: what it may point at, as names the editor defines (entity definition ids, `$level`, `$sector`); empty or absent means any. */
+  readonly to?: readonly string[] | undefined;
+}
+```
+
+#### `FieldDefCode` (type)
+
+The reasons `checkFieldDef` can refuse a field definition.
+
+```ts
+type FieldDefCode = "badId" | "badBounds" | "badStep" | "noOptions" | "duplicateOption" | "badDefault" | "wrongTypeProperty";
+```
+
+#### `fieldDefSchema` (const)
+
+The schema of a field definition: strict shape, then the rules `checkFieldDef` applies.
+
+```ts
+const fieldDefSchema: z.ZodType<FieldDef>;
+```
+
+#### `FieldProblem` (interface)
+
+A problem with a field, with a stable `code` and a sentence to show.
+
+```ts
+interface FieldProblem<Code extends string = string> {
+  readonly code: Code;
+  readonly message: string;
+}
+```
+
+#### `FieldType` (type)
+
+The kind of value a field holds: int, float, bool, text, enum, color, angle, ref or point.
+
+```ts
+type FieldType = "int" | "float" | "bool" | "text" | "enum" | "color" | "angle" | "ref" | "point";
+```
+
+#### `FieldValue` (type)
+
+A value a field can hold: a number, boolean, string, point, reference or a list of those.
+
+```ts
+type FieldValue = number | boolean | string | Point | RefValue | readonly FieldValue[];
+```
+
+#### `FieldValueCode` (type)
+
+The reasons `checkFieldValue` can refuse a value.
+
+```ts
+type FieldValueCode = "wrongType" | "notInteger" | "belowMin" | "aboveMax" | "notAnOption" | "badColor" | "badRef" | "badPoint" | "badListItem";
+```
+
+#### `FieldValueProblem` (interface)
+
+`badListItem` carries the index of the first bad item and that item's own problem as `cause`.
+
+```ts
+interface FieldValueProblem extends FieldProblem<FieldValueCode> {
+  readonly index?: number;
+  readonly cause?: FieldValueProblem;
+}
+```
+
+#### `FieldValues` (type)
+
+The values an instance holds, by field id.
+
+```ts
+type FieldValues = Readonly<Record<string, FieldValue>>;
+```
+
+#### `fieldValueSchema` (const)
+
+Any well-formed value shape. Whether it fits a definition is `checkValues`, which knows the definition.
+
+```ts
+const fieldValueSchema: z.ZodType<FieldValue>;
+```
+
+#### `fieldValuesSchema` (const)
+
+The schema of the values an instance holds, by field id.
+
+```ts
+const fieldValuesSchema: z.ZodType<FieldValues>;
+```
+
+#### `HEX_COLOR` (const)
+
+A field's color value: `#rrggbb`, either case.
+
+```ts
+const HEX_COLOR: RegExp;
+```
+
+#### `InstanceCode` (type)
+
+The reasons an instance's values can disagree with its definition.
+
+```ts
+type InstanceCode = FieldValueCode | "fieldMissing" | "unknownField";
+```
+
+#### `InstanceProblem` (interface)
+
+A problem with one value of an instance, found by `checkValues`.
+
+```ts
+interface InstanceProblem extends FieldProblem<InstanceCode> {
+  readonly fieldId: string;
+  readonly index?: number;
+  readonly cause?: FieldValueProblem;
+}
+```
+
+#### `intGridRows` (function)
+
+The cells of an IntGrid layer, one array of numbers per row (0 is empty). Throws for a missing or other layer.
+
+```ts
+function intGridRows(level: ContentLevel, layer: string): readonly (readonly number[])[];
+```
+
+#### `level2dKinds` (function)
+
+The kinds `levels` (in the sim's content), `project` and `world` (outside it).
+
+```ts
+function level2dKinds(options?: Level2dKindsOptions): ContentSchemaDef[];
+```
+
+#### `Level2dKindsOptions` (interface)
+
+Options for `level2dKinds`.
+
+```ts
+interface Level2dKindsOptions {
+  /** Where the exported levels are, under `content/`. Default `levels`. */
+  readonly folder?: string | undefined;
+}
+```
+
+#### `levelContentSchema` (const)
+
+The strict schema of `levels/<id>.toml`.
+
+```ts
+const levelContentSchema: z.ZodType<ContentLevel>;
+```
+
+#### `Point` (interface)
+
+A position with `x` and `y`.
+
+```ts
+interface Point {
+  readonly x: number;
+  readonly y: number;
+}
+```
+
+#### `projectContentSchema` (const)
+
+The strict schema of `project.toml`.
+
+```ts
+const projectContentSchema: z.ZodType<ContentProject>;
+```
+
+#### `RefValue` (interface)
+
+`target` and `container` are opaque to the kit: whether they resolve is the editor's check.
+
+```ts
+interface RefValue {
+  readonly target: string;
+  /** The level or sector that holds the target. */
+  readonly container?: string | undefined;
+}
+```
+
+#### `worldContentSchema` (const)
+
+The strict schema of `world.toml`.
+
+```ts
+const worldContentSchema: z.ZodType<ContentWorld>;
+```
+
+### `import { … } from '@automata/content/locale'`
+
+#### `ALWAYS_CHARACTERS` (const)
+
+Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.
+
+```ts
+const ALWAYS_CHARACTERS: readonly string[];
+```
+
+#### `catalogCharacters` (function)
+
+Every character the catalog's messages show. `$schema` is the file's format, not text a player reads.
+
+```ts
+function catalogCharacters(catalog: MessageCatalog): Set<string>;
+```
+
+#### `ContentText` (type)
+
+`text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
+
+```ts
+type ContentText = (kind: string, id: string | undefined, path: DataPath, authored: string, inputs?: Readonly<Record<string, unknown>>) => string;
+```
+
+#### `ContentTextOptions` (interface)
+
+Options for `createContentText`.
+
+```ts
+interface ContentTextOptions {
+  /** Called once per key the messages lack. */
+  readonly onMissing?: ((key: string) => void) | undefined;
+}
+```
+
+#### `createContentText` (function)
+
+A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
+
+```ts
+function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
+```
+
+#### `endonymOf` (function)
+
+A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`. An engine without
+it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
+
+```ts
+function endonymOf(tag: string): string;
+```
+
+#### `hasRawText` (function)
+
+True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII
+letter outside a ⟦ ⟧ span. Data a player typed (a name) is also "raw", so a check lists the data it expects.
+
+```ts
+function hasRawText(text: string): boolean;
+```
+
+#### `localeCharacters` (function)
+
+A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters. The font build
+also adds every content language's name for the language picker (`endonymOf`).
+
+```ts
+function localeCharacters(catalog: MessageCatalog): Set<string>;
+```
+
+#### `MessageCatalog` (type)
+
+One locale's messages: message key to translated text.
+
+```ts
+type MessageCatalog = Readonly<Record<string, string>>;
+```
+
+#### `messageKey` (function)
+
+The message key of one text. `id` is absent for a single-document kind.
+
+```ts
+function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+#### `MessageValue` (type)
+
+A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
+
+```ts
+type MessageValue = string | readonly MessageValue[] | {
+  readonly [key: string]: MessageValue;
+};
+```
+
+#### `PSEUDO_LOCALE` (const)
+
+The pseudo-locale's tag. `Intl` reads it as the unknown language `xx`, so formatting falls back, never throws.
+
+```ts
+const PSEUDO_LOCALE = "xx-long";
+```
+
+#### `pseudoLocalize` (function)
+
+The xx-long form of one message string. Placeholders and escaped braces stay as written. The extra length is
+spread over the words in proportion to their length, each word's share right after it, so a long message keeps
+the places a line can break, as a longer language's would; a message with no words has it at the end.
+
+```ts
+function pseudoLocalize(message: string): string;
+```
+
+#### `pseudoMessages` (function)
+
+The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural
+variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts
+change. `$schema` is copied as is.
+
+```ts
+function pseudoMessages(file: {
+  readonly [key: string]: MessageValue;
+}): Record<string, MessageValue>;
+```
+
+#### `snakeKey` (function)
+
+`snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
+
+```ts
+function snakeKey(value: string): string;
+```
+
+### `import { … } from '@automata/content/palette'`
+
+#### `DEFAULT_PALETTE` (const)
+
+The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+
+```ts
+const DEFAULT_PALETTE: Palette;
+```
+
+#### `Palette` (interface)
+
+The game's palette: a name and its colors.
+
+```ts
+interface Palette {
+  readonly name: string;
+  /** `#rrggbb`, lowercase, in authored order. */
+  readonly colors: readonly string[];
+}
+```
+
+### `import { … } from '@automata/content/schema'`
+
+#### `contentRef` (function)
+
+The ID of another content item of `kind`. Checked to exist, and to be that kind, after parsing.
+
+```ts
+function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
+```
+
+#### `ContentSchemaDef` (interface)
+
+A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
+and whether the sim receives it. Create one with `defineContentSchema`.
+
+```ts
+interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
+  readonly kind: K;
+  readonly schema: S;
+  readonly place: ContentSchemaPlace;
+  /**
+   * Whether the sim receives this kind. Default true: content is gameplay unless the game
+   * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
+   */
+  readonly sim: boolean;
+}
+```
+
+#### `ContentSchemaOptions` (interface)
+
+Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
+
+```ts
+interface ContentSchemaOptions {
+  readonly sim?: boolean;
+}
+```
+
+#### `ContentSchemaPlace` (type)
+
+Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
+
+```ts
+type ContentSchemaPlace = {
+  readonly folder: string;
+} | {
+  readonly file: string;
+};
+```
+
+#### `defineContentSchema` (function)
+
+Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
+file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
+that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
+name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
+
+```ts
+function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
+```
+
+#### `localized` (function)
+
+Text a player reads, written in the source language. It gets a message key for translators.
+
+```ts
+function localized(): z.ZodType<string, string>;
+```
+
+### `import { … } from '@automata/content/vite'`
+
+#### `automataContent` (function)
+
+The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
+starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
+content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
+Vite's logger and the `automata:content-error` event (`automata:content` after a good save). It also sets
+`build.assetsInlineLimit: 0` when the game's config leaves it unset, so no asset becomes a `data:` URL that Ruken's
+CSP refuses to fetch.
+
+```ts
+function automataContent(pluginOptions?: AutomataContentOptions): Plugin;
+```
+
+#### `AutomataContentOptions` (type)
+
+The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root.
+
+```ts
+type AutomataContentOptions = Omit<ContentOptions, "root"> & {
+  readonly root?: string | undefined;
+};
+```
+
+#### `VIRTUAL_MODULE_ID` (const)
+
+The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
+
+```ts
+const VIRTUAL_MODULE_ID = "virtual:automata/content";
+```
+
+## `@automata/framework`
+
+### `import { … } from '@automata/framework'`
 
 #### `ActionBar` (const)
 
@@ -501,8 +2384,7 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 #### `contentHashOf` (function)
 
 The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
-Matches
-@mcthaydt /automata-content's contentHash formula, pinned by tests.
+Matches `@automata/content`'s contentHash formula, pinned by tests.
 
 ```ts
 function contentHashOf(data: unknown): string;
@@ -2592,8 +4474,8 @@ interface RuntimeSeams {
     readonly fonts?: Pick<FontFaceSet, 'load'>;
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
     /**
-     * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata/target`), for example
-     * `fakeHosting(…).open` from `@mcthaydt/automata/testing`. It gets boot's clock and the signal that gives up the
+     * Builds the game's `Hosting` in place of the build target's adapter (`@automata/framework/target`), for example
+     * `fakeHosting(…).open` from `@automata/framework/testing`. It gets boot's clock and the signal that gives up the
      * handshake; boot disposes what it answers. When given, `sdkEnv` is not used.
      */
     readonly hosting?: (options: HostingOptions, seams: {
@@ -3395,7 +5277,7 @@ function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<Game
 
 #### `ViewportWindow` (interface)
 
-The parts of `window` the owner reads; a fake from `@mcthaydt/automata/testing` stands in for it in tests.
+The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
 
 ```ts
 interface ViewportWindow {
@@ -3418,7 +5300,7 @@ interface ViewportWindow {
 }
 ```
 
-### `import { … } from '@mcthaydt/automata/extension'`
+### `import { … } from '@automata/framework/extension'`
 
 #### `defineExtension` (function)
 
@@ -3513,7 +5395,7 @@ type RukenManifestContribution = {
 };
 ```
 
-### `import { … } from '@mcthaydt/automata/testing'`
+### `import { … } from '@automata/framework/testing'`
 
 #### `byTestId` (function)
 
@@ -4331,7 +6213,7 @@ Runs `program` on an open runtime and always closes it.
 function withRuntimeTest<A>(program: (session: RuntimeTestSession) => Promise<A> | A, options?: RuntimeTestOptions): Promise<A>;
 ```
 
-### `import { … } from '@mcthaydt/automata/tooling'`
+### `import { … } from '@automata/framework/tooling'`
 
 #### `isDefinedGame` (function)
 
@@ -4341,1892 +6223,9 @@ Whether `value` came from `defineGame`.
 function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is DefinedGame<S>;
 ```
 
-## `@mcthaydt/automata-content`
+## `@automata/sim`
 
-### `import { … } from '@mcthaydt/automata-content'`
-
-#### `AssetsSource` (interface)
-
-What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
-folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and
-`fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list.
-
-```ts
-interface AssetsSource {
-  readonly screens: Readonly<Record<string, {
-    readonly files: readonly string[];
-    /** Atlases named in `content/atlases.toml`: each page's Spritesheet JSON and image. */
-    readonly atlases?: readonly string[] | undefined;
-    /** Fonts named in `content/fonts.toml`: the subset of every language `fonts.json` lists. */
-    readonly fonts?: readonly string[] | undefined;
-  }>>;
-}
-```
-
-#### `buildContent` (const)
-
-Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
-
-```ts
-const buildContent: (options: ContentOptions) => Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig | ContentWriteFailed>;
-```
-
-#### `checkTuningLayer` (function)
-
-Checks one layer of tuning against code-owned declarations. `complete` is true for the base layer, which
-must name every tunable; false for a partial override (a stage or mode layer).
-
-Invariants are rejected before unknown names so the more specific answer wins, then non-numbers, then
-integer declarations, then the inclusive range.
-
-```ts
-function checkTuningLayer(layer: Readonly<Record<string, unknown>>, options: TuningOptions & {
-  readonly tunables: TunableDeclarations;
-}, { complete }: {
-  readonly complete: boolean;
-}): Problem[];
-```
-
-#### `compileContent` (const)
-
-Compiles `<root>/content` in memory. Writes nothing.
-
-```ts
-const compileContent: (options: ContentOptions) => Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>;
-```
-
-#### `CompiledContent` (interface)
-
-The result of a compile: the content and its hash, the sim partition, every output file's text, warnings,
-the languages and each language's message catalog.
-
-```ts
-interface CompiledContent {
-  readonly data: ContentData;
-  /** Over all of `data`: the boot check and evidence identity. Never compared with `sim.hash`. */
-  readonly hash: string;
-  /** What the sim receives, and the hash that gates snapshots and replays. */
-  readonly sim: SimPartition;
-  /** Each output path, relative to the output folder, to its exact text. Build and verify use the same bytes. */
-  readonly files: ReadonlyMap<string, string>;
-  /** Problems that do not stop a compile (`skippedFile`), sorted. They are not part of the hash or the outputs. */
-  readonly warnings: readonly Diagnostic[];
-  /** The source language, then each translation's language, sorted. */
-  readonly languages: readonly string[];
-  /**
-   * Each language's checked catalog (without `$schema`), in `languages` order. Derived beside the hashed data,
-   * never inside it, so a translation edit moves neither hash. Paraglide and the glyph sets read these.
-   */
-  readonly catalogs: ReadonlyMap<string, MessageCatalog>;
-  /**
-   * Where each language's messages are written, in `languages` order: a source message at its text in the
-   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
-   */
-  readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
-}
-```
-
-#### `ContentCompileFailed` (class)
-
-The authored content has problems. Every one is listed, sorted; nothing was written.
-
-```ts
-class ContentCompileFailed extends CompileFailedBase {}
-```
-
-#### `ContentConfig` (type)
-
-The default export of `automata.content.ts`.
-
-```ts
-type ContentConfig = Omit<ContentOptions, "root"> & {
-  /** The authoring guide whose tunable table `docs` writes and `--verify-artifact` checks. */
-  readonly guide?: string | undefined;
-};
-```
-
-#### `ContentData` (type)
-
-The compiled content as it is written to `content.json` and hashed.
-
-```ts
-type ContentData = Readonly<Record<string, unknown>>;
-```
-
-#### `ContentGenerator` (interface)
-
-A generator: a unique name and a pure `generate` that turns compiled content into extra files. Create one
-with `defineContentGenerator`.
-
-```ts
-interface ContentGenerator {
-  readonly name: string;
-  generate(input: GeneratorInput): GeneratorOutput;
-}
-```
-
-#### `contentHash` (function)
-
-16 lowercase hex digits.
-
-```ts
-function contentHash(data: unknown): string;
-```
-
-#### `ContentOptions` (interface)
-
-What the content compiler is given: the project root, the registered kinds, and optionally tunables,
-invariants, flow capabilities, generators, an output folder and Paraglide.
-
-```ts
-interface ContentOptions {
-  /** The project root; content is read from `<root>/content`. */
-  readonly root: string;
-  readonly schemas: readonly ContentSchemaDef[];
-  /** Code-owned tunable names and ranges. Absent: ranges are authored in `tuning.toml`. */
-  readonly tunables?: TunableDeclarations | undefined;
-  /** Code-only constants an author may not write in `tuning.toml`. */
-  readonly invariants?: readonly string[] | undefined;
-  /** Code-owned screens, pairs and styles for `flow.toml`. */
-  readonly flow?: FlowCapabilities | undefined;
-  readonly generators?: readonly ContentGenerator[] | undefined;
-  /** Relative to `root`. Default `content/generated`. */
-  readonly outDir?: string | undefined;
-  /** Compile the catalogs with Paraglide on each build. Absent: no Paraglide output. */
-  readonly paraglide?: ParaglideOptions | undefined;
-}
-```
-
-#### `contentRef` (function)
-
-The ID of another content item of `kind`. Checked to exist, and to be that kind, after parsing.
-
-```ts
-function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
-```
-
-#### `ContentSchemaDef` (interface)
-
-A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
-and whether the sim receives it. Create one with `defineContentSchema`.
-
-```ts
-interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
-  readonly kind: K;
-  readonly schema: S;
-  readonly place: ContentSchemaPlace;
-  /**
-   * Whether the sim receives this kind. Default true: content is gameplay unless the game
-   * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
-   */
-  readonly sim: boolean;
-}
-```
-
-#### `ContentSchemaOptions` (interface)
-
-Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
-
-```ts
-interface ContentSchemaOptions {
-  readonly sim?: boolean;
-}
-```
-
-#### `ContentSchemaPlace` (type)
-
-Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
-
-```ts
-type ContentSchemaPlace = {
-  readonly folder: string;
-} | {
-  readonly file: string;
-};
-```
-
-#### `ContentWriteFailed` (class)
-
-An output could not be written. Files already replaced are whole; none is half written.
-
-```ts
-class ContentWriteFailed extends WriteFailedBase {}
-```
-
-#### `DEFAULT_OUT_DIR` (const)
-
-Where outputs go when `outDir` is not set: `content/generated`, relative to the project root.
-
-```ts
-const DEFAULT_OUT_DIR = "content/generated";
-```
-
-#### `DEFAULT_PALETTE` (const)
-
-The palette a game gets when it has no `content/palette.toml`: Endesga 64.
-
-```ts
-const DEFAULT_PALETTE: Palette;
-```
-
-#### `defineContentGenerator` (function)
-
-Defines a generator by name and `generate` function. Generators do no I/O: the compiler writes their files.
-A generator that throws, repeats another's name, returns a path outside the output folder or writes a file
-another generator wrote is reported as `InvalidContentConfig`.
-
-```ts
-function defineContentGenerator(name: string, generate: (input: GeneratorInput) => GeneratorOutput): ContentGenerator;
-```
-
-#### `defineContentSchema` (function)
-
-Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
-file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
-that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
-name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
-
-```ts
-function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
-```
-
-#### `Diagnostic` (interface)
-
-One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key
-inside it and a message that says what to write instead.
-
-```ts
-interface Diagnostic {
-  readonly code: DiagnosticCode;
-  /** Project-relative, `/`-separated, e.g. `content/tuning.toml`. */
-  readonly file: string;
-  readonly line: number;
-  readonly column: number;
-  /** Dotted path inside the file (`transitions.3.to`), or '' for the whole file. */
-  readonly keyPath: string;
-  readonly message: string;
-}
-```
-
-#### `DiagnosticCode` (type)
-
-Stable codes. Tests and tools match on these, so a code is never renamed, only added.
-
-```ts
-type DiagnosticCode = "invalidToml" | "invalidType" | "missingField" | "unknownField" | "invalidId" | "unknownReference" | "wrongKind" | "outOfRange" | "invariantNotAuthorable" | "invalidFlow" | "invalidPalette" | "invalidGame" | "missingAsset" | "invalidAsset" | "offPalette" | "missingGlyph" | "duplicateMessageKey" | "staleTranslation" | "staleArtifact" | "reservedKey" | "simReference" | "skippedFile";
-```
-
-#### `FlowCapabilities` (interface)
-
-What the game's code implements: the screens, and optionally the pairs and destinations each allows.
-
-```ts
-interface FlowCapabilities {
-  /** The only screen a session may begin on. */
-  readonly entry?: string;
-  readonly screens: readonly string[];
-  /** For each screen and event, the destinations that screen is prepared to enter. */
-  readonly targets?: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>;
-  /** Transition styles the runtime draws. Default: only `cut`. */
-  readonly styles?: readonly string[];
-}
-```
-
-#### `FlowGraph` (interface)
-
-The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every
-transition, in a fixed order.
-
-```ts
-interface FlowGraph {
-  readonly entry: string;
-  /** Sorted. */
-  readonly screens: readonly string[];
-  /** Sorted. */
-  readonly terminal: readonly string[];
-  /** Sorted by from, event, then to: declaration order means nothing. */
-  readonly transitions: readonly FlowTransition[];
-}
-```
-
-#### `FlowTransition` (interface)
-
-One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the
-`transition` style (`cut` when unwritten).
-
-```ts
-interface FlowTransition {
-  readonly from: string;
-  readonly event: string;
-  readonly to: string;
-  readonly transition: string;
-}
-```
-
-#### `formatDiagnostic` (function)
-
-`content/tuning.toml:12:1  GRAVITY  outOfRange: expected -1200..-100, received -2000`
-
-```ts
-function formatDiagnostic(d: Diagnostic): string;
-```
-
-#### `GAME_ID_PATTERN` (const)
-
-A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
-
-```ts
-const GAME_ID_PATTERN: RegExp;
-```
-
-#### `GameConfig` (interface)
-
-What every target knows about a game.
-
-```ts
-interface GameConfig {
-  readonly game: {
-    readonly id: string;
-    readonly title: string;
-    readonly version: string;
-    /** The entry page in the build. */
-    readonly entry: string;
-    /** The Ruken SDK's version range; the Ruken target requires it. */
-    readonly sdk?: string;
-  };
-  readonly runtime: {
-    readonly renderer: Renderer;
-    readonly orientation: Orientation;
-    readonly inputs: readonly Input[];
-    readonly pause_behavior: "pause" | "continue";
-  };
-  /** The origins the game connects to; empty means it works offline. */
-  readonly network: {
-    readonly connect: readonly string[];
-  };
-  readonly content: {
-    readonly languages: readonly string[];
-    readonly rating: Rating;
-    readonly estimated_hours?: number;
-    readonly descriptors: readonly string[];
-  };
-  /** The analytics events the game may send (`Hosting.track` drops any other). */
-  readonly analytics?: {
-    readonly custom_events: readonly string[];
-  };
-  /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
-  readonly loading?: {
-    readonly preload: readonly string[];
-  };
-  readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
-}
-```
-
-#### `gameConfigSchema` (const)
-
-Checks a game's config.
-
-```ts
-const gameConfigSchema: z.ZodType<GameConfig>;
-```
-
-#### `GameSource` (interface)
-
-What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated
-hours, the analytics events it may send, and the screens whose files are preloaded.
-
-```ts
-interface GameSource {
-  /** The language the TOML is written in. Default `en`. */
-  readonly source_language: string;
-  readonly rating: Rating;
-  readonly descriptors: string[];
-  readonly estimated_hours?: number | undefined;
-  readonly custom_events: string[];
-  /** The screens whose files Ruken preloads, in order. Default: the flow's entry. */
-  readonly preload_screens?: string[] | undefined;
-}
-```
-
-#### `GeneratorInput` (interface)
-
-Everything a generator is given: the compiled content and its hash, the sim partition, the registered
-schemas, the message catalog and the tuning metadata.
-
-```ts
-interface GeneratorInput {
-  readonly data: ContentData;
-  readonly hash: string;
-  /** The sim partition and its hash, so a generator never re-derives it from `schemas`. */
-  readonly sim: SimPartition;
-  readonly schemas: readonly ContentSchemaDef[];
-  readonly messages: MessageCatalog;
-  readonly tuning: TuningMeta;
-}
-```
-
-#### `GeneratorOutput` (interface)
-
-What a generator returns: files to write and diagnostics to report. Both are optional.
-
-```ts
-interface GeneratorOutput {
-  /** Path relative to the output folder → the file's exact text. */
-  readonly files?: Readonly<Record<string, string>>;
-  readonly diagnostics?: readonly Diagnostic[];
-}
-```
-
-#### `Input` (type)
-
-One input a game can be played with.
-
-```ts
-type Input = (typeof INPUTS)[number];
-```
-
-#### `INPUTS` (const)
-
-The inputs a game can be played with.
-
-```ts
-const INPUTS: readonly ["touch", "keyboard", "gamepad"];
-```
-
-#### `InvalidContentConfig` (class)
-
-The game's code registered something unusable (a duplicate kind, a clashing generator).
-
-```ts
-class InvalidContentConfig extends InvalidConfigBase {}
-```
-
-#### `LEADERBOARD_ORDERS` (const)
-
-The orders a score board sorts in.
-
-```ts
-const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
-```
-
-#### `LeaderboardConfig` (interface)
-
-A score board a game declares.
-
-```ts
-interface LeaderboardConfig {
-  readonly order: (typeof LEADERBOARD_ORDERS)[number];
-  readonly min: number;
-  readonly max: number;
-  readonly title?: string;
-}
-```
-
-#### `localized` (function)
-
-Text a player reads, written in the source language. It gets a message key for translators.
-
-```ts
-function localized(): z.ZodType<string, string>;
-```
-
-#### `MessageCatalog` (type)
-
-One locale's messages: message key to translated text.
-
-```ts
-type MessageCatalog = Readonly<Record<string, string>>;
-```
-
-#### `messageKey` (function)
-
-The message key of one text. `id` is absent for a single-document kind.
-
-```ts
-function messageKey(kind: string, id: string | undefined, path: DataPath): string;
-```
-
-#### `MessageLocation` (interface)
-
-A message's place in its file, 1-based.
-
-```ts
-interface MessageLocation {
-  readonly file: string;
-  readonly line: number;
-  readonly column: number;
-}
-```
-
-#### `Orientation` (type)
-
-One orientation a game supports.
-
-```ts
-type Orientation = (typeof ORIENTATIONS)[number];
-```
-
-#### `ORIENTATIONS` (const)
-
-The orientations a game supports.
-
-```ts
-const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
-```
-
-#### `Palette` (interface)
-
-The game's palette: a name and its colors.
-
-```ts
-interface Palette {
-  readonly name: string;
-  /** `#rrggbb`, lowercase, in authored order. */
-  readonly colors: readonly string[];
-}
-```
-
-#### `ParaglideOptions` (interface)
-
-Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
-
-```ts
-interface ParaglideOptions {
-  /** Where the generated `runtime.js` and `messages.js` go, relative to the root. Emptied on each compile. */
-  readonly outdir: string;
-  /** The game's own catalogs, `{locale}` path patterns relative to the root (`messages/ui/{locale}.json`). */
-  readonly catalogs?: readonly string[] | undefined;
-}
-```
-
-#### `PreloadInput` (interface)
-
-What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset
-build's outputs below `outDir`) and the built game folder.
-
-```ts
-interface PreloadInput {
-  readonly options: ContentOptions;
-  /** The built game folder (Vite's `dist/`). */
-  readonly distDir: string;
-}
-```
-
-#### `preloadList` (const)
-
-The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens`
-screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and
-every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir`
-and the build serves in `atlases/` and `fonts/`; without repeats. Empty without a `game.toml`. Fails with
-`ContentCompileFailed` carrying a diagnostic for every file the build lacks (`missingAsset`), every atlas or
-font not declared (`unknownReference`) or not built (`missingAsset`), all at once, or with
-`InvalidContentConfig`.
-
-```ts
-const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;
-```
-
-#### `Rating` (type)
-
-One content rating.
-
-```ts
-type Rating = (typeof RATINGS)[number];
-```
-
-#### `RATINGS` (const)
-
-The content ratings a game declares.
-
-```ts
-const RATINGS: readonly ["everyone", "teen", "mature"];
-```
-
-#### `Renderer` (type)
-
-One renderer a game may ask for.
-
-```ts
-type Renderer = (typeof RENDERERS)[number];
-```
-
-#### `RENDERERS` (const)
-
-The renderers a game may ask for.
-
-```ts
-const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
-```
-
-#### `renderTuningTable` (function)
-
-Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
-
-```ts
-function renderTuningTable(meta: TuningMeta): string;
-```
-
-#### `RukenFields` (type)
-
-The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out
-from `game.toml` and the languages present and written to `ruken-fields.json`.
-
-```ts
-type RukenFields = {
-  readonly content: GameConfig["content"];
-  readonly analytics: NonNullable<GameConfig["analytics"]>;
-};
-```
-
-#### `SimPartition` (interface)
-
-The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash,
-which gates snapshots and replays.
-
-```ts
-interface SimPartition {
-  /** `tuning` and each sim kind, the same objects as in the full data. */
-  readonly data: ContentData;
-  /** `contentHash(data)`: exactly what `createSim` computes from the same data. */
-  readonly hash: string;
-}
-```
-
-#### `sortDiagnostics` (function)
-
-Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing
-the input. The order never depends on locale.
-
-```ts
-function sortDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[];
-```
-
-#### `TunableDeclaration` (interface)
-
-A tunable a game declares in code: `int` or `float`, an inclusive range and a default. Content selects a
-value inside the range and never widens it.
-
-```ts
-interface TunableDeclaration {
-  readonly type: TunableType;
-  /** Inclusive lower bound. */
-  readonly min: number;
-  /** Inclusive upper bound. */
-  readonly max: number;
-  readonly default: number;
-}
-```
-
-#### `TunableDeclarations` (type)
-
-A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`).
-
-```ts
-type TunableDeclarations = Readonly<Record<string, TunableDeclaration>>;
-```
-
-#### `TuningMeta` (type)
-
-Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for
-debug sliders.
-
-```ts
-type TuningMeta = Readonly<Record<string, TuningEntryMeta>>;
-```
-
-#### `verifyContent` (const)
-
-Fails with `staleArtifact` for each committed output that differs from a fresh compile.
-
-```ts
-const verifyContent: (options: ContentOptions) => Effect.Effect<void, ContentCompileFailed | InvalidContentConfig>;
-```
-
-#### `withTuningTable` (function)
-
-The guide with its generated section replaced, or undefined when it has no markers.
-
-```ts
-function withTuningTable(guide: string, meta: TuningMeta): string | undefined;
-```
-
-### `import { … } from '@mcthaydt/automata-content/assets'`
-
-#### `ATLAS_EXTRUDE` (const)
-
-Pixels of each frame's edge repeated around it, so filtering never samples a neighbour.
-
-```ts
-const ATLAS_EXTRUDE = 1;
-```
-
-#### `ATLAS_PADDING` (const)
-
-Transparent pixels between cells, and between a cell and the page edge.
-
-```ts
-const ATLAS_PADDING = 1;
-```
-
-#### `ATLAS_PAGE_MAX` (const)
-
-The largest atlas page side, in pixels: WebGL2's guaranteed `MAX_TEXTURE_SIZE`.
-
-```ts
-const ATLAS_PAGE_MAX = 2048;
-```
-
-#### `AtlasFrameTooLarge` (class)
-
-A frame that cannot fit a page even alone.
-
-```ts
-class AtlasFrameTooLarge extends Error {
-  readonly frame: FrameSize;
-  constructor(frame: FrameSize);
-}
-```
-
-#### `AtlasOutputs` (interface)
-
-What `buildAtlases` produces; the caller writes it.
-
-```ts
-interface AtlasOutputs {
-  /** `<atlas>-<page>.png` and `<atlas>-<page>.json`, sorted by name. */
-  readonly files: ReadonlyMap<string, Uint8Array>;
-}
-```
-
-#### `buildAtlases` (const)
-
-Builds every atlas `<root>/content/atlases.toml` names, or fails with every problem found. Without the file
-there is nothing to build.
-
-```ts
-const buildAtlases: (root: string) => Effect.Effect<AtlasOutputs, ContentCompileFailed>;
-```
-
-#### `buildFonts` (const)
-
-Builds every subset `<root>/content/fonts.toml` names, or fails with every problem found. Without the file
-there is nothing to build, and the content is not compiled.
-
-```ts
-const buildFonts: (options: ContentOptions) => Effect.Effect<FontOutputs, ContentCompileFailed | InvalidContentConfig>;
-```
-
-#### `fontCoverage` (function)
-
-Whether a font file (TrueType, OpenType, woff or woff2) has a glyph for each character.
-
-```ts
-function fontCoverage(font: Uint8Array): (character: string) => boolean;
-```
-
-#### `FontOutputs` (interface)
-
-What `buildFonts` produces; the caller writes it.
-
-```ts
-interface FontOutputs {
-  /** `<font>-<locale>-<hash8>.woff2` and `fonts.json` (`{ font: { locale: file } }`), sorted by name. */
-  readonly files: ReadonlyMap<string, Uint8Array>;
-}
-```
-
-#### `FontsFile` (interface)
-
-`content/fonts.toml`: each source font by name.
-
-```ts
-interface FontsFile {
-  readonly font: Readonly<Record<string, FontSource>>;
-}
-```
-
-#### `FontSource` (interface)
-
-One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves.
-
-```ts
-interface FontSource {
-  readonly file: string;
-  readonly sha256: string;
-  readonly license: string;
-  readonly locales: readonly string[];
-}
-```
-
-#### `FrameSize` (interface)
-
-A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
-
-```ts
-interface FrameSize {
-  readonly name: string;
-  readonly width: number;
-  readonly height: number;
-}
-```
-
-#### `PackedAtlas` (interface)
-
-Every frame's placement, and the pages they fill.
-
-```ts
-interface PackedAtlas {
-  /** Each page's side, in pixels. */
-  readonly pageSizes: readonly number[];
-  /** In code-unit order of the frame names. */
-  readonly placements: readonly Placement[];
-}
-```
-
-#### `packFrames` (function)
-
-Packs `frames` into atlas pages. Throws `AtlasFrameTooLarge` for a frame no page can hold.
-
-```ts
-function packFrames(frames: readonly FrameSize[]): PackedAtlas;
-```
-
-#### `Placement` (interface)
-
-Where a frame's own pixels are: inside its extrusion, on page `page`.
-
-```ts
-interface Placement {
-  readonly name: string;
-  readonly page: number;
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
-```
-
-#### `subsetWoff2` (function)
-
-The font cut to `characters`, as woff2. A character the font lacks is simply not in the subset.
-
-```ts
-function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
-```
-
-### `import { … } from '@mcthaydt/automata-content/game-config'`
-
-#### `GAME_ID_PATTERN` (const)
-
-A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
-
-```ts
-const GAME_ID_PATTERN: RegExp;
-```
-
-#### `GameConfig` (interface)
-
-What every target knows about a game.
-
-```ts
-interface GameConfig {
-  readonly game: {
-    readonly id: string;
-    readonly title: string;
-    readonly version: string;
-    /** The entry page in the build. */
-    readonly entry: string;
-    /** The Ruken SDK's version range; the Ruken target requires it. */
-    readonly sdk?: string;
-  };
-  readonly runtime: {
-    readonly renderer: Renderer;
-    readonly orientation: Orientation;
-    readonly inputs: readonly Input[];
-    readonly pause_behavior: "pause" | "continue";
-  };
-  /** The origins the game connects to; empty means it works offline. */
-  readonly network: {
-    readonly connect: readonly string[];
-  };
-  readonly content: {
-    readonly languages: readonly string[];
-    readonly rating: Rating;
-    readonly estimated_hours?: number;
-    readonly descriptors: readonly string[];
-  };
-  /** The analytics events the game may send (`Hosting.track` drops any other). */
-  readonly analytics?: {
-    readonly custom_events: readonly string[];
-  };
-  /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
-  readonly loading?: {
-    readonly preload: readonly string[];
-  };
-  readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
-}
-```
-
-#### `gameConfigSchema` (const)
-
-Checks a game's config.
-
-```ts
-const gameConfigSchema: z.ZodType<GameConfig>;
-```
-
-#### `Input` (type)
-
-One input a game can be played with.
-
-```ts
-type Input = (typeof INPUTS)[number];
-```
-
-#### `INPUTS` (const)
-
-The inputs a game can be played with.
-
-```ts
-const INPUTS: readonly ["touch", "keyboard", "gamepad"];
-```
-
-#### `LEADERBOARD_ORDERS` (const)
-
-The orders a score board sorts in.
-
-```ts
-const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
-```
-
-#### `LeaderboardConfig` (interface)
-
-A score board a game declares.
-
-```ts
-interface LeaderboardConfig {
-  readonly order: (typeof LEADERBOARD_ORDERS)[number];
-  readonly min: number;
-  readonly max: number;
-  readonly title?: string;
-}
-```
-
-#### `Orientation` (type)
-
-One orientation a game supports.
-
-```ts
-type Orientation = (typeof ORIENTATIONS)[number];
-```
-
-#### `ORIENTATIONS` (const)
-
-The orientations a game supports.
-
-```ts
-const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
-```
-
-#### `Rating` (type)
-
-One content rating.
-
-```ts
-type Rating = (typeof RATINGS)[number];
-```
-
-#### `RATINGS` (const)
-
-The content ratings a game declares.
-
-```ts
-const RATINGS: readonly ["everyone", "teen", "mature"];
-```
-
-#### `Renderer` (type)
-
-One renderer a game may ask for.
-
-```ts
-type Renderer = (typeof RENDERERS)[number];
-```
-
-#### `RENDERERS` (const)
-
-The renderers a game may ask for.
-
-```ts
-const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
-```
-
-### `import { … } from '@mcthaydt/automata-content/level-2d'`
-
-#### `checkEntityDef` (function)
-
-Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and
-index, with a repeated field id reported at its later occurrence.
-
-```ts
-function checkEntityDef(def: EntityDef): readonly EntityDefProblem[];
-```
-
-#### `checkFieldDef` (function)
-
-Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
-
-```ts
-function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode>[];
-```
-
-#### `checkFieldValue` (function)
-
-Whether `value` fits the field: `undefined` when it does, else the first problem. It checks the value's shape
-and the field's own rules; whether a reference resolves is the editor's check.
-
-```ts
-function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
-```
-
-#### `ContentEntityDef` (type)
-
-An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
-
-```ts
-type ContentEntityDef = EntityDef & {
-  readonly shape: "rect" | "ellipse" | "point" | "tile";
-  readonly size: ContentSize;
-  readonly pivot: {
-    readonly x: number;
-    readonly y: number;
-  };
-  readonly resizable: "none" | "x" | "y" | "xy";
-  readonly tile?: {
-    readonly tileset: string;
-    readonly index: number;
-  } | undefined;
-  readonly tags: readonly string[];
-  readonly min?: {
-    readonly per: "level" | "project";
-    readonly count: number;
-  } | undefined;
-};
-```
-
-#### `ContentEntityItem` (interface)
-
-One placed entity in a level: its definition, its position (and size when resizable) and its field values.
-
-```ts
-interface ContentEntityItem {
-  readonly id: string;
-  readonly def: string;
-  readonly x: number;
-  readonly y: number;
-  readonly w?: number | undefined;
-  readonly h?: number | undefined;
-  readonly fields: FieldValues;
-}
-```
-
-#### `ContentLevel` (interface)
-
-A level as `levels/<id>.toml` holds it, after parsing the TOML.
-
-```ts
-interface ContentLevel {
-  readonly format: "af2d-content";
-  readonly version: 1;
-  readonly id: string;
-  readonly name: string;
-  readonly size: ContentSize;
-  readonly background: {
-    readonly color: string;
-    readonly image?: string | undefined;
-    readonly mode: "fit" | "cover" | "repeat" | "repeat-x";
-  };
-  readonly fields: FieldValues;
-  readonly layers: readonly ContentLevelLayer[];
-}
-```
-
-#### `ContentLevelLayer` (type)
-
-One layer of a level, by kind: tile rows, IntGrid rows, auto-tile stacks, entities or objects.
-
-```ts
-type ContentLevelLayer = {
-  readonly def: string;
-  readonly kind: "tiles";
-  readonly rows: readonly string[];
-} | {
-  readonly def: string;
-  readonly kind: "intgrid";
-  readonly rows: readonly string[];
-} | {
-  readonly def: string;
-  readonly kind: "auto";
-  readonly stack: readonly ContentRows[];
-} | {
-  readonly def: string;
-  readonly kind: "entities";
-  readonly items: readonly ContentEntityItem[];
-} | {
-  readonly def: string;
-  readonly kind: "objects";
-  readonly items: readonly ContentObjectItem[];
-};
-```
-
-#### `ContentNeighbours` (interface)
-
-One level's neighbours in `world.toml`, each side ordered by position and then id. The editor computes them.
-
-```ts
-interface ContentNeighbours {
-  readonly level: string;
-  readonly north: readonly string[];
-  readonly east: readonly string[];
-  readonly south: readonly string[];
-  readonly west: readonly string[];
-}
-```
-
-#### `ContentObjectItem` (interface)
-
-One placed tile object in an objects layer.
-
-```ts
-interface ContentObjectItem {
-  readonly id: string;
-  readonly tile: number;
-  readonly x: number;
-  readonly y: number;
-  readonly flipX: boolean;
-  readonly flipY: boolean;
-}
-```
-
-#### `ContentProject` (interface)
-
-The project as `project.toml` holds it: the layer, tileset and entity definitions every level uses.
-
-```ts
-interface ContentProject {
-  readonly format: "af2d-content";
-  readonly version: 1;
-  readonly name: string;
-  readonly template: string;
-  readonly layers: readonly ContentProjectLayer[];
-  readonly tilesets: readonly ContentTileset[];
-  readonly entities: readonly ContentEntityDef[];
-  readonly levelFields: readonly FieldDef[];
-}
-```
-
-#### `ContentProjectLayer` (type)
-
-A layer definition in `project.toml`, by kind.
-
-```ts
-type ContentProjectLayer = {
-  readonly id: string;
-  readonly kind: "tiles";
-  readonly grid: number;
-  readonly tileset: string;
-} | {
-  readonly id: string;
-  readonly kind: "intgrid";
-  readonly grid: number;
-  readonly values: readonly {
-    readonly value: number;
-    readonly id: string;
-  }[];
-} | {
-  readonly id: string;
-  readonly kind: "auto";
-  readonly grid: number;
-  readonly source: string;
-  readonly tileset: string;
-} | {
-  readonly id: string;
-  readonly kind: "entities";
-  readonly grid: number;
-  readonly snap: boolean;
-} | {
-  readonly id: string;
-  readonly kind: "objects";
-  readonly tileset: string;
-  readonly snap: number;
-};
-```
-
-#### `ContentRows` (interface)
-
-One stack entry of an auto layer: run-length row strings.
-
-```ts
-interface ContentRows {
-  readonly rows: readonly string[];
-}
-```
-
-#### `ContentSize` (interface)
-
-A width and height in pixels.
-
-```ts
-interface ContentSize {
-  readonly w: number;
-  readonly h: number;
-}
-```
-
-#### `ContentTileset` (interface)
-
-A tileset in `project.toml`: its tile size, grid, optional image and tags.
-
-```ts
-interface ContentTileset {
-  readonly id: string;
-  readonly tile: ContentSize;
-  readonly columns: number;
-  readonly rows: number;
-  readonly spacing: number;
-  readonly padding: number;
-  readonly image?: string | undefined;
-  readonly placeholder: boolean;
-  readonly tags: readonly {
-    readonly tag: string;
-    readonly tiles: readonly number[];
-  }[];
-}
-```
-
-#### `ContentWorld` (interface)
-
-The worlds as `world.toml` holds them: layout, level placements and, for a grid world, each level's neighbours.
-
-```ts
-interface ContentWorld {
-  readonly format: "af2d-content";
-  readonly version: 1;
-  readonly worlds: readonly {
-    readonly id: string;
-    readonly layout: "free" | "grid" | "horizontal" | "vertical";
-    readonly grid?: ContentSize | undefined;
-    readonly placements: readonly {
-      readonly level: string;
-      readonly x: number;
-      readonly y: number;
-      readonly depth: number;
-    }[];
-    /** Only in a `grid` world: for each level, the levels whose edge touches its own along a span of positive length. */
-    readonly neighbours?: readonly ContentNeighbours[] | undefined;
-  }[];
-}
-```
-
-#### `defaultFieldValue` (function)
-
-The value an instance gets when it has none: the field's `default`, else the type's zero (moved into a number's
-bounds), else `[]` for a list. `undefined` for a required field, which has no stand-in, and for a ref until one
-is picked.
-
-```ts
-function defaultFieldValue(def: FieldDef): FieldValue | undefined;
-```
-
-#### `entitiesOf` (function)
-
-The items of an entities layer, in file order. Throws for a missing or other layer.
-
-```ts
-function entitiesOf(level: ContentLevel, layer: string): readonly ContentEntityItem[];
-```
-
-#### `ENTITY_ID` (const)
-
-An entity definition id.
-
-```ts
-const ENTITY_ID: RegExp;
-```
-
-#### `EntityDef` (interface)
-
-A thing a game places: an id, a label and the typed fields its instances carry.
-
-```ts
-interface EntityDef {
-  readonly id: string;
-  readonly label?: string | undefined;
-  /** A token name or `#rrggbb`. */
-  readonly color?: string | undefined;
-  /** At most one instance per scope the editor names (2D: per level; 3D: per map). */
-  readonly single?: boolean | undefined;
-  readonly fields: readonly FieldDef[];
-}
-```
-
-#### `EntityDefCode` (type)
-
-The reasons `checkEntityDef` can refuse an entity definition.
-
-```ts
-type EntityDefCode = FieldDefCode | "badEntityId" | "badEntityColor" | "duplicateFieldId";
-```
-
-#### `EntityDefIssue` (interface)
-
-One problem found in a parsed entity definition, with the path of the field at fault.
-
-```ts
-interface EntityDefIssue {
-  readonly message: string;
-  /** Mutable, so it can be handed to `ctx.addIssue` as it is. */
-  readonly path: (string | number)[];
-}
-```
-
-#### `entityDefIssues` (function)
-
-The entity-level problems of a definition, for `superRefine`: its id and color, and a repeated field id at the later
-field's path. A field's own problems are reported by `fieldDefSchema` at the field's path, so they are not repeated.
-
-```ts
-function entityDefIssues(def: EntityDef): readonly EntityDefIssue[];
-```
-
-#### `EntityDefProblem` (interface)
-
-A problem with a definition; `fieldId` and `fieldIndex` (its place in `fields`) say which field when the problem is in one.
-
-```ts
-interface EntityDefProblem extends FieldProblem<EntityDefCode> {
-  readonly fieldId?: string;
-  readonly fieldIndex?: number;
-}
-```
-
-#### `entityDefSchema` (const)
-
-The schema of an entity definition: strict shape, then the rules `checkEntityDef` applies.
-
-```ts
-const entityDefSchema: z.ZodType<EntityDef>;
-```
-
-#### `entityDefShape` (const)
-
-The keys of an entity definition, for an editor to extend (`z.strictObject({ ...entityDefShape, shape: … })`) so
-its own entity schema never copies the kit's keys (`EntityDef2D = EntityDef & { shape, size, … }`).
-
-```ts
-const entityDefShape: {
-  id: z.ZodString;
-  label: z.ZodOptional<z.ZodString>;
-  color: z.ZodOptional<z.ZodString>;
-  single: z.ZodOptional<z.ZodBoolean>;
-  fields: z.ZodArray<z.ZodType<FieldDef>>;
-};
-```
-
-#### `FIELD_ID` (const)
-
-A field id as an inspector shows it and a file stores it.
-
-```ts
-const FIELD_ID: RegExp;
-```
-
-#### `FIELD_TYPES` (const)
-
-Every field type, in the order a picker lists them.
-
-```ts
-const FIELD_TYPES: readonly FieldType[];
-```
-
-#### `FieldDef` (interface)
-
-The definition of one typed field: its id, type and the bounds, options or target its type needs.
-
-```ts
-interface FieldDef {
-  readonly id: string;
-  readonly type: FieldType;
-  readonly label?: string | undefined;
-  /** An ordered array of this type (a patrol path is a list of points). */
-  readonly list?: boolean | undefined;
-  /** No default stands in: an instance without a value is a `fieldMissing` problem. */
-  readonly required?: boolean | undefined;
-  readonly default?: FieldValue | undefined;
-  /** `int` and `float`: inclusive bounds. */
-  readonly min?: number | undefined;
-  readonly max?: number | undefined;
-  /** `int` and `float`: the stepper's increment (1 for an `int` without one). */
-  readonly step?: number | undefined;
-  /** `enum`: non-empty and unique. */
-  readonly options?: readonly string[] | undefined;
-  /** `text`: an editor shows a multi-line box. */
-  readonly multiline?: boolean | undefined;
-  /** `ref`: what it may point at, as names the editor defines (entity definition ids, `$level`, `$sector`); empty or absent means any. */
-  readonly to?: readonly string[] | undefined;
-}
-```
-
-#### `FieldDefCode` (type)
-
-The reasons `checkFieldDef` can refuse a field definition.
-
-```ts
-type FieldDefCode = "badId" | "badBounds" | "badStep" | "noOptions" | "duplicateOption" | "badDefault" | "wrongTypeProperty";
-```
-
-#### `fieldDefSchema` (const)
-
-The schema of a field definition: strict shape, then the rules `checkFieldDef` applies.
-
-```ts
-const fieldDefSchema: z.ZodType<FieldDef>;
-```
-
-#### `FieldProblem` (interface)
-
-A problem with a field, with a stable `code` and a sentence to show.
-
-```ts
-interface FieldProblem<Code extends string = string> {
-  readonly code: Code;
-  readonly message: string;
-}
-```
-
-#### `FieldType` (type)
-
-The kind of value a field holds: int, float, bool, text, enum, color, angle, ref or point.
-
-```ts
-type FieldType = "int" | "float" | "bool" | "text" | "enum" | "color" | "angle" | "ref" | "point";
-```
-
-#### `FieldValue` (type)
-
-A value a field can hold: a number, boolean, string, point, reference or a list of those.
-
-```ts
-type FieldValue = number | boolean | string | Point | RefValue | readonly FieldValue[];
-```
-
-#### `FieldValueCode` (type)
-
-The reasons `checkFieldValue` can refuse a value.
-
-```ts
-type FieldValueCode = "wrongType" | "notInteger" | "belowMin" | "aboveMax" | "notAnOption" | "badColor" | "badRef" | "badPoint" | "badListItem";
-```
-
-#### `FieldValueProblem` (interface)
-
-`badListItem` carries the index of the first bad item and that item's own problem as `cause`.
-
-```ts
-interface FieldValueProblem extends FieldProblem<FieldValueCode> {
-  readonly index?: number;
-  readonly cause?: FieldValueProblem;
-}
-```
-
-#### `FieldValues` (type)
-
-The values an instance holds, by field id.
-
-```ts
-type FieldValues = Readonly<Record<string, FieldValue>>;
-```
-
-#### `fieldValueSchema` (const)
-
-Any well-formed value shape. Whether it fits a definition is `checkValues`, which knows the definition.
-
-```ts
-const fieldValueSchema: z.ZodType<FieldValue>;
-```
-
-#### `fieldValuesSchema` (const)
-
-The schema of the values an instance holds, by field id.
-
-```ts
-const fieldValuesSchema: z.ZodType<FieldValues>;
-```
-
-#### `HEX_COLOR` (const)
-
-A field's color value: `#rrggbb`, either case.
-
-```ts
-const HEX_COLOR: RegExp;
-```
-
-#### `InstanceCode` (type)
-
-The reasons an instance's values can disagree with its definition.
-
-```ts
-type InstanceCode = FieldValueCode | "fieldMissing" | "unknownField";
-```
-
-#### `InstanceProblem` (interface)
-
-A problem with one value of an instance, found by `checkValues`.
-
-```ts
-interface InstanceProblem extends FieldProblem<InstanceCode> {
-  readonly fieldId: string;
-  readonly index?: number;
-  readonly cause?: FieldValueProblem;
-}
-```
-
-#### `intGridRows` (function)
-
-The cells of an IntGrid layer, one array of numbers per row (0 is empty). Throws for a missing or other layer.
-
-```ts
-function intGridRows(level: ContentLevel, layer: string): readonly (readonly number[])[];
-```
-
-#### `level2dKinds` (function)
-
-The kinds `levels` (in the sim's content), `project` and `world` (outside it).
-
-```ts
-function level2dKinds(options?: Level2dKindsOptions): ContentSchemaDef[];
-```
-
-#### `Level2dKindsOptions` (interface)
-
-Options for `level2dKinds`.
-
-```ts
-interface Level2dKindsOptions {
-  /** Where the exported levels are, under `content/`. Default `levels`. */
-  readonly folder?: string | undefined;
-}
-```
-
-#### `levelContentSchema` (const)
-
-The strict schema of `levels/<id>.toml`.
-
-```ts
-const levelContentSchema: z.ZodType<ContentLevel>;
-```
-
-#### `Point` (interface)
-
-A position with `x` and `y`.
-
-```ts
-interface Point {
-  readonly x: number;
-  readonly y: number;
-}
-```
-
-#### `projectContentSchema` (const)
-
-The strict schema of `project.toml`.
-
-```ts
-const projectContentSchema: z.ZodType<ContentProject>;
-```
-
-#### `RefValue` (interface)
-
-`target` and `container` are opaque to the kit: whether they resolve is the editor's check.
-
-```ts
-interface RefValue {
-  readonly target: string;
-  /** The level or sector that holds the target. */
-  readonly container?: string | undefined;
-}
-```
-
-#### `worldContentSchema` (const)
-
-The strict schema of `world.toml`.
-
-```ts
-const worldContentSchema: z.ZodType<ContentWorld>;
-```
-
-### `import { … } from '@mcthaydt/automata-content/locale'`
-
-#### `ALWAYS_CHARACTERS` (const)
-
-Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.
-
-```ts
-const ALWAYS_CHARACTERS: readonly string[];
-```
-
-#### `catalogCharacters` (function)
-
-Every character the catalog's messages show. `$schema` is the file's format, not text a player reads.
-
-```ts
-function catalogCharacters(catalog: MessageCatalog): Set<string>;
-```
-
-#### `ContentText` (type)
-
-`text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
-
-```ts
-type ContentText = (kind: string, id: string | undefined, path: DataPath, authored: string, inputs?: Readonly<Record<string, unknown>>) => string;
-```
-
-#### `ContentTextOptions` (interface)
-
-Options for `createContentText`.
-
-```ts
-interface ContentTextOptions {
-  /** Called once per key the messages lack. */
-  readonly onMissing?: ((key: string) => void) | undefined;
-}
-```
-
-#### `createContentText` (function)
-
-A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
-
-```ts
-function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
-```
-
-#### `endonymOf` (function)
-
-A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`. An engine without
-it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
-
-```ts
-function endonymOf(tag: string): string;
-```
-
-#### `hasRawText` (function)
-
-True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII
-letter outside a ⟦ ⟧ span. Data a player typed (a name) is also "raw", so a check lists the data it expects.
-
-```ts
-function hasRawText(text: string): boolean;
-```
-
-#### `localeCharacters` (function)
-
-A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters. The font build
-also adds every content language's name for the language picker (`endonymOf`).
-
-```ts
-function localeCharacters(catalog: MessageCatalog): Set<string>;
-```
-
-#### `MessageCatalog` (type)
-
-One locale's messages: message key to translated text.
-
-```ts
-type MessageCatalog = Readonly<Record<string, string>>;
-```
-
-#### `messageKey` (function)
-
-The message key of one text. `id` is absent for a single-document kind.
-
-```ts
-function messageKey(kind: string, id: string | undefined, path: DataPath): string;
-```
-
-#### `MessageValue` (type)
-
-A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
-
-```ts
-type MessageValue = string | readonly MessageValue[] | {
-  readonly [key: string]: MessageValue;
-};
-```
-
-#### `PSEUDO_LOCALE` (const)
-
-The pseudo-locale's tag. `Intl` reads it as the unknown language `xx`, so formatting falls back, never throws.
-
-```ts
-const PSEUDO_LOCALE = "xx-long";
-```
-
-#### `pseudoLocalize` (function)
-
-The xx-long form of one message string. Placeholders and escaped braces stay as written. The extra length is
-spread over the words in proportion to their length, each word's share right after it, so a long message keeps
-the places a line can break, as a longer language's would; a message with no words has it at the end.
-
-```ts
-function pseudoLocalize(message: string): string;
-```
-
-#### `pseudoMessages` (function)
-
-The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural
-variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts
-change. `$schema` is copied as is.
-
-```ts
-function pseudoMessages(file: {
-  readonly [key: string]: MessageValue;
-}): Record<string, MessageValue>;
-```
-
-#### `snakeKey` (function)
-
-`snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
-
-```ts
-function snakeKey(value: string): string;
-```
-
-### `import { … } from '@mcthaydt/automata-content/palette'`
-
-#### `DEFAULT_PALETTE` (const)
-
-The palette a game gets when it has no `content/palette.toml`: Endesga 64.
-
-```ts
-const DEFAULT_PALETTE: Palette;
-```
-
-#### `Palette` (interface)
-
-The game's palette: a name and its colors.
-
-```ts
-interface Palette {
-  readonly name: string;
-  /** `#rrggbb`, lowercase, in authored order. */
-  readonly colors: readonly string[];
-}
-```
-
-### `import { … } from '@mcthaydt/automata-content/schema'`
-
-#### `contentRef` (function)
-
-The ID of another content item of `kind`. Checked to exist, and to be that kind, after parsing.
-
-```ts
-function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
-```
-
-#### `ContentSchemaDef` (interface)
-
-A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
-and whether the sim receives it. Create one with `defineContentSchema`.
-
-```ts
-interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
-  readonly kind: K;
-  readonly schema: S;
-  readonly place: ContentSchemaPlace;
-  /**
-   * Whether the sim receives this kind. Default true: content is gameplay unless the game
-   * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
-   */
-  readonly sim: boolean;
-}
-```
-
-#### `ContentSchemaOptions` (interface)
-
-Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
-
-```ts
-interface ContentSchemaOptions {
-  readonly sim?: boolean;
-}
-```
-
-#### `ContentSchemaPlace` (type)
-
-Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
-
-```ts
-type ContentSchemaPlace = {
-  readonly folder: string;
-} | {
-  readonly file: string;
-};
-```
-
-#### `defineContentSchema` (function)
-
-Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
-file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
-that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
-name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
-
-```ts
-function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
-```
-
-#### `localized` (function)
-
-Text a player reads, written in the source language. It gets a message key for translators.
-
-```ts
-function localized(): z.ZodType<string, string>;
-```
-
-### `import { … } from '@mcthaydt/automata-content/vite'`
-
-#### `automataContent` (function)
-
-The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
-starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
-content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
-Vite's logger and the `automata:content-error` event (`automata:content` after a good save). It also sets
-`build.assetsInlineLimit: 0` when the game's config leaves it unset, so no asset becomes a `data:` URL that Ruken's
-CSP refuses to fetch.
-
-```ts
-function automataContent(pluginOptions?: AutomataContentOptions): Plugin;
-```
-
-#### `AutomataContentOptions` (type)
-
-The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root.
-
-```ts
-type AutomataContentOptions = Omit<ContentOptions, "root"> & {
-  readonly root?: string | undefined;
-};
-```
-
-#### `VIRTUAL_MODULE_ID` (const)
-
-The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
-
-```ts
-const VIRTUAL_MODULE_ID = "virtual:automata/content";
-```
-
-## `@mcthaydt/automata-sim`
-
-### `import { … } from '@mcthaydt/automata-sim'`
+### `import { … } from '@automata/sim'`
 
 #### `canonicalJson` (function)
 
@@ -6944,7 +6943,7 @@ XXH64 of `data` with an unsigned 64-bit `seed`.
 function xxhash64(data: Uint8Array, seed?: bigint): bigint;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/hash'`
+### `import { … } from '@automata/sim/hash'`
 
 #### `canonicalJson` (function)
 
@@ -6982,7 +6981,7 @@ XXH64 of `data` with an unsigned 64-bit `seed`.
 function xxhash64(data: Uint8Array, seed?: bigint): bigint;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/math'`
+### `import { … } from '@automata/sim/math'`
 
 #### `atan` (function)
 
@@ -7057,7 +7056,7 @@ Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 function tan(x: number): number;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/replay'`
+### `import { … } from '@automata/sim/replay'`
 
 #### `createRecorder` (function)
 
@@ -7336,7 +7335,7 @@ function unpackReplay(bytes: Uint8Array, compression: ReplayCompression, options
 }): Promise<Replay>;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/testing'`
+### `import { … } from '@automata/sim/testing'`
 
 #### `Difference` (interface)
 
@@ -7579,7 +7578,7 @@ Browsers and Node: CompressionStream / DecompressionStream('deflate-raw').
 const streamCompression: ReplayCompression;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/testing/commands'`
+### `import { … } from '@automata/sim/testing/commands'`
 
 #### `goldenCommands` (function)
 
@@ -7605,7 +7604,7 @@ interface GoldenCommandsOptions {
 }
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/testing/property'`
+### `import { … } from '@automata/sim/testing/property'`
 
 #### `RoundTripFailure` (interface)
 
@@ -7665,9 +7664,9 @@ function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
 }>;
 ```
 
-## `@mcthaydt/automata-tools`
+## `@automata/tools`
 
-### `import { … } from '@mcthaydt/automata-tools'`
+### `import { … } from '@automata/tools'`
 
 #### `defineShipConfig` (function)
 
@@ -7717,7 +7716,7 @@ interface ItchSettings {
 
 #### `ShipConfig` (interface)
 
-What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s
+What a game tells ship about itself: the game config every target reads (`@automata/content`'s
 `GameConfig`) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
 the config reads like the `ruken.toml` the Ruken target writes from it (ship fills in `schema` and `allow_eval`,
 always false); `prepare --target ruken` checks the whole of it with Ruken's own parser.

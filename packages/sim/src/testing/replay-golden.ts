@@ -1,6 +1,6 @@
 // replayGolden: a golden that is a `.replay` with reference data, so when a run diverges the
 // report names the exact tick and every field that differs there.
-import { createSim, type PluginDef, type Sim, SnapshotMismatchError } from '@mcthaydt/automata-sim'
+import { createSim, type PluginDef, type Sim, SnapshotMismatchError } from '@automata/sim'
 import {
   createRecorder,
   createReplayStepper,
@@ -12,7 +12,7 @@ import {
   ReplayRecordError,
   type ReplayStepper,
   unpackReplay,
-} from '@mcthaydt/automata-sim/replay'
+} from '@automata/sim/replay'
 import { nodeCompression, streamCompression } from './compression'
 import { type Difference, diffSnapshotViews } from './diff'
 import {

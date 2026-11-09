@@ -1,6 +1,6 @@
 // The Characters view's editing: add, change and remove entity definitions and their fields. A change that would
 // break instances is refused with the list of uses, unless the person confirms it.
-import type { FieldDef, FieldType } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldType } from '@automata/content/level-2d'
 import type { History } from '../../shared/kit/history/history.ts'
 import { projectHistory } from '../../shared/level-2d/editor/edit-history'
 import { commitEdit, type FieldCommit } from '../../shared/level-2d/editor/field-commit'
@@ -140,7 +140,7 @@ export function createEntitiesSession(options: EntitiesSessionOptions): Entities
       const ownerChanged = patch.owner !== undefined && patch.field === undefined
       choose(ownerChanged ? { ...patch, field: undefined } : patch)
     },
-    addDefinition: () => addDefinitionAs('Add character', newDefinition(`entity-${options.ids.next()}`)),
+    addDefinition: () => addDefinitionAs('Add a character', newDefinition(`entity-${options.ids.next()}`)),
     duplicateDefinition() {
       const { def } = current()
       if (def === undefined) return OK

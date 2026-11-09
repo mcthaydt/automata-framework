@@ -3,7 +3,7 @@
 // previous state and the editor can keep the viewport in a Svelte store without cloning.
 
 // `Point` is the field module's: one definition for the kit, exported once from the root entry.
-import type { Point } from '@mcthaydt/automata-content/level-2d'
+import type { Point } from '@automata/content/level-2d'
 
 export interface Size {
   readonly w: number

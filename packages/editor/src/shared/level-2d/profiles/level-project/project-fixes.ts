@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValue, RefValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldValue, RefValue } from '@automata/content/level-2d'
 import { unpackTile } from '../../model/cells-codec'
 import { setEntityField } from '../../model/commands/entity-edits'
 import type { Grid } from '../../model/grid'

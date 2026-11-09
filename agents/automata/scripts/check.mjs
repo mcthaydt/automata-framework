@@ -68,12 +68,12 @@ function findAutomata() {
   }
 }
 
-/** Whether the project's package.json depends on any @mcthaydt/automata-* package. */
+/** Whether the project's package.json depends on any @automata/* package. */
 function isAutomataGame() {
   try {
     const pkg = JSON.parse(readFileSync(join(projectDir, 'package.json'), 'utf8'))
     const names = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies })
-    return names.some((name) => name.startsWith('@mcthaydt/automata-'))
+    return names.some((name) => name.startsWith('@automata/'))
   } catch {
     return false
   }
@@ -86,8 +86,8 @@ function runCheck(args) {
     // Not an Automata game (the plugin was installed for every project): nothing to check.
     if (!isAutomataGame()) process.exit(0)
     process.stderr.write(
-      `${command} could not run: this game has no automata bin. Add @mcthaydt/automata-tools as a dev dependency ` +
-        '(pnpm add -D @mcthaydt/automata-tools), install, and try again.\n',
+      `${command} could not run: this game has no automata bin. Add @automata/tools as a dev dependency ` +
+        '(pnpm add -D @automata/tools), install, and try again.\n',
     )
     process.exit(BLOCK)
   }

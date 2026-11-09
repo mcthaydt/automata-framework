@@ -182,3 +182,37 @@ the string still exists; rows whose string phase 18 already removed are under "G
 The audit's rows for the Home subline and actions, the demo's poster and caption, the footer's tagline and links, the
 old Editors page, the FAQ and the targets sentence: phase 18 replaced those strings (the footer is Docs, Examples,
 Reference, Privacy, Terms and Contact; the targets are named by the publish section and the guides).
+
+## Stage 6 grandma fixes (2026-11-07)
+
+| Where | Was | Now | Why |
+|---|---|---|---|
+| Tile rules, row names and cell words | the rule's id (`ground-n-e`), `is 3`, `not 3` | `Ground, joined above and to the right`; `only solid`, `anything but spike` | 4 (ids and numbers) |
+| Tile rule options | `flipX`, `flipY`, `breakOnMatch` | `Mirror left to right`, `Flip upside down`, `Stop after this rule` | 4 |
+| Tile rule inspector | offered with no tiles in the game | only when the game has tiles | 2 (nothing to press) |
+| Suite Home, editor names | `Levels 2D` | `Levels` | 4 |
+| Characters, second section | `Settings for every level`, `None yet`, `Add a level setting` | `Settings every level has`, `No settings yet`, `Add a setting` | 3 |
+| Characters, add button | `Add character` | `Add a character` | 3 |
+| Characters, summaries | monospace | body type | 4 (code look for words) |
+| Colour field | the trigger spelled the hex (`#e0a54a`) | a swatch and `Change`; the hex stays in the Custom field | 4 |
+| Characters, "Only one per level" | a button that looked pressed | a switch | 2 |
+| Map, Arrange levels | a bare choice | `Where your levels sit on the map. Drag a level to move it.` under it | 1 |
+| Map, `Depth` | `Depth` | `Floor` | 4 |
+| Level canvas, a tile with no picture | the tile's number drawn on every cell (`30`, `46`) | the cell's colour and a darker edge, no number | 4 |
+| Start, step 1 | `A folder called my-game with a small working platformer in it: a level, a player and its tests.` | `A folder called my-game with a small working game in it: a square you move around a level, and its tests.` | 1 (it said what the template is not) |
+| Home, "Built for agents" | `Agent skills teach your coding agent where gameplay lives, which rules it must keep and how to test a change.` | `Your game comes with tests, so your coding agent can check its own work after every change.` | untrue until AF's skills are public (audit C6) |
+
+
+## Stage 6 fixes, the Level view and the audit's last findings (2026-11-07, second pass)
+
+| Where | Was | Now | Why |
+|---|---|---|---|
+| Level view, corner of the canvas | `Fit the level in view` alone | `Zoom out`, the zoom as `100%`, `Zoom in`, then `Fit the level in view` | 1 (a mouse user could not read or reset the zoom; the approved mockup has it) |
+| Level view, brush size | a box showing `1` that opened a popover (a phone's dock keeps this) | `Smaller brush`, the size, `Bigger brush` beside the tools | 2 (the approved mockup's − 1 +) |
+| Top bar, in browser storage | lime `Save` and an unlabelled share icon | lime `Share` (icon and word), `Save` plain beside it | 2 (the level leaves by Share there; the mockup) |
+| Level inspector, size | `512 × 288 px` | `32 wide × 18 high`, and `Sizes are in tiles of 16 px.` under it | 4 (pixels are a computer's unit) |
+| Level inspector, Music | a text box | kept as a text box | the mockup draws a choice, but a new level has no audio files to choose from; a choice holding only `None` would be a control that cannot be used |
+| Entities layer, new levels | `Characters` | `Characters and items` | 1 (a coin is not a character; spec 11.5) |
+| Palette rows | name only | the number key at the row's right edge for the first nine (1 to 9 choose them) | 2 (the mockup) |
+| Home, no levels | `Make your first one to start drawing.` and a second `New level` button | `Press New level to start drawing.` (the top bar's button is the one) | 2 (one button for one job) |
+| Tiles, no tiles yet | an `Add tiles` button in the panel and another in the stage | the stage's only; the panel's appears once there is a first tileset | 2 |

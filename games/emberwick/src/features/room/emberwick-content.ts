@@ -1,5 +1,5 @@
 import { simContent, simContentHash } from 'virtual:automata/content'
-import { levelContentSchema } from '@mcthaydt/automata-content/level-2d'
+import { levelContentSchema } from '@automata/content/level-2d'
 import { parseRoom, type RoomSource } from '../../shared/room.ts'
 import { tuningOf } from '../../shared/tuning.ts'
 import { roomSourceOfLevel } from './level-room.ts'

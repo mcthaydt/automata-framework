@@ -1,5 +1,5 @@
 import { parseRoom, type RoomSource } from '@af-games/emberwick/room'
-import { defineContentSchema } from '@mcthaydt/automata-content'
+import { defineContentSchema } from '@automata/content'
 import { z } from 'zod'
 
 // The one content kind this demo registers: the room, in content/room.toml. Zod checks the shape; parseRoom (the

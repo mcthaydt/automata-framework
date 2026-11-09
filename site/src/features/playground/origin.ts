@@ -1,4 +1,4 @@
-// The precompiled originals are compiled for the site's origin (spec §5.2 step 4): an example's `import.meta.url` is
+// The precompiled originals are compiled for the site's origin: an example's `import.meta.url` is
 // the literal "<origin>/playground/examples/…". A local server runs them at its own origin, so the literal moves with it.
 
 /** `code` with every quoted `"<from>/playground/` literal starting at `to` instead. */

@@ -1,7 +1,7 @@
 // A figure's joint containers take each joint's world matrix from `fk` (the figures package's row-major rotation and
 // translation, figure space). The containers sit flat under the figure's node, so the matrix is set as their local
 // transform directly.
-import { type M, matq, rotationOf } from '@mcthaydt/automata-figures'
+import { type M, matq, rotationOf } from '@automata/figures'
 import type { Container3D } from '@pixi/3d'
 
 /** Moves and turns `node` to the joint matrix `m`. */

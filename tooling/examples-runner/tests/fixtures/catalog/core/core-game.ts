@@ -2,9 +2,9 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @mcthaydt/automata-game
+// Packages: @automata/game
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineGame } from '@mcthaydt/automata-game'
+import { defineGame } from '@automata/game'
 
 export default { id: 'core-game', define: defineGame }

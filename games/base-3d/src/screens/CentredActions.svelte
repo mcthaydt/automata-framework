@@ -4,7 +4,7 @@
   full-width row's gutter on the left. On a phone held upright it takes the frame's whole width, as before.
 -->
 <script lang="ts">
-import { ActionBar, type BarAction } from '@mcthaydt/automata'
+import { ActionBar, type BarAction } from '@automata/framework'
 
 interface Props {
   actions: readonly BarAction[]

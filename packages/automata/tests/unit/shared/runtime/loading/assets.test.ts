@@ -1,4 +1,4 @@
-import type { AssetsSource } from '@mcthaydt/automata-content'
+import type { AssetsSource } from '@automata/content'
 import { describe, expect, it, vi } from 'vitest'
 import type { Result } from '#src/shared/lib/result.ts'
 import { createAssets } from '#src/shared/runtime/assets.manager.ts'

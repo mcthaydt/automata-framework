@@ -49,6 +49,7 @@ const LAYOUTS: readonly { id: WorldLayout; label: string }[] = [
   {#if world !== undefined}
     <div class="arrange">
       <h2>Arrange levels</h2>
+      <p class="hint">Where your levels sit on the map. Drag a level to move it.</p>
       <Segmented
         label="Arrange levels"
         options={LAYOUTS}
@@ -106,6 +107,11 @@ const LAYOUTS: readonly { id: WorldLayout; label: string }[] = [
   .arrange {
     display: grid;
     gap: var(--space-2);
+  }
+  .hint {
+    margin: 0;
+    color: var(--color-text-dim);
+    font: var(--text-body-13);
   }
   /* Quiet rows, as the Level view's layers: no box, a wash under the pointer and on the chosen level. */
   .levels button {

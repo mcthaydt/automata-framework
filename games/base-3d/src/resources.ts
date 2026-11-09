@@ -1,5 +1,5 @@
 // base-3d's resources: the progress a save keeps that the sim itself changes, and the last safe spot. Sim code.
-import { defineResource } from '@mcthaydt/automata-sim'
+import { defineResource } from '@automata/sim'
 import { z } from 'zod'
 
 /**

@@ -19,12 +19,7 @@ describe('/api', () => {
 
   it('has one page for each published package, under its current name', () => {
     const names = getApiReference(latestApiVersion())!.packages.map((pkg) => pkg.name)
-    expect(names).toEqual([
-      '@mcthaydt/automata',
-      '@mcthaydt/automata-content',
-      '@mcthaydt/automata-sim',
-      '@mcthaydt/automata-tools',
-    ])
+    expect(names).toEqual(['@automata/content', '@automata/framework', '@automata/sim', '@automata/tools'])
   })
 
   it('prerenders one page per package of each version', async () => {
@@ -36,7 +31,7 @@ describe('/api', () => {
 
   it('a package page shows every export with its signature, filters by word, and 404s an unknown package', async () => {
     const version = latestApiVersion()
-    const data = load({ params: { version, pkg: 'automata-sim' } } as never) as unknown as {
+    const data = load({ params: { version, pkg: 'sim' } } as never) as unknown as {
       version: string
       pkg: ApiPackage
     }
@@ -55,12 +50,12 @@ describe('/api', () => {
       }
     }
     expect(statusOf({ version, pkg: 'nope' })).toBe(404)
-    expect(statusOf({ version: '9.9.9', pkg: 'automata-sim' })).toBe(404)
+    expect(statusOf({ version: '9.9.9', pkg: 'sim' })).toBe(404)
   })
 
   it('a package page is short: its groups folded into a list of rows, and a filter opens what matches', async () => {
     const version = latestApiVersion()
-    const data = load({ params: { version, pkg: 'automata' } } as never) as unknown as {
+    const data = load({ params: { version, pkg: 'framework' } } as never) as unknown as {
       version: string
       pkg: ApiPackage
     }

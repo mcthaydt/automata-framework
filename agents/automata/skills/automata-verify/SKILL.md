@@ -48,15 +48,15 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 
 | Rule | Means | Fix |
 |---|---|---|
-| `import` | The sim imports something outside its allowlist (Effect, DOM libraries, Node modules, another layer of the game) | Import only `@mcthaydt/automata-sim` (and `/math`, `/hash`), `zod`, the physics entry points, or relative sim files. Move I/O or Effect code out of the sim files (and what they import) and pass results in as commands or content |
+| `import` | The sim imports something outside its allowlist (Effect, DOM libraries, Node modules, another layer of the game) | Import only `@automata/sim` (and `/math`, `/hash`), `zod`, the physics entry points, or relative sim files. Move I/O or Effect code out of the sim files (and what they import) and pass results in as commands or content |
 | `banned-global` | A host or clock global such as `Date`, `setTimeout`, `console`, `window`, `fetch`, `crypto`, `performance`, `Intl` | Time is `ctx.tick`; randomness is the sim's seeded RNG; logging and I/O belong outside the sim |
 | `banned-member` | `.constructor` on a value, which reaches `Function` | Don't build code from strings; call the function directly |
-| `math-member` | A `Math` member outside `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`, `sign`, `imul` (including `Math.random`) | Use `@mcthaydt/automata-sim/math` for the rest, and the sim's RNG for random numbers |
+| `math-member` | A `Math` member outside `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`, `sign`, `imul` (including `Math.random`) | Use `@automata/sim/math` for the rest, and the sim's RNG for random numbers |
 | `pow-operator` | `**`, which is not bit-exact across engines | Multiply, or use the sim math module |
-| `key-enumeration` | `Object.keys`/`values`/`entries`, `for…in`, or a computed member on them, whose order can differ | `sortedKeys` / `sortedEntries` from `@mcthaydt/automata-sim` |
+| `key-enumeration` | `Object.keys`/`values`/`entries`, `for…in`, or a computed member on them, whose order can differ | `sortedKeys` / `sortedEntries` from `@automata/sim` |
 | `locale` | `localeCompare`, `toLocaleString` and similar, which depend on the engine's locale data | Compare and format explicitly |
-| `koota-soa` | koota's `trait` or a `relation` store given an object schema (or one the checker cannot see), which koota compiles with `new Function`; Ruken's CSP refuses it | Use `defineComponent` from `@mcthaydt/automata-sim`, or pass koota a factory: `trait(() => ({ x: 0 }))`, `relation({ store: () => ({ amount: 0 }) })` |
-| `platform-import` | A distribution target's platform package (`@ruken/*`, `@tauri-apps/*`) imported outside a folder named for that target (`ruken/`, `tauri/`); run with `--platform-imports` | Use AF's own API instead (the message names it: `@mcthaydt/automata` for host types, `@mcthaydt/automata/testing` for a fake host, `@mcthaydt/automata-content/game-config` for the game config), or move the file under the target's folder |
+| `koota-soa` | koota's `trait` or a `relation` store given an object schema (or one the checker cannot see), which koota compiles with `new Function`; Ruken's CSP refuses it | Use `defineComponent` from `@automata/sim`, or pass koota a factory: `trait(() => ({ x: 0 }))`, `relation({ store: () => ({ amount: 0 }) })` |
+| `platform-import` | A distribution target's platform package (`@ruken/*`, `@tauri-apps/*`) imported outside a folder named for that target (`ruken/`, `tauri/`); run with `--platform-imports` | Use AF's own API instead (the message names it: `@automata/framework` for host types, `@automata/framework/testing` for a fake host, `@automata/content/game-config` for the game config), or move the file under the target's folder |
 | `feature-import` | In a package laid out by feature (`src/features/<x>/`), a feature imports another feature; run with `--features` | Pass what it needs in from `app/`, or move the shared part to `shared/` |
 | `shared-import` | A file in `shared/` imports a feature, `app/` or `entries/`; run with `--features` | Move what it needs into `shared/`, or move the file into the feature that owns it |
 | `app-import` | A feature imports `app/`; run with `--features` | Only `entries/` and `testing/` import `app/`: pass the value in from `app/` instead |
@@ -110,7 +110,7 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 | Rule | Means | Fix |
 |---|---|---|
 | `eval` | `eval(…)` in the built bundle | Remove it; find the dependency that does it if it isn't yours |
-| `function-constructor` | `Function(…)` or `new Function(…)` compiling code at runtime | Import `@mcthaydt/automata/no-eval` first in the entry; replace other code generators |
+| `function-constructor` | `Function(…)` or `new Function(…)` compiling code at runtime | Import `@automata/framework/no-eval` first in the entry; replace other code generators |
 | `string-timer` | `setTimeout`/`setInterval` given a string | Pass a function |
 | `build` | `vite build` failed, so nothing could be scanned | Fix the build error in the message |
 | `parse-error` | A built file could not be scanned | Report it; the build produced something the scanner can't read |

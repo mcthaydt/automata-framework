@@ -107,7 +107,7 @@ describe('renderTypes', () => {
           types: ['node'],
           typeRoots: [join(import.meta.dirname, '../../../../node_modules/@types')],
           paths: {
-            '@mcthaydt/automata-content': [join(import.meta.dirname, '../../../../src/entries/index.ts')],
+            '@automata/content': [join(import.meta.dirname, '../../../../src/entries/index.ts')],
           },
         },
         include: ['*.ts'],

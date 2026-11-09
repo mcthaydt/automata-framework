@@ -1,4 +1,4 @@
-import { DEFAULT_HEAD, DEFAULT_SLIDERS } from '@mcthaydt/automata-figures'
+import { DEFAULT_HEAD, DEFAULT_SLIDERS } from '@automata/figures'
 
 // The sliders the Studio's Look shows (EDS.9a; editor suite spec §6.2, EDS-D16): the figure's body sliders and the
 // face's fourteen in five folded groups, with the bounds the figures schema holds and the defaults the figure builds

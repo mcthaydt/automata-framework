@@ -1,7 +1,7 @@
 <script lang="ts">
 import { type DeterminismView, determinismText } from './determinism'
 
-// The determinism row under the preview (spec §13): whether this run replayed to the framework's recorded hash. It is
+// The determinism row under the preview: whether this run replayed to the framework's recorded hash. It is
 // for developers, so it sits folded under "For developers"; a divergence is a cross-engine bug to report, so it opens
 // itself and speaks as an alert.
 let { view, exampleId }: { view: DeterminismView; exampleId: string } = $props()

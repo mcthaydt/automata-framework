@@ -70,11 +70,12 @@ function thumb(tile: number | undefined): string {
         </button>
       {/each}
     </div>
-    {#if onaddtiles !== undefined}<Button onclick={onaddtiles}>Add tiles</Button>{/if}
+    <!-- With no tiles yet the stage's own Add tiles is the one (a screen needs one button for one job). -->
+    {#if onaddtiles !== undefined && tilesetRows(project).length > 0}<Button onclick={onaddtiles}>Add tiles</Button>{/if}
   </section>
 
   <section aria-labelledby="auto-heading">
-    <!-- The auto layers in the Level view's words for them (spec 11.5). -->
+    <!-- The auto layers in the Level view's words for them. -->
     <h2 id="auto-heading">Tiles that place themselves</h2>
     {#if layer === undefined}
       <p class="empty">None in this game yet.</p>

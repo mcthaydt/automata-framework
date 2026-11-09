@@ -62,7 +62,7 @@ export function cheatsheet(exports: readonly ApiExport[]): string {
   const lines = [
     '# Automata cheatsheet',
     '',
-    '> Every export of every published `@mcthaydt/automata-*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm api-index --write` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).',
+    '> Every export of every published `@automata/*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm api-index --write` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).',
     '',
   ]
   // A heading closes the list before it with a blank line, as Markdown needs.

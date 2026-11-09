@@ -14,7 +14,7 @@ importers:
       '@changesets/cli':
         specifier: 3.0.3
         version: 3.0.3
-      '@mcthaydt/automata-tools':
+      '@automata/tools':
         specifier: workspace:*
         version: link:packages/tools
       '@playwright/test':
@@ -38,7 +38,7 @@ importers:
 
   examples/2d:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
       pixi.js:
@@ -51,13 +51,13 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-tools':
+      '@automata/tools':
         specifier: workspace:*
         version: link:../../packages/tools
-      '@mcthaydt/examples-runner':
+      '@automata/examples-runner':
         specifier: workspace:*
         version: link:../../tooling/examples-runner
-      '@mcthaydt/playwright-preset':
+      '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
       '@playwright/test':
@@ -81,20 +81,20 @@ importers:
       '@fontsource/pixelify-sans':
         specifier: 5.3.0
         version: 5.3.0
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../../../../packages/automata
     devDependencies:
-      '@mcthaydt/automata-content':
+      '@automata/content':
         specifier: workspace:*
         version: link:../../../../packages/content
-      '@mcthaydt/automata-tools':
+      '@automata/tools':
         specifier: workspace:*
         version: link:../../../../packages/tools
-      '@mcthaydt/examples-runner':
+      '@automata/examples-runner':
         specifier: workspace:*
         version: link:../../../../tooling/examples-runner
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../../../tooling/vitest-preset
       '@playwright/test':
@@ -118,14 +118,14 @@ importers:
 
   examples/2d/ui/primitives:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../../../../packages/automata
       svelte:
         specifier: 5.57.1
         version: 5.57.1
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
@@ -152,13 +152,13 @@ importers:
 
   examples/3d:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@mcthaydt/automata-figures':
+      '@automata/figures':
         specifier: workspace:*
         version: link:../../packages/figures
-      '@mcthaydt/automata-render-pixi3d':
+      '@automata/render-pixi3d':
         specifier: workspace:*
         version: link:../../packages/render-pixi3d
       pixi.js:
@@ -168,10 +168,10 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
     devDependencies:
-      '@mcthaydt/examples-runner':
+      '@automata/examples-runner':
         specifier: workspace:*
         version: link:../../tooling/examples-runner
-      '@mcthaydt/playwright-preset':
+      '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
       '@playwright/test':
@@ -189,19 +189,19 @@ importers:
 
   games/base-3d:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@mcthaydt/automata-figures':
+      '@automata/figures':
         specifier: workspace:*
         version: link:../../packages/figures
-      '@mcthaydt/automata-render-pixi3d':
+      '@automata/render-pixi3d':
         specifier: workspace:*
         version: link:../../packages/render-pixi3d
-      '@mcthaydt/automata-sector-format':
+      '@automata/sector-format':
         specifier: workspace:*
         version: link:../../packages/sector-format
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       '@pixi/3d':
@@ -220,19 +220,19 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-content':
+      '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@mcthaydt/automata-tools':
+      '@automata/tools':
         specifier: workspace:*
         version: link:../../packages/tools
-      '@mcthaydt/evidence':
+      '@automata/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@mcthaydt/examples-runner':
+      '@automata/examples-runner':
         specifier: workspace:*
         version: link:../../tooling/examples-runner
-      '@mcthaydt/playwright-preset':
+      '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
       '@playwright/test':
@@ -268,10 +268,10 @@ importers:
       '@fontsource/pixelify-sans':
         specifier: 5.3.0
         version: 5.3.0
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       pixi.js:
@@ -284,19 +284,19 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-content':
+      '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@mcthaydt/automata-tools':
+      '@automata/tools':
         specifier: workspace:*
         version: link:../../packages/tools
-      '@mcthaydt/evidence':
+      '@automata/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@mcthaydt/playwright-preset':
+      '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@playwright/test':
@@ -332,10 +332,10 @@ importers:
 
   packages/automata:
     dependencies:
-      '@mcthaydt/automata-content':
+      '@automata/content':
         specifier: workspace:*
         version: link:../content
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../sim
       zod:
@@ -348,7 +348,7 @@ importers:
       '@inlang/plugin-message-format':
         specifier: 4.4.4
         version: 4.4.4
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@ruken/sdk':
@@ -423,7 +423,7 @@ importers:
       '@inlang/plugin-message-format':
         specifier: 4.4.4
         version: 4.4.4
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../sim
       effect:
@@ -445,7 +445,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@ruken/manifest':
@@ -484,10 +484,10 @@ importers:
       '@fontsource-variable/geist-mono':
         specifier: 5.3.0
         version: 5.3.0
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../automata
-      '@mcthaydt/automata-content':
+      '@automata/content':
         specifier: workspace:*
         version: link:../content
       pixi.js:
@@ -503,10 +503,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/playwright-preset':
+      '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@playwright/test':
@@ -557,19 +557,19 @@ importers:
 
   packages/editor-3d:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../automata
-      '@mcthaydt/automata-editor':
+      '@automata/editor':
         specifier: workspace:*
         version: link:../editor
-      '@mcthaydt/automata-figures':
+      '@automata/figures':
         specifier: workspace:*
         version: link:../figures
-      '@mcthaydt/automata-render-pixi3d':
+      '@automata/render-pixi3d':
         specifier: workspace:*
         version: link:../render-pixi3d
-      '@mcthaydt/automata-sector-format':
+      '@automata/sector-format':
         specifier: workspace:*
         version: link:../sector-format
       '@pixi/3d':
@@ -633,10 +633,10 @@ importers:
 
   packages/figures:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../automata
-      '@mcthaydt/automata-content':
+      '@automata/content':
         specifier: workspace:*
         version: link:../content
       smol-toml:
@@ -664,19 +664,19 @@ importers:
 
   packages/render-pixi3d:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../automata
-      '@mcthaydt/automata-content':
+      '@automata/content':
         specifier: workspace:*
         version: link:../content
-      '@mcthaydt/automata-figures':
+      '@automata/figures':
         specifier: workspace:*
         version: link:../figures
-      '@mcthaydt/automata-sector-format':
+      '@automata/sector-format':
         specifier: workspace:*
         version: link:../sector-format
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../sim
       '@pixi/3d':
@@ -742,10 +742,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/evidence':
+      '@automata/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -763,7 +763,7 @@ importers:
 
   packages/tools:
     dependencies:
-      '@mcthaydt/automata-content':
+      '@automata/content':
         specifier: workspace:*
         version: link:../content
       effect:
@@ -785,10 +785,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-editor':
+      '@automata/editor':
         specifier: workspace:*
         version: link:../editor
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@playwright/test':
@@ -842,16 +842,16 @@ importers:
       '@lezer/highlight':
         specifier: 1.2.5
         version: 1.2.5
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../packages/automata
-      '@mcthaydt/automata-editor':
+      '@automata/editor':
         specifier: workspace:*
         version: link:../packages/editor
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../packages/sim
-      '@mcthaydt/automata-tools':
+      '@automata/tools':
         specifier: workspace:*
         version: link:../packages/tools
       '@ruken/manifest':
@@ -882,10 +882,10 @@ importers:
       '@lhci/cli':
         specifier: 0.15.1
         version: 0.15.1(bare-buffer@3.7.1)
-      '@mcthaydt/examples-runner':
+      '@automata/examples-runner':
         specifier: workspace:*
         version: link:../tooling/examples-runner
-      '@mcthaydt/playwright-preset':
+      '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../tooling/playwright-preset
       '@playwright/test':
@@ -937,7 +937,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       '@types/node':
@@ -949,7 +949,7 @@ importers:
 
   tooling/api-index:
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -964,7 +964,7 @@ importers:
 
   tooling/api-report:
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -986,7 +986,7 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -1014,10 +1014,10 @@ importers:
 
   tooling/consumer-smoke:
     devDependencies:
-      '@mcthaydt/playwright-preset':
+      '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../playwright-preset
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@playwright/test':
@@ -1042,7 +1042,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -1054,13 +1054,13 @@ importers:
 
   tooling/examples-runner:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@mcthaydt/automata-tools':
+      '@automata/tools':
         specifier: workspace:*
         version: link:../../packages/tools
       '@ruken/sdk-host':
@@ -1076,7 +1076,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@playwright/test':
@@ -1103,10 +1103,10 @@ importers:
 
   tooling/frame-budget:
     dependencies:
-      '@mcthaydt/automata':
+      '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@mcthaydt/automata-sim':
+      '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       pixi.js:
@@ -1119,16 +1119,16 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-tools':
+      '@automata/tools':
         specifier: workspace:*
         version: link:../../packages/tools
-      '@mcthaydt/examples-runner':
+      '@automata/examples-runner':
         specifier: workspace:*
         version: link:../examples-runner
-      '@mcthaydt/playwright-preset':
+      '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../playwright-preset
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@playwright/test':
@@ -1159,7 +1159,7 @@ importers:
         specifier: 1.63.0
         version: 1.63.0
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -1174,7 +1174,7 @@ importers:
 
   tooling/release:
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -1186,7 +1186,7 @@ importers:
 
   tooling/repo-hygiene:
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -1201,7 +1201,7 @@ importers:
 
   tooling/versions:
     devDependencies:
-      '@mcthaydt/vitest-preset':
+      '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':

@@ -1,6 +1,6 @@
 <!--
   The Map view (the world): the panel holds the world's
-  layout switch and its levels as a list; the canvas is the map, with the Level view's frame (spec 11.4): one pill
+  layout switch and its levels as a list; the canvas is the map, with the Level view's frame: one pill
   floats over it with Details below `wide` and All levels in the compact layout (they open the inspector and the list) and
   Fit, at the map's top from an iPad up and at its foot on a phone. The map is where a level is pressed to select it and dragged to
   move it (one undo step; a sequence reorders and the level picker follows); the inspector edits the selected

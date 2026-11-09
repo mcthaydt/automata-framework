@@ -21,7 +21,7 @@ The 2026-10-01 design skipped Effect: a second paradigm for game developers, ove
 
 ## Amendment (2026-11-05): Effect leaves the browser
 
-The Owner took decision D2 of the [core and 2D audit](../refactor/2026-11-05-core-and-2d-audit.md) ("go with your recs"). Effect stays in Node tooling (`@mcthaydt/automata-tools`, the content compiler) and leaves everything that runs in the browser: `@mcthaydt/automata` is plain TypeScript. Why: Effect was 16% of Emberwick's gzip (57.6 kB of 360 kB, measured with `tooling/bundle-report`, a one-off tool since removed), a second paradigm for every extension author, and its tags, layers and scopes were doing work that a factory function and a list of "undo" functions do in a few lines. The [refactor spec, section 4](../refactor/2026-11-05-core-and-2d-spec.md) has the five replacements:
+The Owner took decision D2 of the [core and 2D audit](../refactor/2026-11-05-core-and-2d-audit.md) ("go with your recs"). Effect stays in Node tooling (`@automata/tools`, the content compiler) and leaves everything that runs in the browser: `@automata/framework` is plain TypeScript. Why: Effect was 16% of Emberwick's gzip (57.6 kB of 360 kB, measured with `tooling/bundle-report`, a one-off tool since removed), a second paradigm for every extension author, and its tags, layers and scopes were doing work that a factory function and a list of "undo" functions do in a few lines. The [refactor spec, section 4](../refactor/2026-11-05-core-and-2d-spec.md) has the five replacements:
 
 | Effect | Plain TypeScript (`packages/automata/src/shared/lib/`) |
 |---|---|

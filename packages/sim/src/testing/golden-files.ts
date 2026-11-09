@@ -13,7 +13,7 @@ export function updatingGoldens(): boolean {
 
 export const MISSING_COMMAND: string =
   'golden files are read in browsers through the readGolden command: add `commands: goldenCommands()` ' +
-  "(from '@mcthaydt/automata-sim/testing') to this project's browser options in vitest.config.ts"
+  "(from '@automata/sim/testing') to this project's browser options in vitest.config.ts"
 
 /**
  * An absolute golden path. A relative one is taken from the running test file's folder, the same in Node and in

@@ -11,7 +11,7 @@ the task-by-task record; this page is the short version.
   and gamepad; boots standalone and inside Ruken's fake host. Its 28 journeys pass in Chromium (phone, compact and iPad sizes).
 - **Targets.** `web`, `itch`, `ruken` and `tauri` adapters share AF's own host contract. The host contract, the
   adapters and the browser runtime are plain TypeScript (no Effect).
-- **Packages.** `@mcthaydt/automata` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
+- **Packages.** `@automata/framework` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
   `-content` has browser-safe entries for `game-config`, `locale`, `schema` and `palette`, so a dev server page never
   loads Node modules.
 - **Tools.** One `automata` command: create-game, add, check, build, editor, ship. `automata --help` works.

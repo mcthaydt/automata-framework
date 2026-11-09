@@ -8,7 +8,7 @@ import {
   type StorageClock,
   type StorageFailure,
   type Workspace,
-} from '@mcthaydt/automata-editor/kit/core'
+} from '@automata/editor/kit/core'
 import type { ParseIssue } from '../profile/file-codec'
 import type { LevelProfile } from '../profile/level-profile'
 import { hasFacility } from '../profile/registry'

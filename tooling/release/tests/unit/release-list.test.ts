@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { publishablePackages, type WorkspacePackage, workspacePackages } from '#src/publishable-packages.ts'
 
-// What AF publishes to GitHub Packages, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
+// What AF publishes to npmjs.org, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
 // act: an example, `render-pixi3d` (D-1) or a tool marked publishable fails here before anything is released.
 // Physics is an Automata Plus extension and publishes from automata-plus (PRODUCT.5g).
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
@@ -12,13 +12,13 @@ const published = publishablePackages(root)
 
 // Core and 2D refactor, D1 and U6: four packages (sim, content, automata, tools); the boundaries checker is in tools.
 const EXPECTED: readonly string[] = [
-  '@mcthaydt/automata',
-  '@mcthaydt/automata-content',
-  '@mcthaydt/automata-sim',
-  '@mcthaydt/automata-tools',
+  '@automata/content',
+  '@automata/framework',
+  '@automata/sim',
+  '@automata/tools',
 ]
 
-const REGISTRY = 'https://npm.pkg.github.com'
+const REGISTRY = 'https://registry.npmjs.org'
 
 /** `.changeset/config.json`'s fixed groups: package names, or patterns where `*` matches any characters. */
 const changesets = JSON.parse(readFileSync(join(root, '.changeset/config.json'), 'utf8')) as {
@@ -78,7 +78,7 @@ describe('the published packages', () => {
     expect(new Set(published.map((pkg) => pkg.manifest.version)).size).toBe(1)
   })
 
-  // `@mcthaydt/automata-*` does not match the umbrella `@mcthaydt/automata` (DX.2a): a package outside the group
+  // `@automata/*` does not match the umbrella `@automata/framework` (DX.2a): a package outside the group
   // would be versioned on its own and leave the shared version.
   it(
     'are each in the Changesets fixed group',
@@ -121,7 +121,7 @@ describe('the published packages', () => {
     "accept a caret range of each outside peer, so a game's own Svelte or Vite patch release still satisfies it",
     each(({ manifest }) => {
       const exact = Object.entries(manifest.peerDependencies ?? {})
-        .filter(([name]) => !name.startsWith('@mcthaydt/'))
+        .filter(([name]) => !name.startsWith('@automata/'))
         .filter(([, range]) => !range.startsWith('^'))
       expect(exact, manifest.name).toEqual([])
     }),
@@ -135,15 +135,18 @@ describe('the published packages', () => {
   )
 
   it(
-    'ship only dist (and VENDORED.md), to GitHub Packages',
+    'ship only dist (and VENDORED.md), publicly, to npmjs.org',
     each(({ manifest }) => {
       expect(manifest.files, manifest.name).toContain('dist')
       expect(manifest.publishConfig?.registry, manifest.name).toBe(REGISTRY)
+      expect((manifest.publishConfig as { access?: string } | undefined)?.access, manifest.name).toBe(
+        'public',
+      )
     }),
   )
 
   it(
-    "name this repository, so the release job's GITHUB_TOKEN may publish them (GitHub links a package by it)",
+    'name this repository, so a visitor to the package page finds the source',
     each(({ dir, manifest }) => {
       expect(manifest.repository, manifest.name).toEqual({
         type: 'git',
@@ -155,7 +158,7 @@ describe('the published packages', () => {
 
   // Entries only this repository's tooling and tests import (U1): in `exports`, not in `publishConfig.exports`.
   const WORKSPACE_ONLY: Readonly<Record<string, readonly string[]>> = {
-    '@mcthaydt/automata-tools': ['./internal', './e2e'],
+    '@automata/tools': ['./internal', './e2e'],
   }
 
   it(
@@ -184,7 +187,7 @@ describe('the published packages', () => {
   )
 })
 
-// The built output, checked after `pnpm build` (`pnpm --filter @mcthaydt/release test:dist`, run by CI's checks
+// The built output, checked after `pnpm build` (`pnpm --filter @automata/release test:dist`, run by CI's checks
 // job). `pnpm check` does not build, so these are skipped there.
 function filesBelow(dir: string): string[] {
   return readdirSync(dir, { recursive: true, withFileTypes: true })

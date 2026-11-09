@@ -1,5 +1,5 @@
-import type { FlowGraph } from '@mcthaydt/automata-content'
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { FlowGraph } from '@automata/content'
+import type { Sim } from '@automata/sim'
 import { settle } from '@ruken/sdk-host/testing'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'

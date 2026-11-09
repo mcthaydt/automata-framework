@@ -5,7 +5,7 @@
   Cancel. The two ways on are disabled while one runs; the dialog closes while it runs and reopens if it refuses again.
 -->
 <script lang="ts">
-import { Button, Dialog } from '@mcthaydt/automata-editor/kit'
+import { Button, Dialog } from '@automata/editor/kit'
 import { heldSave } from '../../app/document/open-flow-model'
 import type { PatchRefused } from '../../app/patched-document'
 

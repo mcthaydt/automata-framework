@@ -2,7 +2,7 @@
 // path. The depot is the level: the hall runs from (0, 0) to (8, 6) and the dock from (8, 0) to (14, 6), joined by a
 // portal along x = 8. The canvas is 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel
 // positions are made with `toScreen`, so no test hides a unit. The grid is the view's default, half a metre.
-import type { PointerKind } from '@mcthaydt/automata-editor/kit/core'
+import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'

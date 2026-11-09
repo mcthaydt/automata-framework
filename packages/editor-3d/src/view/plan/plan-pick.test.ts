@@ -1,7 +1,7 @@
 // What a pointer on the plan touches (ED3D.4 step 3): the wall or the sector under it, and the corner near it, in pixels
 // that the pointer kind sets. The viewport is 32 px to a metre with the world origin at (20, 20), so a metre is 32 px and
 // the cases below read in pixels from a known point.
-import { createViewport, type Point as ScreenPoint } from '@mcthaydt/automata-editor/kit/core'
+import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { AfSector, AfSectorEntry } from '../../format/af-sector.schema'
 import type { Point } from '../../format/sector.schema'

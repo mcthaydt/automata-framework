@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { stripTypeScriptTypes } from 'node:module'
-import { playgroundFrameOrigin } from '@mcthaydt/examples-runner/host/ports'
+import { playgroundFrameOrigin } from '@automata/examples-runner/host/ports'
 import { expect, type Page } from '@playwright/test'
 
 // What the playground's browser cases share: the test-only compile and a parent that frames an example and logs what

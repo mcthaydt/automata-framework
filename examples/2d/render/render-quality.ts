@@ -4,10 +4,10 @@
 //   high 2) and leaves out post filters registered with a higher minTier. The world and HUD draw through the
 //   fixed-resolution composite, so pixel art stays whole-pixel at every tier.
 // Controls: 1 low, 2 medium, 3 high
-// Packages: @mcthaydt/automata
+// Packages: @automata/framework
 // Difficulty: ★★☆☆
 // Tier: core
-import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automata/framework'
 
 const Drift = defineComponent('drift', { x: 'f32', y: 'f32', vx: 'f32' })
 

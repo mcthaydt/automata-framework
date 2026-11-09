@@ -104,15 +104,15 @@ describe('the Tilesets session: rule edits, each one undo step', () => {
   it('resizes the pattern, sets the chance, flips, break, outside and on/off', () => {
     const { history, session } = open()
     session.select({ group: 'hazards', rule: 'spike' })
-    oneStep(history, 'Resize pattern', () => session.resize(3))
+    oneStep(history, 'Change what it looks at', () => session.resize(3))
     expect(ruleOf(history, 'spike')?.size).toBe(3)
-    oneStep(history, 'Set chance', () => session.setChance(30))
+    oneStep(history, 'Change how often', () => session.setChance(30))
     expect(ruleOf(history, 'spike')?.chance).toBe(0.3)
-    oneStep(history, 'Flip X', () => session.setRule({ flipX: true }))
-    oneStep(history, 'Flip Y', () => session.setRule({ flipY: true }))
-    oneStep(history, 'Break on match', () => session.setRule({ breakOnMatch: true }))
+    oneStep(history, 'Mirror left to right', () => session.setRule({ flipX: true }))
+    oneStep(history, 'Flip upside down', () => session.setRule({ flipY: true }))
+    oneStep(history, 'Stop after this rule', () => session.setRule({ breakOnMatch: true }))
     oneStep(history, 'Turn rule off', () => session.setRule({ active: false }))
-    oneStep(history, 'Set outside', () => session.setOutside('same'))
+    oneStep(history, 'Change outside the level', () => session.setOutside('same'))
     expect(ruleOf(history, 'spike')).toMatchObject({
       flipX: true,
       flipY: true,
@@ -120,7 +120,7 @@ describe('the Tilesets session: rule edits, each one undo step', () => {
       active: false,
       outside: 'same',
     })
-    oneStep(history, 'Set outside', () => session.setOutside('3'))
+    oneStep(history, 'Change outside the level', () => session.setOutside('3'))
     expect(ruleOf(history, 'spike')?.outside).toBe(3)
   })
 
@@ -141,9 +141,9 @@ describe('the Tilesets session: rule edits, each one undo step', () => {
     session.toggleTile(1)
     session.toggleTile(2)
     if (first !== undefined) session.toggleTile(first)
-    oneStep(history, 'Add outputs', () => session.addOutputs())
+    oneStep(history, 'Add tiles to a rule', () => session.addOutputs())
     expect(ruleOf(history, 'spike')?.tiles).toEqual([first, 1, 2])
-    oneStep(history, 'Remove output', () => session.removeOutput(0))
+    oneStep(history, 'Remove a tile from a rule', () => session.removeOutput(0))
     expect(ruleOf(history, 'spike')?.tiles).toEqual([1, 2])
   })
 

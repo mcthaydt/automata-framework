@@ -1,4 +1,4 @@
-import type { FieldDef, FieldType, FieldValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldType, FieldValue } from '@automata/content/level-2d'
 import type { FieldOwner } from '../../shared/level-2d/model/commands/field-owner'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
 

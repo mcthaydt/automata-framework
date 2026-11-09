@@ -21,9 +21,9 @@ const ticks: Tunable = { ...speed, name: 'COYOTE_TICKS', value: 6, min: 0, max: 
 const { unit: _unit, scale: _scale, ...plain }: Tunable = speed
 
 describe('the Tuner shows values in a unit a player can feel', () => {
-  it('shows the value times its scale, rounded to what one step changes', () => {
+  it('shows the value times its scale, rounded to the step a person sees', () => {
     expect(shownValue(speed, 384)).toBe(90)
-    expect(shownValue(speed, 385)).toBe(90.2)
+    expect(shownValue(speed, 388)).toBe(91)
     expect(shownValue(ticks, 6)).toBe(0.1)
     expect(shownValue(jump, -448)).toBe(105)
   })
@@ -36,9 +36,17 @@ describe('the Tuner shows values in a unit a player can feel', () => {
   })
 
   it('shows the bounds in the unit, smallest first even when the scale turns them round', () => {
-    expect(shownBounds(speed)).toEqual({ min: 30, max: 180, step: 0.2 })
-    expect(shownBounds(jump)).toEqual({ min: 30, max: 240, step: 0.2 })
+    expect(shownBounds(speed)).toEqual({ min: 30, max: 180, step: 1 })
+    expect(shownBounds(jump)).toEqual({ min: 30, max: 240, step: 1 })
     expect(shownBounds(ticks)).toEqual({ min: 0, max: 0.25, step: 0.02 })
+  })
+
+  // Build audit C2: a press must change the value by something a person can feel, never 0.23 px/s.
+  it('steps by whole pixels a second for a speed, hundreds for an acceleration and hundredths of a second for a time', () => {
+    const accel: Tunable = { ...speed, name: 'GRAVITY', scale: 14.0625, unit: 'px/s²' }
+    expect(shownBounds(speed).step).toBe(1)
+    expect(shownBounds(accel).step).toBe(100)
+    expect(shownBounds(ticks).step).toBe(0.02)
   })
 
   it('leaves a tunable with no scale as it is', () => {
