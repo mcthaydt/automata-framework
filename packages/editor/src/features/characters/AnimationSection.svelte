@@ -12,9 +12,9 @@ import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import type { EditEvent } from '../../shared/kit/widgets/edit-event'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
-import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import type { FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import type { Size } from '../../shared/level-2d/model/project-types'
+import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import { decodedSize, PICTURE_TYPES, writePicture } from '../../shared/pictures/pick-picture'
 import {
   addClip,

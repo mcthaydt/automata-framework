@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { forwardEvents } from '#src/features/watch/forward-events.ts'
+import { forwardEvents } from '#src/shared/forward-events.ts'
 import type { BusPort } from '#src/shared/host.ts'
 
 // Watch (Schematic's pane): the game, framed by an editor, tells it which mode each character is in. The game only

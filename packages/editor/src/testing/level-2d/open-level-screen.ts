@@ -1,13 +1,14 @@
 import { createGeometryOwner } from '@automata/framework'
 import { mount, unmount } from 'svelte'
+import { createEditorApp } from '../../app/level-2d/editor-app'
+import { componentOf } from '../../app/level-2d/views'
 import DocumentScreen from '../../features/document/DocumentScreen.svelte'
-import { createAppProfiles } from '../../shared/level-2d/profiles/app-profiles'
 import { createDocumentController } from '../../features/document/document-controller'
 import type { StorageClock } from '../../shared/kit/storage/clock.ts'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import { createToasts } from '../../shared/kit/widgets/toasts.ts'
-import { createEditorApp } from '../../app/level-2d/editor-app'
 import { randomIds } from '../../shared/level-2d/model/ids'
+import { createAppProfiles } from '../../shared/level-2d/profiles/app-profiles'
 
 // A level's own screen, open on the real page: the document bar, the views and their dialogs, over a workspace that
 // already holds the project. The layout and canvas tests use it where they only need an open level; the suite's Levels
@@ -45,6 +46,7 @@ export async function openLevelScreen(
     props: {
       geometry: owner.geometry,
       controller,
+      viewOf: componentOf,
       toasts,
       clock,
       read: (file: string) => workspace.store.read(file),

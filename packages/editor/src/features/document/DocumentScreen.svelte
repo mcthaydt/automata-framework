@@ -20,7 +20,12 @@ import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import Problems from '../../shared/level-2d/problems/Problems.svelte'
-import type { LevelCanvasProps, ObjectUrls, ViewProps, ViewServices } from '../../shared/level-2d/session/view-props'
+import type {
+  LevelCanvasProps,
+  ObjectUrls,
+  ViewProps,
+  ViewServices,
+} from '../../shared/level-2d/session/view-props'
 import ShareMenu from '../../shared/level-2d/share/ShareMenu.svelte'
 import DocumentBar from './DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document-controller'

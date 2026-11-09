@@ -3,7 +3,6 @@ import { get, type Readable, type Writable, writable } from 'svelte/store'
 import { createEntitiesSession, type EntitiesSession } from '../../../features/characters/entities-session'
 import { type TemplateCard, templateCards } from '../../../features/home/home-model'
 import { createLevelSession, type LevelSession } from '../../../features/level/level-session'
-import { levelFile, type ShareAction, type SharedFile, shareLevel } from '../../../shared/level-2d/share/share-model'
 import { createTilesetsSession, type TilesetsSession } from '../../../features/tiles/tilesets-session'
 import { createHistory, type History } from '../../../shared/kit/history/history.ts'
 import type { SuiteUndo } from '../../../shared/kit/ports/suite-editor.ts'
@@ -15,6 +14,12 @@ import { createAppProfiles } from '../../../shared/level-2d/profiles/app-profile
 import type { ParseError, Profile } from '../../../shared/level-2d/profiles/profile'
 import { readDocument } from '../../../shared/level-2d/profiles/read-document'
 import type { LevelCanvasProps, ObjectUrls } from '../../../shared/level-2d/session/view-props'
+import {
+  levelFile,
+  type ShareAction,
+  type SharedFile,
+  shareLevel,
+} from '../../../shared/level-2d/share/share-model'
 
 // The Levels 2D session: what the suite keeps for the 2D level
 // editor while the person is elsewhere. It holds the document's kit history and the Level view's session (the level,

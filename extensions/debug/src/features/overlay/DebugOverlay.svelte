@@ -6,8 +6,8 @@
 // The debug overlay. Opened by the dev key or a three-finger tap; it renders the host's panels as tabs in a
 // declared scroll region, and opening it pauses nothing. One panel throwing shows its error in its tab and the rest keep working.
 import { onMount, setContext } from 'svelte'
+import { forwardEvents } from '../../shared/forward-events'
 import { currentHost, HOST_CONTEXT } from '../../shared/host'
-import { forwardEvents } from '../watch/forward-events'
 import { createOverlay, type OverlayState } from './overlay'
 import PanelFrame from './PanelFrame.svelte'
 

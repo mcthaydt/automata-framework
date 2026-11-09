@@ -4,10 +4,10 @@
 // path no row matches is refused, a read-only file is refused with its reason, a path outside the root reads as
 // nothing, and `remove` takes only a file this workspace created.
 
-import type { SuiteWorkspace, UnlistedFile, WorkspaceFile } from '../suite-ports'
 import { createMemoryStore } from '../../storage/memory-store'
 import { type ProjectStore, statPath, type WriteResult } from '../../storage/project-store'
 import { assertStorePath } from '../../storage/store-path'
+import type { SuiteWorkspace, UnlistedFile, WorkspaceFile } from '../suite-ports'
 
 export interface MemoryWorkspaceOptions {
   /** The files present at the start, by path. */

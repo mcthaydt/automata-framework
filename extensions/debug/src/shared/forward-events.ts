@@ -2,7 +2,7 @@
 // `systems.mode`, to show which mode each character is in). The game answers by posting those events, and only those, to
 // the window that framed it, and only to the origin the editor named; never to `*`. An unframed page, or an address that
 // asks for nothing, listens to nothing. Nothing here touches the sim: it hears the presentation bus.
-import type { BusPort } from '../../shared/host'
+import type { BusPort } from './host'
 
 /** What the editor hears for each event. */
 export interface ForwardedEvent {

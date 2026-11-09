@@ -1,8 +1,8 @@
 // Every suite port in memory. What the workspace creates it remembers, so `remove` takes back only what this session
 // made; a port left out is the feature off (no gates).
 
-import type { SuitePorts, UnlistedFile, WorkspaceFile } from '../suite-ports'
 import type { ProjectStore } from '../../storage/project-store'
+import type { SuitePorts, UnlistedFile, WorkspaceFile } from '../suite-ports'
 import { createMemoryChecks, type MemoryCheck } from './memory-checks'
 import { createMemoryGates, type GateRecords } from './memory-gates'
 import { createMemoryWorkspace } from './memory-workspace'

@@ -1,6 +1,6 @@
 import { onDestroy } from 'svelte'
-import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import type { Project } from '../../shared/level-2d/model/project-types'
+import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import type { ResolvedEntitiesSelection } from './entities-model'
 import type { EntitiesSession } from './entities-session'
 

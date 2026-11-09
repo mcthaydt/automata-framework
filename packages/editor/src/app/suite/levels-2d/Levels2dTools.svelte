@@ -5,10 +5,10 @@
 -->
 <script lang="ts">
 import LevelPicker from '../../../features/level/LevelPicker.svelte'
-import { type ShareAction, shareItems } from '../../../shared/level-2d/share/share-model'
 import Icon from '../../../shared/kit/icons/Icon.svelte'
 import Menu from '../../../shared/kit/widgets/Menu.svelte'
 import Segmented from '../../../shared/kit/widgets/Segmented.svelte'
+import { type ShareAction, shareItems } from '../../../shared/level-2d/share/share-model'
 import type { Levels2dSession, Levels2dView } from './levels-2d-session'
 
 interface Props {

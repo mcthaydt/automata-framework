@@ -9,8 +9,8 @@ export {
 export { type AudioControls, audioBoard } from '../features/panels/audio-board'
 export { feelBoard } from '../features/panels/feel-board'
 export { shippedPanels } from '../features/panels/shipped-panels'
-export { type ForwardedEvent, forwardEvents } from '../features/watch/forward-events'
 export { type FactEntry, type FactLog, RUNTIME_FACTS, recordFacts } from '../shared/fact-log'
+export { type ForwardedEvent, forwardEvents } from '../shared/forward-events'
 export {
   type AudioBoardBed,
   type AudioBoardCue,
