@@ -5,6 +5,7 @@
     "includes": [
       "**",
       "!**/dist",
+      "!docs/archive",
       "!**/out",
       "!**/__goldens__",
       "!tooling/api-index/fixtures",

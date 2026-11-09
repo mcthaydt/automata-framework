@@ -1,4 +1,4 @@
-import { cameraHeadingPlugin } from '@mcthaydt/automata-render-pixi3d/sim'
+import { cameraHeadingPlugin } from '@automata/render-pixi3d/sim'
 import { describe, expect, it, vi } from 'vitest'
 import { ROOM } from './content/room.ts'
 import { base3dPlugin, base3dSim } from './state/index.ts'
@@ -6,8 +6,8 @@ import { compileArea } from './systems/index.ts'
 
 // `startGame` spied on, so importing the page entry shows whether it starts the game (GL spec §4.6).
 const started = vi.hoisted(() => ({ calls: 0 }))
-vi.mock('@mcthaydt/automata', async (original) => ({
-  ...(await original<typeof import('@mcthaydt/automata')>()),
+vi.mock('@automata/framework', async (original) => ({
+  ...(await original<typeof import('@automata/framework')>()),
   startGame: () => {
     started.calls++
   },

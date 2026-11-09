@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Diagnostic } from '@mcthaydt/automata-content'
+import type { Diagnostic } from '@automata/content'
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { PoseDef } from '../pose/pose.schema'
 import { compileFixture, FIXTURE_ROOT } from '../testing/compile-fixture'

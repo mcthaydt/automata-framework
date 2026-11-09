@@ -8,7 +8,7 @@
 // shut doors, exits, furniture, raised solids); one without (af-sector) stops at the geometry's colliders (solid walls,
 // steps too tall to climb, blocking masks). Either way it crosses at a portal and slides along a wall. Fly goes anywhere.
 // Orbit looks at a point from 8 m off at the dollhouse's 30 degrees. All three are one camera (D8).
-import type { Point as ScreenPoint, Size } from '@mcthaydt/automata-editor/kit/core'
+import type { Point as ScreenPoint, Size } from '@automata/editor/kit/core'
 import { createGeometryCache, type Geometry } from '../../app/geometry-cache'
 import type { Point } from '../../format/sector.schema'
 import { clear, type NavState, type NavWorld, nearAWall, segmentHitsBox } from '../../geometry/nav'

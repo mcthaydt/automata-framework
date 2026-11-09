@@ -1,4 +1,4 @@
-import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { describe, expect, it } from 'vitest'
 import { contentHash } from '#src/shared/hash/content-hash.ts'
 

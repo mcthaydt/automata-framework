@@ -2,7 +2,7 @@
 // camera, and the selection, handed to `planPaint` for a canvas of a given size. The geometry is the controllers' cache
 // (one build per level), and the things are read once per level too, so a pointer move that only changes the camera or
 // the hover costs a paint, not a rebuild.
-import type { Point as ScreenPoint, Size } from '@mcthaydt/automata-editor/kit/core'
+import type { Point as ScreenPoint, Size } from '@automata/editor/kit/core'
 import type { EntityKit } from '../entities/things'
 import type { Point } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'

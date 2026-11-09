@@ -3,7 +3,7 @@
 // as one "Invalid input" at the field; choosing the branch by the value's type first keeps each problem at its
 // own key, so a hood lock missing its size is reported at that lock's `r`.
 
-import { contentRef } from '@mcthaydt/automata-content/schema'
+import { contentRef } from '@automata/content/schema'
 import { z } from 'zod'
 
 /** The inline forms a field takes: an object (a table in TOML), an array, or both. */

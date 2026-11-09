@@ -142,11 +142,11 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
       <Stepper label="X" value={placement.x} integer onedit={(event) => place('x', event)} />
       <Stepper label="Y" value={placement.y} integer onedit={(event) => place('y', event)} />
     <Stepper
-      label="Depth"
+      label="Floor"
       value={placement.depth}
       integer
       onedit={(event) => {
-        if (committed(event)) edit('Set depth', (current) => setLevelDepth(current, level, event.value))
+        if (committed(event)) edit('Set floor', (current) => setLevelDepth(current, level, event.value))
       }}
     />
       <Stepper

@@ -25,7 +25,7 @@ function declarations(text: string): Map<string, string> {
 const vars = declarations(css)
 
 describe('tokens.css', () => {
-  test('equals the output for tokens.json (run `pnpm --filter @mcthaydt/automata-editor tokens` after editing the JSON)', () => {
+  test('equals the output for tokens.json (run `pnpm --filter @automata/editor tokens` after editing the JSON)', () => {
     expect(css).toBe(tokensToCss(tokens))
   })
 

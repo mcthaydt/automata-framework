@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import type { CatalogEntry } from '@mcthaydt/examples-runner/catalog'
+import type { CatalogEntry } from '@automata/examples-runner/catalog'
 import { describe, expect, it } from 'vitest'
 import { playgroundCatalog } from '../../../../playground/src/playground-catalog.ts'
 
@@ -9,7 +9,7 @@ const header = {
   title: 'rectangles that move',
   shows: 'rect() draws one view per component id',
   controls: 'none',
-  packages: ['@mcthaydt/automata'],
+  packages: ['@automata/framework'],
   difficulty: 1,
   tier: 'core',
   golden: 120,
@@ -27,7 +27,7 @@ const entry = (overrides: Partial<CatalogEntry>): CatalogEntry => ({
   url: '/shapes/rects/',
   header,
   codeLines: 44,
-  imports: ['@mcthaydt/automata'],
+  imports: ['@automata/framework'],
   problems: [],
   ...overrides,
 })
@@ -42,7 +42,7 @@ describe('playgroundCatalog', () => {
       title: 'rectangles that move',
       shows: 'rect() draws one view per component id',
       controls: 'none',
-      packages: ['@mcthaydt/automata'],
+      packages: ['@automata/framework'],
       difficulty: 1,
       tier: 'core',
       golden: { ticks: 120, replay: '/playground/goldens/shapes-rects.replay' },
@@ -96,7 +96,7 @@ describe('playgroundCatalog', () => {
         entry({ id: 'shapes-rects' }),
         entry({
           id: 'render3d-meshes',
-          imports: ['@mcthaydt/automata', '@mcthaydt/automata-render-pixi3d/no-eval'],
+          imports: ['@automata/framework', '@automata/render-pixi3d/no-eval'],
         }),
       ],
       () => '',

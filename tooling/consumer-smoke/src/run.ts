@@ -1,7 +1,7 @@
 // Usage: node tooling/consumer-smoke/src/run.ts --from packs|registry [--version 0.0.n] [--keep]
 //
 // Installs AF's published packages into a project outside the workspace and uses them as a game would. `packs` packs the workspace's built packages (run `pnpm build` first); `registry` installs a
-// published version from GitHub Packages (NODE_AUTH_TOKEN must be able to read it). Each check is a named step;
+// published version from npmjs.org (public: no token). Each check is a named step;
 // the run exits 0 only if every step passed, and removes its temp folder unless --keep.
 import { execFileSync } from 'node:child_process'
 import {
@@ -22,13 +22,7 @@ import { publishablePackages } from '../../release/src/publishable-packages.ts'
 import { bootGame } from './boot-game.ts'
 import { packAll, sh } from './commands.ts'
 import { fetchEditorPage } from './editor.ts'
-import {
-  type ConsumerPackage,
-  consumerManifest,
-  consumerNpmrc,
-  consumerWorkspace,
-  type ToolVersions,
-} from './project.ts'
+import { type ConsumerPackage, consumerManifest, consumerWorkspace, type ToolVersions } from './project.ts'
 import { readmeCommands, readWorkspace, unresolvedCommands } from './readme.ts'
 import { rukenHeaders } from './ruken/ruken-headers.ts'
 import { serveStatic } from './serve.ts'
@@ -121,7 +115,7 @@ function filesBelow(dir: string): string[] {
 
 type Step = readonly [name: string, run: () => string | Promise<string>]
 
-/** The most the packed `@mcthaydt/automata-tools` (with the 2D editor inside) may weigh. */
+/** The most the packed `@automata/tools` (with the 2D editor inside) may weigh. */
 const TOOLS_PACK_BUDGET_MB = 3
 
 /** AF's own code must not need eval: Ruken's CSP has no 'unsafe-eval'. */
@@ -139,7 +133,7 @@ const bundleCode = (dist: string): string =>
 
 function steps(project: string): Step[] {
   const bin = (name: string) => join(project, 'node_modules/.bin', name)
-  const installed = join(project, 'node_modules/@mcthaydt')
+  const installed = join(project, 'node_modules/@automata')
   return [
     [
       // The root README's clone-to-Emberwick and check commands still name real scripts and files.
@@ -179,7 +173,11 @@ function steps(project: string): Step[] {
       // The editor makes the tools package bigger; this is the budget, so the growth is a decision and not an accident.
       `size: the packed -tools stays under ${TOOLS_PACK_BUDGET_MB} MB`,
       () => {
-        const pack = readdirSync(join(project, 'packs')).find((file) => /automata-tools-.*\.tgz$/.test(file))
+        // A registry run has no `packs` folder: nothing was packed, so there is nothing to measure.
+        const packs = join(project, 'packs')
+        const pack = existsSync(packs)
+          ? readdirSync(packs).find((file) => /automata-tools-.*\.tgz$/.test(file))
+          : undefined
         if (pack === undefined) return 'installed from the registry: not measured'
         const bytes = statSync(join(project, 'packs', pack)).size
         if (bytes > TOOLS_PACK_BUDGET_MB * 1024 * 1024)
@@ -218,7 +216,7 @@ function steps(project: string): Step[] {
         const offenders = filesBelow(installed)
           .filter((file) => file.endsWith('.js') || file.endsWith('.svelte'))
           .filter((file) => !file.includes('/dist/vendor/')) // ship's copy of Ruken's Node CLI never runs in a game
-          .filter((file) => !file.includes('/@mcthaydt/automata-tools/')) // build tools run in Node; `automata check` names eval to flag it
+          .filter((file) => !file.includes('/@automata/tools/')) // build tools run in Node; `automata check` names eval to flag it
           .filter((file) => EVAL.test(readFileSync(file, 'utf8')))
         if (offenders.length > 0) throw new Error(`eval in:\n${offenders.join('\n')}`)
         return 'none'
@@ -238,7 +236,7 @@ function steps(project: string): Step[] {
       },
     ],
     [
-      // An itch.io or web build resolves `@mcthaydt/automata/target` to the web adapter, so the
+      // An itch.io or web build resolves `@automata/framework/target` to the web adapter, so the
       // published `dist` must let it drop every byte of the Ruken SDK.
       'bundle: vite build with the automata-web condition, no Ruken SDK',
       () => {
@@ -264,7 +262,7 @@ function steps(project: string): Step[] {
     [
       // Runtime, render-pixi, game and the umbrella, installed from their packs, make one game whose
       // Ruken build (the `automata-ruken` condition) carries the SDK once.
-      'game: vite build of a minimal @mcthaydt/automata game for Ruken, one Ruken SDK',
+      'game: vite build of a minimal @automata/framework game for Ruken, one Ruken SDK',
       () => {
         const game = join(project, 'game')
         sh(game, bin('vite'), ['build', '--config', 'vite.ruken.config.ts', '--logLevel', 'warn'])
@@ -317,7 +315,7 @@ async function main(): Promise<void> {
       join(project, 'pnpm-workspace.yaml'),
       consumerWorkspace({ from: args.from, version: args.version, packages }),
     )
-    writeFileSync(join(project, '.npmrc'), consumerNpmrc())
+    // The packages are public on npmjs.org, so the project needs no .npmrc and no token, as for a stranger.
     // No workspace above the temp folder, so this is a plain install, as in a game repository.
     sh(project, 'pnpm', ['install', '--no-frozen-lockfile'])
     console.log('✓ install')

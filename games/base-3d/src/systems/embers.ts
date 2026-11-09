@@ -1,5 +1,5 @@
 // The embers taken by walking over them, and the goal that ends the run.
-import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SystemDef } from '@automata/sim'
 import { Ember, Hero } from '../components.ts'
 import { EMBER_REACH } from '../constants/index.ts'
 import { EmberTaken, GoalReached } from '../events.ts'

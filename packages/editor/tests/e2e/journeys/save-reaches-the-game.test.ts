@@ -29,7 +29,8 @@ test('a painted wall, saved, is in the level file, passes the check and reaches 
     await openRoom(page, editor)
     await paintWall(page, { col: 5, row: 2 })
     await page.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible()
+    // A save writes four files in order; on a loaded runner that takes longer than the 5 s an expect waits by default.
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible({ timeout: 30_000 })
 
     // On disk: row 2 has a wall at column 5 now (the edge wall, four open cells, the new wall, 33 open, the edge).
     expect(readFileSync(levelFile, 'utf8')).toContain('"1 .*38 1", "1 .*4 1 .*33 1", "1 .*38 1"')

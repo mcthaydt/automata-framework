@@ -30,7 +30,7 @@ describe('Demo readiness', () => {
   it('unloads the iframe when stopped and restarts a fresh session', async () => {
     const view = render(DemoRunner, { props: { src: '/demos/emberwick/index.html', title: 'Starter' } })
     expect(view.container.querySelector('iframe')).toBeTruthy()
-    await fireEvent.click(view.getByRole('button', { name: 'Stop demo' }))
+    await fireEvent.click(view.getByRole('button', { name: 'Stop' }))
     expect(view.container.querySelector('iframe')).toBeNull()
     await fireEvent.click(view.getAllByRole('button', { name: 'Play demo' })[0])
     expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/emberwick/index.html')

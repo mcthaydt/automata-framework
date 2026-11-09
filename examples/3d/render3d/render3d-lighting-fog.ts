@@ -5,17 +5,12 @@
 //   a lamp entity's level, which rebakes only the boxes that lamp reaches; the walker takes the ambient light plus
 //   the lamps in range at its position every frame; linear fog closes the far side of the room.
 // Controls: none
-// Packages: @mcthaydt/automata, @mcthaydt/automata-render-pixi3d
+// Packages: @automata/framework, @automata/render-pixi3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@mcthaydt/automata-render-pixi3d/no-eval'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@mcthaydt/automata'
-import {
-  box,
-  createPixi3dRenderer,
-  render3dExtension,
-  sceneLightingSchema,
-} from '@mcthaydt/automata-render-pixi3d'
+import '@automata/render-pixi3d/no-eval'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import { box, createPixi3dRenderer, render3dExtension, sceneLightingSchema } from '@automata/render-pixi3d'
 
 // A game with content writes this in content/lighting/<room>.toml (kind scene-lighting); here it is inline.
 // Colours are Endesga 64. The pillar blocks the warm lamp's light from the floor behind it.

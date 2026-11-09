@@ -6,8 +6,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@mcthaydt/automata', async (original) => ({
-  ...(await original<typeof import('@mcthaydt/automata')>()),
+vi.mock('@automata/framework', async (original) => ({
+  ...(await original<typeof import('@automata/framework')>()),
   startGame: () => {},
 }))
 const { base3d } = await import('./main.ts')

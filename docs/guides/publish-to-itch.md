@@ -31,7 +31,27 @@ pnpm build:itch && pnpm prepare:itch
 BUTLER_API_KEY=… pnpm exec automata ship publish --target itch
 ```
 
-This runs the itch packaging again, then `butler push` to the `html5` channel (or `itch.channel`). In CI, the
-reusable `game-release.yml` does the same when the caller passes `itch: true`.
+This runs the itch packaging again, then `butler push` to the `html5` channel (or `itch.channel`).
+
+## Publish from GitHub
+
+A game made with `create-game` for itch.io has `.github/workflows/release.yml`. Add the key as a repository secret
+named `BUTLER_API_KEY`, set `version` in `package.json`, and push a tag:
+
+```sh
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+The workflow checks the game (`pnpm check`), builds it and pushes it to itch.io. Until the secret is there, it builds
+and says that nothing was published. The part that publishes:
+
+```yaml
+- name: Publish to itch.io
+  if: steps.key.outputs.present == 'true'
+  env:
+    BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+    TAG: ${{ github.ref_name }}
+  run: pnpm exec automata ship publish --target itch --tag "$TAG"
+```
 
 To push the desktop bundles to itch.io's downloads as well, see [Publish to desktop](publish-to-desktop.md).

@@ -1,4 +1,4 @@
-import type { RefValue } from '@mcthaydt/automata-content/level-2d'
+import type { RefValue } from '@automata/content/level-2d'
 import type { IdSource } from '../model/ids'
 import type { Project } from '../model/project-types'
 

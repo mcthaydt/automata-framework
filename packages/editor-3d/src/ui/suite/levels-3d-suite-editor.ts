@@ -1,4 +1,4 @@
-import { defineSuiteEditor, type SuiteEditor } from '@mcthaydt/automata-editor/kit/ports'
+import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
 import { type ChecksPanel, createChecksPanel, type Scheduler } from '../../app/checks-panel-controller'
 import {
   type Levels3dOptions,

@@ -1,11 +1,11 @@
-// core-saves: three save slots on the title, and progress kept while you play
+// core-saves: Three save slots, and progress kept while you play
 //
 // Shows: `saves` gives the game slots: the title lists them, New game writes the starting data to a slot, Continue
 //   loads one and `apply`s it, and the game keeps the slot saved as you walk (leaving play, going to the background,
 //   and when the host closes the game). Paused says what the host did with your progress, and offers Load newer or
 //   Keep playing if another device changed this slot. Standalone, there is nothing to sync and nothing is said.
 // Controls: arrows or WASD to walk; Escape or P to pause
-// Packages: @mcthaydt/automata, zod
+// Packages: @automata/framework, zod
 // Difficulty: ★★★☆
 // Tier: core
 // Golden: 120
@@ -20,7 +20,7 @@ import {
   keys,
   rect,
   type Sim,
-} from '@mcthaydt/automata'
+} from '@automata/framework'
 import { z } from 'zod'
 
 const Walker = defineComponent('walker', { x: 'f32', y: 'f32' })

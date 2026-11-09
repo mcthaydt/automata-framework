@@ -1,4 +1,4 @@
-// `@mcthaydt/automata-content/assets`: the asset build, kept out of the main entry so code that only
+// `@automata/content/assets`: the asset build, kept out of the main entry so code that only
 // compiles content, and any browser bundle, never loads the PNG codec or the font subsetter.
 
 export {

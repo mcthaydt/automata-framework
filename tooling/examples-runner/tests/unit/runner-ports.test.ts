@@ -30,10 +30,9 @@ async function portsAt(offset: number): Promise<Array<[string, number]>> {
   const host = await import('../../../examples-runner/host/ports.ts')
   const emberwick = await import('../../../../games/emberwick/tests/e2e/origins.ts')
   const base3d = await import('../../../../games/base-3d/e2e/origin.ts')
-  const ui = await import('../../../../examples/ui/primitives/tests/e2e/origin.ts')
-  const hotReload = await import('../../../../examples/content/hot-reload/tests/e2e/origin.ts')
+  const ui = await import('../../../../examples/2d/ui/primitives/tests/e2e/origin.ts')
+  const hotReload = await import('../../../../examples/2d/content/hot-reload/tests/e2e/origin.ts')
   const frameBudget = await import('../../../frame-budget/src/origin.ts')
-  const newGame = await import('../../../../packages/tools/tests/e2e/origin.ts')
   const ports: Array<[string, number]> = [
     ['demo host', host.demoHostPort],
     ['examples', host.examplesPort],
@@ -48,7 +47,6 @@ async function portsAt(offset: number): Promise<Array<[string, number]>> {
     ['hot reload', hotReload.port],
     ['hot reload dev', hotReload.devPort],
     ['frame budget', frameBudget.stressPort],
-    ['new game', newGame.newGamePort],
   ]
   // The examples runner's demos each take a slot; the six feature demos and the ones after them.
   for (let slot = 0; slot < 12; slot += 1) ports.push([`demo slot ${slot}`, host.demoPort(slot)])

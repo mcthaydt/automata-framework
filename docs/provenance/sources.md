@@ -7,7 +7,7 @@ taken, and the licence. Specs, plans and code refer to a source only by its neut
 
 STANDALONE.2 extends this file to every earlier extraction; until then it holds M6's entries only.
 
-## M6: gameplay extensions ([M6 spec](../superpowers/specs/2026-10-16-m6-gameplay-extensions-design.md))
+## M6: gameplay extensions ([M6 spec](../archive/superpowers/specs/2026-10-16-m6-gameplay-extensions-design.md))
 
 ### The adventure source
 
@@ -17,9 +17,9 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | First read | `17eb568`, 2026-10-16 (the M6 spec's line and test counts) |
 | Recorded extraction commit | `92e67047a33161c5cfb1c5f9d8b981e91e1c55b9` (`92e6704`, committed 2026-10-22), re-read 2026-10-31 for M6.0a |
 | Taken (M6.3 onward, into `mcthaydt/automata-plus`) | `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`'s frame model and coverage, `audio-synth`, `debug`'s boards and driver, the environment (blockout) pipeline, and the modules in M6 spec §4.13 (storylets, conversations, delivery, portraits, music), all rewritten on Koota under the porting rules (M6 spec §4.9), with the source's tests as behavior specs. The source itself is not edited (decision 8) |
-| Earlier extraction | `@mcthaydt/automata-editor-3d` `format/` and `geometry/` (ED3D.1, ED3D.1c) from `src/game/sector-format.ts` at `92e6704` and the source's sector and nav geometry |
-| Moved, M6-D17 (2026-10-31) | The format file (`sector.schema.ts`, from `src/game/sector-format.ts` at `92e6704`) moved with its constants to core `@mcthaydt/automata-sector-format` (`packages/sector-format/src`); its header no longer names the source |
-| Moved, M6-D18 (2026-10-31) | The blockout file format and its expansion (`blockout.schema.ts` and `expand.ts`, from `src/blockout-format.ts` at `92e6704`) moved from `@mcthaydt/automata-editor-3d` `format/` to core `@mcthaydt/automata-sector-format/blockout` (`packages/sector-format/blockout`), outside its sim entry; their headers no longer name the source |
+| Earlier extraction | `@automata/editor-3d` `format/` and `geometry/` (ED3D.1, ED3D.1c) from `src/game/sector-format.ts` at `92e6704` and the source's sector and nav geometry |
+| Moved, M6-D17 (2026-10-31) | The format file (`sector.schema.ts`, from `src/game/sector-format.ts` at `92e6704`) moved with its constants to core `@automata/sector-format` (`packages/sector-format/src`); its header no longer names the source |
+| Moved, M6-D18 (2026-10-31) | The blockout file format and its expansion (`blockout.schema.ts` and `expand.ts`, from `src/blockout-format.ts` at `92e6704`) moved from `@automata/editor-3d` `format/` to core `@automata/sector-format/blockout` (`packages/sector-format/blockout`), outside its sim entry; their headers no longer name the source |
 | Converted, M6.5 (automata-plus#24) | `nav`: `src/game/nav.ts` (`clear`, `nearestNode`, `route`) rewritten on Koota; its three tests (`tests/nav.test.ts`) ported as behaviour specs; the clinic's `NODES`, `EDGES` and `BOXES` (`src/game/level.ts`) converted once to TOML fixtures by `packages/nav/scripts/convert-adventure-nav.ts` at `92e6704` (18 nodes, 22 edges, 21 boxes) |
 | Converted, M6.7a (automata-plus#24) | `systems`: `src/game/systems.ts`, `agents.ts`, `probes.ts`, `pursuit.ts`, `contracts/systems.ts` and `nav.ts`'s `reserveNodes` and `reachable` rewritten on Koota; `tests/agents.test.ts`, `systems.test.ts` and `pursuit.test.ts` ported as behaviour specs (all but `wallRing` and `withHiding`); the four scenes' `SYSTEMS` (`src/scenes/{prologue,clinic,clinic-dawn,bay}/systems.ts`) converted once to TOML fixtures by `packages/systems/scripts/convert-adventure-systems.ts` at `92e6704` |
 | Ported, M6.7b (automata-plus#25) | `systems` bots, scenarios and fairness: `src/game/bots.ts` and `scripts/pipeline/systems-lib.ts`'s `play`, `scenario`, `claimsCheck`, `playtest`, `fairness` and `sweep`, rewritten for AF's sim commands at `92e6704`; `tests/bots.test.ts`'s bot, fairness and claim cases ported (not the trace, emergent search and doc cases; not `tests/crew-fairness.test.ts`, the source game's crew) |
@@ -53,11 +53,25 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | Commit | `18525fc` |
 | Used | `docs/references/Narrative Architecture.md` (layered storylets; one shared state of facts, relationships, promises and reputations) as design input for `narrative` (row M6.8a; Owner, 2026-10-30: "Steal everything you need to") |
 
+## Core: the doc comments that named their source (moved here 2026-11-07)
+
+The published doc comments below named the arcade source (`SNEKPRTY/FloorFifty`); the doc comments no longer do, so
+the record is here.
+
+| AF file | Taken from |
+| --- | --- |
+| `packages/automata/src/shared/ui/touch/TouchControls.svelte` | `ui/components/TouchControls.svelte` at `ac72660` |
+| `packages/automata/src/testing/layout/assertions.ts` | `tests/e2e/support/layout.ts` at `122a220` (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`) |
+| `packages/automata/src/shared/ui/layout/OptionGroup.svelte` | its pause and settings rows, which used `<button role="radio">` |
+| `packages/automata/src/features/render/renderer.ts` | the plum-black letterbox colour `0x2e222f` |
+| `packages/content/src/shared/flow/check-flow.ts` | `FLOW_TARGETS` and `byPair` |
+| `packages/sim/src/features/replay/pack.ts` | the 1 MiB replay cap, raised here for goldens |
+
 ## Third-party assets copied into this repository
 
 | Asset | Source | Licence |
 | --- | --- | --- |
-| `packages/editor/src/shared/kit/icons/paths.ts`: 32 icon drawings (the editor's tools, history, layers, document actions, the level picker's chevron, Fit, the inspector, the list, and the suite's Home, Tuner, level editors and Review) | [Lucide](https://lucide.dev), npm `lucide-static` 0.460.0, `icons/*.svg`, copied as the markup inside each svg on 2026-11-06 | ISC (Lucide Contributors; the portions from Feather are MIT, Cole Bemis). The licence asks that its copyright and permission notice appear in copies; the header of `paths.ts` carries the notice |
+| `packages/editor/src/shared/kit/icons/paths.ts`: 33 icon drawings (the editor's tools, history, layers, zoom and brush size, document actions, the level picker's chevron, Fit, the inspector, the list, and the suite's Home, Tuner, level editors and Review) | [Lucide](https://lucide.dev), npm `lucide-static` 0.460.0, `icons/*.svg`, copied as the markup inside each svg on 2026-11-06 | ISC (Lucide Contributors; the portions from Feather are MIT, Cole Bemis). The licence asks that its copyright and permission notice appear in copies; the header of `paths.ts` carries the notice |
 
 ## Original assets made in this repository
 

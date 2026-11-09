@@ -2,7 +2,7 @@
 // storage and the toast store. An editor's headless layers import this entry, so they load on Node (and in a worker)
 // without the Svelte compiler; the root entry adds the shell and the widgets on top of the same modules.
 
-export type { Point } from '@mcthaydt/automata-content/level-2d'
+export type { Point } from '@automata/content/level-2d'
 export { type Command, type CommandRegistry, createCommandRegistry, defineCommand } from '../commands/command'
 export { normalizeShortcut, parseShortcut, type Shortcut } from '../commands/shortcut'
 export {

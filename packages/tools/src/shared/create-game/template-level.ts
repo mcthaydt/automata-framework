@@ -7,8 +7,7 @@ import type { TemplateFile } from './template-file.ts'
 export const LEVEL_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/level/read-level.ts',
-    content:
-      () => `import { type ContentLevel, entitiesOf, intGridRows } from '@mcthaydt/automata-content/level-2d'
+    content: () => `import { type ContentLevel, entitiesOf, intGridRows } from '@automata/content/level-2d'
 
 // Reads a level the 2D editor exported into what this game plays: its size, its walls and where the player starts.
 // Pure, so the sim can hold the result.
@@ -81,7 +80,7 @@ declare module 'virtual:automata/content' {
   {
     path: 'src/features/level/level.ts',
     content: () => `import { simContent } from 'virtual:automata/content'
-import { levelContentSchema } from '@mcthaydt/automata-content/level-2d'
+import { levelContentSchema } from '@automata/content/level-2d'
 import { type Level, levelOf } from './read-level.ts'
 
 // The level this game plays: content/levels/start.toml, which the 2D editor's Save writes, compiled by the content
@@ -96,7 +95,7 @@ export const LEVEL: Level = levelOf(levelContentSchema.parse(compiled))
   },
   {
     path: 'src/features/level/level.view.ts',
-    content: () => `import type { DrawContext } from '@mcthaydt/automata'
+    content: () => `import type { DrawContext } from '@automata/framework'
 import { type Level, SOLID } from './read-level.ts'
 
 /** The walls' colour: the editor's colour for Solid. */

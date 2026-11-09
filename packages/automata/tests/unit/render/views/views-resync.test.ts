@@ -1,4 +1,4 @@
-import { createSim, defineComponent, definePlugin } from '@mcthaydt/automata-sim'
+import { createSim, defineComponent, definePlugin } from '@automata/sim'
 import { Container } from 'pixi.js'
 import { expect, it } from 'vitest'
 import { RenderDeltaConsumer } from '#src/features/render/delta/render-delta-consumer.ts'

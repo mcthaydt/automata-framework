@@ -1,4 +1,4 @@
-import { defineEvent, type EventDef } from '@mcthaydt/automata-sim'
+import { defineEvent, type EventDef } from '@automata/sim'
 import { z } from 'zod'
 
 // Where something happened, in whole pixels (the hitbox's top-left corner). The renderer uses these for

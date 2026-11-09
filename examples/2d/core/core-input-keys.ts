@@ -1,9 +1,9 @@
-// core-input-keys: move a square with the keyboard, a pad or touch
+// core-input-keys: Move a square with the keyboard, a controller or touch
 //
 // Shows: keys() turns what is held on the keyboard, a standard pad's D-pad or the touch buttons into one sim
 //   command per tick, the same command from each device; rect() draws an entity, interpolated.
 // Controls: arrows or WASD, the D-pad, or the touch buttons
-// Packages: @mcthaydt/automata, zod
+// Packages: @automata/framework, zod
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 120
@@ -15,7 +15,7 @@ import {
   defineSystem,
   keys,
   rect,
-} from '@mcthaydt/automata'
+} from '@automata/framework'
 import { z } from 'zod'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })

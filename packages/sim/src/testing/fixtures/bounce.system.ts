@@ -1,4 +1,4 @@
-import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SystemDef } from '@automata/sim'
 import { Kick } from './bounce.command'
 import { Ball } from './bounce.component'
 import { BounceStats } from './bounce.resource'

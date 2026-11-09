@@ -4,7 +4,7 @@
   short, and Remove. Dragging a handle on the stage and typing here are the same edit.
 -->
 <script lang="ts">
-import { Button, Stepper } from '@mcthaydt/automata-editor/kit'
+import { Button, Stepper } from '@automata/editor/kit'
 import type { StudioController } from '../studio-controller'
 import { handlesOf } from '../studio-view'
 

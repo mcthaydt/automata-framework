@@ -1,7 +1,7 @@
 format = "af-editors/1"
 
 # Emberwick's room is a level-project file, edited in the 2D editor. `exports` is the folder Save writes the game's
-# files into (project.toml, world.toml, levels/<id>.toml). Its tuning (src/shared/tuning.ts) has no editor yet.
+# files into (project.toml, world.toml, levels/<id>.toml). Its tuning (src/shared/tuning.ts) opens in the Tuner.
 [[file]]
 glob = "content/rooms/*.af2d.json"
 editor = "levels-2d"

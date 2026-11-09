@@ -1,5 +1,5 @@
 <!--
-  A colour, palette first. The trigger shows the current colour and its hex; pressing it opens a
+  A colour, palette first. The trigger shows the current colour as a swatch with the word "Change" (the hex is its accessible name and the Custom field); pressing it opens a
   panel with a listbox of palette swatches (arrows move, Enter or a press picks and closes) and a "Custom" button
   that reveals a hex field (`#rrggbb`, refused with a message otherwise) beside the browser's colour input. Picking is a
   `set` edit event; picking the colour it already has emits nothing. Escape closes and returns focus to the trigger.
@@ -124,7 +124,7 @@ function onPanelKey(event: KeyboardEvent): void {
     onclick={onTrigger}
   >
     <span class="chip" style:background={value}></span>
-    <span class="hex">{shown}</span>
+    <span class="change">Change</span>
   </button>
   {#if disabled && reason}<span class="reason" id={reasonId}>{reason}</span>{/if}
   {#if open}
@@ -209,6 +209,9 @@ function onPanelKey(event: KeyboardEvent): void {
     gap: var(--space-2);
     padding: 0 var(--space-3);
     cursor: pointer;
+  }
+  .change {
+    font: var(--text-body-13);
   }
   .chip {
     width: 24px;

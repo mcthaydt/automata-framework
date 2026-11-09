@@ -4,7 +4,7 @@
 // are the game renderer's; the editor carries `lag` as data only. The view itself (its fields, defaults and ranges) is
 // render-pixi3d's `camera-view`, whose own tests cover it.
 
-import { cameraView, TURN_UNITS } from '@mcthaydt/automata-render-pixi3d/camera-view'
+import { cameraView, TURN_UNITS } from '@automata/render-pixi3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { room } from '../../testing/room-mesh'
 import { forward, ORBIT_FOV, orbitCamera, projectPoint } from './camera-3d'

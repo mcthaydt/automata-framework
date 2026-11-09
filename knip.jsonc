@@ -17,8 +17,8 @@
       "entry": ["agents/automata/scripts/check.mjs"],
       "ignore": ["agents/automata/skills/*/example/**", "docs/design/**", "docs/archive/design/**"]
     },
-    // DX.7: the example imports @mcthaydt/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
-    "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
+    // DX.7: the example imports @automata/sim, which tooling/agent-skills' vitest config aliases to the source.
+    "tooling/agent-skills": { "ignoreDependencies": ["@automata/sim"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
     "games/emberwick": {
       // The journeys sit in tests/e2e; the config names its directory, which knip does not follow.
@@ -39,7 +39,7 @@
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "examples/2d/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     // The site: the compile worker starts from `new URL(...)`, which knip does not follow; the scripts and the playground
-    // build run by path (package.json, playwright configs, by hand); the playground's test servers serve
+    // build run by path (package.json, playwright configs, lhci's config, by hand); the playground's test servers serve
     // playground/static as files.
     "site": {
       "entry": [
@@ -47,18 +47,19 @@
         "scripts/*.ts",
         "playground/*.ts",
         "playwright.config.ts",
+        "lighthouserc.cjs",
         "tests/e2e/*.ts",
         "tests/playground/e2e/*.test.ts"
       ],
       "ignore": ["playground/static/**"],
       // `src/app.css` imports the shared tokens with CSS @import, which knip does not follow.
-      "ignoreDependencies": ["@mcthaydt/automata-editor"],
+      "ignoreDependencies": ["@automata/editor"],
       "playwright": false
     },
     // The runner's journeys run from examples/2d's config, which names this folder.
     "tooling/examples-runner": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
-    // Run by hand on one package at a time: `node tooling/codemods/src/cli.ts <package>`.
-    "tooling/codemods": { "entry": ["src/cli.ts", "src/move-modules-cli.ts"] },
+    // Run by hand: `node tooling/codemods/src/cli.ts <package>`, `move-modules-cli.ts`, `rename-scope-cli.ts`.
+    "tooling/codemods": { "entry": ["src/cli.ts", "src/move-modules-cli.ts", "src/rename-scope-cli.ts"] },
     // Run by hand on a build made with `vite build --sourcemap`.
     // The editor's pages and entries are what the build and its consumers start from; `src/shared/kit/fonts.css`
     // imports the Geist families with CSS @import, which knip does not follow. `src/app/design/main.ts` is the design

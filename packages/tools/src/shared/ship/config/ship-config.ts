@@ -1,9 +1,9 @@
-import type { GameConfig } from '@mcthaydt/automata-content/game-config'
+import type { GameConfig } from '@automata/content/game-config'
 import type { ItchConfig } from './itch-config.schema.ts'
 import type { TauriConfig } from './tauri-config.schema.ts'
 
 /**
- * What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s
+ * What a game tells ship about itself: the game config every target reads (`@automata/content`'s
  * `GameConfig`) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
  * the config reads like the `ruken.toml` the Ruken target writes from it (ship fills in `schema` and `allow_eval`,
  * always false); `prepare --target ruken` checks the whole of it with Ruken's own parser.

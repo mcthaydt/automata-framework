@@ -31,7 +31,7 @@ test('an import the runtime lacks fails the import, and nothing runs', async ({ 
     page,
     'shapes',
     'rects',
-    "import { notAnExport } from '@mcthaydt/automata'\nexport default notAnExport\n",
+    "import { notAnExport } from '@automata/framework'\nexport default notAnExport\n",
   )
   expect(await failed(page)).toMatchObject({ runId: 1, phase: 'import' })
   expect((await log(page)).map((message) => message.type)).toEqual(['booted', 'failed'])
@@ -41,7 +41,7 @@ test('a default export that is not defineGame(...) fails the import, saying so',
   await run(page, 'shapes', 'rects', 'export default 42\n')
   expect(await failed(page)).toMatchObject({
     phase: 'import',
-    message: "The example's default export must be defineGame(...)",
+    message: "This code doesn't make a game any more. Press Reset to start again",
   })
 })
 

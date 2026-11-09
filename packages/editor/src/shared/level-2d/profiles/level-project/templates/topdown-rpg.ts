@@ -156,7 +156,7 @@ export const topdownRpgTemplate: TemplateDef<Project> = {
       'topdown-rpg',
       {
         layers: [
-          { id: 'entities', label: 'Characters', kind: 'entities', grid: TILE, snap: true },
+          { id: 'entities', label: 'Characters and items', kind: 'entities', grid: TILE, snap: true },
           { id: 'props', label: 'Props', kind: 'objects', tileset: 'overworld', snap: 0 },
           {
             id: 'walls-art',

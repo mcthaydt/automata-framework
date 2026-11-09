@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -6,6 +7,7 @@ import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import { componentOf } from '#src/app/editor-2d/views.ts'
 import DocumentScreen from '#src/features/document/DocumentScreen.svelte'
 import { createDocumentController } from '#src/features/document/document-controller.ts'
+import { ruleTitle } from '#src/features/tiles/rule-words.ts'
 import type { LifecycleDocument, LifecycleWindow } from '#src/shared/kit/storage/page-lifecycle.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
@@ -85,7 +87,7 @@ describe('Tilesets view: the panel', () => {
   it('reorders a rule with its grip from the keyboard, as one undo step', async () => {
     const { hazards } = await mount()
     await chooseHazards()
-    screen.getByRole('button', { name: 'Reorder spike' }).focus()
+    screen.getByRole('button', { name: 'Reorder Spike' }).focus()
     await userEvent.keyboard(' {ArrowDown} ')
     expect(hazards()).toEqual(['water', 'spike', 'ladder', 'one-way'])
     expect(screen.getByRole('button', { name: 'Undo Reorder rules' })).toBeEnabled()
@@ -98,7 +100,7 @@ describe('Tilesets view: the panel', () => {
     expect(within(panel()).getByText('No rules in this group yet. Add one to start.')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Add rule' }))
     const added = ground().groups[2]?.rules[0]?.id ?? ''
-    expect(within(inspector()).getByRole('heading', { name: added })).toBeInTheDocument()
+    expect(within(inspector()).getByRole('heading', { name: ruleTitle(added) })).toBeInTheDocument()
   })
 })
 
@@ -155,11 +157,11 @@ describe('Tilesets view: the rule inspector and the preview', () => {
     expect(caption).toHaveTextContent('Outlined: the 0 cells where spike matches on its own.')
     expect(caption?.textContent).not.toMatch(/the 1 cells/)
     const cell = within(screen.getByTestId('pattern-editor')).getByRole('button')
-    expect(cell).toHaveAccessibleName('Row 1, column 1 (centre): is Spike')
+    expect(cell).toHaveAccessibleName('Row 1, column 1 (centre): only spike')
     await userEvent.click(cell)
     expect(ground().groups[1]?.rules[0]?.pattern).toEqual([{ not: 1 }])
     expect(within(screen.getByTestId('pattern-editor')).getByRole('button')).toHaveAccessibleName(
-      'Row 1, column 1 (centre): not Solid',
+      'Row 1, column 1 (centre): anything but solid',
     )
     expect(caption?.textContent).toMatch(/the [1-9]\d* cells where spike/)
     expect(screen.getByRole('button', { name: 'Undo Edit pattern' })).toBeEnabled()
@@ -169,33 +171,35 @@ describe('Tilesets view: the rule inspector and the preview', () => {
     const { ground } = await mount()
     await chooseHazards()
     await userEvent.click(screen.getByRole('button', { name: 'Tile 2' }))
-    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add selected tiles (1)' }))
+    await userEvent.click(within(inspector()).getByRole('button', { name: 'Draw the tiles I picked (1)' }))
     expect(ground().groups[1]?.rules[0]?.tiles.at(-1)).toBe(2)
     await userEvent.click(within(inspector()).getByRole('button', { name: 'Remove Tile 2' }))
     expect(ground().groups[1]?.rules[0]?.tiles).not.toContain(2)
-    await userEvent.click(within(inspector()).getByRole('button', { name: 'Flip X' }))
-    expect(within(inspector()).getByRole('button', { name: 'Flip X' })).toHaveAttribute(
+    await userEvent.click(within(inspector()).getByRole('button', { name: 'Mirror left to right' }))
+    expect(within(inspector()).getByRole('button', { name: 'Mirror left to right' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
-    expect(ruleRow('spike')).toHaveTextContent('flip X')
+    expect(ruleRow('spike')).toHaveTextContent('mirrored')
   })
 
   it('sets what is read beyond the edge, duplicates and deletes the rule', async () => {
     const { ground, hazards } = await mount()
     await chooseHazards()
-    await userEvent.click(within(inspector()).getByRole('button', { name: 'Outside the level: Empty' }))
     await userEvent.click(
-      screen.getByRole('option', { name: (name) => name.startsWith('Same as the centre') }),
+      within(inspector()).getByRole('button', { name: 'Beyond the edge of the level: Empty' }),
+    )
+    await userEvent.click(
+      screen.getByRole('option', { name: (name) => name.startsWith('Same as this tile') }),
     )
     expect(ground().groups[1]?.rules[0]?.outside).toBe('same')
     await userEvent.click(within(inspector()).getByRole('button', { name: 'Duplicate' }))
     expect(hazards()).toHaveLength(5)
     const copy = hazards()[1] ?? ''
-    expect(within(inspector()).getByRole('heading', { name: copy })).toBeInTheDocument()
+    expect(within(inspector()).getByRole('heading', { name: ruleTitle(copy) })).toBeInTheDocument()
     await userEvent.click(within(inspector()).getByRole('button', { name: 'Delete' }))
     expect(hazards()).toEqual(['spike', 'water', 'ladder', 'one-way'])
-    expect(within(inspector()).getByRole('heading', { name: 'water' })).toBeInTheDocument()
+    expect(within(inspector()).getByRole('heading', { name: 'Water' })).toBeInTheDocument()
   })
 
   it('renames and switches off a group from the Group tab', async () => {
@@ -237,6 +241,18 @@ describe('Tilesets view: Add tiles', () => {
     expect(opened.document.history.undoLabel).toBe('Add tiles')
     expect(await workspace.store.read('assets/moss.png')).toEqual(new Uint8Array([7]))
     expect(within(panel()).getByRole('radio', { name: /Moss/ })).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('has one Add tiles button, in the empty stage, while the game has no tiles; the panel’s waits for the first', async () => {
+    const { opened } = await mount('blank')
+    // A game folder whose game has no tileset at all: the template's placeholder one is taken away.
+    opened.document.history.apply('Remove tiles', (value) => {
+      const project = value as Project
+      return { ...project, defs: { ...project.defs, tilesets: [] } }
+    })
+    expect(await screen.findByText(/No tiles yet/)).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Add tiles' })).toHaveLength(1)
+    expect(within(panel()).queryByRole('button', { name: 'Add tiles' })).toBeNull()
   })
 
   it('offers no Add tiles where nothing can be written', async () => {

@@ -2,7 +2,7 @@ import type { DeterminismView } from './determinism'
 import { type FrameMessage, frameMessage, PROTOCOL_VERSION, type RunMessage } from './protocol'
 import { STATUS } from './status'
 
-// The preview's frames (spec §6 F4, F10, F11; §7.1, §7.2). Each run gets a candidate frame under the current one; the
+// The preview's frames. Each run gets a candidate frame under the current one; the
 // candidate is revealed only when it reports `running`, so a run that fails or never starts leaves the last good
 // preview where it was. The clock and the frame factory are injected, so all of it runs in a unit test.
 
@@ -37,7 +37,7 @@ export interface OrchestratorView {
   readonly frames: number
   /** Where the last frame failure that named a line was, for the editor to mark; cleared by the next `running`. */
   readonly failure?: { readonly line: number; readonly column: number; readonly message: string }
-  /** The determinism row (§13) for the frame on show; absent: no row. */
+  /** The determinism row for the frame on show; absent: no row. */
   readonly determinism?: DeterminismView
 }
 
@@ -59,7 +59,7 @@ interface Held {
   timer: unknown
 }
 
-/** The loop guard's stop, in the spec's words (§7.2); the frame's own message says "over 1 s". */
+/** The loop guard's stop, in plain words; the frame's own message says "over 1 s". */
 const HANG_MESSAGE = 'this loop ran for over a second without a break, so the preview stopped it'
 
 /** A failure's text, with its line when the frame found one in the reader's source. */

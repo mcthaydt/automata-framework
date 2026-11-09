@@ -45,7 +45,7 @@ export interface ProcessRunner {
 export const ProcessRunner: Context.Tag<ProcessRunner, ProcessRunnerService> = Context.GenericTag<
   ProcessRunner,
   ProcessRunnerService
->('@mcthaydt/automata-tools/ProcessRunner')
+>('@automata/tools/ProcessRunner')
 
 function runProcess(
   command: string,

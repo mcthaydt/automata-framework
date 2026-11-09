@@ -6,7 +6,7 @@ import * as fields from '#src/shared/kit/fields/index.ts'
 /** The kit's `fields` folder in `src/`. */
 const FOLDER = new URL('../../../../../src/shared/kit/fields/', import.meta.url)
 
-// A headless core (the 2D editor's model, a codec in Node) imports `@mcthaydt/automata-editor-kit/fields`: the field
+// A headless core (the 2D editor's model, a codec in Node) imports `@automata/editor-kit/fields`: the field
 // rules without the Svelte shell the package root also exports.
 describe('the ./fields entry', () => {
   test('exports the rules, schemas and types of the typed fields', () => {
@@ -30,9 +30,7 @@ describe('the ./fields entry', () => {
       const specifiers = [...text.matchAll(/from '([^']+)'/g)].map((match) => match[1])
       for (const specifier of specifiers) {
         expect(
-          specifier === 'zod' ||
-            specifier === '@mcthaydt/automata-content/level-2d' ||
-            specifier?.startsWith('./'),
+          specifier === 'zod' || specifier === '@automata/content/level-2d' || specifier?.startsWith('./'),
         ).toBe(true)
       }
     }

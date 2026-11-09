@@ -10,6 +10,7 @@ import type {
 } from '../../shared/level-2d/model/project-types'
 import { tilesetTiles } from '../../shared/level-2d/model/tileset-grid'
 import type { PatternCell, Rule } from '../../shared/level-2d/tiles/autotile/rule.schema'
+import { cellWords, ruleTitle } from './rule-words'
 
 // What the Tilesets view shows: the
 // panel's rows, what is selected once the project has had its say, and the selected rule as the inspector edits it.
@@ -77,8 +78,6 @@ export interface ValueChoice {
 export interface RuleInspector {
   readonly layer: string
   readonly group: string
-  /** 1-based place of the rule in its group. */
-  readonly place: number
   readonly tileset: string
   readonly rule: Rule
   readonly cells: readonly PatternCellView[]
@@ -132,10 +131,10 @@ export function groupRows(def: AutoLayerDef): readonly GroupRow[] {
 
 export function ruleSummary(rule: Rule): string {
   const parts = [rule.tiles.length === 0 ? 'no tile' : plural(rule.tiles.length, 'tile', 'tiles')]
-  if (rule.chance < 1) parts.push(`chance ${percentOf(rule.chance)}%`)
-  if (rule.flipX) parts.push('flip X')
-  if (rule.flipY) parts.push('flip Y')
-  if (rule.breakOnMatch) parts.push('break')
+  if (rule.chance < 1) parts.push(`${percentOf(rule.chance)}% of the time`)
+  if (rule.flipX) parts.push('mirrored')
+  if (rule.flipY) parts.push('upside down')
+  if (rule.breakOnMatch) parts.push('stops here')
   if (!rule.active) parts.push('off')
   return parts.join(' · ')
 }
@@ -144,7 +143,7 @@ export function ruleRows(def: AutoLayerDef, group: string): readonly RuleRow[] {
   const found = def.groups.find((each) => each.id === group)
   return (found?.rules ?? []).map((rule) => ({
     id: rule.id,
-    label: rule.id,
+    label: ruleTitle(rule.id),
     sub: ruleSummary(rule),
     size: rule.size,
     pattern: rule.pattern,
@@ -180,9 +179,9 @@ export function resolveSelection(project: Project, selection: TilesetsSelection)
 }
 
 function cellLabel(cell: PatternCell, values: readonly ValueChoice[]): string {
-  if (typeof cell === 'string') return cell
-  const [verb, value] = 'is' in cell ? ['is', cell.is] : ['not', cell.not]
-  return `${verb} ${values.find((each) => each.value === value)?.label ?? value}`
+  if (typeof cell === 'string') return cellWords(cell)
+  const [kind, value] = 'is' in cell ? (['is', cell.is] as const) : (['not', cell.not] as const)
+  return cellWords(kind, (values.find((each) => each.value === value)?.label ?? String(value)).toLowerCase())
 }
 
 export function ruleInspector(
@@ -209,7 +208,6 @@ export function ruleInspector(
   return {
     layer,
     group: group.id,
-    place: place + 1,
     tileset: def.tileset,
     rule,
     cells: rule.pattern.map((cell, index) => ({
@@ -223,7 +221,7 @@ export function ruleInspector(
     chance: percentOf(rule.chance),
     outside: String(rule.outside),
     outsideOptions: [
-      { id: 'same', label: 'Same as the centre' },
+      { id: 'same', label: 'Same as this tile' },
       { id: '0', label: 'Empty' },
       ...values.map((value) => ({ id: String(value.value), label: value.label })),
     ],

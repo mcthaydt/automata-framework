@@ -14,7 +14,7 @@ describe('CommandMenu searches the complete API', () => {
     }
     const version = latestApiVersion()
     const reference = getApiReference(version)!
-    const sim = reference.packages.find((p) => p.slug === 'automata-sim')!
+    const sim = reference.packages.find((p) => p.slug === 'sim')!
     const target = sim.entryPoints.flatMap((e) => e.entries).find((e) => /^[a-z][A-Za-z]{9,}$/.test(e.name))!
     const view = render(CommandMenu, { props: { isOpen: true } })
     await fireEvent.input(view.getByRole('searchbox', { name: /search/i }), {

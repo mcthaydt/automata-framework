@@ -1,4 +1,4 @@
-// The determinism row's state and words (spec §13): it says only what this browser checked.
+// The determinism row's state and words: it says only what this browser checked.
 
 export type DeterminismView =
   | { readonly kind: 'checking'; readonly ticks: number }

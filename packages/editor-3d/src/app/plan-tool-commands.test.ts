@@ -1,7 +1,7 @@
 // The Plan view's tool keys (ED3D.6g-a step 3; ED3D spec §10): V S X P D N choose a tool, and while a sector is being
 // drawn Enter closes it, Backspace takes the last corner back and Escape drops the drawing. A command that would do
 // nothing is disabled, so its key falls through to the page.
-import { createCommandRegistry, createKeymap, type KeyInput } from '@mcthaydt/automata-editor/kit/core'
+import { createCommandRegistry, createKeymap, type KeyInput } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'

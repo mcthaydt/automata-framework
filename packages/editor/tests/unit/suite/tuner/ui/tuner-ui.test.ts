@@ -3,14 +3,13 @@ import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createTunerController, type TunerController } from '#src/features/suite/tuner/tuner-controller.ts'
-import TunerInspector from '#src/features/suite/tuner/ui/TunerInspector.svelte'
-import TunerPanel from '#src/features/suite/tuner/ui/TunerPanel.svelte'
+import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import TunerRows from '#src/features/suite/tuner/ui/TunerRows.svelte'
 import { TUNING_FIXTURE, tunerFixtureFiles, tunerFixturePorts } from '#src/testing/suite/tuner-fixtures.ts'
 
-// The Tuner's components in jsdom: the list, the rows (slider and number box, toggle,
-// text, Ask only), the refusal of a value past a bound (EDS-c), the lock (EDS-d) and the search. What reaches the file is
-// checked through the controller's session.
+// The Tuner's components in jsdom: the settings (a slider or a number box, never both; a toggle, text, Ask only), the
+// bounds a slider cannot leave (EDS-c) and the lock (EDS-d). What reaches the file is checked through the
+// controller's session.
 
 const PATH = 'content/tuning.toml'
 const open = async (files = tunerFixtureFiles()): Promise<TunerController> =>
@@ -42,12 +41,16 @@ describe('TunerRows', () => {
     expect(within(screen.getByTestId('tuner-row-CURVE')).getByText(/Ask only/)).toBeTruthy()
   })
 
-  it('names the slider and the number box for assistive technology', async () => {
+  // Build audit C2: one control and one read-out for a value, never a slider and a number box for the same number.
+  it('gives a number one control: a slider with bounds, a number box without', async () => {
     const controller = await open()
     render(TunerRows, { controller })
-    const row = screen.getByTestId('tuner-row-MAX_RUN')
-    expect(within(row).getByRole('slider', { name: /MAX_RUN/ })).toBeTruthy()
-    expect(within(row).getByRole('spinbutton', { name: /MAX_RUN/ })).toBeTruthy()
+    const bounded = screen.getByTestId('tuner-row-MAX_RUN')
+    expect(within(bounded).getByRole('slider', { name: /MAX_RUN/ })).toBeTruthy()
+    expect(within(bounded).queryByRole('spinbutton')).toBeNull()
+    const free = screen.getByTestId('tuner-row-SCALE')
+    expect(within(free).getByRole('spinbutton', { name: /SCALE/ })).toBeTruthy()
+    expect(within(free).queryByRole('slider')).toBeNull()
   })
 
   it('writes a toggle and a text value through the session', async () => {
@@ -62,15 +65,16 @@ describe('TunerRows', () => {
     expect(text(controller)).toContain('GREETING = "hi"')
   })
 
-  it('refuses a typed value past the bound, says so, and writes nothing (EDS-c)', async () => {
+  it('a slider stays inside its bounds: End writes the largest, Home the smallest (EDS-c)', async () => {
     const user = userEvent.setup()
     const controller = await open()
     render(TunerRows, { controller })
-    const row = screen.getByTestId('tuner-row-MAX_RUN')
-    await user.click(within(row).getByRole('spinbutton', { name: /MAX_RUN/ }))
-    await user.keyboard('{Control>}a{/Control}9000{Enter}')
-    expect(text(controller)).toBe(TUNING_FIXTURE)
-    expect(row.textContent).toMatch(/768/)
+    const slider = within(screen.getByTestId('tuner-row-MAX_RUN')).getByRole('slider', { name: /MAX_RUN/ })
+    slider.focus()
+    await user.keyboard('{End}')
+    expect(text(controller)).toContain('MAX_RUN = { value = 768,')
+    await user.keyboard('{Home}')
+    expect(text(controller)).toContain('MAX_RUN = { value = 128,')
   })
 
   it('locks a tunable: its controls refuse and say why (EDS-d)', async () => {
@@ -78,15 +82,14 @@ describe('TunerRows', () => {
     const controller = await open()
     render(TunerRows, { controller })
     const row = screen.getByTestId('tuner-row-MAX_RUN')
-    await user.click(within(row).getByRole('button', { name: /^Keep MAX_RUN/ }))
+    await user.click(within(row).getByRole('button', { name: 'Lock MAX_RUN' }))
     expect(controller.session.locked()).toEqual(['MAX_RUN'])
-    expect(within(row).getByRole('button', { name: /^Keep MAX_RUN/ })).toBeTruthy()
     expect(
       within(row)
         .getByRole('slider', { name: /MAX_RUN/ })
         .getAttribute('aria-disabled'),
     ).toBe('true')
-    await user.click(within(row).getByRole('button', { name: /^Keep MAX_RUN/ }))
+    await user.click(within(row).getByRole('button', { name: 'Unlock MAX_RUN' }))
     expect(controller.session.locked()).toEqual([])
   })
 
@@ -113,26 +116,19 @@ describe('TunerRows', () => {
   })
 })
 
-describe('TunerPanel', () => {
-  it('lists the tunables, filters them by the search, and chooses one for the inspector', async () => {
-    const user = userEvent.setup()
-    const controller = await open()
-    render(TunerPanel, { controller })
-    expect(
-      screen.getAllByRole('button', { name: /^(MAX_RUN|GRAVITY|SCALE|DEBUG|GREETING|CURVE)/ }),
-    ).toHaveLength(6)
-    await user.type(screen.getByRole('searchbox', { name: 'Search settings' }), 'grav')
-    expect(screen.getAllByRole('button', { name: /^GRAVITY/ })).toHaveLength(1)
-    expect(screen.queryByRole('button', { name: /^MAX_RUN/ })).toBeNull()
-    await user.click(screen.getByRole('button', { name: /^GRAVITY/ }))
-    render(TunerInspector, { controller })
-    expect(within(screen.getByTestId('tuner-inspector')).getByText('GRAVITY')).toBeTruthy()
-    expect(within(screen.getByTestId('tuner-inspector')).getByText(/16 to 192/)).toBeTruthy()
+describe('the Tuner’s regions', () => {
+  // Build audit C2: the settings are the list and each card is where its setting changes, so there is no second list
+  // to search and no inspector to repeat the card.
+  it('has a canvas only: no panel, no inspector', () => {
+    const { regions } = createTuner()
+    expect(regions.canvas).toBeDefined()
+    expect(regions.panel).toBeUndefined()
+    expect(regions.inspector).toBeUndefined()
   })
 })
 
 // The grandma audit, section 6.2: a setting is shown by its label and what a player feels, never by its constant name
-// or the other game's numbers in the comment; Lock is Keep.
+// or the other game's numbers in the comment; a lock is the lock icon.
 describe('the Tuner in plain words', () => {
   const LABELLED = [
     '# Celeste: 90 px/s.',
@@ -150,56 +146,39 @@ describe('the Tuner in plain words', () => {
     expect(within(row).getByRole('slider', { name: 'Running speed' })).toBeTruthy()
   })
 
-  it('shows a scaled setting in its unit and writes the sim’s number back; a refusal speaks the unit too', async () => {
+  it('shows a scaled setting in its unit and a step a person can feel, and writes the sim’s number back', async () => {
     const SCALED =
       'MAX_RUN = { value = 384, min = 128, max = 768, step = 1, label = "Running speed", unit = "px/s", scale = 0.234375 }\n'
     const user = userEvent.setup()
     const controller = await open({ [PATH]: SCALED })
     render(TunerRows, { controller })
     const row = screen.getByTestId('tuner-row-MAX_RUN')
-    const box = within(row).getByRole('spinbutton', { name: /Running speed/ })
-    expect(box).toHaveValue(90)
+    const slider = within(row).getByRole('slider', { name: 'Running speed' })
+    expect(slider).toHaveAttribute('aria-valuenow', '90')
+    expect(slider).toHaveAttribute('aria-valuemin', '30')
+    expect(slider).toHaveAttribute('aria-valuemax', '180')
     expect(row).toHaveTextContent('px/s')
-    await user.click(box)
-    await user.keyboard('{Control>}a{/Control}100{Enter}')
-    expect(text(controller)).toContain('value = 427')
-    // A write redraws the rows: find the row and its box again.
-    const after = screen.getByTestId('tuner-row-MAX_RUN')
-    await user.click(within(after).getByRole('spinbutton', { name: /Running speed/ }))
-    await user.keyboard('{Control>}a{/Control}500{Enter}')
-    expect(text(controller)).toContain('value = 427')
-    expect(within(after).getByRole('alert')).toHaveTextContent('Must be at most 180 px/s')
-    // The inspector speaks the same unit: the value, the range, and a number, not a whole number of subpixels.
-    controller.select('MAX_RUN')
-    render(TunerInspector, { controller })
-    const inspector = screen.getByTestId('tuner-inspector')
-    expect(inspector).toHaveTextContent('100.1 px/s')
-    expect(inspector).toHaveTextContent('30 to 180 px/s')
-    expect(inspector).not.toHaveTextContent(/whole number|427|768/)
+    // One press is one whole pixel a second (91), written as the nearest whole subpixel step (388), never 0.23.
+    slider.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(text(controller)).toContain('value = 388')
+    expect(screen.getByTestId('tuner-row-MAX_RUN')).not.toHaveTextContent(/384|768/)
   })
 
-  it('keeps a setting (was Lock), and says what keeping does', async () => {
+  it('locks a setting with the lock icon, and says what locking does', async () => {
     const user = userEvent.setup()
     const controller = await open({ [PATH]: LABELLED })
     render(TunerRows, { controller })
-    const keep = within(screen.getByTestId('tuner-row-MAX_RUN')).getByRole('button', {
-      name: 'Keep Running speed',
+    const lock = within(screen.getByTestId('tuner-row-MAX_RUN')).getByRole('button', {
+      name: 'Lock Running speed',
     })
-    expect(keep).toHaveAttribute('title', 'Keep this value: nothing changes it until you let it go.')
-    await user.click(keep)
+    expect(lock).toHaveAttribute('aria-pressed', 'false')
+    await user.click(lock)
     expect(controller.session.locked()).toEqual(['MAX_RUN'])
-    expect(keep).toHaveTextContent('Kept')
-  })
-
-  it('lists the labels, searches settings, and asks for a tap when nothing is chosen', async () => {
-    const controller = await open({ [PATH]: LABELLED })
-    render(TunerPanel, { controller })
-    render(TunerInspector, { controller })
-    expect(screen.getByRole('searchbox', { name: 'Search settings' })).toBeTruthy()
     expect(
-      within(screen.getByTestId('tuner-panel')).getByRole('button', { name: 'Running speed' }),
-    ).toBeTruthy()
-    expect(screen.getByTestId('tuner-inspector')).toHaveTextContent('Tap a setting to see more.')
+      within(screen.getByTestId('tuner-row-MAX_RUN')).getByRole('button', { name: 'Unlock Running speed' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('tuner-rows')).not.toHaveTextContent(/Keep|Kept/)
   })
 
   it('offers to make the settings file without naming it', async () => {

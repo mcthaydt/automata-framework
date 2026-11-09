@@ -25,7 +25,7 @@ const levelFields = $derived(levelFieldRows(project))
   <section aria-labelledby="definitions-heading">
     <div class="head">
       <h2 id="definitions-heading">Characters</h2>
-      <Button aria-label="Add character" onclick={() => session.addDefinition()}>+</Button>
+      <Button aria-label="Add a character" onclick={() => session.addDefinition()}>+</Button>
     </div>
     <div class="choices" role="radiogroup" aria-labelledby="definitions-heading">
       {#each definitionRows(project) as row (row.id)}
@@ -50,9 +50,9 @@ const levelFields = $derived(levelFieldRows(project))
 
   <section aria-labelledby="level-fields-heading">
     <div class="head">
-      <h2 id="level-fields-heading">Settings for every level</h2>
+      <h2 id="level-fields-heading">Settings every level has</h2>
       <Button
-        aria-label="Add a level setting"
+        aria-label="Add a setting"
         onclick={() => {
           session.select({ owner: 'level' })
           session.addField()
@@ -69,7 +69,7 @@ const levelFields = $derived(levelFieldRows(project))
         <!-- The settings by their names, as the inspector shows them; the name in code only where there is none. -->
         <span class="name">Every level</span>
         <span class="sub">
-          {levelFields.length === 0 ? 'None yet' : levelFields.map((row) => row.label ?? row.id).join(', ')}
+          {levelFields.length === 0 ? 'No settings yet' : levelFields.map((row) => row.label ?? row.id).join(', ')}
         </span>
       </span>
     </button>
@@ -161,7 +161,7 @@ const levelFields = $derived(levelFieldRows(project))
   }
   .sub {
     color: var(--color-text-dim);
-    font: var(--text-mono-11);
+    font: var(--text-label-12);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

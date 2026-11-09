@@ -1,10 +1,10 @@
 // Usage: node tooling/release/src/verify-published.ts --version <0.0.n>
 // Run by release-packages.yml right after `changeset publish`. `changeset publish` exits 0 both
 // when it published and when it skipped everything, so its exit code proves nothing; this looks every
-// publishable package up on GitHub Packages at the released version and fails, naming each one still missing.
+// publishable package up on npmjs.org at the released version and fails, naming each one still missing.
 // Re-running the release job then publishes exactly the missing ones (changesets skips versions already there).
 //
-// GitHub Packages can lag a few seconds behind a publish, so a missing package is retried up to 5 times with
+// npmjs.org can lag a few seconds behind a publish, so a missing package is retried up to 5 times with
 // backoff, about a minute in all. A lookup that errors (401, network) is never taken as "present".
 import { execFile } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -73,7 +73,7 @@ export function releasedVersion(publishedPackages: string): string {
 
 const run = promisify(execFile)
 
-/** `pnpm view <name>@<version> version`, authenticated by the `.npmrc` setup-node writes. A 404 is "none". */
+/** `pnpm view <name>@<version> version`. The packages are public, so it needs no token. A 404 is "none". */
 export const pnpmView: Lookup = async (name, version) => {
   try {
     const { stdout } = await run('pnpm', ['view', `${name}@${version}`, 'version'])

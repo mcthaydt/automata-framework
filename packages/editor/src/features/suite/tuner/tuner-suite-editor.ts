@@ -2,7 +2,7 @@ import { get } from 'svelte/store'
 import { defineSuiteEditor, type SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
 import { TUNING_PATH } from './tuner-content'
 import { createTunerController, type TunerController } from './tuner-controller'
-import { canvas, inspector, panel } from './ui/TunerRegions.svelte'
+import { canvas } from './ui/TunerRegions.svelte'
 
 // The Tuner as a suite editor: `tuner` in the editor list, opened
 // once and kept for the app's life. Its canvas is a split view: the game's dev page running beside the settings, so
@@ -29,7 +29,7 @@ export function createTuner(options: TunerOptions = {}): SuiteEditor<TunerSuiteS
     async open(_files, ports) {
       return { controller: await createTunerController(ports), gameUrl: options.gameUrl }
     },
-    regions: { panel, canvas, inspector },
+    regions: { canvas },
     undo: (session) => ({
       canUndo: () => session.controller.session.history.canUndo,
       canRedo: () => session.controller.session.history.canRedo,

@@ -2,7 +2,7 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @mcthaydt/automata-sim
+// Packages: @automata/sim
 // Difficulty: ★☆☆☆
 // Tier: core
 // Pending: OPEN.1, DONE.1

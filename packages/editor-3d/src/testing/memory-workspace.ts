@@ -7,7 +7,7 @@ import {
   type DownloadFile,
   type StorageClock,
   type Workspace,
-} from '@mcthaydt/automata-editor/kit/core'
+} from '@automata/editor/kit/core'
 
 export interface TestClock extends StorageClock {
   /** Moves time forward, running every timer that falls due on the way, in order. */

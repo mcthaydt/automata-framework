@@ -25,6 +25,8 @@ describe('shortcutFor (2D editor spec §12)', () => {
       [key('g'), { action: 'tool', tool: 'fill' }],
       [key('e'), { action: 'tool', tool: 'eraser' }],
       [key('i'), { action: 'tool', tool: 'picker' }],
+      [key('1'), { action: 'choose', index: 0 }],
+      [key('6'), { action: 'choose', index: 5 }],
       [key('['), { action: 'brush', by: -1 }],
       [key(']'), { action: 'brush', by: 1 }],
       [key('ArrowLeft'), { action: 'nudge', by: { x: -1, y: 0 } }],

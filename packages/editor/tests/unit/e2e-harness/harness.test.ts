@@ -28,10 +28,10 @@ describe('the cell under a tap', () => {
 
 describe("the editor's address", () => {
   it('is the "This computer" line, once it is printed', () => {
-    expect(printedAddress('Editing /g with the 2d editor.\n')).toBeUndefined()
-    expect(printedAddress('Editing /g.\n  This computer: http://127.0.0.1:5123/?token=ab\n')).toBe(
-      'http://127.0.0.1:5123/?token=ab',
-    )
+    expect(printedAddress('Opened g in the level editor.\n')).toBeUndefined()
+    expect(
+      printedAddress('Opened g in the level editor.\n  This computer: http://127.0.0.1:5123/?token=ab\n'),
+    ).toBe('http://127.0.0.1:5123/?token=ab')
   })
 })
 
