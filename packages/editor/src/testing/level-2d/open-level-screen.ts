@@ -1,12 +1,12 @@
 import { createGeometryOwner } from '@automata/framework'
 import { mount, unmount } from 'svelte'
-import DocumentScreen from '../../app/level-2d/DocumentScreen.svelte'
-import { createAppProfiles } from '../../app/level-2d/profiles'
+import DocumentScreen from '../../features/document/DocumentScreen.svelte'
+import { createAppProfiles } from '../../shared/level-2d/profiles/app-profiles'
 import { createDocumentController } from '../../features/document/document-controller'
 import type { StorageClock } from '../../shared/kit/storage/clock.ts'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import { createToasts } from '../../shared/kit/widgets/toasts.ts'
-import { createEditorApp } from '../../shared/level-2d/documents/editor-app'
+import { createEditorApp } from '../../app/level-2d/editor-app'
 import { randomIds } from '../../shared/level-2d/model/ids'
 
 // A level's own screen, open on the real page: the document bar, the views and their dialogs, over a workspace that

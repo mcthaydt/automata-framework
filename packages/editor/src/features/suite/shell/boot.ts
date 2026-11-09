@@ -4,6 +4,7 @@
 
 import { createGeometryOwner, type ViewportWindow } from '@automata/framework'
 import { mount, unmount } from 'svelte'
+import type { GestureClock } from '../../../shared/kit/gestures/gesture-clock.ts'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
 import type { GamePublish } from '../../../shared/kit/storage/publish-client.ts'
 import { EDITOR_LIST_PATH, loadEditorList } from '../core'
@@ -26,6 +27,8 @@ export interface SuiteEnv {
   readonly playUrl?: string | undefined
   /** Builds the game into a zip to upload, when the server can: Publish. */
   readonly publish?: GamePublish | undefined
+  /** What the toasts time out on; the page's clock unless a test holds one. */
+  readonly clock?: GestureClock | undefined
 }
 
 export interface SuiteHandle {
@@ -56,6 +59,7 @@ export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<Su
       game: env.game,
       playUrl: env.playUrl,
       publish: env.publish,
+      clock: env.clock,
     },
   })
   return {

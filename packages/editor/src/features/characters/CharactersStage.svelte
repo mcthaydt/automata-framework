@@ -4,7 +4,7 @@
   settings every level has are.
 -->
 <script lang="ts">
-import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
+import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import { characterImages, charactersState } from './characters-state.svelte'
 import DefinitionPreview from './DefinitionPreview.svelte'
 import type { EntitiesSession } from './entities-session'

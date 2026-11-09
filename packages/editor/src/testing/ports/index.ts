@@ -5,17 +5,17 @@ export {
   type CheckOutcome,
   createMemoryChecks,
   type MemoryCheck,
-} from '../../features/suite/memory/memory-checks'
-export { createMemoryGates } from '../../features/suite/memory/memory-gates'
+} from '../../shared/kit/ports/memory/memory-checks'
+export { createMemoryGates } from '../../shared/kit/ports/memory/memory-gates'
 export {
   createMemoryPorts,
   type MemoryPorts,
   type MemoryPortsOptions,
-} from '../../features/suite/memory/memory-ports'
+} from '../../shared/kit/ports/memory/memory-ports'
 export {
   createMemoryWorkspace,
   type MemoryWorkspaceOptions,
-} from '../../features/suite/memory/memory-workspace'
+} from '../../shared/kit/ports/memory/memory-workspace'
 export {
   CHECK_FINDING,
   CHECK_MEASURE,

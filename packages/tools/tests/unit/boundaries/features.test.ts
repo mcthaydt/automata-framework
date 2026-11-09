@@ -44,18 +44,19 @@ describe('featureFindings', () => {
     })
   })
 
-  it('reads Svelte components when asked: a page that imports another feature fails', () => {
+  it('reads the script of a Svelte component like any other source', () => {
     const root = pkg({
-      'features/home/Home.svelte':
-        '<script lang="ts">\nimport { guides } from \'../docs/docs-loader.ts\'\n</script>\n<p>{guides}</p>\n',
-      'features/docs/docs-loader.ts': 'export const guides = 1\n',
+      'features/saves/Slots.svelte':
+        '<script lang="ts">\n  import { volume } from \'../settings/volume.ts\'\n</script>\n<p>{volume}</p>\n',
+      'features/settings/volume.ts': 'export const volume = 1\n',
     })
-    expect(featureFindings(root).files).toHaveLength(1)
-    const { findings, files } = featureFindings(root, undefined, { components: true })
-    expect(files).toHaveLength(2)
-    expect(findings).toMatchObject([
-      { file: join(root, 'src/features/home/Home.svelte'), line: 2, rule: 'feature-import' },
-    ])
+    const { findings } = featureFindings(root)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      file: join(root, 'src/features/saves/Slots.svelte'),
+      line: 2,
+      rule: 'feature-import',
+    })
   })
 
   it('lets a feature import its own files and shared/', () => {
@@ -174,28 +175,38 @@ describe('featureFindings', () => {
     expect(featureFindings(root).findings).toMatchObject([{ rule: 'feature-import' }])
   })
 
-  describe('a shared island', () => {
+  describe('shared islands', () => {
+    // An island is a folder of shared/ that stands alone: it imports itself and other packages, not its siblings.
     const files = {
-      'shared/kit/clock.ts': "import { tile } from '../level-2d/tile.ts'\nexport const clock = tile\n",
-      'shared/kit/text.ts': "import { clock } from './clock.ts'\nexport const text = clock\n",
-      'shared/level-2d/tile.ts': "import { text } from '../kit/text.ts'\nexport const tile = text\n",
+      'shared/kit/store.ts': "import { cell } from '../level-2d/cell.ts'\nexport const s = cell\n",
+      'shared/level-2d/cell.ts': "import { base } from '../kit/base.ts'\nexport const cell = base\n",
+      'shared/kit/base.ts': 'export const base = 1\n',
     }
 
-    it('lets shared/ folders import each other when no island is named', () => {
+    it('fails an island importing a sibling folder of shared/, and only that island', () => {
+      const { findings } = featureFindings(pkg(files), { sharedIslands: ['kit'] })
+      expect(findings).toHaveLength(1)
+      expect(findings[0]).toMatchObject({
+        line: 1,
+        col: 1,
+        rule: 'shared-island',
+        message:
+          '"kit" imports "level-2d" (shared/level-2d/cell.ts).\n' +
+          'shared/kit/ stands alone: it may only use its own files and other packages. Pass what it needs in as an argument, or move the file it imports into shared/kit/.',
+      })
+    })
+
+    it('leaves siblings alone when no island is named', () => {
       expect(featureFindings(pkg(files)).findings).toEqual([])
     })
 
-    it('fails the island importing another shared/ folder, and lets the others import the island', () => {
-      const root = pkg(files)
-      expect(featureFindings(root, 'kit').findings).toMatchObject([
-        {
-          file: join(root, 'src/shared/kit/clock.ts'),
-          rule: 'shared-import',
-          message:
-            '"shared/kit" imports "shared/level-2d" (shared/level-2d/tile.ts).\n' +
-            'shared/kit/ is the reusable part: it may only use itself and other packages. Pass what it needs in, or move this file out of shared/kit/.',
-        },
-      ])
+    it('lets an island import its own files and lets other folders import the island', () => {
+      const root = pkg({
+        'shared/kit/store.ts': "import { base } from './base.ts'\nexport const s = base\n",
+        'shared/kit/base.ts': 'export const base = 1\n',
+        'shared/level-2d/cell.ts': "import { s } from '../kit/store.ts'\nexport const cell = s\n",
+      })
+      expect(featureFindings(root, { sharedIslands: ['kit'] }).findings).toEqual([])
     })
   })
 })
