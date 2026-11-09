@@ -62,10 +62,10 @@ describe('/editor', () => {
     expect(text).toContain(EDITOR_COMMAND)
   })
 
-  it('opens the try-it editor, says its levels are not kept, and how to open it on a game', () => {
+  it('opens the try-it editor, says your work is saved in this browser, and how to open it on a game', () => {
     const view = render(EditorPage)
     expect(view.getByRole('link', { name: 'Try the editor' }).getAttribute('href')).toBe('/editor/app/')
-    expect(view.container.textContent).toContain('Your level stays in this page')
+    expect(view.container.textContent).toContain('Your work is saved in this browser')
     expect(EDITOR_COMMAND).toBe('pnpm exec automata editor')
     expect(view.getByText(EDITOR_COMMAND)).toBeTruthy()
   })
@@ -90,7 +90,7 @@ describe('/editor', () => {
     expect(app.className).toContain('secondary')
     expect(view.container.querySelectorAll('a.button:not(.secondary)')).toHaveLength(1)
     expect(view.container.textContent).toContain(
-      'More editors, made for your phone, tablet or computer: the Automata app.',
+      'Every editor is free on the web. Pay only if you want to download the app for your phone, tablet or computer.',
     )
   })
 })
