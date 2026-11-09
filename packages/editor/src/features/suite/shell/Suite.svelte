@@ -25,6 +25,7 @@ import {
   createTypingDrafts,
   pageTimers,
 } from '../../../shared/kit/storage/typing-drafts'
+import type { Choice, MergeAsk } from '../../../shared/kit/sync/git-engine'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../../shared/kit/widgets/Dialog.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
@@ -43,6 +44,7 @@ import ReadOnlyFile from './ReadOnlyFile.svelte'
 import SuiteHome from './SuiteHome.svelte'
 import SuiteRail from './SuiteRail.svelte'
 import SuiteTopBar from './SuiteTopBar.svelte'
+import SyncConflictDialog from './SyncConflictDialog.svelte'
 import { suiteEntries } from './suite-entries'
 import { suiteHistory } from './suite-history.svelte'
 import { createSuiteSession } from './suite-session'
@@ -217,6 +219,34 @@ $effect(() => {
   synced = sync.status.get()
   return sync.status.subscribe((status) => (synced = status))
 })
+
+// Files that changed here and on GitHub wait for the person's choice. The dialog opens once no word waits to be written
+// (never over a word being typed), "Not now" puts it away, and the top bar's line, a button while files wait, brings it back.
+let conflicts = $state<readonly MergeAsk[]>([])
+let putAway = $state(false)
+let choosing = $state(false)
+let choiceFailed = $state(false)
+let read = 0
+async function readConflicts(): Promise<void> {
+  const mine = ++read
+  const waiting = sync === undefined || sync.status.get().state !== 'conflict' ? [] : await sync.conflicts()
+  if (mine !== read) return
+  conflicts = waiting
+  if (waiting.length === 0) putAway = false
+}
+$effect(() => {
+  if (sync === undefined) return
+  void readConflicts()
+  return sync.status.subscribe(() => void readConflicts())
+})
+async function chooseConflict(path: string, choice: Choice): Promise<void> {
+  if (sync === undefined) return
+  choosing = true
+  choiceFailed = false
+  choiceFailed = !(await sync.resolve(path, choice))
+  choosing = false
+  await readConflicts()
+}
 const line = $derived(
   saveLine({
     pending,
@@ -380,6 +410,7 @@ function openCard(card: EditorCard): void {
       gameMenu={mode === 'compact'}
       onpublish={publish !== undefined ? () => (publishingGame = true) : undefined}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
+      onchoose={conflicts.length > 0 ? () => (putAway = false) : undefined}
     />
     {#if folded}<Menu label="Editors" items={editorMenu} onselect={choose} />{/if}
     {#if mounted?.editor.regions.panel && mode !== 'wide'}
@@ -428,6 +459,15 @@ function openCard(card: EditorCard): void {
   {/each}
   {#snippet actions()}<Button variant="primary" onclick={() => (playOffOpen = false)}>Close</Button>{/snippet}
 </Dialog>
+{#if conflicts.length > 0 && !putAway && pending === 0}
+  <SyncConflictDialog
+    {conflicts}
+    busy={choosing}
+    failed={choiceFailed}
+    onchoose={chooseConflict}
+    onlater={() => (putAway = true)}
+  />
+{/if}
 {#if publish !== undefined}<PublishGameDialog {publish} bind:open={publishingGame} />{/if}
 
 {#snippet tabs({ orientation }: { orientation: 'vertical' | 'horizontal' })}<SuiteRail {entries} {current} {orientation} onselect={choose} />{/snippet}

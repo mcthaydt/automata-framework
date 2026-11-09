@@ -50,6 +50,8 @@ interface Props {
   onpublish: (() => void) | undefined
   /** The open editor's own tools. */
   tools: Snippet | undefined
+  /** Files wait for the person's choice (changed here and on GitHub): the line is a button that asks again. */
+  onchoose?: (() => void) | undefined
 }
 
 const {
@@ -68,6 +70,7 @@ const {
   gameMenu,
   onpublish,
   tools,
+  onchoose,
 }: Props = $props()
 
 const gameItems = $derived([
@@ -91,9 +94,15 @@ function chooseGame(id: string): void {
 
 {#if title !== undefined}{#if titleHref !== undefined}<a class="brand home-link" href={titleHref} aria-label={`${title}: all your games`}>{title}</a>{:else}<span class="brand">{title}</span>{/if}{/if}
 {#if line !== undefined}
-  <span class="where" data-state={line.state} role="status">
-    <Icon name={line.state === 'failed' ? 'alert' : 'check'} size={16} />{line.words}
-  </span>
+  {#if onchoose !== undefined}
+    <button class="where choose" type="button" data-state="failed" onclick={onchoose}>
+      <Icon name="alert" size={16} />{line.words}
+    </button>
+  {:else}
+    <span class="where" data-state={line.state} role="status">
+      <Icon name={line.state === 'failed' ? 'alert' : 'check'} size={16} />{line.words}
+    </span>
+  {/if}
 {/if}
 <div class="tools" data-scroll-region="both">
   <SuitePills {pills} {compact} {onlocate} />
@@ -156,6 +165,19 @@ function chooseGame(id: string): void {
     white-space: nowrap;
     /* The words are short and they are the one thing that says the work is safe: they never give way to the title. */
     flex: none;
+  }
+  /* The line as a button: it asks which file to keep, so it is a 44 px target in the warning colour. */
+  .choose {
+    min-height: var(--size-hit);
+    padding: 0 var(--space-2);
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .choose:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
   }
   .where[data-state='failed'] {
     color: var(--color-state-bad);

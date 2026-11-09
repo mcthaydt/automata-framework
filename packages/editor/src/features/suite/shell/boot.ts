@@ -7,6 +7,7 @@ import { mount, unmount } from 'svelte'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
 import type { GamePublish } from '../../../shared/kit/storage/publish-client.ts'
 import type { Where } from '../../../shared/kit/storage/save-line.ts'
+import type { Choice, MergeAsk } from '../../../shared/kit/sync/git-engine.ts'
 import type { StatusStore } from '../../../shared/kit/sync/sync-status.ts'
 import { EDITOR_LIST_PATH, loadEditorList } from '../core'
 import type { Suite } from './create-suite'
@@ -18,6 +19,10 @@ export interface SuiteSync {
   readonly status: StatusStore
   /** Told which files a pull changed. Returns a way to stop being told. */
   onPulled(listener: (paths: readonly string[]) => void): () => void
+  /** The files that changed here and on GitHub and wait for the person's choice. */
+  conflicts(): Promise<readonly MergeAsk[]>
+  /** Carries out the choice for one of them. `false`: it could not (no internet) and the file still waits. */
+  resolve(path: string, choice: Choice): Promise<boolean>
 }
 
 export interface SuiteEnv {

@@ -292,3 +292,128 @@ describe('an empty repository (Review Focus 4)', () => {
     expect(await d.engine.fetchMain()).toBe('unchanged')
   })
 })
+
+describe('choosing what to keep for a file changed on both sides', () => {
+  const MINE = '[flash]\nintensity = 2\n\n[shake]\nintensity = 1\n'
+  const THEIRS = '[flash]\nintensity = 5\n\n[shake]\nintensity = 1\n'
+  const FEEL_PATH = 'content/feel/feel.toml'
+
+  /** A game on a device and on GitHub, both changed the flash. */
+  async function clash() {
+    const github = createFakeGitHubRest({
+      repo: 'me/game',
+      files: { 'content/editors.toml': LIST, [FEEL_PATH]: FEEL },
+    })
+    const d = await device(github)
+    await pull(d)
+    await d.store.write(FEEL_PATH, MINE)
+    await github.remoteWrite({ [FEEL_PATH]: THEIRS })
+    await pull(d)
+    return { github, d }
+  }
+
+  it('lists what waits, and still lists it to an engine started later', async () => {
+    const { github, d } = await clash()
+    const asks = await d.engine.conflicts?.()
+    expect(asks).toHaveLength(1)
+    expect(asks?.[0]).toMatchObject({ path: FEEL_PATH, reason: 'both-changed', where: 'flash.intensity' })
+    expect(asks?.[0]?.keepBothPath).toBe('content/feel/feel-github.toml')
+    const again = createRestEngine({
+      fetch: github.fetch,
+      token: () => Promise.resolve('ghu'),
+      store: d.store,
+      repo: 'me/game',
+    })
+    expect(await again.conflicts?.()).toHaveLength(1)
+  })
+
+  it('Keep mine: the file here goes to GitHub over theirs, in one commit', async () => {
+    const { github, d } = await clash()
+    const done = await d.engine.resolve?.(FEEL_PATH, 'mine')
+    expect(done).toEqual({ changed: [] })
+    expect(await d.engine.conflicts?.()).toEqual([])
+    await d.engine.commitAll('Edited in Automata: Feel')
+    expect(await d.engine.push()).toBe('pushed')
+    expect(github.file(FEEL_PATH)).toBe(MINE)
+    expect(await d.text(FEEL_PATH)).toBe(MINE)
+  })
+
+  it('Keep GitHub’s: the file here becomes theirs, and nothing is left to push', async () => {
+    const { github, d } = await clash()
+    const done = await d.engine.resolve?.(FEEL_PATH, 'theirs')
+    expect(done).toEqual({ changed: [FEEL_PATH] })
+    expect(await d.text(FEEL_PATH)).toBe(THEIRS)
+    expect(await d.engine.conflicts?.()).toEqual([])
+    expect(await d.engine.hasUnpushed()).toBe(false)
+    expect(github.file(FEEL_PATH)).toBe(THEIRS)
+  })
+
+  it('Keep both: the file here stays, theirs is saved beside it, and both go to GitHub', async () => {
+    const { github, d } = await clash()
+    const done = await d.engine.resolve?.(FEEL_PATH, 'both')
+    expect(done).toEqual({ changed: ['content/feel/feel-github.toml'] })
+    expect(await d.text(FEEL_PATH)).toBe(MINE)
+    expect(await d.text('content/feel/feel-github.toml')).toBe(THEIRS)
+    await d.engine.commitAll('Edited in Automata: Feel')
+    expect(await d.engine.push()).toBe('pushed')
+    expect(github.file(FEEL_PATH)).toBe(MINE)
+    expect(github.file('content/feel/feel-github.toml')).toBe(THEIRS)
+  })
+
+  it('Keep both does not write over a copy that is already there', async () => {
+    const { d } = await clash()
+    await d.store.write('content/feel/feel-github.toml', 'old\n')
+    const done = await d.engine.resolve?.(FEEL_PATH, 'both')
+    expect(done?.changed).toEqual(['content/feel/feel-github-2.toml'])
+    expect(await d.text('content/feel/feel-github.toml')).toBe('old\n')
+  })
+
+  it('a file deleted on GitHub that was changed here: keep mine puts it back, keep GitHub’s deletes it', async () => {
+    const github = createFakeGitHubRest({
+      repo: 'me/game',
+      files: { 'content/editors.toml': LIST, 'content/a.toml': 'a = 1\n' },
+    })
+    const d = await device(github)
+    await pull(d)
+    await d.store.write('content/a.toml', 'a = 2\n')
+    await github.remoteWrite({ 'content/a.toml': null })
+    const out = await pull(d)
+    expect(out?.asks[0]).toMatchObject({ path: 'content/a.toml', reason: 'deleted-there' })
+    expect((await d.engine.conflicts?.())?.[0]?.keepBothPath).toBeUndefined()
+    await d.engine.resolve?.('content/a.toml', 'mine')
+    await d.engine.commitAll('Edited in Automata: A')
+    await d.engine.push()
+    expect(github.file('content/a.toml')).toBe('a = 2\n')
+
+    const other = await device(github)
+    await pull(other)
+    await other.store.write('content/a.toml', 'a = 3\n')
+    await github.remoteWrite({ 'content/a.toml': null })
+    await pull(other)
+    expect(await other.engine.resolve?.('content/a.toml', 'theirs')).toEqual({ changed: ['content/a.toml'] })
+    expect(await other.text('content/a.toml')).toBeUndefined()
+  })
+
+  it('a file deleted here that GitHub changed: keep GitHub’s brings it back', async () => {
+    const github = createFakeGitHubRest({
+      repo: 'me/game',
+      files: { 'content/editors.toml': LIST, 'content/a.toml': 'a = 1\n' },
+    })
+    const d = await device(github)
+    await pull(d)
+    await d.store.remove('content/a.toml')
+    await github.remoteWrite({ 'content/a.toml': 'a = 9\n' })
+    const out = await pull(d)
+    expect(out?.asks[0]).toMatchObject({ path: 'content/a.toml', reason: 'deleted-here' })
+    await d.engine.resolve?.('content/a.toml', 'theirs')
+    expect(await d.text('content/a.toml')).toBe('a = 9\n')
+  })
+
+  it('cannot fetch GitHub’s copy without the network: says so and keeps asking', async () => {
+    const { github, d } = await clash()
+    github.state.offline = true
+    await expect(d.engine.resolve?.(FEEL_PATH, 'theirs')).rejects.toBeInstanceOf(OfflineError)
+    expect(await d.engine.conflicts?.()).toHaveLength(1)
+    expect(await d.text(FEEL_PATH)).toBe(MINE)
+  })
+})

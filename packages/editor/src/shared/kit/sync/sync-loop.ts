@@ -1,4 +1,4 @@
-import { type GitEngine, OfflineError, SyncStopped } from './git-engine'
+import { type Choice, type GitEngine, type MergeAsk, OfflineError, SyncStopped } from './git-engine'
 import {
   commitMessage,
   createStatusStore,
@@ -42,6 +42,10 @@ export interface SyncHandle {
   edited(paths: readonly string[]): void
   /** Pulls now (and pushes what is waiting). */
   pullNow(): Promise<void>
+  /** The files that changed here and on GitHub and wait for the person's choice. */
+  conflicts(): Promise<readonly MergeAsk[]>
+  /** Carries out the choice for one of them, then sends what that leaves to GitHub. `false`: it could not (no internet), and the file still waits. */
+  resolve(path: string, choice: Choice): Promise<boolean>
   stop(): void
 }
 
@@ -60,7 +64,10 @@ export function startSync(options: SyncOptions): SyncHandle {
     if (paused.until !== undefined && now() >= paused.until) paused = undefined
     return paused !== undefined
   }
-  let conflict = false
+  /** Files wait for the person's choice. */
+  let asking = false
+  /** GitHub moved twice while a push was being made: it is tried again on the next pull. */
+  let stuck = false
   /** Generated files edited on GitHub, which the line mentions until the next pull brings something else. */
   let notes: readonly string[] = []
   let chain: Promise<void> = Promise.resolve()
@@ -87,14 +94,21 @@ export function startSync(options: SyncOptions): SyncHandle {
   }
 
   const settled = (): void =>
-    status.set(conflict ? statusOf('conflict') : notes.length > 0 ? savedWithNotes(notes) : statusOf('saved'))
+    status.set(
+      asking || stuck ? statusOf('conflict') : notes.length > 0 ? savedWithNotes(notes) : statusOf('saved'),
+    )
 
   async function bringIn(): Promise<void> {
     if ((await engine.fetchMain()) === 'unchanged') return
     const outcome = await engine.mergeMain()
     if (outcome.changed.length > 0) store.notifyChanged(outcome.changed)
-    conflict = outcome.asks.length > 0
+    asking = outcome.asks.length > 0
     notes = outcome.generated
+  }
+
+  /** A game opened again still has the files that waited: the engine remembers them, the loop asks. */
+  async function remember(): Promise<void> {
+    if (engine.conflicts !== undefined) asking = (await engine.conflicts()).length > 0
   }
 
   /** Pushes what is waiting; if GitHub moved on, brings that in and tries once more. Never forces. */
@@ -104,12 +118,13 @@ export function startSync(options: SyncOptions): SyncHandle {
     if (result === 'offline') return status.set(statusOf('offline'))
     if (result === 'rejected') {
       if (again) {
-        conflict = true
+        stuck = true
         return settled()
       }
       await bringIn()
       return pushWaiting(true)
     }
+    stuck = false
     settled()
   }
 
@@ -118,6 +133,7 @@ export function startSync(options: SyncOptions): SyncHandle {
     if (!(await isSignedIn())) return status.set(statusOf('signed-out'))
     status.set(statusOf('pulling'))
     await bringIn()
+    await remember()
     await pushWaiting()
     if (status.get().state === 'pulling') settled()
   }
@@ -151,6 +167,23 @@ export function startSync(options: SyncOptions): SyncHandle {
     pullNow: () => {
       paused = undefined
       return queue(pull)
+    },
+    async conflicts() {
+      return (await engine.conflicts?.()) ?? []
+    },
+    async resolve(path, choice) {
+      let done = false
+      await queue(async () => {
+        const resolved = await engine.resolve?.(path, choice)
+        if (resolved === undefined) return
+        if (resolved.changed.length > 0) store.notifyChanged(resolved.changed)
+        await remember()
+        // What stays here is a change on top of GitHub's: committed like any edit, and sent now, not ten seconds on.
+        if (choice !== 'theirs') await engine.commitAll(commitMessage([path]))
+        await pushWaiting()
+        done = true
+      })
+      return done
     },
     stop() {
       stopped = true

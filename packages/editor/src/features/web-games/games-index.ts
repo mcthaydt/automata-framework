@@ -42,7 +42,6 @@ export function gameId(title: string, taken: readonly string[]): string {
   }
 }
 
-
 function entryOf(value: unknown): GameEntry | undefined {
   if (typeof value !== 'object' || value === null) return undefined
   const { id, title, changed, github } = value as Record<string, unknown>

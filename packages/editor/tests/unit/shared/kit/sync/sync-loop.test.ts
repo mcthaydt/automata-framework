@@ -89,6 +89,74 @@ describe('startSync: pulling', () => {
   })
 })
 
+describe('startSync: files that wait for a choice', () => {
+  const ASK = {
+    path: 'content/feel/feel.toml',
+    reason: 'both-changed',
+    keepBothPath: 'content/feel/feel-github.toml',
+  } as const
+
+  it('still asks after the game is opened again, though GitHub has nothing new', async () => {
+    engine.waiting = [ASK]
+    const handle = await start()
+    expect(handle.status.get().state).toBe('conflict')
+    expect(await handle.conflicts()).toEqual([ASK])
+  })
+
+  it('has nothing to ask when the engine cannot', async () => {
+    const handle = await start()
+    expect(await handle.conflicts()).toEqual([])
+  })
+
+  it('Keep mine: commits the file as an edit and sends it now', async () => {
+    engine.waiting = [ASK]
+    const handle = await start()
+    expect(await handle.resolve(ASK.path, 'mine')).toBe(true)
+    expect(engine.calls.slice(-3)).toEqual(['resolve:mine', 'commit', 'push'])
+    expect(engine.commits).toEqual(['Edited in Automata: Feel'])
+    expect(handle.status.get()).toEqual({ state: 'saved', line: 'Saved on this device and on GitHub' })
+  })
+
+  it('Keep GitHub’s: tells the editors the file changed and sends nothing', async () => {
+    engine.waiting = [ASK]
+    engine.resolvedChanged.theirs = [ASK.path]
+    const handle = await start()
+    expect(await handle.resolve(ASK.path, 'theirs')).toBe(true)
+    expect(told).toEqual([[ASK.path]])
+    expect(engine.commits).toEqual([])
+    expect(handle.status.get().state).toBe('saved')
+  })
+
+  it('Keep both: tells the editors about the copy and sends the file with it', async () => {
+    engine.waiting = [ASK]
+    engine.resolvedChanged.both = ['content/feel/feel-github.toml']
+    const handle = await start()
+    expect(await handle.resolve(ASK.path, 'both')).toBe(true)
+    expect(told).toEqual([['content/feel/feel-github.toml']])
+    expect(engine.commits).toEqual(['Edited in Automata: Feel'])
+  })
+
+  it('keeps asking about the other files until each has its choice', async () => {
+    const other = { path: 'content/audio/audio.toml', reason: 'both-changed' } as const
+    engine.waiting = [ASK, other]
+    const handle = await start()
+    await handle.resolve(ASK.path, 'mine')
+    expect(handle.status.get().state).toBe('conflict')
+    expect(await handle.conflicts()).toEqual([other])
+    await handle.resolve(other.path, 'mine')
+    expect(handle.status.get().state).toBe('saved')
+  })
+
+  it('says it could not, and the file still waits, when the network is gone', async () => {
+    engine.waiting = [ASK]
+    const handle = await start()
+    engine.online = false
+    expect(await handle.resolve(ASK.path, 'theirs')).toBe(false)
+    expect(handle.status.get().state).toBe('offline')
+    expect(await handle.conflicts()).toEqual([ASK])
+  })
+})
+
 describe('startSync: saving', () => {
   it('makes one commit 10 seconds after the last save, naming what was edited', async () => {
     const handle = await start()

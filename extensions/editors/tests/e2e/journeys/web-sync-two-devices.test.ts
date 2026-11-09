@@ -48,7 +48,7 @@ test('one game on two devices through GitHub: kept, got, changed on both, reopen
   const profiles = [mkdtempSync(join(tmpdir(), 'af-sync-a-')), mkdtempSync(join(tmpdir(), 'af-sync-b-'))]
   const launch = async (profile: string): Promise<BrowserContext> => {
     const context = await chromium.launchPersistentContext(profile, { viewport: { width: 390, height: 844 } })
-    await github.install(context, site.url)
+    await github.install(context, site.url, profile)
     return context
   }
   const contexts: BrowserContext[] = []
@@ -163,6 +163,60 @@ test('one game on two devices through GitHub: kept, got, changed on both, reopen
       .toContain('flash_frames = 7')
     expect(github.rest.messages()).toHaveLength(before + 1)
     await expect(pageA.getByRole('status').filter({ hasText: SAVED })).toBeVisible()
+
+    // Both change the flash while GitHub cannot be reached, and A gets there first. B's flash now clashes with A's: B is
+    // asked, in words, and nothing of B's is lost. B can put it away, and the top bar brings the question back; a reload
+    // keeps it; Keep both leaves B's flash in the game and GitHub's beside it, and A is given B's flash.
+    await reopened.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+    await expect(reopened.getByRole('spinbutton', { name: 'Most flash frames' }).first()).toBeHidden({
+      timeout: 20_000,
+    })
+    await openFeel(reopened)
+    await expect(reopened.getByRole('spinbutton', { name: 'Most flash frames' }).first()).toHaveValue('7')
+    github.rest.state.offline = true
+    await type(pageA, 'Most flash frames', '3')
+    await type(reopened, 'Most flash frames', '15')
+    for (const page of [pageA, reopened])
+      await expect(page.getByRole('status').filter({ hasText: OFFLINE })).toBeVisible({ timeout: 40_000 })
+    github.rest.state.offline = false
+    await pageA.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+    await expect
+      .poll(() => github.rest.file('content/feel/feel.toml'), { timeout: 40_000 })
+      .toContain('flash_frames = 3')
+
+    await reopened.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+    const asked = reopened.getByRole('dialog', { name: 'Feel changed here and on GitHub' })
+    await expect(asked).toBeVisible({ timeout: 20_000 })
+    await expect(asked).toContainText('Nothing has been lost.')
+    // Nothing is sent over GitHub's while it waits.
+    expect(github.rest.file('content/feel/feel.toml')).toContain('flash_frames = 3')
+    await asked.getByRole('button', { name: 'Not now' }).click()
+    await expect(asked).toBeHidden()
+    const line = reopened.getByRole('button', {
+      name: 'A file changed here and on GitHub. Choose which to keep.',
+    })
+    await line.click()
+    await expect(asked).toBeVisible()
+    await reopened.reload()
+    await expect(reopened.getByRole('dialog', { name: 'Feel changed here and on GitHub' })).toBeVisible({
+      timeout: 20_000,
+    })
+    await reopened.getByRole('button', { name: 'Keep both' }).click()
+    await expect(reopened.getByRole('dialog')).toBeHidden({ timeout: 20_000 })
+    await expect
+      .poll(() => github.rest.file('content/feel/feel.toml'), { timeout: 40_000 })
+      .toContain('flash_frames = 15')
+    expect(github.rest.file('content/feel/feel-github.toml')).toContain('flash_frames = 3')
+    await expect(reopened.getByRole('status').filter({ hasText: SAVED })).toBeVisible({ timeout: 20_000 })
+
+    await pageA.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+    await expect(pageA.getByRole('spinbutton', { name: 'Most flash frames' }).first()).toBeHidden({
+      timeout: 20_000,
+    })
+    await pressInList(pageA, 'Never more than')
+    await expect(pageA.getByRole('spinbutton', { name: 'Most flash frames' }).first()).toHaveValue('15', {
+      timeout: 20_000,
+    })
   } finally {
     for (const context of contexts) await context.close().catch(() => undefined)
     await site.stop()

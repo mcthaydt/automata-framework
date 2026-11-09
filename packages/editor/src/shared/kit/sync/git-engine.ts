@@ -47,6 +47,14 @@ export interface PullOutcome {
 
 export type PushResult = 'pushed' | 'offline' | 'rejected'
 
+/** What the person chose for a file that changed here and on GitHub. */
+export type Choice = 'mine' | 'theirs' | 'both'
+
+/** The files an engine wrote while carrying out a choice: the editors reload them. */
+export interface Resolved {
+  readonly changed: readonly string[]
+}
+
 export interface GitEngine {
   /** Whether GitHub's `main` has commits the game does not. */
   fetchMain(): Promise<'unchanged' | 'changed'>
@@ -58,4 +66,12 @@ export interface GitEngine {
   hasUnpushed(): Promise<boolean>
   /** Pushes without force. */
   push(): Promise<PushResult>
+  /** The files waiting for the person's choice, kept across restarts. An engine that cannot ask has none. */
+  conflicts?(): Promise<readonly MergeAsk[]>
+  /**
+   * Carries out a choice for one waiting file. `mine` leaves it as it is here and lets the next push send it over
+   * GitHub's; `theirs` takes GitHub's; `both` keeps this one and saves GitHub's beside it. It fetches before it writes, so
+   * a lost network throws `OfflineError` and the file keeps waiting.
+   */
+  resolve?(path: string, choice: Choice): Promise<Resolved>
 }

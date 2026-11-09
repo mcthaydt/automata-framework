@@ -23,8 +23,11 @@ export interface FakeGitHub {
   readonly rest: FakeGitHubRest
   /** The app has been let into the repository (the person chose it on GitHub's install page). */
   allowApp(): void
-  /** Answers the sign-in function and GitHub for one browser context. `siteUrl` is where sign-in comes back to. */
-  install(context: BrowserContext, siteUrl: string): Promise<void>
+  /**
+   * Answers the sign-in function and GitHub for one browser context. `siteUrl` is where sign-in comes back to. `device`
+   * names the profile: the sign-in cookie lasts across closing and opening the browser, so the same device stays signed in.
+   */
+  install(context: BrowserContext, siteUrl: string, device?: string): Promise<void>
   /** Every address of github.com (not the API) a page opened in a new tab. */
   readonly opened: string[]
 }
@@ -33,6 +36,8 @@ export function createFakeGitHub(options: { login: string; name: string }): Fake
   const repo = `${options.login}/${options.name}`
   const rest = createFakeGitHubRest({ repo })
   let installed = false
+  /** Devices holding a sign-in cookie. */
+  const devices = new Set<string>()
 
   async function api(route: Route): Promise<void> {
     const request = route.request()
@@ -74,8 +79,8 @@ export function createFakeGitHub(options: { login: string; name: string }): Fake
     allowApp: () => {
       installed = true
     },
-    async install(context, siteUrl) {
-      let signedIn = false
+    async install(context, siteUrl, device = `device-${String(devices.size)}`) {
+      let signedIn = devices.has(device)
       let issued = 0
       await context.route('https://api.github.com/**', api)
       await context.route('https://github.com/**', (route) => {
@@ -95,10 +100,12 @@ export function createFakeGitHub(options: { login: string; name: string }): Fake
         }
         if (name === 'sign-out') {
           signedIn = false
+          devices.delete(device)
           return route.fulfill({ status: 204, headers: CORS })
         }
         if (name === 'start') {
           signedIn = true
+          devices.add(device)
           const back = new URL(url.searchParams.get('back') ?? '/', 'http://editors.invalid')
           return route.fulfill({ status: 302, headers: { location: `${siteUrl}${back.search}` } })
         }

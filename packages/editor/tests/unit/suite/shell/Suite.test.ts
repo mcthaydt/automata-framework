@@ -8,6 +8,7 @@ import { SAMPLE_GAME, samplePorts } from '#src/features/suite/memory/sample-port
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
+import type { Choice, MergeAsk } from '#src/shared/kit/sync/git-engine.ts'
 import { createStatusStore, statusOf } from '#src/shared/kit/sync/sync-status.ts'
 
 // The suite started the way `main.ts` starts it, over memory ports.
@@ -184,11 +185,37 @@ describe('a game kept on GitHub', () => {
       },
     }) as unknown as SuiteEditor<unknown>
 
+  const FEEL: MergeAsk = {
+    path: 'content/feel/feel.toml',
+    reason: 'both-changed',
+    keepBothPath: 'content/feel/feel-github.toml',
+  }
+
   function kept() {
     const status = createStatusStore(statusOf('saved'))
     const listeners = new Set<(paths: readonly string[]) => void>()
+    const chosen: { path: string; choice: Choice }[] = []
+    let waiting: readonly MergeAsk[] = []
+    let reachable = true
     return {
       status,
+      chosen,
+      /** Files wait for a choice, and the line says so. */
+      ask(...asks: MergeAsk[]) {
+        waiting = asks
+        status.set(statusOf('conflict'))
+      },
+      goOffline() {
+        reachable = false
+      },
+      conflicts: async () => waiting,
+      resolve: async (path: string, choice: Choice) => {
+        if (!reachable) return false
+        chosen.push({ path, choice })
+        waiting = waiting.filter((each) => each.path !== path)
+        if (waiting.length === 0) status.set(statusOf('saved'))
+        return true
+      },
       onPulled(listener: (paths: readonly string[]) => void) {
         listeners.add(listener)
         return () => listeners.delete(listener)
@@ -231,5 +258,53 @@ describe('a game kept on GitHub', () => {
     expect(await screen.findByText('open 1')).toBeInTheDocument()
     sync.pulled(['content/tuning.toml'])
     expect(await screen.findByText('open 2')).toBeInTheDocument()
+  })
+
+  it('asks which to keep when a file changed here and on GitHub, and carries out the choice', async () => {
+    const sync = kept()
+    await startKept(sync, async () => ({ n: 1 }))
+    await screen.findByText('open 1')
+    sync.ask(FEEL)
+    const dialog = await screen.findByRole('dialog', { name: 'Feel changed here and on GitHub' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Keep mine' }))
+    expect(sync.chosen).toEqual([{ path: FEEL.path, choice: 'mine' }])
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(await screen.findByText('Saved on this device and on GitHub')).toBeInTheDocument()
+  })
+
+  it('Not now puts it away, and the line in the top bar brings it back', async () => {
+    const sync = kept()
+    await startKept(sync, async () => ({ n: 1 }))
+    await screen.findByText('open 1')
+    sync.ask(FEEL)
+    await userEvent.click(await screen.findByRole('button', { name: 'Not now' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(sync.chosen).toEqual([])
+    await userEvent.click(
+      screen.getByRole('button', { name: 'A file changed here and on GitHub. Choose which to keep.' }),
+    )
+    expect(await screen.findByRole('dialog', { name: 'Feel changed here and on GitHub' })).toBeInTheDocument()
+  })
+
+  it('says when GitHub could not be reached, and keeps asking', async () => {
+    const sync = kept()
+    await startKept(sync, async () => ({ n: 1 }))
+    await screen.findByText('open 1')
+    sync.ask(FEEL)
+    sync.goOffline()
+    await userEvent.click(await screen.findByRole('button', { name: 'Keep GitHub’s' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Couldn’t reach GitHub')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('asks about the next file once one has its choice', async () => {
+    const sync = kept()
+    await startKept(sync, async () => ({ n: 1 }))
+    await screen.findByText('open 1')
+    sync.ask(FEEL, { path: 'content/audio/audio.toml', reason: 'both-changed' })
+    await userEvent.click(await screen.findByRole('button', { name: 'Keep mine' }))
+    expect(
+      await screen.findByRole('dialog', { name: 'Audio changed here and on GitHub' }),
+    ).toBeInTheDocument()
   })
 })

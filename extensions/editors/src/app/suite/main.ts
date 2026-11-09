@@ -95,7 +95,15 @@ async function startEditors(page: Extract<ContentPage, { opened: unknown }>): Pr
     playUrl: gameUrl,
     playOff,
     publish: publish === undefined ? undefined : browserPublish(publish, document),
-    sync: sync === undefined ? undefined : { status: sync.status, onPulled: sync.onPulled },
+    sync:
+      sync === undefined
+        ? undefined
+        : {
+            status: sync.status,
+            onPulled: sync.onPulled,
+            conflicts: sync.conflicts,
+            resolve: sync.resolve,
+          },
     ...(page.kind === 'game'
       ? {
           gameKey: page.game.id,

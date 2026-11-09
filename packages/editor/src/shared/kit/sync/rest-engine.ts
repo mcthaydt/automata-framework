@@ -13,9 +13,10 @@ import {
   OfflineError,
   type PullOutcome,
   type PushResult,
+  type Resolved,
   SyncStopped,
 } from './git-engine'
-import { mergeFile } from './merge-drivers'
+import { keepBothName, mergeFile } from './merge-drivers'
 
 const API = 'https://api.github.com'
 const NOTES = '.automata/'
@@ -24,6 +25,11 @@ const EDITOR_LIST = 'content/editors.toml'
 const TOO_BIG = 'This game is too big to sync on the web. Use the Automata app.'
 const WAIT = 'GitHub asked us to wait. Your game is saved on this device.'
 const SIGN_IN_AGAIN = 'Sign in to GitHub again to keep your game there.'
+
+/** A file that changed on both sides, with GitHub's id for it at the head it was asked about (`null`: deleted there). */
+export interface AskedFile extends MergeAsk {
+  readonly theirs: string | null
+}
 
 /** What both sides last agreed on, kept at `.automata/sync.json`. */
 export interface SyncFile {
@@ -37,7 +43,7 @@ export interface SyncFile {
   /** A commit message for the changes here that GitHub does not have yet. */
   readonly pending?: { readonly message: string; readonly at: number } | undefined
   /** Files that changed on both sides and wait for the person; they are left out of every push. */
-  readonly asked?: readonly string[] | undefined
+  readonly asked?: readonly AskedFile[] | undefined
 }
 
 export interface RestEngineOptions {
@@ -143,9 +149,19 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
     return fromBase64((await json<{ content: string }>(`/git/blobs/${sha}`)).content)
   }
 
+  /** `art/hero-github.png`, or `art/hero-github-2.png` when that is taken: a name nothing here has. */
+  async function freeName(path: string): Promise<string> {
+    const dot = path.lastIndexOf('.')
+    const split = dot > path.lastIndexOf('/') + 1 ? dot : path.length
+    for (let n = 1; ; n++) {
+      const candidate = n === 1 ? path : `${path.slice(0, split)}-${String(n)}${path.slice(split)}`
+      if ((await store.read(candidate)) === undefined) return candidate
+    }
+  }
+
   /** The files changed here since the last agreement: path to its id now, or `null` for one that is gone. */
   function changesHere(file: SyncFile, local: Map<string, Local>): Map<string, string | null> {
-    const asked = new Set(file.asked ?? [])
+    const asked = new Set((file.asked ?? []).map((ask) => ask.path))
     const changes = new Map<string, string | null>()
     for (const [path, { sha }] of local)
       if (!asked.has(path) && file.files[path] !== sha) changes.set(path, sha)
@@ -194,7 +210,7 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
       const changed: string[] = []
       const generated: string[] = []
       const asks: MergeAsk[] = []
-      const asked: string[] = []
+      const asked: AskedFile[] = []
 
       const paths = new Set([...local.keys(), ...theirs.keys(), ...Object.keys(file.files)])
       for (const path of paths) {
@@ -224,17 +240,21 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
           await store.remove(path)
           changed.push(path)
         } else {
-          asks.push({
+          // A file that changed on both sides can always be kept in both versions; only a deletion has no second copy.
+          const keepBothPath =
+            outcome.keepBothPath ?? (outcome.reason === 'both-changed' ? keepBothName(path) : undefined)
+          const ask: MergeAsk = {
             path,
             reason: outcome.reason,
             ...(outcome.where === undefined ? {} : { where: outcome.where }),
-            ...(outcome.keepBothPath === undefined ? {} : { keepBothPath: outcome.keepBothPath }),
-          })
-          asked.push(path)
+            ...(keepBothPath === undefined ? {} : { keepBothPath }),
+          }
+          asks.push(ask)
+          asked.push({ ...ask, theirs: there ?? null })
         }
       }
       const files: Record<string, string> = Object.fromEntries(theirs)
-      for (const path of asked) {
+      for (const { path } of asked) {
         const old = file.files[path]
         if (old === undefined) delete files[path]
         else files[path] = old
@@ -248,6 +268,37 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
       })
       fetched = undefined
       return { changed, asks, generated }
+    },
+
+    async conflicts() {
+      return ((await readSync()).asked ?? []).map(({ theirs: _, ...ask }) => ask)
+    },
+
+    async resolve(path, choice): Promise<Resolved> {
+      const file = await readSync()
+      const ask = file.asked?.find((each) => each.path === path)
+      if (ask === undefined) return { changed: [] }
+      // Everything that can fail on the network comes before the first write, so a lost connection changes nothing.
+      const theirs = ask.theirs === null ? undefined : await blobBytes(ask.theirs)
+      const changed: string[] = []
+      const put = async (to: string, data: Uint8Array): Promise<void> => {
+        const written = await store.write(to, data)
+        if (!written.ok) throw new Error(written.message)
+        changed.push(to)
+      }
+      if (choice === 'theirs') {
+        if (theirs === undefined) {
+          await store.remove(path)
+          changed.push(path)
+        } else await put(path, theirs)
+      } else if (choice === 'both' && theirs !== undefined && ask.keepBothPath !== undefined)
+        await put(await freeName(ask.keepBothPath), theirs)
+      // Both sides now start from GitHub's version of the file: what is here is a change on top of it, and goes up next.
+      const files = { ...file.files }
+      if (ask.theirs === null) delete files[path]
+      else files[path] = ask.theirs
+      await writeSync({ ...file, files, asked: (file.asked ?? []).filter((each) => each.path !== path) })
+      return { changed }
     },
 
     async commitAll(message) {

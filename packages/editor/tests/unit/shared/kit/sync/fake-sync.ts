@@ -1,4 +1,11 @@
-import type { GitEngine, PullOutcome, PushResult } from '#src/shared/kit/sync/git-engine.ts'
+import type {
+  Choice,
+  GitEngine,
+  MergeAsk,
+  PullOutcome,
+  PushResult,
+  Resolved,
+} from '#src/shared/kit/sync/git-engine.ts'
 import { OfflineError } from '#src/shared/kit/sync/git-engine.ts'
 import type { Timers, Visibility } from '#src/shared/kit/sync/sync-loop.ts'
 
@@ -69,6 +76,23 @@ export class FakeEngine implements GitEngine {
   online = true
   pushAnswers: PushResult[] = []
   pull: PullOutcome = { changed: [], asks: [], generated: [] }
+  /** Files that wait for the person, as the real engine remembers them. */
+  waiting: MergeAsk[] = []
+  /** What a choice wrote, by choice. */
+  resolvedChanged: Record<Choice, readonly string[]> = { mine: [], theirs: [], both: [] }
+  resolved: { path: string; choice: Choice }[] = []
+
+  async conflicts(): Promise<readonly MergeAsk[]> {
+    return this.waiting
+  }
+
+  async resolve(path: string, choice: Choice): Promise<Resolved> {
+    this.calls.push(`resolve:${choice}`)
+    if (!this.online) throw new OfflineError()
+    this.resolved.push({ path, choice })
+    this.waiting = this.waiting.filter((ask) => ask.path !== path)
+    return { changed: this.resolvedChanged[choice] }
+  }
 
   async fetchMain(): Promise<'unchanged' | 'changed'> {
     this.calls.push('fetch')
@@ -79,6 +103,7 @@ export class FakeEngine implements GitEngine {
   async mergeMain(): Promise<PullOutcome> {
     this.calls.push('merge')
     this.remoteChanged = false
+    this.waiting = [...this.pull.asks]
     return this.pull
   }
 

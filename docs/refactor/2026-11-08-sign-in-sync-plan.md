@@ -564,4 +564,15 @@ build's, and the overall `stages done / stages`), and commit the change with the
   go to GitHub on the next open; a pull opens the open editor again (it opens on its start, its selection is lost) once
   no word waits, after leaving a focused field, and the write path forgets the pulled files so the next edit is judged
   against them. The journey found the last two (a focused field written in the middle of its removal; "changed on disk").
-  Not built: the conflict dialog. The try-it (`?sample`) page now opens on the editor the visitor left.
+  The try-it (`?sample`) page now opens on the editor the visitor left.
+- 2026-11-09 (stage 4, build, the conflict dialog; the coordinator's word): a file changed on both sides is asked about
+  in `SyncConflictDialog`: Keep mine, Keep GitHub's, Keep both (a deletion has two choices). Rulings: the engine stores
+  GitHub's id for each waiting file in `.automata/sync.json` (`asked` is now a list of files, not paths), so a choice needs
+  no new pull and a waiting file is still asked about after a reload (the loop asks the engine on every pull; before this
+  it forgot on reload); a choice fetches before it writes, so a lost network changes nothing and the file keeps waiting;
+  Keep mine makes GitHub's version the file's base, so what is here goes up as the next commit and is never forced; Keep
+  both saves GitHub's copy at `-github` (`-github-2` if taken) for any file changed on both sides, not only a picture,
+  because a clash in a TOML key has no other place to keep both; the dialog opens only once no word waits (never over a
+  word being typed), "Not now" puts it away and the top bar's line becomes a button that asks again. The journey found
+  that its fake GitHub signed a device out when the browser closed (the real cookie lasts), so the fake now keeps a
+  device signed in by profile. The journey's page is the built suite: `vite build` in `extensions/editors` before it.
