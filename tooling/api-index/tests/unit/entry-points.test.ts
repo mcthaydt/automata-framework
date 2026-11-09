@@ -3,12 +3,27 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { entryPoints, HELD_UNTIL_3D_PUBLIC, MissingTypesError, templateImports } from '#src/entry-points.ts'
+import {
+  betaEntries,
+  entryPoints,
+  HELD_UNTIL_3D_PUBLIC,
+  MissingTypesError,
+  templateImports,
+} from '#src/entry-points.ts'
+import { workspacePackages } from '../../../release/src/publishable-packages.ts'
 
 const repo = fileURLToPath(new URL('../../fixtures/repo', import.meta.url))
 const betaRepo = fileURLToPath(new URL('../../fixtures/beta-repo', import.meta.url))
 const afRoot = fileURLToPath(new URL('../../../..', import.meta.url))
 const unbuilt = fileURLToPath(new URL('../../fixtures/unbuilt', import.meta.url))
+
+/** The names of the private workspace packages: the ones the reference lists as beta. */
+const privateNames = (): Set<string> =>
+  new Set(
+    workspacePackages(afRoot)
+      .filter(({ manifest }) => manifest.private === true)
+      .map(({ manifest }) => manifest.name),
+  )
 
 describe('entryPoints', () => {
   it("lists each published package's typed entry points, skipping private packages, bins and untyped keys", () => {
@@ -76,18 +91,19 @@ describe('beta entry points', () => {
   })
 
   it("lists every package AF's 2D and story templates import, and holds back the 3D ones", () => {
-    const listed = new Set(entryPoints(afRoot).map((entry) => entry.package))
+    // The beta entries read source, so this needs no `pnpm build` (the published ones read emitted declarations).
+    const listed = new Set(betaEntries(afRoot).map((entry) => entry.package))
     for (const specifier of templateImports(afRoot)) {
       const name = specifier.split('/').slice(0, 2).join('/')
       if (HELD_UNTIL_3D_PUBLIC.includes(name as never)) expect(listed).not.toContain(name)
-      else expect(listed, specifier).toContain(name)
+      else if (privateNames().has(name)) expect(listed, specifier).toContain(name)
     }
   })
 
   it('marks the private ones beta and the published ones not', () => {
-    const byName = new Map(entryPoints(afRoot).map((entry) => [entry.package, entry]))
+    const byName = new Map(betaEntries(afRoot).map((entry) => [entry.package, entry]))
     expect(byName.get('@automata/narrative')?.beta).toBe(true)
-    expect(byName.get('@automata/sim')?.beta).toBe(false)
+    expect(byName.has('@automata/sim')).toBe(false)
     expect(byName.has('@automata/3d')).toBe(false)
   })
 })
