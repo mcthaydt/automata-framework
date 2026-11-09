@@ -700,7 +700,7 @@ describe('checkCompileWorker', () => {
   })
 })
 
-// the motion chunks (GSAP, Lenis) load after the page is live, never with a page, and together stay within 36 kB gzip.
+// the motion chunks (Motion, Lenis) load after the page is live, never with a page, and together stay within 12 kB gzip.
 // The shared tokens chunk is also the layout's, so it is neither counted nor forbidden.
 describe('checkMotionChunks', () => {
   const [ANIMATE, SMOOTH] = MOTION_SOURCES
@@ -744,8 +744,8 @@ describe('checkMotionChunks', () => {
     return site
   }
 
-  it('holds the motion chunks to 36 kB gzip', () => {
-    expect(MAX_MOTION_GZIP_BYTES).toBe(36_000)
+  it('holds the motion chunks to 12 kB gzip', () => {
+    expect(MAX_MOTION_GZIP_BYTES).toBe(12_000)
   })
 
   it('passes small chunks that no page names, and reports their gzip size without the shared tokens chunk', () => {
@@ -767,7 +767,7 @@ describe('checkMotionChunks', () => {
   it('fails chunks over the budget, with the byte count', () => {
     const site = withChunks(noise(MAX_MOTION_GZIP_BYTES * 2))
     expect(checkMotionChunks(site.root, manifest()).failures).toEqual([
-      expect.stringMatching(/^the motion chunks are \d+ bytes gzip, over the 36000 byte budget/),
+      expect.stringMatching(/^the motion chunks are \d+ bytes gzip, over the 12000 byte budget/),
     ])
   })
 

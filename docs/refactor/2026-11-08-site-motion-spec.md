@@ -4,6 +4,12 @@ The Owner, 2026-11-08: "Add lucide, I think that's what it's called, to the webs
 scrolling and gsap for SUPER SUBTLE microanimations and page transitions, do the same for the editors, we can do that
 when it makes sense to."
 
+**Changed 2026-11-09 (the Owner: "Yes" to replacing GSAP).** GSAP is out. The moves use **Motion** (motion.dev, MIT,
+`motion/mini`, the browser's own Web Animations underneath), and the editors use Motion and Svelte's built-in
+transitions. Lenis stays. Wherever this document says GSAP below it is the history of how the choice was made; the
+sections that say what to build (3 to 9) are rewritten for Motion. The reason was the GSAP licence (2.4): fine for a
+website, a question for paid apps with animation tools. Motion has no such question and is a third of the size.
+
 This is stage 1 of the normal pipeline (audit and proposal), written on AF PR #520's branch, the newest site tip. The
 plan is [2026-11-08-site-motion-plan.md](2026-11-08-site-motion-plan.md). The editors are not built here (section 9).
 
@@ -18,15 +24,15 @@ plan is [2026-11-08-site-motion-plan.md](2026-11-08-site-motion-plan.md). The ed
 - **Lenis smooths the mouse wheel and trackpad only.** Phones and tablets keep their own scrolling, untouched. A wheel
   notch settles in about a quarter of a second (measured below), close to native. Anchors, the keyboard, Find in page
   and the scroll bar stay the browser's own.
-- **GSAP runs the two things only script can time:** the new page settling in after a click, and the parts of Home's
+- **Motion runs the two things only script can time:** the new page settling in after a click, and the parts of Home's
   sections arriving as they scroll into view. Everything else that moves (hover, press, the search dialog, the phone
   menu, the copy tick) is CSS, which the site already does.
-- **The cost is about 33 KB gzip, and only for visitors who get the motion.** It downloads after the first paint and
+- **The cost is about 9 KB gzip (it was 33 KB with GSAP), and only for visitors who get the motion.** It downloads after the first paint and
   after the page is live, is never preloaded, and is not downloaded at all for a visitor who asks for less motion or
   for less data. The first screen never moves on load, so the speed scores do not move.
-- **GSAP is free but not open source.** Its licence (the "Standard 'no charge' license", owned by Webflow since 2025) is
-  fine for a website. It is a question for the editors, which are sold as apps and include animation tools (section 9),
-  so this proposal recommends the browser's own animation there instead.
+- **GSAP was free but not open source, so it is not used.** Its licence (the "Standard 'no charge' license", owned by
+  Webflow since 2025) is fine for a website but a question for the editors, which are sold as apps and include animation
+  tools. Motion is MIT, so there is nothing to ask (section 2.4).
 
 ## 2. What is there today (audit, measured 2026-11-08 on #520's tip `09d5a347`)
 
@@ -69,12 +75,15 @@ No smooth-scroll library, no GSAP, no scroll reveals and no page transitions exi
 ### 2.3 The libraries, measured
 
 Bundled with esbuild, minified, the way the site would import them (`import Lenis from 'lenis'`,
-`import { gsap } from 'gsap'`):
+`import { gsap } from 'gsap'`; the build now uses `import { animate } from 'motion/mini'`, below):
 
 | Package | Version | Licence | Built | gzip -9 |
 | --- | --- | --- | --- | --- |
 | `lenis` | 1.3.27 (2026-10-15) | MIT | 18,800 B | 5,445 B |
-| `gsap` core with CSSPlugin | 3.15.0 (2026-04-13) | GSAP Standard License | 70,794 B | 27,605 B |
+| `gsap` core with CSSPlugin (not used; the first choice) | 3.15.0 (2026-04-13) | GSAP Standard License | 70,794 B | 27,605 B |
+| `motion` (`motion/mini`, the choice from 2026-11-09) | 14.6.0 (2026-10-22) | MIT | the page's two motion chunks with Lenis: 9,340 B gzip in the build | |
+
+The two motion chunks measured 33,056 B gzip with GSAP and 9,340 B with Motion.
 
 `gsap` 3.15.1 (2026-11-04) is newer but under 14 days old today; the build pins the newest version that is at least 14
 days old on its day. ScrollTrigger (18.0 KB gzip) is not needed: an `IntersectionObserver` starts each reveal.
@@ -98,7 +107,7 @@ scratch files, not committed):
 - **Smooth scrolling to the top.** `scrollTo(0, 0)` with `:root { scroll-behavior: smooth }` jumped at once in Chromium;
   `scrollIntoView()` glided. WebKit is not installed in this container, so neither was measured there.
 
-### 2.4 The GSAP licence, read 2026-11-08
+### 2.4 The GSAP licence, read 2026-11-08 (why GSAP was dropped)
 
 From <https://gsap.com/standard-license> (effective 2025-04-30, modified 2025-05-30): use is free in commercial or
 non-commercial "web sites, games, components, and other software". It forbids use "in tools that allow users to build
@@ -110,8 +119,10 @@ before a change stays under the terms it came with, and using a later version ac
 licence "in its discretion if you fail to comply" with the terms. So the exact pin matters, and every GSAP upgrade
 re-reads the licence page first (plan audit, A7).
 
-For the website (free to read, no animation builder) this is a permitted use. The credits page says "Built on open
-source"; GSAP's entry names its own licence and says it is free but not open source.
+For the website (free to read, no animation builder) this was a permitted use. For the paid desktop and mobile apps,
+which charge a fee and include the Sequence editor (a visual animation editor), it was not clearly permitted. The
+Owner replaced GSAP with Motion (MIT) on 2026-11-09, so no GSAP entry exists on the credits page and no licence has to
+be re-read before an upgrade.
 
 ## 3. Decisions
 
@@ -124,11 +135,11 @@ source"; GSAP's entry names its own licence and says it is free but not open sou
 3. **Anchors stay the browser's.** `scroll-behavior: smooth` on `:root` stays (off under reduced motion, as now), and
    the motion layer sets the root to `scroll-behavior: auto` for the instant of a page change, so a new page always
    starts at its top on its first frame in every engine.
-4. **GSAP 3.x core only, for the page settle and the reveals.** No ScrollTrigger, no ScrollSmoother, no SplitText, no
-   plugins. Hover, press and things that appear with `[open]` stay CSS.
-5. **Nothing is hidden by CSS or by the HTML.** Only the motion module hides anything, only after GSAP has loaded, and
-   only parts that are wholly below the window at that moment. Without script, before GSAP arrives, after a fast scroll,
-   on a deep link or for Find in page, the content is simply there. Once GSAP has hidden a part, anything that brings
+4. **Motion's `animate` (the `motion/mini` build), for the page settle and the reveals.** Nothing else of Motion: no
+   scroll helpers, no springs, no React or Svelte bindings. Hover, press and things that appear with `[open]` stay CSS.
+5. **Nothing is hidden by CSS or by the HTML.** Only the motion module hides anything, only after Motion has loaded, and
+   only parts that are wholly below the window at that moment. Without script, before Motion arrives, after a fast scroll,
+   on a deep link or for Find in page, the content is simply there. Once Motion has hidden a part, anything that brings
    it on screen (a scroll, Find in page, Tab) makes it arrive at once, finished within 780 ms (plan audit, A3).
 6. **Reduced motion means still, as today.** A visitor who asks for less motion, or whose browser asks for less data
    (`navigator.connection.saveData`), downloads neither library and sees the site exactly as it is now. If the setting
@@ -137,7 +148,7 @@ source"; GSAP's entry names its own licence and says it is free but not open sou
    uses, and a test holds the two equal. When the editors' turn comes they move into the kit's `tokens.json`, so both
    read one source (not now: the editors v2 build is changing `tokens.json` on another branch).
 8. **The curve is the kit's.** Everything enters and leaves on `--ease-out`, `cubic-bezier(0.22, 1, 0.36, 1)` (ease-out
-   quint), which is GSAP's `power4.out`. No ease-in, no bounce, no elastic (taste-skill: ease-in feels slow).
+   quint), given to Motion as the same four numbers. No ease-in, no bounce, no elastic (taste-skill: ease-in feels slow).
 
 ## 4. The tokens ("super subtle", in numbers)
 
@@ -162,7 +173,7 @@ section: the seventh part onwards starts with the sixth).
 
 ## 5. Where it moves
 
-### 5.1 A page change (GSAP)
+### 5.1 A page change (Motion)
 
 When a click (or Back, Forward or a search result) loads another page, the old content goes at once and the new page's
 content fades up from 6 px below over 220 ms. There is no exit animation, so a click never waits. Header and footer stay
@@ -170,13 +181,13 @@ still. When only the page's data changes (one guide to another), only the elemen
 the guide's article) settles, so the docs sidebar and contents stay put; otherwise `main` does. The old content is
 hidden by a mark on `<html>` (`data-page-change`) set just before SvelteKit swaps the page and removed as the settle
 starts (or after 1 s whatever happens), so the new page never shows at full opacity for a frame first. The first page
-of a visit never animates. A same-page `#hash` link is not a page change. When the settle ends, GSAP clears its inline
-styles, so no transform is left on `main` (a lasting transform would change how `position: fixed` children sit).
+of a visit never animates. A same-page `#hash` link is not a page change. When the settle ends, the move's inline
+styles are cleared, so no transform is left on `main` (a lasting transform would change how `position: fixed` children sit).
 
 Focus, the skip link and SvelteKit's route announcement are unchanged: the content is in the page from the first frame,
 at opacity 0 for at most 220 ms.
 
-### 5.2 Home's sections arriving (GSAP)
+### 5.2 Home's sections arriving (Motion)
 
 Each `main .home-section` wholly below the window when motion starts, or when a page change lands on a page that has
 some (Docs to Home by the header, Back to Home), arrives once on that visit to the page, when its top passes 85% of the window's
@@ -212,7 +223,7 @@ and no signature hero move.
 - **Copy.** The tick that replaces the copy icon fades in over 200 ms, and so does "Copied".
 - **Buttons.** One transition rule per control, reading `--t-press`, `--t-hover` and `--ease-out` (fixes M1); the
   unused `lift` and `settle` keyframes go, replaced by the one `motion-rise` keyframe these use (fixes M2).
-- **Print.** `@media print` shows `main` and every part GSAP touched (each carries `data-motion`) at full opacity with
+- **Print.** `@media print` shows `main` and every part a move touched (each carries `data-motion`) at full opacity with
   no transform, whatever a reveal was doing. Other transforms on the page (icons, the marquee) print as they are.
 
 ### 5.4 Scrolling (Lenis)
@@ -230,11 +241,11 @@ returns) is never fought by a glide still running.
 - `src/shared/motion/motion-layer.ts` is the only motion code in the layout's bundle (the budget allows it: the heaviest
   page preloads about 35 KB of the 48,000 bytes). It runs after hydration, which already waits for the first paint.
 - It decides first: reduced motion or Save-Data, nothing loads. Otherwise, in the first idle moment
-  (`requestIdleCallback`, falling back to a 1 ms timeout), it imports `./animate.ts` (GSAP), and on a fine pointer
+  (`requestIdleCallback`, falling back to a 1 ms timeout), it imports `./animate.ts` (Motion), and on a fine pointer
   outside the playground `./smooth-scroll.ts` (Lenis and its 5-rule stylesheet). These are separate dynamic chunks,
   never modulepreloaded.
-- **Budget, checked by `pnpm check:site`:** the two motion chunks and what they import together stay within 36,000
-  bytes gzip (measured today: 33,050 for the libraries), and no page modulepreloads either. The Lighthouse assertions in
+- **Budget, checked by `pnpm check:site`:** the two motion chunks and what they import together stay within 12,000
+  bytes gzip (measured 2026-11-09 with Motion and Lenis: 9,340; it was 36,000 and 33,056 with GSAP), and no page modulepreloads either. The Lighthouse assertions in
   `lighthouserc.json` stay as they are and must still pass on all six pages.
 - The reveals do not move the layout (transform and opacity only), so CLS cannot rise from them.
 
@@ -279,10 +290,13 @@ The Owner: "do the same for the editors, we can do that when it makes sense to".
 - **No smooth scrolling in the editors.** Their panels, lists and inspector are tools: a wheel there should move exactly
   as far as the hand did, and on the canvas the wheel zooms and pans. Lenis also cannot smooth the many nested scroll
   regions (`data-scroll-region`) without one instance each.
-- **Decided by the Owner, 2026-11-08 23:33: "Use gsap for the editor UI motion".** The editors use GSAP core with the
-  same tokens and curve as the site, for their own interface only (the moves listed below). GSAP is never the engine
-  behind what a user animates in a game (Sequence's timeline, Feel); those stay AF's own code. The licence facts in
-  section 2.4 stand; the editors' plan records them and re-reads the licence page before pinning, as the site does.
+- **Decided by the Owner, 2026-11-09: Motion and Svelte's built-ins, not GSAP.** (On 2026-11-08 the Owner chose GSAP
+  for the editor UI motion; on 2026-11-09 the licence question for the paid apps led to "Yes" to Motion instead.) The
+  editors use Svelte's own `transition:`, `in:` and `out:` directives where they are enough (a dialog or a card
+  appearing and leaving: 0 KB extra), and Motion's `animate` where script has to time a move (a tick that draws
+  itself, a crossfade of a value that changes). Same tokens and curve as the site, for their own interface only (the
+  moves listed below). Neither is ever the engine behind what a user animates in a game (Sequence's timeline, Feel);
+  those stay AF's own code. Motion is MIT, so nothing about the paid apps needs asking.
 - **Where it fits:**
   - switching editors in the sidebar or tab bar: the work panel's content fades in, 160 ms, no travel;
   - dialogs and phone sheets (New level, Publish, Export, Import, Ask, the conflict and recovery dialogs): the dialog
@@ -300,12 +314,11 @@ The Owner: "do the same for the editors, we can do that when it makes sense to".
   demos and every game.
 - Scroll-linked effects, parallax, pinned sections, a custom cursor, a signature hero move, counters on the numbers row
   and any change of layout, copy or colour.
-- The View Transitions API: it would do the page change for nothing, but the Owner asked for GSAP, which also runs the
-  reveals.
+- The View Transitions API: it would do the page change for nothing, but it cannot do the reveals, and the Owner asked
+  for a scripted animation library.
 
 ## 11. For the Owner
 
-1. The editors: decided, GSAP for the editor UI motion (section 9). Smooth scrolling in the editors stays out, as
+1. The editors: decided, Motion and Svelte's built-ins for the editor UI motion (section 9). Smooth scrolling in the editors stays out, as
    recommended, unless the Owner says otherwise.
-2. GSAP on the credits page reads "GSAP Standard License: free to use, not open source". Say if it should be worded
-   differently.
+2. The credits page lists Lenis and Motion, both MIT. There is no GSAP entry.

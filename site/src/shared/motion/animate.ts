@@ -1,7 +1,7 @@
-// The moves: a page settling in after a click, and Home's sections arriving. GSAP core only, loaded after the page is
-// live and never for a visitor who asked for less motion. Everything runs in one context, so `finish()` can put every
-// element back to exactly what the markup says, with no inline style left behind.
-import { gsap } from 'gsap'
+// The moves: a page settling in after a click, and Home's sections arriving. Motion's mini `animate` (the browser's own
+// Web Animations underneath), loaded after the page is live and never for a visitor who asked for less motion. Every
+// move is tracked, so `finish()` can put each element back to exactly what the markup says, with no inline style left.
+import { animate as move } from 'motion/mini'
 import { MOTION } from './motion-tokens.ts'
 import type { RevealPart } from './reveal-steps.ts'
 
@@ -15,71 +15,72 @@ export interface Animate {
   finish(): void
 }
 
-const CLEAR = 'opacity,transform'
+interface Running {
+  complete(): void
+  finished: Promise<unknown>
+}
+
+// A move's two ends name the same transform functions, so the browser interpolates each one and not a matrix.
+const held = (travel: number, scale: number) =>
+  `translateY(${travel}px)${scale === 1 ? '' : ` scale(${scale})`}`
+const rest = (scale: number) => `translateY(0px)${scale === 1 ? '' : ' scale(1)'}`
 
 export function createAnimate(): Animate {
-  const context = gsap.context(() => {})
   // `data-motion` marks what a move has touched, so printing can show exactly that at full opacity.
-  const marked = new Set<Element>()
-  const mark = (element: Element) => {
+  const marked = new Set<HTMLElement>()
+  const running = new Map<HTMLElement, Running>()
+  const clear = (element: HTMLElement) => {
+    element.style.removeProperty('opacity')
+    element.style.removeProperty('transform')
+    element.removeAttribute('data-motion')
+    marked.delete(element)
+    running.delete(element)
+  }
+  const mark = (element: HTMLElement) => {
     marked.add(element)
     element.setAttribute('data-motion', '')
   }
-  const unmark = (element: Element) => {
-    marked.delete(element)
-    element.removeAttribute('data-motion')
+  /** Start a move; when it ends, the element goes back to the markup, unless a newer move has taken it over. */
+  const start = (
+    element: HTMLElement,
+    keyframes: { opacity: [number, number]; transform: [string, string] },
+    duration: number,
+    delay: number,
+  ) => {
+    const current = move(element, keyframes, { duration, ease: [...MOTION.ease], delay })
+    running.set(element, current)
+    current.finished.then(() => {
+      if (running.get(element) === current) clear(element)
+    })
   }
 
   return {
     pageIn(target) {
       mark(target)
-      context.add(() => {
-        gsap.fromTo(
-          target,
-          { opacity: 0, y: MOTION.settle },
-          {
-            opacity: 1,
-            y: 0,
-            duration: MOTION.page,
-            ease: MOTION.ease,
-            clearProps: CLEAR,
-            onComplete: () => unmark(target),
-          },
+      start(target, { opacity: [0, 1], transform: [held(MOTION.settle, 1), rest(1)] }, MOTION.page, 0)
+    },
+    hide(parts) {
+      for (const { element, product } of parts) {
+        const target = element as HTMLElement
+        mark(target)
+        target.style.opacity = '0'
+        target.style.transform = held(MOTION.rise, product ? MOTION.productScaleFrom : 1)
+      }
+    },
+    reveal(parts) {
+      parts.forEach(({ element, product }, index) => {
+        const scale = product ? MOTION.productScaleFrom : 1
+        start(
+          element as HTMLElement,
+          { opacity: [0, 1], transform: [held(MOTION.rise, scale), rest(scale)] },
+          MOTION.reveal,
+          Math.min(index, MOTION.staggerCap - 1) * MOTION.stagger,
         )
       })
     },
-    hide(parts) {
-      context.add(() => {
-        for (const { element, product } of parts) {
-          mark(element)
-          gsap.set(element, { opacity: 0, y: MOTION.rise, scale: product ? MOTION.productScaleFrom : 1 })
-        }
-      })
-    },
-    reveal(parts) {
-      context.add(() => {
-        const timeline = gsap.timeline()
-        parts.forEach(({ element }, index) => {
-          timeline.to(
-            element,
-            {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              duration: MOTION.reveal,
-              ease: MOTION.ease,
-              clearProps: CLEAR,
-              onComplete: () => unmark(element),
-            },
-            Math.min(index, MOTION.staggerCap - 1) * MOTION.stagger,
-          )
-        })
-      })
-    },
     finish() {
-      for (const tween of context.getTweens()) tween.progress(1)
-      context.revert()
-      for (const element of [...marked]) unmark(element)
+      for (const current of [...running.values()]) current.complete()
+      for (const element of [...marked]) clear(element)
     },
   }
 }
