@@ -11,6 +11,7 @@
 <script lang="ts">
 import type { Component } from 'svelte'
 import { attachGestures } from '../../shared/kit/gestures/attach-gestures'
+import type { GestureClock } from '../../shared/kit/gestures/gesture-clock'
 import type { History } from '../../shared/kit/history/history'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { IdSource } from '../../shared/level-2d/model/ids'
@@ -41,6 +42,8 @@ interface Props {
   oninspector?: () => void
   /** Where the tool pill floats, or a dock at the foot; with it at the top, Fit, Details and the layer message move down. */
   toolsAt?: 'top' | 'bottom' | 'dock'
+  /** The gestures' time; the browser's when absent. Journeys pass their test clock. */
+  gestureClock?: GestureClock | undefined
 }
 
 const {
@@ -58,6 +61,7 @@ const {
   inspectorOpen = false,
   oninspector = () => {},
   toolsAt = 'bottom',
+  gestureClock,
 }: Props = $props()
 
 // svelte-ignore state_referenced_locally
@@ -103,6 +107,7 @@ $effect(() => {
   const stopGestures = attachGestures(
     element,
     levelGestures(session, { onundo: () => onundo?.(), onredo: () => onredo?.() }),
+    { clock: gestureClock },
   )
   const leave = (): void => session.editor.pointerLeave()
   element.addEventListener('pointerleave', leave)

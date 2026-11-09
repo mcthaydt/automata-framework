@@ -1,6 +1,6 @@
 # Runbook
 
-Two procedures from the QB spec (§4.1, QB.1): what to do when credentials are lost or stolen, and how to rebuild
+Two procedures: what to do when credentials are lost or stolen, and how to rebuild
 everything from Git. The Owner runs both; an agent never holds these credentials (AGENTS.md).
 
 ## Lost credentials
@@ -16,11 +16,12 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 |---|---|---|
 | The Owner's GitHub account (password, sessions, SSH keys, personal access tokens) | GitHub | Everything: push, approve the `release` environment, change settings |
 | `AF_READ_TOKEN` (classic token, `read:packages`) | Secrets of each game repository | Install `@mcthaydt` packages from GitHub Packages |
-| `RUKEN_TOKEN` | Secrets of each game repository | `ruken publish` for that game (`game-release.yml`) |
+| `RUKEN_TOKEN` | Secrets of each game repository | `ruken publish` for that game |
 | `SHIP_DEV_SSH_KEY`, `SHIP_DEV_KNOWN_HOSTS` | Secrets of each game repository | Deploy a game to the dev host |
 | The `af-linux` runner registration | The runner PC (`owner-pc-wsl-af`, the Owner's Windows PC under WSL2 Ubuntu-24.04; service `actions.runner.mcthaydt-automata-framework.owner-pc-wsl-af`) | Run the checks, the games' CI and the consumer smoke for this repository (since 2026-10-30, when `AF_LINUX_RUNNER` went back from `af-mac` to `af-linux`) |
 | The `af-mac` runner registrations | The Owner's Mac | Run CI jobs and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
-| The npm token for npmjs.org | Not created yet (DX.11) | Will publish the public packages |
+| The npm token for npmjs.org | Not created yet | Will publish the public packages |
+| `SKILLS_TOKEN` | This repository's secrets (not created yet) | Push the agent package to `mcthaydt/automata-skills` after each release; without it the release says "No skills token yet." and the mirror waits |
 
 **Do this, in order, from a device you still trust:**
 
@@ -49,13 +50,13 @@ Everything that builds, tests and publishes AF is in this repository:
 - Ruken's packages as vendored tarballs (`vendor/ruken/`);
 - the workflows, the plans, the specs and the decisions (`docs/`).
 
-Published versions live in GitHub Packages, and from DX.11 also on npmjs.org.
+Published versions live in GitHub Packages, and from the first public release also on npmjs.org.
 
 **Not in Git, and where each is kept:**
 
 | What | Where it is held | How to restore it |
 |---|---|---|
-| Repository settings: the `release` environment and its reviewer, rulesets, private vulnerability reporting | GitHub repository settings | Recreate them by hand from this list (QB.1 Owner actions in [02](02-master-delivery-plan.md)) |
+| Repository settings: the `release` environment and its reviewer, rulesets, private vulnerability reporting | GitHub repository settings | Recreate them by hand from this list (the Owner's setup steps are in [the archived delivery plan](archive/02-master-delivery-plan.md)) |
 | Repository variables `AF_LINUX_RUNNER`, `AF_GPU_RUNNER` | GitHub repository settings | Unset means `af-linux`; set them only to move jobs (2026-10-30: `AF_LINUX_RUNNER` = `af-linux`; it was `af-mac` from about 2026-10-17) |
 | Game repository secrets and variables (`AF_READ_TOKEN`, `RUKEN_TOKEN`, `RUKEN_API`, `RUKEN_GAME`, `SHIP_DEV_*`) | Each game repository | Create new tokens, as in "Lost credentials" |
 | The `af-linux` self-hosted runner | The Owner's PC (WSL2 Ubuntu with Docker) | Register a new runner with the label `af-linux` (Ruken's `docs/self-hosted-runner.md`) |
@@ -72,4 +73,4 @@ Published versions live in GitHub Packages, and from DX.11 also on npmjs.org.
 3. Push to a new GitHub repository, then restore the settings in the table above.
 4. If GitHub Packages lost the published versions, run the release workflow from `main` again. Changesets
    publishes every version the registry is missing, and `verify-published.ts` checks the result.
-5. Record what was rebuilt, and when, in [03 Continuation](03-continuation-prompt.md).
+5. Record what was rebuilt, and when, in [03 Continuation](archive/03-continuation-prompt.md).

@@ -1,8 +1,8 @@
 name: consumer smoke
 
 # Installs AF's packed packages into a project outside the workspace and uses them as a game would: imports,
-# TypeScript 7 and 6, the bins, and a Vite bundle with one Ruken SDK and no eval (M2.4 spec §3.6). It takes
-# minutes, so it runs only on pull requests that touch how packages are built or published (spec §4), and
+# TypeScript 7 and 6, the bins, and a Vite bundle with one Ruken SDK and no eval. It takes
+# minutes, so it runs only on pull requests that touch how packages are built or published, and
 # nightly and before every publish in release-checks.yml. Drafts skip it, as they skip parity and e2e on af-linux;
 # run it locally with `pnpm build && node tooling/consumer-smoke/src/run.ts --from packs` before marking a pull request ready.
 
@@ -45,7 +45,7 @@ jobs:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
-      # The smoke boots Chromium (DX.2a). A no-op once the pinned browser is in the runner's cache; on a clean machine
+      # The smoke boots Chromium. A no-op once the pinned browser is in the runner's cache; on a clean machine
       # it fetches it here (Owner, 2026-10-30: "You can do all 3 as well").
       - run: pnpm exec playwright install chromium-headless-shell
       - run: pnpm build

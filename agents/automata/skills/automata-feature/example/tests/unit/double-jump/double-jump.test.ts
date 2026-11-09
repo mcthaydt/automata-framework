@@ -1,7 +1,7 @@
 import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
-import { AIR_JUMPS, Body, GRAVITY, JUMP_SPEED } from './body.component.ts'
-import { doubleJumpPlugin } from './double-jump.plugin.ts'
+import { AIR_JUMPS, Body, GRAVITY, JUMP_SPEED } from '../../../src/features/double-jump/body.component.ts'
+import { doubleJumpPlugin } from '../../../src/features/double-jump/double-jump.plugin.ts'
 
 // Step 3 of the flow: the golden test. It drives the sim with commands only, as a player would, and reads the
 // result back from components. The last test pins the whole run to one hash: any change to the rules changes it.

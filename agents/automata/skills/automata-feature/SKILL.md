@@ -9,16 +9,18 @@ Every gameplay change goes through the sim, in four steps: the **command** (what
 (the rule), the **golden test** (proof, in ticks and a hash), then the **view** (how it looks). Write the test before
 the rule, run it, and watch it fail for the reason you expect.
 
-The worked example below is a double jump on a flat floor. Its files are real: they are typechecked, tested and
-boundary-checked in the framework's CI against this version's packages.
+The worked example below is a double jump on a flat floor, added to a game made with `automata create-game`: the
+feature's code in `src/features/double-jump/`, its test in `tests/unit/double-jump/`, as the game's own `square`
+feature is. Its files are real: they are typechecked, tested and boundary-checked in the framework's CI against this
+version's packages.
 
 | Step | File | What it shows |
 |---|---|---|
-| State | [example/src/sim/body.component.ts](example/src/sim/body.component.ts) | Integer fields; tuning constants beside them |
-| Command | [example/src/sim/jump.command.ts](example/src/sim/jump.command.ts) | A Zod payload; the only way a player changes the sim |
-| Rule | [example/src/sim/double-jump.system.ts](example/src/sim/double-jump.system.ts) | Read commands and components, write components; no clock, no randomness |
-| Register | [example/src/sim/double-jump.plugin.ts](example/src/sim/double-jump.plugin.ts) | One plugin lists every definition |
-| Golden test | [example/src/sim/double-jump.test.ts](example/src/sim/double-jump.test.ts) | Drive with commands, read components, pin a hash |
+| State | [example/src/features/double-jump/body.component.ts](example/src/features/double-jump/body.component.ts) | Integer fields; tuning constants beside them |
+| Command | [example/src/features/double-jump/jump.command.ts](example/src/features/double-jump/jump.command.ts) | A Zod payload; the only way a player changes the sim |
+| Rule | [example/src/features/double-jump/double-jump.system.ts](example/src/features/double-jump/double-jump.system.ts) | Read commands and components, write components; no clock, no randomness |
+| Register | [example/src/features/double-jump/double-jump.plugin.ts](example/src/features/double-jump/double-jump.plugin.ts) | One plugin lists every definition; `src/app/game.ts` adds it to the game |
+| Golden test | [example/tests/unit/double-jump/double-jump.test.ts](example/tests/unit/double-jump/double-jump.test.ts) | Drive with commands, read components, pin a hash |
 
 ## 1. Command and state
 
@@ -30,7 +32,7 @@ boundary-checked in the framework's CI against this version's packages.
 
 ## 2. The golden test, before the rule
 
-In `src/sim/<feature>.test.ts`:
+In `tests/unit/<feature>/<feature>.test.ts`:
 
 1. Create the sim with a fixed seed and your plugin (`createSim({ seed: 1, plugins: [...] })`) and spawn what the test
    needs. Dispose every sim after its test.
@@ -40,21 +42,23 @@ In `src/sim/<feature>.test.ts`:
 4. Pin a scripted run to `sim.hash()`. Record the hash the first time the behavior is right. Later, a different hash
    means the behavior changed: find out why, and never paste the new hash in to make it pass.
 
-Run it (`vitest run src/sim/<feature>.test.ts`) and confirm it fails because the rule does not exist yet.
+Run it (`pnpm test tests/unit/<feature>/`) and confirm it fails because the rule does not exist yet.
 
 ## 3. The rule
 
-Write the system in `<feature>.system.ts` with `defineSystem({ name, phase, run(ctx) { … } })`:
+Write the system in `src/features/<feature>/<feature>.system.ts` with `defineSystem({ name, phase, run(ctx) { … } })`:
 
 - `ctx.commands.of(Jump)` gives this tick's commands; `ctx.query(Body)` the entities; `entity.get` / `entity.set`
   read and write components; `ctx.emit` sends an event the renderer can react to.
 - Pick the phase for the rule's order in the tick (`input`, `physics`, `postPhysics`, …).
-- Add it to the plugin. Then run the test until it passes, then `automata check --sim-only --json`.
+- Add it to the plugin, and the plugin to `src/app/game.ts`. Then run the test until it passes, then
+  `automata check --sim-only --json`.
 
 ## 4. The view
 
 The renderer reads each step's render delta (components not declared `render: false`) and events, and draws them,
-interpolating between ticks. Add or change the view in `src/render/` only after the test passes, and keep every
+interpolating between ticks. Add or change the feature's view (`<feature>.view.ts`, beside its sim files) only after
+the test passes, and keep every
 gameplay decision in the sim: the view never changes state.
 
 ## Done when

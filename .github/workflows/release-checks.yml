@@ -1,14 +1,13 @@
 name: release checks
 
-# The checks only a release needs (core-and-2D refactor spec section 3.4, O5): they take minutes, and a pull request
+# The checks only a release needs: they take minutes, and a pull request
 # gains nothing from them that its own checks, parity and journeys do not already give. They run before every publish
 # (release-packages.yml calls this workflow and its publish job waits for it), nightly, and by hand.
 #
 # What they cover: every example and old demo builds; each core package's API report matches its source and every
-# API break is declared by a changeset (PRODUCT.1); the packages build, and the built files hold up (dist test); the
-# API index and llms-full.txt come from the built .d.ts (DX.4); the automata-api skill and the plugin are in step
-# and Claude Code validates them (DX.7); the packed packages install and work outside the workspace (M2.4 spec
-# §3.6); and the playground's browser journeys pass in every engine the site supports.
+# API break is declared by a changeset; the packages build, and the built files hold up (dist test); the
+# API index and llms-full.txt come from the built .d.ts; the automata-api skill and the plugin are in step
+# and Claude Code validates them; the packed packages install and work outside the workspace; and the playground's browser journeys pass in every engine the site supports.
 
 on:
   workflow_call:
@@ -49,29 +48,29 @@ jobs:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
-      # The consumer smoke boots Chromium (DX.2a) and the playground journeys run in all three engines.
+      # The consumer smoke boots Chromium and the playground journeys run in all three engines.
       - run: pnpm exec playwright install --with-deps chromium webkit firefox
         if: runner.environment == 'github-hosted'
       # A self-hosted runner has the system libraries installed once and no sudo; the browsers themselves are
       # fetched into its cache here (a no-op when they are already there).
       - run: pnpm exec playwright install chromium webkit firefox
         if: runner.environment == 'self-hosted'
-      # Every one-file example builds through the runner (EX spec §5).
+      # Every one-file example builds through the runner.
       - run: pnpm build:examples
-      # Every old feature demo builds (examples/README.md) until EX.4 ports and deletes them.
+      # Every old feature demo builds (examples/README.md) until each is ported to a one-file example and deleted.
       - run: pnpm build:demos
-      # PRODUCT.1 (PRODUCT spec §2 F6): each core package's API report matches its source, and every API break
+      # Each core package's API report matches its source, and every API break
       # against origin/main's reports is declared by a changeset.
       - run: pnpm api-report
       - run: pnpm build
       - run: pnpm --filter @mcthaydt/release test:dist
-      # DX.4: the API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
+      # The API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
       - run: pnpm api-index
-      # DX.7: the automata-api skill carries that api.md and the plugin its version; then Claude Code validates the
+      # The automata-api skill carries that api.md and the plugin its version; then Claude Code validates the
       # plugin and the marketplace (--strict).
       - run: pnpm agent-skills
       - run: pnpm plugin:validate
-      # The packed packages installed outside the workspace (M2.4 spec §3.6).
+      # The packed packages installed outside the workspace.
       - run: node tooling/consumer-smoke/src/run.ts --from packs
       # The playground's feasibility and frame journeys (the website's embedded player), in every engine.
       - run: pnpm --filter @mcthaydt/automata-site test:e2e:playground

@@ -63,10 +63,18 @@ describe('automata-verify', () => {
 
 describe('automata-feature', () => {
   const skill = readFileSync(join(SKILLS, 'automata-feature/SKILL.md'), 'utf8')
-  const files = readdirSync(join(SKILLS, 'automata-feature/example/src/sim')).sort()
+  // The example is laid out as a new game is: the feature's code in src/features/, its test in tests/unit/.
+  const files = [
+    ...readdirSync(join(SKILLS, 'automata-feature/example/src/features/double-jump')).map(
+      (file) => `src/features/double-jump/${file}`,
+    ),
+    ...readdirSync(join(SKILLS, 'automata-feature/example/tests/unit/double-jump')).map(
+      (file) => `tests/unit/double-jump/${file}`,
+    ),
+  ].sort()
 
   it.each(files)('links the example file %s', (file) => {
-    expect(skill).toContain(`(example/src/sim/${file})`)
+    expect(skill).toContain(`(example/${file})`)
   })
 })
 

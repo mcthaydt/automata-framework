@@ -88,6 +88,7 @@ onDestroy(() => {
         canvas={services.canvas}
         onundo={services.onundo}
         onredo={services.onredo}
+        gestureClock={services.gestureClock}
         toolsAt={mode === 'compact' ? 'dock' : 'top'}
         showLayers={mode === 'compact'}
         layersOpen={panelOpen}

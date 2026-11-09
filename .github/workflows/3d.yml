@@ -141,15 +141,12 @@ jobs:
         if: always() && runner.os == 'Linux'
         run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
 
-  # base-3d's sim is its role files in src/ since #279 (the GL spec), which `pnpm boundaries --game` checks in the
-  # checks job of ci.yml; game-ci skips its own sim-roots check inside this repository, so `src` here only matters to a
-  # copy of this job outside it.
+  # base-3d's sim (its role files in src/) is checked by `pnpm boundaries --game` in the checks job of ci.yml.
   base-3d:
     name: base-3d through game-ci
     if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
     uses: ./.github/workflows/game-ci.yml
     with:
       working-directory: games/base-3d
-      sim-roots: src
       artifact-name: base-3d-dist
       runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}

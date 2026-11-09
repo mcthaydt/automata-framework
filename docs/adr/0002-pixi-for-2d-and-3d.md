@@ -1,8 +1,8 @@
 # ADR 0002: PixiJS for 2D and 3D
 
-- Status: Accepted by Owner direction (2026-10-11); written-spec review pending
+- Status: Accepted by Owner direction (2026-10-11); its written spec was accepted under the standing rule (Owner, 2026-10-30: "Auto accept all spec and plans")
 - Date: 2026-10-11
-- Supersedes: the `render-three` package in the [2026-10-01 master spec](../superpowers/specs/2026-10-01-automata-framework-overview-design.md) §4 and §8, and the S3 consequences for A2/A4
+- Supersedes: the `render-three` package in the [2026-10-01 master spec](../archive/superpowers/specs/2026-10-01-automata-framework-overview-design.md) §4 and §8, and the S3 consequences for A2/A4
 
 ## Context
 The 2026-10-01 design had two render adapters: Three.js (WebGPURenderer with a TSL post stack) for 3D and PixiJS 8 for 2D. Spikes S3 and S4 both passed. Since then, the two reference games have settled on Pixi: FloorFifty (2D) ships on Pixi 8, and The Last Light renders a real 3D clinic with Pixi 8.22 and the `@pixi/3d` 0.1.0-beta.2 closed beta (View3D, perspective camera, fog, Sprite3D billboards, GLB props, a GLSL + WGSL post chain), falling back from WebGPU to WebGL. The Owner directed on 2026-10-11: "we'll use PixiJS for 2D and 3D".

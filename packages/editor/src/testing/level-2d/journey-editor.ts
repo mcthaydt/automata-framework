@@ -17,7 +17,7 @@ import { createAppProfiles } from '../../shared/level-2d/profiles/app-profiles'
 import type { EditorApp, OpenDocument } from '../../shared/level-2d/session/editor-app-types'
 import type { IpadProfile } from '../kit/ipad-profiles.ts'
 import { arrived } from '../kit/layout-sizes.ts'
-import { createTestClock } from '../kit/test-clock'
+import { createTestClock, type TestClock } from '../kit/test-clock'
 
 // The editor on an iPad for the journeys (the kit's harness: `IPAD_PROFILES`, `createPointers`, `turned`):
 // the app's own screen with the real Pixi canvases and the real geometry owner over a memory workspace that keeps what
@@ -29,6 +29,8 @@ export interface JourneyEditor {
   readonly document: OpenDocument
   readonly workspace: Workspace
   readonly downloads: readonly DownloadFile[]
+  /** The editor's time, storage's and the gestures': it moves only when the journey moves it. */
+  readonly clock: TestClock
   /** The level canvas's surface (the element the pointers drive). */
   surface(): HTMLElement
   /** The project in the document right now. */
@@ -73,6 +75,8 @@ export async function openJourneyEditor(
       viewOf: componentOf,
       toasts,
       clock,
+      // The gestures run on the same test clock: a tap lasts no time at all, however slow the machine.
+      gestureClock: clock,
       read: (path: string) => workspace.store.read(path),
       workspace,
       ids: counterIds(100),
@@ -82,6 +86,7 @@ export async function openJourneyEditor(
   await settleLayout()
   const editor: JourneyEditor = {
     app,
+    clock,
     document: opened.document,
     workspace,
     downloads,
@@ -105,8 +110,8 @@ export async function openJourneyEditor(
   const host = document.querySelector<HTMLElement>('[data-level-canvas]')
   if (host === null) throw new Error('no level canvas host')
   const waited = Date.now()
-  while (host.dataset['state'] !== 'drawn') {
-    if (Date.now() - waited > 15_000) throw new Error(`the canvas never drew (${host.dataset['state']})`)
+  while (host.dataset.state !== 'drawn') {
+    if (Date.now() - waited > 15_000) throw new Error(`the canvas never drew (${host.dataset.state})`)
     await arrived()
   }
   return editor

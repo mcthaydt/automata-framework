@@ -1211,10 +1211,10 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   `dev-target` example), `docs/guides/publish-to-*.md` (show the template's workflow)
 - Test: `packages/tools/tests/unit/shared/create-game/template-ci.test.ts`
 
-- [ ] **Step 1: Failing test:** a new game has `.github/workflows/release.yml` that runs on a tag, on `ubuntu-latest`,
+- [x] **Step 1: Failing test:** a new game has `.github/workflows/release.yml` that runs on a tag, on `ubuntu-latest`,
   with `pnpm check`, `pnpm build:web` and an itch.io publish guarded by `BUTLER_API_KEY`; it parses as YAML and passes
   `actionlint` when Docker is present.
-- [ ] **Step 2:** Implement; the stranger's journey checks the file exists. Mark ready.
+- [x] **Step 2:** Implement; the stranger's journey checks the file exists. Mark ready.
   `feat(create-game): a new game has its own release workflow`
 
 ---
@@ -1229,7 +1229,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Test: `pnpm plugin:validate`; `tooling/agent-skills/tests/unit/skills-text.test.ts` (no `src/sim/`, "reference host",
   "networked truth" or `vitest run src/`)
 
-- [ ] **Step 1:** Failing text test, then rewrite (A1, A2). `pnpm boundaries` passes on the new example. Commit.
+- [x] **Step 1:** Failing text test, then rewrite (A1, A2). `pnpm boundaries` passes on the new example. Commit.
   `docs(agents): the skills teach the refactored framework`
 
 ### Task 16.2: One generated reference
@@ -1240,7 +1240,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   (`release:version`), `AGENTS.md` (one command after an export change)
 - Test: `tooling/api-index/tests/unit/outputs.test.ts`
 
-- [ ] **Step 1:** Failing test: one `pnpm api-index --write` writes both files from one index; `pnpm agent-skills
+- [x] **Step 1:** Failing test: one `pnpm api-index --write` writes both files from one index; `pnpm agent-skills
   --write` no longer writes `api.md`. Implement (A3). Commit. `build(docs): one generator for the API reference`
 
 ### Task 16.3: The docs agree with the direction
@@ -1253,8 +1253,8 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Test: `tooling/check-style/tests/unit/{plan-comments-yaml-md.test.ts,links.test.ts}`,
   `tooling/repo-hygiene/tests/unit/source-names-wired.test.ts`
 
-- [ ] **Step 1: Failing tests** for the YAML/Markdown plan-ID rule, the links rule and source names in `pnpm check`.
-- [ ] **Step 2:** Implement; run; rewrite every finding (about 100 plan-ID lines, 9 links, the source names outside
+- [x] **Step 1: Failing tests** for the YAML/Markdown plan-ID rule, the links rule and source names in `pnpm check`.
+- [x] **Step 2:** Implement; run; rewrite every finding (about 100 plan-ID lines, 9 links, the source names outside
   comments). The source-names rule skips `docs/refactor/` as well as `docs/archive/` and `docs/provenance/` (the audits
   there name the source projects as evidence). ADRs, stack, versions and Renovate per spec 16.5. **Session break**
   between the three rules if needed. `pnpm check` passes. Commit.
@@ -1266,7 +1266,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Modify: `.github/workflows/release-packages.yml` (after publish: copy `agents/automata` to `mcthaydt/automata-skills`
   with `SKILLS_TOKEN`; without it, print "No skills token yet." and pass)
 
-- [ ] **Step 1:** The job parses; with no secret it passes on the PR's head (a `workflow_dispatch` dry run;
+- [x] **Step 1:** The job parses; with no secret it passes on the PR's head (a `workflow_dispatch` dry run;
   task 17.1's invariants then keep the guard). Mark the PR ready. `ci(release): mirror the agent package to its public home`
 
 ---
@@ -1406,11 +1406,11 @@ before it. The footer's contact address stays as it is until the Owner decides (
 - Create: `site/tests/e2e/visitor.test.ts`
 - Modify: `site/playwright.config.ts` (`defineJourneys`; phone and desktop in Chromium and WebKit)
 
-- [ ] **Step 1:** Write spec 10.4's journey (land, play Emberwick inline, Start, copy the command, Editor, Try,
+- [x] **Step 1:** Write spec 10.4's journey (land, play Emberwick inline, Start, copy the command, Editor, Try,
   make a platformer level, paint, reload, still there). Run in Chromium → pass. WebKit: the Owner's.
-- [ ] **Step 2: Commit.** `test(site): a visitor's journey from the home page to their first level`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 2):** the visitor's journey runs at a phone size too and plays the Emberwick embed upright.
-- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) section 4):** rerun the visual audit's scripts on the rebuilt site; every finding it measures reads 0 or is explained in the PR; rerun them on the editor's screens after phase 12.
+- [x] **Step 2: Commit.** `test(site): a visitor's journey from the home page to their first level`
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 2):** the visitor's journey runs at a phone size too and plays the Emberwick embed upright.
+- [x] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) section 4):** rerun the visual audit's scripts on the rebuilt site; every finding it measures reads 0 or is explained in the PR; rerun them on the editor's screens after phase 12.
 
 ### Task 19.2: Links, privacy and the closed beta
 
@@ -2705,3 +2705,77 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   lists the room twice as "Room 1" (the project and its exported level). Gates: the journeys 11 pass, 1 skip
   (Chromium, iPad and phone; WebKit not installed, the Owner's); editor unit 3385, editor-3d unit and dom 2932,
   content unit 415; `pnpm check` passes.
+- **Phase 15 (session 23): CI for games.** *15.1:* `create-game` writes `.github/workflows/release.yml` from the real
+  file `packages/tools/src/shared/create-game/template-ci/release.yml` (copied to `dist/template-ci/` like the starter
+  level). Blocks for one target are fenced by `# web:begin`/`# web:end` and `# itch:begin`/`# itch:end` lines, kept
+  only when the game builds for that target; the fences never reach the game. On a `v*` tag, on `ubuntu-latest`:
+  install, `pnpm check`, `pnpm build:web` (kept as the `web` download); the itch job checks for `BUTLER_API_KEY` in one
+  step and, without it, says "No BUTLER_API_KEY secret yet, so nothing was published to itch.io." and passes; with it,
+  builds for itch, installs the pinned and checksum-checked butler, and runs `ship publish --target itch --tag`.
+  `game-ci.yml` shrinks to Emberwick's (and base-3d's) build and prepare: no GitHub Packages token, no outside-repo
+  check or determinism steps (ci.yml's `checks` runs those), `runner` required (no `af-linux` default for others).
+  `game-release.yml` is deleted: nothing in the repository called it, and a new game has its own workflow now; the
+  publish guides show the template's workflow, and the desktop guide says where each bundle is built. Gates:
+  `template-ci.test.ts` 4 pass (failed first: no such file), actionlint skipped (no Docker daemon here; the YAML
+  parses); the stranger's journey (Chromium) passes and checks the file; `pnpm check` passes.
+- **Phase 16 (session 23).** *16.1:* `tooling/agent-skills/tests/unit/skills-text.test.ts` failed first (three skills
+  named `src/sim/`, "reference host", "networked truth" or `vitest run src/`; the editor skill built the editor first).
+  The skills now teach the feature layout (`src/features/<name>/`, `tests/unit/<name>/`, `src/app/game.ts`), the
+  seven laws with law 2 as "the sim's result is the outcome" (no networking exists in AF) and law 7 as "no target is
+  the reference", `pnpm test tests/unit/<feature>/`, and `automata editor` with no build (the level editor ships in
+  `-tools`). The hook (`agents/automata/scripts/check.mjs`) treats a file with a sim suffix under `src/` as a sim
+  edit (it was `src/sim/`, which `automata check` now refuses); its tests moved with it. Deviation: the worked
+  example is the double-jump feature in the shape a new game has (`example/src/features/double-jump/`,
+  `example/tests/unit/double-jump/`), not a whole copy of `create-game`'s output: the template lives in `-tools`, and
+  a copy here would drift from it. `pnpm boundaries` checks it with `--game` (it was a plain sim folder). Gates:
+  agent-skills unit 118, `pnpm boundaries` 0 findings, `pnpm plugin:validate` passes.
+  *16.2:* `tooling/api-index/tests/unit/outputs.test.ts` failed first (no `committed` option). One run of
+  `pnpm api-index --write` now writes the three committed outputs from one index: `docs/cheatsheet.md`, the agent
+  package's `reference/api.md` and its `plugin.json` version; without `--write`, each missing or different one is a
+  finding naming that command. `pnpm agent-skills` checks only the package's layout (`api-reference.ts` and its test
+  are gone), `pnpm cheatsheet` is gone, `release:version` ends with `pnpm api-index --write`, and `AGENTS.md` names the
+  one command. Regenerated after `pnpm build`: only the cheatsheet's header line changed (the other two were already
+  current). Gates: api-index unit 43, agent-skills unit 111, release unit 61, `pnpm knip` clean.
+  *16.3:* the three tests failed first (`#src/docs.ts` missing; no `source-names` script). `check-style --docs`
+  (`tooling/check-style/src/docs.ts`, in `pnpm style`) reads the tracked Markdown, YAML and `.npmrc`: plan IDs in
+  YAML and `.npmrc` comments and Markdown prose (code blocks and inline code are not read), and relative Markdown links
+  that lead nowhere. Records are left out by design: `docs/archive`, `docs/refactor`, `docs/provenance`, `docs/adr`
+  (decision records cite their sources), `PROVENANCE.md`, `vendor/` READMEs (where each tarball came from) and
+  fixtures. Found 118 plan-ID lines and 11 broken links (the audit said about 100 and 9); after the record folders,
+  91 lines, all rewritten: the workflows' and `.npmrc`'s comments, `docs/versions.md` (every Why cell; no lanes, plan
+  IDs, source names or "Same as Ruken"; AF owns its pins), `docs/stack.md` from `stack-cards.ts`, the art README's
+  milestone column dropped, the runbook, status and base-3d's gap list; the generated API reports' header loses its
+  spec citation. Links: the ADRs, provenance and versions to `docs/archive/`, the runbook to the archived plans, the
+  site audit's shared-folder paths as text. `pnpm source-names` (new `source-names-cli.ts`) runs in `pnpm check` and
+  now also reads `docs/` outside `adr`, `archive`, `provenance` and `refactor`, and the agent package's generated
+  reference: it found 12 lines, all copies of nine doc comments that named the arcade source; the doc comments are
+  plain now (changeset `doc-comments-plain`) and the record moved to `docs/provenance/sources.md`. Code comments that
+  name it are PR #404's. ADRs (spec 16.5): 0002's "review pending" resolved under the auto-accept rule, 0004 and 0005
+  marked superseded by 0006. `renovate.json` stops holding pins to Ruken's list, and `tooling/versions/src/renovate.ts`
+  with its test goes. The README opens with making a game and the site; the clone-and-check part is "Work on the
+  framework". Gates: check-style unit (new 8), repo-hygiene unit 92, versions unit 34, `pnpm check` passes.
+  *16.4:* `release-packages.yml` gains a `skills` job after `publish` (which now outputs `published` and `version`),
+  run only when something was published: without `SKILLS_TOKEN` it prints "No skills token yet." and passes; with it,
+  it clones `mcthaydt/automata-skills` into the job's temp folder (the token as a one-push auth header, never in a URL
+  or `.git/config`), replaces everything but `.git` with `agents/automata`, and commits "Agent package for <version>"
+  only when something changed. The runbook lists the token. Deviation: no `workflow_dispatch` run on the PR's head
+  (the release workflow runs on `main` only, and adding a manual trigger to the publishing workflow would let it
+  publish by hand); instead both steps were run locally from the parsed YAML: with no token the notice and
+  `present=false`; with a fake token against a local bare repository the copy pushed one commit and removed a stale
+  file. The workflow invariants pass (the token stays in its two steps' env; the job cannot start from a pull request).
+  *19.1 (session 23):* `site/tests/e2e/visitor.e2e.ts` (the site's suite matches `*.e2e.ts`, and its config already
+  runs Chromium and WebKit, so no `defineJourneys`): on a desktop and on an upright iPhone 13 a visitor plays Emberwick
+  from the poster (keys, then the on-screen pad), copies Start's first command (the clipboard holds it), opens Try the
+  editor, makes a platformer level, paints a wall, saves, reloads, and finds the same picture. Two bugs it found, both
+  fixed: the try-it editor's canvas said "Preview unavailable" under the site's CSP (the editor's entry did not import
+  `@mcthaydt/automata/no-eval` first; it does now), and on an upright phone the demo's 16 by 10 frame was, to the game
+  inside, a phone held sideways, so it asked for fullscreen before it would play (18.2's Step G was ticked on the
+  controls alone). A playing demo now stands 3 by 4 on an upright phone; the poster keeps the wide frame. Chromium: the
+  journey 6 of 6 over three repeats, the whole site suite 345 passed. WebKit: not installed here, so not run. Step V:
+  the audit's section 7 (0 sideways, 0 small text, 18 small targets, all Start's explained checkboxes).
+  *Follow-up (session 23):* the platformer journey's two-finger undo flaked once in CI (#416): the recognizer timed
+  the tap on the browser's clock, so a slow runner held the fingers past the 300 ms a tap may last. The level and world
+  views now take a `gestureClock` through the view services, and the journey harness passes its test clock. The
+  journey holds the fingers 400 ms of real time to prove it: on the real clock it fails ("undone: expected 1 to be 2"),
+  on the test clock it passes. Editor journeys (Chromium) 28, unit 3,385, svelte-check 0.
+  *Handoff (session 23):* 61 of 68 on PR #436. Next 19.2, 20.1, 21.1 (resume note in `progress.md`).

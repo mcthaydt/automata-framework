@@ -468,6 +468,14 @@ nav.link-row a:hover {
   min-height: 280px;
   background: #12201f;
 }
+/* On an upright phone a playing demo stands upright too: a wide frame on a narrow phone is, to the game inside, a phone
+   held sideways, and the game asks for fullscreen before it plays. Upright, it plays in the frame with its controls
+   below the room. The poster keeps the wide frame. */
+@media (max-width: 599px) and (orientation: portrait) {
+  .demo-viewport[data-playing] {
+    aspect-ratio: 3 / 4;
+  }
+}
 .demo-viewport iframe {
   display: block;
   width: 100%;
