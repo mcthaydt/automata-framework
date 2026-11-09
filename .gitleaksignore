@@ -2,3 +2,10 @@
 # docs/02's QB.1g row once quoted the content key path that tripped generic-api-key (commit 58bf0ab, PR #228); the
 # row no longer quotes it, but the scan reads history.
 58bf0ab49bc6d1fcbc9bf3ab41937ddac1d4156b:docs/02-master-delivery-plan.md:generic-api-key:257
+# The website's history, moved in with its commits (task 10.1): a made-up OpenSSH key in tests/workflows.test.ts that
+# checks the deploy-key guard, that guard's own text in .github/workflows/ci.yml, and a content hash in
+# src/data/api-index.json. History is never rewritten, so each finding is listed (Owner's OK, 2026-11-07).
+850d8b67468a68f5719247f3ef8dd7da9e809998:tests/workflows.test.ts:private-key:372
+350bc5c0e6b8e1a1acb859dffacfa4e77a5c89e2:src/data/api-index.json:generic-api-key:7
+c8231955d9ee13490cfd48e255bec8dbcd825bab:tests/workflows.test.ts:private-key:165
+c8231955d9ee13490cfd48e255bec8dbcd825bab:.github/workflows/ci.yml:private-key:62

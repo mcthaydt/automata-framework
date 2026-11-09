@@ -30,4 +30,19 @@ describe('portsFor', () => {
       preview: 5002,
     })
   })
+
+  it('shifts CI’s fixed pair by AF_RUNNER_PORT_OFFSET, so runner copies on one machine never share a port', () => {
+    expect(portsFor('/x', { GITHUB_ACTIONS: 'true', AF_RUNNER_PORT_OFFSET: '2000' })).toEqual({
+      server: 6600,
+      preview: 6700,
+    })
+    expect(portsFor('/x', { GITHUB_ACTIONS: 'true', AF_RUNNER_PORT_OFFSET: '' })).toEqual({
+      server: 4600,
+      preview: 4700,
+    })
+  })
+
+  it('ignores AF_RUNNER_PORT_OFFSET outside CI, where the checkout path picks the slot', () => {
+    expect(portsFor('/x', { AF_RUNNER_PORT_OFFSET: '2000' })).toEqual(portsFor('/x', {}))
+  })
 })

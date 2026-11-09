@@ -3,18 +3,15 @@ import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from '#src/app/editor-2d/App.svelte'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import type { History } from '#src/shared/kit/history/history.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
-import {
-  createEditorApp,
-  type EditorApp,
-  type OpenDocument,
-} from '#src/shared/level-2d/documents/editor-app.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
+import type { EditorApp, OpenDocument } from '#src/shared/level-2d/session/editor-app-types.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
