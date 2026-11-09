@@ -6,6 +6,7 @@ import {
   type NewDependency,
   newDependencies,
   registryFor,
+  scopeRegistries,
 } from '#src/new-deps.ts'
 
 // The new-dependency report on pull requests (QB spec §4.1, QB.1): every package a PR adds that main never
@@ -20,6 +21,17 @@ describe('registryFor', () => {
     expect(registryFor('@automata/sim', '0.0.2', scopes)).toBe('https://npm.pkg.github.com')
     expect(registryFor('@automata/sim', 'workspace:*', scopes)).toBeUndefined()
     expect(registryFor('@ruken/sdk', 'file:../../vendor/ruken/ruken-sdk-0.0.0.tgz', scopes)).toBeUndefined()
+  })
+})
+
+describe('scopeRegistries', () => {
+  it('reads each `@scope:registry=url` line and drops a trailing slash', () => {
+    const npmrc = '@automata:registry=https://npm.pkg.github.com/\n# a comment\nauto-install-peers=true\n'
+    expect(scopeRegistries(npmrc)).toEqual({ '@automata': 'https://npm.pkg.github.com' })
+  })
+
+  it('has no scopes when the repository has no .npmrc, so every package resolves from npmjs.org', () => {
+    expect(scopeRegistries(undefined)).toEqual({})
   })
 })
 
