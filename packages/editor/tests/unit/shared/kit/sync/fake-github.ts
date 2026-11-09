@@ -88,7 +88,7 @@ export class FakeClock implements Clock {
 
 /** A keychain in memory; `refuse` makes every write fail the way a locked or missing keychain does. */
 export class FakeKeychain implements Secrets {
-  readonly values = new Map<string, string>()
+  readonly values: Map<string, string> = new Map<string, string>()
   refuse = false
   async get(name: string): Promise<string | undefined> {
     return this.values.get(name)
