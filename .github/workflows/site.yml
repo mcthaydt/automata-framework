@@ -85,7 +85,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec turbo run build --filter @mcthaydt/automata-site
       - run: pnpm --filter @mcthaydt/automata-site check:site
-      # The host is the Owner's choice (task 21.2). With no token there is nothing to deploy to, and that is a pass.
+      # The host is the Owner's choice. With no token there is nothing to deploy to, and that is a pass.
       # With a token but no deploy command written yet, fail rather than let a configured host quietly stay empty.
       - name: Deploy
         env:
