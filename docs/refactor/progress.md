@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 67% (16 of 24 stages done; the customer value pipeline's six stages are counted from 2026-11-08).**
+**Overall: 71% (17 of 24 stages done; the customer value pipeline's six stages are counted from 2026-11-08).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -413,7 +413,7 @@ the site's 3D parts.
 | 2. Plan and spec | Done, 2026-11-07, rewritten the same day with the superpowers plugin (`brainstorming`, `writing-plans`) in place of the hand-written first version (#443), with the paused plan audit's 21 findings folded in: D1 to D9 on the audit's recommendations, D10 as the Owner took it; four parts in the Owner's order, 20 phases, 53 tasks, each with files, interfaces and its failing tests; one `@automata/3d` package in `--features` layout (shared timeline, level and time of day), DUEL AF-wide, one timeline, one level format (`af-sector/2`, field by field), the look on Pixi 3D, `automata textures` in `-tools`, the 8 tests fixed in phase 1 | [spec](2026-11-07-3d-slice-spec.md), [plan](2026-11-07-3d-slice-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 26 findings against #444's head, the checkout and both builders, all fixed in place in the spec and the plan (the move map now follows today's imports, so `--features` holds: `shared/render/`, the occluders the camera's; the test mover's real flags; the goldens renamed and re-recorded once for FigureBuilder's newer fat; the 15 classic kinds; `Ease` keeps the cubic-bezier tuple; `LevelProblem`; `findCutByBar` in place of `findClipped`; the 2D slice's real-command harness reused; editor-3d's full move map; the look's target follows a phone in portrait; drunk grandma fixes to the new words). The paused audit's 21: 17 fixed by the rewrite, 4 finished here. DUEL's author and licence stay the Owner's | [record](2026-11-07-3d-slice-plan-audit.md) |
 | 4. Build | In progress (Sonnet, high): 31 of 59 tasks (54 until 2026-11-08, when 15.5 and 16.1b to 16.1e were added), see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
-| 5. Build audit | Not started | |
+| 5. Build audit | Done, 2026-11-09: 2 critical (B1, B2), 3 high (B3 to B5), 5 medium (B6 to B10), 6 low (B11 to B16). From packed tools, a fresh Claude Code agent with the plugin (from a stand-in: the mirror still holds only a README, B1) loaded the Automata skills and added coins and a score with `pnpm check` green; two coins placed in Levels and a tuned speed and coin value played (score 26), survived a reload and an editor restart, and played again from the Publish zip; the itch.io step signed in and pushed with a stand-in butler. #542 still carries the old agent prompt (B2); sideways on a phone the touch buttons cover the level (B3); "Connect to itch.io" becomes "Sign in to itch.io" (B4). Rulings: 241 editor-3d comments and the `## Beta:` stop agreed. Not run: a real itch.io push, WebKit, Firefox, a real iPad, hosted CI, the site's e2e, story and 3D games | [build audit](2026-11-09-customer-value-build-audit.md) |
 | 6. Fixes | Not started | |
 
 **The whole game loop (2026-11-08, session 6rfl3t, PR stacked on #473; the Owner asked whether a whole game can be made
@@ -578,7 +578,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## Customer value for AI game makers: 67% (4 of 6 stages done, 2026-11-09)
+## Customer value for AI game makers: 83% (5 of 6 stages done, 2026-11-09)
 
 The Owner, 2026-11-08 21:35: "Do an audit that the editors and framework actually deliver on the value expected from the
 customer - we are customer obsessed, we are crafting the perfect product from someone who is making games with AI".

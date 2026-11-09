@@ -794,3 +794,6 @@ want, itch will be first output". Spec §11.
   restarting `automata editor` both are still there (screens 06 and 07); the game the editor started plays with the new
   platform where it was drawn (screen 08). Not run: WebKit, Firefox, a real iPad, hosted CI, the GPU runner, a coin feature
   from a fresh agent with the plugin, a real itch.io push.
+- 2026-11-09 (build audit, stage 5, `2026-11-09-customer-value-build-audit.md`): B1 to B16. The journey ran end to end with
+  a fresh agent and the plugin from a stand-in, and with a stand-in butler. Task 12's gate stays unmet (B3); Task 14's
+  "Connect" wording is overturned for "Sign in to itch.io" (B4); Task 15 must be re-planned onto the site rewrite (#542).
