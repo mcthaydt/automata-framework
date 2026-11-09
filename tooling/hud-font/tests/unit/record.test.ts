@@ -46,6 +46,17 @@ describe('verifyRecord', () => {
 })
 
 describe('the committed pages', () => {
+  const licence = readFileSync(join(FONTS_DIR, '../../../../licenses/geist-OFL.txt'), 'utf8')
+  for (const { id } of PAGES) {
+    // A game's minifier drops every comment, so the credit and licence ride in the font's data, which it keeps.
+    it(`${id}: the font's data carries Geist's credit and licence`, async () => {
+      const font = await import(pathToFileURL(join(FONTS_DIR, `${id}-font.ts`)).href)
+      expect(font.FONT.notice).toContain('Geist SemiBold')
+      expect(font.FONT.notice).toContain('Copyright (c) 2023 Vercel, in collaboration with basement.studio')
+      expect(font.FONT.notice).toContain(licence.trim())
+    })
+  }
+
   for (const { id, chars } of PAGES) {
     it(`${id}: every character of the page has a glyph, and the chars module matches`, async () => {
       const font = await import(pathToFileURL(join(FONTS_DIR, `${id}-font.ts`)).href)

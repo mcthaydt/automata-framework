@@ -24,16 +24,16 @@
       "bytes": 1140
     },
     "latin-font.ts": {
-      "sha256": "0a89c7a36a1afb08df2bc18e72a373afc0530df4e01344188f77c95f4f4c7383",
-      "bytes": 340371
+      "sha256": "702edf49d0a81dc4a1482c63c92f19640d7cede2a0f20f2bea7ab1b2bf95c32e",
+      "bytes": 345043
     },
     "cyrillic-chars.ts": {
       "sha256": "2159025424cbc9107591f7bf6a8b584db593e680d39e04828396d761c91e4562",
       "bytes": 1008
     },
     "cyrillic-font.ts": {
-      "sha256": "eca979c3a82d96cfeef64117641fdf62e6c73e9c101db49a9e0ae7d32fd89888",
-      "bytes": 301031
+      "sha256": "65cc8b5c8d17c0f06d9487c4ba1f993bc3bc75b9228df1a1c82fa701ab3f7846",
+      "bytes": 305703
     }
   }
 }

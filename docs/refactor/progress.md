@@ -738,3 +738,6 @@ notice because the minifier drops the `//` header (B3). Ran (Chromium only): `pn
 `check-changesets` on `stage-characters-3d.md`), `api-report` (no framework or feel break), the framework's hud-text,
 render and draw browser tests, the 3D Try-again test, feel's unit tests. Not run: WebKit, Firefox, the GPU runner, real
 devices, the full 2D and 3D browser suites. Next: fixes (Sonnet, high).
+
+B3 fixed on the build-audit branch, 2026-11-09, at the Owner's word ("Credit geist"): Geist's credit and the OFL ride in
+each font page's data, so a minified game keeps them; the Credits page's Geist entry names the in-game text (#521).

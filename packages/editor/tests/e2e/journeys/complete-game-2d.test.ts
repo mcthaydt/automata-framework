@@ -229,6 +229,12 @@ test('a new 2D game is made with every editor it has, played and published', asy
     expect(scripts.some((text) => text.includes('flash_frames'))).toBe(true)
     // The words Feel draws are set in the baked face, which the zip carries with the game.
     expect(scripts.some((text) => text.includes('af-hud-latin'))).toBe(true)
+    // Geist's credit and licence ride in the font's data, so the minifier keeps them with the glyphs.
+    expect(
+      scripts.some((text) =>
+        text.includes('Copyright (c) 2023 Vercel, in collaboration with basement.studio'),
+      ),
+    ).toBe(true)
     expect(scripts.some((text) => new RegExp(`from:\\s*${BUMP_PITCH}\\b`).test(text))).toBe(true)
   } finally {
     await editor.stop()

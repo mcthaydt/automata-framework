@@ -84,6 +84,14 @@ basement.studio. SIL Open Font License 1.1: https://openfontlicense.org */`) and
 the Credits-page line (#521) is still pending as already known. Whether a game zip must also hold the full licence text
 is the Owner's call.
 
+**Fixed here, 2026-11-09** (the Owner: "Credit geist, no need for license unless you can find it"; the licence is in the
+repository, so it goes in too). The credit and the full OFL now ride in each font page's data (`FONT.notice`), not a
+comment: Vite 8's minifier drops even `/*!` comments in a default build, but keeps a string. Bundling `latin-font.js`
+with Vite's minify now keeps "basement.studio" and "SIL Open Font License" (344,317 bytes, about 4.7 KB more). Tests:
+`tooling/hud-font` checks each page's notice holds the credit and the licence text, and the 2D publish journey checks
+the zip's scripts hold the copyright line (phone, passed). The bake writes the same notice. The site's Credits entry
+for Geist is updated on #521's branch.
+
 ### Low
 
 **B4. The journey's height check depends on the word.** `measureWord` takes the box of all white pixels, so a comma and an
