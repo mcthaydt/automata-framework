@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createMemoryWorkspace } from '#src/features/suite/memory/memory-workspace.ts'
+import { createMemoryWorkspace } from '#src/shared/kit/ports/memory/memory-workspace.ts'
 import type { UnlistedFile, WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
 // The suite workspace carries pictures as well as text: a level's tiles are read to be drawn, and Add tiles writes the

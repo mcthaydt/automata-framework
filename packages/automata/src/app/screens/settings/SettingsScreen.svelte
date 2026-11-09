@@ -86,7 +86,7 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
 
 <style>
   /* On a short or compact band the list keeps the row Back would take: the dialog's Close, named Back, does the same
-     (FloorFifty's Settings from its title has only the Close). A tall band draws both, as FloorFifty's pause does. */
+     (Settings opened from the title has only the Close). A tall band draws both, as the pause menu does. */
   :global(:is([data-height='short'], [data-height='compact'])) :global(.af-modal__actions:has(> .af-settings__back)) {
     display: none;
   }
@@ -132,14 +132,14 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
     gap: 16px;
   }
 
-  /* Two sections across where the dialog is wide enough (FloorFifty: Language beside Audio, Display beside Touch). */
+  /* Two sections across where the dialog is wide enough (Language beside Audio, Display beside Touch). */
   @container af-dialog (min-width: 560px) {
     .af-settings__sections {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-items: start;
       column-gap: 24px;
     }
-    /* A tab of one section (Controls) takes the width: FloorFifty's Controls tab is one column. */
+    /* A tab of one section (Controls) takes the width: the Controls tab is one column. */
     .af-settings__section:only-child {
       grid-column: 1 / -1;
     }

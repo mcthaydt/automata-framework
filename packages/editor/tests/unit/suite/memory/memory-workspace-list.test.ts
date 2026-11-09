@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createMemoryWorkspace } from '#src/features/suite/memory/memory-workspace.ts'
+import { createMemoryWorkspace } from '#src/shared/kit/ports/memory/memory-workspace.ts'
 import type { UnlistedFile, WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
 // A level reads the game's furniture and materials, which no row of the editor list names, so the workspace can list a
