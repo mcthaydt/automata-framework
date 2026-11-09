@@ -59,6 +59,66 @@ describe('verifiedDownload', () => {
   })
 })
 
+describe('verifiedDownload retries', () => {
+  const bytes = new TextEncoder().encode('a release tarball')
+  // A flaky release host (GitHub answered 504 for the whole of a CI run, 2026-11-09) must not fail the scan's tests
+  // when a later attempt would succeed. The waits are recorded, not slept.
+  const waits: number[] = []
+  const retry = { attempts: 4, baseDelayMs: 100, sleep: async (ms: number) => void waits.push(ms) }
+  const answers = (...steps: Array<number | 'network'>) => {
+    let call = 0
+    const fetch = vi.fn(async () => {
+      const step = steps[Math.min(call, steps.length - 1)]
+      call += 1
+      if (step === 'network') throw new TypeError('fetch failed')
+      return step === 200 ? new Response(new Blob([new Uint8Array(bytes)])) : new Response('no', { status: step })
+    })
+    return fetch
+  }
+  afterEach(() => void waits.splice(0))
+
+  it('retries a 5xx answer with a growing wait and returns the bytes once one succeeds', async () => {
+    const fetch = answers(504, 504, 200)
+    const got = await verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)
+    expect(sha256(got)).toBe(sha256(bytes))
+    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(waits).toEqual([100, 200])
+  })
+
+  it('retries a request that failed before any answer', async () => {
+    const fetch = answers('network', 200)
+    await verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)
+    expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('retries a 429 too', async () => {
+    const fetch = answers(429, 200)
+    await verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)
+    expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not retry an answer a retry cannot change', async () => {
+    const fetch = answers(404)
+    await expect(verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)).rejects.toThrow(/404/)
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not retry bytes whose SHA-256 differs', async () => {
+    const fetch = answers(200)
+    await expect(verifiedDownload('https://example.test/a', 'f'.repeat(64), fetch, retry)).rejects.toThrow(
+      /SHA-256 mismatch/,
+    )
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('gives up after the attempts and names the last answer', async () => {
+    const fetch = answers(504)
+    await expect(verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)).rejects.toThrow(/504/)
+    expect(fetch).toHaveBeenCalledTimes(4)
+    expect(waits).toEqual([100, 200, 400])
+  })
+})
+
 const scratches: string[] = []
 afterEach(() => {
   for (const dir of scratches.splice(0)) rmSync(dir, { recursive: true, force: true })

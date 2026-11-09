@@ -32,11 +32,65 @@ export function gitleaksAsset(platform: string, arch: string): GitleaksAsset {
   return { url: `${base}/gitleaks_${GITLEAKS_VERSION}_${suffix}.tar.gz`, sha256 }
 }
 
-/** Downloads `url` and returns its bytes only if their SHA-256 is `sha256`. */
-export async function verifiedDownload(url: string, sha256: string, fetch: Fetch): Promise<Uint8Array> {
-  const response = await fetch(url)
-  if (!response.ok) throw new Error(`download failed: ${url} answered ${response.status}`)
-  const bytes = new Uint8Array(await response.arrayBuffer())
+export interface RetryOptions {
+  /** How many times to ask in all. */
+  readonly attempts?: number
+  /** The wait before the second ask; each later wait doubles. */
+  readonly baseDelayMs?: number
+  readonly sleep?: (ms: number) => Promise<void>
+}
+
+/** A failure the next ask can fix: the host being down or busy, or the request never being answered. */
+class TransientDownloadError extends Error {}
+
+const TRANSIENT_STATUSES = new Set([408, 429])
+
+async function download(url: string, fetch: Fetch): Promise<Uint8Array> {
+  let response: Response
+  try {
+    response = await fetch(url)
+  } catch (error) {
+    throw new TransientDownloadError(`download failed: ${url} could not be reached (${String(error)})`)
+  }
+  if (!response.ok) {
+    const message = `download failed: ${url} answered ${response.status}`
+    throw response.status >= 500 || TRANSIENT_STATUSES.has(response.status)
+      ? new TransientDownloadError(message)
+      : new Error(message)
+  }
+  return new Uint8Array(await response.arrayBuffer())
+}
+
+async function downloadWithRetries(
+  url: string,
+  fetch: Fetch,
+  attempts: number,
+  baseDelayMs: number,
+  sleep: (ms: number) => Promise<void>,
+): Promise<Uint8Array> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await download(url, fetch)
+    } catch (error) {
+      if (!(error instanceof TransientDownloadError) || attempt >= attempts) throw error
+      await sleep(baseDelayMs * 2 ** (attempt - 1))
+    }
+  }
+}
+
+/**
+ * Downloads `url` and returns its bytes only if their SHA-256 is `sha256`. A 5xx, a 408, a 429 or a request that
+ * got no answer is asked again, with a doubling wait (GitHub's release host answered 504 for the whole of a CI run on
+ * 2026-11-09, which failed every test that needs the binary); a 4xx or bytes with another SHA-256 fail at once.
+ */
+export async function verifiedDownload(
+  url: string,
+  sha256: string,
+  fetch: Fetch,
+  retry: RetryOptions = {},
+): Promise<Uint8Array> {
+  const { attempts = 4, baseDelayMs = 1000, sleep = (ms) => new Promise((done) => setTimeout(done, ms)) } = retry
+  const bytes = await downloadWithRetries(url, fetch, attempts, baseDelayMs, sleep)
   const actual = createHash('sha256').update(bytes).digest('hex')
   if (actual !== sha256) throw new Error(`SHA-256 mismatch for ${url}: expected ${sha256}, got ${actual}`)
   return bytes
@@ -48,6 +102,8 @@ export interface EnsureOptions {
   /** The release tarball to install when the cache has no binary: `gitleaksAsset` for this machine. */
   readonly asset: GitleaksAsset
   readonly fetch: Fetch
+  /** For tests; the defaults are four asks, one second apart and then doubling. */
+  readonly retry?: RetryOptions
 }
 
 /** The path of the pinned gitleaks binary, downloading and verifying it first if it is not cached. */
@@ -55,7 +111,7 @@ export async function ensureGitleaks(options: EnsureOptions): Promise<string> {
   const dir = join(options.cacheDir, GITLEAKS_VERSION)
   const binary = join(dir, 'gitleaks')
   if (existsSync(binary)) return binary
-  const tarball = await verifiedDownload(options.asset.url, options.asset.sha256, options.fetch)
+  const tarball = await verifiedDownload(options.asset.url, options.asset.sha256, options.fetch, options.retry)
   installBinary(dir, tarball)
   return binary
 }
