@@ -6,5 +6,7 @@
     // Relative imports name their `.ts` file (one style); this package never emits.
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts"],
+  // The oracle scripts run inside a FigureBuilder or EnvironmentBuilder checkout, with its toolchain, not this one.
+  "exclude": ["scripts/oracles/**"]
 }

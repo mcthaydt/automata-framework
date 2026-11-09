@@ -1,0 +1,143 @@
+{
+ "source": "EnvironmentBuilder 6d82a52",
+ "tiles": [
+  {
+   "swatch": "oakFloor",
+   "texture": {
+    "photo": "planks",
+    "wear": 0.25,
+    "seed": 7
+   },
+   "texels": [
+    64,
+    64
+   ],
+   "w": 64,
+   "h": 64,
+   "md5": "c95386e8baa644981b5304f2dba12258"
+  },
+  {
+   "swatch": "oakFloor",
+   "texture": {
+    "photo": "planks",
+    "wear": 0.25,
+    "seed": 7
+   },
+   "texels": [
+    64,
+    22.6
+   ],
+   "w": 64,
+   "h": 23,
+   "md5": "e5fecf496c5860c122dc37b586565111"
+  },
+  {
+   "swatch": "oakFloor",
+   "texture": {
+    "photo": "planks",
+    "wear": 0.25,
+    "seed": 7
+   },
+   "texels": [
+    45,
+    45
+   ],
+   "w": 45,
+   "h": 45,
+   "md5": "8aa997c4cf4978d002ff5a5989eacea0"
+  },
+  {
+   "swatch": "brickRed",
+   "texture": {
+    "photo": "brick",
+    "colour": "photo",
+    "wear": 0.35,
+    "seed": 3
+   },
+   "texels": [
+    64,
+    64
+   ],
+   "w": 64,
+   "h": 64,
+   "md5": "fd245b9dd282738c355fd3f416f5a70f"
+  },
+  {
+   "swatch": "brickRed",
+   "texture": {
+    "photo": "brick",
+    "colour": "photo",
+    "wear": 0.35,
+    "seed": 3
+   },
+   "texels": [
+    64,
+    22.6
+   ],
+   "w": 64,
+   "h": 23,
+   "md5": "4270f77264fa94c30dbf70dc8dd933da"
+  },
+  {
+   "swatch": "brickRed",
+   "texture": {
+    "photo": "brick",
+    "colour": "photo",
+    "wear": 0.35,
+    "seed": 3
+   },
+   "texels": [
+    45,
+    45
+   ],
+   "w": 45,
+   "h": 45,
+   "md5": "f587708622c7184ebaa587d0dd947249"
+  },
+  {
+   "swatch": "asphalt",
+   "texture": {
+    "photo": "asphalt",
+    "wear": 0.5,
+    "seed": 10
+   },
+   "texels": [
+    64,
+    64
+   ],
+   "w": 192,
+   "h": 192,
+   "md5": "e0d3d41b7bf90eeadbeebdd17b2832f5"
+  },
+  {
+   "swatch": "asphalt",
+   "texture": {
+    "photo": "asphalt",
+    "wear": 0.5,
+    "seed": 10
+   },
+   "texels": [
+    64,
+    22.6
+   ],
+   "w": 192,
+   "h": 68,
+   "md5": "9e357b8c1792cf9a87e0a9a29ef35c34"
+  },
+  {
+   "swatch": "asphalt",
+   "texture": {
+    "photo": "asphalt",
+    "wear": 0.5,
+    "seed": 10
+   },
+   "texels": [
+    45,
+    45
+   ],
+   "w": 136,
+   "h": 136,
+   "md5": "320c75dfa891dfee9048cbf5cc7c22a2"
+  }
+ ]
+}
