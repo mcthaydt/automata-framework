@@ -71,7 +71,9 @@ describe('verifiedDownload retries', () => {
       const step = steps[Math.min(call, steps.length - 1)]
       call += 1
       if (step === 'network') throw new TypeError('fetch failed')
-      return step === 200 ? new Response(new Blob([new Uint8Array(bytes)])) : new Response('no', { status: step })
+      return step === 200
+        ? new Response(new Blob([new Uint8Array(bytes)]))
+        : new Response('no', { status: step })
     })
     return fetch
   }
@@ -99,7 +101,9 @@ describe('verifiedDownload retries', () => {
 
   it('does not retry an answer a retry cannot change', async () => {
     const fetch = answers(404)
-    await expect(verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)).rejects.toThrow(/404/)
+    await expect(verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)).rejects.toThrow(
+      /404/,
+    )
     expect(fetch).toHaveBeenCalledTimes(1)
   })
 
@@ -113,7 +117,9 @@ describe('verifiedDownload retries', () => {
 
   it('gives up after the attempts and names the last answer', async () => {
     const fetch = answers(504)
-    await expect(verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)).rejects.toThrow(/504/)
+    await expect(verifiedDownload('https://example.test/a', sha256(bytes), fetch, retry)).rejects.toThrow(
+      /504/,
+    )
     expect(fetch).toHaveBeenCalledTimes(4)
     expect(waits).toEqual([100, 200, 400])
   })

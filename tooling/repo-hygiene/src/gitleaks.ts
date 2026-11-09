@@ -89,7 +89,11 @@ export async function verifiedDownload(
   fetch: Fetch,
   retry: RetryOptions = {},
 ): Promise<Uint8Array> {
-  const { attempts = 4, baseDelayMs = 1000, sleep = (ms) => new Promise((done) => setTimeout(done, ms)) } = retry
+  const {
+    attempts = 4,
+    baseDelayMs = 1000,
+    sleep = (ms) => new Promise((done) => setTimeout(done, ms)),
+  } = retry
   const bytes = await downloadWithRetries(url, fetch, attempts, baseDelayMs, sleep)
   const actual = createHash('sha256').update(bytes).digest('hex')
   if (actual !== sha256) throw new Error(`SHA-256 mismatch for ${url}: expected ${sha256}, got ${actual}`)
@@ -111,7 +115,12 @@ export async function ensureGitleaks(options: EnsureOptions): Promise<string> {
   const dir = join(options.cacheDir, GITLEAKS_VERSION)
   const binary = join(dir, 'gitleaks')
   if (existsSync(binary)) return binary
-  const tarball = await verifiedDownload(options.asset.url, options.asset.sha256, options.fetch, options.retry)
+  const tarball = await verifiedDownload(
+    options.asset.url,
+    options.asset.sha256,
+    options.fetch,
+    options.retry,
+  )
   installBinary(dir, tarball)
   return binary
 }
