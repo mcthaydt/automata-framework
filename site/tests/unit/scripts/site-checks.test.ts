@@ -689,6 +689,8 @@ describe('checkSignInDisclosed', () => {
     expect(checkSignInDisclosed(undefined, true)).toHaveLength(1)
   })
   it('accepts one that has it', () => {
-    expect(checkSignInDisclosed('<section id="github"><h2>Signing in with GitHub</h2></section>', true)).toEqual([])
+    expect(
+      checkSignInDisclosed('<section id="github"><h2>Signing in with GitHub</h2></section>', true),
+    ).toEqual([])
   })
 })
