@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_LOOK, parseLook } from '#src/features/look/look.ts'
 import { addLookPass, createLookPasses, registeredLookPasses } from '#src/features/look/look-pass.ts'
 import { rampLit } from '#src/features/look/ramp-light.ts'
-import { spriteLight } from '#src/features/look/sprite-light.ts'
 import { targetSize } from '#src/features/look/target-size.ts'
 import { timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 
@@ -61,48 +60,6 @@ describe('ramp light', () => {
     expect(rampLit(3 * 8, 0, DEFAULT_LOOK)).toBe(3 * 8)
     expect(rampLit(3 * 8 + 7, 9, DEFAULT_LOOK)).toBe(3 * 8 + 7)
     expect(DEFAULT_PALETTE.colors[rampLit(100, 0.7, DEFAULT_LOOK)]).toBeDefined()
-  })
-})
-
-describe('sprite light', () => {
-  const lamp = { dir: [0, 1, 0] as const, rgb: [1, 1, 1] as const }
-
-  it('gives a flat light at the chest: ambient plus each lamp at its share, stepped, never under the floor', () => {
-    const lit = spriteLight({ lamps: [lamp], chestNormals: [[1, 0, 0]] }, timeOfDay('day'))
-    // A lamp straight overhead meets a chest's side-on normal edge-on: the floor keeps the figure lit.
-    expect(lit.flat[0]).toBeGreaterThan(0.2)
-    expect(lit.flat.every((c) => Math.abs(c * 10 - Math.round(c * 10)) < 1e-9)).toBe(true)
-  })
-
-  it('takes a one-step form toward the lamp and away from it', () => {
-    const lit = spriteLight(
-      {
-        lamps: [lamp],
-        chestNormals: [
-          [0, 1, 0],
-          [0, 0, 1],
-          [0, -1, 0],
-          [1, 0, 0],
-        ],
-      },
-      timeOfDay('day'),
-    )
-    expect(lit.form([0, 1, 0])).toBe(1)
-    expect(lit.form([0, -1, 0])).toBe(-1)
-    expect(lit.form([0, 0.4, 0.9])).toBe(0)
-  })
-
-  it('rims an edge on the lamp side and no other', () => {
-    const side = { dir: [0.8, 0.3, 0.1] as const, rgb: [1, 1, 1] as const }
-    const lit = spriteLight({ lamps: [side], chestNormals: [[0, 0, 1]] }, timeOfDay('day'))
-    expect(lit.rim(1, 0)).toBe(true)
-    expect(lit.rim(-1, 0)).toBe(false)
-  })
-
-  it('rims nothing for a lamp straight from the viewer', () => {
-    const front = { dir: [0, 0, 1] as const, rgb: [1, 1, 1] as const }
-    const lit = spriteLight({ lamps: [front], chestNormals: [[0, 0, 1]] }, timeOfDay('day'))
-    expect(lit.rim(1, 0)).toBe(false)
   })
 })
 

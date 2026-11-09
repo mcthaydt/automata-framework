@@ -5,6 +5,12 @@ declare module 'virtual:automata/content' {
   export type FigureId = 'wick'
   export type Figure = {
     readonly default: string
+    readonly face?: {
+      readonly blink?: number
+      readonly camera?: number
+      readonly drawn?: boolean
+      readonly turn?: number
+    }
     readonly gait: unknown /* figure.gait has no JSON form */
     readonly gaitOverrides?: {
       readonly armLag?: number
@@ -139,12 +145,31 @@ declare module 'virtual:automata/content' {
   export type FigureSwatchId = 'boot-brown' | 'boot-sole' | 'brass' | 'brow' | 'charcoal' | 'eye-dark' | 'lid' | 'mouth' | 'navy-deep' | 'pale' | 'pale-lid' | 'sole' | 'starch' | 'starch-shade' | 'steel-grey' | 'tweed' | 'wick-boot' | 'wick-cloak' | 'wick-cloak-shade' | 'wick-eye' | 'wick-shadow' | 'wick-trim' | 'wood'
   export type FigureSwatch = {
     readonly about?: string
+    readonly fabric?: string
     readonly flat?: boolean
     readonly gloss?: number
+    readonly holo?: boolean | 'mirror'
     readonly kind?: 'cloth' | 'knit' | 'denim' | 'leather' | 'twill' | 'rubber' | 'metal' | 'lens' | 'thread'
+    readonly lift?: number
+    readonly mix?: {
+      readonly at: number
+      readonly from: readonly [string, string, string, string]
+      readonly to: readonly [string, string, string, string]
+    }
+    readonly paint?: readonly [string, string, string, string]
     readonly ramp: 'grey' | 'sand' | 'skin' | 'sea' | 'flame' | 'dusk' | 'moss' | 'sky' | 'pine' | 'rose' | 'slate' | 'clay' | 'mud' | 'plum' | 'teal' | 'wood' | 'wine' | 'indigo' | 'cherry' | 'rust' | 'olive' | 'amber' | 'mauve' | 'forest' | 'brick' | 'sage' | 'ocean' | 'dawn' | 'violet' | 'navy' | 'blush' | 'ember'
     readonly role?: 'main' | 'rib' | 'inside' | 'trim' | 'stitch' | 'sole' | 'hardware' | 'lens'
+    readonly see?: boolean
+    readonly sheen?: boolean
+    readonly stain?: {
+      readonly below: number
+      readonly hem: number
+      readonly paint: readonly [string, string, string, string]
+    }
     readonly step: number
+    readonly strands?: boolean
+    readonly streaks?: number
+    readonly tones?: readonly [number, number, number]
   }
 
   export type FigureGaitId = 'bounce' | 'elderly'

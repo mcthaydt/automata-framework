@@ -76,12 +76,12 @@ const POSE = 'pose'
  * keeps fixed point. `yaw` faces a row with no `facing`.
  */
 export function inMetres(factory: View3dFactory, yaw = 0): View3dFactory {
-  const wrapped: View3dFactory = (row, componentId, models, light) => {
+  const wrapped: View3dFactory = (row, componentId, models, light, layers) => {
     const withPose = (components: Components): Components => ({
       ...components,
       [POSE]: placed(componentId === undefined ? undefined : components[componentId], yaw),
     })
-    const view = factory({ sid: row.sid, components: withPose(row.components) }, POSE, models, light)
+    const view = factory({ sid: row.sid, components: withPose(row.components) }, POSE, models, light, layers)
     if (view === undefined) return undefined
     return {
       container: view.container,

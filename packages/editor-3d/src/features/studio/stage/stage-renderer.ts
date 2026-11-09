@@ -1,10 +1,17 @@
 // The Studio stage's renderer (EDS.9a; editor suite spec EDS-D13): one Pixi WebGL2 renderer with one `View3D`, drawing
-// the figure exactly as the game does, with `@automata/3d`'s own `figure` view (its meshes, its evaluate, its hair),
+// the figure exactly as the game does, with `@automata/3d`'s own `figure` view (its painted cell, its evaluate, its hair) in the look's figure layer,
 // from the library and motion content the Studio read. The orbit comes from the stage camera's maths; the view's
 // clock is the playhead, so scrubbing a clip shows the pose `sample` gives at that time. Losing the context pauses it
 // and the stage offers Try again, as the 3D level editor's views do (ED3D spec §11); the fields keep working.
 import '@automata/3d/no-eval'
-import { type FigureViewState, figure } from '@automata/3d'
+import {
+  createFigureLayer,
+  createLookPasses,
+  DEFAULT_LOOK,
+  type FigureViewState,
+  figure,
+  timeOfDay,
+} from '@automata/3d'
 import type { FigureDef, FigureLibrary, MotionLibrary } from '@automata/3d/figures'
 import { View3D } from '@pixi/3d'
 import { autoDetectRenderer, Container, type Renderer, type WebGLRenderer } from 'pixi.js'
@@ -76,6 +83,10 @@ export const createStageRenderer: StageRendererFactory = async (canvas, size, ba
   const view = new View3D({ width: size.w, height: size.h, toneMapping: 'none' })
   // The figure is drawn as the game's examples draw one: a sky and a ground colour for the ambient light, and a flat floor of it.
   view.environment = { skyColor: 0xc7dcd0, groundColor: 0x6a6270 }
+  // The figure is a painted cell, composited into the frame by the layer and snapped by the look's passes.
+  const layer = createFigureLayer(view, DEFAULT_LOOK, undefined)
+  const passes = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
+  view.passes = [layer.pass, ...passes.list]
   stage.addChild(view)
   const paused = writable(false)
   let lost = false
@@ -96,6 +107,7 @@ export const createStageRenderer: StageRendererFactory = async (canvas, size, ba
   function render(): void {
     if (lost || destroyed) return
     drawing?.update({ components: components() }, undefined, 1)
+    layer.frame()
     renderer.render(stage)
   }
 
@@ -121,7 +133,9 @@ export const createStageRenderer: StageRendererFactory = async (canvas, size, ba
         const factory = figure(def, { library, motion, state: () => state, now: () => time, warn: () => {} })
         const row = { sid: 1, components: components() }
         // The figure view reads its place from the row's `model` component; the library of models is not used.
-        drawing = factory(row as never, 'model', {} as never) as unknown as Drawing | undefined
+        drawing = factory(row as never, 'model', {} as never, undefined, { figures: layer }) as unknown as
+          | Drawing
+          | undefined
         if (drawing !== undefined) view.root.addChild(drawing.container as never)
       }
       render()
@@ -140,6 +154,8 @@ export const createStageRenderer: StageRendererFactory = async (canvas, size, ba
       view.camera.fov = orbit.fov
       view.camera.position.set(eye[0], eye[1], eye[2])
       view.camera.lookAt({ x: orbit.target[0], y: orbit.target[1], z: orbit.target[2] })
+      // The figure is painted at the density the orbit's distance needs.
+      layer.setFocus(Math.hypot(eye[0] - orbit.target[0], eye[1] - orbit.target[1], eye[2] - orbit.target[2]))
       render()
     },
     resize(next) {
@@ -157,6 +173,8 @@ export const createStageRenderer: StageRendererFactory = async (canvas, size, ba
       canvas.removeEventListener('webglcontextrestored', onRestored)
       paused.set(false)
       drawing?.destroy()
+      layer.dispose()
+      for (const pass of passes.list) pass.destroy()
       stage.destroy({ children: true })
       renderer.destroy({ removeView: false })
     },

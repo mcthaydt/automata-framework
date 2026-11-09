@@ -9,7 +9,7 @@
 // Difficulty: ★★★☆
 // Tier: core
 import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automata/3d'
 import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figures'
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
@@ -96,6 +96,7 @@ export default defineGame({
   extensions: [render3dExtension],
   createRenderer: (options) =>
     createPixi3dRenderer({
+      look: DEFAULT_LOOK,
       ...options,
       backgroundColor: 0x2f3f38,
       views: {

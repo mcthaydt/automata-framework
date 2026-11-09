@@ -9,7 +9,7 @@
 // Difficulty: ★★★☆
 // Tier: core
 import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automata/3d'
 import type { Ease, FigureClipDef, FigureDef, MotionLibrary, Swatch, Vec3 } from '@automata/3d/figures'
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
@@ -69,12 +69,11 @@ const flinch: FigureClipDef = {
   ...{ length: 0.18, loop: 'hold', mask: ['pelvis', 'torso', 'head', 'armL', 'armR', 'legR'] },
   keys: [key(0, 'free'), key(0.18, 'flinch', 'inOut')],
 }
-const CLIPS = ['reach', 'look', 'flinch'] as const
 const clips = { reach, look, flinch }
 const motion: MotionLibrary = { gaits: { bounce }, poses, clips, items: {}, stands: {}, rigs: {} }
 
 // --- sim ---
-// Wick's feet on the floor (metres, y up), facing `yaw`, and his clip (an index into CLIPS) and the tick it started.
+// Wick's feet on the floor (metres, y up), facing `yaw`, and his clip (an index into the clips) and the tick it started.
 const Hero = defineComponent('hero', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32', clip: 'u32', since: 'u32' })
 
 // Back and forth along a 2 m line at 1 m/s (120 ticks each way); the next clip every 1.5 s (90 ticks).
@@ -91,7 +90,7 @@ const toSimTime = (result: { readonly tick: number }) => {
 }
 const playing = (hero?: Readonly<Record<string, unknown>>) => ({
   moving: true,
-  action: { id: CLIPS[Number(hero?.clip)] ?? 'reach', startedAt: Number(hero?.since) / 60 },
+  action: { id: Object.keys(clips)[Number(hero?.clip)] ?? 'reach', startedAt: Number(hero?.since) / 60 },
 })
 const shown = figure(wick, { library, motion, now: () => seconds, state: (c) => playing(c[Hero.id]) })
 const FOLLOW = cameraView('follow')
@@ -113,6 +112,7 @@ export default defineGame({
   extensions: [render3dExtension],
   createRenderer: (options) =>
     createPixi3dRenderer({
+      look: DEFAULT_LOOK,
       ...options,
       backgroundColor: 0x2f3f38,
       views: { [Hero.id]: shown },

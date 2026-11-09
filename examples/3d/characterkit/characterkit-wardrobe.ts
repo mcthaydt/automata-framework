@@ -10,7 +10,7 @@
 // Difficulty: ★★★☆
 // Tier: extension
 import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automata/3d'
 import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automata/3d/base'
 import type { FigureDef, FigureLibrary, Gait, Garment, MotionLibrary, Swatch } from '@automata/3d/figures'
 import { figuresExtension } from '@automata/3d/figures'
@@ -76,6 +76,7 @@ export default defineGame({
   extensions: [render3dExtension, figuresExtension, characterKitExtension],
   createRenderer: (options) =>
     createPixi3dRenderer({
+      look: DEFAULT_LOOK,
       ...options,
       backgroundColor: 0x2f3f38,
       views: Object.fromEntries(

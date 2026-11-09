@@ -9,7 +9,7 @@
 // Difficulty: ★★★☆
 // Tier: extension
 import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension, type View3dFactory } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automata/3d'
 import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automata/3d/base'
 import type { FigureClipDef, Gait, MotionLibrary } from '@automata/3d/figures'
 import { createDirector, type SceneState } from '@automata/cutscenes/director'
@@ -71,8 +71,8 @@ const walker = figure(
   },
 )
 // The man stands where the director puts him; his row only says that he exists.
-const puppet: View3dFactory = (row, id, models, light) => {
-  const view = walker(row, id, models, light)
+const puppet: typeof walker = (...args) => {
+  const view = walker(...args)
   if (view === undefined) return undefined
   const update = view.update
   return {
@@ -98,6 +98,7 @@ export default defineGame({
   extensions: [render3dExtension],
   createRenderer: (options) =>
     createPixi3dRenderer({
+      look: DEFAULT_LOOK,
       ...options,
       backgroundColor: 0x2f3f38,
       views: { [Man.id]: puppet },

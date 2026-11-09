@@ -85,9 +85,9 @@ const FOLLOW = cameraView('follow')
  * the figure's meshes are built when the view is made, and its first `update` poses it.
  */
 export function timedFirstPose(factory: View3dFactory, report: (ms: number) => void): View3dFactory {
-  const timed: View3dFactory = (row, componentId, models, light) => {
+  const timed: View3dFactory = (row, componentId, models, light, layers) => {
     const started = performance.now()
-    const view = factory(row, componentId, models, light)
+    const view = factory(row, componentId, models, light, layers)
     if (view === undefined) return view
     let posed = false
     return {

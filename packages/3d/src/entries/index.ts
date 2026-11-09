@@ -55,6 +55,12 @@ export {
   type WallOptions,
 } from '../features/camera/occluders/occluders.ts'
 export {
+  createFigureLayer,
+  type FigureLayer,
+  type LayerFigure,
+  type LayerLook,
+} from '../features/figures/layer/figure-layer.ts'
+export {
   FIGURE_BUILD_BUDGET_MS,
   type FigureViewOptions,
   type FigureViewState,
@@ -83,13 +89,6 @@ export {
 export { StarsEffect } from '../features/look/passes/stars-effect.ts'
 export { lightSteps, rampLit } from '../features/look/ramp-light.ts'
 export { RampMaterial, type RampMaterialOptions } from '../features/look/ramp-light-material.ts'
-export {
-  SPRITE_STYLE,
-  type SpriteInput,
-  type SpriteLamp,
-  type SpriteLight,
-  spriteLight,
-} from '../features/look/sprite-light.ts'
 export { targetSize } from '../features/look/target-size.ts'
 export {
   buildWorld,

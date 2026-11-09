@@ -8,7 +8,7 @@
 // Difficulty: ★★★☆
 // Tier: core
 import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automata/3d'
 import {
   type FigureClipDef,
   type FigureDef,
@@ -105,6 +105,7 @@ export default defineGame({
   extensions: [render3dExtension],
   createRenderer: (options) =>
     createPixi3dRenderer({
+      look: DEFAULT_LOOK,
       ...options,
       backgroundColor: 0x2f3f38,
       views: {
