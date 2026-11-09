@@ -257,7 +257,7 @@ function onForm(pl: readonly number[], n: readonly number[], wf: number) {
   const X = wf * pl[0] + (1 - wf) * n[0], Y = wf * pl[1] + (1 - wf) * n[1], Z = wf * pl[2] + (1 - wf) * n[2], m = Math.hypot(X, Y, Z) || 1;
   return [X / m, Y / m, Z / m];
 }
-function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedArray, tone: Int8Array, through: Map<number, number[]>, kept: Uint8Array) {
+function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedArray, tone: Int8Array, through: Map<number, number[]>, kept: Uint8Array, skinFamily: (material: number) => boolean) {
   const { w, h, material, part, group } = g, view = Math.abs(f.view), d = f.view < 0 ? -1 : 1, F = f.shape, s = f.size;
   if (view >= 3) return;
   const has = (t: string) => !!f.mood?.has(t), angry = has('angry'), smile = has('smile'), dead = has('dead'), open = has('mouthOpen');
@@ -292,7 +292,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
   const near = d > 0 ? f.eyes[0] : f.eyes[1], I = Math.floor(view === 2 ? near[1] : f.centre[1]);
   /** The face's last skin texel from `x` toward `d` on row `y`: its front edge, inside the outline. */
   const edge = (x: number, y: number) => { while (own(x + d, y)) x += d; return x; };
-  /** Shades over columns a..b: a part worn on the head that is neither its skin nor its hair (nor a mark), from the
+  /** Shades over columns a..b: a part worn on the head that is neither its skin (nor a surface painted in the skin's own tones, an ear's rim) nor its hair (nor a mark), from the
    * brow's row down past the eye's. An eye there is behind them, whatever skin shows round the lens; behind a tinted
    * lens (`through`) it shows, on the lens (`behind`). */
   const shaded = (a: number, b: number) => {
@@ -301,7 +301,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
       if (!inside(x, y)) continue;
       const k = y * w + x, p = part[k];
       if (through.has(k)) lens = true;
-      else if (material[k] >= 0 && group[k] === GROUP.head && material[k] !== f.skin && p >= 0 && p !== FACE_SEAM && !(p >= HAIR_SEAMS[0] && p < HAIR_SEAMS[1])) worn = true;
+      else if (material[k] >= 0 && group[k] === GROUP.head && !skinFamily(material[k]) && p >= 0 && p !== FACE_SEAM && !(p >= HAIR_SEAMS[0] && p < HAIR_SEAMS[1])) worn = true;
     }
     behind = lens;
     return worn && !lens;
@@ -1606,7 +1606,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   const fixed = tone.map(v => (v >= OUTLINE ? 9 : v));
   const kept = new Uint8Array(n);
   for (let k = 0; k < n; k++) if (tone[k] === -1 || hue[k] >= 0) kept[k] = 1;
-  if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, through, kept);
+  if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, through, kept, m => skinny[m]);
   budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k]);
   if (light) lightTexels(light, g, albedo, D);
   if (weave) {

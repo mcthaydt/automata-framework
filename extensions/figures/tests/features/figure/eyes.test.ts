@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { BASE } from '../../../base/base';
 import { eyeWidth, Figure } from '../../../src/features/figure/figure';
 import { member, view } from '../../../src/features/figure/frames';
-import type { CharacterDef } from '../../../src/features/figure/cast';
+import { standOf, type CharacterDef } from '../../../src/features/figure/cast';
+import { evaluate } from '../../../src/features/motion/motion';
 
 /**
  * The eye's size (figure.ts eyeWidth): the density sizes it (four texels at density 2), capped at a little over half the
@@ -79,5 +80,38 @@ describe('eyeTilt', () => {
     const f = BASE[1].def;
     for (const d of [0, 1]) expect(diffs(drawn(f, { eyeTilt: 0 }, 2, d).px, drawn(f, { eyeTilt: 1 }, 2, d).px, 128).length, `D2 view ${d}`).toBeGreaterThan(0);
     for (const d of [0, 1]) expect(diffs(drawn(f, { eyeTilt: 0 }, 1, d).px, drawn(f, { eyeTilt: 1 }, 1, d).px, 64).length, `D1 view ${d}`).toBe(0);
+  });
+});
+
+/**
+ * A turned face keeps both eyes. The ear's rim is painted in the skin's own tones (a material of its own, `skin~ear`), and
+ * the shades check once counted it as something worn over the eye, so the base man's hero at density 1 lost an eye.
+ */
+type Eyed = { eyes: [number, number][]; view: number; iris: number; lash: number; white: number };
+function eyesShown(painted: Uint8ClampedArray, width: number, face: Eyed): number {
+  const marks = new Set([face.iris, face.lash, face.white]);
+  let seen = 0;
+  for (const [ex, ey] of face.eyes) {
+    let found = false;
+    for (let y = Math.round(ey) - 1; y <= Math.round(ey) + 1 && !found; y++) for (let x = Math.round(ex) - 2; x <= Math.round(ex) + 2 && !found; x++) {
+      const o = (y * width + x) * 4;
+      if (painted[o + 3] && marks.has((painted[o] << 16) | (painted[o + 1] << 8) | painted[o + 2])) found = true;
+    }
+    if (found) seen++;
+  }
+  return seen;
+}
+describe('a turned face', () => {
+  it('draws both eyes in the base pair\'s hero at every density', () => {
+    for (const c of BASE) for (const D of [1, 2]) {
+      const cast = member(c.def, D), f = new Figure(cast), facing = Math.PI / 4, input = { facing, moving: false, view: view() };
+      const s = f.skeleton, placed = c.pose ? standOf(s, cast.outfits[cast.defaultOutfit](s), c.pose) : null;
+      expect(placed, `${c.def.id} has its stand`).not.toBeNull();
+      const rel = Math.round(facing / (Math.PI / 4)) * (Math.PI / 4);
+      const st = { ...f.motion(input, 0, 0, facing, rel), yaw: 0, view: rel, stand: placed!.stand, holds: placed!.holds };
+      f.update(1 / 60, { ...input, pose: { key: 'hero', pose: evaluate(s, cast.gait, st).pose } });
+      const face = (f as unknown as { faceStamp: Eyed }).faceStamp;
+      expect(eyesShown(f.painted, cast.cell[0], face), `${c.def.id} D${D}`).toBe(2);
+    }
   });
 });
