@@ -153,9 +153,9 @@ describe('the published packages', () => {
     }),
   )
 
-  // Entries only this repository's tooling and tests import (U1): in `exports`, not in `publishConfig.exports`.
+  // Entries only this repository's tooling, tests and apps import (U1): in `exports`, not in `publishConfig.exports`.
   const WORKSPACE_ONLY: Readonly<Record<string, readonly string[]>> = {
-    '@mcthaydt/automata-tools': ['./internal', './e2e'],
+    '@mcthaydt/automata-tools': ['./internal', './e2e', './template-files'],
   }
 
   it(
