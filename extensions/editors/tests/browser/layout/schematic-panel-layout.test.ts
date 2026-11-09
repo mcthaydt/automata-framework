@@ -1,7 +1,9 @@
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
+import '@automata/editor/tool-chrome.css'
 import type { SuitePorts } from '@automata/editor/kit/ports'
+import { editorTargets } from '@automata/editor/kit/testing'
 import bay from '@automata/systems/testing/fixtures/bay.systems.toml?raw'
 import { mount, unmount } from 'svelte'
 import { afterEach, describe, expect, test } from 'vitest'
@@ -36,7 +38,7 @@ describe.each([
   { name: 'phone', width: 390, height: 844, rail: 240 },
   { name: 'iPad', width: 820, height: 1180, rail: 263 },
 ])('the list on a $name', ({ width, height, rail }) => {
-  test('stays inside its rail, and its buttons are at least 44 px', async () => {
+  test('stays inside its rail, and its buttons are at least touch size', async () => {
     await page.viewport(width, height)
     const session = new SchematicSession(
       ports,
@@ -44,7 +46,10 @@ describe.each([
       ['bay'],
     )
     await session.select('bay')
-    const target = document.body.appendChild(document.createElement('div'))
+    // The suite's shell and main, which the kit's chrome (a select at touch size on macOS WebKit) is scoped to.
+    const shell = document.body.appendChild(document.createElement('div'))
+    shell.dataset.editorShell = ''
+    const target = shell.appendChild(document.createElement('main'))
     target.style.width = `${rail}px`
     target.style.overflow = 'hidden'
     mounted = mount(SchematicPanel, { target, props: { session } })
@@ -56,7 +61,7 @@ describe.each([
       const box = thing.getBoundingClientRect()
       const label = thing.textContent?.trim() ?? thing.getAttribute('aria-label') ?? thing.tagName
       expect(box.right, label).toBeLessThanOrEqual(edge + 0.5)
-      expect(box.height, label).toBeGreaterThanOrEqual(44)
+      expect(box.height, label).toBeGreaterThanOrEqual(editorTargets().hit)
     }
   })
 })
