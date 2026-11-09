@@ -99,8 +99,11 @@ export function checkTargets(root: string): string[] {
  */
 export function checkSignInDisclosed(privacy: string | undefined, signIn: boolean): string[] {
   if (!signIn) return []
-  if (privacy === undefined) return ['privacy.html: missing, and the build carries the GitHub sign-in function']
+  if (privacy === undefined)
+    return ['privacy.html: missing, and the build carries the GitHub sign-in function']
   return /\bid=["']github["']/.test(privacy)
     ? []
-    : ['privacy.html: the build carries the GitHub sign-in function but the page has no #github section saying what it keeps']
+    : [
+        'privacy.html: the build carries the GitHub sign-in function but the page has no #github section saying what it keeps',
+      ]
 }

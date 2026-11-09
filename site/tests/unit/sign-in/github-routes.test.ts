@@ -89,14 +89,14 @@ const call = (
 const cookieOf = (response: Response, name: string): string | undefined =>
   response.headers.getSetCookie().find((line) => line.startsWith(`${name}=`))
 
-const valueOf = (setCookie: string | undefined): string =>
+const cookieValue = (setCookie: string | undefined): string =>
   (setCookie?.split(';')[0] ?? '').split('=').slice(1).join('=')
 
 /** Walks start then a good callback, returning the callback's response and what GitHub saw. */
 async function signedIn(back = '/editor/app/') {
   const gh = github()
   const start = await call(`/api/github/start?back=${encodeURIComponent(back)}`, {}, {}, gh.fetchFn)
-  const startCookie = valueOf(cookieOf(start, 'af_gh_start'))
+  const startCookie = cookieValue(cookieOf(start, 'af_gh_start'))
   const state = new URL(start.headers.get('location') ?? '').searchParams.get('state') ?? ''
   const callback = await call(
     `/api/github/callback?code=thecode&state=${state}`,
@@ -185,7 +185,7 @@ describe('callback', () => {
   it('is 400 for a wrong state and sets nothing', async () => {
     const start = await call('/api/github/start')
     const response = await call('/api/github/callback?code=c&state=wrong', {
-      cookie: `af_gh_start=${valueOf(cookieOf(start, 'af_gh_start'))}`,
+      cookie: `af_gh_start=${cookieValue(cookieOf(start, 'af_gh_start'))}`,
     })
     expect(response.status).toBe(400)
     expect(response.headers.getSetCookie()).toEqual([])
@@ -198,7 +198,7 @@ describe('callback', () => {
   it('sends a person who said no back to where they were, to say so', async () => {
     const start = await call('/api/github/start?back=/editor/app/')
     const response = await call('/api/github/callback?error=access_denied&state=x', {
-      cookie: `af_gh_start=${valueOf(cookieOf(start, 'af_gh_start'))}`,
+      cookie: `af_gh_start=${cookieValue(cookieOf(start, 'af_gh_start'))}`,
     })
     expect(response.status).toBe(302)
     expect(response.headers.get('location')).toBe('/editor/app/?github=denied')
@@ -210,7 +210,7 @@ describe('callback', () => {
     const state = new URL(start.headers.get('location') ?? '').searchParams.get('state') ?? ''
     const response = await call(
       `/api/github/callback?code=c&state=${state}`,
-      { cookie: `af_gh_start=${valueOf(cookieOf(start, 'af_gh_start'))}` },
+      { cookie: `af_gh_start=${cookieValue(cookieOf(start, 'af_gh_start'))}` },
       {},
       gh.fetchFn,
     )
@@ -231,14 +231,14 @@ describe('token', () => {
     const response = await call('/api/github/token', {
       method: 'POST',
       headers: bad,
-      cookie: `af_gh=${valueOf(cookieOf(callback, 'af_gh'))}`,
+      cookie: `af_gh=${cookieValue(cookieOf(callback, 'af_gh'))}`,
     })
     expect(response.status).toBe(403)
   })
 
   it('refreshes, hands the page the new access token and keeps the rotated refresh token sealed', async () => {
     const { gh, callback } = await signedIn()
-    const first = valueOf(cookieOf(callback, 'af_gh'))
+    const first = cookieValue(cookieOf(callback, 'af_gh'))
     const response = await call(
       '/api/github/token',
       { method: 'POST', headers, cookie: `af_gh=${first}` },
@@ -248,7 +248,7 @@ describe('token', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ token: 'ghu_access_1', expiresAt: 1_000_000 + 28800 * 1000 })
     const rotated = cookieOf(response, 'af_gh') ?? ''
-    expect(valueOf(rotated)).not.toBe(first)
+    expect(cookieValue(rotated)).not.toBe(first)
     expect(rotated).toContain('SameSite=Strict')
     expect(rotated).not.toContain('ghr_refresh_1')
     const refresh = JSON.parse(gh.seen.at(-1)?.body ?? '{}') as Record<string, string>
@@ -260,7 +260,7 @@ describe('token', () => {
     // The next refresh uses the new one.
     await call(
       '/api/github/token',
-      { method: 'POST', headers, cookie: `af_gh=${valueOf(rotated)}` },
+      { method: 'POST', headers, cookie: `af_gh=${cookieValue(rotated)}` },
       {},
       gh.fetchFn,
     )
@@ -277,7 +277,7 @@ describe('token', () => {
     const refused = github({ refusesRefresh: true })
     const response = await call(
       '/api/github/token',
-      { method: 'POST', headers, cookie: `af_gh=${valueOf(cookieOf(callback, 'af_gh'))}` },
+      { method: 'POST', headers, cookie: `af_gh=${cookieValue(cookieOf(callback, 'af_gh'))}` },
       {},
       refused.fetchFn,
     )

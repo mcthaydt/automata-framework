@@ -33,7 +33,10 @@ export const DEMO_POLICY = [
  * The editors' policy at /editor/app/: the demos' own, and one more place to connect to. A signed-in person's games go
  * from the page straight to GitHub's API, so `connect-src` also names it and nothing else.
  */
-export const EDITOR_POLICY = DEMO_POLICY.replace("connect-src 'self'", "connect-src 'self' https://api.github.com")
+export const EDITOR_POLICY = DEMO_POLICY.replace(
+  "connect-src 'self'",
+  "connect-src 'self' https://api.github.com",
+)
 
 /**
  * An example page's preview runs in a sandboxed frame with an opaque origin, which `(self)` never matches,

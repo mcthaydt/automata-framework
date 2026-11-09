@@ -82,7 +82,7 @@ function safeBack(back: string): boolean {
     back.startsWith(EDITORS) &&
     !back.includes('\\') &&
     !back.includes('..') &&
-    !/[\u0000-\u001f]/.test(back) &&
+    ![...back].some((char) => char.charCodeAt(0) < 0x20) &&
     !back.startsWith('//')
   )
 }
@@ -146,7 +146,9 @@ export async function handleGitHub(request: Request, env: GitHubEnv, deps: GitHu
   if (config === undefined) return respond(url, 404)
 
   if (route === 'ping')
-    return request.method === 'GET' ? respond(url, 200, { json: { github: 'ready', app: config.slug } }) : respond(url, 405)
+    return request.method === 'GET'
+      ? respond(url, 200, { json: { github: 'ready', app: config.slug } })
+      : respond(url, 405)
 
   if (route === 'start') {
     if (request.method !== 'GET') return respond(url, 405)

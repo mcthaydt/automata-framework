@@ -12,7 +12,9 @@ const editor = checkEditorChunk(
   JSON.parse(readFileSync(resolve('.svelte-kit/output/client/.vite/manifest.json'), 'utf8')),
 )
 const worker = checkCompileWorker(root)
-const privacy = existsSync(resolve(root, 'privacy.html')) ? readFileSync(resolve(root, 'privacy.html'), 'utf8') : undefined
+const privacy = existsSync(resolve(root, 'privacy.html'))
+  ? readFileSync(resolve(root, 'privacy.html'), 'utf8')
+  : undefined
 const failures = [
   ...checkSite(root),
   ...checkTargets(root),
