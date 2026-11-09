@@ -78,7 +78,7 @@ Save, see the picture on disk and `automata check --only levels` pass. The refus
 history names a package in the old scope") fails with `expected [ '.changeset/scope-automata.md' ] to deeply equal []`.
 Commit `e6c44fba` added both the guard and the changeset, whose text names the old names on purpose ("`@mcthaydt/automata`
 is now `@automata/framework`"). #438's body says `pnpm check` is green; it cannot have been run after the changeset was
-committed. *Fix:* exempt `.changeset/` from the guard (the changelog it becomes is exempt already), or word the
+committed. **Fixed on #438 after this audit** (`f88f77ef`: the guard and the codemod allow the rename's own changeset); `scope.test.ts` passes after merging it here. Left for stage 6: run `pnpm check` with no cache and correct #438's body. *Original fix:* exempt `.changeset/` from the guard (the changelog it becomes is exempt already), or word the
 changeset without the old names; run `pnpm check` with no cache; correct #438's body.
 
 **B3. Task 14.2 is the agent's, and it is filed as the Owner's.** `progress.md` says "what is left (14.2, 21.0's DNS,

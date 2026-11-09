@@ -1,9 +1,9 @@
 import type { AudioContent } from '@automata/audio-synth'
 
-// What a Play press asks the page to sound. Audio's editor and Feel's preview both hand one to the page, so the type lives
-// here and neither feature reaches into the other.
-
-/** What a Play press asks the page to sound: the file as it is now, and which sound. */
+/**
+ * What a Play press asks the page to sound: the file as it is now, and which sound. Shared because Audio plays sounds
+ * and Feel plays the sounds its effects name.
+ */
 export type AudioPlay = (
   content: AudioContent,
   what: { readonly kind: 'sound'; readonly id: string },
