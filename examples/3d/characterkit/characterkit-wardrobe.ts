@@ -1,6 +1,6 @@
 // characterkit-wardrobe: three figures standing side by side in clothes only the character kit has
 //
-// Shows: the character kit (`@automata/character-kit`) adding garments to the figure builder: core dresses a body in a
+// Shows: the character kit (`@automata/character-kit`) adding garments to the figure generator: core dresses a body in a
 //   top, trousers, shoes, a cape, hair, a cap and a face, and the kit adds a waistcoat, a coat, a skirt, an apron,
 //   a belt and more. Naming the kit in the game's `extensions` is all it takes; a figure that wears a skirt without
 //   it is refused in words ("No garment called skirt is registered"). Each figure is the base pair's body and face
