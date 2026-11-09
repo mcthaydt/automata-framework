@@ -750,7 +750,7 @@ on the builders' video, "it needs to be this level".
 
 | Stage | Status | Record |
 |---|---|---|
-| 1. Audit | Done, 2026-11-09 (at `47391563`, #567's tip): 12 findings; FigureBuilder's painter measured at 11 ms a cell at density 1 and 20 ms at density 2, EnvironmentBuilder's CPU scene painter at 100 to 900 ms a frame (a game cannot run on it). Recommends Pixi 3D in the builders' look with painted figures (D1, the Owner's); readings R1 to R4 (the world kit into core, the painter everywhere, a 360 field, ADR 0008). 19 tasks in 5 phases | [audit](2026-11-09-3d-painted-look-audit.md) |
+| 1. Audit | Done, 2026-11-09 (at `47391563`, #567's tip): 13 findings; FigureBuilder's painter measured at 11 ms a cell at density 1 and 20 ms at density 2, EnvironmentBuilder's CPU scene painter at 100 to 900 ms a frame (a game cannot run on it). Recommends Pixi 3D in the builders' look with painted figures (D1, the Owner's); readings R1, R2 and R4 (the world kit into core, the painter everywhere, ADR 0008) and the Owner's ruling R3 (a 360 field, 07:27). F13: FigureBuilder drops the far eye in a turned made pose (its sunglasses check counts the ear); the port fixes it with a both-eyes test (task 4). 19 tasks in 5 phases | [audit](2026-11-09-3d-painted-look-audit.md) |
 | 2. Plan and spec | Not started | |
 | 3. Plan audit | Not started | |
 | 4. Build | Not started | |

@@ -51,6 +51,7 @@ show, frame by frame:
 | F10 | The editor draws characters as boxes: "the editor does not run the game's figure builder" | `packages/editor-3d/src/features/levels-3d/dollhouse/stand-ins.ts` |
 | F11 | Ember Hall has no art pass: a bare room of flat swatches, crates and barrels, orange boxes for embers, no lamp | `games/base-3d/content/world-swatches/`, `world-props/` (crate, barrel only), `src/features/embers/ember-view.ts`; `3d-examples/compare.png` |
 | F12 | ADR 0007 chose passes for figures and rejected a painted figure because it "loses the figure's live lighting"; the 3D scope trim cut "the CPU reference painters" as a test oracle | `docs/adr/0007-3d-look.md`; `2026-11-07-3d-scope-trim.md` section 2 |
+| F13 | FigureBuilder drops the far eye in a turned made pose: its sunglasses check counts the ear, a head part painted from the skin's own ramp (`skin~ear`), as something worn over the eye when it sits a texel beside it, and `eye()` returns before drawing. Seen on base-f at density 1 (pitch 18° and 25°) and base-m at density 2 (25°) and density 1 (18°); the standing 45° views draw both eyes at both densities | FigureBuilder `paint/paint.ts` `shaded()` and `eye()`; the eye row at the front template (`faceAt` view 0) holds part 1001 (an ear) in `skinBrown~ear` beside the far eye |
 
 F12 is answered by how EnvironmentBuilder and The Last Light (the Owner's own Pixi 3D game) light a painted figure: the
 painter writes a normal map beside the colours, and the room's lamps light that finished cell every frame (a flat
@@ -196,8 +197,9 @@ meshes or materials is rewritten against the cell.
 
 **The field.** The base-scenes image is at density 2, and EnvironmentBuilder's diorama is 640 × 360. At the Owner's
 5 m a field of 360 on its short side puts a figure at density 1.95 (`360 ÷ 5 ÷ 36.9`): Wick about 78 pixels tall and the
-base pair about 115, as in the target. It is four times today's pixels, so it is measured on the GPU runner and the
-Owner's iPad before it is the default; 320 is the step back. This is reading **R3** (section 11).
+base pair about 115, as in the target. The field is 360 (the Owner, 07:27: "Bump it to 360 then"). It is four times
+today's pixels, so the frame time is measured on the GPU runner (task 9) and listed for the Owner's iPad; a miss goes to
+the Owner rather than quietly lowering the field. This is ruling **R3** (section 11).
 
 **First person.** The Owner's video has first-person shots. A face that fills a quarter of a 320 × 200 frame is
 density 4 or more: 71 to 117 ms a cell here. The plan adds a first-person camera view only after the third-person look
@@ -266,7 +268,8 @@ The Owner judges the board, and plays it once on the iPad. Ember Hall's art pass
     or walking camera, and no first person.
 - **R1:** the world kit moves into core (section 7), because the 3D editor is the environment builder now.
 - **R2:** the painter replaces the mesh figure everywhere, the editors included (the Owner, 06:53).
-- **R3:** the field's short side becomes 360 if the GPU runner and the iPad hold it (section 6).
+- **R3 (the Owner's, 07:27):** the field's short side is 360 (section 6). Its frame time is measured; a miss is the
+  Owner's call.
 - **R4:** this reverses ADR 0007 for figures (a new ADR 0008: "3D figures are painted"), and law 6 holds: Pixi 3D draws
   every frame, and a painted cell is a texture it draws, as an atlas is. ADR 0002's consequences get the note.
 
@@ -287,7 +290,10 @@ Each task is test-first. "Measured" means a number from an artifact.
 **Phase B: figures painted**
 3. The format: swatch and figure fields (section 5), Zod, with the content kinds' tests.
 4. The painter's port (section 5 table), its FigureBuilder tests ported (materials, neckline, prints, fabric, cloth,
-   eyes), the oracle passing.
+   eyes), the oracle passing. The port fixes F13: the sunglasses check counts a part painted from the skin's own ramp
+   (the ears) as skin. A test draws the base pair at every direction, stand and walk frame, densities 1, 2 and 4 and
+   pitches 18° to 35°, and finds both eyes wherever the face's template shows both. The oracle's cells that change
+   (the turned made poses) are named, and the fix goes upstream to FigureBuilder too.
 5. The cell: density from the camera, the 8 directions, the cache with its byte cap, prewarm, one paint a frame.
 6. The sprite light from EnvironmentBuilder, on the cell; the composite (task 1's pass); haze at depth; the shadows.
 7. Delete the mesh path (section 5) and move every caller: Ember Hall, the 3D story examples, the figure and look
@@ -305,7 +311,7 @@ Each task is test-first. "Measured" means a number from an artifact.
 11. Texture coordinates and the tile material (section 6), proved on the base interior and the base exterior.
 12. The haze; then glow and bloom, rain, stars, reflections, shafts, the moods, particles: one task each, each a GLSL and
     WGSL pair with its switch and a WebGL2/WebGPU parity image.
-13. The field at 360 if task 9's numbers and this phase's hold it (R3).
+13. The field at 360 (R3), with this phase's frame times on the GPU runner beside task 9's.
 14. A board script: AF's base interior and base exterior beside EnvironmentBuilder's renders and the Owner's frames, for
     every look change from here.
 
@@ -330,7 +336,8 @@ Each task is test-first. "Measured" means a number from an artifact.
   Owner chose; the Studio shows it so it is no surprise.
 - **The beta.** A custom `Pass3D` that samples two textures is new to AF on `@pixi/3d` 0.1.0-beta.2; task 1 settles it
   before anything else depends on it.
-- **Four times the pixels** at 360. Measured before it is the default.
+- **Four times the pixels** at 360. The Owner's ruling; task 9 and task 13 measure it, and a miss on the iPad goes back
+  to the Owner.
 - **Size.** Core grows by the painter (about 2,400 lines) and the world kit (5,419 lines, 3.8 MB of data and photos).
   The 3D package is private until Pixi 3D is public, so nothing published grows yet.
 - **Licences.** FigureBuilder and EnvironmentBuilder have no licence file (3D slice audit, B9). AF already carries code
