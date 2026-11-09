@@ -25,7 +25,7 @@ Superpowers and the official PixiJS v8 skills are also useful: use them if they 
 Do not report a skill as installed or loaded without evidence.`
 
 /** What Home's button copies: the ask, the command that makes the game, then the preflight. */
-export const AGENT_PROMPT = `I want to make a 2D browser game with Automata (https://automataframework.com).
+export const AGENT_PROMPT = `I want to make a browser game with Automata (https://automataframework.com).
 Make the game with this command, then work in the new folder:
 ${CREATE_COMMAND}
 

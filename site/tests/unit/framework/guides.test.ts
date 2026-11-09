@@ -35,7 +35,7 @@ describe('readGuides', () => {
 
   it('takes each title from its heading and keeps the body below it', () => {
     const editor = guides.find((guide) => guide.slug === 'editor')
-    expect(editor?.title).toBe('Draw levels in the editor')
+    expect(editor?.title).toBe('Open the editors on your game')
     expect(editor?.content.startsWith('# ')).toBe(false)
     expect(editor?.description.length).toBeGreaterThan(0)
   })

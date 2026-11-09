@@ -1,6 +1,6 @@
-# Draw levels in the editor
+# Open the editors on your game
 
-How to open the level editor on your game and draw its levels.
+How to open the editors on your game and change what is in it.
 
 In your game's folder, run:
 

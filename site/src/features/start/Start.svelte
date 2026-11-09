@@ -1,5 +1,5 @@
 <!--
-  Start: make a game, play it, draw its level and put it online, each step one command and what you see after it
+  Start: make a game, open its editors and publish it: two commands and a button, each with what you see after it
   (`start-content.ts`). Then, folded away, how to set up a coding agent for the game. The same look as Home: one lime
   button, white panels on hairlines, 4/6/8 px corners.
 -->
@@ -13,9 +13,9 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
 <PageShell>
   <header class="top">
     <p class="kicker">Start</p>
-    <h1>Your first game in four commands.</h1>
+    <h1>Your first game in three steps.</h1>
     <p class="lead">
-      You need Node 24 and pnpm. Each step is one command in your terminal. Under it is what you will see. Using an agent?
+      You need Node 24 and pnpm. The first two steps are one command each in your terminal. Under each is what you will see. Using an agent?
       Set it up at the bottom of this page, then hand it the game.
     </p>
   </header>
@@ -24,7 +24,7 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
     {#each STEPS as step (step.title)}
       <li class="step">
         <h2>{step.title}</h2>
-        <CodeBlock code={step.command} variant="command" />
+        {#if step.command !== undefined}<CodeBlock code={step.command} variant="command" />{/if}
         <p>{step.what}</p>
       </li>
     {/each}

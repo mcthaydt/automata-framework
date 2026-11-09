@@ -2,7 +2,7 @@
 // The page's title and description, for the tab, search results and link previews. Every page sets its own.
 let {
   title,
-  description = 'Make 2D games for the web: draw the levels, let your coding agent write the code, and put the game online.',
+  description = 'Finish the game your agent started. Automata has the saves, menus, touch controls and publishing built in, and editors you change the game with.',
 }: { title: string; description?: string } = $props()
 </script>
 <svelte:head>

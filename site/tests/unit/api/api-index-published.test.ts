@@ -23,7 +23,7 @@ describe('the framework API index, as published', () => {
       `- [Full documentation](/llms-full.txt): Every guide and Reference page in one file, for version ${version}.`,
     )
     expect(index).toContain(
-      `- [API reference](/llms-api.txt): Every export of the ${version} packages with its signature and doc comment, generated from the package declarations.`,
+      `- [API reference](/llms-api.txt): Every export of the ${version} packages and the beta packages a new game imports, marked beta, with each signature and doc comment, generated from the package declarations.`,
     )
     expect(index).toContain('- [Site guides](/llms-guides.txt): Every guide on this site, in full.')
   })

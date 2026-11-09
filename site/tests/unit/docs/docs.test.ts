@@ -76,7 +76,7 @@ describe('the docs', () => {
     const nav = view.getAllByRole('navigation', { name: 'Guides' })[0] as HTMLElement
     const links = [...nav.querySelectorAll('a')]
     expect(links.map((link) => link.getAttribute('href'))).toEqual(docs.map((doc) => '/docs/' + doc.slug))
-    expect(nav.querySelector('[aria-current="page"]')?.textContent).toBe('Draw levels in the editor')
+    expect(nav.querySelector('[aria-current="page"]')?.textContent).toBe('Open the editors on your game')
     expect(view.getByRole('link', { name: 'Previous: How it works' })).toBeTruthy()
     expect(view.getByRole('link', { name: 'Next: Extensions: add what your game needs' })).toBeTruthy()
   })

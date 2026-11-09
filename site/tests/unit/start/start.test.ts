@@ -9,7 +9,7 @@ const repo = resolve(process.cwd(), '..')
 const read = (path: string) => readFileSync(resolve(repo, path), 'utf8')
 
 describe('Start', () => {
-  it('walks through four steps, each one command and what you see', () => {
+  it('walks through three steps: make it, open the editors, publish it', () => {
     const view = render(Start)
     // The agent setup folded inside "Using a coding agent" has headings of its own; these are the page's.
     const own = view
@@ -17,23 +17,22 @@ describe('Start', () => {
       .filter((heading) => heading.closest('details') === null)
     expect(own.map((heading) => heading.textContent)).toEqual([
       '1. Make a game',
-      '2. Play it',
-      '3. Draw its level',
-      '4. Put it online',
+      '2. Open the editors',
+      '3. Publish it',
       'Using a coding agent',
     ])
     expect(STEPS[0]?.command).toBe('npx @automata/tools create-game my-game')
   })
 
-  it('gives only commands the framework answers to', () => {
-    // What create-game prints next, the editor's command and the web build's scripts.
-    expect(read('packages/tools/src/app/cli.ts')).toContain('cd ${dir} && pnpm install && pnpm dev')
-    expect(STEPS[1]?.command).toBe('cd my-game && pnpm install && pnpm dev')
-    expect(read('packages/tools/src/shared/create-game/template-level.ts')).toContain(
-      'pnpm exec automata editor',
-    )
-    expect(STEPS[2]?.command).toBe('pnpm exec automata editor')
-    expect(read('docs/guides/publish-to-web.md')).toContain(STEPS[3]?.command)
+  it('gives the commands create-game prints, and says where Publish is for the last step', () => {
+    // What create-game prints next is Start's second step, word for word; the editors' Play and Publish are the rest.
+    const next = /Next: (cd \$\{dir\} && pnpm install && pnpm \w+)\\n/.exec(read('packages/tools/src/app/cli.ts'))?.[1]
+    expect(next).toBe('cd ${dir} && pnpm install && pnpm editor')
+    expect(STEPS[1]?.command).toBe('cd my-game && pnpm install && pnpm editor')
+    expect(STEPS[2]?.command).toBeUndefined()
+    const view = render(Start)
+    expect(view.container.textContent).toContain('Press Play')
+    expect(view.container.textContent).toContain('Press Publish')
   })
 
   it('says nothing the framework no longer has', () => {

@@ -15,15 +15,15 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
 
 <PageMeta
   title="The level editor"
-  description="Draw your game's levels in the browser: paint rooms and place characters, and every change is saved. Try it here: nothing to install, nothing to pay."
+  description="Change your game in the browser: paint rooms and place characters, and every change is saved. Try it here: nothing to install, nothing to pay."
 />
 <PageShell wide>
   <header class="top">
     <p class="kicker">Editor</p>
-    <h1>Draw your levels in the browser.</h1>
+    <h1>Change your game in the browser.</h1>
     <p class="lead">
       Try it here: paint a level and place its characters. Nothing to install, nothing to pay. Your agent writes the
-      code; you draw the levels.
+      code; you change what is in the game.
     </p>
     <!-- The editor is a page of its own, not one of the site's routes, so the browser loads it whole. -->
     <p class="cta">
@@ -59,7 +59,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
       change is saved into the game, and the running game picks it up.
     </p>
     <CodeBlock code={EDITOR_COMMAND} variant="command" />
-    <p><a href="/docs/editor">Draw levels in the editor</a> says more.</p>
+    <p><a href="/docs/editor">Open the editors on your game</a> says more.</p>
   </section>
 </PageShell>
 

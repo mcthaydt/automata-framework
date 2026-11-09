@@ -112,6 +112,10 @@ describe('the new game’s files', () => {
 describe('the new game’s README', () => {
   it('starts with how to run it, says where the code is, and points at the site, not the repository', () => {
     const readme = read('README.md')
+    // The first thing it says is the first thing create-game printed: open the editors, where Play and Publish are.
+    expect(readme.split('\n')[2]).toMatch(/^`pnpm editor` opens the editors on your game/)
+    expect(readme).toContain('**Play**')
+    expect(readme).toContain('**Publish**')
     expect(readme).toContain('pnpm dev')
     for (const where of [
       'src/features/square/',

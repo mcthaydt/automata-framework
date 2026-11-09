@@ -110,7 +110,8 @@ export function targetReadme(
   const rows = targets.map((target) => `- ${TARGET_GUIDE[target].name}: \`${TARGET_GUIDE[target].commands}\``)
   return `# ${title}
 
-\`pnpm dev\` runs the game in your browser.
+\`pnpm editor\` opens the editors on your game and runs it beside them. **Play** opens the game, and **Publish** makes
+one zip to upload to itch.io or any website host. \`pnpm dev\` runs just the game in your browser.
 
 ## Where things are
 

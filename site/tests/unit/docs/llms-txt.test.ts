@@ -14,7 +14,7 @@ describe('LLMs.txt & Docs Pipeline', () => {
     expect(content).toContain('> Automata is a deterministic')
     expect(content).toContain('## Documentation')
     expect(content).toContain('- [How it works](/docs/how-it-works)')
-    expect(content).toContain('- [Draw levels in the editor](/docs/editor)')
+    expect(content).toContain('- [Open the editors on your game](/docs/editor)')
   })
 
   it('names the plugin and both install lines, so an agent can get the skills', async () => {
@@ -26,7 +26,7 @@ describe('LLMs.txt & Docs Pipeline', () => {
 
   it('says what the editor guide is, not the first words of its steps', async () => {
     expect(await llmsIndex().text()).toContain(
-      '- [Draw levels in the editor](/docs/editor): How to open the level editor on your game and draw its levels.',
+      '- [Open the editors on your game](/docs/editor): How to open the editors on your game and change what is in it.',
     )
   })
 

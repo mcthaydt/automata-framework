@@ -209,7 +209,7 @@ async function createGameCommand(args: readonly string[], io: CliIo, threeD: boo
   if (exit._tag === 'Success') {
     // The folder as typed, so the next commands can be pasted as they are.
     const dir = parsed.targetDir
-    io.stdout(`Created "${exit.value.title}" in ${dir}.\nNext: cd ${dir} && pnpm install && pnpm dev\n`)
+    io.stdout(`Created "${exit.value.title}" in ${dir}.\nNext: cd ${dir} && pnpm install && pnpm editor\n`)
     return 0
   }
 

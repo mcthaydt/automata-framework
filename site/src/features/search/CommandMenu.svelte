@@ -19,9 +19,9 @@ let query = $state('')
 // knows a name the packages do not export.
 const PAGES: readonly SearchEntry[] = [
   { title: 'Home', detail: 'About Automata', url: '/' },
-  { title: 'Start', detail: 'Make a game, play it, draw its level and put it online', url: '/start' },
+  { title: 'Start', detail: 'Make a game, open its editors and put it online', url: '/start' },
   { title: 'Examples', detail: 'One-file examples that run beside their code', url: '/examples' },
-  { title: 'Editor', detail: 'Draw your levels', url: '/editor' },
+  { title: 'Editor', detail: 'Change your game in the browser', url: '/editor' },
   { title: 'Docs', detail: 'Guides to the framework', url: '/docs' },
   { title: 'API reference', detail: 'Every export of every package', url: '/api' },
 ]

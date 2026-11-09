@@ -1,6 +1,6 @@
 # AutomataFramework
 
-AutomataFramework (AF) is a TypeScript framework for small 2D web games. You write a game once and ship it to the web,
+AutomataFramework (AF) is a TypeScript framework for small web games. You write a game once and ship it to the web,
 itch.io, Ruken or a desktop app. The game's rules give the same result, bit for bit, in Node, Chromium, WebKit and
 Firefox, and PixiJS draws it.
 
