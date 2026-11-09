@@ -2,6 +2,7 @@
 // music plays in, or the page of what plays when things happen. It also holds the track files the game folder has.
 
 import type { AudioContent } from '@automata/audio-synth'
+import type { AudioPlay } from '../../shared/audio-play.ts'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
 import type { GameEvent } from '../../shared/game-events.ts'
 import type { TomlSession } from '../../shared/toml-session.ts'
@@ -13,12 +14,6 @@ export type AudioChoice =
   | { readonly kind: 'rules' }
   | { readonly kind: 'events' }
   | { readonly kind: 'mix' }
-
-/** What a Play press asks the page to sound: the file as it is now, and which sound. */
-export type AudioPlay = (
-  content: AudioContent,
-  what: { readonly kind: 'sound'; readonly id: string },
-) => Promise<void>
 
 /** Checks every sound of the file in the page. Nothing sounds. */
 export type AudioCheck = (content: AudioContent) => Promise<SoundFinding[]>
