@@ -6,7 +6,7 @@ import type { CutsceneScript } from '@automata/cutscenes/sim'
 import { openDocument } from '@automata/editor/kit/documents'
 import type { SuitePorts, WorkspaceFile } from '@automata/editor/kit/ports'
 import type { LinesFile } from '@automata/narrative/sim'
-import { humanize } from '../writer/writer-words.ts'
+import { humanize } from '../../shared/id-words.ts'
 import type { SequenceNames } from './key-fields.ts'
 
 const LINES_FILE = /^content\/lines\/([^/]+)\.toml$/
