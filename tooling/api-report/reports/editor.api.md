@@ -782,6 +782,7 @@ interface History<S> {
     readonly redoLabel: string | undefined;
     apply(label: string, update: (state: S) => S, options?: {
         coalesce?: string;
+        join?: string;
     }): void;
     begin(label: string): Transaction<S>;
     undo(): void;
@@ -2143,6 +2144,7 @@ interface History<S> {
     readonly redoLabel: string | undefined;
     apply(label: string, update: (state: S) => S, options?: {
         coalesce?: string;
+        join?: string;
     }): void;
     begin(label: string): Transaction<S>;
     undo(): void;
@@ -3532,6 +3534,703 @@ interface RetypeBreakage {
 function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
 ```
 
+## `./kit/typing`
+
+### `browserDraftStorage` (function)
+
+```ts
+function browserDraftStorage(): DraftStorage | undefined;
+```
+
+### `createTypingDrafts` (function)
+
+```ts
+function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps): TypingDrafts;
+```
+
+### `DraftStorage` (interface)
+
+```ts
+interface DraftStorage {
+    getItem(key: string): string | null;
+    setItem(key: string, value: string): void;
+    removeItem(key: string): void;
+}
+```
+
+### `guardLeaving` (function)
+
+```ts
+function guardLeaving(window: LeaveWindow, busy: () => boolean): () => void;
+```
+
+### `LeaveWindow` (interface)
+
+```ts
+interface LeaveWindow {
+    addEventListener(type: 'beforeunload', run: (event: BeforeUnloadEvent) => void): void;
+    removeEventListener(type: 'beforeunload', run: (event: BeforeUnloadEvent) => void): void;
+}
+```
+
+### `pageTimers` (const)
+
+```ts
+const pageTimers: TypingTimers;
+```
+
+### `setTypingDrafts` (function)
+
+```ts
+function setTypingDrafts(drafts: TypingDrafts): void;
+```
+
+### `typedSave` (function)
+
+```ts
+function typedSave(node: Node, initial: TypedSaveParams): ActionReturn<TypedSaveParams>;
+```
+
+### `TypedSaveParams` (interface)
+
+```ts
+interface TypedSaveParams {
+    readonly drafts: TypingDrafts;
+    readonly value: string;
+    commit(value: string, leaving: boolean, input: Node): void | boolean;
+    readonly draftKey?: string | undefined;
+    valid?(value: string): boolean;
+    readonly leaveOnly?: boolean | undefined;
+}
+```
+
+### `TYPING_DELAY_MS` (const)
+
+```ts
+const TYPING_DELAY_MS = 500;
+```
+
+### `TypingCommit` (type)
+
+```ts
+type TypingCommit = (value: string, leaving: boolean) => void | boolean;
+```
+
+### `TypingDrafts` (interface)
+
+```ts
+interface TypingDrafts {
+    field(commit: TypingCommit, options?: TypingFieldOptions): TypingField;
+    flush(): void;
+    readonly waiting: number;
+    place: string;
+    visit(): string | undefined;
+    wrote(idle?: boolean): void;
+    subscribe(listener: () => void): () => void;
+}
+```
+
+### `typingDrafts` (function)
+
+```ts
+function typingDrafts(): TypingDrafts;
+```
+
+### `TypingDraftsDeps` (interface)
+
+```ts
+interface TypingDraftsDeps {
+    readonly timers: TypingTimers;
+    readonly drafts?: DraftStorage | undefined;
+    readonly scope: string;
+}
+```
+
+### `TypingField` (interface)
+
+```ts
+interface TypingField {
+    typed(value: string): void;
+    entered(): void;
+    left(value: string): void;
+    dispose(): void;
+}
+```
+
+### `TypingFieldOptions` (interface)
+
+```ts
+interface TypingFieldOptions {
+    readonly key?: string | undefined;
+    readonly current?: (() => string) | undefined;
+    readonly valid?: ((value: string) => boolean) | undefined;
+    readonly leaveOnly?: boolean | undefined;
+}
+```
+
+### `TypingTimers` (interface)
+
+```ts
+interface TypingTimers {
+    after(ms: number, run: () => void): () => void;
+}
+```
+
+## `./web-games`
+
+### `GameEntry` (interface)
+
+```ts
+interface GameEntry {
+    readonly id: string;
+    readonly title: string;
+    readonly changed: number;
+    readonly github?: string | undefined;
+}
+```
+
+### `GameFile` (type)
+
+```ts
+type GameFile = {
+    readonly path: string;
+    readonly text: string;
+} | {
+    readonly path: string;
+    readonly bytes: Uint8Array;
+};
+```
+
+### `gameId` (function)
+
+```ts
+function gameId(title: string, taken: readonly string[]): string;
+```
+
+### `GamesPage` (svelte)
+
+```ts
+component from '../features/web-games/GamesPage.svelte'
+```
+
+### `LastOpened` (interface)
+
+```ts
+interface LastOpened {
+    readonly game: string;
+    readonly editor?: string | undefined;
+}
+```
+
+### `openCopy` (function)
+
+```ts
+function openCopy(zip: Uint8Array, games: WebGames, title?: string): Promise<OpenedCopy>;
+```
+
+### `openWebGames` (function)
+
+```ts
+function openWebGames(env: WebGamesEnv): Promise<WebGames>;
+```
+
+### `saveCopy` (function)
+
+```ts
+function saveCopy(store: ProjectStore): Promise<Uint8Array>;
+```
+
+### `WebGames` (interface)
+
+```ts
+interface WebGames {
+    readonly kept: boolean;
+    readonly reason?: string | undefined;
+    list(): Promise<readonly GameEntry[]>;
+    create(title: string, files: readonly GameFile[]): Promise<GameEntry>;
+    store(id: string): Promise<ProjectStore>;
+    touched(id: string): Promise<void>;
+    remove(id: string): Promise<void>;
+    last(): Promise<LastOpened | undefined>;
+    remember(game: string, editor?: string): Promise<void>;
+    link(id: string, repo: string | undefined): Promise<void>;
+}
+```
+
+### `WebGamesEnv` (interface)
+
+```ts
+interface WebGamesEnv {
+    readonly storage?: {
+        getDirectory?: () => Promise<DirectoryLike>;
+    } | undefined;
+    now(): number;
+}
+```
+
+## `./kit/web-sync`
+
+### `createWebGitHubSession` (function)
+
+```ts
+function createWebGitHubSession(deps: WebGitHubDeps): WebGitHubSession;
+```
+
+### `githubApp` (function)
+
+```ts
+function githubApp(fetchFn: typeof fetch): Promise<string | undefined>;
+```
+
+### `githubReady` (function)
+
+```ts
+function githubReady(fetchFn: typeof fetch): Promise<boolean>;
+```
+
+### `startWebSync` (function)
+
+```ts
+function startWebSync(deps: WebSyncDeps): WebSync;
+```
+
+### `WebGitHubDeps` (interface)
+
+```ts
+interface WebGitHubDeps {
+    readonly fetch: typeof fetch;
+    readonly locks?: LockManager | undefined;
+    readonly channel?: BroadcastChannel | undefined;
+    now(): number;
+    navigate(url: string): void;
+}
+```
+
+### `WebGitHubSession` (interface)
+
+```ts
+interface WebGitHubSession {
+    token(): Promise<string | undefined>;
+    login(): Promise<string | undefined>;
+    readonly signedIn: boolean | undefined;
+    signIn(back: string): void;
+    signOut(): Promise<void>;
+    subscribe(listener: () => void): () => void;
+}
+```
+
+### `WebSync` (interface)
+
+```ts
+interface WebSync extends SyncHandle {
+    onPulled(listener: (paths: readonly string[]) => void): () => void;
+}
+```
+
+### `WebSyncDeps` (interface)
+
+```ts
+interface WebSyncDeps {
+    readonly fetch: typeof fetch;
+    readonly session: WebGitHubSession;
+    readonly store: ProjectStore;
+    readonly repo: string;
+    readonly timers: Timers;
+    readonly visibility: Visibility;
+    now?: () => number;
+    onError?: (error: unknown) => void;
+}
+```
+
+## `./kit/sync`
+
+### `Clock` (interface)
+
+```ts
+interface Clock {
+    now(): number;
+    sleep(ms: number): Promise<void>;
+}
+```
+
+### `createRestEngine` (function)
+
+```ts
+function createRestEngine(options: RestEngineOptions): GitEngine;
+```
+
+### `GameShelf` (interface)
+
+```ts
+interface GameShelf {
+    create(title: string, files: readonly {
+        readonly path: string;
+        readonly bytes: Uint8Array;
+    }[]): Promise<{
+        readonly id: string;
+        readonly title: string;
+        readonly changed: number;
+    }>;
+    store(id: string): Promise<ProjectStore>;
+    link(id: string, repo: string | undefined): Promise<void>;
+}
+```
+
+### `generatedFolders` (function)
+
+```ts
+function generatedFolders(editorsToml: string | undefined): readonly string[];
+```
+
+### `generatedNote` (const)
+
+```ts
+const generatedNote: (path: string) => string;
+```
+
+### `getGame` (function)
+
+```ts
+function getGame(fetchFn: typeof fetch, token: string, repo: string, games: GameShelf): Promise<GotGame>;
+```
+
+### `GitEngine` (interface)
+
+```ts
+interface GitEngine {
+    fetchMain(): Promise<'unchanged' | 'changed'>;
+    mergeMain(): Promise<PullOutcome>;
+    commitAll(message: string): Promise<string | undefined>;
+    hasUnpushed(): Promise<boolean>;
+    push(): Promise<PushResult>;
+    conflicts?(): Promise<readonly MergeAsk[]>;
+    resolve?(path: string, choice: Choice): Promise<Resolved>;
+}
+```
+
+### `GitHubGame` (interface)
+
+```ts
+interface GitHubGame {
+    readonly repo: string;
+    readonly id: string;
+    readonly title: string;
+}
+```
+
+### `githubToken` (function)
+
+```ts
+function githubToken(http: Http, secrets: Secrets, clock: Clock): Promise<string | undefined>;
+```
+
+### `GotGame` (interface)
+
+```ts
+interface GotGame {
+    readonly id: string;
+    readonly title: string;
+    readonly changed: number;
+    readonly github: string;
+}
+```
+
+### `Http` (interface)
+
+```ts
+interface Http {
+    post(url: string, body: Record<string, string>, headers?: Record<string, string>): Promise<HttpResponse>;
+    get(url: string, headers: Record<string, string>): Promise<HttpResponse>;
+}
+```
+
+### `HttpResponse` (interface)
+
+```ts
+interface HttpResponse {
+    readonly status: number;
+    readonly json: unknown;
+}
+```
+
+### `installUrl` (const)
+
+```ts
+const installUrl: (slug: string) => string;
+```
+
+### `isGeneratedPath` (function)
+
+```ts
+function isGeneratedPath(path: string, folders: readonly string[]): boolean;
+```
+
+### `keepBothName` (function)
+
+```ts
+function keepBothName(path: string): string;
+```
+
+### `listGitHubGames` (function)
+
+```ts
+function listGitHubGames(fetchFn: typeof fetch, token: string): Promise<readonly GitHubGame[]>;
+```
+
+### `MergeAsk` (interface)
+
+```ts
+interface MergeAsk {
+    readonly path: string;
+    readonly reason: AskReason;
+    readonly where?: string;
+    readonly keepBothPath?: string;
+}
+```
+
+### `mergeFile` (function)
+
+```ts
+function mergeFile(path: string, { base, mine, theirs }: Versions): MergeOutcome;
+```
+
+### `MergeOutcome` (type)
+
+```ts
+type MergeOutcome = {
+    readonly kind: 'merged';
+    readonly data: Uint8Array | string;
+} | {
+    readonly kind: 'deleted';
+} | {
+    readonly kind: 'ask';
+    readonly reason: AskReason;
+    readonly where?: string;
+    readonly keepBothPath?: string;
+};
+```
+
+### `newRepoUrl` (const)
+
+```ts
+const newRepoUrl: (id: string) => string;
+```
+
+### `OfflineError` (class)
+
+```ts
+class OfflineError extends Error {
+    constructor(message?: string);
+}
+```
+
+### `PullOutcome` (interface)
+
+```ts
+interface PullOutcome {
+    readonly changed: readonly string[];
+    readonly asks: readonly MergeAsk[];
+    readonly generated: readonly string[];
+}
+```
+
+### `PushResult` (type)
+
+```ts
+type PushResult = 'pushed' | 'offline' | 'rejected';
+```
+
+### `repoReachable` (function)
+
+```ts
+function repoReachable(fetchFn: typeof fetch, token: string, repo: string): Promise<boolean>;
+```
+
+### `RestEngineOptions` (interface)
+
+```ts
+interface RestEngineOptions {
+    readonly fetch: typeof fetch;
+    token(): Promise<string | undefined>;
+    readonly store: ProjectStore;
+    readonly repo: string;
+    now?: () => number;
+}
+```
+
+### `Secrets` (interface)
+
+```ts
+interface Secrets {
+    get(name: string): Promise<string | undefined>;
+    set(name: string, value: string): Promise<void>;
+    delete(name: string): Promise<void>;
+}
+```
+
+### `SIGN_IN_WORDS` (const)
+
+```ts
+const SIGN_IN_WORDS: {
+    readonly code: (userCode: string) => string;
+    readonly open: "Open GitHub";
+    readonly copy: "Copy code";
+    readonly install: "Let Automata see your games";
+    readonly keychain: "Automata can't keep your GitHub sign-in on this device.";
+    readonly denied: "GitHub said no. Start again if you want to connect.";
+    readonly expired: "That code ran out. Start again to get a new one.";
+    readonly offline: "Couldn't reach GitHub. Check your internet and try again.";
+};
+```
+
+### `signIn` (function)
+
+```ts
+function signIn(http: Http, secrets: Secrets, clientId: string, clock: Clock, options?: SignInOptions): AsyncGenerator<SignInStep>;
+```
+
+### `SignInStep` (type)
+
+```ts
+type SignInStep = {
+    readonly kind: 'code';
+    readonly userCode: string;
+    readonly url: string;
+} | {
+    readonly kind: 'install';
+    readonly url: string;
+} | {
+    readonly kind: 'done';
+    readonly login: string;
+} | {
+    readonly kind: 'failed';
+    readonly message: string;
+};
+```
+
+### `startSync` (function)
+
+```ts
+function startSync(options: SyncOptions): SyncHandle;
+```
+
+### `STATUS_LINES` (const)
+
+```ts
+const STATUS_LINES: Readonly<Record<SyncState, string>>;
+```
+
+### `StatusStore` (interface)
+
+```ts
+interface StatusStore {
+    get(): SyncStatus;
+    subscribe(listener: (status: SyncStatus) => void): () => void;
+}
+```
+
+### `SyncFile` (interface)
+
+```ts
+interface SyncFile {
+    readonly repo: string;
+    readonly branch: string;
+    readonly base?: {
+        readonly commit: string;
+        readonly tree: string;
+    } | undefined;
+    readonly files: Readonly<Record<string, string>>;
+    readonly etag?: string | undefined;
+    readonly pending?: {
+        readonly message: string;
+        readonly at: number;
+    } | undefined;
+    readonly asked?: readonly AskedFile[] | undefined;
+}
+```
+
+### `SyncHandle` (interface)
+
+```ts
+interface SyncHandle {
+    readonly status: StatusStore;
+    edited(paths: readonly string[]): void;
+    pullNow(): Promise<void>;
+    conflicts(): Promise<readonly MergeAsk[]>;
+    resolve(path: string, choice: Choice): Promise<boolean>;
+    stop(): void;
+}
+```
+
+### `SyncOptions` (interface)
+
+```ts
+interface SyncOptions {
+    readonly engine: GitEngine;
+    readonly store: {
+        notifyChanged(paths: readonly string[]): void;
+    };
+    readonly timers: Timers;
+    readonly visibility: Visibility;
+    readonly isSignedIn: () => Promise<boolean>;
+    readonly now?: () => number;
+    readonly onError?: (error: unknown) => void;
+}
+```
+
+### `SyncState` (type)
+
+```ts
+type SyncState = 'saved' | 'pulling' | 'offline' | 'signed-out' | 'conflict' | 'stopped';
+```
+
+### `SyncStatus` (interface)
+
+```ts
+interface SyncStatus {
+    readonly state: SyncState;
+    readonly line: string;
+}
+```
+
+### `SyncStopped` (class)
+
+```ts
+class SyncStopped extends Error {
+    readonly words: string;
+    readonly until?: number | undefined;
+    constructor(words: string, until?: number | undefined);
+}
+```
+
+### `Timers` (interface)
+
+```ts
+interface Timers {
+    after(ms: number, run: () => void): () => void;
+    every(ms: number, run: () => void): () => void;
+}
+```
+
+### `Versions` (interface)
+
+```ts
+interface Versions {
+    readonly base?: Uint8Array;
+    readonly mine?: Uint8Array;
+    readonly theirs?: Uint8Array;
+}
+```
+
+### `Visibility` (interface)
+
+```ts
+interface Visibility {
+    isVisible(): boolean;
+    onChange(listener: () => void): () => void;
+}
+```
+
 ## `./kit/ports`
 
 ### `CheckDef` (interface)
@@ -3695,6 +4394,7 @@ interface SuitePorts {
     readonly checks: ChecksRunner;
     readonly gates?: Gates | undefined;
     readonly list?: EditorListPort | undefined;
+    readonly visit?: (() => string | undefined) | undefined;
 }
 ```
 
@@ -4144,6 +4844,50 @@ function stubGeometry(width: number, height: number): ResizableGeometry;
 const turned: (profile: IpadProfile) => IpadProfile;
 ```
 
+## `./kit/testing/github`
+
+### `createFakeGitHubRest` (function)
+
+```ts
+function createFakeGitHubRest(options: FakeRestOptions): FakeGitHubRest;
+```
+
+### `FakeGitHubRest` (interface)
+
+```ts
+interface FakeGitHubRest {
+    readonly fetch: typeof fetch;
+    readonly state: {
+        offline: boolean;
+        rateLimited: boolean;
+        truncated: boolean;
+        down: boolean;
+    };
+    readonly log: {
+        method: string;
+        path: string;
+        headers: Headers;
+        body: unknown;
+    }[];
+    remoteWrite(files: Record<string, string | null>, message?: string): Promise<void>;
+    head(): string | undefined;
+    messages(): string[];
+    file(path: string): string | undefined;
+    paths(): string[];
+    count(method: string, path: RegExp | string): number;
+}
+```
+
+### `FakeRestOptions` (interface)
+
+```ts
+interface FakeRestOptions {
+    readonly repo: string;
+    readonly defaultBranch?: string;
+    readonly files?: Readonly<Record<string, string>>;
+}
+```
+
 ## `./kit/journey-project`
 
 ### `IPAD_USER_AGENT` (const)
@@ -4327,6 +5071,17 @@ type Levels2dState = {
 };
 ```
 
+### `LocalGame` (interface)
+
+```ts
+interface LocalGame {
+    readonly store: ProjectStore;
+    readonly title: string;
+    readonly where: Where;
+    readonly reason?: string | undefined;
+}
+```
+
 ### `OpenedSuitePorts` (interface)
 
 ```ts
@@ -4334,6 +5089,8 @@ interface OpenedSuitePorts {
     readonly ports: SuitePorts;
     readonly sample: boolean;
     readonly kept: boolean;
+    readonly where: Where;
+    readonly reason: string | undefined;
     readonly gameUrl: string | undefined;
     readonly playOff: string | undefined;
     readonly game: string | undefined;
@@ -4345,6 +5102,12 @@ interface OpenedSuitePorts {
 
 ```ts
 function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePorts>;
+```
+
+### `pageIsServed` (function)
+
+```ts
+function pageIsServed(env: SuitePortsEnv): Promise<boolean>;
 ```
 
 ### `randomIds` (function)
@@ -4393,9 +5156,14 @@ interface SuiteEnv {
     readonly sample?: boolean;
     readonly kept?: boolean;
     readonly game?: string | undefined;
+    readonly gameKey?: string | undefined;
+    readonly where?: Where | undefined;
+    readonly initialEditor?: string | undefined;
+    readonly onEditor?: ((id: string | undefined) => void) | undefined;
     readonly playUrl?: string | undefined;
     readonly playOff?: string | undefined;
     readonly publish?: GamePublish | undefined;
+    readonly sync?: SuiteSync | undefined;
 }
 ```
 
@@ -4412,6 +5180,18 @@ interface SuiteHandle {
 ```ts
 interface SuitePortsEnv extends Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage' | 'storage'> {
     readonly sample?: Readonly<Record<string, string>> | undefined;
+    readonly local?: LocalGame | undefined;
+}
+```
+
+### `SuiteSync` (interface)
+
+```ts
+interface SuiteSync {
+    readonly status: StatusStore;
+    onPulled(listener: (paths: readonly string[]) => void): () => void;
+    conflicts(): Promise<readonly MergeAsk[]>;
+    resolve(path: string, choice: Choice): Promise<boolean>;
 }
 ```
 
