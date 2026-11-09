@@ -5,8 +5,10 @@
 -->
 <script lang="ts">
 import { onMount } from 'svelte'
+import type { WebGitHubSession } from '../../shared/kit/sync/web-sign-in'
 import { openCopy, saveCopy } from './game-copy'
 import NewGame from './NewGame.svelte'
+import SignIn from './SignIn.svelte'
 import type { GameEntry, GameFile, WebGames } from './web-games'
 import YourGames from './YourGames.svelte'
 
@@ -20,11 +22,13 @@ interface Props {
   /** Hands the person a file to keep. */
   save: (name: string, bytes: Uint8Array) => void
   now: () => number
-  /** Whether signing in with GitHub is offered. */
-  canSignIn?: boolean
+  /** Signing in with GitHub, when the site has it set up; without it no sign-in is offered. */
+  session?: WebGitHubSession | undefined
+  /** GitHub was refused on the way back (`?github=denied`). */
+  denied?: boolean
 }
 
-const { games, mode, starter, navigate, save, now, canSignIn = false }: Props = $props()
+const { games, mode, starter, navigate, save, now, session, denied = false }: Props = $props()
 
 let list = $state.raw<readonly GameEntry[]>([])
 let trouble = $state<string | undefined>()
@@ -72,6 +76,11 @@ async function importCopy(file: File): Promise<void> {
   navigate(`?game=${opened.game.id}`)
 }
 
+async function removeAll(): Promise<void> {
+  for (const game of await games.list()) await games.remove(game.id)
+  await reload()
+}
+
 async function remove(id: string): Promise<void> {
   await games.remove(id)
   await reload()
@@ -81,11 +90,14 @@ async function remove(id: string): Promise<void> {
 {#if mode === 'new'}
   <NewGame taken={list.map((game) => game.id)} onmake={make} oncancel={() => navigate('?games')} />
 {:else}
+  {#if session}
+    <div class="sign-in"><SignIn {session} back="/editor/app/?games" {denied} onremoveall={() => void removeAll()} /></div>
+  {/if}
   <YourGames
     games={list}
     now={now()}
     kept={games.kept}
-    {canSignIn}
+    canSignIn={session !== undefined}
     {trouble}
     onopen={(id) => void open(id)}
     onnew={() => navigate('?new=2d')}
@@ -94,3 +106,11 @@ async function remove(id: string): Promise<void> {
     onremove={(id) => void remove(id)}
   />
 {/if}
+
+<style>
+  .sign-in {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-4) 0;
+  }
+</style>

@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { checkSite } from '../../../scripts/site-checks'
 import {
   BANNED_PHRASES,
+  checkSignInDisclosed,
   checkTargets,
   FRAMING_PHRASES,
   STANDALONE_NAMES,
@@ -675,5 +676,19 @@ describe('checkCompileWorker', () => {
     expect(checkCompileWorker(goodSite().root).failures).toEqual([
       'the build has no compile worker under _app/immutable/workers/',
     ])
+  })
+})
+
+describe('checkSignInDisclosed', () => {
+  it('asks nothing of a build without the sign-in function', () => {
+    expect(checkSignInDisclosed(undefined, false)).toEqual([])
+    expect(checkSignInDisclosed('<p>no section</p>', false)).toEqual([])
+  })
+  it('refuses a build with the function and no #github section on the privacy page', () => {
+    expect(checkSignInDisclosed('<h1>Privacy</h1>', true)).toHaveLength(1)
+    expect(checkSignInDisclosed(undefined, true)).toHaveLength(1)
+  })
+  it('accepts one that has it', () => {
+    expect(checkSignInDisclosed('<section id="github"><h2>Signing in with GitHub</h2></section>', true)).toEqual([])
   })
 })

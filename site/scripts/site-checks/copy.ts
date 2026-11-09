@@ -92,3 +92,15 @@ export function checkTargets(root: string): string[] {
   }
   return failures
 }
+
+/**
+ * A build that carries the GitHub sign-in function must say what it keeps: the privacy page needs its `#github` section
+ * (the cookie it sets, where the tokens live, that Automata keeps nothing). `privacy` is the built page, if there is one.
+ */
+export function checkSignInDisclosed(privacy: string | undefined, signIn: boolean): string[] {
+  if (!signIn) return []
+  if (privacy === undefined) return ['privacy.html: missing, and the build carries the GitHub sign-in function']
+  return /\bid=["']github["']/.test(privacy)
+    ? []
+    : ['privacy.html: the build carries the GitHub sign-in function but the page has no #github section saying what it keeps']
+}

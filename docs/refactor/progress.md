@@ -416,7 +416,7 @@ the site's 3D parts.
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 50% (9 of 18 tasks)
+### Build: 67% (12 of 18 tasks)
 
 The base is #532's branch (`claude/project-thread-szjdbh`, `829039d5`) with the plan, spec and audits copied in from #536
 and #537. #531 (`claude/project-thread-hvpv4a`, `e66059ce`) and the site stack (#521, `claude/project-thread-k1ftgu`,
@@ -437,7 +437,9 @@ the rest. The page has no editors v2 header, so the header is `SuiteTopBar.svelt
 | 2.4 The journey: made, reloaded, reopened | 2 | Done, 2026-11-08: `web-game-kept` passes in Chromium on the phone and iPad projects; WebKit not run | |
 | 3.1 The try page | 3 | Not started: needs `templateFiles` and the site stack (#521, #531), which this branch does not have | |
 | 3.2 The site says what the page does | 3 | Words and tests changed (Editor page, Privacy, e2e); the site e2e and `check:site` were not run (no site build here) | |
-| 4.1 to 4.3 Sign in with GitHub | 4 | Not started | |
+| 4.1 The sign-in function | 4 | Done, 2026-11-09 (35 unit tests with a fake GitHub; not run against the real GitHub or Cloudflare, which need the Owner's steps in spec 12) | |
+| 4.2 Signing in from the editors | 4 | Done, 2026-11-09 (unit and DOM; the editors' policy now allows `https://api.github.com`; not run against a real sign-in). The session lives in `kit/web-sync`, not `kit/sync`, so #531's `kit/sync` merges without a clash | |
+| 4.3 Privacy and Terms | 4 | Words drafted in `Privacy.svelte` (`#github`) and `Terms.svelte`, and a site check refuses a build with the function and no `#github`. **They do not ship until the Owner says yes** (spec 12) | |
 | 5.1 to 5.4 Sync on the web | 5 | Not started | |
 
 **The whole game loop (2026-11-08, session 6rfl3t, PR stacked on #473; the Owner asked whether a whole game can be made

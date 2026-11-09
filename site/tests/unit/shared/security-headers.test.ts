@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { DEMO_POLICY, securityHeaders } from '../../../src/shared/html/security-headers'
+import { DEMO_POLICY, EDITOR_POLICY, securityHeaders } from '../../../src/shared/html/security-headers'
 
 // QB.4a: the header set every response carries (quality-bar spec QB.4). A site page's script policy is a <meta> in the
 // page (src/shared/html/csp.ts), so its header adds only what a <meta> cannot: the frame policy. The demos are copied in as
@@ -19,8 +19,8 @@ describe('securityHeaders', () => {
 
   it('gives everything under /demos/ a whole policy: scripts from the site only, wasm allowed, no inline script', () => {
     expect(securityHeaders('/demos/base-2d/index.html')['Content-Security-Policy']).toBe(DEMO_POLICY)
-    // The try-it editor is the framework's build too, served as it is.
-    expect(securityHeaders('/editor/app/')['Content-Security-Policy']).toBe(DEMO_POLICY)
+    // The editors are the framework's build too, served as they are, with one more place to connect to.
+    expect(securityHeaders('/editor/app/')['Content-Security-Policy']).toBe(EDITOR_POLICY)
     expect(securityHeaders('/editor')['Content-Security-Policy']).not.toBe(DEMO_POLICY)
     expect(DEMO_POLICY).toContain("script-src 'self' 'wasm-unsafe-eval';")
     expect(DEMO_POLICY).toContain("frame-ancestors 'self'")
@@ -42,5 +42,13 @@ describe('securityHeaders', () => {
     for (const path of ['/examples', '/docs', '/', '/playground/runtime/assets/x.js']) {
       expect(securityHeaders(path)['Permissions-Policy'], path).toContain('gamepad=(self)')
     }
+  })
+
+  it('lets the editors, and only the editors, connect to GitHub’s API', () => {
+    expect(EDITOR_POLICY).toContain("connect-src 'self' https://api.github.com;")
+    expect(EDITOR_POLICY.replace(' https://api.github.com', '')).toBe(DEMO_POLICY)
+    expect(DEMO_POLICY).not.toContain('api.github.com')
+    expect(securityHeaders('/demos/base-2d/index.html')['Content-Security-Policy']).toBe(DEMO_POLICY)
+    expect(securityHeaders('/editor')['Content-Security-Policy']).toBe("frame-ancestors 'self'")
   })
 })

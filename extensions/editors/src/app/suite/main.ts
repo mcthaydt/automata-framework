@@ -5,6 +5,7 @@ import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
+import { createWebGitHubSession, githubReady } from '@automata/editor/kit/web-sync'
 import {
   browserPublish,
   createDownloadStore,
@@ -94,8 +95,20 @@ function startEditors(page: Extract<ContentPage, { opened: unknown }>): Promise<
 
 const navigate = (search: string): void => location.assign(`${location.pathname}${search}`)
 
+/** Signing in with GitHub, when the site has its function set up; the tabs of this browser share one renewal. */
+async function webSession() {
+  if (!(await githubReady((input, init) => fetch(input, init)))) return undefined
+  return createWebGitHubSession({
+    fetch: (input, init) => fetch(input, init),
+    locks: 'locks' in navigator ? navigator.locks : undefined,
+    channel: typeof BroadcastChannel === 'undefined' ? undefined : new BroadcastChannel('automata-github'),
+    now: () => Date.now(),
+    navigate: (url) => location.assign(url),
+  })
+}
+
 openContentPage({ origin: location.origin, search: location.search, sessionStorage, now: () => Date.now() })
-  .then((page) => {
+  .then(async (page) => {
     if (page.kind === 'games' || page.kind === 'new')
       return mount(GamesPage, {
         target: root,
@@ -106,6 +119,8 @@ openContentPage({ origin: location.origin, search: location.search, sessionStora
           navigate,
           save: saveFile,
           now: () => Date.now(),
+          session: await webSession(),
+          denied: new URLSearchParams(location.search).get('github') === 'denied',
         },
       })
     return startEditors(page)

@@ -30,6 +30,12 @@ export const DEMO_POLICY = [
 ].join('; ')
 
 /**
+ * The editors' policy at /editor/app/: the demos' own, and one more place to connect to. A signed-in person's games go
+ * from the page straight to GitHub's API, so `connect-src` also names it and nothing else.
+ */
+export const EDITOR_POLICY = DEMO_POLICY.replace("connect-src 'self'", "connect-src 'self' https://api.github.com")
+
+/**
  * An example page's preview runs in a sandboxed frame with an opaque origin, which `(self)` never matches,
  * so example pages and the frame pages they load allow fullscreen and the gamepad to any origin. A frame still gets a
  * feature only through its `allow` attribute, and only the playground's frames carry one.
@@ -38,6 +44,7 @@ const PREVIEW_PAGE = /^\/(examples|playground\/examples)\/[^/]/
 
 /** The framework's own builds the site serves as they are: the demos and the try-it editor. */
 const FRAMEWORK_BUILD = /^\/(demos|editor\/app)\//
+const EDITORS = /^\/editor\/app\//
 
 export function securityHeaders(pathname: string): Record<string, string> {
   const delegated = PREVIEW_PAGE.test(pathname)
@@ -52,6 +59,10 @@ export function securityHeaders(pathname: string): Record<string, string> {
     // Games may go full screen and read a gamepad; nothing on the site needs the camera, microphone, location,
     // payments or USB.
     'Permissions-Policy': `camera=(), microphone=(), geolocation=(), payment=(), usb=(), ${delegated}`,
-    'Content-Security-Policy': FRAMEWORK_BUILD.test(pathname) ? DEMO_POLICY : FRAME_POLICY,
+    'Content-Security-Policy': EDITORS.test(pathname)
+      ? EDITOR_POLICY
+      : FRAMEWORK_BUILD.test(pathname)
+        ? DEMO_POLICY
+        : FRAME_POLICY,
   }
 }

@@ -236,3 +236,10 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | The top bar, in a browser that keeps the game | nothing | `Saved on this device` | 1 and 5 |
 | The top bar, a write that failed | `Saved…` | `Not saved: ` and the store's own words | 1 and 5 |
 | The top bar, a browser that keeps nothing | a banner on Home only | `Not saved: this browser can’t keep files. Save a copy to keep your work.` at the top of every editor | 1 (the banner was one screen; the work is on all of them) |
+| Your games | (nothing: the sample opened) | `Your games`, `New game`, `Open a copy`, `Changed 5 minutes ago`, `On this device`, `Saved in this browser only. Save a copy to keep it safe.` | 1 and 5 |
+| Remove a game | (nothing) | `Remove {name} from this browser? A copy on GitHub stays.` (or `Save a copy first if you want to keep it.`), `Keep it` / `Remove` | 1 (it asks, and says what is left) |
+| A zip that is not a game | (nothing) | `This isn’t an Automata game. Pick a .zip you saved from Automata.` | 1 |
+| New game | (nothing) | `What’s your game called?`, `Its files will be called lantern-run.`, `Make my game` | 1 |
+| Sign in card | (nothing) | `Keep your games on all your devices` / `Your games are kept in your own GitHub account. Automata keeps nothing.` / `Sign in with GitHub (free)`; refused: `GitHub said no. Start again if you want to connect.` | 1 and 5 |
+| Signed in | (nothing) | `Signed in as {login}.` / `Your games stay on this device.` / `Sign out` / `Sign out and remove my games from this browser` | 1 |
+
