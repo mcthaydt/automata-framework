@@ -540,7 +540,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## The paid apps: desktop and mobile: 33% (2 of 6 stages done, 2026-11-08; the build stage is at 6%)
+## The paid apps: desktop and mobile: 33% (2 of 6 stages done, 2026-11-08; the build stage is at 4%, 2 of 52 tasks, since the 2026-11-09 iPad update and its plan audit)
 
 The Owner, 2026-11-08 14:53: "should we get to using tauri to package to desktop, ios, and android? Also let's use
 nomad sculpt economics $19.99 for mobile, $39.99 for desktop; lets keep essentials on web, everything open source except
@@ -549,13 +549,13 @@ deployment, but the full suite requires the app desktop or mobile; it needs to b
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-08, on PR #511: 8 high (A1 to A8), 9 medium (A9 to A17), 3 low (A18 to A20), one decision for the Owner (D1, which editors stay on the web), settled 21:25: every editor is free on the web and the apps sell the download. A Tauri desktop build opened the full suite on a new game; a wall, a key and a longer flash were made in it, played in it and seen. Play needed an `on_new_window` handler to open at all | [audit](2026-11-08-apps-audit.md) |
-| 2. Plan and spec | Done, 2026-11-08: [spec](2026-11-08-apps-spec.md) and [plan](2026-11-08-apps-plan.md), 30 build tasks in 8 phases (0 the start, 1 seams in the editors, 2 the desktop app, 3 play with no computer, 4 the phone app, 5 GitHub sync, 6 the Review page, 7 building and proving), then MCP as a later stage (4 tasks: on a computer through the app's sidecar, on a phone over local Wi-Fi only, no relay ever: the Owner, 21:29). A phone needs no computer: the app carries a prebuilt runtime and compiles the game inside itself. Owner, 21:33: every editor free on the web, the app never names FigureBuilder or EnvironmentBuilder, no 2D-only app, launch waits for Pixi 3D. The DUEL palette has no stated licence on Lospec; the Owner asks Arilyn | [spec](2026-11-08-apps-spec.md), [plan](2026-11-08-apps-plan.md) |
-| 3. Plan audit | Not started | |
-| 4. Build | In progress, started 2026-11-08 (1 of 30 tasks done, 3%; 5 more half done, see below) | [plan](2026-11-08-apps-plan.md) |
+| 2. Plan and spec | Done, 2026-11-08: [spec](2026-11-08-apps-spec.md) and [plan](2026-11-08-apps-plan.md), 30 build tasks in 8 phases (0 the start, 1 seams in the editors, 2 the desktop app, 3 play with no computer, 4 the phone app, 5 GitHub sync, 6 the Review page, 7 building and proving), then MCP as a later stage (4 tasks: on a computer through the app's sidecar, on a phone over local Wi-Fi only, no relay ever: the Owner, 21:29). A phone needs no computer: the app carries a prebuilt runtime and compiles the game inside itself. Owner, 21:33: every editor free on the web, the app never names FigureBuilder or EnvironmentBuilder, no 2D-only app, launch waits for Pixi 3D. The DUEL palette has no stated licence on Lospec; the Owner asks Arilyn. **Updated 2026-11-09** for the Owner's iPad-first direction (the iPad is the primary creation device, the Apple Pencil first-class, Claude Code the primary surface and the editors for hand edits, a game from idea to shipped online on an iPad alone), the two separate purchases and the seven paid features: 20 tasks added (50 in all), from the [iPad gap list](2026-11-09-ipad-end-to-end-gaps.md) (25 gaps). Publish works on a phone or tablet (the zip, then itch.io through the game's release workflow); Review joins sync as free on the web | [spec](2026-11-08-apps-spec.md), [plan](2026-11-08-apps-plan.md), [gaps](2026-11-09-ipad-end-to-end-gaps.md) |
+| 3. Plan audit | Done, 2026-11-08 on #527 (5 high, 7 medium, 3 low, applied); again 2026-11-09 for the iPad update (#557): 5 high, 7 medium, 4 low, all applied to the spec and plan the same day (tasks 6.6 Review on the web and 6.7 Play on the web added: 52 tasks). The two Pencil and palm bugs are in tasks 1.5 and 1.7; a game made with a Pencil and a resting palm survived reload and reopen and played (Chromium, iPad and phone sizes). The Owner's three calls: keep all three | [plan audit](2026-11-08-apps-plan-audit.md), [iPad plan audit](2026-11-09-apps-ipad-plan-audit.md) |
+| 4. Build | In progress, started 2026-11-08 (2 of 52 tasks done, 4%; several more half done, see below) | [plan](2026-11-08-apps-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 6% (2 of 30 tasks)
+### Build: 4% (2 of 52 tasks)
 
 The editors v2 build (`claude/project-thread-q3zxgn`) and the shared-editors fixes (`claude/project-thread-fxu792`) are both
 still open and conflict in 25 files, so the first session did the work that needs neither: the parts of tasks 1.2, 1.4,
@@ -584,6 +584,16 @@ a branch off the plan's. The page side of each task waits for the merged base (t
 | 5.5 `AGENTS.md` and getting a game | 5 | Half: a new game's `AGENTS.md` and `.automata/` in its `.gitignore` are done; "Get a game from GitHub" is not | |
 | 6.1 to 6.4 The Review page | 6 | Not started | |
 | 7.1 to 7.4 Building and proving | 7 | Not started | |
+| 1.5 to 1.7 The Pencil in every editor, Pencil actions, a Pencil as touch in a game | 1 | Not started (added 2026-11-09) | |
+| 3.5 The player and the build give the same hashes | 3 | Not started (added 2026-11-09) | |
+| 4.5 The iPad window | 4 | Not started (added 2026-11-09) | |
+| 5.6, 5.7 The game's check on pull requests; what the iPad can play | 5 | Not started (added 2026-11-09) | |
+| 6.5 Review says when a change won't play here | 6 | Not started (added 2026-11-09) | |
+| 6.6, 6.7 Review and Play on the web | 6 | Not started (added 2026-11-09 by the plan audit, H1) | |
+| 7.5 The iPad journey, from idea to shipped online | 7 | Not started (added 2026-11-09) | |
+| 9.1, 9.2 Publish from a phone or tablet | 9 | Not started (added 2026-11-09) | |
+| 10.1 to 10.5 What the computer app adds | 10 | Not started (added 2026-11-09) | |
+| 11.1 to 11.4 What the phone and tablet app adds | 11 | Not started (added 2026-11-09) | |
 
 The real-thing check so far (`apps/editor/tests/unit/player/make-edit-play.test.ts`): a game is made on the app's store, its level is changed, the app "restarts" (a new store over the same folder), the game compiles and the compiled content carries the change. It has not been played in a browser: the runtime bundles and the Tauri window are not built yet.
 
