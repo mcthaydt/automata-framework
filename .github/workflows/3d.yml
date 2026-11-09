@@ -91,7 +91,7 @@ jobs:
         with:
           name: e2e-3d-report
           path: "**/playwright-report/"
-          retention-days: 7
+          retention-days: 1
 
   parity-3d:
     name: 3D - parity (chromium, webkit, firefox)
