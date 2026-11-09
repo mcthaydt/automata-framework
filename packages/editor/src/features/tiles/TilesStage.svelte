@@ -6,7 +6,7 @@
 <script lang="ts">
 import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import Button from '../../shared/kit/widgets/Button.svelte'
-import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
+import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import AddTilesDialog from './AddTilesDialog.svelte'
 import RulePreview from './RulePreview.svelte'
 import { rulePreview } from './rule-preview'

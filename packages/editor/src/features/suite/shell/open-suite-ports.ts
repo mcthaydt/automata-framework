@@ -3,12 +3,13 @@
 // editor list, as the 2D editor reads them. Only when nothing answers does the page open the sample game held in
 // memory, and the top bar says so. The served suite has no change sets, so its edits write the checkout directly, and
 // its Publish builds the game into a zip on the computer that serves it.
+
+import { createMemoryPorts } from '../../../shared/kit/ports/memory/memory-ports.ts'
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import type { PublishClient } from '../../../shared/kit/storage/publish-client.ts'
 import { openServedStore, type ServedWorkspaceEnv } from '../../../shared/kit/storage/workspace.ts'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
-import { createMemoryPorts } from '../memory/memory-ports.ts'
-import { SAMPLE_GAME, samplePorts } from '../memory/sample-ports.ts'
+import { SAMPLE_GAME, samplePorts } from './sample-ports.ts'
 
 export interface OpenedSuitePorts {
   readonly ports: SuitePorts

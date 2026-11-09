@@ -3,7 +3,7 @@
 -->
 <script lang="ts">
 import type { ProjectStore } from '../../shared/kit/storage/project-store'
-import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
+import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import { charactersState } from './characters-state.svelte'
 import EntityInspector from './EntityInspector.svelte'
 import type { EntitiesSession } from './entities-session'
