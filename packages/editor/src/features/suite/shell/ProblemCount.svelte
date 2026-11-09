@@ -75,8 +75,10 @@ let trigger = $state<HTMLElement>()
 {/if}
 
 <style>
+  /* The count and the save state keep their words; it is the editor's tools that give way and scroll. */
   .count {
     display: inline-flex;
+    flex: none;
     align-items: center;
     gap: 6px;
     min-height: var(--size-hit);

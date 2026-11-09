@@ -1,9 +1,10 @@
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
+import '@automata/editor/tool-chrome.css'
 import '@automata/editor/suite.css'
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { arrived, REST, SIZES } from '@automata/editor/kit/testing'
+import { arrived, editorTargets, REST, SIZES } from '@automata/editor/kit/testing'
 import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
 import { chooseEditor } from '@automata/editor/suite/testing/layout'
 import { publishConditions, settleLayout } from '@automata/framework/testing'
@@ -37,7 +38,7 @@ async function open(): Promise<void> {
   const size = SIZES.find((each) => each.name === 'ipad-pro-11-landscape')
   if (size === undefined) throw new Error('no size')
   await page.viewport(size.width, size.height)
-  publishConditions(document.documentElement, size, REST)
+  publishConditions(document.documentElement, size, REST, editorTargets())
   const ports = await samplePorts({ [EDITOR_LIST_PATH]: LIST, ...studioFixtureFiles() })
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'

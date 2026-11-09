@@ -673,3 +673,12 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   player does not move, so the guard never chases. It is not the new `character` tag (tested with it removed) and not editor UI; the
   merged story code is the suspect and the build audit should check it. Not run: WebKit, Firefox, the GPU runner, the site's e2e and
   parity, the visual baselines (this repo's editors have none beyond the layout tests' screenshots, which are not compared).
+
+**CI fix on the draft PR (3D parity, 2026-11-09).** The `3D - parity` check was red on `editor-3d`'s layout tests, which still
+measured the old chrome. Rulings: (8) the 3D layout helpers and tests import `tool-chrome.css` (the production suite does; without
+it `--size-field` is undefined and a Picker draws 20 px high) and read their target sizes from `editorTargets()` (28/32 with a
+mouse, 44/48 with touch) instead of the literals 44 and 48; (9) the Studio's stage threshold at the wide mode is 320 px, as the
+Levels view's is, since the 224 px sidebar leaves about 370 at an iPad landscape; (10) a real bug: at 900 px the header's problem
+count and save state shrank into each other, so both are `flex: none` and the editor's tools are what give way and scroll. Ran:
+`editor-3d` layout, canvas and journeys in Chromium (the canvas and draw-journey timeouts under full load pass alone, a software
+GL cold start), the editor's unit and suite-shell layout tests. Not run: WebKit and Firefox (not installed here), the GPU runner.

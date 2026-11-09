@@ -1,9 +1,10 @@
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
+import '@automata/editor/tool-chrome.css'
 import '@automata/editor/suite.css'
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { arrived, type EditorSize, REST, SIZES } from '@automata/editor/kit/testing'
+import { arrived, type EditorSize, editorTargets, REST, SIZES } from '@automata/editor/kit/testing'
 import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
 import { chooseEditor, editorControl } from '@automata/editor/suite/testing/layout'
 import { checkLayout, publishConditions, settleLayout } from '@automata/framework/testing'
@@ -48,7 +49,7 @@ afterEach(async () => {
 
 async function open(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, editorTargets())
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
   const studio = createStudio({ stage: standin, frames: { request: () => 0, cancel: () => {} } })
@@ -101,7 +102,7 @@ describe.each(SIZES)('Studio at $name ($width x $height)', (size) => {
   test('Look: the stage has room, the modes are targets, the page never scrolls', async () => {
     const conditions = await open(size)
     const box = stage().getBoundingClientRect()
-    expect(box.width).toBeGreaterThan(size.mode === 'wide' && size.width < 1000 ? 240 : size.width / 3)
+    expect(box.width).toBeGreaterThan(size.mode === 'wide' ? (size.width < 1000 ? 240 : 320) : size.width / 3)
     expect(box.height).toBeGreaterThan(size.mode === 'compact' && size.height < 500 ? 80 : 200)
     expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
     expect(box.bottom).toBeLessThanOrEqual(size.height + 0.5)

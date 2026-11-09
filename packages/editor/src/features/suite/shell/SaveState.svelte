@@ -27,6 +27,7 @@ const failed = $derived(typeof save === 'object' ? save.failed : undefined)
 <style>
   .save {
     display: inline-flex;
+    flex: none;
     align-items: center;
     gap: 6px;
     color: var(--tool-faint);

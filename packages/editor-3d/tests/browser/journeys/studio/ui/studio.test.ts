@@ -1,11 +1,13 @@
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
+import '@automata/editor/tool-chrome.css'
 import '@automata/editor/suite.css'
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
 import {
   arrived,
   createPointers,
+  editorTargets,
   IPAD_PROFILES,
   type IpadProfile,
   REST,
@@ -39,7 +41,7 @@ afterEach(async () => {
 
 async function open(profile: IpadProfile) {
   await page.viewport(profile.width, profile.height)
-  publishConditions(document.documentElement, { ...profile, mode: 'wide' } as never, REST)
+  publishConditions(document.documentElement, { ...profile, mode: 'wide' } as never, REST, editorTargets())
   const ports = await samplePorts(FILES)
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'

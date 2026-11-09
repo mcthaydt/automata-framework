@@ -1,7 +1,7 @@
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '#src/app/main.css'
-import { arrived, type EditorSize, SIZES } from '@automata/editor/kit/testing'
+import { arrived, type EditorSize, editorTargets, SIZES } from '@automata/editor/kit/testing'
 import { byTestId, checkLayout, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
@@ -52,7 +52,9 @@ describe.each(SIZES)('3D Home layout at $name ($width x $height)', (size) => {
     await arrived()
     expect(region('inspector')).toHaveAttribute('data-open', 'true')
     expect(checkLayout(conditions, [byTestId('summary-open')])).toEqual([])
-    expect(byTestId('summary-open').getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    expect(byTestId('summary-open').getBoundingClientRect().height).toBeGreaterThanOrEqual(
+      editorTargets().primary,
+    )
     await page.screenshot({ path: `.vitest/shots/ed3d-home-${size.name}-selected.png` })
   })
 
@@ -68,10 +70,12 @@ describe.each(SIZES)('3D Home layout at $name ($width x $height)', (size) => {
     await settleLayout()
     for (const id of ['import-folder', 'import-zip']) {
       const box = byTestId(id).getBoundingClientRect()
-      expect(box.width, id).toBeGreaterThanOrEqual(44)
-      expect(box.height, id).toBeGreaterThanOrEqual(44)
+      expect(box.width, id).toBeGreaterThanOrEqual(editorTargets().hit)
+      expect(box.height, id).toBeGreaterThanOrEqual(editorTargets().hit)
       const input = (byTestId(id).querySelector('input') as HTMLElement).getBoundingClientRect()
-      expect(input.height, `${id}: the input itself is a full-size target`).toBeGreaterThanOrEqual(44)
+      expect(input.height, `${id}: the input itself is a full-size target`).toBeGreaterThanOrEqual(
+        editorTargets().hit,
+      )
     }
     expect(checkLayout(conditions, [byTestId('import-folder'), byTestId('import-zip')])).toEqual([])
     await page.screenshot({ path: `.vitest/shots/ed3d-home-${size.name}-sources.png` })
