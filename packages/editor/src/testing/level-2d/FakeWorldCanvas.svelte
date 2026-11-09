@@ -3,7 +3,7 @@
   DOM test can read the levels, the selection, the links and the camera the World view passed down.
 -->
 <script lang="ts">
-import type { WorldCanvasProps } from '../../shared/level-2d/documents/view-props'
+import type { WorldCanvasProps } from '../../shared/level-2d/session/view-props'
 
 const { rects, camera, links }: WorldCanvasProps = $props()
 </script>

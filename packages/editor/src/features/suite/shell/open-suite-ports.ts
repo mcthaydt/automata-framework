@@ -3,11 +3,12 @@
 // editor list, as the 2D editor reads them. Only when nothing answers does the page open the sample game held in
 // memory, and the top bar says so. The served suite has no change sets yet (its Review, Ship and checks are wired in
 // the 3D slice), so its edits write the checkout directly.
+
+import { createMemoryPorts } from '../../../shared/kit/ports/memory/memory-ports.ts'
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { openServedStore, type ServedWorkspaceEnv } from '../../../shared/kit/storage/workspace.ts'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
-import { createMemoryPorts } from '../memory/memory-ports.ts'
-import { SAMPLE_GAME, samplePorts } from '../memory/sample-ports.ts'
+import { SAMPLE_GAME, samplePorts } from './sample-ports.ts'
 
 export interface OpenedSuitePorts {
   readonly ports: SuitePorts
