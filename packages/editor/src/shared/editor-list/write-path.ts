@@ -82,6 +82,11 @@ export interface WritePath {
   canRedo(owner?: string): boolean
   undoLabel(owner?: string): string | undefined
   redoLabel(owner?: string): string | undefined
+  /**
+   * Files changed from outside this path (a sync brought them in): the next write to them is judged against what the
+   * file is now, not against what this path last wrote.
+   */
+  forget(paths: readonly string[]): void
   /** Resolves once every `after` run started so far has its results. */
   settled(): Promise<void>
   subscribe(listener: () => void): () => void
@@ -255,6 +260,9 @@ export function createWritePath({ ports }: WritePathOptions): WritePath {
   return {
     write: (path, text, label, owner, options) => writeAll([{ path, text }], label, owner, options),
     writeAll,
+    forget(paths) {
+      for (const path of paths) wrote.delete(path)
+    },
     async undo(owner = '') {
       const step = histories.nextUndo(owner)
       if (step === undefined) return undefined

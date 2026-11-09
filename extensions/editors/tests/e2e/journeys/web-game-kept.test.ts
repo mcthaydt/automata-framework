@@ -30,7 +30,10 @@ test('a web game is made, kept through a reload and a restart, saved as a copy a
   const profile = mkdtempSync(join(tmpdir(), 'af-journey-profile-'))
   const copyDir = mkdtempSync(join(tmpdir(), 'af-journey-copy-'))
   const open = () =>
-    chromium.launchPersistentContext(profile, { viewport: { width: 390, height: 844 }, acceptDownloads: true })
+    chromium.launchPersistentContext(profile, {
+      viewport: { width: 390, height: 844 },
+      acceptDownloads: true,
+    })
   try {
     const first = await open()
     const page = await first.newPage()
@@ -72,7 +75,9 @@ test('a web game is made, kept through a reload and a restart, saved as a copy a
 
     // Back to the list: save a copy, remove the game, open the copy.
     await again.getByRole('link', { name: "Grandma's Game: all your games" }).click()
-    await expect(again.getByText('Changed just now').or(again.getByText(/Changed \d+ minutes? ago/))).toBeVisible()
+    await expect(
+      again.getByText('Changed just now').or(again.getByText(/Changed \d+ minutes? ago/)),
+    ).toBeVisible()
     const download = again.waitForEvent('download')
     await again.getByRole('button', { name: "Save a copy of Grandma's Game" }).click()
     const copy = join(copyDir, 'grandma-s-game.zip')

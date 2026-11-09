@@ -230,6 +230,11 @@ const line = $derived(
 // files (a write from an editor that still held the old text was refused, not laid over the new), and Home is read again.
 let stale = false
 function showPulled(): void {
+  if (!stale) return
+  // A field the person is still in is left first, here and not while the editor is taken down: leaving a field writes
+  // its words, which cannot happen in the middle of removing it. Leaving can itself bring us back here.
+  const focused = document.activeElement
+  if (focused instanceof HTMLElement && focused !== document.body) focused.blur()
   if (!stale || drafts.waiting > 0 || editing.inFlight > 0) return
   stale = false
   // The open editor stays on screen until its new session is ready; the others open again when they are chosen.
@@ -241,7 +246,9 @@ function showPulled(): void {
 }
 $effect(() => {
   if (sync === undefined) return
-  return sync.onPulled(() => {
+  return sync.onPulled((paths) => {
+    // What the sync wrote is the file now: the write path judges the next edit against it, not against its own last write.
+    editing.writePath.forget(paths)
     stale = true
     showPulled()
   })

@@ -198,6 +198,16 @@ describe('the write path (flows 3 and 4)', () => {
     expect(await text(ports)).toBe('MAX_MOVE_SPEED = 5\n')
   })
 
+  test('after a sync brought a file in, forgetting it lets the editors write again, and undo of older steps stays refused', async () => {
+    const { ports, path } = await setup()
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')
+    const current = await ports.workspace.read(TUNING)
+    await ports.workspace.write(TUNING, 'MAX_MOVE_SPEED = 5\n', { mtime: current?.mtime ?? 0 })
+    path.forget([TUNING])
+    expect(await path.write(TUNING, 'MAX_MOVE_SPEED = 6\n', 'Raise speed')).toMatchObject({ written: true })
+    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 6\n')
+  })
+
   test('a forced write goes over a file that moved on, because the person chose Use mine', async () => {
     const { ports, path } = await setup()
     await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')
