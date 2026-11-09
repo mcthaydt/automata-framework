@@ -1,7 +1,6 @@
 // Smooth wheel scrolling, for a mouse or trackpad only. Lenis eases the wheel's jumps into a glide; everything else
-// stays the browser's: touch, the keyboard, Find in page, #anchors (CSS `scroll-behavior`) and the scrollbar.
+
 import Lenis from 'lenis'
-import './smooth-scroll.css'
 import { MOTION } from './motion-tokens.ts'
 
 /**

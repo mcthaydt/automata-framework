@@ -50,9 +50,11 @@ describe('preventSmoothScroll', () => {
 })
 
 describe('smooth-scroll.css', () => {
+  // Lenis's stylesheet is part of the page's own CSS, not of the chunk: a dynamic import's CSS is linked by every page,
+  // and these rules do nothing until Lenis puts its `lenis` class on <html>.
   it('is Lenis’s own stylesheet, so an upgrade that changes its rules fails here', () => {
     const collapse = (css: string) => css.replace(/\s+/g, ' ').trim()
-    const ours = readFileSync(resolve(process.cwd(), 'src/shared/motion/smooth-scroll.css'), 'utf8')
+    const ours = readFileSync(resolve(process.cwd(), 'src/shared/styles/smooth-scroll.css'), 'utf8')
     const theirs = readFileSync(resolve(process.cwd(), 'node_modules/lenis/dist/lenis.css'), 'utf8')
     expect(collapse(ours)).toBe(collapse(theirs))
   })

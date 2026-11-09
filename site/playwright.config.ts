@@ -13,7 +13,9 @@ export default defineConfig({
   retries: 0,
   workers: process.env.QB_E2E_WORKERS ? Number(process.env.QB_E2E_WORKERS) : 2,
   reporter: [['list']],
-  use: { baseURL: `http://127.0.0.1:${SITE_PORT}`, trace: 'retain-on-failure' },
+  // Reduced motion for every suite: the site's motion (smooth scrolling, the page settle, Home's reveals) would otherwise
+  // hold content back for half a second while a test checks the finished page. `motion.e2e.ts` asks for motion itself.
+  use: { baseURL: `http://127.0.0.1:${SITE_PORT}`, trace: 'retain-on-failure', reducedMotion: 'reduce' },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'], deviceScaleFactor: 1 } },
     { name: 'webkit', use: { ...devices['Desktop Safari'], deviceScaleFactor: 1 } },

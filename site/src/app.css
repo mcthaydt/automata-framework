@@ -3,4 +3,5 @@
 @import "./shared/styles/base.css";
 @import "./shared/styles/layout.css";
 @import "./shared/styles/prose.css";
+@import "./shared/styles/smooth-scroll.css";
 @import "./shared/styles/motion.css";

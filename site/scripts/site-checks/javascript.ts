@@ -106,7 +106,38 @@ export const MAX_EDITOR_CHUNK_GZIP_BYTES = 175_000
 interface ManifestChunk {
   readonly file: string
   readonly imports?: readonly string[]
+  readonly css?: readonly string[]
+  readonly isEntry?: boolean
 }
+
+/** The files of the chunks `sources` name and everything they import statically (and their stylesheets). */
+function chunkFiles(manifest: Record<string, ManifestChunk>, sources: readonly string[]): Set<string> {
+  const files = new Set<string>()
+  const seen = new Set<string>()
+  const visit = (key: string) => {
+    const chunk = manifest[key]
+    if (!chunk || seen.has(key)) return
+    seen.add(key)
+    files.add(chunk.file)
+    for (const stylesheet of chunk.css ?? []) files.add(stylesheet)
+    for (const imported of chunk.imports ?? []) visit(imported)
+  }
+  for (const source of sources) visit(source)
+  return files
+}
+
+/** Pages must not name `files`; `why` finishes the sentence saying what they are. */
+function pagesNaming(root: string, files: Iterable<string>, why: string): string[] {
+  const failures: string[] = []
+  for (const page of builtPages(root)) {
+    const html = readFileSync(join(root, page), 'utf8')
+    for (const file of files) if (html.includes(file)) failures.push(`${page}: names ${file}, ${why}`)
+  }
+  return failures
+}
+
+const gzipOf = (root: string, files: Iterable<string>): number =>
+  [...files].reduce((sum, file) => sum + gzipSync(readFileSync(join(root, file)), { level: 9 }).length, 0)
 
 /**
  * The editor loads on the first tap or focus on an example's code, so no page may name its chunk or the
@@ -119,31 +150,56 @@ export function checkEditorChunk(
 ): { failures: string[]; gzipBytes: number } {
   if (!manifest[EDITOR_SOURCE])
     return { failures: [`the build's manifest has no ${EDITOR_SOURCE}`], gzipBytes: 0 }
-  const files = new Set<string>()
-  const visit = (key: string) => {
-    const chunk = manifest[key]
-    if (!chunk || files.has(chunk.file)) return
-    files.add(chunk.file)
-    for (const imported of chunk.imports ?? []) visit(imported)
-  }
-  visit(EDITOR_SOURCE)
+  const files = chunkFiles(manifest, [EDITOR_SOURCE])
   const failures: string[] = []
-  const gzipBytes = [...files].reduce(
-    (sum, file) => sum + gzipSync(readFileSync(join(root, file)), { level: 9 }).length,
-    0,
-  )
+  const gzipBytes = gzipOf(root, files)
   if (gzipBytes > MAX_EDITOR_CHUNK_GZIP_BYTES)
     failures.push(
       `the editor chunk and its imports are ${gzipBytes} bytes gzip, over the ${MAX_EDITOR_CHUNK_GZIP_BYTES} byte budget`,
     )
-  for (const page of builtPages(root)) {
-    const html = readFileSync(join(root, page), 'utf8')
-    for (const file of files)
-      if (html.includes(file))
-        failures.push(
-          `${page}: names ${file}, part of the editor, which loads only on a tap or focus on the code`,
-        )
+  failures.push(
+    ...pagesNaming(root, files, 'part of the editor, which loads only on a tap or focus on the code'),
+  )
+  return { failures, gzipBytes }
+}
+
+/** The motion code (GSAP and Lenis), as the build's Vite manifest keys it. */
+export const MOTION_SOURCES = ['src/shared/motion/animate.ts', 'src/shared/motion/smooth-scroll.ts'] as const
+/** Both motion chunks and what only they import, gzipped. */
+export const MAX_MOTION_GZIP_BYTES = 36_000
+
+/**
+ * The motion chunks load after the page is live, so no page names them, and together they stay within
+ * MAX_MOTION_GZIP_BYTES. `motion-tokens.ts` is imported by the layout's motion layer and by both chunks, so a walk from
+ * the chunks reaches a file every page already names: whatever an entry (the app, the layout, a page node) imports is
+ * the page's own, and is neither counted nor forbidden. A source that ended up inside an entry was imported statically
+ * by mistake, and fails.
+ */
+export function checkMotionChunks(
+  root: string,
+  manifest: Record<string, ManifestChunk>,
+): { failures: string[]; gzipBytes: number } {
+  const missing = MOTION_SOURCES.filter((source) => !manifest[source])
+  if (missing.length > 0)
+    return { failures: missing.map((source) => `the build's manifest has no ${source}`), gzipBytes: 0 }
+  const entries = Object.keys(manifest).filter((key) => manifest[key]?.isEntry)
+  const pageFiles = chunkFiles(manifest, entries)
+  const failures: string[] = []
+  for (const source of MOTION_SOURCES) {
+    if (pageFiles.has(manifest[source]!.file))
+      failures.push(
+        `${source} is part of an entry, so every visitor downloads it; import it only with import()`,
+      )
   }
+  const files = new Set([...chunkFiles(manifest, MOTION_SOURCES)].filter((file) => !pageFiles.has(file)))
+  const gzipBytes = gzipOf(root, files)
+  if (gzipBytes > MAX_MOTION_GZIP_BYTES)
+    failures.push(
+      `the motion chunks are ${gzipBytes} bytes gzip, over the ${MAX_MOTION_GZIP_BYTES} byte budget`,
+    )
+  failures.push(
+    ...pagesNaming(root, files, 'part of the motion code, which loads only after the page is live'),
+  )
   return { failures, gzipBytes }
 }
 
