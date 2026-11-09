@@ -38,8 +38,8 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `geist` | 1.9.2 | 2026-11-08 | The font the baked canvas-text pages come from (`tooling/hud-font`): Geist SemiBold, SIL OFL 1.1 (Vercel, with basement.studio). Its files are read by path at bake time and the licence ships in `@automata/framework`. Published long before it was chosen |
 | `knip` | 6.39.0 | 2026-10-16 | Unused files, exports and dependencies in `pnpm check` (`knip.jsonc`); a 2-week-old release when added |
 | `koota` | 0.6.6 | 2026-10-01 | ECS inside the sim (ADR 0001) |
-| `msdf-bmfont-xml` | 2.8.0 | 2026-11-08 | Bakes Geist into multi-channel signed-distance-field atlases for Pixi's `BitmapText` (`tooling/hud-font`, run by hand; `pnpm check` only verifies its committed output). MIT. It ships a native `msdfgen` binary per platform and has no install script |
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
+| `msdf-bmfont-xml` | 2.8.0 | 2026-11-08 | Bakes Geist into multi-channel signed-distance-field atlases for Pixi's `BitmapText` (`tooling/hud-font`, run by hand; `pnpm check` only verifies its committed output). MIT. It ships a native `msdfgen` binary per platform and has no install script |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `pixi.js` | 8.22.0 | 2026-10-30 | 2D renderer (ADR 0002). 8.22.0 is the peer floor of the vendored `@pixi/3d` 0.1.0-beta.2 (`^8.22.0`) and was npm latest when moved; no change in it that AF depends on ([the move's plan](archive/superpowers/plans/2026-10-30-m3-2-pixi-822.md)) |
 | `@pixi/3d` | 0.1.0-beta.2 | 2026-11-07 | The post effects of `@automata/world-kit` (stars, rain, glow) extend its `PostEffect`; core `@automata/3d` takes it from the vendored tarball (`vendor/pixi-3d/`), and the kit asks its game for the same version as a peer |

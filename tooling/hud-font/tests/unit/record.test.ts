@@ -57,3 +57,18 @@ describe('the committed pages', () => {
     })
   }
 })
+
+// A minifier drops `//` comments, so the notice the OFL asks each copy of the font to carry is a `/*!` one, which
+// the game's build keeps; ship's prepare adds the full licence text beside it.
+describe('the generated font modules', () => {
+  it.each(['latin-font.ts', 'cyrillic-font.ts'])(
+    '%s keeps the copyright and licence in a preserved comment',
+    (name) => {
+      const text = readFileSync(join(FONTS_DIR, name), 'utf8')
+      const notice = /\/\*!([\s\S]*?)\*\//.exec(text)?.[1] ?? ''
+      expect(notice).toContain('Geist')
+      expect(notice).toContain('Vercel')
+      expect(notice).toContain('SIL Open Font License')
+    },
+  )
+})

@@ -11,8 +11,12 @@ import { runEditor } from './run-editor.ts'
 import { catchTheWord, keepWhitestFrame, measureWord } from './word-pixels.ts'
 
 export const WORDS = 'Ouch, a wall!'
-/** A word is at least this tall (CSS px) on a phone, where the picture alone would draw it under 6. */
-const READABLE_CSS = 11
+/**
+ * The first letter of the word, a capital, is at least this tall (CSS px) on a phone, where the picture alone would draw
+ * it under 6. Geist's capitals are about 0.71 of the font size, and a phone's floor is 14 CSS px (about 10), so this
+ * leaves a pixel or two of rounding.
+ */
+const READABLE_CSS = 9
 /** The soft edge of a stem is at most this many device px, which is what a sharp edge is. */
 const SHARP_DEVICE = 2
 
@@ -34,7 +38,7 @@ async function seen(play: Page, key: string): Promise<void> {
   const word = measureWord(png, devicePerCss)
   test.info().annotations.push({ type: 'word', description: JSON.stringify(word) })
   if (test.info().project.name.includes('phone'))
-    expect(word.letterHeightCss, 'the word is readable on a phone').toBeGreaterThanOrEqual(READABLE_CSS)
+    expect(word.capitalHeightCss, 'the word is readable on a phone').toBeGreaterThanOrEqual(READABLE_CSS)
   expect(word.edgeRunDevice, 'the word has a sharp edge').toBeLessThanOrEqual(SHARP_DEVICE)
 }
 

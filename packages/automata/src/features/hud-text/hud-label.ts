@@ -61,6 +61,8 @@ export function createLabel(host: LabelHost): HudLabel {
   let bitmap: Pair<BitmapText> | undefined
   let fallback: Pair<Text> | undefined
   let kind: 'bitmap' | 'fallback' = 'fallback'
+  // What the last string turned into, so a HUD that writes the same words each frame does not choose a page again.
+  let chosen: { value: string; text: string; page: PageId | undefined } | undefined
 
   const drawBitmap = (family: string, text: string, size: number, color: number): Pair<BitmapText> => {
     if (bitmap === undefined) {
@@ -100,6 +102,8 @@ export function createLabel(host: LabelHost): HudLabel {
     }
     assign(fallback.fill.style, 'fill', color)
     assign(fallback.shadow.style, 'fill', 0x000000)
+    // A colour emoji ignores `fill`; the tint multiplies every glyph, so the shadow is a black shape for them too.
+    fallback.shadow.tint = 0x000000
     return fallback
   }
 
@@ -114,16 +118,20 @@ export function createLabel(host: LabelHost): HudLabel {
 
     set(value, x, y, style) {
       if (!host.alive()) return NONE
-      const text = normalise(value)
+      if (chosen?.value !== value) {
+        const text = normalise(value)
+        const page = choosePage(text, HUD_PAGES)
+        if (text !== '' && page === undefined) host.missing(missingFrom(text, HUD_PAGES))
+        chosen = { value, text, page }
+      }
+      const { text, page } = chosen
       if (text === '') {
         root.visible = false
         return NONE
       }
       const scale = host.hudScale()
       const size = hudFontSize(style.size, style.floor, scale)
-      const page = choosePage(text, HUD_PAGES)
       const family = page === undefined ? undefined : host.family(page)
-      if (page === undefined) host.missing(missingFrom(text, HUD_PAGES))
 
       if (!mounted) {
         mounted = true

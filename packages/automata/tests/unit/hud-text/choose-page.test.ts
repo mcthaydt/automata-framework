@@ -63,3 +63,22 @@ describe('missingFrom', () => {
     expect(missingFrom('Привет Ça', HUD_PAGES)).toEqual([])
   })
 })
+
+// Ten labels at 60 frames a second ask for a page 600 times a second: each page's letters are read once.
+describe('page choice cost', () => {
+  it('reads a page’s characters once, however often a string is chosen or checked', () => {
+    let reads = 0
+    const page = {
+      id: 'latin' as const,
+      get chars() {
+        reads++
+        return 'abc'
+      },
+    }
+    for (let i = 0; i < 50; i++) {
+      choosePage('abc', [page])
+      missingFrom('abz', [page])
+    }
+    expect(reads).toBe(1)
+  })
+})

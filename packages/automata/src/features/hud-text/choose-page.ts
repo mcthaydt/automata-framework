@@ -12,6 +12,17 @@ export function normalise(text: string): string {
   return text.replace(NARROW_SPACES, ' ').replace(INVISIBLE, '')
 }
 
+// A page's characters as a set, built the first time a string is checked against it: labels choose a page every frame.
+const covered = new WeakMap<PageChars, ReadonlySet<string>>()
+const coveredBy = (page: PageChars): ReadonlySet<string> => {
+  let set = covered.get(page)
+  if (set === undefined) {
+    set = new Set(page.chars)
+    covered.set(page, set)
+  }
+  return set
+}
+
 /**
  * The first page whose characters cover the whole string (as `normalise` leaves it), or `undefined` (the fallback
  * draws it). Normalising again is harmless, so a caller may pass either form.
@@ -19,14 +30,13 @@ export function normalise(text: string): string {
 export function choosePage(text: string, pages: readonly PageChars[]): PageId | undefined {
   const letters = [...normalise(text)]
   for (const page of pages) {
-    const covered = new Set(page.chars)
-    if (letters.every((ch) => covered.has(ch))) return page.id
+    const held = coveredBy(page)
+    if (letters.every((ch) => held.has(ch))) return page.id
   }
   return undefined
 }
 
 /** The code points no page holds, once each, in the order they appear. */
 export function missingFrom(text: string, pages: readonly PageChars[]): string[] {
-  const held = new Set(pages.flatMap((page) => [...page.chars]))
-  return [...new Set([...normalise(text)].filter((ch) => !held.has(ch)))]
+  return [...new Set([...normalise(text)].filter((ch) => !pages.some((page) => coveredBy(page).has(ch))))]
 }

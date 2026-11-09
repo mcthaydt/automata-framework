@@ -38,4 +38,15 @@ describe('loadPage', () => {
     await loadPage('cyrillic')
     expect(pageFamilyIfLoaded('cyrillic')).toBe('af-hud-cyrillic')
   })
+
+  // A build's minifier drops comments, so the font's copyright and licence are registered as data it keeps.
+  it.each(['latin', 'cyrillic'] as const)(
+    "registers the %s page with the font's copyright and licence",
+    async (id) => {
+      await loadPage(id)
+      const notice = Cache.get(`af-hud-${id}-notice`) as string
+      expect(notice).toContain('Vercel')
+      expect(notice).toContain('SIL Open Font License')
+    },
+  )
 })

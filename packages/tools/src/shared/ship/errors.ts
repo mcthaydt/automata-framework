@@ -224,7 +224,14 @@ export class WebBuildInvalid extends WebBuildInvalidBase {
 }
 
 /** The `prepare --target itch` check that failed, in the order they run. */
-export type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' | 'ruken-toml'
+export type ItchCheck =
+  | 'entry'
+  | 'file-count'
+  | 'path-length'
+  | 'file-size'
+  | 'case'
+  | 'ruken-toml'
+  | 'font-licence'
 
 const ItchBuildInvalidBase: TaggedErrorClass<
   'ItchBuildInvalid',

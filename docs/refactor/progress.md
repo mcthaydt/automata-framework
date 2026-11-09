@@ -681,7 +681,7 @@ browser projects need the other engines, so `pnpm test:browser:2d` stops here); 
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
 (`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
 
-## Crisp in-game text: 83% (5 of 6: stages 1 to 5)
+## Crisp in-game text: 100% (6 of 6: stages 1 to 6)
 
 The Owner picked MSDF `BitmapText` on a crisp layer for the text a game draws on its canvas (`draw(ctx).text` and Feel's
 words), 2026-11-08 21:11. Stage 1 (audit) done: [audit](2026-11-08-in-game-text-audit.md), made on #522's head. 3 high
@@ -738,3 +738,16 @@ notice because the minifier drops the `//` header (B3). Ran (Chromium only): `pn
 `check-changesets` on `stage-characters-3d.md`), `api-report` (no framework or feel break), the framework's hud-text,
 render and draw browser tests, the 3D Try-again test, feel's unit tests. Not run: WebKit, Firefox, the GPU runner, real
 devices, the full 2D and 3D browser suites. Next: fixes (Sonnet, high).
+
+Stage 6 (fixes) done, 2026-11-09: branch `claude/project-thread-0c5ev3` stacked on #546, every finding fixed, test first
+(the build audit's [fix log](2026-11-08-in-game-text-build-audit.md#fixes-stage-6)). B1 a second `setup` (the 3D Try again)
+starts the draw layer's shapes and labels over on the new stage; B2 the fallback's shadow is a black tint, so a colour
+emoji's shadow is a black shape; B3 the Geist notice is kept as a `/*!` comment and as data the minifier cannot drop
+(Vite 8's default minify drops comments, measured), and `automata ship prepare` puts the full OFL text in the build
+(`licenses/geist-OFL.txt`) so the itch zip and butler's folder hold it, failing if the licence cannot be found. B4 to B9 in
+the fix log. Ran (Chromium only): `pnpm check` (green except `check-changesets` on the base stack's
+`stage-characters-3d.md`), the framework's hud-text browser tests, the editor's 2D journeys (10 passed, ipad and phone,
+through a reload and an editor restart, including the zip holding the font and its licence) and the 3D "Feel: a word"
+journeys (2 passed; the 3D publish test still fails as marked, because Publish refuses a Pixi 3D build until it is public,
+so its new licence check has not run). Not run: WebKit, Firefox, the GPU runner (still no hardware numbers for `hudLabels`),
+real devices, the full 2D and 3D browser suites.

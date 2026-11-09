@@ -1,4 +1,4 @@
-import { Text } from 'pixi.js'
+import { type Container, Text } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createHudText } from '#src/features/hud-text/hud-text.ts'
 import { disposeAll, edgeRun, frame, inkBox, startRenderer } from './harness.ts'
@@ -101,5 +101,22 @@ describe.skipIf(!hasWebgl2)('crisp canvas text', () => {
     label.set('好', 40, 60, STYLE)
     expect(label.kind).toBe('fallback')
     expect(inkBox(frame(renderer))).toBeDefined()
+  })
+
+  // A colour emoji ignores `fill`, so a shadow made by filling it black is a second full-colour emoji.
+  it('draws the shadow of a colour emoji as a black shape, not a second emoji', async () => {
+    const { renderer } = await startRenderer({ view: { width: 1280, height: 720 }, logical: LOGICAL, dpr: 2 })
+    const hud = createHudText(renderer.stage)
+    await hud.ready
+    const label = hud.label()
+    label.set('😵', 40, 60, { ...STYLE, shadow: true })
+    expect(label.kind).toBe('fallback')
+    const parts = (renderer.stage.hud.children[0] as Container).children as Container[]
+    const [shadow, fill] = parts as [Container, Container]
+    shadow.visible = false
+    expect(inkBox(frame(renderer)), 'the emoji itself draws').toBeDefined()
+    shadow.visible = true
+    fill.visible = false
+    expect(inkBox(frame(renderer)), 'the shadow is no brighter than the field').toBeUndefined()
   })
 })

@@ -133,3 +133,43 @@ Poll until the whitest-frame count stops growing instead.
   carry the new exports.
 - Layout rules: `features/hud-text` imports only itself and `shared/`; tests are in `tests/unit/hud-text`,
   `tests/browser/hud-text` and `tests/browser/render`; `pnpm boundaries` and `pnpm style` pass.
+
+## Fixes (stage 6)
+
+2026-11-09, branch `claude/project-thread-0c5ev3` stacked on this audit's PR (#546). Each fix has its test, written first and
+seen to fail for the stated reason.
+
+- **B1.** `createDrawLayer.setup` called with a different stage drops the layer's `HudText` and labels and makes a fresh
+  shapes root, since the old app destroyed the old ones. Test: `tests/unit/app/draw/draw-layer.test.ts`, "draws text and
+  shapes on the new stage after a second setup" (it failed on the destroyed `Graphics` before the text, so it covers the
+  shapes the audit named as the same root cause).
+- **B2.** The fallback's shadow `Text` gets `tint = 0x000000`. Test: `tests/browser/hud-text/sharp.test.ts`, the shadow of
+  "😵" has no pixel brighter than the field while the emoji itself draws (it failed with 3,675 inked pixels).
+- **B3.** Decision (Owner, via the coordinator): keep one preserved comment and include the full licence in published
+  zips. The comment is now `/*! … */` in each page module, from `tooling/hud-font` (rebaked here; the atlases are
+  byte-identical, only the headers and the new `NOTICE` export changed, and `pnpm hud-font verify` holds). **Measured:
+  Vite 8's default minify drops a `/*!` comment too** (only `comments.legal: true` keeps it), so the notice is also data:
+  `NOTICE` is exported by each page and `loadPage` registers it (`Cache` key `af-hud-<page>-notice`), which no minifier
+  drops; the 2D journey finds "SIL Open Font License" in the zip's scripts. The full text: `automata ship prepare`
+  (`shared/ship/prepare/font-licence.ts`) copies `licenses/geist-OFL.txt` from the game's installed `@automata/framework`
+  into `dist/licenses/` when a script holds `af-hud-latin` or `af-hud-cyrillic`, before the itch checks and the zip, so the
+  zip and the folder butler pushes both hold it; with the font present and the licence not found it stops
+  (`ItchBuildInvalid`, check `font-licence`) and says to install the game's packages. Tests: `font-licence.test.ts`,
+  `prepare-itch.test.ts`, `tooling/hud-font/tests/unit/record.test.ts`, `load-page.test.ts`, and the 2D publish journey
+  (zip holds the chunk, the notice and `licenses/geist-OFL.txt`). A patch changeset for `@automata/tools`.
+- **B4.** `measureWord` reports the first letter's height (`capitalHeightCss`), not the box of all the ink, so a comma or an
+  exclamation mark no longer changes the reading. The journey's floor is 9 CSS px for a capital (a 14 CSS px font's capital
+  is about 10). The spec now says the 12 and 14 CSS px floors are font sizes. Test: `tests/unit/e2e-harness/word-pixels.test.ts`.
+- **B5.** The "the game draws a word" poll waits up to 45 s (was 20 s). The 3D iPad journey passed here, alone.
+- **B6.** Each page's characters are made a `Set` once (a `WeakMap`), and a label keeps what its last string turned into, so
+  a HUD that writes the same words each frame normalises and chooses a page once. Tests: `choose-page.test.ts` (a page's
+  characters are read once) and `hud-label-cache.test.ts`. The GPU numbers that would show the gain were not run.
+- **B7.** The 3D publish test asserts the same three things as the 2D one (`expectFontWithLicence`). It is still marked
+  `test.fail` (Publish refuses a closed-beta 3D build), so this check has not run yet.
+- **B8.** `catchTheWord` polls until the whitest frame has not changed for 1.5 s instead of sleeping 2.5 s.
+- **B9.** The spec names `<page>-chars.ts` and `<page>-font.ts`; `msdf-bmfont-xml` sits after `lefthook` in `docs/versions.md`.
+
+Played end to end after the fixes (Chromium; ipad and phone): `complete-game-2d` 10 passed, with the editor page reloaded
+and the editor stopped and started again on the same game folder (the Feel word still there, served, and played); the 3D
+"Feel: a word" journeys 2 passed the same way. Drunk grandma test: the one thing she would have noticed, the doubled
+emoji (B2), is gone; nothing else on screen changed.

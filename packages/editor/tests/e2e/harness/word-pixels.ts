@@ -11,8 +11,12 @@ const WHITE = 200
 const EDGE = { low: 0.25, high: 0.9 } as const
 
 export interface WordMeasure {
-  /** The height of the box around the white letters, in CSS px (the screen the player looks at). */
-  readonly letterHeightCss: number
+  /**
+   * The height of the word's first letter, a capital, in CSS px (the screen the player looks at). A comma, an
+   * exclamation mark or an accent changes the height of the whole word, never of that letter, so the same font size
+   * reads the same whatever the words say.
+   */
+  readonly capitalHeightCss: number
   /** The median length, in device px, of a run of in-between pixels along a row of the letters: 1 or 2 is sharp. */
   readonly edgeRunDevice: number
 }
@@ -36,7 +40,23 @@ export function measureWord(png: Buffer, devicePerCss: number): WordMeasure {
       minY = Math.min(minY, y)
       maxY = Math.max(maxY, y)
     }
-  if (maxX < 0) return { letterHeightCss: 0, edgeRunDevice: Number.POSITIVE_INFINITY }
+  if (maxX < 0) return { capitalHeightCss: 0, edgeRunDevice: Number.POSITIVE_INFINITY }
+
+  // The first letter: the white columns from the left edge of the ink up to the first column with none.
+  let lastX = minX
+  const whiteInColumn = (x: number): boolean => {
+    for (let y = minY; y <= maxY; y++) if (dimmest(x, y) >= WHITE) return true
+    return false
+  }
+  while (lastX < maxX && whiteInColumn(lastX + 1)) lastX++
+  let top = pixels.height
+  let bottom = -1
+  for (let y = minY; y <= maxY; y++)
+    for (let x = minX; x <= lastX; x++)
+      if (dimmest(x, y) >= WHITE) {
+        top = Math.min(top, y)
+        bottom = Math.max(bottom, y)
+      }
 
   const runs: number[] = []
   for (let y = minY; y <= maxY; y++) {
@@ -52,7 +72,7 @@ export function measureWord(png: Buffer, devicePerCss: number): WordMeasure {
   }
   runs.sort((a, b) => a - b)
   return {
-    letterHeightCss: (maxY - minY + 1) / devicePerCss,
+    capitalHeightCss: (bottom - top + 1) / devicePerCss,
     edgeRunDevice: runs[Math.floor(runs.length / 2)] ?? Number.POSITIVE_INFINITY,
   }
 }
@@ -110,6 +130,25 @@ export async function keepWhitestFrame(context: BrowserContext): Promise<void> {
   })
 }
 
+/** Resolves when the whitest frame has not changed for `quietMs` of the page's own clock, polling the page. */
+async function settled(play: Page, quietMs = 1500): Promise<void> {
+  let last = -1
+  let since = Date.now()
+  await expect
+    .poll(
+      async () => {
+        const best = await play.evaluate(() => (globalThis as unknown as { __best: number }).__best)
+        if (best !== last) {
+          last = best
+          since = Date.now()
+        }
+        return Date.now() - since
+      },
+      { message: 'the word plays out', timeout: 20_000, intervals: [250] },
+    )
+    .toBeGreaterThanOrEqual(quietMs)
+}
+
 /**
  * Holds `key` (the one that bumps the wall) until the game has drawn a word, lets the word play out, and returns the
  * whitest frame the page kept and how many canvas pixels a CSS px takes.
@@ -120,10 +159,12 @@ export async function catchTheWord(play: Page, key: string): Promise<{ png: Buff
     await expect
       .poll(() => play.evaluate(() => (globalThis as unknown as { __best: number }).__best), {
         message: 'the game draws a word',
-        timeout: 20_000,
+        // A 3D game on an iPad is slow to reach the wall when two journeys share the machine.
+        timeout: 45_000,
       })
       .toBeGreaterThan(20)
-    await play.waitForTimeout(2500)
+    // The word plays out: the whitest frame is final once no whiter one has come for a moment.
+    await settled(play)
   } finally {
     await play.keyboard.up(key)
   }

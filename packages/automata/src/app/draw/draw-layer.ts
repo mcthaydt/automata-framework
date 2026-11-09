@@ -94,8 +94,8 @@ export function createDrawLayer(
   level?: LevelScene,
 ): DrawLayer {
   let view: DrawSim | undefined
-  const root = new Container({ label: 'draw' })
-  const graphics = new Graphics()
+  let root = new Container({ label: 'draw' })
+  let graphics = new Graphics()
   root.addChild(graphics)
   // Made on the first `text` call, so a `draw` that only writes shapes never loads a font.
   let stage: Parameters<DrawLayer['setup']>[0] | undefined
@@ -151,6 +151,17 @@ export function createDrawLayer(
       }
     },
     setup(mountedOn) {
+      // A renderer that rebuilds its app (the 3D "Try again" after a lost graphics context) calls `setup` again on a
+      // new stage and destroys the old one's containers: the shapes and the labels start over on the new one.
+      if (stage !== undefined && stage !== mountedOn) {
+        root = new Container({ label: 'draw' })
+        graphics = new Graphics()
+        root.addChild(graphics)
+        hudText?.destroy()
+        hudText = undefined
+        labels.length = 0
+        labelsUsed = 0
+      }
       stage = mountedOn
       mountedOn.ui.addChild(root)
       if (level !== undefined && mountedOn.world !== undefined)

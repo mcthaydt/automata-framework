@@ -17,7 +17,7 @@ const bytesOf = (base64: string): Uint8Array<ArrayBuffer> => {
 }
 
 async function load(id: PageId): Promise<string> {
-  const { FONT, ATLAS_PNG_BASE64 } = await importPage(id)
+  const { FONT, NOTICE, ATLAS_PNG_BASE64 } = await importPage(id)
   const bitmap = await createImageBitmap(new Blob([bytesOf(ATLAS_PNG_BASE64)], { type: 'image/png' }))
   // The options Pixi's own loader gives a distance-field font. Pixel art makes every new texture nearest, which tears
   // an MSDF edge, so none of them is left to the default.
@@ -30,6 +30,8 @@ async function load(id: PageId): Promise<string> {
   })
   const font = new BitmapFont({ data: FONT, textures: [new Texture({ source })] })
   Cache.set(`${FONT.fontFamily}-bitmap`, font)
+  // The font's copyright and licence, kept as data: a game's minifier drops the comment that says the same.
+  Cache.set(`${FONT.fontFamily}-notice`, NOTICE)
   loaded.set(id, FONT.fontFamily)
   return FONT.fontFamily
 }

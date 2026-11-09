@@ -2,6 +2,7 @@
 // entries, no zip64), with Node's own inflate, so a journey needs no zip package.
 import { readFileSync } from 'node:fs'
 import { inflateRawSync } from 'node:zlib'
+import { expect } from './fixtures.ts'
 
 const END_OF_DIRECTORY = 0x06054b50
 const DIRECTORY_ENTRY = 0x02014b50
@@ -29,4 +30,24 @@ export function readZip(path: string): Map<string, string> {
     at += 46 + nameLength + extraLength + commentLength
   }
   return files
+}
+
+/**
+ * What a published zip must hold when the game draws text: the baked font (its chunk names the family), the font's
+ * copyright and licence as data a minifier keeps, and the full licence text beside the game, as the SIL Open Font
+ * License asks of every copy of the font.
+ */
+export function expectFontWithLicence(files: Map<string, string>): void {
+  const scripts = [...files].filter(([name]) => name.endsWith('.js')).map(([, text]) => text)
+  expect(
+    scripts.some((text) => text.includes('af-hud-latin')),
+    'the zip holds the font chunk',
+  ).toBe(true)
+  expect(
+    scripts.some((text) => text.includes('SIL Open Font License')),
+    'the font keeps its notice through the build',
+  ).toBe(true)
+  expect(files.get('licenses/geist-OFL.txt') ?? '', 'the zip holds the full licence').toContain(
+    'SIL OPEN FONT LICENSE Version 1.1',
+  )
 }

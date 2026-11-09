@@ -210,6 +210,31 @@ describe('createDrawLayer', () => {
     expect(labels().every((label) => !label.visible)).toBe(true)
   })
 
+  // The 3D renderer builds a new Pixi app and calls `setup` again after a lost graphics context ("Try again"); the
+  // first app's stage, hud and shapes are destroyed with it.
+  it('draws text and shapes on the new stage after a second setup', async () => {
+    const stages = () => ({ ui: new Container(), hud: new Container(), hudScale: () => SCALE })
+    const layer = createDrawLayer((ctx) => {
+      ctx.rect(0, 0, 4, 4, 0xff0000)
+      ctx.text('hi', 1, 1)
+    }, size)
+    layer.watch(await oneBody())
+
+    const first = stages()
+    layer.setup(first).draw?.(frame)
+    expect(first.hud.children).toHaveLength(1)
+    first.hud.destroy({ children: true })
+    first.ui.destroy({ children: true })
+
+    const second = stages()
+    layer.setup(second).draw?.(frame)
+    expect(second.hud.children).toHaveLength(1)
+    const root = second.ui.children[0] as Container
+    const graphics = root.children.find((child) => child instanceof Graphics) as Graphics
+    expect(graphics.destroyed).toBe(false)
+    expect(graphics.context.instructions).toHaveLength(1)
+  })
+
   it('lets a throw inside draw propagate (D-5)', async () => {
     const { hooks, layer } = mounted(() => {
       throw new Error('hud bug')

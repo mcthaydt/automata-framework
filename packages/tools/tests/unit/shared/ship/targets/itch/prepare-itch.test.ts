@@ -51,6 +51,22 @@ describe('prepareItch', () => {
     expect(existsSync(join(distDir, 'ruken.toml'))).toBe(false)
   })
 
+  it('puts the Geist licence in the zip when the build carries the font, and stops when it cannot', () => {
+    const files = { ...goodBuild, 'assets/latin.js': 'console.log("af-hud-latin")' }
+    const withFont = game(files)
+    const home = join(withFont.gameDir, 'node_modules/@automata/framework/licenses')
+    mkdirSync(home, { recursive: true })
+    writeFileSync(join(home, 'geist-OFL.txt'), 'SIL OPEN FONT LICENSE Version 1.1')
+    expect(Either.isRight(prepare({ ...withFont, config }))).toBe(true)
+    const zip = readFileSync(join(withFont.gameDir, 'emberwick-1.2.0-itch.zip'))
+    expect(zip.includes('licenses/geist-OFL.txt')).toBe(true)
+
+    const without = game(files)
+    const error = failure({ ...without, config })
+    expect(error.check).toBe('font-licence')
+    expect(zips(without.gameDir)).toEqual([])
+  })
+
   it('stops on a tag that is not the version, writing nothing', () => {
     const { gameDir, distDir } = game()
     expect(failure({ distDir, config, tag: 'v1.3.0' })._tag).toBe('VersionMismatch')
