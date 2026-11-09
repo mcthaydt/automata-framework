@@ -1,7 +1,7 @@
 // What makes a sound in the page: Web Audio, made on the first Play so the page never makes noise by itself. A sound
 // plays once through its own voices; playing never writes the file.
 import { type AudioContent, playCue } from '@automata/audio-synth'
-import type { AudioPlay } from '../../shared/audio-play.ts'
+import type { AudioPlay } from './audio-session.svelte.ts'
 
 export interface AudioOutput {
   readonly play: AudioPlay

@@ -12,7 +12,11 @@ export type AudioChoice =
   | { readonly kind: 'rules' }
   | { readonly kind: 'events' }
 
-import type { AudioPlay } from '../../shared/audio-play.ts'
+/** What a Play press asks the page to sound: the file as it is now, and which sound. */
+export type AudioPlay = (
+  content: AudioContent,
+  what: { readonly kind: 'sound'; readonly id: string },
+) => Promise<void>
 
 export class AudioSession extends ContentSession<AudioContent, AudioChoice> {
   readonly play: AudioPlay

@@ -17,7 +17,6 @@ import {
 import type { Cond, Value } from '@automata/puzzle/sim'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
 import { appendEdits } from '../../shared/fields.ts'
-import { humanize } from '../../shared/id-words.ts'
 import { type Outcome, openTomlSession } from '../../shared/toml-session.ts'
 import { UndoTrail } from '../../shared/undo-many.ts'
 import {
@@ -36,6 +35,7 @@ import {
 } from './dialogue-model.ts'
 import { addLineEdits, newLineId, removeLineEdit, wordsEdit } from './writer-model.ts'
 import { wayOut } from './writer-problems.ts'
+import { humanize } from './writer-words.ts'
 
 export type WriterView = { readonly kind: 'lines' } | { readonly kind: 'talk'; readonly graph: number }
 

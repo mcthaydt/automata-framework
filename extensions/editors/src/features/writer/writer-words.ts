@@ -16,3 +16,9 @@ export const KIND_WORDS: Readonly<Record<LineKind, string>> = {
 
 /** The kinds a person can choose when adding a line, in the order offered. */
 export const ADDABLE_KINDS: readonly LineKind[] = ['dialogue', 'bark', 'caption', 'examine']
+
+/** `old_sign` and `old-sign` read as "Old sign". */
+export function humanize(id: string): string {
+  const spaced = id.replace(/[_.-]+/g, ' ').trim()
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
+}

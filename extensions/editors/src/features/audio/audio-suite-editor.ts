@@ -3,12 +3,11 @@
 // only when the person presses Play.
 import { type AudioContent, audioSchema } from '@automata/audio-synth'
 import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
-import type { AudioPlay } from '../../shared/audio-play.ts'
 import { gameEvents } from '../../shared/game-events.ts'
 import { askOf, undoOf } from '../../shared/session-hooks.ts'
 import { openTomlSession } from '../../shared/toml-session.ts'
 import { canvas, panel, status } from './AudioRegions.svelte'
-import { AudioSession } from './audio-session.svelte.ts'
+import { type AudioPlay, AudioSession } from './audio-session.svelte.ts'
 import { trackFiles } from './music-model.ts'
 
 export const AUDIO_PATH = 'content/audio/audio.toml'
