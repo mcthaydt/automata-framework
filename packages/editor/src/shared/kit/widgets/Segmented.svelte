@@ -161,7 +161,10 @@ function onKey(event: KeyboardEvent, index: number): void {
     border: 0;
     background: none;
   }
+  /* A tab never shrinks below its word: tabs sit in bars that scroll sideways when short of room, and a squeezed tab's
+     word would run past its edge. */
   .segmented[data-look='tabs'] .option {
+    flex-shrink: 0;
     border-radius: 0;
   }
   .segmented[data-look='tabs'] .option[aria-checked='true'] {
