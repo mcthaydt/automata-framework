@@ -40,6 +40,7 @@ export function createAudio(options: { readonly play: AudioPlay }): SuiteEditor<
       session.hasPlayer = await gameHasPlayer(ports.workspace, 'audio')
       return session
     },
+    draftView: (session) => `${session.toml.path}|${JSON.stringify(session.chosen)}`,
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),
   })

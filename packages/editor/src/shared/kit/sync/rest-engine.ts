@@ -17,11 +17,14 @@ import {
   SyncStopped,
 } from './git-engine'
 import { keepBothName, mergeFile } from './merge-drivers'
+import { commitMessage } from './sync-status'
 
 const API = 'https://api.github.com'
 const NOTES = '.automata/'
 const SYNC_FILE = '.automata/sync.json'
 const EDITOR_LIST = 'content/editors.toml'
+/** The message of the first commit a game makes on GitHub. */
+const FIRST_PUSH = 'Put the game on GitHub from Automata'
 const TOO_BIG = 'This game is too big to sync on the web. Use the Automata app.'
 const WAIT = 'GitHub asked us to wait. Your game is saved on this device.'
 const SIGN_IN_AGAIN = 'Sign in to GitHub again to keep your game there.'
@@ -211,6 +214,8 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
       const generated: string[] = []
       const asks: MergeAsk[] = []
       const asked: AskedFile[] = []
+      /** Generated files left as they are here: recorded as they are, so they do not count as an edit made here. */
+      const leftAlone = new Map<string, string | undefined>()
 
       const paths = new Set([...local.keys(), ...theirs.keys(), ...Object.keys(file.files)])
       for (const path of paths) {
@@ -220,6 +225,7 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
         if (there === base || mine?.sha === there) continue
         if (isGeneratedPath(path, folders)) {
           generated.push(path)
+          leftAlone.set(path, mine?.sha)
           continue
         }
         if (mine?.sha === base) {
@@ -254,6 +260,12 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
         }
       }
       const files: Record<string, string> = Object.fromEntries(theirs)
+      // GitHub's copy of a generated file is not used here, and this device's copy is not an edit: it is made again
+      // from the level the next time one is saved, and goes up then. Sending it now would put an older copy over a newer one.
+      for (const [path, sha] of leftAlone) {
+        if (sha === undefined) delete files[path]
+        else files[path] = sha
+      }
       for (const { path } of asked) {
         const old = file.files[path]
         if (old === undefined) delete files[path]
@@ -326,9 +338,14 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
 
   async function pushPending(): Promise<PushResult> {
     let file = await branchOf(await readSync())
-    const pending = file.pending ?? { message: 'Edited in Automata', at: now() }
     const local = await localFiles()
     const changes = changesHere(file, local)
+    // An edit no commit was made for (the page went away inside the ten seconds) is named by what it changed, as a
+    // commit made in time would be; the first push of a whole game is not an edit of anything.
+    const pending = file.pending ?? {
+      message: file.base === undefined ? FIRST_PUSH : commitMessage([...changes.keys()]),
+      at: now(),
+    }
     if (changes.size === 0) {
       await writeSync({ ...file, pending: undefined })
       return 'pushed'

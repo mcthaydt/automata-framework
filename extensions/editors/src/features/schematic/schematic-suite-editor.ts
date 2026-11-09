@@ -63,6 +63,8 @@ export function createSchematic(options: SchematicOptions = {}): SuiteEditor<Sch
       return session
     },
     homeFiles: homeFilesOf,
+    draftView: (session) =>
+      `${session.scene}|${JSON.stringify(session.chosen)}|${JSON.stringify(session.selected)}`,
     regions: { panel, canvas, inspector, status },
     undo: undoOf,
   })

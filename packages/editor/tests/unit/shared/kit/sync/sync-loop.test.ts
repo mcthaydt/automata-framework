@@ -9,6 +9,8 @@ let signedIn: boolean
 let told: string[][]
 let started: SyncHandle[]
 
+let busy: boolean
+
 const start = async (): Promise<SyncHandle> => {
   const handle = startSync({
     engine,
@@ -17,6 +19,7 @@ const start = async (): Promise<SyncHandle> => {
     visibility,
     isSignedIn: async () => signedIn,
   })
+  handle.holdWhile(() => busy)
   started.push(handle)
   await settle()
   return handle
@@ -28,6 +31,7 @@ beforeEach(() => {
   timers = new FakeTimers()
   visibility = new FakeVisibility()
   signedIn = true
+  busy = false
   told = []
   started = []
 })
@@ -79,13 +83,52 @@ describe('startSync: pulling', () => {
     })
   })
 
-  it('says when Claude edited a file the app rebuilds', async () => {
+  it('says when GitHub has a newer copy of a file the app rebuilds', async () => {
     engine.remoteChanged = true
     engine.pull = { changed: [], asks: [], generated: ['content/levels/start.toml'] }
     const handle = await start()
     expect(handle.status.get().line).toBe(
-      "Claude edited content/levels/start.toml, but the app rebuilds that file from your level. Claude's edit is kept on GitHub, not in the game.",
+      'GitHub has a newer content/levels/start.toml, but the app makes that file from your level, so it was not used here. It is made again the next time you change the level.',
     )
+  })
+})
+
+describe('startSync: while the person is typing', () => {
+  it('does not bring GitHub in while the page is busy, and does once it is quiet', async () => {
+    busy = true
+    engine.remoteChanged = true
+    engine.pull = { changed: ['content/lines/shop.toml'], asks: [], generated: [] }
+    const handle = await start()
+    expect(engine.calls).not.toContain('merge')
+    expect(told).toEqual([])
+    busy = false
+    handle.retry()
+    await settle()
+    expect(engine.calls).toContain('merge')
+    expect(told).toEqual([['content/lines/shop.toml']])
+  })
+
+  it('ignores a retry when no pull was held', async () => {
+    const handle = await start()
+    handle.retry()
+    await settle()
+    expect(engine.calls).toEqual(['fetch'])
+  })
+
+  it('holds the merge a rejected push asks for, and says it is still sending', async () => {
+    const handle = await start()
+    busy = true
+    engine.pushAnswers = ['rejected', 'pushed']
+    engine.remoteChanged = true
+    handle.edited(['content/lines/shop.toml'])
+    await timers.advance(10_000)
+    expect(engine.calls).not.toContain('merge')
+    expect(handle.status.get().state).toBe('sending')
+    busy = false
+    handle.retry()
+    await settle()
+    expect(engine.calls).toContain('merge')
+    expect(handle.status.get().state).toBe('saved')
   })
 })
 
@@ -169,6 +212,36 @@ describe('startSync: saving', () => {
     expect(engine.commits).toEqual(['Edited in Automata: Feel, Levels (Start)'])
     expect(engine.calls.slice(-2)).toEqual(['commit', 'push'])
     expect(handle.status.get()).toEqual({ state: 'saved', line: 'Saved on this device and on GitHub' })
+  })
+
+  it('does not say GitHub has the change until the push has landed', async () => {
+    const handle = await start()
+    handle.edited(['content/feel.toml'])
+    const sending = { state: 'sending', line: 'Saved on this device. Sending to GitHub…' }
+    expect(handle.status.get()).toEqual(sending)
+    await timers.advance(9000)
+    expect(handle.status.get()).toEqual(sending)
+    await timers.advance(1000)
+    expect(handle.status.get()).toEqual({ state: 'saved', line: 'Saved on this device and on GitHub' })
+  })
+
+  it('keeps saying it is sending when a pull ends while an edit still waits for its commit', async () => {
+    const handle = await start()
+    handle.edited(['content/feel.toml'])
+    visibility.set(false)
+    visibility.set(true)
+    await settle()
+    expect(engine.commits).toEqual([])
+    expect(handle.status.get().state).toBe('sending')
+  })
+
+  it('says it is offline, not sending, when an edit is made with no way to reach GitHub', async () => {
+    const handle = await start()
+    engine.online = false
+    handle.edited(['content/feel.toml'])
+    await timers.advance(10_000)
+    handle.edited(['content/feel.toml'])
+    expect(handle.status.get().state).toBe('offline')
   })
 
   it('makes no commit when nothing was edited', async () => {

@@ -2,7 +2,7 @@
   Your games: the games kept in this browser, newest change first. Each says what it is called, when it last changed and
   where it is kept, and has Open, Save a copy and Remove (which asks first). Above them, New game and Open a copy.
   Signed in with GitHub, it also lists the person's GitHub games this device does not have (Get it) and lets a game
-  here be kept on GitHub (Keep this game on GitHub: make an empty place, say so, and the page checks it can reach it).
+  here be kept on GitHub (Keep this game on GitHub: make an empty repository, say so, and the page checks it can reach it).
   Nothing here talks to storage or the network: the page that mounts it hands in the games and hears what the person chose.
 -->
 <script lang="ts">
@@ -11,6 +11,7 @@ import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import type { GameEntry } from './games-index'
 import { since } from './since'
+import { troubleWords } from './trouble-words'
 
 /** What signing in with GitHub adds; absent when the person is not signed in. */
 export interface GitHubOffer {
@@ -72,9 +73,11 @@ let gettingTrouble = $state<string | undefined>()
 let getting = $state<string | undefined>()
 
 const NOTE = $derived(
-  canSignIn
-    ? 'Saved in this browser only. Save a copy, or sign in with GitHub, to keep it safe.'
-    : 'Saved in this browser only. Save a copy to keep it safe.',
+  github !== undefined
+    ? 'Games that say “On this device and GitHub” are kept safe there. The others are only in this browser: save a copy, or press Keep this game on GitHub.'
+    : canSignIn
+      ? 'Saved in this browser only. Save a copy, or sign in with GitHub, to keep it safe.'
+      : 'Saved in this browser only. Save a copy to keep it safe.',
 )
 const NOT_KEPT = 'Not saved: this browser can’t keep files. Save a copy to keep your work.'
 
@@ -104,7 +107,7 @@ async function get(repo: string): Promise<void> {
   try {
     await github?.get(repo)
   } catch (error) {
-    gettingTrouble = error instanceof Error ? error.message : String(error)
+    gettingTrouble = troubleWords(error, 'press Get it again')
   } finally {
     getting = undefined
   }
@@ -168,7 +171,7 @@ function ask(game: GameEntry): void {
           {#if github !== undefined && keeping?.id === game.id}
             <div class="keep" role="group" aria-label={`Keep ${game.title} on GitHub`}>
               {#if keeping.step === 'make'}
-                <p>Make an empty place for your game on GitHub, then come back.</p>
+                <p>On GitHub, press Create repository and change nothing else. Leave “Add a README” unticked. Then come back here.</p>
               {:else}
                 <p role="status">Automata can’t reach this game on GitHub yet.</p>
                 {#if letSee}<p>Choose your games on GitHub, then come back here.</p>{/if}

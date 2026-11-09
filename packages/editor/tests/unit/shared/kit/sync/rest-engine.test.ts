@@ -121,6 +121,30 @@ describe('pulling', () => {
     expect(await d.text('content/world/project.toml')).toBe('a = 1\n')
   })
 
+  it('does not send this device’s older copy of a generated file over the one on GitHub', async () => {
+    const list =
+      'format = "af-editors/1"\n[[file]]\nglob = "content/levels/*.af2d.json"\neditor = "levels-2d"\nmodes = ["edit"]\nexports = "content/world"\ngates = []\nchecks = []\n'
+    const github = createFakeGitHubRest({
+      repo: 'me/game',
+      files: { 'content/editors.toml': list, 'content/world/project.toml': 'a = 1\n' },
+    })
+    const d = await device(github)
+    await pull(d)
+    // The other device made the file again from its level; this device did not.
+    await github.remoteWrite({ 'content/world/project.toml': 'a = 2\n' })
+    await pull(d)
+    await d.store.write('content/feel.toml', 'x = 1\n')
+    await d.engine.commitAll('Edited in Automata: Feel')
+    await d.engine.push()
+    expect(github.file('content/world/project.toml')).toBe('a = 2\n')
+    expect(github.file('content/feel.toml')).toBe('x = 1\n')
+    // Once a level is saved here, the file is made again and goes up like any change.
+    await d.store.write('content/world/project.toml', 'a = 3\n')
+    await d.engine.commitAll('Edited in Automata: Levels (Start)')
+    await d.engine.push()
+    expect(github.file('content/world/project.toml')).toBe('a = 3\n')
+  })
+
   it('reads the repository’s own default branch', async () => {
     const github = createFakeGitHubRest({
       repo: 'me/game',
@@ -202,7 +226,7 @@ describe('pushing', () => {
     expect(await d.engine.hasUnpushed()).toBe(true)
     expect(await d.engine.push()).toBe('pushed')
     expect(github.file('content/a.toml')).toBe('a = 3\n')
-    expect(github.messages().slice(-1)).toEqual(['Edited in Automata'])
+    expect(github.messages().slice(-1)).toEqual(['Edited in Automata: A'])
     expect(await d.engine.hasUnpushed()).toBe(false)
   })
 
@@ -280,6 +304,26 @@ describe('an empty repository (Review Focus 4)', () => {
     expect(github.log.find((call) => call.method === 'PUT')?.path).toBe('/contents/content/editors.toml')
     expect(github.paths()).toEqual(['content/a.toml', 'content/editors.toml'])
     expect(github.messages()).toEqual(['Edited in Automata: Editors', 'Edited in Automata: Editors'])
+    expect(await d.engine.hasUnpushed()).toBe(false)
+  })
+
+  it('names the first commit for what it is, not as an edit of anything', async () => {
+    const github = createFakeGitHubRest({ repo: 'me/game' })
+    const d = await device(github, FILES)
+    await d.engine.fetchMain()
+    expect(await d.engine.push()).toBe('pushed')
+    expect(new Set(github.messages())).toEqual(new Set(['Put the game on GitHub from Automata']))
+  })
+
+  it('takes a repository that was made with a README: the first push is refused, the pull brings the README in, and then it goes up', async () => {
+    const github = createFakeGitHubRest({ repo: 'me/game', files: { 'README.md': '# game\n' } })
+    const d = await device(github, FILES)
+    expect(await d.engine.fetchMain()).toBe('changed')
+    expect(await d.engine.push()).toBe('rejected')
+    await d.engine.mergeMain()
+    expect(await d.engine.push()).toBe('pushed')
+    expect(github.paths()).toEqual(['README.md', 'content/a.toml', 'content/editors.toml'])
+    expect(await d.text('README.md')).toBe('# game\n')
     expect(await d.engine.hasUnpushed()).toBe(false)
   })
 

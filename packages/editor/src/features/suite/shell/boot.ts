@@ -19,6 +19,10 @@ export interface SuiteSync {
   readonly status: StatusStore
   /** Told which files a pull changed. Returns a way to stop being told. */
   onPulled(listener: (paths: readonly string[]) => void): () => void
+  /** Holds GitHub back while `busy` says the person is typing; returns a way to stop. See `SyncHandle.holdWhile`. */
+  holdWhile(busy: () => boolean): () => void
+  /** The page is quiet again: a pull it held back runs now. */
+  retry(): void
   /** The files that changed here and on GitHub and wait for the person's choice. */
   conflicts(): Promise<readonly MergeAsk[]>
   /** Carries out the choice for one of them. `false`: it could not (no internet) and the file still waits. */

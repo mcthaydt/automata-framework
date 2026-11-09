@@ -21,6 +21,13 @@
   border-bottom: 1px solid var(--line);
 }
 
+/* The saved line is whole on a phone held upright: it takes a row of its own, under the game's name and the tools. */
+[data-editor-shell] > [data-region="topbar"][data-rows="2"] {
+  flex-wrap: wrap;
+  row-gap: 0;
+  padding-block: var(--space-1);
+}
+
 [data-editor-shell] > [data-region="rail"] {
   grid-area: rail;
   display: flex;

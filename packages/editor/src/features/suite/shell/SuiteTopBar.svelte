@@ -24,6 +24,8 @@ interface Props {
   titleHref?: string | undefined
   /** Where the work stands, in words, at every size: Saving…, Saved on this device, Not saved: … (`saveLine`). */
   line: SaveLine | undefined
+  /** The line has a row of its own, under the rest of the bar, and shows whole (a phone held upright). */
+  lineBelow?: boolean
   pills: readonly Pill[]
   /** The pills as icons with counts, on a phone or a short screen. */
   compact: boolean
@@ -58,6 +60,7 @@ const {
   title,
   titleHref,
   line,
+  lineBelow = false,
   pills,
   compact,
   onlocate,
@@ -95,11 +98,11 @@ function chooseGame(id: string): void {
 {#if title !== undefined}{#if titleHref !== undefined}<a class="brand home-link" href={titleHref} aria-label={`${title}: all your games`}>{title}</a>{:else}<span class="brand">{title}</span>{/if}{/if}
 {#if line !== undefined}
   {#if onchoose !== undefined}
-    <button class="where choose" type="button" data-state="failed" title={line.words} onclick={onchoose}>
+    <button class="where choose" class:below={lineBelow} type="button" data-state="failed" title={line.words} onclick={onchoose}>
       <Icon name="alert" size={16} /><span class="words">{line.words}</span>
     </button>
   {:else}
-    <span class="where" data-state={line.state} role="status" title={line.words}>
+    <span class="where" class:below={lineBelow} data-state={line.state} role="status" title={line.words}>
       <Icon name={line.state === 'failed' ? 'alert' : 'check'} size={16} /><span class="words">{line.words}</span>
     </span>
   {/if}
@@ -168,6 +171,25 @@ function chooseGame(id: string): void {
        tools off the screen. */
     flex: 0 1 auto;
     min-width: 5.5rem;
+  }
+  /* Under the bar's first row, as wide as the bar: the words wrap rather than shorten, so none of them is cut. */
+  .where.below {
+    order: 10;
+    flex: 1 0 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0 var(--space-2);
+    white-space: normal;
+  }
+  .where.below .words {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .where.below.choose {
+    padding-block: 0;
+  }
+  :global([data-rows='2']) .tools {
+    flex-basis: 0;
   }
   .where > :global(svg) {
     flex: none;

@@ -69,7 +69,9 @@ test('one game on two devices through GitHub: kept, got, changed on both, reopen
     await pageA.getByRole('button', { name: 'Keep this game on GitHub' }).click()
     expect(github.opened.at(-1)).toBe('https://github.com/new?name=lantern-run&visibility=private')
     await expect(
-      pageA.getByText('Make an empty place for your game on GitHub, then come back.'),
+      pageA.getByText(
+        'On GitHub, press Create repository and change nothing else. Leave “Add a README” unticked. Then come back here.',
+      ),
     ).toBeVisible()
     // The place is made, but Automata was not let into it yet: it says so, in words.
     await pageA.getByRole('button', { name: 'I made it' }).click()
@@ -92,9 +94,9 @@ test('one game on two devices through GitHub: kept, got, changed on both, reopen
     await pageB.getByRole('button', { name: 'Sign in with GitHub (free)' }).click()
     await expect(pageB.getByText('Signed in as alice.')).toBeVisible()
     await expect(pageB.getByRole('heading', { name: 'Your games on GitHub' })).toBeVisible()
-    await pageB.getByRole('button', { name: 'Get lantern-run' }).click()
+    await pageB.getByRole('button', { name: 'Get Lantern Run' }).click()
     await expect(pageB.getByText('On this device and GitHub: alice/lantern-run')).toBeVisible()
-    await pageB.getByRole('button', { name: 'Open lantern-run' }).click()
+    await pageB.getByRole('button', { name: 'Open Lantern Run' }).click()
     await expect(pageB.getByRole('status').filter({ hasText: SAVED })).toBeVisible()
 
     // The flash on A, the shake on B. Each lands on GitHub as its own commit after ten quiet seconds.

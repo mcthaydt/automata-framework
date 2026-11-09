@@ -32,8 +32,8 @@ export async function openSuite(
   files: Record<string, string>,
   ready: string,
   entry: string,
-  /** What a served game adds to the top bar: the page Play opens, why it is off, and Publish. */
-  game: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'> = {},
+  /** What a served game adds to the top bar: the page Play opens, why it is off, Publish, and a game kept on GitHub. */
+  game: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish' | 'sync' | 'game' | 'gameKey' | 'where'> = {},
 ): Promise<OpenedSuite> {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST, editorTargets())

@@ -732,7 +732,7 @@ this build", and the 3D editors are not held back because the launch waits for P
   `standalone-exemption.test.ts` failed once in the site's unit run before a build and passed after; it fails the same on #522.
 - Do not publish `@automata/tools` or deploy the site before `@pixi/3d` is public: both now carry it.
 
-## Sign-in that syncs, and the try-it apart from the editors: 83% (5 of 6 stages done, 2026-11-09)
+## Sign-in that syncs, and the try-it apart from the editors: 100% (6 of 6 stages done, 2026-11-09)
 
 The Owner, 2026-11-08 21:34: "The try it page and editors should be separated? We should have sign in that syncs
 progress by account", and "Why wasn't it caught that progress doesn't actually save lol".
@@ -744,4 +744,4 @@ progress by account", and "Why wasn't it caught that progress doesn't actually s
 | 3. Plan audit | Done, 2026-11-08: 4 high (A1 the base misses the site stack; A2 one Undo step per visit built on the write path while Writer, Feel, Audio, Sequence and Schematic undo through their own history; A3 a 500 ms commit resets FieldRow's input on a half-typed value and renames ids mid-word; A4 a flush on hide cannot finish its write and iPhone and iPad never ask "Leave site?", so drafts go to `localStorage` as typed), 7 medium (A5 to A11: the 2D fields, the web Tuner, the sync loop's error words, the empty repository's first pull, sign-out's token, the way back from GitHub's install page, the Function's own headers), 6 low. All fixed in the spec and plan; nothing for the Owner. Reproduced first in Chromium on #532's web page and the served `automata editor`: typed words lost on a closed tab or a reload in Writer, Feel and the Tuner while the served header said "Saved in your game folder"; words left with Tab kept through a browser restart and shown in play | [plan audit](2026-11-08-sign-in-sync-plan-audit.md) |
 | 4. Build | In progress, 2026-11-08: see the table below | [plan](2026-11-08-sign-in-sync-plan.md) execution log |
 | 5. Build audit | Not started | |
-| 6. Fixes | Not started | |
+| 6. Fixes | Done, 2026-11-09: B1 (drafts keyed by the field's place in its editor, not its label), B2 (a pull waits while a key was pressed in the last 3 s, then the clash dialog, never over typed words), B3 ("Saved on this device. Sending to GitHub…" until the commit is on GitHub), B5 (the saved line drops under the top bar on a phone, Redo stays on screen), B6 to B8, B10 to B13 (words and errors). Left: B4 (a draft typed in a view that is not open waits for that view), B9 (waits for #531 and the site stack). Not run: WebKit, Firefox, a real iPhone or iPad, the real GitHub | [fixes](2026-11-09-sign-in-sync-build-audit.md#fixes) |

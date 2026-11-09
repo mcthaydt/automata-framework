@@ -16,6 +16,7 @@ import type { WebGitHubSession } from '../../shared/kit/sync/web-sign-in'
 import { openCopy, saveCopy } from './game-copy'
 import NewGame from './NewGame.svelte'
 import SignIn from './SignIn.svelte'
+import { troubleWords } from './trouble-words'
 import type { GameEntry, GameFile, WebGames } from './web-games'
 import YourGames, { type GitHubOffer } from './YourGames.svelte'
 
@@ -77,7 +78,7 @@ async function loadGitHub(): Promise<void> {
     onGitHub = await listGitHubGames(fetchFn, token)
   } catch (error) {
     onGitHub = []
-    trouble = error instanceof Error ? error.message : String(error)
+    trouble = troubleWords(error, 'open this page again')
   }
 }
 $effect(() => {

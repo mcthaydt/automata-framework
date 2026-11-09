@@ -168,3 +168,42 @@ for #531 and the site stack; Privacy and Terms wait for the Owner. The phone top
 WebKit, Firefox and a real iPhone or iPad (not in cloud sessions); the real GitHub and Cloudflare (need the Owner's steps
 in spec 12); the full `pnpm check` (the editor and editors unit suites, and the site's sign-in tests, were run); the 17
 layout tests the builder reported as failing on the base were not re-run.
+
+## Fixes
+
+Stage 6, 2026-11-09, on top of this audit. Each fix was written test first and watched fail.
+
+| Finding | Fix | Proof |
+|---|---|---|
+| B1 | A draft is keyed by the field's place in its editor (`fieldPosition`: the region and the path to the field) and the view it is on (`draftView`), not by its label. A draft is put back only if the file still holds the value it was typed over | `typing-drafts`, `field-position` and `typed-save` unit tests; journey `typed-words-fields` types into the second and third field of Writer, Schematic and Feel, closes the tab, reopens |
+| B2 | The sync loop holds a pull while a key was pressed in the last 3 s (`holdWhile`) and tries again when the person stops. A pull that changes the field being typed in opens the clash dialog instead of writing over it. The screen is not redrawn under the cursor | `sync-loop` and `Suite` unit tests; journey `web-sync-typing` (two devices, one types while the other pushes) |
+| B3 | A new state, "Saved on this device. Sending to GitHub…", from the edit until GitHub has the commit; "On GitHub" is said only after | `sync-loop` and `rest-engine` unit tests |
+| B5 | On a phone the saved line moves under the top bar (`topbarRows`, `lineBelow`) and is shown whole; Undo, Redo, Play and Publish stay on screen | layout test `suite-save-line`: every status line at 360×740 and 390×844, title and Redo on screen |
+| B6 | `troubleWords`: "Can't reach GitHub. Check your internet and press Get it again." | `trouble-words` test |
+| B7 | Signed in, the list says which games are on GitHub and which are only here | `your-games` test |
+| B8 | The generated-files note is in web words, and a generated file GitHub changed is left alone, not sent back over GitHub's | `generated-files` and `rest-engine` tests |
+| B10 | "On GitHub, press **Create repository** and change nothing else. Then come back here."; a repository that already has a README goes through pull then push | `games-page` and `rest-engine` tests |
+| B11 | A fetched game is named by its title, as the repository's id turned into words | `github-games` test |
+| B12 | Every commit names the editor that made the change | `rest-engine` test |
+| B13 | The clash dialog says what changed ("Your other device changed the shopkeeper's lines too.") | `SyncConflictDialog` test |
+
+Not fixed:
+
+- **B4.** A draft typed in a view that is not open waits in `localStorage` until that view is opened. Writing it into the
+  file needs the field mounted, because each editor writes through its own path; committing it on open needs a
+  per-editor way to write a field that is not on screen. Left for the Owner to say whether it is worth that.
+- **B9.** Waits for #531 and the site stack (task 3.1).
+
+Seen and not caused by these fixes:
+
+- `audio-plays-in-game` fails at phone and iPad sizes: the played game never reaches the chase music. It fails the same
+  way on this audit's own base (`0afa17fd`) built with none of these changes, alone and under load.
+- The feel shake test and the sequence phone journey, which the builder reported failing, were not looked at.
+- `pnpm style` reports 9 platform-chrome findings on the base, and `pnpm format` rewrites 5 site files (a control
+  character rule in `github-routes.ts`); neither is touched here.
+
+Ran: the editor unit suite (292 files, 3504 tests); the editor and editors typechecks; the layout test in Chromium; the
+journeys `web-game-kept`, `typed-words-kept`, `typed-words-fields`, `web-sync-typing`, `web-sync-two-devices` and
+`writer-words-show-in-game` at phone and iPad sizes (22 pass, with `audio-plays-in-game`'s 2 failures above). Not run:
+WebKit, Firefox, a real iPhone or iPad, the real GitHub and Cloudflare, the full `pnpm check`, the layout tests in
+Firefox.

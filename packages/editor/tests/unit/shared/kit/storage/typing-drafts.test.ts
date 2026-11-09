@@ -65,7 +65,7 @@ describe('a typing field', () => {
     field.typed('ab')
     field.left('ab')
     expect(committed).toEqual(['ab'])
-    expect(timers.count()).toBe(0)
+    expect(timers.count()).toBe(1) // only the "typing now" timer is left; the commit timer is gone
     timers.advance(5000)
     expect(committed).toEqual(['ab'])
   })
@@ -163,7 +163,7 @@ describe('a typing field', () => {
     drafts.flush()
     expect(one).toEqual(['one'])
     expect(two).toEqual(['two'])
-    expect(timers.count()).toBe(0)
+    expect(timers.count()).toBe(1) // only the "typing now" timer is left; the commit timers are gone
     expect(drafts.waiting).toBe(0)
   })
 
@@ -190,6 +190,29 @@ describe('a typing field', () => {
     timers.advance(TYPING_DELAY_MS)
     expect(committed).toEqual(['a'])
     expect(drafts.waiting).toBe(0)
+  })
+})
+
+describe('typing now', () => {
+  it('is true from the first key until 3 seconds after the last, even once the words are written', () => {
+    const { drafts, timers } = setup()
+    const field = drafts.field(() => undefined)
+    let told = 0
+    drafts.subscribe(() => told++)
+    expect(drafts.typing).toBe(false)
+    field.typed('a')
+    expect(drafts.typing).toBe(true)
+    timers.advance(TYPING_DELAY_MS)
+    expect(drafts.waiting).toBe(0)
+    expect(drafts.typing).toBe(true)
+    timers.advance(2000)
+    field.typed('ab')
+    timers.advance(2999)
+    expect(drafts.typing).toBe(true)
+    const before = told
+    timers.advance(1)
+    expect(drafts.typing).toBe(false)
+    expect(told).toBeGreaterThan(before)
   })
 })
 

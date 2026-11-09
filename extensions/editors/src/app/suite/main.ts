@@ -101,6 +101,8 @@ async function startEditors(page: Extract<ContentPage, { opened: unknown }>): Pr
         : {
             status: sync.status,
             onPulled: sync.onPulled,
+            holdWhile: sync.holdWhile,
+            retry: sync.retry,
             conflicts: sync.conflicts,
             resolve: sync.resolve,
           },

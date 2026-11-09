@@ -155,6 +155,29 @@ describe('Your games on GitHub', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('too big to get on the web')
   })
 
+  it('puts the browser’s “Failed to fetch” into words that say what to press', async () => {
+    const { options } = github({
+      get: vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    })
+    mount({ github: options })
+    await userEvent.click(screen.getByRole('button', { name: 'Get night-shift' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Can’t reach GitHub. Check your internet and press Get it again.',
+    )
+  })
+
+  it('does not say every game is only in this browser to a person who is signed in', () => {
+    mount({ github: github().options, canSignIn: true })
+    expect(screen.queryByText(/Saved in this browser only/)).toBeNull()
+    expect(
+      screen.getByText(
+        'Games that say “On this device and GitHub” are kept safe there. The others are only in this browser: save a copy, or press Keep this game on GitHub.',
+      ),
+    ).toBeInTheDocument()
+  })
+
   it('offers Keep this game on GitHub only to a game that is not on GitHub', () => {
     mount({ github: github().options })
     expect(
@@ -171,7 +194,9 @@ describe('Your games on GitHub', () => {
     )
     expect(calls.open).toHaveBeenCalledWith('https://github.com/new?name=lantern-run&visibility=private')
     expect(
-      screen.getByText('Make an empty place for your game on GitHub, then come back.'),
+      screen.getByText(
+        'On GitHub, press Create repository and change nothing else. Leave “Add a README” unticked. Then come back here.',
+      ),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'I made it' })).toBeInTheDocument()
   })
@@ -186,7 +211,11 @@ describe('Your games on GitHub', () => {
     await userEvent.click(screen.getByRole('button', { name: 'I made it' }))
     expect(calls.check).toHaveBeenCalledWith('lantern-run')
     await waitFor(() => expect(done).toHaveBeenCalled())
-    expect(screen.queryByText('Make an empty place for your game on GitHub, then come back.')).toBeNull()
+    expect(
+      screen.queryByText(
+        'On GitHub, press Create repository and change nothing else. Leave “Add a README” unticked. Then come back here.',
+      ),
+    ).toBeNull()
   })
 
   it('says Automata cannot reach it yet, and sends the person to let it see the game', async () => {
@@ -228,7 +257,11 @@ describe('Your games on GitHub', () => {
       within(row('Lantern Run')).getByRole('button', { name: 'Keep this game on GitHub' }),
     )
     await userEvent.click(screen.getByRole('button', { name: 'Never mind' }))
-    expect(screen.queryByText('Make an empty place for your game on GitHub, then come back.')).toBeNull()
+    expect(
+      screen.queryByText(
+        'On GitHub, press Create repository and change nothing else. Leave “Add a README” unticked. Then come back here.',
+      ),
+    ).toBeNull()
   })
 })
 

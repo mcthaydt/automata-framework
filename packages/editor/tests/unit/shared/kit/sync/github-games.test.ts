@@ -54,8 +54,8 @@ describe('listGitHubGames', () => {
     const github = account({ 'me/lantern-run': true, 'me/notes': false, 'club/night-shift': true })
     const found = await listGitHubGames(github.fetchFn, 'ghu_1')
     expect(found).toEqual([
-      { repo: 'me/lantern-run', id: 'lantern-run', title: 'lantern-run' },
-      { repo: 'club/night-shift', id: 'night-shift', title: 'night-shift' },
+      { repo: 'me/lantern-run', id: 'lantern-run', title: 'Lantern Run' },
+      { repo: 'club/night-shift', id: 'night-shift', title: 'Night Shift' },
     ])
   })
 
@@ -101,7 +101,7 @@ function shelf() {
     stores,
     linked,
     async create(title: string, files: readonly { path: string; bytes: Uint8Array }[]) {
-      const id = title
+      const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
       const store = createMemoryStore()
       for (const file of files) await store.write(file.path, file.bytes)
       stores.set(id, store)
@@ -126,7 +126,7 @@ describe('getGame', () => {
     })
     const games = shelf()
     const entry = await getGame(github.fetch, 'ghu_1', 'me/lantern-run', games)
-    expect(entry).toMatchObject({ id: 'lantern-run', title: 'lantern-run', github: 'me/lantern-run' })
+    expect(entry).toMatchObject({ id: 'lantern-run', title: 'Lantern Run', github: 'me/lantern-run' })
     const store = await games.store('lantern-run')
     expect(new TextDecoder().decode(await store.read('content/feel/feel.toml'))).toBe('flash = 3\n')
     const note = JSON.parse(new TextDecoder().decode(await store.read('.automata/sync.json'))) as {

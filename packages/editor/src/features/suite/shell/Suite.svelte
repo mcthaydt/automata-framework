@@ -128,6 +128,9 @@ const entries = $derived(
   suiteEntries(suite.editors, home.kind === 'cards' ? home.cards.map((card) => card.editor) : undefined),
 )
 const entry = $derived(entries.find((candidate) => candidate.id === current))
+// A phone held upright has no width for the saved line beside the game's name and the tools: it takes a row under them,
+// whole, so "Not on GitHub yet" is never cut away.
+const lineBelow = $derived(mode === 'compact' && geometry.current.layout.width < 600)
 // A phone held sideways has no height to spare for a tab bar: the editors fold into a menu in the top bar, so the stage
 // keeps the height (V4).
 const folded = $derived(mode === 'compact' && geometry.current.heightTier === 'short')
@@ -203,6 +206,7 @@ $effect(() => {
     pending = drafts.waiting + session.inFlight
     failed = session.failed
     showPulled()
+    if (!typing()) sync?.retry()
   }
   const stopSession = session.subscribe(read)
   const stopDrafts = drafts.subscribe(read)
@@ -258,15 +262,22 @@ const line = $derived(
 
 // A pull wrote files an editor may hold. Once no word waits and no write runs, every editor is opened again from the
 // files (a write from an editor that still held the old text was refused, not laid over the new), and Home is read again.
+// The sync does not pull while the person is typing (the last key more than 3 seconds ago), so no key is lost.
+let pulledPaths: readonly string[] = []
 let stale = false
+const typing = () => drafts.typing || editing.inFlight > 0
 function showPulled(): void {
-  if (!stale) return
-  // A field the person is still in is left first, here and not while the editor is taken down: leaving a field writes
-  // its words, which cannot happen in the middle of removing it. Leaving can itself bring us back here.
+  if (!stale || typing()) return
+  // A field the person is still in, but has stopped typing in, is left first, here and not while the editor is taken
+  // down: leaving a field writes its words, which cannot happen in the middle of removing it. Leaving can itself bring
+  // us back here.
   const focused = document.activeElement
   if (focused instanceof HTMLElement && focused !== document.body) focused.blur()
-  if (!stale || drafts.waiting > 0 || editing.inFlight > 0) return
+  if (!stale || typing()) return
   stale = false
+  // What the sync wrote is the file now: the write path judges the next edit against it, not against its own last write.
+  editing.writePath.forget(pulledPaths)
+  pulledPaths = []
   // The open editor stays on screen until its new session is ready; the others open again when they are chosen.
   const open = target
   sessions =
@@ -276,12 +287,16 @@ function showPulled(): void {
 }
 $effect(() => {
   if (sync === undefined) return
-  return sync.onPulled((paths) => {
-    // What the sync wrote is the file now: the write path judges the next edit against it, not against its own last write.
-    editing.writePath.forget(paths)
+  const stopHolding = sync.holdWhile(typing)
+  const stopPulled = sync.onPulled((paths) => {
+    pulledPaths = [...pulledPaths, ...paths]
     stale = true
     showPulled()
   })
+  return () => {
+    stopHolding()
+    stopPulled()
+  }
 })
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
@@ -299,10 +314,12 @@ $effect(() => {
   return stop
 })
 
-// The fields being made now belong to the open editor: a draft is offered back to the same field of the same editor.
-$effect.pre(() => {
-  drafts.place = mounted?.editor.id ?? ''
-})
+// The fields being made now belong to the open editor and what it shows (the entry, the scene, the thing chosen): a
+// draft is offered back to the same field of the same view. Asked when a field is made, so it is never a step behind.
+drafts.place = () =>
+  mounted === undefined
+    ? ''
+    : [mounted.editor.id, entry?.id ?? '', mounted.editor.draftView?.(mounted.session) ?? ''].join(':')
 
 // The page going away (a closed tab, a phone put to sleep) writes the words that wait; where a browser asks "Leave
 // site?" it asks while words wait or a write runs.
@@ -384,6 +401,7 @@ function openCard(card: EditorCard): void {
   status={mounted?.editor.regions.status ? status : undefined}
   rail={folded ? undefined : tabs}
   testId="suite-shell"
+  topbarRows={lineBelow ? 2 : 1}
 >
   {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
   {#snippet topbar()}
@@ -397,6 +415,7 @@ function openCard(card: EditorCard): void {
     <SuiteTopBar
       title={sample ? 'Sample game' : (game ?? 'Your game')}
       {line}
+      {lineBelow}
       titleHref={gameKey !== undefined ? '?games' : undefined}
       pills={pillsToShow(pills)}
       {compact}

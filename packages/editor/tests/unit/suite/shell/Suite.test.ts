@@ -197,9 +197,25 @@ describe('a game kept on GitHub', () => {
     const chosen: { path: string; choice: Choice }[] = []
     let waiting: readonly MergeAsk[] = []
     let reachable = true
+    let busy: (() => boolean) | undefined
+    let retries = 0
     return {
       status,
       chosen,
+      /** What the suite asked the sync to hold back for. */
+      isBusy: () => busy?.(),
+      get retries() {
+        return retries
+      },
+      holdWhile(check: () => boolean) {
+        busy = check
+        return () => {
+          busy = undefined
+        }
+      },
+      retry() {
+        retries++
+      },
       /** Files wait for a choice, and the line says so. */
       ask(...asks: MergeAsk[]) {
         waiting = asks
@@ -258,6 +274,14 @@ describe('a game kept on GitHub', () => {
     expect(await screen.findByText('open 1')).toBeInTheDocument()
     sync.pulled(['content/tuning.toml'])
     expect(await screen.findByText('open 2')).toBeInTheDocument()
+  })
+
+  it('asks the sync to hold GitHub back only while words are being typed, and to go on once they are written', async () => {
+    const sync = kept()
+    await startKept(sync, async () => ({ n: 1 }))
+    await screen.findByText('open 1')
+    expect(sync.isBusy()).toBe(false)
+    expect(sync.retries).toBeGreaterThan(0)
   })
 
   it('asks which to keep when a file changed here and on GitHub, and carries out the choice', async () => {

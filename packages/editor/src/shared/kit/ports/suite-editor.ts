@@ -83,6 +83,11 @@ export interface SuiteEditor<S> {
   readonly entries?: readonly SuiteEntryDef[] | undefined
   /** Shows the view a chosen entry names, before the editor's regions draw. Required with `entries`. */
   readonly showView?: ((session: S, view: string) => void) | undefined
+  /**
+   * What the editor shows now, as a short text (the scene open, the thing chosen). A draft of typed words is kept under
+   * it, so it is offered back to the same field of the same view, never to a field of another one that looks alike.
+   */
+  readonly draftView?: ((session: S) => string) | undefined
   /** The session's history; an editor without it has no Undo in the top bar. */
   readonly undo?: ((session: S) => SuiteUndo) | undefined
 }

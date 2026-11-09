@@ -47,7 +47,7 @@ export function conflictWords(ask: MergeAsk): ConflictWords {
   const copy = ask.keepBothPath?.split('/').pop()
   return {
     title: `${name} changed here and on GitHub`,
-    why: `You and GitHub both changed ${name}.${ask.where === undefined ? '' : ` They disagree about ${ask.where}.`}`,
+    why: `${name} was changed here, and again on GitHub (your other device, most likely).${ask.where === undefined ? '' : ` They disagree about ${ask.where}.`}`,
     options: [
       { choice: 'theirs', label: THEIRS, detail: 'This device gets GitHub’s. Your change here is dropped.' },
       { choice: 'mine', label: MINE, detail: 'GitHub gets what is on this device.' },

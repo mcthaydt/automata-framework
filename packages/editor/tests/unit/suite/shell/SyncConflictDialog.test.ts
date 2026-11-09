@@ -30,7 +30,9 @@ describe('conflictWords', () => {
   it('both changed: three choices, Keep both (which loses nothing) the one to press', () => {
     const words = conflictWords(FEEL)
     expect(words.title).toBe('Feel changed here and on GitHub')
-    expect(words.why).toBe('You and GitHub both changed Feel. They disagree about flash.intensity.')
+    expect(words.why).toBe(
+      'Feel was changed here, and again on GitHub (your other device, most likely). They disagree about flash.intensity.',
+    )
     expect(words.options.map((o) => o.choice)).toEqual(['theirs', 'mine', 'both'])
     expect(words.primary).toBe('both')
     expect(words.options.find((o) => o.choice === 'both')?.detail).toBe(

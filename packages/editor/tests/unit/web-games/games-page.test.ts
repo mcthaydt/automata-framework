@@ -65,12 +65,12 @@ async function page(options: { signedIn: boolean; installed: string[]; existing?
 describe('Your games, signed in', () => {
   it('lists the GitHub games this device does not have, and Get it brings one here', async () => {
     const { games } = await page({ signedIn: true, installed: ['mcthaydt/night-shift'] })
-    await userEvent.click(await screen.findByRole('button', { name: 'Get night-shift' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Get Night Shift' }))
     await waitFor(async () =>
       expect((await games.list()).map((game) => game.github)).toEqual(['mcthaydt/night-shift']),
     )
     expect(await screen.findByText('On this device and GitHub: mcthaydt/night-shift')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Get night-shift' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Get Night Shift' })).toBeNull()
     const store = await games.store('night-shift')
     expect(new TextDecoder().decode(await store.read('content/feel/feel.toml'))).toBe('flash = 3\n')
   })

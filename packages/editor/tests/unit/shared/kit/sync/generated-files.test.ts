@@ -41,9 +41,9 @@ describe('the files the app makes again from a level', () => {
     expect(generatedFolders('this is = = not toml')).toEqual([])
   })
 
-  it('say what happened to Claude’s edit of one', () => {
+  it('say what happened to a change on GitHub to one, without naming who made it', () => {
     expect(generatedNote('content/levels/start.toml')).toBe(
-      "Claude edited content/levels/start.toml, but the app rebuilds that file from your level. Claude's edit is kept on GitHub, not in the game.",
+      'GitHub has a newer content/levels/start.toml, but the app makes that file from your level, so it was not used here. It is made again the next time you change the level.',
     )
   })
 })

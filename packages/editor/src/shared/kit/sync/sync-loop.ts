@@ -40,6 +40,14 @@ export interface SyncHandle {
   readonly status: StatusStore
   /** The person saved these files. */
   edited(paths: readonly string[]): void
+  /**
+   * While `busy` says so (the person is typing, or words they typed are being written) GitHub is not brought in: a file
+   * the pull wrote under a field would be written over by the field's words, or the field taken away mid-sentence.
+   * Returns a way to stop asking. The page calls `retry()` once it is quiet.
+   */
+  holdWhile(busy: () => boolean): () => void
+  /** The page is quiet again: a pull it held back runs now. */
+  retry(): void
   /** Pulls now (and pushes what is waiting). */
   pullNow(): Promise<void>
   /** The files that changed here and on GitHub and wait for the person's choice. */
@@ -68,6 +76,9 @@ export function startSync(options: SyncOptions): SyncHandle {
   let asking = false
   /** GitHub moved twice while a push was being made: it is tried again on the next pull. */
   let stuck = false
+  /** A pull was held back because the person was typing. */
+  let held = false
+  let isBusy = (): boolean => false
   /** Generated files edited on GitHub, which the line mentions until the next pull brings something else. */
   let notes: readonly string[] = []
   let chain: Promise<void> = Promise.resolve()
@@ -93,17 +104,30 @@ export function startSync(options: SyncOptions): SyncHandle {
     return chain
   }
 
+  // "On GitHub" is only said once GitHub has the change: an edit still waiting for its commit keeps the line at "sending".
   const settled = (): void =>
     status.set(
-      asking || stuck ? statusOf('conflict') : notes.length > 0 ? savedWithNotes(notes) : statusOf('saved'),
+      asking || stuck
+        ? statusOf('conflict')
+        : waiting.length > 0
+          ? statusOf('sending')
+          : notes.length > 0
+            ? savedWithNotes(notes)
+            : statusOf('saved'),
     )
 
-  async function bringIn(): Promise<void> {
-    if ((await engine.fetchMain()) === 'unchanged') return
+  /** Brings GitHub's changes in. `false`: not now, the person is typing; `retry()` runs it later. */
+  async function bringIn(): Promise<boolean> {
+    if (isBusy()) {
+      held = true
+      return false
+    }
+    if ((await engine.fetchMain()) === 'unchanged') return true
     const outcome = await engine.mergeMain()
     if (outcome.changed.length > 0) store.notifyChanged(outcome.changed)
     asking = outcome.asks.length > 0
     notes = outcome.generated
+    return true
   }
 
   /** A game opened again still has the files that waited: the engine remembers them, the loop asks. */
@@ -121,7 +145,7 @@ export function startSync(options: SyncOptions): SyncHandle {
         stuck = true
         return settled()
       }
-      await bringIn()
+      if (!(await bringIn())) return status.set(statusOf('sending'))
       return pushWaiting(true)
     }
     stuck = false
@@ -132,6 +156,7 @@ export function startSync(options: SyncOptions): SyncHandle {
     if (isPaused()) return
     if (!(await isSignedIn())) return status.set(statusOf('signed-out'))
     status.set(statusOf('pulling'))
+    held = false
     await bringIn()
     await remember()
     await pushWaiting()
@@ -161,8 +186,19 @@ export function startSync(options: SyncOptions): SyncHandle {
     edited(paths) {
       if (stopped || paths.length === 0) return
       waiting.push(...paths)
+      const { state } = status.get()
+      if (state === 'saved' || state === 'pulling') status.set(statusOf('sending'))
       cancelSave?.()
       cancelSave = timers.after(SAVE_AFTER_MS, () => void queue(save))
+    },
+    holdWhile(busy) {
+      isBusy = busy
+      return () => {
+        if (isBusy === busy) isBusy = () => false
+      }
+    },
+    retry() {
+      if (held && !stopped) void queue(pull)
     },
     pullNow: () => {
       paused = undefined

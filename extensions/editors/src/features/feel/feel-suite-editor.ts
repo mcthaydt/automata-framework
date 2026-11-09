@@ -60,6 +60,7 @@ export function createFeel(options: FeelOptions = {}): SuiteEditor<FeelSession> 
       session.hasPlayer = await gameHasPlayer(ports.workspace, 'feel')
       return session
     },
+    draftView: (session) => `${session.toml.path}|${JSON.stringify(session.chosen)}`,
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),
   })

@@ -28,6 +28,6 @@ export function isGeneratedPath(path: string, folders: readonly string[]): boole
   )
 }
 
-/** The status line for a generated file that was edited on GitHub. */
+/** The status line for a generated file that was changed on GitHub (by the person's other device, or by someone else). */
 export const generatedNote = (path: string): string =>
-  `Claude edited ${path}, but the app rebuilds that file from your level. Claude's edit is kept on GitHub, not in the game.`
+  `GitHub has a newer ${path}, but the app makes that file from your level, so it was not used here. It is made again the next time you change the level.`

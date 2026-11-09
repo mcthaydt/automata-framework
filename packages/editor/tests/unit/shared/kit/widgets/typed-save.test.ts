@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
 import { createTypingDrafts, TYPING_DELAY_MS } from '#src/shared/kit/storage/typing-drafts.ts'
+import { fieldPosition } from '#src/shared/kit/widgets/field-position.ts'
 import { typedSave } from '#src/shared/kit/widgets/typed-save.ts'
 
 function fakeTimers() {
@@ -101,5 +102,65 @@ describe('typedSave', () => {
     timers.advance(TYPING_DELAY_MS)
     expect(committed).toEqual(['abc'])
     expect(drafts.waiting).toBe(0)
+  })
+})
+
+describe('typedSave: fields that share a label', () => {
+  /** Three lines of one scene, each a textarea with the same label, as Writer draws them. */
+  function lines(drafts: ReturnType<typeof createTypingDrafts>, texts: readonly string[]) {
+    document.body.innerHTML = ''
+    const committed: [number, string][] = []
+    const boxes = texts.map((text, at) => {
+      const article = document.createElement('article')
+      const box = document.createElement('textarea')
+      article.append(box)
+      document.body.append(article)
+      typedSave(box, {
+        drafts,
+        value: text,
+        commit: (raw) => void committed.push([at, raw]),
+        draftKey: (node) => fieldPosition(node),
+      })
+      return box
+    })
+    return { boxes, committed }
+  }
+  const typeInto = (box: HTMLTextAreaElement | undefined, text: string) => {
+    if (box === undefined) throw new Error('no such field')
+    box.value = text
+    box.dispatchEvent(new Event('input', { bubbles: true }))
+  }
+  const store = () => {
+    const entries = new Map<string, string>()
+    return {
+      entries,
+      getItem: (key: string) => entries.get(key) ?? null,
+      setItem: (key: string, value: string) => void entries.set(key, value),
+      removeItem: (key: string) => void entries.delete(key),
+    }
+  }
+
+  it('puts a draft back into the third line, not the first, and does not let the first remove it', async () => {
+    const storage = store()
+    const first = createTypingDrafts({ timers: fakeTimers(), drafts: storage, scope: 'game' })
+    const page = lines(first, ['Welcome in.', 'Here you are.', 'Grandma typed this.'])
+    typeInto(page.boxes[2], 'Closed mid typing.')
+
+    const second = createTypingDrafts({ timers: fakeTimers(), drafts: storage, scope: 'game' })
+    const reopened = lines(second, ['Welcome in.', 'Here you are.', 'Grandma typed this.'])
+    await Promise.resolve()
+    expect(reopened.committed).toEqual([[2, 'Closed mid typing.']])
+  })
+
+  it('puts a draft back into the second of two fields that hold the same value', async () => {
+    const storage = store()
+    const first = createTypingDrafts({ timers: fakeTimers(), drafts: storage, scope: 'game' })
+    const page = lines(first, ['2', '2'])
+    typeInto(page.boxes[1], '7')
+
+    const second = createTypingDrafts({ timers: fakeTimers(), drafts: storage, scope: 'game' })
+    const reopened = lines(second, ['2', '2'])
+    await Promise.resolve()
+    expect(reopened.committed).toEqual([[1, '7']])
   })
 })

@@ -2,7 +2,7 @@ import { generatedNote } from './generated-files'
 
 // The line in the header that says where the game's changes are: the words a person reads, in one place.
 
-export type SyncState = 'saved' | 'pulling' | 'offline' | 'signed-out' | 'conflict' | 'stopped'
+export type SyncState = 'saved' | 'sending' | 'pulling' | 'offline' | 'signed-out' | 'conflict' | 'stopped'
 
 export interface SyncStatus {
   readonly state: SyncState
@@ -11,6 +11,7 @@ export interface SyncStatus {
 
 export const STATUS_LINES: Readonly<Record<SyncState, string>> = {
   saved: 'Saved on this device and on GitHub',
+  sending: 'Saved on this device. Sending to GitHub…',
   pulling: 'Checking GitHub…',
   offline: 'Saved on this device. Not on GitHub yet: no internet.',
   'signed-out': 'Saved on this device. Not on GitHub yet: sign in to GitHub.',

@@ -58,6 +58,14 @@ async function call(fetchFn: typeof fetch, token: string, url: string): Promise<
   return response
 }
 
+/** A repository's name as a game's title: `lantern-run` is "Lantern Run" (the name was made from the title). */
+export function titleOfRepo(name: string): string {
+  const words = name.split(/[-_]+/).filter((word) => word !== '')
+  return words.length === 0
+    ? name
+    : words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+}
+
 /** Every item of a list GitHub pages through, following `Link: rel="next"` only while it stays on GitHub's API. */
 async function allOf<T>(fetchFn: typeof fetch, token: string, first: string, key: string): Promise<T[]> {
   const found: T[] = []
@@ -100,7 +108,7 @@ export async function listGitHubGames(fetchFn: typeof fetch, token: string): Pro
     const response = await call(fetchFn, token, `${API}/repos/${repo}/contents/${EDITOR_LIST}`)
     if (!response.ok) continue
     const name = repo.split('/')[1] ?? repo
-    games.push({ repo, id: name.toLowerCase(), title: name })
+    games.push({ repo, id: name.toLowerCase(), title: titleOfRepo(name) })
   }
   return games
 }
@@ -150,7 +158,7 @@ export async function getGame(
   }
 
   const name = repo.split('/')[1] ?? repo
-  const made = await games.create(name, files)
+  const made = await games.create(titleOfRepo(name), files)
   const note: SyncFile = {
     repo,
     branch,
