@@ -4,17 +4,21 @@ import { MOTION } from '#src/shared/motion/motion-tokens.ts'
 import type { RevealPart } from '#src/shared/motion/reveal-steps.ts'
 
 // Motion itself is proved in a real browser (tests/e2e/motion.e2e.ts); here a stand-in records what is asked of it and
-// lets a test finish a move by hand, so the contract (what moves, how far, how long, what is left behind) is held.
+// lets a test end a move by hand, so the contract (what moves, how far, how long, what is left behind) is held. It
+// copies what Motion 14's Web Animations path does at the end of a move: when the browser reports the move finished,
+// Motion writes the last keyframe as inline style, then resolves `finished`. `complete()` only asks the browser to
+// finish, so that write comes a task later; `cancel()` writes nothing and never resolves.
 interface Call {
   element: HTMLElement
-  keyframes: Record<string, unknown>
+  keyframes: Record<string, unknown[]>
   options: { duration: number; ease: unknown; delay?: number }
+  /** The browser reports the move finished. */
   done(): void
-  completed: boolean
+  state: 'running' | 'finished' | 'cancelled'
 }
 const fake = vi.hoisted(() => ({ calls: [] as unknown[] }))
 vi.mock('motion/mini', () => ({
-  animate: (element: HTMLElement, keyframes: Record<string, unknown>, options: Call['options']) => {
+  animate: (element: HTMLElement, keyframes: Record<string, unknown[]>, options: Call['options']) => {
     let resolve = () => {}
     const finished = new Promise<void>((done) => {
       resolve = done
@@ -23,14 +27,23 @@ vi.mock('motion/mini', () => ({
       element,
       keyframes,
       options,
-      completed: false,
+      state: 'running',
       done: () => {
-        call.completed = true
+        if (call.state !== 'running') return
+        call.state = 'finished'
+        for (const [name, values] of Object.entries(keyframes))
+          element.style.setProperty(name, String(values.at(-1)))
         resolve()
       },
     }
     fake.calls.push(call)
-    return { finished, complete: call.done, cancel: call.done }
+    return {
+      finished,
+      complete: () => setTimeout(call.done, 0),
+      cancel: () => {
+        if (call.state === 'running') call.state = 'cancelled'
+      },
+    }
   },
 }))
 const calls = () => fake.calls as Call[]
@@ -103,7 +116,7 @@ describe('createAnimate', () => {
     expect(main.hasAttribute('data-motion')).toBe(false)
   })
 
-  it('finish() completes every running move and clears what they set', () => {
+  it('finish() stops every running move, clears what they set, and nothing is written back later', async () => {
     const list = parts(2)
     document.body.insertAdjacentHTML('beforeend', '<main id="m">x</main>')
     const main = document.querySelector('#m') as HTMLElement
@@ -112,7 +125,8 @@ describe('createAnimate', () => {
     animate.reveal(list)
     animate.pageIn(main)
     animate.finish()
-    expect(calls().every((call) => call.completed)).toBe(true)
+    await new Promise((done) => setTimeout(done, 0))
+    expect(calls().every((call) => call.state !== 'running')).toBe(true)
     for (const element of [...list.map((part) => part.element as HTMLElement), main]) {
       expect(element.getAttribute('style') ?? '').toBe('')
       expect(element.hasAttribute('data-motion')).toBe(false)

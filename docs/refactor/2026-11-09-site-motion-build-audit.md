@@ -102,3 +102,41 @@ WebKit and Firefox (not installed in the container; G1). Real Find in page (the 
 headless; `window.find` stands in, which selects and scrolls the same way). A physical trackpad. The GPU runner and
 parity (motion touches no game). Root `pnpm check` end to end (the build log lists failures that already exist on this
 base: boundaries, source-names, style links, api-index). Playing the downloaded level in a local game.
+
+## Swap audit: GSAP out, Motion in (2026-11-09, Opus medium, native, no subagents; PR stacked on #555)
+
+Verdict: **ship it, with one fix.** Every claim was re-measured on #555's tip `365b7cf8`.
+
+| Claim | How checked | Result |
+| --- | --- | --- |
+| No GSAP anywhere live | `git grep -i gsap` in all six repositories, the lockfile and `renovate.json` | **Holds.** Only the dated history in these four motion documents. Two hits in automata-website are not GSAP: a design reference URL in `.taste-skill/` and base64 inside a Rapier WebAssembly bundle. |
+| Super subtle, same feel | `motion-tokens.ts` diff; the kit curve against GSAP's `power4.out`, sampled 1,000 times | **Holds.** Only the ease changed. The two curves differ by at most 0.011 of the travel (0.09 px of an 8 px rise, 28 ms in); at 100 ms both are 69% done. |
+| Reduced motion loads nothing | The motion journeys, including "nothing extra downloads", in Chromium | **Holds.** 23 of 23 pass (22 plus the new one below). The motion layer itself is the few hundred bytes in the layout, as before. |
+| 12 KB budget | `pnpm build`, then `check:site`; the Vite manifest | **Holds.** 9,339 B gzip (animate 3,597, smooth scroll 5,773, sharing `motion-tokens` with the layout). |
+| Pin and licence | `npm view motion time`; each bundled package's `package.json` | 14.6.0, 18 days old on 2026-11-09. `motion`, `framer-motion`, `motion-dom` and `motion-utils` 14.6.0 are all MIT. |
+| Docs, credits, Renovate | The spec, the plan, `progress.md`, `renovate.json`, #521's credits page | Consistent on Motion. One stale claim fixed (S2). Renovate needs no rule: its 14-day floor and monthly batch cover `motion`. |
+| #553 nets to its fix | `git diff ffdf1963 3bfb938b` (the fix and #553's tip); `git range-diff` of the swap and its re-apply | **Holds.** The trees are identical, and #555's commit is the reverted one, byte for byte. |
+
+### Findings
+
+| # | Severity | Finding | Fix |
+| --- | --- | --- | --- |
+| S1 | Medium | `finish()` called Motion's `complete()`. Motion 14 writes a completed move's last frame (`opacity: 1; transform: translateY(0px)`) as inline style when the browser reports the finish, a frame after `finish()` has cleared the element. Turning reduced motion on while Home's sections were arriving left 16 elements with that inline style for good. An inline transform overrides the button lift on hover and makes each element a containing block for anything fixed inside it. The unit stand-in resolved `complete()` at once and wrote nothing, so the unit tests could not see it; the journey for reduced motion mid-visit polled until the page first looked clean, before the late write. | `finish()` now calls `cancel()`, which writes nothing. The stand-in copies Motion's end-of-move write, and its test failed on the old code (`expected 'opacity: 1; transform: translateY(0px…' to be ''`). A new journey stops moves while they run and checks after every animation has ended: 16 left over on the old code, 0 now, five runs of five. |
+| S2 | Low | The spec said a new site dependency gets a `docs/versions.md` row and `tooling/versions` fails without one; the plan's Task 3 asked for a row. `tooling/versions` reads only the workspace packages, so a site row would fail it (build log, ruling 1). | Spec and plan say no row. |
+| S3 | Note | AF #521's credits test fails on any dependency nobody thanked. Whichever of #521 and this stack merges second must add Lenis and Motion (both MIT), as `progress.md` already says. | None here. |
+
+### Try-it journey (the rule: make a small game, play it, reload, close and reopen)
+
+At 390 × 844 with touch, in a persistent Chromium profile: the Editor page, Try the editor, New level, Platformer.
+Painted a nine-tile platform on Collision and placed two coins. Reloaded, then closed the browser and opened it again:
+the editor opens on its Home with "Untitled platformer" under Levels, and opening it shows the platform and both coins
+where they were placed (`content/levels/untitled-platformer.af2d.json`). **It could not be played:** the try-it editor
+still has no Play (B3, owned by the editors). No console errors.
+
+Drunk grandma: the motion is invisible to her, as asked. In the editor she can build and keep a level, but she can't
+press Play to try it, and the phone's top bar still cuts the game's name to "Sa…" (A13, known).
+
+### Not run
+
+WebKit and Firefox (not installed here; G1 still stands). Lighthouse (the page code did not change). Root `pnpm check`
+end to end; the site's unit tests, `svelte-check` and `check:site` ran.

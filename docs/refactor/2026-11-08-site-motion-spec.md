@@ -68,8 +68,9 @@ No smooth-scroll library, no GSAP, no scroll reveals and no page transitions exi
 - **The Home demo** is the game in an `<iframe>`; the Play press is caught before hydration (`data-play`).
 - **The boundaries rule** (`pnpm boundaries`, `--features site --components`): a feature imports only itself and
   `shared/`. Motion is used by the layout, Home, search and the header, so it belongs in `src/shared/motion/`.
-- **New dependencies** are pinned exactly, get a row in `docs/versions.md` (`tooling/versions` fails without it), and,
-  once AF #521 merges, an entry in `site/src/features/credits/credits-data.ts` (its test fails without one). Renovate's
+- **New dependencies** are pinned exactly and, once AF #521 merges, get an entry in
+  `site/src/features/credits/credits-data.ts` (its test fails without one). They get no row in `docs/versions.md`:
+  `tooling/versions` reads the workspace packages, not the site, and fails on a row nothing it reads uses. Renovate's
   floor is 14 days old.
 
 ### 2.3 The libraries, measured

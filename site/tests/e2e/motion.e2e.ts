@@ -429,6 +429,27 @@ test.describe('on a desktop with a mouse', () => {
       .toBe(false)
     await expect.poll(() => leftOver(page), { timeout: 3000 }).toBe(0)
   })
+
+  // Motion writes a move's last frame as inline style when the browser reports it finished, which can come after
+  // `finish()` has cleared the element. So this stops moves while they run and checks once they have all ended, not
+  // the first moment the page looks clean.
+  test('reduced motion turned on while sections are moving leaves no inline style once they stop', async ({
+    page,
+  }) => {
+    await ready(page)
+    await page.waitForFunction(() => document.querySelector('main [data-motion]') !== null, undefined, {
+      timeout: 10_000,
+    })
+    await page.locator('main .home-section').nth(1).scrollIntoViewIfNeeded()
+    await page.waitForFunction(() => document.getAnimations().length > 0, undefined, { timeout: 5000 })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.waitForFunction(() => document.getAnimations().length === 0, undefined, { timeout: 5000 })
+    await page.evaluate(
+      () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(undefined)))),
+    )
+    expect(await leftOver(page)).toBe(0)
+    expect(await page.locator('main [data-motion]').count()).toBe(0)
+  })
 })
 
 test.describe('with reduced motion', () => {

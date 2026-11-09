@@ -11,12 +11,12 @@ export interface Animate {
   /** Hold parts back (invisible, 8 px low) until `reveal`. */
   hide(parts: readonly RevealPart[]): void
   reveal(parts: readonly RevealPart[]): void
-  /** Jump every running move to its end and clear what it set. */
+  /** Stop every running move and put each element back to the markup, which is where its move would have ended. */
   finish(): void
 }
 
 interface Running {
-  complete(): void
+  cancel(): void
   finished: Promise<unknown>
 }
 
@@ -79,7 +79,9 @@ export function createAnimate(): Animate {
       })
     },
     finish() {
-      for (const current of [...running.values()]) current.complete()
+      // Cancel, not complete: Motion writes a completed move's last frame as inline style when the browser reports it
+      // finished, a frame after this has cleared the element. A cancelled move writes nothing.
+      for (const current of [...running.values()]) current.cancel()
       for (const element of [...marked]) clear(element)
     },
   }

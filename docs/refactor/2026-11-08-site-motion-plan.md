@@ -62,7 +62,7 @@ site-wide.
   (14.6.0 on 2026-11-09), both MIT, so no licence page has to be read before an upgrade. Lenis 2 is in dev and not
   taken here. (The first build used GSAP 3.15.0, licence "free, not open source"; replaced 2026-11-09 because of the
   paid apps.)
-- A row each in `docs/versions.md` for dependencies it tracks. A credits entry each if
+- No row in `docs/versions.md`: it does not track the site's pins (build log, ruling 1). A credits entry each if
   `site/src/features/credits/credits-data.ts` exists: Lenis "MIT"; Motion "MIT". There is no GSAP entry and no
   licence-watch rule in `renovate.json`.
 - Code goes in `site/src/shared/motion/` (a feature imports only itself and `shared/`); tests in
@@ -167,7 +167,7 @@ site-wide.
 ### Task 3: The moves (Motion) and the reveal steps
 
 **Files:**
-- Modify: `site/package.json` (`motion`), `docs/versions.md` (row), the credits data if present
+- Modify: `site/package.json` (`motion`), the credits data if present
 - Create: `site/src/shared/motion/reveal-steps.ts`, `site/src/shared/motion/animate.ts`
 - Modify: `site/src/features/docs/DocsPage.svelte` (`data-page-content` on `<article class="doc-content">`)
 - Test: `site/tests/unit/shared/motion/reveal-steps.test.ts`, `site/tests/unit/shared/motion/animate.test.ts`
@@ -193,15 +193,15 @@ site-wide.
   lets the test finish a move, because jsdom has no Web Animations; the real thing is the journeys' job): after
   `hide(parts)` each part has inline `opacity: 0` and `translateY(8px)`, product parts also `scale(0.985)`; `reveal`
   asks Motion for opacity 0 to 1 and the held transform to `translateY(0px)` over `MOTION.reveal` on `MOTION.ease`;
-  `pageIn` asks for 6 px over `MOTION.page`; when a move ends, or `finish()` completes it, no part has an inline
+  `pageIn` asks for 6 px over `MOTION.page`; when a move ends, or `finish()` stops it (and nothing is written back a frame later), no part has an inline
   `opacity` or `transform` and no `data-motion`; after `finish()` a second `pageIn` works, and an old move finishing
   late does not clear a newer one; the delay of the eighth part equals the sixth's.
 - [ ] **Step 2: Run them and see them fail.**
-- [ ] **Step 3: Add `motion`** (exact version per the Global Constraints) and its `docs/versions.md` row ("The page
-  settle and Home's reveals on the site; MIT"), the credits entry if present.
+- [ ] **Step 3: Add `motion`** (exact version per the Global Constraints) and the credits entry if present ("The page
+  settle and Home's reveals on the site; MIT").
 - [ ] **Step 4: Write `reveal-steps.ts` and `animate.ts`.** `animate.ts` imports `{ animate }` from `'motion/mini'` only
   (the Web Animations build, about 2 KB). `hide` sets inline `opacity: 0` and the held transform. Every move is kept in
-  a map, so `finish()` calls `complete()` on each and then clears `opacity` and `transform` and the `data-motion` mark
+  a map, so `finish()` calls `cancel()` on each (a completed move writes its last frame back a frame later) and then clears `opacity` and `transform` and the `data-motion` mark
   of everything touched; a move that ends clears its own element unless a newer move has taken it over. `pageIn` moves
   `{ opacity: [0, 1], transform: [translateY(6px), translateY(0px)] }` over `MOTION.page`; `reveal` moves each part from
   its held transform to rest over `MOTION.reveal`, with `delay = Math.min(i, MOTION.staggerCap - 1) * MOTION.stagger`;
