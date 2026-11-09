@@ -23,6 +23,7 @@
     "./kit/ports": "./src/entries/kit-ports.ts",
     "./kit/player": "./src/entries/kit-player.ts",
     "./kit/ports/testing": "./src/entries/kit-ports-testing.ts",
+    "./kit/review": "./src/entries/kit-review.ts",
     "./kit/storage": "./src/entries/kit-storage.ts",
     "./kit/storage/testing": "./src/entries/kit-storage-testing.ts",
     "./kit/sync": "./src/entries/kit-sync.ts",
