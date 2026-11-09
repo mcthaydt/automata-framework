@@ -11,6 +11,7 @@
 import type { GeometryState } from '@automata/framework'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WriteOutcome } from '../../../shared/editor-list/write-path'
+import type { GestureClock } from '../../../shared/kit/gestures/gesture-clock'
 import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
@@ -52,9 +53,11 @@ interface Props {
   playUrl?: string | undefined
   /** Builds the game into a zip to upload, on a game's own folder: Publish opens it. */
   publish?: GamePublish | undefined
+  /** What the toasts time out on; the page's clock unless a test holds one. */
+  clock?: GestureClock | undefined
 }
 
-const { geometry, home, suite, ports, sample, game, playUrl, publish }: Props = $props()
+const { geometry, home, suite, ports, sample, game, playUrl, publish, clock }: Props = $props()
 
 let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
@@ -101,7 +104,9 @@ $effect(() => {
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills,
 // Undo and Ask follow it. The session lives as long as the suite; a reload reads the pills back from the journal.
 const editing = $derived(createSuiteSession(ports, { installed: suite.editors.map((editor) => editor.id) }))
-const toasts = createToasts()
+// The toasts are made once, with the clock the suite started with.
+// svelte-ignore state_referenced_locally
+const toasts = createToasts({ clock })
 let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
 let tokens = $state<{ readonly used: number; readonly cap: number }>()

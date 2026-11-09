@@ -1,6 +1,6 @@
 // What the Tilesets view shows: the rows for tilesets, auto layers, rule groups and rules, and the inspector for a
 // selected rule. It only reads the project.
-
+import { type TileItem, tileItems } from '../../shared/level-2d/editor/palette-model'
 import type {
   AutoLayerDef,
   IntGridLayerDef,
@@ -10,7 +10,6 @@ import type {
 } from '../../shared/level-2d/model/project-types'
 import { tilesetTiles } from '../../shared/level-2d/model/tileset-grid'
 import type { PatternCell, Rule } from '../../shared/level-2d/tiles/autotile/rule.schema'
-import { type TileItem, tileItems } from '../../shared/level-2d/tiles/palette-model'
 import { cellWords, ruleTitle } from './rule-words'
 
 // What the Tilesets view shows: the
