@@ -58,7 +58,12 @@ const ITCH: PlaceInfo = {
 
 function fakePublish(
   results: PublishResult[],
-  placing: { places?: PlaceInfo[]; put?: PlaceResult[]; onThisComputer?: boolean } = {},
+  placing: {
+    places?: PlaceInfo[]
+    put?: PlaceResult[]
+    onThisComputer?: boolean
+    signIn?: { ok: true } | { ok: false; problem: string; link?: string }
+  } = {},
 ) {
   const downloads: string[] = []
   const puts: { id: string; answers: Record<string, string> }[] = []
@@ -73,7 +78,7 @@ function fakePublish(
     }),
     signInAtPlace: vi.fn(async (id: string) => {
       signIns.push(id)
-      return { ok: true as const }
+      return placing.signIn ?? { ok: true as const }
     }),
     onThisComputer: placing.onThisComputer ?? true,
     publish: vi.fn(
@@ -153,8 +158,8 @@ describe('on a phone, where the bar has no room for two more buttons', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Play your game' }))
     expect(open).toHaveBeenCalledWith('http://localhost:5199/', '_blank', 'noopener')
     await user.click(await screen.findByRole('button', { name: 'Game' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Make it ready to upload' }))
-    expect(await screen.findByRole('dialog', { name: 'Make your game ready to upload' })).toBeInTheDocument()
+    await user.click(await screen.findByRole('menuitem', { name: 'Publish' }))
+    expect(await screen.findByRole('dialog', { name: 'Publish your game' })).toBeInTheDocument()
     open.mockRestore()
   })
 
@@ -185,7 +190,7 @@ describe('Publish on a game', () => {
     const { publish, downloads } = fakePublish([{ ok: true, name: 'my-game-0.1.0-itch.zip' }])
     await start({ publish })
     await user.click(await screen.findByRole('button', { name: 'Publish' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Make your game ready to upload' })
+    const dialog = await screen.findByRole('dialog', { name: 'Publish your game' })
     expect(dialog).toHaveTextContent(
       'you choose where to put it, or download the zip and upload it to itch.io or any website host',
     )
@@ -206,7 +211,7 @@ describe('Publish on a game', () => {
     const { publish } = fakePublish([{ ok: true, name: 'my-game-0.1.0-itch.zip' }])
     await start({ publish })
     await user.click(await screen.findByRole('button', { name: 'Publish' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Make your game ready to upload' })
+    const dialog = await screen.findByRole('dialog', { name: 'Publish your game' })
     expect(dialog.textContent).not.toMatch(/build/i)
     await user.click(screen.getByRole('button', { name: 'Make my zip' }))
     await screen.findByText('Your game is ready to upload.')
@@ -227,7 +232,7 @@ describe('Publish on a game', () => {
     await start({ publish })
     await user.click(await screen.findByRole('button', { name: 'Publish' }))
     await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Make your game ready to upload' })
+    const dialog = await screen.findByRole('dialog', { name: 'Publish your game' })
     expect(dialog).toHaveTextContent('Making your game’s zip…')
     expect(dialog.textContent).not.toMatch(/build/i)
     finish({ ok: true, name: 'a.zip' })
@@ -267,11 +272,11 @@ describe('Publish on a game', () => {
     })
     await start({ publish })
     await user.click(await screen.findByRole('button', { name: 'Publish' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Make your game ready to upload' })
+    const dialog = await screen.findByRole('dialog', { name: 'Publish your game' })
     // Before the zip exists, there is nowhere to put it.
-    expect(screen.queryByText('Where do you want to put it?')).toBeNull()
+    expect(screen.queryByLabelText(/Your itch.io page/)).toBeNull()
     await user.click(screen.getByRole('button', { name: 'Make my zip' }))
-    expect(await screen.findByText('Where do you want to put it?')).toBeInTheDocument()
+    expect(await screen.findByLabelText(/Your itch.io page/)).toBeInTheDocument()
     expect(dialog).toHaveTextContent('set its kind to HTML')
     expect(dialog).toHaveTextContent('Like your-name.itch.io/my-game')
     await user.type(screen.getByLabelText(/Your itch.io page/), 'your-name.itch.io/my-game')
@@ -331,12 +336,16 @@ describe('Publish on a game', () => {
     )
   })
 
-  it('offers a connect button, then tries again once signed in', async () => {
+  it('offers a sign-in button, then tries again once signed in', async () => {
     const user = userEvent.setup()
     const { publish, puts, signIns } = fakePublish([{ ok: true, name: 'a.zip' }], {
       places: [ITCH],
       put: [
-        { ok: false, need: 'account', problem: 'Connect your itch.io account first, then try again.' },
+        {
+          ok: false,
+          need: 'account',
+          problem: 'Sign in to itch.io first, then press Put it on itch.io again.',
+        },
         { ok: true, link: 'https://a.itch.io/b' },
       ],
     })
@@ -345,26 +354,32 @@ describe('Publish on a game', () => {
     await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
     await user.type(await screen.findByLabelText(/Your itch.io page/), 'a/b')
     await user.click(screen.getByRole('button', { name: 'Put it on itch.io' }))
-    await user.click(await screen.findByRole('button', { name: 'Connect to itch.io' }))
+    await user.click(await screen.findByRole('button', { name: 'Sign in to itch.io' }))
     expect(await screen.findByText('Your game is on itch.io.')).toBeInTheDocument()
     expect(signIns).toEqual(['itch'])
     expect(puts).toHaveLength(2)
   })
 
-  it('over the network, sends the person to finish connecting on their computer', async () => {
+  it('over the network, sends the person to finish signing in on their computer', async () => {
     const user = userEvent.setup()
     const { publish } = fakePublish([{ ok: true, name: 'a.zip' }], {
       places: [ITCH],
       onThisComputer: false,
-      put: [{ ok: false, need: 'account', problem: 'Connect your itch.io account first, then try again.' }],
+      put: [
+        {
+          ok: false,
+          need: 'account',
+          problem: 'Sign in to itch.io first, then press Put it on itch.io again.',
+        },
+      ],
     })
     await start({ publish })
     await user.click(await screen.findByRole('button', { name: 'Publish' }))
     await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
     await user.type(await screen.findByLabelText(/Your itch.io page/), 'a/b')
     await user.click(screen.getByRole('button', { name: 'Put it on itch.io' }))
-    expect(await screen.findByText(/Finish connecting on your computer/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Connect to itch.io' })).toBeNull()
+    expect(await screen.findByText(/Finish signing in on your computer/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Sign in to itch.io' })).toBeNull()
   })
 
   it('links to make the page when the address is not one', async () => {
@@ -389,6 +404,163 @@ describe('Publish on a game', () => {
       'href',
       'https://itch.io/game/new',
     )
+  })
+
+  it('with one place, shows no chooser: its questions are already there', async () => {
+    const user = userEvent.setup()
+    const { publish } = fakePublish([{ ok: true, name: 'a.zip' }], { places: [ITCH] })
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    await screen.findByLabelText(/Your itch.io page/)
+    expect(screen.queryByRole('button', { name: 'itch.io' })).toBeNull()
+    expect(screen.queryByText('Where do you want to put it?')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Put it on itch.io' })).toBeInTheDocument()
+  })
+
+  it('with two places, shows a chooser and waits for a choice', async () => {
+    const user = userEvent.setup()
+    const host: PlaceInfo = { id: 'host', name: 'My web host', asks: [], signIn: false }
+    const { publish } = fakePublish([{ ok: true, name: 'a.zip' }], { places: [ITCH, host] })
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    await screen.findByText('Where do you want to put it?')
+    expect(screen.queryByLabelText(/Your itch.io page/)).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'itch.io' }))
+    expect(screen.getByLabelText(/Your itch.io page/)).toBeInTheDocument()
+  })
+
+  it('shows one green button at a time: Sign in replaces Put it on itch.io', async () => {
+    const user = userEvent.setup()
+    const { publish } = fakePublish([{ ok: true, name: 'a.zip' }], {
+      places: [ITCH],
+      put: [
+        {
+          ok: false,
+          need: 'account',
+          problem: 'Sign in to itch.io first, then press Put it on itch.io again.',
+        },
+      ],
+    })
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    await user.type(await screen.findByLabelText(/Your itch.io page/), 'a/b')
+    expect(screen.queryByRole('button', { name: 'Sign in to itch.io' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Put it on itch.io' }))
+    expect(await screen.findByRole('button', { name: 'Sign in to itch.io' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Put it on itch.io' })).toBeNull()
+  })
+
+  it('says to make the page, under the field, before anything has failed', async () => {
+    const user = userEvent.setup()
+    const place: PlaceInfo = {
+      ...ITCH,
+      makePage: { label: 'Make one on itch.io', href: 'https://itch.io/game/new' },
+    }
+    const { publish } = fakePublish([{ ok: true, name: 'a.zip' }], { places: [place] })
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    expect(await screen.findByText(/No page yet\?/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Make one on itch.io' })).toHaveAttribute(
+      'href',
+      'https://itch.io/game/new',
+    )
+  })
+
+  it('fills the page address in from what the game already holds, so it is asked once', async () => {
+    const user = userEvent.setup()
+    const place: PlaceInfo = { ...ITCH, known: { page: 'sam.itch.io/coin-run' } }
+    const { publish, puts } = fakePublish([{ ok: true, name: 'a.zip' }], {
+      places: [place],
+      put: [{ ok: true, link: 'https://sam.itch.io/coin-run' }],
+    })
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    expect(await screen.findByLabelText(/Your itch.io page/)).toHaveValue('sam.itch.io/coin-run')
+    await user.click(screen.getByRole('button', { name: 'Put it on itch.io' }))
+    await screen.findByText('Your game is on itch.io.')
+    expect(puts).toEqual([{ id: 'itch', answers: { page: 'sam.itch.io/coin-run' } }])
+  })
+
+  it('says a new page is private until it is made Public, once the game is there', async () => {
+    const user = userEvent.setup()
+    const place: PlaceInfo = {
+      ...ITCH,
+      afterNote: 'Only you can see it until you set the page to Public on itch.io.',
+    }
+    const { publish } = fakePublish([{ ok: true, name: 'a.zip' }], {
+      places: [place],
+      put: [{ ok: true, link: 'https://a.itch.io/b' }],
+    })
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    expect(screen.queryByText(/until you set the page to Public/)).toBeNull()
+    await user.type(await screen.findByLabelText(/Your itch.io page/), 'a/b')
+    await user.click(screen.getByRole('button', { name: 'Put it on itch.io' }))
+    expect(await screen.findByText(/until you set the page to Public/)).toBeInTheDocument()
+  })
+
+  it('when signing in does not finish, says so and shows the address to open by hand', async () => {
+    const user = userEvent.setup()
+    const { publish } = fakePublish([{ ok: true, name: 'a.zip' }], {
+      places: [ITCH],
+      put: [
+        {
+          ok: false,
+          need: 'account',
+          problem: 'Sign in to itch.io first, then press Put it on itch.io again.',
+        },
+      ],
+      signIn: {
+        ok: false,
+        problem: 'Signing in did not finish. Try again.',
+        link: 'https://itch.io/user/oauth?x=1',
+      },
+    })
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    await user.type(await screen.findByLabelText(/Your itch.io page/), 'a/b')
+    await user.click(screen.getByRole('button', { name: 'Put it on itch.io' }))
+    await user.click(await screen.findByRole('button', { name: 'Sign in to itch.io' }))
+    expect(await screen.findByText('Signing in did not finish. Try again.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'https://itch.io/user/oauth?x=1' })).toHaveAttribute(
+      'href',
+      'https://itch.io/user/oauth?x=1',
+    )
+    // The button is back, so the person can try again.
+    expect(screen.getByRole('button', { name: 'Sign in to itch.io' })).toBeEnabled()
+  })
+
+  it('says it is waiting for the person while the sign-in is open', async () => {
+    const user = userEvent.setup()
+    let finish: () => void = () => {}
+    const { publish } = fakePublish([{ ok: true, name: 'a.zip' }], {
+      places: [ITCH],
+      put: [
+        {
+          ok: false,
+          need: 'account',
+          problem: 'Sign in to itch.io first, then press Put it on itch.io again.',
+        },
+        { ok: true, link: 'https://a.itch.io/b' },
+      ],
+    })
+    publish.signInAtPlace = () => new Promise((done) => (finish = () => done({ ok: true })))
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    await user.type(await screen.findByLabelText(/Your itch.io page/), 'a/b')
+    await user.click(screen.getByRole('button', { name: 'Put it on itch.io' }))
+    await user.click(await screen.findByRole('button', { name: 'Sign in to itch.io' }))
+    expect(await screen.findByText(/Finish signing in in the page that opened/)).toBeInTheDocument()
+    finish()
+    expect(await screen.findByText('Your game is on itch.io.')).toBeInTheDocument()
   })
 
   it('keeps the plain download when the server lists no place', async () => {

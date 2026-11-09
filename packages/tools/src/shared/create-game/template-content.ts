@@ -27,6 +27,24 @@ const FOLDER = new URL('./template-content/', import.meta.url)
 /** One file of `template-content/`, by its path there. */
 export const readTemplateContent = (path: string): string => readFileSync(new URL(path, FOLDER), 'utf8')
 
+/**
+ * The pictures the starter level and its characters are drawn from (made by `scripts/write-starter-art.ts`): written
+ * to the game's `assets/`, where the game and the editors look for pictures. The story game names its own.
+ */
+export const STARTER_ART_PATHS: readonly string[] = [
+  'assets/coin.png',
+  'assets/player.png',
+  'assets/slime.png',
+  'assets/terrain.png',
+]
+
+/** The game's starter pictures. */
+export const STARTER_ART_FILES: readonly TemplateFile[] = STARTER_ART_PATHS.map((path) => ({
+  path,
+  content: () => '',
+  bytes: () => readFileSync(new URL(path, FOLDER)),
+}))
+
 /** The game's `content/` files. */
 export const CONTENT_FILES: readonly TemplateFile[] = TEMPLATE_CONTENT_PATHS.map((path) => ({
   path: `content/${path}`,

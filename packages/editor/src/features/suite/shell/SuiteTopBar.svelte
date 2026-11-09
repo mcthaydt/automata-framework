@@ -74,7 +74,7 @@ const gameItems = $derived([
         { id: 'play', label: 'Play your game', detail: playUrl === undefined ? 'Off' : undefined },
       ]
     : []),
-  ...(onpublish !== undefined ? [{ id: 'publish', label: 'Make it ready to upload' }] : []),
+  ...(onpublish !== undefined ? [{ id: 'publish', label: 'Publish' }] : []),
 ])
 
 function chooseGame(id: string): void {

@@ -46,6 +46,10 @@ describe('the agent files of a new game', () => {
     expect(contentOf('2d', 'CLAUDE.md')).toBe('@AGENTS.md\n')
   })
 
+  it.each(KINDS)('a %s game’s AGENTS.md asks for the work to be committed once it checks', (kind) => {
+    expect(contentOf(kind, 'AGENTS.md')).toContain('Commit when `pnpm check` passes.')
+  })
+
   it.each(KINDS)('a %s game’s AGENTS.md works without the plugin and never says stop', (kind) => {
     const text = contentOf(kind, 'AGENTS.md')
     for (const words of [

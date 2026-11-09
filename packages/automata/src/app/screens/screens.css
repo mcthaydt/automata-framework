@@ -72,6 +72,16 @@
   font-size: calc(var(--af-text-body) * 1.5);
 }
 
+/* Standing in a side bar, a button fills the bar less a gap each side, and is never smaller than the primary size. */
+.af-game-play .af-touch--bars .af-touch__button[data-action] {
+  box-sizing: border-box;
+  min-width: max(
+    var(--af-target-primary),
+    min(calc(var(--af-target-primary) * 1.5), calc(var(--af-bars-room) - 16px))
+  );
+  padding-inline: 4px;
+}
+
 /* The title of a game with a save: the name above, the slot list under it taking the rest of the height. */
 .af-game-menu__body--saves {
   display: flex;

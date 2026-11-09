@@ -125,3 +125,32 @@ it('fails on a test that reaches into src by a relative chain, and passes #src a
   expect(result.stdout).not.toContain('pkg/src/a.ts')
   expect(result.status).toBe(1)
 })
+
+// A package whose old plan comments are left for a rewrite may not gain any: `--ratchet <most> <root>` counts them.
+const ratchet = (dir: string, most: number) =>
+  spawnSync(process.execPath, [CLI, '--ratchet', String(most), dir], { encoding: 'utf8', cwd: dir })
+const TWO_PLAN_COMMENTS = {
+  'a.ts': '// M4-D9: why\nexport const a = 1\n',
+  'b/B.svelte': '<!-- plan D-2 -->\n<p>b</p>\n',
+}
+
+it('--ratchet passes while the plan comments are no more than the count the root had', () => {
+  const dir = src(TWO_PLAN_COMMENTS)
+  const result = ratchet(dir, 2)
+  expect(result.stdout).toContain('check-style: ratchet: 2 plan comments, at most 2 allowed')
+  expect(result.status).toBe(0)
+})
+
+it('--ratchet fails when a root gains a plan comment, saying the count and the limit', () => {
+  const dir = src(TWO_PLAN_COMMENTS)
+  const result = ratchet(dir, 1)
+  expect(result.stdout).toContain('2 plan comments, at most 1 allowed')
+  expect(result.status).toBe(1)
+})
+
+it('--ratchet says when the root has fewer, so the limit is lowered with it', () => {
+  const result = ratchet(src({ 'a.ts': 'export const a = 1\n' }), 3)
+  expect(result.stdout).toContain('0 plan comments, at most 3 allowed')
+  expect(result.stdout).toContain('lower the limit')
+  expect(result.status).toBe(0)
+})

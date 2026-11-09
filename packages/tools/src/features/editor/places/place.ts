@@ -24,7 +24,10 @@ export type PlaceOutcome =
       readonly detail?: string | undefined
     }
 
-export type PlaceSignIn = { readonly ok: true } | { readonly ok: false; readonly problem: string }
+export type PlaceSignIn =
+  | { readonly ok: true }
+  /** `link` is the sign-in address the place printed, for the person whose browser did not open. */
+  | { readonly ok: false; readonly problem: string; readonly link?: string }
 
 export interface Place {
   readonly id: string
@@ -32,6 +35,12 @@ export interface Place {
   readonly asks: readonly PlaceQuestion[]
   /** A sentence the page shows before the first put: what to set on the place's own page. */
   readonly note?: string
+  /** A sentence the page shows once the game is there. */
+  readonly afterNote?: string
+  /** Where a person with no page on the place yet makes one; the page shows it under the questions. */
+  readonly makePage?: { readonly label: string; readonly href: string }
+  /** The answers the game already holds (the page the last push went to), so the person types them once. */
+  known?(root: string): Readonly<Record<string, string>>
   /** Puts the zip made for the game in `root` there; never throws for a thing the person can fix. */
   put(root: string, zip: string, answers: Readonly<Record<string, string>>): Promise<PlaceOutcome>
   /** Signs the person in on this computer, for a place that needs it (itch.io: `butler login`). */
@@ -44,17 +53,27 @@ export interface PlaceInfo {
   readonly name: string
   readonly asks: readonly PlaceQuestion[]
   readonly note?: string
+  readonly afterNote?: string
+  readonly makePage?: { readonly label: string; readonly href: string }
+  /** Answers to prefill, left out when there are none. */
+  readonly known?: Readonly<Record<string, string>>
   /** The page may offer a sign-in button. */
   readonly signIn: boolean
 }
 
-export const placeInfo = (place: Place): PlaceInfo => ({
-  id: place.id,
-  name: place.name,
-  asks: place.asks,
-  ...(place.note === undefined ? {} : { note: place.note }),
-  signIn: place.signIn !== undefined,
-})
+export const placeInfo = (place: Place, root: string): PlaceInfo => {
+  const known = place.known?.(root) ?? {}
+  return {
+    id: place.id,
+    name: place.name,
+    asks: place.asks,
+    ...(place.note === undefined ? {} : { note: place.note }),
+    ...(place.afterNote === undefined ? {} : { afterNote: place.afterNote }),
+    ...(place.makePage === undefined ? {} : { makePage: place.makePage }),
+    ...(Object.keys(known).length === 0 ? {} : { known }),
+    signIn: place.signIn !== undefined,
+  }
+}
 
 /** The places, in the order the dialog shows them: itch.io first. */
 export const PLACES: readonly Place[] = [itchPlace]

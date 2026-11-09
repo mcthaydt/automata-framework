@@ -3,10 +3,15 @@
   player uses touch, the input map's touch input. In touch mode `buttons` that is the ui `TouchControls` along the
   foot (sticky, several thumbs at once); in touch mode `swipe` it is a `SwipeSurface` over the whole screen,
   under Pause, feeding the swipe tracker.
+
+  A phone held sideways has an empty bar each side of the fitted level. There the buttons stand in the bars, a column
+  each side, so none covers the level. Where a bar is too narrow to hold a button and a gap each side, where a column
+  would be taller than the screen (a large text size) or where a stick is drawn, the row along the foot stays.
 -->
 <script lang="ts">
 import type { TouchButton } from '../../features/input/keys.ts'
 import { type InputMethodTracker } from '../../shared/ui/browser/input-method.svelte'
+import { publishedSideBarRoom, TOUCH_BAR_GAP } from '../../shared/ui/geometry/side-bars'
 import ScreenFrame from '../../shared/ui/layout/ScreenFrame.svelte'
 import { PlaySession, providePlay } from '../../shared/ui/slots/play-context.svelte.ts'
 import { type UiComponent } from '../../shared/ui/slots/ui-slot'
@@ -70,6 +75,43 @@ const touching = $derived(tracker.method === 'touch')
 const showButtons = $derived(
   touching && swipe === undefined && (touchButtons.length > 0 || stick !== undefined),
 )
+
+// The bars change with the view, not with anything this screen owns: the renderer writes them on the root.
+const root = typeof document === 'undefined' ? undefined : document.documentElement
+let room = $state(root === undefined ? 0 : publishedSideBarRoom(root))
+let viewHeight = $state(typeof window === 'undefined' ? 0 : window.innerHeight)
+let textScale = $state(1)
+$effect(() => {
+  if (root === undefined) return
+  const read = (): void => {
+    room = publishedSideBarRoom(root)
+    viewHeight = window.innerHeight
+    textScale = Number.parseFloat(root.style.getPropertyValue('--af-scale')) || 1
+  }
+  const watch = new MutationObserver(read)
+  watch.observe(root, { attributes: true, attributeFilter: ['style'] })
+  window.addEventListener('resize', read)
+  read()
+  return () => {
+    watch.disconnect()
+    window.removeEventListener('resize', read)
+  }
+})
+
+/** The tallest column: the side with the most buttons, each 1.5 x the primary size, with a gap between. */
+const tallestColumn = $derived.by(() => {
+  const start = touchButtons.filter((button) => (button.side ?? 'start') === 'start').length
+  const tallest = Math.max(1, start, touchButtons.length - start)
+  return tallest * 48 * textScale * 1.5 + (tallest - 1) * TOUCH_BAR_GAP
+})
+/** What a column may use: the view less the corner row (Pause) above it and a gutter above and below. */
+const columnRoom = $derived(viewHeight - 48 * textScale - 3 * 16)
+const inBars = $derived(
+  showButtons &&
+    stick === undefined &&
+    room >= 48 * textScale + 2 * TOUCH_BAR_GAP &&
+    tallestColumn <= columnRoom,
+)
 const buttons = $derived(
   touchButtons.map((button) => ({
     action: button.id,
@@ -97,6 +139,8 @@ const buttons = $derived(
 {#snippet actions()}
   <TouchControls
     testId="touch-buttons"
+    placement={inBars ? 'bars' : 'foot'}
+    barRoom={room}
     {buttons}
     onhold={onHold}
     onrelease={onRelease}

@@ -13,8 +13,19 @@ export interface PlaceInfo {
   readonly asks: readonly { readonly id: string; readonly label: string; readonly example: string }[]
   /** A sentence to show before the first put. */
   readonly note?: string
+  /** A sentence to show once the game is there. */
+  readonly afterNote?: string
+  /** Where to make a page on the place, for a person who has none yet. */
+  readonly makePage?: { readonly label: string; readonly href: string }
+  /** Answers the game already holds, to fill the questions in. */
+  readonly known?: Readonly<Record<string, string>>
   readonly signIn: boolean
 }
+
+/** What came of signing in at a place: `link` is the address the place printed, for a browser that did not open. */
+export type SignInResult =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly problem: string; readonly link?: string }
 
 /** What came of putting the zip somewhere: the game's link, or the one thing the person does next. */
 export type PlaceResult =
@@ -37,7 +48,7 @@ export interface GamePublish {
   /** Puts the zip the last good publish made in a place, with the person's answers. */
   putInPlace(id: string, answers: Readonly<Record<string, string>>): Promise<PlaceResult>
   /** Signs the person in at a place, on the computer that runs `automata editor`. */
-  signInAtPlace(id: string): Promise<{ readonly ok: true } | { readonly ok: false; readonly problem: string }>
+  signInAtPlace(id: string): Promise<SignInResult>
   /** The editor is open on the computer that runs it; false when a tablet reached it over the network. */
   readonly onThisComputer: boolean
 }
@@ -48,7 +59,7 @@ export interface PublishClient {
   zip(): Promise<Blob>
   places(): Promise<readonly PlaceInfo[]>
   putInPlace(id: string, answers: Readonly<Record<string, string>>): Promise<PlaceResult>
-  signInAtPlace(id: string): Promise<{ readonly ok: true } | { readonly ok: false; readonly problem: string }>
+  signInAtPlace(id: string): Promise<SignInResult>
 }
 
 export interface PublishClientOptions {
@@ -121,10 +132,18 @@ export function createPublishClient(options: PublishClientOptions): PublishClien
           method: 'POST',
           headers,
         })
-        const body = (await answer.json()) as { ok?: boolean; problem?: string; message?: string }
-        return body.ok === true
-          ? { ok: true }
-          : { ok: false, problem: body.problem ?? body.message ?? 'Signing in did not work.' }
+        const body = (await answer.json()) as {
+          ok?: boolean
+          problem?: string
+          message?: string
+          link?: string
+        }
+        if (body.ok === true) return { ok: true }
+        return {
+          ok: false,
+          problem: body.problem ?? body.message ?? 'Signing in did not work.',
+          ...(typeof body.link === 'string' ? { link: body.link } : {}),
+        }
       } catch {
         return { ok: false, problem: STOPPED }
       }

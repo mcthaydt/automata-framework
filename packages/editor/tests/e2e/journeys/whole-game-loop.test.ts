@@ -54,7 +54,7 @@ test('a new game is made, edited, saved, played and published from the editors a
 
     // Publish: the game is built and checked, and the person downloads one zip to upload.
     await pressGame(page, 'Publish')
-    const dialog = page.getByRole('dialog', { name: 'Make your game ready to upload' })
+    const dialog = page.getByRole('dialog', { name: 'Publish your game' })
     await dialog.getByRole('button', { name: 'Build my game' }).click()
     await expect(dialog.getByText('Your game is ready to upload.')).toBeVisible({ timeout: 120_000 })
     const [download] = await Promise.all([

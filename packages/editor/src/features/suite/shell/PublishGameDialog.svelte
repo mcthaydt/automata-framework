@@ -1,8 +1,10 @@
 <!--
   Publish on a game's own folder, in two steps. One press makes the zip (on the computer that runs `automata editor`:
   the game is put together and checked for the web). Only then does the dialog ask where to put it: one button for each
-  place the editor's server lists (itch.io first), or the person downloads the zip and uploads it anywhere. A place asks
-  what it needs in one field, with an example, and when it cannot go on it says the one thing to do next. While the zip
+  place the editor's server lists (itch.io first; with only one, there is nothing to choose, so its question stands
+  open), or the person downloads the zip and uploads it anywhere. A place asks what it needs in one field, with an
+  example (filled in when the game already knows it), and when it cannot go on it says the one thing to do next, with
+  one green button at a time. While the zip
   is made the dialog says so and cannot be closed by accident; a failure says what to do in a sentence, shows the last
   lines the tools printed and offers Try again. The words are for someone who is not a programmer: the dialog never says "build". The change-set Publish
   (a sample's or a branch's) is `ShipDialog`.
@@ -36,7 +38,7 @@ let answers = $state<Record<string, string>>({})
 let putting = $state(false)
 let placed = $state<PlaceResult>()
 let signing = $state(false)
-let signInProblem = $state<string>()
+let signInProblem = $state<{ problem: string; link?: string }>()
 let copied = $state(false)
 
 async function makeZip(): Promise<void> {
@@ -63,7 +65,7 @@ function choose(place: PlaceInfo): void {
   chosen = place
   placed = undefined
   signInProblem = undefined
-  answers = {}
+  answers = { ...place.known }
 }
 
 async function put(): Promise<void> {
@@ -85,10 +87,15 @@ async function signIn(): Promise<void> {
   try {
     const done = await publish.signInAtPlace(chosen.id)
     if (done.ok) await put()
-    else signInProblem = done.problem
+    else signInProblem = done
   } finally {
     signing = false
   }
+}
+
+/** True when the only next step is to sign in here: Put would fail the same way again. */
+function mustSignIn(place: PlaceInfo): boolean {
+  return placed?.ok === false && placed.need === 'account' && place.signIn && publish.onThisComputer
 }
 
 async function copyLink(link: string): Promise<void> {
@@ -109,13 +116,13 @@ function close(): void {
 }
 </script>
 
-<Dialog {open} title="Make your game ready to upload" width="wide" dismissible={phase !== 'making' && !putting} onclose={close}>
+<Dialog {open} title="Publish your game" width="wide" dismissible={phase !== 'making' && !putting} onclose={close}>
   {#if phase === 'making'}
     <p class="result" role="status">Making your game’s zip… this can take a minute.</p>
   {:else if phase === 'done' && result?.ok === true}
     <p class="result" role="status">Your game is ready to upload.</p>
-    <h3>Where do you want to put it?</h3>
-    {#if places.length > 0}
+    {#if places.length > 1}
+      <h3>Where do you want to put it?</h3>
       <div class="places">
         {#each places as place (place.id)}
           <Button aria-pressed={chosen?.id === place.id} onclick={() => choose(place)}>{place.name}</Button>
@@ -138,22 +145,37 @@ function close(): void {
             <span class="example">Like {question.example}</span>
           </label>
         {/each}
-        <Button variant="primary" disabled={putting} onclick={() => void put()}>{putting ? 'Putting it there…' : `Put it on ${place.name}`}</Button>
+        {#if place.makePage !== undefined}
+          <p class="note">No page yet? <a href={place.makePage.href} target="_blank" rel="noreferrer">{place.makePage.label}</a></p>
+        {/if}
+        {#if !mustSignIn(place)}
+          <Button variant="primary" disabled={putting} onclick={() => void put()}>{putting ? 'Putting it there…' : `Put it on ${place.name}`}</Button>
+        {/if}
       </form>
       {#if placed?.ok === true}
         <p class="result" role="status">Your game is on {place.name}.</p>
+        {#if place.afterNote !== undefined}<p class="note">{place.afterNote}</p>{/if}
         <p><a href={placed.link} target="_blank" rel="noreferrer">{placed.link}</a></p>
         <Button onclick={() => placed?.ok === true && void copyLink(placed.link)}>{copied ? 'Link copied' : 'Copy link'}</Button>
       {:else if placed !== undefined}
         <p class="result" role="alert">{placed.problem}</p>
         {#if placed.need === 'account' && place.signIn}
           {#if publish.onThisComputer}
-            <Button variant="primary" disabled={signing} onclick={() => void signIn()}>Connect to {place.name}</Button>
+            <Button variant="primary" disabled={signing} onclick={() => void signIn()}>Sign in to {place.name}</Button>
+            {#if signing}
+              <p class="note" role="status">Finish signing in in the page that opened. This waits for you.</p>
+            {/if}
           {:else}
-            <p class="note">Finish connecting on your computer, the one that runs the editor, then try again.</p>
+            <p class="note">Finish signing in on your computer, the one that runs the editor, then try again.</p>
           {/if}
-          {#if signInProblem !== undefined}<p role="alert">{signInProblem}</p>{/if}
-        {:else if placed.help !== undefined}
+          {#if signInProblem !== undefined}
+            <p role="alert">{signInProblem.problem}</p>
+            {#if signInProblem.link !== undefined}
+              <p class="note">If no page opened, open this one:</p>
+              <p><a href={signInProblem.link} target="_blank" rel="noreferrer">{signInProblem.link}</a></p>
+            {/if}
+          {/if}
+        {:else if placed.help !== undefined && placed.help.href !== place.makePage?.href}
           <p><a href={placed.help.href} target="_blank" rel="noreferrer">{placed.help.label}</a></p>
         {/if}
         {#if placed.detail !== undefined && placed.detail !== ''}<pre>{placed.detail}</pre>{/if}

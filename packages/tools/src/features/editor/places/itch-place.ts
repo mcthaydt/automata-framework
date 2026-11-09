@@ -18,7 +18,8 @@ export interface ItchPlaceDeps {
     command: string,
     args: readonly string[],
     cwd: string,
-  ) => Promise<{ readonly code: number; readonly output: string }>
+    options?: { readonly timeoutMs?: number },
+  ) => Promise<{ readonly code: number; readonly output: string; readonly timedOut?: boolean }>
   readonly read: (path: string) => string | undefined
   readonly write: (path: string, text: string) => void
   /** The game's version, from its `package.json`. */
@@ -30,6 +31,14 @@ const GET_BUTLER = {
   href: 'https://itch.io/docs/butler/installing.html',
 }
 const MAKE_PAGE = { label: 'Make a page on itch.io', href: 'https://itch.io/game/new' }
+/** Shown under the address field, for the person who has no page yet. */
+const NEW_PAGE = { label: 'Make one on itch.io', href: MAKE_PAGE.href }
+
+/** How long butler may wait for the person to finish signing in on itch.io's own page. */
+const SIGN_IN_MS = 180_000
+
+/** The placeholder `create-game` writes into `ship.config.ts`: no push has gone anywhere yet. */
+const PLACEHOLDER_USER = 'your-itch-user'
 
 /**
  * `user/game` from the address a person pastes: `your-name.itch.io/my-game`, with or without `https://`, or butler's own
@@ -67,6 +76,14 @@ export function withItchProject(config: string, project: string): string {
   return `${before}  itch: { project: '${project}', channel: 'html5' },\n${config.slice(end)}`
 }
 
+/** The page address (`user.itch.io/game`) the config already holds, unless it is still the placeholder. */
+function pageOf(config: string | undefined): string | undefined {
+  const project = /itch:\s*\{[^}]*project:\s*'([^']*)'/.exec(config ?? '')?.[1]
+  const [user, game] = project?.split('/') ?? []
+  if (user === undefined || game === undefined || user === PLACEHOLDER_USER) return undefined
+  return `${user}.itch.io/${game}`
+}
+
 const channelOf = (config: string): string =>
   /itch:\s*\{[^}]*channel:\s*'([a-z0-9][a-z0-9._-]*)'/.exec(config)?.[1] ?? 'html5'
 
@@ -88,6 +105,13 @@ export function createItchPlace(deps: ItchPlaceDeps): Place {
     name: 'itch.io',
     asks: [{ id: 'page', label: 'Your itch.io page', example: 'your-name.itch.io/my-game' }],
     note: 'On your itch.io page, set its kind to HTML. Without that, itch.io will not play the game.',
+    // itch.io starts a new page as a draft; its link shows nothing to anyone else until the owner makes it Public.
+    afterNote: 'Only you can see it until you set the page to Public on itch.io.',
+    makePage: NEW_PAGE,
+    known(root) {
+      const page = pageOf(deps.read(join(root, 'ship.config.ts')))
+      return page === undefined ? {} : { page }
+    },
     async put(root, zip, answers) {
       const butler = deps.findButler()
       if (butler === undefined) return missing()
@@ -102,7 +126,11 @@ export function createItchPlace(deps: ItchPlaceDeps): Place {
         }
       }
       if (!deps.signedIn()) {
-        return { ok: false, need: 'account', problem: 'Connect your itch.io account first, then try again.' }
+        return {
+          ok: false,
+          need: 'account',
+          problem: 'Sign in to itch.io first, then press Put it on itch.io again.',
+        }
       }
       const configPath = join(root, 'ship.config.ts')
       const config = deps.read(configPath)
@@ -129,7 +157,7 @@ export function createItchPlace(deps: ItchPlaceDeps): Place {
         return {
           ok: false,
           need: 'account',
-          problem: 'itch.io did not accept your account. Connect it again, then try again.',
+          problem: 'itch.io did not accept your account. Sign in again, then press Put it on itch.io again.',
         }
       }
       return {
@@ -142,8 +170,16 @@ export function createItchPlace(deps: ItchPlaceDeps): Place {
     async signIn() {
       const butler = deps.findButler()
       if (butler === undefined) return { ok: false, problem: 'butler is not on this computer yet.' }
-      const done = await deps.run(butler, ['login'], process.cwd())
-      return done.code === 0 ? { ok: true } : { ok: false, problem: 'Connecting to itch.io did not finish.' }
+      // butler waits for the person to finish on itch.io's page, so a closed tab would leave this waiting for ever.
+      const done = await deps.run(butler, ['login'], process.cwd(), { timeoutMs: SIGN_IN_MS })
+      if (done.code === 0) return { ok: true }
+      // The address butler printed lets the person finish by hand when their browser did not open.
+      const link = /https?:\/\/[^\s"'<>]+/.exec(done.output)?.[0]
+      return {
+        ok: false,
+        problem: 'Signing in did not finish. Try again.',
+        ...(link === undefined ? {} : { link }),
+      }
     },
   }
 }
@@ -164,7 +200,7 @@ export function liveItchDeps(
   return {
     findButler: () => findExecutable('butler', env.PATH ?? '', platform),
     signedIn: () => (env.BUTLER_API_KEY ?? '') !== '' || existsSync(butlerCreds(env, platform)),
-    run: (command, args, cwd) =>
+    run: (command, args, cwd, options) =>
       new Promise((done) => {
         // The words butler prints (a sign-in address included) are kept to say what happened; its key stays in its own folder.
         const child = spawn(command, [...args], { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -175,8 +211,22 @@ export function liveItchDeps(
         child.stderr.on('data', (chunk) => {
           output += String(chunk)
         })
-        child.on('error', (error) => done({ code: 1, output: error.message }))
-        child.on('close', (code) => done({ code: code ?? 1, output }))
+        let timedOut = false
+        const timer =
+          options?.timeoutMs === undefined
+            ? undefined
+            : setTimeout(() => {
+                timedOut = true
+                child.kill()
+              }, options.timeoutMs)
+        child.on('error', (error) => {
+          clearTimeout(timer)
+          done({ code: 1, output: error.message })
+        })
+        child.on('close', (code) => {
+          clearTimeout(timer)
+          done({ code: code ?? 1, output, ...(timedOut ? { timedOut } : {}) })
+        })
       }),
     read: (path) => (existsSync(path) ? readFileSync(path, 'utf8') : undefined),
     write: (path, text) => writeFileSync(path, text),

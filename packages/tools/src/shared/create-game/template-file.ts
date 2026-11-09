@@ -34,4 +34,6 @@ export const frameworkSpec = (options: TemplateOptions): string =>
 export interface TemplateFile {
   readonly path: string
   readonly content: (options: TemplateOptions) => string
+  /** A picture or other binary file gives its bytes here, and `content` is not used. */
+  readonly bytes?: (() => Uint8Array) | undefined
 }

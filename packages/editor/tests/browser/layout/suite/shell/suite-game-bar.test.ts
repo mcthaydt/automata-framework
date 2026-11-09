@@ -91,7 +91,7 @@ describe.each(SIZES)('Play and Publish at $name ($width x $height)', (size) => {
       byName('button', 'Game').click()
       await expect.poll(() => document.querySelector('[role="menu"]')).not.toBeNull()
       await settleLayout()
-      for (const label of ['Play your game', 'Make it ready to upload']) {
+      for (const label of ['Play your game', 'Publish']) {
         const item = byName('[role="menuitem"]', label)
         const box = item.getBoundingClientRect()
         expect(box.left, label).toBeGreaterThanOrEqual(-0.5)

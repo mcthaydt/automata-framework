@@ -30,6 +30,8 @@ export interface LetterboxGeometry {
   scenery: { x: number; y: number; width: number; height: number }
   portrait: boolean
   fieldHeight: number
+  /** The width of the empty bar at each side of a landscape view wider than the field; 0 when there is none. */
+  sideBars: { left: number; right: number }
 }
 
 /**
@@ -127,6 +129,7 @@ export class LetterboxFrame {
         scenery: { x: 0, y: 0, width: 0, height: 0 },
         portrait: false,
         fieldHeight: this.logicalHeight,
+        sideBars: { left: 0, right: 0 },
       }
     }
 
@@ -206,7 +209,11 @@ export class LetterboxFrame {
       height: viewHeight / scale,
     }
 
-    return { scale, x, y, width, height, gameplay, scenery, portrait, fieldHeight }
+    const sideBars = portrait
+      ? { left: 0, right: 0 }
+      : { left: Math.max(0, x), right: Math.max(0, viewWidth - x - width) }
+
+    return { scale, x, y, width, height, gameplay, scenery, portrait, fieldHeight, sideBars }
   }
 
   setBarBlack(amount: number): void {

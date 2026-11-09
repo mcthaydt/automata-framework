@@ -66,6 +66,7 @@ The \`automata-content\` skill has this as a table and a worked example (a coin 
 ## Check your work
 
 \`pnpm check\` runs the types, the sim rules, the content and the tests. Run it before you say a change is done.
+Commit when \`pnpm check\` passes. The person's saves from the editors are in the same folder, so one history holds both.
 
 ## Get the Automata skills
 

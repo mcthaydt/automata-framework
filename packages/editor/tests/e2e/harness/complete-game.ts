@@ -76,9 +76,7 @@ export async function pressGame(page: Page, action: 'Play' | 'Publish'): Promise
   await expect(menu.or(page.getByRole('button', { name: 'Publish' })).first()).toBeVisible()
   if (await menu.isVisible()) {
     await menu.click()
-    await page
-      .getByRole('menuitem', { name: action === 'Play' ? 'Play your game' : 'Make it ready to upload' })
-      .click()
+    await page.getByRole('menuitem', { name: action === 'Play' ? 'Play your game' : 'Publish' }).click()
   } else if (action === 'Play') await page.getByRole('link', { name: 'Play' }).click()
   else await page.getByRole('button', { name: 'Publish' }).click()
 }
@@ -108,7 +106,7 @@ export async function publishFromEditors(
   keep: (name: string) => string,
 ): Promise<{ name: string; path: string }> {
   await pressGame(page, 'Publish')
-  const dialog = page.getByRole('dialog', { name: 'Make your game ready to upload' })
+  const dialog = page.getByRole('dialog', { name: 'Publish your game' })
   await dialog.getByRole('button', { name: 'Build my game' }).click()
   const ready = dialog.getByText('Your game is ready to upload.')
   const refused = dialog.getByRole('alert')

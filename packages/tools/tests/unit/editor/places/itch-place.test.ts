@@ -119,7 +119,11 @@ describe('the itch.io place', () => {
 
   it('says to sign in when butler has no login, and starts nothing', async () => {
     const { place, runs } = setup({ signedIn: () => false })
-    expect(await put(place)).toMatchObject({ ok: false, need: 'account' })
+    expect(await put(place)).toMatchObject({
+      ok: false,
+      need: 'account',
+      problem: 'Sign in to itch.io first, then press Put it on itch.io again.',
+    })
     expect(runs).toEqual([])
   })
 
@@ -145,7 +149,11 @@ describe('the itch.io place', () => {
     const { place } = setup({
       run: async () => ({ code: 1, output: 'Invalid API key: log in again with butler login' }),
     })
-    expect(await put(place)).toMatchObject({ ok: false, need: 'account' })
+    expect(await put(place)).toMatchObject({
+      ok: false,
+      need: 'account',
+      problem: 'itch.io did not accept your account. Sign in again, then press Put it on itch.io again.',
+    })
   })
 
   it('says what butler printed when the push fails for another reason', async () => {
@@ -159,6 +167,47 @@ describe('the itch.io place', () => {
     expect(runs).toEqual([{ command: '/bin/butler', args: ['login'] }])
     const missing = setup({ findButler: () => undefined })
     expect(await missing.place.signIn?.()).toMatchObject({ ok: false })
+  })
+
+  it('stops waiting for a sign-in after three minutes, and shows the address butler printed', async () => {
+    const limits: (number | undefined)[] = []
+    const { place } = setup({
+      run: async (_command, _args, _cwd, options) => {
+        limits.push(options?.timeoutMs)
+        return {
+          code: 1,
+          timedOut: true,
+          output:
+            'Opening your browser. If it does not open, visit https://itch.io/user/oauth?client=butler&state=abc',
+        }
+      },
+    })
+    expect(await place.signIn?.()).toEqual({
+      ok: false,
+      problem: 'Signing in did not finish. Try again.',
+      link: 'https://itch.io/user/oauth?client=butler&state=abc',
+    })
+    expect(limits).toEqual([180_000])
+  })
+
+  it('says a sign-in that failed, with no address when butler printed none', async () => {
+    const { place } = setup({ run: async () => ({ code: 1, output: 'cancelled' }) })
+    expect(await place.signIn?.()).toEqual({ ok: false, problem: 'Signing in did not finish. Try again.' })
+  })
+
+  it('tells the person, after a push, that the page is private until they make it Public', () => {
+    expect(setup().place.afterNote).toBe('Only you can see it until you set the page to Public on itch.io.')
+  })
+
+  it('links to making a page, for the person who has none yet', () => {
+    expect(setup().place.makePage).toEqual({ label: 'Make one on itch.io', href: 'https://itch.io/game/new' })
+  })
+
+  it('remembers the page the last push went to, and ignores the placeholder', () => {
+    const real = CONFIG.replace('your-itch-user/my-game', 'sam/coin-run')
+    expect(setup({}, real).place.known?.('/game')).toEqual({ page: 'sam.itch.io/coin-run' })
+    expect(setup().place.known?.('/game')).toEqual({})
+    expect(setup({}, undefined).place.known?.('/game')).toEqual({})
   })
 
   it('works in a game whose ship.config.ts it can add the section to', async () => {

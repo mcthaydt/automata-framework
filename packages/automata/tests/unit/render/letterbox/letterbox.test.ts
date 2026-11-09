@@ -66,6 +66,18 @@ describe('LetterboxFrame', () => {
     }
   })
 
+  it('reports how wide each side bar is, for the touch buttons that stand in them', () => {
+    const frame = new LetterboxFrame({ logicalWidth: LOGICAL.width, logicalHeight: LOGICAL.height })
+    const phone = frame.layout(932, 430)
+    expect(phone.sideBars.left).toBe(phone.x)
+    expect(phone.sideBars.left).toBeGreaterThan(80)
+    expect(phone.sideBars.right).toBeCloseTo(932 - phone.x - phone.width, 0)
+    // A window the field's shape fills has none, and nor has a portrait view.
+    expect(frame.layout(1280, 720).sideBars).toEqual({ left: 0, right: 0 })
+    expect(frame.layout(PORTRAIT.width, PORTRAIT.height).sideBars).toEqual({ left: 0, right: 0 })
+    expect(frame.layout(0, 0).sideBars).toEqual({ left: 0, right: 0 })
+  })
+
   it('draws the sides in the bar colour and shows the bars in landscape only', () => {
     const frame = new LetterboxFrame({ logicalWidth: LOGICAL.width, logicalHeight: LOGICAL.height })
     const geo = frame.layout(LANDSCAPE_WIDE.width, LANDSCAPE_WIDE.height)

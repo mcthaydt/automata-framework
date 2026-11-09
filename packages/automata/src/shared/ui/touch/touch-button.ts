@@ -37,4 +37,12 @@ export interface TouchControlsProps {
   /** The stick let go: a lift, a cancel, the controls hiding or coming down (`Input.touchStick.release`). */
   onstickend?: (() => void) | undefined
   testId?: string | undefined
+  /**
+   * Where the buttons stand. `foot` (default) is a row along the foot of the frame the controls are in. `bars` stands
+   * each side's buttons in a column in the empty bar beside a fitted level, `barRoom` px wide (the play screen
+   * decides when that fits); the stick is never moved, so a stick keeps `foot`.
+   */
+  placement?: 'foot' | 'bars' | undefined
+  /** The width of the column in each bar, in px, when `placement` is `bars`. */
+  barRoom?: number | undefined
 }

@@ -1,7 +1,7 @@
 import { TEMPLATE_3D_FILES } from './template-3d.ts'
 import { AGENT_FILES_2D } from './template-agent.ts'
 import { CI_FILES } from './template-ci.ts'
-import { CONTENT_FILES } from './template-content.ts'
+import { CONTENT_FILES, STARTER_ART_FILES } from './template-content.ts'
 import type { TemplateFile, TemplateOptions } from './template-file.ts'
 import { GAME_FILES } from './template-game.ts'
 import { PROJECT_FILES } from './template-project.ts'
@@ -20,6 +20,7 @@ export const TEMPLATE_FILES: readonly TemplateFile[] = [
   ...AGENT_FILES_2D,
   ...GAME_FILES,
   ...CONTENT_FILES,
+  ...STARTER_ART_FILES,
   ...CI_FILES,
 ]
 
@@ -34,11 +35,10 @@ function withStory(base: readonly TemplateFile[], story: readonly TemplateFile[]
 }
 
 /** The 2D game with the story: a keeper, a cutscene and a guard, and the editors that change them. */
-export const STORY_TEMPLATE_FILES: readonly TemplateFile[] = withStory(TEMPLATE_FILES, [
-  ...STORY_GAME_FILES,
-  ...STORY_FILES,
-  ...STORY_CONTENT_FILES,
-])
+export const STORY_TEMPLATE_FILES: readonly TemplateFile[] = withStory(
+  TEMPLATE_FILES.filter((file) => !STARTER_ART_FILES.includes(file)),
+  [...STORY_GAME_FILES, ...STORY_FILES, ...STORY_CONTENT_FILES],
+)
 
 /** The files of the game `options` ask for: `3d`, the 2D game with the story when `options.story`, or the plain 2D game. */
 export const templateFilesOf = (options: TemplateOptions): readonly TemplateFile[] =>

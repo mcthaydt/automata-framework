@@ -74,7 +74,12 @@ export function publishRoute(
       createReadStream(zip).pipe(res)
       return
     }
-    if (url.pathname === '/api/places' && req.method === 'GET') return reply(res, 200, places.map(placeInfo))
+    if (url.pathname === '/api/places' && req.method === 'GET')
+      return reply(
+        res,
+        200,
+        places.map((place) => placeInfo(place, root)),
+      )
     const placeRoute = /^\/api\/places\/([^/]+)(\/sign-in)?$/.exec(url.pathname)
     if (placeRoute !== null && req.method === 'POST') {
       const place = places.find((candidate) => candidate.id === decodeURIComponent(placeRoute[1] ?? ''))

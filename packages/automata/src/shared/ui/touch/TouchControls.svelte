@@ -28,7 +28,10 @@ const {
   onstick = () => undefined,
   onstickend = () => undefined,
   testId = 'touch-controls',
+  placement = 'foot',
+  barRoom = 0,
 }: TouchControlsProps = $props()
+const inBars = $derived(placement === 'bars')
 
 const latch = new PointerLatch((action, active) => (active ? onhold(action) : onrelease(action)))
 const pointers = new StickyPointers(latch)
@@ -45,10 +48,15 @@ let root = $state<HTMLElement | null | undefined>(undefined)
 // where the controls are narrower than that, only the required buttons show. Widening past it shows them all again.
 let reduced = $state(false)
 let needed = 0
-const showing = $derived(shownButtons(buttons, !reduced))
+const showing = $derived(shownButtons(buttons, inBars || !reduced))
 function fit(width: number): void {
   // A bound element is null, not undefined, once it goes.
   if (root == null) return
+  // In the bars the buttons are columns, not one row: there is no width to run out of.
+  if (inBars) {
+    reduced = false
+    return
+  }
   if (!reduced) {
     // The stick is never dropped, but it takes its share of the row.
     const groups = [...root.querySelectorAll<HTMLElement>('.af-touch__stick, .af-touch__side')]
@@ -139,9 +147,11 @@ function blockPageGestures(node: HTMLElement): () => void {
   class="af-touch"
   data-testid={testId}
   data-touch-overlay
+  class:af-touch--bars={inBars}
   data-reduced={reduced ? '' : undefined}
   hidden={!visible}
   style:--af-sticky-margin={`${STICKY_MARGIN_PX}px`}
+  style:--af-bars-room={inBars ? `${barRoom}px` : undefined}
   {@attach blockPageGestures}
 >
   {#if stick !== undefined}
@@ -215,6 +225,37 @@ function blockPageGestures(node: HTMLElement): () => void {
 
   .af-touch__side[data-touch-side='end'] {
     margin-inline-start: auto;
+  }
+
+  /* In the bars: each side is a column standing at the foot of its bar, off the level. Fixed to the view, and not to
+     the frame it was mounted in. The sticky margin reaches down only, so it never takes a tap meant for the level. */
+  .af-touch--bars {
+    position: fixed;
+    inset: 0;
+    display: block;
+  }
+
+  .af-touch--bars .af-touch__side {
+    position: absolute;
+    bottom: max(var(--af-gutter), var(--af-inset-bottom, 0px), var(--af-visual-inset-bottom, 0px));
+    width: var(--af-bars-room);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .af-touch--bars .af-touch__side::before {
+    inset: 0 0 calc(-1 * var(--af-sticky-margin));
+  }
+
+  .af-touch--bars .af-touch__side[data-touch-side='start'] {
+    inset-inline-start: var(--af-inset-left, 0px);
+  }
+
+  .af-touch--bars .af-touch__side[data-touch-side='end'] {
+    inset-inline-end: var(--af-inset-right, 0px);
+    margin-inline-start: 0;
   }
 
   /* A thumb's target, pressed without looking: never below the primary size. */

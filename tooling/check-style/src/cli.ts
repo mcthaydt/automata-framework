@@ -1,4 +1,5 @@
 // Usage: node tooling/check-style/src/cli.ts [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...] [--test-imports <root>...] [--tokens <kit-folder> <root>...]
+// --ratchet <most> <root>... counts the plan comments in the roots and fails above <most>.
 // --plan-comments also flags comments that cite a milestone, task id or spec section (opt-in, for the roots passed).
 // Checks every production .ts and .svelte file (and, with --plan-comments, .css comments). Tests are exempt by folder: anything under a tests/ folder (where
 // every moved package keeps them). A testing/ folder (published test helpers) ships, so its comments are read under
@@ -66,6 +67,27 @@ if (process.argv.includes('--docs')) {
     }),
     docs.length,
   )
+}
+
+// `--ratchet <most> <root>...`: a package whose old plan comments wait for a rewrite may not gain any. It counts the plan
+// comments in the roots and fails above `most`; below it, it says to lower the limit so the debt only shrinks.
+const ratchetAt = process.argv.indexOf('--ratchet')
+if (ratchetAt !== -1) {
+  const [most, ...roots] = process.argv.slice(ratchetAt + 1)
+  const limit = Number(most)
+  if (!Number.isInteger(limit) || limit < 0 || roots.length === 0) {
+    console.error('usage: check-style --ratchet <most> <root>...')
+    process.exit(2)
+  }
+  const paths: string[] = []
+  for (const root of roots) collect(root, paths)
+  const count = paths.reduce(
+    (sum, path) => sum + planCommentFindings(path, readFileSync(path, 'utf8')).length,
+    0,
+  )
+  const lower = count < limit ? ` (lower the limit to ${count})` : ''
+  console.log(`check-style: ratchet: ${count} plan comments, at most ${limit} allowed${lower}`)
+  process.exit(count > limit ? 1 : 0)
 }
 
 const planComments = process.argv.includes('--plan-comments')

@@ -1966,7 +1966,7 @@
     "tilesets": [
       {
         "id": "terrain",
-        "label": "Terrain (placeholder)",
+        "label": "Terrain",
         "imageSize": {
           "w": 128,
           "h": 128
@@ -2072,7 +2072,8 @@
               63
             ]
           }
-        ]
+        ],
+        "image": "assets/terrain.png"
       }
     ],
     "entities": [
@@ -2144,7 +2145,27 @@
         "resizable": "none",
         "tags": [
           "pickup"
-        ]
+        ],
+        "animation": {
+          "image": "assets/coin.png",
+          "frame": {
+            "w": 8,
+            "h": 8
+          },
+          "clips": [
+            {
+              "id": "idle",
+              "frames": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "fps": 8,
+              "loop": true
+            }
+          ]
+        }
       },
       {
         "id": "door",
@@ -2237,6 +2258,30 @@
         "min": {
           "per": "project",
           "count": 1
+        },
+        "animation": {
+          "image": "assets/player.png",
+          "frame": {
+            "w": 16,
+            "h": 24
+          },
+          "clips": [
+            {
+              "id": "idle",
+              "frames": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "fps": 6,
+              "loop": true
+            }
+          ]
         }
       },
       {
@@ -2277,7 +2322,25 @@
         "resizable": "none",
         "tags": [
           "enemy"
-        ]
+        ],
+        "animation": {
+          "image": "assets/slime.png",
+          "frame": {
+            "w": 16,
+            "h": 12
+          },
+          "clips": [
+            {
+              "id": "idle",
+              "frames": [
+                0,
+                1
+              ],
+              "fps": 3,
+              "loop": true
+            }
+          ]
+        }
       }
     ],
     "levelFields": [

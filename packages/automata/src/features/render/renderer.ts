@@ -15,6 +15,7 @@ import {
 import { tryFilter } from './filter/try-filter.js'
 import { canvasResolutionFor } from './letterbox/canvas-resolution.js'
 import { CompositeTarget } from './letterbox/composite-target.js'
+import { clearSideBars, publishSideBars } from '../../shared/ui/geometry/side-bars.ts'
 import { LetterboxFrame } from './letterbox/letterbox.js'
 import { characters2d, type StageCharacters } from './stage-characters.js'
 
@@ -200,6 +201,8 @@ export function createPixiRenderer(
     const canvas = app.canvas
     canvas.classList.add('af-stage')
     target.host.appendChild(canvas)
+    // Where the geometry owner publishes: the touch buttons read the side bars from the same place as the insets.
+    const root = target.host.ownerDocument.documentElement
 
     let frame: LetterboxFrame | undefined
     let world: Container
@@ -219,7 +222,11 @@ export function createPixiRenderer(
       world = frame.world
       ui = frame.ui
       backdrop = frame.backdrop
-      const { fieldHeight } = frame.layout(initialGeometry.usable.width, initialGeometry.usable.height)
+      const { fieldHeight, sideBars } = frame.layout(
+        initialGeometry.usable.width,
+        initialGeometry.usable.height,
+      )
+      publishSideBars(root, sideBars)
       if ((options.composite ?? true) && options.pixelArt !== false) {
         composite = new CompositeTarget({ width: options.logicalWidth, height: options.logicalHeight })
         composite.adopt(frame)
@@ -304,7 +311,10 @@ export function createPixiRenderer(
     const unsubscribe = target.geometry.onChange((g) => {
       app.renderer.resize(g.usable.width, g.usable.height)
       const layout = frame?.layout(g.usable.width, g.usable.height)
-      if (layout) composite?.resize(layout.fieldHeight)
+      if (layout) {
+        composite?.resize(layout.fieldHeight)
+        publishSideBars(root, layout.sideBars)
+      }
       formFactor = g.formFactor
       applyResolution()
     })
@@ -331,6 +341,7 @@ export function createPixiRenderer(
         if (disposed) return
         disposed = true
         unsubscribe()
+        clearSideBars(root)
         consumer.destroy()
         composite?.destroy()
         frame?.destroy()

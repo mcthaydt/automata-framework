@@ -55,7 +55,8 @@ columns = 8
 rows = 8
 spacing = 0
 padding = 0
-placeholder = true
+image = "assets/terrain.png"
+placeholder = false
 
 [tilesets.tile]
 w = 16
@@ -147,6 +148,19 @@ h = 8
 x = 0.5
 y = 0.5
 
+[entities.animation]
+image = "assets/coin.png"
+
+[entities.animation.frame]
+w = 8
+h = 8
+
+[[entities.animation.clips]]
+id = "idle"
+frames = [ 0, 1, 2, 3 ]
+fps = 8
+loop = true
+
 [[entities]]
 id = "door"
 label = "Door"
@@ -222,6 +236,19 @@ h = 24
 x = 0.5
 y = 1
 
+[entities.animation]
+image = "assets/player.png"
+
+[entities.animation.frame]
+w = 16
+h = 24
+
+[[entities.animation.clips]]
+id = "idle"
+frames = [ 0, 0, 0, 0, 0, 0, 0, 1 ]
+fps = 6
+loop = true
+
 [entities.min]
 per = "project"
 count = 1
@@ -261,6 +288,19 @@ h = 12
 [entities.pivot]
 x = 0.5
 y = 1
+
+[entities.animation]
+image = "assets/slime.png"
+
+[entities.animation.frame]
+w = 16
+h = 12
+
+[[entities.animation.clips]]
+id = "idle"
+frames = [ 0, 1 ]
+fps = 3
+loop = true
 
 [[levelFields]]
 id = "music"

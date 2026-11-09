@@ -1,8 +1,5 @@
 # Publish to itch.io
 
-itch.io runs the web build in its HTML5 player, so a game built for `itch` uses the web host adapter. ship packages
-the build as the zip itch.io accepts and pushes it with butler.
-
 ## From the editor
 
 Publish in the editor makes the zip. Then you put it on itch.io:
@@ -12,13 +9,19 @@ Publish in the editor makes the zip. Then you put it on itch.io:
 3. On the itch.io page, press "Upload files" and choose the zip you downloaded.
 4. Tick "This file will be played in the browser", then save and view your page.
 
-Or let the editor put it there. After "Make my zip", the editor asks where to put the game, and itch.io is the first
-choice. Make the page on itch.io first, set its kind to HTML, and paste its address (like
-`your-name.itch.io/my-game`). The editor uses butler, itch.io's uploader, on the computer that runs
-`automata editor`. If butler is not there yet, or you are not signed in, the editor says so and points to the one thing
-to do. It uses your own itch.io sign-in and never stores your key.
+Or let the editor put it there. After "Make my zip", the editor asks for your itch.io page's address (like
+`your-name.itch.io/my-game`) and has a button, "Put it on itch.io". Make the page on itch.io first, and set its kind to
+HTML. The editor uses butler, itch.io's uploader, on the computer that runs `automata editor`. If butler is not there
+yet, the editor says so and points to the one thing to do. If you are not signed in, it shows "Sign in to itch.io": press
+it, finish signing in on itch.io's page, then press "Put it on itch.io" again. It uses your own itch.io sign-in and never
+stores your key.
 
-Pushing from your computer with a command is below.
+A new itch.io page starts as a draft: only you can see it until you set the page to Public on itch.io.
+
+## With a command, from your computer
+
+itch.io runs the web build in its HTML5 player, so a game built for `itch` uses the web host adapter. ship packages
+the build as the zip itch.io accepts and pushes it with butler.
 
 ## Set up once
 

@@ -77,7 +77,8 @@ function writeTemplate(options: CreateGameOptions): string[] {
     for (const tpl of templateFilesOf(options)) {
       const fullPath = join(options.targetDir, tpl.path)
       mkdirSync(dirname(fullPath), { recursive: true })
-      writeFileSync(fullPath, tpl.content(options), 'utf8')
+      if (tpl.bytes === undefined) writeFileSync(fullPath, tpl.content(options), 'utf8')
+      else writeFileSync(fullPath, tpl.bytes())
       createdFiles.push(tpl.path)
     }
   } catch (cause) {
