@@ -4,8 +4,8 @@
   entity definitions as rows with their colour and name. One choice at a time (`radiogroup`), held by the controller.
 -->
 <script lang="ts">
-import { isChosen, type PaletteItem } from '../../shared/level-2d/tiles/palette-model'
-import { spriteStyle } from '../../shared/level-2d/tiles/tile-sprite'
+import { isChosen, type PaletteItem } from '../../shared/level-2d/editor/palette-model'
+import { spriteStyle } from '../../shared/level-2d/editor/tile-sprite'
 
 interface Props {
   /** The layer's name, for the heading. */

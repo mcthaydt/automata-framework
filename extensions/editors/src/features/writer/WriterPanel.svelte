@@ -4,8 +4,8 @@
 -->
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
+import { humanize } from '../../shared/humanize.ts'
 import type { WriterSession } from './writer-session.svelte.ts'
-import { humanize } from './writer-words.ts'
 
 const { session }: { session: WriterSession } = $props()
 let adding = $state(false)
