@@ -126,11 +126,13 @@ describe.runIf(hasWebGL2)('the look on WebGL2', () => {
   })
 
   it('brings the look back after a lost context', async () => {
+    // The sky's clock stands still while paused, so the picture before the loss and after it are the same one.
+    const still = { ...frame, paused: true }
     const renderer = await start(true)
-    renderer.draw(frame)
+    renderer.draw(still)
     const empty = snapshot(renderer)
     renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
-    renderer.draw(frame)
+    renderer.draw(still)
     const scene = snapshot(renderer)
     const canvas = renderer.stage.app.canvas
     const gl = (renderer.stage.app.renderer as unknown as { gl: WebGL2RenderingContext }).gl
@@ -147,7 +149,7 @@ describe.runIf(hasWebGL2)('the look on WebGL2', () => {
     )
     lose.restoreContext()
     await restored
-    renderer.draw(frame)
+    renderer.draw(still)
     const back = snapshot(renderer)
     expect(duelShare(empty, back).share).toBeGreaterThan(0.99)
     expect(duelShare(scene, back).count).toBe(0)

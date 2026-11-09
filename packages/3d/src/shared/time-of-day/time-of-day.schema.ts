@@ -27,6 +27,8 @@ const scene: z.ZodType<Scene> = z.strictObject({
   haze: z.strictObject({ colour, amount: level }).optional(),
   /** Stars, as how thick the sky is with them (0 none). */
   stars: z.number().min(0).max(1).optional(),
+  /** Rain: how many columns have a streak (0 to 1) and the streak's colour. The ground is wet while it falls. */
+  rain: z.strictObject({ density: level, colour }).optional(),
   /** What everything lit is tinted toward, and how far (0 to 1): the ambient colour of the time. */
   grade: z.strictObject({ tint: colour, amount: level }),
 })
@@ -56,6 +58,7 @@ interface Scene {
   readonly sky: readonly { readonly colour: string; readonly at: number }[]
   readonly haze?: { readonly colour: string; readonly amount: number } | undefined
   readonly stars?: number | undefined
+  readonly rain?: { readonly density: number; readonly colour: string } | undefined
   readonly grade: { readonly tint: string; readonly amount: number }
 }
 interface Figure {

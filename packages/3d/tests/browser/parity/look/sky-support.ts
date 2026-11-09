@@ -3,7 +3,12 @@
 
 import { DEFAULT_PALETTE } from '@automata/content/palette'
 import type { RenderTarget } from '@automata/framework'
-import type { Pixi3dRenderer } from '#src/app/create-renderer.ts'
+import { CubeGeometry, DirectionalLight, FlatMaterial, Mesh3D, SphereGeometry } from '@pixi/3d'
+import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'
+import type { Look } from '#src/features/look/look.schema.ts'
+import { DEFAULT_LOOK } from '#src/features/look/look.ts'
+import type { HorizonLayer } from '#src/features/look/passes/sky-effect.ts'
+import { type TimeOfDay, timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 
 export const SIZE = { width: 160, height: 90 }
 
@@ -74,3 +79,73 @@ const bareSky = (c: number): boolean => c === 0 || c === SKY
 /** The pixel numbers where `a` and `b` differ in more than how the empty sky is presented. */
 export const drawn = (a: ArrayLike<number>, b: ArrayLike<number>): number[] =>
   changed(a, b).filter((i) => !(bareSky(colourAt(a, i)) && bareSky(colourAt(b, i))))
+
+/** What a test sky scene may vary. */
+export interface SkyScene {
+  /** A big white ball with a wall behind it, for the glow, instead of a small ball low in the frame. */
+  readonly big?: boolean
+  /** A wall covering the whole view, 2 m from the camera. */
+  readonly near?: boolean
+  readonly time?: TimeOfDay
+  readonly horizon?: readonly HorizonLayer[]
+  readonly look?: Look
+}
+
+/** The renderer over a scene of a small ball (or the `SkyScene`'s), seen by a level camera at 1 m. */
+export async function startSky(
+  host: HTMLElement,
+  scene: SkyScene = {},
+): Promise<{ renderer: Pixi3dRenderer; dispose(): void }> {
+  const made = await createPixi3dRenderer({
+    logicalWidth: SIZE.width,
+    logicalHeight: SIZE.height,
+    backgroundColor: SKY,
+    views: {},
+    look: scene.look ?? DEFAULT_LOOK,
+    time: scene.time ?? timeOfDay('night'),
+    horizon: scene.horizon,
+    scene: (view) => {
+      view.camera.position.set(0, 1, 5)
+      view.camera.lookAt({ x: 0, y: 1, z: 0 })
+      view.root.addChild(new DirectionalLight({ intensity: 2 }))
+      const big = scene.big === true
+      const ball = new Mesh3D({
+        geometry: new SphereGeometry(),
+        material: new FlatMaterial({ baseColor: 0xffffff }),
+      })
+      ball.position.set(big ? 0 : -1.5, big ? 1 : -1.2, 0)
+      ball.scale.set(big ? 1 : 0.2, big ? 1 : 0.2, big ? 1 : 0.2)
+      view.root.addChild(ball)
+      const wall = (z: number, w: number, h: number, colour: number): void => {
+        const mesh = new Mesh3D({
+          geometry: new CubeGeometry(),
+          material: new FlatMaterial({ baseColor: colour }),
+        })
+        mesh.position.set(0, 1, z)
+        mesh.scale.set(w, h, 0.1)
+        view.root.addChild(mesh)
+      }
+      if (big) wall(-2, 20, 12, 0x4a3f5c)
+      if (scene.near === true) wall(3, 40, 40, 0x4a3f5c)
+      return undefined
+    },
+  })(target(host))
+  if (!made.ok) throw made.reason
+  return { renderer: made.value, dispose: () => made.value.dispose() }
+}
+
+/** The passes of a renderer's view, by type. */
+export function passOf<T>(renderer: Pixi3dRenderer, type: new (...a: never[]) => T): T {
+  const found = renderer.view.passes.find((p) => p instanceof type)
+  if (found === undefined) throw new Error(`no ${type.name} among the view's passes`)
+  return found as T
+}
+
+const frame = { alpha: 1, frameMs: 16, paused: false }
+
+/** Draws twice (the first frame builds the graph) and returns the canvas. */
+export function shot(renderer: Pixi3dRenderer): Uint8Array {
+  renderer.draw(frame)
+  renderer.draw(frame)
+  return pixels(renderer)
+}

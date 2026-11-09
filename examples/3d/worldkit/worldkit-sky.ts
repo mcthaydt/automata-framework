@@ -1,23 +1,20 @@
-// worldkit-sky: a street at night under stars and rain, its lamp glowing, from the world kit's look passes
+// worldkit-sky: a street at night under stars and rain, its lamp glowing, from the look's own passes
 //
-// Shows: a time of day and the look passes core adds to it (`addSkyPasses`). The base look has no
-//   stars, rain or glow; each is a pass under its own name, added with `addLookPass`, once, before the renderer is
-//   made. `timeOfDay('night')` says how thick the stars are and how dark the sky is, and the renderer reads it
-//   (`time`); the rain streaks over everything and the glow steps out from the brightest pixels, here the street lamp's
-//   bulb. A game that wants a clear night adds only the stars and the glow.
+// Shows: a time of day with rain and the look's sky, stars, glow and rain. The look builds them from its switches
+//   (`look.switches`) and the time of day (`stars` and `rain`), in that order, between the DUEL snap and the finish: nothing
+//   is added by hand. The sky is a pass of its own, so the renderer draws no sky fill (`backgroundColor` is only the colour
+//   under the field); the rain streaks over everything and the glow steps out from what glows, here the street lamp's bulb.
 // Controls: none
 // Packages: @automata/framework, @automata/3d
 // Difficulty: ★★★★
 // Tier: core
 import '@automata/3d/no-eval'
 import {
-  addSkyPasses,
   buildWorld,
   createPixi3dRenderer,
   DEFAULT_LOOK,
   drawWorld,
   render3dExtension,
-  skyLookPasses,
   swatchColour,
   targetSize,
   timeOfDay,
@@ -26,10 +23,8 @@ import { coreLibrary, DRESSED_BASE_SCENES } from '@automata/3d/base'
 import { defineGame, definePlugin } from '@automata/framework'
 
 // --- look ---
-// Stars, a glow and a light rain: the passes run in that order, after core's own.
-const passes = { stars: true, glow: true, rain: { density: 0.4 } }
-addSkyPasses(passes)
-const night = timeOfDay('night')
+// Rain is the time of day's: a night with a light rain.
+const night = timeOfDay('night', { scene: { rain: { density: 0.4, colour: '#88d6ff' } } })
 
 // --- level ---
 // The base street (a pavement before a building face, a road, a street lamp and a tree) with its shops furnished.
@@ -47,7 +42,7 @@ export default defineGame({
       ...options,
       look: DEFAULT_LOOK,
       time: night,
-      backgroundColor: 0x23324d, // the night sky's middle colour; the stars are drawn where it shows
+      backgroundColor: 0x23324d, // under the field only: the sky is the look's pass
       views: {},
       scene: (view, stage, occluders) => {
         view.camera.position.set(0.5, 2, 7)
@@ -57,8 +52,9 @@ export default defineGame({
         drawWorld({ parent: view.root, occluders, colourOf, look: DEFAULT_LOOK }, world.pieces)
         // What the scene is lit as and the passes it added, for the journey.
         stage.app.canvas.dataset.time = night.name
-        stage.app.canvas.dataset.passes = skyLookPasses(passes)
-          .map((pass) => pass.name)
+        stage.app.canvas.dataset.passes = view.passes
+          .map((pass) => pass.constructor.name)
+          .filter((name) => /^(Sky|Glow|Rain)Effect$/.test(name))
           .join(',')
         return undefined
       },

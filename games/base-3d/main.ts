@@ -13,6 +13,7 @@ import {
   createPixi3dRenderer,
   DEFAULT_LOOK,
   figure,
+  horizonOf,
   render3dExtension,
 } from '@automata/3d'
 import type { FigureDef } from '@automata/3d/figures'
@@ -167,6 +168,7 @@ export const base3d = defineGame({
       look: DEFAULT_LOOK,
       // The time of day the level file names, which the editor's picker writes: the renderer lights the room by it.
       time: ROOM_TIME,
+      horizon: horizonOf(ROOM_WORLD.level, ROOM_WORLD.library),
       views: {
         [Hero.id]: inMetres(
           figure(figures.wick as FigureDef, {

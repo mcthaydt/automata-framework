@@ -24,7 +24,7 @@ sections, since each example is one file. Colours are the DUEL palette.
 | [`characterkit/characterkit-hair.ts`](characterkit/characterkit-hair.ts) | Three hairstyles built from the kit's pieces: a bun, braids with a ponytail, cornrows |
 | [`worldkit/worldkit-furnished-room.ts`](worldkit/worldkit-furnished-room.ts) | An empty room that asks to be an office, furnished by the kit from one word  |
 | [`worldkit/worldkit-generated-map.ts`](worldkit/worldkit-generated-map.ts) | An apartment generated from a number and furnished, seen from above |
-| [`worldkit/worldkit-sky.ts`](worldkit/worldkit-sky.ts) | A street at night under the kit's stars, rain and glow passes |
+| [`worldkit/worldkit-sky.ts`](worldkit/worldkit-sky.ts) | A street at night under the look's sky, stars, rain and glow |
 
 The `cutscenes` and `characterkit` sections show extensions (`@automata/cutscenes`, `@automata/character-kit`), so
 their files say `Tier: extension`. The `worldkit` section is core's: the world kit moved into `@automata/3d`.

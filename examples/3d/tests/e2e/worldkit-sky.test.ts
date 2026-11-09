@@ -7,17 +7,15 @@ import { expect, test } from '@playwright/test'
 const gameUrl = `http://localhost:${examples3dPort}/worldkit/sky/`
 const ID = 'worldkit-sky'
 
-test('draws the street at night with the stars, rain and glow passes of the kit, under the CSP', async ({
-  page,
-}) => {
+test('draws the street at night with the look’s sky, glow and rain, under the CSP', async ({ page }) => {
   const errors = await collectErrors(page)
   const frame = await openHosted(page, gameUrl, ID)
   const canvas = frame.locator('canvas.af-stage')
   await expect(canvas).toHaveAttribute('data-renderer', 'webgl')
   await frame.getByTestId('play').click()
   await expect(frame.getByTestId('play-screen')).toBeVisible()
-  // The scene says which time of day it is lit as and which passes it added; a pass added twice is refused by core.
+  // The scene says which time of day it is lit as and which of the look's passes it runs.
   await expect(canvas).toHaveAttribute('data-time', 'night')
-  await expect(canvas).toHaveAttribute('data-passes', 'sky:stars,sky:glow,sky:rain')
+  await expect(canvas).toHaveAttribute('data-passes', 'SkyEffect,GlowEffect,RainEffect')
   expect(errors).toEqual([])
 })

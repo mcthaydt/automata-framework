@@ -18,6 +18,7 @@ export {
   type LevelView,
   type TileCamera,
 } from '../app/draw-level.ts'
+export { horizonOf } from '../app/level-sky.ts'
 export { render3dExtension } from '../app/render3d.extension.ts'
 export { updatePieces } from '../app/update-pieces.ts'
 export { DIORAMA_PITCH, type WorldLightingInput, worldLighting } from '../app/world-lighting.ts'
@@ -88,14 +89,7 @@ export { OutlineEffect } from '../features/look/outline-filter.ts'
 // The sky passes: stars, rain and a glow, for a game that wants them in its 3D look.
 export { GlowEffect, type GlowOptions } from '../features/look/passes/glow-effect.ts'
 export { RainEffect } from '../features/look/passes/rain-effect.ts'
-export {
-  addSkyPasses,
-  type RainOptions,
-  SKY_PASS_NAMES,
-  type SkyPassOptions,
-  skyLookPasses,
-} from '../features/look/passes/sky-passes.ts'
-export { StarsEffect } from '../features/look/passes/stars-effect.ts'
+export { type HorizonKind, type HorizonLayer, SkyEffect } from '../features/look/passes/sky-effect.ts'
 export { lightSteps, rampLit } from '../features/look/ramp-light.ts'
 export { RampMaterial, type RampMaterialOptions } from '../features/look/ramp-light-material.ts'
 export { targetSize } from '../features/look/target-size.ts'

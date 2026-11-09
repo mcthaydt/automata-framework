@@ -123,3 +123,12 @@ export function framedFocus({ player, lock, view, headingDeg, aspect }: FrameInp
   }
   return at(inside)
 }
+
+/**
+ * Where a camera at `eye` looking at `look` is aimed, for the sky: the bearing to the camera's right of its heading's zero
+ * (it grows as the camera turns right, so it is the heading's negative) and the pitch up from the horizon, both in radians.
+ */
+export function aimOf(eye: Vec3, look: Vec3): { readonly yaw: number; readonly pitch: number } {
+  const [dx, dy, dz] = [look.x - eye.x, look.y - eye.y, look.z - eye.z]
+  return { yaw: -Math.atan2(dx, dz), pitch: Math.atan2(dy, Math.hypot(dx, dz)) }
+}

@@ -18,6 +18,7 @@ import { type Container3D, View3D } from '@pixi/3d'
 import { Graphics } from 'pixi.js'
 import { angledCamera, type CameraRig } from '../features/camera/angled-camera.ts'
 import { cameraDriver, type Pixi3dCameraOptions, PLAYER_HEIGHT } from '../features/camera/camera-driver.ts'
+import { aimOf } from '../features/camera/camera-pose.ts'
 import {
   createOccluders,
   type OccluderStage,
@@ -27,6 +28,7 @@ import {
 import { createFigureLayer, type FigureLayer } from '../features/figures/layer/figure-layer.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { createLookPasses, type LookPasses } from '../features/look/look-pass.ts'
+import type { HorizonLayer } from '../features/look/passes/sky-effect.ts'
 import { type ContextWatch, watchContextLoss } from '../features/renderer/context-loss.ts'
 import { pixi3dUniformSyncInstalled } from '../features/renderer/no-eval/pixi3d-uniform-sync.ts'
 import { lampSwitches } from '../shared/render/light/lamp-switches.ts'
@@ -105,6 +107,8 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    * time. The look's passes read it too (only with `look`).
    */
   readonly time?: TimeOfDay | undefined
+  /** The level's horizon, its layers' colours resolved, standing on the look's sky (only with `look`). */
+  readonly horizon?: readonly HorizonLayer[] | undefined
   /** Times the lost-context wait. The real clock unless a test hands over a fake one. */
   readonly clock?: Clock | undefined
 }
@@ -201,7 +205,9 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     : new View3D({ autoResize: true, toneMapping: 'none' })
   view.fog = viewFog(options.fog, options.lighting?.fog)
   const passes =
-    options.look === undefined ? undefined : createLookPasses(options.look, options.time ?? timeOfDay('day'))
+    options.look === undefined
+      ? undefined
+      : createLookPasses(options.look, options.time ?? timeOfDay('day'), options.horizon)
   const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
   // Painted figures are cells composited into the scene, so they need the look's snap after them.
   const figures = options.look === undefined ? undefined : createFigureLayer(view, options.look, light)
@@ -210,8 +216,9 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   // clear colour is under that field). A 2D fill of the view's rect, under it, draws the sky exactly on both backends;
   // `@pixi/3d`'s hemisphere background lifts dark colours (0x020c0c draws as 0x091414). Inside the view only, so the
   // bars keep `barColor`. Without a letterbox the app's clear colour is the sky already (`skyOf`).
+  // With a look the sky is a pass of its own (`SkyEffect`), so the fill stays out.
   const sky = skyOf(options)
-  if (letterboxed && sky !== undefined)
+  if (letterboxed && sky !== undefined && passes === undefined)
     stage.world.addChild(new Graphics().rect(0, 0, view.width, view.height).fill(sky))
   stage.world.addChild(view)
   const switches =
@@ -225,6 +232,17 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   // The layer runs last each frame, on the poses and the camera the frame has settled.
   const layerHooks: PixiStageHooks | undefined =
     figures === undefined ? undefined : { draw: () => figures.frame() }
+  // The look's clock runs on the frames drawn (not the page's time), and stands still while the game is paused.
+  let seconds = 0
+  const clockHooks: PixiStageHooks | undefined =
+    passes === undefined
+      ? undefined
+      : {
+          draw: (frame) => {
+            if (!frame.paused) seconds += frame.frameMs / 1000
+            passes.tick(seconds)
+          },
+        }
   const entities: PixiStageHooks = {
     apply: (result) => {
       const levels = switches?.apply(result.render)
@@ -240,7 +258,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
       view,
       occluders,
       consumer,
-      hooks: mergeHooks(entities, layerHooks),
+      hooks: mergeHooks(entities, clockHooks, layerHooks),
       light,
       camera: undefined,
       passes,
@@ -255,6 +273,18 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     aspect: () => (view.width > 0 && view.height > 0 ? view.width / view.height : 16 / 9),
   })
   // The rule runs after the camera has moved, on the pose it just wrote.
+  // The sky is a direction: it follows where the rig's camera looks.
+  const skyHooks: PixiStageHooks | undefined =
+    passes === undefined
+      ? undefined
+      : {
+          draw: () => {
+            const pose = camera.pose()
+            if (pose === undefined) return
+            const aim = aimOf(pose.eye, pose.look)
+            passes.aim(aim.yaw, aim.pitch)
+          },
+        }
   const occluding = occluderHooks(camera, occluders, { height: options.camera.height ?? PLAYER_HEIGHT })
   // The figures are painted for the active view's distance, not for the ones a 400 ms ease passes through.
   if (figures !== undefined) {
@@ -271,7 +301,14 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     view,
     occluders,
     consumer,
-    hooks: mergeHooks(entities, cameraDriver(camera, options.camera), occluding, layerHooks),
+    hooks: mergeHooks(
+      entities,
+      clockHooks,
+      cameraDriver(camera, options.camera),
+      skyHooks,
+      occluding,
+      layerHooks,
+    ),
     light,
     camera,
     passes,

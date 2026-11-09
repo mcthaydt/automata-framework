@@ -1,6 +1,6 @@
-// The look's passes, in the order they run: the DUEL snap, then the outline when it is switched on, then the passes
-// extensions added with `addLookPass`, then the finish, always last. An extension's pass has its own switch (or one of the
-// look's `switches`) and keeps the frame's alpha, which the finish reads.
+// The look's passes, in the order they run: the DUEL snap, then the outline when it is switched on, the sky (its stars are
+// the `stars` switch's), the glow, the rain, then the passes extensions added with `addLookPass`, then the finish, always
+// last. An extension's pass has its own switch and keeps the frame's alpha, which the finish reads.
 
 import type { Pass3D } from '@pixi/3d'
 import { RegistryClash } from '../../shared/registry/registry-clash.ts'
@@ -10,6 +10,10 @@ import { FinishEffect } from './finish-effect.ts'
 import type { Look } from './look.schema.ts'
 import { MOODS, moodRemap } from './moods.ts'
 import { OutlineEffect } from './outline-filter.ts'
+import { GlowEffect } from './passes/glow-effect.ts'
+import { RainEffect } from './passes/rain-effect.ts'
+import { duelTriple } from './passes/shader-parts.ts'
+import { type HorizonLayer, SkyEffect } from './passes/sky-effect.ts'
 
 /** A pass an extension adds after core's: `make` builds it for a look and a time of day. */
 export interface LookPass {
@@ -22,10 +26,19 @@ export interface LookPasses {
   readonly list: readonly Pass3D[]
   readonly snap: DuelSnapEffect
   readonly outline: OutlineEffect | undefined
+  /** The sky where nothing is drawn: the time's bands, the level's horizon, and the stars the `stars` switch allows. */
+  readonly sky: SkyEffect
+  readonly glow: GlowEffect | undefined
+  /** Rain, when the look allows it and the time of day has some. */
+  readonly rain: RainEffect | undefined
   /** The extensions' passes, in registration order. */
   readonly extra: readonly Pass3D[]
   /** The last pass: it turns the frame's codes into what the stage blends and applies the mood. */
   readonly finish: FinishEffect
+  /** Sets the clock the sky's clouds and stars and the rain run by, in seconds. */
+  tick(seconds: number): void
+  /** Tells the sky where the camera looks, in radians: the bearing to the right and the pitch (up is positive). */
+  aim(yaw: number, pitch: number): void
 }
 
 const REGISTERED: LookPass[] = []
@@ -39,10 +52,24 @@ export function addLookPass(pass: LookPass): void {
 /** The registered passes, in registration order. */
 export const registeredLookPasses = (): readonly LookPass[] => REGISTERED
 
-/** The passes for `look` at `time`. The snap always runs: a frame is DUEL or it is not the look. */
-export function createLookPasses(look: Look, time: TimeOfDay): LookPasses {
+/**
+ * The passes for `look` at `time`, with the level's `horizon` (its layers' colours resolved) standing on the sky. The snap
+ * always runs: a frame is DUEL or it is not the look.
+ */
+export function createLookPasses(
+  look: Look,
+  time: TimeOfDay,
+  horizon: readonly HorizonLayer[] = [],
+): LookPasses {
   const snap = new DuelSnapEffect(look.switches.dither ? look.dither.strength : 0)
   const outline = look.switches.outline ? new OutlineEffect(look.outline.edge) : undefined
+  const sky = new SkyEffect(look.switches.stars ? time : withoutStars(time), horizon)
+  const glow = look.switches.glow ? new GlowEffect({}) : undefined
+  const raining = look.switches.rain ? time.scene.rain : undefined
+  const rain =
+    raining === undefined || raining.density <= 0
+      ? undefined
+      : new RainEffect(raining.density, duelTriple(raining.colour))
   const extra = REGISTERED.map((pass) => pass.make(look, time))
   const mood = look.mood === undefined || !look.switches.grade ? undefined : MOODS[look.mood]
   if (look.mood !== undefined && MOODS[look.mood] === undefined)
@@ -50,5 +77,30 @@ export function createLookPasses(look: Look, time: TimeOfDay): LookPasses {
       `The look names the mood "${look.mood}", which there is not. The moods are: ${Object.keys(MOODS).join(', ')}.`,
     )
   const finish = new FinishEffect(mood === undefined ? undefined : moodRemap(mood))
-  return { list: [snap, ...(outline ? [outline] : []), ...extra, finish], snap, outline, extra, finish }
+  return {
+    list: [
+      snap,
+      ...(outline ? [outline] : []),
+      sky,
+      ...(glow ? [glow] : []),
+      ...(rain ? [rain] : []),
+      ...extra,
+      finish,
+    ],
+    snap,
+    outline,
+    sky,
+    glow,
+    rain,
+    extra,
+    finish,
+    tick: (seconds) => {
+      sky.clock = seconds
+      if (rain !== undefined) rain.clock = seconds
+    },
+    aim: (yaw, pitch) => sky.aim(yaw, pitch),
+  }
 }
+
+/** The time with no stars: the `stars` switch off leaves the night's sky bare. */
+const withoutStars = (time: TimeOfDay): TimeOfDay => ({ ...time, scene: { ...time.scene, stars: 0 } })
