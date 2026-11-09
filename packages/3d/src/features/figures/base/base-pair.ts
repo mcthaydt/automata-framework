@@ -23,17 +23,30 @@ const shared = {
   faceForward: 0.6,
 }
 
+/** Skin sits mostly on its light tone, so its key-light thresholds are its own. */
+const SKIN_TONES = [0.55, 0.04, -0.5] as const
+
 /** The swatches the pair names, by id (a game adds them to its `figure-swatch` content or hands them to the library). */
 export const BASE_PAIR_SWATCHES: Readonly<Record<string, Swatch>> = {
-  'skin-warm': { ramp: 'wine', step: 5 },
-  'skin-brown': { ramp: 'skin', step: 4 },
+  'skin-warm': {
+    ramp: 'wine',
+    step: 5,
+    paint: ['#edb67c', '#ce9770', '#bd7d64', '#a76057'],
+    tones: SKIN_TONES,
+  },
+  'skin-brown': {
+    ramp: 'skin',
+    step: 4,
+    paint: ['#c7826c', '#ad6e51', '#885041', '#733d3b'],
+    tones: SKIN_TONES,
+  },
   'block-top': { ramp: 'slate', step: 3 },
   'block-shorts': { ramp: 'slate', step: 1 },
-  'hair-black': { ramp: 'sky', step: 1, gloss: 0.9 },
-  'eye-brown': { ramp: 'mud', step: 1, flat: true },
+  'hair-black': { ramp: 'sky', step: 1, gloss: 0.9, paint: ['#23324d', '#181f2f', '#181f2f', '#181f2f'] },
+  'eye-brown': { ramp: 'mud', step: 1, flat: true, paint: ['#4a353c', '#1d1d21', '#1d1d21', '#000000'] },
   'lid-deep': { ramp: 'brick', step: 1, flat: true },
-  'lips-warm': { ramp: 'wine', step: 3, flat: true },
-  'lips-brown': { ramp: 'cherry', step: 2, flat: true },
+  'lips-warm': { ramp: 'wine', step: 3, flat: true, paint: ['#a76057', '#d28d7a', '#904647', '#904647'] },
+  'lips-brown': { ramp: 'rust', step: 2, flat: true, paint: ['#7c4b47', '#98595a', '#633432', '#633432'] },
 }
 
 /** A short cut: the sides and nape, low enough that a cap would cover its crown. */

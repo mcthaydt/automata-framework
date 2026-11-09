@@ -1055,3 +1055,4 @@ one turn of the page); `a photo is fetched and prepared once for all its pairs`.
   world features, which may not import each other); `swatch-issues.ts` stays its own file in `features/photo/`; the photos sit
   in `library/photos/` with `photos.json` beside them; a room that still asks to be dressed is drawn bare without a
   `needs-extension` note, since core has the kit and `dressLevel` is its own step.
+  Task 4 done: `blink` keeps FigureBuilder's meaning (seconds between blinks, 0 never) where the plan wrote a boolean, since the painter's blink clock reads the number; the `density` and `print` fields went on the runtime `Decal` (no schema carries decals yet, garments make them); the base pair's eye and lip swatches took FigureBuilder's paint too, so the drawn face paints like the source's.

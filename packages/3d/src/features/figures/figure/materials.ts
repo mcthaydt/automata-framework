@@ -8,8 +8,25 @@
 
 import { type Swatch, swatchColour } from '../content/swatch.schema.ts'
 
+/** The swatch fields only the painter reads; a swatch with none paints from its DUEL row alone. */
+const PAINTER_FIELDS = [
+  'lift',
+  'paint',
+  'tones',
+  'strands',
+  'sheen',
+  'streaks',
+  'mix',
+  'stain',
+  'holo',
+  'see',
+  'fabric',
+] as const
+type PainterField = (typeof PAINTER_FIELDS)[number]
+export type PainterFields = Pick<Swatch, PainterField>
+
 /** A material as the view draws it. */
-export interface BuiltMaterial {
+export interface BuiltMaterial extends PainterFields {
   /** A 0-based index into the game's palette (DUEL by default). */
   readonly colour: number
   /** 0–1: how glossy (hair, shoes, buckles). */
@@ -51,8 +68,12 @@ export function variant(made: Made, of: string, role: string, change: Variant): 
   return name
 }
 
+const painterFieldsOf = (s: PainterFields): PainterFields =>
+  Object.fromEntries(PAINTER_FIELDS.flatMap((k) => (s[k] === undefined ? [] : [[k, s[k]]]))) as PainterFields
+
 const fromSwatch = (s: Swatch): BuiltMaterial => ({
   colour: swatchColour(s),
+  ...painterFieldsOf(s),
   ...(s.gloss !== undefined ? { gloss: s.gloss } : {}),
   ...(s.flat ? { flat: true } : {}),
 })
@@ -79,6 +100,7 @@ export function resolveMaterials(
     const gloss = made_.gloss ?? (made_.matte ? undefined : base.gloss)
     const flat = made_.flat ?? base.flat
     out[name] = {
+      ...painterFieldsOf(base),
       colour: base.colour,
       ...(gloss !== undefined ? { gloss } : {}),
       ...(flat ? { flat: true } : {}),
@@ -86,4 +108,27 @@ export function resolveMaterials(
     }
   }
   return out
+}
+
+/** A material as the painter reads it: a DUEL row and a step on it, and the painter's fields. */
+export interface PainterMaterial extends PainterFields {
+  /** The DUEL row (0 to 31). */
+  readonly ramp: number
+  /** The step on the row, a variant's `shade` included; the painter clamps it to the row. */
+  readonly base: number
+  readonly flat?: boolean
+  readonly gloss?: number
+}
+
+/** The built figure's materials for the painter, in the order of `built.materials` (its keys, sorted). */
+export function painterMaterials(built: {
+  readonly materials: Readonly<Record<string, BuiltMaterial>>
+}): PainterMaterial[] {
+  return Object.values(built.materials).map((m) => ({
+    ramp: Math.floor(m.colour / 8),
+    base: (m.colour % 8) + (m.shade ?? 0),
+    ...(m.flat ? { flat: true } : {}),
+    ...(m.gloss !== undefined ? { gloss: m.gloss } : {}),
+    ...painterFieldsOf(m),
+  }))
 }

@@ -1,7 +1,7 @@
 // The figure content kind (`FigureDef`): a character as data. Sliders and gene overrides make
 // its skeleton, library ids (or inline values) make its look and motion. The shape is a
-// character file without its sprite fields (`face.camera`
-// and `face.turn`, `play`, `atlasOutfit`, `story`) and without per-figure swatches (a figure's colours are
+// character file without its sprite fields (`play`, `atlasOutfit`, `story`; the painter's `face` is kept) and without
+// per-figure swatches (a figure's colours are
 // library swatches, so every one is a palette colour checked in one place).
 
 import { contentRef } from '@automata/content/schema'
@@ -24,6 +24,24 @@ export interface HairDynamics {
   readonly sway: number
   readonly hang: number
 }
+
+/** What the painter's head cheats read: how much of the camera's pitch tips the head back, how much of its yaw it turns
+ * back toward the camera, seconds between blinks (0 never), and whether the face is drawn from the painter's templates. */
+export interface FaceDef {
+  readonly camera: number
+  readonly turn: number
+  readonly blink: number
+  readonly drawn: boolean
+}
+
+/** The base pair's values: what a figure that names none gets. */
+export const FACE_DEFAULTS: FaceDef = { camera: 0.6, turn: 0.1, blink: 3.7, drawn: true }
+
+/** A figure's face fields with the defaults filled in. */
+export const faceOf = (def: { readonly face?: Partial<FaceDef> | undefined }): FaceDef => ({
+  ...FACE_DEFAULTS,
+  ...def.face,
+})
 
 export interface FigureDef {
   readonly sliders: Partial<Sliders>
@@ -50,6 +68,8 @@ export interface FigureDef {
   readonly stand?: string | undefined
   /** A rig-limits id; the shared default if omitted. */
   readonly rig?: string | undefined
+  /** The painter's head cheats and drawn face; any left out take `FACE_DEFAULTS`. */
+  readonly face?: Partial<FaceDef> | undefined
 }
 
 /**
@@ -159,6 +179,14 @@ export const figureSchema: z.ZodType<FigureDef> = z
     hairPieces: z.array(contentRef('figure-hair')).min(1).optional(),
     stand: contentRef('figure-stand').optional(),
     rig: contentRef('figure-rig').optional(),
+    face: partialOf<FaceDef>(
+      z.strictObject({
+        camera: z.number().min(0).max(1).optional(),
+        turn: z.number().min(0).max(1).optional(),
+        blink: z.number().min(0).optional(),
+        drawn: z.boolean().optional(),
+      }),
+    ).optional(),
   })
   .superRefine((figure, ctx) => {
     if (!Object.hasOwn(figure.outfits, figure.default)) {

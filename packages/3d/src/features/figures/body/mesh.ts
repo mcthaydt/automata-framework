@@ -61,4 +61,23 @@ export interface Decal {
   when?: string[]
   /** true: only while the eyes blink; false: never while they do. */
   blink?: boolean
+  /** Only at these cell densities, lowest and highest: detail that needs the texels, or the bolder mark that stands in below. */
+  density?: [number, number]
+  /** A print stamped flat in the cell at this point, its top's centre, rather than texel by texel on the cloth. */
+  print?: Print
+}
+
+/**
+ * A print laid flat in the cell: its bitmap (each character a material from `inks`, `#` the decal's own by default;
+ * `,` a gap between letters, which closes as the cloth turns from the camera; `.` none), its across (as the viewer
+ * reads it) and down directions on the cloth in the bone's space, a bitmap texel's size (m), and the surface it is
+ * printed on (its seams): it shows on that surface's visible texels only, or, with none, over whatever lies behind it.
+ */
+export interface Print {
+  rows: string[]
+  u: V3
+  v: V3
+  texel: number
+  seams?: number[]
+  inks?: Record<string, string>
 }

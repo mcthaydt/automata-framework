@@ -42,3 +42,29 @@ describe('the base pair', () => {
     expect(man.skin).not.toBe(woman.skin)
   })
 })
+
+describe("the base pair's swatches carry the painter's paint and tones, as the painter's source has them", () => {
+  it('skin, hair, eyes and lips', () => {
+    const skinTones = [0.55, 0.04, -0.5]
+    expect(BASE_PAIR_SWATCHES['skin-warm']).toMatchObject({
+      ramp: 'wine',
+      step: 5,
+      paint: ['#edb67c', '#ce9770', '#bd7d64', '#a76057'],
+      tones: skinTones,
+    })
+    expect(BASE_PAIR_SWATCHES['skin-brown']).toMatchObject({
+      ramp: 'skin',
+      step: 4,
+      paint: ['#c7826c', '#ad6e51', '#885041', '#733d3b'],
+      tones: skinTones,
+    })
+    expect(BASE_PAIR_SWATCHES['hair-black']?.paint).toEqual(['#23324d', '#181f2f', '#181f2f', '#181f2f'])
+    expect(BASE_PAIR_SWATCHES['eye-brown']?.paint).toEqual(['#4a353c', '#1d1d21', '#1d1d21', '#000000'])
+    expect(BASE_PAIR_SWATCHES['lips-warm']?.paint).toEqual(['#a76057', '#d28d7a', '#904647', '#904647'])
+    expect(BASE_PAIR_SWATCHES['lips-brown']).toMatchObject({
+      ramp: 'rust',
+      step: 2,
+      paint: ['#7c4b47', '#98595a', '#633432', '#633432'],
+    })
+  })
+})
