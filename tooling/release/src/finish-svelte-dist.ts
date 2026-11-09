@@ -110,10 +110,9 @@ export function finishSvelteDist(dist: string, options: FinishSvelteDistOptions)
     const vendored = file.endsWith('.d.ts') ? { ...options.vendoredTypes, ...vendoredCode } : vendoredCode
     writeFileSync(file, pointAtVendored(dist, file, readFileSync(file, 'utf8'), vendored))
   }
-  // `.svelte` files stay source in dist, so their imports need the same fix for a game's build to resolve them.
-  const withImports = (path: string) =>
-    path.endsWith('.js') || path.endsWith('.d.ts') || path.endsWith('.svelte')
-  for (const file of filesBelow(dist).filter(withImports)) {
+  // A component keeps its `<script lang="ts">` as written, so its `./x.svelte.ts` import (a module that uses runes)
+  // must also name the `.svelte.js` file `svelte-package` emitted, or a game's bundler cannot find it.
+  for (const file of filesBelow(dist).filter((path) => /\.(?:js|d\.ts|svelte)$/.test(path))) {
     writeFileSync(file, addExtensions(file, readFileSync(file, 'utf8')))
   }
   for (const file of filesBelow(dist).filter((path) => path.endsWith('.d.ts'))) {

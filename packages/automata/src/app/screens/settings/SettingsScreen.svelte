@@ -86,7 +86,7 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
 
 <style>
   /* On a short or compact band the list keeps the row Back would take: the dialog's Close, named Back, does the same
-     (Settings opened from the title needs only the Close). A tall band draws both, as a pause menu does. */
+     (Settings opened from the title has only the Close). A tall band draws both, as the pause menu does. */
   :global(:is([data-height='short'], [data-height='compact'])) :global(.af-modal__actions:has(> .af-settings__back)) {
     display: none;
   }
@@ -139,7 +139,7 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
       align-items: start;
       column-gap: 24px;
     }
-    /* A tab of one section (Controls) takes the width: one column reads best. */
+    /* A tab of one section (Controls) takes the width: the Controls tab is one column. */
     .af-settings__section:only-child {
       grid-column: 1 / -1;
     }

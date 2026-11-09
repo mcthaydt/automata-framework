@@ -117,7 +117,6 @@ test('a wall moved in the dark Levels 3D is what the game plays', async ({ page,
   expect((await look(page)).field).toBe('rgb(19, 20, 23)')
   await page.screenshot({ path: test.info().outputPath('dark-studio.png') })
   const inDark = readPng(await darkStage.screenshot())
-  // Same size as the dark page; a null viewport would mean "no fixed size", so it is left out instead.
   const viewport = page.viewportSize()
   const lightContext = await browser.newContext({ colorScheme: 'light', ...(viewport ? { viewport } : {}) })
   try {

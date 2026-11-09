@@ -1,4 +1,4 @@
-// How an id reads to a person. Writer and Sequence both show ids this way, so it lives in shared/.
+// A key read as words: Writer's lines and Sequence's names both show one, so it lives here and not in either feature.
 
 /** `old_sign` and `old-sign` read as "Old sign". */
 export function humanize(id: string): string {
