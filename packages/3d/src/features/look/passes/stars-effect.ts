@@ -1,6 +1,6 @@
 // Stars: fixed points of light on the sky, where nothing is drawn. The sky is a direction, not a place, so a star's cell is
-// found from the pixel's direction (yaw in degrees, elevation in radians, the cells 1/3 degree and 1/180 radian: about a
-// pixel at the look's 180-pixel field), which the camera's heading and pitch (`aim`) and the lens give. A star is one of
+// found from the pixel's direction (yaw in degrees, elevation in radians, the cells 1/3 degree and 1/180 radian: a star spans a few
+// pixels of the look's field), which the camera's heading and pitch (`aim`) and the lens give. A star is one of
 // three DUEL colours, thicker with the time of day's `stars`; one in seven blinks to a dim colour.
 //
 // A `PostEffect` in GLSL + WGSL. It draws only where the scene's depth is the far plane (no mesh), above the horizon band.

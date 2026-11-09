@@ -1,6 +1,5 @@
-// The look's settings (content-shaped: the view's half of a game's look): how small the field is, how many steps light is cut into, the outline's edge, the dither and which
-// passes are on. Presentation only: the sim never reads it (law 1). Stars, rain and bloom are the world kit's passes,
-// each with a switch of its own, so they are not named here.
+// The look's settings (content-shaped: the view's half of a game's look): how small the field is, how many steps light is
+// cut into, the outline's edge, the dither, the mood and which passes are on. Presentation only: the sim never reads it (law 1).
 
 import { z } from 'zod'
 import type { Haze } from '../../shared/render/texel.ts'
@@ -10,6 +9,14 @@ export interface LookSwitches {
   readonly outline: boolean
   readonly grade: boolean
   readonly dither: boolean
+  /** Lamps and bright things glow into what is round them. */
+  readonly glow: boolean
+  readonly rain: boolean
+  readonly stars: boolean
+  /** A wet floor takes a lamp's reflection. */
+  readonly reflect: boolean
+  readonly shafts: boolean
+  readonly particles: boolean
 }
 
 export interface Look {
@@ -23,6 +30,8 @@ export interface Look {
   readonly dither: { readonly strength: number }
   /** Where the grade comes from: the time of day's, or none. */
   readonly grade: 'time' | 'none'
+  /** A named mood the whole frame is graded by, in OKLab, after the snap (`moods.ts`); none leaves the palette as it is. */
+  readonly mood?: string | undefined
   readonly switches: LookSwitches
   /** The painted figures' cells: the density they are painted at, in quarter steps between `min` and `max` texels of the
    * sheets' size, and the bytes the cell cache may hold. */
@@ -47,18 +56,35 @@ export interface Look {
 export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
   pixel: z
     .strictObject({ short: z.number().int().min(1, 'the short side of the field is at least 1 pixel') })
-    .default({ short: 180 }),
+    .default({ short: 360 }),
   steps: z.number().int().min(2, 'light is cut into at least 2 steps').default(5),
   outline: z.strictObject({ edge: z.number().min(0).max(1) }).default({ edge: 0.35 }),
   dither: z.strictObject({ strength: z.number().min(0).max(1) }).default({ strength: 0.04 }),
   grade: z.enum(['time', 'none']).default('time'),
+  mood: z.string().min(1).optional(),
   switches: z
     .strictObject({
       outline: z.boolean().default(false),
       grade: z.boolean().default(true),
       dither: z.boolean().default(true),
+      glow: z.boolean().default(true),
+      rain: z.boolean().default(true),
+      stars: z.boolean().default(true),
+      reflect: z.boolean().default(true),
+      shafts: z.boolean().default(true),
+      particles: z.boolean().default(true),
     })
-    .default({ outline: false, grade: true, dither: true }),
+    .default({
+      outline: false,
+      grade: true,
+      dither: true,
+      glow: true,
+      rain: true,
+      stars: true,
+      reflect: true,
+      shafts: true,
+      particles: true,
+    }),
   figures: z
     .strictObject({
       min: z.number().min(1, 'a cell is at least the sheets’ density').default(1),

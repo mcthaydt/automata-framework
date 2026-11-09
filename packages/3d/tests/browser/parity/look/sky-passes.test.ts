@@ -93,7 +93,14 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
     expect(() => addSkyPasses({ stars: true, glow: false })).toThrow()
     const renderer = await start()
     const names = renderer.view.passes.map((p) => p.constructor.name)
-    expect(names).toEqual(['DuelSnapEffect', 'StarsEffect', 'GlowEffect', 'RainEffect'])
+    expect(names).toEqual([
+      'CellCompositePass',
+      'DuelSnapEffect',
+      'StarsEffect',
+      'GlowEffect',
+      'RainEffect',
+      'FinishEffect',
+    ])
   })
 
   it('stars are DUEL colours in the sky above the horizon, and only there', async () => {

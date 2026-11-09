@@ -1,3 +1,4 @@
+import { DEFAULT_LOOK } from '@automata/3d'
 import { describe, expect, it } from 'vitest'
 import { fieldFor, fieldOfWindow } from '#src/features/scene/field.ts'
 
@@ -17,12 +18,12 @@ describe('the pixel field follows the screen it boots on', () => {
       expect(share(fieldFor(view), view)).toBeGreaterThanOrEqual(0.8)
     })
 
-  it('keeps the look’s 180 pixel short side', () => {
-    expect(fieldFor({ width: 1194, height: 834 }).height).toBe(180)
+  it('keeps the look’s pixel short side', () => {
+    expect(fieldFor({ width: 1194, height: 834 }).height).toBe(DEFAULT_LOOK.pixel.short)
   })
 
   it('bounds an ultra-wide screen, and falls back to the phone’s field when the screen has no size', () => {
-    expect(fieldFor({ width: 5120, height: 1080 }).width / 180).toBeLessThanOrEqual(2.4)
+    expect(fieldFor({ width: 5120, height: 1080 }).width / DEFAULT_LOOK.pixel.short).toBeLessThanOrEqual(2.4)
     expect(fieldFor({ width: 0, height: 0 })).toEqual(fieldFor({ width: 844, height: 390 }))
   })
 

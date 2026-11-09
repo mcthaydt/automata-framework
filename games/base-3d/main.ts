@@ -106,7 +106,7 @@ const now = (): number => simTick / TICK_HZ
 
 const TITLE = BASE3D_COPY.en.title
 /**
- * The pixel-art look's field (ADR 0007): the short side is the look's 180 pixels, drawn at resolution 1 and upscaled in
+ * The pixel-art look's field (ADR 0007): the short side is the look's pixels, drawn at resolution 1 and upscaled in
  * whole pixels, shaped like the screen the game boots on (a phone held sideways is 844 × 390) so a tablet's room fills
  * its height. The screens are DOM over the field.
  */

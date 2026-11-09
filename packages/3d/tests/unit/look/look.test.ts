@@ -7,9 +7,21 @@ import { targetSize } from '#src/features/look/target-size.ts'
 import { timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 
 describe('the look', () => {
-  it('the default look is a 180-pixel field with outline off, as the source profile has it', () => {
-    expect(DEFAULT_LOOK.pixel.short).toBe(180)
-    expect(DEFAULT_LOOK.switches).toEqual({ outline: false, grade: true, dither: true })
+  it('the default look is a 360-pixel field with outline off, and every pass the look can switch on', () => {
+    expect(DEFAULT_LOOK.pixel.short).toBe(360)
+    expect(DEFAULT_LOOK.switches).toEqual({
+      outline: false,
+      grade: true,
+      dither: true,
+      glow: true,
+      rain: true,
+      stars: true,
+      reflect: true,
+      shafts: true,
+      particles: true,
+    })
+    expect(DEFAULT_LOOK.mood).toBeUndefined()
+    expect(parseLook({ mood: 'sodium' }).mood).toBe('sodium')
   })
 
   it('a look names what is wrong with it', () => {
@@ -37,14 +49,14 @@ describe("the look's figure cells", () => {
 })
 
 describe('the low-resolution target', () => {
-  it('keeps its short side at 180 and follows the stage', () => {
-    expect(targetSize({ width: 1280, height: 720 })).toEqual({ width: 320, height: 180 })
-    expect(targetSize({ width: 390, height: 844 })).toEqual({ width: 180, height: 390 })
-    expect(targetSize({ width: 844, height: 390 })).toEqual({ width: 390, height: 180 })
+  it('keeps its short side at 360 and follows the stage', () => {
+    expect(targetSize({ width: 1280, height: 720 })).toEqual({ width: 640, height: 360 })
+    expect(targetSize({ width: 390, height: 844 })).toEqual({ width: 360, height: 779 })
+    expect(targetSize({ width: 844, height: 390 })).toEqual({ width: 779, height: 360 })
   })
 
   it('is never empty before the stage has a size', () => {
-    expect(targetSize({ width: 0, height: 0 })).toEqual({ width: 320, height: 180 })
+    expect(targetSize({ width: 0, height: 0 })).toEqual({ width: 640, height: 360 })
   })
 })
 
@@ -70,10 +82,25 @@ describe('look passes', () => {
     expect(registeredLookPasses().map((p) => p.name)).toEqual(['spec-rain'])
     expect(() => addLookPass(extra)).toThrow(/spec-rain/)
     const passes = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
-    expect(passes.list.at(-1)).toBe(passes.extra[0])
+    // The finish is always last, after an extension's pass, which must keep alpha for it.
+    expect(passes.list.at(-1)).toBe(passes.finish)
+    expect(passes.list.at(-2)).toBe(passes.extra[0])
     expect(passes.list.indexOf(passes.extra[0] as never)).toBeGreaterThan(
       passes.list.indexOf(passes.snap as never),
     )
+  })
+
+  it('grades by the look’s mood, and a mood nobody named is refused', () => {
+    const none = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
+    expect(none.finish.graded).toBe(false)
+    const sodium = createLookPasses(parseLook({ mood: 'sodium' }), timeOfDay('day'))
+    expect(sodium.finish.graded).toBe(true)
+    // The grade switch off leaves the palette as it is.
+    expect(
+      createLookPasses(parseLook({ mood: 'sodium', switches: { grade: false } }), timeOfDay('day')).finish
+        .graded,
+    ).toBe(false)
+    expect(() => createLookPasses(parseLook({ mood: 'dusky' }), timeOfDay('day'))).toThrow(/dusky/)
   })
 
   it('outline is off by default, and a switch turns it on', () => {

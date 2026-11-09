@@ -1,9 +1,9 @@
-// The field the look draws into: the short side is always the look's (180), the long side follows the stage's aspect,
-// so a phone held upright at 390 × 844 draws 180 × 390 and a 16:9 stage 320 × 180. The letterbox's composite target
+// The field the look draws into: the short side is always the look's (360), the long side follows the stage's aspect,
+// so a phone held upright at 390 × 844 draws 360 × 779 and a 16:9 stage 640 × 360. The letterbox's composite target
 // holds it at resolution 1 and upscales it nearest-neighbour, whole pixels (render/letterbox/composite-target.ts).
 
 /** The look's short side when a look names none. */
-const SHORT: number = 180
+const SHORT: number = 360
 /** The aspect before a stage has a size: 16:9, as the renderer's own placeholder. */
 const FALLBACK_ASPECT: number = 16 / 9
 

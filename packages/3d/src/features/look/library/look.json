@@ -1,6 +1,6 @@
 {
   "pixel": {
-    "short": 180
+    "short": 360
   },
   "steps": 5,
   "outline": {
@@ -13,7 +13,13 @@
   "switches": {
     "outline": false,
     "grade": true,
-    "dither": true
+    "dither": true,
+    "glow": true,
+    "rain": true,
+    "stars": true,
+    "reflect": true,
+    "shafts": true,
+    "particles": true
   },
   "figures": {
     "min": 1,

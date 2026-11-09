@@ -1,3 +1,4 @@
+import { DEFAULT_LOOK } from '@automata/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { dollhousePaint } from '#src/features/levels-3d/dollhouse/dollhouse-paint.ts'
 import {
@@ -22,8 +23,8 @@ afterEach(() => {
   canvas?.remove()
 })
 
-const W = 360
-const H = 240
+const W = 400
+const H = 360
 
 async function drawn(more = {}, selected: string[] = []): Promise<Uint8ClampedArray> {
   canvas = document.createElement('canvas')
@@ -57,9 +58,9 @@ const meanOf = (pixels: Uint8ClampedArray): [number, number, number] => {
 const total = (pixels: Uint8ClampedArray): number => meanOf(pixels).reduce((a, b) => a + b, 0)
 
 describe('the 3D view in the game’s look', () => {
-  it('draws at the game’s field: a short side of 180 pixels, scaled up', async () => {
+  it('draws at the game’s field: a short side of the look’s pixels, scaled up', async () => {
     await drawn()
-    expect(Math.min(canvas.width, canvas.height)).toBe(180)
+    expect(Math.min(canvas.width, canvas.height)).toBe(DEFAULT_LOOK.pixel.short)
   })
 
   it('draws in a few palette colours, as the game does, and not in the gradients a lit surface would give', async () => {

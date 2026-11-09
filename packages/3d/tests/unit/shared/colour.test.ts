@@ -1,7 +1,6 @@
 import { DEFAULT_PALETTE } from '@automata/content/palette'
 import { describe, expect, it } from 'vitest'
-import { rgbFromLab } from '#src/features/photo/colour.ts'
-import { labDistance, oklab } from '#src/shared/math/colour.ts'
+import { labDistance, oklab, rgbFromLab } from '#src/shared/math/colour.ts'
 
 /** OKLab with the platform's own maths, the way it was written before it ran on fdlibm. */
 function builtIn(rgb: number): [number, number, number] {

@@ -1,6 +1,6 @@
 // look-pixel-art: Wick walking a loop drawn in the pixel-art look, the low-resolution field that every 3D game here uses
 //
-// Shows: the look as one option (`look: DEFAULT_LOOK`): the scene is drawn at 180 pixels on the short side, the colours
+// Shows: the look as one option (`look: DEFAULT_LOOK`): the scene is drawn at 360 pixels on the short side, the colours
 //   snap to the DUEL palette, the light steps and a dark outline traces the edges; `targetSize` shapes the field like
 //   the page, and the renderer scales it up in whole pixels so the pixels stay square; fog is the look's distance.
 // Controls: none

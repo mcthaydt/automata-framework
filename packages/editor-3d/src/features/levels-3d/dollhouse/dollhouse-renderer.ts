@@ -1,3 +1,4 @@
+import { DEFAULT_LOOK } from '@automata/3d'
 import { Container, Graphics, type Renderer } from 'pixi.js'
 import { type Readable, writable } from 'svelte/store'
 import { createWebGL2Renderer, type RendererSize } from '../plan/plan-renderer'
@@ -27,7 +28,7 @@ const SELECTED_TINT = 0.35
 const EDGE_ALPHA = 0.6
 
 /** The game draws a field whose short side is this many pixels, upscaled in whole pixels (the look's `pixel.short`). */
-const FIELD_SHORT = 180
+const FIELD_SHORT = DEFAULT_LOOK.pixel.short
 
 function paintInto(graphics: Graphics, paint: DollhousePaint): void {
   graphics.clear()

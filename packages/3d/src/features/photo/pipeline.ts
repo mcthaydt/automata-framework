@@ -17,8 +17,8 @@
 // offset + 8 (a tone step, -8 to 7); slot 2 + r is DUEL ramp r, with value its step (0 to 7).
 
 import { hypot } from '@automata/sim/math'
-import { oklab } from '../../shared/math/colour.ts'
-import { duelIndexOf, hash3, rgbFromLab, STEPS } from './colour.ts'
+import { oklab, rgbFromLab } from '../../shared/math/colour.ts'
+import { duelIndexOf, hash3, STEPS } from './colour.ts'
 import type { Image } from './png.ts'
 
 /** OKLab, three floats a pixel. */
