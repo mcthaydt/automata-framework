@@ -2,6 +2,12 @@
 // sides, the sync loop and its status line, and GitHub sign-in. It takes its network, keychain, timers and git engine
 // as arguments, so the web editors and the Automata app share it; neither is the reference.
 
+export {
+  createGitEngine,
+  type GitEngineApi,
+  type GitEngineOptions,
+  type GitFs,
+} from '../shared/kit/sync/create-git-engine'
 export { generatedFolders, generatedNote, isGeneratedPath } from '../shared/kit/sync/generated-files'
 export {
   type GitEngine,

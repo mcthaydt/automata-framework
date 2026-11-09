@@ -57,6 +57,7 @@
     "@fontsource-variable/geist-mono": "5.3.0",
     "@mcthaydt/automata": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
+    "isomorphic-git": "1.44.4",
     "pixi.js": "8.22.0",
     "smol-toml": "1.9.0",
     "sucrase": "3.35.1",

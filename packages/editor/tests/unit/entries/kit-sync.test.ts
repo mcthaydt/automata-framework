@@ -24,6 +24,7 @@ describe('the kit sync entry', () => {
       'OfflineError',
       'SIGN_IN_WORDS',
       'STATUS_LINES',
+      'createGitEngine',
       'generatedFolders',
       'generatedNote',
       'githubToken',
@@ -35,11 +36,11 @@ describe('the kit sync entry', () => {
     ])
   })
 
-  test('imports no Svelte component, no Node built-in, no Effect and nothing but the TOML reader from outside', () => {
+  test('imports no Svelte component, no Node built-in, no Effect and nothing but the TOML reader and the git library from outside', () => {
     for (const file of reachable(resolve(SRC, 'entries/kit-sync.ts'))) {
       expect(file.endsWith('.svelte'), file).toBe(false)
       for (const [, specifier] of readFileSync(file, 'utf8').matchAll(/^import[^']*?from\s+'([^']+)'/gm))
-        expect(specifier, `${file} imports ${specifier}`).toMatch(/^\.|^smol-toml$/)
+        expect(specifier, `${file} imports ${specifier}`).toMatch(/^\.|^(smol-toml|isomorphic-git)$/)
     }
   })
 })
