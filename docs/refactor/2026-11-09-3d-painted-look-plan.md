@@ -20,7 +20,9 @@ function draws a level for the game and the editor.
 (vendored), Svelte 5.57, Vitest 5 (browser mode), Playwright 1.63.
 
 **Spec:** [2026-11-09-3d-painted-look-spec.md](2026-11-09-3d-painted-look-spec.md) (sections cited as "spec N"). **Audit:**
-[2026-11-09-3d-painted-look-audit.md](2026-11-09-3d-painted-look-audit.md). **Plan audit:** not yet run.
+[2026-11-09-3d-painted-look-audit.md](2026-11-09-3d-painted-look-audit.md). **Plan audit:**
+[2026-11-09-3d-painted-look-plan-audit.md](2026-11-09-3d-painted-look-plan-audit.md) (P1 to P14, fixed in place below;
+read its three verdicts before Task 1).
 
 **Sources** (read from, never imported; each port gets its row in `docs/provenance/sources.md`):
 FigureBuilder `025ffb4` (`/home/user/FigureBuilder` or a fresh clone of `mcthaydt/figurebuilder`), EnvironmentBuilder
@@ -40,7 +42,21 @@ FigureBuilder `025ffb4` (`/home/user/FigureBuilder` or a fresh clone of `mcthayd
 - EnvironmentBuilder's look numbers, verbatim: `light { step 0.1, gain 1.0, max 1.6 }`; `haze { colour #47655a, near 0,
   far 10, amount 0.85, glow 0.5 }`; `dither { strength 0.04 }`; `figureShadow 0.6`; `figureLight { ambient 1.5, threshold
   0.22, ink 40, floor 0.5, rim 0.35, floorCap 0.8 }`; lamp kit as `features/world/library/lamp-kit.json` (`tone 0.06`).
-- Alpha codes: `none 0`, `sky 160/255`, `painted 192/255`, `glowing 224/255`, `world 1`.
+- Alpha codes: `none 0`, `sky 160/255`, `painted 192/255`, `glowing 224/255`, `world 1`. A pixel is the code its alpha is
+  nearest, within half a byte; any other non-zero alpha is world (a blended piece leaves no code). A writer of a code
+  writes straight colour with blending off; a `Material3D` writing one divides its colour by the code in its last bit,
+  because the template premultiplies (`vec4(colour × alpha, alpha)`). The finish is the last pass and writes colour 0
+  where it writes alpha 0 (the view is blended onto the 2D stage as premultiplied colour). Plan audit P1 to P3.
+- `toneMapping: 'none'` still encodes (`pow(colour, 1/2.2)` at the template's end): the tile material works in
+  EnvironmentBuilder's space and its bit runs after the encode (P6).
+- The snap quantises as EnvironmentBuilder's `snap` does, `round((c + offset) × 255)`, then picks in OKLab with the
+  piecewise sRGB curve. The scene is stored in 8 bits first; measured, 3.79 % of texels then pick a neighbouring DUEL
+  colour (P5). A GPU-against-CPU pixel test models that store and skips only pixels within 1e-4 of a rounding boundary
+  or whose two nearest DUEL colours are within 1e-5, printing how many it skipped; a CPU port is held to its oracle
+  exactly.
+- The painter and the photo pipeline call `sin`, `cos`, `atan2`, `pow`, `exp`, `log`, `hypot` and `cbrt` from
+  `@automata/sim/math` (fdlibm; `cbrt` added there from fdlibm with its test), never `Math`, and write squares `x * x`, so
+  a cell or a tile is the same bytes in every engine (P9).
 - The world outline stays off (spec F16). The world kit's things become core's; the character kit stays an extension.
 - No committed tiles; the photo pipeline runs at load and in the checks.
 - `@automata/3d`, the editors and the games are private: no changeset. `@automata/tools` (the create-game templates)
@@ -98,10 +114,13 @@ backends, stop and record it: the fallback (spec 10) needs a plan change.
   (constants and `isPainted(a)`, `isGlowing(a)`, `isSky(a)`, `isWorld(a)`, `isDrawn(a)`, each true within half a byte of
   its code); `class CellCompositePass extends Pass3D` with `stage = 'afterTransparent'` and
   `show(cells: readonly PlacedCell[]): void`;
-  `interface PlacedCell { readonly colours: Texture; readonly depth: Texture; readonly x: number; readonly y: number;
-  readonly width: number; readonly height: number; readonly rootDepth: number }` (`x`, `y` the top-left field pixel,
-  whole numbers; `depth` an `r32float` texture of metres toward the camera from the root, FigureBuilder's G-buffer
-  convention; a texel's view depth is `rootDepth − depth`).
+  `interface PlacedCell { readonly colours: Texture; readonly depth: Texture; readonly source: readonly [number, number];
+  readonly x: number; readonly y: number; readonly width: number; readonly height: number; readonly rootDepth: number }`
+  (`x`, `y` the top-left field pixel, whole numbers, counted from the top on both backends; `source` the cell's top-left
+  texel in its textures, so particles and later figures can share an atlas and the pass draws every cell of one texture
+  in one call; `colours` uploaded with `alphaMode: 'no-premultiply-alpha'`; `depth` an `rgba8unorm` texture of metres
+  toward the camera from the root, FigureBuilder's G-buffer convention, packed 16-bit fixed point in `r` and `g` over
+  −4 m to +4 m, because WebGPU binds `r32float` only as `unfilterable-float`; a texel's view depth is `rootDepth − depth`).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -126,6 +145,21 @@ it('the snap leaves painted pixels alone and the finish writes alpha 1', async (
 it('the glowing code survives the forward pass to the post chain', async () => {
   expect(await codeSeenByPost({ material: 'glowing' })).toBe(224)
 })
+it('a material writing the glowing code keeps its colour', async () => { // the template premultiplies (P1)
+  expect(await colourSeenByPost({ material: 'glowing', colour: DUEL_LAMP })).toEqual(rgbOf(DUEL_LAMP))
+})
+it('a cell lands upright on both backends', async () => { // P4: an asymmetric cell, its top row one colour
+  const { pixels } = await drawWith({ cells: [cellAt(10, 20, TOP_ROW_MARKED_4x6)] })
+  expect(region(pixels, 10, 20, 4, 1)).toEqual(TOP_ROW_MARKED_4x6.rgb.slice(0, 4))
+})
+it('a faded wall over the sky reads as world, and nothing drawn finishes as colour 0', async () => { // P2, P3
+  const { pixels, alpha } = await drawWith({ fadedWall: 0.4, snap: true, finish: true })
+  expect(codeAt(fadedPixel)).toBe('world')
+  expect(pixelsWhere(alpha, 0).every((p) => p.r === 0 && p.g === 0 && p.b === 0)).toBe(true)
+})
+it('a cell depth survives its packing to within a millimetre', () => { // alpha-codes.test.ts sibling, unit
+  for (const d of [-3.9, -0.25, 0, 0.0004, 1.37, 3.9]) expect(Math.abs(unpackDepth(packDepth(d)) - d)).toBeLessThan(1e-3)
+})
 ```
 
 - [ ] **Step 2: Run them to see them fail**
@@ -136,11 +170,16 @@ Expected: FAIL (`cell-composite-pass.ts` does not exist).
 - [ ] **Step 3: Implement `alpha-codes.ts` and `CellCompositePass`**
 
 The pass adds one graph pass at `afterTransparent` that draws one quad per placed cell into `graph.sceneColor` with
-the depth test on and depth writes on; the fragment reads the cell's texel with `texelFetch` (WGSL `textureLoad`),
-discards alpha under the painter's cut (FigureBuilder `OPAQUE`), writes `vec4(rgb, ALPHA.painted)` and the texel's own
-depth (`gl_FragDepth` / `@builtin(frag_depth)` from `rootDepth − depth` through the camera's projection). Quad corners
-are whole field pixels in NDC. GLSL and WGSL twins. A test-only `FinishEffect` stub (alpha to 1 where drawn) may live in
-the test file until Task 12 builds the real one.
+the depth test on, depth writes on and **blending off** (a blended write would mix the world into the figure and the
+code); the fragment reads the cell's texel with `texelFetch` (WGSL `textureLoad`) at `source + texel`, discards alpha
+under the painter's cut (FigureBuilder `OPAQUE`), writes straight `vec4(rgb, ALPHA.painted)` and the texel's own depth
+(`gl_FragDepth` / `@builtin(frag_depth)` from `rootDepth − depth` through the camera's projection). Quad corners are
+whole field pixels in NDC, flipped the way the graph binds the scene target on that backend (`FullscreenPass` hands its
+effects the same flag in `uFxTexel.z`). GLSL and WGSL twins. `alpha-codes.ts` also exports `packDepth` and
+`unpackDepth` (and their GLSL/WGSL twins) and the reading rule (the nearest code within half a byte; any other non-zero
+alpha is world). A test-only `FinishEffect` stub (alpha to 1 where drawn, colour 0 where not) may live in the test file
+until Task 12 builds the real one. A test-only `Material3D` with a last bit that writes the glowing code (dividing its
+colour by the code first) stands in for Task 14's material.
 
 - [ ] **Step 4: Run the tests on WebGL2 here; mark WebGPU for the GPU runner**
 
@@ -168,7 +207,11 @@ Fixtures from the sources, run once, committed with the source commit they came 
   `interface OracleFrame { readonly id: string; readonly member: 'base-m' | 'base-f'; readonly density: number;
   readonly yaw: number; readonly pitch: number; readonly cell: readonly [number, number]; readonly feet: readonly [number,
   number]; readonly soup: Soup; readonly decals: readonly ViewDecal[]; readonly face: FaceStamp | null;
-  readonly hands: readonly HandStamp[]; readonly md5: string }` (types from Task 5's port);
+  readonly hands: readonly HandStamp[]; readonly motion: OracleMotion; readonly md5: string }` (types from Task 5's
+  port); `interface OracleMotion { readonly t: number; readonly phase: number; readonly moving: boolean; readonly yaw:
+  number; readonly headYaw: number; readonly lookUp: number; readonly view: number; readonly pitch: number; readonly
+  hair: { readonly pitch: number; readonly roll: number } }` (the `MotionState` FigureBuilder's `motion()` built for the
+  frame, so Task 6 poses AF's figure from the same state);
   `interface EbOracle { vertexLight: { scene: string; time: string; at: V3; normal: V3; light: V3 }[]; shade: { albedo:
   number; light: V3; share: number; x: number; y: number; out: number }[]; spriteLight: { cell: string; lamps:
   SpriteLamp[]; md5: string }[]; tiles: { swatch: string; texels: [number, number]; md5: string }[] }`.
@@ -182,8 +225,10 @@ Fixtures from the sources, run once, committed with the source commit they came 
   (`npx vite-node <path>/figurebuilder-cells.ts --out <AF>/packages/3d/tests/fixtures/oracles/figurebuilder-025ffb4`).
   The twelve frames: each base pair member at density 1 and 2, in the hero made pose (`figure/frames.ts`), standing at
   yaw 45° and 180°, and walk pose 3 at yaw 90°. Each frame writes the soup `soupOf` made (`verts`, `tris` as
-  little-endian bytes into `soups.bin`, offsets in `frames.json`), the decals, the face and hand stamps, and the md5 of
-  the painted cell (`painted` bytes); four frames also as PNG.
+  little-endian bytes into `soups.bin`, offsets in `frames.json`), the decals, the face and hand stamps, the motion
+  state its `motion()` returned (`OracleMotion`), and the md5 of the painted cell (`painted` bytes); four frames also as
+  PNG. It also writes which frames lose an eye (`f13: true`, by `eyesIn`, the eye-white clusters on the eye row): at the
+  sheets' 18° the audit saw it for the hero of base-f and base-m at density 1.
 - [ ] **Step 4: Write and run `environmentbuilder-look.ts`** in an EnvironmentBuilder checkout at `6d82a52`:
   `vertexLight` at 200 points a scene (vertices of the built scene, every 7th, seeded order); `shade`'s `colourOf` on
   500 sampled (albedo, light, haze share, x, y) from the base interior's diorama frame; `lightCell` on the base pair's
@@ -260,7 +305,9 @@ it('core has the kit: a preset naming a chair builds', () => { // tests/unit/wor
 
 - [ ] **Step 2: Run them**: FAIL (old paths).
 - [ ] **Step 3: Move by the map**, fix imports, make `decodePng` async with `DecompressionStream` (and every caller
-  `await`), register the kit's generators in core (`register-kit-props.ts`, loaded by `features/world/base/core-library.ts`),
+  `await`), route the pipeline's maths through `@automata/sim/math` (`oklab`'s `Math.cbrt` and `** 2.4` in
+  `shared/math/colour.ts`, `rgbFromLab`'s `** (1 / 2.4)`, `Math.hypot`; `x ** 2` and `x ** 3` as products; see Global
+  Constraints) with a test that `oklab` is unchanged to 1e-12 over the 256 DUEL colours, register the kit's generators in core (`register-kit-props.ts`, loaded by `features/world/base/core-library.ts`),
   delete what the Files list deletes.
 - [ ] **Step 4: Run**: `pnpm --filter @automata/3d exec vitest run --project unit` → PASS (the moved tests' counts equal
   the extension's before the move, minus the deleted tile-file tests, which the log names);
@@ -341,12 +388,16 @@ it('both eyes draw wherever the face template shows both', () => { // eyes.test.
 })
 ```
 
-`F13_FRAMES` names the oracle frames FigureBuilder painted with one eye (the hero pose: base-f at density 1, base-m at
-density 2 at 25°; Task 2's script writes which). `eyesIn` counts the eye-white clusters on the eye row.
+`F13_FRAMES` names the oracle frames FigureBuilder painted with one eye, read from the fixture's `f13` flags (every
+oracle frame is at 18°, where the audit saw the hero of base-f and of base-m at density 1 drop it; base-m at density 2
+dropped it only at 25°, which `eyes.test.ts` covers). `eyesIn` counts the eye-white clusters on the eye row.
 
 - [ ] **Step 2: Run** (`--project unit tests/unit/figures/paint`) → FAIL.
 - [ ] **Step 3: Port** file by file in the order listed, each a faithful port rewritten in AF's style (kebab names, no
-  `!`, why-comments). The F13 fix in `shaded()`: a texel whose material's ramp row equals the skin's ramp row
+  `!`, why-comments). Every `Math.sin`, `cos`, `atan2`, `pow`, `exp`, `log`, `hypot`, `cbrt` and non-integer `**` goes
+  through `@automata/sim/math` (add `cbrt`, fdlibm's, to `dmath.ts` first with its own test); `x ** 2` becomes `x * x`.
+  V8's `Math` runs fdlibm ports for most of these, so the Node oracle should still agree byte for byte (not checked by
+  the plan audit); if a frame does not, find the call and record it in the log before changing anything else. The F13 fix in `shaded()`: a texel whose material's ramp row equals the skin's ramp row
   (`skin~ear`) counts as skin, not as something worn. Seed the grain by part index exactly as the source does.
 - [ ] **Step 4: Run** → PASS: every oracle frame but `F13_FRAMES` byte for byte; the eye tests; the ported feature
   tests.
@@ -361,23 +412,35 @@ density 2 at 25°; Task 2's script writes which). `eyesIn` counts the eye-white 
 - Create: `packages/3d/src/features/figures/paint/soup.ts` (FigureBuilder `figure/figure.ts soupOf`, `handShapes`,
   `drawnFace`), `packages/3d/src/features/figures/paint/sprite-cheats.ts` (the head toward the camera by `faceTurn`, the
   three-quarter turn `THREE_Q = 0.2`, the head's lead in 30° steps)
-- Modify: `packages/3d/src/features/figures/clips/evaluate.ts` (takes the camera-relative yaw for the cheats)
-- Test: `packages/3d/tests/unit/figures/paint/soup.test.ts`
+- Modify: `packages/3d/src/features/figures/motion/motion-state.ts` and `motion/base.ts` (FigureBuilder's sprite cheats
+  come back as optional presentation inputs: `lookUp`, `view`, `pitch`, and the walk-level neck correction that reads
+  them, FigureBuilder `motion/motion.ts` lines 438–439 and 574–577; absent, the pose is today's, so the sim-facing and clip
+  tests keep their values), `packages/3d/src/features/figures/clips/evaluate.ts` (takes a `sprite?: SpriteCheats` option
+  and passes its `headYaw`, `lookUp`, `view` and `pitch` to `evaluateMotion` in place of `headYaw: 0`)
+- Test: `packages/3d/tests/unit/figures/paint/soup.test.ts`, `packages/3d/tests/unit/figures/motion/sprite-cheats.test.ts`
 
 **Interfaces:**
 - Consumes: `Built` (`figure/build.ts`), `paintCell` (Task 5).
 - Produces: `soupOf(built: Built, world: readonly M[], view: CellView): { soup: Soup; decals: ViewDecal[]; face:
   FaceStamp | null; hands: HandStamp[]; feet: [number, number]; cell: [number, number] }`;
   `interface CellView { readonly yaw: number; readonly pitch: number; readonly density: number }` (yaw relative to the
-  camera, pitch the camera's tilt snapped to 2°); `spriteCheats(relativeYaw: number, faceTurn: number): { readonly
-  headYaw: number; readonly lead: number }`.
+  camera, pitch the camera's tilt snapped to 2°); `interface SpriteCheats { readonly headYaw: number; readonly lookUp:
+  number; readonly view: number; readonly pitch: number }`; `spriteCheats(relativeYaw: number, shownLead: number,
+  pitch: number, face: { readonly camera: number; readonly turn: number }, headLead: number): SpriteCheats` (FigureBuilder
+  `figure.ts motion()`: `toCamera` from `face.turn` and `THREE_Q`, the lead in 30° steps clamped to the gait's
+  `headLead`, `lookUp = face.camera × pitch`, `view` the relative yaw).
 
-- [ ] **Step 1: Write the failing tests**: `the base pair standing gives FigureBuilder's soup` (for the oracle's
-  standing frames: same triangle count, every vertex within 1e-5); `the cell is 64·D by 96·D for 2.6 m`;
-  `a head at 45° turns 0.2 further toward the camera, none square on or in profile`.
-- [ ] **Step 2: Run** → FAIL.
-- [ ] **Step 3: Implement.** If AF's soup differs from FigureBuilder's, find whether the build or the pose differs and
-  make AF's match FigureBuilder's (the Owner's bar is FigureBuilder's figure); record each fix in the log.
+- [ ] **Step 1: Write the failing tests**: `the base pair stands and walks as FigureBuilder poses them` (for the oracle's
+  standing frames and its walk frame: AF's `evaluateMotion` given the frame's recorded `OracleMotion`, then `soupOf`;
+  same triangle count, every vertex within 1e-5); `the cell is 64·D by 96·D for 2.6 m`; `a head at 45° turns 0.2 further
+  toward the camera, none square on or in profile`; `with no sprite cheats the pose is today's` (sprite-cheats.test.ts:
+  every joint equal to `evaluateMotion` without them, for idle and walk). The hero frame is not compared: its hands come
+  from FigureBuilder's `standOf` at the outfit's openings, which AF's stands do not reproduce; Task 5 holds its painting.
+- [ ] **Step 2: Run** → FAIL (AF's `base()` has no `lookUp`, `view` or `pitch`, and `evaluate` passes `headYaw: 0`).
+- [ ] **Step 3: Implement.** If AF's soup still differs from FigureBuilder's, find whether the build or the pose differs
+  and make AF's match FigureBuilder's (the Owner's bar is FigureBuilder's figure), except AF's deliberate changes, which
+  stay and are named in the log: the idle-only twitch (the base pair's gaits `loose` and `bounce` have none), the feet
+  along `moveDir` (equal to the facing in a straight walk), clips and the solve. Record each fix in the log.
 - [ ] **Step 4: Run** → PASS, and AF's own figure tests (`--project unit tests/unit/figures`) still PASS.
 - [ ] **Step 5: Commit** `feat(3d): a figure's pose into the painter's soup, with FigureBuilder's sprite cheats`
 
@@ -447,7 +510,8 @@ it('paints at most one cell a run, the most wanted first', () => { // queue.test
   haze: LookHaze): V3`; `snapTexel(c: V3, x: number, y: number, strength: number): number`.
 
 - [ ] **Step 1: Write the failing tests**: `lights the oracle's cells as EnvironmentBuilder does` (both md5s);
-  `matches EnvironmentBuilder's shade for 500 texels` (`snapTexel(hazed(litColour(...)))` equals each `shade.out`);
+  `matches EnvironmentBuilder's shade for 500 texels` (`snapTexel(hazed(litColour(...)))` equals each `shade.out`
+  exactly: this is a CPU port from floats, with no 8-bit store between);
   `a figure in one light repaints nothing` (the finish cache: same cell, light within a step, share within 1/32, same
   place mod 4 → the same array instance); `the snap is OKLab nearest` (a dark teal that sRGB-nearest moves elsewhere).
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
@@ -499,6 +563,11 @@ it('after Try again the figures and the tiles draw again', async () => { /* lose
 - [ ] **Step 3: Implement.** Per frame, `frame()` runs one queued paint, then for each figure: its root's view depth and
   field pixel, its lights at the chest, its haze share (the depth past the focus), `finishCell` (cached), its placed
   cell; then `pass.show(cells)`. Prewarm (Task 7's order) on `add` and on `setFocus` when the density changes.
+  `setFocus` takes the **active view's** distance when a view is activated (`angledCamera`'s `activate`), never the
+  distance a 400 ms ease passes through, so a cut or an ease repaints once, not at every step between (plan audit P11).
+  The shadow quad is a `Mesh3D` with Pixi's `multiply` blend drawn before the figures; it writes alpha 1 (world), so the
+  snap re-dithers the shadowed floor and no code under it is lost (figures are composited after it) (P13). Add the test
+  `a shadow keeps the floor's pixels world-coded and DUEL after the snap`.
 - [ ] **Step 4: Run** → PASS (WebGL2 here; WebGPU on the runner).
 - [ ] **Step 5: Commit** `feat(3d): painted figures in the frame: the layer, the composite, the shadows`
 
@@ -527,16 +596,21 @@ it('after Try again the figures and the tiles draw again', async () => { /* lose
   painted. Base-3d's replay hash is unchanged.
 - [ ] **Step 4: Commit** `refactor(3d): figures are only painted; the mesh figure and its callers' meshes are gone`
 
-### Task 11: The same cells in every engine (spec 9)
+### Task 11: The same cells and tiles in every engine (spec 9, 10)
 
 **Files:**
-- Create: `packages/3d/tests/browser/parity/figures/cells-engines.test.ts`
+- Create: `packages/3d/tests/browser/parity/figures/cells-engines.test.ts`,
+  `packages/3d/tests/browser/parity/look/tiles-engines.test.ts`
 
-- [ ] **Step 1: Write the test**: `every oracle frame paints the same bytes as in Node` (md5 of `paintCell` in the page
-  equals the fixture's, F13 frames against Node's own result), in Chromium, WebKit and Firefox.
+- [ ] **Step 1: Write the tests**: `every oracle frame paints the same bytes as in Node` (md5 of `paintCell` in the page
+  equals the fixture's, F13 frames against Node's own result); `every textured swatch's tile is the same labels as in
+  Node` (each of the 62 textured swatches at `reads.at` and at the 360 field's 5 m floor and wall pairs, the md5 of its
+  labels equal to a Node-made fixture written by the test's own `--update` run, checked in), in Chromium, WebKit and
+  Firefox. The tiles need Task 3's move and `dmath` in the pipeline; if Task 13 is not yet built, the tiles test makes
+  them with `swatchTile` directly.
 - [ ] **Step 2: Run** in Chromium here → PASS; WebKit and Firefox in this container where they start, else on the
-  runner. A mismatch is investigated (the painter's `Math.cbrt`, `pow`, `sin`, `atan2` first) and fixed in the painter.
-- [ ] **Step 3: Commit** `test(3d): painted cells hash alike in Node, Chromium, WebKit and Firefox`
+  runner. A mismatch is investigated (a `Math` call that escaped `@automata/sim/math` first) and fixed in the code.
+- [ ] **Step 3: Commit** `test(3d): painted cells and photo tiles hash alike in Node, Chromium, WebKit and Firefox`
 
 ---
 
@@ -556,11 +630,18 @@ it('after Try again the figures and the tiles draw again', async () => { /* lose
 
 **Interfaces:**
 - Produces: `class FinishEffect extends PostEffect` (`constructor(remap: Uint8Array | undefined)`; writes alpha 1
-  wherever `isDrawn`, 0 elsewhere; applies the 256-entry palette remap); `moodRemap(mood: Mood): Uint8Array` (each DUEL
+  wherever `isDrawn`, and `vec4(0)` elsewhere, because the view is blended onto the 2D stage as premultiplied colour;
+  applies the 256-entry palette remap; always the last pass, after the extensions' `addLookPass` passes, which must keep
+  alpha and mark a pixel they paint with alpha 0 as world); `moodRemap(mood: Mood): Uint8Array` (each DUEL
   index moved in OKLab by the mood and snapped back); `MOODS: Readonly<Record<string, Mood>>`.
 
 - [ ] **Step 1: Write the failing tests**: `the shader picks nearestDuel's colour over a 17³ grid` (a 17 × 289 quad of
-  colours drawn with dither 0, read back, each pixel equal to `DUEL[nearestDuel(hex)]`); `a mood maps DUEL to DUEL`
+  colours drawn with dither 0, read back, each pixel equal to `DUEL[nearestDuel(hex)]`, except grid colours whose two
+  nearest DUEL colours are within 1e-5 in OKLab, which the test counts and prints; the shader linearises with the
+  piecewise sRGB curve, as `nearestDuel`); `the snap rounds as EnvironmentBuilder's` (a stored colour plus each Bayer
+  offset at strength 0.04 picks `nearestDuel` of `round((c + offset) × 255)`, over 4,096 seeded stored colours);
+  `the finish writes colour 0 where nothing was drawn and runs after an extension's pass` (an extension pass registered
+  with `addLookPass` sits before the finish in `list`); `a mood maps DUEL to DUEL`
   (every remap entry is an index under 256; `none` is the identity); `the frame's field is 360 on its short side`
   (`targetSize({ width: 844, height: 390 })` is 779 × 360).
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement.**
@@ -605,8 +686,17 @@ it('a photo that does not load draws its swatch flat and says which', async () =
 it('places a wall's tile from its start and a floor's in the world', () => { /* EnvironmentBuilder's uv cases */ })
 ```
 
+Also: `a store asked for many tiles makes one at a time and yields between them` (a fake clock: no two tiles made in
+one turn of the page); `a photo is fetched and prepared once for all its pairs`.
+
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement** (a tile's RGBA from `tileColours` over the swatch's ladder; the
-  store caches by name, pair and grime, and fetches a photo once). **Step 4: Run** → PASS.
+  store caches by name, pair and grime, fetches a photo once and prepares it once (flatten and facet, the 38 ms part),
+  and makes one tile a turn of the page; `TileStore` gains `prewarm(requests): Promise<void>` for a level's views at load
+  and `queue(request): void` for a pair asked for while frames are due, made one a frame by the figure layer's frame
+  loop, the old tile shown until then). Measure, in the test's log, the base interior's and Ember Hall's tiles for all
+  their views in Chromium with a 4× CPU throttle (CDP `Emulation.setCPUThrottlingRate`); over 2 s moves photo
+  preparation and tile making into a same-origin worker file (`new Worker(new URL('./tile-worker.ts', import.meta.url))`,
+  no `blob:`, as Ruken's `script-src 'self'` allows) in this task. **Step 4: Run** → PASS.
 - [ ] **Step 5: Commit** `feat(3d): photo tiles made at load, at the scale each view sees them`
 
 ### Task 14: The tile material, the stepped light and the haze (spec 5.3; F17) (**session break** after the oracle)
@@ -624,17 +714,26 @@ it('places a wall's tile from its start and a floor's in the world', () => { /* 
 - Produces: `class TileMaterial extends Material3D` (or the Phong subclass pattern `RampMaterial` uses):
   `constructor(options: { colour: number; floor?: TileImage; wall?: TileImage; glowing?: boolean; haze: LookHaze;
   gain: number })`, `setTiles(floor: TileImage | undefined, wall: TileImage | undefined): void`, `focus: number`;
-  `worldTexel(albedo: number, light: V3, share: number, x: number, y: number, look: Look): number` (the CPU rule the
-  shader matches: `snapTexel(hazed(litColour(albedo, light, gain), light, share, haze), x, y, strength)`).
+  `worldTexel(albedo: number, light: V3, share: number, x: number, y: number, look: Look, store8: boolean): number` (the
+  CPU rule the shader matches: `snapTexel(hazed(litColour(albedo, light, gain), light, share, haze), x, y, strength)`,
+  each channel rounded to a byte first when `store8`).
 
 - [ ] **Step 1: Write the failing tests**: `AF's bake agrees with EnvironmentBuilder's light within one step` (every
-  oracle point, each channel within `light.step`); `worldTexel matches EnvironmentBuilder's shade` (the 500 samples);
-  `the material draws worldTexel's colour` (a quad grid of known albedo, vertex light and depth, read back after the
-  snap, equal to `worldTexel` at each pixel); `a floor-like face takes the floor tile and a wall the wall tile`;
-  `an emissive swatch writes the glowing code and takes no light`.
+  oracle point, each channel within `light.step`); `worldTexel matches EnvironmentBuilder's shade` (the 500 samples,
+  exactly, with `store8: false`); `the material draws worldTexel's colour` (a quad grid of known albedo, vertex light
+  and depth, read back after the snap, equal to `worldTexel` with `store8: true` at each pixel but those within 1e-4 of
+  a rounding boundary, which the test counts and prints); `a DUEL texel at light 1 with no haze comes out byte for byte
+  before the snap` (the encode does not touch it); `a floor-like face takes the floor tile and a wall the wall tile`;
+  `an emissive swatch writes the glowing code, keeps its colour and takes no light`; `a faded tile piece blends and is
+  snapped as world` (the occluders' fade).
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** The fragment fetches the tile texel with `texelFetch` at
   `floor(uv × texels) + offset` wrapped by the tile's size, multiplies by the vertex colour and `gain`, clamps to 1,
-  hazes by the fragment's view depth past `focus`, writes `ALPHA.world` (or `ALPHA.glowing`). GLSL and WGSL twins.
+  hazes by the fragment's view depth past `focus`, writes `ALPHA.world` (or `ALPHA.glowing`). It works on the tile's
+  bytes and the baked light as EnvironmentBuilder does (sRGB 0 to 1 × light), not through the template's linear
+  lighting, and its bit is appended after the view's tone-mapping bit in the descriptor (as `RampMaterial` swaps
+  `phongLighting`), so `srgbEncode` never re-encodes it; it divides its colour by its code before the template's
+  premultiply. In `alphaMode: 'blend'` (the occluders' fade) it writes `alpha` and no code. GLSL and WGSL twins.
+  `worldTexel` gains `store8: boolean` (round each channel to a byte before the snap, as the 8-bit scene target does).
 - [ ] **Step 4: Run** → PASS; the base interior and exterior parity images re-recorded and opened.
 - [ ] **Step 5: Commit** `feat(3d): the tile material: photo texels under EnvironmentBuilder's stepped light and haze`
 
@@ -652,13 +751,18 @@ it('places a wall's tile from its start and a floor's in the world', () => { /* 
 - Consumes: Tasks 9, 13, 14; `buildWorld`, `drawWorld`, `sceneLamps`, `createSceneLight`, `dressLevel`.
 - Produces: `drawLevel(view: View3D, input: DrawLevelInput): Promise<LevelView>`; `interface DrawLevelInput { readonly
   level: AfSector2; readonly library: WorldLibrary; readonly look: Look; readonly time: TimeOfDay; readonly tiles:
-  TileStore; readonly camera: { readonly distance: number; readonly tiltDeg: number }; readonly occluders?: Occluders |
-  undefined; readonly field: { readonly short: number } }`; `interface LevelView { readonly world: WorldView; readonly
-  light: SceneLight | undefined; setCamera(camera: { distance: number; tiltDeg: number }): Promise<void>; dispose(): void }`
-  (a dressed sector is dressed first; `setCamera` swaps tiles and the haze focus, and is a no-op when the pairs match).
+  TileStore; readonly camera: { readonly distance: number; readonly tiltDeg: number }; readonly views: readonly {
+  readonly distance: number; readonly tiltDeg: number }[]; readonly occluders?: Occluders | undefined; readonly field: {
+  readonly short: number } }`; `interface LevelView { readonly world: WorldView; readonly light: SceneLight | undefined;
+  setCamera(camera: { distance: number; tiltDeg: number }): void; dispose(): void }` (a dressed sector is dressed first;
+  `drawLevel` resolves when every pair of `camera` and `views` is made, so a game's view change never makes a tile;
+  `setCamera` swaps to tiles it has and queues the ones it lacks, the old tiles shown until they are made, and is a no-op
+  when the pairs match; plan audit P11).
 
 - [ ] **Step 1: Write the failing tests**: `draws the base interior with its tiles, lamps and light` (pieces each with a
-  `TileMaterial`; the tiles asked for are the view's pairs only); `a new camera swaps tiles without rebuilding`;
+  `TileMaterial`; the tiles asked for are the pairs of its views only); `a new camera swaps tiles without rebuilding`;
+  `switching between the level's views makes no tile`; `a zoom to a new pair keeps the old tile until the new one is
+  made`;
   `Ember Hall draws through drawLevel and its replay hash is unchanged`.
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS (base-3d with `--configLoader runner
   --project unit`; its sim goldens unchanged).
@@ -726,7 +830,7 @@ it('places a wall's tile from its start and a floor's in the world', () => { /* 
 - Create: `packages/3d/src/features/look/passes/shafts-effect.ts` (EnvironmentBuilder `post.ts shafts`, the spot lamps'
   cones as uniforms), `packages/3d/src/features/figures/layer/particle-layer.ts` (EnvironmentBuilder `post.ts particles`:
   steam, drips, moths round aimed lamps at night, flames, embers; each particle a one- to three-pixel cell through the
-  composite pass)
+  composite pass, all of a layer's particles in one atlas texture by `PlacedCell.source`, so they draw in one call)
 - Modify: `packages/3d/src/shared/level/af-sector-2.schema.ts` (`emitters?: { kind: 'steam' | 'drip' | 'moth' | 'flame'
   | 'ember'; at: [x, y, z]; to?: [x, y, z]; ground?: number }[]`, presentation only), `af-sector-2-parts.schema.ts`
 - Test: `packages/3d/tests/browser/parity/look/{shafts,particles}.parity.test.ts`, `tests/unit/level/emitters.test.ts`
@@ -748,8 +852,10 @@ it('places a wall's tile from its start and a floor's in the world', () => { /* 
   every pass on, a 360 field), its projects (`frame-budget-3d-phone`, `frame-budget-3d-ipad`)
 - Create: `docs/refactor/2026-11-09-3d-painted-look-budget.md` (the numbers, from the artifact)
 
-- [ ] **Step 1:** Run the budget pages in Chromium here (software GL: recorded, not judged) and on the GPU runner
-  (`3d.yml`, by hand): frame time median and p95, paints a second, cache bytes, tile load time.
+- [ ] **Step 1:** Run the budget pages in Chromium here (software GL: recorded, not judged), here again with a 4× CPU
+  throttle (CDP `Emulation.setCPUThrottlingRate`, the phone stand-in for the CPU side: painting, tiles, the layer), and
+  on the GPU runner (`3d.yml`, by hand): frame time median and p95, paints a second, cache bytes, tile load time, the
+  longest main-thread task while a figure walks into a new direction and while the editor zooms.
 - [ ] **Step 2:** Record them, with the Owner's iPad and phone runs listed as the Owner's. If the runner misses 33 ms
   (phone) or 16.7 ms (iPad), stop and bring the numbers to the Owner (Global Constraints): no pass is turned off and
   the field is not lowered without their word.
@@ -841,7 +947,9 @@ it('places a wall's tile from its start and a floor's in the world', () => { /* 
 
 **Interfaces:**
 - Produces: `materialChoices(library: WorldLibrary, part: 'floor' | 'wall' | 'ceiling'): readonly MaterialChoice[]`;
-  `interface MaterialChoice { readonly name: string; readonly label: string; readonly tile: Promise<string> }`.
+  `interface MaterialChoice { readonly name: string; readonly label: string; readonly tile: Promise<string> }` (the tile
+  made from the store only when its row scrolls into view, one a frame, so opening the sheet never prepares all 62
+  photos at once; plan audit P11).
 
 - [ ] **Step 1: Write the failing tests**: `a floor can be given a photo material`; `each choice shows its tile`;
   `undoing a material change draws the old tile from the cache` (the store's `made` count does not rise).
@@ -936,3 +1044,5 @@ it('places a wall's tile from its start and a floor's in the world', () => { /* 
    15, 15) and used with those names after.
 4. **Review Focus:** seven lines, each with its test in its task (13, 9, 9, 9, 7, 9, 25).
 5. **Proportion:** the plan names files, signatures and tests; no task carries a body the sources do not already fix.
+6. **Plan audit (stage 3):** P1 to P14 fixed in place: Global Constraints and Tasks 1, 2, 3, 5, 6, 8, 9, 11, 12, 13,
+   14, 15, 19, 20 and 25 ([plan audit](2026-11-09-3d-painted-look-plan-audit.md)).

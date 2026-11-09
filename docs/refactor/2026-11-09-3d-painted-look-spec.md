@@ -3,7 +3,8 @@
 - **What this is:** the spec for 3D drawn at the level of the Owner's references (FigureBuilder and EnvironmentBuilder's
   shots), as a game. Stage 2 of 6 for this area, written with `superpowers:writing-plans` (no subagents) on 2026-11-09.
   Its plan is [2026-11-09-3d-painted-look-plan.md](2026-11-09-3d-painted-look-plan.md); its audit is
-  [2026-11-09-3d-painted-look-audit.md](2026-11-09-3d-painted-look-audit.md) (F1 to F13, R1 to R4).
+  [2026-11-09-3d-painted-look-audit.md](2026-11-09-3d-painted-look-audit.md) (F1 to F13, R1 to R4); its plan audit is
+  [2026-11-09-3d-painted-look-plan-audit.md](2026-11-09-3d-painted-look-plan-audit.md) (P1 to P14, fixed in place here).
 - **Checked against:** AF `0eb970be` (branch `claude/project-thread-5izi62`, PR #570 on #567), FigureBuilder `025ffb4`,
   EnvironmentBuilder `6d82a52`.
 - **Path:** architectural (the figure renderer is replaced, the world kit moves into core, the look's frame changes).
@@ -80,7 +81,8 @@ swatches' photos in 2,346 ms (38 ms a swatch, once per photo), then makes their 
 ### 4.1 What is drawn
 
 A figure is FigureBuilder's painter's cell: its colours (DUEL), its normal map and its per-texel depth, from the parts
-AF's `build()` makes, posed by AF's own `evaluate()`. The mesh figure is deleted (audit section 5, "What is deleted").
+AF's `build()` makes, posed by AF's own `evaluate()` with FigureBuilder's sprite cheats given back to it (`lookUp`,
+`view`, `pitch` and the walk's neck correction, which AF's `base()` had dropped; plan audit P8). The mesh figure is deleted (audit section 5, "What is deleted").
 The port is the audit's table (section 5), plus FigureBuilder's sprite cheats from `figure.ts motion()`: the head turned
 toward the camera by `faceTurn`, the three-quarter turn (`THREE_Q`), the head's 30° lead. Every ported file gets its
 provenance row.
@@ -130,6 +132,12 @@ is cached by its cell, its light (each channel to the 0.1 step), its haze share 
   its feet's texel where the root projects (rounded), one texel to one pixel. Each texel writes its own depth (the root's
   view depth plus the cell's depth channel), so the hardware depth test hides a figure's legs behind a table. A texel
   under the painter's alpha cut is discarded. It writes the **painted** alpha code (5.4), so the snap leaves it as it is.
+  It draws with blending off and writes straight colour (not premultiplied), its quads placed with the backend's flip.
+  A cell's depth is packed into an 8-bit texture (16-bit fixed point), not `r32float`, which WebGPU binds only as
+  `unfilterable-float`; colours are uploaded unpremultiplied. A placed cell names a source rect, so particles share one
+  atlas (plan audit P1, P4, P12).
+- **Order and occluders:** the composite runs after the transparent pass, so a wall the occluders have faded never
+  covers a figure: the player stays seen through it, as the fade intends (P13).
 - **The shadow:** a quad on the floor under each figure, drawn before the snap, multiplies the light there by
   `look.figureShadow` (0.6) where the contact ellipse or the silhouette thrown along the key falls (EnvironmentBuilder
   `shadowOf`).
@@ -168,7 +176,12 @@ is a texture it draws); ADR 0002's consequences get the note.
 - **Placed as EnvironmentBuilder places it:** walls tile from their start, floors in the world, props in their own frame;
   `{ tile, repeat, pan, align, turn }` from the surface (`world/surface.ts`). A world mesh carries its texture
   coordinates in metres and a flag for floor-like faces; the material scales them by the tile's texels a metre.
-- **On a view change** the pieces take the new view's tiles (a texture and a scale per material, no rebuild).
+- **On a view change** the pieces take the new view's tiles (a texture and a scale per material, no rebuild). A level
+  names all its views; every view's pairs are made at load. A pair asked for later (an editor's zoom or orbit) is made
+  one tile a frame while the old tile shows. Density and tiles follow the active view's distance, never the distance
+  an ease passes through; the haze's focus may follow the live camera (P11).
+- **Engines:** the pipeline's `oklab`, powers and `hypot` run on `@automata/sim/math` (fdlibm), so a tile is the same
+  bytes in every engine; squares are written `x * x` (P9).
 
 ### 5.3 The tile material
 
@@ -189,10 +202,24 @@ is a texture it draws); ADR 0002's consequences get the note.
   colour plus the Bayer offset is converted (linear sRGB, Ottosson's matrices, `cbrt`) and the nearest is taken, the
   first winning a tie, as `nearestDuel`. A unit test compares the shader's choice (run in a real context) with
   `nearestDuel` over a grid of colours.
-- **Alpha codes** carry what the post chain must know, in steps an 8-bit target holds exactly: `0` nothing drawn (the
-  sky shows), `1` world, `224/255` glowing, `192/255` painted. The snap snaps world and glowing pixels and passes painted
+- **Alpha codes** carry what the post chain must know, in steps an 8-bit target holds exactly: `0` nothing drawn, `160/255`
+  the sky pass, `192/255` painted, `224/255` glowing, `1` world. The snap snaps world and glowing pixels and passes painted
   ones through; the finish writes 1 wherever anything was drawn. The first task proves the codes survive the forward
   pass and the post chain on WebGL2 and WebGPU.
+- **How a code is read:** a pixel is the code its alpha is nearest, within half a byte; any other non-zero alpha is
+  world (a blended piece, such as a wall the occluders fade, leaves `a + dst × (1 − a)`, which is no code) (P3).
+- **Premultiplication:** `@pixi/3d`'s material template writes `vec4(colour × alpha, alpha)`, so a material that writes
+  a code divides its colour by the code in its last bit (P1). The last post pass is blended onto the 2D stage as
+  premultiplied colour, so the finish writes colour 0 where it writes alpha 0, runs after every other pass, and a pass
+  that paints a pixel with alpha 0 (a glow ring, rain or a particle over the sky) marks it drawn (P2).
+- **The 8-bit store:** the scene is stored in 8 bits before the snap, and EnvironmentBuilder snaps from floats; measured,
+  3.79 % of texels then pick a neighbouring DUEL colour in the dither (P5). The snap quantises as EnvironmentBuilder's
+  does (`round((c + offset) × 255)`) on the stored colour. The CPU port of EnvironmentBuilder's rule (`worldTexel`) is
+  held to its oracle exactly; the GPU frame is held to `worldTexel` with the 8-bit store modelled, every pixel equal but
+  those within 1e-4 of a rounding boundary, which the test counts and prints. A half-float scene target (0.37 %) needs a
+  graph of AF's own and is not taken.
+- **The encode:** `toneMapping: 'none'` still writes `pow(colour, 1/2.2)` at the template's end. The tile material
+  lights, hazes and codes in EnvironmentBuilder's space (sRGB bytes × light) and its bit runs after the encode (P6).
 
 ### 5.5 Lamps
 
@@ -272,10 +299,13 @@ none of it.
 
 The audit's risks (section 13) stand, with these:
 
-- **Load time:** a level's tiles take about 1 s on this container (8 swatches, 2 views). The start waits for them; the
-  journey holds it to a budget; a worker is the step after.
+- **Load time:** a level's tiles take about 1 s on this container (8 swatches, 2 views); a phone is two to four times
+  slower. The start waits for them; Ember Hall's load is measured in Chromium at a 4× CPU throttle, and over 2 s there
+  moves photo preparation and tile making into a same-origin worker file (Ruken's `script-src 'self'`; no `blob:`).
 - **Engines and the pipeline:** the pipeline and the painter use `cbrt`, `pow`, `sin` and `atan2`; a tile or a cell
-  could differ by a label between engines. The parity task hashes both in four engines; a difference is fixed in the
-  code, never accepted.
+  could differ by a label between engines. Both run on `@automata/sim/math` from the start (P9); the parity task hashes
+  cells and tiles in four engines; a difference is fixed in the code, never accepted.
+- **Posing:** AF's `base()` dropped FigureBuilder's sprite cheats; they come back as presentation inputs to
+  `MotionState` (P8), so a cell is FigureBuilder's figure, not only its painting.
 - **The beta's alpha:** if a target or a backend changes the alpha codes, the fallback is a second colour target for the
   codes; the first task finds out.
