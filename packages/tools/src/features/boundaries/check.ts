@@ -26,16 +26,17 @@ export type Rule =
   | 'import'
   | 'koota-soa'
   | 'platform-import'
-  | 'forbidden-import'
   | 'extension-import'
   | 'feature-import'
   | 'shared-import'
+  | 'shared-island'
   | 'app-import'
   | 'entries-import'
   | 'entries-logic'
   | 'testing-import'
   | 'alias-in-src'
   | 'browser-import'
+  | 'forbidden-import'
   | 'parse-error'
 
 export interface Finding {

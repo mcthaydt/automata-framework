@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
-import { SAMPLE_GAME } from '#src/features/suite/memory/sample-ports.ts'
 import { openSuitePorts } from '#src/features/suite/shell/open-suite-ports.ts'
+import { SAMPLE_GAME } from '#src/features/suite/shell/sample-ports.ts'
 
 // The suite page opens the game it is served on: when its own origin answers `/api/ping` as an editor server, the
 // files are the checkout's, over HTTP; only when nothing answers does it open the sample game held in memory.
