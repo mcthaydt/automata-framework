@@ -3,7 +3,7 @@
   there is no rule to choose or add, and an inspector saying so is a panel of nothing (build audit G2).
 -->
 <script lang="ts">
-import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
+import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import RuleInspector from './RuleInspector.svelte'
 import { tileImages, tilesState } from './tiles-state.svelte'
 import type { TilesetsSession } from './tilesets-session'

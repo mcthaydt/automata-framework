@@ -8,7 +8,7 @@
 import type { TouchButton } from '../../features/input/keys.ts'
 import { type InputMethodTracker } from '../../shared/ui/browser/input-method.svelte'
 import ScreenFrame from '../../shared/ui/layout/ScreenFrame.svelte'
-import { PlaySession, providePlay } from '../../shared/ui/slots/play-context.svelte.ts'
+import { PlaySession, providePlay } from '../../shared/ui/slots/play-context.svelte'
 import { type UiComponent } from '../../shared/ui/slots/ui-slot'
 import CameraDragSurface from '../../shared/ui/touch/CameraDragSurface.svelte'
 import { type DragTracker } from '../../shared/ui/touch/camera-drag-surface'

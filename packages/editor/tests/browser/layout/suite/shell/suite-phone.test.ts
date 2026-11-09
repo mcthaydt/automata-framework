@@ -6,7 +6,7 @@ import { checkLayout, publishConditions, settleLayout } from '@automata/framewor
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { createLevels2d } from '#src/app/suite/levels-2d/levels-2d-suite-editor.ts'
-import { SAMPLE_GAME, samplePorts } from '#src/features/suite/memory/sample-ports.ts'
+import { SAMPLE_GAME, samplePorts } from '#src/features/suite/shell/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'

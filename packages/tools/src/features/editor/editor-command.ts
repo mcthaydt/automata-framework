@@ -126,6 +126,7 @@ export async function editorCommand(
     return 2
   }
   const query = secret === undefined ? '' : `/?token=${secret}`
+  // Loaded here, like the server itself: the module reads the editor suite, which Node cannot run from the workspace bin.
   const { gameName } = await import('./serve-editor.ts')
   io.stdout(`Opened ${gameName(root)}.\n  This computer: ${running.url}${query}\n`)
   if (lan)

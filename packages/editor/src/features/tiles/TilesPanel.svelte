@@ -1,6 +1,6 @@
 <!-- The Tiles view's panel in the suite's shell: the tilesets, auto layers, rule groups and rules. -->
 <script lang="ts">
-import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
+import type { ObjectUrls } from '../../shared/level-2d/session/view-props'
 import TilesetsPanel from './TilesetsPanel.svelte'
 import { tileImages, tilesState } from './tiles-state.svelte'
 import type { TilesetsSession } from './tilesets-session'
