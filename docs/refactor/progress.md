@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 42% (10 of 24 stages done; the customer value pipeline's six stages are counted from 2026-11-08).**
+**Overall: 37% (11 of 30 stages done; the paid apps' and customer value pipelines' six stages each are counted from 2026-11-08).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -539,6 +539,17 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## The paid apps: desktop and mobile (stage 1 of 6 done, 2026-11-08)
+
+The Owner, 2026-11-08 14:53: "should we get to using tauri to package to desktop, ios, and android? Also let's use
+nomad sculpt economics $19.99 for mobile, $39.99 for desktop; lets keep essentials on web, everything open source except
+deployment, but the full suite requires the app desktop or mobile; it needs to be synced to github".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08, on PR #511: 8 high (A1 to A8), 9 medium (A9 to A17), 3 low (A18 to A20), one decision for the Owner (D1, which editors stay on the web), settled 21:25: every editor is free on the web and the apps sell the download. A Tauri desktop build opened the full suite on a new game; a wall, a key and a longer flash were made in it, played in it and seen. Play needed an `on_new_window` handler to open at all | [audit](2026-11-08-apps-audit.md) |
+| 2. Plan and spec | Not started; D1 is settled (every editor free on the web). It includes the Review page: the Owner, 2026-11-08 19:11, wants coding agents to work on a branch and open a pull request, and the person says yes or no in the editors, or (19:16) a switch uses changes without asking. Review is built new: the stack deleted the old desk (audit section 7). An MCP server for the editors in the downloaded apps, on computers and phones and never in the browser, is a later stage (the Owner, 21:26); the plan leaves room for it (audit section 7). The apps go on sale when Pixi 3D is public (the Owner, 2026-10-23) | |
 
 ## Customer value for AI game makers: 33% (2 of 6 stages done, 2026-11-08)
 
