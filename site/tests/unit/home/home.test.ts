@@ -7,10 +7,12 @@ import {
   CHANGELOG_SECTION,
   CREATE_COMMAND,
   DEMO_BAR,
+  DETERMINISM,
   EXAMPLE_EXCERPT,
   EXAMPLE_PATH,
   HERO,
   HOME_EXAMPLES,
+  PUBLISH_SECTION,
   TARGETS,
 } from '#src/features/home/home-content.ts'
 import { APP_PRICES, NO_CREDITS } from '#src/shared/content/pricing.ts'
@@ -67,6 +69,25 @@ describe('Home', () => {
       /no-code/i,
     ])
       expect(text).not.toMatch(gone)
+  })
+
+  it('promises only what a new game does today', () => {
+    // A new game's tests run the same moves twice and compare; nothing records a play for the maker yet
+    // (packages/tools create-game template-game.ts). So Home says the checks catch a break, not that a recording does.
+    const template = readFileSync(
+      resolve(repo, 'packages/tools/src/shared/create-game/template-game.ts'),
+      'utf8',
+    )
+    expect(template).not.toMatch(/\.replay\b/)
+    expect(DETERMINISM.sub).not.toMatch(/record/i)
+    // The editor's Publish gives one zip to upload; it uploads nowhere itself (PublishGameDialog.svelte).
+    const publish = readFileSync(
+      resolve(repo, 'packages/editor/src/features/suite/shell/PublishGameDialog.svelte'),
+      'utf8',
+    )
+    expect(publish).toContain('upload this zip')
+    expect(PUBLISH_SECTION.sub).not.toMatch(/offers to put/i)
+    expect(PUBLISH_SECTION.sub).toMatch(/zip/)
   })
 
   it('the demo shows the poster with no overlay text', () => {

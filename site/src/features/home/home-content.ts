@@ -115,7 +115,7 @@ export const AGENT_SECTION = {
 export const DETERMINISM = {
   kicker: 'Checks',
   title: "Your agent can't quietly break your game.",
-  sub: 'Record a play once. It plays back exactly the same way every time, in every browser. So when a change breaks something that worked, the test fails, and your agent sees it before a player does.',
+  sub: 'The same moves always give the same result, in every browser. Your game comes with tests, and one command runs them after every change. So when your agent breaks something that worked, it sees it before a player does.',
   file: 'shapes-rects.replay',
   note: 'checked on every change',
   result: 'Same result',
@@ -191,11 +191,12 @@ export const TARGETS = [
   },
 ] as const
 
-/** "Publish": the section's words. Publish makes a zip, then offers itch.io first (the Owner, 2026-11-08). */
+/** "Publish": the section's words. The editor's Publish gives one zip to upload (PublishGameDialog); the Owner's "zip, then
+ * ask where, itch.io first" (2026-11-08) is not built yet, so Home says only what the button does today. */
 export const PUBLISH_SECTION = {
   kicker: 'Publish',
   title: 'Get it in front of players.',
-  sub: 'Publish packs your game into a zip, then offers to put it on itch.io, where people can play it in their browser. Or take it anywhere else.',
+  sub: 'Publish packs your game into one zip. Upload it to itch.io, where people play it right in their browser, or to any website host.',
 } as const
 
 /** "Pricing": free on the web, the app paid once. The prices come from `shared/content/pricing.ts`. */
@@ -214,8 +215,8 @@ export const PRICING_SECTION = {
   app: {
     title: 'The app, paid once',
     items: [
-      'Installs in one step, with nothing else to set up',
-      'The editors on your phone, tablet or computer',
+      'Nothing to set up: no terminal, nothing else to install',
+      'Opens like any other app on your iPad, phone or computer',
     ],
   },
   more: 'See what the app does',

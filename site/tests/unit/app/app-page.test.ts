@@ -44,24 +44,33 @@ describe('/app', () => {
     )
   })
 
-  it('lists what is free in the browser and what downloading gives, from the offer', () => {
+  it('lists what is free in the browser, and what each download gives inside its own price', () => {
     const view = render(AppPage)
     expect(view.getByRole('heading', { name: 'Free in your browser' })).toBeTruthy()
-    expect(view.getByRole('heading', { name: 'When you download' })).toBeTruthy()
-    for (const item of [...APP_OFFER.web, ...APP_OFFER.app]) expect(view.getByText(item)).toBeTruthy()
+    for (const item of APP_OFFER.web) expect(view.getByText(item)).toBeTruthy()
+    for (const kind of [APP_OFFER.phone, APP_OFFER.computer]) {
+      const card = view.getByRole('region', { name: kind.name })
+      for (const item of kind.gives) expect(card.textContent).toContain(item)
+    }
   })
 
   it('says every editor is free on the web and charges only for the download (Owner, 2026-11-08 21:25)', () => {
     const text = render(AppPage).container.textContent ?? ''
     expect(text).toContain('Every editor is free on the web. You pay only to download the app')
     expect(APP_OFFER.web[0]).toMatch(/^All the editors/)
-    // No editor is held back for the app: the download list names none.
-    expect(APP_OFFER.app.join(' ')).not.toMatch(
-      /\b(Levels|Characters|Tuner|Feel|Audio|Schematic|Writer|Sequence)\b/,
-    )
     expect(text).not.toMatch(/more editors|full suite/i)
-    // GitHub sign-in and sync are free on the web (Owner, recorded in #528), so the download does not sell them.
-    expect(APP_OFFER.app.join(' ')).not.toMatch(/GitHub|sync/i)
+    // The Owner, 2026-11-09 01:46: an app sells no setup and what only an app can do, never a limit of the free web
+    // editor. So no download names an editor, sync (free on the web) or keeping your work.
+    for (const kind of [APP_OFFER.phone, APP_OFFER.computer])
+      expect(kind.gives.join(' ')).not.toMatch(
+        /\b(Levels|Characters|Tuner|Feel|Audio|Schematic|Writer|Sequence|editors on)\b|GitHub|sync|saves? your|keeps? your work|storage/i,
+      )
+  })
+
+  it('sells the computer app as no setup, and the phone and tablet app iPad first (Owner, 2026-11-09)', () => {
+    expect(APP_OFFER.computer.gives[0]).toMatch(/^Nothing to set up/)
+    expect(APP_OFFER.phone.devices).toMatch(/^iPad/)
+    expect(APP_OFFER.phone.gives.join(' ')).toMatch(/Apple Pencil/)
   })
 
   it('says there are no credits and why, from the one place prices live', () => {

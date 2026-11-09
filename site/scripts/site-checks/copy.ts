@@ -23,6 +23,8 @@ export const BANNED_PHRASES: {
     allowedIn: ['app.html'],
   },
   { label: 'seamless', pattern: /\bseamless(ly)?\b/i },
+  // The Owner, 2026-11-08 23:11: "Your agent makes the fun part" is the line turned down; it never comes back.
+  { label: 'makes the fun part', pattern: /\bmakes?\s+the\s+fun\s+part\b/i },
   { label: 'cutting-edge', pattern: /\bcutting[- ]edge\b/i },
   { label: 'unleash', pattern: /\bunleash(es|ed|ing)?\b/i },
   { label: 'supercharge', pattern: /\bsupercharg(e|es|ed|ing)\b/i },

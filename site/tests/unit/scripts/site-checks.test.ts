@@ -482,6 +482,8 @@ describe('checkSite', () => {
     'supercharge',
     'revolutionize',
     'game-changer',
+    // The Owner, 2026-11-08 23:11: the line the Owner turned down never comes back, in any wording of it.
+    'makes the fun part',
   ])('fails on the banned phrase %s', (phrase) => {
     expect(BANNED_PHRASES.map((banned) => banned.label)).toContain(phrase)
     const site = goodSite()

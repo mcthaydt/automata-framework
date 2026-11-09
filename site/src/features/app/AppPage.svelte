@@ -7,13 +7,10 @@ import PageMeta from '../../shared/components/PageMeta.svelte'
 import PageShell from '../../shared/components/PageShell.svelte'
 import { NO_CREDITS } from '../../shared/content/pricing'
 import { CONTACT_EMAIL } from '../../shared/site.js'
-import { APP_OFFER, type AppOffer, type Purchase } from './app-offer'
+import { APP_OFFER, type AppOffer } from './app-offer'
 
 let { offer = APP_OFFER }: { offer?: AppOffer } = $props()
-const purchases: readonly { readonly name: string; readonly purchase: Purchase }[] = $derived([
-  { name: 'Phone and tablet', purchase: offer.phone },
-  { name: 'Computer', purchase: offer.computer },
-])
+const purchases = $derived([offer.phone, offer.computer])
 </script>
 
 <PageMeta
@@ -31,9 +28,9 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
   </header>
 
   <div class="prices">
-    {#each purchases as { name, purchase } (name)}
+    {#each purchases as purchase (purchase.name)}
       <section class="price" aria-labelledby={'price-' + purchase.price}>
-        <h2 id={'price-' + purchase.price}>{name}</h2>
+        <h2 id={'price-' + purchase.price}>{purchase.name}</h2>
         <p class="amount">{purchase.price}, paid once</p>
         <p>{purchase.devices}</p>
         <ul class="buy">
@@ -47,6 +44,7 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
             </li>
           {/each}
         </ul>
+        <ul class="gives">{#each purchase.gives as item (item)}<li>{item}</li>{/each}</ul>
       </section>
     {/each}
   </div>
@@ -58,10 +56,6 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
     <section>
       <h2>Free in your browser</h2>
       <ul>{#each offer.web as item (item)}<li>{item}</li>{/each}</ul>
-    </section>
-    <section>
-      <h2>When you download</h2>
-      <ul>{#each offer.app as item (item)}<li>{item}</li>{/each}</ul>
     </section>
   </div>
 
@@ -111,6 +105,10 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
     padding: 0;
     display: grid;
     gap: 8px;
+  }
+  .gives {
+    margin: 16px 0 0;
+    padding-left: 1.25em;
   }
   .soon {
     color: var(--muted);
