@@ -1,8 +1,8 @@
 // What one frame of procedural motion reads and returns. Every layer is a pure function of the figure's skeleton, its
 // gait and this state, so a frame is reproducible and a hold can replace one arm without touching anything else (:
 // presentation time, pure, no Math.random). Changed for AF: the runtime hold is `ArmHold` (`Hold` names the item
-// library's content shape); the state has no `action` (reach, look and flinch become clips in), no sprite cheats
-// (`lookUp`, `view`, `pitch`), and gains `moveDir`.
+// library's content shape); the state has no `action` (reach, look and flinch become clips in), gains `moveDir`, and
+// takes the painted sprites' view cheats (`lookUp`, `view`, `pitch`) as optional inputs that a 3D view leaves out.
 
 import type { M, V3 } from '../../../shared/math/math.ts'
 import type { Pose, Side } from '../body/rig.ts'
@@ -39,6 +39,15 @@ export interface MotionState {
   /** The body's facing (rad; 0 faces +z) and the head's lead over it. */
   readonly yaw: number
   readonly headYaw: number
+  /**
+   * The painted sprite's view cheats, for a figure drawn as a camera-facing cell; left out, the pose is the figure's own.
+   * `lookUp` tips the head back by this much (rad) in proportion to how squarely it faces the camera, `view` is the body's
+   * yaw against the camera (rad), and `pitch` the camera's tilt (rad), which the walk's neck takes back so both steps
+   * ride at one height.
+   */
+  readonly lookUp?: number | undefined
+  readonly view?: number | undefined
+  readonly pitch?: number | undefined
   /** Turning on the spot: a short shuffle, its own phase; 0 when not turning. */
   readonly shuffle: number
   /** Walking, the direction of travel against the facing (rad): 0 forward, ±π/2 a strafe, π backing away. */

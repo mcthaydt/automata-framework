@@ -1,11 +1,23 @@
 // The base pose ("locomotion stays code"): the pelvis and torso (walk or stand, lean, breath, sway), the head
 // (stabilise, tilt, turn lead, twitch), the arms (swing or hang) and the legs (foot paths, or a stand's feet, into IK),
 // then the hems. Nothing here reads a hold; holds come after (hold.ts). Changed for AF: no action branches (reach, look
-// and flinch become clips); no sprite cheats (`lookUp`, `view`, `pitch` and the walk-level neck correction that
-// reads them), so the gait's chin lift is its attitude at full weight; the twitch is idle's, so the walk repeats exactly
-// after one cycle (decision 10, F-c); the feet run along `moveDir` (decision 4, F-h).
+// and flinch become clips); the sprite cheats (`lookUp`, `view`, `pitch` and the walk-level neck correction that
+// reads them) apply only when the state carries them, so otherwise the gait's chin lift is its attitude at full weight;
+// the twitch is idle's, so the walk repeats exactly after one cycle (decision 10, F-c); the feet run along `moveDir`
+// (decision 4, F-h).
 
-import { dot, euler, hash, lerp3, type Q } from '../../../shared/math/math.ts'
+import {
+  apply,
+  dot,
+  euler,
+  hash,
+  invertRigid,
+  lerp3,
+  type M,
+  position,
+  type Q,
+  type V3,
+} from '../../../shared/math/math.ts'
 import { fk, J, type Pose, restPose, type Skeleton } from '../body/rig.ts'
 import type { Gait } from '../content/gait.schema.ts'
 import type { Stand } from '../content/stand.schema.ts'
@@ -176,12 +188,15 @@ function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluate
   // roll, so the head is set on the body, then turned by the stand.
   const counter = walking ? hipYaw * gait.chestCounter * gait.headStabilize : -chestYaw
   let headRoll = g.headTilt - chestRoll * 0.7 - sideRoll + (stand?.head?.[1] ?? 0)
-  // Walking, the head sits level with the chin a touch down (NOD), the eyes on the way ahead; the gait's chin
-  // lift is an attitude.
+  // The sprite cheat's tip back and the gait's chin lift take only the share of the face turned to the camera (1 facing
+  // it, 0.7 in three-quarter, 0 in profile and from behind), so no profile or back is tipped chin-up. With no view given,
+  // the chin lift is an attitude at full weight. Walking, the head sits level with the chin a touch down (NOD), the eyes
+  // on the way ahead.
+  const toward = st.view === undefined ? 1 : Math.max(0, Math.cos(st.view))
   const headPitch =
     g.headPitch -
     (lean + g.posture - chestLift) * 0.6 -
-    (gait.chin ?? 0) +
+    ((st.lookUp ?? 0) + (gait.chin ?? 0)) * toward +
     (walking ? NOD : 0) +
     (stand?.head?.[2] ?? 0)
   const headYaw = st.headYaw + (stand?.head?.[0] ?? 0)
@@ -253,7 +268,15 @@ function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluate
   }
   // ─── Legs: feet on their paths, or a stand's feet; IK from the hips ───
   legs(s, gait, st, pose, fk(s, pose), { stand, phase, headLevel, way })
-  const world = fk(s, pose)
+  let world = fk(s, pose)
+  // The walk's level: the sway across the body has depth in a turned view, which the camera's pitch shows as height, so
+  // one step would ride a texel lower than the other (a limp). The neck takes that back, so both steps match.
+  if (walking && st.pitch) {
+    const x = apply(invertRigid(world[J.root] as M), position(world[J.head] as M))[0]
+    const neck = pose.shift[J.neck] as V3
+    neck[1] -= x * Math.sin(st.view ?? st.yaw) * Math.tan(st.pitch)
+    world = fk(s, pose)
+  }
   // Walking, the hems hang between hip and ankle along the line of travel.
   placeHems(s, pose, world, walking ? [way.sin, way.cos] : undefined)
   return { pose, world: fk(s, pose) }

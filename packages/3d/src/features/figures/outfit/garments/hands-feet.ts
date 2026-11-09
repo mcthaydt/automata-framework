@@ -63,6 +63,42 @@ export function hands(
   ].map((p) => ({ ...p, mesh: placed(p.mesh, [0, 0, 0], turn) }))
 }
 
+/**
+ * A bare foot on the foot bone, where no shoe is worn: lower and narrower than a shoe, from a round heel over a low instep
+ * to the toes, flat on the floor with no sole, in the skin (one surface with the leg).
+ */
+export function bareFoot(
+  bone: number,
+  skin: string,
+  group: number,
+  k: number,
+  fw: number,
+  foot: number,
+  ankle: number,
+): Part[] {
+  const floor = -ankle
+  const base = floor + 0.004 * k
+  const key = (z: number, high: number, wide: number) => ({
+    y: z * foot * 0.92,
+    rx: wide * k * fw,
+    rz: high * k * fw,
+    dz: -(base + high * k * fw),
+  })
+  const mesh = limb({
+    seg: 12,
+    caps: [0.04 * foot, 0.03 * foot],
+    e: 0.8,
+    rings: [
+      key(0.66, 0.012, 0.03),
+      key(0.5, 0.016, 0.034),
+      key(0.26, 0.026, 0.031),
+      key(0.02, 0.036, 0.026),
+      key(-0.14, 0.03, 0.024),
+    ],
+  })
+  return [{ bone, material: skin, group, mesh: placed(mesh, [0, 0, 0], axisAngle([1, 0, 0], Math.PI / 2)) }]
+}
+
 /** A shoe on the foot bone: one profile from the heel along to the toe (heights off the floor `ankle` below
  * the joint), and its sole. `fw` the build's foot factor, `foot` its length. */
 export function shoe(

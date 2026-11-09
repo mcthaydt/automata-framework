@@ -29,6 +29,9 @@ export const GROUP: {
   readonly cape: 9
 } = { torso: 0, head: 1, hair: 1, armL: 3, armR: 4, legL: 5, legR: 6, item: 7, skirt: 8, cape: 9 }
 
+/** The tag of the neck's part: the painter's neckline rule keys on it. */
+export const NECK = 'neck'
+
 /** One bone's share of a skinned vertex: [joint index, weight]. */
 export type Weight = [joint: number, weight: number]
 

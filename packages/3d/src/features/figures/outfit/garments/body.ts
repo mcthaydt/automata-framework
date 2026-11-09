@@ -6,12 +6,12 @@
 import { type Limb, limb } from '../../../../shared/math/limb.ts'
 import { lerp, smooth, type V3 } from '../../../../shared/math/math.ts'
 import type { Measure } from '../../body/genes.ts'
-import { GROUP, type Part, type Weight } from '../../body/mesh.ts'
+import { GROUP, NECK, type Part, type Weight } from '../../body/mesh.ts'
 import { profiles, TRAPEZIUS } from '../../body/profiles.ts'
 import { at, J, type Side, type Skeleton } from '../../body/rig.ts'
 import { weights } from '../../body/skin-weights.ts'
 import type { Made } from '../../figure/materials.ts'
-import { hands, shoe } from './hands-feet.ts'
+import { bareFoot, hands, shoe } from './hands-feet.ts'
 import { head, SIDES } from './head.ts'
 
 /** Materials of the body's regions; garments repaint them. */
@@ -133,6 +133,7 @@ export function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, made:
       bone: J.neck,
       material: r.neck,
       group: GROUP.head,
+      tag: NECK,
       mesh: limb(p.neck),
     },
     ...head(m, s, r.skin, made),
@@ -184,8 +185,12 @@ export function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, made:
       stretch(r.knee, lg, leg, thighs ? above : knee + 0.03 * k, below, legSkin),
       stretch(r.shin, lg, leg, below, -Infinity, legSkin),
     )
-    // ─── Foot: a shoe from the heel's round over the instep to the toe, on its sole ───
-    parts.push(...shoe(J[`foot.${side}`], r.shoe, r.sole, lg, k, fw, foot, ankle))
+    // ─── Foot: a bare one, or a shoe from the heel's round over the instep to the toe, on its sole ───
+    parts.push(
+      ...(r.shoe === r.skin
+        ? bareFoot(J[`foot.${side}`], r.skin, lg, k, fw, foot, ankle)
+        : shoe(J[`foot.${side}`], r.shoe, r.sole, lg, k, fw, foot, ankle)),
+    )
   }
   return surfaces(parts)
 }

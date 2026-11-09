@@ -6,7 +6,7 @@ import { must, sq } from './vec.ts'
 /** A face's white as one step over the skin's mid (`skinMid`), the same on every skin: the white's own DUEL row's tone
  * nearest `by` over the mid in lightness, so on deep skin it is no brighter than the face's light (the eyes would read
  * as a row of dots) and on light skin as white as its row goes. */
-function eyeWhite(white: number, skinMid: number, by = 0.25): number {
+export function eyeWhite(white: number, skinMid: number, by = 0.25): number {
   const top = oklab(skinMid)[0] + by,
     at = onRow(white, -1)
   if (!at) return white
@@ -82,7 +82,7 @@ export function darkOf(c: number, cool: boolean, deep = false): number {
     : c
 }
 /** A ramp with its near-blacks folded into its family's. */
-function familyTones(tones: number[]): number[] {
+export function familyTones(tones: number[]): number[] {
   const cool = coolRamp(tones)
   return tones.map((c, i) => darkOf(c, cool, i === 3))
 }

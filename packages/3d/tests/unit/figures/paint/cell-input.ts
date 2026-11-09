@@ -38,14 +38,16 @@ export function eyesIn(
   colours: Uint8ClampedArray,
   width: number,
   face: NonNullable<CellInput['face']>,
+  /** The cell's density: the eye is drawn on the texel grid of its density, so it may sit this many rows off the projected point. */
+  reach = 1,
 ): number {
   if (Math.abs(face.view) > 1) return 0
   const marks = new Set<number>([face.iris, face.lash, face.white])
   let seen = 0
   for (const [ex, ey] of face.eyes) {
     let found = false
-    for (let y = Math.round(ey) - 1; y <= Math.round(ey) + 1 && !found; y++)
-      for (let x = Math.round(ex) - 2; x <= Math.round(ex) + 2 && !found; x++) {
+    for (let y = Math.round(ey) - reach; y <= Math.round(ey) + reach && !found; y++)
+      for (let x = Math.round(ex) - 2 * reach; x <= Math.round(ex) + 2 * reach && !found; x++) {
         const o = (y * width + x) * 4
         if (colours[o + 3] === 0) continue
         if (marks.has(((colours[o] ?? 0) << 16) | ((colours[o + 1] ?? 0) << 8) | (colours[o + 2] ?? 0)))

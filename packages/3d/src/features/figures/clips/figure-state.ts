@@ -8,6 +8,7 @@ import type { RigLimits } from '../content/rig-limits.schema.ts'
 import type { Stand } from '../content/stand.schema.ts'
 import type { HairSwing } from '../motion/motion-state.ts'
 import type { AimTarget, LimbId, Vec3 } from '../motion/targets.ts'
+import type { SpriteCheats } from '../paint/sprite-cheats.ts'
 import type { PoseLibrary } from './blend-key-poses.ts'
 import type { FigureClipDef } from './clip.schema.ts'
 
@@ -63,6 +64,8 @@ export interface MotionLibrary {
 }
 
 export interface EvaluateOptions {
+  /** A painted sprite's view cheats (the head's lead, its tip toward the camera), applied to the locomotion. */
+  readonly sprite?: SpriteCheats | undefined
   /** The previous frame's presentation time, so a clip shows a marker passed since (`stepTime`). */
   readonly previous?: number | undefined
   /** Sample clips at the frame's time instead of at their pose rate. */
