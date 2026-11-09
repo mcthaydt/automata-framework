@@ -46,7 +46,11 @@ async function open(size: EditorSize) {
   const tab = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
     (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === 'Tuner',
   )
-  tab?.click()
+  // A phone held sideways folds the editor tabs into a menu, so its way in is the file on Home's card.
+  const entry = [...document.querySelectorAll<HTMLElement>('[data-editor] button')].find(
+    (candidate) => candidate.textContent?.trim() === 'Controls',
+  )
+  ;(tab ?? entry)?.click()
   await expect.poll(() => document.querySelector('[data-testid="tuner-controls"]')).not.toBeNull()
   await settleLayout()
   return conditions

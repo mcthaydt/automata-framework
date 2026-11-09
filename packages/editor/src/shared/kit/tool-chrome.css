@@ -53,3 +53,22 @@
     --size-primary: 48px;
   }
 }
+
+/*
+ * A native select on macOS WebKit is drawn at the system's own height and ignores `min-height`, so a select stayed 22 px
+ * under a mouse and 22 px under a finger. Without the native look it takes the size the kit gives every control; the
+ * chevron is drawn here so it still reads as a menu. One more element than a component's own `select` rule wins the
+ * padding it makes room with.
+ */
+[data-editor-shell] main select {
+  appearance: none;
+  padding-inline-end: calc(var(--space-3) + 1.25rem);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.1rem) 50%,
+    calc(100% - 0.8rem) 50%;
+  background-size: 0.3rem 0.3rem;
+  background-repeat: no-repeat;
+}
