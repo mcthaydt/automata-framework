@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 63% (15 of 24 stages done; the customer value pipeline's six stages are counted from 2026-11-08).**
+**Overall: 67% (16 of 24 stages done; the customer value pipeline's six stages are counted from 2026-11-08).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -578,7 +578,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## Customer value for AI game makers: 50% (3 of 6 stages done, 2026-11-08)
+## Customer value for AI game makers: 67% (4 of 6 stages done, 2026-11-09)
 
 The Owner, 2026-11-08 21:35: "Do an audit that the editors and framework actually deliver on the value expected from the
 customer - we are customer obsessed, we are crafting the perfect product from someone who is making games with AI".
@@ -588,6 +588,6 @@ customer - we are customer obsessed, we are crafting the perfect product from so
 | 1. Audit | Done, 2026-11-08: 3 critical (V1 to V3), 5 high (V4 to V8), 6 medium (V9 to V14), 5 low (V15 to V19), one decision for the Owner (D1, whether Publish puts the game on itch.io). A game made from the packed tools outside the workspace was given a coin feature by an agent, edited in the editors, played, reloaded, reopened and published to a zip that played; the story and 3D games were edited in every editor. Typed words were lost on reload (V2, sent to the sign-in and saving thread) | [audit](2026-11-08-customer-value-audit.md) |
 | 2. Plan and spec | Done, 2026-11-08: 18 tasks in six phases. Phase 1 is the agent experience (V1, V3, V4, V6): the skills mirror becomes a marketplace, `create-game` writes `AGENTS.md`, `CLAUDE.md` and `.claude/settings.json`, a sixth skill `automata-content`, the API reference covers every package a template imports, the editor command recognises the repository by name, and the player collides with the box it is drawn in. Then the first minute (V9, V12, V17), extension events and landscape fit (V10, V8), sharing (V11; the Owner answered D1 = A at 22:31 and at 22:32 asked for the zip first, then "where do you want to put it?" with itch.io as the first place), site copy (V7, V13, V14) and tidy-ups (V19). Left out: V2 (the saving thread, #528). Handed off with acceptance lines: V5, V8's HUD, V15, V16, V18. Waiting: Task 15 on the free web editor work, Task 16 on the DUEL licence answer | [spec](2026-11-08-customer-value-spec.md), [plan](2026-11-08-customer-value-plan.md) |
 | 3. Plan audit | Done, 2026-11-08: 13 findings (A1 to A13), 3 high. The skills mirror every new game names is still empty (A1, a shipping precondition on the Owner's mirror push); the API reference cannot read the beta packages as Task 4 said (A2); V10 is already met by the editors, so Task 11 is a test (A3). Task 5 is mostly done on #532 (A4). Fixed in the spec and plan; Task 14 matches the Owner's Publish answer (zip first, then where to put it, itch.io first, the person's own itch.io sign-in). A game made by an agent and the editors on #532 kept its coins, tuning and Feel word through a reload and an editor restart and played them; a word typed and left without leaving the field was lost (V2, #528) | [plan audit](2026-11-08-customer-value-plan-audit.md) |
-| 4. Build | Not started | |
+| 4. Build | Done, 2026-11-09, with open items: Tasks 1 to 14, 17 and 18 built (stacked on #535 as #538 and, for the site, #539). Waiting as planned: Task 15 (the free web editor work) and Task 16 (the DUEL licence answer). Unmet: Task 12's gate (no touch control overlaps the field at 932 × 430; the side-band layout broke the TV text-scale contract and was removed), the lost-typed-words fix (#528's), a real push to itch.io (needs the Owner's account), and the plan-comment rule over `packages/editor-3d/src` (241 old comments, not 19). Not run: WebKit and Firefox, hosted CI, the GPU runner's landscape baselines, a coin feature written by a fresh agent (the skills mirror is still empty). Run: the packed-tools journey (`stranger.test.ts`, passing), then by hand a level platform painted in Levels, the speed changed in the Tuner, a reload and an editor restart (both kept), and the game played with the platform where it was drawn; screens in `refactor/2026-11-08-customer-value-screens/` | [plan log](2026-11-08-customer-value-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |

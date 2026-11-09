@@ -55,11 +55,12 @@ menu). Each time you save, an open game reloads to its title screen, so a game y
 
 ## Publish
 
-**Publish**, then **Build my game**, makes your game ready to upload. Nothing goes online yet: you get one zip
-file, and you upload it yourself. On a phone, Publish is **Make it ready to upload** in the **Game** menu.
+**Publish**, then **Make my zip**, makes your game ready to upload. It makes one zip file, and then asks where to put
+it: **itch.io** first, with the address of your itch.io page, or **Download the zip** and upload it yourself. On a phone, Publish
+is **Make it ready to upload** in the **Game** menu. Putting it on itch.io uses butler, itch.io's uploader, on the computer that runs the editor, with your own itch.io account; the editor never stores your key.
 
-Before it builds, it checks your level files and controls against `ship.config.ts` (the `levels`, `inputs` and
-`orientation` steps of `automata check`). After the build it checks that nothing needs `eval` (code that runs text as
+Before it makes the zip, it checks your level files and controls against `ship.config.ts` (the `levels`, `inputs` and
+`orientation` steps of `automata check`). Afterwards it checks that nothing needs `eval` (code that runs text as
 code, which itch.io and most web hosts refuse), that no key or password ended up in the build, and that the zip is
 within itch.io's limits. It does not run your tests, the type check or the other `automata check` steps; run
 `pnpm check` for those. Then **Download the zip**. On itch.io, make a new project, choose HTML as its kind and upload the

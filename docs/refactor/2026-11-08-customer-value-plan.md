@@ -780,3 +780,17 @@ want, itch will be first output". Spec §11.
   Also seen, not mine: `serve-editor.test.ts` "writes an mtime a later guarded write can use" fails about half of the runs
   (a millisecond floor against the file system's mtime), and `automata-content.test.ts` "follow a new event file" failed
   once under the hook's parallel load and passed three times alone. Deferred minors.
+- Task 18 done, in part. Hand-offs against spec §12: V5 open (`docs/guides/editor.md` still says a release has "the 2D
+  editors only"; the thread "Show every editor in the free web editor" owns it; the Publish paragraph no longer says
+  "Build my game"); V8 HUD open (in-game text #526 not built); V15 open (consumer smoke has `AF_BETA_3D` but no story
+  journey under `AF_BETA_STORY`); V16 met for the Tuner and the level (below); V18 open (editors v2). The mirror
+  `mcthaydt/automata-skills` holds only its README, so the plugin-offered, agent-writes-a-coin steps of the journey are
+  blocked on the Owner's `SKILLS_TOKEN` release (Base). Ran from packed tools outside the workspace
+  (`tooling/consumer-smoke` `stranger.test.ts`): make a game, install, check, test, play in Chromium, the itch.io zip, open
+  the editors: passing. It first failed at "play it": it looked for the yellow square (0xffc825), which the DUEL palette
+  commit (fa855582) removed; the player is the DUEL green 0x22c55e now, so I changed the test to look for that. By hand with
+  that game (`refactor/2026-11-08-customer-value-screens/`): Home lists every editor; Levels paints a solid platform
+  with the first brush, saved to the file; Tuner changed Speed 2 to 3, saved; after a reload and after stopping and
+  restarting `automata editor` both are still there (screens 06 and 07); the game the editor started plays with the new
+  platform where it was drawn (screen 08). Not run: WebKit, Firefox, a real iPad, hosted CI, the GPU runner, a coin feature
+  from a fresh agent with the plugin, a real itch.io push.

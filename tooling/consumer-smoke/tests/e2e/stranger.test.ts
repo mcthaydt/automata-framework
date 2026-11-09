@@ -30,7 +30,7 @@ async function step(name: string, run: () => void | Promise<void>): Promise<void
   })
 }
 
-/** The yellow square's centre on the stage canvas, in screen pixels, or null while it is not on the screen yet. */
+/** The player's centre on the stage canvas, in screen pixels, or null while it is not on the screen yet. */
 async function squareAt(page: Page): Promise<{ x: number; y: number } | null> {
   const png = await page.locator('[data-layer="stage"] canvas').screenshot()
   return page.evaluate(
@@ -45,8 +45,9 @@ async function squareAt(page: Page): Promise<{ x: number; y: number } | null> {
       let sumY = 0
       let count = 0
       for (let i = 0; i < data.length; i += 4) {
-        // The square is 0xffc825: strong red and green, little blue. The level's walls are slate, so they never count.
-        if ((data[i] ?? 0) > 200 && (data[i + 1] ?? 0) > 160 && (data[i + 2] ?? 255) < 90) {
+        // The player is 0x22c55e, a strong green; the platforms are muted greens and the ground and sky are not, so only
+        // the player passes.
+        if ((data[i] ?? 255) < 80 && (data[i + 1] ?? 0) > 170 && (data[i + 2] ?? 255) < 130) {
           sumX += (i / 4) % bitmap.width
           sumY += Math.floor(i / 4 / bitmap.width)
           count += 1
