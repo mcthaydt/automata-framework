@@ -22,6 +22,9 @@ export interface PlaceInfo {
   readonly signIn: boolean
 }
 
+/** The button that signs the person in at a place. It is the editor's own tool, not a game drawing the platform's chrome. */
+export const signInLabel = (placeName: string): string => `Sign in to ${placeName}`
+
 /** What came of signing in at a place: `link` is the address the place printed, for a browser that did not open. */
 export type SignInResult =
   | { readonly ok: true }

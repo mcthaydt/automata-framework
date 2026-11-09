@@ -1,5 +1,5 @@
-import { blank, type Picture, plot, stamp } from './png.ts'
 import { PALETTE } from './palette.ts'
+import { blank, type Picture, plot, stamp } from './png.ts'
 
 // The three starter characters, each a strip of equal frames the character's animation cuts: the player (16 x 24, the
 // size of the player start, so what is drawn is what collides), a coin (8 x 8) and a slime (16 x 12).
@@ -45,7 +45,8 @@ const BLINK_ROW = 'kssSsssssSsk'
 export function playerSheet(): Picture {
   const sheet = blank(32, 24)
   const open = centred(16, PLAYER_BODY)
-  const shut = open.map((row, index) => (index === 6 ? centred(16, [BLINK_ROW])[0] : row))
+  const [blinkRow = ''] = centred(16, [BLINK_ROW])
+  const shut = open.map((row, index) => (index === 6 ? blinkRow : row))
   stamp(sheet, 0, 1, open, PALETTE)
   stamp(sheet, 16, 1, shut, PALETTE)
   return sheet

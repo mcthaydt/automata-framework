@@ -29,8 +29,8 @@ describe('readGuides', () => {
 
   it('opens the itch.io guide with four numbered steps from the editor, then the command line', () => {
     const itch = guides.find((guide) => guide.slug === 'publish-to-itch')?.content ?? ''
-    // Nothing sits above the person's steps but the title: the programmer's words come under "With a command".
-    expect(itch.split(/^## /m)[0]?.trim()).toBe('# Publish to itch.io')
+    // Nothing sits above the person's steps (the title is the page's): the programmer's words come under "With a command".
+    expect(itch.split(/^## /m)[0]?.trim()).toBe('')
     const parts = itch.split(/^## /m).slice(1)
     expect(parts[0]?.startsWith('From the editor')).toBe(true)
     const steps = (parts[0] ?? '').split('\n').filter((line) => /^\d+\. /.test(line))

@@ -5,6 +5,7 @@ import { RendererUnavailable } from '../../shared/runtime/boot-error.ts'
 import { DEFAULT_QUALITY, type QualityTier } from '../../shared/runtime/display-settings.schema.ts'
 import type { FrameInfo } from '../../shared/runtime/loop/frames.ts'
 import type { OwnedRenderer, RenderTarget } from '../../shared/runtime/render/renderer.ts'
+import { clearSideBars, publishSideBars } from '../../shared/ui/geometry/side-bars.ts'
 import { type EntityViewResolver, RenderDeltaConsumer } from './delta/render-delta-consumer.js'
 import { addPostFilters, assertUniqueNames, type PostFilterDef } from './filter/post-filter.js'
 import {
@@ -15,7 +16,6 @@ import {
 import { tryFilter } from './filter/try-filter.js'
 import { canvasResolutionFor } from './letterbox/canvas-resolution.js'
 import { CompositeTarget } from './letterbox/composite-target.js'
-import { clearSideBars, publishSideBars } from '../../shared/ui/geometry/side-bars.ts'
 import { LetterboxFrame } from './letterbox/letterbox.js'
 import { characters2d, type StageCharacters } from './stage-characters.js'
 

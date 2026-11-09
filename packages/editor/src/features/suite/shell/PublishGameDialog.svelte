@@ -10,11 +10,12 @@
   (a sample's or a branch's) is `ShipDialog`.
 -->
 <script lang="ts">
-import type {
-  GamePublish,
-  PlaceInfo,
-  PlaceResult,
-  PublishResult,
+import {
+  type GamePublish,
+  type PlaceInfo,
+  type PlaceResult,
+  type PublishResult,
+  signInLabel,
 } from '../../../shared/kit/storage/publish-client'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../../shared/kit/widgets/Dialog.svelte'
@@ -161,7 +162,7 @@ function close(): void {
         <p class="result" role="alert">{placed.problem}</p>
         {#if placed.need === 'account' && place.signIn}
           {#if publish.onThisComputer}
-            <Button variant="primary" disabled={signing} onclick={() => void signIn()}>Sign in to {place.name}</Button>
+            <Button variant="primary" disabled={signing} onclick={() => void signIn()}>{signInLabel(place.name)}</Button>
             {#if signing}
               <p class="note" role="status">Finish signing in in the page that opened. This waits for you.</p>
             {/if}

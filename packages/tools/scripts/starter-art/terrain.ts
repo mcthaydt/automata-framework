@@ -1,5 +1,5 @@
-import { blank, type Picture, plot } from './png.ts'
 import { PALETTE } from './palette.ts'
+import { blank, type Picture, plot } from './png.ts'
 
 // The starter terrain: 8 x 8 tiles of 16 px, in the order the starter level's ground rules name them. Tiles 0 to 46 are
 // soil whose edges follow which neighbours are soil (read from the rules' own patterns, so the picture and the rules
