@@ -76,6 +76,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      # The Owner's rule (2026-11-09): nothing is deployed while Pixi 3D is the vendored closed beta. The build's
+      # closed-beta scan (check:site) refuses a page that carries it; this check also reads the manifests, and only
+      # exists where `@pixi/3d` is vendored (the editors' stack), so it runs when the script is there.
+      - name: Pixi 3D is public
+        if: hashFiles('tooling/release/src/check-pixi3d-public.ts') != ''
+        run: node tooling/release/src/check-pixi3d-public.ts
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec turbo run build --filter @mcthaydt/automata-site
       - run: pnpm --filter @mcthaydt/automata-site check:site
@@ -83,9 +89,9 @@ jobs:
       # With a token but no deploy command written yet, fail rather than let a configured host quietly stay empty.
       - name: Deploy
         env:
-          SITE_HOST_TOKEN: ${{ secrets.SITE_HOST_TOKEN }}
+          SITE_DEPLOY_TOKEN: ${{ secrets.SITE_DEPLOY_TOKEN }}
         run: |
-          if [ -z "$SITE_HOST_TOKEN" ]; then
+          if [ -z "$SITE_DEPLOY_TOKEN" ]; then
             echo "No host configured yet."
             exit 0
           fi

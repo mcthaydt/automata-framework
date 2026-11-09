@@ -2799,7 +2799,7 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   link named "Try the editor"). Site unit 341 pass.
   *21.1 (session 24):* `.github/workflows/site.yml`: `build` (a pull request, not a draft, and every push to main that
   can change the site) runs turbo's site build and `check:site`; `deploy` (never from a pull request, so the host's
-  token stays out of reach of one) rebuilds, checks, and runs the "Deploy" step: with no `SITE_HOST_TOKEN` it prints
+  token stays out of reach of one) rebuilds, checks, and runs the "Deploy" step: with no `SITE_DEPLOY_TOKEN` it prints
   "No host configured yet." and passes (run from the parsed step); with a token and no deploy command written it fails
   on purpose. Deviation: no artifact passes between the jobs (the quota is full and one day is all it would need), so
   deploy rebuilds. The contact is `hello@automataframework.com` (the Owner's address for the footer) in

@@ -89,7 +89,7 @@ and passes. These steps are the Owner's; each one says who finishes the rest.
    (`CONTACT_EMAIL` and `SECURITY_EMAIL` in `site/src/shared/site.js`); a test keeps any personal address out. Until it
    exists, mail to it bounces.
 3. **The host.** Pick a static host (Cloudflare Pages is the recommendation: free, and it serves a folder as it is).
-   Create a deploy token that can publish this one site, and add it as the repository secret `SITE_HOST_TOKEN`.
+   Create a deploy token that can publish this one site, and add it as the repository secret `SITE_DEPLOY_TOKEN`.
    Do nothing else: with the token set and no deploy command written, `site.yml` fails with a message that says so, on
    purpose. Tell the agent the host; it writes the deploy command in one pull request, and the next push to
    `main` deploys.

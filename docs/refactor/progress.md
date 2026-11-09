@@ -217,7 +217,7 @@ Session 24: **19.2, 20.1 and 21.1 are done** (the plan's log); the build is 64 o
 the private repository and a build that carries `@pixi/3d`. 20.1: the copy table is `copy.md` ("Site and the CLI's
 editor"); search, the examples, the playground's messages, Home's engine words, the editor guide and `automata editor`'s
 first line are plain now. 21.1: `site.yml` (build and check on a pull request; deploy only from main, and with no
-`SITE_HOST_TOKEN` it prints "No host configured yet." and passes), the project mailbox
+`SITE_DEPLOY_TOKEN` it prints "No host configured yet." and passes), the project mailbox
 `hello@automataframework.com` replaces a personal address, and `runbook.md` has "Launching the site". Left: **14.1**
 needs its own thread and branch (`claude/refactor-scope`, scope `@automata`); 14.2, 21.0's DNS and 21.2 are the Owner's
 (the host and its token, the mailbox, `NPM_TOKEN`, `pnpm lint:actions` with Docker, WebKit and Firefox runs, the iPad).

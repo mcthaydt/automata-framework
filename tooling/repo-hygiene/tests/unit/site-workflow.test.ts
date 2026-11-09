@@ -34,6 +34,6 @@ describe('the site workflow', () => {
 
   it('says "No host configured yet." and passes while the host’s token is not set', () => {
     const deploy = workflow.jobs.deploy?.steps.find((step) => step.name === 'Deploy')
-    expect(deploy?.run).toMatch(/-z "\$SITE_HOST_TOKEN"[\s\S]*No host configured yet\.[\s\S]*exit 0/)
+    expect(deploy?.run).toMatch(/-z "\$SITE_DEPLOY_TOKEN"[\s\S]*No host configured yet\.[\s\S]*exit 0/)
   })
 })
