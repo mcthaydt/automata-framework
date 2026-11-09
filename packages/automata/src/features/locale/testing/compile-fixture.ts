@@ -8,12 +8,22 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { compile } from '@inlang/paraglide-js'
 
 export const FIXTURE_MESSAGES = {
   en: { hello: 'Hello {name}', play: 'Play' },
   fr: { hello: 'Bonjour {name}', play: 'Jouer' },
 } as const
+
+/**
+ * Where the fixture is written, given the URL of a file in this folder: the package's `node_modules/.cache`, not
+ * `src/`. `svelte-package -i src` lists `src/` during a build, so a fixture there that the test run then deletes
+ * fails the build with ENOENT.
+ */
+export function fixtureFolder(from: URL): string {
+  return fileURLToPath(new URL('../../../../node_modules/.cache/af-paraglide-fixture', from))
+}
 
 /** Compiles the fixture into `folder`; returns the folder holding `fixture.js` (the generated runtime and messages). */
 export async function compileFixture(folder: string): Promise<string> {
