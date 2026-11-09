@@ -129,8 +129,10 @@ function onKey(event: KeyboardEvent, index: number): void {
     background: var(--surface);
   }
   .option {
-    flex: 1 1 auto;
+    /* It grows to fill the track but never shrinks under its words: a bar short of room scrolls instead of letting a word spill over its edge. */
+    flex: 1 0 auto;
     min-width: var(--size-hit);
+    white-space: nowrap;
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 0;
