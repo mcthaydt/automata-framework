@@ -584,7 +584,8 @@ a branch off the plan's. The page side of each task waits for the merged base (t
 | 5.5 `AGENTS.md` and getting a game | 5 | Half: a new game's `AGENTS.md` and `.automata/` in its `.gitignore` are done; "Get a game from GitHub" is not | |
 | 6.1 to 6.4 The Review page | 6 | Not started | |
 | 7.1 to 7.4 Building and proving | 7 | Not started | |
-| 1.5 to 1.7 The Pencil in every editor, Pencil actions, a Pencil as touch in a game | 1 | Not started (added 2026-11-09) | |
+| 1.5, 1.6 The Pencil in every editor; Pencil actions | 1 | Not started: the editors they change are `extensions/editors` and `packages/editor-3d`'s Studio, which this branch does not carry until main has the editors v2 stack (added 2026-11-09) | |
+| 1.7 A Pencil counts as touch in a game | 1 | Done, 2026-11-09 (`trackInput` treats `pen` as touch; 2 unit tests, the pen-then-touchstart sequence changes the mode once; patch changeset; the iPad device step is task 7.5) | [#531](https://github.com/mcthaydt/automata-framework/pull/531) |
 | 3.5 The player and the build give the same hashes | 3 | Not started (added 2026-11-09) | |
 | 4.5 The iPad window | 4 | Not started (added 2026-11-09) | |
 | 5.6, 5.7 The game's check on pull requests; what the iPad can play | 5 | Not started (added 2026-11-09) | |

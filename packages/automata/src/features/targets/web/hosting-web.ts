@@ -175,9 +175,11 @@ function trackInput(page: WebPage): InputTracker {
     return /xbox|xinput/i.test(id) ? 'xbox' : 'other'
   }
   const stops = [
-    listen(page, ['pointerdown'], (event) =>
-      update((event as { pointerType?: string }).pointerType === 'touch' ? 'touch' : 'keyboard-mouse'),
-    ),
+    // A pen is touch: a person drawing on an iPad needs the touch controls, not a mouse's.
+    listen(page, ['pointerdown'], (event) => {
+      const type = (event as { pointerType?: string }).pointerType
+      update(type === 'touch' || type === 'pen' ? 'touch' : 'keyboard-mouse')
+    }),
     listen(page, ['touchstart'], () => update('touch')),
     listen(page, ['keydown', 'wheel'], () => update('keyboard-mouse')),
     listen(page, ['gamepadconnected'], (event) =>
