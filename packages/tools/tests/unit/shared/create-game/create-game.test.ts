@@ -129,7 +129,9 @@ describe('createGame', () => {
 
       // The game boots on the default screens, with the no-eval guard first, and its sim is named after it.
       const main = readFileSync(join(testDir, 'src/main.ts'), 'utf8')
-      expect(main.indexOf("import '@mcthaydt/automata/no-eval'")).toBeLessThan(main.indexOf('startGame'))
+      expect(main.indexOf("import '@automataframework/automata/no-eval'")).toBeLessThan(
+        main.indexOf('startGame'),
+      )
       expect(main).toContain('startGame(game)')
       expect(readFileSync(join(testDir, 'src/app/game.ts'), 'utf8')).toContain("title: 'Stellar Odyssey'")
       expect(readFileSync(join(testDir, 'src/features/square/square.plugin.ts'), 'utf8')).toContain(
@@ -218,7 +220,7 @@ describe('createGame', () => {
         '@tauri-apps/plugin-process': '2.4.0',
       })
       expect(pkg.devDependencies['@tauri-apps/cli']).toBe('2.12.3')
-      // The Ruken adapter is bundled in @mcthaydt/automata's ruken entry, so no target asks for the SDK (N2).
+      // The Ruken adapter is bundled in @automataframework/automata's ruken entry, so no target asks for the SDK (N2).
       expect(pkg.dependencies['@ruken/sdk']).toBeUndefined()
     })
 
@@ -227,16 +229,16 @@ describe('createGame', () => {
       const version = (
         JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')) as { version: string }
       ).version
-      expect(pkg.dependencies['@mcthaydt/automata']).toBe(`^${version}`)
-      expect(pkg.dependencies['@mcthaydt/automata-sim']).toBe(`^${version}`)
-      expect(pkg.devDependencies['@mcthaydt/automata-tools']).toBe(`^${version}`)
+      expect(pkg.dependencies['@automataframework/automata']).toBe(`^${version}`)
+      expect(pkg.dependencies['@automataframework/automata-sim']).toBe(`^${version}`)
+      expect(pkg.devDependencies['@automataframework/automata-tools']).toBe(`^${version}`)
     })
 
     it("links the workspace only when asked, for the repository's own tests", async () => {
       const { pkg } = await generate(undefined, { linkWorkspace: true })
-      expect(pkg.dependencies['@mcthaydt/automata']).toBe('workspace:*')
-      expect(pkg.dependencies['@mcthaydt/automata-sim']).toBe('workspace:*')
-      expect(pkg.devDependencies['@mcthaydt/automata-tools']).toBe('workspace:*')
+      expect(pkg.dependencies['@automataframework/automata']).toBe('workspace:*')
+      expect(pkg.dependencies['@automataframework/automata-sim']).toBe('workspace:*')
+      expect(pkg.devDependencies['@automataframework/automata-tools']).toBe('workspace:*')
     })
 
     it('writes only what the web target needs for --targets web', async () => {

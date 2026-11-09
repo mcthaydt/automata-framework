@@ -3,7 +3,7 @@
 // defined or its members could not be read, when a value does not fit its field (or a required one is missing), when it
 // stands outside every sector, or when it is a second of a `single` definition. Each problem names the entity and says
 // where it is, so Locate can frame it.
-import { checkValues } from '@mcthaydt/automata-editor/kit/fields'
+import { checkValues } from '@automataframework/automata-editor/kit/fields'
 import type { EntityKit } from '../entities/things'
 import { type ResolvedMap, sectorAt } from '../geometry/sectors'
 import { locators, type Problem } from './check'

@@ -1,5 +1,5 @@
 ---
-'@mcthaydt/automata': patch
+'@automataframework/automata': patch
 ---
 
 BREAKING: the browser runtime no longer uses Effect (D2); `effect` is no longer a dependency.

@@ -10,7 +10,7 @@
   editor's snippets draw its import controls, the inspector and its dialogs. It knows no file format.
 -->
 <script lang="ts" generics="E extends { readonly path: string }, B extends string">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automataframework/automata'
 import { onMount, type Snippet } from 'svelte'
 import EditorShell from '../shell/EditorShell.svelte'
 import { shellModeAt } from '../shell/shell-mode'

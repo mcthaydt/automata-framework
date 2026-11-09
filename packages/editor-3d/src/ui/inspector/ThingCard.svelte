@@ -4,7 +4,7 @@
   under the field it is about (the form rebuilds the control from the stored value), and a delete's under the card.
 -->
 <script lang="ts">
-import { Button, FieldEditor } from '@mcthaydt/automata-editor/kit'
+import { Button, FieldEditor } from '@automataframework/automata-editor/kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
 

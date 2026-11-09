@@ -1,6 +1,6 @@
 ---
 name: automata
-description: Rules for writing an Automata Framework game (the seven laws, which layer owns what, where each kind of change goes, and the order to verify in). Use before changing code in a game built on the @mcthaydt/automata-* packages.
+description: Rules for writing an Automata Framework game (the seven laws, which layer owns what, where each kind of change goes, and the order to verify in). Use before changing code in a game built on the @automataframework/automata-* packages.
 ---
 
 # Automata Framework: rules for game code
@@ -48,11 +48,11 @@ system uses is sim code too). `automata check` refuses a game that keeps its sim
 | View (`*.view.ts`) | Sprites, cameras, interpolation | Reading each step's render delta and events |
 | Screens (the framework's default screens, or the game's) | Title, pause and result screens, focus, layout | Reading sim state; sending commands |
 | Content (`content/`) | Levels, tuning, strings, compiled and hashed | Passed to the sim as content |
-| Host (`Hosting`, from `@mcthaydt/automata`) | Saves, identity, lifecycle | Never directly; the runtime wires it |
+| Host (`Hosting`, from `@automataframework/automata`) | Saves, identity, lifecycle | Never directly; the runtime wires it |
 
-Inside a sim file, use only `@mcthaydt/automata-sim` (and `/math`, `/hash`), `zod`, `koota` through the sim's API,
+Inside a sim file, use only `@automataframework/automata-sim` (and `/math`, `/hash`), `zod`, `koota` through the sim's API,
 and relative imports. Use `Math` only for `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`,
-`sign` and `imul`; `@mcthaydt/automata-sim/math` has the rest. Iterate objects with `sortedKeys`/`sortedEntries`,
+`sign` and `imul`; `@automataframework/automata-sim/math` has the rest. Iterate objects with `sortedKeys`/`sortedEntries`,
 never `Object.keys` or `for…in`. Prefer integers (subpixels, ticks) for anything that moves.
 
 ## Where a change goes

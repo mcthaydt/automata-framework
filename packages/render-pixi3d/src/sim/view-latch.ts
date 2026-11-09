@@ -6,7 +6,7 @@
 // when the stick is centred or points more than 90° from where it pointed when the latch was taken, which is a
 // negative integer dot product (exactly 90° holds), so no trig is needed. A player's own camera turn never latches
 // and lets go of a latch: they asked for the new heading.
-import type { FieldValues } from '@mcthaydt/automata-sim'
+import type { FieldValues } from '@automataframework/automata-sim'
 import type { CameraHeading } from './camera-heading.component.js'
 import type { CameraView } from './camera-view.schema.js'
 import { clampTurn, degToHeading, turnHeading } from './heading.js'

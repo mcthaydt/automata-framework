@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { FieldDef, FieldValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldValue } from '@automataframework/automata-content/level-2d'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'

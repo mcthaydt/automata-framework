@@ -1,6 +1,6 @@
 // The plan's camera, its grid and its snap values (ED3D.4 step 1): the kit's `Viewport2D` driven by the view state's
 // camera, and Last Light's `snap` and `snapStep` with the cases its own tests hold.
-import { createViewport } from '@mcthaydt/automata-editor/kit/core'
+import { createViewport } from '@automataframework/automata-editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { afSectorProfile } from '../../profile/af-sector-profile'
 import { lastLightProfile } from '../../profile/last-light-profile'

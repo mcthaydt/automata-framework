@@ -434,7 +434,7 @@ describe('runCheck', () => {
   describe('inputs', () => {
     const config = (inputs: string) => `export default defineShipConfig({ runtime: { inputs: ${inputs} } })\n`
     const keysGame = (args: string) =>
-      `import { keys } from '@mcthaydt/automata-game'\nexport const input = keys(${args})\n`
+      `import { keys } from '@automataframework/automata-game'\nexport const input = keys(${args})\n`
     const inputsStep = (report: Awaited<ReturnType<typeof check>>['report']) =>
       report.steps.find((step) => step.name === 'inputs')
 

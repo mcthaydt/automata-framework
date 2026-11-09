@@ -9,7 +9,7 @@ import { LEVEL_FILES } from './template-level.ts'
 const SQUARE_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/square/square.component.ts',
-    content: () => `import { defineComponent } from '@mcthaydt/automata-sim'
+    content: () => `import { defineComponent } from '@automataframework/automata-sim'
 
 /** Where the square's centre is, in the game's pixels. */
 export const Square = defineComponent('square', { x: 'f32', y: 'f32' })
@@ -17,7 +17,7 @@ export const Square = defineComponent('square', { x: 'f32', y: 'f32' })
   },
   {
     path: 'src/features/square/move.command.ts',
-    content: () => `import { defineCommand } from '@mcthaydt/automata-sim'
+    content: () => `import { defineCommand } from '@automataframework/automata-sim'
 import { z } from 'zod'
 
 const axis = z.number().int().min(-1).max(1).default(0)
@@ -28,7 +28,7 @@ export const Move = defineCommand('move', z.object({ x: axis, y: axis }))
   },
   {
     path: 'src/features/square/move.system.ts',
-    content: () => `import { defineSystem } from '@mcthaydt/automata-sim'
+    content: () => `import { defineSystem } from '@automataframework/automata-sim'
 import { SPEED, SQUARE_SIZE } from '../../shared/constants.ts'
 import { levelIn } from '../level/read-level.ts'
 import { hitsWall } from '../level/walls.ts'
@@ -56,7 +56,7 @@ export const move = defineSystem('move', (ctx) => {
   },
   {
     path: 'src/features/square/square.plugin.ts',
-    content: (options) => `import { definePlugin } from '@mcthaydt/automata-sim'
+    content: (options) => `import { definePlugin } from '@automataframework/automata-sim'
 import { Move } from './move.command.ts'
 import { move } from './move.system.ts'
 import { Square } from './square.component.ts'
@@ -67,7 +67,7 @@ export const squarePlugin = definePlugin({ name: '${options.id}', defs: [Square,
   },
   {
     path: 'src/features/square/square.view.ts',
-    content: () => `import { rect } from '@mcthaydt/automata'
+    content: () => `import { rect } from '@automataframework/automata'
 import { SQUARE_SIZE } from '../../shared/constants.ts'
 import { Square } from './square.component.ts'
 
@@ -96,7 +96,7 @@ export const SQUARE_SIZE = 8
   ...SQUARE_FILES,
   {
     path: 'src/app/game.ts',
-    content: (options) => `import { defaultContent, defineGame, keys } from '@mcthaydt/automata'
+    content: (options) => `import { defaultContent, defineGame, keys } from '@automataframework/automata'
 import { LEVEL } from '../features/level/level.ts'
 import { drawLevel } from '../features/level/level.view.ts'
 import { Move } from '../features/square/move.command.ts'
@@ -144,8 +144,8 @@ export const game = defineGame({
     path: 'src/main.ts',
     content:
       () => `// The page's entry: starts the game. \`no-eval\` comes first, because the web targets allow no eval.
-import '@mcthaydt/automata/no-eval'
-import { startGame } from '@mcthaydt/automata'
+import '@automataframework/automata/no-eval'
+import { startGame } from '@automataframework/automata'
 import { game } from './app/game.ts'
 
 let running = startGame(game)
@@ -169,7 +169,7 @@ if (import.meta.hot) {
   },
   {
     path: 'tests/unit/level/read-level.test.ts',
-    content: () => `import { levelContentSchema } from '@mcthaydt/automata-content/level-2d'
+    content: () => `import { levelContentSchema } from '@automataframework/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { LEVEL } from '../../../src/features/level/level.ts'
 import { levelOf, SOLID } from '../../../src/features/level/read-level.ts'
@@ -214,7 +214,7 @@ describe('reading a level', () => {
   },
   {
     path: 'tests/unit/square/square-move.test.ts',
-    content: (options) => `import { createSim } from '@mcthaydt/automata-sim'
+    content: (options) => `import { createSim } from '@automataframework/automata-sim'
 import { describe, expect, it } from 'vitest'
 import { LEVEL } from '../../../src/features/level/level.ts'
 import { Move } from '../../../src/features/square/move.command.ts'

@@ -7,7 +7,7 @@
 // An edit keeps the `ids` check's zone rules, in its sentences: it is refused with the first zone sentence the new zones
 // have that the old ones did not, so the first zone stays the rest of the map, a later one keeps an area, and a removal
 // cannot make a later zone the first. The size rule is the shipped editor's (editor/src/server/level-edits.ts `areaOf`).
-import type { FieldDef, FieldValues } from '@mcthaydt/automata-editor/kit/fields'
+import type { FieldDef, FieldValues } from '@automataframework/automata-editor/kit/fields'
 import { type ZoneFault, zoneFaults } from '../checks/last-light/ids'
 import type { ThingDef } from '../entities/thing-def.schema'
 import type { RawEntry, Thing } from '../entities/things'

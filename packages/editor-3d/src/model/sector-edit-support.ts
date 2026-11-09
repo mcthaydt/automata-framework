@@ -2,7 +2,7 @@
 // back into the level, and the two checks an edit that adds or reshapes a sector passes before it answers: the engine
 // can build the level, and a new sector stands on no other. A refusal is a sentence for the person, never an exception.
 
-import { roundJsonNumber } from '@mcthaydt/automata-editor/kit/documents'
+import { roundJsonNumber } from '@automataframework/automata-editor/kit/documents'
 import { sectorSelection } from '../checks/check'
 import { overlapProblems } from '../checks/overlap'
 import { GeometryError, type LevelProfile } from '../profile/level-profile'

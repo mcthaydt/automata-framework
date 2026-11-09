@@ -6,7 +6,7 @@ import {
   type FieldDef,
   type FieldValues,
   type InstanceProblem,
-} from '@mcthaydt/automata-content/level-2d'
+} from '@automataframework/automata-content/level-2d'
 import { checkFieldInstance } from './field-values'
 
 /** One instance of the entity whose field is being changed. */

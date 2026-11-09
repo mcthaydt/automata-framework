@@ -7,7 +7,7 @@ import {
   createKeymap,
   type KeyInput,
   type Keymap,
-} from '@mcthaydt/automata-editor/kit/core'
+} from '@automataframework/automata-editor/kit/core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { AfSector } from '../format/af-sector.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'

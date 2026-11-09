@@ -20,10 +20,10 @@ describe('/api', () => {
   it('has one page for each published package, under its current name', () => {
     const names = getApiReference(latestApiVersion())!.packages.map((pkg) => pkg.name)
     expect(names).toEqual([
-      '@mcthaydt/automata',
-      '@mcthaydt/automata-content',
-      '@mcthaydt/automata-sim',
-      '@mcthaydt/automata-tools',
+      '@automataframework/automata',
+      '@automataframework/automata-content',
+      '@automataframework/automata-sim',
+      '@automataframework/automata-tools',
     ])
   })
 

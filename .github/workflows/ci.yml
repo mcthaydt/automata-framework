@@ -246,21 +246,21 @@ jobs:
       - run: pnpm exec playwright install chromium webkit firefox
         if: runner.environment == 'self-hosted'
       # The packed `automata` bin is the one a developer installs: built here for the journeys that run it.
-      - run: pnpm exec turbo run build --filter @mcthaydt/automata-tools
+      - run: pnpm exec turbo run build --filter @automataframework/automata-tools
       - name: 2D journeys
         run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples-2d
       # The real `automata editor` on a temp copy of a game: iPad and phone in Chromium, the iPad in WebKit.
       - name: The editor's journeys
-        run: pnpm test:e2e --filter @mcthaydt/automata-editor
+        run: pnpm test:e2e --filter @automataframework/automata-editor
       # The website's gates (links, metadata, policy, layout, the playground's page) in Chromium and WebKit, on its static
       # build; turbo builds it first (the demos, the API index and the playground with it).
       - name: The website
-        run: pnpm test:e2e --filter @mcthaydt/automata-site
+        run: pnpm test:e2e --filter @automataframework/automata-site
       # A stranger makes a game from the packed packages in an empty folder outside the repository, checks, plays and
       # packages it (tooling/consumer-smoke). Turbo builds the packages it packs first.
       - name: The stranger's journey
         if: github.event_name != 'pull_request' || needs.checks.outputs.stranger == 'true'
-        run: pnpm test:e2e --filter @mcthaydt/consumer-smoke
+        run: pnpm test:e2e --filter @automataframework/consumer-smoke
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:

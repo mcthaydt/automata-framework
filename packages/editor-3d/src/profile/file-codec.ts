@@ -9,7 +9,7 @@ import {
   type PatchRules,
   patchJson,
   scan,
-} from '@mcthaydt/automata-editor/kit/documents'
+} from '@automataframework/automata-editor/kit/documents'
 import type { z } from 'zod'
 
 export interface ParseIssue {

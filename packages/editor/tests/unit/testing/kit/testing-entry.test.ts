@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { shellModeAt } from '#src/shared/kit/shell/shell-mode.ts'
 import { REST, SIZES, stubGeometry } from '#src/testing/kit/index.ts'
 
-// `@mcthaydt/automata-editor-kit/testing` is what the editors' component tests build their geometry from, so there is
+// `@automataframework/automata-editor-kit/testing` is what the editors' component tests build their geometry from, so there is
 // one stand-in for the geometry owner and not a copy in every editor.
 
 describe('the testing entry', () => {

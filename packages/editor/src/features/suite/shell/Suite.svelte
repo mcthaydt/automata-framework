@@ -8,7 +8,7 @@
   `core/write-messages` (split by responsibility in 12.7 and 12.5).
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automataframework/automata'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WriteOutcome } from '../../../shared/editor-list/write-path'
 import type { GestureClock } from '../../../shared/kit/gestures/gesture-clock'

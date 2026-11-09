@@ -6,7 +6,7 @@ description: How to open a game's levels in the Automata level editor with `auto
 # Opening the level editor: `automata editor`
 
 `automata editor [folder] [--port <n>] [--lan] [--token <t>]` opens the 2D level editor on the game in the folder
-(default: this one) until Ctrl+C. The level editor comes with `@mcthaydt/automata-tools`, so there is nothing to build.
+(default: this one) until Ctrl+C. The level editor comes with `@automataframework/automata-tools`, so there is nothing to build.
 The full guide is the Editor page of the docs.
 
 ## Do

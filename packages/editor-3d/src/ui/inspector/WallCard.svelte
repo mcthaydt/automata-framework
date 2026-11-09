@@ -4,7 +4,7 @@
   the 3D views hide it (occlude); its handrail. Each change is one undo step; a scrub of a stepper is one too.
 -->
 <script lang="ts">
-import { Button, Segmented, Stepper } from '@mcthaydt/automata-editor/kit'
+import { Button, Segmented, Stepper } from '@automataframework/automata-editor/kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
 import type { MaterialTarget } from '../../app/material-session'

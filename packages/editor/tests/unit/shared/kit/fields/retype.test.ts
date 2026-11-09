@@ -1,4 +1,4 @@
-import type { EntityDef, FieldDef } from '@mcthaydt/automata-content/level-2d'
+import type { EntityDef, FieldDef } from '@automataframework/automata-content/level-2d'
 import { describe, expect, test } from 'vitest'
 import { checkValues, renameFieldValues } from '#src/shared/kit/fields/field-values.ts'
 import { checkRetype, type FieldInstance, renameField } from '#src/shared/kit/fields/retype.ts'

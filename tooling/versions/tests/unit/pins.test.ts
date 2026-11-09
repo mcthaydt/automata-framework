@@ -37,7 +37,7 @@ describe('pinsFromManifests', () => {
   it('collects external pins once, sorted, and skips workspace and file dependencies', () => {
     expect(
       pinsFromManifests([
-        { dependencies: { zod: '4.6.5', '@mcthaydt/automata-sim': 'workspace:*' } },
+        { dependencies: { zod: '4.6.5', '@automataframework/automata-sim': 'workspace:*' } },
         {
           devDependencies: { zod: '4.6.5', vitest: '5.0.3' },
           dependencies: { '@ruken/manifest': 'file:../../vendor/ruken/ruken-manifest-0.0.0.tgz' },
@@ -69,14 +69,14 @@ describe('findRanges', () => {
 describe('publishedPeerFloors', () => {
   const published = {
     publishConfig: { registry: 'https://npm.pkg.github.com' },
-    peerDependencies: { svelte: '^5.57.1', '@mcthaydt/automata-testing': 'workspace:*' },
+    peerDependencies: { svelte: '^5.57.1', '@automataframework/automata-testing': 'workspace:*' },
     devDependencies: { svelte: '5.57.1', vitest: '^5.0.3' },
   }
 
   it("reads a published package's caret peers as their floor, so a game's patch release still satisfies them", () => {
     expect(publishedPeerFloors(published).peerDependencies).toEqual({
       svelte: '5.57.1',
-      '@mcthaydt/automata-testing': 'workspace:*',
+      '@automataframework/automata-testing': 'workspace:*',
     })
   })
 
@@ -98,7 +98,7 @@ describe('publishedPeerFloors', () => {
 describe('pinsFromScaffoldSource', () => {
   it('reads the exact pins create-game writes, as object keys or assignments, and skips ranges and workspace links', () => {
     const source = `
-      dependencies: { '@mcthaydt/automata-sim': 'workspace:*', effect: '3.22.2', 'pixi.js': '8.22.0' },
+      dependencies: { '@automataframework/automata-sim': 'workspace:*', effect: '3.22.2', 'pixi.js': '8.22.0' },
       dependencies['@ruken/sdk'] = '^0.0.0'
       devDependencies['@tauri-apps/cli'] = '2.12.3'
     `

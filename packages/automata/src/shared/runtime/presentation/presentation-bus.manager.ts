@@ -1,4 +1,4 @@
-import type { SimEvent } from '@mcthaydt/automata-sim'
+import type { SimEvent } from '@automataframework/automata-sim'
 import type { ErrorCode } from '../../host/error-code.schema.ts'
 import type { BoardState } from '../board-state.js'
 import type { GlyphFamily } from '../glyph-family.js'

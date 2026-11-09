@@ -49,12 +49,12 @@ describe('compileExample', () => {
     expect(result.diagnostics[0]).toMatchObject({ line: 21, column: lines(broken)[20]!.indexOf(';') + 1 })
   })
 
-  it('refuses an import of anything but @mcthaydt/automata and zod, at its line', () => {
+  it('refuses an import of anything but @automataframework/automata and zod, at its line', () => {
     const result = compileExample(`import _ from 'lodash'\n${RECTS}`, EXAMPLE)
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.diagnostics).toEqual([
-      { line: 1, column: 1, message: 'The playground can import only @mcthaydt/automata and zod.' },
+      { line: 1, column: 1, message: 'The playground can import only @automataframework/automata and zod.' },
     ])
     expect(compileExample(`export * from './other'\n${RECTS}`, EXAMPLE).ok).toBe(false)
     expect(compileExample(`import { z } from 'zod'\n${RECTS}`, EXAMPLE).ok).toBe(true)
@@ -65,7 +65,7 @@ describe('compileExample', () => {
       const result = compileExample(source, EXAMPLE)
       return result.ok ? [] : result.diagnostics.map((diagnostic) => diagnostic.message)
     }
-    const message = 'The playground can import only @mcthaydt/automata and zod.'
+    const message = 'The playground can import only @automataframework/automata and zod.'
     expect(refused("import type { Thing } from './other'")).toEqual([message])
     expect(refused("export { a } from './other'")).toEqual([message])
     expect(refused("import x = require('m')")).toEqual([message])

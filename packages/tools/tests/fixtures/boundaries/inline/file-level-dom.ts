@@ -1,4 +1,4 @@
-import { defineSystem } from '@mcthaydt/automata'
+import { defineSystem } from '@automataframework/automata'
 
 document.title = `started at ${Date.now()}`
 console.log('a browser file may use the DOM, the clock and the console outside the sim')

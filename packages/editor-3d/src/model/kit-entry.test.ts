@@ -1,6 +1,6 @@
 // The model layer builds on the kit's History and Selection through the shell-free `./core` entry: this is the one place
 // the package proves that the entry loads on Node and does what the editor needs of it.
-import { createHistory, createSelection } from '@mcthaydt/automata-editor/kit/core'
+import { createHistory, createSelection } from '@automataframework/automata-editor/kit/core'
 import { describe, expect, it } from 'vitest'
 
 describe('the kit core entry, from editor-3d', () => {

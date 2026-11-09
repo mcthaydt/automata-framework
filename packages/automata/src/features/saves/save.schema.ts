@@ -5,7 +5,7 @@
 // - an unreadable save is kept as it is and shown as damaged, never read as empty (FloorFifty reads it as empty).
 // Settings differ on purpose (`settings/migrate-settings.ts`): losing a preference is acceptable, losing progress
 // is not.
-import { canonicalJson } from '@mcthaydt/automata-sim/hash'
+import { canonicalJson } from '@automataframework/automata-sim/hash'
 import type { z } from 'zod'
 
 /** One migration step of a save: version `n` data in, version `n + 1` data out (`SaveDef.migrations`). */

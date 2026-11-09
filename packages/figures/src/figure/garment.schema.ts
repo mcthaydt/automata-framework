@@ -6,7 +6,7 @@
 // stay in FigureBuilder), the painter's washes (the skirt's `stain`, the wide-legs' `fade`) and the drawn
 // face's colours (the eyes' `white` and `lips`).
 
-import { contentRef } from '@mcthaydt/automata-content/schema'
+import { contentRef } from '@automataframework/automata-content/schema'
 import { z } from 'zod'
 import { type HairStyle, hairStyleSchema } from '../library/hair.schema'
 import { type Headwear, headwearSchema, type Lock, lockSchema } from '../library/headwear.schema'

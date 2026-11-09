@@ -18,8 +18,8 @@ describe('createGame integration', () => {
     mkdirSync(tempDir, { recursive: true })
     // A scaffolded game depends on this package, which the games in the workspace get from node_modules; here the
     // scratch folder sits inside the package, so the link is made by hand.
-    mkdirSync(join(tempDir, 'node_modules/@mcthaydt'), { recursive: true })
-    symlinkSync(process.cwd(), join(tempDir, 'node_modules/@mcthaydt/automata-tools'), 'dir')
+    mkdirSync(join(tempDir, 'node_modules/@automataframework'), { recursive: true })
+    symlinkSync(process.cwd(), join(tempDir, 'node_modules/@automataframework/automata-tools'), 'dir')
   })
 
   afterEach(() => {

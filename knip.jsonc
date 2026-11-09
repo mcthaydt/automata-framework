@@ -17,8 +17,8 @@
       "entry": ["agents/automata/scripts/check.mjs"],
       "ignore": ["agents/automata/skills/*/example/**", "docs/design/**", "docs/archive/design/**"]
     },
-    // DX.7: the example imports @mcthaydt/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
-    "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
+    // DX.7: the example imports @automataframework/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
+    "tooling/agent-skills": { "ignoreDependencies": ["@automataframework/automata-sim"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
     "games/emberwick": {
       // The journeys sit in tests/e2e; the config names its directory, which knip does not follow.
@@ -53,7 +53,7 @@
       ],
       "ignore": ["playground/static/**"],
       // `src/app.css` imports the shared tokens with CSS @import, which knip does not follow.
-      "ignoreDependencies": ["@mcthaydt/automata-editor"],
+      "ignoreDependencies": ["@automataframework/automata-editor"],
       "playwright": false
     },
     // The runner's journeys run from examples/2d's config, which names this folder.

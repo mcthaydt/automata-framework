@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import * as published from '#src/entries/index.ts'
 import * as internal from '#src/entries/internal.ts'
 
-// What a game author can import from `@mcthaydt/automata-tools` is one function; everything this repository's own
+// What a game author can import from `@automataframework/automata-tools` is one function; everything this repository's own
 // tooling needs is in `./internal`, which is not published.
 
 const pkg = JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')) as {

@@ -1,7 +1,7 @@
 import { readFileSync as readBytes, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
-import { readCatalog } from '@mcthaydt/examples-runner/catalog'
+import { readCatalog } from '@automataframework/examples-runner/catalog'
 import { expect, test } from '@playwright/test'
 import { playgroundCatalog } from '../../../playground/src/playground-catalog.ts'
 import { checkRuntimeSize, RUNTIME_GZIP_BUDGET } from '../../../playground/src/runtime-size.ts'

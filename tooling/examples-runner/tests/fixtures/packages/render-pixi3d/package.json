@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/automata-render-pixi3d",
+  "name": "@automataframework/automata-render-pixi3d",
   "private": true,
   "exports": {
     ".": "./src/index.ts",

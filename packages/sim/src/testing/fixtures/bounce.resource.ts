@@ -1,4 +1,4 @@
-import { defineResource, type ResourceDef } from '@mcthaydt/automata-sim'
+import { defineResource, type ResourceDef } from '@automataframework/automata-sim'
 import { z } from 'zod'
 
 const statsSchema: z.ZodObject<{ bounces: z.ZodNumber; spawned: z.ZodNumber }> = z.object({

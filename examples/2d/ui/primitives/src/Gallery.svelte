@@ -4,7 +4,7 @@
   owner against its own window.
 -->
 <script lang="ts">
-import type { ReferenceSize } from '@mcthaydt/automata/testing'
+import type { ReferenceSize } from '@automataframework/automata/testing'
 
 interface Props {
   primitives: readonly string[]

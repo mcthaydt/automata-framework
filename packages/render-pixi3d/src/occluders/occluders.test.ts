@@ -2,7 +2,7 @@
 // `a → b` and its floor trim, each with its own material; each frame the pass hides a cut wall and shows its trim,
 // blends while fading and is opaque when shown; a ceiling is never drawn in the angled view; a prop's material alpha
 // follows the rule. `occluderHooks` feeds the pass from the rig's pose each frame.
-import type { RenderRow } from '@mcthaydt/automata-sim'
+import type { RenderRow } from '@automataframework/automata-sim'
 import { Camera3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
 import { describe, expect, it, vi } from 'vitest'
 import { angledCamera } from '../camera/angled-camera.js'

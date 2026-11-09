@@ -1,5 +1,5 @@
 // The bounce fixture: integer-math balls in a box, with RNG spawns, a resource and a command.
-import { definePlugin, type PluginDef } from '@mcthaydt/automata-sim'
+import { definePlugin, type PluginDef } from '@automataframework/automata-sim'
 import { Kick } from './bounce.command'
 import { Ball } from './bounce.component'
 import { BounceStats } from './bounce.resource'

@@ -3,7 +3,7 @@
 // the editor, so the toolbar, the menu and the keymap all reach the same thing. A command that has nothing to do is
 // disabled, so its key falls through to the browser. The edits themselves take arguments and live in the `*-edits`
 // files; these only turn the selection into those arguments.
-import { type CommandRegistry, defineCommand } from '@mcthaydt/automata-editor/kit/core'
+import { type CommandRegistry, defineCommand } from '@automataframework/automata-editor/kit/core'
 import { type EditResult, ok, refuse } from './edit'
 import type { LevelEditor } from './level-editor'
 import { duplicateSector, removeSectors } from './sector-edits'

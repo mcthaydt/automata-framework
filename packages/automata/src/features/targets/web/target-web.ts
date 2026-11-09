@@ -1,5 +1,5 @@
 // The `itch` and `web` targets' adapter entry points; `entries/target/web.ts` re-exports them.
-// They take the Ruken adapter's arguments, so `@mcthaydt/automata/target` can swap one for the other; the second
+// They take the Ruken adapter's arguments, so `@automataframework/automata/target` can swap one for the other; the second
 // argument is the Ruken SDK's test seam and means nothing here.
 import type { HostResult } from '../../../shared/host/errors'
 import type { Hosting, HostingOptions } from '../../../shared/host/hosting'

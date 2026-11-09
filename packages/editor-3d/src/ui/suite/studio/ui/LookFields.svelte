@@ -5,7 +5,7 @@
   and a refusal shows under the fields in the schema's own sentence.
 -->
 <script lang="ts">
-import { Chips, Picker, Segmented, Slider } from '@mcthaydt/automata-editor/kit'
+import { Chips, Picker, Segmented, Slider } from '@automataframework/automata-editor/kit'
 import type { StudioController } from '../studio-controller'
 import { BODY_SLIDERS, FACE_GROUPS, type SliderField, sliderValue } from '../studio-fields'
 

@@ -1,5 +1,5 @@
 import { content, simContent } from 'virtual:automata/content'
-import { levelContentSchema } from '@mcthaydt/automata-content/level-2d'
+import { levelContentSchema } from '@automataframework/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { roomSourceOfLevel } from '#src/features/room/level-room.ts'
 import { ROOM as HAND_WRITTEN } from '../../../fixtures/hand-written-room.ts'

@@ -2,7 +2,7 @@ name: release packages
 
 # AF's releases. Changesets opens or updates a "Version packages" pull request on every push to
 # main that carries changesets; merging that pull request (the Owner's word, never automatic) publishes every
-# changed @mcthaydt/automata-* package at one shared 0.0.x version to GitHub Packages. Nothing is published on
+# changed @automataframework/automata-* package at one shared 0.0.x version to GitHub Packages. Nothing is published on
 # any other push.
 #
 # Four jobs: `plan` asks whether the pushed commit carries changesets, which is the question
@@ -143,13 +143,13 @@ jobs:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
           dest: ${{ runner.temp }}/setup-pnpm
       # registry-url and scope make setup-node write an .npmrc that sends NODE_AUTH_TOKEN to GitHub Packages for
-      # @mcthaydt, for publishing and for the lookups after it.
+      # @automataframework, for publishing and for the lookups after it.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
           registry-url: https://npm.pkg.github.com
-          scope: "@mcthaydt"
+          scope: "@automataframework"
       - run: pnpm install --frozen-lockfile
       # The registry smoke boots Chromium. A no-op once the pinned browser is in the runner's cache; fetched
       # before publishing, so a clean machine cannot fail the smoke after the packages are out (Owner, 2026-10-30:

@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/automata-render-pixi3d",
+  "name": "@automataframework/automata-render-pixi3d",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -31,11 +31,11 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@mcthaydt/automata": "workspace:*",
-    "@mcthaydt/automata-content": "workspace:*",
-    "@mcthaydt/automata-figures": "workspace:*",
-    "@mcthaydt/automata-sector-format": "workspace:*",
-    "@mcthaydt/automata-sim": "workspace:*",
+    "@automataframework/automata": "workspace:*",
+    "@automataframework/automata-content": "workspace:*",
+    "@automataframework/automata-figures": "workspace:*",
+    "@automataframework/automata-sector-format": "workspace:*",
+    "@automataframework/automata-sim": "workspace:*",
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
     "@pmndrs/klipp": "0.16.0",
     "effect": "3.22.2",

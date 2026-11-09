@@ -3,11 +3,17 @@
 // Shows: what the runner, the smoke test and the parity test read from an example: an id, a size and a sim
 //   (plugins, seed, setup). A plain object, since DX.2's defineGame does not exist yet.
 // Controls: none
-// Packages: @mcthaydt/automata-sim
+// Packages: @automataframework/automata-sim
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 60
-import { createRng, defineComponent, definePlugin, defineSystem, type Sim } from '@mcthaydt/automata-sim'
+import {
+  createRng,
+  defineComponent,
+  definePlugin,
+  defineSystem,
+  type Sim,
+} from '@automataframework/automata-sim'
 
 const Spinner = defineComponent('stub.spinner', { angle: 'i32', speed: 'i32' })
 

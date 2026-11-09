@@ -1,8 +1,8 @@
 // defineGame: a `GameSpec` with every default filled in. Pure: it reads no document
 // until the runtime asks for the root, so a game module also loads in Node (the examples' golden parity).
 
-import { GAME_ID_PATTERN } from '@mcthaydt/automata-content/game-config'
-import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
+import { GAME_ID_PATTERN } from '@automataframework/automata-content/game-config'
+import type { PluginDef, Sim } from '@automataframework/automata-sim'
 import type { EventSounds } from '../features/audio/event-sounds.ts'
 import type { GameOrientation, RotateHintMode } from '../features/display/display-policy.svelte.ts'
 import type { ExtensionDef } from '../features/extension/define-extension.ts'

@@ -1,7 +1,7 @@
 // Where a dragged or drawn point lands (ED3D.4 step 4, ED3D spec §5.3 flows 2 and 3 and ED3D-D11): on a corner, on a wall
 // line, on the horizontal or vertical through the last point, on the grid, or on the data step, in that order, and the
 // answer says which. The viewport is 32 px to a metre with the world origin at (20, 20), as in the picking tests.
-import { createViewport, type Point as ScreenPoint } from '@mcthaydt/automata-editor/kit/core'
+import { createViewport, type Point as ScreenPoint } from '@automataframework/automata-editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { AfSector, AfSectorEntry } from '../../format/af-sector.schema'
 import type { Point } from '../../format/sector.schema'

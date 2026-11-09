@@ -6,7 +6,7 @@
 // Refusals are answers (`{ ok: false, reason }`), never throws; asking for a slot the save does not have is a bug and
 // throws. Nothing here falls back to device storage (AGENTS.md, "Honor host authority").
 
-import { canonicalJson } from '@mcthaydt/automata-sim/hash'
+import { canonicalJson } from '@automataframework/automata-sim/hash'
 import type { HostRefusal } from '../../shared/host/errors.ts'
 import type { Hosting } from '../../shared/host/hosting.ts'
 import { type Clock, systemClock } from '../../shared/lib/clock.ts'

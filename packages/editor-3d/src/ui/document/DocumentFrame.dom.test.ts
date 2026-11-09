@@ -1,5 +1,5 @@
-import { createToasts } from '@mcthaydt/automata-editor/kit/core'
-import { stubGeometry } from '@mcthaydt/automata-editor/kit/testing'
+import { createToasts } from '@automataframework/automata-editor/kit/core'
+import { stubGeometry } from '@automataframework/automata-editor/kit/testing'
 import { act, render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'

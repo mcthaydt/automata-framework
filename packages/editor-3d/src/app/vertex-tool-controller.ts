@@ -7,7 +7,7 @@
 // The target is a dry run of the edit: `view.target` says what a tap would do by running `insertCorner` or
 // `removeCorner` against the live level and not committing it, so the tool cannot disagree with the model about what
 // is allowed, and a refusal is the model's own sentence.
-import type { Size, Viewport2D } from '@mcthaydt/automata-editor/kit/core'
+import type { Size, Viewport2D } from '@automataframework/automata-editor/kit/core'
 import type { Point } from '../format/sector.schema'
 import type { Edit } from '../model/edit'
 import type { LevelEditor } from '../model/level-editor'

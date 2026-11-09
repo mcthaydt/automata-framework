@@ -5,7 +5,7 @@ editors run in the browser; the command is a small local server beside them.
 
 ## Open it
 
-In your game's folder (with the editor built once: `pnpm --filter @mcthaydt/automata-editor build`):
+In your game's folder (with the editor built once: `pnpm --filter @automataframework/automata-editor build`):
 
 ```sh
 automata editor                 # the level editor on the game in this folder

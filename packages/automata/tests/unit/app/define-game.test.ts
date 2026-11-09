@@ -1,4 +1,4 @@
-import { defineComponent, defineEvent, definePlugin } from '@mcthaydt/automata-sim'
+import { defineComponent, defineEvent, definePlugin } from '@automataframework/automata-sim'
 import { Container } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'

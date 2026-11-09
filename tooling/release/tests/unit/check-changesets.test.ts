@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { changesetProblems, readChangeset } from '#src/check-changesets.ts'
 
-const published = ['@mcthaydt/automata-sim', '@mcthaydt/automata-host']
+const published = ['@automataframework/automata-sim', '@automataframework/automata-host']
 const file = (body: string) => `---\n${body}\n---\n\nWhat changed.\n`
 
 describe('changesetProblems (patch only before 1.0)', () => {
   it('passes patch bumps of published packages, in either quote style', () => {
-    const files = { 'a.md': file('\'@mcthaydt/automata-sim\': patch\n"@mcthaydt/automata-host": patch') }
+    const files = {
+      'a.md': file('\'@automataframework/automata-sim\': patch\n"@automataframework/automata-host": patch'),
+    }
     expect(changesetProblems(files, published)).toEqual([])
   })
 
@@ -16,12 +18,12 @@ describe('changesetProblems (patch only before 1.0)', () => {
 
   it('fails a minor or major bump, naming the file and package', () => {
     const files = {
-      'm.md': file("'@mcthaydt/automata-sim': minor"),
-      'x.md': file("'@mcthaydt/automata-host': major"),
+      'm.md': file("'@automataframework/automata-sim': minor"),
+      'x.md': file("'@automataframework/automata-host': major"),
     }
     expect(changesetProblems(files, published)).toEqual([
-      'm.md: @mcthaydt/automata-sim is a minor bump; before 1.0 every AF changeset is a patch',
-      'x.md: @mcthaydt/automata-host is a major bump; before 1.0 every AF changeset is a patch',
+      'm.md: @automataframework/automata-sim is a minor bump; before 1.0 every AF changeset is a patch',
+      'x.md: @automataframework/automata-host is a major bump; before 1.0 every AF changeset is a patch',
     ])
   })
 
@@ -40,8 +42,10 @@ describe('changesetProblems (patch only before 1.0)', () => {
 
 describe('readChangeset (shared with tooling/api-report)', () => {
   it('reads each release line and the body after the front matter', () => {
-    expect(readChangeset(`---\n'@mcthaydt/automata-host': patch\n---\n\nBREAKING: a member.\n`)).toEqual({
-      releases: [{ name: '@mcthaydt/automata-host', bump: 'patch' }],
+    expect(
+      readChangeset(`---\n'@automataframework/automata-host': patch\n---\n\nBREAKING: a member.\n`),
+    ).toEqual({
+      releases: [{ name: '@automataframework/automata-host', bump: 'patch' }],
       body: '\nBREAKING: a member.\n',
     })
   })

@@ -2,7 +2,7 @@
 // commands (a move, a lock, the action buttons) sends each map's command every tick, from one Input over the merged
 // bindings: one poll, one set of touch buttons, one Controls section.
 
-import type { Command } from '@mcthaydt/automata-sim'
+import type { Command } from '@automataframework/automata-sim'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { CAMERA_SETTINGS_DEFAULT } from './analog/camera-settings.schema.ts'
 import { type AnalogReading, analogReading } from './analog-reading.ts'

@@ -43,11 +43,11 @@ http://localhost:5173.
 
 /** Where each editor's build is, from the repository root, and the package that builds it. */
 const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
-  '2d': { folder: 'packages/editor/dist/2d', pkg: '@mcthaydt/automata-editor' },
-  '3d': { folder: 'packages/editor-3d/dist', pkg: '@mcthaydt/automata-editor-3d' },
+  '2d': { folder: 'packages/editor/dist/2d', pkg: '@automataframework/automata-editor' },
+  '3d': { folder: 'packages/editor-3d/dist', pkg: '@automataframework/automata-editor-3d' },
   // The suite's 2D page: the level editor and the Tuner. The full suite, with the 3D editors, is editor-3d's
   // `dist/suite`, served with --app-dir.
-  suite: { folder: 'packages/editor/dist/suite', pkg: '@mcthaydt/automata-editor' },
+  suite: { folder: 'packages/editor/dist/suite', pkg: '@automataframework/automata-editor' },
 }
 
 const here = dirname(fileURLToPath(import.meta.url))

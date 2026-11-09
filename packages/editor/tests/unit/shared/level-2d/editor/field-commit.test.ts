@@ -1,4 +1,4 @@
-import type { FieldValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldValue } from '@automataframework/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { createHistory, type History } from '#src/shared/kit/history/history.ts'
 import { projectHistory } from '#src/shared/level-2d/editor/edit-history.ts'

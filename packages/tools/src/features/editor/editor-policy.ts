@@ -4,7 +4,7 @@
 // readable, so the suite can show its rules or its problem); without one, only level files
 // (`*.af2d.json` outside the folders a build or a tool owns) are readable and writable. Paths outside the checkout are never
 // reachable.
-import { EDITOR_LIST_PATH, fileAccess, loadEditorList } from '@mcthaydt/automata-editor/editor-list'
+import { EDITOR_LIST_PATH, fileAccess, loadEditorList } from '@automataframework/automata-editor/editor-list'
 
 export interface EditorPolicy {
   /** Whether `path` (root-relative, `/`-separated) may be listed and read. */

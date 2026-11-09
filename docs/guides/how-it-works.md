@@ -8,10 +8,10 @@ packages they come in.
 
 | Package | What it is for |
 |---|---|
-| `@mcthaydt/automata` | The one a game imports: `defineGame`, `startGame`, the screens, input, drawing, saves and the hosts |
-| `@mcthaydt/automata-sim` | The rules: components, commands, systems and plugins, run one tick at a time |
-| `@mcthaydt/automata-content` | Levels, settings and text, checked and turned into what the game loads |
-| `@mcthaydt/automata-tools` | The `automata` command: make a game, open the editor, check and ship it |
+| `@automataframework/automata` | The one a game imports: `defineGame`, `startGame`, the screens, input, drawing, saves and the hosts |
+| `@automataframework/automata-sim` | The rules: components, commands, systems and plugins, run one tick at a time |
+| `@automataframework/automata-content` | Levels, settings and text, checked and turned into what the game loads |
+| `@automataframework/automata-tools` | The `automata` command: make a game, open the editor, check and ship it |
 
 [Make a game](/start) shows them working together. The [API reference](/api) lists every name each one exports.
 
@@ -33,7 +33,7 @@ Given the same start, the same content and the same commands, the sim ends in ex
 browser and on Node. That is what lets a test replay a run, a save restore it, and a bug report be played back.
 
 To keep that promise, the sim never reads the clock, the network, the page or `Math.random`. Random numbers come
-from the sim's own seeded streams, and maths beyond the basics comes from `@mcthaydt/automata-sim/math`, so every
+from the sim's own seeded streams, and maths beyond the basics comes from `@automataframework/automata-sim/math`, so every
 engine rounds the same way. `pnpm check` looks through the rule files for anything that would break this.
 
 `sim.hash()` sums up the whole state in one short string. `sim.snapshot()` saves it and `sim.restore()` brings it
@@ -68,5 +68,5 @@ it never sneaks the save somewhere else. Each place has its own guide: [the web]
 ## Safe on any web host
 
 Web hosts can forbid code that writes code, so no part of a game uses `eval` or `new Function`. A game's first import
-is `@mcthaydt/automata/no-eval`, which sets PixiJS up to work without either. Before a build goes out, the `prepare`
+is `@automataframework/automata/no-eval`, which sets PixiJS up to work without either. Before a build goes out, the `prepare`
 step checks it for `eval`, secrets and anything else a public host refuses.

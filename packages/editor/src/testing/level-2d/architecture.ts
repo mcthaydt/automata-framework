@@ -43,7 +43,7 @@ const isPureOrShared = (file: string): boolean =>
  * The packages the core may import: the schema language and the 2D level format, which imports only zod itself. The
  * kit's field rules are reached by path (above).
  */
-const PURE_PACKAGES: ReadonlySet<string> = new Set(['zod', '@mcthaydt/automata-content/level-2d'])
+const PURE_PACKAGES: ReadonlySet<string> = new Set(['zod', '@automataframework/automata-content/level-2d'])
 /** Where nothing may name a profile or a template: each of these works for every profile (G-s). */
 const GENERIC_PREFIXES: readonly string[] = [
   'app/editor-2d/',

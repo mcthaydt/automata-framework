@@ -1,4 +1,4 @@
-import { createToasts, type Toast } from '@mcthaydt/automata-editor/kit/core'
+import { createToasts, type Toast } from '@automataframework/automata-editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { AfSector } from '../../format/af-sector.schema'
 import type { LevelEditor } from '../../model/level-editor'

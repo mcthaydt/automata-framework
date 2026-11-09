@@ -1,8 +1,8 @@
 // Emberwick as one `defineGame` call: the base's sim, keys, own screens and flow, and its scene drawn
 // through render-pixi's stage hooks. Built from a room and tuning handed in, so a demo with content of its own
 // (examples/2d/content/hot-reload) plays the same game; `game.ts` makes the one the base ships.
-import { defineGame, keys } from '@mcthaydt/automata'
-import type { Sim } from '@mcthaydt/automata-sim'
+import { defineGame, keys } from '@automataframework/automata'
+import type { Sim } from '@automataframework/automata-sim'
 import { Move } from '../features/player/move.command.ts'
 import { placeWick } from '../features/player/place-wick.ts'
 import { sceneRenderer, type WickAt } from '../features/scene/scene-renderer.ts'

@@ -1,10 +1,10 @@
 # Automata API reference, version 0.0.5
 
-> Every export of every published `@mcthaydt/automata-*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
+> Every export of every published `@automataframework/automata-*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
 
-## `@mcthaydt/automata`
+## `@automataframework/automata`
 
-### `import { … } from '@mcthaydt/automata'`
+### `import { … } from '@automataframework/automata'`
 
 #### `ActionBar` (const)
 
@@ -502,7 +502,7 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 
 The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
 Matches
-@mcthaydt /automata-content's contentHash formula, pinned by tests.
+@automataframework /automata-content's contentHash formula, pinned by tests.
 
 ```ts
 function contentHashOf(data: unknown): string;
@@ -2592,8 +2592,8 @@ interface RuntimeSeams {
     readonly fonts?: Pick<FontFaceSet, 'load'>;
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
     /**
-     * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata/target`), for example
-     * `fakeHosting(…).open` from `@mcthaydt/automata/testing`. It gets boot's clock and the signal that gives up the
+     * Builds the game's `Hosting` in place of the build target's adapter (`@automataframework/automata/target`), for example
+     * `fakeHosting(…).open` from `@automataframework/automata/testing`. It gets boot's clock and the signal that gives up the
      * handshake; boot disposes what it answers. When given, `sdkEnv` is not used.
      */
     readonly hosting?: (options: HostingOptions, seams: {
@@ -3395,7 +3395,7 @@ function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<Game
 
 #### `ViewportWindow` (interface)
 
-The parts of `window` the owner reads; a fake from `@mcthaydt/automata/testing` stands in for it in tests.
+The parts of `window` the owner reads; a fake from `@automataframework/automata/testing` stands in for it in tests.
 
 ```ts
 interface ViewportWindow {
@@ -3418,7 +3418,7 @@ interface ViewportWindow {
 }
 ```
 
-### `import { … } from '@mcthaydt/automata/extension'`
+### `import { … } from '@automataframework/automata/extension'`
 
 #### `defineExtension` (function)
 
@@ -3513,7 +3513,7 @@ type RukenManifestContribution = {
 };
 ```
 
-### `import { … } from '@mcthaydt/automata/testing'`
+### `import { … } from '@automataframework/automata/testing'`
 
 #### `byTestId` (function)
 
@@ -4331,7 +4331,7 @@ Runs `program` on an open runtime and always closes it.
 function withRuntimeTest<A>(program: (session: RuntimeTestSession) => Promise<A> | A, options?: RuntimeTestOptions): Promise<A>;
 ```
 
-### `import { … } from '@mcthaydt/automata/tooling'`
+### `import { … } from '@automataframework/automata/tooling'`
 
 #### `isDefinedGame` (function)
 
@@ -4341,9 +4341,9 @@ Whether `value` came from `defineGame`.
 function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is DefinedGame<S>;
 ```
 
-## `@mcthaydt/automata-content`
+## `@automataframework/automata-content`
 
-### `import { … } from '@mcthaydt/automata-content'`
+### `import { … } from '@automataframework/automata-content'`
 
 #### `AssetsSource` (interface)
 
@@ -5050,7 +5050,7 @@ The guide with its generated section replaced, or undefined when it has no marke
 function withTuningTable(guide: string, meta: TuningMeta): string | undefined;
 ```
 
-### `import { … } from '@mcthaydt/automata-content/assets'`
+### `import { … } from '@automataframework/automata-content/assets'`
 
 #### `ATLAS_EXTRUDE` (const)
 
@@ -5214,7 +5214,7 @@ The font cut to `characters`, as woff2. A character the font lacks is simply not
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
 ```
 
-### `import { … } from '@mcthaydt/automata-content/game-config'`
+### `import { … } from '@automataframework/automata-content/game-config'`
 
 #### `GAME_ID_PATTERN` (const)
 
@@ -5360,7 +5360,7 @@ The renderers a game may ask for.
 const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 ```
 
-### `import { … } from '@mcthaydt/automata-content/level-2d'`
+### `import { … } from '@automataframework/automata-content/level-2d'`
 
 #### `checkEntityDef` (function)
 
@@ -5964,7 +5964,7 @@ The strict schema of `world.toml`.
 const worldContentSchema: z.ZodType<ContentWorld>;
 ```
 
-### `import { … } from '@mcthaydt/automata-content/locale'`
+### `import { … } from '@automataframework/automata-content/locale'`
 
 #### `ALWAYS_CHARACTERS` (const)
 
@@ -6100,7 +6100,7 @@ function pseudoMessages(file: {
 function snakeKey(value: string): string;
 ```
 
-### `import { … } from '@mcthaydt/automata-content/palette'`
+### `import { … } from '@automataframework/automata-content/palette'`
 
 #### `DEFAULT_PALETTE` (const)
 
@@ -6122,7 +6122,7 @@ interface Palette {
 }
 ```
 
-### `import { … } from '@mcthaydt/automata-content/schema'`
+### `import { … } from '@automataframework/automata-content/schema'`
 
 #### `contentRef` (function)
 
@@ -6191,7 +6191,7 @@ Text a player reads, written in the source language. It gets a message key for t
 function localized(): z.ZodType<string, string>;
 ```
 
-### `import { … } from '@mcthaydt/automata-content/vite'`
+### `import { … } from '@automataframework/automata-content/vite'`
 
 #### `automataContent` (function)
 
@@ -6224,9 +6224,9 @@ The import path of the compiled content: `content`, `contentHash`, `simContent` 
 const VIRTUAL_MODULE_ID = "virtual:automata/content";
 ```
 
-## `@mcthaydt/automata-sim`
+## `@automataframework/automata-sim`
 
-### `import { … } from '@mcthaydt/automata-sim'`
+### `import { … } from '@automataframework/automata-sim'`
 
 #### `canonicalJson` (function)
 
@@ -6944,7 +6944,7 @@ XXH64 of `data` with an unsigned 64-bit `seed`.
 function xxhash64(data: Uint8Array, seed?: bigint): bigint;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/hash'`
+### `import { … } from '@automataframework/automata-sim/hash'`
 
 #### `canonicalJson` (function)
 
@@ -6982,7 +6982,7 @@ XXH64 of `data` with an unsigned 64-bit `seed`.
 function xxhash64(data: Uint8Array, seed?: bigint): bigint;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/math'`
+### `import { … } from '@automataframework/automata-sim/math'`
 
 #### `atan` (function)
 
@@ -7057,7 +7057,7 @@ Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 function tan(x: number): number;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/replay'`
+### `import { … } from '@automataframework/automata-sim/replay'`
 
 #### `createRecorder` (function)
 
@@ -7336,7 +7336,7 @@ function unpackReplay(bytes: Uint8Array, compression: ReplayCompression, options
 }): Promise<Replay>;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/testing'`
+### `import { … } from '@automataframework/automata-sim/testing'`
 
 #### `Difference` (interface)
 
@@ -7579,7 +7579,7 @@ Browsers and Node: CompressionStream / DecompressionStream('deflate-raw').
 const streamCompression: ReplayCompression;
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/testing/commands'`
+### `import { … } from '@automataframework/automata-sim/testing/commands'`
 
 #### `goldenCommands` (function)
 
@@ -7605,7 +7605,7 @@ interface GoldenCommandsOptions {
 }
 ```
 
-### `import { … } from '@mcthaydt/automata-sim/testing/property'`
+### `import { … } from '@automataframework/automata-sim/testing/property'`
 
 #### `RoundTripFailure` (interface)
 
@@ -7665,9 +7665,9 @@ function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
 }>;
 ```
 
-## `@mcthaydt/automata-tools`
+## `@automataframework/automata-tools`
 
-### `import { … } from '@mcthaydt/automata-tools'`
+### `import { … } from '@automataframework/automata-tools'`
 
 #### `defineShipConfig` (function)
 
@@ -7717,7 +7717,7 @@ interface ItchSettings {
 
 #### `ShipConfig` (interface)
 
-What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s
+What a game tells ship about itself: the game config every target reads (`@automataframework/automata-content`'s
 `GameConfig`) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
 the config reads like the `ruken.toml` the Ruken target writes from it (ship fills in `schema` and `allow_eval`,
 always false); `prepare --target ruken` checks the whole of it with Ruken's own parser.

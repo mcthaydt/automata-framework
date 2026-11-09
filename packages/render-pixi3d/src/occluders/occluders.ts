@@ -3,9 +3,9 @@
 // shows while it is cut, as The Last Light's cut-away groups show their low stubs (`src/render/stage.ts` lines 168 to
 // 171 and 887 to 891 at 92e6704). Ceilings are never drawn in the angled view. A prop fades through its material's
 // alpha, so its mesh must own its material. Presentation only: the sim never reads any of it.
-import type { PixiStageHooks } from '@mcthaydt/automata'
-import { reducedMotion as prefersReducedMotion } from '@mcthaydt/automata'
-import type { Occlude } from '@mcthaydt/automata-sector-format'
+import type { PixiStageHooks } from '@automataframework/automata'
+import { reducedMotion as prefersReducedMotion } from '@automataframework/automata'
+import type { Occlude } from '@automataframework/automata-sector-format'
 import { type BaseMaterial3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
 import type { CameraRig } from '../camera/angled-camera.js'
 import { ownCopyOf } from '../views/shared-material.js'

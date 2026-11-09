@@ -1,11 +1,16 @@
-import '@mcthaydt/automata-editor/tokens.css'
-import '@mcthaydt/automata-editor/fonts.css'
-import '@mcthaydt/automata-editor/suite.css'
-import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
-import { EDITOR_LIST_PATH } from '@mcthaydt/automata-editor/editor-list'
-import type { SuiteEditor } from '@mcthaydt/automata-editor/kit/ports'
-import { arrived, REST, SIZES } from '@mcthaydt/automata-editor/kit/testing'
-import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@mcthaydt/automata-editor/suite'
+import '@automataframework/automata-editor/tokens.css'
+import '@automataframework/automata-editor/fonts.css'
+import '@automataframework/automata-editor/suite.css'
+import { publishConditions, settleLayout } from '@automataframework/automata/testing'
+import { EDITOR_LIST_PATH } from '@automataframework/automata-editor/editor-list'
+import type { SuiteEditor } from '@automataframework/automata-editor/kit/ports'
+import { arrived, REST, SIZES } from '@automataframework/automata-editor/kit/testing'
+import {
+  createSuite,
+  type SuiteHandle,
+  samplePorts,
+  startSuite,
+} from '@automataframework/automata-editor/suite'
 import { afterEach, describe, expect, inject, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { createStageRenderer } from '../stage/stage-renderer'

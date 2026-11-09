@@ -1,5 +1,5 @@
-import type { ContentSchemaDef } from '@mcthaydt/automata-content'
-import type { PluginDef } from '@mcthaydt/automata-sim'
+import type { ContentSchemaDef } from '@automataframework/automata-content'
+import type { PluginDef } from '@automataframework/automata-sim'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   defineExtension,

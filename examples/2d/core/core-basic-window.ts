@@ -4,10 +4,10 @@
 //   renderer, and the title, play and paused screens. draw() paints over the playfield each frame, so the
 //   window shows a coloured field and a line of text.
 // Controls: none
-// Packages: @mcthaydt/automata
+// Packages: @automataframework/automata
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineGame } from '@mcthaydt/automata'
+import { defineGame } from '@automataframework/automata'
 
 export default defineGame({
   id: 'core-basic-window',

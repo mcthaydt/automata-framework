@@ -1,4 +1,4 @@
-import type { StepResult } from '@mcthaydt/automata-sim'
+import type { StepResult } from '@automataframework/automata-sim'
 import { describe, expect, it } from 'vitest'
 import { RendererUnavailable } from '#src/shared/runtime/boot-error.ts'
 import type { FrameInfo } from '#src/shared/runtime/loop/frames.ts'

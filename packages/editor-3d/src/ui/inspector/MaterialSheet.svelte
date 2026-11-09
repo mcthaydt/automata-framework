@@ -6,7 +6,7 @@
   model's words and the sheet stays open.
 -->
 <script lang="ts">
-import { Button, Dialog, Segmented, Slider } from '@mcthaydt/automata-editor/kit'
+import { Button, Dialog, Segmented, Slider } from '@automataframework/automata-editor/kit'
 import { onDestroy } from 'svelte'
 import {
   createMaterialPicker,

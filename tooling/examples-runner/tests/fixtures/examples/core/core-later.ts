@@ -2,11 +2,11 @@
 //
 // Shows: an example whose verbs have not landed.
 // Controls: none
-// Packages: @mcthaydt/automata
+// Packages: @automataframework/automata
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 60
 // Pending: OPEN.1
-import { defineGame } from '@mcthaydt/automata'
+import { defineGame } from '@automataframework/automata'
 
 export default defineGame({ id: 'core-later' })

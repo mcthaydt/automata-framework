@@ -5,9 +5,9 @@
 // heading. The conversions are whole-unit arithmetic first and one multiplication last, so every unit round-trips exactly.
 // The turn itself (`TURN_UNITS`, `wrapHeading`, `turnHeading`, `degToHeading`) is render-pixi3d's `camera-view`, its one
 // owner (M3 spec §4.2, amended 2026-10-30); what stays here is the editor camera's compass and its own drag.
-import type { Size } from '@mcthaydt/automata-editor/kit/core'
-import { roundJsonNumber } from '@mcthaydt/automata-editor/kit/documents'
-import { TURN_UNITS, wrapHeading } from '@mcthaydt/automata-render-pixi3d/camera-view'
+import type { Size } from '@automataframework/automata-editor/kit/core'
+import { roundJsonNumber } from '@automataframework/automata-editor/kit/documents'
+import { TURN_UNITS, wrapHeading } from '@automataframework/automata-render-pixi3d/camera-view'
 import { type Camera3D, fitOrbit, type Orbit, orbitCamera } from './camera-3d'
 import { surfaceVisibility } from './mesh-pick'
 import type { SectorMesh, Vec3 } from './sector-mesh'

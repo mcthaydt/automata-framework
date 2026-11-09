@@ -8,7 +8,7 @@
   view on the new one. Everything it does goes through the document controller; nothing here names a profile.
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automataframework/automata'
 import type { Component, Snippet } from 'svelte'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'

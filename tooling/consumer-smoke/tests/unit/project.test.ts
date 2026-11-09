@@ -14,29 +14,42 @@ const tools = {
 }
 
 describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)', () => {
-  it('depends on every packed tarball and overrides the transitive @mcthaydt ones to the same files', () => {
+  it('depends on every packed tarball and overrides the transitive @automataframework ones to the same files', () => {
     const manifest = consumerManifest({
       from: 'packs',
       packages: [
-        { name: '@mcthaydt/automata-sim', tarball: 'packs/mcthaydt-automata-sim-0.0.1.tgz' },
-        { name: '@mcthaydt/automata-testing', tarball: 'packs/mcthaydt-automata-testing-0.0.1.tgz' },
+        {
+          name: '@automataframework/automata-sim',
+          tarball: 'packs/automataframework-automata-sim-0.0.1.tgz',
+        },
+        {
+          name: '@automataframework/automata-testing',
+          tarball: 'packs/automataframework-automata-testing-0.0.1.tgz',
+        },
       ],
       tools,
       packageManager: PNPM,
     })
     expect(manifest.dependencies).toEqual({
-      '@mcthaydt/automata-testing': 'file:packs/mcthaydt-automata-testing-0.0.1.tgz',
-      '@mcthaydt/automata-sim': 'file:packs/mcthaydt-automata-sim-0.0.1.tgz',
+      '@automataframework/automata-testing': 'file:packs/automataframework-automata-testing-0.0.1.tgz',
+      '@automataframework/automata-sim': 'file:packs/automataframework-automata-sim-0.0.1.tgz',
     })
     expect(
       consumerWorkspace({
         from: 'packs',
-        packages: [{ name: '@mcthaydt/automata-sim', tarball: 'packs/mcthaydt-automata-sim-0.0.1.tgz' }],
+        packages: [
+          {
+            name: '@automataframework/automata-sim',
+            tarball: 'packs/automataframework-automata-sim-0.0.1.tgz',
+          },
+        ],
       }),
     ).toBe(
-      ['overrides:', "  '@mcthaydt/automata-sim': 'file:packs/mcthaydt-automata-sim-0.0.1.tgz'", ''].join(
-        '\n',
-      ),
+      [
+        'overrides:',
+        "  '@automataframework/automata-sim': 'file:packs/automataframework-automata-sim-0.0.1.tgz'",
+        '',
+      ].join('\n'),
     )
   })
 
@@ -44,16 +57,16 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
     const manifest = consumerManifest({
       from: 'registry',
       version: '0.0.3',
-      packages: [{ name: '@mcthaydt/automata-sim' }],
+      packages: [{ name: '@automataframework/automata-sim' }],
       tools,
       packageManager: PNPM,
     })
-    expect(manifest.dependencies).toEqual({ '@mcthaydt/automata-sim': '0.0.3' })
+    expect(manifest.dependencies).toEqual({ '@automataframework/automata-sim': '0.0.3' })
     expect(
       consumerWorkspace({
         from: 'registry',
         version: '0.0.3',
-        packages: [{ name: '@mcthaydt/automata-sim' }],
+        packages: [{ name: '@automataframework/automata-sim' }],
       }),
     ).toBe('overrides: {}\n')
   })
@@ -103,9 +116,9 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
 })
 
 describe('consumerNpmrc', () => {
-  it('sends @mcthaydt to GitHub Packages with the token from the environment, never a literal token', () => {
+  it('sends @automataframework to GitHub Packages with the token from the environment, never a literal token', () => {
     const npmrc = consumerNpmrc()
-    expect(npmrc).toContain('@mcthaydt:registry=https://npm.pkg.github.com')
+    expect(npmrc).toContain('@automataframework:registry=https://npm.pkg.github.com')
     expect(npmrc).toContain(`//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}`)
   })
 })

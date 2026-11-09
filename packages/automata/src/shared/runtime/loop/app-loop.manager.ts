@@ -1,4 +1,4 @@
-import type { Command, Sim } from '@mcthaydt/automata-sim'
+import type { Command, Sim } from '@automataframework/automata-sim'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { GameRenderer } from '../render/renderer.js'
 import type { Time } from '../time/time.manager.js'

@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/automata-physics",
+  "name": "@automataframework/automata-physics",
   "exports": {
     "./2d": "./src/2d.ts",
     "./3d": "./src/3d.ts"

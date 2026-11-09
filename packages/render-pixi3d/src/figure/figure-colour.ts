@@ -1,7 +1,7 @@
 // A built figure's material as the colour the view draws (M3 spec §4.4.1, decision 6: materials name palette
 // colours). The figures package records a tone step (`shade`) instead of FigureBuilder's DUEL ramp tones; the view
 // draws a step as the palette colour a fixed share lighter or darker.
-import type { BuiltMaterial } from '@mcthaydt/automata-figures'
+import type { BuiltMaterial } from '@automataframework/automata-figures'
 
 /** How much one tone step lightens (or, negative, darkens) each channel. */
 const SHADE_STEP = 0.18

@@ -1,4 +1,4 @@
-// The ports entry (`@mcthaydt/automata-editor-kit/ports`, editor suite spec §4.1 and §4.3): the shapes every suite
+// The ports entry (`@automataframework/automata-editor-kit/ports`, editor suite spec §4.1 and §4.3): the shapes every suite
 // editor and host stands on. It is headless: Svelte appears only as the `Snippet` type, so Node loads it.
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'

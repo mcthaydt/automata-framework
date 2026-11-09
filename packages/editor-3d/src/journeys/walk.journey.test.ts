@@ -1,13 +1,13 @@
-import '@mcthaydt/automata-editor/tokens.css'
-import '@mcthaydt/automata-editor/fonts.css'
+import '@automataframework/automata-editor/tokens.css'
+import '@automataframework/automata-editor/fonts.css'
 import '../main.css'
-import { byTestId } from '@mcthaydt/automata/testing'
+import { byTestId } from '@automataframework/automata/testing'
 import {
   arrived,
   createPointers,
   IPAD_PROFILES,
   type IpadProfile,
-} from '@mcthaydt/automata-editor/kit/testing'
+} from '@automataframework/automata-editor/kit/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { buttonNamed, chooseView, openDepotJourney, undoLabel } from '../testing/journey-editor'

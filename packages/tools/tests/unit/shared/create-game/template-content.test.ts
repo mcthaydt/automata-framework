@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { entitiesOf, intGridRows, levelContentSchema } from '@mcthaydt/automata-content/level-2d'
+import { entitiesOf, intGridRows, levelContentSchema } from '@automataframework/automata-content/level-2d'
 import { Effect } from 'effect'
 import { parse } from 'smol-toml'
 import { afterAll, describe, expect, it } from 'vitest'

@@ -2,7 +2,7 @@
 // switches a lamp by an entity carrying the component the game names in `Pixi3dOptions.lamps`, with fields `lamp` (a
 // lamp id from the lighting content) and `level` (0 off, 1 full). The renderer reads it from the render deltas, like
 // any view; nothing here is new sim API.
-import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
+import type { RenderDelta, RenderRow } from '@automataframework/automata-sim'
 import type { LampLevels } from './vertex-light.js'
 
 export interface LampSwitches {

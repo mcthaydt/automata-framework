@@ -1,7 +1,7 @@
 // The `camera-turn { units }` command on a real sim (D3-i): the tick's commands add up, clamp to ±8,192 and wrap at
 // 65,536 on every entity with `camera-heading`; a view with `rotate: false` ignores them; a payload that is not an
 // integer is rejected, so a replay stores integers only.
-import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
+import { type Command, createSim, type Sim } from '@automataframework/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CameraHeading } from './camera-heading.component.js'
 import { cameraHeadingPlugin } from './camera-heading.plugin.js'

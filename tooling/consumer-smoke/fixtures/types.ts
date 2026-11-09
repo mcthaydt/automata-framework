@@ -1,12 +1,12 @@
 // consumer-smoke's types step: the published declarations, read by TypeScript 7.0.2 and by
 // 6.0.3 (a TS 6 consumer can read AF's .d.ts). One use of each entry's main types.
 
-import type { Hosting } from '@mcthaydt/automata'
-import { createHosting } from '@mcthaydt/automata/target'
-import { fakeHosting, REFERENCE_SIZES, type ReferenceSize } from '@mcthaydt/automata/testing'
-import type { CompiledContent, ContentConfig, Diagnostic } from '@mcthaydt/automata-content'
-import { type ContentText, createContentText } from '@mcthaydt/automata-content/locale'
-import { automataContent } from '@mcthaydt/automata-content/vite'
+import type { Hosting } from '@automataframework/automata'
+import { createHosting } from '@automataframework/automata/target'
+import { fakeHosting, REFERENCE_SIZES, type ReferenceSize } from '@automataframework/automata/testing'
+import type { CompiledContent, ContentConfig, Diagnostic } from '@automataframework/automata-content'
+import { type ContentText, createContentText } from '@automataframework/automata-content/locale'
+import { automataContent } from '@automataframework/automata-content/vite'
 import {
   createSim,
   defineComponent,
@@ -14,11 +14,11 @@ import {
   defineSystem,
   type Sim,
   type StepResult,
-} from '@mcthaydt/automata-sim'
-import { xxhash64 } from '@mcthaydt/automata-sim/hash'
-import { sin } from '@mcthaydt/automata-sim/math'
-import { defineShipConfig, type ShipConfig } from '@mcthaydt/automata-tools'
-import '@mcthaydt/automata/no-eval'
+} from '@automataframework/automata-sim'
+import { xxhash64 } from '@automataframework/automata-sim/hash'
+import { sin } from '@automataframework/automata-sim/math'
+import { defineShipConfig, type ShipConfig } from '@automataframework/automata-tools'
+import '@automataframework/automata/no-eval'
 import {
   type DefinedGame,
   defineGame,
@@ -26,10 +26,10 @@ import {
   keys,
   startGame,
   defineComponent as umbrellaComponent,
-} from '@mcthaydt/automata'
-import '@mcthaydt/automata/no-eval'
-import { createPixiRenderer, type PixiRendererOptions, rect } from '@mcthaydt/automata'
-import '@mcthaydt/automata/no-eval'
+} from '@automataframework/automata'
+import '@automataframework/automata/no-eval'
+import { createPixiRenderer, type PixiRendererOptions, rect } from '@automataframework/automata'
+import '@automataframework/automata/no-eval'
 import {
   classifyFormFactor,
   Dialog,
@@ -38,9 +38,9 @@ import {
   type Geometry,
   type RuntimeHandle,
   runGame,
-} from '@mcthaydt/automata'
-import { defineExtension, type ExtensionDef } from '@mcthaydt/automata/extension'
-import { checkLayout, manualFrames, withRuntimeTest } from '@mcthaydt/automata/testing'
+} from '@automataframework/automata'
+import { defineExtension, type ExtensionDef } from '@automataframework/automata/extension'
+import { checkLayout, manualFrames, withRuntimeTest } from '@automataframework/automata/testing'
 
 export const sizes: readonly ReferenceSize[] = REFERENCE_SIZES
 export const factor: FormFactor = classifyFormFactor(390, 844)

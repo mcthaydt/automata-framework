@@ -12,10 +12,10 @@ const published = publishablePackages(root)
 
 // Core and 2D refactor, D1 and U6: four packages (sim, content, automata, tools); the boundaries checker is in tools.
 const EXPECTED: readonly string[] = [
-  '@mcthaydt/automata',
-  '@mcthaydt/automata-content',
-  '@mcthaydt/automata-sim',
-  '@mcthaydt/automata-tools',
+  '@automataframework/automata',
+  '@automataframework/automata-content',
+  '@automataframework/automata-sim',
+  '@automataframework/automata-tools',
 ]
 
 const REGISTRY = 'https://npm.pkg.github.com'
@@ -78,7 +78,7 @@ describe('the published packages', () => {
     expect(new Set(published.map((pkg) => pkg.manifest.version)).size).toBe(1)
   })
 
-  // `@mcthaydt/automata-*` does not match the umbrella `@mcthaydt/automata` (DX.2a): a package outside the group
+  // `@automataframework/automata-*` does not match the umbrella `@automataframework/automata` (DX.2a): a package outside the group
   // would be versioned on its own and leave the shared version.
   it(
     'are each in the Changesets fixed group',
@@ -121,7 +121,7 @@ describe('the published packages', () => {
     "accept a caret range of each outside peer, so a game's own Svelte or Vite patch release still satisfies it",
     each(({ manifest }) => {
       const exact = Object.entries(manifest.peerDependencies ?? {})
-        .filter(([name]) => !name.startsWith('@mcthaydt/'))
+        .filter(([name]) => !name.startsWith('@automataframework/'))
         .filter(([, range]) => !range.startsWith('^'))
       expect(exact, manifest.name).toEqual([])
     }),
@@ -155,7 +155,7 @@ describe('the published packages', () => {
 
   // Entries only this repository's tooling and tests import (U1): in `exports`, not in `publishConfig.exports`.
   const WORKSPACE_ONLY: Readonly<Record<string, readonly string[]>> = {
-    '@mcthaydt/automata-tools': ['./internal', './e2e'],
+    '@automataframework/automata-tools': ['./internal', './e2e'],
   }
 
   it(
@@ -184,7 +184,7 @@ describe('the published packages', () => {
   )
 })
 
-// The built output, checked after `pnpm build` (`pnpm --filter @mcthaydt/release test:dist`, run by CI's checks
+// The built output, checked after `pnpm build` (`pnpm --filter @automataframework/release test:dist`, run by CI's checks
 // job). `pnpm check` does not build, so these are skipped there.
 function filesBelow(dir: string): string[] {
   return readdirSync(dir, { recursive: true, withFileTypes: true })

@@ -1,4 +1,4 @@
-import type { FieldDef } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef } from '@automataframework/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { fieldRow } from '#src/shared/kit/fields/field-row.ts'
 import { entityInspector, levelInspector } from '#src/shared/level-2d/editor/inspector-model.ts'

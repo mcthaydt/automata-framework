@@ -1,7 +1,7 @@
 // The profiles this editor opens, and how a file says which one it is: an AF sector file names its format, a Last
 // Light blockout is the file with a scene and rooms. Detection reads the text only far enough to choose; the chosen
 // profile's codec does the real reading and says what is wrong with the file.
-import { JsonScanError, scan } from '@mcthaydt/automata-editor/kit/documents'
+import { JsonScanError, scan } from '@automataframework/automata-editor/kit/documents'
 import { afSectorProfile } from './af-sector-profile'
 import { lastLightProfile } from './last-light-profile'
 import type { LevelProfile } from './level-profile'

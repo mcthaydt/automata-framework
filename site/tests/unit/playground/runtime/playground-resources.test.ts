@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import type { CatalogEntry } from '@mcthaydt/examples-runner/catalog'
+import type { CatalogEntry } from '@automataframework/examples-runner/catalog'
 import { describe, expect, it } from 'vitest'
 import { publicResource } from '../../../../playground/src/playground-resources.ts'
 
@@ -15,10 +15,10 @@ const SOURCES: Record<string, string> = {
   'render3d-sound': "new URL('../resources/sounds/chime.wav', import.meta.url)",
 }
 const entries = [
-  entry('render3d-meshes', ['@mcthaydt/automata-render-pixi3d']),
-  entry('render3d-sound', ['@mcthaydt/automata-render-pixi3d']),
-  entry('textures-sprite', ['@mcthaydt/automata']),
-  entry('audio-shared', ['@mcthaydt/automata']),
+  entry('render3d-meshes', ['@automataframework/automata-render-pixi3d']),
+  entry('render3d-sound', ['@automataframework/automata-render-pixi3d']),
+  entry('textures-sprite', ['@automataframework/automata']),
+  entry('audio-shared', ['@automataframework/automata']),
 ]
 const isPublic = publicResource(entries, (e) => SOURCES[e.id] ?? '', [
   'models/nightstand.glb',

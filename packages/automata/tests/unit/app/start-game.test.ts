@@ -1,4 +1,4 @@
-import { defineComponent, definePlugin } from '@mcthaydt/automata-sim'
+import { defineComponent, definePlugin } from '@automataframework/automata-sim'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { RuntimeHandle } from '#src/app/boot/game-definition.ts'

@@ -4,7 +4,7 @@
   figures schemas refused, with their sentences. Choosing a file is the view's state; the files are the content's.
 -->
 <script lang="ts">
-import { Button } from '@mcthaydt/automata-editor/kit'
+import { Button } from '@automataframework/automata-editor/kit'
 import type { StudioController } from '../studio-controller'
 
 const { controller }: { controller: StudioController } = $props()

@@ -1,19 +1,19 @@
 // consumer-smoke's Node step: import every published entry that loads in plain Node, as a game's build tools and tests
-// would, and run a sim with a small plugin of core verbs. `@mcthaydt/automata`'s root, `./testing` and `./tooling`
+// would, and run a sim with a small plugin of core verbs. `@automataframework/automata`'s root, `./testing` and `./tooling`
 // export Svelte components and a stylesheet, which only load through the Svelte compiler: the game steps build and boot
 // them. `./extension`, which an extension's own Node tests import, and `./target` load here.
-import * as automataExtension from '@mcthaydt/automata/extension'
-import '@mcthaydt/automata/no-eval'
-import * as automataTarget from '@mcthaydt/automata/target'
-import * as content from '@mcthaydt/automata-content'
-import * as contentLocale from '@mcthaydt/automata-content/locale'
-import * as contentPalette from '@mcthaydt/automata-content/palette'
-import * as contentSchema from '@mcthaydt/automata-content/schema'
-import * as contentVite from '@mcthaydt/automata-content/vite'
-import { createSim, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
-import * as hash from '@mcthaydt/automata-sim/hash'
-import * as math from '@mcthaydt/automata-sim/math'
-import * as tools from '@mcthaydt/automata-tools'
+import * as automataExtension from '@automataframework/automata/extension'
+import '@automataframework/automata/no-eval'
+import * as automataTarget from '@automataframework/automata/target'
+import * as content from '@automataframework/automata-content'
+import * as contentLocale from '@automataframework/automata-content/locale'
+import * as contentPalette from '@automataframework/automata-content/palette'
+import * as contentSchema from '@automataframework/automata-content/schema'
+import * as contentVite from '@automataframework/automata-content/vite'
+import { createSim, defineComponent, definePlugin, defineSystem } from '@automataframework/automata-sim'
+import * as hash from '@automataframework/automata-sim/hash'
+import * as math from '@automataframework/automata-sim/math'
+import * as tools from '@automataframework/automata-tools'
 
 const entries = {
   automataExtension,

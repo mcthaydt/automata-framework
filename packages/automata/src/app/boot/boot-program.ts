@@ -1,6 +1,6 @@
 // The build's publish target picks the adapter: Ruken by default, the web adapter under `automata-web`.
-import { createHosting } from '@mcthaydt/automata/target'
-import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { createHosting } from '@automataframework/automata/target'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@automataframework/automata-sim/hash'
 import { createAudio } from '../../features/audio/audio.manager.js'
 import { playEventSounds } from '../../features/audio/event-sounds.js'
 import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
@@ -47,7 +47,7 @@ import type { Teardown } from './teardown.ts'
 
 /**
  * The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
- * Matches @mcthaydt/automata-content's contentHash formula, pinned by tests.
+ * Matches @automataframework/automata-content's contentHash formula, pinned by tests.
  */
 export function contentHashOf(data: unknown): string {
   return hex64(xxhash64(utf8(canonicalJson(data))))

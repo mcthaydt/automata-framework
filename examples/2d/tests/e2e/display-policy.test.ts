@@ -1,5 +1,5 @@
-import { examplesPort } from '@mcthaydt/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
+import { examplesPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
 import { expect, type Frame, type Page, test } from '@playwright/test'
 
 // The display policy under the fake host (M4.7 plan step 11, M4 spec §4.9, §13): the touch buttons follow Ruken's

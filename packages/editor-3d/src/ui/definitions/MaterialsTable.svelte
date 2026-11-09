@@ -4,7 +4,7 @@
   Remove is refused while a wall, a room or a style still uses it. Add takes an id and a category.
 -->
 <script lang="ts">
-import { Button } from '@mcthaydt/automata-editor/kit'
+import { Button } from '@automataframework/automata-editor/kit'
 import type { MaterialRow } from '../../app/definitions-controller'
 
 interface Props {

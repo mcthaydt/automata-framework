@@ -6,7 +6,7 @@
   there is more than one. The shape cannot change while the offers are open: the step is still open.
 -->
 <script lang="ts">
-import { Button, Segmented } from '@mcthaydt/automata-editor/kit'
+import { Button, Segmented } from '@automataframework/automata-editor/kit'
 import type { PlanToolId } from '../../app/plan-tools'
 import type { PortalOffer } from '../../model/portal-offers'
 

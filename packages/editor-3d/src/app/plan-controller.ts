@@ -3,7 +3,12 @@
 // kit's gesture recogniser says (canvas pixels, the pointer kind and the modifier keys), reads `view` and paints what it
 // says. The level stays in the editor's history, the selection in its selection and the camera in its view store, so the
 // controller keeps only what a pointer is in the middle of; undo, redo and a change of layers need nothing from the view.
-import type { PointerKind, Point as ScreenPoint, Size, Viewport2D } from '@mcthaydt/automata-editor/kit/core'
+import type {
+  PointerKind,
+  Point as ScreenPoint,
+  Size,
+  Viewport2D,
+} from '@automataframework/automata-editor/kit/core'
 import { sectorSelection } from '../checks/check'
 import type { Point } from '../format/sector.schema'
 import { moveCorner, moveSector } from '../model/corner-edits'

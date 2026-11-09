@@ -1,9 +1,9 @@
 // consumer-smoke's bundle step: a page importing the sim, the host and one ui component, built
 // by Vite as a game would. run.ts then checks the output has no eval from AF and one copy of Ruken's SDK.
 
-import { Dialog } from '@mcthaydt/automata'
-import { createHosting } from '@mcthaydt/automata/target'
-import { createSim } from '@mcthaydt/automata-sim'
+import { Dialog } from '@automataframework/automata'
+import { createHosting } from '@automataframework/automata/target'
+import { createSim } from '@automataframework/automata-sim'
 import { mount } from 'svelte'
 
 const app = document.getElementById('app') as HTMLElement

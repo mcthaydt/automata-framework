@@ -11,7 +11,7 @@ import {
   type StorageClock,
   statPath,
   type Workspace,
-} from '@mcthaydt/automata-editor/kit/core'
+} from '@automataframework/automata-editor/kit/core'
 import type { CheckResult } from '../checks/check'
 import type { Facility } from '../format/facility.schema'
 import { createFacilityEditor, type FacilityEditor, type FacilityState } from '../model/facility-editor'

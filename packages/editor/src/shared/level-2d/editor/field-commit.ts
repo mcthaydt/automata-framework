@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldValue } from '@automataframework/automata-content/level-2d'
 import { setEntityField } from '../model/commands/entity-edits'
 import { findLayer } from '../model/commands/layer-target'
 import type { Project } from '../model/project-types'

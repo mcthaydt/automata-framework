@@ -2,7 +2,7 @@ import {
   levelContentSchema,
   projectContentSchema,
   worldContentSchema,
-} from '@mcthaydt/automata-content/level-2d'
+} from '@automataframework/automata-content/level-2d'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { decodeRows } from '#src/shared/level-2d/model/cells-codec.ts'

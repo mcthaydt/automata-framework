@@ -1,5 +1,5 @@
-import type { EntityView } from '@mcthaydt/automata'
-import type { RenderRow } from '@mcthaydt/automata-sim'
+import type { EntityView } from '@automataframework/automata'
+import type { RenderRow } from '@automataframework/automata-sim'
 import type { Container3D } from '@pixi/3d'
 import type { SceneLight } from '../light/scene-light.js'
 import type { ModelLibrary } from '../model/load-models.js'

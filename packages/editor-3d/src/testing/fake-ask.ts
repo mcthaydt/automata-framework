@@ -1,5 +1,5 @@
 // A promise the Ask controller's tests settle themselves: the proposal still on its way. The scripted provider is the
-// kit's (`createScriptedAsk` in `@mcthaydt/automata-editor-kit/ports/testing`), so the port has one fake.
+// kit's (`createScriptedAsk` in `@automataframework/automata-editor-kit/ports/testing`), so the port has one fake.
 
 /** A promise the test settles when it chooses: the proposal that is still on its way. */
 export function deferred<T>(): {

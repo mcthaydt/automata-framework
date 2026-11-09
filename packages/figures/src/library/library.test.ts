@@ -1,4 +1,4 @@
-import { DEFAULT_PALETTE } from '@mcthaydt/automata-content'
+import { DEFAULT_PALETTE } from '@automataframework/automata-content'
 import { describe, expect, it } from 'vitest'
 import { gaitSchema } from './gait.schema'
 import { DEFAULT_RIG_LIMITS, rigLimitsSchema } from './rig-limits.schema'

@@ -3,7 +3,7 @@
   1.5 s moves on to the menu (screens.ts).
 -->
 <script lang="ts">
-import { ScreenFrame } from '@mcthaydt/automata'
+import { ScreenFrame } from '@automataframework/automata'
 import { liveCopy } from './copy.svelte.ts'
 
 interface Props {

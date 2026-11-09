@@ -1,4 +1,4 @@
-import type { Geometry, HeightTier } from '@mcthaydt/automata'
+import type { Geometry, HeightTier } from '@automataframework/automata'
 
 /**
  * How the shell lays out its regions, chosen by the room the editor has and not by the device (the approved

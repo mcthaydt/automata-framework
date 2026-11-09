@@ -1,6 +1,6 @@
 import '../../shared/ui/theme.css'
 import './screens.css'
-import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
+import { createSim, type PluginDef, type Sim } from '@automataframework/automata-sim'
 import type { ExtensionDef } from '../../features/extension/define-extension.ts'
 import { resolveExtensions } from '../../features/extension/resolve-extensions.ts'
 import {

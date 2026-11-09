@@ -51,7 +51,7 @@ describe('--game: a game laid out by role (GL spec §4.5, §5.2, acceptance B1�
     }
   }
   const components =
-    "import { defineComponent } from '@mcthaydt/automata-sim'\nexport const A = defineComponent('a', {})\n"
+    "import { defineComponent } from '@automataframework/automata-sim'\nexport const A = defineComponent('a', {})\n"
 
   it('B1: Math.random() in systems.ts fails', () => {
     const result = game({ 'systems.ts': 'export const roll = () => Math.random()\n' })

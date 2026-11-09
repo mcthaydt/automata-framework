@@ -3,7 +3,7 @@
 // face's marks as quads on their bones. The joint containers sit flat under the figure's node and take `fk`'s world
 // matrices (figure space), so they are not nested. One material a material name, owned by this figure: the view
 // tints them by the room's light, so no two figures share one.
-import type { Built, BuiltMaterial, M, Mesh, Skeleton, V3, Weight } from '@mcthaydt/automata-figures'
+import type { Built, BuiltMaterial, M, Mesh, Skeleton, V3, Weight } from '@automataframework/automata-figures'
 import { Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial } from '@pixi/3d'
 import { materialColour } from './figure-colour.js'
 import { decalQuads } from './figure-decals.js'

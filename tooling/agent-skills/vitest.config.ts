@@ -9,7 +9,7 @@ const repo = (path: string) => fileURLToPath(new URL(`../../${path}`, import.met
 // `test:install` (vitest.install.config.ts), never in `pnpm check`.
 export default defineConfig({
   resolve: {
-    alias: { '@mcthaydt/automata-sim': repo('packages/sim/src/entries/index.ts') },
+    alias: { '@automataframework/automata-sim': repo('packages/sim/src/entries/index.ts') },
   },
   test: {
     dir: repo('.'),

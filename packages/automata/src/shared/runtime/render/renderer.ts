@@ -1,4 +1,4 @@
-import type { StepResult } from '@mcthaydt/automata-sim'
+import type { StepResult } from '@automataframework/automata-sim'
 import type { Result } from '../../lib/result.ts'
 import type { GeometryOwner } from '../../ui/geometry/geometry-owner.svelte.ts'
 import type { Assets } from '../assets.manager.js'

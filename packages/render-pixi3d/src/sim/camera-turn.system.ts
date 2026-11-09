@@ -1,4 +1,4 @@
-import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SystemDef } from '@automataframework/automata-sim'
 import { CameraHeading } from './camera-heading.component.js'
 import { CameraTurn } from './camera-turn.command.js'
 import { turnCamera } from './view-latch.js'

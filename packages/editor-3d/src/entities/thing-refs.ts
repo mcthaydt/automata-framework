@@ -1,6 +1,6 @@
 // What a thing's ref fields point at (ED3D spec §4.7): shared by the ref check, which asks where each one leads, and by
 // the edits, which ask what still leads to a thing they are about to take away.
-import type { FieldDef } from '@mcthaydt/automata-editor/kit/fields'
+import type { FieldDef } from '@automataframework/automata-editor/kit/fields'
 import type { Thing } from './things'
 
 /** The target of a ref value, or `undefined` for anything else (the reader has refused a ref with no target). */

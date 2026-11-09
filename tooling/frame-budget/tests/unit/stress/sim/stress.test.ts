@@ -1,4 +1,4 @@
-import { createSim, type Sim } from '@mcthaydt/automata-sim'
+import { createSim, type Sim } from '@automataframework/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Body, Pulse, WORLD } from '../../../../stress/sim/stress.component.ts'
 import { spawnStress, stressPlugin } from '../../../../stress/sim/stress.plugin.ts'

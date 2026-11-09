@@ -1,4 +1,4 @@
-// The editor suite (`@mcthaydt/automata-editor/suite`): the shell and its boot, the editors this package has (Levels 2D, the
+// The editor suite (`@automataframework/automata-editor/suite`): the shell and its boot, the editors this package has (Levels 2D, the
 // Tuner) and the sample game the page opens when no checkout answers. Another package's suite page adds its own editors.
 
 export {

@@ -42,7 +42,7 @@ export type PublishError =
   | ProcessError
 
 /**
- * The `ruken` bin of the vendored `@ruken/cli` package. The published `@mcthaydt/automata-tools` carries a copy of
+ * The `ruken` bin of the vendored `@ruken/cli` package. The published `@automataframework/automata-tools` carries a copy of
  * Ruken's built CLI in `dist/vendor/ruken-cli/`; every built module sits directly in
  * `dist/`, so the copy is `./vendor/ruken-cli/cli.js` next to it. Running from `src` in the workspace there is
  * no copy, and the workspace's `@ruken/cli` dev dependency is used instead (`dist/cli.js`, next to its

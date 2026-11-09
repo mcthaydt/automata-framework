@@ -1,4 +1,4 @@
-import type { StepResult } from '@mcthaydt/automata-sim'
+import type { StepResult } from '@automataframework/automata-sim'
 import { Application, Container, type Filter, TextureSource } from 'pixi.js'
 import { ok, type Result, refused } from '../../shared/lib/result.ts'
 import { RendererUnavailable } from '../../shared/runtime/boot-error.ts'

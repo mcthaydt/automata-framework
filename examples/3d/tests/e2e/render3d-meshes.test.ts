@@ -1,8 +1,8 @@
 // render3d-meshes under the fake host and Ruken's headers (compileHeaders' CSP), in Chromium (the `examples`
 // projects) and WebKit (`examples-webkit`). Headless Firefox in this container has no WebGL, so the 3D renderer
 // refuses it there; the GPU runner covers Firefox (M3.1b).
-import { examples3dPort } from '@mcthaydt/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
+import { examples3dPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
 import { expect, type Frame, test } from '@playwright/test'
 
 const origin = `http://localhost:${examples3dPort}`

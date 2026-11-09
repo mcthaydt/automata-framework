@@ -1,4 +1,4 @@
-import type { StepResult } from '@mcthaydt/automata-sim'
+import type { StepResult } from '@automataframework/automata-sim'
 import { Application, type ApplicationOptions, Container, type Filter } from 'pixi.js'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { postFilter } from '#src/features/render/filter/post-filter.ts'

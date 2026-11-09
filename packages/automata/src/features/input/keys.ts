@@ -3,7 +3,7 @@
 // window loses focus. It sends what is held, never a "pressed" edge: the sim compares this tick's command with
 // the last one's, so a replay stays a pure function of the command stream.
 
-import type { Command, CommandDef } from '@mcthaydt/automata-sim'
+import type { Command, CommandDef } from '@automataframework/automata-sim'
 import type { z } from 'zod'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { CAMERA_SETTINGS_DEFAULT } from './analog/camera-settings.schema.ts'

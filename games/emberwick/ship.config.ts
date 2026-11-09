@@ -1,5 +1,5 @@
 // What ship writes into this build's ruken.toml. Field names and values are Ruken's own.
-import { defineShipConfig } from '@mcthaydt/automata-tools'
+import { defineShipConfig } from '@automataframework/automata-tools'
 import packageJson from './package.json' with { type: 'json' }
 
 export default defineShipConfig({

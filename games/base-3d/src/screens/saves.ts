@@ -2,8 +2,8 @@
 // sim holds only what it changes (`Progress`); every other field, unknown ones included, is kept from the slot applied
 // to that sim, so a write never drops what a load brought in. Continue starts a fresh sim at the spawn; the sim
 // removes the embers the save says are taken (`ember.take`).
-import type { GameSaves } from '@mcthaydt/automata'
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { GameSaves } from '@automataframework/automata'
+import type { Sim } from '@automataframework/automata-sim'
 import { Progress } from '../resources.ts'
 import { type Base3dSave, base3dSave, newGame } from '../state/save.ts'
 

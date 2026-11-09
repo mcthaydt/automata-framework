@@ -8,7 +8,7 @@ import { diffSkillTrees } from '#src/skill-tree.ts'
 // DX.7's install test (spec §3.7, §8 "Plugin", §12): installs the plugin from this repo's marketplace with the real
 // Claude Code CLI, and the skills with the real Agent Skills installer, then checks what landed. Everything happens
 // in a throwaway CLAUDE_CONFIG_DIR and HOME, so the user's own Claude settings are never touched. Its console output
-// is the install log recorded in the spec's §3.7 "As built". Run: pnpm --filter @mcthaydt/agent-skills test:install
+// is the install log recorded in the spec's §3.7 "As built". Run: pnpm --filter @automataframework/agent-skills test:install
 
 const REPO = resolve(import.meta.dirname, '../../../..')
 const PLUGIN = join(REPO, 'agents/automata')

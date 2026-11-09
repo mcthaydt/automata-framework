@@ -5,12 +5,12 @@
 //   interpolated between ticks. Model files load before the first frame through preload, with byte progress; a
 //   skinned or damaged one stops boot with a panel naming the file.
 // Controls: none
-// Packages: @mcthaydt/automata, @mcthaydt/automata-render-pixi3d
+// Packages: @automataframework/automata, @automataframework/automata-render-pixi3d
 // Difficulty: ★★☆☆
 // Tier: core
-import '@mcthaydt/automata-render-pixi3d/no-eval'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@mcthaydt/automata'
-import { box, createPixi3dRenderer, mesh, render3dExtension } from '@mcthaydt/automata-render-pixi3d'
+import '@automataframework/automata-render-pixi3d/no-eval'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/automata'
+import { box, createPixi3dRenderer, mesh, render3dExtension } from '@automataframework/automata-render-pixi3d'
 
 // The same nightstand twice: The Last Light's GLB and its packed .bin (resources/models/PROVENANCE.md).
 const glb = new URL('../resources/models/nightstand.glb', import.meta.url).href

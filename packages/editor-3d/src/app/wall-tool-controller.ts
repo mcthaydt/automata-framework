@@ -3,7 +3,7 @@
 // pointer is. No Svelte, DOM, Pixi or clock in here: the view forwards what the kit's gesture recogniser says (canvas
 // pixels, the pointer kind and the modifier keys, as for the other tools), reads `view` and paints the wall, the tick
 // along it and what a tap would do. The level, the selection and the camera stay in the editor.
-import type { Size, Viewport2D } from '@mcthaydt/automata-editor/kit/core'
+import type { Size, Viewport2D } from '@automataframework/automata-editor/kit/core'
 import type { LevelEditor } from '../model/level-editor'
 import { wallPortal } from '../model/portal-offers'
 import { setDoor, setWallKind, setWindow } from '../model/wall-edits'

@@ -7,17 +7,19 @@ import { overridesYaml, packOverrides, strangerFolder } from '#src/stranger.ts'
 describe('packOverrides', () => {
   it('names each pack by the absolute file: path of its tarball', () => {
     const overrides = packOverrides('/work', [
-      { name: '@mcthaydt/automata-tools', tarball: 'packs/tools.tgz' },
-      { name: '@mcthaydt/automata', tarball: 'packs/automata.tgz' },
+      { name: '@automataframework/automata-tools', tarball: 'packs/tools.tgz' },
+      { name: '@automataframework/automata', tarball: 'packs/automata.tgz' },
     ])
     expect(overrides).toEqual({
-      '@mcthaydt/automata': 'file:/work/packs/automata.tgz',
-      '@mcthaydt/automata-tools': 'file:/work/packs/tools.tgz',
+      '@automataframework/automata': 'file:/work/packs/automata.tgz',
+      '@automataframework/automata-tools': 'file:/work/packs/tools.tgz',
     })
   })
 
   it('refuses a package that was not packed', () => {
-    expect(() => packOverrides('/work', [{ name: '@mcthaydt/automata' }])).toThrow(/no packed tarball/)
+    expect(() => packOverrides('/work', [{ name: '@automataframework/automata' }])).toThrow(
+      /no packed tarball/,
+    )
   })
 })
 

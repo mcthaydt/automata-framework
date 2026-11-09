@@ -1,6 +1,11 @@
-import { EDITOR_LIST_PATH } from '@mcthaydt/automata-editor/editor-list'
-import type { SuiteEditor } from '@mcthaydt/automata-editor/kit/ports'
-import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@mcthaydt/automata-editor/suite'
+import { EDITOR_LIST_PATH } from '@automataframework/automata-editor/editor-list'
+import type { SuiteEditor } from '@automataframework/automata-editor/kit/ports'
+import {
+  createSuite,
+  type SuiteHandle,
+  samplePorts,
+  startSuite,
+} from '@automataframework/automata-editor/suite'
 import { screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { writable } from 'svelte/store'

@@ -1,5 +1,5 @@
-import type { WorkspaceFile } from '@mcthaydt/automata-editor/kit/ports'
-import { createMemoryPorts } from '@mcthaydt/automata-editor/kit/ports/testing'
+import type { WorkspaceFile } from '@automataframework/automata-editor/kit/ports'
+import { createMemoryPorts } from '@automataframework/automata-editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
 import type { AfSector } from '../format/af-sector.schema'
 import { ok } from '../model/edit'

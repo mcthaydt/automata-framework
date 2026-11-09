@@ -1,4 +1,4 @@
-import { defineSuiteEditor, type SuiteEditor } from '@mcthaydt/automata-editor/kit/ports'
+import { defineSuiteEditor, type SuiteEditor } from '@automataframework/automata-editor/kit/ports'
 import type { StageRendererFactory } from './stage/stage-renderer'
 import { createStudioController, type StudioController } from './studio-controller'
 import type { Frames } from './ui/StudioCanvas.svelte'

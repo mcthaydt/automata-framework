@@ -1,4 +1,4 @@
-import { playgroundOrigin } from '@mcthaydt/examples-runner/host/ports'
+import { playgroundOrigin } from '@automataframework/examples-runner/host/ports'
 import { expect, type Page, test } from '@playwright/test'
 
 // Can the playground's design run at all? Each case frames the site's

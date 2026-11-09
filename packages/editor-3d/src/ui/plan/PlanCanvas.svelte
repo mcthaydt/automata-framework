@@ -10,8 +10,8 @@
   its edge lengths, refusal and the Sector tool's options are DOM over the canvas.
 -->
 <script lang="ts">
-import { attachGestures } from '@mcthaydt/automata-editor/kit'
-import type { Size } from '@mcthaydt/automata-editor/kit/core'
+import { attachGestures } from '@automataframework/automata-editor/kit'
+import type { Size } from '@automataframework/automata-editor/kit/core'
 import { onDestroy } from 'svelte'
 import { loupeOf, nudgePadOf } from '../../app/loupe'
 import { createPlanPicture, planPointAt } from '../../app/plan-picture'

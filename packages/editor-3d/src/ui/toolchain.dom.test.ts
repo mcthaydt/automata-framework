@@ -1,4 +1,4 @@
-import { stubGeometry } from '@mcthaydt/automata-editor/kit/testing'
+import { stubGeometry } from '@automataframework/automata-editor/kit/testing'
 import { render, screen } from '@testing-library/svelte'
 import { flushSync } from 'svelte'
 import { describe, expect, it } from 'vitest'

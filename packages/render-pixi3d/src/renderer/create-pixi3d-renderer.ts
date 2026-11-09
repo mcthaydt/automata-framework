@@ -8,8 +8,8 @@ import {
   RenderDeltaConsumer,
   RendererUnavailable,
   type RenderTarget,
-} from '@mcthaydt/automata'
-import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
+} from '@automataframework/automata'
+import type { RenderDelta, RenderRow } from '@automataframework/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Cause, Effect, ExecutionStrategy, Exit, Option, Runtime, Scope } from 'effect'
 import { Graphics } from 'pixi.js'
@@ -333,7 +333,7 @@ function scopedPixi3dRenderer(
       if (!pixi3dUniformSyncInstalled())
         return yield* Effect.die(
           new Error(
-            "render-pixi3d: import '@mcthaydt/automata-render-pixi3d/no-eval' first, before anything else (in place of render-pixi/no-eval)",
+            "render-pixi3d: import '@automataframework/automata-render-pixi3d/no-eval' first, before anything else (in place of render-pixi/no-eval)",
           ),
         )
       const files = [

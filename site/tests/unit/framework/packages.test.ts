@@ -6,10 +6,10 @@ import { publishedPackages } from '../../../src/shared/framework/packages.ts'
 describe('publishedPackages', () => {
   it('are the four packages a game author installs', () => {
     expect(publishedPackages().map((pkg) => pkg.name)).toEqual([
-      '@mcthaydt/automata',
-      '@mcthaydt/automata-content',
-      '@mcthaydt/automata-sim',
-      '@mcthaydt/automata-tools',
+      '@automataframework/automata',
+      '@automataframework/automata-content',
+      '@automataframework/automata-sim',
+      '@automataframework/automata-tools',
     ])
   })
 })

@@ -19,7 +19,7 @@ export interface Tool {
 
 /** The tools `check` and `build` run. */
 export const TOOLS: Readonly<Record<'boundaries' | 'tsc' | 'vitest' | 'vite', Tool>> = {
-  boundaries: { bin: 'automata-check-boundaries', pkg: '@mcthaydt/automata-check-boundaries' },
+  boundaries: { bin: 'automata-check-boundaries', pkg: '@automataframework/automata-check-boundaries' },
   tsc: { bin: 'tsc', pkg: 'typescript' },
   vitest: { bin: 'vitest', pkg: 'vitest' },
   vite: { bin: 'vite', pkg: 'vite' },

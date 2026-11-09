@@ -1,4 +1,4 @@
-import { type ComponentDef, defineComponent } from '@mcthaydt/automata-sim'
+import { type ComponentDef, defineComponent } from '@automataframework/automata-sim'
 
 /** The stress world, in pixels; positions are in subpixels (`sub` per pixel), as Emberwick's are. */
 export const WORLD = { width: 320, height: 192, sub: 256 } as const

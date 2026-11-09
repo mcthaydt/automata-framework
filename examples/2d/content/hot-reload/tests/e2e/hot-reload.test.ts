@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
 import { expect, type Locator, type Page, test } from '@playwright/test'
 import { devUrl, e2eRoomFile, GAME_ID, url } from './origin.ts'
 

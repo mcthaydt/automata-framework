@@ -5,14 +5,14 @@
 //   says whether it is walking, and the view walks or idles from that; the camera is the Owner's default view
 //   (24 mm, 25° down, 5 m back) following the figure.
 // Controls: none
-// Packages: @mcthaydt/automata, @mcthaydt/automata-figures, @mcthaydt/automata-render-pixi3d
+// Packages: @automataframework/automata, @automataframework/automata-figures, @automataframework/automata-render-pixi3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@mcthaydt/automata-render-pixi3d/no-eval'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@mcthaydt/automata'
-import type { FigureDef, FigureLibrary, Gait } from '@mcthaydt/automata-figures'
-import { createPixi3dRenderer, figure, render3dExtension } from '@mcthaydt/automata-render-pixi3d'
-import { CameraHeading, cameraView, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
+import '@automataframework/automata-render-pixi3d/no-eval'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/automata'
+import type { FigureDef, FigureLibrary, Gait } from '@automataframework/automata-figures'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automataframework/automata-render-pixi3d'
+import { CameraHeading, cameraView, enterView, START } from '@automataframework/automata-render-pixi3d/sim'
 
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml
 // and the content compiler checks them and fills their defaults; here they are inline, written as compiled.

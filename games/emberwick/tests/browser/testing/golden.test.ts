@@ -1,4 +1,4 @@
-import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
 import { expect, it } from 'vitest'
 import { GOLDEN_GOAL_TICK, GOLDEN_HASH } from '#src/testing/golden.ts'
 import { runGolden } from '#src/testing/golden-run.ts'

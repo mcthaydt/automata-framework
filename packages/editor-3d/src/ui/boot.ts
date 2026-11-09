@@ -2,7 +2,7 @@
 // a document, a clock and a workspace and gets the real app, and `main.ts` is the only file that reaches for the
 // globals.
 
-import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata'
+import { createGeometryOwner, type ViewportWindow } from '@automataframework/automata'
 import {
   createToasts,
   type DownloadEnv,
@@ -11,7 +11,7 @@ import {
   type StorageClock,
   type Workspace,
   type WorkspaceEnv,
-} from '@mcthaydt/automata-editor/kit/core'
+} from '@automataframework/automata-editor/kit/core'
 import { mount, unmount } from 'svelte'
 import { createEditorApp } from '../app/editor-app'
 import App from './App.svelte'

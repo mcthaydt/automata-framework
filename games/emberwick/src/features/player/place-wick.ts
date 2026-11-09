@@ -1,5 +1,5 @@
 // Puts Wick in the room before the first step: the game's `sim.setup` and the demos' `createBaseSim` both call it.
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { Sim } from '@automataframework/automata-sim'
 import { Player, PlayerControl } from '../../shared/player.component.ts'
 import type { Room } from '../../shared/room.ts'
 import { HITBOX_H, SUB } from '../../shared/tuning.ts'

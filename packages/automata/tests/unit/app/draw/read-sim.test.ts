@@ -5,7 +5,7 @@ import {
   defineResource,
   defineSystem,
   type Sim,
-} from '@mcthaydt/automata-sim'
+} from '@automataframework/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { readSim } from '#src/app/draw/read-sim.ts'

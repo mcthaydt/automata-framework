@@ -14,7 +14,7 @@ Include the affected package and version (or commit), what an attacker can do, a
 
 - We acknowledge your report within 3 working days.
 - We send an assessment (accepted or not, with a severity) within 10 working days.
-- A fix for an accepted report is released as a patch of every affected `@mcthaydt/automata-*` package, with
+- A fix for an accepted report is released as a patch of every affected `@automataframework/automata-*` package, with
   a GitHub security advisory that credits you unless you ask us not to.
 
 AF has one maintainer today, so these windows are what one person can keep.

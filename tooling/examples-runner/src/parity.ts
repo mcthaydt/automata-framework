@@ -1,6 +1,6 @@
 // What the parity test and the runner's stub read from an example's default export. Only
 // the part the golden replay needs, not `defineGame`'s whole shape.
-import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
+import type { PluginDef, Sim } from '@automataframework/automata-sim'
 import { parseHeader } from './header.ts'
 
 export interface GoldenExample {

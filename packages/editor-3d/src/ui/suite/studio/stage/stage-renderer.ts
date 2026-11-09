@@ -3,9 +3,9 @@
 // from the library and motion content the Studio read. The orbit comes from the stage camera's maths; the view's
 // clock is the playhead, so scrubbing a clip shows the pose `sample` gives at that time. Losing the context pauses it
 // and the stage offers Try again, as the 3D level editor's views do (ED3D spec §11); the fields keep working.
-import '@mcthaydt/automata-render-pixi3d/no-eval'
-import type { FigureDef, FigureLibrary, MotionLibrary } from '@mcthaydt/automata-figures'
-import { type FigureViewState, figure } from '@mcthaydt/automata-render-pixi3d'
+import '@automataframework/automata-render-pixi3d/no-eval'
+import type { FigureDef, FigureLibrary, MotionLibrary } from '@automataframework/automata-figures'
+import { type FigureViewState, figure } from '@automataframework/automata-render-pixi3d'
 import { View3D } from '@pixi/3d'
 import { autoDetectRenderer, Container, type Renderer, type WebGLRenderer } from 'pixi.js'
 import { type Readable, writable } from 'svelte/store'

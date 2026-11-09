@@ -1,5 +1,5 @@
 ---
-"@mcthaydt/automata-content": patch
+"@automataframework/automata-content": patch
 ---
 
 The Vite plugin watches the game's `content/` folder even when it is outside Vite's root, so a save there (a game

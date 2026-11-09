@@ -2,7 +2,7 @@
 // the mouse or the Pencil orbits; a pinch zooms and its twist turns (the canvas attaches with `rotate`); the wheel
 // zooms, or orbits when it scrolls; a tap selects; a two-finger tap undoes and a three-finger tap redoes. A plain
 // function of the controller, so the mapping is a unit test and the canvas only attaches it.
-import type { GestureHandlers } from '@mcthaydt/automata-editor/kit'
+import type { GestureHandlers } from '@automataframework/automata-editor/kit'
 import type { DollhouseController } from '../../app/dollhouse-controller'
 
 export interface DollhouseHistoryGestures {

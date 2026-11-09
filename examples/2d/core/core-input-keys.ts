@@ -3,7 +3,7 @@
 // Shows: keys() turns what is held on the keyboard, a standard pad's D-pad or the touch buttons into one sim
 //   command per tick, the same command from each device; rect() draws an entity, interpolated.
 // Controls: arrows or WASD, the D-pad, or the touch buttons
-// Packages: @mcthaydt/automata, zod
+// Packages: @automataframework/automata, zod
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 120
@@ -15,7 +15,7 @@ import {
   defineSystem,
   keys,
   rect,
-} from '@mcthaydt/automata'
+} from '@automataframework/automata'
 import { z } from 'zod'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })

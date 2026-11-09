@@ -1,4 +1,4 @@
-// @mcthaydt/automata: the one import. What a game imports (`defineGame`, `startGame`, the sim's
+// @automataframework/automata: the one import. What a game imports (`defineGame`, `startGame`, the sim's
 // define verbs, input, draw), and the runtime, host contract, renderer and ui kit a game can reach for when it
 // needs more than the defaults. Extensions are separate imports and never come through here.
 //

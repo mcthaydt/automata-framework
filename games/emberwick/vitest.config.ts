@@ -1,4 +1,4 @@
-import { defineTests } from '@mcthaydt/vitest-preset'
+import { defineTests } from '@automataframework/vitest-preset'
 import { contentPlugin } from './vite.config.ts'
 
 // Node runs every unit test (a screen test says `jsdom` on its first line); the browser project runs the sim golden in

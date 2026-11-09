@@ -7,7 +7,7 @@
   one in `RefPicker`.
 -->
 <script lang="ts">
-import type { FieldValue, Point, RefValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldValue, Point, RefValue } from '@automataframework/automata-content/level-2d'
 import Button from '../widgets/Button.svelte'
 import ColorField from '../widgets/ColorField.svelte'
 import type { EditEvent } from '../widgets/edit-event'

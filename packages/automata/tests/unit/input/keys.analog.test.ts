@@ -1,4 +1,4 @@
-import { defineCommand } from '@mcthaydt/automata-sim'
+import { defineCommand } from '@automataframework/automata-sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { CAMERA_SETTINGS_DEFAULT } from '#src/features/input/analog/camera-settings.schema.ts'

@@ -1,4 +1,4 @@
-import { type ComponentDef, defineComponent } from '@mcthaydt/automata-sim'
+import { type ComponentDef, defineComponent } from '@automataframework/automata-sim'
 
 const fields = {
   /** The id of the `camera-view` the player is in; '' before the first. */

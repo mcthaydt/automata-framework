@@ -25,8 +25,8 @@ const importsOf = (source: string): string[] =>
   )
 
 function isPublicCoreEntry(specifier: string): boolean {
-  // `@mcthaydt/automata` is the folder `packages/automata`; the others are `@mcthaydt/automata-<folder>`.
-  const match = /^@mcthaydt\/automata(?:-([a-z0-9-]+))?(\/.*)?$/.exec(specifier)
+  // `@automataframework/automata` is the folder `packages/automata`; the others are `@automataframework/automata-<folder>`.
+  const match = /^@automataframework\/automata(?:-([a-z0-9-]+))?(\/.*)?$/.exec(specifier)
   if (match === null) return false
   const [, name = 'automata', subpath] = match
   const exportsMap = JSON.parse(readFileSync(join(repoRoot, 'packages', name, 'package.json'), 'utf8'))
@@ -51,9 +51,9 @@ describe('the stress example uses only public core APIs', () => {
   })
 
   it('rejects what it should: a deep src import, the testing entry, Koota', () => {
-    expect(isPublicCoreEntry('@mcthaydt/automata-sim/src/world/sim')).toBe(false)
-    expect(isPublicCoreEntry('@mcthaydt/automata/testing')).toBe(false)
-    expect(isPublicCoreEntry('@mcthaydt/automata-sim/math')).toBe(true)
+    expect(isPublicCoreEntry('@automataframework/automata-sim/src/world/sim')).toBe(false)
+    expect(isPublicCoreEntry('@automataframework/automata/testing')).toBe(false)
+    expect(isPublicCoreEntry('@automataframework/automata-sim/math')).toBe(true)
     expect(LIBRARIES.has('koota')).toBe(false)
   })
 })

@@ -1,4 +1,4 @@
-import { definePlugin, defineSystem, sortedKeys } from '@mcthaydt/automata'
+import { definePlugin, defineSystem, sortedKeys } from '@automataframework/automata'
 
 const move = defineSystem('move', ({ commands, query }) => {
   for (const { x } of commands()) for (const body of query()) body.x = Math.max(0, body.x + x)

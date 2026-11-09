@@ -1,4 +1,4 @@
-import { defineJourneys } from '@mcthaydt/playwright-preset'
+import { defineJourneys } from '@automataframework/playwright-preset'
 import { frameBudgetRun } from './src/playwright-run.ts'
 
 // The frame-budget probe: `pnpm test:frame-budget` at the root. It never shares a run with the

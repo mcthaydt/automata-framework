@@ -6,7 +6,7 @@ import {
   createProjectBrowser,
   type ProjectListSource,
   type ToastStore,
-} from '@mcthaydt/automata-editor/kit/core'
+} from '@automataframework/automata-editor/kit/core'
 import { needsPanel, type PanelOutcome } from '../document/open-flow-model'
 import type { EditorApp, OpenOutcome } from '../editor-app'
 import type { ImportOutcome, PickedFile } from '../import-files'

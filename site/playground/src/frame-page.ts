@@ -1,5 +1,5 @@
-import type { HostSettings } from '@mcthaydt/examples-runner/header'
-import { escapeHtml, PAGE_STYLE, pendingPage } from '@mcthaydt/examples-runner/page-template'
+import type { HostSettings } from '@automataframework/examples-runner/header'
+import { escapeHtml, PAGE_STYLE, pendingPage } from '@automataframework/examples-runner/page-template'
 import { framePolicy } from './ruken/frame-policy.ts'
 
 /** The site paths of one playground runtime build. */
@@ -32,7 +32,9 @@ export function playgroundFramePage(
   siteOrigin: string,
 ): string {
   if (entry.pending !== undefined) return pendingPage({ id: entry.id, pending: entry.pending })
-  const importMap = JSON.stringify({ imports: { '@mcthaydt/automata': runtime.automata, zod: runtime.zod } })
+  const importMap = JSON.stringify({
+    imports: { '@automataframework/automata': runtime.automata, zod: runtime.zod },
+  })
   const styles = runtime.styles
     .map((href) => `    <link rel="stylesheet" href="${escapeHtml(href)}" crossorigin="anonymous" />\n`)
     .join('')

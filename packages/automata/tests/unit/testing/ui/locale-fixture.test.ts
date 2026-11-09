@@ -1,4 +1,4 @@
-import { pseudoLocalize } from '@mcthaydt/automata-content/locale'
+import { pseudoLocalize } from '@automataframework/automata-content/locale'
 import { afterEach, describe, expect, test } from 'vitest'
 import { FIXTURE_LOCALES, findUntranslated, say } from '#src/testing/ui/locale-fixture.ts'
 

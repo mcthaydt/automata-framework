@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { definePlugin, defineResource, defineSystem, type PluginState } from '@mcthaydt/automata-sim'
+import { definePlugin, defineResource, defineSystem, type PluginState } from '@automataframework/automata-sim'
 import { expect, test } from 'vitest'
 import { z } from 'zod'
 import { bouncePlugin } from '#src/testing/fixtures/bounce.plugin.ts'

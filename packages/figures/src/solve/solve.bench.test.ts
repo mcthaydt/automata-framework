@@ -7,7 +7,7 @@ import { solve } from './solve'
 import type { Targets, Vec3 } from './targets'
 
 // S7-Q8 (M3 spec §3): a figure's rig solve should cost at most 0.1 ms. Measured and printed, never asserted:
-// not part of the gate; `pnpm --filter @mcthaydt/automata-figures bench` runs it.
+// not part of the gate; `pnpm --filter @automataframework/automata-figures bench` runs it.
 const { performance } = globalThis as unknown as { performance: { now(): number } }
 
 function medianMs(run: () => void, times: number): number {

@@ -1,4 +1,4 @@
-import type { FieldRecord, StepResult } from '@mcthaydt/automata-sim'
+import type { FieldRecord, StepResult } from '@automataframework/automata-sim'
 import {
   Container,
   Graphics,

@@ -1,7 +1,7 @@
 // The `af-sector/1` file as a codec: the schema that reads it and the rules that tell the diff how it is written.
 // The member orders are the ones the format's examples use, so a member the editor adds lands where a hand edit would
 // put it. Every id array holds objects whose `id` is unique in the file, so the diff matches elements by it.
-import type { JsonPath, PatchRules } from '@mcthaydt/automata-editor/kit/documents'
+import type { JsonPath, PatchRules } from '@automataframework/automata-editor/kit/documents'
 import {
   AF_SECTOR_FORMAT,
   type AfSector,

@@ -121,7 +121,7 @@ function filesBelow(dir: string): string[] {
 
 type Step = readonly [name: string, run: () => string | Promise<string>]
 
-/** The most the packed `@mcthaydt/automata-tools` (with the 2D editor inside) may weigh. */
+/** The most the packed `@automataframework/automata-tools` (with the 2D editor inside) may weigh. */
 const TOOLS_PACK_BUDGET_MB = 3
 
 /** AF's own code must not need eval: Ruken's CSP has no 'unsafe-eval'. */
@@ -139,7 +139,7 @@ const bundleCode = (dist: string): string =>
 
 function steps(project: string): Step[] {
   const bin = (name: string) => join(project, 'node_modules/.bin', name)
-  const installed = join(project, 'node_modules/@mcthaydt')
+  const installed = join(project, 'node_modules/@automataframework')
   return [
     [
       // The root README's clone-to-Emberwick and check commands still name real scripts and files.
@@ -218,7 +218,7 @@ function steps(project: string): Step[] {
         const offenders = filesBelow(installed)
           .filter((file) => file.endsWith('.js') || file.endsWith('.svelte'))
           .filter((file) => !file.includes('/dist/vendor/')) // ship's copy of Ruken's Node CLI never runs in a game
-          .filter((file) => !file.includes('/@mcthaydt/automata-tools/')) // build tools run in Node; `automata check` names eval to flag it
+          .filter((file) => !file.includes('/@automataframework/automata-tools/')) // build tools run in Node; `automata check` names eval to flag it
           .filter((file) => EVAL.test(readFileSync(file, 'utf8')))
         if (offenders.length > 0) throw new Error(`eval in:\n${offenders.join('\n')}`)
         return 'none'
@@ -238,7 +238,7 @@ function steps(project: string): Step[] {
       },
     ],
     [
-      // An itch.io or web build resolves `@mcthaydt/automata/target` to the web adapter, so the
+      // An itch.io or web build resolves `@automataframework/automata/target` to the web adapter, so the
       // published `dist` must let it drop every byte of the Ruken SDK.
       'bundle: vite build with the automata-web condition, no Ruken SDK',
       () => {
@@ -264,7 +264,7 @@ function steps(project: string): Step[] {
     [
       // Runtime, render-pixi, game and the umbrella, installed from their packs, make one game whose
       // Ruken build (the `automata-ruken` condition) carries the SDK once.
-      'game: vite build of a minimal @mcthaydt/automata game for Ruken, one Ruken SDK',
+      'game: vite build of a minimal @automataframework/automata game for Ruken, one Ruken SDK',
       () => {
         const game = join(project, 'game')
         sh(game, bin('vite'), ['build', '--config', 'vite.ruken.config.ts', '--logLevel', 'warn'])

@@ -2,7 +2,13 @@
 // changes gameplay state, so this view has no write method at all, and every value it hands out is a frozen copy:
 // a HUD that assigns to one throws instead of reaching the sim. The copies are made per call, which suits a HUD,
 // a debug overlay or a prototype; hot drawing stays in entity views.
-import type { ComponentDef, FieldSchema, FieldValues, ResourceDef, Sim } from '@mcthaydt/automata-sim'
+import type {
+  ComponentDef,
+  FieldSchema,
+  FieldValues,
+  ResourceDef,
+  Sim,
+} from '@automataframework/automata-sim'
 import type { z } from 'zod'
 
 /** One entity, read-only: its components' values are frozen copies. */

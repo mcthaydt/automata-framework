@@ -1,5 +1,5 @@
 ---
-'@mcthaydt/automata': patch
+'@automataframework/automata': patch
 ---
 
 The default screens' words are plainer (task 8.1):

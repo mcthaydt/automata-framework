@@ -83,7 +83,7 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         JSON.stringify({ name: 'stranger-tools', private: true, type: 'module' }),
       )
       writeFileSync(join(toolsDir, 'pnpm-workspace.yaml'), overridesYaml(overrides))
-      sh(toolsDir, 'pnpm', ['add', overrides['@mcthaydt/automata-tools'] as string])
+      sh(toolsDir, 'pnpm', ['add', overrides['@automataframework/automata-tools'] as string])
       mkdirSync(join(folder, 'work'), { recursive: true })
       sh(join(folder, 'work'), join(toolsDir, 'node_modules/.bin/automata'), ['create-game', GAME])
 
@@ -96,7 +96,7 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         JSON.parse(readFileSync(join(root, 'packages/tools/package.json'), 'utf8')) as { version: string }
       ).version
       const wanted = { ...written.dependencies, ...written.devDependencies }
-      const ours = Object.entries(wanted).filter(([name]) => name.startsWith('@mcthaydt/automata'))
+      const ours = Object.entries(wanted).filter(([name]) => name.startsWith('@automataframework/automata'))
       expect(ours.length, 'the game depends on the framework').toBeGreaterThan(0)
       for (const [name, spec] of ours)
         expect(spec, `${name} must ask for the running version, not a workspace link`).toBe(`^${version}`)

@@ -1,5 +1,5 @@
 // The host contract, target-neutral: no adapter is exported here. A build's adapter comes from
-// `@mcthaydt/automata/target`, chosen by the build's condition.
+// `@automataframework/automata/target`, chosen by the build's condition.
 
 export {
   findRukenSdkMarkers,

@@ -1,4 +1,4 @@
-import { type CatalogEntry, isUnpublishedExtension } from '@mcthaydt/examples-runner/catalog'
+import { type CatalogEntry, isUnpublishedExtension } from '@automataframework/examples-runner/catalog'
 
 const RESOURCE_REFERENCE = /['"`]\.\.\/resources\/([^'"`]+)['"`]/g
 

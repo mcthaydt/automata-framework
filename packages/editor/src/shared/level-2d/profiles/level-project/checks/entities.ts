@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValues } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldValues } from '@automataframework/automata-content/level-2d'
 import { checkValues } from '../../../../kit/fields/field-values.ts'
 import type { EntityDef2D, Project } from '../../../model/project-types'
 import type { Diagnostic } from '../../profile'

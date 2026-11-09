@@ -1,4 +1,4 @@
-import type { FlowGraph } from '@mcthaydt/automata-content'
+import type { FlowGraph } from '@automataframework/automata-content'
 import { type Disposables, disposables } from '../../shared/lib/disposables.ts'
 import type { Assets } from '../../shared/runtime/assets.manager.js'
 import type { PageLayers } from '../../shared/runtime/page-layers.svelte.js'

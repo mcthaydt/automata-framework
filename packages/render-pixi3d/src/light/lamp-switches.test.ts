@@ -1,4 +1,4 @@
-import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
+import type { RenderDelta, RenderRow } from '@automataframework/automata-sim'
 import { describe, expect, it } from 'vitest'
 import { lampSwitches } from './lamp-switches.js'
 

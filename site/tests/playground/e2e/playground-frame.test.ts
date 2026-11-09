@@ -31,7 +31,7 @@ test('an import the runtime lacks fails the import, and nothing runs', async ({ 
     page,
     'shapes',
     'rects',
-    "import { notAnExport } from '@mcthaydt/automata'\nexport default notAnExport\n",
+    "import { notAnExport } from '@automataframework/automata'\nexport default notAnExport\n",
   )
   expect(await failed(page)).toMatchObject({ runId: 1, phase: 'import' })
   expect((await log(page)).map((message) => message.type)).toEqual(['booted', 'failed'])

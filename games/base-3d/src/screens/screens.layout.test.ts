@@ -1,8 +1,8 @@
 // The end screen's action row with production CSS in Chromium, WebKit and Firefox (GAME-3D.1b
 // part 2, follow-up from #300): the row is centred at a bounded width, so the primary's focus ring sits inside an
 // equal margin on both sides rather than overhanging a full-width row's 12 px gutter on the left only.
-import '@mcthaydt/automata/theme.css'
-import '@mcthaydt/automata'
+import '@automataframework/automata/theme.css'
+import '@automataframework/automata'
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'

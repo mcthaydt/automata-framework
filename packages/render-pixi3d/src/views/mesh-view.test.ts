@@ -1,4 +1,4 @@
-import type { RenderRow } from '@mcthaydt/automata-sim'
+import type { RenderRow } from '@automataframework/automata-sim'
 import { Mesh3D, PhongMaterial } from '@pixi/3d'
 import { Texture } from 'pixi.js'
 import { describe, expect, it } from 'vitest'

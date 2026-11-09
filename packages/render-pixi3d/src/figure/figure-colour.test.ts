@@ -1,4 +1,4 @@
-import { DEFAULT_PALETTE } from '@mcthaydt/automata-content'
+import { DEFAULT_PALETTE } from '@automataframework/automata-content'
 import { describe, expect, it } from 'vitest'
 import { materialColour } from './figure-colour.js'
 

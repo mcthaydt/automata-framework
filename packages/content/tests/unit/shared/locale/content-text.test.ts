@@ -37,7 +37,7 @@ describe('createContentText', () => {
 })
 
 // The subpath a browser bundle imports, so nothing under it may reach for Node.
-describe('@mcthaydt/automata-content/locale', () => {
+describe('@automataframework/automata-content/locale', () => {
   it('imports no Node module, directly or through the files it imports', () => {
     const here = dirname(fileURLToPath(import.meta.url))
     const seen = new Set<string>()

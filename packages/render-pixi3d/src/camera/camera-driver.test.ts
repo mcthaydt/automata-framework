@@ -1,7 +1,7 @@
 // The renderer's side of the heading (M3 spec §4.2, §5): it reads `view` and `heading` from the render rows and
 // calls the rig, cutting to the first view, easing on a view change (and to the heading when the view sets one),
 // tracking the heading every other frame, and following the followed component's interpolated position.
-import type { RenderDelta, RenderRow, StepResult } from '@mcthaydt/automata-sim'
+import type { RenderDelta, RenderRow, StepResult } from '@automataframework/automata-sim'
 import { Camera3D } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { cameraView } from '../sim/camera-view.schema.js'

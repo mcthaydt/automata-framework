@@ -14,7 +14,7 @@
 //
 // Nothing runs before the first `follow`: the renderer draws frames before the player's row exists, and a pose
 // from the origin would make the first view swoop in from there.
-import { reducedMotion as prefersReducedMotion } from '@mcthaydt/automata'
+import { reducedMotion as prefersReducedMotion } from '@automataframework/automata'
 import type { Camera3D } from '@pixi/3d'
 import {
   BlendCurves,

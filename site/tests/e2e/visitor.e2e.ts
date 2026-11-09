@@ -8,7 +8,7 @@ import { watchPage } from './gates'
 // upright there). Every step is found the way a visitor finds it: by its role and its words.
 
 const ORIGIN = `http://127.0.0.1:${SITE_PORT}`
-const CREATE_COMMAND = 'npx @mcthaydt/automata-tools create-game my-game'
+const CREATE_COMMAND = 'npx @automataframework/automata-tools create-game my-game'
 
 /**
  * The room draws every frame and the headless shell draws WebGL in software, so one step inside the game can take

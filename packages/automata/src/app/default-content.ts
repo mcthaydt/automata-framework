@@ -1,12 +1,12 @@
 // The content a game gets when it has no `content/` folder: the default screens' flow and the
 // facts Ruken needs, hashed with the content compiler's formula so the runtime's boot check passes unchanged.
 
-import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@automataframework/automata-sim/hash'
 import type { CompiledContentData } from './boot/game-definition.ts'
 
 export interface GameContent {
   readonly data: CompiledContentData
-  /** `hex64(xxhash64(utf8(canonicalJson(data))))`, as `@mcthaydt/automata-content` writes it. */
+  /** `hex64(xxhash64(utf8(canonicalJson(data))))`, as `@automataframework/automata-content` writes it. */
   readonly hash: string
 }
 

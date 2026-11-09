@@ -1,5 +1,5 @@
 // What ship writes into this demo's ruken.toml (ship spec §3.2): the base's settings under the demo's own id.
-import { defineShipConfig } from '@mcthaydt/automata-tools'
+import { defineShipConfig } from '@automataframework/automata-tools'
 import packageJson from './package.json' with { type: 'json' }
 
 export default defineShipConfig({

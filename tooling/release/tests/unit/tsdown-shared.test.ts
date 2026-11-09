@@ -16,7 +16,7 @@ const matchesAny = (patterns: unknown, id: string): boolean =>
   Array.isArray(patterns) && patterns.some((pattern) => pattern instanceof RegExp && pattern.test(id))
 
 const manifest = {
-  name: '@mcthaydt/automata-runtime',
+  name: '@automataframework/automata-runtime',
   dependencies: { effect: '3.22.2' },
   peerDependencies: { svelte: '^5.57.1' },
   devDependencies: { '@ruken/manifest': 'file:x.tgz', '@ruken/sdk-host': 'file:y.tgz' },

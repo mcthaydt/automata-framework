@@ -31,8 +31,8 @@ it('types sim content through one cast, without touching other code in the progr
         types: ['node'],
         typeRoots: [join(SRC, '../node_modules/@types')],
         paths: {
-          '@mcthaydt/automata-content': [join(SRC, 'entries/index.ts')],
-          '@mcthaydt/automata-sim': [join(REPO, 'packages/sim/src/entries/index.ts')],
+          '@automataframework/automata-content': [join(SRC, 'entries/index.ts')],
+          '@automataframework/automata-sim': [join(REPO, 'packages/sim/src/entries/index.ts')],
         },
       },
       include: ['*.ts', 'content/generated/content.d.ts'],
@@ -40,7 +40,7 @@ it('types sim content through one cast, without touching other code in the progr
   )
   const system = (name: string, body: string): string =>
     [
-      "import { defineSystem } from '@mcthaydt/automata-sim'",
+      "import { defineSystem } from '@automataframework/automata-sim'",
       "import type { SimContentData } from 'virtual:automata/content'",
       `export const ${name} = defineSystem({`,
       `  name: '${name}',`,
@@ -59,7 +59,7 @@ it('types sim content through one cast, without touching other code in the progr
   writeFileSync(join(root, 'bad.ts'), system('bad', 'void content.palette'))
   writeFileSync(
     join(root, 'other.ts'),
-    "import { createSim } from '@mcthaydt/automata-sim'\nexport const sim = createSim({ seed: 1, plugins: [], content: { room: 1 } })\n",
+    "import { createSim } from '@automataframework/automata-sim'\nexport const sim = createSim({ seed: 1, plugins: [], content: { room: 1 } })\n",
   )
 
   let output = ''

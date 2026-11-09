@@ -1,4 +1,4 @@
-import { classifyHeightTier, measureGeometry } from '@mcthaydt/automata'
+import { classifyHeightTier, measureGeometry } from '@automataframework/automata'
 import { describe, expect, test } from 'vitest'
 import {
   DETENTS,

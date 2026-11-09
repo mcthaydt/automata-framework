@@ -1,7 +1,7 @@
 // @vitest-environment node
 // DX spec §3.2's contract test: the bounce plugin written as one flat `defs` list is the same plugin. It must pass
 // the committed bounce.golden.json (same schema hash, same hash every tick) in Node and in the three browsers.
-import { createSim, definePlugin } from '@mcthaydt/automata-sim'
+import { createSim, definePlugin } from '@automataframework/automata-sim'
 import { expect, test } from 'vitest'
 import { Kick } from '#src/testing/fixtures/bounce.command.ts'
 import { Ball } from '#src/testing/fixtures/bounce.component.ts'

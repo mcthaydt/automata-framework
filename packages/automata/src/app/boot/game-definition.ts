@@ -1,4 +1,4 @@
-import type { AssetsSource, FlowGraph, GameSource } from '@mcthaydt/automata-content'
+import type { AssetsSource, FlowGraph, GameSource } from '@automataframework/automata-content'
 import type { AudioContextLike } from '../../features/audio/audio-graph.js'
 import type { EventSounds } from '../../features/audio/event-sounds.js'
 import type { GameOrientation, RotateHintMode } from '../../features/display/display-policy.svelte.js'
@@ -32,8 +32,8 @@ export interface RuntimeSeams {
   readonly fonts?: Pick<FontFaceSet, 'load'>
   readonly sdkEnv?: () => NonNullable<HostingSeams['env']>
   /**
-   * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata/target`), for example
-   * `fakeHosting(…).open` from `@mcthaydt/automata/testing`. It gets boot's clock and the signal that gives up the
+   * Builds the game's `Hosting` in place of the build target's adapter (`@automataframework/automata/target`), for example
+   * `fakeHosting(…).open` from `@automataframework/automata/testing`. It gets boot's clock and the signal that gives up the
    * handshake; boot disposes what it answers. When given, `sdkEnv` is not used.
    */
   readonly hosting?: (

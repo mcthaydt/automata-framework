@@ -1,4 +1,4 @@
-import { apply, axisAngle, compose } from '@mcthaydt/automata-figures'
+import { apply, axisAngle, compose } from '@automataframework/automata-figures'
 import { Container3D } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { placeJoint } from './figure-joints.js'

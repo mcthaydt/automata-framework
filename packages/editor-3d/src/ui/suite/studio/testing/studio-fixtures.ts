@@ -1,7 +1,7 @@
 // The recorded fixture game of the Studio's tests (EDS.9a): Wick, four poses, three clips and what they use, copied from
 // base-3d's content, over memory ports whose editor list gives every file to the `studio` editor, writable.
-import type { SuitePorts, UnlistedFile, WorkspaceFile } from '@mcthaydt/automata-editor/kit/ports'
-import { createMemoryPorts } from '@mcthaydt/automata-editor/kit/ports/testing'
+import type { SuitePorts, UnlistedFile, WorkspaceFile } from '@automataframework/automata-editor/kit/ports'
+import { createMemoryPorts } from '@automataframework/automata-editor/kit/ports/testing'
 
 // The fixture files as Vite hands them over (the same in Node, jsdom and a browser), keyed by their path under `content/`.
 const raw = import.meta.glob('./fixtures/content/**/*.toml', {

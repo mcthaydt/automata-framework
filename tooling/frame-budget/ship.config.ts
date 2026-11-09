@@ -1,4 +1,4 @@
-import { defineShipConfig } from '@mcthaydt/automata-tools'
+import { defineShipConfig } from '@automataframework/automata-tools'
 
 // The stress example's Ruken manifest: only so `vite preview` serves its build with the headers Ruken would
 // (`previewHeaders`, Ruken's CSP with no eval), as spike S8 measured. It is never published.

@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url'
-import { demoPort } from '@mcthaydt/examples-runner/host/ports'
+import { demoPort } from '@automataframework/examples-runner/host/ports'
 
 // This demo's servers: its production build in slot 1 and its dev server in slot 2 of the feature demos
 // (tooling/examples-runner/host/ports.ts). The dev server compiles a copy of content/ in `.e2e/` (package.json `e2e:dev`)

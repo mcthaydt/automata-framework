@@ -1,5 +1,5 @@
 // base-3d's sim events: what the sim tells presentation and the screens. Sim code: `pnpm boundaries` checks it.
-import { defineEvent, type EventDef } from '@mcthaydt/automata-sim'
+import { defineEvent, type EventDef } from '@automataframework/automata-sim'
 import { z } from 'zod'
 
 const at = z.object({ x: z.int(), z: z.int() })

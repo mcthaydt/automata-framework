@@ -23,7 +23,7 @@ describe('playgroundFramePage', () => {
     const html = playgroundFramePage(ENTRY, RUNTIME, SITE)
     const importMap = between(html, '<script type="importmap">', '</script>')
     expect(JSON.parse(importMap)).toEqual({
-      imports: { '@mcthaydt/automata': RUNTIME.automata, zod: RUNTIME.zod },
+      imports: { '@automataframework/automata': RUNTIME.automata, zod: RUNTIME.zod },
     })
     expect(between(html, 'http-equiv="Content-Security-Policy" content="', '"')).toBe(
       framePolicy(importMap, SITE),

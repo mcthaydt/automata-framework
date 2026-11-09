@@ -1,7 +1,7 @@
 // The stick mapper's sweep (D3-i): every 64th heading of a turn against a grid of stick vectors, as one hash. Node
 // and each browser engine compute it and must get `STICK_SWEEP_HASH`; a different hash is a determinism bug in the
 // mapper or in `dmath`, never a golden to update per engine.
-import { hex64, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { hex64, xxhash64 } from '@automataframework/automata-sim/hash'
 import { TURN_UNITS } from '../sim/heading.js'
 import { mapStick } from '../sim/stick-mapper.js'
 

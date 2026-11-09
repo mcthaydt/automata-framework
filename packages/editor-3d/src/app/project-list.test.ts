@@ -1,6 +1,6 @@
 // The project list (ED3D.5b step 6; ED3D spec §8, kit spec §4.7): what Home shows of a workspace, one entry for each
 // level or facility file, newest first, with what the checks found.
-import { StorageError } from '@mcthaydt/automata-editor/kit/core'
+import { StorageError } from '@automataframework/automata-editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { lastLightProfile } from '../profile/last-light-profile'

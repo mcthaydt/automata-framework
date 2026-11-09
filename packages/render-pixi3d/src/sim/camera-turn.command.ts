@@ -1,4 +1,4 @@
-import { type CommandDef, defineCommand } from '@mcthaydt/automata-sim'
+import { type CommandDef, defineCommand } from '@automataframework/automata-sim'
 import { z } from 'zod'
 
 const cameraTurnSchema: z.ZodType<{ units: number }> = z.object({ units: z.int() })

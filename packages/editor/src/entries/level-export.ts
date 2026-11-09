@@ -1,3 +1,3 @@
-// Open a level project and write its game files (`@mcthaydt/automata-editor/level-export`), headless.
+// Open a level project and write its game files (`@automataframework/automata-editor/level-export`), headless.
 export { type OpenResult, openProject } from '../shared/level-2d/model/open-project.ts'
 export { type ExportFile, exportContent } from '../shared/level-2d/profiles/level-project/content-export.ts'

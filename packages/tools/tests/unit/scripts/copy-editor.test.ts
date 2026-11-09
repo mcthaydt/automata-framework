@@ -71,7 +71,7 @@ describe('copyEditor', () => {
   it('says to build the editor first when there is no 2D build', () => {
     const { outDir } = folders()
     expect(() => copyEditor(join(outDir, 'missing'), outDir)).toThrow(
-      'There is no 2D editor build to copy. Build it first: pnpm --filter @mcthaydt/automata-editor build',
+      'There is no 2D editor build to copy. Build it first: pnpm --filter @automataframework/automata-editor build',
     )
   })
 })

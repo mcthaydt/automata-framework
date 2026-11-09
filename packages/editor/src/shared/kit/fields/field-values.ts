@@ -1,7 +1,12 @@
 // Checks a whole instance (all of an entity's values) against its fields, for the editor and for a retype preview.
 
-import type { FieldDef, FieldValue, FieldValues, InstanceProblem } from '@mcthaydt/automata-content/level-2d'
-import { checkFieldValue, defaultFieldValue } from '@mcthaydt/automata-content/level-2d'
+import type {
+  FieldDef,
+  FieldValue,
+  FieldValues,
+  InstanceProblem,
+} from '@automataframework/automata-content/level-2d'
+import { checkFieldValue, defaultFieldValue } from '@automataframework/automata-content/level-2d'
 
 /** Whether an instance holds a value for the field: a key set to `undefined` holds none. */
 export const hasValue = (values: FieldValues, id: string): boolean =>

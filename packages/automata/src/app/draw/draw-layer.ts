@@ -6,7 +6,7 @@
 // objects are pooled by call order (the nth `text` call reuses the nth Text, unused ones are hidden), so a steady
 // HUD allocates no display objects after its first frame.
 
-import type { Sim, StepResult } from '@mcthaydt/automata-sim'
+import type { Sim, StepResult } from '@automataframework/automata-sim'
 import { Container, Graphics, Text } from 'pixi.js'
 import type { PixiStage, PixiStageHooks } from '../../features/render/renderer.ts'
 import type { FrameInfo } from '../../shared/runtime/loop/frames.ts'

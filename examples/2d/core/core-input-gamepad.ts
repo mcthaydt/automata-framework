@@ -3,7 +3,7 @@
 // Shows: keys() binds a standard pad's left stick and D-pad to the same sim command as the arrow keys; the stick
 //   reads through a radial deadzone, eight ways; unplugging the pad in use pauses with "Reconnect your controller".
 // Controls: the left stick or the D-pad (any standard-mapping controller), or the arrow keys
-// Packages: @mcthaydt/automata, zod
+// Packages: @automataframework/automata, zod
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 120
@@ -15,7 +15,7 @@ import {
   defineSystem,
   keys,
   rect,
-} from '@mcthaydt/automata'
+} from '@automataframework/automata'
 import { z } from 'zod'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })

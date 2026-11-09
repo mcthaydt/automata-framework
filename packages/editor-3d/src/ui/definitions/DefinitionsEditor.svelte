@@ -6,8 +6,8 @@
   which is the right picker on a tablet.
 -->
 <script lang="ts">
-import { Button, Segmented } from '@mcthaydt/automata-editor/kit'
-import { FIELD_TYPES, type FieldType } from '@mcthaydt/automata-editor/kit/fields'
+import { Button, Segmented } from '@automataframework/automata-editor/kit'
+import { FIELD_TYPES, type FieldType } from '@automataframework/automata-editor/kit/fields'
 import type { DefinitionRow } from '../../app/definitions-controller'
 
 interface Props {

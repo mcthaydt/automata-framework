@@ -1,4 +1,4 @@
-import { levelContentSchema } from '@mcthaydt/automata-content/level-2d'
+import { levelContentSchema } from '@automataframework/automata-content/level-2d'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { decodeRows, packTile } from '#src/shared/level-2d/model/cells-codec.ts'

@@ -11,7 +11,7 @@ import {
   settleLayout,
   VARIANTS,
   type Variant,
-} from '@mcthaydt/automata/testing'
+} from '@automataframework/automata/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import type { ShellMode } from '#src/shared/kit/shell/shell-mode.ts'

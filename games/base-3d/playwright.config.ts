@@ -1,5 +1,5 @@
-import { base3dDevPort, demoHostOrigin, demoHostPort } from '@mcthaydt/examples-runner/host/ports'
-import { defineJourneys } from '@mcthaydt/playwright-preset'
+import { base3dDevPort, demoHostOrigin, demoHostPort } from '@automataframework/examples-runner/host/ports'
+import { defineJourneys } from '@automataframework/playwright-preset'
 import { devices } from '@playwright/test'
 import { gameBuildPath, gamePort, gameUrl } from './e2e/origin.ts'
 
@@ -46,7 +46,7 @@ export default defineJourneys({
       reuseExistingServer: reuse,
     },
     {
-      command: 'pnpm --filter @mcthaydt/examples-runner e2e:host',
+      command: 'pnpm --filter @automataframework/examples-runner e2e:host',
       url: `${demoHostOrigin}/`,
       env: { AF_E2E_DEMO_HOST_PORT: String(demoHostPort) },
       reuseExistingServer: reuse,

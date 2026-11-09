@@ -164,20 +164,21 @@ describe('finishSvelteDist', () => {
   it('drops stylesheet imports from declarations, keeping them in the JavaScript', () => {
     const dist = distWith({
       'screens/default-screens.d.ts': [
-        "import '@mcthaydt/automata-ui/theme.css';",
+        "import '@automataframework/automata-ui/theme.css';",
         'import "./screens.css";',
-        "import { type ScreenDef } from '@mcthaydt/automata-runtime';",
+        "import { type ScreenDef } from '@automataframework/automata-runtime';",
         'export declare const x: ScreenDef;',
       ].join('\n'),
-      'screens/default-screens.js': "import '@mcthaydt/automata-ui/theme.css';\nimport './screens.css';\n",
+      'screens/default-screens.js':
+        "import '@automataframework/automata-ui/theme.css';\nimport './screens.css';\n",
       'screens/screens.css': '',
     })
     finishSvelteDist(dist, { vendoredTypes: {} })
     const dts = readFileSync(join(dist, 'screens/default-screens.d.ts'), 'utf8')
     expect(dts).not.toContain('.css')
-    expect(dts).toContain("import { type ScreenDef } from '@mcthaydt/automata-runtime';")
+    expect(dts).toContain("import { type ScreenDef } from '@automataframework/automata-runtime';")
     expect(readFileSync(join(dist, 'screens/default-screens.js'), 'utf8')).toBe(
-      "import '@mcthaydt/automata-ui/theme.css';\nimport './screens.css';\n",
+      "import '@automataframework/automata-ui/theme.css';\nimport './screens.css';\n",
     )
   })
 })

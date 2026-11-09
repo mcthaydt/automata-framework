@@ -1,4 +1,4 @@
-import type { Sim, SimEvent } from '@mcthaydt/automata-sim'
+import type { Sim, SimEvent } from '@automataframework/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createBaseSim, moveCommand, readPlayer } from '#src/app/base-sim.ts'
 import { Progress } from '#src/features/goal/progress.resource.ts'

@@ -8,7 +8,7 @@ describe('createPixi3dRenderer without render-pixi3d/no-eval', () => {
   it('throws an error naming the entry to import, before any Pixi app', async () => {
     const host = { appendChild: () => undefined } as unknown as HTMLElement
     await expect(createPixi3dRenderer({ views: {} })(testTarget(host))).rejects.toThrow(
-      "import '@mcthaydt/automata-render-pixi3d/no-eval'",
+      "import '@automataframework/automata-render-pixi3d/no-eval'",
     )
   })
 })

@@ -87,7 +87,7 @@ export const IMPORT_ALLOWED: ReadonlySet<string> = new Set([
   '@dimforge/rapier3d-deterministic-compat',
   // The sim's public entry points, for sim plugins in other packages (packages/physics). They are checked
   // sources themselves; deep imports into the sim's internals stay banned.
-  '@mcthaydt/automata-sim',
-  '@mcthaydt/automata-sim/hash',
-  '@mcthaydt/automata-sim/math',
+  '@automataframework/automata-sim',
+  '@automataframework/automata-sim/hash',
+  '@automataframework/automata-sim/math',
 ])

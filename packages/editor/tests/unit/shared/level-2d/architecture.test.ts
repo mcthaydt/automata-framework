@@ -28,7 +28,7 @@ describe('checkArchitecture: the pure core (model and tiles)', () => {
   it('accepts relative imports, zod, the level format and the kit field rules', () => {
     const files = tree({
       'model/a.ts':
-        "import { z } from 'zod'\nimport type { FieldDef } from '@mcthaydt/automata-content/level-2d'\nimport { b } from './b'\nexport const a = z.string()\nexport const c = b",
+        "import { z } from 'zod'\nimport type { FieldDef } from '@automataframework/automata-content/level-2d'\nimport { b } from './b'\nexport const a = z.string()\nexport const c = b",
       'model/b.ts': "import { checkValues } from '../../kit/fields/check'\nexport const b = checkValues",
       'shared/kit/fields/check.ts': 'export const checkValues = 1',
       'tiles/t.ts': "import { a } from '../model/a'\nexport const t = a",
@@ -48,8 +48,8 @@ describe('checkArchitecture: the pure core (model and tiles)', () => {
     for (const specifier of [
       'svelte',
       'pixi.js',
-      '@mcthaydt/automata-editor/kit',
-      '@mcthaydt/automata-editor/kit/fields',
+      '@automataframework/automata-editor/kit',
+      '@automataframework/automata-editor/kit/fields',
       'smol-toml',
       'node:fs',
     ]) {

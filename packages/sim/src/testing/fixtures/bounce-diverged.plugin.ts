@@ -1,7 +1,7 @@
 // The bounce fixture's twin for the divergence test (exit 7): the same definitions, so the same schema hash,
 // but its move system adds 1 to ball 2's vx in the step it runs with ctx.tick === 136. The first hash that
 // differs is therefore the one at tick 137 (the numbering of the hash timeline).
-import { definePlugin, type PluginDef } from '@mcthaydt/automata-sim'
+import { definePlugin, type PluginDef } from '@automataframework/automata-sim'
 import { Kick } from './bounce.command'
 import { Ball } from './bounce.component'
 import { BounceStats } from './bounce.resource'

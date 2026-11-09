@@ -1,5 +1,5 @@
-import { examplesPort } from '@mcthaydt/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
+import { examplesPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
 import { expect, test } from '@playwright/test'
 
 // The game package's default screens in a real browser, on the real Pixi renderer, under the fake host (DX.2

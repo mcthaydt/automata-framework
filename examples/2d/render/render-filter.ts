@@ -5,10 +5,17 @@
 //   `scanlines` darkens every second row, runs after `dusk` (order) and only from the medium tier up (minTier),
 //   so the HUD, which lists the filters running now, loses it at low and gets it back at medium.
 // Controls: 1 low, 2 medium, 3 high
-// Packages: @mcthaydt/automata
+// Packages: @automataframework/automata
 // Difficulty: ★★★☆
 // Tier: core
-import { defineComponent, defineGame, definePlugin, defineSystem, postFilter, rect } from '@mcthaydt/automata'
+import {
+  defineComponent,
+  defineGame,
+  definePlugin,
+  defineSystem,
+  postFilter,
+  rect,
+} from '@automataframework/automata'
 
 const Drift = defineComponent('drift', { x: 'f32', y: 'f32', vx: 'f32' })
 

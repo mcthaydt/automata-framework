@@ -1,4 +1,4 @@
-import type { ContentNeighbours } from '@mcthaydt/automata-content/level-2d'
+import type { ContentNeighbours } from '@automataframework/automata-content/level-2d'
 import type { Project, World } from '../project-types.ts'
 
 // Neighbours for room-scrolling games: in a `grid` world, the levels whose edge touches

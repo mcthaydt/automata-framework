@@ -78,8 +78,8 @@ describe('rukenCliPath', () => {
   })
 
   it("uses the copy in the published package's dist/vendor/ruken-cli when it is there (M2.4 spec §3.4)", () => {
-    const built = 'file:///game/node_modules/@mcthaydt/automata-tools/dist/index.js'
-    const copy = '/game/node_modules/@mcthaydt/automata-tools/dist/vendor/ruken-cli/cli.js'
+    const built = 'file:///game/node_modules/@automataframework/automata-tools/dist/index.js'
+    const copy = '/game/node_modules/@automataframework/automata-tools/dist/vendor/ruken-cli/cli.js'
     expect(rukenCliPath(built, (path) => path === copy)).toBe(copy)
   })
 

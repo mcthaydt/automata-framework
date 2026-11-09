@@ -1,5 +1,5 @@
-import type { FieldValue, FieldValues } from '@mcthaydt/automata-content/level-2d'
-import { checkFieldValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldValue, FieldValues } from '@automataframework/automata-content/level-2d'
+import { checkFieldValue } from '@automataframework/automata-content/level-2d'
 import { valuesWithDefaults } from '../../../kit/fields/field-values.ts'
 import { idInUse } from '../commands/layer-target'
 import { DEF_ID, type IdSource } from '../ids'

@@ -32,8 +32,8 @@ const occurrences = (text: string, part: string): number => text.split(part).len
 
 describe('vendoredNotice', () => {
   it('names the RukenApp commit and each bundled package with its tarball, SHA-256 and licence', () => {
-    const notice = vendoredNotice(README, '@mcthaydt/automata-host', ['@ruken/sdk'], BOTH_MIT)
-    expect(notice).toContain('@mcthaydt/automata-host')
+    const notice = vendoredNotice(README, '@automataframework/automata-host', ['@ruken/sdk'], BOTH_MIT)
+    expect(notice).toContain('@automataframework/automata-host')
     expect(notice).toContain('`b30d31b`')
     expect(notice).toContain('| Package | Tarball | SHA-256 | License |')
     expect(notice).toContain(
@@ -104,7 +104,12 @@ describe('writeVendored', () => {
 
   it("writes VENDORED.md from the repository's vendor/ruken/README.md and the installed package's licence", () => {
     const dir = packageWithSdk({ license: 'MIT' }, { LICENSE: MIT_TEXT })
-    writeVendored({ root, packageDir: dir, packageName: '@mcthaydt/automata-host', bundled: ['@ruken/sdk'] })
+    writeVendored({
+      root,
+      packageDir: dir,
+      packageName: '@automataframework/automata-host',
+      bundled: ['@ruken/sdk'],
+    })
     const notice = readFileSync(join(dir, 'VENDORED.md'), 'utf8')
     expect(notice).toContain('ruken-sdk-0.0.0.tgz')
     expect(notice).toMatch(/\| `[0-9a-f]{64}` \| MIT \|/)

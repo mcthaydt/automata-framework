@@ -1,4 +1,4 @@
-import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
+import { type Command, createSim, type Sim } from '@automataframework/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { AIR_JUMPS, Body, GRAVITY, JUMP_SPEED } from '../../../src/features/double-jump/body.component.ts'
 import { doubleJumpPlugin } from '../../../src/features/double-jump/double-jump.plugin.ts'

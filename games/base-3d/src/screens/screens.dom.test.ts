@@ -1,14 +1,14 @@
-import type { DefinedGame } from '@mcthaydt/automata'
-import { type RendererFactory, type RuntimeHandle, runGame } from '@mcthaydt/automata'
+import type { DefinedGame } from '@automataframework/automata'
+import { type RendererFactory, type RuntimeHandle, runGame } from '@automataframework/automata'
 import {
   type FakeHostingOptions,
   fakeFetch,
   fakeHosting,
   type ManualFrames,
   manualFrames,
-} from '@mcthaydt/automata/testing'
-import { render3dExtension } from '@mcthaydt/automata-render-pixi3d'
-import type { StepResult } from '@mcthaydt/automata-sim'
+} from '@automataframework/automata/testing'
+import { render3dExtension } from '@automataframework/automata-render-pixi3d'
+import type { StepResult } from '@automataframework/automata-sim'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { base3d, input } from '../main.ts'
 import { Progress } from '../resources.ts'

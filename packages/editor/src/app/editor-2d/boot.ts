@@ -1,4 +1,4 @@
-import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata'
+import { createGeometryOwner, type ViewportWindow } from '@automataframework/automata'
 import { type Component, mount, unmount } from 'svelte'
 import type { LastOpened } from '../../features/home/home-controller'
 import type { StorageClock } from '../../shared/kit/storage/clock.ts'

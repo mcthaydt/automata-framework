@@ -1,7 +1,7 @@
 // Where the loupe and the nudge pad sit over the plan (ED3D.6g-b, plan decision 2; ED3D spec §10: clear of the contact
 // point and of the screen edge). Plain arithmetic on canvas pixels, so the rules are unit tests and the canvas only
 // places two boxes.
-import type { Point as ScreenPoint, Size } from '@mcthaydt/automata-editor/kit/core'
+import type { Point as ScreenPoint, Size } from '@automataframework/automata-editor/kit/core'
 import { PICK_RADIUS } from '../view/plan/plan-pick'
 
 /** The loupe's diameter and the nudge pad's side, in canvas pixels (the mockup's sizes). */

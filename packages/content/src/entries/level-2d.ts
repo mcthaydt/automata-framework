@@ -1,4 +1,4 @@
-// @mcthaydt/automata-content/level-2d: the 2D level format the editor writes and a game reads. The three file shapes
+// @automataframework/automata-content/level-2d: the 2D level format the editor writes and a game reads. The three file shapes
 // (`project.toml`, `levels/<id>.toml`, `world.toml`) as strict schemas and types, and the typed-field rules they use.
 // Browser-safe: zod and plain functions, no Node built-ins, so a game's sim may import it too.
 export {

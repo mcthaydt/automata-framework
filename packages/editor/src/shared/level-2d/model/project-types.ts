@@ -1,4 +1,4 @@
-import type { EntityDef, FieldDef, FieldValues } from '@mcthaydt/automata-content/level-2d'
+import type { EntityDef, FieldDef, FieldValues } from '@automataframework/automata-content/level-2d'
 import type { RuleGroup } from '../tiles/autotile/rule.schema.ts'
 import type { Grid } from './grid.ts'
 

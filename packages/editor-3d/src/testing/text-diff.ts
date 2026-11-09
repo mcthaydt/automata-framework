@@ -1,6 +1,6 @@
 // Helpers the codec tests share: what changed between two texts of one file.
 
-import { scan } from '@mcthaydt/automata-editor/kit/documents'
+import { scan } from '@automataframework/automata-editor/kit/documents'
 import { expect } from 'vitest'
 
 /** The longest common prefix and suffix of two texts leave this much in each: the one region that changed. */

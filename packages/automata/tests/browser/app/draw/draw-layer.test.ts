@@ -1,4 +1,4 @@
-import { createSim, defineComponent, definePlugin, type Sim } from '@mcthaydt/automata-sim'
+import { createSim, defineComponent, definePlugin, type Sim } from '@automataframework/automata-sim'
 import { Application, RenderTexture } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createDrawLayer } from '#src/app/draw/draw-layer.ts'

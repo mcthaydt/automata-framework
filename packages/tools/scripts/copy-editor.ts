@@ -18,7 +18,7 @@ export function copyEditor(editorDist: string, outDir: string): void {
   const source = join(editorDist, '2d')
   if (!existsSync(join(source, 'index.html')))
     throw new Error(
-      'There is no 2D editor build to copy. Build it first: pnpm --filter @mcthaydt/automata-editor build',
+      'There is no 2D editor build to copy. Build it first: pnpm --filter @automataframework/automata-editor build',
     )
   for (const build of SCANNED) {
     const folder = join(editorDist, build)

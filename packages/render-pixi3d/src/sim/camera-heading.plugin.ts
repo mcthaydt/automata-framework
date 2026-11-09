@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDef } from '@mcthaydt/automata-sim'
+import { definePlugin, type PluginDef } from '@automataframework/automata-sim'
 import { CameraHeading } from './camera-heading.component.js'
 import { CameraTurn } from './camera-turn.command.js'
 import { cameraTurnSystem } from './camera-turn.system.js'

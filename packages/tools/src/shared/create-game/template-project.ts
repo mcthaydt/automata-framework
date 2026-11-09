@@ -43,16 +43,16 @@ export const PROJECT_FILES: readonly TemplateFile[] = [
             check: 'automata check',
           },
           dependencies: {
-            '@mcthaydt/automata': frameworkSpec(options),
-            '@mcthaydt/automata-content': frameworkSpec(options),
-            '@mcthaydt/automata-sim': frameworkSpec(options),
+            '@automataframework/automata': frameworkSpec(options),
+            '@automataframework/automata-content': frameworkSpec(options),
+            '@automataframework/automata-sim': frameworkSpec(options),
             'pixi.js': '8.22.0',
             svelte: '5.57.1',
             zod: '4.6.6',
             ...targetDependencies(targetsOf(options)).dependencies,
           },
           devDependencies: {
-            '@mcthaydt/automata-tools': frameworkSpec(options),
+            '@automataframework/automata-tools': frameworkSpec(options),
             '@sveltejs/vite-plugin-svelte': '7.3.1',
             '@types/node': '24.19.1',
             typescript: '7.0.2',
@@ -67,7 +67,7 @@ export const PROJECT_FILES: readonly TemplateFile[] = [
   },
   {
     path: 'ship.config.ts',
-    content: (options) => `import { defineShipConfig } from '@mcthaydt/automata-tools'
+    content: (options) => `import { defineShipConfig } from '@automataframework/automata-tools'
 import packageJson from './package.json' with { type: 'json' }
 
 export default defineShipConfig({
@@ -90,8 +90,8 @@ export default defineShipConfig({
   },
   {
     path: 'vite.config.ts',
-    content: (options) => `import { level2dKinds } from '@mcthaydt/automata-content/level-2d'
-import { automataContent } from '@mcthaydt/automata-content/vite'
+    content: (options) => `import { level2dKinds } from '@automataframework/automata-content/level-2d'
+import { automataContent } from '@automataframework/automata-content/vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
 

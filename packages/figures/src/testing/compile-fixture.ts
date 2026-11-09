@@ -9,7 +9,7 @@ import {
   compileContent,
   type Diagnostic,
   formatDiagnostic,
-} from '@mcthaydt/automata-content'
+} from '@automataframework/automata-content'
 import { Effect, Either } from 'effect'
 import { FIGURE_CONTENT } from '../content/figures.content'
 

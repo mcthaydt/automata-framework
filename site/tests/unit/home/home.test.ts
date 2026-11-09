@@ -24,7 +24,7 @@ describe('Home', () => {
     const primaries = [...view.container.querySelectorAll('a.button, button.button')]
     expect(primaries.map((element) => element.textContent?.trim())).toEqual(['Make a game', 'Make a game'])
     expect(view.getByText(CREATE_COMMAND)).toBeTruthy()
-    expect(CREATE_COMMAND).toMatch(/^npx @mcthaydt\/automata-tools create-game /)
+    expect(CREATE_COMMAND).toMatch(/^npx @automataframework\/automata-tools create-game /)
   })
 
   it('shows code that is in the example, line for line', () => {

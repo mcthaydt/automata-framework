@@ -1,4 +1,4 @@
-import type { Point } from '@mcthaydt/automata-content/level-2d'
+import type { Point } from '@automataframework/automata-content/level-2d'
 import type { GestureHandlers } from '../../shared/kit/gestures/gesture-events.ts'
 import type { PointerKind } from '../../shared/kit/gestures/pointer-sample.ts'
 import type { LevelEditor } from '../../shared/level-2d/editor/level-editor-api'

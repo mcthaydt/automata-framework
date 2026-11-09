@@ -1,5 +1,5 @@
 // The four shipped blockout files against what the original generator's own `expand` produced (the golden recorded once);
-// the openings and nav cases live with the format, in `@mcthaydt/automata-sector-format`.
+// the openings and nav cases live with the format, in `@automataframework/automata-sector-format`.
 import { describe, expect, it } from 'vitest'
 import { loadFixture, loadGolden } from '../testing/fixtures'
 import type { Blockout } from './blockout.schema'

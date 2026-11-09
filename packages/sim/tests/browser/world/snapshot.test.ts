@@ -1,4 +1,4 @@
-import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
 import { expect, test } from 'vitest'
 import { createSim } from '#src/shared/world/sim.ts'
 import { Body, fixturePlugin, Tag } from '#src/testing/fixture-world.ts'

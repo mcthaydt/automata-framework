@@ -1,5 +1,5 @@
-import { automataContent } from '@mcthaydt/automata-content/vite'
-import { previewHeaders } from '@mcthaydt/examples-runner/host/preview-headers'
+import { automataContent } from '@automataframework/automata-content/vite'
+import { previewHeaders } from '@automataframework/examples-runner/host/preview-headers'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
 import { roomSchema } from './room.schema.ts'

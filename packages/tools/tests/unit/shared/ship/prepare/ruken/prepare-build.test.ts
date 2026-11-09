@@ -123,7 +123,10 @@ describe('prepareBuild', () => {
     const gameWith = (source: string): string => {
       const game = mkdtempSync(join(tmpdir(), 'ship-prepare-game-'))
       mkdirSync(join(game, 'src'))
-      writeFileSync(join(game, 'src/game.ts'), `import { keys } from '@mcthaydt/automata-game'\n${source}\n`)
+      writeFileSync(
+        join(game, 'src/game.ts'),
+        `import { keys } from '@automataframework/automata-game'\n${source}\n`,
+      )
       return game
     }
     const padGame = (): string =>

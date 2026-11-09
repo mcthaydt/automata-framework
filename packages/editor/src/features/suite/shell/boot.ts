@@ -2,7 +2,7 @@
 // list the files of each editor it names, and mount the suite with the kit's geometry owner. `main.ts` is the only
 // caller with the page's globals; tests hand in the window and memory ports.
 
-import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata'
+import { createGeometryOwner, type ViewportWindow } from '@automataframework/automata'
 import { mount, unmount } from 'svelte'
 import type { GestureClock } from '../../../shared/kit/gestures/gesture-clock.ts'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'

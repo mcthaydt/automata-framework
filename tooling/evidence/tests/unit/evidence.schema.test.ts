@@ -29,7 +29,7 @@ const evidence = {
       hashes: engines.map((engine) => ({ engine, version: '1.0', hash })),
     },
   ],
-  packages: [{ name: '@mcthaydt/automata-sim', version: '0.0.2', released: true }],
+  packages: [{ name: '@automataframework/automata-sim', version: '0.0.2', released: true }],
   automataCheck: {
     status: 'pending',
     waitingOn: ['DX.5', 'DX.6'],

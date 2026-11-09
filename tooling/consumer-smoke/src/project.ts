@@ -81,7 +81,7 @@ export function consumerManifest(options: ConsumerOptions): ConsumerManifest {
 }
 
 /**
- * The project's `pnpm-workspace.yaml`, which holds its overrides: a tarball's own `@mcthaydt/*` dependencies name
+ * The project's `pnpm-workspace.yaml`, which holds its overrides: a tarball's own `@automataframework/*` dependencies name
  * the shared version, which is not on any registry yet in packs mode, so the overrides send them to the same
  * tarballs. Settings live here rather than under `pnpm` in package.json, which newer pnpm no longer reads.
  */
@@ -94,7 +94,7 @@ export function consumerWorkspace(options: PackageSource): string {
 /** `${NODE_AUTH_TOKEN}` is expanded by pnpm at install time, so no token is ever written to disk. */
 export function consumerNpmrc(): string {
   return [
-    '@mcthaydt:registry=https://npm.pkg.github.com',
+    '@automataframework:registry=https://npm.pkg.github.com',
     `//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}`,
     '',
   ].join('\n')

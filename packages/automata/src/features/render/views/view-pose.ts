@@ -1,4 +1,4 @@
-import type { FieldRecord } from '@mcthaydt/automata-sim'
+import type { FieldRecord } from '@automataframework/automata-sim'
 import type { Container } from 'pixi.js'
 
 /** Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`). */

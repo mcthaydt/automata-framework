@@ -1,10 +1,10 @@
 # Automata cheatsheet
 
-> Every export of every published `@mcthaydt/automata-*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm api-index --write` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).
+> Every export of every published `@automataframework/automata-*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm api-index --write` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).
 
-## `@mcthaydt/automata`
+## `@automataframework/automata`
 
-### `import { … } from '@mcthaydt/automata'`
+### `import { … } from '@automataframework/automata'`
 
 - `ActionBar` (const): One row of actions that collapses as its container narrows.
 - `ActionKind` (type): The action bar's model.
@@ -216,9 +216,9 @@
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
-- `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata/testing` stands in for it in tests.
+- `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automataframework/automata/testing` stands in for it in tests.
 
-### `import { … } from '@mcthaydt/automata/extension'`
+### `import { … } from '@automataframework/automata/extension'`
 
 - `defineExtension(def)`: Returns its argument.
 - `ExtensionDef` (interface): One opt-in feature of a game.
@@ -228,7 +228,7 @@
 - `resolveExtensions(defs)`: Checks the list and puts it in a fixed order.
 - `RukenManifestContribution` (type): What an extension may add to ruken.toml: preload files.
 
-### `import { … } from '@mcthaydt/automata/testing'`
+### `import { … } from '@automataframework/automata/testing'`
 
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
 - `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
@@ -294,13 +294,13 @@
 - `visibleControls(root)`: Controls a player could see and reach: laid out, not hidden, not in an inert subtree.
 - `withRuntimeTest(program, options?)`: Runs `program` on an open runtime and always closes it.
 
-### `import { … } from '@mcthaydt/automata/tooling'`
+### `import { … } from '@automataframework/automata/tooling'`
 
 - `isDefinedGame(value)`: Whether `value` came from `defineGame`.
 
-## `@mcthaydt/automata-content`
+## `@automataframework/automata-content`
 
-### `import { … } from '@mcthaydt/automata-content'`
+### `import { … } from '@automataframework/automata-content'`
 
 - `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and `fonts.toml`.
 - `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
@@ -363,7 +363,7 @@
 - `verifyContent` (const): Fails with `staleArtifact` for each committed output that differs from a fresh compile.
 - `withTuningTable(guide, meta)`: The guide with its generated section replaced, or undefined when it has no markers.
 
-### `import { … } from '@mcthaydt/automata-content/assets'`
+### `import { … } from '@automataframework/automata-content/assets'`
 
 - `ATLAS_EXTRUDE` (const): Pixels of each frame's edge repeated around it, so filtering never samples a neighbour.
 - `ATLAS_PADDING` (const): Transparent pixels between cells, and between a cell and the page edge.
@@ -382,7 +382,7 @@
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
 - `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
 
-### `import { … } from '@mcthaydt/automata-content/game-config'`
+### `import { … } from '@automataframework/automata-content/game-config'`
 
 - `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
 - `GameConfig` (interface): What every target knows about a game.
@@ -398,7 +398,7 @@
 - `Renderer` (type): One renderer a game may ask for.
 - `RENDERERS` (const): The renderers a game may ask for.
 
-### `import { … } from '@mcthaydt/automata-content/level-2d'`
+### `import { … } from '@automataframework/automata-content/level-2d'`
 
 - `checkEntityDef(def)`: Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and index, with a repeated field id reported at its later occurrence.
 - `checkFieldDef(def)`: Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
@@ -450,7 +450,7 @@
 - `RefValue` (interface): `target` and `container` are opaque to the kit: whether they resolve is the editor's check.
 - `worldContentSchema` (const): The strict schema of `world.toml`.
 
-### `import { … } from '@mcthaydt/automata-content/locale'`
+### `import { … } from '@automataframework/automata-content/locale'`
 
 - `ALWAYS_CHARACTERS` (const): Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.
 - `catalogCharacters(catalog)`: Every character the catalog's messages show.
@@ -468,12 +468,12 @@
 - `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
 - `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
 
-### `import { … } from '@mcthaydt/automata-content/palette'`
+### `import { … } from '@automataframework/automata-content/palette'`
 
 - `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
 - `Palette` (interface): The game's palette: a name and its colors.
 
-### `import { … } from '@mcthaydt/automata-content/schema'`
+### `import { … } from '@automataframework/automata-content/schema'`
 
 - `contentRef(kind)`: The ID of another content item of `kind`.
 - `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
@@ -482,15 +482,15 @@
 - `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
 - `localized()`: Text a player reads, written in the source language.
 
-### `import { … } from '@mcthaydt/automata-content/vite'`
+### `import { … } from '@automataframework/automata-content/vite'`
 
 - `automataContent(pluginOptions?)`: The Vite plugin that compiles content and serves it as `virtual:automata/content`.
 - `AutomataContentOptions` (type): The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root.
 - `VIRTUAL_MODULE_ID` (const): The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
 
-## `@mcthaydt/automata-sim`
+## `@automataframework/automata-sim`
 
-### `import { … } from '@mcthaydt/automata-sim'`
+### `import { … } from '@automataframework/automata-sim'`
 
 - `canonicalJson(value)`: Canonical JSON: object keys sorted at every depth, no whitespace.
 - `CanonicalJsonError` (class): A value canonical JSON cannot represent exactly; hashing it anyway would let different values collide.
@@ -549,14 +549,14 @@
 - `SystemSpec` (interface): The object form of `defineSystem`: a name, a phase, the optional `before`/`after` ordering and the run.
 - `xxhash64(data, seed?)`: XXH64 of `data` with an unsigned 64-bit `seed`.
 
-### `import { … } from '@mcthaydt/automata-sim/hash'`
+### `import { … } from '@automataframework/automata-sim/hash'`
 
 - `canonicalJson(value)`: Canonical JSON: object keys sorted at every depth, no whitespace.
 - `hex64(value)`: 16 lowercase hex digits.
 - `utf8(s)`: UTF-8 encoding without TextEncoder (the sim's lib has no DOM/Web APIs).
 - `xxhash64(data, seed?)`: XXH64 of `data` with an unsigned 64-bit `seed`.
 
-### `import { … } from '@mcthaydt/automata-sim/math'`
+### `import { … } from '@automataframework/automata-sim/math'`
 
 - `atan(x0)`: Deterministic arctangent.
 - `atan2(y, x)`: Finite inputs only (sim values are finite).
@@ -568,7 +568,7 @@
 - `sin(x)`: Deterministic sine, in radians.
 - `tan(x)`: Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 
-### `import { … } from '@mcthaydt/automata-sim/replay'`
+### `import { … } from '@automataframework/automata-sim/replay'`
 
 - `createRecorder(sim, options?)`: Starts recording `sim` from its current state, for the recorder's `step` to extend.
 - `createReplayStepper(replay, setup)`: Creates a stepper over `replay`: a fresh sim built from the replay's seed and tick rate, restored from its start snapshot.
@@ -592,7 +592,7 @@
 - `ReplayStepSetup` (interface): What a stepper needs to rebuild the recorded sim: the same `plugins` and `content` the recording sim had.
 - `unpackReplay(bytes, compression, options?)`: Inflates `.replay` file bytes and decodes them.
 
-### `import { … } from '@mcthaydt/automata-sim/testing'`
+### `import { … } from '@automataframework/automata-sim/testing'`
 
 - `Difference` (interface): One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's sid when it is an entity, and both values as printed.
 - `diffSnapshotViews(expected, actual)`: Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header, rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine.
@@ -612,24 +612,24 @@
 - `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 - `streamCompression` (const): Browsers and Node: CompressionStream / DecompressionStream('deflate-raw').
 
-### `import { … } from '@mcthaydt/automata-sim/testing/commands'`
+### `import { … } from '@automataframework/automata-sim/testing/commands'`
 
 - `goldenCommands(options?)`: The Vitest browser commands that let golden tests read golden files in a browser: register them with `browser: { commands: goldenCommands() }`.
 - `GoldenCommandsOptions` (interface): Options for {@link goldenCommands}.
 
-### `import { … } from '@mcthaydt/automata-sim/testing/property'`
+### `import { … } from '@automataframework/automata-sim/testing/property'`
 
 - `RoundTripFailure` (interface): One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore tick, variant and a report of what differed.
 - `RoundTripOptions` (interface): What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of what length to try.
 - `RoundTripVariant` (type): How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 - `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 
-## `@mcthaydt/automata-tools`
+## `@automataframework/automata-tools`
 
-### `import { … } from '@mcthaydt/automata-tools'`
+### `import { … } from '@automataframework/automata-tools'`
 
 - `defineShipConfig(config)`: Identity function that gives a game's `ship.config.ts` type checking and editor completion.
 - `ItchConfig` (interface): What a game writes in `ship.config.ts`.
 - `ItchSettings` (interface): The checked settings, with the channel filled in.
-- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s `GameConfig`) and each target's own section.
+- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@automataframework/automata-content`'s `GameConfig`) and each target's own section.
 - `TauriConfig` (interface): What a game writes in `ship.config.ts` to build for the desktop.

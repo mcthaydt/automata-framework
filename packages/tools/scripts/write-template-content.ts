@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { exportContent, openProject } from '@mcthaydt/automata-editor/level-export'
+import { exportContent, openProject } from '@automataframework/automata-editor/level-export'
 
 const FOLDER = fileURLToPath(new URL('../src/shared/create-game/template-content/', import.meta.url))
 const PROJECT = 'levels/start.af2d.json'

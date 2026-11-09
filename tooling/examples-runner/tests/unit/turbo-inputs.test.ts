@@ -18,13 +18,13 @@ const DRY_RUN_BUDGET_MS = 120_000
 function hashedFilesByTask(): Map<string, string[]> {
   const dry = execFileSync(
     'pnpm',
-    ['exec', 'turbo', 'run', ...TASKS, '--filter=@mcthaydt/examples-runner', '--dry=json'],
+    ['exec', 'turbo', 'run', ...TASKS, '--filter=@automataframework/examples-runner', '--dry=json'],
     { cwd: root, encoding: 'utf8' },
   )
   const planned = JSON.parse(dry).tasks as { taskId: string; inputs: Record<string, string> }[]
   const byTask = new Map<string, string[]>()
   for (const task of TASKS) {
-    const runner = planned.find((entry) => entry.taskId === `@mcthaydt/examples-runner#${task}`)
+    const runner = planned.find((entry) => entry.taskId === `@automataframework/examples-runner#${task}`)
     if (runner === undefined) throw new Error(`turbo planned no ${task} for the examples runner`)
     // Turbo keys inputs relative to the package; compare them relative to the repo root.
     byTask.set(

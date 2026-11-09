@@ -1,4 +1,4 @@
-import type { RenderTarget } from '@mcthaydt/automata'
+import type { RenderTarget } from '@automataframework/automata'
 import { Duration, Effect, Fiber, Runtime } from 'effect'
 
 /**

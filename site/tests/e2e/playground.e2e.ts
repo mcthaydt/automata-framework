@@ -435,7 +435,7 @@ test('an import from another package marks its line and requests nothing', async
   await page.keyboard.type("import _ from 'lodash'\n")
   await expect(root(page)).toHaveAttribute('data-compile', 'syntax-error', { timeout: 2_000 })
   await expect(page.locator('.playground-status')).toHaveText(
-    'Line 1: The playground can import only @mcthaydt/automata and zod. The preview is still running your last working version.',
+    'Line 1: The playground can import only @automataframework/automata and zod. The preview is still running your last working version.',
   )
   await expect(editorLine(page, 1).locator('.cm-lintRange-error')).toHaveCount(1)
   await page.waitForTimeout(500)

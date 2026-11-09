@@ -1,4 +1,4 @@
-import type { ContentEdit } from '@mcthaydt/automata-editor/kit/documents'
+import type { ContentEdit } from '@automataframework/automata-editor/kit/documents'
 import type {
   Ease,
   EffectorId,
@@ -7,7 +7,7 @@ import type {
   MaskGroup,
   PoseDef,
   Vec3,
-} from '@mcthaydt/automata-figures'
+} from '@automataframework/automata-figures'
 
 // The Studio's typed edits (EDS.9a to EDS.9c; editor suite spec §6.2): each turns a figure, a pose or a clip and a
 // person's change into the content edits that make it (span-preserving: only the literals it names move), or into the

@@ -1,5 +1,5 @@
-import { examplesPort } from '@mcthaydt/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
+import { examplesPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
 import { expect, type Frame, type Page, test } from '@playwright/test'
 
 // The saves flow under the fake host and Ruken's CSP (M5.2 plan step 16): a game with `saves` lists its slots on the

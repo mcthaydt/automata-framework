@@ -1,8 +1,8 @@
 // An ember in the 3D scene: a glowing block that turns and pulses, with a paler halo; the goal ember is larger and gold with
 // a tall beam of light over it, so it reads from across the room and from behind Wick. A row view, so a taken ember (its
 // entity removed) disappears. Procedural, in Emberwick's warm palette; the clock is the page's own (presentation, not the sim).
-import type { View3dFactory } from '@mcthaydt/automata-render-pixi3d'
-import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
+import type { View3dFactory } from '@automataframework/automata-render-pixi3d'
+import { Q16 } from '@automataframework/automata-render-pixi3d/sim'
 import { Container3D, CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 
 /** One kind of ember: the core's side in metres and colour, the halo's colour, and the beam (the goal's) if it has one. */

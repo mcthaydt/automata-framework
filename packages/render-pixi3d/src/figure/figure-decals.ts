@@ -2,7 +2,7 @@
 // the source's point decals become small textured quads on the head, shown only when facing the camera). Each quad
 // is wound to face along its decal's normal, so the material's back-face culling hides it when it is turned away:
 // that is the "shown only toward the camera" rule, with no per-frame test.
-import { cross, type Decal, FIGURE_PPM, normalize, type V3 } from '@mcthaydt/automata-figures'
+import { cross, type Decal, FIGURE_PPM, normalize, type V3 } from '@automataframework/automata-figures'
 
 /** One decal's quad, in its bone's space. */
 export interface DecalQuad {

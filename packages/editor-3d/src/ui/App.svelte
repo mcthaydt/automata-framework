@@ -5,13 +5,13 @@
   its journal first; opening waits for that, so a reopened file finds its autosave.
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automataframework/automata'
 import type {
   LifecycleDocument,
   LifecycleWindow,
   ToastStore,
   Workspace,
-} from '@mcthaydt/automata-editor/kit/core'
+} from '@automataframework/automata-editor/kit/core'
 import { onDestroy } from 'svelte'
 import type { Scheduler } from '../app/checks-panel-controller'
 import { createDocumentController, type DocumentController } from '../app/document/document-controller'

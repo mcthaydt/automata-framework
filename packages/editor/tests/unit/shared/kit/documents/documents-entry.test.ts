@@ -1,5 +1,5 @@
 // @vitest-environment node
-// The content documents entry (`@mcthaydt/automata-editor/kit/documents`, editor suite spec EDS-D2): headless, so the
+// The content documents entry (`@automataframework/automata-editor/kit/documents`, editor suite spec EDS-D2): headless, so the
 // suite's Node adapters, a worker and the editors' headless layers can all load it.
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -29,7 +29,7 @@ describe('editor-kit documents entry', () => {
       exports: Record<string, unknown>
     }
     expect(manifest.exports['./kit/documents']).toBe('./src/entries/kit-documents.ts')
-    const documents = await import('@mcthaydt/automata-editor/kit/documents')
+    const documents = await import('@automataframework/automata-editor/kit/documents')
     for (const name of [
       'openDocument',
       'DocumentSyntaxError',

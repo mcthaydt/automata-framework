@@ -7,7 +7,7 @@
   stage says so and offers Try again; the fields keep working (EDS spec §11).
 -->
 <script lang="ts">
-import { attachGestures, Button, Segmented } from '@mcthaydt/automata-editor/kit'
+import { attachGestures, Button, Segmented } from '@automataframework/automata-editor/kit'
 import { untrack } from 'svelte'
 import { dragPlane, orbit, pickRay, project, rayAtPlane, turned, type Vec3 } from '../stage/stage-camera'
 import type { StageRenderer, StageRendererFactory } from '../stage/stage-renderer'

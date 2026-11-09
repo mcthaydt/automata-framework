@@ -18,17 +18,17 @@ describe('examplePage', () => {
   it('imports no-eval first, then startGame, then the example, and starts it', () => {
     const html = examplePage(
       { path: 'core/core-stub.ts', id: 'core-stub', title: 'a stub' },
-      { start: stubStart, noEval: '@mcthaydt/automata/no-eval' },
+      { start: stubStart, noEval: '@automataframework/automata/no-eval' },
     )
     const imports = [...html.matchAll(/^\s*import .*'(.+)'$/gm)].map((match) => match[1])
-    expect(imports).toEqual(['@mcthaydt/automata/no-eval', stubStart, '/core/core-stub.ts'])
+    expect(imports).toEqual(['@automataframework/automata/no-eval', stubStart, '/core/core-stub.ts'])
     expect(html).toContain('startGame(example)')
   })
 
   it('gives the game its root, `#game`, before the script that starts it', () => {
     const html = examplePage(
       { path: 'core/core-stub.ts', id: 'core-stub', title: 'a stub' },
-      { start: stubStart, noEval: '@mcthaydt/automata/no-eval' },
+      { start: stubStart, noEval: '@automataframework/automata/no-eval' },
     )
     expect(html).toMatch(/<main id="game"><\/main>\s*<script type="module">/)
   })
@@ -47,7 +47,7 @@ describe('indexPage', () => {
       title: 'a valid example',
       shows: 'a fixture.',
       controls: 'none',
-      packages: ['@mcthaydt/automata-sim'],
+      packages: ['@automataframework/automata-sim'],
       difficulty: 1,
       tier: 'core',
       lines: 7,
@@ -151,7 +151,7 @@ describe('examplesRunner', () => {
   })
 
   // The examples run inside the fake Ruken host's frame, so the build takes the Ruken adapter (DIST spec §5.3: with no
-  // AF condition, `@mcthaydt/automata-host/target` is the web adapter).
+  // AF condition, `@automataframework/automata-host/target` is the web adapter).
   it('builds every example for the ruken target', async () => {
     const config = await resolveConfig({ configFile: false, plugins: [examplesRunner(options)] }, 'build')
     expect(config.resolve.conditions[0]).toBe('automata-ruken')

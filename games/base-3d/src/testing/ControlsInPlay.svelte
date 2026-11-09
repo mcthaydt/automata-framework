@@ -1,10 +1,10 @@
 <!--
-  The touch controls as base-3d's play screen draws them (@mcthaydt/automata's PlayScreen, not exported): the
+  The touch controls as base-3d's play screen draws them (@automataframework/automata's PlayScreen, not exported): the
   camera drag surface under a ScreenFrame with Pause, the floating stick, and the Roll button in the `end` group, required. The button specs are the page's own (`input.touchButtons`, asserted in
   screens/controls.test.ts). For controls.layout.test.ts; test code.
 -->
 <script lang="ts">
-import { CameraDragSurface, ScreenFrame, TouchControls } from '@mcthaydt/automata'
+import { CameraDragSurface, ScreenFrame, TouchControls } from '@automataframework/automata'
 
 const idle = {
   down: () => false,

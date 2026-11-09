@@ -13,7 +13,7 @@ const entry = (path: string): CatalogEntry => {
   return found
 }
 
-const CORE_PACKAGE = 'is a core package; core is imported through "@mcthaydt/automata"'
+const CORE_PACKAGE = 'is a core package; core is imported through "@automataframework/automata"'
 
 describe('readCatalog', () => {
   it('skips the root config files, vite.config.ts and playwright.config.ts, which are tooling', () => {
@@ -55,7 +55,7 @@ describe('readCatalog', () => {
       name: 'good',
       url: '/core/good/',
       codeLines: 2,
-      imports: ['@mcthaydt/automata'],
+      imports: ['@automataframework/automata'],
       problems: [],
     })
   })
@@ -74,14 +74,14 @@ describe('readCatalog', () => {
   it('accepts zod, the schema language every command takes', () => {
     expect(entry('core/core-schema.ts')).toMatchObject({
       problems: [],
-      imports: ['@mcthaydt/automata', 'zod'],
+      imports: ['@automataframework/automata', 'zod'],
     })
   })
 
   it("accepts an extension's published entry", () => {
     expect(entry('physics/physics-bodies.ts')).toMatchObject({
       problems: [],
-      imports: ['@mcthaydt/automata-physics/2d'],
+      imports: ['@automataframework/automata-physics/2d'],
     })
   })
 
@@ -89,7 +89,10 @@ describe('readCatalog', () => {
   it("accepts an unpublished extension's entries in the render3d module", () => {
     expect(entry('render3d/render3d-boxes.ts')).toMatchObject({
       problems: [],
-      imports: ['@mcthaydt/automata-render-pixi3d/no-eval', '@mcthaydt/automata-render-pixi3d'],
+      imports: [
+        '@automataframework/automata-render-pixi3d/no-eval',
+        '@automataframework/automata-render-pixi3d',
+      ],
     })
   })
 
@@ -99,9 +102,9 @@ describe('readCatalog', () => {
       problems: [],
       module: 'figures',
       imports: [
-        '@mcthaydt/automata-render-pixi3d/no-eval',
-        '@mcthaydt/automata-figures',
-        '@mcthaydt/automata-render-pixi3d',
+        '@automataframework/automata-render-pixi3d/no-eval',
+        '@automataframework/automata-figures',
+        '@automataframework/automata-render-pixi3d',
       ],
     })
   })
@@ -119,12 +122,12 @@ describe('readCatalog', () => {
     ['widgets/widgets-spin.ts', '"widgets" is not a module'],
     ['core/core-long.ts', '101 code lines, over the budget of 100'],
     ['core/core-relative.ts', 'import "./core-good.ts" is relative'],
-    ['core/core-future-ready.ts', 'import "@mcthaydt/automata-future" is not a public entry'],
+    ['core/core-future-ready.ts', 'import "@automataframework/automata-future" is not a public entry'],
     // EX.6: core is imported through the umbrella, whatever the core package and however deep the path.
-    ['core/core-game.ts', `import "@mcthaydt/automata-game" ${CORE_PACKAGE}`],
-    ['core/core-deep.ts', `import "@mcthaydt/automata-sim/src/world/sim" ${CORE_PACKAGE}`],
-    ['core/core-private.ts', `import "@mcthaydt/automata-render-pixi" ${CORE_PACKAGE}`],
-    ['physics/physics-deep.ts', 'import "@mcthaydt/automata-physics/src/2d" is not a public entry'],
+    ['core/core-game.ts', `import "@automataframework/automata-game" ${CORE_PACKAGE}`],
+    ['core/core-deep.ts', `import "@automataframework/automata-sim/src/world/sim" ${CORE_PACKAGE}`],
+    ['core/core-private.ts', `import "@automataframework/automata-render-pixi" ${CORE_PACKAGE}`],
+    ['physics/physics-deep.ts', 'import "@automataframework/automata-physics/src/2d" is not a public entry'],
     ['core/core-shot.ts', 'core/core-shot.png is not in screenshots-approved.json'],
     ['core/core-done.ts', 'Pending: DONE.1 is ticked in the delivery plan; remove the Pending line'],
     ['core/core-ghost.ts', 'Pending: NOPE.9 is not a task in the delivery plan'],

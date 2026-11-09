@@ -3,7 +3,7 @@
 // Shows: createCamera2d() follows a target with a dead zone, stays inside the world's bounds and shakes on a bump;
 //   it moves the world container only, so the sim's positions are untouched.
 // Controls: arrows or WASD
-// Packages: @mcthaydt/automata, zod
+// Packages: @automataframework/automata, zod
 // Difficulty: ★★☆☆
 // Tier: core
 import {
@@ -15,7 +15,7 @@ import {
   defineSystem,
   keys,
   rect,
-} from '@mcthaydt/automata'
+} from '@automataframework/automata'
 import { z } from 'zod'
 
 const VIEW = { width: 320, height: 180 }

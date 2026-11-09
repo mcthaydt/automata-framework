@@ -1,4 +1,4 @@
-// `@mcthaydt/automata/testing`: the helpers a game's or an extension's own tests use: a fake host and its contract
+// `@automataframework/automata/testing`: the helpers a game's or an extension's own tests use: a fake host and its contract
 // suite, a null renderer and manual frames for the runtime, viewport and layout fixtures, the layout contract for a
 // game's screens, and the unit-test fake gamepads. Product code never imports this file or `../testing/`.
 

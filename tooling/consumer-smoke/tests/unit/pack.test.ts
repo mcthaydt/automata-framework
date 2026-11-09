@@ -26,9 +26,13 @@ function write(root: string, dir: string, manifest: object, withDist = true): vo
 /** Two published packages and a private one, which is never packed. */
 function workspace(): string {
   const root = temp('af-packs-ws-')
-  write(root, 'packages/testing', { name: '@mcthaydt/automata-testing', version: '0.0.2' })
-  write(root, 'packages/sim', { name: '@mcthaydt/automata-sim', version: '0.0.2' })
-  write(root, 'packages/editor', { name: '@mcthaydt/automata-editor', version: '0.0.0', private: true })
+  write(root, 'packages/testing', { name: '@automataframework/automata-testing', version: '0.0.2' })
+  write(root, 'packages/sim', { name: '@automataframework/automata-sim', version: '0.0.2' })
+  write(root, 'packages/editor', {
+    name: '@automataframework/automata-editor',
+    version: '0.0.0',
+    private: true,
+  })
   return root
 }
 
@@ -55,10 +59,10 @@ describe('packPublished', () => {
   it('packs every published package, sorted by name, and no private one', () => {
     const out = join(temp('af-packs-out-'), 'packs')
     expect(packPublished(options(workspace(), out))).toEqual([
-      { name: '@mcthaydt/automata-sim', file: 'mcthaydt-automata-sim-0.0.2.tgz' },
-      { name: '@mcthaydt/automata-testing', file: 'mcthaydt-automata-testing-0.0.2.tgz' },
+      { name: '@automataframework/automata-sim', file: 'automataframework-automata-sim-0.0.2.tgz' },
+      { name: '@automataframework/automata-testing', file: 'automataframework-automata-testing-0.0.2.tgz' },
     ])
-    expect(existsSync(join(out, 'mcthaydt-automata-editor-0.0.0.tgz'))).toBe(false)
+    expect(existsSync(join(out, 'automataframework-automata-editor-0.0.0.tgz'))).toBe(false)
   })
 
   it('fails on a published package without a dist, naming it', () => {
@@ -72,13 +76,13 @@ describe('packPublished', () => {
   it.each(['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'])(
     'fails on a pack that still has a workspace: range in %s, naming the package and the range',
     (field) => {
-      const packed = { [field]: { '@mcthaydt/automata-sim': 'workspace:*' } }
+      const packed = { [field]: { '@automataframework/automata-sim': 'workspace:*' } }
       expect(() =>
         packPublished(
           options(workspace(), join(temp('af-packs-out-'), 'p'), { readPackedManifest: () => packed }),
         ),
       ).toThrow(
-        '@mcthaydt/automata-sim has a workspace: range after packing: @mcthaydt/automata-sim workspace:*',
+        '@automataframework/automata-sim has a workspace: range after packing: @automataframework/automata-sim workspace:*',
       )
     },
   )

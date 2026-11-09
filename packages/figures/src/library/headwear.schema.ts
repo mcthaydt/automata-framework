@@ -2,7 +2,7 @@
 // library/headwear.json at a1f7246). Locks are rounded boxes in head units, so a style fits any head the
 // sliders make. The generators that build them are M3.5b's; these are the content shapes.
 
-import { contentRef } from '@mcthaydt/automata-content/schema'
+import { contentRef } from '@automataframework/automata-content/schema'
 import { z } from 'zod'
 import { about, type Line, line, type Vec2, type Vec3, vec2, vec3 } from './shapes.schema'
 

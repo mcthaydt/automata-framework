@@ -91,7 +91,7 @@ describe('the example data', () => {
     const index = exampleIndex()
     expect(index.flatMap((group) => group.examples)).toHaveLength(17)
     expect(index.map((group) => group.module)).toEqual(['core', 'shapes', 'textures', 'render', 'audio'])
-    expect(JSON.stringify(index)).not.toContain("from '@mcthaydt/automata'")
+    expect(JSON.stringify(index)).not.toContain("from '@automataframework/automata'")
   })
 })
 

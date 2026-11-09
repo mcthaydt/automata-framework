@@ -8,7 +8,7 @@
   level editor, so this file only draws and forwards.
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automataframework/automata'
 import {
   ConflictDialog,
   EditorShell,
@@ -16,8 +16,12 @@ import {
   StatusLine,
   shellModeAt,
   ToastRegion,
-} from '@mcthaydt/automata-editor/kit'
-import { createCommandRegistry, createKeymap, type ToastStore } from '@mcthaydt/automata-editor/kit/core'
+} from '@automataframework/automata-editor/kit'
+import {
+  createCommandRegistry,
+  createKeymap,
+  type ToastStore,
+} from '@automataframework/automata-editor/kit/core'
 import { onDestroy } from 'svelte'
 import { createChecksPanel, type Scheduler } from '../../app/checks-panel-controller'
 import type { DocumentController, DocumentState } from '../../app/document/document-controller'

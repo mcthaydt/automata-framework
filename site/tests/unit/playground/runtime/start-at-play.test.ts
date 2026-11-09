@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { contentHashOf, defaultContent } from '@mcthaydt/automata'
+import { contentHashOf, defaultContent } from '@automataframework/automata'
 import { describe, expect, it } from 'vitest'
 import { startAtPlay } from '../../../../playground/src/start-at-play.ts'
 

@@ -2,7 +2,7 @@
 // `ruken/hosting-ruken.contract.test.ts` runs them against the Ruken adapter (over the fake Ruken host) and
 // `web/hosting-web.test.ts` against the web adapter (over a fake page). A case that only one adapter can pass is
 // not here: it lives beside that adapter, and every intended difference has its own test named after it. Published
-// in `@mcthaydt/automata/testing` so `FakeHosting` runs the same cases; it needs Vitest.
+// in `@automataframework/automata/testing` so `FakeHosting` runs the same cases; it needs Vitest.
 import { describe, expect, it } from 'vitest'
 import type { HostResult } from '../../shared/host/errors'
 import type { Hosting } from '../../shared/host/hosting'

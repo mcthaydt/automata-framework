@@ -1,7 +1,7 @@
 // What the 3D editor's Home says (plan ED3D.5c, decisions 2 to 4): how a level or a facility reads on its card and in
 // the summary, and the words of an open or an import. The list, the search, the selection and the drawing are the
 // kit's (`createProjectBrowser`, `HomeScreen`); this file only knows the 3D editor's entries and outcomes.
-import { cardWords, type HomeCard, type ToastKind } from '@mcthaydt/automata-editor/kit/core'
+import { cardWords, type HomeCard, type ToastKind } from '@automataframework/automata-editor/kit/core'
 import type { ImportOutcome } from '../import-files'
 import type { ProjectEntry } from '../project-list'
 

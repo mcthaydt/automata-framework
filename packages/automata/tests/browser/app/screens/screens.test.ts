@@ -1,6 +1,6 @@
 import '#src/shared/ui/theme.css'
 import '#src/app/screens/screens.css'
-import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@mcthaydt/automata-content/locale'
+import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@automataframework/automata-content/locale'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import PausedScreen from '#src/app/screens/PausedScreen.svelte'

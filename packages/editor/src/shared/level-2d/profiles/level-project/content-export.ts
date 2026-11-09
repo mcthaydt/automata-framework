@@ -6,7 +6,7 @@ import type {
   ContentProject,
   ContentRows,
   ContentWorld,
-} from '@mcthaydt/automata-content/level-2d'
+} from '@automataframework/automata-content/level-2d'
 import { stringify } from 'smol-toml'
 import { encodeRows, packTile } from '../../model/cells-codec.ts'
 import { Grid } from '../../model/grid.ts'

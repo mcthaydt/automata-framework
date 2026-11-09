@@ -7,7 +7,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import { probeDist } from '#src/shared/check/ruken/csp-probe-live.ts'
 
 // The live CSP probe in real Chromium, on tiny builds written here (a checked-in eval would fail biome). Needs
-// Playwright's Chromium: run with `pnpm --filter @mcthaydt/automata-cli test:slow` and PLAYWRIGHT_BROWSERS_PATH set.
+// Playwright's Chromium: run with `pnpm --filter @automataframework/automata-cli test:slow` and PLAYWRIGHT_BROWSERS_PATH set.
 
 const repoRoot = fileURLToPath(new URL('../../../../..', import.meta.url))
 const headers = {

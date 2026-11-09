@@ -447,10 +447,19 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 90% (61 of 68 tasks)
+### Build: 91% (62 of 68 tasks, counted on main before #565)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
+
+**Where to resume (2026-11-09, session 24):** branch `claude/project-thread-d776hh`, from `main` after #436. **14.1 is
+done** (the plan's log, deviation 14.1-a): every `@mcthaydt/…` package is `@automataframework/…`. The scope is
+`@automataframework`, not `@automata`: `@automata` belongs to someone else on npm and the Owner chose
+`@automataframework` (apps audit A5). Counted on `main`, the build is 62 of 68; with #565 (19.2, 20.1, 21.1) it is 65.
+Left: 14.2 (the registry and the first public version: the Owner's organisation, `NPM_TOKEN` and release approval;
+`.npmrc` and `release-packages.yml` still point the new scope at GitHub Packages until 14.2 changes them), 21.0's DNS
+and 21.2 (the Owner's). That is the last three of 68. Open pull requests that import
+`@mcthaydt/…` conflict on merge: re-run the one-line codemod in the plan's log (14.1-a) on them.
 
 **Where to resume (2026-11-06, session 12):** branch `claude/project-thread-mjpkpk`, a PR stacked on #421
 (`claude/project-thread-r7jtb7`: 12.2, 17.1, 17.2 and the first parts of 12.3). Session 12 finished 12.3's structure:
@@ -514,7 +523,7 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 13.1 The harness | 13 | Done (session 22) | `packages/editor/tests/e2e/harness/`, smoke journey; `LevelCanvas` publishes `data-camera` |
 | 13.2 Save, drift and conflict journeys | 13 | Done (session 22) | three journeys pass in Chromium (iPad, phone); fixed the content watcher and a conflicted save that wrote the level file |
 | 13.3 A new game, and the suite | 13 | Done (session 22) | new game passes on iPad and phone; suite on iPad (Chromium) |
-| 14.1 The scope | 14 | Not started | |
+| 14.1 The scope | 14 | Done, 2026-11-09 (scope `@automataframework`; unit 27 of 27 tasks, the stranger's journey, `pnpm api-report --update`, `pnpm api-index --write`, `pnpm agent-skills --write`) | PR on `claude/project-thread-d776hh` |
 | 14.2 The registry and the first public version | 14 | Not started | |
 | 15.1 The game's own workflow | 15 | Done, 2026-11-07 (unit; the stranger's journey in Chromium; actionlint is the Owner's, no Docker daemon here) | |
 | 16.1 The skills, for today's framework | 16 | Done, 2026-11-07 (unit; `plugin:validate`) | |

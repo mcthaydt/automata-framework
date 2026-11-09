@@ -1,4 +1,4 @@
-import type { RenderRow } from '@mcthaydt/automata-sim'
+import type { RenderRow } from '@automataframework/automata-sim'
 import { Container3D, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { createSceneLight } from '../light/scene-light.js'

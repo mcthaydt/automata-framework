@@ -1,4 +1,4 @@
-import { REFERENCE_SIZES } from '@mcthaydt/automata/testing'
+import { REFERENCE_SIZES } from '@automataframework/automata/testing'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import page from '../../index.html?raw'
 import { PRIMITIVES, start } from '../../main.ts'

@@ -15,11 +15,11 @@
     "test:browser": "vitest run --project browser"
   },
   "dependencies": {
-    "@mcthaydt/automata": "workspace:*",
+    "@automataframework/automata": "workspace:*",
     "svelte": "5.57.1"
   },
   "devDependencies": {
-    "@mcthaydt/vitest-preset": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",

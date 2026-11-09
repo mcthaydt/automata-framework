@@ -1,4 +1,4 @@
-import { resolveExtensions } from '@mcthaydt/automata/extension'
+import { resolveExtensions } from '@automataframework/automata/extension'
 import { describe, expect, it } from 'vitest'
 import { cameraViewContent } from './camera/camera-view.content.js'
 import { sceneLightingContent } from './light/scene-lighting.content.js'

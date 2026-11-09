@@ -1,5 +1,5 @@
 // @vitest-environment node
-import type { SnapshotView } from '@mcthaydt/automata-sim'
+import type { SnapshotView } from '@automataframework/automata-sim'
 import { expect, test } from 'vitest'
 import { type Difference, diffSnapshotViews } from '#src/testing/diff.ts'
 import { formatGoldenReport } from '#src/testing/report.ts'

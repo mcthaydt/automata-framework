@@ -1,5 +1,5 @@
 // What a thing's ref fields point at (ED3D.7a step 1): the reading the ref check and the removal of a thing share.
-import type { FieldDef } from '@mcthaydt/automata-editor/kit/fields'
+import type { FieldDef } from '@automataframework/automata-editor/kit/fields'
 import { describe, expect, it } from 'vitest'
 import { refsOf, targetOf } from './thing-refs'
 import type { Thing } from './things'

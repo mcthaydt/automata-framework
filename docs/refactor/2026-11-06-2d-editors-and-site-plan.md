@@ -1171,9 +1171,9 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   (`git grep -l "@mcthaydt/automata"`), through a specifier codemod table (`tooling/codemods`)
 - Test: `tooling/release/tests/unit/scope.test.ts`
 
-- [ ] **Step 1: Failing test:** no tracked file outside `docs/archive/`, `docs/refactor/` and the changelogs names
+- [x] **Step 1: Failing test:** no tracked file outside `docs/archive/`, `docs/refactor/` and the changelogs names
   `@mcthaydt/automata`.
-- [ ] **Step 2:** Run the codemod with the Owner's scope; `pnpm install`, `pnpm check`, the stranger's journey,
+- [x] **Step 2:** Run the codemod with the Owner's scope; `pnpm install`, `pnpm check`, the stranger's journey,
   Emberwick's Chromium journeys. API reports, agent skills and cheatsheet regenerated. One changeset `patch` per package
   saying the name changed. Mark ready. `refactor: publish under the project's npm scope`
 
@@ -2779,3 +2779,30 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   journey holds the fingers 400 ms of real time to prove it: on the real clock it fails ("undone: expected 1 to be 2"),
   on the test clock it passes. Editor journeys (Chromium) 28, unit 3,385, svelte-check 0.
   *Handoff (session 23):* 61 of 68 on PR #436. Next 19.2, 20.1, 21.1 (resume note in `progress.md`).
+  *14.1 (session 24, 2026-11-09):* the scope is `@automataframework`. The plan and the 2026-11-06 progress note said
+  `@automata` (the organisation the Owner named first); the apps audit (A5) found `@automata` belongs to someone else on
+  npm and records the Owner's choice of `@automataframework`. Deviation 14.1-a: the codemod renames the whole `@mcthaydt/`
+  scope, not only `@mcthaydt/automata*`, so the private workspace packages (`examples-runner`, `vitest-preset`, `release` and
+  the rest) share the one scope and the repository has one name to remember. It was one command, run in a scratch folder
+  and not kept as tooling: `git ls-files | grep -v -E '^docs/(archive|refactor)/|CHANGELOG.md' | xargs grep -lI -E
+  '@mcthaydt(\\?/|:)' | xargs perl -pi -e 's{\@mcthaydt(\\?/|:)}{\@automataframework$1}g'`, then the bare `@mcthaydt` in
+  `.npmrc`, the release workflow, the runbook and four tests, and the pack file names (`mcthaydt-automata-sim-…tgz`
+  became `automataframework-automata-sim-…tgz`). Kept on purpose: `* @mcthaydt` in CODEOWNERS and its test (the Owner's
+  GitHub login), the `mcthaydt/…` repository, itch.io and mirror paths, and the plans' and changelogs' history. 969 files
+  changed; `pnpm install` rewrote the lockfile (87 lines, names only); `pnpm format` re-sorted imports in 50. A new test,
+  `tooling/release/tests/unit/scope.test.ts`, fails on any tracked file outside `docs/archive/`, `docs/refactor/` and the
+  changelogs that names `@mcthaydt` as a scope (it failed first, listing 969 files). One changeset (`patch`, the four
+  published packages) says the name changed; the pending ones were renamed with everything else. Not done on purpose:
+  `.npmrc` and `release-packages.yml` still send the new scope to GitHub Packages, which only serves a scope equal to the
+  owner, so a publish from this branch would fail until 14.2 moves the registry to npmjs.org. The other repositories
+  (`automata-plus`, `automata-website`, `automata-skills`) import these names too and follow in their own PRs.
+  Gates: `pnpm lint`, `typecheck`, `boundaries`, `style`, `source-names`, `knip` pass; the 2D unit run is 27 of 27 tasks;
+  `pnpm build` passes; `pnpm api-report --update`, `pnpm api-index --write` and `pnpm agent-skills --write` wrote the
+  reports, the API reference and the cheatsheet; the stranger's journey passes (43 s), and Emberwick's Chromium journeys pass
+  (29 of 29; the 19 WebKit ones cannot launch here, the browser is not installed). Editor journeys (Chromium, iPad and
+  phone): 10 pass and 1 is skipped; the phone run of `save-reaches-the-game` timed out once waiting for the game's
+  content hash and passed on its own rerun. A scratch journey, deleted after, painted two walls in the real editor,
+  saved, started the game on the new level, reloaded the editor and reopened the room: the level file held both
+  walls (`"1 .*4 1*2 .*32 1"`), `automata check` passed, and the reopened canvas was byte-identical on the iPad run
+  (on the phone run the first picture had the Layers sheet over it, so the reloaded picture was read by eye: both walls
+  there).

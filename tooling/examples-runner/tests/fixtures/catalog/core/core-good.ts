@@ -2,9 +2,9 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @mcthaydt/automata
+// Packages: @automataframework/automata
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineSystem } from '@mcthaydt/automata'
+import { defineSystem } from '@automataframework/automata'
 
 export default { id: 'core-good', system: defineSystem }

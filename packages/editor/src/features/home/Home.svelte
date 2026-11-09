@@ -10,7 +10,7 @@
   the scroll. (The 3D editor still uses the kit's three-column `HomeScreen` until the 3D slice redesigns it.)
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automataframework/automata'
 import { onMount, tick } from 'svelte'
 import FilePick from '../../shared/kit/home/FilePick.svelte'
 import UnavailableNotice from '../../shared/kit/home/UnavailableNotice.svelte'

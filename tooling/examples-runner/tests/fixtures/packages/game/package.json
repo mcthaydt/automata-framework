@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/automata-game",
+  "name": "@automataframework/automata-game",
   "private": true,
   "exports": {
     ".": "./src/index.ts"

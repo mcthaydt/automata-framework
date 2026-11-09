@@ -1,4 +1,4 @@
-import { type ComponentDef, defineComponent } from '@mcthaydt/automata-sim'
+import { type ComponentDef, defineComponent } from '@automataframework/automata-sim'
 
 // Step 1 of the flow: the state. Heights and speeds are integers (subpixels per tick), so every engine computes
 // the same numbers; `y` is the height above the floor, up is positive.

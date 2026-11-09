@@ -1,4 +1,4 @@
-import { createSim, defineComponent, definePlugin, type Sim } from '@mcthaydt/automata-sim'
+import { createSim, defineComponent, definePlugin, type Sim } from '@automataframework/automata-sim'
 import { Container, Graphics, Text } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDrawLayer, type DrawContext, mergeStageHooks } from '#src/app/draw/draw-layer.ts'
