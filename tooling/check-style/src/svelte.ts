@@ -9,12 +9,17 @@ import type { StyleFinding } from './style.ts'
 //   - a password field, or an `autocomplete` that asks the browser for a credential or a card;
 //   - the host's name written into the kit. A "Back to …" label takes `hostName` from the host;
 //   - sign-in or payment wording.
+//   The editors' own sign-in page is the one exception to the sign-in wording (`SIGN_IN_PAGE`): it is the editors'
+//   page for signing in to GitHub, not a game's screen, so no player could take it for the host's.
 
 type Node = { type: string; start: number; [key: string]: unknown }
 
 const HOST_NAME = /\bRuken\b/i
+const SIGN_IN_WORDING = /\b(?:sign[\s-]?in|log[\s-]?in|sign[\s-]?up)\b/i
 const CHROME_WORDING =
   /\b(?:sign[\s-]?in|log[\s-]?in|sign[\s-]?up|create (?:an )?account|password|card number|cvv|cvc|billing|checkout)\b/i
+/** The editors' web games page: where a person signs in to GitHub to keep a game there. */
+const SIGN_IN_PAGE = /(?:^|[\\/])packages[\\/]editor[\\/]src[\\/]features[\\/]web-games[\\/]/
 const CREDENTIAL_AUTOCOMPLETE = /^(?:current-password|new-password|one-time-code|cc-[a-z-]+)$/
 /** Keys that hold comments, styles or positions: nothing a player sees. */
 const SKIPPED_KEYS = new Set(['comments', 'leadingComments', 'trailingComments', 'css', 'loc', 'name_loc'])
@@ -40,6 +45,7 @@ export function checkSvelte(file: string, code: string): StyleFinding[] {
     ]
   }
   const findings: StyleFinding[] = []
+  const signInPage = SIGN_IN_PAGE.test(file)
   const lineOf = (offset: number) => code.slice(0, offset).split('\n').length
   const chrome = (node: Node, what: string) =>
     findings.push({
@@ -52,7 +58,8 @@ export function checkSvelte(file: string, code: string): StyleFinding[] {
     const host = HOST_NAME.exec(text)
     if (host !== null) chrome(node, `the host's name ("${host[0]}"); take it from hostName`)
     const wording = CHROME_WORDING.exec(text)
-    if (wording !== null) chrome(node, `sign-in or payment wording ("${wording[0]}")`)
+    if (wording !== null && !(signInPage && SIGN_IN_WORDING.test(wording[0])))
+      chrome(node, `sign-in or payment wording ("${wording[0]}")`)
   }
 
   const visit = (value: unknown): void => {

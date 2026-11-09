@@ -55,6 +55,32 @@ describe('checkSvelte', () => {
     expect(checkSvelte('/p/src/x.svelte', code).length).toBe(count)
   })
 
+  describe("the editors' own sign-in page (packages/editor/src/features/web-games)", () => {
+    const own = '/repo/packages/editor/src/features/web-games/SignIn.svelte'
+    const button = '<button>Sign in with GitHub (free)</button>'
+
+    it('may say sign in: signing in to GitHub is what the page is for, and it is no game kit', () => {
+      expect(checkSvelte(own, button)).toEqual([])
+      // As the command line names it, from the repository's root.
+      expect(checkSvelte('packages/editor/src/features/web-games/SignIn.svelte', button)).toEqual([])
+      expect(checkSvelte(own, '<script>const note = `Signed in as ${login}.`</script>')).toEqual([])
+    })
+
+    it('is the one place: the same words anywhere else are still platform chrome', () => {
+      expect(checkSvelte('/repo/packages/editor/src/features/suite/Top.svelte', button)).toHaveLength(1)
+      expect(checkSvelte('/repo/packages/editor/src/features/web-games-extra/X.svelte', button)).toHaveLength(
+        1,
+      )
+    })
+
+    it('still refuses a password field, a card, payment words and the host’s name', () => {
+      expect(checkSvelte(own, '<input type="password" />')).toHaveLength(1)
+      expect(checkSvelte(own, '<input autocomplete="cc-number" />')).toHaveLength(1)
+      expect(checkSvelte(own, '<p>Checkout</p><p>billing</p>')).toHaveLength(2)
+      expect(checkSvelte(own, '<p>Back to Ruken</p>')).toHaveLength(1)
+    })
+  })
+
   it('reports a file it cannot parse', () => {
     expect(checkSvelte('/p/src/x.svelte', '<div>').map((finding) => finding.rule)).toEqual(['parse-error'])
   })
