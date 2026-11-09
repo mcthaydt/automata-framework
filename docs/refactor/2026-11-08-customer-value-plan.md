@@ -753,3 +753,30 @@ want, itch will be first output". Spec §11.
   dialog says "build": "Make my zip", "Making your game’s zip…", and the server's "Your game could not be put together."
   Ruling: the guide's one-sentence intro (the web build, butler) stays above the new part; it is a sentence, and moving it
   would change the heading levels the site renders. The site's guides test, 13 dialog tests and 107 editor-command tests pass.
+- Task 14 done: after the zip is made, Publish asks where to put it. A place is a record (`places/place.ts`: id, name,
+  asks, note, put, signIn); `PLACES` lists itch.io first. The server (`publish-route.ts`, moved out of `serve-editor.ts`)
+  answers `GET /api/places`, `POST /api/places/<id>` (only for the zip Publish made; 409 before one) and
+  `POST /api/places/<id>/sign-in`. The itch.io place pushes with butler (`push <zip> user/game:html5 --userversion
+  <v> --if-changed`) with the person's own sign-in; the key is never read, stored or sent. The dialog has two steps (zip,
+  then "Where do you want to put it?"), one button per place from the server, one field with an example, "set its kind to
+  HTML" before the first push, a link plus "Copy link" on success, and for each missing thing one action: a link to get
+  butler, a "Sign in to itch.io" button (on `--lan`, "Finish signing in on your computer"), a link to make the page.
+  Ruling: with one place the dialog selects it, so a first-time maker has one field and one button, not a menu of one.
+  Ruling: tests for the place modules and the dialog were written beside the code in one pass and I did not watch the
+  dialog tests fail first; the server's old-message tests did fail first. Cost if wrong: a test that cannot fail.
+  Ran: tools editor tests (journey with a stand-in butler on PATH included), editor dialog and client tests, svelte-check.
+  Not run: a real push to itch.io (needs the Owner's account and key): the plan's "real push" gate stays unchecked.
+- Task 17 done: the plan-comment rule now flags "plan D-2", "plan 16.2", "plan ED3D.5c" and "Plan 7" (and not "a plan",
+  "the plan's", "Make a plan"); 4 comments in `packages/automata` and `tooling/dev-tools` now say why. `api.md` has no
+  "plan D-". Ruling: `packages/editor-3d/src` is NOT added to the `--plan-comments` script. Adding it found 241 plan
+  comments (the plan counted 16 in source and did not scan that package); it is private and unpublished, and rewriting 241
+  comments by hand in one pass is a bigger change than the task. Cost if wrong: new plan comments can still land there.
+  Deferred: rewrite them and then add the package to the script.
+  Found by the commit hook: Task 1 made `api.md` list the beta packages after a `## Beta:` heading, and the site parses
+  that file for its API pages, so the site grew five pages for packages with no release (`site` test
+  "one page for each published package" failed). Ruling: the site's parser stops at the `## Beta:` heading, so pages and
+  search list published packages only; `llms-api.txt` keeps the beta packages for agents. Test added in
+  `site/tests/unit/framework/api-reference.test.ts`.
+  Also seen, not mine: `serve-editor.test.ts` "writes an mtime a later guarded write can use" fails about half of the runs
+  (a millisecond floor against the file system's mtime), and `automata-content.test.ts` "follow a new event file" failed
+  once under the hook's parallel load and passed three times alone. Deferred minors.

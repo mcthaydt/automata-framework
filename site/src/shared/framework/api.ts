@@ -48,6 +48,9 @@ export function parseApiReference(markdown: string): ApiReference {
     doc = []
   }
   for (const line of lines.slice(1)) {
+    // The beta packages come last, under their own heading. They have no release, so they get no page and no search row;
+    // the plain-text file keeps them for the agents that make games in this repository.
+    if (!code && line.startsWith('## Beta:')) break
     if (code) {
       if (line === '```') {
         if (entry && entry.signature === '') entry.signature = code.join('\n')

@@ -6,17 +6,49 @@ export type PublishResult =
   | { readonly ok: true; readonly name: string }
   | { readonly ok: false; readonly problem: string; readonly detail: string }
 
-/** What the suite's Publish needs: build the game, then save the zip it made. */
+/** One place the zip can go, as the server lists it: what to ask the person, and whether it can sign them in. */
+export interface PlaceInfo {
+  readonly id: string
+  readonly name: string
+  readonly asks: readonly { readonly id: string; readonly label: string; readonly example: string }[]
+  /** A sentence to show before the first put. */
+  readonly note?: string
+  readonly signIn: boolean
+}
+
+/** What came of putting the zip somewhere: the game's link, or the one thing the person does next. */
+export type PlaceResult =
+  | { readonly ok: true; readonly link: string }
+  | {
+      readonly ok: false
+      readonly need: 'butler' | 'account' | 'project' | 'push'
+      readonly problem: string
+      readonly help?: { readonly label: string; readonly href: string } | undefined
+      readonly detail?: string | undefined
+    }
+
+/** What the suite's Publish needs: make the zip, save it, and put it in a place. */
 export interface GamePublish {
   publish(): Promise<PublishResult>
   /** Saves the zip the last good publish made, under `name`. */
   download(name: string): Promise<void>
+  /** Where the zip can be put, in the order to show them. */
+  places(): Promise<readonly PlaceInfo[]>
+  /** Puts the zip the last good publish made in a place, with the person's answers. */
+  putInPlace(id: string, answers: Readonly<Record<string, string>>): Promise<PlaceResult>
+  /** Signs the person in at a place, on the computer that runs `automata editor`. */
+  signInAtPlace(id: string): Promise<{ readonly ok: true } | { readonly ok: false; readonly problem: string }>
+  /** The editor is open on the computer that runs it; false when a tablet reached it over the network. */
+  readonly onThisComputer: boolean
 }
 
 export interface PublishClient {
   publish(): Promise<PublishResult>
   /** The zip the last good publish made. */
   zip(): Promise<Blob>
+  places(): Promise<readonly PlaceInfo[]>
+  putInPlace(id: string, answers: Readonly<Record<string, string>>): Promise<PlaceResult>
+  signInAtPlace(id: string): Promise<{ readonly ok: true } | { readonly ok: false; readonly problem: string }>
 }
 
 export interface PublishClientOptions {
@@ -58,6 +90,45 @@ export function createPublishClient(options: PublishClientOptions): PublishClien
       if (!answer.ok) throw new Error(STOPPED)
       return answer.blob()
     },
+    async places() {
+      const answer = await fetchFn(`${options.base}/api/places`, { headers }).catch(() => undefined)
+      return answer?.ok === true ? ((await answer.json()) as PlaceInfo[]) : []
+    },
+    async putInPlace(id, answers) {
+      try {
+        const answer = await fetchFn(`${options.base}/api/places/${encodeURIComponent(id)}`, {
+          method: 'POST',
+          headers: { ...headers, 'content-type': 'application/json' },
+          body: JSON.stringify({ answers }),
+        })
+        const body = (await answer.json()) as Partial<PlaceResult> & { message?: string }
+        if (body.ok === true && 'link' in body && typeof body.link === 'string')
+          return { ok: true, link: body.link }
+        if (body.ok === false && 'need' in body) return body as PlaceResult
+        return { ok: false, need: 'push', problem: body.message ?? 'Your game could not be put there.' }
+      } catch (error) {
+        return {
+          ok: false,
+          need: 'push',
+          problem: STOPPED,
+          detail: error instanceof Error ? error.message : String(error),
+        }
+      }
+    },
+    async signInAtPlace(id) {
+      try {
+        const answer = await fetchFn(`${options.base}/api/places/${encodeURIComponent(id)}/sign-in`, {
+          method: 'POST',
+          headers,
+        })
+        const body = (await answer.json()) as { ok?: boolean; problem?: string; message?: string }
+        return body.ok === true
+          ? { ok: true }
+          : { ok: false, problem: body.problem ?? body.message ?? 'Signing in did not work.' }
+      } catch {
+        return { ok: false, problem: STOPPED }
+      }
+    },
   }
 }
 
@@ -65,6 +136,11 @@ export function createPublishClient(options: PublishClientOptions): PublishClien
 export function browserPublish(client: PublishClient, page: Document): GamePublish {
   return {
     publish: () => client.publish(),
+    places: () => client.places(),
+    putInPlace: (id, answers) => client.putInPlace(id, answers),
+    signInAtPlace: (id) => client.signInAtPlace(id),
+    // A tablet reached the editor by the computer's address; the person's own computer says localhost.
+    onThisComputer: ['localhost', '127.0.0.1', '[::1]', '::1'].includes(page.location.hostname),
     async download(name) {
       const url = URL.createObjectURL(await client.zip())
       const link = page.createElement('a')

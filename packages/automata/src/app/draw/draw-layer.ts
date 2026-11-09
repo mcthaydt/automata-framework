@@ -2,7 +2,7 @@
 // a prototype, drawn each display frame over the entity views. It reads the sim through `readSim` and never
 // writes it (law 1). It is built on the renderer's stage hooks, so render-pixi is unchanged.
 //
-// Immediate mode on a retained scene graph (plan D-6): one Graphics is cleared and redrawn each frame, and Text
+// Immediate mode on a retained scene graph, so a game writes what it sees each frame and keeps no display objects: one Graphics is cleared and redrawn each frame, and Text
 // objects are pooled by call order (the nth `text` call reuses the nth Text, unused ones are hidden), so a steady
 // HUD allocates no display objects after its first frame.
 
@@ -25,7 +25,7 @@ export interface DrawTextOptions {
   readonly size?: number | undefined
 }
 
-/** What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2). */
+/** What `draw` receives each frame. Coordinates are logical playfield pixels, so a game draws the same on every screen size. */
 export interface DrawContext {
   /** The sim at this frame, read-only. */
   readonly sim: DrawSim

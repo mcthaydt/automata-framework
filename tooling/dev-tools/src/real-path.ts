@@ -3,7 +3,7 @@ import { posix } from 'node:path'
 import { Effect } from 'effect'
 
 // Symlink checks for promotion's targets. Core's `Files` has no `realpath` or `lstat`, so these call `node:fs`
-// directly (a request to core beside binary I/O; plan R2). Neither fails: a path that cannot be read counts as
+// directly (core could be asked for these beside binary I/O). Neither fails: a path that cannot be read counts as
 // not a symlink, and resolves through its nearest existing folder.
 
 /** True when `path` itself is a symbolic link (a missing path is not). */

@@ -1,7 +1,8 @@
-import { mkdir, mkdtemp, readFile, rm, stat, symlink, utimes, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, realpath, rm, stat, symlink, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import type { Place } from '#src/features/editor/places/place.ts'
 import { type RunningEditor, serveEditor } from '#src/features/editor/serve-editor.ts'
 
 // `automata editor`'s server (ED3D.14, ED2D.9): the editor's static build and the checkout's files over `/api`, on the
@@ -353,7 +354,7 @@ describe('serveEditor: Publish', () => {
     const early = await api(url, '/api/publish/file')
     expect(early.status).toBe(404)
     expect(await early.json()).toEqual({
-      message: 'Nothing has been built yet. Open Publish and press Build my game.',
+      message: 'No zip has been made yet. Open Publish and press Make my zip.',
     })
     const done = await api(url, '/api/publish', { method: 'POST' })
     expect(done.status).toBe(200)
@@ -366,12 +367,16 @@ describe('serveEditor: Publish', () => {
 
   it('passes on what stopped the game from publishing', async () => {
     const { url } = await start({
-      publish: async () => ({ ok: false, problem: 'Your game did not build.', detail: 'src/main.ts: oops' }),
+      publish: async () => ({
+        ok: false,
+        problem: 'Your game could not be put together.',
+        detail: 'src/main.ts: oops',
+      }),
     })
     const failed = await api(url, '/api/publish', { method: 'POST' })
     expect(await failed.json()).toEqual({
       ok: false,
-      problem: 'Your game did not build.',
+      problem: 'Your game could not be put together.',
       detail: 'src/main.ts: oops',
     })
     expect((await api(url, '/api/publish/file')).status).toBe(404)
@@ -391,7 +396,7 @@ describe('serveEditor: Publish', () => {
     const second = await api(url, '/api/publish', { method: 'POST' })
     expect(second.status).toBe(409)
     expect(await second.json()).toEqual({
-      message: 'Your game is already being built. Wait for it to finish.',
+      message: 'Your game’s zip is already being made. Wait for it to finish.',
     })
     finish()
     expect((await first).status).toBe(200)
@@ -403,5 +408,78 @@ describe('serveEditor: Publish', () => {
     await plain.close()
     const { url } = await start({ token: 'tok', publish: async () => ({ ok: true, file: 'x' }) })
     expect((await api(url, '/api/publish', { method: 'POST' })).status).toBe(401)
+  })
+})
+
+describe('serveEditor: where to put the zip', () => {
+  const answered: { root: string; zip: string; answers: Record<string, string> }[] = []
+  const place: Place = {
+    id: 'fake',
+    name: 'A fake place',
+    asks: [{ id: 'page', label: 'Its page', example: 'a.b/c' }],
+    put: async (where, zip, answers) => {
+      answered.push({ root: where, zip, answers })
+      return { ok: true, link: 'https://a.b/c' }
+    },
+    signIn: async () => ({ ok: true }),
+  }
+  const zipped = async () => {
+    const zip = join(root, 'my-game-0.1.0-itch.zip')
+    await writeFile(zip, 'PK')
+    return zip
+  }
+  const post = (url: string, path: string, body: unknown = {}) =>
+    api(url, path, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'content-type': 'application/json' },
+    })
+
+  it('lists the places for the page, in order, without their code', async () => {
+    const zip = await zipped()
+    const { url } = await start({ publish: async () => ({ ok: true, file: zip }), places: [place] })
+    expect(await (await api(url, '/api/places')).json()).toEqual([
+      { id: 'fake', name: 'A fake place', asks: place.asks, signIn: true },
+    ])
+  })
+
+  it('puts the zip Publish made in the place chosen, with the answers, and says how it went', async () => {
+    const zip = await zipped()
+    const { url } = await start({ publish: async () => ({ ok: true, file: zip }), places: [place] })
+    await post(url, '/api/publish')
+    const done = await post(url, '/api/places/fake', { answers: { page: 'a.b/c' } })
+    expect(done.status).toBe(200)
+    expect(await done.json()).toEqual({ ok: true, link: 'https://a.b/c' })
+    expect(answered.at(-1)).toEqual({ root: await realpath(root), zip, answers: { page: 'a.b/c' } })
+  })
+
+  it('asks for the zip first, and knows its places', async () => {
+    const zip = await zipped()
+    const { url } = await start({ publish: async () => ({ ok: true, file: zip }), places: [place] })
+    const early = await post(url, '/api/places/fake', { answers: {} })
+    expect(early.status).toBe(409)
+    expect(await early.json()).toEqual({ message: 'Make the zip first. Open Publish and press Make my zip.' })
+    await post(url, '/api/publish')
+    expect((await post(url, '/api/places/nowhere', { answers: {} })).status).toBe(404)
+  })
+
+  it('signs in at the place on this computer', async () => {
+    const zip = await zipped()
+    const { url } = await start({ publish: async () => ({ ok: true, file: zip }), places: [place] })
+    const done = await post(url, '/api/places/fake/sign-in')
+    expect(await done.json()).toEqual({ ok: true })
+  })
+
+  it('wants the token when it has one, and has no places when it cannot publish', async () => {
+    const zip = await zipped()
+    const tokened = await start({
+      token: 'tok',
+      publish: async () => ({ ok: true, file: zip }),
+      places: [place],
+    })
+    expect((await api(tokened.url, '/api/places')).status).toBe(401)
+    await tokened.close()
+    const plain = await start({ places: [place] })
+    expect((await api(plain.url, '/api/places')).status).toBe(404)
   })
 })

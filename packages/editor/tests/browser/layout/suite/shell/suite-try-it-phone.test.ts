@@ -23,6 +23,7 @@ import { editorList, type OpenedSuite, openSuite } from '#src/testing/suite/suit
 const PHONE = SIZES.find((size) => size.width === 390 && size.height === 844)
 if (PHONE === undefined) throw new Error('the reference sizes have no 390 x 844 phone')
 const WIDTH = PHONE.width
+const HEIGHT = PHONE.height
 let started: SuiteHandle | undefined
 let target: HTMLElement | undefined
 let opened: OpenedSuite | undefined
@@ -36,7 +37,7 @@ afterEach(async () => {
 })
 
 async function open() {
-  await page.viewport(PHONE.width, PHONE.height)
+  await page.viewport(WIDTH, HEIGHT)
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
   started = await startSuite(target, {

@@ -8,6 +8,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { APP_IS_GONE, parseEditorArgs } from './editor-args.ts'
 import { gameVite, type RunningGame, type StartGameOptions, startGame } from './game-runner.ts'
+import { PLACES, type Place } from './places/place.ts'
 import { type PublishOutcome, publishGame, runStep, scanBuildForEval } from './publish-game.ts'
 import type { EditorServerOptions, RunningEditor } from './serve-editor.ts'
 
@@ -32,6 +33,8 @@ export interface EditorCommandDeps {
   readonly startGame: (root: string, options: StartGameOptions) => Promise<RunningGame>
   /** Builds the game in this folder and makes the zip to upload (the editor's Publish). */
   readonly publishGame: (root: string) => Promise<PublishOutcome>
+  /** Where Publish can put the zip once it is made. */
+  readonly places: readonly Place[]
   readonly cwd: string
 }
 
@@ -132,6 +135,7 @@ export async function editorCommand(
       gameUrl: gameUrl ?? game?.url,
       playOff: gameProblem,
       publish: () => deps.publishGame(root),
+      places: deps.places,
     })
   } catch (error) {
     await game?.stop()
@@ -194,6 +198,7 @@ export function liveEditorDeps(): EditorCommandDeps {
         run: runStep,
         evalFindings: scanBuildForEval,
       }),
+    places: PLACES,
     cwd: process.cwd(),
   }
 }

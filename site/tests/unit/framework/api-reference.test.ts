@@ -61,6 +61,11 @@ describe('parseApiReference', () => {
     expect(pkg.entryPoints[1].entries[0]).toMatchObject({ name: 'clamp', doc: '' })
   })
 
+  it('leaves the beta packages to the plain-text file: the pages and search list published packages only', () => {
+    const withBeta = `${SAMPLE}\n## Beta: works in a game made inside the AutomataFramework repository; not published yet\n\n## \`@automata/level-2d\`\n\n### \`import { … } from '@automata/level-2d'\`\n\n#### \`level2d\` (function)\n\nA level.\n\n\`\`\`ts\nfunction level2d(): void\n\`\`\`\n`
+    expect(parseApiReference(withBeta).packages.map((p) => p.name)).toEqual(['@automata/sim'])
+  })
+
   it('refuses a file with no version line or an export outside an entry point', () => {
     expect(() => parseApiReference('# Something else\n')).toThrow(/version/)
     expect(() =>
@@ -73,8 +78,9 @@ describe('parseApiReference', () => {
     const count = reference.packages.flatMap((p) => p.entryPoints).reduce((n, e) => n + e.entries.length, 0)
     const api = JSON.parse(
       readFileSync(resolve(import.meta.dirname, '../../../../tooling/api-index/dist/api.json'), 'utf8'),
-    ) as { exports: unknown[] }
-    expect(count).toBe(api.exports.length)
+    ) as { exports: { beta?: true }[] }
+    // The beta packages are in the text file for agents; the pages list what is published.
+    expect(count).toBe(api.exports.filter((row) => row.beta !== true).length)
     expect(search).toHaveLength(count)
     for (const pkg of reference.packages)
       for (const e of pkg.entryPoints.flatMap((x) => x.entries)) expect(e.signature, e.name).not.toBe('')

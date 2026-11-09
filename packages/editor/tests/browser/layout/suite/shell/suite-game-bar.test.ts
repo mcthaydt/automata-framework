@@ -33,6 +33,10 @@ const FILES = {
 const publish: GamePublish = {
   publish: async () => ({ ok: false, problem: 'No.', detail: '' }),
   download: async () => {},
+  places: async () => [],
+  putInPlace: async () => ({ ok: false, need: 'push', problem: '' }),
+  signInAtPlace: async () => ({ ok: true }),
+  onThisComputer: true,
 }
 
 const editors = (): SuiteEditor<unknown>[] => [

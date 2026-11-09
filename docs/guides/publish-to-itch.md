@@ -12,6 +12,12 @@ Publish in the editor makes the zip. Then you put it on itch.io:
 3. On the itch.io page, press "Upload files" and choose the zip you downloaded.
 4. Tick "This file will be played in the browser", then save and view your page.
 
+Or let the editor put it there. After "Make my zip", the editor asks where to put the game, and itch.io is the first
+choice. Make the page on itch.io first, set its kind to HTML, and paste its address (like
+`your-name.itch.io/my-game`). The editor uses butler, itch.io's uploader, on the computer that runs
+`automata editor`. If butler is not there yet, or you are not signed in, the editor says so and points to the one thing
+to do. It uses your own itch.io sign-in and never stores your key.
+
 Pushing from your computer with a command is below.
 
 ## Set up once

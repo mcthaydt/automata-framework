@@ -8,6 +8,7 @@ import {
   findRepositoryRoot,
   liveEditorDeps,
 } from '#src/features/editor/editor-command.ts'
+import { PLACES } from '#src/features/editor/places/place.ts'
 import type { EditorServerOptions } from '#src/features/editor/serve-editor.ts'
 
 // `automata editor`: what it says, the one page it serves (every editor, whatever the game's editor list names), and when it will not start. The server itself
@@ -42,6 +43,7 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
       return { url: 'http://localhost:5199/', stop: async () => stopped() }
     },
     publishGame: async () => ({ ok: true, file: '/work/my-game-0.1.0-itch.zip' }),
+    places: [],
     cwd: '/work',
     ...overrides,
   }
@@ -183,6 +185,13 @@ describe('editorCommand', () => {
     await editorCommand(['../my-game'], io, deps)
     expect(await served[0]?.publish?.()).toEqual({ ok: true, file: '/my-game/my-game-0.1.0-itch.zip' })
     expect(published).toEqual(['/my-game'])
+  })
+
+  it('hands the server the places to put the zip, itch.io first', async () => {
+    const { deps, io, served } = setup({ places: PLACES })
+    await editorCommand([], io, deps)
+    expect(served[0]?.places?.map((place) => place.id)).toEqual(['itch'])
+    expect(liveEditorDeps().places).toBe(PLACES)
   })
 
   it('--lan listens on every address, makes a token, and prints the address a tablet opens with the token in it', async () => {

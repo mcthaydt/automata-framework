@@ -56,6 +56,65 @@ describe('createPublishClient', () => {
   })
 })
 
+describe('createPublishClient, places', () => {
+  it('lists the places, and has none when the server does not know the route', async () => {
+    const listed = server({
+      '/api/places': () => json([{ id: 'itch', name: 'itch.io', asks: [], signIn: true }]),
+    })
+    expect(await createPublishClient({ base: 'http://e', token: 't', fetch: listed.fetch }).places()).toEqual(
+      [{ id: 'itch', name: 'itch.io', asks: [], signIn: true }],
+    )
+    expect(listed.sent[0]).toMatchObject({ url: 'http://e/api/places', auth: 'Bearer t' })
+    const older = server({})
+    expect(await createPublishClient({ base: 'http://e', fetch: older.fetch }).places()).toEqual([])
+  })
+
+  it('sends the answers to the place and passes back its outcome', async () => {
+    let body = ''
+    const fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      body = String(init?.body)
+      expect(String(input)).toBe('http://e/api/places/itch')
+      return json({ ok: false, need: 'account', problem: 'Connect first.' })
+    }) as typeof globalThis.fetch
+    const client = createPublishClient({ base: 'http://e', fetch })
+    expect(await client.putInPlace('itch', { page: 'a/b' })).toEqual({
+      ok: false,
+      need: 'account',
+      problem: 'Connect first.',
+    })
+    expect(JSON.parse(body)).toEqual({ answers: { page: 'a/b' } })
+  })
+
+  it('turns a refusal without a place’s shape into a sentence, and an unreachable server into the stopped words', async () => {
+    const refused = server({ '/api/places/itch': () => json({ message: 'Make the zip first.' }, 409) })
+    expect(
+      await createPublishClient({ base: 'http://e', fetch: refused.fetch }).putInPlace('itch', {}),
+    ).toEqual({
+      ok: false,
+      need: 'push',
+      problem: 'Make the zip first.',
+    })
+    const down = (async () => {
+      throw new TypeError('Failed to fetch')
+    }) as typeof fetch
+    expect(await createPublishClient({ base: 'http://e', fetch: down }).putInPlace('itch', {})).toMatchObject(
+      {
+        ok: false,
+        problem: 'The editor’s command has stopped. Start automata editor again, then try again.',
+      },
+    )
+    expect(await createPublishClient({ base: 'http://e', fetch: down }).signInAtPlace('itch')).toMatchObject({
+      ok: false,
+    })
+  })
+
+  it('signs in at the place', async () => {
+    const { sent, fetch } = server({ '/api/places/itch/sign-in': () => json({ ok: true }) })
+    expect(await createPublishClient({ base: 'http://e', fetch }).signInAtPlace('itch')).toEqual({ ok: true })
+    expect(sent[0]).toMatchObject({ url: 'http://e/api/places/itch/sign-in', method: 'POST' })
+  })
+})
+
 describe('openServedStore and Publish', () => {
   it('hands a publish client back only when the server says it can publish', async () => {
     const env = (ping: unknown) => ({

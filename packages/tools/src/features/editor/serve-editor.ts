@@ -13,7 +13,9 @@ import { basename, extname, join, resolve, sep } from 'node:path'
 import { EDITOR_LIST_PATH, listGrowsBy } from '@automata/editor/editor-list'
 import { type Checkout, mtimeOf, openCheckout } from './checkout.ts'
 import { type EditorPolicy, livePolicy } from './editor-policy.ts'
+import type { Place } from './places/place.ts'
 import type { PublishOutcome } from './publish-game.ts'
+import { publishRoute } from './publish-route.ts'
 
 export interface EditorServerOptions {
   /** The game checkout the editor reads and writes. */
@@ -34,6 +36,8 @@ export interface EditorServerOptions {
   readonly playOff?: string | undefined
   /** Builds the game and makes the zip to upload (Publish); without it the editor has no Publish for the game. */
   readonly publish?: (() => Promise<PublishOutcome>) | undefined
+  /** Where the zip can be put once it is made, in the order Publish offers them; none when left out. */
+  readonly places?: readonly Place[] | undefined
 }
 
 export interface RunningEditor {
@@ -173,47 +177,7 @@ interface PingFacts {
   readonly publish?: true
 }
 
-/**
- * `/api/publish`: a POST runs Publish, one at a time, and answers what came of it; a GET of `/api/publish/file` hands
- * over the zip the last good Publish made, as a download. Only that file: the route takes no path.
- */
-function publishRoute(
-  publish: () => Promise<PublishOutcome>,
-): (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<void> {
-  let running = false
-  let made: string | undefined
-  return async (req, res, url) => {
-    if (url.pathname === '/api/publish/file' && req.method === 'GET') {
-      const info = made === undefined ? undefined : await stat(made).catch(() => undefined)
-      if (made === undefined || info === undefined || !info.isFile())
-        return reply(res, 404, {
-          message: 'Nothing has been built yet. Open Publish and press Build my game.',
-        })
-      res.writeHead(200, {
-        'content-type': 'application/zip',
-        'content-disposition': `attachment; filename="${basename(made)}"`,
-        'content-length': String(info.size),
-        'cache-control': 'no-store',
-      })
-      createReadStream(made).pipe(res)
-      return
-    }
-    if (url.pathname !== '/api/publish' || req.method !== 'POST')
-      return reply(res, 404, { message: 'no such route' })
-    if (running)
-      return reply(res, 409, { message: 'Your game is already being built. Wait for it to finish.' })
-    running = true
-    try {
-      const outcome = await publish()
-      made = outcome.ok ? outcome.file : undefined
-      return reply(res, 200, outcome.ok ? { ok: true, name: basename(outcome.file) } : outcome)
-    } finally {
-      running = false
-    }
-  }
-}
-
-/** The `/api` routes: ping (with the game's name), list, file and publish; a token is checked first when the server has one. */
+/** The `/api` routes: ping (with the game's name), list, file, publish and the places to put the zip; a token is checked first when the server has one. */
 async function api(
   req: IncomingMessage,
   res: ServerResponse,
@@ -236,7 +200,11 @@ async function api(
   if (url.pathname === '/api/list' && req.method === 'GET') {
     return reply(res, 200, await checkout.list(url.searchParams.get('prefix') ?? ''))
   }
-  if (url.pathname.startsWith('/api/publish') && publish !== undefined) return publish(req, res, url)
+  if (
+    (url.pathname.startsWith('/api/publish') || url.pathname.startsWith('/api/places')) &&
+    publish !== undefined
+  )
+    return publish(req, res, url)
   if (url.pathname !== '/api/file') return reply(res, 404, { message: 'no such route' })
   return fileRoute(req, res, url, policyOf, checkout, root, listMayGrow)
 }
@@ -292,7 +260,8 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
     ...(options.gameUrl === undefined && options.playOff !== undefined ? { playOff: options.playOff } : {}),
     ...(options.publish === undefined ? {} : { publish: true }),
   }
-  const publish = options.publish === undefined ? undefined : publishRoute(options.publish)
+  const publish =
+    options.publish === undefined ? undefined : publishRoute(options.publish, root, options.places ?? [])
 
   const server: Server = createServer((req, res) => {
     void (async () => {

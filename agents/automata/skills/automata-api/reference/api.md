@@ -4959,7 +4959,7 @@ function disposables(): Disposables;
 
 #### `DrawContext` (interface)
 
-What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2).
+What `draw` receives each frame. Coordinates are logical playfield pixels, so a game draws the same on every screen size.
 
 ```ts
 interface DrawContext {

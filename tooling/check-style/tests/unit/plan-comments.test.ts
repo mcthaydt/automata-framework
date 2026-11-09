@@ -24,6 +24,10 @@ describe('citations in a .ts comment', () => {
     ['// the editor loads late (spec F2)\nexport const a = 1\n'],
     ['// the editor loads late (spec F-4)\nexport const a = 1\n'],
     ['// as plan 12.3 says\nexport const a = 1\n'],
+    ['// (plan D-2) the reason\nexport const a = 1\n'],
+    ['// (plan 16.2) the reason\nexport const a = 1\n'],
+    ['// see plan ED3D.5c\nexport const a = 1\n'],
+    ['// Plan 7 asked for it\nexport const a = 1\n'],
   ])('%j is flagged', (code) => {
     expect(check(code)).toEqual([finding('/p/a.ts', 1)])
   })
@@ -36,6 +40,8 @@ describe('citations in a .ts comment', () => {
     '// The M4-style layout is two columns\nexport const a = 1\n',
     '// The spec is the file the user wrote, so it is read as it is\nexport const a = 1\n',
     '// A plan for 3 days of food, spec by spec\nexport const a = 1\n',
+    "// a plan, and the plan's second step, are not codes\nexport const a = 1\n",
+    '// Make a plan before you start\nexport const a = 1\n',
   ])('%j passes', (code) => {
     expect(check(code)).toEqual([])
   })

@@ -12,9 +12,9 @@ import { isInside, isSymlink, resolvedPath } from './real-path.ts'
 // baselines as they were.
 //
 // `Files` reads and writes UTF-8 text only, so a PNG cannot pass through it: files are compared with `cmp -s` and
-// copied with `mkdir -p` and `cp`, through `ProcessRunner` (a request to core for binary `Files`; plan R1).
+// copied with `mkdir -p` and `cp`, through `ProcessRunner` (core could be asked for a binary `Files`).
 //
-// Before anything is copied (plan DT-D6, DT-D8):
+// Before anything is copied:
 // - `--from` and `--to` must be relative folders without `..`, and `--to` must resolve inside the repository;
 // - every target must be a plain file or missing (never a symlink) and resolve inside `--to`;
 // - every selected file's provenance, the run's `evidence.json`, must pass `evidenceFileRefusal`: the nearest one
