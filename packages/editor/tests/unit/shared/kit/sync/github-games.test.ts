@@ -8,7 +8,7 @@ import {
   newRepoUrl,
   repoReachable,
 } from '#src/shared/kit/sync/github-games.ts'
-import { createFakeGitHubRest } from './fake-github-rest.ts'
+import { createFakeGitHubRest } from '#src/testing/kit/fake-github-rest.ts'
 
 // Which of the person's GitHub repositories are Automata games, getting one onto this device, and the two addresses the
 // page sends them to (spec 7.3 and 8.2). Everything here talks to a fake GitHub; nothing leaves the test.

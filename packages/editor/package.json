@@ -27,6 +27,7 @@
     "./kit/ports": "./src/entries/kit-ports.ts",
     "./kit/ports/testing": "./src/entries/kit-ports-testing.ts",
     "./kit/testing": "./src/entries/kit-testing.ts",
+    "./kit/testing/github": "./src/entries/kit-testing-github.ts",
     "./kit/journey-project": "./src/entries/kit-journey-project.ts",
     "./tokens.css": "./src/shared/kit/tokens.css",
     "./fonts.css": "./src/shared/kit/fonts.css",

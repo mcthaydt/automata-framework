@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import GamesPage from '#src/features/web-games/GamesPage.svelte'
 import { openWebGames } from '#src/features/web-games/web-games.ts'
 import type { WebGitHubSession } from '#src/shared/kit/sync/web-sign-in.ts'
-import { createFakeGitHubRest } from '../shared/kit/sync/fake-github-rest.ts'
+import { createFakeGitHubRest } from '#src/testing/kit/fake-github-rest.ts'
 
 // The page of games, signed in: the GitHub games this device lacks, Get it, and Keep this game on GitHub, against a fake
 // GitHub that knows one installation and one repository (spec 8.2).

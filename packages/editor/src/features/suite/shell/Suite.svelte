@@ -34,6 +34,7 @@ import { createToasts } from '../../../shared/kit/widgets/toasts'
 import { setTypingDrafts } from '../../../shared/kit/widgets/typing-context'
 import { type Pill, pillsToShow } from '../core/pills-model'
 import { findingMessage, refusalMessage } from '../core/write-messages'
+import type { SuiteSync } from './boot'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
@@ -72,6 +73,8 @@ interface Props {
   publish?: GamePublish | undefined
   /** Reads Home again (on each return to it); without it, Home stays as it was given. */
   reread?: (() => Promise<HomeState>) | undefined
+  /** The game is kept on GitHub: the saved line takes its words, and a pull opens the editors again from the files. */
+  sync?: SuiteSync | undefined
 }
 
 const {
@@ -90,6 +93,7 @@ const {
   playOff,
   publish,
   reread,
+  sync,
 }: Props = $props()
 let latest = $state<HomeState>()
 const home = $derived(latest ?? given)
@@ -147,10 +151,9 @@ const mounted = $derived(
     : undefined,
 )
 
-$effect(() => {
-  if (target === undefined) return
-  const { editor, card } = target
-  if (editor.id in sessions || opening.has(editor.id)) return
+/** Opens `editor` on its files into a session; one already opening is left to finish. */
+function openEditor(editor: SuiteEditor<unknown>, card: EditorCard): void {
+  if (opening.has(editor.id)) return
   opening.add(editor.id)
   const asked = entry?.view
   void editor.open(card.files, editing.portsFor(editor.id)).then(
@@ -160,9 +163,17 @@ $effect(() => {
       const now = entries.find((candidate) => candidate.id === current)
       showView(editor, session, now?.editors[0] === editor.id ? now.view : asked)
       sessions = { ...sessions, [editor.id]: session }
+      opening.delete(editor.id)
     },
     () => opening.delete(editor.id),
   )
+}
+
+$effect(() => {
+  if (target === undefined) return
+  const { editor, card } = target
+  if (editor.id in sessions) return
+  openEditor(editor, card)
 })
 
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills and
@@ -189,6 +200,7 @@ $effect(() => {
   const read = () => {
     pending = drafts.waiting + session.inFlight
     failed = session.failed
+    showPulled()
   }
   const stopSession = session.subscribe(read)
   const stopDrafts = drafts.subscribe(read)
@@ -198,9 +210,42 @@ $effect(() => {
     stopDrafts()
   }
 })
+// A game kept on GitHub: what the sync last said takes the place of "Saved on this device".
+let synced = $state<{ line: string } | undefined>()
+$effect(() => {
+  if (sync === undefined) return
+  synced = sync.status.get()
+  return sync.status.subscribe((status) => (synced = status))
+})
 const line = $derived(
-  saveLine({ pending, failed, where: where ?? (sample ? (kept ? 'device' : 'nowhere') : 'folder') }),
+  saveLine({
+    pending,
+    failed,
+    where: where ?? (sample ? (kept ? 'device' : 'nowhere') : 'folder'),
+    sync: synced,
+  }),
 )
+
+// A pull wrote files an editor may hold. Once no word waits and no write runs, every editor is opened again from the
+// files (a write from an editor that still held the old text was refused, not laid over the new), and Home is read again.
+let stale = false
+function showPulled(): void {
+  if (!stale || drafts.waiting > 0 || editing.inFlight > 0) return
+  stale = false
+  // The open editor stays on screen until its new session is ready; the others open again when they are chosen.
+  const open = target
+  sessions =
+    open !== undefined && open.editor.id in sessions ? { [open.editor.id]: sessions[open.editor.id] } : {}
+  if (open !== undefined) openEditor(open.editor, open.card)
+  void reread?.().then((read) => (latest = read))
+}
+$effect(() => {
+  if (sync === undefined) return
+  return sync.onPulled(() => {
+    stale = true
+    showPulled()
+  })
+})
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
 // Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.
@@ -352,7 +397,7 @@ function openCard(card: EditorCard): void {
         <ReadOnlyFile file={reading} workspace={ports.workspace} onback={() => (reading = undefined)} />
       </div>
     {:else if mounted}
-      {@render mounted.editor.regions.canvas(mounted.session)}
+      {#key mounted.session}{@render mounted.editor.regions.canvas(mounted.session)}{/key}
     {:else if entry === undefined}
       <SuiteHome {home} {sample} {kept} own={gameKey !== undefined} onopen={openCard} onread={(file) => (reading = file)} />
     {:else}
@@ -379,11 +424,11 @@ function openCard(card: EditorCard): void {
 {#if publish !== undefined}<PublishGameDialog {publish} bind:open={publishingGame} />{/if}
 
 {#snippet tabs({ orientation }: { orientation: 'vertical' | 'horizontal' })}<SuiteRail {entries} {current} {orientation} onselect={choose} />{/snippet}
-{#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
-{#snippet panel()}{#if mounted?.editor.regions.panel}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
-{#snippet inspector()}{#if mounted?.editor.regions.inspector}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}
-{#snippet dock()}{#if mounted?.editor.regions.dock}{@render mounted.editor.regions.dock(mounted.session)}{/if}{/snippet}
-{#snippet status()}{#if mounted?.editor.regions.status}{@render mounted.editor.regions.status(mounted.session)}{/if}{/snippet}
+{#snippet editorTools()}{#if mounted?.editor.regions.tools}{#key mounted.session}{@render mounted.editor.regions.tools(mounted.session)}{/key}{/if}{/snippet}
+{#snippet panel()}{#if mounted?.editor.regions.panel}{#key mounted.session}{@render mounted.editor.regions.panel(mounted.session)}{/key}{/if}{/snippet}
+{#snippet inspector()}{#if mounted?.editor.regions.inspector}{#key mounted.session}{@render mounted.editor.regions.inspector(mounted.session)}{/key}{/if}{/snippet}
+{#snippet dock()}{#if mounted?.editor.regions.dock}{#key mounted.session}{@render mounted.editor.regions.dock(mounted.session)}{/key}{/if}{/snippet}
+{#snippet status()}{#if mounted?.editor.regions.status}{#key mounted.session}{@render mounted.editor.regions.status(mounted.session)}{/key}{/if}{/snippet}
 
 <style>
   .page {

@@ -257,8 +257,10 @@ export function createRestEngine(options: RestEngineOptions): GitEngine {
       return 'pending'
     },
 
+    // Also true for an edit saved here that no commit was made for: a page that went away inside the ten seconds.
     async hasUnpushed() {
-      return (await readSync()).pending !== undefined
+      const file = await readSync()
+      return file.pending !== undefined || changesHere(file, await localFiles()).size > 0
     },
 
     async push(): Promise<PushResult> {

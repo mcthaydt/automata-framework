@@ -11,7 +11,9 @@ function browser() {
     storage: { getDirectory: () => Promise.resolve(opfs) },
     opfs,
     now: () => now,
-    tick: (ms: number) => void (now += ms),
+    tick: (ms: number) => {
+      now += ms
+    },
   }
 }
 

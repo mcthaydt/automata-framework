@@ -17,7 +17,8 @@ function env(options: { served?: boolean; search?: string; opfs?: ReturnType<typ
     const url = new URL(String(input))
     if (options.served !== true) throw new TypeError('Failed to fetch')
     if (url.pathname === '/api/ping') return json({ automata: 'editor', token: false, game: 'Yard' })
-    if (url.pathname === '/api/list') return json([{ path: 'content/editors.toml', mtime: 1, size: LIST.length }])
+    if (url.pathname === '/api/list')
+      return json([{ path: 'content/editors.toml', mtime: 1, size: LIST.length }])
     return new Response(LIST)
   }) as typeof fetch
   return {
@@ -60,6 +61,28 @@ describe('openContentPage', () => {
     }
   })
 
+  it('tells the page which files the editors changed, and gives it the game’s own files to sync into', async () => {
+    const base = env()
+    const games = await openWebGames(base)
+    const list = `${LIST}[[file]]\nglob = "content/feel/feel.toml"\neditor = "feel"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
+    const made = await games.create('Lantern Run', [{ path: 'content/editors.toml', text: list }])
+    const told: string[][] = []
+    const page = await openContentPage({
+      ...base,
+      search: `?game=${made.id}`,
+      onEdit: (paths) => told.push([...paths]),
+    })
+    if (page.kind !== 'game') throw new Error('expected a game')
+    // The person's editors write through the ports; a pull writes to the game's own files.
+    expect(
+      await page.opened.ports.workspace.write('content/feel/feel.toml', 'flash = 1\n', 'absent'),
+    ).toMatchObject({
+      ok: true,
+    })
+    await page.store.write('content/feel/feel.toml', 'flash = 2\n')
+    expect(told).toEqual([['content/feel/feel.toml']])
+  })
+
   it('opens the game ?game= names, and asks which when it names none that exists', async () => {
     const { base, made } = await withGame()
     expect((await openContentPage({ ...base, search: `?game=${made.id}` })).kind).toBe('game')
@@ -73,7 +96,10 @@ describe('openContentPage', () => {
   })
 
   it('?new=2d asks for a name for a new game of that kind', async () => {
-    expect(await openContentPage(env({ search: '?new=2d' }))).toMatchObject({ kind: 'new', startingPoint: '2d' })
+    expect(await openContentPage(env({ search: '?new=2d' }))).toMatchObject({
+      kind: 'new',
+      startingPoint: '2d',
+    })
   })
 
   it('?sample opens the sample and leaves its folder alone', async () => {

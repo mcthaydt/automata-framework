@@ -8,7 +8,7 @@ export {
   type Levels2dState,
 } from '../app/suite/levels-2d/index'
 export { SAMPLE_GAME, samplePorts } from '../features/suite/memory/sample-ports'
-export { type SuiteEnv, type SuiteHandle, startSuite } from '../features/suite/shell/boot'
+export { type SuiteEnv, type SuiteHandle, type SuiteSync, startSuite } from '../features/suite/shell/boot'
 export { createSuite, type Suite } from '../features/suite/shell/create-suite'
 export { fileTitle } from '../features/suite/shell/home-model'
 export {

@@ -42,7 +42,6 @@ export function gameId(title: string, taken: readonly string[]): string {
   }
 }
 
-export const isGameId = (id: string): boolean => ID.test(id)
 
 function entryOf(value: unknown): GameEntry | undefined {
   if (typeof value !== 'object' || value === null) return undefined

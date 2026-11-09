@@ -8,6 +8,7 @@ import { SAMPLE_GAME, samplePorts } from '#src/features/suite/memory/sample-port
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
+import { createStatusStore, statusOf } from '#src/shared/kit/sync/sync-status.ts'
 
 // The suite started the way `main.ts` starts it, over memory ports.
 let started: SuiteHandle | undefined
@@ -165,5 +166,70 @@ describe('Suite entries', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Tuner' }))
     expect(await screen.findByText('sliders: tuning session')).toBeInTheDocument()
     expect(open).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('a game kept on GitHub', () => {
+  const editor = (open: () => Promise<unknown>) =>
+    ({
+      id: 'tuner',
+      label: 'Tuner',
+      icon: 'sliders',
+      hue: 'color/ed/tuner',
+      open,
+      regions: {
+        canvas: createRawSnippet((session: () => { n: number }) => ({
+          render: () => `<p>open ${session().n}</p>`,
+        })),
+      },
+    }) as unknown as SuiteEditor<unknown>
+
+  function kept() {
+    const status = createStatusStore(statusOf('saved'))
+    const listeners = new Set<(paths: readonly string[]) => void>()
+    return {
+      status,
+      onPulled(listener: (paths: readonly string[]) => void) {
+        listeners.add(listener)
+        return () => listeners.delete(listener)
+      },
+      pulled: (paths: string[]) => {
+        for (const listener of listeners) listener(paths)
+      },
+    }
+  }
+
+  async function startKept(sync: ReturnType<typeof kept>, open: () => Promise<unknown>) {
+    const target = document.body.appendChild(document.createElement('div'))
+    started = await startSuite(target, {
+      window,
+      document,
+      ports: await samplePorts(SAMPLE_GAME),
+      suite: createSuite({ editors: [editor(open)] }),
+      game: 'Lantern Run',
+      gameKey: 'lantern-run',
+      where: 'device',
+      initialEditor: 'tuner',
+      sync,
+    })
+  }
+
+  it('says where the work is in the words the sync gives, in place of “Saved on this device”', async () => {
+    const sync = kept()
+    await startKept(sync, async () => ({ n: 1 }))
+    expect(await screen.findByText('Saved on this device and on GitHub')).toBeInTheDocument()
+    sync.status.set(statusOf('offline'))
+    expect(
+      await screen.findByText('Saved on this device. Not on GitHub yet: no internet.'),
+    ).toBeInTheDocument()
+  })
+
+  it('opens the editor again from the files when a pull changed them, so what GitHub sent is what is shown', async () => {
+    const sync = kept()
+    let opened = 0
+    await startKept(sync, async () => ({ n: ++opened }))
+    expect(await screen.findByText('open 1')).toBeInTheDocument()
+    sync.pulled(['content/tuning.toml'])
+    expect(await screen.findByText('open 2')).toBeInTheDocument()
   })
 })

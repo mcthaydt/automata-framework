@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { blobId } from '#src/shared/kit/sync/blob-id.ts'
+import { blobId } from '../../shared/kit/sync/blob-id'
 
 // A repository in memory that answers the REST routes the web engine uses, the way GitHub does: refs with ETags, an
 // empty repository that refuses the Git Data API, trees with `sha: null` for a deletion, a ref that moves only forward,

@@ -21,6 +21,7 @@ import { mount } from 'svelte'
 import { browserAudio } from '../../features/audio/audio-output.ts'
 import { browserOutputs } from '../../features/feel/feel-stage.ts'
 import { contentEditors } from './content-editors.ts'
+import { keepOnGitHub } from './game-sync.ts'
 import { type ContentPage, openContentPage } from './open-content-page.ts'
 import { startingFiles } from './starting-files.ts'
 
@@ -44,9 +45,23 @@ function saveFile(name: string, bytes: Uint8Array): void {
 }
 
 /** Every editor, over the ports of the game opened (served, the sample, or the person's own in this browser). */
-function startEditors(page: Extract<ContentPage, { opened: unknown }>): Promise<unknown> {
+async function startEditors(page: Extract<ContentPage, { opened: unknown }>): Promise<unknown> {
   const { ports, sample, kept, gameUrl, playOff, game, publish, where } = page.opened
   const own = page.kind === 'game'
+  // A game of the person's that is kept on GitHub keeps itself there; the editors' writes tell it what to commit.
+  const sync =
+    page.kind === 'game'
+      ? keepOnGitHub({
+          game: page.game,
+          store: page.store,
+          session: (await webSession())?.session,
+          fetch: (input, init) => fetch(input, init),
+          timers: pageTimers,
+          visibility: pageVisibility,
+          now: () => Date.now(),
+        })
+      : undefined
+  edited = sync === undefined ? undefined : (paths) => sync.edited(paths)
   // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
   const editors = [
     createTuner({ gameUrl }),
@@ -79,6 +94,7 @@ function startEditors(page: Extract<ContentPage, { opened: unknown }>): Promise<
     playUrl: gameUrl,
     playOff,
     publish: publish === undefined ? undefined : browserPublish(publish, document),
+    sync: sync === undefined ? undefined : { status: sync.status, onPulled: sync.onPulled },
     ...(page.kind === 'game'
       ? {
           gameKey: page.game.id,
@@ -91,6 +107,27 @@ function startEditors(page: Extract<ContentPage, { opened: unknown }>): Promise<
         }
       : {}),
   })
+}
+
+/** Told what the person's editors changed in their game; set once a sync is running for it. */
+let edited: ((paths: readonly string[]) => void) | undefined
+
+const pageTimers = {
+  after(ms: number, run: () => void): () => void {
+    const id = setTimeout(run, ms)
+    return () => clearTimeout(id)
+  },
+  every(ms: number, run: () => void): () => void {
+    const id = setInterval(run, ms)
+    return () => clearInterval(id)
+  },
+}
+const pageVisibility = {
+  isVisible: (): boolean => document.visibilityState === 'visible',
+  onChange(listener: () => void): () => void {
+    document.addEventListener('visibilitychange', listener)
+    return () => document.removeEventListener('visibilitychange', listener)
+  },
 }
 
 const navigate = (search: string): void => location.assign(`${location.pathname}${search}`)
@@ -109,7 +146,13 @@ async function webSession() {
   return { session, app }
 }
 
-openContentPage({ origin: location.origin, search: location.search, sessionStorage, now: () => Date.now() })
+openContentPage({
+  origin: location.origin,
+  search: location.search,
+  sessionStorage,
+  now: () => Date.now(),
+  onEdit: (paths) => edited?.(paths),
+})
   .then(async (page) => {
     if (page.kind === 'games' || page.kind === 'new')
       return mount(GamesPage, {

@@ -3,7 +3,7 @@ import { createMemoryStore } from '#src/shared/kit/storage/memory-store.ts'
 import { OfflineError, SyncStopped } from '#src/shared/kit/sync/git-engine.ts'
 import { createRestEngine, type SyncFile } from '#src/shared/kit/sync/rest-engine.ts'
 import { startSync } from '#src/shared/kit/sync/sync-loop.ts'
-import { createFakeGitHubRest } from './fake-github-rest.ts'
+import { createFakeGitHubRest } from '#src/testing/kit/fake-github-rest.ts'
 import { FakeTimers, FakeVisibility, settle } from './fake-sync.ts'
 
 // The engine that keeps a game on GitHub through the REST API (spec 8.1), against a repository in memory.
@@ -192,6 +192,17 @@ describe('pushing', () => {
     expect(await d.engine.push()).toBe('pushed')
     expect(github.messages().slice(-1)).toEqual(['Edited in Automata: A'])
     expect(github.file('content/a.toml')).toBe('a = 2\n')
+    expect(await d.engine.hasUnpushed()).toBe(false)
+  })
+
+  it('finds an edit the page closed on before its ten seconds were up, and sends it with a message of its own', async () => {
+    const { github, d } = await pulled()
+    // The edit was saved on this device and the page went away before anything committed it.
+    await d.store.write('content/a.toml', 'a = 3\n')
+    expect(await d.engine.hasUnpushed()).toBe(true)
+    expect(await d.engine.push()).toBe('pushed')
+    expect(github.file('content/a.toml')).toBe('a = 3\n')
+    expect(github.messages().slice(-1)).toEqual(['Edited in Automata'])
     expect(await d.engine.hasUnpushed()).toBe(false)
   })
 
