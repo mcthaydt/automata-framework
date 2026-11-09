@@ -3,7 +3,7 @@ name: consumer smoke
 # Installs AF's packed packages into a project outside the workspace and uses them as a game would: imports,
 # TypeScript 7 and 6, the bins, and a Vite bundle with one Ruken SDK and no eval. It takes
 # minutes, so it runs only on pull requests that touch how packages are built or published, and
-# nightly and before every publish in release-checks.yml. Drafts skip it, as they skip parity and e2e on af-linux;
+# nightly and before every publish in release-checks.yml. Drafts skip it, as they skip parity and e2e;
 # run it locally with `pnpm build && node tooling/consumer-smoke/src/run.ts --from packs` before marking a pull request ready.
 
 on:
@@ -30,7 +30,8 @@ jobs:
   consumer-smoke:
     name: consumer smoke (packed packages, outside the workspace)
     if: github.event.pull_request.draft == false
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    # The Macs, like ci.yml's checks: no container or GPU, and the PC's af-linux runners are the queue's bottleneck.
+    runs-on: ${{ vars.AF_CHECKS_RUNNER || 'af-mac' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

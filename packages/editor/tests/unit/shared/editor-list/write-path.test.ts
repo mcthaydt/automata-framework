@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import type { MemoryCheck } from '#src/features/suite/memory/memory-checks.ts'
-import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import { createWritePath } from '#src/shared/editor-list/write-path.ts'
+import type { MemoryCheck } from '#src/shared/kit/ports/memory/memory-checks.ts'
+import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import type { UnlistedFile, WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
 const TUNING = 'content/tuning.toml'

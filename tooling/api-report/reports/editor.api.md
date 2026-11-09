@@ -4536,6 +4536,7 @@ interface SuiteEnv {
     readonly game?: string | undefined;
     readonly playUrl?: string | undefined;
     readonly publish?: GamePublish | undefined;
+    readonly clock?: GestureClock | undefined;
 }
 ```
 
