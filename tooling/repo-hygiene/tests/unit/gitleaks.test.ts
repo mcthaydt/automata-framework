@@ -68,7 +68,7 @@ describe('verifiedDownload retries', () => {
   const answers = (...steps: Array<number | 'network'>) => {
     let call = 0
     const fetch = vi.fn(async () => {
-      const step = steps[Math.min(call, steps.length - 1)]
+      const step = steps[Math.min(call, steps.length - 1)] ?? 200
       call += 1
       if (step === 'network') throw new TypeError('fetch failed')
       return step === 200
