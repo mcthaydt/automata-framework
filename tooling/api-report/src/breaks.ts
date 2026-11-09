@@ -52,14 +52,22 @@ function onlyAppendsOptionalParameters(base: ApiExport, head: ApiExport): boolea
   )
 }
 
-/** Every break from `base` (the report on the base branch) to `head` (the current API), in report order. */
-export function apiBreaks(base: ParsedReport, head: { readonly entries: readonly ApiEntry[] }): ApiBreak[] {
+/**
+ * Every break from `base` (the report on the base branch) to `head` (the current API), in report order. A break is
+ * named by the package's current name when `head` has one: after a rename the base report still carries the old
+ * name, and the changeset that declares the break can only name the package as it is now.
+ */
+export function apiBreaks(
+  base: ParsedReport,
+  head: { readonly package?: string; readonly entries: readonly ApiEntry[] },
+): ApiBreak[] {
+  const pkg = head.package ?? base.package
   const breaks: ApiBreak[] = []
   for (const baseEntry of base.entries) {
     const headEntry = head.entries.find((entry) => entry.entryPoint === baseEntry.entryPoint)
     if (headEntry === undefined) {
       breaks.push({
-        package: base.package,
+        package: pkg,
         entryPoint: baseEntry.entryPoint,
         name: undefined,
         change: 'removed',
@@ -74,7 +82,7 @@ export function apiBreaks(base: ParsedReport, head: { readonly entries: readonly
           !onlyAppendsOptionalParameters(baseExport, headExport))
       ) {
         breaks.push({
-          package: base.package,
+          package: pkg,
           entryPoint: baseEntry.entryPoint,
           name: baseExport.name,
           change: headExport === undefined ? 'removed' : 'changed',

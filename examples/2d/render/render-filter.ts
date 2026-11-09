@@ -1,14 +1,21 @@
-// render-filter: two screen-space filters over the picture, and the quality tier that decides which run
+// render-filter: Two filters over the whole picture, chosen by graphics quality
 //
 // Shows: postFilter(name, { glsl, wgsl }) declares a filter over the whole picture, once for WebGL2 and once for
 //   WebGPU, so both renderers look the same. `dusk` warms the picture and darkens its corners at every tier.
 //   `scanlines` darkens every second row, runs after `dusk` (order) and only from the medium tier up (minTier),
 //   so the HUD, which lists the filters running now, loses it at low and gets it back at medium.
 // Controls: 1 low, 2 medium, 3 high
-// Packages: @mcthaydt/automata
+// Packages: @automata/framework
 // Difficulty: ★★★☆
 // Tier: core
-import { defineComponent, defineGame, definePlugin, defineSystem, postFilter, rect } from '@mcthaydt/automata'
+import {
+  defineComponent,
+  defineGame,
+  definePlugin,
+  defineSystem,
+  postFilter,
+  rect,
+} from '@automata/framework'
 
 const Drift = defineComponent('drift', { x: 'f32', y: 'f32', vx: 'f32' })
 

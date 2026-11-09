@@ -1,7 +1,7 @@
 // Wick's systems: the stick and the roll button copied onto him, his move through the heading (the walk, and the roll
 // that carries him across a gap), a fall into a pit put right, and the room's view entered.
-import { CameraHeading, enterView, mapStick, moveDirection, Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
-import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
+import { CameraHeading, enterView, mapStick, moveDirection, Q16 } from '@automata/render-pixi3d/sim'
+import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@automata/sim'
 import { Act, Move } from '../commands.ts'
 import { Hero, HeroAction, HeroControl } from '../components.ts'
 import { ACTION_CLIP, HERO_HALF, ROLL, WALK_PER_TICK } from '../constants/index.ts'

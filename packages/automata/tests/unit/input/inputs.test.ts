@@ -1,4 +1,4 @@
-import { defineCommand } from '@mcthaydt/automata-sim'
+import { defineCommand } from '@automata/sim'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { inputs } from '#src/features/input/inputs.ts'

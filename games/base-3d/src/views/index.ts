@@ -3,7 +3,7 @@
 // ceilings and props (M3.7b part 3). Not sim code: `pnpm boundaries` does not scan it, and the sim never reads it
 // back (law 1).
 
-import type { FigureClipDef, FigureDef, FigureLibrary, MotionLibrary } from '@mcthaydt/automata-figures'
+import type { FigureClipDef, FigureDef, FigureLibrary, MotionLibrary } from '@automata/figures'
 import type {
   Box3,
   FigureViewState,
@@ -11,9 +11,9 @@ import type {
   PlanPoint,
   SceneFog,
   View3dFactory,
-} from '@mcthaydt/automata-render-pixi3d'
-import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
-import type { FieldRecord } from '@mcthaydt/automata-sim'
+} from '@automata/render-pixi3d'
+import { Q16 } from '@automata/render-pixi3d/sim'
+import type { FieldRecord } from '@automata/sim'
 import type { View3D } from '@pixi/3d'
 import { ACTION_CLIP, ROLL, TICK_HZ, WALK_SPEED } from '../constants/index.ts'
 import type { AreaSource } from '../systems/index.ts'

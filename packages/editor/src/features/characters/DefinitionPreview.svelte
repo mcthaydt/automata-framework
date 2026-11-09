@@ -85,7 +85,7 @@ const sprite = $derived.by(() => {
     border: 1px solid var(--color-border-default);
     border-radius: var(--edge-sm);
     color: var(--color-text-dim);
-    font: var(--text-mono-11);
+    font: var(--text-label-12);
   }
   .stage {
     display: grid;

@@ -57,7 +57,7 @@ describe('the Entities session: definitions', () => {
 
   it('adds a 16 × 16 rect with its pivot at the bottom centre, and selects it', () => {
     const { history, session } = open()
-    oneStep(history, 'Add character', () => session.addDefinition())
+    oneStep(history, 'Add a character', () => session.addDefinition())
     const added = defOf(history, 'entity-000000dw')
     expect(added).toMatchObject({
       shape: 'rect',

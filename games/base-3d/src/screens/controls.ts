@@ -1,9 +1,9 @@
 // The analog half of the controls (GAME-3D.1h, DESIGN.md §14): what the left stick, the right stick and the camera
 // drag add to the keys' `move` and `camera-turn`, and the touch layout's five buttons. Presentation only: the sim
 // sees integers (`move` ±127, `camera-turn` ±8,192), never an input device.
-import type { AnalogReading, InputMap } from '@mcthaydt/automata'
-import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@mcthaydt/automata'
-import { STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
+import type { AnalogReading, InputMap } from '@automata/framework'
+import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@automata/framework'
+import { STICK_MAX } from '@automata/render-pixi3d/sim'
 import { TICK_HZ } from '../constants/index.ts'
 
 /** The right stick turns the camera at 180° a second (§14.3, M4-D16): 65,536 × 180 / 360 / 60 ≈ 546 units a tick. */

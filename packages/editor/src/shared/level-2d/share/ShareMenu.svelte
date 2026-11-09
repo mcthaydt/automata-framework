@@ -1,6 +1,6 @@
 <!--
-  The Share menu in the top bar, shown only where Save does not write the game (browser storage, the site's try-it):
-  Download, Share and Copy the level's file as it stands now. Each says how it went in a toast. Where the device keeps
+  The Share menu in the top bar, shown only where Save does not write the game (browser storage, the site's try-it),
+  where it is the bar's one primary action, the icon with its word: Download, Share and Copy the level's file as it stands now. Each says how it went in a toast. Where the device keeps
   no copy, a file that left is the only copy, so it counts as saved (the document turns clean).
 -->
 <script lang="ts">
@@ -30,6 +30,6 @@ async function run(action: string): Promise<void> {
 }
 </script>
 
-<Menu label="Share" items={shareItems(exports.canShare)} onselect={(action) => void run(action)}>
-  {#snippet trigger()}<Icon name="share" />{/snippet}
+<Menu label="Share" variant="primary" items={shareItems(exports.canShare)} onselect={(action) => void run(action)}>
+  {#snippet trigger()}<Icon name="share" size={16} />Share{/snippet}
 </Menu>

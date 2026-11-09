@@ -12,8 +12,10 @@ describe('pnpm api-index in the gates', () => {
     expect(scripts['api-index']).toBe('node tooling/api-index/src/cli.ts')
   })
 
-  it('has a root cheatsheet script that rewrites the committed page', () => {
-    expect(scripts.cheatsheet).toBe('node tooling/api-index/src/cli.ts --write-cheatsheet')
+  it('is the one command that rewrites the committed outputs, as the release version step runs it', () => {
+    expect(scripts.cheatsheet).toBeUndefined()
+    expect(scripts['release:version']).toContain('pnpm api-index --write')
+    expect(scripts['release:version']).not.toContain('agent-skills --write')
   })
 
   it("runs after pnpm build in release-checks.yml's job", () => {

@@ -77,7 +77,7 @@ const problem = (path: DataPath, code: Problem['code'], message: string): Proble
 
 /**
  * Checks one layer of tuning against code-owned declarations. `complete` is true for the base layer, which
- * must name every tunable; false for a partial override (FloorFifty's stage and mode layers).
+ * must name every tunable; false for a partial override (a stage or mode layer).
  *
  * Invariants are rejected before unknown names so the more specific answer wins, then non-numbers, then
  * integer declarations, then the inclusive range.

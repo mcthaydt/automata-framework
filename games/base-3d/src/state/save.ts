@@ -2,7 +2,7 @@
 // (the rescope spec §4). Every change to the shape after the first deploy bumps `version` and adds `migrations[n]` (n → n + 1)
 // with a real version-n fixture in save-fixtures/ and a test that it migrates and parses.
 // Sim-free: zod and a type-only import, so `pnpm boundaries` passes it with the other state files.
-import type { SaveDef } from '@mcthaydt/automata'
+import type { SaveDef } from '@automata/framework'
 import { z } from 'zod'
 
 const count = z.number().int().nonnegative()

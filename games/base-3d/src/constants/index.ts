@@ -1,7 +1,7 @@
 // The numbers base-3d's sim reads (the free game, DESIGN.md §0 and the rescope spec). Positions are Q16.16 metres (`Q16`
 // to a metre, the stick mapper's unit); angles are turn units (65,536 to a turn, the heading's unit). The walk and the
 // roll become tunables in content/tuning.toml with the Tuner (the free base-3d plan, step 8).
-import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
+import { Q16 } from '@automata/render-pixi3d/sim'
 
 /** Fixed steps a second: the sim's default, which the page runs at (`defineGame` takes no `tickHz`). */
 export const TICK_HZ = 60

@@ -48,6 +48,9 @@ describe('the Tuner in the suite', () => {
     expect(await screen.findByTestId('tuner-rows')).toBeInTheDocument()
     expect(screen.getAllByTestId('suite-shell')).toHaveLength(1)
     expect(screen.getByTestId('tuner-row-MAX_RUN')).toBeInTheDocument()
+    // The Tuner has no panel and no inspector, so the top bar offers neither toggle.
+    expect(screen.queryByRole('button', { name: 'Panel' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Details' })).toBeNull()
   })
 
   it('EDS-b: a change names its change set, writes one span, and Undo restores the text', async () => {

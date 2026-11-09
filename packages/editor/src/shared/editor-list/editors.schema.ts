@@ -30,7 +30,8 @@ export interface FileRow {
   readonly checks: readonly string[]
   /**
    * For a level project: the folder its game files go into. The editor then also writes `<exports>/project.toml`,
-   * `<exports>/world.toml` and `<exports>/levels/<id>.toml`, and nothing else in that folder.
+   * `<exports>/world.toml` and `<exports>/levels/<id>.toml`, and nothing else in that folder. The same row also owns the
+   * pictures Add tiles writes into `assets/` (`tilePicturePath`).
    */
   readonly exports?: string | undefined
 }

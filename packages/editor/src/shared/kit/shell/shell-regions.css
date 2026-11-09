@@ -1,0 +1,207 @@
+/*
+  The shell's regions: the top bar, rail, canvas, status line, and the panel, inspector and dock in each way they are
+  shown (inline, floating over the canvas, or a sheet rising from the foot), with the sheet's handle and the scrim
+  behind a full-height one. Every rule starts at the shell (`[data-editor-shell]`), so none reaches a page's own
+  elements.
+*/
+
+[data-editor-shell] > .region {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
+[data-editor-shell] > [data-region="topbar"] {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+[data-editor-shell] > [data-region="rail"] {
+  grid-area: rail;
+  display: flex;
+  background: var(--paper);
+}
+
+[data-editor-shell] > [data-region="rail"][data-presentation="rail"] {
+  flex-direction: column;
+  border-right: 1px solid var(--line);
+}
+
+[data-editor-shell] > [data-region="rail"][data-presentation="tabbar"] {
+  flex-direction: row;
+  border-top: 1px solid var(--line);
+}
+
+[data-editor-shell] > [data-region="canvas"] {
+  grid-area: canvas;
+  position: relative;
+  overflow: hidden;
+  background: var(--charcoal);
+  /* The canvas takes every gesture itself: it never scrolls or pulls the page. */
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+[data-editor-shell] > [data-region="status"] {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+  min-height: 28px;
+  font: var(--text-mono-11);
+  color: var(--muted);
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+
+/* The kit's StatusLine is a bar of its own: it takes the whole region (the region's border stays the one border). */
+[data-editor-shell] > [data-region="status"] [data-widget="status-line"] {
+  flex: 1 1 auto;
+  align-self: stretch;
+  margin: 0 calc(-1 * var(--space-3));
+  border-top: 0;
+}
+
+/* panel, inspector and dock share a column: an optional handle, then the scrolling body. */
+[data-editor-shell] > [data-region="panel"],
+[data-editor-shell] > [data-region="inspector"],
+[data-editor-shell] > [data-region="dock"] {
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+
+[data-editor-shell] > [data-region] > .body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* The end edge keeps 16 px: macOS lays its overlay scroll bar (about 15 px, hit-tested in Safari) over that edge
+     once the body scrolls, and a control under it would lose its taps there. */
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+[data-editor-shell] > [data-region="panel"][data-presentation="inline"] {
+  grid-area: panel;
+  border-right: 1px solid var(--line);
+}
+
+[data-editor-shell] > [data-region="inspector"][data-presentation="inline"] {
+  grid-area: inspector;
+  border-left: 1px solid var(--line);
+}
+
+[data-editor-shell] > [data-region="dock"][data-presentation="inline"] {
+  grid-area: dock;
+  height: var(--shell-dock);
+  border-top: 1px solid var(--line);
+}
+
+[data-editor-shell] > [data-region="dock"][data-presentation="inline"][data-open="false"] {
+  height: 0;
+  border-top-width: 0;
+  visibility: hidden;
+}
+
+/* The floating inspector and the sheets sit in the canvas's cell, above it. */
+[data-editor-shell] > [data-presentation="float"],
+[data-editor-shell] > [data-presentation="sheet"] {
+  grid-area: canvas;
+  z-index: 2;
+  transition: none;
+}
+
+/* Medium's inspector: a card over the canvas's lower right (the mockup), above an open dock sheet, leaving the
+   top of the canvas to the tools: the row a stage pill floats in (its margins, a target, its padding and its
+   edges). It is the wide inspector's width, so its fields lay out the same. It never runs off the canvas: it
+   scrolls inside instead. */
+[data-editor-shell] > [data-presentation="float"] {
+  --pill-row: calc(2 * var(--space-3) + var(--size-hit) + 2 * var(--space-1) + 2px);
+  align-self: end;
+  justify-self: end;
+  width: min(var(--shell-inspector), calc(100% - 2 * var(--space-3)));
+  max-height: calc(100% - var(--dock-lift, 0px) - var(--space-3) - var(--pill-row));
+  margin: 0 var(--space-3) calc(var(--dock-lift, 0px) + var(--space-3)) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--edge-lg);
+  box-shadow: var(--shadow-sheet);
+  overflow: hidden;
+}
+
+[data-editor-shell] > [data-presentation="sheet"] {
+  align-self: end;
+  justify-self: stretch;
+  height: var(--sheet-height);
+  border-top: 1px solid var(--line-strong);
+  border-radius: var(--edge-lg) var(--edge-lg) 0 0;
+  box-shadow: var(--shadow-sheet);
+  transform: translateY(100%);
+}
+
+[data-editor-shell] > [data-presentation="sheet"][data-open="true"] {
+  transform: none;
+}
+
+/* Closed: out of sight and out of the tab order, but still laid out so scroll positions are kept. */
+[data-editor-shell] > [data-presentation="float"][data-open="false"],
+[data-editor-shell] > [data-presentation="sheet"][data-open="false"] {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-editor-shell] > [data-presentation="sheet"] {
+    transition:
+      transform 160ms ease-out,
+      visibility 0s linear 160ms;
+  }
+
+  [data-editor-shell] > [data-presentation="sheet"][data-open="true"] {
+    transition:
+      transform 160ms ease-out,
+      visibility 0s;
+  }
+}
+
+[data-editor-shell] > [data-region] > .handle {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--size-hit);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+[data-editor-shell] > [data-region] > .handle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -4px;
+  border-radius: var(--edge-sm);
+}
+
+[data-editor-shell] > [data-region] > .handle > .grip {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--edge-sm);
+  background: var(--line-strong);
+}
+
+[data-editor-shell] > .scrim {
+  grid-area: canvas;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: var(--scrim);
+  cursor: default;
+}

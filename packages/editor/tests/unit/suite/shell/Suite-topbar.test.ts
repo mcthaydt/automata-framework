@@ -74,8 +74,8 @@ describe("the suite's top bar", () => {
     const heading = await screen.findByRole('heading', { name: 'What do you want to change?' })
     const row = heading.closest('header')
     expect(row).not.toBeNull()
-    expect(row?.contains(screen.getByRole('button', { name: 'Export' }))).toBe(true)
-    expect(row?.contains(screen.getByRole('button', { name: 'Import' }))).toBe(true)
+    expect(row?.contains(screen.getByRole('button', { name: 'Export changes' }))).toBe(true)
+    expect(row?.contains(screen.getByRole('button', { name: 'Import changes' }))).toBe(true)
   })
 
   it('Publish is quiet, not the lime primary, while there is nothing new to publish', async () => {

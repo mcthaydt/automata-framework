@@ -9,6 +9,8 @@ import type { Point } from '../../shared/level-2d/tiles/footprint'
 export type LevelShortcut =
   | { readonly action: 'undo' | 'redo' | 'delete' | 'duplicate' }
   | { readonly action: 'tool'; readonly tool: LevelTool }
+  /** The palette's nth row (from 0), by its number key; the Level view says which keys exist. */
+  | { readonly action: 'choose'; readonly index: number }
   /** The brush size, by one cell. */
   | { readonly action: 'brush'; readonly by: -1 | 1 }
   /** The selection, in cells. */
@@ -56,6 +58,7 @@ export function shortcutFor(event: ShortcutKey, context: ShortcutContext): Level
   if (mod) return !event.altKey && !event.shiftKey && letter === 'd' ? { action: 'duplicate' } : undefined
   if (event.altKey) return undefined
   if (event.key === 'Delete' || event.key === 'Backspace') return { action: 'delete' }
+  if (/^[1-9]$/.test(event.key) && !event.shiftKey) return { action: 'choose', index: Number(event.key) - 1 }
   if (event.key === '[') return { action: 'brush', by: -1 }
   if (event.key === ']') return { action: 'brush', by: 1 }
   const arrow = ARROWS[event.key]

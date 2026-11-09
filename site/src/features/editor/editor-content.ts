@@ -1,4 +1,4 @@
-// The words and pictures of the Editor page (spec 10.2): what the 2D level editor does, in three pictures of the real
+// The words and pictures of the Editor page: what the 2D level editor does, in three pictures of the real
 // editor, and how to open it. The pictures are screenshots of the build this site serves at /editor/app/.
 
 /** The command that opens the editor on a game made with `create-game` (Start's step 3). */

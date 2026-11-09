@@ -2,7 +2,7 @@ import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/suite/main.css'
-import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
+import { checkLayout, publishConditions, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { createLevels2d } from '#src/app/suite/levels-2d/levels-2d-suite-editor.ts'
@@ -63,7 +63,7 @@ describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
     const conditions = await open(size)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
     const all = tabs()
-    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels 2D', 'Review'])
+    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels', 'Review'])
     for (const tab of all) {
       const box = tab.getBoundingClientRect()
       expect(box.width).toBeGreaterThanOrEqual(targets.hit)

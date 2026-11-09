@@ -72,7 +72,7 @@ function main(): void {
     goldens: goldensFromReports(reports, root),
     packages: packagesFromManifests(
       publishablePackages(root).map((pkg) => pkg.manifest),
-      git(root, 'tag', '--list', '@mcthaydt/*').split('\n').filter(Boolean),
+      git(root, 'tag', '--list', '@automata/*').split('\n').filter(Boolean),
     ),
   })
   writeFileSync(join(root, 'evidence.json'), `${JSON.stringify(evidence, null, 2)}\n`)

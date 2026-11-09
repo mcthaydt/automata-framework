@@ -1,4 +1,4 @@
-import type { Command, Sim, StepResult } from '@mcthaydt/automata-sim'
+import type { Command, Sim, StepResult } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import { createFrameLoop, stepOnce } from '#src/shared/runtime/loop/frame-loop.ts'
 import type { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'

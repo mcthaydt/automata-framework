@@ -1,13 +1,13 @@
-// render-interpolation: a square drawn between sim ticks, beside a line where the sim says it is
+// render-interpolation: A square that moves smoothly between the game's steps
 //
 // Shows: a view draws the blend of the last two ticks by the frame's alpha (0 is the previous tick, 1 the
 //   current one), so motion stays smooth when display frames and sim ticks do not line up. The pink line is the
 //   sim's own position, which only moves a whole tick at a time; the HUD prints the frame's alpha.
 // Controls: I turns the blend on and off
-// Packages: @mcthaydt/automata
+// Packages: @automata/framework
 // Difficulty: ★★☆☆
 // Tier: core
-import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automata/framework'
 
 const Runner = defineComponent('runner', { x: 'f32', y: 'f32', vx: 'f32' })
 

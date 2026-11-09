@@ -1,4 +1,4 @@
-import { type Targets, TOUCH_TARGETS } from '@mcthaydt/automata/testing'
+import { type Targets, TOUCH_TARGETS } from '@automata/framework/testing'
 
 /**
  * With a mouse the editors are dense, as the approved mockup draws them: rows and controls 32 px, a primary too

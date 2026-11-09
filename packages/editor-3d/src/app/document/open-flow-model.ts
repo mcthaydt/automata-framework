@@ -2,7 +2,7 @@
 // open a person has to look at in the error panel and what it lists, the held Save of a refused patch (ED3-o), and the
 // toasts that are this editor's own (the kit's `document-messages` has the rest). Plain functions, so Node tests cover
 // the words and the components only show them.
-import type { JsonPath } from '@mcthaydt/automata-editor/kit/documents'
+import type { JsonPath } from '@automata/editor/kit/documents'
 import type { ParseIssue } from '../../profile/file-codec'
 import type { OpenOutcome } from '../editor-app'
 import type { PatchRefused } from '../patched-document'

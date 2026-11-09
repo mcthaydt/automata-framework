@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/automata-tools",
+  "name": "@automata/tools",
   "version": "0.0.5",
   "license": "MIT",
   "repository": {
@@ -26,7 +26,8 @@
     "automata-check-boundaries": "./src/features/boundaries/cli.ts"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
@@ -47,7 +48,7 @@
     "check:example": "node src/app/bin.ts check ../../games/emberwick --csp"
   },
   "dependencies": {
-    "@mcthaydt/automata-content": "workspace:*",
+    "@automata/content": "workspace:*",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",
     "smol-toml": "1.9.0",
@@ -64,12 +65,13 @@
     }
   },
   "devDependencies": {
-    "@mcthaydt/automata-editor": "workspace:*",
-    "@mcthaydt/vitest-preset": "workspace:*",
+    "@automata/editor": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
+    "yaml": "2.9.1",
     "vite": "8.3.3",
     "vitest": "5.0.3"
   }

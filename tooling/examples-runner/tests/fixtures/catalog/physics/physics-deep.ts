@@ -2,9 +2,9 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @mcthaydt/automata-physics
+// Packages: @automata/physics
 // Difficulty: ★☆☆☆
 // Tier: plus
-import { body2d } from '@mcthaydt/automata-physics/src/2d'
+import { body2d } from '@automata/physics/src/2d'
 
 export default { id: 'physics-deep', body: body2d }

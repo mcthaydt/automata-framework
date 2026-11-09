@@ -1,4 +1,4 @@
-import { journeyProject } from '@mcthaydt/automata-editor/kit/journey-project'
+import { journeyProject } from '@automata/editor/kit/journey-project'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'

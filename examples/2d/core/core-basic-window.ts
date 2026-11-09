@@ -1,13 +1,13 @@
-// core-basic-window: open a game window
+// core-basic-window: A game window with a coloured field and a line of text
 //
 // Shows: defineGame() needs only an id, a size and a sim; startGame() fills in the rest: the host, the
 //   renderer, and the title, play and paused screens. draw() paints over the playfield each frame, so the
 //   window shows a coloured field and a line of text.
 // Controls: none
-// Packages: @mcthaydt/automata
+// Packages: @automata/framework
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineGame } from '@mcthaydt/automata'
+import { defineGame } from '@automata/framework'
 
 export default defineGame({
   id: 'core-basic-window',

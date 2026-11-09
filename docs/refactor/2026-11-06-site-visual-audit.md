@@ -5,9 +5,9 @@ Read-only audit of the website as it stands on the newest build branch (`claude/
 `vite preview`. Chromium only (WebKit and Firefox cannot be installed in cloud sessions, so Safari on a real iPhone or
 iPad is still the Owner's check).
 
-Screenshots: [`2026-11-06-site-visual-audit/screens/`](2026-11-06-site-visual-audit/screens/) (105 full-page JPEGs at
+Screenshots: `refactor/2026-11-06-site-visual-audit/screens/` in the project's shared folder (105 full-page JPEGs at
 2x, named `<page>--<size>.jpg`). Raw measurements for every page at every size:
-[`metrics.json`](2026-11-06-site-visual-audit/metrics.json).
+`metrics.json` beside them.
 
 ## 1. Are we done adding screens?
 
@@ -89,7 +89,7 @@ Search and Menu on phones and tablets without crowding.
 Fix the **new** shared-layout items (M1 tap targets, M2 code wrapping, M4 menu, L1 touch hints) as one small task
 before phase 18, because every rebuilt page inherits them. Add H4 (API page length: an index with collapsed sections
 or one page per export group) and H5 (a first example that shows something) to tasks 18.4 and 18.3's neighbours. The
-rest is already in phases 18 to 20. Re-run this audit with the scripts in [`2026-11-06-site-visual-audit/scripts/`](2026-11-06-site-visual-audit/scripts/) (`run.cjs` measures, `shots.cjs` screenshots; both expect `vite preview` on port 4417)
+rest is already in phases 18 to 20. Re-run this audit with the scripts in the shared folder's `refactor/2026-11-06-site-visual-audit/scripts/` (`run.cjs` measures, `shots.cjs` screenshots; both expect `vite preview` on port 4417)
 after phase 18, and on the editor after phase 12.
 
 ## 5. Rerun after phase 18, part (session 20, 2026-11-07)
@@ -133,3 +133,19 @@ sizes (`tests/e2e/site.e2e.ts`, "big enough to tap"), with the touch hint (L1) a
 H4 is closed: an API package page is one and a half phone screens with its groups folded (it was too tall to capture).
 M1 is closed for links and buttons. Left: M2's code-block wrapping was checked by eye in section 5 and has no
 browser rule yet.
+
+## 7. Rerun for 19.1's Step V (session 23, 2026-11-07)
+
+The same `run.cjs` against the built site (`scripts/serve-static.ts build 4417`), over the 35 pages of its sitemap and
+the 404 (216 page and size pairs), and then over the try-it editor (`/editor/app/`, six sizes).
+
+| Check | Section 6 | Now |
+|---|---|---|
+| Sideways scroll | 0 | 0 (the editor 0) |
+| Page errors | the 404 only | the 404 only (expected); the editor none |
+| Text under 12 px | 0 | 0 (the editor 0) |
+| Tap targets under 44 px | 30, then fixed | 18: Start's three checkboxes (20 px) at six sizes, explained in section 6 |
+
+The editor's Home has four controls 32 px tall (New level twice, the two "where" options) at the two desktop sizes
+only: there the pointer is a mouse, and the kit draws its compact size for a fine pointer; on every touch size they
+are 44 px or more.

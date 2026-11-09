@@ -40,7 +40,8 @@ them). The game's `itch` section must be set, as in [Publish to itch.io](publish
 
 ## In CI, and signing
 
-The reusable `game-release.yml` builds the desktop bundles when the caller passes `desktop: true`: on a Linux and a
-macOS runner, and with `itch: true` it also pushes them to itch.io. These bundles are unsigned. With
-`desktop-signing: true`, the macOS bundle is signed and notarized in the `release` environment, using the Apple
-Developer certificate and account secrets the workflow names. Windows bundles are built on a Windows computer.
+Tauri builds a bundle only for the computer it runs on, so build each one there: a Linux bundle on Linux, the macOS
+bundle on a Mac, the Windows bundle on Windows. The release workflow `create-game` writes does not build them. These
+bundles are unsigned; Tauri signs and notarizes the macOS bundle when the `APPLE_CERTIFICATE`,
+`APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` environment
+variables are set ([Tauri's guide](https://v2.tauri.app/distribute/sign/macos/)).

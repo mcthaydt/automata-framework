@@ -1,4 +1,4 @@
-// @mcthaydt/automata-content/locale: the browser-safe part of content localization and the `xx-long`
+// @automata/content/locale: the browser-safe part of content localization and the `xx-long`
 // pseudo-locale, for a game's run time and its test builds. The root entry is the compiler,
 // which uses Node's file system; nothing reachable from here does.
 

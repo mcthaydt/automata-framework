@@ -1,4 +1,4 @@
-import { defineTests } from '@mcthaydt/vitest-preset'
+import { defineTests } from '@automata/vitest-preset'
 import { svelteTesting } from '@testing-library/svelte/vite'
 
 // One config for the package that used to be nine.
@@ -13,7 +13,7 @@ export default defineTests({
   plugins: [svelteTesting()],
   css: true,
   setupFiles: ['./tests/fixtures/setup.ts'],
-  // Boot runs over Ruken's fake host here, so `@mcthaydt/automata/target` must be the Ruken adapter
+  // Boot runs over Ruken's fake host here, so `@automata/framework/target` must be the Ruken adapter
   // until these tests move to `FakeHosting`.
   conditions: ['automata-ruken'],
   // Compiles the Paraglide fixture once, in Node (src/features/locale/testing/global-setup.ts).

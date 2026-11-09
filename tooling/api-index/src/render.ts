@@ -52,7 +52,7 @@ export function apiReference(exports: readonly ApiExport[]): string {
   return [
     `# Automata API reference, version ${version}`,
     '',
-    `> Every export of every published \`@mcthaydt/automata-*\` entry point at version ${version}, generated from the published \`.d.ts\` files. An export that is not listed here does not exist in this version.`,
+    `> Every export of every published \`@automata/*\` entry point at version ${version}, generated from the published \`.d.ts\` files. An export that is not listed here does not exist in this version.`,
     '',
     ...referenceBody(exports),
   ].join('\n')

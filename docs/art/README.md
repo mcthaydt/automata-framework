@@ -19,11 +19,11 @@ In 2.5D and 3D the same rules carry over through `post-retro`: a low internal re
 
 ## Where it is used
 
-| Where | How | When |
-|---|---|---|
-| `ui` theme tokens | Default tokens (surfaces, text, accents, error and focus colors) are picked from Endesga 64 and must meet contrast rules (text 4.5:1, large text and focus rings 3:1) | M1.6 |
-| `examples/blank-game` and fixture games | Art and colors from Endesga 64 | M1.8 onward |
-| `content` | The palette is game content: a game's `content/palette` file is compiled like any other content and hashed with it, so pipelines and the renderer read one source. AF ships Endesga 64 as the default. | Schema in the content lane spec (M1.3) |
-| `post-retro` | The palette LUT pass quantizes to the game's palette (default Endesga 64) | M3 |
-| `pipelines` | A palette gate: pixel-art assets may only use palette colors (exact match, alpha aside); lit and 3D assets are checked after the palette LUT. The gate reports facts (off-palette color counts); a person decides on exceptions. | M3 |
-| `feel` | Particle and flash colors come from the palette | M6 |
+| Where | How |
+|---|---|
+| UI theme tokens | Default tokens (surfaces, text, accents, error and focus colors) are picked from Endesga 64 and must meet contrast rules (text 4.5:1, large text and focus rings 3:1) |
+| Examples and fixture games | Art and colors from Endesga 64 |
+| `content` | The palette is game content: a game's `content/palette` file is compiled like any other content and hashed with it, so pipelines and the renderer read one source. AF ships Endesga 64 as the default. |
+| `post-retro` | The palette LUT pass quantizes to the game's palette (default Endesga 64) |
+| `pipelines` | A palette gate: pixel-art assets may only use palette colors (exact match, alpha aside); lit and 3D assets are checked after the palette LUT. The gate reports facts (off-palette color counts); a person decides on exceptions. |
+| `feel` | Particle and flash colors come from the palette |

@@ -1,5 +1,5 @@
-import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
-import { type EditorSize, REST } from '@mcthaydt/automata-editor/kit/testing'
+import { type EditorSize, REST } from '@automata/editor/kit/testing'
+import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '../ui/boot'
 import { createPlanRenderer } from '../ui/plan/plan-renderer'

@@ -1,0 +1,97 @@
+name: release
+
+# Publishes the game when you push a version tag. Set "version" in package.json, then:
+#
+#   git tag v0.2.0 && git push origin v0.2.0
+#
+# The tag must be "v" and the version, or the itch.io push stops. The build job checks the game (`pnpm check`, the
+# same checks you run at home) and builds it. The itch.io job pushes the game to your itch.io page once the
+# repository has a BUTLER_API_KEY secret (run `butler login` once, then copy the key from butler_creds:
+# https://itch.io/docs/butler/login.html); without the secret it says so and publishes nothing.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: check and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      # web:begin
+      - run: pnpm build:web
+      # The web build is the thing to upload to any web host; it is kept with the run for 30 days.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: web
+          path: dist/
+          retention-days: 30
+      # web:end
+  # itch:begin
+
+  itch:
+    name: publish to itch.io
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Is BUTLER_API_KEY set?
+        id: key
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          if [[ -n "$BUTLER_API_KEY" ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No BUTLER_API_KEY secret yet, so nothing was published to itch.io."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.key.outputs.present == 'true'
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: steps.key.outputs.present == 'true'
+        with:
+          version: 10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.key.outputs.present == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+      - if: steps.key.outputs.present == 'true'
+        run: pnpm install --frozen-lockfile && pnpm build:itch
+      # butler is pinned and its download checked (the SHA-256 from broth.itch.zone, 2026-10-16).
+      - name: Install butler
+        if: steps.key.outputs.present == 'true'
+        run: |
+          dir="$RUNNER_TEMP/butler"
+          install -d "$dir"
+          curl -fsSL --retry 3 -o "$dir/butler.zip" "https://broth.itch.zone/butler/linux-amd64/15.32.0/archive/default"
+          echo "2335971394ef6596f95ded0833e85ee28755e13761716ef4c91d6b11f69162f5  $dir/butler.zip" | sha256sum -c -
+          unzip -q -o "$dir/butler.zip" -d "$dir"
+          chmod +x "$dir/butler"
+          echo "$dir" >> "$GITHUB_PATH"
+      - name: Publish to itch.io
+        if: steps.key.outputs.present == 'true'
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          TAG: ${{ github.ref_name }}
+        run: pnpm exec automata ship publish --target itch --tag "$TAG"
+  # itch:end

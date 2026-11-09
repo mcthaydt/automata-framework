@@ -1,7 +1,6 @@
 /**
- * Layout assertions as plain DOM functions, from FloorFifty's
- * `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`,
- * `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
+ * Layout assertions as plain DOM functions (`expectReachable`, `expectControlsFit`, `expectRowsWhole`,
+ * `expectApart`, `expectNoDocumentScroll`).
  *
  * Each returns a list of human-readable problems; `[]` is a pass. They take no test framework, so
  * the same code runs in Vitest browser mode and inside a Playwright `page.evaluate` bundle. They

@@ -1,5 +1,5 @@
 // D3-i: the sim's mapper turns "stick up" into the direction away from the camera at every heading, with `sin` and
-// `cos` from `@mcthaydt/automata-sim/math` (the module calls no `Math` trig; `pnpm boundaries` checks it), within one
+// `cos` from `@automata/sim/math` (the module calls no `Math` trig; `pnpm boundaries` checks it), within one
 // Q16.16 unit of the exact value. This test may use `Math`: it is the exact value.
 import { describe, expect, it } from 'vitest'
 import { STICK_SWEEP_HASH, stickSweepHash } from '../testing/stick-sweep.js'

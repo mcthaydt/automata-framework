@@ -1,14 +1,14 @@
-// core-host-lifecycle: the sim stands still while the host has the game in the background
+// core-host-lifecycle: The game stops and pauses while its tab is in the background
 //
 // Shows: the game package handles the host's lifecycle for a game, so nothing here mentions the host. The page
 //   draws nothing until the host says ready; when the host sends the game to the background (its drawer, an ad,
 //   a hidden tab) the runtime stops the sim and opens the pause screen, and Resume plays on from the same tick.
 //   The HUD counts the sim's ticks and says whether the frame is paused.
 // Controls: none; switch to another tab (or open the host's drawer) and come back
-// Packages: @mcthaydt/automata
+// Packages: @automata/framework
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automata/framework'
 
 const Pacer = defineComponent('pacer', { x: 'f32', y: 'f32', vx: 'f32' })
 

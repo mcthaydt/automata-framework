@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDef } from '@mcthaydt/automata-sim'
+import { definePlugin, type PluginDef } from '@automata/sim'
 import { goal } from '../features/goal/goal.system.ts'
 import { Progress } from '../features/goal/progress.resource.ts'
 import { Move } from '../features/player/move.command.ts'

@@ -11,7 +11,7 @@ the task-by-task record; this page is the short version.
   and gamepad; boots standalone and inside Ruken's fake host. Its 28 journeys pass in Chromium (phone, compact and iPad sizes).
 - **Targets.** `web`, `itch`, `ruken` and `tauri` adapters share AF's own host contract. The host contract, the
   adapters and the browser runtime are plain TypeScript (no Effect).
-- **Packages.** `@mcthaydt/automata` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
+- **Packages.** `@automata/framework` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
   `-content` has browser-safe entries for `game-config`, `locale`, `schema` and `palette`, so a dev server page never
   loads Node modules.
 - **Tools.** One `automata` command: create-game, add, check, build, editor, ship. `automata --help` works.
@@ -29,8 +29,8 @@ Left, and the Owner's:
 
 1. Run `pnpm ci:local` where WebKit and Firefox install, and `pnpm lint:actions` where Docker runs.
 2. Mark the pull requests ready and merge them bottom up. Squashing the stack into fewer pull requests is an option.
-3. Push the tag `pre-refactor-2d` (task 2.1), say go for the branch clean-up (9.2), and play Emberwick on the iPad.
-4. Ask Ruken for a refusal switch in its fake host, so the boot-failure journey (8.2) can be added.
+3. Push the tag `pre-refactor-2d`, say go for the branch clean-up, and play Emberwick on the iPad.
+4. Ask Ruken for a refusal switch in its fake host, so the boot-failure journey can be added.
 
 ## What is next
 

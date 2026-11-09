@@ -2,7 +2,7 @@ import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/suite/main.css'
-import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
+import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
@@ -216,7 +216,7 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
 
   test('Import: the plan with its diff, and Apply reachable at 48 px', async () => {
     await open(size)
-    button('Import').click()
+    button('Import changes').click()
     await expect.poll(() => document.querySelector('[role="dialog"] textarea')).not.toBeNull()
     const dialog = dialogNamed('Import')
     if (dialog === null) throw new Error('no dialog')

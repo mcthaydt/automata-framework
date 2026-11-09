@@ -2,11 +2,11 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @mcthaydt/automata, @mcthaydt/automata-figures, @mcthaydt/automata-render-pixi3d
+// Packages: @automata/framework, @automata/figures, @automata/render-pixi3d
 // Difficulty: ★☆☆☆
 // Tier: core
-import '@mcthaydt/automata-render-pixi3d/no-eval'
-import { figureSchema } from '@mcthaydt/automata-figures'
-import { figure } from '@mcthaydt/automata-render-pixi3d'
+import '@automata/render-pixi3d/no-eval'
+import { figureSchema } from '@automata/figures'
+import { figure } from '@automata/render-pixi3d'
 
 export default { id: 'figures-stand', view: figure, schema: figureSchema }

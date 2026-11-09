@@ -1,11 +1,10 @@
-import '@mcthaydt/automata-editor/tokens.css'
-import '@mcthaydt/automata-editor/fonts.css'
-import '@mcthaydt/automata-editor/suite.css'
-import { checkLayout } from '@mcthaydt/automata/testing'
-import { EDITOR_LIST_PATH } from '@mcthaydt/automata-editor/editor-list'
-import type { SuiteEditor } from '@mcthaydt/automata-editor/kit/ports'
-import { SIZES } from '@mcthaydt/automata-editor/kit/testing'
-import { fixtureEditor } from '@mcthaydt/automata-editor/suite/testing'
+import '@automata/editor/tokens.css'
+import '@automata/editor/fonts.css'
+import '@automata/editor/suite.css'
+import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import type { SuiteEditor } from '@automata/editor/kit/ports'
+import { SIZES } from '@automata/editor/kit/testing'
+import { fixtureEditor } from '@automata/editor/suite/testing'
 import {
   dockToggle,
   editorList,
@@ -15,7 +14,8 @@ import {
   type OpenedSuite,
   openSuite,
   tab,
-} from '@mcthaydt/automata-editor/suite/testing/layout'
+} from '@automata/editor/suite/testing/layout'
+import { checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import depot from '../../testing/fixtures/depot.af-sector.json?raw'

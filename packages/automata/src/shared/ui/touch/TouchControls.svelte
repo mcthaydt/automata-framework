@@ -1,6 +1,6 @@
 <!--
   @component
-  The on-screen touch buttons, from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+  The on-screen touch buttons.
 
   This is the element that produces pointer events and nothing more; the multi-touch bookkeeping is
   `touch-controls.ts`. Each side's group takes the pointers, not the buttons, and reaches `STICKY_MARGIN_PX` past

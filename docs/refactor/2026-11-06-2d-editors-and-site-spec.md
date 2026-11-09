@@ -20,7 +20,7 @@
   recommendations"); D17's actions are the Owner's.
 - **Status:** reviewed by the [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) (stage 3, 2026-11-06), whose
   fixes are in this text; accepted under the Owner's standing rule ("Auto accept all spec and plans", 2026-10-30;
-  "everything is auto approved and accepted", 2026-10-31). Stage 4 (the build) is next. Nothing here is built.
+  "everything is auto approved and accepted", 2026-10-31). Stage 4 (the build) ran 2026-11-06 to 2026-11-07 and built 65 of 68 tasks; the Owner replaced the look in 11.2 and 11.3 on 2026-11-06 (see below).
 
 ## 1. What done looks like
 
@@ -521,6 +521,11 @@ a status bar that says only "Saved", and words from the file format ("Level proj
 
 ### 11.2 One look, one token source
 
+> **Superseded (the Owner, 2026-11-06).** The frosted pills, the chartreuse glow and the 26 px sheets in this section and
+> in 11.3 were rejected ("I HATE rounded buttons"). The look that was approved and built is in
+> [the visual direction](2026-11-06-editor-visual-direction.md) and the mockups in `refactor/2026-11-06-redesign-mockups/`:
+> flat bordered boxes, slightly rounded corners (4, 6 and 8 px), no pills, no glass. The text below is kept as history.
+
 - **The website's language is the product's.** Its brief, from the top of `app.css`: "a lit room. Frosted, fluted
   surfaces on a pale green field; cobalt curtain bands; charcoal cabinets for the demos; one chartreuse glow for live
   state and the primary action." In the editor that reads as: light frosted chrome on the sage field; the canvas sits in
@@ -544,6 +549,11 @@ a status bar that says only "Saved", and words from the file format ("Level proj
 - **Game screens stay themable per game** (core's Button, Dialog, Slider, Toast). They are not part of this.
 
 ### 11.3 The kit's components, rebuilt
+
+> **Superseded (the Owner, 2026-11-06).** The frosted pills, the chartreuse glow and the 26 px sheets in this section and
+> in 11.3 were rejected ("I HATE rounded buttons"). The look that was approved and built is in
+> [the visual direction](2026-11-06-editor-visual-direction.md) and the mockups in `refactor/2026-11-06-redesign-mockups/`:
+> flat bordered boxes, slightly rounded corners (4, 6 and 8 px), no pills, no glass. The text below is kept as history.
 
 Every widget in `shared/kit/widgets`, `dialogs` and `shell` is restyled to the site's controls and checked in a design
 board (section 11.7):
