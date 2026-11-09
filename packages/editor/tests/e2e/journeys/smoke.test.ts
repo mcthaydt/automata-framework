@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
-import { expect, test } from '@playwright/test'
+import { test } from '@playwright/test'
+import { openRoom } from '../harness/fixtures.ts'
 import { type RunningEditor, runEditor } from '../harness/run-editor.ts'
 import { copyGame, type TempGame } from '../harness/temp-game.ts'
 
@@ -19,8 +20,6 @@ test.afterEach(async () => {
 })
 
 test('automata editor opens on the game and lists its level', async ({ page }) => {
-  await page.goto(editor.url)
-  await expect(
-    page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: 'Room 1' }),
-  ).toBeVisible()
+  // Home's Levels card opens the editor, whose list names the level; choosing it draws the room.
+  await openRoom(page, editor)
 })

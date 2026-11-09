@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { openEditor, pressGame } from '../harness/complete-game.ts'
+import { openEditor, openPanel, pressGame } from '../harness/complete-game.ts'
 import { expect, openRoom, test } from '../harness/fixtures.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
 import { runEditor } from '../harness/run-editor.ts'
@@ -42,7 +42,7 @@ test('the keeper’s colour, his words, the cutscene and the guard are what the 
     await openEditor(page, editor, 'Characters')
     // Below the wide layout the characters sit in a sheet behind the top bar's Panel button, their settings behind Details.
     const keeper = page.getByRole('radio', { name: /Keeper/ })
-    if (!(await keeper.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+    await openPanel(page)
     await keeper.click()
     const details = page.getByRole('button', { name: 'Details' })
     if ((await details.getAttribute('aria-expanded')) === 'false') await details.click()

@@ -14,7 +14,7 @@ import {
   type TestType,
 } from '@playwright/test'
 import { cellOnCanvas } from './canvas-pointer.ts'
-import { pressInList } from './press-in-list.ts'
+import { closePanel, openPanel, pressInList } from './press-in-list.ts'
 import { BIN, type RunningEditor, runEditor } from './run-editor.ts'
 import { copyGame, type TempGame } from './temp-game.ts'
 
@@ -71,12 +71,13 @@ export async function paintWall(
 ): Promise<void> {
   // Below the wide layout the layers sit in a sheet behind the top bar's Panel button.
   const layer = page.getByRole('button', { name: layerName })
-  if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+  await openPanel(page)
   await layer.click()
   await page.getByRole('radio', { name: 'Brush' }).click()
   const canvas = page.locator('[data-level-canvas]')
   // A new layer redraws the canvas; tap where the cell is now.
   await expect(canvas).toHaveAttribute('data-state', 'drawn')
+  await closePanel(page)
   const point = await cellOnCanvas(canvas, cell, tile)
   await page.mouse.click(point.x, point.y)
 }

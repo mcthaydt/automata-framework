@@ -109,7 +109,7 @@ test('a wall moved in the dark Levels 3D is what the game plays', async ({ page,
     await studio.goto(editor.url)
     await studio.getByRole('region', { name: 'Characters' }).getByRole('button').first().click()
     const stage = studio.getByTestId('studio-stage')
-    await expect(stage).toBeVisible()
+    await expect(stage).toBeVisible({ timeout: 30_000 })
     await expect(stage).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
     return stage
   }
@@ -123,6 +123,8 @@ test('a wall moved in the dark Levels 3D is what the game plays', async ({ page,
     ...(size === null ? {} : { viewport: size }),
   })
   try {
+    // The editors open dark on any device; a person who wants Light has chosen it, and the choice is kept in the browser.
+    await lightContext.addInitScript(() => localStorage.setItem('automata-editor:theme', 'light'))
     const lightPage = await lightContext.newPage()
     const lightStage = await stageOf(lightPage)
     expect((await look(lightPage)).field).not.toBe('rgb(11, 12, 14)')

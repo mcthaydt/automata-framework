@@ -7,12 +7,12 @@ import { expect, openEditor, savedInto, servedWith, test } from '../harness/fixt
 import { newGame } from '../harness/new-game.ts'
 import { runEditor } from '../harness/run-editor.ts'
 
-// A game made and played with the editors in the dark look, on a device that asks for it: the editors are dark from the
-// first paint to Publish, what is changed in them is saved into the game, and the game itself, which is never themed, plays
+// A game made and played with the editors in the dark look, on a device that asks for the light one and with no choice
+// stored: the editors open dark all the same, from the first paint to Publish, what is changed in them is saved into the game, and the game itself, which is never themed, plays
 // it and ships it. Levels (a wall painted) and Feel (a word rewritten) change the game; Tuner and Audio are only opened,
 // because a new game has no settings file yet and no sounds to edit. Play is pressed, and the painted wall is looked for in the pixels of the played game.
 
-test.use({ colorScheme: 'dark' })
+test.use({ colorScheme: 'light' })
 
 /** The starter level's cells: 512 px across 32 of them, row 2 before and after a wall at column 5. */
 const STARTER_TILE = 16
@@ -41,7 +41,7 @@ test('a new game is made, edited, played and published in the dark editors', asy
   const editor = await runEditor(game.dir)
   try {
     await openEditor(page, editor, 'Tuner')
-    // Dark on a dark device, chosen by nobody: the field is the dark one and the controls are drawn dark too.
+    // Dark on a light device, chosen by nobody: the field is the dark one and the controls are drawn dark too.
     expect(await look(page)).toEqual({ scheme: 'dark', field: 'rgb(11, 12, 14)', chosen: 'dark' })
     await expect(page.getByText('This game has no settings file yet.')).toBeVisible()
     await page.screenshot({ path: test.info().outputPath('dark-tuner.png') })

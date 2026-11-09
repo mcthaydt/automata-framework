@@ -40,47 +40,11 @@ export const test: TestType<
     await editor.stop()
   },
 })
+
+// Opening an editor and pressing in its list are the editors' own steps, the same in every suite, so they are the editor
+// package's journey steps (the rail, Home's cards on a phone, the sheet that holds the list).
+export { openEditor, pressInList } from '../../../../../packages/editor/tests/e2e/harness/complete-game.ts'
 export { expect }
-
-/**
- * Opens the editors on the story and one editor in the rail (`Feel`, `Audio`, `Writer` or `Sequence`). The rail is a column
- * of buttons on a wide screen and the tabs of a bar on a phone.
- */
-export async function openEditor(page: Page, editor: RunningEditor, name: string): Promise<void> {
-  await page.goto(editor.url)
-  await page
-    .getByRole('tab', { name, exact: true })
-    .or(page.getByRole('navigation', { name: 'Editor sections' }).getByRole('button', { name, exact: true }))
-    .click()
-}
-
-/**
- * Presses a button of the editor's list. Below the wide layout the list sits in a sheet behind the top bar's Panel
- * button, so the sheet is opened first when the button is not on screen, and closed again after the choice.
- */
-export async function pressInList(page: Page, name: string | RegExp): Promise<void> {
-  const button = page.getByRole('button', { name }).first()
-  const panel = page.getByRole('button', { name: 'Panel', exact: true })
-  let opened = false
-  // Either the list or the Panel button that holds it is on screen once the editor has drawn.
-  await expect(button.or(panel).first()).toBeVisible()
-  // Only a layout with a Panel button keeps the list in a sheet; otherwise it is on the page, once it has drawn.
-  if (await panel.isVisible()) {
-    if (!(await button.isVisible())) {
-      if ((await panel.getAttribute('aria-expanded')) !== 'true') await panel.click()
-      await expect(button).toBeVisible()
-      opened = true
-    }
-  }
-  await button.click()
-  // The sheet stays up over the page after a choice, so a person closes it with the same button.
-  if (opened) {
-    if ((await panel.getAttribute('aria-expanded')) === 'true') await panel.click()
-    await expect(panel).toHaveAttribute('aria-expanded', 'false')
-    // The sheet slides away; the next call must find the list gone, not on its way out.
-    await expect(button).toBeHidden()
-  }
-}
 
 /**
  * Waits until the editor has written the person's edit into the game's folder: the file holds `text`. The editors save by

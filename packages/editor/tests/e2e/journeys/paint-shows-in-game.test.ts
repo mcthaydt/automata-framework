@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cellOnCanvas } from '../harness/canvas-pointer.ts'
+import { closePanel, openFromRail, openPanel, pressInList } from '../harness/complete-game.ts'
 import { EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
@@ -44,7 +45,7 @@ test('a tile painted with an added picture and a character given one are what th
     await page.getByRole('radio', { name: 'Tiles' }).click()
     // Below the wide layout the panel, with Add tiles in it, sits in a sheet behind the top bar's Panel button.
     const addTiles = page.getByRole('button', { name: 'Add tiles' }).first()
-    if (!(await addTiles.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+    await openPanel(page)
     await addTiles.click()
     const dialog = page.getByRole('dialog', { name: 'Add tiles' })
     await dialog.getByLabel('Choose a picture').setInputFiles({
@@ -59,7 +60,7 @@ test('a tile painted with an added picture and a character given one are what th
     await page.getByRole('radio', { name: 'Level' }).click()
     await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
     const layer = page.getByRole('button', { name: /^Decor/ })
-    if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+    await openPanel(page)
     await layer.click()
     await page.getByRole('button', { name: /^Tiles from/ }).click()
     await page.getByRole('option', { name: 'Kit' }).click()
@@ -68,12 +69,13 @@ test('a tile painted with an added picture and a character given one are what th
     const canvas = page.locator('[data-level-canvas]')
     await expect(canvas).toHaveAttribute('data-state', 'drawn')
     const cell = { col: 10, row: 4 }
+    await closePanel(page)
     const point = await cellOnCanvas(canvas, cell, STARTER_TILE)
     await page.mouse.click(point.x, point.y)
 
     // Give the player start one of the added tiles, in Characters.
-    await page.getByRole('radio', { name: 'Characters' }).click()
-    await page.getByRole('radio', { name: /Player start/ }).click()
+    await openFromRail(page, 'Characters')
+    await pressInList(page, /Player start/, 'radio')
     const details = page.getByRole('button', { name: 'Details' })
     if ((await details.getAttribute('aria-expanded')) === 'false') await details.click()
     await page.getByRole('radio', { name: 'Picture' }).click()

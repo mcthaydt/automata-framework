@@ -409,7 +409,7 @@ test('Schematic: the guard walks at the speed set there', async ({ page, context
     const atStart = await msToCross()
 
     await openEditor(page, editor, 'Schematic')
-    await page.getByText('Guard', { exact: true }).first().click()
+    await pressInList(page, 'Guard')
     await page.getByRole('button', { name: /^Patrol, 1 m\/s/ }).click()
     const speed = page.getByLabel('Moves at', { exact: true }).first()
     if (!(await speed.isVisible())) await page.getByRole('button', { name: 'Details' }).click()

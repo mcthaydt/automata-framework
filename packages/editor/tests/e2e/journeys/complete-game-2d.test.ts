@@ -4,11 +4,13 @@ import type { Page } from '@playwright/test'
 import { cellOnCanvas } from '../harness/canvas-pointer.ts'
 import {
   brightestSince,
+  closePanel,
   expectOnRail,
   framesMeasured,
   gamePixels,
   openEditor,
   openFromRail,
+  openPanel,
   pitchesPlayed,
   playFromEditors,
   pressInList,
@@ -75,7 +77,7 @@ test('a new 2D game is made with every editor it has, played and published', asy
     await openRoom(page, editor, 'Start')
     await page.getByRole('radio', { name: 'Tiles' }).click()
     const addTiles = page.getByRole('button', { name: 'Add tiles' }).first()
-    if (!(await addTiles.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+    await openPanel(page)
     await addTiles.click()
     const dialog = page.getByRole('dialog', { name: 'Add tiles' })
     await dialog.getByLabel('Choose a picture').setInputFiles({
@@ -89,13 +91,14 @@ test('a new 2D game is made with every editor it has, played and published', asy
     const canvas = page.locator('[data-level-canvas]')
     await expect(canvas).toHaveAttribute('data-state', 'drawn')
     const layer = page.getByRole('button', { name: /^Decor/ })
-    if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+    await openPanel(page)
     await layer.click()
     await page.getByRole('button', { name: /^Tiles from/ }).click()
     await page.getByRole('option', { name: 'Kit' }).click()
     await page.getByRole('radio', { name: 'Brush' }).click()
     await page.getByRole('radio', { name: `Tile ${PAINTED_TILE}`, exact: true }).click()
     await expect(canvas).toHaveAttribute('data-state', 'drawn')
+    await closePanel(page)
     const point = await cellOnCanvas(canvas, PAINTED, STARTER_TILE)
     await page.mouse.click(point.x, point.y)
     await openFromRail(page, 'Characters')
@@ -338,7 +341,7 @@ test('Schematic: the guard walks at the speed set there', async ({ page, context
     const atStart = await msToTheWest()
 
     await openEditor(page, editor, 'Schematic')
-    await page.getByText('Guard', { exact: true }).first().click()
+    await pressInList(page, 'Guard')
     await page.getByRole('button', { name: /^Patrol, 1 m\/s/ }).click()
     const speed = page.getByLabel('Moves at', { exact: true }).first()
     if (!(await speed.isVisible())) await page.getByRole('button', { name: 'Details' }).click()

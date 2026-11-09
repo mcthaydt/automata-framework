@@ -1,3 +1,4 @@
+import { openFromRail } from '../harness/complete-game.ts'
 import { EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { runEditor } from '../harness/run-editor.ts'
@@ -16,7 +17,7 @@ test('the Tuner shows the controls when it is first opened after working in Char
   const editor = await runEditor(game.dir)
   try {
     await openRoom(page, editor, 'Start')
-    await page.getByRole('radio', { name: 'Characters' }).click()
+    await openFromRail(page, 'Characters')
     await page.getByRole('radio', { name: /Player start/ }).click()
     const details = page.getByRole('button', { name: 'Details' })
     if ((await details.getAttribute('aria-expanded')) === 'false') await details.click()

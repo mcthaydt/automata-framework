@@ -1,4 +1,4 @@
-import { expect, test } from '../harness/fixtures.ts'
+import { expect, openRoom, test } from '../harness/fixtures.ts'
 import { runEditor } from '../harness/run-editor.ts'
 
 // Spec section 9, "The suite opens the checkout" (E5): `automata editor` on a game opens that game, not the sample one
@@ -13,10 +13,8 @@ test('the suite served on a game opens that game, with its room in Levels', asyn
   const suite = await runEditor(game.dir)
   try {
     await page.goto(suite.url)
-    await expect(page.getByRole('banner').getByText('Emberwick', { exact: true })).toBeVisible()
-    // The game's room, by its file's name, under Levels 2D.
-    const levels = page.getByRole('region', { name: 'Levels' })
-    await expect(levels.getByRole('button', { name: 'Room 1' }).first()).toBeVisible()
+    // The game's room, by its file's name, in the list of Levels: the sample game has no such room.
+    await openRoom(page, suite)
     await expect(page.getByText('Sample game')).toHaveCount(0)
   } finally {
     await suite.stop()

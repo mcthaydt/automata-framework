@@ -3,14 +3,17 @@
 // read-out (it says where the pointer is on the plan), as the editor's own layout tests do, so a journey says
 // "drag the crate to 3, 6.5" and not a pixel.
 import { expect, type Locator, type Page } from '@playwright/test'
+import { pressInList } from './press-in-list.ts'
 import type { RunningEditor } from './run-editor.ts'
 
 const PLAN = '[data-testid="plan-canvas"]'
 
-/** Opens the editor, then the level (by its name in words, as Home shows it) in Levels 3D, and waits for the plan. */
+/** Opens the editor, then the level (by its name in words, as the list shows it) in Levels 3D, and waits for the plan. */
 export async function openLevels3d(page: Page, editor: RunningEditor, level: string): Promise<void> {
   await page.goto(editor.url)
-  await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: level }).click()
+  // Home's card for Levels opens the editor, whose list names each level.
+  await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: 'Levels' }).click()
+  await pressInList(page, level)
   await expect(page.locator(PLAN)).toBeVisible()
   await expect(page.locator(PLAN)).not.toHaveAttribute('data-phase', 'starting')
 }

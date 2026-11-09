@@ -29,14 +29,34 @@ export function cellCentre(
   }
 }
 
-/** The page point of a cell on `canvas` (the `[data-level-canvas]` element), once it has drawn. */
+/**
+ * The page point of a cell on `canvas` (the `[data-level-canvas]` element), once it has drawn and stopped moving: a
+ * sheet that opens or closes beside it resizes it, and the camera refits a moment after.
+ */
 export async function cellOnCanvas(
   canvas: Locator,
   cell: { col: number; row: number },
   tile: number,
 ): Promise<{ x: number; y: number }> {
-  const camera = parseCamera(await canvas.getAttribute('data-camera'))
-  const box = await canvas.boundingBox()
-  if (box === null) throw new Error('the level canvas is not on the page')
-  return cellCentre(cell, tile, camera, box)
+  const read = async () => {
+    const box = await canvas.boundingBox()
+    if (box === null) throw new Error('the level canvas is not on the page')
+    return { camera: await canvas.getAttribute('data-camera'), box }
+  }
+  let last = await read()
+  for (let tries = 0; tries < 40; tries++) {
+    await canvas.page().waitForTimeout(100)
+    const now = await read()
+    if (
+      now.camera === last.camera &&
+      now.box.x === last.box.x &&
+      now.box.y === last.box.y &&
+      now.box.width === last.box.width &&
+      now.box.height === last.box.height
+    ) {
+      return cellCentre(cell, tile, parseCamera(now.camera), now.box)
+    }
+    last = now
+  }
+  throw new Error(`the level canvas kept moving (data-camera="${last.camera}")`)
 }

@@ -3,11 +3,11 @@
 // canvas, the sounds it starts, the zip it ships); none reads a game file to decide what the game did.
 import type { BrowserContext, Locator, Page } from '@playwright/test'
 import { expect } from './fixtures.ts'
-import { pressInList } from './press-in-list.ts'
+import { closePanel, openPanel, pressInList } from './press-in-list.ts'
 import { boxOf, type Pixels, readPng } from './read-png.ts'
 import type { RunningEditor } from './run-editor.ts'
 
-export { pressInList }
+export { closePanel, openPanel, pressInList }
 
 /** Asserts the rail offers an editor by this name, as a tab or under More, without opening it. */
 export async function expectOnRail(page: Page, name: string): Promise<void> {
@@ -26,9 +26,13 @@ export async function railHas(page: Page, name: string): Promise<Locator> {
     await expect(sheet).toBeHidden()
   }
   const tab = page.getByRole('tab', { name, exact: true })
-  if (await tab.isVisible()) return tab
   const more = page.getByRole('button', { name: 'More', exact: true })
-  if (!(await more.isVisible())) return tab
+  const card = page.getByRole('region', { name, exact: true }).getByRole('button', { name, exact: true })
+  // The page may still be opening: wait for one of the ways in to show.
+  await expect(tab.or(more).or(card).first()).toBeVisible()
+  if (await tab.isVisible()) return tab
+  // On a phone Home has no bar: its card for the editor opens it.
+  if (!(await more.isVisible())) return (await card.isVisible()) ? card : tab
   await more.click()
   return sheet.getByRole('button', { name, exact: true })
 }
@@ -48,6 +52,12 @@ export async function openEditor(page: Page, editor: RunningEditor, name: string
 export async function pressGame(page: Page, action: 'Play' | 'Publish'): Promise<void> {
   const publish = page.getByRole('button', { name: 'Publish' })
   await expect(publish).toBeVisible()
+  // A More sheet left open by a look at the rail would sit over the header, as it would for a person.
+  const more = page.getByRole('dialog', { name: 'More editors' })
+  if (await more.isVisible()) {
+    await page.keyboard.press('Escape')
+    await expect(more).toBeHidden()
+  }
   if (action === 'Play') await page.getByRole('link', { name: 'Play' }).click()
   else await publish.click()
 }
