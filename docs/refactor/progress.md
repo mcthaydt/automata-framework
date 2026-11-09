@@ -677,12 +677,14 @@ then "website can be completely changed content wise to support our gtm". Plan: 
 
 **Where to resume:** the Owner picks the headline; change `HERO.title` (and the Home page's `PageMeta` title) if it is not option A. The motion thread (#541) keys its reveals off `.home-section` classes, which both new sections use.
 
-## Site motion: smooth scrolling and subtle animation: 83% (5 of 6)
+## Site motion: smooth scrolling and subtle animation: 100% of the planned stages, plus the Motion swap
 
 The Owner, 2026-11-08: "Add lucide, I think that's what it's called, to the website for SUPER SUBTLE smooth page
 scrolling and gsap for SUPER SUBTLE microanimations and page transitions, do the same for the editors, we can do that
 when it makes sense to." The smooth-scroll library is Lenis; Lucide is the icon set the site already uses. Scope: `site/`
-only; the editors wait for the editors v2 build and its audit.
+only; the editors wait for the editors v2 build and its audit. **2026-11-09, the Owner: "Yes" to replacing GSAP with
+Motion (MIT)** because GSAP's terms are a question for the paid apps; the editors will use Motion and Svelte's built-in
+transitions.
 
 | Stage | Status | Record |
 |---|---|---|
@@ -692,9 +694,10 @@ only; the editors wait for the editors v2 build and its audit.
 | 4. Build | Done, 2026-11-09 (Sonnet high, native, no subagents): all 7 tasks on #542's tip with #543 merged in. Lenis 1.3.27 (wheel, fine pointers, off on the playground), GSAP 3.15.0 core (page settle, Home reveals), CSS entrances for search, the phone menu and copy; nothing loads for reduced motion or Save-Data. Motion chunks 32,941 B gzip (budget 36,000); Lighthouse 100 on six pages, Home TBT 0 to 38 ms. 495 site unit tests, 20 motion journeys 3 of 3 in Chromium, playground and visitor suites green. Two real bugs found in the browser and fixed (a key after a wheel was ignored; a jump left sections hidden). Rulings and the grandma pass in the plan's build log. Not run: WebKit, Firefox, GPU runner, parity. | [plan, build log](2026-11-08-site-motion-plan.md) |
 | 5. Build audit | Done, 2026-11-09 (Opus medium, native, no subagents) on #549 `c42e0c79`: ship it. Measured: 501 site unit tests, 20 of 20 motion journeys (Chromium), motion chunks 32,941 B gzip of 36,000, Lighthouse 100 on six pages (Home TBT 5 ms), GSAP 3.15.0 pinned and the licence page unchanged; Tab, deep links, reload, Find in page, reduced motion on and off mid-visit, rapid clicks and a phone all leave nothing hidden. Findings: G1 WebKit never ran the motion journeys (not a PR check); B1 a native jump within ~0.5 s of a wheel is lost and never recovers; B2 the try-it editor does keep a new level across reload and reopen (OPFS), the build log said it did not; B3 no Play in the try-it editor; two nits. Owner note: GSAP's terms and the paid apps | [build audit](2026-11-09-site-motion-build-audit.md) |
 | 6. Fixes | Done, 2026-11-09 (Sonnet high, native, no subagents; PR stacked on #551): B1 fixed. Causes: Lenis ignores native scrolls while it glides, and the site's `scroll-behavior: smooth` made Find in page an animation that Lenis's next write cancelled before it moved. Now `:root.lenis-smooth { scroll-behavior: auto }` (tokens.css) and Lenis's frame is ours: if the page is not where Lenis left it, Lenis's `reset` ends the glide without a write. Journeys for a `scrollTo` and for Find at 50, 150, 400 and 700 ms after a notch fail on the old code (page ends at 300) and pass now; 22 of 22 motion journeys twice, 507 site unit tests, `check:site` (motion chunks 33,056 B of 36,000). B2 corrected in the plan's build log, here and in `editor-try.e2e.ts`; B4 and B5 trimmed. Also fixed: the Site table's stage 5 row had been overwritten with this audit's text; it is back to Not started. Not run: WebKit and Firefox (G1, the Mac), a real find bar (headless `window.find` stands in), the rest of `site.e2e.ts` (236 of its journeys passed before a time limit). Not done: B3 (the saving and editors threads) | [build audit](2026-11-09-site-motion-build-audit.md) |
+| 7. GSAP swapped for Motion | Done, 2026-11-09 (Sonnet high, native, no subagents; PR stacked on #553): `animate.ts` uses `motion/mini` 14.6.0 (MIT); same timings, distances and stagger, and the kit's ease as its four numbers. `animate.test.ts` rewritten first against a stand-in and failed on the GSAP code. Motion chunks **9,340 B gzip** (were 33,056); budget 12,000 in `check:site`. 69 motion unit tests, 22 of 22 motion journeys twice in Chromium; probe on desktop and an iPhone 13 profile: a heading reaches full opacity in about 300 ms, nothing left behind. `gsap` removed from the lockfile and from `renovate.json`; the spec and plan now say Motion (the older audits keep GSAP as history). Not run: WebKit, Firefox, Lighthouse | [plan, swap log](2026-11-08-site-motion-plan.md) |
 
 **Where to resume (2026-11-09, stage 6 done):** someone runs the motion journeys in WebKit on the Mac (G1:
 `cd site && pnpm test:e2e tests/e2e/motion.e2e.ts --project=webkit`); B1, B2, B4 and B5 are fixed. B3 goes to the editors (a Play in the try-it editor; reopen on the last level). The try-it editor keeps a
 new level across a reload (OPFS); it reopens on the editor's Home, not on the level. The editors' motion waits for the
-editors v2 build; the audit asks the Owner about GSAP's terms in the paid apps first. Credits entries for Lenis and GSAP
-go in when AF #521 lands.
+editors v2 build and uses Motion (MIT) and Svelte's built-in transitions, not GSAP (the Owner, 2026-11-09). Credits
+entries for Lenis and Motion (both MIT) go in when AF #521 lands.
