@@ -5,8 +5,9 @@ name: site
 # push to main.
 #
 # The host is the Owner's to choose. Until its token is a repository secret, the job prints "No host configured
-# yet." and passes. With the token, it builds the site, refuses a personal contact address (`check:launch`: the site speaks for
-# the project, not a person), and uploads `site/build/` with the host's own step, written once the host is chosen.
+# yet." and passes. With the token, it first refuses to go on while Pixi 3D is still the vendored beta, then builds the
+# site, refuses a personal contact address (`check:launch`: the site speaks for the project, not a person), and uploads
+# `site/build/` with the host's own step, written once the host is chosen.
 
 on:
   workflow_call:
@@ -53,6 +54,12 @@ jobs:
         if: steps.host.outputs.present == 'true'
         with:
           node-version-file: .nvmrc
+      # The Owner's rule (2026-11-09): nothing is deployed while any package still takes Pixi 3D from the vendored closed
+      # beta, whose terms allow no public deployment. The check reads manifests only, so it needs no install, and it has
+      # no skip: the step fails until `@pixi/3d` comes from the registry.
+      - name: Pixi 3D is public
+        if: steps.host.outputs.present == 'true'
+        run: node tooling/release/src/check-pixi3d-public.ts
       - if: steps.host.outputs.present == 'true'
         run: pnpm install --frozen-lockfile
       # The build ends with the closed-beta scan; check:site holds every page to the site's rules; check:launch

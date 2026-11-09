@@ -1,9 +1,11 @@
-// Usage: node tooling/release/src/check-pixi3d-public.ts   (run first by `pnpm release`, before anything is built or published)
+// Usage: node tooling/release/src/check-pixi3d-public.ts
+// Run first by `pnpm release` and by the site deploy (`.github/workflows/site.yml`), before anything is built or published.
 //
 // `@automata/tools` ships the editors' page, and that page carries Pixi 3D, a closed beta whose terms allow no public
-// deployment. The Owner's rule is that AF launches when Pixi 3D goes public, so a release stops here while any package
-// still takes `@pixi/3d` from the vendored tarball (`vendor/pixi-3d`). Switching those specifiers to the registry's release
-// is what lifts the block; there is no flag to skip it.
+// deployment. The Owner's rule is that AF launches when Pixi 3D goes public (and, 2026-11-09, that the site deploy waits
+// too), so a release or a deploy stops here while any package still takes `@pixi/3d` from the vendored tarball
+// (`vendor/pixi-3d`). Switching those specifiers to the registry's release is what lifts the block; there is no flag
+// to skip it.
 import { fileURLToPath } from 'node:url'
 import { publishablePackages, type WorkspacePackage, workspacePackages } from './publishable-packages.ts'
 
@@ -25,7 +27,7 @@ export function pixi3dPublishBlock(packages: readonly WorkspacePackage[]): strin
   const published = packages.some(({ manifest }) => manifest.name === TOOLS && manifest.private !== true)
   const beta = vendoredBeta(packages)
   if (!published || beta.length === 0) return undefined
-  return `${TOOLS} ships the editors' page, which carries the Pixi 3D beta, and Pixi 3D is not public yet. Packages still on the vendored beta: ${beta.join(', ')}. Publish after they take @pixi/3d from the registry.`
+  return `${TOOLS} ships the editors' page, which carries the Pixi 3D beta, and Pixi 3D is not public yet. Packages still on the vendored beta: ${beta.join(', ')}. Release and deploy after they take @pixi/3d from the registry.`
 }
 
 if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1]) {

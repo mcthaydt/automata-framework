@@ -19,7 +19,7 @@ Done 2026-11-09 on a branch stacked on #545, which holds the build audit
 | --- | --- | --- |
 | M4 the site says "level editor" | The Editor page now shows five real pictures: the home with a card for every editor, and Characters 3D, besides the three of the level editor. Home, Start and the page's words are left to the site rewrite (#542), so the two do not collide. | `editor-page.test.ts` (five figures, each a real file) |
 | M5 two journeys read the wrong build | `suite-runs-where-the-site-puts-it` and `share-leaves-the-browser` serve `extensions/editors/dist/suite`, the page the site and `automata editor` serve. The `vite.config.ts` comments of `editor` and `editor-3d` now say their pages are for developing those editors. | both journeys pass against the full page (iPad, Chromium) |
-| M6 nothing blocks publishing | `pnpm release` runs `tooling/release/src/check-pixi3d-public.ts` first. While `@automata/tools` is published and any package takes `@pixi/3d` from `vendor/pixi-3d`, it exits 1 and names those packages. Moving them to the registry's release lifts it; there is no flag. | `pixi3d-publish-block.test.ts`; run on the repository today it refuses and lists `3d`, `editor-3d`, `world-kit`, `base-3d` |
+| M6 nothing blocks publishing | `pnpm release` runs `tooling/release/src/check-pixi3d-public.ts` first. While `@automata/tools` is published and any package takes `@pixi/3d` from `vendor/pixi-3d`, it exits 1 and names those packages. Moving them to the registry's release lifts it; there is no flag. | `pixi3d-publish-block.test.ts`; run on the repository today it refuses and lists `3d`, `editor-3d`, `world-kit`, `base-3d`. The site deploy (`site.yml`, once its host token is set) runs the same check before it installs or builds, so it is blocked too (the Owner, 2026-11-09: "block deploy until pixi3D is live"). |
 | L1 two Writer files, one name | A card lists files by title, and two files with the same title show their folder in brackets ("Shop (dialogue)", "Shop (lines)"). | `home-model.test.ts` (`fileTitles`); screenshot of the home |
 | L2 Levels 3D cuts "Thing" | The tool rail kept sharing the top bar's free space with the spacer, so at 1180 px it had 360 px of the 453 it needs. A horizontal rail now keeps its width. | `suite-tools.test.ts` (fails at 1133, 1194 and 1366 before, passes after) |
 | L3 Characters 2D "+" wraps | Under touch the stepper (label, minus, number, plus) was 5 px wider than the inspector, so "+" dropped to a second line. The number box is 4 rem, not 5. | `suite-levels.test.ts` and `entities-view.test.ts`, touch project (failed with a 48 px drop before) |
@@ -32,9 +32,7 @@ comment or README line, and `pnpm source-names --code` now reads `extensions` an
 
 L4: the try-it page's "ping" probe asks the site for `/api/ping`, which only exists when the editor is served by
 `automata editor`; on the static site it falls through to a 404 the page then reads as "no game". Fixing it needs a
-static `/api/ping` file at the root of the site host, which is the deploy's, not this repository's. The site deploy still
-builds the page with the Pixi 3D beta (the Owner's rule is that nothing is deployed before Pixi 3D is public); that guard
-is the deploy token, not code. `check-changesets` still fails on `stage-characters-3d.md` (#522's file). The flaky
+static `/api/ping` file at the root of the site host, which is the deploy's, not this repository's. `check-changesets` still fails on `stage-characters-3d.md` (#522's file). The flaky
 `serve-editor` mtime test fails here on the base branch too.
 
 ## What was run

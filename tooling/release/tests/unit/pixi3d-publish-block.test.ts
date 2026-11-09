@@ -55,3 +55,16 @@ describe('the release script', () => {
     expect(scripts.release?.startsWith('node tooling/release/src/check-pixi3d-public.ts && ')).toBe(true)
   })
 })
+
+describe('the site deploy', () => {
+  const root = fileURLToPath(new URL('../../../..', import.meta.url))
+  const workflow = readFileSync(`${root}/.github/workflows/site.yml`, 'utf8')
+
+  it('runs the check before it installs, builds or uploads anything, with no way to skip it', () => {
+    const check = workflow.indexOf('node tooling/release/src/check-pixi3d-public.ts')
+    expect(check).toBeGreaterThan(-1)
+    for (const later of ['pnpm install', 'turbo run build', 'Upload site/build'])
+      expect(workflow.indexOf(later), later).toBeGreaterThan(check)
+    expect(workflow).not.toContain('continue-on-error')
+  })
+})
