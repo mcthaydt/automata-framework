@@ -15,7 +15,7 @@ declare module 'vitest' {
 
 export default async function setup(project: TestProject): Promise<() => Promise<void>> {
   const outdir = await compileFixture(
-    fileURLToPath(new URL('../../../node_modules/.cache/af-paraglide-fixture', import.meta.url)),
+    fileURLToPath(new URL('../../../../node_modules/.cache/af-paraglide-fixture', import.meta.url)),
   )
   project.provide('paraglideFixture', outdir)
   return () => rm(dirname(outdir), { recursive: true, force: true })

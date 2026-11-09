@@ -149,12 +149,12 @@ describe('checkArchitecture: the pure core (model and tiles)', () => {
 })
 
 describe('checkArchitecture: profiles', () => {
-  it('lets only app/profiles.ts of the app import a profile', () => {
+  it('lets only the registration list import a profile', () => {
     const profile = { 'profiles/level-project/index.ts': 'export const levelProject = 1' }
     const allowed = tree({
       ...profile,
-      'app/profiles.ts':
-        "import { levelProject } from '../../shared/level-2d/profiles/level-project'\nexport const all = [levelProject]",
+      'profiles/app-profiles.ts':
+        "import { levelProject } from './level-project'\nexport const all = [levelProject]",
     })
     expect(checkArchitecture(allowed)).toEqual([])
     for (const from of ['model/a.ts', 'tiles/a.ts', 'canvas/a.ts', 'app/other.ts']) {
@@ -180,8 +180,7 @@ describe('checkArchitecture: profiles', () => {
       'profiles/profile.ts': 'export interface Profile {}',
       'profiles/level-project/index.ts':
         "import type { Profile } from '../profile'\nexport const p: Profile = {}",
-      'app/profiles.ts':
-        "import { p } from '../../shared/level-2d/profiles/level-project'\nexport const all = [p]",
+      'profiles/app-profiles.ts': "import { p } from './level-project'\nexport const all = [p]",
     })
     expect(checkArchitecture(files)).toEqual([])
   })
@@ -251,10 +250,10 @@ describe('checkArchitecture: Svelte components', () => {
   it('lets the registration list stay the only importer even when a component sits beside it', () => {
     const files = tree({
       ...profile,
-      'app/profiles.ts':
-        "import { levelProject } from '../../shared/level-2d/profiles/level-project'\nexport const all = [levelProject]",
+      'profiles/app-profiles.ts':
+        "import { levelProject } from './level-project'\nexport const all = [levelProject]",
       'app/Home.svelte':
-        '<script lang="ts">\n  import { all } from \'./profiles\'\n</script>\n<p>{all.length}</p>',
+        '<script lang="ts">\n  import { all } from \'../../shared/level-2d/profiles/app-profiles\'\n</script>\n<p>{all.length}</p>',
     })
     expect(checkArchitecture(files)).toEqual([])
   })
