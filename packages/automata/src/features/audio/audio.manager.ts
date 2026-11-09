@@ -49,7 +49,7 @@ export interface Audio {
   /** The player's mute: the master only, so unmuting restores the mix as it was. */
   setMuted(muted: boolean): void
   /**
-   * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
+   * A short tone on `bus`, as the volume sliders play on release, so the player hears the level
    * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
    */
   sample(bus: AudioBusName): void

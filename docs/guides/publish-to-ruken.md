@@ -26,4 +26,5 @@ RUKEN_API=… RUKEN_TOKEN=… pnpm exec automata ship publish --target ruken
 ```
 
 This prepares the build, then runs `ruken publish`, which packs, validates and uploads it. `--activate` makes the new
-version live. In CI, the reusable `game-release.yml` publishes to Ruken on each release.
+version live. The release workflow `create-game` writes publishes to itch.io only; to publish to Ruken from GitHub, add a job
+like its itch.io job that runs this command with `RUKEN_API` and `RUKEN_TOKEN` from the repository's secrets.

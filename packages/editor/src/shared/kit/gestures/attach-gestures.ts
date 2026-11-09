@@ -7,7 +7,7 @@ import { createRecognizer, type GestureOptions } from './recognizer'
 
 export interface AttachOptions extends GestureOptions {
   /** Time source for the recognizer's timers; tests pass a fake. Default: the browser's. */
-  readonly clock?: GestureClock
+  readonly clock?: GestureClock | undefined
   /** Stop the browser's context menu on the element (a long press would raise it on iPad). Default true. */
   readonly preventContextMenu?: boolean
 }

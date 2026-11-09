@@ -12,6 +12,7 @@ import type { GeometryState } from '@mcthaydt/automata'
 import type { Component, Snippet } from 'svelte'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
+import type { GestureClock } from '../../shared/kit/gestures/gesture-clock'
 import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import type { Workspace } from '../../shared/kit/storage/workspace'
@@ -52,6 +53,8 @@ interface Props {
   canvas?: Component<LevelCanvasProps> | undefined
   /** The world map; the DOM tests pass a stand-in. */
   worldCanvas?: Component<WorldCanvasProps> | undefined
+  /** The gestures' time; the browser's when absent. Journeys pass their test clock. */
+  gestureClock?: GestureClock | undefined
   /** Where the Share menu sends the level; without it there is no Share menu. */
   workspace?: Pick<Workspace, 'exports' | 'persistent'> | undefined
   onback: () => void
@@ -69,6 +72,7 @@ const {
   objectUrls,
   canvas,
   worldCanvas,
+  gestureClock,
   workspace,
   onback,
 }: Props = $props()
@@ -144,6 +148,7 @@ const services = $derived<ViewServices>({
   objectUrls,
   canvas,
   worldCanvas,
+  gestureClock,
   onundo: undo,
   onredo: redo,
 })

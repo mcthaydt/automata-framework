@@ -1,5 +1,6 @@
 import type { GeometryState } from '@mcthaydt/automata'
 import type { Component, Snippet } from 'svelte'
+import type { GestureClock } from '../../kit/gestures/gesture-clock'
 import type { ProjectStore } from '../../kit/storage/project-store'
 import type { DrawView } from '../canvas/draw/draw-list-types'
 import type { Camera } from '../canvas/level-view'
@@ -39,6 +40,11 @@ export interface ViewServices {
   readonly objectUrls?: ObjectUrls | undefined
   readonly onundo: () => void
   readonly onredo: () => void
+  /**
+   * The gesture recognizer's time (a tap's length, a long press); the browser's when absent. A journey passes its test
+   * clock, so a slow machine cannot stretch a tap into a press.
+   */
+  readonly gestureClock?: GestureClock | undefined
   /**
    * The level canvas component; the Pixi `LevelCanvas` when absent. jsdom has no WebGL or `ResizeObserver`, so the DOM
    * tests pass a plain stand-in, as editor-3d's plan canvas takes a renderer factory.

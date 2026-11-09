@@ -70,6 +70,7 @@
     "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
+    "yaml": "2.9.1",
     "vite": "8.3.3",
     "vitest": "5.0.3"
   }

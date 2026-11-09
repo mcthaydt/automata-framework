@@ -105,7 +105,7 @@ async function fullscreen() {
       </div>
     {/if}
   </div>
-  <div class="demo-viewport">
+  <div class="demo-viewport" data-playing={active && allowed && mounted ? '' : undefined}>
     {#if active && allowed && mounted}
       {#key src + attempt}
         <iframe bind:this={iframe} {src} {title} allow="autoplay; fullscreen" sandbox="allow-scripts allow-same-origin"></iframe>

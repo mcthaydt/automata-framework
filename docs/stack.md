@@ -4,7 +4,7 @@
 
 The libraries AF is built on, what each one does here and what AF adds on top.
 
-Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken tarballs show their packed version and RukenApp commit). Licenses are read from each installed package's `package.json`. A library AF has chosen but not installed yet says so and names the task that installs it.
+Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken tarballs show their packed version). Licenses are read from each installed package's `package.json`. A library AF has chosen but not installed yet says so.
 
 | Library | Tier | Version | License |
 |---|---|---|---|
@@ -25,8 +25,8 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** Draws the game in 2D: WebGL2 by default, WebGPU opt-in per game (ADR 0002).
-- **Why it was chosen:** Both reference games render with Pixi 8: FloorFifty in 2D and The Last Light in 3D. Ruken's manifest declares `webgl2` and no WebGPU value, so the WebGL2 path is the one that must stay solid (ADR 0002).
-- **What AF adds on top:** `@mcthaydt/automata`'s renderer: the `/no-eval` entry every game imports first (Ruken's CSP has no `eval`), renderer start-up with a WebGL2 default, a `RenderDelta` consumer that interpolates between sim ticks, the letterbox and canvas resolution, and GLSL + WGSL filter-program pairs.
+- **Why it was chosen:** The games AF was proven in render with Pixi 8, in 2D and in 3D, so one renderer covers both. Not every host offers WebGPU, so the WebGL2 path is the one that must stay solid (ADR 0002).
+- **What AF adds on top:** `@mcthaydt/automata`'s renderer: the `/no-eval` entry every game imports first (no web target allows `eval`), renderer start-up with a WebGL2 default, a `RenderDelta` consumer that interpolates between sim ticks, the letterbox and canvas resolution, and GLSL + WGSL filter-program pairs.
 
 ## Koota
 
@@ -36,7 +36,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** The entity-component store inside the deterministic sim (ADR 0001).
-- **Why it was chosen:** Spike S1 found it deterministic across Node, Chromium, WebKit and Firefox, like Miniplex, and it adds relations with data, added/changed/removed tracking and struct-of-arrays storage at no determinism cost (ADR 0001).
+- **Why it was chosen:** A spike found it deterministic across Node, Chromium, WebKit and Firefox, like Miniplex, and it adds relations with data, added/changed/removed tracking and struct-of-arrays storage at no determinism cost (ADR 0001).
 - **What AF adds on top:** `@mcthaydt/automata-sim` keeps Koota behind a facade: its own monotonic `StableId` (Koota recycles IDs), StableId-ordered iteration, snapshot and restore, render deltas, seeded RNG, deterministic math and hashing, and `.replay` recording. Game code never imports Koota directly.
 
 ## Zod
@@ -47,8 +47,8 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** Every schema: content files, sim command and event payloads, and saved settings.
-- **Why it was chosen:** Ruken's protocol and manifest are written in Zod at the same version, so AF and Ruken share one schema language; Effect Schema is not adopted (ADR 0003).
-- **What AF adds on top:** Zod runs jitless under the `render-pixi/no-eval` entry so it works under Ruken's CSP; the content compiler turns Zod issues into `file:line:col` diagnostics.
+- **Why it was chosen:** One schema language for content, commands and saves; Ruken's protocol and manifest use Zod too, so the Ruken target needs no second one (ADR 0003).
+- **What AF adds on top:** Zod runs jitless under the `/no-eval` entry so it works under a CSP without `eval`; the content compiler turns Zod issues into `file:line:col` diagnostics.
 
 ## Svelte 5
 
@@ -57,8 +57,8 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | `svelte` | 5.57.1 | MIT |
 
 - **Tier:** Core
-- **What it does in AF:** Menus, HUD and every screen outside the canvas, with rune stores for app state (master spec §3).
-- **Why it was chosen:** FloorFifty's UI and Ruken's own `packages/ui` are Svelte, and Ruken requires a mobile layout under `display.metrics` on phones (master spec §4.1).
+- **What it does in AF:** Menus, HUD and every screen outside the canvas, with rune stores for app state.
+- **Why it was chosen:** Small, fast screens with no virtual DOM, and the UI AF was proven with is Svelte; phones need real layouts, which its components give per screen size.
 - **What AF adds on top:** `@mcthaydt/automata`'s ui kit: mobile-first primitives (ScreenFrame, ActionBar, CornerControls, ScrollList, Dialog, LoaderOverlay, ErrorPanel), the single geometry owner (form factor, height tier, viewport tracking), focus navigation and browser hygiene, with layout-contract test helpers.
 
 ## Paraglide
@@ -68,9 +68,9 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | `@inlang/paraglide-js` | 2.25.4 | MIT |
 
 - **Tier:** Core
-- **What it does in AF:** Compiles the content compiler's locale keys into typed `t()` message functions (PRODUCT spec §4).
-- **Why it was chosen:** FloorFifty already ships its localization on Paraglide, and Ruken asks every game to localize from `session.locale` (PRODUCT spec §4).
-- **What AF adds on top:** `@mcthaydt/automata`'s runtime (PRODUCT.L1): language negotiation (the player's saved choice, then Ruken's `session.locale`, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`. Planned in PRODUCT.L2 to L4: per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.
+- **What it does in AF:** Compiles the content compiler's locale keys into typed `t()` message functions.
+- **Why it was chosen:** Typed messages that tree-shake per language, already proven in a shipped game; hosts such as Ruken hand the game a locale to follow.
+- **What AF adds on top:** `@mcthaydt/automata`'s runtime: language negotiation (the player's saved choice, then the host's locale, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`.
 
 ## smol-toml
 
@@ -79,8 +79,8 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | `smol-toml` | 1.9.0 | BSD-3-Clause |
 
 - **Tier:** Core
-- **What it does in AF:** Parses the TOML files under a game's `content/` (M1.3 content spec §8).
-- **Why it was chosen:** FloorFifty's content compiler and Ruken both use it at this version.
+- **What it does in AF:** Parses the TOML files under a game's `content/`.
+- **Why it was chosen:** A small, spec-complete TOML 1.0 parser with no dependencies, proven in a content compiler before AF.
 - **What AF adds on top:** `@mcthaydt/automata-content` validates the parsed TOML with Zod, reports `file:line:col` diagnostics, writes canonical JSON with a content hash, generates TypeScript types, the locale keys and Ruken manifest fields, and runs as a Vite plugin with watch mode.
 
 ## Ruken SDK
@@ -93,9 +93,9 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | `@ruken/cli` | 0.0.0 (vendored tarball, RukenApp `e376a2d`) | MIT |
 
 - **Tier:** Core
-- **What it does in AF:** The host: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0004).
-- **Why it was chosen:** Ruken is the reference host. FloorFifty already runs through these packages, so AF consumes them instead of re-deriving Ruken's contract (ADR 0004). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).
-- **What AF adds on top:** `@mcthaydt/automata`'s host contract: the `Hosting` service with typed errors and a fake host to test against; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.
+- **What it does in AF:** The `ruken` target: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0006).
+- **Why it was chosen:** Ruken is one of four peer targets. Only its adapter and its `ship` target import these, so AF uses Ruken's own contract instead of a copy of it (ADR 0006). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).
+- **What AF adds on top:** `@mcthaydt/automata`'s host contract, which AF owns: the `Hosting` service with typed errors and a fake host to test against; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.
 
 ## Vite, Vitest, Playwright
 
@@ -107,5 +107,5 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** Vite builds every game and example; Vitest runs unit tests and the cross-engine parity suites; Playwright drives browser journeys and the parity browsers.
-- **Why it was chosen:** Ruken pins the same tools and versions, so a game and its host build and test the same way (versions.md).
+- **Why it was chosen:** One toolchain from build to browser tests: Vitest reuses Vite's config, and Playwright runs the same journeys in Chromium, WebKit and Firefox.
 - **What AF adds on top:** `@mcthaydt/automata/testing`: sim and replay goldens that must match bit for bit in Node, Chromium, WebKit and Firefox, renderer-free screen fixtures and layout assertions (hit testing, target size, clipping); `automata-content`'s Vite plugin compiles content on build.

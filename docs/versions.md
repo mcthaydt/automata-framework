@@ -1,71 +1,67 @@
 # Pinned versions
 
-Every external dependency in AF is pinned to an exact version, as in Ruken (`RukenApp/docs/versions.md`, P0 R-20). The one exception is a published package's `peerDependencies`: there an outside peer is `^<pin>`, floored at the workspace's own pin (`svelte`, `vite`), so a game on the next patch still installs AF under npm or strict pnpm (M2.4 audit). Upgrade one package per PR and update this file in the same PR. `tooling/versions/src/versions.test.ts` fails when a `package.json` uses a range (other than that peer floor), when a pin has no row in the npm table or a different version there, when a row is no longer used, or when Node and pnpm drift from the Runtimes table.
-
-Lanes may append rows for their own dependencies (agreed 2026-10-11); the ship lane owns the file.
-
-Where Ruken pins the same package, AF uses Ruken's version, unless the row says why not.
+Every external dependency in AF is pinned to an exact version. AF owns its pins (ADR 0006): no other project's list moves them. The one exception is a published package's `peerDependencies`: there an outside peer is `^<pin>`, floored at the workspace's own pin (`svelte`, `vite`), so a game on the next patch still installs AF under npm or strict pnpm. Upgrade one package per PR and update this file in the same PR. `tooling/versions/src/versions.test.ts` fails when a `package.json` uses a range (other than that peer floor), when a pin has no row in the npm table or a different version there, when a row is no longer used, or when Node and pnpm drift from the Runtimes table.
 
 ## Runtimes
 
 | Tool | Version | Date | Why |
 |---|---|---|---|
-| Node | 24.21.0 (`.nvmrc`, `useNodeVersion` in `pnpm-workspace.yaml`) | 2026-10-11 | Same as Ruken (R-20: Node 24 LTS). pnpm fetches this exact version for scripts, so the system Node can differ |
-| pnpm | 10.34.6 (the `packageManager` value in `package.json`) | 2026-10-11 | Same as Ruken; `save-exact`, `engine-strict` |
+| Node | 24.21.0 (`.nvmrc`, `useNodeVersion` in `pnpm-workspace.yaml`) | 2026-10-11 | The current LTS. pnpm fetches this exact version for scripts, so the system Node can differ |
+| pnpm | 10.34.6 (the `packageManager` value in `package.json`) | 2026-10-11 | `save-exact`, `engine-strict` |
 
 ## npm packages
 
 | Package | Version | Date | Why |
 |---|---|---|---|
-| `@biomejs/biome` | 2.5.15 | 2026-10-01 | Lint and format (A0). Ruken uses ESLint and Prettier; AF keeps Biome |
-| `@changesets/cli` | 3.0.3 | 2026-10-11 | Same as Ruken: one shared `0.0.x` version for every published package and the "Version packages" release PR (M2.4 spec §3.5) |
-| `@inlang/paraglide-js` | 2.25.4 | 2026-10-16 | runtime lane (PRODUCT.L1): compiles message catalogs into typed message functions (PRODUCT spec §4). FloorFifty's version (`ac72660`); released 2026-09-17, so older than 14 days. In PRODUCT.L1 only a devDependency of `packages/runtime`, whose tests compile a fixture; the runtime binds a game's generated `runtime.js` structurally. PRODUCT.L2: a dependency of `packages/content`, whose build compiles a game's catalogs (`ContentOptions.paraglide`), loaded only when a game asks for it |
-| `@inlang/plugin-message-format` | 4.4.4 | 2026-10-16 | runtime lane (PRODUCT.L1): the inlang plugin that reads the `messages/<locale>.json` catalogs the content compiler writes. FloorFifty's version (`ac72660`); released 2026-08-31. PRODUCT.L2: also a dependency of `packages/content`, which names it in the inlang project it generates for each compile |
-| `@types/fontkit` | 2.0.9 | 2026-10-18 | content lane (M5.5): typings for `fontkit` in `@mcthaydt/automata-content`. FloorFifty's version (`ac72660`, root `package.json`) |
-| `@types/node` | 24.19.1 | 2026-10-11 | Same as Ruken: Node 24 typings for tooling |
-| `@types/pngjs` | 6.0.5 | 2026-10-17 | content lane (M5.6): typings for `pngjs` in `@mcthaydt/automata-content`. FloorFifty's version (`ac72660`, `packages/asset-contract`) |
-| `@playwright/test` | 1.63.0 | 2026-10-11 | Same as Ruken: browser journeys (`pnpm test:e2e`, root `playwright.config.ts`) |
-| `@pmndrs/klipp` | 0.16.0 | 2026-10-30 | render3d lane (M3.4b): the 3D camera (Owner, 2026-10-30: "keep in mind for the camera we're using klipp"), in `@mcthaydt/automata-render-pixi3d`. MIT; the core is headless, so its optional peers (`three`, `react`, `camera-controls`, `@react-three/fiber`) are not installed. The Last Light pins 0.14.0 (`92e6704`), whose `addCamera` is gone in 0.16. It brings `math` (pmndrs, MIT) at a canary version as its own exact dependency |
-| `@vitest/browser-playwright` | 5.0.3 | 2026-10-01 | Cross-engine parity runs (A0); same major as `vitest` |
-| `effect` | 3.22.2 | 2026-10-11 | Everything outside the sim (ADR 0003). Effect 3, not 4.0: 4.0 is ten days old and renames the Context API (coordinator decision 2026-10-11). `ship` uses it without `@effect/platform-node`, whose 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers (ship spec §3) |
-| `fflate` | 0.8.3 | 2026-10-30 | editor lane (ED3D.5b): reads a zip imported into the 3D editor's OPFS workspace (`packages/editor-3d`, `app/import-files.ts`) (MIT, no dependencies); `unzipSync` with a size filter, so an entry over 16 MB is never inflated. Published 2026-05-16 |
-| `fontkit` | 2.0.4 | 2026-10-18 | content lane (M5.5): reads a font subset back for the glyph-coverage gate in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, its font coverage test). Only the `./assets` subpath imports it, so it stays out of browser graphs |
-| `knip` | 6.39.0 | 2026-10-16 | ship lane, QB.1: unused files, exports and dependencies in `pnpm check` (`knip.jsonc`); a 2-week-old release when added |
+| `@biomejs/biome` | 2.5.15 | 2026-10-01 | Lint and format in one fast tool |
+| `@changesets/cli` | 3.0.3 | 2026-10-11 | One shared `0.0.x` version for every published package and the "Version packages" release PR |
+| `@inlang/paraglide-js` | 2.25.4 | 2026-10-16 | Compiles message catalogs into typed message functions. A dependency of `packages/content`, whose build compiles a game's catalogs (`ContentOptions.paraglide`), loaded only when a game asks for it; the runtime binds a game's generated `runtime.js` structurally |
+| `@inlang/plugin-message-format` | 4.4.4 | 2026-10-16 | The inlang plugin that reads the `messages/<locale>.json` catalogs the content compiler writes; `packages/content` names it in the inlang project it generates for each compile |
+| `@types/fontkit` | 2.0.9 | 2026-10-18 | Typings for `fontkit` in `@mcthaydt/automata-content` |
+| `@types/node` | 24.19.1 | 2026-10-11 | Node 24 typings for tooling |
+| `@types/pngjs` | 6.0.5 | 2026-10-17 | Typings for `pngjs` in `@mcthaydt/automata-content` |
+| `@playwright/test` | 1.63.0 | 2026-10-11 | Browser journeys (`pnpm test:e2e`, root `playwright.config.ts`) |
+| `@pmndrs/klipp` | 0.16.0 | 2026-10-30 | The 3D camera in `@mcthaydt/automata-render-pixi3d` (Owner, 2026-10-30: "keep in mind for the camera we're using klipp"). MIT; the core is headless, so its optional peers (`three`, `react`, `camera-controls`, `@react-three/fiber`) are not installed. 0.16 is needed: `addCamera` is gone from it. It brings `math` (pmndrs, MIT) at a canary version as its own exact dependency |
+| `@vitest/browser-playwright` | 5.0.3 | 2026-10-01 | Cross-engine parity runs; same major as `vitest` |
+| `effect` | 3.22.2 | 2026-10-11 | Services, scopes and the clock outside the sim, in the tools (ADR 0003). Effect 3, not 4.0: 4.0 renamed the Context API and was ten days old when chosen. `ship` uses it without `@effect/platform-node`, whose 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers |
+| `fflate` | 0.8.3 | 2026-10-30 | Reads a zip imported into the 3D editor's OPFS workspace (`packages/editor-3d`, `app/import-files.ts`) (MIT, no dependencies); `unzipSync` with a size filter, so an entry over 16 MB is never inflated. Published 2026-05-16 |
+| `fontkit` | 2.0.4 | 2026-10-18 | Reads a font subset back for the glyph-coverage gate in `automata-content assets`. Only the `./assets` subpath imports it, so it stays out of browser graphs |
+| `knip` | 6.39.0 | 2026-10-16 | Unused files, exports and dependencies in `pnpm check` (`knip.jsonc`); a 2-week-old release when added |
 | `koota` | 0.6.6 | 2026-10-01 | ECS inside the sim (ADR 0001) |
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
-| `pixi.js` | 8.22.0 | 2026-10-30 | 2D renderer (ADR 0002). M3.2 (runtime lane): moved from FloorFifty's 8.21.0 (`45482fb`, `pnpm-lock.yaml`) to 8.22.0, the peer floor of the vendored `@pixi/3d` 0.1.0-beta.2 (`^8.22.0`) and npm latest; S7-Q6: no change AF depends on, and FloorFifty's filter-stack guard is not extracted ([M3.2 plan](superpowers/plans/2026-10-30-m3-2-pixi-822.md)) |
-| `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under Ruken's `font-src 'self' data:` |
-| `@fontsource-variable/geist` | 5.3.0 | 2026-11-06 | the editor kit's and the website's interface face (`packages/editor`, `site`) (OFL-1.1), bundled so the editors load offline and the site makes no third-party request |
-| `@fontsource-variable/geist-mono` | 5.3.0 | 2026-11-06 | the editor kit's and the website's face for paths and numbers (`packages/editor`, `site`) (OFL-1.1), bundled likewise |
-| `@decimalturn/toml-patch` | 3.3.1 | 2026-10-23 | editor lane: patches TOML content documents in `packages/editor-kit` (`documents/toml/`) while keeping their comments and layout (MIT); an unchanged document prints byte for byte and a one-value edit changes one line. Array-of-tables structure edits are not safe with comments. `pnpm deps:new` could not run in the sandbox. Its first user, the 2D editor's stage profile, was removed in STANDALONE.3 |
-| `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
-| `pngjs` | 7.0.0 | 2026-10-17 | content lane (M5.6): decodes atlas frames and encodes atlas pages in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, `packages/asset-contract`), already in the lockfile through `@vitest/browser`. Only the `./assets` subpath imports it, so it stays out of browser graphs |
-| `smol-toml` | 1.9.0 | 2026-10-11 | Same as Ruken: reads the TOML under `content/` in `@mcthaydt/automata-content` (M1.3 content spec §8); writes the AF content export of the 2D editor (`packages/editor-2d`, ED2D.3); reads the game's editor list, `content/editors.toml`, in `packages/editor-suite` (EDS.1c) |
-| `subset-font` | 2.9.0 | 2026-10-18 | content lane (M5.5): cuts each language's font subset to woff2 (harfbuzz wasm) in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, `packages/asset-contract/tools/subset-fonts.ts`). Build time only, through the `./assets` subpath; never in a game bundle |
-| `tsdown` | 0.23.0 | 2026-10-11 | Same as Ruken: builds every published package's `dist` (M2.4). With isolatedDeclarations it writes `.d.ts` with oxc and never needs TypeScript's JS API, which TypeScript 7 lacks |
-| `turbo` | 2.11.6 | 2026-10-01 | Same as Ruken: task runner, local cache only |
-| `typescript` | 7.0.2 | 2026-10-01 | Ruken holds 6.0.3 only for svelte-check, typescript-eslint, SvelteKit and Prisma, none of which AF uses (ship spec §3.1) |
-| `vite` | 8.3.3 | 2026-10-23 | Same as Ruken: builds the placeholder page (and later every AF game) |
-| `vitest` | 5.0.3 | 2026-10-01 | Same as Ruken: unit and parity test runner |
-| `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse the workflows in repo-hygiene's workflow invariants |
-| `yauzl` | 3.4.0 | 2026-10-11 | Same as Ruken: a runtime dependency of the vendored `@ruken/cli`, which `@mcthaydt/automata-tools` ships in `dist/vendor/ruken-cli/` |
-| `yazl` | 3.3.1 | 2026-10-11 | Same as Ruken: the same, for `@ruken/cli` inside `@mcthaydt/automata-tools` |
-| `zod` | 4.6.6 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
-| `@sveltejs/package` | 3.0.0 | 2026-10-11 | ship lane: builds `@mcthaydt/automata`'s published `dist/`, Svelte's documented library layout: `.svelte` shipped as Svelte source with TypeScript stripped. Peer `typescript` ^6, so it runs on the 6.0.3 the package pins |
-| `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | ui lane: compiles Svelte 5 in `packages/ui` and `examples/2d/ui/primitives` |
-| `@tauri-apps/api` | 2.12.4 | 2026-10-31 | host lane (DIST.5a): the desktop adapter's window API (`onCloseRequested`) and the IPC mocks its tests use, in `@mcthaydt/automata`'s `targets/tauri/` folder only. MIT or Apache-2.0; released 2026-10-14. An optional peer: a game that builds for `tauri` installs it |
-| `@tauri-apps/plugin-process` | 2.4.0 | 2026-10-31 | host lane (DIST.5a): Quit (`exit(0)`) in the desktop adapter. MIT or Apache-2.0; released 2026-09-26. An optional peer of `@mcthaydt/automata` |
-| `@tauri-apps/plugin-store` | 2.5.0 | 2026-10-31 | host lane (DIST.5a): the desktop adapter's saves, one `saves.json` store in the app's data folder (DIST spec §6.1). MIT or Apache-2.0; released 2026-09-26. An optional peer of `@mcthaydt/automata` |
-| `@tauri-apps/cli` | 2.12.3 | 2026-10-31 | ship lane (DIST.6): the Tauri CLI `prepare --target tauri` runs, a dev dependency `create-game` writes for a game that builds for `tauri` (ship does not carry it, DIST.5b). MIT or Apache-2.0; released 2026-10-14 |
-| `@testing-library/dom` | 10.4.2 | 2026-10-11 | ui lane: DOM behaviour tests (AGENTS.md, Responsive UI) |
-| `@testing-library/jest-dom` | 7.0.1 | 2026-10-11 | ui lane: DOM matchers for those tests |
-| `@testing-library/svelte` | 5.4.2 | 2026-10-11 | ui lane: renders Svelte components in those tests |
-| `@testing-library/user-event` | 14.6.7 | 2026-10-11 | ui lane: player input in those tests |
-| `jsdom` | 30.1.1 | 2026-10-11 | ui lane: the `unit` test environment for `packages/ui` |
-| `svelte` | 5.57.1 | 2026-10-11 | ui lane: the UI framework (master spec §3, rune stores) |
-| `svelte-check` | 4.7.6 | 2026-10-11 | ui lane: typechecks `.svelte` files |
-| `typescript` | 6.0.3 | 2026-10-11 | ui lane: for `svelte-check`, which does not support TypeScript 7 yet; ship lane: `tooling/api-index` (DX.4) and `tooling/api-report` (PRODUCT.1) use its JS compiler API (`transpileDeclaration`, the checker), since 7.0.2 has only `typescript/unstable/*`. The rest of AF uses 7.0.2 (as Ruken holds 6.0.3 for svelte-check) |
+| `pixi.js` | 8.22.0 | 2026-10-30 | 2D renderer (ADR 0002). 8.22.0 is the peer floor of the vendored `@pixi/3d` 0.1.0-beta.2 (`^8.22.0`) and was npm latest when moved; no change in it that AF depends on ([the move's plan](archive/superpowers/plans/2026-10-30-m3-2-pixi-822.md)) |
+| `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under a CSP that allows only `font-src 'self' data:` |
+| `@fontsource-variable/geist` | 5.3.0 | 2026-11-06 | The editor kit's and the website's interface face (`packages/editor`, `site`) (OFL-1.1), bundled so the editors load offline and the site makes no third-party request |
+| `@fontsource-variable/geist-mono` | 5.3.0 | 2026-11-06 | The editor kit's and the website's face for paths and numbers (`packages/editor`, `site`) (OFL-1.1), bundled likewise |
+| `@decimalturn/toml-patch` | 3.3.1 | 2026-10-23 | Patches TOML content documents in the editor (`documents/toml/`) while keeping their comments and layout (MIT); an unchanged document prints byte for byte and a one-value edit changes one line. Array-of-tables structure edits are not safe with comments |
+| `playwright` | 1.63.0 | 2026-10-01 | Browsers for parity and DOM checks; the same version as `@playwright/test` |
+| `pngjs` | 7.0.0 | 2026-10-17 | Decodes atlas frames and encodes atlas pages in `automata-content assets`. Only the `./assets` subpath imports it, so it stays out of browser graphs |
+| `smol-toml` | 1.9.0 | 2026-10-11 | Reads the TOML under `content/` in `@mcthaydt/automata-content`, writes the 2D editor's content export and reads the game's editor list, `content/editors.toml` |
+| `subset-font` | 2.9.0 | 2026-10-18 | Cuts each language's font subset to woff2 (harfbuzz wasm) in `automata-content assets`. Build time only, through the `./assets` subpath; never in a game bundle |
+| `tsdown` | 0.23.0 | 2026-10-11 | Builds every published package's `dist`. With isolatedDeclarations it writes `.d.ts` with oxc and never needs TypeScript's JS API, which TypeScript 7 lacks |
+| `turbo` | 2.11.6 | 2026-10-01 | Task runner, local cache only |
+| `typescript` | 7.0.2 | 2026-10-01 | Everything but `svelte-check` and the two tools below; TypeScript 7's native compiler |
+| `vite` | 8.3.3 | 2026-10-23 | Builds every AF game, example, editor and the site |
+| `vitest` | 5.0.3 | 2026-10-01 | Unit and parity test runner |
+| `yaml` | 2.9.1 | 2026-10-11 | Parses the workflows in repo-hygiene's workflow invariants and the template's release workflow in the tools' tests |
+| `yauzl` | 3.4.0 | 2026-10-11 | A runtime dependency of the vendored `@ruken/cli`, which `@mcthaydt/automata-tools` ships in `dist/vendor/ruken-cli/` |
+| `yazl` | 3.3.1 | 2026-10-11 | The same, for `@ruken/cli` inside `@mcthaydt/automata-tools` |
+| `zod` | 4.6.6 | 2026-10-01 | The one schema language (ADR 0003) |
+| `@sveltejs/package` | 3.0.0 | 2026-10-11 | Builds `@mcthaydt/automata`'s published `dist/`, Svelte's documented library layout: `.svelte` shipped as Svelte source with TypeScript stripped. Peer `typescript` ^6, so it runs on the 6.0.3 the package pins |
+| `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | Compiles Svelte 5 in the UI, the editors, the site and `examples/2d/ui/primitives` |
+| `@tauri-apps/api` | 2.12.4 | 2026-10-31 | The desktop adapter's window API (`onCloseRequested`) and the IPC mocks its tests use, in `@mcthaydt/automata`'s `targets/tauri/` folder only. MIT or Apache-2.0; released 2026-10-14. An optional peer: a game that builds for `tauri` installs it |
+| `@tauri-apps/plugin-process` | 2.4.0 | 2026-10-31 | Quit (`exit(0)`) in the desktop adapter. MIT or Apache-2.0; released 2026-09-26. An optional peer of `@mcthaydt/automata` |
+| `@tauri-apps/plugin-store` | 2.5.0 | 2026-10-31 | The desktop adapter's saves, one `saves.json` store in the app's data folder. MIT or Apache-2.0; released 2026-09-26. An optional peer of `@mcthaydt/automata` |
+| `@tauri-apps/cli` | 2.12.3 | 2026-10-31 | The Tauri CLI `prepare --target tauri` runs, a dev dependency `create-game` writes for a game that builds for `tauri` (ship does not carry it). MIT or Apache-2.0; released 2026-10-14 |
+| `@testing-library/dom` | 10.4.2 | 2026-10-11 | DOM behaviour tests (AGENTS.md, Responsive UI) |
+| `@testing-library/jest-dom` | 7.0.1 | 2026-10-11 | DOM matchers for those tests |
+| `@testing-library/svelte` | 5.4.2 | 2026-10-11 | Renders Svelte components in those tests |
+| `@testing-library/user-event` | 14.6.7 | 2026-10-11 | Player input in those tests |
+| `jsdom` | 30.1.1 | 2026-10-11 | The `unit` test environment for the UI's DOM tests |
+| `svelte` | 5.57.1 | 2026-10-11 | The UI framework (rune stores) |
+| `svelte-check` | 4.7.6 | 2026-10-11 | Typechecks `.svelte` files |
+| `typescript` | 6.0.3 | 2026-10-11 | For `svelte-check`, which does not support TypeScript 7 yet, and for `tooling/api-index` and `tooling/api-report`, which use its JS compiler API (`transpileDeclaration`, the checker), since 7.0.2 has only `typescript/unstable/*` |
 
 ## Tools run without installing
 
@@ -73,8 +69,8 @@ Run through `pnpm dlx` or `npx -y` at an exact version, so they are in no `packa
 
 | Package | Version | Date | Why |
 |---|---|---|---|
-| `@anthropic-ai/claude-code` | 2.1.301 | 2026-10-16 | integration lane (DX.7): `claude plugin validate --strict` on the agent plugin and marketplace (`pnpm plugin:validate`, through `pnpm dlx`, not a devDependency: it pulls a platform binary), and the Claude Code version the install test ran on. 2.1.301 is what the container had; the claim is "tested on 2.1.301" |
-| `skills` | 1.7.0 | 2026-10-16 | integration lane (DX.7): the Agent Skills installer (`npx skills add`) in the install test, run through `npx -y`; 1.7.0 (2026-09-17), as 1.7.1 and 1.7.2 are under two weeks old |
+| `@anthropic-ai/claude-code` | 2.1.301 | 2026-10-16 | `claude plugin validate --strict` on the agent plugin and marketplace (`pnpm plugin:validate`, through `pnpm dlx`, not a devDependency: it pulls a platform binary), and the Claude Code version the install test ran on. 2.1.301 is what the container had; the claim is "tested on 2.1.301" |
+| `skills` | 1.7.0 | 2026-10-16 | The Agent Skills installer (`npx skills add`) in the install test, run through `npx -y`; 1.7.0 (2026-09-17), as 1.7.1 and 1.7.2 were under two weeks old |
 
 ## Container images
 

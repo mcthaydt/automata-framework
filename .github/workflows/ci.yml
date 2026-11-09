@@ -10,13 +10,13 @@ name: ci
 # Emberwick's game CI run for a pull request only when it is ready for review and changes more than docs/ and
 # Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are unchanged.
 #
-# What it leaves to other workflows (core-and-2D refactor, spec section 3.4): the 3D suites run in
+# What it leaves to other workflows: the 3D suites run in
 # 3d.yml, and the release-only checks (build, API report, API index, agent skills, plugin validation,
 # consumer smoke) in release-checks.yml, which release-packages.yml calls before it publishes.
 #
 # Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
 # about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
-# label af-linux (WSL2 Ubuntu with Docker, like Ruken's ruken-linux; ship spec §3.7). There is deliberately no
+# label af-linux (WSL2 Ubuntu with Docker). There is deliberately no
 # fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The
 # repository variable AF_LINUX_RUNNER switches every job to another label (ubuntu-latest once hosted minutes
 # are back), and AF_GPU_RUNNER moves the browser journeys alone. Parity alone runs on the Owner's Mac (label
@@ -47,7 +47,7 @@ permissions:
 
 # A pull request's new push cancels its older run. A push to main never cancels the run in progress: with merges
 # landing minutes apart, every main run was cancelled before parity finished, so main had no complete run to take
-# evidence from (website DX.9w syncs the `evidence` artifact from a successful main run). GitHub keeps at most one
+# evidence from. GitHub keeps at most one
 # pending run per group, so main's queue stays one deep: the run in progress finishes and the latest push runs next.
 concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name }}
@@ -108,19 +108,19 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm boundaries
       - run: pnpm style
-      # QB.1 (QB spec §4.1): unused files, exports and dependencies (knip.jsonc).
+      # Unused files, exports and dependencies (knip.jsonc).
       - run: pnpm knip
       - run: pnpm test:unit:2d
-      # QB.1: each of these first proves it fails on its planted fixture, then checks the repository. The audit is
+      # Each of these first proves it fails on its planted fixture, then checks the repository. The audit is
       # `pnpm audit --prod --audit-level=high`; the secret scan runs the pinned gitleaks over the full history
       # (fetch-depth 0 above).
       - run: pnpm audit:deps
       - run: pnpm secrets
-      # QB.1: every package this pull request adds that main never used, with its registry, publisher and weekly
+      # Every package this pull request adds that main never used, with its registry, publisher and weekly
       # downloads, in the job summary. Fails when a package or version is not on its registry.
       - run: pnpm deps:new --base origin/main
         if: github.event_name == 'pull_request'
-      # Releases (M2.4 spec §3.5): a pull request that changes a published package carries a changeset, and every
+      # Releases: a pull request that changes a published package carries a changeset, and every
       # changeset is a patch before 1.0. Each takes seconds, so a missing changeset shows here, not at publish. The
       # build, API report and the other release-only checks run in release-checks.yml.
       - run: pnpm changeset status --since=origin/main
@@ -154,7 +154,7 @@ jobs:
         with:
           persist-credentials: false
           # Changesets' release tags (`<package>@<version>`), from which evidence.json says which versions were
-          # released (DX spec §3.10).
+          # released.
           fetch-tags: true
           # The merge commit and its parents, so the affected run below can compare HEAD^1..HEAD.
           fetch-depth: 2
@@ -312,7 +312,7 @@ jobs:
 
   frame-budget:
     name: frame budget (nightly, GPU runner)
-    # PRODUCT.7 (PRODUCT spec §2 F5): ms/frame of the core stress example's production build. A performance probe
+    # Milliseconds per frame of the core stress example's production build. A performance probe
     # needs the GPU to itself (AGENTS.md), so it runs one at a time (`concurrency`) and never beside a journey run. `pnpm budget:frame` fails closed until tooling/frame-budget/budget.json is set
     # from the first run on this runner (Owner acceptance), and on any software-rendered result.
     if: >-

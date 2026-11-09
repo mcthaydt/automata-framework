@@ -5,8 +5,12 @@
 // --plan-comments, but it has no naming or markup rules. The *.test.ts and *.test.svelte
 // suffixes stay exempt only until the 3D and editor packages move their tests. Svelte files get the markup rules (no {@html}, no platform chrome);.ts files the naming rules. Roots after
 // --role-layout are a game's src/ laid out by role: only games/base-3d, until the 3D phase. A game laid out by feature is a package root.
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+// `--docs` (alone, from the repository root) reads the tracked Markdown, YAML and .npmrc instead: plan IDs in their
+// prose and comments, and relative links that lead nowhere (src/docs.ts).
+import { execFileSync } from 'node:child_process'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
+import { checksLinks, checksPlanIds, docPlanIdFindings, linkFindings } from './docs.ts'
 import { planCommentFindings } from './plan-comments.ts'
 import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'
 import { checkSvelte } from './svelte.ts'
@@ -33,6 +37,34 @@ function collect(dir: string, out: string[]): void {
     else if (name.endsWith('.css')) out.push(path)
     else if (name.endsWith('.svelte') && !name.endsWith('.test.svelte')) out.push(path)
   }
+}
+
+/** Prints the findings and exits: 1 with findings, 0 without. */
+function report(findings: readonly StyleFinding[], fileCount: number): never {
+  for (const f of findings) {
+    const where = f.line ? `${relative(process.cwd(), f.file)}:${f.line}` : relative(process.cwd(), f.file)
+    console.log(`${where}  ${f.rule}  ${f.message}`)
+  }
+  console.log(`check-style: ${fileCount} files, ${findings.length} findings`)
+  process.exit(findings.length > 0 ? 1 : 0)
+}
+
+if (process.argv.includes('--docs')) {
+  // Tracked files only: what is ignored is nobody's text.
+  const tracked = execFileSync('git', ['ls-files', '*.md', '*.yml', '*.yaml', '.npmrc'], { encoding: 'utf8' })
+    .split('\n')
+    .filter((file) => file !== '' && existsSync(file))
+  const docs = tracked.filter((file) => checksPlanIds(file) || checksLinks(file))
+  report(
+    docs.flatMap((file) => {
+      const text = readFileSync(file, 'utf8')
+      return [
+        ...(checksPlanIds(file) ? docPlanIdFindings(file, text) : []),
+        ...(checksLinks(file) ? linkFindings(file, text, existsSync) : []),
+      ]
+    }),
+    docs.length,
+  )
 }
 
 const planComments = process.argv.includes('--plan-comments')
@@ -110,9 +142,4 @@ const findings: StyleFinding[] = [
   ...files.flatMap(({ path, gameRoot, commentsOnly }) => findingsFor(path, gameRoot, commentsOnly === true)),
   ...testFiles.flatMap((path) => testImportFindings(path, readFileSync(path, 'utf8'))),
 ]
-for (const f of findings) {
-  const where = f.line ? `${relative(process.cwd(), f.file)}:${f.line}` : relative(process.cwd(), f.file)
-  console.log(`${where}  ${f.rule}  ${f.message}`)
-}
-console.log(`check-style: ${files.length + testFiles.length} files, ${findings.length} findings`)
-process.exit(findings.length > 0 ? 1 : 0)
+report(findings, files.length + testFiles.length)

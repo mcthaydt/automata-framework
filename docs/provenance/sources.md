@@ -7,7 +7,7 @@ taken, and the licence. Specs, plans and code refer to a source only by its neut
 
 STANDALONE.2 extends this file to every earlier extraction; until then it holds M6's entries only.
 
-## M6: gameplay extensions ([M6 spec](../superpowers/specs/2026-10-16-m6-gameplay-extensions-design.md))
+## M6: gameplay extensions ([M6 spec](../archive/superpowers/specs/2026-10-16-m6-gameplay-extensions-design.md))
 
 ### The adventure source
 
@@ -52,6 +52,20 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | Repository | `mcthaydt/AutomataEngine-LegacyV2-` (private) |
 | Commit | `18525fc` |
 | Used | `docs/references/Narrative Architecture.md` (layered storylets; one shared state of facts, relationships, promises and reputations) as design input for `narrative` (row M6.8a; Owner, 2026-10-30: "Steal everything you need to") |
+
+## Core: the doc comments that named their source (moved here 2026-11-07)
+
+The published doc comments below named the arcade source (`SNEKPRTY/FloorFifty`); the doc comments no longer do, so
+the record is here.
+
+| AF file | Taken from |
+| --- | --- |
+| `packages/automata/src/shared/ui/touch/TouchControls.svelte` | `ui/components/TouchControls.svelte` at `ac72660` |
+| `packages/automata/src/testing/layout/assertions.ts` | `tests/e2e/support/layout.ts` at `122a220` (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`) |
+| `packages/automata/src/shared/ui/layout/OptionGroup.svelte` | its pause and settings rows, which used `<button role="radio">` |
+| `packages/automata/src/features/render/renderer.ts` | the plum-black letterbox colour `0x2e222f` |
+| `packages/content/src/shared/flow/check-flow.ts` | `FLOW_TARGETS` and `byPair` |
+| `packages/sim/src/features/replay/pack.ts` | the 1 MiB replay cap, raised here for goldens |
 
 ## Third-party assets copied into this repository
 

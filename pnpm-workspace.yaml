@@ -2,7 +2,7 @@ packages:
   - packages/*
   - tooling/*
   - games/*
-  # The one-file examples (EX spec §5), one package per dimension, and the feature demos inside the 2D one
+  # The one-file examples, one package per dimension, and the feature demos inside the 2D one
   # (examples/2d/content/hot-reload, examples/2d/ui/primitives).
   - examples/2d
   - examples/3d
