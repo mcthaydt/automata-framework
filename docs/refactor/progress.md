@@ -702,6 +702,14 @@ transitions.
 new level across a reload (OPFS); it reopens on the editor's Home, not on the level. The editors' motion waits for the
 editors v2 build and uses Motion (MIT) and Svelte's built-in transitions, not GSAP (the Owner, 2026-11-09). Credits
 entries for Lenis and Motion (both MIT) go in when AF #521 lands.
+## Shared editors: every editor in 2D and 3D games (stage 1 of 6 done, 2026-11-08)
+
+The Owner, 2026-11-08: "all editors should work between 2D and 3D unless obviously not like 2D editor vs 3D editor".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08, on PR #508: 5 high (S1 to S5), 8 medium (S6 to S13), 3 low (S14 to S16), one decision for the Owner (D1, what Characters means in a 2D game; the Owner chose A the same day: one Characters editor on the rail in both kinds). A 2D and a 3D game were made in the editors, played and seen; the 2D game's Feel and Audio players were wired into a 3D game by hand and worked | [audit](2026-11-08-shared-editors-audit.md) |
+| 2. Plan and spec | Not started; based on #508, it turns #508's expected failures into passing journeys | |
 
 ## The paid apps: desktop and mobile: 50% (3 of 6 stages done, 2026-11-08)
 
