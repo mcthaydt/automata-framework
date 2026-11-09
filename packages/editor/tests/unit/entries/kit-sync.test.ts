@@ -1,4 +1,4 @@
-// The sync entry (`@mcthaydt/automata-editor/kit/sync`): GitHub sign-in, the sync loop and the merge by file kind,
+// The sync entry (`@automata/editor/kit/sync`): GitHub sign-in, the sync loop and the merge by file kind,
 // shared by the web editors and the Automata app. It takes its network, keychain, timers and git engine as arguments,
 // so it reaches no Node, no Effect, no DOM and no Svelte.
 import { readFileSync } from 'node:fs'
