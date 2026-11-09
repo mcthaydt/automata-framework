@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -33,7 +33,8 @@ describe('strangerFolder', () => {
   it('makes a new empty folder under the given base', () => {
     const base = mkdtempSync(join(tmpdir(), 'af-stranger-test-'))
     const folder = strangerFolder(base)
-    expect(folder.startsWith(base)).toBe(true)
+    // The folder is a real path, and macOS's tmpdir is a symlink (/var -> /private/var), so compare real paths.
+    expect(folder.startsWith(realpathSync(base))).toBe(true)
   })
 
   it('refuses a base inside a pnpm workspace, where the game would resolve the repository', () => {
