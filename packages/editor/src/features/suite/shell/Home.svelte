@@ -34,7 +34,7 @@ const cards = $derived(
 )
 </script>
 
-<div class="scroll" data-testid="suite-home">
+<div class="scroll" data-scroll-region data-testid="suite-home">
   <header>
     <h1>{title}</h1>
     {#if actions}<span class="actions">{@render actions()}</span>{/if}
