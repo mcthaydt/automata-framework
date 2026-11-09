@@ -15,7 +15,12 @@ function site(options: { signedIn?: boolean } = {}) {
   let signedIn = options.signedIn ?? true
   const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
-    asked.push({ url, method: init?.method ?? 'GET', headers: new Headers(init?.headers), body: String(init?.body ?? '') })
+    asked.push({
+      url,
+      method: init?.method ?? 'GET',
+      headers: new Headers(init?.headers),
+      body: String(init?.body ?? ''),
+    })
     if (url === '/api/github/ping') return json({ github: 'ready' })
     if (url === '/api/github/token') {
       if (!signedIn) return new Response(null, { status: 401 })
@@ -52,9 +57,11 @@ function fakeChannels() {
     all.add(mine)
     return {
       postMessage(data: unknown) {
-        for (const other of all) if (other !== mine) for (const listener of other.listeners) listener({ data } as MessageEvent)
+        for (const other of all)
+          if (other !== mine) for (const listener of other.listeners) listener({ data } as MessageEvent)
       },
-      addEventListener: (_type: string, listener: (event: MessageEvent) => void) => void mine.listeners.push(listener),
+      addEventListener: (_type: string, listener: (event: MessageEvent) => void) =>
+        void mine.listeners.push(listener),
       removeEventListener: () => undefined,
       close: () => undefined,
     } as unknown as BroadcastChannel
@@ -63,7 +70,12 @@ function fakeChannels() {
 
 function session(fetchFn: typeof fetch, extra: Record<string, unknown> = {}) {
   const navigated: string[] = []
-  const made = createWebGitHubSession({ fetch: fetchFn, now: () => 10_000_000 - 120_000, navigate: (url) => navigated.push(url), ...extra })
+  const made = createWebGitHubSession({
+    fetch: fetchFn,
+    now: () => 10_000_000 - 120_000,
+    navigate: (url) => navigated.push(url),
+    ...extra,
+  })
   return { made, navigated }
 }
 
@@ -71,7 +83,11 @@ describe('githubReady', () => {
   it('is true only when the function says ready', async () => {
     expect(await githubReady(site().fetchFn)).toBe(true)
     expect(await githubReady((async () => new Response(null, { status: 404 })) as typeof fetch)).toBe(false)
-    expect(await githubReady((async () => { throw new TypeError('offline') }) as typeof fetch)).toBe(false)
+    expect(
+      await githubReady((async () => {
+        throw new TypeError('offline')
+      }) as typeof fetch),
+    ).toBe(false)
   })
 })
 
@@ -100,7 +116,9 @@ describe('token', () => {
   })
 
   it('is nothing, and does not claim the person signed out, when the network fails', async () => {
-    const { made } = session((async () => { throw new TypeError('offline') }) as typeof fetch)
+    const { made } = session((async () => {
+      throw new TypeError('offline')
+    }) as typeof fetch)
     expect(await made.token()).toBeUndefined()
     expect(made.signedIn).toBeUndefined()
   })
