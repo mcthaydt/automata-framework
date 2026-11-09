@@ -1,4 +1,4 @@
-// The headless half of keeping a game on GitHub (`@mcthaydt/automata-editor/kit/sync`): merging a file edited on both
+// The headless half of keeping a game on GitHub (`@automata/editor/kit/sync`): merging a file edited on both
 // sides, the sync loop and its status line, and GitHub sign-in. It takes its network, keychain, timers and git engine
 // as arguments, so the web editors and the Automata app share it; neither is the reference.
 
