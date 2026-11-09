@@ -25,13 +25,12 @@ describe('registryFor', () => {
 })
 
 describe('scopeRegistries', () => {
-  it('reads each @scope:registry line, trimming a trailing slash', () => {
-    expect(
-      scopeRegistries('# a comment\n@automata:registry=https://npm.pkg.github.com/\nlink=true\n'),
-    ).toEqual(scopes)
+  it('reads each `@scope:registry=url` line and drops a trailing slash', () => {
+    const npmrc = '@automata:registry=https://npm.pkg.github.com/\n# a comment\nauto-install-peers=true\n'
+    expect(scopeRegistries(npmrc)).toEqual({ '@automata': 'https://npm.pkg.github.com' })
   })
 
-  it('is empty when the repo has no .npmrc, so every package comes from npmjs.org', () => {
+  it('has no scopes when the repository has no .npmrc, so every package resolves from npmjs.org', () => {
     expect(scopeRegistries(undefined)).toEqual({})
   })
 })
