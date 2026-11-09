@@ -318,19 +318,25 @@ class CellDrawPass extends RenderPass implements GraphRenderPass {
 }
 
 /**
- * Composites painted cells into the scene. `show` replaces the cells drawn each frame; an empty list draws nothing.
+ * Composites painted cells into the scene. `show` replaces the cells a source draws each frame; no cells draw nothing.
  * The pass survives graph rebuilds, as every `Pass3D`; call `destroy` when it is retired.
  */
 export class CellCompositePass extends Pass3D {
   readonly stage = 'afterTransparent' as const
   private _cells: readonly PlacedCell[] = []
+  private readonly _shown = new Map<string, readonly PlacedCell[]>()
 
   get cells(): readonly PlacedCell[] {
     return this._cells
   }
 
-  show(cells: readonly PlacedCell[]): void {
-    this._cells = cells
+  /**
+   * Replaces the cells `source` draws; the other sources' stay. Figures and particles each show their own, so neither
+   * clears the other's frame.
+   */
+  show(cells: readonly PlacedCell[], source = 'figures'): void {
+    this._shown.set(source, cells)
+    this._cells = [...this._shown.values()].flat()
   }
 
   build(graph: RenderGraph, ctx: PassContext): void {

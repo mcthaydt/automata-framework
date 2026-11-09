@@ -8,6 +8,7 @@ import {
   type Box3,
   drawLevel,
   type FigureViewState,
+  type LevelEffects,
   type LevelView,
   type Look,
   type Occluders,
@@ -114,6 +115,8 @@ export interface SceneInput {
   readonly views: readonly { readonly distance: number; readonly tiltDeg: number }[]
   /** The rig, which the room follows to show each view's tiles; none without a camera. */
   readonly camera?: CameraRig | undefined
+  /** Where the room's spot lamps and emitters go to show; none without a look. */
+  readonly effects?: LevelEffects | undefined
 }
 
 /**
@@ -149,6 +152,8 @@ export function buildScene(
     field: input.look.pixel,
   }).then((drawn) => {
     level = drawn
+    input.effects?.shafts?.lamps(drawn.spots)
+    for (const emitter of drawn.emitters) input.effects?.particles?.add(emitter)
     // Each view shows the tiles made for its distance and tilt.
     const camera = input.camera
     if (camera !== undefined) {

@@ -81,6 +81,28 @@ describe('drawLevel', () => {
     level.dispose()
   })
 
+  it('hands the look its spot lamps that show a shaft, and its emitters', async () => {
+    const { view, tiles } = drawn(maker())
+    const level = await drawLevel(
+      view,
+      input(tiles, {
+        level: {
+          ...BASE_SCENES['base-exterior'],
+          emitters: [{ kind: 'steam', at: [1, 0, 1] }],
+        },
+        time: timeOfDay('night'),
+      }),
+    )
+    expect(level.spots.length).toBeGreaterThan(0)
+    for (const spot of level.spots) {
+      expect(spot.cone).toBeGreaterThan(0)
+      expect(spot.range).toBeGreaterThan(0)
+      expect(spot.strength).toBe(1)
+    }
+    expect(level.emitters).toEqual([{ kind: 'steam', at: [1, 0, 1] }])
+    level.dispose()
+  })
+
   it('swaps tiles for a new camera without rebuilding, the old tile up until the new is made', async () => {
     const made = maker()
     const { view, tiles } = drawn(made)

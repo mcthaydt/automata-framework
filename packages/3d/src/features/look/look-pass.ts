@@ -1,5 +1,5 @@
 // The look's passes, in the order they run: the DUEL snap, then the outline when it is switched on, the sky (its stars are
-// the `stars` switch's), the glow, the reflections, the rain, then the passes extensions added with `addLookPass`, then the finish, always
+// the `stars` switch's), the glow, the reflections, the shafts, the rain, then the passes extensions added with `addLookPass`, then the finish, always
 // last. An extension's pass has its own switch and keeps the frame's alpha, which the finish reads.
 
 import type { Pass3D, View3D } from '@pixi/3d'
@@ -14,6 +14,7 @@ import { GlowEffect } from './passes/glow-effect.ts'
 import { RainEffect } from './passes/rain-effect.ts'
 import { ReflectEffect } from './passes/reflect-effect.ts'
 import { duelTriple } from './passes/shader-parts.ts'
+import { ShaftsEffect } from './passes/shafts-effect.ts'
 import { type HorizonLayer, SkyEffect } from './passes/sky-effect.ts'
 
 /** A pass an extension adds after core's: `make` builds it for a look and a time of day. */
@@ -32,6 +33,8 @@ export interface LookPasses {
   readonly glow: GlowEffect | undefined
   /** Wet ground's reflections, when the look allows them and the time of day has rain. */
   readonly reflect: ReflectEffect | undefined
+  /** Spot lamps' light shafts, when the look allows them. */
+  readonly shafts: ShaftsEffect | undefined
   /** Rain, when the look allows it and the time of day has some. */
   readonly rain: RainEffect | undefined
   /** The extensions' passes, in registration order. */
@@ -73,6 +76,7 @@ export function createLookPasses(
   const raining = look.switches.rain ? time.scene.rain : undefined
   const wet = raining === undefined || raining.density <= 0 ? 0 : raining.density
   const reflect = look.switches.reflect && wet > 0 ? new ReflectEffect(wet) : undefined
+  const shafts = look.switches.shafts ? new ShaftsEffect() : undefined
   const rain =
     raining === undefined || raining.density <= 0
       ? undefined
@@ -91,6 +95,7 @@ export function createLookPasses(
       sky,
       ...(glow ? [glow] : []),
       ...(reflect ? [reflect] : []),
+      ...(shafts ? [shafts] : []),
       ...(rain ? [rain] : []),
       ...extra,
       finish,
@@ -100,6 +105,7 @@ export function createLookPasses(
     sky,
     glow,
     reflect,
+    shafts,
     rain,
     extra,
     finish,
@@ -107,8 +113,12 @@ export function createLookPasses(
       sky.clock = seconds
       if (rain !== undefined) rain.clock = seconds
       if (reflect !== undefined) reflect.clock = seconds
+      if (shafts !== undefined) shafts.clock = seconds
     },
-    camera: (view) => reflect?.camera(view),
+    camera: (view) => {
+      reflect?.camera(view)
+      shafts?.camera(view)
+    },
     aim: (yaw, pitch) => sky.aim(yaw, pitch),
   }
 }

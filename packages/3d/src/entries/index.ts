@@ -7,6 +7,7 @@ export { type BrowserTileStore, createBrowserTileStore } from '../app/browser-ti
 export {
   acceptsRenderer,
   createPixi3dRenderer,
+  type LevelEffects,
   type Pixi3dOptions,
   type Pixi3dRenderer,
   type RendererKind,

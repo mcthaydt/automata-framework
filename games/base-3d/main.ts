@@ -186,13 +186,14 @@ export const base3d = defineGame({
         follow: Hero.id,
         position: (c) => placed(c.hero),
       },
-      scene: (view, _stage, occluders, _light, _models, camera) => {
+      scene: (view, _stage, occluders, _light, _models, camera, effects) => {
         const scene = buildScene(view, occluders, ROOM, ROOM_WORLD, {
           look: DEFAULT_LOOK,
           tiles: TILES,
           time: ROOM_TIME,
           views: AREA.views,
           camera,
+          effects,
         })
         return {
           ready: scene.ready,

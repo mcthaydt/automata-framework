@@ -26,8 +26,10 @@ import {
   occluderHooks,
 } from '../features/camera/occluders/occluders.ts'
 import { createFigureLayer, type FigureLayer } from '../features/figures/layer/figure-layer.ts'
+import { createParticleLayer, type ParticleLayer } from '../features/figures/layer/particle-layer.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { createLookPasses, type LookPasses } from '../features/look/look-pass.ts'
+import type { ShaftsEffect } from '../features/look/passes/shafts-effect.ts'
 import type { HorizonLayer } from '../features/look/passes/sky-effect.ts'
 import { type ContextWatch, watchContextLoss } from '../features/renderer/context-loss.ts'
 import { pixi3dUniformSyncInstalled } from '../features/renderer/no-eval/pixi3d-uniform-sync.ts'
@@ -57,7 +59,8 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    * ceilings and tall props are registered with `occluders`, so the angled camera's occluder rule keeps them off the
    * player. With `lighting`, `light` is the room's light: bake each static mesh with
    * `light.bake(mesh)`. `models` holds the views' model files and the scene's own (`models`), loaded. It may return
-   * hooks, which run after the views (and the camera) each step and frame.
+   * hooks, which run after the views (and the camera) each step and frame. `effects` is where it hands the look the
+   * level's spot lamps and emitters.
    */
   readonly scene?:
     | ((
@@ -67,6 +70,7 @@ export interface Pixi3dOptions extends PixiRendererOptions {
         light: SceneLight | undefined,
         models: ModelLibrary,
         camera: CameraRig | undefined,
+        effects: LevelEffects,
       ) => (PixiStageHooks & SceneReady) | undefined)
     | undefined
   /**
@@ -176,6 +180,12 @@ function mergeHooks(...all: readonly (PixiStageHooks | undefined)[]): PixiStageH
   }
 }
 
+/** What a level lets the look show: the shafts of its spot lamps and the particles of its emitters; none when the look turns it off. */
+export interface LevelEffects {
+  readonly shafts: ShaftsEffect | undefined
+  readonly particles: ParticleLayer | undefined
+}
+
 interface Mounted {
   readonly view: View3D
   readonly occluders: OccluderStage
@@ -187,6 +197,8 @@ interface Mounted {
   readonly passes: LookPasses | undefined
   /** The layer painted figures are drawn in; there is one with a look. */
   readonly figures: FigureLayer | undefined
+  /** What a level lets the look show: its spot lamps' shafts and its emitters' particles. */
+  readonly effects: LevelEffects
 }
 
 /**
@@ -211,6 +223,11 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
   // Painted figures are cells composited into the scene, so they need the look's snap after them.
   const figures = options.look === undefined ? undefined : createFigureLayer(view, options.look, light)
+  const particles =
+    figures === undefined || options.look === undefined
+      ? undefined
+      : createParticleLayer(figures.pass, { particles: options.look.switches.particles })
+  const effects: LevelEffects = { shafts: passes?.shafts, particles }
   if (passes !== undefined) view.passes = [...(figures === undefined ? [] : [figures.pass]), ...passes.list]
   // The sky. The view draws no colour where no mesh is, so the letterbox's black field shows through there (the app's
   // clear colour is under that field). A 2D fill of the view's rect, under it, draws the sky exactly on both backends;
@@ -229,11 +246,18 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   const consumer = new RenderDeltaConsumer<Container3D>(view.root, resolver)
   // Feel and its kind squash, hold and label characters through the stage; here they are 3D models, not 2D views.
   stage.useCharacters(characters3d(consumer, view, stage.ui))
-  // The layer runs last each frame, on the poses and the camera the frame has settled.
-  const layerHooks: PixiStageHooks | undefined =
-    figures === undefined ? undefined : { draw: () => figures.frame() }
   // The look's clock runs on the frames drawn (not the page's time), and stands still while the game is paused.
   let seconds = 0
+  // The layer runs last each frame, on the poses and the camera the frame has settled.
+  const layerHooks: PixiStageHooks | undefined =
+    figures === undefined
+      ? undefined
+      : {
+          draw: () => {
+            figures.frame()
+            particles?.frame(seconds, view)
+          },
+        }
   const clockHooks: PixiStageHooks | undefined =
     passes === undefined
       ? undefined
@@ -264,6 +288,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
       camera: undefined,
       passes,
       figures,
+      effects,
     }
   const camera = angledCamera({
     camera: view.camera,
@@ -314,6 +339,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     camera,
     passes,
     figures,
+    effects,
   }
 }
 
@@ -366,7 +392,15 @@ async function buildInstance(
       const made = mount(stage, options, models)
       mounted = made
       const own = options.setup?.(stage) ?? undefined
-      const scene = options.scene?.(made.view, stage, made.occluders, made.light, models, made.camera)
+      const scene = options.scene?.(
+        made.view,
+        stage,
+        made.occluders,
+        made.light,
+        models,
+        made.camera,
+        made.effects,
+      )
       ready = scene?.ready
       lightEnvironment(made.view, options.time)
       return mergeHooks(made.hooks, own, scene)
@@ -388,7 +422,8 @@ async function buildInstance(
     const tried: ('webgl2' | 'webgpu')[] = options.preference === 'webgpu' ? ['webgpu', 'webgl2'] : ['webgl2']
     return { ok: false, reason: new RendererUnavailable({ tried }) }
   }
-  const { view, consumer, camera, occluders, passes, figures } = mounted
+  const { view, consumer, camera, occluders, passes, figures, effects } = mounted
+  const { particles } = effects
   const device = (base.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
   const context = watchContextLoss({ canvas: base.stage.app.canvas, device, bus: target.bus, clock, onGone })
   // Runs before the app's own teardown (added last, run first): stop watching, then drop the views.
@@ -396,6 +431,7 @@ async function buildInstance(
     context.stop()
     consumer.destroy()
     occluders.dispose()
+    particles?.dispose()
     figures?.dispose()
     for (const pass of passes?.list ?? []) pass.destroy()
   })

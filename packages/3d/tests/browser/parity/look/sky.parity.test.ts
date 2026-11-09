@@ -48,6 +48,7 @@ describe.runIf(hasWebGL2)('the look’s sky on WebGL2', () => {
       'DuelSnapEffect',
       'SkyEffect',
       'GlowEffect',
+      'ShaftsEffect',
       'FinishEffect',
     ])
     open?.dispose()

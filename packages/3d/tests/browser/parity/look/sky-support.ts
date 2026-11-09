@@ -9,6 +9,7 @@ import type { Look } from '#src/features/look/look.schema.ts'
 import { DEFAULT_LOOK } from '#src/features/look/look.ts'
 import type { HorizonLayer } from '#src/features/look/passes/sky-effect.ts'
 import { markFloor, TileMaterial } from '#src/features/look/tile-material.ts'
+import type { EmitterPlace } from '#src/shared/level/af-sector-2.schema.ts'
 import { type TimeOfDay, timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 
 export const SIZE = { width: 160, height: 90 }
@@ -94,6 +95,8 @@ export interface SkyScene {
   readonly time?: TimeOfDay
   readonly horizon?: readonly HorizonLayer[]
   readonly look?: Look
+  /** Emitters the particle layer lets off. */
+  readonly emitters?: readonly EmitterPlace[]
 }
 
 /** The renderer over a scene of a small ball (or the `SkyScene`'s), seen by a level camera at 1 m. */
@@ -108,7 +111,8 @@ export async function startSky(
     look: scene.look ?? DEFAULT_LOOK,
     time: scene.time ?? timeOfDay('night'),
     horizon: scene.horizon,
-    scene: (view) => {
+    scene: (view, _stage, _occluders, _light, _models, _camera, effects) => {
+      for (const emitter of scene.emitters ?? []) effects.particles?.add(emitter)
       view.camera.position.set(0, 1, 5)
       view.camera.lookAt({ x: 0, y: 1, z: 0 })
       view.root.addChild(new DirectionalLight({ intensity: 2 }))

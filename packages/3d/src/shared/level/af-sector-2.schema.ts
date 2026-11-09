@@ -157,6 +157,32 @@ export const lampPlaceSchema: z.ZodType<LampPlace> = z.looseObject({
   flame: z.boolean().optional(),
 })
 
+/** The things a place lets off, drawn as particles. */
+export const EMITTER_KINDS = ['steam', 'drip', 'moth', 'flame', 'ember'] as const
+export type EmitterKind = (typeof EMITTER_KINDS)[number]
+
+/**
+ * Something that lets off particles at `[x, y, z]`: steam rising, drops falling along the edge to `to` onto `ground`, moths
+ * round a lamp, a flame, embers. Presentation only: no sim system reads it.
+ */
+export interface EmitterPlace {
+  readonly kind: EmitterKind
+  readonly at: readonly [number, number, number]
+  /** The far end of an edge a drip falls from. */
+  readonly to?: readonly [number, number, number] | undefined
+  /** The height drops fall to (default 0). */
+  readonly ground?: number | undefined
+}
+
+const pointSchema = z.tuple([z.number(), z.number(), z.number()])
+
+export const emitterPlaceSchema: z.ZodType<EmitterPlace> = z.looseObject({
+  kind: z.enum(EMITTER_KINDS),
+  at: pointSchema,
+  to: pointSchema.optional(),
+  ground: z.number().optional(),
+})
+
 /** A time of day: a name from `time-of-day`, or a name (`preset`) with overrides. */
 export type LevelTime =
   | string
@@ -227,6 +253,7 @@ export interface AfSector2<P = Plane> {
   readonly props?: readonly PropPlace[] | undefined
   readonly cast?: readonly CastPlace[] | undefined
   readonly lamps?: readonly LampPlace[] | undefined
+  readonly emitters?: readonly EmitterPlace[] | undefined
   readonly time?: LevelTime | undefined
   readonly look?: LevelLook | undefined
   /** Named cameras: the game's (`yawDeg`, `bounds`, …) and the builder's (`diorama`, `topdown`, `fp`). */
@@ -285,6 +312,7 @@ function levelSchemas<P>(plane: z.ZodType<P>): {
     props: z.array(propPlaceSchema).optional(),
     cast: z.array(castPlaceSchema).optional(),
     lamps: z.array(lampPlaceSchema).optional(),
+    emitters: z.array(emitterPlaceSchema).optional(),
     time: timeSchema.optional(),
     look: z.looseObject({ visibility: z.number().optional(), grade: z.string().optional() }).optional(),
     views: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),

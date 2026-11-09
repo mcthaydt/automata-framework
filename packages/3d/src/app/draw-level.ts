@@ -7,12 +7,13 @@ import { atan, tan } from '@automata/sim/math'
 import type { View3D } from '@pixi/3d'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
+import type { ShaftLamp } from '../features/look/passes/shafts-effect.ts'
 import { type TileScales, tileScales } from '../features/photo/tile-scales.ts'
 import type { TileStore } from '../features/photo/tile-store.ts'
 import { buildWorld } from '../features/world/build.ts'
 import { dressLevel } from '../features/world/furnish/dress.ts'
 import { swatchColour, type WorldLibrary } from '../features/world/swatches.ts'
-import type { AfSector2 } from '../shared/level/af-sector-2.schema.ts'
+import type { AfSector2, EmitterPlace } from '../shared/level/af-sector-2.schema.ts'
 import { createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 import type { TimeOfDay } from '../shared/time-of-day/time-of-day.ts'
 import { pieceTiles, tileRequests } from './level-tiles.ts'
@@ -43,6 +44,10 @@ export interface DrawLevelInput {
 export interface LevelView {
   readonly world: WorldView
   readonly light: SceneLight | undefined
+  /** The level's spot lamps that show a shaft in the air: give them to the look's shafts pass. */
+  readonly spots: readonly ShaftLamp[]
+  /** The level's emitters: give each to the look's particle layer. */
+  readonly emitters: readonly EmitterPlace[]
   /** Shows the level from `camera`: tiles it has are swapped in, the ones it lacks are queued and the old ones stay up. A camera at the pairs it has is a no-op. */
   setCamera(camera: TileCamera): void
   /** Takes up the tiles made since: call it after the store has made some. */
@@ -95,9 +100,24 @@ export async function drawLevel(view: View3D, input: DrawLevelInput): Promise<Le
   drawn.setFocus(input.camera.distance)
 
   const retile = (): void => drawn.retile((piece) => pieceTiles(piece, level, library, shown, tiles))
+  const spots = world.lamps
+    .filter((lamp) => lamp.shaft === true && lamp.aim !== undefined && lamp.cone !== undefined)
+    .filter((lamp) => !lamp.dusk || isNight(input.time))
+    .map(
+      (lamp): ShaftLamp => ({
+        at: lamp.at,
+        aim: lamp.aim as ShaftLamp['aim'],
+        cone: lamp.cone as number,
+        range: lamp.range,
+        color: lamp.color,
+        strength: Math.min(1, lamp.level),
+      }),
+    )
   return {
     world: drawn,
     light,
+    spots,
+    emitters: level.emitters ?? [],
     setCamera(camera) {
       drawn.setFocus(camera.distance)
       const next = scalesOf(camera)
