@@ -1,18 +1,37 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MOTION } from '#src/shared/motion/motion-tokens.ts'
-import { createSmoothScroll, LENIS_OPTIONS, preventSmoothScroll } from '#src/shared/motion/smooth-scroll.ts'
+import {
+  createSmoothScroll,
+  DRIFT_TOLERANCE_PX,
+  LENIS_OPTIONS,
+  movedByOthers,
+  preventSmoothScroll,
+} from '#src/shared/motion/smooth-scroll.ts'
 
-const lenisCalls = vi.hoisted(() => ({ scrollTo: vi.fn(), destroy: vi.fn() }))
+const lenisCalls = vi.hoisted(() => ({
+  scrollTo: vi.fn(),
+  destroy: vi.fn(),
+  raf: vi.fn(),
+  reset: vi.fn(),
+  glide: { isScrolling: false as boolean | 'native' | 'smooth' },
+}))
 vi.mock('lenis', () => ({
   default: class {
     scrollTo = lenisCalls.scrollTo
     destroy = lenisCalls.destroy
+    raf = lenisCalls.raf
+    reset = lenisCalls.reset
+    get isScrolling() {
+      return lenisCalls.glide.isScrolling
+    }
   },
 }))
 
 afterEach(() => {
+  lenisCalls.glide.isScrolling = false
+  vi.unstubAllGlobals()
   document.body.innerHTML = ''
   vi.clearAllMocks()
 })
@@ -20,7 +39,7 @@ afterEach(() => {
 describe('Lenis options', () => {
   it('are the plan’s: wheel only, the browser keeps anchors and touch', () => {
     expect(LENIS_OPTIONS).toMatchObject({
-      autoRaf: true,
+      autoRaf: false,
       lerp: MOTION.lerp,
       smoothWheel: true,
       syncTouch: false,
@@ -60,6 +79,25 @@ describe('smooth-scroll.css', () => {
   })
 })
 
+describe('movedByOthers', () => {
+  it('is true only while gliding and only when the page is not where Lenis left it', () => {
+    expect(movedByOthers(true, 300, 1200)).toBe(true)
+    expect(movedByOthers(true, 1200, 300)).toBe(true)
+    expect(movedByOthers(true, 300, 300 + DRIFT_TOLERANCE_PX)).toBe(false)
+    expect(movedByOthers(true, 300, 300)).toBe(false)
+  })
+  it('is false when nothing is gliding, because Lenis follows a native scroll then', () => {
+    expect(movedByOthers(false, 300, 1200)).toBe(false)
+  })
+})
+
+describe('Lenis', () => {
+  it('still has the private reset we use to let go of a glide without writing the scroll position', async () => {
+    const { default: RealLenis } = await vi.importActual<typeof import('lenis')>('lenis')
+    expect(typeof (RealLenis.prototype as unknown as { reset?: unknown }).reset).toBe('function')
+  })
+})
+
 describe('createSmoothScroll', () => {
   const stopped = { immediate: true, force: true }
 
@@ -78,6 +116,57 @@ describe('createSmoothScroll', () => {
     document.querySelector('#plain')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(lenisCalls.scrollTo).not.toHaveBeenCalled()
     smooth.destroy()
+  })
+
+  describe('each frame', () => {
+    const frames: FrameRequestCallback[] = []
+    const run = (time: number) => {
+      for (const frame of frames.splice(0)) frame(time)
+    }
+    const scrollTo = (y: number) => Object.defineProperty(window, 'scrollY', { value: y, configurable: true })
+    beforeEach(() => {
+      frames.length = 0
+      vi.stubGlobal('requestAnimationFrame', (frame: FrameRequestCallback) => frames.push(frame))
+      vi.stubGlobal('cancelAnimationFrame', () => frames.splice(0))
+      scrollTo(0)
+    })
+    afterEach(() => scrollTo(0))
+
+    it('drives Lenis, and leaves its own writes alone', () => {
+      const smooth = createSmoothScroll()
+      lenisCalls.glide.isScrolling = 'smooth'
+      let written = 100
+      lenisCalls.raf.mockImplementation(() => {
+        written += 20 // each frame, Lenis writes the page
+        scrollTo(written)
+      })
+      run(16)
+      run(32)
+      run(48)
+      expect(lenisCalls.raf).toHaveBeenCalledTimes(3)
+      expect(lenisCalls.reset).not.toHaveBeenCalled()
+      smooth.destroy()
+    })
+
+    it('lets go of the glide, without writing, when the page moved since Lenis left it', () => {
+      const smooth = createSmoothScroll()
+      lenisCalls.glide.isScrolling = 'smooth'
+      run(16)
+      scrollTo(1200) // Find in page or a scrollTo, between two frames
+      run(32)
+      expect(lenisCalls.reset).toHaveBeenCalledTimes(1)
+      expect(lenisCalls.scrollTo).not.toHaveBeenCalled()
+      smooth.destroy()
+    })
+
+    it('does not let go when nothing is gliding', () => {
+      const smooth = createSmoothScroll()
+      run(16)
+      scrollTo(1200)
+      run(32)
+      expect(lenisCalls.reset).not.toHaveBeenCalled()
+      smooth.destroy()
+    })
   })
 
   it('stops listening and destroys Lenis when it is destroyed', () => {

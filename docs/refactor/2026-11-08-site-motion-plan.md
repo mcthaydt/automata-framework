@@ -412,7 +412,9 @@ and `pnpm api-index` (3 undocumented exports).
 3. *A key, a click on a #link, focus and a press on the scroll bar stop Lenis's glide first (`smooth-scroll.ts`).* Found
    in the browser: Lenis ignores the browser's own scrolling until its glide has died away (about 1.5 s after a wheel), so
    End, PageDown and contents links pressed just after a notch did nothing or snapped back. Cost: one listener set. Not
-   covered: Find in page and script `scrollTo` within about 1.5 s of a wheel still lose to the glide, then recover.
+   covered at the build, fixed in the fix stage: Find in page and script `scrollTo` within about 0.5 s of a wheel lost to the glide
+   and the page stayed where the wheel was sending it; `smooth-scroll.ts` now settles the glide on a scroll event far from
+   where Lenis put the page.
 4. *Reveals also run on every scroll while a section waits (`motion-layer.ts`).* The observer only sees a section while it
    is on screen, so End, a #link or dragging the scroll bar left skipped sections hidden. Cost: a rect read per waiting
    section per scroll, only while one waits (at most nine).
@@ -425,9 +427,10 @@ and `pnpm api-index` (3 undocumented exports).
    back in. `site.e2e.ts`'s stale `Reference` link is corrected to `Pricing`.
 
 **Task 7, the Owner's audit rule (make a game, play it, reload).** The visitor journeys (play Emberwick; make a platformer
-level in the try-it editor and share it) pass with motion on. Reloading the try-it editor does not bring a new level
-back, with motion on or off (probed in Chromium: no stored keys, no canvas after reload): that is the editors' saving
-work (sign-in and saving thread), not motion, and the editor loads no motion code. Playing a downloaded game from
+level in the try-it editor and share it) pass with motion on. Reloading the try-it editor does bring a new level
+back, with motion on or off: it lives in the browser's private file storage (OPFS, `sample-game`), which the probe of
+localStorage and IndexedDB did not look at (the build audit's B2). The editor reopens on its Home, not on the level; that
+and the missing Play are the editors' and the saving thread's, and the editor loads no motion code. Playing a downloaded game from
 `create-game` was not repeated; motion never touches a game's frame.
 
 **The grandma pass** (Chromium at 1440 x 900 and an iPhone 13, by journeys and screenshots; no physical trackpad):

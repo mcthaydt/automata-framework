@@ -47,6 +47,12 @@
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
+/* While Lenis glides, the browser's own jumps (Find in page, a script's scrollTo) must be instant: an animated one would
+   be cancelled by Lenis's next write, so the page would end where the wheel was sending it. Lenis puts this class on
+   <html> only during a glide, and older Lenis stylesheets carried the same rule. */
+:root.lenis-smooth {
+  scroll-behavior: auto;
+}
 @media (max-width: 760px) {
   :root {
     --side: 16px;

@@ -58,6 +58,24 @@ Observed and accepted (not findings): a section whose top sits in the window's b
 it crosses the line (by design: the reveal margin); with a fine pointer, the game frame ignores the pointer during a glide
 (Lenis's own `iframe { pointer-events: none }`), and the journey *the demo still plays right after a wheel* holds.
 
+## Fix stage (2026-11-09, Sonnet high)
+
+- **B1 fixed.** Two causes, both measured. (1) While Lenis glides it ignores the browser's scroll events and keeps
+  writing the scroll position, so a jump made in that time was undone when the glide finished. (2) Find in page does not
+  jump on this site: the page's `scroll-behavior: smooth` makes the browser animate it, and Lenis's next write cancels
+  an animation before it has moved a pixel, so no position check can ever see it (`window.find` showed it: one scroll
+  event with reduced motion, 47 with motion). The fix: `:root.lenis-smooth { scroll-behavior: auto }` in `tokens.css`
+  (Lenis puts that class on `<html>` only during a glide, and its older stylesheet carried the same rule), so a jump
+  during a glide is instant; and `smooth-scroll.ts` now runs Lenis's frame itself and, if the page is not where Lenis
+  left it, calls Lenis's `reset` (ends the glide, writes nothing) before the next write. A unit test holds that `reset`
+  still exists on Lenis. New journeys *a scrollTo* and *Find in page soon after a wheel notch holds*, at 50, 150, 400
+  and 700 ms: both fail on the old code (the page ends at 300, where the wheel was sending it) and pass now; all 22
+  motion journeys pass in Chromium (twice). Probe: Find 50 ms to 1.2 s after a notch always lands the heading 388 px
+  from the top. Phone (iPhone 13): no Lenis, Find lands as before.
+- **B2, B4, B5 fixed** in the plan's build log, the test's comment, `smooth-scroll.ts` and `renovate.json`. The progress
+  tracker's Site table had its stage 5 row overwritten with this audit's text; it is back to Not started.
+- **Left:** G1 (WebKit on the Mac) and B3 (the editors and the saving thread).
+
 ## For the Owner: GSAP in the paid apps
 
 Not this PR's problem, but it decides the editors' motion. The licence page's plain-English summary (in the page's

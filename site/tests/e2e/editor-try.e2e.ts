@@ -6,7 +6,8 @@ import { watchPage } from './gates'
 
 // Spec 10.2 and 18.3: the Editor page shows what the editor does and opens the try-it editor, the same page
 // `automata editor` serves, which starts on a sample game held in the page under the site's headers with nothing wrong
-// in the console. Nothing is kept there: Share is how a level leaves.
+// in the console. A new level is kept in the browser's private file storage (OPFS) but reopens on the editor's Home;
+// Share is how a level leaves.
 test('the Editor page shows two pictures and opens the try-it editor on a sample game', async ({ page }) => {
   const watch = watchPage(page, `http://127.0.0.1:${SITE_PORT}`)
   await page.goto('/editor')

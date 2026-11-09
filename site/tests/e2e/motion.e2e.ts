@@ -92,6 +92,42 @@ test.describe('on a desktop with a mouse', () => {
     await expect.poll(() => scrollY(page)).toBeGreaterThan(last - 4)
   })
 
+  // Find in page and a script's `scrollTo` move the page natively. Lenis used to finish its glide over the top of that and
+  // leave the page where the wheel was sending it. `window.find` scrolls the way the browser's find bar does, by the
+  // page's own `scroll-behavior`, which a bare instant `scrollTo` does not.
+  for (const [how, jump] of [
+    ['a scrollTo', () => window.scrollTo({ top: 1200, behavior: 'instant' })],
+    [
+      'Find in page',
+      () => {
+        getSelection()?.removeAllRanges()
+        const heading = [...document.querySelectorAll('main h2')].at(-1)?.textContent ?? ''
+        ;(window as unknown as { find(text: string, ...flags: boolean[]): boolean }).find(
+          heading,
+          true,
+          false,
+          true,
+        )
+      },
+    ],
+  ] as const) {
+    test(`${how} soon after a wheel notch holds`, async ({ page }) => {
+      await ready(page, '/docs')
+      await page.mouse.move(640, 400)
+      for (const delay of [50, 150, 400, 700]) {
+        await page.evaluate(() => window.scrollTo(0, 0))
+        await expect.poll(() => scrollY(page)).toBe(0)
+        await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/)
+        await page.mouse.wheel(0, 300)
+        await page.waitForTimeout(delay)
+        await page.evaluate(jump)
+        // Neither the glide's remaining frames nor anything else may pull it back to where the wheel was sending it.
+        await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/)
+        expect(await scrollY(page), `${how} ${delay} ms after a notch`).toBeGreaterThan(1000)
+      }
+    })
+  }
+
   test('a wheel over the docs sidebar scrolls the sidebar and not the page', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 400 })
     await ready(page, '/docs/editor')
