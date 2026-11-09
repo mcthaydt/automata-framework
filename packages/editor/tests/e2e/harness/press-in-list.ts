@@ -1,8 +1,15 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
-/** Whether a row can be pressed now: on the page, and not inside the closed sheet, which keeps its rows but is inert. */
+/**
+ * Whether a row can be pressed now: on the page, and not inside the closed sheet, which keeps its rows but is inert. A sheet
+ * on its way out still shows its rows and then drops them, so a row seen a moment ago may be gone by the second look: that
+ * is "not reachable", never a wait for a row that will not come back.
+ */
 async function reachable(row: Locator): Promise<boolean> {
-  return (await row.isVisible()) && !(await row.evaluate((element) => element.closest('[inert]') !== null))
+  if (!(await row.isVisible())) return false
+  return row
+    .evaluate((element) => element.closest('[inert]') === null, undefined, { timeout: 1_000 })
+    .catch(() => false)
 }
 
 /**

@@ -25,7 +25,8 @@ test('the caption a cutscene step is pointed at in Sequence is what the played g
   await page.getByRole('combobox', { name: /line/i }).selectOption({ label: 'Safe travels.' })
   await savedInto(story, 'content/cutscenes/gate.toml', 'keeper.farewell')
   await savedInto(story, 'content/cutscenes/gate.toml', 't = 2')
-  await servedWith(editor, 'keeper.farewell')
+  // The step's own pointer: the keeper's conversation names keeper.farewell already, so the bare id is served before the save.
+  await servedWith(editor, '"line": "keeper.farewell"')
 
   const game = await context.newPage()
   await playStory(game, editor)

@@ -64,8 +64,13 @@ test('music tracks and rules made in Audio are what the played game plays', asyn
     .getByRole('button', { name: 'Move up' })
     .click()
   await expect(page.getByRole('article').first()).toHaveAccessibleName('When mode is chase: play chase')
-  await savedInto(story, 'content/audio/audio.toml', 'chase')
-  await servedWith(editor, '"mode": "chase"')
+  // Wait for the new order itself. "chase" and the chase rule were in the file before the move, so waiting on either let
+  // the game open on the old order (calm first, which always holds), and a page that loads in the moment before the
+  // saved change arrives never hears of it.
+  await servedWith(
+    editor,
+    '"music_rule": [{ "slot": "chase", "when": { "mode": "chase" } }, { "slot": "calm"',
+  )
 
   // Play the game the editor started. The story is calm; walking past the keeper into the yard, the guard sees the player.
   const game = await context.newPage()

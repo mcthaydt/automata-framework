@@ -682,3 +682,8 @@ Levels view's is, since the 224 px sidebar leaves about 370 at an iPad landscape
 count and save state shrank into each other, so both are `flex: none` and the editor's tools are what give way and scroll. Ran:
 `editor-3d` layout, canvas and journeys in Chromium (the canvas and draw-journey timeouts under full load pass alone, a software
 GL cold start), the editor's unit and suite-shell layout tests. Not run: WebKit and Firefox (not installed here), the GPU runner.
+- 2026-11-09, build audit (stage 5), [`2026-11-09-editors-v2-build-audit.md`](2026-11-09-editors-v2-build-audit.md), at
+  `68cdd642`: `audio-plays-in-game` failed because the journey opened the game before the music rules' new order was
+  served (the guard does chase); fixed with three more journey races, and `work-survives-reopening` added. Open for the
+  fixes stage: F1 to F12 (3 high: the header's breadcrumb and cut level name on the iPad, the phone's three-row header, a
+  white strip over the phone's level). Task 14 Steps 2 to 4 are ticked with checks that did not run (F6).

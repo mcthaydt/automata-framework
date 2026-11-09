@@ -727,7 +727,7 @@ generated test and the journey, not seen by hand. Journeys, iPad and phone, 3D: 
 are expected failures, Pixi 3D being a closed beta); one "Wick is taller" check flaked once under load and passed alone.
 Not run: WebKit, Firefox, the GPU runner, hosted CI; `stranger-3d.test.ts` pending.
 
-## Editors v2: the editors' new look (stage 4 of 6 built, 2026-11-08)
+## Editors v2: the editors' new look (stage 5 of 6, 2026-11-09)
 
 The Owner, 2026-11-08: the editors' whole look redesigned after site v2, "not even just the dark mode, the entire
 aesthetic". Approved at 18:45 UTC with "Approve, open in Dark": the editors open Dark; Light and Match device stay on
@@ -739,5 +739,5 @@ Home.
 | 2. Plan and spec | Done, 2026-11-08: 14 tasks in 4 phases: merge dark mode into the shared-editors build, the v2 colours with Dark as the default, the site's own colour scheme and a contrast check on every page, ten kit parts (inset shell, sidebar, editor icons, breadcrumb header, rows and fields, blocks, floating toolbar, sheets, tab bar, empty state), then every screen, then proof in play | [spec](2026-11-08-editors-v2-spec.md), [plan](2026-11-08-editors-v2-plan.md) |
 | 3. Plan audit | Done, 2026-11-08: 17 findings (7 high), all fixed in the spec and plan. Review is out (it was deleted in `a15c7b36`); the editors stay a `tablist` so the journeys find them; the problem count keeps every checks state; the 3D editors' lime buttons turn secondary; the Door's words say where it goes | [audit](2026-11-08-editors-v2-plan-audit.md) |
 | 4. Build | Done, 2026-11-08 (14 of 14 tasks, 100%), with the shared-editors fixes (PR #534 at `3736b0ac`) merged in. Chromium only: `pnpm check`, layout with and without touch, 61 editor journeys at a phone and an iPad (2D and 3D complete-game among them), the extension journeys. **Open:** `audio-plays-in-game` (the played player stops after the keeper's talk, so the guard never chases; not the `character` tag, not editor UI). Not run: WebKit, Firefox, the GPU runner, the site's e2e and parity. | [plan log](2026-11-08-editors-v2-plan.md) |
-| 5. Build audit | Not started; it must make a small 2D and a small 3D game in the rebuilt editors, play each, and see what was made | |
+| 5. Build audit | Done, 2026-11-09 (PR stacked on #559, at `68cdd642`): `audio-plays-in-game` was a journey race, not the story (the game opened on the music rules' old order); it and three more journey races fixed (J1 to J4), and a journey that reloads, closes and restarts the editors added (P1). Open: 3 high (F1 no breadcrumb, the iPad's header cuts the level's name; F2 the phone's header takes three rows; F3 a white strip over the phone's level), 4 medium, 5 low. Chromium only | [build audit](2026-11-09-editors-v2-build-audit.md) |
 | 6. Fixes | Not started | |
