@@ -18,8 +18,9 @@ import { classifyStorageError } from '../../shared/kit/storage/project-store.ts'
 import type { Recovery } from '../../shared/kit/storage/recovery.ts'
 import type { SaveState } from '../../shared/kit/storage/save-state.ts'
 import type { ToastStore } from '../../shared/kit/widgets/toasts.ts'
-import type { EditorApp, OpenDocument, OpenOutcome } from '../../shared/level-2d/documents/editor-app'
-import { documentHeading, openProblem, restoreRefused } from '../../shared/level-2d/documents/open-flow-model'
+import type { EditorApp, OpenDocument, OpenOutcome } from '../../shared/level-2d/session/editor-app-types'
+import { documentHeading, restoreRefused } from '../../shared/level-2d/session/open-flow-model'
+import { openProblem } from '../../shared/level-2d/session/open-problem'
 
 // One open document's flows, in plain TypeScript so
 // Node tests drive them: the top bar's undo, redo and Save, what each save outcome does (a conflict opens the Keep mine
