@@ -14,14 +14,14 @@ name: ci
 # 3d.yml, and the release-only checks (build, API report, API index, agent skills, plugin validation,
 # consumer smoke) in release-checks.yml, which release-packages.yml calls before it publishes.
 #
-# Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
-# about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
-# label af-linux (WSL2 Ubuntu with Docker). There is deliberately no
-# fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The
-# repository variable AF_LINUX_RUNNER switches every job to another label (ubuntu-latest once hosted minutes
-# are back), and AF_GPU_RUNNER moves the browser journeys alone. Parity alone runs on the Owner's Mac (label
-# af-mac, 2026-10-17) and AF_PARITY_RUNNER moves it. Until a runner serves AF, a full local run is
-# the green gate (docs/archive/04-how-we-build.md).
+# Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in about
+# 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the label
+# af-linux (WSL2 Ubuntu with Docker), except the checks, which run on the Macs (af-mac). There is deliberately no
+# fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The repository
+# variable AF_LINUX_RUNNER switches every af-linux job to another label (ubuntu-latest once hosted minutes are back),
+# and AF_GPU_RUNNER moves the browser journeys alone. Parity runs on the Owner's Mac (label af-mac, 2026-10-17) and
+# AF_PARITY_RUNNER moves it; AF_CHECKS_RUNNER moves the checks. Until a runner serves AF, a full local run is the
+# green gate (docs/archive/04-how-we-build.md).
 
 on:
   push:
@@ -57,7 +57,11 @@ jobs:
   checks:
     name: lint, typecheck, boundaries, style, unit
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    # The Macs (2026-11-09): every other job here and in 3d.yml needs af-linux, so with the checks there too the
+    # PC's three runners held 110 queued jobs while the three Macs sat idle, and parity, which waits on this job,
+    # never reached them. The checks need no container or GPU and ran on af-mac from 2026-10-17 to 2026-10-30.
+    # vars.AF_CHECKS_RUNNER moves them back.
+    runs-on: ${{ vars.AF_CHECKS_RUNNER || 'af-mac' }}
     timeout-minutes: 20
     outputs:
       docs_only: ${{ steps.scope.outputs.docs_only }}

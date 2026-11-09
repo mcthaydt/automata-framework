@@ -7,7 +7,7 @@
 <script lang="ts">
 import { sizeLabel } from '../../shared/kit/home/project-browse'
 import Pill from '../../shared/kit/widgets/Pill.svelte'
-import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
+import type { ProjectEntry } from '../../shared/level-2d/session/editor-app-types'
 import { entryBadge, whenLabel } from './home-model'
 
 interface Props {

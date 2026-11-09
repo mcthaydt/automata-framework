@@ -1,7 +1,8 @@
 // Usage: node tooling/release/src/check-changesets.ts
 // Before 1.0 every AF release is a `0.0.x` patch, so a changeset that asks for `minor` or
 // `major`, or names a package AF does not publish, fails CI's checks job, naming the file. AF 1.0 is
-// what would change this rule.
+// what would change this rule. The one exception is the first public release: `first-public-release.md` may ask for
+// `minor`, which takes the shared version from 0.0.x to 0.1.0 once; Changesets deletes the file when it versions.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -10,6 +11,9 @@ import { publishablePackages } from './publishable-packages.ts'
 /** `---` front matter, then `'<package>': <bump>` lines (Changesets' format). */
 const FRONT_MATTER = /^---\r?\n([\s\S]*?)^---\s*$/m
 const RELEASE_LINE = /^\s*(['"]?)(@?[\w./-]+)\1\s*:\s*(\w+)\s*$/
+
+/** The one changeset allowed a `minor` bump: the first public release (0.0.x to 0.1.0). */
+const FIRST_RELEASE = 'first-public-release.md'
 
 /** One release line of a changeset's front matter. */
 export interface ChangesetRelease {
@@ -55,7 +59,7 @@ export function changesetProblems(
       const [, , packageName = '', bump = ''] = release
       if (!publishedNames.includes(packageName)) {
         problems.push(`${name}: ${packageName} is not a published package`)
-      } else if (bump !== 'patch') {
+      } else if (bump !== 'patch' && !(bump === 'minor' && name === FIRST_RELEASE)) {
         problems.push(`${name}: ${packageName} is a ${bump} bump; before 1.0 every AF changeset is a patch`)
       }
     }
