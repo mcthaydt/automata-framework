@@ -58,7 +58,9 @@ describe('finishSvelteDist', () => {
       'index.d.ts': 'import type { A } from "@ruken/sdk";\n',
       'other.d.ts': "import type { B } from '@ruken/sdk-host';\n",
     })
-    finishSvelteDist(dist, { vendoredTypes: { '@ruken/sdk': 'vendor/ruken-sdk.js' } })
+    finishSvelteDist(dist, {
+      vendoredTypes: { '@ruken/sdk': 'vendor/ruken-sdk.js' },
+    })
     expect(readFileSync(join(dist, 'status/boot-failure.d.ts'), 'utf8')).toContain(
       "from '../vendor/ruken-sdk.js'",
     )
@@ -122,6 +124,21 @@ describe('finishSvelteDist', () => {
     expect(dts).toContain("from './types.js'")
     expect(readFileSync(join(dist, 'screens/PausedScreen.svelte.d.ts'), 'utf8')).toContain(
       "from './saves-paused.js'",
+    )
+  })
+
+  // svelte-package leaves `.svelte` files as source, so a component's value import of a `.svelte.ts` module still
+  // names a file that is not in dist; a game's build then cannot resolve it.
+  it('turns a relative .ts specifier in a .svelte source into the .js file it was emitted as', () => {
+    const dist = distWith({
+      'app/screens/PlayScreen.svelte':
+        '<script lang="ts">\nimport { providePlay } from "../../shared/ui/slots/play-context.svelte.ts";\n</script>\n',
+      'shared/ui/slots/play-context.svelte.js': '',
+      'shared/ui/slots/play-context.svelte.d.ts': '',
+    })
+    finishSvelteDist(dist, { vendoredTypes: {} })
+    expect(readFileSync(join(dist, 'app/screens/PlayScreen.svelte'), 'utf8')).toContain(
+      'from "../../shared/ui/slots/play-context.svelte.js"',
     )
   })
 
