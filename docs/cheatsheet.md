@@ -1286,6 +1286,7 @@
 
 - `atan(x0)`: Deterministic arctangent.
 - `atan2(y, x)`: Finite inputs only (sim values are finite).
+- `cbrt(x0)`: Deterministic cube root, from fdlibm's `s_cbrt.c`: a rough root from the exponent, a rational refinement and one Newton step, under 0.667 ulp.
 - `cos(x)`: Deterministic cosine, in radians.
 - `exp(x)`: Deterministic `e` to the power `x`.
 - `hypot(x, y)`: No overflow scaling: inputs must satisfy x*x + y*y < 1.7e308.

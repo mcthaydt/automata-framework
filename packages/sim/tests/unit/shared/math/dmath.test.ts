@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { atan, atan2, cos, exp, log, pow, sin, tan } from '#src/shared/math/dmath.ts'
+import { atan, atan2, cbrt, cos, exp, log, pow, sin, tan } from '#src/shared/math/dmath.ts'
 
 // Deterministic PRNG for sampling (mulberry32: 32-bit integer ops only).
 function sampler(seed: number): () => number {
@@ -95,4 +95,21 @@ test('edge values and signed zeros match the built-ins', () => {
   expect(pow(-2, 3)).toBe(-8)
   expect(pow(2, -2)).toBe(0.25)
   expect(Object.is(pow(-0, 3), -0)).toBe(true)
+})
+
+test('cbrt is the real cube root, within an ulp of the built-in, and exact on cubes', () => {
+  expect(cbrt(27)).toBe(3)
+  expect(cbrt(-8)).toBe(-2)
+  expect(cbrt(0)).toBe(0)
+  expect(Object.is(cbrt(-0), -0)).toBe(true)
+  expect(cbrt(Number.POSITIVE_INFINITY)).toBe(Number.POSITIVE_INFINITY)
+  expect(Number.isNaN(cbrt(Number.NaN))).toBe(true)
+  // A subnormal takes the scaled path.
+  expect(Math.abs(cbrt(5e-324) - Math.cbrt(5e-324)) / Math.cbrt(5e-324)).toBeLessThan(1e-15)
+  expect(
+    maxErr((q) => {
+      const x = (q() - 0.5) * 2 * 10 ** (q() * 20 - 10)
+      return [cbrt(x), Math.cbrt(x)]
+    }, true),
+  ).toBeLessThan(3e-16)
 })

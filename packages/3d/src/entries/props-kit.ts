@@ -2,9 +2,13 @@
 // generator turns a library preset's parameters into pieces (a mesh, the swatch it is painted with, a label);
 // `registerPropGenerator` gives it a `kind` a preset can name. The room's plan (rings, walls, the way is inward) is
 // here too, for an extension that places props (a dresser). Core ships a box, a cylinder and the five props the base
-// scenes use; @automata/world-kit is built on this entry for the rest. Each name is the core one, never a copy.
+// scenes use. The rest of the kit (chairs, beds, shelves, plants, cars, signs), the dresser, the generated maps and the
+// readability rules are here too, and loading `base` registers the generators. Each name is the core one, never a copy.
 
 export { buildWorld } from '../features/world/build.ts'
+export { type Dressed, dressLevel } from '../features/world/furnish/dress.ts'
+export type { Kit, KitSlot, SlotRule } from '../features/world/furnish/kit.schema.ts'
+export { generateMap, MAP_NAMES, type MapName } from '../features/world/maps/generate-map.ts'
 export { blob, box, cone, cylinder, quad, rbox, rod } from '../features/world/mesh.ts'
 export {
   type Built,
@@ -16,6 +20,15 @@ export {
 } from '../features/world/props/piece.ts'
 export { registerPropGenerator } from '../features/world/props/prop-generator-registry.ts'
 export { isFault, resolveProp } from '../features/world/props/resolve.ts'
+export { type FigureRead, type Frame, figureReads } from '../features/world/reads/figure-reads.ts'
+export {
+  DEFAULT_READS,
+  HOT,
+  isHot,
+  MIN_READ,
+  readsAgainst,
+  waivedBy,
+} from '../features/world/reads/reads-against.ts'
 export {
   cornersOf,
   heightAt,

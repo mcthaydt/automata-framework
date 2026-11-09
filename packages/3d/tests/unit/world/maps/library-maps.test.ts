@@ -1,0 +1,44 @@
+// The maps the kit ships under `features/world/library/maps/`: each a valid `/2` level, exactly what the converter makes of the
+// fixture (so the files cannot drift from it), and each builds with the kit's library and nothing wrong.
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { describe, expect, it } from 'vitest'
+import { coreLibrary } from '#src/features/world/base/core-library.ts'
+import { buildWorld } from '#src/features/world/build.ts'
+import { dressLevel } from '#src/features/world/furnish/dress.ts'
+import { convertBuilderMap } from '#src/features/world/maps/convert-builder-map.ts'
+import { afSector2Schema } from '#src/shared/level/af-sector-2.schema.ts'
+import '#src/features/world/props/kit/register-kit-props.ts'
+import fixture from '../../../fixtures/world/builder-maps.json' with { type: 'json' }
+
+const DIR = join(import.meta.dirname, '../../../../src/features/world/library/maps')
+const FILES = readdirSync(DIR).filter((f) => f.endsWith('.af-sector.json'))
+
+// A file is the fixture's key in kebab-case (`neonBar` is `neon-bar.af-sector.json`), as the converter's script writes it.
+const kebab = (id: string): string => id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)
+const idOf = (file: string): string =>
+  Object.keys(fixture).find((id) => `${kebab(id)}.af-sector.json` === file) ?? file
+
+describe('library/maps', () => {
+  it('has one file for each map of the fixture, named in kebab-case', () => {
+    expect(FILES.sort()).toEqual(
+      Object.keys(fixture)
+        .map((id) => `${kebab(id)}.af-sector.json`)
+        .sort(),
+    )
+  })
+  for (const file of FILES) {
+    const id = idOf(file)
+    const level = JSON.parse(readFileSync(join(DIR, file), 'utf8'))
+    it(`${id} is what the converter makes of the fixture`, () => {
+      expect(afSector2Schema.parse(level)).toEqual(level)
+      const plan = (fixture as Record<string, object>)[id]
+      expect(level).toEqual(JSON.parse(JSON.stringify(convertBuilderMap({ id, ...plan }))))
+    })
+    it(`${id} builds with the kit's library and nothing wrong once dressed`, () => {
+      const dressed = dressLevel(level, coreLibrary)
+      expect(dressed.problems).toEqual([])
+      expect(buildWorld(dressed.level, coreLibrary).problems).toEqual([])
+    })
+  }
+})

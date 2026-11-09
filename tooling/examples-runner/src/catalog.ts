@@ -25,16 +25,11 @@ export const CORE_MODULES: readonly string[] = [
   // The pixel-art look and the world builder, also `@automata/3d`'s.
   'look',
   'world',
-]
-/** The sections that show an extension (`extensions/<name>`) rather than core; their examples say `Tier: extension`. */
-export const EXTENSION_MODULES: readonly string[] = [
-  'physics',
-  'net',
-  'feel',
-  'cutscenes',
-  'characterkit',
+  // The world kit (props, kits, the dresser, maps, photos) is core's since the painted look.
   'worldkit',
 ]
+/** The sections that show an extension (`extensions/<name>`) rather than core; their examples say `Tier: extension`. */
+export const EXTENSION_MODULES: readonly string[] = ['physics', 'net', 'feel', 'cutscenes', 'characterkit']
 
 /** Code lines an example may have, not counting its header, blank lines or comment-only lines. */
 export const CODE_LINE_BUDGET = 100
@@ -95,19 +90,17 @@ const EXTENSION_PACKAGES: ReadonlySet<string> = new Set([
   '@automata/ui-screens',
   '@automata/cutscenes',
   '@automata/character-kit',
-  '@automata/world-kit',
 ])
 /**
  * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is built on the
- * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes`, `@automata/character-kit` and
- * `@automata/world-kit` build on `@automata/3d`, so they wait for it. The website's playground leaves
+ * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes` and
+ * `@automata/character-kit` build on `@automata/3d`, so they wait for it. The website's playground leaves
  * its examples out (`playgroundCatalog`), because it is public.
  */
 const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set([
   '@automata/3d',
   '@automata/cutscenes',
   '@automata/character-kit',
-  '@automata/world-kit',
 ])
 
 /** Whether an import names an unpublished extension's entry. */

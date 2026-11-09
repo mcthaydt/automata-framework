@@ -286,17 +286,10 @@ describe('a room that asks to be dressed', () => {
     }
   }
 
-  it('draws bare and says the world kit is missing, in words a person can act on', () => {
+  it('draws a room that still asks to be dressed bare, without a note', () => {
     for (const level of [asks({ as: 'office' }), asks(undefined, { as: 'office' })]) {
       const { pieces, problems } = buildWorld(level, LIBRARY)
-      expect(problems).toContainEqual({
-        path: expect.any(Array),
-        code: 'needs-extension',
-        message:
-          'This room asks to be furnished by the world kit, which this game doesn\'t have. Add @automata/world-kit, or remove "dress" from the room.',
-        where: 'hall',
-        name: 'world-kit',
-      })
+      expect(problems).toEqual([])
       expect(pieces.every((piece) => piece.part !== 'prop')).toBe(true)
       expect(pieces.some((piece) => piece.part === 'floor')).toBe(true)
     }

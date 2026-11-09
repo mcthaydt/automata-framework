@@ -114,6 +114,19 @@ describe('findSourceNames with code folders', () => {
     expect(findSourceNames(root, code)).toEqual([])
   })
 
+  it('the oracles stay exempt: a recorded measurement names the project and commit it was taken from', () => {
+    const root = tree({
+      'packages/3d/scripts/oracles/a.ts': `// ${sample} at abc1234\n`,
+      'packages/3d/tests/fixtures/oracles/x/frames.json': `{ "source": "${sample}" }\n`,
+      'packages/3d/tests/unit/oracles/a.test.ts': `// ${sample}\n`,
+      'packages/3d/src/testing/oracles.ts': `// ${sample}\n`,
+      'packages/3d/src/testing/oracles-extra.ts': `// ${sample}\n`,
+    })
+    expect(findSourceNames(root, code)).toEqual([
+      'packages/3d/src/testing/oracles-extra.ts:1: names a source project (entry 1)',
+    ])
+  })
+
   it('learns the environment builder’s name', () => {
     const root = tree({ 'packages/3d/src/a.ts': '// Environment Builder\n' })
     expect(findSourceNames(root, code)).toHaveLength(1)

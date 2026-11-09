@@ -7,6 +7,6 @@
     "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts"],
-  // The oracle scripts run inside a FigureBuilder or EnvironmentBuilder checkout, with its toolchain, not this one.
+  // The oracle scripts run inside a checkout of the project they read from, with its toolchain, not this one.
   "exclude": ["scripts/oracles/**"]
 }

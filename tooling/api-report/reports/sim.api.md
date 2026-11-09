@@ -562,6 +562,12 @@ function atan(x0: number): number;
 function atan2(y: number, x: number): number;
 ```
 
+### `cbrt` (function)
+
+```ts
+function cbrt(x0: number): number;
+```
+
 ### `cos` (function)
 
 ```ts

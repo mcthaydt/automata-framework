@@ -225,3 +225,58 @@ export function pow(x: number, y: number): number {
 export function hypot(x: number, y: number): number {
   return Math.sqrt(x * x + y * y)
 }
+
+// --- cbrt ------------------------------------------------------------------
+const CBRT_B1 = 715094163 // (1023 - 1023 / 3 - 0.03306235651) * 2^20
+const CBRT_B2 = 696219795 // (1023 - 1023 / 3 - 54 / 3 - 0.03306235651) * 2^20
+const CBRT_C = 5.42857142857142815906e-1
+const CBRT_D = -7.0530612244897961105e-1
+const CBRT_E = 1.41428571428571436819
+const CBRT_F = 1.6071428571428572063
+const CBRT_G = 3.57142857142857150787e-1
+
+/** The high 32 bits of a double, as a signed integer, and a double with its high word replaced (low word kept). */
+const highWord = (x: number): number => {
+  scratch.setFloat64(0, x)
+  return scratch.getInt32(0)
+}
+const withHighWord = (x: number, hi: number): number => {
+  scratch.setFloat64(0, x)
+  scratch.setInt32(0, hi | 0)
+  return scratch.getFloat64(0)
+}
+const withLowWord = (x: number, lo: number): number => {
+  scratch.setFloat64(0, x)
+  scratch.setInt32(4, lo | 0)
+  return scratch.getFloat64(0)
+}
+
+/**
+ * Deterministic cube root, from fdlibm's `s_cbrt.c`: a rough root from the exponent, a rational refinement and one
+ * Newton step, under 0.667 ulp. `-0` stays `-0`; NaN and the infinities pass through.
+ */
+export function cbrt(x0: number): number {
+  const sign = highWord(x0) & 0x80000000
+  const hx = highWord(x0) & 0x7fffffff
+  if (hx >= 0x7ff00000) return x0 + x0
+  if (x0 === 0) return x0
+  const x = Math.abs(x0)
+  let t = 0
+  if (hx < 0x00100000) {
+    // A subnormal: scale by 2^54 first.
+    t = withHighWord(0, 0x43500000) * x
+    t = withHighWord(t, ((highWord(t) / 3) | 0) + CBRT_B2)
+  } else t = withHighWord(0, ((hx / 3) | 0) + CBRT_B1)
+  // A root good to 23 bits, then chopped to 20 and made larger than the root, then one Newton step to 53 bits.
+  let r = (t * t) / x
+  let s = CBRT_C + r * t
+  t *= CBRT_G + CBRT_F / (s + CBRT_E + CBRT_D / s)
+  t = withLowWord(t, 0)
+  t = withHighWord(t, highWord(t) + 1)
+  s = t * t
+  r = x / s
+  const w = t + t
+  r = (r - t) / (w + r)
+  t = t + t * r
+  return sign === 0 ? t : -t
+}

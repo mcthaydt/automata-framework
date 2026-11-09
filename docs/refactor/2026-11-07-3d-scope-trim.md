@@ -35,6 +35,8 @@ are extensions. Ember Hall uses core only, as Emberwick does.
 
 ## 2. The ruling, feature by feature
 
+Reversed for the world kit by [2026-11-09-3d-painted-look-spec.md](2026-11-09-3d-painted-look-spec.md) section 6; the rows stay readable.
+
 | Feature | Built? | Ruling | Why | Tasks |
 |---|---|---|---|---|
 | Camera, view latch, occluders, heading sim | yes | **keep** | 2D's `camera-2d`; the Owner's camera (24 mm, 25° down) needs the occluders | none |

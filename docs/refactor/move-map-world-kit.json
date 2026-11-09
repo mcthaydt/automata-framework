@@ -1,0 +1,186 @@
+{
+  "sources": ["extensions/world-kit"],
+  "moves": [
+    {
+      "from": "extensions/world-kit/src/features/textures/pipeline.ts",
+      "to": "packages/3d/src/features/photo/pipeline.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/tile.ts",
+      "to": "packages/3d/src/features/photo/tile.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/colour.ts",
+      "to": "packages/3d/src/features/photo/colour.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/texture-spec.ts",
+      "to": "packages/3d/src/features/photo/texture-spec.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/structure.ts",
+      "to": "packages/3d/src/features/photo/structure.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/png.ts",
+      "to": "packages/3d/src/features/photo/png.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/photos.ts",
+      "to": "packages/3d/src/features/photo/photo-library.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/swatch-tiles.ts",
+      "to": "packages/3d/src/features/photo/swatch-tile.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/swatch-issues.ts",
+      "to": "packages/3d/src/features/photo/swatch-issues.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/features/textures/check-reads.ts",
+      "to": "packages/3d/src/app/check-reads.ts"
+    },
+    {
+      "from": "extensions/world-kit/assets/photos",
+      "to": "packages/3d/src/features/photo/library"
+    },
+    {
+      "from": "extensions/world-kit/src/features/furnish",
+      "to": "packages/3d/src/features/world/furnish"
+    },
+    {
+      "from": "extensions/world-kit/src/features/maps",
+      "to": "packages/3d/src/features/world/maps"
+    },
+    {
+      "from": "extensions/world-kit/src/features/props",
+      "to": "packages/3d/src/features/world/props/kit"
+    },
+    {
+      "from": "extensions/world-kit/src/features/reads",
+      "to": "packages/3d/src/features/world/reads"
+    },
+    {
+      "from": "extensions/world-kit/src/shared/lettering/lettering.ts",
+      "to": "packages/3d/src/features/world/lettering.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/shared/piece-helpers.ts",
+      "to": "packages/3d/src/features/world/props/kit/piece-helpers.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/shared/turn.ts",
+      "to": "packages/3d/src/features/world/props/kit/turn.ts"
+    },
+    {
+      "from": "extensions/world-kit/library/kits.json",
+      "to": "packages/3d/src/features/world/library/kits.json"
+    },
+    {
+      "from": "extensions/world-kit/library/props.json",
+      "to": "packages/3d/src/features/world/library/props.json"
+    },
+    {
+      "from": "extensions/world-kit/library/swatches.json",
+      "to": "packages/3d/src/features/world/library/swatches.json"
+    },
+    {
+      "from": "extensions/world-kit/library/glyphs.json",
+      "to": "packages/3d/src/features/world/library/glyphs.json"
+    },
+    {
+      "from": "extensions/world-kit/library/words.json",
+      "to": "packages/3d/src/features/world/library/words.json"
+    },
+    {
+      "from": "extensions/world-kit/library/maps",
+      "to": "packages/3d/src/features/world/library/maps"
+    },
+    {
+      "from": "extensions/world-kit/src/features/sky",
+      "to": "packages/3d/src/features/look/passes"
+    },
+    {
+      "from": "extensions/world-kit/src/app/dressed-base-scenes.ts",
+      "to": "packages/3d/src/features/world/base/dressed-base-scenes.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/app/world-kit-library.ts",
+      "to": "packages/3d/src/features/world/base/core-library.ts"
+    },
+    {
+      "from": "extensions/world-kit/scripts/convert-builder-maps.ts",
+      "to": "packages/3d/scripts/convert-builder-maps.ts"
+    },
+    {
+      "from": "extensions/world-kit/tests/unit/furnish",
+      "to": "packages/3d/tests/unit/world/furnish"
+    },
+    {
+      "from": "extensions/world-kit/tests/unit/maps",
+      "to": "packages/3d/tests/unit/world/maps"
+    },
+    {
+      "from": "extensions/world-kit/tests/unit/props",
+      "to": "packages/3d/tests/unit/world/kit-props"
+    },
+    {
+      "from": "extensions/world-kit/tests/unit/lettering",
+      "to": "packages/3d/tests/unit/world/lettering"
+    },
+    {
+      "from": "extensions/world-kit/tests/unit/reads",
+      "to": "packages/3d/tests/unit/world/reads"
+    },
+    {
+      "from": "extensions/world-kit/tests/unit/textures",
+      "to": "packages/3d/tests/unit/photo"
+    },
+    {
+      "from": "extensions/world-kit/tests/unit/dressed-base.test.ts",
+      "to": "packages/3d/tests/unit/world/base/dressed-base.test.ts"
+    },
+    {
+      "from": "extensions/world-kit/tests/unit/library.test.ts",
+      "to": "packages/3d/tests/unit/world/base/library.test.ts"
+    },
+    {
+      "from": "extensions/world-kit/tests/browser/sky/passes.test.ts",
+      "to": "packages/3d/tests/browser/parity/look/sky-passes.test.ts"
+    },
+    {
+      "from": "extensions/world-kit/tests/browser/sky/support.ts",
+      "to": "packages/3d/tests/browser/parity/look/sky-support.ts"
+    },
+    {
+      "from": "extensions/world-kit/tests/fixtures/builder-maps.json",
+      "to": "packages/3d/tests/fixtures/world/builder-maps.json"
+    },
+    {
+      "from": "extensions/world-kit/tests/fixtures/level.ts",
+      "to": "packages/3d/tests/fixtures/world/level.ts"
+    },
+    {
+      "from": "extensions/world-kit/tests/fixtures/png.ts",
+      "to": "packages/3d/tests/fixtures/world/png.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/entries/index.ts",
+      "to": "packages/3d/src/entries/.world-kit-index.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/entries/sky.ts",
+      "to": "packages/3d/src/entries/.world-kit-sky.ts"
+    },
+    {
+      "from": "extensions/world-kit/src/entries/textures.ts",
+      "to": "packages/3d/src/entries/.world-kit-textures.ts"
+    }
+  ],
+  "entries": {
+    "@automata/world-kit": "@automata/3d/props-kit",
+    "@automata/world-kit/sky": "@automata/3d",
+    "@automata/world-kit/textures": "@automata/3d/props-kit"
+  }
+}

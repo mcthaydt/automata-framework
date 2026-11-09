@@ -18,6 +18,6 @@ test('draws the street at night with the stars, rain and glow passes of the kit,
   await expect(frame.getByTestId('play-screen')).toBeVisible()
   // The scene says which time of day it is lit as and which passes it added; a pass added twice is refused by core.
   await expect(canvas).toHaveAttribute('data-time', 'night')
-  await expect(canvas).toHaveAttribute('data-passes', 'world-kit:stars,world-kit:glow,world-kit:rain')
+  await expect(canvas).toHaveAttribute('data-passes', 'sky:stars,sky:glow,sky:rain')
   expect(errors).toEqual([])
 })

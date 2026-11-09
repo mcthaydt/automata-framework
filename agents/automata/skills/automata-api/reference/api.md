@@ -15111,6 +15111,15 @@ Finite inputs only (sim values are finite). Signed zeros follow the built-in ata
 function atan2(y: number, x: number): number;
 ```
 
+#### `cbrt` (function)
+
+Deterministic cube root, from fdlibm's `s_cbrt.c`: a rough root from the exponent, a rational refinement and one
+Newton step, under 0.667 ulp. `-0` stays `-0`; NaN and the infinities pass through.
+
+```ts
+function cbrt(x0: number): number;
+```
+
 #### `cos` (function)
 
 Deterministic cosine, in radians. NaN for a non-finite input.

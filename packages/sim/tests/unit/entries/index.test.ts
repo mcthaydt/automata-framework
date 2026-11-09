@@ -35,6 +35,7 @@ test('deterministic math is the ./math subpath', () => {
   expect(Object.getOwnPropertyNames(math).sort()).toEqual([
     'atan',
     'atan2',
+    'cbrt',
     'cos',
     'exp',
     'hypot',

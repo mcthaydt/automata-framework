@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "types": ["vite/client", "node", "vitest/browser"],
-    "isolatedDeclarations": false
-  },
-  "include": ["src/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"]
-}

@@ -48,10 +48,12 @@ describe('the base scenes', () => {
     for (const name of names)
       expect(BASE_SCENES[name].cast?.map((c) => c.who).sort()).toEqual(Object.keys(BASE_PAIR).sort())
   })
-  it('core registers exactly box, cylinder, table, bin, lamp, streetLamp and tree', () => {
-    expect([...registeredPropGenerators()].sort()).toEqual(
-      ['bin', 'box', 'cylinder', 'lamp', 'streetLamp', 'table', 'tree'].sort(),
+  it('core registers box, cylinder, table, bin, lamp, streetLamp and tree, and the kit’s generators beside them', () => {
+    const registered = [...registeredPropGenerators()]
+    expect(registered).toEqual(
+      expect.arrayContaining(['bin', 'box', 'cylinder', 'lamp', 'streetLamp', 'table', 'tree']),
     )
+    expect(registered).toEqual(expect.arrayContaining(['chair', 'bed', 'shelf']))
   })
   it('the library names nothing but DUEL swatches and generators core has', () => {
     for (const preset of Object.values(baseLibrary.props ?? {}))

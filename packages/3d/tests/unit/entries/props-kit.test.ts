@@ -18,6 +18,10 @@ describe('./props-kit', () => {
     // A name here is one more thing core must keep stable. Add one only when an extension imports it.
     expect(Object.keys(kit).sort()).toEqual(
       [
+        'DEFAULT_READS',
+        'HOT',
+        'MAP_NAMES',
+        'MIN_READ',
         'at',
         'axisAngle',
         'blob',
@@ -26,11 +30,15 @@ describe('./props-kit', () => {
         'cone',
         'cornersOf',
         'cylinder',
+        'dressLevel',
+        'figureReads',
+        'generateMap',
         'hasSwatch',
         'heightAt',
         'inside',
         'inward',
         'isFault',
+        'isHot',
         'lightOf',
         'limb',
         'merge',
@@ -39,6 +47,7 @@ describe('./props-kit', () => {
         'placed',
         'quad',
         'rbox',
+        'readsAgainst',
         'registerPropGenerator',
         'resolveProp',
         'ringTube',
@@ -47,6 +56,7 @@ describe('./props-kit', () => {
         'segments',
         'signedArea',
         'stream',
+        'waivedBy',
       ].sort(),
     )
   })

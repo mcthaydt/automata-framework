@@ -1046,3 +1046,12 @@ one turn of the page); `a photo is fetched and prepared once for all its pairs`.
 5. **Proportion:** the plan names files, signatures and tests; no task carries a body the sources do not already fix.
 6. **Plan audit (stage 3):** P1 to P14 fixed in place: Global Constraints and Tasks 1, 2, 3, 5, 6, 8, 9, 11, 12, 13,
    14, 15, 19, 20 and 25 ([plan audit](2026-11-09-3d-painted-look-plan-audit.md)).
+
+## Log
+
+- 2026-11-09 (stage 4, branch `claude/project-thread-2ts3yn`): Task 1 done (`960c7248`). Task 2 done (`f4b15f4a`): twelve frames,
+  not sixteen, to keep the soups at 7.9 MiB; the oracle scripts and fixtures are exempt from `pnpm source-names` because they
+  must name the project and commit they measured. Task 3 done: `check-reads.ts` lives in `app/` (it wires the photo and
+  world features, which may not import each other); `swatch-issues.ts` stays its own file in `features/photo/`; the photos sit
+  in `library/photos/` with `photos.json` beside them; a room that still asks to be dressed is drawn bare without a
+  `needs-extension` note, since core has the kit and `dressLevel` is its own step.

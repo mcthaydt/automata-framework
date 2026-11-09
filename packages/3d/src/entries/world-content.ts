@@ -1,11 +1,12 @@
 // @automata/3d/world-content: the world's content kinds, for a game's content compiler (its `vite.config.ts` lists them
 // beside the figures'). A game writes its own swatches and prop presets as TOML under `content/world-swatches/` and
-// `content/world-props/`; the room's builder reads them back from the compiled content. The schemas import no Pixi.
+// `content/world-props/` (and a purpose kit under `content/world-kits/`); the room's builder reads them back from the compiled content. The schemas import no Pixi.
 
 export { worldPropContent, worldSwatchContent } from '../features/world/content/world.content.ts'
 // The shapes of a library record, for an editor that lists the game's furniture and materials by name and colour.
 export type { WorldProp } from '../features/world/content/world-prop.schema.ts'
 export type { WorldSwatch } from '../features/world/content/world-swatch.schema.ts'
+export { worldKitContent } from '../features/world/furnish/kit.content.ts'
 // The lamp kit's kinds, for an editor that offers each lamp by name.
 export { LAMP_KINDS } from '../features/world/lamp-kit.ts'
 // The rules that say whether a level's names exist in a library, for an editor's check: the same ones the world builder

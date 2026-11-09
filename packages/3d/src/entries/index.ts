@@ -70,6 +70,17 @@ export {
   registeredLookPasses,
 } from '../features/look/look-pass.ts'
 export { OutlineEffect } from '../features/look/outline-filter.ts'
+// The sky passes: stars, rain and a glow, for a game that wants them in its 3D look.
+export { GlowEffect, type GlowOptions } from '../features/look/passes/glow-effect.ts'
+export { RainEffect } from '../features/look/passes/rain-effect.ts'
+export {
+  addSkyPasses,
+  type RainOptions,
+  SKY_PASS_NAMES,
+  type SkyPassOptions,
+  skyLookPasses,
+} from '../features/look/passes/sky-passes.ts'
+export { StarsEffect } from '../features/look/passes/stars-effect.ts'
 export { lightSteps, rampLit } from '../features/look/ramp-light.ts'
 export { RampMaterial, type RampMaterialOptions } from '../features/look/ramp-light-material.ts'
 export {

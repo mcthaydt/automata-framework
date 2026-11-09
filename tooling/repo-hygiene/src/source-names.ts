@@ -19,6 +19,17 @@ export const SOURCE_NAMES: readonly SourceName[] = [
   { pattern: /legacy[\s_-]?v2/i, sample: 'LegacyV2' },
 ]
 
+/**
+ * Code that records a measurement taken from a source project, so it must name the project and its commit: the oracle
+ * scripts that took it, the fixtures that hold it, and the reader and tests that use it.
+ */
+const ORACLES: readonly string[] = [
+  'packages/3d/scripts/oracles/',
+  'packages/3d/tests/fixtures/oracles/',
+  'packages/3d/tests/unit/oracles/',
+  'packages/3d/src/testing/oracles.ts',
+]
+
 /** The folders under `docs/` that are records: they name the source projects as evidence, by design. */
 const RECORD_FOLDERS: ReadonlySet<string> = new Set(['adr', 'archive', 'provenance', 'refactor'])
 
@@ -90,6 +101,7 @@ export function findSourceNames(root: string, options: SourceNameOptions = {}): 
   ]
   for (const file of files.sort()) {
     const name = relative(root, file)
+    if (ORACLES.some((path) => name.startsWith(path))) continue
     SOURCE_NAMES.forEach((entry, entryIndex) => {
       if ((options.code ?? []).some((folder) => name.startsWith(`${folder}/`)) && entry.pattern.test(name))
         findings.push(`${name}:0: names a source project (entry ${entryIndex + 1})`)

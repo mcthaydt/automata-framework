@@ -16,7 +16,7 @@ the task-by-task record; this page is the short version.
   loads Node modules.
 - **Extensions.** Opt-in extras in `extensions/`, each `@automata/<name>` with its own README: physics, feel, audio-synth,
   debug, puzzle, online play (net, net-ui, net-server), screens, the level and story tools (sectors, nav, systems,
-  narrative, cutscenes) and the 3D kits (character-kit, world-kit). Nine publish to npm; the rest are private for now.
+  narrative, cutscenes) and the 3D character kit (character-kit; the world kit moved into core). Nine publish to npm; the rest are private for now.
 - **Edited content shows in play (PR #484, not on main yet).** A 2D level and its placed characters are drawn from what the editor
   saved; a character's clips, the default controls (Tuner), a dialogue box, cutscene captions and a 2D cutscene stage run from
   files; `narrative`, `cutscenes`, `nav` and `systems` work in a 2D level through `places` and `level-2d`. `examples/2d-story`

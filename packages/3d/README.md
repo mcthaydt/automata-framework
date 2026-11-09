@@ -30,11 +30,11 @@ import { createPixi3dRenderer, DEFAULT_LOOK, targetSize } from '@automata/3d'
 
 ## What is core and what is an extension
 
-Core keeps the camera, the renderer, `af-sector/2`, the world builder, prop placement (`registerPropGenerator`, with
-`box` and `cylinder`), lamps, time of day, the timeline, piece states, figure body, motion and items, the five
-registries, seven garment kinds, glTF loading and the look. Extensions add the rest: `@automata/world-kit` (prop,
-swatch and kit libraries, the dresser, decals, lettering, generated maps, photo textures, sky, stars, rain and
-bloom as look passes) and `@automata/character-kit` (the other garments, hair pieces, finishes and seats).
+Core keeps the camera, the renderer, `af-sector/2`, the world builder, prop placement (`registerPropGenerator`), lamps,
+time of day, the timeline, piece states, figure body, motion and items, the five registries, seven garment kinds,
+glTF loading and the look. The world kit is core's too: the prop, swatch and kit libraries, the dresser (`dressLevel`),
+lettering, generated maps (`generateMap`), the photo library and its pipeline (`@automata/3d/photo`), and the stars,
+rain and glow passes. `@automata/character-kit` is the extension (the other garments, hair pieces, finishes and seats).
 
 ## The look
 

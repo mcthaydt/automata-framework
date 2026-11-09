@@ -13,7 +13,8 @@
   "sideEffects": [
     "./src/entries/no-eval.ts",
     "./src/features/figures/outfit/garments/classic-kinds.ts",
-    "./src/features/renderer/no-eval/install-no-eval.ts"
+    "./src/features/renderer/no-eval/install-no-eval.ts",
+    "./src/features/world/props/kit/register-kit-props.ts"
   ],
   "exports": {
     ".": "./src/entries/index.ts",
@@ -22,6 +23,7 @@
     "./figures-kit": "./src/entries/figures-kit.ts",
     "./level": "./src/entries/level.ts",
     "./props-kit": "./src/entries/props-kit.ts",
+    "./photo": "./src/entries/photo.ts",
     "./no-eval": "./src/entries/no-eval.ts",
     "./world-content": "./src/entries/world-content.ts",
     "./base": "./src/entries/base.ts",

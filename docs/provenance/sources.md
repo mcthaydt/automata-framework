@@ -484,58 +484,58 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tsconfig.json` | | left out: the builder's package and build setup; AF's packages have their own |
 | `vendor/FigureBuilder` | | left out: the submodule that gives the builder its figures; AF imports its own figure code |
 | `vite.config.ts` | | left out: the builder's package and build setup; AF's packages have their own |
-| `src/features/photo/library/photos.json` | `extensions/world-kit/assets/photos/photos.json` | ported: each photo keeps its source, licence and credit (Poly Haven, CC0) |
-| `src/features/photo/library/photos/aggregate.png` | `extensions/world-kit/assets/photos/aggregate.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/asphalt.png` | `extensions/world-kit/assets/photos/asphalt.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/bark.png` | `extensions/world-kit/assets/photos/bark.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/beams.png` | `extensions/world-kit/assets/photos/beams.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/brick.png` | `extensions/world-kit/assets/photos/brick.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/brickYellow.png` | `extensions/world-kit/assets/photos/brickYellow.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/carpet.png` | `extensions/world-kit/assets/photos/carpet.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/ceilingPaint.png` | `extensions/world-kit/assets/photos/ceilingPaint.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/ceilingTiles.png` | `extensions/world-kit/assets/photos/ceilingTiles.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/checker.png` | `extensions/world-kit/assets/photos/checker.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/cobbles.png` | `extensions/world-kit/assets/photos/cobbles.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/concrete.png` | `extensions/world-kit/assets/photos/concrete.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/corrugated.png` | `extensions/world-kit/assets/photos/corrugated.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/dirt.png` | `extensions/world-kit/assets/photos/dirt.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/fabric.png` | `extensions/world-kit/assets/photos/fabric.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/floorTiles.png` | `extensions/world-kit/assets/photos/floorTiles.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/kerb.png` | `extensions/world-kit/assets/photos/kerb.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/laminate.png` | `extensions/world-kit/assets/photos/laminate.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/lino.png` | `extensions/world-kit/assets/photos/lino.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/metal.png` | `extensions/world-kit/assets/photos/metal.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/metalSheet.png` | `extensions/world-kit/assets/photos/metalSheet.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/paintedPlaster.png` | `extensions/world-kit/assets/photos/paintedPlaster.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/panelling.png` | `extensions/world-kit/assets/photos/panelling.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/pavement.png` | `extensions/world-kit/assets/photos/pavement.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/paving.png` | `extensions/world-kit/assets/photos/paving.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/planks.png` | `extensions/world-kit/assets/photos/planks.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/plaster.png` | `extensions/world-kit/assets/photos/plaster.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/plasterFinish.png` | `extensions/world-kit/assets/photos/plasterFinish.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/roof.png` | `extensions/world-kit/assets/photos/roof.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/rug.png` | `extensions/world-kit/assets/photos/rug.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/scallopPlaster.png` | `extensions/world-kit/assets/photos/scallopPlaster.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/stone.png` | `extensions/world-kit/assets/photos/stone.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/stripedWallpaper.png` | `extensions/world-kit/assets/photos/stripedWallpaper.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/stucco.png` | `extensions/world-kit/assets/photos/stucco.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/tiles.png` | `extensions/world-kit/assets/photos/tiles.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/wallTiles.png` | `extensions/world-kit/assets/photos/wallTiles.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/woodGrain.png` | `extensions/world-kit/assets/photos/woodGrain.png` | ported: the photo, unchanged |
-| `src/features/photo/library/photos/woodPanels.png` | `extensions/world-kit/assets/photos/woodPanels.png` | ported: the photo, unchanged |
-| `src/features/photo/pipeline.ts` | `extensions/world-kit/src/features/textures/pipeline.ts` and `extensions/world-kit/src/features/textures/tile.ts` and `extensions/world-kit/src/features/textures/texture-spec.ts` | rewritten: the stages (`flatten`, `facet`, `resample`, `indexTone`, `indexPhoto`, `wear`, `clean`) as written, the numbers the source's, over a decoded PNG instead of a canvas; the tile is one format shared with the swatch library (`Tile`, `photoToTile(png, knobs)`) and the knobs are a `TextureSpec` with the source's defaults |
-| `src/features/photo/structure.ts` | `extensions/world-kit/src/features/textures/structure.ts` and `extensions/world-kit/src/features/textures/check-reads.ts` | rewritten: the checks are the source's (`READS`: blotch, dominant, span, spots, patches) as written; `checkReads(level, library, photos)` reports a swatch that misses its declared `reads` as the level problem `swatch-reads`, where the source's script printed it |
-| `src/features/photo/textures.ts` | `extensions/world-kit/src/features/textures/photos.ts` and `extensions/world-kit/src/features/textures/swatch-tiles.ts` and `extensions/world-kit/src/features/textures/swatch-issues.ts` and `extensions/world-kit/src/features/textures/textures-command.ts` | rewritten: tiles are committed JSON (`library/tiles/*.tile.json`) stamped with their photo's sha-256, `staleTiles` reports a missing, stray or stale one, and `automata-world-textures [--check] [--out dir]` makes and checks them |
-| `src/lib/png.ts` | `extensions/world-kit/src/features/textures/png.ts` | rewritten: `decodePng` only; the encoder served the CPU renderer and is left out |
-| `tests/features/photo/pipeline.test.ts` | `extensions/world-kit/tests/unit/textures/photo-to-tile.test.ts` | rewritten: over generated PNGs (`tests/fixtures/png.ts`), the same properties: deterministic, on the palette, the same tile for the same knobs |
-| `tests/features/photo/structure.test.ts` | `extensions/world-kit/tests/unit/textures/structure.test.ts` | rewritten: over the kit's tiles |
-| `tests/features/photo/textures.test.ts` | `extensions/world-kit/tests/unit/textures/swatch-tiles.test.ts` and `extensions/world-kit/tests/unit/textures/textures-command.test.ts` | rewritten: every committed tile matches its photo's hash, a stale, missing or stray one is reported, and the command exits 0, 1 or 2 |
+| `src/features/photo/library/photos.json` | `packages/3d/src/features/photo/library/photos.json` | ported: each photo keeps its source, licence and credit (Poly Haven, CC0) |
+| `src/features/photo/library/photos/aggregate.png` | `packages/3d/src/features/photo/library/photos/aggregate.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/asphalt.png` | `packages/3d/src/features/photo/library/photos/asphalt.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/bark.png` | `packages/3d/src/features/photo/library/photos/bark.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/beams.png` | `packages/3d/src/features/photo/library/photos/beams.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/brick.png` | `packages/3d/src/features/photo/library/photos/brick.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/brickYellow.png` | `packages/3d/src/features/photo/library/photos/brickYellow.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/carpet.png` | `packages/3d/src/features/photo/library/photos/carpet.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/ceilingPaint.png` | `packages/3d/src/features/photo/library/photos/ceilingPaint.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/ceilingTiles.png` | `packages/3d/src/features/photo/library/photos/ceilingTiles.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/checker.png` | `packages/3d/src/features/photo/library/photos/checker.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/cobbles.png` | `packages/3d/src/features/photo/library/photos/cobbles.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/concrete.png` | `packages/3d/src/features/photo/library/photos/concrete.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/corrugated.png` | `packages/3d/src/features/photo/library/photos/corrugated.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/dirt.png` | `packages/3d/src/features/photo/library/photos/dirt.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/fabric.png` | `packages/3d/src/features/photo/library/photos/fabric.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/floorTiles.png` | `packages/3d/src/features/photo/library/photos/floorTiles.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/kerb.png` | `packages/3d/src/features/photo/library/photos/kerb.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/laminate.png` | `packages/3d/src/features/photo/library/photos/laminate.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/lino.png` | `packages/3d/src/features/photo/library/photos/lino.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/metal.png` | `packages/3d/src/features/photo/library/photos/metal.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/metalSheet.png` | `packages/3d/src/features/photo/library/photos/metalSheet.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/paintedPlaster.png` | `packages/3d/src/features/photo/library/photos/paintedPlaster.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/panelling.png` | `packages/3d/src/features/photo/library/photos/panelling.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/pavement.png` | `packages/3d/src/features/photo/library/photos/pavement.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/paving.png` | `packages/3d/src/features/photo/library/photos/paving.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/planks.png` | `packages/3d/src/features/photo/library/photos/planks.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/plaster.png` | `packages/3d/src/features/photo/library/photos/plaster.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/plasterFinish.png` | `packages/3d/src/features/photo/library/photos/plasterFinish.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/roof.png` | `packages/3d/src/features/photo/library/photos/roof.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/rug.png` | `packages/3d/src/features/photo/library/photos/rug.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/scallopPlaster.png` | `packages/3d/src/features/photo/library/photos/scallopPlaster.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/stone.png` | `packages/3d/src/features/photo/library/photos/stone.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/stripedWallpaper.png` | `packages/3d/src/features/photo/library/photos/stripedWallpaper.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/stucco.png` | `packages/3d/src/features/photo/library/photos/stucco.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/tiles.png` | `packages/3d/src/features/photo/library/photos/tiles.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/wallTiles.png` | `packages/3d/src/features/photo/library/photos/wallTiles.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/woodGrain.png` | `packages/3d/src/features/photo/library/photos/woodGrain.png` | ported: the photo, unchanged |
+| `src/features/photo/library/photos/woodPanels.png` | `packages/3d/src/features/photo/library/photos/woodPanels.png` | ported: the photo, unchanged |
+| `src/features/photo/pipeline.ts` | `packages/3d/src/features/photo/pipeline.ts` and `packages/3d/src/features/photo/tile.ts` and `packages/3d/src/features/photo/texture-spec.ts` | rewritten: the stages (`flatten`, `facet`, `resample`, `indexTone`, `indexPhoto`, `wear`, `clean`) as written, the numbers the source's, over a decoded PNG instead of a canvas; the tile is one format shared with the swatch library (`Tile`, `photoToTile(png, knobs)`) and the knobs are a `TextureSpec` with the source's defaults |
+| `src/features/photo/structure.ts` | `packages/3d/src/features/photo/structure.ts` and `packages/3d/src/app/check-reads.ts` | rewritten: the checks are the source's (`READS`: blotch, dominant, span, spots, patches) as written; `checkReads(level, library, photos)` reports a swatch that misses its declared `reads` as the level problem `swatch-reads`, where the source's script printed it |
+| `src/features/photo/textures.ts` | `packages/3d/src/features/photo/photo-library.ts` and `packages/3d/src/features/photo/swatch-tile.ts` and `packages/3d/src/features/photo/swatch-issues.ts` (the tile command and the committed tile files were deleted with the move into core) | rewritten: tiles are committed JSON (`library/tiles/*.tile.json`) stamped with their photo's sha-256, `staleTiles` reports a missing, stray or stale one, and `automata-world-textures [--check] [--out dir]` makes and checks them |
+| `src/lib/png.ts` | `packages/3d/src/features/photo/png.ts` | rewritten: `decodePng` only; the encoder served the CPU renderer and is left out |
+| `tests/features/photo/pipeline.test.ts` | `packages/3d/tests/unit/photo/photo-to-tile.test.ts` | rewritten: over generated PNGs (`tests/fixtures/png.ts`), the same properties: deterministic, on the palette, the same tile for the same knobs |
+| `tests/features/photo/structure.test.ts` | `packages/3d/tests/unit/photo/structure.test.ts` | rewritten: over the kit's tiles |
+| `tests/features/photo/textures.test.ts` | `packages/3d/tests/unit/photo/reads.test.ts` and `packages/3d/tests/unit/photo/png.test.ts` | rewritten: no tile is committed any more, so the test makes every textured swatch's tile from its photo and holds it to the `reads` it declares; the PNG decoder is checked on every library photo |
 | `tests/lib/png.test.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
 | `src/features/paint/paint.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
 | `src/features/paint/perspective.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
-| `src/features/paint/post.ts` | `extensions/world-kit/src/features/sky/glow-effect.ts` and `extensions/world-kit/src/features/sky/shader-parts.ts` | rewritten: only the bloom is here, as `GlowEffect`, a `@pixi/3d` `PostEffect` (GLSL and WGSL) that lifts the neighbours of what is bright by whole DUEL steps and runs after core's snap; the other passes are the CPU painter's and are left out (core's look draws instead) |
+| `src/features/paint/post.ts` | `packages/3d/src/features/look/passes/glow-effect.ts` and `packages/3d/src/features/look/passes/shader-parts.ts` | rewritten: only the bloom is here, as `GlowEffect`, a `@pixi/3d` `PostEffect` (GLSL and WGSL) that lifts the neighbours of what is bright by whole DUEL steps and runs after core's snap; the other passes are the CPU painter's and are left out (core's look draws instead) |
 | `src/features/paint/light.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
-| `src/features/paint/colour.ts` | `extensions/world-kit/src/features/textures/colour.ts` | rewritten: OKLab, the DUEL index and the hash the photo pipeline uses are the kit's `textures/colour.ts`; the rest is the CPU scene painter's and is left out (the Pixi 3D look, ADR 0007, draws instead) |
+| `src/features/paint/colour.ts` | `packages/3d/src/features/photo/colour.ts` | rewritten: OKLab, the DUEL index and the hash the photo pipeline uses are the kit's `textures/colour.ts`; the rest is the CPU scene painter's and is left out (the Pixi 3D look, ADR 0007, draws instead) |
 | `tests/features/paint/colour.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
 | `tests/features/paint/light-pass.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
 | `tests/features/paint/place.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
@@ -543,7 +543,7 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/paint/to-cell.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
 | `tests/features/paint/kit.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
 | `tests/features/stage/figure-light.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
-| `src/features/paint/rain.ts` | `extensions/world-kit/src/features/sky/rain-effect.ts` and `extensions/world-kit/src/features/sky/sky-passes.ts` | rewritten: three depth-tested layers of streaks as a `PostEffect` on the frame clock, added with `addLookPass` (`addSkyPasses`) |
+| `src/features/paint/rain.ts` | `packages/3d/src/features/look/passes/rain-effect.ts` and `packages/3d/src/features/look/passes/sky-passes.ts` | rewritten: three depth-tested layers of streaks as a `PostEffect` on the frame clock, added with `addLookPass` (`addSkyPasses`) |
 | `src/features/paint/look.ts` | `packages/3d/src/features/look/look.ts` | rewritten: the look's switches and numbers as a Zod-checked `Look` the Pixi 3D passes read, not the CPU painter's profile |
 | `src/features/paint/library/look.json` | `packages/3d/src/features/look/library/look.json` | rewritten: the pixel size, light steps, outline, dither and grade; the lamp kit and haze stay with the world kit |
 | `tests/features/paint/look.test.ts` | `packages/3d/tests/unit/look/look.test.ts` | rewritten: the look's parse and defaults, `targetSize`, `rampLit`, `spriteLight` and `addLookPass` |
@@ -552,9 +552,9 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/view/fp.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `src/features/view/render.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `src/features/view/shots.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
-| `src/features/view/view-frame.ts` | `extensions/world-kit/src/features/reads/reads-against.ts` | rewritten: `readsAgainst(figure, room, camera)` and its thresholds (`MIN_READ` 1.1, `HOT` 1.1) are the source's; a room's `reads` may waive a figure by name; the diorama frame itself belongs to the editor |
-| `src/features/view/readability.ts` | `extensions/world-kit/src/features/reads/figure-reads.ts` | rewritten: `figureReads(frame)` takes a drawn frame as plain pixels (no canvas); the measure is the source's |
-| `tests/features/view/readability.test.ts` | `extensions/world-kit/tests/unit/reads/reads.test.ts` | rewritten: the measure on the same kind of frames |
+| `src/features/view/view-frame.ts` | `packages/3d/src/features/world/reads/reads-against.ts` | rewritten: `readsAgainst(figure, room, camera)` and its thresholds (`MIN_READ` 1.1, `HOT` 1.1) are the source's; a room's `reads` may waive a figure by name; the diorama frame itself belongs to the editor |
+| `src/features/view/readability.ts` | `packages/3d/src/features/world/reads/figure-reads.ts` | rewritten: `figureReads(frame)` takes a drawn frame as plain pixels (no canvas); the measure is the source's |
+| `tests/features/view/readability.test.ts` | `packages/3d/tests/unit/world/reads/reads.test.ts` | rewritten: the measure on the same kind of frames |
 | `tests/features/view/room.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `tests/features/view/scene.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `tests/features/view/shots.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
@@ -578,7 +578,7 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/world/build.test.ts` | `packages/3d/tests/unit/world/build.test.ts` | rewritten: the cases run `buildWorld` over `/2` levels and check the `LevelProblem`s it reports |
 | `src/features/world/build.ts` | `packages/3d/src/features/world/build.ts` | rewritten: see the row for `src/features/world/map.ts` (`mapPieces`) |
 | `src/features/paint/occlusion.ts` | `packages/3d/src/shared/render/light/occlusion.ts` | rewritten: what blocks a lamp and the contact darkening, over a `SceneLighting`'s boxes and planes |
-| `src/features/paint/sky.ts` | `extensions/world-kit/src/features/sky/stars-effect.ts` | rewritten: the stars only, as a `PostEffect` that draws where the depth buffer is empty sky and holds its place when the camera is aimed; core keeps the sky and horizon colours of a time of day |
+| `src/features/paint/sky.ts` | `packages/3d/src/features/look/passes/stars-effect.ts` | rewritten: the stars only, as a `PostEffect` that draws where the depth buffer is empty sky and holds its place when the camera is aimed; core keeps the sky and horizon colours of a time of day |
 | `src/features/paint/vertex-light.ts` | `packages/3d/src/shared/render/light/vertex-light.ts` | rewritten: direct light from a lamp at a point, over one `SceneLighting`; the stepped light is the look's |
 | `src/features/stage/actor.ts` |  | left out: a scripted actor in a scene is the cutscenes extension's; a figure in a level is a game's entity drawn by the figure view |
 | `src/features/stage/camera.ts` | `packages/3d/src/features/camera/angled-camera.ts` | rewritten: the camera is the angled 24 mm camera (`camera/`) a game drives; the source's shot cameras are the cutscenes extension's |
@@ -592,7 +592,7 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/lib/rng.ts` | `packages/sim/src/shared/rng/rng.ts` | rewritten: the seeded generator is the sim's `createRng`, used by the world builder (`world/build.ts`) |
 | `tests/base/base.test.ts` | `packages/3d/tests/unit/base/base-scenes.test.ts` | rewritten: the base scenes' cases, over the levels and the library |
 | `tests/features/paint/occlusion.test.ts` | `packages/3d/tests/unit/shared/render/light/occlusion.test.ts` | rewritten: the cases over a `SceneLighting` |
-| `tests/features/paint/sky.test.ts` | `extensions/world-kit/tests/browser/sky/passes.test.ts` | rewritten: in Chromium, the stars, the rain and the glow draw on the DUEL palette after core's snap |
+| `tests/features/paint/sky.test.ts` | `packages/3d/tests/browser/parity/look/sky-passes.test.ts` | rewritten: in Chromium, the stars, the rain and the glow draw on the DUEL palette after core's snap |
 | `tests/features/paint/vertex-light.test.ts` | `packages/3d/tests/unit/shared/render/light/vertex-bake.test.ts` | rewritten: the light at a vertex, over a `SceneLighting` |
 | `tests/features/stage/actors.test.ts` |  | left out: scripted actors are the cutscenes extension's |
 | `tests/features/stage/camera.test.ts` | `packages/3d/tests/unit/camera/angled-camera.test.ts` | rewritten: the camera's cases are the angled camera's |
