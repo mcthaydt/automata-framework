@@ -212,6 +212,8 @@ export class TileMaterial extends BaseMaterial3D {
   private wall: TileImage | undefined
   private readonly owned: { floorTile?: Texture | undefined; wallTile?: Texture | undefined } = {}
 
+  private readonly options: TileMaterialOptions
+
   constructor(options: TileMaterialOptions) {
     const { colour, floor, wall, place, glowing, haze, gain, ...rest } = options
     const bit = glowing === true ? BITS.glowing : BITS.world
@@ -222,6 +224,7 @@ export class TileMaterial extends BaseMaterial3D {
       textures: { floorTile: undefined, wallTile: undefined },
       descriptor: { bitsGpu: [bit, uvTransformBit], bitsGl: [bit, uvTransformBit] },
     })
+    this.options = options
     this.glowing = glowing === true
     this.place = place
     this.colour = rgb01(`#${colour.toString(16).padStart(6, '0')}`)
@@ -276,6 +279,16 @@ export class TileMaterial extends BaseMaterial3D {
     this.data.wallShift = w.shift
     this.data.wallSize = w.size
     this.writeTiles()
+  }
+
+  /**
+   * The same surface drawn lit or glowing: a lamp's bulb goes dark when its lamp is out. The code a shader writes is
+   * fixed in the shader, so this is a new material with this one's tiles and focus; the caller frees this one.
+   */
+  withGlowing(glowing: boolean): TileMaterial {
+    const next = new TileMaterial({ ...this.options, glowing, floor: this.floor, wall: this.wall })
+    next.focus = this.depth
+    return next
   }
 
   private put(slot: 'floorTile' | 'wallTile', tile: TileImage | undefined): void {

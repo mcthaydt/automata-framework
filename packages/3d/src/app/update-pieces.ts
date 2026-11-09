@@ -47,10 +47,16 @@ function moveProp(view: WorldView, piece: WorldPiece, after: PieceStates): void 
   placeAbout(mesh, piece.prop.at, state.turn ?? 0, state.at ?? piece.prop.at)
 }
 
+/** Whether a prop's lamps burn: a prop whose lamps all have a state at level 0 is dark, and one with no state burns as authored. */
+function propBurns(states: PieceStates, propId: string): boolean {
+  const own = Object.entries(states.lamps).filter(([id]) => id.startsWith(`${propId}.light`))
+  return own.length === 0 || own.some(([, state]) => state.level > 0)
+}
+
 /**
  * Applies the change from `before` to `after` to the world's meshes and says how many pieces it touched. A door is
  * its room's (`doors[<room id>]`), a prop's pieces move together (`props[<prop id>]`). Lamps are not pieces: a lamp's
- * state reaches the light through `sceneLamps`.
+ * state reaches the light through `sceneLamps`, and a bulb of the prop that carries it glows only while one of its lamps burns.
  */
 export function updatePieces(view: WorldView, before: PieceStates, after: PieceStates): number {
   let changed = 0
@@ -59,7 +65,13 @@ export function updatePieces(view: WorldView, before: PieceStates, after: PieceS
       if (doorOpen(before, piece.sector) === doorOpen(after, piece.sector)) continue
       turnDoor(view, piece, after)
     } else if (piece.prop !== undefined) {
-      if (sameProp(propState(before, piece.prop.id), propState(after, piece.prop.id))) continue
+      const burns = propBurns(after, piece.prop.id)
+      const dimmed = burns !== propBurns(before, piece.prop.id)
+      if (dimmed) view.glow(piece.id, burns)
+      if (sameProp(propState(before, piece.prop.id), propState(after, piece.prop.id))) {
+        if (dimmed) changed++
+        continue
+      }
       moveProp(view, piece, after)
     } else continue
     changed++

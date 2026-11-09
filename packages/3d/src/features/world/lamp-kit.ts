@@ -5,7 +5,7 @@
 // `LevelProblem`-shaped fault the builder reports, not a throw.
 
 import type { LampPlace } from '../../shared/level/af-sector-2.schema.ts'
-import { hexToRgb, labDistance } from '../../shared/math/colour.ts'
+import { hexToRgb, labDistance, oklab, rgbFromLab } from '../../shared/math/colour.ts'
 import kit from './library/lamp-kit.json' with { type: 'json' }
 
 interface Kind {
@@ -62,4 +62,27 @@ export function resolveLamp(lamp: Pick<LampPlace, 'kind' | 'color' | 'range' | '
     peak: kind.peak,
     dusk: kind.dusk === true,
   }
+}
+
+const hex = (rgb: number): string => `#${rgb.toString(16).padStart(6, '0')}`
+
+/**
+ * The colour a lamp of `kind` is drawn in: the kind's, or `wanted` when it is within tone of it, else `wanted` moved toward
+ * the kind's along the straight line in OKLab until it is. A neon takes any colour. A kind the kit lacks has none.
+ */
+export function lampColour(kind: string, wanted?: string): string {
+  const known = LAMP_KINDS[kind]
+  if (known === undefined)
+    throw new Error(`there is no lamp kind "${kind}" (${Object.keys(LAMP_KINDS).join(', ')})`)
+  if (wanted === undefined) return known.color
+  if (kind === 'neon' || labDistance(hexToRgb(wanted), hexToRgb(known.color)) <= kit.tone) return wanted
+  const [l0, a0, b0] = oklab(hexToRgb(known.color))
+  const [l1, a1, b1] = oklab(hexToRgb(wanted))
+  // Rounding to bytes can push the colour a hair past the tone, so the reach shrinks until it is not.
+  for (let share = 0.98; share > 0; share -= 0.05) {
+    const t = (kit.tone / labDistance(hexToRgb(wanted), hexToRgb(known.color))) * share
+    const made = hex(rgbFromLab(l0 + (l1 - l0) * t, a0 + (a1 - a0) * t, b0 + (b1 - b0) * t))
+    if (labDistance(hexToRgb(made), hexToRgb(known.color)) <= kit.tone) return made
+  }
+  return known.color
 }

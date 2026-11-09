@@ -51,6 +51,8 @@ export interface WorldView {
   readonly mesh: (id: string) => Mesh3D | undefined
   /** Gives each piece the tiles `tiles` has for it now: one not given keeps the tile it shows, so a tile still being made leaves the old one up. */
   retile(tiles: (piece: WorldPiece) => PieceTiles | undefined): void
+  /** Lights or darkens an emissive piece (a bulb whose lamp went out or came back): a piece that never glowed is left as it is. */
+  glow(id: string, on: boolean): void
   /** Where the haze begins: the view depth (metres) of what the camera looks at. A no-op without a look. */
   setFocus(depth: number): void
   /** Takes the meshes down and frees their geometry and materials. */
@@ -126,13 +128,15 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   const node = new Container3D()
   scene.parent.addChild(node)
   const meshes = new Map<string, Mesh3D>()
+  const emissive = new Set<string>()
   for (const piece of pieces) {
     const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
-    const tiled =
-      scene.look === undefined ? undefined : tiledMeshOf(piece, colour, scene.look, scene.tiles?.(piece))
+    const given = scene.tiles?.(piece)
+    const tiled = scene.look === undefined ? undefined : tiledMeshOf(piece, colour, scene.look, given)
     const mesh = tiled?.mesh ?? meshOf(piece, colour)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
+    if (tiled !== undefined && given?.glowing === true) emissive.add(piece.id)
     if (tiled !== undefined) {
       // Under a look every piece holds its light as vertex colours, a mover's from where it stands at rest: the tile
       // material reads no other light.
@@ -170,6 +174,14 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
         if (!(material instanceof TileMaterial) || next === undefined) continue
         material.setTiles(next.floor ?? material.floorTile, next.wall ?? material.wallTile)
       }
+    },
+    glow(id, on) {
+      const mesh = meshes.get(id)
+      const material = mesh?.material
+      if (mesh === undefined || !emissive.has(id) || !(material instanceof TileMaterial)) return
+      if (material.glowing === on) return
+      mesh.material = material.withGlowing(on)
+      material.destroy()
     },
     setFocus(depth) {
       for (const mesh of meshes.values())
