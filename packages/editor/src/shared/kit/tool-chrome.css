@@ -53,3 +53,12 @@
     --size-primary: 48px;
   }
 }
+
+/*
+ * Safari on a Mac draws a select in its native look at its own fixed height (about 22 px) and ignores min-height, so
+ * every editor's select fell under the hit size there while Chromium honoured it. `menulist-button` keeps the native
+ * arrow but lets the page size and paint the box, in every engine.
+ */
+select {
+  appearance: menulist-button;
+}
