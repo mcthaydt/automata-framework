@@ -1,7 +1,7 @@
 // A sweep: one rope along a path of points in the skull's units (a quiff), standing out of the head `up`, out of the
 // `skull`, to the `front`, or away from a point.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`hairParts`'s `sweep`), with
+// Ported from the figure code this kit grew out of (`hairParts`'s `sweep`), with
 // AF's strict types; the formulas and their order are the source's.
 
 import {

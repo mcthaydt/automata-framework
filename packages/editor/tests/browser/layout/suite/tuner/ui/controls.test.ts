@@ -13,12 +13,13 @@ import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
+import { chooseEditor } from '#src/testing/suite/suite-layout.ts'
 import { controlsFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
 // The Tuner's Controls section in the suite's shell with the production CSS: every control is a full-size target inside the
 // settings' own scroll region, the page never scrolls, and the "Press a key" wait keeps Cancel reachable.
 
-const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit", "ask"]\ngates = []\nchecks = []\n[[file]]\nglob = "content/controls.toml"\neditor = "tuner"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
+const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit"]\ngates = []\nchecks = []\n[[file]]\nglob = "content/controls.toml"\neditor = "tuner"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
 
 let started: SuiteHandle | undefined
 let target: HTMLElement | undefined
@@ -43,10 +44,8 @@ async function open(size: EditorSize) {
     suite: createSuite({ editors: [createTuner() as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  const tab = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
-    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === 'Tuner',
-  )
-  tab?.click()
+  // A phone held sideways folds the tabs into the Editors menu, so the editor is chosen the way a person would.
+  await chooseEditor('Tuner')
   await expect.poll(() => document.querySelector('[data-testid="tuner-controls"]')).not.toBeNull()
   await settleLayout()
   return conditions

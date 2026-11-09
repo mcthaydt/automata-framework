@@ -1,6 +1,6 @@
 // Layer 1: furniture. Each of the kit's slots in order, `n` pieces each, each on the first free spot its rule offers.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52 (`spotsFor`,
+// Ported from the world generator this kit grew out of (`spotsFor`,
 // `furniture`).
 
 import type { Segment } from '@automata/3d/props-kit'

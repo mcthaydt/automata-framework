@@ -103,6 +103,21 @@ export function fileTitle(path: string): string {
   return words === '' ? base : words.charAt(0).toUpperCase() + words.slice(1)
 }
 
+/**
+ * The titles of a card's files, each as `fileTitle` says it, with the folder in words added to those that agree
+ * ("Shop (lines)" and "Shop (dialogue)"), so a card never lists two files by one name.
+ */
+export function fileTitles(paths: readonly string[]): string[] {
+  const titles = paths.map(fileTitle)
+  return paths.map((path, index) => {
+    const title = titles[index] ?? ''
+    if (titles.filter((other) => other === title).length === 1) return title
+    const parts = path.split('/')
+    const folder = parts.length > 1 ? parts[parts.length - 2]?.replace(/[-_]+/g, ' ').trim() : undefined
+    return folder === undefined || folder === '' ? title : `${title} (${folder})`
+  })
+}
+
 /** A problem's key path as the list reads it: `file[0].gates`. */
 export function keyPathText(path: readonly (string | number)[]): string {
   if (path.length === 0) return 'the whole list'

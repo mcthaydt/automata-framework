@@ -145,6 +145,16 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
     const [field, label] = [name.getBoundingClientRect(), word.getBoundingClientRect()]
     expect(label.right).toBeLessThanOrEqual(field.left)
     expect(Math.abs(label.top + label.height / 2 - (field.top + field.height / 2))).toBeLessThan(2)
+    // A stepper keeps its minus, number and plus on one line: a "+" that wraps under the number reads as a stray button.
+    const steppers = [...inspector.querySelectorAll<HTMLElement>('[data-widget="stepper"]')]
+    expect(steppers.length).toBeGreaterThan(0)
+    for (const stepper of steppers) {
+      await reach(stepper)
+      const parts = [...stepper.querySelectorAll<HTMLElement>('button, [role="spinbutton"]')]
+      expect(parts).toHaveLength(3)
+      const tops = parts.map((part) => part.getBoundingClientRect().top)
+      expect(Math.max(...tops) - Math.min(...tops), stepper.textContent ?? '').toBeLessThan(2)
+    }
     expect(checkLayout(conditions, [])).toEqual([])
     await page.screenshot({ path: `.vitest/shots/entities-definition-${size.name}.png` })
   })

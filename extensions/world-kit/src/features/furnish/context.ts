@@ -1,7 +1,7 @@
 // What every layer of the dresser needs about the room it dresses, and where it puts what it places: the room's
 // outline and walls, what is already taken, what hangs on each wall, and the footprints of the props it can place.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52 (`Ctx`,
+// Ported from the world generator this kit grew out of (`Ctx`,
 // `footprintOf`, `fits`, `place`, `reserve`, and the wall helpers). Changed: walls are the corner records of the `/2`
 // level (a ring and an edge, not an edge index), and a wall's door and window of the `/1` vocabulary count as decor.
 import type { AfSector2, AfSectorEntry2, AfWall2, Dress, PropPlace } from '@automata/3d/level'

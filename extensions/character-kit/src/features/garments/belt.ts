@@ -1,6 +1,6 @@
 // A belt: a band round the waist, with a buckle at the front when it names one.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s belt
+// Ported from the figure code this kit grew out of (`dress`'s belt
 // branch), with AF's strict types; the formulas are the source's.
 
 import type { Garment } from '@automata/3d/figures'

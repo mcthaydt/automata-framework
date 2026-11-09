@@ -1,6 +1,6 @@
 // A waistcoat: a short cloth vest over the chest, open at the front, its colour the torso's waist.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s waistcoat
+// Ported from the figure code this kit grew out of (`dress`'s waistcoat
 // branch), with AF's strict types; the formulas are the source's.
 
 import type { Garment } from '@automata/3d/figures'

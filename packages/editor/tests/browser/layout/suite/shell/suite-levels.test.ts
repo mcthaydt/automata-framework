@@ -87,3 +87,27 @@ describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
     noPageScroll()
   })
 })
+
+describe.each(SIZES.filter((size) => size.width >= 1100))(
+  'Suite Characters 2D at $name ($width x $height)',
+  (size) => {
+    test('a stepper in the inspector keeps its minus, number and plus on one line', async () => {
+      opened = await openSuite(size, editors(), FILES, '[data-testid="entities-inspector"]', 'Characters')
+      const steppers = [
+        ...document.querySelectorAll<HTMLElement>(
+          '[data-testid="entities-inspector"] [data-widget="stepper"]',
+        ),
+      ]
+      expect(steppers.length).toBeGreaterThan(0)
+      for (const stepper of steppers) {
+        stepper.scrollIntoView({ block: 'nearest' })
+        await settleLayout()
+        const parts = [...stepper.querySelectorAll<HTMLElement>('button, [role="spinbutton"]')]
+        expect(parts).toHaveLength(3)
+        const tops = parts.map((part) => part.getBoundingClientRect().top)
+        expect(Math.max(...tops) - Math.min(...tops), stepper.textContent ?? '').toBeLessThan(2)
+        for (const part of parts) expect(part.getBoundingClientRect().right).toBeLessThanOrEqual(size.width)
+      }
+    })
+  },
+)

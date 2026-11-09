@@ -5,9 +5,9 @@ import { type ServedFolder, serveFolder } from '../harness/serve-folder.ts'
 // The suite page on the site's "Try the editor" (plan task 15.2): served under /editor/app/, not at the root, and with
 // the site's strict policy for its own builds: scripts from the site only, no eval. The page names its files relative
 // to itself, and Pixi's no-eval build is imported first, so the level canvas draws instead of saying "Preview
-// unavailable". Build first: `pnpm build`.
+// unavailable". Build first: `pnpm build` (this page is `extensions/editors/dist/suite`).
 
-const EDITOR = fileURLToPath(new URL('../../../dist/suite', import.meta.url))
+const EDITOR = fileURLToPath(new URL('../../../../../extensions/editors/dist/suite', import.meta.url))
 // The same text as the site's `DEMO_POLICY` (site/src/shared/html/security-headers.ts).
 const POLICY = [
   "default-src 'self'",

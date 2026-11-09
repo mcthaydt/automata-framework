@@ -2,7 +2,7 @@
 // to the nape, keeping its place across the head (in the skull's units) so the rows run parallel and the scalp shows
 // evenly between them.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`hairParts`'s `rows`), with
+// Ported from the figure code this kit grew out of (`hairParts`'s `rows`), with
 // AF's strict types; the formulas and their order are the source's.
 
 import {

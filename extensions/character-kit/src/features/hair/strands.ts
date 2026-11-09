@@ -3,7 +3,7 @@
 // that stands off the middle of the head is mirrored to the other side. `bare` locks are for a bare head, `capped` ones for
 // a hair under a cap.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`hairParts`'s `fall` as a
+// Ported from the figure code this kit grew out of (`hairParts`'s `fall` as a
 // list of locks), with AF's strict types; the formulas and their order are the source's. A style that wrote these as a
 // `fall` writes `strands`: `fall` is loose hair.
 

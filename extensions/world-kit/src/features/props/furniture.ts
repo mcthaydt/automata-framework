@@ -1,6 +1,6 @@
 // The prop generators for furniture: seats, tables, beds, storage, counters and the barrels and crates of a store room.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/props.ts at 6d82a52. Changed: parts are
+// Ported from the world generator this kit grew out of. Changed: parts are
 // `part(mesh, swatch, label)`, a seeded stream is `stream`, and the numbers are the source's.
 import {
   at,

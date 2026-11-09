@@ -1,6 +1,6 @@
 # Character kit
 
-Clothes, hairstyles and seats for the 3D figures. The figure builder in `@automata/3d` can dress a body in seven things
+Clothes, hairstyles and seats for the 3D figures. The figure code in `@automata/3d` can dress a body in seven things
 (a top, trousers, shoes, a cape, hair, a cap and a face). This kit adds the rest, so a game that wants a nurse, a
 lamplighter or a girl with box braids does not have to write them.
 

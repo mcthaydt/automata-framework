@@ -1,6 +1,6 @@
 // Layers 3 to 5: clutter on the surfaces props offer, litter on the floor by the room's grime, and the ceiling's lamps.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52
+// Ported from the world generator this kit grew out of
 // (`surfaceClutter`, `floorClutter`, `ceilingFixtures`).
 import { heightAt, inside, ringsOf, type V2 } from '@automata/3d/props-kit'
 import { type Ctx, fits, footprintOf, place } from './context.ts'

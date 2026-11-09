@@ -1,7 +1,7 @@
 // The prop generators that carry words: a neon sign in a shape, neon and panel lettering, a street-name plate. The
 // words are the level's `text`, or a made-up name from the seed.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/props.ts at 6d82a52: `neon`,
+// Ported from the world generator this kit grew out of: `neon`,
 // `signboard`, `neonText`, `streetPlate`.
 import {
   blob,

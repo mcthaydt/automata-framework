@@ -7,13 +7,13 @@ import { EDITOR_COMMAND, PICTURES } from '../../../src/features/editor/editor-co
 
 const staticFile = (url: string) => resolve(process.cwd(), 'static', url.slice(1))
 
-// Spec 10.2 (Editor): what the editors do in three pictures, and "Try the editor", which opens the page `automata
+// Spec 10.2 (Editor): what the editors do in five pictures, and "Try the editor", which opens the page `automata
 // editor` serves every game (every editor, 2D and 3D), on a sample game kept in this browser's storage.
 describe('/editor', () => {
-  it('shows what the editor does in three pictures, each one a real file with words for it', () => {
+  it('shows what the editors do in five pictures, each one a real file with words for it', () => {
     const view = render(EditorPage)
-    expect(view.container.querySelectorAll('figure')).toHaveLength(3)
-    expect(PICTURES).toHaveLength(3)
+    expect(view.container.querySelectorAll('figure')).toHaveLength(5)
+    expect(PICTURES).toHaveLength(5)
     for (const picture of PICTURES) {
       expect(existsSync(staticFile(picture.src)), picture.src).toBe(true)
       expect(view.getByAltText(picture.alt)).toBeTruthy()

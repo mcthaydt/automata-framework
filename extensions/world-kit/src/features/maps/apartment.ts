@@ -2,7 +2,7 @@
 // step where a room sits higher), a sloped ramp at the corridor's end up to a landing; each room asks to be dressed by its
 // kind (bedroom, study, lounge, store: a purpose kit each, `furnish/`), with windows on its outer wall.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/generate.ts at 6d82a52. Changed: the
+// Ported from the world generator this kit grew out of. Changed: the
 // seeded stream is AF's, so a seed makes a different apartment than the builder's, the same every run.
 import { at } from '@automata/3d/props-kit'
 import type { MapPlan, MapSector, MapSprite } from './map-plan.ts'

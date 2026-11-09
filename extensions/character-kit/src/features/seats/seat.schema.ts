@@ -1,6 +1,5 @@
 // A seat: a seated stand, the hips on a seat of some height, the thighs forward over it, the back leaning or slumped,
-// the head on it and each hand in the lap, hanging, or on a desk (FigureBuilder src/features/motion/motion.ts `Seat`,
-// `SeatHand`; library/seats.json at 025ffb4). The pose that sits a body down is `seated` (seated.ts).
+// the head on it and each hand in the lap, hanging, or on a desk (`Seat` and `SeatHand`). The pose that sits a body down is `seated` (seated.ts).
 
 import { type Vec3, vec3 } from '@automata/3d/figures-kit'
 import { z } from 'zod'

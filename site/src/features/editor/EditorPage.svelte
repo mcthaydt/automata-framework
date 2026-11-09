@@ -1,5 +1,5 @@
 <!--
-  The Editor page: what the editors do in three pictures, "Try the editor" (the page `automata editor` serves every game,
+  The Editor page: what the editors do in pictures, "Try the editor" (the page `automata editor` serves every game,
   here on a sample game kept in this browser) and the command that opens it on a game. Home's look: one
   lime button, white panels on hairlines, 4/6/8 px corners.
 -->

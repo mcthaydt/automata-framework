@@ -3,7 +3,7 @@
 // domes. Its root rides the head's form (`toHead`) and the whole of it lies outside it, a rope's radius and a little over.
 // `flat` (default 0.6) is how deep it lies, of its width; `turns` (default 2.5) how many times it winds.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`hairParts`'s `bun`), with
+// Ported from the figure code this kit grew out of (`hairParts`'s `bun`), with
 // AF's strict types; the formulas and their order are the source's.
 
 import {

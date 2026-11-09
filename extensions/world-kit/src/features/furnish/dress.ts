@@ -11,7 +11,7 @@
 // by seed. Every piece has an id `<room>:<layer>:<n>`, so an edit can name it: `remove` takes pieces out, `pin` moves
 // or changes them, and the rest stay where they were.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52.
+// Ported from the world generator this kit grew out of.
 
 import type {
   AfCorner2,

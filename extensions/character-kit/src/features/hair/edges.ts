@@ -1,6 +1,6 @@
 // Edges: baby hairs, as hair-tone marks laid on the skin just under the hairline, facing out of the face.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`hairParts`'s `edges`), with
+// Ported from the figure code this kit grew out of (`hairParts`'s `edges`), with
 // AF's strict types; the formulas and their order are the source's.
 
 import {

@@ -1,6 +1,6 @@
 // A watch or a badge on the chest, on one side.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s mark
+// Ported from the figure code this kit grew out of (`dress`'s mark
 // branch), with AF's strict types; the formulas are the source's.
 
 import type { Garment } from '@automata/3d/figures'

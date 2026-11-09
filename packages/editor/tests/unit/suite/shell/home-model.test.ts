@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from '#src/features/suite/core/index.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
-import { fileTitle, homeOf, keyPathText } from '#src/features/suite/shell/home-model.ts'
+import { fileTitle, fileTitles, homeOf, keyPathText } from '#src/features/suite/shell/home-model.ts'
 import type { WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
 /** The sample game's list sits beside the in-memory ports the suite page uses; the others are test fixtures. */
@@ -340,5 +340,22 @@ describe('fileTitle', () => {
     ['README', 'README'],
   ])('%s reads as %s', (path, title) => {
     expect(fileTitle(path)).toBe(title)
+  })
+})
+
+// Two files with one name (Writer's `lines/shop.toml` and `dialogue/shop.toml`) would read "Shop" and "Shop": a card says which is which.
+describe('fileTitles', () => {
+  it('is each file’s own title when no two agree', () => {
+    expect(fileTitles(['content/tuning.toml', 'content/levels/hall.af2d.json'])).toEqual(['Tuning', 'Hall'])
+  })
+
+  it('adds the folder, in words, to the files whose titles agree and to no other', () => {
+    expect(
+      fileTitles(['content/lines/shop.toml', 'content/dialogue/shop.toml', 'content/lines/gate.toml']),
+    ).toEqual(['Shop (lines)', 'Shop (dialogue)', 'Gate'])
+  })
+
+  it('leaves a file with no folder as it is', () => {
+    expect(fileTitles(['shop.toml', 'dialogue/shop.toml'])).toEqual(['Shop', 'Shop (dialogue)'])
   })
 })

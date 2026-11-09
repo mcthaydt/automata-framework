@@ -1,4 +1,4 @@
-// The character kit: the clothes, hairstyles and seats core's figure builder leaves out. Add it to a game's `extensions`
+// The character kit: the clothes, hairstyles and seats core's figures leave out. Add it to a game's `extensions`
 // after `figures` and a figure can wear a skirt, an apron or a coat, a style can carry a bun, rows or a ponytail, and a
 // seat is a content file. Without it a figure naming a skirt is refused ("a garment has one of: …" when the figure file
 // compiles, "No garment called skirt is registered" when one is dressed), and a style naming a bun is refused the same way.

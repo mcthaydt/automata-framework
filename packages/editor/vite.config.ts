@@ -3,12 +3,13 @@ import { join } from 'node:path'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defineConfig } from 'vite'
 
-// The package builds one page, the 2D suite (`suite.html`), into `dist/suite/`, which `automata editor` serves and the
-// site's "Try the editor" copies. It is written out as `index.html`, the name every served editor has. Nothing else is set
+// The package builds its own page, the 2D suite (`suite.html`), into `dist/suite/`, for developing and testing the 2D
+// editors on their own. It is not the page a person gets: `automata editor` and the site's "Try the editor" serve the full
+// suite built by `extensions/editors`. It is written out as `index.html`, the name every served editor has. Nothing else is set
 // here: a client build already resolves modules under the `browser` condition, and a Node test project that read it would
 // load the browser build of the code parser. The tests are configured in `vitest.config.ts`.
 // The page names its files relative to itself (`base: './'`), so the one build runs at any address: at the root when
-// `automata editor` serves it, and at /editor/app/ on the site.
+// the dev server serves it, and at /editor/app/ on the site.
 export default defineConfig({
   plugins: [
     svelte(),

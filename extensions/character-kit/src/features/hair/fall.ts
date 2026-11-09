@@ -3,7 +3,7 @@
 // trunk by the shoulders and clear of it (as the tail's `trunkBack` takes it) to the length; a wave or a spiral about that
 // path by `curl`. Curls are fatter and shorter than straight hair. (The older lists of hanging locks are `strands`.)
 //
-// Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/hair/hair.ts at 025ffb4 (`hairParts`'s `fall`), with
+// Ported from the figure code this kit grew out of (`hairParts`'s `fall`), with
 // AF's strict types; the formulas and their order are the source's. Changed: a texel is the fixed ppm's.
 
 import {

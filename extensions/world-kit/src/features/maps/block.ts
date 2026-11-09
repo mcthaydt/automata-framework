@@ -1,7 +1,7 @@
 // The street block, at night: a road, two pavements a kerb higher, a row of facades of seeded widths and styles with windows
 // and shopfronts, and shops you can walk into through their doorways (dressed as storerooms); street lamps, cars, bins.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/generate.ts at 6d82a52. Changed: the
+// Ported from the world generator this kit grew out of. Changed: the
 // seeded stream is AF's, so a seed makes a different block than the builder's, the same every run.
 import { at } from '@automata/3d/props-kit'
 import type { MapPlan, MapSector, MapSprite } from './map-plan.ts'

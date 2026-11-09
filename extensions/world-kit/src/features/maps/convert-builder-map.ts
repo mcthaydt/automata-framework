@@ -1,4 +1,4 @@
-// A map plan (`map-plan.ts`, EnvironmentBuilder's `MapPlan` at 6d82a52) as an `af-sector/2` level. The generators make
+// A map plan (`map-plan.ts`, the shape the first generator wrote) as an `af-sector/2` level. The generators make
 // plans and `generateMap` converts them here; `scripts/convert-builder-maps.ts` converts a file of the builder's own
 // maps into `library/maps/`. The fields land so: a rectangle or vertices become
 // corners (edge `i` runs from corner `i`, so the builder's walls by edge index stay by edge), the sector's default wall

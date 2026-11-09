@@ -1,7 +1,8 @@
 // Part of `-tools`' build: puts the editors' page (every editor, the 3D ones too) inside the package, so `automata editor`
 // opens it from `dist/editors/suite` with nothing else to install. Before the copy it reads the build for Pixi 3D's
 // `./extras` entry, which probes `new Function` at load and so breaks under a strict CSP. Pixi 3D itself is allowed:
-// the launch waits for it to go public, so no editor is held back until then. (The editors' build cannot run this scan:
+// the launch waits for it to go public, so no editor is held back until then, and `pnpm release` refuses to publish
+// until it is (`tooling/release/src/check-pixi3d-public.ts`). (The editors' build cannot run this scan:
 // `-tools` depends on the editors, not the other way round.)
 import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'

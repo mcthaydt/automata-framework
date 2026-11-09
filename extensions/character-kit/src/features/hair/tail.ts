@@ -5,7 +5,7 @@
 // running down in a herringbone. A low pony (`hang`) is tied at the nape and falls straight down the back, with no rise and
 // no arc over the crown.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`hairParts`'s `tail`, with
+// Ported from the figure code this kit grew out of (`hairParts`'s `tail`, with
 // its `hang`), with AF's strict types; the formulas and their order are the source's. Changed: a texel is the fixed ppm's,
 // and the cuffs, which the source builds only from 1.5 × its ppm (a sprite's legibility floor), are always built.
 

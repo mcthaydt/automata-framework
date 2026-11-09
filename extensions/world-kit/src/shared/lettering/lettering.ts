@@ -3,7 +3,7 @@
 // letters (a glowing rod along each run, a bead at each lone texel). Words are made up from a seed (shop kinds,
 // invented names, street names), never brands.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/lettering.ts at 6d82a52.
+// Ported from the world generator this kit grew out of.
 // Changed: the font is read through a typed shape, a glyph the font lacks is a blank, and names come from a seeded
 // stream (`stream`, AF's seeded generator).
 import { at, blob, type MeshData, merge, quad, rod, stream, type V3 } from '@automata/3d/props-kit'

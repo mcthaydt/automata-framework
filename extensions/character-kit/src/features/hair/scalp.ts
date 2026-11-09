@@ -2,7 +2,7 @@
 // head's own surface graded up the band in tiers, the skin at its foot, then the hair's tones toward the skin's, then the
 // stubble (the hair's, matte), each tier one solid tone.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`hairParts`'s `scalp`), with
+// Ported from the figure code this kit grew out of (`hairParts`'s `scalp`), with
 // AF's strict types; the formulas and their order are the source's.
 
 import {

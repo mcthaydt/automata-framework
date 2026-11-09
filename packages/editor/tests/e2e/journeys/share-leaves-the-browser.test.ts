@@ -6,9 +6,9 @@ import { type ServedFolder, serveFolder } from '../harness/serve-folder.ts'
 // Share in a real browser, where a level has no game folder to be saved into (the site's "Try the editor"): the
 // level leaves by Download, Copy or Share, and Share is the bar's one primary button, so a person who just made a level
 // sees at once how to keep it. The built suite is served as the site serves it, with no game behind it, so it opens its
-// sample game. Build first: `pnpm build`.
+// sample game. Build first: `pnpm build` (this page is `extensions/editors/dist/suite`).
 
-const EDITOR = fileURLToPath(new URL('../../../dist/suite', import.meta.url))
+const EDITOR = fileURLToPath(new URL('../../../../../extensions/editors/dist/suite', import.meta.url))
 
 let site: ServedFolder
 test.beforeAll(async () => {

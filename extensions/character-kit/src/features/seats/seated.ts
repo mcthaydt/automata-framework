@@ -2,7 +2,7 @@
 // keeps the face to what is ahead, the feet plant forward of the knees, and each hand goes to the lap, hangs, or taps a
 // desk (a hold laid over the pose, as a placed hand is). The hems ride the ankles.
 //
-// Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/motion/motion.ts at 025ffb4 (`Seat`'s `seated`,
+// Ported from the figure code this kit grew out of (`Seat`'s `seated`,
 // `SIT`), with AF's strict types; the formulas and their order are the source's. Changed for AF: no sprite cheats
 // (`lookUp`, `view`), as base.ts has none; the pose is a function of the seat and `t` alone.
 

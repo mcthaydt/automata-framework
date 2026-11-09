@@ -309,7 +309,7 @@ $effect(() => {
   .value,
   .field {
     flex: none;
-    width: 5rem;
+    width: 4rem;
     display: flex;
     align-items: center;
     justify-content: center;

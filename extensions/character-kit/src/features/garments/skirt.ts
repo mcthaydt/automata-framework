@@ -1,7 +1,7 @@
 // A skirt hanging from the waist to `length` (0 the hip, 0.5 the knee, 1 the ankle), flaring and folded, with a hem band
 // in its own cloth when it names one.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s skirt
+// Ported from the figure code this kit grew out of (`dress`'s skirt
 // branch), with AF's strict types; the formulas are the source's. Cut: the skirt's stain (a painter wash).
 
 import type { Garment } from '@automata/3d/figures'

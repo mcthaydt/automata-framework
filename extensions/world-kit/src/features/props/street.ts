@@ -1,7 +1,7 @@
 // The prop generators for outdoors and the street: fixtures, lamps, buildings' faces, vehicles and the machines
 // on a wall or at a kerb.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/props.ts at 6d82a52: `bollard`,
+// Ported from the world generator this kit grew out of: `bollard`,
 // `utilityBox`, `planter`, `signPost`, `cableRun`, `fixture`, `fence`, `streetLamp`, `facade`, `car`, `manhole`,
 // `acUnit`, `generatorSet`, `vending`.
 import {

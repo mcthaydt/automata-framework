@@ -1,7 +1,7 @@
 // An apron: its skirt just outside the dress's (and any coat's), a bib, straps over the shoulders or round the neck, a
 // tie at the back, pockets in its own cloth.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s apron
+// Ported from the figure code this kit grew out of (`dress`'s apron
 // branch), with AF's strict types; the formulas are the source's.
 
 import type { Garment } from '@automata/3d/figures'

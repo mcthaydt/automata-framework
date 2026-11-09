@@ -717,3 +717,5 @@ GPU runner, the site e2e, phone journeys.
 2026-11-09: fixes for that build audit, stacked on #545 (`docs/refactor/2026-11-09-every-editor-free-fixes.md`). H1, H2, H3,
 H4 and M1-M3 are fixed with tests (H3: Pixi 3D loads before anything draws; H4: the Studio keeps its renderer); M4-M6 and
 L1-L4 are left, and `check-changesets` is still red on #522's `stage-characters-3d.md`. Not run: WebKit, Firefox, GPU runner.
+
+2026-11-09 (stage 2 of the same fixes, same PR): M4 (two more editor pictures on the site's Editor page; the words stay with #542), M5 (both journeys serve the full page), M6 (`pnpm release` refuses while `@pixi/3d` is the vendored beta) and L1-L3 are fixed with tests; L4 needs a static `/api/ping` on the site host and is left. character-kit and world-kit no longer name FigureBuilder or EnvironmentBuilder. A Writer edit was walked to in play on `examples/2d-story`: the keeper's box showed the new words. Not run: WebKit, Firefox, GPU runner, hosted CI.

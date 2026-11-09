@@ -1,6 +1,6 @@
 // The prop generators for the open air: trees, bushes, rocks, grass, clouds and far hills. Their leaves sway.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/props.ts at 6d82a52: `tree`, `bush`,
+// Ported from the world generator this kit grew out of: `tree`, `bush`,
 // `rock`, `cloud`, `hill`, `tufts`.
 import {
   blob,

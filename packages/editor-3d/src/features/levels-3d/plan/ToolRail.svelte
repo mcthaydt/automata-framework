@@ -65,7 +65,9 @@ const pressed = $derived<RailTool>(SECTOR_SHAPES.includes(active) ? 'sector' : (
     gap: var(--space-1);
     padding: var(--space-1);
   }
+  /* Along a bar the rail keeps its whole width; sharing the free space with the bar's spacer clipped the last tool. */
   .rail[data-orientation='horizontal'] {
+    flex: 0 0 auto;
     flex-direction: row;
   }
   button {

@@ -2,7 +2,7 @@
 // buttons when it names them. It sets the outermost hanging garment (an apron over it clears it) and how far the chest's
 // front stands out.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s coat
+// Ported from the figure code this kit grew out of (`dress`'s coat
 // branch), with AF's strict types; the formulas are the source's.
 
 import type { Garment } from '@automata/3d/figures'

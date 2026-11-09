@@ -1,4 +1,4 @@
-// EnvironmentBuilder's maps, converted once into `/2` (spec 9). The fixture is `maps.json` at 6d82a52.
+// The first generator's maps, converted once into `/2` (spec 9). The fixture is `maps.json`.
 
 import { afSector2Schema } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'

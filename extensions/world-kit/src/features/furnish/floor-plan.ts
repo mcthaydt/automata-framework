@@ -2,7 +2,7 @@
 // overlap, a polygon's centre. Plan space is the level's: x east, z south; a place's angle is degrees clockwise from
 // east, the way its front (+z in its own space) faces.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52.
+// Ported from the world generator this kit grew out of.
 import { signedArea, type V2 } from '@automata/3d/props-kit'
 
 /** A rectangle on the floor: x0, z0, x1, z1. */

@@ -1,7 +1,7 @@
 // What a hanging garment shares: a tube that rides the pelvis and follows the thighs below it (a skirt, a coat, an
 // apron), and a band round the waist (a belt).
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`hang`, `band`), with
+// Ported from the figure code this kit grew out of (`hang`, `band`), with
 // AF's strict types; the formulas and their order are the source's.
 
 import { hemWeights, J, type Part, tube, weights } from '@automata/3d/figures-kit'

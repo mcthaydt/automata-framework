@@ -3,7 +3,7 @@
 // metres, and outdoors the listed presets); clutter on surfaces and on the floor (items per square metre); the ceiling's
 // lamps (a pendant every `spacing` metres, `drop` off the ceiling); and the surfaces the kit gives the room.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/types.ts (`Kit`, `KitSlot`) and
+// Ported from the world generator this kit grew out of (`Kit`, `KitSlot`) and
 // library/kits.json at 6d82a52.
 
 import { type KitSurfaces, kitSurfacesSchema } from '@automata/3d/level'

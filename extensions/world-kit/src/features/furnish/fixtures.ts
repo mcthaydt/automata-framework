@@ -3,7 +3,7 @@
 // metres, and outdoors the kit's list. Everything hung keeps clear of the wall's windows and doors and of what already
 // hangs; nothing is hung behind furniture where it would not be seen.
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52 (`hang`,
+// Ported from the world generator this kit grew out of (`hang`,
 // `standOn`, `fixtures`). Changed: nothing is kept out of a diorama (a level is built whole).
 import { heightAt, inward, ringsOf, type Segment, type V2 } from '@automata/3d/props-kit'
 import {

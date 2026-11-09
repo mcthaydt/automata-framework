@@ -2,7 +2,7 @@
 // with no hem; straight up, flaring a little, over a rounded edge to a flat top in the crest tone. Its cells are a texel
 // each at the fixed ppm, a share of the sides' hash-picked into the lit tone: the coils' dither.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`block`), with AF's strict
+// Ported from the figure code this kit grew out of (`block`), with AF's strict
 // types; the formulas and their order are the source's.
 
 import {
