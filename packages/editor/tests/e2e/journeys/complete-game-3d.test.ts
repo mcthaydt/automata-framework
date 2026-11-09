@@ -20,7 +20,7 @@ import { BASE_3D, expect, test } from '../harness/fixtures.ts'
 import { chooseSelectTool, openLevels3d, selectRoomAt } from '../harness/levels-3d.ts'
 import { newGame } from '../harness/new-game.ts'
 import { type Pixels, readPng } from '../harness/read-png.ts'
-import { expectFontWithLicence, readZip } from '../harness/read-zip.ts'
+import { expectFontWithCredit, readZip } from '../harness/read-zip.ts'
 import { runEditor } from '../harness/run-editor.ts'
 import { wordJourney } from '../harness/word-journey.ts'
 
@@ -456,7 +456,7 @@ test('a new 3D game is published as one zip to upload', async ({ page }) => {
     expect(zip.name).toBe('my-game-0.1.0-itch.zip')
     const files = readZip(zip.path)
     expect(files.has('index.html')).toBe(true)
-    expectFontWithLicence(files)
+    expectFontWithCredit(files)
   } finally {
     await editor.stop()
     game.remove()

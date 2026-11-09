@@ -13,7 +13,6 @@ import {
 } from '../../errors.ts'
 import { buildFiles } from '../../prepare/build-files.ts'
 import { checkTag, scanBuild } from '../../prepare/build-scans.ts'
-import { addFontLicence } from '../../prepare/font-licence.ts'
 import { findRootAbsoluteReferences } from '../../prepare/root-absolute.ts'
 import {
   checkFileCount,
@@ -27,15 +26,12 @@ import { writeDeterministicZip } from './itch-zip.ts'
 
 /** What `prepareItch` checks and zips: the built folder, the ship config and the release tag. */
 export interface PrepareItchInput {
-  /** The built game folder. It is checked and zipped as it is; the only thing prepare writes into it is the font's licence (`addFontLicence`). */
+  /** The built game folder. It is checked and zipped as it is; nothing is written into it. */
   readonly distDir: string
   readonly config: ShipConfig
   /** The release tag being built, when there is one (`v1.2.3`). */
   readonly tag?: string | undefined
-  /**
-   * The game's folder, whose `.env*` values must not appear in the build, and whose installed framework holds the font
-   * licence. Without it only keys and entropy are scanned, and a build that carries the font fails.
-   */
+  /** The game's folder, whose `.env*` values must not appear in the build. Without it only keys and entropy are scanned. */
   readonly gameDir?: string | undefined
 }
 
@@ -68,9 +64,6 @@ export function prepareItch(input: PrepareItchInput): Effect.Effect<{ zipPath: s
 
     // An itch.io page is public, so the build is scanned as Ruken's is: no secret, and not the closed beta (X-b).
     yield* scanBuild({ distDir, gameDir })
-
-    // The one thing prepare adds to the build: the font's licence, so the zip and the folder butler pushes both hold it.
-    yield* addFontLicence(distDir, gameDir)
 
     const files = yield* tryFile(distDir, () => buildFiles(distDir))
     const checks: readonly [ItchCheck, () => string[]][] = [

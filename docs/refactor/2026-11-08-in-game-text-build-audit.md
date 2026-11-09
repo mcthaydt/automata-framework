@@ -84,6 +84,14 @@ basement.studio. SIL Open Font License 1.1: https://openfontlicense.org */`) and
 the Credits-page line (#521) is still pending as already known. Whether a game zip must also hold the full licence text
 is the Owner's call.
 
+**Fixed here, 2026-11-09** (the Owner: "Credit geist, no need for license unless you can find it"; the licence is in the
+repository, so it goes in too). The credit and the full OFL now ride in each font page's data (`FONT.notice`), not a
+comment: Vite 8's minifier drops even `/*!` comments in a default build, but keeps a string. Bundling `latin-font.js`
+with Vite's minify now keeps "basement.studio" and "SIL Open Font License" (344,317 bytes, about 4.7 KB more). Tests:
+`tooling/hud-font` checks each page's notice holds the credit and the licence text, and the 2D publish journey checks
+the zip's scripts hold the copyright line (phone, passed). The bake writes the same notice. The site's Credits entry
+for Geist is updated on #521's branch.
+
 ### Low
 
 **B4. The journey's height check depends on the word.** `measureWord` takes the box of all white pixels, so a comma and an
@@ -145,18 +153,11 @@ seen to fail for the stated reason.
   shapes the audit named as the same root cause).
 - **B2.** The fallback's shadow `Text` gets `tint = 0x000000`. Test: `tests/browser/hud-text/sharp.test.ts`, the shadow of
   "😵" has no pixel brighter than the field while the emoji itself draws (it failed with 3,675 inked pixels).
-- **B3.** Decision (Owner, via the coordinator): keep one preserved comment and include the full licence in published
-  zips. The comment is now `/*! … */` in each page module, from `tooling/hud-font` (rebaked here; the atlases are
-  byte-identical, only the headers and the new `NOTICE` export changed, and `pnpm hud-font verify` holds). **Measured:
-  Vite 8's default minify drops a `/*!` comment too** (only `comments.legal: true` keeps it), so the notice is also data:
-  `NOTICE` is exported by each page and `loadPage` registers it (`Cache` key `af-hud-<page>-notice`), which no minifier
-  drops; the 2D journey finds "SIL Open Font License" in the zip's scripts. The full text: `automata ship prepare`
-  (`shared/ship/prepare/font-licence.ts`) copies `licenses/geist-OFL.txt` from the game's installed `@automata/framework`
-  into `dist/licenses/` when a script holds `af-hud-latin` or `af-hud-cyrillic`, before the itch checks and the zip, so the
-  zip and the folder butler pushes both hold it; with the font present and the licence not found it stops
-  (`ItchBuildInvalid`, check `font-licence`) and says to install the game's packages. Tests: `font-licence.test.ts`,
-  `prepare-itch.test.ts`, `tooling/hud-font/tests/unit/record.test.ts`, `load-page.test.ts`, and the 2D publish journey
-  (zip holds the chunk, the notice and `licenses/geist-OFL.txt`). A patch changeset for `@automata/tools`.
+- **B3.** Fixed on the build-audit branch instead (above: the credit and the full OFL ride in `FONT.notice`). This stage
+  first kept a `/*!` comment, a `NOTICE` export registered with `Cache`, and a `licenses/geist-OFL.txt` that `automata ship
+  prepare` copied into the build (failing when it could not find the file). When this branch met the build-audit branch's
+  fix, all three were dropped: `FONT.notice` already carries the full licence into every build, and the Owner's word was
+  "no need for license unless you can find it". The 2D and 3D publish journeys share `expectFontWithCredit`.
 - **B4.** `measureWord` reports the first letter's height (`capitalHeightCss`), not the box of all the ink, so a comma or an
   exclamation mark no longer changes the reading. The journey's floor is 9 CSS px for a capital (a 14 CSS px font's capital
   is about 10). The spec now says the 12 and 14 CSS px floors are font sizes. Test: `tests/unit/e2e-harness/word-pixels.test.ts`.
@@ -164,7 +165,7 @@ seen to fail for the stated reason.
 - **B6.** Each page's characters are made a `Set` once (a `WeakMap`), and a label keeps what its last string turned into, so
   a HUD that writes the same words each frame normalises and chooses a page once. Tests: `choose-page.test.ts` (a page's
   characters are read once) and `hud-label-cache.test.ts`. The GPU numbers that would show the gain were not run.
-- **B7.** The 3D publish test asserts the same three things as the 2D one (`expectFontWithLicence`). It is still marked
+- **B7.** The 3D publish test asserts the same as the 2D one (`expectFontWithCredit`: the font chunk and Geist's credit). It is still marked
   `test.fail` (Publish refuses a closed-beta 3D build), so this check has not run yet.
 - **B8.** `catchTheWord` polls until the whitest frame has not changed for 1.5 s instead of sleeping 2.5 s.
 - **B9.** The spec names `<page>-chars.ts` and `<page>-font.ts`; `msdf-bmfont-xml` sits after `lefthook` in `docs/versions.md`.

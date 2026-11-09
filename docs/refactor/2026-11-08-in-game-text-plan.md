@@ -366,6 +366,6 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
   `ctx.text` after a 3D Try again, B2 the emoji shadow, B3 the licence notice in a published game). Task 9 step 3 (the GPU
   cost) is still unchecked: the GPU runner was not reachable here either.
 - 2026-11-09: fixes (stage 6) on `claude/project-thread-0c5ev3`, stacked on #546: every build-audit finding, B1 to B9,
-  fixed test first; see the [fix log](2026-11-08-in-game-text-build-audit.md#fixes-stage-6). Ruling: the font notice is also
-  data (`NOTICE`), because a default minify drops a `/*!` comment; the full licence is added to the build by `ship
-  prepare`. Task 9 step 3 (the GPU cost) is still unchecked: no GPU runner here.
+  fixed test first; see the [fix log](2026-11-08-in-game-text-build-audit.md#fixes-stage-6). Ruling: a default minify drops a `/*!`
+  comment, so the notice is data; when the stage met #546's B3 fix, `FONT.notice` (credit and full OFL) won and this
+  stage's `NOTICE` export and `ship prepare` licence copy were dropped. Task 9 step 3 (the GPU cost) is still unchecked: no GPU runner here.

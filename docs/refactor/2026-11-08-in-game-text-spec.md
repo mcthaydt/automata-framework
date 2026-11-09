@@ -78,7 +78,7 @@ target already serves the game's chunks: itch builds use `base: './'`, the site'
 (`security-headers.ts`), and its playground runtime is a Vite build whose chunks sit under `/playground/`, which answers
 with CORS for the opaque frame (`site/src/features/playground/headers.ts`). The atlas never becomes an image request
 (it is decoded from bytes, D8), so `img-src` is not involved (T6). Each atlas PNG
-is at most 220,000 bytes (a test holds it). The OFL text ships in the published package (`licenses/geist-OFL.txt`) and, since the build audit (B3), in every game: each page module keeps a one-line copyright and licence notice as a `/*!` comment and as data (`NOTICE`, registered with the font), and `automata ship prepare` copies the full text to `licenses/geist-OFL.txt` in the build, so the itch zip and the folder butler pushes both hold it.
+is at most 220,000 bytes (a test holds it). The OFL text ships in the published package (`licenses/geist-OFL.txt`) and, since the build audit (B3), in every game: each page's font data carries Geist's credit and the full OFL text (`FONT.notice`), a string the game's minifier keeps where it drops every comment.
 
 **D5. The fallback.** A pooled Pixi `Text` in the game's DOM face (`--af-font` read from the document element, else
 `system-ui, sans-serif`), weight 600, at `resolution` = device px per logical px (`HudScale`), updated when the scale

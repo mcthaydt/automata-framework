@@ -46,6 +46,17 @@ describe('verifyRecord', () => {
 })
 
 describe('the committed pages', () => {
+  const licence = readFileSync(join(FONTS_DIR, '../../../../licenses/geist-OFL.txt'), 'utf8')
+  for (const { id } of PAGES) {
+    // A game's minifier drops every comment, so the credit and licence ride in the font's data, which it keeps.
+    it(`${id}: the font's data carries Geist's credit and licence`, async () => {
+      const font = await import(pathToFileURL(join(FONTS_DIR, `${id}-font.ts`)).href)
+      expect(font.FONT.notice).toContain('Geist SemiBold')
+      expect(font.FONT.notice).toContain('Copyright (c) 2023 Vercel, in collaboration with basement.studio')
+      expect(font.FONT.notice).toContain(licence.trim())
+    })
+  }
+
   for (const { id, chars } of PAGES) {
     it(`${id}: every character of the page has a glyph, and the chars module matches`, async () => {
       const font = await import(pathToFileURL(join(FONTS_DIR, `${id}-font.ts`)).href)
@@ -56,19 +67,4 @@ describe('the committed pages', () => {
       expect(font.FONT.distanceField).toEqual({ type: 'msdf', range: 4 })
     })
   }
-})
-
-// A minifier drops `//` comments, so the notice the OFL asks each copy of the font to carry is a `/*!` one, which
-// the game's build keeps; ship's prepare adds the full licence text beside it.
-describe('the generated font modules', () => {
-  it.each(['latin-font.ts', 'cyrillic-font.ts'])(
-    '%s keeps the copyright and licence in a preserved comment',
-    (name) => {
-      const text = readFileSync(join(FONTS_DIR, name), 'utf8')
-      const notice = /\/\*!([\s\S]*?)\*\//.exec(text)?.[1] ?? ''
-      expect(notice).toContain('Geist')
-      expect(notice).toContain('Vercel')
-      expect(notice).toContain('SIL Open Font License')
-    },
-  )
 })

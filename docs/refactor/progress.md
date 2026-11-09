@@ -739,15 +739,24 @@ notice because the minifier drops the `//` header (B3). Ran (Chromium only): `pn
 render and draw browser tests, the 3D Try-again test, feel's unit tests. Not run: WebKit, Firefox, the GPU runner, real
 devices, the full 2D and 3D browser suites. Next: fixes (Sonnet, high).
 
+B3 fixed on the build-audit branch, 2026-11-09, at the Owner's word ("Credit geist"): Geist's credit and the OFL ride in
+each font page's data, so a minified game keeps them; the Credits page's Geist entry names the in-game text (#521).
+
 Stage 6 (fixes) done, 2026-11-09: branch `claude/project-thread-0c5ev3` stacked on #546, every finding fixed, test first
 (the build audit's [fix log](2026-11-08-in-game-text-build-audit.md#fixes-stage-6)). B1 a second `setup` (the 3D Try again)
 starts the draw layer's shapes and labels over on the new stage; B2 the fallback's shadow is a black tint, so a colour
-emoji's shadow is a black shape; B3 the Geist notice is kept as a `/*!` comment and as data the minifier cannot drop
-(Vite 8's default minify drops comments, measured), and `automata ship prepare` puts the full OFL text in the build
-(`licenses/geist-OFL.txt`) so the itch zip and butler's folder hold it, failing if the licence cannot be found. B4 to B9 in
+emoji's shadow is a black shape; B3 is the build-audit branch's fix above (the stage-6 version, a `/*!`
+comment, a `NOTICE` export and a licence file added by `ship prepare`, was dropped when the two met). B4 to B9 in
 the fix log. Ran (Chromium only): `pnpm check` (green except `check-changesets` on the base stack's
 `stage-characters-3d.md`), the framework's hud-text browser tests, the editor's 2D journeys (10 passed, ipad and phone,
-through a reload and an editor restart, including the zip holding the font and its licence) and the 3D "Feel: a word"
+through a reload and an editor restart, including the zip holding the font and its notice) and the 3D "Feel: a word"
 journeys (2 passed; the 3D publish test still fails as marked, because Publish refuses a Pixi 3D build until it is public,
-so its new licence check has not run). Not run: WebKit, Firefox, the GPU runner (still no hardware numbers for `hudLabels`),
+so its new font check has not run). Not run: WebKit, Firefox, the GPU runner (still no hardware numbers for `hudLabels`),
 real devices, the full 2D and 3D browser suites.
+
+Stage 6 joined with #546's B3 fix, 2026-11-09: branch `claude/project-thread-7g4fh2` merges #546 into the stage-6 fixes and
+keeps #546's `FONT.notice`; it drops stage 6's `/*!` header, `NOTICE` export and `ship prepare` licence copy (with its
+changeset), and the 2D and 3D publish journeys share `expectFontWithCredit`. Ran (Chromium only): `pnpm check` (green except
+`check-changesets` on the base stack's `stage-characters-3d.md`), `pnpm hud-font verify`, the framework's hud-text browser
+tests (13 passed), and the 2D publish journey on phone (passed). Not run: WebKit, Firefox, the GPU runner, the 3D publish
+test (still `test.fail` until Pixi 3D is public).

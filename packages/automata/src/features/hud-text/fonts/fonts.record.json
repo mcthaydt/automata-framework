@@ -20,20 +20,20 @@
   },
   "files": {
     "latin-chars.ts": {
-      "sha256": "8fa548c04fc216526dc46368da75f2578785e931507fc35717a4726c88f04d74",
-      "bytes": 1296
+      "sha256": "e08b9c3397861e7a9ad6883c6b9c8fcf4506b36f84442b326c0e079f0de057e9",
+      "bytes": 1140
     },
     "latin-font.ts": {
-      "sha256": "84d3ae79252fc403bb27be9e63ae2fc1c6faab0475bc502bfbeeebfea3de8539",
-      "bytes": 340720
+      "sha256": "702edf49d0a81dc4a1482c63c92f19640d7cede2a0f20f2bea7ab1b2bf95c32e",
+      "bytes": 345043
     },
     "cyrillic-chars.ts": {
-      "sha256": "a3624ef80099d07ffc15d0373a443ef63aa999458de837cf95c6c4ddbb437493",
-      "bytes": 1164
+      "sha256": "2159025424cbc9107591f7bf6a8b584db593e680d39e04828396d761c91e4562",
+      "bytes": 1008
     },
     "cyrillic-font.ts": {
-      "sha256": "ec4243d33f6f8216ab9d1a6386c39be3e8e87fd473d520e87d6db9603edad082",
-      "bytes": 301380
+      "sha256": "65cc8b5c8d17c0f06d9487c4ba1f993bc3bc75b9228df1a1c82fa701ab3f7846",
+      "bytes": 305703
     }
   }
 }
