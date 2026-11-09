@@ -19,3 +19,4 @@ The 2026-10-01 design had two render adapters: Three.js (WebGPURenderer with a T
 - Ruken's manifest renderer values are `webgl2`, `webgl`, `canvas2d` and `wasm-webgl2`, so the WebGL2 path is the one Ruken declares and must stay at parity.
 - Risk: the 3D package is a beta from an invited program (MIT licensed) whose terms, as The Last Light records them, keep builds inside the beta with no public deployment. Decision D-1 (provisional) keeps `@automata/3d` unpublished and out of public game builds until that changes; a published package also cannot depend on a `file:` tarball.
 - Revised 2026-10-11 after audit: WebGL2 is the default renderer (FloorFifty forces WebGL for mobile reach; Ruken's manifest has no WebGPU value).
+- 2026-11-09: 3D figures are FigureBuilder's painted cells, drawn as textures by a Pixi 3D pass; Pixi still draws every frame ([ADR 0008](0008-3d-figures-are-painted.md)).
