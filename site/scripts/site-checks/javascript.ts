@@ -163,10 +163,10 @@ export function checkEditorChunk(
   return { failures, gzipBytes }
 }
 
-/** The motion code (Motion and Lenis), as the build's Vite manifest keys it. */
+/** The motion code (GSAP and Lenis), as the build's Vite manifest keys it. */
 export const MOTION_SOURCES = ['src/shared/motion/animate.ts', 'src/shared/motion/smooth-scroll.ts'] as const
 /** Both motion chunks and what only they import, gzipped. */
-export const MAX_MOTION_GZIP_BYTES = 12_000
+export const MAX_MOTION_GZIP_BYTES = 36_000
 
 /**
  * The motion chunks load after the page is live, so no page names them, and together they stay within

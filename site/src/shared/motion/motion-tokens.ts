@@ -1,6 +1,6 @@
 // Every number the site's motion uses, in one place. The Owner asked for "super subtle", so the limits are a test's
 // (motion-tokens.test.ts): no duration over 0.48 s, no travel over 8 px, no scale under 0.98. Seconds for time and
-// pixels for travel; tokens.css repeats the CSS-side ones, and the test holds them equal.
+// pixels for travel, which is what GSAP takes; tokens.css repeats the CSS-side ones, and the test holds them equal.
 export const MOTION = {
   press: 0.14,
   hover: 0.18,
@@ -15,8 +15,8 @@ export const MOTION = {
   nudge: 4,
   scaleFrom: 0.98,
   productScaleFrom: 0.985,
-  /** The kit's `--ease-out`, cubic-bezier(0.22, 1, 0.36, 1), exactly. */
-  ease: [0.22, 1, 0.36, 1],
+  /** GSAP's name for the kit's `--ease-out` (cubic-bezier(0.22, 1, 0.36, 1)); within 0.011 of it. */
+  ease: 'power4.out',
   /** Lenis's smoothing: a wheel notch is 90% done in about 270 ms, close to a native one. */
   lerp: 0.14,
   /** A section arrives when its top is 15% of the window above the bottom edge. */

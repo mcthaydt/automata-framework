@@ -1,8 +1,5 @@
 # Site motion: plan audit
 
-> **2026-11-09:** GSAP was replaced by Motion (MIT) after this was written, at the Owner's word. Read GSAP below as the
-> record of the time; the plan's swap log says what changed.
-
 Stage 3 of the site motion pipeline (Opus, medium; superpowers `writing-plans` used as the standard the plan is held
 to; no subagents). Audited 2026-11-08 on AF #541 (`b69837ee`, on #520's `09d5a347`): the
 [spec](2026-11-08-site-motion-spec.md) and the [plan](2026-11-08-site-motion-plan.md). Every fix below is applied to

@@ -3,23 +3,17 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task (no
 > subagents in this project). Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **Changed 2026-11-09 (the Owner, "Yes" to replacing GSAP).** The moves use **Motion** (`motion/mini`, MIT) and the
-> editors use Motion and Svelte's built-in transitions; Lenis stays. The dependencies, the budget (12,000 bytes gzip,
-> measured 9,340) and Task 3's code below say Motion; the build log below is the record of the GSAP build and of the
-> swap that replaced it (last section). The editors' plan: Svelte `transition:` for things that appear and leave, Motion
-> `animate` only where script must time a move; same tokens; never the engine of what a user animates in a game.
-
 **Goal:** The website gets super subtle smooth wheel scrolling (Lenis), a page that settles in after a click, and Home's
-sections arriving as they scroll into view (Motion), plus small CSS entrances, at about 9 KB gzip loaded after the page is
+sections arriving as they scroll into view (GSAP), plus small CSS entrances, at about 33 KB gzip loaded after the page is
 live and not at all for visitors who ask for less motion.
 
 **Architecture:** One folder, `site/src/shared/motion/`. A small layer in the layout's bundle (`motion-layer.ts`) decides
-after hydration whether motion is wanted and, in the first idle moment, imports two dynamic chunks: `animate.ts` (Motion:
+after hydration whether motion is wanted and, in the first idle moment, imports two dynamic chunks: `animate.ts` (GSAP:
 the page settle and the reveals) and, on a fine pointer outside the playground, `smooth-scroll.ts` (Lenis). Pure helpers
 (`motion-tokens.ts`, `motion-preference.ts`, `reveal-steps.ts`) carry the numbers and the decisions so they test in
 jsdom. CSS keeps hover, press and the `[open]` entrances.
 
-**Tech Stack:** SvelteKit 2.70 (`onNavigate`, `afterNavigate`), Svelte 5, Lenis 1.3.27, Motion 14.6 (`motion/mini`), Vitest 5 (jsdom),
+**Tech Stack:** SvelteKit 2.70 (`onNavigate`, `afterNavigate`), Svelte 5, Lenis 1.3.27, GSAP 3.15 core, Vitest 5 (jsdom),
 Playwright 1.63 (Chromium and WebKit), Lighthouse CI.
 
 **Spec:** [`2026-11-08-site-motion-spec.md`](2026-11-08-site-motion-spec.md).
@@ -48,7 +42,7 @@ site-wide.
   section, rise 8 px, settle 6 px, nudge 4 px, scale from 0.98 (a section's product 0.985), ease `power4.out` =
   `--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)`. No duration over 480 ms, no travel over 8 px, no scale under 0.98.
 - Only `transform` and `opacity` animate. No ease-in, bounce or elastic. No exit animation on a page change.
-- Nothing is hidden by CSS or HTML before Motion has loaded; reveals hide only parts of a `main .home-section` that is
+- Nothing is hidden by CSS or HTML before GSAP has loaded; reveals hide only parts of a `main .home-section` that is
   wholly below the window; nothing outside a `.home-section` is ever hidden; reading pages never use `.home-section`.
   Focus moving into a hidden section reveals it at once.
 - The ease comes from the editor kit's `--ease-out` (`packages/editor/src/shared/kit/tokens.css`, reached through
@@ -56,15 +50,16 @@ site-wide.
   the name and value.
 - Reduced motion or `navigator.connection.saveData`: neither chunk is requested, the site is exactly as before.
 - Lenis loads only for `(hover: hover) and (pointer: fine)` and never on `/examples/<id>`.
-- Load: the two chunks and their imports within 12,000 bytes gzip; no page modulepreloads them; Lighthouse assertions in
+- Load: the two chunks and their imports within 36,000 bytes gzip; no page modulepreloads them; Lighthouse assertions in
   `site/lighthouserc.json` unchanged and passing; each page's modulepreload under the existing 48,000-byte budget.
-- Dependencies pinned exactly: `lenis` 1.3.27; `motion` the newest version at least 14 days old on the build day
-  (14.6.0 on 2026-11-09), both MIT, so no licence page has to be read before an upgrade. Lenis 2 is in dev and not
-  taken here. (The first build used GSAP 3.15.0, licence "free, not open source"; replaced 2026-11-09 because of the
-  paid apps.)
-- A row each in `docs/versions.md` for dependencies it tracks. A credits entry each if
-  `site/src/features/credits/credits-data.ts` exists: Lenis "MIT"; Motion "MIT". There is no GSAP entry and no
-  licence-watch rule in `renovate.json`.
+- Dependencies pinned exactly: `lenis` 1.3.27; `gsap` the newest **3.x** version at least 14 days old on the build day
+  (3.15.0 on 2026-11-08; 3.15.1 from 2026-11-18). `gsap` 4 is in beta (4.0.0-beta.3, 2026-11-05) and Lenis 2 in dev;
+  neither is taken here. Read <https://gsap.com/standard-license> on the build day; if its "Last modified" date is
+  later than 2025-05-30, stop and tell the Owner before adding GSAP.
+- `renovate.json` gets one rule for `gsap`: `allowedVersions: "<4"` and a `prBodyNotes` line saying to re-read the
+  licence page before merging, because a GSAP version released after a licence change comes under the new terms. A row each in `docs/versions.md`. A credits entry each if
+  `site/src/features/credits/credits-data.ts` exists: Lenis "MIT"; GSAP "GSAP Standard License: free to use, not open
+  source".
 - Code goes in `site/src/shared/motion/` (a feature imports only itself and `shared/`); tests in
   `site/tests/unit/shared/motion/` importing `#src/…`, and `site/tests/e2e/motion.e2e.ts`. Files under 600 lines.
   Comments say why. `@automata/site` is private: no changeset.
@@ -75,7 +70,7 @@ site-wide.
 
 ## Review Focus
 
-1. **Content stuck hidden.** A page change whose `afterNavigate` never comes, Motion failing to download, a `#hash` deep
+1. **Content stuck hidden.** A page change whose `afterNavigate` never comes, GSAP failing to download, a `#hash` deep
    link into Home, Find in page, or Tab into a hidden section must leave nothing at opacity 0 (or a focus ring round an
    invisible link). Tests: Task 4 (the mark's 1,000 ms fallback; a rejected import hides nothing; `focusin` reveals)
    and Task 7 (deep link; Tab).
@@ -164,10 +159,10 @@ site-wide.
   `lenis` unused until Task 4 wires the chunk; note it in the log and do not suppress it.
 - [ ] **Step 5: Commit** `feat(site): smooth wheel scrolling with Lenis`.
 
-### Task 3: The moves (Motion) and the reveal steps
+### Task 3: The moves (GSAP) and the reveal steps
 
 **Files:**
-- Modify: `site/package.json` (`motion`), `docs/versions.md` (row), the credits data if present
+- Modify: `site/package.json` (`gsap`), `docs/versions.md` (row), the credits data if present
 - Create: `site/src/shared/motion/reveal-steps.ts`, `site/src/shared/motion/animate.ts`
 - Modify: `site/src/features/docs/DocsPage.svelte` (`data-page-content` on `<article class="doc-content">`)
 - Test: `site/tests/unit/shared/motion/reveal-steps.test.ts`, `site/tests/unit/shared/motion/animate.test.ts`
@@ -189,23 +184,24 @@ site-wide.
   test loops over whatever `.home-section`s Home renders, never a fixed count. A second case reads the source of the
   reading features (`src/features/{docs,api,changelog,start,legal,examples,playground}`) and finds no `home-section`. `isBelowWindow` with a stubbed `getBoundingClientRect` (top 900, window 800: true;
   top 799: false).
-  `animate.test.ts` (jsdom; `motion/mini` is replaced by a stand-in that records `(element, keyframes, options)` and
-  lets the test finish a move, because jsdom has no Web Animations; the real thing is the journeys' job): after
-  `hide(parts)` each part has inline `opacity: 0` and `translateY(8px)`, product parts also `scale(0.985)`; `reveal`
-  asks Motion for opacity 0 to 1 and the held transform to `translateY(0px)` over `MOTION.reveal` on `MOTION.ease`;
-  `pageIn` asks for 6 px over `MOTION.page`; when a move ends, or `finish()` completes it, no part has an inline
-  `opacity` or `transform` and no `data-motion`; after `finish()` a second `pageIn` works, and an old move finishing
-  late does not clear a newer one; the delay of the eighth part equals the sixth's.
+  `animate.test.ts` (jsdom; GSAP runs there): after `hide(parts)` each part has inline `opacity: 0` and a
+  `translate(…8px)` transform, product parts also `scale(0.985)`; after `reveal(parts)` and `finish()` no part has an
+  inline `opacity` or `transform`; `pageIn(el)` then `finish()` leaves `el` with no inline style; after `finish()`, a
+  second `pageIn(el)` still sets an inline opacity and a second `finish()` clears it (the context is reused after
+  `revert()`); every element `hide` or `pageIn` touched carries `data-motion` until `finish()` or its move ends removes
+  it; the stagger offset of the eighth part equals the sixth's (read with `gsap.getTweensOf` or the timeline's child
+  start times). Vitest's jsdom provides `requestAnimationFrame` and `cancelAnimationFrame`, which GSAP's ticker needs
+  (checked in the plan audit: `gsap.set`, `progress(1)` with `clearProps` and `revert()` all behave in jsdom).
 - [ ] **Step 2: Run them and see them fail.**
-- [ ] **Step 3: Add `motion`** (exact version per the Global Constraints) and its `docs/versions.md` row ("The page
-  settle and Home's reveals on the site; MIT"), the credits entry if present.
-- [ ] **Step 4: Write `reveal-steps.ts` and `animate.ts`.** `animate.ts` imports `{ animate }` from `'motion/mini'` only
-  (the Web Animations build, about 2 KB). `hide` sets inline `opacity: 0` and the held transform. Every move is kept in
-  a map, so `finish()` calls `complete()` on each and then clears `opacity` and `transform` and the `data-motion` mark
-  of everything touched; a move that ends clears its own element unless a newer move has taken it over. `pageIn` moves
-  `{ opacity: [0, 1], transform: [translateY(6px), translateY(0px)] }` over `MOTION.page`; `reveal` moves each part from
-  its held transform to rest over `MOTION.reveal`, with `delay = Math.min(i, MOTION.staggerCap - 1) * MOTION.stagger`;
-  every move uses `MOTION.ease` as four numbers.
+- [ ] **Step 3: Add `gsap`** (exact version per the Global Constraints, after reading the licence page), its
+  `docs/versions.md` row ("The page settle and Home's reveals on the site; GSAP Standard License, free, not open
+  source"), the credits entry if present, and the `renovate.json` rule from the Global Constraints.
+- [ ] **Step 4: Write `reveal-steps.ts` and `animate.ts`.** `animate.ts` imports `{ gsap }` from `'gsap'` only (no
+  plugins). All tweens are created inside one `gsap.context()`, so `finish()` is `ctx.getTweens().forEach(t =>
+  t.progress(1))` then `ctx.revert()`. `pageIn` is a `fromTo` from `{ opacity: 0, y: MOTION.settle }` over
+  `MOTION.page`; `reveal` is one timeline, parts at `Math.min(i, MOTION.staggerCap - 1) * MOTION.stagger`, each over
+  `MOTION.reveal` to `{ opacity: 1, y: 0, scale: 1 }`; every tween uses `MOTION.ease` and `clearProps:
+  'opacity,transform'`.
 - [ ] **Step 5: Run the tests and `pnpm check`; see them pass. Commit** `feat(site): the page settle and Home's reveals`.
 
 ### Task 4: The motion layer in the layout
@@ -287,7 +283,7 @@ site-wide.
 
 **Interfaces:**
 - Produces: `MOTION_SOURCES = ['src/shared/motion/animate.ts', 'src/shared/motion/smooth-scroll.ts']`,
-  `MAX_MOTION_GZIP_BYTES = 12_000`, `checkMotionChunks(root: string, manifest: Record<string, ManifestChunk>): {
+  `MAX_MOTION_GZIP_BYTES = 36_000`, `checkMotionChunks(root: string, manifest: Record<string, ManifestChunk>): {
   failures: string[]; gzipBytes: number }`. Extract the editor check's walk into `chunkFiles(manifest, sources)` and
   use it in both. The motion files are `chunkFiles(manifest, MOTION_SOURCES)` **less** `chunkFiles` of every manifest
   entry with `isEntry: true` (the app's entries and the layout's node): `motion-tokens.ts` is imported by the layer in
@@ -444,22 +440,3 @@ a slightly softer native one (a notch is 90% done in about a quarter of a second
 starts the next page at its top and eases it in, 6 px over 0.22 s, with no wait before it. Search opens with the cursor
 in the box and closes the instant Escape is pressed. On the phone the page scrolls with its own momentum, sections
 ease in once, and the menu opens with a 4 px rise. Nothing she might press was missing, late or moving under her finger.
-
-### Swap log: GSAP out, Motion in (2026-11-09, Sonnet high, native, no subagents; PR on #553)
-
-The Owner approved replacing GSAP with Motion (motion.dev, MIT) after the build audit's note that GSAP's terms are a
-question for the paid apps. What changed, and only that:
-
-- `animate.ts` now uses `motion/mini` (14.6.0, the newest 14 days old on 2026-11-09; 14.7.0 was 13 days old). The ease
-  is the kit's four numbers exactly (`[0.22, 1, 0.36, 1]`), where GSAP's `power4.out` was within 0.011 of it. The
-  timings and distances are unchanged (220 ms and 6 px for a page, 480 ms and 8 px for a reveal, 60 ms apart, at most
-  six). The `Animate` interface did not change, so the motion layer and the reveal steps are untouched.
-- Tests first: `animate.test.ts` was rewritten against a stand-in for Motion and failed on the GSAP code (inline
-  `translate(0px, 8px)` and tween times, not Motion calls); `motion-tokens.test.ts` now holds the ease equal to the kit's
-  numbers.
-- Measured: the motion chunks are **9,340 B gzip** (33,056 with GSAP); the budget is 12,000 in `check:site`. All 22
-  motion journeys pass in Chromium, twice; a probe at 1280 wide and on an iPhone 13 profile shows a heading reaching
-  full opacity in about 300 ms, as before, and nothing left behind after a page change.
-- `gsap` is gone from `package.json`, the lockfile, `renovate.json` (its licence-watch rule) and the credits plan. Older
-  documents (the plan audit, the build audit) keep their GSAP wording as the record of the time.
-- Not run: WebKit and Firefox (the Mac), Lighthouse (not repeated; the page loads less script than before).

@@ -32,8 +32,8 @@ describe('motion tokens', () => {
     expect(MOTION.reveal + (MOTION.staggerCap - 1) * MOTION.stagger).toBeLessThanOrEqual(0.78)
   })
 
-  it('is the kit’s --ease-out, as the same four numbers', () => {
-    expect(MOTION.ease).toEqual([0.22, 1, 0.36, 1])
+  it('names GSAP’s power4.out, which is the kit’s --ease-out', () => {
+    expect(MOTION.ease).toBe('power4.out')
     // The editors' redesign is changing the kit's tokens: a rename fails here, not as a silent `ease`.
     expect(read('../packages/editor/src/shared/kit/tokens.css')).toContain(
       '--ease-out: cubic-bezier(0.22, 1, 0.36, 1)',
