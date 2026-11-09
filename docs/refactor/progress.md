@@ -677,7 +677,7 @@ then "website can be completely changed content wise to support our gtm". Plan: 
 
 **Where to resume:** the Owner picks the headline; change `HERO.title` (and the Home page's `PageMeta` title) if it is not option A. The motion thread (#541) keys its reveals off `.home-section` classes, which both new sections use.
 
-## Site motion: smooth scrolling and subtle animation: 50% (3 of 6)
+## Site motion: smooth scrolling and subtle animation: 67% (4 of 6)
 
 The Owner, 2026-11-08: "Add lucide, I think that's what it's called, to the website for SUPER SUBTLE smooth page
 scrolling and gsap for SUPER SUBTLE microanimations and page transitions, do the same for the editors, we can do that
@@ -689,11 +689,12 @@ only; the editors wait for the editors v2 build and its audit.
 | 1. Audit | Done, 2026-11-08, with stage 2 in one document (on AF #520's branch, tip `09d5a347`): today's motion (CSS smooth anchors, button lift, the marquee; two transition rules for one control, M1; two unused keyframes, M2), the guards motion could break (Lighthouse, the 48,000-byte preload budget, the CSP, nested scroll boxes, the demo frame, boundaries, pinned versions, credits). Measured: Lenis 1.3.27 5,445 B gzip, GSAP 3.15.0 core 27,605 B; in Chromium a 300 px wheel notch with `lerp: 0.14` reaches 90% at 264 ms (Lenis's default 0.1: 363 ms), nested boxes keep the wheel, anchors land as before (96 px), PageDown works, GSAP evaluates in 13 ms on a 4x slowed CPU. The GSAP licence is free but not open source, and its terms are a question for the paid editor apps | [spec](2026-11-08-site-motion-spec.md) sections 1 and 2 |
 | 2. Plan and spec | Done, 2026-11-08 (superpowers `brainstorming` and `writing-plans`, native): Lenis on fine pointers only, off on the playground; GSAP core for the page settle (220 ms, 6 px, no exit) and Home's section reveals (8 px, 480 ms, 60 ms apart, at most 6 starts per section, only parts below the window); CSS for search, the phone menu and copy; nothing downloaded under reduced motion or Save-Data; a 36,000-byte gzip budget in `check:site`. 7 tasks. For the editors later: GSAP for the editor UI motion (the Owner, 2026-11-08 23:33), same tokens, no smooth scrolling | [spec](2026-11-08-site-motion-spec.md), [plan](2026-11-08-site-motion-plan.md) |
 | 3. Plan audit | Done, 2026-11-08 (Opus medium, native): every measured claim re-checked (sizes, Lenis options and damping, the curve, SvelteKit 2.70.4's navigation order, GSAP in jsdom, the licence text). 12 findings fixed in the spec and plan: the budget walk counted the layout's shared chunk (A1); reveals only ran on a visit's first page (A2); Tab into a hidden section (A3); the copy rewrite may restructure Home, so reveals key off `.home-section` alone and Step 0 re-inventories (A4); the transition rule's selectors (A5); the kit's `--ease-out` held by a test (A6); GSAP pinned to 3.x with a licence re-read and a Renovate rule (A7) | [plan audit](2026-11-08-site-motion-plan-audit.md) |
-| 4. Build | Not started | |
+| 4. Build | Done, 2026-11-09 (Sonnet high, native, no subagents): all 7 tasks on #542's tip with #543 merged in. Lenis 1.3.27 (wheel, fine pointers, off on the playground), GSAP 3.15.0 core (page settle, Home reveals), CSS entrances for search, the phone menu and copy; nothing loads for reduced motion or Save-Data. Motion chunks 32,941 B gzip (budget 36,000); Lighthouse 100 on six pages, Home TBT 0 to 38 ms. 495 site unit tests, 20 motion journeys 3 of 3 in Chromium, playground and visitor suites green. Two real bugs found in the browser and fixed (a key after a wheel was ignored; a jump left sections hidden). Rulings and the grandma pass in the plan's build log. Not run: WebKit, Firefox, GPU runner, parity. | [plan, build log](2026-11-08-site-motion-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-**Where to resume (2026-11-08, stage 3 done):** the build (Sonnet, high) starts on the plan audit's PR (stacked on
-#541), merges #521 and the copy rewrite's PR if they are still open, runs the plan's Step 0 inventory, and reads the GSAP
-licence page before pinning the newest 3.x that is at least 14 days old. WebKit was not measured in the audits (not
-installed in the cloud container); the build's journeys run there.
+**Where to resume (2026-11-09, stage 4 done):** the build audit (Opus, medium) reads the diff against the spec and plan,
+and must run the journeys in WebKit and Firefox (not installed in the cloud container), look for stuck-hidden content on
+real devices, and repeat the owner's rule (make a game, play it, reload). The try-it editor does not keep a new level
+across a reload today, with or without motion; that is the saving thread's. The editors' motion waits for the editors v2
+build and uses GSAP for UI motion only. Credits entries for Lenis and GSAP go in when AF #521 lands.

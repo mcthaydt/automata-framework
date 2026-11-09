@@ -4,6 +4,9 @@ import { expect, type Page, test } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
 import { axeViolations, horizontalOverflow, watchPage } from './gates'
 
+// An example autostarts only for a visitor who has not asked for less motion (the suite's default is reduced).
+test.use({ reducedMotion: 'no-preference' })
+
 const ORIGIN = `http://127.0.0.1:${SITE_PORT}`
 const LAYOUTS = [
   { name: 'phone', width: 375, height: 667 },

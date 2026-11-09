@@ -354,3 +354,86 @@ site-wide.
 
 - 2026-11-08, plan audit (stage 3): [2026-11-08-site-motion-plan-audit.md](2026-11-08-site-motion-plan-audit.md). Fixes
   applied to this plan and the spec: A1 to A12. Build log starts below.
+
+### Build log (stage 4, Sonnet high, 2026-11-09)
+
+**Base.** The build branch is AF #542's tip (`98129556`, the copy rewrite, itself on #520) with #543 merged in
+(`dc5775b4`); one conflict, in `progress.md`, kept both sections. AF #521 (the credits page) was not in the base, so
+there is no credits file and no credits entries (the plan says "if it exists"); add Lenis (MIT) and GSAP ("GSAP Standard
+License: free to use, not open source") there when #521 lands.
+
+**Step 0 inventory.** 15 routes with a page (`editor`, `not-found`, `app` (Pricing), `api`, `api/[version]/[pkg]`,
+`start`, `examples`, `examples/[id]`, `terms`, `privacy`, `docs`, `docs/[slug]`, `changelog`, `/`). `home-section` is in
+the 11 Home components. Home's order is Hero, Facts, Made with, Built in, Code (agents), Determinism (checks), Editor,
+Targets (Publish), Pricing, Examples, Changelog, closing band. The class names the plan keys off all survived the copy
+rewrite, so `revealSteps` kept its selectors. The playground is still `/examples/<id>`.
+
+**Pins.** `lenis` 1.3.27 (5.4 KB gzip). `gsap` 3.15.0, not 3.15.1: 3.15.1 came out 2026-11-04, four days before the
+build, and 4.0 is a beta. The licence page (read 2026-11-09) still says "Last modified date: May 30, 2025", so the plan's
+stop condition did not fire. Renovate holds `gsap` below 4 and tells whoever reviews its PR to re-read the licence.
+
+**What ran** (all Chromium, cloud container):
+- Site unit tests 495 (was 434): tokens, preference, Lenis options and its native-input handling, the moves, the reveal
+  steps against the real Home, the layer (22 cases), the CSS moves, the budget check.
+- `svelte-check` 0 errors; `pnpm lint` clean for the files this changes; `knip` clean; `pnpm build` of the site and
+  `check:site` (47 pages). The motion chunks are 32,941 B gzip of the 36,000 budget; no page names them.
+- Lighthouse (the site's `lighthouserc.json`, 3 runs a page, medians), before this branch's motion and after:
+  performance 100 on all six pages both times; Home LCP 1,584 ms both; Home TBT 0 ms before, 38 ms after (the layer and
+  the first reveal); other pages 0 to 4 ms. All assertions pass.
+- `tests/e2e/motion.e2e.ts`: 20 journeys, 3 of 3 runs green. Wheel glide over several frames landing at 300 +/- 10;
+  PageDown, Home and End (also straight after a wheel); wheel over the docs sidebar and over the search results moves the
+  box, not the page; a contents link lands 96 px under the top (also straight after a wheel); a click to Docs starts at the
+  top on the first frame and settles with nothing left behind; another guide keeps its sidebar at opacity 1; Back after a
+  wheel does not drift; Home's sections arrive and leave no inline style; End then Home leaves every section visible;
+  Tab into a waiting section reveals it; Docs to Home by a click reveals as a first visit; every route in the sitemap
+  loads without a console error and ends fully visible; the playground has no `lenis` class; reduced motion downloads
+  neither chunk; reduced motion switched on mid-visit removes `lenis` and shows every part; a phone (iPhone 13) has no
+  smooth scroll and never requests it; search opens with focus in the field and Escape closes it at once.
+- The whole site suite in Chromium: 421 passed, then the 51 failures were looked at: 47 were the playground suites
+  (an example autostarts only without reduced motion, and the suite default is now reduced; the two playground files now
+  ask for `no-preference`) and 4 were `site.e2e.ts` still listing "Reference", which the copy rewrite (#542) replaced
+  with Pricing in the header. After both fixes: `playground.e2e.ts` 37 of 37, `playground-layout.e2e.ts` and
+  `site.e2e.ts` 162 of 162, `visitor.e2e.ts` and `editor-try.e2e.ts` 15 of 15 (also run once with motion on).
+
+**Not run:** WebKit and Firefox (not installed in the container; the journeys are written for both projects in
+`playwright.config.ts` and need the CI runner), the GPU runner, cross-engine parity, root `pnpm check` end to end. Failures
+that already exist on this base and are not this branch's: `pnpm boundaries` (3, `extensions/editors` sequence imports
+writer), `pnpm source-names` (5), `pnpm style` (3 broken links in docs: `site-build-audit.md`, `dark-mode-build-audit.md`),
+and `pnpm api-index` (3 undocumented exports).
+
+**Rulings.**
+1. *The site's pins are not rows in `docs/versions.md`.* The plan asked for rows; `tooling/versions` reads only
+   `packages`, `extensions`, `tooling`, `games` and `examples`, so a row for a site-only pin fails its "no row for a
+   version nothing uses" test (the site's other pins, such as `sucrase`, have none). The pins are exact in
+   `site/package.json` and recorded here. Cost if wrong: add the rows when that tool learns about `site/`.
+2. *Lenis's stylesheet is in the page's CSS (`styles/smooth-scroll.css`), not in the chunk.* A dynamic import's CSS is
+   linked by every page, which would send it to visitors who asked for less motion and failed the budget check. The rules
+   do nothing without Lenis's `lenis` class; a test holds the file equal to Lenis's own. Cost: 0.4 KB for everyone.
+3. *A key, a click on a #link, focus and a press on the scroll bar stop Lenis's glide first (`smooth-scroll.ts`).* Found
+   in the browser: Lenis ignores the browser's own scrolling until its glide has died away (about 1.5 s after a wheel), so
+   End, PageDown and contents links pressed just after a notch did nothing or snapped back. Cost: one listener set. Not
+   covered: Find in page and script `scrollTo` within about 1.5 s of a wheel still lose to the glide, then recover.
+4. *Reveals also run on every scroll while a section waits (`motion-layer.ts`).* The observer only sees a section while it
+   is on screen, so End, a #link or dragging the scroll bar left skipped sections hidden. Cost: a rect read per waiting
+   section per scroll, only while one waits (at most nine).
+5. *A same-route change with no `[data-page-content]` settles the whole page.* Otherwise `/examples/a` to `/examples/b`
+   would flash the new page at full strength, then drop to opacity 0. `afterPageChange` follows what `beforePageChange`
+   marked, not the `sameRoute` flag.
+6. *A phone loads the moves, not the smoothing.* The plan's Task 7 says "no motion chunk is requested" on a phone, but its
+   Task 4 loads GSAP for a coarse pointer. The journey asserts what Task 4 builds: Lenis is never requested.
+7. *The suite default is reduced motion.* The plan's change, with the two playground files and the motion journeys opting
+   back in. `site.e2e.ts`'s stale `Reference` link is corrected to `Pricing`.
+
+**Task 7, the Owner's audit rule (make a game, play it, reload).** The visitor journeys (play Emberwick; make a platformer
+level in the try-it editor and share it) pass with motion on. Reloading the try-it editor does not bring a new level
+back, with motion on or off (probed in Chromium: no stored keys, no canvas after reload): that is the editors' saving
+work (sign-in and saving thread), not motion, and the editor loads no motion code. Playing a downloaded game from
+`create-game` was not repeated; motion never touches a game's frame.
+
+**The grandma pass** (Chromium at 1440 x 900 and an iPhone 13, by journeys and screenshots; no physical trackpad):
+Home read top to bottom: the first screen never moves and Make a game is there at once. Each section is readable as it
+reaches the middle of the window, and a section that is skipped by End or a link is already shown. The wheel feels like
+a slightly softer native one (a notch is 90% done in about a quarter of a second). A click on Docs, Examples or Back
+starts the next page at its top and eases it in, 6 px over 0.22 s, with no wait before it. Search opens with the cursor
+in the box and closes the instant Escape is pressed. On the phone the page scrolls with its own momentum, sections
+ease in once, and the menu opens with a 4 px rise. Nothing she might press was missing, late or moving under her finger.

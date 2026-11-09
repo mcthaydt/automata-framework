@@ -10,6 +10,9 @@ import { playgroundExamples } from '#src/shared/framework/examples.ts'
 import { SITE_PORT } from '../../playwright.config'
 import { watchPage } from './gates'
 
+// An example autostarts only for a visitor who has not asked for less motion (the suite's default is reduced).
+test.use({ reducedMotion: 'no-preference' })
+
 const ORIGIN = `http://127.0.0.1:${SITE_PORT}`
 
 /** Every request under /playground/, each with whether the page's `load` event had fired when it was made. */
