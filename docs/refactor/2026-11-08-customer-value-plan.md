@@ -797,3 +797,8 @@ want, itch will be first output". Spec §11.
 - 2026-11-09 (build audit, stage 5, `2026-11-09-customer-value-build-audit.md`): B1 to B16. The journey ran end to end with
   a fresh agent and the plugin from a stand-in, and with a stand-in butler. Task 12's gate stays unmet (B3); Task 14's
   "Connect" wording is overturned for "Sign in to itch.io" (B4); Task 15 must be re-planned onto the site rewrite (#542).
+- 2026-11-09 (fixes, stage 6, `2026-11-09-customer-value-build-audit-fixes.md`): Task 12's gate is met: the touch buttons
+  stand in the letterbox's side bars (`--af-bar-left`, `--af-bar-right`) and nothing covers the field at 932 × 430. Task 14
+  says "Sign in to itch.io" and keeps the page address. Task 15 is built on the site rewrite (#552): headline "Finish the
+  game your agent started.", no "2D" in the launch words, Start's steps match what `create-game` prints. Task 16 is built
+  for plain 2D games in our own palette (DUEL stays open).
