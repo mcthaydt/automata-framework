@@ -14,5 +14,10 @@
     "outline": false,
     "grade": true,
     "dither": true
+  },
+  "figures": {
+    "min": 1,
+    "max": 3,
+    "cacheBytes": 33554432
   }
 }

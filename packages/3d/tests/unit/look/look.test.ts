@@ -19,6 +19,13 @@ describe('the look', () => {
   })
 })
 
+describe("the look's figure cells", () => {
+  it('are painted from the sheets’ density up to three times it, in a cache of 32 MiB', () => {
+    expect(DEFAULT_LOOK.figures).toEqual({ min: 1, max: 3, cacheBytes: 33554432 })
+    expect(parseLook({ figures: { max: 2 } }).figures).toEqual({ min: 1, max: 2, cacheBytes: 33554432 })
+  })
+})
+
 describe('the low-resolution target', () => {
   it('keeps its short side at 180 and follows the stage', () => {
     expect(targetSize({ width: 1280, height: 720 })).toEqual({ width: 320, height: 180 })

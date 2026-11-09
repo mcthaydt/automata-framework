@@ -23,6 +23,9 @@ export interface Look {
   /** Where the grade comes from: the time of day's, or none. */
   readonly grade: 'time' | 'none'
   readonly switches: LookSwitches
+  /** The painted figures' cells: the density they are painted at, in half steps between `min` and `max` texels of the
+   * sheets' size, and the bytes the cell cache may hold. */
+  readonly figures: { readonly min: number; readonly max: number; readonly cacheBytes: number }
 }
 
 export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
@@ -40,4 +43,11 @@ export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
       dither: z.boolean().default(true),
     })
     .default({ outline: false, grade: true, dither: true }),
+  figures: z
+    .strictObject({
+      min: z.number().min(1, 'a cell is at least the sheets’ density').default(1),
+      max: z.number().min(1).default(3),
+      cacheBytes: z.number().int().min(1).default(33554432),
+    })
+    .default({ min: 1, max: 3, cacheBytes: 33554432 }),
 })
