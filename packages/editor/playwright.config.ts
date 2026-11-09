@@ -1,9 +1,13 @@
 import { defineJourneys } from '@automata/playwright-preset'
+import { portsFor } from '../tools/src/shared/ship/ports/ports-for.ts'
 
 // The design board's screenshots: `pnpm design:board`. One Vite dev server (the board is served in development only),
 // on its own port; the four sizes every editor layout is checked at, phone first. Chromium only: this is for looking
 // at, and the layout tests prove the rules in every engine.
-const port = Number(process.env.AF_DESIGN_PORT ?? 4760)
+// 60 above the checkout's preview port, so AF_RUNNER_PORT_OFFSET moves it with the runner copy.
+const port = Number(
+  process.env.AF_DESIGN_PORT ?? portsFor(new URL('..', import.meta.url).pathname, process.env).preview + 60,
+)
 const sizes = {
   phone: { width: 390, height: 844 },
   compact: { width: 780, height: 270 },

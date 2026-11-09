@@ -2,9 +2,10 @@
 
 A pull request that changes a published `@automata/*` package adds a changeset (`pnpm changeset`),
 and CI checks it (`changeset status`). Every published package shares one version (the `fixed` group), and
-before 1.0 every changeset is a `patch` (`tooling/release/src/check-changesets.ts`). Merging to `main` opens or
-updates the "Version packages" pull request; merging that one, on the Owner's word, publishes to GitHub
-Packages (`.github/workflows/release-packages.yml`, M2.4 spec §3.5). The version step, `pnpm release:version`, bumps
+before 1.0 every changeset is a `patch` (`tooling/release/src/check-changesets.ts`), except `first-public-release.md`,
+a `minor` that takes the shared version from 0.0.x to 0.1.0 once and is deleted when it is versioned. Merging to `main` opens or
+updates the "Version packages" pull request; merging that one, on the Owner's word, publishes to npmjs.org
+(`.github/workflows/release-packages.yml`). The version step, `pnpm release:version`, bumps
 the versions and changelogs, syncs the sim's `SIM_VERSION`, builds, and regenerates the API index, the cheatsheet and
 the `automata-api` skill's `reference/api.md` and plugin version (DX.7a), so the Version packages pull request needs no
 edits by hand.

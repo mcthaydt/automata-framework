@@ -26,8 +26,9 @@ const base = newDepsBase(git, baseRef)
 const isManifest = (path: string): boolean =>
   (path === 'package.json' || path.endsWith('/package.json')) && !path.split('/').includes('fixtures')
 
-/** The root .npmrc, absent when the repo publishes to npmjs.org only. */
-const npmrc = existsSync(join(root, '.npmrc')) ? readFileSync(join(root, '.npmrc'), 'utf8') : undefined
+const npmrcPath = join(root, '.npmrc')
+// The packages publish to npmjs.org, so the repository may have no .npmrc at all.
+const npmrc = existsSync(npmrcPath) ? readFileSync(npmrcPath, 'utf8') : undefined
 
 const headManifests: Record<string, Manifest> = {}
 for (const path of git('ls-files').split('\n').filter(isManifest)) {
