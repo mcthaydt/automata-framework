@@ -51,6 +51,20 @@ When the checks pass, the person sees "Play it", "Use this change" and "Not this
 ## Checks
 
 Run \`pnpm check\` and \`pnpm test\` before you open the pull request.
+
+## Will it play on a phone or tablet?
+
+The person plays your change in the Automata app on a phone or tablet, with no computer. The app can't run:
+
+- a package it does not carry (three.js, for one);
+- a game made with a newer framework than the app has;
+- the game's own \`.svelte\` files in \`src/\`;
+- a \`vite.config.ts\` plugin other than \`svelte()\` and \`automataContent()\`.
+
+Run \`pnpm exec automata check-player\` before you open the pull request. It says what to change. It checks against
+the runtime of the tools version this game pins; the person's Review card checks against the app on their device.
+
+Commit \`pnpm-lock.yaml\` after you install.
 `
 }
 

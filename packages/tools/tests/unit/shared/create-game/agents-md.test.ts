@@ -34,3 +34,21 @@ describe("a new game's AGENTS.md", () => {
     expect(text('.gitignore').split('\n')).toContain('.automata/')
   })
 })
+
+describe("a new game's AGENTS.md: the phone and tablet player", () => {
+  const agents = text('AGENTS.md')
+
+  it('names the command, the four things the player cannot run and what the check is against', () => {
+    expect(agents).toContain('pnpm exec automata check-player')
+    expect(agents).toContain('three.js')
+    expect(agents).toContain('newer framework than the app has')
+    expect(agents).toContain('`.svelte` files')
+    expect(agents).toContain('`svelte()` and `automataContent()`')
+    expect(agents).toContain('runtime of the tools version this game pins')
+    expect(agents).toContain('Review card checks against the app on their device')
+  })
+
+  it('asks Claude to commit the lockfile', () => {
+    expect(agents).toContain('Commit `pnpm-lock.yaml` after you install.')
+  })
+})

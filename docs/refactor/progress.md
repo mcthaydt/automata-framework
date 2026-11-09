@@ -588,7 +588,8 @@ a branch off the plan's. The page side of each task waits for the merged base (t
 | 1.7 A Pencil counts as touch in a game | 1 | Done, 2026-11-09 (`trackInput` treats `pen` as touch; 2 unit tests, the pen-then-touchstart sequence changes the mode once; patch changeset; the iPad device step is task 7.5) | [#531](https://github.com/mcthaydt/automata-framework/pull/531) |
 | 3.5 The player and the build give the same hashes | 3 | Not started (added 2026-11-09) | |
 | 4.5 The iPad window | 4 | Not started (added 2026-11-09) | |
-| 5.6, 5.7 The game's check on pull requests; what the iPad can play | 5 | Not started (added 2026-11-09) | |
+| 5.6 The game's check on pull requests | 5 | Not started: the `release.yml` template it changes is not on this base or on main yet (added 2026-11-09) | |
+| 5.7 What the iPad can play | 5 | Half, 2026-11-09: `automata check-player` (the app's own compile on the game's files, same words; 4 tests: the 2D starter passes, `three` fails with the sentence, exit codes, help) and the `AGENTS.md` paragraph (the four limits, which runtime it checks against, "Commit `pnpm-lock.yaml` after you install."); patch changeset for `-tools`. "Work on this with Claude", the automata-skills game skill and `pnpm agent-skills` are not done | [#531](https://github.com/mcthaydt/automata-framework/pull/531) |
 | 6.5 Review says when a change won't play here | 6 | Not started (added 2026-11-09) | |
 | 6.6, 6.7 Review and Play on the web | 6 | Not started (added 2026-11-09 by the plan audit, H1) | |
 | 7.5 The iPad journey, from idea to shipped online | 7 | Not started (added 2026-11-09) | |

@@ -138,6 +138,11 @@ export async function runCli(
   if (command === 'ship') return ship(rest, io)
   if (command === 'build') return buildCommand(rest, io, build)
   if (command === 'check') return checkCommand(rest, io, check)
+  if (command === 'check-player') {
+    // Loaded only here, for the same reason as the editor: it reads the editor kit's sources.
+    const { checkPlayerCommand } = await import('../features/check-player/check-player-command.ts')
+    return checkPlayerCommand(rest, io)
+  }
   if (command === 'editor') {
     // Loaded only here: the editor suite's sources use extensionless imports that plain Node cannot read, and
     // pnpm runs this bin from source. Every other command must start without touching it.
