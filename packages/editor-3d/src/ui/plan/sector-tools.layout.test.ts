@@ -69,16 +69,32 @@ function penTap(x: number, y: number): void {
     )
 }
 
-/** Three corners above the framed level (the fit leaves a band there), clear of the toolbar and the actions. */
+/** The plan's metres in pixels, read off its rulers: each tick is a labelled metre line, in pixels from the plan's edge. */
+function rulerScale(axis: 'top' | 'left'): { readonly origin: number; readonly perMetre: number } {
+  const ticks = [...plan().querySelectorAll<HTMLElement>(`.ruler.${axis} span`)].map((tick) => ({
+    metre: Number(tick.textContent?.replace('\u2212', '-')),
+    at: Number.parseFloat(axis === 'top' ? tick.style.left : tick.style.top),
+  }))
+  const [a, b] = ticks
+  if (a === undefined || b === undefined) throw new Error(`no ${axis} ruler`)
+  const perMetre = (b.at - a.at) / (b.metre - a.metre)
+  return { origin: a.at - a.metre * perMetre, perMetre }
+}
+
+/**
+ * Three corners above the framed level (the fit leaves a band there), clear of the toolbar and the actions. They sit on
+ * grid points, so the snap leaves each where it was tapped and a tap on the first one reaches it at any zoom.
+ */
 function margin(): readonly (readonly [number, number])[] {
   const { width, height } = plan().getBoundingClientRect()
-  const x = Math.round(width * 0.3)
-  const y = Math.max(84, Math.round(height * 0.12))
-  return [
-    [x, y],
-    [x + 24, y],
-    [x + 24, y + 20],
-  ]
+  const x = rulerScale('top')
+  const z = rulerScale('left')
+  // The half-metre grid point nearest 30% across, and the first one at or below the toolbar's clearance.
+  const left = Math.round(((width * 0.3 - x.origin) / x.perMetre) * 2) / 2
+  const top = Math.ceil(((Math.max(84, height * 0.12) - z.origin) / z.perMetre) * 2) / 2
+  const at = (mx: number, mz: number) =>
+    [Math.round(x.origin + mx * x.perMetre), Math.round(z.origin + mz * z.perMetre)] as const
+  return [at(left, top), at(left + 1, top), at(left + 1, top + 0.5)]
 }
 
 const statusTop = (): number =>

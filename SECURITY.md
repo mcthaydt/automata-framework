@@ -6,7 +6,7 @@ Please report it privately, never in a public issue or pull request:
 
 1. **GitHub private vulnerability reporting** (preferred):
    [open a draft advisory](https://github.com/mcthaydt/automata-framework/security/advisories/new).
-2. **Email:** mcthaydawson@gmail.com, with "AF security" in the subject.
+2. **Email:** hello@automataframework.com, with "AF security" in the subject.
 
 Include the affected package and version (or commit), what an attacker can do, and steps to reproduce.
 

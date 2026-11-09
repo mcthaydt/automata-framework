@@ -14,7 +14,7 @@ import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
-import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
+import type { FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import type { Size, TilesetDef } from '../../shared/level-2d/model/project-types'
 import { PICTURE_TYPES, pictureAsset, tileGrid, tilesetFromPicture } from './add-tiles'
 
