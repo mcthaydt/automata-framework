@@ -1,5 +1,4 @@
-// Extracted from The Last Light scripts/pipeline/blockout-lib.ts `portals` (92e6704): every portal has its reverse over
-// exactly the same segment, or one side of the opening is a wall.
+// Every portal has its reverse over exactly the same segment, or one side of the opening is a wall.
 import type { Point } from '@automata/3d/level'
 import { formatPoint, type GeometryContext, type Problem } from './check'
 

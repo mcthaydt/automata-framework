@@ -14,6 +14,7 @@ import {
 } from '@automata/editor/suite'
 import { editors3d } from './editors-3d.ts'
 import { openSuite3d } from './open-suite-3d.ts'
+import { loadPixi3dFirst } from './pixi-3d-first.ts'
 
 // This package's suite page: the editors of `@automata/editor` plus Levels 3D and the Studio, with the game's Play and
 // Publish. The only file that reaches for the page's globals. When no checkout answers, the page opens a sample game
@@ -23,8 +24,12 @@ import { openSuite3d } from './open-suite-3d.ts'
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
-openSuite3d({ origin: location.origin, search: location.search, sessionStorage })
-  .then(({ ports, sample, kept, gameUrl, playOff, game, publish }) => {
+// Pixi 3D loads before anything draws, so the editors open in any order (`loadPixi3dFirst` says why).
+Promise.all([
+  openSuite3d({ origin: location.origin, search: location.search, sessionStorage }),
+  loadPixi3dFirst(),
+])
+  .then(([{ ports, sample, kept, gameUrl, playOff, game, publish }]) => {
     // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
     const editors = [
       createTuner({ gameUrl }),

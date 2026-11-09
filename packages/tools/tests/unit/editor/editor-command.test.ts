@@ -88,7 +88,7 @@ describe('editorCommand', () => {
   it('says --app is gone, and starts nothing', async () => {
     const { deps, io, err, served } = setup()
     expect(await editorCommand(['--app', 'suite'], io, deps)).toBe(1)
-    expect(err.join('')).toContain('This option is gone: automata editor picks the editors your game needs.')
+    expect(err.join('')).toContain('This option is gone: automata editor opens every editor.')
     expect(served).toEqual([])
   })
 

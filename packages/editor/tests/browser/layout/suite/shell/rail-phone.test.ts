@@ -51,7 +51,7 @@ afterEach(async () => {
   target = undefined
 })
 
-async function open(width: number, height: number) {
+async function open(width: number, height: number, labels: readonly string[] = NAMES) {
   await page.viewport(width, height)
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
@@ -59,7 +59,7 @@ async function open(width: number, height: number) {
     window,
     document,
     ports: await samplePorts(SAMPLE_GAME),
-    suite: createSuite({ editors: NAMES.map(editor) }),
+    suite: createSuite({ editors: labels.map(editor) }),
     sample: false,
     game: 'Moss Gate',
   })
@@ -156,5 +156,19 @@ describe('the rail with nine editors on an iPad (1180 x 820)', () => {
     }
     for (const tab of tabs()) expect(tab.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
     expect(more()).toBeUndefined()
+  })
+})
+
+describe('the rail on the try-it page, where both kinds of level and character editor show (1180 x 820)', () => {
+  const BOTH = ['Tuner', 'Levels 2D', 'Characters 2D', 'Levels 3D', 'Characters 3D', 'Feel']
+
+  test('tells Characters 2D from Characters 3D: each name is whole, not cut to "Characters …"', async () => {
+    await open(1180, 820, BOTH)
+    expect(names()).toEqual(BOTH)
+    for (const label of document.querySelectorAll<HTMLElement>('[role="tablist"] .label')) {
+      const box = label.getBoundingClientRect()
+      expect(label.scrollWidth, label.textContent ?? '').toBeLessThanOrEqual(Math.ceil(box.width))
+    }
+    for (const tab of tabs()) expect(tab.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
   })
 })

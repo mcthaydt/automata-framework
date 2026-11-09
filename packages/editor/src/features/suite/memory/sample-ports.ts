@@ -36,8 +36,20 @@ export async function samplePorts(
   return ports
 }
 
+/**
+ * The sample's settings. Each is a slider the Tuner can move; one kept in a table would show only "change it in the
+ * file", and the try-it page is where most people meet the Tuner.
+ */
+export const SAMPLE_TUNING = `# How the sample character moves. The range, label and feel are what the Tuner shows beside the slider.
+
+# 6.5 metres a second: a full push of the stick.
+WALK_SPEED = { value = 6.5, min = 2, max = 10, step = 0.5, label = "Walking speed", feel = "How fast the character walks with the stick pushed all the way.", unit = "m/s" }
+# 3 metres: how high a jump reaches.
+JUMP_HEIGHT = { value = 3, min = 1, max = 6, step = 0.5, label = "Jump height", feel = "How high the character jumps.", unit = "m" }
+`
+
 /** A sample game's list with a tuning file, for the sample app and the tests. */
 export const SAMPLE_GAME: Readonly<Record<string, string>> = {
   [EDITOR_LIST_PATH]: sampleList,
-  'content/tuning.toml': '[player]\nspeed = 6.5 # m/s\n',
+  'content/tuning.toml': SAMPLE_TUNING,
 }

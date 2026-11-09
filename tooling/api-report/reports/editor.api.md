@@ -4359,6 +4359,12 @@ function randomIds(fill: (bytes: Uint8Array<ArrayBuffer>) => void): IdSource;
 const SAMPLE_GAME: Readonly<Record<string, string>>;
 ```
 
+### `SAMPLE_TUNING` (const)
+
+```ts
+const SAMPLE_TUNING = "# How the sample character moves. The range, label and feel are what the Tuner shows beside the slider.\n\n# 6.5 metres a second: a full push of the stick.\nWALK_SPEED = { value = 6.5, min = 2, max = 10, step = 0.5, label = \"Walking speed\", feel = \"How fast the character walks with the stick pushed all the way.\", unit = \"m/s\" }\n# 3 metres: how high a jump reaches.\nJUMP_HEIGHT = { value = 3, min = 1, max = 6, step = 0.5, label = \"Jump height\", feel = \"How high the character jumps.\", unit = \"m\" }\n";
+```
+
 ### `samplePorts` (function)
 
 ```ts

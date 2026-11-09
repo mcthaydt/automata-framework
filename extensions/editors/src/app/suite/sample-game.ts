@@ -2,6 +2,7 @@
 // Wick, and one file of each kind the content editors edit, so a person trying the editors sees each one working. Levels 2D
 // has no file yet: it starts one from a template.
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import { SAMPLE_TUNING } from '@automata/editor/suite'
 import { SAMPLE_3D } from '@automata/editor-3d/suite'
 import audio from './sample/audio.toml?raw'
 import cutscene from './sample/cutscene.toml?raw'
@@ -18,7 +19,7 @@ const { [EDITOR_LIST_PATH]: _list, 'content/tuning.toml': _tuning, ...sample3d }
 export const CONTENT_SAMPLE_GAME: Readonly<Record<string, string>> = {
   ...sample3d,
   [EDITOR_LIST_PATH]: list,
-  'content/tuning.toml': '[player]\nspeed = 6.5 # m/s\n',
+  'content/tuning.toml': SAMPLE_TUNING,
   'content/feel/feel.toml': feel,
   'content/audio/audio.toml': audio,
   'content/lines/shop.toml': lines,

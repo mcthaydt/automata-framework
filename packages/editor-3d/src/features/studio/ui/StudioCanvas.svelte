@@ -73,6 +73,9 @@ $effect(() => {
 })
 
 // The renderer is made once the canvas has a size, and again on Try again; a resize is the next effect's, never a new renderer.
+// The factory and the colour are read untracked: the suite hands them down through values it works out again as editors
+// open, and a re-run here would destroy a renderer that is still starting. Destroying a Pixi renderer loses its canvas's
+// WebGL context for good, so the second one on the same canvas never starts.
 const sized = $derived(size.w >= 2 && size.h >= 2)
 $effect(() => {
   void attempt
@@ -82,7 +85,7 @@ $effect(() => {
   let gone = false
   status = 'loading'
   const first = untrack(() => size)
-  void stage(target, first, background).then((made) => {
+  void untrack(() => stage(target, first, background)).then((made) => {
     if (gone) {
       made?.destroy()
       return
@@ -282,7 +285,8 @@ function capture(event: PointerEvent): void {
 </script>
 
 <div class="stage" bind:this={host} role="group" aria-label="Figure stage" data-testid="studio-stage" data-status={status} data-mode={$viewState.mode}>
-  <canvas bind:this={canvas} aria-hidden="true"></canvas>
+  <!-- Try again draws on a new canvas: one whose WebGL context was lost never gives another. -->
+  {#key attempt}<canvas bind:this={canvas} aria-hidden="true"></canvas>{/key}
   <div class="modes">
     <Segmented
       label="Character mode"

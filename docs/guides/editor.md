@@ -13,15 +13,14 @@ online. Stop everything with Ctrl+C.
 ## Open it
 
 ```sh
-automata editor                 # the editors your game needs, on the game in this folder
+automata editor                 # every editor, on the game in this folder
 automata editor ../my-game      # the game in another folder
 automata editor --port 4173     # a port you choose (default: a free one)
 ```
 
-Your game's `content/editors.toml` decides which editors open. A new 2D game lists Levels, the Tuner, Feel, Audio and
-Schematic; a new 3D game lists Levels, Characters and the Tuner; Writer and Sequence open for a game whose list names
-them. There is no flag to choose. Outside this repository, a release of the tools has the 2D editors only and says so
-when it starts.
+Every game gets the same page with every editor on it: Levels (2D and 3D), Characters (2D and 3D), the Tuner, Feel,
+Audio, Writer, Sequence and Schematic. Your game's `content/editors.toml` lists the files each one opens. There is no
+flag to choose editors, and a release of the tools carries the same page.
 
 The editor runs in your browser, and the command is a small server on your computer that reads and writes your game's
 files for it.

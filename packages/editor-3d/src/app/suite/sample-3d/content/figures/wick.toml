@@ -1,7 +1,6 @@
-# Wick, base-3d's hero (M3 spec §4.7) and Emberwick's (games/emberwick/src/art/sprites.ts), as figure data: a small
-# hooded wanderer in a blue cloak with gold trim, dark boots and glowing eyes in the dark under the hood. In the first
-# slice he carries the sword and shield (figure-items/), which the page hands him. Copied from figures' fixture Wick
-# (packages/3d/tests/fixtures/content/figures/wick.toml at 077484c7); its sliders are that fixture's.
+# Wick, as figure data: a small
+# hooded wanderer in a blue cloak with gold trim, dark boots and glowing eyes in the dark under the hood. He carries
+# the sword and shield (figure-items/), which the page hands him.
 
 skin = "wick-shadow"
 gait = "bounce"

@@ -94,7 +94,7 @@ onDestroy(() => {
     max-width: 32ch;
     margin: 0;
     padding: var(--space-3);
-    color: var(--color-text-dim);
+    color: var(--stage-muted);
     font: var(--text-body-13);
     text-align: center;
   }

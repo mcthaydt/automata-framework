@@ -149,6 +149,29 @@ describe('StudioCanvas', () => {
     await vi.waitFor(() => expect(renderer.calls.filter((call) => call === 'face').length).toBeGreaterThan(1))
   })
 
+  it('keeps its renderer when the page hands it the same stage again (the suite re-derives its props as editors open)', async () => {
+    measuredAt(800, 600)
+    const controller = await open()
+    const renderer = standin()
+    const made: number[] = []
+    const factory = async () => {
+      made.push(1)
+      return renderer
+    }
+    const { rerender } = render(StudioCanvas, {
+      controller,
+      stage: factory,
+      frames: { request: () => 0, cancel: () => {} },
+      background: 0,
+    })
+    await vi.waitFor(() => expect(renderer.calls).toContain('show'))
+    // A destroyed Pixi renderer loses its canvas's WebGL context for good, so a second renderer on the same canvas hangs.
+    await rerender({ stage: async () => factory(), background: 0 })
+    await new Promise((done) => setTimeout(done, 50))
+    expect(made).toEqual([1])
+    expect(renderer.calls).not.toContain('destroy')
+  })
+
   it('says when there is no WebGL2 and offers Try again, with the fields untouched', async () => {
     measuredAt(800, 600)
     const controller = await open()

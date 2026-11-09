@@ -1,5 +1,4 @@
-# Wick's glowing eyes, from Emberwick's sprite colours (games/emberwick/src/shared/art/sprites.ts WICK_COLORS). Colour: DUEL ramp 4 (flame), step 7 (#ffe949), nearest in OKLab.
-# Not from FigureBuilder. Copied into base-3d from figures' test fixtures (packages/3d/tests/fixtures/content at 077484c7).
+# Wick's glowing eyes. Colour: DUEL ramp 4 (flame), step 7 (#ffe949).
 
 ramp = "flame"
 step = 7

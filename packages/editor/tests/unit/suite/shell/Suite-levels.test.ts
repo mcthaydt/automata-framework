@@ -317,6 +317,17 @@ describe('A level to try, on the sample game with none', () => {
     expect(screen.getByRole('button', { name: /Platformer/ })).toBeInTheDocument()
   })
 
+  it('says why Characters has nothing yet, and a starting point makes the level and shows its characters there', async () => {
+    await tryIt()
+    await userEvent.click(await screen.findByRole('tab', { name: 'Characters' }))
+    expect(await screen.findByRole('heading', { name: 'Make a level first' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'New level' })).toBeNull()
+    expect(screen.getByText(/Characters live in a level/)).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: /Platformer/ }))
+    expect(await screen.findByTestId('entities-panel')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Make a level first' })).toBeNull()
+  })
+
   it('draws the chosen starting point and keeps it in the game folder', async () => {
     const ports = await tryIt()
     await userEvent.click(await screen.findByRole('button', { name: 'New level' }))

@@ -17,5 +17,5 @@ export interface LevelHints {
   readonly snap: number
 }
 
-/** Both profiles' hints: ED3D-D8's eye and lens, and the 5 cm snap of the Last Light editor's plan. */
+/** Both profiles' hints: ED3D-D8's eye and lens, and the 5 cm snap of the plan. */
 export const SECTOR_HINTS: LevelHints = { unit: 'm', eyeHeight: WALK_EYE_HEIGHT, fov: WALK_FOV, snap: 0.05 }

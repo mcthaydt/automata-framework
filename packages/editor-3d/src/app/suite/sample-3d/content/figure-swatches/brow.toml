@@ -1,6 +1,4 @@
-# `brow` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/swatches.json at a1f7246.
 # Colour: DUEL ramp 24 (brick), step 0 (#372423).
-# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
 
 ramp = "brick"
 step = 0

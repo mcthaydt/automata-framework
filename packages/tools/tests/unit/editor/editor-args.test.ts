@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { parseEditorArgs } from '#src/features/editor/editor-args.ts'
 
-// `automata editor [dir] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>] [--game-url <url>]`: the game's editor list
-// picks the page, so `--app` is gone (plan task 15.2).
+// `automata editor [dir] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>] [--game-url <url>]`: every game gets the same page
+// with every editor, so `--app` is gone.
 
 describe('parseEditorArgs', () => {
   it('defaults to the working folder, the loopback, a free port and a game it starts itself', () => {
@@ -47,7 +47,7 @@ describe('parseEditorArgs', () => {
   it.each([
     [['--game-url', 'localhost:5180'], /--game-url is a web address, like http:\/\/localhost:5173/],
     [['--game-url', 'file:///game/index.html'], /--game-url is a web address/],
-    [['--app', 'suite'], /This option is gone: automata editor picks the editors your game needs\./],
+    [['--app', 'suite'], /This option is gone: automata editor opens every editor\./],
     [['--app'], /This option is gone/],
     [['--port', 'x'], /--port is a number/],
     [['--port', '70000'], /--port is a number/],

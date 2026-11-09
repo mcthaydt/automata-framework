@@ -713,3 +713,7 @@ failures; plus a hands-on new 2D game edited, played, reloaded and reopened). Fi
 comments; H3 and H4 need a real GPU (a 2D level shows "Preview unavailable" after both 3D editors; going back and forth to
 Characters 3D freezes the tab, also on #522); M1-M6 and L1-L4 are copy, sample and cohesion fixes. Not run: WebKit, Firefox,
 GPU runner, the site e2e, phone journeys.
+
+2026-11-09: fixes for that build audit, stacked on #545 (`docs/refactor/2026-11-09-every-editor-free-fixes.md`). H1, H2, H3,
+H4 and M1-M3 are fixed with tests (H3: Pixi 3D loads before anything draws; H4: the Studio keeps its renderer); M4-M6 and
+L1-L4 are left, and `check-changesets` is still red on #522's `stage-characters-3d.md`. Not run: WebKit, Firefox, GPU runner.

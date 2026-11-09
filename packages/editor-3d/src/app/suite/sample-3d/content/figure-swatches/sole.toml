@@ -1,6 +1,4 @@
-# `sole` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/swatches.json at a1f7246.
 # Colour: DUEL ramp 0 (grey), step 0 (#000000).
-# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
 
 ramp = "grey"
 step = 0

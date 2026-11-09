@@ -1,5 +1,4 @@
-// Extracted from The Last Light src/game/sectors.ts (92e6704) and src/game/sector-format.ts: a level's sectors as
-// Build-engine sectors (as in eduke32). Each room is a polygon on the floor plan (x, z) with a floor height and a
+// A level's sectors as Build-engine sectors (as in eduke32). Each room is a polygon on the floor plan (x, z) with a floor height and a
 // ceiling height; its edges are walls, each solid or a portal into the next sector. Loops are normalised so the room
 // is on the left of every edge: outer loops run counter-clockwise on the plan (x right, z up), holes clockwise.
 //

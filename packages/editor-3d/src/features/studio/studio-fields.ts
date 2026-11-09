@@ -69,7 +69,7 @@ const face = (ids: readonly (readonly [string, string])[]): readonly SliderField
     default: (DEFAULT_HEAD as unknown as Record<string, number>)[id] ?? 0.5,
   }))
 
-/** The face's fourteen sliders as FigureBuilder groups them. */
+/** The face's fourteen sliders in five groups. */
 export const FACE_GROUPS: readonly FaceGroup[] = [
   {
     id: 'structure',

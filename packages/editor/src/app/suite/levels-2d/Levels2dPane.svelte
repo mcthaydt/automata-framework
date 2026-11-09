@@ -99,8 +99,13 @@ async function start(profileId: string, templateId: string): Promise<void> {
   {/if}
 {:else if part === 'canvas' && $current.kind === 'empty'}
   <div class="starts" data-testid="levels-2d-starts">
-    <h2>New level</h2>
-    <p>Pick a starting point. You can change everything later.</p>
+    {#if $view === 'characters'}
+      <h2>Make a level first</h2>
+      <p>Characters live in a level. Pick a starting point and its characters show up here.</p>
+    {:else}
+      <h2>New level</h2>
+      <p>Pick a starting point. You can change everything later.</p>
+    {/if}
     <TemplateRow cards={$current.cards} busy={starting} oncreate={(profile, template) => void start(profile, template)} />
     {#if $refused !== undefined}<p role="alert">Not made: {$refused}</p>{/if}
   </div>
@@ -113,19 +118,19 @@ async function start(profileId: string, templateId: string): Promise<void> {
 {/if}
 
 <style>
-  /* The starting points: one column that scrolls on its own when a phone is short, never wider than a card needs. */
+  /* The words sit on the dark canvas, so they take the stage's light ink, not the page's dark one. The starting points: one column that scrolls on its own when a phone is short, never wider than a card needs. */
   .starts {
     box-sizing: border-box;
     max-width: 480px;
     height: 100%;
     padding: var(--space-5);
     overflow-y: auto;
-    color: var(--color-text-dim);
+    color: var(--stage-muted);
     font: var(--text-body-13);
   }
   .starts h2 {
     margin: 0 0 var(--space-2);
-    color: var(--color-text-primary);
+    color: var(--stage-ink);
     font: var(--text-title-15);
   }
   .starts p {
@@ -133,12 +138,12 @@ async function start(profileId: string, templateId: string): Promise<void> {
   }
   .refused {
     padding: var(--space-5);
-    color: var(--color-text-dim);
+    color: var(--stage-muted);
     font: var(--text-body-13);
   }
   .refused h2 {
     margin: 0 0 var(--space-2);
-    color: var(--color-text-primary);
+    color: var(--stage-ink);
     font: var(--text-title-15);
   }
   .refused p {

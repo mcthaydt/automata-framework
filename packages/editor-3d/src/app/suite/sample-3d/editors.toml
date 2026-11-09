@@ -1,6 +1,6 @@
 format = "af-editors/1"
 
-# The sample game's editor list, the shape of a real 3D game's (`games/base-3d/content/editors.toml`): its room is
+# The sample game's editor list, the shape of a real 3D game's: its room is
 # edited in Levels 3D, Wick and what he is made of in Characters, the walk in the Tuner. It has no gates: every row says
 # so with `gates = []`.
 [[file]]

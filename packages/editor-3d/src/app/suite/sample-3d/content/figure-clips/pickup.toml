@@ -1,6 +1,6 @@
-# Wick's pickup (M3 spec §4.7): he stoops, the right hand takes something from the floor at `take`, and he stands,
+# Wick's pickup: he stoops, the right hand takes something from the floor at `take`, and he stands,
 # 0.9 s (`ACTION_TICKS.pickup`, 54 ticks). It owns the whole body above the legs and the pelvis, so it reads as a
-# stop; the sim does not stop him walking yet (GAME-3D.1's items do).
+# stop; the sim does not stop him walking yet.
 
 length = 0.9
 loop = "once"

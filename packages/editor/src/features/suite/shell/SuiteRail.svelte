@@ -268,6 +268,14 @@ function shortcut(event: KeyboardEvent): void {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  /* In the column a name that is too long for it ("Characters 2D", where both kinds of editor show) goes onto a second
+     line, so "Characters 2D" and "Characters 3D" are never both cut to "Characters …". The bar along the foot keeps one line. */
+  .rail[data-orientation='vertical'] .label {
+    overflow: visible;
+    text-align: center;
+    text-overflow: clip;
+    white-space: normal;
+  }
   @media (hover: hover) {
     button:hover {
       color: var(--ink);

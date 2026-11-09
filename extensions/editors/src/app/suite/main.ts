@@ -14,7 +14,7 @@ import {
   randomIds,
   startSuite,
 } from '@automata/editor/suite'
-import { editors3d } from '@automata/editor-3d/suite'
+import { editors3d, loadPixi3dFirst } from '@automata/editor-3d/suite'
 import { browserAudio } from '../../features/audio/audio-output.ts'
 import { browserOutputs } from '../../features/feel/feel-stage.ts'
 import { contentEditors } from './content-editors.ts'
@@ -30,8 +30,12 @@ import { openContentSuite } from './open-content-suite.ts'
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
-openContentSuite({ origin: location.origin, search: location.search, sessionStorage })
-  .then(({ ports, sample, kept, gameUrl, playOff, game, publish }) => {
+// Pixi 3D loads before anything draws, so a visitor can open the editors in any order (`loadPixi3dFirst` says why).
+Promise.all([
+  openContentSuite({ origin: location.origin, search: location.search, sessionStorage }),
+  loadPixi3dFirst(),
+])
+  .then(([{ ports, sample, kept, gameUrl, playOff, game, publish }]) => {
     // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
     const editors = [
       createTuner({ gameUrl }),

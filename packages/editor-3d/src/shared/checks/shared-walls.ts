@@ -1,6 +1,4 @@
-// Extracted from The Last Light scripts/pipeline/blockout-lib.ts `sharedWalls` (92e6704): two solid walls of different
-// rooms on one line, facing each other, each hide the other's face from every lamp. The arithmetic and the sentence
-// are Last Light's; what is added is where the problem is.
+// Two solid walls of different rooms on one line, facing each other, each hide the other's face from every lamp.
 import type { Problem } from './check'
 import { formatPoint, type GeometryContext, locators } from './check'
 

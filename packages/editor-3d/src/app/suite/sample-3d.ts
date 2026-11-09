@@ -1,3 +1,4 @@
+import { SAMPLE_TUNING } from '@automata/editor/suite'
 import list from './sample-3d/editors.toml?raw'
 import hall from './sample-3d/hall.af-sector.json?raw'
 
@@ -12,7 +13,7 @@ const figures = import.meta.glob('./sample-3d/content/**/*.toml', {
 
 export const SAMPLE_3D: Readonly<Record<string, string>> = {
   'content/editors.toml': list,
-  'content/tuning.toml': '[player]\nspeed = 6.5 # m/s\n',
+  'content/tuning.toml': SAMPLE_TUNING,
   'content/levels/hall.af-sector.json': hall,
   ...Object.fromEntries(
     Object.entries(figures).map(([path, text]) => [path.replace('./sample-3d/', ''), text]),

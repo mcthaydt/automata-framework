@@ -1,5 +1,4 @@
-# Copied into base-3d from figures' test fixtures (packages/3d/tests/fixtures/content at 077484c7).
-# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+# A sample pose. Figure units, root space unless a handle says.
 
 about = "Pointing ahead with the right hand at shoulder height, the head turned to it, the body turned a little toward the left."
 

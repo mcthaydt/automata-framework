@@ -1,5 +1,5 @@
-# Wick's roll (DESIGN.md §7.2 `roll`, GAME-3D.1c part 3): a forward roll, crouched low through its 3.2 m, as long as the move's 24 frames. It has no hit,
-# so no `contact`. A placeholder (the pickup's crouch) until GAME-3D.1j authors it in the Studio.
+# Wick's roll: a forward roll, crouched low through its 3.2 m, as long as the move's 24 frames. It has no hit,
+# so no `contact`. A placeholder (the pickup's crouch) until it is authored in the Studio.
 
 length = 0.4
 loop = "once"

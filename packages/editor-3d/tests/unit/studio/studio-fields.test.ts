@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { BODY_SLIDERS, FACE_GROUPS, sliderValue } from '#src/features/studio/studio-fields.ts'
 
 describe('the Studio’s sliders', () => {
-  it('list the face’s fourteen in five groups, as FigureBuilder groups them', () => {
+  it('list the face’s fourteen in five groups', () => {
     expect(FACE_GROUPS.map((group) => [group.label, group.sliders.length])).toEqual([
       ['Structure', 3],
       ['Cheeks', 2],
