@@ -119,14 +119,13 @@ test('on the web, with no editor server: words typed in Writer survive a reload 
     // The line says Saving… while words wait, then that the work is on this device: never "Saved" before it is.
     await expect(page.getByRole('status').filter({ hasText: /Saved on this device/ })).toBeVisible()
     await page.reload()
-    await openFromRail(page, 'Writer')
+    // The page opens on the editor that was open, not on Home.
     await expect(page.getByRole('textbox', { name: 'What it says' }).first()).toHaveValue(TYPED)
     // The whole browser closed, then opened again on the same profile.
     await first.close()
     const second = await open()
     const again = await second.newPage()
     await again.goto(`${site.url}?sample`)
-    await openFromRail(again, 'Writer')
     await expect(again.getByRole('textbox', { name: 'What it says' }).first()).toHaveValue(TYPED)
     await second.close()
   } finally {

@@ -416,7 +416,7 @@ the site's 3D parts.
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 67% (12 of 18 tasks)
+### Build: 89% (16 of 18 tasks)
 
 The base is #532's branch (`claude/project-thread-szjdbh`, `829039d5`) with the plan, spec and audits copied in from #536
 and #537. #531 (`claude/project-thread-hvpv4a`, `e66059ce`) and the site stack (#521, `claude/project-thread-k1ftgu`,
@@ -440,7 +440,10 @@ the rest. The page has no editors v2 header, so the header is `SuiteTopBar.svelt
 | 4.1 The sign-in function | 4 | Done, 2026-11-09 (35 unit tests with a fake GitHub; not run against the real GitHub or Cloudflare, which need the Owner's steps in spec 12) | |
 | 4.2 Signing in from the editors | 4 | Done, 2026-11-09 (unit and DOM; the editors' policy now allows `https://api.github.com`; not run against a real sign-in). The session lives in `kit/web-sync`, not `kit/sync`, so #531's `kit/sync` merges without a clash | |
 | 4.3 Privacy and Terms | 4 | Words drafted in `Privacy.svelte` (`#github`) and `Terms.svelte`, and a site check refuses a build with the function and no `#github`. **They do not ship until the Owner says yes** (spec 12) | |
-| 5.1 to 5.4 Sync on the web | 5 | Not started | |
+| 5.1 The REST engine | 5 | Done, 2026-11-09 (unit, 18 engine tests against a fake GitHub repository; not run against the real GitHub). `kit/sync` is copied from #531 with `SyncStopped`/`stopped`, a `now` option and the pause added on top | |
+| 5.2 GitHub games, Get it, Keep this game on GitHub | 5 | Done, 2026-11-09 (unit and DOM; the site's ping names the app so the page can link to its install page; the real install link is untried) | |
+| 5.3 The page keeps its game on GitHub | 5 | Done, 2026-11-09 (unit; a pull opens the open editor again; the logic is in `kit/sync/web-sync.ts`, not the extension, so its tests sit with the fake GitHub). A conflict the engine cannot merge is left as the person had it and kept out of pushes; **the choosing dialog ("Keep mine / Keep GitHub's / Keep both") is not built** | |
+| 5.4 The journey: two devices, one game | 5 | Done, 2026-11-09: `web-sync-two-devices` passes in Chromium (phone and iPad projects, both at 390×844). WebKit and Firefox not run; GitHub is a fake held by the test | |
 
 **The whole game loop (2026-11-08, session 6rfl3t, PR stacked on #473; the Owner asked whether a whole game can be made
 from the editors).** The 2D editors audit's E1 to E5 are fixed on the open stack, each with a served journey (E1

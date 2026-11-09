@@ -555,3 +555,13 @@ build's, and the overall `stages done / stages`), and commit the change with the
   the web Tuner leg is served only; `kit/sync` gains a `stopped` state; the empty repository's first pull, sign-out's
   token, the install page's way back and the Function's own headers are specified; the old `sample-game/` adoption is
   cut. Reproduced first: typed words are lost on a closed tab or a reload in Writer, Feel and the Tuner, web and served.
+- 2026-11-09 (stage 4, build, phase 5): 5.1 to 5.4 done. Rulings: `kit/sync` is copied from #531 (e66059ce) with
+  `SyncStopped`, `stopped`, a clock option and a pause added; `github-games.ts` takes a narrow `GameShelf` (a shared module
+  may not import a feature's `WebGames`); the site's ping returns the app's public name; `startWebSync` lives in
+  `kit/sync/web-sync.ts`, not in the extension, so it is tested with the fake GitHub, and the fake moved to
+  `src/testing/kit` with its own entry (`kit/testing/github`) so the journeys can use it; the engine counts a file
+  changed here and not committed as unpushed, so an edit saved just before a tab closed, and a game only on this device,
+  go to GitHub on the next open; a pull opens the open editor again (it opens on its start, its selection is lost) once
+  no word waits, after leaving a focused field, and the write path forgets the pulled files so the next edit is judged
+  against them. The journey found the last two (a focused field written in the middle of its removal; "changed on disk").
+  Not built: the conflict dialog. The try-it (`?sample`) page now opens on the editor the visitor left.

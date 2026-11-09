@@ -23,6 +23,7 @@ import { browserOutputs } from '../../features/feel/feel-stage.ts'
 import { contentEditors } from './content-editors.ts'
 import { keepOnGitHub } from './game-sync.ts'
 import { type ContentPage, openContentPage } from './open-content-page.ts'
+import { rememberEditor, rememberedEditor } from './sample-editor.ts'
 import { startingFiles } from './starting-files.ts'
 
 // The page with every editor, which `automata editor` serves every game and the site's try-it page opens: the core
@@ -106,7 +107,23 @@ async function startEditors(page: Extract<ContentPage, { opened: unknown }>): Pr
           },
         }
       : {}),
+    // The try-it page opens on the editor the visitor left, as their own games do.
+    ...(page.kind === 'sample'
+      ? {
+          initialEditor: rememberedEditor(browserStorage()),
+          onEditor: (id: string | undefined) => rememberEditor(browserStorage(), id),
+        }
+      : {}),
   })
+}
+
+/** The browser's own storage, or none where it is refused (some private windows, blocked site data). */
+function browserStorage(): Storage | undefined {
+  try {
+    return localStorage
+  } catch {
+    return undefined
+  }
 }
 
 /** Told what the person's editors changed in their game; set once a sync is running for it. */
