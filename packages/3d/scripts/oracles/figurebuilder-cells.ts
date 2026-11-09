@@ -42,6 +42,13 @@ const { VERT, TRI } = await import(toUrl(join(root, 'src/features/paint/raster.t
 
 const Figure = shim.Figure as new (member: unknown) => any
 const md5 = (b: Uint8ClampedArray | Uint8Array): string => createHash('md5').update(b).digest('hex')
+/** The cell as its texels read: FigureBuilder reuses one buffer, so an empty texel keeps the colour of an earlier paint
+ * under its alpha 0; that colour is not part of the cell, so it is zeroed before the hash. */
+function texels(painted: Uint8ClampedArray): Uint8ClampedArray {
+  const out = painted.slice()
+  for (let o = 0; o < out.length; o += 4) if (out[o + 3] === 0) out[o] = out[o + 1] = out[o + 2] = 0
+  return out
+}
 const view = (pitch = (18 * Math.PI) / 180) => ({ azimuth: 0, pitch })
 const bytesOf = (a: Float32Array | Int32Array): Uint8Array =>
   new Uint8Array(a.buffer, a.byteOffset, a.byteLength)
@@ -115,7 +122,7 @@ function record(id: string, kind: string, baseId: string, density: number, f: an
     supersample: f.style.supersample,
     motion: f.tapMotion ?? null,
     f13: face !== null && Math.abs(face.view) <= 1 && eyes < 2,
-    md5: md5(f.painted),
+    md5: md5(texels(f.painted)),
     soupVerts: soup.count,
     soupTris: soup.triCount,
   }

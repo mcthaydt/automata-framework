@@ -321,13 +321,13 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/golden/sprites.ts` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
 | `tsconfig.json` | | left out: the builder's package and build setup; AF's packages have their own |
 | `vitest.config.ts` | | left out: the builder's package and build setup; AF's packages have their own |
-| `src/features/paint/paint.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
-| `src/features/paint/raster.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `src/features/paint/paint.ts` | `packages/3d/src/features/figures/paint/paint.ts` and the stages `packages/3d/src/features/figures/paint/paint-surfaces.ts`, `packages/3d/src/features/figures/paint/paint-tones.ts`, `packages/3d/src/features/figures/paint/paint-lines.ts` and `packages/3d/src/features/figures/paint/paint-output.ts` (their state in `packages/3d/src/features/figures/paint/paint-state.ts`), `packages/3d/src/features/figures/paint/face-plane.ts`, `packages/3d/src/features/figures/paint/tones.ts`, `packages/3d/src/features/figures/paint/duel-snap.ts`, `packages/3d/src/features/figures/paint/paint-style.ts`, `packages/3d/src/features/figures/paint/regions.ts`, `packages/3d/src/features/figures/paint/tone-budget.ts`, `packages/3d/src/features/figures/paint/vec.ts`, `packages/3d/src/features/figures/paint/face-stamp.ts`, `packages/3d/src/features/figures/paint/hand-stamp.ts` | ported: the one painter, split by stage to stay under 600 lines, byte for byte on the oracle frames; `Math` calls go through `@automata/sim/math`; the one change is the face stamp, which counts a texel on the skin's own ramp row (the ear) as skin, so a turned face keeps both eyes (the builder drew one) |
+| `src/features/paint/raster.ts` | `packages/3d/src/features/figures/paint/raster.ts` and `packages/3d/src/features/figures/paint/stamps.ts` (the decal and print stamps), `packages/3d/src/features/figures/paint/paint-cell.ts` | ported: `gbuffer`, `rasterize`, `resolve`, `cleanup`, `neckline`, `blendJoins`, `smoothContour` as written; `paintCell` is the path from a soup to a cell, which the builder's `Figure` ran inline |
 | `tests/features/paint/materials.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
-| `tests/features/paint/neckline.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/paint/neckline.test.ts` | `packages/3d/tests/unit/figures/paint/neckline.test.ts` | ported: the hand-made G-buffer cases; the base-pair-in-eight-views cases come with the soup builder |
 | `tests/features/paint/prints.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
-| `tests/features/paint/fabric.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
-| `tests/features/paint/fabric-fixtures.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/paint/fabric.test.ts` | `packages/3d/tests/unit/figures/paint/fabric.test.ts` | ported: the registry and `labelAt` cases; the drawn-fabric cases come with the soup builder |
+| `tests/features/paint/fabric-fixtures.ts` | `packages/3d/tests/unit/figures/paint/fabric-fixtures.ts` | ported |
 | `tests/features/figure/render.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
 | `tests/features/figure/light-hook.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
 | `tests/features/draw.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
@@ -346,7 +346,7 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/actors/actor.ts` |  | left out: the scripted actor and its second player; an action is a clip the one player plays (`clips/figure-action.ts`), and a script of actors is the cutscenes extension's |
 | `src/features/body/parts.ts` | `packages/3d/src/shared/math/superquadric.ts` | rewritten: the part builders as ported at `a1f7246` and now the shared superquadric and limb meshes (`shared/math/limb.ts`, `features/figures/body/mesh.ts`), with the fat on the limbs |
 | `src/features/figure/cast.ts` | `packages/3d/src/features/figures/figure/figure.schema.ts` | rewritten: a character file is a `FigureDef` (Zod, the `figure` content kind, `content/figures.content.ts`), not a cast member |
-| `src/features/figure/cloth.ts` |  | left out: the cloth coordinates a fabric is laid by; the fabric painter is not taken (see the `fabric.ts` row), so nothing reads them |
+| `src/features/figure/cloth.ts` | `packages/3d/src/features/figures/paint/cloth.ts` | ported: the cylinders, slots and `u` as written, over `body/profiles.ts` |
 | `src/features/figure/figure.ts` | `packages/3d/src/features/figures/view/figure-view.ts` | rewritten: the runtime figure is the view (`figure-view.ts`) over `build` and the skeleton, drawn with Pixi 3D |
 | `src/features/figure/frames.ts` |  | left out: the review frames of the CPU painter; AF's goldens are the figure's built parts and the view's frames |
 | `src/features/hair/library/hair.json` | `packages/3d/tests/fixtures/content/figure-hair/bob.toml` | rewritten: hair styles are `figure-hair` content (TOML); core ships none, the tests keep `bob`, `cropped` and `curtain`, and the pieces' styles go to `@automata/character-kit` |
@@ -362,7 +362,7 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/actors/actors.test.ts` | `packages/3d/tests/unit/figures/clips/actions.test.ts` | rewritten: the cases on the actions, run on clips |
 | `tests/features/body/ends.ts` | `packages/3d/tests/unit/figures/figure/slider-ends.test.ts` | rewritten: the list of sliders whose range is not 0 to 1 |
 | `tests/features/body/face-d2.test.ts` |  | left out: the face drawn at 2 pixels per texel by the CPU painter |
-| `tests/features/figure/cloth.test.ts` |  | left out: tests the cloth coordinates, which are not taken |
+| `tests/features/figure/cloth.test.ts` | `packages/3d/tests/unit/figures/paint/cloth.test.ts` | ported: the mapping cases (wrap, cape, limbs, arc length, no shear, finite cylinders at the slider ends); the cases that build a dressed figure come with the soup builder |
 | `tests/features/figure/eyes.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: the eyes' size, spacing and tilt are folded into the diversity cases |
 | `tests/features/hair/densities.test.ts` |  | left out: hair drawn at the CPU painter's pixel densities |
 | `tests/features/motion/legacy-gait.test.ts` | `packages/3d/tests/unit/figures/motion/base.test.ts` | rewritten: the gait fields' cases are in the motion base test |
