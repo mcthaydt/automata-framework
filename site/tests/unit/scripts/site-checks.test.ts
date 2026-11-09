@@ -21,6 +21,7 @@ import {
   MAX_EDITOR_CHUNK_GZIP_BYTES,
   MAX_PRELOADED_SCRIPT_BYTES,
 } from '../../../scripts/site-checks/javascript'
+import { checkClosedBeta } from '../../../scripts/site-checks/launch'
 import { writeSeoFiles } from '../../../scripts/write-seo-files'
 import { withContentSecurityPolicy } from '../../../src/shared/html/csp'
 
@@ -428,6 +429,19 @@ describe('checkSite', () => {
     )
   })
 
+  it('fails on a link to the private repository while it is private, in a page or a plain-text file', () => {
+    const site = goodSite()
+    const repo = 'https://github.com/mcthaydt/automata-framework'
+    site.write('docs.html', page('/docs', { body: `<a href="${repo}/issues">Issues</a>` }))
+    site.write('llms.txt', `# Automata\n\n${TARGETS}\nSource: ${repo}\n`)
+    expect(checkSite(site.root, { now: NOW })).toEqual(
+      expect.arrayContaining([
+        'docs.html: links to the private repository (github.com/mcthaydt/automata-framework)',
+        'llms.txt: links to the private repository (github.com/mcthaydt/automata-framework)',
+      ]),
+    )
+  })
+
   it('fails on a form, which the privacy page says the site does not have', () => {
     const site = goodSite()
     site.write(
@@ -654,5 +668,25 @@ describe('checkCompileWorker', () => {
     expect(checkCompileWorker(goodSite().root).failures).toEqual([
       'the build has no compile worker under _app/immutable/workers/',
     ])
+  })
+})
+
+describe('checkClosedBeta', () => {
+  it('passes a build with no @pixi/3d', () => {
+    expect(checkClosedBeta(goodSite().root)).toEqual([])
+  })
+
+  it('fails a build whose script carries the beta, and names the file and the marker', () => {
+    const site = goodSite()
+    site.write('_app/immutable/chunks/game.js', 'throw new Error("View3D.screenToRay:degenerate")')
+    expect(checkClosedBeta(site.root)).toEqual([
+      '_app/immutable/chunks/game.js: carries @pixi/3d (View3D.screenToRay:degenerate), a closed beta that cannot be deployed',
+    ])
+  })
+
+  it('fails the beta’s extras too', () => {
+    const site = goodSite()
+    site.write('demo.js', 'const a = "generateSpawnBurst"')
+    expect(checkClosedBeta(site.root)).toHaveLength(1)
   })
 })

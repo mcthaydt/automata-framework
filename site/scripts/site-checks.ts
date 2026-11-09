@@ -18,6 +18,7 @@ import {
   checkHydrationStart,
   checkPreloadedScripts,
 } from './site-checks/javascript.ts'
+import { checkPrivateRepository } from './site-checks/launch.ts'
 import { builtPages } from './site-checks/pages.ts'
 
 /**
@@ -44,7 +45,9 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
   }
   for (const file of SITE_TEXT_FILES) {
     const path = join(root, file)
-    if (existsSync(path)) failures.push(...checkStandalone(file, readFileSync(path, 'utf8')))
+    if (!existsSync(path)) continue
+    const text = readFileSync(path, 'utf8')
+    failures.push(...checkStandalone(file, text), ...checkPrivateRepository(file, text))
   }
   for (const file of pages) {
     const html = readFileSync(join(root, file), 'utf8')
@@ -68,7 +71,7 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     ].join('\n')
     for (const banned of BANNED_PHRASES)
       if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
-    failures.push(...checkStandalone(file, ownText(doc)))
+    failures.push(...checkStandalone(file, ownText(doc)), ...checkPrivateRepository(file, html))
     failures.push(
       ...checkIconLinks(file, doc),
       ...checkPageResources(file, doc, fonts.urls),
