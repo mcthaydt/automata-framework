@@ -39,7 +39,7 @@
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "examples/2d/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     // The site: the compile worker starts from `new URL(...)`, which knip does not follow; the scripts and the playground
-    // build run by path (package.json, playwright configs, by hand); the playground's test servers serve
+    // build run by path (package.json, playwright configs, lhci's config, by hand); the playground's test servers serve
     // playground/static as files.
     "site": {
       "entry": [
@@ -47,6 +47,7 @@
         "scripts/*.ts",
         "playground/*.ts",
         "playwright.config.ts",
+        "lighthouserc.cjs",
         "tests/e2e/*.ts",
         "tests/playground/e2e/*.test.ts"
       ],

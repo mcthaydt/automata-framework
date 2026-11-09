@@ -60,6 +60,7 @@ Published versions live in GitHub Packages, and from the first public release al
 | Repository variables `AF_LINUX_RUNNER`, `AF_GPU_RUNNER` | GitHub repository settings | Unset means `af-linux`; set them only to move jobs (2026-10-30: `AF_LINUX_RUNNER` = `af-linux`; it was `af-mac` from about 2026-10-17) |
 | Game repository secrets and variables (`AF_READ_TOKEN`, `RUKEN_TOKEN`, `RUKEN_API`, `RUKEN_GAME`, `SHIP_DEV_*`) | Each game repository | Create new tokens, as in "Lost credentials" |
 | The `af-linux` self-hosted runner | The Owner's PC (WSL2 Ubuntu with Docker) | Register a new runner with the label `af-linux` (Ruken's `docs/self-hosted-runner.md`) |
+| `AF_RUNNER_PORT_OFFSET` in each runner copy's `.env` | The runner's folder on its machine | Give every copy on one machine its own multiple of 2000 (the PC's three copies use 0, 2000 and 4000; the Mac's two use 6000 and 8000; the Windows runner 10000), so jobs on two copies never meet on a port. A copy with none runs at 0 and meets any other copy on its machine that has none. A test server writes no port of its own: `tooling/repo-hygiene` fails on one, and `tooling/examples-runner` holds every journey port to its copy's 2000-port window |
 | The Renovate app installation | GitHub Apps | Install it on the repository again; `renovate.json` holds the configuration |
 | The domain `automataframework.com` and its DNS | The registrar | The website's address (`SITE_ORIGIN` in `site/src/lib/site.js`); point it at the site's host again |
 
