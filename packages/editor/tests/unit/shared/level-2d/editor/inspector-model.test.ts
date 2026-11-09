@@ -1,4 +1,4 @@
-import type { FieldDef } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef } from '@automata/content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { fieldRow } from '#src/shared/kit/fields/field-row.ts'
 import { entityInspector, levelInspector } from '#src/shared/level-2d/editor/inspector-model.ts'
@@ -147,5 +147,15 @@ describe('levelInspector', () => {
       size: { w: expect.any(Number), h: expect.any(Number) },
       fields: [{ id: 'music', widget: 'text', value: '' }],
     })
+  })
+
+  it('counts the size in tiles of the first layer’s grid, and has none when the size is not whole tiles', () => {
+    const project = platformer()
+    expect(levelInspector(project, 'level-1').tiles).toEqual({ wide: 32, high: 18, tile: 16 })
+    const odd: Project = {
+      ...project,
+      levels: project.levels.map((level) => ({ ...level, size: { w: 500, h: 288 } })),
+    }
+    expect(levelInspector(odd, 'level-1').tiles).toBeUndefined()
   })
 })

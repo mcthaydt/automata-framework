@@ -46,6 +46,15 @@ describe('editorCommand', () => {
     expect(closed).toHaveBeenCalled()
   })
 
+  it('says, in words, which game it opened in which editor', async () => {
+    const { deps, io, out } = setup({ cwd: '/home/ada/my-game' })
+    await editorCommand([], io, deps)
+    expect(out[0]).toMatch(/^Opened My game in the level editor\.\n {2}This computer: http/)
+    const suite = setup()
+    await editorCommand(['../emberwick', '--app', 'suite'], suite.io, suite.deps)
+    expect(suite.out[0]).toMatch(/^Opened Emberwick in the editors\./)
+  })
+
   it('serves the app and the folder it was told', async () => {
     const { deps, io, served } = setup()
     await editorCommand(['../game', '--app', 'suite'], io, deps)
@@ -78,11 +87,18 @@ describe('editorCommand', () => {
       ['3d', 'The 3D editor is not in this release yet.'],
       ['suite', 'The editor suite is not in this release yet. Run automata editor to open the level editor.'],
     ] as const) {
-      const { deps, io, err, served } = setup({ inRepository: false })
+      // A release without the suite's page: nothing is at the build folder.
+      const { deps, io, err, served } = setup({ inRepository: false, exists: () => false })
       expect(await editorCommand(['--app', app], io, deps)).toBe(2)
       expect(err.join('')).toContain(says)
       expect(served).toEqual([])
     }
+  })
+
+  it('opens the suite from the tools’ own copy outside the repository: that is where a stranger finds the Tuner', async () => {
+    const { deps, io, served } = setup({ inRepository: false })
+    expect(await editorCommand(['--app', 'suite'], io, deps)).toBe(0)
+    expect(served).toHaveLength(1)
   })
 
   it('serves a 3D build given with --app-dir even outside the repository', async () => {
@@ -94,7 +110,7 @@ describe('editorCommand', () => {
   it('says to build the editor when its build is not there, and starts nothing', async () => {
     const { deps, io, err, served } = setup({ exists: () => false })
     expect(await editorCommand(['--app', '2d'], io, deps)).toBe(2)
-    expect(err.join('')).toContain('pnpm --filter @mcthaydt/automata-editor build')
+    expect(err.join('')).toContain('pnpm --filter @automata/editor build')
     expect(served).toEqual([])
   })
 

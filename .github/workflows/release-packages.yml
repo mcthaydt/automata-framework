@@ -1,15 +1,15 @@
 name: release packages
 
-# AF's releases (M2.4 spec §3.5). Changesets opens or updates a "Version packages" pull request on every push to
+# AF's releases. Changesets opens or updates a "Version packages" pull request on every push to
 # main that carries changesets; merging that pull request (the Owner's word, never automatic) publishes every
-# changed @mcthaydt/automata-* package at one shared 0.0.x version to GitHub Packages. Nothing is published on
+# changed @automata/* package at one shared 0.0.x version to npmjs.org, publicly. Nothing is published on
 # any other push.
 #
-# Four jobs (QB.1b): `plan` asks whether the pushed commit carries changesets, which is the question
+# Four jobs: `plan` asks whether the pushed commit carries changesets, which is the question
 # changesets/action asks to choose between its two modes. `version` runs when it does and can only open or update
 # the pull request. `release-checks` runs when it does not, and runs the release-only checks (release-checks.yml:
 # build, API report, API index, agent skills, plugin, consumer smoke) that pull requests no longer run. `publish`
-# runs after them, and it alone waits for the Owner's approval in the `release` environment (QB.1), so a push that
+# runs after them, and it alone waits for the Owner's approval in the `release` environment, so a push that
 # only versions never waits.
 #
 # Runner: the Owner's Mac (Owner, 2026-10-30: "Publish from my Mac"); vars.AF_RELEASE_RUNNER moves it. Hosted jobs
@@ -21,10 +21,10 @@ name: release packages
 # $RUNNER_TEMP because changesets/action writes an .npmrc into $HOME. Publishing still waits for the Owner's
 # approval in the release environment (the publish job, below).
 #
-# Token: the workflow's own GITHUB_TOKEN with packages: write publishes packages linked to this repository
-# (each package.json's `repository`). Games install with AF_READ_TOKEN, a classic personal access token with
-# read:packages (GitHub Packages' npm registry accepts no other kind). No --provenance: GitHub's npm registry
-# docs do not describe it (spec §8).
+# Token: NPM_TOKEN (the Owner's to create: an npm automation token that may publish to the `@automata` organisation,
+# kept as a secret of the `release` environment) publishes the packages. They are public, so games and the
+# smoke below install them with no token at all. No --provenance yet: it needs a hosted runner, and the release runs
+# on the Owner's Mac.
 
 on:
   push:
@@ -123,13 +123,15 @@ jobs:
     if: needs.plan.outputs.pending == 'false'
     runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
     timeout-minutes: 20
-    # QB.1: the job waits for the Owner's approval in the `release` environment (Settings -> Environments,
+    # The job waits for the Owner's approval in the `release` environment (Settings -> Environments,
     # required reviewer: the Owner, deployments from main only) before it can publish anything. Only this job
-    # waits (QB.1b); rejecting the approval only skips this run.
+    # waits; rejecting the approval only skips this run.
     environment: release
     permissions:
       contents: write
-      packages: write
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -139,16 +141,16 @@ jobs:
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
           dest: ${{ runner.temp }}/setup-pnpm
-      # registry-url and scope make setup-node write an .npmrc that sends NODE_AUTH_TOKEN to GitHub Packages for
-      # @mcthaydt, for publishing and for the lookups after it.
+      # registry-url and scope make setup-node write an .npmrc that sends NODE_AUTH_TOKEN to npmjs.org for
+      # @automata, for publishing. The lookups after it read public packages and need no token.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
-          registry-url: https://npm.pkg.github.com
-          scope: "@mcthaydt"
+          registry-url: https://registry.npmjs.org
+          scope: "@automata"
       - run: pnpm install --frozen-lockfile
-      # The registry smoke boots Chromium (DX.2a). A no-op once the pinned browser is in the runner's cache; fetched
+      # The registry smoke boots Chromium. A no-op once the pinned browser is in the runner's cache; fetched
       # before publishing, so a clean machine cannot fail the smoke after the packages are out (Owner, 2026-10-30:
       # "You can do all 3 as well").
       - run: pnpm exec playwright install chromium-headless-shell
@@ -164,7 +166,7 @@ jobs:
           publish-script: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # changesets/action writes an .npmrc into $HOME; keep it out of the shared runner home (header).
           HOME: ${{ runner.temp }}/release-home
       # Everything below runs only after a publish. changesets/action reports what it published (`published-packages`); every package
@@ -175,17 +177,65 @@ jobs:
         env:
           PUBLISHED: ${{ steps.changesets.outputs['published-packages'] }}
         run: echo "version=$(node tooling/release/src/released-version.ts)" >> "$GITHUB_OUTPUT"
-      # `changeset publish` exits 0 whether it published or skipped, so check the registry itself (spec §5).
-      - name: Every package is on GitHub Packages
+      # `changeset publish` exits 0 whether it published or skipped, so check the registry itself.
+      - name: Every package is on npmjs.org
         if: steps.changesets.outputs.published == 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node tooling/release/src/verify-published.ts --version "$VERSION"
       # Install what was just published into a project outside the workspace and use it (milestone exit 2).
       - name: Consumer smoke against the registry
         if: steps.changesets.outputs.published == 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node tooling/consumer-smoke/src/run.ts --from registry --version "$VERSION"
+
+  # The agent package's public home: after a release, `agents/automata` is copied to mcthaydt/automata-skills, where
+  # anyone installs it, because this repository is private. The copy needs SKILLS_TOKEN, a token that can push to
+  # that repository (the Owner's to create); until it exists the job says so and passes, so a release never fails
+  # for want of it.
+  skills:
+    name: mirror the agent package
+    needs: publish
+    if: needs.publish.outputs.published == 'true'
+    runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Is SKILLS_TOKEN set?
+        id: token
+        env:
+          SKILLS_TOKEN: ${{ secrets.SKILLS_TOKEN }}
+        run: |
+          if [[ -n "$SKILLS_TOKEN" ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No skills token yet."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.token.outputs.present == 'true'
+        with:
+          persist-credentials: false
+      # The mirror holds exactly agents/automata: files removed here are removed there. The token goes to git as an
+      # auth header for this one push, in the job's temp folder, and never into a remote URL or .git/config.
+      - name: Copy agents/automata to mcthaydt/automata-skills
+        if: steps.token.outputs.present == 'true'
+        env:
+          SKILLS_TOKEN: ${{ secrets.SKILLS_TOKEN }}
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$SKILLS_TOKEN" | base64 | tr -d '\n')"
+          mirror="$RUNNER_TEMP/automata-skills"
+          git -c http.extraheader="$auth" clone --depth 1 https://github.com/mcthaydt/automata-skills.git "$mirror"
+          find "$mirror" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R agents/automata/. "$mirror/"
+          cd "$mirror"
+          git add -A
+          if git diff --cached --quiet; then echo "The mirror already matches $VERSION."; exit 0; fi
+          git -c user.name="automata-release" -c user.email="automata-release@users.noreply.github.com" commit -q -m "Agent package for $VERSION"
+          git -c http.extraheader="$auth" push origin HEAD
+      - name: Remove the mirror's clone
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/automata-skills"

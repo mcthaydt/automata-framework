@@ -1,10 +1,9 @@
-// Add tiles (plan 12.3b): a picture of tiles becomes something to paint with. Pure: the picture's size and one tile
+// Add tiles: a picture of tiles becomes something to paint with. Pure: the picture's size and one tile
 // size give the grid and the words the dialog shows; the picture's file name gives the file to write and the tileset
 // to add. The dialog (`AddTilesDialog.svelte`) draws this and the session adds the tileset as one undo step.
 import type { Size, TilesetDef } from '../../shared/level-2d/model/project-types'
 
-/** The tile sizes offered as quick choices, and the range a suggestion is drawn from. */
-export const QUICK_TILE_SIZES: readonly number[] = [8, 16, 32, 48]
+/** The range a suggested tile size is drawn from. */
 const SMALLEST_SUGGESTION = 8
 const LARGEST_SUGGESTION = 64
 

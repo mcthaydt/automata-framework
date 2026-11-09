@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { createRng, createSim, deriveSeed } from '@mcthaydt/automata-sim'
+import { createRng, createSim, deriveSeed } from '@automata/sim'
 import { expect, test } from 'vitest'
 import { bouncePlugin } from '#src/testing/fixtures/bounce.plugin.ts'
 import { BOUNCE_DIVERGE_TICK, bounceDivergedPlugin } from '#src/testing/fixtures/bounce-diverged.plugin.ts'

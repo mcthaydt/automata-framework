@@ -1,13 +1,13 @@
-// shapes-draw-hud: a HUD and a mini-map drawn each frame over bouncing squares
+// shapes-draw-hud: A score line and a mini-map drawn over bouncing squares
 //
 // Shows: draw(ctx) paints rects, lines, circles and text over the entity views once a frame. It reads the
 //   sim through ctx.sim and never writes it, so the golden is the same with or without it.
 // Controls: none
-// Packages: @mcthaydt/automata
+// Packages: @automata/framework
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 120
-import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automata/framework'
 
 const Ball = defineComponent('ball', { x: 'f32', y: 'f32', vx: 'f32', vy: 'f32' })
 

@@ -1,19 +1,21 @@
 <!--
-  The Tuner's canvas: one row per tunable, in the file's order, shown by its label and what a player feels when the
-  file gives them (`shownName`, `shownNote`), else by its name in code and its comment. A number with bounds is a
-  slider and a number box, a number without is the box alone, a toggle is On or Off, a string a text field, and a table
-  or a list says "Ask only". A value outside the bounds is refused before the write, with the bound named; Keep (the session's lock) makes a
-  row refuse until it is let go. The states without rows: no file (an offer to create it), a file that does not parse
-  (the parser's line), and a code-owned game whose bounds the compiler has not written. A setting with a scale is shown
-  and edited in its unit (`tuner-display.ts`): the slider and the box speak pixels a second or seconds, and what a
-  person sets goes back to the file as the sim's own number.
+  The Tuner's settings, beside the game: one card per setting, in the file's order, named by its label and what a player
+  feels when the file gives them (`shownName`, `shownNote`), else by its name in code and its comment. Each card has
+  one control and one read-out: a slider for a number with bounds (its read-out is the value in its unit), a number box
+  for a number without, On or Off for a toggle, a text field for a string; a table or a list says "Ask only". A value outside the
+  bounds is refused before the write, with the bound named. The lock (the lock icon, as a layer's) makes a card refuse
+  until it is unlocked. The states without cards: no file (an offer to create it), a file that does not parse (the
+  parser's line), and a code-owned game whose bounds the compiler has not written. A setting with a scale is shown and
+  edited in its unit and in a step a person can feel (`tuner-display.ts`); what is set goes back to the file as the
+  sim's own number.
 -->
 <script lang="ts">
 import Button from '../../../../shared/kit/widgets/Button.svelte'
+import IconButton from '../../../../shared/kit/widgets/IconButton.svelte'
 import Segmented from '../../../../shared/kit/widgets/Segmented.svelte'
 import Slider from '../../../../shared/kit/widgets/Slider.svelte'
 import Stepper from '../../../../shared/kit/widgets/Stepper.svelte'
-import { KEEP_TIP, shownName, shownNote, type Tunable } from '../tuner-content'
+import { shownName, shownNote, type Tunable } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
 import { rawValue, shownBounds, shownValue } from '../tuner-display'
 import { checkValue } from '../tuner-edits'
@@ -26,12 +28,9 @@ const revision = controller.revision
 const refusal = controller.refusal
 // svelte-ignore state_referenced_locally
 const selected = controller.selected
-// svelte-ignore state_referenced_locally
-const filter = controller.filter
 
 const read = $derived.by(() => {
   void $revision
-  void $filter
   return controller.all()
 })
 /** Whether a tunable is locked; reads the revision so a lock redraws the rows. */
@@ -42,8 +41,8 @@ const isLocked = (name: string): boolean => {
 
 const rows = $derived.by(() => {
   void $revision
-  void $filter
-  return controller.visible()
+  const read = controller.all()
+  return 'tunables' in read ? read.tunables : []
 })
 const hasFile = $derived.by(() => {
   void $revision
@@ -103,14 +102,12 @@ const shownOf = (tunable: Tunable) => {
             {#if note && note !== tunable.unit}<span class="note">{note}</span>{/if}
           </div>
           {#if tunable.editable}
-            <Button
-              aria-label={`Keep ${shown}`}
-              title={KEEP_TIP}
-              aria-pressed={locked}
+            <IconButton
+              icon={locked ? 'lock' : 'unlock'}
+              label={`${locked ? 'Unlock' : 'Lock'} ${shown}`}
+              pressed={locked}
               onclick={() => controller.toggleLock(tunable.name)}
-            >
-              {locked ? 'Kept' : 'Keep'}
-            </Button>
+            />
           {/if}
         </div>
         <div class="control">
@@ -122,7 +119,7 @@ const shownOf = (tunable: Tunable) => {
               value={tunable.value === true ? 'on' : 'off'}
               options={[{ id: 'off', label: 'Off' }, { id: 'on', label: 'On' }]}
               disabled={locked}
-              reason={`${shown} is kept: tap Kept to change it`}
+              reason={`${shown} is locked: unlock it to change it`}
               onedit={(event) => void controller.set(tunable.name, event.value === 'on')}
             />
           {:else if tunable.kind === 'string'}
@@ -140,6 +137,7 @@ const shownOf = (tunable: Tunable) => {
           {:else}
             {@const number = shownOf(tunable)}
             {#if bounded(tunable)}
+              <!-- One control and one read-out: the slider's own (a nudge is an arrow key or a drag). -->
               <Slider
                 label={shown}
                 value={number.value}
@@ -148,7 +146,7 @@ const shownOf = (tunable: Tunable) => {
                 step={number.step}
                 unit={tunable.unit}
                 disabled={locked}
-                reason={`${shown} is kept: tap Kept to change it`}
+                reason={`${shown} is locked: unlock it to change it`}
                 onedit={(event) => {
                   if (event.phase === 'set') void controller.set(tunable.name, number.raw(event.value))
                   else if (event.phase === 'start') controller.dragStart(tunable.name)
@@ -157,7 +155,7 @@ const shownOf = (tunable: Tunable) => {
                   else controller.dragCancel()
                 }}
               />
-            {/if}
+            {:else}
             <Stepper
               label={shown}
               value={number.value}
@@ -171,9 +169,10 @@ const shownOf = (tunable: Tunable) => {
                 return 'message' in check ? check.message : undefined
               }}
               disabled={locked}
-              reason={`${shown} is kept: tap Kept to change it`}
+              reason={`${shown} is locked: unlock it to change it`}
               onedit={(event) => void controller.set(tunable.name, number.raw(event.value))}
             />
+            {/if}
           {/if}
         </div>
       </div>

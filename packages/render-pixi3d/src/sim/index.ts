@@ -1,4 +1,4 @@
-// @mcthaydt/automata-render-pixi3d/sim: the camera's heading as sim state (M3 spec §4.2), sim-safe and checked by
+// @automata/render-pixi3d/sim: the camera's heading as sim state (M3 spec §4.2), sim-safe and checked by
 // `pnpm boundaries`. A game's sim imports this entry (declared in package.json `automata.simEntries`), never the
 // renderer's.
 export { CameraHeading } from './camera-heading.component.js'

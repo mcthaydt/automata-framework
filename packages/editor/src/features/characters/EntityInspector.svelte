@@ -128,7 +128,8 @@ function tileChoice(current: EntityDef2D, id: string): void {
             <button
               type="button"
               class="toggle"
-              aria-pressed={def.single === true}
+              role="switch"
+              aria-checked={def.single === true}
               onclick={() => edit({ single: def.single !== true })}>Only one per level</button
             >
             <Picker
@@ -190,7 +191,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
       {:else}
         <div class="fields">
           <div class="head">
-            <h2 id="field-list-heading">{def === undefined ? 'Settings for every level' : `Settings of ${def.label ?? def.id}`}</h2>
+            <h2 id="field-list-heading">{def === undefined ? 'Settings every level has' : `Settings of ${def.label ?? def.id}`}</h2>
             <Button onclick={() => show(session.addField())}>Add setting</Button>
           </div>
           <div class="choices" role="radiogroup" aria-labelledby="field-list-heading">
@@ -303,7 +304,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
     font: var(--text-label-12);
     cursor: pointer;
   }
-  .toggle[aria-pressed='true'] {
+  .toggle[aria-checked='true'] {
     border-color: color-mix(in srgb, var(--color-accent-default) 70%, transparent);
     background: var(--color-accent-soft);
     color: var(--color-accent-default);

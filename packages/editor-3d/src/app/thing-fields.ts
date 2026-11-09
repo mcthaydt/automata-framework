@@ -8,7 +8,7 @@ import {
   type RefChoice,
   type RefTargetGroup,
   valuesWithDefaults,
-} from '@mcthaydt/automata-editor/kit/fields'
+} from '@automata/editor/kit/fields'
 import type { ThingDef } from '../entities/thing-def.schema'
 import { targetOf } from '../entities/thing-refs'
 import type { Thing } from '../entities/things'

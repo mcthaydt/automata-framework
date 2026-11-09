@@ -1,5 +1,5 @@
-import type { ScreenDef } from '@mcthaydt/automata'
-import { type Command, createSim } from '@mcthaydt/automata-sim'
+import type { ScreenDef } from '@automata/framework'
+import { type Command, createSim } from '@automata/sim'
 import { mount, unmount } from 'svelte'
 import Hud from './Hud.svelte'
 import type { StressParams } from './params.ts'

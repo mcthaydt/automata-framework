@@ -19,6 +19,7 @@ export type StyleRule =
   | 'platform-chrome'
   | 'file-length'
   | 'plan-comment'
+  | 'broken-link'
   | 'test-src-chain'
 
 export interface StyleFinding {

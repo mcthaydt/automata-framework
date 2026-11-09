@@ -1,6 +1,8 @@
 // What Home shows: one card per editor the game's list names, in
 // the order the list first names it, or the list's problems when it does not load, in which case every editor is read
 // only and there are no cards (the files cannot be listed without a list).
+
+import { writtenBySave } from '../../../shared/editor-list/workspace-policy'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
 import type { EditorListLoad, EditorListProblem } from '../core'
 import type { Suite } from './create-suite'
@@ -29,7 +31,7 @@ const LABELS: Readonly<Record<string, string>> = {
   writer: 'Writer',
   schematic: 'Schematic',
   sequence: 'Sequence',
-  'levels-2d': 'Levels 2D',
+  'levels-2d': 'Levels',
   'levels-3d': 'Levels 3D',
 }
 
@@ -39,15 +41,25 @@ export function homeOf(
   suite: Suite,
 ): HomeState {
   if (!load.ok) return { kind: 'problems', problems: load.problems }
-  const named = [...new Set(load.list.file.map((row) => row.editor))]
-  const cards = named.map((editor): EditorCard => {
+  // The cards come in the rail's order (the editors the page registered), then the editors this build lacks in the
+  // list's order, so Home and the rail never disagree about which comes first.
+  const listed = [...new Set(load.list.file.map((row) => row.editor))]
+  const rank = (editor: string): number => {
+    const place = suite.editors.findIndex((installed) => installed.id === editor)
+    return place === -1 ? suite.editors.length : place
+  }
+  const named = listed
+    .map((editor, order) => ({ editor, order }))
+    .sort((a, b) => rank(a.editor) - rank(b.editor) || a.order - b.order)
+  const cards = named.map(({ editor }): EditorCard => {
     const installed = suite.editor(editor)
     return {
       editor,
       label: installed?.label ?? LABELS[editor] ?? editor,
       entry: installed?.id,
       installed: installed !== undefined,
-      files: files.get(editor) ?? [],
+      // Only the files a person opens (a level), not the game files and pictures a level's Save writes beside it.
+      files: (files.get(editor) ?? []).filter((file) => !writtenBySave(load.list, file.path)),
     }
   })
   return { kind: 'cards', cards }

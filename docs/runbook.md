@@ -1,7 +1,7 @@
 # Runbook
 
-Two procedures from the QB spec (§4.1, QB.1): what to do when credentials are lost or stolen, and how to rebuild
-everything from Git. The Owner runs both; an agent never holds these credentials (AGENTS.md).
+Three procedures: what to do when credentials are lost or stolen, how to rebuild everything from Git, and how the
+website goes live. The Owner runs both; an agent never holds these credentials (AGENTS.md).
 
 ## Lost credentials
 
@@ -15,21 +15,22 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 | Credential | Where it lives | What it can do |
 |---|---|---|
 | The Owner's GitHub account (password, sessions, SSH keys, personal access tokens) | GitHub | Everything: push, approve the `release` environment, change settings |
-| `AF_READ_TOKEN` (classic token, `read:packages`) | Secrets of each game repository | Install `@mcthaydt` packages from GitHub Packages |
-| `RUKEN_TOKEN` | Secrets of each game repository | `ruken publish` for that game (`game-release.yml`) |
+| `RUKEN_TOKEN` | Secrets of each game repository | `ruken publish` for that game |
 | `SHIP_DEV_SSH_KEY`, `SHIP_DEV_KNOWN_HOSTS` | Secrets of each game repository | Deploy a game to the dev host |
-| The `af-linux` runner registration | The runner PC (`owner-pc-wsl-af`, the Owner's Windows PC under WSL2 Ubuntu-24.04; service `actions.runner.mcthaydt-automata-framework.owner-pc-wsl-af`) | Run the checks, the games' CI and the consumer smoke for this repository (since 2026-10-30, when `AF_LINUX_RUNNER` went back from `af-mac` to `af-linux`) |
-| The `af-mac` runner registrations | The Owner's Mac | Run CI jobs and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
-| The npm token for npmjs.org | Not created yet (DX.11) | Will publish the public packages |
+| The `af-linux` runner registration | The runner PC (`owner-pc-wsl-af`, the Owner's Windows PC under WSL2 Ubuntu-24.04; service `actions.runner.mcthaydt-automata-framework.owner-pc-wsl-af`) | Run the games' CI and the browser journeys for this repository (the checks and the consumer smoke moved to `af-mac` on 2026-11-09; `AF_CHECKS_RUNNER` moves them back) |
+| The `af-mac` runner registrations | The Owner's Mac | Run parity, the checks and the consumer smoke (since 2026-11-09) and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
+| `NPM_TOKEN` (an npm automation token for the `@automata` organisation) | The `release` environment's secrets (not created yet) | Publish the public packages from `release-packages.yml`; games install them with no token |
+| `SITE_DEPLOY_TOKEN` | This repository's secrets (not created yet) | Upload the website to its host from `main` (`site.yml`); without it the deploy says "No host configured yet." |
+| `SKILLS_TOKEN` | This repository's secrets (not created yet) | Push the agent package to `mcthaydt/automata-skills` after each release; without it the release says "No skills token yet." and the mirror waits |
 
 **Do this, in order, from a device you still trust:**
 
 1. **GitHub account.** Change the password. In Settings → Sessions, sign out every other session. In SSH and
    GPG keys and in Developer settings → Personal access tokens, delete every key and token the lost device
    held. Check that two-factor authentication is still yours, and regenerate the recovery codes.
-2. **Tokens in game repositories.** Revoke the old `AF_READ_TOKEN`, create a new classic token with
-   `read:packages` only, and update the secret in each game repository. Rotate `RUKEN_TOKEN` in Ruken and the
-   dev host's SSH key the same way.
+2. **Tokens.** Revoke `NPM_TOKEN` on npmjs.org and create a new automation token for the `@automata` organisation,
+   then update the `release` environment's secret. Rotate `RUKEN_TOKEN` in Ruken and the dev host's SSH key in each
+   game repository the same way. Games need no token to install AF: its packages are public.
 3. **Runner.** If the runner PC was lost, remove `af-linux` in Settings → Actions → Runners. Jobs then wait in
    the queue instead of running anywhere else (`ci.yml`).
 4. **Check what happened.** Read the security log (Settings → Security log), the Actions runs and the packages'
@@ -49,14 +50,14 @@ Everything that builds, tests and publishes AF is in this repository:
 - Ruken's packages as vendored tarballs (`vendor/ruken/`);
 - the workflows, the plans, the specs and the decisions (`docs/`).
 
-Published versions live in GitHub Packages, and from DX.11 also on npmjs.org.
+Published versions live on npmjs.org, public, under the `@automata` organisation.
 
 **Not in Git, and where each is kept:**
 
 | What | Where it is held | How to restore it |
 |---|---|---|
-| Repository settings: the `release` environment and its reviewer, rulesets, private vulnerability reporting | GitHub repository settings | Recreate them by hand from this list (QB.1 Owner actions in [02](02-master-delivery-plan.md)) |
-| Repository variables `AF_LINUX_RUNNER`, `AF_GPU_RUNNER` | GitHub repository settings | Unset means `af-linux`; set them only to move jobs (2026-10-30: `AF_LINUX_RUNNER` = `af-linux`; it was `af-mac` from about 2026-10-17) |
+| Repository settings: the `release` environment and its reviewer, rulesets, private vulnerability reporting | GitHub repository settings | Recreate them by hand from this list (the Owner's setup steps are in [the archived delivery plan](archive/02-master-delivery-plan.md)) |
+| Repository variables `AF_LINUX_RUNNER`, `AF_GPU_RUNNER`, `AF_CHECKS_RUNNER` | GitHub repository settings | Unset means `af-linux` (`af-mac` for `AF_CHECKS_RUNNER`); set them only to move jobs (2026-10-30: `AF_LINUX_RUNNER` = `af-linux`; it was `af-mac` from about 2026-10-17) |
 | Game repository secrets and variables (`AF_READ_TOKEN`, `RUKEN_TOKEN`, `RUKEN_API`, `RUKEN_GAME`, `SHIP_DEV_*`) | Each game repository | Create new tokens, as in "Lost credentials" |
 | The `af-linux` self-hosted runner | The Owner's PC (WSL2 Ubuntu with Docker) | Register a new runner with the label `af-linux` (Ruken's `docs/self-hosted-runner.md`) |
 | `AF_RUNNER_PORT_OFFSET` in each runner copy's `.env` | The runner's folder on its machine | Give every copy on one machine its own multiple of 2000 (the PC's three copies use 0, 2000 and 4000; the Mac's two use 6000 and 8000; the Windows runner 10000), so jobs on two copies never meet on a port. A copy with none runs at 0 and meets any other copy on its machine that has none. A test server writes no port of its own: `tooling/repo-hygiene` fails on one, and `tooling/examples-runner` holds every journey port to its copy's 2000-port window |
@@ -70,6 +71,27 @@ Published versions live in GitHub Packages, and from DX.11 also on npmjs.org.
 2. Run `pnpm ci:local`. It checks, builds and tests everything CI does, including parity in three browsers.
    It needs the full history, not a shallow clone, for `pnpm secrets` and `changeset status`.
 3. Push to a new GitHub repository, then restore the settings in the table above.
-4. If GitHub Packages lost the published versions, run the release workflow from `main` again. Changesets
+4. If npmjs.org lost the published versions, run the release workflow from `main` again. Changesets
    publishes every version the registry is missing, and `verify-published.ts` checks the result.
-5. Record what was rebuilt, and when, in [03 Continuation](03-continuation-prompt.md).
+5. Record what was rebuilt, and when, in [03 Continuation](archive/03-continuation-prompt.md).
+
+## Launch the website
+
+The website (`site/`) builds and is tested on every pull request inside `ci.yml`'s 2D journeys. From `main`, the
+`site` job (`.github/workflows/site.yml`) deploys it once these are done. The Owner does steps 1 to 3; the agent does
+step 4 in one pull request.
+
+1. **Choose the host** (any static host that serves a folder over HTTPS and lets you set response headers), create its
+   deploy token, and add it as the repository secret `SITE_DEPLOY_TOKEN`. Until then every deploy says "No host
+   configured yet." and passes. With the token but before step 4, the deploy fails on purpose: its upload step is not
+   written yet.
+2. **Point the domain at it.** `automataframework.com`: an apex record (or the host's `ALIAS`, `ANAME` or flattened
+   `CNAME`), `www` redirecting to the apex, and HTTPS on at the host.
+3. **Make the project's address work.** The site names `hello@automataframework.com` for questions and security reports
+   (the Owner chose a project address over a personal mailbox, 2026-11-07); set up that mailbox or forward on the domain.
+   `pnpm --filter @automata/site check:launch` refuses a personal mailbox, and also fails until `@automata/tools` is on npmjs.org.
+4. **The agent's pull request:** the addresses in `site/src/shared/site.js` and `site/static/.well-known/security.txt`
+   (a unit test keeps the two the same), the host's upload step in `site.yml` with the headers of
+   `site/src/shared/html/security-headers.ts`, and these steps marked done. Merging it deploys.
+5. **Look at it** on a phone and on the iPad: the home page, play Emberwick, Start, Try the editor.
+

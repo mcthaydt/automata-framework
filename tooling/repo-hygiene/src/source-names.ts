@@ -18,20 +18,27 @@ export const SOURCE_NAMES: readonly SourceName[] = [
   { pattern: /legacy[\s_-]?v2/i, sample: 'LegacyV2' },
 ]
 
-/** Every `.md` file below `dir`, skipping what is generated from doc comments (`reference/`) and `node_modules`. */
-function markdownBelow(dir: string): string[] {
+/** The folders under `docs/` that are records: they name the source projects as evidence, by design. */
+const RECORD_FOLDERS: ReadonlySet<string> = new Set(['adr', 'archive', 'provenance', 'refactor'])
+
+/** Every `.md` file below `dir`, skipping `node_modules` and, under `docs/`, the record folders (the ADRs cite where each decision came from). */
+function markdownBelow(dir: string, skip: ReadonlySet<string> = new Set()): string[] {
   if (!existsSync(dir)) return []
   return readdirSync(dir, { withFileTypes: true })
     .sort((a, b) => a.name.localeCompare(b.name))
     .flatMap((entry) => {
       const path = join(dir, entry.name)
       if (entry.isDirectory())
-        return entry.name === 'node_modules' || entry.name === 'reference' ? [] : markdownBelow(path)
+        return entry.name === 'node_modules' || skip.has(entry.name) ? [] : markdownBelow(path)
       return entry.name.endsWith('.md') ? [path] : []
     })
 }
 
-/** The published text: each package's changelog and README, the root README and the agent skills' own pages. */
+/**
+ * The text AF publishes or a reader opens: each package's changelog and README, the root README, the agent package
+ * (its skills and the generated API reference, which copies doc comments) and `docs/` (the cheatsheet among them)
+ * outside the record folders.
+ */
 function publishedSurfaces(root: string): string[] {
   const packages = join(root, 'packages')
   const perPackage = existsSync(packages)
@@ -39,7 +46,12 @@ function publishedSurfaces(root: string): string[] {
         .filter((entry) => entry.isDirectory())
         .flatMap((entry) => ['CHANGELOG.md', 'README.md'].map((name) => join(packages, entry.name, name)))
     : []
-  return [...perPackage, join(root, 'README.md'), ...markdownBelow(join(root, 'agents'))].filter(existsSync)
+  return [
+    ...perPackage,
+    join(root, 'README.md'),
+    ...markdownBelow(join(root, 'agents')),
+    ...markdownBelow(join(root, 'docs'), RECORD_FOLDERS),
+  ].filter(existsSync)
 }
 
 /** `file:line: names a source project (entry N)` for each line that names one, files in path order. */

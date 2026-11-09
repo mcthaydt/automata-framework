@@ -1,4 +1,4 @@
-// Where a tap on the static code lands in the source (spec F2), so the editor opens with the caret there. The line
+// Where a tap on the static code lands in the source, so the editor opens with the caret there. The line
 // numbers are CSS counters, so the static code's text is the source and a DOM range's text length is the offset.
 
 /** The source offset of a DOM position inside `root`, or null when the position is outside it. */

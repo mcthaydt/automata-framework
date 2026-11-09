@@ -1,4 +1,4 @@
-import { definePlugin } from '@mcthaydt/automata-sim'
+import { definePlugin } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import { defineGame, type GameSpec } from '#src/app/define-game.ts'
 import { isDefinedGame } from '#src/entries/tooling.ts'

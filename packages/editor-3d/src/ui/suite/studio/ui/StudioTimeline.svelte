@@ -5,7 +5,7 @@
   between its neighbours is the only place it can land.
 -->
 <script lang="ts">
-import { Button, Slider } from '@mcthaydt/automata-editor/kit'
+import { Button, Slider } from '@automata/editor/kit'
 import type { StudioController } from '../studio-controller'
 
 const { controller }: { controller: StudioController } = $props()

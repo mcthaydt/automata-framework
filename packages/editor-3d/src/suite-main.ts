@@ -1,7 +1,7 @@
-import '@mcthaydt/automata-editor/tokens.css'
-import '@mcthaydt/automata-editor/fonts.css'
-import '@mcthaydt/automata-editor/suite.css'
-import type { SuiteEditor } from '@mcthaydt/automata-editor/kit/ports'
+import '@automata/editor/tokens.css'
+import '@automata/editor/fonts.css'
+import '@automata/editor/suite.css'
+import type { SuiteEditor } from '@automata/editor/kit/ports'
 import {
   createLevels2d,
   createSuite,
@@ -10,11 +10,11 @@ import {
   SAMPLE_GAME,
   samplePorts,
   startSuite,
-} from '@mcthaydt/automata-editor/suite'
+} from '@automata/editor/suite'
 import { createLevels3d, lazyPlanRenderer, loadPlanRenderer } from './ui/suite/index.ts'
 import { createStudio } from './ui/suite/studio/studio-suite-editor.ts'
 
-// The full suite's page: the editors of `@mcthaydt/automata-editor` plus Levels 3D and the Studio. The only file that
+// The full suite's page: the editors of `@automata/editor` plus Levels 3D and the Studio. The only file that
 // reaches for the page's globals. When no checkout answers, the page opens a sample game held in memory and says so in
 // the top bar. The Studio's stage loads Pixi's 3D view with its first figure, not with the page.
 

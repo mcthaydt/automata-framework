@@ -9,7 +9,7 @@ const join = (lines: ReturnType<typeof highlightLines>) =>
     .join('')
 
 describe('highlightLines', () => {
-  const source = "import { run } from '@mcthaydt/automata'\n// a comment\nconst size: number = 42\n"
+  const source = "import { run } from '@automata/framework'\n// a comment\nconst size: number = 42\n"
 
   it('keeps the source byte for byte, one entry per line, each line but the last carrying its newline', () => {
     const lines = highlightLines(source)
@@ -23,7 +23,7 @@ describe('highlightLines', () => {
     const pieces = highlightLines(source).flat()
     const classOf = (text: string) => pieces.find((piece) => piece.text === text)?.className
     expect(classOf('import')).toContain('tok-keyword')
-    expect(classOf("'@mcthaydt/automata'")).toContain('tok-string')
+    expect(classOf("'@automata/framework'")).toContain('tok-string')
     expect(classOf('// a comment')).toContain('tok-comment')
     expect(classOf('42')).toContain('tok-number')
     expect(classOf('number')).toContain('tok-typeName')

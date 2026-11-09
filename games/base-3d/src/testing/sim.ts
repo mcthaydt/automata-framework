@@ -1,7 +1,7 @@
 // base-3d's sim test harness: the game's own sim spec, a sim made the way the game makes it, and one tick's commands
 // from the player. Test code (`testing/` is exempt from `pnpm style`).
-import { CameraHeading, cameraHeadingPlugin } from '@mcthaydt/automata-render-pixi3d/sim'
-import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
+import { CameraHeading, cameraHeadingPlugin } from '@automata/render-pixi3d/sim'
+import { type Command, createSim, type Sim } from '@automata/sim'
 import { Hero } from '../components.ts'
 import { ROOM } from '../content/room.ts'
 import { base3dPlugin, base3dSim, spawnArea } from '../state/index.ts'

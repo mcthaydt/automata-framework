@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -7,17 +7,17 @@ import { overridesYaml, packOverrides, strangerFolder } from '#src/stranger.ts'
 describe('packOverrides', () => {
   it('names each pack by the absolute file: path of its tarball', () => {
     const overrides = packOverrides('/work', [
-      { name: '@mcthaydt/automata-tools', tarball: 'packs/tools.tgz' },
-      { name: '@mcthaydt/automata', tarball: 'packs/automata.tgz' },
+      { name: '@automata/tools', tarball: 'packs/tools.tgz' },
+      { name: '@automata/framework', tarball: 'packs/automata.tgz' },
     ])
     expect(overrides).toEqual({
-      '@mcthaydt/automata': 'file:/work/packs/automata.tgz',
-      '@mcthaydt/automata-tools': 'file:/work/packs/tools.tgz',
+      '@automata/framework': 'file:/work/packs/automata.tgz',
+      '@automata/tools': 'file:/work/packs/tools.tgz',
     })
   })
 
   it('refuses a package that was not packed', () => {
-    expect(() => packOverrides('/work', [{ name: '@mcthaydt/automata' }])).toThrow(/no packed tarball/)
+    expect(() => packOverrides('/work', [{ name: '@automata/framework' }])).toThrow(/no packed tarball/)
   })
 })
 
@@ -33,7 +33,8 @@ describe('strangerFolder', () => {
   it('makes a new empty folder under the given base', () => {
     const base = mkdtempSync(join(tmpdir(), 'af-stranger-test-'))
     const folder = strangerFolder(base)
-    expect(folder.startsWith(base)).toBe(true)
+    // The folder is a real path, and macOS's tmpdir is a symlink (/var -> /private/var), so compare real paths.
+    expect(folder.startsWith(realpathSync(base))).toBe(true)
   })
 
   it('refuses a base inside a pnpm workspace, where the game would resolve the repository', () => {

@@ -1,7 +1,7 @@
 // What a field form shows for one typed field: the kit control that edits it, with its bounds and its
 // options. Both editors' forms use it (moved from editor-2d's Level inspector, plan "field form and journeys" A1); a `ref`
 // row also carries what the value is called and what it may point at, which the editor that knows its level fills in.
-import type { FieldDef, FieldType, FieldValue, RefValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldType, FieldValue, RefValue } from '@automata/content/level-2d'
 
 /** The kit control a field is edited with. `list` is a list of anything but points: shown, not yet edited. */
 export type FieldWidget =

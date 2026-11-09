@@ -1,4 +1,4 @@
-import type { FieldRecord, RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
+import type { FieldRecord, RenderDelta, RenderRow } from '@automata/sim'
 import type { Container } from 'pixi.js'
 
 /**

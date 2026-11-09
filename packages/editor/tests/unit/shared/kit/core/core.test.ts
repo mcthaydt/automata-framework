@@ -1,4 +1,4 @@
-// The shell-free entry (`@mcthaydt/automata-editor-kit/core`): what an editor's headless layers import so that they run on
+// The shell-free entry (`@automata/editor-kit/core`): what an editor's headless layers import so that they run on
 // Node without the Svelte compiler, the way the 2D lane's `./fields` does.
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'

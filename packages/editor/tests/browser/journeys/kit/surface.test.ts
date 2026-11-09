@@ -1,6 +1,6 @@
 import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/fonts.css'
-import { type MountedFixture, mountFixture, settleLayout } from '@mcthaydt/automata/testing'
+import { type MountedFixture, mountFixture, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { createHistory } from '#src/shared/kit/history/history.ts'

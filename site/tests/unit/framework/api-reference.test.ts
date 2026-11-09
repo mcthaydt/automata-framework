@@ -11,9 +11,9 @@ const SAMPLE = `# Automata API reference, version 1.2.3
 
 > Every export.
 
-## \`@mcthaydt/automata-sim\`
+## \`@automata/sim\`
 
-### \`import { … } from '@mcthaydt/automata-sim'\`
+### \`import { … } from '@automata/sim'\`
 
 #### \`createSim\` (function)
 
@@ -34,7 +34,7 @@ interface Sim {
 }
 \`\`\`
 
-### \`import { … } from '@mcthaydt/automata-sim/math'\`
+### \`import { … } from '@automata/sim/math'\`
 
 #### \`clamp\` (function)
 
@@ -48,11 +48,8 @@ describe('parseApiReference', () => {
     expect(reference.version).toBe('1.2.3')
     expect(reference.packages).toHaveLength(1)
     const [pkg] = reference.packages
-    expect(pkg).toMatchObject({ name: '@mcthaydt/automata-sim', slug: 'automata-sim' })
-    expect(pkg.entryPoints.map((e) => e.path)).toEqual([
-      '@mcthaydt/automata-sim',
-      '@mcthaydt/automata-sim/math',
-    ])
+    expect(pkg).toMatchObject({ name: '@automata/sim', slug: 'sim' })
+    expect(pkg.entryPoints.map((e) => e.path)).toEqual(['@automata/sim', '@automata/sim/math'])
     expect(pkg.entryPoints[0].entries.map((e) => [e.name, e.kind])).toEqual([
       ['createSim', 'function'],
       ['Sim', 'interface'],
@@ -91,9 +88,9 @@ describe('parseApiReference', () => {
 
 describe('searchApi', () => {
   const list = [
-    { name: 'createSim', kind: 'function', package: 'automata-sim', summary: 'Creates a simulation.' },
-    { name: 'Sim', kind: 'interface', package: 'automata-sim', summary: 'A running simulation.' },
-    { name: 'clamp', kind: 'function', package: 'automata-sim', summary: 'Limits a number.' },
+    { name: 'createSim', kind: 'function', package: 'sim', summary: 'Creates a simulation.' },
+    { name: 'Sim', kind: 'interface', package: 'sim', summary: 'A running simulation.' },
+    { name: 'clamp', kind: 'function', package: 'sim', summary: 'Limits a number.' },
   ]
   it('matches every word against the name and the summary, best name first, and caps the results', () => {
     expect(searchApi(list, 'sim').map((r) => r.name)).toEqual(['Sim', 'createSim'])

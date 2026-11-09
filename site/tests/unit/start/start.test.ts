@@ -22,7 +22,7 @@ describe('Start', () => {
       '4. Put it online',
       'Using a coding agent',
     ])
-    expect(STEPS[0]?.command).toBe('npx @mcthaydt/automata-tools create-game my-game')
+    expect(STEPS[0]?.command).toBe('npx @automata/tools create-game my-game')
   })
 
   it('gives only commands the framework answers to', () => {

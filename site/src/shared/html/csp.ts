@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto'
 
 /**
- * The pages' Content-Security-Policy (QB.4a; quality-bar spec QB.4): no `unsafe-inline` or `unsafe-eval` for scripts.
+ * The pages' Content-Security-Policy: no `unsafe-inline` or `unsafe-eval` for scripts.
  * Each inline script is allowed by the sha256 of its exact text, so the policy is computed from the final HTML, after
- * every rewrite (`finishPage`); SvelteKit's own `kit.csp` hashes its start script before QB.3j's hydration rewrite, and
+ * every rewrite (`finishPage`); SvelteKit's own `kit.csp` hashes its start script before the hydration rewrite, and
  * that hash would never match. Styles keep `unsafe-inline`: Svelte writes style attributes, and the spec forbids it for
  * scripts only. A `<meta>` policy cannot carry `frame-ancestors`; the response header does (`securityHeaders`).
  */

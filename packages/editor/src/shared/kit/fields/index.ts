@@ -31,7 +31,7 @@ export {
   type InstanceProblem,
   type Point,
   type RefValue,
-} from '@mcthaydt/automata-content/level-2d'
+} from '@automata/content/level-2d'
 export {
   type FieldCommit,
   type FieldRow,

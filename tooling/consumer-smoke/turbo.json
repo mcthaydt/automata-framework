@@ -30,10 +30,10 @@
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
       "dependsOn": [
-        "@mcthaydt/automata#build",
-        "@mcthaydt/automata-sim#build",
-        "@mcthaydt/automata-content#build",
-        "@mcthaydt/automata-tools#build"
+        "@automata/framework#build",
+        "@automata/sim#build",
+        "@automata/content#build",
+        "@automata/tools#build"
       ]
     }
   }

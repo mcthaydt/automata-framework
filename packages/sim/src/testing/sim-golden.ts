@@ -10,7 +10,7 @@ import {
   type PluginDef,
   type Rng,
   type Sim,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 import { fileName, readGoldenFile, resolveGoldenPath, updatingGoldens, writeGoldenFile } from './golden-files'
 import type { GoldenReport } from './report'

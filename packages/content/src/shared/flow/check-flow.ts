@@ -40,7 +40,7 @@ export interface FlowCapabilities {
   /** The only screen a session may begin on. */
   readonly entry?: string
   readonly screens: readonly string[]
-  /** For each screen and event, the destinations that screen is prepared to enter (FloorFifty `FLOW_TARGETS`). */
+  /** For each screen and event, the destinations that screen is prepared to enter. */
   readonly targets?: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>
   /** Transition styles the runtime draws. Default: only `cut`. */
   readonly styles?: readonly string[]
@@ -67,7 +67,7 @@ export interface FlowGraph {
   readonly screens: readonly string[]
   /** Sorted. */
   readonly terminal: readonly string[]
-  /** Sorted by from, event, then to (FloorFifty `byPair`): declaration order means nothing. */
+  /** Sorted by from, event, then to: declaration order means nothing. */
   readonly transitions: readonly FlowTransition[]
 }
 

@@ -16,16 +16,16 @@ $effect(() => {
 })
 </script>
 <section class="agent-setup" aria-label="Required agent skills" data-ui>
-  <h2>Prepare your agent.</h2>
-  <p>Use Superpowers for the development workflow and the official PixiJS v8 skills for rendering guidance. Install both for the agent session you will use on this project.</p>
+  <h2>Set up your agent once.</h2>
+  <p>Give your agent two sets of skills: Superpowers, which plans and tests each change, and PixiJS, which knows how the game draws.</p>
   <label>Your coding agent<select bind:value={agent} onchange={() => { confirmations = { superpowers: false, pixijs: false, loaded: false } }}>{#each AGENT_INSTALL_OPTIONS as option}<option>{option.name}</option>{/each}</select></label>
-  <div class="agent-install-layout"><div><h3>Install Superpowers</h3><p>{selected.instructions}</p>{#if selected.command}<CodeBlock code={selected.command} lang="text" filename={'In ' + selected.name} />{/if}<a href={SKILL_SOURCES.superpowers}>Upstream Superpowers installation</a>{#if agent === 'Codex'}<p class="small"><a href={SKILL_SOURCES.codex}>Official OpenAI plugin documentation</a></p>{/if}</div><div><h3>Install PixiJS skills</h3><p>Run this in the game checkout. Follow the installer prompts for your agent and install the PixiJS collection, including the router and the skills it references.</p><CodeBlock code={PIXIJS_INSTALL} lang="sh" filename="In your terminal" /><a href={SKILL_SOURCES.pixijs}>Official PixiJS skills installation</a></div></div>
-  <h3>Ask your agent to verify readiness</h3><CodeBlock code={SKILL_PREFLIGHT} lang="text" filename="Skill preflight to copy" />
-  <fieldset class="skill-readiness" aria-label="Skill readiness"><legend>Confirm the preflight result</legend>
+  <div class="agent-install-layout"><div><h3>Install Superpowers</h3><p>{selected.instructions}</p>{#if selected.command}<CodeBlock code={selected.command} lang="text" filename={'In ' + selected.name} />{/if}<a href={SKILL_SOURCES.superpowers}>Upstream Superpowers installation</a>{#if agent === 'Codex'}<p class="small"><a href={SKILL_SOURCES.codex}>Official OpenAI plugin documentation</a></p>{/if}</div><div><h3>Install PixiJS skills</h3><p>Run this in your game's folder, pick your agent when it asks, and install the whole PixiJS collection.</p><CodeBlock code={PIXIJS_INSTALL} lang="sh" filename="In your terminal" /><a href={SKILL_SOURCES.pixijs}>Official PixiJS skills installation</a></div></div>
+  <h3>Ask your agent to check</h3><CodeBlock code={SKILL_PREFLIGHT} lang="text" filename="Copy this to your agent" />
+  <fieldset class="skill-readiness" ><legend>What your agent said</legend>
     <label><input type="checkbox" bind:checked={confirmations.superpowers}>Superpowers is installed for this agent</label>
     <label><input type="checkbox" bind:checked={confirmations.pixijs}>The PixiJS v8 skill collection is installed</label>
     <label><input type="checkbox" bind:checked={confirmations.loaded}>My agent reported and loaded the required skills</label>
   </fieldset>
-  <p role="status">{count === 3 ? '3 of 3 confirmed by you. Your agent preflight is complete.' : `${count} of 3 checked. Use this optional checklist when setting up your agent.`}</p>
-  <p class="small">This page cannot inspect another app’s installed skills. These confirmations record your preflight check, not automatic detection. Recheck when you change agents or installations.</p>
+  <p role="status">{count === 3 ? '3 of 3 ticked. Your agent is ready.' : `${count} of 3 ticked. The boxes are only for you.`}</p>
+  <p class="small">This page can’t see what your agent has installed, and nothing you tick is sent anywhere. Tick them again when you change agents.</p>
 </section>

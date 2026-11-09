@@ -83,7 +83,7 @@ afterEach(() => {
 describe('the example data', () => {
   it('has all 17 catalog examples, each findable by id', () => {
     expect(getExamples()).toHaveLength(17)
-    expect(getExample('shapes-rects')?.title).toBe('rectangles that move, slide and spin')
+    expect(getExample('shapes-rects')?.title).toBe('Rectangles that move, slide and spin')
     expect(getExample('nope')).toBeUndefined()
   })
 
@@ -91,7 +91,7 @@ describe('the example data', () => {
     const index = exampleIndex()
     expect(index.flatMap((group) => group.examples)).toHaveLength(17)
     expect(index.map((group) => group.module)).toEqual(['core', 'shapes', 'textures', 'render', 'audio'])
-    expect(JSON.stringify(index)).not.toContain("from '@mcthaydt/automata'")
+    expect(JSON.stringify(index)).not.toContain("from '@automata/framework'")
   })
 })
 
@@ -104,6 +104,22 @@ describe('/examples', () => {
     ].map((a) => a.getAttribute('href'))
     expect(new Set(links)).toEqual(new Set(getExamples().map((example) => '/examples/' + example.id)))
     expect(view.getByRole('heading', { name: /shapes/i })).toBeTruthy()
+  })
+
+  // Build audit V2: the index reads as the rest of the site does, in a person's words, with nothing unexplained.
+  it('names each example in plain words first, with its id small beneath, and no unexplained stars', async () => {
+    const view = render(IndexPage, { props: { data: await indexLoad() } })
+    const card = view.container
+      .querySelector('a[href="/examples/core-basic-window"]')
+      ?.closest('li') as HTMLElement
+    expect(card.querySelector('.name')?.textContent).toBe(
+      'A game window with a coloured field and a line of text',
+    )
+    expect(card.querySelector('.id')?.textContent).toBe('core-basic-window')
+    expect(view.container.textContent).not.toMatch(/★|☆|defineGame|deadzone/)
+    // The groups say what is in them, not the folder names.
+    expect(view.getByRole('heading', { name: 'Drawing shapes' })).toBeTruthy()
+    expect(view.container.textContent).not.toMatch(/\bcore\b|\btextures\b/)
   })
 
   it('ignores the retired ?demo= query: the index is the same page whatever the query', async () => {
@@ -198,7 +214,7 @@ describe('/examples/<id>', () => {
   it('shows the poster with the example’s title until a run is on show', async () => {
     const view = render(ExamplePage, { props: { data: await pageData('shapes-rects') } })
     expect(view.container.querySelector('[data-testid="preview-poster"]')?.textContent).toContain(
-      'rectangles that move, slide and spin',
+      'Rectangles that move, slide and spin',
     )
   })
 

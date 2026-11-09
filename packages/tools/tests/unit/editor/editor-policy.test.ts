@@ -49,6 +49,17 @@ describe('editorPolicy with a row that names exports', () => {
   it('reads the list itself, so the suite can show its rules', () => {
     expect(policy.canRead('content/editors.toml')).toBe(true)
   })
+
+  // Add tiles writes the picture of tiles beside the game, in `assets/`; the level project points at it.
+  it('writes the pictures of tiles in assets/, and no other kind of file there', () => {
+    for (const path of ['assets/my-tiles.png', 'assets/forest.webp', 'assets/a.jpg', 'assets/b.jpeg']) {
+      expect(policy.canWrite(path), path).toBe(true)
+      expect(policy.canRead(path), path).toBe(true)
+    }
+    for (const path of ['assets/run.js', 'assets/deep/a.png', 'assets/.png', 'other/a.png', 'a.png']) {
+      expect(policy.canWrite(path), path).toBe(false)
+    }
+  })
 })
 
 describe('editorPolicy with a list that does not load', () => {

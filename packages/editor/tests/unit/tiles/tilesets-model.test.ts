@@ -88,10 +88,10 @@ describe('the Tilesets panel rows', () => {
   it('summarises a rule in a few words', () => {
     expect(ruleSummary(rule({ tiles: [] }))).toBe('no tile')
     expect(ruleSummary(rule({ tiles: [1, 2], chance: 0.3, flipX: true, breakOnMatch: true }))).toBe(
-      '2 tiles · chance 30% · flip X · break',
+      '2 tiles · 30% of the time · mirrored · stops here',
     )
     expect(ruleSummary(rule({ flipY: true, active: false, chance: 0.125 }))).toBe(
-      '1 tile · chance 12.5% · flip Y · off',
+      '1 tile · 12.5% of the time · upside down · off',
     )
   })
 
@@ -203,15 +203,15 @@ describe('the rule inspector', () => {
     } as Project
     const inspector = ruleInspector(shaped, 'ground', id, new Set())
     expect(inspector?.cells.map((cell) => cell.label)).toEqual([
-      'any',
-      'empty',
-      'filled',
-      'is Solid',
-      'filled',
-      'not Spike',
-      'any',
-      'any',
-      'is 9',
+      'anything',
+      'nothing',
+      'something',
+      'only solid',
+      'something',
+      'anything but spike',
+      'anything',
+      'anything',
+      'only 9',
     ])
     expect(inspector?.cells.filter((cell) => cell.centre).map((cell) => cell.index)).toEqual([4])
     expect(inspector?.values.map((value) => value.label)).toEqual([
@@ -221,7 +221,7 @@ describe('the rule inspector', () => {
       'Water',
       'Ladder',
     ])
-    expect(inspector).toMatchObject({ layer: 'ground', group: 'terrain', place: 1, tileset: 'terrain' })
+    expect(inspector).toMatchObject({ layer: 'ground', group: 'terrain', tileset: 'terrain' })
   })
 
   it('gives the outputs as tiles, the chance in percent and the outside choices', () => {
@@ -234,7 +234,7 @@ describe('the rule inspector', () => {
     expect(inspector?.chance).toBe(100)
     expect(inspector?.outside).toBe('0')
     expect(inspector?.outsideOptions.map((option) => option.label)).toEqual([
-      'Same as the centre',
+      'Same as this tile',
       'Empty',
       'Solid',
       'One-way',
@@ -243,7 +243,7 @@ describe('the rule inspector', () => {
       'Ladder',
     ])
     expect(inspector?.outsideOptions[0]?.id).toBe('same')
-    expect(inspector).toMatchObject({ group: 'hazards', place: 1 })
+    expect(inspector).toMatchObject({ group: 'hazards' })
   })
 
   it('is undefined for a rule or layer that is not there', () => {

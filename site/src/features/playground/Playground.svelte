@@ -1,6 +1,6 @@
 <script lang="ts" module>
 // Under reduced motion an example waits for Play; once the reader has pressed it on this visit, the next example
-// they open starts on its own (spec F10).
+// they open starts on its own.
 let playedThisVisit = false
 </script>
 <script lang="ts">
@@ -33,18 +33,18 @@ let playedThisVisit = false
   let codePanel: ReturnType<typeof CodePanel> | undefined = $state()
   let box: HTMLElement | undefined = $state()
   let playground: HTMLElement | undefined = $state()
-  /** The Preview toggle's state (§9.1): it hides the preview only while the playground is one column. */
+  /** The Preview toggle's state: it hides the preview only while the playground is one column. */
   let previewShown = $state(true)
   /** One column: the playground is narrower than 700 px. */
   let narrow = $state(false)
   const previewHidden = $derived(narrow && !previewShown)
   let orchestrator: Orchestrator | undefined
   let orchestratorLoad: Promise<Orchestrator> | undefined
-  /** §7.1's Compile state. */
+  /** Where the compile stands: the original, compiling, compiled, or a syntax error. */
   let compile = $state<'original' | 'compiling' | 'ok' | 'syntax-error'>('original')
   let diagnostics = $state<readonly Diagnostic[]>([])
   let live: LiveCompile | undefined
-  /** The compile worker failed to start or crashed: edits stop compiling, and Play still runs the original (§7.2). */
+  /** The compile worker failed to start or crashed: edits stop compiling, and Play still runs the original. */
   let liveFailed = $state(false)
   /** The code differs from the original (Reset is shown, F7). */
   let edited = $state(false)
@@ -69,10 +69,10 @@ let playedThisVisit = false
   let disposed = false
 
   let previewStatus = $derived(fetchFailed ? STATUS.offline : waitingForPlay && view.preview === 'poster' ? REDUCED : view.status)
-  /** The editor marks the compile's diagnostics and the line of the last frame failure (§7.2). */
+  /** The editor marks the compile's diagnostics and the line of the last frame failure. */
   let marked = $derived(view.failure ? [...diagnostics, view.failure] : diagnostics)
   let diagnosticStatus = $derived(diagnostics[0] ? diagnosticText(diagnostics[0], view.preview === 'running') : undefined)
-  /** The polite live region's text: a diagnostic, once it has stood for ANNOUNCE_AFTER_MS (spec F5). */
+  /** The polite live region's text: a diagnostic, once it has stood for ANNOUNCE_AFTER_MS. */
   let announced = $state('')
   $effect(() => {
     const text = diagnosticStatus
@@ -80,12 +80,12 @@ let playedThisVisit = false
     const timer = setTimeout(() => { announced = text }, ANNOUNCE_AFTER_MS)
     return () => clearTimeout(timer)
   })
-  /** The runtime or the compiled original didn't download: Retry, not Play (§7.2, §8.2). */
+  /** The runtime or the compiled original didn't download: Retry, not Play. */
   let showRetry = $derived(fetchFailed || (view.preview === 'failed' && view.frames === 0 && view.status === STATUS.offline))
   let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : liveFailed && !showRetry ? STATUS.liveUnavailable : linkUnreadable ? STATUS.linkUnreadable : diagnosticStatus ?? previewStatus)
   let showPlay = $derived(!showRetry && (waitingForPlay && view.preview === 'poster' || (view.preview === 'failed' && view.frames === 0)))
 
-  /** A sandboxed frame on the example's frame page, under the one on show until it reports `running` (spec F4). */
+  /** A sandboxed frame on the example's frame page, under the one on show until it reports `running`. */
   function createFrame(): PreviewFrame {
     const frame = document.createElement('iframe')
     frame.setAttribute('sandbox', 'allow-scripts')
@@ -116,7 +116,7 @@ let playedThisVisit = false
     return isEdit ? { ticks: golden.ticks } : { ticks: golden.ticks, replay: golden.replay }
   }
 
-  /** The original, precompiled at sync time, so the first run needs neither the editor nor the compiler (spec F1). */
+  /** The original, precompiled at sync time, so the first run needs neither the editor nor the compiler. */
   async function runOriginal() {
     fetchFailed = false
     const run = ++runs
@@ -155,7 +155,7 @@ let playedThisVisit = false
     diagnostics = []
     void writeFragment(source)
     compiled = result.code
-    // Under reduced motion nothing runs until Play, an edit included (§7.4).
+    // Under reduced motion nothing runs until Play, an edit included.
     if (!waitingForPlay) void runCompiled(result.code)
   }
 
@@ -292,7 +292,7 @@ let playedThisVisit = false
     const onMessage = (event: MessageEvent) => orchestrator?.receive({ source: event.source, origin: event.origin, data: event.data })
     window.addEventListener('message', onMessage)
     // Chromium lets a frame's own script take focus while the frame is still `inert`, so the arrival run took the
-    // caret from a reader already in the code. Only the page's `blur` shows it: focus goes back where it was (§9.2).
+    // caret from a reader already in the code. Only the page's `blur` shows it: focus goes back where it was.
     let lastFocus: Element | null = null
     const onFocusIn = (event: FocusEvent) => { lastFocus = event.target as Element }
     const onBlur = () => {
@@ -350,7 +350,7 @@ let playedThisVisit = false
   /* Hidden, the wrapper clips to nothing while the frame keeps its own box, so the game is neither resized nor reloaded. */
   .playground-preview[data-shown='false'] { height: 0; overflow: clip; }
   .playground-status { margin: .75rem 0 0; min-height: 1.5em; font-size: var(--step-small); color: var(--muted); overflow-wrap: anywhere; }
-  /* The diagnostic reads as the status line it is, and is a 44 px target that takes the reader to the line (§8.2). */
+  /* The diagnostic reads as the status line it is, and is a 44 px target that takes the reader to the line. */
   .diagnostic { display: block; width: 100%; min-height: 44px; padding: .5rem 0; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
   @container playground (min-width: 700px) {
     .playground-grid { grid-template-columns: minmax(0, 55fr) minmax(0, 45fr); align-items: start; }

@@ -1,6 +1,6 @@
 // Importing a folder or a zip into the workspace (ED3D.5b step 6; ED3D spec §8, open question 1): on an iPad a game's
 // level files reach the OPFS workspace this way. Everything lands under one root folder and nothing is overwritten.
-import { type ProjectStore, StorageError } from '@mcthaydt/automata-editor/kit/core'
+import { type ProjectStore, StorageError } from '@automata/editor/kit/core'
 import { strToU8, zipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
 import { loadFixture } from '../testing/fixtures'

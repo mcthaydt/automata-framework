@@ -7,7 +7,7 @@ import {
   type Sim,
   SimDisposedError,
   type StepResult,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { createFakeHost } from '@ruken/sdk-host/testing'
 import { flushSync } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

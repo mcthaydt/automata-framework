@@ -3,7 +3,7 @@
 // it stands on (`sit`) and the rectangle it bounds (`area`). The kit's keys come from its `entityDefShape` and its rules
 // from `entityDefIssues`, so nothing here copies them; the rules below are the 3D editor's own. Like the rest of the
 // format the schema keeps a member it does not know.
-import { type EntityDef, entityDefIssues, entityDefShape } from '@mcthaydt/automata-editor/kit/fields'
+import { type EntityDef, entityDefIssues, entityDefShape } from '@automata/editor/kit/fields'
 import { z } from 'zod'
 
 export const THING_SHAPES: readonly ['point', 'box'] = ['point', 'box']
