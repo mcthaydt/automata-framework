@@ -38,6 +38,7 @@ workspace):
 | B11, B12, B16 (low) | The guide's steps match the dialog; the `AGENTS.md` commit line is added; the editor-3d plan-comment debt is held by `check-style --ratchet 241`, so it cannot grow. |
 | B13 (low), Task 15 | Home says "Finish the game your agent started." The "2D" launch words are gone from Home, Start, the docs, `llms.txt` and the command menu. Start's steps are the ones `create-game` prints (a test compares them). `site/tests/unit/home/launch-words.test.ts` pins this. |
 | Task 16 | Starter art: a player (stand and blink), a turning coin, a slime and a ground tile set. `scripts/write-starter-art.ts` draws it from our own palette; a drift test regenerates it and compares. Plain 2D games only. |
+| 3D parity (CI) | `packages/3d/tests/browser/parity/shared/parity/renderer.test.ts` sampled a pixel in a top bar. Task 12's landscape fit (#538) gave a 16:9 view no bars, so the test failed in all three engines on #550's source too. It now uses a 200 × 90 view, where a bar fills each side, and samples the left bar. |
 | B1, B9, B14, B15 | Not this stage's: B1 is the Owner's `SKILLS_TOKEN` push; B9, B14 and B15 were handed off in the plan. |
 
 ## Gates
