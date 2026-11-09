@@ -65,6 +65,7 @@ describe('keepsOldNames', () => {
     expect(keepsOldNames('packages/sim/CHANGELOG.md')).toBe(true)
     expect(keepsOldNames('tooling/codemods/src/rename-scope.ts')).toBe(true)
     expect(keepsOldNames('tooling/release/tests/unit/scope.test.ts')).toBe(true)
+    expect(keepsOldNames('.changeset/scope-automata.md')).toBe(true)
   })
 
   it('rewrites everything else', () => {

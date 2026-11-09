@@ -8,6 +8,7 @@
 <script lang="ts">
 import type { GeometryState } from '@automata/framework'
 import { type Component, onDestroy } from 'svelte'
+import DocumentScreen from '../../features/document/DocumentScreen.svelte'
 import {
   createDocumentController,
   type DocumentController,
@@ -20,12 +21,12 @@ import type { LifecycleDocument, LifecycleWindow } from '../../shared/kit/storag
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
-import type { EditorApp } from '../../shared/level-2d/documents/editor-app'
-import type { ChoiceOutcome, PanelOutcome } from '../../shared/level-2d/documents/open-flow-model'
-import type { LevelCanvasProps, ObjectUrls } from '../../shared/level-2d/documents/view-props'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
-import DocumentScreen from './DocumentScreen.svelte'
+import type { EditorApp } from '../../shared/level-2d/session/editor-app-types'
+import type { ChoiceOutcome, PanelOutcome } from '../../shared/level-2d/session/open-flow-model'
+import type { LevelCanvasProps, ObjectUrls } from '../../shared/level-2d/session/view-props'
+import { componentOf } from './views'
 
 interface Props {
   geometry: GeometryState
@@ -126,6 +127,7 @@ onDestroy(() => {
   <DocumentScreen
     {geometry}
     controller={open}
+    viewOf={componentOf}
     {toasts}
     {clock}
     read={(path) => workspace.store.read(path)}

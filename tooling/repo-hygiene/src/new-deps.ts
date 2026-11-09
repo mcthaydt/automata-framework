@@ -32,7 +32,10 @@ export interface DependencyReport extends NewDependency {
 
 const NPMJS = 'https://registry.npmjs.org'
 
-/** `@scope:registry=url` lines of a root .npmrc; none (a repo without the file) means every scope is npmjs.org. */
+/**
+ * The `@scope:registry=url` lines of a root .npmrc. `undefined` means the repository has no .npmrc, and then every
+ * scope installs from npmjs.org.
+ */
 export function scopeRegistries(npmrc: string | undefined): Record<string, string> {
   const scopes: Record<string, string> = {}
   for (const line of (npmrc ?? '').split('\n')) {
