@@ -146,6 +146,7 @@ export function workspaceFile(list: EditorList, path: string): WorkspaceFile | U
     gates: row.gates,
     checks: row.checks,
     modes: row.modes,
+    ...(row.exports === undefined ? {} : { exports: row.exports }),
     writable: access.writable,
     ...(access.writable ? {} : { why: access.why }),
   }

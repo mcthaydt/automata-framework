@@ -1,6 +1,5 @@
 // Decoded music: one looping track at a time on the music bus, for short loops and menu beds.
-// From FloorFifty `apps/client/src/managers/audio/deck.ts` at `ac72660`, without its sections, previews, tails and
-// the streamed deck, which are FloorFifty's own or `audio-stream`'s.
+// It has no sections, previews, tails or streamed deck: those are a game's own or `audio-stream`'s.
 import type { AudioGraph } from './audio-graph.js'
 import { CUT_SECONDS, fadeOut } from './audio-voices.js'
 

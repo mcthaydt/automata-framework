@@ -64,6 +64,8 @@ export const BudgetFile = z.discriminatedUnion('status', [
       headroom: z.number().min(1),
     }),
     projects: z.record(z.string(), projectBudget),
+    /** Most ms from the 3D page starting to its first figure posed, checked by the 3D probe page. */
+    firstPoseMs: z.number().positive().optional(),
   }),
 ])
 export type BudgetFile = z.infer<typeof BudgetFile>

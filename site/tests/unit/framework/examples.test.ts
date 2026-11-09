@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { featureDemos, playgroundExamples } from '../../../src/shared/framework/examples.ts'
+import { featureDemos, playgroundExamples } from '#src/shared/framework/examples.ts'
 
 // The examples and demos come from the 2D examples package itself (WS3), so a demo that leaves (bodies-2d left
 // with physics) leaves the site in the same pull request.

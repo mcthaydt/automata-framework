@@ -1,0 +1,131 @@
+/* Home's demo: one bar above the game, then the game's picture edge to edge. The bar names the game, says which keys
+   play it, and has the game's one or two buttons. */
+.demo-runner {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--stage);
+  color: var(--ink);
+}
+.demo-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #07080a;
+}
+/* On an upright phone a playing demo stands upright too: a wide frame on a narrow phone is, to the game inside, a phone
+   held sideways, and the game asks for fullscreen before it plays. Upright, it plays in the frame with its controls
+   below the room. The poster keeps the wide frame. */
+@media (max-width: 599px) and (orientation: portrait) {
+  .demo-viewport[data-playing] {
+    aspect-ratio: 3 / 4;
+  }
+}
+.demo-viewport iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  position: absolute;
+  inset: 0;
+}
+.demo-poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.demo-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 6px 8px 6px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 13px;
+}
+.demo-words {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 12px;
+  min-width: 0;
+  color: var(--muted);
+}
+.demo-words strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+/* The keys that play the game, on a screen that has a keyboard; a touch screen has the game's own buttons. */
+.demo-keys {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--faint);
+}
+.demo-keys kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--edge-sm);
+  color: var(--muted);
+  font: 500 11px / 1 var(--font-mono);
+}
+@media not ((hover: hover) and (pointer: fine)) {
+  .demo-keys {
+    display: none;
+  }
+}
+.demo-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.demo-keys + .demo-actions {
+  margin-left: 12px;
+}
+.demo-actions button[aria-busy="true"] {
+  cursor: progress;
+}
+.demo-runner :focus-visible {
+  outline-color: var(--lime);
+  outline-offset: 2px;
+}
+.demo-runner > .small {
+  margin: 0;
+  padding: 0.75rem 1rem;
+}
+.demo-runner:fullscreen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 0;
+}
+.demo-runner:fullscreen .demo-viewport {
+  flex: 1;
+  aspect-ratio: auto;
+}
+/* On a phone the bar keeps the name and the buttons; the tagline and the keys are the first things to go. */
+@media (max-width: 760px) {
+  .demo-bar .tagline,
+  .demo-keys {
+    display: none;
+  }
+  .demo-actions {
+    margin-left: auto;
+  }
+}
+@media (max-width: 1023px) {
+  .demo-keys {
+    display: none;
+  }
+  .demo-actions {
+    margin-left: auto;
+  }
+}

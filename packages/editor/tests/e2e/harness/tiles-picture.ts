@@ -28,3 +28,61 @@ export function solidPng(width: number, height: number, color: readonly [number,
     chunk('IEND', Buffer.alloc(0)),
   ])
 }
+
+/**
+ * A picture of `columns` x `rows` square tiles of `tile` px, each tile one opaque colour of its own (`colors[index]`,
+ * row by row), so a journey can tell which tile the game drew by the colour it finds.
+ */
+export function tilesPng(
+  tile: number,
+  columns: number,
+  rows: number,
+  colors: readonly (readonly [number, number, number])[],
+): Buffer {
+  const width = tile * columns
+  const height = tile * rows
+  const header = Buffer.alloc(13)
+  header.writeUInt32BE(width, 0)
+  header.writeUInt32BE(height, 4)
+  header.set([8, 2, 0, 0, 0], 8)
+  const lines: Buffer[] = []
+  for (let y = 0; y < height; y++) {
+    const pixels: number[] = [0]
+    for (let x = 0; x < width; x++) {
+      const index = Math.floor(y / tile) * columns + Math.floor(x / tile)
+      pixels.push(...(colors[index] ?? [0, 0, 0]))
+    }
+    lines.push(Buffer.from(pixels))
+  }
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', header),
+    chunk('IDAT', deflateSync(Buffer.concat(lines))),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+/**
+ * A strip of `count` frames, each `width` x `height` px and one opaque colour of its own (`colors[frame]`), side by side:
+ * a picture a character's clips are cut from, so a journey can tell which frame the game drew by the colour it finds.
+ */
+export function framesPng(
+  width: number,
+  height: number,
+  count: number,
+  colors: readonly (readonly [number, number, number])[],
+): Buffer {
+  const header = Buffer.alloc(13)
+  header.writeUInt32BE(width * count, 0)
+  header.writeUInt32BE(height, 4)
+  header.set([8, 2, 0, 0, 0], 8)
+  const line = [0]
+  for (let x = 0; x < width * count; x++) line.push(...(colors[Math.floor(x / width)] ?? [0, 0, 0]))
+  const rows = Buffer.concat(Array.from({ length: height }, () => Buffer.from(line)))
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', header),
+    chunk('IDAT', deflateSync(rows)),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+}

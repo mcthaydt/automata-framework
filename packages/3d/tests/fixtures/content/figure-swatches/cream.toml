@@ -1,0 +1,6 @@
+# `cream`, a fixture.
+# Colour: DUEL ramp 1 (sand), step 4 (#bbafa4).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "sand"
+step = 4

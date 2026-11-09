@@ -1,0 +1,9 @@
+# `silver`, a fixture.
+# Colour: DUEL ramp 0 (grey), step 5 (#a6aeba).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "grey"
+step = 5
+gloss = 0.9
+kind = "metal"
+role = "hardware"

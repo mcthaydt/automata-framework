@@ -2,11 +2,15 @@
 // network with a token (`--lan`) so a tablet can open it. The server is `serve-editor.ts`; this is the command around it:
 // which build to serve, what to print, and when to refuse. The dependencies are injected so the tests run no server.
 import { randomBytes } from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { type EditorApp, parseEditorArgs } from './editor-args.ts'
+import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import { APP_IS_GONE, parseEditorArgs } from './editor-args.ts'
+import { gameVite, type RunningGame, startGame } from './game-runner.ts'
+import { type EditorPage, pageFor } from './page-for.ts'
+import { type PublishOutcome, publishGame, runStep } from './publish-game.ts'
 import type { EditorServerOptions, RunningEditor } from './serve-editor.ts'
 
 export interface EditorCommandIo {
@@ -16,9 +20,11 @@ export interface EditorCommandIo {
 
 export interface EditorCommandDeps {
   readonly serve: (options: EditorServerOptions) => Promise<RunningEditor>
-  /** The build folder of an editor: the one that came with the tools when there is one (2D and the suite), else the repository's. */
-  readonly builtApp: (app: EditorApp) => string
-  /** Whether this runs from a checkout of the AutomataFramework repository, where the 3D editors are built. */
+  /** The build folder of a page: the 2D page's is the one that came with the tools when there is one, else the repository's. */
+  readonly builtApp: (page: EditorPage) => string
+  /** The game's `content/editors.toml` text, or nothing when it has none: it picks the page. */
+  readonly readEditorList: (root: string) => string | undefined
+  /** Whether this runs from a checkout of the AutomataFramework repository, where the full page is built. */
   readonly inRepository: boolean
   readonly exists: (path: string) => boolean
   /** The machine's IPv4 addresses on the network, for the tablet's address. */
@@ -26,35 +32,30 @@ export interface EditorCommandDeps {
   readonly makeToken: () => string
   /** Resolves when the person stops the command (Ctrl+C). */
   readonly untilStopped: () => Promise<void>
+  /** Starts the game in this folder as `pnpm dev` does, for Play and the Tuner; throws a sentence the person can act on. */
+  readonly startGame: (root: string) => Promise<RunningGame>
+  /** Builds the game in this folder and makes the zip to upload (the editor's Publish). */
+  readonly publishGame: (root: string) => Promise<PublishOutcome>
   readonly cwd: string
 }
 
-const USAGE = `Usage: automata editor [folder] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
-       [--game-url <address>]
+const USAGE = `Usage: automata editor [folder] [--app-dir <build>] [--port <n>] [--lan] [--token <t>] [--game-url <address>]
 
-Opens the level editor on the game in <folder> (default: this folder) until you press Ctrl+C.
+Opens the editors your game needs on the game in <folder> (default: this folder) until you press Ctrl+C.
 Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
 (one is made for you if you give none). Open the address it prints, with the token in it.
 The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
-you were editing. Without content/editors.toml, it opens only level files (*.af2d.json).
-The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on
-http://localhost:5173.
+you were editing. Without content/editors.toml, it opens only level files (*.af2d.json and *.af-sector.json).
+It starts your game too, so Play and the Tuner can show it, and Publish builds it into a zip to upload.
+If your game is already running (pnpm dev), give its address with --game-url and it starts no other.
 `
 
-/** What the first line calls each app ("Opened My game in the level editor."): words, not the flag's value. */
-const APP_WORDS: Readonly<Record<EditorApp, string>> = {
-  '2d': 'the level editor',
-  '3d': 'the 3D editor',
-  suite: 'the editors',
-}
-
-/** Where each editor's build is, from the repository root, and the package that builds it. */
-const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
-  '2d': { folder: 'packages/editor/dist/2d', pkg: '@automata/editor' },
-  '3d': { folder: 'packages/editor-3d/dist', pkg: '@automata/editor-3d' },
-  // The suite's 2D page: the level editor and the Tuner, packed in the published tools too. The full suite, with
-  // the 3D editors, is editor-3d's `dist/suite`, served with --app-dir.
-  suite: { folder: 'packages/editor/dist/suite', pkg: '@automata/editor' },
+/** Where each page's build is, from the repository root, and the package that builds it. */
+const BUILDS: Readonly<Record<EditorPage, { readonly folder: string; readonly pkg: string }>> = {
+  // Levels and the Tuner: packed in the published tools too.
+  'suite-2d': { folder: 'packages/editor/dist/suite', pkg: '@automata/editor' },
+  // The suite with Levels 3D and Characters: built in the repository only.
+  'suite-full': { folder: 'packages/editor-3d/dist/suite', pkg: '@automata/editor-3d' },
 }
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -75,34 +76,39 @@ export async function editorCommand(
     io.stdout(USAGE)
     return 0
   }
+  if (args.includes('--app')) {
+    io.stderr(`Error: ${APP_IS_GONE}\n`)
+    return 1
+  }
   const parsed = parseEditorArgs(args)
   if (!parsed.ok) {
     io.stderr(`Error: ${parsed.problem}\n\n${USAGE}`)
     return 2
   }
-  const { dir, app, appDir, port, lan, token, gameUrl } = parsed.options
+  const { dir, appDir, port, lan, token, gameUrl } = parsed.options
   const root = resolve(deps.cwd, dir)
-  const build = appDir === undefined ? deps.builtApp(app) : resolve(deps.cwd, appDir)
-  // The 3D editor is built in the repository only. A published copy of the tools packs the level editor and the suite's
-  // 2D page (the Tuner); a copy without the suite's page says so rather than naming a build folder it never had.
-  if (
-    app !== '2d' &&
-    appDir === undefined &&
-    !deps.inRepository &&
-    (app === '3d' || !deps.exists(resolve(build, 'index.html')))
-  ) {
-    io.stderr(
-      app === 'suite'
-        ? 'Error: The editor suite is not in this release yet. Run automata editor to open the level editor.\n'
-        : 'Error: The 3D editor is not in this release yet.\n',
-    )
+  const page = pageFor(deps.readEditorList(root))
+  const build = appDir === undefined ? deps.builtApp(page) : resolve(deps.cwd, appDir)
+  // The full page is built in the repository only; a published copy of the tools packs the 2D page.
+  if (page === 'suite-full' && appDir === undefined && !deps.inRepository) {
+    io.stderr('Error: The 3D editors are not in this release yet.\n')
     return 2
   }
   if (!deps.exists(resolve(build, 'index.html'))) {
-    io.stderr(`Error: no editor build at ${build}. Build it first: pnpm --filter ${BUILDS[app].pkg} build\n`)
+    io.stderr(`Error: no editor build at ${build}. Build it first: pnpm --filter ${BUILDS[page].pkg} build\n`)
     return 2
   }
   const secret = lan ? (token ?? deps.makeToken()) : token
+  // The game runs beside the editor unless the person already runs it; a game that cannot start leaves the editor
+  // working, with Play off and the reason printed.
+  let game: RunningGame | undefined
+  let gameProblem: string | undefined
+  if (gameUrl === undefined)
+    try {
+      game = await deps.startGame(root)
+    } catch (error) {
+      gameProblem = error instanceof Error ? error.message : String(error)
+    }
   let running: RunningEditor
   try {
     running = await deps.serve({
@@ -111,28 +117,33 @@ export async function editorCommand(
       host: lan ? '0.0.0.0' : '127.0.0.1',
       port,
       token: secret,
-      gameUrl,
+      gameUrl: gameUrl ?? game?.url,
+      publish: () => deps.publishGame(root),
     })
   } catch (error) {
+    await game?.stop()
     io.stderr(`Error: ${error instanceof Error ? error.message : String(error)}\n`)
     return 2
   }
   const query = secret === undefined ? '' : `/?token=${secret}`
   // Loaded here, like the server itself: the module reads the editor suite, which Node cannot run from the workspace bin.
   const { gameName } = await import('./serve-editor.ts')
-  io.stdout(`Opened ${gameName(root)} in ${APP_WORDS[app]}.\n  This computer: ${running.url}${query}\n`)
+  io.stdout(`Opened ${gameName(root)}.\n  This computer: ${running.url}${query}\n`)
   if (lan)
     for (const address of deps.lanAddresses())
       io.stdout(`  On the network: http://${address}:${running.port}${query}\n`)
+  if (game !== undefined) io.stdout(`  Your game is running: ${game.url}\n`)
+  if (gameProblem !== undefined) io.stdout(`  Play is off: ${gameProblem}\n`)
   io.stdout('Press Ctrl+C to stop.\n')
   await deps.untilStopped()
   await running.close()
+  await game?.stop()
   return 0
 }
 
-/** An editor packed next to the running bin (`dist/editors/2d` and `dist/editors/suite` in the published tools), if this is a published copy. */
-const packedEditor = (app: 'suite' | '2d'): string | undefined => {
-  const folder = resolve(here, `editors/${app}`)
+/** The 2D page packed next to the running bin (`dist/editors/suite` in the published tools), if this is a published copy. */
+const packedPage = (): string | undefined => {
+  const folder = resolve(here, 'editors/suite')
   return existsSync(resolve(folder, 'index.html')) ? folder : undefined
 }
 
@@ -144,8 +155,15 @@ export function liveEditorDeps(): EditorCommandDeps {
     // Loaded on use: the server reads the editor suite, whose sources Node cannot run from the workspace bin, and no
     // other command needs it.
     serve: async (options) => (await import('./serve-editor.ts')).serveEditor(options),
-    builtApp: (app) =>
-      (app === '3d' ? undefined : packedEditor(app)) ?? resolve(repositoryRoot(), BUILDS[app].folder),
+    builtApp: (page) =>
+      (page === 'suite-2d' ? packedPage() : undefined) ?? resolve(repositoryRoot(), BUILDS[page].folder),
+    readEditorList: (root) => {
+      try {
+        return readFileSync(resolve(root, EDITOR_LIST_PATH), 'utf8')
+      } catch {
+        return undefined
+      }
+    },
     inRepository: isRepository(),
     exists: existsSync,
     lanAddresses: () =>
@@ -159,6 +177,9 @@ export function liveEditorDeps(): EditorCommandDeps {
         process.once('SIGINT', done)
         process.once('SIGTERM', done)
       }),
+    startGame,
+    publishGame: (root) =>
+      publishGame(root, { vite: gameVite(root), bin: process.argv[1] ?? '', run: runStep }),
     cwd: process.cwd(),
   }
 }

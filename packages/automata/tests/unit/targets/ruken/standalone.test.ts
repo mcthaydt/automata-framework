@@ -13,7 +13,7 @@ const topLevel =
     ...(storage === undefined ? {} : { storage }),
   })
 
-describe("a top-level page: the SDK's standalone session (FloorFifty hosting, standalone cases)", () => {
+describe("a top-level page: the SDK's standalone session", () => {
   it('is ready at once, full volume, nothing reserved, and sends the host nothing', () =>
     withHostingTest(
       async ({ hosting, handle: { host } }) => {

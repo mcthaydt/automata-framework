@@ -3,16 +3,22 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "scripts": {
     "prepare": "svelte-kit sync",
     "dev": "vite dev",
-    "build": "node scripts/build-demos.ts && vite build && node scripts/write-seo-files.ts build && node scripts/write-redirects.ts build && node scripts/scan-closed-beta.ts build",
+    "build": "node scripts/build-demos.ts && vite build && node scripts/make-404.ts build && node scripts/write-seo-files.ts build && node scripts/write-headers.ts build && node scripts/scan-closed-beta.ts build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:unit": "node scripts/write-api-index.ts && vitest run",
     "check:site": "node scripts/check-site.ts",
     "check:launch": "node scripts/check-launch.ts",
+    "check:deployed": "node scripts/check-deployed.ts",
+    "deploy": "wrangler pages deploy build --project-name automataframework --branch main",
+    "host:local": "wrangler pages dev build --ip 127.0.0.1",
     "test:e2e": "playwright test",
     "e2e:playground": "node playground/feasibility-server.ts",
     "e2e:playground-frame": "vite build -c playground/vite.config.ts && node playground/frame-server.ts",
@@ -20,6 +26,10 @@
     "lighthouse": "lhci autorun --config=lighthouserc.cjs"
   },
   "dependencies": {
+    "@automata/editor": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@automata/tools": "workspace:*",
     "@babel/parser": "8.0.10",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-javascript": "6.2.4",
@@ -29,23 +39,22 @@
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.15",
     "@lezer/highlight": "1.2.5",
-    "@automata/framework": "workspace:*",
-    "@automata/editor": "workspace:*",
-    "@automata/sim": "workspace:*",
-    "@automata/tools": "workspace:*",
     "@ruken/manifest": "file:../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "effect": "3.22.2",
+    "lenis": "1.3.27",
+    "motion": "14.6.0",
     "sucrase": "3.35.1",
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@automata/examples-runner": "workspace:*",
+    "@automata/playwright-preset": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@axe-core/playwright": "4.13.0",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",
     "@lhci/cli": "0.15.1",
-    "@automata/examples-runner": "workspace:*",
-    "@automata/playwright-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/adapter-static": "3.0.8",
     "@sveltejs/kit": "2.70.4",
@@ -59,6 +68,7 @@
     "typescript": "6.0.3",
     "vite": "8.3.3",
     "vitest": "5.0.3",
+    "wrangler": "4.140.0",
     "yaml": "2.9.1"
   }
 }

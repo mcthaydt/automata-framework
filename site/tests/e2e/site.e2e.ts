@@ -1,4 +1,4 @@
-// QB.3 browser gates on the built site (quality-bar spec §4.2). Run `pnpm build` first; the pages come from the built
+// QB.3 browser gates on the built site. Run `pnpm build` first; the pages come from the built
 // sitemap.xml, so a new page is covered without editing this file.
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -20,13 +20,15 @@ const PAGES = Array.from(
   readFileSync(resolve('build/sitemap.xml'), 'utf8').matchAll(/<loc>https?:\/\/[^/]+([^<]*)<\/loc>/g),
   (match) => match[1] || '/',
 )
+// Addresses nothing answers, at the top level and nested (the 404 page's links are root-relative so both work).
+const MISSING = ['/no-such-page', '/docs/no/such/page']
 const VIEWPORTS = [
   { name: 'phone', width: 375, height: 667 },
   { name: 'tablet', width: 768, height: 1024 },
   { name: 'desktop', width: 1280, height: 800 },
   { name: 'landscape phone', width: 780, height: 270 },
 ]
-const PRIMARY_LINKS = ['Docs', 'Examples', 'Editor', 'API']
+const PRIMARY_LINKS = ['Docs', 'Examples', 'Editor', 'Pricing', 'Changelog']
 
 /** Loads a page and waits for semantic readiness: no network in flight and the web fonts applied. */
 async function open(page: Page, path: string): Promise<void> {
@@ -74,17 +76,20 @@ for (const viewport of VIEWPORTS) {
       }
     })
 
-    test('a Get started link is in the header', async ({ page }) => {
+    test('a Make a game link is in the header', async ({ page }) => {
       await open(page, '/docs')
       await expect(
         page
           .locator('header.site-header')
-          .getByRole('link', { name: 'Get started', exact: true })
+          .getByRole('link', { name: 'Make a game', exact: true })
           .locator('visible=true'),
       ).toHaveCount(1)
     })
 
     test('images are at most twice their rendered width', async ({ page }) => {
+      test.setTimeout(120_000)
+      // The logo strip moves, and a moving picture is never "stable" to scroll to; sizes are what is measured here.
+      await page.emulateMedia({ reducedMotion: 'reduce' })
       for (const path of ['/', '/start', '/examples']) {
         await open(page, path)
         for (const image of await page.locator('img:visible').all()) {
@@ -130,7 +135,7 @@ for (const size of AUDIT_SIZES) {
     test('every link and button on every page is big enough to tap', async ({ page }) => {
       test.setTimeout(180_000)
       const small: string[] = []
-      for (const path of PAGES) {
+      for (const path of [...PAGES, ...MISSING]) {
         await open(page, path)
         for (const target of await smallTapTargets(page)) small.push(`${path}: ${target}`)
       }
@@ -222,13 +227,51 @@ test.describe('desktop 1280×800', () => {
     })
   }
 
-  test('an unknown path returns the branded 404 page with ways back', async ({ page }) => {
+  test('a missing address shows "Page not found" in the first paint, before any script runs', async ({
+    request,
+  }) => {
+    const response = await request.get('/no-such-page')
+    expect(response.status()).toBe(404)
+    expect(await response.text()).toContain('Page not found')
+  })
+
+  test('/app at 390 × 844 stacks the two prices and nothing reaches past the screen’s edge', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await open(page, '/app')
+    const boxes = await page
+      .locator('.price')
+      .evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()))
+    expect(boxes).toHaveLength(2)
+    expect(boxes[1].top).toBeGreaterThan(boxes[0].bottom - 1)
+    expect(boxes[0].left).toBe(boxes[1].left)
+    expect(await horizontalOverflow(page)).toEqual([])
+  })
+
+  test('a missing address is branded, with ways back', async ({ page }) => {
     const response = await page.goto('/no-such-page')
     expect(response?.status()).toBe(404)
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Lost your place?')
-    for (const name of ['Back to overview', 'Read the docs', 'Explore examples']) {
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found')
+    for (const name of ['Go to the home page', 'Read the docs']) {
       await expect(page.getByRole('main').getByRole('link', { name })).toBeVisible()
     }
+  })
+
+  test('a nested missing address is styled and its links work', async ({ page }) => {
+    const failed: string[] = []
+    page.on('response', (response) => {
+      if (response.url().includes('/_app/') && response.status() !== 200) failed.push(response.url())
+    })
+    await page.goto('/docs/nope/deeper', { waitUntil: 'networkidle' })
+    expect(failed).toEqual([])
+    // Styled: the lime button has its fill, which a page without its stylesheet does not.
+    const fill = await page
+      .getByRole('link', { name: 'Go to the home page' })
+      .evaluate((a) => getComputedStyle(a).backgroundColor)
+    expect(fill).not.toBe('rgba(0, 0, 0, 0)')
+    await page.getByRole('link', { name: 'Go to the home page' }).click()
+    await expect(page).toHaveURL(`${ORIGIN}/`)
   })
 
   test('the demo runner shows its loading state, then its failure state', async ({ page }) => {
@@ -237,7 +280,7 @@ test.describe('desktop 1280×800', () => {
       fail = release
     })
     // Hold the bundle until the loading state is asserted, then answer as a bundle whose boot failed.
-    await page.route('**/demos/emberwick/index.html', async (route) => {
+    await page.route('**/demos/emberwick/index.html**', async (route) => {
       await failed
       await route.fulfill({
         contentType: 'text/html',
@@ -246,13 +289,11 @@ test.describe('desktop 1280×800', () => {
     })
     await open(page, '/')
     const runner = page.getByTestId('demo-runner-container')
-    await runner.getByRole('button', { name: 'Play demo' }).click()
-    await expect(runner.getByRole('status')).toHaveText('Starting the demo…')
+    await runner.getByRole('button', { name: 'Play it' }).click()
+    await expect(runner.getByRole('status')).toHaveText('Starting Emberwick…')
     fail()
-    await expect(runner.getByRole('alert')).toHaveText(
-      "This demo couldn't start. Try again or open it in a new tab.",
-    )
-    await expect(runner.getByRole('button', { name: 'Retry' })).toBeVisible()
+    await expect(runner.getByRole('alert')).toHaveText("Emberwick didn't start.")
+    await expect(runner.getByRole('button', { name: 'Try again' })).toBeVisible()
   })
 
   test('search shows an empty state when nothing matches', async ({ page }) => {
@@ -348,15 +389,121 @@ test.describe('without script', () => {
     await page.goto('/')
     const pictures = page.locator('main picture img')
     expect(await pictures.count()).toBeGreaterThanOrEqual(1)
-    for (const alt of await pictures.evaluateAll((images) =>
-      images.map((image) => image.getAttribute('alt')),
-    ))
-      expect(alt, 'every picture has alt text').toBeTruthy()
+    // A picture has alt text, or it is decorative: hidden from readers (a repeat in the logo strip) or a picture inside a
+    // link that already says in words where it goes (an example's card).
+    const unnamed = await pictures.evaluateAll((images) =>
+      images
+        .filter((image) => !image.getAttribute('alt'))
+        .filter((image) => !image.closest('[aria-hidden="true"]'))
+        .filter((image) => !image.closest('a')?.textContent?.trim())
+        .map((image) => image.getAttribute('src')),
+    )
+    expect(unnamed, 'every picture has alt text or is decorative').toEqual([])
     await pictures.last().scrollIntoViewIfNeeded()
     await expect
       .poll(() =>
         pictures.last().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
       )
       .toBe(true)
+  })
+})
+
+// One shell: every page starts at the header logo's left edge, titles are one weight, and the header does
+// not move from page to page.
+const SHELL_PAGES = [
+  '/',
+  '/start',
+  '/docs/how-it-works',
+  '/examples',
+  '/examples/shapes-rects',
+  '/api',
+  '/api/0.0.5/framework',
+  '/privacy',
+  '/terms',
+  '/editor',
+]
+
+for (const width of [390, 820, 1440]) {
+  test.describe(`one shell at ${width} px`, () => {
+    test.use({ viewport: { width, height: 900 } })
+
+    test("every page's content starts at the logo's x", async ({ page }) => {
+      for (const path of SHELL_PAGES) {
+        await open(page, path)
+        const edges = await page.evaluate(() => ({
+          logo: document.querySelector('.site-header .logo')?.getBoundingClientRect().left ?? -1,
+          content: document.querySelector('main .page-wrap')?.getBoundingClientRect().left ?? -2,
+        }))
+        expect(
+          Math.abs(edges.content - edges.logo),
+          `${path}: logo ${edges.logo}, content ${edges.content}`,
+        ).toBeLessThanOrEqual(1)
+      }
+    })
+
+    test('h1 has font-weight 600 on every page', async ({ page }) => {
+      for (const path of SHELL_PAGES) {
+        await open(page, path)
+        const weight = await page
+          .locator('main h1')
+          .first()
+          .evaluate((h1) => getComputedStyle(h1).fontWeight)
+        expect(weight, path).toBe('600')
+      }
+    })
+  })
+}
+
+test.describe('the header', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('the header links do not move between pages', async ({ page }) => {
+    const linkEdges = async (path: string) => {
+      await open(page, path)
+      return page
+        .locator('.site-header nav.links a')
+        .evaluateAll((links) => links.map((link) => Math.round(link.getBoundingClientRect().left * 10) / 10))
+    }
+    const home = await linkEdges('/')
+    expect(await linkEdges('/docs/how-it-works')).toEqual(home)
+    expect(await linkEdges('/examples')).toEqual(home)
+  })
+})
+
+test.describe('the command on a phone', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('the command copies whole at 390 px', async ({ page }) => {
+    // The clipboard is stubbed in the page so WebKit and Firefox run this too (only Chromium can grant clipboard-read).
+    await page.addInitScript(() => {
+      ;(window as unknown as { copied: string[] }).copied = []
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: async (text: string) => (window as unknown as { copied: string[] }).copied.push(text),
+        },
+      })
+    })
+    await open(page, '/')
+    const shown = await page
+      .locator('main code.ellipsis')
+      .first()
+      .evaluate((code) => ({
+        text: code.textContent ?? '',
+        cut: code.scrollWidth > code.clientWidth,
+      }))
+    await page.getByRole('button', { name: 'Copy command' }).first().click()
+    const copied = await page.evaluate(() => (window as unknown as { copied: string[] }).copied)
+    expect(copied).toEqual([shown.text])
+    expect(shown.text.length).toBeGreaterThan(20)
+    // On a 390 px phone the command may be cut, but only with an ellipsis, never wrapped.
+    const style = await page
+      .locator('main code.ellipsis')
+      .first()
+      .evaluate((code) => {
+        const css = getComputedStyle(code)
+        return { overflow: css.overflow, ellipsis: css.textOverflow, wrap: css.whiteSpace }
+      })
+    expect(style).toEqual({ overflow: 'hidden', ellipsis: 'ellipsis', wrap: 'nowrap' })
   })
 })

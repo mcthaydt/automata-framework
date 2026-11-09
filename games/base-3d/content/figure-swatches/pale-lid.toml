@@ -1,0 +1,7 @@
+# `paleLid`: a base figure's swatch.
+# Colour: DUEL ramp 1 (sand), step 2 (#9e8c79).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "sand"
+step = 2
+flat = true

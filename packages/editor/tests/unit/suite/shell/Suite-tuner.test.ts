@@ -17,7 +17,7 @@ const LIST = `format = "af-editors/1"
 [[file]]
 glob = "content/tuning.toml"
 editor = "tuner"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = []
 `
@@ -53,14 +53,11 @@ describe('the Tuner in the suite', () => {
     expect(screen.queryByRole('button', { name: 'Details' })).toBeNull()
   })
 
-  it('EDS-b: a change names its change set, writes one span, and Undo restores the text', async () => {
+  it('EDS-b: a change writes one span, and Undo restores the text', async () => {
     const ports = await start()
     await userEvent.click(await screen.findByRole('tab', { name: 'Tuner' }))
     const row = await screen.findByTestId('tuner-row-DEBUG')
     await userEvent.click(within(row).getByRole('radio', { name: 'On' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Name this change' })
-    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Title' }), 'Debug on')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Start' }))
     const undo = await screen.findByRole('button', { name: 'Undo Set DEBUG to true' })
     expect((await ports.workspace.read('content/tuning.toml'))?.text).toBe(
       TUNING_FIXTURE.replace('DEBUG = false', 'DEBUG = true'),

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { canonicalFile } from '#src/shared/hash/canonical-file.ts'
 
-// Ported from FloorFifty tests/content/determinism.test.ts "canonicalizeValue" (122a220).
 describe('canonicalFile', () => {
   it('sorts keys recursively, keeps array order, and ends with one newline', () => {
     expect(canonicalFile({ b: 1, a: { d: [3, 1, 2], c: 4 } })).toBe(

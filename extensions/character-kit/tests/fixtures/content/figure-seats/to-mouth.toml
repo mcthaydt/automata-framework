@@ -1,0 +1,11 @@
+# `toMouth` from FigureBuilder (mcthaydt/FigureBuilder) src/features/motion/library/seats.json at 025ffb4; the id in kebab-case.
+
+about = "At a desk, the near hand raised to the mouth holding something to it (a mug to drink from, or bite), the elbow down and in, the other hand on the desk; the back easy."
+height = 0.46
+lean = 0.1
+knees = 0.02
+head = [0, 0, 0.04]
+
+[hands]
+L = { to = [0.13, 0.76, 0.34] }
+R = { to = [0.05, 1.12, 0.2], aim = [[-0.9, 0.3, 0.3], [0, 0, -1]] }

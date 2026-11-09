@@ -84,7 +84,7 @@ for (const example of catalog) {
     )
 }
 // The shared resources, less what only an unpublished extension's examples use (The Last Light's models, which
-// render-pixi3d draws): the site is public, and those stay private while D-1 stands.
+// @automata/3d draws): the site is public, and those stay private while D-1 stands.
 const resourcesRoot = join(examplesRoot, 'resources')
 const resourceFiles = readdirSync(resourcesRoot, { recursive: true, encoding: 'utf8' })
   .filter((name) => statSync(join(resourcesRoot, name)).isFile())

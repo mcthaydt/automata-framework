@@ -13,13 +13,14 @@
 // - warm up, then sample for a fixed window, both counted in the page's own frames rather than with sleeps.
 // The wrapper itself costs a little per frame, the same in every run, so runs stay comparable.
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { cpus, release, type } from 'node:os'
 import { join } from 'node:path'
 import { expect, test } from '@playwright/test'
 import { FrameBudgetResult } from '#src/budget.ts'
 import { resultsDir, stressUrl } from '#src/origin.ts'
 import { summarize } from '#src/stats.ts'
+import { softwareSkip, stressPageOf } from '#src/stress-3d.ts'
 
 const setting = (name: string, fallback: number): number => Number(process.env[name] ?? fallback)
 const ENTITIES = setting('AF_FRAME_BUDGET_ENTITIES', 2000)
@@ -105,8 +106,25 @@ function commit(): string {
   }
 }
 
-test('frame budget: the core stress example, ms per frame', async ({ page, browser }, testInfo) => {
+/** The most ms the first figure may take to be posed, from budget.json; `undefined` when none is recorded. */
+function firstPoseBudget(): number | undefined {
+  const budget = JSON.parse(readFileSync(new URL('../../budget.json', import.meta.url), 'utf8')) as {
+    firstPoseMs?: number
+  }
+  return budget.firstPoseMs
+}
+
+/** The unmasked WebGL renderer string of this browser, or 'unknown'. */
+const gpuOfPage = (): string => {
+  const gl = document.createElement('canvas').getContext('webgl2')
+  const info = gl?.getExtension('WEBGL_debug_renderer_info')
+  return gl && info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : 'unknown'
+}
+
+test('frame budget: the stress scene, ms per frame', async ({ page, browser }, testInfo) => {
   test.setTimeout(WARMUP_MS + SAMPLE_MS + 120_000)
+  // The 3D projects measure the 3D look's page (one figure, one hall, a turning camera); the others the core scene.
+  const is3d = stressPageOf(testInfo.project.name) !== ''
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`))
   page.on('console', (message) => {
@@ -114,12 +132,25 @@ test('frame budget: the core stress example, ms per frame', async ({ page, brows
   })
   await page.addInitScript(installProbe)
 
-  await page.goto(`${stressUrl}?entities=${ENTITIES}&systems=${SYSTEMS}`)
-  await expect(page.locator('html')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
-  const hud = page.getByTestId('stress-hud')
-  await expect(hud).toHaveAttribute('data-stress-entities', String(ENTITIES))
-  // The first Beat (tick 30) proves the loop is stepping the sim before anything is timed.
-  await expect(hud).toHaveAttribute('data-stress-ticks', /^[1-9]\d*$/, { timeout: 60_000 })
+  if (is3d) {
+    // A machine with no GPU draws the 3D look in software, which measures the CPU rasterizer and not the game.
+    await page.goto(stressUrl)
+    const reason = softwareSkip(await page.evaluate(gpuOfPage))
+    test.skip(reason !== undefined, reason)
+    await page.goto(`${stressUrl}${stressPageOf(testInfo.project.name)}`)
+    await expect(page.locator('html')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
+    // The title screen comes first; Play starts the scene.
+    await page.getByRole('button', { name: 'Play' }).click()
+    // The first figure posed proves the scene is drawing before anything is timed.
+    await expect(page.locator('html')).toHaveAttribute('data-first-pose-ms', /^\d/, { timeout: 60_000 })
+  } else {
+    await page.goto(`${stressUrl}?entities=${ENTITIES}&systems=${SYSTEMS}`)
+    await expect(page.locator('html')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
+    const hud = page.getByTestId('stress-hud')
+    await expect(hud).toHaveAttribute('data-stress-entities', String(ENTITIES))
+    // The first Beat (tick 30) proves the loop is stepping the sim before anything is timed.
+    await expect(hud).toHaveAttribute('data-stress-ticks', /^[1-9]\d*$/, { timeout: 60_000 })
+  }
 
   await page.evaluate(framesFor, WARMUP_MS)
   await page.evaluate(() => (window as unknown as ProbeWindow).__afFrameProbe.start())
@@ -146,7 +177,7 @@ test('frame budget: the core stress example, ms per frame', async ({ page, brows
     schema: 'af-frame-budget-result/1',
     project: testInfo.project.name,
     measuredAt: new Date().toISOString(),
-    scene: { entities: ENTITIES, systems: SYSTEMS },
+    scene: is3d ? { entities: 1, systems: 1 } : { entities: ENTITIES, systems: SYSTEMS },
     sample: { warmupMs: WARMUP_MS, sampleMs: SAMPLE_MS },
     environment: {
       gpu: pageFacts.gpu,
@@ -181,6 +212,13 @@ test('frame budget: the core stress example, ms per frame', async ({ page, brows
       `interval p50 ${result.intervalMs.p50?.toFixed(2)} / p95 ${result.intervalMs.p95?.toFixed(2)} ms`,
   )
 
+  if (is3d) {
+    const posed = Number(await page.locator('html').getAttribute('data-first-pose-ms'))
+    console.log(`${result.project}: the first figure was posed in ${posed.toFixed(2)} ms`)
+    const limit = firstPoseBudget()
+    if (limit !== undefined)
+      expect(posed, `the first pose took longer than ${limit} ms`).toBeLessThanOrEqual(limit)
+  }
   expect(violations, "the build broke Ruken's CSP").toEqual([])
   expect(errors).toEqual([])
   expect(work.length, 'no frames were measured').toBeGreaterThan(1)

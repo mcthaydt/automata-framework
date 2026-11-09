@@ -11,13 +11,19 @@ import type { InputMap } from '../features/input/keys.ts'
 import type { EventScores } from '../features/leaderboards/event-scores.ts'
 import { LOCALE_SAVE_KEY } from '../features/locale/locale.manager.ts'
 import type { EntityViewFactory } from '../features/render/delta/render-delta-consumer.ts'
+import type { LevelScene } from '../features/render/level-2d/level-scene.ts'
 import { createPixiRenderer, type PixiRendererOptions, type PixiStage } from '../features/render/renderer.ts'
 import type { SaveDef } from '../features/saves/save.schema.ts'
 import type { HostingOptions } from '../shared/host/hosting.ts'
 import { BootDefect } from '../shared/runtime/boot-error.ts'
 import type { RendererFactory } from '../shared/runtime/render/renderer.ts'
 import type { SettingsDef } from '../shared/runtime/settings/migrate-settings.ts'
-import type { CompiledContentData, GameDefinition, RuntimeSeams } from './boot/game-definition.ts'
+import type {
+  CompiledContentData,
+  GameAudioStart,
+  GameDefinition,
+  RuntimeSeams,
+} from './boot/game-definition.ts'
 import { CORE_SETTINGS } from './core-settings.ts'
 import { defaultContent } from './default-content.ts'
 import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
@@ -85,6 +91,12 @@ export interface GameSpec<S = never, D = unknown> {
    */
   readonly sounds?: EventSounds
   /**
+   * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
+   * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
+   * returns undoes it at shutdown.
+   */
+  readonly audio?: GameAudioStart
+  /**
    * The board and score each sim event submits, by the event's id:
    * `{ [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } }`. The board is a key
    * of the ship config's `leaderboards`; the game then asks the host for `leaderboards`.
@@ -114,11 +126,17 @@ export interface GameSpec<S = never, D = unknown> {
    * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
    */
   readonly draw?: (ctx: DrawContext) => void
+  /**
+   * The 2D level the game shows: the tiles, auto tiles, objects and placed characters painted in the editor, drawn
+   * under the entity views (`levelScene`). Needs the default screens, which hand it the sim, and a 2D game: a 3D game
+   * draws its rooms itself.
+   */
+  readonly level?: LevelScene
   /** Merged over the defaults (`pixelArt`, the logical size and the views). */
   readonly renderer?: PixiRendererOptions
   /**
    * Makes the renderer from the Pixi options `defineGame` built (the size, pixel art, the views, `renderer` and
-   * the draw layer's and Settings' `setup`): an extension's renderer, such as render-pixi3d's
+   * the draw layer's and Settings' `setup`): an extension's renderer, such as a 3D extension's
    * `(options) => createPixi3dRenderer({ ...options, views })`. Default: core's `createPixiRenderer`.
    */
   readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory
@@ -199,6 +217,10 @@ function problemsOf<S, D>(spec: GameSpec<S, D>, plugins: readonly PluginDef[]): 
     problems.push('draw: needs the default screens (custom screens do not hand their sim to the draw layer)')
   if (spec.createRenderer !== undefined && typeof spec.createRenderer !== 'function')
     problems.push('createRenderer: is not a function')
+  if (spec.level !== undefined && spec.createRenderer !== undefined)
+    problems.push('level: `level` draws 2D levels; a 3D game draws its rooms itself.')
+  else if (spec.level !== undefined && spec.screens !== undefined)
+    problems.push('level: needs the default screens (custom screens do not hand their sim to the level)')
   if (spec.content !== undefined && !HASH.test(spec.content.hash))
     problems.push(`content.hash: "${spec.content.hash}" is not 16 hex digits`)
   return problems
@@ -282,7 +304,10 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
   }
   const content =
     spec.content === undefined ? defaultContent() : { data: spec.content.data, hash: spec.content.hash }
-  const layer = spec.draw === undefined ? undefined : createDrawLayer(spec.draw, spec.size)
+  const layer =
+    spec.draw === undefined && spec.level === undefined
+      ? undefined
+      : createDrawLayer(spec.draw, spec.size, spec.level)
   // The stage, once the renderer has made it: the default screens give it the player's quality.
   let stage: PixiStage | undefined
   const options = pixiOptions(spec, layer, (made) => {
@@ -323,6 +348,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
     ...(spec.preload === undefined ? {} : { preload: spec.preload }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
+    ...(spec.audio === undefined ? {} : { audio: spec.audio }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),
     ...(runtimeCopy === undefined ? {} : { copy: runtimeCopy }),

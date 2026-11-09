@@ -1,25 +1,31 @@
 // figures-outfits-items: one figure changing outfits and the item in its hand
 //
 // Shows: the sim names the figure's outfit and held item (strings on a component) and the figure view rebuilds
-//   the figure's meshes once on each change, without moving a joint; an item (FigureBuilder's hold: where the
+//   the figure's meshes once on each change, without moving a joint; an item (its hold: where the
 //   hand goes and how it turns) is data in the figure library, beside the swatches it is made of.
 // Controls: none
-// Packages: @automata/framework, @automata/figures, @automata/render-pixi3d
+// Packages: @automata/framework, @automata/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/render-pixi3d/no-eval'
-import type { FigureDef, FigureLibrary, Gait, ItemDef } from '@automata/figures'
+import '@automata/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import type { FigureDef, FigureLibrary, Gait, ItemDef, Swatch } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/render-pixi3d'
 
+// --- figure ---
 // Content a game compiles from content/figure-swatches/*.toml and content/figure-items/*.toml, written as compiled.
-// Swatch colours are Endesga 64 indices. The item is FigureBuilder's hand lamp (src/render/figure/library at a1f7246).
-const cloak = { 'wick-cloak': { colour: 41 }, 'wick-cloak-shade': { colour: 40 } }
-const trim = { 'wick-trim': { colour: 24, gloss: 0.9 }, 'wick-boot': { colour: 17 } }
-const shade = { 'wick-shadow': { colour: 15, flat: true }, 'wick-eye': { colour: 32, flat: true } }
-const face = { sole: { colour: 15, flat: true }, lid: { colour: 10, flat: true } }
-const brows = { brow: { colour: 17, flat: true }, mouth: { colour: 18, flat: true } }
-const lamp = { brass: { colour: 21, gloss: 0.93 }, glass: { colour: 23, flat: true }, cream: { colour: 7 } }
+// Swatch colours are DUEL ramps and steps. The item is a hand lamp.
+const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
+const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
+const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }
+const shade = { 'wick-shadow': duel('plum', 0, { flat: true }), 'wick-eye': duel('flame', 7, { flat: true }) }
+const face = { sole: duel('plum', 0, { flat: true }), lid: duel('grey', 5, { flat: true }) }
+const brows = { brow: duel('brick', 0, { flat: true }), mouth: duel('skin', 0, { flat: true }) }
+const lamp = {
+  brass: duel('clay', 5, { gloss: 0.93 }),
+  glass: duel('blush', 7, { flat: true }),
+  cream: duel('sand', 4),
+}
 // A lamp hung from the hand at the side, the arm nearly straight: a brass cap, a glass body and a brass base.
 const handLamp: ItemDef = {
   hold: {
@@ -37,13 +43,14 @@ const handLamp: ItemDef = {
 const swatches = { ...cloak, ...trim, ...shade, ...face, ...brows, ...lamp }
 const library: FigureLibrary = { swatches, hair: {}, headwear: {}, items: { 'hand-lamp': handLamp } }
 
-// FigureBuilder's `bounce` gait (src/render/figure/library/gaits.json at a1f7246), grouped by what each part moves.
+// The `bounce` gait, grouped by what each part moves.
 const stride = { cycle: 0.46, speed: 3, stride: 0.6, duty: 0.54, lift: 0.065, bob: 0.05, crouch: 0.01 }
 const hips = { sway: 0.03, hipYaw: 0.09, hipRoll: 0.08, chestCounter: 0.5, lean: 0.03 }
-const feet = { heel: 0.24, push: 0.35 }
+// The feet's heel and push walking; standOut and standElbow (how the arms hang standing) ride along.
+const feet = { heel: 0.24, push: 0.35, standOut: 0, standElbow: 0.36 }
 const arms = { armSwing: 0.5, armOut: 0.08, elbow: 0.45, elbowSwing: 0.45, armLag: 0.04, shoulderRoll: 0.75 }
 const head = { headLevel: 0, headStabilize: 0.8, drag: 0, track: 0.3, spring: 0.6, chin: 0.04 }
-const stand = { stance: 0.045, stanceLead: 0.07, hang: 0.04, idleElbow: 0.3, standOut: 0.04, reach: 1.4 }
+const stand = { stance: 0.045, stanceLead: 0.07, hang: 0.04, idleElbow: 0.3, reach: 1.4 }
 const clock = { poseRate: 12, walkPoses: 8, idlePoses: 8, turnRate: 0.785, twitch: 0, twitchEvery: 3 }
 const breath = { breath: 0.03, breathPeriod: 3.4, shift: 0.012, shiftPeriod: 5.5, headLead: 0.785 }
 const bounce: Gait = { ...stride, ...hips, ...feet, ...arms, ...head, ...stand, ...clock, ...breath }
@@ -66,6 +73,7 @@ const wick: FigureDef = {
   },
 }
 
+// --- sim ---
 // The figure's feet, its facing, and what it wears and holds ('' for an empty hand).
 const place = { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' } as const
 const Model = defineComponent('model', { ...place, outfit: 'string', item: 'string' })
@@ -90,6 +98,7 @@ const worn = (model?: Readonly<Record<string, unknown>>) => ({
 
 const wardrobe = definePlugin({ name: 'wardrobe', defs: [Model, dress] })
 
+// --- game ---
 export default defineGame({
   id: 'figures-outfits-items',
   size: { width: 320, height: 180 },
@@ -104,7 +113,7 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0x193c3e,
+      backgroundColor: 0x2f3f38,
       views: {
         [Model.id]: figure(wick, { library, motion, state: (c) => worn(c[Model.id]) }),
       },
@@ -112,8 +121,8 @@ export default defineGame({
       scene: (view, _stage, occluders) => {
         view.camera.position.set(0, 1.4, 3)
         view.camera.lookAt({ x: 0, y: 0.8, z: 0 })
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
-        occluders.box({ min: [-3, -0.1, -3], max: [3, 0, 3] }, 0x8b9bb4)
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        occluders.box({ min: [-3, -0.1, -3], max: [3, 0, 3] }, 0x8690b2)
         return undefined
       },
     }),

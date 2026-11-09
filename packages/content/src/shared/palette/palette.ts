@@ -1,10 +1,10 @@
 // The game's palette: content like everything else, so the renderer's palette LUT, the ui theme tokens and
 // the pipelines' palette gate all read one checked, hashed source (art direction, docs/art/README.md).
-// A game without `content/palette.toml` gets AF's default, Endesga 64.
+// A game without `content/palette.toml` gets AF's default, DUEL.
 
 import { z } from 'zod'
 import type { Problem } from '../diagnostics/diagnostic'
-import { ENDESGA_64 } from './endesga-64'
+import { DUEL_RAMPS } from './duel'
 
 /** The game's palette: a name and its colors. */
 export interface Palette {
@@ -21,8 +21,11 @@ export const paletteSchema: z.ZodType<Palette> = z.strictObject({
     .max(256),
 })
 
-/** The palette a game gets when it has no `content/palette.toml`: Endesga 64. */
-export const DEFAULT_PALETTE: Palette = Object.freeze({ name: 'Endesga 64', colors: ENDESGA_64 })
+/** The palette a game gets when it has no `content/palette.toml`: DUEL, its ramps row-major (colour `r * 8 + s`). */
+export const DEFAULT_PALETTE: Palette = Object.freeze({
+  name: 'DUEL',
+  colors: Object.freeze(DUEL_RAMPS.flat()),
+})
 
 /** Checks an authored palette (already through `paletteSchema`), or returns the default when there is none. */
 export function checkPalette(authored: Palette | undefined): { palette: Palette; problems: Problem[] } {
@@ -44,7 +47,7 @@ export function checkPalette(authored: Palette | undefined): { palette: Palette;
 
 /**
  * Reads a paint.net palette file (Lospec's download format): one `AARRGGBB` color per line, `;` comments.
- * Used to check the embedded default against `docs/art/palettes/endesga-64.txt`.
+ * Used to check the embedded default against `docs/art/palettes/duel.txt`.
  */
 export function parsePaintNetPalette(text: string): string[] {
   return text

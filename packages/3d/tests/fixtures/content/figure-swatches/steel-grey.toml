@@ -1,0 +1,7 @@
+# `steelGrey`, a fixture.
+# Colour: DUEL ramp 10 (slate), step 4 (#848795).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "slate"
+step = 4
+gloss = 0.94

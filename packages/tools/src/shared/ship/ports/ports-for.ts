@@ -1,8 +1,8 @@
 /**
- * The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
+ * The ports a checkout's test server and preview build listen on.
  * Several agents run at once, each in its own worktree; with fixed ports a second run either failed on a busy
  * port or, reusing the first run's server, silently tested another worktree's code. So each checkout path
- * hashes to its own slot. AF uses 4600–4799, clear of FloorFifty's 4400–4599 on the same machine; a second
+ * hashes to its own slot. AF uses 4600–4799; a second
  * example in the same run adds a fixed offset (the ui demo +100 on the preview port, Emberwick (`games/emberwick`) +300).
  * CI uses the fixed pair. Several runner copies share one machine, so each copy's `.env` sets
  * AF_RUNNER_PORT_OFFSET to its own multiple of 2000: the pair moves up by that much, and everything derived from it

@@ -176,7 +176,7 @@ describe('the rotate hint', () => {
     }))
 })
 
-// Owner amendment, 2026-10-18 (M4 spec §4.9): `rotateHint: 'toast'` gives FloorFifty's dismissible message instead.
+// Owner amendment, 2026-10-18 (M4 spec §4.9): `rotateHint: 'toast'` gives a dismissible message instead.
 describe('the rotate hint as a toast', () => {
   const toast = (root: HTMLElement) => root.querySelector<HTMLElement>('[data-testid="rotate-toast"]')
 

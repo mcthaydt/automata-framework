@@ -2,6 +2,7 @@
 import CodeBlock from '../../shared/components/CodeBlock.svelte'
 import InlineText from '../../shared/components/InlineText.svelte'
 import PageMeta from '../../shared/components/PageMeta.svelte'
+import PageShell from '../../shared/components/PageShell.svelte'
 import { parseMarkdown } from '../../shared/utils/markdown'
 import { getDocs } from './docs-loader'
 
@@ -16,14 +17,14 @@ let previous = $derived(docs[index - 1])
 let next = $derived(docs[index + 1])
 </script>
 <PageMeta title={active.title} description={active.description} />
-<div class="page-shell docs-layout">
+<PageShell wide class="docs-layout">
   <aside class="docs-sidebar">
     {#snippet guideLinks()}<nav aria-label="Guides">{#each docs as doc}<a href={'/docs/' + doc.slug} aria-current={active.slug === doc.slug ? 'page' : undefined}>{doc.title}</a>{/each}</nav>{/snippet}
     <div class="desktop-doc-links">{@render guideLinks()}</div>
     <!-- On a phone the list folds away above the guide; only one of the two copies is ever shown. -->
     <details class="mobile-doc-links"><summary>All guides</summary>{@render guideLinks()}</details>
   </aside>
-  <article class="doc-content"><h1>{active.title}</h1>
+  <article class="doc-content" data-page-content><h1>{active.title}</h1>
     {#each blocks as block}
       {#if block.type === 'h2'}<h2 id={block.headingId}>{block.content}</h2>
       {:else if block.type === 'h3'}<h3 id={block.headingId}>{block.content}</h3>
@@ -40,4 +41,4 @@ let next = $derived(docs[index + 1])
     <nav class="doc-pagination" aria-label="Previous and next guide">{#if previous}<a href={'/docs/' + previous.slug}>Previous: {previous.title}</a>{/if}{#if next}<a href={'/docs/' + next.slug}>Next: {next.title}</a>{/if}</nav>
   </article>
   {#if active.toc.length}<aside class="doc-toc"><nav aria-label="On this page"><p><strong>On this page</strong></p>{#each active.toc as heading}<a href={'#' + heading.id}>{heading.text}</a>{/each}</nav></aside>{/if}
-</div>
+</PageShell>

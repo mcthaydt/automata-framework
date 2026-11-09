@@ -22,7 +22,7 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 3. The same seed, content and inputs give the same hash, in every engine. Never accept a hash mismatch as flaky.
 4. The host is a port. No distribution target is the reference ([ADR 0006](docs/adr/0006-distribution-targets.md)).
 5. Effect is for Node tooling. The sim never imports it, and the browser package `@automata/framework` is plain
-   TypeScript ([ADR 0003](docs/adr/0003-effect-outside-the-sim.md) as amended). The 3D renderer keeps Effect until the 3D phase.
+   TypeScript ([ADR 0003](docs/adr/0003-effect-outside-the-sim.md) as amended).
 6. PixiJS only for rendering ([ADR 0002](docs/adr/0002-pixi-for-2d-and-3d.md)). Every game imports the no-eval entry first.
 7. Zod is the only schema language.
 
@@ -30,11 +30,12 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 
 - Browser code is one package, `@automata/framework`. Node build tools are one package, `@automata/tools`.
   The sim (`-sim`) and the content compiler (`-content`) stay separate. Extensions are opt-in and never edit core.
+  They live in `extensions/<name>` as `@automata/<name>`, and core never imports one (`pnpm boundaries` fails on it).
 - Inside a package, `src/` is `app/`, `features/<x>/`, `shared/`, `entries/` and `testing/`. A feature imports
   only itself and `shared/`; `app/` wires features together; `entries/` only re-exports. `pnpm boundaries` enforces it.
 - A game's `src/` has the same shape. Sim files are found by role suffix (`.component.ts`, `.system.ts`,
-  `.command.ts`, `.event.ts`, `.resource.ts`, `.plugin.ts`) and by what they import. `games/base-3d` keeps its
-  role files until the 3D phase.
+  `.command.ts`, `.event.ts`, `.resource.ts`, `.plugin.ts`) and by what they import. `games/emberwick` and
+  `games/base-3d` both have it.
 - Tests live in `tests/` beside `src/`: `unit/<feature>/`, `browser/`, `e2e/`, `fixtures/`, and where a package needs
   them `bench/` (timings), `slow/` (needs a real browser or the network, run by hand) and `install/` (installs a packed
   package outside the workspace). One suffix, `.test.ts`. A test imports the code it tests as `#src/…`, never by a
@@ -81,8 +82,8 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
   packed-install smoke. After changing a published package's exports or doc comments, run `pnpm build`, then
   `pnpm api-report --update` and `pnpm api-index --write` (the cheatsheet and the agent package's API reference), and
   commit what they write.
-- The 2D gate (`pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`) includes the 2D editors' unit, layout, canvas and
-  journey tests; the 3D editor, the suite and the other 3D packages run in `.github/workflows/3d.yml`.
+- The gate runs every unit test (`pnpm check` runs `pnpm test:unit`, 3D included) and the 2D browser suites
+  (`pnpm test:browser:2d`); `.github/workflows/3d.yml` runs the 3D browser suites and journeys, and `pnpm ci:local` runs both.
 - Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none. The one exception is `.changeset/first-public-release.md`, a `minor` that takes the shared version to 0.1.0 once.
 - Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
   Firefox. Report what you ran, what you left out and what is pending.

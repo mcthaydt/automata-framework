@@ -4,23 +4,27 @@
   button, white panels on hairlines, 4/6/8 px corners.
 -->
 <script lang="ts">
-import TerminalBox from '../../shared/components/TerminalBox.svelte'
+import CodeBlock from '../../shared/components/CodeBlock.svelte'
+import PageShell from '../../shared/components/PageShell.svelte'
 import AgentSetup from './AgentSetup.svelte'
 import { PUBLISH_GUIDES, STEPS } from './start-content'
 </script>
 
-<div class="wrap">
+<PageShell>
   <header class="top">
     <p class="kicker">Start</p>
     <h1>Your first game in four commands.</h1>
-    <p class="lead">You need Node 24 and pnpm. Each step is one command in your terminal; under it is what you will see.</p>
+    <p class="lead">
+      You need Node 24 and pnpm. Each step is one command in your terminal. Under it is what you will see. Using an agent?
+      Set it up at the bottom of this page, then hand it the game.
+    </p>
   </header>
 
   <ol class="steps">
     {#each STEPS as step (step.title)}
       <li class="step">
         <h2>{step.title}</h2>
-        <TerminalBox command={step.command} />
+        <CodeBlock code={step.command} variant="command" />
         <p>{step.what}</p>
       </li>
     {/each}
@@ -33,7 +37,10 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
 
   <section class="agent">
     <h2>Using a coding agent</h2>
-    <p>Your agent works on the game like you do: it edits the files, runs the tests and plays the result. Set it up once.</p>
+    <p>
+      Your agent works on the game like you do: it edits the files, runs the checks and plays the result. It brings its own
+      brains, so Automata never asks you for credits. Set it up once.
+    </p>
     <details>
       <summary>Set up your coding agent</summary>
       <AgentSetup />
@@ -41,14 +48,9 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
   </section>
 
   <p class="next"><a class="button" href="/docs">Read the docs</a></p>
-</div>
+</PageShell>
 
 <style>
-  .wrap {
-    width: min(880px, 100% - 2 * var(--side));
-    margin: 0 auto;
-    padding: 72px 0 112px;
-  }
   .kicker {
     margin: 0;
     color: var(--faint);
@@ -56,11 +58,6 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
   }
   h1 {
     margin: 12px 0 0;
-    font-size: clamp(36px, 4vw, 56px);
-    font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.035em;
-    text-wrap: balance;
   }
   .lead {
     max-width: 620px;
@@ -71,6 +68,8 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
   }
   .steps {
     display: grid;
+    /* minmax(0, …): a long command ellipsizes inside its box instead of widening the column past a phone. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     margin: 48px 0 0;
     padding: 0;

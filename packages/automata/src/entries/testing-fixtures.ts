@@ -9,9 +9,12 @@ export {
   hostDisplay,
 } from '../testing/fixtures/viewport-window'
 export {
+  BAR_ACTIONS,
   documentScrolls,
   findClipped,
+  findCovered,
   findCutAtSide,
+  findCutByBar,
   findIntrusions,
   findOffscreenControls,
   findOverlaps,

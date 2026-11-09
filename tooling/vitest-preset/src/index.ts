@@ -15,7 +15,9 @@ import type { PluginOption } from 'vite'
 import type { ViteUserConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
-export type Engine = 'chromium' | 'webkit' | 'firefox'
+import { BROWSER_ENGINES, type Engine } from './engines.ts'
+
+export type { Engine }
 
 /** One Vitest browser instance: an engine, and whatever Vitest takes beside it (a provider, a viewport, `include`). */
 export interface BrowserInstance {
@@ -75,7 +77,7 @@ export interface TestOptions {
   readonly alsoInNode?: readonly string[]
 }
 
-const ALL_ENGINES: readonly Engine[] = ['chromium', 'webkit', 'firefox']
+const ALL_ENGINES: readonly Engine[] = BROWSER_ENGINES
 
 export function defineTests(options: TestOptions = {}): ViteUserConfig {
   const engines = options.browsers ?? ALL_ENGINES

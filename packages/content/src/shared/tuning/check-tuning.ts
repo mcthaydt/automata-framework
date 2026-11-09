@@ -1,9 +1,9 @@
 // Tuning: the numbers a game runs on, authored in `content/tuning.toml`.
 //
 // Two ways to say what a tunable may be, one per source:
-//   - Code-owned (FloorFifty packages/content/src/validate/bounds.ts, 122a220): the game passes its
+//   - Code-owned: the game passes its
 //     declarations (type, inclusive range, default) and the TOML holds bare numbers. Content selects; it
-//     never widens a range. Every check and message here is FloorFifty's.
+//     never widens a range.
 //   - Authored: the game declares nothing in code and each tunable may carry its own range
 //     inline, `NAME = { value, min, max, step }`, which also feeds the debug sliders, and may name itself for the
 //     Tuner with `label` and `feel` (text only: they never reach the values or the meta).
@@ -112,7 +112,7 @@ export function checkTuningLayer(
       problems.push(problem([name], 'invalidType', `${name} must be a number`))
       continue
     }
-    // NaN passes every range comparison, so it is refused before the range check (FloorFifty).
+    // NaN passes every range comparison, so it is refused before the range check.
     if (!Number.isFinite(value)) {
       problems.push(problem([name], 'invalidType', `${name} must be a finite number, received ${value}`))
       continue

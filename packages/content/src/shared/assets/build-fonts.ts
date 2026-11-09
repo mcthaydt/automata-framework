@@ -1,11 +1,10 @@
 // The font build. Reads `content/fonts.toml`, checks each committed source against
 // its recorded sha256, and cuts it to each language it serves: the language's characters plus the ranges a
-// typed name most likely needs (`localeCharacters`). From FloorFifty
-// packages/asset-contract/tools/subset-fonts.ts and the coverage test tests/client/i18n/fonts.test.ts (ac72660).
+// typed name most likely needs (`localeCharacters`).
 // Like the atlas build, it returns the outputs and the CLI writes them.
 //
 // The glyph gate: every character of every message in a language must be in one of that
-// language's subsets. A game may stack faces (a Latin face, then a CJK one, as FloorFifty does), so a language
+// language's subsets. A game may stack faces (a Latin face, then a CJK one), so a language
 // is covered by all its fonts together. A failure names the message where it is written, from the compile's
 // `messageLocations`, and each missing code point. Control characters (a newline) draw nothing and are skipped.
 // A language no font serves is not checked: it draws in whatever face the game's CSS names.

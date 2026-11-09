@@ -1,0 +1,9 @@
+# `holoLilac`, a fixture.
+# Colour: DUEL ramp 28 (violet), step 5 (#a996ec).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "violet"
+step = 5
+flat = true
+kind = "lens"
+role = "trim"

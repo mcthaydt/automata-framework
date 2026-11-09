@@ -1,0 +1,10 @@
+# Looking across to the other side, the head turned past the chest.
+
+about = "Looking out to the right: the head turned well round, the chest a little."
+
+[effectors]
+
+[fk]
+chest = [ 0, -10.743, 0 ]
+neck = [ 0.1713, -12.8889, -0.2161 ]
+head = [ 0.3565, -19.3291, -0.5058 ]

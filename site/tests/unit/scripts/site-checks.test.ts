@@ -5,6 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { withContentSecurityPolicy } from '#src/shared/html/csp.ts'
 import { checkSite } from '../../../scripts/site-checks'
 import {
   BANNED_PHRASES,
@@ -16,13 +17,15 @@ import {
 import {
   checkCompileWorker,
   checkEditorChunk,
+  checkMotionChunks,
   EDITOR_SOURCE,
   MAX_COMPILE_WORKER_GZIP_BYTES,
   MAX_EDITOR_CHUNK_GZIP_BYTES,
+  MAX_MOTION_GZIP_BYTES,
   MAX_PRELOADED_SCRIPT_BYTES,
+  MOTION_SOURCES,
 } from '../../../scripts/site-checks/javascript'
 import { writeSeoFiles } from '../../../scripts/write-seo-files'
-import { withContentSecurityPolicy } from '../../../src/shared/html/csp'
 
 const ORIGIN = 'https://automataframework.com'
 const roots: string[] = []
@@ -123,6 +126,18 @@ describe('checkSite', () => {
     expect(checkSite(site.root, { now: NOW })).toEqual([])
     writeSeoFiles(site.root)
     expect(readFileSync(join(site.root, 'sitemap.xml'), 'utf8')).not.toContain('/playground/')
+  })
+
+  it('refuses a page that only redirects: the site cut its old pages, and an old address gets the 404 page', () => {
+    const site = goodSite()
+    site.write(
+      'ai.html',
+      page('/ai', { head: `${ICON_LINKS}<meta http-equiv="refresh" content="0; url=/docs/how-it-works" />` }),
+    )
+    site.write('sitemap.xml', sitemap(['/', '/ai', '/docs', '/privacy', '/terms']))
+    expect(checkSite(site.root, { now: NOW })).toContain(
+      'ai.html: a page that only redirects; cut pages get the 404 page',
+    )
   })
 
   it('still reports a missing link destination', () => {
@@ -482,6 +497,13 @@ describe('checkSite', () => {
     expect(checkSite(site.root, { now: NOW })).toContain(`docs.html: banned phrase "${phrase}"`)
   })
 
+  it('lets the app page say "Coming soon" for a place to buy that has no link yet, and no other page', () => {
+    const site = goodSite()
+    site.write('app.html', page('/app', { body: '<p>App Store: Coming soon</p>' }))
+    site.write('sitemap.xml', sitemap(['/', '/app', '/docs', '/privacy', '/terms']))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+
   it('does not flag words that merely contain a banned phrase', () => {
     const site = goodSite()
     site.write(
@@ -571,7 +593,7 @@ describe('checkSite: standalone and target-neutral', () => {
   })
 })
 
-// WEB.PLAY.6 (playground spec §10.1): the editor chunk loads on the first tap or focus on the code, never with a page,
+// the editor chunk loads on the first tap or focus on the code, never with a page,
 // and its closure stays within 175 kB gzip. The build's Vite manifest names its file and the chunks it imports.
 describe('checkEditorChunk', () => {
   const manifest = (imports: string[] = []) => ({
@@ -630,7 +652,7 @@ describe('checkEditorChunk', () => {
   })
 })
 
-// WEB.PLAY.7 (playground spec §10.1): the compile worker (Babel and sucrase) starts with the editor, never with a page,
+// the compile worker (Babel and sucrase) starts with the editor, never with a page,
 // and stays within 125 kB gzip. Vite emits it under `_app/immutable/workers/` and leaves it out of the manifest.
 describe('checkCompileWorker', () => {
   const WORKER = '_app/immutable/workers/compile.worker-abc123.js'
@@ -674,6 +696,114 @@ describe('checkCompileWorker', () => {
   it('fails when the build has no compile worker, so the check cannot pass by finding nothing', () => {
     expect(checkCompileWorker(goodSite().root).failures).toEqual([
       'the build has no compile worker under _app/immutable/workers/',
+    ])
+  })
+})
+
+// the motion chunks (Motion, Lenis) load after the page is live, never with a page, and together stay within 12 kB gzip.
+// The shared tokens chunk is also the layout's, so it is neither counted nor forbidden.
+describe('checkMotionChunks', () => {
+  const [ANIMATE, SMOOTH] = MOTION_SOURCES
+  const noise = (bytes: number) => randomBytes(bytes).toString('base64')
+  interface Chunk {
+    file: string
+    imports?: string[]
+    dynamicImports?: string[]
+    css?: string[]
+    isEntry?: boolean
+    isDynamicEntry?: boolean
+  }
+  const manifest = (overrides: Record<string, Chunk> = {}): Record<string, Chunk> => ({
+    layout: {
+      file: '_app/immutable/nodes/0.js',
+      isEntry: true,
+      dynamicImports: [ANIMATE, SMOOTH],
+      imports: ['_tokens.js'],
+    },
+    '_tokens.js': { file: '_app/immutable/chunks/tokens.js' },
+    [ANIMATE as string]: {
+      file: '_app/immutable/chunks/animate.js',
+      isDynamicEntry: true,
+      imports: ['_tokens.js'],
+    },
+    [SMOOTH as string]: {
+      file: '_app/immutable/chunks/smooth.js',
+      isDynamicEntry: true,
+      imports: ['_tokens.js'],
+      css: ['_app/immutable/assets/smooth.css'],
+    },
+    ...overrides,
+  })
+  const withChunks = (animate = 'export const a = 1') => {
+    const site = goodSite()
+    site.write('_app/immutable/nodes/0.js', 'import "../chunks/tokens.js"')
+    site.write('_app/immutable/chunks/tokens.js', 'export const t = 1')
+    site.write('_app/immutable/chunks/animate.js', animate)
+    site.write('_app/immutable/chunks/smooth.js', 'export const s = 1')
+    site.write('_app/immutable/assets/smooth.css', 'html.lenis{height:auto}')
+    return site
+  }
+
+  it('holds the motion chunks to 12 kB gzip', () => {
+    expect(MAX_MOTION_GZIP_BYTES).toBe(12_000)
+  })
+
+  it('passes small chunks that no page names, and reports their gzip size without the shared tokens chunk', () => {
+    const site = withChunks()
+    const result = checkMotionChunks(site.root, manifest())
+    expect(result.failures).toEqual([])
+    expect(result.gzipBytes).toBeGreaterThan(0)
+    // A page that names the layout's own chunk is fine.
+    site.write(
+      'index.html',
+      page('/', {
+        body: '<p><a href="/docs">Docs</a></p>',
+        head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/tokens.js" />',
+      }),
+    )
+    expect(checkMotionChunks(site.root, manifest()).failures).toEqual([])
+  })
+
+  it('fails chunks over the budget, with the byte count', () => {
+    const site = withChunks(noise(MAX_MOTION_GZIP_BYTES * 2))
+    expect(checkMotionChunks(site.root, manifest()).failures).toEqual([
+      expect.stringMatching(/^the motion chunks are \d+ bytes gzip, over the 12000 byte budget/),
+    ])
+  })
+
+  it('fails when a page names a motion file', () => {
+    const site = withChunks()
+    site.write(
+      'index.html',
+      page('/', {
+        body: '<p><a href="/docs">Docs</a></p>',
+        head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/animate.js" />',
+      }),
+    )
+    expect(checkMotionChunks(site.root, manifest()).failures).toEqual([
+      'index.html: names _app/immutable/chunks/animate.js, part of the motion code, which loads only after the page is live',
+    ])
+  })
+
+  it('fails when the manifest has no motion source, so the check cannot pass by finding nothing', () => {
+    const site = withChunks()
+    const missing = manifest()
+    delete missing[ANIMATE as string]
+    expect(checkMotionChunks(site.root, missing).failures).toEqual([`the build's manifest has no ${ANIMATE}`])
+  })
+
+  it('fails a motion source that was bundled into an entry, because something imported it statically', () => {
+    const site = withChunks()
+    const bundled = manifest({
+      layout: {
+        file: '_app/immutable/nodes/0.js',
+        isEntry: true,
+        imports: ['_tokens.js', ANIMATE],
+        dynamicImports: [SMOOTH],
+      },
+    })
+    expect(checkMotionChunks(site.root, bundled).failures).toEqual([
+      `${ANIMATE} is part of an entry, so every visitor downloads it; import it only with import()`,
     ])
   })
 })

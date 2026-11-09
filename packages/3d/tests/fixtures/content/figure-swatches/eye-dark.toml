@@ -1,0 +1,7 @@
+# `eyeDark`, a fixture.
+# Colour: DUEL ramp 28 (violet), step 0 (#1d1d21).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "violet"
+step = 0
+flat = true

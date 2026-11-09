@@ -2,8 +2,8 @@
 // `/x/` → `x/index.html`, and anything else → `404.html` with status 404. The Playwright suite runs against it so the
 // browser checks see the prerendered build, not a dev server.
 //   node scripts/serve-static.ts <directory> <port> [--compressed]
-// Every response carries the site's security header set (QB.4a); those under /playground/ also carry the playground's
-// CORS, CORP and cache headers (spec §11.3), and a frame page names this server's origin in its connect-src (R-2).
+// Every response carries the site's security header set; those under /playground/ also carry the playground's
+// CORS, CORP and cache headers, and a frame page names this server's origin in its connect-src.
 // `--compressed` is what the Lighthouse budget runs on: it answers with the `.br` or `.gz` sibling that adapter-static
 // wrote next to each file when the request accepts it, as the production host will, so transfer sizes are real.
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
@@ -79,7 +79,7 @@ createServer((request, response) => {
   const file = fileFor(url.pathname)
   const notFound = join(root, '404.html')
   const [status, path] = file ? [200, file] : isFile(notFound) ? [404, notFound] : [404, undefined]
-  // Every response carries the site's header set (QB.4a), as the production host must.
+  // Every response carries the site's header set, as the production host must.
   const security = Object.fromEntries(
     Object.entries(securityHeaders(url.pathname)).map(([name, value]) => [name.toLowerCase(), value]),
   )
@@ -87,7 +87,7 @@ createServer((request, response) => {
     response.writeHead(404, { ...security, 'content-type': 'text/plain' }).end('Not found')
     return
   }
-  // Under /playground/ the frame's own rule (spec §11.3, the framework's playground-headers.ts) replaces no-store, for
+  // Under /playground/ the frame's own rule replaces no-store, for
   // files that exist: a 404 for a hashed runtime name must not be cached for good.
   const headers: Record<string, string> = {
     ...security,

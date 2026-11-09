@@ -61,6 +61,8 @@ export class RenderDeltaConsumer<C extends SceneNode = Container> {
   private readonly resolver?: EntityViewResolver<C> | undefined
   private readonly views = new Map<number, EntityView<C>>()
   private readonly cache = new Map<number, CachedEntity>()
+  /** Entities whose view keeps its pose for now (a hit-stop): the sim moves on, the picture waits. */
+  private held: ReadonlySet<number> = new Set()
 
   constructor(world: SceneParent<C>, resolver?: EntityViewResolver<C>) {
     this.world = world
@@ -142,12 +144,27 @@ export class RenderDeltaConsumer<C extends SceneNode = Container> {
           this.views.set(row.sid, view)
         }
       }
-      view?.update?.(row.components, prev, 1)
+      if (!this.held.has(row.sid)) view?.update?.(row.components, prev, 1)
     }
+  }
+
+  /** The view drawn for the entity with this stable id, or `undefined` when it has none. */
+  viewOf(sid: number): EntityView<C> | undefined {
+    return this.views.get(sid)
+  }
+
+  /**
+   * Holds these entities' views in the pose they have: a step or a frame leaves them alone until they are let go
+   * (pass a set without them), when the next frame draws them where the sim has them. Presentation only; the sim does
+   * not wait.
+   */
+  hold(sids: ReadonlySet<number>): void {
+    this.held = sids
   }
 
   interpolate(alpha: number): void {
     for (const [sid, entry] of this.cache.entries()) {
+      if (this.held.has(sid)) continue
       const view = this.views.get(sid)
       if (view?.update) {
         view.update(entry.curr, entry.prev, alpha)

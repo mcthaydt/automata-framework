@@ -106,6 +106,20 @@ describe('finishSvelteDist', () => {
 
   // DX.2a: svelte-package keeps a `.ts` specifier in declarations (game imports `./define-game.ts`, with
   // rewriteRelativeImportExtensions rewriting only the JavaScript), which no consumer can resolve.
+  it('points a component’s import of a .svelte.ts module at the .svelte.js file it was emitted as', () => {
+    const dist = distWith({
+      'app/Screen.svelte':
+        '<script lang="ts">\nimport { Session } from "../shared/play-context.svelte.ts";\nimport "./screen.css";\n</script>\n',
+      'shared/play-context.svelte.js': 'export class Session {}\n',
+      'shared/play-context.svelte.d.ts': 'export declare class Session {}\n',
+      'app/screen.css': '',
+    })
+    finishSvelteDist(dist, { vendoredTypes: {} })
+    const text = readFileSync(join(dist, 'app/Screen.svelte'), 'utf8')
+    expect(text).toContain('"../shared/play-context.svelte.js"')
+    expect(text).toContain('import "./screen.css"')
+  })
+
   it('turns a relative .ts specifier in a declaration into the .js file it was emitted as', () => {
     const dist = distWith({
       'index.d.ts': "export { defineGame } from './define-game.ts';\nexport type { X } from './types.ts';\n",

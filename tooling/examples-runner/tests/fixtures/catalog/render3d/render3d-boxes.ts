@@ -2,10 +2,10 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/framework, @automata/render-pixi3d
+// Packages: @automata/framework, @automata/3d
 // Difficulty: ★☆☆☆
 // Tier: core
-import '@automata/render-pixi3d/no-eval'
-import { box } from '@automata/render-pixi3d'
+import '@automata/3d/no-eval'
+import { box } from '@automata/3d'
 
 export default { id: 'render3d-boxes', view: box }

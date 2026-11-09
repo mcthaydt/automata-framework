@@ -1,4 +1,4 @@
-// Authoring diagnostics. Extracted from FloorFifty packages/content/src/diagnostics.ts (122a220).
+// Authoring diagnostics.
 //
 // Every refusal in this package is one of these: a stable code, the project-relative file an author has
 // to open, where in it (1-based line and column), the dotted key inside it, and a message that says what

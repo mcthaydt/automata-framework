@@ -1,8 +1,7 @@
 <!--
-  The top bar's pills: the change set, the checks and
-  the reopened gates. Each is a 44 px button that opens its list below it; Escape closes the list. In the `short` tier
-  (`compact`) each is an icon with its count, never hidden, and its label stays its accessible name. A check's first
-  finding has Locate; a gate shows its recorded decision and link and nothing that records one.
+  The top bar's pills: the checks. Each is a 44 px button that opens its list below it; Escape closes the list. In the
+  `short` tier (`compact`) each is an icon with its count, never hidden, and its label stays its accessible name. A
+  check's first finding has Locate.
 -->
 <script lang="ts">
 import type { CheckFinding } from '../../../shared/kit/ports/suite-ports'
@@ -36,7 +35,7 @@ function toggle(pill: Pill, event: MouseEvent): void {
   opened = pill.icon
 }
 
-const GLYPH: Readonly<Record<Pill['icon'], string>> = { 'change-set': '⎇', checks: '✓', gates: '⚑' }
+const GLYPH: Readonly<Record<Pill['icon'], string>> = { checks: '✓' }
 
 function onKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape' && opened !== undefined) {
@@ -48,7 +47,7 @@ function onKeydown(event: KeyboardEvent): void {
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="pills" role="group" aria-label="Change set and checks">
+<div class="pills" role="group" aria-label="Checks">
   {#each pills as pill (pill.icon)}
     <div class="pill-wrap">
       <button
@@ -80,11 +79,7 @@ function onKeydown(event: KeyboardEvent): void {
           <ul>
             {#each pill.items as item (item.id)}
               <li data-tone={item.tone}>
-                {#if item.href !== undefined}
-                  <a href={item.href} target="_blank" rel="noreferrer">{item.label}</a>
-                {:else}
-                  <span class="name">{item.label}</span>
-                {/if}
+                <span class="name">{item.label}</span>
                 {#if item.detail !== undefined}<span class="detail">{item.detail}</span>{/if}
                 {#if pill.icon === 'checks' && item.tone !== 'pass' && item.tone !== 'neutral'}
                   <span class="detail">{item.tone}</span>
@@ -96,11 +91,6 @@ function onKeydown(event: KeyboardEvent): void {
                     Locate
                   </button>
                 {/if}
-                {#each item.measures ?? [] as measure (measure.label)}
-                  <span class="measure" data-ok={measure.ok}>
-                    {measure.label} {measure.before ?? '–'} → {measure.after ?? '–'}
-                  </span>
-                {/each}
               </li>
             {/each}
           </ul>
@@ -176,17 +166,9 @@ function onKeydown(event: KeyboardEvent): void {
     align-items: center;
     gap: var(--space-1) var(--space-2);
   }
-  li a {
-    min-height: var(--size-hit);
-    display: inline-flex;
-    align-items: center;
-    color: var(--color-accent-default);
-  }
-  .detail,
-  .measure {
+  .detail {
     color: var(--color-text-dim);
   }
-  .measure[data-ok='false'],
   li[data-tone='fail'] .finding {
     color: var(--color-state-bad);
   }

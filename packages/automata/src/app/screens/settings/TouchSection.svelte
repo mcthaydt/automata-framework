@@ -1,6 +1,6 @@
 <!--
   @component
-  The Touch controls group of the Settings tab (FloorFifty `SettingsPanel.svelte` at a28dc44): how touch drives play,
+  The Touch controls group of the Settings tab: how touch drives play,
   on-screen buttons or swipes, as an option group. The game shows it on a coarse pointer when it offers both modes.
 -->
 <script lang="ts">

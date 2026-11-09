@@ -8,9 +8,14 @@
 
 import type { Sim, StepResult } from '@automata/sim'
 import { Container, Graphics, Text } from 'pixi.js'
+import {
+  drawLevelScene,
+  type LevelScene,
+  mountLevelScene,
+} from '../../features/render/level-2d/level-scene.ts'
 import type { PixiStage, PixiStageHooks } from '../../features/render/renderer.ts'
+import { type DrawSim, readSim } from '../../shared/draw/read-sim.ts'
 import type { FrameInfo } from '../../shared/runtime/loop/frames.ts'
-import { type DrawSim, readSim } from './read-sim.ts'
 
 /** Options for `DrawContext.text`: colour and font size. */
 export interface DrawTextOptions {
@@ -39,7 +44,7 @@ export interface DrawLayer {
   /** The sim to read from now on; `undefined` clears the layer and stops calling `draw`. */
   watch(sim: Sim | undefined): void
   /** For `PixiRendererOptions.setup`: mounts the layer on the stage's ui layer and returns its frame hook. */
-  setup(stage: Pick<PixiStage, 'ui'>): PixiStageHooks
+  setup(stage: Pick<PixiStage, 'ui'> & Partial<Pick<PixiStage, 'world'>>): PixiStageHooks
 }
 
 /** Every hook of each, called in the order given; `undefined` entries are skipped. */
@@ -58,9 +63,14 @@ export function mergeStageHooks(...all: readonly (PixiStageHooks | undefined)[])
   }
 }
 
+/**
+ * The layer behind `draw` and `level`: it hands the sim it watches to the level scene (a stage hook's `FrameInfo`
+ * carries no sim) and to `draw`. Either may be absent.
+ */
 export function createDrawLayer(
-  draw: (ctx: DrawContext) => void,
+  draw: ((ctx: DrawContext) => void) | undefined,
   size: { readonly width: number; readonly height: number },
+  level?: LevelScene,
 ): DrawLayer {
   let view: DrawSim | undefined
   const root = new Container({ label: 'draw' })
@@ -106,13 +116,19 @@ export function createDrawLayer(
   return {
     watch(sim) {
       view = sim === undefined ? undefined : readSim(sim)
-      if (view === undefined) clear()
+      if (view === undefined) {
+        clear()
+        if (level !== undefined) drawLevelScene(level, undefined)
+      }
     },
     setup(stage) {
       stage.ui.addChild(root)
+      if (level !== undefined && stage.world !== undefined) mountLevelScene(level, stage.world)
       return {
         draw(frame) {
           if (view === undefined) return
+          if (level !== undefined) drawLevelScene(level, view)
+          if (draw === undefined) return
           clear()
           draw(ctx(view, frame))
           hideUnusedTexts()

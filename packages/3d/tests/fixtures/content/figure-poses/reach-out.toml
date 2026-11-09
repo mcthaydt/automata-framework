@@ -1,0 +1,15 @@
+# A fixture pose, for tests and examples; no game's. A reach at its hold: the right hand out before the shoulder, the
+# chest leaning and turning into it. The hand's place is `[x·shoulders·0.8, shoulderY − 0.18k,
+# 0.5k]` on Wick's body, in figure units; the chest's turn is
+# its `euler(0.12, 0.12, 0)` in degrees.
+
+about = "Reaching out with the right hand before the shoulder, the chest leaning into it."
+
+[effectors.handR]
+pos = [ -0.1275, 1.1114, 0.5 ]
+
+[poles.elbowR]
+dir = [ -0.7, -0.5, -0.5 ]
+
+[fk]
+chest = [ 6.8755, 6.8755, 0 ]

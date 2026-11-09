@@ -3,8 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import AudioSection from '#src/app/screens/settings/AudioSection.svelte'
 import type { AudioCopy, AudioValue } from '#src/app/screens/settings/audio-section.ts'
 
-// The Audio group of the Settings tab (M5 spec §7, M5.4), laid out as FloorFifty's (`SettingsPanel.svelte` at
-// a28dc44): Mute, Mute in the background, then a slider per bus with its percentage. A change applies at once; when
+// The Audio group of the Settings tab (M5 spec §7, M5.4): Mute, Mute in the background, then a slider per bus with its percentage. A change applies at once; when
 // audio could not start the group says so and its controls are disabled; a note says the host's volume also applies.
 
 const copy: AudioCopy = {
@@ -52,7 +51,7 @@ function open(overrides: { available?: boolean; hostBelowFull?: boolean } = {}) 
 }
 
 describe('AudioSection', () => {
-  it('is a group named Audio: the two toggles, then a slider per bus with its percentage, in FloorFifty’s order', () => {
+  it('is a group named Audio: the two toggles, then a slider per bus with its percentage', () => {
     const { section } = open()
     expect(section.querySelector('h3')?.textContent).toBe('Audio')
     const toggles = [...section.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')]
@@ -109,7 +108,7 @@ describe('AudioSection', () => {
     )
   })
 
-  // FloorFifty plays a sample when a volume is let go, so the player hears the level they set (redo step 11).
+  // A sample plays when a volume is let go, so the player hears the level they set (redo step 11).
   it('asks for a sample on the bus when its slider is let go, and not while it moves', () => {
     const { section, onsample } = open()
     const voice = section.querySelector<HTMLInputElement>(

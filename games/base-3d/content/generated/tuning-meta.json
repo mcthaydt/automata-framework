@@ -1,0 +1,23 @@
+{
+  "ROLL_TICKS": {
+    "max": 48,
+    "min": 12,
+    "step": 1,
+    "type": "int",
+    "value": 24
+  },
+  "ROLL_TRAVEL": {
+    "max": 393216,
+    "min": 170394,
+    "step": 1,
+    "type": "int",
+    "value": 209715
+  },
+  "WALK_PER_TICK": {
+    "max": 8738,
+    "min": 2185,
+    "step": 1,
+    "type": "int",
+    "value": 4369
+  }
+}

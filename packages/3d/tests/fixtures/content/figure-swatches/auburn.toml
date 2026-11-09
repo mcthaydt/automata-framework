@@ -1,0 +1,7 @@
+# `auburn`, a fixture.
+# Colour: DUEL ramp 2 (skin), step 2 (#885041).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "skin"
+step = 2
+gloss = 0.94

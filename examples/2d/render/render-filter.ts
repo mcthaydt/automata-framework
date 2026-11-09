@@ -76,7 +76,7 @@ export default defineGame({
         sim.spawn([[Drift, { x: row * 60, y: 50 + row * 24, vx: 0.5 + row * 0.25 }]])
     },
   },
-  views: { [Drift.id]: rect({ w: 12, h: 12, color: 0xf9c22b }) },
+  views: { [Drift.id]: rect({ w: 12, h: 12, color: 0xffbc4e }) },
   renderer: {
     postFilters: [dusk, scanlines],
     // The tier is presentation: it never reaches the sim, so the keys go straight to the stage.
@@ -92,9 +92,9 @@ export default defineGame({
   },
   draw: (ctx) => {
     if (stage === undefined) return
-    ctx.rect(4, 40, 200, 14, 0x2e222f)
+    ctx.rect(4, 40, 200, 14, 0x31222a)
     ctx.text(`quality ${stage.quality}   filters ${stage.postFilters.ids.join(' ')}`, 8, 43, {
-      color: 0xffffff,
+      color: 0xf5f7fa,
       size: 8,
     })
   },

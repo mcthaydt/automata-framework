@@ -32,9 +32,8 @@ const source: StackSource = {
     },
     {
       library: 'Rapier',
-      tier: 'Plus',
-      packages: [],
-      elsewhere: { packages: ['rapier2d'], repository: 'mcthaydt/automata-plus' },
+      tier: 'Extension',
+      packages: ['rapier2d'],
       does: 'Physics.',
       why: 'Deterministic.',
       adds: 'A sim plugin.',
@@ -43,7 +42,10 @@ const source: StackSource = {
   notes: [{ title: 'Why Rapier and not Planck', body: 'One engine, one parity suite.' }],
 }
 
-const facts = new Map<string, PackageFacts>([['zod', { name: 'zod', versions: ['4.6.5'], license: 'MIT' }]])
+const facts = new Map<string, PackageFacts>([
+  ['zod', { name: 'zod', versions: ['4.6.5'], license: 'MIT' }],
+  ['rapier2d', { name: 'rapier2d', versions: ['0.21.0'], license: 'Apache-2.0' }],
+])
 
 describe('renderStackPage', () => {
   const page = renderStackPage(source, facts)
@@ -63,9 +65,7 @@ describe('renderStackPage', () => {
     expect(page).toContain(
       '| [Paraglide](#paraglide) | Core | not yet installed; planned for PRODUCT.L | none yet |',
     )
-    expect(page).toContain(
-      '| [Rapier](#rapier) | Plus | installed in mcthaydt/automata-plus, not in this repository | see there |',
-    )
+    expect(page).toContain('| [Rapier](#rapier) | Extension | `rapier2d` 0.21.0 | Apache-2.0 |')
   })
 
   it('renders an installed card with its package table and the four lines', () => {
@@ -86,18 +86,15 @@ describe('renderStackPage', () => {
   })
 
   it('says a planned library is not yet installed and invents no version or license', () => {
-    const card = page.slice(page.indexOf('## Paraglide'), page.indexOf('## Why Rapier'))
+    const card = page.slice(page.indexOf('## Paraglide'), page.indexOf('## Rapier\n'))
     expect(card).toContain('Not yet installed; planned for PRODUCT.L. Package: `@inlang/paraglide-js`.')
     expect(card).not.toContain('| Package |')
   })
 
-  // PRODUCT.5g: physics moved to automata-plus; its pins live there, so the page names the repository instead.
-  it('says a library held in another repository is installed there and invents no version or license', () => {
+  it('names an extension card by its tier', () => {
     const card = page.slice(page.indexOf('## Rapier\n'), page.indexOf('## Why Rapier'))
-    expect(card).toContain(
-      'Installed in mcthaydt/automata-plus, not in this repository; its versions are pinned there. Package: `rapier2d`.',
-    )
-    expect(card).not.toContain('| Package |')
+    expect(card).toContain('| `rapier2d` | 0.21.0 | Apache-2.0 |')
+    expect(card).toContain('- **Tier:** Extension')
   })
 
   it('ends with the notes, then a single newline', () => {
@@ -222,23 +219,25 @@ describe('collectStackFacts', () => {
     )
   })
 
-  it('fails when a package held in another repository is in a package.json here', () => {
-    const elsewhere: StackCard = {
-      ...card([]),
-      elsewhere: { packages: ['zod'], repository: 'mcthaydt/automata-plus' },
-    }
-    expect(() => collectStackFacts(root, [elsewhere])).toThrow(
-      "zod: held in mcthaydt/automata-plus but packages/a depends on it now; move it to the card's packages",
-    )
+  it('reads the pin of a package an extension depends on', () => {
+    write('docs/versions.md', '## npm packages\n| `ext-only` | 1.1.0 | 2026-11-07 | x |')
+    write('extensions/e/package.json', { dependencies: { 'ext-only': '1.1.0' } })
+    write('extensions/e/node_modules/ext-only/package.json', {
+      name: 'ext-only',
+      version: '1.1.0',
+      license: 'MIT',
+    })
+    expect(collectStackFacts(root, [card(['ext-only'])]).get('ext-only')).toEqual({
+      name: 'ext-only',
+      versions: ['1.1.0'],
+      license: 'MIT',
+    })
   })
 
-  it('fails when a card says it is held elsewhere and also lists packages installed here', () => {
-    const both: StackCard = {
-      ...card(['zod']),
-      elsewhere: { packages: ['rapier2d'], repository: 'mcthaydt/automata-plus' },
-    }
-    expect(() => collectStackFacts(root, [both])).toThrow(
-      'X: a card held in mcthaydt/automata-plus lists no packages of its own; move zod to elsewhere or drop elsewhere',
+  it('fails when a planned package is now in an extension', () => {
+    write('extensions/e/package.json', { dependencies: { later: '1.0.0' } })
+    expect(() => collectStackFacts(root, [card([], { packages: ['later'], task: 'PRODUCT.L' })])).toThrow(
+      "later: planned for PRODUCT.L but extensions/e depends on it now; move it to the card's packages",
     )
   })
 

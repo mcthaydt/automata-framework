@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isTap, releaseStep, WheelPager } from '#src/shared/ui/focus/page-swipe.ts'
 
-// Ported from FloorFifty tests/client/ui/page-swipe.test.ts at ac72660, unchanged.
 describe('page swipe', () => {
   it('counts under 8 px of travel as a tap', () => {
     expect(isTap(5, 5)).toBe(true)

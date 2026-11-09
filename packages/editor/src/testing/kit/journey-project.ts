@@ -28,6 +28,12 @@ export type ProviderFactory<P> = (options: { readonly contextOptions: JourneyCon
 export interface JourneyProjectOptions {
   /** The journey files; `src/**\/*.journey.test.ts` by default. */
   readonly include?: readonly string[]
+  /**
+   * The engines the journeys run in, in the same iPad context: WebKit alone by default, the engine they exist for. A
+   * package adds Chromium so a journey also runs where WebKit is not installed (a cloud session), and a failure that
+   * only Chromium shows is a product bug.
+   */
+  readonly browsers?: readonly ('webkit' | 'chromium')[]
 }
 
 /** A Vitest project config (what `projects` takes). */
@@ -39,7 +45,7 @@ export interface JourneyProject<P> {
   readonly test: {
     name: 'journeys'
     include: string[]
-    browser: { enabled: true; headless: true; provider: P; instances: { browser: 'webkit' }[] }
+    browser: { enabled: true; headless: true; provider: P; instances: { browser: 'webkit' | 'chromium' }[] }
   }
 }
 
@@ -75,7 +81,7 @@ export function journeyProject<P>(
         enabled: true,
         headless: true,
         provider: provider({ contextOptions }),
-        instances: [{ browser: 'webkit' }],
+        instances: (options.browsers ?? ['webkit']).map((browser) => ({ browser })),
       },
     },
   }

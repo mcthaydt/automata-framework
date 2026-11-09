@@ -1,0 +1,367 @@
+{
+  "guard": {
+    "id": "guard",
+    "modes": ["patrol", "hunt", "search", "catch"],
+    "initial": "patrol",
+    "speed": {
+      "patrol": 1.4,
+      "hunt": 2.2,
+      "search": 1.4,
+      "catch": 0
+    },
+    "senses": [
+      {
+        "sight": {
+          "range": 6
+        }
+      },
+      {
+        "sound": {
+          "reach": 8
+        }
+      },
+      {
+        "touch": {
+          "radius": 0.6
+        }
+      }
+    ],
+    "transitions": [
+      {
+        "from": "patrol",
+        "to": "hunt",
+        "priority": 30,
+        "when": [
+          {
+            "sees": true
+          }
+        ]
+      },
+      {
+        "from": "hunt",
+        "to": "hunt",
+        "priority": 20,
+        "when": [
+          {
+            "sees": true
+          }
+        ],
+        "do": [
+          {
+            "goTo": "player"
+          }
+        ]
+      },
+      {
+        "from": "hunt",
+        "to": "search",
+        "priority": 10,
+        "when": [
+          {
+            "not": {
+              "sees": true
+            }
+          }
+        ],
+        "do": [
+          {
+            "set": "self.timer",
+            "to": 0
+          }
+        ]
+      },
+      {
+        "from": "search",
+        "to": "hunt",
+        "priority": 30,
+        "when": [
+          {
+            "sees": true
+          }
+        ]
+      },
+      {
+        "from": "search",
+        "to": "patrol",
+        "priority": 10,
+        "when": [
+          {
+            "fact": "self.idle",
+            "is": true
+          },
+          {
+            "timer": 5
+          }
+        ]
+      },
+      {
+        "from": "*",
+        "to": "catch",
+        "priority": 90,
+        "when": [
+          {
+            "touching": true
+          }
+        ],
+        "do": [
+          {
+            "emit": {
+              "caught": "player"
+            }
+          }
+        ]
+      }
+    ],
+    "routine": [
+      {
+        "node": "end",
+        "dwell": 2
+      },
+      {
+        "node": "cmid",
+        "dwell": 2
+      },
+      {
+        "node": "mouth",
+        "dwell": 2
+      }
+    ]
+  },
+  "sentry": {
+    "id": "sentry",
+    "modes": ["patrol", "alarm"],
+    "initial": "patrol",
+    "speed": {
+      "patrol": 0,
+      "alarm": 0
+    },
+    "senses": [
+      {
+        "sight": {
+          "range": 8
+        }
+      }
+    ],
+    "transitions": [
+      {
+        "from": "patrol",
+        "to": "alarm",
+        "priority": 20,
+        "when": [
+          {
+            "sees": true
+          }
+        ],
+        "do": [
+          {
+            "noise": {
+              "at": "self",
+              "loudness": 15,
+              "kind": "alarm"
+            }
+          },
+          {
+            "set": "alarm",
+            "to": true
+          }
+        ]
+      },
+      {
+        "from": "alarm",
+        "to": "patrol",
+        "priority": 10,
+        "when": [
+          {
+            "not": {
+              "sees": true
+            }
+          }
+        ]
+      }
+    ],
+    "routine": [
+      {
+        "node": "end",
+        "dwell": 1
+      }
+    ]
+  },
+  "hunter": {
+    "id": "hunter",
+    "modes": ["patrol", "listen", "catch"],
+    "initial": "patrol",
+    "speed": {
+      "patrol": 1.2,
+      "listen": 1.8,
+      "catch": 0
+    },
+    "senses": [
+      {
+        "sound": {
+          "reach": 12
+        }
+      },
+      {
+        "touch": {
+          "radius": 0.6
+        }
+      }
+    ],
+    "transitions": [
+      {
+        "from": "patrol",
+        "to": "listen",
+        "priority": 20,
+        "when": [
+          {
+            "heard": "*"
+          }
+        ],
+        "do": [
+          {
+            "set": "self.timer",
+            "to": 0
+          },
+          {
+            "goTo": "noise"
+          }
+        ]
+      },
+      {
+        "from": "listen",
+        "to": "patrol",
+        "priority": 10,
+        "when": [
+          {
+            "fact": "self.idle",
+            "is": true
+          },
+          {
+            "timer": 4
+          }
+        ]
+      },
+      {
+        "from": "*",
+        "to": "catch",
+        "priority": 90,
+        "when": [
+          {
+            "touching": true
+          }
+        ],
+        "do": [
+          {
+            "emit": {
+              "caught": "player"
+            }
+          }
+        ]
+      }
+    ],
+    "routine": [
+      {
+        "node": "end",
+        "dwell": 2
+      },
+      {
+        "node": "cmid",
+        "dwell": 2
+      },
+      {
+        "node": "mouth",
+        "dwell": 2
+      }
+    ]
+  },
+  "coward": {
+    "id": "coward",
+    "modes": ["patrol", "flee"],
+    "initial": "patrol",
+    "speed": {
+      "patrol": 1.2,
+      "flee": 2.4
+    },
+    "senses": [
+      {
+        "sight": {
+          "range": 6
+        }
+      }
+    ],
+    "transitions": [
+      {
+        "from": "patrol",
+        "to": "flee",
+        "priority": 20,
+        "when": [
+          {
+            "sees": true
+          }
+        ],
+        "do": [
+          {
+            "set": "self.timer",
+            "to": 0
+          },
+          {
+            "flee": "player"
+          }
+        ]
+      },
+      {
+        "from": "flee",
+        "to": "patrol",
+        "priority": 10,
+        "when": [
+          {
+            "not": {
+              "sees": true
+            }
+          },
+          {
+            "timer": 3
+          }
+        ]
+      }
+    ],
+    "routine": [
+      {
+        "node": "end",
+        "dwell": 2
+      },
+      {
+        "node": "cmid",
+        "dwell": 2
+      },
+      {
+        "node": "mouth",
+        "dwell": 2
+      }
+    ]
+  },
+  "wanderer": {
+    "id": "wanderer",
+    "modes": ["patrol"],
+    "initial": "patrol",
+    "speed": {
+      "patrol": 1
+    },
+    "senses": [],
+    "transitions": [],
+    "routine": [
+      {
+        "node": "end",
+        "dwell": 2
+      },
+      {
+        "node": "cmid",
+        "dwell": 2
+      },
+      {
+        "node": "mouth",
+        "dwell": 2
+      }
+    ]
+  }
+}

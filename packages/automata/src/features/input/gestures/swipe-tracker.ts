@@ -1,17 +1,16 @@
-// Swipe steering, flicks and taps over pointer samples, with no DOM in it. From FloorFifty
-// `apps/client/src/systems/gameplay/swipe-tracker.ts` at `ac72660`, generalised from its race's left/right/fast-fall
-// to the profile's gesture names and given a vertical axis and a tap.
+// Swipe steering, flicks and taps over pointer samples, with no DOM in it. It speaks the
+// profile's gesture names and has a vertical axis and a tap.
 //
 // Steering is held: the anchor starts where the thumb lands and trails it at the saturation distance, so reversing
 // after a long drag costs the same short move as reversing from rest. The dead zone is the only threshold that
 // steers; saturation is otherwise only what the indicator draws. Only the first finger that may steer steers, but
-// any finger may flick, so one thumb holds a direction while the other flicks (FloorFifty, Owner 2026-10-10).
+// any finger may flick, so one thumb holds a direction while the other flicks.
 //
 // Flicks and taps are pulses: the sink's owner (`Input.gesture`) latches each for one sample. Times are the
 // caller's (`PointerEvent.timeStamp`); the tracker reads no clock.
 import type { GestureName } from '../input-profile.schema.js'
 
-/** Content tuning, in CSS px and ms; FloorFifty's values are the defaults. */
+/** Content tuning, in CSS px and ms; `GESTURE_TUNING` holds the defaults. */
 export interface GestureTuning {
   /** How far the thumb must be from the anchor, on an axis, to steer on it. Also how still a tap must be. */
   readonly deadZonePx: number
@@ -23,7 +22,7 @@ export interface GestureTuning {
   readonly flickMs: number
 }
 
-/** FloorFifty's gesture tuning, the defaults. */
+/** The gesture tuning defaults. */
 export const GESTURE_TUNING: GestureTuning = { deadZonePx: 12, saturationPx: 48, flickPx: 40, flickMs: 180 }
 
 /**

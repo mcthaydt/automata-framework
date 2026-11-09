@@ -13,7 +13,7 @@ export function checkValue(tunable: Tunable, value: number | boolean | string): 
   const name = shownName(tunable)
   const say = (raw: number): string =>
     tunable.scale === undefined ? String(raw) : `${shownValue(tunable, raw)} ${tunable.unit ?? ''}`.trim()
-  if (!tunable.editable) return { message: `${name} is a table or a list: change it with Ask` }
+  if (!tunable.editable) return { message: `${name} is a table or a list: change it in the file` }
   if (tunable.kind === 'boolean')
     return typeof value === 'boolean' ? { ok: true } : { message: `${name}: that is not on or off` }
   if (tunable.kind === 'string')

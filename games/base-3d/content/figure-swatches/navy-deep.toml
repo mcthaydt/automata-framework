@@ -1,0 +1,6 @@
+# `navyDeep`: a base figure's swatch.
+# Colour: DUEL ramp 5 (dusk), step 0 (#282b4a).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "dusk"
+step = 0

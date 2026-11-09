@@ -195,11 +195,14 @@ onMount(() => {
     align-self: stretch;
     align-items: stretch;
     margin-left: var(--space-3);
-    min-width: 0;
+    /* The tabs keep their words: on a tight row the name gives way first (its track is the one that shrinks), so the
+       tools never draw over a tab. */
+    min-width: min-content;
   }
   .bar[data-compact='true'] .switch {
     justify-content: flex-start;
     margin-left: 0;
+    min-width: 0;
   }
   .tools {
     grid-area: tools;

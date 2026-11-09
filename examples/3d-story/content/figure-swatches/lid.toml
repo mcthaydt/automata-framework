@@ -1,0 +1,6 @@
+# `lid`: a colour from the DUEL palette.
+# Colour: DUEL ramp dawn, step 3.
+
+ramp = "dawn"
+step = 3
+flat = true

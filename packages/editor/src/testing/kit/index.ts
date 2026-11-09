@@ -2,6 +2,7 @@
 // the geometry owner, the window sizes of the layout tests, and the iPad journey harness, so no editor keeps its
 // own copy of them.
 
+export { contrast } from '../../shared/kit/tokens/contrast'
 export { IPAD_PROFILES, type IpadProfile, turned } from './ipad-profiles'
 export {
   IPAD_USER_AGENT,
@@ -19,3 +20,4 @@ export {
   type PointerTarget,
 } from './pointers'
 export { type ResizableGeometry, stubGeometry } from './stub-geometry.svelte'
+export { editorTargets } from './targets'

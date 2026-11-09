@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
+import { createEditorApp } from '#src/app/level-2d/editor-app.ts'
 import {
   createDocumentController,
   type DocumentController,

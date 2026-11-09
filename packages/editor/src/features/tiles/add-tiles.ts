@@ -2,13 +2,13 @@
 // size give the grid and the words the dialog shows; the picture's file name gives the file to write and the tileset
 // to add. The dialog (`AddTilesDialog.svelte`) draws this and the session adds the tileset as one undo step.
 import type { Size, TilesetDef } from '../../shared/level-2d/model/project-types'
+import { slugOf, unused } from '../../shared/pictures/pick-picture'
+
+export { pictureAsset } from '../../shared/pictures/pick-picture'
 
 /** The range a suggested tile size is drawn from. */
 const SMALLEST_SUGGESTION = 8
 const LARGEST_SUGGESTION = 64
-
-/** The picture types a browser decodes everywhere the editor runs. */
-export const PICTURE_TYPES = 'image/png,image/webp,image/jpeg'
 
 export interface TileGrid {
   readonly columns: number
@@ -59,32 +59,6 @@ export function tileGrid(picture: Size, tile: number): TileGrid {
   const tryThese = picture.w < tile || picture.h < tile ? [] : suggestions(picture, tile)
   const advice = tryThese.length === 0 ? '' : ` Try ${tryThese.join(' or ')}.`
   return { columns, rows, count: columns * rows, summary: undefined, problem: side + advice }
-}
-
-/** The file name without its extension, as kebab-case: "Forest Tiles (v2)" is "forest-tiles-v2". */
-function slugOf(fileName: string): string {
-  const base = fileName.replace(/\.[^.]*$/, '')
-  const slug = base
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/^[^a-z]+/, '')
-  return slug === '' ? 'tiles' : slug
-}
-
-/** `base`, or `base-2`, `base-3` … the first that is not taken. */
-function unused(base: string, taken: ReadonlySet<string>, make: (name: string) => string): string {
-  if (!taken.has(make(base))) return make(base)
-  for (let n = 2; ; n++) if (!taken.has(make(`${base}-${n}`))) return make(`${base}-${n}`)
-}
-
-/**
- * Where the picture is written: under `assets/` beside the levels (where every image the canvas draws lives), named
- * after the file in plain kebab-case with its own extension in lower case, never over a file that is there.
- */
-export function pictureAsset(fileName: string, existing: readonly string[]): string {
-  const extension = /\.([a-z0-9]+)$/i.exec(fileName)?.[1]?.toLowerCase() ?? 'png'
-  return unused(slugOf(fileName), new Set(existing), (name) => `assets/${name}.${extension}`)
 }
 
 export interface Picture {

@@ -6,13 +6,22 @@ import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
 
 /**
- * Placeholder and AI-filler phrases (quality-bar spec §4.2). Matched on whole words in each page's text, title and
+ * Placeholder and AI-filler phrases. Matched on whole words in each page's text, title and
  * description; TODO is matched in capitals only, so prose about a "todo list" is not flagged.
  */
-export const BANNED_PHRASES: { label: string; pattern: RegExp }[] = [
+export const BANNED_PHRASES: {
+  label: string
+  pattern: RegExp
+  allowedIn?: readonly string[]
+}[] = [
   { label: 'lorem', pattern: /\blorem\b/i },
   { label: 'TODO', pattern: /\bTODO\b/ },
-  { label: 'coming soon', pattern: /\bcoming soon\b/i },
+  // The app page names a place to buy with no link yet "Coming soon", in words, until the app is on sale.
+  {
+    label: 'coming soon',
+    pattern: /\bcoming soon\b/i,
+    allowedIn: ['app.html'],
+  },
   { label: 'seamless', pattern: /\bseamless(ly)?\b/i },
   { label: 'cutting-edge', pattern: /\bcutting[- ]edge\b/i },
   { label: 'unleash', pattern: /\bunleash(es|ed|ing)?\b/i },
@@ -22,13 +31,16 @@ export const BANNED_PHRASES: { label: string; pattern: RegExp }[] = [
 ]
 
 /**
- * STANDALONE.1 (Owner, 2026-10-31: "automata framework is standalone"): the reference projects the framework was
- * extracted from are not named on the site. Their record is the framework's private provenance file (STANDALONE.2).
+ * The Owner's rule, "automata framework is standalone": the reference projects the framework was
+ * extracted from are not named on the site. Their record is the framework's private provenance file.
  */
 export const STANDALONE_NAMES: { label: string; pattern: RegExp }[] = [
   { label: 'FloorFifty', pattern: /\bfloor\s?fifty\b/i },
   { label: 'The Last Light', pattern: /\blast\s+light\b/i },
   { label: 'PixiJS3D_Experiment_001', pattern: /\bpixijs3d[_-]experiment/i },
+  // The Owner, 2026-11-08: the character and environment spikes are never named in the product.
+  { label: 'FigureBuilder', pattern: /\bfigure\s?builder\b/i },
+  { label: 'EnvironmentBuilder', pattern: /\benvironment\s?builder\b/i },
 ]
 
 /**
@@ -37,8 +49,14 @@ export const STANDALONE_NAMES: { label: string; pattern: RegExp }[] = [
  */
 export const FRAMING_PHRASES: { label: string; pattern: RegExp }[] = [
   { label: 'the reference host', pattern: /\breference\s+(gaming\s+)?host\b/i },
-  { label: 'web browsers and Ruken', pattern: /\bweb\s+browsers\s+and\s+(the\s+)?Ruken\b/i },
-  { label: 'the Ruken platform', pattern: /\bthe\s+Ruken\s+(gaming\s+)?platform\b/i },
+  {
+    label: 'web browsers and Ruken',
+    pattern: /\bweb\s+browsers\s+and\s+(the\s+)?Ruken\b/i,
+  },
+  {
+    label: 'the Ruken platform',
+    pattern: /\bthe\s+Ruken\s+(gaming\s+)?platform\b/i,
+  },
   { label: 'Ruken first', pattern: /\bRuken[\s-]first\b/i },
   { label: 'the Ruken SDK owns', pattern: /\bthe\s+Ruken\s+SDK\s+owns\b/i },
 ]
@@ -52,7 +70,7 @@ const TARGETS: { label: string; pattern: RegExp }[] = [
   { label: 'desktop (Tauri)', pattern: /\bTauri\b/ },
 ]
 
-/** The plain-text files the site publishes. The framework's two (its API index) are copies it owns (DX.10a). */
+/** The plain-text files the site publishes. The framework's two (its API index) are copies it owns. */
 export const SITE_TEXT_FILES = ['llms.txt', 'llms-guides.txt']
 
 /** A page's words, leaving out text the site shows verbatim from the framework (`data-framework-copy`). */
@@ -65,7 +83,7 @@ export function ownText(doc: Document): string {
   return parts.join('\n')
 }
 
-/** STANDALONE.1: no reference project's name and no target cast as the host. */
+/** no reference project's name and no target cast as the host. */
 export function checkStandalone(file: string, text: string): string[] {
   const failures: string[] = []
   for (const name of STANDALONE_NAMES)
@@ -75,7 +93,7 @@ export function checkStandalone(file: string, text: string): string[] {
   return failures
 }
 
-/** STANDALONE.1: where the site says where a game goes, it names all four targets (ADR 0006). */
+/** where the site says where a game goes, it names all four targets (ADR 0006). */
 export function checkTargets(root: string): string[] {
   const failures: string[] = []
   for (const file of TARGETS_SENTENCE_PAGES) {

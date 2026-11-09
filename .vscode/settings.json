@@ -49,9 +49,6 @@
 
     // Hidden while the core and 2D refactor runs. Remove when 3D starts.
     "packages/editor-*": true,
-    "packages/render-pixi3d": true,
-    "packages/figures": true,
-    "packages/sector-format": true,
     "games/base-3d": true,
     "examples/3d": true,
     "docs/design": true
@@ -97,9 +94,6 @@
 
     // Hidden while the core and 2D refactor runs. Remove when 3D starts.
     "packages/editor-*": true,
-    "packages/render-pixi3d": true,
-    "packages/figures": true,
-    "packages/sector-format": true,
     "games/base-3d": true,
     "examples/3d": true,
     "docs/design": true

@@ -1,0 +1,39 @@
+{
+  "about": "The words a made-up sign is set from: the kinds of shop a street has, and the syllables a name is put together from. Never a brand.",
+  "shopKinds": [
+    "CAFE",
+    "BAR",
+    "DELI",
+    "BOOKS",
+    "NOODLES",
+    "RADIO",
+    "TAILOR",
+    "LAUNDRY",
+    "BAKERY",
+    "RECORDS",
+    "HOTEL",
+    "PAWN",
+    "DINER",
+    "MARKET",
+    "GARAGE",
+    "ARCADE"
+  ],
+  "syllables": [
+    "KA",
+    "MO",
+    "RI",
+    "ZEN",
+    "LO",
+    "VA",
+    "TE",
+    "NO",
+    "SU",
+    "BE",
+    "DA",
+    "YU",
+    "OR",
+    "IN",
+    "EL",
+    "MA"
+  ]
+}

@@ -1,0 +1,226 @@
+{
+  "sources": ["games/base-3d"],
+  "moves": [
+    {
+      "from": "games/base-3d/src/constants/index.ts",
+      "to": "games/base-3d/src/shared/constants.ts"
+    },
+    {
+      "from": "games/base-3d/src/components.ts",
+      "to": "games/base-3d/src/shared/hero.component.ts"
+    },
+    {
+      "from": "games/base-3d/src/events.ts",
+      "to": "games/base-3d/src/shared/hero.event.ts"
+    },
+    {
+      "from": "games/base-3d/src/resources.ts",
+      "to": "games/base-3d/src/shared/progress.resource.ts"
+    },
+    {
+      "from": "games/base-3d/src/commands.ts",
+      "to": "games/base-3d/src/features/hero/move.command.ts"
+    },
+    {
+      "from": "games/base-3d/src/systems/area.ts",
+      "to": "games/base-3d/src/shared/area.ts"
+    },
+    {
+      "from": "games/base-3d/src/systems/geometry.ts",
+      "to": "games/base-3d/src/features/hero/geometry.ts"
+    },
+    {
+      "from": "games/base-3d/src/systems/hero.ts",
+      "to": "games/base-3d/src/features/hero/hero.system.ts"
+    },
+    {
+      "from": "games/base-3d/src/systems/embers.ts",
+      "to": "games/base-3d/src/features/embers/ember.system.ts"
+    },
+    {
+      "from": "games/base-3d/src/systems/index.ts",
+      "to": "games/base-3d/src/shared/systems-index.ts"
+    },
+    {
+      "from": "games/base-3d/src/state/index.ts",
+      "to": "games/base-3d/src/app/base3d.plugin.ts"
+    },
+    {
+      "from": "games/base-3d/src/state/save.ts",
+      "to": "games/base-3d/src/shared/save.ts"
+    },
+    {
+      "from": "games/base-3d/src/views/index.ts",
+      "to": "games/base-3d/src/features/scene/scene.ts"
+    },
+    {
+      "from": "games/base-3d/src/views/ember.ts",
+      "to": "games/base-3d/src/features/embers/ember-view.ts"
+    },
+    {
+      "from": "games/base-3d/src/main.ts",
+      "to": "games/base-3d/main.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens",
+      "to": "games/base-3d/src/features/screens"
+    },
+    {
+      "from": "games/base-3d/src/content/room.ts",
+      "to": "games/base-3d/src/features/room/room.ts"
+    },
+    {
+      "from": "games/base-3d/src/content/levels/sector-area.ts",
+      "to": "games/base-3d/src/features/room/sector-area.ts"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-actions",
+      "to": "games/base-3d/content/figure-actions"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-clips",
+      "to": "games/base-3d/content/figure-clips"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-gaits",
+      "to": "games/base-3d/content/figure-gaits"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-hair",
+      "to": "games/base-3d/content/figure-hair"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-headwear",
+      "to": "games/base-3d/content/figure-headwear"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-items",
+      "to": "games/base-3d/content/figure-items"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-poses",
+      "to": "games/base-3d/content/figure-poses"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-rigs",
+      "to": "games/base-3d/content/figure-rigs"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-stands",
+      "to": "games/base-3d/content/figure-stands"
+    },
+    {
+      "from": "games/base-3d/src/content/figure-swatches",
+      "to": "games/base-3d/content/figure-swatches"
+    },
+    {
+      "from": "games/base-3d/src/content/figures",
+      "to": "games/base-3d/content/figures"
+    },
+    {
+      "from": "games/base-3d/src/content/world-props",
+      "to": "games/base-3d/content/world-props"
+    },
+    {
+      "from": "games/base-3d/src/content/world-swatches",
+      "to": "games/base-3d/content/world-swatches"
+    },
+    {
+      "from": "games/base-3d/src/content/generated",
+      "to": "games/base-3d/content/generated"
+    },
+    {
+      "from": "games/base-3d/src/content/levels/room.af-sector.json",
+      "to": "games/base-3d/content/levels/room.af-sector.json"
+    },
+    {
+      "from": "games/base-3d/src/game.test.ts",
+      "to": "games/base-3d/tests/browser/sim/game.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/game-spec.test.ts",
+      "to": "games/base-3d/tests/unit/app/game-spec.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/ship-config.test.ts",
+      "to": "games/base-3d/tests/unit/ship-config.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/sounds.test.ts",
+      "to": "games/base-3d/tests/unit/sounds.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/views.test.ts",
+      "to": "games/base-3d/tests/unit/scene/scene.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/views/ember.test.ts",
+      "to": "games/base-3d/tests/unit/embers/ember-view.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/content/room.test.ts",
+      "to": "games/base-3d/tests/unit/room/room.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/content/levels/sector-area.test.ts",
+      "to": "games/base-3d/tests/unit/room/sector-area.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/controls.test.ts",
+      "to": "games/base-3d/tests/unit/screens/controls.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/copy.test.ts",
+      "to": "games/base-3d/tests/unit/screens/copy.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/saves.test.ts",
+      "to": "games/base-3d/tests/unit/screens/saves.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/strings.test.ts",
+      "to": "games/base-3d/tests/unit/screens/strings.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/screens.dom.test.ts",
+      "to": "games/base-3d/tests/unit/screens/screens.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/strings.dom.test.ts",
+      "to": "games/base-3d/tests/unit/screens/strings.dom.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/controls.layout.test.ts",
+      "to": "games/base-3d/tests/browser/layout/screens/controls.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/hud.layout.test.ts",
+      "to": "games/base-3d/tests/browser/layout/screens/hud.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/screens.layout.test.ts",
+      "to": "games/base-3d/tests/browser/layout/screens/screens.test.ts"
+    },
+    {
+      "from": "games/base-3d/src/screens/strings.layout.test.ts",
+      "to": "games/base-3d/tests/browser/layout/screens/strings.test.ts"
+    },
+    {
+      "from": "games/base-3d/tests/e2e-dev",
+      "to": "games/base-3d/tests/e2e-dev"
+    },
+    {
+      "from": "games/base-3d/src/messages",
+      "to": "games/base-3d/src/messages"
+    },
+    {
+      "from": "games/base-3d/src/paraglide",
+      "to": "games/base-3d/src/paraglide"
+    },
+    {
+      "from": "games/base-3d/src/testing",
+      "to": "games/base-3d/src/testing"
+    }
+  ],
+  "entries": {}
+}

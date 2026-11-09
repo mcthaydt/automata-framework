@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
 import { createContentText } from '#src/shared/locale/content-text.ts'
 
-// PRODUCT spec §4 item 5, after FloorFifty apps/client/src/i18n/content.ts (ac72660): authored TOML text is
+// PRODUCT spec §4 item 5: authored TOML text is
 // looked up at run time by its message key, in the active locale.
 describe('createContentText', () => {
   const messages = {

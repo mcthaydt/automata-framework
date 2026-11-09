@@ -1,17 +1,17 @@
 import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
-import '#src/app/editor-2d/main.css'
+import '#src/app/level-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
-import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
+import { type OpenLevelScreen, openLevelScreen } from '#src/testing/level-2d/open-level-screen.ts'
 import { entity, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 
@@ -25,7 +25,7 @@ const targets = editorTargets()
 
 const PROJECT = 'mossgate.af2d.json'
 
-let started: EditorHandle | undefined
+let started: OpenLevelScreen | undefined
 let target: HTMLElement | undefined
 afterEach(async () => {
   await started?.dispose()
@@ -57,23 +57,8 @@ async function start(size: EditorSize) {
   await workspace.store.write(PROJECT, printProject(seeded()))
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
-  started = await startEditor(target, {
-    window,
-    document,
-    workspace,
-    clock: {
-      now: () => Date.now(),
-      setTimer: (ms, run) => window.setTimeout(run, ms),
-      clearTimer: (handle) => window.clearTimeout(handle as number),
-    },
-    fillRandom: (bytes) => {
-      crypto.getRandomValues(bytes)
-    },
-  })
+  started = await openLevelScreen(target, workspace, PROJECT)
   await settleLayout()
-  const card = document.querySelector<HTMLElement>('[aria-label="Levels"] .open')
-  if (card === null) throw new Error('no level card')
-  card.click()
   await expect.poll(() => document.querySelector('[data-testid="level-view"]')).not.toBeNull()
   await arrived()
   return { conditions }

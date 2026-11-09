@@ -1,10 +1,10 @@
 # How it works
 
 A game made with Automata has two halves: the rules, which decide what happens, and everything around them, which
-shows it, listens to the player and talks to wherever the game runs. This page is the tour of both, and of the four
-packages they come in.
+shows it, listens to the player and talks to wherever the game runs. This page is the tour of both, and of the packages
+they come in.
 
-## The four packages
+## The core packages
 
 | Package | What it is for |
 |---|---|
@@ -13,7 +13,8 @@ packages they come in.
 | `@automata/content` | Levels, settings and text, checked and turned into what the game loads |
 | `@automata/tools` | The `automata` command: make a game, open the editor, check and ship it |
 
-[Make a game](/start) shows them working together. The [API reference](/api) lists every name each one exports.
+[Make a game](/start) shows them working together. The [Reference](/api) lists every name each one exports, and
+[Extensions](./extensions.md) are the extras a game can add.
 
 ## The rules run in ticks
 
@@ -42,7 +43,7 @@ never a number to update.
 
 ## Drawing
 
-A **view** says how a component looks: `rect({ w: 8, h: 8, color: 0xffc825 })` draws a yellow box wherever a square
+A **view** says how a component looks: `rect({ w: 8, h: 8, color: 0xffcf05 })` draws a yellow box wherever a square
 stands. The game draws with PixiJS, on WebGL2 by default. The screen often refreshes faster than the sim ticks, so
 between two ticks each view is drawn part of the way from where it was to where it is now. Movement stays smooth and
 the rules stay in whole ticks.

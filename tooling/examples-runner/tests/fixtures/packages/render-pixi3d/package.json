@@ -1,8 +1,0 @@
-{
-  "name": "@automata/render-pixi3d",
-  "private": true,
-  "exports": {
-    ".": "./src/index.ts",
-    "./no-eval": "./src/no-eval.ts"
-  }
-}

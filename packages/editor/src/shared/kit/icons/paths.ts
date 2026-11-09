@@ -1,5 +1,5 @@
 /*
- * The editor's icons: 33 drawings from Lucide (lucide-static 0.460.0), copied as the shapes inside each
+ * The editor's icons: 40 drawings from Lucide (lucide-static 0.460.0), copied as the shapes inside each
  * 24 x 24 svg (tag and attributes), so the kit needs no icon dependency. Icon.svelte draws each with a 2 px round stroke in
  * currentColor. To add one, copy the elements inside the <svg> of icons/<lucide-name>.svg into a new entry
  * here as [tag, attributes] pairs, under the name the editor uses for it, and record it in docs/provenance/sources.md.
@@ -214,6 +214,71 @@ export const ICONS = {
     ['path', { d: 'M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4' }],
     ['path', { d: 'M14 2v4a2 2 0 0 0 2 2h4' }],
     ['path', { d: 'm3 15 2 2 4-4' }],
+  ],
+  // vector-square: the four handles of an outline, for a room's corners
+  corner: [
+    ['path', { d: 'M19.5 7a24 24 0 0 1 0 10' }],
+    ['path', { d: 'M4.5 7a24 24 0 0 0 0 10' }],
+    ['path', { d: 'M7 19.5a24 24 0 0 0 10 0' }],
+    ['path', { d: 'M7 4.5a24 24 0 0 1 10 0' }],
+    ['rect', { x: '17', y: '17', width: '5', height: '5', rx: '1' }],
+    ['rect', { x: '17', y: '2', width: '5', height: '5', rx: '1' }],
+    ['rect', { x: '2', y: '17', width: '5', height: '5', rx: '1' }],
+    ['rect', { x: '2', y: '2', width: '5', height: '5', rx: '1' }],
+  ],
+  // door-open: a way through from one room to the next
+  doorway: [
+    ['path', { d: 'M13 4h3a2 2 0 0 1 2 2v14' }],
+    ['path', { d: 'M2 20h3' }],
+    ['path', { d: 'M13 20h9' }],
+    ['path', { d: 'M10 12v.01' }],
+    [
+      'path',
+      {
+        d: 'M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z',
+      },
+    ],
+  ],
+  // door-closed
+  door: [
+    ['path', { d: 'M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14' }],
+    ['path', { d: 'M2 20h20' }],
+    ['path', { d: 'M14 12v.01' }],
+  ],
+  // grid-2x2: a window's panes
+  window: [
+    ['rect', { width: '18', height: '18', x: '3', y: '3', rx: '2' }],
+    ['path', { d: 'M3 12h18' }],
+    ['path', { d: 'M12 3v18' }],
+  ],
+  // box: a thing the game uses
+  thing: [
+    [
+      'path',
+      {
+        d: 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z',
+      },
+    ],
+    ['path', { d: 'm3.3 7 8.7 5 8.7-5' }],
+    ['path', { d: 'M12 22V12' }],
+  ],
+  // armchair: a piece of furniture the game's props offer
+  furniture: [
+    ['path', { d: 'M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3' }],
+    [
+      'path',
+      {
+        d: 'M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z',
+      },
+    ],
+    ['path', { d: 'M5 18v2' }],
+    ['path', { d: 'M19 18v2' }],
+  ],
+  // lamp
+  lamp: [
+    ['path', { d: 'M8 2h8l4 10H4L8 2Z' }],
+    ['path', { d: 'M12 12v6' }],
+    ['path', { d: 'M8 22v-2c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2H8Z' }],
   ],
 } as const
 

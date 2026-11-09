@@ -1,0 +1,6 @@
+# `denim`, a fixture.
+# Colour: DUEL ramp 7 (sky), step 1 (#23324d).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "sky"
+step = 1

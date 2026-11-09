@@ -1,4 +1,6 @@
 import type { AssetsSource, FlowGraph, GameSource } from '@automata/content'
+import type { Audio } from '../../features/audio/audio.manager.js'
+import type { AudioBuses } from '../../features/audio/audio-buses.js'
 import type { AudioContextLike } from '../../features/audio/audio-graph.js'
 import type { EventSounds } from '../../features/audio/event-sounds.js'
 import type { GameOrientation, RotateHintMode } from '../../features/display/display-policy.svelte.js'
@@ -11,6 +13,7 @@ import type { HostResult } from '../../shared/host/errors.ts'
 import type { Hosting, HostingOptions, HostingSeams } from '../../shared/host/hosting.ts'
 import type { Clock } from '../../shared/lib/clock.ts'
 import type { FrameSource } from '../../shared/runtime/loop/frames.js'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { RendererFactory } from '../../shared/runtime/render/renderer.js'
 import type { DeviceStorage } from '../../shared/runtime/settings/device-storage.js'
 import type { SettingsDef } from '../../shared/runtime/settings/settings.manager.js'
@@ -84,6 +87,15 @@ export interface StartOptions {
   readonly at?: string | undefined
 }
 
+/** What a game's own audio player is given: the audio service (also the buses' seam) and the presentation bus. */
+export interface GameAudioServices {
+  readonly audio: Audio & AudioBuses
+  readonly bus: PresentationBus
+}
+
+/** Starts a game's audio player; the function it returns stops it. */
+export type GameAudioStart = (services: GameAudioServices) => (() => void) | undefined
+
 /** Everything a game provides to the runtime to boot. */
 export interface GameDefinition<S = never> {
   readonly root: HTMLElement
@@ -119,6 +131,12 @@ export interface GameDefinition<S = never> {
   readonly extensions?: readonly ExtensionDef[] | undefined
   /** The sound each sim event plays, by the event's type. */
   readonly sounds?: EventSounds | undefined
+  /**
+   * The game's own audio player, started once the runtime has built its audio service: cues for events, music for the
+   * game's state. It plays through the service's buses, hears the presentation bus and never writes the sim. What it
+   * returns undoes it at shutdown.
+   */
+  readonly audio?: GameAudioStart | undefined
   /** The board and score each sim event submits, by the event's type. Needs the `leaderboards` grant. */
   readonly scores?: EventScores | undefined
   readonly copy?: Partial<BootFailureCopy> & {

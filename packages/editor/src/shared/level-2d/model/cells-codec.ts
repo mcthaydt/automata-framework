@@ -5,6 +5,7 @@
 // `.*5 7h*3 2.*24`. The printer is canonical (maximal runs, one spelling), so equal grids print byte-equal and a
 // git diff shows only the rows that changed.
 
+import { parseTileToken } from '@automata/content/level-2d'
 import { Grid } from './grid.ts'
 
 export type CellKind = 'tile' | 'int'
@@ -107,12 +108,11 @@ function parseToken(text: string, kind: CellKind): Token | string {
       return `"${text}": an IntGrid value is 1 to ${MAX_INT_VALUE} (empty is ".")`
     return { value, count }
   }
-  const match = /^(\d+)(hv|h|v)?$/.exec(base)
-  if (!match) return `"${text}" is not a tile cell`
-  const tile = Number(match[1])
-  if (tile > MAX_TILE) return `"${text}": tile index is too large`
-  const flips = match[2] ?? ''
-  return { value: packTile(tile, flips.includes('h'), flips.includes('v')), count }
+  // The token grammar has one owner: the content package, which the game reads with.
+  const cell = parseTileToken(base)
+  if (cell === undefined) return `"${text}" is not a tile cell`
+  if (cell.tile > MAX_TILE) return `"${text}": tile index is too large`
+  return { value: packTile(cell.tile, cell.flipX, cell.flipY), count }
 }
 
 interface Run {

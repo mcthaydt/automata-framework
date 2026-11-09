@@ -1,4 +1,4 @@
-// Each browser gate must catch its planted fixture (quality-bar spec QB-c) and pass a clean page. Without this, a gate
+// Each browser gate must catch its planted fixture and pass a clean page. Without this, a gate
 // that silently checks nothing would look exactly like a site with no problems.
 import { expect, test } from '@playwright/test'
 import { FIXTURE_PORT } from '../../playwright.config'

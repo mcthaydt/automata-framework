@@ -1,36 +1,73 @@
+import { readdirSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import Index from '../../../src/features/api/ApiIndex.svelte'
-import Package from '../../../src/features/api/ApiPackage.svelte'
-import { entries, load } from '../../../src/routes/api/[version]/[pkg]/+page'
-import type { ApiPackage } from '../../../src/shared/framework/api.ts'
-import { apiVersions, getApiReference, latestApiVersion } from '../../../src/shared/framework/api-reference'
+import Index from '#src/features/api/ApiIndex.svelte'
+import Package from '#src/features/api/ApiPackage.svelte'
+import { entries, load } from '#src/routes/api/[version]/[pkg]/+page.ts'
+import type { ApiPackage } from '#src/shared/framework/api.ts'
+import { API_VERSION, getApiReference } from '#src/shared/framework/api-reference.ts'
 
 // M10.4: the complete generated reference, one page per package and version.
 describe('/api', () => {
   it('lists every version the site keeps, with its packages linked', () => {
     const view = render(Index)
-    const version = latestApiVersion()
+    const version = API_VERSION
     expect(view.getByRole('heading', { level: 2, name: `Version ${version}` })).toBeTruthy()
     const reference = getApiReference(version)!
     for (const pkg of reference.packages)
       expect(view.container.querySelector(`a[href="/api/${version}/${pkg.slug}"]`), pkg.slug).toBeTruthy()
   })
 
-  it('has one page for each published package, under its current name', () => {
-    const names = getApiReference(latestApiVersion())!.packages.map((pkg) => pkg.name)
-    expect(names).toEqual(['@automata/content', '@automata/framework', '@automata/sim', '@automata/tools'])
+  it('groups the packages under Core and Extensions, every extensions/* package under Extensions', () => {
+    const view = render(Index)
+    const listed = (heading: string): string[] => {
+      const list = view.getByRole('heading', { level: 3, name: heading }).nextElementSibling
+      return [...(list?.querySelectorAll('a') ?? [])].map((link) => link.textContent ?? '')
+    }
+    const core = listed('Core')
+    const extensions = listed('Extensions')
+    expect(core).toEqual(['@automata/content', '@automata/framework', '@automata/sim', '@automata/tools'])
+    const published = readdirSync(resolve('../extensions'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => JSON.parse(readFileSync(resolve('../extensions', entry.name, 'package.json'), 'utf8')))
+      .filter((manifest) => manifest.private !== true)
+      .map((manifest) => manifest.name as string)
+    expect(published.length).toBeGreaterThan(0)
+    for (const name of published) expect(extensions, name).toContain(name)
+    expect(extensions.filter((name) => core.includes(name))).toEqual([])
   })
 
-  it('prerenders one page per package of each version', async () => {
-    const expected = apiVersions().flatMap((v) =>
-      getApiReference(v)!.packages.map((p) => ({ version: v, pkg: p.slug })),
-    )
+  it('has one page for each published package, under its current name', () => {
+    const names = getApiReference(API_VERSION)!.packages.map((pkg) => pkg.name)
+    // The four core packages and the nine free extensions, which are published too.
+    expect(names).toEqual([
+      '@automata/audio-synth',
+      '@automata/content',
+      '@automata/debug',
+      '@automata/feel',
+      '@automata/framework',
+      '@automata/net',
+      '@automata/net-server',
+      '@automata/net-ui',
+      '@automata/physics',
+      '@automata/puzzle',
+      '@automata/sim',
+      '@automata/tools',
+      '@automata/ui-screens',
+    ])
+  })
+
+  it('prerenders one page per package', async () => {
+    const expected = getApiReference(API_VERSION)!.packages.map((p) => ({
+      version: API_VERSION,
+      pkg: p.slug,
+    }))
     expect(await entries()).toEqual(expected)
   })
 
   it('a package page shows every export with its signature, filters by word, and 404s an unknown package', async () => {
-    const version = latestApiVersion()
+    const version = API_VERSION
     const data = load({ params: { version, pkg: 'sim' } } as never) as unknown as {
       version: string
       pkg: ApiPackage
@@ -54,7 +91,7 @@ describe('/api', () => {
   })
 
   it('a package page is short: its groups folded into a list of rows, and a filter opens what matches', async () => {
-    const version = latestApiVersion()
+    const version = API_VERSION
     const data = load({ params: { version, pkg: 'framework' } } as never) as unknown as {
       version: string
       pkg: ApiPackage
@@ -72,5 +109,18 @@ describe('/api', () => {
     expect(open.length).toBeGreaterThan(0)
     expect(open.every((group) => group.open)).toBe(true)
     expect(view.container.querySelector('[id="startGame"]')).toBeTruthy()
+  })
+
+  it('shows a doc comment’s backticks as code, not as raw marks', () => {
+    const version = API_VERSION
+    const pkg = getApiReference(version)!.packages.find((candidate) =>
+      candidate.entryPoints.some((point) => point.entries.some((entry) => entry.doc.includes('`'))),
+    )!
+    const view = render(Package, { data: { version, pkg } } as never)
+    const withCode = [...view.container.querySelectorAll('details.api-entry > p')].filter((p) =>
+      p.querySelector('code'),
+    )
+    expect(withCode.length).toBeGreaterThan(0)
+    for (const p of withCode) expect(p.textContent).not.toContain('`')
   })
 })

@@ -49,6 +49,22 @@ export interface ContentTileset {
   readonly tags: readonly { readonly tag: string; readonly tiles: readonly number[] }[]
 }
 
+/** One named run of frames of a character's picture: `frames` are indexes into the picture cut into equal cells. */
+export interface ContentClip {
+  readonly id: string
+  readonly frames: readonly number[]
+  /** Frames a second, 1 to 60. */
+  readonly fps: number
+  readonly loop: boolean
+}
+
+/** A character's animation: a picture cut into `frame`-sized cells, and clips over those cells. */
+export interface ContentAnimation {
+  readonly image: string
+  readonly frame: ContentSize
+  readonly clips: readonly ContentClip[]
+}
+
 /** An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it. */
 export type ContentEntityDef = EntityDef & {
   readonly shape: 'rect' | 'ellipse' | 'point' | 'tile'
@@ -56,6 +72,7 @@ export type ContentEntityDef = EntityDef & {
   readonly pivot: { readonly x: number; readonly y: number }
   readonly resizable: 'none' | 'x' | 'y' | 'xy'
   readonly tile?: { readonly tileset: string; readonly index: number } | undefined
+  readonly animation?: ContentAnimation | undefined
   readonly tags: readonly string[]
   readonly min?: { readonly per: 'level' | 'project'; readonly count: number } | undefined
 }
@@ -192,6 +209,29 @@ const projectTileset = z.strictObject({
   tags: z.array(z.strictObject({ tag: z.string(), tiles: z.array(nonNegativeInt) })),
 })
 
+const clipSchema: z.ZodType<ContentClip> = z.strictObject({
+  id: z.string().min(1),
+  frames: z.array(nonNegativeInt).min(1),
+  fps: z.number().min(1).max(60),
+  loop: z.boolean(),
+})
+
+/** At least one clip, and no two with one name. */
+export const animationSchema: z.ZodType<ContentAnimation> = z
+  .strictObject({
+    image: z.string().min(1),
+    frame: z.strictObject({ w: z.number().int().positive(), h: z.number().int().positive() }),
+    clips: z.array(clipSchema).min(1),
+  })
+  .superRefine((animation, ctx) => {
+    const seen = new Set<string>()
+    for (const clip of animation.clips) {
+      if (seen.has(clip.id))
+        ctx.addIssue({ code: 'custom', message: `Two clips are called "${clip.id}".`, path: ['clips'] })
+      seen.add(clip.id)
+    }
+  })
+
 const projectEntity = z.strictObject({
   id: z.string(),
   label: z.string().optional(),
@@ -203,6 +243,7 @@ const projectEntity = z.strictObject({
   pivot: z.strictObject({ x: z.number(), y: z.number() }),
   resizable: z.enum(['none', 'x', 'y', 'xy']),
   tile: z.strictObject({ tileset: z.string(), index: nonNegativeInt }).optional(),
+  animation: animationSchema.optional(),
   tags: z.array(z.string()),
   min: z.strictObject({ per: z.enum(['level', 'project']), count: nonNegativeInt }).optional(),
 })

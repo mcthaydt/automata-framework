@@ -1,5 +1,4 @@
-// Which labels a pad's buttons carry, sniffed from its `id`, from FloorFifty
-// `apps/client/src/ui/glyphs.ts` at `ac72660`. The labels themselves are prompts.
+// Which labels a pad's buttons carry, sniffed from its `id`. The labels themselves are prompts.
 
 /** Which labels a pad's buttons carry, read from its id. */
 export type GlyphFamily = 'xbox' | 'playstation' | 'generic'

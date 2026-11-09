@@ -8,7 +8,7 @@ import { type FakeHostHandle, manualClock, withHostingTest } from '#src/testing/
 const sentToGame = (host: FakeHostHandle['host'], type: string): unknown[] =>
   host.messages.filter((entry) => entry.dir === 'out' && entry.msg.type === type)
 
-describe("the host's Open game menu (FloorFifty menu-request; S6 answer 6)", () => {
+describe("the host's Open game menu", () => {
   // The host sends menu.open only to a game that asked for the `menu` capability.
   const menuHost = { hosting: { wants: ['menu' as const] } }
 
@@ -98,7 +98,7 @@ function interceptGamePort() {
   }
 }
 
-describe('the host closing the game (FloorFifty exit-and-links)', () => {
+describe('the host closing the game', () => {
   it('runs the exiting handler before the game tells the host it is ready to go', () =>
     withHostingTest(async ({ hosting, handle: { host, sentByGame } }) => {
       await hosting.saves.set('progress', '2')
@@ -154,7 +154,7 @@ describe('requests', () => {
       expect(sentByGame('session.exit')).toEqual([{ reason: 'player' }, { reason: 'completed' }])
     }))
 
-  it("asks the host for fullscreen and returns Ruken's answer, including support (FloorFifty fullscreen-hosted)", () =>
+  it("asks the host for fullscreen and returns Ruken's answer, including support", () =>
     withHostingTest(
       async ({ hosting, handle: { host } }) => {
         const asked = hosting.setFullscreen(true)
@@ -167,7 +167,7 @@ describe('requests', () => {
       },
     ))
 
-  it('sends one round start per round, and an end only for an open round (FloorFifty rounds)', () =>
+  it('sends one round start per round, and an end only for an open round', () =>
     withHostingTest(async ({ hosting, handle: { sentByGame } }) => {
       hosting.round.end('quit')
       hosting.round.start()
@@ -196,7 +196,7 @@ describe('round ends as an observable (M5.2 plan step 3)', () => {
     }))
 })
 
-describe('analytics (FloorFifty analytics)', () => {
+describe('analytics', () => {
   const analyticsHost = (consent: boolean) => ({
     hosting: {
       wants: ['analytics.custom' as const],

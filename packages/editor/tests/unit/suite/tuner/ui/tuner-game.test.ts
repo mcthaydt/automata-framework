@@ -47,4 +47,24 @@ describe('TunerGame', () => {
     ).toBeTruthy()
     expect(screen.queryByTitle('Your game')).toBeNull()
   })
+
+  it('adds the questions an editor asks the game to the address, and hands over the frame it shows', async () => {
+    const frames: (HTMLIFrameElement | undefined)[] = []
+    render(TunerGame, {
+      url: GAME,
+      answers: async () => true,
+      query: { 'af-watch': 'http://localhost:5174', events: 'systems.mode' },
+      onframe: (frame: HTMLIFrameElement | undefined) => frames.push(frame),
+    })
+    const frame = await screen.findByTitle('Your game')
+    expect(frame.getAttribute('src')).toBe(
+      'http://localhost:5173/?af-watch=http%3A%2F%2Flocalhost%3A5174&events=systems.mode',
+    )
+    expect(frames).toContain(frame)
+  })
+
+  it('keeps what the game address already asks when it adds its own', async () => {
+    render(TunerGame, { url: `${GAME}?debug=1`, answers: async () => true, query: { events: 'a' } })
+    expect((await screen.findByTitle('Your game')).getAttribute('src')).toBe(`${GAME}?debug=1&events=a`)
+  })
 })

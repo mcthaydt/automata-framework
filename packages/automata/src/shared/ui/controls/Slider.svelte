@@ -17,10 +17,10 @@ interface Props {
   onchange: (value: number) => void
   disabled?: boolean | undefined
   testId?: string | undefined
-  /** `stacked` (the default): the label above the track. `row`: the label, the track and the value on one row, as
-   * FloorFifty's volume rows. */
+  /** `stacked` (the default): the label above the track. `row`: the label, the track and the value on one row, like a
+   * volume row. */
   layout?: 'stacked' | 'row' | undefined
-  /** The thumb let go (the input's `change`): a volume plays its sample then (FloorFifty). */
+  /** The thumb let go (the input's `change`): a volume plays its sample then. */
   onrelease?: ((value: number) => void) | undefined
 }
 
@@ -40,7 +40,7 @@ const {
 
 const id = $props.id()
 const words = $derived(valueText(value))
-// How far along its range the value is: the track fills with the accent up to it, as FloorFifty's.
+// How far along its range the value is: the track fills with the accent up to it.
 const fill = $derived(`${max === min ? 0 : Math.round(((value - min) / (max - min)) * 100)}%`)
 </script>
 
@@ -105,7 +105,7 @@ const fill = $derived(`${max === min ? 0 : Math.round(((value - min) / (max - mi
     font-size: var(--af-text-small);
   }
 
-  /* The track is drawn thin and fills with the accent up to the value; the thumb is drawn small (FloorFifty's size),
+  /* The track is drawn thin and fills with the accent up to the value; the thumb is drawn small,
      and the input itself, the whole 44 px row, is what a finger hits: a press anywhere on it moves the value there.
      Each engine needs its own selector. */
   .af-slider__input::-webkit-slider-runnable-track {

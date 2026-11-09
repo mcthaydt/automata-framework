@@ -4,15 +4,18 @@
 -->
 <script lang="ts">
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
+import Button from '../../../shared/kit/widgets/Button.svelte'
 import { type EditorCard, fileTitle } from './home-model'
 
 interface Props {
   card: EditorCard
   onopen: (card: EditorCard) => void
   onread: (file: WorkspaceFile) => void
+  /** Said on the button that starts the first file when the card has none (the try-it sample's "New level"). */
+  start?: string | undefined
 }
 
-const { card, onopen, onread }: Props = $props()
+const { card, onopen, onread, start }: Props = $props()
 
 const headingId = $derived(`card-${card.editor}`)
 </script>
@@ -25,11 +28,14 @@ const headingId = $derived(`card-${card.editor}`)
   {#if !card.installed}
     <p class="note">{card.label} isn't in this build. Its files open read only.</p>
   {/if}
-  {#if card.files.length === 0}
+  {#if card.rows.length === 0}
     <p class="note">No files yet.</p>
+    {#if start !== undefined && card.installed}
+      <Button onclick={() => onopen(card)}>{start}</Button>
+    {/if}
   {:else}
     <ul>
-      {#each card.files as file (file.path)}
+      {#each card.rows as file (file.path)}
         <li>
           <button type="button" onclick={() => (card.installed ? onopen(card) : onread(file))}>
             <span class="name">{fileTitle(file.path)}</span>

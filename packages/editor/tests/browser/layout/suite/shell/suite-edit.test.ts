@@ -13,32 +13,23 @@ import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
+import { chooseEditor } from '#src/testing/suite/suite-layout.ts'
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
 const targets = editorTargets()
 
-// The pills and the Ask diff dialog with the production CSS in real browsers at the sizes of spec §10: the pills stay
-// in the top bar at every size (icons with counts in the `short` tier and on a phone, never hidden), every target is
-// at least 44 px, the dialog's Accept and Reject are reachable at 48 px, and the page never scrolls.
+// The pills with the production CSS in real browsers at the sizes of spec §10: the pill stays in the top bar at every
+// size (an icon with a count in the `short` tier and on a phone, never hidden), every target is at least 44 px and the
+// page never scrolls.
 const TUNING = 'content/tuning.toml'
 const START = '# How fast the player runs, in metres a second.\nMAX_MOVE_SPEED = 7\nJUMP = 3\n'
 const LIST = `format = "af-editors/1"
 [[file]]
 glob = "${TUNING}"
 editor = "tuner"
-modes = ["edit", "ask"]
-gates = ["g-feel", "g-speed"]
+modes = ["edit"]
+gates = []
 checks = ["lint"]
-
-[[gate]]
-id = "g-feel"
-name = "Feel"
-records = "docs/gates.json"
-
-[[gate]]
-id = "g-speed"
-name = "Speed"
-records = "docs/gates.json"
 
 [[check]]
 id = "lint"
@@ -70,32 +61,21 @@ async function open(size: EditorSize) {
         run: ['lint'],
         joins: [],
         measure: false,
-        respond: () => ({ status: 'pass', findings: [], output: '' }),
+        respond: () => ({
+          status: 'fail',
+          findings: [
+            {
+              path: TUNING,
+              line: 2,
+              severity: 'error',
+              message: 'MAX_MOVE_SPEED is above the level’s safe run',
+            },
+          ],
+          output: '',
+        }),
       },
     ],
-    gates: {
-      'g-feel': {
-        name: 'Feel',
-        decision: 'approved',
-        decidedAt: '2026-10-20',
-        url: 'https://example.com/g-feel',
-      },
-      'g-speed': { name: 'Speed', decision: 'open', url: 'https://example.com/g-speed' },
-    },
-    ask: () => ({ summary: 'Raise the top speed to 8', text: START.replace('= 7', '= 8'), tokens: 640 }),
   })
-  const changeSet = memory.ports.changeSet
-  await changeSet?.begin('Faster player')
-  await changeSet?.record([TUNING], [{ path: TUNING, before: START.replace('= 7', '= 6'), after: START }])
-  await changeSet?.note([
-    {
-      check: 'lint',
-      status: 'fail',
-      findings: [
-        { path: TUNING, line: 2, severity: 'error', message: 'MAX_MOVE_SPEED is above the level’s safe run' },
-      ],
-    },
-  ])
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
   started = await startSuite(target, {
@@ -105,15 +85,17 @@ async function open(size: EditorSize) {
     suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  document.querySelector<HTMLElement>('[role="tab"]')?.click()
+  await chooseEditor()
   await expect.poll(() => document.querySelector('[data-testid="fixture-text"]')).not.toBeNull()
-  await expect.poll(() => pillButtons().map((pill) => pill.dataset.tone)).toEqual(['neutral', 'fail', 'warn'])
+  // The first edit runs the `after` check, which fails, so the pill appears (a pill with nothing to say is hidden).
+  button('Raise speed').click()
+  await expect.poll(() => pillButtons().map((pill) => pill.dataset.tone)).toEqual(['fail'])
   await settleLayout()
   return conditions
 }
 
 const pillButtons = (): HTMLElement[] => [
-  ...document.querySelectorAll<HTMLElement>('[aria-label="Change set and checks"] > .pill-wrap > button'),
+  ...document.querySelectorAll<HTMLElement>('[aria-label="Checks"] > .pill-wrap > button'),
 ]
 const button = (name: string, within: ParentNode = document): HTMLElement => {
   const found = [...within.querySelectorAll<HTMLElement>('button')].find(
@@ -130,10 +112,10 @@ function noPageScroll(): void {
 }
 
 describe.each(SIZES)('Suite editing at $name ($width x $height)', (size) => {
-  test('the three pills stay in the top bar, whole and at least 44 px; icons with counts when short', async () => {
+  test('the checks pill stays in the top bar, whole and at least 44 px; an icon with a count when short', async () => {
     const conditions = await open(size)
     const pills = pillButtons()
-    expect(pills).toHaveLength(3)
+    expect(pills).toHaveLength(1)
     const bar = pills[0]?.closest('header, [data-region="topbar"]') ?? pills[0]?.parentElement?.parentElement
     const barBox = bar?.getBoundingClientRect()
     for (const pill of pills) {
@@ -147,12 +129,10 @@ describe.each(SIZES)('Suite editing at $name ($width x $height)', (size) => {
     const icons =
       document.documentElement.dataset.height === 'short' ||
       document.querySelector('[data-editor-shell]')?.getAttribute('data-mode') === 'compact'
-    if (icons) expect(pills.map((pill) => pill.textContent?.replace(/\s+/g, ''))).toEqual(['⎇1', '✓1', '⚑2'])
-    expect(
-      checkLayout(conditions, [...pills, button(pills[1]?.getAttribute('aria-label') ?? 'lint failed')]),
-    ).toEqual([])
+    if (icons) expect(pills.map((pill) => pill.textContent?.replace(/\s+/g, ''))).toEqual(['✓1'])
+    expect(checkLayout(conditions, [...pills])).toEqual([])
     noPageScroll()
-    pills[1]?.click()
+    pills[0]?.click()
     await settleLayout()
     const list = document.querySelector<HTMLElement>('section[aria-label="lint failed"]')
     const listBox = list?.getBoundingClientRect()
@@ -160,36 +140,7 @@ describe.each(SIZES)('Suite editing at $name ($width x $height)', (size) => {
     expect(listBox?.bottom).toBeLessThanOrEqual(size.height + 0.5)
     expect(button('Locate lint').getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
     await page.screenshot({ path: `.vitest/shots/suite-pills-${size.name}.png` })
-    pills[1]?.click()
+    pills[0]?.click()
     noPageScroll()
-  })
-
-  test('the Ask diff dialog fits: Accept and Reject reachable at 48 px, the diff inside the window', async () => {
-    await open(size)
-    button('Ask').click()
-    await expect.poll(() => document.querySelector('[role="dialog"] textarea')).not.toBeNull()
-    const prompt = document.querySelector<HTMLTextAreaElement>('[role="dialog"] textarea')
-    if (prompt === null) throw new Error('no prompt')
-    prompt.value = 'A little faster on flat ground'
-    prompt.dispatchEvent(new Event('input', { bubbles: true }))
-    await settleLayout()
-    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')
-    if (dialog === null) throw new Error('no dialog')
-    button('Ask', dialog).click()
-    await expect.poll(() => dialog.querySelector('[data-kind="added"]')).not.toBeNull()
-    await settleLayout()
-    for (const name of ['Accept', 'Reject']) {
-      const box = button(name, dialog).getBoundingClientRect()
-      expect(box.height, name).toBeGreaterThanOrEqual(targets.primary)
-      expect(box.bottom, name).toBeLessThanOrEqual(size.height + 0.5)
-      expect(box.right, name).toBeLessThanOrEqual(size.width + 0.5)
-      expect(box.left, name).toBeGreaterThanOrEqual(-0.5)
-    }
-    const diff = dialog
-      .querySelector<HTMLElement>('section[aria-label="Proposed change"]')
-      ?.getBoundingClientRect()
-    expect(diff?.right).toBeLessThanOrEqual(size.width + 0.5)
-    noPageScroll()
-    await page.screenshot({ path: `.vitest/shots/ask-diff-${size.name}.png` })
   })
 })

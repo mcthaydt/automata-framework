@@ -1,0 +1,9 @@
+# `holoViolet`, a fixture.
+# Colour: DUEL ramp 28 (violet), step 3 (#7964ba).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "violet"
+step = 3
+flat = true
+kind = "lens"
+role = "trim"

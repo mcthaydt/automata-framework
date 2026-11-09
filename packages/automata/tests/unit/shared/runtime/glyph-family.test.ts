@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { glyphFamily } from '#src/shared/runtime/glyph-family.ts'
 
-// Which labels a pad's buttons carry, sniffed from its `id` (M4 spec §4.2), from FloorFifty `ui/glyphs.ts` at
-// `ac72660` and `tests/client/ui/glyphs.test.ts`.
+// Which labels a pad's buttons carry, sniffed from its `id` (M4 spec §4.2).
 describe('glyphFamily', () => {
   it('knows Xbox and PlayStation pads by id, and calls the rest generic', () => {
     expect(glyphFamily('Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)')).toBe('xbox')

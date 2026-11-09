@@ -1,0 +1,37 @@
+# The shop's opening: the camera looks at the door while the shopkeeper walks to the counter and says hello.
+id = "opening"
+duration = 8
+
+[[camera]]
+t = 0
+pos = [0, 1.6, 0]
+look = [4, 1.6, 0]
+
+[[camera]]
+t = 5
+pos = [1, 1.6, 0]
+look = [4, 1.6, 2]
+
+[[actor]]
+who = "shopkeeper"
+t = 0
+x = 4
+z = 3
+facing = 3.142
+
+[[actor]]
+who = "shopkeeper"
+t = 4
+x = 4
+z = 1
+facing = 3.142
+moving = true
+
+[[caption]]
+t = 4.5
+until = 7.5
+line = "shop.welcome_in"
+
+[[fade]]
+t = 7
+value = 1

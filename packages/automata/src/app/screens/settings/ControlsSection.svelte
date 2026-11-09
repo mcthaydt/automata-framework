@@ -1,7 +1,6 @@
 <!--
   @component
-  The Controls tab's section, laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
-  a28dc44): one section per device the player can use, the one in their hand first and marked. Keyboard and
+  The Controls tab's section, one section per device the player can use, the one in their hand first and marked. Keyboard and
   Controller list each action with one rebind button showing that device's prompt; the Controller appears once a pad
   has connected (`devices`). Touch, when shown, says what the on-screen buttons do; they are the game's, so there is
   nothing to rebind. A status line says each step of a rebind (`state`), and Reset puts every binding back.
@@ -170,7 +169,7 @@ $effect(() => {
     min-height: var(--af-target);
   }
 
-  /* The action beside its input, as FloorFifty's rows: a label column, not the row's whole width. */
+  /* The action beside its input: a label column, not the row's whole width. */
   .af-controls__label {
     flex: 0 1 12em;
     overflow-wrap: anywhere;

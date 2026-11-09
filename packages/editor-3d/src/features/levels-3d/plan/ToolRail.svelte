@@ -1,0 +1,105 @@
+<!--
+  The Plan view's tool rail (ED3D.6g-a; ED3D spec §9 the Split and Draw frames' tool rail, §10 the keys): one 44 px
+  button per tool, an icon over its name in words (Room, Corner, Doorway, Door, Window, Thing), the active one pressed and
+  each naming its key. Polygon, Rectangle, Split and Merge are the Room
+  tool's shapes, so they all press Room, and Room chooses the polygon. Vertical beside the plan at `wide`, a tab bar
+  along the foot below that. In the suite (`Levels3dTools`) the same tools lie along the top bar on every size, a phone's
+  too, and the bar scrolls sideways where its width holds too few.
+-->
+<script lang="ts">
+import { Icon, type IconName } from '@automata/editor/kit'
+import type { PlanToolId } from './plan-tools'
+
+interface Props {
+  active: PlanToolId
+  orientation?: 'vertical' | 'horizontal' | undefined
+  onchoose: (tool: PlanToolId) => void
+}
+
+const { active, orientation = 'vertical', onchoose }: Props = $props()
+
+type RailTool = 'select' | 'sector' | 'vertex' | 'portal' | 'door' | 'window' | 'things'
+
+const TOOLS: readonly {
+  readonly id: RailTool
+  readonly label: string
+  readonly icon: IconName
+  readonly key: string
+  readonly choose: PlanToolId
+}[] = [
+  { id: 'select', label: 'Select', icon: 'select', key: 'V', choose: 'select' },
+  { id: 'sector', label: 'Room', icon: 'rectangle', key: 'S', choose: 'polygon' },
+  { id: 'vertex', label: 'Corner', icon: 'corner', key: 'X', choose: 'vertex' },
+  { id: 'portal', label: 'Doorway', icon: 'doorway', key: 'P', choose: 'portal' },
+  { id: 'door', label: 'Door', icon: 'door', key: 'D', choose: 'door' },
+  { id: 'window', label: 'Window', icon: 'window', key: 'N', choose: 'window' },
+  { id: 'things', label: 'Thing', icon: 'thing', key: 'T', choose: 'things' },
+]
+
+const SECTOR_SHAPES: readonly PlanToolId[] = ['polygon', 'rectangle', 'split', 'merge']
+const pressed = $derived<RailTool>(SECTOR_SHAPES.includes(active) ? 'sector' : (active as RailTool))
+</script>
+
+<div class="rail" role="toolbar" aria-label="Tools" aria-orientation={orientation} data-orientation={orientation}>
+  {#each TOOLS as tool (tool.id)}
+    <button
+      type="button"
+      aria-pressed={pressed === tool.id}
+      aria-keyshortcuts={tool.key}
+      title={`${tool.label} (${tool.key})`}
+      onclick={() => onchoose(tool.choose)}
+    >
+      <Icon name={tool.icon} size={18} />
+      <span>{tool.label}</span>
+    </button>
+  {/each}
+</div>
+
+<style>
+  /* As the 2D editor's view rail: the eyebrow size fits "Window" and "Vertex" whole in the kit's 56 px rail. */
+  .rail {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: var(--space-1);
+    padding: var(--space-1);
+  }
+  .rail[data-orientation='horizontal'] {
+    flex-direction: row;
+  }
+  button {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 2px;
+    border: 0;
+    border-radius: var(--edge-lg);
+    background: transparent;
+    color: var(--color-text-dim);
+    font: var(--text-eyebrow-11);
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  /* Along a bar each tool is as wide as its name, so "Doorway" is never clipped, and never narrower than a touch target. */
+  .rail[data-orientation='horizontal'] button {
+    flex: 0 0 auto;
+    padding: 0 var(--space-2);
+  }
+  button[aria-pressed='true'] {
+    background: var(--color-bg-raised);
+    color: var(--color-accent-default);
+  }
+  button:focus-visible {
+    outline: 2px solid var(--color-accent-default);
+    outline-offset: -2px;
+  }
+</style>

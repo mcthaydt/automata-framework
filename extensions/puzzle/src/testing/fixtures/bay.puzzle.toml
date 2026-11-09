@@ -1,0 +1,982 @@
+# The adventure source's bay puzzle (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/puzzle/scripts/convert-adventure-puzzles.ts. Do not edit.
+scene = "bay"
+items = [ "lighter", "torch", "cloth", "basin", "bottle", "scalpel", "fluid", "matches", "spirit", "petrol", "keys" ]
+
+[facts]
+drum = "cold"
+drumFuel = 0
+burner = false
+matches = 0
+shutter = 0
+padlock = true
+mortuaryDoor = "open"
+keysAt = "porter"
+porterInside = false
+porterOut = false
+porterTalk = ""
+ambulance = 0
+spiritTaken = false
+tinTaken = false
+shroud = "whole"
+basinFull = false
+fuel = 50
+torchTime = 0
+
+[[entry]]
+name = "minimal"
+items = [ "lighter" ]
+
+[entry.facts]
+fuel = 20
+
+[[entry]]
+name = "typical"
+items = [ "lighter", "basin", "bottle", "scalpel" ]
+
+[entry.facts]
+fuel = 30
+
+[[entry]]
+name = "maximal"
+items = [ "lighter", "torch", "cloth", "basin", "bottle", "bottle", "scalpel", "fluid" ]
+
+[entry.facts]
+fuel = 50
+basinFull = true
+torchTime = 30
+
+[[actions]]
+id = "arrival.look"
+at = "arrival"
+then = []
+say = "arrivalDoor"
+
+[[actions]]
+id = "ambulance.search"
+at = "ambulance"
+say = "ambulanceFirst"
+seconds = 4
+
+[[actions.when]]
+fact = "ambulance"
+is = 0
+
+[[actions.then]]
+set = "ambulance"
+to = 1
+
+[[actions.then]]
+give = "matches"
+
+[[actions.then]]
+set = "matches"
+to = 3
+
+[[actions.then]]
+give = "petrol"
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "ambulance.read"
+at = "ambulance"
+say = "runSheet"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "drum.douse"
+at = "drum"
+use = "basin"
+say = "drumDoused"
+
+[[actions.when]]
+fact = "basinFull"
+is = true
+
+[[actions.when]]
+fact = "drum"
+is = "burning"
+
+[[actions.then]]
+set = "drum"
+to = "cold"
+
+[[actions.then]]
+set = "basinFull"
+to = false
+
+[[actions.then]]
+call = "drumOut"
+
+[[actions]]
+id = "drum.burning"
+at = "drum"
+then = []
+say = "drumBurning"
+
+[[actions.when]]
+fact = "drum"
+is = "burning"
+
+[[actions]]
+id = "drum.spirit"
+at = "drum"
+use = "spirit"
+say = "drumSpirit"
+
+[[actions.when]]
+fact = "drumFuel"
+is = 0
+
+[[actions.then]]
+take = "spirit"
+
+[[actions.then]]
+set = "drumFuel"
+to = 1
+
+[[actions]]
+id = "drum.petrol"
+at = "drum"
+use = "petrol"
+say = "drumPetrol"
+
+[[actions.when]]
+fact = "drumFuel"
+is = 0
+
+[[actions.then]]
+take = "petrol"
+
+[[actions.then]]
+set = "drumFuel"
+to = 1
+
+[[actions]]
+id = "drum.fluid"
+at = "drum"
+use = "fluid"
+say = "drumFluid"
+
+[[actions.when]]
+fact = "drumFuel"
+is = 0
+
+[[actions.then]]
+take = "fluid"
+
+[[actions.then]]
+set = "drumFuel"
+to = 1
+
+[[actions]]
+id = "drum.full"
+at = "drum"
+then = []
+say = "drumFull"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = "spirit"
+
+[[actions.when.any]]
+fact = "held"
+is = "petrol"
+
+[[actions.when.any]]
+fact = "held"
+is = "fluid"
+
+[[actions]]
+id = "drum.empty"
+at = "drum"
+then = []
+say = "drumEmpty"
+
+[[actions.when]]
+fact = "drumFuel"
+is = 0
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = "lighter"
+
+[[actions.when.any]]
+fact = "held"
+is = "matches"
+
+[[actions.when.any]]
+fact = "held"
+is = "torch"
+
+[[actions]]
+id = "drum.noFuel"
+at = "drum"
+use = "lighter"
+then = []
+say = "lighterEmpty"
+
+[[actions.when]]
+fact = "fuel"
+atMost = 0
+
+[[actions]]
+id = "drum.light"
+at = "drum"
+use = "lighter"
+say = "drumLit"
+
+[[actions.then]]
+set = "drum"
+to = "burning"
+
+[[actions.then]]
+set = "drumFuel"
+to = 0
+
+[[actions.then]]
+call = "lit"
+
+[[actions]]
+id = "drum.match"
+at = "drum"
+use = "matches"
+say = "drumLit"
+
+[[actions.then]]
+set = "drum"
+to = "burning"
+
+[[actions.then]]
+set = "drumFuel"
+to = 0
+
+[[actions.then]]
+call = "strike"
+
+[[actions.then]]
+call = "lit"
+
+[[actions]]
+id = "drum.torch"
+at = "drum"
+use = "torch"
+say = "drumLit"
+
+[[actions.then]]
+set = "drum"
+to = "burning"
+
+[[actions.then]]
+set = "drumFuel"
+to = 0
+
+[[actions.then]]
+call = "lit"
+
+[[actions]]
+id = "drum.look"
+at = "drum"
+then = []
+say = "drum"
+
+[[actions]]
+id = "burner.off"
+at = "burner"
+say = "burnerOff"
+
+[[actions.when]]
+fact = "burner"
+is = true
+
+[[actions.when]]
+fact = "held"
+is = ""
+
+[[actions.then]]
+set = "burner"
+to = false
+
+[[actions.then]]
+call = "burnerOff"
+
+[[actions]]
+id = "burner.on"
+at = "burner"
+then = []
+say = "burnerOn"
+
+[[actions.when]]
+fact = "burner"
+is = true
+
+[[actions]]
+id = "burner.noFuel"
+at = "burner"
+use = "lighter"
+then = []
+say = "lighterEmpty"
+
+[[actions.when]]
+fact = "fuel"
+atMost = 0
+
+[[actions]]
+id = "burner.light"
+at = "burner"
+use = "lighter"
+say = "burnerLit"
+
+[[actions.then]]
+set = "burner"
+to = true
+
+[[actions.then]]
+call = "lit"
+
+[[actions]]
+id = "burner.match"
+at = "burner"
+use = "matches"
+say = "burnerLit"
+
+[[actions.then]]
+set = "burner"
+to = true
+
+[[actions.then]]
+call = "strike"
+
+[[actions.then]]
+call = "lit"
+
+[[actions]]
+id = "burner.torch"
+at = "burner"
+use = "torch"
+say = "burnerLit"
+
+[[actions.then]]
+set = "burner"
+to = true
+
+[[actions.then]]
+call = "lit"
+
+[[actions]]
+id = "burner.look"
+at = "burner"
+then = []
+say = "burner"
+
+[[actions]]
+id = "shutter.unlock"
+at = "shutter"
+use = "keys"
+say = "padlockOff"
+seconds = 3
+
+[[actions.when]]
+fact = "padlock"
+is = true
+
+[[actions.then]]
+set = "padlock"
+to = false
+
+[[actions.then]]
+take = "keys"
+
+[[actions.then]]
+set = "keysAt"
+to = "padlock"
+
+[[actions.then]]
+checkpoint = true
+
+[[actions]]
+id = "shutter.locked"
+at = "shutter"
+then = []
+say = "shutterLocked"
+
+[[actions.when]]
+fact = "padlock"
+is = true
+
+[[actions]]
+id = "shutter.crank1"
+at = "shutter"
+say = "crank1"
+seconds = 4
+
+[[actions.when]]
+fact = "shutter"
+is = 0
+
+[[actions.then]]
+set = "shutter"
+to = 1
+
+[[actions.then]]
+[actions.then.noise]
+at = "shutter"
+loudness = 10
+kind = "bang"
+
+[[actions]]
+id = "shutter.crank2"
+at = "shutter"
+say = "crank2"
+seconds = 4
+
+[[actions.when]]
+fact = "shutter"
+is = 1
+
+[[actions.then]]
+set = "shutter"
+to = 2
+
+[[actions.then]]
+[actions.then.noise]
+at = "shutter"
+loudness = 10
+kind = "bang"
+
+[[actions]]
+id = "shutter.open"
+at = "shutter"
+say = "crank3"
+seconds = 4
+
+[[actions.when]]
+fact = "shutter"
+is = 2
+
+[[actions.then]]
+set = "shutter"
+to = 3
+
+[[actions.then]]
+[actions.then.noise]
+at = "shutter"
+loudness = 10
+kind = "bang"
+
+[[actions.then]]
+cutscene = "dawn"
+
+[[actions]]
+id = "shutter.look"
+at = "shutter"
+then = []
+say = "shutterOpen"
+
+[[actions]]
+id = "mortuaryDoor.keys"
+at = "mortuaryDoor"
+say = "keysUnderDoor"
+
+[[actions.when]]
+fact = "keysAt"
+is = "door"
+
+[[actions.then]]
+set = "keysAt"
+to = "ada"
+
+[[actions.then]]
+give = "keys"
+
+[[actions.then]]
+dialogue = "bay.c3"
+
+[[actions]]
+id = "mortuaryDoor.quiet"
+at = "mortuaryDoor"
+then = []
+say = "mortuaryQuiet"
+
+[[actions.when]]
+fact = "porterOut"
+is = true
+
+[[actions]]
+id = "mortuaryDoor.latch"
+at = "mortuaryDoor"
+say = ""
+
+[[actions.when]]
+fact = "porterInside"
+is = true
+
+[[actions.then]]
+call = "latch"
+
+[[actions]]
+id = "mortuaryDoor.look"
+at = "mortuaryDoor"
+then = []
+say = "mortuaryDoor"
+
+[[actions]]
+id = "keyHook.take"
+at = "keyHook"
+say = "keysTaken"
+
+[[actions.when]]
+fact = "keysAt"
+is = "hook"
+
+[[actions.then]]
+set = "keysAt"
+to = "ada"
+
+[[actions.then]]
+give = "keys"
+
+[[actions.then]]
+dialogue = "bay.c3"
+
+[[actions]]
+id = "keyHook.empty"
+at = "keyHook"
+then = []
+say = "keyHook"
+
+[[actions]]
+id = "ledger.read"
+at = "ledger"
+say = "ledger"
+seconds = 4
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "officeNotice.read"
+at = "officeNotice"
+say = "officeNotice"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "fluidTin.take"
+at = "fluidTin"
+say = "fluidTin"
+
+[[actions.when]]
+fact = "tinTaken"
+is = false
+
+[[actions.then]]
+set = "tinTaken"
+to = true
+
+[[actions.then]]
+give = "fluid"
+
+[[actions]]
+id = "radio.listen"
+at = "radio"
+say = ""
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions.then]]
+call = "radio"
+
+[[actions.then]]
+dialogue = "bay.radioProgramme"
+
+[[actions]]
+id = "drawer4.read"
+at = "drawer4"
+say = "drawer4"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "mortuarySign.read"
+at = "mortuarySign"
+say = "mortuarySign"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "spiritShelf.take"
+at = "spiritShelf"
+say = "spiritTake"
+
+[[actions.when]]
+fact = "spiritTaken"
+is = false
+
+[[actions.then]]
+set = "spiritTaken"
+to = true
+
+[[actions.then]]
+give = "spirit"
+
+[[actions]]
+id = "spiritShelf.empty"
+at = "spiritShelf"
+then = []
+say = "shelfEmpty"
+
+[[actions]]
+id = "mortuarySink.full"
+at = "mortuarySink"
+then = []
+say = "sinkFull"
+
+[[actions.when]]
+has = "basin"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = ""
+
+[[actions.when.any]]
+fact = "held"
+is = "basin"
+
+[[actions.when]]
+fact = "basinFull"
+is = true
+
+[[actions]]
+id = "mortuarySink.fill"
+at = "mortuarySink"
+say = "sinkFill"
+
+[[actions.when]]
+has = "basin"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = ""
+
+[[actions.when.any]]
+fact = "held"
+is = "basin"
+
+[[actions.then]]
+set = "basinFull"
+to = true
+
+[[actions]]
+id = "mortuarySink.look"
+at = "mortuarySink"
+then = []
+say = "sink"
+
+[[actions]]
+id = "trolley.cut"
+at = "trolley"
+use = "scalpel"
+say = "shroudCut"
+
+[[actions.when]]
+fact = "shroud"
+is = "whole"
+
+[[actions.then]]
+set = "shroud"
+to = "cut"
+
+[[actions.then]]
+give = "cloth"
+
+[[actions]]
+id = "trolley.bare"
+at = "trolley"
+then = []
+say = "trolleyBare"
+
+[[actions.when]]
+fact = "shroud"
+is = "cut"
+
+[[actions]]
+id = "trolley.look"
+at = "trolley"
+then = []
+say = "trolley"
+
+[[actions]]
+id = "porter.c1"
+at = "porter"
+say = ""
+seconds = 3
+
+[[actions.when]]
+fact = "porterTalk"
+is = "c1"
+
+[[actions.then]]
+dialogue = "bay.c1"
+
+[[actions]]
+id = "porter.c2"
+at = "porter"
+say = ""
+seconds = 3
+
+[[actions.when]]
+fact = "porterTalk"
+is = "c2"
+
+[[actions.then]]
+dialogue = "bay.c2"
+
+[[actions]]
+id = "porter.c3"
+at = "porter"
+say = ""
+seconds = 3
+
+[[actions.when]]
+fact = "porterTalk"
+is = "c3"
+
+[[actions.then]]
+dialogue = "bay.c3"
+
+[[actions]]
+id = "porter.talk"
+at = "porter"
+say = ""
+seconds = 3
+
+[[actions.then]]
+call = "bark"
+
+[[actions]]
+id = "floor.bottle"
+at = "floor"
+use = "bottle"
+say = ""
+
+[[actions.then]]
+call = "throwBottle"
+
+[[actions]]
+id = "floor.lighter"
+at = "floor"
+use = "lighter"
+say = "flash"
+
+[[actions.when]]
+fact = "fuel"
+atLeast = 5e-324
+
+[[actions.then]]
+call = "flash"
+
+[[actions]]
+id = "floor.torch"
+at = "floor"
+use = "torch"
+say = "flashTorch"
+
+[[actions.then]]
+call = "flash"
+
+[[actions]]
+id = "combine.haveTorch"
+at = "combine"
+use = [ "lighter", "cloth" ]
+then = []
+say = "haveTorch"
+
+[[actions.when]]
+has = "torch"
+
+[[actions]]
+id = "combine.torch"
+at = "combine"
+use = [ "lighter", "cloth" ]
+say = ""
+
+[[actions.then]]
+call = "tools"
+
+[[actions]]
+id = "combine.fluid"
+at = "combine"
+use = [ "lighter", "fluid" ]
+say = ""
+
+[[actions.then]]
+call = "tools"
+
+[[systemic]]
+id = "porterAtDrum"
+note = "Warmth draws him (P1): the lit drum brings him from anywhere within 12 m. If he was sitting at his desk he hurries and leaves his keys on the hook (P7). While he warms there he ignores noise (P2)."
+via = [ "drum.light", "drum.match", "drum.torch" ]
+risk = "chase"
+
+[[systemic.enables]]
+fact = "porterAtDrum"
+is = true
+
+[[systemic.enables]]
+fact = "keysAt"
+is = "hook"
+
+[[systemic]]
+id = "porterAtBurner"
+note = "The lit burner brings him into the mortuary from within 12 m (P1), keys left on the hook if he sat at the desk (P7); warming there he ignores noise (P2)."
+via = [ "burner.light", "burner.match", "burner.torch" ]
+risk = "chase"
+
+[[systemic.enables]]
+fact = "porterAtBurner"
+is = true
+
+[[systemic.enables]]
+fact = "porterInside"
+is = true
+
+[[systemic.enables]]
+fact = "keysAt"
+is = "hook"
+
+[[systemic]]
+id = "porterAtFlame"
+note = "A flame Ada holds up draws him to her (P1); put out, he goes to where it burned, warms 4 s and resumes his round (P10). Drawn from his desk, he leaves his keys on the hook (P7)."
+via = [ "floor.lighter", "floor.torch", "combine.torch" ]
+risk = "chase"
+
+[[systemic.enables]]
+fact = "keysAt"
+is = "hook"
+
+[[systemic]]
+id = "porterInvestigating"
+note = "A bottle thrown into the mortuary draws him there to search for 3 s (P3), keys in his pocket (P7)."
+via = [ "floor.bottle" ]
+
+[[systemic.enables]]
+fact = "porterInside"
+is = true
+
+[[systemic]]
+id = "porterLatched"
+note = "Latched in the mortuary, he bangs on the door twice and is quiet: out of play for the rest of the act (P9). His keys come under the door."
+via = [ "mortuaryDoor.latch" ]
+
+[[systemic.enables]]
+fact = "porterOut"
+is = true
+
+[[lethal]]
+id = "porterTouch"
+rule = "P5: within 0.65 m of Ada, he catches her; with the lighter and 20 s of fuel she can give him the flame instead (the grapple, once a minute), and he warms and lets her go."
+hintedBy = [ "porter.talk", "officeNotice.read" ]
+
+[[lethal]]
+id = "flameDrawsHim"
+rule = "P1: a flame Ada holds draws him to her."
+hintedBy = [ "mortuarySign.read", "porter.talk" ]
+
+[[goal]]
+fact = "shutter"
+is = 3
+
+[fallback]
+"*" = "noEffect"
+floor = "noEffect"
+combine = "noEffect"
+
+[hotspots.arrival]
+x = -4.9
+z = -1.9
+
+[hotspots.ambulance]
+x = 3.8
+z = 0.35
+
+[hotspots.cab]
+x = 2.7
+z = 4.1
+
+[hotspots.drum]
+x = -0.65
+z = -2
+
+[hotspots.trolley]
+x = -4.2
+z = 4.2
+
+[hotspots.shutter]
+x = 0.5
+z = -5.5
+
+[hotspots.mortuaryDoor]
+x = -1.8
+z = -4.85
+
+[hotspots.ledger]
+x = 4.75
+z = -3.45
+
+[hotspots.keyHook]
+x = 4.5
+z = -4.92
+
+[hotspots.radio]
+x = 5.1
+z = -4.2
+
+[hotspots.officeNotice]
+x = 5.15
+z = -4.92
+
+[hotspots.fluidTin]
+x = 4.8
+z = -2.65
+
+[hotspots.drawer4]
+x = -2.6
+z = -9.65
+
+[hotspots.burner]
+x = -3.4
+z = -5.5
+
+[hotspots.spiritShelf]
+x = -1.5
+z = -8
+
+[hotspots.mortuarySign]
+x = -4.3
+z = -5.2
+
+[hotspots.mortuarySink]
+x = -4.7
+z = -8.6
+
+[hotspots.porter]
+x = 4.15
+z = -3.7

@@ -9,10 +9,12 @@ const config = {
     adapter: adapter({
       pages: 'build',
       assets: 'build',
-      fallback: '404.html',
       precompress: true,
       strict: true,
     }),
+    // Addresses start at the root: the page for a missing address is served at any depth, and a relative `../_app/` link
+    // would look for its stylesheet under the missing address.
+    paths: { relative: false },
     prerender: {
       origin: SITE_ORIGIN,
       // The crawler does not serve a static folder's index.html, so the link to the try-it editor (static/editor/app/,
@@ -22,7 +24,7 @@ const config = {
         throw new Error(message)
       },
       // The agents' text files are linked from one another, not from a page, so the crawl names them here.
-      entries: ['*', '/llms.txt', '/llms-guides.txt', '/llms-full.txt', '/llms-api.txt'],
+      entries: ['*', '/not-found', '/llms.txt', '/llms-guides.txt', '/llms-full.txt', '/llms-api.txt'],
     },
   },
 }

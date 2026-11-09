@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { GET as llmsIndex } from '../../../src/routes/llms.txt/+server'
-import { GET as llmsGuides } from '../../../src/routes/llms-guides.txt/+server'
+import { GET as llmsIndex } from '#src/routes/llms.txt/+server.ts'
+import { GET as llmsGuides } from '#src/routes/llms-guides.txt/+server.ts'
 
 describe('LLMs.txt & Docs Pipeline', () => {
   it('links no page the site cut', async () => {
@@ -15,6 +15,18 @@ describe('LLMs.txt & Docs Pipeline', () => {
     expect(content).toContain('## Documentation')
     expect(content).toContain('- [How it works](/docs/how-it-works)')
     expect(content).toContain('- [Draw levels in the editor](/docs/editor)')
+  })
+
+  it('says what the editor guide is, not the first words of its steps', async () => {
+    expect(await llmsIndex().text()).toContain(
+      '- [Draw levels in the editor](/docs/editor): How to open the level editor on your game and draw its levels.',
+    )
+  })
+
+  it('describes the full file by what a reader gets: every guide and Reference page in one file', async () => {
+    expect(await llmsIndex().text()).toContain(
+      '[Full documentation](/llms-full.txt): Every guide and Reference page in one file',
+    )
   })
 
   it('generates llms-guides.txt with every guide in full, How it works first', async () => {

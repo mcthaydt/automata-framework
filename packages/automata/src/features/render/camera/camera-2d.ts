@@ -1,7 +1,6 @@
 // camera2d: a presentation-only 2D camera. It writes the transform of the container it is given
 // and never a coordinate the sim produced: children keep their own positions, so what a player sees and what
-// the sim resolves never disagree. The follow's approach (`damp`) comes from FloorFifty
-// `apps/client/src/systems/gameplay/camera.ts` at `ac72660`; FloorFifty's race-specific zoom stays in the game.
+// the sim resolves never disagree. Zoom beyond the fixed view stays in the game.
 
 import type { Container } from 'pixi.js'
 import { reducedMotion } from '../../../shared/ui/browser/reduced-motion.ts'
@@ -50,7 +49,7 @@ export interface Camera2d {
   readonly transform: { readonly x: number; readonly y: number; readonly scale: number }
 }
 
-/** Moves `value` toward `target` by `rate` per second, without overshooting (FloorFifty `damp`). */
+/** Moves `value` toward `target` by `rate` per second, without overshooting. */
 function damp(value: number, target: number, rate: number, seconds: number): number {
   return value + (target - value) * Math.min(1, rate * seconds)
 }

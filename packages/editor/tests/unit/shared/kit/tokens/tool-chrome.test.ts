@@ -63,7 +63,7 @@ describe('the tool chrome', () => {
   })
 
   test('every editor page loads it after the shared tokens', () => {
-    for (const app of ['editor-2d', 'suite', 'design']) {
+    for (const app of ['suite', 'design']) {
       const main = read(`src/app/${app}/main.ts`)
       expect(main.indexOf('tool-chrome.css'), app).toBeGreaterThan(main.indexOf('tokens.css'))
     }

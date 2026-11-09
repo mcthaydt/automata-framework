@@ -7,7 +7,7 @@ import {
   Sprite,
   type Texture,
 } from 'pixi.js'
-import { endesga } from '../../shared/art/palette.ts'
+import { duel } from '../../shared/art/palette.ts'
 import {
   EDGE_BOTTOM,
   EDGE_LEFT,
@@ -89,7 +89,7 @@ export interface Scene {
   destroy(): void
 }
 
-const AMBIENT = endesga(11) // #657392: moonlight, what the light map holds where no light reaches
+const AMBIENT = duel(83) // #73737f: moonlight, what the light map holds where no light reaches
 const LANTERN_RADIUS = 52
 const EMBER_RADIUS = 60
 // Where the lantern hangs relative to Wick's feet (bottom centre of the sprite), facing right.
@@ -176,17 +176,17 @@ export function createScene(renderer: PixiRenderer, room: Room): Scene {
     [150, 10],
     [205, 22],
   ] as const)
-    shafts.poly([x, 0, x + w, 0, x + w + 70, height, x + 70, height]).fill({ color: endesga(45), alpha: 0.1 })
+    shafts.poly([x, 0, x + w, 0, x + w + 70, height, x + 70, height]).fill({ color: duel(63), alpha: 0.1 })
   shafts.blendMode = 'add'
   lightStage.addChild(shafts)
-  const moonLight = addLight(lightStage, 70, endesga(45), 262, 34)
+  const moonLight = addLight(lightStage, 70, duel(63), 262, 34)
   moonLight.alpha = 0.35
-  for (const { tx, ty } of plan.mushrooms) addLight(lightStage, 14, endesga(43), tx * size + 4, ty * size + 5)
+  for (const { tx, ty } of plan.mushrooms) addLight(lightStage, 14, duel(62), tx * size + 4, ty * size + 5)
   const emberX = room.goal.tx * size + size / 2
   const emberY = room.goal.ty * size + size / 2
-  const emberLight = addLight(lightStage, EMBER_RADIUS, endesga(30), emberX, emberY)
-  const lanternLight = addLight(lightStage, LANTERN_RADIUS, endesga(31), 0, 0)
-  const fireflyLights = FIREFLY_HOMES.map(([x, y]) => addLight(lightStage, 7, endesga(33), x, y))
+  const emberLight = addLight(lightStage, EMBER_RADIUS, duel(252), emberX, emberY)
+  const lanternLight = addLight(lightStage, LANTERN_RADIUS, duel(253), 0, 0)
+  const fireflyLights = FIREFLY_HOMES.map(([x, y]) => addLight(lightStage, 7, duel(223), x, y))
   const lightMap = RenderTexture.create({ width, height, resolution: 1 })
   const lightOverlay = new Sprite(lightMap)
   lightOverlay.blendMode = 'multiply'
@@ -194,14 +194,14 @@ export function createScene(renderer: PixiRenderer, room: Room): Scene {
 
   // Bloom-like halos, added over the light map.
   const glowLayer = new Container()
-  const emberHalo = addLight(glowLayer, 18, endesga(28), emberX, emberY)
+  const emberHalo = addLight(glowLayer, 18, duel(75), emberX, emberY)
   emberHalo.alpha = 0.4
-  const lanternHalo = addLight(glowLayer, 22, endesga(30), 0, 0)
+  const lanternHalo = addLight(glowLayer, 22, duel(252), 0, 0)
   lanternHalo.alpha = 0.3
   for (const { tx, ty } of plan.mushrooms)
-    addLight(glowLayer, 5, endesga(45), tx * size + 4, ty * size + 3).alpha = 0.5
+    addLight(glowLayer, 5, duel(63), tx * size + 4, ty * size + 3).alpha = 0.5
   const fireflies = FIREFLY_HOMES.map(([x, y]) => {
-    const glow = addLight(glowLayer, 2, endesga(33), x, y)
+    const glow = addLight(glowLayer, 2, duel(223), x, y)
     return glow
   })
   world.addChild(glowLayer)
@@ -212,7 +212,7 @@ export function createScene(renderer: PixiRenderer, room: Room): Scene {
   ember.position.set(emberX, emberY)
   world.addChild(ember)
   const orbit = [0, 1, 2].map(() => {
-    const spark = addLight(world, 1, endesga(32), emberX, emberY)
+    const spark = addLight(world, 1, duel(39), emberX, emberY)
     spark.blendMode = 'add'
     return spark
   })
@@ -228,9 +228,9 @@ export function createScene(renderer: PixiRenderer, room: Room): Scene {
   character.visible = false
   world.addChild(character)
 
-  const vignette = new Sprite(vignetteTexture(width, height, endesga(15), 0.7))
+  const vignette = new Sprite(vignetteTexture(width, height, duel(224), 0.7))
   overlay.addChild(vignette)
-  const flash = new Graphics().rect(0, 0, width, height).fill(endesga(23))
+  const flash = new Graphics().rect(0, 0, width, height).fill(duel(247))
   flash.alpha = 0
   overlay.addChild(flash)
 
@@ -290,7 +290,7 @@ export function createScene(renderer: PixiRenderer, room: Room): Scene {
         ghost.anchor.set(0.5, 1)
         ghost.position.set(feetX, feetY)
         ghost.scale.set(player.facing, 1)
-        ghost.tint = endesga(43)
+        ghost.tint = duel(62)
         ghost.alpha = 0.4
         trailLayer.addChild(ghost)
         trail.push({ sprite: ghost, life: 10 })

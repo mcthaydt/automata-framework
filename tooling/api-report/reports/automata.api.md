@@ -335,6 +335,12 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 function contentHashOf(data: unknown): string;
 ```
 
+### `controlsFrom` (function)
+
+```ts
+function controlsFrom<Z extends z.ZodType>(command: CommandDef<Z>, file: ControlsFile): InputMap;
+```
+
 ### `CORE_SETTINGS` (const)
 
 ```ts
@@ -622,6 +628,17 @@ interface EntityView<C extends SceneNode = Container> {
 const ERROR_CODES: readonly ["UNSUPPORTED", "NOT_READY", "TIMEOUT", "RATE_LIMITED", "QUOTA_EXCEEDED", "INVALID_PAYLOAD", "DENIED", "OFFLINE", "CANCELLED", "INTERNAL"];
 ```
 
+### `ErrorAction` (interface)
+
+```ts
+interface ErrorAction {
+    readonly id: string;
+    readonly label: string;
+    readonly kind: 'primary' | 'secondary';
+    readonly onSelect: () => void;
+}
+```
+
 ### `ErrorCode` (type)
 
 ```ts
@@ -632,6 +649,12 @@ type ErrorCode = (typeof ERROR_CODES)[number];
 
 ```ts
 const ErrorCodeSchema: z.ZodType<ErrorCode>;
+```
+
+### `ErrorPanel` (svelte)
+
+```ts
+component from '../shared/ui/status/ErrorPanel.svelte'
 ```
 
 ### `EventDef` (interface)
@@ -704,6 +727,21 @@ interface FullscreenRes {
 const FullscreenResSchema: z.ZodType<FullscreenRes>;
 ```
 
+### `GameAudioServices` (interface)
+
+```ts
+interface GameAudioServices {
+    readonly audio: Audio & AudioBuses;
+    readonly bus: PresentationBus;
+}
+```
+
+### `GameAudioStart` (type)
+
+```ts
+type GameAudioStart = (services: GameAudioServices) => (() => void) | undefined;
+```
+
 ### `GameCopy` (type)
 
 ```ts
@@ -732,6 +770,7 @@ interface GameDefinition<S = never> {
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
     readonly sounds?: EventSounds | undefined;
+    readonly audio?: GameAudioStart | undefined;
     readonly scores?: EventScores | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
         readonly loading?: string;
@@ -783,6 +822,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly input?: InputMap;
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
     readonly sounds?: EventSounds;
+    readonly audio?: GameAudioStart;
     readonly scores?: EventScores;
     readonly saves?: GameSaves<D>;
     readonly content?: {
@@ -796,6 +836,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
     readonly draw?: (ctx: DrawContext) => void;
+    readonly level?: LevelScene;
     readonly renderer?: PixiRendererOptions;
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
     readonly preload?: readonly string[];
@@ -1083,6 +1124,12 @@ function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) =
 type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
 ```
 
+### `keyLabel` (function)
+
+```ts
+function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
+```
+
 ### `keys` (function)
 
 ```ts
@@ -1191,6 +1238,64 @@ function lerp(a: number, b: number, t: number): number;
 function lerpAngle(a: number, b: number, t: number): number;
 ```
 
+### `LevelDraw` (interface)
+
+```ts
+interface LevelDraw {
+    readonly background: {
+        readonly color: string;
+        readonly image?: string | undefined;
+        readonly mode: ContentLevel['background']['mode'];
+    };
+    readonly items: readonly DrawItem[];
+    readonly problems: readonly string[];
+}
+```
+
+### `levelDrawList` (function)
+
+```ts
+function levelDrawList(project: ContentProject, level: ContentLevel, images: ReadonlySet<string>, live: readonly string[]): LevelDraw;
+```
+
+### `LevelScene` (interface)
+
+```ts
+interface LevelScene {
+    add(hooks: LevelSceneHooks): void;
+}
+```
+
+### `levelScene` (function)
+
+```ts
+function levelScene(options: LevelSceneOptions): LevelScene;
+```
+
+### `LevelSceneHooks` (interface)
+
+```ts
+interface LevelSceneHooks {
+    draw(sim: DrawSim, scene: {
+        readonly container: Container;
+        hide(itemId: string, hidden: boolean): void;
+    }): void;
+}
+```
+
+### `LevelSceneOptions` (interface)
+
+```ts
+interface LevelSceneOptions {
+    readonly project: ContentProject;
+    readonly levels: Readonly<Record<string, ContentLevel>>;
+    readonly images: Readonly<Record<string, string>>;
+    readonly start: string;
+    readonly live?: readonly string[] | undefined;
+    readonly current?: ((sim: DrawSim) => string) | undefined;
+}
+```
+
 ### `LifecyclePayload` (interface)
 
 ```ts
@@ -1244,6 +1349,12 @@ const MAX_TURN_UNITS_PER_STEP = 8192;
 function measureGeometry(input: GeometryInput): Geometry;
 ```
 
+### `mergeStageHooks` (function)
+
+```ts
+function mergeStageHooks(...all: readonly (PixiStageHooks | undefined)[]): PixiStageHooks;
+```
+
 ### `Modal` (svelte)
 
 ```ts
@@ -1275,6 +1386,12 @@ interface OwnedRenderer extends GameRenderer {
 }
 ```
 
+### `padLabel` (function)
+
+```ts
+function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
+```
+
 ### `PagedGrid` (svelte)
 
 ```ts
@@ -1297,6 +1414,24 @@ type PauseBehavior = 'pause' | 'continue';
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+### `pictureView` (function)
+
+```ts
+function pictureView(project: ContentProject, def: string, images: Readonly<Record<string, string>>, options?: PictureViewOptions): EntityViewFactory;
+```
+
+### `PictureViewOptions` (interface)
+
+```ts
+interface PictureViewOptions {
+    readonly clip?: ((components: Readonly<Record<string, Readonly<FieldRecord>>>) => string) | undefined;
+    readonly offset?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+}
 ```
 
 ### `PixiRenderer` (interface)
@@ -1352,6 +1487,15 @@ interface PixiStageHooks {
     readonly apply?: ((result: StepResult) => void) | undefined;
     readonly draw?: ((frame: FrameInfo) => void) | undefined;
     readonly reset?: (() => void) | undefined;
+}
+```
+
+### `PlayHandle` (interface)
+
+```ts
+interface PlayHandle {
+    readonly sim: DrawSim | undefined;
+    send(command: SentCommand): void;
 }
 ```
 
@@ -1420,6 +1564,22 @@ interface PresentationBus<Facts = RuntimeFacts> {
 }
 ```
 
+### `PROMPT_COPY` (const)
+
+```ts
+const PROMPT_COPY: PromptCopy;
+```
+
+### `PromptCopy` (interface)
+
+```ts
+interface PromptCopy {
+    readonly unbound: string;
+    readonly touch: string;
+    readonly pad: Readonly<Record<PadWord, string>>;
+}
+```
+
 ### `QualityTier` (type)
 
 ```ts
@@ -1457,9 +1617,12 @@ class RenderDeltaConsumer<C extends SceneNode = Container> {
     private readonly resolver?;
     private readonly views;
     private readonly cache;
+    private held;
     constructor(world: SceneParent<C>, resolver?: EntityViewResolver<C>);
     private resolveView;
     apply(delta: RenderDelta): void;
+    viewOf(sid: number): EntityView<C> | undefined;
+    hold(sids: ReadonlySet<number>): void;
     interpolate(alpha: number): void;
     private removeEntity;
     reset(): void;
@@ -1857,6 +2020,12 @@ interface ScreensGame {
 component from '../shared/ui/layout/ScrollList.svelte'
 ```
 
+### `SentCommand` (type)
+
+```ts
+type SentCommand = Pick<Command, 'type' | 'payload'>;
+```
+
 ### `Settings` (interface)
 
 ```ts
@@ -1879,6 +2048,12 @@ interface SettingsDef<S> {
 }
 ```
 
+### `SettingsScreen` (svelte)
+
+```ts
+component from '../app/screens/settings/SettingsScreen.svelte'
+```
+
 ### `SettingsScreenCopy` (interface)
 
 ```ts
@@ -1896,6 +2071,16 @@ interface SettingsScreenCopy {
 
 ```ts
 function settingsStore<S>(settings: Settings, def: SettingsDef<S>): SettingsStore<S>;
+```
+
+### `SettingsTab` (interface)
+
+```ts
+interface SettingsTab {
+    readonly id: string;
+    readonly label: string;
+    readonly sections: readonly SettingsSection[];
+}
 ```
 
 ### `Sheet` (svelte)
@@ -2033,6 +2218,12 @@ interface SubscriptionEntitlement {
 function suppressPageGestures(doc: Document): () => void;
 ```
 
+### `systemClock` (const)
+
+```ts
+const systemClock: Clock;
+```
+
 ### `SystemDef` (interface)
 
 ```ts
@@ -2061,6 +2252,12 @@ interface Time {
     pause(reason: PauseReason): void;
     resume(reason: PauseReason): void;
 }
+```
+
+### `TimeoutHandle` (type)
+
+```ts
+type TimeoutHandle = unknown;
 ```
 
 ### `Toast` (svelte)
@@ -2109,6 +2306,12 @@ function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean)
 
 ```ts
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
+```
+
+### `usePlay` (function)
+
+```ts
+function usePlay(): PlayHandle;
 ```
 
 ### `ViewportWindow` (interface)
@@ -2211,7 +2414,25 @@ type RukenManifestContribution = {
 };
 ```
 
+### `UiComponent` (type)
+
+```ts
+type UiComponent = Component<Record<string, never>>;
+```
+
+### `UiSlotName` (type)
+
+```ts
+type UiSlotName = (typeof UI_SLOT_NAMES)[number];
+```
+
 ## `./testing`
+
+### `BAR_ACTIONS` (const)
+
+```ts
+const BAR_ACTIONS: string;
+```
 
 ### `byTestId` (function)
 
@@ -2283,6 +2504,21 @@ function fakeAudioContext(decode?: (bytes: ArrayBuffer) => AudioBuffer): FakeAud
 
 ```ts
 const fakeBuffer: (alias: string, duration?: number) => AudioBuffer;
+```
+
+### `FakeClock` (interface)
+
+```ts
+interface FakeClock extends Clock {
+    advance(ms: number): void;
+    pending(): number;
+}
+```
+
+### `fakeClock` (function)
+
+```ts
+function fakeClock(): FakeClock;
 ```
 
 ### `fakeFetch` (function)
@@ -2498,10 +2734,22 @@ interface FakeVisualViewport {
 function findClipped(root: ParentNode, selector: string): string[];
 ```
 
+### `findCovered` (function)
+
+```ts
+function findCovered(root: ParentNode, selector: string, excused?: (cover: Element) => boolean): string[];
+```
+
 ### `findCutAtSide` (function)
 
 ```ts
 function findCutAtSide(root: ParentNode): string[];
+```
+
+### `findCutByBar` (function)
+
+```ts
+function findCutByBar(root: ParentNode, selector: string): string[];
 ```
 
 ### `findIntrusions` (function)
@@ -2598,6 +2846,12 @@ interface MountedFixture {
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
 ```
 
+### `mountInPlay` (function)
+
+```ts
+function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement): PlayMount;
+```
+
 ### `nullRenderer` (function)
 
 ```ts
@@ -2632,6 +2886,28 @@ interface NullRendererOptions {
 
 ```ts
 function openRuntimeTest(options?: RuntimeTestOptions): Promise<RuntimeTestSession>;
+```
+
+### `PlayMount` (interface)
+
+```ts
+interface PlayMount {
+    readonly host: HTMLElement;
+    readonly session: PlaySession;
+    unmount(): void;
+}
+```
+
+### `PlaySession` (class)
+
+```ts
+class PlaySession {
+    #private;
+    readonly handle: PlayHandle;
+    constructor(sim: Sim | undefined);
+    refresh(): void;
+    commands(tick: number, input: readonly Command[]): readonly Command[];
+}
 ```
 
 ### `pressedPart` (function)

@@ -3,8 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import VibrationSection from '#src/app/screens/settings/VibrationSection.svelte'
 import type { VibrationCopy } from '#src/app/screens/settings/vibration-section.ts'
 
-// The Vibration group of the Settings tab (Owner, 2026-10-18; FloorFifty's rumble row in `SettingsPanel.svelte` at
-// a28dc44): one toggle for a pad's rumble and a phone's buzz. The game shows it only where the device can do either.
+// The Vibration group of the Settings tab (Owner, 2026-10-18): one toggle for a pad's rumble and a phone's buzz. The game shows it only where the device can do either.
 
 const copy: VibrationCopy = { title: 'Vibration', toggle: 'Rumble and vibration', on: 'On', off: 'Off' }
 

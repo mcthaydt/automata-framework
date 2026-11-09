@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CURSOR_IDLE_MS, CursorRunner, cursorHidden } from '#src/shared/ui/focus/cursor-policy.ts'
 
-// From FloorFifty `tests/client/ui/cursor-policy.test.ts` at `ac72660`; the screen is a ScreenDef's `kind`.
+// The screen is a ScreenDef's `kind`.
 describe('the cursor policy', () => {
   const playing = { kind: 'gameplay' as const, paused: false, msSincePointerMove: 0 }
 

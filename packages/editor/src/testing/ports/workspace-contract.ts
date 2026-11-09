@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { ChangeSet, SuiteWorkspace } from '../../shared/kit/ports/suite-ports'
+import type { SuiteWorkspace } from '../../shared/kit/ports/suite-ports'
 
 /**
  * The game an adapter under the workspace contract is built on: these files, `content/editors.toml` among them. The
@@ -24,7 +24,7 @@ never = []
 [[file]]
 glob = "content/tuning.toml"
 editor = "tuner"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = ["content"]
 
@@ -38,7 +38,7 @@ checks = ["content"]
 [[file]]
 glob = "content/figures/poses/*.toml"
 editor = "studio"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = ["content"]
 
@@ -66,9 +66,7 @@ export const WORKSPACE_SCENARIO: WorkspaceScenario = {
 }
 
 /** A workspace over `WORKSPACE_SCENARIO`, and the change set whose journal records what the workspace creates. */
-export type MakeWorkspace = (
-  scenario: WorkspaceScenario,
-) => Promise<{ readonly workspace: SuiteWorkspace; readonly changeSet: ChangeSet }>
+export type MakeWorkspace = (scenario: WorkspaceScenario) => Promise<{ readonly workspace: SuiteWorkspace }>
 
 /** The listed files the scenario's list gives; `why` is matched loosely, since each adapter words its own. */
 const EXPECTED_FILES = {
@@ -95,7 +93,7 @@ const EXPECTED_FILES = {
     editor: 'tuner',
     gates: [],
     checks: ['content'],
-    modes: ['edit', 'ask'],
+    modes: ['edit'],
     writable: true,
   },
 } as const
@@ -197,18 +195,16 @@ export function describeSuiteWorkspace(name: string, make: MakeWorkspace): void 
       expect(await workspace.read('content/stray.toml')).toBeUndefined()
     })
 
-    test('remove takes a file the open change set created, at its mtime', async () => {
-      const { workspace, changeSet } = await open()
-      await changeSet.begin('A wave pose')
+    test('remove takes a file this workspace created, at its mtime', async () => {
+      const { workspace } = await open()
       const created = await workspace.write(NEW_POSE, 'name = "wave"\n', 'absent')
       if (!created.ok) throw new Error('the create should go through')
       expect(await workspace.remove(NEW_POSE, { mtime: created.mtime })).toMatchObject({ ok: true })
       expect(await workspace.read(NEW_POSE)).toBeUndefined()
     })
 
-    test('remove of a file the change set created, after it changed, is a conflict and the file stays', async () => {
-      const { workspace, changeSet } = await open()
-      await changeSet.begin('A wave pose')
+    test('remove of a file it created, after it changed, is a conflict and the file stays', async () => {
+      const { workspace } = await open()
       const created = await workspace.write(NEW_POSE, 'name = "wave"\n', 'absent')
       if (!created.ok) throw new Error('the create should go through')
       const edited = await workspace.write(NEW_POSE, 'name = "wave 2"\n', { mtime: created.mtime })
@@ -220,9 +216,8 @@ export function describeSuiteWorkspace(name: string, make: MakeWorkspace): void 
       expect((await workspace.read(NEW_POSE))?.text).toBe('name = "wave 2"\n')
     })
 
-    test('remove of a file the change set did not create is refused by policy, and the file stays', async () => {
-      const { workspace, changeSet } = await open()
-      await changeSet.begin('Faster')
+    test('remove of a file it did not create is refused by policy, and the file stays', async () => {
+      const { workspace } = await open()
       const before = await workspace.read(TUNING)
       if (before === undefined) throw new Error('the scenario has the tuning file')
       expect(await workspace.remove(TUNING, { mtime: before.mtime })).toMatchObject({
@@ -230,36 +225,6 @@ export function describeSuiteWorkspace(name: string, make: MakeWorkspace): void 
         reason: 'policy',
       })
       expect(await workspace.read(TUNING)).toEqual(before)
-    })
-
-    test('remove is refused by policy for a file made with no change set open, and with one open', async () => {
-      const { workspace, changeSet } = await open()
-      const unrecorded = await workspace.write(NEW_POSE, 'name = "wave"\n', 'absent')
-      if (!unrecorded.ok) throw new Error('the create should go through')
-      expect(await workspace.remove(NEW_POSE, { mtime: unrecorded.mtime })).toMatchObject({
-        ok: false,
-        reason: 'policy',
-      })
-      await changeSet.begin('A pose')
-      expect(await workspace.remove(NEW_POSE, { mtime: unrecorded.mtime })).toMatchObject({
-        ok: false,
-        reason: 'policy',
-      })
-      expect(await workspace.read(NEW_POSE)).toBeDefined()
-    })
-
-    test('remove is refused by policy for a file an earlier change set created', async () => {
-      const { workspace, changeSet } = await open()
-      await changeSet.begin('A pose')
-      const created = await workspace.write(NEW_POSE, 'name = "wave"\n', 'absent')
-      if (!created.ok) throw new Error('the create should go through')
-      await changeSet.close()
-      await changeSet.begin('Another')
-      expect(await workspace.remove(NEW_POSE, { mtime: created.mtime })).toMatchObject({
-        ok: false,
-        reason: 'policy',
-      })
-      expect(await workspace.read(NEW_POSE)).toBeDefined()
     })
 
     test('outside the root, a read is nothing and a write or remove is refused by policy, creating nothing', async () => {

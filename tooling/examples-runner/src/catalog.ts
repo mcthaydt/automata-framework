@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { parseSync } from 'oxc-parser'
 import { type Header, parseHeader } from './header.ts'
 
-/** raylib's modules, the catalog's sections. Plus modules live in mcthaydt/automata-plus. */
+/** raylib's modules, the catalog's sections. */
 export const CORE_MODULES: readonly string[] = [
   'core',
   'shapes',
@@ -22,8 +22,19 @@ export const CORE_MODULES: readonly string[] = [
   'render3d',
   // Procedural characters, drawn only by render3d, so private with it (M3R-D7) and core like it.
   'figures',
+  // The pixel-art look and the world builder, also `@automata/3d`'s.
+  'look',
+  'world',
 ]
-export const PLUS_MODULES: readonly string[] = ['physics', 'net', 'feel', 'post']
+/** The sections that show an extension (`extensions/<name>`) rather than core; their examples say `Tier: extension`. */
+export const EXTENSION_MODULES: readonly string[] = [
+  'physics',
+  'net',
+  'feel',
+  'cutscenes',
+  'characterkit',
+  'worldkit',
+]
 
 /** Code lines an example may have, not counting its header, blank lines or comment-only lines. */
 export const CODE_LINE_BUDGET = 100
@@ -53,8 +64,8 @@ export interface CatalogEntry {
 export interface CatalogOptions {
   /** The delivery plan whose ticked rows end a `Pending:` (default docs/archive/02-master-delivery-plan.md). */
   readonly deliveryPlan?: string
-  /** The folder of workspace packages whose declared exports are public entries (default packages/). */
-  readonly packagesDir?: string
+  /** The folders of workspace packages whose declared exports are public entries (default packages/ and extensions/). */
+  readonly packagesDirs?: readonly string[]
 }
 
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url))
@@ -72,14 +83,32 @@ const SCHEMA_LANGUAGE = 'zod'
  * published entry. Every other `@automata/*` package is core or tooling, and is reached through the
  * umbrella. A new extension package fails the catalog until it is listed here, which is when to decide its tier.
  */
-const EXTENSION_PACKAGES: ReadonlySet<string> = new Set(['@automata/physics'])
+const EXTENSION_PACKAGES: ReadonlySet<string> = new Set([
+  '@automata/physics',
+  '@automata/feel',
+  '@automata/audio-synth',
+  '@automata/debug',
+  '@automata/puzzle',
+  '@automata/net',
+  '@automata/net-ui',
+  '@automata/net-server',
+  '@automata/ui-screens',
+  '@automata/cutscenes',
+  '@automata/character-kit',
+  '@automata/world-kit',
+])
 /**
- * Extensions that stay private for now, whose entries examples may still import: `render-pixi3d` is built on the
- * closed `@pixi/3d` beta and is published when Pixi 3D is; `figures` stays private while its
- * only renderer does (M3R-D7). The website's playground leaves their
- * examples out (`playgroundCatalog`), because it is public.
+ * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is built on the
+ * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes`, `@automata/character-kit` and
+ * `@automata/world-kit` build on `@automata/3d`, so they wait for it. The website's playground leaves
+ * its examples out (`playgroundCatalog`), because it is public.
  */
-const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set(['@automata/render-pixi3d', '@automata/figures'])
+const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set([
+  '@automata/3d',
+  '@automata/cutscenes',
+  '@automata/character-kit',
+  '@automata/world-kit',
+])
 
 /** Whether an import names an unpublished extension's entry. */
 export const isUnpublishedExtension = (specifier: string): boolean =>
@@ -108,11 +137,13 @@ function exampleFiles(root: string, dir = root): string[] {
 }
 
 /** The umbrella, Zod and every specifier a published or unpublished extension package declares in `exports`. */
-function publicEntries(packagesDir: string): PublicEntries {
+function publicEntries(packagesDirs: readonly string[]): PublicEntries {
   const entries = new Set([UMBRELLA, SCHEMA_LANGUAGE])
   const packages = new Set<string>()
-  for (const dir of readdirSync(packagesDir)) {
-    const manifestPath = join(packagesDir, dir, 'package.json')
+  const manifestPaths = packagesDirs.flatMap((packagesDir) =>
+    readdirSync(packagesDir).map((dir) => join(packagesDir, dir, 'package.json')),
+  )
+  for (const manifestPath of manifestPaths) {
     if (!existsSync(manifestPath)) continue
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
       name: string
@@ -199,7 +230,9 @@ function importProblem(
 }
 
 export function readCatalog(root: string, options: CatalogOptions = {}): CatalogEntry[] {
-  const publicImports = publicEntries(options.packagesDir ?? join(repoRoot, 'packages'))
+  const publicImports = publicEntries(
+    options.packagesDirs ?? [join(repoRoot, 'packages'), join(repoRoot, 'extensions')],
+  )
   const tasks = deliveryTasks(
     options.deliveryPlan ?? join(repoRoot, 'docs/archive/02-master-delivery-plan.md'),
   )
@@ -216,7 +249,7 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
     const module = match?.[1] ?? path.split('/')[0] ?? ''
     const name = match?.[2] ?? path.split('/').pop()?.replace(/\.ts$/, '') ?? ''
     if (match === null) problems.push('must be <module>/<module>-<name>.ts')
-    const known = CORE_MODULES.includes(module) || PLUS_MODULES.includes(module)
+    const known = CORE_MODULES.includes(module) || EXTENSION_MODULES.includes(module)
     if (!known) problems.push(`"${module}" is not a module`)
     const id = `${module}-${name}`
 
@@ -228,7 +261,7 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
       const fileId = path.split('/').pop()?.replace(/\.ts$/, '') ?? ''
       if (match !== null && header.name !== fileId)
         problems.push(`the title line names "${header.name}", not "${fileId}"`)
-      if (known && header.tier !== (CORE_MODULES.includes(module) ? 'core' : 'plus'))
+      if (known && header.tier !== (CORE_MODULES.includes(module) ? 'core' : 'extension'))
         problems.push(`Tier: ${header.tier} does not match the ${module} module`)
       // `Pending:` names every open task whose verbs the example needs (`Pending: <task ids>`).
       const waitingFor = pendingTasks(header)

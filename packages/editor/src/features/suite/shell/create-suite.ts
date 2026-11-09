@@ -1,5 +1,5 @@
-// The suite's composition of editors: the free build passes its editors, the Plus build
-// (EDS.P) passes the free ones and its own. Two editors with one id would make the list's rows ambiguous, so they fail
+// The suite's composition of editors: a suite page passes the editors it has, and another package's page passes these
+// and its own (`editor-3d`'s adds Levels 3D and the Studio; the extensions' editors add Feel, Audio and the rest). Two editors with one id would make the list's rows ambiguous, so they fail
 // here, when the build starts, rather than whichever registered last winning.
 import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
 

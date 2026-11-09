@@ -23,7 +23,7 @@ export type AudioSectionChange =
 export interface AudioCopy {
   readonly title: string
   readonly mute: string
-  /** FloorFifty's "Mute in background": silent while another window has focus. */
+  /** "Mute in background": silent while another window has focus. */
   readonly muteUnfocused: string
   /** A toggle's state words. */
   readonly on: string

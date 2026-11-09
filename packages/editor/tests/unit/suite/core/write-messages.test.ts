@@ -3,9 +3,8 @@ import { findingMessage, refusalMessage } from '#src/features/suite/core/write-m
 
 // What the suite's toasts say when a write, an undo or a redo does not land, and where a check finding is.
 describe('refusalMessage', () => {
-  it('says nothing for a write that landed or a cancelled one', () => {
+  it('says nothing for a write that landed', () => {
     expect(refusalMessage({ written: true })).toBeUndefined()
-    expect(refusalMessage({ cancelled: true })).toBeUndefined()
     expect(refusalMessage(undefined)).toBeUndefined()
   })
 

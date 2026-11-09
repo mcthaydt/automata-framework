@@ -1,5 +1,5 @@
 // Helpers the edit tests share: the level or the sentence out of a result, and the corners of a rectangle.
-import type { EditResult } from '../model/edit'
+import type { EditResult } from '../shared/edit/edit'
 
 /** The level an edit answered with; the test fails, with the reason, when the edit was refused. */
 export function levelOf<D>(result: EditResult<D>): D {
@@ -25,3 +25,9 @@ export const rect = (
   [x1, z1],
   [x0, z1],
 ]
+
+/** The value, which a test knows is there. */
+export function must<T>(value: T | undefined): T {
+  if (value === undefined) throw new Error('the test expected a value that is missing')
+  return value
+}

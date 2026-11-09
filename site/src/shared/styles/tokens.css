@@ -1,0 +1,60 @@
+@import "@automata/editor/tokens.css";
+
+/*
+ * Visual language (Home v2, approved by the Owner 2026-11-08): the site is dark, with no toggle. A near-black field,
+ * panels one step lighter on hairlines, and one flat lime that is the only colour. Corners are slightly rounded, never
+ * pills: 4 px on controls, 6 px on panels, 8 px on cards (`--edge-sm/md/lg`). No glass. The editor kit's tokens come
+ * first (its type scale, corners and sizes); the colours the kit names for a light page are set again here, so a
+ * component that reads `--paper` or `--surface` gets the dark one.
+ */
+:root {
+  color-scheme: dark;
+  --bg: #0b0c0e;
+  --panel: #121418;
+  --raise: #181b20;
+  --line: #23262c;
+  --line-strong: #33373e;
+  --ink: #f2f3f5;
+  --muted: #a6abb3;
+  --faint: #80868f;
+  --lime-ink: #11151c;
+  /* The kit's light-page names, in the dark field's colours. */
+  --soft: var(--raise);
+  --paper: var(--panel);
+  --surface: var(--raise);
+  --focus: var(--lime);
+  --accent: var(--lime);
+  --charcoal: #07080a;
+  --stage: #07080a;
+  /* The playground's code colours, which the kit names for a light page. */
+  --cobalt: #79c0ff;
+  --cobalt-deep: #d2a8ff;
+  --teal: #a5d6ff;
+  --wrap: 1200px;
+  /* The page's side margin: the container is the wrap or the window less this on each side. */
+  --side: 24px;
+  /* Motion (see shared/motion/motion-tokens.ts, which a test holds equal): quick and small. The ease is the kit's. */
+  --t-press: 140ms;
+  --t-hover: 180ms;
+  --t-ui: 200ms;
+  --nudge: 4px;
+  --scale-from: 0.98;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--bg);
+  scroll-behavior: smooth;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+/* While Lenis glides, the browser's own jumps (Find in page, a script's scrollTo) must be instant: an animated one would
+   be cancelled by Lenis's next write, so the page would end where the wheel was sending it. Lenis puts this class on
+   <html> only during a glide, and older Lenis stylesheets carried the same rule. */
+:root.lenis-smooth {
+  scroll-behavior: auto;
+}
+@media (max-width: 760px) {
+  :root {
+    --side: 16px;
+  }
+}

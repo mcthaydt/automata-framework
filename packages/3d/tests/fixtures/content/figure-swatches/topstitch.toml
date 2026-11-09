@@ -1,0 +1,9 @@
+# `topstitch`, a fixture.
+# Colour: DUEL ramp 15 (wood), step 4 (#b29062).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "wood"
+step = 4
+flat = true
+kind = "thread"
+role = "stitch"

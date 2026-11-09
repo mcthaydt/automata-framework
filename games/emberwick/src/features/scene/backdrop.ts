@@ -1,10 +1,10 @@
 import { Container, Graphics, Sprite } from 'pixi.js'
-import { endesga } from '../../shared/art/palette.ts'
+import { duel } from '../../shared/art/palette.ts'
 import { lightTexture } from '../../shared/pixels.ts'
 
 // The night behind the ruins, in layers that drift a little against the character's position (parallax):
 // a stepped teal sky with stars and a big moon, far ruined towers, nearer trees, and a fog band. Drawn once
-// from Endesga 64 colors at fixed places (PROVENANCE.md); only the layers' offsets change per frame.
+// from DUEL colors at fixed places (PROVENANCE.md); only the layers' offsets change per frame.
 
 export interface Backdrop {
   readonly view: Container
@@ -38,26 +38,26 @@ const MOON_Y = 34
 export function createBackdrop(width: number, height: number): Backdrop {
   const view = new Container()
   const sky = new Graphics()
-  const bands = [52, 39, 38] as const // #03193f, #0c2e44, #134c4c
+  const bands = [208, 112, 200] as const // #001b40, #002e49, #2d4b47
   const bandHeight = Math.ceil(height / bands.length)
   bands.forEach((index, i) => {
-    sky.rect(0, i * bandHeight, width, bandHeight).fill(endesga(index))
+    sky.rect(0, i * bandHeight, width, bandHeight).fill(duel(index))
     // Dither the band's top edge into the band above (a 2 × 2 checker over four rows, thinning out), so the
     // steps read as a gradient rather than stripes.
     const above = bands[i - 1]
     if (above === undefined) return
     for (let row = 0; row < 4; row++)
       for (let x = (row % 2) * 2; x < width; x += row < 2 ? 4 : 8)
-        sky.rect(x, i * bandHeight + row * 2, 2, 2).fill(endesga(above))
+        sky.rect(x, i * bandHeight + row * 2, 2, 2).fill(duel(above))
   })
   // A soft horizon line where the sky meets the fog.
-  sky.rect(0, height - 56, width, 2).fill(endesga(37))
+  sky.rect(0, height - 56, width, 2).fill(duel(68))
   view.addChild(sky)
 
   const stars = STARS.map(([x, y]) => {
     const star = new Sprite(lightTexture(1))
     star.position.set(x - 1, y - 1)
-    star.tint = endesga(9)
+    star.tint = duel(6)
     view.addChild(star)
     return star
   })
@@ -66,25 +66,25 @@ export function createBackdrop(width: number, height: number): Backdrop {
   const moonGlow = new Sprite(lightTexture(30))
   moonGlow.anchor.set(0.5)
   moonGlow.position.set(MOON_X, MOON_Y)
-  moonGlow.tint = endesga(45)
+  moonGlow.tint = duel(63)
   moonGlow.alpha = 0.25
   moonGlow.blendMode = 'add'
   moonLayer.addChild(moonGlow)
   const moon = new Graphics()
-  moon.circle(MOON_X, MOON_Y, 11).fill(endesga(9)) // #c7cfdd
-  moon.circle(MOON_X - 3, MOON_Y - 2, 9).fill(endesga(8))
-  moon.circle(MOON_X + 4, MOON_Y + 3, 2).fill(endesga(9)) // craters
-  moon.circle(MOON_X - 5, MOON_Y + 4, 1).fill(endesga(10))
+  moon.circle(MOON_X, MOON_Y, 11).fill(duel(6)) // #cdd2da
+  moon.circle(MOON_X - 3, MOON_Y - 2, 9).fill(duel(7))
+  moon.circle(MOON_X + 4, MOON_Y + 3, 2).fill(duel(6)) // craters
+  moon.circle(MOON_X - 5, MOON_Y + 4, 1).fill(duel(5))
   moonLayer.addChild(moon)
 
   const far = new Graphics()
-  towers(far, height - 60, endesga(52))
+  towers(far, height - 60, duel(208))
   view.addChild(far)
   const near = new Graphics()
-  trees(near, width, height - 36, endesga(15))
+  trees(near, width, height - 36, duel(224))
   view.addChild(near)
   const fog = new Graphics()
-  fog.rect(-16, height - 26, width + 32, 26).fill({ color: endesga(38), alpha: 0.55 })
+  fog.rect(-16, height - 26, width + 32, 26).fill({ color: duel(200), alpha: 0.55 })
   view.addChild(fog)
 
   return {
@@ -119,7 +119,7 @@ function towers(g: Graphics, baseline: number, color: string): void {
     g.rect(x, baseline - h, w, h + 60).fill(color)
     // Crenellations and a dark window, so they read as ruins rather than boxes.
     for (let cx = x; cx < x + w; cx += 4) g.rect(cx, baseline - h - 2, 2, 2).fill(color)
-    g.rect(x + Math.floor(w / 2) - 1, baseline - h + 6, 2, 4).fill(endesga(39))
+    g.rect(x + Math.floor(w / 2) - 1, baseline - h + 6, 2, 4).fill(duel(112))
   }
   // The arch between two towers.
   g.rect(62, baseline - 30, 30, 4).fill(color)

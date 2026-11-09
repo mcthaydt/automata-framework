@@ -4,7 +4,7 @@ import { formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
 import { contentHash } from '#src/shared/hash/content-hash.ts'
 import { parseDocument } from '#src/shared/parse/parse-document.ts'
 
-// Ported from FloorFifty tests/content/parse.test.ts (122a220): unknown keys, TOML syntax errors and the
+// Unknown keys, TOML syntax errors and the
 // missing-versus-wrong distinction, now with positions.
 const song = z.strictObject({
   displayName: z.string(),

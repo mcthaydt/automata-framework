@@ -1,0 +1,6 @@
+# `capWhite`, a fixture.
+# Colour: DUEL ramp 10 (slate), step 7 (#ebf0f6).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "slate"
+step = 7

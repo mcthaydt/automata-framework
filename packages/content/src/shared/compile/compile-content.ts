@@ -1,10 +1,10 @@
-// The compiler. Extracted from FloorFifty packages/content/src/compiler.ts (122a220).
+// The compiler.
 //
 // Reads, parses, checks and assembles, and writes nothing. Every check runs on every file even when an
 // earlier one failed, so one save reports every independent problem rather than the first file the
 // compiler happened to open. Writing is `buildContent`'s job (write-outputs.ts).
 //
-// Changed from FloorFifty: the kinds are the game's registered schemas, the hash is one XXH64 over the
+// The kinds are the game's registered schemas, the hash is one XXH64 over the
 // canonical data, and the result is an Effect that fails with a typed error.
 
 import { Effect } from 'effect'
@@ -449,3 +449,20 @@ export const compileContent = (
     if (!outcome.ok) return yield* outcome.error
     return outcome.content
   })
+
+/** What `compileContentResult` answers: the content, or the error `compileContent` failed with. */
+export type CompileContentResult =
+  | { readonly ok: true; readonly content: CompiledContent }
+  | { readonly ok: false; readonly error: ContentCompileFailed | InvalidContentConfig }
+
+/**
+ * `compileContent` for a caller outside Effect (a package's tests, a script): runs it and answers with a plain value,
+ * so the caller imports no `effect`. A refusal is a value too, never a rejection.
+ */
+export const compileContentResult = (options: ContentOptions): Promise<CompileContentResult> =>
+  Effect.runPromise(
+    Effect.match(compileContent(options), {
+      onSuccess: (content): CompileContentResult => ({ ok: true, content }),
+      onFailure: (error): CompileContentResult => ({ ok: false, error }),
+    }),
+  )

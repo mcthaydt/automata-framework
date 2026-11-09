@@ -74,4 +74,17 @@ describe('the gates reader', () => {
     })
     await expect(gates.states(['Q-FEEL'])).rejects.toThrow(/docs\/feel\/gates.json/)
   })
+
+  test('an older keyed file rejects with the words the review desk shows, not a schema dump', async () => {
+    const keyed = {
+      'Q-FEEL': { id: 'Q-FEEL', stage: 'feel', decision: 'pending', files: ['feel/report.md'] },
+    }
+    const gates = createGatesReader({
+      root: await game({ 'docs/feel/gates.json': JSON.stringify(keyed) }),
+      gates: [{ id: 'Q-FEEL', name: 'Feel', records: 'docs/feel/gates.json' }],
+    })
+    await expect(gates.states(['Q-FEEL'])).rejects.toThrow(
+      'docs/feel/gates.json was saved by an older version of the pipelines. Run the pipeline again to update it.',
+    )
+  })
 })

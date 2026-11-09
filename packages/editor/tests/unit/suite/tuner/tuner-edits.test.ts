@@ -56,7 +56,7 @@ describe('checkValue', () => {
 
   it('refuses a row it does not edit, sending it to Ask', () => {
     expect(checkValue(tunable({ kind: 'other', editable: false, value: undefined }), 1)).toEqual({
-      message: 'MAX_RUN is a table or a list: change it with Ask',
+      message: 'MAX_RUN is a table or a list: change it in the file',
     })
   })
 })

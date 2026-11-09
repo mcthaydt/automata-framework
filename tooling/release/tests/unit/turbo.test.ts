@@ -20,9 +20,12 @@ it('only build depends on ^build', () => {
 // The one exception: the site's unit tests read the API index, which is generated from the packages' built
 // declarations (site/scripts/write-api-index.ts), so they wait for those builds. A cached build costs little.
 it("the site's unit tests are the only tests that wait for the packages' builds", () => {
-  const site = JSON.parse(
-    readFileSync(fileURLToPath(new URL('../../../../site/turbo.json', import.meta.url)), 'utf8'),
-  ) as typeof turbo
+  // site/turbo.json carries comments (turbo reads JSONC); drop the whole-line ones before JSON.parse.
+  const siteText = readFileSync(
+    fileURLToPath(new URL('../../../../site/turbo.json', import.meta.url)),
+    'utf8',
+  )
+  const site = JSON.parse(siteText.replace(/^\s*\/\/.*$/gm, '')) as typeof turbo
   const dependOnBuild = Object.entries(site.tasks)
     .filter(([, task]) => task.dependsOn?.includes('^build'))
     .map(([name]) => name)

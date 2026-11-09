@@ -1,7 +1,7 @@
 /**
  * The viewports every primitive and screen is checked at.
  *
- * FloorFifty's `SWEEP` (tests/e2e/support/layout.ts at 122a220) plus both sides of every
+ * A sweep of common sizes plus both sides of every
  * breakpoint, so a classification that moves by one pixel shows up as a failure. Each size records
  * what it should classify as. This package does not depend on ui, so the names are written out
  * here, and ui's own test checks every size against its classifiers.
@@ -47,7 +47,7 @@ export const REFERENCE_SIZES: readonly ReferenceSize[] = [
   size('iphone-14-landscape', 844, 390, 'phone-landscape', 'short', 'phone'),
   size('iphone-pro-max-landscape', 932, 430, 'phone-landscape', 'short', 'phone'),
   // What a browser actually leaves a phone held sideways: the page never scrolls, so the toolbar
-  // never hides. Chrome on a Galaxy, Safari on an iPhone 14, Safari on an iPhone SE (FloorFifty).
+  // never hides. Chrome on a Galaxy, Safari on an iPhone 14, Safari on an iPhone SE.
   size('galaxy-chrome-landscape', 780, 270, 'phone-landscape', 'compact', 'phone'),
   size('iphone-14-safari-landscape', 844, 340, 'phone-landscape', 'short', 'phone'),
   size('iphone-se-safari-landscape', 667, 320, 'phone-landscape', 'compact', 'phone'),

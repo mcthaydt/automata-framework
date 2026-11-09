@@ -18,7 +18,7 @@ export interface FrameLoop {
   readonly running: boolean
 }
 
-// 1e-6 ms tolerance keeps a frame of exactly one step from losing it due to float inaccuracy (The Last Light clock.ts)
+// 1e-6 ms tolerance keeps a frame of exactly one step from losing it due to float inaccuracy
 const TOLERANCE_MS = 1e-6
 
 /**
@@ -71,14 +71,14 @@ export function createFrameLoop(options: FrameLoopOptions): FrameLoop {
     const rawElapsed = now - last
     last = now
 
-    // Clamped to [0, MAX_FRAME_MS] (The Last Light clock.ts 0.1 s clamp: at most 6 steps at 60 Hz)
+    // Clamped to [0, MAX_FRAME_MS]
     const elapsed = Math.min(Math.max(rawElapsed, 0), MAX_FRAME_MS)
     frameInfo.frameMs = elapsed
 
     const paused = options.isPaused()
     frameInfo.paused = paused
 
-    // 2. While Time is paused the accumulator is zero (The Last Light: paused time is dropped) and no step runs
+    // 2. While Time is paused the accumulator is zero and no step runs
     if (paused) {
       accumulator = 0
       frameInfo.alpha = 1

@@ -48,6 +48,29 @@ describe('serveEditor', () => {
     })
   })
 
+  it('names the game by the title its package.json gives, when it gives one', async () => {
+    const game = join(root, 'base-3d')
+    await mkdir(game)
+    await writeFile(
+      join(game, 'package.json'),
+      '{"name":"@af-games/base-3d","automata":{"title":"Ember Hall"}}',
+    )
+    const { url } = await start({ root: game })
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ game: 'Ember Hall' })
+  })
+
+  it('falls back to the folder when package.json has no title or is not JSON', async () => {
+    const game = join(root, 'my-cool-game')
+    await mkdir(game)
+    await writeFile(join(game, 'package.json'), '{"name":"x"}')
+    const { url } = await start({ root: game })
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ game: 'My cool game' })
+    await running?.close()
+    await writeFile(join(game, 'package.json'), 'not json')
+    const again = await start({ root: game })
+    expect(await (await api(again.url, '/api/ping')).json()).toMatchObject({ game: 'My cool game' })
+  })
+
   it("hands the game's dev page to the editor in the ping, for the Tuner's game pane", async () => {
     const { url } = await start({ gameUrl: 'http://localhost:5173/' })
     expect(await (await api(url, '/api/ping')).json()).toMatchObject({ gameUrl: 'http://localhost:5173/' })
@@ -213,5 +236,67 @@ describe('serveEditor', () => {
       body: '2',
     })
     expect(second.status).toBe(200)
+  })
+})
+
+describe('serveEditor: Publish', () => {
+  it('says in the ping whether it can publish the game', async () => {
+    const plain = await start()
+    expect(await (await api(plain.url, '/api/ping')).json()).not.toHaveProperty('publish')
+    await plain.close()
+    const { url } = await start({ publish: async () => ({ ok: true, file: join(root, 'game-itch.zip') }) })
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ publish: true })
+  })
+
+  it('publishes on a POST and then hands over the zip it made, as a download', async () => {
+    const zip = join(root, 'my-game-0.1.0-itch.zip')
+    await writeFile(zip, 'PK zip bytes')
+    const { url } = await start({ publish: async () => ({ ok: true, file: zip }) })
+    expect(await (await api(url, '/api/publish/file')).status).toBe(404)
+    const done = await api(url, '/api/publish', { method: 'POST' })
+    expect(done.status).toBe(200)
+    expect(await done.json()).toEqual({ ok: true, name: 'my-game-0.1.0-itch.zip' })
+    const file = await api(url, '/api/publish/file')
+    expect(file.status).toBe(200)
+    expect(file.headers.get('content-disposition')).toBe('attachment; filename="my-game-0.1.0-itch.zip"')
+    expect(await file.text()).toBe('PK zip bytes')
+  })
+
+  it('passes on what stopped the game from publishing', async () => {
+    const { url } = await start({
+      publish: async () => ({ ok: false, problem: 'Your game did not build.', detail: 'src/main.ts: oops' }),
+    })
+    const failed = await api(url, '/api/publish', { method: 'POST' })
+    expect(await failed.json()).toEqual({
+      ok: false,
+      problem: 'Your game did not build.',
+      detail: 'src/main.ts: oops',
+    })
+    expect((await api(url, '/api/publish/file')).status).toBe(404)
+  })
+
+  it('runs one publish at a time', async () => {
+    let finish: () => void = () => {}
+    const zip = join(root, 'game-itch.zip')
+    const { url } = await start({
+      publish: () =>
+        new Promise((resolveDone) => {
+          finish = () => resolveDone({ ok: true, file: zip })
+        }),
+    })
+    const first = api(url, '/api/publish', { method: 'POST' })
+    await new Promise((resolveSoon) => setTimeout(resolveSoon, 50))
+    const second = await api(url, '/api/publish', { method: 'POST' })
+    expect(second.status).toBe(409)
+    finish()
+    expect((await first).status).toBe(200)
+  })
+
+  it('has no publish route when it cannot publish, and wants the token when it has one', async () => {
+    const plain = await start()
+    expect((await api(plain.url, '/api/publish', { method: 'POST' })).status).toBe(404)
+    await plain.close()
+    const { url } = await start({ token: 'tok', publish: async () => ({ ok: true, file: 'x' }) })
+    expect((await api(url, '/api/publish', { method: 'POST' })).status).toBe(401)
   })
 })

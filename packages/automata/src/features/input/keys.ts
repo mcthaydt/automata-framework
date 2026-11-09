@@ -3,71 +3,20 @@
 // window loses focus. It sends what is held, never a "pressed" edge: the sim compares this tick's command with
 // the last one's, so a replay stays a pure function of the command stream.
 
-import type { Command, CommandDef } from '@automata/sim'
+import type { CommandDef } from '@automata/sim'
 import type { z } from 'zod'
-import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
-import { CAMERA_SETTINGS_DEFAULT } from './analog/camera-settings.schema.ts'
-import { type AnalogOptions, type AnalogReading, analogReading } from './analog-reading.ts'
-import type { GestureSink } from './gestures/swipe-tracker.ts'
-import { createInput } from './input.manager.ts'
+import type { AnalogOptions, AnalogReading } from './analog-reading.ts'
 import {
-  type GestureName,
-  type InputProfile,
-  inputProfileSchema,
-  type StickDirection,
-  type TouchMode,
-  touchModesFor,
-} from './input-profile.schema.ts'
+  type InputAction,
+  type InputMap,
+  type InputSource,
+  inputMapOf,
+  payloadProblem,
+  type TouchButton,
+} from './input-map-of.ts'
+import type { GestureName, StickDirection, TouchMode } from './input-profile.schema.ts'
 
-export type { AnalogOptions, AnalogReading }
-
-/** One on-screen touch button: every key bound to the same payload shares it. */
-export interface TouchButton {
-  readonly id: string
-  readonly label: string
-  readonly keys: readonly string[]
-  /** Which lower corner's group it sits in. Default `start`; a game moves buttons to `end` itself. */
-  readonly side?: 'start' | 'end' | undefined
-  /** The game cannot be played without it: where the touch buttons do not all fit, only these show. */
-  readonly required?: boolean | undefined
-}
-
-/** The input map attached to a window for one play session. */
-export interface InputSource {
-  /** This tick's command, if any: one per tick, never an edge. */
-  commands(tick: number): readonly Command[]
-  /** A touch button pressed or released (its `TouchButton.id`). */
-  hold(buttonId: string): void
-  release(buttonId: string): void
-  /** Gestures from a `SwipeTracker`: held swipes and one-tick flicks and taps. */
-  readonly gesture: GestureSink
-  dispose(): void
-}
-
-/** Held keys, touch buttons and gamepad buttons, turned into one command per tick. */
-export interface InputMap {
-  readonly command: CommandDef
-  /** Whether the play screen shows touch buttons when the player uses touch. */
-  readonly touch: boolean
-  readonly touchButtons: readonly TouchButton[]
-  /** How the play screen takes touch: its buttons, or swipes over the whole screen. */
-  readonly touchMode: TouchMode
-  /**
-   * The bindings as data: one action per distinct payload, id `<command id>-<n>`, with its keys, its
-   * pad buttons and whether it has a touch button. Rebinding swaps the profile and never the command mapping.
-   */
-  readonly profile: InputProfile
-  /** Each action's name, as the Settings screen's Controls section lists it. */
-  readonly labels: Readonly<Record<string, string>>
-  /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
-  readonly touchStick: boolean
-  /**
-   * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
-   * `analog` option, `reading` adds the sticks and the drag; without one it is ignored.
-   */
-  toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[]
-  attach(target: Window): InputSource
-}
+export type { AnalogOptions, AnalogReading, InputMap, InputSource, TouchButton }
 
 type Payload<Z extends z.ZodType> = Partial<z.input<Z>>
 
@@ -105,22 +54,6 @@ export interface KeysOptions<Z extends z.ZodType> {
   readonly analog?: AnalogOptions<Z>
 }
 
-const KEY_LABELS: Readonly<Record<string, string>> = {
-  ArrowLeft: '←',
-  ArrowRight: '→',
-  ArrowUp: '↑',
-  ArrowDown: '↓',
-}
-
-/** `KeyA` → `A`, `Digit1` → `1`, an arrow → its arrow, anything else as named. */
-const labelFor = (code: string): string => KEY_LABELS[code] ?? code.replace(/^(Key|Digit)/, '')
-
-/** `attach` builds an Input of its own; nothing reads its facts. */
-const SILENT_BUS: PresentationBus = { publish: () => {}, subscribe: () => () => {} }
-
-const asRecord = (value: unknown): Record<string, unknown> =>
-  value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}
-
 /**
  * An input map sending `command` once per tick with the payload of what is held: keys by
  * `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the
@@ -132,20 +65,13 @@ export function keys<Z extends z.ZodType>(
   bindings: KeyBindings<Z>,
   options: KeysOptions<Z> = {},
 ): InputMap {
-  const schema = command.schema
-  const idleParse = schema.safeParse(options.idle ?? {})
-  // What every payload is merged over: the idle payload, or nothing when the schema has no idle state.
-  const base = idleParse.success ? asRecord(idleParse.data) : asRecord(options.idle)
-
   // A binding the schema refuses is a developer error, thrown now rather than dropped every tick.
   const check = (where: string, payload: unknown): void => {
-    const parsed = schema.safeParse({ ...base, ...asRecord(payload) })
-    if (!parsed.success) {
-      const why = parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ')
+    const why = payloadProblem(command, options.idle, payload)
+    if (why !== undefined)
       throw new Error(
         `keys(): ${where} → ${JSON.stringify(payload)} fails the "${command.id}" schema (${why})`,
       )
-    }
   }
   for (const [code, payload] of Object.entries(bindings)) check(code, payload)
   for (const code of options.required ?? [])
@@ -159,7 +85,7 @@ export function keys<Z extends z.ZodType>(
 
   // One action per distinct payload: the keys' payloads in binding order, then any pad, stick or gesture payload
   // no key shares.
-  const actions: {
+  const made: {
     id: string
     payload: unknown
     keys: string[]
@@ -167,137 +93,24 @@ export function keys<Z extends z.ZodType>(
     stick: StickDirection[]
     gesture: GestureName[]
   }[] = []
-  const actionFor = (payload: unknown): (typeof actions)[number] => {
+  const actionFor = (payload: unknown): (typeof made)[number] => {
     const key = JSON.stringify(payload)
-    const found = actions.find((action) => JSON.stringify(action.payload) === key)
+    const found = made.find((action) => JSON.stringify(action.payload) === key)
     if (found !== undefined) return found
-    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [], stick: [], gesture: [] }
-    actions.push(made)
-    return made
+    const fresh = { id: `${command.id}-${made.length}`, payload, keys: [], pad: [], stick: [], gesture: [] }
+    made.push(fresh)
+    return fresh
   }
   for (const [code, payload] of Object.entries(bindings)) actionFor(payload).keys.push(code)
   for (const { index, payload } of pad) actionFor(payload).pad.push(index)
   for (const [direction, payload] of stick) actionFor(payload).stick.push(direction)
   for (const [gesture, payload] of gestures) actionFor(payload).gesture.push(gesture)
 
-  const touch = options.touch !== false
   const requiredKeys = new Set(options.required ?? [])
-  const isRequired = (action: (typeof actions)[number]): boolean =>
-    action.keys.some((code) => requiredKeys.has(code))
-  const analog = options.analog
-  const parsedProfile = inputProfileSchema.safeParse({
-    id: command.id,
-    bindings: Object.fromEntries([
-      ...actions.map((action) => [
-        action.id,
-        {
-          keys: action.keys,
-          pad: action.pad,
-          ...(action.stick.length > 0 ? { stick: action.stick } : {}),
-          touch: touch && action.keys.length > 0,
-          ...(action.gesture.length > 0 ? { gesture: action.gesture } : {}),
-          ...(isRequired(action) ? { required: true } : {}),
-        },
-      ]),
-      // Binding the camera drag is what turns it on; it has no key and no button.
-      ...(analog?.drag === true
-        ? [[`${command.id}-drag`, { keys: [], pad: [], touch: false, gesture: ['camera-drag'] }]]
-        : []),
-    ]),
-  })
-  // A reserved key or pad button is a developer error, thrown now.
-  if (!parsedProfile.success)
-    throw new Error(`keys(): ${parsedProfile.error.issues.map((issue) => issue.message).join('; ')}`)
-  const profile = parsedProfile.data
-  const modes = touchModesFor(profile)
-  if (options.touchMode !== undefined && !modes.includes(options.touchMode))
-    throw new Error(
-      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a swipe, flick or tap' : 'a touch button'}`,
-    )
-  const touchMode: TouchMode =
-    options.touchMode ?? (modes.includes('buttons') || !modes.includes('swipe') ? 'buttons' : 'swipe')
-
-  const touchButtons: TouchButton[] = actions
-    .filter((action) => action.keys.length > 0)
-    .map((action) => ({
-      id: action.id,
-      label: labelFor(action.keys[0] as string),
-      keys: action.keys,
-      ...(isRequired(action) ? { required: true } : {}),
-    }))
-  const payloadOf = new Map(actions.map((action) => [action.id, action.payload]))
-  const labels = Object.fromEntries(
-    actions.map((action) => {
-      const named = action.keys.map((code) => options.labels?.[code]).find((label) => label !== undefined)
-      const fields = Object.entries(asRecord(action.payload)).map(
-        ([field, value]) => `${field} ${String(value)}`,
-      )
-      return [action.id, named ?? [command.id, ...fields].join(' ')]
-    }),
-  )
-
-  /** The parsed payload for payloads merged in order over the idle payload; undefined when the schema refuses it. */
-  const merge = (payloads: readonly unknown[]): unknown => {
-    const parsed = schema.safeParse(Object.assign({}, base, ...payloads.map(asRecord)))
-    return parsed.success ? parsed.data : undefined
-  }
-  const asCommands = (payload: unknown, tick: number): readonly Command[] =>
-    payload === undefined ? [] : [{ tick, source: 0, seq: tick, type: command.id, payload }]
-
-  // The parsed payload for the last held list, so a tick with nothing new parses nothing.
-  let cachedFor: string | undefined
-  let cached: unknown
-  const toCommand = (held: Iterable<string>, tick: number): readonly Command[] => {
-    const known: string[] = []
-    for (const action of held) if (payloadOf.has(action)) known.push(action)
-    const key = known.join('|')
-    if (key !== cachedFor) {
-      cachedFor = key
-      cached = merge(known.map((action) => payloadOf.get(action)))
-    }
-    return asCommands(cached, tick)
-  }
-  const toCommandWith = (
-    held: Iterable<string>,
-    tick: number,
-    reading?: AnalogReading,
-  ): readonly Command[] => {
-    if (analog === undefined || reading === undefined) return toCommand(held, tick)
-    const known: string[] = []
-    for (const action of held) if (payloadOf.has(action)) known.push(action)
-    const heldPayload = merge(known.map((action) => payloadOf.get(action)))
-    if (heldPayload === undefined) return []
-    // Fresh every tick, never cached. A refused merge (a NaN, a float) drops the analog part, not the held keys.
-    const parsed = schema.safeParse({
-      ...asRecord(heldPayload),
-      ...asRecord(analog.read(reading, heldPayload as z.output<Z>)),
-    })
-    return asCommands(parsed.success ? parsed.data : heldPayload, tick)
-  }
-
-  return {
-    command,
-    touch,
-    touchButtons,
-    touchMode,
-    profile,
-    labels,
-    touchStick: analog?.touchStick === true,
-    toCommand: toCommandWith,
-    attach(target) {
-      // The Input service over `target`, which `dispose` takes down. Nothing here listens to
-      // its facts, so it publishes to a bus no one reads.
-      const input = createInput({ target, profile, bus: SILENT_BUS })
-      return {
-        commands(tick) {
-          input.poll()
-          return toCommandWith(input.held(), tick, analogReading(input, CAMERA_SETTINGS_DEFAULT))
-        },
-        hold: (buttonId) => input.hold(buttonId),
-        release: (buttonId) => input.release(buttonId),
-        gesture: input.gesture,
-        dispose: () => input.dispose(),
-      }
-    },
-  }
+  const actions: InputAction[] = made.map((action) => ({
+    ...action,
+    label: action.keys.map((code) => options.labels?.[code]).find((label) => label !== undefined),
+    required: action.keys.some((code) => requiredKeys.has(code)),
+  }))
+  return inputMapOf(command, actions, options)
 }

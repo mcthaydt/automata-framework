@@ -4,7 +4,7 @@
 // Controls: none
 // Packages: @automata/physics
 // Difficulty: ★☆☆☆
-// Tier: plus
+// Tier: extension
 import { body2d } from '@automata/physics/src/2d'
 
 export default { id: 'physics-deep', body: body2d }

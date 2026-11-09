@@ -1,0 +1,22 @@
+# A fixture action (spec 8.3, F-g), for tests and examples; no game's. The figure source's look as data: the head
+# out to one side by 0.6 s, a beat there to 1.6 s, then across to the other by 3.4 s, held until the sim stops it.
+
+mask = [ "torso", "head" ]
+anticipation = 0.6
+action = 2.8
+recovery = 0.4
+hold = true
+
+[[keys]]
+t = 0.6
+pose = "look-out"
+ease = "out"
+
+[[keys]]
+t = 1.6
+pose = "look-out"
+
+[[keys]]
+t = 3.4
+pose = "look-across"
+ease = "inOut"

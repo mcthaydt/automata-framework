@@ -1,0 +1,71 @@
+format = "af-editors/1"
+
+# What `automata editor` opens. The level is a level project the 2D editor edits; Save also writes the game's files
+# into `exports` (project.toml, world.toml, levels/<id>.toml), which the game reads.
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+exports = "content"
+gates = []
+checks = ["content"]
+
+# What the player feels, the sounds and the music's order, in the content editors' suite.
+[[file]]
+glob = "content/feel/*.toml"
+editor = "feel"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/audio/*.toml"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = []
+
+# Music is imported: the tracks a person puts here show up in Audio to set up.
+[[file]]
+glob = "assets/music/*"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = []
+
+# What the keeper says and the conversation, in the content editors' suite (Writer); the cutscene in Sequence.
+[[file]]
+glob = "content/lines/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/dialogue/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/cutscenes/*.toml"
+editor = "sequence"
+modes = ["edit"]
+gates = []
+checks = []
+
+# The guard and where he may walk, for Schematic. The game reads these two files; Save and Play shows the change.
+[[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/nav/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]

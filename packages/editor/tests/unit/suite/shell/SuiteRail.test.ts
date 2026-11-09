@@ -10,7 +10,6 @@ import { type SuiteEntry, suiteEntries } from '#src/features/suite/shell/suite-e
 const NAMES = ['Tuner', 'Studio', 'Audio', 'Feel', 'Writer', 'Schematic', 'Sequence', 'Levels']
 const SUITE_ENTRIES: readonly SuiteEntry[] = suiteEntries(
   NAMES.map((label) => ({ id: label.toLowerCase(), label })),
-  true,
 )
 const tabs = () => screen.getAllByRole('tab')
 
@@ -55,8 +54,8 @@ describe('SuiteRail', () => {
   it('a tap chooses an entry', async () => {
     const onselect = vi.fn()
     render(SuiteRail, { entries: SUITE_ENTRIES, current: undefined, orientation: 'vertical', onselect })
-    await userEvent.click(screen.getByRole('tab', { name: 'Review' }))
-    expect(onselect).toHaveBeenCalledWith('review')
+    await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
+    expect(onselect).toHaveBeenCalledWith('levels')
   })
 
   it('arrows, Home and End move along the rail and wrap; the horizontal bar uses left and right', async () => {
@@ -69,11 +68,11 @@ describe('SuiteRail', () => {
     })
     screen.getByRole('tab', { name: 'Tuner' }).focus()
     await userEvent.keyboard('{ArrowUp}')
-    expect(onselect).toHaveBeenLastCalledWith('review')
+    expect(onselect).toHaveBeenLastCalledWith('levels')
     await userEvent.keyboard('{ArrowDown}')
     expect(onselect).toHaveBeenLastCalledWith('studio')
     await userEvent.keyboard('{End}')
-    expect(onselect).toHaveBeenLastCalledWith('review')
+    expect(onselect).toHaveBeenLastCalledWith('levels')
     await rerender({ orientation: 'horizontal', current: 'feel' })
     screen.getByRole('tab', { name: 'Feel' }).focus()
     await userEvent.keyboard('{ArrowRight}')
@@ -108,13 +107,10 @@ describe('SuiteRail', () => {
 
   it('with two entries, Cmd 1 and 2 choose them and Cmd 3 does nothing', async () => {
     const onselect = vi.fn()
-    const two = suiteEntries(
-      [
-        { id: 'tuner', label: 'Tuner' },
-        { id: 'levels-2d', label: 'Levels' },
-      ],
-      false,
-    )
+    const two = suiteEntries([
+      { id: 'tuner', label: 'Tuner' },
+      { id: 'levels-2d', label: 'Levels' },
+    ])
     render(SuiteRail, { entries: two, current: undefined, orientation: 'vertical', onselect })
     expect(tabs().map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
     await userEvent.keyboard('{Meta>}2{/Meta}')

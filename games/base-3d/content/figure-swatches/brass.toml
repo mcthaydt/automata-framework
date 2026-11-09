@@ -1,0 +1,9 @@
+# `brass`: a base figure's swatch.
+# Colour: DUEL ramp 15 (wood), step 5 (#cca96e).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "wood"
+step = 5
+gloss = 0.93
+kind = "metal"
+role = "hardware"

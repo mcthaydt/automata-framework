@@ -46,7 +46,7 @@ const isPureOrShared = (file: string): boolean =>
 const PURE_PACKAGES: ReadonlySet<string> = new Set(['zod', '@automata/content/level-2d'])
 /** Where nothing may name a profile or a template: each of these works for every profile (G-s). */
 const GENERIC_PREFIXES: readonly string[] = [
-  'app/editor-2d/',
+  'app/level-2d/',
   `${CORE_ROOT}editor/`,
   `${CORE_ROOT}session/`,
   `${CORE_ROOT}tiles/`,

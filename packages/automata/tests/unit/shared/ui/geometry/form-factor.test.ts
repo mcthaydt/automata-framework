@@ -5,7 +5,7 @@ import {
   PHONE_PORTRAIT_MAX_WIDTH,
 } from '#src/shared/ui/geometry/form-factor.ts'
 
-describe('classifyFormFactor (FloorFifty thresholds, M1.6 spec §3.1)', () => {
+describe('classifyFormFactor', () => {
   test.each([
     [599, 900, 'phone-portrait'],
     [600, 900, 'tablet-portrait'],

@@ -1,4 +1,8 @@
 // The ui kit a game can reach for: screens, controls, focus and browser hygiene, and the geometry owner.
+
+export { default as SettingsScreen } from '../app/screens/settings/SettingsScreen.svelte'
+export { PROMPT_COPY } from '../app/screens/settings/settings-copy'
+export type { SettingsTab } from '../app/screens/settings/settings-screen'
 export { installGlobalErrorHandlers } from '../shared/ui/browser/global-errors'
 export { reducedMotion } from '../shared/ui/browser/reduced-motion'
 export { suppressPageGestures } from '../shared/ui/browser/suppress-page-gestures'
@@ -37,8 +41,16 @@ export { default as PagerDots } from '../shared/ui/layout/PagerDots.svelte'
 export { default as ScreenFrame } from '../shared/ui/layout/ScreenFrame.svelte'
 export { default as ScrollList } from '../shared/ui/layout/ScrollList.svelte'
 export { default as Split } from '../shared/ui/layout/Split.svelte'
+export { keyLabel, type PromptCopy, padLabel } from '../shared/ui/prompts/prompt-label'
+export {
+  type PlayHandle,
+  type SentCommand,
+  usePlay,
+} from '../shared/ui/slots/play-context.svelte.ts'
 export { default as BootFailurePanel } from '../shared/ui/status/BootFailurePanel.svelte'
 export { default as Chip } from '../shared/ui/status/Chip.svelte'
+export { default as ErrorPanel } from '../shared/ui/status/ErrorPanel.svelte'
+export type { ErrorAction } from '../shared/ui/status/error-panel'
 export { default as LeaderboardPanel } from '../shared/ui/status/LeaderboardPanel.svelte'
 export { default as LoaderOverlay } from '../shared/ui/status/LoaderOverlay.svelte'
 export { default as Toast } from '../shared/ui/status/Toast.svelte'

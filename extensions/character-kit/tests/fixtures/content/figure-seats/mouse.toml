@@ -1,0 +1,11 @@
+# `mouse` from FigureBuilder (mcthaydt/FigureBuilder) src/features/motion/library/seats.json at 025ffb4; the id in kebab-case.
+
+about = "At a desk, one hand on the keys and the near one out on the mouse, the shoulder turned a little to it."
+height = 0.46
+lean = 0.18
+turn = -0.08
+knees = 0.02
+
+[hands]
+L = { to = [0.12, 0.76, 0.36] }
+R = { to = [0.3, 0.76, 0.4], aim = [[0, -0.3, 1], [0, -1, 0]] }

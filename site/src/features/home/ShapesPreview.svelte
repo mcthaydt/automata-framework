@@ -7,9 +7,9 @@
 <script lang="ts">
 // The example's 320 × 180 world and its views (examples/2d/shapes/shapes-rects.ts).
 const WORLD = { width: 320, height: 180 }
-const BLOCK = { size: 16, color: '#00cdf9' }
-const BAR = { w: 64, h: 6, y: 150, color: '#5ac54f' }
-const SPINNER = { x: 240, y: 70, w: 48, h: 12, color: '#f5555d' }
+const BLOCK = { size: 16, color: '#52d2ff' }
+const BAR = { w: 64, h: 6, y: 150, color: '#7fbd39' }
+const SPINNER = { x: 240, y: 70, w: 48, h: 12, color: '#e45c5f' }
 const TICK_MS = 1000 / 60
 
 /** The example's state after `tick` ticks, from its setup and its `move` system. */

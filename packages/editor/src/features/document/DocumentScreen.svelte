@@ -25,7 +25,6 @@ import type {
   ObjectUrls,
   ViewProps,
   ViewServices,
-  WorldCanvasProps,
 } from '../../shared/level-2d/session/view-props'
 import ShareMenu from '../../shared/level-2d/share/ShareMenu.svelte'
 import DocumentBar from './DocumentBar.svelte'
@@ -51,8 +50,6 @@ interface Props {
   objectUrls?: ObjectUrls | undefined
   /** The level canvas; the DOM tests pass a stand-in. */
   canvas?: Component<LevelCanvasProps> | undefined
-  /** The world map; the DOM tests pass a stand-in. */
-  worldCanvas?: Component<WorldCanvasProps> | undefined
   /** The gestures' time; the browser's when absent. Journeys pass their test clock. */
   gestureClock?: GestureClock | undefined
   /** Where the Share menu sends the level; without it there is no Share menu. */
@@ -71,7 +68,6 @@ const {
   ids,
   objectUrls,
   canvas,
-  worldCanvas,
   gestureClock,
   workspace,
   onback,
@@ -147,7 +143,6 @@ const services = $derived<ViewServices>({
   ids,
   objectUrls,
   canvas,
-  worldCanvas,
   gestureClock,
   onundo: undo,
   onredo: redo,

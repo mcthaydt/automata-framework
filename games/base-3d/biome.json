@@ -3,7 +3,7 @@
   "root": false,
   "extends": "//",
   "files": {
-    "includes": ["**", "!src/content/generated", "!src/paraglide"]
+    "includes": ["**", "!content/generated", "!src/paraglide"]
   },
   "overrides": [
     {

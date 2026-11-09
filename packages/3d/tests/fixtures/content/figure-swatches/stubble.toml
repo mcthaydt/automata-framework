@@ -1,0 +1,6 @@
+# `stubble`, a fixture.
+# Colour: DUEL ramp 1 (sand), step 3 (#aea189).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "sand"
+step = 3

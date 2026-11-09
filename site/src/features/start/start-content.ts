@@ -1,6 +1,7 @@
 // Start's four steps, each one command and what you see after it. Each command is one the framework answers to: the
 // first is `create-game`, the second what it prints next, the third the editor's, the fourth the web build's from its
 // guide (the test holds them to those files).
+import { CREATE_COMMAND } from '../../shared/content/agent-prompt'
 
 export interface Step {
   readonly title: string
@@ -11,8 +12,8 @@ export interface Step {
 export const STEPS: readonly Step[] = [
   {
     title: '1. Make a game',
-    command: 'npx @automata/tools create-game my-game',
-    what: 'A folder called my-game with a small working game in it: a square you move around a level, and its tests.',
+    command: CREATE_COMMAND,
+    what: 'A folder called my-game with a small working game in it: a square you move around a level, its menus, saves and controls, and its tests.',
   },
   {
     title: '2. Play it',
@@ -22,7 +23,7 @@ export const STEPS: readonly Step[] = [
   {
     title: '3. Draw its level',
     command: 'pnpm exec automata editor',
-    what: 'The level editor opens on your game. Draw, press Save, and the running game picks up the change.',
+    what: 'The editors open on your game. Draw a level, and every step is saved: the running game picks up the change.',
   },
   {
     title: '4. Put it online',

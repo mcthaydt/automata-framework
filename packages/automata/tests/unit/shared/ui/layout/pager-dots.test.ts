@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import PagerDots from '#src/shared/ui/layout/PagerDots.svelte'
 import { pagerMode } from '#src/shared/ui/layout/pager.ts'
 
-// From FloorFifty tests/client/ui/layout/helpers.test.ts (pagerMode) and layout/pager-dots.test.ts at ac72660.
+// The pager mode and the pager dots.
 describe('pagerMode (M4 spec §4.8, PagerDots)', () => {
   it.each([
     [8, 9, Number.POSITIVE_INFINITY, 44, 'dots'],

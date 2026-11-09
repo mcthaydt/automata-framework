@@ -29,9 +29,11 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
   })
 }
 
-export default defineConfig({
-  // A Ruken build: the Ruken host adapter, in front of Vite's defaults, which `conditions` replaces.
-  resolve: { conditions: ['automata-ruken', ...defaultClientConditions] },
+// A Ruken build by default: the Ruken host adapter, in front of Vite's defaults, which `conditions` replaces. The site's
+// Home plays the game in a frame with no Ruken host to answer it, so it builds `--mode web`: the web adapter, which has
+// no handshake to wait for (the Ruken SDK waits ten seconds for a host that never answers before it runs standalone).
+export default defineConfig(({ mode }) => ({
+  resolve: { conditions: [mode === 'web' ? 'automata-web' : 'automata-ruken', ...defaultClientConditions] },
   // Svelte compiles the ui panels the runtime shows (loader, boot failure) and the game package's screens.
   plugins: [svelte(), contentPlugin()],
   // Relative URLs: inside Ruken the game is served from /b/<buildId>/ and on the dev host from
@@ -41,4 +43,4 @@ export default defineConfig({
   // Ruken's CSP (`connect-src 'self'`) refuses; a same-origin file is what the CSP allows.
   build: { outDir: 'dist', emptyOutDir: true, assetsInlineLimit: 0 },
   preview: { headers: previewHeaders() },
-})
+}))

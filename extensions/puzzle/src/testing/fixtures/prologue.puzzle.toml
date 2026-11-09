@@ -1,0 +1,484 @@
+# The adventure source's prologue puzzle (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/puzzle/scripts/convert-adventure-puzzles.ts. Do not edit.
+scene = "prologue"
+items = [ "handLamp", "paraffin", "supplyKey", "sheets" ]
+systemic = []
+lethal = []
+
+[facts]
+noteRead = false
+backRead = false
+cabinetOpen = false
+nightstand = 0
+closetOpen = false
+shelfTaken = false
+bedMade = false
+lightsOut = false
+figureGone = false
+fuel = 0
+lit = false
+rested = false
+
+[[entry]]
+name = "start"
+items = []
+
+[[actions]]
+id = "noticeboard.first"
+at = "noticeboard"
+say = "handover"
+seconds = 4
+
+[[actions.when]]
+fact = "noteRead"
+is = false
+
+[[actions.then]]
+set = "noteRead"
+to = true
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "noticeboard.back"
+at = "noticeboard"
+say = "handoverBack"
+seconds = 4
+
+[[actions.when]]
+fact = "backRead"
+is = false
+
+[[actions.then]]
+set = "backRead"
+to = true
+
+[[actions]]
+id = "noticeboard.again"
+at = "noticeboard"
+then = []
+say = "handoverAgain"
+
+[[actions]]
+id = "register.read"
+at = "register"
+say = "register"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "clock.read"
+at = "clock"
+say = "clock"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "monitor.read"
+at = "monitor"
+say = "monitor"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "record.look"
+at = "record"
+then = []
+say = "record"
+
+[[actions]]
+id = "curtainWest.look"
+at = "curtainWest"
+then = []
+say = "curtain"
+
+[[actions]]
+id = "curtainEast.look"
+at = "curtainEast"
+then = []
+say = "curtain"
+
+[[actions]]
+id = "sink.look"
+at = "sink"
+then = []
+say = "sink"
+
+[[actions]]
+id = "trolley.look"
+at = "trolley"
+then = []
+say = "trolley"
+
+[[actions]]
+id = "exit.look"
+at = "exit"
+then = []
+say = "exit"
+
+[[actions]]
+id = "fuseBox.look"
+at = "fuseBox"
+then = []
+say = "fuseBox"
+
+[[actions]]
+id = "valve.look"
+at = "valve"
+then = []
+say = "valve"
+
+[[actions]]
+id = "cabinet.open"
+at = "cabinet"
+then = []
+say = "cabinetOpen"
+
+[[actions.when]]
+fact = "cabinetOpen"
+is = true
+
+[[actions]]
+id = "cabinet.keypad"
+at = "cabinet"
+say = ""
+
+[[actions.then]]
+keypad = true
+
+[[actions]]
+id = "code.open"
+at = "code"
+then = []
+say = ""
+
+[[actions.when]]
+fact = "cabinetOpen"
+is = true
+
+[[actions]]
+id = "code.wrong"
+at = "code"
+say = "keypadWrong"
+
+[[actions.when]]
+[actions.when.not]
+fact = "code"
+is = "2000"
+
+[[actions.then]]
+[actions.then.noise]
+at = "cabinet"
+loudness = 4
+kind = "buzz"
+
+[[actions]]
+id = "code.right"
+at = "code"
+say = "keypadRight"
+
+[[actions.then]]
+set = "cabinetOpen"
+to = true
+
+[[actions.then]]
+give = "supplyKey"
+
+[[actions.then]]
+checkpoint = true
+
+[[actions]]
+id = "nightstand.lamp"
+at = "nightstand"
+say = "nightstandLamp"
+
+[[actions.when]]
+fact = "nightstand"
+is = 0
+
+[[actions.then]]
+set = "nightstand"
+to = 1
+
+[[actions.then]]
+give = "handLamp"
+
+[[actions]]
+id = "nightstand.paraffin"
+at = "nightstand"
+say = "nightstandParaffin"
+
+[[actions.when]]
+fact = "nightstand"
+is = 1
+
+[[actions.then]]
+set = "nightstand"
+to = 2
+
+[[actions.then]]
+give = "paraffin"
+
+[[actions]]
+id = "nightstand.more"
+at = "nightstand"
+say = "nightstandMore"
+
+[[actions.when]]
+fact = "nightstand"
+is = 2
+
+[[actions.when]]
+[actions.when.not]
+has = "paraffin"
+
+[[actions.then]]
+give = "paraffin"
+
+[[actions]]
+id = "nightstand.empty"
+at = "nightstand"
+then = []
+say = "nightstandEmpty"
+
+[[actions]]
+id = "closetDoor.open"
+at = "closetDoor"
+then = []
+say = "doorOpen"
+
+[[actions.when]]
+fact = "closetOpen"
+is = true
+
+[[actions]]
+id = "closetDoor.unlock"
+at = "closetDoor"
+say = "doorOpened"
+
+[[actions.when]]
+has = "supplyKey"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = ""
+
+[[actions.when.any]]
+fact = "held"
+is = "supplyKey"
+
+[[actions.then]]
+set = "closetOpen"
+to = true
+
+[[actions.then]]
+take = "supplyKey"
+
+[[actions.then]]
+checkpoint = true
+
+[[actions]]
+id = "closetDoor.locked"
+at = "closetDoor"
+then = []
+say = "doorLocked"
+
+[[actions]]
+id = "shelf.empty"
+at = "shelf"
+then = []
+say = "shelfEmpty"
+
+[[actions.when]]
+fact = "shelfTaken"
+is = true
+
+[[actions]]
+id = "shelf.lit"
+at = "shelf"
+say = "shelfSheets"
+seconds = 3
+
+[[actions.when]]
+fact = "lit"
+is = true
+
+[[actions.then]]
+set = "shelfTaken"
+to = true
+
+[[actions.then]]
+give = "sheets"
+
+[[actions.then]]
+checkpoint = true
+
+[[actions]]
+id = "shelf.dark"
+at = "shelf"
+then = []
+say = "shelfDark"
+
+[[actions]]
+id = "bed.make"
+at = "bed"
+use = "sheets"
+say = "bedMade"
+seconds = 3
+
+[[actions.then]]
+take = "sheets"
+
+[[actions.then]]
+set = "bedMade"
+to = true
+
+[[actions]]
+id = "bed.rest"
+at = "bed"
+say = ""
+
+[[actions.when]]
+fact = "bedMade"
+is = true
+
+[[actions.when]]
+fact = "figureGone"
+is = true
+
+[[actions.then]]
+set = "rested"
+to = true
+
+[[actions.then]]
+cutscene = "rest"
+
+[[actions]]
+id = "bed.wait"
+at = "bed"
+then = []
+say = "bedWait"
+
+[[actions.when]]
+fact = "bedMade"
+is = true
+
+[[actions]]
+id = "bed.bare"
+at = "bed"
+then = []
+say = "bedBare"
+
+[[actions]]
+id = "combine.fill"
+at = "combine"
+use = [ "handLamp", "paraffin" ]
+say = ""
+
+[[actions.then]]
+call = "fill"
+
+[[goal]]
+fact = "rested"
+is = true
+
+[fallback]
+"*" = "noEffect"
+floor = "noEffect"
+combine = "noEffect"
+
+[hotspots.bed]
+x = -4.1
+z = 0.6
+
+[hotspots.monitor]
+x = -2.4
+z = -3.3
+
+[hotspots.curtainWest]
+x = -3
+z = -0.66
+
+[hotspots.curtainEast]
+x = -2.35
+z = 1.55
+
+[hotspots.nightstand]
+x = -3.12
+z = -0.3
+
+[hotspots.record]
+x = -2.2
+z = 3.3
+
+[hotspots.sink]
+x = -4.85
+z = 3
+
+[hotspots.trolley]
+x = 2.3
+z = 2.4
+
+[hotspots.register]
+x = 2.95
+z = 1.5
+
+[hotspots.cabinet]
+x = 4.8
+z = 3.6
+
+[hotspots.noticeboard]
+x = 3.3
+z = -0.86
+
+[hotspots.clock]
+x = 4.45
+z = -0.86
+
+[hotspots.scratches]
+x = -4.86
+z = -2.4
+
+[hotspots.closetDoor]
+x = 1.5
+z = -4
+
+[hotspots.shelf]
+x = 4
+z = -4.5
+
+[hotspots.valve]
+x = 2.4
+z = -6.35
+
+[hotspots.fuseBox]
+x = -1.45
+z = -4.1
+
+[hotspots.puddle]
+x = -1.05
+z = -4.1
+
+[hotspots.scrawl]
+x = 1.45
+z = -5.8
+
+[hotspots.exit]
+x = 0
+z = -6.55
+
+[hotspots.locker]
+x = 3.94
+z = -5.9
+
+[hotspots.screen]
+x = -2.75
+z = -2.55

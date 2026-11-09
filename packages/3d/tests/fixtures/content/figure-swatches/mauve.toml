@@ -1,0 +1,6 @@
+# `mauve`, a fixture.
+# Colour: DUEL ramp 30 (blush), step 1 (#5e414a).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "blush"
+step = 1

@@ -1,0 +1,11 @@
+{
+  "tone": 0.06,
+  "kit": {
+    "pendant": { "color": "#ffd59b", "range": [3.5, 6], "peak": 1.0 },
+    "bulb": { "color": "#ffce7f", "range": [3.5, 6], "peak": 1.5 },
+    "desk": { "color": "#ffbc4e", "range": [3.5, 5.5], "peak": 1.25 },
+    "fluorescent": { "color": "#eadbc9", "range": [4, 8], "peak": 1.25 },
+    "sodium": { "color": "#ffbc4e", "range": [6, 10], "peak": 1.25, "dusk": true },
+    "neon": { "color": "#ff7daf", "range": [1.5, 3.5], "peak": 1.25 }
+  }
+}

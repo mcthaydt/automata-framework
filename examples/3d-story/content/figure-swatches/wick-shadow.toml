@@ -1,0 +1,6 @@
+# `wick-shadow`: a colour from the DUEL palette.
+# Colour: DUEL ramp plum, step 0.
+
+ramp = "plum"
+step = 0
+flat = true

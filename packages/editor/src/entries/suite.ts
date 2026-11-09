@@ -9,6 +9,13 @@ export {
 } from '../app/suite/levels-2d/index'
 export { type SuiteEnv, type SuiteHandle, startSuite } from '../features/suite/shell/boot'
 export { createSuite, type Suite } from '../features/suite/shell/create-suite'
+export { fileTitle } from '../features/suite/shell/home-model'
+export {
+  type OpenedSuitePorts,
+  openSuitePorts,
+  type SuitePortsEnv,
+} from '../features/suite/shell/open-suite-ports'
 export { SAMPLE_GAME, samplePorts } from '../features/suite/shell/sample-ports'
 export { createTuner, type TunerSuiteSession } from '../features/suite/tuner/tuner-suite-editor'
+export { browserPublish } from '../shared/kit/storage/publish-client'
 export { randomIds } from '../shared/level-2d/model/ids'

@@ -39,21 +39,21 @@ export default defineGame({
       sim.spawn([[Ball, { x: 280, y: 90, vx: 1, vy: -1.5 }]])
     },
   },
-  views: { [Ball.id]: rect({ w: 8, h: 8, color: 0x00cdf9 }) },
+  views: { [Ball.id]: rect({ w: 8, h: 8, color: 0x52d2ff }) },
   draw: (ctx) => {
     const all = ctx.sim.query(Ball)
-    ctx.rect(200, 126, 112, 14, 0x2e222f)
-    ctx.text(`tick ${ctx.sim.tick}   squares ${all.length}`, 204, 129, { color: 0xffffff, size: 8 })
+    ctx.rect(200, 126, 112, 14, 0x31222a)
+    ctx.text(`tick ${ctx.sim.tick}   squares ${all.length}`, 204, 129, { color: 0xf5f7fa, size: 8 })
 
     const { x, y, w, h } = MAP
-    ctx.rect(x, y, w, h, 0x3e3546)
-    ctx.line(x, y, x + w, y, 0xffffff)
-    ctx.line(x, y + h, x + w, y + h, 0xffffff)
-    ctx.line(x, y, x, y + h, 0xffffff)
-    ctx.line(x + w, y, x + w, y + h, 0xffffff)
+    ctx.rect(x, y, w, h, 0x3b303c)
+    ctx.line(x, y, x + w, y, 0xf5f7fa)
+    ctx.line(x, y + h, x + w, y + h, 0xf5f7fa)
+    ctx.line(x, y, x, y + h, 0xf5f7fa)
+    ctx.line(x + w, y, x + w, y + h, 0xf5f7fa)
     for (const ball of all) {
       const at = ball.get(Ball)
-      ctx.circle(x + (at.x / ctx.width) * w, y + (at.y / ctx.height) * h, 1.5, 0xf9c22b)
+      ctx.circle(x + (at.x / ctx.width) * w, y + (at.y / ctx.height) * h, 1.5, 0xffbc4e)
     }
   },
 })

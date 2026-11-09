@@ -38,13 +38,25 @@ const NO_SERVER: ReadonlySet<string> = new Set([
   'packages/automata/src/testing/host/page/ruken/hosting-test.ts',
 ])
 
+/**
+ * Where a literal port is the default of a server that ships, not of a test server: a deployed game's server listens on
+ * `PORT`, else on this, and a checkout-derived slot would be wrong there. Checked by the file.
+ */
+const SHIPPED_DEFAULT: ReadonlySet<string> = new Set(['extensions/net-server/src/app/server-process.ts'])
+
 const SCANNED = /\.(?:ts|mts|cts|js|mjs|cjs|json|ya?ml|sh|svelte|html)$/
 const SKIPPED =
   /(?:^|\/)(?:node_modules|dist|docs|agents|vendor|reference|paraglide|\.core)\/|\.test\.|\.api\.md$|pnpm-lock/
 
 /** Whether `file` (a repository path) can start or name a server. Unit tests, generated reports and documents cannot. */
 export function isPortScanned(file: string): boolean {
-  return SCANNED.test(file) && !SKIPPED.test(file) && !DEFINES_PORTS.has(file) && !NO_SERVER.has(file)
+  return (
+    SCANNED.test(file) &&
+    !SKIPPED.test(file) &&
+    !DEFINES_PORTS.has(file) &&
+    !NO_SERVER.has(file) &&
+    !SHIPPED_DEFAULT.has(file)
+  )
 }
 
 /** A line that only comments: its ports are prose. */

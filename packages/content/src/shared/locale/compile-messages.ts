@@ -1,15 +1,16 @@
 // Paraglide's compile of the content catalogs.
 //
-// FloorFifty commits a `project.inlang` naming its locales and the plugin's path in node_modules. Here the
+// A game commits no `project.inlang`: the
 // inlang project is generated for each compile in a temporary folder, from the catalogs the content compiler
 // just checked (the source language first, so it is Paraglide's base locale), so a game commits no project
 // file and no plugin path, and its locales are always the content's languages. A game's own catalogs (its UI
 // text) join through `catalogs`, `{locale}` path patterns relative to the project root, read after the
-// content's so a game key wins as FloorFifty's UI catalog does.
+// content's so a game key wins over the UI catalog.
 //
 // Paraglide's own locale strategies (cookie, localStorage, URL) never run: `baseLocale` only, because the
-// runtime's `Locale` service answers `getLocale` (`bindParaglide`). Paraglide empties `outdir`
-// before writing, so the compiler refuses an `outdir` that is not a folder of its own (`paraglideProblems`).
+// runtime's `Locale` service answers `getLocale` (`bindParaglide`). Paraglide empties the folder it writes to, so it
+// writes to a temporary one and `syncFolder` copies what differs into `outdir`; an `outdir` is still a folder of its
+// own (`paraglideProblems`), because the sync removes what the compile does not make.
 
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
@@ -18,6 +19,7 @@ import { join } from 'node:path'
 import { Effect } from 'effect'
 import { ContentWriteFailed } from '../compile/errors'
 import { type MessageCatalog, renderMessages } from './messages'
+import { syncFolder } from './sync-folder'
 
 /** Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build. */
 export interface ParaglideOptions {
@@ -127,14 +129,18 @@ async function compileInFolder(folder: string, input: CompileMessagesInput): Pro
   const { compile } = createRequire(import.meta.url)(PARAGLIDE) as {
     compile: (options: ParaglideCompileOptions) => Promise<unknown>
   }
+  // Paraglide empties the folder it writes to, so it writes to one of its own and `syncFolder` brings `outdir` up to
+  // date: a dev server watching `outdir` never sees it empty, and an unchanged compile touches nothing.
+  const built = join(folder, 'built')
   await compile({
     project,
-    outdir: join(root, paraglide.outdir),
+    outdir: built,
     strategy: ['baseLocale'],
     emitGitIgnore: false,
     emitPrettierIgnore: false,
     emitReadme: false,
   })
+  await syncFolder(built, join(root, paraglide.outdir))
 }
 
 /** Compiles the catalogs into `<root>/<outdir>`. A failure names the outdir, like any output that could not be written. */

@@ -27,7 +27,7 @@ export function sniffImage(bytes: Uint8Array): string {
   return 'unknown'
 }
 
-/** Every image in the build holds the format its extension names (spec F-2: JPEG data was shipped as .png). */
+/** Every image in the build holds the format its extension names (a JPEG once shipped under a .png name). */
 export function checkImageFormats(root: string): string[] {
   const failures: string[] = []
   for (const file of readdirSync(root, { recursive: true }).map(String).sort()) {
@@ -55,7 +55,7 @@ const ICONS = [
   },
 ]
 
-/** Every page links the PNG icons beside the SVG favicon (spec §4.2 favicon set). */
+/** Every page links the PNG icons beside the SVG favicon. */
 export function checkIconLinks(file: string, doc: Document): string[] {
   const failures: string[] = []
   for (const icon of ICONS) {
@@ -94,7 +94,7 @@ export function checkIconFiles(root: string): string[] {
 const LOADED_RESOURCES =
   'link[rel~="stylesheet"][href], link[rel~="preload"][href], link[rel~="modulepreload"][href], link[rel~="icon"][href], link[rel~="apple-touch-icon"][href], script[src], img[src], iframe[src], source[src], video[src], audio[src]'
 
-/** No page loads a resource from another origin, and each preloads a self-hosted font face (spec F-5). */
+/** No page loads a resource from another origin, and each preloads a self-hosted font face. */
 export function checkPageResources(file: string, doc: Document, fontUrls: Set<string>): string[] {
   const failures: string[] = []
   for (const element of doc.querySelectorAll(LOADED_RESOURCES)) {

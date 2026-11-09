@@ -3,7 +3,7 @@ import { headingId } from '../../shared/utils/markdown'
 
 // The docs pages are the framework's guides (`docs/guides/`, in the order of its index.md), read when the site is
 // built (src/shared/framework/guides.ts). The site writes no docs of its own, so the docs and the framework cannot
-// disagree; an address the site once used for its own pages redirects (features/redirects/redirects.ts).
+// disagree; an address the site once used for its own pages gets the 404 page.
 
 /** A heading of a guide, for its "On this page" list. */
 export interface TocItem {

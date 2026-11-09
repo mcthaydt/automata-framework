@@ -3,7 +3,7 @@ import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { defineShipConfig } from '#src/shared/ship/config/ship-config.ts'
 import { checkManifest } from '#src/shared/ship/targets/ruken/check-manifest.ts'
-import { rukenHeaders } from '#src/shared/ship/targets/ruken/ruken-headers.ts'
+import { rukenHeaders, rukenHeadersOf } from '#src/shared/ship/targets/ruken/ruken-headers.ts'
 import { rukenToml } from '#src/shared/ship/targets/ruken/ruken-toml.ts'
 
 const config = defineShipConfig({
@@ -34,5 +34,20 @@ describe('rukenHeaders', () => {
     const { sdk: _sdk, ...game } = config.game
     const result = Effect.runSync(Effect.either(rukenHeaders({ ...config, game }, 'prod')))
     expect(Either.isLeft(result) && result.left._tag).toBe('ManifestInvalid')
+  })
+})
+
+// `rukenHeadersOf` is `rukenHeaders` for a caller outside Effect (a game's `vite.config.ts`): the headers, or a throw.
+describe('rukenHeadersOf', () => {
+  it('gives the same headers as rukenHeaders', () => {
+    const hostOrigins = ['http://127.0.0.1:4600']
+    expect(rukenHeadersOf(config, { hostOrigins })).toEqual(
+      Effect.runSync(rukenHeaders(config, { hostOrigins })),
+    )
+  })
+
+  it('throws ManifestInvalid when Ruken refuses the config', () => {
+    const { sdk: _sdk, ...game } = config.game
+    expect(() => rukenHeadersOf({ ...config, game }, 'prod')).toThrow(/game.sdk is required/)
   })
 })

@@ -1,7 +1,10 @@
+import { unpackTile } from '../cells-codec'
+import type { Grid } from '../grid'
 import { emptyLayers, layerCells } from '../level-layers'
 import { layerDefSchema, MAX_LAYER_DEFS } from '../project.schema'
 import { MAX_LAYER_CELLS } from '../project-codec'
 import type { IntGridLayerDef, IntValueDef, LayerDef, LayerInstance, Project } from '../project-types'
+import { tilesetTiles } from '../tileset-grid'
 import { checkShape, insertItem, layerDefOf, moveItem, replaceLayerDef, tilesetOf } from './def-lookup'
 import { checkGroups } from './rule-edits'
 
@@ -92,6 +95,44 @@ export function editLayerDef(
   const next = { ...def, ...patch } as LayerDef
   checkShape(layerDefSchema, next, `layer "${id}"`)
   return replaceLayerDef(project, id, next)
+}
+
+/** The grid with every cell whose tile number is `count` or more set to empty. */
+function withoutTilesFrom(grid: Grid, count: number): Grid {
+  const gone = grid.nonEmpty().filter(({ value }) => (unpackTile(value)?.tile ?? 0) >= count)
+  return gone.length === 0
+    ? grid
+    : grid.edit((cells) => {
+        for (const cell of gone) cells.set(cell.x, cell.y, 0)
+      })
+}
+
+/**
+ * Points a tiles or objects layer at another tileset (the one Add tiles made, say), so its palette is that tileset's
+ * tiles. A tile the new tileset has keeps its number; a cell or object whose number it does not have is cleared in every
+ * level, so no level holds a tile that is not there. An auto layer is not offered this: its rules name tiles of its set.
+ */
+export function setLayerTileset(project: Project, layer: string, tileset: string): Project {
+  const def = layerDefOf(project, layer)
+  if (def.kind !== 'tiles' && def.kind !== 'objects')
+    throw new RangeError(`a ${def.kind} layer has no tileset to change`)
+  if (def.tileset === tileset) return project
+  const count = tilesetTiles(tilesetOf(project, tileset)).count
+  const next = { ...def, tileset } as LayerDef
+  const changed = replaceLayerDef(project, layer, next)
+  return {
+    ...changed,
+    levels: changed.levels.map((level) => ({
+      ...level,
+      layers: level.layers.map((instance) => {
+        if (instance.def !== layer) return instance
+        if (instance.kind === 'tiles') return { ...instance, cells: withoutTilesFrom(instance.cells, count) }
+        if (instance.kind === 'objects')
+          return { ...instance, items: instance.items.filter((item) => item.tile < count) }
+        return instance
+      }),
+    })),
+  }
 }
 
 const sameValue = (a: IntValueDef, b: IntValueDef): boolean =>

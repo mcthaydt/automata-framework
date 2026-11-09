@@ -1,0 +1,26 @@
+# Flinching: both forearms up before the face, the head ducked and turned away, the hips back.
+
+about = "Flinching: the forearms up before the face, the head ducked and turned away, the hips back."
+
+[effectors.pelvis]
+pos = [ -0.045, 0.8244, -0.04 ]
+
+[effectors.footR]
+pos = [ -0.0657, 0.0825, 0 ]
+
+[effectors.handL]
+pos = [ 0.06, 1.4478, 0.21 ]
+
+[effectors.handR]
+pos = [ -0.06, 1.4478, 0.21 ]
+
+[poles.elbowL]
+dir = [ 0.5, -1, 0.1 ]
+
+[poles.elbowR]
+dir = [ -0.5, -1, 0.1 ]
+
+[fk]
+chest = [ -8.0214, 6.8755, 0 ]
+neck = [ 7.2229, 6.9979, 0.1057 ]
+head = [ 10.7433, 10.6012, 0.2399 ]

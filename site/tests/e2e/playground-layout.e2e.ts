@@ -1,8 +1,11 @@
-// WEB.PLAY.11 (spec §9, §8.2, F11, A-14, A-15, A-16): the playground's layouts, its controls' sizes, the Preview
+// the playground's layouts, its controls' sizes, the Preview
 // toggle, Fullscreen and the 50-edit soak, in real browsers.
 import { expect, type Page, test } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
 import { axeViolations, horizontalOverflow, watchPage } from './gates'
+
+// An example autostarts only for a visitor who has not asked for less motion (the suite's default is reduced).
+test.use({ reducedMotion: 'no-preference' })
 
 const ORIGIN = `http://127.0.0.1:${SITE_PORT}`
 const LAYOUTS = [

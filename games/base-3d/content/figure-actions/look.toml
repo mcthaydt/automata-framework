@@ -1,0 +1,21 @@
+# Turn the head out to one side, hold, look across to the other and stay there until told to stop.
+
+mask = [ "torso", "head" ]
+anticipation = 0.6
+action = 2.8
+recovery = 0.4
+hold = true
+
+[[keys]]
+t = 0.6
+pose = "look-out"
+ease = "out"
+
+[[keys]]
+t = 1.6
+pose = "look-out"
+
+[[keys]]
+t = 3.4
+pose = "look-across"
+ease = "inOut"

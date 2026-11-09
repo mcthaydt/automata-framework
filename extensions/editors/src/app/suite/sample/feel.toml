@@ -1,0 +1,11 @@
+# What the player feels when something happens in the game.
+
+[[entry]]
+on = "player.hit"
+camera = [{ shake = 0.4 }]
+pose = [{ hit_stop_ms = 80 }]
+visual = [{ flash = "white", frames = 2 }]
+
+[[entry]]
+on = "coin.picked"
+audio = [{ cue = "coin" }]

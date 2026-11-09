@@ -1,0 +1,7 @@
+{
+  "tuning": {
+    "ROLL_TICKS": 24,
+    "ROLL_TRAVEL": 209715,
+    "WALK_PER_TICK": 4369
+  }
+}

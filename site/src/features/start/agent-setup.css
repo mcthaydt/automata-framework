@@ -1,0 +1,48 @@
+/* Start's agent setup. */
+.agent-setup .code-block {
+  background: var(--bg);
+  border-color: transparent;
+}
+.agent-setup {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-radius: var(--edge-lg);
+  background: var(--paper);
+  margin-top: 4rem;
+}
+.agent-setup h2 {
+  font-size: var(--step-head);
+}
+.agent-setup > label {
+  max-width: 30rem;
+}
+.agent-setup select {
+  display: block;
+  margin-top: 0.5rem;
+}
+.agent-steps {
+  display: grid;
+  gap: 2.5rem;
+  margin-block: 2.5rem 1rem;
+  padding-left: 1.5rem;
+}
+.agent-steps > li {
+  min-width: 0;
+}
+.agent-steps h3 {
+  margin-top: 0;
+}
+/* The upstream links stand alone under their steps, so each is a whole tap target. */
+.agent-steps > li > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.agent-steps .code-block {
+  margin-block: 1rem;
+}
+.agent-setup pre {
+  white-space: pre-wrap;
+}
+.agent-setup pre code {
+  overflow-wrap: anywhere;
+}

@@ -19,18 +19,22 @@ import { copyGame, type TempGame } from './temp-game.ts'
 
 /** The committed game the journeys copy. */
 export const EMBERWICK: string = fileURLToPath(new URL('../../../../../games/emberwick', import.meta.url))
+/** The free 3D game: the journeys that edit a 3D room copy it (`test.use({ source: BASE_3D })`). */
+export const BASE_3D: string = fileURLToPath(new URL('../../../../../games/base-3d', import.meta.url))
 /** Emberwick's room: 8 px cells (320 px across 40 of them). */
 export const ROOM_TILE: number = 8
 
 type JourneyFixtures = { game: TempGame; editor: RunningEditor }
+/** The game a journey copies; Emberwick unless the journey says (`test.use({ source })`). */
+type JourneyOptions = { source: string }
 
 export const test: TestType<
-  PlaywrightTestArgs & PlaywrightTestOptions & JourneyFixtures,
+  PlaywrightTestArgs & PlaywrightTestOptions & JourneyFixtures & JourneyOptions,
   PlaywrightWorkerArgs & PlaywrightWorkerOptions
-> = base.extend<JourneyFixtures>({
-  // biome-ignore lint/correctness/noEmptyPattern: Playwright's fixture signature takes the other fixtures first.
-  game: async ({}, use) => {
-    const game = copyGame(EMBERWICK)
+> = base.extend<JourneyFixtures & JourneyOptions>({
+  source: [EMBERWICK, { option: true }],
+  game: async ({ source }, use) => {
+    const game = copyGame(source)
     await use(game)
     game.remove()
   },
@@ -42,11 +46,13 @@ export const test: TestType<
 })
 export { expect }
 
-/** Opens the editor, then a level project (Emberwick's room unless named) in the Level view, and waits for the canvas to draw. */
-export async function openRoom(page: Page, editor: RunningEditor, card = 'Emberwick room'): Promise<void> {
+/**
+ * Opens the editor, then a level (Emberwick's room unless named, by its name in words as Home shows it) in the Level
+ * view, and waits for the canvas to draw.
+ */
+export async function openRoom(page: Page, editor: RunningEditor, level = 'Room 1'): Promise<void> {
   await page.goto(editor.url)
-  // The card's button reads its name, then when it changed ("Levels Changed just now").
-  await page.getByRole('button', { name: new RegExp(`^${card} `) }).click()
+  await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: level }).click()
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
 }
 
@@ -56,9 +62,9 @@ export async function paintWall(
   cell: { col: number; row: number },
   tile: number = ROOM_TILE,
 ): Promise<void> {
-  // Below the wide layout the layers sit in a sheet behind the Layers button.
+  // Below the wide layout the layers sit in a sheet behind the top bar's Panel button.
   const layer = page.getByRole('button', { name: 'Collision Walls and floors' })
-  if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Layers' }).click()
+  if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
   await layer.click()
   await page.getByRole('radio', { name: 'Brush' }).click()
   const canvas = page.locator('[data-level-canvas]')

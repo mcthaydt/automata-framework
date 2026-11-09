@@ -1,0 +1,5 @@
+# `lava`: the channels' floor.
+# Colour: DUEL ramp rose, step 1.
+
+ramp = "rose"
+step = 1

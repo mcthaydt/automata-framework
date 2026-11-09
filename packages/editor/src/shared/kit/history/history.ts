@@ -1,6 +1,6 @@
 /** Steps kept before the oldest drops. */
 const DEFAULT_LIMIT = 500
-/** Two applies with one coalesce key closer than this are one step (EDK-D5). */
+/** Two applies with one coalesce key closer than this are one step. */
 const DEFAULT_COALESCE_WINDOW_MS = 600
 
 export type HistoryErrorCode = 'transaction-open'

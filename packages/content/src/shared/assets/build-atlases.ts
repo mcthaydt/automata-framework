@@ -4,7 +4,7 @@
 //
 // Every problem is a diagnostic, and all of them are reported together, as the compiler does: a broken frame,
 // a frame too large for a page, and (only when the game declares `content/palette.toml`) an off-palette pixel.
-// The default Endesga 64 palette is the renderer's, not an authoring rule, so it is never checked here.
+// The default DUEL palette is the renderer's, not an authoring rule, so it is never checked here.
 import { join } from 'node:path'
 import { Effect } from 'effect'
 import { ContentCompileFailed } from '../compile/errors'

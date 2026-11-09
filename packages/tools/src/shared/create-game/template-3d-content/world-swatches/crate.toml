@@ -1,0 +1,5 @@
+# `crate`: a colour from the DUEL palette.
+# Colour: DUEL ramp mud, step 3.
+
+ramp = "mud"
+step = 3

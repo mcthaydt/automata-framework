@@ -1,7 +1,7 @@
 import { render } from '@testing-library/svelte'
 import { createRawSnippet } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import NearView from '../../../src/shared/components/NearView.svelte'
+import NearView from '#src/shared/components/NearView.svelte'
 
 // QB.3j: a picture far below the fold is not in the page, so the browser cannot fetch it, until the reader is near it.
 class FakeObserver {

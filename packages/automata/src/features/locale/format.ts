@@ -1,6 +1,5 @@
 // Numbers, durations and plurals in the reader's convention, through Intl.
-// Extracted from FloorFifty apps/client/src/i18n/format.ts (ac72660), which read the active locale itself;
-// here the locale is an argument, so these stay pure and the `Locale` service passes `current`.
+// The locale is an argument, so these stay pure and the `Locale` service passes `current`.
 // Words such as ordinal suffixes belong in messages: Intl gives the category, the catalog gives the text.
 
 /** A number in `locale`'s convention (Intl.NumberFormat with `options`). */

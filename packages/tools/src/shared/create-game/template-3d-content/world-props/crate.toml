@@ -1,0 +1,5 @@
+# `crate`: a box, 0.7 m wide and deep and 0.6 m high, painted with the `crate` swatch.
+
+kind = "box"
+swatch = "crate"
+size = [0.7, 0.6, 0.7]

@@ -1,0 +1,32 @@
+# The shop's sounds, its music, and what plays when something happens.
+
+[[cue]]
+id = "coin"
+about = "A bright blip when you pay"
+bus = "sfx"
+voices = [{ tone = "square", from = 880, to = 1320, length = 0.08, volume = 0.4 }]
+
+[[cue]]
+id = "bell"
+about = "The door bell"
+bus = "sfx"
+voices = [{ tone = "sine", from = 1568, to = 1568, length = 0.4, volume = 0.3 }]
+
+# Music is imported: these tracks are files in the game's folder. The game switches between them by the rules below.
+[[slot]]
+id = "calm"
+mode = "loop"
+volume = 0.6
+sound = "calm-theme"
+
+[[music_rule]]
+when = {}
+slot = "calm"
+
+[[event]]
+on = "shop.sold"
+cue = "coin"
+
+[[event]]
+on = "door.opened"
+cue = "bell"

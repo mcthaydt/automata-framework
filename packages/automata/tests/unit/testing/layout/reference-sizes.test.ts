@@ -5,7 +5,7 @@ const has = (width: number, height: number): boolean =>
   REFERENCE_SIZES.some((size) => size.width === width && size.height === height)
 
 describe('REFERENCE_SIZES (M1.6 spec §3.10)', () => {
-  test("holds FloorFifty's sweep, including the phone held sideways at 780x270", () => {
+  test('holds the sweep, including the phone held sideways at 780x270', () => {
     const sweep = [
       [360, 640],
       [375, 667],

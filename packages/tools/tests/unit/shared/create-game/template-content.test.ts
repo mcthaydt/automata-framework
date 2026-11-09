@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { entitiesOf, intGridRows, levelContentSchema } from '@automata/content/level-2d'
+import { loadEditorList } from '@automata/editor/editor-list'
 import { Effect } from 'effect'
 import { parse } from 'smol-toml'
 import { afterAll, describe, expect, it } from 'vitest'
@@ -52,5 +53,18 @@ describe('a new game', () => {
     const game = join(dir, 'game')
     await Effect.runPromise(createGame({ targetDir: game, id: 'level-game', title: 'Level Game' }))
     expect(await Effect.runPromise(Effect.provide(levelsStep(game), FilesLive))).toEqual([])
+  })
+})
+
+describe('the starter editor list', () => {
+  it('names the files Schematic edits, as rows the editor list accepts', () => {
+    const list = readTemplateContent('editors.toml')
+    const rows = (parse(list) as { file: { glob: string; editor: string }[] }).file
+    expect(rows.filter((row) => row.editor === 'schematic').map((row) => row.glob)).toEqual([
+      'content/systems/*.toml',
+      'content/nav/*.toml',
+      'content/puzzles/*.toml',
+    ])
+    expect(loadEditorList(list).ok).toBe(true)
   })
 })

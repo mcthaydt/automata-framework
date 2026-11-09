@@ -1,3 +1,4 @@
+import { PLACEHOLDER_COLORS, placeholderColor, tileFrame } from '@automata/content/level-2d'
 import type { Bounds } from '../../model/commands/entity-geometry'
 import type { TilesetDef } from '../../model/project-types'
 import { tilesetTiles } from '../../model/tileset-grid'
@@ -7,24 +8,7 @@ import type { PlaceholderReason, TileDraw } from './draw-list-types'
 // loaded and the index is inside the set, otherwise a flat placeholder with the index on it. Never a fake picture, and
 // never a crash: a missing image degrades its tiles, not the document.
 
-/**
- * Twelve flat colours far enough apart to tell neighbouring indices apart; tile `n` takes colour `n % 12`, so a
- * placeholder looks the same wherever it is drawn and whatever happened to the image.
- */
-export const PLACEHOLDER_COLORS: readonly string[] = [
-  '#8a6d5a',
-  '#5a7d8a',
-  '#7a8a5a',
-  '#8a5a7a',
-  '#5a8a6d',
-  '#6d5a8a',
-  '#8a7f5a',
-  '#5a6d8a',
-  '#8a5a5a',
-  '#5a8a85',
-  '#7d8a74',
-  '#80748a',
-]
+export { PLACEHOLDER_COLORS }
 
 interface TileChoice {
   readonly tile: number
@@ -59,17 +43,14 @@ export function tileDraw(
       ...placed,
       kind: 'placeholder',
       reason: source,
-      color: PLACEHOLDER_COLORS[choice.tile % PLACEHOLDER_COLORS.length] as string,
+      color: placeholderColor(choice.tile),
       label: String(choice.tile),
     }
   }
   const { padding, spacing, tile } = source.tileset
-  const { columns } = tilesetTiles(source.tileset)
-  const frame = {
-    x: padding + (choice.tile % columns) * (tile.w + spacing),
-    y: padding + Math.floor(choice.tile / columns) * (tile.h + spacing),
-    w: tile.w,
-    h: tile.h,
-  }
+  const { columns, rows } = tilesetTiles(source.tileset)
+  const frame = tileFrame({ tile, spacing, padding, columns, rows }, choice.tile)
+  // `sourceOf` has checked the index against the set, so the frame is there.
+  if (frame === undefined) throw new RangeError(`tile ${choice.tile} is outside its tileset`)
   return { ...placed, kind: 'image', image: source.image, frame }
 }

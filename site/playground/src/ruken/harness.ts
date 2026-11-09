@@ -30,7 +30,7 @@ export interface RunExampleOptions {
  * Starts a `defineGame` result in this frame against Ruken's fake host in its in-memory mode, as the framework's own
  * tests run games (`openHostingTest`): no Ruken page to wait for, saves that live in this frame's memory. It enters the
  * play screen at once (`startAtPlay`), so an edit shows without a press on Play. It calls the
- * runtime's `runGame` with seams, which `startGame` keeps for tests (PLAY-D11), so no public API changes.
+ * runtime's `runGame` with seams, which `startGame` keeps for tests, so no public API changes.
  */
 export function runExample(game: DefinedGame<unknown>, options: RunExampleOptions): RuntimeHandle {
   const settings = fakeHostOptions(options.host)

@@ -1,0 +1,263 @@
+{
+  "day": {
+    "label": "Day",
+    "scene": {
+      "light": {
+        "shadow": true,
+        "ambient": {
+          "level": 0.45,
+          "tint": "#c7d6ff"
+        },
+        "fill": {
+          "level": 0.12,
+          "tint": "#c6ecff"
+        },
+        "sun": {
+          "level": 1.0,
+          "colour": "#fff3d6"
+        }
+      },
+      "sky": [
+        {
+          "colour": "#318eb8",
+          "at": 0
+        },
+        {
+          "colour": "#41b2e3",
+          "at": 0.22
+        },
+        {
+          "colour": "#52d2ff",
+          "at": 0.4
+        },
+        {
+          "colour": "#88d6ff",
+          "at": 0.55
+        },
+        {
+          "colour": "#c6ecff",
+          "at": 0.66
+        }
+      ],
+      "grade": {
+        "tint": "#c7d6ff",
+        "amount": 0.05
+      },
+      "haze": {
+        "colour": "#8690b2",
+        "amount": 0.35
+      }
+    },
+    "figure": {
+      "exposure": 0
+    }
+  },
+  "golden": {
+    "label": "Golden hour",
+    "scene": {
+      "light": {
+        "shadow": true,
+        "ambient": {
+          "level": 0.35,
+          "tint": "#eadbc9"
+        },
+        "fill": {
+          "level": 0.1,
+          "tint": "#ffd59b"
+        },
+        "sun": {
+          "level": 0.9,
+          "colour": "#ffbc4e"
+        }
+      },
+      "sky": [
+        {
+          "colour": "#5165ae",
+          "at": 0
+        },
+        {
+          "colour": "#9585f1",
+          "at": 0.2
+        },
+        {
+          "colour": "#ff9ba8",
+          "at": 0.38
+        },
+        {
+          "colour": "#ffbc4e",
+          "at": 0.52
+        },
+        {
+          "colour": "#ffe949",
+          "at": 0.64
+        }
+      ],
+      "grade": {
+        "tint": "#ffbc4e",
+        "amount": 0.15
+      },
+      "haze": {
+        "colour": "#917a7b",
+        "amount": 0.45
+      }
+    },
+    "figure": {
+      "exposure": 0
+    }
+  },
+  "dusk": {
+    "label": "Dusk",
+    "scene": {
+      "light": {
+        "shadow": true,
+        "ambient": {
+          "level": 0.22,
+          "tint": "#9c9bef"
+        },
+        "fill": {
+          "level": 0.08,
+          "tint": "#c6ecff"
+        },
+        "sun": {
+          "level": 0.5,
+          "colour": "#f99b4e"
+        }
+      },
+      "sky": [
+        {
+          "colour": "#262450",
+          "at": 0
+        },
+        {
+          "colour": "#3d5083",
+          "at": 0.2
+        },
+        {
+          "colour": "#975475",
+          "at": 0.4
+        },
+        {
+          "colour": "#e37840",
+          "at": 0.58
+        }
+      ],
+      "grade": {
+        "tint": "#8e8ce2",
+        "amount": 0.25
+      },
+      "haze": {
+        "colour": "#615f84",
+        "amount": 0.6
+      }
+    },
+    "figure": {
+      "exposure": -1
+    }
+  },
+  "night": {
+    "label": "Night",
+    "scene": {
+      "light": {
+        "shadow": false,
+        "ambient": {
+          "level": 0.12,
+          "tint": "#c7d6ff"
+        },
+        "fill": {
+          "level": 0.06,
+          "tint": "#96b2d9"
+        }
+      },
+      "sky": [
+        {
+          "colour": "#181f2f",
+          "at": 0
+        },
+        {
+          "colour": "#23324d",
+          "at": 0.25
+        },
+        {
+          "colour": "#28335d",
+          "at": 0.45
+        },
+        {
+          "colour": "#3d5083",
+          "at": 0.6
+        }
+      ],
+      "grade": {
+        "tint": "#3d5083",
+        "amount": 0.35
+      },
+      "stars": 0.006
+    },
+    "figure": {
+      "exposure": -2,
+      "lift": 1
+    }
+  },
+  "lampLit": {
+    "label": "Lamplight",
+    "scene": {
+      "light": {
+        "shadow": true,
+        "ambient": {
+          "level": 0.15,
+          "tint": "#e0faeb"
+        },
+        "fill": {
+          "level": 0.08,
+          "tint": "#c6ecff"
+        }
+      },
+      "sky": [
+        {
+          "colour": "#181f2f",
+          "at": 0
+        },
+        {
+          "colour": "#23324d",
+          "at": 0.6
+        }
+      ],
+      "grade": {
+        "tint": "#7964ba",
+        "amount": 0.2
+      }
+    },
+    "figure": {
+      "exposure": -1
+    }
+  },
+  "bar": {
+    "label": "Bar light",
+    "scene": {
+      "light": {
+        "shadow": false,
+        "ambient": {
+          "level": 0.1,
+          "tint": "#b8aeff"
+        },
+        "fill": {
+          "level": 0.05,
+          "tint": "#c6ecff"
+        }
+      },
+      "sky": [
+        {
+          "colour": "#1d1d21",
+          "at": 0
+        }
+      ],
+      "grade": {
+        "tint": "#584a7f",
+        "amount": 0.35
+      }
+    },
+    "figure": {
+      "exposure": -2,
+      "lift": 1
+    }
+  }
+}

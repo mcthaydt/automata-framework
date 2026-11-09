@@ -1,0 +1,227 @@
+{
+  "sources": ["packages/render-pixi3d", "packages/figures", "packages/sector-format"],
+  "moves": [
+    {
+      "from": "packages/render-pixi3d/src/renderer/create-pixi3d-renderer.ts",
+      "to": "packages/3d/src/app/create-renderer.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/renderer/create-pixi3d-renderer.test.ts",
+      "to": "packages/3d/src/app/create-renderer.test.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/renderer",
+      "to": "packages/3d/src/features/renderer"
+    },
+    {
+      "from": "packages/render-pixi3d/src/render3d.extension.ts",
+      "to": "packages/3d/src/app/render3d.extension.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/render3d.extension.test.ts",
+      "to": "packages/3d/src/app/render3d.extension.test.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/index.ts",
+      "to": "packages/3d/src/entries/index.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/camera-view.ts",
+      "to": "packages/3d/src/entries/camera-view.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/camera-view.test.ts",
+      "to": "packages/3d/src/entries/camera-view.test.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/no-eval.ts",
+      "to": "packages/3d/src/entries/no-eval.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/sim/index.ts",
+      "to": "packages/3d/src/entries/sim.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/browser-imports.test.ts",
+      "to": "packages/3d/src/browser-imports.test.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/bundle",
+      "to": "packages/3d/src/features/renderer/bundle"
+    },
+    {
+      "from": "packages/render-pixi3d/src/bundle/testing",
+      "to": "packages/3d/src/testing/bundle"
+    },
+    {
+      "from": "packages/render-pixi3d/src/no-eval",
+      "to": "packages/3d/src/features/renderer/no-eval"
+    },
+    {
+      "from": "packages/render-pixi3d/src/views",
+      "to": "packages/3d/src/shared/render/views"
+    },
+    {
+      "from": "packages/render-pixi3d/src/model",
+      "to": "packages/3d/src/shared/render/model"
+    },
+    {
+      "from": "packages/render-pixi3d/src/model/testing",
+      "to": "packages/3d/src/testing/model"
+    },
+    {
+      "from": "packages/render-pixi3d/src/light",
+      "to": "packages/3d/src/shared/render/light"
+    },
+    {
+      "from": "packages/render-pixi3d/src/camera",
+      "to": "packages/3d/src/features/camera"
+    },
+    {
+      "from": "packages/render-pixi3d/src/occluders",
+      "to": "packages/3d/src/features/camera/occluders"
+    },
+    {
+      "from": "packages/render-pixi3d/src/occluders/testing",
+      "to": "packages/3d/src/testing/occluders"
+    },
+    {
+      "from": "packages/render-pixi3d/src/sim",
+      "to": "packages/3d/src/features/camera/sim"
+    },
+    {
+      "from": "packages/render-pixi3d/src/figure",
+      "to": "packages/3d/src/features/figures/view"
+    },
+    {
+      "from": "packages/render-pixi3d/src/css.d.ts",
+      "to": "packages/3d/src/css.d.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/env.d.ts",
+      "to": "packages/3d/src/env.d.ts"
+    },
+    {
+      "from": "packages/render-pixi3d/src/parity",
+      "to": "packages/3d/src/shared/parity"
+    },
+    {
+      "from": "packages/render-pixi3d/src/testing",
+      "to": "packages/3d/src/testing"
+    },
+    {
+      "from": "packages/figures/src/index.ts",
+      "to": "packages/3d/src/entries/figures.ts"
+    },
+    {
+      "from": "packages/figures/src/figures.extension.ts",
+      "to": "packages/3d/src/app/figures.extension.ts"
+    },
+    {
+      "from": "packages/figures/src/figures.extension.test.ts",
+      "to": "packages/3d/src/app/figures.extension.test.ts"
+    },
+    {
+      "from": "packages/figures/src/browser-imports.test.ts",
+      "to": "packages/3d/src/browser-imports.test.ts"
+    },
+    {
+      "from": "packages/figures/src/build",
+      "to": "packages/3d/src/features/figures/figure"
+    },
+    {
+      "from": "packages/figures/src/figure",
+      "to": "packages/3d/src/features/figures/figure"
+    },
+    {
+      "from": "packages/figures/src/genes",
+      "to": "packages/3d/src/features/figures/body"
+    },
+    {
+      "from": "packages/figures/src/parts",
+      "to": "packages/3d/src/features/figures/body"
+    },
+    {
+      "from": "packages/figures/src/rig",
+      "to": "packages/3d/src/features/figures/body"
+    },
+    {
+      "from": "packages/figures/src/motion",
+      "to": "packages/3d/src/features/figures/motion"
+    },
+    {
+      "from": "packages/figures/src/pose",
+      "to": "packages/3d/src/features/figures/motion"
+    },
+    {
+      "from": "packages/figures/src/solve",
+      "to": "packages/3d/src/features/figures/motion"
+    },
+    {
+      "from": "packages/figures/src/hair",
+      "to": "packages/3d/src/features/figures/hair"
+    },
+    {
+      "from": "packages/figures/src/garments",
+      "to": "packages/3d/src/features/figures/outfit/garments"
+    },
+    {
+      "from": "packages/figures/src/streetwear",
+      "to": "packages/3d/src/features/figures/outfit/streetwear"
+    },
+    {
+      "from": "packages/figures/src/clip",
+      "to": "packages/3d/src/features/figures/clips"
+    },
+    {
+      "from": "packages/figures/src/evaluate",
+      "to": "packages/3d/src/features/figures/clips"
+    },
+    {
+      "from": "packages/figures/src/library",
+      "to": "packages/3d/src/features/figures/content"
+    },
+    {
+      "from": "packages/figures/src/content",
+      "to": "packages/3d/src/features/figures/content"
+    },
+    {
+      "from": "packages/figures/src/math",
+      "to": "packages/3d/src/shared/math"
+    },
+    {
+      "from": "packages/figures/src/testing",
+      "to": "packages/3d/src/testing"
+    },
+    {
+      "from": "packages/figures/src/testing/index.ts",
+      "to": "packages/3d/src/testing/public.ts"
+    },
+    {
+      "from": "packages/sector-format/src",
+      "to": "packages/3d/src/shared/level"
+    },
+    {
+      "from": "packages/sector-format/src/index.ts",
+      "to": "packages/3d/src/entries/level.ts"
+    },
+    {
+      "from": "packages/sector-format/src/blockout",
+      "to": "packages/3d/src/shared/level/blockout"
+    },
+    {
+      "from": "packages/sector-format/src/blockout/index.ts",
+      "to": "packages/3d/src/entries/blockout.ts"
+    }
+  ],
+  "entries": {
+    "@automata/render-pixi3d": "@automata/3d",
+    "@automata/render-pixi3d/camera-view": "@automata/3d/camera-view",
+    "@automata/render-pixi3d/no-eval": "@automata/3d/no-eval",
+    "@automata/render-pixi3d/sim": "@automata/3d/sim",
+    "@automata/figures": "@automata/3d/figures",
+    "@automata/figures/testing": "@automata/3d/testing",
+    "@automata/sector-format": "@automata/3d/level",
+    "@automata/sector-format/blockout": "@automata/3d/blockout"
+  }
+}

@@ -1,0 +1,7 @@
+# `glass`, a fixture.
+# Colour: DUEL ramp 1 (sand), step 6 (#eadbc9).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "sand"
+step = 6
+flat = true

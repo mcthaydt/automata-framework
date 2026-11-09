@@ -10,8 +10,7 @@ import type { LetterboxFrame } from './letterbox.js'
  * cost the same everywhere. More importantly, pixel art sampled at a fractional device scale is pixel art with torn
  * edges, so compositing at 1:1 and upscaling by whole pixels is correct whatever the cost.
  *
- * From FloorFifty `apps/client/src/systems/render/render-target.ts` at `ac72660`; FloorFifty's fixed 960 × 540 is
- * the game's logical size here.
+ * The game's logical size is the target's size.
  */
 export class CompositeTarget {
   /** What the world and the UI draw into. Not the backdrop: see `adopt`. */

@@ -11,7 +11,9 @@
     },
     "typecheck": {},
     "test": {},
-    "test:unit": {},
+    "test:unit": {
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
+    },
     "test:browser": {
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
@@ -25,6 +27,11 @@
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
     "test:e2e": {
+      "cache": false,
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
+    },
+    "@automata/editors#test:e2e": {
+      "dependsOn": ["build", "@automata/editor#build", "@automata/tools#build"],
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },

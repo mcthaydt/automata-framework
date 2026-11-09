@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { AFTER_FIRST_PAINT, FALLBACK_MS, hydrateAfterFirstPaint } from '../../../src/shared/html/hydration'
+import { AFTER_FIRST_PAINT, FALLBACK_MS, hydrateAfterFirstPaint } from '#src/shared/html/hydration.ts'
 
 // QB.3j. The first Mac run of QB.3j's code measured the pages at 2.57 to 3.01 s where the hosted runner and a quiet
 // container measure 1.7 to 2.1 s, to the millisecond on two runs, whatever else the Mac was doing. Lighthouse simulates
@@ -104,7 +104,7 @@ describe('afterFirstPaint (the helper inside the page)', () => {
   type Entries = { getEntriesByName(name: string): unknown[] }
   /** A fake browser: the paint observer, the document and the timers, each under the test's control. */
   function browser(options: { paint?: boolean } = {}) {
-    const listeners: Record<string, () => void> = {}
+    const listeners: Record<string, (event?: unknown) => void> = {}
     const listenerOptions: Record<string, unknown> = {}
     const state: {
       callback?: (list: Entries, observer: { disconnect(): void }) => void
@@ -124,7 +124,8 @@ describe('afterFirstPaint (the helper inside the page)', () => {
       }
     }
     const document = {
-      addEventListener: (type: string, listener: () => void, options?: unknown) => {
+      documentElement: { dataset: {} as Record<string, string> },
+      addEventListener: (type: string, listener: (event?: unknown) => void, options?: unknown) => {
         listeners[type] = listener
         listenerOptions[type] = options
       },
@@ -145,7 +146,7 @@ describe('afterFirstPaint (the helper inside the page)', () => {
         { getEntriesByName: (n) => (n === name ? [{}] : []) },
         { disconnect: () => state.disconnected++ },
       )
-    return { afterFirstPaint, state, listeners, listenerOptions, timers, paint }
+    return { afterFirstPaint, state, listeners, listenerOptions, timers, paint, document }
   }
 
   it('does not start before the browser reports the first contentful paint, then starts once', () => {
@@ -172,6 +173,56 @@ describe('afterFirstPaint (the helper inside the page)', () => {
     listeners.visibilitychange!()
     listeners.visibilitychange!()
     expect(start).toHaveBeenCalledTimes(1)
+  })
+
+  it('the deferred start also begins on the first pointerdown or keydown', () => {
+    for (const type of ['pointerdown', 'keydown']) {
+      const { afterFirstPaint, listeners, listenerOptions } = browser()
+      const start = vi.fn()
+      afterFirstPaint(start)
+      expect(listenerOptions[type], `${type} listens before the page's own handlers`).toEqual({
+        capture: true,
+      })
+      expect(start).not.toHaveBeenCalled()
+      listeners[type]!({ target: { closest: () => null } })
+      listeners[type]!({ target: { closest: () => null } })
+      expect(start).toHaveBeenCalledTimes(1)
+    }
+  })
+
+  it('a press on [data-play] before hydration sets data-play-pressed, and any other press does not', () => {
+    const playButton = { closest: (selector: string) => (selector === '[data-play]' ? {} : null) }
+    for (const type of ['pointerdown', 'keydown']) {
+      const pressed = browser()
+      pressed.afterFirstPaint(vi.fn())
+      pressed.listeners[type]!({ target: playButton })
+      expect(pressed.document.documentElement.dataset.playPressed).toBe('')
+      const elsewhere = browser()
+      elsewhere.afterFirstPaint(vi.fn())
+      elsewhere.listeners[type]!({ target: { closest: () => null } })
+      expect(elsewhere.document.documentElement.dataset.playPressed).toBeUndefined()
+    }
+  })
+
+  it('keeps listening after a first press elsewhere, so a later press on [data-play] is still kept', () => {
+    const playButton = { closest: (selector: string) => (selector === '[data-play]' ? {} : null) }
+    const view = browser()
+    const start = vi.fn()
+    view.afterFirstPaint(start)
+    view.listeners.pointerdown!({ target: { closest: () => null } })
+    expect(view.document.documentElement.dataset.playPressed).toBeUndefined()
+    view.listeners.pointerdown!({ target: playButton })
+    expect(view.document.documentElement.dataset.playPressed).toBe('')
+    expect(start).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops marking presses once the demo has mounted', () => {
+    const playButton = { closest: (selector: string) => (selector === '[data-play]' ? {} : null) }
+    const view = browser()
+    view.afterFirstPaint(vi.fn())
+    view.document.documentElement.dataset.playMounted = ''
+    view.listeners.pointerdown!({ target: playButton })
+    expect(view.document.documentElement.dataset.playPressed).toBeUndefined()
   })
 
   it('starts after the fallback delay if no paint is ever reported', () => {

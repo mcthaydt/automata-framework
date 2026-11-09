@@ -1,0 +1,6 @@
+# `maroon`, a fixture.
+# Colour: DUEL ramp 19 (rust), step 1 (#633432).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "rust"
+step = 1

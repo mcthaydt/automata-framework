@@ -1,0 +1,32 @@
+# The shop's conversations.
+
+[[graphs]]
+id = "shop.shopkeeper"
+speaker = "shopkeeper"
+start = "hello"
+
+[graphs.nodes.hello]
+say = ["shop.welcome_in"]
+
+[[graphs.nodes.hello.choices]]
+line = "shop.just_looking"
+stance = 1
+next = "browsing"
+
+[[graphs.nodes.hello.choices]]
+line = "shop.ask_key"
+next = "key"
+
+[graphs.nodes.hello.choices.set]
+asked_key = true
+
+[graphs.nodes.browsing]
+say = ["shop.browse"]
+next = "goodbye"
+
+[graphs.nodes.key]
+say = ["shop.key_reply"]
+next = "goodbye"
+
+[graphs.nodes.goodbye]
+say = ["shop.goodbye"]

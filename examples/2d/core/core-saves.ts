@@ -83,6 +83,6 @@ export default defineGame({
     ArrowDown: { y: 1 },
     KeyS: { y: 1 },
   }),
-  views: { [Walker.id]: rect({ w: 8, h: 8, color: 0xffc825 }) },
+  views: { [Walker.id]: rect({ w: 8, h: 8, color: 0xffcf05 }) },
   saves,
 })

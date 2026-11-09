@@ -3,7 +3,7 @@ import { highlightLines } from '../../../features/playground/highlight'
 import { exampleIndex, getExample, getExamples } from '../../../shared/framework/example-catalog'
 import type { EntryGenerator, PageServerLoad } from './$types'
 
-// One prerendered page per catalog example (PLAY-D9). A server load, so each page's data carries its own example and
+// One prerendered page per catalog example. A server load, so each page's data carries its own example and
 // the source-free index; the other sources never reach the browser.
 export const entries = (() => getExamples().map((example) => ({ id: example.id }))) satisfies EntryGenerator
 

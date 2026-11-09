@@ -9,3 +9,58 @@ modes = ["edit"]
 exports = "content"
 gates = []
 checks = ["content"]
+
+# The content editors the game plays: what the player feels (Feel) and the sounds and the music's order (Audio). A file
+# that is not there yet is started from its editor's page. Writer and Sequence are listed once the game has a dialogue
+# box and cutscenes to show what they make.
+[[file]]
+glob = "content/feel/*.toml"
+editor = "feel"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/audio/*.toml"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = []
+
+# Music is imported: the tracks a person puts here show up in Audio to set up.
+[[file]]
+glob = "assets/music/*"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = []
+
+# Characters and their places, for Schematic (a game that uses the systems extension). Nothing is listed until the files exist.
+[[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/nav/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/puzzles/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+# The game's default controls, which the Tuner edits.
+[[file]]
+glob = "content/controls.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = ["content"]

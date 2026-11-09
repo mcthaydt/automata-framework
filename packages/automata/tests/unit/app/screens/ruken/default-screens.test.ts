@@ -605,7 +605,7 @@ describe('default screens', () => {
       }
     })
 
-    // Redo step 9 (Owner, 2026-10-18): the Language group, first on the Settings tab as FloorFifty's.
+    // Redo step 9 (Owner, 2026-10-18): the Language group, first on the Settings tab.
     it('leads the Settings tab with Language; a pick switches the game’s language, and Automatic goes back', async () => {
       await toSettings({ locale: { locales: ['en', 'ja'], baseLocale: 'en' } }, true, 'settings')
       const first = root.querySelector<HTMLElement>('[data-settings-section]')
@@ -688,7 +688,7 @@ describe('default screens', () => {
       })
     })
 
-    // M5.4: the Audio group (M5 spec §7), FloorFifty's, beside Display; and Pause's Mute.
+    // M5.4: the Audio group (M5 spec §7), beside Display; and Pause's Mute.
     describe('the Audio group (M5.4)', () => {
       let context: FakeAudioContext | undefined
       const withSound = (): Partial<GameSpec> => ({
@@ -931,7 +931,7 @@ describe('default screens', () => {
       await until(() => screen('paused') !== null, 'the paused screen')
       expect(document.activeElement).toBe(button('resume'))
       // One tap of the D-pad's down a step, each moving focus on, until Quit: holding it would walk by the menu's
-      // repeat, on the wall clock, and the menu has Mute and Settings before Quit (FloorFifty's pause).
+      // repeat, on the wall clock, and the menu has Mute and Settings before Quit.
       for (let step = 0; step < 4 && document.activeElement !== button('quit'); step++) {
         const before = document.activeElement
         await tick()

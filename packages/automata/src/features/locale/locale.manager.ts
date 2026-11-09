@@ -1,6 +1,5 @@
 // The player's language, as a runtime service.
-// Extracted from FloorFifty apps/client/src/i18n/strategy.ts (`applyLocale`) at ac72660, where the choice
-// lived in the settings store. Here it is its own save key, read and written through `Hosting.saves`, so a
+// The choice is its own save key, read and written through `Hosting.saves`, so a
 // host that refuses the write keeps the change in memory only and nothing moves to device storage
 // (AGENTS.md, Honor host authority). A change publishes `'locale.changed'`; no screen is remounted and the
 // sim never hears of it, so a language switch keeps the screen, its focus and the sim hash (L-c).
@@ -54,7 +53,7 @@ export const singleLocale = (sourceLanguage: string): LocaleDef => ({
   baseLocale: sourceLanguage,
 })
 
-/** The browser's languages, best first; some WebViews report an empty list and only `language` (FloorFifty strategy.ts). */
+/** The browser's languages, best first; some WebViews report an empty list and only `language`. */
 export function browserLanguages(
   navigator: Pick<Navigator, 'languages' | 'language'> | undefined,
 ): readonly string[] {

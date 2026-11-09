@@ -1,0 +1,6 @@
+# `fair`, a fixture.
+# Colour: DUEL ramp 27 (dawn), step 5 (#ebbd9d).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "dawn"
+step = 5

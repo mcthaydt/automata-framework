@@ -13,6 +13,10 @@ interface Props {
   url: string | undefined
   /** Whether anything answers at the address; a real request unless a test says otherwise. */
   answers?: (url: string) => Promise<boolean>
+  /** Questions an editor asks the game, added to its address (Schematic's Watch asks for the mode changes). */
+  query?: Readonly<Record<string, string>>
+  /** Told which frame shows the game, and `undefined` when it goes, so an editor can listen to that window only. */
+  onframe?: (frame: HTMLIFrameElement | undefined) => void
 }
 
 /**
@@ -25,7 +29,7 @@ const pageAnswers = (url: string): Promise<boolean> =>
     () => false,
   )
 
-const { url, answers = pageAnswers }: Props = $props()
+const { url, answers = pageAnswers, query, onframe }: Props = $props()
 
 /** How long the pane waits between two looks at an address that did not answer. */
 const LOOK_AGAIN_MS = 2_000
@@ -33,6 +37,19 @@ const LOOK_AGAIN_MS = 2_000
 let running = $state(false)
 let timer: ReturnType<typeof setTimeout> | undefined
 let stopped = false
+let frame = $state<HTMLIFrameElement>()
+
+/** The address with the editor's questions added, whatever the address already asks kept. */
+const address = $derived.by(() => {
+  if (url === undefined || query === undefined || Object.keys(query).length === 0) return url
+  const at = new URL(url)
+  for (const [key, value] of Object.entries(query)) at.searchParams.set(key, value)
+  return at.href
+})
+
+$effect(() => {
+  onframe?.(frame)
+})
 
 /** Looks once; while nothing answers, looks again after a pause. */
 async function look(address: string): Promise<void> {
@@ -55,7 +72,7 @@ onDestroy(() => {
   {#if url === undefined}
     <p class="note">Your game shows here when you open the editors in your game's folder.</p>
   {:else if running}
-    <iframe title="Your game" src={url}></iframe>
+    <iframe title="Your game" src={address} bind:this={frame}></iframe>
   {:else}
     <p class="note">Start your game with pnpm dev to see your changes here.</p>
   {/if}

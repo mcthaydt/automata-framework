@@ -15,7 +15,12 @@
     // plain .mjs files run by hand with node, and are not part of any package.
     ".": {
       "entry": ["agents/automata/scripts/check.mjs"],
-      "ignore": ["agents/automata/skills/*/example/**", "docs/design/**", "docs/archive/design/**"]
+      "ignore": [
+        "agents/automata/skills/*/example/**",
+        "docs/design/**",
+        "docs/archive/design/**",
+        "spikes/**"
+      ]
     },
     // DX.7: the example imports @automata/sim, which tooling/agent-skills' vitest config aliases to the source.
     "tooling/agent-skills": { "ignoreDependencies": ["@automata/sim"] },
@@ -34,6 +39,15 @@
     },
     "examples/3d": {
       "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "*/*.ts"],
+      "playwright": false
+    },
+    // The stories' ship.config.ts is read by `automata ship` by path; the 3D story's journeys are named by its config.
+    "examples/2d-story": {
+      "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
+      "playwright": false
+    },
+    "examples/3d-story": {
+      "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
       "playwright": false
     },
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
@@ -64,20 +78,23 @@
     // The editor's pages and entries are what the build and its consumers start from; `src/shared/kit/fonts.css`
     // imports the Geist families with CSS @import, which knip does not follow. `src/app/design/main.ts` is the design
     // board, started from `design.html` by the dev server.
+    // `public/theme-boot.js` is the script the pages load before the first paint (`<script src="/theme-boot.js">`); it is
+    // a file, not an import, because the site's try-it editor runs under `script-src 'self'`. The same in the two
+    // other editor packages below.
     "packages/editor": {
       "entry": ["src/entries/*.ts", "src/app/*/main.ts", "scripts/*.ts", "tests/e2e/**/*.test.ts"],
+      "ignore": ["public/theme-boot.js"],
       "ignoreDependencies": ["@fontsource-variable/geist", "@fontsource-variable/geist-mono"]
     },
-    // `suite.html` starts the full suite page (`vite build --mode suite`), which knip does not read from the HTML.
-    "packages/editor-3d": { "entry": ["src/suite-main.ts"] },
-    // M3.5b: the FigureBuilder goldens' generator is run by hand with node (its header says how).
-    "packages/figures": {
-      "entry": [
-        "scripts/figurebuilder-goldens.ts",
-        "scripts/figurebuilder-motion-goldens.ts",
-        "scripts/figurebuilder-action-goldens.ts"
-      ]
+    "packages/editor-3d": { "ignore": ["public/theme-boot.js"] },
+    "extensions/editors": { "ignore": ["public/theme-boot.js"] },
+    // pixi3d-bundle.test.ts builds the fixture page scripts in `src/testing/bundle/` with Vite by path, and nothing
+    // imports them. (The goldens' recorder is the package's `goldens` script, which knip reads.)
+    "packages/3d": {
+      "entry": ["src/testing/bundle/*-entry.ts", "scripts/*.ts"]
     },
+    // The bundle tests build the two fixture modules in `src/testing/bundle/` with Vite by path; nothing imports them.
+    "extensions/debug": { "entry": ["src/testing/bundle/*.ts"] },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     // yauzl and yazl are Ruken's, needed at runtime by the code tsdown bundles; smol-toml the tools import themselves.
     "packages/tools": {
@@ -87,8 +104,6 @@
     // plugin by name (createRequire().resolve), neither of which knip follows.
     "packages/content": { "ignoreDependencies": ["@inlang/paraglide-js", "@inlang/plugin-message-format"] },
     // The locale test fixture resolves the inlang plugin by name (createRequire().resolve) for its settings file.
-    "packages/automata": { "ignoreDependencies": ["@inlang/plugin-message-format"] },
-    // M3.4a: pixi3d-bundle.test.ts builds these fixture page scripts with Vite by path; nothing imports them.
-    "packages/render-pixi3d": { "entry": ["src/bundle/testing/*-entry.ts"] }
+    "packages/automata": { "ignoreDependencies": ["@inlang/plugin-message-format"] }
   }
 }

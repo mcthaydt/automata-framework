@@ -1,0 +1,7 @@
+# `inkBlack`, a fixture.
+# Colour: DUEL ramp 0 (grey), step 1 (#222323).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "grey"
+step = 1
+gloss = 0.95

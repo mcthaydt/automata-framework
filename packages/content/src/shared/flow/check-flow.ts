@@ -1,10 +1,10 @@
 // The screen flow: which screen follows which, authored in `content/flow.toml`.
-// Extracted from FloorFifty packages/content/src/validate/flow.ts (122a220). Cycles are legal (racing again
+// Cycles are legal (racing again
 // returns through the menu on purpose); a graph a player can get stuck in is not, and neither is one that
 // re-enters the entry screen after the game has started.
 //
-// FloorFifty's screens, events and destinations were code-owned (`FLOW_TARGETS`). Here they are the game's
-// `FlowCapabilities`: with them every FloorFifty check applies; without them the graph checks still do.
+// The screens, events and destinations are the game's `FlowCapabilities`: with them every check applies; without
+// them the graph checks still do.
 
 import { z } from 'zod'
 import type { Problem } from '../diagnostics/diagnostic'

@@ -1,0 +1,12 @@
+# `reachClick` from FigureBuilder (mcthaydt/FigureBuilder) src/features/motion/library/seats.json at 025ffb4; the id in kebab-case.
+
+about = "Reaching forward across the desk to press something on the screen or the keyboard with the near hand, deliberately, the body leaning after it; the other hand on the desk's edge."
+height = 0.46
+lean = 0.28
+turn = -0.1
+knees = 0.02
+head = [0, 0, 0.12]
+
+[hands]
+L = { to = [0.14, 0.76, 0.3] }
+R = { to = [0.08, 0.84, 0.56], aim = [[0, -0.5, 1], [0, -0.6, 0.3]] }

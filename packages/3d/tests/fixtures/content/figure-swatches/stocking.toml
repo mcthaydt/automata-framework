@@ -1,0 +1,6 @@
+# `stocking`, a fixture.
+# Colour: DUEL ramp 10 (slate), step 2 (#5b5c69).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "slate"
+step = 2

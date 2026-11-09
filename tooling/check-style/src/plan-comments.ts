@@ -16,6 +16,8 @@ export const PLAN_REFERENCE: RegExp = new RegExp(
     String.raw`\b[A-Z]{2,}(?:\.[A-Z]+)*\.\d`,
     String.raw`\b[Tt]asks?\s+\d+\.\d+`,
     String.raw`§\s?\d`,
+    // A bare decision code in brackets: ``, ``.
+    String.raw`\((?:[A-Z]{2,}-)?D\d+\)`,
     // A spec or plan named with a number or a code (prose that merely says "the spec" or "a plan" has none).
     String.raw`\b[Ss]pec\s+(?:\d|[A-Z]{1,2}-?\d)`,
     String.raw`\b[Pp]lan\s+\d+\.\d`,

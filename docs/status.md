@@ -14,10 +14,18 @@ the task-by-task record; this page is the short version.
 - **Packages.** `@automata/framework` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
   `-content` has browser-safe entries for `game-config`, `locale`, `schema` and `palette`, so a dev server page never
   loads Node modules.
-- **Tools.** One `automata` command: create-game, add, check, build, editor, ship. `automata --help` works.
+- **Extensions.** Opt-in extras in `extensions/`, each `@automata/<name>` with its own README: physics, feel, audio-synth,
+  debug, puzzle, online play (net, net-ui, net-server), screens, the level and story tools (sectors, nav, systems,
+  narrative, cutscenes) and the 3D kits (character-kit, world-kit). Nine publish to npm; the rest are private for now.
+- **Edited content shows in play (PR #484, not on main yet).** A 2D level and its placed characters are drawn from what the editor
+  saved; a character's clips, the default controls (Tuner), a dialogue box, cutscene captions and a 2D cutscene stage run from
+  files; `narrative`, `cutscenes`, `nav` and `systems` work in a 2D level through `places` and `level-2d`. `examples/2d-story`
+  plays all of it, and the journey `story-in-play` makes a change in the editor and plays it (iPad and phone, Chromium). Not yet
+  run: changing the words in Writer, a caption in Sequence and the guard's chase speed in Schematic (those editors are PR #478).
+- **Tools.** One `automata` command: create-game (the new game plays a starter feel and sound that the Feel and Audio editors change), add, check, build, editor, ship. `automata --help` works.
 - **Examples.** 27 single-file examples and the content hot-reload demo.
-- **Editors.** The 2D level editor's tests (unit, layout, canvas, journeys) run in the 2D gate; the 3D editor and the
-  suite run in `.github/workflows/3d.yml`.
+- **Editors.** Every unit test, 2D and 3D, runs in the gate; the 2D editors' layout, canvas and journey tests run in the 2D
+  gate, and the 3D editor's browser suites and journeys run in `.github/workflows/3d.yml`.
 - **Touch.** No double-tap zoom or long-press selection in games and editors (`touch-action: manipulation`).
 
 ## Where the refactor is
@@ -35,7 +43,7 @@ Left, and the Owner's:
 ## What is next
 
 After core and 2D: the 2D editors and the website, made ready to ship with 2D alone (the Owner, 2026-11-06); then the
-same for 3D (`games/base-3d`, `render-pixi3d`, `figures`, the 3D editors and the site). Each slice goes audit, plan,
+same for 3D (`games/base-3d`, `packages/3d`, the 3D editors and the site). Each slice goes audit, plan,
 plan audit, build, build audit, fixes, and is finished before the next starts. The 2D editors and website audit is
 [`refactor/2026-11-06-2d-editors-and-site-audit.md`](refactor/2026-11-06-2d-editors-and-site-audit.md); the rest of the
 2D launch path (`create-game`, releases, the agent package, docs, tooling, Plus and the other repositories) is

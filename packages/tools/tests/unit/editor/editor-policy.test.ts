@@ -85,6 +85,18 @@ describe('editorPolicy with no editor list', () => {
     }
   })
 
+  it('lists its .af-sector.json room, the 3D level file, with the same limits', () => {
+    for (const path of ['content/levels/room.af-sector.json', 'room.af-sector.json']) {
+      expect(policy.canRead(path), path).toBe(true)
+      expect(policy.canWrite(path), path).toBe(true)
+    }
+    for (const path of ['node_modules/x/a.af-sector.json', 'dist/a.af-sector.json', '../a.af-sector.json']) {
+      expect(policy.canRead(path), path).toBe(false)
+      expect(policy.canWrite(path), path).toBe(false)
+    }
+    expect(policy.canWrite('content/levels/room.json')).toBe(false)
+  })
+
   it('still leaves the folders a build or tool owns alone', () => {
     expect(policy.canWrite('node_modules/x/a.af2d.json')).toBe(false)
     expect(policy.canWrite('dist/a.af2d.json')).toBe(false)

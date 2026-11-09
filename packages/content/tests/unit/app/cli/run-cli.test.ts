@@ -1,4 +1,4 @@
-// The command line. Ports FloorFifty packages/content/bin/content.ts's behavior (122a220) as tests of
+// The command line. Tests of
 // `runCli`, plus one run of the real bin to prove it starts under Node.
 
 import { execFileSync } from 'node:child_process'

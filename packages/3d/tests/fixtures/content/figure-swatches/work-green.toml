@@ -1,0 +1,6 @@
+# `workGreen`, a fixture.
+# Colour: DUEL ramp 8 (pine), step 2 (#385140).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "pine"
+step = 2

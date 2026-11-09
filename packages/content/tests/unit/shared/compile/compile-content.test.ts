@@ -57,7 +57,7 @@ function caseSensitiveFs(): boolean {
 }
 
 describe('the fixture game', () => {
-  it('compiles FloorFifty’s real flow and tuning with its declarations', async () => {
+  it('compiles the fixture flow and tuning with their declarations', async () => {
     const { data } = await compiled(fixtureOptions(copyFixture('valid')))
     expect(Object.keys(data).sort()).toEqual([
       'assets',
@@ -76,7 +76,7 @@ describe('the fixture game', () => {
     // References and localized text are plain strings once checked.
     expect((data.stage as Record<string, { song: unknown }>).rooftops?.song).toBe('dusk-run')
     expect((data.character as Record<string, { displayName: unknown }>).cyan?.displayName).toBe('Cyan')
-    expect((data.palette as { name: string }).name).toBe('Endesga 64')
+    expect((data.palette as { name: string }).name).toBe('DUEL')
   })
 
   it('hashes the canonical data and writes every derived file', async () => {

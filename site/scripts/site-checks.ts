@@ -4,7 +4,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
+import { APP_OFFER } from '../src/features/app/app-offer.ts'
 import { REPOSITORY_PUBLIC, REPOSITORY_URL, SITE_ORIGIN } from '../src/shared/site.js'
+import { checkAppOffer } from './site-checks/app-offer.ts'
 import {
   checkIconFiles,
   checkIconLinks,
@@ -51,6 +53,9 @@ export function checkSite(
   }
   for (const file of pages) {
     const html = readFileSync(join(root, file), 'utf8')
+    // A cut page gets the 404 page, not a redirect: a meta refresh page is a page the site no longer wants.
+    if (/http-equiv=["']refresh["']/i.test(html))
+      failures.push(file + ': a page that only redirects; cut pages get the 404 page')
     const window = new JSDOM(html).window
     const doc = window.document
     pageIds.set(file, new Set(Array.from(doc.querySelectorAll('[id]'), (element) => element.id)))
@@ -70,7 +75,8 @@ export function checkSite(
       doc.body.textContent ?? '',
     ].join('\n')
     for (const banned of BANNED_PHRASES)
-      if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
+      if (!banned.allowedIn?.includes(file) && banned.pattern.test(text))
+        failures.push(`${file}: banned phrase "${banned.label}"`)
     failures.push(...checkStandalone(file, ownText(doc)))
     failures.push(
       ...checkIconLinks(file, doc),
@@ -118,11 +124,12 @@ export function checkSite(
     ...checkImageFormats(root),
     ...checkIconFiles(root),
     ...checkSecurityTxt(root, now),
+    ...checkAppOffer(root, APP_OFFER),
   )
   return failures
 }
 
-/** sitemap.xml lists exactly the canonical URL of every page, and robots.txt points at it (spec F-3). */
+/** sitemap.xml lists exactly the canonical URL of every page, and robots.txt points at it. */
 function checkSeoFiles(root: string, canonicals: Set<string>): string[] {
   const failures: string[] = []
   const sitemapPath = join(root, 'sitemap.xml')
@@ -142,7 +149,7 @@ function checkSeoFiles(root: string, canonicals: Set<string>): string[] {
   return failures
 }
 
-/** Every page's footer reaches the privacy and terms pages and a contact email (spec F-4, QB-D3). */
+/** Every page's footer reaches the privacy and terms pages and a contact email. */
 function checkFooter(file: string, doc: Document): string[] {
   const failures: string[] = []
   const hrefs = Array.from(doc.querySelectorAll('footer a[href]'), (anchor) => anchor.getAttribute('href')!)
@@ -155,7 +162,7 @@ function checkFooter(file: string, doc: Document): string[] {
   return failures
 }
 
-/** RFC 9116: a Contact, an Expires in the future (renewed at least yearly) and the Canonical URL (spec F-4). */
+/** RFC 9116: a Contact, an Expires in the future (renewed at least yearly) and the Canonical URL. */
 function checkSecurityTxt(root: string, now: Date): string[] {
   const file = '.well-known/security.txt'
   const path = join(root, file)

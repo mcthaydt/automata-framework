@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { type CatalogEntry, isUnpublishedExtension, readCatalog } from '#src/catalog.ts'
 
 const fixtures = fileURLToPath(new URL('../fixtures/catalog/', import.meta.url))
-// Stub manifests: the catalog's package rules do not depend on which packages the framework holds today (physics, the
-// one extension these fixtures name, is Automata Plus since PRODUCT.5g).
-const packagesDir = fileURLToPath(new URL('../fixtures/packages/', import.meta.url))
-const catalog = readCatalog(fixtures, { deliveryPlan: `${fixtures}delivery-plan.md`, packagesDir })
+// Stub manifests: the catalog's package rules do not depend on which packages the framework holds today. Physics,
+// the one extension these fixtures name, sits in its own folder, as extensions do beside `packages/`.
+const packagesDirs = ['packages', 'extensions'].map((dir) =>
+  fileURLToPath(new URL(`../fixtures/${dir}/`, import.meta.url)),
+)
+const catalog = readCatalog(fixtures, { deliveryPlan: `${fixtures}delivery-plan.md`, packagesDirs })
 const entry = (path: string): CatalogEntry => {
   const found = catalog.find((candidate) => candidate.path === path)
   if (found === undefined) throw new Error(`${path} is not in the catalog`)
@@ -78,27 +80,28 @@ describe('readCatalog', () => {
     })
   })
 
-  it("accepts an extension's published entry", () => {
+  it("accepts an extension's published entry, under the extension tier", () => {
     expect(entry('physics/physics-bodies.ts')).toMatchObject({
       problems: [],
+      header: { tier: 'extension' },
       imports: ['@automata/physics/2d'],
     })
   })
 
-  // D-1: render-pixi3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
+  // D-1: @automata/3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
   it("accepts an unpublished extension's entries in the render3d module", () => {
     expect(entry('render3d/render3d-boxes.ts')).toMatchObject({
       problems: [],
-      imports: ['@automata/render-pixi3d/no-eval', '@automata/render-pixi3d'],
+      imports: ['@automata/3d/no-eval', '@automata/3d'],
     })
   })
 
-  // M3R-D7: `figures` is private while its only renderer is; its examples are free core examples too (M3 spec §5).
-  it('accepts the figures module and its private package beside the 3D renderer', () => {
+  // M3R-D7: the figures entry is part of the private 3D package; its examples are free core examples too (M3 spec §5).
+  it('accepts the figures module and its entry beside the 3D renderer', () => {
     expect(entry('figures/figures-stand.ts')).toMatchObject({
       problems: [],
       module: 'figures',
-      imports: ['@automata/render-pixi3d/no-eval', '@automata/figures', '@automata/render-pixi3d'],
+      imports: ['@automata/3d/no-eval', '@automata/3d', '@automata/3d/figures'],
     })
   })
 

@@ -1,0 +1,12 @@
+# Reaching out: the right hand before the shoulder, the chest leaning and turning into it.
+
+about = "Reaching out with the right hand before the shoulder, the chest leaning into it."
+
+[effectors.handR]
+pos = [ -0.1275, 1.1114, 0.5 ]
+
+[poles.elbowR]
+dir = [ -0.7, -0.5, -0.5 ]
+
+[fk]
+chest = [ 6.8755, 6.8755, 0 ]

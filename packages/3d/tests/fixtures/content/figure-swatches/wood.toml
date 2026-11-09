@@ -1,0 +1,6 @@
+# `wood`, a fixture.
+# Colour: DUEL ramp 12 (mud), step 3 (#725a51).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "mud"
+step = 3

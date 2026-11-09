@@ -1,19 +1,16 @@
 // Which files of a build are the site's pages, and the address each one is served at.
 import { readdirSync } from 'node:fs'
-import { REDIRECTS, redirectFile } from '../../src/features/redirects/redirects.ts'
 import { SITE_ORIGIN } from '../../src/shared/site.js'
 
 /** Folders the site copies in from the framework as built: the demo bundles and the playground (frame pages, runtime). */
 const FRAMEWORK_TREES = ['demos/', 'playground/', 'editor/app/']
 export const fromFramework = (path: string) => FRAMEWORK_TREES.some((tree) => path.startsWith(tree))
-// The cut pages' redirects are not pages: no header, no canonical, and never in the sitemap.
-const REDIRECT_FILES = new Set(Object.keys(REDIRECTS).map(redirectFile))
 
-/** The prerendered pages of a build: every HTML file except the framework's trees, the redirects and the 404 fallback. */
+/** The prerendered pages of a build: every HTML file except the framework's trees and the 404 page. */
 export function builtPages(root: string): string[] {
   return readdirSync(root, { recursive: true })
     .map(String)
-    .filter((p) => p.endsWith('.html') && !fromFramework(p) && !REDIRECT_FILES.has(p) && p !== '404.html')
+    .filter((p) => p.endsWith('.html') && !fromFramework(p) && p !== '404.html')
     .sort()
 }
 

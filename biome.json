@@ -7,10 +7,10 @@
       "!**/dist",
       "!docs/archive",
       "!**/out",
+      "!spikes",
       "!**/__goldens__",
       "!tooling/api-index/fixtures",
       "!packages/editor-3d/src/testing/fixtures",
-      "!games/base-3d/src/content/generated",
       "!**/*.af2d.json",
       "!games/emberwick/content/generated",
       "!examples/2d/content/hot-reload/content/generated",
@@ -26,6 +26,22 @@
     {
       "includes": ["packages/sim/**"],
       "linter": { "rules": { "style": { "useExponentiationOperator": "off" } } }
+    },
+    {
+      "includes": [
+        "extensions/narrative/**",
+        "extensions/puzzle/**",
+        "extensions/systems/**",
+        "extensions/cutscenes/**",
+        "extensions/editors/src/features/schematic/**",
+        "extensions/editors/tests/unit/schematic/**",
+        "extensions/level-2d/src/testing/**"
+      ],
+      "linter": { "rules": { "suspicious": { "noThenProperty": "off" } } }
+    },
+    {
+      "includes": ["extensions/**/*.svelte"],
+      "linter": { "rules": { "correctness": { "noUnusedVariables": "off", "noUnusedImports": "off" } } }
     }
   ]
 }

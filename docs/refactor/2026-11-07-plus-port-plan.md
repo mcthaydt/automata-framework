@@ -1,0 +1,703 @@
+# Automata Plus as framework extensions: implementation plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:executing-plans (Native). AF's rule is no subagents, so
+> subagent-driven-development is not used. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Port every Automata Plus package except the starter into `mcthaydt/automata-framework` as `extensions/<name>`
+(Node tools under `tooling/` where they import no extension), on the framework's house rules, with `@automata/sectors`
+as the level's sim side and `@automata/cutscenes` as scripted scenes in place of what the 3D plan's tasks 7.1 and 7.4
+would have written.
+
+**Architecture:** Plus comes in with its history (`git subtree add`), then each package is renamed, laid out by feature
+with tests in `tests/`, and put on the framework's own checks. Part A needs nothing from the 3D build; part B moves
+`sectors` and `cutscenes` onto the 3D slice's `af-sector/2` and timeline as those land; part C closes the publish set
+and the tracking.
+
+**Tech Stack:** TypeScript 7.0.2, pnpm 10.34.6 workspaces, turbo, vitest 5.0.3 (node, jsdom and browser projects),
+Svelte 5.57.1, Koota, Zod, Rapier deterministic-compat, Colyseus, Effect (Node tools only), changesets.
+
+**Spec:** [2026-11-07-plus-port-spec.md](2026-11-07-plus-port-spec.md). The audit: [2026-11-07-plus-audit.md](2026-11-07-plus-audit.md).
+
+**Source:** `mcthaydt/automata-plus` `main` at `1766c622` (2026-11-01). "Plus" below means that commit.
+
+## Global Constraints
+
+- Names are `@automata/<name>`; the server is `@automata/net-server`, the kit `@automata/ui-screens` (spec 4).
+- Core is never imported by `dependencies`: `workspace:^` in `peerDependencies`, `workspace:*` in `devDependencies`.
+- Every manifest says `"license": "MIT"`; every package has `"imports": { "#src/*": "./src/*" }`.
+- Core never imports an extension (`--no-extension-imports packages games/emberwick`).
+- No Effect in an extension a page loads; only `net-server` and `pipelines` import `effect` (spec P-D8).
+- `src/` is `app/`, `features/<x>/`, `shared/`, `entries/`, `testing/`; tests in `tests/`, `#src/…` imports, one
+  `.test.ts` suffix; files kebab-case, role-suffixed, at most 600 lines.
+- Comments say why; no plan IDs, no source-project names (the provenance file holds where code came from).
+- Sim rules: no wall clock, no `Math.random`, only the allowed `Math` members, `sortedKeys`/`sortedEntries`, no `**`.
+- A sim hash or golden never changes in this port. A change is investigated and its cause reverted, never re-recorded.
+- No exemption (`--skip-dir`, an allow-list entry) is added for an extension to pass a check.
+- Copy a player sees passes the drunk grandma test: could a drunk grandma tell what is happening and what to press?
+- Pins follow the framework: `svelte` 5.57.1, `vite` 8.3.3, `typescript` 7.0.2, `vitest` 5.0.3, `zod` as the root pins it.
+- Before every commit: `pnpm format`, then `pnpm check` (the lefthook hook runs Biome and affected tests; commit in the
+  background, it takes minutes). After an export or doc-comment change in a published package: `pnpm build`,
+  `pnpm api-report --update`, `pnpm api-index --write`, then `pnpm agent-skills` (a check: it has no `--write`).
+- WebKit and Firefox are not installable in cloud sessions: record Chromium results and list the other two as pending
+  for the Owner's Mac (`pnpm ci:local`), never as passed.
+
+## Review Focus
+
+1. **A level the clinic's TOML could not have held** (a pit by flag, a sloped floor) reaching `resolveLevel`: a pit is
+   somewhere Wick falls (no floor under it), and a slope the sim cannot walk yet is reported as a `LevelProblem`
+   naming the room, not silently read as flat. Tests in task 3.2.
+2. **A cutscene sampled outside its keys or naming a lamp, door or prop the level lacks:** the director holds the end
+   values and the lint names the missing piece; nothing throws mid-scene. Tests in task 3.3.
+3. **`feel` under a stalled tab** (the clock jumps seconds between frames): the plain-TypeScript `frameNow` returns the
+   same values the Effect version did for the same clock readings, including the clamp. Test in task 2.3.
+4. **A `gates.json` written by an older pipelines run** (the keyed shape with `pending`) in a game folder: the
+   editor's review desk says the file is from an older version and to run the pipeline again, instead of a schema
+   dump; the pipelines read the old file once and write the new shape on their next save. Tests in task 2.7.
+5. **A game that lists an extension whose sibling it needs is missing** (`systems` without `nav`): building the game
+   fails and names the missing one (`requires` is already on `ExtensionDef`); it does not boot half-wired. Test in
+   task 2.6.
+
+---
+
+## Part A: the house (no 3D dependency)
+
+## Phase 1: Plus in the workspace, green (PR `claude/plus-import`)
+
+### Task 1.1: Import with history, names and manifests
+
+**Files:**
+- Create (by subtree): `plus-import/**` (temporary), then by `git mv`: `extensions/{physics,feel,audio-synth,debug,
+  puzzle,net,net-ui,sectors,nav,cutscenes,narrative,systems}` from `plus-import/packages/<same>`,
+  `extensions/net-server` from `plus-import/packages/server`, `extensions/ui-screens` from
+  `plus-import/kits/ui-screens`, `extensions/pipelines` from `plus-import/tooling/pipelines`, `tooling/dev-tools` from
+  `plus-import/packages/dev-tools`
+- Delete: the rest of `plus-import/` (starter, `tooling/{core,boundary,ci}`, `docs/`, `.github/`, root files, every
+  `.vitest/` folder, every `scripts/register-ts.mjs` and `scripts/ts-resolve.mjs`; the `convert-adventure-*.ts`
+  scripts go in task 2.6 with the source names)
+- Modify: `pnpm-workspace.yaml` (`extensions/*`, `tooling/dev-tools` is already covered by `tooling/*`), every moved
+  `package.json`, `tsconfig.json`, `vitest.config.ts`; every source import of a core name (audit C2's table);
+  the eight `*.content.ts` files (`@automata/content/schema`, audit C4)
+- Test: `tooling/repo-hygiene/tests/unit/extension-manifests.test.ts`,
+  `tooling/repo-hygiene/src/extension-manifests.ts`
+
+**Interfaces:**
+- Produces: `extensionManifestProblems(root: string): string[]` (one sentence per problem, naming the file); the
+  package names of spec 4.
+
+- [ ] **Step 1: Write the failing test** over real folders and a temporary fixture tree:
+
+```ts
+it('every extension is @automata/<folder>, MIT, with #src imports', () => {
+  expect(extensionManifestProblems(repoRoot)).toEqual([])
+})
+it('refuses core in dependencies', () => {
+  expect(extensionManifestProblems(fixture({ dependencies: { '@automata/sim': 'workspace:*' } })))
+    .toEqual(['extensions/x/package.json: @automata/sim is core, so it belongs in peerDependencies'])
+})
+it('refuses an old scope', () => {
+  expect(extensionManifestProblems(fixture({ name: '@mcthaydt/automata-x' }))[0]).toMatch(/@automata\/x/)
+})
+```
+
+  The folder-to-name map has one exception, `net-server`; the core set is `@automata/{framework,tools,sim,content,3d,
+  evidence}`.
+- [ ] **Step 2:** `pnpm --filter @automata/repo-hygiene exec vitest run extension-manifests` → FAIL (no module).
+- [ ] **Step 3:** `git fetch --depth=1000 https://github.com/mcthaydt/automata-plus.git 1766c622` then
+  `git subtree add --prefix plus-import FETCH_HEAD` (if the proxy refuses the pack: `--squash`, logged). Then the
+  `git mv`s and deletes above, in one commit `chore(extensions): bring Automata Plus in with its history`.
+- [ ] **Step 4:** Rename, core names first: they follow audit C2's table (`-runtime`, `-ui`, `-game`, `-testing` → `@automata/framework[/extension|/testing]`,
+  `-testing/sim/*` → `@automata/sim/testing/*`, `-sector-format` → `@automata/3d/level`, `@mcthaydt/evidence` →
+  `@automata/evidence`, `-check-boundaries` → the root's bin), by a one-off script in the session scratchpad. Only then
+  `node tooling/codemods/src/rename-scope-cli.ts` for Plus's own names (`@mcthaydt/automata-<x>` → `@automata/<x>`; run
+  first, it would turn `-runtime` into a package that does not exist), and `-server` → `net-server`,
+  `-kit-ui-screens` → `ui-screens` by hand. Manifests: peers `workspace:^`, dev `workspace:*`, the
+  `#src/*` import map, pins from the root. The eight content files import `defineContentSchema` from
+  `@automata/content/schema`.
+- [ ] **Step 5:** `grep -rn "@mcthaydt/" extensions tooling/dev-tools` → nothing; `pnpm install`; the test passes;
+  `pnpm typecheck` passes for every extension (a `-node` import in `pipelines` or `dev-tools` is replaced in task 2.7;
+  until then those two keep compiling by a local `node-seams.ts` copied from Plus's use of `Files` and `ProcessRunner`,
+  plain Node `fs` and `child_process` behind the same names). **Commit** `refactor(extensions): Plus's packages as
+  @automata/<name>`
+
+### Task 1.2: The names the framework dropped (P-D7)
+
+**Files:**
+- Modify: `packages/automata/src/entries/extension.ts` (types `UiComponent`, `UiSlotName` from
+  `shared/ui/slots/ui-slot.ts`), `packages/automata/src/entries/ui.ts` (the root's UI part, where the other status
+  components are: `default as ErrorPanel` from `shared/ui/status/ErrorPanel.svelte`, `type ErrorAction` from
+  `shared/ui/status/error-panel.ts`, `default as SettingsScreen` from `app/screens/settings/SettingsScreen.svelte`,
+  `type SettingsTab` from `app/screens/settings/settings-screen.ts`; not `game.ts`, which `index.ts` does not
+  re-export), `.changeset/extension-ui-names.md`
+- Test: `packages/automata/tests/unit/entries/extension-names.test.ts`
+
+**Interfaces:**
+- Produces: `import type { UiComponent, UiSlotName } from '@automata/framework/extension'`;
+  `import { ErrorPanel, SettingsScreen, type ErrorAction, type SettingsTab } from '@automata/framework'`.
+
+- [ ] **Step 1: Failing test:** `expectTypeOf<ExtensionDef['ui']>().toEqualTypeOf<{ slots?: Partial<Record<UiSlotName,
+  UiComponent>> } | undefined>()` importing both from the extension entry, and `expect(typeof ErrorPanel).toBe('function')`
+  from the root. (Match the declared shape of `ExtensionDef.ui` as the API report shows it.)
+- [ ] **Step 2:** FAIL (not exported). **Step 3:** the exports, the changeset (`patch` per `check-changesets`),
+  `pnpm build && pnpm api-report --update && pnpm api-index --write && pnpm agent-skills`.
+- [ ] **Step 4:** PASS; `extensions/debug` and `extensions/ui-screens` typecheck on these names. **Commit**
+  `feat(framework): export the UI names extensions build on`
+
+### Task 1.3: "Core never imports an extension" and the checks over `extensions/`
+
+**Files:**
+- Create: `packages/tools/src/features/boundaries/extensions.ts`
+- Modify: `packages/tools/src/features/boundaries/cli.ts` (the `--no-extension-imports <root>...` flag), root
+  `package.json` (`boundaries`, `style`, `test:unit:2d|3d`, `test:browser:2d|3d|affected` filters), `knip.jsonc`
+  (`extensions/*`), `turbo.json` if a task needs the new folder, `.github/workflows/3d.yml` (`"extensions/**"` in
+  the pull-request paths, so a change to a 3D-dependent extension runs the 3D suites), `.github/workflows/ci.yml` (the
+  parity scope's `^(packages|tooling|examples|games|docs)/` gains `extensions`, so an extension change runs affected
+  parity, not the full set; workflow changes need no Owner sign-off since 2026-10-31), `AGENTS.md` ("Packages and features": extensions live in
+  `extensions/<name>`, opt in, and core never imports one), `.changeset/no-extension-imports.md`
+- Test: `packages/tools/tests/unit/boundaries/extensions.test.ts`
+
+**Interfaces:**
+- Produces: `extensionImportFindings(roots: readonly string[], extensionNames: ReadonlySet<string>): Finding[]`
+  (`Finding` from `check.ts`); extension names are read from `extensions/*/package.json`. It is `forbid.ts`'s
+  `forbidFindings(root, [...extensionNames])` per root, with its own rule name and message ("core never imports an
+  extension: <specifier>"), so type-only imports count and a name in a string does not, as for `--forbid`.
+
+- [ ] **Step 1: Failing tests:**
+
+```ts
+it('finds core importing an extension', () => {
+  expect(extensionImportFindings([fixture('packages/a/src/x.ts', "import '@automata/physics/2d'")],
+    new Set(['@automata/physics']))).toHaveLength(1)
+})
+it('lets a game other than the listed roots use an extension', () => { /* games/demo not in roots → [] */ })
+it('sees a type-only import and a dynamic import', () => { /* both found */ })
+```
+
+- [ ] **Step 2:** FAIL. **Step 3:** implement over `forbidFindings` (which reads imports with `imports.ts`). Wire into the
+  root: sim roots for each extension's current sim folders (Plus's `src/sim`, `physics/src`), `--features extensions/*`
+  is added per package in phase 2 as each moves (not now: the flat layout would pass vacuously), `--platform-imports`
+  gains `extensions`, `--forbid extensions/<x>:effect` for every extension but `net-server` and `pipelines` added in the
+  task that removes the extension's Effect (2.3, 2.4; the rest now), `--no-extension-imports packages games/emberwick`.
+  The six extensions on `@automata/3d` (`sectors`, `nav`, `cutscenes`, `narrative`, `systems`, and `pipelines`, which
+  imports four of them) go in the `:3d` test filters and out of the `:2d` and `:affected` ones.
+- [ ] **Step 4:** PASS; `pnpm boundaries` exits 0. **Commit** `feat(tools): core never imports an extension`
+
+### Task 1.4: The gate on the old layout
+
+- [ ] **Step 1:** `pnpm check` → exit 0. Record per package: unit test count (Plus's section 3 counts minus the
+  starter's 45 and `tooling/{core,boundary,ci}`'s 181 are the floor: 1,816).
+- [ ] **Step 2:** In every extension with a browser project: `pnpm exec vitest run --project 'browsers (chromium)'`
+  (or `'layout (chromium)'` for `ui-screens`, `net-ui`) → the counts of the audit's "Browser run" table minus the
+  starter. The eight parity files' goldens are byte-identical to Plus's (`git diff --stat 1766c622 --` over the golden
+  JSON finds nothing once paths are mapped; the build writes the path map into the log).
+- [ ] **Step 3:** Execution-log row with the counts, Chromium only, WebKit and Firefox pending. **Commit**
+  `docs(refactor): Plus port phase 1 gate`
+
+## Phase 2: each package on the house rules (PRs `claude/plus-house-<group>`)
+
+Every task here follows the same moves, written once:
+
+1. Add the package's rows to `docs/refactor/move-map-plus.json` (feature folders as the task lists them; `entries/`
+   one file per `exports` key; `testing/` for published fixtures), dry run
+   `node tooling/codemods/src/move-modules-cli.ts --map docs/refactor/move-map-plus.json --dry-run` until it lists
+   nothing unmapped and no clash, then for real.
+2. Tests: `node tooling/codemods/src/cli.ts extensions/<x> --environment node|jsdom --browser-folders
+   --feature-folders --dry-run`, then for real; golden and content fixtures to `tests/fixtures/` by hand in the same
+   commit.
+3. Root: `--features extensions/<x>`, the sim roots at their new paths, `style --plan-comments` and `--test-imports`
+   for `extensions/<x>`.
+4. Comments: `node tooling/check-style/src/cli.ts --plan-comments extensions/<x>/src` → 0; `pnpm source-names` → 0
+   (every source name becomes a row in `docs/provenance/sources.md`'s "Extensions" section: package, file, source
+   repository and commit as Plus recorded it, and "ported from `mcthaydt/automata-plus` at `1766c622`").
+5. Verify: the package's unit count unchanged, its Chromium browser and parity suites pass, goldens byte-identical,
+   `pnpm check` green. The log row lists the counts.
+
+### Task 2.1: The style rule learns factories
+
+**Files:** Modify `tooling/check-style/src/style.ts`. Test `tooling/check-style/tests/unit/style-factories.test.ts`.
+
+- [ ] **Step 1: Failing tests:** a `cutscenes.plugin.ts` exporting `function createCutscenes(o: Options) { return
+  definePlugin({…}) }` gives no "role-missing"; one exporting `createCutscenes` that returns something else still gives
+  "role-missing"; a `.plugin.ts` exporting a `define*` result directly stays fine.
+- [ ] **Step 2:** FAIL. **Step 3:** a role file may export `create<Name>` functions whose return statements are calls
+  to that role's `define*` (`.plugin.ts` → `definePlugin`, and so on). **Step 4:** PASS; over Plus's `src/` the 19
+  role-missing findings of audit L3 become 0. **Commit** `feat(check-style): a role file may export a factory`
+
+### Task 2.2: `physics` and `puzzle`
+
+- **physics:** `features/2d/`, `features/3d/` (each with its `sim` files), `shared/` (the deterministic-compat loader,
+  the common schema), `entries/{2d,3d}.ts`; `automata.simEntries` `["./2d", "./3d"]` unchanged.
+- **puzzle:** `features/{rules,solver}/`, `features/rules/sim/`, `testing/` (the converted puzzles and scene pipes),
+  `entries/{index,sim,solver}.ts`.
+- [ ] The five moves above. **Commit** `refactor(extensions): physics and puzzle by feature`
+
+### Task 2.3: `feel` without Effect; `audio-synth` and `debug`
+
+**Files:**
+- Modify: `extensions/feel/src/feel.ts` → `features/frame/feel.ts` (plain TypeScript), `feel.extension.ts`,
+  `extensions/feel/package.json` (drop `effect`)
+- Test: `extensions/feel/tests/unit/frame/feel-clock.test.ts`
+
+**Interfaces:**
+- Consumes: `Clock` from `@automata/framework` (`now(): number`), `fakeClock()` from `@automata/framework/testing`.
+- Produces: `createFeel(options: FeelOptions): Feel` as today, `FeelOptions` gaining `clock: Clock`;
+  `Feel.frameNow(drawnTick: number, alpha: number): FeelFrame` (was `Effect.Effect<FeelFrame>`, reading
+  `Clock.currentTimeMillis`; both are milliseconds); every other `Feel` member keeps its signature.
+
+- [ ] **Step 1: Failing test** (Review Focus 3): record `frameNow` outputs from the Effect version over a scripted
+  clock (steps of 16 ms, then a 5 s stall, then 16 ms) into `tests/fixtures/feel-clock.json` **before** changing code;
+  the test asserts the plain version returns the same frames for the same `fakeClock` readings.
+- [ ] **Step 2:** the test fails to compile against the new signature. **Step 3:** rewrite with `clock.now()`; callers
+  in `debug` and `audio-synth` pass the clock they already get from the runtime. `--forbid extensions/feel:effect`.
+- [ ] **Step 4:** PASS. Then the five moves for `feel` (`features/{frame,dynamics}/`), `audio-synth`
+  (`features/{synth,measure,render}/`, `entries/{index,measure,render,browser}.ts`), `debug` (`features/{panels,
+  overlay,vite}/`). `debug`'s overlay words pass the grandma test (listed in the log). **Commit**
+  `refactor(extensions): feel without Effect; feel, audio-synth and debug by feature`
+
+### Task 2.4: `net` without Effect in the page; `net-ui`, `net-server`
+
+**Files:**
+- Modify: `extensions/net/src/client/{net-room,room-store,net-error}.ts`, `session/make-net-session.ts`,
+  `client/net-port.ts` (its comment: `net` owns its port; audit E3), `config/net.schema.ts` (target-neutral words;
+  audit P3); `extensions/net-server/src/**` origin config (P3)
+- Test: the existing tests of those files, moved by the mover; `extensions/net/tests/unit/client/net-errors.test.ts`
+
+**Interfaces:**
+- Produces: `NetRoom` and `RoomStore` methods return `Promise<T>` or plain values where they returned `Effect`;
+  `NetError` becomes `class NetError extends Error { readonly name = 'NetError'; readonly code: NetErrorCode; readonly
+  operation: string }` (today's fields from `Data.TaggedError('NetError')`, `NET_ERROR_CODES` from
+  `wire/server-message.schema.ts` unchanged, so `net-ui` and `net-server` read the same codes). `net-server` keeps
+  Effect.
+
+- [ ] **Step 1: Failing test:** every error path the Effect tests covered rejects with the same `code` and
+  `operation` through the promise API (table-driven from `net-error.test.ts` and the `net-room-*.test.ts` cases).
+- [ ] **Step 2:** FAIL. **Step 3:** rewrite; timers through an injected `Clock`. `--forbid extensions/net:effect`.
+  `net.schema.ts` says the server URL must be allowed by the game's target (each target's network setting), naming no
+  one target; `net-server` takes allowed origins from its config list, with the Ruken game origin as one possible entry,
+  not the only one.
+- [ ] **Step 4:** PASS (net's 376 and server's 437 unit tests carried). Then the five moves: `net`
+  (`features/{client,session,wire,interpolation}/`, `features/wire/sim/`, `testing/`), `net-ui`
+  (`features/{status,lobby}/`), `net-server` (`features/{room,gates,operations}/`, `app/` for the bin). `net-ui`'s words
+  pass the grandma test (listed). **Commit** `refactor(extensions): net without Effect in the page; net, net-ui and
+  net-server by feature`
+
+### Task 2.5: `ui-screens` as a package
+
+**Files:** Modify `extensions/ui-screens/{package.json,README.md}` (exports one entry per screen and `.` for all;
+README: add the package, import a screen; copy a screen's folder to change it); delete `kit.json` and the
+`automata add` words; the kit's tests move.
+
+- [ ] **Step 1: Failing test** `extensions/ui-screens/tests/unit/entries.test.ts`: each screen imports from
+  `@automata/ui-screens/<screen>`; `grep -rn "automata add" extensions/ui-screens` → nothing (asserted in the test by
+  reading the README).
+- [ ] **Step 2:** FAIL. **Step 3:** exports and README. **Step 4:** PASS; the layout suite (550 + 1 skipped) passes in
+  Chromium; every screen's words pass the grandma test (listed). The 19 review images under Plus's
+  `docs/evidence/owner-visual/product6-ui-screens-kit/` are not ported (they show the old theme); new ones are made by
+  the layout suite's own screenshots after DUEL lands (3D task 5.2). The five moves. **Commit**
+  `refactor(extensions): ui-screens is a package games import`
+
+### Task 2.6: `sectors`, `nav`, `systems`, `narrative`, `cutscenes` by feature (no behaviour change)
+
+- Layouts: `sectors` `features/{level,colliders}/` (each with `sim/`), `entries/{index,sim,physics}.ts`; `nav`
+  `features/{graph,route}/sim/`; `systems` `features/{agents,probes,bots}/`; `narrative` `features/{dialogue,
+  storylets,tools}/`; `cutscenes` `features/{script,lint}/`, `features/script/sim/`, `features/play/` (until 3.3).
+- The `convert-adventure-*.ts` scripts and their outputs' source names go: the converted fixtures stay as fixtures;
+  the provenance rows say where they were converted from.
+- **Test (Review Focus 5):** `extensions/systems/tests/unit/extension/requires.test.ts`: `systemsExtension` already
+  says `requires: ['sectors', 'nav', 'puzzle']`; a game built with `defineGame` (which calls the internal
+  `resolveExtensions`, `app/define-game.ts`) over `[systemsExtension, sectorsExtension, puzzleExtension]` throws an
+  `ExtensionError` with `reason: 'missing'`, `names: ['systems', 'nav']` and the message `missing: systems, nav`.
+  Assert on the error's fields through the public `defineGame`; add no core export.
+- [ ] The five moves for each; all nine Plus parity files (eight after the cut) unchanged. **Commit**
+  `refactor(extensions): the level, nav, systems, narrative and cutscenes by feature`
+
+### Task 2.7: `pipelines` without blockout, on the editor's gate shape; `dev-tools`
+
+**Files:**
+- Delete: `extensions/pipelines/src/blockout.*.ts`, the `automata-blockout-import` bin, the blockout stage in the
+  pipe registry
+- Modify: `packages/editor/package.json` (export `./gate-records` → `src/features/suite/node/gate-records.schema.ts`),
+  `gate-records.schema.ts` (its comment: the editor owns this shape and the pipelines write it; "The pipelines platform
+  owns the real shape (the Plus pipelines) and replaces this when it lands" goes),
+  `packages/editor/src/features/suite/node/gates-reader.ts` (an older keyed file rejects, as every unreadable records
+  file does, but with the words the review desk shows after "Gates not readable: ": "`<path>` was saved by an older
+  version of the pipelines. Run the pipeline again to update it."),
+  `extensions/pipelines/src/{state.schema.ts,run-state.ts}` (`gates.json` read and written in the editor's shape,
+  below), `extensions/pipelines/package.json` (`@automata/editor` `workspace:*` in `dependencies`: both are private,
+  and the manifest rule's core set does not name the editor), `node-seams.ts` → the package's own
+  `shared/node/{files,process}.ts`
+- Test: `extensions/pipelines/tests/unit/gates/gates-file.test.ts`,
+  `packages/editor/tests/unit/suite/node/gates-reader.test.ts` (one new case)
+
+The pipelines also read `gates.json` back (`run-state.ts` line 110, `gateFileSchema`, a keyed `strict` record), so
+the file changes shape on both sides at once. Each record keeps every field the pipelines need (`stage`, `files`,
+`summary`, `note`, `requestedAt`, `by`); the editor's `z.object` ignores keys it does not know, so they ride along in
+the one file. Inside the pipelines a decision stays `pending`; only the file says `open`.
+
+**Interfaces:**
+- Consumes: `gateRecordsSchema`, `type GateRecord as EditorGateRecord` from `@automata/editor/gate-records`.
+- Produces (in `state.schema.ts`): `type GateFileRecord = EditorGateRecord & Omit<GateRecord, 'id' | 'decision' |
+  'decidedAt'>` (the pipelines' own `GateRecord` is unchanged in memory); `gateFileSchema: z.ZodType<{ readonly gates:
+  readonly GateFileRecord[] }>`, strict on the pipelines' side; `readGates(json: unknown): Record<string, GateRecord>`
+  (the new shape, or once the old keyed one, `open` read as `pending`); `save` writes `{ gates: [...] }` sorted by
+  `id`, `pending` written as `open`.
+
+- [ ] **Step 1: Failing tests:** the written file parses with the editor's `gateRecordsSchema`; a `pending` gate is
+  written `open` and reads back into the run as `pending`; a run's `stage`, `files` and `by` survive a save and a read;
+  (Review Focus 4) the pipelines read an old keyed file and their next save writes the array; the editor's reader given
+  the old keyed file rejects with the older-version words, not a Zod dump.
+- [ ] **Step 2:** FAIL. **Step 3:** implement; the blockout deletes (and with them the last
+  `@automata/3d/level/blockout` import, which 3D 4.1 already removed from core); `dev-tools` moves to
+  `tooling/dev-tools` with its own seams. **Step 4:** PASS (pipelines' 235 unit tests minus the blockout ones, counted in the log). The five moves for
+  `pipelines` (`features/{audio,narrative,nav,puzzle,systems,gates,mcp}/`, `app/` for the bins) and `dev-tools`.
+  **Commit** `refactor(extensions): pipelines without blockout, writing the editor's gate file`
+
+### Task 2.8: The framework's side and the record
+
+**Files:** Modify `tooling/examples-runner/src/catalog.ts` (`EXTENSION_MODULES`, tier `extension`,
+`EXTENSION_PACKAGES` = the published extensions of spec 4; `PLUS_MODULES`' `post` is not an extension and goes
+unless an example uses it), `tooling/versions/src/stack.ts` (the card points at `extensions/physics`, its tier `'Plus'`
+becomes `'Extension'`, and `workspace()` reads `extensions/*` as it reads `packages/*`, so the pin check sees the
+extensions' pins), `docs/provenance/sources.md` (the "Extensions" section complete), `README.md` (one paragraph:
+what is in `extensions/`). Tests: the catalog's and stack's existing tests, updated first to the new words.
+
+- [ ] **Step 1:** update the catalog and stack tests to expect `extension` and the real list → FAIL. **Step 2:**
+  implement → PASS. **Step 3:** `grep -rni "automata-plus\|plus module" packages tooling site agents --include=*.ts`
+  → only provenance and history. **Commit** `chore(extensions): the catalog, the stack card and provenance name the
+  extensions`
+
+---
+
+## Part B: with the 3D build
+
+Starts per task when the 3D task it names has merged into this branch's base (rebase onto the 3D build's latest).
+
+### Task 3.1: `@automata/3d/timeline` (after 3D 6.3)
+
+**Files:** Create `packages/3d/src/entries/timeline.ts` (re-exports `shared/timeline`'s `Key`, `Ease`, `Mix`,
+`Track`, `sample`, `parseEase`, `track`, and `easeSchema`, the Zod schema of `Ease`, exported from
+`shared/timeline/ease.ts` if 6.3 left it file-private as `clip.schema.ts`'s `ease` is today); modify
+`packages/3d/package.json` (`exports["./timeline"]`, and `automata.simEntries` becomes `["./sim", "./level",
+"./timeline"]`: `cutscenes`' schema is a sim file and imports `easeSchema`) and the root `boundaries` script
+(`packages/3d/src/shared/timeline` joins the sim list, so the entry a sim may import passes the sim rules). Test
+`packages/3d/tests/unit/entries/timeline-entry.test.ts` (each name importable; the entry's import graph reaches only
+`shared/timeline`).
+
+- [ ] Failing test, FAIL, implement, PASS; `pnpm boundaries` exits 0. **Commit** `feat(3d): the timeline is an entry`
+
+### Task 3.2: `sectors` reads `af-sector/2` (after 3D 7.1)
+
+**Files:**
+- Create: `extensions/sectors/scripts/convert-sector-map.ts` (run once, deleted in the same commit after its output is
+  checked in), `extensions/sectors/tests/fixtures/clinic.af-sector.json`
+- Modify: `features/level/sim/resolve.ts` (`resolveMap(map: SectorMap)` → `resolveLevel(level: AfSector2)`), the
+  checks (`sector-map.schema.ts`'s loop and id checks become `checkLevel`, now `LevelProblem[]` from
+  `@automata/3d/level`), the plugin's loader (reads `*.af-sector.json` through `readLevel`),
+  `testing/clinic.ts` (`clinicMap()` reads the JSON; `clinicResolved()` and its `ResolvedFixture` stay)
+
+What the clinic needs from `/2`: it uses `zone` on every sector, three `masses`, and on its walls `cut` and `hideFrom`
+(besides `thick`, `trimDepth`, `trimTexture`, `handrail`, `frame`, doors and windows, which `/1`'s `AfWall` already
+keeps). `/1` has no `zone` and no `masses`, and its `AfWall` is `Omit<WallDef, 'hideFrom' | 'cut'>`. The 3D build's
+7.1 adds them to `/2` (spec 9, row 7.1); if 7.1 has merged without them, this task adds them to
+`af-sector-2.schema.ts` first, with a migration test, and records it. They are never dropped by the converter: a
+resolved map that lost its cuts or masses is a different map.
+- Delete: `sector-map.content.ts`, `sector-map.schema.ts`, `load-sector-map.ts`, `clinic.sector-map.toml`; the same
+  fixtures in `nav`, `systems`, `narrative`, `cutscenes` switch to the JSON
+- Test: `extensions/sectors/tests/unit/level/resolve-level.test.ts`
+
+**Interfaces:**
+- Consumes: `AfSector2`, `readLevel`, `LevelProblem` (3D 7.1).
+- Produces: `resolveLevel(level: AfSector2): ResolvedMap`; `checkLevel(level: AfSector2): LevelProblem[]`; the queries
+  and resource keep their names (`sectorAt`, `InSector`, `resolvedMap`). `Sector` gains `pit: boolean`; `floorAt(p)` is
+  `undefined` over a pit, as it is outside the map; a plane floor is read by its `z`.
+
+- [ ] **Step 1: Failing tests:**
+
+```ts
+// resolve-level.test.ts runs today's resolve.test.ts cases (sectors, loops and edges in order; points within 1e-12;
+// colliders; masses) on resolveLevel(readLevel(clinicJson).level) against clinicResolved(), the fixture's own
+// field-by-field form: ResolvedMap holds functions (sectorAt, floorAt, segmentBlocked), so a deep-equal cannot work.
+it('keeps the clinic’s cuts, zones and masses through /2', () => {
+  const level = readLevel(clinicJson).level
+  expect(level.sectors.map((s) => s.zone)).toEqual(clinicMap().sectors.map((s) => s.zone))
+  expect(level.masses).toHaveLength(3)
+})
+it('a pit is where the floor ends', () => { /* Review Focus 1: pit: true → sector.pit, floorAt(inside) undefined */ })
+it('reports a sloped floor instead of reading it flat', () => {
+  // Review Focus 1: floor { z: 0, slope: [0.1, 0] } → problems contain { code: 'sloped-floor', where: 'ramp' }
+})
+it('reports a level it cannot resolve as a LevelProblem, without throwing', () => { /* a wall's next names no room */ })
+```
+
+- [ ] **Step 2:** FAIL. **Step 3:** run the converter on `clinic.sector-map.toml`, check the JSON in, delete the
+  converter, then implement. **Step 4:** PASS; every parity golden in `sectors`, `nav`, `systems`, `narrative`,
+  `cutscenes` byte-identical. **Commit** `feat(sectors): the level's sim side reads af-sector/2`
+
+### Task 3.3: `cutscenes` takes the director (after 3D 6.3, 7.2 and 7.4 as shrunk)
+
+**Files:**
+- Create: `extensions/cutscenes/src/features/director/{director.ts,scene-state.ts,sequence.ts}`,
+  `extensions/cutscenes/tests/fixtures/frames.json` (Plus's `evaluate` frames of the four converted scripts every
+  0.1 s, written **before** any code changes, by a one-off script in the session scratchpad)
+- Modify: `features/script/sim/cutscene.schema.ts` (gains `doors`, `time`, `grade` and `props` tracks and cues
+  `{ at: number; who: string; clip: string }`; its own `Ease`, `EASES` and ease enum go for `easeSchema` from
+  `@automata/3d/timeline`), the four fixtures' 13 `ease = "out"` keys (below), the lints (`lint.ts` reads the
+  director instead of `evaluate`; a track naming a piece the level lacks)
+- Delete: `features/play/evaluate.ts` and its eases; the `./play` export (its one reader is `lint.ts`)
+- Test: `extensions/cutscenes/tests/unit/director/*.test.ts`
+
+Two easings meet here and must not change a frame. Plus's `in` is `t²`, `out` is `t(2 − t)`, and a key with no ease is
+`smooth` (`t²(3 − 2t)`); AF's `in`, `out` are CSS's curves and no ease is linear. So: a cutscene key with no ease
+compiles to `smooth` (the cutscene schema's documented default, unlike a clip's); `smooth` and `linear` are the same
+functions on both sides; the 13 `out` keys in the four fixtures become the exact quadratic as a cubic-bezier,
+`[1/3, 2/3, 2/3, 1]` written as decimals (none uses `in`; its equivalent is `[1/3, 0, 2/3, 1/3]`); a camera key's
+`cut: true` compiles to `step`. The director keeps every rule of `evaluate` that is not key lookup and easing: facing
+switches half way, the shake and shiver sines, flicker windows, fades, prop states and how long each has held.
+
+**Interfaces:**
+- Consumes: `Track`, `Mix`, `sample`, `Ease`, `easeSchema` (3.1); `PieceStates`, `LampState`, `PropState` from
+  `@automata/3d` (3D 7.4 shrunk); `LintWorld` (today's, built from the resolved level of 3.2) for the lints.
+- Produces: `createDirector(script: PlacedScript, startClip: (who: string, clip: string, atTick: number) => void):
+  Director` (`PlacedScript` from `placeScript`, as `evaluate` takes today); `Director.stateAt(t: number): SceneState`;
+  `SceneState extends PieceStates { camera: { pos: V3; look: V3; fov: number }; actors: Record<string, ActorFrame>;
+  caption: Caption | null; flicker: boolean; fade: number; done: boolean; states: string[]; held: Record<string,
+  number>; time: string; grade: string }`: every `CutsceneFrame` member under its name, with `light` now the
+  `lamps` of `PieceStates`.
+
+- [ ] **Step 1: Failing tests** (the 3D plan's 7.4 cases, moved, plus Review Focus 2):
+
+```ts
+it('a state at t comes from the keys alone', () => {
+  expect(createDirector(script, noop).stateAt(1.5)).toEqual(createDirector(script, noop).stateAt(1.5))
+})
+it('a cue starts its clip at its tick', () => {
+  const calls: unknown[] = []; const d = createDirector(cueAt(2, 'wick', 'reach'), (...a) => calls.push(a))
+  d.stateAt(1.9); expect(calls).toEqual([]); d.stateAt(2); expect(calls).toEqual([['wick', 'reach', 2]])
+})
+it('holds the last values after the last key and the first before the first', () => { /* t = -1, t = end + 5 */ })
+it('plays the four scripts as before', () => {
+  // every frame of tests/fixtures/frames.json: numbers within 1e-9, everything else equal
+})
+it('lints a door the level lacks, by name', () => {
+  expect(lintCutscene(withDoorTrack('door-9'), clinicWorld)).toContainEqual(expect.objectContaining({ name: 'door-9' }))
+})
+```
+
+- [ ] **Step 2:** FAIL. **Step 3:** implement; the sim plugin is unchanged. **Step 4:** PASS; the four converted
+  fixtures' sim hashes unchanged; `lintCutscenes` gives the same findings on them as before (recorded with the
+  frames); `grep -rn "type Ease\b" packages/3d/src extensions` → only
+  `packages/3d/src/shared/timeline/ease.ts`. **Commit** `feat(cutscenes): scripted scenes on the one timeline`
+
+### Task 3.4: The base 3D game reads its level through `sectors` (after 3.2)
+
+**Files:** Modify `games/base-3d/package.json` (`@automata/sectors`), `games/base-3d/src/content/levels/sector-area.ts`
+(today `areaFromSector` reads the file's sectors itself into the `AreaSource` boxes the game's systems collide with;
+it becomes `areaFromResolved(map: ResolvedMap, options: SectorAreaOptions): AreaSource`, its room and wall boxes from
+`resolveLevel(readLevel(file).level)`'s sectors, edges and pits), `src/content/room.ts`. The systems (`area.ts`,
+`hero.ts`) keep reading `AreaSource`: the sectors plugin and its Rapier colliders are not wired in, which would change
+how Wick moves. Test: `sector-area.test.ts` (unchanged cases), base-3d's golden replay.
+
+- [ ] **Step 1:** record the golden replay hash before. **Step 2:** switch. **Step 3:** `pnpm --filter
+  @af-games/base-3d test:unit` and the golden replay → same hash. If it differs: stop, revert, and record both readings'
+  difference in the log for the build audit (never re-record). **Commit** `refactor(base-3d): the sim reads its level
+  through sectors`
+
+### Task 3.5: `examples/3d/cutscene.ts` (after 3.3 and 3D 12.1)
+
+**Files:** Create `examples/3d/cutscene.ts` (`// --- <role> ---` sections; a door opens, a lamp warms, Wick reaches);
+modify `examples/3d/README.md`, the runner's list. Test `examples/3d/e2e/cutscene.e2e.ts` (boots, reaches ready, the
+door's state after the scene is open).
+
+- [ ] Failing journey, FAIL, implement, PASS in Chromium. **Commit** `feat(examples): a cutscene in 3D`
+
+---
+
+
+### Task 3.6: `@automata/character-kit` (after 3D 7.6)
+
+**Files:** create `extensions/character-kit/` (`src/features/{garments,hair,seats}/`, `src/entries/index.ts`,
+`character-kit.extension.ts`, `tests/`); `examples/3d/wardrobe/` (the streetwear example) registers its kinds next to
+the kit's.
+
+**Interfaces:** consumes `registerGarment`, `registerHairPiece`, `registerFinish`, `registerFabric`, `profiles`,
+`girth`, `Pose`, `Track` from `@automata/3d/figures`; produces `characterKitExtension` (registers the eight garment
+kinds, the eight hair pieces, the extra finishes and the `figure-seat` kind) and `seated(...)`.
+
+- [x] **Step 1: Failing tests:** `a figure in a skirt fails with "No garment called skirt" without the kit and builds
+  with it`; `a style with a bun builds only with the kit`; `the base pair and Wick are the same with or without the kit`
+  (mesh equality); the ported goldens for the kit's kinds.
+- [x] **Step 2:** FAIL. **Step 3:** the move from the 3D commit, then the refactor: R4 (one `fall`), one schema file per
+  piece kind beside its builder, no piece kind known by name outside its own file. **Step 4:** PASS; 3D's goldens
+  unchanged. Grandma test on the kit's README. **Commit** `feat(character-kit): clothes, hairstyles and seats for 3D figures`
+
+### Task 3.7: `@automata/world-kit`: props, furnishing, signs, maps (after 3D 7.3 and 7.5)
+
+> **Amended 2026-11-07 20:01** (the Owner at 19:58: "The base M and F figure should be in 3D though, base interior and
+> exterior too"; 3D PR #464 carries the updated scope trim). 3D core keeps the base pair, the base interior and
+> exterior, the generators table, bin, lamp, streetLamp and tree with the swatches those scenes use, and the sky and
+> its horizon. So this kit adds the *dressed* base scenes (`base-interior-dressed` with the waiting-room kit,
+> `base-exterior-dressed` with the street kit) built from core's `BASE_SCENES`, and does not carry those five
+> generators or the base swatches. 3D 7.3 is in PR #463 (commit `78e0ca7f` and the project files `af-world-kit-source/`
+> hold the source that left `packages/3d`: dresser, kit schema, `props.json`, `swatches.json`); a room with `dress`
+> reports `needs-extension` with the name `world-kit`.
+
+**Files:** create `extensions/world-kit/` (`src/features/{props,furnish,lettering,maps}/`, `library/{props,kits,
+swatches,glyphs}.json`, `library/maps/*.af-sector.json`, `scripts/convert-builder-maps.ts`).
+
+**Interfaces:** consumes `registerPropGenerator`, `buildWorld`, `WorldLibrary`, `AfSector2`, the level geometry; produces
+`worldKitExtension`, `worldKitLibrary: WorldLibrary` (merged by the game with its own), `dressLevel(level, library,
+seed): AfSector2` (writes `props` and removes `dress`, so core draws it), `generateMap(name: 'apartment' | 'block',
+seed): AfSector2`, the `world-kit` content kind.
+
+- [x] **Step 1: Failing tests** (from 3D 7.3's): `dressing is deterministic and every piece has an id`; `an unknown kit
+  leaves the room bare and reports it`; `every library entry parses`; `apartment@1 and block@1 generate valid /2
+  levels`; `a dressed level draws with core alone once dressLevel has run`.
+- [x] **Step 2:** FAIL. **Step 3:** the move from `78e0ca7f` and the uncommitted dresser, then the refactor: generators
+  registered through the registry (R2), lettering's word list and shop kinds as library data, not code. **Step 4:**
+  PASS. **Commit** `feat(world-kit): ready-made props, furnished rooms, signs and generated maps`
+
+### Task 3.8: `@automata/world-kit`: textures, checks and the sky (after 3.7 and 3D 8.2)
+
+> **Amended 2026-11-07 20:01:** the sky stays in 3D core, so there is no `skyPass` here: this task adds the stars, rain
+> and bloom passes only.
+
+**Files:** `extensions/world-kit/src/features/{textures,reads,sky}/`, `assets/photos/` (with each credit), the tiles
+(generated, committed, each with its photo's sha-256), the bin `automata-world-textures`, the passes as GLSL + WGSL
+pairs.
+
+**Interfaces:** `photoToTile(png, knobs)` (from 3D 9.1's interface), `checkReads(level, library): LevelProblem[]` and
+`readsAgainst(figure, room, camera)` (from 9.2 and 16.3), `skyPass`, `starsPass`, `rainPass`, `bloomPass` added with
+`addLookPass`.
+
+- [x] **Step 1: Failing tests:** 3D 9.1's and 9.2's tests, plus `rain is drawn only when the kit's pass is added` and
+  a Chromium check of each pass (WebGL2; the WebGPU twin of each shader is written but has no adapter here).
+- [x] **Step 2:** FAIL. **Step 3:** the port and the refactor (one tile format shared with the swatch library).
+  **Step 4:** PASS in Chromium; WebKit and Firefox pending for the Owner's Mac. **Commit** `feat(world-kit): photo
+  textures, the library's checks, and sky, stars and rain`
+
+### Task 3.9: The kits' examples (after 3.6 to 3.8 and 3D 12.1)
+
+`examples/3d/{figures-hair,figures-wardrobe,world-furnished-room,world-generated-map}.ts`, each booting to ready in
+Chromium. **Commit** `feat(examples): the character and world kits`
+
+
+## Part C: closing
+
+### Task 4.1: The publish set
+
+**Files:** Modify `.changeset/config.json` (`fixed` gains `@automata/{physics,feel,audio-synth,debug,puzzle,net,
+net-ui,net-server,ui-screens}`), those nine manifests (`"private"` removed, `publishConfig` as core's,
+`version` as the group's), `.changeset/extensions-public.md`, `tooling/release/src/publishable-packages.ts` (`GROUPS`
+gains `extensions`: it lists the folders by hand, and `check-changesets`, `api-index`'s entry points and the
+consumer smoke all find packages through it). Tests: `tooling/release/tests/unit/publishable-packages.test.ts` (expects the nine),
+`pnpm check:changesets`.
+
+- [ ] Failing test, FAIL, implement, PASS; `pnpm build && pnpm api-report --update && pnpm api-index --write && pnpm
+  agent-skills`; the consumer smoke packs the nine (`pnpm test:e2e --filter @automata/consumer-smoke`).
+  **Commit** `chore(release): the free extensions publish with the framework`
+
+### Task 4.2: Tracking and handover
+
+- [ ] `docs/refactor/plus-progress.md`: stage 4 done with counts; execution log complete;
+  `docs/refactor/2026-11-07-3d-slice-plan.md`'s "Notes from the automata-plus audit" replaced by the rulings of spec 9
+  if the 3D build has not already.
+- [ ] The Owner's list in the PR body: archive `mcthaydt/automata-plus` (and its parked server-deploy branch), WebKit
+  and Firefox parity on the Mac, the release run.
+- [ ] **Commit** `docs(refactor): Plus port build done`
+
+## Phase 5: refactor after the move (3D scope trim, 2026-11-07 19:28)
+
+Added by the Owner's scope trim (`2026-11-07-3d-scope-trim.md` section 6, on PR #462): "a port is also a refactor". Each task lists what changes, not only where code goes. 19 tasks become 27: 3.6 to 3.9 and 5.1 to 5.5.
+
+The port's phase 2 moved most packages without changing them. This phase is the refactor.
+
+### Task 5.1: `sectors` uses core's level geometry (R1; after 3D 7.5)
+
+- [x] **Step 1:** record every sector parity hash and golden. **Step 2:** delete `polygonArea`, `insideSector`,
+  `segmentDistance`, `crossing`, `opening`, `walkBlocker` from `extensions/sectors/src/shared/sim/`; import them from
+  `@automata/3d/level`. **Step 3:** every hash and golden byte-identical; `pnpm boundaries` green. **Commit**
+  `refactor(sectors): one sector geometry, core's`
+
+### Task 5.2: `ui-screens` keeps only what core lacks (R9)
+
+- [x] **Step 1:** for Title, Pause and Settings, list what the kit's screen does that core's does not, in the log.
+  **Step 2:** a screen with nothing on its list goes (its entry, tests and README line); a screen with something keeps
+  only that, built on core's screen. **Step 3:** layout suite passes; `ui-screens` README says which screens it adds and
+  why. Grandma test on what remains. **Commit** `refactor(ui-screens): only the screens core does not have`
+
+### Task 5.3: One walking test helper (R10)
+
+- [x] `@automata/sectors/testing` exports `stepWith`; `nav` and `systems` import it; counts unchanged. **Commit**
+  `refactor(extensions): one walking helper for the level's tests`
+
+### Task 5.4: Files at the limit, split by responsibility (R11)
+
+- [x] `runner.ts`, `net-room.ts`, `room-engine.ts` each become files with one responsibility apiece (named in the log),
+  every test unchanged and passing. **Commit** `refactor(extensions): one responsibility per file`
+
+### Task 5.5: The refactor's record
+
+- [ ] In `plus-progress.md`, each extension's line counts before and after phase 5 and 3.6 to 3.8, from `wc -l`, and
+  the findings left open with their reason. **Commit** `docs(extensions): the refactor's record`
+
+## Self-review (writing-plans, 2026-11-07)
+
+- **Spec coverage:** spec 4 → 1.1, 2.2 to 2.7; spec 5 P-D2/P-D3 → 1.1, 4.1; P-D4 → 2.6, 3.2, 3.4; P-D5 → 3.1, 3.3;
+  P-D6 → 2.7; P-D7 → 1.2; P-D8 → 2.3, 2.4; P-D9 → 1.3, 2.1, phase 2's moves; P-D10 → 1.1 (starter), 2.5, 2.7; P-D11 →
+  2.7; spec 6 → 1.3, 2.1, phase 2; spec 7 → 3.1 to 3.4; spec 8 → 1.2, 1.3, 2.7, 2.8, 3.1; spec 9 → the coordinator's
+  hand-off and 4.2; spec 13 → each task's verify step and 1.4.
+- **Gap left on purpose:** spec 7.2's `PieceStates` is made by 3D 7.4 as shrunk (spec 9), not here; if the 3D build
+  has not made it when 3.3 starts, 3.3 makes it in `packages/3d/src/shared/level/piece-states.ts` first.
+- **Types:** `resolveLevel`, `LevelProblem`, `createDirector`, `SceneState extends PieceStates`, `Clock`, `NetError`,
+  `gateRecordsSchema` are named the same in every task that uses them.
+- **Proportion:** the moves are written once (phase 2 preamble) and the code is left to the signatures and tests.
+
+## Stage 3 plan audit (2026-11-07)
+
+Audited with the superpowers plugin (`writing-plans`' self-review checklist) against #457's head (`6ddc3180`), Plus at
+`1766c622` and the 3D plan; the record and its 16 findings are
+[2026-11-07-plus-port-plan-audit.md](2026-11-07-plus-port-plan-audit.md). Every fix is in the tasks above; the build
+reads only this plan and the spec. One fix belongs to the 3D build (its task 7.1 adds `zone`, `masses`, `cut` and
+`hideFrom` to `af-sector/2`; spec section 9), and task 3.2 covers it if 7.1 lands without it.
+
+## Execution log
+
+(The build writes one entry per task: counts, rulings, deviations with evidence.)
+
+| Task | Result |
+| --- | --- |
+| 1.1 | Plus's packages imported as `extensions/<name>` with history (subtree), renamed `@automata/<name>`, manifests normalised. Unit counts: feel 72, net 376, net-server 437, puzzle 43, physics 71, audio-synth 81, sectors 34, net-ui 28, nav 21, narrative 135, debug 64, cutscenes 56, systems 60, ui-screens 40 (41 before: the CLI manifest-schema test read `.core/af`), pipelines 185 (blockout cut), dev-tools 62. |
+| 1.2 | `@automata/framework` exports the UI names extensions build on (`UiComponent`, `UiSlotName`, `ErrorPanel`, `ErrorAction`, `SettingsScreen`, `SettingsTab`). |
+| 1.3 | `boundaries --no-extension-imports`: core never imports an extension; `extension-manifests` check in repo-hygiene; knip, workflows and `AGENTS.md` updated. |
+| 2.1 | `style` accepts a role file that exports a factory under any name (Plus's role files do not all use `create<Name>`). Ruling in the ledger. |
+| 1.4 | `pnpm check` on the old layout: every step green except `@automata/api-report` `committed-reports`, which fails on `3d.api.md` (stale on the 3D build's branch, not this PR's files; the 3D build must run `pnpm api-report --update`). `site` (340) and `examples-runner` (64) pass when run alone (turbo stopped them after the api-report failure). `changeset status` and `check-changesets` (42, 0 problems) pass. Chromium: physics 2, puzzle 1, debug 6, cutscenes 1, narrative 1, nav 2, sectors 2, systems 1 (`browsers`), ui-screens 550 and net-ui 50 (`layout`). The eight parity files' golden hashes are identical to Plus at `1766c622`. WebKit and Firefox: pending, Owner's Mac. |
+| 2.2 | `physics` by feature (`features/{2d,3d}`, `shared/`, `entries/{2d,3d}.ts`; the lazy-load and init-retry tests import the entries by `#src/…`) and `puzzle` (`features/{rules,solver}`, `entries/`; its sim files in `shared/sim/`, because the solver feature reads the interpreter and schemas and a feature may import only itself and `shared/`). Unit counts unchanged (physics 71, puzzle 43); Chromium parity 2 and 1; goldens untouched; comments lost their spec citations. |
+| 2.3 | `feel` without Effect: `frameNow` reads `FeelOptions.clock`; the frames the Effect version produced over a scripted clock (16 ms steps, one 5 s stall) were recorded to `tests/fixtures/feel-clock.json` before the change and the plain version returns the same frames. `effect` is gone from feel's dependencies and `--forbid extensions/feel:effect` holds. `feel` (`features/frame`, `shared/{dynamics,feel.schema}`), `audio-synth` (`features/{synth,measure,render}`, `shared/`, `entries/{index,measure,render,browser}.ts`) and `debug` (`features/{panels,overlay,vite}`, `shared/`) by feature. Counts: feel 73 (72 + the new clock test), audio-synth 81, debug 64 + Chromium 6, pipelines audio pipeline 12. The overlay's words, changed for the drunk grandma test: "Pause sim" → "Pause the game"; "No debug panels." → "This game added no debug panels. Press Close to go back."; "No <x> installed." → "This game has not turned on the <x>." (audio board, network details, game readout, event log, feel board, `<id>` summary); the sim rows "tick, entities, hash, step ms" → "Step count, Things in the game, Game fingerprint, Time per step (ms)". |
+| 2.4 | `net` without Effect: `NetRoom`, `RoomStore` and `NetSession` are plain promises and watchable values (`createNetRoom`, `createRoomStore`, `createNetSession`; `Watchable` replaces `SubscriptionRef`, a `Stopper` over the injected `Clock` replaces the reconnect fibers and `Schedule`, an `AbortSignal` on each intent replaces interruption), `NetError` is a class with the same `code` and `operation`, the tests run on `fakeClock`, `--forbid extensions/net:effect` holds. `net` (`features/client/{room,session,interpolation}`, `shared/{wire,sim,watchable,net.schema}`, `entries/{index,sim,testing}.ts`; session, interpolation and room are one `client` feature because they import each other), `net-server` (`features/{room,gates,operations}`, `shared/`, `app/` for the bin; the version check is split into `shared/game-version` and `features/gates/version-gate`; `SecurityTxt` moved into the game config) and `net-ui` (`features/status`, `shared/{host,net-copy}`, `testing/`) by feature. `net-server` keeps Effect. Its allowed origins come from the config list, with the Ruken game origin one possible entry; `net.schema.ts` names no one target. Counts: net 392 (376 + the stopper and watchable tests + the abort cases), net-server 437, net-ui 28 + 50 Chromium layout tests (WebKit and Firefox pending on the Owner's Mac). `net-ui`'s words already name the cause and the next step ("Could not reconnect. Check your connection, then leave and join again."), so none changed. Every plan, spec and source-project citation in the three packages' comments and test titles was rewritten as the reason. `pipelines`' tsconfig gained the Vite client types, since `feel` reaches the browser package's sources. |
+| 2.5 | `ui-screens` is a package games import: one folder per screen (`features/{title,pause,settings,results,loading,error}`, each reaching only `@automata/framework` and `svelte`, so a copied folder works as it is), one entry per screen (`@automata/ui-screens/<screen>`) and `.` for all six; `kit.json`, its test and the `automata add` words are gone, and the README says to add the package, import a screen and copy a screen's folder to change it (`tests/unit/screens/entries.test.ts` failed first on the missing entries and then asserts the README and manifest). The copy test now copies each screen's folder into a throwaway game and mounts it. Counts: 46 unit, layout suite in Chromium 550 passed + 1 skipped (the review-images writer, which only runs when `VITE_REVIEW_IMAGES` names a folder; WebKit and Firefox pending on the Owner's Mac). The 19 review images were not ported. The screens hold no words of their own (every label is a prop from the game's `ScreensCopy`), so the grandma test applies to core's default English and the game's locale, not to this package. |
+| 2.6 | `sectors`, `nav`, `systems`, `narrative` and `cutscenes` by feature with no behaviour change: no golden hash literal moved (`git diff` over the five packages shows none), and the fixture TOML differs only in its header comment. Layouts: each package's sim is `shared/sim/` (sectors' physics colliders stay in `shared/sim/physics/`, because the determinism checker lets a sim file import only inside its own sim root), content and extension wiring are one feature per package (`features/{level,graph,agents,dialogue,script}`), `systems` also `features/bots`, `narrative` also `features/tools` (its `beats` and `help` schemas are in `shared/` because the content kinds and the tools both read them), `cutscenes` also `features/play` (the preview and the lint, which calls it); entries `entries/{index,sim,…}.ts` keep every package export path. `systems`' `watch.ts` is split into `watch.resource.ts` and `watch.plugin.ts` (the role-suffix rule). `extensions/systems/tests/unit/extension/requires.test.ts` asserts `defineGame` over `[systems, sectors, puzzle]` throws `ExtensionError` with `reason: 'missing'`, `names: ['systems', 'nav']` and `missing: systems, nav`; it describes behaviour that already held, so it passed on its first run. Counts: sectors 34 + 2 in Chromium, nav 21 + 2, systems 61 + 1 (60 + the new test), narrative 135 + 1, cutscenes 56 + 1 (WebKit and Firefox pending on the Owner's Mac). Every plan, spec, test-code and source-project citation in the five packages' comments, test titles and fixture headers was rewritten as the reason; the converted fixtures say only that they were converted once from an earlier game, and `docs/provenance/sources.md` keeps the origin. |
+| 2.7 | `pipelines` writes `gates.json` in the editor's shape and moves by feature; `dev-tools` keeps its seams and moves its tests to `tests/`. The blockout stage, its bin and its registry row were already gone (the 3D build removed the last import), and `dev-tools` was already `tooling/dev-tools`. Gates: `@automata/editor/gate-records` is now a real entry (`src/entries/gate-records.ts`, the plan said the schema file), the editor's reader rejects a keyed file with "`<path>` was saved by an older version of the pipelines. Run the pipeline again to update it." (red first: the test saw a Zod message), and the pipelines' own `shared/gates-file.ts` reads the new `{ gates: [...] }` or, once, the keyed file, and writes the array sorted by `id` with `pending` as `open`; `stage`, `files`, `summary`, `note`, `requestedAt`, `decidedAt` and `by` ride along, and the editor's schema ignores the keys it does not know. `tests/unit/shared/gates-file.test.ts` failed first on the missing `gateFileOf`, then passes (5 tests: the editor's `gateRecordsSchema` accepts the file, `pending` is written `open` and read back, the extra keys survive, the old keyed file is read and the next save writes the array, an unknown key is refused). Layout: `shared/` holds the engine (runner, run state, stage cache, budget, router, audit, redaction, gates file, `node/files.ts` and `node/process.ts` split from `node-seams.ts`), `features/{audio,narrative,puzzle,systems,mcp}` one per pipeline plus the MCP server with its review flow, `app/` the bins, registry and entry wiring, `entries/index.ts` the one export; the plan's `gates` feature has no code of its own (the file is written by the runner, so it is shared) and there is no `nav` pipeline to move. The four `*.pipeline.ts` files are `*-pipeline.ts` (the role-suffix rule knows no `pipeline` role), `PIPE_POLICIES` and `FileStatus` moved to `shared/` because two features used them. Counts: pipelines 190 unit tests (185 moved + 5 new; the bin tests run Node on the sources, the audio tests run headless Chromium from `/opt/pw-browsers`), `dev-tools` 62, editor suite 311; `boundaries --features`, `style` (plan-comment rule over `src`), `knip`, `lint`, `source-names` and `check:changesets` are clean. Every plan, spec and source-project citation in the pipelines' comments and test titles was rewritten as the reason. No changeset: both packages are private. |
+| 2.8 | The catalog, the stack page and the record name the extensions. `readCatalog` reads `packages/` and `extensions/` (`packagesDirs`), `PLUS_MODULES` is `EXTENSION_MODULES` (`physics`, `net`, `feel`; `post` was no extension and nothing used it), the header tier `plus` is `extension` (the header, the catalog and the playground's catalog type; `Tier: plus` is now refused), and `EXTENSION_PACKAGES` lists the nine published extensions of spec 4. An extension counts as public only once its manifest is not `private`, as for any package, so only `physics`, `net` and `net-server` are importable by an example today; the other six join when the publish set does (4.1). The stack page's `workspace()` reads `extensions/*`, its tier is `Core` or `Extension`, and the `elsewhere` card kind is gone, since no library is held in another repository now. There was no physics card in `stack-cards.ts` (it left with Plus), so a Rapier card is added from the installed packages and `docs/stack.md` is regenerated. Red first: stack tests (extension reads, `Extension` tier, planned package found in an extension), catalog tests (extension fixtures in their own folder, `Tier: extension`) and the header test (`plus` refused) failed before the changes. The pin check now sees `extensions/` too, which was the gap behind the plan's "the pin check sees the extensions' pins": it failed on nine unrecorded pins (`@colyseus/{core,schema,sdk,testing,tools,ws-transport}`, `@dimforge/rapier{2d,3d}-deterministic-compat`, `@modelcontextprotocol/sdk`), now rows in `docs/versions.md`, and on `svelte` `^5.57.1` peers of the private `debug`, `net-ui` and `ui-screens`, now exact `5.57.1` until 4.1 makes them published (then the caret floor is right again). The provenance section already lists all sixteen packages (it was written in 1.1), so no row changed; the README gained an `extensions/` row; two stale comments in the release tests no longer name Plus. Counts: versions 34, examples-runner 65 (1 skipped), site 340, repo-hygiene 109, release 61 (7 skipped); `pnpm lint`, `typecheck`, `boundaries`, `style`, `source-names`, `knip` and `check:changesets` are clean. No changeset: only private packages and tooling changed. |
+| 3.1 | `@automata/3d/timeline` is an entry (`src/entries/timeline.ts`: `Key`, `Ease`, `Mix`, `Track`, `sample`, `parseEase`, `track`, `easeSchema`; 3D 6.3 had already exported `easeSchema` from `shared/timeline/ease.ts`, so nothing moved), declared in `exports` and in `automata.simEntries`, and `packages/3d/src/shared/timeline` joins the `boundaries` sim list; the timeline passes the sim rules as it stands. Red first: `tests/unit/entries/timeline-entry.test.ts` failed on the missing entry, then passes (4 tests: the names, the entry is the shared timeline, a sampled track holds its end values, and the import graph reaches only `shared/timeline` and Zod). `pnpm boundaries`, `lint`, `typecheck`, `style`, `knip` and `check:changesets` are clean; `@automata/3d` is private, so no changeset or API report. |
+| 4.1 | The nine extensions (`physics`, `puzzle`, `feel`, `audio-synth`, `debug`, `net`, `net-server`, `net-ui`, `ui-screens`) are in the publish set: `publishable-packages.ts` reads `extensions/` too, `.changeset/config.json`'s fixed group names them (one version, 0.0.5) and `.changeset/extensions-public.md` is their changeset. Each manifest is public (MIT, `files:["dist"]`, npmjs `publishConfig`, `publishConfig.exports` into `./dist/`); the plain packages build with `publishedBuild` (tsdown), the three Svelte ones with `svelte-package` plus `finish-svelte-dist.ts`. The release-list tests expect 13 names and pass over source (61 pass, 7 dist-only skipped) and over `dist` (`AF_CHECK_DIST=1`, 68 pass). `api-index --write` asked for a doc comment on 304 exports across the nine; every one now has one (1171 exports, 0 undocumented), and the cheatsheet and the agent reference are regenerated. `pnpm api-report --update` wrote the same six reports (it covers `packages/` only). `format`, `lint`, `typecheck`, `boundaries`, `style`, `source-names`, `knip`, `check:changesets` and the consumer smoke (`pnpm test:e2e --filter @automata/consumer-smoke`, 1 passed) are green. Rulings: extensions have no API report (the tool reads `packages/`; the cheatsheet and agent reference carry their API); `puzzle`'s `./testing/*` and `audio-synth`'s `./package.json` are workspace-only exports; `@sveltejs/package` and `@sveltejs/vite-plugin-svelte` are devDependencies of the three Svelte extensions; physics moves from the GitHub registry to npmjs; svelte peers are caret ranges. Pending (not run here): the release run and a real publish are the Owner's. |
+| 3.2 | `sectors` reads `af-sector/2` (3D 7.1 and 7.2 are in this branch's base; 7.1 already carries `zone`, `pit`, `masses`, `cut` and `hideFrom`, so nothing was added to the schema). `resolveLevel(level)` replaces `resolveMap`, `checkLevel(level): LevelProblem[]` replaces `sectorMapSchema`'s loop and id checks (codes `duplicate-id`, `short-loop`, `zero-wall`, `wall-crossing`, `unknown-portal`, `sloped-floor`, `sloped-ceiling`; nothing throws), and `readSectorMap(json)` is the door (`readLevel` plus `checkLevel`). `Sector` gains `pit` and `floorAt` is undefined over a pit. The clinic is `clinic.af-sector.json`, converted once from the TOML by a script that was deleted with the TOML, the `sector-map` content kind and its test. `nav`, `narrative`, `cutscenes` and `systems` read the JSON through `readSectorMap`. Unit counts: sectors 44, nav 21, systems 61, narrative 135, cutscenes 56; the clinic's resolution passes the same field-by-field comparisons against `clinic.resolved.json`. **Hashes moved, and why:** the five sectors-dependent goldens (sectors twice, nav, systems, narrative) changed, with every events hash unchanged. A snapshot's header carries a hash of each resource's schema, and the sector-map resource's schema is now `af-sector/2`'s. Proof that nothing else moved: with the header's schema hash zeroed, the walkers' state hashes to the same six values every 100 steps, with and without colliders, on the commit before the port and on this one; `tests/unit/shared/sim/state-bytes.test.ts` pins them. The four goldens were re-recorded in this commit (sectors `30613a36313dd477`, physics `38fff211d9c79335`; nav `32aa557695d03488`; systems `8ec637bd430ca3de`; narrative `ef100aa9197a622f`) and pass in Node and Chromium; WebKit and Firefox are pending on the Mac. Rulings: the spec's "goldens do not move" holds for state and events, not for the header's schema hash; a plane that is only a height is stored as the bare number (`loadSectorMap`), so the stored state is what it was; `zone` is optional in `/2`, so a room that names none is its own zone (`zone: id`); a sloped ceiling is reported as `sloped-ceiling` as the floor is, because reading it flat is the same fault; `@automata/content` and `smol-toml` leave `sectors`' dependencies. The pit, the readSectorMap and the check tests were written after the code, not before. | **Stage 6 (I2):** the plan's constraint ("a sim hash or golden never changes in this port") was the Owner's, and 3.2 re-recorded five goldens (`sectors` 2, `nav`, `systems`, `narrative`) because the snapshot header's `schemaHash` hashes the sector-map schema, which is now `af-sector/2`'s. The pin that proves the cause is only the header now exists for all four packages: `tests/unit/shared/sim/state-bytes.test.ts` in `sectors`, `nav`, `systems` and `narrative` hashes the state with the header's schema hash zeroed, every 100 steps of the golden script, against values measured on the commit before `186797c1` (the same test, run there with only the `watch` hook added to the scripts, gave these six values per package). They pass on this branch, so only the header moved. The Owner has not yet been asked about the re-recording; it stands on that proof.
+| 3.4 | **Superseded by the 3D scope trim; the base 3D game stays core-only.** The task was built (`areaFromSector` through `readSectorMap`, `resolveLevel` and a `sectors` dependency; the golden replay hash unchanged; one addition to `sectors`, `Edge.reversed`, for a door measured from the file's start on a clockwise room), and then merge `7e862734` took the other side: `games/base-3d` reads its level with `@automata/3d/level` alone and has no `@automata/sectors` dependency, as the trim's section 1 says ("Ember Hall uses core only, as Emberwick does"). Ruling (stage 6, I1): the merge was right and the plan's 3.4 was wrong; the base game does not depend on `sectors`. `Edge.reversed` stays, because it is right for any reader of a clockwise room, and has its own test in `extensions/sectors/tests/unit/shared/sim/resolve.test.ts`. The clockwise-room test in `games/base-3d` keeps passing on core's reader; its dead first assignment is gone. |
+| 5.2 | `ui-screens` keeps only what core lacks. Per screen, what the kit's did that core's does not: **Title** adds the game's own `extra` actions (with `onAction`, `shortLabel`) and takes focus on Play; it has no save slots, so it stays, built on core's `ScreenFrame` and `ActionBar`. **Pause**: nothing; it is a subset of core's `PausedScreen` (core also has saves, the leaderboard and the reconnect step; mute, settings and the quit confirm are in both). **Settings**: nothing; it only called core's `SettingsScreen` with a `copy` object. **Results**, **Loading**, **Error**: core has none, so they stay. Pause and Settings are removed with their entries (`/pause`, `/settings`), unit and layout tests, review-image fixtures and README lines; a patch changeset says so. ui-screens unit 34 and Chromium layout 400 pass; `svelte-check` is clean. |
+| 5.4 | The three files near the limit are split by responsibility, every test unchanged. `pipelines` `runner.ts` 592 to 127 lines: `run-options.ts` (the command names and `RunOptions`), `run-outcome.ts` (`Done`, `ok`, `asStop`), `run-plan.ts` (which stages a run selects, blocks and executes), `run-stages.ts` (the `run` command and its budget checks), `gate-commands.ts` (approve, reject, request) and `state-commands.ts` (status, estimate, adopt, restore, check); `runner.ts` keeps the dispatch, the lock and the result, and re-exports the types, so no importer changed. `net` `net-room.ts` 588 to 457: `room-api.ts` (the `NetRoom` interface, its options and states, re-exported from `net-room.ts`) and `room-helpers.ts` (`endOf`, `quietly`, `abortable`, `within`); the rest stays in one closure because it is one piece of shared state (generation, transport, token), and splitting that closure would only pass the state around. `net-server` `room-engine.ts` 560 to 542: `bot-roster.ts` (the bots' streams and command numbering, and driving the policy) and `replay-keeper.ts` (the recorder, the packed replay and its restart); the seats, the tick and the phases stay in the engine. Unit: pipelines 190, net 392, net-server 437, all passing. |
+| 5.3 | One walking helper: `@automata/sectors/testing` exports `stepWith` and `Order` (`src/testing/step-with.ts`); the copies in `sectors`' walkers, `nav`'s walk-game and `systems`' ward-game are gone and their tests and scripts import it. Unit counts unchanged (sectors 45, nav 21, systems 61); no hash moved. |
+| 3.3 | `cutscenes` takes the director. Before any code changed the old `evaluate` was run over the four converted scenes (28 scripts, every 0.1 s to 0.5 s past the end, anchors from a fixed stand-in) and `lintCutscenes` over the clinic map, and both were recorded in `tests/fixtures/frames.json` (commit `3c5afe81`). `createDirector(script, startClip).stateAt(t)` returns a `SceneState` (`PieceStates` plus the camera, actors, caption, flicker, fade, done, states, held, time and grade; the old `light` is `lamps`). Every frame of the 28 scripts matches the recording: numbers within 1e-9, everything else equal; the lint findings are the same ones (the two renderer-dependent camera findings and the rest of the baseline). The schema gains `doors`, `time`, `grade`, `props` tracks and `cues`; its `Ease` and `EASES` are gone for `easeSchema` from `@automata/3d/timeline`; no ease means `smooth`, `cut` means `step`, and the 13 `out` keys in the fixtures are `[0.3333333333333333, 0.6666666666666666, 0.6666666666666666, 1]`, the exact `t(2 − t)`. The lint reads the director, and `LintWorld` gains `doors` and `props` (sets, as `lamps` and `sounds` are): a door or prop track naming one the level lacks is an error carrying its `name`; a door, prop, time or grade change counts as something happening for the dead-air rule. Unit 70 (Node), the golden replay in Chromium 1; `boundaries`, `style` and `knip` clean. **Rulings:** (1) the director lives in `shared/director/`, not `features/director/`: the lint feature reads it, and the boundaries rule lets a feature use only its own files and `shared/`; (2) `lint` moved to `features/lint/` (it was the only thing left in `play/`) and the `./play` entry became `./director`, since 3.5 needs the director public; (3) `@automata/3d/timeline` also exports `bracket`, `Timed` and `mixNumber`: an actor's facing, pose and moving flag read the two keys either side of `t`, which `sample` does not return (additive; the entry test grew a line); (4) a camera or actor key with `cut` is a `step` ease and the actor frame then reads as the key before it, as the old code did (red first: the frames fixture caught a stray `y: 0`); (5) a door, lamp or prop appears in the state from its first key on, as lamps did, so a piece with no entry is as built; (6) a cue starts when the scene reaches its `at`, once; a jump starts every cue it passes in time order and a wind-back before a cue lets it start again; the callback's third argument is the cue's `at` in seconds; (7) in a prop track a field moves only when both keys name it, and `hidden` follows the earlier key until the later one is reached. Pending: WebKit and Firefox parity (the Owner's Mac). |
+| 3.6 | `@automata/character-kit` (`extensions/character-kit`, 3D 7.6 merged at `c929983b`). Features `garments` (waistcoat, legs, skirt, apron, coat, belt, gloves, mark: one file each with its item type, schema and builder, `hang.ts` for the tube the skirt, coat and apron share, `register-wardrobe.ts` the one place that lists them), `hair` (scalp, rows, tail, fall, strands, bun, sweep, block, edges: one file each with its data type, schema and builder, and the crown tag it asks for; `register-hair.ts` registers them and the five finishes coil, braid, loc, smooth, curl) and `seats` (`seat.schema.ts`, `seated.ts`, the `figure-seat` content kind); `app/character-kit.extension.ts` loads them and brings the seat kind; entries `.` and `./testing`. **Refactors (R3, R4):** no piece kind is named outside its own file (the old 260-line `buildPiece` switch and its crown-tag list are gone); the old `fall`, which held two shapes in one key, is two pieces: `fall` is loose hair (the `from` shape) and `strands` the older list of locks (the `at` shape), so a style no longer needs a union and the two fixtures that used the old shape (`choppy-layers`, `locs`) say `strands` instead of `fall` (R4 said the older list "becomes `locks`", core's own piece; it cannot, since core's `locks` are boxes on the head and the old list is ropes hung from it, so the geometry would have moved). **Three additive hooks in core, each with its test, no golden moved:** `placeHems(…, follow)` (a seated figure's hem rides the ankle; the old boolean `seated` is gone from core), `HairPiece.crown` may be a function of the piece's data (a fade's tiers are the head's own surface and are not the hair's top, a shell is), and the exports the pieces stand on (`hairParts`, `sideBend`, `sideSign`, `TAU`, the fixture sliders; the API report is updated). **Proof the move lost nothing:** the kit's 11 outfits (every garment and piece, on four bodies) are checked against the recording `dress.json` had in core before 7.6 (`af-character-kit-source/fixtures/dress.json`, taken on the 3D thread's machine): all 24 geometry checks pass at the goldens' 1e-9, in Node and in Chromium (22 browser tests); a fresh recording on this machine differs from it by 1e-13 noise, as core's own committed golden differs from a fresh recording here, so the old entries are the ones committed (`goldens/dress.json`). Wick and the base pair are the same with and without the kit: `tests/fixtures/core-figures.json` was recorded by a script that never loads the kit, and one test file that never loads it and one that does both match it. Counts: kit `src` 2,060 lines against the 2,317 that left core (plus the outfits list), 74 unit tests (the ported bun, loose hair, low pony and seat tests, the new register, piece, crown, strands, content and golden tests), 22 in Chromium; 3D's 1,157 unit tests pass. WebKit and Firefox are pending on the Owner's Mac. Not done and not asked: shipping the eight hairstyles and eight seats as a content library (they are the kit's test fixtures, as they were core's). |
+| 3.7 | `@automata/world-kit` (`extensions/world-kit`, 3D 7.7 merged at `bc204ea2`). Features `props` (the generators by file: furniture, small things, street, nature, signs; `register-props.ts` registers them through `registerPropGenerator`, the one place that lists them), `furnish` (the dresser: `dress.ts`, `context.ts`, `floor-plan.ts`, `furniture.ts`, `fixtures.ts`, `clutter.ts`, the kit schema and the `world-kit` content kind) and `maps` (the plan types, the converter, the apartment and block generators, `generateMap`); `shared/` holds lettering, the turn helpers and the piece helpers; `app/` brings the extension, the library (`worldKitLibrary`, the kit's entries over core's base library) and the dressed base scenes (`base-interior-dressed`, a waiting room; `base-exterior-dressed`, a street), built from core's `BASE_SCENES`. **Refactors (R2):** no generator table in code but one registration loop; the five generators core owns (`table`, `bin`, `lamp`, `streetLamp`, `tree`) were cut from the kit's files; the old `box` generator (a rounded block painted `mat`) is `block`, because core's `box` is a plain primitive painted `swatch` (the converter maps the builder's `box` kind to `block`, `box.toy` and the street's road paint say `block`); lettering's shop kinds and syllables are `library/words.json`, not code; `dressLevel` now takes `dress` off what it dressed, so a dressed level draws with core alone (a room left bare keeps its `dress` and core still says it wants an extension); the street block's middle sector is open to the sky with no wall of its own (it had no wall at all, so core drew an undefined swatch). **Core, additive:** the `@automata/3d/props-kit` entry (mesh primitives, the generator contract and registry, the room plan, `buildWorld`; each name is core's own, a test checks it) and `kitSurfacesSchema` exported; the API report is updated. `generateMap` uses `@automata/sim`'s seeded stream, so a seed makes a different (equally deterministic) apartment than the builder's. **Proof:** 52 unit tests (every preset draws finite, outward-facing meshes with swatches the library has and lights the lamp kit accepts; dressing is deterministic with unique ids for all eight kits; an unknown kit leaves the room bare and says so; every library entry parses and every preset a kit names exists; a base swatch keeps its colour; apartment@1 and block@1 are valid `/2` levels, the same for a seed, different for another, and build with no problems once dressed; the five library maps are exactly what the converter makes of the fixture and build clean; the dressed base scenes keep every hand-placed prop and the cast); 3D's 1,162 unit tests pass. Counts (`wc -l`): kit `src` 3,503 lines in all (the five generator files 1,379 against 1,488 that left core, the dresser 1,161, the maps 719, lettering and the shared helpers 157, `app/` 66), 509 lines of tests, library JSON 2,304 lines (the props file 534 against 583: six presets core owns left). Not run: WebKit and Firefox (no browser test in this kit; the geometry is Node-checked), `pnpm api-index --write` (needs the extensions' builds, which only `release-checks` makes). Textures, checks and the sky passes are 3.8. |
+| 3.8 | `@automata/world-kit`, textures, checks and the sky passes (3D 8.2 merged at `246be0f6`). Features `textures` (the pipeline stages, `photoToTile`, the structure checks, the photo library with credits, the committed tiles with their photos' sha-256, `staleTiles`, `checkReads`, the command), `reads` (`figureReads`, `readsAgainst`) and `sky` (`StarsEffect`, `RainEffect`, `GlowEffect`, `skyLookPasses`, `addSkyPasses`, entry `./sky`); the bin `automata-world-textures [--check] [--out dir]` (entry `./textures`). **Refactors:** one tile format (`Tile`) for the photo pipeline and the swatch library, where the source kept two; the pipeline runs over a decoded PNG with no canvas, so it runs in Node and a tile is the same bytes everywhere; tiles are committed JSON stamped with the photo's hash, so a stale, missing or stray one is an error the command and a unit test report; `checkReads` returns `LevelProblem`s (`swatch-reads`) where the source's script printed; the figure reads take plain pixels; each pass is a GLSL and WGSL pair that lands on whole DUEL steps, added after core's snap through `addLookPass` (a taken name throws `RegistryClash`), each with its own switch. **Rulings:** the sky itself stays in core (the 20:01 amendment), so there is no `skyPass` and no `bloomPass` by that name: the bloom is `GlowEffect`, a stepped ring of lighter DUEL steps within 3 px of what is bright, skipping empty sky (alpha 0) and writing alpha 1 so the result stays on the palette; stars draw only where the depth buffer is empty sky and above 0.06 of elevation, and hold their place when the camera is aimed; rain is depth-tested against the scene, in three layers, and takes the frame clock from Pixi's shared ticker. **Proof:** 92 unit tests (the pipeline is deterministic and gives the same tile for the same PNG and knobs, every committed tile matches its photo's hash, each of the 24 swatches that declare `reads` passes, the command exits 0, 1 or 2, the reads measure agrees with the source's on the same frames) and 6 Chromium tests (a bare frame has none of the kit's effects, adding the passes puts them after the snap and a taken name is refused, stars are DUEL and above the horizon, stars hold their place when aimed, rain falls and moves with the clock, the glow rings what is bright in lighter steps within 3 px). Counts (`wc -l`): kit `src` 5,438 lines in all (3.7's 3,503 plus 1,935 here: textures 1,238, reads 204, sky 416, the entries and the bin 77), tests 1,265 (unit and browser), 62 tiles (812 KB) and 38 photos (2.9 MB). Not run: WebGPU (no adapter in a session), WebKit and Firefox (the Owner's Mac), `pnpm api-index --write` (needs the extensions' builds). |
+| 5.1 | `sectors` uses core's level geometry (3D 7.5, merged in at `cfb9d529`). `queries.ts` is gone (`crossing`, `segmentDistance`, `insideSector`, `polygonArea`) and `pieces.ts` lost `opening` and `walkBlocker`; `resolve.ts` and the tests import them from `@automata/3d/level` (`opening` takes `{ sector, next }` there). `pieceSpans` stays, since core has no equivalent. The arithmetic is the same: the sim's `hypot` is `Math.sqrt(x * x + y * y)`, which is what core writes. Baseline taken first, then after: sectors 45 → 43 unit (the two removed tests, `crossing` and `segmentDistance`, are core's own tests now) and 2 Chromium, nav 21 + 2, systems 61 + 1, narrative 135 + 1, cutscenes 70 + 1; every golden and parity hash passes unchanged (the six state hashes pinned in `state-bytes.test.ts` too). `boundaries`, `style`, `knip` and `lint` clean. `pnpm api-report --update` wrote `3d.api.md` for 3.3's `bracket`, `Timed` and `mixNumber` (additive). `queries.test.ts` is now `map-queries.test.ts`: it tests the map's queries, not the geometry. |
+| 3.5 | Two cutscene examples, not one (`examples/3d/cutscenes/cutscenes-door-and-lamp.ts`, `cutscenes-reach-cue.ts`): the plan's single file did not fit the 100-line budget with a hinged door, a lamp track and a walking figure (145 lines), and the figure's gait is 40 numbers that must be inline. The first builds the base interior with a door in the doorway, asks the director for the scene each tick, turns the door with `updatePieces` and scales the room's light by the lamp's level (`sceneLamps`); the second walks the base man across a floor and a cue at 4 s starts his `reach` clip, the director calling the game's `startClip` once. The sim only counts ticks in both; the director is presentation. Journeys read `data-cutscene`, `data-door`, `data-lamp`, `data-clip` and `data-cues` from the canvas, never a sleep. Red first: both journeys failed with page-not-found before the examples existed. **Rulings:** (1) two examples instead of `cutscene.ts`, file names follow the catalog (`<module>-<name>.ts`); (2) the lamp warms by the environment's intensity, because a baked room would hand the level to the scene light and the example has no baked room. Pending: WebKit and Firefox. |
+| 3.9 | The kits' examples, in three modules because `figures` and `world` are core modules and an extension example has to be `Tier: extension`: `characterkit-wardrobe` (waistcoat, coat, skirt, apron, belt on the base pair), `characterkit-hair` (a bun, braids with a ponytail and cornrows, from behind), `worldkit-furnished-room` (an office dressed by `dressLevel`), `worldkit-generated-map` (the generated apartment, camera framed from its sectors) and `worldkit-sky` (the dressed base street at night with the stars, rain and glow passes). The catalog gained `characterkit` and `worldkit` in `EXTENSION_MODULES` and the three extensions in `EXTENSION_PACKAGES` and `UNPUBLISHED_EXTENSIONS`; `examples/3d/package.json` depends on them; the README has a row each. The character kit needs `figuresExtension` in the game's extensions (found by a page error, `missing: character-kit, figures`). Counts: examples-runner 65 (1 skipped), 19 of 19 journeys of `examples-3d` in Chromium; `format`, `lint`, `style`, `boundaries` and `knip` clean. **Rulings:** (1) module names `characterkit` and `worldkit` instead of the plan's `figures-hair` and `world-furnished-room`; (2) every example holds its gait inline (a `Gait` is about 40 required numbers, grouped in constants): the earlier note that `BASE_PAIR` alone keeps an example under the budget was wrong. Pending: WebKit and Firefox. |
+| 5.5 | The refactor's record is in `plus-progress.md`: line counts of `src` and tests before and after for the thirteen ported extensions (re-measured with `wc -l` after 3.9; `debug` tests 762 and `net-ui` tests 330, one more than the first draft), the two new kits, the examples (625 lines, 213 of journeys), and the findings left open with their reasons. |
+| 4.2 | `plus-progress.md`: stage 4 done, the stage table and the resume section rewritten for the build audit; this log complete. The 3D slice plan's "Notes from the automata-plus audit" already open with the Owner's 15:05 decision and point at spec section 9 (the 3D build folded them in), so this branch leaves that file alone to keep the merge clean. **Ruling:** not replacing the section a second time — the 3D thread owns that file and a rewrite here would conflict with its next merge — cost if wrong: one paragraph of audit notes stays in the 3D plan. The Owner's list is in the PR body. |
+| 6 (I3) | Heavy unit tests do less work instead of waiting longer. `world-kit`: the byte check of the tiles runs for each swatch in its own test (the whole library in one test took 3.2 s) and the command tests use three swatches. `character-kit`: "every outfit is sound" is a test for each outfit, and the platform-stable tests lose their own 90 s. `examples-runner`: the 2D examples are imported while the file is collected, not inside their test (`audio-sound` spent 1.6 s of its 5 on the import). Measured with `turbo run test:unit --concurrency=4` and no timeout flag: every extension passes at the 5 s default except `pipelines` (the bin and acceptance tests start processes) and `ui-screens` (a screen's first Svelte compile), which keep `testTimeout: 90_000` with the reason beside it; the other eleven configs, and `dev-tools`', lost theirs. Core sets none. `turbo.json`'s `test:unit` passes `PLAYWRIGHT_BROWSERS_PATH` through (M11), and `world-kit`'s `test` runs every project (M6). |
+| 6 (I4) | Every `*.extension.ts` of the nine ported extensions that had one in a feature folder is in `app/`, where core keeps its own. A feature folder that held only an extension and a content kind is gone: the content kind moved to `shared/` (`sectors`, `nav`, `cutscenes`, `narrative`, `systems`, `puzzle`), and `cutscenes`' one-file `lint` feature joined `shared/`. Ruling: a package that is one sim and its wiring has no feature folder; `shared/sim/` is the package, `app/` the wiring, and a feature appears only where there is code that is more than a registration (`feel/frame`, `audio-synth/{synth,measure,render}`, `debug/{overlay,panels,vite}`, `systems/bots`, `narrative/tools`, `puzzle/solver`). The tests moved with their files (`tests/unit/app/`, `tests/unit/shared/`). No behaviour changed: every moved package's unit tests pass unchanged. |
+| 6 (I7) | `@automata/3d/props-kit` exports 38 names, down from 48 (it lost `World`, `WorldPiece`, `Params`, `PropFault`, `ResolvedProp`, `TubeOptions`, `Ring`, `Limb`, `Q`, `noise3`, `RegistryClash`, and gained `oklab`, which `world-kit` no longer copies, M1). The rings-to-mesh `tube` is `ringTube`, so `tube` is only the figures' skirt. `props-kit.test.ts` pins the entry's exact names; `api-report --update` written. |
+| 6 (I5) | The cutscene example lights its lamp with core's scene light and no longer scales the room's ambient light. `createPixi3dRenderer({ lighting })` takes the world's own lamps (`sceneLamps`), the `scene` hook's `light` goes to `drawWorld`, and each frame `light.setLevels` hands it the director's lamp level, so only the walls and floor the pendant reaches are rebaked. Core gained one optional field to make that possible, `WorldScene.light`: a piece that cannot move (not a door, a prop or a swaying leaf) is drawn flat and baked, the rest keeps its own material (red first in `world-view.test.ts`: the floor had no vertex colours; the door stayed a lit mesh). Looked at in Chromium: the pendant's warm light falls on the wall behind the door at the end and is absent at the start; the journey passes. `api-report --update` written. |
+| 6 (I6) | A README for each of the thirteen extensions that had none (`physics`, `puzzle`, `feel`, `audio-synth`, `debug`, `net`, `net-ui`, `net-server`, `sectors`, `nav`, `systems`, `narrative`, `cutscenes`), on the kits' pattern: what it is in plain words, how to turn it on (code that names the real exports), what you get, and what happens when a needed extension is missing (the game refuses to start and names it, as `systems/tests/unit/app/requires.test.ts` shows). The root README's `extensions/` row names the two kits, `docs/README.md` has an `extensions/` row, and `docs/status.md` an Extensions line. M10: the character kit's README says its fixtures live in the repository, not in the package. M12: the `net-ui` refusal now reads "This room won't let you in right now. Try another room." |
+| 6 (minors) | **Fixed:** M1 (OKLab is core's, `world-kit` keeps only the way back), M4 (the character kit's goldens are in `tests/fixtures/goldens/`, as core keeps its own), M5 (the map files are `forest-clearing`, `neon-bar` and `street-night`; the level inside keeps its camelCase `name`, and the converter script and the library test name files in kebab-case), M6, M7 (the comment on `UNPUBLISHED_EXTENSIONS` says why the three are private and no longer cites a plan id), M10, M11, M12. **Recorded, not built in an extension:** M2: `sectors`' `check-level.ts` keeps its own `orientation` and `segmentsMeet` beside core's `crossing` and `segmentDistance`; the loop-simplicity check is one any `af-sector/2` reader needs, so it is a request to core for `@automata/3d/level` (one owner of sector geometry), and `sectors` drops its copy when core has it. M3: `world-kit`'s sky passes run on the wall clock (`Ticker.shared`) because core's `LookPass.make(look, time)` passes no frame time, so rain keeps falling under a paused game; it is a request to core for a time input on `LookPass`, and the kit reads it when it exists. M4, second half: both kits' scripts reach `../../packages/3d/scripts/extensionless-ts.ts` by path; a request to core to ship that loader (an `@automata/3d/scripts` entry or bin) so a kit can run its scripts from its own `node_modules`. M7, second half: the catalog sections read `characterkit` and `worldkit` while the packages are `character-kit` and `world-kit`, because the catalog's module rule allows no hyphen; a display name would hide it, and is left until the catalog needs one. M8: `dev-tools` did not get the plan 2.7 moves because every other `tooling/*` package is flat (`src/` with files at the top, tests in `tests/`), and `node-seams.ts` stays where its callers expect it: a ruling that tooling packages stay flat. M9: test-first slipped twice in stage 4 (3.2's pit, reader and check tests; 2.6's `requires.test.ts`); stage 6 wrote each test first and watched it fail for the right reason (`state-bytes`, `props-kit`, `world-view`). |
+| 6 (CI) | CI's unit step ran the `site` tests without the extensions built, so `api-index` (which lists every published package, the nine free extensions among them) stopped with `./dist/index.d.ts does not exist`. `site/turbo.json`'s `build` and `test:unit` now wait for those nine builds, and the site's inputs include `extensions/*/src/**`. The one test that then failed for a true reason was the list of API pages: the site now has a page for each of the thirteen published packages, and `api-pages.test.ts` says so. `turbo run test:unit --filter=@automata/site` passes (340 tests); `pnpm api-index --write`: 1,163 exports from 44 entry points, 0 undocumented. |
+

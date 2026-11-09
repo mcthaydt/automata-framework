@@ -1,0 +1,1194 @@
+{
+  "bedroom": {
+    "name": "A cosy bedroom, lamp-lit at night",
+    "time": "lampLit",
+    "visibility": 7,
+    "sectors": [
+      {
+        "id": "room",
+        "rect": [-3.1, -1.7, 3.1, 1.7],
+        "floor": {
+          "z": 0,
+          "swatch": "oakFloor"
+        },
+        "ceil": {
+          "z": 2.6,
+          "swatch": "ceiling"
+        },
+        "shade": 0,
+        "wall": {
+          "swatch": "wallpaperSage",
+          "skirting": 0.1,
+          "trim": "trimWhite"
+        },
+        "walls": {
+          "0": {
+            "decor": [
+              {
+                "kind": "window",
+                "pos": 0.45,
+                "width": 1.2,
+                "height": 1.15,
+                "sill": 0.95,
+                "glass": "glassNight",
+                "lit": false
+              },
+              {
+                "kind": "door",
+                "pos": 2.6,
+                "width": 0.85,
+                "height": 2.05
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "sprites": [
+      {
+        "use": "rug.red",
+        "with": {
+          "size": [2.4, 1.4]
+        },
+        "at": [0.3, 0.35]
+      },
+      {
+        "use": "bed.single",
+        "at": [-2, -1.08],
+        "angle": -90
+      },
+      {
+        "use": "nightstand",
+        "at": [-0.7, -1.45]
+      },
+      {
+        "use": "lamp.desk",
+        "id": "bedside",
+        "at": [-0.7, -1.45, 0.55]
+      },
+      {
+        "use": "picture.sea",
+        "at": [-2, -1.68, 1.3]
+      },
+      {
+        "use": "curtains.plum",
+        "with": {
+          "width": 1.5,
+          "height": 1.32
+        },
+        "at": [0.45, -1.6, 0.85]
+      },
+      {
+        "use": "bookcase",
+        "with": {
+          "seed": 4
+        },
+        "at": [1.62, -1.52]
+      },
+      {
+        "use": "lamp.floor",
+        "id": "floorLamp",
+        "at": [2.25, -1.25]
+      },
+      {
+        "use": "box.toy",
+        "at": [-2.65, 0.75]
+      },
+      {
+        "use": "plant.fronds",
+        "at": [2.75, 1.15]
+      },
+      {
+        "who": "base-f",
+        "at": [0.25, 0.35],
+        "angle": 90
+      },
+      {
+        "who": "base-m",
+        "at": [-1, 0.75],
+        "angle": 45
+      }
+    ],
+    "views": {
+      "diorama": {
+        "w": 480,
+        "h": 270,
+        "pitch": 18,
+        "at": [0, 1.2, 0]
+      },
+      "topdown": {
+        "w": 480,
+        "h": 330,
+        "pitch": 55,
+        "at": [0, 0.6, 0.55]
+      },
+      "fp": {
+        "at": [2.2, 1.3],
+        "angle": 200,
+        "eye": 1.55
+      }
+    },
+    "paths": {
+      "walk": [[2.4, 1.4], [0.8, 1.2], [-0.6, 1.2], [-2.2, 0.9], [-2.4, -0.2]]
+    },
+    "grime": 0.25,
+    "grade": "warmNight"
+  },
+  "neonBar": {
+    "name": "A neon bar after hours",
+    "time": "bar",
+    "visibility": 6,
+    "sectors": [
+      {
+        "id": "bar",
+        "verts": [[-3.2, -1.8], [3.2, -1.8], [3.2, 0.2], [1, 0.2], [1, 1.8], [-3.2, 1.8]],
+        "floor": {
+          "z": 0,
+          "swatch": "checkerFloor"
+        },
+        "ceil": {
+          "z": 2.8,
+          "swatch": "beamCeiling"
+        },
+        "shade": 0,
+        "wall": {
+          "swatch": "brickDark",
+          "skirting": 0.12,
+          "trim": "trimDark"
+        }
+      },
+      {
+        "id": "hall",
+        "rect": [2.1, -3.6, 3, -1.8],
+        "floor": {
+          "z": 0,
+          "swatch": "checkerFloor"
+        },
+        "ceil": {
+          "z": 2.1,
+          "swatch": "ceiling"
+        },
+        "shade": 2,
+        "wall": {
+          "swatch": "concreteWall",
+          "trim": "trimDark"
+        },
+        "walls": {
+          "0": {
+            "decor": [
+              {
+                "kind": "door",
+                "pos": 2.55,
+                "width": 0.7,
+                "height": 1.95,
+                "swatch": "leatherBlack"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "dais",
+        "rect": [1, 0.2, 3.2, 1.8],
+        "floor": {
+          "z": 0.18,
+          "swatch": "carpetRed"
+        },
+        "ceil": {
+          "z": 2.8,
+          "swatch": "beamCeiling"
+        },
+        "shade": 0,
+        "wall": {
+          "swatch": "brickDark",
+          "lower": "walnut",
+          "trim": "trimDark"
+        }
+      }
+    ],
+    "sprites": [
+      {
+        "use": "ledge",
+        "with": {
+          "width": 2.5
+        },
+        "at": [-0.75, -1.69, 1.42]
+      },
+      {
+        "use": "bottles",
+        "with": {
+          "count": 11,
+          "width": 2.3,
+          "seed": 3
+        },
+        "at": [-0.75, -1.7, 1.44]
+      },
+      {
+        "use": "ledge",
+        "with": {
+          "width": 2.5
+        },
+        "at": [-0.75, -1.69, 1.88]
+      },
+      {
+        "use": "bottles",
+        "with": {
+          "count": 9,
+          "width": 2.2,
+          "seed": 8
+        },
+        "at": [-0.75, -1.7, 1.9]
+      },
+      {
+        "use": "counter.bar",
+        "at": [-0.75, -0.95]
+      },
+      {
+        "use": "neon.bars",
+        "with": {
+          "scale": 0.9
+        },
+        "at": [-0.75, -1.77, 2.06]
+      },
+      {
+        "use": "neon.glass",
+        "id": "glassSign",
+        "with": {
+          "light": {
+            "kind": "neon",
+            "color": "#ff7daf",
+            "flicker": 0.75,
+            "rate": 5
+          }
+        },
+        "at": [1.55, -1.77, 1.15]
+      },
+      {
+        "use": "neon.arrow",
+        "at": [2.55, -1.77, 2.25]
+      },
+      {
+        "use": "poster.pink",
+        "at": [-2.75, -1.78, 1.25]
+      },
+      {
+        "use": "lamp.barPendant",
+        "with": {
+          "height": 1.95,
+          "ceiling": 2.8
+        },
+        "at": [-1.95, -0.95]
+      },
+      {
+        "use": "lamp.barPendant",
+        "with": {
+          "height": 1.95,
+          "ceiling": 2.8
+        },
+        "at": [-0.75, -0.95]
+      },
+      {
+        "use": "lamp.barPendant",
+        "with": {
+          "height": 1.95,
+          "ceiling": 2.8
+        },
+        "at": [0.45, -0.95]
+      },
+      {
+        "use": "stool.bar",
+        "at": [-2, -0.38]
+      },
+      {
+        "use": "stool.bar",
+        "at": [-0.9, -0.38]
+      },
+      {
+        "use": "stool.bar",
+        "at": [0.2, -0.38]
+      },
+      {
+        "use": "lamp.wall",
+        "at": [1.85, -1.8]
+      },
+      {
+        "use": "plant.fronds",
+        "at": [3, -1.4]
+      },
+      {
+        "use": "table.round",
+        "at": [2.2, 0.95],
+        "angle": 90
+      },
+      {
+        "use": "stool.bar",
+        "at": [1.55, 1.2],
+        "with": {
+          "height": 0.5
+        }
+      },
+      {
+        "use": "stool.bar",
+        "at": [2.85, 1.2],
+        "with": {
+          "height": 0.5
+        }
+      },
+      {
+        "use": "lamp.wall",
+        "at": [2.55, -3.55],
+        "angle": 90,
+        "with": {
+          "light": {
+            "kind": "bulb"
+          }
+        }
+      },
+      {
+        "who": "base-m",
+        "at": [-0.4, 0.3],
+        "angle": 90
+      },
+      {
+        "who": "base-f",
+        "at": [1.2, 0.6],
+        "angle": -225
+      }
+    ],
+    "views": {
+      "diorama": {
+        "w": 480,
+        "h": 270,
+        "pitch": 18,
+        "at": [0, 1.3, 0]
+      },
+      "topdown": {
+        "w": 480,
+        "h": 330,
+        "pitch": 55,
+        "at": [0, 0.6, 0.35]
+      },
+      "fp": {
+        "at": [-2.6, 1.4],
+        "angle": 330,
+        "eye": 1.6
+      }
+    },
+    "paths": {
+      "walk": [[-2.8, 1.4], [-1.5, 0.6], [0, 0.5], [1.4, 0], [2.3, -0.6], [2.55, -1.6], [2.55, -2.6]]
+    },
+    "grime": 1.2,
+    "reads": {}
+  },
+  "streetNight": {
+    "name": "A street at night in the rain",
+    "time": {
+      "preset": "night",
+      "rain": {
+        "density": 5,
+        "color": "#8690b2",
+        "splash": "#c7d6ff"
+      }
+    },
+    "visibility": 9,
+    "horizon": [
+      {
+        "kind": "city",
+        "swatch": "#23324d",
+        "height": 0.22,
+        "seed": 4
+      },
+      {
+        "kind": "city",
+        "swatch": "#28335d",
+        "height": 0.12,
+        "seed": 9
+      }
+    ],
+    "sectors": [
+      {
+        "id": "street",
+        "rect": [-14, -1, 14, 2.6],
+        "floor": {
+          "z": 0,
+          "swatch": "asphalt"
+        },
+        "ceil": {
+          "z": 9,
+          "sky": true
+        },
+        "shade": 0
+      },
+      {
+        "id": "north",
+        "verts": [[-14, -2.8], [-3.3, -2.8], [3.2, -2.8], [14, -2.8], [14, -1], [-14, -1]],
+        "floor": {
+          "z": 0.15,
+          "swatch": "sidewalk"
+        },
+        "ceil": {
+          "z": 9,
+          "sky": true
+        },
+        "shade": 0,
+        "wall": {
+          "swatch": "stucco",
+          "lower": "sidewalk",
+          "trim": "trimDark"
+        },
+        "walls": {
+          "0": {
+            "swatch": "brickRed",
+            "trim": "trimWhite",
+            "windows": {
+              "from": 3.7,
+              "rows": 2,
+              "cols": 4,
+              "width": 1,
+              "height": 1.4,
+              "gap": 1.3,
+              "lit": 0.5,
+              "seed": 3
+            },
+            "decor": [
+              {
+                "kind": "shop",
+                "pos": -8.4,
+                "width": 3.2,
+                "height": 1.9,
+                "sill": 0.5,
+                "awning": "awningRed",
+                "interior": "blinds"
+              },
+              {
+                "kind": "door",
+                "pos": -5.6,
+                "width": 1,
+                "height": 2.15
+              },
+              {
+                "kind": "sign",
+                "pos": -8.4,
+                "width": 2.4,
+                "height": 0.42,
+                "sill": 3,
+                "swatch": "signCream"
+              }
+            ]
+          },
+          "1": {
+            "swatch": "stucco",
+            "trim": "trimDark",
+            "windows": {
+              "from": 3.7,
+              "rows": 2,
+              "cols": 3,
+              "width": 1,
+              "height": 1.4,
+              "gap": 1.3,
+              "lit": 0.5,
+              "seed": 11
+            },
+            "decor": [
+              {
+                "kind": "shop",
+                "pos": -1.8,
+                "width": 2.6,
+                "height": 1.9,
+                "sill": 0.5,
+                "awning": "awningTeal",
+                "interior": "plant"
+              },
+              {
+                "kind": "sign",
+                "pos": -1.8,
+                "width": 2,
+                "height": 0.42,
+                "sill": 3,
+                "swatch": "signBlue"
+              }
+            ]
+          },
+          "2": {
+            "swatch": "sidingBlue",
+            "trim": "trimWhite",
+            "windows": {
+              "from": 3.7,
+              "rows": 2,
+              "cols": 4,
+              "width": 1,
+              "height": 1.4,
+              "gap": 1.3,
+              "lit": 0.6,
+              "seed": 5
+            },
+            "decor": [
+              {
+                "kind": "shop",
+                "pos": 6,
+                "width": 3,
+                "height": 1.9,
+                "sill": 0.5,
+                "interior": "curtains"
+              },
+              {
+                "kind": "door",
+                "pos": 9,
+                "width": 1,
+                "height": 2.15
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "south",
+        "rect": [-14, 2.6, 14, 4.6],
+        "floor": {
+          "z": 0.15,
+          "swatch": "sidewalk"
+        },
+        "ceil": {
+          "z": 9,
+          "sky": true
+        },
+        "shade": 0,
+        "wall": {
+          "lower": "sidewalk",
+          "swatch": "brickRed",
+          "trim": "trimWhite"
+        },
+        "walls": {
+          "2": {
+            "swatch": "brickRed",
+            "trim": "trimWhite",
+            "windows": {
+              "from": 0.9,
+              "rows": 3,
+              "cols": 12,
+              "width": 1,
+              "height": 1.3,
+              "gap": 1.5,
+              "lit": 0.45,
+              "seed": 21
+            },
+            "decor": [
+              {
+                "kind": "door",
+                "pos": -4,
+                "width": 1,
+                "height": 2.15
+              },
+              {
+                "kind": "door",
+                "pos": 5,
+                "width": 1,
+                "height": 2.15
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "doorway",
+        "rect": [0.6, -3, 1.6, -2.8],
+        "floor": {
+          "z": 0.15,
+          "swatch": "sidewalk"
+        },
+        "ceil": {
+          "z": 2.4,
+          "swatch": "trimDark"
+        },
+        "shade": 1,
+        "wall": {
+          "swatch": "stucco",
+          "upper": "stucco"
+        }
+      },
+      {
+        "id": "shop",
+        "rect": [-0.6, -6, 3, -3],
+        "floor": {
+          "z": 0.15,
+          "swatch": "tileKitchen"
+        },
+        "ceil": {
+          "z": 3.1,
+          "swatch": "ceiling"
+        },
+        "shade": 0,
+        "wall": {
+          "swatch": "plasterWarm",
+          "skirting": 0.1,
+          "trim": "trimDark"
+        }
+      }
+    ],
+    "sprites": [
+      {
+        "kind": "box",
+        "with": {
+          "size": [1.4, 0.004, 0.12],
+          "mat": "roadPaint",
+          "round": 0
+        },
+        "at": [-6, 0.8]
+      },
+      {
+        "kind": "box",
+        "with": {
+          "size": [1.4, 0.004, 0.12],
+          "mat": "roadPaint",
+          "round": 0
+        },
+        "at": [-3, 0.8]
+      },
+      {
+        "kind": "box",
+        "with": {
+          "size": [1.4, 0.004, 0.12],
+          "mat": "roadPaint",
+          "round": 0
+        },
+        "at": [0, 0.8]
+      },
+      {
+        "kind": "box",
+        "with": {
+          "size": [1.4, 0.004, 0.12],
+          "mat": "roadPaint",
+          "round": 0
+        },
+        "at": [3, 0.8]
+      },
+      {
+        "kind": "box",
+        "with": {
+          "size": [1.4, 0.004, 0.12],
+          "mat": "roadPaint",
+          "round": 0
+        },
+        "at": [6, 0.8]
+      },
+      {
+        "use": "streetLamp",
+        "id": "lampWest",
+        "with": {
+          "light": {
+            "kind": "sodium",
+            "aim": [0, -1, 0.15],
+            "cone": 72,
+            "shaft": true
+          }
+        },
+        "at": [-2.7, -1.5, 0.15]
+      },
+      {
+        "use": "streetLamp",
+        "id": "lampEast",
+        "with": {
+          "light": {
+            "kind": "sodium",
+            "flicker": 0.8,
+            "rate": 4,
+            "aim": [0, -1, 0.15],
+            "cone": 72,
+            "shaft": true
+          }
+        },
+        "at": [3.4, -1.5, 0.15]
+      },
+      {
+        "use": "car.teal",
+        "at": [1.4, -0.1]
+      },
+      {
+        "use": "bin",
+        "at": [-4.4, -2.25, 0.15]
+      },
+      {
+        "use": "bench",
+        "at": [5.4, -2.2, 0.15]
+      },
+      {
+        "use": "crate",
+        "at": [-3.7, -2.3, 0.15],
+        "angle": 75
+      },
+      {
+        "use": "bin",
+        "at": [3.9, 3.7, 0.15]
+      },
+      {
+        "use": "lamp.pendant",
+        "at": [1.2, -4.5],
+        "with": {
+          "height": 2.3,
+          "ceiling": 3.25
+        }
+      },
+      {
+        "use": "bookcase.low",
+        "at": [1.2, -5.8],
+        "angle": 90
+      },
+      {
+        "who": "base-f",
+        "at": [3, 2.3],
+        "angle": 90,
+        "to": [-14, 2.3]
+      },
+      {
+        "who": "base-m",
+        "at": [-2.2, 3.4],
+        "angle": 0
+      },
+      {
+        "use": "manhole",
+        "at": [-3.5, 0.6]
+      }
+    ],
+    "views": {
+      "diorama": {
+        "w": 960,
+        "h": 540,
+        "pitch": 18,
+        "at": [0, 2.45, 0]
+      },
+      "topdown": {
+        "w": 960,
+        "h": 640,
+        "pitch": 55,
+        "at": [0, 0.5, 0]
+      },
+      "fp": {
+        "at": [-6.5, 1.8],
+        "angle": 350,
+        "eye": 1.6
+      }
+    },
+    "paths": {
+      "walk": [
+        [-9, 1.6],
+        [-5, 1.5],
+        [-2.3, 1.1],
+        [-1.4, -1.5],
+        [0.6, -1.9],
+        [1.1, -2.6],
+        [1.1, -3.6],
+        [1.4, -4.6]
+      ]
+    },
+    "grime": 1.3,
+    "grade": "sodium"
+  },
+  "forestClearing": {
+    "name": "A forest clearing by day",
+    "time": "day",
+    "visibility": 0,
+    "horizon": [
+      {
+        "kind": "mountains",
+        "swatch": "#88d6ff",
+        "height": 0.2,
+        "seed": 2
+      },
+      {
+        "kind": "hills",
+        "swatch": "#71957d",
+        "height": 0.11,
+        "seed": 5
+      },
+      {
+        "kind": "trees",
+        "swatch": "#225918",
+        "height": 0.06,
+        "seed": 8
+      }
+    ],
+    "sectors": [
+      {
+        "id": "meadow",
+        "verts": [[-60, -40], [60, -40], [60, 0.2], [-60, 0.2]],
+        "floor": {
+          "z": 0,
+          "swatch": "grass"
+        },
+        "ceil": {
+          "z": 20,
+          "sky": true
+        },
+        "wall": {
+          "none": true
+        }
+      },
+      {
+        "id": "path",
+        "rect": [-60, 0.2, 60, 1.3],
+        "floor": {
+          "z": 0,
+          "swatch": "dirtPath"
+        },
+        "ceil": {
+          "z": 20,
+          "sky": true
+        },
+        "wall": {
+          "none": true
+        }
+      },
+      {
+        "id": "verge",
+        "rect": [-60, 1.3, 60, 40],
+        "floor": {
+          "z": 0,
+          "swatch": "grass"
+        },
+        "ceil": {
+          "z": 20,
+          "sky": true
+        },
+        "wall": {
+          "none": true
+        }
+      }
+    ],
+    "sprites": [
+      {
+        "use": "tree.pine",
+        "with": {
+          "seed": 1,
+          "height": 4.4
+        },
+        "at": [-6.2, -6.2]
+      },
+      {
+        "use": "tree.deep",
+        "with": {
+          "seed": 2,
+          "height": 3.9
+        },
+        "at": [-3.9, -6]
+      },
+      {
+        "use": "tree.pine",
+        "with": {
+          "seed": 3,
+          "height": 4.8
+        },
+        "at": [-1.2, -6.4]
+      },
+      {
+        "use": "tree.deep",
+        "with": {
+          "seed": 4,
+          "height": 3.7
+        },
+        "at": [3, -6.1]
+      },
+      {
+        "use": "tree.pine",
+        "with": {
+          "seed": 5,
+          "height": 4.2
+        },
+        "at": [5.4, -6.3]
+      },
+      {
+        "use": "tree.round",
+        "with": {
+          "seed": 7,
+          "height": 4.6
+        },
+        "at": [-3.6, -2.8]
+      },
+      {
+        "use": "tree.round",
+        "with": {
+          "seed": 9,
+          "height": 4.2
+        },
+        "at": [4.6, -2.4]
+      },
+      {
+        "use": "bush",
+        "with": {
+          "seed": 1
+        },
+        "at": [-1.5, -2.6]
+      },
+      {
+        "use": "bush.small",
+        "with": {
+          "seed": 2
+        },
+        "at": [1.2, -3.4]
+      },
+      {
+        "use": "bush",
+        "with": {
+          "seed": 3
+        },
+        "at": [6, -1.2]
+      },
+      {
+        "use": "rock.boulder",
+        "with": {
+          "seed": 4
+        },
+        "at": [2.3, -1.7]
+      },
+      {
+        "use": "rock",
+        "with": {
+          "seed": 2
+        },
+        "at": [-5.2, 2.9]
+      },
+      {
+        "use": "fence.wood",
+        "with": {
+          "length": 3.4
+        },
+        "at": [-5.4, -1.3]
+      },
+      {
+        "use": "crate",
+        "at": [-4.4, -0.5],
+        "angle": 102
+      },
+      {
+        "use": "barrel",
+        "at": [-3.65, -0.8]
+      },
+      {
+        "use": "tufts",
+        "with": {
+          "area": [12, 1.6],
+          "count": 30,
+          "seed": 3
+        },
+        "at": [0, 2.6]
+      },
+      {
+        "use": "tufts",
+        "with": {
+          "area": [12, 1],
+          "count": 22,
+          "seed": 8
+        },
+        "at": [0, -0.8]
+      },
+      {
+        "who": "base-m",
+        "at": [0.4, 0.75],
+        "angle": 90
+      },
+      {
+        "who": "base-f",
+        "at": [-1.6, 1],
+        "angle": 0
+      }
+    ],
+    "views": {
+      "diorama": {
+        "w": 960,
+        "h": 540,
+        "pitch": 18,
+        "at": [0, 2.3, 0],
+        "clip": -7.2
+      },
+      "topdown": {
+        "w": 960,
+        "h": 640,
+        "pitch": 55,
+        "at": [0, 0.5, -1],
+        "clip": -7.2
+      },
+      "fp": {
+        "at": [-7, 2.6],
+        "angle": 340,
+        "eye": 1.6
+      }
+    },
+    "paths": {
+      "walk": [[-9, 2.8], [-5, 1.8], [-1.5, 0.8], [1.5, -0.6], [3.5, -3.5], [1, -5], [-2, -4]]
+    },
+    "grime": 0.3,
+    "reads": {}
+  },
+  "signs": {
+    "name": "Signage, lettering and machinery (a review wall)",
+    "time": "night",
+    "visibility": 10,
+    "grime": 0.8,
+    "horizon": [
+      {
+        "kind": "city",
+        "swatch": "#23324d",
+        "height": 0.2,
+        "seed": 3
+      }
+    ],
+    "sectors": [
+      {
+        "id": "pavement",
+        "rect": [-6, -2.8, 6, 3],
+        "floor": {
+          "z": 0,
+          "swatch": "sidewalk"
+        },
+        "ceil": {
+          "z": 8,
+          "sky": true
+        },
+        "wall": {
+          "swatch": "brickRed",
+          "trim": "trimWhite",
+          "none": true
+        },
+        "walls": {
+          "0": {
+            "none": false,
+            "swatch": "brickRed",
+            "trim": "trimWhite",
+            "decor": [
+              {
+                "kind": "sign",
+                "pos": -4.2,
+                "width": 2,
+                "sill": 2.9,
+                "swatch": "signCream",
+                "text": ["NOODLES"]
+              },
+              {
+                "kind": "sign",
+                "pos": -1.2,
+                "width": 2,
+                "sill": 2.9,
+                "swatch": "signBlue",
+                "seed": 41
+              },
+              {
+                "kind": "sign",
+                "pos": 2,
+                "width": 2,
+                "sill": 2.9,
+                "neon": "neonPink",
+                "swatch": "trimDark",
+                "text": ["OPEN"]
+              },
+              {
+                "kind": "sign",
+                "pos": 4.6,
+                "width": 2,
+                "sill": 2.9,
+                "swatch": "posterInkRed",
+                "seed": 7
+              },
+              {
+                "kind": "sign",
+                "pos": 0.4,
+                "width": 2,
+                "sill": 3.7,
+                "neon": "neonCyan",
+                "text": ["HOTEL", "KAMORI"]
+              },
+              {
+                "kind": "shop",
+                "pos": -3,
+                "width": 2.6,
+                "height": 1.8,
+                "sill": 0.5,
+                "awning": "awningRed"
+              },
+              {
+                "kind": "door",
+                "pos": -0.6,
+                "width": 1,
+                "height": 2.15
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "sprites": [
+      {
+        "use": "vending",
+        "at": [1.2, -2.4],
+        "angle": 90
+      },
+      {
+        "use": "vending.blue",
+        "at": [2.25, -2.4],
+        "angle": 90
+      },
+      {
+        "use": "generator",
+        "at": [4.3, -2.2],
+        "angle": 90
+      },
+      {
+        "use": "ac.unit",
+        "at": [-4.8, -2.62, 2.2],
+        "angle": 90
+      },
+      {
+        "use": "ac.unit",
+        "at": [3.5, -2.62, 2.2],
+        "angle": 90
+      },
+      {
+        "use": "plate.street",
+        "at": [-5.3, -1.5],
+        "angle": 90,
+        "with": {
+          "seed": 11
+        }
+      },
+      {
+        "use": "plate.wall",
+        "at": [5.4, -2.77, 2.3],
+        "angle": 90,
+        "with": {
+          "seed": 12
+        }
+      },
+      {
+        "use": "streetLamp",
+        "at": [0, -1.4],
+        "angle": 90
+      },
+      {
+        "who": "base-m",
+        "at": [1.7, -1.5],
+        "angle": 90
+      },
+      {
+        "who": "base-f",
+        "at": [-2.6, -1.2],
+        "angle": 45
+      }
+    ],
+    "views": {
+      "diorama": {
+        "w": 960,
+        "h": 540,
+        "pitch": 18,
+        "at": [0, 2.6, 0]
+      },
+      "fp": {
+        "at": [0, 2.8],
+        "angle": 270,
+        "eye": 1.6
+      }
+    },
+    "paths": {
+      "walk": [[-5, 2.5], [0, 2], [5, 2.5]]
+    },
+    "grade": "warmNight",
+    "reads": {}
+  }
+}

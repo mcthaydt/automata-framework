@@ -1,0 +1,6 @@
+# `starch`, a fixture.
+# Colour: DUEL ramp 1 (sand), step 5 (#ccc3b1).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "sand"
+step = 5

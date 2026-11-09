@@ -1,0 +1,7 @@
+# `eyeMilky`, a fixture.
+# Colour: DUEL ramp 0 (grey), step 6 (#cdd2da).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "grey"
+step = 6
+flat = true

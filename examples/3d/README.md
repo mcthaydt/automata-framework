@@ -1,0 +1,31 @@
+# 3D examples
+
+Each file is one example of one feature of `@automata/3d`, run by `pnpm examples:3d` and checked by a journey in
+`tests/e2e` (it boots under Ruken's headers and draws). A file starts with a header (what it shows, its controls, its
+packages) and has `// --- figure ---`, `// --- level ---` or `// --- scene ---`, `// --- sim ---` and `// --- game ---`
+sections, since each example is one file. Colours are the DUEL palette.
+
+| Example | What it shows |
+|---|---|
+| [`figures/figures-walk.ts`](figures/figures-walk.ts) | A figure as data, walking a loop under the angled camera |
+| [`figures/figures-stand-and-sliders.ts`](figures/figures-stand-and-sliders.ts) | One figure, three bodies from three sets of sliders, each standing |
+| [`figures/figures-poses.ts`](figures/figures-poses.ts) | Poses as data, a clip blending the figure into each |
+| [`figures/figures-clips.ts`](figures/figures-clips.ts) | Clips played over the walk |
+| [`figures/figures-aim.ts`](figures/figures-aim.ts) | Head, chest and hand turning to follow a point |
+| [`figures/figures-outfits-items.ts`](figures/figures-outfits-items.ts) | One figure changing outfits and the item in its hand |
+| [`render3d/render3d-meshes.ts`](render3d/render3d-meshes.ts) | Lit boxes and model files |
+| [`render3d/render3d-angled-camera.ts`](render3d/render3d-angled-camera.ts) | The angled camera, cut-away walls and a fading pillar |
+| [`render3d/render3d-lighting-fog.ts`](render3d/render3d-lighting-fog.ts) | Baked lamp light, a lit walker and fog |
+| [`look/look-pixel-art.ts`](look/look-pixel-art.ts) | The pixel-art look: a low-resolution field, DUEL colours, stepped light and an outline |
+| [`world/world-level-room.ts`](world/world-level-room.ts) | A room built from a level file and drawn by the world builder |
+| [`cutscenes/cutscenes-door-and-lamp.ts`](cutscenes/cutscenes-door-and-lamp.ts) | A scripted scene: the camera drifts, a lamp warms and a door opens (the `cutscenes` extension) |
+| [`cutscenes/cutscenes-reach-cue.ts`](cutscenes/cutscenes-reach-cue.ts) | A scripted scene: a man walks and a cue makes him reach, started once |
+| [`characterkit/characterkit-wardrobe.ts`](characterkit/characterkit-wardrobe.ts) | Three figures in a waistcoat and coat, an apron and skirt, a belt (the `character-kit` extension) |
+| [`characterkit/characterkit-hair.ts`](characterkit/characterkit-hair.ts) | Three hairstyles built from the kit's pieces: a bun, braids with a ponytail, cornrows |
+| [`worldkit/worldkit-furnished-room.ts`](worldkit/worldkit-furnished-room.ts) | An empty room that asks to be an office, furnished by the kit from one word (the `world-kit` extension) |
+| [`worldkit/worldkit-generated-map.ts`](worldkit/worldkit-generated-map.ts) | An apartment generated from a number and furnished, seen from above |
+| [`worldkit/worldkit-sky.ts`](worldkit/worldkit-sky.ts) | A street at night under the kit's stars, rain and glow passes |
+
+The `cutscenes`, `characterkit` and `worldkit` sections show extensions (`@automata/cutscenes`, `@automata/character-kit`,
+`@automata/world-kit`), so their files say `Tier: extension`. A time of day is read by the passes an extension registers,
+which is why the night street is the world kit's.

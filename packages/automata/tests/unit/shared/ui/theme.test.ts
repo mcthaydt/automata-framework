@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import css from '#src/shared/ui/theme.css?raw'
-import palette from '../../../../../../docs/art/palettes/endesga-64.txt?raw'
+import palette from '../../../../../../docs/art/palettes/duel.txt?raw'
 
 // The tokens are a contract (M1.6 spec §3.3): primitives read them, games override colours and
 // type. Read as text, the way Ruken's theme test does, since jsdom does not compute custom properties.
@@ -12,8 +12,8 @@ function block(selector: string): string {
   return css.slice(start, css.indexOf('}', start))
 }
 
-// The palette file exactly as the Owner supplied it (paint.net AARRGGBB lines, `;` comments).
-const ENDESGA_64 = new Set(
+// The palette file (paint.net AARRGGBB lines, `;` comments).
+const DUEL = new Set(
   palette
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -90,10 +90,10 @@ describe('theme.css', () => {
     }
   })
 
-  test('every colour is from the Endesga 64 palette (art direction, 2026-10-11)', () => {
+  test('every colour is from the DUEL palette (Owner, 2026-11-07)', () => {
     const hexes = [...css.matchAll(/#([0-9a-fA-F]{6})\b/g)].map((m) => (m[1] ?? '').toLowerCase())
     expect(hexes.length).toBeGreaterThan(0)
-    for (const hex of hexes) expect(ENDESGA_64.has(hex), `#${hex}`).toBe(true)
+    for (const hex of hexes) expect(DUEL.has(hex), `#${hex}`).toBe(true)
   })
 
   test.each([
@@ -115,6 +115,30 @@ describe('theme.css', () => {
     ['--af-success', '--af-panel', 3],
   ])('%s on %s meets %d:1', (fore, back, minimum) => {
     expect(contrast(colour(fore), colour(back))).toBeGreaterThanOrEqual(minimum)
+  })
+
+  // The ratios the Endesga 64 theme had when the palette changed to DUEL (2026-11-07). DUEL has no pure white, so
+  // `--af-ink` cannot match its 17.09; each pair keeps at least this share of what it had, on top of its minimum.
+  const KEPT_SHARE = 0.85
+  test.each([
+    ['--af-ink', '--af-surface', 17.09],
+    ['--af-ink', '--af-panel', 13.0],
+    ['--af-muted', '--af-surface', 6.53],
+    ['--af-muted', '--af-panel', 4.97],
+    ['--af-on-accent', '--af-accent', 11.02],
+    ['--af-on-danger', '--af-danger', 5.77],
+    ['--af-ring', '--af-surface', 12.24],
+    ['--af-ring', '--af-panel', 9.31],
+    ['--af-edge', '--af-surface', 6.53],
+    ['--af-edge', '--af-panel', 4.97],
+    ['--af-accent', '--af-surface', 11.02],
+    ['--af-accent', '--af-panel', 8.38],
+    ['--af-danger-edge', '--af-surface', 5.16],
+    ['--af-danger-edge', '--af-panel', 3.93],
+    ['--af-success', '--af-surface', 7.76],
+    ['--af-success', '--af-panel', 5.9],
+  ])('%s on %s keeps its share of the %d:1 it had', (fore, back, had) => {
+    expect(contrast(colour(fore), colour(back))).toBeGreaterThanOrEqual(had * KEPT_SHARE)
   })
 })
 

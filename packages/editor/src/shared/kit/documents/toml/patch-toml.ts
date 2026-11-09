@@ -4,6 +4,7 @@ import { type KeyPath, keyPathText } from '../key-path'
 import { firstDifference, firstUnwritable, isTable, keysOf, sameValue } from '../values'
 import { readTomlLiterals, TomlPositionError } from './toml-literals'
 import { type TomlScalar, writeTomlScalar } from './toml-scalar'
+import { addSection, splitAdditions } from './toml-sections'
 
 // The TOML half of the content documents. A scalar whose literal is in the text
 // is written into that literal's span and nowhere else, as the shortest text that reads back as exactly it; only what is left (a key or array
@@ -64,6 +65,25 @@ function reconcile(current: unknown, next: unknown): unknown {
   return next
 }
 
+/**
+ * The text of `after`, given the `text` that reads as `current`: a table that is new is written as a section where the
+ * file writes sections (see toml-sections.ts), and the rest of the change goes to toml-patch. A text that does not read
+ * back as `after` is thrown away for toml-patch's own writing of all of it.
+ */
+function structural(text: string, current: unknown, after: unknown): string {
+  try {
+    const { rest, additions } = splitAdditions(text, current, after)
+    if (additions.length > 0) {
+      let out = firstDifference(current, rest) ? patch(text, reconcile(current, rest)) : text
+      for (const addition of additions) out = addSection(out, addition)
+      if (!firstDifference(parse(out), after)) return out
+    }
+  } catch {
+    // Fall through: toml-patch writes it, inline where it must.
+  }
+  return patch(text, reconcile(current, after))
+}
+
 /** The reason toml-patch gives, without the position, source line and caret its message repeats first. */
 const syntaxReason = (error: unknown): string => {
   const message = error instanceof Error ? error.message : String(error)
@@ -116,7 +136,14 @@ export function patchToml(text: string, before: unknown, after: unknown): PatchR
   } catch (error) {
     return refuse([], 'verify-failed', `the span edits left a text that is not TOML: ${syntaxReason(error)}`)
   }
-  if (firstDifference(spliced, after)) out = patch(out, reconcile(spliced, after))
+  if (firstDifference(spliced, after)) {
+    try {
+      out = structural(out, spliced, after)
+    } catch (error) {
+      // toml-patch throws where it cannot place a key; that is a refusal, not a crash.
+      return refuse([], 'verify-failed', `the patch could not be written: ${syntaxReason(error)}`)
+    }
+  }
 
   let written: unknown
   try {

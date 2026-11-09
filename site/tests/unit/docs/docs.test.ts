@@ -1,11 +1,10 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import DocsPage from '../../../src/features/docs/DocsPage.svelte'
-import { getDocBySlug, getDocs } from '../../../src/features/docs/docs-loader'
-import { REDIRECTS } from '../../../src/features/redirects/redirects'
-import { entries, load } from '../../../src/routes/docs/[slug]/+page'
+import DocsPage from '#src/features/docs/DocsPage.svelte'
+import { getDocBySlug, getDocs } from '#src/features/docs/docs-loader.ts'
+import { entries, load } from '#src/routes/docs/[slug]/+page.ts'
 
-// The docs are the framework's guides and nothing else (spec 10.2, W4, W7): the site keeps no copy of its own.
+// The docs are the framework's guides and nothing else: the site keeps no copy of its own.
 describe('the docs', () => {
   const docs = getDocs()
 
@@ -13,6 +12,7 @@ describe('the docs', () => {
     expect(docs.map((doc) => doc.slug)).toEqual([
       'how-it-works',
       'editor',
+      'extensions',
       'publish-to-web',
       'publish-to-itch',
       'publish-to-desktop',
@@ -67,7 +67,6 @@ describe('the docs', () => {
       'from-web',
     ]) {
       expect(getDocBySlug(slug), slug).toBeUndefined()
-      expect(pages.has(REDIRECTS['/docs/' + slug] ?? ''), slug).toBe(true)
     }
   })
 
@@ -79,6 +78,6 @@ describe('the docs', () => {
     expect(links.map((link) => link.getAttribute('href'))).toEqual(docs.map((doc) => '/docs/' + doc.slug))
     expect(nav.querySelector('[aria-current="page"]')?.textContent).toBe('Draw levels in the editor')
     expect(view.getByRole('link', { name: 'Previous: How it works' })).toBeTruthy()
-    expect(view.getByRole('link', { name: 'Next: Publish to the web' })).toBeTruthy()
+    expect(view.getByRole('link', { name: 'Next: Extensions: add what your game needs' })).toBeTruthy()
   })
 })

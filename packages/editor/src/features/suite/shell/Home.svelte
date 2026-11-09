@@ -1,7 +1,6 @@
 <!--
   Suite Home and an entry's page: the cards of the editors the game's
-  list names (all of them on Home, the entry's on its page), or the list's problems. One vertical scroll region. The
-  page's own actions (Home's Export and Import) sit at the end of the heading's row.
+  list names (all of them on Home, the entry's on its page), or the list's problems. One vertical scroll region.
 -->
 <script lang="ts">
 import type { Snippet } from 'svelte'
@@ -19,11 +18,13 @@ interface Props {
   empty: string
   onopen: (card: EditorCard) => void
   onread: (file: WorkspaceFile) => void
-  /** Buttons at the end of the heading's row. */
-  actions?: Snippet | undefined
+  /** For an editor with no file yet, the words on the button that starts one (the try-it sample's "New level"). */
+  starts?: Readonly<Record<string, string>> | undefined
+  /** What goes under the cards, inside the scrolling page (Home's Editor colours). */
+  foot?: Snippet | undefined
 }
 
-const { title, home, editors, empty, onopen, onread, actions }: Props = $props()
+const { title, home, editors, empty, onopen, onread, starts, foot }: Props = $props()
 
 const cards = $derived(
   home.kind === 'cards'
@@ -32,10 +33,9 @@ const cards = $derived(
 )
 </script>
 
-<div class="scroll" data-testid="suite-home">
+<div class="scroll" data-scroll-region data-testid="suite-home">
   <header>
     <h1>{title}</h1>
-    {#if actions}<span class="actions">{@render actions()}</span>{/if}
   </header>
   {#if home.kind === 'problems'}
     <ListProblems problems={home.problems} />
@@ -44,10 +44,11 @@ const cards = $derived(
   {:else}
     <div class="cards">
       {#each cards as card (card.editor)}
-        <EditorCardView {card} {onopen} {onread} />
+        <EditorCardView {card} {onopen} {onread} start={starts?.[card.editor]} />
       {/each}
     </div>
   {/if}
+  {#if foot}<footer>{@render foot()}</footer>{/if}
 </div>
 
 <style>
@@ -65,19 +66,14 @@ const cards = $derived(
     touch-action: pan-y;
     background: var(--bg);
   }
-  /* The question and the page's actions on one row, as wide as the cards below it; they wrap under it on a phone. */
-  header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
+  footer {
     width: 100%;
     max-width: 960px;
+    margin-top: auto;
   }
-  .actions {
-    display: flex;
-    gap: var(--space-2);
+  header {
+    width: 100%;
+    max-width: 960px;
   }
   h1 {
     margin: 0;

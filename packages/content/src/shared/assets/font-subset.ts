@@ -1,9 +1,8 @@
 /// <reference path="./subset-font.d.ts" />
-// Font subsetting and coverage. Extracted from FloorFifty
-// packages/asset-contract/tools/subset-fonts.ts (`subset-font` to woff2) and tests/client/i18n/fonts.test.ts
-// (`fontkit` reading the subset back), at ac72660.
+// Font subsetting and coverage. `subset-font` cuts to woff2 and
+// `fontkit` reads the subset back.
 //
-// Changed from FloorFifty: the characters are sorted by code point before they are joined, so the order a set
+// The characters are sorted by code point before they are joined, so the order a set
 // was built in never reaches the subsetter, and the bytes depend only on the source and the characters (G-a).
 
 // The reference above brings `subset-font`'s type into any program that compiles this file, not only this

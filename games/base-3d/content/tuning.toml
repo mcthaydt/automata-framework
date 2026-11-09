@@ -1,0 +1,13 @@
+# How Wick moves, in the sim's whole numbers (positions are Q16.16 metres, 65,536 to a metre, and the sim runs 60 ticks a
+# second, so every step is exact in every engine). Each tunable carries its own range, which the content compiler checks
+# and the Tuner shows as a slider, a label and a feel, the Tuner's words for it, and a unit and a scale, so the Tuner
+# shows metres and seconds (a speed a tick times 60/65,536, a count of ticks times 1/60, a distance times 1/65,536) while
+# the file and the sim keep their whole numbers. TICK_HZ and the sizes (Wick's square, the reach of an ember) stay in code
+# (`src/shared/constants.ts`): they change what a tick or a metre means, not how Wick feels.
+
+# 4 m/s: a full push of the stick.
+WALK_PER_TICK = { value = 4369, min = 2185, max = 8738, step = 1, label = "Walking speed", feel = "How fast Wick walks with the stick pushed all the way.", unit = "m/s", scale = 0.000915527 }
+# 0.4 s: how long a roll lasts. A press during a roll does nothing.
+ROLL_TICKS = { value = 24, min = 12, max = 48, step = 1, label = "Roll length", feel = "How long a roll takes.", unit = "s", scale = 0.0166667 }
+# 3.2 m: how far a roll carries Wick, enough to clear a 2 m channel that walking cannot cross.
+ROLL_TRAVEL = { value = 209715, min = 170394, max = 393216, step = 1, label = "Roll distance", feel = "How far a roll carries Wick. Under about 2.6 m it no longer clears the channels.", unit = "m", scale = 0.0000152588 }

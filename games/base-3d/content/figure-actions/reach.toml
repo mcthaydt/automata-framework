@@ -1,0 +1,15 @@
+# Reach out with the right hand, hold it, and let it fall back to the walk.
+
+mask = [ "armR", "torso" ]
+anticipation = 0.49
+action = 0.91
+recovery = 0.4
+
+[[keys]]
+t = 0.49
+pose = "reach-out"
+ease = "inOut"
+
+[[keys]]
+t = 1.008
+pose = "reach-out"

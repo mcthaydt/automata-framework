@@ -5,12 +5,15 @@ import { dirname, join } from 'node:path'
 import { Data, Effect } from 'effect'
 import type { TaggedErrorClass } from '../node/errors.ts'
 import { parseTargets } from './create-game-targets.ts'
-import { TEMPLATE_FILES, type TemplateOptions } from './template.ts'
+import { type TemplateOptions, templateFilesOf } from './template.ts'
+import { THREE_D_NOT_PUBLIC, threeDAvailable } from './three-d-gate.ts'
 
 export interface CreateGameOptions extends TemplateOptions {
   readonly targetDir: string
   readonly description?: string | undefined
   readonly author?: string | undefined
+  /** Whether a 3D game can be made here; default: `threeDAvailable()` (tests say it outright). */
+  readonly threeD?: boolean | undefined
 }
 
 export interface CreateGameResult {
@@ -23,7 +26,12 @@ export interface CreateGameResult {
 const CreateGameErrorBase: TaggedErrorClass<
   'CreateGameError',
   {
-    readonly reason: 'target-directory-exists' | 'invalid-id' | 'invalid-targets' | 'write-failed'
+    readonly reason:
+      | 'target-directory-exists'
+      | 'invalid-id'
+      | 'invalid-targets'
+      | 'three-d-unavailable'
+      | 'write-failed'
     readonly message: string
   }
 > = Data.TaggedError('CreateGameError')
@@ -33,8 +41,10 @@ export class CreateGameError extends CreateGameErrorBase {}
 /** A game id: lowercase letters, digits and single hyphens, so never a path. */
 export const ID_REGEX: RegExp = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
-/** The first reason `options` cannot make a game (a bad id, bad targets, a folder with files in it), if there is one. */
+/** The first reason `options` cannot make a game (3D asked for without its package, a bad id, bad targets, a folder with files in it), if there is one. */
 function whyNot(options: CreateGameOptions): CreateGameError | undefined {
+  if (options.template === '3d' && !(options.threeD ?? threeDAvailable()))
+    return new CreateGameError({ reason: 'three-d-unavailable', message: THREE_D_NOT_PUBLIC })
   if (!ID_REGEX.test(options.id)) {
     return new CreateGameError({
       reason: 'invalid-id',
@@ -62,7 +72,7 @@ function writeTemplate(options: CreateGameOptions): string[] {
   const createdFiles: string[] = []
   const madeTargetDir = !existsSync(options.targetDir)
   try {
-    for (const tpl of TEMPLATE_FILES) {
+    for (const tpl of templateFilesOf(options)) {
       const fullPath = join(options.targetDir, tpl.path)
       mkdirSync(dirname(fullPath), { recursive: true })
       writeFileSync(fullPath, tpl.content(options), 'utf8')

@@ -7,9 +7,7 @@ import {
   shownButtons,
 } from '#src/shared/ui/touch/touch-controls.ts'
 
-// The touch buttons' bookkeeping (M4 spec §4.4). FloorFifty `tests/client/systems/gameplay/touch-controls.test.ts`
-// at `ac72660`, as behavior over string actions: its "multi-touch" cases drove the latch through its mounted
-// `TouchControls` class, which Svelte replaces here, so they drive the latch itself.
+// The touch buttons' bookkeeping (M4 spec §4.4), as behavior over string actions: the multi-touch cases drive the latch itself.
 
 const rig = () => {
   const held = new Set<string>()

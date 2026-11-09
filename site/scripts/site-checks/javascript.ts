@@ -7,7 +7,7 @@ import { CSP_META_PREFIX, scriptHash } from '../../src/shared/html/csp.ts'
 import { builtPages, isOtherOrigin, pageUrl } from './pages.ts'
 
 /**
- * The most JavaScript, as built (before compression), that one page may ask the browser to modulepreload (QB.3h, QB.3j).
+ * The most JavaScript, as built (before compression), that one page may ask the browser to modulepreload.
  * Preloaded modules start downloading before any script has run, so on a mobile connection they compete with the
  * stylesheet, font and image the first paint waits for. The home page and the gallery once preloaded 380 KB of example
  * sources and had a 3.2 s LCP; then the 26 to 29 hints for shared chunks (250 KB) cost every page 0.5 to 0.9 s of first
@@ -20,7 +20,7 @@ export const MAX_PRELOADED_SCRIPT_BYTES = 48_000
 const PRELOADABLE_MODULES = /^_app\/immutable\/(?:entry|nodes)\//
 
 /**
- * A page that hydrates starts after the first paint (QB.3j). SvelteKit's start script imports about 30 small modules and
+ * A page that hydrates starts after the first paint. SvelteKit's start script imports about 30 small modules and
  * hydrates at once; on a host that finishes those requests before it paints, Lighthouse charges all of them (350 KB) to
  * the first paint. `hydrateAfterFirstPaint` (src/shared/html/hydration.ts, applied in src/hooks.server.ts) wraps the imports in
  * `afterFirstPaint(`; a page that imports its entry modules without it was not transformed (a SvelteKit upgrade can
@@ -35,7 +35,7 @@ export function checkHydrationStart(file: string, html: string): string[] {
 }
 
 /**
- * Every page carries its Content-Security-Policy first in <head> (QB.4a): a `<meta>` policy applies only to what comes
+ * Every page carries its Content-Security-Policy first in <head>: a `<meta>` policy applies only to what comes
  * after it. Its script-src allows each inline script by the sha256 of its text and never `unsafe-inline` or
  * `unsafe-eval`; a script rewritten after the policy was written would be refused by the browser.
  */
@@ -100,16 +100,47 @@ export function checkPreloadedScripts(root: string, file: string, doc: Document)
 
 /** The editor's source, as the build's Vite manifest keys it. */
 export const EDITOR_SOURCE = 'src/features/playground/editor.ts'
-/** The editor chunk and the chunks it imports, gzipped (playground spec §10.1). */
+/** The editor chunk and the chunks it imports, gzipped. */
 export const MAX_EDITOR_CHUNK_GZIP_BYTES = 175_000
 
 interface ManifestChunk {
   readonly file: string
   readonly imports?: readonly string[]
+  readonly css?: readonly string[]
+  readonly isEntry?: boolean
 }
 
+/** The files of the chunks `sources` name and everything they import statically (and their stylesheets). */
+function chunkFiles(manifest: Record<string, ManifestChunk>, sources: readonly string[]): Set<string> {
+  const files = new Set<string>()
+  const seen = new Set<string>()
+  const visit = (key: string) => {
+    const chunk = manifest[key]
+    if (!chunk || seen.has(key)) return
+    seen.add(key)
+    files.add(chunk.file)
+    for (const stylesheet of chunk.css ?? []) files.add(stylesheet)
+    for (const imported of chunk.imports ?? []) visit(imported)
+  }
+  for (const source of sources) visit(source)
+  return files
+}
+
+/** Pages must not name `files`; `why` finishes the sentence saying what they are. */
+function pagesNaming(root: string, files: Iterable<string>, why: string): string[] {
+  const failures: string[] = []
+  for (const page of builtPages(root)) {
+    const html = readFileSync(join(root, page), 'utf8')
+    for (const file of files) if (html.includes(file)) failures.push(`${page}: names ${file}, ${why}`)
+  }
+  return failures
+}
+
+const gzipOf = (root: string, files: Iterable<string>): number =>
+  [...files].reduce((sum, file) => sum + gzipSync(readFileSync(join(root, file)), { level: 9 }).length, 0)
+
 /**
- * The editor loads on the first tap or focus on an example's code (spec F2), so no page may name its chunk or the
+ * The editor loads on the first tap or focus on an example's code, so no page may name its chunk or the
  * chunks it imports, and together they stay within MAX_EDITOR_CHUNK_GZIP_BYTES. `manifest` is the build's
  * `.vite/manifest.json`, which maps the editor's source to its file.
  */
@@ -119,40 +150,65 @@ export function checkEditorChunk(
 ): { failures: string[]; gzipBytes: number } {
   if (!manifest[EDITOR_SOURCE])
     return { failures: [`the build's manifest has no ${EDITOR_SOURCE}`], gzipBytes: 0 }
-  const files = new Set<string>()
-  const visit = (key: string) => {
-    const chunk = manifest[key]
-    if (!chunk || files.has(chunk.file)) return
-    files.add(chunk.file)
-    for (const imported of chunk.imports ?? []) visit(imported)
-  }
-  visit(EDITOR_SOURCE)
+  const files = chunkFiles(manifest, [EDITOR_SOURCE])
   const failures: string[] = []
-  const gzipBytes = [...files].reduce(
-    (sum, file) => sum + gzipSync(readFileSync(join(root, file)), { level: 9 }).length,
-    0,
-  )
+  const gzipBytes = gzipOf(root, files)
   if (gzipBytes > MAX_EDITOR_CHUNK_GZIP_BYTES)
     failures.push(
       `the editor chunk and its imports are ${gzipBytes} bytes gzip, over the ${MAX_EDITOR_CHUNK_GZIP_BYTES} byte budget`,
     )
-  for (const page of builtPages(root)) {
-    const html = readFileSync(join(root, page), 'utf8')
-    for (const file of files)
-      if (html.includes(file))
-        failures.push(
-          `${page}: names ${file}, part of the editor, which loads only on a tap or focus on the code`,
-        )
-  }
+  failures.push(
+    ...pagesNaming(root, files, 'part of the editor, which loads only on a tap or focus on the code'),
+  )
   return { failures, gzipBytes }
 }
 
-/** The compile worker's gzip budget: `@babel/parser` and sucrase (spec §10.1). */
+/** The motion code (Motion and Lenis), as the build's Vite manifest keys it. */
+export const MOTION_SOURCES = ['src/shared/motion/animate.ts', 'src/shared/motion/smooth-scroll.ts'] as const
+/** Both motion chunks and what only they import, gzipped. */
+export const MAX_MOTION_GZIP_BYTES = 12_000
+
+/**
+ * The motion chunks load after the page is live, so no page names them, and together they stay within
+ * MAX_MOTION_GZIP_BYTES. `motion-tokens.ts` is imported by the layout's motion layer and by both chunks, so a walk from
+ * the chunks reaches a file every page already names: whatever an entry (the app, the layout, a page node) imports is
+ * the page's own, and is neither counted nor forbidden. A source that ended up inside an entry was imported statically
+ * by mistake, and fails.
+ */
+export function checkMotionChunks(
+  root: string,
+  manifest: Record<string, ManifestChunk>,
+): { failures: string[]; gzipBytes: number } {
+  const missing = MOTION_SOURCES.filter((source) => !manifest[source])
+  if (missing.length > 0)
+    return { failures: missing.map((source) => `the build's manifest has no ${source}`), gzipBytes: 0 }
+  const entries = Object.keys(manifest).filter((key) => manifest[key]?.isEntry)
+  const pageFiles = chunkFiles(manifest, entries)
+  const failures: string[] = []
+  for (const source of MOTION_SOURCES) {
+    if (pageFiles.has(manifest[source]!.file))
+      failures.push(
+        `${source} is part of an entry, so every visitor downloads it; import it only with import()`,
+      )
+  }
+  const files = new Set([...chunkFiles(manifest, MOTION_SOURCES)].filter((file) => !pageFiles.has(file)))
+  const gzipBytes = gzipOf(root, files)
+  if (gzipBytes > MAX_MOTION_GZIP_BYTES)
+    failures.push(
+      `the motion chunks are ${gzipBytes} bytes gzip, over the ${MAX_MOTION_GZIP_BYTES} byte budget`,
+    )
+  failures.push(
+    ...pagesNaming(root, files, 'part of the motion code, which loads only after the page is live'),
+  )
+  return { failures, gzipBytes }
+}
+
+/** The compile worker's gzip budget: `@babel/parser` and sucrase. */
 export const MAX_COMPILE_WORKER_GZIP_BYTES = 125_000
 const WORKERS_DIR = '_app/immutable/workers'
 
 /**
- * The compile worker (WEB.PLAY.7) starts with the editor, so no page names it, and it stays within
+ * The compile worker starts with the editor, so no page names it, and it stays within
  * MAX_COMPILE_WORKER_GZIP_BYTES. Vite emits a worker under `_app/immutable/workers/` and leaves it out of the manifest,
  * so it is found by its name.
  */

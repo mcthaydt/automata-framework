@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"],
+    "allowImportingTsExtensions": true,
+    "isolatedDeclarations": false,
+    "declaration": false
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "ship.config.ts", "vite.config.ts", "content/generated/*.d.ts"]
+}

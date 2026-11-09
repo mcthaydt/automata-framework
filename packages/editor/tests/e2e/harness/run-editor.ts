@@ -19,6 +19,8 @@ export function printedAddress(output: string): string | undefined {
 }
 
 export function runEditor(gameDir: string, args: readonly string[] = []): Promise<RunningEditor> {
+  // No `--app`: the command opens the editors page by itself, as it does for a person. It also starts the game when
+  // the game's packages are installed (a copy of Emberwick has none, so its editor opens with Play off).
   const child = spawn(process.execPath, [BIN, 'editor', gameDir, '--port', '0', ...args], {
     stdio: ['ignore', 'pipe', 'pipe'],
   })

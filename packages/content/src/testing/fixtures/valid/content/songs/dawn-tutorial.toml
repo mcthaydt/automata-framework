@@ -1,5 +1,5 @@
 # The tutorial's song. Not in `catalog.toml`: the tutorial loops the whole file.
-displayName = "FloorFifty Tutorial"
+displayName = "Dawn Tutorial"
 bpm = 188.16
 beatOffsetTicks = 8
 loopStartMs = 0

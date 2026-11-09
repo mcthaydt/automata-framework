@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { collapseLevel } from '#src/shared/ui/layout/action-bar.ts'
 import { reservedRows, rowsBelow } from '#src/shared/ui/layout/scroll-list.ts'
 
-// Ported from FloorFifty tests/client/ui/layout/helpers.test.ts at 122a220.
 describe('collapseLevel (ActionBar)', () => {
   // The one-row widths at levels 0 (all labels), 1 (utilities icon-only) and 2 (secondaries short).
   const widths = [500, 450, 400] as const

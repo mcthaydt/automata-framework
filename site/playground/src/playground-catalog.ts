@@ -12,7 +12,7 @@ export interface PlaygroundExample {
   readonly controls: string
   readonly packages: readonly string[]
   readonly difficulty: 1 | 2 | 3 | 4
-  readonly tier: 'core' | 'plus'
+  readonly tier: 'core' | 'extension'
   /** The golden the frame replays for the unedited code. */
   readonly golden?: { readonly ticks: number; readonly replay: string }
   readonly host?: HostSettings

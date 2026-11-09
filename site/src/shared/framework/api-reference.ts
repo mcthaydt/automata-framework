@@ -1,13 +1,26 @@
 import reference from 'virtual:framework/api'
-import type { ApiReference, ApiSearchRow } from './api'
+import type { ApiPackage, ApiReference, ApiSearchRow } from './api'
 
 // The reference pages and search read the framework's API index when the site is built (src/shared/framework/api.ts).
 // The site documents the workspace's one version; the version stays in the URL so an older one can be added beside it.
 
-export function apiVersions(): string[] {
-  return [reference.version]
+/** The packages every game uses; every other package in the reference is an extension a game can add. */
+export const CORE_PACKAGES: readonly string[] = [
+  '@automata/content',
+  '@automata/framework',
+  '@automata/sim',
+  '@automata/tools',
+]
+
+/** A version's packages in two groups: the core a game is built on, and the extensions it can add. */
+export function groupPackages(reference: ApiReference): { core: ApiPackage[]; extensions: ApiPackage[] } {
+  return {
+    core: reference.packages.filter((pkg) => CORE_PACKAGES.includes(pkg.name)),
+    extensions: reference.packages.filter((pkg) => !CORE_PACKAGES.includes(pkg.name)),
+  }
 }
-export const latestApiVersion = (): string => reference.version
+
+export const API_VERSION: string = reference.version
 
 export function getApiReference(version: string): ApiReference | undefined {
   return version === reference.version ? reference : undefined

@@ -1,0 +1,14 @@
+# The places in this scene that characters walk between, and which of them join.
+edges = [["door", "desk"], ["desk", "window"]]
+
+[nodes.door]
+x = 1
+z = 4
+
+[nodes.desk]
+x = 5
+z = 4
+
+[nodes.window]
+x = 9
+z = 2

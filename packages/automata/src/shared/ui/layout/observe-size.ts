@@ -1,5 +1,5 @@
 /**
- * A width listener for the layout primitives (from FloorFifty `ui/layout/observe-size.ts`).
+ * A width listener for the layout primitives.
  *
  * The primitives answer to their own container, never to the viewport. Where a container query
  * can say it in CSS they use one; where the answer depends on measuring (an ActionBar's rows) they

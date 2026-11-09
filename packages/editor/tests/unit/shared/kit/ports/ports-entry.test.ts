@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { describe, expect, test } from 'vitest'
-import type { SuiteAskTarget, SuiteEditor, SuiteUndo } from '#src/shared/kit/ports/index.ts'
+import type { SuiteEditor, SuiteUndo } from '#src/shared/kit/ports/index.ts'
 import * as ports from '#src/shared/kit/ports/index.ts'
 
 /** The kit folder whose entry this test checks, in `src/`. */
@@ -71,7 +71,7 @@ describe('editor-kit ports entry', () => {
     expect(ports.defineSuiteEditor(editor)).toBe(editor)
   })
 
-  test('an editor may offer Undo and Ask hooks over its session; without them the top bar has neither', () => {
+  test('an editor may offer an Undo hook over its session; without it the top bar has no Undo', () => {
     interface Session {
       text: string
     }
@@ -84,15 +84,6 @@ describe('editor-kit ports entry', () => {
       redo: () => undefined,
       subscribe: () => () => undefined,
     })
-    const ask = (session: Session): SuiteAskTarget => ({
-      path: 'content/tuning.toml',
-      text: () => session.text,
-      scope: () => ['MAX_MOVE_SPEED'],
-      locked: () => ['MAX_MOVE_SPEED'],
-      accept: (text) => {
-        session.text = text
-      },
-    })
     const editor: SuiteEditor<Session> = {
       id: 'tuner',
       label: 'Tuner',
@@ -101,11 +92,8 @@ describe('editor-kit ports entry', () => {
       open: async () => ({ text: '' }),
       regions: {} as SuiteEditor<Session>['regions'],
       undo,
-      ask,
     }
     const session = { text: 'a = 1\n' }
-    editor.ask?.(session).accept('a = 2\n', 'Raise a')
-    expect(session.text).toBe('a = 2\n')
     expect(editor.undo?.(session).canUndo()).toBe(false)
   })
 })

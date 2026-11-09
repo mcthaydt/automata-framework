@@ -87,3 +87,30 @@ jobs:
     expect(problems).toEqual(['fixture.yml parity: runs on draft pull requests'])
   })
 })
+
+// The 3D workflow is the only gate for the 3D browser suites and journeys, so its shape is pinned: three jobs (the unit
+// tests run in the core job of ci.yml, which `pnpm check` also runs) and a path filter that includes the vendored beta.
+describe('the 3D workflow', () => {
+  const workflow = parse(readFileSync(join(WORKFLOWS, '3d.yml'), 'utf8')) as {
+    on: { pull_request: { paths: string[] } }
+    jobs: Record<string, { name: string }>
+  }
+
+  it('has three jobs and runs on vendor changes', () => {
+    expect(Object.values(workflow.jobs).map((job) => job.name)).toEqual([
+      '3D - journeys',
+      '3D - parity (chromium, webkit, firefox)',
+      'base-3d through game-ci',
+    ])
+    expect(workflow.on.pull_request.paths).toEqual(
+      expect.arrayContaining([
+        'packages/**',
+        'games/base-3d/**',
+        'examples/3d/**',
+        'vendor/pixi-3d/**',
+        'agents/**',
+        'pnpm-lock.yaml',
+      ]),
+    )
+  })
+})

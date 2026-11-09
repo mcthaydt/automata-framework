@@ -1,0 +1,5 @@
+# `wall`: the walls.
+# Colour: DUEL ramp dusk, step 1.
+
+ramp = "dusk"
+step = 1

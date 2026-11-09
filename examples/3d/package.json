@@ -11,9 +11,11 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@automata/3d": "workspace:*",
+    "@automata/character-kit": "workspace:*",
+    "@automata/cutscenes": "workspace:*",
     "@automata/framework": "workspace:*",
-    "@automata/figures": "workspace:*",
-    "@automata/render-pixi3d": "workspace:*",
+    "@automata/world-kit": "workspace:*",
     "pixi.js": "8.22.0",
     "svelte": "5.57.1"
   },

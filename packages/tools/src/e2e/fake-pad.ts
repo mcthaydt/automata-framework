@@ -1,12 +1,11 @@
-// A controller for a real built game, from FloorFifty `tests/e2e/support/fake-gamepad.ts` at
-// `a28dc44`. An init script replaces `navigator.getGamepads` with one standard pad whose state lives on the page;
+// A controller for a real built game. An init script replaces `navigator.getGamepads` with one standard pad whose state lives on the page;
 // the helpers write it. Nothing reaches past the Gamepad API: the game's own poll, pad reading, focus navigation and
 // screens run as they do for a real pad. Connecting and unplugging dispatch `gamepadconnected` and
 // `gamepaddisconnected`, as a browser does.
 //
 // Every change waits for animation frames, never a sleep, so the per-frame poll has read it before the helper
 // returns: three after most changes, one for the press inside a tap or a step. A slow WebKit frame is long, and
-// three of them under load outlasted the 400 ms menu repeat delay in FloorFifty, turning a tap into a repeat.
+// three of them under load outlasted the 400 ms menu repeat delay, turning a tap into a repeat.
 //
 // AF difference: the init script runs in every frame, so under the fake Ruken host the pad is the game frame's.
 // `in(frame)` points the helpers there; the page's own frame is the default.

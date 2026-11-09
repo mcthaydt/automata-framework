@@ -1,5 +1,5 @@
 import { type Container, Sprite, Texture } from 'pixi.js'
-import { endesga } from '../../shared/art/palette.ts'
+import { duel } from '../../shared/art/palette.ts'
 
 // Small particles: dust on jumps, landings and running, and sparks when the ember is reached. Directions come
 // from the particle's index, not a random source, so a replay looks the same every time. Presentation only:
@@ -28,7 +28,7 @@ export class Particles {
         vy: -0.12 - 0.08 * (i % 3),
         gravity: 0,
         lifetime: 16 + (i % 4) * 2,
-        color: i % 3 === 0 ? endesga(9) : endesga(10),
+        color: i % 3 === 0 ? duel(6) : duel(5),
         size: 2,
       })
     }
@@ -44,7 +44,7 @@ export class Particles {
         vy: Math.sin(angle) * speed - 0.6,
         gravity: 0.04,
         lifetime: 34 + (i % 5) * 4,
-        color: [endesga(32), endesga(31), endesga(30), endesga(28)][i % 4] as string,
+        color: [duel(39), duel(253), duel(252), duel(75)][i % 4] as string,
         size: 1 + (i % 2),
       })
     }

@@ -5,16 +5,18 @@
 //   with a 150 ms fade and 5° of hysteresis), never draws the ceiling, and fades the pillar to 25% when it stands
 //   between the camera and the player. The view keeps the whole floor in frame at 4:3 and 21:9 (D3-g).
 // Controls: none
-// Packages: @automata/framework, @automata/render-pixi3d
+// Packages: @automata/framework, @automata/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/render-pixi3d/no-eval'
+import '@automata/3d/no-eval'
+import { box, createPixi3dRenderer, render3dExtension } from '@automata/3d'
+import { CameraHeading, cameraView, enterView, START, turnCamera } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
-import { box, createPixi3dRenderer, render3dExtension } from '@automata/render-pixi3d'
-import { CameraHeading, cameraView, enterView, START, turnCamera } from '@automata/render-pixi3d/sim'
 
+// --- scene ---
 const ROOM = cameraView('room', { tiltDeg: 30, distance: 8 })
 
+// --- sim ---
 // The player's feet, in metres on the floor (y up).
 const Body = defineComponent('body', { x: 'f32', y: 'f32', z: 'f32' })
 
@@ -46,6 +48,7 @@ const WALLS = [
 ] as const
 const PILLAR = { min: [1.8, 0, 1.8], max: [2.2, 2.2, 2.2] } as const
 
+// --- game ---
 export default defineGame({
   id: 'render3d-angled-camera',
   size: { width: 320, height: 180 },
@@ -64,17 +67,17 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0xc7dcd0, // the sky around the room: the light's sky colour
-      views: { [Body.id]: box({ width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xf9c22b }) },
+      backgroundColor: 0xcdd2da, // the sky around the room: the light's sky colour
+      views: { [Body.id]: box({ width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xffbc4e }) },
       camera: { views: [ROOM], initial: ROOM.id, follow: Body.id },
       // The room is static scenery, registered with the occluder rule: walls, the ceiling and a tall prop.
       scene: (view, _stage, occluders) => {
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
-        occluders.box({ min: [0, -0.1, 0], max: [4, 0, 4] }, 0x8b9bb4)
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        occluders.box({ min: [0, -0.1, 0], max: [4, 0, 4] }, 0x8690b2)
         for (const [ax, az, bx, bz] of WALLS)
-          occluders.wall({ a: { x: ax, z: az }, b: { x: bx, z: bz }, height: 2.5, color: 0x5a6988 })
-        occluders.ceiling(occluders.box({ min: [0, 2.5, 0], max: [4, 2.6, 4] }, 0x262b44))
-        occluders.prop(occluders.box(PILLAR, 0xc0cbdc), { bounds: PILLAR })
+          occluders.wall({ a: { x: ax, z: az }, b: { x: bx, z: bz }, height: 2.5, color: 0x615f84 })
+        occluders.ceiling(occluders.box({ min: [0, 2.5, 0], max: [4, 2.6, 4] }, 0x282b4a))
+        occluders.prop(occluders.box(PILLAR, 0xbac7db), { bounds: PILLAR })
         return undefined
       },
     }),

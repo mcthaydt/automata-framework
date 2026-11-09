@@ -11,7 +11,7 @@ import { writeApiIndex } from './write-api-index.ts'
 // `node scripts/build-demos.ts`: the built games the site serves, written into static/ (git ignores both folders),
 // where Vite and the static build pick them up:
 // - static/demos/<slug>/: Emberwick and each feature demo, built by their own packages;
-// - static/editor/app/: the 2D editor, the same build `automata editor` serves, for "Try the editor" (its files are
+// - static/editor/app/: the editors' 2D suite, the page `automata editor` serves a 2D game, for "Try the editor" (its files are
 //   named relative to its page, so it runs at that address unchanged);
 // - static/playground/: the playground's runtime, frame pages, resources and goldens (playground/build.ts), with
 //   every example precompiled (compiled/<id>.js), so an example's first run needs no compiler.
@@ -43,12 +43,45 @@ function buildPackages(): void {
   })
 }
 
+/**
+ * The demos that play in a page with no Ruken host to answer them. Their `dist/` is the Ruken build, whose SDK sends
+ * `hello` to its parent and waits ten seconds for a `welcome` before it runs standalone, so Home would sit on "Loading…"
+ * that long. The site frames the web build of the same game instead, written to the folder named here.
+ */
+const WEB_BUILDS: ReadonlyMap<string, string> = new Map([['emberwick', 'dist-web']])
+
+/** Builds each of `WEB_BUILDS` for the web target (`vite build --mode web`). */
+function buildWebDemos(): void {
+  const demos = demoList()
+  for (const [slug, outDir] of WEB_BUILDS) {
+    const demo = demos.find((candidate) => candidate.slug === slug)
+    if (demo === undefined) throw new Error(`There is no demo "${slug}" to build for the web.`)
+    execFileSync(
+      'pnpm',
+      [
+        'exec',
+        'vite',
+        'build',
+        '--configLoader',
+        'runner',
+        '--mode',
+        'web',
+        '--outDir',
+        outDir,
+        '--logLevel',
+        'warn',
+      ],
+      { cwd: join(repositoryRoot, demo.path), stdio: 'inherit' },
+    )
+  }
+}
+
 function copyDemos(): number {
   const demos = demoList()
   const target = join(staticDir, 'demos')
   rmSync(target, { recursive: true, force: true })
   for (const demo of demos) {
-    const dist = join(repositoryRoot, demo.path, 'dist')
+    const dist = join(repositoryRoot, demo.path, WEB_BUILDS.get(demo.slug) ?? 'dist')
     if (!existsSync(join(dist, 'index.html')))
       throw new Error(`${demo.path}: its build wrote no dist/index.html`)
     const folder = join(target, demo.slug)
@@ -59,11 +92,14 @@ function copyDemos(): number {
   return demos.length
 }
 
-/** The 2D editor's build, copied as it is: on the site it finds no game folder and keeps levels in browser storage. */
+/**
+ * The editors' 2D suite, copied as it is: on the site no editor server answers, so it opens the sample game, where a
+ * visitor starts a level from a template and keeps it with Share (`share-leaves-the-browser` serves the same build).
+ */
 function copyEditor(): void {
-  const dist = join(repositoryRoot, 'packages/editor/dist/2d')
+  const dist = join(repositoryRoot, 'packages/editor/dist/suite')
   if (!existsSync(join(dist, 'index.html')))
-    throw new Error('packages/editor: its build wrote no dist/2d/index.html')
+    throw new Error('packages/editor: its build wrote no dist/suite/index.html')
   const target = join(staticDir, 'editor', 'app')
   rmSync(join(staticDir, 'editor'), { recursive: true, force: true })
   cpSync(dist, target, { recursive: true })
@@ -103,6 +139,7 @@ function buildPlayground(): number {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   buildPackages()
+  buildWebDemos()
   writeApiIndex()
   const demos = copyDemos()
   copyEditor()

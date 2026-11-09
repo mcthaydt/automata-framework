@@ -1,6 +1,5 @@
-// The suite rail's entries: one per editor the page registers, in the order it registers them, then Review when the
-// suite has change sets to review. Cmd 1 to 9 choose them in this order, so the rail never offers an editor the build
-// does not have. Each entry opens its one editor; Review edits nothing.
+// The suite rail's entries: one per editor the page registers, in the order it registers them. Cmd 1 to 9 choose them
+// in this order, so the rail never offers an editor the build does not have. Each entry opens its one editor.
 import type { IconName } from '../../../shared/kit/icons/paths.ts'
 import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
 
@@ -9,11 +8,9 @@ export interface SuiteEntry {
   readonly label: string
   /** Drawn above the label in the rail. */
   readonly icon: IconName
-  /** The editor-list ids this entry opens; Review edits nothing and has none. */
+  /** The editor-list ids this entry opens. */
   readonly editors: readonly string[]
 }
-
-const REVIEW: SuiteEntry = { id: 'review', label: 'Review', icon: 'review', editors: [] }
 
 /** The rail's drawing for each editor it knows, by the editor's id prefix (`levels-2d` and `levels-3d` are both
  * levels); an editor it does not know is drawn as a list, never left blank. */
@@ -23,16 +20,34 @@ function iconFor(id: string): IconName {
   return 'list'
 }
 
-/** The rail, from the registered editors; `review` adds Review at the end. */
-export function suiteEntries(
-  editors: readonly Pick<SuiteEditor<unknown>, 'id' | 'label'>[],
-  review: boolean,
-): SuiteEntry[] {
-  const entries = editors.map((editor) => ({
+type Named = Pick<SuiteEditor<unknown>, 'id' | 'label'>
+
+const isLevels = (id: string): boolean => id.startsWith('levels-')
+
+/**
+ * The one name an editor goes by in the rail, on Home's cards and in the Editors menu, so they never disagree. A game
+ * with one level editor calls it "Levels"; a game with both says "Levels 2D" and "Levels 3D". `listed` is the editor
+ * list's ids; when the list did not load the editor keeps its own label.
+ */
+export function editorLabel(editor: Named, listed: readonly string[] | undefined): string {
+  if (listed === undefined || !isLevels(editor.id)) return editor.label
+  const levels = listed.filter(isLevels).length
+  if (levels <= 1) return 'Levels'
+  return editor.id === 'levels-2d' ? 'Levels 2D' : editor.id === 'levels-3d' ? 'Levels 3D' : editor.label
+}
+
+/**
+ * The rail, from the registered editors that the game lists, in the order the page registers them. `listed` is the
+ * editor list's ids, or undefined when the list did not load: then every installed editor shows, read only.
+ */
+export function suiteEntries(editors: readonly Named[], listed?: readonly string[]): SuiteEntry[] {
+  const shown = listed === undefined ? editors : editors.filter((editor) => listed.includes(editor.id))
+  // A list that did not load still names two level editors apart when the build has both.
+  const basis = listed ?? shown.map((editor) => editor.id)
+  return shown.map((editor) => ({
     id: editor.id,
-    label: editor.label,
+    label: editorLabel(editor, basis),
     icon: iconFor(editor.id),
     editors: [editor.id],
   }))
-  return review ? [...entries, REVIEW] : entries
 }

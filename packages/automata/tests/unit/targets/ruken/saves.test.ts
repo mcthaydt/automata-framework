@@ -5,7 +5,7 @@ import type { HostResult } from '#src/shared/host/errors.ts'
 import { manualClock, withHostingTest } from '#src/testing/host/page/index.ts'
 import { unwrap } from '#src/testing/unwrap.ts'
 
-describe('saves (shared contracts §1.5; FloorFifty hosting and settings-hosted)', () => {
+describe('saves (shared contracts §1.5)', () => {
   it("reads the host's snapshot and writes back through saves.set", () =>
     withHostingTest(
       async ({ hosting, handle: { sentByGame } }) => {

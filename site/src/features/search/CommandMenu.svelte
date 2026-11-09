@@ -1,7 +1,8 @@
 <script lang="ts">
 import { tick } from 'svelte'
+import './search.css'
 import type { ApiSearchRow } from '../../shared/framework/api'
-import { latestApiVersion, loadApiSearch, searchApi } from '../../shared/framework/api-reference'
+import { API_VERSION, loadApiSearch, searchApi } from '../../shared/framework/api-reference'
 import { getExamples } from '../../shared/framework/example-catalog'
 import type { SearchEntry } from './search-entry'
 
@@ -43,7 +44,7 @@ let results = $derived(
   ),
 )
 // The complete generated reference loads the first time the menu opens, so a page that never searches does not carry it.
-const apiVersion = latestApiVersion()
+const apiVersion = API_VERSION
 let apiRows = $state<ApiSearchRow[]>([])
 let apiLoaded = false
 const apiResults = $derived(

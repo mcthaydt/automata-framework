@@ -1,0 +1,26 @@
+# What the hall asks of the player: one thing that can be true or not. Open it in Schematic.
+scene = "hall"
+items = []
+systemic = []
+lethal = []
+goal = [ { fact = "lamp", is = true } ]
+
+[facts]
+lamp = false
+alarm = false
+
+[hotspots.desk]
+x = -6
+z = 0
+
+[fallback]
+
+[[entry]]
+name = "start"
+items = []
+
+[[actions]]
+id = "desk.light"
+at = "desk"
+say = "The lamp is lit."
+then = [ { set = "lamp", to = true } ]

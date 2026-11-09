@@ -1,0 +1,12 @@
+# `slump` from FigureBuilder (mcthaydt/FigureBuilder) src/features/motion/library/seats.json at 025ffb4; the id in kebab-case.
+
+about = "Dead inside: slid forward on the seat, the back rounded, the chest sunk, the chin down, the hands dropped in the lap, the knees apart."
+height = 0.46
+slump = 0.7
+knees = 0.05
+feet = 0.08
+head = [0, 0.06, 0.18]
+
+[hands]
+L = "lap"
+R = "lap"

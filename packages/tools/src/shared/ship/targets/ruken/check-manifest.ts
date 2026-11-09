@@ -9,3 +9,13 @@ export function checkManifest(toml: string): Effect.Effect<Manifest, ManifestInv
     ? Effect.succeed(result.manifest)
     : Effect.fail(new ManifestInvalid({ problems: result.errors }))
 }
+
+/**
+ * `checkManifest` for a caller outside Effect (a game's tests): the manifest, or a thrown `ManifestInvalid` naming
+ * each problem.
+ */
+export function manifestOf(toml: string): Manifest {
+  const result = parseManifest(toml)
+  if (!result.ok) throw new ManifestInvalid({ problems: result.errors })
+  return result.manifest
+}

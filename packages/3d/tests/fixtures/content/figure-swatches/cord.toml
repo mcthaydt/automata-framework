@@ -1,0 +1,9 @@
+# `cord`, a fixture.
+# Colour: DUEL ramp 0 (grey), step 7 (#f5f7fa).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "grey"
+step = 7
+flat = true
+kind = "thread"
+role = "stitch"

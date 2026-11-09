@@ -7,8 +7,7 @@ import {
 } from '#src/features/input/gestures/swipe-tracker.ts'
 import type { GestureName } from '#src/features/input/input-profile.schema.ts'
 
-// Swipe steering and flicks (M4 spec §4.4). FloorFifty's `tests/client/systems/gameplay/swipe-tracker.test.ts` at
-// `ac72660`, as behavior: its left/right/fastFall are AF's swipe-left/swipe-right/flick-down, and the times are
+// Swipe steering and flicks (M4 spec §4.4), as behavior: left, right and fast-fall are the profile's swipe-left, swipe-right and flick-down, and the times are
 // passed in (`PointerEvent.timeStamp`) instead of read from an injected clock.
 
 const rig = (tuning?: Partial<GestureTuning>) => {
@@ -26,7 +25,7 @@ const rig = (tuning?: Partial<GestureTuning>) => {
 }
 
 describe('tuning', () => {
-  it("defaults to FloorFifty's values", () => {
+  it('defaults to the documented values', () => {
     expect(GESTURE_TUNING).toEqual({ deadZonePx: 12, saturationPx: 48, flickPx: 40, flickMs: 180 })
   })
 
@@ -137,7 +136,7 @@ describe('flick down (I-f)', () => {
   })
 })
 
-// FloorFifty (Owner, 2026-10-10): any finger may flick; only a finger the surface lets steer steers.
+// Owner, 2026-10-10: any finger may flick; only a finger the surface lets steer steers.
 describe('a finger that may not steer', () => {
   it('still flicks', () => {
     const { tracker, pulses } = rig()
@@ -179,7 +178,7 @@ describe('two thumbs', () => {
   })
 })
 
-// Not in FloorFifty or The Last Light: AF's rule, for review (plan, "Tap").
+// AF's rule, for review (plan, "Tap").
 describe('tap', () => {
   it('pulses for a finger lifted within 180 ms that never left the dead zone', () => {
     const { tracker, pulses } = rig()

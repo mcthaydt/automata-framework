@@ -1,9 +1,8 @@
 <!--
   @component
-  The Language group of the Settings tab (Owner, 2026-10-18), laid out as FloorFifty's (`LanguagePicker.svelte` at
-  a28dc44): Automatic, then each of the game's languages by its endonym, each in its own `lang` so a screen reader
+  The Language group of the Settings tab (Owner, 2026-10-18): Automatic, then each of the game's languages by its endonym, each in its own `lang` so a screen reader
   says it in that language. A pick is reported at once (`Locale.set`); nothing remounts, so focus stays on it.
-  FloorFifty's flags are its own art; a game names its languages here, and may give its own names (`names`).
+  There are no flags; a game names its languages here, and may give its own names (`names`).
 -->
 <script lang="ts">
 import OptionGroup from '../../../shared/ui/layout/OptionGroup.svelte'

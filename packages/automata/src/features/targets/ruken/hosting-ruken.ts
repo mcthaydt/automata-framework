@@ -111,7 +111,7 @@ export async function createRukenHosting(
   const hosting = hostingOver(session, options, { fellBack, menu, exits, owner, state })
 
   // The SDK calls its exiting listeners as plain promises and all at once; AF has the one listener and orders the
-  // work (see exit-handlers.ts). FloorFifty `ruken/exit.ts`: after the game's handlers, every save still on its way
+  // work (see exit-handlers.ts). After the game's handlers, every save still on its way
   // is handed to the host, within HOST_EXIT_CAP_MS. A flush the host refuses (no `saves` grant) or that times out is
   // simply over.
   owner.add(session.on('exiting', () => exits.run(async () => void (await hosting.saves.flush()))))

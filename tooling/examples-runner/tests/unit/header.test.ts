@@ -70,6 +70,13 @@ describe('parseHeader', () => {
     expect(errors(withBase).map((error) => error.field)).toEqual(['Tier', 'Golden', 'Base'])
   })
 
+  it('names the tiers core and extension, and no longer accepts plus', () => {
+    expect(parseHeader(full.replace('Tier: core', 'Tier: extension'))).toMatchObject({ tier: 'extension' })
+    expect(errors(full.replace('Tier: core', 'Tier: plus'))).toMatchObject([
+      { field: 'Tier', message: 'Tier: must be core or extension, got "plus"' },
+    ])
+  })
+
   it('needs a title line naming the example', () => {
     expect(errors(full.replace('// core-input-keys: move', '// move'))[0]).toMatchObject({
       line: 1,

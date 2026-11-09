@@ -51,6 +51,8 @@
 }
 
 .af-game-play__field {
+  /* The hud components that sit along an edge (the dialogue box, a caption) are placed against the field. */
+  position: relative;
   min-height: 0;
 }
 

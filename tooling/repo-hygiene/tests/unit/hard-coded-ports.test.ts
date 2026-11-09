@@ -56,6 +56,7 @@ describe('a literal port in a server command or origin', () => {
     expect(isPortScanned('packages/tools/src/shared/ship/ports/ports-for.ts')).toBe(false)
     expect(isPortScanned('packages/tools/src/shared/ship/ports/browser-safe-port.ts')).toBe(false)
     expect(isPortScanned('packages/tools/tests/unit/editor/editor-args.test.ts')).toBe(false)
+    expect(isPortScanned('extensions/net-server/src/app/server-process.ts')).toBe(false)
     expect(isPortScanned('games/emberwick/playwright.config.ts')).toBe(true)
     expect(isPortScanned('examples/ui/primitives/package.json')).toBe(true)
     expect(isPortScanned('.github/workflows/ci.yml')).toBe(true)

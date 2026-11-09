@@ -84,7 +84,7 @@ export async function storageKeys(page: Page): Promise<string[]> {
 }
 
 /**
- * A code block highlights when it scrolls near the screen (QB.3h) and replaces its plain `<pre>` with the highlighted
+ * A code block highlights when it scrolls near the screen and replaces its plain `<pre>` with the highlighted
  * one. Scroll through the page once and wait for every visible block to finish, so the elements a gate collects stay
  * in the DOM while it works. A block in a closed <details> is not visible and is left as it is.
  */
@@ -131,8 +131,8 @@ export async function keyboardProblems(page: Page): Promise<string[]> {
   for (let presses = 0; presses < candidates.length * 2 + 10 && reached.size < candidates.length; presses++) {
     await page.keyboard.press(isWebKit ? 'Alt+Tab' : 'Tab')
     const focused: { index: number; ring: boolean } | null = await page.evaluate(() => {
-      // Focus on an example's static code swaps in the editor (WEB.PLAY.6): its content stands for the static code,
-      // and its focus ring is on the editor's box (playground spec §9.2).
+      // Focus on an example's static code swaps in the editor: its content stands for the static code,
+      // and its focus ring is on the editor's box.
       const focused = document.activeElement
       const editor = focused?.matches('.cm-content') ? focused.closest('.cm-editor') : null
       const element = editor ? focused!.closest('.code-panel')?.querySelector('.static-code') : focused

@@ -57,5 +57,5 @@ export default defineGame({
     },
     { pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } } },
   ),
-  views: { [Body.id]: rect({ w: 8, h: 8, color: 0xffc825 }) },
+  views: { [Body.id]: rect({ w: 8, h: 8, color: 0xffcf05 }) },
 })

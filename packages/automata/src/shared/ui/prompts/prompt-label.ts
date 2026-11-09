@@ -1,5 +1,4 @@
-// Device prompts: what to show for an action on the device in the player's hand. The pad labels follow
-// FloorFifty `apps/client/src/ui/glyphs.ts` at `ac72660`: a label printed on the pad itself (A, B, ✕, ○, LB, L1) is
+// Device prompts: what to show for an action on the device in the player's hand. A label printed on the pad itself (A, B, ✕, ○, LB, L1) is
 // the same in every language, and a button known by a word (a generic pad's buttons, Start, Home) comes from the
 // game's words, so it follows a language switch. `ui` cannot read runtime's `Input`, so a prompt is told the binding
 // and the device; the screen that shows it passes the Input's live values.

@@ -45,6 +45,6 @@ export default defineGame({
       sim.spawn([[Bell, { x: 160, y: 90, angle: 0 }]])
     },
   },
-  views: { [Bell.id]: rect({ w: 32, h: 40, color: 0xffc825, anchor: { x: 0.5, y: 0 } }) },
+  views: { [Bell.id]: rect({ w: 32, h: 40, color: 0xffcf05, anchor: { x: 0.5, y: 0 } }) },
   sounds: { [Chime.id]: chime },
 })

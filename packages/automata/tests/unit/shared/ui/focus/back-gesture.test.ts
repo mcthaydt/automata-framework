@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { interceptBackGesture, sendBack } from '#src/shared/ui/focus/back-gesture.ts'
 import { padKeyEvents } from '#src/shared/ui/focus/focus-nav.ts'
 
-// Ported from FloorFifty tests/client/ui/back-gesture.test.ts at ac72660; the history key is `afBackGuard`.
+// The history key is `afBackGuard`.
 
 let release: (() => void) | undefined
 afterEach(() => {

@@ -1,20 +1,14 @@
 import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/fonts.css'
-import '#src/app/editor-2d/main.css'
+import '#src/app/level-2d/main.css'
 import { cleanup, render } from '@testing-library/svelte'
 import { afterEach, describe, expect, inject, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import LevelCanvas from '#src/features/level/LevelCanvas.svelte'
-import { createColorResolver } from '#src/shared/level-2d/canvas/colors.ts'
 import type { DrawView } from '#src/shared/level-2d/canvas/draw/draw-list-types.ts'
 import { PLACEHOLDER_COLORS } from '#src/shared/level-2d/canvas/draw/tile-draw.ts'
-import { createLevelThumbnails } from '#src/shared/level-2d/canvas/level-thumbnails.ts'
-import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { drawView } from '#src/testing/level-2d/draw-fixtures.ts'
-import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { cellsPng } from '#src/testing/level-2d/png.ts'
 import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
@@ -34,11 +28,8 @@ const OUT = '../../../../docs/evidence/owner-visual/2026-10-30-ed2d-4c3b'
 /** The Level view's canvas on an iPad 11" in landscape. */
 const CANVAS = { w: 554, h: 602 }
 
-let handle: EditorHandle | undefined
-afterEach(async () => {
+afterEach(() => {
   cleanup()
-  await handle?.dispose()
-  handle = undefined
   document.body.replaceChildren()
 })
 
@@ -122,41 +113,5 @@ describe.runIf(inject('writeVisuals'))('canvas images for review', () => {
     lose?.loseContext()
     await expect.poll(() => host.dataset['state']).toBe('paused')
     await page.screenshot({ element: host, path: `${OUT}/level-paused.png` })
-  })
-
-  it('Home with level thumbnails on the cards (iPad 11" landscape)', async () => {
-    await page.viewport(1194, 834)
-    const clock = createTestClock()
-    const workspace = memoryWorkspace(clock)
-    await workspace.store.write('mossgate.af2d.json', printProject(mossgate()))
-    clock.advance(60_000)
-    await workspace.store.write('hollowmere.af2d.json', printProject(hollowmere()))
-    const target = document.body.appendChild(document.createElement('div'))
-    handle = await startEditor(target, {
-      window,
-      document,
-      workspace,
-      clock: {
-        now: () => clock.now(),
-        setTimer: (ms, run) => window.setTimeout(run, ms),
-        clearTimer: (timer) => window.clearTimeout(timer as number),
-      },
-      fillRandom: (bytes) => {
-        crypto.getRandomValues(bytes)
-      },
-      thumbnails: (opened) =>
-        createLevelThumbnails({
-          read: (path) => opened.store.read(path),
-          colors: createColorResolver((name) =>
-            getComputedStyle(document.documentElement).getPropertyValue(name),
-          ),
-          makeCanvas: () => document.createElement('canvas'),
-        }),
-    })
-    await expect
-      .poll(() => document.querySelectorAll('[aria-label="Levels"] .open img').length, { timeout: 10_000 })
-      .toBe(2)
-    await Promise.all([...document.querySelectorAll('img')].map((image) => image.decode()))
-    await page.screenshot({ path: `${OUT}/home-thumbnails-1194x834.png` })
   })
 })

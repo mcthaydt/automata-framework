@@ -1,0 +1,332 @@
+{
+  "steps": [
+    16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 5000, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16
+  ],
+  "readings": [
+    0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256, 272, 288, 304, 320, 5320,
+    5336, 5352, 5368, 5384, 5400, 5416, 5432, 5448, 5464, 5480
+  ],
+  "frames": [
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [1, 1],
+      "frozen": [7],
+      "flash": { "colour": "white", "alpha": 0.85 },
+      "tint": { "colour": "red", "alpha": 0.4 },
+      "squash": [[7, [1.34375, 0.65625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0, "still": false }],
+      "haptics": [{ "strong": 0.6, "weak": 0.4, "ms": 90, "phoneMs": 18 }],
+      "cues": ["slam"]
+    },
+    {
+      "offset": [1, 1],
+      "frozen": [7],
+      "flash": { "colour": "white", "alpha": 0.85 },
+      "tint": { "colour": "red", "alpha": 0.33333333333333337 },
+      "squash": [[7, [1.34375, 0.65625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.016, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [1, 1],
+      "frozen": [7],
+      "flash": { "colour": "white", "alpha": 0.85 },
+      "tint": { "colour": "red", "alpha": 0.33333333333333337 },
+      "squash": [[7, [1.34375, 0.65625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.032, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [7],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.33333333333333337 },
+      "squash": [[7, [1.34375, 0.65625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.048, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [7],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.33333333333333337 },
+      "squash": [[7, [1.34375, 0.65625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.064, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [7],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.33333333333333337 },
+      "squash": [[7, [1.34375, 0.65625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.08, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.33333333333333337 },
+      "squash": [[7, [1.34375, 0.65625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.096, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2666666666666667 },
+      "squash": [[7, [1.28125, 0.71875]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.11200000000000002, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2666666666666667 },
+      "squash": [[7, [1.1875, 0.8125]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.12800000000000003, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2666666666666667 },
+      "squash": [[7, [1.09375, 0.90625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.14400000000000004, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2666666666666667 },
+      "squash": [[7, [1, 1]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.16000000000000006, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2666666666666667 },
+      "squash": [[7, [0.9375, 1.0625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.17600000000000007, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2666666666666667 },
+      "squash": [[7, [0.90625, 1.09375]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.1920000000000001, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2 },
+      "squash": [[7, [0.90625, 1.09375]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.2080000000000001, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2 },
+      "squash": [[7, [0.90625, 1.09375]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.22400000000000012, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2 },
+      "squash": [[7, [0.90625, 1.09375]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.24000000000000013, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2 },
+      "squash": [[7, [0.9375, 1.0625]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.2560000000000001, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2 },
+      "squash": [[7, [0.96875, 1.03125]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.27200000000000013, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": { "colour": "red", "alpha": 0.2 },
+      "squash": [[7, [1, 1]]],
+      "words": [{ "key": "feel.word.slam", "at": 7, "age": 0.28800000000000014, "still": false }],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1.03125, 0.96875]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    },
+    {
+      "offset": [0, 0],
+      "frozen": [],
+      "flash": null,
+      "tint": null,
+      "squash": [[7, [1, 1]]],
+      "words": [],
+      "haptics": [],
+      "cues": []
+    }
+  ]
+}

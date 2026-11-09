@@ -1,0 +1,64 @@
+{
+  "name": "@automata/world-kit",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Ready-made props, furnished rooms, signs and generated maps for AF's 3D worlds.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/world-kit"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./src/app/*.ts",
+    "./src/features/*/register-*.ts"
+  ],
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./textures": "./src/entries/textures.ts",
+    "./sky": "./src/entries/sky.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "tsc -p .",
+    "maps": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/convert-builder-maps.ts tests/fixtures/builder-maps.json --out library/maps",
+    "textures": "node --import ../../packages/3d/scripts/extensionless-ts.ts src/app/textures-cli.ts",
+    "textures:check": "node --import ../../packages/3d/scripts/extensionless-ts.ts src/app/textures-cli.ts --check",
+    "test:browser": "vitest run --project browser"
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@automata/3d": "workspace:^",
+    "@automata/content": "workspace:^",
+    "@automata/framework": "workspace:^",
+    "@automata/sim": "workspace:^",
+    "@pixi/3d": "0.1.0-beta.2",
+    "pixi.js": "8.22.0"
+  },
+  "devDependencies": {
+    "@automata/3d": "workspace:*",
+    "@automata/content": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "pixi.js": "8.22.0",
+    "playwright": "1.63.0",
+    "svelte": "5.57.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  },
+  "bin": {
+    "automata-world-textures": "./src/app/textures-cli.ts"
+  }
+}

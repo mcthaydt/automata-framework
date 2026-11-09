@@ -21,7 +21,16 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `@types/node` | 24.19.1 | 2026-10-11 | Node 24 typings for tooling |
 | `@types/pngjs` | 6.0.5 | 2026-10-17 | Typings for `pngjs` in `@automata/content` |
 | `@playwright/test` | 1.63.0 | 2026-10-11 | Browser journeys (`pnpm test:e2e`, root `playwright.config.ts`) |
-| `@pmndrs/klipp` | 0.16.0 | 2026-10-30 | The 3D camera in `@automata/render-pixi3d` (Owner, 2026-10-30: "keep in mind for the camera we're using klipp"). MIT; the core is headless, so its optional peers (`three`, `react`, `camera-controls`, `@react-three/fiber`) are not installed. 0.16 is needed: `addCamera` is gone from it. It brings `math` (pmndrs, MIT) at a canary version as its own exact dependency |
+| `@pmndrs/klipp` | 0.16.0 | 2026-10-30 | The 3D camera in `@automata/3d` (Owner, 2026-10-30: "keep in mind for the camera we're using klipp"). MIT; the core is headless, so its optional peers (`three`, `react`, `camera-controls`, `@react-three/fiber`) are not installed. 0.16 is needed: `addCamera` is gone from it. It brings `math` (pmndrs, MIT) at a canary version as its own exact dependency |
+| `@colyseus/core` | 0.18.18 | 2026-11-07 | The room server inside `@automata/net-server` (`extensions/net-server`), the one place a game's online rooms run (Node only). Moved in with the extension; its Colyseus line moves together |
+| `@colyseus/schema` | 5.0.36 | 2026-11-07 | The room state's wire format in `@automata/net-server`; the version the pinned `@colyseus/core` and `@colyseus/sdk` agree on |
+| `@colyseus/sdk` | 0.18.5 | 2026-11-07 | The browser side of an online room: `@automata/net` joins and leaves rooms through it, and `@automata/net-server`'s tests connect with it |
+| `@colyseus/testing` | 0.18.6 | 2026-11-07 | Boots a real room in `@automata/net-server`'s tests |
+| `@colyseus/tools` | 0.18.7 | 2026-11-07 | Room-server helpers `@automata/net-server`'s tests use |
+| `@colyseus/ws-transport` | 0.18.4 | 2026-11-07 | The WebSocket transport under `@automata/net-server` |
+| `@dimforge/rapier2d-deterministic-compat` | 0.21.0 | 2026-11-07 | 2D physics in `@automata/physics` (`extensions/physics`). The deterministic build, so its hashes match in Node, Chromium, WebKit and Firefox |
+| `@dimforge/rapier3d-deterministic-compat` | 0.21.0 | 2026-11-07 | 3D physics in `@automata/physics`; the same deterministic build and the same version as the 2D one |
+| `@modelcontextprotocol/sdk` | 1.32.1 | 2026-11-07 | The MCP server in `@automata/pipelines`, which lets an agent read and decide the review gates |
 | `@vitest/browser-playwright` | 5.0.3 | 2026-10-01 | Cross-engine parity runs; same major as `vitest` |
 | `effect` | 3.22.2 | 2026-10-11 | Services, scopes and the clock outside the sim, in the tools (ADR 0003). Effect 3, not 4.0: 4.0 renamed the Context API and was ten days old when chosen. `ship` uses it without `@effect/platform-node`, whose 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers |
 | `fflate` | 0.8.3 | 2026-10-30 | Reads a zip imported into the 3D editor's OPFS workspace (`packages/editor-3d`, `app/import-files.ts`) (MIT, no dependencies); `unzipSync` with a size filter, so an entry over 16 MB is never inflated. Published 2026-05-16 |
@@ -31,6 +40,7 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `pixi.js` | 8.22.0 | 2026-10-30 | 2D renderer (ADR 0002). 8.22.0 is the peer floor of the vendored `@pixi/3d` 0.1.0-beta.2 (`^8.22.0`) and was npm latest when moved; no change in it that AF depends on ([the move's plan](archive/superpowers/plans/2026-10-30-m3-2-pixi-822.md)) |
+| `@pixi/3d` | 0.1.0-beta.2 | 2026-11-07 | The post effects of `@automata/world-kit` (stars, rain, glow) extend its `PostEffect`; core `@automata/3d` takes it from the vendored tarball (`vendor/pixi-3d/`), and the kit asks its game for the same version as a peer |
 | `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under a CSP that allows only `font-src 'self' data:` |
 | `@fontsource-variable/geist` | 5.3.0 | 2026-11-06 | The editor kit's and the website's interface face (`packages/editor`, `site`) (OFL-1.1), bundled so the editors load offline and the site makes no third-party request |
 | `@fontsource-variable/geist-mono` | 5.3.0 | 2026-11-06 | The editor kit's and the website's face for paths and numbers (`packages/editor`, `site`) (OFL-1.1), bundled likewise |

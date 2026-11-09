@@ -1,4 +1,4 @@
-// The browser-safe entries: what a game's page (and the packages it loads, such as figures and render-pixi3d) may
+// The browser-safe entries: what a game's page (and the packages it loads, such as figures and @automata/3d) may
 // import from content without Node. The root entry is the compiler and reaches `node:fs/promises`; in Vite's dev
 // server that throws at boot (a production build tree-shakes it away, so only `vite dev` showed a blank page). So
 // each browser entry's whole import graph, not just its own file, must stay clear of Node built-ins.
@@ -43,6 +43,7 @@ function externalsOf(entry: string): string[] {
 }
 
 const BROWSER_ENTRIES = {
+  './controls': { source: './src/entries/controls.ts', build: 'controls' },
   './level-2d': { source: './src/entries/level-2d.ts', build: 'level-2d' },
   './palette': { source: './src/entries/palette.ts', build: 'palette' },
   './schema': { source: './src/entries/schema.ts', build: 'schema' },
@@ -71,10 +72,14 @@ describe('the browser-safe entries', () => {
     expect(externalsOf(BROWSER_ENTRIES['./level-2d'].source)).toEqual(['zod'])
   })
 
-  it('./palette serves the default palette, Endesga 64', async () => {
+  it('./controls imports only zod', () => {
+    expect(externalsOf(BROWSER_ENTRIES['./controls'].source)).toEqual(['zod'])
+  })
+
+  it('./palette serves the default palette, DUEL', async () => {
     const { DEFAULT_PALETTE } = await import('#src/entries/palette.ts')
-    expect(DEFAULT_PALETTE.name).toBe('Endesga 64')
-    expect(DEFAULT_PALETTE.colors[45]).toBe('#94fdff')
+    expect(DEFAULT_PALETTE.name).toBe('DUEL')
+    expect(DEFAULT_PALETTE.colors[45]).toBe('#96b2d9')
   })
 
   it('the root entry is the compiler and does reach Node (why the browser entries exist)', () => {

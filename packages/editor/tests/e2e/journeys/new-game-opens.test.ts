@@ -24,12 +24,12 @@ test('a new game opens in the editor, and a wall saved there reaches the game', 
     // Row 2 of the starter level is empty sky.
     expect(readFileSync(levelFile, 'utf8')).toContain('rows = [ ".*32", ".*32", ".*32", ".*32"')
 
-    await openRoom(page, editor, 'Levels')
+    await openRoom(page, editor, 'Start')
     await paintWall(page, { col: 5, row: 2 }, STARTER_TILE)
-    await page.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible()
-
-    expect(readFileSync(levelFile, 'utf8')).toContain('rows = [ ".*32", ".*32", ".*5 1 .*26", ".*32"')
+    // Each step is saved as it is drawn.
+    await expect
+      .poll(() => readFileSync(levelFile, 'utf8'), { timeout: 30_000 })
+      .toContain('rows = [ ".*32", ".*32", ".*5 1 .*26", ".*32"')
     const check = await checkLevels(game.dir)
     expect(check.code, check.output).toBe(0)
     // The compiled level's collision rows: the third now holds the wall.

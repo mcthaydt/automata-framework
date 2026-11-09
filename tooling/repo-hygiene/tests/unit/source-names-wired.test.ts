@@ -28,7 +28,10 @@ function tree(files: Record<string, string>): string {
 
 describe('the source-names rule', () => {
   it('runs in pnpm check', () => {
-    expect(scripts['source-names']).toBe('node tooling/repo-hygiene/src/source-names-cli.ts')
+    expect(scripts['source-names']).toBe(
+      'node tooling/repo-hygiene/src/source-names-cli.ts --code packages/3d packages/automata packages/content packages/tools games/base-3d examples/3d && node tooling/repo-hygiene/src/sources-md-cli.ts --complete',
+    )
+    expect(scripts['sources-md']).toBe('node tooling/repo-hygiene/src/sources-md-cli.ts')
     expect(scripts.check).toContain('pnpm source-names')
   })
 

@@ -24,9 +24,8 @@ const landsIn = (folder: string, specifier: string, folders: readonly string[]):
   const target = posix.join(folder, specifier)
   return folders.some((allowed) => target.startsWith(allowed))
 }
-// `document` is the DOM global, not an object key: `AskRequest.document` is a port field the Ask session fills in.
 const FORBIDDEN =
-  /\b(?:Date|setTimeout|setInterval|performance|Math\.random|document(?!\s*:)|window|process|globalThis)\b/
+  /\b(?:Date|setTimeout|setInterval|performance|Math\.random|document|window|process|globalThis)\b/
 
 const sourcesOf = (folder: string): string[] =>
   readdirSync(new URL(`${folder}/`, SRC)).filter((name) => name.endsWith('.ts') && !name.endsWith('.test.ts'))
@@ -38,7 +37,7 @@ describe.each(CORE_FOLDERS)('%s is headless', (folder) => {
   const sources = sourcesOf(folder)
 
   it('has sources to check', () => {
-    expect(sources.length).toBeGreaterThan(3)
+    expect(sources.length).toBeGreaterThan(2)
   })
 
   for (const name of sources) {

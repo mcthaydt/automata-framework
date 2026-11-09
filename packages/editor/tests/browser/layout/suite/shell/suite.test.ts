@@ -15,12 +15,13 @@ import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
+import { chooseEditor } from '#src/testing/suite/suite-layout.ts'
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
 const targets = editorTargets()
 
 // The suite with the production CSS in a real browser at the editors' window sizes:
-// region boxes, the rail (the page's two editors and Review), the 64 px tab bar, 44 px targets, no page scroll and no remount on rotation. jsdom
+// region boxes, the rail (the page's two editors), the 64 px tab bar, 44 px targets, no page scroll and no remount on rotation. jsdom
 // has no layout, so only this file checks room. Started the way `main.ts` starts it, with the real window.
 
 let started: SuiteHandle | undefined
@@ -59,11 +60,19 @@ const home = (): HTMLElement => {
 }
 
 describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
-  test('the shell mode, a tab per editor and Review of at least 44 px, Home reachable, nothing clipped, no page scroll', async () => {
+  // A phone held sideways folds the tabs into the top bar's Editors menu (`suite-phone.test.ts` holds that case).
+  const folded = size.formFactor === 'phone-landscape'
+
+  test('the shell mode, a tab per editor of at least 44 px, Home reachable, nothing clipped, no page scroll', async () => {
     const conditions = await open(size)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
+    if (folded) {
+      expect(tabs()).toEqual([])
+      expect(checkLayout(conditions, [home()])).toEqual([])
+      return
+    }
     const all = tabs()
-    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels', 'Review'])
+    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
     for (const tab of all) {
       const box = tab.getBoundingClientRect()
       expect(box.width).toBeGreaterThanOrEqual(targets.hit)
@@ -99,9 +108,13 @@ describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
     expect(getComputedStyle(home()).getPropertyValue('-webkit-touch-callout') || 'none').toBe('none')
   })
 
-  test('the rail is a column in wide and a 64 px tab bar at the foot below it', async () => {
+  test('the rail is a column in wide and a 64 px tab bar at the foot below it (none in phone landscape)', async () => {
     await open(size)
     const rail = document.querySelector<HTMLElement>('[role="tablist"]')
+    if (folded) {
+      expect(rail).toBeNull()
+      return
+    }
     if (rail === null) throw new Error('no rail')
     const box = rail.getBoundingClientRect()
     if (size.mode === 'wide') {
@@ -131,16 +144,15 @@ describe('Suite rotation', () => {
   test('1194 x 834 to 834 x 1194 keeps Home and the chosen entry and remounts nothing', async () => {
     const [landscape, portrait] = [SIZES[0], SIZES[4]] as [EditorSize, EditorSize]
     await open(landscape)
-    const review = tabs().find((tab) => tab.textContent?.trim() === 'Review')
-    review?.click()
+    await chooseEditor('Tuner')
+    await expect.poll(() => document.querySelector('[data-testid="tuner-rows"]')).not.toBeNull()
     await settleLayout()
     const shell = document.querySelector('[data-editor-shell]')
-    const page1 = document.querySelector('[data-testid="review-desk"]')
-    expect(page1).not.toBeNull()
+    const page1 = document.querySelector('[data-testid="tuner-rows"]')
     await page.viewport(portrait.width, portrait.height)
     await settleLayout()
     expect(document.querySelector('[data-editor-shell]')).toBe(shell)
-    expect(document.querySelector('[data-testid="review-desk"]')).toBe(page1)
-    expect(document.querySelector('[aria-selected="true"]')?.textContent?.trim()).toBe('Review')
+    expect(document.querySelector('[data-testid="tuner-rows"]')).toBe(page1)
+    expect(document.querySelector('[aria-selected="true"]')?.textContent?.trim()).toBe('Tuner')
   })
 })

@@ -56,11 +56,10 @@ function fileStem(name: string): string {
   return stem === '' ? 'project' : stem
 }
 
-// The four views of the switcher, in plain words. Problems and Share are in the top bar, not views.
+// The views of the switcher, in plain words. The suite's Levels 2D has the Level and Tiles views of its own; Map is
+// gone (the Owner, 2026-11-08). Problems and Share are in the top bar, not views.
 const views: ViewDef[] = [
   { id: 'level', label: 'Level', component: 'LevelView' },
-  { id: 'world', label: 'Map', component: 'WorldView' },
-  { id: 'tilesets', label: 'Tiles', component: 'TilesetsView' },
   { id: 'entities', label: 'Characters', component: 'EntitiesView' },
 ]
 

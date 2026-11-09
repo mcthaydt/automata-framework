@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { framePageForOrigin } from '../../../scripts/playground-origin'
 
-// R-2 (spec §11.2): a frame page's connect-src names the one origin that serves it. The published pages name the
+// a frame page's connect-src names the one origin that serves it. The published pages name the
 // site's origin; the local servers (the static server and the dev server) serve them with their own.
 const policy = (origin: string) =>
   `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-x='; connect-src 'self' ${origin}; frame-src 'none'" />`

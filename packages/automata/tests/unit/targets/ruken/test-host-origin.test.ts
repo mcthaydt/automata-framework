@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Hosting } from '#src/shared/host/hosting.ts'
 import { manualClock, openHostingTest } from '#src/testing/host/page/index.ts'
 
-/** The address a phone test serves Ruken from (FloorFifty tests/client/ruken/test-host-origin.test.ts). */
+/** The address a phone test serves Ruken from. */
 const TEST_HOST = 'https://ruken-host.e2e.test'
 
 /**
@@ -18,7 +18,7 @@ async function hostingFrom(
   const opening = openHostingTest({
     hosting: testHostOrigins === undefined ? {} : { testHostOrigins },
     host: { clock, hostOrigin, saves: { 'ff.playerName': 'Kite' } },
-    gameOrigin: 'https://g-floorfifty.e2e.test',
+    gameOrigin: 'https://g-game.e2e.test',
   })
   for (let elapsed = 0; elapsed <= 10_000; elapsed += 250) {
     await settle(2)

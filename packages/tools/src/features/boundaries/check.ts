@@ -26,6 +26,7 @@ export type Rule =
   | 'import'
   | 'koota-soa'
   | 'platform-import'
+  | 'extension-import'
   | 'feature-import'
   | 'shared-import'
   | 'shared-island'

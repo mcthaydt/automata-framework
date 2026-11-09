@@ -1,0 +1,11 @@
+{
+  "format": "world-kit-tile/1",
+  "swatch": "rugField",
+  "photo": "rug",
+  "sha256": "38e1b21c1f089f987279bc925f9e795ce4b2cc73ca9090c6eb01945b62fee7d9",
+  "texture": { "photo": "rug", "seed": 3 },
+  "texels": [32, 32],
+  "width": 9,
+  "height": 9,
+  "labels": "CAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgA"
+}

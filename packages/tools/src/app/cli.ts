@@ -11,10 +11,12 @@ import { CspProbeLive } from '../shared/check/ruken/csp-probe-live.ts'
 import { type RunCheckOptions, runCheck } from '../shared/check/run-check.ts'
 import { createGame } from '../shared/create-game/create-game.ts'
 import { parseTargets } from '../shared/create-game/create-game-targets.ts'
+import { TEMPLATES, type TemplateKind } from '../shared/create-game/template-file.ts'
+import { threeDAvailable } from '../shared/create-game/three-d-gate.ts'
 import { FilesLive } from '../shared/node/files.ts'
 import { ProcessRunnerLive } from '../shared/node/process-runner.ts'
 import { type CliIo, PROCESS_IO } from './cli-io.ts'
-import { BUILD_HELP, CHECK_HELP, CREATE_GAME_HELP, ROOT_HELP } from './help.ts'
+import { BUILD_HELP, CHECK_HELP, createGameHelp, ROOT_HELP } from './help.ts'
 import { runShip } from './ship-cli.ts'
 
 export interface ParsedArgs {
@@ -23,6 +25,8 @@ export interface ParsedArgs {
   readonly title?: string | undefined
   /** `--targets web,itch,…` as given; `create-game` checks it. */
   readonly targets?: string | undefined
+  /** `--template 2d|3d` as given; `create-game` checks it. */
+  readonly template?: string | undefined
   /** `--link-workspace`: for a game made inside this repository's workspace (the repository's own tests). */
   readonly linkWorkspace: boolean
   readonly help: boolean
@@ -33,6 +37,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
   let id: string | undefined
   let title: string | undefined
   let targets: string | undefined
+  let template: string | undefined
   let help = false
   let linkWorkspace = false
 
@@ -51,12 +56,14 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
       linkWorkspace = true
     } else if (token === '--targets' && i + 1 < args.length) {
       targets = args[++i]
+    } else if (token === '--template' && i + 1 < args.length) {
+      template = args[++i]
     } else if (!token.startsWith('-') && targetDir === undefined) {
       targetDir = token
     }
   }
 
-  return { targetDir, id, title, targets, linkWorkspace, help }
+  return { targetDir, id, title, targets, template, linkWorkspace, help }
 }
 
 /** Runs `automata check` with the real processes, files and browser. */
@@ -128,13 +135,14 @@ export async function runCli(
   check: (options: RunCheckOptions) => Promise<CheckReport> = runCheckLive,
   build: (options: { gameDir: string; debug: boolean }) => Promise<BuildResult> = runBuildLive,
   ship: (args: readonly string[], io: CliIo) => Promise<number> = runShip,
+  threeD: boolean = threeDAvailable(),
 ): Promise<number> {
   const [command, ...rest] = args
   if (command === undefined || command === '--help' || command === '-h') {
     io.stdout(ROOT_HELP)
     return 0
   }
-  if (command === 'create-game') return createGameCommand(rest, io)
+  if (command === 'create-game') return createGameCommand(rest, io, threeD)
   if (command === 'ship') return ship(rest, io)
   if (command === 'build') return buildCommand(rest, io, build)
   if (command === 'check') return checkCommand(rest, io, check)
@@ -149,22 +157,32 @@ export async function runCli(
   return 2
 }
 
-async function createGameCommand(args: readonly string[], io: CliIo): Promise<number> {
+const isTemplate = (value: string): value is TemplateKind => (TEMPLATES as readonly string[]).includes(value)
+
+async function createGameCommand(args: readonly string[], io: CliIo, threeD: boolean): Promise<number> {
   const parsed = parseArgs(args)
 
   if (parsed.help) {
-    io.stdout(CREATE_GAME_HELP)
+    io.stdout(createGameHelp(threeD))
     return 0
   }
 
   if (!parsed.targetDir) {
-    io.stderr(`Error: name a folder for the game, like: automata create-game my-game\n\n${CREATE_GAME_HELP}`)
+    io.stderr(
+      `Error: name a folder for the game, like: automata create-game my-game\n\n${createGameHelp(threeD)}`,
+    )
     return 1
   }
 
   const targets = parseTargets(parsed.targets)
   if (!targets.ok) {
     io.stderr(`Error: ${targets.message}\n`)
+    return 1
+  }
+
+  const template = parsed.template ?? '2d'
+  if (!isTemplate(template)) {
+    io.stderr(`Error: --template: unknown template "${template}" (allowed: ${TEMPLATES.join(', ')})\n`)
     return 1
   }
 
@@ -182,6 +200,8 @@ async function createGameCommand(args: readonly string[], io: CliIo): Promise<nu
     id,
     title,
     targets: targets.targets,
+    template,
+    threeD,
     linkWorkspace: parsed.linkWorkspace,
   })
 

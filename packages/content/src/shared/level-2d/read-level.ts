@@ -6,15 +6,18 @@ import type { ContentEntityItem, ContentLevel, ContentLevelLayer } from './conte
 // layer and the row.
 
 /** The layer called `layer`, or a sentence saying it is not there. */
-function layerOf(level: ContentLevel, layer: string): ContentLevelLayer {
+export function layerOf(level: ContentLevel, layer: string): ContentLevelLayer {
   const found = level.layers.find((candidate) => candidate.def === layer)
   if (found === undefined) throw new Error(`Level ${level.id} has no layer "${layer}".`)
   return found
 }
 
-/** One row of the file's run-length text (`1 .*38 1`) as one number per cell; `.` is an empty cell, 0. */
-function cellsOfRow(row: string, where: string): number[] {
-  const cells: number[] = []
+/**
+ * One row of the file's run-length text (`1 .*38 1`) as one value per cell. `read` turns a token's base (what is
+ * before `*`) into a cell; the repeat count is checked here, so every layer kind reads rows one way.
+ */
+export function expandRow<T>(row: string, where: string, read: (base: string, token: string) => T): T[] {
+  const cells: T[] = []
   const trimmed = row.trim()
   const tokens = trimmed === '' ? [] : trimmed.split(/\s+/)
   for (const token of tokens) {
@@ -22,11 +25,19 @@ function cellsOfRow(row: string, where: string): number[] {
     const base = star === -1 ? token : token.slice(0, star)
     const countText = star === -1 ? '1' : token.slice(star + 1)
     if (!/^[1-9]\d*$/.test(countText)) throw new Error(`${where}: "${token}" has a bad repeat count.`)
-    if (base !== '.' && !/^\d+$/.test(base)) throw new Error(`${where}: "${token}" is not a number.`)
-    const value = base === '.' ? 0 : Number(base)
+    const value = read(base, token)
     for (let i = 0; i < Number(countText); i++) cells.push(value)
   }
   return cells
+}
+
+/** One row of an IntGrid layer as one number per cell; `.` is an empty cell, 0. */
+function cellsOfRow(row: string, where: string): number[] {
+  return expandRow(row, where, (base, token) => {
+    if (base === '.') return 0
+    if (!/^\d+$/.test(base)) throw new Error(`${where}: "${token}" is not a number.`)
+    return Number(base)
+  })
 }
 
 /** The cells of an IntGrid layer, one array of numbers per row (0 is empty). Throws for a missing or other layer. */
@@ -49,4 +60,4 @@ export function entitiesOf(level: ContentLevel, layer: string): readonly Content
   return found.items
 }
 
-const article = (word: string): string => (/^[aeiou]/.test(word) ? 'an' : 'a')
+export const article = (word: string): string => (/^[aeiou]/.test(word) ? 'an' : 'a')

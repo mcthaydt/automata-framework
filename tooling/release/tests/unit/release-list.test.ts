@@ -5,17 +5,27 @@ import { describe, expect, it } from 'vitest'
 import { publishablePackages, type WorkspacePackage, workspacePackages } from '#src/publishable-packages.ts'
 
 // What AF publishes to npmjs.org, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
-// act: an example, `render-pixi3d` (D-1) or a tool marked publishable fails here before anything is released.
-// Physics is an Automata Plus extension and publishes from automata-plus (PRODUCT.5g).
+// act: an example, `@automata/3d` (D-1) or a tool marked publishable fails here before anything is released.
+// The extensions in `extensions/` are private until they join the publish set together.
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const published = publishablePackages(root)
 
-// Core and 2D refactor, D1 and U6: four packages (sim, content, automata, tools); the boundaries checker is in tools.
+// Four core packages (sim, content, framework, tools; the boundaries checker is in tools) and the nine free
+// extensions that need no 3D package. The extensions that build on the private 3D package join with it.
 const EXPECTED: readonly string[] = [
+  '@automata/audio-synth',
   '@automata/content',
+  '@automata/debug',
+  '@automata/feel',
   '@automata/framework',
+  '@automata/net',
+  '@automata/net-server',
+  '@automata/net-ui',
+  '@automata/physics',
+  '@automata/puzzle',
   '@automata/sim',
   '@automata/tools',
+  '@automata/ui-screens',
 ]
 
 const REGISTRY = 'https://registry.npmjs.org'
@@ -70,7 +80,7 @@ it('walks every workspace folder, games included', () => {
 })
 
 describe('the published packages', () => {
-  it('are exactly the M2.4 list', () => {
+  it('are exactly the core packages and the free extensions', () => {
     expect(published.map((pkg) => pkg.manifest.name).sort()).toEqual(EXPECTED)
   })
 
@@ -159,6 +169,14 @@ describe('the published packages', () => {
   // Entries only this repository's tooling and tests import (U1): in `exports`, not in `publishConfig.exports`.
   const WORKSPACE_ONLY: Readonly<Record<string, readonly string[]>> = {
     '@automata/tools': ['./internal', './e2e'],
+    // The puzzle fixtures read by sibling packages' tests, and audio-synth's manifest for the audio pipeline's tests.
+    '@automata/puzzle': [
+      './testing/converted-puzzles',
+      './testing/toy-scene',
+      './testing/toy-scene.pipe',
+      './testing/softlock-scene.pipe',
+    ],
+    '@automata/audio-synth': ['./package.json'],
   }
 
   it(

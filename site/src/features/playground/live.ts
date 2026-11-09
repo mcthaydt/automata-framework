@@ -6,7 +6,7 @@ import type { Clock } from './orchestrator'
 // the compile worker with the next `seq`, and only the answer to the latest `seq` is passed on, so a slow compile of an
 // older text never replaces a newer one. The clock and the worker are injected, so all of it runs in a unit test.
 
-/** The compile waits this long after the last change (PLAY-D6). */
+/** The compile waits this long after the last change. */
 export const EDIT_QUIET_MS = 300
 
 export interface CompileJob {

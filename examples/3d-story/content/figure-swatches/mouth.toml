@@ -1,0 +1,6 @@
+# `mouth`: a colour from the DUEL palette.
+# Colour: DUEL ramp brick, step 1.
+
+ramp = "brick"
+step = 1
+flat = true

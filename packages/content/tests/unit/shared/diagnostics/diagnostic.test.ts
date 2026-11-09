@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { type Diagnostic, formatDiagnostic, sortDiagnostics } from '#src/shared/diagnostics/diagnostic.ts'
 
-// Ported from FloorFifty tests/content/parse.test.ts "diagnostics" (122a220), with a position added.
+// Diagnostics carry a position.
 describe('formatDiagnostic', () => {
   it('names the file, line, column, key and stable code', () => {
     expect(

@@ -101,3 +101,13 @@ Pictures: shared folder `refactor/2026-11-06-visual-direction/site-c/`, each "No
 The site change is option C's CSS turned into real edits of `site/src/app.css` and the
 shared tokens (`--radius*` and `--pill` onto the 4/6/8 scale, the flat primary), which also updates
 `packages/editor/tests/fixtures/tokens/site-root.css`. It belongs to the site's phase 18.0 (the shared layout).
+
+## The dark look (2026-11-08)
+
+The Owner asked for a dark mode ("I can't imagine working in that for hours"). The editors follow the device and have one
+control on each Home, "Editor colours: Light · Dark · Match device", remembered in the browser. The colours are tokens with
+a value for each look (`tool-theme.json`, written out as plain values, not `light-dark()`, because the level canvas reads
+them as text); the light values are today's. Anything drawn over the game, the level canvas, the Feel cabinet, Walk's HUD
+and the Studio's marks, uses fixed on-stage tokens, so the game's pictures keep their colours in both looks. Design:
+[the spec](2026-11-08-dark-mode-spec.md); how it was built and checked: [the plan](2026-11-08-dark-mode-plan.md).
+

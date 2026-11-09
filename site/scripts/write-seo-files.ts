@@ -5,7 +5,7 @@ import { SITE_ORIGIN } from '../src/shared/site.js'
 import { builtPages } from './site-checks/pages.ts'
 
 /**
- * Writes sitemap.xml and robots.txt into a static build (spec F-3). The sitemap lists the canonical URL of every
+ * Writes sitemap.xml and robots.txt into a static build. The sitemap lists the canonical URL of every
  * prerendered page, read from the page itself, so it cannot drift from what the build actually contains.
  */
 export function writeSeoFiles(root: string): void {

@@ -1,0 +1,160 @@
+// The scene audit: its findings and its report, on a made-up audit. A real audit joins the puzzle's analysis with the systems playtest.
+import { describe, expect, it } from 'vitest'
+import {
+  type Audit,
+  type AuditRun,
+  earliestByRoute,
+  findingsOf,
+  renderAudit,
+} from '#src/features/puzzle/puzzle-audit.ts'
+
+const run = (o: Partial<AuditRun> & Pick<AuditRun, 'route' | 'policy' | 'seed'>): AuditRun => ({
+  outcome: 'win',
+  time: 20,
+  deaths: 0,
+  firstThreat: null,
+  cause: null,
+  ...o,
+})
+const cause = {
+  agent: 'porter',
+  mode: 'drawn',
+  moving: true,
+  distance: 4.4,
+  goalToPlayer: 1.9,
+  state: { lure: 'drum', missed: false },
+  lastVerb: 'drum:lighter',
+  sinceVerb: 0.2,
+}
+const base = (runs: AuditRun[], over: Partial<Audit> = {}): Audit => ({
+  scene: 'toy',
+  sources: [{ path: 'puzzles/toy.toml', hash: 'abc' }],
+  puzzle: {
+    routes: [
+      { name: 'shortest', steps: 4, seconds: 20.5 },
+      { name: 'without drum.light', steps: 5, seconds: 25 },
+    ],
+    states: 120,
+    softlocks: 0,
+    never: [],
+  },
+  systems: {
+    policies: ['scripted', 'cautious'],
+    seeds: 2,
+    scenarios: [{ id: 'drumLure', ok: true, detail: '20/20 within 10 s' }],
+    fairness: [
+      {
+        id: 'cautiousWin',
+        label: 'cautious-bot win rate',
+        value: 1,
+        threshold: 0.9,
+        comparison: '≥',
+        ok: true,
+        detail: '4/4 cautious runs won',
+      },
+      {
+        id: 'firstThreatAfter',
+        label: 'time to the first threat (s, earliest run)',
+        value: 3.3,
+        threshold: 20,
+        comparison: '≥',
+        ok: false,
+        detail: 'median 3.3 s over 4',
+      },
+    ],
+    runs,
+  },
+  files: [{ path: 'puzzle.md', ok: true, detail: 'current' }],
+  findings: [],
+  ...over,
+})
+
+describe('puzzle audit', () => {
+  const runs = [
+    run({ route: 'shortest', policy: 'scripted', seed: 1, firstThreat: 3.3, cause }),
+    run({
+      route: 'shortest',
+      policy: 'cautious',
+      seed: 1,
+      firstThreat: 3.5,
+      cause: { ...cause, distance: 4.6 },
+    }),
+    run({ route: 'without drum.light', policy: 'scripted', seed: 1, outcome: 'timeout', deaths: 3 }),
+    run({ route: 'without drum.light', policy: 'scripted', seed: 2, outcome: 'timeout', deaths: 2 }),
+    run({ route: 'without drum.light', policy: 'cautious', seed: 1, firstThreat: 25, cause }),
+  ]
+
+  it('takes the earliest first threat on each route', () => {
+    expect(earliestByRoute(runs).map((r) => [r.route, r.run?.firstThreat])).toEqual([
+      ['shortest', 3.3],
+      ['without drum.light', 25],
+    ])
+  })
+
+  it('finds fairness misses, early threats, routes a bot never wins, and where the deaths are', () => {
+    const f = findingsOf(base(runs))
+    const ids = f.map((x) => x.id)
+    expect(ids).toContain('fairness:firstThreatAfter')
+    // Only the route whose earliest threat is under the threshold, with what was going on.
+    expect(ids).toContain('first-threat:shortest')
+    expect(ids).not.toContain('first-threat:without drum.light')
+    expect(f.find((x) => x.id === 'first-threat:shortest')?.detail).toBe(
+      'first threat at 3.3 s on "shortest" (scripted, seed 1): porter drawn, moving, 4.4 m from the player; heading for a point 1.9 m from her; lure drum; the player\'s last verb drum:lighter, issued 0.2 s before',
+    )
+    expect(f.find((x) => x.id === 'never-wins:scripted:without drum.light')?.detail).toBe(
+      'the scripted bot never wins "without drum.light": 0 of 2 runs, 5 deaths, outcomes timeout',
+    )
+    expect(f.find((x) => x.id === 'deaths:scripted')?.detail).toBe(
+      'all 5 deaths are the scripted bot\'s, on "without drum.light"',
+    )
+  })
+
+  it('lists dead actions, softlocks, failing scenarios and stale files as things to fix, first', () => {
+    const a = base(runs, {
+      puzzle: { routes: [], states: 10, softlocks: 2, never: ['curtain.douse'] },
+      files: [{ path: 'puzzle.md', ok: false, detail: 'is stale: puzzles/toy.toml changed' }],
+    })
+    const systems = a.systems as NonNullable<Audit['systems']>
+    const failing: Audit = {
+      ...a,
+      systems: { ...systems, scenarios: [{ id: 'drumLure', ok: false, detail: '3/20 within 10 s' }] },
+    }
+    const f = findingsOf(failing)
+    expect(
+      f
+        .filter((x) => x.level === 'fix')
+        .map((x) => x.id)
+        .sort(),
+    ).toEqual(['file:puzzle.md', 'never-taken', 'scenario:drumLure', 'softlocks'])
+    expect(f.slice(0, 4).every((x) => x.level === 'fix')).toBe(true)
+  })
+
+  it('a scene with no systems has only puzzle and file findings', () => {
+    expect(findingsOf(base([], { systems: null }))).toEqual([])
+  })
+
+  it('renders a stamped, generated report with every section, the same every time', () => {
+    const a = base(runs)
+    const withFindings = { ...a, findings: findingsOf(a) }
+    const md = renderAudit(withFindings)
+    expect(md.split('\n')[0]).toBe(
+      '<!-- Generated by `automata pipe puzzle run toy`. Do not edit: change the scene and regenerate. -->',
+    )
+    expect(md).toContain('<!-- sources: puzzles/toy.toml xxh64 abc -->')
+    for (const h of [
+      '## Findings',
+      '## Puzzle',
+      '## Fairness',
+      '## First threat by route',
+      '## Outcomes by route and bot',
+      '## Scenarios',
+      '## Generated files',
+    ])
+      expect(md).toContain(h)
+    expect(md).toContain(
+      '| shortest | 3.3 s | scripted, seed 1 | porter, drawn, moving | 4.4 m | 1.9 m | lure drum, missed false | `drum:lighter`, 0.2 s before |',
+    )
+    expect(md).toContain('| without drum.light | scripted | 2 | 0 | 5 | timeout 2 | 20 s |')
+    expect(renderAudit(withFindings)).toBe(md)
+  })
+})

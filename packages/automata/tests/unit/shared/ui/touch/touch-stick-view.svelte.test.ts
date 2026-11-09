@@ -4,9 +4,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import TouchControls from '#src/shared/ui/touch/TouchControls.svelte'
 import type { TouchButtonSpec } from '#src/shared/ui/touch/touch-button.ts'
 
-// The touch move stick on the overlay (M4 spec §16.3.3, A-n), as behavior. The DOM cases of The Last Light
-// `tests/input.test.ts` at `92e6704` ("the stick spawns at the touch point, moves in any direction, and resets on
-// release", "blur and pointer cancellation release the stick"), on AF's overlay: the vector goes out through
+// The touch move stick on the overlay (M4 spec §16.3.3, A-n), as behavior. The DOM cases (the stick spawns at the touch point, moves in any direction, and resets on
+// release; blur and pointer cancellation release the stick), on AF's overlay: the vector goes out through
 // `onstick`, the release through `onstickend`, exactly once.
 
 const BUTTONS: TouchButtonSpec[] = [{ action: 'attack', label: 'Attack', side: 'end', required: true }]

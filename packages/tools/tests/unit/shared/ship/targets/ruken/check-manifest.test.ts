@@ -1,7 +1,7 @@
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { defineShipConfig } from '#src/shared/ship/config/ship-config.ts'
-import { checkManifest } from '#src/shared/ship/targets/ruken/check-manifest.ts'
+import { checkManifest, manifestOf } from '#src/shared/ship/targets/ruken/check-manifest.ts'
 import { rukenToml } from '#src/shared/ship/targets/ruken/ruken-toml.ts'
 
 const config = defineShipConfig({
@@ -31,5 +31,26 @@ describe('checkManifest', () => {
     expect(codes.some((code) => code.startsWith('CONNECT_'))).toBe(true)
     expect(result.left.problems.every((problem) => problem.path.length > 0)).toBe(true)
     expect(result.left.message).toContain('content.languages')
+  })
+})
+
+// `manifestOf` is `checkManifest` for a caller outside Effect (a game's tests): the manifest, or a thrown ManifestInvalid.
+describe('manifestOf', () => {
+  it("returns Ruken's parsed manifest for a valid file", () => {
+    expect(manifestOf(rukenToml(config)).game.id).toBe('placeholder')
+  })
+
+  it('throws ManifestInvalid naming each problem when Ruken refuses the file', () => {
+    const toml = rukenToml({ ...config, content: { ...config.content, languages: ['fr'] } })
+    let thrown: unknown
+    try {
+      manifestOf(toml)
+    } catch (error) {
+      thrown = error
+    }
+    expect(thrown).toMatchObject({ _tag: 'ManifestInvalid' })
+    expect((thrown as { problems: { code: string }[] }).problems.map((problem) => problem.code)).toContain(
+      'LANGUAGES_MISSING_EN',
+    )
   })
 })

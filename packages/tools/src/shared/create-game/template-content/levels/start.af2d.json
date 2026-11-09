@@ -1933,7 +1933,7 @@
             "value": 1,
             "id": "solid",
             "label": "Solid",
-            "color": "#64748b"
+            "color": "#73737f"
           },
           {
             "value": 2,
@@ -2076,6 +2076,38 @@
       }
     ],
     "entities": [
+      {
+        "id": "area",
+        "label": "Area",
+        "color": "#38bdf8",
+        "fields": [
+          {
+            "id": "name",
+            "type": "text",
+            "label": "Name",
+            "default": ""
+          },
+          {
+            "id": "zone",
+            "type": "text",
+            "label": "Zone",
+            "default": ""
+          }
+        ],
+        "shape": "rect",
+        "size": {
+          "w": 64,
+          "h": 64
+        },
+        "pivot": {
+          "x": 0,
+          "y": 0
+        },
+        "resizable": "xy",
+        "tags": [
+          "area"
+        ]
+      },
       {
         "id": "checkpoint",
         "label": "Checkpoint",

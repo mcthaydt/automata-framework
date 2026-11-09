@@ -215,8 +215,8 @@ const barActions: BarAction[] = [
     height: 100%;
     min-height: 0;
     border-radius: var(--af-radius);
-    /* Endesga 64 sky over moss, a placeholder for the game's art. */
-    background: linear-gradient(#0098dc, #1e6f50);
+    /* DUEL sky over moss, a placeholder for the game's art. */
+    background: linear-gradient(#4097ea, #417455);
   }
 
   .rows {

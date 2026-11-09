@@ -1,7 +1,6 @@
 <!--
   @component
-  The Vibration group of the Settings tab (Owner, 2026-10-18; FloorFifty's rumble row in `SettingsPanel.svelte` at
-  a28dc44): one toggle for a pad's rumble and a phone's buzz (`Haptics`). The game shows it only where the device can
+  The Vibration group of the Settings tab (Owner, 2026-10-18): one toggle for a pad's rumble and a phone's buzz (`Haptics`). The game shows it only where the device can
   do either (`Haptics.supported`), so it never offers a switch that does nothing.
 -->
 <script lang="ts">

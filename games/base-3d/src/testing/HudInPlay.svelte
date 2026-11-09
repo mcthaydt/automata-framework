@@ -5,7 +5,7 @@
 -->
 <script lang="ts">
 import { ScreenFrame, TouchControls } from '@automata/framework'
-import Hud from '../screens/Hud.svelte'
+import Hud from '../features/screens/Hud.svelte'
 
 const { touch = false }: { touch?: boolean } = $props()
 const buttons = [{ action: 'roll', label: 'Roll', side: 'end' as const, required: true }]

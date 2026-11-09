@@ -15,8 +15,8 @@ const SOURCES: Record<string, string> = {
   'render3d-sound': "new URL('../resources/sounds/chime.wav', import.meta.url)",
 }
 const entries = [
-  entry('render3d-meshes', ['@automata/render-pixi3d']),
-  entry('render3d-sound', ['@automata/render-pixi3d']),
+  entry('render3d-meshes', ['@automata/3d']),
+  entry('render3d-sound', ['@automata/3d']),
   entry('textures-sprite', ['@automata/framework']),
   entry('audio-shared', ['@automata/framework']),
 ]
@@ -29,7 +29,7 @@ const isPublic = publicResource(entries, (e) => SOURCES[e.id] ?? '', [
 ])
 
 // Review of #241: the website is public, so the files only unpublished extensions' examples use (The Last Light's
-// models, drawn by render-pixi3d) never go there.
+// models, drawn by @automata/3d) never go there.
 describe('publicResource', () => {
   it('leaves out files only an unpublished extension’s examples name, and their folder with them', () => {
     expect(isPublic('models/nightstand.glb')).toBe(false)

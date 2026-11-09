@@ -25,7 +25,7 @@ const metrics = (edge: 'left' | 'right', width: number, fullscreen = false): Dis
 })
 
 describe('observed host state: the current value, then each change (shared contracts §1.5)', () => {
-  it("display follows the host's metrics, including the reserved edge (FloorFifty host-reserved)", () =>
+  it("display follows the host's metrics, including the reserved edge", () =>
     withHostingTest(async ({ hosting, handle: { host } }) => {
       const welcome = host.messages.find((entry) => entry.msg.type === 'welcome')?.msg.payload as {
         display: DisplayMetricsPayload
@@ -43,7 +43,7 @@ describe('observed host state: the current value, then each change (shared contr
       expect(hosting.display.get().fullscreen).toBe(true)
     }))
 
-  it("audio gain follows the host's master volume and mute (FloorFifty audio-host-gain)", () =>
+  it("audio gain follows the host's master volume and mute", () =>
     withHostingTest(async ({ hosting, handle: { host } }) => {
       const seen = collect(hosting.audio)
       await drive(() => host.bridge.setMasterAudio(0.5, false))
@@ -63,7 +63,7 @@ describe('observed host state: the current value, then each change (shared contr
       expect(hosting.audio.get().gain).toBe(1)
     }))
 
-  it('lifecycle goes to background when the host page is hidden and back when shown (FloorFifty sleep-hosted)', () =>
+  it('lifecycle goes to background when the host page is hidden and back when shown', () =>
     withHostingTest(async ({ hosting, handle: { host } }) => {
       const seen = collect(hosting.lifecycle)
       await drive(() => host.frame?.hostDocument.setVisibility('hidden'))

@@ -4,7 +4,7 @@ import { type EditorListLoad, loadEditorList } from '#src/shared/editor-list/edi
 const ROW = `[[file]]
 glob = "content/tuning.toml"
 editor = "tuner"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = ["content"]
 `

@@ -60,6 +60,19 @@ declare module 'virtual:automata/content' {
 
   export type Project = {
     readonly entities: readonly ({
+      readonly animation?: {
+        readonly clips: readonly ({
+          readonly fps: number
+          readonly frames: readonly number[]
+          readonly id: string
+          readonly loop: boolean
+        })[]
+        readonly frame: {
+          readonly h: number
+          readonly w: number
+        }
+        readonly image: string
+      }
       readonly color?: string
       readonly fields: readonly ({
         readonly default?: unknown /* project.entities.fields.default has no JSON form */

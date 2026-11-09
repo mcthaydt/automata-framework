@@ -40,7 +40,7 @@ describe('camera2d follow (M4 spec §4.10, C-a)', () => {
     expect(centreOf(cam.transform)).toEqual({ x: 400, y: -50 })
   })
 
-  it('never overshoots: a rate × Δt above 1 lands on the target (FloorFifty damp)', () => {
+  it('never overshoots: a rate × Δt above 1 lands on the target', () => {
     const cam = camera({ follow: { rate: 120 } })
     cam.target(0, 0)
     cam.update(FRAME)
@@ -129,7 +129,7 @@ describe('camera2d transform', () => {
       1.5,
       1.5,
     ])
-    // Presentation only: a child keeps the coordinates the sim gave it (FloorFifty worldToLogical).
+    // Presentation only: a child keeps the coordinates the sim gave it.
     expect([child.position.x, child.position.y]).toEqual([42, 7])
   })
 })

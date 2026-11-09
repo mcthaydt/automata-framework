@@ -24,4 +24,18 @@ describe('vite.config.ts', () => {
     )
     expect(config.resolve.conditions[0]).toBe('automata-ruken')
   })
+  // The site's Home frames the game with no Ruken host, so its build is the web adapter, which waits for no handshake.
+  it('builds for the web target in web mode, for a page with no host', async () => {
+    const config = await resolveConfig(
+      {
+        root,
+        configFile: join(root, 'vite.config.ts'),
+        configLoader: 'runner',
+        logLevel: 'silent',
+        mode: 'web',
+      },
+      'build',
+    )
+    expect(config.resolve.conditions[0]).toBe('automata-web')
+  })
 })

@@ -1,7 +1,7 @@
 import type { ShipConfig } from '../../config/ship-config.ts'
 
 // Writes `ruken.toml` (Ruken manifest schema 1) from a ShipConfig. The file is generated at prepare time and
-// never committed, so its version cannot drift from the game's (FloorFifty `deploy/tools/ruken-pack.ts`).
+// never committed, so its version cannot drift from the game's.
 // Tables come in a fixed order so the same config always gives the same text.
 
 /** A TOML basic string. JSON's escaping (\" \\ \n \uXXXX) is valid TOML for basic strings. */
@@ -32,7 +32,7 @@ export function rukenToml(config: ShipConfig): string {
     `orientation = ${str(runtime.orientation)}`,
     `inputs = ${list(runtime.inputs)}`,
     `pause_behavior = ${str(runtime.pause_behavior)}`,
-    // AF games never need eval: Pixi compiles shaders without it (FloorFifty v0.10.0 onward).
+    // AF games never need eval: Pixi compiles shaders without it.
     'allow_eval = false',
     '',
     '[network]',

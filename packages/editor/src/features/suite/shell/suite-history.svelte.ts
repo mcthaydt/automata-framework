@@ -3,7 +3,7 @@ import type { SuiteUndo } from '../../../shared/kit/ports/suite-editor'
 import type { SuiteSession } from './suite-session'
 
 // The top bar's Undo and Redo, as Svelte state. They act on the open editor's own history, or on the suite's (an
-// import) with none open (EDS-D19): `owner` is that editor's id, or '' for the suite. A step the write path takes is
+// import) with none open: `owner` is that editor's id, or '' for the suite. A step the write path takes is
 // replayed on the editor's own model through its undo hook; a step it refuses is said in words by `onrefused`.
 // Call it while a component is set up: its effects follow the session, the owner and the hook as they change.
 

@@ -1,5 +1,4 @@
-// The Web Audio graph. Ported from FloorFifty `apps/client/src/managers/audio/graph.ts` at `ac72660`,
-// without its hall, tape echo, vintage stage and analyser, which stay in the game or go to `feel` and
+// The Web Audio graph, without a hall, tape echo, vintage stage and analyser, which stay in the game or go to `feel` and
 // `audio-synth`:
 //
 //   source → bus (the player's level) → duck (its own gain) → master → speakers
@@ -26,13 +25,13 @@ export type AudioContextLike = Pick<
 /** The buses under master. */
 export type SubBus = Exclude<AudioBusName, 'master'>
 
-/** How long a level change glides, so a slider never clicks (FloorFifty `model.ts`). */
+/** How long a level change glides, so a slider never clicks. */
 export const LEVEL_GLIDE_SECONDS = 0.01
 
-/** How fast a duck goes down (FloorFifty `model.ts`): quick enough to clear room for what ducked it. */
+/** How fast a duck goes down: quick enough to clear room for what ducked it. */
 export const DUCK_ATTACK_SECONDS = 0.012
 
-/** How long a duck takes to come back up (FloorFifty `model.ts`, 260 ms). */
+/** How long a duck takes to come back up. */
 export const DUCK_RELEASE_SECONDS = 0.26
 
 interface Duck {
@@ -143,7 +142,7 @@ export class AudioGraph {
 
   /**
    * Writes the ducks in force onto `bus`'s duck gain, whole from now, starting from `previous`, the level it holds
-   * now (FloorFifty `deck.ts` `scheduleDucks`): each boundary is a glide to the level in force just after it, fast
+   * now: each boundary is a glide to the level in force just after it, fast
    * going down and at the release coming back up.
    */
   private scheduleDucks(bus: SubBus, previous: number): void {

@@ -1,0 +1,64 @@
+# The audio-synth example (AS-a): a few cues, a bed, a line that ducks it, and the events that play them. The pipeline's own test
+# renders every cue offline and checks the true peak, clicks, ducking, panning and coverage.
+
+[[cue]]
+id = "ping"
+about = "A short confirm."
+bus = "ui"
+voices = [{ tone = "sine", from = 880, to = 1320, length = 0.15, volume = 0.3 }]
+
+[[cue]]
+id = "thud"
+about = "A heavy landing: a falling tone and a burst of noise."
+bus = "sfx"
+voices = [
+  { tone = "sine", from = 120, to = 40, length = 0.25, volume = 0.4 },
+  { hiss = 400, q = 0.8, length = 0.1, volume = 0.25 },
+]
+
+[[cue]]
+id = "step"
+about = "A footfall somewhere in the room: panned and quieter with distance."
+bus = "sfx"
+world = true
+voices = [{ hiss = [600, 900], q = 1.2, length = 0.06, volume = 0.3 }]
+
+[[cue]]
+id = "line"
+about = "A spoken line stands in as a tone; it ducks the music while it plays."
+bus = "voice"
+voices = [{ tone = "triangle", from = 220, to = 200, length = 1, volume = 0.2 }]
+
+[[bed]]
+id = "hum"
+about = "The room tone."
+bus = "music"
+volume = 0.2
+drones = [{ wave = "sine", freq = 55 }, { wave = "triangle", freq = 110, volume = 0.5 }]
+
+[[duck]]
+bus = "voice"
+duck = ["music"]
+db = -12
+attack = 0.1
+release = 0.4
+
+[[event]]
+on = "ui.confirm"
+cue = "ping"
+
+[[event]]
+on = "player.landed"
+cue = "thud"
+
+[[event]]
+on = "player.step"
+cue = "step"
+
+[[event]]
+on = "npc.speaks"
+cue = "line"
+
+[[event]]
+on = "tick.*"
+silent = "bookkeeping events make no sound"

@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { readApiIndex } from '#src/shared/framework/api.ts'
+import { playgroundExamples } from '#src/shared/framework/examples.ts'
 import { STANDALONE_NAMES } from '../../../scripts/site-checks/copy'
-import { readApiIndex } from '../../../src/shared/framework/api.ts'
-import { playgroundExamples } from '../../../src/shared/framework/examples.ts'
 
 // STANDALONE.1: the site's check leaves text it shows verbatim from the framework to the framework
 // (`data-framework-copy` on the playground's code; llms-full.txt and llms-api.txt). Those files

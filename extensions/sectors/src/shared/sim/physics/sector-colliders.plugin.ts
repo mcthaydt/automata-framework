@@ -1,0 +1,9 @@
+// The physics side of sectors, for a game that registers `physics3d` as well as `sectorsPlugin`.
+import { definePlugin, type PluginDef } from '@automata/sim'
+import { SectorCollider } from './sector-collider.component'
+
+export const sectorCollidersPlugin: PluginDef = definePlugin({
+  name: 'sectors-physics',
+  dependsOn: ['sectors', 'physics-3d'],
+  components: [SectorCollider],
+})

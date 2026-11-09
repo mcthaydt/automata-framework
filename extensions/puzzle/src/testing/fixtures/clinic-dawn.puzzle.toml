@@ -1,0 +1,405 @@
+# The adventure source's clinic-dawn puzzle (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/puzzle/scripts/convert-adventure-puzzles.ts. Do not edit.
+scene = "clinic-dawn"
+items = [ "lighter", "receptionKey", "mop" ]
+
+[facts]
+receptionOpen = false
+keyHook = true
+mopTaken = false
+trolley = 0
+lightsOn = false
+finale = false
+
+[[entry]]
+name = "bay"
+items = [ "lighter" ]
+
+[[entry]]
+name = "bayLightsOn"
+items = [ "lighter" ]
+
+[entry.facts]
+lightsOn = true
+
+[[entry]]
+name = "bayStay"
+items = [ "lighter" ]
+
+[entry.facts]
+riverAnswer = "stay"
+
+[[entry]]
+name = "bayTell"
+items = [ "lighter" ]
+
+[entry.facts]
+riverAnswer = "tell"
+
+[[entry]]
+name = "bayGo"
+items = [ "lighter" ]
+
+[entry.facts]
+riverAnswer = "go"
+
+[[actions]]
+id = "register.write"
+at = "register"
+say = ""
+
+[[actions.when]]
+fact = "receptionOpen"
+is = true
+
+[[actions.then]]
+set = "finale"
+to = true
+
+[[actions.then]]
+dialogue = "clinic-dawn.register"
+
+[[actions]]
+id = "receptionDoor.open"
+at = "receptionDoor"
+then = []
+say = "receptionOpen"
+
+[[actions.when]]
+fact = "receptionOpen"
+is = true
+
+[[actions]]
+id = "receptionDoor.unlock"
+at = "receptionDoor"
+say = "receptionOpened"
+
+[[actions.when]]
+has = "receptionKey"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = ""
+
+[[actions.when.any]]
+fact = "held"
+is = "receptionKey"
+
+[[actions.then]]
+set = "receptionOpen"
+to = true
+
+[[actions.then]]
+take = "receptionKey"
+
+[[actions.then]]
+checkpoint = true
+
+[[actions]]
+id = "receptionDoor.locked"
+at = "receptionDoor"
+then = []
+say = "receptionLocked"
+
+[[actions]]
+id = "counter.hook"
+at = "counter"
+use = "mop"
+say = "counterHook"
+seconds = 3
+
+[[actions.when]]
+fact = "keyHook"
+is = true
+
+[[actions.then]]
+set = "keyHook"
+to = false
+
+[[actions.then]]
+give = "receptionKey"
+
+[[actions]]
+id = "counter.empty"
+at = "counter"
+then = []
+say = "counterEmpty"
+
+[[actions.when]]
+fact = "keyHook"
+is = false
+
+[[actions]]
+id = "counter.look"
+at = "counter"
+then = []
+say = "counter"
+
+[[actions]]
+id = "bucket.mop"
+at = "bucket"
+say = "bucket"
+
+[[actions.when]]
+fact = "mopTaken"
+is = false
+
+[[actions.then]]
+set = "mopTaken"
+to = true
+
+[[actions.then]]
+give = "mop"
+
+[[actions]]
+id = "bucket.look"
+at = "bucket"
+then = []
+say = "bucketEmpty"
+
+[[actions]]
+id = "trolley.key"
+at = "trolley"
+say = "trolleyKey"
+seconds = 4
+
+[[actions.when]]
+fact = "trolley"
+is = 0
+
+[[actions.then]]
+set = "trolley"
+to = 1
+
+[[actions.then]]
+give = "receptionKey"
+
+[[actions.then]]
+set = "lightsOn"
+to = true
+
+[[actions]]
+id = "trolley.look"
+at = "trolley"
+then = []
+say = "trolleyEmpty"
+
+[[actions]]
+id = "record.read"
+at = "record"
+say = "record"
+seconds = 3
+
+[[actions.then]]
+set = "lightsOn"
+to = true
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "clock.read"
+at = "clock"
+say = "clock"
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "bed.look"
+at = "bed"
+then = []
+say = "bed"
+
+[[actions]]
+id = "monitor.look"
+at = "monitor"
+then = []
+say = "monitor"
+
+[[actions]]
+id = "cabinet.look"
+at = "cabinet"
+then = []
+say = "cabinet"
+
+[[actions]]
+id = "curtainWest.look"
+at = "curtainWest"
+then = []
+say = "curtain"
+
+[[actions]]
+id = "curtainEast.look"
+at = "curtainEast"
+then = []
+say = "curtain"
+
+[[actions]]
+id = "exit.look"
+at = "exit"
+then = []
+say = "exitBack"
+
+[[actions]]
+id = "closetDoor.bolt"
+at = "closetDoor"
+say = ""
+
+[[actions.when]]
+fact = "held"
+is = ""
+
+[[actions.then]]
+call = "bolt"
+
+[[actions]]
+id = "closetDoor.look"
+at = "closetDoor"
+then = []
+say = "closetOpen"
+
+[[actions]]
+id = "wheelchair.look"
+at = "wheelchair"
+then = []
+say = "wheelchairDawn"
+
+[[actions]]
+id = "ivStand.look"
+at = "ivStand"
+then = []
+say = "ivStand"
+
+[[systemic]]
+id = "nurseBarred"
+note = "The supply room door bolted from inside holds her at it a while; then the bolt slides back by itself (F14)."
+via = [ "closetDoor.bolt" ]
+risk = "chase"
+
+[[systemic.enables]]
+fact = "nurseBarred"
+is = true
+
+[[lethal]]
+id = "nurseCatch"
+rule = "She catches Ada in the dark; with the lighter and 20 s of fuel Ada can hold the flame up instead (the grapple, once a minute), and she steps back."
+hintedBy = [ "exit.look" ]
+
+[[goal]]
+fact = "finale"
+is = true
+
+[fallback]
+"*" = "noEffect"
+floor = "noEffect"
+combine = "noEffect"
+
+[hotspots.bed]
+x = -4.1
+z = 0.6
+
+[hotspots.monitor]
+x = -2.4
+z = -3.3
+
+[hotspots.curtainWest]
+x = -3
+z = -0.66
+
+[hotspots.curtainEast]
+x = -2.35
+z = 1.55
+
+[hotspots.nightstand]
+x = -3.12
+z = -0.3
+
+[hotspots.record]
+x = -2.2
+z = 3.3
+
+[hotspots.sink]
+x = -4.85
+z = 3
+
+[hotspots.trolley]
+x = 2.3
+z = 2.4
+
+[hotspots.register]
+x = 3.7
+z = 1.6
+
+[hotspots.cabinet]
+x = 4.8
+z = 3.6
+
+[hotspots.wheelchair]
+x = -4.2
+z = 1.9
+
+[hotspots.ivStand]
+x = -2.6
+z = 1.15
+
+[hotspots.noticeboard]
+x = 3.3
+z = -0.86
+
+[hotspots.clock]
+x = 4.45
+z = -0.86
+
+[hotspots.scratches]
+x = -4.86
+z = -2.4
+
+[hotspots.closetDoor]
+x = 1.5
+z = -4
+
+[hotspots.shelf]
+x = 4
+z = -4.5
+
+[hotspots.valve]
+x = 2.4
+z = -6.35
+
+[hotspots.fuseBox]
+x = -1.45
+z = -4.1
+
+[hotspots.puddle]
+x = -1.05
+z = -4.1
+
+[hotspots.scrawl]
+x = 1.45
+z = -5.8
+
+[hotspots.exit]
+x = 0
+z = -6.55
+
+[hotspots.locker]
+x = 3.94
+z = -5.9
+
+[hotspots.screen]
+x = -2.75
+z = -2.55
+
+[hotspots.receptionDoor]
+x = 4.1
+z = 3.55
+
+[hotspots.counter]
+x = 2.45
+z = 1
+
+[hotspots.bucket]
+x = 1.1
+z = -5.3

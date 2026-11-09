@@ -1,0 +1,6 @@
+# `navy`, a fixture.
+# Colour: DUEL ramp 5 (dusk), step 1 (#3a4568).
+# Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
+
+ramp = "dusk"
+step = 1

@@ -1,0 +1,77 @@
+{
+  "name": "@automata/puzzle",
+  "version": "0.0.5",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/puzzle"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./sim": "./src/entries/sim.ts",
+    "./solver": "./src/entries/solver.ts",
+    "./testing/converted-puzzles": "./src/testing/converted-puzzles.ts",
+    "./testing/toy-scene": "./src/testing/toy-scene.ts",
+    "./testing/toy-scene.pipe": "./src/testing/toy-scene.pipe.ts",
+    "./testing/softlock-scene.pipe": "./src/testing/softlock-scene.pipe.ts"
+  },
+  "automata": {
+    "simEntries": [
+      "./sim"
+    ]
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./sim": {
+        "types": "./dist/sim.d.ts",
+        "import": "./dist/sim.js"
+      },
+      "./solver": {
+        "types": "./dist/solver.d.ts",
+        "import": "./dist/solver.js"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@automata/content": "workspace:^",
+    "@automata/framework": "workspace:^",
+    "@automata/sim": "workspace:^"
+  },
+  "devDependencies": {
+    "@automata/content": "workspace:*",
+    "@automata/evidence": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "playwright": "1.63.0",
+    "smol-toml": "1.9.0",
+    "vitest": "5.0.3"
+  }
+}

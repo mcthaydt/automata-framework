@@ -1,0 +1,1778 @@
+# 3D Slice Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task,
+> with superpowers:test-driven-development for every code change and superpowers:verification-before-completion before
+> ticking a box. The plugin's default, subagent-driven-development, is not used: the Owner allows no subagents, ever
+> (no Task-tool delegation, no workflows), and the user's rule wins over the skill. Steps use checkbox (`- [ ]`)
+> syntax. Tick a step only when its check has passed, in the same session.
+
+**Goal:** AF ready to ship 3D: one feature-grouped `@automata/3d` package holding everything from both builders, drawn
+by Pixi 3D in their pixel-art look on DUEL; Ember Hall edited in one redesigned suite on a phone, an iPad or a
+computer; the site showing 3D beside 2D; the release written and waiting for Pixi 3D.
+
+> **Scope trim (Owner, 2026-11-07 19:28: "Make sure we're not overscoping 3D, it should be as lightweight as 2D,
+> everything else should go into plus"; 19:31: "we aren't just moving stuff around right?").** Core is as light as 2D
+> core: it draws the game's own data and ships no ready-made library. Libraries, furnishing, generators, the photo
+> pipeline, the sky and rain, and the extra clothes and hairstyles go to `@automata/world-kit` and
+> `@automata/character-kit` in the Plus port. The ruling, the refactor findings R1 to R11 and the port's addendum are in
+> [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). Task numbers are kept; 9.1 and 9.2 moved to the port, 7.5,
+> 7.6 and 7.7 are new, so there are 54. The base pair and the base interior and exterior stay core (Owner, 19:58: "The
+> base M and F figure should be in 3D though, base interior and exterior too"; task 7.7). Where a task below and the trim document differ, the trim document wins.
+
+**Architecture:** Four parts in the Owner's order (3D core, the rest of AF using 3D, the editors, the site), 20 phases,
+one stacked PR per phase. Contracts shared by two features live in `packages/3d/src/shared/` (timeline, level,
+time of day) and `app/` composes features, so the `--features` rule holds. The look is GPU passes on Pixi 3D; the CPU
+painters survive only as a test oracle.
+
+**Tech Stack:** pnpm 10 + turbo 2.11, Node 24 (`/opt/node24/bin`), TypeScript, Vitest 5 (browser mode), Playwright
+1.63, Svelte 5.57, PixiJS 8.22, vendored `@pixi/3d` 0.1.0-beta.2, Zod 4.6.6, Biome.
+
+**Spec:** [2026-11-07-3d-slice-spec.md](2026-11-07-3d-slice-spec.md) (section numbers below are the spec's). The facts
+behind it: the [audit](2026-11-07-3d-slice-audit.md).
+
+## Global Constraints
+
+- Order: part A, then B, then C, then D; a part's PRs merge before the next part's first opens for review (Owner,
+  2026-11-07 10:38). Phase 1's editor test fixes are the one exception: they are gate work.
+- Each phase is one PR stacked on the one before, opened ready, not draft; the agent merges its own PR once every
+  check, parity and the 3D workflow included, is green on the head, by hand (GitHub auto-merge is unavailable).
+- Strict TDD in `packages/`, `tooling/`, `examples/`, `games/`; `spikes/` is exempt.
+- The sim never imports Effect; no `Date`, timers, `Math.random`, `**`, `Object.keys/values/entries` in sim files;
+  `packages/3d` has no Effect at all after phase 3.
+- Determinism is cross-engine: base-3d's golden replay hash never changes in this slice; a mismatch is investigated,
+  never rebaselined.
+- Changesets: `patch` only; only published packages (the `fixed` group: `@automata/framework`, `@automata/content`,
+  `@automata/sim`, `@automata/tools`). `automata create-game` is a command of `@automata/tools`, not a package.
+  `@automata/3d` gets none until phase 20.
+- After changing a published package's exports or doc comments: `pnpm build`, then `pnpm api-report --update` and
+  `pnpm api-index --write` (it rewrites the cheatsheet and the agent package's API reference), and commit what they
+  write (AGENTS.md). There is no `pnpm cheatsheet` and `agent-skills` has no `--write`.
+- Files under `packages/*/src` stay at or under 600 lines; split by responsibility.
+- Every user-facing string changed goes in `docs/refactor/copy.md` ("3D editors" or "Base 3D"), old and new, and passes
+  the drunk grandma test: could a drunk grandma tell what is happening and how to use it?
+- Touch targets 44 px, primary actions 48 px; corners from `--edge-sm/md/lg`, never a pill.
+- Ported code: read only FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`; every ported file gets a row in
+  `docs/provenance/sources.md`; no file outside `docs/` records names a source project or a plan ID.
+- Visual changes: expected, actual and diff images opened and every change explained in the PR; acceptance recorded
+  under "Auto approve all visual acceptance too" (Owner, 2026-10-30).
+- `--features` holds for `packages/3d` from task 2.2 on: a feature imports only itself, `shared/` and packages; what
+  two features use is `shared/`; `app/` composes. A new file that would import another feature goes in `app/` (spec 7).
+- Cloud sessions run Chromium only; a WebKit or Firefox step is ticked "Chromium here; WebKit/Firefox on the Owner's
+  `pnpm ci:local` or hosted CI", and the progress row says which engines ran. editor-3d's browser runs use
+  `--project 'layout (chromium)' --project canvas`.
+- `pnpm format` then `pnpm check` before every commit; Conventional Commits; end each commit with the session's
+  attribution lines.
+- Sessions refresh after 90 minutes: tick the steps, update `progress.md`, push, add two lines to this plan's
+  execution log. Named breaks: tasks 2.1, 2.2, 6.2, 6.3, 7.2, 7.3, 8.2, 12.1, 14.1, 16.1, 17.1, 18.2.
+
+## Review Focus
+
+1. **A `/1` level that uses fields `/2` renames** (`texture` on a wall, a bare-number `floor`): the migration keeps
+   every value, and reading the `/2` file back gives the same level. Test in task 7.1:
+   `migrates every /1 fixture losslessly`.
+2. **A room the world builder cannot mesh** (three collinear corners, a hole touching the outline, a zero-height
+   room): the builder returns a problem naming the room, never throws, and the editor shows it as a check. Test in
+   task 7.2: `reports a degenerate room instead of throwing`.
+3. **Two extensions registering the same garment, hair piece or fabric name:** the second fails with a message naming
+   both, so a game never silently gets the wrong look. Test in task 6.4: `refuses a second registration of a name`.
+4. **A level naming a prop, swatch, time of day or extension the game does not have:** `automata check` and Levels 3D
+   both say which name and where; the game draws the room bare rather than failing to start, and never fills it some
+   other way. Tests in tasks 7.3 (`an unknown prop is reported and the room still draws`, `a room asking for the world
+   kit draws bare and says so`) and 16.2.
+5. **The phone keyboard or browser bar changing the height mid-edit** (an inspector number field focused at 390 ×
+   844): the compact layout stays compact, the field stays visible, Save stays whole. Test in task 16.1:
+   `keyboard occlusion keeps compact layout and the focused field`.
+
+## Tracking
+
+`docs/refactor/progress.md`'s "3D" slice gets one row per task during stage 4; the build's percentage is `done tasks /
+54`. At the end of each task set its row to "Done, <date>, <engines run>", recompute both percentages, and commit with
+the task.
+
+## Changes from the automata-skills plan (PR #446, skills spec section 7; relayed 2026-11-07 11:48)
+
+Apply each when the task is reached, and tick it in the execution log:
+
+- [ ] **13.2:** drop the 3D skills and the 3D API reference from `agents/` (they return in 20.1).
+- [ ] **20.1:** add them when `@automata/3d` goes public. A new test fails on any unpublished package named in `agents/`.
+- [x] **10.1:** keep a single environment-builder pattern, since skills task 2.4 may add it first.
+- [x] **5.1:** add one "How it looks" skill line.
+- [ ] **5.2:** add create-game's template colours (`0xffc825`, `0x64748b`) to its file list.
+- [ ] **11.1:** delete `ROLE_LAYOUT_GAMES` and the hook's role list.
+- [ ] **13.1:** keep the editor skill at "2D level files" until phase 20.
+
+## Notes from the automata-plus audit (PR #40, relayed 2026-11-07 11:49)
+
+Decided by the Owner (2026-11-07 15:05): Plus becomes AF extensions, and the sim part of the level and the stage move to the Plus port (see the Plus port spec (`2026-11-07-plus-port-spec.md`, AF PR #457) section 9, which holds the exact changes to this plan). X1 is settled: `shared/level/sim/` and `simLevel()` are not built here (the `sectors` extension); task 7.4's stage is cut down to the piece states (the `cutscenes` extension builds the director and the `stage-script` kind). X2 (`shared/timeline/`): Plus's `cutscenes` is a
+fourth keyed-time model; core's timeline owns keys and eases, so the design stands. X3 (task 4.1): deleting
+`blockout` breaks Plus's `pipe blockout`; agreed (D3). X4: keep the 12 names Plus imports from sector-format's root
+(`SectorDef`, `WallDef`, `Corner`, `Trim`, `STEP`, `WALL_THICK` and others) exported from `@automata/3d/level` with the
+same shapes where af-sector/2 allows.
+
+Also from the automata-skills build (relayed 12:14): its part 2 puts the second builder's name
+(`environment[\s_-]?builder`, last entry) in `tooling/repo-hygiene` `SOURCE_NAMES` and scans `.md`/`.ts`/`.mjs`/`.json` under
+`agents/`; task 10.1 keeps one pattern and adds only what is missing. Task 13.2 puts no 3D skill text in `agents/automata`
+before phase 20: `tooling/agent-skills` `published-only.test.ts` fails on any unpublished `@automata/*` package named
+there (details: skills spec section 7).
+
+## Builders' checkouts
+
+Clone both at the recorded commits beside the checkout: `git clone https://github.com/mcthaydt/figurebuilder
+../FigureBuilder` and `…/environmentbuilder ../EnvironmentBuilder`; `git -C ../FigureBuilder checkout 025ffb4` and
+`git -C ../EnvironmentBuilder checkout 6d82a52`. Tools used below: the module mover `node
+tooling/codemods/src/move-modules-cli.ts --map <map> [--dry-run]`; the test mover `node tooling/codemods/src/cli.ts
+<package> --environment node|jsdom [--browser-folders] [--feature-folders] [--keep-qualifier <test file>] [--dry-run]`.
+
+---
+
+# Part A: the 3D core
+
+## Phase 1: The 3D gate runs and is green (PR `claude/3d-gate`)
+
+### Task 1.1: Every unit test in the gate (spec 5)
+
+**Files:**
+- Modify: `package.json` (`check` runs `pnpm test:unit` in place of `pnpm test:unit:2d`; `ci:local` adds
+  `pnpm test:browser:3d`, `pnpm test:journeys:3d`, `pnpm test:e2e --filter @af-games/base-3d --filter
+  @af-examples/examples-3d`), `.github/workflows/ci.yml:113` (`pnpm test:unit`), `AGENTS.md` (the "2D gate" line under Packages and features: the
+  gate runs every unit test, and `3d.yml` runs the 3D browser suites and journeys),
+  `docs/status.md`
+- Test: `tooling/repo-hygiene/tests/unit/gate-scripts.test.ts`
+
+**Interfaces:**
+- Consumes: nothing.
+- Produces: `pnpm check` and the hosted core job run the 3D unit tests (every later task's gate).
+
+- [x] **Step 1: Write the failing tests**
+
+```ts
+it('check runs every unit test', () => {
+  expect(scripts.check).toContain('pnpm test:unit &&')
+  expect(scripts.check).not.toContain('test:unit:2d')
+})
+it('the hosted core job runs every unit test', () => {
+  expect(readWorkflow('ci.yml')).toMatch(/run: pnpm test:unit\n/)
+})
+it('ci:local runs the 3D browser suites and journeys', () => {
+  expect(scripts['ci:local']).toContain('pnpm test:browser:3d')
+  expect(scripts['ci:local']).toContain('pnpm test:journeys:3d')
+})
+```
+
+- [x] **Step 2: Run, expect FAIL**: `pnpm --filter @automata/repo-hygiene exec vitest run
+  tests/unit/gate-scripts.test.ts` → the three fail on today's scripts.
+- [x] **Step 3: Change the scripts and `ci.yml`.**
+- [x] **Step 4: Run, expect PASS**; then `pnpm check` passes with the 3D unit tests (record the count; the audit had
+  3,836).
+- [x] **Step 5: Commit** `ci(gate): every unit test in pnpm check and the hosted core job`
+
+### Task 1.2: Three 3D jobs and #425's timeout fix (spec 5)
+
+**Files:**
+- Modify: `.github/workflows/3d.yml` (drop the `3D - unit` steps; merge the editor's journeys into `3D - journeys`;
+  `paths` gains `vendor/pixi-3d/**`, keeps every current entry), `package.json` (every `test:browser*` script:
+  `--concurrency=2`, `--hookTimeout=90000`)
+- Test: `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`, `gate-scripts.test.ts`
+
+**Interfaces:**
+- Consumes: task 1.1 (the hosted core job runs the 3D unit tests, so `3d.yml` need not).
+- Produces: the job names `3D - journeys`, `3D - parity (chromium, webkit, firefox)`, `base-3d through game-ci`.
+
+- [x] **Step 1: Write the failing tests**
+
+```ts
+it('the 3D workflow has three jobs and runs on vendor changes', () => {
+  const wf = parseWorkflow('3d.yml')
+  expect(Object.values(wf.jobs).map((j) => j.name)).toEqual([
+    '3D - journeys', '3D - parity (chromium, webkit, firefox)', 'base-3d through game-ci'])
+  expect(wf.on.pull_request.paths).toEqual(expect.arrayContaining(
+    ['packages/**', 'games/base-3d/**', 'examples/3d/**', 'vendor/pixi-3d/**', 'agents/**', 'pnpm-lock.yaml']))
+})
+it('browser runs use two at a time and a 90 s hook timeout', () => {
+  for (const [name, line] of browserScripts()) {
+    expect(line, name).toContain('--concurrency=2')
+    expect(line, name).toContain('--hookTimeout=90000')
+  }
+})
+```
+
+- [x] **Step 2: Run, expect FAIL** (four jobs; concurrency 3).
+- [x] **Step 3: Take #425's hunks** (`git diff origin/claude/project-thread-xe0752...origin/claude/project-thread-ajhkmg
+  -- package.json tooling/repo-hygiene/tests/unit/gate-scripts.test.ts`), then edit `3d.yml`.
+- [x] **Step 4: Run, expect PASS**; `pnpm lint:actions` if Docker runs, else a YAML parse and "actionlint: the
+  Owner's" in the log.
+- [x] **Step 5: Commit** `ci(3d): three jobs, browser runs at concurrency 2`; then comment on #425 that the fix is
+  carried here and close it.
+
+### Task 1.3: One scroll region per dialog (the seven `open-flows` failures)
+
+**Files:**
+- Modify: `packages/editor-3d/src/ui/document/ErrorPanel.svelte`, its dialog caller,
+  `packages/editor-3d/src/ui/document/open-flows.layout.test.ts`
+- Test: `packages/editor-3d/src/ui/document/ErrorPanel.dom.test.ts` (exists; the new case goes in it; it moves to
+  `tests/` in task 14.1)
+
+**Interfaces:**
+- Produces: `ErrorPanel` prop `inDialog?: boolean` (default `false`).
+
+- [x] **Step 1: Write the failing test**
+
+```ts
+it('declares no scroll region of its own inside a dialog', () => {
+  render(DialogWithErrors, { problems: forty })
+  expect(document.querySelectorAll('[role=dialog] [data-scroll-region]')).toHaveLength(1)
+})
+```
+
+- [x] **Step 2: Run, expect FAIL** (2 regions).
+- [x] **Step 3: Add `inDialog`; the dialog caller passes it; the layout test reads the list by
+  `getByRole('list', { name: /problems/i })`.**
+- [x] **Step 4: Run** `npx vitest run --project 'layout (chromium)' src/ui/document/open-flows.layout.test.ts` in
+  `packages/editor-3d` → 7 pass, and the DOM test passes.
+- [x] **Step 5: Commit** `fix(editor-3d): one scroll region in the open-problems dialog`
+
+### Task 1.4: The plan clear of the sheet (the Pencil failure)
+
+**Files:**
+- Modify: `packages/editor-3d/src/app/plan-controller.ts`, `packages/editor-3d/src/ui/plan/PlanCanvas.svelte` (reads the
+  usable rectangle from the kit's geometry owner), `packages/editor-3d/src/ui/plan/sector-tools.layout.test.ts`
+- Test: `packages/editor-3d/src/app/plan-controller.test.ts`
+
+**Interfaces:**
+- Produces: `fitToRoom(room: Bounds, usable: Rect): PlanView` in `plan-controller.ts`; the page exposes the usable
+  rectangle as `data-usable="x y w h"` on the plan stage for tests.
+
+- [x] **Step 1: Write the failing test**
+
+```ts
+it('fits the room inside the area the sheet and tools leave', () => {
+  const view = fitToRoom(room10x6, { x: 0, y: 56, width: 744, height: 420 })
+  expect(projectedBounds(view, room10x6)).toBeWithin({ x: 0, y: 56, width: 744, height: 420 })
+})
+```
+
+- [x] **Step 2: Run, expect FAIL.** **Step 3: Implement**; the layout test draws inside `data-usable`.
+- [x] **Step 4: Run** the editor-3d Chromium set → 195 pass, 0 fail (187 + 8).
+- [x] **Step 5: Commit** `fix(editor-3d): fit the plan to the area the sheet and tools leave`
+
+### Task 1.5: Every action whole and uncovered (spec 5; audit note 17)
+
+**Files:**
+- Modify: `packages/automata/src/testing/layout/assertions.ts` (add `findCutByBar` and `findCovered`),
+  `packages/automata/src/testing/ui/layout-contract.ts` (`checkLayout` calls both with `BAR_ACTIONS`), `packages/automata/src/entries/testing-fixtures.ts` (export `findCovered`), regions in
+  `packages/editor` and `packages/editor-3d` that lack `data-region`
+- Test: `packages/automata/tests/browser/ui/actions-inside.test.ts`
+
+**Interfaces:**
+- Consumes: `visibleControls`, `nameOf` and `findCoveredCorners`' rule for what may cover a control (a modal dialog,
+  which makes the page inert, and an ErrorPanel that had to rise) from the same files. `findClipped` is not the tool:
+  it measures a node's own vertical overflow (`scrollHeight > clientHeight`), so a button its bar cuts across is never
+  seen by it.
+- Produces: `findCutByBar(root: ParentNode, selector: string): string[]` (a control whose box runs past the box of an
+  ancestor that clips its overflow and is not a declared scroll region); `findCovered(root: ParentNode, selector:
+  string): string[]` (`elementFromPoint` at the control's centre is not the control or inside it, with the same
+  exceptions as `findCoveredCorners`); `BAR_ACTIONS =
+  '[data-region=topbar] :is(button,a,[role=tab],[role=menuitem]), [data-region=rail] :is(…), [data-region=panel]
+  :is(…), [data-region=dock] :is(…), [data-region=tools] :is(…)'`.
+
+- [x] **Step 1: Write the failing tests**
+
+```ts
+it('reports a bar button its bar clips', () => {
+  mount(`<div data-region="topbar" style="width:120px;overflow:hidden;display:flex">
+    <button style="flex:none;width:100px">Back</button><button style="flex:none;width:80px">Publish</button></div>`)
+  expect(checkLayout(phone, [])).toContainEqual(expect.stringContaining('Publish'))
+})
+it('lets a modal dialog cover the bar', () => {
+  mount(`<div data-region="topbar"><button>Save</button></div><dialog open aria-modal="true" style="position:fixed;inset:0"></dialog>`)
+  expect(findCovered(document.body, BAR_ACTIONS)).toEqual([])
+})
+it('reports a bar button another element covers', () => {
+  mount(`<div data-region="topbar"><button>Save</button></div><div style="position:fixed;inset:0"></div>`)
+  expect(findCovered(document.body, BAR_ACTIONS)).toEqual([expect.stringContaining('Save')])
+})
+```
+
+- [x] **Step 2: Run, expect FAIL.** **Step 3: Implement.**
+- [x] **Step 4: Run** both editors' layout suites in Chromium: only the Studio's phone portrait fails (Publish, T5);
+  mark it `.fails` with the comment "Publish is clipped on a phone until the Characters redesign"; any other failure
+  is fixed here.
+- [x] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`; changeset `patch` for
+  `@automata/framework`. **Commit** `test(layout): every action in a bar is whole and uncovered`
+
+### Task 1.6: The 3D editor's journeys in Chromium
+
+**Files:** Modify `packages/editor-3d/vitest.config.ts` (the journeys project lists Chromium and WebKit through
+`packages/editor/src/testing/kit/journey-project.ts`).
+
+- [x] **Step 1:** Run `pnpm --filter @automata/editor-3d test:journeys` before the change → only WebKit is listed
+  (record). **Step 2:** change the project. **Step 3:** run → 3 journeys pass in Chromium; a Chromium-only failure is a
+  product bug fixed with its own test. **Step 4: Commit** `test(editor-3d): journeys run in Chromium too`
+
+### Task 1.7: Paraglide never empties its folder (T6)
+
+**Files:**
+- Modify: `packages/content/src/shared/locale/compile-messages.ts:89` (`compileInFolder`)
+- Test: `packages/content/tests/unit/shared/locale/compile-messages.test.ts`
+
+**Interfaces:**
+- Produces: `syncFolder(from: string, to: string): Promise<{ written: number; removed: number }>` in
+  `packages/content/src/shared/locale/sync-folder.ts`; `compileInFolder` compiles to `${folder}.next-<pid>` then calls it.
+
+- [x] **Step 1: Write the failing tests**
+
+```ts
+it('an unchanged compile writes nothing', async () => {
+  await compileMessages(input); const before = mtimes(out)
+  await compileMessages(input)
+  expect(mtimes(out)).toEqual(before)
+})
+it('the output folder is never empty during a compile', async () => {
+  await compileMessages(input)
+  const seen = watchCounts(out)
+  await compileMessages(changedInput)
+  expect(Math.min(...seen())).toBeGreaterThan(0)
+})
+it('removes files a compile no longer makes', async () => { /* drop a message; its file is gone */ })
+```
+
+- [x] **Step 2: Run, expect FAIL.** **Step 3: Implement `syncFolder` and use it.** **Step 4: Run, expect PASS**; then
+  base-3d's browser projects three times in a row → no "Could not load src/paraglide".
+- [x] **Step 5:** changeset `patch` for `@automata/content`. **Commit** `fix(content): compile messages without
+  emptying the output folder`
+
+---
+
+## Phase 2: One 3D package (PR `claude/3d-package`)
+
+### Task 2.1: The move map and `packages/3d` (spec 7; audit notes 3, 4, 5; **session break** after the dry run)
+
+**Files:**
+- Create: `docs/refactor/move-map-3d.json`, `packages/3d/{package.json,tsconfig.json,vitest.config.ts,biome.json}`
+- Delete (by the move): `packages/render-pixi3d`, `packages/figures`, `packages/sector-format`
+- Modify (importers, audit note 5): `packages/editor-3d`, `games/base-3d`, `examples/3d`, `tooling/frame-budget`,
+  `tooling/examples-runner/src/catalog.ts` (`UNPUBLISHED_EXTENSIONS`, its fixtures and tests),
+  `tooling/api-report/reports/{figures,render-pixi3d,sector-format}.api.md` → `3d.api.md`,
+  `tooling/release/tests/unit/private-build.test.ts`, `site/playground/build.ts`,
+  `site/playground/src/playground-resources.ts`, `packages/tools/src/shared/ship/prepare/pixi3d-markers.ts`,
+  `packages/automata/src/app/define-game.ts` (comment), `agents/automata` API reference, `docs/{README,status,versions}.md`,
+  `docs/adr/0002-*.md`, `vendor/pixi-3d/README.md`, root `package.json` (`boundaries` sim list,
+  `--forbid packages/editor:@pixi/3d,@automata/editor-3d,@automata/3d`, the `:3d` filters name `./packages/3d`),
+  and every `!./packages/{render-pixi3d,figures,sector-format}` filter of `test:unit:2d`, `test:browser:2d` and
+  `test:browser:affected`, `knip.jsonc`, `turbo.json`, `.github/workflows/3d.yml`, `.gitleaks.toml`,
+  `.vscode/settings.json`, `site/tests/unit/playground/runtime/playground-{catalog,resources}.test.ts`,
+  `tooling/repo-hygiene/tests/unit/secret-scan.test.ts` (each names a moved path; `git grep -l -E
+  "render-pixi3d|sector-format|automata/figures"` is empty outside `docs/` records afterwards)
+
+The map (every source file appears once; spec 7's tree):
+
+The map is drawn from today's imports, so `--features` holds after it (stage 3 audit): the render views import the
+light, the model loader imports the shared material, and the figure view, the camera driver and the occluders import
+the render views, so those three folders are `shared/render/`; the occluders import the camera nine times, so they are
+the camera's; `create-pixi3d-renderer.ts` imports the camera, the occluders, the light and the models, so it is `app/`.
+
+| From | To |
+|---|---|
+| `render-pixi3d/src/renderer/create-pixi3d-renderer.ts` | `3d/src/app/create-renderer.ts` |
+| `render-pixi3d/src/render3d.extension.ts`, `figures/src/figures.extension.ts` | `3d/src/app/` |
+| `render-pixi3d/src/index.ts`, `camera-view.ts`, `no-eval.ts`; `figures/src/index.ts`; `sector-format/src/index.ts` | `3d/src/entries/{index,camera-view,no-eval,figures,level}.ts` (only re-exports) |
+| `render-pixi3d/src/renderer/context-loss.ts`, `no-eval/*`, `bundle/testing/*` | `features/renderer/` (`bundle/testing` to `testing/bundle/`) |
+| `render-pixi3d/src/{views,model,light}/*` | `shared/render/{views,model,light}/` |
+| `render-pixi3d/src/camera/*` | `features/camera/` |
+| `render-pixi3d/src/occluders/*` (with `occluders/testing`) | `features/camera/occluders/` |
+| `render-pixi3d/src/sim/*` (camera heading: component, plugin, turn command and system, view schema, heading, stick mapper, view latch) | `features/camera/sim/` |
+| `render-pixi3d/src/figure/*` (meshes, colour, skin, joints, decals, view) | `features/figures/view/` |
+| `render-pixi3d/src/{css,env}.d.ts` | `packages/3d/src/` (type declarations, no feature) |
+| `figures/src/{genes,parts,rig}` | `features/figures/body/` |
+| `figures/src/{motion,pose,solve}` | `features/figures/motion/` |
+| `figures/src/hair` | `features/figures/hair/` |
+| `figures/src/{garments,streetwear}` | `features/figures/outfit/` (streetwear leaves in task 6.5) |
+| `figures/src/{build,figure}` | `features/figures/figure/` (`garment.schema.ts`, `garment-defaults.ts`, `figure.schema.ts` among them) |
+| `figures/src/{clip,evaluate}` | `features/figures/clips/` (keys and eases go to `shared/timeline/` in task 6.3) |
+| `figures/src/{library,content}` | `features/figures/content/` |
+| `figures/src/math`, `render-pixi3d/src/parity` | `shared/math/`, `shared/parity/` |
+| `sector-format/src/*` | `shared/level/` |
+| `sector-format/blockout/*` | `shared/level/blockout/` (deleted in task 4.1) |
+| `*/src/testing/*`, `*/src/*/testing/*` | `testing/` (`public.ts` re-exports what `./testing` published); `figures/src/testing/__goldens__/` and `fixtures/` are test data and go to `tests/fixtures/` in task 2.2 |
+
+**Interfaces:**
+- Produces: `@automata/3d` entries `.`, `./sim`, `./level`, `./figures`, `./camera-view`, `./no-eval`, `./testing`;
+  `"automata": { "simEntries": ["./sim"] }`; `private: true`. Every former export keeps its name.
+
+- [x] **Step 1:** Record counts: `pnpm test:unit:3d`, and `npx vitest run --project 'browsers (chromium)'` in each of
+  the three packages (parity 17, goldens 24).
+- [x] **Step 2:** Write the map; `--dry-run` → no unresolved specifier, no clash. **Session break here if needed.** (390 files move, 1 duplicate removed, 232 files change text; sector-format's `blockout/` was `git mv`ed under `src/` first, since the mover only reads `src/` and `tests/`)
+- [x] **Step 3:** Run the mover; one import style (`.ts` specifiers; S9). The renderer's imports of the figures go
+  through `app/compose-scene.ts` (`composeScene(renderer, figureViews, look)`), so no feature imports another.
+  AGENTS.md: rule 5's "The 3D renderer keeps Effect until the 3D phase" stays until task 3.1, which deletes it.
+- [x] **Step 4:** `pnpm install`, `pnpm typecheck`, `pnpm test:unit:3d` → the counts of step 1. `pnpm boundaries`
+  with `packages/3d/src/features/camera/sim packages/3d/src/shared/level packages/3d/src/entries/sim.ts` in the sim list.
+- [x] **Step 5: Commit** `refactor(3d): one @automata/3d package from render-pixi3d, figures and sector-format`
+
+### Task 2.2: Tests in `tests/`, the feature rule on (**session break** after the mover)
+
+**Files:**
+- Move: every `*.test.ts` under `packages/3d/src` → `packages/3d/tests/{unit,browser}/…` with `#src/…` imports
+- Modify: root `package.json` (`boundaries --features packages/3d`; `style --test-imports packages/3d`; the
+  `--plan-comments` for `packages/3d` is added in task 10.1), `packages/3d/vitest.config.ts` (projects by folder)
+
+- [x] **Step 1:** `node tooling/codemods/src/cli.ts packages/3d --environment node --browser-folders --feature-folders
+  --dry-run`, then for real (`--browser-folders` sorts `.parity`, `.layout`, `.canvas` and `.journey` tests into their
+  folders; `--keep-qualifier` takes a test file's path, only for a clash the dry run names). `__goldens__/` and the
+  content fixtures move to `tests/fixtures/` by hand in the same commit. **Session break here if needed.**
+- [x] **Step 2:** `pnpm boundaries` → `--features packages/3d` finds 0 (a finding is fixed by moving the shared part to
+  `shared/` or composing in `app/`, never by an exemption).
+- [x] **Step 3:** `pnpm test:unit:3d` and `npx vitest run --project 'browsers (chromium)'` in `packages/3d` → parity
+  17, goldens 24. **Commit** `refactor(3d): tests in tests/, feature boundaries on`
+
+---
+
+## Phase 3: Effect out of the 3D package (PR `claude/3d-no-effect`)
+
+### Task 3.1: The renderer in plain TypeScript (S4; audit note 6)
+
+**Files:**
+- Modify: the four source files that import `effect` (`app/create-renderer.ts`, `features/renderer/context-loss.ts`,
+  `features/renderer/load-models.ts`, `testing/compile-fixture.ts`) and the five tests; `packages/3d/package.json` and
+  `games/base-3d/package.json` (drop `effect`); `packages/automata/src/entries/testing.ts` (export `fakeClock`,
+  `FakeClock`); `AGENTS.md` (rule 5 loses "The 3D renderer keeps Effect until the 3D phase")
+- Test: `packages/3d/tests/unit/no-effect.test.ts` (temporary), the rewritten renderer and context-loss tests
+
+**Interfaces:**
+- Consumes: `Clock`, `disposables(): Disposables` from `@automata/framework`; `fakeClock(): FakeClock` from
+  `@automata/framework/testing` (newly public).
+- Produces: `createRenderer(options: RendererOptions & { clock?: Clock }): Promise<Renderer3d>` where `Renderer3d`
+  has `dispose(): void`; `watchContextLoss(canvas, clock, onLost): () => void`.
+
+- [x] **Step 1: Write the failing test**
+
+```ts
+it('no 3D source imports effect', () => {
+  expect(grepFiles(['packages/3d/src', 'games/base-3d/src'], /from 'effect'/)).toEqual([])
+})
+```
+
+- [x] **Step 2: Run, expect FAIL** (4 files). **Step 3:** rewrite each: `Scope` → `Disposables`, `Effect.gen` →
+  `async`, time through `Clock`; tests use `fakeClock()`.
+- [x] **Step 4: Run** unit and Chromium parity → PASS. Replace the grep test with `--forbid packages/3d:effect` and
+  `--forbid games/base-3d:effect` in `boundaries`; delete the grep test.
+- [x] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write` for `@automata/framework`,
+  changeset `patch`. **Commit** `refactor(3d): the renderer without Effect`
+
+---
+
+## Phase 4: Cuts (PR `claude/3d-cuts`)
+
+### Task 4.1: The source game's level format goes (D3)
+
+**Files:**
+- Delete: `packages/3d/src/shared/level/blockout/`, the `./blockout` export, `packages/editor-3d/src/format/`,
+  `src/profile/last-light-*`, `src/checks/facility/`, `src/checks/last-light/`, `src/model/facility-*`,
+  `src/testing/{toy-blockout,shipped-facility}.ts` and their tests
+- Modify: `packages/editor-3d/src/profile/registry.ts` (one profile, a plain import), every `format/` importer (to
+  `@automata/3d/level`), `docs/provenance/sources.md` (the deleted files' rows: "removed 2026-11, D3")
+
+- [x] **Step 1:** `grep -rln "blockout\|facility\|last-light" packages/editor-3d/src packages/3d/src` → the list; record
+  the test counts. **Step 2:** delete; `pnpm typecheck` and `pnpm knip` find the rest. **Step 3:** editor-3d unit and
+  Chromium layout pass; the counts drop by exactly the deleted tests (record). **Step 4: Commit** `refactor(3d): the
+  editor opens af-sector levels only`
+
+### Task 4.2: Goldens recorded from AF's own code (S7)
+
+**Files:**
+- Create: `packages/3d/scripts/record-goldens.ts`
+- Delete: `packages/3d/scripts/figurebuilder-{,action-,motion-}goldens.ts` (they run the source's code from a checkout)
+- Move: `tests/fixtures/__goldens__/figurebuilder-{dress,actions,motion}.json` → `tests/fixtures/goldens/{dress,actions,
+  motion}.json`; `src/testing/figurebuilder-hand-on-hip.ts` → `src/testing/hand-on-hip.ts`; the readers
+  (`testing/golden-checks.ts`, `testing/motion-goldens.ts`, `clips/actions.test.ts`, `motion/hair-spring.test.ts`) and
+  their comments follow (no source name in a path or a comment)
+- Test: `packages/3d/tests/unit/goldens-fresh.test.ts`
+
+**Interfaces:**
+- Produces: `recordGoldens(outDir: string): Promise<string[]>` (the files written); CLI `node
+  packages/3d/scripts/record-goldens.ts [--out <dir>]`, default `tests/fixtures/goldens/` (`GOLDENS`). From here on
+  the goldens are AF's record of its own behaviour; a port that moves them re-records them in a named commit with the
+  change explained (phase 6).
+
+- [x] **Step 1: Write the failing test**
+
+```ts
+it('recording into a temporary folder reproduces the committed goldens', async () => {
+  const out = await tempDir(); await recordGoldens(out)
+  expect(readTree(out)).toEqual(readTree(GOLDENS))
+})
+```
+
+- [x] **Step 2: Run, expect FAIL** (no script). **Step 3:** implement. **Step 4: Run, expect PASS**; a difference
+  here is a bug in the move, not a rebaseline. **Step 5: Commit** `test(3d): goldens recorded from AF's own code`
+
+---
+
+## Phase 5: DUEL is AF's palette (PR `claude/duel-palette`)
+
+### Task 5.1: The palette in `-content` (spec 1.6; audit note 16)
+
+**Files:**
+- Create: `packages/content/src/shared/palette/duel.ts` (the 32 × 8 ramps of FigureBuilder
+  `src/features/paint/duel-ramps.ts`), `docs/art/palettes/duel.txt`, `docs/art/palettes/duel.md` (source: generated
+  from the DUEL LUT; author and licence: asked of the Owner)
+- Delete: `packages/content/src/shared/palette/endesga-64.ts`, `docs/art/palettes/endesga-64.txt` and its page
+- Modify: `packages/content/src/shared/palette/palette.ts`, `packages/content/src/entries/palette.ts`,
+  `packages/content/src/shared/assets/build-atlases.ts`, `docs/provenance/sources.md`
+- Test: `packages/content/tests/unit/shared/palette/palette.test.ts`, `content-hash.test.ts`,
+  `compile-content.test.ts`, `browser-entries.test.ts`
+
+**Interfaces:**
+- Produces: `DUEL_RAMPS: readonly (readonly string[])[]` (32 × 8, hex); `DEFAULT_PALETTE: Palette` with `name:
+  'DUEL'`, `colors` = ramps row-major; `rampOf(index: number): number`; `step(index: number, by: number): number`
+  (clamped to the ramp's ends); `nearestDuel(hex: string): number` (OKLab).
+
+- [ ] **Step 1: Write the failing tests**
+
+```ts
+it('DUEL has 256 colours, ramp r step s at r * 8 + s', () => {
+  expect(DEFAULT_PALETTE.colors).toHaveLength(256)
+  expect(DEFAULT_PALETTE.colors[3 * 8 + 5]).toBe(DUEL_RAMPS[3][5])
+  expect(rampOf(3 * 8 + 5)).toBe(3)
+})
+it('step moves along a ramp and stops at its ends', () => {
+  expect(step(3 * 8 + 6, 4)).toBe(3 * 8 + 7)
+  expect(step(3 * 8 + 1, -4)).toBe(3 * 8)
+})
+```
+
+- [ ] **Step 2: Run, expect FAIL.** **Step 3:** DUEL in; record each content hash that moves.
+- [ ] **Step 4: Run** `pnpm --filter @automata/content test:unit` → PASS with the new hashes, each named in the commit.
+- [ ] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, changeset `patch`. **Commit**
+  `feat(content): DUEL is the default palette`
+
+### Task 5.2: Emberwick, the theme, the examples and the editors' game art on DUEL
+
+**Files:**
+- Create: `tooling/codemods/src/remap-palette.ts` and its test (kept for the next palette pull)
+- Modify: `games/emberwick/src/shared/art/{palette.ts,sprites.ts,PROVENANCE.md}`,
+  `games/emberwick/src/features/scene/backdrop.ts`, `games/emberwick/main.ts`, every file `grep -rln
+  "Endesga\|endesga" games examples packages docs agents` lists (with `docs/cheatsheet.md`, `examples/README.md` and the
+  editor-3d Studio fixtures), `packages/automata/src/shared/ui/theme.css`,
+  `packages/editor/src/shared/level-2d/canvas/colors.ts`, editor-3d's plan room fills; not `tokens.css`
+- Test: `games/emberwick/tests/unit/shared/art/art.test.ts` (checks against `docs/art/palettes/duel.txt`),
+  `packages/automata/tests/unit/shared/ui/theme.test.ts`
+
+**Interfaces:**
+- Consumes: `nearestDuel(hex)` (task 5.1).
+- Produces: `remapPalette(fromHex: readonly string[]): number[]` (CLI prints the table).
+
+- [ ] **Step 1:** Before screenshots (Emberwick title and play, the editor's Level view, the site's Home) at 390 × 844,
+  1194 × 834 and 1440 × 900 into project files `refactor/2026-11-07-duel-screens/before/`.
+- [ ] **Step 2: Write the failing tests**: `every art index is a DUEL colour`; `the theme's contrast pairs keep at least
+  their current ratios` (the ratios recorded from today's theme as the test's table). Run → FAIL.
+- [ ] **Step 3:** run the remap; hand-fix what reads wrong, each fix in `PROVENANCE.md`.
+- [ ] **Step 4: Run** Emberwick's unit, browser and Chromium journeys → PASS; the sim hash unchanged. After screenshots;
+  before/after/diff opened; the PR lists every hash and screenshot change.
+- [ ] **Step 5: Commit** `feat(art): Emberwick, the theme and the examples on DUEL`
+
+### Task 5.3: The 3D swatches are DUEL steps
+
+**Files:**
+- Modify: `packages/3d/src/features/figures/content/swatch.schema.ts`, `features/figures/figure/materials.ts`,
+  `features/figures/content/swatch-colours.ts`,
+  `features/figures/view/figure-colour.ts`, `packages/3d/src/testing/golden-checks.ts`,
+  `games/base-3d/src/content/figure-swatches/*.toml`, `games/base-3d/src/views/index.ts`, `examples/3d/*`
+- Test: `packages/3d/tests/unit/figures/content/swatch.schema.test.ts`; goldens re-recorded with `record-goldens.ts`
+
+**Interfaces:**
+- Produces: a swatch is `{ ramp: DuelRampName; step: 0..7 }` or `{ tile: string }`; `DuelRampName` is the 32 names
+  exported from `@automata/content/palette` (`DUEL_RAMP_NAMES`).
+
+- [ ] **Step 1: Write the failing test** `a swatch names a DUEL ramp and step` (`{ ramp: 'skin', step: 5 }` parses;
+  `{ ramp: 'skin', step: 8 }` fails with "step is 0 to 7"). **Step 2:** FAIL. **Step 3:** implement; TOML swatches
+  rewritten. **Step 4:** 3D unit, parity and base-3d's golden replay pass (hash unchanged); `grep -rn "Endesga\|endesga"
+  packages games examples site docs agents` → only `sources.md` and the codemod's test. **Step 5: Commit**
+  `feat(3d): swatches are DUEL steps`
+
+---
+
+## Phase 6: Everything from FigureBuilder (PRs `claude/3d-figures-port`, `claude/3d-figures-outfit`)
+
+Every task here ports from `../FigureBuilder` at `025ffb4`, writes one `sources.md` row per source file, and ports the
+source's tests first, rewritten to AF's outputs (meshes, joint positions, ring radii), not painted texels. The base
+pair (`base/base.ts`) is the fixture each port is checked on.
+
+### Task 6.1: The provenance record (spec 8.4)
+
+**Files:**
+- Modify: `docs/provenance/sources.md` ("The figure source", "The environment source": repository, full commit,
+  licence fact, the pull procedure; one row for the `a1f7246` extraction)
+- Create: `docs/provenance/builders-manifest.json` (from `git ls-files` at both commits)
+- Test: `tooling/repo-hygiene/tests/unit/sources-md.test.ts`
+
+**Interfaces:**
+- Produces: `checkSources(md: string, manifest: Manifest, options?: { complete?: boolean }): string[]` in
+  `tooling/repo-hygiene/src/sources-md.ts`; CLI `tooling/repo-hygiene/src/sources-md-cli.ts [--complete]`, root script
+  `sources-md`, chained into `source-names` (`... source-names-cli.ts && node .../sources-md-cli.ts`); `--complete`
+  makes a missing row an error (turned on in task 10.2).
+
+- [x] **Step 1: Write the failing tests**: `each builder section names a 40-character commit and the pull procedure`;
+  `every row's AF path exists or says left out`; `with --complete, every manifest file has a row`. **Step 2:** FAIL.
+  **Step 3:** the sections and the manifest. **Step 4:** PASS (without `--complete`); `pnpm source-names` passes.
+  **Step 5: Commit** `docs(provenance): where the figures and the world come from, and how to pull again`
+
+### Task 6.2: The body, the stand and the face (**session break** after body)
+
+**Source files:** `src/features/body/{genes,head,parts,rig}.ts`, `src/features/motion/{motion,presets}.ts`,
+`tests/features/body/*`, `tests/features/motion/*`, `base/base.ts`.
+
+**Files:**
+- Create: `packages/3d/tests/fixtures/base-pair.ts`
+- Modify: `packages/3d/src/features/figures/body/*`, `motion/*`, `content/figure.schema.ts`, the `figure-stands` kind
+- Test: `packages/3d/tests/unit/figures/body/*.test.ts`, `motion/*.test.ts`
+
+**Interfaces:**
+- Produces: genes gain `bust`, `seat`, `eyeSize`, `eyeSpacing`, `eyeTilt` (default 0.5), `bodyAsymmetry` and
+  `faceAsymmetry` (FigureBuilder's `asymmetry`; default 0), each `number` in `[0, 1]`, each a no-op at its default;
+  the existing `fat` (default 0.4) takes FigureBuilder's newer reading (the limbs, the neck and the jaw swell; every
+  multiplier 1 at fat 0); `naturalStand(m: Measure): Pose`, the stand of a figure that names none (spec 8.2).
+
+- [x] **Step 1: Port the tests, failing**, e.g.
+
+```ts
+it('fat thickens the limb rings, and fat 0 changes nothing', () => {
+  expect(ringRadius(build(basePair.m, { fat: 1 }), 'thighL')).toBeGreaterThan(ringRadius(build(basePair.m), 'thighL'))
+  expect(build(basePair.m, { fat: 0 })).toEqual(buildBeforeThePort(basePair.m, { fat: 0 }))
+})
+it('each new gene at its default leaves the figure as it was', () => {
+  for (const [gene, value] of NEW_GENE_DEFAULTS) expect(build(wick, { [gene]: value })).toEqual(build(wick))
+})
+it('the natural stand puts the head over the shoulders', () => {
+  expect(Math.abs(joint(naturalStand(m), 'head').x - joint(naturalStand(m), 'chest').x)).toBeLessThan(0.01)
+})
+```
+
+- [x] **Step 2:** FAIL. **Session break here if needed.** **Step 3:** port the code. **Step 4:** unit tests pass;
+  every slider pushed to both ends builds (`sliders.test.ts`). The new `fat` moves Wick (fat 0.3) and the fixtures with
+  fat above 0: re-record with `record-goldens.ts` in its own commit, `test(3d): re-record the figure goldens for the
+  new fat`, with before and after contact sheets (`look-sheet.ts` once it lands; until then the parity images) opened
+  and explained in the PR. base-3d's replay hash does not move (the sim reads no mesh). **Step 5:** rows. **Commit**
+  `feat(3d): the natural stand and the body and face sliders`
+
+### Task 6.3: One timeline; lighting; actions as clips (spec 6, 8.3)
+
+**Source files:** FigureBuilder `src/features/lighting/*`, `src/features/actors/{actions,pose-spec}.ts`,
+`library/actions.json`, `lighting/library/times.json`; EnvironmentBuilder `src/features/world/timeline.ts` (the key
+model), `src/features/paint/library/times.json`.
+
+**Files:**
+- Create: `packages/3d/src/shared/timeline/{key.ts,ease.ts,sample.ts,track.ts}` (from `features/figures/clips/`'s
+  `ease.ts`, `sample.ts`, `clip-time.ts`), `packages/3d/src/shared/time-of-day/{time-of-day.schema.ts,
+  time-of-day.content.ts,library/times.json}` (the two libraries merged), `features/figures/content/{figure-action.schema.ts,
+  figure-actions.content.ts}`, `games/base-3d/src/content/figure-actions/*.toml` (reach, look, flinch; moved to
+  `content/` in task 11.1)
+- Modify: `features/figures/clips/*` (read keys and eases from `shared/timeline/`), `features/figures/lighting/*`
+- Delete: the fixture clips for reach, look and flinch
+- Test: `tests/unit/shared/timeline/*.test.ts`, `tests/unit/shared/time-of-day.test.ts`,
+  `tests/unit/figures/clips/actions.test.ts`
+
+**Interfaces:**
+- Produces: `interface Key<V> { t: number; value: V; ease?: Ease }` (no ease is linear); `type Ease = 'linear' |
+  'step' | 'in' | 'out' | 'inOut' | 'smooth' | readonly [number, number, number, number]` (AF's names and its CSS
+  cubic-bezier tuple, which today's clips use, plus `smooth`; `hold` reads as `step`, and a source key's `v` as
+  `value`); a clip's content keys stay `{ t, pose, ease? }` and compile to `Key<Pose>`; `sample<V>(track: Track<V>, t: number, mix: Mix<V>): V`;
+  `compileAction(action: FigureAction): Clip`; `TimeOfDay { name; scene: { light, haze, grade }; figure: { key, fill,
+  bounce }; label: string }` (the editor's words: Day, Golden hour, Dusk, Night, Lamplight, Bar light) and
+  `timeOfDay(name: string, overrides?): TimeOfDay`.
+
+- [x] **Step 1: Write the failing tests** (both sources' cases):
+
+```ts
+it('holds the first value before the first key and the last after the last', () => {
+  expect(sample(track([[0, 1], [1, 3]]), -1, mixNumber)).toBe(1)
+  expect(sample(track([[0, 1], [1, 3]]), 2, mixNumber)).toBe(3)
+})
+it('a frame at t is the same drawn alone', () => {
+  const tr = track([[0, 0, 'smooth'], [2, 10]])
+  expect(sample(tr, 1.3, mixNumber)).toBe(sampleFresh(tr, 1.3))
+})
+it('reads hold as step', () => expect(parseEase('hold')).toBe('step'))
+it('keeps a cubic-bezier ease', () => expect(parseEase([0.4, 0, 0.2, 1])).toEqual([0.4, 0, 0.2, 1]))
+it('merges the six times of day', () => {
+  expect(TIMES.map((t) => t.name)).toEqual(['day', 'golden', 'dusk', 'night', 'lampLit', 'bar'])
+  expect(timeOfDay('dusk').figure.key).toBeDefined()
+})
+it('each source action compiles to a clip that matches the source actor', () => {
+  for (const a of SOURCE_ACTIONS) expect(poseAt(compileAction(a), 0.5)).toBeCloseToPose(sourceActorAt(a, 0.5), 1e-3)
+})
+```
+
+- [x] **Step 2:** FAIL. **Step 3:** the timeline, then clips read from it (clip tests pass unchanged), then the
+  action kind, the merged times and lighting. **Step 4:** 3D unit and goldens pass (Wick unchanged);
+  `grep -rn "type Ease\b" packages/3d/src` → only `shared/timeline/ease.ts`. **Step 5:** rows. **Commit**
+  `feat(3d): one timeline; actions are clips; one time of day`
+
+### Task 6.4: Hair, fit, seats and the registries (PR `claude/3d-figures-outfit`; **session break** after hair; audit notes 7, 8)
+
+**Source files:** `src/features/hair/hair.ts` and `library/`, `src/features/outfit/{fit,garments,items}.ts` and
+`library/`, `src/features/paint/fabric.ts` (the registry only), `src/features/figure/{cast,cloth,frames,figure}.ts`.
+
+**Files:**
+- Modify: `features/figures/hair/*`, `outfit/*`, `figure/*`, `app/figures.extension.ts` (registers the classic set)
+- Create: `features/figures/registry/{garment,outfit-hooks,hair-piece,finish,fabric}.registry.ts`
+- Test: ported `tests/unit/figures/hair/*`, `outfit/fit.test.ts`, `tests/unit/figures/registry/*.test.ts`
+
+**Interfaces:**
+- Produces, from `@automata/3d/figures`: `registerGarment(kind: string, entry: GarmentKind): void`,
+  `registerOutfitHooks(hooks: OutfitHooks): void`, `registerHairPiece(kind: string, piece: HairPiece): void`,
+  `registerFinish(name: string, finish: HairFinish): void`, `registerFabric(name: string, fabric: Fabric): void`; each
+  throws `RegistryClash` on a second registration of a name; `profiles(m: Measure)`, `ringAt`, `girth`.
+
+- [x] **Step 1: Write the failing tests**:
+
+```ts
+it('refuses a second registration of a name', () => {
+  registerGarment('cape', capeKind)
+  expect(() => registerGarment('cape', otherCape)).toThrow('A garment called "cape" is already registered')
+})
+it('core registers only the classic set', () => {
+  expect(registeredGarments()).toEqual(['apron', 'belt', 'cap', 'cape', 'coat', 'eyes', 'gloves', 'hair', 'legs',
+    'mark', 'shoes', 'skirt', 'top', 'trousers', 'waistcoat'])
+})
+it('a cuff hugs the arm at every slider end', () => {
+  for (const m of sliderEnds(basePair.m)) expect(cuffRadius(m) - girth(m, 'wristL')).toBeCloseTo(TEXEL, 5)
+})
+```
+
+- [x] **Step 2:** FAIL. **Step 3:** hair (low pony, bun, fall, curl volume). **Session break here if needed.**
+  **Step 4:** fit, seats, the registries; the classic set registered by `figures.extension.ts`; the `figure-headwear`
+  kind folds into the garment registry (Wick's cap is `cap`). **Step 5:** unit and goldens pass (Wick unchanged).
+  Rows. **Commit** `feat(3d): hair pieces, garments fitted to the body, and the wardrobe registries`
+
+### Task 6.5: Streetwear becomes an example extension (D6, B2; audit note 7)
+
+**Files:**
+- Move: `packages/3d/src/features/figures/outfit/streetwear/` → `examples/3d/wardrobe/`, with `wardrobe.extension.ts`
+- Modify: `features/figures/figure/garment.schema.ts`, `features/figures/figure/garment-defaults.ts`,
+  `features/figures/content/swatch.schema.ts`, `features/figures/outfit/classic.ts` (no streetwear types), `examples/3d/figures/figures-outfits-items.ts`, `examples/3d/package.json` (`test:unit`),
+  create `examples/3d/vitest.config.ts`
+- Test: `examples/3d/tests/unit/wardrobe.test.ts`; streetwear goldens move to the example
+
+**Interfaces:**
+- Consumes: the registries (task 6.4), `defineExtension` from `@automata/framework`.
+- Produces: `wardrobeExtension` (default export of `wardrobe.extension.ts`).
+
+- [x] **Step 1: Write the failing test** `a figure in a bomber compiles once the wardrobe extension is set up, and
+  fails with "No garment called bomber" without it`. **Step 2:** FAIL. **Step 3:** the move. **Step 4:** `pnpm
+  test:unit:3d` and the example's unit test pass; `grep -rn "bomber\|hoodie\|puffer" packages/3d/src` → none.
+  **Step 5: Commit** `refactor(3d): the streetwear wardrobe is an example extension`
+
+---
+
+## Phase 7: One level format and the world (PRs `claude/3d-level-2`, `claude/3d-world`)
+
+Ports from `../EnvironmentBuilder` at `6d82a52`, with `sources.md` rows.
+
+### Task 7.1: `af-sector/2` and its migration (spec 9; audit note 10)
+
+**Files:**
+- Create: `packages/3d/src/shared/level/af-sector-2.schema.ts` (every row of spec 9's table),
+  `af-sector-1-to-2.migration.ts`,
+  `packages/3d/scripts/convert-builder-maps.ts` (run in task 7.3)
+- Modify: `shared/level/af-sector.schema.ts` (reads `/1` and `/2`, returns `/2`),
+  `games/base-3d/src/content/levels/room.af-sector.json` (migrated), `games/base-3d/src/content/levels/sector-area.ts`
+  (reads `corners`; pits by flag), `games/base-3d/src/content/room.ts` (`ROOM_VIEWS` leaves code for the file's
+  `views`), editor-3d's level readers (open `/1`, write `/2`)
+- Test: `packages/3d/tests/unit/shared/level/af-sector-2.schema.test.ts`, `migration.test.ts`,
+  `convert-builder-maps.test.ts`; base-3d's golden replay
+
+**Interfaces:**
+- Produces: `interface LevelProblem extends Problem { where: string; name?: string }` in
+  `shared/level/problem.ts` (`Problem` is `@automata/content`'s `{ path, code, message }`, so `automata check` places it
+  in its file); `type AfSector2` and `afSector2Schema`; `readLevel(json: unknown): { level: AfSector2; migrated:
+  boolean; problems: LevelProblem[] }`; `migrateAfSector1(level: AfSector): AfSector2`; `convertBuilderMap(plan: unknown): AfSector2`.
+
+- [x] **Step 1: Write the failing tests**
+
+```ts
+it('migrates every /1 fixture losslessly', () => {
+  for (const f of V1_FIXTURES) {
+    const two = migrateAfSector1(f)
+    expect(afSector2Schema.parse(JSON.parse(JSON.stringify(two)))).toEqual(two)
+  }
+})
+it('carries zone, masses, and a wall\'s cut and hideFrom through the migration unchanged', () => { /* one assertion per field; `AfWall` no longer omits cut and hideFrom */ })
+it('reads a bare-number floor as a plane', () => {
+  expect(readLevel(withFloor(1.5)).level.sectors[0].floor).toEqual({ z: 1.5 })
+})
+it("reads a wall's texture as its surface", () => { /* /1 texture → /2 surface */ })
+it('says when a level was migrated', () => expect(readLevel(v1Room).migrated).toBe(true))
+it('converts a builder map: rect sectors to corners, sprites to props and cast', () => {
+  const two = convertBuilderMap(builderMap('bedroom')) // maps.json: bedroom, neonBar, streetNight, forestClearing, signs
+  expect(two.sectors[0].corners).toHaveLength(4); expect(two.props?.length).toBeGreaterThan(0)
+})
+```
+
+- [x] **Step 2:** FAIL. **Step 3:** the schema, the migration, the converter (the `entries/sim.ts` re-exports only `features/camera/sim`; `simEntries` stays `["./sim", "./level"]`; what the sim reads from a level is the `sectors` extension's, not built here). **Step 4:** PASS; base-3d's
+  unit tests (82) and golden replay pass with the migrated room, sim hash unchanged. **Step 5: Commit**
+  `feat(3d): af-sector/2, one level format for the game, the editor and the world`
+
+### Task 7.2: The world builder (spec 9; audit note 12; **session break** after mesh)
+
+**Source files:** `src/features/world/{build,sectors,mesh,subdivide,surface,swatches,map,types}.ts`,
+`src/lib/{geometry,rng}.ts`.
+
+**Files:**
+- Create: `packages/3d/src/features/world/{build,sectors,mesh,subdivide,surface,swatches}.ts`,
+  `packages/3d/src/shared/math/geometry.ts` (EnvironmentBuilder `lib/geometry.ts`), `packages/3d/src/app/world-view.ts`
+  (draws the pieces; in `app/` because it reads the world's pieces and the renderer's views)
+- Modify: `games/base-3d/src/content/levels/sector-area.ts`
+  (box room → world pieces; deleted if nothing else reads it), `packages/editor-3d/src/view/mesh/sector-mesh.ts`
+  (replaced by the world builder), `app/compose-scene.ts`
+- Test: ported `tests/unit/world/{build,mesh,subdivide,surface}.test.ts`; render parity for base-3d's room re-recorded
+  once
+
+**Interfaces:**
+- Consumes: `AfSector2` (task 7.1); `createRng(seed)` from `@automata/sim` (EnvironmentBuilder's `lib/rng.ts` is not
+  ported).
+- Produces: `buildWorld(level: AfSector2, library: WorldLibrary): { pieces: WorldPiece[]; problems: LevelProblem[] }`;
+  `interface WorldPiece { id: string; sector: string; part: 'floor' | 'ceiling' | 'wall' | 'decor' | 'prop' | 'lamp';
+  mesh: MeshData; surface: Surface }`; `drawWorld(scene, pieces): WorldView` in `app/world-view.ts`.
+
+- [x] **Step 1: Write the failing tests** (the source's cases, plus):
+
+```ts
+it('reports a degenerate room instead of throwing', () => {
+  const { pieces, problems } = buildWorld(levelWith(collinearRoom), LIB)
+  expect(problems).toContainEqual(expect.objectContaining({ where: 'room-2' }))
+  expect(pieces.every((p) => p.sector !== 'room-2')).toBe(true)
+})
+it('a sloped floor tilts its plane', () => { /* floor { z: 0, slope: [0.1, 0] } → vertices rise along x */ })
+it('an open-sky sector has no ceiling piece', () => { /* ceiling { z: 3, sky: true } */ })
+```
+
+- [x] **Step 2:** FAIL. **Step 3:** the builder (build, sectors, mesh). **Session break here if needed.** **Step 4:**
+  subdivide, surface, swatches; the renderer draws the pieces; the old box room and `sector-mesh.ts` go.
+- [x] **Step 5:** 3D unit, render parity (re-recorded once; expected/actual/diff opened, change explained: the world
+  builder replaces the box room) and base-3d's golden replay (unchanged) pass. Rows. **Commit** `feat(3d): the world
+  builder draws levels`
+
+### Task 7.3: Props a game places, and lamps (trimmed 2026-11-07; scope trim section 2)
+
+**Source files:** `src/features/world/{props,build}.ts`; `src/features/paint/look.ts` (the lamp kit), `library/look.json`.
+The prop library, kits, the dresser, decals, lettering, generated maps and the converter are **not** core: they leave
+`packages/3d` in this task (the commit `78e0ca7f` stays on the branch as the source port task 3.7 moves them from).
+
+**Files:**
+- Keep (built in `78e0ca7f`): `features/world/{place-props,lamp-kit}.ts`, `features/world/props/{piece,resolve}.ts`,
+  `features/world/library/lamp-kit.json`, `features/world/content/{world-prop.schema,world-swatch.schema,world.content}.ts`
+- Create: `features/world/props/prop-generator.registry.ts` (`registerPropGenerator`, `propGenerator(kind)`,
+  `registeredPropGenerators()`), `features/world/props/primitives.ts` (`box`, `cylinder`, registered by
+  `app/render3d.extension.ts`)
+- Delete from `packages/3d`: `props/{furniture,nature,signs,small-things,street,generators}.ts`,
+  `library/{props,kits,glyphs}.json`, `library/swatches.json` (the swatches the room uses move to
+  `games/base-3d/src/content/world-swatches/`), `lettering.ts`, `stream.ts` if only lettering reads it,
+  `convert-builder-map.ts`, `scripts/convert-builder-maps.ts`, their tests and their `sources.md` rows (each row says
+  *moved to `@automata/world-kit`*)
+- Modify: `shared/level/af-sector-2.schema.ts` (`dress` stays a field: the format is one), `features/world/build.ts`
+  (a sector with `dress` is drawn bare with a `needs-extension` problem), `games/base-3d/src/content/levels/room.af-sector.json`
+  (a few `box` and `cylinder` props from the game's own `world-prop` files, a lamp, a time of day)
+- Test: `tests/unit/world/{props,library,prop-registry}.test.ts`
+
+**Interfaces:**
+- Consumes: `buildWorld` (task 7.2), `timeOfDay` (task 6.3), `RegistryClash` (task 6.4).
+- Produces: `registerPropGenerator(kind: string, generator: Generator): void` (a second registration of a kind throws
+  `RegistryClash`); `WorldLibrary { props; swatches }` merged from core's primitives and the game's content; problem
+  codes `unknown-prop`, `unknown-generator`, `needs-extension` (`name: 'world-kit'`).
+
+- [x] **Step 1: Write the failing tests**
+
+```ts
+it('core registers only box and cylinder', () => expect(registeredPropGenerators()).toEqual(['box', 'cylinder']))
+it('refuses a second generator of a kind', () => {
+  expect(() => registerPropGenerator('box', otherBox)).toThrow('A prop generator called "box" is already registered')
+})
+it('an unknown prop is reported and the room still draws', () => {
+  const { pieces, problems } = buildWorld(levelWithProp('spaceship'), LIB)
+  expect(problems).toContainEqual(expect.objectContaining({ code: 'unknown-prop', name: 'spaceship' }))
+  expect(pieces.some((p) => p.part === 'floor')).toBe(true)
+})
+it('a room asking for the world kit draws bare and says so', () => {
+  const { pieces, problems } = buildWorld(levelDressedAs('office'), LIB)
+  expect(problems).toContainEqual(expect.objectContaining({ code: 'needs-extension', name: 'world-kit' }))
+  expect(pieces.every((p) => p.part !== 'prop')).toBe(true)
+})
+it("every library entry parses", () => { /* world-prop and world-swatch over core's and base-3d's content */ })
+```
+
+- [x] **Step 2:** FAIL. **Step 3:** the registry and the primitives; the deletions. **Step 4:** the room's props and
+  swatches in base-3d's content; the `needs-extension` problem, with the words of scope trim section 2. **Step 5:**
+  base-3d's unit tests and golden replay pass (hash unchanged: props are presentation); its journeys pass in Chromium;
+  images in the PR, each change explained. `grep -rn "furniture\|kits.json\|glyphs" packages/3d/src` → none. Rows.
+  **Commit** `feat(3d): props a game places, lamps, and a generator registry`
+
+### Task 7.4: The piece states (spec 8.3; cut down on the Owner's word, 2026-11-07)
+
+The director, the `stage-script` content kind and the sequences move to the `@automata/cutscenes` extension (Plus port
+spec section 9). What stays is the small thing the renderer needs to move a door or a lamp: the state of the world's
+pieces, and applying a change of it.
+
+**Source files:** EnvironmentBuilder `src/features/stage/state.ts` (the state a scene is in).
+
+**Files:**
+- Create: `packages/3d/src/shared/level/piece-states.ts` (`PieceStates`, `LampState`, `PropState`),
+  `app/update-pieces.ts` (reads the world's view and two `PieceStates`)
+- Modify: `app/compose-scene.ts` (gives the scene a `startClip(who, clip, atTick)` callback, so a cue from outside, such
+  as the extension's, can start a figure's clip)
+- Test: `tests/unit/shared/level/piece-states.test.ts`, `tests/unit/app/update-pieces.test.ts`
+
+**Interfaces:**
+- Consumes: `Track`, `sample` (task 6.3); piece ids as plain strings.
+- Produces: `PieceStates { doors: Record<string, number>; lamps: Record<string, LampState>; props: Record<string, PropState> }`;
+  `updatePieces(view: WorldView, before: PieceStates, after: PieceStates): number` (pieces changed).
+
+- [x] **Step 1: Write the failing test**
+
+```ts
+it('a door key changes only that door', () => {
+  expect(updatePieces(view, statesAt(0), statesAt(1))).toBe(piecesOf(view, 'door-1').length)
+})
+```
+
+- [x] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS. No `features/stage/`, no `stage-script` kind and no
+  director here: `@automata/cutscenes` builds them. Rows. **Commit** `feat(3d): the world's pieces move on the one timeline`
+
+### Task 7.5: One sector geometry (new, 2026-11-07; scope trim R1)
+
+Sector geometry is written three times today: `packages/editor-3d/src/geometry/{sectors,triangulate}.ts`,
+`extensions/sectors/src/shared/sim/{queries,pieces}.ts` (the Plus port) and `features/world/sectors.ts`. Core owns it once.
+
+**Files:**
+- Create: `packages/3d/src/shared/level/geometry.ts` (`polygonArea`, `insideSector`, `segmentDistance`, `crossing`,
+  `opening`, `walkBlocker`, `triangulate`), exported from `@automata/3d/level` (a sim entry: the sim's rules hold, so
+  `pnpm boundaries` reads it)
+- Modify: `features/world/sectors.ts` (imports it; its own `triangulate` goes)
+- Test: `tests/unit/shared/level/geometry.test.ts` (editor-3d's `geometry/{sectors,triangulate}.test.ts` cases, moved)
+
+**Interfaces:**
+- Produces: the seven functions with the editor's signatures (the editor's tests are the most complete); where the
+  extension's sim version and the editor's differ, the sim-safe one is the body and both callers' tests must pass.
+
+- [x] **Step 1:** move the editor's geometry tests to the new file, importing `#src/shared/level/geometry.ts` → FAIL.
+  **Step 2:** the file, sim-safe (only the allowed `Math` members). **Step 3:** PASS; world builder tests and base-3d's
+  replay unchanged; `pnpm boundaries` green. editor-3d switches in task 14.1, the extension in port task 5.1. Rows.
+  **Commit** `refactor(3d): one sector geometry, in the level entry`
+
+### Task 7.6: Clothes, hairstyles and seats leave core (new, 2026-11-07; scope trim section 2, R3)
+
+**Files:**
+- Delete from `packages/3d` (the commit before this one is the source port task 3.6 moves from): the garment kinds
+  `apron`, `belt`, `coat`, `gloves`, `legs`, `mark`, `skirt`, `waistcoat` (their parts of `outfit/garments/classic.ts`,
+  `classic-kinds.ts` and `figure/garment.schema.ts`), the hair pieces (`hair/{sweep,tail,loose,shell}.ts` and the
+  piece builders in `hair-parts.ts`), the extra finishes, `motion/seated.ts`, `content/seat.schema.ts` and the
+  `figure-seat` kind, their tests and goldens, their fixtures
+- Modify: `hair/hair-parts.ts` (builds a style's pieces through `registerHairPiece`'s registry; core registers none and
+  keeps `locks`), `content/hair.schema.ts` (a piece is a registered kind's schema), `registry/*` unchanged,
+  `motion/hems.ts` (no seated argument), `sources.md` rows (*moved to `@automata/character-kit`*)
+- Test: `tests/unit/figures/registry/*.test.ts`, `tests/unit/figures/hair/*.test.ts`
+
+- [x] **Step 1: Write the failing tests**: `core registers exactly cap, cape, eyes, hair, shoes, top, trousers` (if
+  `cap` needs `mark`, `mark` stays and the log says why); `a style naming a bun fails with "No hair piece called bun"`;
+  `Wick and the base pair build the same meshes as before` (recorded before the change).
+- [ ] **Step 2:** FAIL. **Step 3:** the deletions and the registry-driven `hairParts`. **Step 4:** 3D unit, the figure
+  goldens for Wick and the base pair unchanged; goldens of removed kinds leave with them (listed in the log, moved by
+  port task 3.6); the Characters editor's tests pass (a kind it lists that core no longer has is gone from its list).
+  `grep -rn "waistcoat\|seated\|bun" packages/3d/src` → none. **Commit** `refactor(3d): the wardrobe and hairstyles
+  leave core for the character kit`
+
+
+### Task 7.7: The base pair and the base scenes (new, 2026-11-07 19:58; scope trim section 2)
+
+The Owner: "The base M and F figure should be in 3D though, base interior and exterior too". As in both builders,
+they are the set every visual change is judged on, so they are core and public.
+
+**Source files:** FigureBuilder `base/base.ts`; EnvironmentBuilder `base/base.ts` (the two bare scenes), and from
+`78e0ca7f` the generators `table` (`props/furniture.ts`), `bin` and `lamp` (`props/small-things.ts`), `streetLamp`
+(`props/street.ts`), `tree` (`props/nature.ts`), the presets and the swatches the scenes name.
+
+**Files:**
+- Create: `packages/3d/src/features/base/{base-pair.ts,base-scenes.ts}`, `features/base/library/{props,swatches}.json`
+  (only what the scenes use), `features/base/levels/{base-interior,base-exterior}.af-sector.json` (converted once from
+  the builder's plans; written, not generated at run time), `packages/3d/src/entries/base.ts` (`@automata/3d/base`)
+- Modify: `features/world/props/primitives.ts` (registers `table`, `bin`, `lamp`, `streetLamp`, `tree` beside `box`
+  and `cylinder`), `packages/3d/package.json` (`./base`), `tests/fixtures/base-pair.ts` (re-exports the core one)
+- Test: `tests/unit/base/{base-pair,base-scenes}.test.ts`
+
+**Interfaces:**
+- Produces: `BASE_PAIR: Readonly<Record<'man' | 'woman', Figure>>` (bodies only, painted-on blocks, barefoot);
+  `BASE_SCENES: Readonly<Record<'base-interior' | 'base-exterior', AfSector2>>` (each naming its time: `lampLit`,
+  `day`, and casting the base pair); `baseLibrary: WorldLibrary`.
+
+- [x] **Step 1: Write the failing tests**: `both base scenes build with no problem from core alone`; `the interior is lit
+  at lamplight by its pendant and the exterior has open sky and a horizon`; `the base pair build and wear nothing`;
+  `core registers exactly box, cylinder, table, bin, lamp, streetLamp and tree`.
+- [ ] **Step 2:** FAIL. **Step 3:** the generators (ported with their source tests), the presets and swatches, the
+  two levels, the entry. **Step 4:** PASS; `buildWorld` on each scene gives the same pieces as the builder's map built
+  through `78e0ca7f` (recorded before the trim's deletions, from that commit). 8.2's parity images and the editors'
+  samples use these scenes. Rows. **Commit** `feat(3d): the base pair and the base interior and exterior`
+---
+
+## Phase 8: The look on Pixi 3D (PR `claude/3d-look`)
+
+### Task 8.1: Measure, then choose (ADR 0007)
+
+**Files:** Create `spikes/3d-look/` (exempt from TDD; candidates (a) passes and (b) bake on base-3d's dressed room
+with Wick), `docs/adr/0007-3d-look.md`.
+
+- [x] **Step 1:** Check that the beta takes a custom material and a low-resolution render target drawn
+  nearest-neighbour (record yes or no for each).
+- [x] **Step 2:** Measure both with the phone and iPad profiles on the GPU runner (the Owner's `ci:local`), and in
+  Chromium here (software: recorded, not judged).
+- [x] **Step 3:** Write the ADR (what was measured, where, the choice by spec 6's rule). **Commit** `docs(adr): the 3D
+  look on Pixi 3D`
+
+### Task 8.2: The passes (**session break** after the filters; audit note 14; trimmed 2026-11-07, scope trim section 2)
+
+Trimmed: no CPU reference painters and no `look-sheet.ts` (2D proves its look with parity images from the real
+renderer, and so does 3D); stars, rain and bloom are `@automata/world-kit`'s (port task 3.8), added through
+`addLookPass`. The sky and its horizon silhouette stay core (`sky.ts`): the base exterior is judged under them. The
+parity images include `base-interior` at lamplight and `base-exterior` by day, each with the base pair (task 7.7).
+Ignore the moved names in the lists below.
+
+**Source files:** EnvironmentBuilder `src/features/paint/*`, `src/features/stage/sprite-light.ts`; FigureBuilder
+`src/features/paint/{paint,raster,fabric}.ts`, `src/features/lighting/light.ts`.
+
+**Files:**
+- Create: `packages/3d/src/features/look/{look.ts,look.schema.ts,ramp-light.material.ts,duel-snap.filter.ts,
+  outline.filter.ts,sprite-light.ts,post.ts,look-pass.ts}` with `.glsl` + `.wgsl` pairs, `look/library/look.json`
+- Modify: `app/create-renderer.ts` (low-resolution target, then the passes), `app/compose-scene.ts`, base-3d's views
+- Test: `tests/unit/look/*.test.ts`, `tests/unit/entries.test.ts`, `tests/browser/look/look.parity.test.ts`
+
+**Interfaces:**
+- Consumes: `DEFAULT_PALETTE`, `step` (task 5.1); `timeOfDay` (task 6.3).
+- Produces: `targetSize(stage: { width: number; height: number }): { width: number; height: number }` (short side 180,
+  long side rounded from the stage's aspect); `Look { pixel: { short: 180 }; steps: number; outline: boolean; dither: boolean; grade: string;
+  switches: Record<'outline' | 'sky' | 'stars' | 'rain' | 'bloom' | 'grade' | 'dither', boolean> }`;
+  `createLookPasses(look: Look, time: TimeOfDay): LookPasses`; `spriteLight(figure, time): SpriteLight`;
+  `addLookPass(pass: LookPass): void` (a pass an extension adds after core's; a pass whose name is taken throws
+  `RegistryClash`). `Look.switches` keeps only `outline`, `grade` and `dither`; an extension's pass has its own switch.
+
+- [x] **Step 1: Write the failing tests**
+
+```ts
+it('an added pass runs after core passes, and a taken name is refused', () => { /* addLookPass */ })
+it('ramp light moves a colour in whole steps along its ramp', () => {
+  expect(rampLit(3 * 8 + 4, 0.5, look)).toBe(step(3 * 8 + 4, -2))
+})
+it('sprite light gives a flat light at the chest, a one-step form and a rim', () => { /* … */ })
+it('the low-resolution target keeps its short side at 180 and follows the stage', () => {
+  expect(targetSize({ width: 1280, height: 720 })).toEqual({ width: 320, height: 180 })
+  expect(targetSize({ width: 390, height: 844 })).toEqual({ width: 180, height: 390 })
+})
+// browser: after a context loss and restore, the target and the filters are rebuilt and the next frame draws
+// browser: WebGL2 and WebGPU agree; the parity images of base-3d's room are opened and explained
+```
+
+- [x] **Step 2:** FAIL. **Step 3:** the filters. **Session break here if needed.** **Step 4:** the material, sprite
+  light and `addLookPass`, through the game's camera. **Step 5:** parity in Chromium (WebKit/Firefox: the Owner's),
+  base-3d's journeys pass; images opened and explained. Rows (painters: *left out: the look is drawn by Pixi 3D only*). **Commit** `feat(3d): the pixel-art look, drawn by Pixi 3D`
+
+---
+
+## Phase 9: Textures and the builders' checks (PR `claude/3d-textures`)
+
+### Task 9.1: `automata textures` in `-tools` (spec 9; audit note 13)
+
+> **Moved to the Plus port, task 3.8 (scope trim, 2026-11-07).** The photo pipeline, the photos and the tiles are
+> `@automata/world-kit`'s; `-tools` gains nothing. Not built here; the row says "Moved". The text below is the port's
+> source.
+
+**Source files:** EnvironmentBuilder `src/features/photo/{pipeline,structure,textures}.ts`, `library/photos.json`, the
+photos, `src/lib/png.ts`, `scripts/{textures,photos}.ts`.
+
+**Files:**
+- Create: `packages/tools/src/features/textures/{pipeline.ts,png.ts,structure.ts,textures-command.ts}`,
+  `packages/3d/assets/photos/` (photos and `photos.json` with each credit; outside `files`),
+  `packages/3d/src/features/world/library/tiles/` (generated, committed, each with `<name>.tile.json` holding the
+  photo's sha-256)
+- Modify: `packages/tools/src/shared/check/` (the stale-tile finding), `packages/tools/src/cli.ts` (the command)
+- Test: `packages/tools/tests/unit/textures/*.test.ts`, a tiny image made by the test under
+  `packages/tools/tests/fixtures/textures/`
+
+**Interfaces:**
+- Consumes: `DEFAULT_PALETTE`, `nearestDuel` from `@automata/content/palette` (the only dependency; never
+  `@automata/3d`).
+- Produces: `photoToTile(png: Uint8Array, knobs: PhotoKnobs): { tile: Uint8Array; width: number; height: number }`;
+  `automata textures <photos> --out <folder>`; finding code `stale-tile`.
+
+- [ ] **Step 1: Write the failing tests**
+
+```ts
+it('every tile pixel is a DUEL colour', () => {
+  const { tile } = photoToTile(checkerPng(16), DEFAULT_KNOBS)
+  expect([...tile].every((i) => i < 256)).toBe(true)
+})
+it('runs flatten, facet, resample, index, wear and clean in order', () => { /* the source's stage cases */ })
+it('refuses a missing folder', async () => {
+  expect(await run(['textures', 'nope', '--out', 'x'])).toMatchObject({ code: 1, stderr: expect.stringContaining('nope') })
+})
+it('reports a stale tile', () => {
+  expect(checkTiles(withEditedPhoto)).toContainEqual(expect.objectContaining({ code: 'stale-tile' }))
+})
+```
+
+- [ ] **Step 2:** FAIL. **Step 3:** the port; generate the tiles and commit them. **Step 4:** PASS; `-tools` has no
+  `@automata/3d` dependency (`pnpm knip`, and `tooling/release/tests/unit/private-build.test.ts`). **Step 5:**
+  changeset `patch` for `@automata/tools`; rows. **Commit** `feat(tools): automata textures turns photos into DUEL tiles`
+
+### Task 9.2: The builders' `reads` checks (spec 8.4; audit note 11)
+
+> **Moved to the Plus port, task 3.8 (scope trim, 2026-11-07).** `checkReads` is `@automata/world-kit`'s; base-3d's
+> content test does not run it. Not built here; the row says "Moved".
+
+**Source files:** EnvironmentBuilder `scripts/{check,checks}.ts`, `photo/structure.ts` (`checkReads`),
+`view/view-frame.ts` (`frameIssues`), the `reads` fields of `swatches.json` and `maps.json`.
+
+**Files:**
+- Create: `packages/3d/src/features/world/reads.ts` (pure: a swatch's and a level's declared `reads` against what they
+  build)
+- Modify: `games/base-3d/tests/unit/content.test.ts` (runs `checkReads` over the game's levels; the 3D template of
+  task 12.2 copies the line). `-tools` gets no 3D dependency: the published `automata check` keeps its `levels` step,
+  and a game's declared `reads` are its own test's and Levels 3D's (task 16.2)
+- Test: `packages/3d/tests/unit/world/reads.test.ts`
+
+**Interfaces:**
+- Produces: `checkReads(level: AfSector2, library: WorldLibrary): LevelProblem[]` (exported from `@automata/3d/level`).
+
+- [ ] **Step 1: Write the failing tests**: `a swatch whose edge is under its minEdge is reported`; `a level whose room is too small for its
+  declared minEdge is reported`. **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS. Rows. **Commit**
+  `feat(check): the 3D content's declared reads`
+
+---
+
+## Phase 10: Words and provenance in the 3D core (PR `claude/3d-words`)
+
+### Task 10.1: No plan IDs or source names in code
+
+**Files:**
+- Modify: every file under `packages/3d`, `tooling/repo-hygiene/src/source-names.ts` (`--code <folders>`: reads `.ts`,
+  `.svelte`, `.css`, `.json`, `.toml` under them; learns `environment[\s_-]?builder`), root `package.json`
+  (`source-names --code packages/3d`; `style --plan-comments packages/3d/src`)
+- Test: `tooling/repo-hygiene/tests/unit/source-names.test.ts`
+
+**Interfaces:**
+- Produces: `findSourceNames(root: string, options?: { code?: readonly string[] }): string[]` (today's signature and
+  finding format, `file:line: names a source project (entry N)`, kept; `code` adds those folders' files, and a file
+  whose path names a source is a finding at line 0).
+
+- [ ] **Step 1: Write the failing tests**: `a .ts file naming a source under a --code folder fails`; `one outside does
+  not`; `a file whose name names a source fails`; `docs/provenance stays exempt`. **Step 2:** FAIL. **Step 3:** the option; rewrite the comments (what and why,
+  not where from); 190 plan IDs in `packages/3d/src` at `78e0ca7f` (count again first). Scope trim R5: the clip
+  blender `features/figures/clips/sample.ts`'s `sample` becomes `blendKeyPoses`, so the package has one `sample`. **Step 4:** `pnpm source-names` and `pnpm style` pass. The `--code` list grows: `packages/automata`,
+  `content`, `tools`, `games/base-3d`, `examples/3d` in task 13.2; `packages/editor-3d`, `packages/editor` in 17.2, which
+  replaces the list with every source folder. **Step 5: Commit** `refactor(3d): comments say what and why`
+
+### Task 10.2: README, a complete record, part A's close
+
+**Files:** Create `packages/3d/README.md` (entries, the beta rule, what is core and what the character kit and the
+world kit add); modify `docs/README.md`, `docs/provenance/sources.md`,
+root `package.json` (`sources-md --complete` in `source-names`), `progress.md`.
+
+- [x] **Step 1:** Turn on `--complete`; run → it lists every manifest file without a row; fill them (each *ported*,
+  *rewritten* or *left out: why*). **Step 2:** PASS.
+- [x] **Step 3:** Part A's done check: spec criteria 1 to 7 (commands and output in the PR); `pnpm check`, the 3D
+  browser suites in Chromium and the 3D workflow on the PR green. **Commit** `docs(3d): the package's README; part A done`
+- [ ] **Step 4:** Merge part A's PRs in stack order once every head is green. Part B starts after.
+
+---
+
+# Part B: the rest of AF that uses 3D
+
+## Phase 11: Ember Hall (PR `claude/3d-game`)
+
+### Task 11.1: The feature layout and `content/` (audit notes 18, 19)
+
+**Files:**
+- Create: `docs/refactor/move-map-base-3d.json`, `games/base-3d/content/editors.toml`
+- Move: `games/base-3d/src/{commands,components,events,resources,state,systems,views,screens,constants}` →
+  `src/{app,entries,features/{hero,embers,room,scene,screens},shared,testing}` like `games/emberwick/src`;
+  `src/content/` → `content/` (levels, figures, figure kinds, figure actions, generated); tests → `tests/{unit,browser}`
+  with `#src/…` imports; the tunable numbers in `constants/` → `content/tuning.toml`
+- Modify: root `boundaries` (keep `--game games/base-3d/src`, which reads feature layouts by suffix; add `--features
+  games/base-3d`), `style` (drop `--role-layout games/base-3d/src`; add `--plan-comments games/base-3d/src`,
+  `--test-imports games/base-3d`), `games/base-3d/{vite,vitest,playwright}.config.ts`
+- Delete: `games/base-3d/EDITOR-GAPS.md` (closed by `af-sector/2` and the Things layer; G3)
+- Test: the moved tests; `tests/unit/editors-list.test.ts`
+
+**Interfaces:**
+- Produces: `content/editors.toml` (`format = "af-editors/1"`) rows `content/levels/*.af-sector.json` → `levels-3d`,
+  `content/figures/*.toml` → `studio`, `content/tuning.toml` → `tuner`, each `modes = ["edit"]`, `gates = []`,
+  `checks = ["content"]` as Emberwick's (the editor ids are the suite editors' own: `levels-3d`, `studio`, `tuner`).
+
+- [x] **Step 1:** Record counts (unit 82, browser and layout 32, journeys 8, the replay hash). Dry run, then move.
+- [x] **Step 2: Write the failing test** `the editor list parses and every glob matches a file`; FAIL; write
+  `editors.toml`; PASS.
+- [x] **Step 3:** `--features games/base-3d` and `--game` pass; every suite passes with the counts of step 1; the
+  replay hash unchanged. **Commit** `refactor(base-3d): feature folders and content/ like Emberwick`
+
+### Task 11.2: One name, the menu and the HUD (G4 to G6, C10)
+
+**Files:**
+- Modify: `games/base-3d/src/messages/ui/en.json`, `src/features/screens/flow.ts`, `src/features/screens/Hud.svelte`,
+  the play view's framing, `DESIGN.md`, `package.json` (`automata.title: "Ember Hall"`), `docs/refactor/copy.md`
+- Test: `tests/unit/screens/flow.test.ts`, `tests/browser/screens/{hud,play}.layout.test.ts`
+
+**Interfaces:**
+- Consumes: `checkLayout` with the bar rule (task 1.5).
+
+- [ ] **Step 1: Write the failing tests**
+
+```ts
+it('the title menu offers Continue only with a save, then New game and Settings', () => {
+  expect(menuItems({ hasSave: true })).toEqual(['Continue', 'New game', 'Settings'])
+  expect(menuItems({ hasSave: false })).toEqual(['New game', 'Settings'])
+})
+it('the HUD says what it counts', async () => {
+  await page.goto(play); await expect(page.getByText('Embers 0 of 6')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible()
+})
+it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeightShare(1194, 834)).toBeGreaterThanOrEqual(0.8) })
+```
+
+- [ ] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS; journeys pass; before/after screens in the PR.
+  **Step 5: Commit** `feat(base-3d): Ember Hall, a menu with Settings and a HUD that says what it counts`
+
+### Task 11.3: Journeys that play (G2)
+
+**Files:** Modify `games/base-3d/e2e/base-3d.e2e.ts`, `games/base-3d/src/testing/route.ts` (a test-only seed and route).
+
+- [ ] **Step 1: Write the failing journey**: with touch, the stick moves the hero, Roll rolls, an ember is collected
+  and the HUD says "Embers 1 of 6", the goal ends the game; at 390 × 844 and 1194 × 834. **Step 2:** FAIL on the missing
+  route. **Step 3:** the route. **Step 4:** PASS in Chromium (WebKit on the runner); first-attempt failures kept.
+  **Step 5: Commit** `test(base-3d): journeys play to the goal`
+
+## Phase 12: The examples and the 3D template (PR `claude/3d-examples`)
+
+### Task 12.1: The 3D examples on the new package (**session break** after four examples)
+
+**Files:**
+- Modify: `examples/3d/{figures,render3d}/*` (imports from `@automata/3d`; `// --- <role> ---` sections)
+- Create: `examples/3d/{figures-stand-and-sliders,look-pixel-art,world-time-of-day}.ts`, `examples/3d/README.md`
+  (trimmed 2026-11-07: the hair, wardrobe, furnished-room and generated-map examples show extensions and are the Plus
+  port's task 3.9)
+- Test: `examples/3d/e2e/*.e2e.ts` (each boots and reaches ready), the examples runner's list
+
+- [ ] **Step 1:** Failing journeys for the three. **Step 2:** the three examples. **Step 3:** the moved figures and
+  render3d examples on the new entries. **Step 4:** PASS in Chromium. **Step 5: Commit** `feat(examples): the 3D examples show
+  the figures, the world and the look`
+
+### Task 12.2: `create-game --template 3d`
+
+When the Plus port's task 3.4 lands, the 3D template lists `@automata/sectors` (Plus port spec section 9); until then it does not.
+
+**Files:**
+- Create: `packages/tools/src/shared/create-game/template-3d.ts`
+- Modify: `packages/tools/src/shared/create-game/` (`automata create-game` has one template today; it gains
+  `--template 2d|3d`, `2d` the default, and `--help` lists `3d` only when `@automata/3d` resolves: inside this
+  repository or with `AF_BETA_3D=1`), `tooling/consumer-smoke` (a 3D stranger behind
+  `AF_BETA_3D=1`)
+- Test: `packages/tools/tests/unit/create-game/template-3d.test.ts`, the smoke
+
+**Interfaces:**
+- Produces: `template3d(name: string): TemplateFiles` (one room with box and cylinder props, Wick, a tuning file, an
+  editor list, the feature layout, the content test).
+
+- [x] **Step 1: Write the failing tests**: `the 3D template's files pass automata check`; `without the 3D package it
+  says "3D games need a package that is not public yet. For now, make a 2D game: leave out --template." and exits
+  1`; `without --template it makes the 2D game it makes today`. **Step 2:** FAIL. **Step 3:** the template.
+  **Step 4:** PASS; the smoke passes with `AF_BETA_3D=1`. **Step 5:** changeset `patch` for `@automata/tools`.
+  **Commit** `feat(create-game): a 3D template`
+
+## Phase 13: The command, docs, agents and budgets (PR `claude/3d-rest`)
+
+### Task 13.1: `automata editor` reads 3D levels (C7)
+
+**Files:** Modify `packages/tools/src/features/editor/editor-policy.ts`, `editor-command.ts`. Test
+`packages/tools/tests/unit/editor/{editor-policy,editor-command}.test.ts`.
+
+**Interfaces:**
+- Produces: `LEVEL_FILES = ['.af2d.json', '.af-sector.json'] as const`; the first line "Opened <title>." from
+  `automata.title`.
+
+- [x] **Step 1: Write the failing tests**: `a game without a list lists its .af-sector.json room`; `the first line
+  names the game by its title`. **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS. **Step 5:** changeset
+  `patch`. **Commit** `fix(editor): the command opens 3D levels and names the game`
+
+### Task 13.2: Docs, agents and words outside the 3D package (S8)
+
+**Files:** Create `docs/guides/3d.md`; modify `docs/README.md`, the agent package's 3D skills and API reference,
+`games/base-3d/README.md`, every plan ID and source name in `packages/automata`, `content`, `tools`, `games/base-3d`,
+`examples/3d`; root `package.json` (`source-names --code` and `style --plan-comments` cover them).
+
+- [x] **Step 1:** Add the folders to `--code`; run `pnpm source-names` → the findings (record the count). **Step 2:**
+  rewrite. **Step 3:** PASS; `pnpm build`, `pnpm api-index --write` (the agent package's API reference and the cheatsheet), `pnpm agent-skills`. **Step 4:
+  Commit** `docs: 3D in the guides and the agent package`
+
+### Task 13.3: The 3D frame-budget projects (spec 6; audit note 15)
+
+**Files:**
+- Create: `tooling/frame-budget/stress/3d/{index.html,main.ts}` (Ember Hall's room with Wick, every core pass on, the
+  camera turning)
+- Modify: `tooling/frame-budget/src/playwright-run.ts` (`frameBudgetProjects` gains `frame-budget-3d-phone`, Pixel 7
+  as the phone project, and `frame-budget-3d-ipad` at 1194 × 834; `playwright.config.ts` only calls it),
+  `tooling/frame-budget/budget.json` (`projects` gains the two rows in its own shape, `{ workMsP95, intervalMsP95 }`:
+  33.3 and 33.3 for the phone, 16.7 and 16.7 for the iPad, the spec's targets until the Owner's GPU run replaces them;
+  the first pose's 5 ms is a separate `firstPoseMs` row checked by the stress page)
+- Test: `tooling/frame-budget/tests/unit/budget-3d.test.ts`
+
+- [x] **Step 1: Write the failing tests**: `budget.json has the 3D rows`; `a software renderer skips with "Skipped:
+  software renderer, no frame budget measured."`. **Step 2:** FAIL. **Step 3:** the page and projects. **Step 4:** PASS
+  here (skips). `pnpm budget:frame` fails closed (a budgeted project with no hardware result fails), so it stays red
+  for the 3D rows until the Owner's GPU run: say so in the PR and the progress row, never loosen the check; the GPU
+  runner's run is the Owner's queue; the first pose is met or changed to the measured number in
+  spec 15. **Step 5:** Part B's done check. **Commit** `test(frame-budget): 3D budgets for the look`
+- [ ] **Step 6:** Merge part B's PRs in stack order once green. Part C starts after.
+
+---
+
+# Part C: the editors
+
+## Phase 14: `editor-3d` by feature (PR `claude/3d-editor-features`)
+
+### Task 14.1: Feature folders and `tests/` (**session break** after the map)
+
+**Files:**
+- Create: `docs/refactor/move-map-editor-3d.json`, every file once (after task 4.1 and 15.3's deletions; `ask-controller.ts`
+  stays where it is until 15.3 deletes it):
+
+| From | To |
+|---|---|
+| `ui/suite/studio/{studio-*.ts,ui/*,stage/*}` | `features/studio/` (`ui/` and `stage/` keep their names; `testing/` → `testing/studio/`) |
+| `ui/{plan,walk,dollhouse,inspector,definitions,document,home}/*` | `features/levels-3d/<same name>/` |
+| `ui/suite/{Levels3dInspector,Levels3dRegions,Levels3dStatus}.svelte`, `levels-3d-suite-editor.ts`, `plan-tools-of.ts`, `pointer.svelte.ts` | `features/levels-3d/` (Levels 3D's own, not the suite's) |
+| `app/{plan,sector,split,vertex,wall,merge}-*.ts`, `plan-picture.ts`, `plan-status.ts`, `tool-paint.ts`, `wall-place.ts`, `sector-id.ts`, `loupe*.ts` | `features/levels-3d/plan/` |
+| `app/{dollhouse-controller,dollhouse-paint}.ts` | `features/levels-3d/dollhouse/` |
+| `app/{walk-hud,walk-session}.ts`, `view/walk/*`, `view/mesh/{camera-3d,follow-camera,heading,mesh-pick,vec3}.ts` | `features/levels-3d/walk/` (`camera-3d`, `mesh-pick` and `vec3` to `shared/geometry/` if the dollhouse imports them too) |
+| `view/plan/*` | `features/levels-3d/plan/` |
+| `app/{inspector-cards,inspector-edits,material-session}.ts`, `view/materials/*` | `features/levels-3d/inspector/` |
+| `app/{definitions-controller,thing-fields}.ts`, `entities/*`, `things/*` | `features/levels-3d/{definitions,things}/` |
+| `app/checks-panel-controller.ts`, `app/problem-count.ts`, `checks/*` | `features/levels-3d/checks/` |
+| `app/document/*`, `app/{open-level,read-level,patched-document,import-files}.ts` | `features/levels-3d/document/` |
+| `app/home/*`, `app/project-list.ts` | `features/levels-3d/home/` |
+| `app/{editor-app,levels-3d-session,layers-model,geometry-cache}.ts` | `app/` (they wire the features) |
+| `model/*` | `shared/edit/` |
+| `geometry/*` | deleted where `@automata/3d/level`'s geometry covers it (task 7.5; scope trim R7): `sectors.ts` and `triangulate.ts` go and their callers import the level entry; `loops.ts` moves to `shared/geometry/` only if nothing in the level entry does its job |
+| `profile/*`, `profile/af-sector/*`, `codec/` (tests only) | `shared/level-session/` |
+| `view/selection-of.ts` | `shared/edit/` |
+| `suite-main.ts`, `ui/suite/index.ts` | `app/suite/` |
+| `main.css`, `vitest-setup.ts` | `app/main.css`, `tests/setup.ts` |
+| `journeys/*.journey.test.ts` | `tests/browser/journeys/` (by the mover) |
+
+  A row the dry run shows importing another feature goes to `shared/` or `app/` by the rule above, written in the map.
+- Move: tests → `tests/{unit,browser/{layout,canvas,journeys}}` with `--browser-folders --feature-folders`
+  (`--environment node --other-environment` for nothing: `.dom` tests get the jsdom directive and land in `unit/`)
+- Modify: root `boundaries` (`--features packages/editor-3d --components`), `style` (`--test-imports
+  packages/editor-3d`), `packages/editor-3d/vitest.config.ts` (projects by folder, as `packages/editor`'s), its
+  `package.json` (`test:unit` runs `--project unit`)
+
+- [x] **Step 1:** Record counts (unit and DOM; Chromium layout and canvas 195; journeys). Write the map; dry run.
+  **Session break here if needed.** **Step 2:** move; `--features` finds 0; every suite passes with the counts.
+  **Step 3: Commit** `refactor(editor-3d): feature folders, tests in tests/`
+
+### Task 14.2: Dead entries, the shim and the tokens (E5, K3, V3)
+
+**Files:**
+- Delete: `packages/editor-3d/src/index.ts`, the `./suite` entry, what only they used (`pnpm knip`)
+- Modify: `suite-content-shim.ts` (inlined into its caller with `@automata/content/schema` and `/palette`), every
+  unknown `var(--…)`, `tooling/check-style/src/` (the token rule)
+- Test: `tooling/check-style/tests/unit/tokens.test.ts`
+
+**Interfaces:**
+- Produces: `findUnknownTokens(css: string, known: ReadonlySet<string>): Finding[]`; `style --tokens packages/editor/src/shared/kit/tokens.css packages/editor-3d/src`.
+
+- [x] **Step 1: Write the failing test** `an editor var(--x) the kit and the file do not define fails`; run on
+  editor-3d → finds the 14 tokens and the 23 radius uses. **Step 2:** the fixes. **Step 3:** layout and canvas pass;
+  pixel changes explained. **Step 4: Commit** `refactor(editor-3d): kit tokens only; no dead entries`
+
+## Phase 15: One suite (PR `claude/3d-one-suite`)
+
+### Task 15.1: The full suite opens the checkout (E2)
+
+**Files:** Modify `packages/editor-3d/src/app/suite/main.ts`; create `packages/editor-3d/src/testing/sample-3d.ts`
+(`SAMPLE_3D`: a 3D room and Wick). Test `packages/editor-3d/tests/unit/suite/open-checkout.test.ts`.
+
+**Interfaces:**
+- Consumes: `openSuitePorts` (`packages/editor/src/features/suite/shell/open-suite-ports.ts`, what the 2D page uses) and
+  `samplePorts(files: Readonly<Record<string, string>>): Promise<SuitePorts>` with `SAMPLE_GAME` (both exist; no
+  signature changes).
+- Produces: the 3D page opens the checkout through `openSuitePorts`, and for the site `samplePorts({ ...SAMPLE_GAME,
+  ...SAMPLE_3D })`.
+
+- [x] **Step 1: Write the failing tests**: `on a checkout the suite lists base-3d's room and Wick`; `served for the site
+  it opens the sample with a 3D room and Wick`. **Step 2:** FAIL. **Step 3:** `openSuitePorts` as the 2D page.
+  **Step 4:** PASS. **Commit** `fix(suite): the full suite opens the game's folder`
+
+### Task 15.2: One page, chosen by the game (D4, E3, E4)
+
+**Files:**
+- Modify: `packages/tools/src/features/editor/editor-command.ts` (no `--app`; `BUILDS` is the 2D suite and the full
+  suite), `docs/guides/editor.md`, the help text
+- Delete: `packages/editor-3d/src/main.ts`, its `index.html` and standalone build; the 2D standalone page:
+  `packages/editor/index.html`, `src/app/editor-2d/main.ts`, the default `vite build` (`dist/2d`, so `build` is only
+  `vite build --mode suite`) and `packedEditor('2d')` in the command. The rest of `app/editor-2d/` stays: the suite's
+  Levels editor imports its `profiles.ts`, `testing/level-2d/journey-editor.ts` its `DocumentScreen.svelte`, and 43 test
+  files its `boot.ts` and `main.css`; `pnpm knip` decides whether `App.svelte` goes, and the folder is renamed
+  `app/level-2d/` (the standalone app is gone, the 2D level editor is not)
+- Test: `packages/tools/tests/unit/editor/editor-command.test.ts`; the 2D unit, layout and journey counts before and
+  after (only the standalone page's own tests, such as `editor-app-import.test.ts`, may drop, each named)
+
+**Interfaces:**
+- Produces: `pageFor(game: GameFiles, builds: Builds): 'suite-2d' | 'suite-full'`.
+
+- [ ] **Step 1: Write the failing tests**: `base-3d gets the full page`; `Emberwick gets the 2D page`; `--app says
+  "This option is gone: automata editor picks the editors your game needs." and exits 1`. **Step 2:** FAIL. **Step 3:**
+  the change and deletions. **Step 4:** both editors' suites pass; `pnpm knip` clean. **Step 5:** changeset `patch`.
+  **Commit** `feat(editor): one editor app for every game`
+
+### Task 15.3: The cuts (D6, E6)
+
+**Files:** Delete World, Ask (`ask-controller.ts`, `testing/fake-ask.ts`, `SuiteAsk.svelte`, the top bar's Ask), the
+change-set desk (Review, Export changes, Import changes, Publish over a sample) in `packages/editor` and
+`packages/editor-3d`; the `ask` mode of `af-editors/1` (`packages/editor/src/shared/editor-list/editors.schema.ts`
+`modes`: `edit` only; every committed list already says `["edit"]`).
+
+- [ ] **Step 1:** Record counts. **Step 2:** delete with their tests. **Step 3:** counts drop by exactly theirs; journeys
+  pass; `pnpm knip` clean. **Commit** `refactor(editors): only what works on a real game`
+
+### Task 15.4: The suite on a phone (V4)
+
+**Files:** Modify `packages/editor/src/features/suite/shell/*`, the full page's registration of Levels 3D and
+Characters. Test `packages/editor/tests/browser/layout/suite-phone.test.ts`.
+
+- [x] **Step 1: Write the failing tests** at 390 × 844 and 844 × 390: `the top bar names the game`; `the tabs are the
+  game's editors with one Levels`; `in landscape the stage keeps at least 85 % of the height`; `checkLayout` clean.
+  **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS for both pages; screens in the PR. **Commit**
+  `feat(suite): the suite on a phone names the game and lists its editors`
+
+## Phase 16: Levels 3D redesigned (PR `claude/3d-levels-redesign`)
+
+### Task 16.1: The frame, phone first (V1, V2, D5; **session break** after the top bar and tools)
+
+**Files:** Modify `packages/editor-3d/src/features/levels-3d/` (spec 10.3's top bar, floating tools, view tabs and phone
+menu, label-left inspector, layers sheet, three layouts by `shellModeOf` with the dock on compact), the kit's icons
+(Room, Corner, Doorway, Door, Window, Thing, Furniture, Lamp; Furniture places one of the game's own props). Test `tests/browser/layout/levels-3d/*.test.ts`,
+`tests/unit/levels-3d/*` (DOM, jsdom), the canvas suite.
+
+- [ ] **Step 1: Write the failing tests**: at 390 × 844, 844 × 390, 1194 × 834, 1440 × 900 `a drawing tool, the view
+  switch, the inspector and Save are reachable` and `checkLayout` is clean; `every tool is reachable by role and name`;
+  `keyboard occlusion keeps compact layout and the focused field` (an inspector number focused, the visual viewport
+  shrunk by 300 px: still compact, the field visible, Save whole). **Step 2:** FAIL. **Step 3:** top bar and tools.
+  **Session break here if needed.** **Step 4:** inspector, layers, layouts. **Step 5:** PASS; before/after at the four
+  sizes against the mock-up. **Commit** `feat(levels-3d): the approved look, with every tool on a phone`
+
+### Tasks 15.5 and 16.1b to 16.1e: Levels 3D opens real 3D rooms (new, 2026-11-08)
+
+Found by the 16.1 build: Levels 3D refuses Ember Hall's room ("af-sector/2 is not a version this editor reads"), and
+every room `create-game --template 3d` makes, because the editor's profile is still `/1` (7.1's log moved the switch to
+14.1 and 16.2; neither does it). Five tasks, in
+[2026-11-08-levels-3d-sector-2-plan.md](2026-11-08-levels-3d-sector-2-plan.md) (spec beside it), run after 16.1's
+third slice and before the rest of 16.1: **15.5** the suite shows a game's own editors by their names (one Levels,
+Characters) and a room that won't open says why in readable words; **16.1b** the level as written in core
+(`afSector2FileSchema`); **16.1c** one `/2` profile, every member kept as written, `/1` upgraded on the first change;
+**16.1d** the game's furniture, characters and lamps as things; **16.1e** pits, cameras, and a journey that plays
+Ember Hall after an edit. The task count is 59.
+
+### Task 16.2: The builders' authoring (spec 10.3; trimmed 2026-11-07, scope trim section 2)
+
+No Fill with furniture, no `furnishAs`, no `checkReads` and no kit checks: furnishing is the world kit's, and the editor
+is core, which never imports an extension.
+
+**Files:**
+- Modify: `features/levels-3d/inspector/` (Time of day, Wall trim, Windows), `features/levels-3d/plan/tools/`
+  (Furniture, Lamp), `shared/edit/` (one undoable command each), `features/levels-3d/checks/` (a prop outside every
+  room; a lamp inside a wall; a prop, swatch or time the game lacks; a room asking for an extension), the 3D view
+  (draws through the world builder)
+
+**Interfaces:**
+- Consumes: `buildWorld` (task 7.2), the `needs-extension` problem (task 7.3).
+- Produces (amended 2026-11-08: furniture is placed from the Things palette in 16.1d, which also owns the "a prop,
+  swatch or character the game lacks" check): edit commands `placeLamp(kind, at)`, `setTimeOfDay(name)`, `setWallTrim(wall, trim)`,
+  `setWindows(wall, grid)`, each `EditCommand` with a `label`.
+
+- [ ] **Step 1:** For each change, in order: a failing unit test of its command (`undo restores the level byte for
+  byte`; Undo's label "Undo place furniture"; Time of day lists each time's `label`), its DOM test, its canvas test;
+  then the code. A room asking for the world kit shows "This room asks to be furnished by the world kit, which this
+  game doesn't have. Add @automata/world-kit, or remove "dress" from the room." **Step 2:** all PASS. **Commit**
+  `feat(levels-3d): place furniture and lamps, pick the time of day`
+
+### Task 16.3: Plan, 3D and Walk in the game's look (spec 6, 10.3)
+
+**Source files:** EnvironmentBuilder `src/features/view/{view-frame,readability}.ts`; `render.ts` and `fp.ts` for
+their camera and framing rules only.
+
+**Files:**
+- Create: `packages/editor-3d/src/features/levels-3d/views/{plan,diorama,walk}/`, `views/shared/frame-map.ts`
+  (trimmed 2026-11-07: readability is the world kit's, port task 3.8), `tooling/frame-budget/stress/3d-editor/` with projects `frame-budget-3d-editor-{phone,ipad}`
+- Modify: `features/levels-3d/{plan,dollhouse,walk}/` draw through these views, building the world from the game's
+  library that 16.1d reads (`readGameLibrary`); Walk's hint
+- Test: `tests/unit/levels-3d/views/frame-map.test.ts`, canvas and layout tests
+
+**Interfaces:**
+- Produces: `frameMap(level: AfSector2, view: 'plan' | 'diorama' | 'walk', viewport: Rect): Camera3d`.
+
+- [x] **Step 1: Write the failing tests** (the source's framing cases). **Step 2:** FAIL. **Step 3:** the three views. **Step 4:** unit, canvas and
+  layout PASS in Chromium; the budget page skips on software. Rows (*rewritten: editor views*). **Commit**
+  `feat(levels-3d): the plan, diorama and walk views in the game's look`
+
+## Phase 17: Characters redesigned (PR `claude/3d-studio-redesign`)
+
+### Task 17.1: The frame, phone first (V5; **session break** after the top bar)
+
+**Files:** Modify `packages/editor-3d/src/features/studio/` (shared top bar; on a phone Undo and Redo in the menu, one
+Panels button, Dock gone, Save for Publish; stage on top, the timeline a bottom sheet; the on-screen name Characters
+is done in 15.5).
+Delete task 1.5's `.fails`. Test `tests/browser/layout/studio.layout.test.ts`.
+
+- [ ] **Step 1:** Remove `.fails` → FAIL (Publish clipped). **Step 2:** top bar. **Session break here if needed.**
+  **Step 3:** stage and sheet. **Step 4:** PASS at every size; Save visible at 390 × 844. **Commit** `feat(studio): the
+  approved look; Save fits on a phone`
+
+### Task 17.2: New sliders, actions and words
+
+**Files:** Modify `features/studio/look/` (phase 6's controls, words at each slider end), `features/studio/animate/`
+(actions as clips), names instead of ids (C9), thumbnails drawn by Pixi 3D into a render texture; plan IDs and source
+names out of `packages/editor-3d` (465 plan IDs in its `src` at `78e0ca7f`; count again first) and `packages/editor`; root `package.json` (`source-names --code` covers every source
+folder). Test `tests/unit/studio/*` (DOM), a thumbnail canvas test.
+
+- [ ] **Step 1: Write the failing tests**: `each new control has its role and name`; `each new slider's ends say the
+  spec 11 words` (fat "Thin"/"Heavy", bust and seat "Smaller"/"Larger", eye size "Small"/"Large", eye spacing
+  "Close"/"Wide", eye tilt "Down"/"Up", asymmetry "Even"/"Uneven"); `actions list by name`. **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS; `pnpm source-names`
+  passes repository-wide. **Commit** `feat(studio): every slider the figures have, in words`
+
+## Phase 18: Copy and real journeys (PR `claude/3d-editor-journeys`)
+
+### Task 18.1: The copy pass (C1 to C9)
+
+**Files:** Modify every string of spec 11 and the rest the pass finds; create
+`features/levels-3d/checks/messages.ts`; `docs/refactor/copy.md` "3D editors". Test
+`tests/unit/levels-3d/checks/messages.test.ts`, `tests/unit/copy.test.ts` (DOM).
+
+**Interfaces:**
+- Produces: `problemSentence(issue: ZodIssue, level: AfSector2): { room: string; text: string }`.
+
+- [ ] **Step 1:** Read every screen at the four sizes with the drunk grandma test; list each failure in `copy.md`.
+- [ ] **Step 2: Write the failing tests**:
+
+```ts
+it("turns a schema error into a sentence naming the room", () => {
+  expect(problemSentence(issueAt(['sectors', 0, 'floor'], 'expected number'), level)).toEqual({
+    room: 'Room 1', text: "Room 1's floor height isn't a number. Open the room and type a number." })
+})
+it('no screen shows a format id, a path, a plan ID or a source name', () => { /* every fixture screen */ })
+```
+
+- [ ] **Step 3:** FAIL, the words, PASS. **Commit** `feat(editors): plain words in the 3D editors`
+
+### Task 18.2: Journeys against the real command (T2; **session break** after the harness)
+
+**Files:** Modify `packages/editor/tests/e2e/harness/fixtures.ts` (the game to copy is a fixture option:
+`EMBERWICK` or a new `BASE_3D`), `run-game.ts` if base-3d's dev server needs its own start; create
+`packages/editor/tests/e2e/journeys/{levels-3d-save-reaches-the-game,character-save-reaches-the-game,
+levels-3d-on-a-phone}.test.ts`. The 2D slice's harness (`run-editor.ts`, `run-game.ts`, `temp-game.ts`) already copies a
+game, starts the real `automata editor` and the game's server on their own ports and stops only what it started; no
+second harness.
+
+**Interfaces:**
+- Consumes: `copyGame`, `runEditor`, the journeys' `test` fixture (`tests/e2e/harness/`); `playwright.journeys.config.ts`
+  (`pnpm --filter @automata/editor test:e2e`).
+
+- [ ] **Step 1:** (`BASE_3D` is in the fixtures from 16.1e) a test that a base-3d run leaves no process and no folder (as the 2D
+  ones do). **Session break here if needed.**
+- [ ] **Step 2:** spec 10.4's journeys, failing where the product lacks a hook (each fixed as a product bug with a
+  test). **Step 3:** PASS in Chromium, WebKit on the runner; the 2D journeys' count is unchanged. `3d.yml`'s
+  `3D - journeys` job runs `pnpm --filter @automata/editor test:e2e --grep 3d` (named in task 1.2's test once added). Part C's done check: spec criteria 8 to 13. **Commit**
+  `test(editors): journeys from the editor to the game`
+- [ ] **Step 4:** Merge part C's PRs in stack order once green (after task 18.3). Part D starts after.
+
+### Task 18.3: A whole 3D game from the editors (the Owner, 2026-11-08 04:18: "We need to do the same for 3D once that's up and running")
+
+The 2D proof ("Make a full game from the editors", on top of PR #473) for a 3D game: one served journey that makes a
+game and checks that what the editors made is what plays. Reuse that thread's journey helpers and the 18.2 harness
+(`copyGame`/`new-game.ts`, `runEditor`, `runGame`, the editor's Play and Ship buttons); no second harness.
+
+**Files:** create `packages/editor/tests/e2e/journeys/whole-3d-game.test.ts`; product fixes each with their own test.
+
+- [ ] **Step 1: Write the failing journey**: `create-game --template 3d` into a temp folder; `automata editor` on it;
+  in Levels 3D build a room (walls, a floor, a door) and place a character made in Characters; the change reaches the
+  game's files and `automata check` passes; Play opens the game and the room and the character are there (read from
+  the game's own state or a readiness attribute, not a screenshot); Ship builds it and the shipped build shows the same.
+  **Step 2:** FAIL where the product lacks a step, each fixed as a product bug with its test. **Step 3:** PASS in
+  Chromium at iPad and phone size, WebKit on the runner. The 3D build audit walks the same loop by hand.
+  **Commit** `test(editors): a whole 3D game from the editors`
+
+---
+
+# Part D: the site and the release
+
+## Phase 19: The site's 3D pages (PR `claude/3d-site`)
+
+### Task 19.1: Behind the switch (W1)
+
+**Files:** Modify `site/src/shared/framework/examples.ts`, `site/src/features/{home,editor,docs,api,examples}/`, the
+routes under `site/src/routes/` that the switch adds, `site/vite.config.ts` (`AF_SITE_3D`),
+`site/scripts/scan-closed-beta.ts` (the scan that proves no `@pixi/3d` byte ships). Test the scan's own test, the
+visitor's journey with the switch on (`site/tests/e2e/`), the site's browser gates on the new pages.
+
+- [ ] **Step 1: Write the failing tests**: `with the switch off the build has no 3D route and no @pixi/3d byte`; `with
+  it on, Home plays Ember Hall and the 3D editor opens the sample`. **Step 2:** FAIL. **Step 3:** the pages in the
+  site's look. **Step 4:** the Chromium suite passes off and on; the visual audit's script reruns for the new pages,
+  each read with the drunk grandma test. **Commit** `feat(site): 3D beside 2D, behind the beta switch`
+
+## Phase 20: The release (PR `claude/3d-release`; merged only on the Owner's trigger)
+
+### Task 20.1: Written and rehearsed now (audit note 21)
+
+**Files:** Modify the `package.json` files that take `@pixi/3d`, `packages/3d/package.json` (public; `files` leaves out
+`assets/`), `.changeset/config.json` (`@automata/3d` joins the `fixed` group), `packages/tools` (packs the full suite;
+the closed-beta scan's refusal lifted for npm `@pixi/3d`), `ship prepare`, the site deploy (`AF_SITE_3D=1`),
+`create-game` (the 3D template without `AF_BETA_3D`), a `patch` changeset. Delete `vendor/pixi-3d`.
+
+- [ ] **Step 1: Write the failing test** `@automata/3d is in the changesets fixed group` in
+  `tooling/release/tests/unit/`. **Step 2:** FAIL; the change; PASS.
+- [ ] **Step 3:** Rehearse against a local registry (Verdaccio), the vendored tarball standing in for npm: the 3D
+  stranger's journey passes from the registry.
+- [ ] **Step 4:** Leave the PR open with "Waits for Pixi 3D's public release" at the top. The trigger is the Owner's
+  (D8).
+
+---
+
+## Done (stage 4's last step)
+
+Every row of the tracking table is done except 20.1's merge; `progress.md` says so; spec criteria 1 to 14 and 16 pass
+with the commands in each part's done check; 15 and 17 wait on the release.
+
+## Self-review (writing-plans, 2026-11-07)
+
+1. **Spec coverage:** spec 5 → phase 1; 6 → 6.3, 8.1, 8.2, 13.3, 16.3; 7 → 2.1, 2.2; 8.1 → 6.2; 8.2 → 6.4, 6.5; 8.3 →
+   6.3, 7.4; 8.4 → 6.1, 9.2, 10.2; 9 → 7.1 to 7.3, 9.1; 10.1 → 15.1 to 15.4; 10.2 → 4.1, 14.1, 14.2; 10.3 → 16, 17;
+   10.4 → 18.2; 11 → 11.2, 18.1; 12 → 19.1, 20.1; 1.3 → 3.1; 1.6 → 5.1 to 5.3; 1.16 → 10.1, 13.2, 17.2. No gap.
+2. **Step scan:** every test step names its test and assertions; every code step its file and signature; the two
+   one-off scripts (`convert-builder-maps`, `remap-palette`) have tests because the next pull reuses them.
+3. **Type consistency:** `AfSector2`, `WorldPiece`, `Key`/`Ease`/`sample`, `TimeOfDay`, the five `register*`, `Look`,
+   `checkReads` and `findCovered` are defined once (tasks 7.1, 7.2, 6.3, 6.4, 8.2, 9.2, 1.5) and used by those names.
+4. **Review Focus:** five lines, each with its test in the owning task (7.1, 7.2, 6.4, 7.3 and 16.2, 16.1).
+5. **Proportion:** the plan is about three times the spec's length, because it carries 53 tasks' file lists and
+   interfaces; code blocks are tests only, no function bodies.
+
+## Audit notes folded in
+
+Each of the paused audit's 21 findings, and where it went: 1 → 1.1; 2 → 1.2; 3 → 2.1's map (camera sim); 4 → spec 7,
+2.1, 2.2; 5 → 2.1's importer list; 6 → 3.1, spec 15.15; 7 → 6.4, 6.5, spec 8.2; 8 → 6.2 (base pair), 6.4 (registries'
+sources); 9 → 6.3, spec 6; 10 → spec 9's table, 7.1; 11 → spec 8.4, 9.2, 8.2's `look-sheet.ts`; 12 → 7.2; 13 → 9.1,
+spec 9 and 15.9; 14 → 8.2's entry test, spec 6; 15 → 13.3, 16.3; 16 → 5.1, spec 14; 17 → 1.5; 18 → 11.1, spec 15.14;
+19 → 6.3 writes under `src/content/` and 11.1 moves it, `--plan-comments` only in 10.1, 8.2 names `sprite-light.ts`;
+20 → the named breaks in Global Constraints; 21 → 20.1.
+
+## Stage 3 plan audit (2026-11-07)
+
+Audited with the superpowers plugin (`writing-plans`' self-review checklist) against the checkout at #444's head
+(`64c27c91`), FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`; the record and every finding is
+[2026-11-07-3d-slice-plan-audit.md](2026-11-07-3d-slice-plan-audit.md). Every fix is in the tasks above; the build
+reads only this plan and the spec. DUEL's author and licence stay the Owner's open question (D8).
+
+## Execution log
+
+(One two-line entry per session: what was done, where to resume.)
+- Task 1.1: done (7eb54b3b). pnpm check green with every unit test.
+- Task 1.2: done (66b8ac65). actionlint not run here (no Docker daemon): the Owner's. #425 comment and close pending the push.
+- Task 1.3: done. Ruling: no `inDialog` prop — ErrorPanel renders its own Dialog, so the dialog body is the one scroll region and the problems list is a plain labelled list (`aria-label=Problems`); the layout test reads it by that label — cost if wrong: a caller wanting a standalone panel adds the prop. open-flows 32 pass in Chromium.
+- Task 1.4: done. Ruling: the camera helper is `fitInto(bounds, usable, size)` in plan-viewport.ts and the controller gets `setUsable(Rect|undefined)`, with the kit's `Rect` ({x,y,w,h}) in place of the plan's `fitToRoom(room, {width,height})`/`PlanView` (PlanView is already the controller's hover state) — cost if wrong: a rename. The usable rect is computed by `ui/plan/usable-area.ts` (tool row 56 px, any docked sheet over the canvas bottom) and exposed as `data-usable`. The real cause of the iPad mini failure was a 24 px triangle collapsing on the snap grid / overlapping the hall (the band above the level is under 1 m), so the layout test now zooms out and draws a metre-wide triangle inside `data-usable`. editor-3d Chromium layout+canvas: 203 pass, 0 fail.
+- Task 1.5: done. Rulings: (1) test file is `packages/automata/tests/browser/testing/ui/actions-inside.test.ts` (mirrors src/testing/ui; there is no tests/browser/ui) — cost: none. (2) `findCovered` skips a control behind an open dialog (the topmost dialog is on top; the kit's scrim is a sibling of the dialog, so the page behind is covered on purpose, inert or not) and a control inside a declared scroll region (scrolled out of view is not covered; the region's own checks judge it), and takes an `excused(cover)` callback the contract uses for an ErrorPanel that had to rise — cost if wrong: a bar control hidden behind a non-modal popover is not reported. (3) The new checks found two real bugs, fixed here with the failing suites as their tests: the 2D document bar drew the problems chip over the Characters tab at 900 x 600 (`.switch` min-width:0 let the tabs shrink under the tools; now min-content, the name's track gives way) and the kit's Tabs panel scrolled without declaring `data-scroll-region` (it hid the Studio's steppers and the Definitions button from the check). (4) No Studio `.fails`: the Studio's phone layout test passes under the new checks (32/32), so there is nothing to mark; the suite's Publish clip is for the Characters redesign (17.1) to prove with its own test. Chromium: automata browser 2,124 pass; editor layout 446 pass; editor-3d layout+canvas 203 pass; WebKit/Firefox on the Owner's ci:local.
+- Task 1.6: done. Before the change `journeys` listed only WebKit (not installed in cloud sessions: 'Executable doesn't exist'); `journeyProject(provider, { browsers })` is new, editor-3d passes chromium and webkit; 3 journey files, 16 tests pass in Chromium; no Chromium-only failure. WebKit on the Owner's ci:local / hosted CI.
+- Task 1.7: done. Ruling: the compile goes to `<tmp folder>/built` (the temporary folder the inlang project already uses), not `${outdir}.next-<pid>` beside the outdir, so a watcher on `src/` never sees the temporary output — cost if wrong: none (same sync). syncFolder: 3 unit tests; compile-messages: 'unchanged compile writes nothing' and 'never empty' RED then GREEN, 'removes left-over files' guards the sync. content 421 unit pass; base-3d browsers+layout (Chromium) 32/32 three runs in a row, no 'Could not load src/paraglide'.
+- Task 2.1 step 1 done (counts before the move, Chromium, 2026-11-07): unit render-pixi3d 292, figures 426, sector-format 104 (822); browsers render-pixi3d 17 pass + 2 skipped (5 files), figures 24 (goldens, 1 file); sector-format has no browser project. `packages/render-pixi3d/vitest.config.ts` projects are `node` and `browsers`; figures' are `unit`, `bench`, `browsers`.
+- Session 1 (build thread, 11:45 to 13:05): phase 1 (tasks 1.1 to 1.7) done, PR #453 open on #445, `pnpm check` green. **Resume at task 2.1 step 2** (write `docs/refactor/move-map-3d.json`, then `node tooling/codemods/src/move-modules-cli.ts --map docs/refactor/move-map-3d.json --dry-run`): the source trees are `packages/{render-pixi3d,figures,sector-format}`; the map's rows are in the task's table; `figures/src/testing/index.ts` becomes `testing/public.ts`, and `testing/` takes three packages' folders (watch clashes on `index.ts`, `golden-checks.ts` and fixtures); the `figurebuilder-*` names stay until 4.2.
+- Task 2.1: done. Counts after the move (Chromium, 2026-11-07): 3d unit 821 (822 before: render-pixi3d 292 + figures 426 + sector-format 104; the two identical `browser-imports.test.ts` became one), Chromium browsers 41 pass + 2 skipped (parity 17 + 2 skipped, goldens 24) as before; full `pnpm test:unit` 30/30 tasks; typecheck 27/27; boundaries, style, source-names, knip, changesets clean. Rulings: (1) `blockout/` sat outside `src/`, which the mover does not read, so it was `git mv`ed to `src/blockout` first (the two `../src/` imports fixed by sed); `figures/scripts/` moved to `packages/3d/scripts/` by hand (4.2 deletes them). (2) The mover wrote `.js`, `.ts` and bare specifiers as it found them, so a one-off script rewrote all 238 files' relative specifiers to name their `.ts` file (S9); `allowImportingTsExtensions` is on. (3) `./blockout` stays an entry (`entries/blockout.ts`) until 4.1 deletes it, and `automata.simEntries` is `["./sim", "./level"]` (sector-format was a sim entry, so a game's sim may keep importing `@automata/3d/level`); the spec's `["./sim"]` arrives when `shared/level/sim` does (7.1). (4) `entries/sim.ts` is not in the root `boundaries` sim list: the checker treats a listed file as its own root and refuses its relative imports; it only re-exports `features/camera/sim`, which is listed. `--skip-dir blockout` keeps the doomed blockout (Math.hypot, Object.entries) out of the sim rules until 4.1, which removes the flag. (5) The extension's registered name is now `'3d'` (was `'render-pixi3d'`; no other file read it); the `figures` extension keeps `'figures'`. (6) `entries/no-eval.ts` held a statement, which `--features` refuses, so the install moved to `features/renderer/no-eval/install-no-eval.ts` and `sideEffects` lists both files. (7) `app/compose-scene.ts` is not made here: `app/create-renderer.ts` is in `app/`, which may import features, and `--features packages/3d` already finds 0 (turned on in 2.2); it appears with the look (8.2). (8) `tooling/release/tests/unit/private-build.test.ts` lost "includes the sector format" (it was the one private package shipping `dist`); the Plus catch-up (automata-plus #40, P-D4) decides whether `@automata/3d` builds `dist`. (9) The api-report/api-index files were regenerated (`3d.api.md` replaces three), a patch changeset `3d-one-package` covers the comment changes in `@automata/framework` and `@automata/tools`; `define-game.ts`'s comment says "a 3D extension's renderer" so no unpublished package is named in `agents/`. Resume at task 2.2.
+- Task 2.2: done. 96 test files moved by the mover (unit 89, browser 6, bench 1) into `tests/{unit,browser,bench}`; counts unchanged: unit 821, Chromium browser 41 pass + 2 skipped; the bench runs (1). Rulings: (1) the package's browser project is now `browser` (the preset's name; it was `browsers`), so the Chromium command is `--project 'browser (chromium)'`; vitest.config.ts is `defineTests({ svelte, optimizeDeps, browserCommands })` with no `alsoInNode` (the parity tests need WebGL). (2) `src/testing/{__goldens__,fixtures}` went to `tests/fixtures/{__goldens__,content}` and their readers follow; the nightstand model fixture stays in `src/testing/model/fixtures` (not named by the plan; it is a prop, not a figures fixture). (3) The six "check by eye" tests: camera-view, browser-imports, actions, parse-glb, pixi3d-bundle, sector-format; `browser-imports` had read `dirname` as the source folder and would have passed on an empty list, so it now asserts it found over 100 source files. (4) `tsconfig` includes `tests/`; `--features packages/3d` and `style --test-imports packages/3d` are in the root scripts and find 0.
+- Task 3.1: done. The four source files and four tests that imported `effect` are plain TypeScript; `no-effect.test.ts` is replaced by `--forbid packages/3d:effect games/base-3d:effect` in `boundaries` (0 findings in 202 files). 3d unit 822 and Chromium parity 41 pass + 2 skipped as before; base-3d unit 82; `pnpm build`, `api-report --update` and `api-index --write` run. Rulings: (1) the content compile and the ship helpers are Effect APIs in published packages, so plain-value forms were added there rather than keeping `effect` in 3D: `compileContentResult` (`@automata/content`), `manifestOf` and `rukenHeadersOf` (`@automata/tools` internal); each has its own test. Cost if wrong: three small exports that a later cleanup can fold into one. (2) `createPixi3dRenderer(options)` takes `clock` inside `Pixi3dOptions`, not a second `seams` argument, and `Pixi3dSeams` is gone; `systemClock` and `TimeoutHandle` are now exported from `@automata/framework`, `fakeClock` and `FakeClock` from `@automata/framework/testing`. (3) A Try again that finishes after `dispose` throws the new app away instead of drawing into a dead renderer. Changeset: `.changeset/3d-without-effect.md` (framework, content, tools; patch).
+- Task 4.1: done. Deleted the source game's level format and everything that read it: `packages/3d` `./blockout` entry, `shared/level/blockout/` and its two tests (2 files); in `packages/editor-3d` the `format/` folder, `profile/last-light-*`, `checks/facility/` and `checks/last-light/`, `model/facility-*`, the facility editor, and `testing/{toy-blockout,shipped-facility,geometry-golden,game-facts}` with the Last Light fixtures; `registry.ts` now has the one profile (`PROFILES = [afSectorProfile]`, one sentence for a file that is not af-sector). Tests that mixed Last Light into generic coverage were moved to the depot and the toy level, or to a synthetic profile (a `pinned` list, no `definitions`, a refusing `materials`, a test-held `links` table, a `zone` definition with an `area`), so the Things tool's rectangles and links, the material picker's "no list", the cut refusal and the definitions sheet's "fixed" note are still covered. Tests that could only mean Last Light (connector surfaces, nav, facility, pilaster walls) were deleted. Counts (Chromium, 2026-11-07): editor-3d unit+dom 2,196 pass (151 files); layout+canvas 203 pass, journeys 16 pass, typecheck 0 errors, knip clean. Rulings: (1) X3 holds: Plus's `pipe blockout` breaks, as agreed (D3). (2) X4 holds with no work: `@automata/3d/level` still exports `sector.schema.ts` (`SectorDef`, `WallDef`, `Corner`, `Trim`, `STEP`, `WALL_THICK` and the rest). (3) `format/af-sector.schema.ts` was a re-export of `@automata/3d/level` kept for old names; its five test importers now import `@automata/3d/level`, and it is gone. (4) The Home test for a "facility" row and `LevelSummary`'s facility rule are gone with the facility. Resume at task 4.2.
+- Task 4.2: done. The recorder is `packages/3d/scripts/record-goldens.ts` (`recordGoldens(outDir)`, run with `pnpm --filter @automata/3d goldens [--out <dir>]`); `scripts/extensionless-ts.ts` is a Node resolve hook the package script loads with `--import`, because `@automata/content` writes relative imports without `.ts` and plain Node cannot load it. The three goldens are `tests/fixtures/goldens/{dress,motion,actions}.json`; `src/testing/hand-on-hip.ts` (`HAND_ON_HIP`); the three source-checkout scripts are gone. RED: with one number of `actions.json` changed, `goldens-fresh.test.ts` fails on `ends.look-out[0][0]` (0.5 against 1e-9); GREEN with the file restored. Counts (Chromium, 2026-11-07): 3d unit 812 in 88 files (the two blockout tests went in 4.1, `goldens-fresh` adds 2); Chromium browser 41 pass + 2 skipped as before (the parity golden test now reads `dress.json`); `tsc`, knip, style, source-names and boundaries clean. Rulings: (1) The plan says moving the goldens, but the recorder writes AF's own output, which cannot equal files the source produced (its nameplate and pendant anchor were cut, the pony's cuffs added). So the files are re-recorded once here, after checking the old against the new within the readers' own 1e-9: geometry 23,068 numbers, worst difference 0 (the cuffs and the cut plate and pendant aside); locomotion, holds and stands identical (the two chain outfits' crossed arms are now recorded too, so the readers' PENDANT skip, the `cut` marker and the cuff filter are gone); actions differ by at most 1.4e-4 figure units (the clips are fitted to 1e-3, so the F-g check now guards the clips against drifting from their own recorded end pose); the hair spring's steps 22 to 39 differ because AF's walking head has no idle twitch (the twitch is idle's), so the recorded head, and the spring that follows it, are AF's — cost if wrong: the hair spring is no longer checked against the source's head, only against AF's. (2) The recorder compares with 1e-9 in the test, not byte for byte, because the files keep 12 and 13 digits and platforms' `Math` differ in the last bit (the same tolerance the readers use). (3) `figureOf` moved to `testing/golden-outfits.ts` and `surfaceOf` to `testing/stand-surface.ts` so the recorder and the tests share them (neither imports vitest). (4) `hand-on-hip.ts` keeps its recorded numbers; they are a table, not recomputed. (5) `tsconfig` now includes `scripts/`. (6) Source names stay in the header comments of base/stands/hold tests ("Ported from ...") outside the golden sentences; the later source-names work (spec 8) takes them. Resume at task 5.1.
+- Task 5.1 to 5.3: done, as one commit. Rulings: (1) the three land together because the default palette cannot be green until every consumer is remapped (a commit with only 5.1 fails knip and the 3d swatch tests); `endesga-64.txt` was deleted in 5.2, not 5.1, for the same reason — cost if wrong: one larger commit. (2) The theme's contrast floor is the WCAG minimums plus at least 85% of the Endesga theme's ratios, because DUEL has no pure white and the old ratios cannot all be met — cost: a slightly lower contrast on a few pairs, all still AA. (3) The 32 ramp names are AF's own labels (DUEL names none); `duel.md` says so. (4) The editors' and editor-3d's colours are chrome fallbacks, not Endesga-bound, and were left alone. (5) Swatch colours came from the FigureBuilder row and step comments where a TOML had one, else from the OKLab remap; hex colours in the 3D views and examples (not white, which the lighting multiplies by) moved to the nearest DUEL colour. The 3D player-yellow test's classifier loosened from `b < 70` to `b < 90` because DUEL's nearest orange has more blue — cost: none. (6) The goldens did not need re-recording: they record geometry, not palette indexes, and `goldens-fresh` stays green. (7) `swatchColourProblems` stays, now checking the resolved index against a game's own palette.
+- Plan change from the Owner (2026-11-07 15:05, via the coordinator; exact edits from the Plus port spec section 9, PR #457, at 15:15): Plus becomes AF extensions and two pieces move to the Plus port. Task 7.1 drops `shared/level/sim/`, `simLevel()` and the `simLevel` assertion (the round trip stays; `entries/sim.ts` re-exports only `features/camera/sim`; `simEntries` stays `["./sim", "./level"]`). Task 7.4 shrinks to `shared/level/piece-states.ts`, `app/update-pieces.ts` and compose-scene's `startClip`; only the "a door key changes only that door" test stays; no `features/stage/`, `stage-script` kind or director (`@automata/cutscenes`). Task 12.1 makes seven examples, not eight (no `stage-script.ts`). The 3D spec's sections 3, 7, 8.3 and 9 and the plan's audit notes now say so. No 3D task waits on the port. Pass this on at every handoff.
+- Plan change (2026-11-07 15:28, via the coordinator; Plus port plan audit, #457 at f991018a): task 7.1's `af-sector/2` also carries `zone` on a sector, `masses` on the level, and `cut` and `hideFrom` on a corner's wall (`AfWall` stops omitting them), each with a spec section 9 table row (added) and a migration test (one assertion per field). Task 12.2: the 3D template lists `@automata/sectors` once port task 3.4 lands. Pass on at every handoff.
+- Task 6.1: done (62f032fc). `checkSources(md, manifest, {complete?, exists?})` and `pnpm sources-md [--complete]` (chained into `pnpm source-names`); the manifests are the file lists at `025ffb4` (figure, 300) and `6d82a52` (environment, 214). `--complete` reports 514 findings today, one per file with no row, and goes on in task 10.2 (Ruling: the plan's step 4 says "PASS without --complete"; that is what the commit gates on).
+- Task 6.2: done. Ruling: the plan's `naturalStand(m): Pose` does not exist in the source; the natural stand is `relaxed` (RELAX 0.4: a lighter contrapposto, the free foot a quarter ahead) plus `STAND_SLIDE` (the neck slides back 3 cm times the figure's scale) and `STAND_LIFT` (the chest 0.02 rad up) inside `base`, so the test is on `base` with a stand (`natural-stand.test.ts`). Ruling: the face's asymmetry is `face.asymmetry` and both asymmetries run -1 to 1, as the source's, not `[0, 1]`. Ruling: `standOut` is now the whole value (the source's `standOut ?? armOut`), so the fixture gaits and the five figures examples carry `standOut: 0` and the source's `standElbow` (strut 0.26, loose 0.34, bounce 0.36, still 0.22). The body's new ring numbers moved the leg at every fat, not just above 0 (the profiles are one query now, `body/profiles.ts`), so all three figure goldens were re-recorded once, in this commit with their cause: the body geometry (fat, the leg rings), the stand (`relaxed`, the neck's slide, the chest's lift, the stand leg's 0.9995) and the fixture gaits' `standElbow`. The sim hash did not move. The `Sliders` ends sweep (`slider-ends.test.ts`, 80 cases) passed first run: it guards the sliders, it does not drive new code. `seated` and the seats wait for 6.4.
+- Task 6.3: done (session fov5js, 2026-11-07). Rulings: (1) `TimeOfDay` is `{ name, label, scene: { light, sky, haze?, stars?, grade }, figure: { exposure, lift, key } }`, not the plan's `figure: { key, fill, bounce }`: the figure source has no per-time `fill` or `bounce` (a bounce is the floor and a glow at the figure's feet, per lighting, not per time), so inventing them would put fields in the library with no source; `exposure` and `lift` (its `exposure` and `figureLift`) are what the sprite light reads, and `grade` is the source's ambient colour and `tint`. Colours stay `#rrggbb` as both sources and the editors have them. Cost if wrong: a rename when 8.2 consumes it. (2) Only reach, look and flinch become `figure-action` files (the plan's file list names them); the source's nineteen pose-spec actions (wave to handshake) need its spec-to-pose IK and are `left out` in `sources.md` with the reason, as are `lighting/grade.ts` and `light.ts` (the colour moves and `lightFigure` are the look's sprite light and reference, 8.2). Cost if wrong: those actions are a later pull. (3) An action compiles to a clip (`compileAction`) and `clipsWithActions(clips, actions)` merges them, so `evaluate` stays the only player; the content kind's id clashes with a `figure-clip` id are an error naming it. The `loop: [from, to]` repeat range of the source is not carried (no consumer). (4) `Ease` gained `smooth` and reads `hold` as `step` through `easeSchema`, in `shared/timeline/ease.ts`; `Key`, `Track`, `sample`, `bracket` and `wrapTime` are generic over the clip's own `{ t, ease? }` keys, so a clip's authored keys are not copied per frame. A key with no ease is linear (the environment source's default was `inOut`; the maps converter, 7.3, writes `inOut` explicitly). (5) Reach, look and flinch moved from fixture clips to fixture actions and are also copied into base-3d with their four poses (the plan's `games/base-3d/src/content/figure-actions/`; 11.1 moves them again); the recorded F-g end poses pass unchanged. (6) The lamp is `FigureLamp` (`features/figures/lighting/lamps.ts`) to keep it apart from the scene-lighting `Lamp`; the level's lamp kit (7.3) decides how they meet. Counts (Chromium not needed): 3d unit 963 in 96 files, base-3d unit 82. Resume at task 6.4.
+- Task 6.4 part 1: done (session fov5js, 2026-11-07). Rulings: (1) The garment registry (`registry/garment-registry.ts`, `registerGarment`, `RegistryClash`) holds the classic kinds with a `wear` function and the streetwear kinds with a `build`; `dress` dispatches on whichever the kind has, and a kind none of the registry knows is `No garment called "x" is registered`. The registry files are `*-registry.ts`, not `*.registry.ts`, because `pnpm style` has no `registry` role. (2) `ExtensionDef` has no setup hook, so kinds register when their module loads (`classic-kinds.ts`, and the 6.5 wardrobe extension on import); `figure.schema.ts` imports both so a schema parse always sees them. (3) `keyedUnion` takes a thunk for its members and reads it on every parse, so a kind registered after the schema is built is accepted. (4) The plan's test `core registers only the classic set` waits for 6.5, which removes streetwear from core; today the test checks the classic set is a subset. Session break: inside 6.4, after the garment and outfit-hook registries; the hair pieces, finishes and fabrics registries, the fit work (`girth`, `ringAt`, collar, cuffs), the seats and the head-wear fold remain. Cost if wrong: none.
+- Task 6.4 part 2 (fit): done (session fov5js, 2026-11-07). Rulings: (1) `girth`, `clearance`, `Body` and `bodyOf` live in `body/profiles.ts` beside `profiles`, not in `outfit/fit.ts`, because the layers let the body's query be read by the garments and the source's `fit.ts` imported the hair file only for `PPM`; the clearance is one texel at the fixed `FIGURE_PPM` (`bodyOf(m, s)` has no density argument, AF draws at one density). (2) The plan says "Wick unchanged", but a cuff that hugs the arm is the task, so Wick's and the keeper's cuffs move: `dress.json` is re-recorded in this commit with its cause; the other recorded files (`motion.json`, `actions.json`) and the 24 Chromium figure goldens did not move. The sim hash did not move. (3) `Wearing` (streetwear/registry kinds' context) gained `body: Body` and `Dressing` gained the same, so a kind sized from `body.girth(...)` plus `body.clear` clears any body. The tests are `tests/unit/figures/outfit/fit.test.ts` (girth box, clearance floor, `bodyOf`, cuff = girth + one texel for both bases and both sleeves, cuffs at the ends of fat, muscle and frame, fat grows the cuff, the collar rides the neck and not the bust); the source's mesh-against-ellipse clearance sweep over every slider end at three densities is not carried because AF has one density and the cuff test reads the same girth the cuff is built from.
+- Task 6.4 part 3 (hair, finish and fabric registries): done (session fov5js, 2026-11-07). Rulings: (1) `registerHairPiece(kind, { schema?, build, crown? })`, `registerFinish(name, { matte })` and `registerFabric(name, fabric)` each throw `RegistryClash` (`A hair piece called "x" is already registered`) and the base generators (scalp, rows, tail, fall, bun, sweep, block, edges) and base finishes (coil, braid, loc, sleek, straight) count as taken. A finish is only `matte` in the 3D look (tones are swatch variants), not the source's `tones` triple. (2) A registered piece's data is read through its own `schema` (or any value when it has none) in the hair style schema, which reads the registry at every parse, as `keyedUnion` already does for garments; a style naming a finish no one registered is refused with the list of finishes there are. (3) A fall the cap leaves out stays silent; a piece that is not a base generator and not registered is a `RangeError` naming it, at build. (4) Fabrics have a registry and `labelAt` but no consumer: the painter that reads the labels is not taken (spec section 4.4.1), so nothing in the look moves. Cost if wrong: a later pull of the painter.
+- Task 6.4 part 4 (low pony): done (session fov5js, 2026-11-07). `Tail.hang = "down"` ties the pony where `at` says (the nape) and sends it straight down the back, no rise and no arc; the base figures and goldens did not move (the field is optional). Test: `tests/unit/figures/hair/tail-hang.test.ts` (a low pony's top is under the head's middle where a high one reaches the crown; the schema takes `down` only). Still open in 6.4: the bun's `flat`, the new fall's `curl` and `volume` (AF's `fall` is the older lock list, so the new one needs a shape that tells them apart), seats, and folding the `figure-headwear` kind into the garment registry.
+- Task 6.4 part 5 (bun): done (session fov5js, 2026-11-07). The bun is the source's flattened spiral (`flat`, default 0.6; `turns`, default 2.5, now optional) in place of the older coil; `model-puffer`'s part list moved, so `dress.json` is re-recorded in this commit with its cause (motion.json and actions.json did not move; the 24 Chromium figure goldens pass). Test: `tests/unit/figures/hair/bun.test.ts`.
+- Task 6.4 part 6 (loose hair): done (session fov5js, 2026-11-07). Ruling: the source's newer `fall` (a hairline `from`, `count`, `length`, `curl`, `volume`) is `hair/loose.ts` and shares the `fall` key with AF's older list of locks (`at`, `lift`, `plumb`): the schema is a union of the two and the builder tells them apart by `from`. The older one stays because the fixture styles and the goldens use it; the source's newer base dropped it for a fork, and a later cleanup can move it to a registered piece. The finishes `smooth` and `curl` joined the base ones. No recorded file moved (no fixture uses the new fall). Test: `tests/unit/figures/hair/loose.test.ts`. 6.4 still open: seats, and folding `figure-headwear` into the garment registry.
+- Task 6.4 part 7 (seats): done (session fov5js, 2026-11-07). Rulings: (1) The seats are a `figure-seat` content kind (folder `figure-seats`, `Seat` and `SeatHand` in `content/seat.schema.ts`) instead of the source's `SEATS` code table, as stands and gaits are; the eight seats are fixture files. (2) `seated(s, gait, seat, t)` is in `motion/seated.ts` with no `lookUp` or `view` (AF has no sprite cheats); `placeHems` takes a fifth argument `seated`, and `sideBend` is exported from `motion/base.ts`. (3) The seat test runs on the base man: a seat's height is fixed, so a shorter body (Wick) cannot put its ankle on the floor in the slump seat (6.8 mm short); that is the seat's, not a bug. No recorded file moved. Still open in 6.4: folding `figure-headwear` into the garment registry.
+- Task 6.4: done (session fov5js, 2026-11-07; the parts are logged above). Last ruling: the plan's "the `figure-headwear` kind folds into the garment registry" is met by the registry holding `cap` (a classic kind, `classic-kinds.ts`) and the `figure-headwear` library staying a content kind, because styles of headwear are shared by figures and games the way hair styles are; folding the library into inline fields would break every figure file and the editors for no consumer. Cost if wrong: a content migration. The test `core registers only the classic set` is exact only after 6.5; today it checks the classic fifteen are a subset. Counts: 3d unit 1010, base-3d unit 82, editor-3d 2196; 24 Chromium figure goldens pass. Resume at task 6.5 (see /mnt/project-files/refactor/2026-11-07-3d-build-handoff-fov5js.md for the size of the move).
+- Task 6.5: done (session d60hqd, 2026-11-07). Rulings: (1) The wardrobe is its own workspace package, `@af-examples/wardrobe-3d` (`examples/3d/wardrobe/`, with `package.json`, `vitest.config.ts`, `tests/unit`, `tests/browser/parity`, `goldens/`, `scripts/record-goldens.ts`), not files inside `@af-examples/examples-3d`: the examples catalog skips a folder with a `package.json`, which a library of eleven builders needs (they are not one-file examples with a header and a 100-line budget). It joins `test:unit:3d` and `test:browser:3d`. The plan's "modify `examples/3d/package.json`" and "create `examples/3d/vitest.config.ts`" become the wardrobe's own; `figures-outfits-items.ts` is left alone (it wears classic garments only). (2) The extension-author surface is one new entry, `@automata/3d/figures-kit` (the registries, the contract types, the body, rig, mesh, skinning, hair and maths a garment builder reaches into), plus `@automata/3d/testing-checks` (the golden checks, browser-safe, because `@automata/3d/testing` loads the content compiler) and a wider `@automata/3d/testing` (compile fixture, random cast, recorders, motion comparisons). The kit loads the classic set first, so a wardrobe's kinds always register after it (`classic-kinds.ts` is now in `sideEffects`). (3) The contract types `Fit`, `Wearing`, `Paint`, `Worn`, `Legs`, `Section` and `Shell` moved to core (`registry/garment-fit.ts`); the wardrobe re-exports them beside its helpers. `Garment` is `Classic | object` (`CustomGarment`), so a wardrobe's interfaces are garments without an index signature. (4) `reachable` (the openings no outer garment covers) is the wardrobe's, set as the outfit hook `anchors`; the hook gained a third argument, `{ m, s, garments }`. Core's default is every opening the kinds published, and the classic kinds publish none. (5) Core's golden outfits keep their bodies, hair and caps and wear classic garments where they wore streetwear (renamed `model-braids`, `tall-fade`, `model-bun`, `tall-locs`, `model-quiff`), so hair-piece coverage stays in core; the seven streetwear outfits are the wardrobe's (`testing/wardrobe-outfits.ts`). Core's random cast draws a classic outfit when no registered garment has a layer; a wardrobe passes its draws (`randomCharacter(seed, library, draws)`). (6) The stands that need pockets (fall back, hand in pocket) are checked in the wardrobe; core asserts only that every stand ends relaxed. Evidence the move changed nothing: the wardrobe's recorded dress and stand goldens equal, as JSON, the entries those outfits had in core's `dress.json` and `motion.json` at 2783cd05. Cost if wrong: a game wanting streetwear adds `examples/3d/wardrobe` as a dependency or copies it; `grep -rn "bomber\|hoodie\|puffer" packages/3d/src` finds nothing. `docs/refactor/move-map-3d.json` still names the old folder (a record of task 2.1).
+- Task 7.1: done (session d60hqd, 2026-11-07). Rulings: (1) `afSectorSchema` stays the strict `/1` envelope; `/2` is `afSector2Schema` and the one door is `readLevel(json)` (either format in, a `/2` level out, `migrated` true for a `/1` file, a `LevelProblem` list instead of a throw). The plan's "`af-sector.schema.ts` reads `/1` and `/2`" is `readLevel`, because editor-3d's whole edit model is typed on `/1` (`floor: number`) until the phase 14-16 rewrite, and widening `afSectorSchema` would have broken its 2,196 tests for no reader. (2) The editor therefore still opens and writes `/1` in this task. The "This level was made with an older version. Saving updates it." line, and writing `/2` on Save, move to task 14.1 (`shared/level-session/` reads through `readLevel`) and 16.2 (the inspector edits `/2` fields). Until then the editor cannot open base-3d's room, which is now `/2`. Cost if wrong: one phase of an editor that opens the toy `/1` levels only. (3) `LevelProblem` is its own interface (`path`, `code: string`, `message`, `where`, `name?`), not `extends Problem`: `@automata/content` does not export `Problem`, and its `code` is the closed `DiagnosticCode` union, which cannot hold `unknown-kit`. The checks task (9.2) maps a `LevelProblem` to a diagnostic where `automata check` places it. (4) A plane is the one thing the `/2` schema transforms: a number parses to `{ z }`, so every reader sees one shape. A file may still write a number (the migrated room does). (5) `/1`'s wall `texture` is `/2`'s `surface`, and a `/2` wall's `trim` is `/1`'s heights object or the builder's surface (an object with a `tile` is the surface). (6) A builder `shade` step is a tenth of light (`light = 1 - 0.1 * shade`, rounded to 0.01): the builder's maps use shade 0, 1 and 2 only, and its painter lights per vertex, so the value only has to order the rooms. (7) The builder's map name `name` becomes `title`; `name` is the id (the file name), as `/1`. Decals and lettering are carried as written (`Marking`) until 7.3 ports the generators that read them. A portal (`next`) between two builder sectors is not inferred: the builder joined rooms by shared edges, and the world builder (7.2) decides which edges are shared. (8) base-3d's room is `/2` with `pit: true` on the two channels (a floor below 0 no longer means a pit) and the three camera views in its `views`; `ROOM_VIEWS` is gone, and `areaFromSector(json, { file })` reads either format. (9) `convertBuilderMap` lives in `features/world/convert-builder-map.ts`, not `shared/level/`, and is not exported from `@automata/3d/level`: that entry is a sim entry that imports nothing but zod (`sector-format.test.ts`), and the converter is a build-time tool (the script and tests import it directly). Evidence: 113 level tests in `packages/3d`, 84 base-3d unit tests (82 + 2 new) with the sim and render goldens unchanged. Also recorded: 5 builder maps convert and parse back unchanged. Resume at task 7.2 (the world builder; session break after mesh).
+- Task 7.2: done (session h7alco, 2026-11-07). Rulings: (1) Walls are built whole, in the first-person way: a level is not cut for a view (the diorama's `dollhouseStub`, `wallInDiorama` and `lintel*` and the top-down clip are the editor's, per the Owner's 11:04 word), so `features/world/` has no `MapView`. (2) The shared stretch of an edge is found by geometry (the source's rule, T-junctions included); a wall's `next` is accepted only if it names a room that shares some stretch of that edge, else `portal-not-shared` (and the stretch stays solid). Cost if wrong: a Last Light level whose rooms touch with a solid wall and no `next` opens there. (3) `WorldLibrary` is `{ swatches }` for now (the builder only asks whether a name is there; an unknown name is `unknown-swatch`); kits, props and glyphs arrive with 7.3. (4) A wall's `door` and `window` (the `/1` vocabulary) are openings cut from its face (a lintel above, a breast under a window; a window gets a pane and bars); a door opening is left empty, the game's door entity fills it. `decor` (a window, door or shopfront drawn on the wall) and `windows` (a facade grid) are the builder's, ported. A `sign` draws nothing until 7.3 ports the lettering. A sector-level `trim` and a wall's `trim` heights give skirting and rail; `wainscot`, `cap` and `capital` (the editor blockout's) are not drawn. (5) A hinged door is built shut and its piece carries `door: { hinge, swing }` for 7.4's `update-pieces` to turn it. (6) `drawWorld(scene, pieces)` takes the colour of a swatch from the caller (`colourOf`): the swatch content kind and its colours are 7.3. (7) `Occluders.face(mesh, span, occlude?)` is new: the occluder rule's walls were slabs it built itself; a face the builder made registers as a wall with no thickness and no floor trim. A face that never rises above the floor (the side of a pit) follows no rule. (8) base-3d's room draws through the builder: its file names its surfaces (`floorTexture`, `ceilingTexture`, `wallTexture`: `floor`, `ceiling`, `wall`, `lava` for the channels), the game gives each a DUEL colour, and the two pit sectors' ceiling is 3 like their neighbours (it was 0, a lid at floor level). `areaFromSector` still reads the file for the sim (the sim needs boxes), so `sector-area.ts` stays; what left is `sceneOf`, the wall and floor boxes and the lava box (`channelBoxes` is `lipBoxes`). The visible change, from the opened before and after frames (project files `refactor/2026-11-07-3d-7-2-room-shots/`): a wall is a face and has no thickness, so the dark top of each wall slab and the floor-trim stub at the near edge are gone; a channel now has walls and a lava floor of its own. Sim hash and goldens unchanged. (9) editor-3d's `view/mesh/sector-mesh.ts` is not replaced: the editor's blockout carries a selection id and an `occlude` per surface and is typed on `/1` until 14.1 and 16.2 (task 7.1's rulings 1 and 2); the swap goes with them. (10) There is no `app/compose-scene.ts` yet (6.x did not create it): the game's `scene` hook is the composer, and 7.4 adds `startClip` where it lands. Cost if wrong: one hook moved. (11) Holes: the plan did not say; a hole is walled and left out of the floor by a bridged ear-clipping (`fill`). Evidence: 41 new unit tests in `tests/unit/world` and `tests/unit/app`, 3 more in the occluders' tests; base-3d unit 85 with the sim hash unchanged; the game boots in Chromium and both frames were opened. Resume at task 7.3 (props, the dresser, lamps, decals, lettering, generated maps; session break after props).
+- Task 7.3: done as the scope ruling trimmed it (session 50d3sw, 2026-11-07; the Owner's 19:28 word: 3D as light as 2D, the rest in extensions; the ruling came from the "Trim 3D core to match 2D" thread). Rulings: (1) The first half was built whole (commit 78e0ca7f: 70 prop presets and their generators, the kits, lettering, the lamp kit) and then cut back: that commit stays on the branch as the source the world-kit extension ports from; the dresser (`dress/*`, `world-kit.schema.ts`, written but never committed) is in project files `af-world-kit-source/`, with `props.json` and `swatches.json`. (2) Core keeps: `placeProps`, `props/piece.ts`, `props/resolve.ts`, a generator registry (`registerPropGenerator`, throwing `RegistryClash` on a taken name, also core's `box` and `cylinder`), the lamp kit and the level's lamps and a prop's lights, the `world-swatch` and `world-prop` content kinds, doors and windows. `RegistryClash` moved to `shared/registry/` so the figures' registries and this one share it. (3) Out of core: the furniture, small-thing, street, nature and sign generators, the prop, swatch and kit libraries (`CORE_LIBRARY`, `mergeLibrary`), lettering, glyphs and `stream.ts`, the dresser, the `world-kit` content kind, decals, `generateMap` (apartment and block), the converted builder maps, `convert-builder-map.ts` and its script, test and fixture (task 7.1 built them; the `/2` schema's comment now names the extension's converter). `world-prop`'s schema checks only that `kind` is a string: an extension's kind may register after the content is read, so a kind with no generator is `unknown-generator` from the builder. (4) The `Marking` decals and lettering fields of `/2` stay in the schema, carried as written; core draws none. (5) The superquadric and limb primitives, noise and colour helpers moved to `shared/math` for the world's props; they stay there (the figures import them from it), the cost being one more shared folder if wrong. (6) Ember Hall's room has no kit: its file places five crates and barrels (`props`); its swatches (`wall`, `floor`, `ceiling`, `lava`, `crate`, `barrel`, DUEL steps, the colours the views had) and its two presets (a `box` and a `cylinder`) are TOML under `games/base-3d/src/content/world-swatches/` and `world-props/`, compiled with the `world-swatch` and `world-prop` kinds (new Node-safe entry `@automata/3d/world-content`, listed in the game's `vite.config.ts`), and `roomWorld(content)` builds the room from them; the views read each colour from the swatch (`swatchColour`), only the lip's stays in code. It has no lamp or time of day: nothing in base-3d lights from a lamp until 8.2's look, so a lamp written now would be dead data. Cost if wrong: one lamp and one `time` added to the file. (7) A room with `dress` (its own or the level's, unless the level's `keep` is false) is drawn bare with a `needs-extension` problem (`name: 'world-kit'`, the scope trim's words). The generator registry holds core's `box` and `cylinder` from the start (`registeredPropGenerators()`), and `world-prop` accepts any `kind` string. The sim hash and goldens are unchanged (85 unit tests; `sim-content.hash` did not move, `content.hash` did for the new TOML); the crates and barrels stand clear of the embers and the roll path. Frames: project files `refactor/2026-11-07-3d-7-3-room-shots/` (`before.png`, `after.png`: the far wall of the first room now has two crates and a barrel). Evidence: 107 world and app unit tests, base-3d's 7 Chromium journeys, knip, boundaries and style clean. Resume at task 7.4 (the stage); 8.2's passes, 9.1, 9.2 and the 6.x follow-ups are held until the amended plan.
+- Scope trim (session 2kk058, 2026-11-07, Opus): the Owner at 19:28, "Make sure we're not overscoping 3D, it should be as lightweight as 2D, everything else should go into plus", and at 19:31, "we aren't just moving stuff around right?". Ruled feature by feature against 2D core in [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md) (measured at `78e0ca7f`): 7.3 trimmed to placement through a generator registry, `box` and `cylinder`, lamps and the two content kinds; 7.5 (one sector geometry) and 7.6 (clothes, hairstyles and seats leave core) added; 8.2 without reference painters or sky and rain; 9.1 and 9.2 moved to the Plus port (3.8); 12.1, 12.2, 13.3, 14.1, 16.1 to 16.3 and 17.2 amended; refactor findings R1 to R11 placed in tasks here and in the port's addendum (section 6 of the trim document). Accepted under "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals" (Owner, 2026-10-31).
+- Task 7.4: done (session 50d3sw, 2026-11-07). Rulings: (1) `PieceStates` is `{ doors, lamps, props }` as the plan says; a door is its room's (`doors[<room id>]`, a hinged door being a doorway sector's), clamped to 0..1; a prop's state is `{ at?, turn?, hidden? }` about its base; a lamp's is `{ level, color? }`. (2) `updatePieces(view, before, after)` touches only the pieces whose state differs and returns how many; a door turns about its hinge by `swing × open`, a prop's pieces move, turn and hide together. To know which pieces those are, `WorldView` now carries its `pieces` and a prop's `WorldPiece` carries `prop: { id, at }`. (3) A lamp is not a piece: its state reaches the light through `sceneLamps(lamps, night, states)` (level scaled, colour replaced), next to the sim's own lamp switches. (4) No `app/compose-scene.ts` and no `startClip`: the plan said to give the scene a `startClip(who, clip, atTick)` callback, but there is no composer (task 7.2's ruling 10) and the figure view already starts a clip from the `action` of the state a game hands it, so a cue from outside sets that; adding a callback now would be a second way to do the same. Cost if wrong: one callback, added where the extension needs it. (5) `PieceStates` and its helpers are exported from `@automata/3d/level` (pure data, so a sim or a cutscene extension reads the same shape); `updatePieces` from the main entry. Evidence: 6 unit tests for the states, 7 for `updatePieces` (a door key changes only that door; the hinge stays put; a prop turns about its base), 1 for `sceneLamps`; knip, boundaries and style clean. WebKit and Firefox not run.
+- Scope trim, amended (session 2kk058, 2026-11-07 20:05): the Owner, 19:58, "The base M and F figure should be in 3D though, base interior and exterior too". Nothing they need had left core except the generators and swatches of the two base scenes and the sky; task 7.7 brings those back for the base scenes only, 8.2 keeps the sky and its horizon, and the dressed variants are the world kit's (port 3.7). 54 tasks.
+- Task 7.5: done (session 50d3sw, 2026-11-07). Rulings: (1) `shared/level/geometry.ts` takes the editor's signatures (`crossing(px,pz,qx,qz,a,b)`, `segmentDistance`, `insideSector`, `polygonArea`, `opening`, `walkBlocker`, `triangulate(outline, holes) → {points, triangles}`) with structural parameter types, so a caller needs no resolved level. (2) `Math.hypot` is not allowed in a sim entry (`math-member` rule), so `segmentDistance` uses `Math.sqrt` of the sum of squares, which is correctly rounded everywhere; the one test that pinned a hypot value to the last digit now compares to 12 places. Cost if wrong: a caller comparing distances to the last ulp (none does). (3) `features/world/sectors.ts` keeps `inside`, `signedArea` and `fill` as thin `[x, z]` adapters and loses its own ear clipping, so the world builder, the editor (14.1) and the extension (port 5.1) triangulate one way. (4) The seven functions and their types are exported from `@automata/3d/level`. Evidence: 44 geometry tests (the editor's cases moved), 1172 3D unit tests pass, base-3d unit tests pass with the sim hash unchanged; knip, boundaries and style clean. WebKit and Firefox not run.
+- Task 7.6: done (session 50d3sw, 2026-11-07). Rulings: (1) Core registers the seven garment kinds `cap, cape, eyes, hair, shoes, top, trousers`; the cap's own `mark` field stays (it is the cap's, not the `mark` kind). (2) Hair pieces are the registry's alone: `hairParts` hands each entry of a style's `pieces` to the piece registered under its key and throws `There is no hair piece called "<kind>"` for one nobody registered; `Piece` is now `Readonly<Record<string, unknown>>`, `BASE_HAIR_PIECES` is gone, and only a registered piece's `crown` flag tags its parts. (3) Finishes: core keeps `sleek` and `straight`; `coil`, `braid`, `loc`, `curl` and `smooth` go to the kit, which registers them. (4) `hair/shell.ts` and `hair/sweep.ts` stay (a cap's dome is a shell; the rope sweep is exported by `figures-kit` and every piece is swept from it), so the plan's "delete `hair/{sweep,...}.ts`" means the sweep piece, which was in `hair-parts.ts`; `Scalp` moved into `shell.ts` as the shell's options type. (5) `Dressing` keeps `thighs`, `front`, `outer` and `boots` although only the kit writes the first three now: they are the contract a `wear`-style garment fills in, and removing them would make the kit re-add them. (6) `figures-kit` now exports what the moved code stands on (`Dressing`, `hemAt`, `box`, `tube`, `hemWeights`, `trapezius`, `TRAPEZIUS`, `armGroup`, the skull helpers `alignY, along, onHead, unitAt, HAIR_SEAM`, `shell` and `Scalp`, `grid`, `spline`, `hash`, `texels`, `ropeSchema`, `toneSchema`, `tieSchema`, `line`, `vec2`, `vec3`, `FACE_SEAM`, `headAt`, `headNormal`, `HairBuild`, `HairInput`); the port may ask for more. (7) The golden outfits fell from 12 to 5: `wick-wanderer` is byte-for-byte unchanged (its `dress.json` entry equal before and after); `keeper-lamplighter` and `keeper-shirtsleeves` lost their waistcoat, coat, belt and mark, so their entries and the keeper's stands in `motion.json` were re-recorded; `model-bob` (the old `model-nurse`'s body and the bob) and `tall-curtain` are new; the other eight left with their kinds and pieces (listed: model-nurse, model-apron-neck, model-braids, tall-fade, model-bun, tall-locs, model-quiff, model-short-fade, model-cornrows) and the port moves their goldens from `af-character-kit-source/`. (8) The wardrobe example's outfits wear the core styles `bob`, `curtain` and `cropped` now (the pieces-based styles left the fixture library with their pieces), with `model-hoodie-fades`, `model-short-fade` and `model-cornrows` renamed `model-hoodie`, `model-tee` and `model-cargos`; its goldens were re-recorded and its garment list test says seven core kinds then the eleven streetwear ones. (9) The random-character test helper no longer draws a coat or belt or a style with pieces. (10) The source of the move is the files as they were at `cfb9d529`, copied to project files `af-character-kit-source/` (code, tests, fixtures, the old `dress.json`) so a squash merge cannot lose them. Evidence: 1136 3D unit tests pass; Wick's golden unchanged; knip, boundaries and style clean; `grep -rn "waistcoat\|seated\|bun" packages/3d/src` finds only comments naming the kit. WebKit and Firefox not run.
+- Task 7.7: done (session 50d3sw, 2026-11-07). Rulings: (1) `features/base/` cannot exist (a feature imports only itself and `shared/`), so the pair is `features/figures/base/base-pair.ts` and the scenes, library and generators are `features/world/base/` and `features/world/props/base-props.ts`; `entries/base.ts` (`@automata/3d/base`) re-exports `BASE_PAIR`, `BASE_PAIR_SWATCHES`, `BASE_SCENES` and `baseLibrary`. (2) The two levels are TypeScript objects typed `AfSector2` (converted once with the 78e0ca7f converter from the builder's two plans, then written out), not JSON files: they are checked by the compiler and read with no import assertion. (3) The scenes cast `man` and `woman`, the keys of `BASE_PAIR`, not the builder's `base-m` and `base-f`. (4) The library is 21 flat DUEL steps and 6 presets: the photo textures and glass patterns the builder cut its tiles from are the world kit's (a swatch with no texture draws as its palette colour), and the sky's horizon swatch `#7a7799` is `baseSkyline`, DUEL `dusk` step 3. `glassDay` and `doorWood` are there because a window and a door default to them. (5) `prim.box` names its colour `swatch`, as core's box does (the builder's preset said `mat`); `prim.cylinder` is a `bin`, as in the builder. (6) The pair's hair is inline locks (`cropped` for the man, `bob` for the woman), the braided pony and the fade being the kit's; its gait and stand are ids of the game's own content (`loose` and `bounce`, `arms-crossed` and `hand-on-hip`; base-3d and the fixtures have them), written in the file's header. (7) `rbox`, `rod`, `cone`, `blob` and `stream` came back from 78e0ca7f for the five generators; `turnX`, `turnY` and the rest stay out. (8) Equivalence: `buildWorld` on each scene gives the same piece ids, swatches and vertex and index counts as the builder's map built through 78e0ca7f, recorded in `tests/fixtures/base-scenes-builder.json` (44 and 32 pieces, one pendant and one sodium lamp), but for one label: core's box names its part `body`, the builder's generic box `block`. (9) The dressed variants (`base-interior-dressed` as a waiting room, `base-exterior-dressed` as a street) are the world kit's, built from core's scenes. Evidence: 1149 3D unit tests pass, among them `tests/unit/base/{base-pair,base-scenes}.test.ts`; knip, boundaries and style clean. WebKit and Firefox not run.
+- Task 8.1: done (session csifpz, 2026-11-07). Rulings: (1) The spike runs base-3d's own page with the look injected into `main.ts` by a Vite transform (`spikes/3d-look/`), not a standalone page, so the measured room, camera and Wick are the game's; the dressed room is the world kit's now, so the base game's room stands in. (2) The GPU runner (the Owner's `ci:local`) was not reachable from this session, so the phone and iPad profiles are not measured: ADR 0007 chooses passes by the spec's default and names the fallback (figures to a bake) if the GPU numbers miss; software numbers are recorded, not judged. (3) The letterbox's composite target already is the low-resolution nearest-upscaled field, so 8.2 adds `targetSize` and the game's `size`, not a new render target. (4) `spikes/` is outside biome and knip (`biome.json`, `knip.jsonc`): spikes are exempt from TDD and lint. Cost if wrong: a bake step later, view-side only.
+- Task 8.2: done in part (session csifpz, 2026-11-07; the sprite light is built and tested but not yet applied to the figure view, see ruling 5). Rulings: (1) The files are `duel-snap-filter.ts`, `outline-filter.ts` and `ramp-light-material.ts`, not `*.filter.ts` and `*.material.ts`: `pnpm style` knows no `filter` or `material` role and the 2D filters are `post-filter.ts`. (2) `Look` is `{ pixel: { short }, steps, outline: { edge }, dither: { strength }, grade: 'time' | 'none', switches: { outline, grade, dither } }`: the plan's `outline` and `dither` booleans were the switches again, so the top-level fields hold the numbers and the switches the booleans; `grade` is where the grade comes from. `steps` is whole steps across 0 to 1 of light (default 5), so `rampLit(i, 0.5)` is two steps darker (`round((light - 1) * (steps - 1))`) and the lighting bit cuts light into the same steps. (3) The snap is a loop over DUEL's 256 colours per pixel, as in the spike, not the look-up texture ADR 0007 imagined: a `PostEffect` cannot declare an extra sampler, so a LUT would be a custom `Pass3D`; the GPU runner decides whether that is worth it. (4) The post chain is the DUEL snap, then the outline (off by default, as the source profile has it), then extensions' passes (`addLookPass`), so the outline ink and an extension's pass are not re-snapped away only for the snap pass; the outline ink is DUEL anyway. (5) `spriteLight(input, time)` is a pure function over lamps and the figure's normals (the flat chest light, one-step form and rim of the source); the figure view still lights through `SceneLight.tint`, and its frames go through the snap. Wiring `spriteLight` into the figure view's per-frame tint waits for a GPU look at the figures (8.2 follow-up, the session break the plan names). (6) The WGSL twins are written but only the GLSL ran: Chromium here has no WebGPU adapter, so WebGL2 and WebGPU parity is the GPU runner's. (7) `RampMaterial` is applied to the world's pieces (`WorldScene.look`); figures keep their materials. (8) The editor-3d index had a duplicate export of six names from 7.5 (`export *` from both `@automata/3d/level` and its own geometry): its own names are re-exported explicitly until 14.1 moves it onto the level entry's. Evidence: 12 unit tests (look, targetSize, rampLit, spriteLight, addLookPass), 4 Chromium WebGL2 parity tests (DUEL snap leaves only palette colours over the scene, a sphere shades in under 12 colours with the stepped light and over 20 without, the snap is first in the view's passes, the look returns after a lost context), base-3d's 7 built journeys (Ruken CSP, no console error) and its dev journey, `pnpm check` 31/31. Images in project files `refactor/2026-11-07-3d-8-2-look-shots/`: `after-look-turning.png` (base-3d's room, camera turning, at the 389 x 180 field upscaled in whole pixels: the stepped light bands the floor, the Bayer dither stipples the far walls and floor, every colour is a DUEL colour, Wick and the embers are snapped too, the outline is off) and `spike-passes-turning.png`. WebKit and Firefox not run. Resume at task 12.1.
+- Task 10.1: done (session csifpz, 2026-11-07). `findSourceNames(root, { code })` and `source-names --code <folders>` (7 new tests; 11 in the file) read `.ts`, `.svelte`, `.css`, `.json` and `.toml` under the folders; the environment-builder pattern is in the one list. `packages/3d` now has 0 source-name findings (it had 221 in 155 test and fixture lines and 66 in `src`: comments and test titles say what and why, and where the code came from is only in `docs/provenance/sources.md`) and 0 plan-ID findings under `style --plan-comments packages/3d/src` (it had 224 files to clear). Both are in the root `source-names` and `style` scripts. Scope trim R5: the clip blender `sample` is `blendKeyPoses` in `features/figures/clips/blend-key-poses.ts` (its test renamed with it), so the package has one `sample`. Ruling: the 61 fixture swatch files and the gait, hair, headwear, item and stand fixtures lost their "from <source> at <commit>" first line for "a fixture"; nothing read those lines. Evidence: `pnpm source-names`, `pnpm style`, `pnpm lint`, `pnpm typecheck`, `pnpm boundaries`, `pnpm knip` pass; 3D unit 116 files, 1165 tests pass; `pnpm build`, `api-report --update` (the `sample` export is now `blendKeyPoses`) and `api-index --write` run. Not run: the 3D browser suites (no test changed behaviour; only comments, titles and the rename).
+- Task 10.2: done (session x8jce3, 2026-11-07). README written; `sources-md` takes a note after a source path and `ported: note`; every manifest file has a row (55 added: each *rewritten* with its AF file, or *left out* with why; the library JSONs became TOML content, the CPU painter's and scripted actors' files are left out) and `--complete` is in `source-names` and its pin. Part A's done check: criteria 2, 3 and 6 by grep (one `packages/3d`; no `effect` import in it or base-3d; Endesga named only in provenance and a test comment), 4 and 16 by `pnpm source-names`, 1 and 5 and 7 by `pnpm check` (green) and the 3D Chromium browser suite (31 pass, 2 skipped). WebKit, Firefox and the hosted 3D workflow are the runner's.
+- Task 11.1: done (session x8jce3, 2026-11-07). Counts before: unit 85 (14 files), Chromium layout + sim 32, journeys 8, replay hash `c735b5acacbbc716`; after: unit 88 (the editor list's 3), 32, 8. Moved by `move-map-base-3d.json` (115 files); the sim role files split by hand (`hero.component`/`ember.component`, `hero.event`/`ember.event`, `progress.resource`/`location.resource`, `base3d.plugin` + `base-sim`). Rulings: (1) `game.test.ts` stays whole as `tests/browser/sim/game.test.ts`, run in the three browsers and again in Node (the `sim` project), because the old `browsers` project held the whole sim to the cross-engine rule, not only the replay; (2) the tunables (`WALK_PER_TICK`, `ROLL_TICKS`, `ROLL_TRAVEL`) travel inside `Area.tuning`, so they are the sim's content and the replay hash covers them: the hash moved once, `c735b5acacbbc716` → `369b408a42e81cac`, with the route's events, ticks, rolls, embers, goal and Wick's end place unchanged (asserted in the same test), and it is one value in Node and Chromium (WebKit and Firefox on the runner); the size constants (`HERO_HALF`, `EMBER_REACH`) and `TICK_HZ` stay in code; the figure's walking pace is now `WALK_PER_TICK × 60 / 65,536` = 3.9998 m/s, not 4 (presentation only); (3) `RoomWorld` moved to `shared/room-world.ts` because a feature may not import a feature; (4) `editors-list.test.ts` was written after `editors.toml` (the plan's order), so its failing step was not watched; (5) `@automata/editor` and `@automata/vitest-preset` are dev dependencies of the game (the first for `loadEditorList`, the second for `defineTests`); (6) `main.ts` sits at the game root like Emberwick's and `index.html` points at it.
+- Task 11.2: done (session x8jce3, 2026-11-07). Rulings: (1) Settings on the menu is a game-local button (`MenuSettings.svelte`, mounted by the `menu` screen) and its own `menu-settings` screen (the framework's Settings under another id) with a `back` transition to the title, so the framework's title and Settings stay as they are and pause's Settings still goes back to pause; a framework option would touch Emberwick, the API report and the agent skills for one game's need. Cost if wrong: Emberwick's menu has no Settings until the option is built. (2) The title already offers Continue only over a ready slot and New game over an empty one (G3-F3 tests), so 11.2's `menuItems` test is the existing save tests plus the new Settings test. (3) The pause button stays the framework's `II` glyph with the accessible name Pause; changing it is the shared PlayScreen's, and Emberwick's goldens depend on it. Cost if wrong: the glyph still reads as a symbol, not a word. (4) The room fills the screen by shaping the field after the boot screen (aspect clamped 1.3 to 2.4, short side 180), not by changing the letterbox; a rotation after boot letterboxes as before. (5) The HUD's total can disagree with the list only in a test that sets `taken` without removing the embers. Evidence: unit 100 (name 5, field 7, menu Settings 1, HUD words), Chromium layout 18, journeys 8 (base-3d and base-3d-dev), typecheck, boundaries, style, knip, `pnpm check` for base-3d pass; progress.md's 2D rows 10.2 and 11.1 had been overwritten by the 3D ones in 10.2's and 11.1's commits and are restored.
+- Task 11.3: done (session x8jce3, 2026-11-07). Rulings: (1) The route is a build flag (`VITE_AF_JOURNEYS=1`, set by `e2e:game` only) plus `?route=ember|goal`, so a normal build reads no address and writes no position; it moves only the spawn, so the sim and its hash are the same code path. Cost if wrong: the journeys' build differs from the shipped one by a spawn. (2) 390 × 844 is not a play size: a phone held upright shows the rotate hint (G3-x journey), so play is journeyed at 844 × 390 and 1194 × 834. (3) The roll button is held 400 ms by a real touch: the sim finds a press by comparing ticks, and Playwright's instant tap is never seen. Evidence: 14 Chromium journeys pass in base-3d and base-3d-dev; unit route test 3.
+- Task 12.1: done (session x8jce3, 2026-11-07). Rulings: (1) `world-time-of-day` became `world-level-room`: core reads a time of day only through the passes an extension registers (`createLookPasses` hands it to registered passes and the figure's sprite light), so six renderings of one room differ by under 0.01 in mean brightness in core; an example of the time goes with the extension that draws it (Plus port). Cost if wrong: the plan's third name is not in core. (2) The examples runner's module list gained `look` and `world` (`catalog.ts`), the new examples' folders. (3) The two journeys that measured the sky had asserted the old sky colour since the DUEL change and failed in this container; they now assert 0xcdd2da. (4) The existing examples already imported `@automata/3d` (task 6 and 7), so step 3 was the role sections. Evidence: examples-3d Chromium 12 pass (3 new), examples-runner unit 64, site playground unit 113.
+- Task 12.2: done (session iivhdo, 2026-11-07). Rulings: (1) `template3d(name)` became `TEMPLATE_3D_FILES`, a `TemplateFile[]` of functions of the options, like the 2D `TEMPLATE_FILES`: one list makes any game, and the options carry the id and title. (2) "Offered when `@automata/3d` resolves" is `threeDAvailable()` (`three-d-gate.ts`): `AF_BETA_3D=1`, or a `packages/3d` named `@automata/3d` found by walking up from the tools; the tools have no 3D dependency, so a module resolve would never find it inside the workspace either. `createGame` takes `threeD` and `runCli` a sixth argument so tests say outright whether it is there. (3) The room and Wick are real files in `template-3d-content/` (copied to `dist/` by `tsdown.config.ts`), like the 2D level, so the editors open them. (4) The sim holds metres and radians as `f32`, as the 3D examples do, not Q16.16 as base-3d does, and the tuning is `WALK_SPEED` in metres a second: a stranger's first sim stays readable, and `f32` stores are deterministic. Cost if wrong: a different save format if the template is ever promoted to the base game's integer layout. (5) `inputs()` refuses a map set with nothing to touch, so the camera-turn keys are also two touch buttons ("Turn left", "Turn right") beside the touch stick and the drag. (6) The template's `package.json` asks for `@pixi/3d` `0.1.0-beta.2` (the release PR swaps it for the npm release) and, with `--link-workspace`, the vendored tarball. (7) The project pieces of `template-project.ts` (README, package, ship config, vite config) became functions the 2D list and the 3D list both use; the 2D output is unchanged (its tests pass). (8) The consumer-smoke journey `tests/e2e/stranger-3d.test.ts` (skipped unless `AF_BETA_3D=1`) was run for real here (the network is open): it makes the game from packed tarballs, installs it outside the repository, and `boundaries`, `typecheck`, `orientation`, `inputs` and `levels` pass; `test`, `no-eval` and the build fail because `@automata/3d` ships `.ts` sources and Node refuses to type-strip files under `node_modules` when `vite.config.ts` loads the 3D content kinds. That is the release PR's work (build `@automata/3d` to `dist/` like the other packages, then turn the journey on); it is not a template defect. Evidence: the generated game, linked into the workspace (`--link-workspace`, bundler resolution), typechecks with TypeScript 7.0.2, its 14 unit tests pass (the content test compiles the real figure, swatch and prop kinds), `automata-check-boundaries --game src` 0 findings, `vite build --mode web` passes, and in Chromium it reaches ready, Play shows the room with Wick, and W, D and Q move and turn the view with no console error (screenshots in this session's scratchpad only); tools unit 23 new tests (gate 4, template 12, CLI 3 and the existing), `pnpm check` 31/31. WebKit and Firefox not run.
+- Task 13.1: done (session iivhdo, 2026-11-07). Rulings: (1) The title half was already in: `gameName` reads `automata.title` from the game's `package.json` (base-3d's says "Ember Hall"); what changed is the line itself, which is now "Opened <title>." with no "in the level editor", because the words named the `--app` flag's value, which for a 3D game opened by plain `automata editor` was the wrong editor's name. `--app` itself goes in the editors slice. (2) `LEVEL_FILES` is not exported: nothing else reads it and knip refuses an unused export. Evidence: editor-policy and editor-command unit tests (2 new, 1 reworded), tools typecheck, knip clean.
+- Task 13.2: done (session iivhdo, 2026-11-07). Count first: 342 findings in tracked code (`packages/automata` 198, `content` 68, `tools` 13, `games/base-3d` 34, `examples/3d` 29), plus 68 in the generated `packages/automata/.svelte-kit`, and 10 plan IDs in `examples/3d`; after: 0 and 0. Rulings: (1) The scanner skips `.svelte-kit` (generated, git-ignored, rebuilt by every `pnpm build`) with `node_modules` and `dist`; a test pins it. (2) Provenance comments are rewritten to say what and why, not where from; where code came from is in `docs/provenance/sources.md` already. A TOML header that only said "from <source> at <commit>" became "`name`: a base figure's swatch" (gait, stand, hair style, headwear). The fixture song's name ("Dawn Tutorial", fr "Tutoriel de l'aube") and a test host origin no longer carry a source name; no hash moved. (3) The generated-template test that checks a new game names no source writes the names in pieces, so the test file names none; the tools folder is scanned. (4) `examples/3d` joins the `--comments-only` list of `pnpm style`, not `--plan-comments` (that list also applies the file-name rules, and an examples folder has config files with no role). (5) `agents/automata` holds no 3D skill text and the API reference has no 3D entry (the 3D package is private), so there was nothing to drop; `published-only.test.ts` stays green. (6) `docs/guides/3d.md` is written but not listed in `docs/guides/index.md`: the site lists only what is public, and 3D is a private beta. `docs/README.md` links it, and the guide opens with the beta note. (7) `games/base-3d/README.md` is new (the plan said "modify"; the game had only `DESIGN.md`, whose `af-sector/1` is now `af-sector/2`). Evidence: `pnpm source-names` 0 findings, `pnpm style` 0, hygiene unit 112 pass, content unit 431, tools unit 741, automata unit pass; `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write` and `pnpm agent-skills` ran.
+- Task 13.3: done (session iivhdo, 2026-11-08). Rulings: (1) The 3D page is `stress/3d/` (its own `index.html`, `main.ts`, Wick's data and a game that walks a 4 m loop in a lit hall while the camera turns a full circle in about 10 s, under `DEFAULT_LOOK`); `vite.config.ts` builds it as a second page. It is composed from the public entries only, with Wick's data inline as the examples have it, because the probe must not depend on a game folder. (2) Wick is the only entity, so a 3D result says `scene: { entities: 1, systems: 1 }`. (3) `firstPoseMs` is a top-level number in `budget.json` (5), optional in the schema, and the probe fails a 3D project whose first figure took longer; the page reports it on `<html data-first-pose-ms>` by wrapping the figure view (build plus first `update`). The plan said "a separate row checked by the stress page"; the page reports and the probe test checks, because a page cannot read the budget file. (4) A software renderer skips a 3D project (`Skipped: software renderer, no frame budget measured.`) before anything is timed, so a machine with no GPU writes no 3D result; the 2D projects keep their behaviour (a result, then the check's own `skipped`). (5) The recorded-budget unit tests said the evidence covers every row and passes; the 3D rows have no evidence yet, so the tests now name them (`TARGET_ONLY`) and expect the check to be INVALID with "no result for this budgeted project" for exactly those two. That is the plan's "stays red": `pnpm budget:frame` on the Owner's GPU runner is red until a run measures the 3D rows, and the first pose and the 33.3 and 16.7 ms numbers are the spec's targets until that run replaces them. Never loosen the check. (6) `@automata/3d` is a dependency of `tooling/frame-budget` (lockfile updated). Evidence: frame-budget unit 51 pass; typecheck clean; the whole probe run locally in Chromium with SwiftShader: the 2D projects pass and write results, the 3D projects skip; with the skip forced off once, the 3D page ran (hall and Wick drawn, first pose 70 ms in software, a result written) and the first-pose check failed as it should on software. **GPU run: not done, the Owner's.**
+- Task 14.1: done (session ngqsn7, 2026-11-08). Counts first (Chromium here): unit and DOM 2196 in 151 files, layout 189 pass and 3 skip in 13 files, canvas 14 pass and 21 skip in 12 files (the skips need a GPU), journeys 16 in 3 files; after: layout, canvas and journeys the same, unit 2181 in 150 (the 15 fewer are by design, ruling 5). The map is `docs/refactor/move-map-editor-3d.json` (130 rows, 406 files, dry run 0 unmapped and 0 clashes; 384 move, 22 stay); `--features packages/editor-3d --components` finds 0 and is in `pnpm boundaries`; `packages/editor-3d` is in `style --test-imports`. Rulings: (1) `features/<x>` is one level in `pnpm boundaries`, so Levels 3D is **one feature** (`features/levels-3d/`, one folder per screen: plan, walk, dollhouse, inspector, definitions, things, checks, document, home) and the Studio another (`features/studio/`). (2) Where the dry run showed a feature importing `app/`, the file went where its users are, not to `app/`: `editor-app.ts` to `levels-3d/document/` (it is the document and project list facade; only Home and the document controller use it), `levels-3d-session.ts` to `levels-3d/`, `layers-model.ts` to `levels-3d/plan/`; `geometry-cache.ts` (used by the plan, the walk and the dollhouse) to `shared/geometry/`. `app/` is left with what wires: `App.svelte`, `boot.ts`, `main.ts`, `main.css`, the suite entry, `suite-main.ts` and the content shim, and the tests that cross features. (3) `checks/*` and `entities/*` went to `shared/checks/` and `shared/things/` (not `levels-3d/` as the plan's table has them), because `shared/edit` and `shared/level-session` import them; so did `view/mesh/{camera-3d,mesh-pick,vec3,sector-mesh}` to `shared/geometry/`. `view/mesh/{follow-camera,heading}` went to `levels-3d/walk/`. The `suite-levels` tests test the suite entry and sit in `app/suite/`. (4) The module mover handles a package into itself; the test mover needed `studio` as a folded qualifier (`Suite.studio.dom.test.ts` is `Suite-studio.test.ts`; one line and a test row in `move-tests.ts`). The movers do not rewrite a `new URL(...)` or an `import.meta.glob(...)` string or a path in a test's data: four were fixed by hand (the studio content test, the stage renderer's fixture glob, the acceptance index's proof paths, and the journeys' `src/...` chains, now `#src/...`). (5) The old `architecture.test.ts` and `testing/architecture.ts` are retired: three of its four rules (components in `ui/`, headless imports no view, `ui/` goes through `app/`) are what `--features --components` checks by folder now (10 tests gone). Its fourth rule, that a component reads no clock, is a case of `purity.test.ts`, whose pure layers are now `shared/` and `features/levels-3d` without the three `-renderer.ts` files (8 cases became 2 plus the components case; the Studio's controller and view keep Svelte stores and were never one of the pure layers). Cost if wrong: a Studio file importing a DOM global goes unchecked. (6) Geometry: `triangulate.ts` is deleted and `sectors.ts` lost `crossing`, `segmentDistance`, `insideSector`, `polygonArea`, `opening` and `walkBlocker`, all imported from `@automata/3d/level` (task 7.5 held them once); `triangulate.test.ts` stays here because its cases need the editor's depot fixture, and now tests the level entry's. `loops.ts` stays: it reads `[x, z, wall?]` corners as a file writes them, which nothing in the level entry does. The interim re-export block in `entries/index.ts` (the 8.2 note) is gone. (7) Config: `vitest.config.ts` is one `defineTests` call (unit in Node with the jsdom directive on component tests, `layout` in three engines, `canvas` in Chromium, `journeys` in WebKit and Chromium) with `provide: { writeVisuals }` set beside it, because the preset has no `provide` option; `tests/setup.ts`; `tests/dom-matchers.d.ts` (the 2D editor's, for `toHaveTextContent(RegExp)`); `vitest/browser` is no longer a global type (the browser tests import it); `package.json` `test:unit` runs `--project unit`, exports point to `src/entries/index.ts` and `src/app/suite/index.ts` (14.2 deletes both), `@automata/vitest-preset` is a dev dependency, and the page entries moved to `src/app/main.ts` and `src/app/suite/suite-main.ts` (`index.html`, `suite.html`, `knip.jsonc`, the shim path in `vite.config.ts`). Cost if wrong: none seen; `pnpm build` is in the check. No user-facing string changed (nothing for `copy.md`). WebKit and Firefox not run (Chromium only here): the layout project's two other engines and the journeys' WebKit are the Owner's `pnpm ci:local` or hosted CI. Resume at task 14.2.
+- Task 14.2: done (session ngqsn7, 2026-11-08). The failing test came first (`tooling/check-style/tests/unit/tokens.test.ts`: 6 cases, red on the missing module, then green); run on editor-3d it found 52 uses of 13 names (the plan said 14 names and 23 radius uses; the radius uses are `--radius-md` 15, `--radius-control` 7 and `--radius-sm` 1, which now read `--edge-lg` and `--edge-sm`). Rulings: (1) `findUnknownTokens(file, code, known)` takes the file name, like `testImportFindings`, so a finding can name it; `definedTokens(code)` is exported beside it. The CLI is `style --tokens <kit-folder> <root>...` and the first path is the kit's folder, not `tokens.css`: the names the kit defines are everything its stylesheets and components set, because the shell sets `--dock-lift` with `style:--dock-lift` in `EditorShell.svelte`, which `tokens.css` does not hold. A name one file of the root sets and another reads (`--plan-foot`) counts as the package's own. It runs in `pnpm style`. (2) The tokens: `--color-accent`, `--edk-accent` to `--color-accent-default`; `--color-border`, `--edk-border` to `--color-border-default`; `--color-state-error`, `--color-danger`, `--edk-danger` to `--color-state-bad`; `--color-surface-base` to `--color-bg-canvas`; `--color-surface-sunk` to `--color-bg-app`; `--shadow-pop` to `--shadow`; and the literal fallbacks go with them. On the dark surfaces (the Walk HUD, sticks and canvas border, the Studio's timeline and stage) the accent is `--lime` and the line `--stage-line`, because the kit's cobalt accent would not read on the charcoal. Pixel changes, from the values: every accent was the fallback gold `#d9a441` or blue `#4a90e2` (the unknown name never resolved); it is now cobalt `#1d278a` on the light panels and lime `#cbf25c` on the dark ones; errors were `#e5534b` or `#c0392b`, now `#b42318`; the floating pads get the kit's one-pixel shadow (they had `none`); every corner is 8 px or 4 px as before (`--edge-lg` 8, `--edge-sm` 4). Layout (189) and canvas (14) pass unchanged; the layout tests assert sizes, not colours, and the review images are written only under `ED3D_VISUALS=1`, which needs a GPU, so the Owner's GPU run is where the colours are looked at. (3) `suite-content-shim.ts` is gone and not inlined: the only bare `@automata/content` import the suite page reached was a type (`Palette` in `packages/3d/src/features/figures/content/swatch-colours.ts`), which now comes from `@automata/content/palette`; the alias in `vite.config.ts` went with it, and `pnpm build` builds the suite page. This is the one line outside `editor-3d` (the Plus fix thread was told). (4) The dead entries: `entries/index.ts` and its test (22 cases, a re-export list nothing imports), the `./suite` and `.` entries in `package.json` (a private package; nothing imports `@automata/editor-3d`), and `app/suite/index.ts`, a barrel only `suite-main.ts` and two suite tests used, which now import the editor and the lazy renderer from the feature. `pnpm knip` finds nothing else dead. Unit 2159 in 149 files (2181 less the 22). WebKit and Firefox not run. Resume at task 15.1.
+- Task 15.1: done (session ngqsn7, 2026-11-08). Test first (`tests/unit/app/suite/open-checkout.test.ts`, red on the missing module): it serves base-3d's real editor list, room and Wick over a fake editor server and asserts Levels 3D lists the room and the Studio lists Wick; and, with no server, that the sample has one room and Wick. Rulings: (1) `openSuite3d(env)` (`app/suite/open-suite-3d.ts`) calls `openSuitePorts` and, when it fell back to a sample, swaps in `samplePorts(SAMPLE_3D)`; `suite-main.ts` passes `sample`, `gameUrl` and `game` on, as the 2D page does, and the Tuner is made once the server has named the game's dev page. `@automata/editor/suite` now exports `openSuitePorts` and `OpenedSuitePorts` (an export added, no signature changed; the API report moved). (2) `SAMPLE_3D` is in `app/suite/sample-3d.ts`, not `testing/sample-3d.ts` as the plan has it: the page imports it, and product code may not import `testing/`. Its figure content is the Studio fixture game, moved with `git mv` from `testing/studio/fixtures/content` to `app/suite/sample-3d/content` so the tests and the page read one copy; the room is an `af-sector/1` file (`hall.af-sector.json`, the toy hall and dock), because the editor opens `/1` only until 16.2 (task 7.1's rulings 1 and 2), and the editor list is `sample-3d/editors.toml`. (3) Found, not fixed here: base-3d's own list sends only `content/figures/*.toml` to the Studio, so on a real checkout the Studio sees Wick but none of his poses, clips and swatches; the sample's list uses `content/figure*/*.toml`. Task 17.x (Characters redesigned) is where a game's list gets the rest of the figure rows. Unit 2161 in 150 files (2159 and the 2 new); canvas 14 as before. Resume at task 15.2.
+- Task 15.2: paused before any commit (session ngqsn7, 2026-11-08), for the Owner's call. The tools half was written test first and passed (`pageFor`/`readGameFiles`/`wantsTheFullPage` in `packages/tools/src/features/editor/page-for.ts`, `--app` gone with "This option is gone: automata editor picks the editors your game needs." and exit 1, `copy-editor` packing only `dist/suite`; 68 + 6 tests), as did the deletions (`packages/editor/index.html`, `app/editor-2d/main.ts`, `packages/editor-3d/index.html` and `app/main.ts`, both default `vite build`s, the folder renamed `app/level-2d/`, the suite pages given `base: './'` and the no-eval import, the site's `build-demos` copying `dist/suite`, the knip entry dropped; editor unit 3407 pass, typecheck clean). **Finding, ruling the plan did not make:** the suite's Levels 2D (`app/suite/levels-2d/`) is the canvas, layers, tools, inspector and status only. It has no Home project list, no Map, Tiles or Characters views, no Add tiles, no templates (New level), no Share, no Save button (it writes each step) and no conflict dialog, and all of those live only in the standalone page that the plan deletes. Six `tests/e2e/journeys` (add-tiles, conflict-stops-the-save, new-game-opens, save-reaches-the-game, share-leaves-the-browser, smoke) and the site's "Try the editor" (templates, Share) drive that page; with it gone they fail on the suite (Chromium: 14 of 14 fail; WebKit is not installed here). The Owner's rulings are that Add tiles is essential and templates live on the site's try-it page, so deleting it loses essential features until the suite has them. The work is saved in `git stash` on the session's container only; nothing of it is committed. Resume after the Owner's answer (a decision card was posted).
+- Task 15.2 decision (Owner, 2026-11-08 01:10, card tap): **port the 2D views first.** Before the standalone 2D page is deleted, the suite's Levels 2D gets what only that page has: the project list (Home), Map, Tiles, Add tiles, New level templates, Share, Save and the conflict dialog (or the suite's autosave states that replace them), with their layout tests and the six `tests/e2e/journeys` moved onto the suite. Then 15.2 is redone test first (the stash described above) and the standalone page, `dist/2d` and the site's `copyEditor` source go. Order for the next session: this port as a new task before 15.2 (call it 15.1b), then 15.2, 15.3, 15.4.
+- Task 15.3: not started; scope read only (session ngqsn7, 2026-11-08), so the next session starts from this. Ask reaches further than the plan's list: `features/suite/core/ask-session.ts` (and its test), `node/claude-ask.ts`, `node/ask-reply.schema.ts`, `memory/scripted-ask.ts`, `shell/{AskDialog,SuiteAsk}.svelte`, the top bar's Ask in `SuiteTopBar.svelte`, `Suite.svelte`, `core/text-diff.ts`, the ports (`shared/kit/ports/{suite-editor,suite-ports}.ts`, `ports/index.ts`, `ports-entry.test.ts`), the Tuner (`tuner-{session,edits,content,controller,suite-editor}.ts`, `ui/TunerRows.svelte`), `features/tiles/AddTilesDialog.svelte`, `testing/{suite/fixture-editor,suite/tuner-fixtures,ports/index,ports/workspace-contract}.ts`, `shared/editor-list/{workspace-policy,editors.schema}.ts` (`modes` is `z.enum(['edit', 'ask'])`; `EditMode` in `suite-ports.ts`), and in `editor-3d`: `app/ask-controller.ts`, `testing/fake-ask.ts`, `Levels3dRegions.svelte`, `levels-3d-session.ts`, `checks/problem-count.ts`; outside the editors: `packages/tools/src/shared/create-game/template-file.ts` and the site's `features/start/AgentSetup.svelte` mention Ask. The change-set desk is 51 files with "change set" in them (`core/{change-set-journal.schema,interchange,review-model,ship-draft,reopened-gates}.ts`, `shell/{ReviewDesk,ShipDialog,InterchangeDialog,DiffView,SuitePublish,SuitePills}.svelte`, `memory/memory-change-set.ts`, `node/git-change-set.ts`, `SuiteHome.svelte`'s Export and Import changes). "World" is not a name in the suite folders; it is most likely the 2D editor's Map view (`app/level-2d` and `features/map`), so ask the Owner what World means before deleting a view (the plan's 15.3 and spec D6/E6 do not say). Delete in this order, each with its tests and `pnpm knip`: Ask, then the change-set desk, then the `ask` mode. It overlaps 15.2's decision (the suite shell and `SuiteHome.svelte`).
+- Task 15.1b, split (session us0s9k, 2026-11-08), in the order that each needs the one before: **(a)** Levels 2D writes the game's files with the project, as one undo step (found: the suite wrote only the `.af2d.json`, so a painted wall never reached `content/levels/*.toml`; the standalone page's Save did via `createGameSave`); **(b)** Tiles inside Levels 2D (a view switch in the top bar's `tools`, the Tiles panel, canvas and inspector as regions); **(c)** Add tiles (a binary asset write on the suite's workspace; `tilePicturePath` already allows `assets/*.png`); **(d)** conflict and save states in words (the suite's `moved` refusal becomes the "changed somewhere else" choice, or the status line says it and offers a reload); **(e)** New level templates and Share on the sample game only (the site's Try-it); **(f)** the six `tests/e2e/journeys` and the site's Try-it page move onto the suite; **(g)** Map, per the Owner's answer to the World card (World is most likely the Map view; the card asks). The 2D profile also lists a Characters view (`EntitiesView`); the card did not name it, so it is left for the Owner's word before 15.2 deletes it.
+- Task 15.1b (a): done (session us0s9k, 2026-11-08). Test first (`tests/unit/suite/levels-2d/levels-2d-session.test.ts`, three cases: a step writes `project.toml`, `world.toml` and `levels/<id>.toml` with the project; one Undo of the suite puts all of them back; a project that moved on disk writes none of the game's files and the status line says why), red on the missing files. Rulings: (1) `WorkspaceFile.exports` (the row's `exports` folder, from `workspaceFile`) tells the session where the game files go, so the editor does not parse the list itself; (2) `SuiteWorkspace.writeAll?` is optional and only the suite's wrapper (`portsFor`) provides it, over the write path's existing `writeAll`, so the adapters and their contract suites are untouched; without it the session writes the project alone, as before; (3) each game file is expected as found (`'absent'` or its mtime) on its first write and watched by the write path afterwards. Typecheck clean; editor units for `suite`, `editor-list` and `kit`: 1717 pass. Not run: browser and journey projects.
+- CI (from the coordinator, PR #472 at d9e60f3d): the "3D - parity" job failed in `@automata/editor-3d#test:browser` (layout) when the browser connection closed in `tests/browser/layout/studio/ui/studio.test.ts`; not an assertion; Chromium passes. First step is a re-run on the runner, then the cold `optimizeDeps: ['pixi.js']` reload or WebKit crashing on that test.
+- Task 15.1b (g) / 15.3 ruling (Owner, 2026-11-08 01:17, card tap): **World is the Map view.** Map is not ported into the suite; it goes with the standalone page in 15.2, and 15.3 has no separate World to delete. 15.1b is now (a) to (f). The 2D Characters view (`EntitiesView`) is still unasked; it goes with the page unless the Owner says otherwise.
+- Task 15.1b (c, first half): done (session us0s9k, 2026-11-08). The suite's pictures. Test first (`tests/unit/suite/memory/memory-workspace-bytes.test.ts`, 3 cases, and 2 more in `levels-2d-session.test.ts`), red on the missing methods. Rulings: (1) `SuiteWorkspace.readBytes?` and `writeBytes?` are optional, implemented by the memory workspace over its store (the served checkout is that store over HTTP, so a real game gets them), under the same policy as `write`; a picture's write is not an undo step (Add tiles' picture is the game's own file, as on the standalone page). (2) `Levels2dSession.read` is the host's reader, else the workspace's `readBytes`, so the suite's Level palette and canvas now show a game's tile pictures (they showed numbered tiles before: no host passed a reader). (3) `Levels2dSession.files` is the `list`/`write` store Add tiles' dialog already takes, over the workspace (absent when it cannot write bytes). (4) `objectUrls` is a Levels 2D option, passed by the suite page. Typecheck clean; unit `suite` and `app`: 556 pass. Next: the Tiles view and Add tiles' dialog as regions.
+- Task 15.1b (b): done (session us0s9k, 2026-11-08). The Tiles view in the suite's Levels, with Add tiles' dialog. Test first (`tests/unit/suite/shell/Suite-levels.test.ts`, 2 cases: the Views tabs switch the panel, canvas and details between the level and the tiles and the level is as it was; Add tiles opens from the panel), red on the missing tabs. Rulings: (1) the Tiles panel, stage and details are `features/tiles/Tiles{Panel,Stage,Inspector}.svelte` over a `tiles-state.svelte.ts` (the session's project and selection, and the picture URLs), the twins of the Level regions; the shell owns the Panel and Details toggles, so the stage has no pill. They duplicate `TilesetsView`'s markup on purpose: `TilesetsView` and its tests go with the standalone page in 15.2. (2) `Levels2dSession` holds `view` and `adding` (svelte stores) and the Tiles session, made with the document, so a switch and return finds the tile and rule chosen. (3) The views are a `Segmented` tabs group in the top bar's `tools`; a phone menu for them waits for 15.4 (the suite on a phone). Typecheck clean; unit `suite` 320 pass; Chromium layout `suite` 121 pass. Not run: journeys, WebKit, Firefox.
+- Task 15.1b (d): done (session us0s9k, 2026-11-08). A project changed somewhere else is a choice in words, not a lost step. Tests first: `write-path.test.ts` (a `force`d write goes over a file that moved on and the path watches it again), `levels-2d-session.test.ts` (3 cases: the conflicting step stays and the game's files are untouched; Use mine writes the level and its game files; Use theirs takes the other version in), `Suite-levels.test.ts` (2 cases through the real shell: the dialog "… was changed somewhere else" with Use mine and Use theirs, and the status line clears). Rulings: (1) `FileWrite.force` and `SuiteWorkspace.writeAll`'s `force` are the person's choice to write over a file that moved on; (2) a `conflict` refusal keeps the step (it used to be taken back, which would have thrown away the drawing) and any other refusal still takes it back; (3) the dialog has two choices and no Cancel or Escape (`dismissible={false}`), because Keep both (a copy) is not essential and a dialog that closes leaves the conflict unanswered; its title is the project's name, or its file's; (4) there is no Save button: the suite writes each step, and its top bar says "Saved in your game folder", which the journeys in (f) will look for instead of "Saved". Typecheck clean; unit `suite` 324 pass; Chromium layout `suite` runs below.
+- Task 15.1b (f), first half: done (session us0s9k, 2026-11-08). Five of the six `tests/e2e/journeys` now drive the suite, and pass in the real `automata editor` in Chromium at iPad and phone size (add-tiles, conflict-stops-the-save, new-game-opens, save-reaches-the-game, smoke; suite-opens-the-checkout at iPad only): the first time the suite was walked end to end, it showed (a) was needed (a painted wall reached the game's level file, passed `automata check` and restarted the running game). Rulings: (1) `runEditor` adds `--app suite` itself until 15.2 removes the flag; (2) `openRoom` takes the level's name in words as Home shows it ("Room 1", "Start"); (3) there is no Save button, so each journey waits for the file to change (`expect.poll`), not for a "Saved" the top bar only ever claims ("Saved in your game folder" is static text); (4) `paintWall` opens the layers on a phone with the top bar's Panel button. Left: `share-leaves-the-browser` and the site's Try-it page need (e): templates and Share on the sample game. WebKit not run.
+- Task 15.1b (e), design for the next session (us0s9k, 2026-11-08; nothing built). The try-it page needs a level to draw on a sample game that has none, and Share. What the code allows: the suite opens one session per editor for its life, from the row group's files at the first open (`Suite.svelte` `$effect`), and `Home`'s state is computed once by `boot.ts`. So: **(1)** the sample's Levels card, which has no file, gets a "New level" button (sample only; a game folder has no templates, per the Owner), opening `NewLevelSheet` (exists, `features/home`) over the profile's templates; **(2)** choosing one writes `content/levels/<name>.af2d.json` into the sample's memory workspace with `'absent'`, refreshes Home's files, and opens Levels; **(3)** one level on the sample (a visitor trying the editor makes one; a second "New level" is not offered once the card has a file), which avoids swapping a session's file; **(4)** Share (`ShareMenu`, Download, Copy, Share) goes in Levels 2D's top-bar `tools` on the sample only, over `exports` from the kit's download store, the bar's one primary action as `share-leaves-the-browser` expects; **(5)** the site: `site/scripts/build-demos.ts` and `copyEditor` take `dist/suite` (the plan's 15.2 entry), and the journey serves it. Check first whether `boot.ts` can re-read the files (it holds `home` as a prop) before writing (2).
+- Task 15.1b (e), a better design than the note above (us0s9k, 2026-11-08, after reading `boot.ts` and `Suite.svelte`; supersedes it): `Home` is computed once and the Levels session is made once, so the new level should not go through Home. Instead **Levels 2D opened on a group with no file gets an `empty` state** (a third `Levels2dState` kind, sample only, since a game folder has no templates): its canvas region shows "Pick a starting point" with the template cards (`features/home/TemplateRow.svelte`, `NewLevelSheet`'s body), and choosing one writes `content/levels/<name>.af2d.json` into the workspace with `'absent'` and turns the same session into `open`. That needs `Levels2dSession.state` to become a store (`Writable<Levels2dState>`), read as `$state` by `Levels2dPane`, `Levels2dTools`, `Levels2dStatus`, `Levels2dConflict` and re-read lazily by `levels2dUndo` (its `subscribe` re-attaches to the new history). The sample's editor list needs a `levels-2d` row for `content/levels/*.af2d.json` with `exports = "content"`, and the Levels card needs a "New level" button when it lists no file (it has no button to open the editor today; the rail tab is the only way). Share is `ShareMenu` in Levels 2D's `tools` on the sample only (props: `document` is the `OpenDocument` the standalone page passes, so build a small adapter from the session's profile, history and base, or call `levelFile` and `shareLevel` from `features/share/share-model.ts` directly, which need only the profile, the value, the base text and a `DownloadStore`). Start with the failing DOM test in `Suite-levels.test.ts` on a sample with no level.
+- Task 15.1b (e): done (session m6iu2z, 2026-11-08). The try-it sample starts a level from a template, and Share sends it out. Tests first (`levels-2d-session.test.ts`, 4 cases: an `empty` state with the templates; no templates folder is still the "no such file" error; `start` writes the level and the same session opens on it; a refused write leaves the starting points and says why; `Suite-levels.test.ts`, 4 cases through the real shell: Home's Levels card offers New level, the chosen template draws, Share is the one primary action and Download hands the file over, a game folder has neither), red on the missing `start`/`share`. Rulings: (1) the session, not Home, becomes the level (the better design): `Levels2dState` gains `empty` (the templates' cards) and `Levels2dSession.current` is the state as a store, with `state` a getter over it; the opening logic is one `adopt(files)` that `start` calls again after writing the level, so a session that began empty has every other member (`path`, `others`, `settled`, `quietly`, Use mine and Use theirs, the Undo adapter) answering for the document that opened. (2) `Levels2dOptions.templates` is the folder new levels go in (`content/levels` on the sample) and `Levels2dOptions.share` is a `DownloadStore`; each is absent on a game folder, which has no templates and no Share (the Owner). (3) The sample's list has a `content/levels/*.af2d.json` row with `exports = "content"`, so the game's files follow the first step as on a game folder. (4) The sample has no change set (`samplePorts(…, { changeSet: false })`, as the served suite has none), so a visitor is never asked to name a change. (5) Home's card shows "New level" only for an editor with no file on the sample (`Home`'s `starts`); Share is `Menu` in Levels 2D's `tools` and its result is a line in the status region ("Downloaded your level."). (6) Opening Levels from the rail on the sample goes straight to the starting points; the card's button and the rail tab are the same door. Typecheck clean; unit `suite`, `app`, `editor-list`: 571 pass. `pnpm build` and `pnpm api-report --update` run (the editor report moved: `Levels2dOptions` and the session are exported types).
+- Task 15.1b (f), second half: done (session m6iu2z, 2026-11-08). `share-leaves-the-browser` serves the built `dist/suite` as the site does (no game behind it, so the sample opens) and passes in Chromium at iPad and phone size (4 of 4): New level, Platformer, Share is the primary button, Download hands over `untitled-platformer.af2d.json`, Copy puts the JSON on the clipboard. All six journeys now drive the suite. The "Saved" claim is gone from it (the sample keeps nothing, and the top bar does not say it does). Left of (f): the site's Try-it page onto `dist/suite`, which needs 15.2's `base: './'` for the suite pages, so it moves there.
+- Task 15.2: done (session m6iu2z, 2026-11-08), redone test first after the Owner's port-first call; the stash of the first attempt was lost with its container, so nothing was reused. Tests first and red: `page-for.test.ts` (base-3d gets the full page; Emberwick the 2D page; either 3D editor alone makes it full; no list or a list that does not load is the 2D page), `editor-args.test.ts` and `editor-command.test.ts` (no `app` option; `--app` says "This option is gone: automata editor picks the editors your game needs." and exits 1; the full page is served for a 3D list and the 2D page otherwise; outside the repository a 3D game says "The 3D editors are not in this release yet."), `copy-editor.test.ts` (only `dist/suite` is packed), `editor-page.test.ts` (the site says nothing you draw on the try-it page is kept), and a new journey `suite-runs-where-the-site-puts-it` (the suite served under `/editor/app/` with the site's strict policy opens, makes a level and draws it), red because the page named its files from the root. Rulings: (1) `pageFor(editorList: string | undefined)` takes the list's text, not the plan's `(game, builds)`: the list is all that decides, and whether a build exists is the command's own check (it names the folder to build). A list that does not load gives the 2D page, which shows a list's problems in words. (2) `readEditorList` is a new dependency of `editorCommand`, so the tests run no disk. (3) The default `vite build` of both editor packages and their `index.html` and `main.ts` are gone; `build` is one `vite build` of `suite.html` into `dist/suite` with `base: './'`, and both suite pages import `@automata/framework/no-eval` first. (4) `app/editor-2d/` is `app/level-2d/` (`boot.ts`, `App.svelte`, `DocumentScreen.svelte`, `profiles.ts`, `views.ts`, `main.css` stay: 43 test files and the suite use them; knip finds nothing unused); its tests moved with it. (5) The site's `copyEditor` takes `dist/suite`; the Editor page, Start's step 3 and `docs/guides/editor.md` say each step is saved, that Share keeps a try-it level, and that the game's editor list picks the editors. The site's three screenshots still show the old page; they are re-shot with the copy pass (18.1). (6) The site's `editor-try` and `visitor` e2e now make a level on the sample, paint a cell and Download it (no reload check: the sample keeps nothing). (7) knip's redundant `editor-3d` entry is dropped. Passed: tools unit 748 (+1 skipped); editor unit 3431; editor Chromium layout and canvas 943; typecheck clean in editor and editor-3d; `pnpm knip`, `boundaries`, `style`; all editor journeys against the built command in Chromium at iPad and phone (20 passed, 2 skipped by design); site e2e `editor-try` and `visitor` in Chromium (3). Not run: WebKit, Firefox, hosted CI, editor-3d units beyond the commit hook. Changeset `one-editor-page` (patch, `-tools`).
+- Task 15.3, slice A (Ask): done (session m6iu2z, 2026-11-08). Ask is gone from the shell, the ports, the Tuner and `editor-3d`. Deleted in `packages/editor`: `shell/{SuiteAsk,AskDialog}.svelte`, `core/ask-session.ts`, `node/{claude-ask,ask-reply.schema}.ts`, `memory/scripted-ask.ts`, `testing/ports/ask-contract.ts` and their three tests; the top bar's Ask button, `Suite.svelte`'s dialog, `SuiteEditor.ask`/`SuitePorts.ask`, the Tuner's ask hand-off (`tuner-session`, `tuner-edits`, `TunerRows`, `tuner-content`) and the fixtures lose their ask rows. In `packages/editor-3d`: `app/ask-controller.ts`, `testing/fake-ask.ts`, their test, and Ask in `levels-3d-session`, `levels-3d-suite-editor`, `problem-count` and `Levels3dRegions`. Rulings: (1) locks, `ChangeSet.spend` and its tokens, `EditMode 'ask'` and `af-editors/1`'s `modes` stay for slice B: they belong to the change-set desk, which goes next, and cutting them here would half-delete the desk. (2) `text-diff.ts` stays for the same reason (`DiffView`). (3) The standalone-app code that World = Map makes dead (Map, Characters/`EntitiesView`, Home, `TilesetsView`, `App.svelte`, `boot.ts`) stays: about 43 test files use `boot.ts` and `main.css`, so it needs its own pass with those tests moved; the Characters view is still unasked. Passed: editor unit 3395 in 283 files (from 3431 in 286: the three deleted tests); editor-3d unit 2125 in 149 (from 2161 in 150); tools unit 748 (+1 skipped); Chromium layout and canvas 927 (+6 skipped); 19 of 20 journeys at iPad and phone on the first run, and the one that failed (`save-reaches-the-game`, the Emberwick game's page had no content hash within 5 s) passes alone with and without this change, so it is the cold start of the game under load, not Ask; typecheck, `pnpm knip`, `boundaries` and `style` clean. Not run: WebKit, Firefox, hosted CI.
+- Task 15.1b (e), follow-up found (session m6iu2z, 2026-11-08 04:50, from the thread that duplicated (e) as PR #482, branch `claude/project-thread-mqjaex`, commit 977607cb): my (e) made the try-it sample keep nothing, and the site's Editor page says so, but the site's Privacy page (`features/legal/Privacy.svelte`) still says the try-it editor keeps your levels in this browser's storage. One of the two is wrong. Their commit keeps the sample in the browser's private storage (`openPrivateStores(['sample-game'])` in `shared/kit/storage/workspace.ts`, `openSuitePorts` taking the sample's files) with a reload case in `share-leaves-the-browser`; Home re-reads on each return (a `reread` prop from `boot.ts`) so a level made from a template is listed; the Editor page no longer promises a Save button. It is stacked on a different (e) and will not cherry-pick cleanly, so the next session takes the idea, not the commit: either keep the sample in the browser (the Privacy page then stays true) or change the Privacy page to say nothing is kept. Open question for the Owner, not decided here. The same branch adds plan task 18.3 (a whole 3D game from the editors, the Owner's ask at 04:18, commit b2e209f3): take it.
+- Task 15.1b (e), follow-up resolved (session m6iu2z, 2026-11-08 05:00): the Privacy page was right and the sample was wrong, so the try-it sample now keeps its files in the browser's private storage (`samplePorts(files, { store })`; `openSuitePorts` opens `openPrivateStores(['sample-game'])`, memory where there is none), the editor list is always the sample's own, Home reads again on each return (`reread` from `boot.ts`), the site's Editor page says the level stays in this browser and no longer promises a Save button, and `share-leaves-the-browser` has a reload case. Task 18.3 is in (from PR #482, which is closed). Taken from #482's commits b2e209f3 and 977607cb by hand, since they were stacked on a different (e); its start screen as a page on Home's ground and its layout case for the starting points were not taken (the starting points here are the Levels pane's own; a layout case for them at every size is still to write).
+- Task 15.3, slice B (change-set desk, locks, `ask` mode): done (session m6iu2z, 2026-11-08). A real game never had a change set (`openSuitePorts` and the sample passed `changeSet: false`, and nothing in `packages/tools` built the git adapter), so the whole mechanism went, not only the desk. Deleted in `packages/editor`: `core/{change-set-journal.schema,interchange,review-model,ship-draft,reopened-gates,text-diff}.ts`, `memory/memory-change-set.ts`, `node/git-change-set.ts`, `shell/{ReviewDesk,ShipDialog,InterchangeDialog,DiffView,SuitePublish,TitlePrompt}.svelte`, `testing/ports/change-set-contract.ts`, `shared/editor-list/write-journal.ts`, their tests and `suite-ship` (unit and layout). Gone from the ports: `ChangeSet`, `ChangeSetSummary`, `ChangeSetWrite`, `SuitePorts.changeSet`, `spend`/tokens/`raiseCap`; `ChangeSetCheck` is now `CheckReport` (no before/after measures). The write path loses the title prompt, the journal and `clear()`; `WriteOutcome` loses `cancelled`; the suite session loses `review`, `draft`, `ship`, `exportGame`, `planImport`, `applyImport`, `tokens`, `asking`; the top bar loses Publish; Home loses Export and Import changes; the rail loses Review; the Tuner loses its lock buttons and its row selection (the selection existed for Ask); `EditMode` and `af-editors/1`'s `modes` are `edit` only (a list that still says `ask` is refused at that row). Rulings: (1) `remove` used to take only a file "the open change set created", which with no change set meant Undo of a created file was always refused on a real game; the memory workspace now remembers the files it created itself (a write expecting `absent`) and `remove` takes those, so Undo of a new figure, pose or clip works with no change set (contract tests rewritten, `workspace-contract.ts`). (2) The gates pill went with the reopened gates, since only a change set's writes could reopen a gate. The gate records themselves (`Gates` port, `gates-reader`, `[[gate]]` rows, `memory-gates`) are untouched and now have no screen: **a question for the Owner**, remove them too? (3) A check's before/after measure (the Tuner's fairness) was only shown by the journal; `CheckResult.measure` and `CheckDef.measure` remain in the contract, drawn nowhere: the same question. (4) The 2D `Characters` view is still unasked. Passed: editor unit 3257 in 272 files (from 3395 in 283), editor-3d unit 2125 in 149, Chromium editor 906 (+6 skipped; was 927), Chromium editor-3d 219 (+24 skipped), 23 served journeys in Chromium (the 11 WebKit ones cannot launch here), typecheck, `pnpm knip`, `boundaries`, `style` and `pnpm api-report --update` run. Not run: WebKit, Firefox, hosted CI. Next in 15.3: the standalone-app dead code (Map, Characters once the Owner says, Home, `TilesetsView`, `App.svelte`, `boot.ts`, with the 43 test files that use `boot.ts` and `main.css` moved first).
+- Task 15.3, slice B, merge note for PR #480 (play and publish a game; stacked on #473, not on this branch): its edits to `Suite.svelte`, `SuiteTopBar.svelte` and `open-suite-ports.ts` overlap this cut. Resolve by keeping #480's Play link, `PublishGameDialog`, `publishingGame` state and the `playUrl` and `publish` props, and the top bar's `onpublish` as `publish !== undefined ? () => (publishingGame = true) : undefined` with `shippable` true whenever `publish` is set; take this branch's side everywhere else (no `editing.canShip()`, `SuitePublish`, `shippable` from a change set, Ask, `TitlePrompt`; `samplePorts(files, { store })` takes no `changeSet` option). The top bar's Publish stays: on a game's own folder it builds the zip, and nothing else answers to that name now.
+- Task 15.3, slice C, part 1: the Map and Tiles views of the standalone page (session m6iu2z, 2026-11-08). Deleted: `features/map` (8 files), `TilesetsView.svelte`, `shared/level-2d/canvas/world-view.ts`, `model/world/world-links.ts`, the `worldCanvas` prop and `WorldCanvasProps`, `FakeWorldCanvas`, and the tests of all of them (the Map and Tiles layout tests, `WorldView` and Tilesets unit tests, world-view canvas test); `world-model.ts` keeps `WorldRect`, `worldRects` and `newLevelInput` (the level picker's). The standalone profile lists Level and Characters; a profile naming `WorldView` or `TilesetsView` now gets the pending view. Rulings: (1) the two linking tests (`tests/unit/app/level-2d/links.test.ts` and the journey `links.test.ts`) were driven from the Map ("Add level" lived there), so they are retired with it. **Gap to fill:** no journey now links a door between two levels through the suite's Levels pane; whether the pane's level list already adds a level and its inspector sets a door's target is not tested end to end. Cost if wrong: a regression in door linking would reach the suite unseen until that journey is written. (2) `TilesetsPanel`, `TilesetSheet`, `tilesets-model` and `tilesets-session` stay: knip finds them used by the suite's Tiles view. Passed: typecheck, root `pnpm knip` clean, editor unit 3190 (from 3257: the deleted tests), the commit's affected tests. Not run: layout/journeys after this deletion (only deleted or reworded tests changed there), WebKit, Firefox, hosted CI.
+- Task 15.3, slice C, remainder (not started; for the next session): `App.svelte`, `boot.ts`, `views.ts`'s Home path and `features/home` (all but `TemplateRow` and `home-model`) still stand, because five browser tests start the standalone app through `startEditor` and open a level from its Home: `tests/browser/layout/{level/level-view,characters/entities-view,document/open-flows,problems/problems-sheet,home/home}.test.ts` and `tests/browser/canvas/shared/level-2d/canvas/level-visuals.test.ts` (its Home-thumbnails case), plus `tests/unit/app/level-2d/{boot,App,recovery-journey}.test.ts`. Delete order: (a) move each layout test to mount `DocumentScreen` through `testing/level-2d/journey-editor.ts` (a document opened from a template, as the journeys do) or onto the suite's Levels pane where it tests the same screen; (b) retire the Home tests with `Home.svelte`, `LevelList`, `NewLevelSheet`, `ProjectCard`, `ProjectSummary`, `DeleteDialog`, `home-controller`, `lazy-thumbnails`, `stored-last-opened`; (c) then `App.svelte`, `boot.ts`, `views.ts`'s dead exports. `DocumentScreen` stays until Characters is in the suite (PR #484 puts it in Levels 2D; the six journeys also use `journey-editor`). Keep `main.css` (the suite imports it) and `profiles.ts`. Do not touch `features/characters`.
+- Task 15.4: done (session m6iu2z, 2026-11-08). Test first: `tests/browser/layout/suite/shell/suite-phone.test.ts`, at 390 x 844 and 844 x 390 in Chromium with a mouse and with touch; red on three counts (the top bar did not name the game on a phone; in phone landscape the 64 px tab bar was still there, so the stage had 69 % of the height). Now: the top bar names the game at every size (`Suite.svelte` no longer hides the title in `compact`); in phone landscape (`compact` and the `short` height tier) the tab bar is not drawn and the top bar has an **Editors** menu (the kit's `Menu`, 44 px, each item at least 44 px, the open one marked "Open now"), so the stage keeps at least 85 % of the height; in phone portrait the 64 px bar of the game's editors stays. Rulings: (1) the fold is `mode === 'compact' && heightTier === 'short'`, not "phone landscape" by name, so a 900 x 600 window and an iPad mini in portrait keep their tabs; (2) the menu button says "Editors" in words, not an icon, and Home stays its own icon button beside it; (3) "one Levels for 2D and 3D" is the registration's job (`suite-entries` joins the two editors under one Levels tab, 15.1b), so the phone test registers the 2D one and checks the tabs read Tuner and Levels; the 3D editor's own suite test still opens Levels 3D by name. A shared `chooseEditor`, `editorControl` and `editorsMenu` (`testing/suite/suite-layout.ts`, exported from `@automata/editor/suite/testing/layout`) picks an editor by its tab or by the menu, and seven existing layout, journey and visual tests (the Tuner, Levels 2D, edit, the shell, the 3D Studio and Levels 3D) use it so they run at phone landscape too; `suite.test.ts` now expects no rail there. Passed: Chromium layout `suite` 154 (both pointer projects), editor-3d `suite` and Studio layout 40, typecheck in both packages, `pnpm knip`. Screens: `.vitest/shots/suite-phone-phone-portrait.png` and `suite-phone-phone-landscape.png`. Not run: WebKit, Firefox, hosted CI.
+- Task 16.1, first slice (session m6iu2z, 2026-11-08): **the drawing tools reach the suite.** Found: in the suite Levels 3D showed the layers, the Plan and the inspector but **no tools at all** (`plan-tools-of.ts` said "the suite has no tool rail yet, so the plan stays on Select"); the seven tools lived only in the standalone `DocumentFrame`, which 15.3 slice C removes. So a person could open a room in the suite but not draw, split, door or place anything. Test first (`packages/editor-3d/tests/browser/layout/app/suite/suite-levels.test.ts`, "the drawing tools are in the top bar", all eight sizes, mouse and touch): red on "the top bar has no Tools"; now green. `Levels3dTools.svelte` lays the existing `ToolRail` along the suite's top bar (`regions.tools`), over the same `planToolsOf` tools the plan canvas routes its pointer through; each is a 44 px button named in words (Select, Sector, Vertex, Portal, Door, Window, Things), the chosen one pressed, scrolled to whole on a phone. Passed: Chromium layout `app/suite` 16, editor-3d unit 2125, typecheck, `pnpm knip`. **Draw check, added in the same session** (`suite-draw.test.ts`, 1194 x 834, Chromium): choosing Sector and Rectangle in the top bar and tapping out a room beside the dock's south wall offers a portal; Make portal adds it and the top bar's Undo reads "Undo Draw sector sector-1". **A finding:** it takes two Undo taps to take the room back out (the room, then its portal, both named "Draw sector sector-1"), where the sector tool's notes call them one step; the test holds the limit at two. **Not verified, for the next session and the audit:** the same at a phone size and by touch, that the tools' keys (V, S, X, P, D, N, T: `planToolCommands`) are registered in the suite, and that the Things palette shows and places. **Left of 16.1:** the words and icons of the redesign (Room, Corner, Doorway, Door, Window, Thing, Furniture, Lamp, with icons in the kit), floating tools top centre, the views (Plan, 3D, Walk: only Plan is in the suite's regions; `dollhouse/` and `walk/` exist but nothing in the suite shows them), the label-left inspector and the layers sheet. Do the draw-in-the-suite journey first: it decides whether `DocumentFrame` can go.
+- Task 16.1, second slice (session m6iu2z, 2026-11-08, third session on the branch): **the draw check is wide, the keys are in, and a room is one Undo.** Tests first. (1) `suite-draw.test.ts` runs at all eight sizes by mouse and by touch (16 cases; a finger cannot hover, so the plan-to-page map is read with a mouse and the taps use the finger) and a Things case (16 cases: the palette shows, a crate is picked, a tap in the hall adds it, Undo names "Add crate"). All were green on the first run at phone sizes. (2) The two-tap Undo: its cause was not the sector tool (its unit test already says one step) but `openLevels3d`, which wrote every live frame of an open step to the file; the suite's write path recorded one Undo step per write, so a room plus its portal were two. Red: `levels-3d-session.test.ts` "writes a step that was drawn live once". Fix: the session writes when the history's `revision` moves (a step ends), not on the frames in between; the suite check now expects one Undo. Cost: a drag is written when the finger lifts, and a room waiting on its portal answers is written once they are answered; a page closed in between loses that one step. (3) Keys: `Levels3dTools.svelte` registers `planToolCommands` through the kit's keymap on the window for as long as the bar is shown, except while a field has the focus (a suite test: S then V, and S in a field does nothing). **Found, for 16.1's words:** the Things palette names its things by id ("spawn", "crate"), not words a person knows. Passed: Chromium layout `suite-draw` 33, editor-3d unit 959 in 73 files, typecheck. Not run: WebKit, Firefox, hosted CI.
+- Task 15.3, slice C, remainder: done (session m6iu2z, 2026-11-08). New `testing/level-2d/open-level-screen.ts` (`openLevelScreen(target, workspace, path)`: the level's own `DocumentScreen` over a workspace, no Home). The level, characters and problems layout tests start from it (and `level-view` now expects the tabs Level and Characters, which the earlier cut had left stale); `open-flows.test.ts` became `document-flows.test.ts` (the top bar, the Restore and the conflict dialogs at eight sizes). `recovery-journey.test.ts` (G-l, three edits, the tab killed, Restore) now runs on `DocumentScreen` with real project edits. Deleted: `app/level-2d/{App.svelte,boot.ts}`, `features/home/{Home,LevelList,NewLevelSheet,ProjectCard,ProjectSummary,DeleteDialog}.svelte`, `home-controller`, `lazy-thumbnails`, `stored-last-opened` and their tests, `App.test`, `boot.test`, the Home layout test, the Home thumbnails case of the canvas review images, and the open-flows error-panel case. Kept: `TemplateRow`, `home-model` (the suite's Levels pane uses them), `DocumentScreen`, `main.css`, `profiles.ts`, `views.ts`. **Gaps, said plainly:** (1) the error panel for a file that does not open (700 lines, one very long, scrolling in itself) and the two-profiles-claim choice were only shown by the standalone app; the suite shows its own words for an unreadable file (15.1b d), tested in the suite's journeys, but nothing checks that panel's layout any more, and `ErrorPanel` / `ProfileChoice` still stand in `features/document` because knip finds them used. (2) Home's own layout (cards, search, delete) is gone with Home: the suite's Home has its own layout test. Passed: typecheck, `pnpm knip`, `boundaries`, `style`, `source-names`, editor unit 3080 in 256 (from 3190: the deleted tests), Chromium layout level + characters + problems + document 244. Not run: WebKit, Firefox, the journeys after this deletion, hosted CI.
+- Task 16.1, third slice (session m6iu2z, 2026-11-08): **the views and the words.** Tests first. (1) `suite-views.test.ts` (Chromium layout, eight sizes): the top bar's View control has Plan, 3D and Walk, and each draws its own canvas (`dollhouse-canvas`, `walk-canvas`, `plan-canvas`); red at first for "no Plan view". `Levels3dCanvas.svelte` shows the one the level editor's own view mode names (so the choice is kept with the camera and layer), `Levels3dTools.svelte` draws the control (the kit's `Segmented`; on a compact window, by `shellModeOf` of the window, one `Menu` named View that shows the view it is on, since three segments did not fit a 390 px bar: "3D is covered or clipped") and the tool rail only on the Plan (the keys too). `createLevels3d` takes `dollhouse` (a fake in tests, Pixi lazily in the page) and `frames` (the page's animation frames, passed by `suite-main.ts`), Walk's words go to the status line through the pointer state. These are the existing editor-private flat-shaded views: **16.3 still has to draw them in the game's look.** (2) The tool words: Room, Corner, Doorway, Door, Window, Thing (were Sector, Vertex, Portal, Door, Window, Things), each an icon over its name; seven new kit icons (corner, doorway, door, window, thing, furniture, lamp: Lucide, recorded in `docs/provenance/sources.md`, the icon test says 40 names). Red: `ToolRail.test.ts` (names and an icon in each button). A tool's name is still its word, so a screen reader and a person agree; horizontal tools are as wide as their names (the contract found "Doorway" spilling past a 44 px button). Not renamed yet (18.1's copy pass, and the inspector's own tabs): the inspector's Sector, Walls, Things tabs and the Portal wall kind, and the Things palette names things by id ("spawn", "crate"). Passed: Chromium layout editor-3d 238 (+3 skipped), canvas 14, journeys 16 in Chromium, editor-3d unit 2127, editor icon test, typecheck, biome. `pnpm api-report --update` wrote no change. Not run: WebKit, Firefox, hosted CI. **Left of 16.1:** the label-left inspector and the layers sheet on a phone (the layers button, and one eye and one lock per layer row, C8); 16.2's Furniture and Lamp tools (their icons are in).
+- Task 16.1, fourth slice (session m6iu2z, 2026-11-08): **the real page, on an iPad and a phone.** I ran the real `automata editor` (built tools, built `editor-3d` suite) on a copy of `games/base-3d` and drove it with Playwright and real Pixi (scripts were in the scratchpad, not committed; 18.3 will make it a journey). Found: (1) **Levels 3D cannot open Ember Hall's room** ("af-sector/2 is not a version this editor reads (af-sector/1)", nothing drawn): 7.1's ruling 2 said the editor stays on `/1` until 14.1 and 16.2, and neither moves the edit model to `/2`. The coordinator started a separate plan thread for it; this branch does not bridge it. With the try-it hall (`/1`) in its place the room draws for real in Plan, 3D and Walk on both sizes. (2) On a phone the View menu and the seven tools sat in the top bar's scrolling strip with Undo and Redo and only about 160 px showed: the tools were out of sight with no sign they scrolled, and the menu button was squeezed ("P", then a clipped "3"). Test first (`suite-levels.test.ts`, "the drawing tools are in view": red at the three compact sizes): on a compact window (`shellModeOf`, as the suite's own fold) the views and the tools float at the plan's foot (`Levels3dCanvas`, the strip declared a scroll region, `--plan-foot` keeps the plan's own controls above it), the View is a menu at its start, in every view; the top bar keeps Home, the game's name, Undo, Redo and the two panel toggles; wider windows keep both in the top bar. New small components: `Levels3dViewControl`, `Levels3dToolRail`. (3) **Not fixed, for 16.3 and the audit:** Walk's HUD says "This level has no spawn..." twice (the chip, a full-width band that runs off a phone's edge, and the orange warning) over its own Walk/Fly/Orbit toggle; a 3D game's rail lists both Levels and Levels 3D and still calls the Studio "Studio" (plan thread); the refusal text for an unreadable file is dim on dark. Passed: editor-3d unit 2127, Chromium layout 238 (+3 skipped), canvas 14, journeys 16 in Chromium, typecheck, biome. Not run: WebKit, Firefox, hosted CI.
+- Task 16.1, fifth slice (session m6iu2z, 2026-11-08): **the details and the layers.** The suite's Levels 3D details were a stub (the selected thing's name and the checks), so a person could not change a room's floor, ceiling or light, a wall's kind or a thing's fields in the suite at all. Test first (`suite-draw.test.ts`, "Changing a room", 16 cases: eight sizes by mouse and touch; red on the missing Floor and Ceiling steppers): a tap on the hall shows its card, "Light" sits on one row with its slider, a Ceiling step names the Undo "Set the heights of hall". `Levels3dInspector` now draws the standalone frame's own `Inspector` (sector, wall and thing cards, the Material sheet, the Definitions sheet) through `createInspectorEdits`, then the checks sentence; where the details are a sheet the Details button opens it (as before). The kit's `Slider` reads `--label-flex` as the Stepper does, so the inspector's names sit left of their controls (the 2D Tuner has none set, so it is unchanged). The layers panel's eye and lock are the kit's eye, eye-off, lock and unlock icons (were a dot and two emoji, which render differently on every device); their names (`Hide Walls`, `Lock Walls`) are as they were. The `levels-3d-selection` test id went with the stub; the unit test reads the card. Passed: editor-3d unit 2127, editor kit unit 1334, Chromium layout editor-3d 254 (+3 skipped), typecheck. Not run: WebKit, Firefox, hosted CI. **16.2 and 16.3 are blocked on the move to `af-sector/2`:** props, lamps and the time of day exist only in `/2` (`af-sector-2.schema.ts`), and the editor's edit model is typed on `/1` until the separate plan thread moves it; building `placeProp`, `placeLamp`, `setTimeOfDay`, `setWallTrim`, `setWindows` or `frameMap(level: AfSector2, …)` on `/1` would be thrown away. Left in the card: the materials rows say Floor, Walls, Ceiling beside the Floor and Ceiling steppers (18.1's copy pass).
+
+- 2026-11-08 (session n9tc3p): the editor's switch to `af-sector/2`, which task 7.1 moved to 14.1 and 16.2 and neither
+  did, is planned as tasks 15.5 and 16.1b to 16.1e ([plan](2026-11-08-levels-3d-sector-2-plan.md),
+  [spec](2026-11-08-levels-3d-sector-2-spec.md)); 16.2, 16.3, 17.1 and 18.2 amended where they overlap. 54 → 59 tasks.
+- 2026-11-08 (session ELAJhL, plan audit of 15.5 and 16.1b to 16.1e): 17 findings, fixed in place in that spec and
+  plan ([record](2026-11-08-levels-3d-sector-2-plan-audit.md)). Measured end to end on a copy of base-3d in the served
+  suite: the rail shows Levels and Levels 3D and Studio, and the refusal is ink on charcoal (about 1.1:1). The ones that
+  would have kept a person from editing and playing the room: Ember Hall's definitions are only ids, which the editor's
+  thing reader refuses (A1); base-3d's dev server reads the checkout's room, not the copy (A2); placed props, characters
+  and lamps cannot go through the entity reader or `mergeMembers` (A4). Still 59 tasks.
+- Tasks 16.1d and 16.1e: done (session rb7s0i, 2026-11-08, [plan](2026-11-08-levels-3d-sector-2-plan.md)). 16.1d: `SuiteWorkspace.list?`, `readGameLibrary`, props, cast and lamps as things named in words under Furniture and Characters, the check for a name the game lacks, core's `swatchColour`; Ember Hall opens with 12 things and no problems and a moved crate is written as `at`. 16.1e: Pit (a checkbox, "Pit (the player falls in)") and Camera (the file's views by name, and None) on the room's card; a pit is drawn dark and labelled on the plan; `showRoom` in base-3d's journeys route; base-3d's dev server reads the copy's content and room file from `AF_E2E_CONTENT_ROOT`; the journey `levels-3d-edit-reaches-the-game` moves crate-2 to (3, 6.5) and raises the middle floor to 0.5 in the real editor, then plays the game over the copy and reads both back from the page, at iPad and phone size in Chromium. It was red first for the right reason (the game showed the checkout's `crate-2:4.00,6.50`) and green after the vite change. Rulings: (1) the plan's `setSectorPit({sector,pit})` and `setSectorView` are `setPit({id,pit})` and the existing `setView({id,view})` (the label is now "Set the camera of <room>"), to match the other sector edits; (2) `showRoom(room, enabled, root)` has no `area` argument, which it would not use; (3) the journey drags the crate and sets the floor through the plan and the room's card, with the status line's read-out mapping metres to pixels, as the layout tests do. Found by the journey on a phone: selecting a thing made the status line wrap to a third line, which shrank the plan and slid the room 0.64 m under the dragging finger (the crate saved at z 7, not 6.5). Fixed in `Levels3dStatus.svelte` (three lines and their gaps are reserved below 600 px); the layout test in `suite-draw.test.ts` was red at phone size first. Checks: editor-3d unit 2195, Chromium layout, canvas and journeys all pass (one `draw.journey` flake under load that passes alone), base-3d unit 109, editor and editor-3d typecheck clean. Not run: WebKit, Firefox.
+- Task 16.2: mostly done (session rb7s0i, 2026-11-08, PR #493). Tests first, each red for the right reason. (1) Lamps: `placedDefinitions` offers every kind of the lamp kit (`LAMP_KINDS`, exported from `@automata/3d/world-content`) when the game has a library, in words ("Pendant lamp"); the Things palette had no Lamps group, so a lamp was invisible there until `ThingsPalette` got one. (2) Checks: a placed thing outside every room and a lamp within 5 cm of a wall line are named in words (`placedProblems`); the level's own entities keep the engine's sentence ("entity ember-9 is outside every sector"). (3) `setTimeOfDay` (`shared/edit/level-edits.ts`) over a new optional `LevelProfile.time` (`TimeAccess`: the 3D package's six times by their labels, the one the file names, and one that keeps a time's own changes); the level card (nothing selected) has a "Time of day" picker with "As the game has it". (4) `setTrim` on the room's card: Skirting, Wainscot, Rail as steppers, 0 takes a piece off, a piece it is not asked about stays as written. Rulings: lamps and furniture are placed from the palette, so there is no Lamp tool beside the Thing tool (16.1d's ruling stands); `setWallTrim` became the room's trim, because a wall's own `trim` is written as a surface or a partial and nothing in base-3d draws a different trim per wall; window grids (`setWindows`) are not built, since a grid is a facade of a city exterior and base-3d has none, so it is left until a game asks. **Found by playing:** Time of day is written to the file but base-3d's scene does not read it (it draws with the one `DEFAULT_LOOK`), so an edit to it does not show in play; a game that wants it reads `timeOfDay(level.time)` itself, which is the game's code. Checks: editor-3d unit 2216, Chromium layout 278, canvas 14, typecheck clean. Not run: WebKit, Firefox.
+- Task 16.3: done (session rb7s0i, 2026-11-08, PR #493). Tests first, each red for the right reason. (1) The game's look: `Surface` carries the `texture` its sector or wall names (`sector-mesh.ts`); `dollhousePaint` and `meshPaint` take an optional `colours(texture)` and fall back to the blockout's grey when the game gives none; `gameColours(library)` answers it from `swatchColour(worldLibrary(library), name)` (seeded names `name#seed` included); the plan tints a room's floor 40 % toward its swatch (`FLOOR_TINT`). (2) `frameMap(input, view, canvas, usable?)` is the one place the plan, the 3D orbit and Walk's eye are framed; the three controllers call it. (3) 16.1's pictures: before and after at 390 x 844, 844 x 390, 1194 x 834 and 1440 x 900 in `/mnt/project-files/3d-slice/16.3/`, taken by editing Ember Hall's room in the real editor (a scratch journey, not committed); the keyboard test (`suite-draw.test.ts`) shrinks the viewport as an on-screen keyboard does and checks the Floor field keeps focus and the layout does not change mode. Rulings: `frameMap` lives in `features/levels-3d/` because `shared/` cannot import features; window grids (`setWindows`) are still not built, base-3d has no facade. **Found by playing:** (a) core's `createPixi3dRenderer({time})` only feeds extension look passes, so base-3d looked the same at Day and Night; base-3d now reads the level's `time` (`room-time.ts`), writes `data-time` in a journeys build and scales its sky, ground, fog and room colours by `timeShade` (a first version went near black, so it is floored at 0.4); journey `levels-3d-edit-reaches-the-game` sets Night in the editor and checks the file and the played page. (b) Walk's name chip sat over the View switch and was dark on dark: moved under the top row, on a dark plate with light text, with a layout test for both (red first). Checks: editor-3d unit 2234, base-3d unit 118, Chromium suite-views, walk and suite-draw layout, journey at iPad and phone size, typecheck clean. Not run: WebKit, Firefox, hosted CI.
+- Task 16.3 build audit fixes (session hy70zt, 2026-11-08, PR stacked on #499; the audit is `/mnt/project-files/refactor/levels-3d-build-audit.md`). Tests first, each red for the right reason. **H2, with the time of day moved into core:** `levelTime` and `lightByTime` (`packages/3d/src/shared/time-of-day/time-light.ts`) and `createPixi3dRenderer({ time })` now light the fog and the game's hemisphere sky and ground, so a game plays the time its level file names with no rule of its own; base-3d's `shade.ts` and `room-time.ts` are gone, the create-game 3D template plays `levelTime(ROOM_LEVEL.time)` (new unit test in `template-3d.test.ts`), changeset patch for `@automata/tools`; a Chromium parity test draws the same room by day and by night. **M1:** the six times are told apart by ambient level and tint plus the grade, never below `FLOOR` 0.4 (Night 0x474e60 against Day's 0xcdd2da wall, Golden hour 0xcbb594, Bar light 0x4a455a); Night and Bar light are the closest pair, 9 apart in one channel (the test says 8), told apart by cool blue-green against plum. **Found by playing:** at Night the stepped material drew every surface black, because it reads the hemisphere in linear light and cuts it into whole steps, and a dim sRGB hemisphere falls below the first step; `lightHemisphere` lifts sky and ground together to a linear floor of 0.14 (red first: `time-light.test.ts`), which the earlier parity test (darker, not black) had missed. **H1:** the 3D and Walk views draw the room with core's `buildWorld`/`drawWorld` through `View3D` at the game's 180 px field and the look's passes, selection as an accent overlay only; props, the start figure, embers and lava show. **M2:** `fitOrbit` takes `usable` and `cardClearArea` finds what an open card or sheet leaves clear; the room is framed in it and again when the card opens. **M3:** both views light by the picked time. **M4:** `levels-3d-edit-reaches-the-game` plays the room first as shipped, then after the edits, reads the canvas's mean luminance both times (past the title and the slot list, the game played in a landscape window because it shows a turn-your-device hint in a portrait one) and requires the edited Night below 0.8 of the first; the new journey `new-3d-game-plays-its-edits` does the same for a game made by `automata create-game --template 3d` (Night, a crate moved from 3.5 to 2.5, the floor raised to 0.5; `newGame` takes a template), which is the make-edit-play check the build audit asked for. Both pass at iPad and phone size in Chromium. **M5:** the 16.3 entries named PR #493 and said base-3d scaled the room's colours; both corrected in `progress.md`. **L1:** pictures retaken at the four sizes, plus Night and Golden hour. **L3:** the chip and the warning stack under the top row, positioned from the minimap's height, colours named. **L5:** Rooms, empty kinds hidden unless chosen, hidden or locked, ids worded, the 3D tag reads "Drag to turn the room". Rulings: (1) **Stand-ins, not figures:** the editor's views draw boxes for the start, embers, goal, cast and lamps, because core's figure and effect code needs the game's own assets and sim; a person sees where things are, and play shows them. Cost if wrong: the 3D view is not a true preview of figures. (2) **Hero at Night (L4):** the game's figures are lit by the same hemisphere as the room, and the time's `figure.exposure` is a look-pass setting that this view does not use; so nothing is dimmed separately, decided to keep one rule. Cost if wrong: a figure may glow at Night in play; check in the next audit. (3) **`frameMap`'s interface (L6):** `frameMap(input, view, canvas, usable?)` returning a plan camera, an `Orbit` or a `WalkStart`, not `frameMap(level, view, viewport): Camera3d`, because the three views keep different cameras and the plan has always had `usable`. (4) **The white bar on a phone's Plan (L2):** not identified; it appears only at 390 wide in headless Chromium's software GL, not at the other sizes, and is drawn on the canvas, not a DOM element; it needs a real phone. Cost if wrong: a flash of white on a phone. (5) **Sky stops** of the time's library are not applied: only the hemisphere and fog carry the time, because the game draws no sky. (6) **Window grids** stay out. (7) The status line repeats the Walk chip's words: kept, because it is where a screen reader and the HUD-less sizes read them. Checks: core unit time-light 15, Chromium parity time-of-day 3, editor-3d unit and Chromium layout and canvas, the journey at iPad size in Chromium, typecheck. Not run: WebKit, Firefox, hosted CI.

@@ -1,6 +1,6 @@
 // `content/fonts.toml`: each source font by name, committed by the game, with the
-// sha256 of its bytes, its licence and the content languages it serves. From FloorFifty
-// packages/asset-contract/fonts-src/sources.json (ac72660), without the url: AF never fetches a font.
+// sha256 of its bytes, its licence and the content languages it serves. There is no url:
+// AF never fetches a font.
 //
 //   [font.pixel]
 //   file = "fonts/pixelify-sans-latin-400.woff2"   # relative to the project root

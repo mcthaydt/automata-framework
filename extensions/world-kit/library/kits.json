@@ -1,0 +1,447 @@
+{
+  "waitingRoom": {
+    "surfaces": {
+      "floor": "lino",
+      "ceiling": "ceilingTile",
+      "wall": "plasterPaint",
+      "dado": {
+        "surface": {
+          "tile": "panelPainted"
+        },
+        "height": 1.0
+      },
+      "rail": 1.0,
+      "skirting": 0.1
+    },
+    "furniture": [
+      {
+        "use": "chair.row",
+        "rule": "wall",
+        "per": 0.1,
+        "min": 2,
+        "max": 5
+      },
+      {
+        "use": "table.round",
+        "rule": "centre",
+        "per": 0.02,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "use": ["plant.pot", "plant.fronds"],
+        "rule": "corner",
+        "per": 0.05,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "use": "cooler.water",
+        "rule": "corner",
+        "per": 0.02,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "fixtures": {
+      "switches": true,
+      "outlets": true,
+      "vents": true,
+      "radiators": true,
+      "signs": ["EXIT", "OFFICE", "WC"],
+      "art": ["noticeboard", "picture.sea"],
+      "artEvery": 3
+    },
+    "clutter": {
+      "on": ["paper", "books.stack", "cup"],
+      "per": 2
+    },
+    "floor": {
+      "use": ["paper"],
+      "per": 0.08
+    },
+    "ceiling": {
+      "use": "lamp.pendant",
+      "spacing": 3,
+      "skipIfLamp": true,
+      "drop": 0.45
+    }
+  },
+  "office": {
+    "surfaces": {
+      "floor": "tileFloor",
+      "ceiling": "ceilingTile",
+      "wall": "plasterWarm",
+      "skirting": 0.1
+    },
+    "furniture": [
+      {
+        "use": "desk",
+        "rule": "wall",
+        "per": 0.06,
+        "min": 1,
+        "max": 3,
+        "with": {
+          "top": {
+            "tile": "laminate"
+          }
+        }
+      },
+      {
+        "use": "chair.wood",
+        "rule": "centre",
+        "per": 0.03,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "use": "cabinet.filing",
+        "rule": "corner",
+        "per": 0.04,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "use": "bookcase",
+        "rule": "wall",
+        "per": 0.03,
+        "min": 1,
+        "max": 2
+      }
+    ],
+    "fixtures": {
+      "switches": true,
+      "outlets": true,
+      "vents": true,
+      "radiators": true,
+      "signs": ["OFFICE", "STAFF", "EXIT"],
+      "art": ["noticeboard", "picture.sun"],
+      "artEvery": 3
+    },
+    "clutter": {
+      "on": ["paper", "books.stack", "cup"],
+      "per": 3
+    },
+    "floor": {
+      "use": ["paper"],
+      "per": 0.05
+    },
+    "ceiling": {
+      "use": "lamp.pendant",
+      "spacing": 3,
+      "skipIfLamp": true,
+      "drop": 0.45
+    }
+  },
+  "bedroom": {
+    "surfaces": {
+      "floor": "oakFloor",
+      "ceiling": "plasterWarm",
+      "wall": "wallpaperSage",
+      "skirting": 0.1,
+      "cornice": {
+        "surface": "trimWhite",
+        "height": 0.1
+      }
+    },
+    "furniture": [
+      {
+        "use": ["bed.single", "bed.double"],
+        "rule": "wall",
+        "per": 0.02,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "use": "nightstand",
+        "rule": "wall",
+        "per": 0.03,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "use": ["wardrobe", "dresser"],
+        "rule": "wall",
+        "per": 0.03,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "use": "rug.red",
+        "rule": "centre",
+        "per": 0.02,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "fixtures": {
+      "switches": true,
+      "outlets": true,
+      "radiators": true,
+      "art": ["picture.sea", "picture.sun"],
+      "artEvery": 3
+    },
+    "clutter": {
+      "on": ["books.stack", "cup"],
+      "per": 2
+    },
+    "floor": {
+      "use": ["paper"],
+      "per": 0.03
+    },
+    "ceiling": {
+      "use": "lamp.pendant",
+      "spacing": 4,
+      "skipIfLamp": true,
+      "drop": 0.45
+    }
+  },
+  "livingRoom": {
+    "surfaces": {
+      "floor": "oakFloor",
+      "ceiling": "plasterWarm",
+      "wall": "wallpaperDamask",
+      "dado": {
+        "surface": {
+          "tile": "panelPainted"
+        },
+        "height": 0.9
+      },
+      "rail": 0.9,
+      "skirting": 0.12,
+      "cornice": {
+        "surface": "trimWhite",
+        "height": 0.12
+      }
+    },
+    "furniture": [
+      {
+        "use": "table.round",
+        "rule": "centre",
+        "per": 0.02,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "use": "chair.cushion",
+        "rule": "centre",
+        "per": 0.05,
+        "min": 2,
+        "max": 3
+      },
+      {
+        "use": "lamp.floor",
+        "rule": "corner",
+        "per": 0.02,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "use": "bookcase.low",
+        "rule": "wall",
+        "per": 0.03,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "use": "plant.fronds",
+        "rule": "corner",
+        "per": 0.03,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "fixtures": {
+      "switches": true,
+      "outlets": true,
+      "radiators": true,
+      "art": ["picture.sea", "picture.sun"],
+      "artEvery": 2.5
+    },
+    "clutter": {
+      "on": ["books.stack", "cup"],
+      "per": 2
+    },
+    "floor": {
+      "use": ["paper"],
+      "per": 0.03
+    },
+    "ceiling": {
+      "use": "lamp.pendant",
+      "spacing": 4,
+      "skipIfLamp": true,
+      "drop": 0.45
+    }
+  },
+  "corridor": {
+    "surfaces": {
+      "floor": "lino",
+      "ceiling": "ceilingTile",
+      "wall": "plasterPaint",
+      "dado": {
+        "surface": {
+          "tile": "tileWall"
+        },
+        "height": 1.2
+      },
+      "rail": 1.2,
+      "skirting": 0.1
+    },
+    "furniture": [
+      {
+        "use": ["plant.pot", "plant.fronds"],
+        "rule": "corner",
+        "per": 0.03,
+        "max": 2
+      }
+    ],
+    "fixtures": {
+      "switches": true,
+      "outlets": true,
+      "vents": true,
+      "signs": ["EXIT", "STAIRS", "WC"],
+      "art": ["noticeboard", "picture.sea"],
+      "artEvery": 2.5
+    },
+    "floor": {
+      "use": ["paper"],
+      "per": 0.04
+    },
+    "ceiling": {
+      "use": "lamp.pendant",
+      "spacing": 3,
+      "skipIfLamp": true,
+      "drop": 0.4
+    }
+  },
+  "storeroom": {
+    "surfaces": {
+      "floor": "aggregate",
+      "ceiling": "ceiling",
+      "wall": "brickStack"
+    },
+    "furniture": [
+      {
+        "use": "shelving",
+        "rule": "wall",
+        "per": 0.08,
+        "min": 2,
+        "max": 5
+      },
+      {
+        "use": ["crate", "barrel"],
+        "rule": "corner",
+        "per": 0.06,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "use": "mop.bucket",
+        "rule": "corner",
+        "per": 0.02,
+        "max": 1
+      }
+    ],
+    "fixtures": {
+      "switches": true,
+      "outlets": true,
+      "vents": true
+    },
+    "clutter": {
+      "on": ["books.stack", "cup", "paper"],
+      "per": 2
+    },
+    "floor": {
+      "use": ["paper"],
+      "per": 0.1
+    },
+    "ceiling": {
+      "use": "lamp.pendant",
+      "spacing": 3.5,
+      "skipIfLamp": true,
+      "drop": 0.4
+    }
+  },
+  "street": {
+    "surfaces": {
+      "floor": "pavingSlabs"
+    },
+    "furniture": [
+      {
+        "use": "bench",
+        "rule": "wall",
+        "per": 0.02,
+        "max": 2
+      },
+      {
+        "use": "bin",
+        "rule": "wall",
+        "per": 0.02,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "use": "planter",
+        "rule": "wall",
+        "per": 0.03,
+        "max": 3
+      },
+      {
+        "use": "box.utility",
+        "rule": "wall",
+        "per": 0.01,
+        "max": 1
+      },
+      {
+        "use": "post.sign",
+        "rule": "corner",
+        "per": 0.01,
+        "max": 1
+      }
+    ],
+    "fixtures": {
+      "outdoor": ["cable.run"],
+      "artEvery": 5
+    },
+    "floor": {
+      "use": ["paper"],
+      "per": 0.03
+    }
+  },
+  "yard": {
+    "furniture": [
+      {
+        "use": "planter",
+        "rule": "wall",
+        "per": 0.03,
+        "max": 3
+      },
+      {
+        "use": ["crate", "barrel"],
+        "rule": "corner",
+        "per": 0.04,
+        "max": 3
+      },
+      {
+        "use": "bin",
+        "rule": "wall",
+        "per": 0.02,
+        "max": 2
+      },
+      {
+        "use": "mop.bucket",
+        "rule": "corner",
+        "per": 0.01,
+        "max": 1
+      }
+    ],
+    "fixtures": {
+      "outdoor": ["cable.run", "box.utility"],
+      "artEvery": 4
+    },
+    "floor": {
+      "use": ["paper"],
+      "per": 0.05
+    }
+  }
+}

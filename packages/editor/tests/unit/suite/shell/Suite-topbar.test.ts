@@ -28,7 +28,7 @@ async function gameFolder() {
   const load = loadEditorList(LIST)
   if (!load.ok) throw new Error('the test list does not load')
   const classify = (path: string) => workspaceFile(load.list, path)
-  return (await createMemoryPorts({ files, classify, changeSet: false })).ports
+  return (await createMemoryPorts({ files, classify })).ports
 }
 
 async function start(options: { sample?: boolean; game?: string } = {}) {
@@ -44,6 +44,12 @@ async function start(options: { sample?: boolean; game?: string } = {}) {
 }
 
 describe("the suite's top bar", () => {
+  it('the Home has the Editor colours control, under the cards', async () => {
+    await start({ game: 'Emberwick' })
+    await screen.findByRole('heading', { name: 'What do you want to change?' })
+    expect(screen.getByRole('radiogroup', { name: 'Editor colours' })).toBeInTheDocument()
+  })
+
   it('names the game and says the changes are saved in its folder; a pill with nothing to say is not shown', async () => {
     await start({ game: 'Emberwick' })
     expect(await screen.findByText('Emberwick')).toBeInTheDocument()
@@ -69,19 +75,11 @@ describe("the suite's top bar", () => {
     expect(saved.closest('.where')?.querySelector('svg')).not.toBeNull()
   })
 
-  it("puts Export and Import in Home's heading row, beside the question, not floating above it", async () => {
+  it('offers no Export, Import or Publish: the editor writes the game itself', async () => {
     await start({ game: 'Emberwick' })
-    const heading = await screen.findByRole('heading', { name: 'What do you want to change?' })
-    const row = heading.closest('header')
-    expect(row).not.toBeNull()
-    expect(row?.contains(screen.getByRole('button', { name: 'Export changes' }))).toBe(true)
-    expect(row?.contains(screen.getByRole('button', { name: 'Import changes' }))).toBe(true)
-  })
-
-  it('Publish is quiet, not the lime primary, while there is nothing new to publish', async () => {
-    await start({ sample: true })
-    const publish = await screen.findByRole('button', { name: 'Publish' })
-    await vi.waitFor(() => expect(publish).toHaveAttribute('data-kind', 'plain'))
+    await screen.findByRole('heading', { name: 'What do you want to change?' })
+    for (const name of ['Export changes', 'Import changes', 'Publish'])
+      expect(screen.queryByRole('button', { name })).toBeNull()
   })
 
   it("says nothing but a person's words on Home and with the Tuner open (the copy rule, task 12.5)", async () => {

@@ -16,14 +16,14 @@ never = ["package.json"]
 [[file]]
 glob = "content/scenes/{scene}/puzzle.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["P-G1"]
 checks = ["content"]
 
 [[file]]
 glob = "content/scenes/*/*.toml"
 editor = "writer"
-modes = ["ask"]
+modes = ["edit"]
 gates = []
 checks = ["content"]
 
@@ -66,7 +66,7 @@ describe('fileAccess', () => {
 [[file]]
 glob = "**"
 editor = "tuner"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = []
 `)
@@ -182,7 +182,7 @@ describe('workspaceFile', () => {
       scene: 'bay',
       gates: ['P-G1'],
       checks: ['content'],
-      modes: ['edit', 'ask'],
+      modes: ['edit'],
       writable: true,
     })
   })

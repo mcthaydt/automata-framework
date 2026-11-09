@@ -1,0 +1,62 @@
+{
+  "name": "@automata/systems",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/systems"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./sim": "./src/entries/sim.ts",
+    "./bots": "./src/entries/bots.ts",
+    "./testing/ward-scene.pipe": "./src/testing/ward-scene.pipe.ts",
+    "./testing/ward-scene-strict.pipe": "./src/testing/ward-scene-strict.pipe.ts",
+    "./testing/fixtures/*": "./src/testing/fixtures/*"
+  },
+  "automata": {
+    "simEntries": [
+      "./sim"
+    ]
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@automata/content": "workspace:^",
+    "@automata/framework": "workspace:^",
+    "@automata/nav": "workspace:^",
+    "@automata/places": "workspace:^",
+    "@automata/puzzle": "workspace:^",
+    "@automata/sectors": "workspace:^",
+    "@automata/sim": "workspace:^"
+  },
+  "devDependencies": {
+    "@automata/content": "workspace:*",
+    "@automata/evidence": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/nav": "workspace:*",
+    "@automata/places": "workspace:*",
+    "@automata/puzzle": "workspace:*",
+    "@automata/sectors": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
+    "smol-toml": "1.9.0",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

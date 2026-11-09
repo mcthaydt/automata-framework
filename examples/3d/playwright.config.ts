@@ -2,8 +2,8 @@ import { demoHostOrigin, demoHostPort, examples3dPort } from '@automata/examples
 import { defineJourneys } from '@automata/playwright-preset'
 import { devices } from '@playwright/test'
 
-// The 3D examples' journeys (render3d, and figures since M3.5d): `pnpm test:e2e` in this folder, run by the 3D
-// workflow (.github/workflows/3d.yml), never by the 2D gate. Chromium, and WebKit (M3.4a) because the Owner's iPad
+// The 3D examples' journeys (render3d and figures): `pnpm test:e2e` in this folder, run by the 3D
+// workflow (.github/workflows/3d.yml), never by the 2D gate. Chromium, and WebKit because the Owner's iPad
 // is WebKit; headless Firefox has no WebGL here. Each example is framed by the shared fake host.
 
 const reuse = process.env.CI === undefined
