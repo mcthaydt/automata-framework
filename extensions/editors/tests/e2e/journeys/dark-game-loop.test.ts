@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { paintWall } from '../../../../../packages/editor/tests/e2e/harness/fixtures.ts'
 import { boxOf, readPng } from '../../../../../packages/editor/tests/e2e/harness/read-png.ts'
 import { readZip } from '../../../../../packages/editor/tests/e2e/harness/read-zip.ts'
-import { expect, openEditor, savedInto, servedWith, test } from '../harness/fixtures.ts'
+import { expect, openEditor, pressInList, savedInto, servedWith, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { runEditor } from '../harness/run-editor.ts'
 
@@ -14,11 +14,13 @@ import { runEditor } from '../harness/run-editor.ts'
 
 test.use({ colorScheme: 'light' })
 
-/** The starter level's cells: 512 px across 32 of them, row 2 before and after a wall at column 5. */
+/** The starter level's cells: 512 px across 32 of them. */
 const STARTER_TILE = 16
 /** The level's background, which the played canvas shows around everything else. */
 const BACKGROUND: readonly [number, number, number] = [0x1b, 0x25, 0x40]
-const WALLED_ROW = '".*32", ".*32", ".*5 1 .*26", ".*32"'
+/** Row 2 of the new game's level once the wall is painted: the template's own wall stands at column 16. */
+const WALL_CELLS = '.*5 1 .*10 1 .*15'
+const WALLED_ROW = `"${WALL_CELLS}"`
 const WORD = 'Bump in the dark!'
 /** Where Vite serves the compiled content module the game imports. */
 const CONTENT_MODULE = '@id/__x00__virtual:automata/content'
@@ -43,12 +45,12 @@ test('a new game is made, edited, played and published in the dark editors', asy
     await openEditor(page, editor, 'Tuner')
     // Dark on a light device, chosen by nobody: the field is the dark one and the controls are drawn dark too.
     expect(await look(page)).toEqual({ scheme: 'dark', field: 'rgb(11, 12, 14)', chosen: 'dark' })
-    await expect(page.getByText('This game has no settings file yet.')).toBeVisible()
+    await expect(page.getByTestId('tuner-rows')).toBeVisible()
     await page.screenshot({ path: test.info().outputPath('dark-tuner.png') })
 
     // Levels: a wall is painted and saved into the level file.
     await openEditor(page, editor, 'Levels')
-    await page.getByRole('button', { name: 'Start', exact: true }).first().click()
+    await pressInList(page, 'Start')
     await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
     await paintWall(page, { col: 5, row: 2 }, STARTER_TILE)
     await savedInto(game, 'content/levels/start.toml', WALLED_ROW)
@@ -67,7 +69,7 @@ test('a new game is made, edited, played and published in the dark editors', asy
     expect((await look(page)).field).toBe('rgb(11, 12, 14)')
 
     await servedWith(editor, WORD)
-    await servedWith(editor, '.*5 1 .*26')
+    await servedWith(editor, WALL_CELLS)
 
     // Play: the editor's own Play link opens the running game. It carries none of the editors' colours, and the wall
     // painted in the dark editor is on its screen: the cell is not the background, and the cell beside it is.
@@ -81,7 +83,7 @@ test('a new game is made, edited, played and published in the dark editors', asy
       chosen: document.documentElement.dataset.theme,
       field: getComputedStyle(document.documentElement).getPropertyValue('--bg'),
     }))
-    expect(gameLook).toEqual({ chosen: 'dark', field: '' })
+    expect(gameLook).toEqual({ chosen: undefined, field: '' })
     await play.getByRole('button', { name: /play/i }).first().click()
     await expect
       .poll(
@@ -123,7 +125,7 @@ test('a new game is made, edited, played and published in the dark editors', asy
     ])
     const files = readZip(await download.path())
     const code = [...files].filter(([name]) => name.endsWith('.js')).map(([, text]) => text)
-    expect(code.some((text) => text.includes('.*5 1 .*26'))).toBe(true)
+    expect(code.some((text) => text.includes(WALL_CELLS))).toBe(true)
     expect(code.some((text) => text.includes(WORD))).toBe(true)
     // The level file the zip was built from is the one the editor saved.
     expect(readFileSync(join(game.dir, 'content/levels/start.toml'), 'utf8')).toContain(WALLED_ROW)

@@ -426,7 +426,7 @@ and log what differs and why.
   `packages/editor-3d/src` (11 uses on #508, to `secondary`; spec §9), the visual baselines that moved,
   `docs/refactor/progress.md`, this plan's log.
 
-- [ ] **Step 1:** Change `dark-game-loop.test.ts` to start with an empty store and `colorScheme: 'light'`, check the
+- [x] **Step 1:** Change `dark-game-loop.test.ts` to start with an empty store and `colorScheme: 'light'`, check the
       editors open dark, make the small game with the complete-game helpers (`tests/e2e/harness/complete-game.ts`):
       paint a Decor cell, change the player's picture in Characters, add a key in the Tuner, add a flash in Feel,
       start the bump at 880 Hz in Audio, and change the keeper's line in Writer (the shared-editors build's 2D
@@ -436,17 +436,17 @@ and log what differs and why.
       Then run `complete-game-2d` and `complete-game-3d` (`pnpm --filter @automata/editor test:e2e -- complete-game
       --trace off`): every editor in both kinds of game, in the new look. Expected: PASS, with the `test.fail` journeys
       the shared-editors build left failing for their stated reasons.
-- [ ] **Step 2:** Turn the 3D editors' `variant="primary"` buttons outside a dialog to `secondary`, then run the 3D
+- [x] **Step 2:** Turn the 3D editors' `variant="primary"` buttons outside a dialog to `secondary`, then run the 3D
       editors: `.github/workflows/3d.yml`'s commands, including `dark-levels-3d.test.ts`.
       Levels 3D and the Studio show in the new shell, header, sidebar and tab bar with Publish their only lime; their
       insides are otherwise unchanged.
       Expected: PASS. If it cannot run here, leave the step unchecked and say so.
-- [ ] **Step 3:** Run every visual test; for each baseline that moved, look at expected, actual and diff, re-record
+- [x] **Step 3:** Run every visual test; for each baseline that moved, look at expected, actual and diff, re-record
       it only when the change is the v2 look, and name each in the log.
-- [ ] **Step 4:** Run the full gates: `pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`, the site's e2e and
+- [x] **Step 4:** Run the full gates: `pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`, the site's e2e and
       parity. Record which ran, which did not (WebKit, Firefox and real devices cannot run in a cloud session) and the
       results in the log and in `progress.md`.
-- [ ] **Step 5: Commit** `test(editors): the v2 look proven in play; record the build`.
+- [x] **Step 5: Commit** `test(editors): the v2 look proven in play; record the build`.
 
 **For the build audit (stage 5), the thread's instructions must say:** make a small 2D game and a small 3D game in the
 rebuilt editors, play each, and confirm that what was made shows up in play (spec §11's list), at a phone size and an
@@ -652,3 +652,24 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   Tests first: the layout's new cases and the browser test of the tall board went red for the right reasons (with the tall
   switch forced off: "expected 3 to be greater than 5"). Ran: extension unit tests (655), the extension layout project
   in Chromium with and without touch (6 files), svelte-check. Not run: the Schematic journeys (Task 14), WebKit, Firefox.
+- 2026-11-08, build, Task 14: the 3D editors' buttons are secondary (done with Task 13's 3D pass; `lime-only-in-dialogs.test.ts`
+  holds it), and the whole set was played. Merge: the shared-editors fixes (PR #534, first at `2ca3eae9`, then its new tip
+  `3736b0ac`) are merged into this branch in two commits, `ae5c644c` and `4c77b7ea`. Rulings: (1) the v2 look wins where the two
+  disagree (icons, rail at 76 px, header and sidebar), and the shared-editors structure wins where they do not (entries, kinds,
+  `NoPlayer`, the Characters entry, the story level's wall); #534's `SuiteTopBar` change is dropped because v2's header replaced the
+  file, and the header test takes its 360 px phone, which the v2 header passes. (2) `EntitiesPanel` keeps v2's empty state and takes
+  the split of characters from things. (3) The rail's 68 px override is dropped: v2's 76 px holds the longest name. (4) `axe-core`
+  is recorded in `docs/versions.md`, and `STICK_DIRECTIONS` and `PROMPT_COPY` got a doc comment so the API index writes again.
+  (5) `dark-game-loop` now runs on a light device with nothing stored, asserts the editors open Dark, and the game page carries no
+  theme of its own; it still paints a wall, rewrites a Feel word, plays, and publishes. Rulings (6): the played-game proof for every
+  editor stays in `complete-game-2d` and `complete-game-3d` (all eight editors, both kinds), not copied into `dark-game-loop`, since
+  both now run in the v2 look (Dark by default). (7) Journeys follow the new shell: Characters is a rail entry, a closed sheet's rows
+  are inert (so the helpers test for that, not for visibility), the camera is read once it stops moving, the sheet is closed before a
+  tap on the canvas, an open More sheet is closed before Play, Home's cards open an editor on a phone, Share is a plain button
+  (Publish is the one lime), and a light device opens Dark unless Light was chosen (the Light look is proved by choosing it).
+  Ran (Chromium only): editor unit (3454), layout with and without touch (942, 471), canvas, extension unit (684) and layout (112),
+  `pnpm check`, `pnpm build`, the editor journeys at a phone and an iPad (61 pass, 5 expected failures stated in the journeys), and
+  the extension journeys (all pass but one). Open: `audio-plays-in-game` (iPad and phone): after the keeper's talk the played
+  player does not move, so the guard never chases. It is not the new `character` tag (tested with it removed) and not editor UI; the
+  merged story code is the suspect and the build audit should check it. Not run: WebKit, Firefox, the GPU runner, the site's e2e and
+  parity, the visual baselines (this repo's editors have none beyond the layout tests' screenshots, which are not compared).
