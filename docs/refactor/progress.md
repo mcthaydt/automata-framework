@@ -741,3 +741,18 @@ Home.
 | 4. Build | Done, 2026-11-08 (14 of 14 tasks, 100%), with the shared-editors fixes (PR #534 at `3736b0ac`) merged in. Chromium only: `pnpm check`, layout with and without touch, 61 editor journeys at a phone and an iPad (2D and 3D complete-game among them), the extension journeys. **Open:** `audio-plays-in-game` (the played player stops after the keeper's talk, so the guard never chases; not the `character` tag, not editor UI). Not run: WebKit, Firefox, the GPU runner, the site's e2e and parity. | [plan log](2026-11-08-editors-v2-plan.md) |
 | 5. Build audit | Done, 2026-11-09 (PR stacked on #559, at `68cdd642`): `audio-plays-in-game` was a journey race, not the story (the game opened on the music rules' old order); it and three more journey races fixed (J1 to J4), and a journey that reloads, closes and restarts the editors added (P1). Open: 3 high (F1 no breadcrumb, the iPad's header cuts the level's name; F2 the phone's header takes three rows; F3 a white strip over the phone's level), 4 medium, 5 low. Chromium only | [build audit](2026-11-09-editors-v2-build-audit.md) |
 | 6. Fixes | Not started | |
+
+## 3D at the builders' level: painted figures and the builders' look (stage 1 of 6, 2026-11-09)
+
+The Owner, 2026-11-09: "Painter sprites in core", "We should only ever do 3D figures with the painter, cut whatever crap
+we were doing before", "Use the environment builder, now the 3D editor, to make a scene that doesn't look like shit", and
+on the builders' video, "it needs to be this level".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-09 (at `47391563`, #567's tip): 12 findings; FigureBuilder's painter measured at 11 ms a cell at density 1 and 20 ms at density 2, EnvironmentBuilder's CPU scene painter at 100 to 900 ms a frame (a game cannot run on it). Recommends Pixi 3D in the builders' look with painted figures (D1, the Owner's); readings R1 to R4 (the world kit into core, the painter everywhere, a 360 field, ADR 0008). 19 tasks in 5 phases | [audit](2026-11-09-3d-painted-look-audit.md) |
+| 2. Plan and spec | Not started | |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
