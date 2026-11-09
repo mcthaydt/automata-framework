@@ -168,6 +168,7 @@ describe('meshPaint from a first-person camera', () => {
 describe('the game’s scene', () => {
   const scene = {
     pieces: [],
+    lamps: [],
     colourOf: () => undefined,
     time: timeOfDay('night'),
     ground: 0x8690b2,

@@ -20,6 +20,15 @@ type Axes = { readonly u: readonly [number, number, number]; readonly v: readonl
 const NEAR = 0.025
 const FAR = 0.975
 
+/** The part of a segment that counts, as fractions of its length from its start. */
+export interface SegmentEnds {
+  readonly near: number
+  readonly far: number
+}
+/** A point on a surface is on it though a single-precision position lands a hair under: this much counts as touching. */
+const SURFACE_EPSILON = 1e-4
+const LAMP_ENDS: SegmentEnds = { near: NEAR, far: FAR }
+
 /** The plane's in-plane axes: `u` horizontal (x for a floor or ceiling), `v` the other, both unit length. */
 function planeAxes(plane: OccluderPlane): Axes {
   const [nx, ny, nz] = plane.normal
@@ -43,9 +52,10 @@ function crossesBox(
   by: number,
   bz: number,
   box: OccluderBox,
+  ends: SegmentEnds,
 ): boolean {
-  let near = NEAR
-  let far = FAR
+  let near = ends.near
+  let far = ends.far
   const slabs: readonly [number, number, number, number][] = [
     [ax, bx, box.x - box.width / 2, box.x + box.width / 2],
     [ay, by, box.y, box.y + box.height],
@@ -75,12 +85,13 @@ function crossesPlane(
   by: number,
   bz: number,
   plane: OccluderPlane,
+  ends: SegmentEnds,
 ): boolean {
   const from = dot(plane.normal, ax - plane.x, ay - plane.y, az - plane.z)
   const to = dot(plane.normal, bx - plane.x, by - plane.y, bz - plane.z)
   if (from * to >= 0) return false
   const t = from / (from - to)
-  if (t < NEAR || t > FAR) return false
+  if (t < ends.near || t > ends.far) return false
   const { u, v } = planeAxes(plane)
   const hx = ax + (bx - ax) * t - plane.x
   const hy = ay + (by - ay) * t - plane.y
@@ -101,10 +112,11 @@ export function segmentBlocked(
   bz: number,
   occluders: Occluders,
   ignore: readonly string[] = [],
+  ends: SegmentEnds = LAMP_ENDS,
 ): boolean {
-  for (const plane of occluders.planes) if (crossesPlane(ax, ay, az, bx, by, bz, plane)) return true
+  for (const plane of occluders.planes) if (crossesPlane(ax, ay, az, bx, by, bz, plane, ends)) return true
   for (const box of occluders.boxes)
-    if ((box.id === undefined || !ignore.includes(box.id)) && crossesBox(ax, ay, az, bx, by, bz, box))
+    if ((box.id === undefined || !ignore.includes(box.id)) && crossesBox(ax, ay, az, bx, by, bz, box, ends))
       return true
   return false
 }
@@ -134,7 +146,7 @@ export function contactShade(sample: LightSample, occluders: Occluders): number 
     const ny = plane.normal[1]
     if (Math.abs(ny) > 0.5) {
       // A floor or a ceiling: only upright surfaces in front of it darken toward it.
-      if (upright && d >= 0) open *= 1 - (ny > 0 ? 0.28 : 0.3) * Math.exp(-d / 0.35)
+      if (upright && d >= -SURFACE_EPSILON) open *= 1 - (ny > 0 ? 0.28 : 0.3) * Math.exp(-d / 0.35)
       continue
     }
     if (d < -0.02 || d > 0.9) continue

@@ -36,6 +36,8 @@ const ORACLES: readonly string[] = [
   'packages/3d/tests/unit/figures/cells/sprite-light.test.ts',
   'packages/3d/tests/unit/shared/render/texel.test.ts',
   'packages/3d/tests/unit/photo/tile-store.test.ts',
+  'packages/3d/tests/unit/shared/render/light/vertex-light-oracle.test.ts',
+  'packages/3d/tests/unit/look/world-texel.test.ts',
 ]
 
 /** The folders under `docs/` that are records: they name the source projects as evidence, by design. */

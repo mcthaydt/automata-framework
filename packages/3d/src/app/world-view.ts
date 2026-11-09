@@ -4,10 +4,11 @@
 import { Box, Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
-import { RampMaterial } from '../features/look/ramp-light-material.ts'
+import { markFloor, type TileImage, TileMaterial } from '../features/look/tile-material.ts'
 import type { WorldPiece } from '../features/world/build.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
 import { tileName } from '../features/world/surface.ts'
+import { uvMesh } from '../features/world/surface-uv.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
 import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
@@ -21,8 +22,10 @@ export interface WorldScene {
   readonly colourOf: (swatch: string) => number | undefined
   /** Default: mid grey. */
   readonly fallback?: number | undefined
-  /** With a look, every piece takes the stepped-light material (the look's `steps`) in place of plain Phong. */
+  /** With a look, every piece takes the tile material in place of plain Phong, under the look's haze and gain. */
   readonly look?: Look | undefined
+  /** With a look, the tiles of a piece: a floor-like face's and a wall's, and whether it glows. None draws its swatch's colour. */
+  readonly tiles?: ((piece: WorldPiece) => PieceTiles | undefined) | undefined
   /**
    * The room's light (`createPixi3dRenderer`'s `scene` hook gives it when `lighting` is set). A piece that never moves
    * (not a door, a prop or a swaying leaf) is drawn flat and has the light baked into its vertex colours, so a lamp's
@@ -32,6 +35,13 @@ export interface WorldScene {
   readonly light?: SceneLight | undefined
 }
 
+/** The tiles a piece is drawn with, and whether its swatch is emissive (written as glowing and taking no light). */
+export interface PieceTiles {
+  readonly floor?: TileImage | undefined
+  readonly wall?: TileImage | undefined
+  readonly glowing?: boolean | undefined
+}
+
 export interface WorldView {
   /** Holds every piece's mesh. */
   readonly node: Container3D
@@ -39,15 +49,21 @@ export interface WorldView {
   readonly pieces: readonly WorldPiece[]
   /** A piece's mesh by its id. */
   readonly mesh: (id: string) => Mesh3D | undefined
+  /** Where the haze begins: the view depth (metres) of what the camera looks at. A no-op without a look. */
+  setFocus(depth: number): void
   /** Takes the meshes down and frees their geometry and materials. */
   dispose(): void
 }
 
 const MISSING = 0x808080
 
-/** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour, with a material of its own. */
-function meshOf(piece: WorldPiece, colour: number, look: Look | undefined): Mesh3D {
-  const { positions, normals, indices } = piece.mesh
+/** A mesh's geometry from its arrays, and the box the engine culls it by. */
+function geometryOf(
+  positions: readonly number[],
+  normals: readonly number[],
+  indices: readonly number[],
+  uvs?: readonly number[],
+): Geometry3D {
   const low = [Infinity, Infinity, Infinity] as [number, number, number]
   const high = [-Infinity, -Infinity, -Infinity] as [number, number, number]
   for (let i = 0; i < positions.length; i += 3)
@@ -55,17 +71,48 @@ function meshOf(piece: WorldPiece, colour: number, look: Look | undefined): Mesh
       low[axis] = Math.min(low[axis] as number, positions[i + axis] as number)
       high[axis] = Math.max(high[axis] as number, positions[i + axis] as number)
     }
-  const geometry = new Geometry3D({
+  return new Geometry3D({
     positions: new Float32Array(positions),
     normals: new Float32Array(normals),
+    ...(uvs === undefined ? {} : { uvs: new Float32Array(uvs) }),
     indices: new Uint32Array(indices),
     bounds3D: new Box(new Vector3(...low), new Vector3(...high)),
   })
-  const material =
-    look === undefined
-      ? new PhongMaterial({ baseColor: colour })
-      : new RampMaterial({ baseColor: colour, steps: look.steps })
-  return new Mesh3D({ geometry, material })
+}
+
+/** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour, with a material of its own. */
+function meshOf(piece: WorldPiece, colour: number): Mesh3D {
+  const { positions, normals, indices } = piece.mesh
+  return new Mesh3D({
+    geometry: geometryOf(positions, normals, indices),
+    material: new PhongMaterial({ baseColor: colour }),
+  })
+}
+
+/** A piece drawn as the look paints it: its tiles laid on its metres, each vertex told whether it is floor-like. */
+function tiledMeshOf(
+  piece: WorldPiece,
+  colour: number,
+  look: Look,
+  tiles: PieceTiles | undefined,
+): { mesh: Mesh3D; floor: readonly number[] } {
+  const uv = uvMesh(piece.mesh, piece.tex?.frame)
+  const geometry = geometryOf(uv.positions, uv.normals, uv.indices, uv.uvs)
+  markFloor(geometry, uv.floor)
+  const material = new TileMaterial({
+    colour,
+    floor: tiles?.floor,
+    wall: tiles?.wall,
+    glowing: tiles?.glowing,
+    place: {
+      repeat: piece.tex?.repeat,
+      pan: piece.tex?.pan,
+      anchored: piece.tex?.frame !== undefined,
+    },
+    haze: look.haze,
+    gain: look.light.gain,
+  })
+  return { mesh: new Mesh3D({ geometry, material }), floor: uv.floor }
 }
 
 /** A piece a state can move (a door, a prop, a leaf in the wind) cannot hold baked light. */
@@ -79,10 +126,20 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   const meshes = new Map<string, Mesh3D>()
   for (const piece of pieces) {
     const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
-    const mesh = meshOf(piece, colour, scene.look)
+    const tiled =
+      scene.look === undefined ? undefined : tiledMeshOf(piece, colour, scene.look, scene.tiles?.(piece))
+    const mesh = tiled?.mesh ?? meshOf(piece, colour)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
-    if (scene.light !== undefined && stays(piece)) {
+    if (tiled !== undefined) {
+      // Under a look every piece holds its light as vertex colours, a mover's from where it stands at rest: the tile
+      // material reads no other light.
+      if (scene.light !== undefined) {
+        scene.light.bake(mesh)
+        // The bake makes a new geometry that keeps positions, normals, UVs and indices; the floor flags go back on.
+        markFloor(mesh.geometry, tiled.floor)
+      }
+    } else if (scene.light !== undefined && stays(piece)) {
       // Baked after it is placed under the node, so the light sees where it stands.
       mesh.material = new FlatMaterial({ baseColor: colour })
       scene.light.bake(mesh)
@@ -104,6 +161,10 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     node,
     pieces,
     mesh: (id) => meshes.get(id),
+    setFocus(depth) {
+      for (const mesh of meshes.values())
+        if (mesh.material instanceof TileMaterial) mesh.material.focus = depth
+    },
     dispose() {
       for (const mesh of meshes.values()) mesh.destroy({ children: true })
       meshes.clear()
@@ -135,6 +196,7 @@ export function sceneLamps(
         strength: 1,
         range: lamp.range,
         level: lamp.level * (state?.level ?? 1),
+        ...(lamp.aim === undefined || lamp.cone === undefined ? {} : { aim: lamp.aim, cone: lamp.cone }),
       }
     })
 }

@@ -6,13 +6,16 @@
 import '@automata/3d/no-eval'
 import {
   createLookPasses,
+  createSceneLight,
   DEFAULT_LOOK,
+  DIORAMA_PITCH,
   drawWorld,
   type LookPasses,
   lightByTime,
   lightHemisphere,
   timeOfDay,
   type WorldView,
+  worldLighting,
 } from '@automata/3d'
 import { View3D } from '@pixi/3d'
 import { forward } from '../../../shared/geometry/camera-3d'
@@ -44,7 +47,20 @@ export function createGameView(size: { readonly w: number; readonly h: number })
   function draw(scene: GameScene): WorldView {
     if (drawn?.scene === scene) return drawn.world
     drawn?.world.dispose()
-    const world = drawWorld({ parent: view.root, colourOf: scene.colourOf, look: DEFAULT_LOOK }, scene.pieces)
+    // The room's light is baked into its vertex colours from the time's own light, at the diorama's pitch.
+    const light = createSceneLight(
+      worldLighting({
+        pieces: scene.pieces,
+        lamps: scene.lamps,
+        time: scene.time,
+        look: DEFAULT_LOOK,
+        pitch: DIORAMA_PITCH,
+      }),
+    )
+    const world = drawWorld(
+      { parent: view.root, colourOf: scene.colourOf, look: DEFAULT_LOOK, light },
+      scene.pieces,
+    )
     drawn = { scene, world }
     return world
   }

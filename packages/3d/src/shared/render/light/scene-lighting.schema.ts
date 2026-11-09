@@ -2,6 +2,7 @@
 // takes boxes and planes from the room's content). Presentation only: the sim never reads it (law 1); it switches a
 // lamp through a render-row field instead (`Pixi3dOptions.lamps`).
 import { z } from 'zod'
+import type { LightModel } from './light-model.ts'
 
 /** A colour as 0xRRGGBB (TOML writes it as a hex integer). */
 const colour = z.number().int().min(0).max(0xffffff)
@@ -21,6 +22,9 @@ export const lampSchema: z.ZodType<Lamp> = z.strictObject({
   range: size,
   /** The level before the sim says otherwise: 0 is off, 1 full; 1 by default. */
   level: z.number().min(0).default(1),
+  /** A spot lamp shines along `aim` (any length) within `cone` degrees of it, softly at the edge; a bare lamp shines everywhere. */
+  aim: z.tuple([metres, metres, metres]).optional(),
+  cone: z.number().positive().max(180).optional(),
 })
 
 /** A solid box that blocks light (and darkens the floor round its foot). `y` is its base, as a box view stands. */
@@ -95,6 +99,9 @@ export interface Lamp {
   /** Metres. */
   readonly range: number
   readonly level: number
+  /** A spot lamp shines along `aim` within `cone` degrees of it. */
+  readonly aim?: readonly [number, number, number] | undefined
+  readonly cone?: number | undefined
 }
 
 /** A box that blocks light: centred on `x` and `z`, standing on `y`. */
@@ -127,6 +134,8 @@ export interface SceneFog {
 
 /** A room's lamps, ambient light, occluders and fog, compiled from `content/lighting/*.toml`. */
 export interface SceneLighting {
+  /** With it, the room is baked in the colours as drawn, with a key, a fill and a sun, and cut into steps. */
+  readonly model?: LightModel | undefined
   /** 0 to 1. */
   readonly ambient: number
   /** 0xRRGGBB. */

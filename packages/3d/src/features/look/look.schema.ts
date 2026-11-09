@@ -36,8 +36,19 @@ export interface Look {
   /** The painted figures' cells: the density they are painted at, in quarter steps between `min` and `max` texels of the
    * sheets' size, and the bytes the cell cache may hold. */
   readonly figures: { readonly min: number; readonly max: number; readonly cacheBytes: number }
-  /** The light: the room's light is cut into multiples of `step`, scaled by `gain` and never over `max` a channel. */
-  readonly light: { readonly step: number; readonly gain: number; readonly max: number }
+  /**
+   * The light: the room's light is cut into multiples of `step`, scaled by `gain` and never over `max` a channel. A lamp's
+   * colour is multiplied by `strength`; the key is the small light on the ambient's side, and the fill fades with height
+   * from `fade[0]` at the floor over `fade[1]` metres, never under `fade[2]`.
+   */
+  readonly light: {
+    readonly step: number
+    readonly gain: number
+    readonly max: number
+    readonly strength: number
+    readonly key: { readonly dir: readonly [number, number, number]; readonly level: number }
+    readonly fade: readonly [number, number, number]
+  }
   /** The veil far things sink into. */
   readonly haze: Haze
   /** How a figure steps in its light (the sprite light's rules) and how much of the room's ambient it takes. */
@@ -97,8 +108,20 @@ export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
       step: z.number().positive('light is cut into steps above 0'),
       gain: z.number().positive(),
       max: z.number().positive(),
+      strength: z.number().positive().default(2.6),
+      key: z
+        .strictObject({ dir: z.tuple([z.number(), z.number(), z.number()]), level: z.number().min(0) })
+        .default({ dir: [0.3, 0.8, 0.5], level: 0.09 }),
+      fade: z.tuple([z.number(), z.number().positive(), z.number()]).default([1.5, 4, 0.25]),
     })
-    .default({ step: 0.1, gain: 1, max: 1.6 }),
+    .default({
+      step: 0.1,
+      gain: 1,
+      max: 1.6,
+      strength: 2.6,
+      key: { dir: [0.3, 0.8, 0.5], level: 0.09 },
+      fade: [1.5, 4, 0.25],
+    }),
   haze: z
     .strictObject({
       colour: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'the haze colour is #rrggbb'),

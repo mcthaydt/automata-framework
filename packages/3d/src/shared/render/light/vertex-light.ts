@@ -40,6 +40,19 @@ const falloff = (lamp: Lamp, distance: number): number => {
 }
 
 /**
+ * How much of a spot lamp reaches a point: 1 on its axis, none outside its cone, softly between (a third of the cone's edge
+ * is the soft part). A lamp with no aim or cone shines everywhere. `dx`, `dy`, `dz` run from the point to the lamp.
+ */
+export function coneOf(lamp: Lamp, dx: number, dy: number, dz: number, distance: number): number {
+  const { aim, cone } = lamp
+  if (aim === undefined || cone === undefined) return 1
+  const edge = Math.cos((cone * Math.PI) / 180)
+  const along = Math.hypot(aim[0], aim[1], aim[2]) || 1
+  const at = -(aim[0] * dx + aim[1] * dy + aim[2] * dz) / (along * distance)
+  return Math.min(1, Math.max(0, ((at - edge) / (1 - edge)) * 3))
+}
+
+/**
  * The light a lamp gives a surface point at level 1: `max(0, N·L) · (1 - d/range)² · strength`, or 0 when it is out
  * of range, faces away or a box or plane stands between (tested from 3 cm off the surface, so the surface never
  * shadows itself). Boxes named in `ignore` never shadow it.
@@ -61,7 +74,7 @@ export function vertexLight(
   const sy = sample.y + sample.ny * 0.03
   const sz = sample.z + sample.nz * 0.03
   if (segmentBlocked(sx, sy, sz, lamp.x, lamp.y, lamp.z, occluders, ignore)) return 0
-  return diffuse * falloff(lamp, distance)
+  return diffuse * falloff(lamp, distance) * coneOf(lamp, dx, dy, dz, distance)
 }
 
 /** A `SceneLighting` with its colours decoded once: what a per-frame tint reads, so a frame allocates nothing. */
@@ -112,7 +125,10 @@ export function tintInto(
     if (level === 0) continue
     let light: number
     if (normal === undefined) {
-      light = falloff(lamp, Math.hypot(lamp.x - x, lamp.y - y, lamp.z - z))
+      const distance = Math.hypot(lamp.x - x, lamp.y - y, lamp.z - z)
+      light =
+        falloff(lamp, distance) *
+        (distance > 0 ? coneOf(lamp, lamp.x - x, lamp.y - y, lamp.z - z, distance) : 1)
       if (light > 0 && segmentBlocked(x, y, z, lamp.x, lamp.y, lamp.z, lighting)) light = 0
     } else {
       scratch.x = x

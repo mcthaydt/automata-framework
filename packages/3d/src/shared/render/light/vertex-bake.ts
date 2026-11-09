@@ -1,6 +1,7 @@
 // Baked vertex light for a static mesh (2026-10-16). Kept: each lamp's light per vertex is computed once, with its
 // occlusion, because static lamps never move, so a level change is a cheap re-sum; colours are Pure: no Pixi, so it runs
 // in Node.
+import { bakeModelled } from './model-bake.ts'
 import { contactShade, type LightSample } from './occlusion.ts'
 import type { SceneLighting } from './scene-lighting.schema.ts'
 import { channels, type LampLevels, LIGHT_CEILING, levelOf, vertexLight } from './vertex-light.ts'
@@ -52,6 +53,8 @@ export function bakeVertices(
   lighting: SceneLighting,
   ignore: readonly string[] = [],
 ): VertexBake {
+  if (lighting.model !== undefined)
+    return bakeModelled(positions, normals, matrix, lighting, lighting.model, ignore)
   const vertexCount = positions.length / 3
   const ambient = channels(lighting.ambientColor).map((c) => c * lighting.ambient)
   const shade = new Float32Array(vertexCount)

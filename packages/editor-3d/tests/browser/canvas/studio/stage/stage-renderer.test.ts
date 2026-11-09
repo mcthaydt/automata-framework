@@ -61,6 +61,19 @@ function figurePixels(): number {
   return count
 }
 
+/** Draws the stage again (the cell a figure waits for is made between frames) and reads the canvas in the same task. */
+function redraw(
+  view: StageRenderer,
+  state: Parameters<StageRenderer['pose']>[0] = { moving: false },
+  seconds = 0,
+): number[] {
+  view.pose(state, seconds)
+  return Array.from(pixels())
+}
+
+const same = (a: readonly number[], b: readonly number[]): boolean =>
+  a.length === b.length && a.every((v, i) => v === b[i])
+
 describe('createStageRenderer', () => {
   it('draws Wick: a body of pixels in the middle of the stage, and nothing at a corner', async () => {
     const view = await drawn()
@@ -79,7 +92,8 @@ describe('createStageRenderer', () => {
     view.pose({ moving: false }, 0)
     const front = Array.from(pixels())
     view.look({ ...DEFAULT_ORBIT, yaw: Math.PI / 2 })
-    expect(Array.from(pixels())).not.toEqual(front)
+    // A new direction is a new painted cell, made between frames; the old one shows until it is.
+    await expect.poll(() => same(front, redraw(view))).toBe(false)
     view.show(undefined, content.library, content.motion)
     expect(figurePixels()).toBe(0)
   })
@@ -88,8 +102,9 @@ describe('createStageRenderer', () => {
     const view = await drawn()
     view.pose({ moving: false }, 0)
     const standing = Array.from(pixels())
-    view.pose({ moving: false, action: { id: 'roll', startedAt: 0 } }, 0.2)
-    expect(Array.from(pixels())).not.toEqual(standing)
+    await expect
+      .poll(() => same(standing, redraw(view, { moving: false, action: { id: 'roll', startedAt: 0 } }, 0.2)))
+      .toBe(false)
   })
 
   it('pauses when the context is lost and draws again when it is restored', async () => {
