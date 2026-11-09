@@ -241,6 +241,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
           draw: (frame) => {
             if (!frame.paused) seconds += frame.frameMs / 1000
             passes.tick(seconds)
+            passes.camera(view)
           },
         }
   const entities: PixiStageHooks = {

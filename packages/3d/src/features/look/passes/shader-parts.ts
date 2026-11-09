@@ -62,6 +62,11 @@ vec3 stepUp(int index) {
   int row = index / 8;
   int step = clamp(index - row * 8 + 1, 1, 7);
   return DUEL[row * 8 + step];
+}
+vec3 stepBy(int index, int by) {
+  int row = index / 8;
+  int step = clamp(index - row * 8 + by, 1, 7);
+  return DUEL[row * 8 + step];
 }`
 export const DUEL_WGSL: string = `
 var<private> DUEL: array<vec3<f32>, ${COLOURS.length}> = array<vec3<f32>, ${COLOURS.length}>(${list(wgslVec)});
@@ -78,5 +83,10 @@ fn nearestIndex(c: vec3<f32>) -> i32 {
 fn stepUp(index: i32) -> vec3<f32> {
   let row = index / 8;
   let step = clamp(index - row * 8 + 1, 1, 7);
+  return DUEL[row * 8 + step];
+}
+fn stepBy(index: i32, by: i32) -> vec3<f32> {
+  let row = index / 8;
+  let step = clamp(index - row * 8 + by, 1, 7);
   return DUEL[row * 8 + step];
 }`

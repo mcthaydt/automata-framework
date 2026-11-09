@@ -1,8 +1,8 @@
 // The look's passes, in the order they run: the DUEL snap, then the outline when it is switched on, the sky (its stars are
-// the `stars` switch's), the glow, the rain, then the passes extensions added with `addLookPass`, then the finish, always
+// the `stars` switch's), the glow, the reflections, the rain, then the passes extensions added with `addLookPass`, then the finish, always
 // last. An extension's pass has its own switch and keeps the frame's alpha, which the finish reads.
 
-import type { Pass3D } from '@pixi/3d'
+import type { Pass3D, View3D } from '@pixi/3d'
 import { RegistryClash } from '../../shared/registry/registry-clash.ts'
 import type { TimeOfDay } from '../../shared/time-of-day/time-of-day.ts'
 import { DuelSnapEffect } from './duel-snap-filter.ts'
@@ -12,6 +12,7 @@ import { MOODS, moodRemap } from './moods.ts'
 import { OutlineEffect } from './outline-filter.ts'
 import { GlowEffect } from './passes/glow-effect.ts'
 import { RainEffect } from './passes/rain-effect.ts'
+import { ReflectEffect } from './passes/reflect-effect.ts'
 import { duelTriple } from './passes/shader-parts.ts'
 import { type HorizonLayer, SkyEffect } from './passes/sky-effect.ts'
 
@@ -29,6 +30,8 @@ export interface LookPasses {
   /** The sky where nothing is drawn: the time's bands, the level's horizon, and the stars the `stars` switch allows. */
   readonly sky: SkyEffect
   readonly glow: GlowEffect | undefined
+  /** Wet ground's reflections, when the look allows them and the time of day has rain. */
+  readonly reflect: ReflectEffect | undefined
   /** Rain, when the look allows it and the time of day has some. */
   readonly rain: RainEffect | undefined
   /** The extensions' passes, in registration order. */
@@ -37,6 +40,8 @@ export interface LookPasses {
   readonly finish: FinishEffect
   /** Sets the clock the sky's clouds and stars and the rain run by, in seconds. */
   tick(seconds: number): void
+  /** Tells the passes that read the camera (the reflections) where it stands, each frame. */
+  camera(view: View3D): void
   /** Tells the sky where the camera looks, in radians: the bearing to the right and the pitch (up is positive). */
   aim(yaw: number, pitch: number): void
 }
@@ -66,6 +71,8 @@ export function createLookPasses(
   const sky = new SkyEffect(look.switches.stars ? time : withoutStars(time), horizon)
   const glow = look.switches.glow ? new GlowEffect({}) : undefined
   const raining = look.switches.rain ? time.scene.rain : undefined
+  const wet = raining === undefined || raining.density <= 0 ? 0 : raining.density
+  const reflect = look.switches.reflect && wet > 0 ? new ReflectEffect(wet) : undefined
   const rain =
     raining === undefined || raining.density <= 0
       ? undefined
@@ -83,6 +90,7 @@ export function createLookPasses(
       ...(outline ? [outline] : []),
       sky,
       ...(glow ? [glow] : []),
+      ...(reflect ? [reflect] : []),
       ...(rain ? [rain] : []),
       ...extra,
       finish,
@@ -91,13 +99,16 @@ export function createLookPasses(
     outline,
     sky,
     glow,
+    reflect,
     rain,
     extra,
     finish,
     tick: (seconds) => {
       sky.clock = seconds
       if (rain !== undefined) rain.clock = seconds
+      if (reflect !== undefined) reflect.clock = seconds
     },
+    camera: (view) => reflect?.camera(view),
     aim: (yaw, pitch) => sky.aim(yaw, pitch),
   }
 }

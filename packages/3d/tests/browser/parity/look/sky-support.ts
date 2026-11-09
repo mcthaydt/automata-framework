@@ -8,6 +8,7 @@ import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-rende
 import type { Look } from '#src/features/look/look.schema.ts'
 import { DEFAULT_LOOK } from '#src/features/look/look.ts'
 import type { HorizonLayer } from '#src/features/look/passes/sky-effect.ts'
+import { markFloor, TileMaterial } from '#src/features/look/tile-material.ts'
 import { type TimeOfDay, timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 
 export const SIZE = { width: 160, height: 90 }
@@ -84,6 +85,10 @@ export const drawn = (a: ArrayLike<number>, b: ArrayLike<number>): number[] =>
 export interface SkyScene {
   /** A big white ball with a wall behind it, for the glow, instead of a small ball low in the frame. */
   readonly big?: boolean
+  /** The ball glows (it writes the glowing code), where a plain white one does not. */
+  readonly glowing?: boolean
+  /** A wet street seen from above: ground, a glowing box on the left and a plain white one on the right. */
+  readonly ground?: boolean
   /** A wall covering the whole view, 2 m from the camera. */
   readonly near?: boolean
   readonly time?: TimeOfDay
@@ -99,7 +104,6 @@ export async function startSky(
   const made = await createPixi3dRenderer({
     logicalWidth: SIZE.width,
     logicalHeight: SIZE.height,
-    backgroundColor: SKY,
     views: {},
     look: scene.look ?? DEFAULT_LOOK,
     time: scene.time ?? timeOfDay('night'),
@@ -109,9 +113,14 @@ export async function startSky(
       view.camera.lookAt({ x: 0, y: 1, z: 0 })
       view.root.addChild(new DirectionalLight({ intensity: 2 }))
       const big = scene.big === true
+      const sphere = new SphereGeometry()
+      if (scene.glowing === true) markFloor(sphere, new Array<number>(sphere.vertexCount).fill(0))
       const ball = new Mesh3D({
-        geometry: new SphereGeometry(),
-        material: new FlatMaterial({ baseColor: 0xffffff }),
+        geometry: sphere,
+        material:
+          scene.glowing === true
+            ? new TileMaterial({ colour: 0xffffff, glowing: true, haze: DEFAULT_LOOK.haze, gain: 1 })
+            : new FlatMaterial({ baseColor: 0xffffff }),
       })
       ball.position.set(big ? 0 : -1.5, big ? 1 : -1.2, 0)
       ball.scale.set(big ? 1 : 0.2, big ? 1 : 0.2, big ? 1 : 0.2)
@@ -124,6 +133,31 @@ export async function startSky(
         mesh.position.set(0, 1, z)
         mesh.scale.set(w, h, 0.1)
         view.root.addChild(mesh)
+      }
+      if (scene.ground === true) {
+        view.camera.position.set(0, 2.2, 6)
+        view.camera.lookAt({ x: 0, y: 0.6, z: 0 })
+        const floor = new Mesh3D({
+          geometry: new CubeGeometry(),
+          material: new FlatMaterial({ baseColor: 0x4a3f5c }),
+        })
+        floor.position.set(0, -0.05, 0)
+        floor.scale.set(40, 0.1, 40)
+        view.root.addChild(floor)
+        const lit = new CubeGeometry()
+        markFloor(lit, new Array<number>(lit.vertexCount).fill(0))
+        const glowing = new Mesh3D({
+          geometry: lit,
+          material: new TileMaterial({ colour: 0xffd59b, glowing: true, haze: DEFAULT_LOOK.haze, gain: 1 }),
+        })
+        glowing.position.set(-1.5, 0.5, 0)
+        view.root.addChild(glowing)
+        const plain = new Mesh3D({
+          geometry: new CubeGeometry(),
+          material: new FlatMaterial({ baseColor: 0xffffff }),
+        })
+        plain.position.set(1.5, 0.5, 0)
+        view.root.addChild(plain)
       }
       if (big) wall(-2, 20, 12, 0x4a3f5c)
       if (scene.near === true) wall(3, 40, 40, 0x4a3f5c)

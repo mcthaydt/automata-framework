@@ -15,10 +15,10 @@ afterEach(() => {
 })
 
 describe.runIf(hasWebGL2)('the look’s glow on WebGL2', () => {
-  it('rings what is bright in whole steps, and nothing else changes', async () => {
+  it('rings what glows in whole steps, and nothing else changes', async () => {
     const host = document.createElement('div')
     document.body.appendChild(host)
-    const made = await startSky(host, { big: true })
+    const made = await startSky(host, { big: true, glowing: true })
     open = made
     const renderer = made.renderer
     const glow = passOf(renderer, GlowEffect)
@@ -43,5 +43,17 @@ describe.runIf(hasWebGL2)('the look’s glow on WebGL2', () => {
     expect(rings.filter((i) => luma(withGlow, i) < luma(without, i))).toEqual([])
     expect(rings.filter((i) => !near(i))).toEqual([])
     expect(() => passOf(renderer, RainEffect)).toThrow()
+  })
+
+  it('does not bloom what is only bright: a white ball that does not glow has no ring', async () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const made = await startSky(host, { big: true })
+    open = made
+    const glow = passOf(made.renderer, GlowEffect)
+    glow.enabled = false
+    const without = shot(made.renderer)
+    glow.enabled = true
+    expect(drawn(without, shot(made.renderer))).toEqual([])
   })
 })
