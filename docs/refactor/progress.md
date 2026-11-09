@@ -742,16 +742,17 @@ Home.
 | 5. Build audit | Done, 2026-11-09 (PR stacked on #559, at `68cdd642`): `audio-plays-in-game` was a journey race, not the story (the game opened on the music rules' old order); it and three more journey races fixed (J1 to J4), and a journey that reloads, closes and restarts the editors added (P1). Open: 3 high (F1 no breadcrumb, the iPad's header cuts the level's name; F2 the phone's header takes three rows; F3 a white strip over the phone's level), 4 medium, 5 low. Chromium only | [build audit](2026-11-09-editors-v2-build-audit.md) |
 | 6. Fixes | Not started | |
 
-## 3D at the builders' level: painted figures and the builders' look (stage 1 of 6, 2026-11-09)
+## 3D at the builders' level: painted figures and the builders' look (stage 2 of 6, 2026-11-09)
 
 The Owner, 2026-11-09: "Painter sprites in core", "We should only ever do 3D figures with the painter, cut whatever crap
 we were doing before", "Use the environment builder, now the 3D editor, to make a scene that doesn't look like shit", and
-on the builders' video, "it needs to be this level".
+on the builders' video, "it needs to be this level"; 07:27, "Bump it to 360 then"; 07:57, "Make the 3D view look like the
+references I sent, it should be that, but a game; you have the repos, make it happen" (D1 = A).
 
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-09 (at `47391563`, #567's tip): 13 findings; FigureBuilder's painter measured at 11 ms a cell at density 1 and 20 ms at density 2, EnvironmentBuilder's CPU scene painter at 100 to 900 ms a frame (a game cannot run on it). Recommends Pixi 3D in the builders' look with painted figures (D1, the Owner's); readings R1, R2 and R4 (the world kit into core, the painter everywhere, ADR 0008) and the Owner's ruling R3 (a 360 field, 07:27). F13: FigureBuilder drops the far eye in a turned made pose (its sunglasses check counts the ear); the port fixes it with a both-eyes test (task 4). 19 tasks in 5 phases | [audit](2026-11-09-3d-painted-look-audit.md) |
-| 2. Plan and spec | Not started | |
+| 2. Plan and spec | Done, 2026-11-09 (at `0eb970be`): the references judged reachable on Pixi 3D trait by trait (spec 2); 4 new findings (F14 the GPU snap picks in sRGB, not OKLab; F15 tiles at 32 texels a metre where a 360 field shows 72; F16 neither reference has a world outline, so it stays off; F17 the vertex light is not cut into the builders' steps). Measured: the photo pipeline makes a tile in 11 to 58 ms and prepares a photo in 38 ms, so tiles are made at load and none is committed. 29 tasks in 6 phases (proofs, the world kit into core, figures painted, the world's look, Levels 3D, the proofs) | [spec](2026-11-09-3d-painted-look-spec.md), [plan](2026-11-09-3d-painted-look-plan.md) |
 | 3. Plan audit | Not started | |
 | 4. Build | Not started | |
 | 5. Build audit | Not started | |
