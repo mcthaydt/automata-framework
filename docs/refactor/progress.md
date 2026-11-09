@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 67% (12 of 18 stages done).**
+**Overall: 62% (15 of 24 stages done).** The apps area adds six stages to the eighteen of the three slices; three of its six are done, and 12 of the eighteen are.
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -37,14 +37,13 @@ The PRs are stacked, in this order: #388 (phase 1, not a draft) ← #389 ← #39
 
 **Everything that can be done from a cloud session is done.** What is left is the Owner's:
 
-1. **Run the cross-engine checks:** `pnpm ci:local` on a Mac or a runner (WebKit and Firefox are not installable in cloud
-   sessions), and `pnpm lint:actions` (needs Docker). Criterion 1 ("journeys pass in Chromium and WebKit") is unproven until then.
-2. **Mark the PRs ready and merge them bottom up** (draft pull requests skip `e2e-2d` and `parity`). Squashing the stack into
-   fewer pull requests is an option; it is the Owner's call.
-3. **2.1:** push the tag `pre-refactor-2d` (refused with HTTP 403 from a cloud session), then deprecate the old package names in the registry.
-4. **8.2:** ask Ruken for a refusal switch in its fake host, then add the boot-failure journey.
-5. **9.2:** say go, and the branch clean-up runs.
-6. Play Emberwick on the iPad from the last build.
+1. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
+2. **9.2** waits for the Owner's go; **2.1**'s tag push is the Owner's (HTTP 403 from here).
+3. WebKit, Firefox and hosted CI runs for the whole stack.
+4. **Consumer smoke after the package merge** (found by the first CI run, 2026-11-06; [comment on #400](https://github.com/mcthaydt/automata-framework/pull/400#issuecomment-6678595019)):
+   setup is fixed; 6 steps still fail at #400: the Node fixture imports the old packages, the published Ruken `.d.ts` import
+   `@ruken/sdk`, `./testing` does not publish `openHostingTest`, the packed tools bin has an `eval`, and the
+   `automata-web` bundle fixture meets uncompiled `.svelte`. Needs its own task before the post-build audit.
 
 Next area: 3D. It starts when the Owner has taken 1 to 3 and the stack is merged.
 
@@ -68,7 +67,7 @@ Counted from the rows below: 27 are done, 2.1 and 8.2 are partly done and 9.2 ha
 | 4.1 The boundaries rules | 4 | Done locally, 2026-11-05 (hosted CI not run); the file-list comparison fails on Emberwick (12 vs 10), so the `boundaries` line switches in task 6.3 | [#392](https://github.com/mcthaydt/automata-framework/pull/392) |
 | 4.2 The move map and import codemod | 4 | Done locally, 2026-11-05 (hosted CI not run): map and codemod tested; the dry run moves 764 files, none unmapped, none clashing; not applied until 4.3 | [#392](https://github.com/mcthaydt/automata-framework/pull/392) |
 | 4.3 Build `packages/automata` | 4 | Step 1 done locally, 2026-11-05: the 764 files moved, it typechecks, builds and its unit tests pass (1,891). Step 2 done locally (2026-11-05): `--features packages/automata` finds 0 (was 120; flow, screens, settings and loading services now under `app/` and `shared/runtime/`), 1,897 unit tests and the full `pnpm test:unit` (31 tasks) pass. Chromium browser suites (21 files, 2,116 tests) and Emberwick's 28 journeys pass (stage 6 run); the 3D and editor unit suites pass; WebKit and Firefox are the Owner's. Changeset and API report written | [#393](https://github.com/mcthaydt/automata-framework/pull/393) |
-| 4.4 `tools`, and `sim` and `content` inside | 4 | Steps 1 and 2 done locally with 4.3 (same PR): one `automata` bin, `automata-ship` alias, `sim/testing`, tools unit tests pass (670). Step 3 part done: sim (hash, rng, define, schedule, world shared; replay the feature), tools (ship, check, create-game shared) and content (assets, compile, flow, game, generate, locale, palette, parse, tuning shared, because they call each other in a cycle; preload and vite are the features) find 0 under `--features`; all 31 unit tasks pass. Step 3 done locally (deviation 54): `assets` is Node-only so it leaves the `--browser` list; `game-config` and `locale` are browser-safe and `pnpm boundaries` checks them. Browser (Chromium) and journey suites pass here: 25 of 25 Emberwick journeys, 3 browser test files | [#393](https://github.com/mcthaydt/automata-framework/pull/393) |
+| 4.4 Feature folders and the boundaries rules | 4 | Done, 2026-11-06 (Chromium only; `--forbid` 0 findings, `--features` 77 → 0 after Svelte files were read, `--shared-island kit` 0; unit 3,270 = 3,270, Chromium 527 pass and 6 skipped = 4.3; lint, typecheck, boundaries, style, knip, changesets pass; WebKit, Firefox, editor-3d's suites and hosted CI not run) | [#412](https://github.com/mcthaydt/automata-framework/pull/412) |
 | 5.1 Bundle report, before | 5 | Done locally, 2026-11-05 (hosted CI not run): `tooling/bundle-report`, run on Emberwick (below) | [#392](https://github.com/mcthaydt/automata-framework/pull/392) |
 | 5.2 Plain-TypeScript helpers | 5 | Done locally, 2026-11-05 (hosted CI not run): `Clock`/`fakeClock`, `Disposables`, `Result`, `Subscribable`/`emitter`; 22 unit tests | [#394](https://github.com/mcthaydt/automata-framework/pull/394) |
 | 5.3 Host contract and targets | 5 | Done locally, 2026-11-05 (hosted CI not run): plain host contract, web, Ruken and Tauri adapters, contract suite and fake host take a `Clock` and `AbortSignal`; ADR 0003 amended. A temporary bridge keeps the Effect runtime working; deleting it moved to 5.4 (deviation 55) | [#394](https://github.com/mcthaydt/automata-framework/pull/394) |
@@ -116,8 +115,14 @@ plain type); the consumer smoke's fixtures still imported the six packages the m
 the `repo-hygiene` cache input and a comment named folders that no longer exist. Two tests that the copy change made stale were
 updated (base-3d's quit question, the `start-final` code in `run-game`).
 
-**Left for the Owner:** `pnpm ci:local` where WebKit and Firefox install; `pnpm lint:actions` (needs Docker); marking the PRs ready and
-merging bottom up. One more thing the audit did not list: about 200 comments in `packages/*/src` name FloorFifty, which AGENTS.md says
+**E1, run on the Owner's Mac (2026-11-05, Chromium, WebKit and Firefox):** `pnpm lint:actions` reports nothing. `pnpm ci:local`
+found two failures in the examples' journeys, both fixed: the examples config's `runner` projects picked up the playground
+journeys once this PR moved them to `tests/e2e` (74 failures, nothing serving the playground), so they now skip `playground-*`,
+which run from the runner's own config (109 passed in the three engines); and the gamepad matrix cell's pause tapped Start for
+one frame, which play reads once per sim step, so WebKit missed it about one run in three (fixed in #388, 24 of 24 after).
+Then: examples 139 passed, Emberwick 47, `create-game` 1.
+
+**Left for the Owner:** hosted CI; marking the PRs ready and merging bottom up. One more thing the audit did not list: about 200 comments in `packages/*/src` name FloorFifty, which AGENTS.md says
 published text never does (`docs/provenance/sources.md` is where it belongs). That is a rewrite of its own.
 
 **Bundle before D2 (Emberwick, `vite build --sourcemap`, measured 2026-11-05 on `claude/project-thread-f01qmj` with
@@ -234,7 +239,7 @@ on an upright phone the playing demo's wide frame made Emberwick ask for fullscr
 at the coordinator's ask: the platformer journey's two-finger undo runs on the test clock (it flaked once on #416).
 Next, in plan order: **19.2** (links, privacy, the closed-beta scan), 20.1 (the copy table), 21.1 (site workflow,
 legal, launch steps). Then the build is 64 of 68: 14.1 needs its own thread and branch (`claude/refactor-scope`,
-scope `@automata`); 14.2, 21.0's DNS and 21.2 are the Owner's. The Gmail in the footer still waits for the Owner. For
+scope `@automata`); 14.2, 21.0's DNS and 21.2 are the Owner's. The footer's Gmail was replaced by `hello@automataframework.com` on 2026-11-07 (the Owner's yes). For
 19.2: Emberwick's on-screen pad is `aria-hidden` with glyph-only buttons (the keys do the same); fine for a screen
 reader, but a candidate for phase 20's copy pass.
 
@@ -412,3 +417,18 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## The paid apps: desktop and mobile: 50% (3 of 6 stages done, 2026-11-08)
+
+The Owner, 2026-11-08 14:53: "should we get to using tauri to package to desktop, ios, and android? Also let's use
+nomad sculpt economics $19.99 for mobile, $39.99 for desktop; lets keep essentials on web, everything open source except
+deployment, but the full suite requires the app desktop or mobile; it needs to be synced to github".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08, on PR #511: 8 high (A1 to A8), 9 medium (A9 to A17), 3 low (A18 to A20), one decision for the Owner (D1, which editors stay on the web), settled 21:25: every editor is free on the web and the apps sell the download. A Tauri desktop build opened the full suite on a new game; a wall, a key and a longer flash were made in it, played in it and seen. Play needed an `on_new_window` handler to open at all | [audit](2026-11-08-apps-audit.md) |
+| 2. Plan and spec | Done, 2026-11-08: [spec](2026-11-08-apps-spec.md) and [plan](2026-11-08-apps-plan.md), 30 build tasks in 8 phases (0 the start, 1 seams in the editors, 2 the desktop app, 3 play with no computer, 4 the phone app, 5 GitHub sync, 6 the Review page, 7 building and proving), then MCP as a later stage (4 tasks: on a computer through the app's sidecar, on a phone over local Wi-Fi only, no relay ever: the Owner, 21:29). A phone needs no computer: the app carries a prebuilt runtime and compiles the game inside itself. Owner, 21:33: every editor free on the web, the app never names FigureBuilder or EnvironmentBuilder, no 2D-only app, launch waits for Pixi 3D. The DUEL palette has no stated licence on Lospec; the Owner asks Arilyn | [spec](2026-11-08-apps-spec.md), [plan](2026-11-08-apps-plan.md) |
+| 3. Plan audit | Done, 2026-11-08: 5 high (H1 the phone player refuses every game, because every game has the Svelte plugin; H2 the phone runtime misses Feel, Audio, `@automata/3d` and subpaths; H3 "progress must persist" is in neither document; H4 the npm release and rename, A5, fell out; H5 the base is two sibling branches and task references are pre-v2), 7 medium, 3 low; no Owner decision. A new game made in the web editors kept a Tuner key and a Feel flash through a reload and a close and reopen, and both showed in play (Chromium, phone and iPad) | [plan audit](2026-11-08-apps-plan-audit.md) |
+| 4. Build | Not started (0 of 30 tasks) | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |

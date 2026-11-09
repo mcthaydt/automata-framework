@@ -1,17 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import { createHomeController, type HomeState, type LastOpened } from '#src/features/home/home-controller.ts'
 import { createToasts, type ToastStore } from '#src/shared/kit/widgets/toasts.ts'
-import {
-  createEditorApp,
-  type EditorApp,
-  type OpenOutcome,
-} from '#src/shared/level-2d/documents/editor-app.ts'
-import type { ChoiceOutcome, PanelOutcome } from '#src/shared/level-2d/documents/open-flow-model.ts'
-import type { ProjectEntry } from '#src/shared/level-2d/documents/project-list.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
+import type { EditorApp, OpenOutcome, ProjectEntry } from '#src/shared/level-2d/session/editor-app-types.ts'
+import type { ChoiceOutcome, PanelOutcome } from '#src/shared/level-2d/session/open-flow-model.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'

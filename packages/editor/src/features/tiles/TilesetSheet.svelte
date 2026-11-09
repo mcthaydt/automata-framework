@@ -7,11 +7,11 @@
 <script lang="ts">
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Pill from '../../shared/kit/widgets/Pill.svelte'
-import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
+import type { FieldCommit } from '../../shared/level-2d/editor/field-commit'
+import { tileItems } from '../../shared/level-2d/editor/palette-model'
+import { spriteStyle } from '../../shared/level-2d/editor/tile-sprite'
 import type { TilesetDef } from '../../shared/level-2d/model/project-types'
 import { tilesetTiles } from '../../shared/level-2d/model/tileset-grid'
-import { tileItems } from '../../shared/level-2d/tiles/palette-model'
-import { spriteStyle } from '../../shared/level-2d/tiles/tile-sprite'
 import { type ResolvedSelection, tagRows } from './tilesets-model'
 import type { TilesetsSession } from './tilesets-session'
 
