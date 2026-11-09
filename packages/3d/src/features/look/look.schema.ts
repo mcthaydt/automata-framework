@@ -24,7 +24,7 @@ export interface Look {
   /** Where the grade comes from: the time of day's, or none. */
   readonly grade: 'time' | 'none'
   readonly switches: LookSwitches
-  /** The painted figures' cells: the density they are painted at, in half steps between `min` and `max` texels of the
+  /** The painted figures' cells: the density they are painted at, in quarter steps between `min` and `max` texels of the
    * sheets' size, and the bytes the cell cache may hold. */
   readonly figures: { readonly min: number; readonly max: number; readonly cacheBytes: number }
   /** The light: the room's light is cut into multiples of `step`, scaled by `gain` and never over `max` a channel. */

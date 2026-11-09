@@ -1,7 +1,10 @@
 import { defineTests, type TestOptions } from '@automata/vitest-preset'
 import type { BrowserCommand } from 'vitest/node'
+import type { MotionLibrary } from './src/features/figures/clips/figure-state.ts'
 import type { FigureLibrary } from './src/features/figures/figure/build.ts'
+import type { FigureDef } from './src/features/figures/figure/figure.schema.ts'
 import type { fixtureFigures } from './src/testing/fixture-library.ts'
+import type { fixtureMotion } from './src/testing/fixture-motion.ts'
 
 // `tests/unit`: the parsers, the views' maths, the figures' rig, genes and content checks, the no-eval shim's pin and
 // the bundle guard, on Node. `tests/browser`: the renderer on a real WebGL2 context and the figures' goldens again in
@@ -21,9 +24,30 @@ const figureFixture: BrowserCommand<[], FigureLibrary> = async (ctx) => {
   return (await fixture.fixtureFigures()).library
 }
 
+// Wick with the libraries he is built and played from, for a page that draws him through the renderer.
+export interface WickFixture {
+  readonly wick: FigureDef
+  readonly library: FigureLibrary
+  readonly motion: MotionLibrary
+}
+const wickFixture: BrowserCommand<[], WickFixture> = async (ctx) => {
+  const figures = await ctx.project.import<{ fixtureFigures: typeof fixtureFigures }>(
+    './src/testing/fixture-library.ts',
+  )
+  const motion = await ctx.project.import<{ fixtureMotion: typeof fixtureMotion }>(
+    './src/testing/fixture-motion.ts',
+  )
+  const [{ library }, { library: played, wick }] = await Promise.all([
+    figures.fixtureFigures(),
+    motion.fixtureMotion(),
+  ])
+  return { wick, library, motion: played }
+}
+
 // Pre-bundled browser-side deps: on a cold cache Vite otherwise reloads test pages mid-run (A0 spec §11).
-export default defineTests({
+const config: ReturnType<typeof defineTests> = defineTests({
   svelte: true,
   optimizeDeps: ['zod'],
-  browserCommands: { figureFixture } as TestOptions['browserCommands'],
+  browserCommands: { figureFixture, wickFixture } as NonNullable<TestOptions['browserCommands']>,
 })
+export default config

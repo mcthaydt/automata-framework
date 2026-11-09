@@ -1,22 +1,17 @@
-import { DEFAULT_PALETTE } from '@automata/content'
 import type { RenderRow } from '@automata/sim'
-import { Container3D, type FlatMaterial, Mesh3D } from '@pixi/3d'
+import { Container3D } from '@pixi/3d'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { J } from '#src/features/figures/body/rig.ts'
+import { CellCache } from '#src/features/figures/cells/cell-cache.ts'
+import { PaintQueue } from '#src/features/figures/cells/paint-queue.ts'
 import type { EvaluateOptions, FigureState } from '#src/features/figures/clips/figure-state.ts'
-import { build } from '#src/features/figures/figure/build.ts'
-import { skeleton } from '#src/features/figures/figure/figure-skeleton.ts'
-import { materialColour } from '#src/features/figures/view/figure-colour.ts'
+import type { FigureLayer, LayerFigure } from '#src/features/figures/layer/figure-layer.ts'
+import type { CellView } from '#src/features/figures/paint/soup.ts'
 import {
   FIGURE_BUILD_BUDGET_MS,
   type FigureViewOptions,
   figure,
 } from '#src/features/figures/view/figure-view.ts'
-import { createSceneLight } from '#src/shared/render/light/scene-light.ts'
-import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
-import { channels } from '#src/shared/render/light/vertex-light.ts'
 import { emptyModels } from '#src/shared/render/model/load-models.ts'
-import { tinted } from '#src/shared/render/views/box-view.ts'
 import { fixtureFigures } from '#src/testing/fixture-library.ts'
 import { fixtureMotion } from '#src/testing/fixture-motion.ts'
 
@@ -59,6 +54,21 @@ async function options(extra: Partial<FigureViewOptions> = {}) {
   let time = 0
   const clock = { set: (t: number) => (time = t) }
   return { def, clock, options: { library, motion, now: () => time, ...extra } satisfies FigureViewOptions }
+}
+
+/** A layer that only remembers the figures added to it. */
+function fakeLayer(): { layer: FigureLayer; figures: LayerFigure[]; removed: () => number } {
+  const figures: LayerFigure[] = []
+  let removed = 0
+  const layer = {
+    add(f: LayerFigure) {
+      figures.push(f)
+      return () => {
+        removed++
+      }
+    },
+  } as unknown as FigureLayer
+  return { layer, figures, removed: () => removed }
 }
 
 beforeEach(() => {
@@ -123,25 +133,6 @@ describe('figure', () => {
     view?.destroy?.()
   })
 
-  it('poses the slash over the walk: the right hand leaves where the walk alone puts it', async () => {
-    let action: { id: string; startedAt: number } | undefined
-    const { def, clock, options: o } = await options({ state: () => ({ moving: false, action }) })
-    const view = figure(def, o)(row, 'hero', emptyModels)
-    const hand = () => {
-      const drawing = view?.container.children[0] as Container3D
-      // The joints are the drawing's first children, in the rig's joint order.
-      const node = drawing.children[J['hand.R']] as Container3D
-      return [node.position.x, node.position.y, node.position.z]
-    }
-    clock.set(0.2)
-    view?.update?.(row.components)
-    const still = hand()
-    action = { id: 'slash', startedAt: 0 }
-    view?.update?.(row.components)
-    expect(hand()).not.toEqual(still)
-    view?.destroy?.()
-  })
-
   it('turns an aim point from world metres into the figure’s own frame', async () => {
     const aim = [{ part: 'head' as const, at: [3, 1.5, -2] as const }]
     const { def, options: o } = await options({ state: () => ({ moving: false, aim }) })
@@ -169,7 +160,7 @@ describe('figure', () => {
       measure: () => 0, // no build is slow here
       state: () => ({ moving: false, action: { id: 'no-such-clip', startedAt: 0 } }),
     })
-    const view = figure(def, o)(row, 'hero', emptyModels)
+    const view = figure(def, o)(row, 'hero', emptyModels, undefined, { figures: fakeLayer().layer })
     for (const t of [1, 2, 3]) {
       clock.set(t)
       view?.update?.(row.components)
@@ -191,63 +182,95 @@ describe('figure', () => {
     view?.destroy?.()
   })
 
-  it('rebuilds the parts once when the outfit or the item changes, and moves no joint (F-d)', async () => {
+  it('builds and paints the figure again once when the outfit or the item changes', async () => {
     let item: string | null = null
     const { def, options: o } = await options({ state: () => ({ moving: false, item }) })
     const view = figure(def, o)(row, 'hero', emptyModels)
     expect(calls.build).toBe(1)
-    const spine = () => {
-      const drawing = view?.container.children[0] as Container3D
-      const joint = drawing.children[2] as Container3D
-      return [joint.position.x, joint.position.y, joint.position.z]
-    }
-    const before = spine()
     view?.update?.(row.components)
     expect(calls.build).toBe(1)
     item = 'hand-lamp'
     view?.update?.(row.components)
     view?.update?.(row.components)
     expect(calls.build).toBe(2)
-    expect(view?.container.children.length).toBe(1)
-    expect(spine()).toEqual(before)
+    // The figure is a painted cell: the view holds no mesh.
+    expect(view?.container.children.length).toBe(0)
     view?.destroy?.()
   })
 
-  it('tints each lit material by the room light at the chest, and keeps a flat one as it is (M3R-D4)', async () => {
-    const light = createSceneLight(
-      sceneLightingSchema.parse({
-        ambient: 0.25,
-        lamps: [{ id: 'lamp', x: 0, y: 2, z: 0, color: 0xff8040, strength: 2, range: 4 }],
-      }),
-    )
+  it('shows the last cell while the one a view wants is painted, so a turn never leaves it undrawn', async () => {
     const { def, options: o } = await options()
-    const view = figure(def, o)(row, 'hero', emptyModels, light)
-    view?.update?.({ hero: { x: 1, y: 0, z: 0.5, yaw: 0 } })
-    const s = skeleton(def)
-    const tint = light.tint(1, s.chestY, 0.5)
-    // Every material Wick's parts and its neutral face's marks draw (its glowing eyes are flat).
-    const built = build(def, s, def.default, null, o.library)
-    const neutral = built.decals.filter(
-      (d) => (d.when === undefined || d.when.includes('neutral')) && d.blink !== true,
-    )
-    const expected = new Set(
-      [...built.parts, ...neutral].map(({ material }) => {
-        const m = built.materials[material]
-        if (m === undefined) throw new Error(`no material ${material}`)
-        const colour = materialColour(m, DEFAULT_PALETTE.colors)
-        return m.flat ? colour : tinted(channels(colour), tint)
-      }),
-    )
-    const drawn = new Set<number>()
-    const visit = (node: Container3D) => {
-      if (node instanceof Mesh3D) drawn.add((node.material as FlatMaterial).baseColor)
-      for (const child of node.children) if (child instanceof Container3D) visit(child)
-    }
-    visit(view?.container as Container3D)
-    expect([...drawn].map((c) => c.toString(16)).sort()).toEqual(
-      [...expected].map((c) => c.toString(16)).sort(),
-    )
+    const { layer, figures } = fakeLayer()
+    const view = figure(def, o)(row, 'hero', emptyModels, undefined, { figures: layer })
+    const f = figures[0] as LayerFigure
+    const cache = new CellCache(1e9)
+    const queue = new PaintQueue()
+    const front: CellView = { yaw: 0, pitch: 0.4, density: 1 }
+    // Nothing yet: the cell waits to be painted.
+    expect(f.cell(front, cache, queue, 0)).toBeUndefined()
+    expect(queue.pending).toBe(1)
+    queue.runOne()
+    const first = f.cell(front, cache, queue, 0)
+    expect(first?.cell.width).toBe(64)
+    // A turn to the next direction is not there yet: the figure keeps the cell it had.
+    const turned: CellView = { ...front, yaw: Math.PI / 4 }
+    expect(f.cell(turned, cache, queue, 0)).toEqual(first)
+    queue.runOne()
+    const second = f.cell(turned, cache, queue, 0)
+    expect(second?.key).not.toBe(first?.key)
+    expect(second?.cell).not.toBe(first?.cell)
     view?.destroy?.()
+  })
+
+  it('paints a cell from the pose held, with the view’s sprite cheats, and a changed pose is another cell', async () => {
+    let moving = false
+    const { def, clock, options: o } = await options({ state: () => ({ moving }) })
+    const { layer, figures } = fakeLayer()
+    const view = figure(def, o)(row, 'hero', emptyModels, undefined, { figures: layer })
+    const f = figures[0] as LayerFigure
+    const cache = new CellCache(1e9)
+    const queue = new PaintQueue()
+    const want: CellView = { yaw: 0, pitch: 0.4, density: 1 }
+    const posedAt = calls.evaluate
+    f.cell(want, cache, queue, 0)
+    queue.runOne()
+    expect(calls.evaluate).toBe(posedAt + 1)
+    const painted = calls.seen[calls.seen.length - 1]
+    expect(painted?.options?.sprite).toBeDefined()
+    expect(painted?.state.moving).toBe(false)
+    const standing = f.cell(want, cache, queue, 0)
+    moving = true
+    clock.set(1)
+    view?.update?.(row.components)
+    expect(f.cell(want, cache, queue, 0)?.key).toBe(standing?.key)
+    queue.runOne()
+    expect(f.cell(want, cache, queue, 0)?.key).not.toBe(standing?.key)
+    view?.destroy?.()
+  })
+
+  it('takes the figure out of the layer when it is destroyed, and tells where it stands and faces', async () => {
+    const { def, options: o } = await options()
+    const { layer, figures, removed } = fakeLayer()
+    const view = figure(def, o)(
+      { sid: 1, components: { hero: { x: 2, y: 1, z: 3, yaw: 0.5 } } },
+      'hero',
+      emptyModels,
+      undefined,
+      { figures: layer },
+    )
+    expect(figures[0]?.place()).toEqual({ at: [2, 1, 3], yaw: 0.5 })
+    view?.destroy?.()
+    expect(removed()).toBe(1)
+  })
+
+  it('says once that a figure is not drawn when the renderer has no figure layer', async () => {
+    const warn = vi.fn()
+    const { def, options: o } = await options({ warn, measure: () => 0 })
+    const make = figure(def, o)
+    make(row, 'hero', emptyModels)?.destroy?.()
+    make(row, 'hero', emptyModels)?.destroy?.()
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toMatch(/no figure layer/)
   })
 
   it('warns once when building a figure takes longer than the budget', async () => {
@@ -256,8 +279,8 @@ describe('figure', () => {
     // Every reading of the build timer is a second later than the last.
     const { def, options: o } = await options({ warn, measure: () => (ms += 1000) })
     const make = figure(def, o)
-    make(row, 'hero', emptyModels)?.destroy?.()
-    make(row, 'hero', emptyModels)?.destroy?.()
+    make(row, 'hero', emptyModels, undefined, { figures: fakeLayer().layer })?.destroy?.()
+    make(row, 'hero', emptyModels, undefined, { figures: fakeLayer().layer })?.destroy?.()
     expect(FIGURE_BUILD_BUDGET_MS).toBe(5)
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toMatch(/figure .* took 1000 ms to build/)

@@ -24,6 +24,7 @@ import {
   type Occluders,
   occluderHooks,
 } from '../features/camera/occluders/occluders.ts'
+import { createFigureLayer, type FigureLayer } from '../features/figures/layer/figure-layer.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { createLookPasses, type LookPasses } from '../features/look/look-pass.ts'
 import { type ContextWatch, watchContextLoss } from '../features/renderer/context-loss.ts'
@@ -171,6 +172,8 @@ interface Mounted {
   readonly camera: CameraRig | undefined
   /** The look's passes, retired with the view (a pass may be shared, so the view never destroys them itself). */
   readonly passes: LookPasses | undefined
+  /** The layer painted figures are drawn in; there is one with a look. */
+  readonly figures: FigureLayer | undefined
 }
 
 /**
@@ -190,7 +193,10 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   view.fog = viewFog(options.fog, options.lighting?.fog)
   const passes =
     options.look === undefined ? undefined : createLookPasses(options.look, options.time ?? timeOfDay('day'))
-  if (passes !== undefined) view.passes = [...passes.list]
+  const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
+  // Painted figures are cells composited into the scene, so they need the look's snap after them.
+  const figures = options.look === undefined ? undefined : createFigureLayer(view, options.look, light)
+  if (passes !== undefined) view.passes = [...(figures === undefined ? [] : [figures.pass]), ...passes.list]
   // The sky. The view draws no colour where no mesh is, so the letterbox's black field shows through there (the app's
   // clear colour is under that field). A 2D fill of the view's rect, under it, draws the sky exactly on both backends;
   // `@pixi/3d`'s hemisphere background lifts dark colours (0x020c0c draws as 0x091414). Inside the view only, so the
@@ -199,15 +205,17 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   if (letterboxed && sky !== undefined)
     stage.world.addChild(new Graphics().rect(0, 0, view.width, view.height).fill(sky))
   stage.world.addChild(view)
-  const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
   const switches =
     light === undefined || options.lamps === undefined ? undefined : lampSwitches(options.lamps)
   const resolver: Record<string, (row: RenderRow, componentId?: string) => EntityView3d | undefined> = {}
   for (const [id, factory] of Object.entries(options.views))
-    resolver[id] = (row, componentId) => factory(row, componentId, models, light)
+    resolver[id] = (row, componentId) => factory(row, componentId, models, light, { figures })
   const consumer = new RenderDeltaConsumer<Container3D>(view.root, resolver)
   // Feel and its kind squash, hold and label characters through the stage; here they are 3D models, not 2D views.
   stage.useCharacters(characters3d(consumer, view, stage.ui))
+  // The layer runs last each frame, on the poses and the camera the frame has settled.
+  const layerHooks: PixiStageHooks | undefined =
+    figures === undefined ? undefined : { draw: () => figures.frame() }
   const entities: PixiStageHooks = {
     apply: (result) => {
       const levels = switches?.apply(result.render)
@@ -219,7 +227,16 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   }
   const occluders = createOccluders(view.root)
   if (options.camera === undefined)
-    return { view, occluders, consumer, hooks: entities, light, camera: undefined, passes }
+    return {
+      view,
+      occluders,
+      consumer,
+      hooks: mergeHooks(entities, layerHooks),
+      light,
+      camera: undefined,
+      passes,
+      figures,
+    }
   const camera = angledCamera({
     camera: view.camera,
     views: options.camera.views,
@@ -230,14 +247,26 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   })
   // The rule runs after the camera has moved, on the pose it just wrote.
   const occluding = occluderHooks(camera, occluders, { height: options.camera.height ?? PLAYER_HEIGHT })
+  // The figures are painted for the active view's distance, not for the ones a 400 ms ease passes through.
+  if (figures !== undefined) {
+    const activate = camera.activate.bind(camera)
+    camera.activate = (id, how) => {
+      activate(id, how)
+      const shown = camera.viewOf(id)
+      if (shown !== undefined) figures.setFocus(shown.distance)
+    }
+    const first = camera.viewOf(options.camera.initial)
+    if (first !== undefined) figures.setFocus(first.distance)
+  }
   return {
     view,
     occluders,
     consumer,
-    hooks: mergeHooks(entities, cameraDriver(camera, options.camera), occluding),
+    hooks: mergeHooks(entities, cameraDriver(camera, options.camera), occluding, layerHooks),
     light,
     camera,
     passes,
+    figures,
   }
 }
 
@@ -304,7 +333,7 @@ async function buildInstance(
     const tried: ('webgl2' | 'webgpu')[] = options.preference === 'webgpu' ? ['webgpu', 'webgl2'] : ['webgl2']
     return { ok: false, reason: new RendererUnavailable({ tried }) }
   }
-  const { view, consumer, camera, occluders, passes } = mounted
+  const { view, consumer, camera, occluders, passes, figures } = mounted
   const device = (base.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
   const context = watchContextLoss({ canvas: base.stage.app.canvas, device, bus: target.bus, clock, onGone })
   // Runs before the app's own teardown (added last, run first): stop watching, then drop the views.
@@ -312,6 +341,7 @@ async function buildInstance(
     context.stop()
     consumer.destroy()
     occluders.dispose()
+    figures?.dispose()
     for (const pass of passes?.list ?? []) pass.destroy()
   })
   return { ok: true, value: { cleanup, base, view, context, camera } }

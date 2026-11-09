@@ -30,18 +30,15 @@ export function toCell(v: V3, azimuth: number, pitch: number): V3 {
   return [x, v[1] * cp - z * sp, v[1] * sp + z * cp]
 }
 
-/** The sprite's lights at `chest` (world metres): the room's ambient times `ambientGain`, and one lamp for each of the
- * room's that is lit now and reaches the chest. */
-export function spriteLamps(
-  light: SceneLight,
-  chest: V3,
-  frame: LightFrame,
-  ambientGain = 1,
-): { readonly ambient: V3; readonly lamps: SpriteLamp[] } {
+/** A lamp that reaches a point: the world direction toward it (unit) and its colour times its strength, level and falloff. */
+interface Reaching {
+  readonly dir: V3
+  readonly rgb: V3
+}
+
+function reaching(light: SceneLight, chest: V3): Reaching[] {
   const { lighting } = light
-  const k = lighting.ambient * ambientGain
-  const [ar, ag, ab] = rgbChannels(lighting.ambientColor)
-  const lamps: SpriteLamp[] = []
+  const out: Reaching[] = []
   for (const lamp of lighting.lamps) {
     const level = light.level(lamp.id)
     if (level <= 0) continue
@@ -54,10 +51,39 @@ export function spriteLamps(
     const falloff = 1 - distance / lamp.range
     const reach = falloff * falloff * lamp.strength * level
     const [r, g, b] = rgbChannels(lamp.color)
-    lamps.push({
-      dir: toCell([dx / distance, dy / distance, dz / distance], frame.azimuth ?? 0, frame.pitch),
-      rgb: [r * reach, g * reach, b * reach],
-    })
+    out.push({ dir: [dx / distance, dy / distance, dz / distance], rgb: [r * reach, g * reach, b * reach] })
   }
+  return out
+}
+
+/** The world direction toward the lamp that lights `chest` most: where a shadow is thrown from. None when no lamp reaches. */
+export function keyDirection(light: SceneLight, chest: V3): V3 | undefined {
+  let best: Reaching | undefined
+  let most = 0
+  for (const r of reaching(light, chest)) {
+    const strength = r.rgb[0] + r.rgb[1] + r.rgb[2]
+    if (strength > most) {
+      most = strength
+      best = r
+    }
+  }
+  return best?.dir
+}
+
+/** The sprite's lights at `chest` (world metres): the room's ambient times `ambientGain`, and one lamp for each of the
+ * room's that is lit now and reaches the chest. */
+export function spriteLamps(
+  light: SceneLight,
+  chest: V3,
+  frame: LightFrame,
+  ambientGain = 1,
+): { readonly ambient: V3; readonly lamps: SpriteLamp[] } {
+  const { lighting } = light
+  const k = lighting.ambient * ambientGain
+  const [ar, ag, ab] = rgbChannels(lighting.ambientColor)
+  const lamps = reaching(light, chest).map((r) => ({
+    dir: toCell(r.dir, frame.azimuth ?? 0, frame.pitch),
+    rgb: r.rgb,
+  }))
   return { ambient: [ar * k, ag * k, ab * k], lamps }
 }

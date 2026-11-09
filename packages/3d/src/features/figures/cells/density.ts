@@ -1,6 +1,6 @@
 // How many texels a metre a figure's cell gets: the field is `short` pixels tall and shows `2 · distance · tan(fov / 2)`
 // metres at the figure's distance, so a figure farther away needs fewer texels. A cell is painted at that density in
-// half steps, no lower than `min` (the sheets' own density) and no higher than `max` (the painter's cost grows with the
+// quarter steps, no lower than `min` (the sheets' own density) and no higher than `max` (the painter's cost grows with the
 // square), so a figure is one of a short list of cells and not one per camera distance.
 
 import { tan } from '@automata/sim/math'
@@ -27,5 +27,5 @@ export function viewDensity(
 ): number {
   const pixelsPerMetre = short / (2 * distance * tan(fovShort / 2))
   const wanted = Math.max(limits.min, Math.min(limits.max, pixelsPerMetre / SHEET_PPM))
-  return Math.round(wanted * 2) / 2
+  return Math.round(wanted * 4) / 4
 }

@@ -1,31 +1,35 @@
-// `figure(def, options)`: a procedural character as an entity view. It builds the
-// figure's parts once (`build`), draws them (figure-meshes.ts) and poses them from presentation time with figures'
-// `evaluate()`: the gait's pose clock and what the sim says through the render row (moving, speed, the direction of
-// travel, the action and stances, aim points, the outfit and the held item). The pose is evaluated only when the
-// pose clock steps or that state changes (an aim point in the frame's own space changes as the figure moves, so a
-// locked figure re-solves every frame), so a figure costs nothing between pose steps but its light
-// tint. The view owns what lives between frames: the hair spring, the last evaluated time (`previous`, so a clip's
-// marker is not skipped) and the set of missing clips already warned about. Motion never feeds back into the sim
-// (law 1).
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+// `figure(def, options)`: a procedural character as an entity view. It builds the figure once (`build`), poses it from
+// presentation time with figures' `evaluate()`: the gait's pose clock and what the sim says through the render row
+// (moving, speed, the direction of travel, the action and stances, aim points, the outfit and the held item). The pose
+// is evaluated only when the pose clock steps or that state changes (an aim point in the frame's own space changes as
+// the figure moves, so a locked figure re-solves every frame). The figure is drawn as a painted cell by the renderer's
+// figure layer: this view tells the layer where the figure stands and which way it faces, and paints the cell the layer
+// asks for, from the pose it has. The view owns what lives between frames: the hair spring, the last evaluated time
+// (`previous`, so a clip's marker is not skipped) and the set of missing clips already warned about. Motion never
+// feeds back into the sim (law 1).
 import type { FieldRecord } from '@automata/sim'
 import { Container3D } from '@pixi/3d'
 import type { M } from '../../../shared/math/math.ts'
-import { channels } from '../../../shared/render/light/vertex-light.ts'
-import { tinted } from '../../../shared/render/views/box-view.ts'
 import { placeView3d } from '../../../shared/render/views/pose-3d.ts'
-import type { View3dFactory } from '../../../shared/render/views/view-3d.ts'
+import type { View3dFactory, ViewLayers3d } from '../../../shared/render/views/view-3d.ts'
 import { J } from '../body/rig.ts'
+import type { CellCache } from '../cells/cell-cache.ts'
+import { cellKey } from '../cells/cell-key.ts'
+import type { PaintQueue } from '../cells/paint-queue.ts'
 import { evaluate } from '../clips/evaluate.ts'
 import type { FigureState, MotionLibrary } from '../clips/figure-state.ts'
 import { type Built, build, type FigureLibrary } from '../figure/build.ts'
-import type { FigureDef } from '../figure/figure.schema.ts'
+import { type FigureDef, faceOf } from '../figure/figure.schema.ts'
 import { skeleton } from '../figure/figure-skeleton.ts'
+import type { FigureLayer, FoundCell, LayerFigure } from '../layer/figure-layer.ts'
 import { poseClock, wrapAngle } from '../motion/clock.ts'
 import { gaitOf, hairOf } from '../motion/gait-of.ts'
 import { HAIR_AT_REST, type HairSpring, hairStep, headNod } from '../motion/hair-spring.ts'
 import type { AimTarget } from '../motion/targets.ts'
-import { drawFigure, type FigureDrawing } from './figure-meshes.ts'
+import { paintPosed } from '../paint/paint-posed.ts'
+import { STYLE } from '../paint/raster.ts'
+import { type PaintFigure, paintFigure, soupOf } from '../paint/soup.ts'
+import { spriteCheats } from '../paint/sprite-cheats.ts'
 
 /**
  * Building a figure's meshes past this many milliseconds logs a warning. S7-Q9 measured the one-off build at 1.95 ms
@@ -54,8 +58,6 @@ export interface FigureViewOptions {
   readonly motion: MotionLibrary
   /** Reads the figure's state from its render row's components; standing in its default outfit when left out. */
   readonly state?: ((components: Components) => FigureViewState) | undefined
-  /** The palette materials index, as `#rrggbb` strings (DUEL by default). */
-  readonly palette?: readonly string[] | undefined
   /** Presentation time in seconds (the frame clock). */
   readonly now?: (() => number) | undefined
   /** The build timer in milliseconds. */
@@ -65,6 +67,7 @@ export interface FigureViewOptions {
 }
 
 const STANDING: FigureViewState = { moving: false }
+const EIGHTH = Math.PI / 4
 
 /** `at` (world metres) in the frame of a node at `x`, `y`, `z` turned by `yaw` about +y. */
 function toFigure(
@@ -81,28 +84,53 @@ function toFigure(
   return [dx * cos - dz * sin, (at[1] ?? 0) - y, dx * sin + dz * cos]
 }
 
+/** The figure layer the renderer made, if it made one. */
+function figureLayerOf(layers: ViewLayers3d | undefined): FigureLayer | undefined {
+  const layer = layers?.figures as FigureLayer | undefined
+  return layer !== undefined && typeof layer.add === 'function' ? layer : undefined
+}
+
+/** What a cell is painted from: the pose the view held when the cell was asked for. */
+interface Held {
+  readonly state: FigureState
+  readonly time: number
+  readonly key: string
+}
+
 /**
  * A figure standing on its component's position (its feet at `y`), interpolated between ticks and turned by `yaw`:
- * `views: { [Hero.id]: figure(wick, { library, motion, state: (c) => ({ moving: c.hero?.speed !== 0 }) }) }`.
+ * `views: { [Hero.id]: figure(wick, { library, motion, state: (c) => ({ moving: c.hero?.speed !== 0 }) }) }`. It is drawn
+ * by the renderer's figure layer, which needs the renderer's `look`: without a layer the figure is not drawn, and
+ * says so once.
  */
 export function figure(def: FigureDef, options: FigureViewOptions): View3dFactory {
   const rig = skeleton(def)
   const gait = gaitOf(def, options.motion.gaits)
   const hairDynamics = hairOf(def)
-  const palette = options.palette ?? DEFAULT_PALETTE.colors
   const now = options.now ?? (() => performance.now() / 1000)
   const measure = options.measure ?? (() => performance.now())
   const warn = options.warn ?? ((message: string) => console.warn(message))
   const stateOf = options.state ?? (() => STANDING)
+  const face = faceOf(def)
   let warned = false
+  let warnedNoLayer = false
 
-  return (row, componentId, _models, light) => {
+  return (row, componentId, _models, _light, layers) => {
     const container = new Container3D()
-    const lit: [number, number, number] = [0, 0, 0]
-    let drawing: FigureDrawing
+    const layer = figureLayerOf(layers)
+    if (layer === undefined && !warnedNoLayer) {
+      warnedNoLayer = true
+      warn(
+        `figure on ${componentId ?? 'an entity'} is not drawn: the renderer has no figure layer (give it a look)`,
+      )
+    }
     let built: Built
+    let painter: PaintFigure
     let dressed = ''
     let posed = ''
+    let outfitNow = def.default
+    let itemNow: string | null = null
+    let held: Held | undefined
     // Between frames: the hair spring, the time and facing it was last stepped at, the head it hangs against, the
     // last evaluated time, and the missing clips already warned about.
     let hair: HairSpring = HAIR_AT_REST
@@ -115,7 +143,7 @@ export function figure(def: FigureDef, options: FigureViewOptions): View3dFactor
     const dress = (outfit: string, item: string | null) => {
       const started = measure()
       built = build(def, rig, outfit, item, options.library)
-      const next = drawFigure(built, rig, palette, { lit: light !== undefined })
+      painter = paintFigure(def, rig, built, outfit)
       const took = measure() - started
       if (took > FIGURE_BUILD_BUDGET_MS && !warned) {
         warned = true
@@ -123,10 +151,9 @@ export function figure(def: FigureDef, options: FigureViewOptions): View3dFactor
           `figure on ${componentId ?? 'an entity'} took ${Math.round(took)} ms to build (budget ${FIGURE_BUILD_BUDGET_MS} ms)`,
         )
       }
-      drawing?.destroy()
-      drawing = next
-      container.addChild(drawing.node)
       dressed = `${outfit}|${item ?? ''}`
+      outfitNow = outfit
+      itemNow = item
       posed = ''
     }
 
@@ -170,47 +197,77 @@ export function figure(def: FigureDef, options: FigureViewOptions): View3dFactor
       hairAt = time
       shownYaw = yaw
       // At facing 0: the node carries the facing, as every 3D view's does.
-      const { world } = evaluate(
-        rig,
-        def,
-        {
-          ...state,
-          speed,
-          facing: 0,
-          aim,
-          item: item ?? undefined,
-          hair: { pitch: hair.pitch, roll: hair.roll },
-        },
-        time,
-        options.motion,
-        { previous, warn, warned: warnedClips },
-      )
+      const figureState: FigureState = {
+        ...state,
+        speed,
+        facing: 0,
+        aim,
+        item: item ?? undefined,
+        hair: { pitch: hair.pitch, roll: hair.roll },
+      }
+      const { world } = evaluate(rig, def, figureState, time, options.motion, {
+        previous,
+        warn,
+        warned: warnedClips,
+      })
       previous = time
       head = world[J.head]
-      drawing.pose(world)
+      held = { state: figureState, time, key }
     }
 
-    const tint = () => {
-      if (light === undefined) return
-      // Lit at the chest, where the light on a character reads (M3R-D4).
-      const { x, y, z } = container.position
-      light.tint(x, y + rig.chestY, z, undefined, lit)
-      for (const { material, colour, flat } of drawing.materials.values())
-        if (!flat) material.baseColor = tinted(channels(colour), lit)
+    // The cell for a view is painted from the pose held now: its sprite cheats (the head's tip toward the camera) are
+    // the view's, so the pose is evaluated for the view, and the soup it makes is painted.
+    let last: FoundCell | undefined
+    const asLayerFigure: LayerFigure = {
+      place: () => ({
+        at: [container.position.x, container.position.y, container.position.z],
+        yaw: container.rotation.y,
+      }),
+      cell(view, cache: CellCache, queue: PaintQueue, priority) {
+        if (held === undefined) return last
+        const pose = held
+        const fig = painter
+        const direction = ((Math.round(view.yaw / EIGHTH) % 8) + 8) % 8
+        const key = cellKey({
+          pose: pose.key,
+          direction,
+          pitch: view.pitch,
+          density: view.density,
+          outfit: outfitNow,
+          item: itemNow,
+          face: 'neutral',
+        })
+        const hit = cache.get(key)
+        if (hit !== undefined) {
+          last = { key, cell: hit }
+          return last
+        }
+        queue.request(key, priority, () => {
+          const sprite = spriteCheats(view.yaw, 0, view.pitch, face, gait.headLead)
+          const { world } = evaluate(rig, def, pose.state, pose.time, options.motion, {
+            sprite,
+            warn,
+            warned: warnedClips,
+          })
+          const painted = paintPosed(fig, soupOf(fig, rig, world, view, STYLE.supersample))
+          cache.put(key, painted)
+          return painted
+        })
+        return last
+      },
     }
 
     placeView3d(container, row.components, undefined, 1, componentId)
     pose(stateOf(row.components))
-    tint()
+    const remove = layer?.add(asLayerFigure)
     return {
       container,
       update(curr, prev, alpha = 1) {
         placeView3d(container, curr, prev, alpha, componentId)
         pose(stateOf(curr))
-        tint()
       },
       destroy() {
-        drawing.destroy()
+        remove?.()
         container.destroy({ children: true })
       },
     }
