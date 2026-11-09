@@ -19,7 +19,7 @@ import {
   recordPitches,
   servedWith,
 } from '../harness/complete-game.ts'
-import { EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
+import { chooseView, EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { boxOf } from '../harness/read-png.ts'
 import { readZip } from '../harness/read-zip.ts'
@@ -75,7 +75,7 @@ test('a new 2D game is made with every editor it has, played and published', asy
 
     // Levels 2D: add a picture of tiles, paint a cell of Decor with one, and give the player start another (Characters).
     await openRoom(page, editor, 'Start')
-    await page.getByRole('radio', { name: 'Tiles' }).click()
+    await chooseView(page, 'Tiles')
     const addTiles = page.getByRole('button', { name: 'Add tiles' }).first()
     await openPanel(page)
     await addTiles.click()
@@ -87,7 +87,7 @@ test('a new 2D game is made with every editor it has, played and published', asy
     })
     await dialog.getByRole('button', { name: 'Add tiles' }).click()
     await expect(dialog).toBeHidden()
-    await page.getByRole('radio', { name: 'Level' }).click()
+    await chooseView(page, 'Level')
     const canvas = page.locator('[data-level-canvas]')
     await expect(canvas).toHaveAttribute('data-state', 'drawn')
     const layer = page.getByRole('button', { name: /^Decor/ })

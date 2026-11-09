@@ -136,6 +136,25 @@ describe('SuiteHeader in the wide layout', () => {
     expect(count).not.toHaveTextContent('problem')
   })
 
+  it('under 900 px with nothing to count it shows nothing, not a tick that sits beside Saved', () => {
+    for (const pill of [
+      NONE,
+      checksPill({ running: true, checks: [] }),
+      checksPill({ running: false, checks: [] }),
+    ]) {
+      const { unmount } = render(SuiteHeader, props({ checks: pill, short: true }))
+      expect(screen.queryByRole('button', { name: /problem|Check|check/ })).toBeNull()
+      expect(screen.getByRole('status')).toHaveTextContent('Saved')
+      unmount()
+    }
+  })
+
+  it('under 900 px a check that could not run still shows, as a warning', () => {
+    const failed = checksPill({ running: false, checks: [{ check: 'a', status: 'error', findings: [] }] })
+    render(SuiteHeader, props({ checks: failed, short: true }))
+    expect(screen.getByRole('button', { name: "Couldn't check" })).toBeInTheDocument()
+  })
+
   it('shows the checks in the words of every state', () => {
     const words = (pill: ReturnType<typeof checksPill>) => {
       const { unmount } = render(SuiteHeader, props({ checks: pill }))

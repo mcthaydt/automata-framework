@@ -416,7 +416,7 @@ the site's 3D parts.
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 26 findings against #444's head, the checkout and both builders, all fixed in place in the spec and the plan (the move map now follows today's imports, so `--features` holds: `shared/render/`, the occluders the camera's; the test mover's real flags; the goldens renamed and re-recorded once for FigureBuilder's newer fat; the 15 classic kinds; `Ease` keeps the cubic-bezier tuple; `LevelProblem`; `findCutByBar` in place of `findClipped`; the 2D slice's real-command harness reused; editor-3d's full move map; the look's target follows a phone in portrait; drunk grandma fixes to the new words). The paused audit's 21: 17 fixed by the rewrite, 4 finished here. DUEL's author and licence stay the Owner's | [record](2026-11-07-3d-slice-plan-audit.md) |
 | 4. Build | In progress (Sonnet, high): 31 of 59 tasks (54 until 2026-11-08, when 15.5 and 16.1b to 16.1e were added), see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
 | 5. Build audit | Not started | |
-| 6. Fixes | Not started | |
+| 6. Fixes | Done, 2026-11-09 (PR stacked on #562): all 12 findings answered; the header's breadcrumb and two-row phone header, Characters names on Home, wrapping layer and switch rows, the sound after a restart. F3 (the white strip) is a headless-capture artifact, not reproduced as a defect; a real iPad look is pending. Chromium only | [fixes](2026-11-09-editors-v2-build-audit.md) |
 
 **The whole game loop (2026-11-08, session 6rfl3t, PR stacked on #473; the Owner asked whether a whole game can be made
 from the editors).** The 2D editors audit's E1 to E5 are fixed on the open stack, each with a served journey (E1

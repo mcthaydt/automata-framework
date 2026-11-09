@@ -141,6 +141,29 @@ describe('the tall layout', () => {
     expectClean(tall, def)
   })
 
+  it('starts at its own left edge: nothing is drawn left of 0, so no width is wasted beside the boxes', () => {
+    const drawn = { box: { w: 160, h: 64 }, gap: 168, label: 52, labelW: 144, tall: true }
+    const guard = agent({
+      modes: ['patrol', 'hunt', 'follow'],
+      transitions: [
+        { from: '*', to: 'hunt', when: [{ sees: true }], priority: 1 },
+        { from: 'hunt', to: 'follow', when: [{ touching: true }], priority: 1 },
+        { from: 'hunt', to: 'patrol', when: [{ heard: '*' }], priority: 1 },
+      ],
+    })
+    for (const character of [def, guard]) {
+      const tall = layoutAgent(character, drawn)
+      const xs = [
+        ...tall.boxes.flatMap((box) => [box.x, box.x + box.w]),
+        ...tall.arrows.flatMap((arrow) => [arrow.label.x, arrow.label.x + arrow.label.w]),
+        ...tall.arrows.flatMap((arrow) => arrow.points.map(([x]) => x)),
+      ]
+      expect(Math.min(...xs)).toBe(0)
+      expect(tall.width).toBe(Math.max(...xs))
+      expectClean(tall, character)
+    }
+  })
+
   it('is narrower than the wide board at the size the diagram draws, which is the point of it', () => {
     const drawn = { box: { w: 160, h: 64 }, gap: 168, label: 52, labelW: 144 }
     const wide = layoutAgent(def, drawn)

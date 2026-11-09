@@ -1,5 +1,7 @@
 import { defineSuiteEditor, type SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
 import { canvas, inspector, panel, status, tools } from './Levels2dRegions.svelte'
+import { levels2dHeader } from './levels-2d-header'
+import { levels2dHomeNames } from './levels-2d-home-names'
 import {
   type Levels2dOptions,
   type Levels2dSession,
@@ -30,6 +32,8 @@ export function createLevels2d(options: Levels2dOptions): SuiteEditor<Levels2dSe
     ],
     showView: (session, view) => showLevels2dView(session, view),
     regions: { panel, canvas, inspector, tools, status },
+    header: levels2dHeader,
+    homeNames: levels2dHomeNames,
     undo: levels2dUndo,
   })
 }

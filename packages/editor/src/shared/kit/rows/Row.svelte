@@ -3,6 +3,8 @@
   at the start (`lead`), the name, a second line of detail if it has one, and meta at the end (a count, a key). `actions`
   are the row's own buttons (hide, lock, remove): with a mouse they show while the pointer or the focus is on the row, on
   touch they are always there, each 44 px, so nothing a person needs hides behind a hover they cannot do.
+  `wrap` lets the name run onto more lines instead of ending in an ellipsis, for a row that is a sentence (a switch) and must
+  be read whole.
   The name is the row's button when the row can be chosen (`onclick`), so a screen reader hears it by name; the actions
   are beside it, never inside it.
 -->
@@ -18,10 +20,12 @@ interface Props {
   meta?: string | undefined
   actions?: Snippet | undefined
   onclick?: (() => void) | undefined
+  /** The name may take more than one line. */
+  wrap?: boolean
   children: Snippet
 }
 
-const { selected = false, lead, detail, meta, actions, onclick, children }: Props = $props()
+const { selected = false, lead, detail, meta, actions, onclick, wrap = false, children }: Props = $props()
 </script>
 
 {#snippet inner()}
@@ -33,7 +37,7 @@ const { selected = false, lead, detail, meta, actions, onclick, children }: Prop
   {#if meta !== undefined}<span class="meta">{meta}</span>{/if}
 {/snippet}
 
-<div class="row" data-selected={selected} data-two-line={detail !== undefined}>
+<div class="row" data-selected={selected} data-two-line={detail !== undefined} data-wrap={wrap}>
   {#if onclick !== undefined}
     <button type="button" class="main" aria-current={selected ? 'true' : undefined} {onclick}>{@render inner()}</button>
   {:else}
@@ -103,6 +107,12 @@ const { selected = false, lead, detail, meta, actions, onclick, children }: Prop
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .row[data-wrap='true'] .name {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
   }
   .detail {
     color: var(--tool-faint);

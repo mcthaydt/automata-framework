@@ -436,14 +436,14 @@ and log what differs and why.
       Then run `complete-game-2d` and `complete-game-3d` (`pnpm --filter @automata/editor test:e2e -- complete-game
       --trace off`): every editor in both kinds of game, in the new look. Expected: PASS, with the `test.fail` journeys
       the shared-editors build left failing for their stated reasons.
-- [x] **Step 2:** Turn the 3D editors' `variant="primary"` buttons outside a dialog to `secondary`, then run the 3D
+- [ ] **Step 2:** Turn the 3D editors' `variant="primary"` buttons outside a dialog to `secondary`, then run the 3D
       editors: `.github/workflows/3d.yml`'s commands, including `dark-levels-3d.test.ts`.
       Levels 3D and the Studio show in the new shell, header, sidebar and tab bar with Publish their only lime; their
       insides are otherwise unchanged.
       Expected: PASS. If it cannot run here, leave the step unchecked and say so.
-- [x] **Step 3:** Run every visual test; for each baseline that moved, look at expected, actual and diff, re-record
+- [ ] **Step 3:** Run every visual test; for each baseline that moved, look at expected, actual and diff, re-record
       it only when the change is the v2 look, and name each in the log.
-- [x] **Step 4:** Run the full gates: `pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`, the site's e2e and
+- [ ] **Step 4:** Run the full gates: `pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`, the site's e2e and
       parity. Record which ran, which did not (WebKit, Firefox and real devices cannot run in a cloud session) and the
       results in the log and in `progress.md`.
 - [x] **Step 5: Commit** `test(editors): the v2 look proven in play; record the build`.
@@ -687,3 +687,6 @@ GL cold start), the editor's unit and suite-shell layout tests. Not run: WebKit 
   served (the guard does chase); fixed with three more journey races, and `work-survives-reopening` added. Open for the
   fixes stage: F1 to F12 (3 high: the header's breadcrumb and cut level name on the iPad, the phone's three-row header, a
   white strip over the phone's level). Task 14 Steps 2 to 4 are ticked with checks that did not run (F6).
+- 2026-11-09, fixes (stage 6), [`2026-11-09-editors-v2-build-audit.md`](2026-11-09-editors-v2-build-audit.md) "Fixes": all 12
+  findings answered (F3 is a capture artifact we could not reproduce as a real defect). Task 14 Steps 2 to 4 stay unticked:
+  the 3D workflow's commands, a visual run with compared baselines, and the site's e2e and parity did not run here.

@@ -36,6 +36,7 @@ const { character, names, selected, onselect }: Props = $props()
                 <Row
                   selected={selected?.kind === 'switch' && selected.index === index}
                   detail={switchNote(character, index)}
+                  wrap
                   onclick={() => onselect({ kind: 'switch', index })}
                 >
                   {switchWords(t, names)}
@@ -50,13 +51,16 @@ const { character, names, selected, onselect }: Props = $props()
 </div>
 
 <style>
+  /* A switch is a sentence: it wraps inside the panel, so every track of the grid may be narrower than its words. */
   .groups {
     display: grid;
     gap: var(--space-4);
+    min-width: 0;
   }
   section {
     display: grid;
     gap: var(--space-2);
+    min-width: 0;
   }
   h3 {
     margin: 0;
@@ -66,9 +70,13 @@ const { character, names, selected, onselect }: Props = $props()
   ol {
     display: grid;
     gap: var(--space-1);
+    min-width: 0;
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  li {
+    min-width: 0;
   }
   .none {
     margin: 0;

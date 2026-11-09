@@ -10,7 +10,7 @@
 <script lang="ts">
 import type { GeometryState } from '@automata/framework'
 import type { WriteOutcome } from '../../../shared/editor-list/write-path'
-import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
+import type { EditorHeader, SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
 import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
@@ -103,6 +103,14 @@ const mounted = $derived(
     : undefined,
 )
 
+/** Whether the open editor has a panel, details or dock to toggle where the window has no room to show them. */
+const hasToggles = $derived(
+  mounted !== undefined &&
+    ((mounted.editor.regions.panel !== undefined && mode !== 'wide') ||
+      (mounted.editor.regions.inspector !== undefined && mode !== 'wide') ||
+      (mounted.editor.regions.dock !== undefined && dockIsSheet)),
+)
+
 $effect(() => {
   if (target === undefined) return
   const { editor, card } = target
@@ -119,6 +127,18 @@ $effect(() => {
     },
     () => opening.delete(editor.id),
   )
+})
+
+// The open editor's breadcrumb ("Levels / Start ▾", its views): a store that follows the document and the view.
+let editorHeader = $state<EditorHeader | undefined>()
+$effect(() => {
+  const open = mounted
+  const store = open?.editor.header?.(open.session)
+  if (store === undefined) {
+    editorHeader = undefined
+    return
+  }
+  return store.subscribe((header) => (editorHeader = header))
 })
 
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills and
@@ -220,7 +240,7 @@ function openCard(card: EditorCard): void {
       {short}
       game={gameName}
       editor={entry === undefined ? undefined : { label: entry.label, icon: entry.icon }}
-      header={mounted?.editor.header?.(mounted.session)}
+      header={editorHeader}
       {checks}
       onlocate={locate}
       save={sample ? undefined : 'saved'}
@@ -234,21 +254,8 @@ function openCard(card: EditorCard): void {
       onhome={() => choose(undefined)}
       atHome={current === undefined && reading === undefined}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
+      toggles={hasToggles ? toggles : undefined}
     />
-    {#if mounted?.editor.regions.panel && mode !== 'wide'}
-      <IconButton icon="list" label="Panel" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} />
-    {/if}
-    {#if mounted?.editor.regions.inspector && mode !== 'wide'}
-      <IconButton
-        icon="inspector"
-        label="Details"
-        aria-expanded={inspectorOpen}
-        onclick={() => (inspectorOpen = !inspectorOpen)}
-      />
-    {/if}
-    {#if mounted?.editor.regions.dock && dockIsSheet}
-      <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>
-    {/if}
   {/snippet}
 
   {#snippet canvas()}
@@ -294,6 +301,22 @@ function openCard(card: EditorCard): void {
     onselect={choose}
     onhome={() => choose(undefined)}
   />
+{/snippet}
+{#snippet toggles()}
+  {#if mounted?.editor.regions.panel && mode !== 'wide'}
+    <IconButton icon="list" label="Panel" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} />
+  {/if}
+  {#if mounted?.editor.regions.inspector && mode !== 'wide'}
+    <IconButton
+      icon="inspector"
+      label="Details"
+      aria-expanded={inspectorOpen}
+      onclick={() => (inspectorOpen = !inspectorOpen)}
+    />
+  {/if}
+  {#if mounted?.editor.regions.dock && dockIsSheet}
+    <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>
+  {/if}
 {/snippet}
 {#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
 {#snippet panel()}{#if mounted?.editor.regions.panel}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}

@@ -14,7 +14,7 @@ import {
   type TestType,
 } from '@playwright/test'
 import { cellOnCanvas } from './canvas-pointer.ts'
-import { closePanel, openPanel, pressInList } from './press-in-list.ts'
+import { closePanel, openPanel } from './press-in-list.ts'
 import { BIN, type RunningEditor, runEditor } from './run-editor.ts'
 import { copyGame, type TempGame } from './temp-game.ts'
 
@@ -55,8 +55,33 @@ export async function openRoom(page: Page, editor: RunningEditor, level = 'Room 
   await page.goto(editor.url)
   // Home's card for Levels opens the editor, whose list has the level.
   await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: 'Levels' }).click()
-  await pressInList(page, level)
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
+  // The level that opens is named in the header ("Levels / Start"); a person picks another from that name's menu.
+  const here = page.locator('nav[aria-label="Where you are"] button[aria-haspopup], button.title').first()
+  if (!((await here.textContent()) ?? '').includes(level)) {
+    await here.click()
+    await page
+      .getByRole('menuitem', { name: level })
+      .or(page.getByRole('button', { name: level }))
+      .first()
+      .click()
+    await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
+  }
+}
+
+/**
+ * Switches Levels to a view ("Level" or "Tiles"). The views are tabs in the header; on a phone, where the header has no
+ * room, they are in the sheet the title opens, which a person closes again.
+ */
+export async function chooseView(page: Page, view: 'Level' | 'Tiles'): Promise<void> {
+  const radio = page.getByRole('radio', { name: view, exact: true })
+  const title = page.locator('button.title')
+  if (await title.isVisible()) {
+    await title.click()
+    await radio.click()
+    await page.keyboard.press('Escape')
+    await expect(radio).toBeHidden()
+  } else await radio.click()
 }
 
 /**

@@ -54,6 +54,14 @@ async function fit(): Promise<void> {
   }
 }
 
+// The board opens fitted, and is fitted again when the character, its shape (tall or wide) or the pane changes: a person
+// who has not zoomed sees all the board the pane can hold at a size a finger can use, not a board cut at its edge.
+$effect(() => {
+  void character?.id
+  void tall
+  if (room > 0) void fit()
+})
+
 // Watch lights one box at a time; the lit one is brought into view so the person sees it light.
 $effect(() => {
   const lit = live?.mode
@@ -175,9 +183,11 @@ const notes = $derived(
     position: relative;
     container-type: inline-size;
   }
+  /* The size controls float over the board's lower right, so the board ends above them: its last box scrolls clear. */
   .scroll {
     overflow: auto;
     max-width: 100%;
+    padding-bottom: calc(var(--size-hit) + var(--space-5));
     border-radius: var(--edge-md);
     background-color: var(--tool-stage, var(--charcoal));
     background-image: radial-gradient(circle, var(--tool-dot, transparent) 1px, transparent 1.5px);

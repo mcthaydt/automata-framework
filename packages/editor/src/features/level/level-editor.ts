@@ -273,6 +273,14 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
       update({ selected: ids.filter((id) => alive.has(id)) })
     },
     refresh() {
+      // A level the document no longer has (an undone Add level) gives way to the first one, so the view never stands on
+      // a level that is not there.
+      const levels = project().levels
+      if (!levels.some((level) => level.id === view.level) && levels[0] !== undefined) {
+        endGesture(false)
+        update({ level: levels[0].id, selected: [] })
+        return
+      }
       const alive = aliveIds(project(), view.level)
       update({ selected: view.selected.filter((id) => alive.has(id)) })
     },

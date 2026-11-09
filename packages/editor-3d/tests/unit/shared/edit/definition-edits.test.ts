@@ -217,7 +217,7 @@ describe('setDefinitionField (def.setField)', () => {
         wired,
       ),
     ).toBe(
-      'crate: owner would stop validating: entity crate1: The thing needs its owner. Fill it in.; entity crate2: The thing needs its owner. Fill it in.',
+      'crate: owner would stop validating: entity crate1: The thing needs an owner. Fill it in.; entity crate2: The thing needs an owner. Fill it in.',
     )
     expect(refused(setDefinitionField({ def: 'crate', value: { id: 'contents', type: 'text' } }))).toBe(
       'crate already has a field contents',

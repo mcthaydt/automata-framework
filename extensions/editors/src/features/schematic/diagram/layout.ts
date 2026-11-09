@@ -119,14 +119,29 @@ export function layoutAgent(agent: AgentDef, size: Size): Diagram {
     siblingGap: labelW + 40,
   })
   const rect = <T extends Rect>(r: T): T => ({ ...r, x: r.y, y: r.x, w: r.h, h: r.w })
+  const boxes = turned.boxes.map(rect)
+  const arrows = turned.arrows.map((arrow) => ({
+    ...arrow,
+    points: arrow.points.map(([x, y]) => [y, x] as const),
+    label: rect(arrow.label),
+  }))
+  // The wide board's first row leaves room above it for loops and lanes, which turned is room to the left; where nothing is
+  // drawn there (labels are beside the boxes, not before them) that room is a strip of empty width the narrow area could
+  // not spare. The board starts at its own left edge instead.
+  const left = Math.min(
+    ...boxes.map((box) => box.x),
+    ...arrows.map((arrow) => arrow.label.x),
+    ...arrows.flatMap((arrow) => arrow.points.map(([x]) => x)),
+  )
+  const shift = Number.isFinite(left) ? left : 0
   return {
-    boxes: turned.boxes.map(rect),
-    arrows: turned.arrows.map((arrow) => ({
+    boxes: boxes.map((box) => ({ ...box, x: box.x - shift })),
+    arrows: arrows.map((arrow) => ({
       ...arrow,
-      points: arrow.points.map(([x, y]) => [y, x] as const),
-      label: rect(arrow.label),
+      points: arrow.points.map(([x, y]) => [x - shift, y] as const),
+      label: { ...arrow.label, x: arrow.label.x - shift },
     })),
-    width: turned.height,
+    width: turned.height - shift,
     height: turned.width,
   }
 }

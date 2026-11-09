@@ -46,9 +46,9 @@ const line = $derived(cardLine(card.entry ?? card.editor))
         </li>
       {/each}
     </ul>
-  {:else if !card.viewOnly}
+  {:else if !card.viewOnly || card.names !== undefined}
     <p class="contents">{cardContents(card)}</p>
-    {#if card.rows.length === 0 && start !== undefined}
+    {#if card.rows.length === 0 && !card.viewOnly && start !== undefined}
       <span class="start"><Button onclick={() => onopen(card)}>{start}</Button></span>
     {/if}
   {/if}

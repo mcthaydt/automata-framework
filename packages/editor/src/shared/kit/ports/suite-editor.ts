@@ -2,6 +2,7 @@
 // suite (a host) composes them with `createSuite`, which is the suite's own; this is only the shape and its helper.
 // Svelte appears as the `Snippet` type alone, so the headless layers load this file without the compiler.
 import type { Snippet } from 'svelte'
+import type { Readable } from 'svelte/store'
 import type { IconName } from '../icons/paths'
 import type { ShellMode } from '../shell/shell-mode'
 import type { SuitePorts, WorkspaceFile } from './suite-ports'
@@ -29,6 +30,15 @@ export interface SuiteRegions<S> {
   readonly tools?: Snippet<[S]> | undefined
 }
 
+/** One row of the document menu; a disabled row stays in it and says why. */
+export interface HeaderItem {
+  readonly id: string
+  readonly label: string
+  readonly detail?: string | undefined
+  readonly disabled?: boolean | undefined
+  readonly reason?: string | undefined
+}
+
 /**
  * What an editor puts in the header's breadcrumb beside its own name (Levels / Start): the open document and the actions on
  * it, and the views of one thing (Level, Tiles). Either may be left out.
@@ -37,11 +47,7 @@ export interface EditorHeader {
   readonly doc?:
     | {
         readonly name: string
-        readonly items: readonly {
-          readonly id: string
-          readonly label: string
-          readonly detail?: string | undefined
-        }[]
+        readonly items: readonly (HeaderItem | 'separator')[]
         readonly onselect: (id: string) => void
       }
     | undefined
@@ -108,13 +114,27 @@ export interface SuiteEditor<S> {
   readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined
   readonly regions: SuiteRegions<S>
   readonly contributions?: readonly ContributionPoint[] | undefined
-  /** The header's breadcrumb for this session; without it the header shows the editor's name alone. */
-  readonly header?: ((session: S) => EditorHeader | undefined) | undefined
+  /**
+   * The header's breadcrumb for this session, as a store that follows the open document and the view; `undefined`
+   * says there is nothing to add (the header shows the editor's name alone). Without it the same.
+   */
+  readonly header?: ((session: S) => Readable<EditorHeader | undefined>) | undefined
   /**
    * The rail entries this editor gives, when it gives more than one: they share the editor's one session, history and
    * write queue, and differ in the view they show. Absent: one entry, the editor itself.
    */
   readonly entries?: readonly SuiteEntryDef[] | undefined
+  /**
+   * What a view-only card on Home lists, by name ("Hero · Slime"), read from the editor's files before it is opened.
+   * Without it such a card shows only its name. Called once per entry that names a `view`.
+   */
+  readonly homeNames?:
+    | ((
+        view: string,
+        files: readonly WorkspaceFile[],
+        read: (path: string) => Promise<string | undefined>,
+      ) => Promise<readonly string[]>)
+    | undefined
   /** Shows the view a chosen entry names, before the editor's regions draw. Required with `entries`. */
   readonly showView?: ((session: S, view: string) => void) | undefined
   /** The session's history; an editor without it has no Undo in the top bar. */

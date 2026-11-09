@@ -130,6 +130,37 @@ describe('Levels 2D in the suite', () => {
   })
 })
 
+describe('Levels 2D in the suite’s breadcrumb', () => {
+  const crumbs = async () => within(await screen.findByRole('navigation', { name: 'Where you are' }))
+
+  it('names the open level beside the editor, with the views, and opens a new level from its menu', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    const here = await crumbs()
+    await userEvent.click(await here.findByRole('button', { name: 'Level 1' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'New level' }))
+    await waitFor(() => expect(screen.getByTestId('level-canvas')).toHaveAttribute('data-level', 'level-2'))
+    expect(await here.findByRole('button', { name: 'Level 2' })).toBeInTheDocument()
+    expect(screen.getByRole('radiogroup', { name: 'Views' })).toBeInTheDocument()
+    // Undo takes the new level back and the breadcrumb is on the first again.
+    await userEvent.click(await screen.findByRole('button', { name: 'Undo Add level' }))
+    expect(await here.findByRole('button', { name: 'Level 1' })).toBeInTheDocument()
+  })
+
+  it('names no level on Tiles and none on Characters', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(
+      within(await screen.findByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name: 'Tiles' }),
+    )
+    const here = await crumbs()
+    expect(here.queryByRole('button', { name: 'Level 1' })).toBeNull()
+    await userEvent.click(screen.getByRole('tab', { name: 'Characters' }))
+    await screen.findByTestId('entities-panel')
+    expect(screen.queryByRole('radiogroup', { name: 'Views' })).toBeNull()
+  })
+})
+
 describe('Tiles in the suite’s Levels', () => {
   it('switches the panel, the canvas and the details to the game’s tiles and back, keeping the level', async () => {
     await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])

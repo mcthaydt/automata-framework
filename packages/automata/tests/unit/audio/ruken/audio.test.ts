@@ -61,6 +61,7 @@ const withAudio = (
     readonly muteUnfocused?: boolean
     readonly fetch?: typeof fetch
     readonly assets?: readonly string[]
+    readonly activated?: () => boolean
   } = {},
 ) =>
   withHostingTest(async ({ hosting, handle }) => {
@@ -86,6 +87,7 @@ const withAudio = (
         }),
       ...(options.muteUnfocused === undefined ? {} : { muteUnfocused: options.muteUnfocused }),
       ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
+      ...(options.activated === undefined ? {} : { activated: options.activated }),
     })
     try {
       await settle()
@@ -115,6 +117,17 @@ describe('Audio: unlock (A-a)', () => {
       expect(contexts).toHaveLength(1)
       expect(facts.filter((fact) => fact.name === 'audio.unlocked')).toHaveLength(1)
     }))
+
+  it('unlocks as soon as the session is ready when the page has already had a gesture (a game restarted in place)', () =>
+    withAudio(
+      async (audio, { contexts, facts }) => {
+        await settle()
+        expect(contexts).toHaveLength(1)
+        expect(audio.unlocked.get()).toBe(true)
+        expect(facts.filter((fact) => fact.name === 'audio.unlocked')).toHaveLength(1)
+      },
+      { activated: () => true },
+    ))
 
   it('unlocks on a key or a touch as well', async () => {
     for (const type of ['keydown', 'touchend']) {

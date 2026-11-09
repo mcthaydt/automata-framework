@@ -25,6 +25,8 @@ export interface EditorCard {
    * game): its files are that card's, so it lists none and just opens.
    */
   readonly viewOnly: boolean
+  /** What the card lists when it has no files of its own: the names its editor read for the view (`SuiteEditor.homeNames`). */
+  readonly names?: readonly string[] | undefined
 }
 
 export type HomeState =
@@ -75,9 +77,10 @@ const NAMED = 4
 
 /** What is in a card, in words: its files by name ("Start · Shop"), or that nothing is made yet. */
 export function cardContents(card: EditorCard): string {
-  if (card.rows.length === 0) return 'Nothing made yet. Open it to start.'
-  const names = card.rows.slice(0, NAMED).map((file) => fileTitle(file.path))
-  const more = card.rows.length - names.length
+  const all = card.names ?? card.rows.map((file) => titleIn(card.rows, file))
+  if (all.length === 0) return 'Nothing made yet. Open it to start.'
+  const names = all.slice(0, NAMED)
+  const more = all.length - names.length
   return more > 0 ? `${names.join(' · ')} · and ${more} more` : names.join(' · ')
 }
 
@@ -85,6 +88,7 @@ export function homeOf(
   load: EditorListLoad,
   files: ReadonlyMap<string, readonly WorkspaceFile[]>,
   suite: Suite,
+  names: ReadonlyMap<string, readonly string[]> = new Map(),
 ): HomeState {
   if (!load.ok) return { kind: 'problems', problems: load.problems }
   const listed = [...new Set(load.list.file.map((row) => row.editor))]
@@ -110,6 +114,7 @@ export function homeOf(
         // The first entry of an editor is the editor itself, and it lists the files; the others are views of them.
         rows: entry.id === editor ? (installed.homeFiles ?? ((all) => all))(own) : [],
         viewOnly: entry.id !== editor,
+        names: entry.id !== editor ? names.get(entry.id) : undefined,
       },
     ]
   })
@@ -150,8 +155,13 @@ export function rowName(card: Pick<EditorCard, 'label' | 'rows' | 'installed'>, 
   const title = fileTitle(file.path)
   if (card.installed && card.rows.length === 1 && title.toLowerCase() === card.label.toLowerCase())
     return 'Open'
-  const alike = card.rows.filter((other) => fileTitle(other.path) === title)
-  if (alike.length < 2) return title
+  return titleIn(card.rows, file)
+}
+
+/** A file's title, with its folder after it when another file of the card has the same title. */
+function titleIn(rows: readonly WorkspaceFile[], file: WorkspaceFile): string {
+  const title = fileTitle(file.path)
+  if (rows.filter((other) => fileTitle(other.path) === title).length < 2) return title
   const parts = file.path.split('/')
   const folder = parts[parts.length - 2]
   return folder === undefined ? title : `${title} (${folder.replace(/[-_]+/g, ' ')})`

@@ -8,10 +8,7 @@
 import type { History } from '../../shared/kit/history/history'
 import Icon from '../../shared/kit/icons/Icon.svelte'
 import Menu from '../../shared/kit/widgets/Menu.svelte'
-import { MAX_LEVELS } from '../../shared/level-2d/model/project.schema'
-import { addLevel } from '../../shared/level-2d/model/world/level-edits'
-import { newLevelInput } from '../../shared/level-2d/model/world/world-model'
-import { levelList } from './level-list'
+import { chooseLevel, levelName, pickerItems } from './level-picker-model'
 import type { LevelSession } from './level-session'
 import { levelState } from './level-state.svelte'
 
@@ -25,32 +22,8 @@ const { session, history }: Props = $props()
 // svelte-ignore state_referenced_locally
 const level = levelState(session, history)
 
-const NEW = 'new-level'
-
-/** The world the open level is placed in; a level placed nowhere has no neighbours to list. */
-const world = $derived(
-  level.project.worlds.find((each) =>
-    each.placements.some((placement) => placement.level === level.view.level),
-  ),
-)
-const cards = $derived(world === undefined ? [] : levelList(level.project, world.id, level.view.level))
-const name = $derived(level.project.levels.find((each) => each.id === level.view.level)?.name ?? '')
-const full = $derived(level.project.levels.length >= MAX_LEVELS)
-
-const items = $derived([
-  ...cards.map((card) => ({ id: card.id, label: card.name, detail: card.current ? 'Open' : undefined })),
-  ...(world === undefined
-    ? []
-    : [
-        'separator' as const,
-        {
-          id: NEW,
-          label: 'New level',
-          disabled: full,
-          reason: full ? `A game holds at most ${MAX_LEVELS} levels.` : undefined,
-        },
-      ]),
-])
+const name = $derived(levelName(level.project, level.view.level))
+const items = $derived(pickerItems(level.project, level.view.level))
 
 function open(id: string): void {
   session.editor.setLevel(id)
@@ -58,14 +31,7 @@ function open(id: string): void {
 }
 
 function choose(id: string): void {
-  if (id !== NEW) {
-    open(id)
-    return
-  }
-  if (world === undefined) return
-  const input = newLevelInput(level.project, world.id)
-  level.edits.apply('Add level', (current) => addLevel(current, input))
-  open(input.id)
+  chooseLevel(id, level.project, level.view.level, level.edits, open)
 }
 </script>
 

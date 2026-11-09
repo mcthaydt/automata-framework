@@ -12,10 +12,11 @@ export const hasValue = (values: FieldValues, id: string): boolean =>
  * `owner` is what the holder is called ("Door", "level"); a Leads to field says where the thing goes.
  */
 function missingWords(field: FieldDef, owner: string): string {
-  const label = field.label ?? field.id
-  return field.type === 'ref' && label === 'Leads to'
-    ? `The ${owner} doesn't lead anywhere yet. Choose where it goes.`
-    : `The ${owner} needs its ${label}. Fill it in.`
+  // A field with no label is read from its key as words ("patrol_path" is "patrol path"), never shown as the key.
+  const label = field.label ?? field.id.replace(/[-_]+/g, ' ').trim()
+  if (field.type === 'ref' && label === 'Leads to')
+    return `The ${owner} doesn't lead anywhere yet. Choose where it goes.`
+  return `The ${owner} needs ${/^[aeiou]/i.test(label) ? 'an' : 'a'} ${label}. Fill it in.`
 }
 
 /**

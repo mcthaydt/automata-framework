@@ -1,7 +1,9 @@
 <!--
   The header's count of problems, in a person's words ("No problems", "3 problems", "Checking…", "Not checked yet",
   "Couldn't check"; `problemWords`). It opens the list of what the checks found, each with Locate. `short` keeps the
-  number and drops the word (the header is under 900 px), and the words stay its accessible name. `inline` is the list
+  number and drops the word (the header is under 900 px), and the words stay its accessible name. With no number to keep
+  (no problems, checking, not checked yet) there is nothing to show then: a tick with no word beside "Saved" reads as a
+  second "saved", and Saved already says the work is kept. `inline` is the list
   itself with no button, for the title menu on a phone, where the sheet is already the popup. A no-problem tone is quiet
   (`tool-faint`); only a warning, a failure or a check that could not run is `warn`.
 -->
@@ -52,7 +54,7 @@ let trigger = $state<HTMLElement>()
 {#if inline}
   <p class="words" data-worried={worried}>{words}</p>
   {@render list()}
-{:else}
+{:else if !short || worried || pill.problems > 0}
   <button
     type="button"
     class="count"

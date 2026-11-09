@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+
+import type { FieldDef } from '@automata/content/level-2d'
 import { render, screen } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import Inspector from '#src/features/level/Inspector.svelte'
@@ -111,7 +113,29 @@ describe('a thing that needs a value', () => {
     }
     const placed = placeEntity(project, target, { id: 'slime-a', def: 'slime', x: 32, y: 48 })
     expect(checkProject(placed, {}).find((each) => each.code === 'fieldMissing')?.message).toBe(
-      'The Slime needs its Patrol path. Fill it in.',
+      'The Slime needs a Patrol path. Fill it in.',
+    )
+  })
+
+  it('reads a required field with no label as words, never its key, with the right a or an', () => {
+    const base = platformerTemplate.create(counterIds())
+    const withField = (field: FieldDef): Project => ({
+      ...base,
+      defs: {
+        ...base.defs,
+        entities: base.defs.entities.map((def) => (def.id === 'slime' ? { ...def, fields: [field] } : def)),
+      },
+    })
+    const said = (field: FieldDef): string | undefined =>
+      checkProject(
+        placeEntity(withField(field), target, { id: 'slime-a', def: 'slime', x: 32, y: 48 }),
+        {},
+      ).find((each) => each.code === 'fieldMissing')?.message
+    expect(said({ id: 'patrol_path', type: 'point', list: true, required: true })).toBe(
+      'The Slime needs a patrol path. Fill it in.',
+    )
+    expect(said({ id: 'exit', type: 'point', list: false, required: true, label: 'Open door' })).toBe(
+      'The Slime needs an Open door. Fill it in.',
     )
   })
 

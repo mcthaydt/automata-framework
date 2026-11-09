@@ -3745,8 +3745,9 @@ interface SuiteEditor<S> {
     readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined;
     readonly regions: SuiteRegions<S>;
     readonly contributions?: readonly ContributionPoint[] | undefined;
-    readonly header?: ((session: S) => EditorHeader | undefined) | undefined;
+    readonly header?: ((session: S) => Readable<EditorHeader | undefined>) | undefined;
     readonly entries?: readonly SuiteEntryDef[] | undefined;
+    readonly homeNames?: ((view: string, files: readonly WorkspaceFile[], read: (path: string) => Promise<string | undefined>) => Promise<readonly string[]>) | undefined;
     readonly showView?: ((session: S, view: string) => void) | undefined;
     readonly undo?: ((session: S) => SuiteUndo) | undefined;
 }

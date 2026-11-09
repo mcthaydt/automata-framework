@@ -62,7 +62,7 @@ describe('entityProblems: values', () => {
   it('says a required field that is missing, and a value of the wrong type', () => {
     const missing: AfEntity = { def: 'crate', id: 'c1', x: 2, z: 2 }
     expect(check([crate], [missing]).map((p) => p.message)).toEqual([
-      'entity c1: The thing needs its loot. Fill it in.',
+      'entity c1: The thing needs a loot. Fill it in.',
     ])
     expect(check([crate], [crateAt('c2', 2, 2, { weight: 'heavy' })]).map((p) => p.message)).toEqual([
       'entity c2: weight must be a finite number',

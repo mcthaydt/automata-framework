@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { checkLevels, expect, openRoom, test } from '../harness/fixtures.ts'
+import { checkLevels, chooseView, expect, openRoom, test } from '../harness/fixtures.ts'
 import { solidPng } from '../harness/tiles-picture.ts'
 
 // Add tiles in a real game folder: the picture of tiles is written into the game, the level project points at it, the
@@ -13,7 +13,7 @@ test('a picture of tiles added in the editor is on disk, and the level that uses
   editor,
 }) => {
   await openRoom(page, editor)
-  await page.getByRole('radio', { name: 'Tiles' }).click()
+  await chooseView(page, 'Tiles')
   await page.getByRole('button', { name: 'Add tiles' }).first().click()
 
   const dialog = page.getByRole('dialog', { name: 'Add tiles' })

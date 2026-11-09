@@ -54,6 +54,12 @@ function mount(cards: readonly EditorCard[], sample = false) {
 const cardOf = (name: string): HTMLElement => screen.getByRole('region', { name })
 
 describe('Home', () => {
+  it('lists the characters on the card that is a view of the levels, and offers no Start button on it', () => {
+    mount([{ ...card('levels-2d', 'Characters', []), viewOnly: true, names: ['Hero', 'Slime'] }])
+    expect(cardOf('Characters')).toHaveTextContent('Hero · Slime')
+    expect(within(cardOf('Characters')).queryByRole('button', { name: /start|new/i })).toBeNull()
+  })
+
   it('asks what you want to change, and says where changes are kept', () => {
     mount([card('tuner', 'Tuner')])
     expect(screen.getByRole('heading', { level: 1, name: 'What do you want to change?' })).toBeInTheDocument()

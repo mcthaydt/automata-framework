@@ -35,6 +35,22 @@ export interface SuiteHandle {
   dispose(): Promise<void>
 }
 
+/** What each view-only card lists, by entry: the names its editor reads out of the editor's files (`SuiteEditor.homeNames`). */
+async function readNames(
+  env: SuiteEnv,
+  files: ReadonlyMap<string, readonly WorkspaceFile[]>,
+): Promise<ReadonlyMap<string, readonly string[]>> {
+  const read = async (path: string) => (await env.ports.workspace.read(path))?.text
+  const names = new Map<string, readonly string[]>()
+  for (const editor of env.suite.editors) {
+    const own = files.get(editor.id)
+    if (editor.homeNames === undefined || own === undefined) continue
+    for (const entry of editor.entries ?? [])
+      if (entry.id !== editor.id) names.set(entry.id, await editor.homeNames(entry.view, own, read))
+  }
+  return names
+}
+
 export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<SuiteHandle> {
   // Home is read again on each return to it, so a file an editor made since (a level from a template) is listed.
   const readHome = async () => {
@@ -43,7 +59,7 @@ export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<Su
     if (load.ok)
       for (const editor of new Set(load.list.file.map((row) => row.editor)))
         files.set(editor, await env.ports.workspace.files(editor))
-    return homeOf(load, files, env.suite)
+    return homeOf(load, files, env.suite, await readNames(env, files))
   }
   const owner = createGeometryOwner({ window: env.window, root: env.document.documentElement })
   const root = mount(SuiteView, {

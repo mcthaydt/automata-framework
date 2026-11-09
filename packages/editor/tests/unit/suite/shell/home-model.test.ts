@@ -2,7 +2,13 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from '#src/features/suite/core/index.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
-import { fileTitle, homeOf, keyPathText, rowName } from '#src/features/suite/shell/home-model.ts'
+import {
+  cardContents,
+  fileTitle,
+  homeOf,
+  keyPathText,
+  rowName,
+} from '#src/features/suite/shell/home-model.ts'
 import type { WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
 /** The sample game's list sits beside the in-memory ports the suite page uses; the others are test fixtures. */
@@ -99,8 +105,11 @@ checks = ["content"]
       loadEditorList(list),
       new Map([['levels-2d', [world]]]),
       createSuite({ editors: [levels] }),
+      new Map([['characters-2d', ['Hero', 'Slime']]]),
     )
     if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards[1]?.names).toEqual(['Hero', 'Slime'])
+    expect(state.cards[0]?.names).toBeUndefined()
     expect(state.cards.map((card) => [card.editor, card.label, card.entry])).toEqual([
       ['levels-2d', 'Levels', 'levels-2d'],
       ['levels-2d', 'Characters', 'characters-2d'],
@@ -380,5 +389,10 @@ describe('rowName', () => {
       'content/lines/guard.toml',
     ])
     expect(rows.map((row) => rowName(c, row))).toEqual(['Keeper (lines)', 'Keeper (conversations)', 'Guard'])
+  })
+
+  it('lists two files named alike on the card with their folders, not as "Keeper · Keeper"', () => {
+    const { card: c } = card('Writer', ['content/lines/keeper.toml', 'content/conversations/keeper.toml'])
+    expect(cardContents(c)).toBe('Keeper (lines) · Keeper (conversations)')
   })
 })

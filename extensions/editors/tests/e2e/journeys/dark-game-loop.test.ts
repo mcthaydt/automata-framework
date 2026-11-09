@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { paintWall } from '../../../../../packages/editor/tests/e2e/harness/fixtures.ts'
 import { boxOf, readPng } from '../../../../../packages/editor/tests/e2e/harness/read-png.ts'
 import { readZip } from '../../../../../packages/editor/tests/e2e/harness/read-zip.ts'
-import { expect, openEditor, pressInList, savedInto, servedWith, test } from '../harness/fixtures.ts'
+import { expect, openEditor, savedInto, servedWith, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { runEditor } from '../harness/run-editor.ts'
 
@@ -50,7 +50,6 @@ test('a new game is made, edited, played and published in the dark editors', asy
 
     // Levels: a wall is painted and saved into the level file.
     await openEditor(page, editor, 'Levels')
-    await pressInList(page, 'Start')
     await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
     await paintWall(page, { col: 5, row: 2 }, STARTER_TILE)
     await savedInto(game, 'content/levels/start.toml', WALLED_ROW)

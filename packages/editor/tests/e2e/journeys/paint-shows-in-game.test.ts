@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cellOnCanvas } from '../harness/canvas-pointer.ts'
 import { closePanel, openFromRail, openPanel, pressInList } from '../harness/complete-game.ts'
-import { EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
+import { chooseView, EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
 import { runEditor } from '../harness/run-editor.ts'
@@ -42,7 +42,7 @@ test('a tile painted with an added picture and a character given one are what th
     await openRoom(page, editor, 'Start')
 
     // Add a picture of tiles: it is written into the game's assets/ folder.
-    await page.getByRole('radio', { name: 'Tiles' }).click()
+    await chooseView(page, 'Tiles')
     // Below the wide layout the panel, with Add tiles in it, sits in a sheet behind the top bar's Panel button.
     const addTiles = page.getByRole('button', { name: 'Add tiles' }).first()
     await openPanel(page)
@@ -57,7 +57,7 @@ test('a tile painted with an added picture and a character given one are what th
     await expect(dialog).toBeHidden()
 
     // Decor paints with the added picture's tiles now, and one cell of it gets tile 5.
-    await page.getByRole('radio', { name: 'Level' }).click()
+    await chooseView(page, 'Level')
     await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
     const layer = page.getByRole('button', { name: /^Decor/ })
     await openPanel(page)

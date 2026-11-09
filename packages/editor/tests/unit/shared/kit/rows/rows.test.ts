@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
+import { createRawSnippet } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
+import Row from '#src/shared/kit/rows/Row.svelte'
 import RowsFixture from '#src/testing/kit/RowsFixture.svelte'
 
 // The kit's list and inspector parts (spec 7.5): a Section with its count and add button, Rows with their own buttons, a
@@ -27,6 +29,22 @@ describe('Section and Row', () => {
     // The row's buttons are siblings of the row's name, never inside it (a button cannot hold a button).
     const hide = within(layers).getByRole('button', { name: 'Hide Ground' })
     expect(hide.closest('button.main')).toBeNull()
+  })
+})
+
+describe('a Row whose name is a sentence', () => {
+  it('may wrap, and a plain row keeps to one line with an ellipsis', () => {
+    render(RowsFixture)
+    const layers = screen.getByRole('region', { name: 'Layers' })
+    expect(layers.querySelector('.row[data-wrap="true"]')).toBeNull()
+    expect(layers.querySelector('.row[data-wrap="false"]')).not.toBeNull()
+    render(Row, {
+      wrap: true,
+      children: createRawSnippet(() => ({
+        render: () => '<span>Hunt to Patrol: has got where it was going</span>',
+      })),
+    })
+    expect(document.querySelector('.row[data-wrap="true"]')).not.toBeNull()
   })
 })
 

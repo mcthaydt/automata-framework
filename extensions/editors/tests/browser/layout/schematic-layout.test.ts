@@ -14,7 +14,49 @@ import { SchematicSession } from '#src/features/schematic/schematic-session.svel
 // is at least 44 px at the smallest zoom, the diagram scrolls inside its own region rather than shrinking or widening
 // the page, and Fit puts it back.
 
-const files = new Map<string, string>([['content/systems/bay.toml', bay]])
+// A guard shaped like the starter game's: three modes in one column, a switch from any mode, and a way back with a long label.
+const YARD = `scene = "yard"
+rules = []
+
+[[agents]]
+id = "guard"
+modes = [ "patrol", "hunt", "follow" ]
+initial = "patrol"
+
+[agents.speed]
+patrol = 1
+hunt = 2
+follow = 2
+
+[[agents.transitions]]
+from = "*"
+to = "hunt"
+priority = 10
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions]]
+from = "hunt"
+to = "follow"
+priority = 5
+
+[[agents.transitions.when]]
+fact = "the player just went through a doorway"
+
+[[agents.transitions]]
+from = "hunt"
+to = "patrol"
+priority = 1
+
+[[agents.transitions.when]]
+fact = "it has got where it was going and does not see the player any more"
+`
+
+const files = new Map<string, string>([
+  ['content/systems/bay.toml', bay],
+  ['content/systems/yard.toml', YARD],
+])
 const ports = {
   workspace: {
     read: async (path: string) =>
@@ -47,14 +89,19 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-async function start(size: (typeof SIZES)[number], gameUrl?: string) {
+async function start(
+  size: (typeof SIZES)[number],
+  gameUrl?: string,
+  pane: number = size.width,
+  scene = 'bay',
+) {
   await page.viewport(size.width, size.height)
-  const session = new SchematicSession(ports, { hasPlayer: true, gameUrl, twoD: false }, ['bay'])
-  await session.select('bay')
+  const session = new SchematicSession(ports, { hasPlayer: true, gameUrl, twoD: false }, ['bay', 'yard'])
+  await session.select(scene)
   // `bay` has two characters; the larger is the second.
   session.choose(Math.max(0, (session.def?.agents.length ?? 1) - 1))
   const target = document.body.appendChild(document.createElement('div'))
-  target.style.width = `${size.width}px`
+  target.style.width = `${pane}px`
   mounted = mount(CharacterCanvas, { target, props: { session } })
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   return session
@@ -95,6 +142,9 @@ describe.each(SIZES)('the diagram on a $name', (size) => {
 
   test('Smaller shrinks the diagram below its natural size, and no target goes under 44 px', async () => {
     await start(size)
+    // The board opens fitted, which on a narrow pane can already be the smallest it draws; Bigger gives Smaller room to act.
+    await press('Bigger')
+    await press('Bigger')
     const svg = document.querySelector<SVGSVGElement>('svg.diagram')
     const before = svg?.getBoundingClientRect().width ?? 0
     for (let i = 0; i < 4; i++) await press('Smaller')
@@ -177,6 +227,41 @@ describe.each(SIZES)('the board on a $name is tall', (size) => {
     expect(new Set(wide.boxes.map((box) => Math.round(box.left))).size).toBeGreaterThan(
       new Set(wide.boxes.map((box) => Math.round(box.top))).size - 1,
     )
+  })
+})
+
+// The pane the suite gives the board on an iPad held upright: the window less the sidebar and the list (about 440 px of 820).
+describe('the board in the narrow pane an iPad gives it', () => {
+  const IPAD = SIZES[1]
+  const PANE = 440
+
+  test('opens fitted: no link label or box is cut at the right edge, and the last box scrolls clear of the size buttons', async () => {
+    await start(IPAD, undefined, PANE, 'yard')
+    const region = document.querySelector<HTMLElement>('.scroll') as HTMLElement
+    const edge = region.getBoundingClientRect().right
+    for (const item of region.querySelectorAll<SVGGElement>('svg .label, svg .box'))
+      expect(item.getBoundingClientRect().right, item.getAttribute('aria-label') ?? '').toBeLessThanOrEqual(
+        edge + 1,
+      )
+    region.scrollTop = region.scrollHeight
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    const boxes = [...region.querySelectorAll<SVGGElement>('svg .box')]
+    const lowest = Math.max(...boxes.map((box) => box.getBoundingClientRect().bottom))
+    const buttons = document.querySelector<HTMLElement>('[aria-label="Board size"]')?.getBoundingClientRect()
+    expect(buttons).toBeDefined()
+    expect(lowest).toBeLessThanOrEqual((buttons?.top ?? 0) + 1)
+  })
+
+  test('the list of switches wraps inside its panel instead of running off it', async () => {
+    await start(IPAD, undefined, PANE, 'yard')
+    const panel = document.querySelector<HTMLElement>('section[aria-label="Switches"]') as HTMLElement
+    const edge = panel.getBoundingClientRect().right
+    const rows = [...panel.querySelectorAll<HTMLElement>('.row')]
+    expect(rows.length).toBeGreaterThan(0)
+    for (const row of rows) {
+      expect(row.getBoundingClientRect().right).toBeLessThanOrEqual(edge + 1)
+      expect(row.scrollWidth).toBeLessThanOrEqual(row.clientWidth + 1)
+    }
   })
 })
 

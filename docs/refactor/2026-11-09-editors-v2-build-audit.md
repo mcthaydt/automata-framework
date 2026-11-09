@@ -98,3 +98,34 @@ the extension journeys (18; then `audio-plays-in-game` ×8 and `feel-shows-in-ga
 `complete-game-2d` and `complete-game-3d` (22 of 22), `work-survives-reopening` (2 of 2), `sequence-shows-in-game` ×2,
 `pnpm check`. Not run: WebKit, Firefox, the GPU runner, the site's e2e, parity, the editors' layout projects (no change
 here touches the editors' source).
+
+## Fixes (stage 6, 2026-11-09)
+
+Every finding is answered; each fix has a test that was red first, except where noted.
+
+- **F1, F2.** Levels 2D supplies a `header` (a store: `levels2dHeader`): the open level's name, the world's levels with the
+  open one marked, New level (one undo step), and the views Level and Tiles. The picker and the views left the tools. The
+  name sits in a `pick` that never wraps. On a phone the title opens the sheet (levels, views, problems, Saved) and the
+  list, panel and details buttons join a second row with Undo and Redo, so the header is two rows, not three. Play is an
+  icon under 900 px. `level-editor.refresh()` also falls back to the first level when the open one is gone (Add level,
+  undone), found by the header's undo test.
+- **F3. Not reproduced as a real defect.** The strip shows only in full-viewport screenshots of headless Chromium's mobile
+  emulation over the Levels WebGL canvas (`alpha: false`): there it is a transparent hole, and no element covers it.
+  `preserveDrawingBuffer`, a second render and CSS changes did not change the capture and were reverted, so nothing was
+  changed for it. Not checked: WebKit, or a real iPad. The Owner should look at the phone's level once on a device.
+- **F4.** The tall Schematic layout starts at its own left edge (the labels no longer run off), the board opens fitted and
+  its zoom toolbar has room below it, and switch rows wrap (`Row` has a `wrap`). A layout test at the iPad's 440 px pane.
+- **F5.** Under 900 px the problem count shows nothing when there is nothing to count; a check that could not run still
+  shows as a warning.
+- **F6.** Task 14 Steps 2 to 4 are unticked in the plan.
+- **F7.** Recorded. The `Row` `wrap` test was written after its code in this stage too; it was made red by reverting the
+  prop, then green.
+- **F8.** Writer's list says "Keeper's talk" under the scene "Keeper"; Home's card says "Keeper (lines) · Keeper
+  (conversations)" when two files share a name.
+- **F9.** A layer's kind wraps instead of ending in an ellipsis (layout test at 264 px).
+- **F10.** Home's Characters card lists the game's characters, read from the level file (`SuiteEditor.homeNames`).
+- **F11.** "The Slime needs a Patrol path." A field with no label reads its key as words, with a or an; the three 3D tests
+  that quoted "needs its" now say "needs a".
+- **F12.** Core's Audio builds and resumes its context as soon as the session is ready when the page has already had a
+  gesture (`navigator.userActivation.hasBeenActive`, `AudioOptions.activated`), so a game restarted in place keeps its
+  sound. Changeset `audio-after-restart`.
