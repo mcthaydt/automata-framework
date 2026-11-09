@@ -3,6 +3,7 @@
 // each with a switch of its own, so they are not named here.
 
 import { z } from 'zod'
+import type { Haze } from '../../shared/render/texel.ts'
 
 /** The passes the core look can switch. */
 export interface LookSwitches {
@@ -26,6 +27,21 @@ export interface Look {
   /** The painted figures' cells: the density they are painted at, in half steps between `min` and `max` texels of the
    * sheets' size, and the bytes the cell cache may hold. */
   readonly figures: { readonly min: number; readonly max: number; readonly cacheBytes: number }
+  /** The light: the room's light is cut into multiples of `step`, scaled by `gain` and never over `max` a channel. */
+  readonly light: { readonly step: number; readonly gain: number; readonly max: number }
+  /** The veil far things sink into. */
+  readonly haze: Haze
+  /** How a figure steps in its light (the sprite light's rules) and how much of the room's ambient it takes. */
+  readonly figureLight: {
+    readonly ambient: number
+    readonly threshold: number
+    readonly ink: number
+    readonly floor: number
+    readonly rim: number
+    readonly floorCap: number
+  }
+  /** How dark a figure's shadow is on the floor, 0 to 1 of the colour under it. */
+  readonly figureShadow: number
 }
 
 export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
@@ -50,4 +66,32 @@ export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
       cacheBytes: z.number().int().min(1).default(33554432),
     })
     .default({ min: 1, max: 3, cacheBytes: 33554432 }),
+  light: z
+    .strictObject({
+      step: z.number().positive('light is cut into steps above 0'),
+      gain: z.number().positive(),
+      max: z.number().positive(),
+    })
+    .default({ step: 0.1, gain: 1, max: 1.6 }),
+  haze: z
+    .strictObject({
+      colour: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'the haze colour is #rrggbb'),
+      near: z.number().min(0),
+      far: z.number().positive(),
+      amount: z.number().min(0).max(1),
+      glow: z.number().min(0),
+    })
+    .refine((haze) => haze.far > haze.near, { message: 'the haze ends past where it starts', path: ['far'] })
+    .default({ colour: '#47655a', near: 0, far: 10, amount: 0.85, glow: 0.5 }),
+  figureLight: z
+    .strictObject({
+      ambient: z.number().min(0),
+      threshold: z.number().min(0).max(1),
+      ink: z.number().int().min(0).max(255),
+      floor: z.number().min(0),
+      rim: z.number().min(0).max(1),
+      floorCap: z.number().min(0),
+    })
+    .default({ ambient: 1.5, threshold: 0.22, ink: 40, floor: 0.5, rim: 0.35, floorCap: 0.8 }),
+  figureShadow: z.number().min(0).max(1).default(0.6),
 })

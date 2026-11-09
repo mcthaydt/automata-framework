@@ -22,6 +22,17 @@ describe('the look', () => {
 describe("the look's figure cells", () => {
   it('are painted from the sheets’ density up to three times it, in a cache of 32 MiB', () => {
     expect(DEFAULT_LOOK.figures).toEqual({ min: 1, max: 3, cacheBytes: 33554432 })
+    expect(DEFAULT_LOOK.light).toEqual({ step: 0.1, gain: 1, max: 1.6 })
+    expect(DEFAULT_LOOK.haze).toEqual({ colour: '#47655a', near: 0, far: 10, amount: 0.85, glow: 0.5 })
+    expect(DEFAULT_LOOK.figureLight).toEqual({
+      ambient: 1.5,
+      threshold: 0.22,
+      ink: 40,
+      floor: 0.5,
+      rim: 0.35,
+      floorCap: 0.8,
+    })
+    expect(DEFAULT_LOOK.figureShadow).toBe(0.6)
     expect(parseLook({ figures: { max: 2 } }).figures).toEqual({ min: 1, max: 2, cacheBytes: 33554432 })
   })
 })
