@@ -1,4 +1,4 @@
-// core-saves: three save slots on the title, and progress kept while you play
+// core-saves: Three save slots, and progress kept while you play
 //
 // Shows: `saves` gives the game slots: the title lists them, New game writes the starting data to a slot, Continue
 //   loads one and `apply`s it, and the game keeps the slot saved as you walk (leaving play, going to the background,

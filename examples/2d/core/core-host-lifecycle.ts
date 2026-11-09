@@ -1,4 +1,4 @@
-// core-host-lifecycle: the sim stands still while the host has the game in the background
+// core-host-lifecycle: The game stops and pauses while its tab is in the background
 //
 // Shows: the game package handles the host's lifecycle for a game, so nothing here mentions the host. The page
 //   draws nothing until the host says ready; when the host sends the game to the background (its drawer, an ad,

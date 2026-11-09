@@ -1,4 +1,4 @@
-// textures-atlas: sprites drawn from a packed atlas
+// textures-atlas: Pictures cut from one packed image
 //
 // Shows: sprite(url, { frame }) draws one named frame of a texture atlas that `automata-content assets` packed
 //   from a folder of PNG frames; each frame keeps its own name, so art can be repacked without touching code.

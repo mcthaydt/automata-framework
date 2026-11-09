@@ -151,7 +151,7 @@ async function start(run: RunMessage): Promise<void> {
     return
   }
   if (!isDefinedGame(game as never)) {
-    fail(new Error("The example's default export must be defineGame(...)"))
+    fail(new Error("This code doesn't make a game any more. Press Reset to start again"))
     return
   }
   const defined = game as DefinedGame<unknown>

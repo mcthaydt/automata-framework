@@ -41,6 +41,13 @@ The Tuner shows your game beside its settings: start it with pnpm dev, and give 
 http://localhost:5173.
 `
 
+/** What the first line calls each app ("Opened My game in the level editor."): words, not the flag's value. */
+const APP_WORDS: Readonly<Record<EditorApp, string>> = {
+  '2d': 'the level editor',
+  '3d': 'the 3D editor',
+  suite: 'the editors',
+}
+
 /** Where each editor's build is, from the repository root, and the package that builds it. */
 const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
   '2d': { folder: 'packages/editor/dist/2d', pkg: '@mcthaydt/automata-editor' },
@@ -106,7 +113,9 @@ export async function editorCommand(
     return 2
   }
   const query = secret === undefined ? '' : `/?token=${secret}`
-  io.stdout(`Editing ${root} with the ${app} editor.\n  This computer: ${running.url}${query}\n`)
+  // Loaded here, like the server itself: the module reads the editor suite, which Node cannot run from the workspace bin.
+  const { gameName } = await import('./serve-editor.ts')
+  io.stdout(`Opened ${gameName(root)} in ${APP_WORDS[app]}.\n  This computer: ${running.url}${query}\n`)
   if (lan)
     for (const address of deps.lanAddresses())
       io.stdout(`  On the network: http://${address}:${running.port}${query}\n`)

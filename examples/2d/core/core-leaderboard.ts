@@ -1,4 +1,4 @@
-// core-leaderboard: a run's score goes to the host's leaderboard, and paused shows the board
+// core-leaderboard: Each run's score on a leaderboard, shown when you pause
 //
 // Shows: `scores` maps a sim event to a board and a score: the score comes from the event's payload, so it is computed
 //   from sim state and never typed by anyone. The game asks the host for leaderboards; pause to see the board the

@@ -1,4 +1,4 @@
-// core-input-touch: steer a square by swiping, and flick down to drop it
+// core-input-touch: Steer a square by swiping, and flick down to drop it
 //
 // Shows: keys() gestures: a swipe holds a direction while the finger steers past a 12 px dead zone, a flick down
 //   (40 px within 180 ms) lasts exactly one tick; with no touch buttons, the play screen takes touch as a swipe

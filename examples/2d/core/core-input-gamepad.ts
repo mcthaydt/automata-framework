@@ -1,4 +1,4 @@
-// core-input-gamepad: move a square with a controller
+// core-input-gamepad: Move a square with a controller
 //
 // Shows: keys() binds a standard pad's left stick and D-pad to the same sim command as the arrow keys; the stick
 //   reads through a radial deadzone, eight ways; unplugging the pad in use pauses with "Reconnect your controller".

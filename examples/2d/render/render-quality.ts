@@ -1,4 +1,4 @@
-// render-quality: switch the graphics quality tier while squares drift across the field
+// render-quality: Switch the graphics quality while squares drift by
 //
 // Shows: stage.setQuality() changes the tier at run time: it caps the canvas resolution (low 1, medium 1.5,
 //   high 2) and leaves out post filters registered with a higher minTier. The world and HUD draw through the

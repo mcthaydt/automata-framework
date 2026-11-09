@@ -1,4 +1,4 @@
-// core-camera-2d: a camera that follows a square around a world bigger than the screen
+// core-camera-2d: A camera that follows a square around a world bigger than the screen
 //
 // Shows: createCamera2d() follows a target with a dead zone, stays inside the world's bounds and shakes on a bump;
 //   it moves the world container only, so the sim's positions are untouched.
