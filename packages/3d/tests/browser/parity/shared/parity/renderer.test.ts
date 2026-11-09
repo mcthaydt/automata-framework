@@ -347,15 +347,16 @@ async function skyAndBar(
       return undefined
     },
   })
-  const renderer = await builtRenderer(factory(testTarget(host)))
+  const renderer = await builtRenderer(factory(testTarget(host, {}, { width: 200, height: 90 })))
   scope = renderer
   renderer.apply(step({ resync: true, added: [rows[0] as RenderRow], changed: [], removed: [] }))
   renderer.draw(frame)
   const pixels = snapshot(renderer)
   const width = renderer.stage.app.screen.width
   const at = (x: number, y: number) => Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
-  // (4, 45): the field's left edge, away from the box in the middle. (80, 1): inside the top bar.
-  return { renderer: renderer.stage.app.renderer.name, field: at(4, 45), bar: at(80, 1) }
+  // A view wider than the 16:9 field fits it whole with a bar at each side: 20 px on a 200 px view. (24, 45) is the
+  // field's left edge, away from the box in the middle; (4, 45) is inside the left bar.
+  return { renderer: renderer.stage.app.renderer.name, field: at(24, 45), bar: at(4, 45) }
 }
 
 const rgb = (colour: number) => [(colour >> 16) & 0xff, (colour >> 8) & 0xff, colour & 0xff]

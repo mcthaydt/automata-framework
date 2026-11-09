@@ -109,7 +109,7 @@ function sourceFile(root: string, dir: string, value: unknown): string | undefin
 }
 
 /** The private packages' entries that a 2D or story template imports, in each package's `exports` order. */
-function betaEntries(root: string): EntryPoint[] {
+export function betaEntries(root: string): EntryPoint[] {
   const wanted = new Map<string, Set<string>>()
   for (const specifier of templateImports(root)) {
     const { name, entryPoint } = splitSpecifier(specifier)
