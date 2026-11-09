@@ -46,6 +46,15 @@ describe('editorCommand', () => {
     expect(closed).toHaveBeenCalled()
   })
 
+  it('says what opened in plain words: the game folder and the editor, not the app flag', async () => {
+    const level = setup()
+    await editorCommand([], level.io, level.deps)
+    expect(level.out.join('')).toContain('Opened work in the level editor.')
+    const suite = setup()
+    await editorCommand(['--app', 'suite'], suite.io, suite.deps)
+    expect(suite.out.join('')).toContain('Opened work in the level editor and Tuner.')
+  })
+
   it('serves the app and the folder it was told', async () => {
     const { deps, io, served } = setup()
     await editorCommand(['../game', '--app', 'suite'], io, deps)

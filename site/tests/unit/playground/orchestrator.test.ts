@@ -183,12 +183,12 @@ describe('the orchestrator', () => {
       type: 'failed',
       runId: 1,
       phase: 'import',
-      message: 'The example’s default export must be defineGame(...)',
+      message: "This code doesn't make a game. Press Reset to get the example back.",
     })
     expect(live()).toEqual([])
     expect(view()).toMatchObject({
       preview: 'failed',
-      status: 'The example’s default export must be defineGame(...).',
+      status: "This code doesn't make a game. Press Reset to get the example back.",
     })
   })
 

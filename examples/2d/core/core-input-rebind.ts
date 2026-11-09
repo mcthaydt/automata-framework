@@ -1,4 +1,4 @@
-// core-input-rebind: rebind a control in Settings, and keep it next time
+// core-input-rebind: change a control in Settings, and it stays changed
 //
 // Shows: keys() names each action with labels, so the default Settings screen (pause, then the gear) lists them;
 //   rebinding one saves it through the host and play reads it at once; a key taken from another action leaves

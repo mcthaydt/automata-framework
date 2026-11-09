@@ -1,6 +1,6 @@
 # Report security issues in the Automata framework, its packages or this site by email.
 # Please do not open a public issue for a vulnerability.
-Contact: mailto:mcthaydawson@gmail.com
+Contact: mailto:hello@automataframework.com
 Expires: 2027-10-15T00:00:00.000Z
 Preferred-Languages: en
 Canonical: https://automataframework.com/.well-known/security.txt

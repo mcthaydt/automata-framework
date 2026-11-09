@@ -41,7 +41,7 @@ test('a default export that is not defineGame(...) fails the import, saying so',
   await run(page, 'shapes', 'rects', 'export default 42\n')
   expect(await failed(page)).toMatchObject({
     phase: 'import',
-    message: "The example's default export must be defineGame(...)",
+    message: "This code doesn't make a game. Press Reset to get the example back.",
   })
 })
 

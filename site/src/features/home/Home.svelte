@@ -64,8 +64,7 @@ import ShapesPreview from './ShapesPreview.svelte'
     <p class="kicker">The code</p>
     <h2>Small files. Plain TypeScript.</h2>
     <p class="sub">
-      Gameplay is components and systems. Drawing is a separate view, so the game logic runs the same in tests and on
-      screen.
+      What happens in the game is written apart from how it looks, so a test can play it without a screen.
     </p>
     <div class="code-split">
       <div>
@@ -89,8 +88,7 @@ import ShapesPreview from './ShapesPreview.svelte'
     <p class="kicker">The editor</p>
     <h2>Draw levels. The game reads the same files.</h2>
     <p class="sub">
-      The level editor runs in the browser. It writes the content files in your game, and the game picks them up when
-      you save.
+      The level editor runs in your browser. Draw a room, press Save, and your game plays the new room.
     </p>
     <div class="wide">
       <!-- Far below the poster: in the page only once the reader is near it (NearView, QB.3j). -->

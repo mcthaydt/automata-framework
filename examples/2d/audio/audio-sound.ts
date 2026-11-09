@@ -1,4 +1,4 @@
-// audio-sound: a chime on a sim event
+// audio-sound: a chime that plays when something happens
 //
 // Shows: `sounds` maps a sim event to a sound. The first tap or key unlocks audio (browsers allow
 //   sound only after a gesture); from then on each Chime event the sim emits plays chime.wav.

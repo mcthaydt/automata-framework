@@ -10,12 +10,12 @@ export const REASONS = [
   {
     icon: 'terminal',
     title: 'Built for agents',
-    body: 'Agent skills teach your coding agent where gameplay lives, which rules it must keep and how to test a change.',
+    body: 'Agent skills tell your coding agent where the gameplay lives, what it must not break and how to test a change.',
   },
   {
     icon: 'check',
     title: 'The same game everywhere',
-    body: 'The same seed and inputs give the same game in Node, Chrome, Safari and Firefox, checked bit for bit, so a test means something.',
+    body: 'The same start and the same button presses play out the same way in Chrome, Safari, Firefox and Node. Tests check it, so a passing test means something.',
   },
   {
     icon: 'share',

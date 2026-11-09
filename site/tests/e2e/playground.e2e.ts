@@ -620,7 +620,7 @@ test('a default export that is not defineGame(...) is named, and the preview kee
   // `export default 1;` takes the place of the defineGame call, which is left as an unused expression.
   await typeAfter(page, 'export default', ' 1;\nconst game =')
   await expect(page.locator('.playground-status')).toContainText(
-    "The example's default export must be defineGame(...)",
+    "This code doesn't make a game. Press Reset to get the example back.",
     { timeout: 10_000 },
   )
   await expect(page.locator('.playground-status')).toContainText(
@@ -665,7 +665,7 @@ test('when the compile worker fails, the status line says so and Play still runs
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 10_000 })
   await typeAfter(page, "defineSystem('move', (ctx) => {", '\nconst edited = 1')
   await expect(page.locator('.playground-status')).toHaveText(
-    'Live updates are unavailable in this browser. Play still runs the original.',
+    "This browser can't update the game as you type. Press Play to see the original.",
     { timeout: 5_000 },
   )
   await expect(root(page)).toHaveAttribute('data-run-id', '1')
@@ -809,7 +809,7 @@ test('a share link with no compile worker runs the original', async ({ page }) =
       Buffer.from(await new Response(stream).arrayBuffer()).toString('base64url'),
   )
   await expect(page.locator('.playground-status')).toHaveText(
-    'Live updates are unavailable in this browser. Play still runs the original.',
+    "This browser can't update the game as you type. Press Play to see the original.",
     { timeout: 10_000 },
   )
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })

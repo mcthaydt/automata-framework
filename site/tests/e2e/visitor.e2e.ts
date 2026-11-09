@@ -16,6 +16,10 @@ const CREATE_COMMAND = 'npx @mcthaydt/automata-tools create-game my-game'
  */
 const GAME_STEP_MS = 40_000
 
+/** The words a visitor reads first on each page: Home's headline, Start's four steps and the Editor page's button. */
+const HOME_HEADLINE = 'Make browser games with your coding agent.'
+const START_STEPS = ['1. Make a game', '2. Play it', '3. Draw its level', '4. Put it online']
+
 /** The game's root element, inside the demo's frame. */
 const game = (demo: FrameLocator): Locator => demo.locator('#game')
 
@@ -67,7 +71,7 @@ async function playEmberwick(page: Page, input: 'keyboard' | 'touch'): Promise<v
 async function copyTheCommand(page: Page): Promise<void> {
   await page.getByRole('link', { name: 'Make a game' }).first().click()
   await expect(page).toHaveURL(/\/start\/?$/)
-  await expect(page.getByRole('heading', { name: '1. Make a game' })).toBeVisible()
+  for (const step of START_STEPS) await expect(page.getByRole('heading', { name: step })).toBeVisible()
   const first = page.getByRole('listitem').filter({ hasText: CREATE_COMMAND })
   await first.getByRole('button', { name: 'Copy command' }).click()
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(CREATE_COMMAND)
@@ -76,6 +80,9 @@ async function copyTheCommand(page: Page): Promise<void> {
 /** The Editor page, Try the editor, a platformer level, one painted cell, Save, a reload: the level and cell are kept. */
 async function drawAndKeepALevel(page: Page): Promise<void> {
   await page.goto('/editor')
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Draw your levels in the browser.' }),
+  ).toBeVisible()
   await page.getByRole('link', { name: 'Try the editor' }).click()
   await expect(page).toHaveURL(/\/editor\/app\/$/)
   await expect(page.getByRole('heading', { name: 'Your levels' })).toBeVisible()
@@ -136,6 +143,7 @@ test.describe('a visitor on a desktop', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN })
     const watch = watchPage(page, ORIGIN)
     await page.goto('/')
+    await expect(page.getByRole('heading', { level: 1, name: HOME_HEADLINE })).toBeVisible()
     await playEmberwick(page, 'keyboard')
     await copyTheCommand(page)
     await drawAndKeepALevel(page)
@@ -160,6 +168,7 @@ test.describe('a visitor on an upright phone', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN })
     const watch = watchPage(page, ORIGIN)
     await page.goto('/')
+    await expect(page.getByRole('heading', { level: 1, name: HOME_HEADLINE })).toBeVisible()
     await playEmberwick(page, 'touch')
     await copyTheCommand(page)
     await drawAndKeepALevel(page)

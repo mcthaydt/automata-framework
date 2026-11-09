@@ -1,4 +1,4 @@
-// textures-sprite: an animated sprite from a sprite sheet
+// textures-sprite: an animated character from a sprite sheet
 //
 // Shows: sprite() draws a texture by url, interpolated like rect(); `frames` slices a sheet into
 //   equal frames and the component's `frame` field picks one each tick.

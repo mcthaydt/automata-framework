@@ -1,0 +1,93 @@
+name: site
+
+# The website (site/): built and checked on every pull request that can change it, and deployed from main once a
+# host is configured. Until then the deploy job says "No host configured yet." and passes, so the first push to main
+# after the Owner picks a host (docs/runbook.md, "Launching the site") is the first deploy. The pull request's build
+# is the same build `check:site` reads: links, metadata, the Content-Security-Policy, no link to a private repository
+# and no closed beta (@pixi/3d) in the output, so a build that fails them is never deployed.
+#
+# A pull request cannot start the deploy job: it holds the host's token, so the invariant in
+# tooling/repo-hygiene keeps it off pull requests, and the pull request job and the main job build separately.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - site/**
+      - docs/guides/**
+      - examples/**
+      - packages/**
+      - pnpm-lock.yaml
+      - .github/workflows/site.yml
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - site/**
+      - docs/guides/**
+      - examples/**
+      - packages/**
+      - pnpm-lock.yaml
+      - .github/workflows/site.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  build:
+    name: build and check the site
+    if: github.event.pull_request.draft != true
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      # Turbo builds what the site imports first (the demos, the API index and the playground with it).
+      - run: pnpm exec turbo run build --filter @mcthaydt/automata-site
+      - run: pnpm --filter @mcthaydt/automata-site check:site
+
+  deploy:
+    name: deploy the site
+    needs: build
+    if: github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec turbo run build --filter @mcthaydt/automata-site
+      - run: pnpm --filter @mcthaydt/automata-site check:site
+      # The host is the Owner's choice (task 21.2). With no token there is nothing to deploy to, and that is a pass.
+      # With a token but no deploy command written yet, fail rather than let a configured host quietly stay empty.
+      - name: Deploy
+        env:
+          SITE_HOST_TOKEN: ${{ secrets.SITE_HOST_TOKEN }}
+        run: |
+          if [ -z "$SITE_HOST_TOKEN" ]; then
+            echo "No host configured yet."
+            exit 0
+          fi
+          echo "A host token is set, but the deploy command is not written yet. See docs/runbook.md, Launching the site."
+          exit 1

@@ -1,4 +1,4 @@
-// shapes-draw-hud: a HUD and a mini-map drawn each frame over bouncing squares
+// shapes-draw-hud: a score display and a mini-map over bouncing squares
 //
 // Shows: draw(ctx) paints rects, lines, circles and text over the entity views once a frame. It reads the
 //   sim through ctx.sim and never writes it, so the golden is the same with or without it.

@@ -1,4 +1,4 @@
-# Copy table (task 8.1)
+# Copy table (tasks 8.1, 12.5 and 20.1)
 
 Every player-facing string of core and Emberwick, checked against the four questions of spec section 8:
 **1** can she tell what is happening, **2** can she tell what to do next, **3** is it short, **4** is there no jargon.
@@ -131,3 +131,36 @@ Every player-facing string of core and Emberwick, checked against the four quest
 - The other `automata` usage lines, `ship` errors (secrets, root-absolute paths, boards, orientation, inputs,
   `ruken publish` exits) and `--targets` errors: they say what is wrong and what to change. They are for game
   authors, so names like `ship.config.ts` stay.
+
+## Site and the CLI's editor (task 20.1)
+
+Every visible string of the built pages (Home, Start, Editor, Examples, How it works, the API index, Privacy and Terms),
+the guides and the CLI's editor message, against the same four questions. Home and Start speak to a game maker; How it
+works, the API and the examples' code are where engine words live (WG1). The rows below changed.
+
+| Where | Old text | New text | Failed |
+|---|---|---|---|
+| Search, the heading | `Find your way` | `Search` | 3 and 1 (a riddle for a plain word) |
+| Search, the placeholder | `Try createSim or snapshot` | `Search, e.g. jump, save, level` | 4 (API names) |
+| Search, the order | pages, then every example, then the guides | pages, then the guides, then the examples, then API names | 2 (a plain word found an example before the guide) |
+| Search, an example's row | `core-saves: three save slots on…` | The example's title, capitalised, with its id in the detail | 4 |
+| Examples, the page's line | `One file each. Open an example and it runs beside its code.` | `Change the code on the left. The game on the right updates as you type.` | 2 |
+| Examples, "How an example runs" | A paragraph about preview frames, line and column, and Restart, open on the page | The same words, kept for developers behind `For developers: how the preview runs` | 4 and 3 |
+| Examples, the groups | `core`, `shapes`, `textures`, `render`, `audio` | `The basics`, `Shapes`, `Pictures and sprites`, `How it is drawn`, `Sound` | 4 (package names) |
+| Examples, each card | The id (`core-saves`) above the title | The title first, the id under it | 1 |
+| Examples, the titles | `a chime on a sim event`, `the sim stands still while the host has the game in the background`, `rebind a control in Settings, and keep it next time`, `a run's score goes to the host's leaderboard…`, `two screen-space filters…`, `a square drawn between sim ticks…`, `a HUD and a mini-map drawn each frame…`, `sprites drawn from a packed atlas`, `an animated sprite from a sprite sheet` | `a chime that plays when something happens`, `the game stands still while you are away from it`, `change a control in Settings, and it stays changed`, `a score that goes to a leaderboard, shown when you pause`, `two screen effects, and the quality level that decides which run`, `a square drawn smoothly between steps…`, `a score display and a mini-map over bouncing squares`, `sprites drawn from one packed picture`, `an animated character from a sprite sheet` | 4 (sim, host, tick, HUD, atlas) |
+| Playground, not a game | `The example's default export must be defineGame(...)` | `This code doesn't make a game. Press Reset to get the example back.` | 4 and 2 |
+| Playground, live off | `Live updates are unavailable in this browser. Play still runs the original.` | `This browser can't update the game as you type. Press Play to see the original.` | 4 and 2 |
+| Playground, the Determinism row | Open under the preview: `Determinism: these 120 ticks replay… golden… Hash …` | Behind `For developers: does this replay the same?`; open by itself only if the replay diverged | 4 |
+| Home, reason 2 | `…checked bit for bit, so a test means something.` | `The same start and the same button presses play out the same way in Chrome, Safari, Firefox and Node. Tests check it, so a passing test means something.` | 4 |
+| Home, reason 1 | `…where gameplay lives, which rules it must keep…` | `…where the gameplay lives, what it must not break…` | 4 |
+| Home, "Small files. Plain TypeScript." | `Gameplay is components and systems. Drawing is a separate view, so the game logic runs the same in tests and on screen.` | `What happens in the game is written apart from how it looks, so a test can play it without a screen.` | 4 |
+| Home, the editor | `It writes the content files in your game, and the game picks them up when you save.` | `Draw a room, press Save, and your game plays the new room.` | 4 |
+| Guide `editor.md`, the opening | `automata editor opens the editors on your game's own files… a small local server beside them`, and "with the editor built once: `pnpm --filter @mcthaydt/automata-editor build`" | Run `pnpm exec automata editor`, open the address, draw, press Save; the other flags come after | 2 (a step a game maker cannot take) |
+| `automata editor`, done | `Editing /path/my-game with the 2d editor.` | `Opened my-game in the level editor.` (`level editor and Tuner` for `--app suite`, `3D editor` for `--app 3d`) | 4 ("2d") |
+
+Kept: Home's headline, subline and the four places a game goes; the demo's toolbar (`Restart`, `Fullscreen`, `Open demo`,
+`Stop demo`, which appear only while it plays) and its fullscreen messages (they say what happened and what to do); Start's four steps and what each shows; the Editor
+page; the 404, Privacy and Terms; How it works and the API (engine words are their job); the examples' "Shows" lines
+(they sit beside code); `automata check`'s text (`pass test (12 ms)`, `0 findings`), which is read by developers and
+agents and whose JSON shape is exact.

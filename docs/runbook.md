@@ -62,7 +62,7 @@ Published versions live in GitHub Packages, and from the first public release al
 | The `af-linux` self-hosted runner | The Owner's PC (WSL2 Ubuntu with Docker) | Register a new runner with the label `af-linux` (Ruken's `docs/self-hosted-runner.md`) |
 | `AF_RUNNER_PORT_OFFSET` in each runner copy's `.env` | The runner's folder on its machine | Give every copy on one machine its own multiple of 2000 (the PC's three copies use 0, 2000 and 4000; the Mac's two use 6000 and 8000; the Windows runner 10000), so jobs on two copies never meet on a port. A copy with none runs at 0 and meets any other copy on its machine that has none. A test server writes no port of its own: `tooling/repo-hygiene` fails on one, and `tooling/examples-runner` holds every journey port to its copy's 2000-port window |
 | The Renovate app installation | GitHub Apps | Install it on the repository again; `renovate.json` holds the configuration |
-| The domain `automataframework.com` and its DNS | The registrar | The website's address (`SITE_ORIGIN` in `site/src/lib/site.js`); point it at the site's host again |
+| The domain `automataframework.com` and its DNS | The registrar | The website's address (`SITE_ORIGIN` in `site/src/shared/site.js`); point it at the site's host again |
 
 **Rebuild, step by step:**
 
@@ -74,3 +74,32 @@ Published versions live in GitHub Packages, and from the first public release al
 4. If GitHub Packages lost the published versions, run the release workflow from `main` again. Changesets
    publishes every version the registry is missing, and `verify-published.ts` checks the result.
 5. Record what was rebuilt, and when, in [03 Continuation](archive/03-continuation-prompt.md).
+
+## Launching the site
+
+The website is built and checked by `site.yml` on every pull request that can change it, and on every push to `main`
+the same workflow tries to deploy it. Until the steps below are done, the deploy job prints "No host configured yet."
+and passes. These steps are the Owner's; each one says who finishes the rest.
+
+1. **The domain.** Register `automataframework.com` if it is not yours yet. Point its apex at the host you pick in
+   step 3 (an `ALIAS`, `ANAME` or flattened `CNAME` record; a plain `CNAME` is not allowed at an apex), make `www`
+   redirect to the apex, and turn on HTTPS at the host. `SITE_ORIGIN` in `site/src/shared/site.js` already says
+   `https://automataframework.com`.
+2. **The mailbox.** Make `hello@automataframework.com`. The footer, Privacy, Terms and `security.txt` all give it
+   (`CONTACT_EMAIL` and `SECURITY_EMAIL` in `site/src/shared/site.js`); a test keeps any personal address out. Until it
+   exists, mail to it bounces.
+3. **The host.** Pick a static host (Cloudflare Pages is the recommendation: free, and it serves a folder as it is).
+   Create a deploy token that can publish this one site, and add it as the repository secret `SITE_HOST_TOKEN`.
+   Do nothing else: with the token set and no deploy command written, `site.yml` fails with a message that says so, on
+   purpose. Tell the agent the host; it writes the deploy command in one pull request, and the next push to
+   `main` deploys.
+4. **Pixi 3D.** `check:site` fails any build that carries `@pixi/3d`, a closed beta that may not be deployed, so a
+   deploy cannot happen until the site's build is free of it. Likewise `REPOSITORY_PUBLIC` in
+   `site/src/shared/site.js` is `false`, and the build fails on any link to `github.com/mcthaydt/automata-framework`.
+   When the repository is public, set it to `true` and add the links.
+5. **The packages.** Create the npm organisation, add `NPM_TOKEN` to the `release` environment and approve the first
+   release, so Start's `npx @mcthaydt/automata-tools create-game my-game` works for a stranger. Add
+   `SKILLS_TOKEN` for the agent package's mirror.
+6. **Look at it.** Open the site and its editor on the iPad. A real-device test is the Owner's.
+
+`pnpm lint:actions` checks the workflows and needs Docker.

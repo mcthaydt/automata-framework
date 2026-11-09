@@ -23,9 +23,14 @@ const PAGES: readonly SearchEntry[] = [
   { title: 'Editor', detail: 'Draw your levels', url: '/editor' },
   { title: 'Docs', detail: 'Guides to the framework', url: '/docs' },
   { title: 'API reference', detail: 'Every export of every package', url: '/api' },
-  ...getExamples().map((e) => ({ title: e.id + ': ' + e.title, detail: e.shows, url: '/examples/' + e.id })),
 ]
-const links = $derived([...PAGES, ...guides])
+// Plain words find a guide before an example (search ranks by this order).
+const EXAMPLES: readonly SearchEntry[] = getExamples().map((e) => ({
+  title: e.title.charAt(0).toUpperCase() + e.title.slice(1),
+  detail: e.id + ' ' + e.shows,
+  url: '/examples/' + e.id,
+}))
+const links = $derived([...PAGES, ...guides, ...EXAMPLES])
 let results = $derived(
   links.filter((l) =>
     query
@@ -81,9 +86,9 @@ function keys(event: KeyboardEvent) {
 }
 </script>
 <dialog bind:this={dialog} class="search-dialog" aria-labelledby="search-title" oncancel={(e) => { e.preventDefault(); onClose() }} onkeydown={keys}>
-  <div class="dialog-heading"><h2 id="search-title">Find your way</h2><button type="button" onclick={onClose}>Close</button></div>
+  <div class="dialog-heading"><h2 id="search-title">Search</h2><button type="button" onclick={onClose}>Close</button></div>
   <label for="site-search">Search pages, docs, API and demos</label>
-  <input bind:this={input} id="site-search" type="search" bind:value={query} placeholder="Try createSim or snapshot" />
+  <input bind:this={input} id="site-search" type="search" bind:value={query} placeholder="Search, e.g. jump, save, level" />
   <div class="search-results">
     {#each results as item}<a href={item.url} onclick={onClose}>{item.title}</a>{/each}
     {#each apiResults as item}<a href={item.url} onclick={onClose}>{item.title} <span class="small">{item.detail}</span></a>{/each}

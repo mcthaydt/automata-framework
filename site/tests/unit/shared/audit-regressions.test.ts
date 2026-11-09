@@ -84,7 +84,8 @@ describe('Restored claims (DX.10a)', () => {
 
   it('describes the playground’s live updates, diagnostics and restart, bounded to the playground', () => {
     const view = render(Examples, { props: { data: { index: [] } } })
-    const section = view.getByRole('region', { name: 'How an example runs' })
+    // The explanation sits behind a "For developers" disclosure; its words are still bounded to the playground.
+    const section = view.container.querySelector('.examples-how')!
     expect(section.textContent).toContain(
       'Edit the code and the example runs again once you pause typing. Each run starts in a new preview frame and is shown only once it is running, so an edit that fails leaves the last working preview in place.',
     )

@@ -12,7 +12,7 @@ export const STATUS = {
   offline: 'The preview couldn’t load. Check the connection and press Retry.',
   kept: 'The preview is still running your last working version.',
   loadingEditor: 'Loading the editor…',
-  liveUnavailable: 'Live updates are unavailable in this browser. Play still runs the original.',
+  liveUnavailable: "This browser can't update the game as you type. Press Play to see the original.",
   linkUnreadable: 'This link’s code could not be read, so the original example is shown.',
   editorFailed: 'The editor couldn’t load. The code is shown read-only, and Play still runs the original.',
 } as const

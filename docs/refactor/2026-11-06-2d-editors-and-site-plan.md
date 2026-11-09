@@ -1421,10 +1421,10 @@ before it. The footer's contact address stays as it is until the Owner decides (
 - Modify: `site/package.json` (`build` ends with `node scripts/scan-closed-beta.ts build`)
 - Delete: remaining claim-to-data tests that pin history (WT1); list them in the execution log
 
-- [ ] **Step 1: Failing tests:** every internal link and anchor in the built site resolves; no link to
+- [x] **Step 1: Failing tests:** every internal link and anchor in the built site resolves; no link to
   `github.com/mcthaydt/automata-framework` while `repositoryPublic` is false; the scan passes on the build and fails on
   a fixture with the beta's marker.
-- [ ] **Step 2:** Fix every broken link the test finds (W6). Commit, mark ready.
+- [x] **Step 2:** Fix every broken link the test finds (W6). Commit, mark ready.
   `test(site): links resolve, none reach the private repository, no closed beta`
 
 ---
@@ -1437,12 +1437,12 @@ before it. The footer's contact address stays as it is until the Owner decides (
 - Modify: `docs/refactor/copy.md` ("Site", plus the CLI's editor and check messages), every site page and CLI message
   it changes
 
-- [ ] **Step 1:** List every visible string on the seven pages (from the built HTML) and the CLI's editor and check
+- [x] **Step 1:** List every visible string on the seven pages (from the built HTML) and the CLI's editor and check
   output; each passes the four questions or is rewritten. Two audiences, one path (WG1): Home and Start speak to a game
   maker; How it works and API are where the engine words live. Keep the voice of WG4.
-- [ ] **Step 2:** The visitor journey asserts Home's headline, Start's steps and the Editor page's button by role and
+- [x] **Step 2:** The visitor journey asserts Home's headline, Start's steps and the Editor page's button by role and
   name. `pnpm check`, site e2e in Chromium. Commit, mark ready. `docs(site): plain words on every page`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 3 and 4, finding 19):** every row of the audit's section 4; the guides (`docs/guides/*.md`) are in the string list (`editor.md` drops "build it first" and opens with run, open, draw, Save); the search placeholder and ranking, the playground's messages (the Determinism row behind "For developers"), the examples' titles as sentences, and the CLI's "Opened Emberwick in the level editor."
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 3 and 4, finding 19):** every row of the audit's section 4; the guides (`docs/guides/*.md`) are in the string list (`editor.md` drops "build it first" and opens with run, open, draw, Save); the search placeholder and ranking, the playground's messages (the Determinism row behind "For developers"), the examples' titles as sentences, and the CLI's "Opened Emberwick in the level editor."
 
 ---
 
@@ -1473,9 +1473,9 @@ tightly to ruken". This answers D8's domain.
   (the Owner's launch steps)
 - Test: `site/tests/unit/legal.test.ts` (no personal mailbox in any page or `security.txt`; W9)
 
-- [ ] **Step 1:** Failing test, then the change. `pnpm lint:actions` if Docker exists, else the Owner's.
-- [ ] **Step 2:** The deploy job runs on this PR's head and prints "No host configured yet." Commit, mark ready, merge
-  when green.
+- [x] **Step 1:** Failing test, then the change. `pnpm lint:actions` if Docker exists, else the Owner's. (Docker has no daemon here: the Owner's.)
+- [x] **Step 2:** The deploy job runs on this PR's head and prints "No host configured yet." Commit, mark ready, merge
+  when green. (The deploy job never starts from a pull request, so the message was run from the parsed step; merging when green is the merge thread's.)
 
 ### Task 21.2: The Owner's inputs and go (the Owner)
 
@@ -2779,3 +2779,33 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   journey holds the fingers 400 ms of real time to prove it: on the real clock it fails ("undone: expected 1 to be 2"),
   on the test clock it passes. Editor journeys (Chromium) 28, unit 3,385, svelte-check 0.
   *Handoff (session 23):* 61 of 68 on PR #436. Next 19.2, 20.1, 21.1 (resume note in `progress.md`).
+  *19.2 (session 24):* `check:site` now fails a page or a plain-text file that links to `github.com/mcthaydt/automata-framework`
+  while `REPOSITORY_PUBLIC` (`site/src/shared/site.js`) is false, and a build whose scripts carry `@pixi/3d` or its extras
+  (`site/scripts/site-checks/launch.ts`, calling the tools' `findPixi3d`; `check:site` is the build's last step in CI, so
+  no separate `build` suffix). Each has a failing fixture (site-checks.test 68 pass). Deviations from the task: the site's
+  config is `shared/site.js`, not `shared/config.ts`; internal links and anchors were already checked by `checkSite` (a
+  "missing destination" fixture exists), so no `links.test.ts`; the real build of 35 pages has no link to the private
+  repository and no beta. No claim-to-data test that pins history was found to delete (the one legal test, the MIT
+  claim, reads the packages' manifests).
+  *20.1 (session 24):* the copy table is `docs/refactor/copy.md`, "Site and the CLI's editor": 20 rows. Search says
+  "Search" with `Search, e.g. jump, save, level`, ranks guides before examples and shows an example by its title; the
+  examples have plain titles (their header comments and the README rows), plain group names and the id under the
+  title; the preview's explanation and the Determinism row sit behind "For developers" (the row opens by itself on a
+  divergence); the playground's two messages are rewritten; Home's reasons and code and editor lines lose engine words;
+  the editor guide opens with run, open, draw, Save; `automata editor` prints "Opened my-game in the level editor."
+  Kept as they were: Home's headline and subline, Start's steps (already the audit's rewrite from 18.2), the Editor
+  page, Privacy and Terms, How it works and the API. `automata check`'s text is read by developers and agents. The
+  visitor journey now asserts Home's headline, Start's four steps and the Editor page's headline (the button is a
+  link named "Try the editor"). Site unit 341 pass.
+  *21.1 (session 24):* `.github/workflows/site.yml`: `build` (a pull request, not a draft, and every push to main that
+  can change the site) runs turbo's site build and `check:site`; `deploy` (never from a pull request, so the host's
+  token stays out of reach of one) rebuilds, checks, and runs the "Deploy" step: with no `SITE_HOST_TOKEN` it prints
+  "No host configured yet." and passes (run from the parsed step); with a token and no deploy command written it fails
+  on purpose. Deviation: no artifact passes between the jobs (the quota is full and one day is all it would need), so
+  deploy rebuilds. The contact is `hello@automataframework.com` (the Owner's address for the footer) in
+  `site/src/shared/site.js` and `security.txt`, and `tests/unit/legal/contact.test.ts` keeps any personal mailbox out
+  (W9); there is no `CONTACT_ADDRESS` placeholder. `docs/runbook.md` has "Launching the site" (the Owner's steps).
+  `pnpm lint:actions` needs a Docker daemon, which this session lacks: the Owner's. Workflow invariants and the new
+  `site-workflow.test.ts` pass.
+  *Handoff (session 24):* 64 of 68. Left: 14.1 (its own thread and branch `claude/refactor-scope`, scope `@automata`),
+  and the Owner's 14.2, 21.0's DNS and 21.2.
