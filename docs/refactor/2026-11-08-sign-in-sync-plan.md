@@ -576,3 +576,7 @@ build's, and the overall `stages done / stages`), and commit the change with the
   word being typed), "Not now" puts it away and the top bar's line becomes a button that asks again. The journey found
   that its fake GitHub signed a device out when the browser closed (the real cookie lasts), so the fake now keeps a
   device signed in by profile. The journey's page is the built suite: `vite build` in `extensions/editors` before it.
+- 2026-11-09 (stage 5, build audit, [record](2026-11-09-sign-in-sync-build-audit.md)): at `4c855dfa`, in Chromium. Typed
+  words are kept through a reload and a restart in every content editor. Three high findings for the fixes stage: drafts
+  keyed by label put a closed tab's words in the wrong field or drop them (B1); a pull while typing overwrites the other
+  device silently and shows words the file does not have (B2); "on GitHub" is said before the push (B3).
