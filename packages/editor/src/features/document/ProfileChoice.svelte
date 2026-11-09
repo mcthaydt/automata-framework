@@ -6,7 +6,7 @@
 <script lang="ts">
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
-import type { ChoiceOutcome } from '../../shared/level-2d/documents/open-flow-model'
+import type { ChoiceOutcome } from '../../shared/level-2d/session/open-flow-model'
 
 interface Props {
   outcome: ChoiceOutcome | undefined
