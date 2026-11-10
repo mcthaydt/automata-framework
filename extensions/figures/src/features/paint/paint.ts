@@ -1522,7 +1522,9 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     // cloth channel follows the raster's surface, not the painter's copy). The head and held items have no cylinder.
     const fab = fabrics[mi];
     if (fab && t >= 0 && t <= 3 && hue[k] < 0 && at === k && part[k] >= 0 && part[k] === g.part[k] && material[k] === g.material[k] && handTone[k] < 0) {
-      const u = cloth!.u(group[k], cloth!.place[k * 3], cloth!.place[k * 3 + 1]);
+      let u = cloth!.u(group[k], cloth!.place[k * 3], cloth!.place[k * 3 + 1]);
+      // A handed tile (fabric.ts): the left limbs' `u` runs against the trunk's and the right limbs', so it is read negated.
+      if (u !== null && fab.handed && (group[k] === GROUP.armL || group[k] === GROUP.legL)) u = -u;
       if (u !== null) {
         const [lo, hi] = depths[mi]!;
         weave!.labels[k] = labelAt(fab, u, cloth!.place[k * 3 + 2], ppm); weave!.lo[k] = lo; weave!.hi[k] = hi; weave!.on[k] = 1;

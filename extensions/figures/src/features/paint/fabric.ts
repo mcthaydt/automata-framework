@@ -18,6 +18,10 @@ export interface Fabric {
   /** Metres per label: the pattern keeps its physical size (a check of a set width). Left out: one label per texel at
    * every density (the default). */
   metres?: number;
+  /** Read the tile's `u` the same way round on both sides of the body: the painter negates it on the left arm and leg (the
+   * cylinders that run against the trunk's, cloth.ts), so a diagonal runs one way over both legs and the seat. Left out:
+   * the body's own coordinates, a twill that mirrors at the centre line (the default). */
+  handed?: true;
 }
 /** A fabric's lowest and highest label, each with 0 included (the ground's own): how far its tile reaches from a ground. */
 export const depthOf = (f: Fabric): [lo: number, hi: number] => [Math.min(0, ...f.labels), Math.max(0, ...f.labels)];

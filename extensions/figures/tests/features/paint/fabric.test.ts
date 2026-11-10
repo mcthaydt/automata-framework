@@ -336,3 +336,37 @@ describe('a tiled cloth is even', () => {
     }
   });
 });
+
+describe('a handed tile runs one way over both legs and the seat', () => {
+  beforeAll(registerFixtures);
+  /** The twill's lean over a group: the hatch's pairs down-right (+1, +1) minus the pairs down-left (−1, +1). */
+  const lean = (f: Figure, groups: number[]) => {
+    const w = f.weave!, W = f.g.w, H = f.g.h, hatch = (k: number) => !!w.on[k] && w.labels[k] === -1 && f.painted[k * 4 + 3] > 0;
+    let sum = 0;
+    for (let y = 0; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+      const k = y * W + x;
+      if (!hatch(k) || !groups.includes(f.g.group[k])) continue;
+      if (hatch(k + W + 1)) sum++;
+      if (hatch(k + W - 1)) sum--;
+    }
+    return sum;
+  };
+  // The shorts alone, so the torso group's tiled texels are the seat, and from the back, where the seat and the legs show.
+  const drawn = (fabric: string) => drawnFig(dressed([{ shorts: 'fxcloth' }], { fxcloth: { ramp: 26, base: 3, fabric } }), 2, 4);
+  it('the registry accepts handed on a tile and returns it', () => {
+    registerFabric('fx-handed-probe', { w: 2, h: 2, labels: [0, -1, -1, 0], handed: true });
+    expect(fabricOf('fx-handed-probe')!.handed).toBe(true);
+    expect(fabricOf('fx-twill')!.handed).toBeUndefined();
+  });
+  it('a plain twill leans opposite ways on the two legs', () => {
+    const f = drawn('fx-twill');
+    expect(Math.sign(lean(f, [GROUP.legL])) * Math.sign(lean(f, [GROUP.legR]))).toBe(-1);
+  });
+  it('a handed twill leans one way on both legs and the seat', () => {
+    const f = drawn('fx-twillHanded');
+    const [l, r, seat] = [lean(f, [GROUP.legL]), lean(f, [GROUP.legR]), lean(f, [GROUP.torso])];
+    for (const v of [l, r, seat]) expect(Math.abs(v), `${l} ${r} ${seat}`).toBeGreaterThan(8);
+    expect(Math.sign(l), `${l} ${r} ${seat}`).toBe(Math.sign(r));
+    expect(Math.sign(seat), `${l} ${r} ${seat}`).toBe(Math.sign(l));
+  });
+});
