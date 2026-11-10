@@ -387,4 +387,17 @@ describe('a handed tile runs one way over both legs and the seat', () => {
     expect(Math.sign(l), `${l} ${r} ${seat}`).toBe(Math.sign(r));
     expect(Math.sign(seat), `${l} ${r} ${seat}`).toBe(Math.sign(l));
   });
+  it('a handed twill leans one way on both arms and the torso, at D1, D2 and D4, front and back', () => {
+    // Long sleeves: the arms' `u` is negated on the left, so a handed tile agrees across them (a plain twill does not).
+    const sleeved = (fabric: string, D: number, d: number) => drawnFig(dressed([{ top: 'fxcloth', sleeves: 'long' }], { fxcloth: { ramp: 26, base: 3, fabric } }), D, d);
+    for (const D of [1, 2, 4]) for (const d of [0, 4]) {
+      const f = sleeved('fx-twillHanded', D, d), p = sleeved('fx-twill', D, d);
+      const [l, r, torso] = [lean(f, [GROUP.armL]), lean(f, [GROUP.armR]), lean(f, [GROUP.torso])];
+      const at = `D${D} d${d}: ${l} ${r} ${torso}`;
+      for (const v of [l, r]) expect(Math.abs(v), at).toBeGreaterThan(D === 1 ? 2 : 6);
+      expect(Math.sign(l), at).toBe(Math.sign(r));
+      expect(Math.sign(torso), at).toBe(Math.sign(l));
+      if (d === 4) expect(Math.sign(lean(p, [GROUP.armL])) * Math.sign(lean(p, [GROUP.armR])), `D${D} d${d}: plain twill`).toBe(-1);
+    }
+  });
 });
