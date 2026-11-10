@@ -100,7 +100,7 @@ describe('a dark gloss is leather', () => {
       const bySurface = new Map<number, number[]>();
       for (const k of ks) { const key = g.g.part[k] * 4096 + g.g.material[k]; bySurface.set(key, [...(bySurface.get(key) ?? []), k]); }
       for (const [key, list] of bySurface) {
-        expect(list.length, `surface ${key}`).toBeLessThanOrEqual(SHEEN_MAX * D * D);
+        expect(list.length, `surface ${key}`).toBeLessThanOrEqual(Math.ceil(SHEEN_MAX * D * D * sheenScale(D)));
         const as = areas(list, W);
         expect(as.length, `surface ${key}: areas`).toBeLessThanOrEqual(2);
         const has = (set: Set<number>, k: number, a: number, b: number) => set.has(k + a) || set.has(k + b);
