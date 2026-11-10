@@ -313,3 +313,30 @@ test('completes the Ruken handshake inside a fake host frame on another origin',
   expect(trace.slice(0, 3)).toEqual(['hello', 'welcome', 'session.ready'])
   expect(errors).toEqual([])
 })
+
+test('a host that refuses to start the game gets the connection panel, and Try again reloads the frame', async ({
+  page,
+}) => {
+  const errors = await collectErrors(page)
+  // The fake host welcomes the game, then sends session.refused instead of session.ready (host.ts, `?fail=boot`).
+  await page.goto(`${hostOrigin}/?fail=boot`)
+  const frame = page.frameLocator('iframe')
+  await expect(frame.locator('html')).toHaveAttribute('data-state', 'failed')
+  const panel = frame.getByRole('alert')
+  await expect(panel).toHaveText(/Couldn't connect to Ruken\./)
+  const retry = panel.getByRole('button', { name: 'Try again' })
+  await expect(retry).toBeVisible()
+  const box = await retry.boundingBox()
+  // Try again is the panel's primary action (AGENTS.md: 48 px).
+  expect(box?.height).toBeGreaterThanOrEqual(48)
+  await expect(frame.locator('#game')).not.toHaveAttribute('data-screen', /splash|menu/)
+  const trace = await page.evaluate(() => (window as unknown as { hostTrace: () => string[] }).hostTrace())
+  expect(trace.slice(0, 3)).toEqual(['hello', 'welcome', 'session.refused'])
+  // Boot logs the failure it shows, once (run-game.ts); nothing else may reach the console.
+  expect(errors).toEqual(['Host error during ready: [DENIED] The host refused ready: DENIED'])
+  // Inside Ruken, Try again reloads the game's frame rather than re-running boot in place (run-game.ts).
+  const gameFrame = page.frames().find((f) => f.url() === gameUrl)
+  const reloaded = page.waitForEvent('framenavigated', (f) => f === gameFrame)
+  await retry.click()
+  await reloaded
+})

@@ -8,6 +8,9 @@ const gamePath = import.meta.env.VITE_GAME_PATH
 if (typeof gameOrigin !== 'string' || gameOrigin === '') throw new Error('VITE_GAME_ORIGIN is not set')
 if (typeof gamePath !== 'string' || !gamePath.startsWith('/b/'))
   throw new Error('VITE_GAME_PATH is not /b/<id>/')
+// `?fail=boot` makes the host refuse to start the game (Ruken's session.refused, sent instead of
+// session.ready), for the boot-failure journey.
+const failBoot = new URLSearchParams(window.location.search).get('fail') === 'boot'
 const iframe = document.querySelector('iframe')
 if (iframe === null) throw new Error('the host page has no iframe')
 
@@ -24,6 +27,7 @@ const host = createFakeHost({
   document,
   hostOrigin: window.location.origin,
   player: { id: 'p-1', displayName: 'Ada' },
+  ...(failBoot ? { refuse: { code: 'DENIED', retryable: false } as const } : {}),
 })
 iframe.src = `${gameOrigin}${gamePath}`
 
