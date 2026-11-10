@@ -10,14 +10,21 @@
     "golden": "vite-node scripts/golden.ts",
     "lit": "vite-node scripts/lit.ts",
     "actors": "vite-node scripts/actors-demo.ts",
-    "c5": "vite-node scripts/c5-finish-sheet.ts"
+    "c5": "vite-node scripts/c5-finish-sheet.ts",
+    "viewer": "vite viewer",
+    "view-check": "vite-node scripts/view-check.ts"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",
     "@types/node": "^26.6.4",
+    "playwright": "^1.63.0",
     "typescript": "^5.9.3",
     "vite": "^8.3.4",
     "vite-node": "6.0.0",
     "vitest": "^5.0.3"
+  },
+  "dependencies": {
+    "@pixi/3d": "file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "pixi.js": "8.22.0"
   }
 }

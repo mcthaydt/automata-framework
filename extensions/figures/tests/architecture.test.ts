@@ -14,6 +14,8 @@ const ROOT = resolve(import.meta.dirname, '..');
 const LAYERS = [
   'src/lib', 'src/features/body', 'src/features/paint', 'src/features/lighting', 'src/features/motion',
   'src/features/hair', 'src/features/outfit', 'src/features/figure', 'base', 'src/features/actors', 'src/index.ts',
+  // The Pixi 3D view, above the public surface and on its own entry, so nothing below it loads Pixi.
+  'src/features/view', 'src/view.ts',
 ];
 const layerOf = (file: string) => LAYERS.findIndex(l => file === l || file.startsWith(`${l}/`));
 const walk = (dir: string): string[] => !existsSync(join(ROOT, dir)) ? [] : readdirSync(join(ROOT, dir)).flatMap(n => {
