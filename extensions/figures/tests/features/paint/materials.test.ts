@@ -4,7 +4,7 @@ import { GROUP, type Material } from '../../../src/features/body/parts';
 import { box, registerGarment, type Garment } from '../../../src/features/outfit/garments';
 import { Figure } from '../../../src/features/figure/figure';
 import { member } from '../../../src/features/figure/frames';
-import { oklab, GLOSS_SHEEN, SHEEN_MAX } from '../../../src/features/paint/paint';
+import { oklab, GLOSS_SHEEN, SHEEN_MAX, SHEEN_MIN, sheenScale } from '../../../src/features/paint/paint';
 import { registerFabric, fabricOf } from '../../../src/features/paint/fabric';
 import { dressed, differs, turned } from '../draw';
 
@@ -135,6 +135,20 @@ describe('a dark gloss is leather', () => {
       expect(s2, `D2 d${d}: keeps its look`).toBeGreaterThan(0.04);
       expect(s4, `D4 d${d}: ${s4} of ${s2}`).toBeLessThanOrEqual(s2 * 0.4);
       expect(s4, `D4 d${d}: still there`).toBeGreaterThan(0.005);
+    }
+  });
+  it('a quilted dark gloss keeps its crest lines, short ones too (the orphan cleanup is for the patch)', () => {
+    // Six baffles (a puffer's: a surface beside another of its group in the same ramp under another name), each one chamber
+    // with a one-texel crest of shine along its top. A crest is a line, not an orphan highlight: the cleanup that drops a
+    // short run of the sheen patch must leave it, though a crest is shorter than the patch's floor.
+    registerGarment('lthquilt', { build: () => ({ parts: [0, 1, 2, 3, 4, 5].map(i => box(J.chest, i % 2 ? 'qa' : 'qb', GROUP.torso, { at: [0, -0.12 + i * 0.045, 0.16], r: [0.07, 0.024, 0.06] })) }) });
+    const quilt: Garment = { lthquilt: 'x' } as unknown as Garment;
+    for (const D of [2, 4]) {
+      const swatches = (s: Material) => ({ pull: s, qa: s, qb: { ...s } });
+      const g = fig(leather, D, 0, false, [quilt], swatches(leather)), m = fig(matte, D, 0, false, [quilt], swatches(matte));
+      const ks = [...shine(g, m, 'qa'), ...shine(g, m, 'qb')], W = g.g.w, floor = Math.ceil(SHEEN_MIN * D * D * sheenScale(D) / 4);
+      expect(ks.length, `D${D}: the crests shine`).toBeGreaterThan(0);
+      expect(areas(ks, W).filter(a => a.length < floor).length, `D${D}: some crest is under the patch's floor of ${floor}`).toBeGreaterThan(0);
     }
   });
   it('a surface under 6·D² texels takes no shine (a zip pull, a black frame)', () => {

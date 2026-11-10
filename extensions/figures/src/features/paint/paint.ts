@@ -1252,14 +1252,15 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     if (line >= 0) { tone[k] = OUTLINE; owner[k] = line; under[k] = Math.max(t, 2); } else tone[k] = handTone[k] >= 0 ? handTone[k] : t;
   }
   // A dark gloss's sheen keeps no speck: a patch that a shadow or the surface's edge cut down to a few texels is dropped (the
-  // surface reads in its mid tone there), as a sprite artist would not leave an orphan highlight.
+  // surface reads in its mid tone there), as a sprite artist would not leave an orphan highlight. A quilted chamber's crest
+  // (`band`) is a line, not a patch: it stays whatever its length.
   if (hard.some(Boolean)) {
     const seen = new Uint8Array(n), least = Math.ceil(SHEEN_MIN * D * D * sheenScale(D) / 4);
     for (let k = 0; k < n; k++) {
-      if (tone[k] !== -1 || seen[k] || !hard[material[k]]) continue;
+      if (tone[k] !== -1 || seen[k] || !hard[material[k]] || band[k] > -9) continue;
       const area = [k]; seen[k] = 1;
       for (let i = 0; i < area.length; i++) for (const q of [area[i] - 1, area[i] + 1, area[i] - w, area[i] + w]) {
-        if (q >= 0 && q < n && !seen[q] && tone[q] === -1 && surfaceOf(q) === surfaceOf(k)) { seen[q] = 1; area.push(q); }
+        if (q >= 0 && q < n && !seen[q] && tone[q] === -1 && band[q] === -9 && surfaceOf(q) === surfaceOf(k)) { seen[q] = 1; area.push(q); }
       }
       if (area.length < least) for (const q of area) tone[q] = 1;
     }
