@@ -87,7 +87,7 @@ describe('a dark gloss is leather', () => {
     return out;
   };
   const views: [number, number, boolean][] = [[0, 0, false], [1, 0, false], [4, 0, false], [3, 0, true]];
-  for (const D of [2, 4]) for (const [d, , walk] of views) {
+  for (const D of [1, 2, 4]) for (const [d, , walk] of views) {
     const label = `D${D} ${walk ? 'walk' : `direction ${d}`}`;
     it(`${label}: differs from the matte black, and repeats`, () => {
       const g = fig(leather, D, d, walk), m = fig(matte, D, d, walk);
