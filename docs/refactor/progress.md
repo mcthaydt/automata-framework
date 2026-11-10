@@ -736,3 +736,14 @@ customer - we are customer obsessed, we are crafting the perfect product from so
 |---|---|---|
 | 1. Audit | Done, 2026-11-08: 3 critical (V1 to V3), 5 high (V4 to V8), 6 medium (V9 to V14), 5 low (V15 to V19), one decision for the Owner (D1, whether Publish puts the game on itch.io). A game made from the packed tools outside the workspace was given a coin feature by an agent, edited in the editors, played, reloaded, reopened and published to a zip that played; the story and 3D games were edited in every editor. Typed words were lost on reload (V2, sent to the sign-in and saving thread) | [audit](2026-11-08-customer-value-audit.md) |
 | 2. Plan and spec | Not started; V1, V3, V4 and V6 make one "agent experience" slice; V2, V5 and V8 belong to running threads | |
+
+## EnvironmentBuilder's look on @automata/3d (phase 2: baseline and gap, 2026-11-10)
+
+The Owner, 2026-11-10: Pixi 3D for WebGL and WebGPU both; parity is judged by eye from side-by-side screenshots; the look
+is built in `@automata/3d`, not in EnvironmentBuilder.
+
+| Step | Status | Record |
+|---|---|---|
+| Baseline screenshots | AF WebGL drawn (baked room light, and material light only) for the four base scenes in the diorama and first person. The AF WebGPU panel shows the device lost in play (headless SwiftShader). The EB CPU panel is empty: running EB's code was refused by this session's permission classifier | [baseline](../superpowers/eb-look/baseline/), script `spikes/eb-look/` |
+| Gap and work packages | Done: 13 parts, WP0 to WP11 | [gap](../superpowers/eb-look/gap.md) |
+| Gates | Not run: no package code changed (docs, PNGs and a spike that biome and knip ignore) | |

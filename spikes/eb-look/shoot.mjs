@@ -1,0 +1,131 @@
+// Spike eb-look: the baseline screenshots. Serves scene.ts, draws each base scene in the diorama and first person on
+// WebGL and on WebGPU (headless Chromium, SwiftShader), and writes one side-by-side PNG per scene and view:
+// EnvironmentBuilder's CPU frame | AF WebGL (baked room light) | AF WebGL (material light only) | AF WebGPU, each nearest-scaled ×SCALE. EB's frames are read from
+// EB_DIR (`<scene>-<view>.png` at 1×, as EB's `npm run render` writes them without the -x suffix); a missing one is a
+// grey panel that says so.
+//
+//   ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules   # once; git-ignored
+//   EB_DIR=<dir> node spikes/eb-look/shoot.mjs [out dir]                 # default docs/superpowers/eb-look/baseline
+import { spawn } from 'node:child_process'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { join } from 'node:path'
+
+const repo = new URL('../..', import.meta.url).pathname
+const require = createRequire(join(repo, 'packages/3d/package.json'))
+const { chromium } = require('playwright')
+
+const out = process.argv[2] ?? join(repo, 'docs/superpowers/eb-look/baseline')
+const ebDir = process.env.EB_DIR
+const SCALE = Number(process.env.SCALE ?? 2)
+const port = Number(process.env.PORT ?? 5391)
+const SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
+const VIEWS = ['diorama', 'fp']
+// The AF panels: the renderer asked for, and switches (scene.ts). `light=0` leaves out the level's baked room light, so
+// the ramp material lights by the time of day alone.
+const PANELS = [
+  { pref: 'webgl', extra: '', title: 'AF WebGL, baked room light' },
+  { pref: 'webgl', extra: '&light=0', title: 'AF WebGL, material light only' },
+  { pref: 'webgpu', extra: '', title: 'AF WebGPU, baked room light' },
+]
+mkdirSync(out, { recursive: true })
+
+const server = spawn(
+  'pnpm',
+  ['exec', 'vite', '--config', join(repo, 'spikes/eb-look/vite.config.ts'), '--port', String(port), '--strictPort'],
+  { cwd: join(repo, 'examples/3d'), stdio: ['ignore', 'pipe', 'pipe'], detached: true },
+)
+let log = ''
+server.stdout.on('data', (d) => (log += d))
+server.stderr.on('data', (d) => (log += d))
+// pnpm exec leaves vite running on a plain kill: stop the whole group.
+const stop = () => { try { process.kill(-server.pid, 'SIGTERM') } catch {} }
+process.on('exit', stop)
+for (let i = 0; i < 120 && !log.includes('Local:'); i++) await new Promise((r) => setTimeout(r, 500))
+if (!log.includes('Local:')) throw new Error(`vite did not start:\n${log}`)
+
+const browser = await chromium.launch({ args: ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
+const facts = []
+
+const FIELD = { 'base-interior': [512, 320], 'base-exterior': [640, 360] }
+async function shoot(scene, view, pref, extra) {
+  // The viewport is the logical field, so the letterbox draws it 1:1.
+  const [width, height] = view === 'fp' ? [320, 200] : FIELD[scene.replace('-dressed', '')]
+  const page = await browser.newPage({ viewport: { width: width * 2, height: height * 2 }, deviceScaleFactor: 1 })
+  const errors = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  page.on('console', (m) => (m.type() === 'error' || m.type() === 'warning') && errors.push(m.text().slice(0, 300)))
+  await page.goto(`http://localhost:${port}/?scene=${scene}&view=${view}&pref=${pref}${extra}`)
+  const canvas = page.locator('canvas[data-ready="1"]')
+  try {
+    // Past the default title screen into play.
+    await page.getByRole('button', { name: 'Play' }).click({ timeout: 120000 })
+    await page.locator('[data-layer="screens"] [data-screen="play"]').waitFor({ state: 'attached', timeout: 120000 })
+    await canvas.waitFor({ state: 'attached', timeout: 120000 })
+  } catch {
+    await page.close()
+    return { png: null, renderer: 'failed', errors }
+  }
+  // Readiness, not a sleep: let the views pose and the passes run for a number of frames.
+  await page.evaluate(() => new Promise((done) => { let n = 0; const step = () => (++n >= 30 ? done() : requestAnimationFrame(step)); requestAnimationFrame(step) }))
+  const data = await canvas.evaluate((c) => ({ ...c.dataset }))
+  // The pause button and any notice sit over the field: hidden for the picture only.
+  await page.addStyleTag({ content: '[data-layer="screens"] { visibility: hidden !important }' })
+  // The game draws at its logical size and the letterbox upscales whole pixels: read back the logical field.
+  const png = await canvas.screenshot()
+  await page.close()
+  return { png, renderer: data.renderer, data, errors }
+}
+
+const compose = await browser.newPage()
+async function sideBySide(panels, w, h) {
+  return compose.evaluate(
+    async ({ panels, w, h, scale }) => {
+      const pad = 8, label = 18
+      const c = document.createElement('canvas')
+      c.width = panels.length * (w * scale + pad) + pad
+      c.height = h * scale + label + pad * 2
+      const g = c.getContext('2d')
+      g.fillStyle = '#111'; g.fillRect(0, 0, c.width, c.height)
+      g.imageSmoothingEnabled = false
+      for (const [i, p] of panels.entries()) {
+        const x = pad + i * (w * scale + pad), y = label + pad
+        g.fillStyle = '#eee'; g.font = '13px monospace'; g.fillText(p.title, x, 15)
+        if (p.b64 === null) {
+          g.fillStyle = '#333'; g.fillRect(x, y, w * scale, h * scale)
+          g.fillStyle = '#aaa'; g.fillText(p.missing, x + 10, y + 24)
+          continue
+        }
+        const img = new Image(); img.src = `data:image/png;base64,${p.b64}`; await img.decode()
+        g.drawImage(img, x, y, w * scale, h * scale)
+      }
+      return c.toDataURL('image/png').split(',')[1]
+    },
+    { panels, w, h, scale: SCALE },
+  )
+}
+
+for (const scene of SCENES)
+  for (const view of VIEWS) {
+    const ebFile = ebDir && join(ebDir, `${scene}-${view}.png`)
+    const eb = ebFile && existsSync(ebFile) ? readFileSync(ebFile).toString('base64') : null
+    const panels = [{ title: 'EB CPU', b64: eb, missing: 'EnvironmentBuilder frame not rendered (see gap.md)' }]
+    let w = 320, h = 200
+    for (const { pref, extra, title } of PANELS) {
+      const shot = await shoot(scene, view, pref, extra)
+      if (shot.png !== null) {
+        const dims = await compose.evaluate(async (b64) => { const i = new Image(); i.src = `data:image/png;base64,${b64}`; await i.decode(); return [i.naturalWidth, i.naturalHeight] }, shot.png.toString('base64'))
+        ;[w, h] = dims
+      }
+      const lost = shot.data?.lost ? ', device lost' : ''
+      panels.push({ title: `${title} (drew: ${shot.renderer}${lost})`, b64: shot.png?.toString('base64') ?? null, missing: `failed: ${shot.errors[0] ?? ''}`.slice(0, 80) })
+      facts.push({ scene, view, asked: pref, extra, ...shot.data, renderer: shot.renderer, errors: shot.errors })
+      console.log(scene, view, pref, '->', shot.renderer, shot.data ? JSON.stringify(shot.data) : '', shot.errors.slice(0, 2).join(' | '))
+    }
+    const b64 = await sideBySide(panels, w, h)
+    writeFileSync(join(out, `${scene}-${view}.png`), Buffer.from(b64, 'base64'))
+  }
+writeFileSync(join(out, 'shots.json'), `${JSON.stringify(facts, null, 2)}\n`)
+await browser.close()
+stop()
+process.exit(0)
