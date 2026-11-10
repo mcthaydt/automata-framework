@@ -22,6 +22,9 @@ import { stopEditor } from '#src/testing/layout-start.ts'
 const [PRO_11] = IPAD_PROFILES
 if (PRO_11 === undefined) throw new Error('no iPad profile')
 
+// A tap's result reaches the page a frame or two after `arrived()`, longer on a shared runner: wait for it, bounded.
+const POLL_MS = 10_000
+
 afterEach(stopEditor)
 
 describe('ED3-c with the Pencil on an iPad 11" in landscape', () => {
@@ -36,12 +39,12 @@ describe('ED3-c with the Pencil on an iPad 11" in landscape', () => {
     await pointers.tap(editor.at(14, 7.5), { kind: 'pen' })
     await pointers.tap(editor.at(14, 7.5), { kind: 'pen' })
     await arrived()
-    expect(byTestId('document-frame').textContent).toContain(
-      'Shares a 6.00 m wall with dock. Make it a portal?',
-    )
+    await expect
+      .poll(() => byTestId('document-frame').textContent, { timeout: POLL_MS })
+      .toContain('Shares a 6.00 m wall with dock. Make it a portal?')
     buttonNamed('Make portal').click()
     await arrived()
-    expect(undoLabel()).toMatch(/^Undo Draw sector sector-1/)
+    await expect.poll(() => undoLabel(), { timeout: POLL_MS }).toMatch(/^Undo Draw sector sector-1/)
   })
 })
 
@@ -60,10 +63,12 @@ describe('ED3-g: a palm rests on the glass while the Pencil draws', () => {
     await pointers.tap(editor.at(14, 7.5), { kind: 'pen' })
     await palm.release()
     await arrived()
-    expect(byTestId('document-frame').textContent).toContain('Make it a portal?')
+    await expect
+      .poll(() => byTestId('document-frame').textContent, { timeout: POLL_MS })
+      .toContain('Make it a portal?')
     buttonNamed('Make portal').click()
     await arrived()
-    expect(undoLabel()).toMatch(/^Undo Draw sector/)
+    await expect.poll(() => undoLabel(), { timeout: POLL_MS }).toMatch(/^Undo Draw sector/)
   })
 })
 
@@ -104,7 +109,7 @@ describe('two fingers undo and three fingers redo', () => {
     await arrived()
     buttonNamed('Make portal').click()
     await arrived()
-    expect(undoLabel()).toMatch(/^Undo Draw sector/)
+    await expect.poll(() => undoLabel(), { timeout: POLL_MS }).toMatch(/^Undo Draw sector/)
     const centre = editor.at(6, 2)
     const twoFingers = await Promise.all([
       pointers.down('touch', centre),
@@ -112,7 +117,7 @@ describe('two fingers undo and three fingers redo', () => {
     ])
     for (const finger of twoFingers) await finger.release()
     await arrived()
-    expect(undoLabel()).toBe('Undo')
+    await expect.poll(() => undoLabel(), { timeout: POLL_MS }).toBe('Undo')
     const threeFingers = await Promise.all([
       pointers.down('touch', centre),
       pointers.down('touch', { x: centre.x + 60, y: centre.y }),
@@ -120,7 +125,7 @@ describe('two fingers undo and three fingers redo', () => {
     ])
     for (const finger of threeFingers) await finger.release()
     await arrived()
-    expect(undoLabel()).toMatch(/^Undo Draw sector/)
+    await expect.poll(() => undoLabel(), { timeout: POLL_MS }).toMatch(/^Undo Draw sector/)
   })
 })
 
