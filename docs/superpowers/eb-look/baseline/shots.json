@@ -9,12 +9,12 @@
     "problems": "0",
     "lamps": "1",
     "time": "lampLit",
-    "readyAt": "2139",
+    "readyAt": "2122",
     "ready": "1",
     "errors": [
-      "figure on cast took 69 ms to build (budget 5 ms)",
-      "figure on cast took 73 ms to build (budget 5 ms)",
-      "[.WebGL-0x3384001a7e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 67 ms to build (budget 5 ms)",
+      "figure on cast took 48 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00c55e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
@@ -27,12 +27,12 @@
     "problems": "0",
     "lamps": "1",
     "time": "lampLit",
-    "readyAt": "889",
+    "readyAt": "984",
     "ready": "1",
     "errors": [
-      "figure on cast took 50 ms to build (budget 5 ms)",
-      "figure on cast took 49 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400b03200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 52 ms to build (budget 5 ms)",
+      "figure on cast took 69 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00ac6200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
@@ -47,11 +47,11 @@
     "time": "lampLit",
     "readyAt": "871",
     "ready": "1",
-    "lost": "unknown: A valid external Instance reference no longer exists. (at 1136 ms)",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1069 ms)",
     "errors": [
       "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
-      "figure on cast took 67 ms to build (budget 5 ms)",
-      "figure on cast took 49 ms to build (budget 5 ms)",
+      "figure on cast took 52 ms to build (budget 5 ms)",
+      "figure on cast took 26 ms to build (budget 5 ms)",
       "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
       "A valid external Instance reference no longer exists."
     ]
@@ -66,12 +66,12 @@
     "problems": "0",
     "lamps": "1",
     "time": "lampLit",
-    "readyAt": "961",
+    "readyAt": "926",
     "ready": "1",
     "errors": [
-      "figure on cast took 72 ms to build (budget 5 ms)",
-      "figure on cast took 56 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400ada800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 81 ms to build (budget 5 ms)",
+      "figure on cast took 53 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc0016e800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
@@ -84,12 +84,12 @@
     "problems": "0",
     "lamps": "1",
     "time": "lampLit",
-    "readyAt": "902",
+    "readyAt": "825",
     "ready": "1",
     "errors": [
-      "figure on cast took 71 ms to build (budget 5 ms)",
-      "figure on cast took 49 ms to build (budget 5 ms)",
-      "[.WebGL-0x3384008c6800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 55 ms to build (budget 5 ms)",
+      "figure on cast took 34 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc03983a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
@@ -102,12 +102,69 @@
     "problems": "0",
     "lamps": "1",
     "time": "lampLit",
-    "readyAt": "929",
+    "readyAt": "908",
     "ready": "1",
-    "lost": "unknown: A valid external Instance reference no longer exists. (at 1182 ms)",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 3585 ms)",
     "errors": [
       "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
-      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 71 ms to build (budget 5 ms)",
+      "figure on cast took 46 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "932",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 65 ms to build (budget 5 ms)",
+      "figure on cast took 93 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00bd4800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "895",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 51 ms to build (budget 5 ms)",
+      "figure on cast took 56 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001aa200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "863",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1097 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 55 ms to build (budget 5 ms)",
       "figure on cast took 33 ms to build (budget 5 ms)",
       "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
       "A valid external Instance reference no longer exists."
@@ -115,7 +172,7 @@
   },
   {
     "scene": "base-interior-dressed",
-    "view": "diorama",
+    "view": "fp",
     "asked": "webgl",
     "extra": "",
     "renderer": "webgl",
@@ -123,17 +180,17 @@
     "problems": "0",
     "lamps": "1",
     "time": "lampLit",
-    "readyAt": "928",
+    "readyAt": "950",
     "ready": "1",
     "errors": [
-      "figure on cast took 57 ms to build (budget 5 ms)",
-      "figure on cast took 50 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400b17a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 110 ms to build (budget 5 ms)",
+      "figure on cast took 65 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00192600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "scene": "base-interior-dressed",
-    "view": "diorama",
+    "view": "fp",
     "asked": "webgl",
     "extra": "&light=0",
     "renderer": "webgl",
@@ -141,17 +198,17 @@
     "problems": "0",
     "lamps": "1",
     "time": "lampLit",
-    "readyAt": "1007",
+    "readyAt": "890",
     "ready": "1",
     "errors": [
-      "figure on cast took 68 ms to build (budget 5 ms)",
-      "figure on cast took 76 ms to build (budget 5 ms)",
-      "[.WebGL-0x3384001a6c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 65 ms to build (budget 5 ms)",
+      "figure on cast took 55 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a4200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "scene": "base-interior-dressed",
-    "view": "diorama",
+    "view": "fp",
     "asked": "webgpu",
     "extra": "",
     "renderer": "webgpu",
@@ -159,134 +216,392 @@
     "problems": "0",
     "lamps": "1",
     "time": "lampLit",
-    "readyAt": "920",
+    "readyAt": "890",
     "ready": "1",
-    "lost": "unknown: A valid external Instance reference no longer exists. (at 1198 ms)",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1122 ms)",
     "errors": [
       "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
-      "figure on cast took 72 ms to build (budget 5 ms)",
+      "figure on cast took 64 ms to build (budget 5 ms)",
+      "figure on cast took 39 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "880",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 51 ms to build (budget 5 ms)",
+      "figure on cast took 36 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00ad1600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "881",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 69 ms to build (budget 5 ms)",
+      "figure on cast took 60 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001aae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "820",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 3437 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 58 ms to build (budget 5 ms)",
       "figure on cast took 35 ms to build (budget 5 ms)",
       "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
       "A valid external Instance reference no longer exists."
     ]
   },
   {
-    "scene": "base-interior-dressed",
+    "scene": "base-exterior",
     "view": "fp",
     "asked": "webgl",
     "extra": "",
     "renderer": "webgl",
-    "pieces": "98",
+    "pieces": "32",
     "problems": "0",
-    "lamps": "1",
-    "time": "lampLit",
-    "readyAt": "929",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "906",
     "ready": "1",
     "errors": [
-      "figure on cast took 50 ms to build (budget 5 ms)",
-      "figure on cast took 69 ms to build (budget 5 ms)",
-      "[.WebGL-0x3384001aae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 77 ms to build (budget 5 ms)",
+      "figure on cast took 80 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc05256c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
-    "scene": "base-interior-dressed",
+    "scene": "base-exterior",
     "view": "fp",
     "asked": "webgl",
     "extra": "&light=0",
     "renderer": "webgl",
-    "pieces": "98",
+    "pieces": "32",
     "problems": "0",
-    "lamps": "1",
-    "time": "lampLit",
-    "readyAt": "860",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "957",
     "ready": "1",
     "errors": [
-      "figure on cast took 97 ms to build (budget 5 ms)",
-      "figure on cast took 88 ms to build (budget 5 ms)",
-      "[.WebGL-0x3384001a8a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 91 ms to build (budget 5 ms)",
+      "figure on cast took 66 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a7200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
-    "scene": "base-interior-dressed",
+    "scene": "base-exterior",
     "view": "fp",
     "asked": "webgpu",
     "extra": "",
     "renderer": "webgpu",
-    "pieces": "98",
+    "pieces": "32",
     "problems": "0",
-    "lamps": "1",
-    "time": "lampLit",
-    "readyAt": "1059",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "946",
     "ready": "1",
-    "lost": "unknown: A valid external Instance reference no longer exists. (at 1320 ms)",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1193 ms)",
     "errors": [
       "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
-      "figure on cast took 77 ms to build (budget 5 ms)",
-      "figure on cast took 37 ms to build (budget 5 ms)",
+      "figure on cast took 53 ms to build (budget 5 ms)",
+      "figure on cast took 35 ms to build (budget 5 ms)",
       "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
       "A valid external Instance reference no longer exists."
     ]
   },
   {
-    "scene": "base-exterior",
+    "scene": "base-exterior-dressed",
     "view": "diorama",
     "asked": "webgl",
     "extra": "",
     "renderer": "webgl",
-    "pieces": "32",
+    "pieces": "42",
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "973",
+    "readyAt": "870",
     "ready": "1",
     "errors": [
-      "figure on cast took 68 ms to build (budget 5 ms)",
-      "figure on cast took 114 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400ab7000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 63 ms to build (budget 5 ms)",
+      "figure on cast took 59 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc050bc600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
-    "scene": "base-exterior",
+    "scene": "base-exterior-dressed",
     "view": "diorama",
     "asked": "webgl",
     "extra": "&light=0",
     "renderer": "webgl",
-    "pieces": "32",
+    "pieces": "42",
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "892",
+    "readyAt": "901",
     "ready": "1",
     "errors": [
-      "figure on cast took 54 ms to build (budget 5 ms)",
-      "figure on cast took 37 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400d86600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 68 ms to build (budget 5 ms)",
+      "figure on cast took 49 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a8a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
-    "scene": "base-exterior",
+    "scene": "base-exterior-dressed",
     "view": "diorama",
     "asked": "webgpu",
     "extra": "",
     "renderer": "webgpu",
-    "pieces": "32",
+    "pieces": "42",
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "872",
+    "readyAt": "941",
     "ready": "1",
-    "lost": "unknown: A valid external Instance reference no longer exists. (at 3452 ms)",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1156 ms)",
     "errors": [
       "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
-      "figure on cast took 56 ms to build (budget 5 ms)",
+      "figure on cast took 51 ms to build (budget 5 ms)",
+      "figure on cast took 36 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "1005",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 83 ms to build (budget 5 ms)",
+      "figure on cast took 82 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a6c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "968",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 67 ms to build (budget 5 ms)",
+      "figure on cast took 59 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00ae7000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "924",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1144 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 57 ms to build (budget 5 ms)",
       "figure on cast took 30 ms to build (budget 5 ms)",
       "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
       "A valid external Instance reference no longer exists."
     ]
   },
   {
+    "scene": "base-interior",
+    "view": "af",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "962",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 52 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00acf200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "af",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "857",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 107 ms to build (budget 5 ms)",
+      "figure on cast took 81 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00acb000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "tll",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "865",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 74 ms to build (budget 5 ms)",
+      "figure on cast took 47 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a8a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "tll",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "871",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 58 ms to build (budget 5 ms)",
+      "figure on cast took 66 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00ac6400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "af",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "899",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 83 ms to build (budget 5 ms)",
+      "figure on cast took 81 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a9c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "af",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "877",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 90 ms to build (budget 5 ms)",
+      "figure on cast took 78 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a9c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "tll",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "899",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 88 ms to build (budget 5 ms)",
+      "figure on cast took 49 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a9000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "tll",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "970",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 88 ms to build (budget 5 ms)",
+      "figure on cast took 82 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a4200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
     "scene": "base-exterior",
-    "view": "fp",
+    "view": "af",
     "asked": "webgl",
     "extra": "",
     "renderer": "webgl",
@@ -294,17 +609,17 @@
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "845",
+    "readyAt": "880",
     "ready": "1",
     "errors": [
-      "figure on cast took 58 ms to build (budget 5 ms)",
-      "figure on cast took 89 ms to build (budget 5 ms)",
-      "[.WebGL-0x3384001a8a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 72 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc008a8600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "scene": "base-exterior",
-    "view": "fp",
+    "view": "af",
     "asked": "webgl",
     "extra": "&light=0",
     "renderer": "webgl",
@@ -315,92 +630,50 @@
     "readyAt": "907",
     "ready": "1",
     "errors": [
-      "figure on cast took 71 ms to build (budget 5 ms)",
-      "figure on cast took 72 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400b13a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 63 ms to build (budget 5 ms)",
+      "figure on cast took 58 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc001a8a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "scene": "base-exterior",
-    "view": "fp",
-    "asked": "webgpu",
+    "view": "tll",
+    "asked": "webgl",
     "extra": "",
-    "renderer": "webgpu",
+    "renderer": "webgl",
     "pieces": "32",
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "894",
-    "ready": "1",
-    "lost": "unknown: A valid external Instance reference no longer exists. (at 3432 ms)",
-    "errors": [
-      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
-      "figure on cast took 60 ms to build (budget 5 ms)",
-      "figure on cast took 33 ms to build (budget 5 ms)",
-      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
-      "A valid external Instance reference no longer exists."
-    ]
-  },
-  {
-    "scene": "base-exterior-dressed",
-    "view": "diorama",
-    "asked": "webgl",
-    "extra": "",
-    "renderer": "webgl",
-    "pieces": "42",
-    "problems": "0",
-    "lamps": "0",
-    "time": "day",
-    "readyAt": "916",
+    "readyAt": "840",
     "ready": "1",
     "errors": [
-      "figure on cast took 55 ms to build (budget 5 ms)",
+      "figure on cast took 70 ms to build (budget 5 ms)",
       "figure on cast took 61 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400193a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x3cbc03404c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
-    "scene": "base-exterior-dressed",
-    "view": "diorama",
+    "scene": "base-exterior",
+    "view": "tll",
     "asked": "webgl",
     "extra": "&light=0",
     "renderer": "webgl",
-    "pieces": "42",
+    "pieces": "32",
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "880",
+    "readyAt": "881",
     "ready": "1",
     "errors": [
-      "figure on cast took 79 ms to build (budget 5 ms)",
-      "figure on cast took 72 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400b07e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 61 ms to build (budget 5 ms)",
+      "figure on cast took 48 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00ab8c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "scene": "base-exterior-dressed",
-    "view": "diorama",
-    "asked": "webgpu",
-    "extra": "",
-    "renderer": "webgpu",
-    "pieces": "42",
-    "problems": "0",
-    "lamps": "0",
-    "time": "day",
-    "readyAt": "841",
-    "ready": "1",
-    "lost": "unknown: A valid external Instance reference no longer exists. (at 1080 ms)",
-    "errors": [
-      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
-      "figure on cast took 60 ms to build (budget 5 ms)",
-      "figure on cast took 32 ms to build (budget 5 ms)",
-      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
-      "A valid external Instance reference no longer exists."
-    ]
-  },
-  {
-    "scene": "base-exterior-dressed",
-    "view": "fp",
+    "view": "af",
     "asked": "webgl",
     "extra": "",
     "renderer": "webgl",
@@ -408,17 +681,17 @@
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "956",
+    "readyAt": "928",
     "ready": "1",
     "errors": [
-      "figure on cast took 88 ms to build (budget 5 ms)",
-      "figure on cast took 90 ms to build (budget 5 ms)",
-      "[.WebGL-0x338400ad2400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 53 ms to build (budget 5 ms)",
+      "figure on cast took 49 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc00b17800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "scene": "base-exterior-dressed",
-    "view": "fp",
+    "view": "af",
     "asked": "webgl",
     "extra": "&light=0",
     "renderer": "webgl",
@@ -426,33 +699,48 @@
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "952",
+    "readyAt": "976",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 67 ms to build (budget 5 ms)",
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc01027200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "tll",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "899",
     "ready": "1",
     "errors": [
       "figure on cast took 64 ms to build (budget 5 ms)",
-      "figure on cast took 63 ms to build (budget 5 ms)",
-      "[.WebGL-0x3384001aae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "figure on cast took 94 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc010b7400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "scene": "base-exterior-dressed",
-    "view": "fp",
-    "asked": "webgpu",
-    "extra": "",
-    "renderer": "webgpu",
+    "view": "tll",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
     "pieces": "42",
     "problems": "0",
     "lamps": "0",
     "time": "day",
-    "readyAt": "918",
+    "readyAt": "877",
     "ready": "1",
-    "lost": "unknown: A valid external Instance reference no longer exists. (at 1161 ms)",
     "errors": [
-      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
-      "figure on cast took 63 ms to build (budget 5 ms)",
-      "figure on cast took 30 ms to build (budget 5 ms)",
-      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
-      "A valid external Instance reference no longer exists."
+      "figure on cast took 55 ms to build (budget 5 ms)",
+      "figure on cast took 68 ms to build (budget 5 ms)",
+      "[.WebGL-0x3cbc0411ac00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   }
 ]

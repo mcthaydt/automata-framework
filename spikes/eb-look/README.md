@@ -11,11 +11,12 @@ EB_DIR=<EnvironmentBuilder's 1× frames> node spikes/eb-look/shoot.mjs   # defau
 ```
 
 `EB_DIR` holds `<scene>-<view>.png` at 1×, the files EnvironmentBuilder's `npm run render -- <dir>` writes (not the `-x`
-ones). Without it the EB panel is grey and says so.
+ones). The baseline used EB's `claude/eb-base-renders` `085b50b`, `docs/renders/base/`. Without it the EB panel is grey
+and says so. It also writes `<scene>-gameplay.png`: AF's default gameplay camera beside The Last Light's, on WebGL.
 
 | File | What it is |
 |---|---|
-| `scene.ts` | One scene, one view: `?scene=`, `?view=diorama\|fp`, `?pref=webgl\|webgpu`, and `?look=0`, `?cast=0`, `?light=0` to leave the look, the figures or the baked room light out |
+| `scene.ts` | One scene, one view: `?scene=`, `?view=diorama\|fp\|af\|tll`, `?pref=webgl\|webgpu`, and `?look=0`, `?cast=0`, `?light=0` to leave the look, the figures or the baked room light out |
 | `shoot.mjs` | Serves the page, shoots every scene × view × panel, composites the side-by-sides in the browser and writes `shots.json` (what each panel drew, its data and console errors) |
 
 The cameras follow EB's `views`: the diorama is orthographic, pitched `pitch`° down with no yaw, at 96/2.6 × 2 texels a

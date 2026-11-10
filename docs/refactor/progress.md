@@ -744,6 +744,6 @@ is built in `@automata/3d`, not in EnvironmentBuilder.
 
 | Step | Status | Record |
 |---|---|---|
-| Baseline screenshots | AF WebGL drawn (baked room light, and material light only) for the four base scenes in the diorama and first person. The AF WebGPU panel shows the device lost in play (headless SwiftShader). The EB CPU panel is empty: running EB's code was refused by this session's permission classifier | [baseline](../superpowers/eb-look/baseline/), script `spikes/eb-look/` |
-| Gap and work packages | Done: 13 parts, WP0 to WP11 | [gap](../superpowers/eb-look/gap.md) |
+| Baseline screenshots | Done for EB CPU (EB's `claude/eb-base-renders` `085b50b`) and AF WebGL (baked room light, and material light only), for the four base scenes in the diorama and first person, plus AF's default gameplay camera beside The Last Light's. The AF WebGPU panel shows the device lost in play (headless SwiftShader) | [baseline](../superpowers/eb-look/baseline/), script `spikes/eb-look/` |
+| Gap and work packages | Done: 13 parts and the gameplay camera (the Owner, 2026-11-10: match The Last Light's), WP0 to WP10; figures, sprite light and exposure left to character-kit | [gap](../superpowers/eb-look/gap.md) |
 | Gates | Not run: no package code changed (docs, PNGs and a spike that biome and knip ignore) | |
