@@ -34,23 +34,30 @@ describe('stageFrame and compose', () => {
     const again = cast(); compose(stageFrame(again, 0.2, p)); compose(stageFrame(again, 2.9, gameplay([0, 0.6, 0])));
     expect(md5(compose(stageFrame(again, 1.3, p)))).toBe(a);
   });
-  it('the gameplay pose: density 1, pitch 30°, the orbit step\'s direction, true scale by default', () => {
+  it('the gameplay pose: density 1, pitch 30°, the orbit step\'s direction, true scale with `crisp: false`', () => {
     for (let k = 0; k < 8; k++) {
-      const p = gameplay([0, 0.6, 0], k), s = stageFrame([actor('base-m', [0, 0])], 0, p, { maxDensity: 1 }).sprites[0];
+      const p = gameplay([0, 0.6, 0], k), s = stageFrame([actor('base-m', [0, 0])], 0, p, { crisp: false, maxDensity: 1 }).sprites[0];
       expect(s.cell.density).toBe(1); expect(s.cell.pitch).toBeCloseTo(30 * deg, 12); expect(s.cell.direction).toBe((8 - k) % 8);
       expect(s.scale).toBeCloseTo(zoomOf(p, [0, 0, 0]), 12);
       const [ax, ay] = project(p, [0, 0, 0]);                                   // the root lands where the pose projects it
       expect(s.screen[0] + s.scale * s.cell.anchor[0]).toBeCloseTo(ax, 9); expect(s.screen[1] + s.scale * s.cell.anchor[1]).toBeCloseTo(ay, 9);
     }
   });
+  it('crisp is the default: no option is `crisp: true`, and `crisp: false` is true scale', () => {
+    const p = gameplay([0, 0.6, 0], 1), cast = () => [actor('base-m', [-0.8, 2]), actor('base-f', [0, 0])];
+    const none = stageFrame(cast(), 0, p, { maxDensity: 1 }), on = stageFrame(cast(), 0, p, { crisp: true, maxDensity: 1 }), off = stageFrame(cast(), 0, p, { crisp: false, maxDensity: 1 });
+    expect(md5(compose(none))).toBe(md5(compose(on)));
+    expect(none.sprites.map(s => s.scale)).toEqual([2, 2]); expect(off.sprites.every(s => s.scale !== 2 && Number.isFinite(s.scale))).toBe(true);
+    expect(md5(compose(off))).not.toBe(md5(compose(on)));
+  });
   it('crisp: whole pixels per texel, on the pixel grid; 2 across the gameplay range', () => {
     for (const z of [-2, 0, 2]) {                                               // 18.0, 16.3 and 14.6 m along the view (the root is 0.6 m under the look point): zoom 1.50, 1.66, 1.86
-      const s = stageFrame([actor('base-m', [0, z])], 0, gameplay([0, 0.6, 0]), { crisp: true, maxDensity: 1 }).sprites[0];
+      const s = stageFrame([actor('base-m', [0, z])], 0, gameplay([0, 0.6, 0]), { maxDensity: 1 }).sprites[0];
       expect(s.scale).toBe(2); expect(s.screen.every(Number.isInteger)).toBe(true);
     }
   });
   it('true scale adds no colour', () => {
-    const fr = stageFrame([actor('base-m', [0, 0])], 0, gameplay([0, 0.6, 0]), { maxDensity: 1 }), held = coloursOf(fr.sprites[0].cell.rgba);
+    const fr = stageFrame([actor('base-m', [0, 0])], 0, gameplay([0, 0.6, 0]), { crisp: false, maxDensity: 1 }), held = coloursOf(fr.sprites[0].cell.rgba);
     for (const c of coloursOf(compose(fr))) expect(held.has(c)).toBe(true);
   });
   // Review Focus 1, 2, 3, 5
@@ -67,9 +74,9 @@ describe('stageFrame and compose', () => {
   });
   it('a far figure: density 1, shrunk; crisp never under a pixel a texel', () => {
     const far = lookAt([0, 30, 52], [0, 0.6, 0], { f: 1000 }, [640, 480]);
-    const s = stageFrame([actor('base-m', [0, 0])], 0, far).sprites[0];
+    const s = stageFrame([actor('base-m', [0, 0])], 0, far, { crisp: false }).sprites[0];
     expect(s.cell.density).toBe(1); expect(s.scale).toBeLessThan(1); expect(s.scale).toBeGreaterThan(0);
-    expect(stageFrame([actor('base-m', [0, 0])], 0, far, { crisp: true }).sprites[0].scale).toBe(1);
+    expect(stageFrame([actor('base-m', [0, 0])], 0, far).sprites[0].scale).toBe(1);   // crisp by default
   });
   it('an empty cast composes to a transparent frame', () => {
     const out = compose(stageFrame([], 0, gameplay([0, 0.6, 0])));

@@ -27,7 +27,8 @@ export interface StageOptions {
   /** The other light path: a light per actor for the painter's light hook (an outside light per vertex, figure.ts
    * FigureLight), as EnvironmentBuilder's scene light does. With it no `lightFigure` runs. Not with `lighting`. */
   lights?: (actor: ScriptedActor) => FigureLight | null;
-  /** Whole pixels per texel and the quad on the pixel grid (The Last Light's `?crisp=figures`). Off: true scale. */
+  /** Whole pixels per texel and the quad on the pixel grid (The Last Light's `?crisp=figures`). On by default (the
+   * owner's call at the c6 visual gate); `crisp: false` is true scale: any real scale, the anchor unrounded. */
   crisp?: boolean;
   /** The highest density a figure is painted at (4 by default; the gameplay camera's is 1). */
   maxDensity?: number;
@@ -49,8 +50,8 @@ const settled = (zoom: number) => Math.abs(zoom - Math.round(zoom)) < 1e-9 && Ma
  * than 0.1 m) is left out.
  *
  * Placement, per actor: its feet `at3` project to `[ax, ay]`, `d` metres along the view; its `zoom` is `zoomOf`.
- * Default: the figure is painted at `densityFor(zoom)` and drawn at `scale = zoom / density`, true to scale. Crisp: `n =
- * max(1, round(zoom))` pixels a D1 texel, density `densityFor(n)`, `scale = n / density`. The cell's top-left is the
+ * Crisp (the default): `n = max(1, round(zoom))` pixels a D1 texel, density `densityFor(n)`, `scale = n / density`.
+ * `crisp: false`: the figure is painted at `densityFor(zoom)` and drawn at `scale = zoom / density`, true to scale. The cell's top-left is the
  * anchor's pixel less `scale × anchor`; it is rounded to a whole pixel when crisp or when the scale is whole. Ties in
  * `d` fall to cast order.
  *
@@ -61,16 +62,16 @@ const settled = (zoom: number) => Math.abs(zoom - Math.round(zoom)) < 1e-9 && Ma
 export function stageFrame(actors: readonly ScriptedActor[], t: number, pose: CameraPose, opts: StageOptions = {}): StageFrame {
   checkPose(pose);
   if (opts.lighting && opts.lights) throw new Error('stageFrame: lighting and lights are two light paths; give one');
-  const max = opts.maxDensity ?? 4, placed: { s: StageSprite; index: number }[] = [];
+  const max = opts.maxDensity ?? 4, crisp = opts.crisp ?? true, placed: { s: StageSprite; index: number }[] = [];
   actors.forEach((actor, index) => {
     const [x, z] = actor.state(t).at, at: V3 = [x, actor.ground(x, z), z], [ax, ay, d] = project(pose, at);
     if (pose.f !== undefined && d < 0.1) return;
-    const raw = settled(zoomOf(pose, at)), zoom = opts.crisp ? Math.max(1, Math.round(raw)) : raw, density = densityFor(zoom, max);
+    const raw = settled(zoomOf(pose, at)), zoom = crisp ? Math.max(1, Math.round(raw)) : raw, density = densityFor(zoom, max);
     const view = viewOf(pose, at), figure = actor.draw(t, view, density, opts.lights?.(actor) ?? null), scale = zoom / density;
     const L = opts.lighting, lamps = L?.lamps.map(l => ({ ...l, at: turned(l.at, view.azimuth), ...(l.aim && { aim: turned(l.aim, view.azimuth) }) }));
     const cell = cellOf(figure, L && lightFigure(figure, { ...L, lamps: lamps!, at: turned(at, view.azimuth) }));
     const top: [number, number] = [ax - scale * cell.anchor[0], ay - scale * cell.anchor[1]];
-    const screen: [number, number] = opts.crisp || Number.isInteger(scale) ? [Math.round(top[0]), Math.round(top[1])] : top;
+    const screen: [number, number] = crisp || Number.isInteger(scale) ? [Math.round(top[0]), Math.round(top[1])] : top;
     placed.push({ s: { name: actor.name, cell, at, screen, scale, depth: d }, index });
   });
   placed.sort((a, b) => b.s.depth - a.s.depth || a.index - b.index);

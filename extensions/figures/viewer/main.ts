@@ -5,8 +5,8 @@
  *   /               The Last Light's gameplay camera (src/features/stage/pose.ts `gameplay`: perspective, 30° down, 16 m),
  *                   a 640×480 frame shown at the largest whole multiple the window holds, the base pair drawn through
  *                   `stageFrame` and `StageView` at density 1. Q and R step the orbit by 45°, W walks, C toggles crisp
- *                   figures (whole pixels a texel, on the pixel grid; off, a figure is true to scale), `?crisp=figures`
- *                   starts with it on.
+ *                   figures (on by default, the owner's call at the c6 visual gate: whole pixels a texel, on the pixel
+ *                   grid; off, a figure is true to scale), `?crisp=off` starts with it off.
  *   /?free          the free orbit camera, a debugging aid: drag to orbit, wheel to zoom, W to walk, ←/→ to turn the
  *                   figures; `?az=&pitch=&dist=&facing=` (degrees, metres) start the camera and the figures there,
  *                   `&walk` walking
@@ -68,7 +68,7 @@ async function checkMain(check: string) {
   settle(app);
 }
 
-/** `/`: The Last Light's gameplay camera on the base pair, crisp figures to compare. */
+/** `/`: The Last Light's gameplay camera on the base pair, crisp figures by default, true scale to compare. */
 async function gameplayMain() {
   const [w, h] = [640, 480], app = await startApp(w, h, 0x31222a), stage = new StageView([w, h]);
   app.stage.addChild(stage.view);
@@ -79,7 +79,7 @@ async function gameplayMain() {
   const stand = (): ScriptedActor[] => BASE.map((b, i) => new ScriptedActor({ who: b.def.id, at: [i === 0 ? -0.6 : 0.6, 0] }));
   const lap = (x: number): ActorScript['path'] => Array.from({ length: 40 }, (_, i) => ({ at: [x, i % 2 ? 1.5 : -1.5] as [number, number] }));
   const walk = (): ScriptedActor[] => BASE.map((b, i) => new ScriptedActor({ who: b.def.id, at: [i === 0 ? -0.6 : 0.6, -1.5], path: lap(i === 0 ? -0.6 : 0.6) }));
-  let actors = stand(), walking = false, crisp = params.get('crisp') === 'figures', orbit = 0, t = 0;
+  let actors = stand(), walking = false, crisp = params.get('crisp') !== 'off', orbit = 0, t = 0;
   const label = () => help(`Q/R orbit (${orbit}) · W walk${walking ? 'ing' : ''} · C crisp figures ${crisp ? 'on' : 'off (true scale)'}`);
   addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();

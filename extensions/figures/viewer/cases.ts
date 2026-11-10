@@ -7,7 +7,8 @@ import { sheetFigures, type SheetKind } from './sheets';
  * figure and every script a fixed literal here, so `stageFrame`'s determinism makes the page and the script build the
  * same frame. It imports only `../src` and `./sheets`: it runs in the browser and in Node, with no Pixi.
  *
- * Claims: `bytes`: the readback equals `compose(frame)`, every byte. `palette`: every opaque pixel is a colour some
+ * The stage is crisp by default (whole pixels a texel), so a case without `crisp: false` is crisp; the `…/true/…` cases
+ * say `crisp: false`. Claims: `bytes`: the readback equals `compose(frame)`, every byte. `palette`: every opaque pixel is a colour some
  * sprite's cell holds, alpha 0 or 255 only (a perspective quad is resampled, so no byte claim).
  */
 export interface Case { frame: () => StageFrame; claim: 'bytes' | 'palette' }
@@ -61,7 +62,7 @@ CASES.scene4 = { frame: () => stageFrame(scene4(), T4, SCENE_POSE()), claim: 'by
 CASES.day = { frame: () => stageFrame(scene4(), T4, SCENE_POSE(), { lighting: { time: TIMES.day, lamps: [] } }), claim: 'bytes' };
 CASES.lit = { frame: () => stageFrame(scene4(), T4, SCENE_POSE(), { lighting: NIGHT }), claim: 'bytes' };
 for (let k = 0; k < 8; k++) {
-  CASES[`gameplay/crisp/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k), { crisp: true, maxDensity: 1 }), claim: 'bytes' };
-  CASES[`gameplay/true/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k), { maxDensity: 1 }), claim: 'palette' };
+  CASES[`gameplay/crisp/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k), { maxDensity: 1 }), claim: 'bytes' };
+  CASES[`gameplay/true/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k), { crisp: false, maxDensity: 1 }), claim: 'palette' };
 }
-CASES['orbit/true'] = { frame: () => stageFrame(scene4(), T4, lookAt([3, 2.2, 4], [0, 0.9, 0], { f: 600 }, [480, 320])), claim: 'palette' };
+CASES['orbit/true'] = { frame: () => stageFrame(scene4(), T4, lookAt([3, 2.2, 4], [0, 0.9, 0], { f: 600 }, [480, 320]), { crisp: false }), claim: 'palette' };
