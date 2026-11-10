@@ -436,15 +436,17 @@ export class Figure {
     this.fillDepth();
   }
   /** `depth` from the G-buffer and the painted cell: a surface texel keeps its depth; an opaque texel with none (the outline
-   * ring, drawn beside the surface) takes the nearest depth among its neighbours, widening to three texels; an empty one is −Infinity. */
+   * ring, drawn beside the surface) takes the nearest depth among its neighbours, widening a ring at a time until a surface
+   * is found (the outline's width grows with the density, so no fixed radius would do); an empty one is −Infinity. The root's
+   * plane (0) is only for a cell with no surface at all. */
   private fillDepth() {
-    const [w, h] = this.cell, z = this.g.depth, px = this.painted, out = this.depth;
+    const [w, h] = this.cell, z = this.g.depth, px = this.painted, out = this.depth, reach = Math.max(w, h);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const k = y * w + x;
       if (!px[k * 4 + 3]) { out[k] = -Infinity; continue; }
       if (z[k] > -Infinity) { out[k] = z[k]; continue; }
       let best = -Infinity;
-      for (let r = 1; r <= 3 && best === -Infinity; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      for (let r = 1; r <= reach && best === -Infinity; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
         if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
         const X = x + dx, Y = y + dy;
         if (X >= 0 && X < w && Y >= 0 && Y < h && z[Y * w + X] > best) best = z[Y * w + X];

@@ -17,18 +17,18 @@ import type { Cell } from '../stage/cell';
 /** The fragment shader bit of a depth-writing quad: reads the texel's depth along the view (metres) from the `cellDepth`
  * texture and writes the window depth the camera's projection gives it: with `depthProj = (perspective ? 1 : 0, P22,
  * P32, bias)` for the camera's projection P (its elements 10 and 14), `z_ndc = −P22 + P32 / d` (perspective) or `−P22 · d + P32` (orthographic),
- * window depth `z_ndc / 2 + 0.5` less `bias` (OpenGL's clip space, the depth range its default). The depth test is `LESS`,
- * so a tie goes to the quad drawn first; the bias, a rank times 2^-20 of the window (micrometres), is what gives the later
- * sprite the tie, as `compose` has it. WebGL only: under WebGPU this bit adds
- * nothing, and the quad depth-tests as a flat quad. */
+ * window depth `z_ndc / 2 + 0.5` (OpenGL's clip space, the depth range its default). The depth is first moved `bias`
+ * metres nearer (`TIE_BIAS` times the sprite's place in the frame, from 1: stage.ts), the rule `compose` tests with, so the
+ * tie goes the same way on both sides whatever the camera's range; the depth test is `LESS`. WebGL only: under WebGPU this
+ * bit adds nothing (see `StageView`). */
 const cellDepthBit: ShaderBit = {
   name: 'cellDepth',
   textures: ['cellDepth'],
   bindings: { material: { depthProj: 'vec4<f32>' } },
   gl: { fragment: { material: `
-  float cellD = sampleCellDepth(vUV).r;
+  float cellD = sampleCellDepth(vUV).r - material.depthProj.w;
   float zNdc = material.depthProj.x > 0.5 ? (-material.depthProj.y + material.depthProj.z / cellD) : (-material.depthProj.y * cellD + material.depthProj.z);
-  gl_FragDepth = zNdc * 0.5 + 0.5 - material.depthProj.w;
+  gl_FragDepth = zNdc * 0.5 + 0.5;
 ` } },
 };
 
@@ -50,7 +50,8 @@ export class CellSprite {
     return this.material = new FlatMaterial({ baseColorTexture: base, alphaMode: 'mask', extraBits: [cellDepthBit], textures: { cellDepth: depth } });
   }
 
-  /** Shows `cell`: uploads its texels when they may have changed. */
+  /** Shows `cell`: uploads its texels when they may have changed. The texture reads the cell's own buffer when the
+   * renderer next draws, so render before the figure's next draw (`StageView` copies nothing and draws every frame). */
   show(cell: Cell): void {
     const [w, h] = cell.size, size = `${w}x${h}`;
     if (size !== this.size) {
@@ -72,13 +73,13 @@ export class CellSprite {
   }
 
   /** Uploads the texels' camera-space depths (`texelDepths`, `Infinity` where empty) and the projection they are written
-   * through: `perspective`, and the camera's projection matrix elements 10 and 14 (`Matrix4.elements`); `rank` is the
-   * sprite's place in the frame (0 first), which breaks a tie in the later one's favour. Call after `show`. */
-  showDepths(depths: Float32Array, perspective: boolean, p22: number, p32: number, rank: number): void {
+   * through: `perspective`, and the camera's projection matrix elements 10 and 14 (`Matrix4.elements`); `bias` is metres
+   * to take off every depth (`(rank + 1) · TIE_BIAS`), which breaks a tie in the later sprite's favour. Call after `show`. */
+  showDepths(depths: Float32Array, perspective: boolean, p22: number, p32: number, bias: number): void {
     if (!this.depth) throw new Error('CellSprite: not made with depth');
     this.depthSource!.resource = depths;
     this.depthSource!.update();
-    this.material!.data.depthProj = [perspective ? 1 : 0, p22, p32, rank * 2 ** -20];
+    this.material!.data.depthProj = [perspective ? 1 : 0, p22, p32, bias];
   }
 
   private destroySources(): void {

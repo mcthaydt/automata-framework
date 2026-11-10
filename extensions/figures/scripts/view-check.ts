@@ -46,6 +46,8 @@ async function readback(p: Page): Promise<{ w: number; h: number; rgba: Buffer }
 async function draw(name: string, query = ''): Promise<{ w: number; h: number; rgba: Buffer }> {
   await page.goto(`${url}?case=${encodeURIComponent(name)}${query}`);
   await page.waitForSelector('body[data-ready]', { timeout: 120_000 });
+  const depth = await page.evaluate(() => document.body.dataset.perTexelDepth);
+  if (depth !== 'true') errors.push(`${name}: StageView found no per-texel depth under this renderer (perTexelDepth ${depth})`);   // the renderer check ran, and found WebGL
   return readback(page);
 }
 /** The cases the gate sheet shows. */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BASE } from '../../../base/base';
 import { member } from '../../../src/features/figure/frames';
-import { anchorOf, facing, poseQuaternion, texelOf, viewFrom } from '../../../src/features/view/camera';
+import { anchorOf, checkCentred, facing, perTexelDepthWarning, poseQuaternion, texelOf, viewFrom } from '../../../src/features/view/camera';
 import { gameplay, lookAt } from '../../../src/features/stage/pose';
 
 /** Turns v by the unit quaternion q. */
@@ -53,5 +53,21 @@ describe('poseQuaternion', () => {
       for (const [local, want] of [[[1, 0, 0], p.right], [[0, 1, 0], p.up], [[0, 0, 1], [-p.fwd[0], -p.fwd[1], -p.fwd[2]]]] as const)
         rotate(q, [...local]).forEach((c, i) => expect(c).toBeCloseTo(want[i], 12));
     }
+  });
+});
+
+describe('the view\'s guards', () => {
+  it('a pose with an off-centre principal point is an error, a centred or an orthographic one is not', () => {
+    const p = gameplay([0, 0.6, 0]), [w, h] = p.size;
+    expect(() => checkCentred(p)).not.toThrow();
+    expect(() => checkCentred({ ...p, cx: w / 2, cy: h / 2 })).not.toThrow();
+    expect(() => checkCentred({ ...p, cx: w / 2 + 1 })).toThrow(/principal point/);
+    expect(() => checkCentred({ ...p, cy: h / 2 - 0.5 })).toThrow(/principal point/);
+    expect(() => checkCentred({ size: [w, h], cx: 10, cy: 10 })).not.toThrow();   // orthographic: no principal point
+  });
+  it('only the WebGL renderer draws per-texel depth: WebGPU and Canvas get a warning naming the fix', () => {
+    expect(perTexelDepthWarning(1)).toBeNull();
+    expect(perTexelDepthWarning(2)).toMatch(/WebGPU.*preference: 'webgl'/);
+    expect(perTexelDepthWarning(4)).toMatch(/type 4/);
   });
 });

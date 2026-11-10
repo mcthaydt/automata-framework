@@ -43,7 +43,7 @@ async function caseMain(name: string) {
   const c = CASES[name];
   if (!c) throw new Error(`no case ${name}`);
   let frame = c.frame();
-  const [w, h] = frame.camera.size, app = await startApp(w, h), stage = new StageView([w, h]);
+  const [w, h] = frame.camera.size, app = await startApp(w, h), stage = new StageView([w, h], c.range);
   app.stage.addChild(stage.view);
   if (c.wall) {
     // the case's wall, in the scene beside the figures: a plane facing +z, one colour through the same texture path as a cell
@@ -54,6 +54,7 @@ async function caseMain(name: string) {
   }
   stage.draw(frame);
   app.render();
+  document.body.dataset.perTexelDepth = String(stage.perTexelDepth);   // view-check asserts the first render found WebGL
   if (params.has('twice')) { frame = c.frame(); stage.draw(frame); }
   settle(app);
 }

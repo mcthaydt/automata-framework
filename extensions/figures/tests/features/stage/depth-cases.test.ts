@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compose, type StageFrame } from '../../../src';
+import { compose, gameplay, type StageFrame } from '../../../src';
 import { CASES, wallBackdrop } from '../../../viewer/cases';
 import { coloursOf } from './fixtures';
 
@@ -38,5 +38,25 @@ describe('the depth cases', () => {
     for (let i = 0; i < without.length; i += 4) if (alone[i + 3] && without[i + 3]) { if (differing(withWall.subarray(i, i + 4), without.subarray(i, i + 4))) hidden++; else shown++; }
     expect(hidden).toBeGreaterThan(30);    // figure texels the wall hides
     expect(shown).toBeGreaterThan(30);     // figure texels in front of the wall, where the legs pass through it
+  });
+  it('range/later and range/earlier: a twin half a step behind shows over the figure, one a step and a half behind shows under it (the metre rule, at a host\'s range)', () => {
+    /** Of the pixels both sprites cover, how many show the figure (the first) and how many its twin. */
+    const top = (name: string) => {
+      const fr = CASES[name].frame(), out = compose(fr), one = compose({ ...fr, sprites: [fr.sprites[0]] }), two = compose({ ...fr, sprites: [fr.sprites[1]] });
+      let mine = 0, twin = 0;
+      for (let i = 0; i < out.length; i += 4) if (one[i + 3] && two[i + 3]) { if (out[i] === one[i] && out[i + 1] === one[i + 1] && out[i + 2] === one[i + 2]) mine++; else twin++; }
+      return { mine, twin };
+    };
+    const later = top('range/later'), earlier = top('range/earlier');
+    expect(later.twin).toBeGreaterThan(1000); expect(later.mine).toBe(0);      // the twin wins everywhere it overlaps
+    expect(earlier.mine).toBeGreaterThan(1000); expect(earlier.twin).toBe(0);  // the figure wins everywhere
+  });
+  it('the wall backdrop honours the pose\'s principal point: the principal ray hits the plane at the fwd depth', () => {
+    const wall = CASES.wall.wall!, base = gameplay([0, 0.6, 0]), off = { ...base, cx: base.size[0] / 2 + 40, cy: base.size[1] / 2 - 25 };
+    const wide = { z: 0.043, x: [-50, 50] as [number, number], y: [-50, 50] as [number, number], rgba: wall.rgba };
+    // the centre pixel's ray is `fwd` itself: t = (z − eye.z) / fwd.z
+    const t = (wide.z - off.eye[2]) / off.fwd[2];
+    expect(wallBackdrop(off, wide)(off.cx, off.cy)!.depth).toBeCloseTo(t, 9);
+    expect(wallBackdrop(base, wide)(base.size[0] / 2, base.size[1] / 2)!.depth).toBeCloseTo(t, 9);
   });
 });

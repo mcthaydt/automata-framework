@@ -43,3 +43,22 @@ export function poseQuaternion(pose: Pick<CameraPose, 'right' | 'up' | 'fwd'>): 
   const s = 2 * Math.sqrt(1 + m22 - m00 - m11);
   return { x: (m02 + m20) / s, y: (m12 + m21) / s, z: s / 4, w: (m10 - m01) / s };
 }
+
+/** Throws unless the pose's principal point is the frame's centre. `StageView` draws through a `Camera3D`, whose frustum is
+ * symmetric, so geometry a host adds to the same view lands where a centred pose puts it; a perspective pose with an
+ * off-centre `cx`, `cy` would put the figures (placed by `compose`'s rule) and that geometry `cx − w / 2` pixels apart,
+ * and per-texel depth would cut the figures in the wrong place. An orthographic pose has no principal point (`project`
+ * ignores `cx`, `cy` there). */
+export function checkCentred(pose: Pick<CameraPose, 'size' | 'f' | 'cx' | 'cy'>): void {
+  if (pose.f === undefined) return;
+  const [w, h] = pose.size, tol = 1e-6;
+  if (Math.abs((pose.cx ?? w / 2) - w / 2) > tol || Math.abs((pose.cy ?? h / 2) - h / 2) > tol)
+    throw new Error(`StageView: the pose's principal point (${pose.cx ?? w / 2}, ${pose.cy ?? h / 2}) is not the frame's centre (${w / 2}, ${h / 2}); Camera3D's frustum is symmetric, so a scene's geometry would not meet the figures`);
+}
+
+/** The warning a host gets when its renderer cannot draw per-texel depth, or null when it can: only the WebGL renderer has
+ * the shader bit (`cellDepthBit` has a GLSL stage and no WGSL one). `type` is Pixi's `RendererType` (WEBGL 1, WEBGPU 2,
+ * CANVAS 4). */
+export function perTexelDepthWarning(type: number): string | null {
+  return type === 1 ? null : `StageView: per-texel depth needs the WebGL renderer (this one is ${type === 2 ? 'WebGPU' : `type ${type}`}), so figures depth-test as flat quads at their root depth: they cannot hide behind scene geometry or each other texel by texel. Init Pixi with preference: 'webgl'.`;
+}

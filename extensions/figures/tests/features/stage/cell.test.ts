@@ -36,6 +36,14 @@ describe('cellOf', () => {
     expect(cellOf(standingFigure('base-m', 2, 2)).key).not.toBe(c.key);
     expect(cellOf(f, lightFigure(f, { time: TIMES.night, lamps: [] })).key).not.toBe(c.key);
   });
+  it('the key hashes the colour alone: `<w>x<h>:<hash of rgba>`, so a changed normal map under the same colours keeps it (a cache of normals reads them fresh)', () => {
+    expect(c.key).toMatch(/^\d+x\d+:[0-9a-z]+$/);
+    const g = standingFigure('base-m', 2, 1);
+    g.normals.fill(7);                                // a changed normal map under the same colours: the same key (it hashes rgba alone)
+    expect(cellOf(g).key).toBe(c.key);
+    const night = lightFigure(f, { time: TIMES.night, lamps: [] });
+    expect(cellOf(f, night).key).toBe(cellOf(f, night.slice()).key);   // equal rgba, equal key, whichever buffer holds it
+  });
   it('carries the weave of a figure in a fabric', () => {
     registerFixtures();
     const fig = new Figure(member(DENIM_DEF, 2));

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
-import { BASE, member } from '../../../src';
+import { BASE, SPRITE_PITCH, member } from '../../../src';
 import { cellOf } from '../../../src/features/stage/cell';
 import { project } from '../../../src/features/stage/pose';
 import { compose, STAGE_VERSION } from '../../../src/features/stage/stage';
@@ -17,7 +17,7 @@ import { md5, ortho } from './fixtures';
  * zoom = density, equals the sheet's every visible texel (alpha at every texel, colour where alpha is set: the sheets
  * leave stale colour under alpha 0, which is not part of the look). And the lit goldens, through `cellOf`.
  */
-const PITCH = 18 * Math.PI / 180;
+const PITCH = SPRITE_PITCH;
 
 describe('the stage keeps the base goldens', () => {
   for (const density of GOLDEN_DENSITIES) it(`every sheet frame at density ${density}`, () => {

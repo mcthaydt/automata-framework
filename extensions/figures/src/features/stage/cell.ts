@@ -9,7 +9,9 @@ import type { Weave } from '../paint/fabric';
 
 /** A painted figure as a scene draws it. Every buffer is the figure's own, valid until its next draw. */
 export interface Cell {
-  /** Changes whenever any byte of the cell may have: a texture cache's key. */
+  /** The colour's key, `<w>x<h>:<hash of rgba>`: it changes whenever `rgba` may have, so it keys a texture of the colours
+   * (the view's upload). It does not cover `painted`, `normals`, `depth` or `weave`: a consumer that caches one of those reads
+   * it fresh each frame, or keys it by its own hash. */
   key: string;
   size: [w: number, h: number];
   /** RGBA, alpha 0 or 255 only, an empty texel 0,0,0,0: the painter's cell, or the lit cell when the stage lit it. */
@@ -40,7 +42,7 @@ function fnv(bytes: Uint8ClampedArray): string {
 /**
  * The cell of a `Figure` after its `update` (or an actor's `draw`); `lit` is that figure's cell as `lightFigure`
  * returned it. It copies nothing, and clears the colour under alpha 0 in place (as `ScriptedActor.draw` does), so an
- * empty texel is 0,0,0,0 whoever drew the figure. `key` hashes the cell's bytes, so it differs whenever they do.
+ * empty texel is 0,0,0,0 whoever drew the figure. `key` hashes the colour (`rgba`), so it differs whenever the colours do.
  */
 export function cellOf(figure: Figure, lit?: Uint8ClampedArray): Cell {
   const px = figure.painted;

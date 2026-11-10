@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ScriptedActor } from '../../../src';
 import { SPRITE_PITCH } from '../../../src';
 import { densityFor, gameplay, lookAt, project, zoomOf } from '../../../src/features/stage/pose';
-import { compose, stageFrame, texelDepths, type Backdrop, type StageFrame, type StageSprite } from '../../../src/features/stage/stage';
+import { TIE_BIAS, compose, stageFrame, texelDepths, type Backdrop, type StageFrame, type StageSprite } from '../../../src/features/stage/stage';
 import { coloursOf, md5, ortho } from './fixtures';
 
 /** The stage frame and its CPU reference (src/features/stage/stage.ts). */
@@ -133,6 +133,23 @@ describe('per-texel depth', () => {
     const a = sprite(tiny([[255, 0, 0]], [0]), 10), b = sprite(tiny([[0, 255, 0]], [0]), 10);
     expect(px(compose(frame(a, b)), 0)).toEqual([0, 255, 0, 255]);
     expect(px(compose(frame(b, a)), 0)).toEqual([255, 0, 0, 255]);
+  });
+  it('the tie rule is in metres: a later sprite wins within its rank\'s step of nearer, an earlier one wins beyond it', () => {
+    const at = (depth: number, rgb: number[]) => sprite(tiny([rgb], [0]), depth);
+    const red = [255, 0, 0], green = [0, 255, 0];
+    // rank 0 tests at its depth less 1 step, rank 1 at less 2: the later is 1 step nearer to start with
+    expect(px(compose(frame(at(10, red), at(10 + 0.5 * TIE_BIAS, green))), 0)).toEqual([0, 255, 0, 255]);   // half a step farther: still the later's
+    expect(px(compose(frame(at(10, red), at(10 + 1.5 * TIE_BIAS, green))), 0)).toEqual([255, 0, 0, 255]);   // a step and a half: the earlier's
+    expect(px(compose(frame(at(10, red), at(10 - 5 * TIE_BIAS, green))), 0)).toEqual([0, 255, 0, 255]);    // nearer outright
+    // the same at any range: the bias is not a fraction of the window
+    expect(px(compose(frame(at(900, red), at(900 + 0.5 * TIE_BIAS, green))), 0)).toEqual([0, 255, 0, 255]);
+    expect(px(compose(frame(at(900, red), at(900 + 1.5 * TIE_BIAS, green))), 0)).toEqual([255, 0, 0, 255]);
+  });
+  it('a figure wins a tie with scene geometry, and loses to a wall more than a step nearer', () => {
+    const s = sprite(tiny([[255, 0, 0]], [0]), 10), at = (depth: number): Backdrop => () => ({ depth, rgba: [0, 200, 0, 255] });
+    expect(px(compose(frame(s), at(10)), 0)).toEqual([255, 0, 0, 255]);                           // an exact tie: the figure
+    expect(px(compose(frame(s), at(10 - 0.5 * TIE_BIAS)), 0)).toEqual([255, 0, 0, 255]);         // the wall half a step nearer: the figure
+    expect(px(compose(frame(s), at(10 - 2 * TIE_BIAS)), 0)).toEqual([0, 200, 0, 255]);           // two steps nearer: the wall
   });
   it('a backdrop surface hides the texels behind it and shows through to the ones in front', () => {
     const s = sprite(tiny([[255, 0, 0], [255, 0, 0], [255, 0, 0]], [0, 0.4, -0.4]), 10);   // depths 10, 9.6, 10.4

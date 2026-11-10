@@ -1,4 +1,4 @@
-import { BASE, ScriptedActor, TIMES, cellOf, gameplay, lookAt, member, stageFrame, STAGE_VERSION, project, type ActorScript, type Backdrop, type CameraPose, type Lighting, type StageFrame, type V3 } from '../src';
+import { BASE, SPRITE_PITCH, ScriptedActor, TIMES, cellOf, gameplay, lookAt, member, stageFrame, STAGE_VERSION, project, type ActorScript, type Backdrop, type CameraPose, type Lighting, type StageFrame, type V3 } from '../src';
 import { sheetFigures, type SheetKind } from './sheets';
 
 /**
@@ -15,6 +15,8 @@ export interface Case {
   frame: () => StageFrame; claim: 'bytes' | 'palette';
   /** A wall drawn in the scene beside the figures (a quad in the world), which the figures depth-test against. */
   wall?: Wall;
+  /** The camera's near and far, as a host with scene geometry beyond the figures gives them (`new StageView(size, range)`). */
+  range?: { near: number; far: number };
 }
 
 /** A vertical wall quad in the world: the plane `z`, spanning `x` and `y`, one solid colour, facing +z. The page draws it as
@@ -23,11 +25,11 @@ export interface Wall { z: number; x: [number, number]; y: [number, number]; rgb
 
 /** The wall as `compose`'s backdrop: at a pixel centre, the ray's hit on the plane and its depth along the view. */
 export function wallBackdrop(pose: CameraPose, wall: Wall): Backdrop {
-  const [w, h] = pose.size;
+  const [w, h] = pose.size, cx = pose.cx ?? w / 2, cy = pose.cy ?? h / 2;   // a perspective pose's principal point, as `project` has it
   return (px, py) => {
     // the ray's origin on the plane through the eye square to `fwd` and its direction (fwd component 1, so t is the depth)
     const a = pose.f !== undefined ? 0 : (px - w / 2) / pose.pixelsPerMetre!, b = pose.f !== undefined ? 0 : -(py - h / 2) / pose.pixelsPerMetre!;
-    const dir: V3 = [0, 1, 2].map(c => pose.fwd[c] + (pose.f !== undefined ? (px - w / 2) / pose.f * pose.right[c] - (py - h / 2) / pose.f * pose.up[c] : 0)) as V3;
+    const dir: V3 = [0, 1, 2].map(c => pose.fwd[c] + (pose.f !== undefined ? (px - cx) / pose.f * pose.right[c] - (py - cy) / pose.f * pose.up[c] : 0)) as V3;
     const o: V3 = [0, 1, 2].map(c => pose.eye[c] + a * pose.right[c] + b * pose.up[c]) as V3;
     if (dir[2] === 0) return null;
     const t = (wall.z - o[2]) / dir[2];
@@ -36,7 +38,7 @@ export function wallBackdrop(pose: CameraPose, wall: Wall): Backdrop {
   };
 }
 
-const PITCH = 18 * Math.PI / 180, DENSITIES = [1, 2] as const;
+const PITCH = SPRITE_PITCH, DENSITIES = [1, 2] as const;
 
 /** An orthographic pose at the sheets' 18°, `zoom` pixels per D1 texel, round `look`, 20 m back. */
 const ortho = (zoom: number, size: [number, number], look: [number, number, number] = [0, 1, 0]): CameraPose =>
@@ -95,6 +97,19 @@ CASES.wall = { frame: () => stageFrame([new ScriptedActor({ who: 'base-m', at: [
 // Under the gameplay camera, face on (a wall wider than the frame, so its slanted side edges are off screen: a quad's edge pixels are
 // the one place the GPU's fixed-point rasteriser and compose's exact rays may disagree by a pixel).
 CASES['gameplay/wall/0'] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0])), claim: 'bytes', wall: { z: 0.043, x: [-50, 50], y: [0.0251, 0.5329], rgba: [90, 140, 70, 255] } };
+// The tie rule in metres (stage.ts `TIE_BIAS`), at a host's range (near 0.1, far 1000, where a bias in window-depth units
+// would be millimetres a place): a figure and its inverse-coloured twin `offset` metres behind it, every texel's depth
+// differing by the same amount (so no two surfaces cross, where the GPU's depth step would decide a sliver of pixels).
+// Half a step behind the twin still loses to it (the later sprite); a step and a half behind, the twin shows through.
+const HOST_RANGE = { near: 0.1, far: 1000 };
+const twin = (offset: number): StageFrame => {
+  const fr = stageFrame([new ScriptedActor({ who: 'base-f', at: [0, 0] })], 0, gameplay([0, 0.6, 0])), s = fr.sprites[0], inverse = s.cell.rgba.slice();
+  for (let i = 0; i < inverse.length; i += 4) if (inverse[i + 3]) { inverse[i] ^= 255; inverse[i + 1] ^= 255; inverse[i + 2] ^= 255; }
+  return { ...fr, sprites: [s, { ...s, name: 'inverse', depth: s.depth + offset, cell: { ...s.cell, rgba: inverse, key: `${s.cell.key}!` } }] };
+};
+CASES['range/later'] = { frame: () => twin(0.0005), claim: 'bytes', range: HOST_RANGE };
+CASES['range/earlier'] = { frame: () => twin(0.0015), claim: 'bytes', range: HOST_RANGE };
+CASES['range/wall'] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0])), claim: 'bytes', range: HOST_RANGE, wall: { z: 0.043, x: [-50, 50], y: [0.0251, 0.5329], rgba: [90, 140, 70, 255] } };
 CASES['tie/reversed'] = { frame: () => stageFrame([new ScriptedActor({ who: 'base-f', at: [0, 0] }), new ScriptedActor({ who: 'base-m', at: [0, 0] })], 0, ortho(1, [64, 96]), { density: 1 }), claim: 'bytes' };
 CASES.scene4 = { frame: () => stageFrame(scene4(), T4, SCENE_POSE()), claim: 'bytes' };
 CASES.day = { frame: () => stageFrame(scene4(), T4, SCENE_POSE(), { lighting: { time: TIMES.day, lamps: [] } }), claim: 'bytes' };

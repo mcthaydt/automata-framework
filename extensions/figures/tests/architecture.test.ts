@@ -63,9 +63,14 @@ describe('module boundaries', () => {
     for (const m of MODULES) if (!state.has(m)) visit(m);
     expect(found).toEqual([]);
   });
-  it('only the view layer imports Pixi', () => {
-    const bad = MODULES.filter(m => m.endsWith('.ts') && !m.startsWith('src/features/view/') && /from\s*['"](pixi\.js|@pixi\/3d)['"]|import\s*['"](pixi\.js|@pixi\/3d)['"]/.test(readFileSync(join(ROOT, m), 'utf8')));
-    expect(bad).toEqual([]);
+  it('only the view layer and the viewer import Pixi', () => {
+    // static, dynamic and required imports, of the packages and of their subpaths
+    const PIXI = /(?:from\s*|import\s*\(?\s*|require\(\s*)['"](?:pixi\.js|@pixi\/3d)(?:\/[^'"]*)?['"]/;
+    for (const hit of ["import { A } from 'pixi.js'", "import '@pixi/3d'", "await import('pixi.js/lib/x')", "from \"@pixi/3d/dist/y\"", "require('pixi.js')"]) expect(PIXI.test(hit), hit).toBe(true);
+    for (const miss of ["import { A } from './pixi.js'", "from 'pixi-live'", "// pixi.js"]) expect(PIXI.test(miss), miss).toBe(false);
+    const files = [...MODULES, ...walk('scripts'), ...walk('tests'), ...walk('viewer')].filter(m => m.endsWith('.ts') && !m.startsWith('src/features/view/') && !m.startsWith('viewer/') && m !== 'tests/architecture.test.ts');   // this file holds the pattern's own samples
+    expect(files.length).toBeGreaterThan(60);   // the walk found the tree, not nothing
+    expect(files.filter(m => PIXI.test(readFileSync(join(ROOT, m), 'utf8')))).toEqual([]);
   });
   it('no test sits beside the source', () => {
     expect(MODULES.filter(m => /\.(test|spec)\.ts$/.test(m))).toEqual([]);

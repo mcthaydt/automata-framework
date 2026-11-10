@@ -98,6 +98,16 @@ export function stageFrame(actors: readonly ScriptedActor[], t: number, pose: Ca
 export type Backdrop = (x: number, y: number) => { depth: number; rgba: readonly [number, number, number, number] } | null;
 
 /**
+ * The tie rule's step, in metres: the sprite at rank `i` in the frame (0 first) is tested at its texels' depths less
+ * `(i + 1) · TIE_BIAS`, and the nearer test depth wins, strictly. So a later sprite beats an earlier one that is nearer by
+ * less than the rank's difference in steps (an exact tie goes to the later, cast order), and a figure beats scene geometry
+ * (a `Backdrop`) at the same depth or up to a step behind it. `compose` and the GPU (`StageView`, which takes the bias off the
+ * texel depth before the projection) both compute it in metres, so it does not follow the camera's range. Above the depth
+ * buffer's step at the farthest figure; below any distance a scene means (a millimetre a place; 20 figures, 2 cm).
+ */
+export const TIE_BIAS = 0.001;
+
+/**
  * The depth of every texel of a sprite's cell along the camera's `fwd`, in metres: `Infinity` where the cell is empty. A
  * texel's surface point is `(x, y', depth)` in the cell's frame (x to the screen's right, y' up the cell, `Cell.depth` toward
  * the camera, along the pitch the cell was painted at), turned to the world by Ry(azimuth) (docs/contract.md: world =
@@ -126,8 +136,9 @@ export function texelDepths(camera: CameraPose, sprite: StageSprite): Float32Arr
  * its `scale` with its top-left at `screen`, depth-tested texel by texel (`texelDepths`), as the GPU does it. It goes by
  * pixel centres, the GPU's rule: a pixel takes texel `(floor((px + 0.5 − x) / scale), floor((py + 0.5 − y) / scale))`
  * when that texel is in the cell and its alpha is set. The sprites go in the frame's order (far to near by root); a texel
- * replaces what is there when its depth is nearer or equal, so equal depths fall to the later sprite. A `backdrop`, the
- * scene's own geometry, is depth-tested the same way. A sprite off the frame writes nothing.
+ * replaces what is there when its test depth, its depth less `(rank + 1) · TIE_BIAS`, is nearer, so equal depths fall to the
+ * later sprite and a figure wins a tie with the `backdrop`, the scene's own geometry, which is tested the same way. A sprite
+ * off the frame writes nothing.
  */
 export function compose(frame: StageFrame, backdrop?: Backdrop): Uint8ClampedArray {
   const [W, H] = frame.camera.size, out = new Uint8ClampedArray(W * H * 4), z = new Float32Array(W * H).fill(Infinity);
@@ -135,8 +146,8 @@ export function compose(frame: StageFrame, backdrop?: Backdrop): Uint8ClampedArr
     const b = backdrop(x + 0.5, y + 0.5);
     if (b) { out.set(b.rgba, (y * W + x) * 4); z[y * W + x] = b.depth; }
   }
-  for (const sprite of frame.sprites) {
-    const { cell, screen: [sx, sy], scale: k } = sprite, [w, h] = cell.size, px = cell.rgba, depths = texelDepths(frame.camera, sprite);
+  frame.sprites.forEach((sprite, rank) => {
+    const bias = (rank + 1) * TIE_BIAS, { cell, screen: [sx, sy], scale: k } = sprite, [w, h] = cell.size, px = cell.rgba, depths = texelDepths(frame.camera, sprite);
     const x0 = Math.max(0, Math.floor(sx - 0.5)), x1 = Math.min(W, Math.ceil(sx + k * w + 0.5));
     const y0 = Math.max(0, Math.floor(sy - 0.5)), y1 = Math.min(H, Math.ceil(sy + k * h + 0.5));
     for (let y = y0; y < y1; y++) {
@@ -146,9 +157,10 @@ export function compose(frame: StageFrame, backdrop?: Backdrop): Uint8ClampedArr
         const u = Math.floor((x + 0.5 - sx) / k);
         if (u < 0 || u >= w) continue;
         const i = v * w + u;
-        if (px[i * 4 + 3] && depths[i] <= z[y * W + x]) { out.set(px.subarray(i * 4, i * 4 + 4), (y * W + x) * 4); z[y * W + x] = depths[i]; }
+        const test = Math.fround(depths[i] - bias);   // as the GPU holds it, a 32-bit float
+        if (px[i * 4 + 3] && test < z[y * W + x]) { out.set(px.subarray(i * 4, i * 4 + 4), (y * W + x) * 4); z[y * W + x] = test; }
       }
     }
-  }
+  });
   return out;
 }
