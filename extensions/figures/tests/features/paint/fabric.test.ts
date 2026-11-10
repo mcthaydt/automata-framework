@@ -5,10 +5,11 @@ import { Figure } from '../../../src/features/figure/figure';
 import { member, standing } from '../../../src/features/figure/frames';
 import { SWATCHES, type Garment } from '../../../src/features/outfit/garments';
 import { fabricOf, labelAt, registerFabric } from '../../../src/features/paint/fabric';
-import { duel, tonesOf } from '../../../src/features/paint/paint';
+import { duel, oklab, tonesOf } from '../../../src/features/paint/paint';
 import { registerGarment, box } from '../../../src/features/outfit/garments';
 import { J } from '../../../src/features/body/rig';
-import { lightFigure } from '../../../src/features/lighting/light';
+import { lightFigure, type Lighting, type LitSource } from '../../../src/features/lighting/light';
+import { onRow } from '../../../src/features/lighting/grade';
 import { TIMES } from '../../../src/features/lighting/lamps';
 import { dressed, differs, turned } from '../draw';
 import { FIXTURES, registerFixtures } from './fabric-fixtures';
@@ -164,9 +165,17 @@ describe('fabrics drawn', () => {
       for (let k = 0; k < f.g.material.length; k++) if (f.g.material[k] === top && out[k * 4 + 3]) set.add(colourAt(out, k * 4));
       return set;
     };
+    // Restated for the tile laid last (c5-finish): the tile steps along the lit ground's own row, so a lit colour the untiled
+    // top lacks can appear, but only on a row the untiled top is lit on, within the tile's depth (one step) of a colour it has.
     const tiled = litTop('fxrib', SWATCHES_FX), plain = litTop('plain', { plain: PLAIN });
     expect(tiled.size).toBeGreaterThan(1);
-    expect([...tiled].filter(c => !plain.has(c)).map(c => c.toString(16))).toEqual([]);
+    const rows = new Map<number, number[]>();
+    for (const c of plain) { const [r, st] = onRow(c); rows.set(r, [...(rows.get(r) ?? []), st]); }
+    for (const c of tiled) {
+      const [r, st] = onRow(c);
+      expect(rows.has(r), `row of ${c.toString(16)}`).toBe(true);
+      expect(Math.min(...rows.get(r)!.map(p => Math.abs(p - st))), `${c.toString(16)}`).toBeLessThanOrEqual(1);
+    }
   });
   it('a texel-size tile keeps its texel period at every density', () => {
     for (const D of [1, 2, 4]) {
@@ -203,6 +212,127 @@ describe('fabrics drawn', () => {
       }
       expect(runs, `D${D}`).toBeGreaterThan(50);
       expect(good / runs, `D${D}`).toBeGreaterThanOrEqual(0.9);
+    }
+  });
+});
+
+/** The weave a figure carries (Figure.weave: the untiled colours, the labels, the fabric's depth, and where a tile is laid). */
+type Weave = NonNullable<Figure['weave']>;
+const weaveOf = (f: Figure): Weave => f.weave!;
+const NIGHT: Lighting = {
+  time: TIMES.night,
+  lamps: [{ at: [0, 3.2, 0.6], color: '#fff3d6', steps: 3, radius: 4, tint: 0.35, aim: [0, -1, 0], cone: 26 }],
+  t: 0, bounce: { floor: 0x5b5c69 },
+};
+const DENIM = { fxtwill: { ramp: 26, base: 3, fabric: 'fx-twill' } };
+const drawnFig = (def: ReturnType<typeof dressed>, D: number, d: number, hook?: Figure['light']) => {
+  const f = new Figure(member(def, D));
+  f.cache = false; if (hook) f.light = hook;
+  for (let i = 0; i < 3; i++) f.update(1 / 60, { ...input, facing: d * Math.PI / 4 });
+  return f;
+};
+/**
+ * Every tiled texel of label `want` beside a label-0 texel of the cloth in the same band (4-neighbours, both with the tile
+ * laid and one untiled ground between them, neither on a row's darkest step, which holds untiled): how many such pairs,
+ * how many share a DUEL row, how many are `want` steps from the neighbour, and how many are the same colour (a flat band).
+ */
+function evenness(f: Figure, px: Uint8ClampedArray, want: -1 | 1) {
+  const w = weaveOf(f), W = f.g.w, H = f.g.h, at = (k: number) => colourAt(px, k * 4);
+  let n = 0, row = 0, step = 0, equal = 0;
+  for (let k = 0; k < W * H; k++) {
+    if (!w.on[k] || w.labels[k] !== want || !px[k * 4 + 3]) continue;
+    for (const q of [k - 1, k + 1, k - W, k + W]) {
+      if (q < 0 || q >= W * H || !w.on[q] || w.labels[q] !== 0 || !px[q * 4 + 3] || colourAt(w.ground, q * 4) !== colourAt(w.ground, k * 4)) continue;
+      const [rt, st] = onRow(at(k)), [rq, sq] = onRow(at(q));
+      if (sq === 0 || st === 0) continue;
+      n++; if (rt === rq) row++; if (st === sq + want) step++; if (at(k) === at(q)) equal++;
+    }
+  }
+  return { n, row: row / n, step: step / n, equal: equal / n };
+}
+const expectEven = (m: ReturnType<typeof evenness>, label: string) => {
+  expect(m.n, label).toBeGreaterThan(40);
+  // (A lamp's step edge can split two texels of one ground onto two tint rows: a few per cent at D1.)
+  expect(m.row, `${label}: a row`).toBeGreaterThanOrEqual(0.9);
+  expect(m.step, `${label}: a step`).toBeGreaterThanOrEqual(0.9);
+  expect(m.equal, `${label}: a flat band`).toBeLessThan(0.02);
+};
+
+describe('a tiled cloth is even', () => {
+  beforeAll(registerFixtures);
+  const def = () => dressed(outfit('fxtwill'), DENIM);
+  for (const D of [1, 2, 4]) for (const d of [0, 4]) {
+    it(`lit at night under a spot, hatch and ground stay one step apart on one row (D${D}, direction ${d})`, () => {
+      const f = drawnFig(def(), D, d);
+      expectEven(evenness(f, lightFigure(f, NIGHT), -1), 'night');
+    });
+    it(`lit by the light hook (D${D}, direction ${d})`, () => {
+      const f = drawnFig(def(), D, d, () => [0.45, 0.5, 0.7]);
+      expectEven(evenness(f, f.painted, -1), 'hook');
+    });
+    it(`unlit, the deep band carries the hatch too (D${D}, direction ${d})`, () => {
+      const f = drawnFig(def(), D, d);
+      expectEven(evenness(f, f.painted, -1), 'unlit');
+    });
+  }
+  it('a tiled matte black keeps its darkest step: no purple, no lift of a near-black', () => {
+    const black = (swatch: object) => drawnFig(dressed(outfit('fxblack'), { fxblack: swatch as never }), 2, 0);
+    const tiled = black({ ramp: 0, base: 1, fabric: 'fx-twill' }), plain = black({ ramp: 0, base: 1 });
+    const w = weaveOf(tiled);
+    let floor = 0;
+    for (let k = 0; k < tiled.g.w * tiled.g.h; k++) {
+      if (!w.on[k]) continue;
+      const g = colourAt(w.ground, k * 4);
+      if (onRow(g)[1] === 0) { floor++; expect(colourAt(tiled.painted, k * 4), `texel ${k}`).toBe(g); }
+    }
+    expect(floor).toBeGreaterThan(200);
+    const dark = (f: Figure, mat: string) => {
+      const mi = f['built'].materialIndex.get(mat)!;
+      let n = 0, d = 0;
+      for (let k = 0; k < f.g.w * f.g.h; k++) if (f.g.material[k] === mi && f.painted[k * 4 + 3]) { n++; if (oklab(colourAt(f.painted, k * 4))[0] < 0.3) d++; }
+      return d / n;
+    };
+    // A hatch only darkens: the cloth is never lighter than the untiled black (a lifted near-black would be).
+    expect(dark(tiled, 'fxblack')).toBeGreaterThanOrEqual(dark(plain, 'fxblack') - 0.02);
+    const mi = tiled['built'].materialIndex.get('fxblack')!;
+    for (let k = 0; k < tiled.g.w * tiled.g.h; k++) if (tiled.g.material[k] === mi && tiled.painted[k * 4 + 3]) expect(colourAt(tiled.painted, k * 4), `texel ${k}`).not.toBe(0x584a7f);
+  });
+  it('the base pair name no fabric: no weave', () => {
+    for (const c of BASE) expect(drawnFig(c.def, 2, 0).weave).toBeNull();
+  });
+  it('the top of a row: a +1 label on a lamp-lit ground stays a step over it, not merged', () => {
+    const lamp: Lighting = { time: TIMES.day, lamps: [{ at: [0, 1.5, 1], color: '#fff3d6', steps: 3, radius: 4 }], t: 0 };
+    for (const D of [1, 2, 4]) {
+      const f = drawnFig(dressed(outfit('fxcheckHi'), { fxcheckHi: { ramp: 10, base: 6, fabric: 'fx-check' } }), D, 0);
+      const m = evenness(f, lightFigure(f, lamp), 1);
+      expect(m.n, `D${D}`).toBeGreaterThan(40);
+      expect(m.step, `D${D}: a step`).toBeGreaterThanOrEqual(0.9);
+      expect(m.equal, `D${D}: merged`).toBeLessThan(0.02);
+    }
+  });
+  it('a cached cell shown again brings its weave back: lit, it equals a figure that drew every frame', () => {
+    // Two figures take the same inputs; one keeps the cell cache (and so shows cells it drew before), one never does. The
+    // figure turns a step at a time toward its facing, and idles on a loop, so the views repeat and the cache hits.
+    const cached = new Figure(member(def(), 2)), fresh = new Figure(member(def(), 2));
+    cached.cache = true; fresh.cache = false;
+    for (const d of [0, 4, 0, 4, 0]) for (let i = 0; i < 90; i++) {
+      for (const f of [cached, fresh]) f.update(1 / 60, { ...input, facing: d * Math.PI / 4 });
+      expect(differs(lightFigure(cached, NIGHT), lightFigure(fresh, NIGHT)), `direction ${d} frame ${i}`).toBe(false);
+    }
+    expect(cached['cells'].size).toBeGreaterThan(3);
+  });
+  it('the tile stays on its ground\'s row, within the tile\'s depth', () => {
+    for (const d of [0, 1, 4]) {
+      const f = drawnFig(def(), 2, d), w = weaveOf(f);
+      let n = 0;
+      for (let k = 0; k < f.g.w * f.g.h; k++) {
+        if (!w.on[k]) continue;
+        n++;
+        const [rg, sg] = onRow(colourAt(w.ground, k * 4)), [rt, st] = onRow(colourAt(f.painted, k * 4));
+        expect(rt, `view ${d} texel ${k}`).toBe(rg);
+        expect(Math.abs(st - sg), `view ${d} texel ${k}`).toBeLessThanOrEqual(w.hi[k] - w.lo[k]);
+      }
+      expect(n, `view ${d}`).toBeGreaterThan(300);
     }
   });
 });

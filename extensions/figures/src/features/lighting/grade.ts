@@ -49,13 +49,4 @@ export function toward(c: number, t: number, amt: number) {
   if (hit === undefined) { const a = oklab(c), b = oklab(t); hit = duel(rgbFromLab(a[0] + (b[0] - a[0]) * amt * 0.5, a[1] + (b[1] - a[1]) * amt, a[2] + (b[2] - a[2]) * amt)); mixed.set(key, hit); }
   return hit;
 }
-/** Where a DUEL colour sits on the rows (its row and step), cached. */
-const placeOf = new Map<number, [number, number]>();
-export function onRow(c: number): [number, number] {
-  let hit = placeOf.get(c);
-  if (hit) return hit;
-  let best = Infinity;
-  RAMPS.forEach((row, r) => row.forEach((x, i) => { const d = ((x >> 16) - (c >> 16)) ** 2 + (((x >> 8) & 255) - ((c >> 8) & 255)) ** 2 + ((x & 255) - (c & 255)) ** 2; if (d < best) { best = d; hit = [r, i]; } }));
-  placeOf.set(c, hit!);
-  return hit!;
-}
+export { onRow } from '../paint/row';

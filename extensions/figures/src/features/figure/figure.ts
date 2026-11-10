@@ -7,7 +7,7 @@ import { blendJoins, cleanup, gbuffer, neckline, rasterize, resolve, smoothConto
 import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body/parts';
 import { NECK, type Expression, type FaceLook } from '../outfit/garments';
 import { DEFAULT_HEAD } from '../body/genes';
-import { fabricOf } from '../paint/fabric';
+import { fabricOf, newWeave, type Weave } from '../paint/fabric';
 import { clothFrame, clothSlots, clothU, type ClothFrame } from './cloth';
 import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Bends, type FaceStamp, type HandStamp, type PaintStyle } from '../paint/paint';
 /**
@@ -217,12 +217,17 @@ export class Figure {
   private hi: GBuffer;
   /** The painter's output (paint.ts): the cell's colours and normal map; and its style. */
   readonly painted: Uint8ClampedArray; readonly normals: Uint8ClampedArray;
+  /** With a fabric in use (H5): the cell's untiled colours and tile labels (paint.ts), which `lightFigure` lights the cloth's ground
+   * from before it lays the tile; null when no built material names a fabric (and no buffer is allocated). Allocated on first
+   * use and kept with each cached cell. */
+  private weaveBuf: Weave | null = null;
+  get weave(): Weave | null { return this.built.cloth ? this.weaveBuf : null; }
   paintStyle: PaintStyle = { ...PAINT };
   private faceStamp: FaceStamp | null = null;
   /** The cell cache (paint.ts cells by pose key, most recent last) and whether it is used; its cap is CELLS. */
   cache = true;
   /** Cells keep only the figure's own rows (y0 up to y0 + rows), most of a cell being empty. */
-  private cells = new Map<string, { y0: number; painted: Uint8ClampedArray; normals: Uint8ClampedArray; world: M[]; face: FaceStamp | null }>();
+  private cells = new Map<string, { y0: number; painted: Uint8ClampedArray; normals: Uint8ClampedArray; weave: Weave | null; world: M[]; face: FaceStamp | null }>();
   private shownKey = ''; private hairPose = { pitch: 0, roll: 0 };
   /** The hands the last raster drew (paint.ts HandStamp). */
   handStamps: HandStamp[] = [];
@@ -309,6 +314,11 @@ export class Figure {
       // A cell drawn before: its colours, normal map, joints (the flame's socket) and face, with no raster.
       const o = hit.y0 * this.cell[0] * 4;
       this.painted.fill(0); this.normals.fill(0); this.painted.set(hit.painted, o); this.normals.set(hit.normals, o);
+      if (hit.weave && this.built.cloth) {
+        const wv = this.weaveBuf ??= newWeave(this.cell[0] * this.cell[1]), t = o / 4;
+        wv.ground.fill(0); wv.labels.fill(0); wv.lo.fill(0); wv.hi.fill(0); wv.on.fill(0);
+        wv.ground.set(hit.weave.ground, o); wv.labels.set(hit.weave.labels, t); wv.lo.set(hit.weave.lo, t); wv.hi.set(hit.weave.hi, t); wv.on.set(hit.weave.on, t);
+      }
       this.world = hit.world; this.faceStamp = hit.face;
       this.cells.delete(key); this.cells.set(key, hit);
       return true;
@@ -322,7 +332,9 @@ export class Figure {
       const empty = (y: number) => { for (let i = y * row + 3; i < (y + 1) * row; i += 4) if (this.painted[i]) return false; return true; };
       while (y0 < y1 && empty(y0)) y0++;
       while (y1 > y0 && empty(y1 - 1)) y1--;
-      this.cells.set(key, { y0, painted: this.painted.slice(y0 * row, y1 * row), normals: this.normals.slice(y0 * row, y1 * row), world: this.world, face: this.faceStamp });
+      const wv = this.weave, a = y0 * this.cell[0], b = y1 * this.cell[0];
+      const weave = wv ? { ground: wv.ground.slice(a * 4, b * 4), labels: wv.labels.slice(a, b), lo: wv.lo.slice(a, b), hi: wv.hi.slice(a, b), on: wv.on.slice(a, b) } : null;
+      this.cells.set(key, { y0, painted: this.painted.slice(y0 * row, y1 * row), normals: this.normals.slice(y0 * row, y1 * row), weave, world: this.world, face: this.faceStamp });
       if (this.cells.size > CELLS) this.cells.delete(this.cells.keys().next().value!);
     }
     return true;
@@ -413,7 +425,8 @@ export class Figure {
     for (const d of decals) if (d.print && !d.print.seams) stampPrint(d, this.g);
     this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink, faceState.tags) : null;
     this.handStamps = this.handsAt(pitch);
-    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place, cloth ? { place: this.gC!.place, u: (g, c, sn) => clothU(this.built.frame!, g, c, sn) } : undefined);
+    if (cloth) this.weaveBuf ??= newWeave(this.cell[0] * this.cell[1]);
+    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place, cloth ? { place: this.gC!.place, u: (g, c, sn) => clothU(this.built.frame!, g, c, sn) } : undefined, cloth ? this.weaveBuf! : undefined);
   }
   /**
    * The hair's spring (secondary motion; the character file's `hair`): it trails behind as the figure walks, bounces with

@@ -1,7 +1,8 @@
 import { RAMPS, RAMP_OUTLINE } from './duel-ramps';
 import { noise3, type GBuffer } from './raster';
 import { smooth } from '../../lib/math';
-import { fabricOf, labelAt, type Fabric } from './fabric';
+import { depthOf, fabricOf, labelAt, newWeave, type Fabric, type Weave } from './fabric';
+import { tiled } from './row';
 import { GROUP, type Material } from '../body/parts';
 import type { HeadShape } from '../body/genes';
 /**
@@ -931,11 +932,16 @@ function tint(ramp: number[]) {
 export interface Cloth { place: Float32Array; u(group: number, c: number, s: number): number | null }
 /** The fabrics of a paint with no cloth channel: none (an index reads undefined), with no array built per call. */
 const NO_FABRICS: readonly (Fabric | null)[] = [];
-export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array, cloth?: Cloth) {
+export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array, cloth?: Cloth, weaveOut?: Weave): { albedo: Uint8ClampedArray; normals: Uint8ClampedArray; weave: Weave | null } {
   const { w, h } = g, n = w * h, ink = INK_RGB;
   const tones = materials.map(m => fillTones(tonesOf(m), m.flat ? 0 : style.cool)), D = densityOf(w), ppm = 36.9 * D;
   // The fabrics (H5) of the materials; with no cloth channel, none is read.
   const fabrics = cloth ? materials.map(m => (m.fabric ? fabricOf(m.fabric) ?? null : null)) : NO_FABRICS;
+  // The tile goes on last (after the budget and the light), so the loop below paints each tiled texel's ground and keeps its
+  // label here (`weave.on`); with no cloth channel there is none.
+  const depths = fabrics.map(f => (f ? depthOf(f) : null));
+  const weave = cloth ? weaveOut ?? newWeave(n) : null;
+  if (weave) { weave.labels.fill(0); weave.lo.fill(0); weave.hi.fill(0); weave.on.fill(0); }
   // The skin's family: the skin, and any surface painted in its tones alone (an ear's rim and bowl), which takes its line.
   const skinSet = new Set(skin >= 0 ? tones[skin] : []), skinny = tones.map((t, i) => i === skin || (skin >= 0 && t.every(c => skinSet.has(c))));
   // Black cloth (a dark ramp, not skin, hair or a flat mark) has its own darks and form (extraTones, the rim below).
@@ -1517,7 +1523,10 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     const fab = fabrics[mi];
     if (fab && t >= 0 && t <= 3 && hue[k] < 0 && at === k && part[k] >= 0 && part[k] === g.part[k] && material[k] === g.material[k] && handTone[k] < 0) {
       const u = cloth!.u(group[k], cloth!.place[k * 3], cloth!.place[k * 3 + 1]);
-      if (u !== null) tt = Math.max(0, Math.min(ramp.length - 1, tt - labelAt(fab, u, cloth!.place[k * 3 + 2], ppm)));
+      if (u !== null) {
+        const [lo, hi] = depths[mi]!;
+        weave!.labels[k] = labelAt(fab, u, cloth!.place[k * 3 + 2], ppm); weave!.lo[k] = lo; weave!.hi[k] = hi; weave!.on[k] = 1;
+      }
     }
     if (materials[mi].see && t < OUTLINE && (hue[k] >= MIRROR || materials[mi].holo !== 'mirror')) through.set(k, tint(tones[mi]));
     const c = t === OUTLINE ? (at === k ? extra[mi].fold : ink) : t === LINE ? extra[mi].line : t === RIM ? extra[mi].rim : t === -1 ? extra[mi].shine : ramp[Math.min(tt, ramp.length - 1)];
@@ -1531,5 +1540,14 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, through, kept);
   budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k]);
   if (light) lightTexels(light, g, albedo, D);
-  return { albedo, normals };
+  if (weave) {
+    // The tile, last: the ground as painted, budgeted and lit, then a step along its own row by the label (row.ts tiled).
+    weave.ground.set(albedo);
+    for (let k = 0; k < n; k++) {
+      if (!weave.on[k]) continue;
+      const o = k * 4, c = tiled((albedo[o] << 16) | (albedo[o + 1] << 8) | albedo[o + 2], weave.labels[k], weave.lo[k], weave.hi[k]);
+      albedo[o] = (c >> 16) & 255; albedo[o + 1] = (c >> 8) & 255; albedo[o + 2] = c & 255;
+    }
+  }
+  return { albedo, normals, weave };
 }
