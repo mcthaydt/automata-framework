@@ -273,11 +273,20 @@ jobs:
       - name: The stranger's journey
         if: github.event_name != 'pull_request' || needs.checks.outputs.stranger == 'true'
         run: pnpm test:e2e --filter @automata/consumer-smoke
+      # Named folders, not **/playwright-report/: nothing writes a playwright-report, and a ** glob walks every
+      # node_modules on the self-hosted runners, and the step ran until the job timeout.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: e2e-report
-          path: "**/playwright-report/"
+          path: |
+            examples/*/test-results/
+            games/*/test-results/
+            extensions/*/test-results/
+            packages/*/test-results/
+            tooling/*/test-results/
+            site/test-results/
+            site/playground/test-results/
           retention-days: 1
 
   e2e-focused:
@@ -315,11 +324,20 @@ jobs:
           cd "$folder"
           # shellcheck disable=SC2086
           pnpm exec playwright test $args
+      # Named folders, not **/playwright-report/: nothing writes a playwright-report, and a ** glob walks every
+      # node_modules on the self-hosted runners, and the step ran until the job timeout.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: e2e-report
-          path: "**/playwright-report/"
+          path: |
+            examples/*/test-results/
+            games/*/test-results/
+            extensions/*/test-results/
+            packages/*/test-results/
+            tooling/*/test-results/
+            site/test-results/
+            site/playground/test-results/
           retention-days: 1
 
   frame-budget:

@@ -75,11 +75,20 @@ jobs:
       - run: pnpm --filter @af-games/base-3d test:e2e
       - run: pnpm --filter @af-examples/examples-3d test:e2e
       - run: pnpm --filter @af-examples/3d-story test:e2e
+      # Named folders, not **/playwright-report/: nothing writes a playwright-report, and a ** glob walks every
+      # node_modules on the self-hosted runners, and the step ran until the job timeout.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: e2e-3d-report
-          path: "**/playwright-report/"
+          path: |
+            examples/*/test-results/
+            games/*/test-results/
+            extensions/*/test-results/
+            packages/*/test-results/
+            tooling/*/test-results/
+            site/test-results/
+            site/playground/test-results/
           retention-days: 1
 
   parity-3d:
