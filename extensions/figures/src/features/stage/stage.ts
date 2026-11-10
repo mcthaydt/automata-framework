@@ -1,5 +1,7 @@
 import type { V3 } from '../../lib/math';
 import type { ScriptedActor } from '../actors/actor';
+import type { FigureLight } from '../figure/figure';
+import { lightFigure, type Lighting } from '../lighting/light';
 import { cellOf, type Cell } from './cell';
 import { checkPose, densityFor, project, viewOf, zoomOf, type CameraPose } from './pose';
 
@@ -19,11 +21,24 @@ export interface StageSprite { name: string; cell: Cell; at: V3; screen: [x: num
 export interface StageFrame { version: number; camera: CameraPose; sprites: StageSprite[] }
 
 export interface StageOptions {
+  /** Time of day, lamps (in world metres), bounce: the stage turns each lamp into the actor's view frame and has
+   * `lightFigure` light the cell where the actor stands. Give `t` for a flicker or a light style. */
+  lighting?: Lighting;
+  /** The other light path: a light per actor for the painter's light hook (an outside light per vertex, figure.ts
+   * FigureLight), as EnvironmentBuilder's scene light does. With it no `lightFigure` runs. Not with `lighting`. */
+  lights?: (actor: ScriptedActor) => FigureLight | null;
   /** Whole pixels per texel and the quad on the pixel grid (The Last Light's `?crisp=figures`). Off: true scale. */
   crisp?: boolean;
   /** The highest density a figure is painted at (4 by default; the gameplay camera's is 1). */
   maxDensity?: number;
 }
+
+/** A world vector in the figure's lighting frame (x to the screen's right, y up, z toward the camera) for a figure seen
+ * from `azimuth`: Ry(−azimuth), the inverse of world = Ry(azimuth) · cell. */
+const turned = (v: V3, azimuth: number): V3 => {
+  const c = Math.cos(-azimuth), s = Math.sin(-azimuth);
+  return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c];
+};
 
 /** A zoom that is a whole number to 1e-9 (a host's `pixelsPerMetre` need not round-trip) is that whole number. */
 const settled = (zoom: number) => Math.abs(zoom - Math.round(zoom)) < 1e-9 && Math.round(zoom) >= 1 ? Math.round(zoom) : zoom;
@@ -38,15 +53,22 @@ const settled = (zoom: number) => Math.abs(zoom - Math.round(zoom)) < 1e-9 && Ma
  * max(1, round(zoom))` pixels a D1 texel, density `densityFor(n)`, `scale = n / density`. The cell's top-left is the
  * anchor's pixel less `scale × anchor`; it is rounded to a whole pixel when crisp or when the scale is whole. Ties in
  * `d` fall to cast order.
+ *
+ * Light (the cell's `rgba`; its `painted` stays unlit): with `opts.lighting` each lamp's `at` and `aim`, and the actor's
+ * feet, are turned into the actor's lighting frame and `lightFigure` lights the cell with `at` there. With `opts.lights`
+ * the light hook goes to `ScriptedActor.draw` and the painter lights the cell itself. Both at once throws.
  */
 export function stageFrame(actors: readonly ScriptedActor[], t: number, pose: CameraPose, opts: StageOptions = {}): StageFrame {
   checkPose(pose);
+  if (opts.lighting && opts.lights) throw new Error('stageFrame: lighting and lights are two light paths; give one');
   const max = opts.maxDensity ?? 4, placed: { s: StageSprite; index: number }[] = [];
   actors.forEach((actor, index) => {
     const [x, z] = actor.state(t).at, at: V3 = [x, actor.ground(x, z), z], [ax, ay, d] = project(pose, at);
     if (pose.f !== undefined && d < 0.1) return;
     const raw = settled(zoomOf(pose, at)), zoom = opts.crisp ? Math.max(1, Math.round(raw)) : raw, density = densityFor(zoom, max);
-    const cell = cellOf(actor.draw(t, viewOf(pose, at), density)), scale = zoom / density;
+    const view = viewOf(pose, at), figure = actor.draw(t, view, density, opts.lights?.(actor) ?? null), scale = zoom / density;
+    const L = opts.lighting, lamps = L?.lamps.map(l => ({ ...l, at: turned(l.at, view.azimuth), ...(l.aim && { aim: turned(l.aim, view.azimuth) }) }));
+    const cell = cellOf(figure, L && lightFigure(figure, { ...L, lamps: lamps!, at: turned(at, view.azimuth) }));
     const top: [number, number] = [ax - scale * cell.anchor[0], ay - scale * cell.anchor[1]];
     const screen: [number, number] = opts.crisp || Number.isInteger(scale) ? [Math.round(top[0]), Math.round(top[1])] : top;
     placed.push({ s: { name: actor.name, cell, at, screen, scale, depth: d }, index });
