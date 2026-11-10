@@ -603,6 +603,41 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/world/surface-library.test.ts` |  | left out: the surface library goes to `@automata/world-kit` |
 | `tests/features/world/surface-structure.test.ts` |  | left out: the texture structure checks go with the photo library to `@automata/world-kit` |
 
+## The painted figures (the figure source again, as written)
+
+Repository: `mcthaydt/FigureBuilder`. Commit read: `08f54a6422064e3e158654454c48c9978c56bf13` (`main`, 2026-11-10, c5-finish
+merged), and the Pixi 3D view from its PR #22 at `890e7d78b137c9c319a302b0724a087f99434404`. Licence: none recorded (the
+Owner's private repository). Taken on the Owner's word, 2026-11-10: "port our figurebuilder to pixi3D here", after the
+character kit's diagnosis (`docs/refactor/2026-11-10-character-kit-diagnosis.md`).
+
+Unlike the first two ports above, this one keeps the source as written, so the look is the painter's own and a later
+pull is a diff: `packages/3d/src/features/painted/` (exported as `@automata/3d/painted`), and the source's tests and
+pixel goldens in `packages/3d/tests/unit/painted/` and `packages/3d/tests/fixtures/painted/`. The style check's
+600-line ceiling skips the folder (the Owner, 2026-11-10). It sits beside `features/figures`, which stays as it was.
+
+| Source folder | AF folder | How |
+| --- | --- | --- |
+| `src/lib/` | `packages/3d/src/features/painted/lib/` | ported: as below |
+| `src/features/body/`, `paint/`, `lighting/`, `motion/`, `hair/`, `outfit/`, `figure/` | `packages/3d/src/features/painted/<same>/` | ported: as below, with each feature's `library/*.json` |
+| `src/features/view/` (PR #22) | `packages/3d/src/features/painted/view/` | ported: as below; `painted-view.ts` is AF's (the renderer's view factory) |
+| `base/base.ts` | `packages/3d/src/features/painted/base/base.ts` | ported: as below |
+| `src/index.ts`, `src/view.ts` | `packages/3d/src/entries/painted.ts` | rewritten: one entry with both surfaces, the actors left out |
+| `tests/features/**`, `tests/golden/base*`, `tests/golden/lit*` | `packages/3d/tests/unit/painted/`, `packages/3d/tests/fixtures/painted/golden/` | ported: as below; imports by `#src/…`, 30 s a case |
+| `src/features/actors/`, `tests/**/actors*`, `tests/golden/sprites*`, `tests/api.test.ts`, `tests/architecture.test.ts`, `scripts/`, `viewer/` | | left out: the actors overlap AF's clips (B5 above); AF's boundaries and api-report do the layer and surface checks; the scripts and the viewer are the source's own tools |
+
+"As below": edited only where AF's compiler and lint ask, with the same behaviour: a non-null assertion on each indexed
+read, `| undefined` on each optional property, explicit types on exports (TypeScript's own fix for
+`isolatedDeclarations`), `.ts` extensions and JSON import attributes, AF's formatting and sorted imports, and a few
+rewrites with the same result (`Number.isNaN(x)` for `x !== x`, no assignment inside an expression, braces on `forEach`
+bodies, one comment that named a sibling project). The proof is the source's own suite, unchanged in what it asserts:
+440 tests, the base and lit pixel goldens among them, pass in AF on Node 24 (one curve snapshot compares to 15 places, as
+Node 24 rounds one value a last bit differently), and `tests/browser/parity/painted/` draws both base figures' 8 views
+through `createPixi3dRenderer` texel for texel.
+
+Pull again: clone the source, `git diff 08f54a6..<new> -- src/lib src/features base tests`, apply each hunk to the same
+file here (the paths map one to one, as above), run the same strict-mode edits on what the compiler then reports, and
+the suite; record the new commit here.
+
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 
 The published doc comments below named the arcade source (`SNEKPRTY/FloorFifty`); the doc comments no longer do, so
