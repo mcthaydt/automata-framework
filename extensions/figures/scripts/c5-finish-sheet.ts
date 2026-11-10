@@ -6,7 +6,8 @@
  *
  *   npm run c5 -- DIR                        the render
  *   npm run c5 -- DIR --pair BEFORE_DIR      each of DIR's PNGs under the same PNG of BEFORE_DIR (before above, after
- *                                            below), as DIR/pair/*.png, and the crops sheets crops-D2.png, crops-D4.png
+ *                                            below), written beside DIR (in its parent), and the crops sheets
+ *                                            crops-D2.png, crops-D4.png there too
  */
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -91,8 +92,7 @@ if (!beforeDir) {
     console.log(file);
   }
 } else {
-  const pairs = join(outDir, 'pair');
-  mkdirSync(pairs, { recursive: true });
+  const pairs = resolve(outDir, '..');
   const crops: Record<number, { label: string; before: Awaited<ReturnType<typeof loadImage>>; after: Awaited<ReturnType<typeof loadImage>>; crop: [number, number, number, number] }[]> = { 2: [], 4: [] };
   for (const file of readdirSync(outDir).filter(f => f.endsWith('.png') && !f.startsWith('crops'))) {
     const subject = file.split('-D')[0], D = Number(file.split('-D')[1][0]);
@@ -106,14 +106,14 @@ if (!beforeDir) {
     writeFileSync(join(pairs, file), c.toBuffer('image/png'));
     // The crops: the legs (denim) or the chest (leather) of every cell, at three-quarter and back, ×2 more.
     const cw = after.width / CELLS.length, ch = after.height;
-    const crop: [number, number, number, number] = subject.startsWith('denim') ? [0.2 * cw, 0.5 * ch, 0.6 * cw, 0.35 * ch] : [0.2 * cw, 0.2 * ch, 0.6 * cw, 0.3 * ch];
+    const crop: [number, number, number, number] = subject.startsWith('denim') ? [0.2 * cw, 0.5 * ch, 0.6 * cw, 0.35 * ch] : [0.2 * cw, 0.3 * ch, 0.6 * cw, 0.2 * ch];
     if (file.includes('-night')) crops[D].push({ label: file.replace('.png', ''), before, after, crop });
   }
   for (const D of [2, 4]) {
     const rows = crops[D];
     if (!rows.length) continue;
     const [, , cw, ch] = rows[0].crop, cells = CELLS.length, Z = 2;
-    const sheet = createCanvas(cw * cells * Z * 2 + 8, rows.length * (ch * Z * 2 + 24)), sc = sheet.getContext('2d');
+    const sheet = createCanvas(cw * cells * Z, rows.length * (ch * Z * 2 + 24)), sc = sheet.getContext('2d');
     sc.imageSmoothingEnabled = false; sc.fillStyle = '#1d1d21'; sc.fillRect(0, 0, sheet.width, sheet.height);
     sc.fillStyle = '#eadbc9'; sc.font = '14px sans-serif';
     rows.forEach((r, i) => {
@@ -122,7 +122,7 @@ if (!beforeDir) {
       for (let k = 0; k < cells; k++) for (const [n, img] of [[0, r.before], [1, r.after]] as const)
         sc.drawImage(img, k * cellW + cx, cy, w, h, k * w * Z, y0 + 24 + n * h * Z, w * Z, h * Z);
     });
-    writeFileSync(join(outDir, `crops-D${D}.png`), sheet.toBuffer('image/png'));
-    console.log(join(outDir, `crops-D${D}.png`));
+    writeFileSync(join(pairs, `crops-D${D}.png`), sheet.toBuffer('image/png'));
+    console.log(join(pairs, `crops-D${D}.png`));
   }
 }
