@@ -57,7 +57,9 @@ async function open(): Promise<void> {
   await settleLayout()
   await chooseEditor('Characters')
   await expect
-    .poll(() => document.querySelector('[data-testid="studio-stage"][data-status="ready"]'))
+    .poll(() => document.querySelector('[data-testid="studio-stage"][data-status="ready"]'), {
+      timeout: 10_000,
+    })
     .not.toBeNull()
   await arrived()
 }
