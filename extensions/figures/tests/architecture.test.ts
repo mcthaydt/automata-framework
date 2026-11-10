@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
 const ROOT = resolve(import.meta.dirname, '..');
 const LAYERS = [
   'src/lib', 'src/features/body', 'src/features/paint', 'src/features/lighting', 'src/features/motion',
-  'src/features/hair', 'src/features/outfit', 'src/features/figure', 'base', 'src/features/actors', 'src/features/stage', 'src/index.ts',
+  'src/features/hair', 'src/features/outfit', 'src/features/figure', 'base', 'src/features/actors', 'src/features/stage', 'src/index.ts', 'src/kit.ts',
   // The Pixi 3D view, above the public surface and on its own entry, so nothing below it loads Pixi.
   'src/features/view', 'src/view.ts',
 ];
