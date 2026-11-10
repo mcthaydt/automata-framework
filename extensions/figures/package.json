@@ -9,7 +9,8 @@
     "render": "vite-node scripts/render.ts",
     "golden": "vite-node scripts/golden.ts",
     "lit": "vite-node scripts/lit.ts",
-    "actors": "vite-node scripts/actors-demo.ts"
+    "actors": "vite-node scripts/actors-demo.ts",
+    "c5": "vite-node scripts/c5-finish-sheet.ts"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",

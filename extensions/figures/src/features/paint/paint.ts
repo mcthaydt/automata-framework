@@ -1,7 +1,8 @@
 import { RAMPS, RAMP_OUTLINE } from './duel-ramps';
 import { noise3, type GBuffer } from './raster';
 import { smooth } from '../../lib/math';
-import { fabricOf, labelAt, type Fabric } from './fabric';
+import { depthOf, fabricOf, labelAt, newWeave, type Fabric, type Weave } from './fabric';
+import { tiled } from './row';
 import { GROUP, type Material } from '../body/parts';
 import type { HeadShape } from '../body/genes';
 /**
@@ -888,7 +889,7 @@ function extraTones(tones: number[], ramp: number, skin = false, black = false) 
     const [L0] = oklab(tones[0]), [Ld] = oklab(tones[3]), dark = black, next = down(tones[3], ramp);
     const fold = skin ? skinLine(tones[3]) : dark ? INK_RGB : Ld > 0.55 && oklab(next)[0] < 0.62 ? tones[3] : darkOf(next, coolRamp(tones));
     const line = dark ? darkOf(next, coolRamp(tones)) : litLine(skin ? fold : Ld > DEEP_BLACK && Ld <= 0.55 ? tones[3] : fold, tones[3], skin);
-    const shine = dark ? duelLab(L0 + 0.22, 0, -0.012) : shifted(tones[0], 0.07, 0.008), rim = dark ? duelLab(L0 + 0.08, 0, -0.02) : tones[0];
+    const shine = dark ? duelLab(L0 + DARK_SHINE, 0, -0.012) : shifted(tones[0], 0.07, 0.008), rim = dark ? duelLab(L0 + 0.08, 0, -0.02) : tones[0];
     hit = { line, fold, shine, rim }; extras.set(key, hit);
   }
   return hit;
@@ -901,6 +902,16 @@ const RISE = KEY[2] / Math.hypot(KEY[0], KEY[1]);
 const OUTLINE = 9, LINE = 10, RIM = 11;
 /** The hair's sheen band: the window of its surface's rise (the normal's y in view space) the band lies in. */
 const SHEEN = [0.64, 0.8] as const;
+/**
+ * A dark gloss's sheen (leather, patent, a black frame; the `hard` rule below): one soft patch per surface where it mirrors
+ * the key best, not a line over every ring. The patch is the top `GLOSS_SHEEN · gloss` of the surface's texels by their
+ * mirror term, at most `SHEEN_MAX · D²` of them, and none on a surface under `SHEEN_MIN · D²` texels; its shine is
+ * `DARK_SHINE` of lightness over the light tone, a grey over black.
+ */
+export const GLOSS_SHEEN = 0.12, SHEEN_MIN = 6, SHEEN_MAX = 10, DARK_SHINE = 0.12;
+/** The patch's share of its surface at density D, against D2's: a highlight is a few texels, so as the texels shrink the patch
+ * keeps its look at D1 and D2 and falls to a third of the area at D4 (and a ninth at D8). */
+export const sheenScale = (D: number) => (D <= 2 ? 1 : 3 ** -Math.log2(D / 2));
 /** A mirror lens's tint (holo `'mirror'`): its body a dark of its ramp's hue, lit and dark, and what shows through it
  * (`see`): an eye's white a muted step of that hue, its iris and lash the tint's dark. The tint's steps sit at MIRROR. */
 const MIRROR = 4, MIRROR_SKY = 0.4;
@@ -931,11 +942,16 @@ function tint(ramp: number[]) {
 export interface Cloth { place: Float32Array; u(group: number, c: number, s: number): number | null }
 /** The fabrics of a paint with no cloth channel: none (an index reads undefined), with no array built per call. */
 const NO_FABRICS: readonly (Fabric | null)[] = [];
-export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array, cloth?: Cloth) {
+export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array, cloth?: Cloth, weaveOut?: Weave): { albedo: Uint8ClampedArray; normals: Uint8ClampedArray; weave: Weave | null } {
   const { w, h } = g, n = w * h, ink = INK_RGB;
   const tones = materials.map(m => fillTones(tonesOf(m), m.flat ? 0 : style.cool)), D = densityOf(w), ppm = 36.9 * D;
   // The fabrics (H5) of the materials; with no cloth channel, none is read.
   const fabrics = cloth ? materials.map(m => (m.fabric ? fabricOf(m.fabric) ?? null : null)) : NO_FABRICS;
+  // The tile goes on last (after the budget and the light), so the loop below paints each tiled texel's ground and keeps its
+  // label here (`weave.on`); with no cloth channel there is none.
+  const depths = fabrics.map(f => (f ? depthOf(f) : null));
+  const weave = cloth ? weaveOut ?? newWeave(n) : null;
+  if (weave) { weave.labels.fill(0); weave.lo.fill(0); weave.hi.fill(0); weave.on.fill(0); }
   // The skin's family: the skin, and any surface painted in its tones alone (an ear's rim and bowl), which takes its line.
   const skinSet = new Set(skin >= 0 ? tones[skin] : []), skinny = tones.map((t, i) => i === skin || (skin >= 0 && t.every(c => skinSet.has(c))));
   // Black cloth (a dark ramp, not skin, hair or a flat mark) has its own darks and form (extraTones, the rim below).
@@ -1159,6 +1175,19 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     const ss: number[] = []; for (let k = 0; k < n; k++) if (isFace(k)) ss.push(spec(k));
     ss.sort((a, b) => b - a); if (ss.length) faceSheen = ss[Math.min(ss.length - 1, Math.floor(Math.min(0.04 * ss.length, 3 * D)))];
   }
+  // A dark gloss's sheen patch, per surface (a part in one material): the texels that mirror the key best, by the mirror term
+  // (the texel's index breaks a tie, so a flat surface never takes whole). Marked here, before the tone loop reads it.
+  const sheen = new Uint8Array(n);
+  if (hard.some(Boolean)) {
+    const bySurface = new Map<number, number[]>();
+    for (let k = 0; k < n; k++) if (material[k] >= 0 && part[k] >= 0 && hard[material[k]]) { const key = surfaceOf(k); let a = bySurface.get(key); if (!a) bySurface.set(key, a = []); a.push(k); }
+    for (const [key, ks] of bySurface) {
+      if (ks.length < SHEEN_MIN * D * D) continue;
+      const take = Math.min(Math.floor(GLOSS_SHEEN * materials[key % 4096].gloss! * ks.length * sheenScale(D)), Math.ceil(SHEEN_MAX * D * D * sheenScale(D)));
+      ks.sort((a, b) => spec(b) - spec(a) || a - b);
+      for (let i = 0; i < Math.max(1, take); i++) sheen[ks[i]] = 1;
+    }
+  }
   const maxShadow = Math.round(style.shadow * D);
   /** Within `D` rows under the face's skin: the jaw's own shadow band on the neck. */
   const underJaw = (x: number, y: number) => { for (let d = 1; d <= D; d++) if (y - d >= 0 && part[(y - d) * w + x] === FACE_SEAM) return true; return false; };
@@ -1207,15 +1236,12 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
       if (depth[q] - depth[k] > style.shadowDepth + RISE * d / ppm) { t = Math.max(t, 2); break; }
     }
     // A gloss mirrors the key where the surface faces halfway between it and the eye (the strands break it on hair): a
-    // tight spot, tighter the glossier. A hard one: its shine only on the ridge of that mirror (the texel facing it best
-    // across the form, along x or y), so a sleeve's is a streak a texel wide down its crest that holds its place from
-    // frame to frame.
+    // tight spot, tighter the glossier. A hard one: its shine only in the surface's sheen patch (above), where it mirrors the
+    // key best, so a sleeve's is one soft highlight that holds its place from frame to frame.
     if (m.gloss !== undefined && t <= 1 && band[k] === -9) {
       const sk = spec(k);
       if (hard[mi]) {
-        const same = (q: number) => (q >= 0 && q < n && part[q] === part[k] ? spec(q) : NaN);
-        const l = same(x > 0 ? k - 1 : -1), r = same(x < w - 1 ? k + 1 : -1), u = same(k - w), dn = same(k + w);
-        if (sk > 1 - (1 - m.gloss) * 0.9 && ((sk >= l && sk >= r) || (sk >= u && sk >= dn))) t = -1;
+        if (sheen[k] && sk > 1 - (1 - m.gloss) * 0.9) t = -1;
       } else if (isFace(k) ? t === 0 && sk > faceSheen : sk + grain * 0.15 > 1 - (1 - m.gloss) * 0.6) t = -1;
     }
     // An ear (a surface in the skin's own tones but not the skin): the skin's ramp, its rim the mid or the shadow (never
@@ -1224,6 +1250,19 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     if (skinny[mi] && mi !== skin && t !== OUTLINE) t = Math.max(1, Math.min(t, 2));
     // A line texel keeps the tone it would have had (`under`), should its line turn out a stray fleck.
     if (line >= 0) { tone[k] = OUTLINE; owner[k] = line; under[k] = Math.max(t, 2); } else tone[k] = handTone[k] >= 0 ? handTone[k] : t;
+  }
+  // A dark gloss's sheen keeps no speck: a patch that a shadow or the surface's edge cut down to a few texels is dropped (the
+  // surface reads in its mid tone there), as a sprite artist would not leave an orphan highlight.
+  if (hard.some(Boolean)) {
+    const seen = new Uint8Array(n), least = Math.ceil(SHEEN_MIN * D * D * sheenScale(D) / 4);
+    for (let k = 0; k < n; k++) {
+      if (tone[k] !== -1 || seen[k] || !hard[material[k]]) continue;
+      const area = [k]; seen[k] = 1;
+      for (let i = 0; i < area.length; i++) for (const q of [area[i] - 1, area[i] + 1, area[i] - w, area[i] + w]) {
+        if (q >= 0 && q < n && !seen[q] && tone[q] === -1 && surfaceOf(q) === surfaceOf(k)) { seen[q] = 1; area.push(q); }
+      }
+      if (area.length < least) for (const q of area) tone[q] = 1;
+    }
   }
   // The hair's sheen band, as a sprite artist paints glossy hair: a ring of the hair's shine round the crown where its
   // surface turns from the top to the side (its normal's rise in a narrow window), broken where the strands part it, on
@@ -1516,8 +1555,13 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     // cloth channel follows the raster's surface, not the painter's copy). The head and held items have no cylinder.
     const fab = fabrics[mi];
     if (fab && t >= 0 && t <= 3 && hue[k] < 0 && at === k && part[k] >= 0 && part[k] === g.part[k] && material[k] === g.material[k] && handTone[k] < 0) {
-      const u = cloth!.u(group[k], cloth!.place[k * 3], cloth!.place[k * 3 + 1]);
-      if (u !== null) tt = Math.max(0, Math.min(ramp.length - 1, tt - labelAt(fab, u, cloth!.place[k * 3 + 2], ppm)));
+      let u = cloth!.u(group[k], cloth!.place[k * 3], cloth!.place[k * 3 + 1]);
+      // A handed tile (fabric.ts): the left limbs' `u` runs against the trunk's and the right limbs', so it is read negated.
+      if (u !== null && fab.handed && (group[k] === GROUP.armL || group[k] === GROUP.legL)) u = -u;
+      if (u !== null) {
+        const [lo, hi] = depths[mi]!;
+        weave!.labels[k] = labelAt(fab, u, cloth!.place[k * 3 + 2], ppm); weave!.lo[k] = lo; weave!.hi[k] = hi; weave!.on[k] = 1;
+      }
     }
     if (materials[mi].see && t < OUTLINE && (hue[k] >= MIRROR || materials[mi].holo !== 'mirror')) through.set(k, tint(tones[mi]));
     const c = t === OUTLINE ? (at === k ? extra[mi].fold : ink) : t === LINE ? extra[mi].line : t === RIM ? extra[mi].rim : t === -1 ? extra[mi].shine : ramp[Math.min(tt, ramp.length - 1)];
@@ -1531,5 +1575,14 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, through, kept);
   budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k]);
   if (light) lightTexels(light, g, albedo, D);
-  return { albedo, normals };
+  if (weave) {
+    // The tile, last: the ground as painted, budgeted and lit, then a step along its own row by the label (row.ts tiled).
+    weave.ground.set(albedo);
+    for (let k = 0; k < n; k++) {
+      if (!weave.on[k]) continue;
+      const o = k * 4, c = tiled((albedo[o] << 16) | (albedo[o + 1] << 8) | albedo[o + 2], weave.labels[k], weave.lo[k], weave.hi[k]);
+      albedo[o] = (c >> 16) & 255; albedo[o + 1] = (c >> 8) & 255; albedo[o + 2] = c & 255;
+    }
+  }
+  return { albedo, normals, weave };
 }

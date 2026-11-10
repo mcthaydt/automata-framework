@@ -1,8 +1,8 @@
 /**
  * H5, the fabric registry: a garment's cloth carries a tiled weave or pattern. A fabric is data, a tile of tone labels
- * (one per texel), and a material names it (`Material.fabric`). The painter shifts each tiled texel's tone within that
- * material's own ramp by the tile's label (+1 a step lighter, −1 a step darker), so a tile never moves a texel off its
- * ramp. Base registers none, so no base pixel moves.
+ * (one per texel), and a material names it (`Material.fabric`). The painter lays the tile last, over the final ground colour: a step along that colour's own DUEL row by the tile's
+ * label (+1 a step lighter, −1 a step darker), lifted at the row's ends (row.ts), so a tile never moves a texel off its
+ * row, and a hatch and its ground stay one step apart however the cloth is lit (`lightFigure` does the same, lit). Base registers none, so no base pixel moves.
  *
  * Two kinds of tile, by size:
  * - a **motif** (`w ≤ 4 && h ≤ 4`) is a painting technique, how a pixel artist draws a weave (denim's twill as a
@@ -18,7 +18,13 @@ export interface Fabric {
   /** Metres per label: the pattern keeps its physical size (a check of a set width). Left out: one label per texel at
    * every density (the default). */
   metres?: number;
+  /** Read the tile's `u` the same way round on both sides of the body: the painter negates it on the left arm and leg (the
+   * cylinders that run against the trunk's, cloth.ts), so a diagonal runs one way over both legs and the seat. Left out:
+   * the body's own coordinates, a twill that mirrors at the centre line (the default). */
+  handed?: true;
 }
+/** A fabric's lowest and highest label, each with 0 included (the ground's own): how far its tile reaches from a ground. */
+export const depthOf = (f: Fabric): [lo: number, hi: number] => [Math.min(0, ...f.labels), Math.max(0, ...f.labels)];
 const FABRICS = new Map<string, Fabric>();
 /** Registers a fabric under a name. Throws on a taken name or a bad tile. */
 export function registerFabric(name: string, f: Fabric): void {
@@ -39,3 +45,11 @@ export function labelAt(f: Fabric, u: number, v: number, ppm: number): number {
   const q = f.metres ? 1 / f.metres : ppm;
   return f.labels[mod(Math.floor(v * q), f.h) * f.w + mod(Math.floor(u * q), f.w)];
 }
+
+/**
+ * What a figure drawn with a fabric keeps beside its colours, so the lighting can light the cloth's ground and lay the
+ * tile after (row.ts): per texel of the cell, the untiled colour (RGBA), the tile's label and the fabric's `lo` and `hi`
+ * (depthOf), and `on` where a tile is laid (a label of 0 included).
+ */
+export interface Weave { ground: Uint8ClampedArray; labels: Int8Array; lo: Int8Array; hi: Int8Array; on: Uint8Array }
+export const newWeave = (texels: number): Weave => ({ ground: new Uint8ClampedArray(texels * 4), labels: new Int8Array(texels), lo: new Int8Array(texels), hi: new Int8Array(texels), on: new Uint8Array(texels) });
