@@ -9,6 +9,10 @@ import { devices } from '@playwright/test'
 const reuse = process.env.CI === undefined
 
 export default defineJourneys({
+  // Playwright's default of 30 s is shorter than one of these journeys on a loaded runner (a software-WebGL frame is
+  // up to seconds): they take 5 to 14 s on a free machine and 21 to 36 s on the shared one. base-3d and the story
+  // examples give a journey 120 s; a stuck one still fails at its own step's timeout.
+  timeout: 120_000,
   projects: [
     { name: 'examples-3d', testDir: 'tests/e2e', use: devices['Pixel 7 landscape'] },
     { name: 'examples-3d-webkit', testDir: 'tests/e2e', use: devices['iPhone 14 landscape'] },
