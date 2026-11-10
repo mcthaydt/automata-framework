@@ -12,14 +12,14 @@
  * `ONLY=<regex>` limits the run to the stage cases whose name matches (and skips 1 and 3), for working on one.
  *
  * Exits non-zero on any difference or page error. With OUT_DIR, also writes a CPU and a GPU PNG of the cases the gate
- * sheet shows (`/` in a name written `_`).
+ * sheet shows (`/` in a name written `_`), and `gate.png`: the sheet the owner looks at (see `gateSheet`).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createCanvas } from '@napi-rs/canvas';
 import { chromium, type Page } from 'playwright';
 import { createServer } from 'vite';
-import { BASE, compose, member, standing } from '../src';
+import { BASE, compose, member, standing, type StageFrame } from '../src';
 import { CASES } from '../viewer/cases';
 
 const out = process.argv[2] ? resolve(process.argv[2]) : null;
@@ -55,6 +55,69 @@ const png = (rgba: ArrayLike<number>, w: number, h: number) => {
   img.data.set(rgba as Uint8ClampedArray); ctx.putImageData(img, 0, 0);
   return c.toBuffer('image/png');
 };
+/** A case kept for the gate sheet: the CPU frame, the GPU readback, and the frame (for where each figure stands). */
+interface Kept { want: Uint8ClampedArray; got: Buffer; w: number; h: number; frame: StageFrame }
+const kept = new Map<string, Kept>();
+
+/**
+ * The gate sheet (`gate.png`), drawn with nearest-neighbour upscales only:
+ *   row 1  `day` (four actors, near and far): CPU | GPU | difference at ×2
+ *   row 2  `lit` (a night lamp in the world): the same three
+ *   row 3  two zooms, `zoom/1` (at ×3) and `zoom/3` (at ×2): CPU | GPU | difference for each
+ *   row 4  the gameplay camera, 640×480: `true scale` | `crisp` (GPU), then a ×3 crop of the middle actor from each
+ * The difference is the pixels whose RGBA bytes differ, magenta on black: expected, all black.
+ */
+function gateSheet(): Buffer {
+  const PAD = 16, LABEL = 28, BG = '#31222a', INK = '#e8e0cf';
+  const sized = (k: Kept, scale: number) => ({ w: k.w * scale, h: k.h * scale });
+  const rowH = [['day'], ['lit'], ['zoom/1', 'zoom/3'], ['gameplay/true/1']].map(r => Math.max(...r.map(n => sized(kept.get(n)!, n.startsWith('gameplay') ? 1 : n === 'zoom/1' ? 3 : 2).h)) + LABEL + PAD);
+  const c = createCanvas(2944, rowH.reduce((a, b) => a + b, PAD)), g = c.getContext('2d');
+  g.fillStyle = '#1d1d21'; g.fillRect(0, 0, c.width, c.height);
+  g.imageSmoothingEnabled = false; g.font = '20px sans-serif'; g.textBaseline = 'top';
+  /** An RGBA buffer, upscaled `scale`× with its top-left at (x, y), on a backing colour, labelled above. */
+  const tile = (rgba: ArrayLike<number>, w: number, h: number, scale: number, x: number, y: number, label: string, bg = BG, crop?: [number, number, number, number]) => {
+    const [cx, cy, cw, ch] = crop ?? [0, 0, w, h], src = createCanvas(cw, ch), sg = src.getContext('2d'), img = sg.createImageData(cw, ch);
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+      const X = cx + i, Y = cy + j, o = (j * cw + i) * 4;
+      if (X >= 0 && X < w && Y >= 0 && Y < h) for (let k = 0; k < 4; k++) img.data[o + k] = rgba[(Y * w + X) * 4 + k];
+    }
+    sg.putImageData(img, 0, 0);
+    g.fillStyle = INK; g.fillText(label, x, y);
+    g.fillStyle = bg; g.fillRect(x, y + LABEL, cw * scale, ch * scale);
+    g.drawImage(src, x, y + LABEL, cw * scale, ch * scale);
+  };
+  /** CPU | GPU | difference of one kept case. */
+  const triple = (name: string, x: number, y: number, scale = 2) => {
+    const k = kept.get(name)!, diff = new Uint8ClampedArray(k.w * k.h * 4);
+    let n = 0;
+    for (let i = 0; i < k.w * k.h; i++) {
+      const o = i * 4, same = [0, 1, 2, 3].every(j => k.want[o + j] === k.got[o + j]);
+      diff[o + 3] = 255;
+      if (!same) { diff[o] = 255; diff[o + 2] = 255; n++; }
+    }
+    const { w } = sized(k, scale);
+    tile(k.want, k.w, k.h, scale, x, y, `${name} CPU`);
+    tile(k.got, k.w, k.h, scale, x + w + PAD, y, `${name} GPU`);
+    tile(diff, k.w, k.h, scale, x + 2 * (w + PAD), y, `${name} diff: ${n} px`, '#000000');
+    return 3 * w + 2 * PAD;
+  };
+  let y = PAD;
+  triple('day', PAD, y); y += rowH[0];
+  triple('lit', PAD, y); y += rowH[1];
+  const used = triple('zoom/1', PAD, y, 3); triple('zoom/3', PAD + used + 2 * PAD, y); y += rowH[2];
+  const crisp = kept.get('gameplay/crisp/1')!, plain = kept.get('gameplay/true/1')!;
+  tile(plain.got, plain.w, plain.h, 1, PAD, y, 'gameplay camera, true scale (GPU)');
+  tile(crisp.got, crisp.w, crisp.h, 1, 2 * PAD + plain.w, y, 'gameplay camera, crisp (GPU)');
+  // the middle actor (base-f, the second of the trio, at the origin), ×3: a crop round its root pixel
+  const crop = (k: Kept): [number, number, number, number] => {
+    const s = k.frame.sprites.find(p => p.name === 'base-f')!, ax = Math.round(s.screen[0] + s.scale * s.cell.anchor[0]), ay = Math.round(s.screen[1] + s.scale * s.cell.anchor[1]);
+    return [ax - 45, ay - 130, 90, 140];
+  };
+  const x3 = 3 * PAD + 2 * plain.w;
+  tile(plain.got, plain.w, plain.h, 3, x3, y, 'true scale ×3', BG, crop(plain));
+  tile(crisp.got, crisp.w, crisp.h, 3, x3 + 270 + PAD, y, 'crisp ×3', BG, crop(crisp));
+  return c.toBuffer('image/png');
+}
 const at = (i: number, w: number) => `(${(i >> 2) % w}, ${Math.floor((i >> 2) / w)})`;
 const errors: string[] = [];
 page.on('pageerror', e => errors.push(e.message));
@@ -90,6 +153,7 @@ try {
     if (only && !only.test(name)) continue;
     const frame = c.frame(), want = compose(frame), [W, H] = frame.camera.size, got = await draw(name);
     if (out && KEEP.has(name)) {
+      kept.set(name, { want, got: got.rgba, w: W, h: H, frame });
       writeFileSync(join(out, `${name.replace(/\//g, '_')}.gpu.png`), png(got.rgba, W, H));
       writeFileSync(join(out, `${name.replace(/\//g, '_')}.cpu.png`), png(want, W, H));
     }
@@ -123,5 +187,6 @@ try {
   await browser.close();
   await server.close();
 }
+if (out && kept.size === KEEP.size) writeFileSync(join(out, 'gate.png'), gateSheet());
 if (errors.length) { console.log(errors.join('\n')); failed++; }
 process.exit(failed ? 1 : 0);
