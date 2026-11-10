@@ -111,19 +111,14 @@ describe('two fingers undo and three fingers redo', () => {
     await arrived()
     await expect.poll(() => undoLabel(), { timeout: POLL_MS }).toMatch(/^Undo Draw sector/)
     const centre = editor.at(6, 2)
-    const twoFingers = await Promise.all([
-      pointers.down('touch', centre),
-      pointers.down('touch', { x: centre.x + 60, y: centre.y }),
-    ])
-    for (const finger of twoFingers) await finger.release()
+    await pointers.tapTogether([centre, { x: centre.x + 60, y: centre.y }])
     await arrived()
     await expect.poll(() => undoLabel(), { timeout: POLL_MS }).toBe('Undo')
-    const threeFingers = await Promise.all([
-      pointers.down('touch', centre),
-      pointers.down('touch', { x: centre.x + 60, y: centre.y }),
-      pointers.down('touch', { x: centre.x + 120, y: centre.y }),
+    await pointers.tapTogether([
+      centre,
+      { x: centre.x + 60, y: centre.y },
+      { x: centre.x + 120, y: centre.y },
     ])
-    for (const finger of threeFingers) await finger.release()
     await arrived()
     await expect.poll(() => undoLabel(), { timeout: POLL_MS }).toMatch(/^Undo Draw sector/)
   })

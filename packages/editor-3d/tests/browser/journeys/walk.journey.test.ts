@@ -50,13 +50,9 @@ describe('ED3-f on an iPad: Walk and the inspector share one selection and one h
     expect(undoLabel()).not.toBe('Undo')
     const pointers = createPointers(walk)
     const centre = { x: 200, y: 200 }
-    const fingers = await Promise.all([
-      pointers.down('touch', centre),
-      pointers.down('touch', { x: centre.x + 60, y: centre.y }),
-    ])
-    for (const finger of fingers) await finger.release()
+    await pointers.tapTogether([centre, { x: centre.x + 60, y: centre.y }])
     await arrived()
-    expect(undoLabel()).toBe('Undo')
+    await expect.poll(() => undoLabel()).toBe('Undo')
   })
 
   it('a finger drag looks around and never changes the level', async () => {
