@@ -183,6 +183,16 @@ finite set of cells and its pixels swim as it turns. A baked figure (cause 1) br
 - **Colour space / post-processing of the host:** the examples' page adds none; the colour shift is the snap (cause 2)
   and the missing tones (cause 4).
 
+## Owner's decisions (2026-11-10)
+
+- **The fix: Pixi 3D, FigureBuilder first.** Relayed by the coordinator: "hold off, we're porting to pixi/3d", so
+  neither A nor B as written above, nor the quick wins, goes ahead on its own. Then, in this session: "port our
+  figurebuilder to pixi3D here", "do it here first, then do it there": FigureBuilder draws its figures in a Pixi 3D
+  scene first (FigureBuilder PR #22: the painter's own cell on a quad, 8 directions; 32 were tried and dropped, "let's
+  go with 8 directions again"), and that view is then brought into AF.
+- **The wardrobe: yes.** The kit takes the runway branch's body-fitted wardrobe and fabrics (`demo/runway/wardrobe.ts`)
+  and the demo characters' library (`demo/library.ts`, `demo/runway/library.ts`).
+
 ## Recommended approach (for the Owner's call)
 
 **A. Port FigureBuilder's figure pipeline faithfully, and draw its output as baked billboards in Pixi 3D**
