@@ -16,6 +16,7 @@ sections, since each example is one file. Colours are the DUEL palette.
 | [`render3d/render3d-meshes.ts`](render3d/render3d-meshes.ts) | Lit boxes and model files |
 | [`render3d/render3d-angled-camera.ts`](render3d/render3d-angled-camera.ts) | The angled camera, cut-away walls and a fading pillar |
 | [`render3d/render3d-lighting-fog.ts`](render3d/render3d-lighting-fog.ts) | Baked lamp light, a lit walker and fog |
+| [`painted/painted-base-pair.ts`](painted/painted-base-pair.ts) | The base pair painted as pixel art, texel by texel, and drawn in a 3D room: one walks, one stands |
 | [`look/look-pixel-art.ts`](look/look-pixel-art.ts) | The pixel-art look: a low-resolution field, DUEL colours, stepped light and an outline |
 | [`world/world-level-room.ts`](world/world-level-room.ts) | A room built from a level file and drawn by the world builder |
 | [`cutscenes/cutscenes-door-and-lamp.ts`](cutscenes/cutscenes-door-and-lamp.ts) | A scripted scene: the camera drifts, a lamp warms and a door opens (the `cutscenes` extension) |
