@@ -74,6 +74,20 @@ jobs:
     ).toEqual([])
   })
 
+  it("let the figure builder's read-only token check out its submodule in a job a pull request starts", () => {
+    expect(
+      fixture(`
+on: [pull_request]
+permissions: {}
+jobs:
+  checks:
+    steps:
+      - uses: actions/checkout@v7
+        with: { submodules: true, token: '\${{ secrets.FIGURES_SUBMODULE_TOKEN }}' }
+`),
+    ).toEqual([])
+  })
+
   it('make the heavy jobs skip draft pull requests, but not the light gate', () => {
     const problems = fixture(`
 on: [pull_request]

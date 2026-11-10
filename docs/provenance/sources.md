@@ -603,6 +603,19 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/world/surface-library.test.ts` |  | left out: the surface library goes to `@automata/world-kit` |
 | `tests/features/world/surface-structure.test.ts` |  | left out: the texture structure checks go with the photo library to `@automata/world-kit` |
 
+## The figure builder as a submodule (2026-11-10)
+
+Repository: `mcthaydt/FigureBuilder`, a git submodule at `vendor/FigureBuilder`, pinned to `main` at
+`08f54a6422064e3e158654454c48c9978c56bf13`. Licence: none recorded (the Owner's private repository). Taken on the Owner's
+word, 2026-11-10: FigureBuilder as a git submodule, not a copy.
+
+Nothing of it is copied: the submodule is the builder's own checkout. `vendor/figure-builder` is AF's workspace package
+for it (its `package.json`, links to the submodule's `src` and `base`, and its declarations built with the builder's own
+compiler settings into a git-ignored `types/`). One file reaches it, the character kit's
+`src/features/painted/door.ts`. AF's lint, style, boundaries and knip skip `vendor/FigureBuilder`: it keeps its own rules.
+Fix the builder upstream and bump the submodule (`git -C vendor/FigureBuilder checkout <commit>`, then commit the new
+pin); never patch the vendored copy. Clone AF with `--recurse-submodules`, or run `git submodule update --init`.
+
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 
 The published doc comments below named the arcade source (`SNEKPRTY/FloorFifty`); the doc comments no longer do, so

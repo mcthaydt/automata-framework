@@ -1,0 +1,24 @@
+{
+  "name": "figure-builder",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The figure builder (the git submodule at vendor/FigureBuilder) as a workspace package: its sources for bundlers, its declarations, built with its own compiler settings, for TypeScript.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/src/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./types/src/*.d.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "prepare": "node types.mjs",
+    "typecheck": "node types.mjs"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

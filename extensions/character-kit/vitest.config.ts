@@ -14,7 +14,9 @@ const kitFixture: BrowserCommand<[], unknown> = async (ctx) => {
   return (await fixture.kitFixture()).library
 }
 
+// Svelte compiles the runtime's screens, which the painted figures' renderer test reaches through `@automata/3d`.
 export default defineTests({
+  svelte: true,
   optimizeDeps: ['zod'],
   browserCommands: { kitFixture } as NonNullable<TestOptions['browserCommands']>,
 })
