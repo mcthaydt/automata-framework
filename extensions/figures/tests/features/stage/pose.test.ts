@@ -54,6 +54,11 @@ describe('the camera pose', () => {
     // compared through wrapAngle: step 4's azimuth is +π and wrapAngle(π) is −π
     for (let k = 0; k < 8; k++) expect(wrapAngle(viewOf(gameplay([0, 0.6, 0], k), [0, 0, 0]).azimuth - k * Math.PI / 4)).toBeCloseTo(0, 9);
   });
+  it('gameplay takes a frame size: the same field of view, a longer focal length', () => {
+    const p = gameplay([0, 0.6, 0], 0, [1280, 960]);
+    expect(p.size).toEqual([1280, 960]); expect(p.f).toBeCloseTo(2000, 9);
+    expect(zoomOf(p, [0, 0.6, 0])).toBeCloseTo(2 * 1.6927, 3);
+  });
   it('checkPose names what is wrong', () => {
     const ok = gameplay([0, 0.6, 0]);
     expect(() => checkPose(ok)).not.toThrow();

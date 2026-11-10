@@ -12,7 +12,7 @@ import type { GBuffer, Mesh as KitMesh, Material, V3 } from '../src/kit';
 /** Every runtime name src/index.ts exports. A removal or rename is a breaking change (docs/contract.md): it raises
  * STAGE_VERSION and the package version, and is written in the changelog; so it is made on purpose, here too. */
 const INDEX_NAMES = ["ACTIONS", "BASE", "DEFAULT_HEAD", "DEFAULT_SLIDERS", "EXPRESSIONS", "FIGURE_KEY", "Figure", "GAITS", "GAMEPLAY", "HAIR_STYLES", "ITEMS", "J", "JOINTS", "POSES", "RAMPS",
-  "RAMP_OUTLINE", "SEATS", "STAGE_VERSION", "SWATCHES", "ScriptedActor", "TIMES", "Troupe", "actionOf", "applyHold", "cellOf", "characterOf", "compose", "densityFor", "envelopeOf", "evaluate",
+  "RAMP_OUTLINE", "SEATS", "SPRITE_PITCH", "STAGE_VERSION", "SWATCHES", "ScriptedActor", "TIMES", "Troupe", "actionOf", "applyHold", "cellOf", "characterOf", "compose", "densityFor", "envelopeOf", "evaluate",
   "fromDef", "gameplay", "hero", "itemOf", "lengthOf", "lightFigure", "lookAt", "member", "project", "registerFabric", "registerFinish", "registerGarment", "registerHairPiece",
   "registerOutfitHooks", "scriptOf", "seated", "stageFrame", "standing", "view", "viewOf", "walking", "zoomOf"];
 
@@ -28,7 +28,7 @@ describe('the public surface', () => {
     expect(Object.keys(await import('../src')).sort()).toEqual(INDEX_NAMES);
   });
   it('draws a stage from the entry point only', () => {
-    const frame = stageFrame([new ScriptedActor({ who: 'base-m', at: [0, 0] })], 0, gameplay([0, 0.6, 0]), { crisp: true, maxDensity: 1 });
+    const frame = stageFrame([new ScriptedActor({ who: 'base-m', at: [0, 0] })], 0, gameplay([0, 0.6, 0]), {});
     expect(frame.version).toBe(STAGE_VERSION); expect(compose(frame).some(v => v > 0)).toBe(true);
   });
   it('draws the base pair', () => {

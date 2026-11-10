@@ -7,8 +7,8 @@ import { sheetFigures, type SheetKind } from './sheets';
  * figure and every script a fixed literal here, so `stageFrame`'s determinism makes the page and the script build the
  * same frame. It imports only `../src` and `./sheets`: it runs in the browser and in Node, with no Pixi.
  *
- * The stage is crisp by default (whole pixels a texel), so a case without `crisp: false` is crisp; the `…/true/…` cases
- * say `crisp: false`. Claims: `bytes`: the readback equals `compose(frame)`, every byte. `palette`: every opaque pixel is a colour some
+ * The stage paints at D2 and the renders' pitch (18°) and is crisp by default (whole pixels a texel), so a case without
+ * `crisp: false` is crisp; the `…/true/…` cases say `crisp: false`. Claims: `bytes`: the readback equals `compose(frame)`, every byte. `palette`: every opaque pixel is a colour some
  * sprite's cell holds, alpha 0 or 255 only (a perspective quad is resampled, so no byte claim).
  */
 export interface Case { frame: () => StageFrame; claim: 'bytes' | 'palette' }
@@ -54,15 +54,18 @@ for (const b of BASE) for (const D of DENSITIES) {
   for (let i = 0; i < cast.gait.walkPoses; i++) CASES[`sheet/${id}/walk${i}/D${D}`] = { frame: () => sheetFrame(id, D, 'walk', `walk${i}`), claim: 'bytes' };
   CASES[`sheet/${id}/hero/D${D}`] = { frame: () => sheetFrame(id, D, 'hero', 'hero'), claim: 'bytes' };
 }
-for (const z of [1, 2, 3, 4, 8]) CASES[`zoom/${z}`] = { frame: () => stageFrame([new ScriptedActor({ who: 'base-m', at: [0, 0] })], 0, ortho(z, [64 * z, 96 * z])), claim: 'bytes' };
+for (const z of [1, 2, 3, 4, 8]) CASES[`zoom/${z}`] = { frame: () => stageFrame([new ScriptedActor({ who: 'base-m', at: [0, 0] })], 0, ortho(z, [64 * z, 96 * z]), { density: 'auto' }), claim: 'bytes' };
 // Two figures at one distance: the later in cast order is on top, as compose has it (the GPU's tie rule).
-CASES.tie = { frame: () => stageFrame([new ScriptedActor({ who: 'base-m', at: [0, 0] }), new ScriptedActor({ who: 'base-f', at: [0, 0] })], 0, ortho(1, [64, 96])), claim: 'bytes' };
-CASES['tie/reversed'] = { frame: () => stageFrame([new ScriptedActor({ who: 'base-f', at: [0, 0] }), new ScriptedActor({ who: 'base-m', at: [0, 0] })], 0, ortho(1, [64, 96])), claim: 'bytes' };
+CASES.tie = { frame: () => stageFrame([new ScriptedActor({ who: 'base-m', at: [0, 0] }), new ScriptedActor({ who: 'base-f', at: [0, 0] })], 0, ortho(1, [64, 96]), { density: 1 }), claim: 'bytes' };
+CASES['tie/reversed'] = { frame: () => stageFrame([new ScriptedActor({ who: 'base-f', at: [0, 0] }), new ScriptedActor({ who: 'base-m', at: [0, 0] })], 0, ortho(1, [64, 96]), { density: 1 }), claim: 'bytes' };
 CASES.scene4 = { frame: () => stageFrame(scene4(), T4, SCENE_POSE()), claim: 'bytes' };
 CASES.day = { frame: () => stageFrame(scene4(), T4, SCENE_POSE(), { lighting: { time: TIMES.day, lamps: [] } }), claim: 'bytes' };
 CASES.lit = { frame: () => stageFrame(scene4(), T4, SCENE_POSE(), { lighting: NIGHT }), claim: 'bytes' };
 for (let k = 0; k < 8; k++) {
-  CASES[`gameplay/crisp/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k), { maxDensity: 1 }), claim: 'bytes' };
-  CASES[`gameplay/true/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k), { crisp: false, maxDensity: 1 }), claim: 'palette' };
+  CASES[`gameplay/crisp/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k)), claim: 'bytes' };
+  CASES[`gameplay/true/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k), { crisp: false }), claim: 'palette' };
 }
+// The gameplay camera with D1 figures (2 px a texel), and at twice the frame (2 px a D2 texel).
+CASES['gameplay/d1/1'] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], 1), { density: 1 }), claim: 'bytes' };
+CASES['gameplay/x2/1'] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], 1, [1280, 960])), claim: 'bytes' };
 CASES['orbit/true'] = { frame: () => stageFrame(scene4(), T4, lookAt([3, 2.2, 4], [0, 0.9, 0], { f: 600 }, [480, 320]), { crisp: false }), claim: 'palette' };

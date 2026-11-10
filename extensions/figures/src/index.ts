@@ -32,7 +32,7 @@ export type { V3 } from './lib/math';
 export { J, JOINTS, type Joint, type Side, type Pose } from './features/body/rig';
 // ─── Drawing ───
 export { Figure, type View, type FigureInput, type FigureLight } from './features/figure/figure';
-export { member, view, standing, walking, hero, type Frame } from './features/figure/frames';
+export { member, view, standing, walking, hero, SPRITE_PITCH, type Frame } from './features/figure/frames';
 export { RAMPS, RAMP_OUTLINE } from './features/paint/duel-ramps';
 // ─── Lighting ───
 export { lightFigure, type Lighting, type Bounce } from './features/lighting/light';

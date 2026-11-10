@@ -19,7 +19,7 @@ import { join, resolve } from 'node:path';
 import { createCanvas } from '@napi-rs/canvas';
 import { chromium, type Page } from 'playwright';
 import { createServer } from 'vite';
-import { BASE, compose, member, standing, type StageFrame } from '../src';
+import { BASE, SPRITE_PITCH, compose, member, standing, type StageFrame } from '../src';
 import { CASES } from '../viewer/cases';
 
 const out = process.argv[2] ? resolve(process.argv[2]) : null;
@@ -49,7 +49,7 @@ async function draw(name: string, query = ''): Promise<{ w: number; h: number; r
   return readback(page);
 }
 /** The cases the gate sheet shows. */
-const KEEP = new Set(['day', 'lit', 'zoom/1', 'zoom/3', 'gameplay/crisp/1', 'gameplay/true/1']);
+const KEEP = new Set(['day', 'lit', 'zoom/1', 'zoom/3', 'gameplay/crisp/1', 'gameplay/x2/1']);
 const png = (rgba: ArrayLike<number>, w: number, h: number) => {
   const c = createCanvas(w, h), ctx = c.getContext('2d'), img = ctx.createImageData(w, h);
   img.data.set(rgba as Uint8ClampedArray); ctx.putImageData(img, 0, 0);
@@ -64,13 +64,16 @@ const kept = new Map<string, Kept>();
  *   row 1  `day` (four actors, near and far): CPU | GPU | difference at ×2
  *   row 2  `lit` (a night lamp in the world): the same three
  *   row 3  two zooms, `zoom/1` (at ×3) and `zoom/3` (at ×2): CPU | GPU | difference for each
- *   row 4  the gameplay camera, 640×480: `true scale` | `crisp` (GPU), then a ×3 crop of the middle actor from each
+ *   row 4  the gameplay camera (GPU, ×1): the 640×480 frame, then the 1280×960 frame (a host's bigger frame)
+ *   row 5  the middle figure ×3: our original D2 render at the same bearing (`standing` at the renders' pitch), then a crop
+ *          of each gameplay frame (crisp, D2, painted at the renders' pitch: one pixel a texel at 640×480, two at 1280×960)
  * The difference is the pixels whose RGBA bytes differ, magenta on black: expected, all black.
  */
 function gateSheet(): Buffer {
   const PAD = 16, LABEL = 28, BG = '#31222a', INK = '#e8e0cf';
   const sized = (k: Kept, scale: number) => ({ w: k.w * scale, h: k.h * scale });
-  const rowH = [['day'], ['lit'], ['zoom/1', 'zoom/3'], ['gameplay/true/1']].map(r => Math.max(...r.map(n => sized(kept.get(n)!, n.startsWith('gameplay') ? 1 : n === 'zoom/1' ? 3 : 2).h)) + LABEL + PAD);
+  const rowH = [['day'], ['lit'], ['zoom/1', 'zoom/3'], ['gameplay/crisp/1', 'gameplay/x2/1']].map(r => Math.max(...r.map(n => sized(kept.get(n)!, n.startsWith('gameplay') ? 1 : n === 'zoom/1' ? 3 : 2).h)) + LABEL + PAD);
+  rowH.push(3 * 280 + LABEL + PAD);
   const c = createCanvas(2944, rowH.reduce((a, b) => a + b, PAD)), g = c.getContext('2d');
   g.fillStyle = '#1d1d21'; g.fillRect(0, 0, c.width, c.height);
   g.imageSmoothingEnabled = false; g.font = '20px sans-serif'; g.textBaseline = 'top';
@@ -105,17 +108,22 @@ function gateSheet(): Buffer {
   triple('day', PAD, y); y += rowH[0];
   triple('lit', PAD, y); y += rowH[1];
   const used = triple('zoom/1', PAD, y, 3); triple('zoom/3', PAD + used + 2 * PAD, y); y += rowH[2];
-  const crisp = kept.get('gameplay/crisp/1')!, plain = kept.get('gameplay/true/1')!;
-  tile(plain.got, plain.w, plain.h, 1, PAD, y, 'gameplay camera, true scale (GPU)');
-  tile(crisp.got, crisp.w, crisp.h, 1, 2 * PAD + plain.w, y, 'gameplay camera, crisp (GPU)');
+  const small = kept.get('gameplay/crisp/1')!, big = kept.get('gameplay/x2/1')!;
+  tile(small.got, small.w, small.h, 1, PAD, y, 'gameplay camera 640×480 (GPU): crisp, D2, painted at 18°');
+  tile(big.got, big.w, big.h, 1, 2 * PAD + small.w, y, 'gameplay camera 1280×960 (GPU): crisp, D2, painted at 18°');
+  y += rowH[3];
   // the middle actor (base-f, the second of the trio, at the origin), ×3: a crop round its root pixel
-  const crop = (k: Kept): [number, number, number, number] => {
-    const s = k.frame.sprites.find(p => p.name === 'base-f')!, ax = Math.round(s.screen[0] + s.scale * s.cell.anchor[0]), ay = Math.round(s.screen[1] + s.scale * s.cell.anchor[1]);
-    return [ax - 45, ay - 130, 90, 140];
+  const mid = (k: Kept) => k.frame.sprites.find(p => p.name === 'base-f')!;
+  const cropOf = (s: StageFrame['sprites'][number]): [number, number, number, number] => {
+    const ax = Math.round(s.screen[0] + s.scale * s.cell.anchor[0]), ay = Math.round(s.screen[1] + s.scale * s.cell.anchor[1]), m = s.scale;
+    return [ax - 45 * m, ay - 130 * m, 90 * m, 140 * m];
   };
-  const x3 = 3 * PAD + 2 * plain.w;
-  tile(plain.got, plain.w, plain.h, 3, x3, y, 'true scale ×3', BG, crop(plain));
-  tile(crisp.got, crisp.w, crisp.h, 3, x3 + 270 + PAD, y, 'crisp ×3', BG, crop(crisp));
+  // our original render at the same bearing: the sheets' `standing` at D2 and the renders' pitch
+  const dir = mid(small).cell.direction, cast = member(BASE.find(b => b.def.id === 'base-f')!.def, 2), orig = standing(cast, dir, SPRITE_PITCH);
+  const ax = Math.round(cast.cell[0] / 2), ay = Math.round(cast.cell[1] - cast.feet);
+  tile(orig, cast.cell[0], cast.cell[1], 3, PAD, y, `original D2 render, view ${dir} ×3`, BG, [ax - 45, ay - 130, 90, 140]);
+  tile(small.got, small.w, small.h, 3, 2 * PAD + 270, y, '640×480 frame ×3', BG, cropOf(mid(small)));
+  tile(big.got, big.w, big.h, 3, 3 * PAD + 540, y, '1280×960 frame ×3', BG, cropOf(mid(big)));
   return c.toBuffer('image/png');
 }
 const at = (i: number, w: number) => `(${(i >> 2) % w}, ${Math.floor((i >> 2) / w)})`;

@@ -82,15 +82,18 @@ export function densityFor(zoom: number, max = 4): 1 | 2 | 4 {
 
 /** The Last Light's gameplay camera (mcthaydt/PixiJS3D_Experiment_001 at 92e6704): perspective, a vertical field of
  * view of 2·atan(12/50), pitched 30° down, 16 m from a look point 0.6 m above the floor, behind on +z, a 640×480
- * frame, figures at density 1. There a D1 texel covers about 1.69 frame pixels. */
+ * frame. There a D1 texel covers about 1.69 frame pixels and a D2 texel (the stage's default density) about 0.85. The
+ * camera tilts 30°, but the stage paints its figures at the renders' pitch (`SPRITE_PITCH`, 18°), not the camera's. */
 export const GAMEPLAY = {
   fov: 2 * Math.atan(12 / 50), pitch: 30 * Math.PI / 180, distance: 16, lookHeight: 0.6,
-  size: [640, 480] as [640, 480], maxDensity: 1 as const,
+  size: [640, 480] as [640, 480],
 };
 
-/** The gameplay pose round a look point, at one of its eight 45° orbit steps (0 is behind on +z). */
-export function gameplay(look: V3, orbit = 0): CameraPose {
-  const a = orbit * Math.PI / 4, { pitch, distance, fov, size } = GAMEPLAY, flat = distance * Math.cos(pitch);
+/** The gameplay pose round a look point, at one of its eight 45° orbit steps (0 is behind on +z). `size` is the frame
+ * (640×480 by default): the field of view stays, so a larger frame is a longer focal length, as a host that brings the
+ * frame up to 1.2× or 2× would have it. */
+export function gameplay(look: V3, orbit = 0, size: [number, number] = GAMEPLAY.size): CameraPose {
+  const a = orbit * Math.PI / 4, { pitch, distance, fov } = GAMEPLAY, flat = distance * Math.cos(pitch);
   const eye: V3 = [look[0] + flat * Math.sin(a), look[1] + distance * Math.sin(pitch), look[2] + flat * Math.cos(a)];
   return lookAt(eye, look, { f: size[1] / 2 / Math.tan(fov / 2) }, [size[0], size[1]]);
 }

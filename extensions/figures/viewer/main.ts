@@ -4,9 +4,10 @@
  *
  *   /               The Last Light's gameplay camera (src/features/stage/pose.ts `gameplay`: perspective, 30° down, 16 m),
  *                   a 640×480 frame shown at the largest whole multiple the window holds, the base pair drawn through
- *                   `stageFrame` and `StageView` at density 1. Q and R step the orbit by 45°, W walks, C toggles crisp
+ *                   `stageFrame` and `StageView` at density 2, painted at the renders' 18°. Q and R step the orbit by 45°, W walks, C toggles crisp
  *                   figures (on by default, the owner's call at the c6 visual gate: whole pixels a texel, on the pixel
- *                   grid; off, a figure is true to scale), `?crisp=off` starts with it off.
+ *                   grid; off, a figure is true to scale), `?crisp=off` starts with it off, `?frame=2` makes the frame
+ *                   1280×960 (a host's bigger frame: the same view, a longer focal length).
  *   /?free          the free orbit camera, a debugging aid: drag to orbit, wheel to zoom, W to walk, ←/→ to turn the
  *                   figures; `?az=&pitch=&dist=&facing=` (degrees, metres) start the camera and the figures there,
  *                   `&walk` walking
@@ -70,7 +71,7 @@ async function checkMain(check: string) {
 
 /** `/`: The Last Light's gameplay camera on the base pair, crisp figures by default, true scale to compare. */
 async function gameplayMain() {
-  const [w, h] = [640, 480], app = await startApp(w, h, 0x31222a), stage = new StageView([w, h]);
+  const k0 = Number(params.get('frame') ?? 1), [w, h] = [640 * k0, 480 * k0], app = await startApp(w, h, 0x31222a), stage = new StageView([w, h]);
   app.stage.addChild(stage.view);
   // Shown at the largest whole multiple of 640×480 the window holds, each pixel a square.
   const fit = () => { const k = Math.max(1, Math.floor(Math.min(innerWidth / w, innerHeight / h))); app.canvas.style.cssText = `width:${w * k}px;height:${h * k}px;image-rendering:pixelated;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%)`; };
@@ -92,7 +93,7 @@ async function gameplayMain() {
   label();
   app.ticker.add((tk) => {
     t += tk.deltaMS / 1000;
-    stage.draw(stageFrame(actors, t, gameplay([0, 0.6, 0], orbit), { maxDensity: 1, crisp }));
+    stage.draw(stageFrame(actors, t, gameplay([0, 0.6, 0], orbit, [w, h]), { crisp }));
   });
 }
 

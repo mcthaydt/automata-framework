@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lightFigure, ScriptedActor, TIMES, type FigureLight, type V3 } from '../../../src';
+import { lightFigure, ScriptedActor, SPRITE_PITCH, TIMES, type FigureLight, type V3 } from '../../../src';
 import { lookAt, viewOf } from '../../../src/features/stage/pose';
 import { stageFrame } from '../../../src/features/stage/stage';
 import { registerFixtures } from '../paint/fabric-fixtures';
@@ -21,13 +21,13 @@ describe('stageFrame lights', () => {
     // a lamp on world +x; seen from +x (azimuth 90°) it stands toward the camera: the figure's lighting frame +z
     const lamp = { ...NIGHT.lamps[0], at: [2, 1.5, 0] as V3 }, side = lookAt([20, 6, 0], [0, 1, 0], { pixelsPerMetre: 2 * 96 / 2.6 }, [512, 384]);
     const s = stageFrame([actor('base-m', [0, 0])], 0, side, { lighting: { time: TIMES.night, lamps: [lamp] } }).sprites[0];
-    const f = actor('base-m', [0, 0]).draw(0, viewOf(side, [0, 0, 0]), 2);
+    const f = actor('base-m', [0, 0]).draw(0, { ...viewOf(side, [0, 0, 0]), pitch: SPRITE_PITCH }, 2);   // the renders' pitch, not the camera's
     expect(md5(s.cell.rgba)).toBe(md5(lightFigure(f, { time: TIMES.night, lamps: [{ ...lamp, at: [0, 1.5, 2] }], at: [0, 0, 0] })));
   });
   it('a spot\'s aim turns with the world too', () => {
     const lamp = { ...NIGHT.lamps[0], at: [2, 1.5, 0] as V3, aim: [-1, -0.2, 0] as V3, cone: 40 }, side = lookAt([20, 6, 0], [0, 1, 0], { pixelsPerMetre: 2 * 96 / 2.6 }, [512, 384]);
     const s = stageFrame([actor('base-m', [0, 0])], 0, side, { lighting: { time: TIMES.night, lamps: [lamp] } }).sprites[0];
-    const f = actor('base-m', [0, 0]).draw(0, viewOf(side, [0, 0, 0]), 2);
+    const f = actor('base-m', [0, 0]).draw(0, { ...viewOf(side, [0, 0, 0]), pitch: SPRITE_PITCH }, 2);
     expect(md5(s.cell.rgba)).toBe(md5(lightFigure(f, { time: TIMES.night, lamps: [{ ...lamp, at: [0, 1.5, 2], aim: [0, -0.2, -1] }], at: [0, 0, 0] })));
   });
   it('the light hook reaches the painter and no lightFigure runs', () => {
