@@ -9,6 +9,10 @@ import type { LanguageCopy } from './language-section.ts'
 import type { TouchCopy } from './touch-section.ts'
 import type { VibrationCopy } from './vibration-section.ts'
 
+/**
+ * The English words for button prompts (`padLabel`, the controls list): what an unbound action, a touch button and
+ * each generic pad button are called. A game in another language passes its own `PromptCopy` instead.
+ */
 export const PROMPT_COPY: PromptCopy = {
   unbound: 'Not set',
   touch: 'Tap',

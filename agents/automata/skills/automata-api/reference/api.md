@@ -2000,7 +2000,8 @@ const STANDARD_PAD_BUTTON_MAX = 16;
 
 #### `STICK_DIRECTIONS` (const)
 
-_No doc comment._
+Every stick direction an action may be bound to, as `<stick>-<direction>`. It is one list so that
+`controls.toml`, the game's input profile and the Tuner accept exactly the same names.
 
 ```ts
 const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
@@ -2786,7 +2787,8 @@ function parseTileToken(base: string): TileCell | undefined;
 
 #### `Picture` (type)
 
-_No doc comment._
+What `pictureOf` decides a definition looks like: a tile from a tileset, or a flat shape in a colour. The editor
+and the game both draw from it, so a character looks the same in both.
 
 ```ts
 type Picture = {
@@ -6574,7 +6576,8 @@ interface PresentationBus<Facts = RuntimeFacts> {
 
 #### `PROMPT_COPY` (const)
 
-_No doc comment._
+The English words for button prompts (`padLabel`, the controls list): what an unbound action, a touch button and
+each generic pad button are called. A game in another language passes its own `PromptCopy` instead.
 
 ```ts
 const PROMPT_COPY: PromptCopy;

@@ -18,6 +18,10 @@ export const RESERVED_PAD_BUTTONS: readonly number[] = [8, 16]
 /** Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus). */
 export const RESERVED_KEYS: readonly string[] = ['Escape', 'Tab']
 
+/**
+ * Every stick direction an action may be bound to, as `<stick>-<direction>`. It is one list so that
+ * `controls.toml`, the game's input profile and the Tuner accept exactly the same names.
+ */
 export const STICK_DIRECTIONS = [
   'left-up',
   'left-down',
