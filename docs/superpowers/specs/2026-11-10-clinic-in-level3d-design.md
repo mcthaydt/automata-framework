@@ -1,7 +1,12 @@
 # The Last Light's clinic in AF's 3D level: design
 
 - **Date:** 2026-11-10.
-- **Status:** draft, waiting for the Owner's approval.
+- **Status:** approved by the Owner, 2026-11-10 ("approve it now, hold the plan").
+- **Hold:** the plan does not start yet. The Owner set the order (2026-11-10, relayed by EnvironmentBuilder's
+  coordinator): first EnvironmentBuilder's own Pixi/3D renderer, then EnvironmentBuilder onto `@automata/3d` and
+  `world-kit`, then this work. When that second phase is on `main`, this design is checked against it first, because
+  sections 7.1 and 7.3 to 7.5 write against those packages. Anything that moved is updated, and only then does the plan
+  session take it.
 - **Gap analysis:** [`../2026-11-10-clinic-in-level3d-gap-analysis.md`](../2026-11-10-clinic-in-level3d-gap-analysis.md).
   Read it first: it lists every part of the clinic and what AF has for each.
 - **Source:** The Last Light (`mcthaydt/PixiJS3D_Experiment_001`) at `92e6704`, the commit every earlier conversion
