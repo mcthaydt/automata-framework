@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { BASE } from '../../../base/base';
 import { member } from '../../../src/features/figure/frames';
-import { anchorOf, facing, texelOf, viewFrom } from '../../../src/features/view/camera';
+import { anchorOf, facing, poseQuaternion, texelOf, viewFrom } from '../../../src/features/view/camera';
+import { gameplay, lookAt } from '../../../src/features/stage/pose';
 
 /** Turns v by the unit quaternion q. */
 const rotate = (q: { x: number; y: number; z: number; w: number }, v: [number, number, number]) => {
@@ -40,5 +41,17 @@ describe('the quad', () => {
     const cast = member(BASE[0].def, 2);
     expect(anchorOf(cast)).toEqual({ x: 0.5, y: (192 - 13.5) / 192 });
     expect(texelOf(cast)).toBeCloseTo(2.6 / 192, 15);
+  });
+});
+
+/** The quaternion a camera, or a quad square to it, takes from a pose: local x, y, z onto right, up, −fwd. */
+describe('poseQuaternion', () => {
+  it('turns local x, y and z onto the pose\'s right, up and −fwd', () => {
+    for (const p of [gameplay([0, 0.6, 0]), gameplay([1, 0.6, -2], 3), lookAt([0, 5, 10], [0, 0, 0], { f: 1000 }, [640, 480]), lookAt([-4, -1, -6], [0, 2, 0], { f: 500 }, [64, 64]), lookAt([0, 0, 10], [0, 0, 0], { f: 1 }, [8, 8])]) {
+      const q = poseQuaternion(p);
+      expect(Math.hypot(q.x, q.y, q.z, q.w)).toBeCloseTo(1, 12);
+      for (const [local, want] of [[[1, 0, 0], p.right], [[0, 1, 0], p.up], [[0, 0, 1], [-p.fwd[0], -p.fwd[1], -p.fwd[2]]]] as const)
+        rotate(q, [...local]).forEach((c, i) => expect(c).toBeCloseTo(want[i], 12));
+    }
   });
 });

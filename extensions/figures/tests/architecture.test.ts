@@ -63,6 +63,10 @@ describe('module boundaries', () => {
     for (const m of MODULES) if (!state.has(m)) visit(m);
     expect(found).toEqual([]);
   });
+  it('only the view layer imports Pixi', () => {
+    const bad = MODULES.filter(m => m.endsWith('.ts') && !m.startsWith('src/features/view/') && /from\s*['"](pixi\.js|@pixi\/3d)['"]|import\s*['"](pixi\.js|@pixi\/3d)['"]/.test(readFileSync(join(ROOT, m), 'utf8')));
+    expect(bad).toEqual([]);
+  });
   it('no test sits beside the source', () => {
     expect(MODULES.filter(m => /\.(test|spec)\.ts$/.test(m))).toEqual([]);
   });

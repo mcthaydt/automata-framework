@@ -1,6 +1,7 @@
 import type { V3 } from '../../lib/math';
 import type { CastMember } from '../figure/cast';
 import type { View } from '../figure/figure';
+import type { CameraPose } from '../stage/pose';
 
 /**
  * The camera of a 3D scene as a painted figure sees it, and how its cell's quad stands in the scene: the geometry the
@@ -28,3 +29,17 @@ export const anchorOf = (cast: CastMember) => ({ x: 0.5, y: (cast.cell[1] - cast
 
 /** Metres of the scene to one texel of the cell. */
 export const texelOf = (cast: CastMember) => cast.metres / cast.cell[1];
+
+/** The unit quaternion a camera at `pose`, or a quad square to it, takes: local x, y, z onto the pose's right, up and
+ * −fwd (a Camera3D looks down its local −z; a Sprite3D's quad faces +z). A quad turned by this is parallel to the image
+ * plane, which `facing` (a yaw to the figure's own bearing) is not: only this one lands every texel where
+ * `compose` puts it under perspective. */
+export function poseQuaternion(pose: Pick<CameraPose, 'right' | 'up' | 'fwd'>): { x: number; y: number; z: number; w: number } {
+  const [m00, m10, m20] = pose.right, [m01, m11, m21] = pose.up, [m02, m12, m22] = [-pose.fwd[0], -pose.fwd[1], -pose.fwd[2]];
+  const t = m00 + m11 + m22;
+  if (t > 0) { const s = 2 * Math.sqrt(t + 1); return { x: (m21 - m12) / s, y: (m02 - m20) / s, z: (m10 - m01) / s, w: s / 4 }; }
+  if (m00 > m11 && m00 > m22) { const s = 2 * Math.sqrt(1 + m00 - m11 - m22); return { x: s / 4, y: (m01 + m10) / s, z: (m02 + m20) / s, w: (m21 - m12) / s }; }
+  if (m11 > m22) { const s = 2 * Math.sqrt(1 + m11 - m00 - m22); return { x: (m01 + m10) / s, y: s / 4, z: (m12 + m21) / s, w: (m02 - m20) / s }; }
+  const s = 2 * Math.sqrt(1 + m22 - m00 - m11);
+  return { x: (m02 + m20) / s, y: (m12 + m21) / s, z: s / 4, w: (m10 - m01) / s };
+}
