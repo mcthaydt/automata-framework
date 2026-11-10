@@ -20,7 +20,7 @@ import { createCanvas } from '@napi-rs/canvas';
 import { chromium, type Page } from 'playwright';
 import { createServer } from 'vite';
 import { BASE, SPRITE_PITCH, compose, member, standing, type StageFrame } from '../src';
-import { CASES } from '../viewer/cases';
+import { CASES, wallBackdrop } from '../viewer/cases';
 
 const out = process.argv[2] ? resolve(process.argv[2]) : null;
 if (out) mkdirSync(out, { recursive: true });
@@ -49,14 +49,23 @@ async function draw(name: string, query = ''): Promise<{ w: number; h: number; r
   return readback(page);
 }
 /** The cases the gate sheet shows. */
-const KEEP = new Set(['day', 'lit', 'zoom/1', 'zoom/3', 'gameplay/crisp/1', 'gameplay/x2/1']);
+const KEEP = new Set(['overlap', 'wall', 'day', 'lit', 'zoom/1', 'zoom/3', 'gameplay/crisp/1', 'gameplay/x2/1']);
 const png = (rgba: ArrayLike<number>, w: number, h: number) => {
   const c = createCanvas(w, h), ctx = c.getContext('2d'), img = ctx.createImageData(w, h);
   img.data.set(rgba as Uint8ClampedArray); ctx.putImageData(img, 0, 0);
   return c.toBuffer('image/png');
 };
+/** The old rule, for the sheet's contrast: each sprite wholly over the earlier, in the frame's order. */
+function painters(frame: StageFrame): Uint8ClampedArray {
+  const out = new Uint8ClampedArray(frame.camera.size[0] * frame.camera.size[1] * 4);
+  for (const s of frame.sprites) {
+    const one = compose({ ...frame, sprites: [s] });
+    for (let i = 0; i < one.length; i += 4) if (one[i + 3]) out.set(one.subarray(i, i + 4), i);
+  }
+  return out;
+}
 /** A case kept for the gate sheet: the CPU frame, the GPU readback, and the frame (for where each figure stands). */
-interface Kept { want: Uint8ClampedArray; got: Buffer; w: number; h: number; frame: StageFrame }
+interface Kept { want: Uint8ClampedArray; got: Buffer; w: number; h: number; frame: StageFrame; contrast?: Uint8ClampedArray }
 const kept = new Map<string, Kept>();
 
 /**
@@ -65,6 +74,8 @@ const kept = new Map<string, Kept>();
  *   row 2  `lit` (a night lamp in the world): the same three
  *   row 3  two zooms, `zoom/1` (at ×3) and `zoom/3` (at ×2): CPU | GPU | difference for each
  *   row 4  the gameplay camera (GPU, ×1): the 640×480 frame, then the 1280×960 frame (a host's bigger frame)
+ *   row 6  `overlap` (per-texel depth: a walking woman's nearer arm in front of a man standing before her) and `wall` (a wall quad
+ *          cutting through a figure at the knees): CPU | GPU | difference | the contrast (the old whole-sprite order; the figure with no wall)
  *   row 5  the middle figure ×3: our original D2 render at the same bearing (`standing` at the renders' pitch), then a crop
  *          of each gameplay frame (crisp, D2, painted at the renders' pitch: one pixel a texel at 640×480, two at 1280×960)
  * The difference is the pixels whose RGBA bytes differ, magenta on black: expected, all black.
@@ -73,7 +84,7 @@ function gateSheet(): Buffer {
   const PAD = 16, LABEL = 28, BG = '#31222a', INK = '#e8e0cf';
   const sized = (k: Kept, scale: number) => ({ w: k.w * scale, h: k.h * scale });
   const rowH = [['day'], ['lit'], ['zoom/1', 'zoom/3'], ['gameplay/crisp/1', 'gameplay/x2/1']].map(r => Math.max(...r.map(n => sized(kept.get(n)!, n.startsWith('gameplay') ? 1 : n === 'zoom/1' ? 3 : 2).h)) + LABEL + PAD);
-  rowH.push(3 * 280 + LABEL + PAD);
+  rowH.push(3 * 280 + LABEL + PAD, ...['overlap', 'wall'].map(n => sized(kept.get(n)!, 2).h + LABEL + PAD));
   const c = createCanvas(2944, rowH.reduce((a, b) => a + b, PAD)), g = c.getContext('2d');
   g.fillStyle = '#1d1d21'; g.fillRect(0, 0, c.width, c.height);
   g.imageSmoothingEnabled = false; g.font = '20px sans-serif'; g.textBaseline = 'top';
@@ -90,7 +101,7 @@ function gateSheet(): Buffer {
     g.drawImage(src, x, y + LABEL, cw * scale, ch * scale);
   };
   /** CPU | GPU | difference of one kept case. */
-  const triple = (name: string, x: number, y: number, scale = 2) => {
+  const triple = (name: string, x: number, y: number, scale = 2, contrast?: string) => {
     const k = kept.get(name)!, diff = new Uint8ClampedArray(k.w * k.h * 4);
     let n = 0;
     for (let i = 0; i < k.w * k.h; i++) {
@@ -102,7 +113,8 @@ function gateSheet(): Buffer {
     tile(k.want, k.w, k.h, scale, x, y, `${name} CPU`);
     tile(k.got, k.w, k.h, scale, x + w + PAD, y, `${name} GPU`);
     tile(diff, k.w, k.h, scale, x + 2 * (w + PAD), y, `${name} diff: ${n} px`, '#000000');
-    return 3 * w + 2 * PAD;
+    if (k.contrast) tile(k.contrast, k.w, k.h, scale, x + 3 * (w + PAD), y, `${name} ${contrast}`);
+    return (k.contrast ? 4 : 3) * w + (k.contrast ? 3 : 2) * PAD;
   };
   let y = PAD;
   triple('day', PAD, y); y += rowH[0];
@@ -124,11 +136,15 @@ function gateSheet(): Buffer {
   tile(orig, cast.cell[0], cast.cell[1], 3, PAD, y, `original D2 render, view ${dir} ×3`, BG, [ax - 45, ay - 130, 90, 140]);
   tile(small.got, small.w, small.h, 3, 2 * PAD + 270, y, '640×480 frame ×3', BG, cropOf(mid(small)));
   tile(big.got, big.w, big.h, 3, 3 * PAD + 540, y, '1280×960 frame ×3', BG, cropOf(mid(big)));
+  y += rowH[4];
+  triple('overlap', PAD, y, 2, 'old order (whole sprites)'); y += rowH[5];
+  triple('wall', PAD, y, 2, 'no wall');
   return c.toBuffer('image/png');
 }
 const at = (i: number, w: number) => `(${(i >> 2) % w}, ${Math.floor((i >> 2) / w)})`;
 const errors: string[] = [];
 page.on('pageerror', e => errors.push(e.message));
+page.on('console', m => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
 const only = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
 let failed = 0;
 try {
@@ -159,9 +175,9 @@ try {
   // The stage cases.
   for (const [name, c] of Object.entries(CASES)) {
     if (only && !only.test(name)) continue;
-    const frame = c.frame(), want = compose(frame), [W, H] = frame.camera.size, got = await draw(name);
+    const frame = c.frame(), want = compose(frame, c.wall && wallBackdrop(frame.camera, c.wall)), [W, H] = frame.camera.size, got = await draw(name);
     if (out && KEEP.has(name)) {
-      kept.set(name, { want, got: got.rgba, w: W, h: H, frame });
+      kept.set(name, { want, got: got.rgba, w: W, h: H, frame, contrast: name === 'overlap' ? painters(frame) : name === 'wall' ? compose(frame) : undefined });
       writeFileSync(join(out, `${name.replace(/\//g, '_')}.gpu.png`), png(got.rgba, W, H));
       writeFileSync(join(out, `${name.replace(/\//g, '_')}.cpu.png`), png(want, W, H));
     }

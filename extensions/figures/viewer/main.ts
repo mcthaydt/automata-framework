@@ -19,8 +19,8 @@
  *                   with the sheets' cell, texel for texel. It sets `document.body.dataset.ready` once drawn.
  */
 import '@pixi/3d';
-import { CubeGeometry, FlatMaterial, Mesh3D, View3D } from '@pixi/3d';
-import { Application } from 'pixi.js';
+import { CubeGeometry, FlatMaterial, Mesh3D, PlaneGeometry, View3D } from '@pixi/3d';
+import { Application, BufferImageSource, Texture } from 'pixi.js';
 import { BASE, ScriptedActor, gameplay, member, stageFrame, type ActorScript, type V3 } from '../src';
 import { FigureSprite, StageView } from '../src/view';
 import { CASES } from './cases';
@@ -45,6 +45,13 @@ async function caseMain(name: string) {
   let frame = c.frame();
   const [w, h] = frame.camera.size, app = await startApp(w, h), stage = new StageView([w, h]);
   app.stage.addChild(stage.view);
+  if (c.wall) {
+    // the case's wall, in the scene beside the figures: a plane facing +z, one colour through the same texture path as a cell
+    const { z, x, y, rgba } = c.wall, source = new BufferImageSource({ resource: new Uint8Array(rgba), width: 1, height: 1, scaleMode: 'nearest', alphaMode: 'no-premultiply-alpha' });
+    const mesh = new Mesh3D({ geometry: new PlaneGeometry({ width: x[1] - x[0], height: y[1] - y[0] }), material: new FlatMaterial({ baseColorTexture: new Texture({ source }) }) });
+    mesh.position.set((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, z);
+    stage.view.root.addChild(mesh);
+  }
   stage.draw(frame);
   app.render();
   if (params.has('twice')) { frame = c.frame(); stage.draw(frame); }

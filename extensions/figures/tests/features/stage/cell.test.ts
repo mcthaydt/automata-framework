@@ -24,11 +24,12 @@ describe('cellOf', () => {
     const lit = lightFigure(f, { time: TIMES.night, lamps: [] }), l = cellOf(f, lit);
     expect(l.rgba).toBe(lit); expect(l.painted).toBe(f.painted);
   });
-  it('gives depth only for an uncached figure', () => {
-    expect(c.depth).toBeNull();                       // Figure.cache is true by default
+  it('always gives depth: the figure\'s own, cached or not, finite wherever the cell is opaque', () => {
+    expect(c.depth).toBe(f.depth);                    // Figure.cache is true by default
     const g = standingFigure('base-m', 1, 0); g.cache = false;
     g.update(1 / 60, { facing: 0, moving: false, view: view() });
-    expect(cellOf(g).depth).toBe(g.g.depth);
+    expect(cellOf(g).depth).toBe(g.depth);
+    for (const cell of [c, cellOf(g)]) for (let i = 0; i < cell.depth.length; i++) if (cell.rgba[i * 4 + 3]) expect(Number.isFinite(cell.depth[i])).toBe(true);
   });
   it('keys the bytes: the same pose the same key, another view another key', () => {
     expect(cellOf(standingFigure('base-m', 2, 1)).key).toBe(c.key);

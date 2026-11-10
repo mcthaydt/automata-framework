@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ScriptedActor } from '../../../src';
 import { SPRITE_PITCH } from '../../../src';
 import { densityFor, gameplay, lookAt, project, zoomOf } from '../../../src/features/stage/pose';
-import { compose, stageFrame } from '../../../src/features/stage/stage';
+import { compose, stageFrame, texelDepths, type Backdrop, type StageFrame, type StageSprite } from '../../../src/features/stage/stage';
 import { coloursOf, md5, ortho } from './fixtures';
 
 /** The stage frame and its CPU reference (src/features/stage/stage.ts). */
@@ -26,8 +26,12 @@ describe('stageFrame and compose', () => {
     expect(fr.sprites.map(s => s.name)).toEqual(['base-m', 'base-f']);
     const tie = stageFrame([actor('base-m', [0, 0]), actor('base-f', [0, 0])], 0, ortho(1, [64, 96]), { density: 1 });
     expect(tie.sprites.map(s => s.name)).toEqual(['base-m', 'base-f']);
-    const both = compose(tie), her = compose(stageFrame([actor('base-f', [0, 0])], 0, ortho(1, [64, 96]), { density: 1 }));
-    for (let i = 0; i < her.length; i += 4) if (her[i + 3]) for (let k = 0; k < 4; k++) expect(both[i + k]).toBe(her[i + k]);   // the later of a tie is on top
+    // her, a metre nearer, hides him wherever they overlap (every texel of hers is nearer than his: per-texel depth agrees with the order)
+    const out = compose(fr), her = compose(stageFrame([actor('base-f', [0, 0.5])], 0, ortho(1, [64, 96]), { density: 1 }));
+    for (let i = 0; i < her.length; i += 4) if (her[i + 3]) for (let k = 0; k < 4; k++) expect(out[i + k]).toBe(her[i + k]);
+    // two identical figures at one place tie at every texel: the later of the two is on top
+    const twin = stageFrame([actor('base-f', [0, 0]), actor('base-f', [0, 0])], 0, ortho(1, [64, 96]), { density: 1 });
+    expect(md5(compose(twin))).toBe(md5(compose(stageFrame([actor('base-f', [0, 0])], 0, ortho(1, [64, 96]), { density: 1 }))));
   });
   it('is deterministic: the same arguments, before and after other frames', () => {
     const cast = () => [actor('base-m', [-0.4, 0]), actor('base-f', [0.4, 0.3])], p = ortho(2, [256, 192]);
@@ -96,4 +100,50 @@ describe('stageFrame and compose', () => {
     expect(out.length).toBe(640 * 480 * 4); expect(out.every(v => v === 0)).toBe(true);
   });
   it('refuses a malformed pose', () => { expect(() => stageFrame([], 0, { ...gameplay([0, 0, 0]), pixelsPerMetre: 4 })).toThrow(/pixelsPerMetre/); });
+});
+
+/** The scene's depth test, per texel (stage.ts `texelDepths`, `compose`): the CPU rule the GPU is checked against. */
+describe('per-texel depth', () => {
+  /** A hand-made cell of `texels` opaque RGBA pixels in a row, depths in metres toward the camera, the root at its top-left. */
+  const tiny = (rgb: number[][], depth: number[]): StageSprite['cell'] => {
+    const rgba = new Uint8ClampedArray(rgb.length * 4);
+    rgb.forEach((c, i) => rgba.set([...c, 255], i * 4));
+    return { key: String(rgb), size: [rgb.length, 1], rgba, painted: rgba, normals: new Uint8ClampedArray(rgba.length), depth: Float32Array.from(depth), weave: null,
+      anchor: [0, 0], metresPerTexel: 1 / 36.923076923076927, density: 1, direction: 0, pitch: 18 * deg };
+  };
+  const cam = ortho(1, [4, 1], [0, 0, 0]);
+  const sprite = (cell: StageSprite['cell'], depth: number, at: [number, number, number] = [0, 0, 0]): StageSprite => ({ name: 'x', cell, at, screen: [0, 0], scale: 1, depth });
+  const frame = (...sprites: StageSprite[]): StageFrame => ({ version: 1, camera: cam, sprites });
+  const px = (out: Uint8ClampedArray, x: number) => Array.from(out.slice(x * 4, x * 4 + 4));
+
+  it('under a camera at the renders\' pitch a texel\'s depth along the view is the root\'s less the cell\'s', () => {
+    const cam = ortho(2, [256, 192]), s = stageFrame([actor('base-m', [0.3, -0.2])], 0, cam).sprites[0], d = texelDepths(cam, s);
+    let n = 0;
+    for (let i = 0; i < d.length; i++) if (s.cell.rgba[i * 4 + 3]) { expect(d[i]).toBeCloseTo(s.depth - s.cell.depth[i], 4); n++; } else expect(d[i]).toBe(Infinity);
+    expect(n).toBeGreaterThan(1000);
+  });
+  it('the nearer texel wins whichever sprite it belongs to: a nearer root does not beat a nearer arm', () => {
+    const front = sprite(tiny([[255, 0, 0], [255, 0, 0]], [0, 0]), 10), back = sprite(tiny([[0, 0, 255], [0, 0, 255]], [0, 0.5]), 10.2);
+    // `back` is the farther figure (root 10.2), drawn first; its second texel reaches 0.5 m toward the camera: 9.7 m, nearer than front's 10.
+    const out = compose(frame(back, front));
+    expect(px(out, 0)).toEqual([255, 0, 0, 255]);   // front's texel is nearer than back's (10 against 10.2)
+    expect(px(out, 1)).toEqual([0, 0, 255, 255]);   // back's arm (9.7) is in front of front's body (10)
+  });
+  it('equal depths fall to the later sprite, as the cast order has it', () => {
+    const a = sprite(tiny([[255, 0, 0]], [0]), 10), b = sprite(tiny([[0, 255, 0]], [0]), 10);
+    expect(px(compose(frame(a, b)), 0)).toEqual([0, 255, 0, 255]);
+    expect(px(compose(frame(b, a)), 0)).toEqual([255, 0, 0, 255]);
+  });
+  it('a backdrop surface hides the texels behind it and shows through to the ones in front', () => {
+    const s = sprite(tiny([[255, 0, 0], [255, 0, 0], [255, 0, 0]], [0, 0.4, -0.4]), 10);   // depths 10, 9.6, 10.4
+    const wall: Backdrop = () => ({ depth: 10.2, rgba: [0, 200, 0, 255] });
+    const out = compose(frame(s), wall);
+    expect(px(out, 0)).toEqual([255, 0, 0, 255]); expect(px(out, 1)).toEqual([255, 0, 0, 255]); expect(px(out, 2)).toEqual([0, 200, 0, 255]);
+    expect(px(out, 3)).toEqual([0, 200, 0, 255]);   // where no sprite is, the backdrop alone
+  });
+  it('is the same with the cached or fresh figure\'s depth', () => {
+    const cached = stageFrame([actor('base-m', [0, 0])], 0, ortho(2, [256, 192])).sprites[0], fresh = new ScriptedActor({ who: 'base-m', at: [0, 0] }, { cache: false });
+    const f = stageFrame([fresh], 0, ortho(2, [256, 192])).sprites[0];
+    expect(md5(new Uint8ClampedArray(texelDepths(ortho(2, [256, 192]), cached).buffer))).toBe(md5(new Uint8ClampedArray(texelDepths(ortho(2, [256, 192]), f).buffer)));
+  });
 });

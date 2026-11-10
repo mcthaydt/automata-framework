@@ -18,10 +18,10 @@ export interface Cell {
   painted: Uint8ClampedArray;
   /** The normal map (lightFigure's LitSource.normals): view space, alpha 0 where none. */
   normals: Uint8ClampedArray;
-  /** Metres toward the camera from the root's plane, per texel (the G-buffer's depth); read only where rgba's alpha is
-   * set. Null for a figure whose cell cache is on: a cached cell does not redraw the G-buffer, so its depth would be
-   * stale. A consumer that needs depth makes its actors with `cache: false` (ActorOptions). */
-  depth: Float32Array | null;
+  /** Metres toward the camera from the root's plane, per texel (`Figure.depth`: the G-buffer's depth, the nearest neighbour's
+   * under an outline texel); finite wherever rgba's alpha is set, −Infinity elsewhere. Always present, fresh or from the cell
+   * cache: the scene's per-texel depth test reads it. */
+  depth: Float32Array;
   /** The fabric data (H5), or null: what a GPU light needs to light a tiled cloth's ground and lay the tile after. */
   weave: Weave | null;
   /** The texel the figure's root on the ground maps to: [w / 2, h − feet]. */
@@ -48,8 +48,7 @@ export function cellOf(figure: Figure, lit?: Uint8ClampedArray): Cell {
   const [w, h] = figure.cell, rgba = lit ?? px;
   return {
     key: `${w}x${h}:${fnv(rgba)}`, size: [w, h], rgba, painted: px, normals: figure.normals,
-    // A cached figure's G-buffer is stale (figure.ts: a hit refills `painted` but does not redraw `g`).
-    depth: figure.cache ? null : figure.g.depth, weave: figure.weave,
+    depth: figure.depth, weave: figure.weave,
     anchor: [w / 2, h - figure.feet], metresPerTexel: figure.metres / h, density: h / 96,
     direction: ((Math.round(figure.relativeYaw / (Math.PI / 4)) % 8) + 8) % 8, pitch: figure.pitch,
   };

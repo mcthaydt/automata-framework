@@ -41,7 +41,7 @@ export { TIMES, FIGURE_KEY, type Lamp, type TimeOfDay } from './features/lightin
 export { ScriptedActor, Troupe, characterOf, scriptOf, type ActorScript, type ActorOptions, type ActionCue, type Waypoint, type Placement } from './features/actors/actor';
 export { ACTIONS, actionOf, lengthOf, envelopeOf } from './features/actors/actions';
 // ─── The stage: figures in a scene (docs/contract.md) ───
-export { STAGE_VERSION, stageFrame, compose, type StageSprite, type StageFrame, type StageOptions } from './features/stage/stage';
+export { STAGE_VERSION, stageFrame, compose, texelDepths, type StageSprite, type StageFrame, type StageOptions, type Backdrop } from './features/stage/stage';
 export { cellOf, type Cell } from './features/stage/cell';
 export { lookAt, viewOf, project, zoomOf, densityFor, GAMEPLAY, gameplay, type CameraPose } from './features/stage/pose';
 export type { Casting } from './features/actors/actor';

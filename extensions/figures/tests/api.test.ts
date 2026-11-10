@@ -5,7 +5,7 @@ import {
   compose, gameplay, stageFrame, STAGE_VERSION,
   type Regions, type BaseGarment, type GarmentKinds, type Dressed, type Part, type Decal, type Print, type Mesh, type Superquadric,
   type Measure, type Skeleton, type Anchor, type Hold, type ItemDef, type HairInput, type HairStyle, type HairFinish, type Piece,
-  type Skull, type Tone, type Tie, type Fabric, type Casting, type Cell, type CameraPose, type StageFrame, type StageSprite, type StageOptions,
+  type Skull, type Tone, type Tie, type Fabric, type Casting, type Cell, type CameraPose, type StageFrame, type StageSprite, type StageOptions, type Backdrop,
 } from '../src';
 import type { GBuffer, Mesh as KitMesh, Material, V3 } from '../src/kit';
 
@@ -14,7 +14,7 @@ import type { GBuffer, Mesh as KitMesh, Material, V3 } from '../src/kit';
 const INDEX_NAMES = ["ACTIONS", "BASE", "DEFAULT_HEAD", "DEFAULT_SLIDERS", "EXPRESSIONS", "FIGURE_KEY", "Figure", "GAITS", "GAMEPLAY", "HAIR_STYLES", "ITEMS", "J", "JOINTS", "POSES", "RAMPS",
   "RAMP_OUTLINE", "SEATS", "SPRITE_PITCH", "STAGE_VERSION", "SWATCHES", "ScriptedActor", "TIMES", "Troupe", "actionOf", "applyHold", "cellOf", "characterOf", "compose", "densityFor", "envelopeOf", "evaluate",
   "fromDef", "gameplay", "hero", "itemOf", "lengthOf", "lightFigure", "lookAt", "member", "project", "registerFabric", "registerFinish", "registerGarment", "registerHairPiece",
-  "registerOutfitHooks", "scriptOf", "seated", "stageFrame", "standing", "view", "viewOf", "walking", "zoomOf"];
+  "registerOutfitHooks", "scriptOf", "seated", "stageFrame", "standing", "texelDepths", "view", "viewOf", "walking", "zoomOf"];
 
 /** The public surface (src/index.ts) on its own: the base pair drawn as sheets, lit, and played by an actor, imported
  * from the entry point only, as a fork's code would. */
@@ -59,7 +59,7 @@ describe('the public surface', () => {
     const finish: HairFinish = { tones: [0, 1, 2], matte: false };
     const _types: unknown[] = [finish];
     type Named = [Regions, BaseGarment, GarmentKinds, Dressed, Part, Decal, Print, Mesh, Superquadric, Measure, Skeleton, Anchor, Hold,
-      ItemDef, HairInput, HairStyle, Piece, Skull, Tone, Tie, Fabric, Casting, Cell, CameraPose, StageFrame, StageSprite, StageOptions, GBuffer, KitMesh, Material, V3];
+      ItemDef, HairInput, HairStyle, Piece, Skull, Tone, Tie, Fabric, Casting, Cell, CameraPose, StageFrame, StageSprite, StageOptions, Backdrop, GBuffer, KitMesh, Material, V3];
     const n: Named | undefined = undefined;
     expect([_types.length, n]).toEqual([1, undefined]);
   });

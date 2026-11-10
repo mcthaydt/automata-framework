@@ -93,16 +93,50 @@ export function stageFrame(actors: readonly ScriptedActor[], t: number, pose: Ca
   return { version: STAGE_VERSION, camera: pose, sprites: placed.map(p => p.s) };
 }
 
+/** A surface a scene draws beside the figures (a wall, a floor): at the frame's pixel `(x, y)` (a pixel centre) its depth in
+ * metres along the view and its colour, or null where it has none. `compose` depth-tests the figures against it. */
+export type Backdrop = (x: number, y: number) => { depth: number; rgba: readonly [number, number, number, number] } | null;
+
+/**
+ * The depth of every texel of a sprite's cell along the camera's `fwd`, in metres: `Infinity` where the cell is empty. A
+ * texel's surface point is `(x, y', depth)` in the cell's frame (x to the screen's right, y' up the cell, `Cell.depth` toward
+ * the camera, along the pitch the cell was painted at), turned to the world by Ry(azimuth) (docs/contract.md: world =
+ * Ry(azimuth) · cell) and put at the sprite's `at`: its depth along `fwd` is the root's (`sprite.depth`) plus the turned
+ * offset's component along `fwd`. Under a camera at the cell's own pitch that is the root's less the cell's depth. This is the
+ * per-texel depth the scene tests with, on the GPU and in `compose`, as 32-bit floats.
+ */
+export function texelDepths(camera: CameraPose, sprite: StageSprite): Float32Array {
+  const { cell, at } = sprite, [w, h] = cell.size, out = new Float32Array(w * h);
+  const az = viewOf(camera, at).azimuth, ca = Math.cos(az), sa = Math.sin(az), cp = Math.cos(cell.pitch), sp = Math.sin(cell.pitch);
+  const [fx, fy, fz] = camera.fwd, m = cell.metresPerTexel;
+  for (let v = 0; v < h; v++) {
+    const up = (cell.anchor[1] - (v + 0.5)) * m;
+    for (let u = 0; u < w; u++) {
+      const k = v * w + u;
+      if (!cell.rgba[k * 4 + 3]) { out[k] = Infinity; continue; }
+      const x = (u + 0.5 - w / 2) * m, y = up * cp + cell.depth[k] * sp, z = -up * sp + cell.depth[k] * cp;
+      out[k] = sprite.depth + (x * ca + z * sa) * fx + y * fy + (-x * sa + z * ca) * fz;
+    }
+  }
+  return out;
+}
+
 /**
  * The CPU reference: an RGBA frame of `camera.size`, transparent where empty, each sprite blitted nearest-neighbour at
- * its `scale` with its top-left at `screen`, in the frame's order (far to near, the later of a tie on top). It goes by
+ * its `scale` with its top-left at `screen`, depth-tested texel by texel (`texelDepths`), as the GPU does it. It goes by
  * pixel centres, the GPU's rule: a pixel takes texel `(floor((px + 0.5 − x) / scale), floor((py + 0.5 − y) / scale))`
- * when that texel is in the cell and its alpha is set. A sprite off the frame writes nothing.
+ * when that texel is in the cell and its alpha is set. The sprites go in the frame's order (far to near by root); a texel
+ * replaces what is there when its depth is nearer or equal, so equal depths fall to the later sprite. A `backdrop`, the
+ * scene's own geometry, is depth-tested the same way. A sprite off the frame writes nothing.
  */
-export function compose(frame: StageFrame): Uint8ClampedArray {
-  const [W, H] = frame.camera.size, out = new Uint8ClampedArray(W * H * 4);
-  for (const { cell, screen: [sx, sy], scale: k } of frame.sprites) {
-    const [w, h] = cell.size, px = cell.rgba;
+export function compose(frame: StageFrame, backdrop?: Backdrop): Uint8ClampedArray {
+  const [W, H] = frame.camera.size, out = new Uint8ClampedArray(W * H * 4), z = new Float32Array(W * H).fill(Infinity);
+  if (backdrop) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const b = backdrop(x + 0.5, y + 0.5);
+    if (b) { out.set(b.rgba, (y * W + x) * 4); z[y * W + x] = b.depth; }
+  }
+  for (const sprite of frame.sprites) {
+    const { cell, screen: [sx, sy], scale: k } = sprite, [w, h] = cell.size, px = cell.rgba, depths = texelDepths(frame.camera, sprite);
     const x0 = Math.max(0, Math.floor(sx - 0.5)), x1 = Math.min(W, Math.ceil(sx + k * w + 0.5));
     const y0 = Math.max(0, Math.floor(sy - 0.5)), y1 = Math.min(H, Math.ceil(sy + k * h + 0.5));
     for (let y = y0; y < y1; y++) {
@@ -111,8 +145,8 @@ export function compose(frame: StageFrame): Uint8ClampedArray {
       for (let x = x0; x < x1; x++) {
         const u = Math.floor((x + 0.5 - sx) / k);
         if (u < 0 || u >= w) continue;
-        const i = (v * w + u) * 4;
-        if (px[i + 3]) out.set(px.subarray(i, i + 4), (y * W + x) * 4);
+        const i = v * w + u;
+        if (px[i * 4 + 3] && depths[i] <= z[y * W + x]) { out.set(px.subarray(i * 4, i * 4 + 4), (y * W + x) * 4); z[y * W + x] = depths[i]; }
       }
     }
   }
