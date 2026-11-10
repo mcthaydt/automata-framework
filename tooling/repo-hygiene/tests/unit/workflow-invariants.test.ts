@@ -83,7 +83,7 @@ jobs:
   checks:
     steps:
       - uses: actions/checkout@v7
-        with: { submodules: true, token: '\${{ secrets.FIGURES_SUBMODULE_TOKEN }}' }
+        with: { submodules: true, token: '\${{ secrets.SUBMODULES_TOKEN }}' }
 `),
     ).toEqual([])
   })

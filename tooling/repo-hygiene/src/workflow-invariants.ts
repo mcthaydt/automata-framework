@@ -30,13 +30,9 @@ interface Step {
 
 /**
  * Secrets every job may hold: the workflow's own token (scoped by `permissions`), the read-only package token, and the
- * read-only token that checks out the figure builder's private submodule (vendor/FigureBuilder).
+ * read-only token that checks out the private submodules (`.gitmodules`).
  */
-const READ_ONLY_SECRETS: ReadonlySet<string> = new Set([
-  'GITHUB_TOKEN',
-  'AF_READ_TOKEN',
-  'FIGURES_SUBMODULE_TOKEN',
-])
+const READ_ONLY_SECRETS: ReadonlySet<string> = new Set(['GITHUB_TOKEN', 'AF_READ_TOKEN', 'SUBMODULES_TOKEN'])
 
 /** A step's inputs that may name a secret: a checkout's `token`, when the secret is read-only (it reads the submodules). */
 function inputsWithSecrets(step: Step): unknown {

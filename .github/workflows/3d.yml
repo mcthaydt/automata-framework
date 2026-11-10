@@ -48,9 +48,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The figure builder (vendor/FigureBuilder) is a private submodule; the Owner's read-only token checks it out.
+          # The private submodules (.gitmodules) are checked out with the Owner's read-only token.
           submodules: true
-          token: ${{ secrets.FIGURES_SUBMODULE_TOKEN }}
+          token: ${{ secrets.SUBMODULES_TOKEN }}
           persist-credentials: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
@@ -94,9 +94,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The figure builder (vendor/FigureBuilder) is a private submodule; the Owner's read-only token checks it out.
+          # The private submodules (.gitmodules) are checked out with the Owner's read-only token.
           submodules: true
-          token: ${{ secrets.FIGURES_SUBMODULE_TOKEN }}
+          token: ${{ secrets.SUBMODULES_TOKEN }}
           persist-credentials: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
