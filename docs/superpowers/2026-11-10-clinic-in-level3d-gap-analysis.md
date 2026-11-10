@@ -32,6 +32,12 @@ room visibility and the camera rig first, then fog and indirect light, then bloo
 No extension reads The Last Light's own types. Each takes AF data as Zod schemas: `af-sector/2`, zones, lamps and
 profiles. Converting from The Last Light belongs to this work. Rows marked **EB** below wait on those schemas.
 
+EnvironmentBuilder's coordinator has also accepted these inputs. Room visibility takes rooms, zones, mass owners,
+wall owners by `cut` name, and `hideFrom`. The camera rig takes zones as data, with `enterMargin` (metres, default
+0.25) for hysteresis. Indirect light reads lamp levels, flicker and "reduce flashing" from `PieceStates.lamps`. The
+five missing lamp kinds go in core's lamp kit (`packages/3d/src/features/world/library/lamp-kit.json`), so adding them
+is this work's job, not the extensions'.
+
 ## Status key
 
 - **Supported:** AF reads it and does something with it today.
