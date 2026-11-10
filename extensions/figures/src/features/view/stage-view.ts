@@ -16,6 +16,9 @@ import { CellSprite } from './cell-sprite';
  * camera's own centre, `(w / 2, h / 2)`, not the pose's `cx`, `cy`: `Camera3D`'s frustum is symmetric, so a pose with an
  * off-centre principal point lands where `compose` put it only when placed this way. A sprite's `depth` must lie
  * between the camera's near (0.1) and far (1000); `stageFrame` drops what is nearer than 0.1.
+ *
+ * Order is the frame's own: far to near, the later of a tie on top, as `compose` has it. The quads are drawn in that
+ * order with the depth test off (`CellSprite`), since the depth buffer would put the earlier of a tie on top.
  */
 export class StageView {
   /** Add this to the scene (`app.stage.addChild(stage.view)`). */
@@ -59,7 +62,7 @@ export class StageView {
   }
 
   private grow(): CellSprite {
-    const quad = new CellSprite();
+    const quad = new CellSprite(false);
     this.view.root.addChild(quad.sprite);
     return quad;
   }

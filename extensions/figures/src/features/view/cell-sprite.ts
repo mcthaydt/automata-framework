@@ -14,8 +14,12 @@ export class CellSprite {
   private source: BufferImageSource | null = null;
   private key = ''; private size = '';
 
-  constructor() {
+  /** `depthTest` (on by default): the quad hides, and is hidden by, other geometry in its scene by depth. A `StageView`
+   * turns it off and orders its quads itself, far to near in the frame's order: the depth buffer cannot give a tie (two
+   * figures at one distance) its cast order, and cannot separate two a millimetre apart. */
+  constructor(depthTest = true) {
     this.sprite = new Sprite3D({ texture: Texture.EMPTY, billboardMode: 'none', alphaMode: 'mask', label: 'CellSprite' });
+    this.sprite.material.state.depthTest = depthTest;
   }
 
   /** Shows `cell`: uploads its texels when they may have changed. */
