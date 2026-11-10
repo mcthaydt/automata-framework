@@ -37,6 +37,13 @@ export interface StyleFinding {
  */
 export const MAX_SOURCE_LINES = 600
 
+/**
+ * Sources ported from another project and kept as that project wrote them, so a later pull is a plain diff against the
+ * recorded commit (docs/provenance/sources.md). The ceiling would make each pull a hand merge. The Owner exempted the
+ * painted figures, 2026-11-10.
+ */
+const KEPT_AS_WRITTEN: readonly string[] = ['/packages/3d/src/features/painted/']
+
 export const ROLES: ReadonlySet<string> = new Set([
   'component',
   'system',
@@ -262,6 +269,7 @@ export function checkGameRoot(dir: string): StyleFinding[] {
 }
 
 export function lengthFindings(file: string, code: string): StyleFinding[] {
+  if (KEPT_AS_WRITTEN.some((dir) => `/${file.replaceAll('\\', '/')}`.includes(dir))) return []
   const lineCount = code.endsWith('\n') ? code.split('\n').length - 1 : code.split('\n').length
   if (lineCount <= MAX_SOURCE_LINES) return []
   return [

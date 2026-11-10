@@ -116,6 +116,18 @@ describe('the 600-line ceiling on non-test source (QB spec §4.1)', () => {
   test('applies to index.ts too, which skips the naming rules', () => {
     expect(checkFile('/p/src/index.ts', lines(601)).map((f) => f.rule)).toEqual(['file-length'])
   })
+
+  test('skips a ported source kept as written, and nothing beside it', () => {
+    const ported = '/r/packages/3d/src/features/painted/paint/paint.ts'
+    expect(checkFile(ported, lines(2000)).map((f) => f.rule)).not.toContain('file-length')
+    // as the command line names it, relative to the repository
+    expect(
+      checkFile('packages/3d/src/features/painted/paint/paint.ts', lines(2000)).map((f) => f.rule),
+    ).not.toContain('file-length')
+    expect(
+      checkFile('/r/packages/3d/src/features/figures/view/figure-view.ts', lines(601)).map((f) => f.rule),
+    ).toEqual(['file-length'])
+  })
 })
 
 describe('a game root groups its sim by role (GL spec §5.1, acceptance A1–A11)', () => {

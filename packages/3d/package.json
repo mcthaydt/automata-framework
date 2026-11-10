@@ -28,7 +28,8 @@
     "./sim": "./src/entries/sim.ts",
     "./testing": "./src/entries/testing.ts",
     "./testing-checks": "./src/entries/testing-checks.ts",
-    "./timeline": "./src/entries/timeline.ts"
+    "./timeline": "./src/entries/timeline.ts",
+    "./painted": "./src/entries/painted.ts"
   },
   "imports": {
     "#src/*": "./src/*"

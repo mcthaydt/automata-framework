@@ -20,6 +20,8 @@ export interface FigureSpriteInput extends Omit<FigureInput, 'view'> {
   /** The camera's position and the point it looks at (scene metres). */
   eye: V3
   target: V3
+  /** Where the figure stands in the scene, when the sprite sits in a node of its own (the sprite's position if left out). */
+  at?: V3 | undefined
 }
 
 export class FigureSprite {
@@ -51,8 +53,7 @@ export class FigureSprite {
    * the cell it paints, turned to the camera. */
   update(dt: number, input: FigureSpriteInput): void {
     const p = this.sprite.position,
-      at: V3 = [p.x, p.y, p.z]
-    const { eye, target, ...rest } = input,
+      { eye, target, at = [p.x, p.y, p.z], ...rest } = input,
       view = viewFrom(eye, target, at)
     if (this.figure.update(dt, { ...rest, view })) {
       this.source.resource = new Uint8Array(
