@@ -40,10 +40,6 @@
       "linter": { "rules": { "suspicious": { "noThenProperty": "off" } } }
     },
     {
-      "includes": ["packages/3d/src/features/painted/**", "packages/3d/tests/unit/painted/**"],
-      "linter": { "rules": { "style": { "noNonNullAssertion": "off" } } }
-    },
-    {
       "includes": ["extensions/**/*.svelte"],
       "linter": { "rules": { "correctness": { "noUnusedVariables": "off", "noUnusedImports": "off" } } }
     }

@@ -2,5 +2,11 @@
   "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "root": false,
   "extends": "//",
-  "files": { "includes": ["**", "!tests/fixtures"] }
+  "files": { "includes": ["**", "!tests/fixtures"] },
+  "overrides": [
+    {
+      "includes": ["src/features/painted/**", "tests/unit/painted/**"],
+      "linter": { "rules": { "style": { "noNonNullAssertion": "off" } } }
+    }
+  ]
 }
