@@ -11,6 +11,7 @@ import { afterEach, describe, expect, inject, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { createStageRenderer } from '#src/features/studio/stage/stage-renderer.ts'
 import { createStudio } from '#src/features/studio/studio-suite-editor.ts'
+import { untilAttribute } from '#src/testing/canvas-ready.ts'
 import { studioFixtureFiles } from '#src/testing/studio/studio-fixtures.ts'
 
 // The Studio's review images (EDS.9, for the delegated visual acceptance): Look, Pose and Animate in the suite's shell
@@ -56,11 +57,7 @@ async function open(): Promise<void> {
   })
   await settleLayout()
   await chooseEditor('Characters')
-  await expect
-    .poll(() => document.querySelector('[data-testid="studio-stage"][data-status="ready"]'), {
-      timeout: 10_000,
-    })
-    .not.toBeNull()
+  await untilAttribute('studio-stage', 'data-status', 'ready')
   await arrived()
 }
 

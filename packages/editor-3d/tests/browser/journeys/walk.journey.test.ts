@@ -5,6 +5,7 @@ import { arrived, createPointers, IPAD_PROFILES, type IpadProfile } from '@autom
 import { byTestId } from '@automata/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
+import { untilAttribute } from '#src/testing/canvas-ready.ts'
 import { buttonNamed, chooseView, openDepotJourney, undoLabel } from '#src/testing/journey-editor.ts'
 import { stopEditor } from '#src/testing/layout-start.ts'
 
@@ -23,9 +24,7 @@ const statusWords = (): string =>
 async function inWalk(profile: IpadProfile): Promise<HTMLElement> {
   await openDepotJourney(profile)
   chooseView('Walk')
-  await expect
-    .poll(() => document.querySelector('[data-testid="walk-canvas"][data-phase="drawing"]'))
-    .not.toBeNull()
+  await untilAttribute('walk-canvas', 'data-phase', 'drawing')
   await arrived()
   return byTestId('walk-canvas')
 }
