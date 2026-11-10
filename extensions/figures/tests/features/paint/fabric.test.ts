@@ -4,7 +4,7 @@ import { GROUP } from '../../../src/features/body/parts';
 import { Figure } from '../../../src/features/figure/figure';
 import { member, standing } from '../../../src/features/figure/frames';
 import { SWATCHES, type Garment } from '../../../src/features/outfit/garments';
-import { fabricOf, labelAt, registerFabric } from '../../../src/features/paint/fabric';
+import { depthAt, fabricOf, labelAt, registerFabric } from '../../../src/features/paint/fabric';
 import { duel, oklab, tonesOf } from '../../../src/features/paint/paint';
 import { registerGarment, box } from '../../../src/features/outfit/garments';
 import { J } from '../../../src/features/body/rig';
@@ -348,7 +348,7 @@ describe('a tiled cloth is even', () => {
         n++;
         const [rg, sg] = onRow(colourAt(w.ground, k * 4)), [rt, st] = onRow(colourAt(f.painted, k * 4));
         expect(rt, `view ${d} texel ${k}`).toBe(rg);
-        expect(Math.abs(st - sg), `view ${d} texel ${k}`).toBeLessThanOrEqual(w.hi[k] - w.lo[k]);
+        expect(Math.abs(st - sg), `view ${d} texel ${k}`).toBeLessThanOrEqual(depthAt(w, k)[1] - depthAt(w, k)[0]);
       }
       expect(n, `view ${d}`).toBeGreaterThan(300);
     }

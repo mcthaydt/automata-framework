@@ -1,6 +1,6 @@
 import type { V3 } from '../../lib/math';
 import { RAMPS } from '../paint/duel-ramps';
-import type { Weave } from '../paint/fabric';
+import { depthAt, type Weave } from '../paint/fabric';
 import { tiled } from '../paint/row';
 import { grade, onRow, stepBy, toward } from './grade';
 import { lampSteps, strength, viewToWorld, type Lamp, type TimeOfDay } from './lamps';
@@ -56,7 +56,7 @@ export function lightFigure(f: LitSource, L: Lighting): Uint8ClampedArray {
     const o = (y * w + x) * 4;
     if (!rgba[o + 3]) continue;
     // A tiled texel lights its ground (the untiled colour), then the tile steps on along the lit colour's row.
-    const on = weave !== null && weave.on[y * w + x] === 1, src = on ? weave!.ground : rgba;
+    const on = weave !== null && weave.on[y * w + x] !== 0, src = on ? weave!.ground : rgba;
     const rgb = (src[o] << 16) | (src[o + 1] << 8) | src[o + 2];
     // Ink (the outline under and away from the key) stays ink.
     if (rgb === 0) { out[o] = out[o + 1] = out[o + 2] = 0; out[o + 3] = 255; continue; }
@@ -64,7 +64,7 @@ export function lightFigure(f: LitSource, L: Lighting): Uint8ClampedArray {
     const px = root[0] + (x - w / 2) / ppm, py = root[1] + Math.max(0, (feetRow - y) / (ppm * c)), pz = root[2];
     let col = figureColour(rgb, n, [px, py, pz], { time: L.time, lamps, strengths, cap, shift }, on);
     if (bounce && !on) { const s = bounce.side ?? 0, edge = s !== 0 && (x + s < 0 || x + s >= w || !rgba[(y * w + x + s) * 4 + 3]); col = bounced(col, bounce, n[1] < -0.2 || y > feetRow - h * 0.12, edge); }
-    if (on) col = tiled(col, weave!.labels[y * w + x], weave!.lo[y * w + x], weave!.hi[y * w + x]);
+    if (on) col = tiled(col, weave!.labels[y * w + x], ...depthAt(weave!, y * w + x));
     out[o] = (col >> 16) & 255; out[o + 1] = (col >> 8) & 255; out[o + 2] = col & 255; out[o + 3] = 255;
   }
   return out;

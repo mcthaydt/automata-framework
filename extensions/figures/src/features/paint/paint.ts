@@ -1,7 +1,7 @@
 import { RAMPS, RAMP_OUTLINE } from './duel-ramps';
 import { noise3, type GBuffer } from './raster';
 import { smooth } from '../../lib/math';
-import { depthOf, fabricOf, labelAt, newWeave, type Fabric, type Weave } from './fabric';
+import { depthAt, depthOf, fabricOf, labelAt, newWeave, type Fabric, type Weave } from './fabric';
 import { tiled } from './row';
 import { GROUP, type Material } from '../body/parts';
 import type { HeadShape } from '../body/genes';
@@ -951,7 +951,15 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   // label here (`weave.on`); with no cloth channel there is none.
   const depths = fabrics.map(f => (f ? depthOf(f) : null));
   const weave = cloth ? weaveOut ?? newWeave(n) : null;
-  if (weave) { weave.labels.fill(0); weave.lo.fill(0); weave.hi.fill(0); weave.on.fill(0); }
+  if (weave) weave.depths.length = 0;
+  // A texel's `on` is 1 + the index of its fabric's depth in the weave's table (one pair per distinct depth).
+  const slotOf = depths.map(d => {
+    if (!d || !weave) return 0;
+    let i = weave.depths.findIndex(p => p[0] === d[0] && p[1] === d[1]);
+    if (i < 0) i = weave.depths.push(d) - 1;
+    return i + 1;
+  });
+  if (weave) { weave.labels.fill(0); weave.on.fill(0); }
   // The skin's family: the skin, and any surface painted in its tones alone (an ear's rim and bowl), which takes its line.
   const skinSet = new Set(skin >= 0 ? tones[skin] : []), skinny = tones.map((t, i) => i === skin || (skin >= 0 && t.every(c => skinSet.has(c))));
   // Black cloth (a dark ramp, not skin, hair or a flat mark) has its own darks and form (extraTones, the rim below).
@@ -1567,8 +1575,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
       // A handed tile (fabric.ts): the left limbs' `u` runs against the trunk's and the right limbs', so it is read negated.
       if (u !== null && fab.handed && (group[k] === GROUP.armL || group[k] === GROUP.legL)) u = -u;
       if (u !== null) {
-        const [lo, hi] = depths[mi]!;
-        weave!.labels[k] = labelAt(fab, u, cloth!.place[k * 3 + 2], ppm); weave!.lo[k] = lo; weave!.hi[k] = hi; weave!.on[k] = 1;
+        weave!.labels[k] = labelAt(fab, u, cloth!.place[k * 3 + 2], ppm); weave!.on[k] = slotOf[mi];
       }
     }
     if (materials[mi].see && t < OUTLINE && (hue[k] >= MIRROR || materials[mi].holo !== 'mirror')) through.set(k, tint(tones[mi]));
@@ -1588,7 +1595,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     weave.ground.set(albedo);
     for (let k = 0; k < n; k++) {
       if (!weave.on[k]) continue;
-      const o = k * 4, c = tiled((albedo[o] << 16) | (albedo[o + 1] << 8) | albedo[o + 2], weave.labels[k], weave.lo[k], weave.hi[k]);
+      const o = k * 4, c = tiled((albedo[o] << 16) | (albedo[o + 1] << 8) | albedo[o + 2], weave.labels[k], ...depthAt(weave, k));
       albedo[o] = (c >> 16) & 255; albedo[o + 1] = (c >> 8) & 255; albedo[o + 2] = c & 255;
     }
   }

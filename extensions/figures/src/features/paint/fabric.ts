@@ -48,8 +48,12 @@ export function labelAt(f: Fabric, u: number, v: number, ppm: number): number {
 
 /**
  * What a figure drawn with a fabric keeps beside its colours, so the lighting can light the cloth's ground and lay the
- * tile after (row.ts): per texel of the cell, the untiled colour (RGBA), the tile's label and the fabric's `lo` and `hi`
- * (depthOf), and `on` where a tile is laid (a label of 0 included).
+ * tile after (row.ts): per texel of the cell, the untiled colour (RGBA), the tile's label, and `on`, 0 where no tile is
+ * laid (a label of 0 included) and else 1 + an index into `depths`, the table of the fabrics' `[lo, hi]` (depthOf: how far a
+ * tile reaches from a ground). A material's fabric sets the texel's depth, so the table holds one pair per distinct depth
+ * (a few), not two numbers per texel.
  */
-export interface Weave { ground: Uint8ClampedArray; labels: Int8Array; lo: Int8Array; hi: Int8Array; on: Uint8Array }
-export const newWeave = (texels: number): Weave => ({ ground: new Uint8ClampedArray(texels * 4), labels: new Int8Array(texels), lo: new Int8Array(texels), hi: new Int8Array(texels), on: new Uint8Array(texels) });
+export interface Weave { ground: Uint8ClampedArray; labels: Int8Array; on: Uint8Array; depths: [lo: number, hi: number][] }
+export const newWeave = (texels: number): Weave => ({ ground: new Uint8ClampedArray(texels * 4), labels: new Int8Array(texels), on: new Uint8Array(texels), depths: [] });
+/** The `[lo, hi]` of a texel's tile: the fabric's depth where `on` is set. */
+export const depthAt = (w: Weave, k: number): [lo: number, hi: number] => w.depths[w.on[k] - 1];

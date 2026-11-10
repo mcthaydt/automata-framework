@@ -322,8 +322,8 @@ export class Figure {
       this.depth.fill(-Infinity); this.depth.set(hit.depth, o / 4);
       if (hit.weave && this.built.cloth) {
         const wv = this.weaveBuf ??= newWeave(this.cell[0] * this.cell[1]), t = o / 4;
-        wv.ground.fill(0); wv.labels.fill(0); wv.lo.fill(0); wv.hi.fill(0); wv.on.fill(0);
-        wv.ground.set(hit.weave.ground, o); wv.labels.set(hit.weave.labels, t); wv.lo.set(hit.weave.lo, t); wv.hi.set(hit.weave.hi, t); wv.on.set(hit.weave.on, t);
+        wv.ground.fill(0); wv.labels.fill(0); wv.on.fill(0); wv.depths.length = 0; wv.depths.push(...hit.weave.depths);
+        wv.ground.set(hit.weave.ground, o); wv.labels.set(hit.weave.labels, t); wv.on.set(hit.weave.on, t);
       }
       this.world = hit.world; this.faceStamp = hit.face;
       this.cells.delete(key); this.cells.set(key, hit);
@@ -339,7 +339,7 @@ export class Figure {
       while (y0 < y1 && empty(y0)) y0++;
       while (y1 > y0 && empty(y1 - 1)) y1--;
       const wv = this.weave, a = y0 * this.cell[0], b = y1 * this.cell[0];
-      const weave = wv ? { ground: wv.ground.slice(a * 4, b * 4), labels: wv.labels.slice(a, b), lo: wv.lo.slice(a, b), hi: wv.hi.slice(a, b), on: wv.on.slice(a, b) } : null;
+      const weave = wv ? { ground: wv.ground.slice(a * 4, b * 4), labels: wv.labels.slice(a, b), on: wv.on.slice(a, b), depths: wv.depths.slice() } : null;
       this.cells.set(key, { y0, painted: this.painted.slice(y0 * row, y1 * row), normals: this.normals.slice(y0 * row, y1 * row), depth: this.depth.slice(a, b), weave, world: this.world, face: this.faceStamp });
       if (this.cells.size > CELLS) this.cells.delete(this.cells.keys().next().value!);
     }
