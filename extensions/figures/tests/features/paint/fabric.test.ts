@@ -155,27 +155,24 @@ describe('fabrics drawn', () => {
     expect(differs(tiled, lit(dressed(outfit('plain'), { plain: PLAIN })))).toBe(true);
     expect(differs(tiled, lit(dressed(outfit('fxrib'), SWATCHES_FX)))).toBe(false);
   });
-  it('lit by a time of day and a lamp, the tiled top\'s texels use only colours the untiled top uses lit (N11)', () => {
+  it('lit by a time of day and a lamp, the tiled top\'s texels stay on the swatch\'s own hue row (N11)', () => {
     const lighting = { time: TIMES.dusk, lamps: [{ at: [-1.2, 1.5, 0.8] as [number, number, number], color: '#ffbc4e', steps: 3, radius: 3.2, tint: 0.4 }], t: 0 };
     const litTop = (swatch: string, sw: Record<string, object>) => {
       const f = new Figure(member(dressed(outfit(swatch), sw as never), 2));
       f.cache = false;
       for (let i = 0; i < 3; i++) f.update(1 / 60, input);
       const out = lightFigure(f, lighting), top = f['built'].materialIndex.get(swatch)!, set = new Set<number>();
-      for (let k = 0; k < f.g.material.length; k++) if (f.g.material[k] === top && out[k * 4 + 3]) set.add(colourAt(out, k * 4));
+      for (let k = 0; k < f.g.material.length; k++) if (f.g.material[k] === top && out[k * 4 + 3] && (!f.weave || f.weave.on[k])) set.add(colourAt(out, k * 4));
       return set;
     };
-    // Restated for the tile laid last (c5-finish): the tile steps along the lit ground's own row, so a lit colour the untiled
-    // top lacks can appear, but only on a row the untiled top is lit on, within the tile's depth (one step) of a colour it has.
+    // Restated for the tile laid last (c5-finish): the lit ground stays on the swatch's own hue row (no tint to snap it onto a
+    // neighbour's) and the tile steps along it, so a fabric's lit colours are all on the row of its swatch, the plain top's
+    // being the tinted ones (tinting is the untiled cloth's own business).
     const tiled = litTop('fxrib', SWATCHES_FX), plain = litTop('plain', { plain: PLAIN });
     expect(tiled.size).toBeGreaterThan(1);
-    const rows = new Map<number, number[]>();
-    for (const c of plain) { const [r, st] = onRow(c); rows.set(r, [...(rows.get(r) ?? []), st]); }
-    for (const c of tiled) {
-      const [r, st] = onRow(c);
-      expect(rows.has(r), `row of ${c.toString(16)}`).toBe(true);
-      expect(Math.min(...rows.get(r)!.map(p => Math.abs(p - st))), `${c.toString(16)}`).toBeLessThanOrEqual(1);
-    }
+    expect(plain.size).toBeGreaterThan(1);
+    const own = new Set(tonesOf(PLAIN).map(c => onRow(duel(c))[0]));
+    for (const c of tiled) expect(own.has(onRow(c)[0]), `row of ${c.toString(16)}`).toBe(true);
   });
   it('a texel-size tile keeps its texel period at every density', () => {
     for (const D of [1, 2, 4]) {
@@ -275,6 +272,27 @@ describe('a tiled cloth is even', () => {
       expectEven(evenness(f, f.painted, -1), 'unlit');
     });
   }
+  for (const D of [2, 4]) for (const d of [0, 3, 4]) it(`lit, the cloth stays on its ground's own hue row: no teal beside purple (D${D}, direction ${d})`, () => {
+    // The gate's finding: a lamp's tint snapped the lit ground to a neighbouring hue row, patch by patch. The lit ground of a
+    // fabric moves along its own ramp's row (whole steps); only a row's darkest step (ink, a family dark) is let go.
+    const f = drawnFig(def(), D, d), w = weaveOf(f);
+    const lamps: Lighting = { ...NIGHT, lamps: [...NIGHT.lamps, { at: [-1.2, 1.5, 0.8], color: '#ffbc4e', steps: 3, radius: 3.2, tint: 0.4 }] };
+    for (const lighting of [NIGHT, lamps]) {
+      const px = lightFigure(f, lighting), rows = new Map<number, number>();
+      let n = 0;
+      for (let k = 0; k < f.g.w * f.g.h; k++) {
+        if (!w.on[k]) continue;
+        const [rg, sg] = onRow(colourAt(w.ground, k * 4));
+        if (sg === 0) continue;
+        n++;
+        const r = onRow(colourAt(px, k * 4))[0];
+        rows.set(r, (rows.get(r) ?? 0) + 1);
+        expect(r, `texel ${k}`).toBe(rg);
+      }
+      expect(n).toBeGreaterThan(300);
+      expect(rows.size).toBe(1);
+    }
+  });
   it('a tiled matte black keeps its darkest step: no purple, no lift of a near-black', () => {
     const black = (swatch: object) => drawnFig(dressed(outfit('fxblack'), { fxblack: swatch as never }), 2, 0);
     const tiled = black({ ramp: 0, base: 1, fabric: 'fx-twill' }), plain = black({ ramp: 0, base: 1 });

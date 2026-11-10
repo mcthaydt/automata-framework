@@ -17,10 +17,13 @@ import { lampSteps, strength, viewToWorld, type Lamp, type TimeOfDay } from './l
 export interface FigureLight { time: TimeOfDay; lamps: Lamp[]; strengths: number[]; cap: number; shift: number; reach?: number[] }
 /** A figure texel lit: along its own DUEL row by the shift and the lamps' steps on its
  * normal (world), tinted in OKLab, snapped to DUEL. Never down onto a row's darkest step. */
-function figureColour(rgb: number, n: V3, p: V3, L: FigureLight) {
+function figureColour(rgb: number, n: V3, p: V3, L: FigureLight, own = false) {
   let sum = 0, top = -1, topS = 0;
   L.lamps.forEach((l, li) => { const s = lampSteps(l, L.strengths[li], p[0], p[1], p[2], n[0], n[1], n[2]) * (L.reach ? L.reach[li] : 1); sum += s; if (s > topS) { topS = s; top = li; } });
   const [row, st] = onRow(rgb), step = Math.max(Math.min(st, 1), Math.min(7, st + L.shift + Math.min(L.cap, Math.floor(sum + 0.2))));
+  // A fabric's ground keeps its own hue row: whole steps along it, with no tint to snap it onto a neighbour row patch by
+  // patch (a row's darkest step, ink or a family dark, holds). The tile is laid after, on the same row.
+  if (own) return st === 0 ? rgb : RAMPS[row][step];
   const lamp = top >= 0 && sum >= 0.8, tint = lamp ? parseInt(L.lamps[top].color.slice(1), 16) : parseInt(L.time.ambient.slice(1), 16), amt = lamp ? (L.lamps[top].tint ?? 0.35) * 0.7 : L.time.tint * 0.7;
   return grade(RAMPS[row][step], tint, Math.round(amt * 8) / 8);
 }
@@ -59,8 +62,8 @@ export function lightFigure(f: LitSource, L: Lighting): Uint8ClampedArray {
     if (rgb === 0) { out[o] = out[o + 1] = out[o + 2] = 0; out[o + 3] = 255; continue; }
     const n = N[o + 3] ? viewToWorld([N[o] / 127.5 - 1, 1 - N[o + 1] / 127.5, N[o + 2] / 127.5 - 1], f.pitch) : viewToWorld([0, 0, 1], f.pitch);
     const px = root[0] + (x - w / 2) / ppm, py = root[1] + Math.max(0, (feetRow - y) / (ppm * c)), pz = root[2];
-    let col = figureColour(rgb, n, [px, py, pz], { time: L.time, lamps, strengths, cap, shift });
-    if (bounce) { const s = bounce.side ?? 0, edge = s !== 0 && (x + s < 0 || x + s >= w || !rgba[(y * w + x + s) * 4 + 3]); col = bounced(col, bounce, n[1] < -0.2 || y > feetRow - h * 0.12, edge); }
+    let col = figureColour(rgb, n, [px, py, pz], { time: L.time, lamps, strengths, cap, shift }, on);
+    if (bounce && !on) { const s = bounce.side ?? 0, edge = s !== 0 && (x + s < 0 || x + s >= w || !rgba[(y * w + x + s) * 4 + 3]); col = bounced(col, bounce, n[1] < -0.2 || y > feetRow - h * 0.12, edge); }
     if (on) col = tiled(col, weave!.labels[y * w + x], weave!.lo[y * w + x], weave!.hi[y * w + x]);
     out[o] = (col >> 16) & 255; out[o + 1] = (col >> 8) & 255; out[o + 2] = col & 255; out[o + 3] = 255;
   }

@@ -909,6 +909,9 @@ const SHEEN = [0.64, 0.8] as const;
  * `DARK_SHINE` of lightness over the light tone, a grey over black.
  */
 export const GLOSS_SHEEN = 0.12, SHEEN_MIN = 6, SHEEN_MAX = 10, DARK_SHINE = 0.12;
+/** The patch's share of its surface at density D, against D2's: a highlight is a few texels, so as the texels shrink the patch
+ * keeps its look at D1 and D2 and falls to a third of the area at D4 (and a ninth at D8). */
+export const sheenScale = (D: number) => (D <= 2 ? 1 : 3 ** -Math.log2(D / 2));
 /** A mirror lens's tint (holo `'mirror'`): its body a dark of its ramp's hue, lit and dark, and what shows through it
  * (`see`): an eye's white a muted step of that hue, its iris and lash the tint's dark. The tint's steps sit at MIRROR. */
 const MIRROR = 4, MIRROR_SKY = 0.4;
@@ -1180,7 +1183,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     for (let k = 0; k < n; k++) if (material[k] >= 0 && part[k] >= 0 && hard[material[k]]) { const key = surfaceOf(k); let a = bySurface.get(key); if (!a) bySurface.set(key, a = []); a.push(k); }
     for (const [key, ks] of bySurface) {
       if (ks.length < SHEEN_MIN * D * D) continue;
-      const take = Math.min(Math.floor(GLOSS_SHEEN * materials[key % 4096].gloss! * ks.length), SHEEN_MAX * D * D);
+      const take = Math.min(Math.floor(GLOSS_SHEEN * materials[key % 4096].gloss! * ks.length * sheenScale(D)), Math.ceil(SHEEN_MAX * D * D * sheenScale(D)));
       ks.sort((a, b) => spec(b) - spec(a) || a - b);
       for (let i = 0; i < Math.max(1, take); i++) sheen[ks[i]] = 1;
     }
@@ -1251,7 +1254,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   // A dark gloss's sheen keeps no speck: a patch that a shadow or the surface's edge cut down to a few texels is dropped (the
   // surface reads in its mid tone there), as a sprite artist would not leave an orphan highlight.
   if (hard.some(Boolean)) {
-    const seen = new Uint8Array(n), least = Math.ceil(SHEEN_MIN * D * D / 4);
+    const seen = new Uint8Array(n), least = Math.ceil(SHEEN_MIN * D * D * sheenScale(D) / 4);
     for (let k = 0; k < n; k++) {
       if (tone[k] !== -1 || seen[k] || !hard[material[k]]) continue;
       const area = [k]; seen[k] = 1;

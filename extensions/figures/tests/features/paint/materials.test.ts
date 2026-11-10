@@ -122,6 +122,21 @@ describe('a dark gloss is leather', () => {
       expect(dark(fig(leather, D, d, walk))).toBeGreaterThanOrEqual(dark(fig(matte, D, d, walk)) - (GLOSS_SHEEN * 0.5 + 0.01));
     });
   }
+  it('the highlight is a highlight at every density: a third of the area at D4 that D2 has, and D2 keeps its look', () => {
+    // The gate: at D4 the patch filled whole shoulder caps and the chest. The patch's share of its cloth scales with density.
+    const share = (D: number, d: number) => {
+      const g = fig(leather, D, d), m = fig(matte, D, d), mi = g['built'].materialIndex.get('probe')!;
+      let n = 0;
+      for (let k = 0; k < g.g.w * g.g.h; k++) if (g.g.material[k] === mi && g.painted[k * 4 + 3]) n++;
+      return shine(g, m).length / n;
+    };
+    for (const d of [0, 1]) {
+      const s2 = share(2, d), s4 = share(4, d);
+      expect(s2, `D2 d${d}: keeps its look`).toBeGreaterThan(0.04);
+      expect(s4, `D4 d${d}: ${s4} of ${s2}`).toBeLessThanOrEqual(s2 * 0.4);
+      expect(s4, `D4 d${d}: still there`).toBeGreaterThan(0.005);
+    }
+  });
   it('a surface under 6·D² texels takes no shine (a zip pull, a black frame)', () => {
     registerGarment('lthpull', { build: c => ({ parts: [box(J.chest, 'pull', GROUP.torso, { at: [0, 0.1, 0.2], r: [0.012, 0.012, 0.012] })] }) });
     const small: Garment = { lthpull: 'x' } as unknown as Garment;
