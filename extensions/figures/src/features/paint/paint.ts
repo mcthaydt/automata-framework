@@ -1161,7 +1161,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     }
   }
   /** A dark, hard gloss (leather, patent, a black frame): its body stays dark, its light only a thin rim on the key's side
-   * of its silhouette, its highlight streaks a texel wide along the crest of its form. */
+   * of its silhouette, its highlight one soft patch per surface (the sheen, above), not a streak along every crest. */
   const hard = materials.map((m, i) => m.gloss !== undefined && !m.strands && i !== skin && oklab(tones[i][1])[0] < 0.4);
   // Tones: 0 light … 3 deep, −1 a gloss's shine, −2 empty, OUTLINE and LINE. `owner` is the shape an outline texel
   // belongs to (the nearer one): its line tone and its normal.
