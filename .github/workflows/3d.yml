@@ -48,10 +48,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The private submodules (.gitmodules) are checked out with the Owner's read-only token.
-          submodules: true
-          token: ${{ secrets.SUBMODULES_TOKEN }}
           persist-credentials: false
+      # The private submodules (.gitmodules), with the Owner's read-only SUBMODULES_TOKEN. It reads only them, so the
+      # checkout above keeps the workflow's own token; the token rides this one command, never git's config.
+      - name: Check out the private submodules
+        env:
+          SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
+        run: |
+          auth="$(printf 'x-access-token:%s' "$SUBMODULES_TOKEN" | base64 | tr -d '\n')"
+          git -c safe.directory='*' -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" submodule update --init --depth 1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           dest: ${{ runner.temp }}/setup-pnpm
@@ -94,10 +99,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The private submodules (.gitmodules) are checked out with the Owner's read-only token.
-          submodules: true
-          token: ${{ secrets.SUBMODULES_TOKEN }}
           persist-credentials: false
+      # The private submodules (.gitmodules), with the Owner's read-only SUBMODULES_TOKEN. It reads only them, so the
+      # checkout above keeps the workflow's own token; the token rides this one command, never git's config.
+      - name: Check out the private submodules
+        env:
+          SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
+        run: |
+          auth="$(printf 'x-access-token:%s' "$SUBMODULES_TOKEN" | base64 | tr -d '\n')"
+          git -c safe.directory='*' -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" submodule update --init --depth 1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).

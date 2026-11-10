@@ -3,8 +3,7 @@
 //
 // 1. Every workflow sets its token's `permissions` at the top, so no job gets the default write access by accident.
 // 2. Nothing runs on `pull_request_target`, which runs with the repository's secrets on a fork's code.
-// 3. A secret is handed only to the step that uses it (a step's `env`, or a read-only one as a checkout's `token`), never
-//    to a whole workflow or job.
+// 3. A secret is handed only to the step that uses it (a step's `env`), never to a whole workflow or job.
 // 4. A publishing secret (anything but the read-only package token) reaches only jobs a pull request cannot start: a
 //    workflow a pull request can trigger, directly or as a reusable workflow, guards such jobs in their `if`.
 // 5. The heavy jobs skip draft pull requests: a job a pull request can start says `draft` in its `if`, unless it is
@@ -23,7 +22,6 @@ interface Job {
   readonly steps?: readonly Step[]
 }
 interface Step {
-  readonly uses?: string
   readonly run?: string
   readonly with?: Readonly<Record<string, unknown>>
 }
@@ -34,12 +32,6 @@ interface Step {
  */
 const READ_ONLY_SECRETS: ReadonlySet<string> = new Set(['GITHUB_TOKEN', 'AF_READ_TOKEN', 'SUBMODULES_TOKEN'])
 
-/** A step's inputs that may name a secret: a checkout's `token`, when the secret is read-only (it reads the submodules). */
-function inputsWithSecrets(step: Step): unknown {
-  if (!(step.uses ?? '').startsWith('actions/checkout@') || step.with === undefined) return step.with
-  const { token, ...rest } = step.with
-  return secretsIn(token).every((name) => READ_ONLY_SECRETS.has(name)) ? rest : step.with
-}
 /** The light gate every pull request runs, drafts included (lint, typecheck, unit). */
 const LIGHT_GATES: ReadonlySet<string> = new Set(['checks'])
 
@@ -86,7 +78,7 @@ export function workflowProblems(file: string, workflow: Workflow): readonly str
     for (const name of secretsIn(job.env))
       problems.push(`${file} ${id}: hands ${name} to every step (job env)`)
     for (const step of job.steps ?? [])
-      for (const name of secretsIn([step.run, inputsWithSecrets(step)]))
+      for (const name of secretsIn([step.run, step.with]))
         problems.push(`${file} ${id}: names ${name} outside a step's env`)
     const reachable = reachableByPullRequest(job, workflowReachable)
     const publishing = [...new Set(secretsIn(job))].filter((name) => !READ_ONLY_SECRETS.has(name))

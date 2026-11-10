@@ -74,7 +74,7 @@ jobs:
     ).toEqual([])
   })
 
-  it("let the figure builder's read-only token check out its submodule in a job a pull request starts", () => {
+  it("let the private submodules' read-only token reach a pull request's job, in the step that fetches them", () => {
     expect(
       fixture(`
 on: [pull_request]
@@ -82,8 +82,8 @@ permissions: {}
 jobs:
   checks:
     steps:
-      - uses: actions/checkout@v7
-        with: { submodules: true, token: '\${{ secrets.SUBMODULES_TOKEN }}' }
+      - env: { SUBMODULES_TOKEN: '\${{ secrets.SUBMODULES_TOKEN }}' }
+        run: git submodule update --init
 `),
     ).toEqual([])
   })
