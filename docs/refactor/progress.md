@@ -38,7 +38,7 @@ The PRs are stacked, in this order: #388 (phase 1, not a draft) ← #389 ← #39
 **Everything that can be done from a cloud session is done.** What is left is the Owner's:
 
 1. **8.2 boot failure:** done, 2026-11-05: Ruken's fake host can refuse a boot (RukenApp PR #582), and the boot-failure
-   journey passes. Merge the RukenApp pull request, then re-vendor its tarballs from RukenApp `main`.
+   journey passes. The pull request merged, and the tarballs come from RukenApp `main` at `97add26` (2026-11-10).
 2. **9.2** waits for the Owner's go; **2.1**'s tag push is the Owner's (HTTP 403 from here).
 3. WebKit, Firefox and hosted CI runs for the whole stack.
 4. **Consumer smoke after the package merge** (found by the first CI run, 2026-11-06; [comment on #400](https://github.com/mcthaydt/automata-framework/pull/400#issuecomment-6678595019)):

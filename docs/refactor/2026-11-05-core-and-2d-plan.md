@@ -1123,3 +1123,5 @@ the features it lacks are journeyed on the one-file examples that show them:
   trace is hello, welcome, session.refused, that boot's one log line is the only console error, and that Try again
   reloads the game's frame. Verified: the journey in all five Emberwick projects (Chromium and WebKit); `pnpm ci:local`
   apart from one Firefox browser-session timeout in the `automata` browser suite (rerun below).
+- **Task 8.2, re-vendor, 2026-11-10.** RukenApp PR #582 merged as `97add26`. The four tarballs repacked from RukenApp
+  `main` there have the same SHA-256 as the branch ones, so only the README's `**Source:**` line and `docs/stack.md` change.

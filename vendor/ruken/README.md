@@ -12,11 +12,11 @@ FloorFifty's `vendor/ruken/` pattern (decision D-6, master spec §12).
 | `ruken-manifest-0.0.0.tgz` | `@ruken/manifest` | `packages/ship` (checks the generated `ruken.toml`, compiles CSP headers) |
 | `ruken-cli-0.0.0.tgz` | `@ruken/cli` (the `ruken` bin) | `packages/ship` (`ship publish` spawns `ruken publish`). Built with Ruken's own `tsdown` config, which bundles `@ruken/validation`, `@ruken/api-contract` and `@ruken/manifest` into `dist/`; runtime dependencies are `smol-toml` 1.9.0, `yauzl` 3.4.0, `yazl` 3.3.1 and `zod` 4.6.6, pinned as in Ruken. Checked: with only those four installed, `node dist/cli.js` prints the usage (exit 2). |
 
-**Source:** RukenApp `feat/fake-host-refusal` at `24568ae` (`24568ae4`, RukenApp PR #582, not yet merged), packed
-2026-11-05 for the Ruken boot-failure journey. It adds `session.refused` (the host refuses to start a session and
-`ruken.ready` rejects) and the fake host's `refuse` option, on top of RukenApp `main` at `4548672`, so the tarballs also
-carry Ruken's code-audit fixes (#395), the plain-node protocol load (#413) and the copy audit (#409). Re-vendor from
-`main` once that pull request merges.
+**Source:** RukenApp `main` at `97add26` (`97add26a7126edbdc99f7c379c5299f136eb8c70`, the squash merge of RukenApp
+PR #582), packed 2026-11-10. It adds `session.refused` (the host refuses to start a session and `ruken.ready` rejects)
+and the fake host's `refuse` option, so the Ruken boot-failure journey can run. The tarballs are byte-identical to
+the ones packed on 2026-11-05 from that pull request's branch (`feat/fake-host-refusal` at `24568ae`); they also
+carry Ruken's code-audit fixes (#395), the plain-node protocol load (#413) and the copy audit (#409).
 
 **Before that:** RukenApp `main` at `e376a2d` (`e376a2d7971b696f77f1d15f5174e80de70e65ef`, the merge of RukenApp PR #396,
 2026-10-30), packed 2026-10-30 (PRODUCT.4r). Each package was built with its own `pnpm run build` (Ruken's
