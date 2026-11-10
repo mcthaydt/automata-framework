@@ -29,6 +29,8 @@ export default defineJourneys({
       url: `http://localhost:${examples3dPort}/`,
       env: { AF_E2E_EXAMPLES_PORT: String(examples3dPort) },
       reuseExistingServer: reuse,
+      // It builds the examples before it serves them: more than Playwright's 60 s on the shared runner.
+      timeout: 180_000,
     },
   ],
 })
