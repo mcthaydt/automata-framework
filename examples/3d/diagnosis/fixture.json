@@ -1,0 +1,2905 @@
+{
+  "figure": {
+    "keeper": {
+      "default": "lamplighter",
+      "gait": "elderly",
+      "hair": {
+        "stiff": 70,
+        "trail": 0.15
+      },
+      "hand": "L",
+      "outfits": {
+        "lamplighter": [
+          {
+            "collar": "starch-shade",
+            "sleeves": "long",
+            "top": "starch"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "boot-sole"
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "cap": "tweed",
+            "style": "flat"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "pale-lid",
+            "mouth": "mouth"
+          }
+        ],
+        "shirtsleeves": [
+          {
+            "sleeves": "short",
+            "top": "starch"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "sole"
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "lid",
+            "mouth": "mouth"
+          }
+        ]
+      },
+      "skin": "pale",
+      "sliders": {
+        "age": 0.85,
+        "arms": 0.85,
+        "chunk": 0.6,
+        "face": {
+          "bridge": 0.8,
+          "browWeight": 0.8,
+          "chin": 0.65,
+          "hood": 0.6,
+          "jaw": 0.7
+        },
+        "fat": 0.2,
+        "frame": 0.2,
+        "head": 0.4,
+        "height": 186,
+        "hunch": 0.4,
+        "legs": 0.75,
+        "muscle": 0.3,
+        "neckLength": 0.6,
+        "posture": 0.2,
+        "shoulders": 0.6
+      },
+      "stand": "hand-in-jacket-pocket"
+    },
+    "wick": {
+      "default": "wanderer",
+      "gait": "bounce",
+      "hand": "R",
+      "outfits": {
+        "wanderer": [
+          {
+            "cuffs": "wick-trim",
+            "sleeves": "long",
+            "top": "wick-cloak"
+          },
+          {
+            "trousers": "wick-cloak-shade"
+          },
+          {
+            "boots": true,
+            "shoes": "wick-boot",
+            "sole": "sole"
+          },
+          {
+            "cape": "wick-cloak",
+            "length": 0.9,
+            "trim": "wick-trim"
+          },
+          {
+            "cap": "wick-cloak",
+            "style": {
+              "locks": [
+                {
+                  "at": [0, 0.62, -0.08],
+                  "e": [0.6, 0.7],
+                  "on": "head",
+                  "r": [1.3, 0.62, 1.2]
+                },
+                {
+                  "at": [0, 0.95, -0.9],
+                  "on": "back",
+                  "pitch": -0.6,
+                  "r": [0.3, 0.42, 0.3],
+                  "taper": [1, 0.4]
+                }
+              ]
+            }
+          },
+          {
+            "brows": "brow",
+            "eyes": "wick-eye",
+            "lids": "lid",
+            "mouth": "mouth"
+          }
+        ]
+      },
+      "rig": "default",
+      "skin": "wick-shadow",
+      "sliders": {
+        "age": 0.1,
+        "arms": 0.3,
+        "chunk": 1,
+        "faceForward": 0.5,
+        "fat": 0.3,
+        "feet": 0.6,
+        "frame": 0.4,
+        "hands": 0.6,
+        "head": 1,
+        "height": 120,
+        "hips": 0.45,
+        "legs": 0.2,
+        "muscle": 0.4,
+        "neckLength": 0.1,
+        "posture": 0.6,
+        "shoulders": 0.4
+      }
+    }
+  },
+  "figure-swatch": {
+    "auburn": {
+      "gloss": 0.94,
+      "ramp": "skin",
+      "step": 2
+    },
+    "badge": {
+      "flat": true,
+      "ramp": "grey",
+      "step": 7
+    },
+    "black": {
+      "gloss": 0.97,
+      "ramp": "grey",
+      "step": 1
+    },
+    "boot-brown": {
+      "gloss": 0.93,
+      "ramp": "brick",
+      "step": 2
+    },
+    "boot-sole": {
+      "flat": true,
+      "ramp": "brick",
+      "step": 0
+    },
+    "brass": {
+      "gloss": 0.93,
+      "kind": "metal",
+      "ramp": "wood",
+      "role": "hardware",
+      "step": 5
+    },
+    "brow": {
+      "flat": true,
+      "ramp": "brick",
+      "step": 0
+    },
+    "brown": {
+      "gloss": 0.94,
+      "ramp": "mud",
+      "step": 3
+    },
+    "cap-white": {
+      "ramp": "slate",
+      "step": 7
+    },
+    "charcoal": {
+      "ramp": "slate",
+      "step": 1
+    },
+    "chrome-dark": {
+      "kind": "metal",
+      "ramp": "grey",
+      "role": "hardware",
+      "step": 5
+    },
+    "chrome": {
+      "kind": "metal",
+      "ramp": "grey",
+      "role": "hardware",
+      "step": 6
+    },
+    "cord": {
+      "flat": true,
+      "kind": "thread",
+      "ramp": "grey",
+      "role": "stitch",
+      "step": 7
+    },
+    "cream": {
+      "ramp": "sand",
+      "step": 4
+    },
+    "cross": {
+      "flat": true,
+      "ramp": "rose",
+      "step": 2
+    },
+    "denim": {
+      "ramp": "sky",
+      "step": 1
+    },
+    "eye-dark": {
+      "flat": true,
+      "ramp": "violet",
+      "step": 0
+    },
+    "eye-milky": {
+      "flat": true,
+      "ramp": "grey",
+      "step": 6
+    },
+    "fair": {
+      "ramp": "dawn",
+      "step": 5
+    },
+    "flat-grey": {
+      "ramp": "slate",
+      "step": 3
+    },
+    "glass": {
+      "flat": true,
+      "ramp": "sand",
+      "step": 6
+    },
+    "glint": {
+      "flat": true,
+      "ramp": "grey",
+      "step": 7
+    },
+    "holo-cyan": {
+      "flat": true,
+      "kind": "lens",
+      "ramp": "sky",
+      "role": "trim",
+      "step": 7
+    },
+    "holo-lilac": {
+      "flat": true,
+      "kind": "lens",
+      "ramp": "violet",
+      "role": "trim",
+      "step": 5
+    },
+    "holo-violet": {
+      "flat": true,
+      "kind": "lens",
+      "ramp": "violet",
+      "role": "trim",
+      "step": 3
+    },
+    "ink-black": {
+      "gloss": 0.95,
+      "ramp": "grey",
+      "step": 1
+    },
+    "lid": {
+      "flat": true,
+      "ramp": "dawn",
+      "step": 3
+    },
+    "maroon": {
+      "ramp": "rust",
+      "step": 1
+    },
+    "mauve": {
+      "ramp": "blush",
+      "step": 1
+    },
+    "midsole": {
+      "kind": "rubber",
+      "ramp": "grey",
+      "role": "sole",
+      "step": 7
+    },
+    "mouth": {
+      "flat": true,
+      "ramp": "brick",
+      "step": 1
+    },
+    "navy-deep": {
+      "ramp": "dusk",
+      "step": 0
+    },
+    "navy": {
+      "ramp": "dusk",
+      "step": 1
+    },
+    "outsole": {
+      "kind": "rubber",
+      "ramp": "grey",
+      "role": "sole",
+      "step": 3
+    },
+    "pale-lid": {
+      "flat": true,
+      "ramp": "sand",
+      "step": 2
+    },
+    "pale": {
+      "ramp": "sand",
+      "step": 4
+    },
+    "rag": {
+      "ramp": "mud",
+      "step": 5
+    },
+    "red-trim": {
+      "ramp": "rose",
+      "step": 1
+    },
+    "rubber-brown": {
+      "gloss": 0.9,
+      "ramp": "brick",
+      "step": 1
+    },
+    "rubber-grey": {
+      "gloss": 0.9,
+      "ramp": "slate",
+      "step": 4
+    },
+    "sallow": {
+      "ramp": "mauve",
+      "step": 5
+    },
+    "silver": {
+      "gloss": 0.9,
+      "kind": "metal",
+      "ramp": "grey",
+      "role": "hardware",
+      "step": 5
+    },
+    "sole": {
+      "flat": true,
+      "ramp": "grey",
+      "step": 0
+    },
+    "starch-shade": {
+      "ramp": "sand",
+      "step": 4
+    },
+    "starch": {
+      "ramp": "sand",
+      "step": 5
+    },
+    "steel-grey": {
+      "gloss": 0.94,
+      "ramp": "slate",
+      "step": 4
+    },
+    "stitch": {
+      "flat": true,
+      "kind": "thread",
+      "ramp": "slate",
+      "role": "stitch",
+      "step": 2
+    },
+    "stocking-dark": {
+      "ramp": "slate",
+      "step": 1
+    },
+    "stocking": {
+      "ramp": "slate",
+      "step": 2
+    },
+    "stubble": {
+      "ramp": "sand",
+      "step": 3
+    },
+    "topstitch": {
+      "flat": true,
+      "kind": "thread",
+      "ramp": "wood",
+      "role": "stitch",
+      "step": 4
+    },
+    "tweed": {
+      "ramp": "mud",
+      "step": 3
+    },
+    "ward-white-shade": {
+      "ramp": "slate",
+      "step": 5
+    },
+    "ward-white": {
+      "ramp": "slate",
+      "step": 6
+    },
+    "wick-boot": {
+      "ramp": "brick",
+      "step": 0
+    },
+    "wick-cloak-shade": {
+      "ramp": "ocean",
+      "step": 1
+    },
+    "wick-cloak": {
+      "ramp": "ocean",
+      "step": 3
+    },
+    "wick-eye": {
+      "flat": true,
+      "ramp": "flame",
+      "step": 7
+    },
+    "wick-shadow": {
+      "flat": true,
+      "ramp": "plum",
+      "step": 0
+    },
+    "wick-trim": {
+      "gloss": 0.9,
+      "ramp": "flame",
+      "step": 5
+    },
+    "wood": {
+      "ramp": "mud",
+      "step": 3
+    },
+    "work-green": {
+      "ramp": "pine",
+      "step": 2
+    }
+  },
+  "figure-gait": {
+    "bounce": {
+      "armLag": 0.04,
+      "armOut": 0.08,
+      "armSwing": 0.5,
+      "bob": 0.05,
+      "breath": 0.03,
+      "breathPeriod": 3.4,
+      "chestCounter": 0.5,
+      "chin": 0.04,
+      "crouch": 0.01,
+      "cycle": 0.46,
+      "drag": 0,
+      "duty": 0.54,
+      "elbow": 0.45,
+      "elbowSwing": 0.45,
+      "hang": 0.04,
+      "headLead": 0.7853981633974483,
+      "headLevel": 0,
+      "headStabilize": 0.8,
+      "heel": 0.24,
+      "hipRoll": 0.08,
+      "hipYaw": 0.09,
+      "idleElbow": 0.3,
+      "idlePoses": 8,
+      "lean": 0.03,
+      "lift": 0.065,
+      "poseRate": 12,
+      "push": 0.35,
+      "reach": 1.4,
+      "shift": 0.012,
+      "shiftPeriod": 5.5,
+      "shoulderRoll": 0.75,
+      "speed": 3,
+      "spring": 0.6,
+      "stance": 0.045,
+      "stanceLead": 0.07,
+      "standElbow": 0.36,
+      "standOut": 0,
+      "stride": 0.6,
+      "sway": 0.03,
+      "track": 0.3,
+      "turnRate": 0.7853981633974483,
+      "twitch": 0,
+      "twitchEvery": 3,
+      "walkPoses": 8
+    },
+    "brisk": {
+      "armLag": 0.04,
+      "armOut": 0.07,
+      "armSwing": 0.4,
+      "bob": 0.03,
+      "breath": 0.03,
+      "breathPeriod": 3.4,
+      "chestCounter": 0.6,
+      "crouch": 0.008,
+      "cycle": 0.5,
+      "drag": 0,
+      "duty": 0.56,
+      "elbow": 0.2,
+      "elbowSwing": 0.35,
+      "hang": 0.04,
+      "headLead": 0.7853981633974483,
+      "headLevel": 0,
+      "headStabilize": 0.85,
+      "hipRoll": 0.05,
+      "hipYaw": 0.1,
+      "idleElbow": 0.25,
+      "idlePoses": 8,
+      "lean": 0.04,
+      "lift": 0.06,
+      "poseRate": 12,
+      "reach": 1.4,
+      "shift": 0.012,
+      "shiftPeriod": 5.5,
+      "speed": 3,
+      "stance": 0.04,
+      "stanceLead": 0.08,
+      "standOut": 0,
+      "stride": 0.6,
+      "sway": 0.025,
+      "track": 0.3,
+      "turnRate": 0.7853981633974483,
+      "twitch": 0,
+      "twitchEvery": 3,
+      "walkPoses": 8
+    },
+    "elderly": {
+      "armLag": 0.1,
+      "armOut": 0.1,
+      "armSwing": 0.14,
+      "bob": 0.015,
+      "breath": 0.035,
+      "breathPeriod": 3,
+      "chestCounter": 0.3,
+      "crouch": 0.03,
+      "cycle": 1,
+      "drag": 0.35,
+      "duty": 0.65,
+      "elbow": 0.35,
+      "elbowSwing": 0.2,
+      "hang": 0.12,
+      "headLead": 0.5235987755982988,
+      "headLevel": 0.3,
+      "headStabilize": 0.6,
+      "hipRoll": 0.03,
+      "hipYaw": 0.06,
+      "idleElbow": 0.4,
+      "lean": 0.12,
+      "lift": 0.032,
+      "plumb": 0.75,
+      "poseRate": 8,
+      "reach": 2,
+      "shift": 0.01,
+      "shiftPeriod": 4,
+      "speed": 1.05,
+      "stance": 0.015,
+      "stanceLead": 0.05,
+      "stride": 0.4,
+      "sway": 0.03,
+      "track": 0.75,
+      "turnRate": 0.39269908169872414,
+      "twitch": 0.05,
+      "twitchEvery": 1.1,
+      "walkPoses": 8
+    },
+    "loose": {
+      "armLag": 0.12,
+      "armOut": 0.08,
+      "armSwing": 0.3,
+      "bob": 0.034,
+      "breath": 0.03,
+      "breathPeriod": 3.4,
+      "chestCounter": 0.5,
+      "chin": -0.04,
+      "crouch": 0.01,
+      "cycle": 0.58,
+      "drag": 0.1,
+      "duty": 0.57,
+      "elbow": 0.3,
+      "elbowSwing": 0.35,
+      "hang": 0.02,
+      "headLead": 0.7853981633974483,
+      "headLevel": 0.1,
+      "headStabilize": 0.8,
+      "heel": 0.18,
+      "hipRoll": 0.06,
+      "hipYaw": 0.07,
+      "idleElbow": 0.28,
+      "idlePoses": 8,
+      "lean": 0.07,
+      "lift": 0.05,
+      "poseRate": 12,
+      "reach": 1.4,
+      "shift": 0.012,
+      "shiftPeriod": 5.5,
+      "shoulderRoll": 0.55,
+      "speed": 2.8,
+      "spring": 0,
+      "stance": 0.05,
+      "stanceLead": 0.06,
+      "standElbow": 0.34,
+      "standOut": 0,
+      "stride": 0.58,
+      "sway": 0.02,
+      "track": 0.45,
+      "turnRate": 0.7853981633974483,
+      "twitch": 0,
+      "twitchEvery": 3,
+      "walkPoses": 8
+    },
+    "still": {
+      "armLag": 0.08,
+      "armOut": 0.07,
+      "armSwing": 0.22,
+      "bob": 0.034,
+      "breath": 0.03,
+      "breathPeriod": 3.4,
+      "chestCounter": 0.5,
+      "chin": 0.02,
+      "crouch": 0.006,
+      "cycle": 0.64,
+      "drag": 0,
+      "duty": 0.58,
+      "elbow": 0.16,
+      "elbowSwing": 0.3,
+      "hang": 0.02,
+      "headLead": 0.7853981633974483,
+      "headLevel": 0.1,
+      "headStabilize": 1,
+      "heel": 0.24,
+      "hipRoll": 0.05,
+      "hipYaw": 0.05,
+      "idleElbow": 0.18,
+      "idlePoses": 8,
+      "lean": -0.01,
+      "lift": 0.045,
+      "poseRate": 12,
+      "push": 0.3,
+      "reach": 1.4,
+      "shift": 0.012,
+      "shiftPeriod": 5.5,
+      "shoulderRoll": 0.35,
+      "speed": 2.5,
+      "spring": 0,
+      "stance": 0.03,
+      "stanceLead": 0.09,
+      "standElbow": 0.22,
+      "standOut": 0,
+      "stride": 0.6,
+      "sway": 0.014,
+      "track": 0.35,
+      "turnRate": 0.7853981633974483,
+      "twitch": 0,
+      "twitchEvery": 3,
+      "walkPoses": 8
+    },
+    "strut": {
+      "armLag": 0.06,
+      "armOut": 0.08,
+      "armSwing": 0.42,
+      "bob": 0.038,
+      "breath": 0.03,
+      "breathPeriod": 3.4,
+      "chestCounter": 0.5,
+      "chin": 0.08,
+      "crouch": 0.008,
+      "cycle": 0.54,
+      "drag": 0,
+      "duty": 0.56,
+      "elbow": 0.28,
+      "elbowSwing": 0.4,
+      "hang": 0.03,
+      "headLead": 0.7853981633974483,
+      "headLevel": 0.1,
+      "headStabilize": 0.9,
+      "heel": 0.26,
+      "hipRoll": 0.09,
+      "hipYaw": 0.1,
+      "idleElbow": 0.22,
+      "idlePoses": 8,
+      "lean": -0.02,
+      "lift": 0.055,
+      "poseRate": 12,
+      "push": 0.32,
+      "reach": 1.4,
+      "shift": 0.012,
+      "shiftPeriod": 5.5,
+      "shoulderRoll": 0.9,
+      "speed": 3,
+      "spring": 0.15,
+      "stance": 0.04,
+      "stanceLead": 0.08,
+      "standElbow": 0.26,
+      "standOut": 0,
+      "stride": 0.64,
+      "sway": 0.04,
+      "track": 0.08,
+      "turnRate": 0.7853981633974483,
+      "twitch": 0,
+      "twitchEvery": 3,
+      "walkPoses": 8
+    },
+    "uncanny": {
+      "armLag": 0.3,
+      "armOut": 0.2,
+      "armSwing": 0.04,
+      "bob": 0.028,
+      "breath": 0,
+      "breathPeriod": 6,
+      "chestCounter": 0.15,
+      "crouch": 0.015,
+      "cycle": 0.8,
+      "drag": 0.6,
+      "duty": 0.62,
+      "elbow": 0.04,
+      "elbowSwing": 0,
+      "hang": -0.04,
+      "headLead": 1.8849555921538759,
+      "headLevel": 1,
+      "headStabilize": 1,
+      "hipRoll": 0.04,
+      "hipYaw": 0.05,
+      "idleElbow": 0,
+      "idleLoop": 6,
+      "idlePoses": 12,
+      "lean": 0,
+      "lift": 0.035,
+      "poseRate": 8,
+      "reach": 2.4,
+      "shift": 0,
+      "shiftPeriod": 7,
+      "shuffle": false,
+      "speed": 1.05,
+      "stance": 0,
+      "stanceLead": 0,
+      "stride": 0.45,
+      "sway": 0.03,
+      "track": 0.45,
+      "turnRate": 0.39269908169872414,
+      "twitch": 0.38,
+      "twitchEvery": 3,
+      "walkPoses": 6
+    }
+  },
+  "figure-hair": {
+    "bob": {
+      "about": "A chin-length bob: a full round crown just over the skull, set behind the brow (under the 30° tilt anything in front of the face drops over it), a fringe across the brow a texel above the eyes, hair beside the cheeks to the jaw, a little fuller at the bottom, and the back to the nape.",
+      "locks": [
+        {
+          "at": [0, 0.74, -0.12],
+          "cut": {
+            "below": -0.05,
+            "front": 0.1
+          },
+          "e": [1, 0.85],
+          "follow": 0.6,
+          "on": "head",
+          "r": [1.26, 0.4, 1.04]
+        },
+        {
+          "at": [-0.62, 0.75, 0.66],
+          "e": [0.3, 0.6],
+          "follow": 1,
+          "on": "head",
+          "r": [0.56, 0.18, 0.3],
+          "roll": 0.06,
+          "taper": [0.92, 1]
+        },
+        {
+          "at": [0, 0.79, 0.66],
+          "e": [0.3, 0.6],
+          "follow": 1,
+          "on": "head",
+          "r": [0.56, 0.19, 0.3],
+          "roll": 0,
+          "taper": [0.92, 1]
+        },
+        {
+          "at": [0.62, 0.75, 0.66],
+          "e": [0.3, 0.6],
+          "follow": 1,
+          "on": "head",
+          "r": [0.56, 0.18, 0.3],
+          "roll": -0.06,
+          "taper": [0.92, 1]
+        },
+        {
+          "at": [1.1, 0.38, -0.6],
+          "e": [0.5, 0.6],
+          "on": "sides",
+          "r": [0.38, 0.36, 0.66],
+          "taper": [1.15, 0.95]
+        },
+        {
+          "at": [0, 0.36, -0.7],
+          "e": [0.5, 0.6],
+          "on": "back",
+          "r": [1.14, 0.36, 0.42],
+          "taper": [1.06, 1]
+        }
+      ]
+    },
+    "box-braid-pony": {
+      "about": "Long box braids gathered into a high ponytail: a clean hairline high on the brow and lifted over the ears, the scalp dark between the braids, a few fat braided rows laid from it up to the tie on the crown (the front left low, so shades pushed up sit over them), a tie two texels tall in the chrome's mid, and a bundle of braids rising from it, arcing back and falling to the middle of the back, each its own rope parted from the next, with a matte plait down each, its beads alike on every braid and each lit on its upper half in a V (the strands crossing in from either side), and a thin cuff in the chrome's dark on every other one, staggered up their ends.",
+      "finish": "braid",
+      "pieces": [
+        {
+          "scalp": {
+            "edge": 0.5,
+            "from": [
+              [0, 0.6],
+              [0.45, 0.56],
+              [0.8, 0.36],
+              [1.2, -0.1],
+              [1.36, -0.08],
+              [1.5, 0.2],
+              [1.85, 0.16],
+              [2.4, -0.4],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.03,
+            "tone": "parting"
+          }
+        },
+        {
+          "rows": {
+            "count": 5,
+            "from": [
+              [0, 0.6],
+              [0.45, 0.56],
+              [0.8, 0.36],
+              [1.2, -0.1],
+              [1.36, -0.08],
+              [1.5, 0.2],
+              [1.85, 0.16],
+              [2.4, -0.4],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.02,
+            "matte": true,
+            "rope": {
+              "flat": 0.55,
+              "r": 0.24,
+              "root": 0.1,
+              "streaks": [1, 0.04, 0.96, 0.22]
+            },
+            "span": 1.4,
+            "to": [0, 0.95, -0.35]
+          }
+        },
+        {
+          "rows": {
+            "at": 3.1416,
+            "count": 6,
+            "from": [
+              [0, 0.6],
+              [0.45, 0.56],
+              [0.8, 0.36],
+              [1.2, -0.1],
+              [1.36, -0.08],
+              [1.5, 0.2],
+              [1.85, 0.16],
+              [2.4, -0.4],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.02,
+            "matte": true,
+            "rope": {
+              "flat": 0.55,
+              "r": 0.24,
+              "root": 0.1,
+              "streaks": [1, 0.04, 0.96, 0.22]
+            },
+            "span": 1.45,
+            "to": [0, 0.95, -0.35]
+          }
+        },
+        {
+          "tail": {
+            "at": [0, 0.95, -0.35],
+            "count": 7,
+            "cuffs": "chrome-dark",
+            "length": 0.95,
+            "matte": true,
+            "rise": 0.2,
+            "rope": {
+              "depth": 0.08,
+              "pitch": 0.7,
+              "plait": 0.25,
+              "r": 0.14,
+              "slant": 0.5,
+              "taper": 0.8,
+              "tip": "blunt"
+            },
+            "spread": [0.2, 0.6],
+            "tie": true
+          }
+        }
+      ]
+    },
+    "choppy-layers": {
+      "about": "Straight black hair in choppy layers to the jaw, made to wear under a cap: a close shell on the round skull, lit in broken strands combed back; the sides tucked behind the ear, so the cheekbone, the jaw's corner and the ear show; behind it pointed locks to the jaw and down the back to the nape, staggered so the outline breaks into points (no level hem), each parted from the next over a dark under-layer, flaring out at their tips where a cap pushes them down and lying close bareheaded; one lock at the temple swept toward the cheekbone; bareheaded, layers from the crown whose tips stand off the shell, so the top's outline is choppy, not a dome; and a short piecey fringe that stops above the brows; under a cap the fringe pressed down to the brows and a piece out at either temple, so the hair breaks the band's line (never a beanie).",
+      "finish": "straight",
+      "pieces": [
+        {
+          "scalp": {
+            "comb": "back",
+            "crown": 0.03,
+            "from": [
+              [0, 0.44],
+              [0.45, 0.4],
+              [0.8, 0.2],
+              [1.12, -0.06],
+              [1.32, -0.08],
+              [1.48, 0.18],
+              [1.92, 0.16],
+              [2.4, -0.36],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.04,
+            "ridges": [10, 0.08],
+            "sheen": {
+              "count": 18,
+              "from": 0.4,
+              "ragged": 0.16,
+              "to": 0.95,
+              "width": 0.17
+            }
+          }
+        },
+        {
+          "strands": {
+            "at": [
+              [2.04, 0.2, -0.24, 0.1],
+              [2.44, 0.12, -0.36, 0.1],
+              [2.82, 0.06, -0.44, 0.09],
+              [3.1416, 0.04, -0.46, 0.09]
+            ],
+            "lift": 0.05,
+            "out": -0.04,
+            "plumb": 0.1,
+            "rope": {
+              "flat": 0.4,
+              "r": 0.22,
+              "root": 0.1,
+              "tip": "point"
+            },
+            "tone": "parting"
+          }
+        },
+        {
+          "strands": {
+            "apart": true,
+            "at": [
+              [1.96, 0.22, -0.42, 0.2],
+              [2.18, 0.18, -0.58, 0.22],
+              [2.42, 0.14, -0.46, 0.2],
+              [2.66, 0.1, -0.72, 0.17],
+              [2.9, 0.06, -0.6, 0.14],
+              [3.1416, 0.04, -0.8, 0.12]
+            ],
+            "capped": true,
+            "flick": 0.3,
+            "lift": 0.06,
+            "out": 0.1,
+            "plumb": 0.12,
+            "rope": {
+              "e": 0.8,
+              "flat": 0.42,
+              "r": 0.16,
+              "root": 0.1,
+              "streaks": [1, 0.1, 0.7, 0.18],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "strands": {
+            "apart": true,
+            "at": [
+              [1.96, 0.22, -0.32, 0.08],
+              [2.2, 0.18, -0.64, 0.09],
+              [2.44, 0.14, -0.42, 0.08],
+              [2.68, 0.1, -0.84, 0.08],
+              [2.92, 0.06, -0.56, 0.08],
+              [3.1416, 0.04, -0.92, 0.08]
+            ],
+            "bare": true,
+            "lift": 0.06,
+            "out": -0.2,
+            "plumb": 0.1,
+            "rope": {
+              "e": 0.8,
+              "flat": 0.42,
+              "r": 0.16,
+              "root": 0.1,
+              "streaks": [1, 0.1, 0.7, 0.18],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "strands": {
+            "apart": true,
+            "at": [[1.24, 0.3, -0.02, 0.1, 1]],
+            "lift": 0.06,
+            "plumb": 0.12,
+            "rope": {
+              "e": 0.8,
+              "flat": 0.42,
+              "r": 0.15,
+              "root": 0.1,
+              "streaks": [1, 0.1, 0.7, 0.18],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "strands": {
+            "apart": true,
+            "at": [
+              [0.5, 0.8, 0.44, 0.12],
+              [1, 0.78, 0.26, 0.15],
+              [1.5, 0.76, 0.14, 0.16],
+              [2, 0.74, 0.02, 0.16],
+              [2.5, 0.72, -0.16, 0.14],
+              [3.1416, 0.7, -0.26, 0.12]
+            ],
+            "bare": true,
+            "lift": 0.05,
+            "plumb": -0.2,
+            "rope": {
+              "e": 0.8,
+              "flat": 0.4,
+              "r": 0.17,
+              "root": 0.15,
+              "streaks": [1, 0.08, 0.62, 0.2],
+              "taper": 0.8,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "strands": {
+            "apart": true,
+            "at": [
+              [0, 0.56, 0.24, 0.12, 0.04],
+              [0.24, 0.56, 0.3, 0.12, 0.34],
+              [0.48, 0.52, 0.2, 0.12, 0.72],
+              [0.72, 0.46, 0.18, 0.1, 0.95]
+            ],
+            "bare": true,
+            "lift": 0.12,
+            "plumb": 0.1,
+            "rope": {
+              "flat": 0.4,
+              "r": 0.13,
+              "root": 0.1,
+              "taper": 0.8,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "strands": {
+            "apart": true,
+            "at": [
+              [0, 0.52, 0.17, 0.12, 0.04],
+              [0.24, 0.52, 0.22, 0.12, 0.34],
+              [0.48, 0.48, 0.12, 0.12, 0.72],
+              [0.72, 0.42, 0.06, 0.11, 0.95]
+            ],
+            "capped": true,
+            "lift": 0.12,
+            "plumb": 0.1,
+            "rope": {
+              "flat": 0.4,
+              "r": 0.15,
+              "root": 0.1,
+              "taper": 0.8,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "strands": {
+            "apart": true,
+            "at": [[1.06, 0.3, -0.12, 0.13, 0.9]],
+            "capped": true,
+            "flick": 0.2,
+            "lift": 0.06,
+            "out": 0.06,
+            "plumb": 0.12,
+            "rope": {
+              "e": 0.8,
+              "flat": 0.42,
+              "r": 0.15,
+              "root": 0.1,
+              "streaks": [1, 0.1, 0.7, 0.18],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        }
+      ]
+    },
+    "cornrows": {
+      "about": "Cornrows: rows plaited straight back from a clean hairline to the nape, few and fat enough that each is clear, each a chain of beads lit on their upper halves (a plait down its length), with the scalp (the skin's own tone) showing between them from the hairline back.",
+      "finish": "braid",
+      "pieces": [
+        {
+          "scalp": {
+            "edge": 0.5,
+            "from": [
+              [0, 0.52],
+              [0.45, 0.5],
+              [0.8, 0.3],
+              [1.2, -0.1],
+              [1.38, -0.12],
+              [1.5, 0.1],
+              [1.85, 0.04],
+              [2.4, -0.4],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.02,
+            "tone": "scalp"
+          }
+        },
+        {
+          "rows": {
+            "count": 5,
+            "from": [
+              [0, 0.52],
+              [0.45, 0.5],
+              [0.8, 0.3],
+              [1.2, -0.1],
+              [1.38, -0.12],
+              [1.5, 0.1],
+              [1.85, 0.04],
+              [2.4, -0.4],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.05,
+            "matte": true,
+            "nape": [[0, -0.5]],
+            "rope": {
+              "depth": 0.14,
+              "flat": 0.6,
+              "pitch": 0.34,
+              "plait": 0.25,
+              "r": 0.15,
+              "root": 0.12,
+              "taper": 0.85,
+              "tip": "blunt"
+            },
+            "span": 0.9,
+            "to": "nape"
+          }
+        },
+        {
+          "rows": {
+            "count": 2,
+            "from": [
+              [0, 0.52],
+              [0.45, 0.5],
+              [0.8, 0.3],
+              [1.2, -0.1],
+              [1.38, -0.12],
+              [1.5, 0.1],
+              [1.85, 0.04],
+              [2.4, -0.4],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.05,
+            "matte": true,
+            "nape": [[0, -0.4]],
+            "rope": {
+              "depth": 0.14,
+              "flat": 0.6,
+              "pitch": 0.34,
+              "plait": 0.25,
+              "r": 0.138,
+              "root": 0.12,
+              "taper": 0.85,
+              "tip": "blunt"
+            },
+            "span": 1.305,
+            "to": "nape"
+          }
+        }
+      ]
+    },
+    "cropped": {
+      "about": "Short hair at the sides and down to the nape, low enough that a cap covers its crown.",
+      "locks": [
+        {
+          "at": [0, 0.56, -0.18],
+          "e": [0.55, 0.65],
+          "on": "head",
+          "r": [1.06, 0.32, 0.96]
+        },
+        {
+          "at": [0, 0.3, -0.5],
+          "e": [0.55, 0.65],
+          "on": "head",
+          "r": [0.98, 0.22, 0.56],
+          "taper": [0.9, 1]
+        }
+      ]
+    },
+    "curtain": {
+      "about": "Long hair over the whole head and the face: a shell over the head and face, a panel down over the face below the chin, two thick strands down the front, the sides to the shoulders, the back in four strands to the middle of it. The strands hang from the hair joints, so they fall plumb whatever the head's cock. Faceless from every side and from above.",
+      "locks": [
+        {
+          "at": [0, 0.6, -0.02],
+          "e": [0.7, 0.7],
+          "follow": 1,
+          "on": "head",
+          "r": [1.14, 0.5, 1.12]
+        },
+        {
+          "at": [0, 0.14, 0.94],
+          "e": [0.4, 0.5],
+          "follow": 1,
+          "on": "head",
+          "r": [1.02, 0.6, 0.24],
+          "taper": [0.9, 1]
+        },
+        {
+          "at": [0.8, -0.55, 0.98],
+          "e": [0.4, 0.5],
+          "follow": 1,
+          "on": "sides",
+          "r": [0.36, 0.95, 0.2],
+          "taper": [0.7, 1]
+        },
+        {
+          "at": [1.02, -0.05, -0.1],
+          "e": [0.45, 0.5],
+          "follow": 0.5,
+          "on": "sides",
+          "r": [0.32, 0.62, 0.98],
+          "taper": [0.85, 1]
+        },
+        {
+          "at": [-0.72, -0.63, -0.62],
+          "e": [0.5, 0.6],
+          "on": "back",
+          "r": [0.34, 1.1300000000000001, 0.42],
+          "shear": [0, -0.12],
+          "taper": [0.7, 1.05]
+        },
+        {
+          "at": [-0.24, -0.7100000000000001, -0.62],
+          "e": [0.5, 0.6],
+          "on": "back",
+          "r": [0.34, 1.21, 0.42],
+          "shear": [0, -0.12],
+          "taper": [0.7, 1.05]
+        },
+        {
+          "at": [0.24, -0.5700000000000001, -0.62],
+          "e": [0.5, 0.6],
+          "on": "back",
+          "r": [0.34, 1.07, 0.42],
+          "shear": [0, -0.12],
+          "taper": [0.7, 1.05]
+        },
+        {
+          "at": [0.72, -0.67, -0.62],
+          "e": [0.5, 0.6],
+          "on": "back",
+          "r": [0.34, 1.17, 0.42],
+          "shear": [0, -0.12],
+          "taper": [0.7, 1.05]
+        }
+      ]
+    },
+    "high-top-fade": {
+      "about": "A high-top fade: a tall block of tight coils rising straight out of the head from the temples and the back of the crown (no hem: its walls the head's own section carried up), flaring a little to a flat top with a rounded edge, lit in one crisp tone; its sides a fine dither of the hair's two darks (coils, never a smooth felt); under it a skin fade, the skin high over the ears and the nape grading up through two tiers of the skin's and the hair's own tones to the hair's dark, under a line-up with square temples.",
+      "finish": "coil",
+      "pieces": [
+        {
+          "scalp": {
+            "from": [
+              [0, 0.5],
+              [0.5, 0.5],
+              [0.6, 0.32],
+              [1.1, 0.22],
+              [1.2, -0.1],
+              [1.36, -0.12],
+              [1.5, 0.16],
+              [1.9, 0.16],
+              [2.1, -0.2],
+              [2.6, -0.45],
+              [3.1416, -0.5]
+            ],
+            "grade": [[0.3, "fade2"], [0.56, "fade1"], [0.8, "hair"]],
+            "lift": 0.012,
+            "to": [[0, 0.5], [0.5, 0.5], [0.62, 0.6], [1.9, 0.6], [2.6, 0.56], [3.1416, 0.56]],
+            "tone": "fade"
+          }
+        },
+        {
+          "scalp": {
+            "crown": 0.02,
+            "from": [[0, 0.5], [0.5, 0.5], [0.62, 0.6], [1.9, 0.6], [2.6, 0.56], [3.1416, 0.56]],
+            "lift": 0.03
+          }
+        },
+        {
+          "block": {
+            "coil": 0.4,
+            "flare": 1.06,
+            "from": 0.6,
+            "lift": 0.04,
+            "round": 0.28,
+            "to": 1.72
+          }
+        }
+      ]
+    },
+    "locs": {
+      "about": "Shoulder-length locs: a shell on the skull and distinct ropes from the crown, thick, a little uneven along their length, rounded at the tips, each with a lit stripe down its outer face and a dark gap between it and the next (a shadowed under-layer shows between them).",
+      "finish": "loc",
+      "pieces": [
+        {
+          "scalp": {
+            "comb": [0, 1, 0],
+            "crown": 0.05,
+            "from": [
+              [0, 0.44],
+              [0.45, 0.4],
+              [0.8, 0.2],
+              [1.2, -0.18],
+              [1.38, -0.2],
+              [1.5, 0.05],
+              [1.85, 0.02],
+              [2.4, -0.4],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.07,
+            "ridges": [12, 0.1]
+          }
+        },
+        {
+          "strands": {
+            "at": [
+              [0.88, 0.7, -1.4],
+              [1.5, 0.62, -1.6],
+              [2.1, 0.56, -1.7],
+              [2.7, 0.5, -1.75],
+              [3.1416, 0.5, -1.7]
+            ],
+            "lift": 0.07,
+            "out": 0.08,
+            "plumb": 0.1,
+            "rope": {
+              "flat": 0.5,
+              "r": 0.3,
+              "root": 0.08,
+              "tip": "round"
+            },
+            "tone": "parting"
+          }
+        },
+        {
+          "strands": {
+            "apart": true,
+            "at": [
+              [0.72, 0.75, -1.45, 0.16],
+              [1.05, 0.7, -1.75, 0.1],
+              [1.35, 0.65, -1.6, 0.22],
+              [1.65, 0.6, -1.9, 0.1],
+              [1.95, 0.6, -1.75, 0.22],
+              [2.25, 0.55, -2, 0.1],
+              [2.55, 0.55, -1.85, 0.22],
+              [2.85, 0.5, -2.05, 0.1],
+              [3.1416, 0.5, -1.9, 0.22]
+            ],
+            "lift": 0.12,
+            "out": 0.12,
+            "plumb": 0.1,
+            "rope": {
+              "beads": 4,
+              "depth": 0.12,
+              "plait": false,
+              "r": 0.17,
+              "root": 0.08,
+              "streaks": [1, 0.05, 0.92, 0.16],
+              "tip": "round"
+            }
+          }
+        }
+      ]
+    },
+    "quiff-fade": {
+      "about": "A swept-back quiff over a skin fade: a crisp line-up at the brow and the temples; the sides and back cut close to the round skull, graded from the skin at the ears and the nape through two mixed tiers to the hair's own dark, up the back of the head to the crown, so from behind it reads as a fade, not a tail; the top a close shell combed back over the crown; and the quiff piecey locks rising from the hairline, highest at the middle and lower to the sides (a crest, not a block), uneven at their crests, lying back over the top and tapering to points on the crown, each parted from the next by its own shadow.",
+      "finish": "straight",
+      "pieces": [
+        {
+          "scalp": {
+            "from": [
+              [0, 0.62],
+              [0.42, 0.62],
+              [0.72, 0.68],
+              [0.95, 0.62],
+              [1.15, 0.2],
+              [1.25, -0.12],
+              [1.38, -0.12],
+              [1.5, 0.16],
+              [1.9, 0.16],
+              [2.1, -0.2],
+              [2.6, -0.45],
+              [3.1416, -0.5]
+            ],
+            "grade": [[0.28, "fade2"], [0.56, "fade1"], [0.82, "hair"]],
+            "lift": 0.012,
+            "to": [
+              [0, 0.62],
+              [0.42, 0.62],
+              [0.72, 0.68],
+              [1.6, 0.78],
+              [2.3, 0.8],
+              [2.8, 0.78],
+              [3.1416, 0.76]
+            ],
+            "tone": "fade"
+          }
+        },
+        {
+          "scalp": {
+            "comb": "back",
+            "crown": 0.04,
+            "edge": 0.3,
+            "from": [
+              [0, 0.62],
+              [0.42, 0.62],
+              [0.72, 0.68],
+              [1.6, 0.78],
+              [2.3, 0.8],
+              [2.8, 0.78],
+              [3.1416, 0.76]
+            ],
+            "lift": 0.06,
+            "ridges": [9, 0.08],
+            "sheen": {
+              "count": 8,
+              "from": 0.7,
+              "to": 0.95,
+              "width": 0.18
+            }
+          }
+        },
+        {
+          "sweep": {
+            "out": [0, 0.9, 0.3],
+            "path": [
+              [0, 0.68, 0.92],
+              [0, 0.98, 1],
+              [0, 1.2, 0.88],
+              [0, 1.22, 0.6],
+              [0, 1.1, 0.3],
+              [0, 0.98, 0.06]
+            ],
+            "rope": {
+              "e": 0.85,
+              "flat": 0.32,
+              "r": 0.66,
+              "ridges": [7, 0.12],
+              "root": 0.05,
+              "seg": 24,
+              "streaks": [3, 0.05, 0.6, 0.12],
+              "taper": 0.62,
+              "tip": "round"
+            }
+          }
+        },
+        {
+          "sweep": {
+            "apart": true,
+            "path": [
+              [-0.594, 0.72, 0.95],
+              [-0.66, 0.918, 1],
+              [-0.66, 1.08, 0.8],
+              [-0.686, 0.752, 0.46],
+              [-0.726, 0.769, 0.16],
+              [-0.726, 0.7, -0.1]
+            ],
+            "rope": {
+              "e": 0.75,
+              "flat": 0.62,
+              "r": 0.2,
+              "root": 0.12,
+              "seg": 12,
+              "streaks": [1, 0.12, 0.62, 0.22],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "sweep": {
+            "apart": true,
+            "path": [
+              [-0.324, 0.72, 0.95],
+              [-0.36, 1.036, 1],
+              [-0.36, 1.25, 0.8],
+              [-0.374, 1.026, 0.46],
+              [-0.389, 1.007, 0.16],
+              [-0.389, 0.936, -0.1]
+            ],
+            "rope": {
+              "e": 0.75,
+              "flat": 0.62,
+              "r": 0.22,
+              "root": 0.12,
+              "seg": 12,
+              "streaks": [1, 0.12, 0.62, 0.22],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "sweep": {
+            "apart": true,
+            "path": [
+              [-0.054, 0.72, 0.95],
+              [-0.06, 1.079, 1],
+              [-0.06, 1.33, 0.8],
+              [-0.062, 1.139, 0.46],
+              [-0.065, 1.085, 0.16],
+              [-0.065, 1.013, -0.1]
+            ],
+            "rope": {
+              "e": 0.75,
+              "flat": 0.62,
+              "r": 0.22,
+              "root": 0.12,
+              "seg": 12,
+              "streaks": [1, 0.12, 0.62, 0.22],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "sweep": {
+            "apart": true,
+            "path": [
+              [0.234, 0.72, 0.95],
+              [0.26, 1.058, 1],
+              [0.26, 1.35, 0.8],
+              [0.27, 1.078, 0.46],
+              [0.276, 1.048, 0.16],
+              [0.276, 0.976, -0.1]
+            ],
+            "rope": {
+              "e": 0.75,
+              "flat": 0.62,
+              "r": 0.22,
+              "root": 0.12,
+              "seg": 12,
+              "streaks": [1, 0.12, 0.62, 0.22],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        },
+        {
+          "sweep": {
+            "apart": true,
+            "path": [
+              [0.522, 0.72, 0.95],
+              [0.58, 0.96, 1],
+              [0.58, 1.14, 0.8],
+              [0.603, 0.848, 0.46],
+              [0.638, 0.853, 0.16],
+              [0.638, 0.784, -0.1]
+            ],
+            "rope": {
+              "e": 0.75,
+              "flat": 0.62,
+              "r": 0.2,
+              "root": 0.12,
+              "seg": 12,
+              "streaks": [1, 0.12, 0.62, 0.22],
+              "taper": 0.7,
+              "tip": "point"
+            }
+          }
+        }
+      ]
+    },
+    "short-fade": {
+      "about": "A short fade: a soft close crop on top lit in bands along the comb, thinning at its edge; a tight fade at the sides and nape cut close to the round skull, the stubble dark down most of the band and grading to the skin only at its foot, under a line-up.",
+      "finish": "coil",
+      "pieces": [
+        {
+          "scalp": {
+            "from": [
+              [0, 0.5],
+              [0.5, 0.5],
+              [0.66, 0.3],
+              [1.1, 0.24],
+              [1.22, -0.12],
+              [1.36, -0.12],
+              [1.5, 0.18],
+              [1.9, 0.18],
+              [2.1, -0.2],
+              [2.6, -0.45],
+              [3.1416, -0.5]
+            ],
+            "grade": [[0.2, "fade2"], [0.34, "fade1"], [0.5, "hair"]],
+            "lift": 0.012,
+            "to": [[0, 0.5], [0.5, 0.5], [0.7, 0.4], [1.2, 0.34], [1.9, 0.3], [3.1416, 0.14]],
+            "tone": "fade"
+          }
+        },
+        {
+          "scalp": {
+            "comb": "back",
+            "crown": 0.03,
+            "edge": 0.35,
+            "from": [[0, 0.5], [0.5, 0.5], [0.7, 0.4], [1.2, 0.34], [1.9, 0.3], [3.1416, 0.14]],
+            "lift": 0.06,
+            "ridges": [9, 0.08],
+            "sheen": {
+              "count": 14,
+              "from": 0.45,
+              "to": 0.95
+            }
+          }
+        }
+      ]
+    },
+    "sleek-bun": {
+      "about": "Slicked back into a high sleek bun: a tight shell hugging the round skull from a high, clean hairline, lifted over the ears so they and the jaw's corner show, smooth from its lit side to its shadow with one unbroken sheen band combed back along the top from the hairline toward the bun; the bun a coil high on the crown that breaks the silhouette from every side, a solid band round its foot; and the edges laid at the temples, a texel's curl each in front of the ear.",
+      "finish": "sleek",
+      "pieces": [
+        {
+          "scalp": {
+            "comb": [0, 0.9, -0.4],
+            "crown": 0.02,
+            "edge": 0.4,
+            "from": [
+              [0, 0.6],
+              [0.45, 0.58],
+              [0.85, 0.44],
+              [1.15, 0.28],
+              [1.35, 0.22],
+              [1.6, 0.24],
+              [1.9, 0.2],
+              [2.3, -0.3],
+              [3.1416, -0.55]
+            ],
+            "lift": 0.035,
+            "sheen": {
+              "at": -1.5708,
+              "count": 1,
+              "from": 0.45,
+              "ragged": 0,
+              "to": 0.99,
+              "width": 0.07
+            }
+          }
+        },
+        {
+          "bun": {
+            "at": [0, 1.15, -0.2],
+            "r": 0.5,
+            "rope": {
+              "flat": 0.85,
+              "r": 0.16
+            },
+            "tie": true,
+            "turns": 2.3
+          }
+        },
+        {
+          "edges": {
+            "at": [[1.08, 0.04, 1, 1], [1.17, 0.12, 1, 1]],
+            "line": [
+              [0, 0.6],
+              [0.45, 0.58],
+              [0.85, 0.44],
+              [1.15, 0.28],
+              [1.35, 0.22],
+              [1.6, 0.24],
+              [1.9, 0.2],
+              [2.3, -0.3],
+              [3.1416, -0.55]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "figure-headwear": {
+    "fitted-back": {
+      "about": "A fitted cap worn backwards: six panels to a button, close on the head, sitting high over the brow and low at the back, its band unbroken (a fitted has no strap); the brim over the nape, narrow and barely drooping, so it follows the head's line instead of flaring; the panels' seams stitched in the cloth's shadow tone; a sticker on the brim's top (the mark), which worn backwards shows at the nape.",
+      "cap": {
+        "band": [[0, 0.5], [0.5, 0.46], [1.2, 0.24], [1.9, 0.12], [2.6, -0.02], [3.1416, -0.05]],
+        "brim": {
+          "at": 3.1416,
+          "curve": 0.35,
+          "droop": 0.1,
+          "reach": 0.65,
+          "sticker": 0.24,
+          "thick": 0.06,
+          "width": 0.6
+        },
+        "button": 0.14,
+        "crown": 0.03,
+        "lift": 0.1,
+        "panels": [6, 0.05]
+      }
+    },
+    "flat": {
+      "about": "A flat cap: the crown, and the peak over the brow.",
+      "locks": [
+        {
+          "at": [0, 0.84, -0.1],
+          "e": [0.55, 0.75],
+          "on": "head",
+          "r": [1.2, 0.19, 1.2],
+          "taper": [0.92, 1]
+        },
+        {
+          "at": [0, 0.76, 1],
+          "e": [0.3, 0.7],
+          "follow": 1,
+          "on": "head",
+          "r": [1, 0.045, 0.5]
+        }
+      ],
+      "mark": {
+        "at": [0, 0.9, 1.2],
+        "normal": [0, 0.3, 1]
+      }
+    },
+    "nurse": {
+      "about": "A nurse's cap: a stiff band across the crown, its face to the front. Its mark (the cross) sits on the cap's top, facing up and forward, which under the 30° tilt is the cap as the camera sees it.",
+      "locks": [
+        {
+          "at": [0, 1.02, 0.2],
+          "e": [0.3, 0.4],
+          "on": "head",
+          "pitch": 0.3,
+          "r": [1.2, 0, 0.62],
+          "rk": [0, 0.075, 0],
+          "taper": [1, 0.88]
+        }
+      ],
+      "mark": {
+        "at": [0, 1.02, 0.5],
+        "atk": [0, 0.055, 0],
+        "normal": [0, 0.9, 0.45],
+        "sizes": [[1, 3], [3, 1]]
+      }
+    }
+  },
+  "figure-item": {
+    "hand-lamp": {
+      "about": "A hand lamp hung from the hand at the side, the arm nearly straight: the lamp moves with the hand, never with the walk.",
+      "hold": {
+        "hand": [
+          {
+            "k": 0.05,
+            "shoulders": 1
+          },
+          {
+            "arms": -0.93
+          },
+          {
+            "k": 0.14
+          }
+        ],
+        "pole": [0.3, 0, -1],
+        "turn": [-0.15, 0, 0]
+      },
+      "parts": [
+        {
+          "at": [0, -0.02, 0],
+          "material": "brass",
+          "r": [0.032, 0.014, 0.032],
+          "rings": 3,
+          "seg": 8
+        },
+        {
+          "at": [0, -0.09, 0],
+          "e": [0.7, 0.9],
+          "material": "glass",
+          "r": [0.045, 0.064, 0.045],
+          "rings": 5,
+          "seg": 10
+        },
+        {
+          "at": [0, -0.165, 0],
+          "e": [0.45, 0.8],
+          "material": "brass",
+          "r": [0.054, 0.022, 0.054],
+          "rings": 3,
+          "seg": 10
+        }
+      ],
+      "tip": [0, -0.09, 0]
+    },
+    "lighter": {
+      "about": "A brass lighter, held up before the chest and a little to its side, the elbow bent close in, shielding the flame; high enough that under the 30° tilt it still shows at the chest, not the waist.",
+      "hold": {
+        "hand": [
+          {
+            "k": 0.1
+          },
+          {
+            "k": 0.08
+          },
+          {
+            "k": 0.18
+          }
+        ],
+        "pole": [0.7, -0.7, -0.3],
+        "turn": [-1.5707963267948966, 0, 0]
+      },
+      "parts": [
+        {
+          "at": [0, 0, 0.027],
+          "e": [0.3, 0.3],
+          "material": "brass",
+          "r": [0.02, 0.014, 0.032],
+          "rings": 4,
+          "seg": 8
+        }
+      ],
+      "tip": [0, 0, 0.08]
+    },
+    "torch": {
+      "about": "A rag torch on a stick, held forward and low at the side, upright.",
+      "hold": {
+        "hand": [
+          {
+            "k": 0.15
+          },
+          {
+            "k": -0.34
+          },
+          {
+            "k": 0.25
+          }
+        ],
+        "pole": [0.7, -0.4, -0.6],
+        "turn": [-1.5707963267948966, 0, 0]
+      },
+      "parts": [
+        {
+          "at": [0, 0, 0.13],
+          "material": "wood",
+          "pitch": 1.5707963267948966,
+          "r": [0.018, 0.22, 0.018],
+          "rings": 3,
+          "seg": 6
+        },
+        {
+          "at": [0, 0, 0.34],
+          "material": "rag",
+          "pitch": 1.5707963267948966,
+          "r": [0.04, 0.06, 0.04],
+          "rings": 4,
+          "seg": 8
+        }
+      ],
+      "tip": [0, 0, 0.43]
+    }
+  },
+  "figure-stand": {
+    "arms-crossed": {
+      "about": "The b-boy stance: the weight back on the far leg, the arms crossed over the ribs, the near forearm over the far, the chest back a little and open to the camera (so a pendant shows over the arms), the chin up and the head turned to the camera.",
+      "chest": [0.03, -0.06, -0.05],
+      "fallback": ["hand-in-jacket-pocket", "hand-in-pocket", "hand-on-hip"],
+      "free": [0.1, 0.05, 0.4, 0.04],
+      "hands": {
+        "L": {
+          "at": "crossed"
+        },
+        "R": {
+          "at": "crossed"
+        }
+      },
+      "head": [-0.18, 0.02, -0.15],
+      "roll": 0.06,
+      "shift": 0.03,
+      "under": 0.3,
+      "weight": "L"
+    },
+    "hand-in-jacket-pocket": {
+      "about": "Still, with attitude: the weight back on the far leg, the near hand in the jacket's slash pocket from an elbow out and back off the body, the far arm loose with a soft bend, the shoulders easy, the chin a touch down and the eyes on the camera.",
+      "chest": [0.05, 0.1, 0.02],
+      "fallback": ["hand-in-pocket", "hand-on-hip"],
+      "free": [0.12, 0.03, 0.35, 0.1],
+      "hands": {
+        "L": {
+          "bend": 0.35,
+          "out": 0.12,
+          "swing": -0.04
+        },
+        "R": {
+          "at": "jacketPocket",
+          "elbow": 0.6
+        }
+      },
+      "head": [-0.22, 0.04, 0.04],
+      "roll": 0.08,
+      "shift": 0.04,
+      "under": 0.3,
+      "weight": "L"
+    },
+    "hand-in-pocket": {
+      "about": "Upright and still, the weight back, the near hand down in a front pocket with the forearm angled to it from an elbow out at the side, the other arm hanging with a soft bend, the chin level.",
+      "chest": [0.03, -0.05, -0.03],
+      "fallback": ["hand-in-jacket-pocket", "hip-and-pocket", "hand-on-hip"],
+      "free": [0.12, 0.02, 0.3, 0.02],
+      "hands": {
+        "L": {
+          "bend": 0.22,
+          "out": 0.07
+        },
+        "R": {
+          "at": "frontPocket",
+          "elbow": 0.2
+        }
+      },
+      "head": [-0.12, 0, -0.06],
+      "roll": 0.07,
+      "shift": 0.03,
+      "under": 0.25,
+      "weight": "L"
+    },
+    "hand-on-hip": {
+      "about": "The hip out over the weight leg and the near hand on it, the elbow out and back so the arm reads as a V off the waist; the other arm loose; the chin up.",
+      "chest": [0.07, -0.12, -0.04],
+      "fallback": ["hip-and-pocket"],
+      "free": [0.11, 0.035, 0.42, 0.2],
+      "hands": {
+        "L": {
+          "bend": 0.32,
+          "out": 0.14,
+          "swing": 0.04
+        },
+        "R": {
+          "at": "hip",
+          "elbow": 0.8,
+          "nudge": [0.01, -0.02, -0.12]
+        }
+      },
+      "head": [-0.22, -0.06, -0.14],
+      "roll": 0.09,
+      "shift": 0.05,
+      "under": 0.4,
+      "weight": "R"
+    },
+    "hip-and-pocket": {
+      "about": "The near hand on the hip with the elbow wide off the waist, the far hand down in a pocket: the weight on the far leg, the near hip out, the chest turned to the camera, the head tipped.",
+      "chest": [0.07, 0.08, -0.03],
+      "fallback": ["hand-on-hip"],
+      "free": [0.1, 0.03, 0.35, 0.22],
+      "hands": {
+        "L": {
+          "at": "bellyPocket",
+          "elbow": 0.4
+        },
+        "R": {
+          "at": "hip",
+          "elbow": 0.8,
+          "nudge": [0.01, -0.02, -0.12]
+        }
+      },
+      "head": [-0.2, 0.1, -0.05],
+      "roll": 0.09,
+      "shift": 0.05,
+      "under": 0.4,
+      "weight": "L"
+    },
+    "kangaroo-pocket": {
+      "about": "Both hands high in a belly pocket, the elbows bent hard and standing out from the body (the near one out and back, into the picture), the weight on the far hip, the near knee in, the head tipped.",
+      "chest": [0.08, -0.12, 0],
+      "fallback": ["hip-and-pocket", "hand-on-hip"],
+      "free": [0.09, 0.02, 0.15, 0.3],
+      "hands": {
+        "L": {
+          "at": "bellyPocket",
+          "elbow": 0.5
+        },
+        "R": {
+          "at": "bellyPocket",
+          "elbow": -0.3
+        }
+      },
+      "head": [-0.18, 0.13, -0.04],
+      "roll": 0.1,
+      "shift": 0.055,
+      "under": 0.45,
+      "weight": "L"
+    },
+    "thumbs-in-pockets": {
+      "about": "Easy, the weight back on the far leg, both thumbs hooked into the front pockets at the hip with the hands outside them, the elbows out, the eyes on the camera.",
+      "chest": [0.05, 0.1, 0.02],
+      "fallback": ["hand-in-pocket", "hand-in-jacket-pocket", "hand-on-hip"],
+      "free": [0.07, 0.045, 0.4, 0.06],
+      "hands": {
+        "L": {
+          "at": "thumbHook",
+          "elbow": 0.3,
+          "nudge": [0, -0.03, 0]
+        },
+        "R": {
+          "at": "thumbHook",
+          "elbow": -0.3,
+          "nudge": [0, -0.03, 0]
+        }
+      },
+      "head": [-0.25, 0.04, 0.02],
+      "roll": 0.06,
+      "shift": 0.035,
+      "under": 0.3,
+      "weight": "L"
+    }
+  },
+  "figure-rig": {
+    "default": {
+      "about": "The limits every figure shares unless it names its own.",
+      "chest": {
+        "pitch": {
+          "max": 30,
+          "min": -20
+        },
+        "twist": {
+          "max": 35,
+          "min": -35
+        }
+      },
+      "elbow": {
+        "max": 150,
+        "min": 0
+      },
+      "head": {
+        "pitch": {
+          "max": 30,
+          "min": -25
+        },
+        "roll": {
+          "max": 25,
+          "min": -25
+        },
+        "yaw": {
+          "max": 45,
+          "min": -45
+        }
+      },
+      "hip": {
+        "cone": 120
+      },
+      "knee": {
+        "max": 150,
+        "min": 0
+      },
+      "neck": {
+        "pitch": {
+          "max": 25,
+          "min": -20
+        },
+        "yaw": {
+          "max": 35,
+          "min": -35
+        }
+      },
+      "shoulder": {
+        "cone": 170
+      }
+    }
+  },
+  "figure-pose": {
+    "carry": {
+      "about": "Carrying something before the belly in both hands, held in the chest's frame so it rides with the chest, which leans back against the load.",
+      "effectors": {
+        "chest": {
+          "rot": [-5, 0, 0]
+        },
+        "handL": {
+          "pos": [0.15, -0.23, 0.3],
+          "space": "chest"
+        },
+        "handR": {
+          "pos": [-0.15, -0.23, 0.3],
+          "space": "chest"
+        }
+      }
+    },
+    "flinch": {
+      "about": "Flinching: the forearms up before the face, the head ducked and turned away, the hips back.",
+      "effectors": {
+        "footR": {
+          "pos": [-0.0657, 0.0825, 0]
+        },
+        "handL": {
+          "pos": [0.06, 1.4478, 0.21]
+        },
+        "handR": {
+          "pos": [-0.06, 1.4478, 0.21]
+        },
+        "pelvis": {
+          "pos": [-0.045, 0.8244, -0.04]
+        }
+      },
+      "fk": {
+        "chest": [-8.0214, 6.8755, 0],
+        "head": [10.7433, 10.6012, 0.2399],
+        "neck": [7.2229, 6.9979, 0.1057]
+      },
+      "poles": {
+        "elbowL": {
+          "dir": [0.5, -1, 0.1]
+        },
+        "elbowR": {
+          "dir": [-0.5, -1, 0.1]
+        }
+      }
+    },
+    "free": {
+      "about": "Sets no handle: every channel is left to the layers below.",
+      "effectors": {}
+    },
+    "guard-high": {
+      "about": "Guard up: both hands before the face, the right a little higher and further out, the elbows down and out, the shoulders raised.",
+      "effectors": {
+        "chest": {
+          "rot": [5, 0, 0]
+        },
+        "handL": {
+          "pos": [0.1, 1.3, 0.22]
+        },
+        "handR": {
+          "pos": [-0.1, 1.35, 0.25]
+        }
+      },
+      "fk": {
+        "clavicle.L": [0, 0, 6],
+        "clavicle.R": [0, 0, -6]
+      },
+      "poles": {
+        "elbowL": {
+          "dir": [0.6, -1, 0]
+        },
+        "elbowR": {
+          "dir": [-0.6, -1, 0]
+        }
+      }
+    },
+    "guard-low": {
+      "about": "Guard low: the hips sunk over bent knees, the hands at the belly, the chest leaning in.",
+      "effectors": {
+        "chest": {
+          "rot": [8, 0, 0]
+        },
+        "handL": {
+          "pos": [0.1, 0.9, 0.25]
+        },
+        "handR": {
+          "pos": [-0.12, 0.95, 0.3]
+        },
+        "pelvis": {
+          "pos": [0, 0.8, -0.02]
+        }
+      }
+    },
+    "hands-on-hips": {
+      "about": "Both hands on the hips, the heels of the hands above the crest and the fingers forward, the elbows out and back.",
+      "effectors": {
+        "handL": {
+          "pos": [0.1908, 0.8259, -0.1712],
+          "rot": [-54.8739, 5.7106, -4.6757]
+        },
+        "handR": {
+          "pos": [-0.1908, 0.8259, -0.1712],
+          "rot": [-54.8739, -5.7106, 4.6757]
+        }
+      },
+      "poles": {
+        "elbowL": {
+          "dir": [0.8933, 0.0496, -0.4467]
+        },
+        "elbowR": {
+          "dir": [-0.8933, 0.0496, -0.4467]
+        }
+      }
+    },
+    "kneel": {
+      "about": "Kneeling on the right knee: the hips down, the left foot forward and flat, the right foot behind with its toes down.",
+      "effectors": {
+        "footL": {
+          "pos": [0.1, 0.08, 0.3],
+          "rot": [0, 0, 0]
+        },
+        "footR": {
+          "pos": [-0.1, 0.12, -0.35],
+          "rot": [40, 0, 0]
+        },
+        "pelvis": {
+          "pos": [0, 0.5, -0.05]
+        }
+      }
+    },
+    "look-across": {
+      "about": "Looking out to the right: the head turned well round, the chest a little.",
+      "effectors": {},
+      "fk": {
+        "chest": [0, -10.743, 0],
+        "head": [0.3565, -19.3291, -0.5058],
+        "neck": [0.1713, -12.8889, -0.2161]
+      }
+    },
+    "look-out": {
+      "about": "Looking out to the left: the head turned well round, the chest a little.",
+      "effectors": {},
+      "fk": {
+        "chest": [0, 10.743, 0],
+        "head": [-0.5038, 19.3259, 0.3593],
+        "neck": [-0.2152, 12.8883, 0.1725]
+      }
+    },
+    "point": {
+      "about": "Pointing ahead with the right hand at shoulder height, the head turned to it, the body turned a little toward the left.",
+      "effectors": {
+        "handR": {
+          "pos": [-0.16, 1.3, 0.52],
+          "rot": [-90, 0, 0]
+        },
+        "head": {
+          "rot": [0, -10, 0]
+        }
+      },
+      "root": {
+        "yaw": 15
+      }
+    },
+    "reach-out": {
+      "about": "Reaching out with the right hand before the shoulder, the chest leaning into it.",
+      "effectors": {
+        "handR": {
+          "pos": [-0.1275, 1.1114, 0.5]
+        }
+      },
+      "fk": {
+        "chest": [6.8755, 6.8755, 0]
+      },
+      "poles": {
+        "elbowR": {
+          "dir": [-0.7, -0.5, -0.5]
+        }
+      }
+    },
+    "stand": {
+      "about": "Standing easy: the hands hanging a little out and forward, the chest up a touch, the chin level.",
+      "effectors": {
+        "chest": {
+          "rot": [2, 0, 0]
+        },
+        "handL": {
+          "pos": [0.2, 0.78, 0.05]
+        },
+        "handR": {
+          "pos": [-0.2, 0.78, 0.05]
+        },
+        "head": {
+          "rot": [-2, 0, 0]
+        }
+      }
+    }
+  },
+  "figure-clip": {
+    "jab": {
+      "cues": [
+        {
+          "id": "swing",
+          "t": 0.15
+        },
+        {
+          "id": "hit",
+          "t": 0.25
+        }
+      ],
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [0, 15, 0]
+              },
+              "handR": {
+                "pos": [-0.18, 1.25, 0.05]
+              }
+            }
+          },
+          "t": 0.15
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [0, -10, 0]
+              },
+              "handR": {
+                "pos": [-0.16, 1.3, 0.5]
+              }
+            }
+          },
+          "t": 0.25
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 0.4
+        }
+      ],
+      "length": 0.4,
+      "loop": "once",
+      "markers": {
+        "contact": 0.25,
+        "windup": 0.15
+      },
+      "mask": ["armR", "torso"],
+      "rate": 12
+    },
+    "raise-guard": {
+      "blend": {
+        "inMs": 120,
+        "outMs": 120
+      },
+      "keys": [
+        {
+          "pose": "stand",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": "guard-high",
+          "t": 0.25
+        }
+      ],
+      "length": 0.25,
+      "loop": "hold",
+      "mask": ["armL", "armR", "torso"]
+    },
+    "roll": {
+      "keys": [
+        {
+          "pose": "free",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": "kneel",
+          "t": 0.3
+        },
+        {
+          "ease": "in",
+          "pose": "free",
+          "t": 0.6
+        }
+      ],
+      "length": 0.6,
+      "loop": "once",
+      "mask": ["root", "pelvis", "torso", "head", "armL", "armR", "legL", "legR"]
+    },
+    "slash": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [0, -20, 0]
+              },
+              "handR": {
+                "pos": [-0.3, 1.5, 0.05]
+              }
+            }
+          },
+          "t": 0.12
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [5, 25, 0]
+              },
+              "handR": {
+                "pos": [0.15, 0.95, 0.45]
+              }
+            }
+          },
+          "t": 0.28
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 0.5
+        }
+      ],
+      "length": 0.5,
+      "loop": "once",
+      "markers": {
+        "contact": 0.28,
+        "windup": 0.12
+      },
+      "mask": ["armR", "torso"]
+    }
+  },
+  "figure-action": {
+    "flinch": {
+      "action": 0,
+      "anticipation": 0.18,
+      "hold": true,
+      "keys": [
+        {
+          "ease": "inOut",
+          "pose": "flinch",
+          "t": 0.18
+        }
+      ],
+      "mask": ["pelvis", "torso", "head", "armL", "armR", "legR"],
+      "recovery": 0.3
+    },
+    "look": {
+      "action": 2.8,
+      "anticipation": 0.6,
+      "hold": true,
+      "keys": [
+        {
+          "ease": "out",
+          "pose": "look-out",
+          "t": 0.6
+        },
+        {
+          "pose": "look-out",
+          "t": 1.6
+        },
+        {
+          "ease": "inOut",
+          "pose": "look-across",
+          "t": 3.4
+        }
+      ],
+      "mask": ["torso", "head"],
+      "recovery": 0.4
+    },
+    "reach": {
+      "action": 0.91,
+      "anticipation": 0.49,
+      "keys": [
+        {
+          "ease": "inOut",
+          "pose": "reach-out",
+          "t": 0.49
+        },
+        {
+          "pose": "reach-out",
+          "t": 1.008
+        }
+      ],
+      "mask": ["armR", "torso"],
+      "recovery": 0.4
+    }
+  },
+  "figure-seat": {
+    "lean-in": {
+      "about": "Locked in: the back bent hard toward the screen, the face close to it, the elbows up and out, both hands hammering the keys.",
+      "feet": -0.06,
+      "hands": {
+        "L": {
+          "to": [0.15, 0.78, 0.42]
+        },
+        "R": {
+          "to": [0.15, 0.78, 0.42]
+        }
+      },
+      "head": [0, 0, -0.1],
+      "height": 0.46,
+      "knees": 0.04,
+      "lean": 0.55,
+      "type": 0.018
+    },
+    "mouse": {
+      "about": "At a desk, one hand on the keys and the near one out on the mouse, the shoulder turned a little to it.",
+      "hands": {
+        "L": {
+          "to": [0.12, 0.76, 0.36]
+        },
+        "R": {
+          "aim": [[0, -0.3, 1], [0, -1, 0]],
+          "to": [0.3, 0.76, 0.4]
+        }
+      },
+      "height": 0.46,
+      "knees": 0.02,
+      "lean": 0.18,
+      "turn": -0.08
+    },
+    "reach-click": {
+      "about": "Reaching forward across the desk to press something on the screen or the keyboard with the near hand, deliberately, the body leaning after it; the other hand on the desk's edge.",
+      "hands": {
+        "L": {
+          "to": [0.14, 0.76, 0.3]
+        },
+        "R": {
+          "aim": [[0, -0.5, 1], [0, -0.6, 0.3]],
+          "to": [0.08, 0.84, 0.56]
+        }
+      },
+      "head": [0, 0, 0.12],
+      "height": 0.46,
+      "knees": 0.02,
+      "lean": 0.28,
+      "turn": -0.1
+    },
+    "slump": {
+      "about": "Dead inside: slid forward on the seat, the back rounded, the chest sunk, the chin down, the hands dropped in the lap, the knees apart.",
+      "feet": 0.08,
+      "hands": {
+        "L": "lap",
+        "R": "lap"
+      },
+      "head": [0, 0.06, 0.18],
+      "height": 0.46,
+      "knees": 0.05,
+      "slump": 0.7
+    },
+    "to-mouth": {
+      "about": "At a desk, the near hand raised to the mouth holding something to it (a mug to drink from, or bite), the elbow down and in, the other hand on the desk; the back easy.",
+      "hands": {
+        "L": {
+          "to": [0.13, 0.76, 0.34]
+        },
+        "R": {
+          "aim": [[-0.9, 0.3, 0.3], [0, 0, -1]],
+          "to": [0.05, 1.12, 0.2]
+        }
+      },
+      "head": [0, 0, 0.04],
+      "height": 0.46,
+      "knees": 0.02,
+      "lean": 0.1
+    },
+    "triumph": {
+      "about": "At a desk, the near hand thrust straight up holding something high in triumph, the far hand down on the desk; the chest up, the chin up.",
+      "hands": {
+        "L": {
+          "to": [0.15, 0.78, 0.36]
+        },
+        "R": {
+          "aim": [[0, 1, 0.1], [-1, 0, 0]],
+          "to": [0.16, 1.62, 0.12]
+        }
+      },
+      "head": [0, 0, -0.12],
+      "height": 0.46,
+      "knees": 0.03,
+      "lean": -0.05
+    },
+    "typing": {
+      "about": "At a desk, the back easy and a little forward, both hands on the keys.",
+      "hands": {
+        "L": {
+          "to": [0.13, 0.76, 0.36]
+        },
+        "R": {
+          "to": [0.13, 0.76, 0.36]
+        }
+      },
+      "head": [0, 0, 0.05],
+      "height": 0.46,
+      "knees": 0.02,
+      "lean": 0.12,
+      "type": 0.006
+    },
+    "upright": {
+      "about": "Sat up in a chair, the back straight and a touch forward, the knees together, the hands loose in the lap: an interview, a waiting room.",
+      "feet": 0.02,
+      "hands": {
+        "L": "lap",
+        "R": "lap"
+      },
+      "height": 0.46,
+      "knees": 0,
+      "lean": 0.06
+    }
+  },
+  "tuning": {},
+  "palette": {
+    "name": "DUEL",
+    "colors": [
+      "#000000",
+      "#222323",
+      "#434549",
+      "#626871",
+      "#828b98",
+      "#a6aeba",
+      "#cdd2da",
+      "#f5f7fa",
+      "#625d54",
+      "#857565",
+      "#9e8c79",
+      "#aea189",
+      "#bbafa4",
+      "#ccc3b1",
+      "#eadbc9",
+      "#fff3d6",
+      "#583126",
+      "#733d3b",
+      "#885041",
+      "#9a624c",
+      "#ad6e51",
+      "#d58d6b",
+      "#fbaa84",
+      "#ffce7f",
+      "#002735",
+      "#003850",
+      "#004d5e",
+      "#0b667f",
+      "#006f89",
+      "#328ca7",
+      "#24aed6",
+      "#88d6ff",
+      "#662b29",
+      "#94363a",
+      "#b64d46",
+      "#cd5e46",
+      "#e37840",
+      "#f99b4e",
+      "#ffbc4e",
+      "#ffe949",
+      "#282b4a",
+      "#3a4568",
+      "#615f84",
+      "#7a7799",
+      "#8690b2",
+      "#96b2d9",
+      "#c7d6ff",
+      "#c6ecff",
+      "#002219",
+      "#003221",
+      "#174a1b",
+      "#225918",
+      "#2f690c",
+      "#518822",
+      "#7da42d",
+      "#a6cc34",
+      "#181f2f",
+      "#23324d",
+      "#25466b",
+      "#366b8a",
+      "#318eb8",
+      "#41b2e3",
+      "#52d2ff",
+      "#74f5fd",
+      "#1a332c",
+      "#2f3f38",
+      "#385140",
+      "#325c40",
+      "#417455",
+      "#498960",
+      "#55b67d",
+      "#91daa1",
+      "#5e0711",
+      "#82211d",
+      "#b63c35",
+      "#e45c5f",
+      "#ff7676",
+      "#ff9ba8",
+      "#ffbbc7",
+      "#ffdbff",
+      "#2d3136",
+      "#48474d",
+      "#5b5c69",
+      "#73737f",
+      "#848795",
+      "#abaebe",
+      "#bac7db",
+      "#ebf0f6",
+      "#3b303c",
+      "#5a3c45",
+      "#8a5258",
+      "#ae6b60",
+      "#c7826c",
+      "#d89f75",
+      "#ecc581",
+      "#fffaab",
+      "#31222a",
+      "#4a353c",
+      "#5e4646",
+      "#725a51",
+      "#7e6c54",
+      "#9e8a6e",
+      "#c0a588",
+      "#ddbf9a",
+      "#2e1026",
+      "#49283d",
+      "#663659",
+      "#975475",
+      "#b96d91",
+      "#c178aa",
+      "#db99bf",
+      "#f8c6da",
+      "#002e49",
+      "#004051",
+      "#005162",
+      "#006b6d",
+      "#008279",
+      "#00a087",
+      "#00bfa3",
+      "#00deda",
+      "#453125",
+      "#614a3c",
+      "#7e6144",
+      "#997951",
+      "#b29062",
+      "#cca96e",
+      "#e8cb82",
+      "#fbeaa3",
+      "#5f0926",
+      "#6e2434",
+      "#904647",
+      "#a76057",
+      "#bd7d64",
+      "#ce9770",
+      "#edb67c",
+      "#edd493",
+      "#323558",
+      "#4a5280",
+      "#64659d",
+      "#7877c1",
+      "#8e8ce2",
+      "#9c9bef",
+      "#b8aeff",
+      "#dcd4ff",
+      "#431729",
+      "#712b3b",
+      "#9f3b52",
+      "#d94a69",
+      "#f85d80",
+      "#ff7daf",
+      "#ffa6c5",
+      "#ffcdff",
+      "#49251c",
+      "#633432",
+      "#7c4b47",
+      "#98595a",
+      "#ac6f6e",
+      "#c17e7a",
+      "#d28d7a",
+      "#e59a7c",
+      "#202900",
+      "#2f4f08",
+      "#495d00",
+      "#617308",
+      "#7c831e",
+      "#969a26",
+      "#b4aa33",
+      "#d0cc32",
+      "#622a00",
+      "#753b09",
+      "#854f12",
+      "#9e6520",
+      "#ba882e",
+      "#d1aa39",
+      "#e8d24b",
+      "#fff64f",
+      "#26233d",
+      "#3b3855",
+      "#56506f",
+      "#75686e",
+      "#917a7b",
+      "#b39783",
+      "#cfaf8e",
+      "#fedfb1",
+      "#1d2c43",
+      "#2e3d47",
+      "#394d3c",
+      "#4c5f33",
+      "#58712c",
+      "#6b842d",
+      "#789e24",
+      "#7fbd39",
+      "#372423",
+      "#53393a",
+      "#784c49",
+      "#945d4f",
+      "#a96d58",
+      "#bf7e63",
+      "#d79374",
+      "#f4a380",
+      "#2d4b47",
+      "#47655a",
+      "#5b7b69",
+      "#71957d",
+      "#87ae8e",
+      "#8ac196",
+      "#a9d1c1",
+      "#e0faeb",
+      "#001b40",
+      "#03315f",
+      "#07487c",
+      "#105da2",
+      "#1476c0",
+      "#4097ea",
+      "#55b1f1",
+      "#6dccff",
+      "#554769",
+      "#765d73",
+      "#977488",
+      "#b98c93",
+      "#d5a39a",
+      "#ebbd9d",
+      "#ffd59b",
+      "#fdf786",
+      "#1d1d21",
+      "#3c3151",
+      "#584a7f",
+      "#7964ba",
+      "#9585f1",
+      "#a996ec",
+      "#baabf7",
+      "#d1bdfe",
+      "#262450",
+      "#28335d",
+      "#2d3d72",
+      "#3d5083",
+      "#5165ae",
+      "#5274c5",
+      "#6c82c4",
+      "#8393c3",
+      "#492129",
+      "#5e414a",
+      "#77535b",
+      "#91606a",
+      "#ad7984",
+      "#b58b94",
+      "#d4aeaa",
+      "#ffe2cf",
+      "#721c03",
+      "#9c3327",
+      "#bf5a3e",
+      "#e98627",
+      "#ffb108",
+      "#ffcf05",
+      "#fff02b",
+      "#f7f4bf"
+    ]
+  }
+}

@@ -735,3 +735,13 @@ customer - we are customer obsessed, we are crafting the perfect product from so
 |---|---|---|
 | 1. Audit | Done, 2026-11-08: 3 critical (V1 to V3), 5 high (V4 to V8), 6 medium (V9 to V14), 5 low (V15 to V19), one decision for the Owner (D1, whether Publish puts the game on itch.io). A game made from the packed tools outside the workspace was given a coin feature by an agent, edited in the editors, played, reloaded, reopened and published to a zip that played; the story and 3D games were edited in every editor. Typed words were lost on reload (V2, sent to the sign-in and saving thread) | [audit](2026-11-08-customer-value-audit.md) |
 | 2. Plan and spec | Not started; V1, V3, V4 and V6 make one "agent experience" slice; V2, V5 and V8 belong to running threads | |
+
+## Character kit against FigureBuilder (stage 1 of 2 done, 2026-11-10)
+
+The Owner, 2026-11-10: the character kit "does not match the quality nor look of our projects seen here - first
+determine why, then resolve".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Diagnosis | Done, 2026-11-10: the base pair drawn both ways in FigureBuilder's DENSITY=2 cell (FigureBuilder `main` `08f54a6`; AF with the kit, with and without `DEFAULT_LOOK`, by `examples/3d/diagnosis/diagnosis-base-pair.ts`); 8 causes ranked, the first the painter and rasteriser AF left out; colours on the row: 33 against 811 (87 with the look). Ran: the harness and the kit's examples in Chromium (SwiftShader), `typecheck` for `examples/3d` and the kit, `style`, `source-names`, `knip`, `boundaries`. Not run: WebKit, Firefox, the GPU runner, the full `pnpm check` | [diagnosis](2026-11-10-character-kit-diagnosis.md) |
+| 2. Fix | Waiting on the Owner's choice of approach (A, port and bake, recommended; or B, closer passes) | |

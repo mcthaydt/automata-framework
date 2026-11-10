@@ -23,6 +23,7 @@
   },
   "scripts": {
     "goldens": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/record-goldens.ts",
+    "dump-fixture": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/dump-fixture.ts ../../examples/3d/diagnosis/fixture.json && pnpm -w exec biome format --write examples/3d/diagnosis/fixture.json",
     "goldens:core": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/record-core-figures.ts",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
