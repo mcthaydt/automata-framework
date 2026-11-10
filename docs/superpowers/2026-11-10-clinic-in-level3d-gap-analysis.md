@@ -16,11 +16,21 @@
 ## Where the extensions live
 
 On 2026-11-07 the Owner chose to port automata-plus into this repository as `extensions/<name>` (P-D1 B, in
-`docs/refactor/plus-progress.md`). automata-plus `main` has not moved since 2026-11-01. So "Plus extension" below means
-`extensions/<name>` here. EnvironmentBuilder's coordinator plans to make The Last Light's render features into
-"automata-plus extensions". I have asked that session (2026-11-10) to confirm the location with the Owner and to agree
-who builds what. Until it replies, every render feature marked **EB** is assumed to come from that project, and this
-work adds nothing to it.
+`docs/refactor/plus-progress.md`). On 2026-11-10 the Owner confirmed three things to EnvironmentBuilder's coordinator
+(`session_01HNdX7MmXG4n9XJgnAXgAik`):
+
+1. **Location:** the render extensions go in `automata-framework/extensions/<name>`, not automata-plus.
+2. **Fidelity:** same look, new numbers. The extensions reproduce The Last Light's look, and their example frames are
+   recorded fresh. The clinic must look like the original, but not match it pixel for pixel.
+3. **Who builds what:** EnvironmentBuilder's project builds the render extensions (LCD panel, retro and crisp filters,
+   fog, bloom, indirect light, room visibility, camera rig), each with an example. This work owns the clinic's level
+   data, the converters from The Last Light at `92e6704`, the scene wiring, and any `af-sector/2` fields the clinic
+   needs.
+
+Those extensions are cycle E of EnvironmentBuilder's Pixi/3D port, which is not specced yet. The working order is
+room visibility and the camera rig first, then fog and indirect light, then bloom, crisp, retro and the LCD panel.
+No extension reads The Last Light's own types. Each takes AF data as Zod schemas: `af-sector/2`, zones, lamps and
+profiles. Converting from The Last Light belongs to this work. Rows marked **EB** below wait on those schemas.
 
 ## Status key
 
@@ -136,7 +146,5 @@ These are what the brainstorm has to settle:
 
 - What "plays like the original" covers: the whole of act one (Nurse, fire, water, power, the puzzle, the cutscenes,
   saves), or the clinic walkable, lit and dressed with the puzzle running.
-- What "looks like the original" means: a pixel match against The Last Light, or EnvironmentBuilder's "same look,
-  new numbers".
 - Where the clinic lives: a new game in `games/`, an example, or a clinic profile in `base-3d`.
 - Whether the 61 GLB models may be copied into AF, and under what licence.
