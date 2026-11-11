@@ -51,6 +51,17 @@ runs in its own session on its own branch and hands off through committed docume
 | 2. Plan | Fable 5.2 (`session_01HNdX7HoZvLRU1gqFba7bf7`) | `claude/builders-look-plan` | Done 2026-11-11, no subagents. Ran: both builders' own renders (EnvironmentBuilder `f7c5356`, FigureBuilder `23f889c`), the framework's frames on `main` in Chromium on software WebGL, the 3D examples' build, each step of `pnpm check` on `main` and on each draft merged with `main`, trial merges and cherry-picks in scratch worktrees. `main` at `6a70f9b1` failed `style` and `source-names` on documents under `docs/superpowers/` (repaired on `main` at `f93a2402`, re-run there: 0 findings). No product code written; no hash or golden touched. Not run: WebGPU, WebKit, Firefox, the browser suites and journeys. The plan names eleven calls for the coordinator, and one editor gap is logged (painted figures) |
 | 3. Plan audit | `session_01HNdX7Lxv5Fs1sjzwS7sm97`, no subagents | `claude/builders-look-plan-audit` | Done 2026-11-11 at `main` `b80bfc84`. FigureBuilder placed at its pin `d6e3c9f` and read at `23f889c` and #29's `856498a`; EnvironmentBuilder read at `f7c5356` (both read only, nothing committed in them). Ran: `pnpm install`; the survey's sheets on `main` and on `main` + #589 + the fix (each within 0.1 of the survey's and the plan's numbers); the plan's lit-room test in Chromium (fails on `main` and on `main` + #589, passes with the fix; it did not typecheck as written, fixed); the merge order on scratch branches with each step of `pnpm check` on each state (green but for `knip`, `main`'s own fault, and the probe's port in the first two states, finding 5); workstream 1's build branch merged with the order (no conflict as text; the lockfile needs `pnpm install`); a revert of the letterbox commits. Not run: WebGPU, WebKit, Firefox, the browser suites and journeys whole, `pnpm build`, `api-report`, `api-index`. 28 findings, all fixed in the plan and the survey; no product code or spec changed |
 
+## Workstream 1, tasks 16 and 19 (a side branch)
+
+The Owner had tasks 16 and 19 split off the build branch to go faster. One session runs them on
+`claude/shared-polish-emberwick-site` (from `e5100b3c`), and the build session folds them in at the merge, then recomputes
+the percentage above (this section does not).
+
+| Task | State |
+|---|---|
+| 16. Emberwick in six languages, with an achievement | Done (Chromium only; WebKit and Firefox not run; the live model call unverified, no key). The rulings are in the plan's "Execution log: tasks 16 and 19" |
+| 19. The site's Editor page is cut | Not started |
+
 ## Workstream 3: what the Owner has said so far (2026-11-11)
 
 No UI editor was ever planned: the 2026-10-30 suite spec put "a UI composer" out of scope and the HUD-pieces idea was

@@ -20,5 +20,23 @@ export default defineShipConfig({
     pause_behavior: 'pause',
   },
   network: { connect: [] },
-  content: { languages: ['en'], rating: 'everyone', descriptors: [] },
+  // The six languages the game ships (messages/ui and content/messages), the framework's defaults. Written out, not read
+  // from `@automata/content/locale`: the `automata` command loads this file in plain Node, which cannot load that entry.
+  content: {
+    languages: ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'],
+    rating: 'everyone',
+    descriptors: [],
+  },
+  // The fastest climb, in milliseconds (the end screen submits the round's time). Ruken checks a score against these.
+  leaderboards: { fastest: { order: 'asc', min: 1000, max: 3_600_000, title: 'Fastest climb' } },
+  // Reaching the ember in under a minute. A goal is a rule on a board's score; each host awards what it can (Ruken
+  // from its manifest), and one with no achievements ignores the declaration.
+  achievements: {
+    'ember-in-a-minute': {
+      title: 'Ember in a minute',
+      description: 'Reach the ember in under 60 seconds.',
+      board: 'fastest',
+      goal: { reach: 60_000 },
+    },
+  },
 })

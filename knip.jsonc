@@ -31,8 +31,9 @@
     "vendor/figure-builder": { "entry": [], "project": [], "ignoreDependencies": ["@pixi/3d", "pixi.js"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
     "games/emberwick": {
-      // The journeys sit in tests/e2e; the config names its directory, which knip does not follow.
-      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"],
+      // The journeys sit in tests/e2e; the config names its directory, which knip does not follow. The `automata-content`
+      // command (the font build) reads automata.content.ts by name.
+      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "automata.content.ts"],
       "playwright": false
     },
     // Each game or example set has its own playwright.config.ts. They are entries,

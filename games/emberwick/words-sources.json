@@ -1,0 +1,116 @@
+{
+  "achievements": {
+    "es-419": {
+      "achievement_ember_in_a_minute_description": "9ff4405c35ab5c6ed3a1aea19ea1af95c3bfd0e7c414c7ce12ca79deffd83a08",
+      "achievement_ember_in_a_minute_title": "cddc3ac02bbc754f40f501042931850fcfcb4f6225795dc9edf09ac59d6a7730"
+    },
+    "ja": {
+      "achievement_ember_in_a_minute_description": "9ff4405c35ab5c6ed3a1aea19ea1af95c3bfd0e7c414c7ce12ca79deffd83a08",
+      "achievement_ember_in_a_minute_title": "cddc3ac02bbc754f40f501042931850fcfcb4f6225795dc9edf09ac59d6a7730"
+    },
+    "ko": {
+      "achievement_ember_in_a_minute_description": "9ff4405c35ab5c6ed3a1aea19ea1af95c3bfd0e7c414c7ce12ca79deffd83a08",
+      "achievement_ember_in_a_minute_title": "cddc3ac02bbc754f40f501042931850fcfcb4f6225795dc9edf09ac59d6a7730"
+    },
+    "pt-BR": {
+      "achievement_ember_in_a_minute_description": "9ff4405c35ab5c6ed3a1aea19ea1af95c3bfd0e7c414c7ce12ca79deffd83a08",
+      "achievement_ember_in_a_minute_title": "cddc3ac02bbc754f40f501042931850fcfcb4f6225795dc9edf09ac59d6a7730"
+    },
+    "zh-Hans": {
+      "achievement_ember_in_a_minute_description": "9ff4405c35ab5c6ed3a1aea19ea1af95c3bfd0e7c414c7ce12ca79deffd83a08",
+      "achievement_ember_in_a_minute_title": "cddc3ac02bbc754f40f501042931850fcfcb4f6225795dc9edf09ac59d6a7730"
+    }
+  },
+  "ui": {
+    "es-419": {
+      "back_to_menu": "1a828b18b9df4fbe6edc6255deeadae181306601a4d73620f0824582a683c9fc",
+      "end_time": "fde82d3dd95e8edbefe2c328e4fbce4802413f212881c673b596ec26b39e655b",
+      "end_title": "8650be8dff84d3899f54201b881fa0b48da61bc377389da785fd7800aa596167",
+      "keys_jump": "6bdaf554e42029bd0dbee9471eb48a5f3626213c9859a58120a61c62ace4c968",
+      "keys_move": "683a62ce15fbabb1ac867022e56e6e4f4f581762d77c3abb2f8dc8b165b3b1b9",
+      "keys_pause": "6210c0bf05396716df932f0729df69de0533933e5ad9871fd07b61811c4c28df",
+      "menu": "99af6606ff9d6cd5154d4d4e9c21e325086d3e904677cdb41d363c8a3480f862",
+      "menu_hint": "31dcb65bbd5f8ad6c5b09792db12057f4378402e2210443c94af073d5da9593b",
+      "menu_title": "82727dd3bdbdfa9dc60125ef8614d7baeb5704b4a07106e1be6e062e649254fc",
+      "pause": "858e4ba7a29fd38b630ed73a79e2738333b3fc6778fafa90252f5556c1262fdc",
+      "paused_title": "e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf",
+      "play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "play_again": "5ef30d27f8bc261c9af7c5220ebca9e22ad51e60ff89bbdccceeb7102e21a32f",
+      "resume": "d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d",
+      "splash_hint": "70a07f4238f41acd04e8cbba4fb5d9a861ac4853a3c8b41f55fd44e3ff310063",
+      "splash_label": "c3fa854c3d0cb74555b4004fb23812b3b351ec66dcea638d8a6e8d3382d7b46d"
+    },
+    "ja": {
+      "back_to_menu": "1a828b18b9df4fbe6edc6255deeadae181306601a4d73620f0824582a683c9fc",
+      "end_time": "fde82d3dd95e8edbefe2c328e4fbce4802413f212881c673b596ec26b39e655b",
+      "end_title": "8650be8dff84d3899f54201b881fa0b48da61bc377389da785fd7800aa596167",
+      "keys_jump": "6bdaf554e42029bd0dbee9471eb48a5f3626213c9859a58120a61c62ace4c968",
+      "keys_move": "683a62ce15fbabb1ac867022e56e6e4f4f581762d77c3abb2f8dc8b165b3b1b9",
+      "keys_pause": "6210c0bf05396716df932f0729df69de0533933e5ad9871fd07b61811c4c28df",
+      "menu": "99af6606ff9d6cd5154d4d4e9c21e325086d3e904677cdb41d363c8a3480f862",
+      "menu_hint": "31dcb65bbd5f8ad6c5b09792db12057f4378402e2210443c94af073d5da9593b",
+      "menu_title": "82727dd3bdbdfa9dc60125ef8614d7baeb5704b4a07106e1be6e062e649254fc",
+      "pause": "858e4ba7a29fd38b630ed73a79e2738333b3fc6778fafa90252f5556c1262fdc",
+      "paused_title": "e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf",
+      "play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "play_again": "5ef30d27f8bc261c9af7c5220ebca9e22ad51e60ff89bbdccceeb7102e21a32f",
+      "resume": "d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d",
+      "splash_hint": "70a07f4238f41acd04e8cbba4fb5d9a861ac4853a3c8b41f55fd44e3ff310063",
+      "splash_label": "c3fa854c3d0cb74555b4004fb23812b3b351ec66dcea638d8a6e8d3382d7b46d"
+    },
+    "ko": {
+      "back_to_menu": "1a828b18b9df4fbe6edc6255deeadae181306601a4d73620f0824582a683c9fc",
+      "end_time": "fde82d3dd95e8edbefe2c328e4fbce4802413f212881c673b596ec26b39e655b",
+      "end_title": "8650be8dff84d3899f54201b881fa0b48da61bc377389da785fd7800aa596167",
+      "keys_jump": "6bdaf554e42029bd0dbee9471eb48a5f3626213c9859a58120a61c62ace4c968",
+      "keys_move": "683a62ce15fbabb1ac867022e56e6e4f4f581762d77c3abb2f8dc8b165b3b1b9",
+      "keys_pause": "6210c0bf05396716df932f0729df69de0533933e5ad9871fd07b61811c4c28df",
+      "menu": "99af6606ff9d6cd5154d4d4e9c21e325086d3e904677cdb41d363c8a3480f862",
+      "menu_hint": "31dcb65bbd5f8ad6c5b09792db12057f4378402e2210443c94af073d5da9593b",
+      "menu_title": "82727dd3bdbdfa9dc60125ef8614d7baeb5704b4a07106e1be6e062e649254fc",
+      "pause": "858e4ba7a29fd38b630ed73a79e2738333b3fc6778fafa90252f5556c1262fdc",
+      "paused_title": "e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf",
+      "play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "play_again": "5ef30d27f8bc261c9af7c5220ebca9e22ad51e60ff89bbdccceeb7102e21a32f",
+      "resume": "d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d",
+      "splash_hint": "70a07f4238f41acd04e8cbba4fb5d9a861ac4853a3c8b41f55fd44e3ff310063",
+      "splash_label": "c3fa854c3d0cb74555b4004fb23812b3b351ec66dcea638d8a6e8d3382d7b46d"
+    },
+    "pt-BR": {
+      "back_to_menu": "1a828b18b9df4fbe6edc6255deeadae181306601a4d73620f0824582a683c9fc",
+      "end_time": "fde82d3dd95e8edbefe2c328e4fbce4802413f212881c673b596ec26b39e655b",
+      "end_title": "8650be8dff84d3899f54201b881fa0b48da61bc377389da785fd7800aa596167",
+      "keys_jump": "6bdaf554e42029bd0dbee9471eb48a5f3626213c9859a58120a61c62ace4c968",
+      "keys_move": "683a62ce15fbabb1ac867022e56e6e4f4f581762d77c3abb2f8dc8b165b3b1b9",
+      "keys_pause": "6210c0bf05396716df932f0729df69de0533933e5ad9871fd07b61811c4c28df",
+      "menu": "99af6606ff9d6cd5154d4d4e9c21e325086d3e904677cdb41d363c8a3480f862",
+      "menu_hint": "31dcb65bbd5f8ad6c5b09792db12057f4378402e2210443c94af073d5da9593b",
+      "menu_title": "82727dd3bdbdfa9dc60125ef8614d7baeb5704b4a07106e1be6e062e649254fc",
+      "pause": "858e4ba7a29fd38b630ed73a79e2738333b3fc6778fafa90252f5556c1262fdc",
+      "paused_title": "e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf",
+      "play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "play_again": "5ef30d27f8bc261c9af7c5220ebca9e22ad51e60ff89bbdccceeb7102e21a32f",
+      "resume": "d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d",
+      "splash_hint": "70a07f4238f41acd04e8cbba4fb5d9a861ac4853a3c8b41f55fd44e3ff310063",
+      "splash_label": "c3fa854c3d0cb74555b4004fb23812b3b351ec66dcea638d8a6e8d3382d7b46d"
+    },
+    "zh-Hans": {
+      "back_to_menu": "1a828b18b9df4fbe6edc6255deeadae181306601a4d73620f0824582a683c9fc",
+      "end_time": "fde82d3dd95e8edbefe2c328e4fbce4802413f212881c673b596ec26b39e655b",
+      "end_title": "8650be8dff84d3899f54201b881fa0b48da61bc377389da785fd7800aa596167",
+      "keys_jump": "6bdaf554e42029bd0dbee9471eb48a5f3626213c9859a58120a61c62ace4c968",
+      "keys_move": "683a62ce15fbabb1ac867022e56e6e4f4f581762d77c3abb2f8dc8b165b3b1b9",
+      "keys_pause": "6210c0bf05396716df932f0729df69de0533933e5ad9871fd07b61811c4c28df",
+      "menu": "99af6606ff9d6cd5154d4d4e9c21e325086d3e904677cdb41d363c8a3480f862",
+      "menu_hint": "31dcb65bbd5f8ad6c5b09792db12057f4378402e2210443c94af073d5da9593b",
+      "menu_title": "82727dd3bdbdfa9dc60125ef8614d7baeb5704b4a07106e1be6e062e649254fc",
+      "pause": "858e4ba7a29fd38b630ed73a79e2738333b3fc6778fafa90252f5556c1262fdc",
+      "paused_title": "e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf",
+      "play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "play_again": "5ef30d27f8bc261c9af7c5220ebca9e22ad51e60ff89bbdccceeb7102e21a32f",
+      "resume": "d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d",
+      "splash_hint": "70a07f4238f41acd04e8cbba4fb5d9a861ac4853a3c8b41f55fd44e3ff310063",
+      "splash_label": "c3fa854c3d0cb74555b4004fb23812b3b351ec66dcea638d8a6e8d3382d7b46d"
+    }
+  }
+}

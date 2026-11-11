@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 // The DX spec's measuring script (§10, §12; DX.3 decision E-4). It replaces §1's hand count (1,939 lines of
 // plumbing) with one taken from the game itself: walk the relative imports from `main.ts`, count the lines of
 // every TypeScript file the game reaches, and class each by where it sits. The sim is every file with a sim role
-// suffix plus `tiles.ts`, `tuning.ts` and `place-wick.ts`; `shared/art/` is the art; `features/room/` and `room.ts` are the content; `features/scene/`, `pixels.ts` and `light-levels.ts` are the drawing Emberwick does
+// suffix plus `tiles.ts`, `tuning.ts` and `place-wick.ts`; `shared/art/` is the art; `features/room/`, `room.ts` and the game's `words.ts` are the content; `features/scene/`, `pixels.ts` and `light-levels.ts` are the drawing Emberwick does
 // (room, light map, particles, backdrop), except `scene-renderer.ts`, which only wires that drawing into the
 // renderer and so counts as plumbing.
 // Everything else the game reaches is plumbing. Files under `src/` the game never reaches are kept for the
@@ -14,13 +14,15 @@ import { describe, expect, it } from 'vitest'
 
 const GAME_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 // 400 until the room learned to pause when the page is hidden (about ten lines of listener), 420 until main.ts learned to
-// restart the game on new content in dev (the Tuner's live game, about fifteen lines); 430 leaves room for the next
-// small piece of behaviour without hiding a real growth in plumbing.
-const PLUMBING_LIMIT = 430
+// restart the game on new content in dev (the Tuner's live game, about fifteen lines), 430 until the screens learned to
+// draw their words in the player's language and redraw them when it changes, and to send the round's time to the fastest
+// board (the panels' markup, the redraw and the submit, about fifty lines); 490 leaves room for the next small piece of
+// behaviour without hiding a real growth in plumbing. The words themselves are content, below.
+const PLUMBING_LIMIT = 490
 
 const SIM_ROLE = /\.(?:component|system|command|event|resource|plugin)\.ts$/
 const SIM_BY_IMPORT = ['src/shared/tiles.ts', 'src/shared/tuning.ts', 'src/features/player/place-wick.ts']
-const CONTENT = ['src/shared/room.ts']
+const CONTENT = ['src/shared/room.ts', 'src/features/screens/words.ts']
 const DRAWING = ['src/shared/pixels.ts', 'src/shared/light-levels.ts']
 
 type LineClass = 'sim' | 'art' | 'content' | 'drawing' | 'plumbing'
