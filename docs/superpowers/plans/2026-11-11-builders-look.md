@@ -45,6 +45,23 @@ first; this plan argues from its measurements. **Tracker:** [`../progress.md`](.
 | 16 | The ward gate sheet; the pull request | `claude/builders-look-wardrobe` | todo | |
 | 17 | The record: the survey's table re-measured, the pull requests settled, the builders' fate asked | `claude/builders-look-record` | todo | |
 
+## Amendments after the plan audit (the coordinator, 2026-11-11)
+
+The Owner's word after the audit ("proceed"), on the coordinator's three recommendations. These bind the tasks below;
+where a task's text disagrees, this section wins and the executing session records the difference in the log.
+
+1. **A figure's cast shadow on the floor is in scope and required**, not a named difference (this replaces call 6 and
+   the lines in group 1 and group 5 that leave it unbuilt). It is the last task of group 2, on
+   `claude/builders-look-figures`, after figures are lit as sprites: each figure casts onto the floor as it does in
+   EnvironmentBuilder's frames, from the light the room gives it, in whole DUEL steps, behind a switch in the look,
+   and it is hidden where the floor is hidden. The failing test first (a figure on a lit floor darkens the texels
+   under it, and a figure with the switch off does not), then the side-by-side sheet against the builder's frame with
+   the difference measured. It goes where the sprite light goes (core, since any 3D game with figures could use it);
+   nothing about one game. If it cannot be done as a content-and-pass change, stop and report with what it would take.
+2. **The letterbox's whole-pixel scale stays in core** (`@automata/framework`): confirmed.
+3. **The LCD panel and the retro grade land** as opt-in look extensions (`@automata/lcd-panel`,
+   `@automata/retro-crisp`): confirmed. Only #588's room-visibility is not landed.
+
 ## Branches and merge order
 
 | Order | Branch | From | Holds | Merges |
