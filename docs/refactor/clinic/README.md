@@ -23,8 +23,9 @@ world-kit pieces the clinic's dressing needs.
   in is for batch 2 and the Owner.
 - **A trim that names a wainscot or a capital is drawn in bands**, where `rail` is the band's thickness (the source's
   meaning); a trim with neither keeps AF's old skirting and a rail at a height. No existing level changed.
-- **A wall's top is drawn only when its trim says `cap: true`** (the converter writes it, as the source's default),
-  with no stub; the cut-away look is room visibility's.
+- **A wall's top is drawn only when its trim says `cap: true`**, with no stub. The clinic's walls say `cap: false`: the
+  builder's tops don't cut away with their walls yet, and the near walls' tops crossed the play camera's frame as two black
+  lines. The tops come back with room visibility.
 - **`pendant`'s range band is 3.5 to 6 m in AF's kit and 5.5 to 9 m in the source**, so the hall lamp (7.5 m) is held to
   6. Left as it is; widening the band would move the default range of every unranged pendant.
 - **The effects are not on**: the LCD panel, the crisp and retro filters and the bloom are EnvironmentBuilder's and had not
@@ -49,11 +50,11 @@ world-kit pieces the clinic's dressing needs.
 
 What the 22 AF frames show (looked at, 2026-11-11): the same place as the source's baselines: the hall with the reception
 desk on the right and the ward on the left, the corridor mouth and the exit lamp at the far end, the desk lamp's and the
-hall lamp's pools on the floor, the cool teal wash on the walls. WebGL and WebGPU agree (same camera, same pieces, 248 pieces,
+hall lamp's pools on the floor, the cool teal wash on the walls. WebGL and WebGPU agree (same camera, same pieces, 226 pieces,
 15 lamps, 0 builder problems in every frame). What is not there yet, and is batch 2's: every prop is a grey box (no models,
 the Owner's rule), none of `dressClinic`'s pieces (curtains, pipes, CRT, moon shafts, floor tiles' grout and grime, notices),
-no Ada (a box), the light is flatter and the walls darker than the source's, and the thin dark lines across the frame are
-the cut-away walls' tops. The source's baselines show its HUD and a minimap, so they are for the eye, not a diff.
+no Ada (a box), the light is flatter and the walls darker than the source's, and the blue is the sky colour where a near wall is cut away
+(room visibility's job). The source's baselines show its HUD and a minimap, so they are for the eye, not a diff.
 
 `batch1/<frame>-compare.png` is the source's baseline | AF WebGL | AF WebGPU, side by side. The source's baselines
 exist for the four play spots only (and show its HUD); the zone stills and the turned frames have no baseline until

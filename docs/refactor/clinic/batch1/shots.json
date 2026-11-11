@@ -3,19 +3,19 @@
     "frame": "zone-hall",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c3400d01200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c00cbd800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "zone-hall",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -29,19 +29,19 @@
     "frame": "zone-corridor",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c3400adee00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c00ae7c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "zone-corridor",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -55,19 +55,19 @@
     "frame": "zone-closet",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c34001b1800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c001b6c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "zone-closet",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -81,19 +81,19 @@
     "frame": "play-hall",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c3400af2000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c001b7e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "play-hall",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -107,19 +107,19 @@
     "frame": "play-ward",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c34001b7200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c00ae8e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "play-ward",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -133,19 +133,19 @@
     "frame": "play-corridor",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c34001b6c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c001b9000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "play-corridor",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -159,19 +159,19 @@
     "frame": "play-supply",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c34001bae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c001b7200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "play-supply",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -185,19 +185,19 @@
     "frame": "play-hall-turned",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c34001ba200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c00160200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "play-hall-turned",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -211,19 +211,19 @@
     "frame": "play-ward-turned",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c3400ad5000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c00c17800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "play-ward-turned",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -237,19 +237,19 @@
     "frame": "play-corridor-turned",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c3400b03400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c001b7e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "play-corridor-turned",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
@@ -263,19 +263,19 @@
     "frame": "play-supply-turned",
     "pref": "webgl",
     "renderer": "webgl",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
     "errors": [
-      "[.WebGL-0x1c3400b3ae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+      "[.WebGL-0x393c001b2a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
     ]
   },
   {
     "frame": "play-supply-turned",
     "pref": "webgpu",
     "renderer": "webgpu",
-    "pieces": "248",
+    "pieces": "226",
     "problems": "0",
     "problemCodes": "",
     "lamps": "15",
