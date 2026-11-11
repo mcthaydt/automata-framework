@@ -766,6 +766,22 @@ is built in `@automata/3d`, not in EnvironmentBuilder.
 | Screenshots | [albedo](eb-look/albedo/): EB CPU beside AF WebGL baked, WebGL material light only, WebGPU. EB's panel was cut from the committed WP2/WP3 sheets (EB's render branch was not reachable here). The WebGPU panel still shows the device lost in play | `spikes/eb-look/` |
 | Not done | Patterns (stripes, checker, noise, grass, leaves, glass) and the grime marks are not ladders yet; a tile is the committed tile (a map's grime does not scale its wear); the light is multiplied in linear space by a 2.2 power, not in sRGB as the CPU does (near black the two differ); the baked WebGL room is still dark as before, so the walls show in the material-light panel | |
 
+### Glow, lit windows, bloom, light through openings, baked props and the zone camera (WP9 in part; 2026-11-11, branch `claude/eb-look-glow`)
+
+Merged in `claude/eb-look-albedo` (its ladder arithmetic is what a glow dims along) and `origin/main` (the new gameplay camera).
+
+| Step | Status | Record |
+|---|---|---|
+| Glow | Done, tests first: a swatch with `emit` is drawn at its own ladder step whatever the light, on a white base, and drops a step under 0.9 of its prop's lamp and two under 0.6, as the source's `emitStep` does; it is baked even on a prop, because where it goes does not change what it shows. A lamp the room does not light (a street lamp by day) leaves it full, as the source does | `BakeGlow` in `vertex-bake.ts`; `drawWorld`'s `glow`; `swatchGlow`; `propLampId` |
+| Lit windows | Done: a window with `interior` is drawn as a tile of a box room (the source's `interiorStep`: back wall lit near the ceiling, side walls and floor darker, a sofa, table or floor lamp by the cell's seed), seen at a fixed 25° into the wall. No parallax: a ray per texel needs a shader on the glass | `features/world/albedo/interior.ts` |
+| Bloom | Done: `GlowEffect` takes the colours that glow (`setColours`, `glowColours` from the scene's pieces), moves the first ring 0.45 toward the glow in OKLab (lightness half as far) and steps up, as the source's `toward` and `stepBy` do, with the checker beyond; rings of 1 and 2 px (the source's 2 and 4 texels at the look's field). The mask is a colour match, with a tolerance because the haze and the dither move a glowing pixel to a neighbour on the palette | `glow-effect.ts`; Chromium WebGL2 test |
+| Light through openings | Done: a wall piece keeps its solid rectangles (`faces`) and `worldOccluders` stands a plane on each, so a doorway or a window passes light. A closed door is not an occluder | `occluders.ts`, `build.ts` |
+| Props baked | Done: a prop is cut (`seg`) and baked as scenery with its own box ignored; `SceneLight.rebake` and `WorldView.relight` bake it again where a state moves it (`updatePieces` calls it). A door and a swaying leaf keep their material | `scene-light.ts`, `world-view.ts`, `update-pieces.ts` |
+| Zone camera | Done: each room of the base interior and exterior has a view (its footprint; 9 m, 9 m, 9 m, 10.2 m, 10.2 m) at the distance that frames it as the source's diorama does (its field's height over what a 50 mm lens sees a metre away, tested) | `base-scenes.ts` |
+| Screenshots | [glow](eb-look/glow/README.md): EB CPU beside AF with glow off, glow and windows, and bloom; the street at night; the zone camera against the 16 m default | |
+| Gates | `pnpm typecheck` (forced) green on all 51 tasks. The unit tests of `@automata/3d`, world-kit and editor-3d ran in each commit's hook. The kit's Chromium WebGL2 sky suite passes (7). Not run: WebKit, Firefox, WebGPU (the frames fail on `@pixi/3d`'s open issue, so the bloom's WGSL is unjudged), a real GPU, the 3D journeys |  |
+| Not done | Interior parallax; a real glow mask (a second target); a door as an occluder; glass reflections by day; the bake's sun, key and fill (WP2), so the base interior is still near black; `pnpm style` still reports the albedo section's link to `eb-look/albedo/` (that branch's screenshots) | |
+
 ## The default 3D gameplay camera (2026-11-11)
 
 The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches the reference game's. It replaces the 24 mm,
