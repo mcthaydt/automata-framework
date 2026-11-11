@@ -1,0 +1,37 @@
+{
+  "baseCommit": "a66b4e0e",
+  "runMs": 33,
+  "clock": "fake, reducedMotion: reduce",
+  "stander": "base-f",
+  "before": {
+    "field": [480, 270],
+    "figuresFound": 2,
+    "standerBox": {
+      "x0": 187,
+      "y0": 87,
+      "x1": 206,
+      "y1": 155,
+      "size": 704
+    },
+    "standerHeightPx": 69,
+    "cellPaintedRows": 123,
+    "cellPitchDeg": 25,
+    "texelsPerPixel": 1.7826086956521738
+  },
+  "after": {
+    "field": [720, 405],
+    "figuresFound": 2,
+    "standerBox": {
+      "x0": 283,
+      "y0": 109,
+      "x1": 314,
+      "y1": 234,
+      "size": 2174
+    },
+    "standerHeightPx": 126,
+    "cellPaintedRows": 128,
+    "cellPitchDeg": 18,
+    "texelsPerPixel": 1.0158730158730158,
+    "exactTexelShare": 0.9885301614273577
+  }
+}

@@ -535,3 +535,10 @@ test('the runway plays: a named model walks, then the next', async ({ page }) =>
 - 2026-11-11: audited ([audit](2026-11-11-c7-fashion-plan-audit.md)): 5 blocking, 10 should-fix, 5 nice-to-have, all
   fixed here. U1 and U2 are on FB main (`d6e3c9f`, FB #27), so Task 0 is done and Task 1 bumps to it. FB itself was
   not readable in the audit's session: Task 1 Step 1b checks the plan's FB names first. Next: Task 1.
+- 2026-11-11 (execution): Tasks 1 to 5 done on `claude/c7-af`. Step 1b: FB main `d6e3c9f` matches every name; `view.ts` does not export
+  `perTexelDepthWarning`, so `NOT_WEBGL` is the kit's own. Rulings (ledger in `.superpowers`, git-ignored): the quad is a child of the entity's
+  node, one `CellSprite` per entity, `painter.ts` added; `door-view.ts` made in Task 3 where first used (knip); the root `package.json` lists
+  `pixi.js` and `@pixi/3d` (a bundler resolves the builder's view sources from the submodule's real path); `characterkit-painted` is 720 × 405
+  (the coordinator), its wall is on the camera's side (the camera looks toward +z); `painted-scale` is a Node unit test that reads the example's size.
+  WebKit and Firefox cannot be installed in this container: every browser run was Chromium. Gate 1: [README](c7/gate-1/README.md). Next: Task 6, unless the
+  coordinator says stop.

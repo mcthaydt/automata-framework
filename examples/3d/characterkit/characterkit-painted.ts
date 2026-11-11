@@ -28,7 +28,7 @@ const [man, woman] = BASE.map((b) => b.def)
 const place = { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32', walking: 'bool' } as const
 const Walker = defineComponent('walker', place)
 const Stander = defineComponent('stander', place)
-// A low wall on the near side of the walker's square: the walker goes behind it, so its legs are hidden by texel.
+// A low wall between the camera and the near side of the walker's square (the camera looks toward +z): the walker goes behind it.
 const Wall = defineComponent('wall', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' })
 // A 2 m square at 1 m/s (one side every 120 ticks), then three seconds standing, then again.
 const LAP = 660
@@ -59,7 +59,7 @@ export default defineGame({
         [CameraHeading, enterView(START, FOLLOW, { x: 0, y: 0 })],
       ])
       sim.spawn([[Stander, { x: 0, y: 0, z: 0, yaw: -1.5708, walking: false }]])
-      sim.spawn([[Wall, { x: 0, y: 0, z: 1.7, yaw: 0 }]])
+      sim.spawn([[Wall, { x: 0, y: 0, z: -1.7, yaw: 0 }]])
     },
   },
   extensions: [render3dExtension, figuresExtension, characterKitExtension],
