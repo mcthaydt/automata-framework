@@ -18,7 +18,8 @@ test('plays the scene: the lamp warms and the door opens, then it ends, under th
   await expect(canvas).toHaveAttribute('data-cutscene', 'playing')
   await expect(canvas).toHaveAttribute('data-door', '0')
   await expect(canvas).toHaveAttribute('data-lamp', /^0\./)
-  await expect(canvas).toHaveAttribute('data-cutscene', 'done', { timeout: 20_000 })
+  // The scene plays in simulation time, which a loaded runner advances slowly: on 2026-11-10 the lamp had reached 0.88 of 1 after the 20 s this waited. The wait ends when the scene does.
+  await expect(canvas).toHaveAttribute('data-cutscene', 'done', { timeout: 60_000 })
   await expect(canvas).toHaveAttribute('data-door', '1')
   await expect(canvas).toHaveAttribute('data-lamp', '1')
   expect(errors).toEqual([])

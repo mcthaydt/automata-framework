@@ -1,7 +1,7 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["node", "vitest/browser"],
+    "types": ["node", "vitest/browser", "vite/client"],
     "isolatedDeclarations": false
   },
   "include": ["*.ts", "garments/**/*.ts", "scripts/**/*.ts", "testing/**/*.ts", "tests/**/*.ts"]

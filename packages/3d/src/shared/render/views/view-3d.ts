@@ -1,6 +1,6 @@
 import type { EntityView } from '@automata/framework'
 import type { RenderRow } from '@automata/sim'
-import type { Container3D } from '@pixi/3d'
+import type { Camera3D, Container3D } from '@pixi/3d'
 import type { SceneLight } from '../light/scene-light.ts'
 import type { ModelLibrary } from '../model/load-models.ts'
 
@@ -11,7 +11,8 @@ export type EntityView3d = EntityView<Container3D>
  * Builds the 3D view for one entity, or `undefined` to draw nothing. `componentId` is the component it was
  * registered under (it holds the pose); `models` holds every model file the views named, loaded before the first
  * frame. A factory that draws model files lists them in `models`. `light` is the room's light when the renderer has
- * `lighting`: a moving view tints itself from it each frame (M3R-D4).
+ * `lighting`: a moving view tints itself from it each frame (M3R-D4). `camera` is the view's camera, for a view drawn
+ * toward it (a painted figure picks its view and faces its quad from where the camera stands).
  */
 export interface View3dFactory {
   (
@@ -19,6 +20,7 @@ export interface View3dFactory {
     componentId: string | undefined,
     models: ModelLibrary,
     light?: SceneLight | undefined,
+    camera?: Camera3D | undefined,
   ): EntityView3d | undefined
   readonly models?: readonly string[]
 }
