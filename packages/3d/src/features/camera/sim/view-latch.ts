@@ -9,7 +9,7 @@
 import type { FieldValues } from '@automata/sim'
 import type { CameraHeading } from './camera-heading.component.ts'
 import type { CameraView } from './camera-view.schema.ts'
-import { clampTurn, degToHeading, turnHeading } from './heading.ts'
+import { degToHeading, stepHeading, turnDirection } from './heading.ts'
 import { type Direction, mapStick, type Stick } from './stick-mapper.ts'
 
 /** The fields of `camera-heading`. */
@@ -24,6 +24,7 @@ export const START: HeadingState = {
   latchHeading: 0,
   latchX: 0,
   latchY: 0,
+  turning: 0,
 }
 
 const held = (stick: Stick): boolean => stick.x !== 0 || stick.y !== 0
@@ -42,11 +43,20 @@ export function enterView(state: HeadingState, view: CameraView, stick: Stick): 
   return { ...entered, latched: true, latchHeading: state.heading, latchX: stick.x, latchY: stick.y }
 }
 
-/** A `camera-turn` of `units`: clamped to ±8,192, wrapped, and ignored in a view with `rotate: false`. */
+/**
+ * A `camera-turn` of `units` this tick: one 45° step in the direction of its sign, never more however far it was
+ * dragged, and ignored in a view with `rotate: false`. The player turns the camera in eight steps (Q and R); there is no
+ * turn the sim does on its own, so the controls stay camera-relative and a replay stays whole.
+ *
+ * Input is sampled every tick, so a key held down is a `camera-turn` every tick. A step is a press: the turn steps when
+ * its direction is not the one it had last tick, and a tick with no turn lets go. Held, it does nothing more.
+ */
 export function turnCamera(state: HeadingState, units: number): HeadingState {
-  const by = clampTurn(units)
-  if (!state.rotate || by === 0) return state
-  return { ...state, heading: turnHeading(state.heading, by), latched: false }
+  const direction = turnDirection(units)
+  if (!state.rotate) return state
+  if (direction === state.turning) return state
+  if (direction === 0) return { ...state, turning: 0 }
+  return { ...state, heading: stepHeading(state.heading, direction), latched: false, turning: direction }
 }
 
 /**

@@ -9,5 +9,5 @@ export const TICK_HZ = 60
 /** Half the side of the square Wick collides as, in metres. */
 export const WICK_HALF = 0.3
 
-/** The camera: 24 mm, 25 degrees down and 5 m back, following Wick, turned freely by the player. */
+/** The camera: 50 mm, 30 degrees down and 16 m back, following Wick, turned in 45 degree steps by the player. */
 export const FOLLOW: CameraView = cameraView('follow')

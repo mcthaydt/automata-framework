@@ -16,7 +16,7 @@ function fakeRig() {
   const calls: string[] = []
   let views = new Map(VIEWS.map((v) => [v.id, v]))
   const rig: CameraRig = {
-    lensMm: 24,
+    lensMm: 50,
     setViews: (next) => {
       views = new Map(next.map((v) => [v.id, v]))
       calls.push('setViews')
@@ -26,6 +26,9 @@ function fakeRig() {
     heading: (yaw, how = 'track') => calls.push(`heading ${yaw} ${how}`),
     follow: (x, y, z) => calls.push(`follow ${x} ${y} ${z}`),
     frame: () => calls.push('frame'),
+    framing: () => calls.push('framing'),
+    peek: () => calls.push('peek'),
+    shake: () => calls.push('shake'),
     update: (s) => calls.push(`update ${s}`),
     pose: () => undefined,
   }
@@ -252,7 +255,7 @@ describe('cameraDriver with the real rig (review #245, 1)', () => {
     hooks.draw?.(frame(1))
     hooks.apply?.(delta({ added: [player('hall', 0, 50)] }))
     hooks.draw?.(frame(1))
-    const at = (x: number) => eyeOf({ x, y: 1, z: 0 }, 0, 25, 5)
+    const at = (x: number) => eyeOf({ x, y: 1, z: 0 }, 0, 30, 16)
     expect(camera.position.x).toBeCloseTo(at(50).x, 4)
     expect(camera.position.z).toBeCloseTo(at(50).z, 4)
     hooks.reset?.()

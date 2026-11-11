@@ -6,6 +6,17 @@
 
 export { fovOf, LENS_MM } from '../features/camera/fov.ts'
 export {
+  clampPeek,
+  FOLLOW_DEAD_ZONE,
+  PEEK_REACH,
+  PLAY_FRAMING,
+  SHAKE_PX,
+  type Shot,
+  shakeOffset,
+  stepFraming,
+  zoneShot,
+} from '../features/camera/play-camera.ts'
+export {
   CAMERA_DEFAULTS,
   CAMERA_RANGES,
   type CameraView,
@@ -18,8 +29,11 @@ export {
   degToHeading,
   headingDegrees,
   MAX_CAMERA_TURN,
+  stepHeading,
   TURN_UNITS,
+  turnDirection,
   turnHeading,
   wrapHeading,
 } from '../features/camera/sim/heading.ts'
+export { type FloorPoint, viewAt } from '../features/camera/sim/view-zone.ts'
 export { OCCLUDES, type Occlude, occludeSchema } from '../shared/level/occlude.ts'

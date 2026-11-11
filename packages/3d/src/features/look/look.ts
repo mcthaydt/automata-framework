@@ -3,7 +3,7 @@
 import library from './library/look.json' with { type: 'json' }
 import { type Look, lookSchema } from './look.schema.ts'
 
-export type { Look, LookSwitches } from './look.schema.ts'
+export type { HazeProfile, Look, LookSwitches } from './look.schema.ts'
 
 /** The library's look, checked by the schema when this file loads. */
 export const DEFAULT_LOOK: Look = lookSchema.parse(library)

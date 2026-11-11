@@ -6,7 +6,7 @@ import { TICK_HZ } from '../shared/constants.ts'
 // The analog half of the controls: what the touch stick and the camera drag add to the keys' move and camera-turn.
 // Presentation only: the sim sees whole numbers, never an input device.
 
-/** The right stick turns the camera at 180 degrees a second: 65,536 units a turn, so about 546 units a tick. */
+/** What the right stick adds a tick when pushed over: any push is a press, and a press is one 45 degree step of the camera. */
 const STICK_TURN_UNITS = Math.round((65_536 * 180) / 360 / TICK_HZ)
 
 /** `map` with its touch buttons named in the game's words (`names`, by KeyboardEvent.code of the button's first key). */

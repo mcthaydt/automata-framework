@@ -25,12 +25,12 @@ import type {
 } from '@automata/3d/level'
 import type { WorldLibrary } from '@automata/3d/props-kit'
 import { heightAt, ringsOf, segments, signedArea, type V2 } from '@automata/3d/props-kit'
-import { createRng } from '@automata/sim'
 import { ceilingFixtures, floorClutter, surfaceClutter } from './clutter.ts'
 import { type Ctx, reserve } from './context.ts'
 import { fixtures } from './fixtures.ts'
 import { furniture } from './furniture.ts'
 import { type Kit, worldKitSchema } from './kit.schema.ts'
+import { mulberry32 } from './mulberry.ts'
 
 /**
  * The room with its kit's surfaces: the floor, the ceiling (unless it is a sky), and the wall parts on every edge that
@@ -100,7 +100,7 @@ export function dressSector(
 ): PropPlace[] {
   const sector = level.sectors[si] as AfSectorEntry2
   const poly = ringsOf(sector)[0] as V2[]
-  const rng = createRng((dress.seed ?? 1) * 7919 + si * 131)
+  const next = mulberry32((dress.seed ?? 1) * 7919 + si * 131)
   const c: Ctx = {
     level,
     library,
@@ -108,7 +108,7 @@ export function dressSector(
     sector,
     kit,
     dress,
-    next: () => rng.next(),
+    next,
     density: dress.density ?? 1,
     poly,
     area: Math.abs(signedArea(poly)),

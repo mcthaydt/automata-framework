@@ -10,7 +10,7 @@ import { timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 describe('the look', () => {
   it('the default look is a 180-pixel field with outline off, as the source profile has it', () => {
     expect(DEFAULT_LOOK.pixel.short).toBe(180)
-    expect(DEFAULT_LOOK.switches).toEqual({ outline: false, grade: true, dither: true })
+    expect(DEFAULT_LOOK.switches).toEqual({ outline: false, grade: true, dither: true, haze: true })
   })
 
   it('a look names what is wrong with it', () => {

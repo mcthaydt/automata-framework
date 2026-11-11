@@ -1,6 +1,8 @@
-// D3-a and D3-j on a real `@pixi/3d` camera: the lens is 24 mm in every view; activating a view with `ease` reaches it
-// in 400 ms and at once under reduced motion; a heading tracked from the sim shows in the same frame; a view entry's
-// heading eases over 250 ms; the follow lags inside bounds; an unknown view keeps the last and warns once.
+// The gameplay camera on a real `@pixi/3d` camera, as the reference game's rules set it (Owner, 2026-11-10): a 50 mm lens
+// in every view and a 30° home tilt; it follows the player with a time constant of 1/7 s and a dead zone; the player
+// turns it in 45° steps and it eases round; automatic framing is a push-in dolly only (0.75–1×, 0.25× a second, held
+// under reduce motion); a peek is an offset of at most 1.2 m; gameplay shake is a screen translation; and nothing ever
+// yaws, pitches or rolls it by itself.
 import { Camera3D, Matrix4 } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { angledCamera } from '#src/features/camera/angled-camera.ts'
@@ -10,19 +12,24 @@ import { type CameraView, cameraView } from '#src/features/camera/sim/camera-vie
 import { mapStick, Q16 } from '#src/features/camera/sim/stick-mapper.ts'
 
 const hall = cameraView('hall')
-const crypt = cameraView('crypt', { tiltDeg: 50, distance: 9 })
+const crypt = cameraView('crypt', { tiltDeg: 40, distance: 9 })
 const VIEWS: CameraView[] = [hall, crypt]
+const FRAME = 1 / 60
+const DEGREES = Math.PI / 180
 
-function rig(options: { reduced?: boolean; warn?: (m: string) => void; views?: CameraView[] } = {}) {
+function rig(
+  options: { reduced?: boolean; warn?: (m: string) => void; views?: CameraView[]; aspect?: number } = {},
+) {
   const camera = new Camera3D()
   const warnings: string[] = []
   const made = angledCamera({
     camera,
     views: options.views ?? VIEWS,
-    initial: 'hall',
-    aspect: () => 16 / 9,
+    initial: options.views?.[0]?.id ?? 'hall',
+    aspect: () => options.aspect ?? 16 / 9,
     reducedMotion: () => options.reduced ?? false,
     warn: options.warn ?? ((message) => warnings.push(message)),
+    viewportHeight: () => 180,
   })
   return { camera, rig: made, warnings }
 }
@@ -33,12 +40,18 @@ const positionOf = (camera: Camera3D): Vec3 => ({
   z: camera.position.z,
 })
 
-/** The camera's forward direction from its transform (a camera faces its local −z). */
-function forwardOf(camera: Camera3D): Vec3 {
+/** A camera's local axes from its transform: it faces its local −z, its right is local +x and its up local +y. */
+function axesOf(camera: Camera3D): { forward: Vec3; right: Vec3; up: Vec3 } {
   camera.updateLocalTransform()
   const m = (camera.localTransform as unknown as { elements: ArrayLike<number> }).elements
-  return { x: -(m[8] ?? 0), y: -(m[9] ?? 0), z: -(m[10] ?? 0) }
+  return {
+    right: { x: m[0] ?? 0, y: m[1] ?? 0, z: m[2] ?? 0 },
+    up: { x: m[4] ?? 0, y: m[5] ?? 0, z: m[6] ?? 0 },
+    forward: { x: -(m[8] ?? 0), y: -(m[9] ?? 0), z: -(m[10] ?? 0) },
+  }
 }
+
+const forwardOf = (camera: Camera3D): Vec3 => axesOf(camera).forward
 
 const expectNear = (actual: Vec3, expected: Vec3, digits = 4) => {
   expect(actual.x).toBeCloseTo(expected.x, digits)
@@ -47,258 +60,286 @@ const expectNear = (actual: Vec3, expected: Vec3, digits = 4) => {
 }
 
 const FOCUS = { x: 0, y: 1, z: 0 }
+/** The default view's eye for a focus and a heading: 30° down, 16 m back. */
+const homeEye = (focus: Vec3, headingDeg = 0) => eyeOf(focus, headingDeg, 30, 16)
 
 /** The heading the eye shows around the focus, in degrees [0, 360): the eye sits behind the focus. */
-const headingOf = (camera: Camera3D): number => {
-  const degrees = Math.atan2(FOCUS.x - camera.position.x, FOCUS.z - camera.position.z) / (Math.PI / 180)
+const headingOf = (camera: Camera3D, focus: Vec3 = FOCUS): number => {
+  const degrees = Math.atan2(focus.x - camera.position.x, focus.z - camera.position.z) / DEGREES
   return (degrees + 360) % 360
 }
 
-describe('angledCamera', () => {
-  it('is a 24 mm lens, 53.13° vertical, in every view', () => {
+/** The follow's ease for `seconds` of frame: 1 − e^(−t/lag), the default lag being 1/7 s. */
+const ease = (seconds: number, lag = 1 / 7) => 1 - Math.exp(-seconds / lag)
+
+describe('angledCamera: the default gameplay camera', () => {
+  it('is a 50 mm lens, 26.99° vertical, in every view', () => {
     const { camera, rig: r } = rig()
-    expect(r.lensMm).toBe(24)
+    expect(r.lensMm).toBe(50)
     r.follow(0, 0, 0)
-    r.update(1 / 60)
-    expect(camera.fov).toBeCloseTo(53.13, 2)
+    r.update(FRAME)
+    expect(camera.fov).toBeCloseTo(26.99, 2)
     r.activate('crypt', 'cut')
-    r.update(1 / 60)
-    expect(camera.fov).toBe(fovOf(24))
+    r.update(FRAME)
+    expect(camera.fov).toBe(fovOf(50))
   })
 
-  it('stands at the Owner’s view behind the followed point, and looks at the focus 1 m above it', () => {
+  it('stands 30° down and 16 m back from a focus 1 m above the player, looking at it', () => {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 0, 25, 5))
+    r.update(FRAME)
+    expectNear(positionOf(camera), homeEye(FOCUS))
     const forward = forwardOf(camera)
     expect(forward.z).toBeGreaterThan(0)
-    expect(Math.asin(-forward.y) / (Math.PI / 180)).toBeCloseTo(25, 3)
+    expect(Math.asin(-forward.y) / DEGREES).toBeCloseTo(30, 3)
   })
 
-  it('shows a tracked heading in the same frame, with no ease (D3-a)', () => {
+  it('follows the player’s height: the focus is 1 m above the floor the player stands on', () => {
     const { camera, rig: r } = rig()
-    r.follow(0, 0, 0)
-    r.update(1 / 60)
-    r.heading(90)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 90, 25, 5))
-    // N units of turn are N/65,536 of a turn on screen: one unit is 360/65,536 degrees.
-    r.heading(90 + 360 / 65_536)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 90 + 360 / 65_536, 25, 5), 6)
+    r.follow(1, 2.5, 1)
+    r.update(FRAME)
+    expectNear(positionOf(camera), homeEye({ x: 1, y: 3.5, z: 1 }))
+  })
+})
+
+describe('the follow', () => {
+  it('snaps on the first follow, then trails with a time constant of 1/7 s and never overshoots', () => {
+    const { camera, rig: r } = rig()
+    r.follow(2, 0, 3)
+    r.update(FRAME)
+    expectNear(positionOf(camera), homeEye({ x: 2, y: 1, z: 3 }))
+    // Far enough past the dead zone that the look chases the player; the eye eases to where the look settles.
+    r.follow(12, 0, 3)
+    r.update(1 / 7)
+    const gap = 10 - 0.3
+    const expected = 2 + gap * ease(1 / 7)
+    expect(positionOf(camera).x).toBeCloseTo(expected, 3)
+    let last = positionOf(camera).x
+    for (let frame = 0; frame < 120; frame++) {
+      r.update(FRAME)
+      const x = positionOf(camera).x
+      expect(x).toBeGreaterThanOrEqual(last - 1e-9)
+      expect(x).toBeLessThanOrEqual(12 - 0.3 + 1e-6)
+      last = x
+    }
+    expect(last).toBeCloseTo(12 - 0.3, 2)
   })
 
-  it('eases a view’s heading in about 250 ms, the shorter way, and at once under reduced motion', () => {
+  it('holds still while the player moves inside the 0.3 m dead zone (0.2 m in portrait)', () => {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
-    r.update(1 / 60)
-    r.heading(350, 'ease')
-    r.update(0.05)
-    // klipp's axis damping turns toward 350° through 355°, not through 175°: part way after 50 ms, not there yet.
+    r.update(FRAME)
+    const rest = positionOf(camera)
+    for (const x of [0.1, 0.25, -0.2, 0.29]) {
+      r.follow(x, 0, 0)
+      r.update(FRAME)
+      expectNear(positionOf(camera), rest, 9)
+    }
+    r.follow(0.6, 0, 0)
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    // It settles 0.3 m from the player, not on them.
+    expect(positionOf(camera).x).toBeCloseTo(0.3, 3)
+
+    const narrow = rig({ aspect: 9 / 16 })
+    narrow.rig.follow(0, 0, 0)
+    narrow.rig.update(FRAME)
+    const narrowRest = positionOf(narrow.camera)
+    narrow.rig.follow(0.19, 0, 0)
+    narrow.rig.update(FRAME)
+    expectNear(positionOf(narrow.camera), narrowRest, 9)
+  })
+
+  it('under reduced motion the follow has no lag', () => {
+    const { camera, rig: r } = rig({ reduced: true })
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    r.follow(4, 0, 0)
+    r.update(FRAME)
+    expectNear(positionOf(camera), homeEye({ x: 3.7, y: 1, z: 0 }))
+  })
+
+  it('keeps the look dead centre: the eye and the look ease together, so the camera does not turn while it catches up', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    const before = forwardOf(camera)
+    r.follow(8, 0, 5)
+    for (let frame = 0; frame < 20; frame++) {
+      r.update(FRAME)
+      expectNear(forwardOf(camera), before, 6)
+    }
+  })
+
+  it('keeps a locked-on look inside the view’s bounds when it has them', () => {
+    const boxed = cameraView('room', { bounds: { min: [-1, 0, -1], max: [1, 2, 1] } })
+    const { camera, rig: r } = rig({ views: [cameraView('hall'), boxed] })
+    r.activate('room', 'cut')
+    r.follow(6, 0, 0)
+    r.frame({ x: 8, y: 0, z: 0 })
+    r.update(FRAME)
+    // Framing a lock-on clamps to the bounds; the dead zone then holds it a little off the player.
+    expect(positionOf(camera).x).toBeLessThanOrEqual(1 + 1e-6)
+  })
+
+  it('frames a lock-on target by leaning toward it, and lets go with frame()', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    r.frame({ x: 4, y: 0, z: 0 })
+    for (let frame = 0; frame < 120; frame++) r.update(FRAME)
+    expect(positionOf(camera).x).toBeGreaterThan(0.1)
+    expect(positionOf(camera).x).toBeLessThan(4 * 0.35 + 1e-6)
+    r.frame()
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    expect(Math.abs(positionOf(camera).x)).toBeLessThan(0.31)
+  })
+})
+
+describe('the player turns the camera in 45° steps, and nothing else does', () => {
+  it('eases to a new heading, the shorter way, and holds it at once under reduced motion', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    r.heading(350)
+    r.update(FRAME)
+    // Through 355°, not through 175°: part way after a frame, not there yet.
     const early = headingOf(camera)
     expect(early).toBeGreaterThan(350)
-    expect(early).toBeLessThan(359)
-    // The renderer tracks the same target every frame: that lets the ease finish.
-    r.heading(350)
-    r.update(0.2)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 350, 25, 5), 2)
-
-    // A half turn is within half a degree after 250 ms of 60 Hz frames.
-    const half = rig()
-    half.rig.follow(0, 0, 0)
-    half.rig.update(1 / 60)
-    half.rig.heading(180, 'ease')
-    for (let frame = 0; frame < 15; frame++) half.rig.update(1 / 60)
-    expect(Math.abs(headingOf(half.camera) - 180)).toBeLessThan(0.5)
+    expect(early).toBeLessThan(359.99)
+    for (let frame = 0; frame < 120; frame++) r.update(FRAME)
+    expectNear(positionOf(camera), homeEye(FOCUS, 350), 2)
 
     const reduced = rig({ reduced: true })
     reduced.rig.follow(0, 0, 0)
-    reduced.rig.update(1 / 60)
-    reduced.rig.heading(90, 'ease')
-    reduced.rig.update(1 / 60)
-    expectNear(positionOf(reduced.camera), eyeOf(FOCUS, 90, 25, 5))
+    reduced.rig.update(FRAME)
+    reduced.rig.heading(90)
+    reduced.rig.update(FRAME)
+    expectNear(positionOf(reduced.camera), homeEye(FOCUS, 90))
   })
 
-  it('a player’s turn during a view entry’s ease shifts the ease’s target instead of snapping (review #245, 3)', () => {
+  it('shows each of the eight headings level: the same pitch, no roll, the horizon flat', () => {
+    for (let step = 0; step < 8; step++) {
+      const { camera, rig: r } = rig()
+      r.follow(0, 0, 0)
+      r.heading(step * 45)
+      r.update(FRAME)
+      expectNear(positionOf(camera), homeEye(FOCUS, step * 45))
+      const { forward, right } = axesOf(camera)
+      expect(Math.asin(-forward.y) / DEGREES).toBeCloseTo(30, 3)
+      expect(right.y).toBeCloseTo(0, 6)
+      // Looking along the heading: (sin h, cos h) on the floor, tipped 30° down.
+      expect(forward.x).toBeCloseTo(Math.sin(step * 45 * DEGREES) * Math.cos(30 * DEGREES), 4)
+      expect(forward.z).toBeCloseTo(Math.cos(step * 45 * DEGREES) * Math.cos(30 * DEGREES), 4)
+    }
+  })
+
+  it('never yaws, pitches or rolls by itself while the player walks, ducks into a zone and out', () => {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
-    r.update(1 / 60)
-    r.heading(180, 'ease')
-    r.update(0.05)
-    // A twin rig whose player does not turn: the camera with the turn stays a degree's width from it, no snap.
-    const twin = rig()
-    twin.rig.follow(0, 0, 0)
-    twin.rig.update(1 / 60)
-    twin.rig.heading(180, 'ease')
-    twin.rig.update(0.05)
-    twin.rig.update(1 / 60)
-    // One degree of turn while the view's heading is still easing in.
-    r.heading(181)
-    r.update(1 / 60)
-    const after = positionOf(camera)
-    const unturned = positionOf(twin.camera)
-    expect(Math.hypot(after.x - unturned.x, after.z - unturned.z)).toBeLessThan(0.1)
-    expect(
-      Math.hypot(after.x - eyeOf(FOCUS, 181, 25, 5).x, after.z - eyeOf(FOCUS, 181, 25, 5).z),
-    ).toBeGreaterThan(2)
-    // klipp's damping settles: within a millimetre half a second on.
-    r.heading(181)
-    r.update(0.5)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 181, 25, 5), 3)
+    r.heading(90)
+    r.update(FRAME)
+    const start = axesOf(camera)
+    let x = 0
+    for (let frame = 0; frame < 400; frame++) {
+      x += 0.04
+      r.follow(x, 0, Math.sin(frame / 20) * 3)
+      if (frame === 150) r.activate('hall', 'ease')
+      r.update(FRAME)
+      const now = axesOf(camera)
+      expectNear(now.forward, start.forward, 6)
+      expectNear(now.right, start.right, 6)
+    }
   })
 
-  it('a tracked heading with no ease running shows at once', () => {
+  it('a heading set while a turn is still easing carries on from where the camera is, without a snap', () => {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
-    r.update(1 / 60)
-    r.heading(10)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 10, 25, 5))
+    r.update(FRAME)
+    r.heading(90)
+    for (let frame = 0; frame < 5; frame++) r.update(FRAME)
+    const mid = headingOf(camera)
+    r.heading(135)
+    r.update(FRAME)
+    expect(Math.abs(headingOf(camera) - mid)).toBeLessThan(20)
+    for (let frame = 0; frame < 240; frame++) r.update(FRAME)
+    expectNear(positionOf(camera), homeEye(FOCUS, 135), 2)
   })
 
-  it('a cut snaps even into the view it is already in, and nothing is seeded before follow (review #245, 1)', () => {
-    const { camera, rig: r } = rig()
-    // The renderer draws frames before the player's row exists.
-    r.update(1 / 60)
-    r.update(1 / 60)
-    r.activate('hall', 'cut')
-    r.follow(50, 0, 50)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf({ x: 50, y: 1, z: 50 }, 0, 25, 5))
-    // A reset and a new sim with the player elsewhere: the same view, cut again.
-    r.activate('hall', 'cut')
-    r.follow(-20, 0, 5)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf({ x: -20, y: 1, z: 5 }, 0, 25, 5))
-  })
-
-  it('reports the pose it last wrote, for the occluder rule, and none before the first follow (M3.4c)', () => {
-    const { camera, rig: r } = rig()
-    r.update(1 / 60)
-    expect(r.pose()).toBeUndefined()
-    r.follow(3, 0, 2)
-    r.update(1 / 60)
-    const pose = r.pose()
-    expectNear(pose?.eye as Vec3, positionOf(camera))
-    expectNear(pose?.look as Vec3, { x: 3, y: 1, z: 2 })
-    expectNear(pose?.player as Vec3, { x: 3, y: 0, z: 2 })
-  })
-
-  it('under reduced motion the follow has no lag (spec §8)', () => {
-    const { camera, rig: r } = rig({ reduced: true })
-    r.follow(0, 0, 0)
-    r.update(1 / 60)
-    r.follow(4, 0, 0)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf({ x: 4, y: 1, z: 0 }, 0, 25, 5))
-  })
-
-  it('moves the character away from the eye when the stick is up, and screen-right when it is right, through @pixi/3d (review #245, 6)', () => {
-    for (const units of [0, 5_000, 16_384, 30_000, 40_960, 61_000]) {
+  it('moves the character away from the eye when the stick is up, and screen-right when it is right, through @pixi/3d', () => {
+    for (const units of [0, 8_192, 16_384, 24_576, 32_768, 40_960, 49_152, 57_344]) {
       const { camera, rig: r } = rig()
       r.follow(0, 0, 0)
       r.heading((units * 360) / 65_536)
-      r.update(1 / 60)
-      camera.updateLocalTransform()
-      const m = (camera.localTransform as unknown as { elements: ArrayLike<number> }).elements
-      const right = { x: m[0] ?? 0, z: m[2] ?? 0 }
-      const forward = { x: -(m[8] ?? 0), z: -(m[10] ?? 0) }
+      r.update(FRAME)
+      const { forward, right } = axesOf(camera)
       const eye = positionOf(camera)
       const up = mapStick({ x: 0, y: -127 }, units)
       const ahead = { x: up.x / Q16, z: up.z / Q16 }
-      // Away from the eye on the floor, and along the camera's own forward.
       expect(Math.hypot(ahead.x - eye.x, ahead.z - eye.z)).toBeGreaterThan(Math.hypot(eye.x, eye.z))
       expect(ahead.x * forward.x + ahead.z * forward.z).toBeGreaterThan(0.85)
       const side = mapStick({ x: 127, y: 0 }, units)
       expect((side.x / Q16) * right.x + (side.z / Q16) * right.z).toBeGreaterThan(0.99)
     }
   })
+})
 
-  it('activates a view with an ease over 400 ms, not before, and a cut at once (D3-a)', () => {
+describe('views', () => {
+  it('activates a view with an ease, not at once, and a cut at once', () => {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
-    r.update(1 / 60)
+    r.update(FRAME)
     const start = positionOf(camera)
-    const end = eyeOf(FOCUS, 0, 50, 9)
+    const end = eyeOf(FOCUS, 0, 40, 9)
     r.activate('crypt', 'ease')
-    r.update(0.2)
+    r.update(0.1)
     const middle = positionOf(camera)
-    expect(middle.y).toBeGreaterThan(start.y + 0.1)
-    expect(middle.y).toBeLessThan(end.y - 0.1)
-    r.update(0.19)
-    expect(positionOf(camera).y).toBeLessThan(end.y - 1e-4)
-    r.update(0.01)
-    expectNear(positionOf(camera), end)
+    expect(middle.y).toBeLessThan(start.y - 0.1)
+    expect(middle.y).toBeGreaterThan(end.y + 0.1)
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    expectNear(positionOf(camera), end, 3)
 
     r.activate('hall', 'cut')
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 0, 25, 5))
+    r.update(FRAME)
+    expectNear(positionOf(camera), homeEye(FOCUS))
   })
 
   it('under reduced motion, an eased activation is a cut', () => {
     const { camera, rig: r } = rig({ reduced: true })
     r.follow(0, 0, 0)
-    r.update(1 / 60)
+    r.update(FRAME)
     r.activate('crypt', 'ease')
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 0, 50, 9))
+    r.update(FRAME)
+    expectNear(positionOf(camera), eyeOf(FOCUS, 0, 40, 9))
   })
 
-  it('follows with klipp’s damping: the first follow snaps, then the eye trails and never overshoots', () => {
+  it('a cut snaps even into the view it is already in, and nothing is seeded before follow', () => {
     const { camera, rig: r } = rig()
-    r.follow(2, 0, 3)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf({ x: 2, y: 1, z: 3 }, 0, 25, 5))
-    r.follow(4, 0, 3)
-    let last = positionOf(camera).x
-    for (let frame = 0; frame < 11; frame++) {
-      r.update(1 / 60)
-      const x = positionOf(camera).x
-      expect(x).toBeGreaterThanOrEqual(last)
-      expect(x).toBeLessThanOrEqual(4)
-      last = x
-    }
-    // A lag of 0.18 s covers about 60% of the step in 0.183 s (the old exponential covered 63%).
-    expect(last - 2).toBeGreaterThan(0.5 * 2)
-    expect(last - 2).toBeLessThan(0.7 * 2)
-    r.update(5)
-    expectNear(positionOf(camera), eyeOf({ x: 4, y: 1, z: 3 }, 0, 25, 5))
+    r.update(FRAME)
+    r.update(FRAME)
+    r.activate('hall', 'cut')
+    r.follow(50, 0, 50)
+    r.update(FRAME)
+    expectNear(positionOf(camera), homeEye({ x: 50, y: 1, z: 50 }))
+    r.activate('hall', 'cut')
+    r.follow(-20, 0, 5)
+    r.update(FRAME)
+    expectNear(positionOf(camera), homeEye({ x: -20, y: 1, z: 5 }))
   })
 
-  it('keeps the player’s focus dead centre while the eye trails (klipp’s HardLookAtAim)', () => {
-    const { camera, rig: r } = rig()
+  it('holds a fixed zone’s authored shot, and pans a little toward the player inside its bounds', () => {
+    const fixed = cameraView('fixed', {
+      look: [0, 1.1, 0],
+      follow: 0.12,
+      bounds: { min: [-20, 0, -20], max: [20, 4, 20] },
+    })
+    const { camera, rig: r } = rig({ views: [fixed] })
     r.follow(0, 0, 0)
-    r.update(1 / 60)
-    r.follow(2, 0, 0)
-    r.update(1 / 60)
-    const eye = positionOf(camera)
-    const forward = forwardOf(camera)
-    const toFocus = { x: 2 - eye.x, y: 1 - eye.y, z: 0 - eye.z }
-    const length = Math.hypot(toFocus.x, toFocus.y, toFocus.z)
-    expectNear(forward, { x: toFocus.x / length, y: toFocus.y / length, z: toFocus.z / length })
-    // The eye has not caught up yet.
-    expect(eye.x).toBeLessThan(1)
-  })
-
-  it('keeps the focus inside the view’s bounds', () => {
-    const boxed = cameraView('room', { bounds: { min: [-1, 0, -1], max: [1, 2, 1] } })
-    const { camera, rig: r } = rig({ views: [cameraView('hall'), boxed] })
-    r.activate('room', 'cut')
-    r.follow(6, 0, 0)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf({ x: 1, y: 1, z: 0 }, 0, 25, 5))
-  })
-
-  it('frames a lock-on target, and lets go with frame()', () => {
-    const { camera, rig: r } = rig()
-    r.follow(0, 0, 0)
-    r.frame({ x: 2, y: 0, z: 0 })
-    r.update(10)
-    expectNear(positionOf(camera), eyeOf({ x: 0.7, y: 1, z: 0 }, 0, 25, 5))
-    r.frame()
-    r.update(10)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 0, 25, 5))
+    r.update(FRAME)
+    expectNear(positionOf(camera), eyeOf({ x: 0, y: 1.1, z: 0 }, 0, 30, 16))
+    r.follow(60, 0, 0)
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    // The look pans toward +x by the 2 m cap, and the eye with it.
+    expectNear(positionOf(camera), eyeOf({ x: 2, y: 1.1, z: 0 }, 0, 30, 16), 3)
   })
 
   it('keeps its last view for an id that names none, and warns once', () => {
@@ -306,8 +347,8 @@ describe('angledCamera', () => {
     r.follow(0, 0, 0)
     r.activate('nowhere', 'ease')
     r.activate('nowhere', 'cut')
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 0, 25, 5))
+    r.update(FRAME)
+    expectNear(positionOf(camera), homeEye(FOCUS))
     expect(warnings).toHaveLength(1)
     expect(warnings[0]).toContain('nowhere')
   })
@@ -316,28 +357,155 @@ describe('angledCamera', () => {
     const { camera, rig: r } = rig()
     r.setViews([cameraView('hall', { distance: 7 })])
     r.follow(0, 0, 0)
-    r.update(1 / 60)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 0, 25, 7))
+    r.update(FRAME)
+    expectNear(positionOf(camera), eyeOf(FOCUS, 0, 30, 7))
   })
 
   it('refuses an initial view that is not among the views', () => {
     expect(() => angledCamera({ camera: new Camera3D(), views: VIEWS, initial: 'attic' })).toThrow(/attic/)
   })
+
+  it('reports the pose it last wrote, for the occluder rule, and none before the first follow', () => {
+    const { camera, rig: r } = rig()
+    r.update(FRAME)
+    expect(r.pose()).toBeUndefined()
+    r.follow(3, 0, 2)
+    r.update(FRAME)
+    const pose = r.pose()
+    expectNear(pose?.eye as Vec3, positionOf(camera))
+    expectNear(pose?.look as Vec3, { x: 3, y: 1, z: 2 })
+    expectNear(pose?.player as Vec3, { x: 3, y: 0, z: 2 })
+    expect(pose?.cut).toBe(true)
+    r.update(FRAME)
+    expect(r.pose()?.cut).toBe(false)
+  })
 })
 
-describe('the default view frames a 1.62 m figure (D3-j)', () => {
+describe('automatic framing is a push-in dolly only', () => {
+  const distanceOf = (camera: Camera3D) =>
+    Math.hypot(camera.position.x - FOCUS.x, camera.position.y - FOCUS.y, camera.position.z - FOCUS.z)
+
+  it('pushes in to 0.75× the zone’s distance at 0.25× a second, along the same line, lens unchanged', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    const fov = camera.fov
+    const direction = forwardOf(camera)
+    r.framing(0.75)
+    // One second in: a quarter of the authored distance covered at most, the camera's own ease trailing behind it.
+    for (let frame = 0; frame < 60; frame++) r.update(FRAME)
+    const oneSecond = distanceOf(camera)
+    expect(oneSecond).toBeGreaterThan(16 * 0.75)
+    expect(oneSecond).toBeLessThan(16)
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    expect(distanceOf(camera)).toBeCloseTo(16 * 0.75, 3)
+    expect(camera.fov).toBe(fov)
+    expectNear(forwardOf(camera), direction, 6)
+  })
+
+  it('takes at least a second to cover the share it is asked for', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    r.framing(0.75)
+    r.update(0.5)
+    r.update(0.4)
+    // The framing itself is at 1 − 0.25 × 0.9 after 0.9 s; the eased eye can only be behind it.
+    expect(distanceOf(camera)).toBeGreaterThan(16 * 0.775 - 1e-6)
+  })
+
+  it('never pulls back past the authored distance, nor pushes in past 0.75×', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    r.framing(1.6)
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    expect(distanceOf(camera)).toBeCloseTo(16, 4)
+    r.framing(0.1)
+    for (let frame = 0; frame < 600; frame++) r.update(FRAME)
+    expect(distanceOf(camera)).toBeCloseTo(12, 4)
+  })
+
+  it('holds the authored distance under reduce motion', () => {
+    const { camera, rig: r } = rig({ reduced: true })
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    r.framing(0.75)
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    expect(distanceOf(camera)).toBeCloseTo(16, 6)
+  })
+})
+
+describe('peeking is an offset of at most 1.2 m with no rotation', () => {
+  it('moves the camera along the floor by the peek, clamped to 1.2 m, and turns nothing', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    const before = axesOf(camera)
+    r.peek({ x: 3, z: 4 })
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    const eye = positionOf(camera)
+    expect(eye.x).toBeCloseTo(0.72, 3)
+    expect(eye.z).toBeCloseTo(homeEye(FOCUS).z + 0.96, 3)
+    expect(Math.hypot(eye.x, eye.z - homeEye(FOCUS).z)).toBeCloseTo(1.2, 3)
+    const after = axesOf(camera)
+    expectNear(after.forward, before.forward, 6)
+    expectNear(after.right, before.right, 6)
+    r.peek(undefined)
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    expectNear(positionOf(camera), homeEye(FOCUS), 3)
+  })
+})
+
+describe('gameplay shake is a screen translation', () => {
+  const metresPerPixel = (distance: number) => (2 * distance * Math.tan((fovOf(50) * DEGREES) / 2)) / 180
+
+  it('moves the picture by whole pixels, 3 at most, with no rotation', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    const rest = positionOf(camera)
+    const axes = axesOf(camera)
+    r.shake({ x: 10, y: 0 })
+    r.update(FRAME)
+    const moved = positionOf(camera)
+    const delta = { x: moved.x - rest.x, y: moved.y - rest.y, z: moved.z - rest.z }
+    // The picture moves right, so the camera moves left: along −right, by three pixels at the focus's distance.
+    const along = delta.x * axes.right.x + delta.y * axes.right.y + delta.z * axes.right.z
+    expect(along).toBeCloseTo(-3 * metresPerPixel(16), 6)
+    const across = delta.x * axes.up.x + delta.y * axes.up.y + delta.z * axes.up.z
+    expect(across).toBeCloseTo(0, 9)
+    const after = axesOf(camera)
+    expectNear(after.forward, axes.forward, 9)
+    expectNear(after.right, axes.right, 9)
+    r.shake(undefined)
+    r.update(FRAME)
+    expectNear(positionOf(camera), rest, 9)
+  })
+
+  it('is none under reduce motion', () => {
+    const { camera, rig: r } = rig({ reduced: true })
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    const rest = positionOf(camera)
+    r.shake({ x: 3, y: 3 })
+    r.update(FRAME)
+    expectNear(positionOf(camera), rest, 12)
+  })
+})
+
+describe('the default view frames a figure at 16 m through 50 mm', () => {
   // Through @pixi/3d's own projection: a figure at the followed point, feet to crown, as a share of the frame's height.
   function figureShare(aspect: number): number {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
-    r.update(1 / 60)
+    r.update(FRAME)
     camera.updateLocalTransform()
     const world = (camera.localTransform as unknown as { elements: ArrayLike<number> }).elements
     const projection = (
       camera.computeProjection(aspect, new Matrix4()) as unknown as { elements: ArrayLike<number> }
     ).elements
     const ndcY = (p: Vec3): number => {
-      // The view matrix is the inverse of the camera's rigid transform: rotate the offset by its transpose.
       const d = { x: p.x - (world[12] ?? 0), y: p.y - (world[13] ?? 0), z: p.z - (world[14] ?? 0) }
       const viewY = d.x * (world[4] ?? 0) + d.y * (world[5] ?? 0) + d.z * (world[6] ?? 0)
       const viewZ = d.x * (world[8] ?? 0) + d.y * (world[9] ?? 0) + d.z * (world[10] ?? 0)
@@ -350,9 +518,12 @@ describe('the default view frames a 1.62 m figure (D3-j)', () => {
     ['16:9', 16 / 9],
     ['4:3', 4 / 3],
     ['21:9', 21 / 9],
-  ])('at %s fills at least 25% of the frame’s height (measured: 28.6%)', (_, aspect) => {
-    const share = figureShare(aspect)
-    expect(share).toBeGreaterThanOrEqual(0.25)
-    expect(share).toBeCloseTo(0.286, 3)
-  })
+  ])(
+    'at %s fills about 19% of the frame’s height: the vertical field does not change with the width',
+    (_, aspect) => {
+      expect(figureShare(aspect)).toBeCloseTo(figureShare(16 / 9), 9)
+      expect(figureShare(aspect)).toBeGreaterThan(0.17)
+      expect(figureShare(aspect)).toBeLessThan(0.21)
+    },
+  )
 })

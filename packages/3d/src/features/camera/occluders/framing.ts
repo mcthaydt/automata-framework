@@ -1,6 +1,6 @@
 // D3-g's check: an authored view keeps the focus point and the room's floor outline inside the
 // frame at the narrowest and widest screens the runtime letterboxes to, 4:3 and 21:9, whichever way the player turns
-// the camera. The vertical field is fixed (24 mm, 53.13°), so a wider screen only shows more to the sides. The player
+// the camera. The vertical field is fixed (50 mm, 26.99°), so a wider screen only shows more to the sides. The player
 // stands at `at` (the outline's centre by default) and the camera is placed as the rig places it, by the occluder
 // `framedFocus` and `eyeOf`. The focus checked is the player's own (`focusHeight` above `at`), not the camera's look
 // point, which the view's bounds may hold elsewhere. A point at or behind the eye is outside whatever its projected x and y say.
