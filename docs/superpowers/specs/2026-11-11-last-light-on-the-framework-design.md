@@ -75,10 +75,12 @@ becomes the framework's 3D reference.
   `docs/design/camera-rules.md`, no real-time lights, no `fetch()` at runtime.
 - The reference game is fully open source, like Emberwick (the Owner, 2026-11-11: "The story, art, and music can be
   MIT; it's a fully open source game like emberwick is"). Its story, lines, art, sounds and music are MIT with the
-  rest of the repository; there is no separate notice. As the framework's other examples do, the game keeps a
-  provenance file saying where each asset the builders did not make came from (the sounds and the music), so the
-  claim can be checked. An asset whose source does not allow MIT is not brought across; it is remade or left out, and
-  the plan says which.
+  rest of the repository; there is no separate notice. The recorded sounds and music made with ElevenLabs through the
+  old sound pipeline come across as they are (the Owner: "I paid for the elevenlabs so it's fine"). As the framework's
+  other examples do, the game keeps a provenance file saying where each asset the builders did not make came from.
+- The Last Light is no longer a "source game" (the Owner, 2026-11-11: "it's no longer a source game"). It is the 3D
+  reference game, so the repository's source-names check stops forbidding its name, and
+  `docs/provenance/sources.md` says so. The other source names stay as they are.
 - No subagents. Each stage in its own session and branch.
 
 ## Approaches
