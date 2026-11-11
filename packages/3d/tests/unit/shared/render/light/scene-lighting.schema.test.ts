@@ -4,15 +4,36 @@ import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.sch
 const lamp = { id: 'desk', x: 0, y: 2, z: 0, color: 0xffd8a0, range: 4 }
 
 describe('sceneLightingSchema', () => {
-  it('fills the defaults: a white ambient, full strength and level, no occluders and no fog', () => {
+  it('fills the defaults: a white ambient in linear light, full strength and level, no occluders, no fog, no sun, no steps', () => {
     const lighting = sceneLightingSchema.parse({ ambient: 0.2, lamps: [lamp] })
     expect(lighting).toEqual({
       ambient: 0.2,
       ambientColor: 0xffffff,
+      colorSpace: 'linear',
+      max: 1.6,
+      step: 0,
+      shade: 0.85,
       lamps: [{ ...lamp, strength: 1, level: 1 }],
       boxes: [],
       planes: [],
     })
+  })
+
+  it('reads a key, a fill, a sun and a lamp’s cone, and refuses a direction of no length', () => {
+    const lighting = sceneLightingSchema.parse({
+      ambient: 0.15,
+      colorSpace: 'srgb',
+      key: { dir: [0.3, 0.8, 0.5], level: 0.09 },
+      fill: { level: 0.08, color: 0xc6ecff, fade: [1.5, 4, 0.25] },
+      sun: { dir: [0, 1, 0.2], color: 0xfff3d6, level: 1, shadow: true },
+      step: 0.1,
+      lamps: [{ ...lamp, aim: [0, -1, 0.15], cone: 72 }],
+    })
+    expect(lighting.sun?.shadow).toBe(true)
+    expect(lighting.lamps[0]?.cone).toBe(72)
+    expect(() =>
+      sceneLightingSchema.parse({ ambient: 0, sun: { dir: [0, 0, 0], color: 0, level: 1, shadow: false } }),
+    ).toThrow()
   })
 
   it('reads boxes (base at y) and planes (normal made unit length)', () => {

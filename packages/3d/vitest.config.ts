@@ -1,4 +1,5 @@
 import { defineTests, type TestOptions } from '@automata/vitest-preset'
+import { playwright } from '@vitest/browser-playwright'
 import type { BrowserCommand } from 'vitest/node'
 import type { FigureLibrary } from './src/features/figures/figure/build.ts'
 import type { fixtureFigures } from './src/testing/fixture-library.ts'
@@ -21,9 +22,38 @@ const figureFixture: BrowserCommand<[], FigureLibrary> = async (ctx) => {
   return (await fixture.fixtureFigures()).library
 }
 
+// WebGPU in Chromium needs its flag, and a machine with no GPU (a cloud session, CI without one) needs a software
+// adapter that can also present a canvas: SwiftShader through Vulkan. Without that, the GPU process cannot make the
+// swap chain's shared image and the device is lost on the first frame, with or without a mesh (`AF_WEBGPU=software`).
+const webgpuArgs = [
+  '--enable-unsafe-webgpu',
+  ...(process.env['AF_WEBGPU'] === 'software'
+    ? [
+        '--use-angle=swiftshader',
+        '--enable-unsafe-swiftshader',
+        '--enable-features=Vulkan',
+        '--use-vulkan=swiftshader',
+      ]
+    : []),
+]
+
 // Pre-bundled browser-side deps: on a cold cache Vite otherwise reloads test pages mid-run (A0 spec §11).
 export default defineTests({
   svelte: true,
-  optimizeDeps: ['zod'],
+  optimizeDeps: ['zod', 'smol-toml'],
   browserCommands: { figureFixture } as TestOptions['browserCommands'],
+  // `parity`: every engine, WebGL2 and the figures' goldens. `webgpu`: Chromium launched with WebGPU on, a mesh drawn
+  // through Pixi's WebGPU renderer (the `browser` name stays the one `pnpm test:browser` runs).
+  browserProjects: [
+    { name: 'browser', folder: 'parity', engines: ['chromium', 'webkit', 'firefox'] },
+    {
+      name: 'webgpu',
+      folder: 'webgpu',
+      engines: ['chromium'],
+      instance: () => ({
+        browser: 'chromium',
+        provider: playwright({ launchOptions: { args: webgpuArgs } }),
+      }),
+    },
+  ],
 })

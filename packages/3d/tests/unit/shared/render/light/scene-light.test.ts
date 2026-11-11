@@ -198,4 +198,20 @@ describe('createSceneLight tint', () => {
     expect(out).toEqual(light.tint(-10, 1, 1))
     expect(light.tint(-10, 1, 1, [1, 0, 0], out)).toEqual(light.tint(-10, 1, 1, [1, 0, 0]))
   })
+
+  it('bakes a room’s shade and the mesh’s own colour into an sRGB light', () => {
+    const look = sceneLightingSchema.parse({ ambient: 0.4, colorSpace: 'srgb' })
+    const light = createSceneLight(look)
+    const plain = floorAt(0, 0)
+    const dim = floorAt(0, 0)
+    const toned = floorAt(0, 0)
+    light.bake(plain)
+    light.bake(dim, { shadeSteps: 1 })
+    light.bake(toned, { albedo: 0x808080 })
+    expect(colours(plain)[0]).toBeCloseTo(0.4, 6)
+    expect(colours(dim)[0]).toBeCloseTo(0.4 * 0.85, 6)
+    // 0x80 in sRGB is 0.502; × 0.4 is 0.2008 on screen, whose linear value over the albedo's linear value is the multiplier.
+    const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+    expect(colours(toned)[0]).toBeCloseTo(lin(0.2008) / lin(0.502), 3)
+  })
 })
