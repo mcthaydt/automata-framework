@@ -2,7 +2,7 @@
 // camera the test chooses, a readback of the canvas, and `compose` (the builder's CPU reference) of what the stage placed.
 // The figures' `now` is fixed, so a frame is the same frame each run.
 import '@automata/3d/no-eval'
-import { createPixi3dRenderer, type Pixi3dRenderer } from '@automata/3d'
+import { createPixi3dRenderer, type Look, type Pixi3dRenderer, type SceneLighting } from '@automata/3d'
 import { builtRenderer, snapshot, testTarget } from '@automata/3d/testing-checks'
 import { CubeGeometry, FlatMaterial, Mesh3D, type View3D } from '@pixi/3d'
 import { type PaintedStage, stageFor } from '#src/features/painted/painted-stage.ts'
@@ -53,6 +53,10 @@ export interface SceneOptions {
   /** Where the camera looks (x, z); the point is 1 m above the floor. */
   readonly look?: readonly [number, number]
   readonly preference?: 'webgpu'
+  /** The room's light: figures are lit by it unless their options say `lit: false`. */
+  readonly lighting?: SceneLighting
+  /** The pixel-art look's passes (the haze, say). */
+  readonly passes?: Look
 }
 
 export interface StageScene {
@@ -110,6 +114,8 @@ export async function buildScene(options: SceneOptions): Promise<StageScene> {
     // The letterbox's bars would cover the top and bottom of the field, and a test reads every row of it.
     barFraction: 0,
     ...(options.preference ? { preference: options.preference } : {}),
+    ...(options.lighting ? { lighting: options.lighting } : {}),
+    ...(options.passes ? { look: options.passes } : {}),
     views,
     scene: (view) => {
       seen = view
