@@ -766,3 +766,18 @@ The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches 
 | The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
 | Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
 | Gates | See the PR description for what ran and what is pending | |
+
+## Three render extensions for the clinic (phase 3 groundwork, 2026-11-11)
+
+Three render features of the adventure source become opt-in extensions, so `level3d` can recreate its clinic. Written fresh
+from the source's behaviour, in AF's data (nothing copied; the mesh keeps its third-party MIT notice). Notes, the
+screenshots and what is open are in [tll-extensions](tll-extensions/README.md).
+
+| Step | Status | Record |
+|---|---|---|
+| `@automata/room-visibility`: rooms, zones, masses, wall ownership by `cut`, `hideFrom` | Done: policy schema and `checkRoomPolicy`, the resolver (0.35 s hold, reduced motion, cutscene, peek), wall groups and nearest-span owners, room masks over a `Container3D` | `extensions/room-visibility/tests/unit/`, `examples/3d/roomvisibility/` |
+| `@automata/lcd-panel`: the LCD post pass and its profile | Done: Zod profile with the clinic's numbers, the pitch maths, GLSL and WGSL, `addLcdPanelPass`; zeroed panel without vignette passes an exact DUEL colour unchanged (WebGL2 test) | `extensions/lcd-panel/tests/`, `examples/3d/lcdpanel/` |
+| `@automata/retro-crisp`: the retro post pass, the crisp maths | Done: grade, unsharp, vignette, film fade, optional Bayer quantise, `RETRO_NEUTRAL` passes an exact DUEL colour unchanged (CPU and WebGL2); crisp: `letterboxScale`, `snapRatio`, `figureSnap`, the profile and canvas layout | `extensions/retro-crisp/tests/`, `examples/3d/retrocrisp/` |
+| Screenshots, on and off, WebGL and WebGPU | Done for every state of the three examples (headless Chromium on SwiftShader, the eb-look flags) | [tll-extensions](tll-extensions/README.md) |
+| Open | Whole-pixel scaling in the running game needs a hook in core's letterbox (it scales by width over field width, not a whole number); the retro pass runs after core's DUEL snap, so the source's palette-LUT dither stays core's | |
+| Gates | See the PR description for what ran and what is pending | |

@@ -1,0 +1,212 @@
+[
+  {
+    "name": "lcd-on-webgl",
+    "url": "http://localhost:5173/lcdpanel/screen/?pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "panel": "ready",
+      "lcd": "true"
+    },
+    "errors": []
+  },
+  {
+    "name": "lcd-on-webgpu",
+    "url": "http://localhost:5173/lcdpanel/screen/?pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "panel": "ready",
+      "lcd": "true"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "lcd-off-webgl",
+    "url": "http://localhost:5173/lcdpanel/screen/?lcd=0&pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "panel": "ready",
+      "lcd": "false"
+    },
+    "errors": []
+  },
+  {
+    "name": "lcd-off-webgpu",
+    "url": "http://localhost:5173/lcdpanel/screen/?lcd=0&pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "panel": "ready",
+      "lcd": "false"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "retro-on-webgl",
+    "url": "http://localhost:5173/retrocrisp/grade/?pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "retro": "true"
+    },
+    "errors": []
+  },
+  {
+    "name": "retro-on-webgpu",
+    "url": "http://localhost:5173/retrocrisp/grade/?pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "retro": "true"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "retro-off-webgl",
+    "url": "http://localhost:5173/retrocrisp/grade/?retro=0&pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "retro": "false"
+    },
+    "errors": []
+  },
+  {
+    "name": "retro-off-webgpu",
+    "url": "http://localhost:5173/retrocrisp/grade/?retro=0&pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "retro": "false"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "retro-on-crisp-lcd-webgl",
+    "url": "http://localhost:5173/retrocrisp/grade/?crisp=lcd&pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "retro": "true"
+    },
+    "errors": []
+  },
+  {
+    "name": "retro-on-crisp-lcd-webgpu",
+    "url": "http://localhost:5173/retrocrisp/grade/?crisp=lcd&pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "retro": "true"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "rooms-on-hall-webgl",
+    "url": "http://localhost:5173/roomvisibility/zones/?pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "zone": "hall",
+      "rooms": "corridor,reception"
+    },
+    "errors": []
+  },
+  {
+    "name": "rooms-on-hall-webgpu",
+    "url": "http://localhost:5173/roomvisibility/zones/?pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "zone": "hall",
+      "rooms": "corridor,reception"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "rooms-on-corridor-webgl",
+    "url": "http://localhost:5173/roomvisibility/zones/?zone=corridor&pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "zone": "corridor",
+      "rooms": "corridor"
+    },
+    "errors": []
+  },
+  {
+    "name": "rooms-on-corridor-webgpu",
+    "url": "http://localhost:5173/roomvisibility/zones/?zone=corridor&pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "zone": "corridor",
+      "rooms": "corridor"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "rooms-on-closet-webgl",
+    "url": "http://localhost:5173/roomvisibility/zones/?zone=closet&pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "zone": "closet",
+      "rooms": "supply"
+    },
+    "errors": []
+  },
+  {
+    "name": "rooms-on-closet-webgpu",
+    "url": "http://localhost:5173/roomvisibility/zones/?zone=closet&pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "zone": "closet",
+      "rooms": "supply"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "rooms-off-webgl",
+    "url": "http://localhost:5173/roomvisibility/zones/?rooms=0&pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "zone": "hall",
+      "rooms": "all"
+    },
+    "errors": []
+  },
+  {
+    "name": "rooms-off-webgpu",
+    "url": "http://localhost:5173/roomvisibility/zones/?rooms=0&pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "zone": "hall",
+      "rooms": "all"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  }
+]
