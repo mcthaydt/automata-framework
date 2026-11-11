@@ -43,8 +43,8 @@ on FB's own depth-writing `CellSprite` inside AF's `View3D`, so figures and AF's
    no NaN in the quad. Task 2.
 3. **A renderer that is not WebGL.** One warning in words, figures still drawn, flat depth. Task 3.
 4. **`registerFashion()` twice, or two games in one page.** No "registered already" throw. Task 6.
-5. **An entity removed mid-show.** Its `CellSprite` leaves the stage and the ranks of the rest close up; no leaked
-   texture. Task 3.
+5. **An entity removed mid-show, or hidden.** Its `CellSprite` leaves the stage (or is not drawn while the entity's
+   node is hidden) and the ranks of the rest close up; no leaked texture. Task 3.
 6. **An unknown `pose` or `outfit` name in `state`.** An error in words naming the name and the character, at the first
    frame, not a silent standing figure. Task 3.
 
@@ -57,34 +57,40 @@ extensions/character-kit/
   src/features/painted/pose.ts              Camera3D → CameraPose                         new (replaces camera.ts)
   src/features/painted/place.ts             the placement rule for one figure, pure       new
   src/features/painted/painted-stage.ts     per-camera: sort, rank, CellSprite, depths    new (replaces figure-sprite.ts)
+  src/features/painted/state.ts             a PaintedState's names checked, pure          new
   src/features/painted/painted-view.ts      paintedFigure                                 rewritten
   src/features/fashion/{fabrics,swatches,hair,shells,garments,cast,register-fashion}.ts   new
   tests/unit/shared/door.test.ts            moved from tests/unit/painted
-  tests/unit/painted/{pose,place}.test.ts   new (camera.test.ts deleted)
+  tests/unit/shared/contract.test.ts        STAGE_VERSION, SPRITE_PITCH, TIE_BIAS                 new
+  tests/unit/painted/{pose,place,state}.test.ts   new (camera.test.ts deleted)
   tests/unit/fashion/{register,fit,cast}.test.ts                                          new
-  tests/browser/painted/{painted-view,painted-depth}.test.ts                              rewritten, new
+  tests/browser/painted/{painted-view,painted-depth,painted-scale}.test.ts                rewritten, new, new
   scripts/gate.ts                           the gates' renders and measurements           new
 examples/3d/characterkit/characterkit-painted.ts      640 × 360
 examples/3d/characterkit/characterkit-runway.ts       new
 examples/3d/tests/e2e/characterkit-runway.test.ts     new
+examples/3d/tests/e2e/colours.ts                      coloursPerThird, from the hair and painted journeys
+vendor/figure-builder/package.json                    pixi.js, @pixi/3d, if Task 1 Step 1 needs them
+.github/workflows/3d.yml                              the vendor paths in pull_request
 docs/refactor/c7/                                     the gates' artifacts
 ```
 
 ---
 
-### Task 0: The upstream asks (the coordinator's, not the executor's)
+### Task 0: FigureBuilder main already carries U1 and U2
 
-- [ ] FB main carries U1 (`TIE_BIAS` exported by `src/index`) and U2 (`src/kit` exports `GROUP`, `weights`, `qmul`,
-      `smooth`, types `Limb`, `Ring`), each with its line in FB's `tests/api.test.ts`. No `STAGE_VERSION` bump.
-- [ ] The coordinator gives the executor the FB commit to bump to.
-
-Tasks 1 to 5 need U1 only; Tasks 7 and on need U2. If U2 is late, do Tasks 1 to 6 and gate 1 first.
+FB #27 merged them: FB main `d6e3c9f` exports `TIE_BIAS` from `src/index` (U1) and `GROUP`, `weights`, `qmul`,
+`smooth`, `Limb`, `Ring` from `src/kit` (U2). There is no upstream PR to wait for. Task 1 bumps the submodule to
+`d6e3c9f` or a later FB main commit the coordinator names, and every task can start.
 
 ### Task 1: Bump the submodule and move the door
 
 **Files:**
 
-- Modify: `vendor/FigureBuilder` (the gitlink), `pnpm-lock.yaml` if it moves
+- Modify: `vendor/FigureBuilder` (the gitlink, to `d6e3c9f` or later), `pnpm-lock.yaml` if it moves,
+  `vendor/figure-builder/package.json` if Step 1 shows the view entry's Pixi imports do not resolve,
+  `.github/workflows/3d.yml` (its `pull_request` paths gain `vendor/FigureBuilder` and `vendor/figure-builder/**`, so a
+  bump alone runs the 3D suites)
 - Move: `src/features/painted/door.ts` → `src/shared/figure-builder/door.ts`; create `door-view.ts` beside it
 - Move: `tests/unit/painted/door.test.ts` → `tests/unit/shared/door.test.ts`
 - Create: `tests/unit/shared/contract.test.ts`
@@ -96,12 +102,30 @@ Tasks 1 to 5 need U1 only; Tasks 7 and on need U2. If U2 is late, do Tasks 1 to 
   `project`, `viewOf`, `zoomOf`, `texelDepths`, `stageFrame`, `compose`, `ScriptedActor`, `POSES`, `GAITS`, `SWATCHES`,
   `HAIR_STYLES`, `registerGarment`, `registerOutfitHooks`, `registerHairPiece`, `registerFinish`, `registerFabric`, and
   the types `Cell`, `CameraPose`, `StageSprite`, `StageFrame`, `Backdrop`, `Garment`, `GarmentKind`, `Wearing`, `Fit`,
-  `Fabric`, `HairStyle`, `HairFinish`, `Material`, `Part`, `Side`, `Body`. From FB's `kit` (after U2): `limb`,
+  `Fabric`, `HairStyle`, `HairFinish`, `Material`, `Part`, `Side`, `Body`. From FB's `kit` (U2, on main): `limb`,
   `superquadric`, `GROUP`, `weights`, `axisAngle`, `lerp`, `qmul`, `smooth`, `J`, types `Limb`, `Ring`, `V3`.
 - Produces, from `door-view.ts`: `CellSprite`.
 
-- [ ] **Step 1:** Bump: `git -C vendor/FigureBuilder fetch origin && git -C vendor/FigureBuilder checkout <commit>`,
-      `pnpm install`, `pnpm --filter figure-builder typecheck`. Expected: declarations build.
+- [ ] **Step 1:** Bump: `git -C vendor/FigureBuilder fetch origin && git -C vendor/FigureBuilder checkout d6e3c9f`
+      (or the later FB main commit the coordinator names), `pnpm install`, `pnpm --filter figure-builder typecheck`.
+      Expected: declarations build. FB's view entry imports `pixi.js` and `@pixi/3d`, and the wrapper package
+      (`vendor/figure-builder`) declares only `typescript` and reaches FB's sources through a symlink into
+      `vendor/FigureBuilder`, where there is no `node_modules`. So prove both resolutions before going on: the
+      declarations of `src/view` build, and a throwaway browser test in the kit that imports `figure-builder/view` loads.
+      If either fails, add `pixi.js` (8.22.0) and `@pixi/3d` (the same `vendor/pixi-3d` tarball) to the wrapper as
+      `peerDependencies` and `devDependencies`, and re-run. The wrapper's `./*` export maps `figure-builder/view` to
+      `src/view.ts`: if FB's view entry is elsewhere, stop and tell the coordinator.
+- [ ] **Step 1b: Check the plan's FB names against FB main** (this audit could not read FB: see the audit). With the
+      submodule at the bumped commit, confirm each and note any mismatch in this plan's log before writing code:
+      `docs/contract.md` (`STAGE_VERSION` 1, the placement rule of the spec's 5.2, the tie rule); `src/index` exports
+      `SPRITE_PITCH`, `TIE_BIAS` (0.001), `cellOf`, `project`, `viewOf`, `zoomOf` (taken at the figure's ground point,
+      in pixels a D1 texel), `texelDepths`, `stageFrame`, `compose`, `ScriptedActor`, `POSES`, `GAITS`, `SWATCHES`,
+      `HAIR_STYLES` and the five `register*` hooks, and that it pulls in no Pixi; `src/kit` exports U2's six names;
+      `CellSprite`'s constructor with depth, `show(cell)`, `showDepths(depths, perspective, p10, p14, bias)`, what
+      `checkCentred` requires of the quad's anchor, and that its depth bit is WebGL only; `registerGarment` throws on a
+      second registration; the showcase branches at `cb4aa9f` and `8fb0242` hold the files of the spec's 5.4, with
+      7 fabrics, 9 garment kinds and the casts named there. A mismatch that changes an interface here: stop and tell
+      the coordinator.
 - [ ] **Step 2:** Run the kit's suites on the bump alone, before any edit: `pnpm --filter @automata/character-kit
       test:unit` and `test:browser`. Expected: pass; the 16 texel-for-texel views still equal. A failure here is FB's
       change to investigate, not to re-record.
@@ -119,8 +143,9 @@ it('is the stage contract this kit was written for', () => {
 ```
 
 - [ ] **Step 4:** Run; expect FAIL (no such module). Move the door, add the exports, fix importers. Run; expect PASS.
-- [ ] **Step 5:** `pnpm boundaries && pnpm style && pnpm knip` (an export nothing uses yet is added in the task that
-      uses it, if knip objects). Commit: `refactor(character-kit): the door to FigureBuilder moves to shared and takes the stage contract`.
+- [ ] **Step 5:** Add the two `vendor/` paths to `.github/workflows/3d.yml`'s `pull_request` paths. Then
+      `pnpm boundaries && pnpm style && pnpm knip` (an export nothing uses yet is added in the task that uses it, if
+      knip objects). Commit: `refactor(character-kit): the door to FigureBuilder moves to shared and takes the stage contract`.
 
 ### Task 2: The pose and the placement rule
 
@@ -161,8 +186,12 @@ export function ranked(placed: readonly Placed[]): Placed[]
 - [ ] **Step 1: Failing tests, `pose.test.ts`.** A camera at `[0, 3, 5]` looking at the origin gives `fwd` along
       `normalize([0, −3, −5])`, `right` `[1, 0, 0]`, and `right × up = −fwd` to 1e-12; perspective `fov` 53.13° at
       640 × 360 gives `f` 360 ± 0.01 and no `pixelsPerMetre`; orthographic with `orthographicSize = 320 / 73.846…` gives
-      `pixelsPerMetre` 73.846 ± 1e-9 and no `f`; `zoom` other than 1 is folded in (perspective `f × zoom`, orthographic
-      `pixelsPerMetre × zoom`).
+      `pixelsPerMetre` 73.846 ± 1e-9 and no `f`; `zoom` other than 1 is folded in as `@pixi/3d`'s
+      `Camera3D.computeProjection` does (0.1.0-beta.2): a perspective camera divides `fov` by `zoom`, so
+      `f = (h / 2) / tan(fov / zoom / 2)` (`zoom` 2 at 53.13° and 360 high gives 762.5, not 720); an orthographic camera
+      multiplies `orthographicSize` by `zoom`, so `pixelsPerMetre = w / (2 · orthographicSize · zoom)`. A third case
+      checks `poseOf` against the camera's own `computeProjection(w / h)` matrix: `P[5] · h / 2` is `f`, and
+      `P[0] · w / 2` is `pixelsPerMetre`, to 1e-9.
 - [ ] **Step 2: Failing tests, `place.test.ts`.** The parity test, perspective and orthographic, for both `BASE`
       figures at three places (the centre, 2 m left and 4 m deeper, the frame's edge):
 
@@ -178,8 +207,8 @@ expect(mine.sprite.depth).toBeCloseTo(frame.sprites[0].depth, 9)
 expect(mine.sprite.cell.pitch).toBeCloseTo(SPRITE_PITCH, 12)
 ```
 
-      Then: cameras tilted 25°, 40° and 60° give the same `cell.key`; at 480 × 270, 5 m, `scale` is 1 (0.73 rounds up to
-      the floor of 1); a figure 0.05 m in front of a perspective camera is `undefined`; no field of a `Placed` at the
+      Then: cameras tilted 25°, 40° and 60° give the same `cell.key`; at 480 × 270 under the example's follow camera (5 m to a focus 1 m above the
+      feet, so the feet are 5.42 m deep), `zoomOf / 2` is about 0.67 and `scale` is 1 (the floor of 1); a figure 0.05 m in front of a perspective camera is `undefined`; no field of a `Placed` at the
       frame's edge is NaN; `ranked` puts the farther first and keeps the given order on a tie; `position` projected
       back through `project(pose, …)` lands the anchor texel on `screen + scale · anchor` to 1e-6.
       (The executor checks `ScriptedActor`'s real constructor in `vendor/FigureBuilder/docs/actors.md` and adapts the
@@ -194,11 +223,12 @@ expect(mine.sprite.cell.pitch).toBeCloseTo(SPRITE_PITCH, 12)
 
 **Files:**
 
-- Create: `src/features/painted/painted-stage.ts`
+- Create: `src/features/painted/painted-stage.ts`, `src/features/painted/state.ts` (pure: a `PaintedState`'s names
+  checked against the character)
 - Rewrite: `src/features/painted/painted-view.ts`
 - Delete: `src/features/painted/figure-sprite.ts`, `src/features/painted/camera.ts`, `tests/unit/painted/camera.test.ts`
 - Test: `tests/browser/painted/painted-view.test.ts` (rewritten), `tests/browser/painted/painted-depth.test.ts`,
-  `tests/unit/painted/painted-stage.test.ts`
+  `tests/unit/painted/state.test.ts`
 
 **Interfaces:**
 
@@ -232,10 +262,12 @@ export function stageFor(camera: Camera3D): PaintedStage   // one per camera, ke
 export const NOT_WEBGL: string   // the warning's words
 ```
 
-- [ ] **Step 1: Failing unit test, `painted-stage.test.ts`** (Node, a fake `CellSprite` seam is not needed: test the
-      pure parts). Unknown `pose` name: `paintedFigure(def, { state: () => ({ moving: false, pose: 'nope' }) })` throws
-      at its first frame with `/No pose called "nope"/` and the character's id; unknown `outfit` likewise
-      (`/has no outfit called/`).
+- [ ] **Step 1: Failing unit test, `state.test.ts`** (Node). `paintedFigure` needs Pixi and a render, so the name
+      check is a pure function in `state.ts`, `checkState(def, state)`: an unknown `pose` throws
+      `/No pose called "nope"/` with the character's id; an unknown `outfit` throws `/has no outfit called/` likewise;
+      known names pass. `paintedFigure` calls it in the entity's update path (AF's draw hook, where the renderer's
+      errors already surface), never inside the render callback, where a throw would stop Pixi's ticker; the browser
+      test of Step 2 (case 8) holds that a bad name reaches the page as that error at the first frame.
 - [ ] **Step 2: Failing browser tests, `painted-depth.test.ts`** (uses `createPixi3dRenderer`, `builtRenderer`,
       `snapshot`, `testTarget` from `@automata/3d/testing-checks`, as `painted-view.test.ts` does today; a fixed `now`).
       Each case builds the same frame on the CPU with FB's `compose(frame, backdrop)` from `stage.placed` and compares
@@ -252,23 +284,33 @@ export const NOT_WEBGL: string   // the warning's words
   6. remove the first of three figures: two sprites drawn, ranks 0 and 1, and the removed one's texture is destroyed
      (Review Focus 5);
   7. under `preference: 'webgpu'` where the browser grants it, `console.warn` is called once with `NOT_WEBGL` and the
-     figures are drawn; skipped with its reason where WebGPU is refused (Review Focus 3).
+     figures are drawn; skipped with its reason where WebGPU is refused (Review Focus 3);
+  8. a `state` naming an unknown pose: the renderer's first frame reports the error in words (Review Focus 6);
+  9. the entity's own node hidden (`visible = false`) or its row removed: its `CellSprite` is not drawn (the quad lives
+     under the stage's node, not the entity's, so it follows the entity's node's `worldVisible` and leaves with it).
+
+      Every browser case skips with its reason where the engine has no WebGL 2 (`hasWebGL2`, as `painted-view.test.ts`
+      does): the kit's `browser` project runs Chromium, WebKit and Firefox together, and headless Firefox here has none.
 - [ ] **Step 3:** Rewrite `painted-view.test.ts`: both base figures, 8 directions, through the renderer under the
       orthographic camera at 18°, are FB's `standing` cell at `SPRITE_PITCH` texel for texel (16 of 16), as before but
       at the fixed pitch.
 - [ ] **Step 4:** Run `pnpm --filter @automata/character-kit test:browser`; expect FAIL (no `painted-stage`).
-- [ ] **Step 5: Implement.** `stageFor(camera)` keeps one stage per camera. Its node is a `Container3D` added under the
-      first member's parent's root; each frame it runs once, in the last callback before the view draws: try, in order,
-      (a) `onRender` on the stage's own node, (b) `onRender` on the `View3D` reached from the node's parents. Case 5
-      decides: if neither passes it, stop (Global Constraints) and report. Then per frame: `pose = poseOf(camera, [w,
+- [ ] **Step 5: Implement.** `stageFor(camera)` keeps one stage per camera. Its node is a `Container3D` at the scene's
+      root, attached on a member's first update (a factory's node has no parent yet when the factory runs; from then on
+      `node.view3d` is the `View3D`). Each frame it runs once, in `View3D.onRender`, which `@pixi/3d` 0.1.0-beta.2 runs at
+      the start of every render, after AF's draw hooks (so after the camera driver has moved the camera). `Container3D`
+      has no `onRender` of its own. `onRender` is one slot: the stage keeps any callback already there, calls it first,
+      and puts it back when its last member leaves. Case 5 proves the order; if it fails, stop (Global Constraints) and
+      report. Then per frame: `pose = poseOf(camera, [w,
       h])`; each member's `frame(at => paintView(pose, at))`; `place`; `ranked`; per rank `i`: `quad.show(cell)`,
       `quad.showDepths(texelDepths(pose, sprite), pose.f !== undefined, P[10], P[14], (i + 1) * TIE_BIAS)` with
-      `P = camera.computeProjection(w / h, new Matrix4()).elements`; set the quad's position, `pixelSize`, and its
+      `P = camera.computeProjection(w / h, kept).elements` (one `Matrix4` kept by the stage, not one a frame); set the quad's position, `pixelSize`, and its
       quaternion to the camera's. The renderer's type is read once; not WebGL warns once with `NOT_WEBGL`.
       `paintedFigure` keeps `placeView3d` for the entity's place and yaw (an entity's yaw 0 faces −z, a figure's facing 0
       faces +z: half a turn), owns its `Figure`, and is a `StageMember`.
-- [ ] **Step 6:** Run unit and browser, Chromium then WebKit (`pnpm --filter @automata/character-kit test:browser`;
-      the preset's WebKit project). Expected: PASS; case 7 may skip with its reason.
+- [ ] **Step 6:** Run unit and browser (`pnpm --filter @automata/character-kit test:browser`: one project, Chromium,
+      WebKit and Firefox). Expected: PASS in Chromium and WebKit; every case skips with its reason in headless Firefox;
+      case 7 may skip with its reason.
 - [ ] **Step 7:** `pnpm boundaries && pnpm style && pnpm knip`. Commit:
       `feat(character-kit): painted figures at the painter's pitch, crisp, with per-texel depth`.
 
@@ -278,16 +320,21 @@ export const NOT_WEBGL: string   // the warning's words
 
 - Modify: `examples/3d/characterkit/characterkit-painted.ts`, `examples/3d/tests/e2e/characterkit-painted.test.ts`,
   `examples/3d/README.md` (the row's words, if they name the size)
-- Test: `extensions/character-kit/tests/browser/painted/painted-scale.test.ts`
+- Test: `extensions/character-kit/tests/browser/painted/painted-scale.test.ts` (each case skips with its reason without
+  WebGL 2)
 
-- [ ] **Step 1: Failing browser test.** The example's own numbers (640 × 360, `fovOf(24)`, the default view 5 m back,
-      25° down): for the walker at each corner of its 2 m square and the stander, `place(...).sprite.scale >= 1`, and it
-      is exactly 1. The same at 480 × 270 is also 1 by the floor, so the test also asserts `zoomOf(pose, at) / 2 >= 0.95`
-      at 640 × 360 (0.975 at 5 m) and documents that 480 × 270 gives 0.73: the reason for the size.
-- [ ] **Step 2:** Run; expect FAIL on the 0.95 line until the size is passed as 640 × 360.
+- [ ] **Step 1: Failing browser test.** The example's own numbers (640 × 360, `fovOf(24)`, the follow view 5 m to a
+      focus 1 m above the walker's feet, 25° down, under reduced motion so klipp's damping is zero and the camera sits
+      on its target): for the walker at each corner of its 2 m square, `place(...).sprite.scale` is exactly 1 and
+      `zoomOf(pose, at) / 2` is between 0.85 and 1.0 (about 0.90: the feet are 5.42 m deep); for the stander, whom the
+      camera does not follow, `scale` is 1 at every point of the walker's lap. At 480 × 270 the walker's `zoomOf / 2`
+      is under 0.7 (about 0.67): the test asserts that 640 × 360 is nearer 1 than 480 × 270 and documents both numbers,
+      the reason for the size. The numbers come from `zoomOf` through the door, never typed.
+- [ ] **Step 2:** Run; expect FAIL on the "nearer 1" line until the size is passed as 640 × 360.
 - [ ] **Step 3:** `size: { width: 640, height: 360 }` in the example; add a box wall the walker passes behind on one side
       of its square, so depth is seen. The header comment says what the example now shows (the fixed pitch, crisp, depth).
-- [ ] **Step 4:** The journey keeps its checks; add: the canvas is `data-renderer="webgl"`. Run
+- [ ] **Step 4:** The journey keeps its checks (it already asserts `data-renderer="webgl"`); add: no page error after
+      12 s of play, by which the walker has passed behind the wall. Run
       `pnpm --filter @af-examples/examples-3d test:e2e -- characterkit-painted` (both projects). Expected: 2 passed.
 - [ ] **Step 5:** Commit: `feat(examples): characterkit-painted at 640 × 360, one pixel a texel, behind a wall`.
 
@@ -298,11 +345,16 @@ export const NOT_WEBGL: string   // the warning's words
 - Create: `extensions/character-kit/scripts/gate.ts`, `docs/refactor/c7/gate-1/*`
 
 - [ ] **Step 1:** `gate.ts` (Playwright, Chromium, the built examples): renders `characterkit-painted` at a fixed tick
-      from the branch's base (`git worktree` of `origin/claude/figurebuilder-submodule`) and from this branch; writes
-      each as a PNG at ×4 nearest; measures texels a pixel from the readback (the stander's height in pixels against its
-      cell's painted rows) and writes `measurements.json`; writes FB's own `standing` cell of the same figure and
-      direction beside them; writes the depth sheet (Task 3's cases 3 and 4 as images). Numbers come from the script,
-      never typed.
+      from the branch's base and from this branch; writes each as a PNG at ×4 nearest; measures texels a pixel from the
+      readback (the stander's height in pixels against its cell's painted rows) and writes `measurements.json`; writes
+      FB's own `standing` cell of the same figure and direction beside them; writes the depth sheet (Task 3's cases 3
+      and 4 as images). Numbers come from the script, never typed. The same tick is not the same frame by itself: the
+      painter's walk clock is the page's clock and the follow camera eases (klipp's damping). So the script installs
+      Playwright's fake clock (`page.clock.install` at a fixed time, then `runFor` to the tick) and emulates
+      `reducedMotion: 'reduce'` (which zeroes the camera's damping), on both sides. The base is a commit, not a branch (the branch goes when #577
+      merges): `a66b4e0e`, the head of `claude/figurebuilder-submodule` this branch was cut from (measured at the plan
+      audit with `git merge-base`), written into `measurements.json`; its `git worktree` needs `git submodule update --init` and `pnpm install` of its
+      own, because the builder's declarations are built at install and git-ignored.
 - [ ] **Step 2:** Run it; look at every image; write `docs/refactor/c7/gate-1/README.md`: the three images side by
       side, the measured numbers, what changed and why, and the WebKit run of Tasks 3 and 4.
 - [ ] **Step 3:** Run before pushing: `pnpm check`; `pnpm --filter @automata/character-kit test:browser` (Chromium,
@@ -322,7 +374,8 @@ export const NOT_WEBGL: string   // the warning's words
   `FASHION_HAIR: Readonly<Record<string, HairStyle>>`, `registerFashion(): void` (idempotent; Task 7 adds garments to it).
 
 - [ ] **Step 1:** Read the sources: `git -C vendor/FigureBuilder fetch origin claude/runway-video claude/demo-characters`
-      then `git show <branch>:demo/runway/wardrobe.ts` (fabrics, wardrobe swatches), `demo/runway/library.ts` and
+      then `git show cb4aa9f:demo/runway/wardrobe.ts` (the spec's commits, not the branch heads, which may have
+      moved; `8fb0242` for `claude/demo-characters`) (fabrics, wardrobe swatches), `demo/runway/library.ts` and
       `demo/library.ts` (skin, hair and lip swatches, `silk`, hair styles). The runway's library is the later of the two;
       where they differ, the runway's wins and the demo characters' extra entries are added.
 - [ ] **Step 2: Failing tests.** After `registerFashion()`: `FABRICS` has 7 entries and each was handed to
@@ -334,7 +387,7 @@ export const NOT_WEBGL: string   // the warning's words
       registered with `registerHairPiece` (H3); note in the file which, if any.
 - [ ] **Step 4:** Run; PASS. Commit: `feat(character-kit): the runway's fabrics, swatches and hair on FigureBuilder's hooks`.
 
-### Task 7: Fashion: the garments (needs U2)
+### Task 7: Fashion: the garments (uses U2, on FB main)
 
 **Files:**
 
@@ -420,13 +473,18 @@ test('the runway plays: a named model walks, then the next', async ({ page }) =>
 })
 ```
 
-      `coloursPerThird` moves from `characterkit-painted.test.ts` to a helper both journeys import.
+      `coloursPerThird` (the same function in `characterkit-painted.test.ts` and `characterkit-hair.test.ts`) moves to
+      `tests/e2e/colours.ts`, which all three journeys import.
 - [ ] **Step 2:** Run `pnpm --filter @af-examples/examples-3d test:e2e -- characterkit-runway`; FAIL (404).
 - [ ] **Step 3: Implement the example.** One file, in the examples' shape (the header block; `// --- sim ---`,
       `// --- game ---`). 640 × 360. Sim: one component per model slot (`x`, `y`, `z`, `yaw`, `walking`, `stand`), and
-      one system that places all eight from `ctx.tick`: a model leaves the doorway (z = −3.5) every 420 ticks, walks
-      7 m to the runway's end at 1 m/s, holds its hero stand 120 ticks, turns, walks back; so the one returning passes
-      the next one coming. The show loops after the eighth. A `show` resource holds the lead model's index and stage for
+      one system that places all eight from `ctx.tick`: a model leaves the doorway (z = −3.5) every 540 ticks, walks
+      7 m to the runway's end at 1 m/s (420 ticks), holds its hero stand 120 ticks, turns, walks back (420 ticks); the
+      next leaves as it turns (the spec's "the next sets off as one turns"), so the one returning passes the next one
+      coming at mid-runway, and at most two walk at once. The lead model, the one `data-model` and the name show, is the
+      one walking out or standing; it becomes the next model at the turn, so `standing` is seen for 120 ticks before
+      `data-model` changes (with 420 ticks between departures the next would leave on the tick the lead arrives, and
+      the journey's `standing` would race `data-model`). The show loops after the eighth. A `show` resource holds the lead model's index and stage for
       the HUD. Renderer: no `camera` option; in `scene`, `view.camera` is set orthographic, `orthographicSize = 320 /
       (192 / 2.6)`, at 18° down, looking up the runway, near and far set so the depth step where figures stand is under
       1 mm (assert it in the example's browser test below); the set from `occluders.box` (runway, floor, back wall in two
@@ -449,11 +507,17 @@ test('the runway plays: a named model walks, then the next', async ({ page }) =>
   this plan's log
 
 - [ ] **Step 1:** `gate.ts runway`: a still of each model at the runway's end (×4 nearest), two models passing, a model
-      in the doorway half behind the wall, 10 s of the loop as frames; and timings measured in the page on the Pixel 7
-      profile: paint time a cell (mean, worst), frame time with the most walkers at once, the first loop against later
-      loops. Written to `measurements.json`.
-- [ ] **Step 2:** If a frame is over 33 ms after the first loop, lengthen the gap between models (fewer walking at
-      once) and re-measure. Never lower the density. Record what was changed and why.
+      in the doorway half behind the wall, 10 s of the loop as frames; and timings measured in the page: paint time a
+      cell (mean, worst), the most cells painted in one frame, frame time with the most walkers at once (two, by the
+      schedule), each model's first walk-out against its later ones (each model is a new figure with its own cells, so
+      a model's first appearance paints, not only the first loop), and the painted cells' bytes after a full loop.
+      Playwright's Pixel 7 profile sets the viewport, the pixel ratio and touch, not the CPU: the timings are taken
+      twice, at the runner's speed and under Chromium's CPU throttling at 4× (CDP `Emulation.setCPUThrottlingRate`),
+      and labelled so; neither is called a phone's. Written to `measurements.json`.
+- [ ] **Step 2:** If a frame is over 33 ms under 4× throttling, in any loop including the first, first paint the next
+      model's walk cells ahead, during the lead's stand, a few a frame (presentation only, the same density); then, if
+      still over, lengthen the gap between models (fewer walking at once) and re-measure. Never lower the density.
+      Record what was changed and why.
 - [ ] **Step 3:** Look at every image. Write `gate-2/README.md`: the stills, the numbers, anything that differs from
       FB's showcase and why.
 - [ ] **Step 4:** Run and record in `progress.md`, each as ran or not run: `pnpm check`; `pnpm test:browser:3d`
@@ -468,3 +532,6 @@ test('the runway plays: a named model walks, then the next', async ({ page }) =>
 
 - 2026-11-11: written with the spec. Not started. The Owner approved specs and plans ahead ("auto approve spec and plans", relayed by the
   coordinator). Next: the plan audit, then Task 0 (FB's U1 and U2).
+- 2026-11-11: audited ([audit](2026-11-11-c7-fashion-plan-audit.md)): 5 blocking, 10 should-fix, 5 nice-to-have, all
+  fixed here. U1 and U2 are on FB main (`d6e3c9f`, FB #27), so Task 0 is done and Task 1 bumps to it. FB itself was
+  not readable in the audit's session: Task 1 Step 1b checks the plan's FB names first. Next: Task 1.

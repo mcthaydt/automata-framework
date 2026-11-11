@@ -34,10 +34,13 @@ The Owner's decisions, which this spec does not reopen:
 - The door is `extensions/character-kit/src/features/painted/door.ts`: `BASE`, `Figure`, `member`, `standing` and three
   types from `figure-builder`. `paintedFigure(def)` paints at D2 and shows the cell on a `Sprite3D` turned to the camera
   by yaw and by the camera's own pitch (`figure-sprite.ts`, `camera.ts`).
-- The submodule is at `08f54a6`; FB main is `1da8879` (c6).
+- The submodule is at `08f54a6`. FB main was `1da8879` (c6) when this spec was written; it is now `d6e3c9f` (FB #27),
+  which carries U1 and U2 (5.1). (Corrected at the plan audit.)
 - `characterkit-painted` is 480 × 270 with the 24 mm lens (`fovOf(24)` is 53.13°, so the focal length is 270 px) and the
-  default view 5 m back: 54 px a metre. A D2 cell is 192 texels for 2.6 m, 73.85 texels a metre. So a D2 texel covers
-  about 0.73 px: 1.37 texels a pixel, minified. Derived here; gate 1 measures it from a render.
+  default view 5 m back from a focus 1 m above the walker's feet, 25° down: 54 px a metre at the focus, and the feet are
+  5.42 m deep, 49.8 px a metre. A D2 cell is 192 texels for 2.6 m, 73.85 texels a metre. So a D2 texel covers about
+  0.73 px at the focus and 0.67 px at the feet: about 1.4 texels a pixel, minified. Derived here (the plan audit
+  corrected the depth, which first used the focus's 5 m for the feet); gate 1 measures it from a render.
 - A view factory's `update` runs before the camera driver moves the camera (`create-renderer.ts`, `mergeHooks(entities,
   cameraDriver, …)`), so a figure is placed by last frame's camera.
 - AF's renderer asks for WebGL 2 unless a game sets `preference: 'webgpu'`.
@@ -72,8 +75,11 @@ same pose through FB's own `stageFrame` and `compose` must give the kit's frame,
 **How the 1:1 rule is met.** The contract's crisp rule draws a D2 texel at `max(1, round(zoom / 2))` px, so no texel is
 ever minified; what the host chooses is how far the figure is from true scale. Two cameras:
 
-- *Perspective (AF's follow rig)*: `characterkit-painted` goes to 640 × 360 (focal length 360 px, 72 px a metre at 5 m,
-  0.975 px a texel): 1 px a texel, 2.5% over true scale. Both journey phones show 640 × 360 at ×1.
+- *Perspective (AF's follow rig)*: `characterkit-painted` goes to 640 × 360 (focal length 360 px, 72 px a metre at the
+  focus 5 m away, 0.975 px a texel; 66.4 px a metre at the feet 5.42 m deep, 0.90 px a texel): 1 px a texel, about 11%
+  over true scale at the feet (480 × 270 would be about 48% over). The rule holds in the field's own pixels; the
+  letterbox then scales the whole field to the screen (Pixel 7 landscape is 863 × 360 CSS px, iPhone 14 landscape
+  750 × 340), so the phones do not both show it at ×1. (Both corrected at the plan audit.)
 - *Orthographic at the painter's pitch (the runway)*: 73.846 px a metre exactly (`pixelsPerMetre = 192 / 2.6`, a whole
   zoom of 2), tilted 18°. This is the projection the cells are painted for, so the runway is FB's render exactly, and
   depth is exact, not "right to a few millimetres". 640 × 360 shows 8.67 m × 4.88 m. The example sets `view.camera`
@@ -83,7 +89,7 @@ ever minified; what the host chooses is how far the figure is from true scale. T
 
 ### 5.1 The submodule and the door
 
-- Bump `vendor/FigureBuilder` to FB main, at or after `1da8879`, including the upstream asks below.
+- Bump `vendor/FigureBuilder` to FB main at `d6e3c9f` (FB #27) or later, which includes the upstream asks below.
 - The door moves to `extensions/character-kit/src/shared/figure-builder/` so that both features (`painted`, `fashion`)
   may import it. Two files: `door.ts` (FB's `src/index` and `src/kit`: no Pixi, safe in Node) and `door-view.ts` (FB's
   `src/view`: `CellSprite`). `tests/unit/shared/door.test.ts` holds them the only importers of `figure-builder`.
@@ -93,13 +99,13 @@ ever minified; what the host chooses is how far the figure is from true scale. T
   `kit`: what the wardrobe builds with. From `view`: `CellSprite`.
 - A unit test asserts `STAGE_VERSION === 1`: a breaking bump of the contract fails here first, by name.
 
-**Upstream asks (FB, one small additive PR, no `STAGE_VERSION` bump; not this cycle's to push).**
+**Upstream asks (FB, one small additive PR, no `STAGE_VERSION` bump; merged as FB #27, `d6e3c9f`).**
 
 - U1: `TIE_BIAS` on `src/index` (it is on `stage.ts` only; a host that depth-tests its own quads needs it).
 - U2: `src/kit` adds `GROUP`, `weights`, `qmul`, `smooth` and the types `Limb`, `Ring`: the runway wardrobe imports
   them from `src/features/body/parts` and `src/lib/math` today, which a door may not.
 
-Until U1 and U2 are on FB main the bump waits; nothing is deep-imported and nothing is copied.
+U1 and U2 are on FB main (`d6e3c9f`), so the bump does not wait; nothing is deep-imported and nothing is copied.
 
 ### 5.2 The resolution rule and the placement
 
@@ -181,7 +187,8 @@ section 4.
   WebGL; a model's name is shown; the runway's column of the canvas holds the painter's many colours; `data-model`
   changes to the second model; no page errors. 120 s a test.
 - **Time**: FB paints on the CPU and caches cells. The example's first loop paints every walk cell once; the plan
-  measures the paint time a cell and the frame time with three walkers, and the gate reports both. If a frame goes over
+  measures the paint time a cell and the frame time with the most walkers at once (two, by this schedule; corrected
+  at the plan audit from three), and the gate reports both. If a frame goes over
   budget on the journey phones, the fix is fewer models walking at once, never a lower density.
 
 ### 5.6 The gates
@@ -230,7 +237,7 @@ Firefox has no headless WebGL here; the GPU runner covers it, and it is reported
 5. Painted figures are not lit by AF's lamps this cycle: they carry the painter's own key light.
 6. H2 and H3 are used only where the ported content needs them.
 7. The door moves to `src/shared/figure-builder/` and becomes two files, one of them free of Pixi.
-8. Two upstream asks to FB (U1, U2) before the bump.
+8. Two upstream asks to FB (U1, U2) before the bump: both merged as FB #27 (`d6e3c9f`).
 
 ## 9. `packages/3d`: the files that may be touched
 
