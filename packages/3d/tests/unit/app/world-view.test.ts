@@ -233,6 +233,17 @@ describe('drawWorld: glow', () => {
     expect(first(mesh)).toEqual(linear(ember.steps[7] as number))
   })
 
+  it('draws a lit window’s glass as the room behind it, a texture whatever the light', () => {
+    const pane: WorldPiece = { ...bulb, id: 'a:glass', part: 'decor', surface: 'windowLit', prop: undefined }
+    const lit = (name: string) =>
+      name === 'windowLit' ? { ramp: 'flame' as const, step: 6, interior: true } : undefined
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow: lit, light: room() }, [pane])
+    const mesh = view.mesh('a:glass') as Mesh3D
+    expect(mesh.geometry.attributes.aUV).toBeDefined()
+    expect((mesh.material as FlatMaterial).textures.baseColor).toBeDefined()
+    expect(mesh.material.vertexColors).toBe(false)
+  })
+
   it('dims with the lamp of its prop when the lamp’s level changes', () => {
     const light = room()
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow, light }, [bulb])

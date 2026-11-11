@@ -7,6 +7,7 @@ import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { RampMaterial } from '../features/look/ramp-light-material.ts'
 import { type GlowSwatch, lampsOfProp } from '../features/world/albedo/glow.ts'
+import { windowTile } from '../features/world/albedo/interior.ts'
 import { ladderOf } from '../features/world/albedo/ladder.ts'
 import { type AlbedoTile, tileUvs } from '../features/world/albedo/place.ts'
 import type { WorldPiece } from '../features/world/build.ts'
@@ -83,7 +84,13 @@ function textureOf(tile: AlbedoTile): Texture {
 }
 
 /** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour (or its tile), with a material of its own. */
-function meshOf(piece: WorldPiece, colour: number, look: Look | undefined, tile?: AlbedoTile): Mesh3D {
+function meshOf(
+  piece: WorldPiece,
+  colour: number,
+  look: Look | undefined,
+  tile?: AlbedoTile,
+  uvs?: Float32Array,
+): Mesh3D {
   const { positions, normals, indices } = piece.mesh
   const low = [Infinity, Infinity, Infinity] as [number, number, number]
   const high = [-Infinity, -Infinity, -Infinity] as [number, number, number]
@@ -98,7 +105,7 @@ function meshOf(piece: WorldPiece, colour: number, look: Look | undefined, tile?
     indices: new Uint32Array(indices),
     ...(tile === undefined
       ? {}
-      : { uvs: tileUvs(piece.mesh, tile, piece.tex, piece.tex?.frame !== undefined) }),
+      : { uvs: uvs ?? tileUvs(piece.mesh, tile, piece.tex, piece.tex?.frame !== undefined) }),
     bounds3D: new Box(new Vector3(...low), new Vector3(...high)),
   })
   const base =
@@ -119,12 +126,16 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   const meshes = new Map<string, Mesh3D>()
   for (const piece of pieces) {
     const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
-    const tile = scene.tiles?.(tileName(piece.surface))
-    const mesh = meshOf(piece, colour, scene.look, tile)
+    const glows = scene.glow?.(tileName(piece.surface))
+    // A lit window is its room: a tile laid across the glass, drawn as it is whatever the light.
+    const room = glows?.interior === true ? windowTile(piece.mesh, ladderOf(glows)) : undefined
+    const tile = room?.tile ?? scene.tiles?.(tileName(piece.surface))
+    const mesh = meshOf(piece, colour, scene.look, tile, room?.uvs)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
-    const glows = scene.glow?.(tileName(piece.surface))
-    if (glows !== undefined) {
+    if (room !== undefined) {
+      mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(room.tile) })
+    } else if (glows !== undefined) {
       // A glow takes no light, so a moving piece may carry it baked: where it goes does not change what it shows.
       const ladder = ladderOf(glows)
       if (scene.light === undefined)
