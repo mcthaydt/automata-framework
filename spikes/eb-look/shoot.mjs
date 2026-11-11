@@ -8,6 +8,7 @@
 //   EB_DIR=<dir> node spikes/eb-look/shoot.mjs [out dir]                 # default docs/superpowers/eb-look/baseline
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { createServer } from 'node:net'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 
@@ -18,7 +19,13 @@ const { chromium } = require('playwright')
 const out = process.argv[2] ?? join(repo, 'docs/superpowers/eb-look/baseline')
 const ebDir = process.env.EB_DIR
 const SCALE = Number(process.env.SCALE ?? 2)
-const port = Number(process.env.PORT ?? 5391)
+// A free port the OS picks, so two shoots never collide (a fixed one is a repo-hygiene finding).
+const port = await new Promise((resolve) => {
+  const probe = createServer().listen(0, () => {
+    const { port: free } = probe.address()
+    probe.close(() => resolve(free))
+  })
+})
 const SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
 const VIEWS = ['diorama', 'fp']
 // The AF panels: the renderer asked for, and switches (scene.ts). `light=0` leaves out the level's baked room light, so

@@ -1,7 +1,7 @@
-# EnvironmentBuilder's look on @automata/3d: the baseline and the gap
+# The reference look on @automata/3d: the baseline and the gap
 
-Written 2026-11-10, phase 2 of the EnvironmentBuilder-to-Pixi work. Read-mostly: no core or extension code changed.
-EnvironmentBuilder (EB) was read at `main` `2757c11` (2026-11-10), FigureBuilder at `50235f4`; AF at `8dc6baa2`.
+Written 2026-11-10, phase 2 of the reference-look-to-Pixi work. Read-mostly: no core or extension code changed.
+The reference scene builder (EB) was read at `main` `2757c11` (2026-11-10), its figure painter at `50235f4`; AF at `8dc6baa2`.
 
 ## Headline
 
@@ -199,7 +199,7 @@ Each line: what EB does, what AF does today, and the screenshot that shows it.
 
 ### Figures lit as sprites
 
-- **EB** (`docs/lighting.md` "Figures"). The figure is painted by FigureBuilder, then lit as a sprite:
+- **EB** (`docs/lighting.md` "Figures"). The figure is painted by the figure painter, then lit as a sprite:
   - a flat light: ambient × 2.6 + each light at max(the mean N·L, floor 0.8), capped at `floorCap`;
   - the form: one ramp step either way where a texel faces the lights harder or softer than the mean;
   - a rim on the lights' side, and clean edges;
