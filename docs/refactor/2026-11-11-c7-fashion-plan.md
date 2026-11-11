@@ -550,3 +550,7 @@ test('the runway plays: a named model walks, then the next', async ({ page }) =>
   pixels in WebKit where two surfaces cross (the builder's contract allows a pixel there), so it allows 8. Gate 1 measured with no look pass
   (the example sets none); 91% of the stander's texels equal the builder's cell, the rest not yet attributed between the idle pose's moment and the
   DUEL snap (EnvironmentBuilder's `claude/eb-look-albedo`).
+- 2026-11-11 (implementation audit, Tasks 1 to 8): [audit](2026-11-11-c7-fashion-implementation-audit.md): 1 blocking (`pnpm check` fails:
+  `tsx@4.23.15` unrecorded in `docs/versions.md`), 9 should-fix, 6 nice-to-have, none fixed here. Gate 1's 91% and 99% are one render at
+  two idle steps; the last 1% is the soles below the ground line under the floor: the painter matches. The wardrobe equals the showcase's
+  cells on the pinned FB. Next: fix B1 and the should-fix items, then the runway when EnvironmentBuilder's stage 2 is done.
