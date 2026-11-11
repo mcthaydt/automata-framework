@@ -155,13 +155,14 @@ Each scene goes through the same steps.
 
 | Slice | Scene | What it forces into the framework |
 |---|---|---|
-| 1 | Prologue (about 1,100 lines of scene code, one creature, 23 puzzle steps) | The converter; the game package; Ember Hall's removal; hotspots, items and an inventory; the objective line; the hand lamp, its fuel and light as a sense; hiding and peeking; a catch and a checkpoint; captions and the dialogue box in 3D; samples and footsteps |
+| 1 | Prologue (1,142 lines of scene code in 16 files, one creature, 34 puzzle actions, 74 lines, 5 cutscenes) | The game package, written by feature; a small converter starting from October's fixtures; Ember Hall's removal; using a hotspot (`@automata/interact`); the play HUD as data: objective line, inventory, examine box, keypad, prompt (`@automata/hud`); peeking through a doorway as a sim rule, and a re-route on a clock (`@automata/systems`); a line's delivery (`@automata/narrative`); a 3D cutscene stage and a camera key at an anchor (`@automata/cutscenes`); footsteps by floor (`@automata/audio-synth`); nine prop generators (`@automata/world-kit`); Sequence's preview over a 3D level; the rooms a camera view draws, and two lamp kinds (`@automata/3d`); the `source-names` rule. Already there, so not forced: hotspots as level things, items, light as a sense, hiding, the catch event, checkpoints' snapshots, captions and the dialogue box. The game's own: the hand lamp and its fuel, the vigil, what a catch does |
 | 2 | Clinic (act one) | The Night Nurse in full; journal, map and minimap; the dialer; hints and deductions; storylets in play; conversations with staging and faces |
 | 3 | The Dock (act two) | The Porter; the ambulance crew, the pacing director, the grapple and barricades; the crew playthrough route |
 | 4 | Clinic at dawn (act three) | The three endings; the connected facility with its phases and locks; room acoustics |
 
-The table is the coordinator's reading of the gap survey; slice 1's plan starts with its own survey of the prologue
-and corrects it.
+The table is the coordinator's reading of the gap survey. Slice 1's row was corrected on 2026-11-11 by its survey
+([`../audits/2026-11-11-last-light-prologue-survey.md`](../audits/2026-11-11-last-light-prologue-survey.md), "Corrections
+to the spec's slice table"); rows 2 to 4 are still the coordinator's reading.
 
 ### What is already there, so not rebuilt
 
