@@ -11,7 +11,7 @@ import {
   box,
   buildWorld,
   createPixi3dRenderer,
-  DEFAULT_LOOK,
+  parseLook,
   drawWorld,
   HazeEffect,
   levelTime,
@@ -37,7 +37,12 @@ const turned = q.get('turned') === '1'
 // Bisecting switches: ?look=0 drops the look, ?light=0 the baked light, ?occ=0 the camera's occluder rule, ?walls=0 leaves out the walls.
 const on = (key: string) => q.get(key) !== '0'
 // ?haze=0 switches the look's distance haze off.
-const LOOK = q.get('haze') === '0' ? { ...DEFAULT_LOOK, switches: { ...DEFAULT_LOOK.switches, haze: false } } : DEFAULT_LOOK
+// The source's view fog is linear from 5 m before the camera's focus to 7 m past it (its `LOOK.haze`: near -5, far 7), full veil at the far
+// end, where AF's look starts at the focus. A look's `near` cannot be negative, so the same band is a focus 5 m nearer and a far of 12:
+// the hall's floor and counter, about at the focus, take the veil's teal.
+const FOG_LEAD = 5
+const LOOK_FOG = parseLook({ haze: { near: 0, far: 7 + FOG_LEAD } })
+const LOOK = q.get('haze') === '0' ? { ...LOOK_FOG, switches: { ...LOOK_FOG.switches, haze: false } } : LOOK_FOG
 const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 const views = clinic.views as unknown as Record<string, Record<string, unknown>>
 
@@ -110,7 +115,7 @@ startGame(
         scene: (view, stage, occluders, light, models) => {
           view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
           ;(window as unknown as { __camera: unknown }).__camera = view.camera
-          view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)?.focus(VIEW.distance)
+          view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)?.focus(VIEW.distance - FOG_LEAD)
           drawWorld(
             { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), tiles: albedoTiles(library.swatches as never), look: on('look') ? LOOK : undefined, light, models },
             world.pieces.filter((p) => (on('walls') || p.part !== 'wall') && (on('tops') || !p.id.includes(':top:'))),

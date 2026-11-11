@@ -14,7 +14,7 @@ spots only and show its HUD). `shots.json` holds the facts of the last run of `s
 | 3 | The frame artefacts | The black line at 77% and the blue band at the bottom went with the framing (the line was a near wall's top crossing the frame; the band, the sky past a cut wall). Blue still shows past the building where the other rooms are not hidden: item 4 |
 | 4 | Room visibility on the clinic's zones, wall tops back | Waits for PR 588 (room-visibility), still an open draft |
 | 5 | The 12 world-kit pieces | Done: the generators and presets (translucent parts, `veil`), and the dressing table that places 52 of them in the clinic (below) |
-| 6 | Procedural props instead of the stand-in boxes | In progress, WIP (below): 45 of 57 stand-ins are kit furniture at the source's box; 12 remain boxes |
+| 6 | Procedural props instead of the stand-in boxes | Done: all 57 stand-ins are kit pieces at the source's box (below, and "Item 3") |
 | 7 | "On" frames | Waits for PRs 588 and 590 |
 | 8 | D: the wall lighting and the floor | Walls: the unfounded swatch lift is removed (see below). The floor is the kit's tile floor through a textured-swatch path in the spike. Re-shot: the four play frames and the three zone stills. Not re-shot: the four turned frames (stale since B). Left: the desk lamp's pool on the counter top is about 3 times the source's, the floor has no teal. The corridor and supply frames show the hall's furniture in front of the corridor: the source hides the hall there, which is room visibility (item 4) |
 | 9 | The editor ledger: can the level editor author the clinic? | Done: [../editor-gaps.md](../editor-gaps.md). Not yet |
@@ -132,3 +132,36 @@ the source, and as a level one in AF:
 ## Not done here
 
 Figures and their light (the FigureBuilder port) and bounce light (the EB look), as the brief says.
+
+## Item 3: the last 12 boxes (2026-11-11)
+
+Every stand-in box is a kit piece now (`spikes/clinic/furniture.ts`). Six are presets the kit had: the trolley is the `monitor-cart`, the
+wall TV the `screen.tv`, the wall sconce the `lamp.wall`, the junction box the `box.utility`, the clock the `plaque` and the fallen chair the
+`chair.wood`. Five are new generators in `extensions/world-kit/src/features/props/ward-fittings.ts`, each facing +z on y = 0 at about the
+source's box: the `sink` (a splash plate, a bowl, a tap and the waste pipe), the extinguisher cabinet (a red box with a glazed front), the
+strip light (a steel housing with a lit tube; two of them), the coat hooks (a board, three brass hooks and a coat) and the privacy screen
+(four zigzag panels on a rail; it stands turned 23° in the ward). Tested: `tests/unit/props/ward-fittings.test.ts` (parts, size, centred on
+the origin, the strip's tube glows) and `clinic-furniture.test.ts` (0 stand-ins; each fitted prop in the source's box, the turned screen
+inside its turned box).
+
+- **The fallen chair stands.** `fit` turns a prop about y only; a chair on its side needs a turn about z. The `chair.wood` is fitted to the
+  box the fallen one lay in, so it reads as a squat chair. A `tip` on `fit` would close it.
+- **The wall TV is a slab, stretched.** The kit's `screen.tv` is thin; fitted to the source's 0.45 m deep box it is a deep block with the glow
+  on its face, not a CRT's tapered back.
+- **The clock is a lit plaque**, square.
+
+## Item D, 2026-11-11 (later): the ambient and the view fog
+
+Measured on the hall (region means, source | before | now): floor mid (33,44,44) | (32,30,31) | (41,39,40); floor right (22,28,29) | (4,5,5) |
+(17,21,22); left wall (16,24,23) | (41,71,55) | (49,78,64); far wall (35,46,44) | (53,68,64) | (57,69,67).
+
+- **The source's view fog starts before its focus.** Its `LOOK.haze` is linear from 5 m before the camera's focus to 7 m past it, colour
+  0x4b5a56, so a floor about at the focus is already 40% veiled and its blacks sit at the veil's dim teal. AF's look starts the haze at the
+  focus. A look's `near` cannot be negative (`look.schema.ts`: `near >= 0`), so the spike sets the focus 5 m nearer (`FOG_LEAD`) and the far
+  to 12, and the level's `time.scene.haze` carries the source's colour at amount 0.5. At amount 1 the whole frame washed to grey-green
+  (walls (61,96,78)); 0.5 keeps the contrast.
+- **The ambient is the source's 0.15 again.** Batch 1 raised it to 0.25 beside a swatch lift that is gone (see above).
+- **Still different: the desk lamp's pool on the counter top**, (178,161,124) against the source's (72,64,52). Checked and equal to the
+  source: the falloff `(1 - d/range)^2 * 2.6 * level`, the lamp's range and level, the contact and wall occlusion (a port), the vertex density
+  (the source also cuts the counter on a 0.35 m grid), `colorSpace: 'srgb'`. The left wall's rest is the fill and moon lamps. Not measured to
+  a cause; the counter's top reads hot and orange.

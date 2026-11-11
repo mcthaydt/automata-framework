@@ -252,7 +252,8 @@ const clinic = {
   time: {
     preset: 'night',
     label: 'Clinic night',
-    scene: { light: { shadow: false, ambient: { level: 0.25, tint: '#d6f7fa' }, fill: { level: 0.08, tint: '#c7f2ff' } } },
+    // The haze is the source's view fog (its `LOOK.haze`, colour 0x4b5a56, full at its far end); its distance band is the look's (scene.ts).
+    scene: { light: { shadow: false, ambient: { level: 0.15, tint: '#d6f7fa' }, fill: { level: 0.08, tint: '#c7f2ff' } }, haze: { colour: '#4b5a56', amount: 0.5 } },
   },
   views,
   // Which rooms each camera zone shows and which masses belong to which rooms: stored as the source wrote it, for the room

@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { buildWorld } from '#src/features/world/build.ts'
 import type { WorldLibrary } from '#src/features/world/swatches.ts'
 import { readLevel } from '#src/shared/level/read-level.ts'
+import { levelTime } from '#src/shared/time-of-day/time-light.ts'
 
 const root = new URL('../../../../../', import.meta.url)
 const json = (path: string): any => JSON.parse(readFileSync(new URL(path, root), 'utf8'))
@@ -109,5 +110,13 @@ describe('the converted clinic', () => {
     expect((library.swatches.tileFloor as { texture?: unknown }).texture).toMatchObject({
       photo: 'floorTiles',
     })
+  })
+  it("lights it as the source does: its ambient and its view fog's colour", () => {
+    // The source's `LOOK.light.ambient` is 0.15 (batch 1 raised it to 0.25 for swatches it had also lifted) and its view fog,
+    // colour 0x4b5a56, runs to a full veil; its distance band is the look's (the spike's scene.ts: a look's `near` cannot be
+    // negative, so the band is a focus 5 m nearer).
+    const { light, haze } = levelTime(clinic.time).scene
+    expect(light.ambient.level).toBe(0.15)
+    expect(haze).toMatchObject({ colour: '#4b5a56' })
   })
 })

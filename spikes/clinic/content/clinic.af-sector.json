@@ -3284,13 +3284,17 @@
       "light": {
         "shadow": false,
         "ambient": {
-          "level": 0.25,
+          "level": 0.15,
           "tint": "#d6f7fa"
         },
         "fill": {
           "level": 0.08,
           "tint": "#c7f2ff"
         }
+      },
+      "haze": {
+        "colour": "#4b5a56",
+        "amount": 0.5
       }
     }
   },

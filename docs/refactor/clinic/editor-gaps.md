@@ -111,3 +111,9 @@ Each is what was done, and what it points to.
 12. **Tests of extension presets in core.** Core's clinic test cannot build the dressing (core has no such generators), so
     the level's test is split between `packages/3d` (stand-in models) and `extensions/world-kit` (kit pieces). A level that
     names an extension's presets should say which extension, so a checker can load it.
+13. **A look's haze cannot start before the focus.** The source's view fog is linear from 5 m before the focus to 7 m past it; `look.schema.ts`
+    requires `near >= 0`, so the spike moves the focus 5 m nearer (`FOG_LEAD` in `scene.ts`). A signed `near` (or a `lead`) on the look's haze, and the
+    haze on the level's `time` (colour, amount, near, far), would let the level say it. The editor has only a named time of day (row 20).
+14. **A fit has no tip.** A chair on its side is a turn about z; `fit` turns about y only (`tip` on `fit`).
+15. **Kit generators cannot be previewed in the editor** (row 9), and five more were added for the clinic (sink, extinguisher cabinet, strip
+    light, coat hooks, privacy screen); each is a name the editor palette cannot show until the kit loads there.

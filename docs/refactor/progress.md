@@ -807,6 +807,8 @@ Record and calls made: [clinic/batch2/README.md](clinic/batch2/README.md).
 | C: kit furniture at the source's boxes (`fit`, medical pieces): 45 of 57 stand-ins | Done; forced `pnpm check` green on 43beab9f | `extensions/world-kit/tests/unit/props/medical.test.ts` |
 | D1: the swatch lift removed (the source's 4.8 is a repeat, not a gain) | Done: test first; hall re-shot, walls dim and even; forced `pnpm check` green on 4f165f7b | `clinic-level.test.ts`, [clinic/batch2/play-hall-compare.png](clinic/batch2/play-hall-compare.png) |
 | D2: the floor is the kit's tile floor (a textured swatch through `albedoTiles`); 4 play frames and 3 zone stills re-shot | Done: test first; forced `pnpm check` green on 5fc70369. The 4 turned frames are not re-shot | `clinic-level.test.ts`, [clinic/batch2](clinic/batch2/) |
+| Item 3: the 12 remaining boxes become kit pieces (6 presets, 5 new generators in `ward-fittings.ts`); 0 stand-ins left | Done: tests first; forced `pnpm check` exit 0 on 733a9346. Not done: a fallen chair lying on its side (`fit` has no turn about z) | `extensions/world-kit/tests/unit/props/ward-fittings.test.ts`, `clinic-furniture.test.ts` |
+| D3: the source's ambient (0.15) and view fog (colour 0x4b5a56, 5 m before the focus to 7 m past it); hall, ward, corridor, supply and the 4 turned frames re-shot | Done for the light it measures; the counter top is still about 2.5 times the source's | [clinic/batch2](clinic/batch2/), `clinic-level.test.ts` |
 | Item 6: can the level editor author the clinic? | Ledger written: **no, not yet**; 20 rows with evidence, the gaps in priority order | [clinic/editor-gaps.md](clinic/editor-gaps.md), `clinic-in-editor.test.ts` |
 | Gates | See the PR description | |
 
