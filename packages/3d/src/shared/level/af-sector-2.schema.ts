@@ -131,6 +131,8 @@ export interface LampPlace {
   readonly at: readonly number[]
   readonly color?: string | undefined
   readonly range?: number | undefined
+  /** The pool of light it lays on the floor, in metres; 0 (or none) lays none. */
+  readonly radius?: number | undefined
   readonly level?: number | undefined
   readonly aim?: readonly number[] | undefined
   readonly cone?: number | undefined
@@ -147,6 +149,7 @@ export const lampPlaceSchema: z.ZodType<LampPlace> = z.looseObject({
   at: positionSchema,
   color: z.string().optional(),
   range: z.number().optional(),
+  radius: z.number().min(0).optional(),
   level: z.number().optional(),
   aim: z.array(z.number()).optional(),
   cone: z.number().optional(),
@@ -227,6 +230,8 @@ export interface AfSector2<P = Plane> {
   readonly props?: readonly PropPlace[] | undefined
   readonly cast?: readonly CastPlace[] | undefined
   readonly lamps?: readonly LampPlace[] | undefined
+  /** `[x, y, z]` points the indirect light bounces from (a lit floor or desk throws light back up). */
+  readonly bounce?: readonly (readonly [number, number, number])[] | undefined
   readonly time?: LevelTime | undefined
   readonly look?: LevelLook | undefined
   /** Named cameras: the game's (`yawDeg`, `bounds`, …) and the builder's (`diorama`, `topdown`, `fp`). */
@@ -285,6 +290,7 @@ function levelSchemas<P>(plane: z.ZodType<P>): {
     props: z.array(propPlaceSchema).optional(),
     cast: z.array(castPlaceSchema).optional(),
     lamps: z.array(lampPlaceSchema).optional(),
+    bounce: z.array(z.tuple([z.number(), z.number(), z.number()])).optional(),
     time: timeSchema.optional(),
     look: z.looseObject({ visibility: z.number().optional(), grade: z.string().optional() }).optional(),
     views: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),

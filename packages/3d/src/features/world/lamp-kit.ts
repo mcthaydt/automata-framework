@@ -26,6 +26,8 @@ export interface ResolvedLamp {
   readonly range: number
   /** Authored level (1 unless it names one), held at the kind's peak. */
   readonly level: number
+  /** Metres: the pool of light it lays on the floor; 0 lays none. */
+  readonly radius: number
   readonly peak: number
   readonly dusk: boolean
 }
@@ -52,13 +54,16 @@ export function lampFault(
 }
 
 /** A lamp against its kind: its colour (its own, or the kind's), range and level. The kind must be known. */
-export function resolveLamp(lamp: Pick<LampPlace, 'kind' | 'color' | 'range' | 'level'>): ResolvedLamp {
+export function resolveLamp(
+  lamp: Pick<LampPlace, 'kind' | 'color' | 'range' | 'level' | 'radius'>,
+): ResolvedLamp {
   const kind = LAMP_KINDS[lamp.kind] as Kind
   const [low, high] = kind.range
   return {
     color: hexToRgb(lamp.color ?? kind.color),
     range: lamp.range === undefined ? (low + high) / 2 : Math.min(high, Math.max(low, lamp.range)),
     level: Math.min(lamp.level ?? 1, kind.peak),
+    radius: lamp.radius ?? 0,
     peak: kind.peak,
     dusk: kind.dusk === true,
   }

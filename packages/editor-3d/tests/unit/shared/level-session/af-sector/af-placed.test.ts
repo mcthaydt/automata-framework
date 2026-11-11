@@ -61,6 +61,11 @@ describe('the things a level places', () => {
       'Fluorescent lamp',
       'Sodium lamp',
       'Neon lamp',
+      'Screen lamp',
+      'Fire lamp',
+      'Spark lamp',
+      'Moon lamp',
+      'Fill lamp',
     ])
   })
 

@@ -6,6 +6,11 @@
     "desk": { "color": "#ffbc4e", "range": [3.5, 5.5], "peak": 1.25 },
     "fluorescent": { "color": "#eadbc9", "range": [4, 8], "peak": 1.25 },
     "sodium": { "color": "#ffbc4e", "range": [6, 10], "peak": 1.25, "dusk": true },
-    "neon": { "color": "#ff7daf", "range": [1.5, 3.5], "peak": 1.25 }
+    "neon": { "color": "#ff7daf", "range": [1.5, 3.5], "peak": 1.25 },
+    "screen": { "color": "#91daa1", "range": [2, 3.5], "peak": 1.5 },
+    "fire": { "color": "#f99b4e", "range": [4, 6.5], "peak": 1.5 },
+    "spark": { "color": "#6dccff", "range": [3, 5], "peak": 2.5 },
+    "moon": { "color": "#96b2d9", "range": [3, 5], "peak": 1.0 },
+    "fill": { "color": "#96b2d9", "range": [3.5, 6], "peak": 1.25 }
   }
 }
