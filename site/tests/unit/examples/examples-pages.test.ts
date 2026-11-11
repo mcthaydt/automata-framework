@@ -78,6 +78,8 @@ beforeEach(() => {
 })
 afterEach(() => {
   vi.unstubAllGlobals()
+  // A test that stubs readyState and fails before it restores it would leave every later page waiting for `load`.
+  delete (document as { readyState?: string }).readyState
 })
 
 describe('the example data', () => {
