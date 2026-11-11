@@ -520,7 +520,7 @@ figures in the builders' rooms against the kit's figures in the framework's room
 
 **Files:**
 - Modify: `spikes/eb-look/scene.ts` (a switch `?figures=painted`), `docs/superpowers/audits/builders-look-survey/shoot.mjs`
-  (a third argument, `painted`, that adds the switch to every scene URL)
+  (a third argument: query text added to every scene URL, such as `figures=painted` or `fx=0`)
 - Create: `docs/superpowers/audits/builders-look-survey/after-figures/`
 
 **Interfaces:**
@@ -529,7 +529,8 @@ figures in the builders' rooms against the kit's figures in the framework's room
   the woman (`i` 1), placed and turned as the mesh cast is; the extension joins the game's `extensions`.
 
 - [ ] **Step 1:** Add the switch. A spike is exempt from tests-first; nothing in a package changes.
-- [ ] **Step 2: Shoot** into `after-figures/` with the `painted` argument.
+- [ ] **Step 2: Shoot** into `after-figures/` with `figures=painted` as the third argument (the second, the
+  builders' frames folder, stays `docs/superpowers/audits/builders-look-survey/builders`).
 - [ ] **Step 3: Look at all 12 sheets** and write `after-figures/README.md`: for each scene, how the pair reads
   beside the builder's pair: the flat light's warmth under the pendant, the one-step form, the rim on the lamp's
   side, and that a wall or a chair hides the texels behind it. Name each difference.
@@ -651,8 +652,8 @@ If the coordinator has answered otherwise before this task starts, follow the an
   with every one of its switches off, it registers no pass; each switch adds exactly its own. Name the passes as
   the branch's code names them. If a pass joins while its switch is off, the test fails: fix the registration, not
   the test.
-- [ ] **Step 2: The day sheets do not move.** Shoot into `after-effects/` with the spike's effects off (`?fx=0` on
-  the branch). Each scene panel's brightness is within 2.0 of `after-figures/`'s. Outside it: stop and report.
+- [ ] **Step 2: The day sheets do not move.** Shoot into `after-effects/` with painted figures and the spike's effects off
+  (third argument `figures=painted&fx=0`). Each scene panel's brightness is within 2.0 of `after-figures/`'s. Outside it: stop and report.
 - [ ] **Step 3: The effects themselves.** Shoot the branch's night set (its README under
   `docs/refactor/eb-look/effects/` has the command) into `after-effects/night/`. Look: a street lamp's shaft in
   whole steps, the coloured outline round the post and the bin. Write `after-effects/README.md`.
