@@ -15,7 +15,7 @@ runs in its own session on its own branch and hands off through committed docume
 | # | Workstream | Stage | Progress | Record |
 |---|---|---|---|---|
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Next is 4, execution | 43% (3 of 7 stages); execution 0 of 21 tasks | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
-| 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 2, plan: done 2026-11-11, revised the same day for the re-set spec (a survey of the prologue against the framework, the spec's slice 1 row corrected, and a plan of 20 tasks, all in this repository: 9 framework additions, 9 for the game at `games/the-last-light`, 2 that remove Ember Hall). Next is 3, plan audit. Slices 2 to 4 not started | Slice 1: 29% (2 of 7 stages); execution 0 of 20 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md) |
+| 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 2, plan: done 2026-11-11, revised the same day for the re-set spec (a survey of the prologue against the framework, the spec's slice 1 row corrected, and a plan of 22 tasks, all in this repository, on three branches: 10 framework additions, 10 for the game at `games/the-last-light`, 2 that remove Ember Hall; planned against the spec at `3c0a624f`). Next is 3, plan audit. Slices 2 to 4 not started | Slice 1: 29% (2 of 7 stages); execution 0 of 22 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md) |
 | 3 | A UI editor in the suite | Not started: the Owner will address it when we get to it; its spec is written with the Owner then | 0% | |
 
 ## Workstream 1 sessions
@@ -32,7 +32,7 @@ runs in its own session on its own branch and hands off through committed docume
 | Stage | Session | Branch | State |
 |---|---|---|---|
 | 1. Spec | The coordinator (`session_01HNdX7JDtQV1qVssEcnsxHM`) | `claude/optimistic-newton-yszrte` | Done 2026-11-11, and re-set the same day on the Owner's word: The Last Light is the 3D reference game in this repository, MIT, by feature; Ember Hall is cut |
-| 2. Plan | Fable 5.2 (`session_01HNdX7KiEkdV6ZYyFkipam4`) | `claude/last-light-prologue-plan` | Done 2026-11-11. The survey: 56 run-time rows marked, the editors table, the game's 76-row editor-gaps ledger read against the suite, 14 tangles in the old code, October's fixtures as the starting point, what names Ember Hall (173 files; 58 files of code and tooling), the sounds and music with their source. The plan: 20 tasks with a tracking table, 12 calls named. A first plan (`43f94569`) was written before the re-set reached the session and is replaced. The game was read at `92e6704`, read only. No product code written and nothing run: `node_modules` is not installed in the container, so no test, no `pnpm check` and no `pnpm format` ran; the counts were measured from the files |
+| 2. Plan | Fable 5.2 (`session_01HNdX7KiEkdV6ZYyFkipam4`) | `claude/last-light-prologue-plan` | Done 2026-11-11. The survey: 56 run-time rows marked, the editors table, the game's 76-row editor-gaps ledger read against the suite, 14 tangles in the old code, October's fixtures as the starting point, what names Ember Hall (173 files; 58 files of code and tooling), the sounds and music with their source. The plan: 22 tasks with a tracking table, 13 calls named. A first plan (`43f94569`) was written before the re-set reached the session and is replaced. The game was read at `92e6704`, read only. No product code written and nothing run: `node_modules` is not installed in the container, so no test, no `pnpm check` and no `pnpm format` ran; the counts were measured from the files |
 | 3. Plan audit | Not started | | |
 
 ## Workstream 3: what the Owner has said so far (2026-11-11)
@@ -59,13 +59,6 @@ take it over later: its layout and words as data, not buried in code.
 
 ## Open, for the Owner
 
-- **The `source-names` rule** (found by slice 1's survey). `pnpm source-names`, from the "AF is standalone" rule of
-  2026-10-31, fails a file that names The Last Light in the folders it scans, and a reference game at
-  `games/the-last-light` breaks it by its name. Slice 1's plan drops that one entry from the rule and says so in
-  `docs/provenance/sources.md`; the other option is a different folder and title.
-- **The prologue's recorded sounds and music are remade on the synth, not brought across.** The three effects and the
-  three music slots it plays were made with ElevenLabs through the old paid sound pipeline. Say if those files should
-  come instead; each would need a line in the provenance file and the Owner's word that it may be MIT.
 - The framework has 122 branches besides `main` from other workstreams; the merge session leaves them alone. Say if
   it should clean them up, and by what rule.
 

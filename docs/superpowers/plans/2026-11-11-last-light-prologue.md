@@ -11,14 +11,15 @@ languages, and replaces Ember Hall, which is removed.
 HUD drawn from a data file, peeking, line delivery, a 3D cutscene stage, footsteps by floor, nine props, Sequence over
 a 3D level), each as an extension or an addition to one, tested with small content of its own. The game is a new
 workspace package written by feature: its content starts from October's fixtures, a small converter makes the level,
-and seven small features hold what is this game's own. Three proofs follow (it plays, it edits, the shell holds), then
+and eight small features hold what is this game's own. Three proofs follow (it plays, it edits, the shell holds), then
 everything that leaned on Ember Hall is moved and Ember Hall is deleted.
 
 **Tech stack:** TypeScript 7, Koota behind `@automata/sim`, PixiJS 8 with `@pixi/3d` (vendored beta), Svelte 5 for
 HUD pieces, Zod 4, smol-toml, Vitest and Playwright (Chromium), pnpm and turbo.
 
 **Spec:** [`../specs/2026-11-11-last-light-on-the-framework-design.md`](../specs/2026-11-11-last-light-on-the-framework-design.md)
-(as re-set on 2026-11-11: "The Last Light, the framework's 3D reference game").
+(as re-set on 2026-11-11: "The Last Light, the framework's 3D reference game"; planned against the spec at commit
+`3c0a624f`, on `main` at `e7cd66ad`).
 **Survey (read it first; this plan argues from it):**
 [`../audits/2026-11-11-last-light-prologue-survey.md`](../audits/2026-11-11-last-light-prologue-survey.md).
 "Survey 16" below is a row of its run-time tables; "T3" is a row of its table of tangles.
@@ -26,25 +27,29 @@ HUD pieces, Zod 4, smol-toml, Vitest and Playwright (Chromium), pnpm and turbo.
 **This plan replaces the one committed at `43f94569`,** which was written before the spec was re-set (it put the game
 in its own repository behind a pin). Nothing of that plan's Part B stands.
 
-## One repository, one branch
+## One repository, three branches
 
-All twenty tasks are in `mcthaydt/automata-framework`, on `claude/last-light-prologue-build` from `main`, with one
-draft pull request. The game's own repository (`mcthaydt/PixiJS3D_Experiment_001`, at `92e6704`) is **read only**: it
-is attached to the session for reference and nothing is pushed to it.
+All twenty-two tasks are in `mcthaydt/automata-framework`. The game's own repository
+(`mcthaydt/PixiJS3D_Experiment_001`, at `92e6704`) is **read only**: it is attached to the session for reference and
+nothing is pushed to it.
 
-Order:
+| Branch | From | Tasks | Merges |
+|---|---|---|---|
+| `claude/last-light-framework` | `main` | 1 to 9b: the framework's additions | First. Each addition stands on its own tests, so this can merge before the game exists |
+| `claude/last-light-prologue` | `claude/last-light-framework` | 10a to 18: the name rule, the game, its three proofs, the example | Second, after the first has merged and `main` is merged in. Task 18 also needs workstream 1's build on `main` |
+| `claude/last-light-ember-hall-goes` | `claude/last-light-prologue` | 19, 20: Ember Hall's references and its folder | Last, and only after task 15 passes, so the 3D gates are never without a game |
 
-1. Tasks 1 to 9 (the framework's additions) and 10 to 16 (the game, to "it plays") need nothing from workstream 1.
-2. Task 18 (the shell and the languages) needs workstream 1's build (`claude/shared-polish-build`) merged to `main`;
-   merge `main` in before it.
-3. Tasks 19 and 20 (Ember Hall goes) come last, after task 16 passes, so the 3D gates are never without a game.
-4. Workstream 1's plan has a task that puts Ember Hall in six languages (its task 17). If workstream 1 has not reached
-   it when this plan reaches task 19, the coordinator drops it there; if it has, task 20 deletes the result with the
-   rest. Either way this plan does not depend on it.
+Each branch has one draft pull request. One session may build all three in order; a later branch is started only
+when the one before it has passed its tasks' checks. A fault a game task finds in a framework addition is fixed on
+the game's branch with its test first (it is the same repository), and the commit says which task it amends.
+
+Workstream 1's plan has a task that puts Ember Hall in six languages (its task 17). If workstream 1 has not reached
+it when this plan reaches task 19, the coordinator drops it there; if it has, task 20 deletes the result with the
+rest. This plan does not depend on it.
 
 ## Tracking
 
-Progress: **0 of 20 tasks (0%)**. Tick a task only when its checks pass; write what ran beside it.
+Progress: **0 of 22 tasks (0%)**. Tick a task only when its checks pass; write what ran beside it.
 
 | # | Task | State | Evidence |
 |---|---|---|---|
@@ -57,11 +62,13 @@ Progress: **0 of 20 tasks (0%)**. Tick a task only when its checks pass; write w
 | 7 | `@automata/audio-synth`: footsteps by floor | todo | |
 | 8 | Sequence: the preview over a 3D level | todo | |
 | 9 | `@automata/world-kit`: nine prop generators | todo | |
-| 10 | The game package by feature: the layer test, provenance, the name rule, a blank room that boots | todo | |
+| 9b | `@automata/3d`: the rooms a view draws; two lamp kinds | todo | |
+| 10a | The name rule: The Last Light is no longer a source game | todo | |
+| 10 | The game package by feature: the layer test, provenance, a blank room that boots | todo | |
 | 11 | The converter, and the content from October's fixtures; the content checks; the puzzle can be finished | todo | |
 | 12 | The game's own sim features; a bot finishes the scene in Node, twice, same hash | todo | |
 | 13 | Dress it: props, lamps, Ada and the figure, poses | todo | |
-| 14 | Draw it: renderer, cutscenes, HUD, sound and music, feel | todo | |
+| 14 | Draw it: renderer, cutscenes, HUD, recorded sound and music, synth cues, feel | todo | |
 | 15 | Prove it plays (Chromium) | todo | |
 | 16 | Prove it edits (six editors) | todo | |
 | 17 | `examples/3d-story` uses interact and the HUD; the guide | todo | |
@@ -82,8 +89,10 @@ From the spec, the tracker and `AGENTS.md`. Every task includes them.
   home tilt, eight 45° turns, no automatic yaw, pitch or roll in play, a peek of at most 1.2 m); no real-time lights;
   no `fetch()` at run time.
 - **Everything in the game's folder is MIT,** and `games/the-last-light/PROVENANCE.md` names each asset the builders
-  did not make. Nothing from a paid pipeline comes across: no old model, atlas, texture, recorded sound, music file or
-  generated font. No paid API is called.
+  did not make. Six recorded files cross as they are (the Owner: "I paid for the elevenlabs so it's fine"):
+  `lamps-out.ogg`, `all-lamps-die.ogg`, `pulse-counted.ogg`, and the music `the-last-light.ogg`, `four-seventeen.ogg`,
+  `back-to-bed-ada.ogg`. Nothing else from the old pipelines comes across: no model, atlas, texture or generated font.
+  No paid API is called by a task.
 - **Nothing is copied wholesale** from the old game or from the superseded clinic branches (#575, #596, #606, #588).
   October's fixtures are the one exception the spec allows: content, not code.
 - **A refactor, not a transcription.** The old behaviour and its tests are the specification; the old code is not.
@@ -115,10 +124,9 @@ From the spec, the tracker and `AGENTS.md`. Every task includes them.
 
 1. **The game package** is `games/the-last-light`, package name `@af-games/the-last-light`, private, with
    `"automata": { "title": "The Last Light" }`, in Emberwick's shape.
-2. **The `source-names` rule drops one name.** `tooling/repo-hygiene/src/source-names.ts` fails a file that names The
-   Last Light; the game's folder does by its name. Task 10 removes that one entry (the other source names stay) and
-   `docs/provenance/sources.md` says the game is now the 3D reference game. Open for the Owner in the survey; if the
-   answer is a different name, only task 10's names change.
+2. **The `source-names` rule drops one name** (the Owner: "it's no longer a source game"). Task 10a removes the
+   entry for The Last Light from `tooling/repo-hygiene/src/source-names.ts`, its test changed first; the other source
+   names stay; `docs/provenance/sources.md` says so.
 3. **The content starts from October's fixtures** (the survey's table says which file becomes which). They are copied,
    not moved: the extensions' own tests keep reading theirs.
 4. **The converter** is `games/the-last-light/tools/convert/`, a Node script kept as a record. It turns the blockout
@@ -129,17 +137,23 @@ From the spec, the tracker and `AGENTS.md`. Every task includes them.
    task 11 has a test per cutscene so the implementation audit can check each.
 6. **Props are placed again, not converted** (survey 11): each old model becomes a world-kit or core generator at the
    same place and footprint.
-7. **Sounds and music are remade on the synth** (the survey's table): the three recorded effects and the three music
-   slots are written as rows of the audio file. Open for the Owner in the survey.
+7. **Six recorded files cross; the rest is the synth.** The three recorded effects play as sound files and the three
+   tracks as music through core's audio (`@automata/framework`); pick-ups, the keypad, the sting, the lamp and the
+   steps are synth cues. Which event plays a file and which a cue is rows of content, so swapping one for the other is
+   a content change, never code. The game's old rule "no `fetch()` at runtime" is read as "nothing from the network
+   at run time": packaged sound files are loaded as every game on the framework loads them.
 8. **The five translations of the story's 74 lines are written by the building session** in task 18 and recorded with
-   `automata words --mark` (the coordinator, relaying the Owner). The live model call stays tested against the fake.
+   `automata words --mark` (the coordinator, relaying the Owner), so "story lines in six languages" closes inside this
+   plan. Task 18's last step runs `automata words` for real once the coordinator says the Owner's key is saved.
 9. **`@automata/interact` and `@automata/hud` are extensions:** Emberwick needs neither.
 10. **Checkpoints stay in the game** for this slice (survey 24): one sim snapshot kept by the game's `catch` feature.
     It moves to an extension when the clinic needs it.
 11. **Ember Hall's tests move to the smallest thing that serves them:** a test that needed "a 3D game folder" gets a
     fixture folder of its own in that package; a test that needed "the 3D reference game" uses The Last Light. Task 19
     says which, file by file.
-12. **The 3D template is not changed:** its starter content is already its own (the survey). Only the tests around it
+12. **Which rooms a view draws is the 3D package's** (survey 2): `@automata/3d` holds the level format and the camera
+    views, and Emberwick has no rooms, so the rule "both reference games" does not put it in `@automata/framework`.
+13. **The 3D template is not changed:** its starter content is already its own (the survey). Only the tests around it
     move.
 
 ## Review focus
@@ -186,6 +200,9 @@ extensions/cutscenes/src/shared/sim/{cutscene.schema,anchors}.ts (modified),
 extensions/audio-synth/src/features/synth/… (a `steps` table), src/features/steps/step-sounds.ts (new)
 extensions/world-kit/src/features/props/ward.ts (new), register-props.ts (modified)
 extensions/puzzle/src/shared/sim/puzzle.system.ts (export `applyVerb`), src/entries/sim.ts
+packages/3d/src/features/camera/sim/camera-view.schema.ts (a view's `rooms`), src/features/world/room-draw.ts (new),
+  src/features/world/library/lamp-kit.json (`moon`, `fill`)
+tooling/repo-hygiene/src/source-names.ts (one entry dropped)
 examples/3d-story/…             uses interact and the HUD with its own hall
 ```
 
@@ -208,6 +225,7 @@ src/testing/                     the bot, the routes, the solver's model (tests 
 | `figure` | The figure's view | view | Her look is the game's |
 | `room` | Drawing the level; the table of states (which fact shows which lamp level, door and prop state) | view | T1 |
 | `objective` | Reading the HUD file's objective rows against the world (the line and its target) | view | T3: one list, not two ladders |
+| `sound` | Which event plays which recorded file or synth cue, and which music plays when, from a content table | view | T12: core's audio plays the files; only the table is the game's |
 
 ```
 package.json  tsconfig.json  vite.config.ts  vitest.config.ts  playwright.config.ts  ship.config.ts  index.html
@@ -218,7 +236,9 @@ content/puzzles/prologue.toml               content/systems/prologue.toml
 content/lines/prologue.toml                 content/dialogue/prologue.toml
 content/storylets/prologue.toml  content/beats/prologue.toml  content/help/prologue.toml  content/canon/canon.toml
 content/cutscenes/prologue.toml             content/hud/play.toml
-content/audio/audio.toml  content/feel/feel.toml  content/tuning.toml  content/credits.toml
+content/audio/audio.toml  content/sound/prologue.toml (which event plays which file or cue; which music when)
+content/feel/feel.toml  content/tuning.toml  content/credits.toml
+public/sounds/{lamps-out,all-lamps-die,pulse-counted}.ogg  public/music/{the-last-light,four-seventeen,back-to-bed-ada}.ogg
 content/figures/{ada,figure}.toml  content/figure-*/…   content/world-props/…  content/world-swatches/…
 content/states/prologue.toml  content/editors.toml
 content/messages/{ja,ko,es-419,pt-BR,zh-Hans}.json  content/messages/context.json
@@ -232,10 +252,10 @@ tests/e2e/{playthrough,edits/*,shell/*}.test.ts
 
 ---
 
-# The framework's additions (tasks 1 to 9)
+# The framework's additions (tasks 1 to 9b)
 
 Before task 1: `pnpm install`, then `pnpm check` once to learn the baseline; write its result in the tracking table.
-These nine tasks use small content of their own (a pantry, a lantern, a watchman), so each extension's tests stand
+These ten tasks use small content of their own (a pantry, a lantern, a watchman), so each extension's tests stand
 without the game.
 
 ### Task 1: `@automata/interact`: use a hotspot
@@ -627,25 +647,76 @@ collider reads, as the kit's other furniture does.
 - [ ] **Step 5:** changeset (`patch`) if `@automata/world-kit` is published; `pnpm build`, API report and index.
   Commit: `feat(world-kit): a sink, trolley, wheelchair, gurney, monitor cart, wall clock, key cabinet, locker and drip stand`
 
+### Task 9b: `@automata/3d`: the rooms a view draws; two lamp kinds
+
+Survey 2 and 5, both settled by reading. Call 12.
+
+**Files:**
+- Create: `packages/3d/src/features/world/room-draw.ts`
+- Modify: `packages/3d/src/features/camera/sim/camera-view.schema.ts` (a view's optional `rooms`),
+  `src/features/camera/sim/view-zone.ts` or the renderer file that changes the active view (it tells the world which
+  rooms to show), `src/features/world/build.ts` only if rooms are not yet separate meshes,
+  `src/features/world/library/lamp-kit.json`, `src/entries/index.ts`; `packages/editor-3d` so Levels 3D's view card
+  lists and edits `rooms`; `docs/guides/` where camera views are described
+- Test: `packages/3d/tests/unit/world/room-draw.test.ts`, `tests/unit/camera/view-rooms.test.ts`,
+  `tests/unit/world/lamp-kit.test.ts`, a browser test beside the existing occluder ones
+
+**Interfaces (produced):**
+
+```ts
+// a camera view, in a level's `views`: the sectors drawn while this view is active; absent means every room
+readonly rooms?: readonly string[] | undefined
+/** Which sectors and masses are drawn for a view. A mass is drawn when any sector it touches is. */
+export function drawnRooms(level: AfSector2, view: string | undefined):
+  { readonly sectors: ReadonlySet<string>; readonly masses: ReadonlySet<number> }
+// lamp-kit.json gains two kinds: `moon` (a cool, soft light through a window, no fitting drawn) and `fill` (a soft
+// light with no fitting and no glow), each with the kit's fields
+```
+
+- [ ] **Step 1: Read first.** Read `features/world/build.ts`, `sectors.ts` and `occluders.ts` to learn whether each
+  sector is its own mesh group. Write what was found in this plan's log. If a room cannot be hidden without rebuilding
+  the world, the task first splits the build by sector, with the existing world goldens unchanged.
+- [ ] **Step 2: Failing tests** on a three-room level of the package's own: a view with `rooms = ["a", "b"]` draws
+  those two and not the third; a view with no `rooms` draws all three; a mass between `a` and `c` is drawn when either
+  is; a view that names a room the level lacks is a level problem in words; changing the active view from one to the
+  other shows and hides the right groups in one frame (the browser test); `moon` and `fill` parse and light a floor.
+- [ ] **Step 3 and 4:** implement, run (`pnpm --filter @automata/3d test:unit`, its browser suite). No existing
+  golden picture or hash may move: no existing level has `rooms`.
+- [ ] **Step 5: Commit:** `feat(3d): a camera view names the rooms it draws; moon and fill lamps`
+
 ---
 
-# The game (tasks 10 to 18)
+# The game (tasks 10a to 18)
 
 The game's own repository is attached read only, at `92e6704`. Read its `AGENTS.md` and `docs/design/camera-rules.md`
 before task 10. `<ref>` below is the path of that checkout.
 
-### Task 10: The game package by feature: the layer test, provenance, the name rule, a blank room that boots
+### Task 10a: The name rule: The Last Light is no longer a source game
 
-Spec: "Where the game lives", "A refactor, not a transcription" (T13). Calls 1 and 2.
+Call 2. Its own early task, the hygiene test changed first.
+
+**Files:**
+- Modify: `tooling/repo-hygiene/tests/unit/source-names*.test.ts` (first), `tooling/repo-hygiene/src/source-names.ts`
+  (drop the entry whose sample is "The Last Light"), `docs/provenance/sources.md` (one paragraph: since 2026-11-11 The
+  Last Light is the framework's 3D reference game at `games/the-last-light`, so its name is no longer withheld; the
+  rows that record what was taken from it stay; the other sources are still named nowhere else)
+
+- [ ] **Step 1: Change the test first:** a file that names The Last Light gives no finding; a file that names each
+  of the other sources still gives one; the entry numbers the findings print are still stable for the others (if they
+  shift, the test says which changed and the message format keeps naming the entry, never the name).
+- [ ] **Step 2: Run it and see it fail;** drop the entry; run `pnpm --filter @automata/repo-hygiene test:unit` (or the
+  package's own name) and `pnpm source-names` → pass.
+- [ ] **Step 3: Commit:** `chore(hygiene): The Last Light is the 3D reference game, so its name is no longer withheld`
+
+### Task 10: The game package by feature: the layer test, provenance, a blank room that boots
+
+Spec: "Where the game lives", "A refactor, not a transcription" (T13). Call 1.
 
 **Files:**
 - Create: `games/the-last-light/{package.json,tsconfig.json,vite.config.ts,vitest.config.ts,ship.config.ts,index.html,README.md,DESIGN.md,PROVENANCE.md}`,
   `src/main.ts`, `src/app/game.ts`, `content/editors.toml`, `content/levels/blank.af-sector.json` (one square room,
   removed in task 11), `tests/unit/architecture.test.ts`, `tests/unit/app/boots.test.ts`
-- Modify: `tooling/repo-hygiene/src/source-names.ts` (drop the one entry) and its tests
-  (`tooling/repo-hygiene/tests/unit/source-names*.test.ts`); `docs/provenance/sources.md` (one paragraph: The Last Light
-  is the 3D reference game in `games/the-last-light` since 2026-11-11, so its name is no longer withheld; the other
-  sources still are); root `package.json` (`style --plan-comments` and `boundaries --game` gain the new game's `src`,
+- Modify: root `package.json` (`style --plan-comments` and `boundaries --game` gain the new game's `src`,
   beside Emberwick's; the 3D script filters gain `@af-games/the-last-light`)
 
 **Interfaces:**
@@ -667,14 +738,13 @@ it('nothing under src/ imports from tools/ or from outside the package by a rela
 
 `PROVENANCE.md` starts with three sections: what was made here (everything, unless listed), what came from the
 game's own repository as content (the story, the puzzle, the scene's layout: the Owner's own work, MIT by the Owner's
-word of 2026-11-11), and outside assets (empty until task 18 adds the font with its licence).
+word of 2026-11-11), and outside assets (the six recorded files in task 14, the font in task 18).
 `DESIGN.md` carries the game's design rules this plan's constraints quote, so they live with the game.
 
 - [ ] **Step 1: Write the failing tests:** the architecture test above, and `boots.test.ts` (the sim steps a blank
   room 60 ticks and gives the same hash twice; the package's `automata.title` is "The Last Light").
 - [ ] **Step 2: Run and see them fail:** `pnpm --filter @af-games/the-last-light test:unit` → no such package.
-- [ ] **Step 3: Change the name rule,** its test first: `source-names` no longer reports a file that names The Last
-  Light, and still reports the other names. Then write the package to pass, with `render3dExtension`,
+- [ ] **Step 3: Write the package to pass, with `render3dExtension`,
   `sectorsExtension` and the default screens.
 - [ ] **Step 4: Run:** the game's unit tests, `pnpm --filter @af-games/the-last-light build`, `pnpm source-names`,
   `pnpm boundaries`, `pnpm style`. Open the dev page in headless Chromium: `data-state="ready"`, no page error.
@@ -847,7 +917,10 @@ export function statesFor(rows: readonly StateRow[], reader: Reader): PieceState
 What to build, by eye and by the script:
 - **Ada** in her own street clothes (1979, before the uniform) and **the figure** as a tall dark nurse's silhouette,
   from the figure builder and character kit as on `main`, made in the Studio.
-- **The ward** furnished from the converter's prop table and task 9's generators; the two dead bulbs, the lamps that
+- **The ward** furnished from the converter's prop table and task 9's generators, its windows lit by task 9b's
+  `moon` lamps and its two soft lights by `fill`; each camera view lists the rooms it draws (the hall's view: the
+  hall, the counter, the ward and the corridor's mouth, corridor and doorway; the corridor's: those three; the supply
+  room's: itself), as the old policy had them; the two dead bulbs, the lamps that
   go at lights out, the cabinet and the supply door open, and the bed made up are rows of the states file.
 - **The five cutscene poses** as figure actions and seats.
 
@@ -859,25 +932,41 @@ What to build, by eye and by the script:
   waits for the builders' look (the survey's "What slice 1 waits for"). Pictures prove composition only.
 - [ ] **Step 6: Commit:** `feat(the-last-light): the ward furnished, lit by state, with Ada and the figure`
 
-### Task 14: Draw it: renderer, cutscenes, HUD, sound and music, feel
+### Task 14: Draw it: renderer, cutscenes, HUD, recorded sound and music, synth cues, feel
 
 Spec steps 2 and 3. Survey 9, 25 to 27, 30, 45 to 52. T3, T11, T12. Call 7.
 
 **Files:**
 - Create: `content/hud/play.toml` (pieces: objective top-left, prompt bottom, inventory bottom-right, examine bottom,
   keypad centre; the nine objective rows, each with its line and its target, T3), `content/audio/audio.toml` (cues
-  written new for the synth: pick up, keypad buzz and chime, the sting, the lamp lit, the lamps going out one by one,
-  every lamp dying, the pulse counted, steps by floor; three music slots and the rows that say which plays when),
+  written new for the synth: pick up, keypad buzz and chime, the sting, the lamp lit, steps by floor),
+  `public/sounds/{lamps-out,all-lamps-die,pulse-counted}.ogg` and
+  `public/music/{the-last-light,four-seventeen,back-to-bed-ada}.ogg` (copied byte for byte from `<ref>/src/audio/sfx/`
+  and `<ref>/src/audio/music/`), `content/sound/prologue.toml` (rows: this event plays this file or this cue, at this
+  volume; this music while these conditions hold: `first-night` with the lamps on, `four-seventeen` once the figure
+  is about, `back-to-bed-ada` while she hunts), `src/features/sound/{sound-table.schema,sound-table,music-now}.ts`,
+  `tests/unit/features/sound/*.test.ts`,
   `content/feel/feel.toml`, `src/features/objective/objective.ts`, `src/features/lamp/lamp-view.ts`,
   `src/app/{controls,flow,play-state}.ts`, `tests/unit/app/{play-state,controls}.test.ts`,
   `tests/unit/features/objective/objective.test.ts`
-- Modify: `src/app/game.ts` (`createRenderer` with the play camera following Ada through the level's views and
+- Modify: `PROVENANCE.md` (a row for each of the six files: the file, what it is, "made with ElevenLabs through the
+  old sound pipeline", the date of its commit in the game's repository, read with `git log` there, and the sha256 of the
+  file); `src/app/game.ts` (`createRenderer` with the play camera following Ada through the level's views and
   `peekOf`; `cutsceneStage3d` wired to the camera, the room's piece states, the two figure views and the fade;
-  `hudSlot` in `hud.overlay` with the caption slot; `createAudioSynth`, `createFeel`; `input`)
+  `hudSlot` in `hud.overlay` with the caption slot; `createAudioSynth`, core's sound files and music slots, `createFeel`; `input`)
 
 **Interfaces (produced):**
 
 ```ts
+// content/sound/prologue.toml. A row plays a recorded file or a synth cue; changing `file` to `cue` is the whole swap.
+export interface SoundRow { readonly on: string                       // a sim event's name, or `cutscene.<id>`
+  readonly file?: string | undefined; readonly cue?: string | undefined      // exactly one
+  readonly volume?: number | undefined }
+export interface MusicRow { readonly when: readonly Cond[]; readonly file: string; readonly volume?: number | undefined }
+export interface SoundTable { readonly sounds: readonly SoundRow[]; readonly music: readonly MusicRow[] }
+export const soundTableSchema: z.ZodType<SoundTable>            // refuses a row with both or neither of `file` and `cue`
+/** The music that should be playing: the first row whose conditions hold. */
+export function musicNow(rows: readonly MusicRow[], reader: Reader): MusicRow | undefined
 /** The HUD's model from what the sim reported this step. Pure. */
 export function hudModelOf(state: PlayState, file: HudFile): HudModel
 /** The objective now: the line's key, and the point to walk to when the row names a hotspot. */
@@ -891,11 +980,13 @@ export function objectiveNow(file: HudFile, reader: Reader, hotspots: readonly H
 - [ ] **Step 1: Failing tests:** `hudModelOf` shows the first objective row at the start and the `hide` row after
   lights out; `prompt` is the nearest hotspot in reach and absent in a cutscene; `locked` is true while
   `cutscenes.locked`; `objectiveNow` gives the bed's point for the last row and no point for `hide`; every control has
-  a keyboard, a pad and a touch way (a table test over `controls.ts`); every cue the audio file's events name is
-  defined, and no sound file is referenced (T12).
+  a keyboard, a pad and a touch way (a table test over `controls.ts`); every cue a sound row names is
+  defined in the audio file and every file a row names is in `public/` (T12); a row with both `file` and `cue` is
+  refused in words; `musicNow` gives `first-night` at the start, `four-seventeen` after lights out and
+  `back-to-bed-ada` while she hunts; each of the six files' sha256 equals the one in `PROVENANCE.md`.
 - [ ] **Step 2 to 4:** run, implement, run. Then play it by hand in headless Chromium with the debug overlay and fix
   what is wrong.
-- [ ] **Step 5: Commit:** `feat(the-last-light): the prologue drawn: camera, cutscenes, HUD, sound and feel`
+- [ ] **Step 5: Commit:** `feat(the-last-light): the prologue drawn: camera, cutscenes, HUD, sound, music and feel`
 
 ### Task 15: Prove it plays (Chromium)
 
@@ -997,6 +1088,12 @@ menus and its story lines are in the six languages. **Needs workstream 1 on `mai
   with `automata words --mark`. The live model call is not run; it stays tested against the fake.
 - [ ] **Step 3 and 4:** implement the shell wiring, run the tests and journeys.
 - [ ] **Step 5: Commit:** `feat(the-last-light): the framework's shell around the prologue, in six languages`
+- [ ] **Step 6, when the coordinator says the Owner's key is saved:** run `pnpm --filter @af-games/the-last-light
+  exec automata words --all` for real, once. Read the diff of the five catalogs line by line against what the session
+  wrote: keep the command's answer unless it lost a never-translated term or a placeholder (the command's own checks
+  refuse those). The English must not change (`git diff` shows no change to the lines file). Run task 18's tests
+  again. Commit: `feat(the-last-light): the story's translations, written by automata words`. If the key never
+  comes, this step stays unticked and the record says so; the session's translations stand.
 
 ---
 
@@ -1058,8 +1155,9 @@ Light; the game's folder carries its provenance file, and everything in it is MI
   `pnpm api-report`, `pnpm api-index`; `pnpm lint:actions` if Docker runs. Run locally what `3d.yml` would run, step
   by step, since hosted CI has no runners; write each result.
 - [ ] **Step 4: MIT and provenance.** Read `games/the-last-light/PROVENANCE.md` against the folder: every file that is
-  not text made here is listed; nothing came from a paid pipeline (no `.ogg`, `.mp3`, `.glb` or atlas `.png` in the
-  folder; a grep proves it).
+  not text made here is listed; the only recorded sound and music are the six files
+  the provenance file lists, with matching sha256; no `.glb`, no atlas `.png` and no other `.ogg` or `.mp3` is in the
+  folder (a `git ls-files` listing proves it).
 - [ ] **Step 5: "Done means", line by line,** in `docs/superpowers/progress.md`: each of the spec's six lines with the
   test that proves it, or the word **open** and why. Expected open: WebKit and Firefox parity, real devices, and what
   `docs/dress-notes.md` says waits for the builders' look.
@@ -1075,7 +1173,7 @@ Light; the game's folder carries its provenance file, and everything in it is MI
   8, 16. Step 6 (shell): task 18. "Where the game lives": task 10. "A refactor, not a transcription": the layers and
   the features table up front, the architecture test in task 10, and each T row beside its task (T1 13; T2, T5, T6,
   T14 12; T3, T11, T12 14; T4, T7 to T10 11; T13 10). "Ember Hall goes": tasks 19, 20. MIT and provenance: tasks 10,
-  18, 20, and call 7. "Done means": plays, 12 and 15; six editors, 16; shell, pad, touch, six languages for menus and
+  14, 18, 20, and call 7. The name rule: task 10a. Rooms per view and lamp kinds: task 9b. "Done means": plays, 12 and 15; six editors, 16; shell, pad, touch, six languages for menus and
   story, 18; additions tested and `pnpm check`, each task and 20; Ember Hall gone and the 3D workflow on the new game,
   19 and 20; provenance and MIT, 20. HUD layout and words as data: tasks 2, 3, 14.
 - **Not covered, on purpose:** Writer for storylets, beats and help; a camera-eye preview in Sequence; scenarios in
@@ -1084,10 +1182,10 @@ Light; the game's folder carries its provenance file, and everything in it is MI
   `HudFile`, `chooseObjective`, `objectiveNow`, `hudModelOf`, `Systems.hide`, `peekOf`, `PeekDef`, `Delivery`, `typed`,
   `cutsceneStage3d`, `stepCue`, `levelWalls`, `statesFor`, `lampFacts`, `fillLamp`, `nightHooks`, `playRoute` are
   spelled the same wherever they appear.
-- **What this plan could not check:** nothing was run. Two "to check" items in the survey may change a task: if the
-  occluders do not hide rooms as the game needs, task 13 gains a `@automata/3d` fix with its test; if the lamp kit
-  lacks a kind, task 13 maps it by hand. If `goTo` already re-routes each step, task 4's `every` is dropped and the
-  log says so.
+- **What this plan could not check:** nothing was run. The survey's two "to check" items were read and became task
+  9b. Two things are still decided by reading code at execution: whether the world is already built one room at a
+  time (task 9b, step 1), and whether `goTo` already re-routes each step (if so, task 4's `every` is dropped and the
+  log says so).
 
 ## Log
 
@@ -1095,3 +1193,4 @@ Light; the game's folder carries its provenance file, and everything in it is MI
 |---|---|---|
 | 2026-11-11 | Stage 2 (plan), `claude/last-light-prologue-plan` | The survey and a first plan (`43f94569`), written before the spec was re-set |
 | 2026-11-11 | The same session | The survey revised and this plan rewritten for the re-set spec: the game at `games/the-last-light`, by feature, MIT, from October's fixtures; Ember Hall removed. No product code, no test run |
+| 2026-11-11 | The same session | The Owner's last answers applied (spec `3c0a624f`): the six recorded files cross and play through core's audio; the name rule is its own task (10a); rooms per view and two lamp kinds (9b); three branches; a last step runs `automata words` for real |

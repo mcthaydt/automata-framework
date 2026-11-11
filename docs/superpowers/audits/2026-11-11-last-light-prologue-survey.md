@@ -27,9 +27,9 @@ games, Emberwick and The Last Light.
   prologue pulls from `src/game`, `src/narrative`, `src/render`, `src/ui`, `src/audio` and `src/scenes/clinic` (sizes
   and the parts the prologue calls).
 - **Not run:** nothing was built or tested. `node_modules` is not installed in this container, and this stage writes
-  documents only. Every "already in the framework" below was read in the source, not exercised. Two things were
-  not read closely and are marked **to check** where they matter: the framework's room occluders against the game's
-  room-by-room visibility, and the look's lamp kinds against the game's nine lamp kinds.
+  documents only. Every "already in the framework" below was read in the source, not exercised. Two things
+  first marked "to check" (the room occluders against the game's room visibility, and the look's lamp kinds against
+  the game's nine) were then read and are settled in rows 2 and 5.
 
 ## Six findings that change the plan
 
@@ -95,10 +95,10 @@ and from then on the game's files are the source for the game.
 | # | The prologue has | In the game | Mark | In the framework |
 |---|---|---|---|---|
 | 1 | 7 sectors with corners, walls, portals, holes (the counter), windows, doors, handrails and trims; 3 masses | `map.ts`, generated from `blockout.json` | (b) | An `af-sector/2` level: `packages/3d/src/shared/level/af-sector-2.schema.ts`, read with `readLevel` from `@automata/3d/level`; file `content/levels/prologue.af-sector.json`. Two wall members the format leaves out (`hideFrom`, `cut`) are the old renderer's; the converter reports them and drops them |
-| 2 | Which room hides which (the clinic's policy, borrowed) | `../clinic/visibility.ts`, `src/render/room-visibility.ts` | (a), **to check** | The camera's occluders (`packages/3d/src/features/camera/occluders/`). The superseded clinic branches learned that rooms are drawn one by one and walls need tops; if the occluders do not hide the corridor from the hall as the game does, that is a `@automata/3d` fix found in plan task 13, not a private copy |
+| 2 | Which rooms are drawn from each camera zone: the hall's view draws reception, the ward and the north corridor; the corridor's draws only the corridor; the supply room's only itself; each mass has owners | `../clinic/visibility.ts` (a `RoomPolicy`), `src/render/room-visibility.ts` | **(c)**, settled by reading | **Missing.** `@automata/3d`'s occluders (`features/camera/occluders/occluder-rule.ts`) cut away a wall that faces the camera or stands between the eye and the player; nothing says which rooms a view draws, and no file in `packages/3d/src` holds such a rule. Without it the corridor's follow camera would draw the hall and the ward around it. A view gains an optional list of the rooms it draws, in `@automata/3d` (plan task 9b). It goes in the 3D package because the level format and the camera views are there; Emberwick has no rooms |
 | 3 | 21 collider boxes | `level.ts` `BOXES` | (b) | Props with footprints in the level, and nav's `blocked` (the precedent is `clinic.boxes.toml`) |
 | 4 | 22 hotspots: a point, a name, a reach, two of them hiding places | `level.ts` `HOTSPOTS` | (b) | Level entities of a definition `hotspot` (`entityDefs`, `entities`); Levels 3D's Things tool places and edits them; the editor's `puzzle-hotspots` check reads them. The name becomes a message key |
-| 5 | 15 lamps of 9 kinds (desk, screen, pendant, bulb, fluorescent, fire, spark, moon, fill) | `level.ts` `LAMPS`, `src/render/look.ts` | (b), **to check** | `lamps` in the level (`LampPlace`), kinds from the look's lamp kit (`packages/3d/src/features/world/library/lamp-kit.json`). A kind the kit lacks is reported by the converter and mapped by hand to the nearest |
+| 5 | 15 lamps of 9 kinds (desk, screen, pendant, bulb, fluorescent, fire, spark, moon, fill) | `level.ts` `LAMPS`, `src/render/look.ts` | (b), with a small (c), settled by reading | `lamps` in the level (`LampPlace`). The look's lamp kit (`packages/3d/src/features/world/library/lamp-kit.json`) has six kinds: `bulb`, `desk`, `fluorescent`, `neon`, `pendant`, `sodium`. Nine of the prologue's lamps are of kinds it has. The two `fire` lamps (burning curtains), the `spark` and the `screen` glow are dark all through the prologue (the curtains hang, there is no leak, and the line says the monitor is dark), so they are not written and the converter reports them. That leaves two `moon` lamps (light through a barred window) and two `fill` lamps (a soft light with no fitting): both kinds are generic and are added to the kit (plan task 9b) |
 | 6 | Lamps that change with the story: two dead bulbs, everything out at lights out, lamps dying one by one in `rest` | `dress.ts`, cutscene `light` keys | (a) and (d) | Lamp levels while a scene plays: `PieceStates` and `lampState` (`@automata/3d/level`), and the cutscene director's `light` track. Which fact dims which lamp is the game's: a small view feature reading a data table |
 | 7 | 18 nav nodes, 22 edges (one through a door), a 12-stop patrol | `level.ts` `NODES`, `EDGES`, `PATROL` | (b) | A `nav-graph` (`extensions/nav/src/shared/nav-graph.content.ts`), `content/nav/prologue.toml`; the patrol is the agent's `routine` in the systems file |
 | 8 | The spawn | `SPAWN` | (b) | A level entity `spawn`, as `examples/3d-story` has |
@@ -162,9 +162,9 @@ and from then on the game's files are the source for the game.
 
 | # | The prologue has | In the game | Mark | In the framework |
 |---|---|---|---|---|
-| 49 | Sound cues by event: pick-ups, the keypad's buzz and chime, the sting, the lamps going out, the lamp lighting | `src/audio/cues.ts`, `events.ts` | (b) | The `audio` content kind and `createAudioSynth` (`@automata/audio-synth`); the Audio editor edits it. The cue recipes are written new as content, since the framework's synth is a rewrite. See "Sounds and music, with their source" |
-| 50 | Footsteps by floor surface | `src/audio/foley.ts` | (c), small | **Missing:** `sources.md` records foley as not ported. A step sound chosen by the floor's material is generic; it is a table in the audio file read with the sector's floor texture (plan task 7). The spec's "samples" is not needed by the prologue: every sound it plays can be a synth cue, and core already plays sound files |
-| 51 | Music: three slots by rule (lights on; the figure about; the practice chase) | `src/audio/music.ts`, `music-rules.ts` | (b) | `@automata/audio-synth` has music slots and a generic music director; which slot plays when is rows in the audio file. The old files are not brought across (below) |
+| 49 | Sound cues by event: pick-ups, the keypad's buzz and chime, the sting, the lamps going out, the lamp lighting | `src/audio/cues.ts`, `events.ts` | (b) | The `audio` content kind and `createAudioSynth` (`@automata/audio-synth`); the Audio editor edits it. The synth cues are written new as content, since the framework's synth is a rewrite; the three recorded effects play as sound files through core's audio. See "Sounds and music, with their source" |
+| 50 | Footsteps by floor surface | `src/audio/foley.ts` | (c), small | **Missing:** `sources.md` records foley as not ported. A step sound chosen by the floor's material is generic; it is a table in the audio file read with the sector's floor texture (plan task 7). The spec's "samples" needs nothing new: core already plays sound files, which is how the three recorded effects cross |
+| 51 | Music: three slots by rule (lights on; the figure about; the practice chase) | `src/audio/music.ts`, `music-rules.ts` | (b) | Core's music slots play the three recorded tracks; which plays when (lights on; the figure about; the practice chase) is rows in a content file read by a small feature of the game. The files cross as they are (below) |
 | 51b | Room acoustics, hallucinated sounds | `space.ts`, `hallucinations.ts` | not in slice 1 | Acoustics is slice 4 in the spec's table; hallucinations are act one's |
 | 52 | Feel: flicker, a flinch, shake within limits | `src/feel/` | (a) | `@automata/feel` and its `feel` kind; the Feel editor edits it |
 | 53 | Title, pause, settings, save slots, gamepad, touch, rebinding | `src/ui/boot.ts`, `settings-ui.ts`, `gamepad.ts`, `menu-nav.ts`, `focus.ts`, `access.ts` | (a) | Core's default screens and input (`@automata/framework`). None of the game's copies cross |
@@ -255,11 +255,12 @@ on these points, and the spec's table is corrected in the same commit as this su
 | Peeking | It is through a doorway, not from a hiding place. The camera side is in `@automata/3d`; the sim rule is added to `@automata/systems` |
 | A catch and a checkpoint | The catch event and the sim's snapshots are there; what a catch does is the game's |
 | Captions and the dialogue box in 3D | Both exist and draw over any renderer. Missing is a **3D cutscene stage**, and **delivery** for lines |
-| Samples and footsteps | No samples needed. Footstep sound by floor surface is added to `@automata/audio-synth` |
+| Samples and footsteps | Samples need nothing new: core plays sound files and music, and the six recorded files cross as they are. Footstep sound by floor surface is added to `@automata/audio-synth` |
 | (not listed) | A camera key relative to an anchor, in `@automata/cutscenes` |
 | (not listed) | Nine prop generators in `@automata/world-kit` |
 | (not listed) | Sequence's preview over a 3D level |
 | (not listed) | The `source-names` rule, which forbids the game's name in the folders it scans |
+| (not listed) | Which rooms a camera view draws, and two lamp kinds (`moon`, `fill`), in `@automata/3d` |
 | "about 1,100 lines of scene code, one creature, 23 puzzle steps" | 1,142 lines in 16 files; one creature; 34 puzzle actions (23 was not found as a count), 74 line records, 5 cutscenes, 22 hotspots, 15 lamps |
 
 Slices 2 to 4 are not surveyed. One note for slice 2: the spec gives it "the Night Nurse in full", and the prologue's
@@ -295,7 +296,7 @@ names the rewrite beside the task that does it. The old behaviour and its tests 
 | T9 | `level.ts` `ZONES`: `contains` and `enter` are closures over `zoneAt` in a generated file | Camera zones as code | A `view` on each sector, as data |
 | T10 | `cutscenes.ts`: `fit()` picks a lens to keep sprites under `MAX_SPRITE_SCALE`; `figureFill`; `clearSpot`, `bedside()` clamp marks at run time | Workarounds for the sprite atlases, and staging computed in code | The figures are drawn from the true view, so the lens is the script's; marks are data |
 | T11 | `src/ui.ts` (501 lines): objective, inventory, messages, keypad, prompts and touch in one DOM module; `src/ui/boot.ts`, `settings-ui.ts`, `gamepad.ts`, `menu-nav.ts`, `focus.ts` | One file for every screen; its own menus, settings and pad code | `@automata/hud` pieces from a file; the framework's shell |
-| T12 | `src/audio/samples.ts`: sound files inlined as data URLs to obey "no `fetch()`" | A workaround for a rule about run-time content | No sample files: the synth makes every sound |
+| T12 | `src/audio/samples.ts`: sound files inlined as data URLs and decoded by hand; `music-play.ts` chains copies of a file to loop it | The game's own loader and looper beside what a framework gives | The six recorded files are ordinary sound and music files played by core's audio (`@automata/framework`'s sound files and music slots); the synth makes the rest |
 | T13 | `src/game/` by kind (`simulation.ts` 325 lines, `session.ts`, `rules.ts` per scene), one flat `tests/` | Grouped by kind, not by feature | `src/features/<feature>/` owning its code and data, `tests/` mirroring `src/`, an architecture test |
 | T14 | `rules.ts`: `resetFor: w => HOOKS.resetFor(w, null, null!)` | A hook called with a null context it happens not to read | A plain function |
 
@@ -331,24 +332,30 @@ So the MIT claim can be judged (the spec's constraint).
 | What the prologue plays | In the old game | Source | In the new game |
 |---|---|---|---|
 | Pick up an item, the keypad's buzz, the keypad's chime, the sighting sting, a footstep, the lamp lighting | Synth recipes in `src/audio/cues.ts` | The game's own code | Written new as rows of the `audio` file for the framework's synth. MIT |
-| The lamps going out as Ada rests (`lamps-out`), every lamp dying at lights out (`all-lamps-die`), the pulse counted at the practice catch (`pulse-counted`) | Recorded effects, `src/audio/sfx/*.ogg` | Made with ElevenLabs sound effects through the paid sound pipeline (`docs/audio/sound-pipeline.md`) | **Not brought across.** Remade as synth cues. The files came from a paid stage and their terms are not the repository's to grant |
-| Music: `first-night` (falls back to `the-last-light.ogg`), `four-seventeen`, `back-to-bed-ada` | `src/audio/music/*.ogg` | Placeholders made with ElevenLabs music; the Owner's Suno tracks were planned and are not in the repository | **Not brought across.** Three music slots written for the synth's music director. If the Owner later supplies tracks they hold the rights to, the provenance file names them |
+| The lamps going out as Ada rests (`lamps-out.ogg`), every lamp dying at lights out (`all-lamps-die.ogg`), the pulse counted at the practice catch (`pulse-counted.ogg`) | Recorded effects, `src/audio/sfx/` | Made with ElevenLabs sound effects (`eleven_text_to_sound_v2`) through the old sound pipeline (`docs/audio/sound-pipeline.md`) | **Brought across as they are** (the Owner, 2026-11-11: "I paid for the elevenlabs so it's fine"). MIT with the game; each is a line in the provenance file |
+| Music: the slot `first-night` (it plays `the-last-light.ogg`), `four-seventeen.ogg`, `back-to-bed-ada.ogg` | `src/audio/music/` | Made with ElevenLabs music through the old sound pipeline; the Owner's Suno tracks were planned and are not in the repository | **Brought across as they are,** on the same word. MIT with the game; each is a line in the provenance file |
 | Voices | none in the prologue | | |
 | Fonts | `src/ui/font-*.gen.ts` | Generated bitmap fonts | Not brought across: workstream 1's font set (Fusion Pixel, OFL 1.1) |
 | Figures, props, textures | Atlases and models from the paid character, props and art pipelines | Paid | Not brought across: the builders' figures and the world kit |
 
-So the game's provenance file starts with one outside asset: the font, with its licence. Everything else is made in
-this repository.
+So the game's provenance file lists seven outside assets: the six ElevenLabs files (file, what it is, made with
+ElevenLabs through the old sound pipeline, its date) and the font with its licence. Everything else is made in this
+repository. Which sound is a recorded file and which a synth cue is a row in a content file, so swapping one for the
+other later is a content change.
+
+**One thing to know:** the game's old rule "no `fetch()` at runtime" was why it inlined its sound files. Core's audio
+loads a game's packaged sound files the way every game on the framework does. The plan reads the rule as "nothing
+from the network at run time", which packaged files obey; the coordinator has been told.
 
 ## Open, for the Owner
 
-1. **The `source-names` rule.** `pnpm source-names` (the Owner's "AF is standalone" rule of 2026-10-31) fails a file
-   that names The Last Light under the folders it scans, and `docs/provenance/sources.md` says sources are named
-   nowhere else. A reference game called `games/the-last-light` breaks it by its name. The plan's default: the rule
-   drops that one entry and the provenance file says why. The other option is a different folder and title.
-2. **The recorded sounds and the music are remade, not brought across** (above). Say if the ElevenLabs files should
-   come instead; they would need a line each in the provenance file and the Owner's word that they may be MIT.
+Nothing. Settled since the first draft, by the Owner through the coordinator (2026-11-11):
 
-Settled since the first draft: the fixtures (they stay, and the port starts from them); the translations (the
-building session writes them); the three cutscenes on a mark (allowed as staging; the line, its timing and what it
-names must hold, and the plan lists the three).
+- **The fixtures** stay, and the port starts from them.
+- **The translations** are written by the building session and recorded with `--mark`; when the Owner's API key is
+  saved, a last step runs `automata words` for real.
+- **The three cutscenes on a mark** are allowed as staging; the line, its timing and what it names must hold, and
+  the plan lists the three.
+- **The `source-names` rule** drops The Last Light's name ("it's no longer a source game"), and
+  `docs/provenance/sources.md` says so.
+- **The six recorded sounds and music files cross as they are** ("I paid for the elevenlabs so it's fine").
