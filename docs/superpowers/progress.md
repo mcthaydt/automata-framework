@@ -87,4 +87,6 @@ take it over later: its layout and words as data, not buried in code.
   reference game in `games/`, as Emberwick is the 2D one, not a product shipped from its own repository. Ember Hall
   (`games/base-3d`) is cut. The game content already in the framework's fixtures is therefore where it belongs.
 - The Last Light is fully open source like Emberwick: its story, art and music are MIT.
+- The Last Light is no longer a source game: the source-names check drops its name. Its ElevenLabs sounds and music
+  come across as they are (the Owner paid for them).
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
