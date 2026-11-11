@@ -79,6 +79,9 @@ export interface TestOptions {
 
 const ALL_ENGINES: readonly Engine[] = BROWSER_ENGINES
 
+/** How long a browser project's hook may take: what `pnpm test:browser` passes as `--hookTimeout`, which does not reach it. */
+const BROWSER_HOOK_TIMEOUT_MS = 90_000
+
 export function defineTests(options: TestOptions = {}): ViteUserConfig {
   const engines = options.browsers ?? ALL_ENGINES
   // Svelte's client build, so `mount` works in jsdom and in the browser (the default resolves its server entry).
@@ -108,6 +111,9 @@ export function defineTests(options: TestOptions = {}): ViteUserConfig {
       include: [include],
       // A browser test can take as long as the golden harness does in Node.
       ...(options.testTimeout === undefined ? {} : { testTimeout: options.testTimeout }),
+      // A browser project's hooks get 30 s whatever `--hookTimeout` says on the command line, and a hook that compiles
+      // or loads a fixture on a loaded runner needs more (the kit's `beforeAll` timed out there, in both engines).
+      hookTimeout: BROWSER_HOOK_TIMEOUT_MS,
       browser: {
         enabled: true,
         headless: true,
