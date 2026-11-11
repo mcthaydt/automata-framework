@@ -1,0 +1,22 @@
+{
+  "against": "FigureBuilder compose(frame, backdrop)",
+  "note": "tiles are the GPU readback, compose, and red where they differ (a pixel either side of the wall’s cut line is not compared)",
+  "cases": {
+    "one figure, orthographic at 18°": {
+      "compared": 230400,
+      "differing": 0
+    },
+    "one figure, perspective (the follow view)": {
+      "compared": 230400,
+      "differing": 0
+    },
+    "two overlapping figures": {
+      "compared": 230400,
+      "differing": 0
+    },
+    "a figure cut by a wall": {
+      "compared": 228480,
+      "differing": 0
+    }
+  }
+}

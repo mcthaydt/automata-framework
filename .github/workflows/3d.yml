@@ -20,6 +20,9 @@ on:
       - "games/base-3d/**"
       - "examples/3d/**"
       - "vendor/pixi-3d/**"
+      # The figure builder (the git submodule, and its wrapper package): a bump alone changes what the painted figures show.
+      - "vendor/FigureBuilder"
+      - "vendor/figure-builder/**"
       - "agents/**"
       # Every package: the 3D packages, and the core ones they build on.
       - "packages/**"

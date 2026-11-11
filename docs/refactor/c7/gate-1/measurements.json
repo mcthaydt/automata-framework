@@ -1,0 +1,51 @@
+{
+  "baseCommit": "a66b4e0e",
+  "runMs": 33,
+  "clock": "fake, reducedMotion: reduce",
+  "stander": "base-f",
+  "before": {
+    "field": [480, 270],
+    "figuresFound": 2,
+    "standerBox": {
+      "x0": 189,
+      "y0": 86,
+      "x1": 206,
+      "y1": 155,
+      "size": 688
+    },
+    "standerHeightPx": 70,
+    "cellPaintedRows": 123,
+    "cellPitchDeg": 25,
+    "texelsPerPixel": 1.7571428571428571
+  },
+  "after": {
+    "field": [720, 405],
+    "figuresFound": 2,
+    "standerBox": {
+      "x0": 275,
+      "y0": 103,
+      "x1": 306,
+      "y1": 230,
+      "size": 2199
+    },
+    "standerHeightPx": 128,
+    "cellPaintedRows": 128,
+    "cellPitchDeg": 18,
+    "texelsPerPixel": 1,
+    "groundRow": 178.5,
+    "cellRowsAboveGround": 125,
+    "standerHeightAboveGroundPx": 125,
+    "texelsPerPixelAboveGround": 1,
+    "matchedIdleStep": 5,
+    "matchedIdleSeconds": 0.08333333333333333,
+    "idleStepsAtBest": 5,
+    "opaqueTexels": 2356,
+    "exactTexels": 2356,
+    "exactTexelShare": 1,
+    "exactTexelShareAboveGround": 1,
+    "opaqueTexelsBelowGround": 45,
+    "belowGroundTexelsSeen": 45,
+    "belowGroundTexelsHiddenByFloor": 0,
+    "exactTexelShareVsStanding": 0.921410365335599
+  }
+}
