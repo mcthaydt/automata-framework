@@ -61,6 +61,18 @@ difference in the log. They come from workstream 4's plan audit
    `claude/builders-look-room` (it touches `packages/3d`); then this plan's `claude/last-light-framework`. Whichever
    branch lands after another runs `pnpm install` and commits the repaired lockfile.
 6. **Every branch, documents included, gets the whole `pnpm check`** before it merges.
+7. **The game's picture and its figures' size are the old game's** (the Owner, 2026-11-11: "match last light
+   settings"). Workstream 4's first gameplay shot drew the painted pair about three times too tall, because it used
+   the framework's default 320 x 180 field and density-2 figures. The old game's numbers
+   (`src/render/stage.ts` `FRAMEBUFFER`, `src/render/figure/stage-figure.ts`, `src/render/crisp.ts` at `92e6704`):
+   the picture is capped at 640 x 480 (640 x 360 in a 16:9 window); figures are painted at density 1 in play, about
+   37 texels a metre, which is FigureBuilder's base density; the play camera gives 53 lines a metre, so Ada stands
+   about 90 pixels tall at 480 lines; a cutscene close-up alone asks for the finer density; a figure's texel is
+   snapped to a whole number of picture pixels. Task 10 declares that picture size as the game's own (core's default
+   field is not changed), task 13 paints Ada and the night figure at density 1 in play and at the close-up density
+   only where a cutscene key asks, and task 15 measures Ada's height on screen against the old game's. Workstream 4's
+   figures session re-shoots its gameplay sheets at these settings first, and says what the kit's whole-pixel rule
+   does to the height; tasks 10 and 13 take its numbers.
 
 ## One repository, three branches
 

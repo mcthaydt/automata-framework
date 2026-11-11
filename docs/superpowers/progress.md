@@ -122,4 +122,11 @@ step fails on content with no editor unless its row is here with the Owner's wor
 - The live `automata words` call is verified with the Owner's Anthropic key; how the key reaches a session is being
   settled (it must not be named `ANTHROPIC_API_KEY` in the environment, which the sessions' own runtime would pick up).
 - Every branch, documents included, gets the whole `pnpm check` before it merges.
+- To go faster (the Owner, 2026-11-11: "Yes"): a session that has just run the whole `pnpm check` on exactly the
+  tree it commits may skip the pre-commit hook (`LEFTHOOK=0`), which runs the same unit tests again; and builds run
+  in parallel where their packages do not meet. Workstream 1's last tasks are split over two branches
+  (`claude/shared-polish-build`: 15, 18, then 20; `claude/shared-polish-emberwick-site`: 16, 19), and workstream 2's
+  framework branch starts before workstream 1 lands, leaving its joins to workstream 1 written in its plan's log.
+- The reference game's picture size and figure size match the old game's: a picture capped at 640 x 480, figures at
+  density 1 in play, the finer density in cutscene close-ups only.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
