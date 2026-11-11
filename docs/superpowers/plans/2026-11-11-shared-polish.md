@@ -293,9 +293,9 @@ export type Catalog = Readonly<Record<string, string>>            // without `$s
 export interface CatalogPaths { readonly name: string; readonly source: string; readonly context: string | undefined
   translation(lang: string): string; ledger(lang: string): string }
 /** A game's catalogs: `content` (source `content/generated/messages/<src>.json`, translations
- *  `content/messages/<lang>.json`, ledger `messages/review/content/<lang>.json`) when the source file exists, and
- *  `ui` (`messages/ui/<lang>.json`, ledger `messages/review/ui/<lang>.json`, context `messages/context.json`) when
- *  `messages/ui/<src>.json` exists. */
+ *  `content/messages/<lang>.json`, ledger `content/messages-review/<lang>.json`) when the source file exists, and
+ *  `ui` (`<ui>/<lang>.json`, ledger `<ui>/review/<lang>.json`, context `<ui>/context.json`), where `<ui>` is the
+ *  first of `messages/ui` and `src/messages/ui` that holds `<src>.json` (Ember Hall keeps its in `src/`). */
 export function gameCatalogs(gameDir: string, sourceLanguage: string): readonly CatalogPaths[]
 /** One folder as a catalog: `<dir>/<lang>.json`, `<dir>/review/<lang>.json`, `<dir>/context.json`. */
 export function folderCatalog(dir: string, sourceLanguage: string): CatalogPaths
@@ -680,3 +680,454 @@ test('the returned function removes every listener', …)
   `data-sfx="none"`; add a DOM test per screen that the attribute is there.
 - [ ] **Step 4: Run** `pnpm --filter @automata/framework exec vitest run --project unit tests/unit/audio tests/unit/app`.
 - [ ] **Step 5: Commit** `feat(framework): every control sounds by default once a game maps the sounds`.
+
+### Task 10: `create-game` maps a starter set of interface sounds
+
+**Files:**
+- Modify: `packages/tools/src/shared/create-game/template-game.ts` (the `src/app/feel-audio.ts` and game-definition
+  templates), `packages/tools/src/shared/create-game/template-content/audio/` (the template's `audio.toml`)
+- Test: `packages/tools/tests/unit/shared/create-game/` (the existing template tests; add
+  `template-ui-sounds.test.ts`)
+
+**Interfaces:**
+- Consumes: `GameSpec.uiSounds` as a function (task 9); the template's `sounds?.cue(name)` (`AudioStageHandle`).
+- Produces: a new game whose `defineGame` has `uiSounds: (name) => void sounds?.cue(`ui.${name}`)` (exported from
+  `feel-audio.ts` as `uiSounds`), and three cues in the template's `audio.toml`, written in the form of the cues already
+  there so the Audio editor opens and changes them:
+  - `ui.press`: a short square blip, 660 Hz, 60 ms
+  - `ui.back`: a falling blip, 440 Hz to 330 Hz, 80 ms
+  - `ui.focus`: a tick, 880 Hz, 25 ms, half the level of `ui.press`
+
+- [ ] **Step 1: Write the failing test:** the generated game's files hold `uiSounds` in the `defineGame` call, and its
+  `content/audio/audio.toml` parses with `audioSchema` and has the cues `ui.press`, `ui.back` and `ui.focus`.
+- [ ] **Step 2: Run; confirm it fails.**
+- [ ] **Step 3: Implement.** `packages/tools` may not import `@automata/audio-synth` (it is template text and a
+  test-only parse; if the test needs the schema, put the test where the existing template-content tests parse it).
+- [ ] **Step 4: Run** `pnpm --filter @automata/tools exec vitest run --project unit tests/unit/shared/create-game`, and the
+  slow created-game test by hand if the session has time (`packages/tools/tests/slow`); say which ran.
+- [ ] **Step 5: Commit** `feat(tools): a new game's buttons sound, from sounds the Audio editor can change`.
+
+### Task 11: Splash (`@automata/ui-screens`)
+
+Behaviour reference: `ff:apps/client/src/ui/components/SplashRoot.svelte` (the hold, any press goes on, the reduced-motion
+rule). Its wordmark, art, progress bar and `StudioLogo.svelte` are FloorFifty's and are not copied.
+
+**Files:**
+- Create: `extensions/ui-screens/src/features/splash/SplashScreen.svelte`, `splash-step.ts`, `splash-copy.ts`,
+  `extensions/ui-screens/src/features/words/{en,ja,ko,es-419,pt-BR,zh-Hans}.json`, `words/context.json`,
+  `words/review/<lang>.json`, `words/screens-words.ts`, `extensions/ui-screens/src/entries/splash.ts`
+- Modify: `extensions/ui-screens/src/entries/index.ts`, `package.json` (exports `./splash`, `./words/*.json`), `README.md`
+- Test: `extensions/ui-screens/tests/unit/splash/splash-screen.test.ts`,
+  `extensions/ui-screens/tests/browser/splash/splash-screen.test.ts`; extend `tests/unit/screens/*.test.ts` lists
+
+**Interfaces:**
+- Consumes: `OpeningStep`, `OpeningContext` from `@automata/framework` (task 6); `DEFAULT_LOCALES`.
+- Produces:
+
+```ts
+export interface SplashCopy { readonly skip: string }               // en: 'Press any key or tap to skip'
+export interface SplashOptions {
+  readonly logo: { readonly src: string; readonly alt: string }      // the studio's image, the game's own file
+  readonly holdMs?: number                                           // default 1500
+  readonly copy?: SplashCopy | ((locale: string) => SplashCopy)      // default: this package's words in the locale
+}
+/** An opening step: the logo, held `holdMs` on the runtime's clock, ended early by any key, click or tap. */
+export function splashStep(options: SplashOptions): OpeningStep
+/** This package's words for a locale (the six, English otherwise): `{ splash: SplashCopy, credits: CreditsCopy }`. */
+export function screensWords(locale: string): { readonly splash: SplashCopy; readonly credits: CreditsCopy }
+```
+
+`SplashScreen.svelte` props: `logo`, `copy`, `onDone`. The image is centred, at most 60% of the shorter side; the skip
+line is under it; with reduced motion there is no fade. The step uses `context.services.clock` for the hold, never
+`setTimeout`, and resolves once, on whichever comes first (the hold, a press, the abort signal). It plays no sound.
+The screen folder reaches only `@automata/framework` and `svelte` (the package's copy-in rule); the words folder is
+its own feature.
+
+- [ ] **Step 1: Write the failing tests**
+
+```ts
+test('resolves after holdMs on the injected clock, not before', …)      // advance 1499: pending; 1: resolved
+test('a keydown, a pointerdown and a click each end it early', …)
+test('resolves once when a press and the timer both fire', …)
+test('the logo has the alt text; the skip line is the copy’s', …)
+test('an aborted signal resolves it and removes the screen', …)
+test('the default words follow the locale', …)                           // ja → screensWords('ja').splash.skip
+// real browser: phone, compact, iPad; en and xx-long
+test('the logo and the line fit with no document scroll', …)
+```
+
+- [ ] **Step 2: Run; confirm they fail.**
+- [ ] **Step 3: Implement.** Words: `shell_tap_to_start` and `shell_press_to_start` do not mean "skip", so draft all five
+  translations and record them unreviewed with `automata words import --catalog extensions/ui-screens/src/features/words`.
+- [ ] **Step 4: Run** `pnpm --filter @automata/ui-screens test:unit` and `test:browser` (Chromium).
+- [ ] **Step 5: Commit** `feat(ui-screens): a studio splash as an opening step` with a `patch` changeset.
+
+### Task 12: Credits (`@automata/ui-screens`)
+
+Behaviour reference: `ff:apps/client/src/ui/components/CreditsPanel.svelte`, `ff:apps/client/src/common/credits.ts`.
+FloorFifty's privacy note is the game's own and is not part of this panel.
+
+**Files:**
+- Create: `extensions/ui-screens/src/features/credits/CreditsPanel.svelte`, `credits.schema.ts`, `credits.content.ts`,
+  `credits-copy.ts`, `extensions/ui-screens/src/entries/credits.ts`
+- Modify: `entries/index.ts`, `package.json` (export `./credits`), the six words files, `README.md`
+- Test: `extensions/ui-screens/tests/unit/credits/{credits-schema,credits-panel}.test.ts`,
+  `extensions/ui-screens/tests/browser/credits/credits-panel.test.ts`
+
+**Interfaces (produced):**
+
+```ts
+// credits.schema.ts
+export interface CreditName { readonly name: string; readonly role?: string; readonly url?: string }
+export interface CreditsSection { readonly title: string; readonly names: readonly CreditName[] }
+export interface Credits { readonly sections: readonly CreditsSection[] }
+/** Strict. `title` and `role` are text a translator sees; `url` must be `https:`. At least one section, one name each. */
+export const creditsSchema: z.ZodType<Credits>
+export const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>
+// credits.content.ts, in the form of extensions/feel/src/features/frame/feel.content.ts
+/** The `credits` content kind: `content/credits/credits.toml`; section titles and roles are `localized()`. */
+export const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>
+// credits-copy.ts
+export interface CreditsCopy { readonly title: string; readonly close: string; readonly opens: (name: string) => string }
+// en: 'Credits', 'Close', 'Open {name}’s page'
+```
+
+`CreditsPanel.svelte` props: `credits: Credits`, `copy: CreditsCopy`, `onClose: () => void`,
+`onOpenLink?: (url: string) => void`, `text?: (section: number, name: number | undefined, authored: string) => string`
+(the game's content-text lookup for translated titles and roles; default returns `authored`). It is core's `Modal` with
+one `ScrollList` (the declared scroll region) of sections: a heading, then each name with its role. A name with a `url`
+is a button (at least 44 px, `aria-label` from `copy.opens`) only when `onOpenLink` is given; otherwise plain text. The
+panel never opens a window or sets `location` itself (call 11). Close has `data-sfx="back"`.
+
+- [ ] **Step 1: Write the failing tests**
+
+```ts
+// schema
+expect(creditsSchema.safeParse({ sections: [] }).success).toBe(false)
+expect(creditsSchema.safeParse({ sections: [{ title: 'Game', names: [{ name: 'A', url: 'http://x.test' }] }] }).success).toBe(false) // https only
+expect(creditsSchema.safeParse({ sections: [{ title: 'Game', names: [{ name: 'A', extra: 1 }] }] }).success).toBe(false)           // strict
+expect(creditsSchema.parse({ sections: [{ title: 'Game', names: [{ name: 'A', role: 'Design', url: 'https://x.test' }] }] }).sections[0].names[0].role).toBe('Design')
+// panel (jsdom)
+test('sections and names render in the order given', …)
+test('a link with a handler is a button that calls onOpenLink with the url', …)
+test('a link with no handler is plain text: no button, no anchor', …)
+test('Escape and Close call onClose', …)
+// real browser: phone, compact, iPad; en and xx-long; forty names
+test('the list scrolls inside the panel; Close stays whole and hit-testable; no document scroll', …)
+```
+
+- [ ] **Step 2: Run; confirm they fail.**
+- [ ] **Step 3: Implement.** Words: `title` from FloorFifty's `title_credits`, `close` from `shell_close`; draft `opens`.
+- [ ] **Step 4: Run** `pnpm --filter @automata/ui-screens test:unit` and `test:browser` (Chromium), and the package's
+  screens-rule and copy-in tests.
+- [ ] **Step 5: Commit** `feat(ui-screens): a credits panel drawn from a content file`.
+
+### Task 13: Achievements in `ruken.toml` and `automata check`
+
+Behaviour reference: `ff:apps/client/src/ruken/score-boards.ts`; `@ruken/manifest` (`vendor/ruken/ruken-manifest-0.0.0.tgz`).
+
+**Files:**
+- Modify: `packages/content/src/shared/game/game-config.schema.ts`,
+  `packages/tools/src/shared/ship/targets/ruken/ruken-toml.ts`,
+  `packages/tools/src/shared/check/check-source-steps.ts` (new `achievementsStep`), `run-check.ts`, `check-report.ts`,
+  `check-args.ts`, `app/help.ts`
+- Test: `packages/content/tests/unit/shared/game/game-config.schema.test.ts` (and its Ruken conformance cases),
+  `packages/tools/tests/unit/shared/ship/` (the `ruken-toml` test), `packages/tools/tests/unit/shared/check/achievements-step.test.ts`
+
+**Interfaces (produced):**
+
+```ts
+// game-config.schema.ts: shapes only, no limits (Ruken's parser is the judge)
+export type AchievementConfig = { readonly title: string; readonly description?: string; readonly board: string } &
+  ({ readonly reach: number } | { readonly top_percent: number } | { readonly top_rank: number })
+// GameConfig
+readonly achievements?: Readonly<Record<string, AchievementConfig>>
+// check-source-steps.ts
+export const achievementsStep: (gameDir: string) => StepEffect
+```
+
+- The Zod schema is a union of three strict objects (exactly one rule key), each with `title`, optional `description`
+  and `board`. It holds no length, count or percent limit.
+- `rukenToml` writes, after the boards and sorted by id, `[achievements."<id>"]` with `title`, `description` when set,
+  `board`, and the one rule key. A board's `title` is written too when set (it is in the schema and was not written).
+- `achievementsStep` reads `ship.config.ts` as the `boards` step does, builds the manifest text with `rukenToml` and
+  parses it with `parseManifest`. Each error whose code starts `ACHIEVEMENT_` or `LEADERBOARD_TITLE` becomes a finding
+  in plain words, with Ruken's own message after it:
+
+  | Code | Finding starts |
+  |---|---|
+  | `ACHIEVEMENT_ID_INVALID` | `achievement "<id>": the id must be lowercase letters, digits and hyphens.` |
+  | `ACHIEVEMENT_BOARD_UNKNOWN` | `achievement "<id>": its board is not one of this game's leaderboards.` |
+  | `ACHIEVEMENT_RULE_INVALID` | `achievement "<id>": it needs exactly one rule: reach, top_percent or top_rank.` |
+  | `ACHIEVEMENT_TEXT_INVALID` | `achievement "<id>": its title or description is empty or too long.` |
+  | `ACHIEVEMENT_LIMIT` | `this game declares more achievements than Ruken allows.` |
+
+  No `ship.config.ts`, or no achievements: no findings. The step is named `achievements`, runs after `boards`, and
+  `CHECK_HELP` gains `achievements  every achievement is one Ruken will accept`.
+- The `itch`, `web` and `tauri` targets ignore the table; add one assertion to each target's prepare test that a config
+  with achievements prepares as before.
+- Titles and descriptions reach the words workflow as a third game catalog, `achievements`, whose source is derived
+  from `ship.config.ts` (`achievement_<id>_title`, `achievement_<id>_description`) and whose translations are
+  `messages/achievements/<lang>.json`. Ruken's manifest takes one language today, so the manifest carries the source
+  text; the translations are kept for when it takes more. Add this to `gameCatalogs` with a test.
+
+- [ ] **Step 1: Write the failing tests**
+
+```ts
+// ruken-toml
+expect(rukenToml(configWith({ leaderboards: { best: { order: 'desc', min: 0, max: 999, title: 'Best score' } },
+  achievements: { 'score-20': { title: 'Twenty', description: 'Score 20.', board: 'best', reach: 20 },
+                  'top-ten': { title: 'Top 10%', board: 'best', top_percent: 10 } } })))
+  .toContain('[achievements."score-20"]\ntitle = "Twenty"\ndescription = "Score 20."\nboard = "best"\nreach = 20\n')
+test('the manifest with achievements parses with Ruken’s own parser', …) // manifestOf(toml).achievements has both
+test('a config with no achievements writes the same text as before', …) // snapshot of the existing fixture unchanged
+// schema
+test('two rules on one achievement are refused', …); test('no rule is refused', …)
+// step
+test('an unknown board is a finding in plain words', …) // message starts 'achievement "x": its board is not one of this game’s leaderboards.'
+test('a title of 49 characters is a finding, by Ruken’s rule, not ours', …)
+test('no ship.config.ts: no findings', …)
+```
+
+- [ ] **Step 2: Run; confirm they fail.**
+- [ ] **Step 3: Implement.**
+- [ ] **Step 4: Run** `pnpm --filter @automata/content exec vitest run --project unit tests/unit/shared/game` and
+  `pnpm --filter @automata/tools exec vitest run --project unit tests/unit/shared`.
+- [ ] **Step 5: Commit** `feat(tools): a game declares Ruken achievements beside its leaderboards` with `patch` changesets
+  for `@automata/content` and `@automata/tools`.
+
+### Task 14: Stale-build check
+
+Behaviour reference: `ff:apps/client/src/managers/boot-version-check.ts`.
+
+**Files:**
+- Modify: `extensions/net-server/src/features/operations/probes.ts` (`ProbeState.version`, `GET /version`), and where
+  `installProbes` is called in `extensions/net-server/src/app/start-server.ts` (pass the server's `GameVersion`)
+- Create: `extensions/net/src/features/client/version/check-server-version.ts`,
+  `extensions/net-ui/src/features/stale/stale-build-step.ts`, `StaleBuild.svelte`, `stale-copy.ts`
+- Modify: `extensions/net/src/entries/index.ts`, `extensions/net-ui/src/entries/index.ts`, `extensions/net/README.md`,
+  `extensions/net-server/README.md`
+- Test: `extensions/net-server/tests/unit/operations/probes.test.ts` (add cases),
+  `extensions/net/tests/unit/client/version/check-server-version.test.ts`,
+  `extensions/net-ui/tests/unit/stale/stale-build-step.test.ts`, `extensions/net-ui/tests/browser/stale/stale-build.test.ts`
+
+**Interfaces (produced):**
+
+```ts
+// net-server probes.ts
+export interface ProbeState { …; readonly version?: (() => GameVersion | undefined) | undefined }
+// GET /version → 200 { protocol, schemaHash, contentHash } with PROBE_HEADERS; 503 {} before the content has loaded
+// net check-server-version.ts
+export interface BuildFacts { readonly protocol: number; readonly schemaHash: string; readonly contentHash: string }
+export const buildFactsSchema: z.ZodType<BuildFacts>
+/** `stale` only when the server answered readable facts that differ. A throw, a bad shape, a 503: `current`. */
+export function checkServerVersion(fetchFacts: () => Promise<unknown>, own: BuildFacts): Promise<'current' | 'stale'>
+// net-ui stale-build-step.ts
+export interface StaleCopy { readonly message: string; readonly reload: string } // en: 'This game was updated. Reload to get the new version.', 'Reload'
+export interface StaleBuildOptions {
+  readonly facts: BuildFacts
+  readonly fetchFacts: () => Promise<unknown>            // the game's own fetch of `<server>/version`
+  readonly waitMs?: number                               // default 1500, on the runtime's clock
+  readonly reload?: () => void                           // default: reload the document
+  readonly copy?: StaleCopy | ((locale: string) => StaleCopy)
+}
+/** An opening step. Current, unreadable or slower than `waitMs`: resolves. Stale: shows the error and Reload, and stays. */
+export function staleBuildStep(options: StaleBuildOptions): OpeningStep
+```
+
+`StaleBuild.svelte` is core's `ErrorPanel` with code `stale-build`, the message and one primary action `reload`. The
+step never resolves while the stale panel shows, so the title of a stale tab is never reached; Reload is its way
+forward. The join check stays the authority (`refuseStaleVersion` is untouched). The six languages of `StaleCopy` are
+this package's own catalog (`extensions/net-ui/src/features/words/`), drafted and unreviewed: FloorFifty's
+`error_version_mismatch` names its game and is not taken.
+
+- [ ] **Step 1: Write the failing tests**
+
+```ts
+// probes
+test('GET /version answers the server’s version, uncached', …)     // 200, body equals version, cache-control no-store
+test('GET /version before the content loaded is 503', …)
+test('/health still carries no build facts', …)                     // body is exactly { ok: true }
+// check-server-version
+expect(await checkServerVersion(async () => own, own)).toBe('current')
+expect(await checkServerVersion(async () => ({ ...own, contentHash: 'ffffffffffffffff' }), own)).toBe('stale')
+expect(await checkServerVersion(async () => { throw new Error('offline') }, own)).toBe('current')
+expect(await checkServerVersion(async () => ({ protocol: 'x' }), own)).toBe('current')
+// step (jsdom, fake clock)
+test('current: resolves and shows nothing', …)
+test('stale: shows the message and Reload, and does not resolve', …)
+test('Reload calls reload', …)
+test('no answer within 1500 ms: resolves', …)
+// real browser, phone and compact: the panel fits, Reload is whole and 48 px, focused
+```
+
+- [ ] **Step 2: Run; confirm they fail.**
+- [ ] **Step 3: Implement.** In `extensions/net/README.md` add a "Tell a player their tab is out of date" section with the
+  three lines a game writes; in `extensions/net-server/README.md` add `GET /version` to the routes.
+- [ ] **Step 4: Run** `test:unit` in the three packages and net-ui's `test:browser` (Chromium).
+- [ ] **Step 5: Commit** `feat(net): an online game says its tab is out of date before the title` with `patch` changesets
+  for `@automata/net`, `@automata/net-server` and `@automata/net-ui`.
+
+### Task 15: The four examples and their journeys
+
+**Files:**
+- Create: `examples/2d/core/core-languages.ts`, `examples/2d/core/core-first-run.ts`,
+  `examples/2d/audio/audio-ui-sounds.ts`, `examples/2d/ui/ui-splash-credits.ts`,
+  `examples/2d/resources/sounds/{ui-press,ui-back,ui-focus}.wav` and a line each in `PROVENANCE.md`,
+  `examples/2d/resources/logo/studio.svg` (a plain placeholder mark drawn for this repository: a circle and the word
+  "Studio", DUEL palette, in `PROVENANCE.md`),
+  `examples/2d/tests/e2e/{core-languages,core-first-run,audio-ui-sounds,ui-splash-credits}.test.ts`
+- Modify: `examples/2d/package.json` (add `@automata/ui-screens`), `examples/2d/playwright.config.ts` (a third project,
+  `examples-ipad`, `use: { ...sizes.ipad, deviceScaleFactor: 1 }`, same `testDir` and ignore), `examples/README.md`
+  (four rows)
+
+Each file opens with the header the catalog checks (`// <module>-<name>: <title>`, `Shows`, `Controls`, `Packages`,
+`Difficulty`, `Tier`; no `Golden`, since none has a sim worth replaying beyond a still field). The synthesized sounds are
+made the way `chime.wav` was (`resources/sounds/PROVENANCE.md` says how); they are examples' own, not FloorFifty's.
+
+| File | Title line | What it does |
+|---|---|---|
+| `core-languages.ts` | `core-languages: The menus in six languages` | `locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' }`, `firstRunLanguage: false`, default screens. `Tier: core` |
+| `core-first-run.ts` | `core-first-run: A first run asks for a language and warns about flashing` | six locales, `photosensitivity: { switches: [one in-memory "Flashing" switch] }`. `Host:` set so the fake host is not Ruken-kind for the locale rule; if the examples' fake host is always `ruken`, add a header-free way in this file: pass `hosting: { … }` the standalone kind the example runner supports, and say so in the file's comment. `Tier: core` |
+| `audio-ui-sounds.ts` | `audio-ui-sounds: Buttons that sound, a Back that sounds different, one that stays silent` | `uiSounds: { press, back, focus }` from the three files; a `title.actions`-free page: default screens, whose Back and mute already carry `data-sfx`. `Tier: core` |
+| `ui-splash-credits.ts` | `ui-splash-credits: A studio splash, then a title with Credits` | `opening: [splashStep({ logo })]`, custom `screens` with `@automata/ui-screens`' Title (`extra: [{ id: 'credits', … }]`) that opens `CreditsPanel` over inline credits parsed by `creditsSchema`. `Tier: extension` |
+
+- [ ] **Step 1: Write the four journeys first** (they fail: the pages do not exist). Each uses `openHosted` and
+  `collectErrors` as `default-screens.test.ts` does, and ends with `expect(errors).toEqual([])`.
+
+```ts
+// core-languages
+//  title → play → pause → Settings; pick 日本語 (data-testid of the Language group’s option); the Settings title is ja’s
+//  word from @automata/framework/words/ja.json; reload the page; the title screen’s Play is still ja’s.
+// core-first-run
+//  first load: first-language-ko is visible; press first-language-ja; the warning’s title is ja’s; toggle the switch;
+//  press photosensitivity-continue; title-screen is visible and Play is focused.
+//  reload: title-screen is visible with no first-run screen (assert neither test id is attached).
+// audio-ui-sounds
+//  the page counts plays in `window.__uiSounds` (the example wraps its map in a function that records the name, then plays).
+//  click Play → ['press']; Pause, then Back/Resume marked data-sfx="back" → 'back' recorded; the mute toggle → nothing new.
+// ui-splash-credits
+//  the splash logo is visible with its alt text; a tap ends it; title-screen shows; press Credits; the panel lists the
+//  names; Escape closes it and focus is back on Credits.
+```
+
+  Read the words the journeys compare against from the catalogs; never write a translation into a test by hand.
+- [ ] **Step 2: Run** `pnpm --filter @af-examples/examples-2d test:e2e --project examples -g "core-languages|core-first-run|audio-ui-sounds|ui-splash-credits" -- --trace off`; confirm the four fail for the missing page.
+- [ ] **Step 3: Write the four examples.**
+- [ ] **Step 4: Run** the same command for `examples`, `examples-compact` and `examples-ipad`; then the catalog and
+  smoke tests (`examples.test.ts`) and `pnpm --filter @af-examples/examples-2d typecheck`. All pass in Chromium.
+- [ ] **Step 5: Commit** `feat(examples): languages, a first run, interface sounds, and a splash with credits`.
+
+### Task 16: Emberwick in six languages, with an achievement
+
+**Files:**
+- Create: `games/emberwick/messages/ui/{en,ja,ko,es-419,pt-BR,zh-Hans}.json`, `games/emberwick/messages/ui/context.json`,
+  `games/emberwick/messages/ui/review/<lang>.json`, `games/emberwick/src/features/screens/words.ts`
+- Modify: `games/emberwick/src/features/screens/emberwick-screens.ts` (panels from words, re-drawn on a language
+  change; the end screen submits the round's time), `src/app/make-game.ts` (`locale`, `hosting.wants`),
+  `ship.config.ts` (`content.languages`, `leaderboards`, `achievements`), `style.css` (a system font fallback for
+  Japanese, Korean and Chinese), `playwright.config.ts`
+- Test: `games/emberwick/tests/unit/screens/words.test.ts`, `tests/unit/ship-config.test.ts` (add cases),
+  `tests/e2e/emberwick-languages.test.ts`
+
+**Interfaces:**
+- `words.ts`: `emberwickWords(locale: string): EmberwickWords`, where `EmberwickWords` has one field per string in today's
+  `PANELS` (`splashHint`, `menuTitle`, `menuHint`, `play`, `keysMove`, `keysJump`, `keysPause`, `pause`, `pausedTitle`,
+  `resume`, `backToMenu`, `endTitle`, `playAgain`, `menu`, and the time line as `time: (seconds: string) => string`).
+  It reads the six JSON files (static imports) and matches the locale with `matchLocale`.
+- `make-game.ts`: `locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' }`, `firstRunLanguage` left at its default,
+  `hosting: { wants: ['menu', 'leaderboards'] }`.
+- `ship.config.ts`: `content.languages` the six; `leaderboards: { fastest: { order: 'asc', min: 1000, max: 3_600_000,
+  title: 'Fastest climb' } }`; `achievements: { 'ember-in-a-minute': { title: 'Ember in a minute', description: 'Reach
+  the ember in under 60 seconds.', board: 'fastest', reach: 60_000 } }`.
+- The end screen submits `Math.round(seconds * 1000)` to `fastest` through `services.leaderboards` (read
+  `features/leaderboards/leaderboards.manager.ts` for the call). The sim and `GoalReached` are not touched: no hash and
+  no golden may move, and `pnpm --filter @af-games/emberwick test:unit` proves it.
+
+- [ ] **Step 1: Write the failing tests**
+
+```ts
+test.each(DEFAULT_LOCALES)('%s has every word, with the time placeholder kept', …)
+test('the manifest carries the achievement', () => {
+  const manifest = manifestOf(rukenToml(config))
+  expect(manifest.achievements?.['ember-in-a-minute']).toEqual({ title: 'Ember in a minute',
+    description: 'Reach the ember in under 60 seconds.', board: 'fastest', reach: 60_000 })
+})
+// journey, one Playwright project per language (`use: { locale: '<tag>' }`), phone size:
+//  pass the first-run screen with the detected language; the menu’s Play reads the catalog’s word for that language;
+//  play, pause: the paused title and Resume read the catalog’s words; quit to menu.
+```
+
+- [ ] **Step 2: Run; confirm they fail.**
+- [ ] **Step 3: Implement.** Move the English out of `PANELS` into `messages/ui/en.json` and build the panels from
+  `emberwickWords(services.locale.current)`; subscribe to the locale for as long as the screen is open and redraw the
+  words in place (set `textContent`, never rebuild the panel, so focus stays). Text goes in with `textContent`.
+- [ ] **Step 4: Translate through the workflow,** as a translator would: `automata words export ja` (and the other
+  four) in `games/emberwick`, fill the CSVs (FloorFifty's text where the task 2 rule matches: Play, Paused, Resume;
+  drafts otherwise), `automata words import <lang> words-<lang>.csv`, then `automata words status`. Paste the status
+  output into the commit body. Do not commit the CSVs.
+- [ ] **Step 5: Run** `pnpm --filter @af-games/emberwick check`, `automata check` in the game's folder (the `words`,
+  `boards` and `achievements` steps pass), and `pnpm --filter @af-games/emberwick test:e2e -- --trace off` in Chromium:
+  the existing journeys and the six language projects.
+- [ ] **Step 6: Commit** `feat(emberwick): six languages through the translator's workflow, and an achievement`.
+
+### Task 17: Ember Hall (`games/base-3d`) in six languages
+
+Ember Hall already has Paraglide, its catalog at `src/messages/ui/{locale}.json` and core's default screens, so core's
+menus translate with no work. This task translates its own few words.
+
+**Files:**
+- Create: `games/base-3d/src/messages/ui/{ja,ko,es-419,pt-BR,zh-Hans}.json`, `src/messages/ui/review/<lang>.json`,
+  `src/messages/ui/context.json`; `games/base-3d/content/messages/<lang>.json` if its content has localized text
+- Modify: `games/base-3d/ship.config.ts` (`content.languages`), the content's language list where it is declared
+  (find it from `languagesOf` in `packages/content/src/shared/compile/compile-content.ts`), its journeys' first-run helper
+- Test: `games/base-3d/tests/unit/` (a `words.test.ts`: every language has exactly the source keys and placeholders, by
+  `translationProblems`)
+
+- [ ] **Step 1: Write the failing test.**
+- [ ] **Step 2: Run; confirm it fails** on the missing files.
+- [ ] **Step 3: Translate through the workflow** (`automata words export|import|status` in `games/base-3d`), as in task 16.
+- [ ] **Step 4: Run** `pnpm --filter @af-games/base-3d test:unit` and `automata check --only words` there. The game's
+  browser suites and journeys are the 3D workflow's: run them if this machine can (`pnpm ci:local`), and otherwise report
+  them as not run, with the helper change described.
+- [ ] **Step 5: Commit** `feat(base-3d): Ember Hall's words in six languages`.
+
+### Task 18: Guides, API report and index, changesets, final gates
+
+**Files:**
+- Modify: `docs/guides/publish-to-ruken.md` (an "Achievements" section: declare them beside `leaderboards`, one rule
+  each, Ruken awards them, `automata check` says what is wrong), `docs/guides/how-it-works.md` or `docs/guides/index.md`
+  (a "Languages" section: the six, `automata words`, the ledger, what unreviewed means; and "The first run": language,
+  warning, splash), `docs/cheatsheet.md` and the agent package's API reference (written by `pnpm api-index --write`),
+  `tooling/api-report/reports/*.api.md` (written by `pnpm api-report --update`), `docs/status.md`,
+  `docs/refactor/progress.md` (one line pointing at this workstream), `docs/superpowers/progress.md`
+
+- [ ] **Step 1:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, `pnpm agent-skills`. Read each diff:
+  every new export has a doc comment a first-time author can follow.
+- [ ] **Step 2:** `pnpm format`, then `pnpm check`. Fix what it finds (`knip` on unused exports, `check-changesets` on a
+  published package with no changeset).
+- [ ] **Step 3:** `pnpm test:browser:2d` and the examples' and Emberwick's journeys in Chromium, `--trace off`.
+- [ ] **Step 4: Check "Done means" line by line** and write the result in `docs/superpowers/progress.md`:
+  - the four examples' journeys pass at phone, compact and iPad sizes (which projects, which commit);
+  - Emberwick's journeys pass in each of the six languages; its manifest carries the achievement (the unit test's name);
+  - `automata words status` prints the unreviewed list (paste the counts per language for core, ui-screens, net-ui,
+    Emberwick and Ember Hall); `automata check` fails on a character a font cannot draw (the test's name);
+  - `pnpm check` passes; API reports and the index are updated; changesets are written (list them);
+  - not run here: WebKit, Firefox, real devices, the 3D workflow if so. These are the Owner's.
+- [ ] **Step 5: Commit** `docs: shared polish, the guides, the API index and the record`, push, and report the commit to
+  the coordinator.
+
+---
+
+## Self-review (done when the plan was written)
+
+- **Spec coverage:** item 1 → tasks 1 to 5, 16, 17; item 2 → 6, 7; item 3 → 6, 8; item 4 → 9, 10; item 5 → 11, 12;
+  item 6 → 13, 16; item 7 → 14; the four examples → 15; "Done means" → 18. The spec's "left to the builder" list is
+  calls 1, 2, 8, 9 and 10. The website needs no code (the spec says so); the Owner's question about
+  `automata-website` stays open in the tracker.
+- **Names used across tasks:** `OpeningStep`, `OpeningContext`, `SeenFlags` (6) are consumed by 7, 8, 11 and 14;
+  `DEFAULT_LOCALES` (1) by 2, 15, 16; `Catalog`, `translationProblems`, `wordsState` (3) by 4, 5, 17; `UiSounds` (9) by
+  10 and 15; `creditsSchema`, `CreditsCopy` (12) by 11's `screensWords` and by 15.
+- **Not verified while planning** (the executor checks first and stops if wrong): the package build copies JSON into
+  `dist` (task 2, step 7); the examples' fake host kind for the language rule (task 15); the form of a cue in the
+  template's `audio.toml` (task 10); a Latin-only font already among content's test fixtures (task 5).
