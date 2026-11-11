@@ -19,8 +19,8 @@ is the next spec and inherits all of this.
 
 1. Every game's menus (title, pause, settings, save slots, errors, prompts) are in six languages without the game
    doing anything.
-2. A person who translates a game has a workflow: send words out, take them back, see what is unreviewed, and know
-   the font can draw them.
+2. A person who translates a game has a workflow: send words out, take them back, see what is missing or stale, and
+   know the font can draw them.
 3. The first run of a game asks for a language, and warns about flashing where the game says it flashes.
 4. Every button makes a sound by default.
 5. A game gets a splash with its studio's logo and a credits panel from data.
@@ -39,7 +39,7 @@ is the next spec and inherits all of this.
 
 - A second copy of anything Ruken owns. Achievement limits and rule shapes come from `@ruken/manifest`, never retyped.
 - A sound, a warning or a language screen a game cannot turn off or restyle.
-- A translation shipped as reviewed when no person read it.
+- Code, words or art copied from FloorFifty. It is the reference for behaviour; everything here is written new.
 - A touch target under 44 px or a screen that fails at phone size.
 
 ## Constraints
@@ -68,8 +68,9 @@ The Owner handed the placement to the coordinator; C is the coordinator's call.
 
 ## The design, item by item
 
-Sources are FloorFifty paths under `apps/client/src/` unless they start elsewhere. Port the behaviour and its tests as
-behaviour specs; rewrite onto the framework's own pieces, with no FloorFifty branding or art.
+The FloorFifty paths (under `apps/client/src/` unless they start elsewhere) are references: read them to learn how the
+thing behaves, then write it new on the framework's own pieces. Nothing is copied from FloorFifty: no code, no
+translations, no branding, no art (the Owner, 2026-11-11: "we shouldn't be copying directly anyway").
 
 ### 1. Six languages and the translator's workflow
 
@@ -82,17 +83,15 @@ Simplified and every Portuguese on Brazilian (`i18n/detect.ts`). The framework a
 `copy.screens`) ships in all six. A game that sets a language gets translated menus with no work; `copy.screens` still
 overrides any of it.
 
-**Where the translations come from.** Where a framework string means the same as a FloorFifty string, take
-FloorFifty's reviewed translation (`apps/client/messages/ui/<tag>.json`, reviews in `docs/i18n/review/`). The rest are
-drafted and recorded as **unreviewed** in a ledger the workflow below prints. A human review is the Owner's to arrange;
-the build never calls a draft reviewed.
+**Where the translations come from.** They are written new for the framework's own strings, in all five languages,
+and shipped. There is no review state and no review round (the Owner, 2026-11-11: "I don't care about the review for
+translations").
 
-**The translator's workflow (`@automata/tools`, Node).** A new `automata words` command, from FloorFifty's
-`tools/i18n` (`catalogue`, `csv`, `review`, `characters`, `cli`; about 500 lines):
+**The translator's workflow (`@automata/tools`, Node).** A new `automata words` command (the reference is
+FloorFifty's `tools/i18n`: `catalogue`, `csv`, `characters`, `cli`; its `review` part is not wanted):
 - `automata words export <lang>`: one CSV of key, source, current translation and a note, for a translator.
 - `automata words import <lang> <file>`: takes the CSV back, refusing unknown keys and broken placeholders.
-- `automata words status`: per language, what is missing, what changed in the source since it was translated, and
-  what is unreviewed.
+- `automata words status`: per language, what is missing and what changed in the source since it was translated.
 - `automata words check`: every character each language uses can be drawn by the game's fonts; `automata check` runs it.
 
 It reads and writes the message files the content compiler already produces (`content/messages/<lang>.json`, inlang
@@ -172,14 +171,12 @@ documented in `extensions/net/README.md` and covered by a journey.
 ## The website
 
 The framework's `site/` is the site: it reads the guides, the API index and `examples/` at build time. The separate
-`mcthaydt/automata-website` repository last moved on 2026-11-08 and looks superseded by it. This work changes no code
-in either; the new examples and guide lines reach the site through the framework's build. **For the Owner:** confirm
-`automata-website` is retired, or say what in it is still wanted.
+`mcthaydt/automata-website` repository is retired (the Owner, 2026-11-11) and is out of this work, as is
+`mcthaydt/automata-skills`. The new examples and guide lines reach the site through the framework's build.
 
 ## Left to the builder
 
 - The exact `defineGame` field names, the copy keys, and how the first-run steps sit in `app/flow/`.
-- Which FloorFifty strings match which framework strings.
 - The sound names beyond `back` and `none`, and the starter sounds.
 - The credits file's schema.
 
@@ -187,7 +184,7 @@ in either; the new examples and guide lines reach the site through the framework
 
 - The four examples run and their journeys pass in Chromium at phone, compact and iPad sizes.
 - Emberwick's journeys pass in each of the six languages' menus, and its Ruken manifest carries an achievement.
-- `automata words status` prints the unreviewed list, and `automata check` fails on a character a font cannot draw.
+- `automata words status` prints what is missing or stale, and `automata check` fails on a character a font cannot draw.
 - `pnpm check` passes; API reports and the index are updated; changesets are written.
 - Reported, not claimed: WebKit, Firefox and real devices are the Owner's.
 
@@ -195,8 +192,8 @@ in either; the new examples and guide lines reach the site through the framework
 
 1. Placement by owner (approach C), including the warning and interface sounds in core.
 2. FloorFifty's six languages become the framework's default set.
-3. Drafted translations ship marked unreviewed rather than waiting for a reviewer.
+3. Settled by the Owner: translations are written new and shipped, with no review state.
 4. A host-supplied locale skips the first-run language screen.
 5. No example for achievements or the stale-build check.
-6. Specs and the tracker for this workstream live in `docs/superpowers/`, as the Owner's workflow says; the refactor's
-   own record stays in `docs/refactor/`.
+6. Settled by the Owner: refactor work is recorded in `docs/refactor/`, everything else in `docs/superpowers/`. This
+   work adds features, so it is here.

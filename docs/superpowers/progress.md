@@ -22,8 +22,8 @@ runs in its own session on its own branch and hands off through committed docume
 | Stage | Session | Branch | State |
 |---|---|---|---|
 | 1. Spec | The coordinator (`session_01HNdX7JDtQV1qVssEcnsxHM`) | `claude/optimistic-newton-yszrte` | Done 2026-11-11. The Owner said to begin ("begin with adding in Missing from the framework ... then do A"), so the stages run without waiting; the six calls stay open to correction |
-| 2. Plan | Fable 5.2, medium | `claude/shared-polish-plan` | Started 2026-11-11 |
-| Merge | One long-lived session | none of its own | Started 2026-11-11 |
+| 2. Plan | Fable 5.2, medium (`session_01HNdX7HfQXxQqDGztKzgibK`) | `claude/shared-polish-plan` | Started 2026-11-11 |
+| Merge | One long-lived session (`session_01HNdX7LEALEpFdpPWLXPuy7`) | none of its own | Started 2026-11-11; merged the spec as #608 (`6fa386e9`) |
 
 ## Findings so far (2026-11-11)
 
@@ -40,5 +40,12 @@ runs in its own session on its own branch and hands off through committed docume
 
 ## Open, for the Owner
 
-- Correct any of workstream 1's six calls (the work proceeds meanwhile).
-- Is `mcthaydt/automata-website` retired in favour of the framework's `site/`?
+- The framework has 122 branches besides `main` from other workstreams; the merge session leaves them alone. Say if
+  it should clean them up, and by what rule.
+
+## The Owner's decisions (2026-11-11)
+
+- `automata-website` is retired; it and `automata-skills` are out of this work. `automata-plus` is cut.
+- Records: refactor work in `docs/refactor/`, everything else in `docs/superpowers/`.
+- Translations are written new and shipped; no review state or review rounds.
+- Nothing is copied from FloorFifty: it is the reference for behaviour only.
