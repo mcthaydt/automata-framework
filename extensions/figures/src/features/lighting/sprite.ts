@@ -78,10 +78,15 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
   // What each texel is lit from, read once: its colour (a fabric's ground where the tile is laid, else the painted colour; −1 for
   // an empty texel), its row and step, and whether it holds (rule 1). Colours run in patches, so the last one is reused.
   const ground = new Int32Array(n).fill(-1), rows = new Int8Array(n), steps = new Int8Array(n), held = new Uint8Array(n);
-  let lastColour = -1, lastRow = 0, lastStep = 0, lastHeld = 0;
+  let lastColour = -1, lastRow = 0, lastStep = 0, lastHeld = 0, x0 = w, x1 = -1, y0 = h, y1 = -1;
   for (let k = 0; k < n; k++) {
     const o = k * 4;
     if (!src[o + 3]) continue;
+    const kx = k % w, ky = (k - kx) / w;
+    if (kx < x0) x0 = kx;
+    if (kx > x1) x1 = kx;
+    if (ky < y0) y0 = ky;
+    if (ky > y1) y1 = ky;
     const from = weave !== null && weave.on[k] === 1 ? weave.ground : src, c = colourAt(from, o);
     ground[k] = c;
     if (c !== lastColour) {
@@ -95,7 +100,7 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
   const lit = new Float32Array(n), hasN = new Uint8Array(n), pc = Math.cos(f.pitch), ps = Math.sin(f.pitch), m = lamps.length;
   const lx = Float64Array.from(lamps, l => l.dir[0]), ly = Float64Array.from(lamps, l => l.dir[1]), lz = Float64Array.from(lamps, l => l.dir[2]), ls = Float64Array.from(lamps, l => l.strength);
   let sum = 0, count = 0;
-  if (total > 0) for (let k = 0; k < n; k++) {
+  if (total > 0) for (let y = y0; y <= y1; y++) for (let x = x0, k = y * w + x0; x <= x1; x++, k++) {
     const o = k * 4;
     if (!src[o + 3] || !N[o + 3]) continue;
     // `viewToWorld` (lamps.ts), written out so the loop allocates nothing.
@@ -115,7 +120,7 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
     // neighbour above is the picture plane's +y. The painter outlines the silhouette (a step 0 or ink texel, which holds), so the
     // rim is the first texel in from it.
     const empty = (px: number, py: number) => px < 0 || py < 0 || px >= w || py >= h || ground[py * w + px] < 0;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       const k = y * w + x;
       // A texel with no normal (a flat material, a held item) is lit by the flat light alone: no form, no rim.
       if (ground[k] < 0 || held[k] === 1 || !hasN[k]) continue;
@@ -129,10 +134,12 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
   }
   // Rule 5: a lone texel takes what its same-coloured neighbours agree on. From a copy, so the order does not matter.
   const settled = form.slice();
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const k = y * w + x;
     if (ground[k] < 0 || held[k] === 1) continue;
-    const c = ground[k];
+    const c = ground[k], f0 = form[k];
+    // Nothing to settle where every neighbour (empty ones count 0) has this texel's own form.
+    if ((x === 0 || form[k - 1] === f0) && (x === w - 1 || form[k + 1] === f0) && (y === 0 || form[k - w] === f0) && (y === h - 1 || form[k + w] === f0)) continue;
     let near = 0, v = 0, agree = true;
     for (let i = 0; i < 4; i++) {
       const nx = x + DX[i], ny = y + DY[i], j = ny * w + nx;
@@ -154,7 +161,7 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
   // Rules 6 to 8, per texel; a colour and its step make one result, so each is worked out once (and the last is reused).
   const memo = new Map<number, number>();
   let lastKey = -1, lastCol = 0;
-  for (let k = 0; k < n; k++) {
+  for (let y = y0; y <= y1; y++) for (let x = x0, k = y * w + x0; x <= x1; x++, k++) {
     if (ground[k] < 0) continue;
     const on = weave !== null && weave.on[k] === 1;
     // A texel nothing changes keeps the painted bytes (a fabric's tile was laid by the painter on the same ground).
