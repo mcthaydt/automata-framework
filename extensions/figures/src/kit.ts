@@ -10,5 +10,8 @@ export { gbuffer, rasterize, resolve, cleanup, noise3, STYLE, TRI, VERT, type GB
 export { duel, oklab } from './features/paint/paint';
 export { RAMPS, RAMP_OUTLINE } from './features/paint/duel-ramps';
 export { placed, superquadric, limb, type Mesh, type Material } from './features/body/parts';
+// For a host's own garment kinds (H1): the part groups, skin weights, and the limb and ring shapes they are built from.
+export { GROUP, weights, type Limb, type Ring } from './features/body/parts';
 export { axisAngle, normalize, apply, sub, cross, dot, lerp, type V3 } from './lib/math';
+export { qmul, smooth } from './lib/math';
 export { fk, J } from './features/body/rig';

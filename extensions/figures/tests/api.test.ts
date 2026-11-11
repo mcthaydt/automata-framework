@@ -12,7 +12,7 @@ import type { GBuffer, Mesh as KitMesh, Material, V3 } from '../src/kit';
 /** Every runtime name src/index.ts exports. A removal or rename is a breaking change (docs/contract.md): it raises
  * STAGE_VERSION and the package version, and is written in the changelog; so it is made on purpose, here too. */
 const INDEX_NAMES = ["ACTIONS", "BASE", "DEFAULT_HEAD", "DEFAULT_SLIDERS", "EXPRESSIONS", "FIGURE_KEY", "Figure", "GAITS", "GAMEPLAY", "HAIR_STYLES", "ITEMS", "J", "JOINTS", "POSES", "RAMPS",
-  "RAMP_OUTLINE", "SEATS", "SPRITE_PITCH", "STAGE_VERSION", "SWATCHES", "ScriptedActor", "TIMES", "Troupe", "actionOf", "applyHold", "cellOf", "characterOf", "compose", "densityFor", "envelopeOf", "evaluate",
+  "RAMP_OUTLINE", "SEATS", "SPRITE_PITCH", "STAGE_VERSION", "SWATCHES", "ScriptedActor", "TIE_BIAS", "TIMES", "Troupe", "actionOf", "applyHold", "cellOf", "characterOf", "compose", "densityFor", "envelopeOf", "evaluate",
   "fromDef", "gameplay", "hero", "itemOf", "lengthOf", "lightFigure", "lookAt", "member", "project", "registerFabric", "registerFinish", "registerGarment", "registerHairPiece",
   "registerOutfitHooks", "scriptOf", "seated", "stageFrame", "standing", "texelDepths", "view", "viewOf", "walking", "zoomOf"];
 
@@ -21,8 +21,8 @@ const INDEX_NAMES = ["ACTIONS", "BASE", "DEFAULT_HEAD", "DEFAULT_SLIDERS", "EXPR
 describe('the public surface', () => {
   const def = BASE[0].def;
   it('the painter\'s toolkit exports exactly these names (a change is a breaking change: docs/contract.md)', async () => {
-    expect(Object.keys(await import('../src/kit')).sort()).toEqual(['J', 'RAMPS', 'RAMP_OUTLINE', 'STYLE', 'TRI', 'VERT', 'apply', 'axisAngle',
-      'cleanup', 'cross', 'dot', 'duel', 'fk', 'gbuffer', 'lerp', 'limb', 'noise3', 'normalize', 'oklab', 'placed', 'rasterize', 'resolve', 'sub', 'superquadric'].sort());
+    expect(Object.keys(await import('../src/kit')).sort()).toEqual(['GROUP', 'J', 'RAMPS', 'RAMP_OUTLINE', 'STYLE', 'TRI', 'VERT', 'apply', 'axisAngle',
+      'cleanup', 'cross', 'dot', 'duel', 'fk', 'gbuffer', 'lerp', 'limb', 'noise3', 'normalize', 'oklab', 'placed', 'qmul', 'rasterize', 'resolve', 'smooth', 'sub', 'superquadric', 'weights'].sort());
   });
   it('the public surface exports exactly these names', async () => {
     expect(Object.keys(await import('../src')).sort()).toEqual(INDEX_NAMES);
