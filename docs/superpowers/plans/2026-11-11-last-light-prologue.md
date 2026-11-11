@@ -43,9 +43,8 @@ Each branch has one draft pull request. One session may build all three in order
 when the one before it has passed its tasks' checks. A fault a game task finds in a framework addition is fixed on
 the game's branch with its test first (it is the same repository), and the commit says which task it amends.
 
-Workstream 1's plan has a task that puts Ember Hall in six languages (its task 17). If workstream 1 has not reached
-it when this plan reaches task 19, the coordinator drops it there; if it has, task 20 deletes the result with the
-rest. This plan does not depend on it.
+Workstream 1's task that put Ember Hall in six languages (its task 17) is already cut there (the coordinator,
+2026-11-11), so nothing of workstream 1 leans on Ember Hall.
 
 ## Tracking
 
