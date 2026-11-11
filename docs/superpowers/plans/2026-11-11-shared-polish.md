@@ -40,7 +40,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | done | `ceb2a014` |
 | 6 | The opening sequence and the seen flags (core) | 2, 3 | done | `dd38dc77` |
 | 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | `6c0ccee0` |
-| 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `PENDING8` |
+| 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `d2e9d7f9` |
 | 9 | Interface sounds | 4 | todo | |
 | 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | todo | |
 | 11 | Splash (`@automata/ui-screens`) | 5 | todo | |
