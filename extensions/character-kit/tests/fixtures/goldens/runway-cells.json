@@ -5,15 +5,15 @@
     "commit": "cb4aa9f40cbaa2894ff7bf3d818db34ca2bde0d6",
     "files": "demo/runway/{characters,library,wardrobe}.ts"
   },
-  "figureBuilder": "d6e3c9fbe4c769da22663b255d9caa746a07f971",
+  "figureBuilder": "d5ca0552b6329c72f5747c3129f95fceea68bae6",
   "density": 2,
   "directions": [0, 1, 3, 6],
   "cells": {
     "mara": {
       "0": "4b59e622f6d327da1f755675cdd59cf2",
-      "1": "7ab1e94434099e5356ad9de2fed44342",
+      "1": "b044a5105fcb50ebc151d1acd18f0d16",
       "3": "3f2a2fc02326bd5aa89a06c2f4b15e15",
-      "6": "5b69239761e45a261a8f17085091b6bb"
+      "6": "687ae5bb9e4c863411540f72a46a927d"
     },
     "dre": {
       "0": "7e38604630851170e4aa3875d4829646",
@@ -23,9 +23,9 @@
     },
     "june": {
       "0": "6b9b5e1a85b5dfa554d2b9ddd6062f6a",
-      "1": "022a29d88308afc57b53f23b960a91d0",
-      "3": "69e3baeeb911092a4aa69e539a26a9a8",
-      "6": "23cc518a62b8cbea889db5867cc12d74"
+      "1": "5d3fcb3aeffcbc682347ed00e32687c4",
+      "3": "25ad28c20c30abe61d99b092772108b0",
+      "6": "c934b00b760fbb4a2f554f3b1422a213"
     },
     "theo": {
       "0": "7abf649471ab22fcfd1629365c97a20e",
@@ -40,16 +40,16 @@
       "6": "0299f14889195875dcf89ae196d85f9e"
     },
     "sam": {
-      "0": "d1169f2e07444e474f119c9ebbe3e4be",
-      "1": "3ecf343a92950539321ff4923db87abf",
+      "0": "fd47cfb1b443a51ef58f9ad932203834",
+      "1": "c2b03d20d4a2412f9298cc2e1e65c97e",
       "3": "06e698048ff3ab42bf0ffebcb7c78919",
       "6": "c8e17e994bcd84400f2f4d1908b1d82b"
     },
     "nia": {
-      "0": "2160edd5a9fc092575d5dfafbcc80aaa",
+      "0": "ddb32ecb5a87995a3e907054efeb86e4",
       "1": "57e5d35ad9beb6ae4b851d8660683913",
       "3": "ad1bdeb04d3eb6cb65ccb0833e3d9fad",
-      "6": "d4148907ac1ded6abd288809f8a8985f"
+      "6": "252ca0e03d3335077f7ebcd6c0678d71"
     },
     "otto": {
       "0": "1f41fb5214b361de2b4f0e608b0bf3d7",
@@ -100,23 +100,23 @@
     "mara": {
       "thin": {
         "0": "494e1ad374f991a8ad758ce67b111d43",
-        "5": "a2e44a381a853ca38cd021c202e8faa8"
+        "5": "c5cd4cc65d197a79bf1d910cc8a1dc0c"
       },
       "heavy": {
         "0": "1e18d3cc2003ef16d236c27978a32ccd",
-        "5": "dc792fca468902d98d75f0432fded785"
+        "5": "b6d36a96850632a72a0c54a31458c99d"
       },
       "muscular": {
         "0": "e684d0b7e5c414f2eb9ee7e992e666e4",
-        "5": "632eafd40e3873806b2bb8841d63b2c6"
+        "5": "7263f2aec9f879c65f31b1b6d8bb829d"
       },
       "curvy": {
         "0": "551baa2169aa243d03cb76d60f488361",
-        "5": "8f24b131512a3080052bfc74036f1bad"
+        "5": "6f09f5c09934592349dbc47d0081dfb9"
       },
       "short": {
         "0": "afe2efedae597fba0046fd63fb09f213",
-        "5": "47cc6aacc99774b70b29587c982e6b9d"
+        "5": "8dd098ce43aa3adaf15e2bce1d6bc0fd"
       }
     },
     "dre": {
@@ -143,24 +143,24 @@
     },
     "june": {
       "thin": {
-        "0": "93dad1eadb83607b39f218fd28dfd34f",
-        "5": "61f51d8dd48185f40704d48b6e7511ed"
+        "0": "a245cf60b03862607b6c259b5551004e",
+        "5": "bc39fb2945f53d25c66be4cfd0981c28"
       },
       "heavy": {
-        "0": "d9ecc7a54fcf66f38560d016172984cb",
-        "5": "8019c900576d6c9bbf02a5f870e73621"
+        "0": "6c0e599cdbcca8051e916447e94d4a4c",
+        "5": "b3fbb86fade81209a468da06f665e187"
       },
       "muscular": {
         "0": "295f44c5f603949b1b91e6a5a6a579f8",
-        "5": "fef242324f2f8bf20d0d50bbd7526e6d"
+        "5": "712232a46077e5ee1e69c664fbad9833"
       },
       "curvy": {
-        "0": "a4f33439d6b1431ca9cbe8c85673e941",
-        "5": "f9e72524b5968784ac4f18c760a8721f"
+        "0": "b9b383e4d49aaf10be77edec6ddb0675",
+        "5": "55ac514380f9e6cec00880f889edd311"
       },
       "short": {
-        "0": "ee544ceed17b7e55889c1c8589e7c543",
-        "5": "8ea812de589bfce2b4832671555498ab"
+        "0": "d477a9a7472728886ce0e1cf8f822ccd",
+        "5": "07281b2e8afcc4a930c8b01c701a0c29"
       }
     },
     "theo": {
@@ -192,15 +192,15 @@
       },
       "heavy": {
         "0": "e5b3826ddbff608daa4f4f657b504ba2",
-        "5": "b8568c1f28abd21c4f8266bd5268c6eb"
+        "5": "5a75a003a30c79d27e24fb584415e965"
       },
       "muscular": {
         "0": "cb1e1f8c7181b9b37e401bb76cb76c7e",
-        "5": "f43a442b3fcfcfe798777346aefa188e"
+        "5": "a1c7c3fab8df14a59e47c366b1dd5897"
       },
       "curvy": {
         "0": "f97f586ae46cc151ea54a3edfcf3aec0",
-        "5": "0615a52a44be8e835010906cb7b7e43b"
+        "5": "17ca269fb73074659f18b5665c52f4c5"
       },
       "short": {
         "0": "473ee4a6ad096f7a9eac2dc0db3a5975",
@@ -209,46 +209,46 @@
     },
     "sam": {
       "thin": {
-        "0": "b3e359031ac40eed745e073813287134",
-        "5": "c91fa255a3d10d2e15eb576ce37fdcb9"
+        "0": "9fc852b6dbf88468cf2965bba2133dc4",
+        "5": "4022763d398420b11560c2035ed09de6"
       },
       "heavy": {
-        "0": "248f965b5fd936e723e32ca105195993",
+        "0": "8cf08fd63ab0e5c54508baed47c0eb1d",
         "5": "834ac3456a94ec501fd1881ed0eee8a5"
       },
       "muscular": {
-        "0": "6a78524debe4a95478b4155ba3f5bcb1",
+        "0": "3b5a63642839af8c439c71a2a8eb9002",
         "5": "13e2aaf1ecb4d7f97ad872dd20aa87f2"
       },
       "curvy": {
-        "0": "a0a08ceb69f2c1b499d7207691b8c615",
+        "0": "b8f95112b2670cb1ab0f0624c88793f3",
         "5": "099695889ffc58560143f378654b9090"
       },
       "short": {
-        "0": "ccd499735ef6c17f1c4835584bbdc30e",
+        "0": "44bf2a5c614dc0019b938cbfcd033b16",
         "5": "21e08b367baaf14818158f0606aa7fc8"
       }
     },
     "nia": {
       "thin": {
-        "0": "713010728966bde766492fee6637f4d4",
-        "5": "5059b7908a8fc40e0c112cc0b635af41"
+        "0": "259c7a376180713d893c1fdf5ac99b3e",
+        "5": "d0cabd9398a0a84be8646e249b69e9a7"
       },
       "heavy": {
         "0": "a7734d80ce9d0d4433df36a680ddb549",
-        "5": "0d5d66f9da489ddcd854232b1e72f98c"
+        "5": "1a0f1a2ccc89655b0a613f672effb54e"
       },
       "muscular": {
         "0": "b401500b30edefb82a15f671158afd21",
-        "5": "fe649c4d77a92eecd2408818f50e0809"
+        "5": "afcf714491f18da76b42dcbc44829ecf"
       },
       "curvy": {
         "0": "36a43644c9ab0b5758ae2ea92b2a306f",
-        "5": "e11cdd7d9c920311e272d58c049ad083"
+        "5": "65ff8847a7cb9e23ce4df4d2a02ad330"
       },
       "short": {
         "0": "48b59465d5749108ff98fc0ca0153c18",
-        "5": "081a16a5f4eba1610cd4857c1175b71c"
+        "5": "2466c52cf0f7ead04fcd6f3aa65e1429"
       }
     },
     "otto": {
@@ -258,19 +258,19 @@
       },
       "heavy": {
         "0": "99bda202a13a3e1db4a50f842297c545",
-        "5": "a6005de0478f4ae5fe845da00f959773"
+        "5": "c9fffb64d2b6b846f74164fa1e8275bf"
       },
       "muscular": {
         "0": "496d02140dadb727300ee79751f18a73",
-        "5": "e8d0324b6462931d694e7e5a6f2292cc"
+        "5": "def2188ca3866fdb6c746e0f540d40bf"
       },
       "curvy": {
         "0": "205080212d92e1746ee1dafa06a3f0e0",
-        "5": "55402048e3ff98cebf17eace61a8d8b1"
+        "5": "05ea69fff52bc152bf26c34f92e937d4"
       },
       "short": {
         "0": "5e3c433d24775a862aede4cff159e286",
-        "5": "1a6da8bfd86f9057de979dc06d19f8e9"
+        "5": "748284f20bb4dcf7329398f3de0dd350"
       }
     }
   }
