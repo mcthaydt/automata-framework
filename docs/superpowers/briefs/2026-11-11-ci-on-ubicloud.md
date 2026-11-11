@@ -56,8 +56,14 @@ Measured on `main` on 2026-11-11, to be re-measured then:
 - The 3D workflow fetches the private submodules with the Owner's read-only `SUBMODULES_TOKEN`. An Ubicloud job needs
   that secret too, or every 3D check fails on an empty `vendor/FigureBuilder`. It goes away if workstream 4 folds
   FigureBuilder into the framework.
-- The 3D browser suites need WebGL. A fresh Ubuntu machine has no GPU, so they either run on software WebGL there (as
-  the cloud sessions do) or stay on the PC as "needs the GPU". The frame-budget suite needs a real GPU by its own rule.
+- **The Owner, 2026-11-11, for this repository:** "we can do GPU test on the mac, but we should be using the webgl
+  otherwise". So the jobs that need a real GPU (the frame budget, and any parity run that must be on real hardware) run
+  on the Mac, and every other browser job, the 3D suites included, runs on Ubicloud with WebGL, which on a machine with
+  no GPU is software WebGL, as the cloud sessions already use. The test that pins which jobs run where names the Mac's
+  GPU jobs explicitly.
+- EnvironmentBuilder is not fetched by any workflow and does not need to be: the framework imports none of its code
+  (`.gitmodules` lists FigureBuilder only; the look is written in `@automata/3d` and the world kit). Its frames are a
+  comparison, drawn by EnvironmentBuilder itself and committed as images.
 - Cross-engine parity (Chromium, WebKit, Firefox) installs browsers in the job; WebKit and Firefox have never run in a
   cloud session, so their first Ubicloud run is the first evidence either way.
 - Until this is live, each stage session and the merge session run the gates themselves, and report what did not run.
