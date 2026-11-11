@@ -5,7 +5,7 @@
 // grey panel that says so. Then one sheet a scene of the gameplay cameras (`af`, `tll` in scene.ts) on WebGL.
 //
 //   ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules   # once; git-ignored
-//   EB_DIR=<dir> node spikes/eb-look/shoot.mjs [out dir]                 # default docs/superpowers/eb-look/baseline
+//   EB_DIR=<dir> node spikes/eb-look/shoot.mjs [out dir]                 # default docs/refactor/eb-look/baseline
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -15,7 +15,7 @@ const repo = new URL('../..', import.meta.url).pathname
 const require = createRequire(join(repo, 'packages/3d/package.json'))
 const { chromium } = require('playwright')
 
-const out = process.argv[2] ?? join(repo, 'docs/superpowers/eb-look/baseline')
+const out = process.argv[2] ?? join(repo, 'docs/refactor/eb-look/baseline')
 const ebDir = process.env.EB_DIR
 const SCALE = Number(process.env.SCALE ?? 2)
 const port = Number(process.env.PORT ?? 5391)

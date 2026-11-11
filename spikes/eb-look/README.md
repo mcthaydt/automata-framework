@@ -2,12 +2,12 @@
 
 Draws AF's four base scenes (`@automata/3d/base`'s interior and exterior, and world-kit's dressed variants) the way
 EnvironmentBuilder frames them, on WebGL and WebGPU, and writes a side-by-side PNG per scene and view. The PNGs and what
-they show are in `docs/superpowers/eb-look/`. Spikes are exempt from TDD; nothing here is imported by a package.
+they show are in `docs/refactor/eb-look/`. Spikes are exempt from TDD; nothing here is imported by a package.
 
 ```sh
 export PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers
 ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules     # once; git-ignored
-EB_DIR=<EnvironmentBuilder's 1× frames> node spikes/eb-look/shoot.mjs   # default out: docs/superpowers/eb-look/baseline
+EB_DIR=<EnvironmentBuilder's 1× frames> node spikes/eb-look/shoot.mjs   # default out: docs/refactor/eb-look/baseline
 ```
 
 `EB_DIR` holds `<scene>-<view>.png` at 1×, the files EnvironmentBuilder's `npm run render -- <dir>` writes (not the `-x`
