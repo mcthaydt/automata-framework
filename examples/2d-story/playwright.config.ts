@@ -23,7 +23,7 @@ export default defineJourneys({
     },
     {
       // The editors' page, built from the repository, serving this folder and naming the game beside it.
-      command: `pnpm --filter @automata/editors build && pnpm exec automata editor . --app suite --app-dir ../../extensions/editors/dist/suite --port ${editorPort} --game-url ${gameUrl}`,
+      command: `pnpm --filter @automata/editors build && pnpm exec automata editor . --app-dir ../../extensions/editors/dist/suite --port ${editorPort} --game-url ${gameUrl}`,
       url: `http://127.0.0.1:${editorPort}/`,
       reuseExistingServer: reuse,
       timeout: 180_000,

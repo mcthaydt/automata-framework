@@ -1,6 +1,7 @@
 // The swatches a level may name, and the rest of what the builder reads from the library. A swatch is a library entry
 // (the `world-swatch` content kind); the builder only asks whether a name is there. A name may carry a seed, `name#123`:
 // the swatch with its texture's seed set (a decal's poster, a tag), so seeded variety is still a library name.
+import type { GlowSwatch } from './albedo/glow.ts'
 import { swatchRgb, worldSwatchSchema } from './content/world-swatch.schema.ts'
 
 /**
@@ -27,4 +28,12 @@ export function swatchColour(library: WorldLibrary, name: string): number | unde
   const base = Object.hasOwn(library.swatches, name) ? name : name.split('#')[0]
   const found = base === undefined ? undefined : worldSwatchSchema.safeParse(library.swatches[base])
   return found?.success === true ? swatchRgb(found.data) : undefined
+}
+
+/** A swatch's glow (`emit`): its ladder, and whether it shows a room behind it (`interior`); undefined for one that does not glow. */
+export function swatchGlow(library: WorldLibrary, name: string): GlowSwatch | undefined {
+  const base = Object.hasOwn(library.swatches, name) ? name : name.split('#')[0]
+  const found = base === undefined ? undefined : worldSwatchSchema.safeParse(library.swatches[base])
+  if (!found?.success || found.data.emit !== true) return undefined
+  return { ramp: found.data.ramp, step: found.data.step, interior: found.data.interior === true }
 }

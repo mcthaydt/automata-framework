@@ -87,11 +87,35 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
   })
 
   it('adding the passes puts them after core’s snap, and a taken name is refused', async () => {
-    addSkyPasses({ rain: { density: 1 } })
+    addSkyPasses({ rain: { density: 1 }, reflect: {}, shafts: {}, particles: {} })
     expect(() => addSkyPasses({ stars: true, glow: false })).toThrow()
+    expect(() => addSkyPasses({ stars: false, glow: false, reflect: {} })).toThrow()
     const renderer = await start()
     const names = renderer.view.passes.map((p) => p.constructor.name)
-    expect(names).toEqual(['DuelSnapEffect', 'StarsEffect', 'GlowEffect', 'RainEffect'])
+    // Core's haze (on by default) and the mood grade come before its snap; the kit's passes follow it. Core's present pass is
+    // last by design: on WebGPU it rebinds an empty depth, so every pass that samples the scene depth must run before it.
+    expect(names).toEqual([
+      'HazeEffect',
+      'GradeEffect',
+      'DuelSnapEffect',
+      'StarsEffect',
+      'ReflectEffect',
+      'GlowEffect',
+      'ShaftsEffect',
+      'ParticlesEffect',
+      'RainEffect',
+      'PresentEffect',
+    ])
+    const present = names.indexOf('PresentEffect')
+    for (const kit of [
+      'StarsEffect',
+      'ReflectEffect',
+      'GlowEffect',
+      'ShaftsEffect',
+      'ParticlesEffect',
+      'RainEffect',
+    ])
+      expect(names.indexOf(kit)).toBeLessThan(present)
   })
 
   it('stars are DUEL colours in the sky above the horizon, and only there', async () => {
@@ -155,5 +179,24 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
     expect(rings.filter((i) => !DUEL.has(colourAt(withGlow, i)))).toEqual([])
     expect(rings.filter((i) => luma(withGlow, i) < luma(without, i))).toEqual([])
     expect(rings.filter((i) => !near(i))).toEqual([])
+  })
+
+  it('a glow that is told what glows rings those colours only', async () => {
+    const renderer = await start(true)
+    passOf(renderer, StarsEffect).enabled = false
+    passOf(renderer, RainEffect).enabled = false
+    const glow = passOf(renderer, GlowEffect)
+    glow.enabled = false
+    const without = shot(renderer)
+    glow.enabled = true
+    // The ball's colour: the brightest pixel the snap left.
+    const light = (i: number): number =>
+      (without[i * 4] ?? 0) + (without[i * 4 + 1] ?? 0) + (without[i * 4 + 2] ?? 0)
+    let top = 0
+    for (let i = 0; i < without.length / 4; i++) if (light(i) > light(top)) top = i
+    glow.setColours([0xff00ff])
+    expect(drawn(without, shot(renderer))).toEqual([])
+    glow.setColours([colourAt(without, top)])
+    expect(drawn(without, shot(renderer)).length).toBeGreaterThan(10)
   })
 })

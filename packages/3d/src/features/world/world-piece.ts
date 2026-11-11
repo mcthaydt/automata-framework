@@ -11,6 +11,14 @@ import type { TexPlace } from './surface.ts'
 /** What a piece is a part of. Lamps are not pieces: they are `World.lamps`. */
 export type WorldPart = 'floor' | 'ceiling' | 'wall' | 'decor' | 'prop'
 
+/** A solid rectangle of a wall face: its plan line `a` to `b`, and the heights (metres from the world's floor) it spans. */
+export interface WallFace {
+  readonly a: V2
+  readonly b: V2
+  readonly lo: number
+  readonly hi: number
+}
+
 /** One drawable thing: its mesh and the surface it is painted with, in the room it belongs to. */
 export interface WorldPiece {
   /** `<room>:<role>` or `<room>:<role>:<place>`, stable for a given level. */
@@ -29,6 +37,11 @@ export interface WorldPiece {
   readonly line?: { readonly a: V2; readonly b: V2 }
   /** What the occluder rule does with a wall face (`/2`'s `occlude`); a wall that says nothing is cut. */
   readonly occlude?: Occlude
+  /**
+   * The solid parts of a wall face, each a rectangle on the plan line between two heights (the face with its doorways and
+   * windows cut out), so the light's occluders let light through an opening. A wall with none has one over its whole face.
+   */
+  readonly faces?: readonly WallFace[]
   /** The camera-cut group of the wall (or mass) it belongs to: room visibility hides a group's pieces together. */
   readonly cut?: string
   /** A model the renderer draws in place of this mesh (a `model` prop), and its turn. */

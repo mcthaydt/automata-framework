@@ -6392,6 +6392,11 @@ interface PixiRendererOptions {
     readonly barFraction?: number | undefined;
     /** Bar color in hex. Default is 0x2e222f (plum black). */
     readonly barColor?: number | undefined;
+    /**
+     * How the letterboxed field is scaled: `fit` (the default) is one fractional scale to the view's width; `whole` is a
+     * whole number of device pixels a field pixel, centred, so no pixel is drawn wider than another. Needs a letterbox.
+     */
+    readonly scale?: 'fit' | 'whole' | undefined;
     /** The graphics quality tier to start at; `PixiStage.setQuality` changes it. Default `high`. */
     readonly quality?: QualityTier | undefined;
     /**

@@ -17,6 +17,7 @@ import {
   drawWorld,
   render3dExtension,
   swatchColour,
+  swatchGlow,
   targetSize,
   timeOfDay,
 } from '@automata/3d'
@@ -53,7 +54,16 @@ export default defineGame({
         view.camera.lookAt({ x: -0.5, y: 1.6, z: -2 })
         view.environment = { skyColor: 0xa9b8e8, groundColor: 0x4a5a8a }
         const colourOf = (swatch: string) => swatchColour(worldKitLibrary, swatch)
-        drawWorld({ parent: view.root, occluders, colourOf, look: DEFAULT_LOOK }, world.pieces)
+        drawWorld(
+          {
+            parent: view.root,
+            occluders,
+            colourOf,
+            glow: (swatch) => swatchGlow(worldKitLibrary, swatch),
+            look: DEFAULT_LOOK,
+          },
+          world.pieces,
+        )
         // What the scene is lit as and the passes it added, for the journey.
         stage.app.canvas.dataset.time = night.name
         stage.app.canvas.dataset.passes = skyLookPasses(passes)

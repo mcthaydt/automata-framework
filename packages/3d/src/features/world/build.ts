@@ -49,9 +49,9 @@ import { isSurfaceTex, type TexPlace, texOf, tileName, wallFrame } from './surfa
 import { hasSwatch, type WorldLibrary } from './swatches.ts'
 import { windowsOf } from './window-grid.ts'
 
-import type { WorldPart, WorldPiece } from './world-piece.ts'
+import type { WallFace, WorldPart, WorldPiece } from './world-piece.ts'
 
-export type { WorldLibrary, WorldPart, WorldPiece }
+export type { WallFace, WorldLibrary, WorldPart, WorldPiece }
 
 export interface World {
   readonly pieces: WorldPiece[]
@@ -66,9 +66,10 @@ export interface WorldOptions {
   /** Lit windows show curtains, a plant, a figure. Default: yes. */
   readonly interiors?: boolean
   /**
-   * The longest edge (metres) a piece that stays put is cut to, so the baked vertex light has a vertex wherever a
-   * lamp's pool or a shadow's edge falls (the look's `seg`). A door, a prop and a swaying leaf keep
-   * the builder's own triangles: they move, so no light is baked into them. 0 cuts nothing. Default 0.35.
+   * The longest edge (metres) a piece that takes baked light is cut to, so the baked vertex light has a vertex wherever a
+   * lamp's pool or a shadow's edge falls (the look's `seg`). A prop is cut too: a state that moves it has its light baked
+   * again where it lands. A door and a swaying leaf keep the builder's own triangles: they move, so no light is baked
+   * into them. 0 cuts nothing. Default 0.35.
    */
   readonly seg?: number
 }
@@ -165,6 +166,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       | 'model'
       | 'ceiling'
       | 'veil'
+      | 'faces'
     > = {},
   ): void => {
     const sector = level.sectors[si] as AfSectorEntry2
@@ -182,10 +184,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       sector: sector.id,
       light: sector.light,
       part,
-      mesh:
-        extra.door === undefined && extra.sway === undefined && extra.prop === undefined
-          ? subdivide(mesh, seg)
-          : mesh,
+      mesh: extra.door === undefined && extra.sway === undefined ? subdivide(mesh, seg) : mesh,
       surface,
       ...(tex === undefined ? {} : { tex }),
       ...extra,
@@ -286,19 +285,26 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     const frame = wallFrame(from, floorAt(from), n)
     const tex = (s: Surface | undefined): TexPlace | undefined => texOf(s, 'wall', frame)
     /** The wall from `u0` to `u1`, between `low` and `high` above the floor (the floor or the ceiling when `null`), a hair out. */
-    const strip = (u0: number, u1: number, low: number | null, high: number | null, out = 0): MeshData => {
+    const spanOf = (u0: number, u1: number, low: number | null, high: number | null, out: number) => {
       const [a, b] = [offset(seg.a, n, out), offset(seg.b, n, out)]
       const at = (u: number): V2 => [lerp(a[0], b[0], u), lerp(a[1], b[1], u)]
-      const [pa, pb] = [at(u0), at(u1)]
       const [fl0, fl1] = [lerp(fa, fb, u0), lerp(fa, fb, u1)]
       const [cl0, cl1] = [lerp(ca, cb, u0), lerp(ca, cb, u1)]
-      return wallQuad(
-        pa,
-        pb,
-        [low === null ? fl0 : fl0 + low, high === null ? cl0 : fl0 + high],
-        [low === null ? fl1 : fl1 + low, high === null ? cl1 : fl1 + high],
-        n,
-      )
+      return {
+        pa: at(u0),
+        pb: at(u1),
+        atA: [low === null ? fl0 : fl0 + low, high === null ? cl0 : fl0 + high] as const,
+        atB: [low === null ? fl1 : fl1 + low, high === null ? cl1 : fl1 + high] as const,
+      }
+    }
+    const strip = (u0: number, u1: number, low: number | null, high: number | null, out = 0): MeshData => {
+      const { pa, pb, atA, atB } = spanOf(u0, u1, low, high, out)
+      return wallQuad(pa, pb, atA, atB, n)
+    }
+    /** The solid rectangle of the face a strip covers, for the light's occluders. */
+    const solid = (u0: number, u1: number, low: number | null, high: number | null): WallFace => {
+      const { pa, pb, atA, atB } = spanOf(u0, u1, low, high, 0)
+      return { a: pa, b: pb, lo: (atA[0] + atB[0]) / 2, hi: (atA[1] + atB[1]) / 2 }
     }
     const role = (name: string): string => `${name}:${place}`
     /** `add`, for a piece of this wall: it carries the wall's cut group. */
@@ -339,16 +345,22 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         openings.push({ u0: 0, u1: 1, y0: 0, y1: setBack, kind: 'recess' })
       openings.sort((p, q) => p.u0 - q.u0)
       const face: MeshData[] = []
+      const faces: WallFace[] = []
+      const cover = (u0: number, u1: number, low: number | null, high: number | null): void => {
+        face.push(strip(u0, u1, low, high))
+        faces.push(solid(u0, u1, low, high))
+      }
       let cursor = 0
       for (const o of openings) {
-        if (o.u0 > cursor + 1e-6) face.push(strip(cursor, o.u0, null, null))
-        face.push(strip(o.u0, o.u1, o.y1, null))
-        if (o.y0 > 1e-6) face.push(strip(o.u0, o.u1, null, o.y0))
+        if (o.u0 > cursor + 1e-6) cover(cursor, o.u0, null, null)
+        cover(o.u0, o.u1, o.y1, null)
+        if (o.y0 > 1e-6) cover(o.u0, o.u1, null, o.y0)
         cursor = Math.max(cursor, o.u1)
       }
-      if (cursor < 1 - 1e-6) face.push(strip(cursor, 1, null, null))
+      if (cursor < 1 - 1e-6) cover(cursor, 1, null, null)
       addW(seg.sector, role('wall'), 'wall', merge(...face), surface, tex(surface), {
         line: roomOnLeft(seg, n),
+        faces,
         ...(wall.occlude === undefined ? {} : { occlude: wall.occlude }),
       })
 

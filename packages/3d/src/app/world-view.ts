@@ -6,6 +6,9 @@ import { BufferImageSource, Texture } from 'pixi.js'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { RampMaterial } from '../features/look/ramp-light-material.ts'
+import { type GlowSwatch, lampsOfProp } from '../features/world/albedo/glow.ts'
+import { windowTile } from '../features/world/albedo/interior.ts'
+import { ladderOf } from '../features/world/albedo/ladder.ts'
 import { type AlbedoTile, tileUvs } from '../features/world/albedo/place.ts'
 import type { WorldPiece } from '../features/world/build.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
@@ -13,6 +16,7 @@ import { tileName } from '../features/world/surface.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
 import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
+import { toSrgb } from '../shared/render/light/vertex-light.ts'
 import { fitModelMesh } from '../shared/render/model/fit-model.ts'
 import type { LoadedModel, ModelLibrary } from '../shared/render/model/load-models.ts'
 
@@ -39,6 +43,11 @@ export interface WorldScene {
    */
   readonly tiles?: ((swatch: string) => AlbedoTile | undefined) | undefined
   /**
+   * A swatch's glow: a bulb, a neon, a lit window (`emit` in the library) gives its ladder. A piece of such a swatch is
+   * drawn at its own step whatever the light, and dims, a step or two, with the lamps of its prop.
+   */
+  readonly glow?: ((swatch: string) => GlowSwatch | undefined) | undefined
+  /**
    * The room's light (`createPixi3dRenderer`'s `scene` hook gives it when `lighting` is set). A piece that never moves
    * (not a door, a prop or a swaying leaf) is drawn flat and has the light baked into its vertex colours, so a lamp's
    * level rebakes only what it reaches; the rest keeps its own material. It takes the place of `look`'s material on
@@ -54,6 +63,11 @@ export interface WorldView {
   readonly pieces: readonly WorldPiece[]
   /** A piece's mesh by its id. */
   readonly mesh: (id: string) => Mesh3D | undefined
+  /**
+   * Takes the baked light of a piece again where its mesh now stands: call it after a state has moved a prop. A piece
+   * with no baked light (a door, a leaf, or any piece in a room with no `light`) is left alone.
+   */
+  relight(id: string): void
   /** Takes the meshes down and frees their geometry and materials. */
   dispose(): void
 }
@@ -61,29 +75,51 @@ export interface WorldView {
 const MISSING = 0x808080
 
 const textures = new WeakMap<AlbedoTile, Texture>()
+const plainTextures = new WeakMap<AlbedoTile, Texture>()
 
-/** A tile as a texture: nearest-sampled, repeating, no mips, so every texel stays one DUEL colour. */
-function textureOf(tile: AlbedoTile): Texture {
-  let texture = textures.get(tile)
+/**
+ * A tile as a texture: nearest-sampled, repeating, no mips, so every texel stays one DUEL colour. A lit material wants the
+ * sRGB format (the sampler decodes it, the view's encode brings it back); an unlit one is not encoded, so it shows the
+ * texture as the sampler gives it, and wants the plain format (`plain`), which gives each texel as it is.
+ */
+function textureOf(tile: AlbedoTile, plain = false): Texture {
+  const made = plain ? plainTextures : textures
+  let texture = made.get(tile)
   if (texture === undefined) {
     texture = new Texture({
       source: new BufferImageSource({
         resource: tile.rgba,
         width: tile.width,
         height: tile.height,
-        format: 'rgba8unorm-srgb',
+        format: plain ? 'rgba8unorm' : 'rgba8unorm-srgb',
         scaleMode: 'nearest',
         addressMode: 'repeat',
         autoGenerateMipmaps: false,
       }),
     })
-    textures.set(tile, texture)
+    made.set(tile, texture)
   }
   return texture
 }
 
+/**
+ * A colour for an unlit material to show as it is. The material takes its base colour as sRGB, decodes it and does not
+ * encode it again, so the colour to give is the one whose decoded value is the colour wanted.
+ */
+const shownAs = (colour: number): [number, number, number] => [
+  toSrgb(((colour >> 16) & 255) / 255),
+  toSrgb(((colour >> 8) & 255) / 255),
+  toSrgb((colour & 255) / 255),
+]
+
 /** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour (or its tile), with a material of its own. */
-function meshOf(piece: WorldPiece, colour: number, look: Look | undefined, tile?: AlbedoTile): Mesh3D {
+function meshOf(
+  piece: WorldPiece,
+  colour: number,
+  look: Look | undefined,
+  tile?: AlbedoTile,
+  uvs?: Float32Array,
+): Mesh3D {
   const { positions, normals, indices } = piece.mesh
   const low = [Infinity, Infinity, Infinity] as [number, number, number]
   const high = [-Infinity, -Infinity, -Infinity] as [number, number, number]
@@ -98,7 +134,7 @@ function meshOf(piece: WorldPiece, colour: number, look: Look | undefined, tile?
     indices: new Uint32Array(indices),
     ...(tile === undefined
       ? {}
-      : { uvs: tileUvs(piece.mesh, tile, piece.tex, piece.tex?.frame !== undefined) }),
+      : { uvs: uvs ?? tileUvs(piece.mesh, tile, piece.tex, piece.tex?.frame !== undefined) }),
     bounds3D: new Box(new Vector3(...low), new Vector3(...high)),
   })
   const base =
@@ -130,9 +166,11 @@ function modelMeshOf(piece: WorldPiece, loaded: LoadedModel, look: Look | undefi
   return new Mesh3D({ geometry, material })
 }
 
-/** A piece a state can move (a door, a prop, a leaf in the wind) cannot hold baked light. */
-const stays = (piece: WorldPiece): boolean =>
-  piece.door === undefined && piece.prop === undefined && piece.sway === undefined
+/**
+ * A piece that can hold baked light: not a door, which turns about its hinge, nor a leaf that sways. A prop can: a state
+ * that moves it has its light taken again (`WorldView.relight`).
+ */
+const stays = (piece: WorldPiece): boolean => piece.door === undefined && piece.sway === undefined
 
 /** Draws `pieces` into `scene.parent`. */
 export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): WorldView {
@@ -141,11 +179,14 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   const meshes = new Map<string, Mesh3D>()
   for (const piece of pieces) {
     const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
-    const tile = scene.tiles?.(tileName(piece.surface))
+    const glows = scene.glow?.(tileName(piece.surface))
+    // A lit window is its room: a tile laid across the glass, drawn as it is whatever the light.
+    const room = glows?.interior === true ? windowTile(piece.mesh, ladderOf(glows)) : undefined
+    const tile = room?.tile ?? scene.tiles?.(tileName(piece.surface))
     const loaded = piece.model === undefined ? undefined : scene.models?.get(piece.model.file)
     const mesh =
       (loaded === undefined ? undefined : modelMeshOf(piece, loaded, scene.look)) ??
-      meshOf(piece, colour, scene.look, tile)
+      meshOf(piece, colour, scene.look, tile, room?.uvs)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
     if (piece.veil !== undefined) {
@@ -155,15 +196,28 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
       if (piece.veil.add === true) material.state.blendMode = 'add'
       mesh.material = material
       mesh.castShadow = false
-    } else if (scene.light !== undefined && stays(piece)) {
-      // Baked after it is placed under the node, so the light sees where it stands.
+    } else if (room !== undefined) {
+      mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(room.tile, true) })
+    } else if (glows !== undefined) {
+      // A glow takes no light, so a moving piece may carry it baked: where it goes does not change what it shows.
+      const ladder = ladderOf(glows)
+      if (scene.light === undefined)
+        mesh.material = new FlatMaterial({ baseColor: shownAs(ladder.steps[ladder.base] ?? colour) })
+      else {
+        mesh.material = new FlatMaterial({ baseColor: 0xffffff })
+        const lamps = piece.prop === undefined ? [] : lampsOfProp(scene.light.lighting.lamps, piece.prop.id)
+        scene.light.bake(mesh, { glow: { steps: ladder.steps, base: ladder.base, lamps } })
+      }
+    } else if (scene.light !== undefined && loaded === undefined && stays(piece)) {
+      // Baked after it is placed under the node, so the light sees where it stands. A prop's own box never shadows it.
+      const ignore = piece.part === 'prop' ? [piece.id] : []
       // A room's `light` is 1 when normal; each 1 less is a whole step darker.
       if (tile === undefined) {
-        mesh.material = new FlatMaterial({ baseColor: colour })
-        scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light })
+        mesh.material = new FlatMaterial({ baseColor: 0xffffff })
+        scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light, ignore })
       } else {
-        mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile) })
-        scene.light.bake(mesh, { textured: true, shadeSteps: 1 - piece.light })
+        mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile, true) })
+        scene.light.bake(mesh, { textured: true, shadeSteps: 1 - piece.light, ignore })
       }
     }
     if (scene.occluders === undefined) continue
@@ -183,6 +237,10 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     node,
     pieces,
     mesh: (id) => meshes.get(id),
+    relight(id) {
+      const mesh = meshes.get(id)
+      if (mesh !== undefined) scene.light?.rebake(mesh)
+    },
     dispose() {
       for (const mesh of meshes.values()) mesh.destroy({ children: true })
       meshes.clear()

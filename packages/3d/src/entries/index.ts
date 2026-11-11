@@ -60,6 +60,16 @@ export {
   figure,
 } from '../features/figures/view/figure-view.ts'
 export { DuelSnapEffect } from '../features/look/duel-snap-filter.ts'
+export {
+  gradeColour,
+  IDENTITY as IDENTITY_MOOD,
+  MOODS,
+  type Mood,
+  mixMoods,
+  moodOf,
+  registerMood,
+} from '../features/look/grade.ts'
+export { GradeEffect } from '../features/look/grade-effect.ts'
 export { HazeEffect, hazed, hazeOf, hazeShare } from '../features/look/haze.ts'
 export {
   DEFAULT_LOOK,
@@ -87,6 +97,7 @@ export {
   spriteLight,
 } from '../features/look/sprite-light.ts'
 export { targetSize } from '../features/look/target-size.ts'
+export { type GlowSwatch, glowColours } from '../features/world/albedo/glow.ts'
 export type { AlbedoTile } from '../features/world/albedo/place.ts'
 export {
   buildWorld,
@@ -107,7 +118,7 @@ export {
   part as propPart,
 } from '../features/world/props/piece.ts'
 export { registerPropGenerator } from '../features/world/props/prop-generator-registry.ts'
-export { swatchColour, type WorldLibrary } from '../features/world/swatches.ts'
+export { swatchColour, swatchGlow, type WorldLibrary } from '../features/world/swatches.ts'
 export { type BakeOptions, createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 export { sceneLightingContent } from '../shared/render/light/scene-lighting.content.ts'
 export {

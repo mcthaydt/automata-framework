@@ -126,7 +126,15 @@ describe('subdivision', () => {
     const wide = buildWorld(lv, LIB, { seg: 1 }).pieces
     for (const p of wide) expect(longest(p), p.id).toBeLessThanOrEqual(1 + 1e-9)
   })
-  it('leaves a door, a prop and a swaying leaf as they are: no light is baked into them', () => {
+  it('cuts a prop too: it takes baked light, and has it taken again where a state moves it', () => {
+    const withCrate: AfSector2 = { ...lv, props: [{ id: 'c', use: 'crate', at: [2, 2] }] }
+    const props = { crate: { kind: 'box', swatch: 'brass', size: [1, 1, 1] } }
+    const { pieces } = buildWorld(withCrate, { ...LIB, props })
+    const crate = pieces.filter((p) => p.prop?.id === 'c')
+    expect(crate.length).toBeGreaterThan(0)
+    for (const p of crate) expect(longest(p), p.id).toBeLessThanOrEqual(0.35 + 1e-9)
+  })
+  it('leaves a door and a swaying leaf as they are: no light is baked into them', () => {
     const doorway = level(room('a', [0, 0, 1.2, 0.3], { door: {} }))
     const moving = buildWorld(doorway, LIB).pieces.filter((p) => p.door !== undefined)
     expect(moving.length).toBeGreaterThan(0)

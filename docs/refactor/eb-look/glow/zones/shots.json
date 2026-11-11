@@ -1,0 +1,186 @@
+[
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&glow=0&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1914",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 50 ms to build (budget 5 ms)",
+      "figure on cast took 50 ms to build (budget 5 ms)",
+      "[.WebGL-0x2de404ec8000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1978",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 93 ms to build (budget 5 ms)",
+      "figure on cast took 76 ms to build (budget 5 ms)",
+      "[.WebGL-0x2de400921200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1216",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 77 ms to build (budget 5 ms)",
+      "figure on cast took 76 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&glow=0&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "1062",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 49 ms to build (budget 5 ms)",
+      "figure on cast took 52 ms to build (budget 5 ms)",
+      "[.WebGL-0x2de400b58200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "1107",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 58 ms to build (budget 5 ms)",
+      "figure on cast took 62 ms to build (budget 5 ms)",
+      "[.WebGL-0x2de4001b6600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "881",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 75 ms to build (budget 5 ms)",
+      "figure on cast took 38 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "af",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "839",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 40 ms to build (budget 5 ms)",
+      "figure on cast took 27 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "zone",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1051",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 52 ms to build (budget 5 ms)",
+      "figure on cast took 38 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "af",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "955",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 47 ms to build (budget 5 ms)",
+      "figure on cast took 31 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "zone",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "995",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 45 ms to build (budget 5 ms)",
+      "figure on cast took 40 ms to build (budget 5 ms)"
+    ]
+  }
+]

@@ -144,4 +144,54 @@ describe('createPointers', () => {
     // Pointer Events count primaries per kind: the first touch is primary even with the Pencil down.
     expect(sent[1]?.init).toMatchObject({ width: 40, height: 40, isPrimary: true })
   })
+
+  it('lifts a tap in the same task it presses, so a slow frame cannot turn it into a long press', async () => {
+    // The recogniser drops a press held longer than 300 ms. On a loaded runner one animation frame can take that long,
+    // so a tap that waits a frame between its down and its up is dropped there and kept anywhere else.
+    const seenAtFrame: number[] = []
+    const sent: string[] = []
+    const target: PointerTarget = {
+      getBoundingClientRect: () => ({ left: 0, top: 0 }),
+      dispatchEvent: (event) => {
+        sent.push((event as unknown as Sent).type)
+        return true
+      },
+    }
+    const pointers = createPointers(target, {
+      makeEvent: (type, init) => ({ type, init }) as unknown as Event,
+      frame: async () => {
+        seenAtFrame.push(sent.length)
+      },
+    })
+    await pointers.tap({ x: 1, y: 1 }, { kind: 'pen' })
+    expect(sent).toEqual(['pointerdown', 'pointerup'])
+    expect(seenAtFrame[0]).toBe(2)
+  })
+
+  it('lifts every finger of a multi-finger tap in the task that pressed them', async () => {
+    const seenAtFrame: number[] = []
+    const sent: string[] = []
+    const target: PointerTarget = {
+      getBoundingClientRect: () => ({ left: 0, top: 0 }),
+      dispatchEvent: (event) => {
+        const { type, init } = event as unknown as Sent
+        sent.push(`${type}#${init.pointerId}`)
+        return true
+      },
+    }
+    const pointers = createPointers(target, {
+      makeEvent: (type, init) => ({ type, init }) as unknown as Event,
+      // A real frame comes in a later task, after everything this one sends.
+      frame: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0))
+        seenAtFrame.push(sent.length)
+      },
+    })
+    await pointers.tapTogether([
+      { x: 1, y: 1 },
+      { x: 9, y: 1 },
+    ])
+    expect(sent).toEqual(['pointerdown#1', 'pointerdown#2', 'pointerup#1', 'pointerup#2'])
+    expect(Math.min(...seenAtFrame)).toBe(4)
+  })
 })

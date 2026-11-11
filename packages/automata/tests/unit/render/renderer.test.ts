@@ -222,6 +222,27 @@ describe('createPixiRenderer', () => {
     await program
   })
 
+  it('with scale "whole" the letterbox is built whole-pixel and laid out with the device pixel ratio', async () => {
+    const target = createFakeTarget({ width: 800, height: 600 })
+    const factory = createPixiRenderer({ logicalWidth: 320, logicalHeight: 180, scale: 'whole' })
+
+    const program = scoped(async () => {
+      const renderer = await built(factory(target))
+      const frame = renderer.stage.frame
+      if (!frame) throw new Error('no frame')
+      const layoutSpy = vi.spyOn(frame, 'layout')
+
+      target.triggerResize({ width: 1000, height: 700 })
+
+      expect(layoutSpy).toHaveBeenCalledWith(1000, 700, window.devicePixelRatio)
+      expect(layoutSpy.mock.results[0]?.value.scale).toBe(
+        Math.floor((1000 * window.devicePixelRatio) / 320) / window.devicePixelRatio,
+      )
+    })
+
+    await program
+  })
+
   it('dispose cleans up app, views, frame, and removes canvas from DOM', async () => {
     const target = createFakeTarget()
     const factory = createPixiRenderer({ logicalWidth: 960, logicalHeight: 540 })

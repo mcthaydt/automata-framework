@@ -604,6 +604,19 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/world/surface-library.test.ts` |  | left out: the surface library goes to `@automata/world-kit` |
 | `tests/features/world/surface-structure.test.ts` |  | left out: the texture structure checks go with the photo library to `@automata/world-kit` |
 
+## The figure builder as a submodule (2026-11-10)
+
+Repository: `mcthaydt/FigureBuilder`, a git submodule at `vendor/FigureBuilder`, pinned to `main` at
+`08f54a6422064e3e158654454c48c9978c56bf13`. Licence: none recorded (the Owner's private repository). Taken on the Owner's
+word, 2026-11-10: FigureBuilder as a git submodule, not a copy.
+
+Nothing of it is copied: the submodule is the builder's own checkout. `vendor/figure-builder` is AF's workspace package
+for it (its `package.json`, links to the submodule's `src` and `base`, and its declarations built with the builder's own
+compiler settings into a git-ignored `types/`). One file reaches it, the character kit's
+`src/features/painted/door.ts`. AF's lint, style, boundaries and knip skip `vendor/FigureBuilder`: it keeps its own rules.
+Fix the builder upstream and bump the submodule (`git -C vendor/FigureBuilder checkout <commit>`, then commit the new
+pin); never patch the vendored copy. Clone AF with `--recurse-submodules`, or run `git submodule update --init`.
+
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 
 The published doc comments below named the arcade source (`SNEKPRTY/FloorFifty`); the doc comments no longer do, so
@@ -646,6 +659,17 @@ recorded an earlier source, the row says so; the adventure source's rows above d
 Not ported: `starters/party-racer` (the Owner cut it), Plus's own `tooling/{core,boundary,ci}`, its docs, workflows and
 the committed `.vitest` screenshots. The converted fixtures keep the headers their converter scripts wrote; the scripts
 themselves are not ported, and the fixtures stay as they are.
+
+## The clinic's render features (2026-11-11)
+
+Written fresh as extensions, from reading the adventure source (`mcthaydt/PixiJS3D_Experiment_001`, private, at `92e6704`).
+No file was copied. What was read, and where it went:
+
+| Source | AF | Notes |
+| --- | --- | --- |
+| `src/render/room-visibility.ts`, `room-wall-owners.ts`, `room-ownership.ts`, `src/scenes/clinic/visibility.ts` | `extensions/room-visibility` | rewritten: a Zod policy and a checker that returns problems, the resolver on `@automata/3d/level`'s point test, wall groups read from an `af-sector/2` level, a renderer-free wall hider; the clinic's policy is the example's, not shipped |
+| `src/render/lcd-panel.ts`, `filter-programs.ts` | `extensions/lcd-panel` | rewritten as a `PostEffect` pair (GLSL, WGSL) with a Zod profile; the mesh is a port of `lcd-perfect` v10 by sinedied (MIT, notice kept in `src/features/lcd-panel/lcd-shader.ts`) |
+| `src/render/retro-filter.ts`, `crisp.ts`, `look.ts` (`LOOK.post`) | `extensions/retro-crisp` | rewritten as a `PostEffect` pair with uniforms and a Zod profile, the clinic's numbers as defaults; the crisp maths as pure functions; the palette LUT and the luma-weighted dither stay core's DUEL snap |
 
 ## Third-party assets copied into this repository
 

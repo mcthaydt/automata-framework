@@ -2,7 +2,7 @@
 // WebGL and on WebGPU (headless Chromium, SwiftShader), and writes one side-by-side PNG per scene and view:
 // EnvironmentBuilder's CPU frame | AF WebGL (baked room light) | AF WebGL (material light only) | AF WebGPU, each nearest-scaled ×SCALE. EB's frames are read from
 // EB_DIR (`<scene>-<view>.png` at 1×, as EB's `npm run render` writes them without the -x suffix); a missing one is a
-// grey panel that says so. Then one sheet a scene of the gameplay cameras (`af`, `tll` in scene.ts) on WebGL.
+// grey panel that says so. Then one sheet a scene of the gameplay cameras (`af`, `zone` in scene.ts) on WebGL.
 //
 //   ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules   # once; git-ignored
 //   EB_DIR=<dir> node spikes/eb-look/shoot.mjs [out dir]                 # default docs/refactor/eb-look/baseline
@@ -28,15 +28,32 @@ const freePort = () =>
     })
   })
 const port = process.env.PORT ? Number(process.env.PORT) : await freePort()
-const SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
-const VIEWS = ['diorama', 'fp']
+const SCENES = process.env.EB_SCENES?.split(',') ?? ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
+// EB_AT=night draws every panel at that time of day (scene.ts ?at=).
+const AT = process.env.EB_AT ? `&at=${process.env.EB_AT}` : ''
+const VIEWS = process.env.EB_VIEWS?.split(',') ?? ['diorama', 'fp']
 // The AF panels: the renderer asked for, and switches (scene.ts). `light=0` leaves out the level's baked room light, so
 // the ramp material lights by the time of day alone.
-const PANELS = [
-  { pref: 'webgl', extra: '', title: 'AF WebGL, baked room light' },
-  { pref: 'webgl', extra: '&light=0', title: 'AF WebGL, material light only' },
-  { pref: 'webgpu', extra: '', title: 'AF WebGPU, baked room light' },
-]
+const PANELS =
+  process.env.EB_PANELS === 'fx'
+    ? [
+        // The effects: the kit's shafts and particles, off and on, then with the coloured outline (off in the source's base look).
+        { pref: 'webgl', extra: '&fx=0', title: 'AF WebGL, no effects' },
+        { pref: 'webgl', extra: '', title: 'AF WebGL, effects' },
+        { pref: 'webgl', extra: '&outline=1', title: 'AF WebGL, effects and the coloured outline' },
+      ]
+    : process.env.EB_PANELS === 'glow'
+    ? [
+        // Before and after the glow look: the glow, the room behind the windows and the bloom, off and on.
+        { pref: 'webgl', extra: '&glow=0&bloom=0', title: 'AF WebGL, no glow' },
+        { pref: 'webgl', extra: '&bloom=0', title: 'AF WebGL, glow and windows' },
+        { pref: 'webgl', extra: '', title: 'AF WebGL, glow, windows and bloom' },
+      ]
+    : [
+        { pref: 'webgl', extra: '', title: 'AF WebGL, baked room light' },
+        { pref: 'webgl', extra: '&light=0', title: 'AF WebGL, material light only' },
+        { pref: 'webgpu', extra: '', title: 'AF WebGPU, baked room light' },
+      ]
 mkdirSync(out, { recursive: true })
 
 const server = spawn(
@@ -56,22 +73,36 @@ if (!log.includes('Local:')) throw new Error(`vite did not start:\n${log}`)
 // Vulkan on SwiftShader is what lets Chromium present a WebGPU canvas here: without it the GPU process cannot make the
 // swap chain's shared image ("Could not find SharedImageBackingFactory ... WebgpuSwapChainTexture") and the device is
 // lost on the first frame, with or without a mesh (docs/refactor/eb-look/wp0/README.md).
-const browser = await chromium.launch({
-  args: ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-features=Vulkan', '--use-vulkan=swiftshader'],
-})
+const launch = () =>
+  chromium.launch({
+    args: ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-features=Vulkan', '--use-vulkan=swiftshader'],
+  })
+let browser = await launch()
 const facts = []
 
 const FIELD = { 'base-interior': [512, 320], 'base-exterior': [640, 360] }
 const fieldOf = (scene, view) =>
-  view === 'fp' ? [320, 200] : view === 'af' || view === 'tll' ? [320, 180] : FIELD[scene.replace('-dressed', '')]
+  view === 'fp' ? [320, 200] : view === 'af' || view === 'zone' ? [320, 180] : FIELD[scene.replace('-dressed', '')]
+// SwiftShader's browser sometimes dies mid-run: a panel is shot again in a fresh browser (up to three times).
 async function shoot(scene, view, pref, extra) {
+  for (let attempt = 1; ; attempt++)
+    try {
+      return await shootOnce(scene, view, pref, extra)
+    } catch (error) {
+      if (attempt === 3) throw error
+      console.log('retrying', scene, view, pref, extra, String(error).split('\n')[0])
+      await browser.close().catch(() => {})
+      browser = await launch()
+    }
+}
+async function shootOnce(scene, view, pref, extra) {
   // The viewport is the logical field, so the letterbox draws it 1:1.
   const [width, height] = fieldOf(scene, view)
   const page = await browser.newPage({ viewport: { width: width * 2, height: height * 2 }, deviceScaleFactor: 1 })
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e)))
   page.on('console', (m) => (m.type() === 'error' || m.type() === 'warning') && errors.push(m.text().slice(0, 300)))
-  await page.goto(`http://localhost:${port}/?scene=${scene}&view=${view}&pref=${pref}${extra}`)
+  await page.goto(`http://localhost:${port}/?scene=${scene}&view=${view}&pref=${pref}${extra}${AT}`)
   const canvas = page.locator('canvas[data-ready="1"]')
   try {
     // Past the default title screen into play.
@@ -138,13 +169,13 @@ for (const scene of SCENES)
     const b64 = await sideBySide(panels, w, h)
     writeFileSync(join(out, `${scene}-${view}.png`), Buffer.from(b64, 'base64'))
   }
-// The gameplay cameras: AF's default view beside The Last Light's play camera, on WebGL, both lights.
-for (const scene of SCENES) {
+// The gameplay cameras: AF's default view beside The Last Light's play camera, on WebGL, both lights (EB_GAMEPLAY=0 skips them).
+for (const scene of process.env.EB_GAMEPLAY === '0' ? [] : SCENES) {
   const panels = []
-  for (const view of ['af', 'tll'])
-    for (const { pref, extra, title } of PANELS.filter((p) => p.pref === 'webgl')) {
+  for (const view of ['af', 'zone'])
+    for (const { pref, extra, title } of (process.env.EB_PANELS === 'glow' ? PANELS.slice(2) : PANELS.filter((p) => p.pref === 'webgl'))) {
       const shot = await shoot(scene, view, pref, extra)
-      const camera = view === 'af' ? 'AF default camera (24 mm, 25°, 5 m)' : 'TLL play camera (50 mm, 30°, 16 m)'
+      const camera = view === 'af' ? 'Default camera (50 mm, 30°, 16 m)' : 'Camera at the base scene’s zone distance'
       panels.push({ title: `${camera}, ${title.replace('AF WebGL, ', '')}`, b64: shot.png?.toString('base64') ?? null, missing: `failed: ${shot.errors[0] ?? ''}`.slice(0, 80) })
       facts.push({ scene, view, asked: pref, extra, ...shot.data, renderer: shot.renderer, errors: shot.errors })
       console.log(scene, view, pref, extra, '->', shot.renderer)

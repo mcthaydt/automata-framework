@@ -1453,6 +1453,7 @@ interface PixiRendererOptions {
     readonly pixelArt?: boolean | undefined;
     readonly barFraction?: number | undefined;
     readonly barColor?: number | undefined;
+    readonly scale?: 'fit' | 'whole' | undefined;
     readonly quality?: QualityTier | undefined;
     readonly composite?: boolean | undefined;
     readonly entityViews?: EntityViewResolver | undefined;

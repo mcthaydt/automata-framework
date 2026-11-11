@@ -11,6 +11,7 @@ import type {
 import type { LevelProblem } from '../../shared/level/problem.ts'
 import type { MeshData } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
+import { propLampId } from './albedo/glow.ts'
 import { lampFault, type ResolvedLamp, resolveLamp } from './lamp-kit.ts'
 import { rotateY } from './plane-mesh.ts'
 import type { ModelSpec, PropPiece, Veil } from './props/piece.ts'
@@ -183,7 +184,7 @@ export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell):
         })
         return
       }
-      lamps.push(lampOf(`${place.id}.light${n}`, light, toWorld(light.at, turn, at), place.id, turn))
+      lamps.push(lampOf(propLampId(place.id, n), light, toWorld(light.at, turn, at), place.id, turn))
     })
   })
 
