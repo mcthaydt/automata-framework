@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 13 of 21 tasks (52%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 14 of 21 tasks (52%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -45,7 +45,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke needs packed packages and the network: not run) | `3aef5854` |
 | 11 | Splash (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium; WebKit and Firefox not run) | `5a6e7eb9` |
 | 11b | `Hosting.openLink` on every target | 5 | done (jsdom/Node unit tests over fakes; a real desktop build opening a real browser and a real Ruken host asking the player are not run) | `7dc3e29c` |
-| 12 | Credits (`@automata/ui-screens`) | 5 | todo | |
+| 12 | Credits (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium, 100 cases; WebKit and Firefox not run) | `618d03a3` |
 | 13 | Achievements, generic, and their Ruken mapping | 6 | todo | |
 | 14 | Stale-build check | 7 | todo | |
 | 15 | The four examples and their journeys | examples | todo | |
@@ -206,6 +206,18 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   controls; `fakeHosting`'s `FakeHostControl` gains `opened` and `answerLinks`, and its options `links: 'open' | 'refuse'`.
 - **Task 11b, not run:** a real desktop build opening a real browser (the Owner's), Ruken's real host asking the player, and
   the WebKit and Firefox engines for the web adapter (it is plain DOM and is tested over a fake page).
+- **Task 12, Ruling:** the panel does not wrap its list in core's `ScrollList`: the `Modal` body is already a declared scroll
+  region (`data-scroll-region`, `overflow-y: auto`), `ScrollList` exists to reserve rows beside siblings that shrink, and
+  there are none here; it would also have needed a "+N more" word the plan's `CreditsCopy` does not have. The layout contract
+  (forty names, every size, variant and `xx-long`) holds Close whole and hit-testable and the document unscrolled.
+- **Task 12, Ruling:** the refusal line sits in the Modal's `actions` area (always present, `role="status"`, hidden when
+  empty), not in the scrolling body, so a long list never hides it. A `credits_` catalog (`title`, `close`, `opens`,
+  `refused`) joins `splash_skip`; `screensWords(locale)` now returns `{ splash, credits }` as the plan says, and the README
+  says six screens.
+- **Task 12, Ruling:** `ui-screens`' layout-sweep helper (`src/testing/`, never published) takes a CSS selector as an
+  essential where a control has no test id (a Modal's Close, `[data-modal-close]`).
+- **Task 12, Ruling:** editor gap 4 logged in `docs/superpowers/progress.md`: the credits file has no editor.
+- **Task 12, not run:** the panel with a real host (Ruken asking the player, a browser's popup blocker); WebKit and Firefox.
 
 ## Global constraints
 
