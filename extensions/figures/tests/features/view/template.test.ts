@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { CELL_TEMPLATE } from '../../../src/features/view/cell-template';
 
 /**
- * FigureBuilder's WGSL template for a depth-writing quad is a copy of `@pixi/3d`'s default material template with three edits
+ * FigureBuilder's WGSL template for a depth-writing quad is a copy of `@pixi/3d`'s default material template with four edits
  * (src/features/view/cell-template.ts). This reads the installed `@pixi/3d` and checks that, so an upgrade that moves the
  * original fails here, in words, before a frame is wrong.
  */
@@ -27,7 +27,7 @@ describe('the depth-writing template', () => {
   it('is the installed template but for the fragment entry’s return type, its cellDepth declaration, its return and its texel snap', () => {
     const ours = CELL_TEMPLATE.gpu!;
     expect(ours).not.toBe(installed.gpu);
-    // Undo the three edits; what is left must be the installed text exactly.
+    // Undo the four edits; what is left must be the installed text exactly.
     const undone = ours
       .replace('struct CellFragment { @location(0) color: vec4<f32>, @builtin(frag_depth) depth: f32 }\n\n@fragment\nfn mainFragment(inputIn: FragmentInput) -> CellFragment {\n  var input = inputIn;', 'fn mainFragment(input: FragmentInput) -> @location(0) vec4<f32> {')
       .replace('  var cellDepth: f32 = 1.0;\n', '')

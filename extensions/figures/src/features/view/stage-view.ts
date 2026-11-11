@@ -1,4 +1,5 @@
 import { Matrix4, View3D } from '@pixi/3d';
+import { RendererType } from 'pixi.js';
 import type { V3 } from '../../lib/math';
 import { checkPose } from '../stage/pose';
 import { TIE_BIAS, texelDepths, type StageFrame } from '../stage/stage';
@@ -40,7 +41,7 @@ export class StageView {
     this.view = new View3D({ width: size[0], height: size[1], toneMapping: 'none' });
     this.view.onRender = renderer => {
       // Before the pass compiles any quad's shader: under WebGPU a depth-writing quad compiles from its own template.
-      const gpu = renderer.type === 2;
+      const gpu = renderer.type === RendererType.WEBGPU;
       if (gpu !== this.webgpu) { this.webgpu = gpu; for (const q of this.pool) q.gpu(gpu); }
       if (this.depthChecked !== undefined) return;
       const warning = perTexelDepthWarning(renderer.type);

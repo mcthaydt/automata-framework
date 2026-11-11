@@ -37,6 +37,7 @@ const cellDepthBit: ShaderBit = {
   gpu: { fragment: { material: `
   // The depths arrive as the float's own four bytes in an rgba8unorm texture (CellSprite.gpu): WebGPU's material layout binds
   // every texture as filterable float, which r32float is not. Nearest filtering and a round trip through unorm bytes are exact.
+  // The bytes are the host's own, as a Float32Array lays them, and are read little-endian here: every WebGPU platform is.
   let packed = sampleCellDepth(input.vUV);
   let bits = u32(packed.r * 255.0 + 0.5) | (u32(packed.g * 255.0 + 0.5) << 8u) | (u32(packed.b * 255.0 + 0.5) << 16u) | (u32(packed.a * 255.0 + 0.5) << 24u);
   let cellD = bitcast<f32>(bits) - material.depthProj.w;

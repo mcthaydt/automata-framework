@@ -22,7 +22,8 @@ export interface SpriteLamp { dir: V3; strength: number }
 export interface SpriteStyle {
   /** The form: a texel is a step up (or down) where its light is this fraction of the lamps' total strength over (under) the figure's mean. */
   threshold: number;
-  /** The rim: a silhouette texel is rimmed where the lamps' share on its outward side is at least this fraction of their total. */
+  /** The rim: the first texel in from the painter's outline is rimmed where the lamps' share on its outward
+   * side is at least this fraction of their total. A texel with no normal gets none. */
   rim: number;
   /** A lamp whose pull across the picture plane (its x and y) is under this is nearly along the view axis and rims nothing. */
   rimSide: number;
