@@ -36,6 +36,7 @@ export { member, view, standing, walking, hero, SPRITE_PITCH, type Frame } from 
 export { RAMPS, RAMP_OUTLINE } from './features/paint/duel-ramps';
 // ─── Lighting ───
 export { lightFigure, type Lighting, type Bounce } from './features/lighting/light';
+export { lightSprite, flatSteps, SPRITE_STYLE, type SpriteLighting, type SpriteLamp, type SpriteStyle } from './features/lighting/sprite';
 export { TIMES, FIGURE_KEY, type Lamp, type TimeOfDay } from './features/lighting/lamps';
 // ─── Actors: the scripting layer (docs/actors.md) ───
 export { ScriptedActor, Troupe, characterOf, scriptOf, type ActorScript, type ActorOptions, type ActionCue, type Waypoint, type Placement } from './features/actors/actor';

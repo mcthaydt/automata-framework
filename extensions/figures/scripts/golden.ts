@@ -10,7 +10,10 @@
  * - sprites: the md5 of every frame tests/golden/sprites.ts draws, into tests/golden/sprites.json
  *   (tests/features/actors/actors.test.ts).
  *
- *   npm run golden [-- base|lit|actors|sprites]
+ * - sprite: the md5 of every sprite-lit frame tests/golden/sprite.ts draws, into tests/golden/sprite.json
+ *   (tests/golden/sprite.test.ts).
+ *
+ *   npm run golden [-- base|lit|actors|sprites|sprite]
  *
  * With no argument it records them all. Run it only to accept a deliberate visual change, and say so in the commit.
  * The base goldens were recorded at f04063b; the others before the base-pair cut
@@ -25,8 +28,9 @@ import { goldenFrames, GOLDEN_DENSITIES } from '../tests/golden/base';
 import { litFrames } from '../tests/golden/lit';
 import { ACTOR_WHO, actorFrames } from '../tests/golden/actors';
 import { spriteFrames } from '../tests/golden/sprites';
+import { spriteLitFrames } from '../tests/golden/sprite';
 
-const which = process.argv[2] ?? 'all', KINDS = ['all', 'base', 'lit', 'actors', 'sprites'];
+const which = process.argv[2] ?? 'all', KINDS = ['all', 'base', 'lit', 'actors', 'sprites', 'sprite'];
 if (!KINDS.includes(which)) throw new Error(`golden: record ${KINDS.join(', ')}; not ${which}`);
 const tests = resolve(import.meta.dirname, '../tests'), wants = (kind: string) => which === 'all' || which === kind;
 /** Writes each sheet's RGBA, gzipped, into `dir`. */
@@ -43,3 +47,4 @@ if (wants('base')) for (const d of GOLDEN_DENSITIES) sheets(resolve(tests, 'gold
 if (wants('lit')) hashes('golden/lit.json', litFrames());
 if (wants('actors')) hashes('golden/actors.json', Object.assign({}, ...ACTOR_WHO.map(actorFrames)));
 if (wants('sprites')) hashes('golden/sprites.json', spriteFrames());
+if (wants('sprite')) hashes('golden/sprite.json', spriteLitFrames());
