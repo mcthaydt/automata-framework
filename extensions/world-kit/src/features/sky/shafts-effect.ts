@@ -5,13 +5,21 @@
 // steps and a fixed dither, never a blur, so every pixel stays a DUEL colour. A pixel nothing was drawn in (the sky) is
 // left alone. A `PostEffect` in GLSL + WGSL, run after the snap.
 //
-// The lamps are in the world; the pass works in view space, so `track` is told the camera whenever it moves (once, for a
-// camera that stays).
+// The lamps are in the world; the pass works in view space, so `track` is told the camera once and follows it from then on.
 
 import type { WorldLamp } from '@automata/3d'
-import { PostEffect } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
-import { DUEL_GLSL, DUEL_WGSL, HASH_GLSL, HASH_WGSL, OKLAB_GLSL, OKLAB_WGSL } from './shader-parts.ts'
+import { type TrackedCamera, TrackingEffect } from './camera-track.ts'
+import {
+  DUEL_GLSL,
+  DUEL_WGSL,
+  HASH_GLSL,
+  HASH_WGSL,
+  OKLAB_GLSL,
+  OKLAB_WGSL,
+  SURFACE_GLSL,
+  SURFACE_WGSL,
+} from './shader-parts.ts'
 
 /** The most lamps the pass takes: each is a slot of uniforms of its own (an array's size is not carried to the shader). */
 export const MAX_SHAFTS = 4
@@ -46,11 +54,7 @@ export function shaftLamps(lamps: readonly WorldLamp[]): ShaftLamp[] {
   )
 }
 
-/** The part of a camera the pass reads: its world-to-view matrix (column by column) and whether it is orthographic. */
-export interface TrackedCamera {
-  readonly mode?: string | undefined
-  readonly view: { readonly elements: ArrayLike<number> }
-}
+export type { TrackedCamera }
 
 const SLOTS = Array.from({ length: MAX_SHAFTS }, (_, i) => i)
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
@@ -60,6 +64,7 @@ const GLSL = `
 ${DUEL_GLSL}
 ${OKLAB_GLSL}
 ${HASH_GLSL}
+${SURFACE_GLSL}
 const float BAYER[16] = float[16](${BAYER.join('.0, ')}.0);
 // One lamp's in-scatter along a ray: eight samples across the stretch of it inside the lamp's reach.
 float scatter(vec4 P, vec4 A, float strength, vec3 o, vec3 d, float rayLen) {
@@ -90,7 +95,7 @@ float scatter(vec4 P, vec4 A, float strength, vec3 o, vec3 d, float rayLen) {
 vec4 effect(vec2 uv) {
   vec4 c = sampleColor(uv);
   if (c.a < 0.5 || sampleDepth(uv) >= 0.9999) return c;
-  vec3 P = viewPos(uv);
+  vec3 P = surfacePos(uv);
   vec3 o = vec3(0.0);
   vec3 d = vec3(0.0, 0.0, -1.0);
   float rayLen = -P.z;
@@ -113,6 +118,7 @@ const WGSL = `
 ${DUEL_WGSL}
 ${OKLAB_WGSL}
 ${HASH_WGSL}
+${SURFACE_WGSL}
 var<private> BAYER: array<f32, 16> = array<f32, 16>(${BAYER.join('.0, ')}.0);
 fn scatter(P: vec4<f32>, A: vec4<f32>, strength: f32, o: vec3<f32>, d: vec3<f32>, rayLen: f32) -> f32 {
   if (strength <= 0.0) { return 0.0; }
@@ -142,7 +148,7 @@ fn scatter(P: vec4<f32>, A: vec4<f32>, strength: f32, o: vec3<f32>, d: vec3<f32>
 fn effect(uv: vec2<f32>) -> vec4<f32> {
   let c = sampleColor(uv);
   if (c.a < 0.5 || sampleDepth(uv) >= 0.9999) { return c; }
-  let P = viewPos(uv);
+  let P = surfacePos(uv);
   var o = vec3<f32>(0.0);
   var d = vec3<f32>(0.0, 0.0, -1.0);
   var rayLen = -P.z;
@@ -166,12 +172,12 @@ export interface ShaftsOptions {
   readonly motes?: boolean
 }
 
-export class ShaftsEffect extends PostEffect {
+export class ShaftsEffect extends TrackingEffect {
   protected override readonly fragment = { gpu: WGSL, gl: GLSL }
   protected override readonly uniforms: UniformGroup
   private lamps: readonly ShaftLamp[] = []
   private levels: number[] = []
-  private view: ArrayLike<number> = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+  private view: ArrayLike<number> = TrackingEffect.NO_VIEW
 
   constructor(lamps: readonly ShaftLamp[] = [], options: ShaftsOptions = {}) {
     super()
@@ -209,10 +215,9 @@ export class ShaftsEffect extends PostEffect {
     this.write()
   }
 
-  /** The camera the lamps are seen from: call it whenever the camera moves (once, for one that stays). */
-  track(camera: TrackedCamera): void {
-    this.view = Float32Array.from(camera.view.elements)
-    this.uniforms.uniforms.uOrtho = camera.mode === 'orthographic' ? 1 : 0
+  protected override viewChanged(view: ArrayLike<number>, ortho: boolean): void {
+    this.view = view
+    this.uniforms.uniforms.uOrtho = ortho ? 1 : 0
     this.write()
   }
 

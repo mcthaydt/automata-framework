@@ -53,6 +53,8 @@ async function start(): Promise<{ renderer: Pixi3dRenderer; shafts: ShaftsEffect
   open = made.value
   const shafts = new ShaftsEffect()
   made.value.view.passes = [...made.value.view.passes, shafts]
+  // The view builds the camera's matrices as it draws, so the pass is told of the camera after a frame.
+  made.value.draw(frame)
   return { renderer: made.value, shafts }
 }
 
@@ -107,6 +109,27 @@ describe.runIf(hasWebGL2)('light shafts on WebGL2', () => {
     const right = drawn(moved, lit).filter((i) => i % SIZE.width >= SIZE.width / 2).length
     expect(left + right).toBeGreaterThan(30)
     expect(left).toBeGreaterThan(right)
+  })
+})
+
+describe.runIf(hasWebGL2)('light shafts: which way is up', () => {
+  it('puts the shaft of a high lamp in the upper rows of the frame and a low lamp’s in the lower', async () => {
+    const meanRow = async (y: number): Promise<number> => {
+      const { renderer, shafts } = await start()
+      const bare = shot(renderer)
+      shafts.setLamps([{ ...LAMP, at: [0, y, -1] }])
+      shafts.track(renderer.view.camera)
+      const moved = drawn(bare, shot(renderer))
+      expect(moved.length).toBeGreaterThan(10)
+      const mean = moved.reduce((sum, i) => sum + Math.floor(i / SIZE.width), 0) / moved.length
+      open?.dispose()
+      open = undefined
+      document.body.replaceChildren()
+      return mean
+    }
+    const high = await meanRow(2)
+    const low = await meanRow(0)
+    expect(high).toBeLessThan(low - 3)
   })
 })
 

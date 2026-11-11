@@ -141,3 +141,34 @@ fn toward(c: vec3<f32>, t: vec3<f32>, amt: f32) -> vec3<f32> {
   return fromOklab(vec3<f32>(a.x + (b.x - a.x) * amt * 0.5, a.y + (b.y - a.y) * amt, a.z + (b.z - a.z) * amt));
 }
 `
+
+/**
+ * Where the surface a pixel shows is, in view space (x right, y up, z toward the viewer, so -z is the distance in front): the
+ * pixel's content-space `uv` runs y down, the clip terms (`uFxClip` .z and .w, the projection's scale) say how wide the view
+ * is, and an orthographic camera (`uOrtho` over 0.5) does not widen it with distance. `viewPos` is the engine's for a lens
+ * camera and takes y the other way up here, so the passes that need a place use this.
+ */
+export const SURFACE_GLSL = `
+float surfaceDepth(float d) {
+  return uOrtho > 0.5 ? uFxClip.x + d * (uFxClip.y - uFxClip.x) : linearDepth(d);
+}
+vec3 surfacePos(vec2 uv) {
+  float lz = surfaceDepth(sampleDepth(uv));
+  vec2 ndc = vec2(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0);
+  float w = uOrtho > 0.5 ? 1.0 : lz;
+  return vec3(ndc.x * w / uFxClip.z, ndc.y * w / uFxClip.w, -lz);
+}
+`
+export const SURFACE_WGSL = `
+fn surfaceDepth(d: f32) -> f32 {
+  if (fx.uOrtho > 0.5) { return fxh.uFxClip.x + d * (fxh.uFxClip.y - fxh.uFxClip.x); }
+  return linearDepth(d);
+}
+fn surfacePos(uv: vec2<f32>) -> vec3<f32> {
+  let lz = surfaceDepth(sampleDepth(uv));
+  let ndc = vec2<f32>(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0);
+  var w = lz;
+  if (fx.uOrtho > 0.5) { w = 1.0; }
+  return vec3<f32>(ndc.x * w / fxh.uFxClip.z, ndc.y * w / fxh.uFxClip.w, -lz);
+}
+`
