@@ -43,10 +43,10 @@ const props = await load('props.ts', { './level': level })
 const visibility = await load('visibility.ts')
 
 // --- sectors ------------------------------------------------------------------------------------------------------
-// The source's trim for a wall nothing else says anything about: skirting, wainscot and rail. Its default also draws a top on
-// every wall (`cap`), which here is left off: the builder's tops (4.9 m up, across the masonry) do not cut away with their
-// walls yet, so the near walls' tops cross the frame as black lines. Room visibility (EnvironmentBuilder's) brings them back.
-const DEFAULT_TRIM = { skirting: 0.14, wainscot: 1.14, rail: 0.08, cap: false }
+// The source's trim for a wall nothing else says anything about: skirting, wainscot and rail, and a top on every wall (`cap`).
+// A top goes with its wall when a camera zone or the occluder rule cuts the wall away (the top carries the wall's `line` and
+// `cut`, so room visibility's wall hider hides it in the same group).
+const DEFAULT_TRIM = { skirting: 0.14, wainscot: 1.14, rail: 0.08, cap: true }
 const round = (n: number): number => Math.round(n * 1e6) / 1e6
 
 // The source's floor and its dimmer twin are tile grids (a 30 cm glaze with a dark grout line); the kit's `tileFloor` is that.

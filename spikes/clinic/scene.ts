@@ -22,6 +22,8 @@ import {
 import { readLevel } from '@automata/3d/level'
 import { CameraHeading, cameraView, enterView, MAX_CAMERA_TURN, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
+import * as visibility from '@automata/room-visibility'
+import * as masks from '@automata/room-visibility/view'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
 import clinic from './content/clinic.af-sector.json'
 import library from './content/clinic.library.json'
@@ -34,7 +36,8 @@ await detectVideoAlphaMode()
 const q = new URLSearchParams(location.search)
 const frame = q.get('frame') ?? 'play-hall'
 const turned = q.get('turned') === '1'
-// Bisecting switches: ?look=0 drops the look, ?light=0 the baked light, ?occ=0 the camera's occluder rule, ?walls=0 leaves out the walls.
+// Bisecting switches: ?look=0 drops the look, ?light=0 the baked light, ?occ=0 the camera's occluder rule, ?walls=0 leaves out the walls,
+// ?rooms=0 draws every room whatever the zone (room visibility off).
 const on = (key: string) => q.get(key) !== '0'
 // ?haze=0 switches the look's distance haze off.
 // The source's view fog is linear from 5 m before the camera's focus to 7 m past it (its `LOOK.haze`: near -5, far 7), full veil at the far
@@ -76,6 +79,10 @@ const VIEW = cameraView(ZONE_ID, { ...(zone as object), bounds } as never)
 // The player's heading: the home heading from `START`, one 45° step on for the turned frames.
 const HEADING = { ...enterView(START, VIEW, { x: 0, y: 0 }) }
 if (turned) HEADING.heading += MAX_CAMERA_TURN
+// Room visibility: the level's own policy, and its walls as cutaway groups.
+const policy = visibility.parseRoomPolicy(clinic.visibility)
+const groups = visibility.wallGroups(read.level)
+const isMask = (node: { label?: string }): boolean => node.label === 'room-mask'
 const Body = defineComponent('body', { x: 'f32', y: 'f32', z: 'f32' })
 const sky = time.scene.sky
 const skyMid = sky[Math.floor(sky.length / 2)]?.colour ?? '#808080'
@@ -104,7 +111,8 @@ startGame(
         look: on('look') ? LOOK : undefined,
         time,
         lighting: on('light') ? lighting : undefined,
-        backgroundColor: Number.parseInt(skyMid.slice(1), 16),
+        // The source clears to black (its `backgroundColor: 0x000000`); the level's night sky, mid-blue, showed past the building.
+        backgroundColor: on('sky') ? 0x000000 : Number.parseInt(skyMid.slice(1), 16),
         // A stand-in for the player, nothing at all in a zone still.
         views: {
           [Body.id]: box(kind === 'zone' ? { width: 0.01, height: 0.01, depth: 0.01 } : { width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xffbc4e }),
@@ -116,10 +124,32 @@ startGame(
           view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
           ;(window as unknown as { __camera: unknown }).__camera = view.camera
           view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)?.focus(VIEW.distance - FOG_LEAD)
-          drawWorld(
-            { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), tiles: albedoTiles(library.swatches as never), look: on('look') ? LOOK : undefined, light, models },
-            world.pieces.filter((p) => (on('walls') || p.part !== 'wall') && (on('tops') || !p.id.includes(':top:'))),
-          )
+          // Each room is drawn into a layer that room owns (a mass into the rooms the policy gives it), and a wall piece, its top
+          // with it, goes into its cutaway group as it is drawn. A zone then draws the rooms it sees and cuts its walls away.
+          const owned = masks.createRoomOwnership(view.root, policy)
+          const hider = masks.createWallHider()
+          const draw: masks.DrawByRoom<(typeof world.pieces)[number]>['draw'] = (parent, pieces) =>
+            drawWorld(
+              { parent, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), tiles: albedoTiles(library.swatches as never), look: on('look') ? LOOK : undefined, light, models },
+              pieces,
+            )
+          masks.drawByRoom({
+            owned,
+            policy,
+            groups,
+            hider,
+            pieces: world.pieces.filter((p) => (on('walls') || p.part !== 'wall') && (on('tops') || !p.id.includes(':top:'))),
+            draw,
+          })
+          owned.own(view.camera, 'global')
+          // The stand-in for the player and the lights are not room content: they draw in every room.
+          for (const node of [...view.root.children]) if (owned.owners(node as never) === undefined && !isMask(node)) owned.own(node as never, 'global')
+          owned.assertComplete()
+          const shown = on('rooms')
+            ? visibility.createRoomVisibility(policy, visibility.plansOf(read.level)).update({ zone: ZONE_ID, at: { x: focus.x, z: focus.z }, dt: 0, reducedMotion: true, cutscene: false })
+            : new Set(Object.keys(policy.rooms))
+          owned.apply(shown)
+          hider.apply(on('rooms') ? visibility.hiddenWallGroups(groups, ZONE_ID, false) : new Set())
           const { dataset } = stage.app.canvas
           dataset.renderer = (stage.app.renderer as unknown as { name: string }).name
           dataset.frame = frame
@@ -127,6 +157,7 @@ startGame(
           dataset.problems = String(world.problems.length)
           dataset.problemCodes = [...new Set(world.problems.map((p) => p.code))].join(',')
           dataset.lamps = String(lighting.lamps.length)
+          dataset.rooms = [...shown].sort().join(',')
           dataset.ready = '1'
           return undefined
         },

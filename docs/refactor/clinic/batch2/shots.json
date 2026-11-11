@@ -66,28 +66,6 @@
     ]
   },
   {
-    "frame": "play-hall",
-    "pref": "webgl",
-    "renderer": "webgl",
-    "pieces": "446",
-    "problems": "0",
-    "problemCodes": "",
-    "lamps": "18",
-    "errors": []
-  },
-  {
-    "frame": "play-hall",
-    "pref": "webgpu",
-    "renderer": "webgpu",
-    "pieces": "446",
-    "problems": "0",
-    "problemCodes": "",
-    "lamps": "18",
-    "errors": [
-      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
-    ]
-  },
-  {
     "frame": "play-ward",
     "pref": "webgl",
     "renderer": "webgl",
@@ -234,6 +212,28 @@
     "pref": "webgpu",
     "renderer": "webgpu",
     "pieces": "446",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "18",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "frame": "play-hall",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "468",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "18",
+    "errors": []
+  },
+  {
+    "frame": "play-hall",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "468",
     "problems": "0",
     "problemCodes": "",
     "lamps": "18",

@@ -3,7 +3,7 @@
 
 import type { Container3D } from '@pixi/3d'
 import type { RoomOwnership } from './room-ownership.ts'
-import { type RoomPolicy, roomOfSector } from './room-policy.schema.ts'
+import { type RoomOwners, type RoomPolicy, roomOfSector } from './room-policy.schema.ts'
 import { type WallGroup, type WallPiece, wallGroupOfPiece } from './wall-groups.ts'
 import type { Hideable, WallHider } from './wall-hider.ts'
 
@@ -23,16 +23,41 @@ export interface DrawByRoom<P extends RoomPiece> {
   readonly draw: (parent: Container3D, pieces: P[]) => { mesh(id: string): Hideable | undefined }
 }
 
-/** A piece whose sector is in no room is not drawn (`checkRoomPolicy` says so beforehand). */
+/** The mass a piece is part of: the builder names its pieces `<sector>:mass<index>:<part>`. */
+const massOf = (id: string): string | undefined => /^[^:]+:mass(\d+):/.exec(id)?.[1]
+
+/**
+ * A piece whose sector is in no room is not drawn (`checkRoomPolicy` says so beforehand). A mass's pieces are owned by the
+ * rooms the policy gives its index, not by the sector its middle falls in: a block between the ward and the corridor
+ * draws when either is seen.
+ */
 export function drawByRoom<P extends RoomPiece>(o: DrawByRoom<P>): void {
   const roomOf = roomOfSector(o.policy)
-  for (const room of Object.keys(o.policy.rooms)) {
-    const pieces = o.pieces.filter((piece) => roomOf.get(piece.sector) === room)
-    const drawn = o.draw(o.owned.layer([room]), pieces)
+  const massOwners = (piece: P): RoomOwners | undefined => {
+    const mass = massOf(piece.id)
+    return mass === undefined ? undefined : o.policy.masses[mass]
+  }
+  const layer = (owners: RoomOwners, pieces: P[]): void => {
+    const drawn = o.draw(o.owned.layer(owners), pieces)
     for (const piece of pieces) {
       const group = wallGroupOfPiece(o.groups, piece)
       const mesh = drawn.mesh(piece.id)
       if (group && mesh) o.hider.add(group.id, mesh)
     }
   }
+  for (const room of Object.keys(o.policy.rooms))
+    layer(
+      [room],
+      o.pieces.filter((piece) => massOwners(piece) === undefined && roomOf.get(piece.sector) === room),
+    )
+  const masses = new Map<string, { owners: RoomOwners; pieces: P[] }>()
+  for (const piece of o.pieces) {
+    const owners = massOwners(piece)
+    if (owners === undefined) continue
+    const key = owners === 'global' ? 'global' : [...owners].sort().join('+')
+    const held = masses.get(key) ?? { owners, pieces: [] }
+    masses.set(key, held)
+    held.pieces.push(piece)
+  }
+  for (const { owners, pieces } of masses.values()) layer(owners, pieces)
 }
