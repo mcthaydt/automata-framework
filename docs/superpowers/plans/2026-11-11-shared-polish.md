@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 15 of 21 tasks (53%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 16 of 21 tasks (54%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -47,7 +47,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 11b | `Hosting.openLink` on every target | 5 | done (jsdom/Node unit tests over fakes; a real desktop build opening a real browser and a real Ruken host asking the player are not run) | `7dc3e29c` |
 | 12 | Credits (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium, 100 cases; WebKit and Firefox not run) | `618d03a3` |
 | 13 | Achievements, generic, and their Ruken mapping | 6 | done (unit tests over fakes and Ruken's own parser; a real `ruken publish` is not run) | `474d2f96` |
-| 14 | Stale-build check | 7 | todo | |
+| 14 | Stale-build check | 7 | done (jsdom unit tests with a fake clock and a bare HTTP listener; the panel's layout contract in Chromium, 50 cases; no two-process journey, as call 15 says; WebKit and Firefox not run) | `2d87462f` |
 | 15 | The four examples and their journeys | examples | todo | |
 | 16 | Emberwick in six languages, with an achievement | 1, 6 | todo | |
 | 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
@@ -237,6 +237,16 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   their prepare. The `automata-verify` skill lists the new step and its two rules (its test requires every rule documented).
 - **Task 13, Ruling:** editor gaps 5 (the achievements declaration) and 6 (the font list, logged late) are in the ledger.
 - **Task 13, not run:** a real `ruken publish`, and a live `automata words` over the achievements.
+- **Task 14, Ruling:** `BuildFacts` and `checkServerVersion` are exported from `@automata/net`'s main entry (net-ui imports them
+  from there), and `staleBuildStep`, `StaleBuild` and `staleWords` from `@automata/net-ui`; the catalogs are exported at
+  `@automata/net-ui/words/<language>.json` so `gameWords` finds them. The step's `waitMs` timer is armed before the check
+  starts and cleared once a stale panel shows (a stale tab waits for Reload, not the clock).
+- **Task 14, Ruling:** the step's default `reload` is `location.reload()` and is not unit-tested (jsdom does not implement it); the
+  tests pass `reload`. A real reload is the Owner's to try in a browser, with the stale-build "journey" of call 15 (a served
+  two-process journey has no home in the repository, as the plan says).
+- **Task 14, note:** the stale panel takes core's `ErrorPanel` as is, with one primary Reload action focused on mount (the layout
+  contract also checks it is 48 px).
+- **Task 14, not run:** a real server answering `/version` to a real browser tab; WebKit and Firefox.
 
 ## Global constraints
 
