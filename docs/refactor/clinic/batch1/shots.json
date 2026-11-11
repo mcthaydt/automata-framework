@@ -1,0 +1,288 @@
+[
+  {
+    "frame": "zone-hall",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c3400d01200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "zone-hall",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "zone-corridor",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c3400adee00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "zone-corridor",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "zone-closet",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c34001b1800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "zone-closet",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "play-hall",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c3400af2000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "play-hall",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "play-ward",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c34001b7200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "play-ward",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "play-corridor",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c34001b6c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "play-corridor",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "play-supply",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c34001bae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "play-supply",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "play-hall-turned",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c34001ba200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "play-hall-turned",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "play-ward-turned",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c3400ad5000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "play-ward-turned",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "play-corridor-turned",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c3400b03400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "play-corridor-turned",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  },
+  {
+    "frame": "play-supply-turned",
+    "pref": "webgl",
+    "renderer": "webgl",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "[.WebGL-0x1c3400b3ae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "frame": "play-supply-turned",
+    "pref": "webgpu",
+    "renderer": "webgpu",
+    "pieces": "248",
+    "problems": "0",
+    "problemCodes": "",
+    "lamps": "15",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "[Texture \"sceneDepth\"] usage (TextureBinding|RenderAttachment) includes writable usage and another usage in the same synchronization scope.\n - While validating render pass usage.\n - While finishing [CommandEncoder (unlabeled)].\n",
+      "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n"
+    ]
+  }
+]

@@ -47,6 +47,14 @@ world-kit pieces the clinic's dressing needs.
 
 ## The frames
 
+What the 22 AF frames show (looked at, 2026-11-11): the same place as the source's baselines: the hall with the reception
+desk on the right and the ward on the left, the corridor mouth and the exit lamp at the far end, the desk lamp's and the
+hall lamp's pools on the floor, the cool teal wash on the walls. WebGL and WebGPU agree (same camera, same pieces, 248 pieces,
+15 lamps, 0 builder problems in every frame). What is not there yet, and is batch 2's: every prop is a grey box (no models,
+the Owner's rule), none of `dressClinic`'s pieces (curtains, pipes, CRT, moon shafts, floor tiles' grout and grime, notices),
+no Ada (a box), the light is flatter and the walls darker than the source's, and the thin dark lines across the frame are
+the cut-away walls' tops. The source's baselines show its HUD and a minimap, so they are for the eye, not a diff.
+
 `batch1/<frame>-compare.png` is the source's baseline | AF WebGL | AF WebGPU, side by side. The source's baselines
 exist for the four play spots only (and show its HUD); the zone stills and the turned frames have no baseline until
 the reference is re-shot (the spec's section 4.3), so those are AF alone. `shots.json` holds each frame's measured
