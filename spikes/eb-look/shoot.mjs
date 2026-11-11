@@ -2,30 +2,32 @@
 // WebGL and on WebGPU (headless Chromium, SwiftShader), and writes one side-by-side PNG per scene and view:
 // EnvironmentBuilder's CPU frame | AF WebGL (baked room light) | AF WebGL (material light only) | AF WebGPU, each nearest-scaled ×SCALE. EB's frames are read from
 // EB_DIR (`<scene>-<view>.png` at 1×, as EB's `npm run render` writes them without the -x suffix); a missing one is a
-// grey panel that says so.
+// grey panel that says so. Then one sheet a scene of the gameplay cameras (`af`, `tll` in scene.ts) on WebGL.
 //
 //   ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules   # once; git-ignored
-//   EB_DIR=<dir> node spikes/eb-look/shoot.mjs [out dir]                 # default docs/superpowers/eb-look/baseline
+//   EB_DIR=<dir> node spikes/eb-look/shoot.mjs [out dir]                 # default docs/refactor/eb-look/baseline
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { createServer } from 'node:net'
 import { createRequire } from 'node:module'
+import { createServer } from 'node:net'
 import { join } from 'node:path'
 
 const repo = new URL('../..', import.meta.url).pathname
 const require = createRequire(join(repo, 'packages/3d/package.json'))
 const { chromium } = require('playwright')
 
-const out = process.argv[2] ?? join(repo, 'docs/superpowers/eb-look/baseline')
+const out = process.argv[2] ?? join(repo, 'docs/refactor/eb-look/baseline')
 const ebDir = process.env.EB_DIR
 const SCALE = Number(process.env.SCALE ?? 2)
-// A free port the OS picks, so two shoots never collide (a fixed one is a repo-hygiene finding).
-const port = await new Promise((resolve) => {
-  const probe = createServer().listen(0, () => {
-    const { port: free } = probe.address()
-    probe.close(() => resolve(free))
+// A free port the OS picks (or PORT), so two copies never collide and the repo names no port of its own.
+const freePort = () =>
+  new Promise((resolve) => {
+    const s = createServer().listen(0, '127.0.0.1', () => {
+      const { port: free } = s.address()
+      s.close(() => resolve(free))
+    })
   })
-})
+const port = process.env.PORT ? Number(process.env.PORT) : await freePort()
 const SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
 const VIEWS = ['diorama', 'fp']
 // The AF panels: the renderer asked for, and switches (scene.ts). `light=0` leaves out the level's baked room light, so
@@ -51,13 +53,20 @@ process.on('exit', stop)
 for (let i = 0; i < 120 && !log.includes('Local:'); i++) await new Promise((r) => setTimeout(r, 500))
 if (!log.includes('Local:')) throw new Error(`vite did not start:\n${log}`)
 
-const browser = await chromium.launch({ args: ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
+// Vulkan on SwiftShader is what lets Chromium present a WebGPU canvas here: without it the GPU process cannot make the
+// swap chain's shared image ("Could not find SharedImageBackingFactory ... WebgpuSwapChainTexture") and the device is
+// lost on the first frame, with or without a mesh (docs/refactor/eb-look/wp0/README.md).
+const browser = await chromium.launch({
+  args: ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-features=Vulkan', '--use-vulkan=swiftshader'],
+})
 const facts = []
 
 const FIELD = { 'base-interior': [512, 320], 'base-exterior': [640, 360] }
+const fieldOf = (scene, view) =>
+  view === 'fp' ? [320, 200] : view === 'af' || view === 'tll' ? [320, 180] : FIELD[scene.replace('-dressed', '')]
 async function shoot(scene, view, pref, extra) {
   // The viewport is the logical field, so the letterbox draws it 1:1.
-  const [width, height] = view === 'fp' ? [320, 200] : FIELD[scene.replace('-dressed', '')]
+  const [width, height] = fieldOf(scene, view)
   const page = await browser.newPage({ viewport: { width: width * 2, height: height * 2 }, deviceScaleFactor: 1 })
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e)))
@@ -79,12 +88,13 @@ async function shoot(scene, view, pref, extra) {
   // The pause button and any notice sit over the field: hidden for the picture only.
   await page.addStyleTag({ content: '[data-layer="screens"] { visibility: hidden !important }' })
   // The game draws at its logical size and the letterbox upscales whole pixels: read back the logical field.
-  const png = await canvas.screenshot()
+  const png = await canvas.screenshot({ timeout: 120000 })
   await page.close()
   return { png, renderer: data.renderer, data, errors }
 }
 
 const compose = await browser.newPage()
+// Every panel is drawn at the field's size × SCALE: EB's 1× frame nearest-scaled, AF's canvas (the field × 2) as it is.
 async function sideBySide(panels, w, h) {
   return compose.evaluate(
     async ({ panels, w, h, scale }) => {
@@ -117,13 +127,9 @@ for (const scene of SCENES)
     const ebFile = ebDir && join(ebDir, `${scene}-${view}.png`)
     const eb = ebFile && existsSync(ebFile) ? readFileSync(ebFile).toString('base64') : null
     const panels = [{ title: 'EB CPU', b64: eb, missing: 'EnvironmentBuilder frame not rendered (see gap.md)' }]
-    let w = 320, h = 200
+    const [w, h] = fieldOf(scene, view)
     for (const { pref, extra, title } of PANELS) {
       const shot = await shoot(scene, view, pref, extra)
-      if (shot.png !== null) {
-        const dims = await compose.evaluate(async (b64) => { const i = new Image(); i.src = `data:image/png;base64,${b64}`; await i.decode(); return [i.naturalWidth, i.naturalHeight] }, shot.png.toString('base64'))
-        ;[w, h] = dims
-      }
       const lost = shot.data?.lost ? ', device lost' : ''
       panels.push({ title: `${title} (drew: ${shot.renderer}${lost})`, b64: shot.png?.toString('base64') ?? null, missing: `failed: ${shot.errors[0] ?? ''}`.slice(0, 80) })
       facts.push({ scene, view, asked: pref, extra, ...shot.data, renderer: shot.renderer, errors: shot.errors })
@@ -132,6 +138,20 @@ for (const scene of SCENES)
     const b64 = await sideBySide(panels, w, h)
     writeFileSync(join(out, `${scene}-${view}.png`), Buffer.from(b64, 'base64'))
   }
+// The gameplay cameras: AF's default view beside The Last Light's play camera, on WebGL, both lights.
+for (const scene of SCENES) {
+  const panels = []
+  for (const view of ['af', 'tll'])
+    for (const { pref, extra, title } of PANELS.filter((p) => p.pref === 'webgl')) {
+      const shot = await shoot(scene, view, pref, extra)
+      const camera = view === 'af' ? 'AF default camera (24 mm, 25°, 5 m)' : 'TLL play camera (50 mm, 30°, 16 m)'
+      panels.push({ title: `${camera}, ${title.replace('AF WebGL, ', '')}`, b64: shot.png?.toString('base64') ?? null, missing: `failed: ${shot.errors[0] ?? ''}`.slice(0, 80) })
+      facts.push({ scene, view, asked: pref, extra, ...shot.data, renderer: shot.renderer, errors: shot.errors })
+      console.log(scene, view, pref, extra, '->', shot.renderer)
+    }
+  const b64 = await sideBySide(panels, 320, 180)
+  writeFileSync(join(out, `${scene}-gameplay.png`), Buffer.from(b64, 'base64'))
+}
 writeFileSync(join(out, 'shots.json'), `${JSON.stringify(facts, null, 2)}\n`)
 await browser.close()
 stop()

@@ -15,7 +15,14 @@
 // each function against its source string, so an update that moves any of them fails there.
 //
 // Removed when a Pixi 3D release ships its own no-eval counterparts (re-checked at).
-import { GlUboSystem, GlUniformGroupSystem, GpuUboSystem, type UniformData, uniformParsers } from 'pixi.js'
+import {
+  GlUboSystem,
+  GlUniformGroupSystem,
+  GpuUboSystem,
+  type UniformData,
+  uniformParsers,
+  WGSL_ALIGN_SIZE_DATA,
+} from 'pixi.js'
 
 /** The types of pixi.js 8.22's own uniform parsers, in order: the shim's parsers follow them. */
 export const PIXI_UNIFORM_PARSER_TYPES: readonly string[] = [
@@ -159,6 +166,36 @@ type GenerateUboSync = (uboElements: readonly UboElement[]) => UboSync
 
 const INSTALLED = Symbol.for('automata-3d/no-eval')
 
+/** A WGSL integer type: a scalar or a vector of `i32` or `u32`. */
+const INTEGER_TYPE = /^(?:[iu]32|vec[234]<[iu]32>)$/
+
+/**
+ * The write of an integer uniform (or an array of them) into a WGSL uniform buffer, through the buffer's `Int32Array`
+ * view. pixi.js 8.22's eval-free polyfill (`generateUboSyncPolyfillWGSL`) writes it through the float view, so a shader
+ * reading `array<vec4<i32>>` sees the bit pattern of 1.0 and not 1: `@pixi/3d`'s light tiles (`uLightTiles`,
+ * `uLightDepthMasks`) came out as noise and every lit mesh drew black on WebGPU. The eval path writes `dataInt32`, as
+ * this does, and each array element takes the stride the polyfill gives it: its size padded up to its alignment.
+ */
+function integerWrite(uniform: UniformData): UboWrite | undefined {
+  if (!INTEGER_TYPE.test(uniform.type)) return undefined
+  const layout = WGSL_ALIGN_SIZE_DATA[uniform.type]
+  if (layout === undefined) return undefined
+  const lanes = layout.size / 4
+  const stride = Math.max(layout.size, layout.align) / 4
+  const count = uniform.size ?? 1
+  return (name, data, offset, values, value) => {
+    const ints = new Int32Array(data.buffer, data.byteOffset, data.length)
+    const v = (value ?? values[name]) as ArrayLike<number> | number
+    if (typeof v === 'number') {
+      ints[offset] = v
+      return
+    }
+    for (let element = 0; element < count; element++)
+      for (let lane = 0; lane < lanes; lane++)
+        ints[offset + element * stride + lane] = v[element * lanes + lane] as number
+  }
+}
+
 function wrapUniformsSync(prototype: { _generateUniformsSync: GenerateUniformsSync }): void {
   const pixiPolyfill = prototype._generateUniformsSync
   prototype._generateUniformsSync = function (this: unknown, group, uniformData) {
@@ -183,14 +220,20 @@ function wrapUniformsSync(prototype: { _generateUniformsSync: GenerateUniformsSy
   }
 }
 
-function wrapUboSync(prototype: { _generateUboSync: GenerateUboSync }): void {
+function wrapUboSync(
+  prototype: { _generateUboSync: GenerateUboSync },
+  /** Whether this system's buffers are WGSL's, where pixi's polyfill mis-writes integers. */
+  wgsl: boolean,
+): void {
   const pixiPolyfill = prototype._generateUboSync
   prototype._generateUboSync = function (this: unknown, uboElements) {
     const ours: [string, number, UboWrite][] = []
     const theirs: UboElement[] = []
     for (const element of uboElements) {
       const index = pixi3dParserIndex(element.data)
-      if (index === undefined) theirs.push(element)
+      const integer = wgsl && index === undefined ? integerWrite(element.data) : undefined
+      if (integer !== undefined) ours.push([element.data.name ?? '', element.offset / 4, integer])
+      else if (index === undefined) theirs.push(element)
       else ours.push([element.data.name ?? '', element.offset / 4, pixi3dUboFunctions[index] as UboWrite])
     }
     const pixiSync = pixiPolyfill.call(this, theirs)
@@ -218,7 +261,7 @@ export function installPixi3dUniformSync(): void {
   wrapUniformsSync(
     GlUniformGroupSystem.prototype as unknown as { _generateUniformsSync: GenerateUniformsSync },
   )
-  for (const System of [GlUboSystem, GpuUboSystem])
-    wrapUboSync(System.prototype as unknown as { _generateUboSync: GenerateUboSync })
+  wrapUboSync(GlUboSystem.prototype as unknown as { _generateUboSync: GenerateUboSync }, false)
+  wrapUboSync(GpuUboSystem.prototype as unknown as { _generateUboSync: GenerateUboSync }, true)
   registry[INSTALLED] = true
 }
