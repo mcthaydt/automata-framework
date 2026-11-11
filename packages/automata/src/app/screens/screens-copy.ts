@@ -14,6 +14,7 @@ import {
   SAVE_STATUS_COPY,
 } from './saves/saves-copy.ts'
 import { PAD_UNSUPPORTED } from './screen-kit.ts'
+import { catalogFor, screensCopyFrom } from './screens-catalog.ts'
 import type { AudioCopy } from './settings/audio-section.ts'
 import type { ControlsCopy } from './settings/controls-section.ts'
 import type { DisplayCopy } from './settings/display-section.ts'
@@ -161,8 +162,25 @@ function merge<T>(base: T, over: unknown): T {
   return out as T
 }
 
-/** The record for `locale`: the defaults with the game's words laid over them. */
+const translated = new Map<string, ScreensCopy>()
+
+/**
+ * The default screens' words in a locale: its bundled catalog (`pt-PT` finds `pt-BR`), or the English record for a
+ * language core has no words in.
+ */
+export function screensCopyFor(locale: string): ScreensCopy {
+  const catalog = catalogFor(locale)
+  if (catalog === undefined || catalog === catalogFor('en')) return DEFAULT_SCREENS_COPY
+  const cached = translated.get(locale)
+  if (cached !== undefined) return cached
+  const built = screensCopyFrom(catalog, DEFAULT_SCREENS_COPY)
+  translated.set(locale, built)
+  return built
+}
+
+/** The record for `locale`: its bundled words with the game's own laid over them. */
 export function resolveScreensCopy(input: ScreensCopyInput | undefined, locale: string): ScreensCopy {
   const overrides = typeof input === 'function' ? input(locale) : input
-  return overrides === undefined ? DEFAULT_SCREENS_COPY : merge(DEFAULT_SCREENS_COPY, overrides)
+  const base = screensCopyFor(locale)
+  return overrides === undefined ? base : merge(base, overrides)
 }

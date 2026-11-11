@@ -28,12 +28,12 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 1 of 21 tasks (5%).**
+**Progress: 2 of 21 tasks (10%).**
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
 | 1 | The six languages as data, and the negotiation rules pinned | 1 | done | `0500f409` |
-| 2 | Core's menu words as catalogs in six languages | 1 | todo | |
+| 2 | Core's menu words as catalogs in six languages | 1 | done | (this commit) |
 | 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | todo | |
 | 4 | `automata words`: the AI translates | 1 | todo | |
 | 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | todo | |

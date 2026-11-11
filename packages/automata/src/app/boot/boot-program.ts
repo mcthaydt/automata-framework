@@ -7,7 +7,7 @@ import { createDisplayPolicy } from '../../features/display/display-policy.svelt
 import { browserHaptics } from '../../features/input/haptics/haptics.manager.js'
 import { submitEventScores } from '../../features/leaderboards/event-scores.js'
 import { createLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
-import { browserLanguages, createLocale, singleLocale } from '../../features/locale/locale.manager.js'
+import { browserLanguages, createLocale } from '../../features/locale/locale.manager.js'
 import { savesKept } from '../../features/saves/save.manager.js'
 import { createSaves } from '../../features/saves/saves.manager.js'
 import { type HostResult, refuse } from '../../shared/host/errors.ts'
@@ -41,8 +41,10 @@ import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.sve
 import { createFlow, type Flow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { createVeil } from '../flow/veil.js'
+import { displayCopyFor, runtimeCopyFor } from '../screens/screens-catalog.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
+import { gameLocaleDef, runtimeCopyForGame } from './runtime-copy.ts'
 import type { Teardown } from './teardown.ts'
 
 /**
@@ -69,9 +71,6 @@ function withPreload(
   for (const file of preload) if (!files.includes(file)) files.push(file)
   return { ...assets, screens: { ...screens, [screen]: { files } } }
 }
-
-/** The context-lost panel's English default, in Ruken's quiet tone. */
-const CONTEXT_LOST_COPY_EN = 'The picture stopped. Try again to bring it back.'
 
 /**
  * Ruken's save key pattern (/^[A-Za-z0-9._:-]{1,128}$/).
@@ -169,10 +168,9 @@ async function boot<S>(
   const lock = lockOverscroll(doc.documentElement)
   owned.add(() => lock.destroy())
 
-  const loaderHandle = layers.showLoader({
-    label: game.copy?.loading ?? 'Loading…',
-    slowLabel: game.copy?.slow ?? 'Taking a while…',
-  })
+  // The locale service does not exist yet, so these words follow the browser's languages (see runtime-copy.ts).
+  const earlyCopy = runtimeCopyForGame(game, win)
+  const loaderHandle = layers.showLoader({ label: earlyCopy.loading, slowLabel: earlyCopy.slow })
   options.onLoader?.(loaderHandle)
   owned.add(() => loaderHandle.close())
 
@@ -264,11 +262,11 @@ async function boot<S>(
     reportLost: (retry) => {
       const dismiss = layers.showError({
         code: 'context-lost',
-        message: game.copy?.contextLost ?? CONTEXT_LOST_COPY_EN,
+        message: earlyCopy.contextLost,
         actions: [
           {
             id: 'retry',
-            label: game.copy?.retry ?? 'Try again',
+            label: earlyCopy.retry,
             kind: 'primary',
             onSelect: () => {
               dismiss()
@@ -305,7 +303,7 @@ async function boot<S>(
 
   // The locale is negotiated, and <html lang dir> set, before the first screen enters.
   const locale = await createLocale({
-    def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
+    def: gameLocaleDef(game),
     hosting,
     browser: game.seams?.languages ?? browserLanguages(win.navigator),
     bus,
@@ -366,7 +364,7 @@ async function boot<S>(
     bus,
     geometry,
     veil,
-    ...(game.copy !== undefined ? { copy: game.copy } : {}),
+    copy: { ...runtimeCopyFor(locale.current), ...game.copy },
     services: () => {
       if (services === undefined) throw new Error('A screen entered before the runtime services were built')
       return services
@@ -437,6 +435,7 @@ async function boot<S>(
     geometry,
     layer: layers.overlay,
     time,
+    copy: displayCopyFor(locale.current),
   })
   owned.add(() => display.dispose())
   return ok(undefined)

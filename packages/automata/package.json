@@ -35,6 +35,7 @@
     "./extension": "./src/entries/extension.ts",
     "./testing": "./src/entries/testing.ts",
     "./theme.css": "./src/shared/ui/theme.css",
+    "./words/*.json": "./src/app/screens/words/*.json",
     "./tooling": "./src/entries/tooling.ts"
   },
   "imports": {
@@ -80,6 +81,7 @@
         "import": "./dist/entries/testing.js"
       },
       "./theme.css": "./dist/shared/ui/theme.css",
+      "./words/*.json": "./dist/app/screens/words/*.json",
       "./tooling": {
         "types": "./dist/entries/tooling.d.ts",
         "import": "./dist/entries/tooling.js"

@@ -1,0 +1,440 @@
+{
+  "title_play": {
+    "note": "The big button on the title screen. Pressing it starts or continues the game."
+  },
+  "play_pause": {
+    "note": "The corner button while playing. Pressing it pauses the game. Read aloud by screen readers."
+  },
+  "play_move": {
+    "note": "Name of the on-screen move stick on touch screens. Read aloud by screen readers."
+  },
+  "paused_title": {
+    "note": "Heading of the pause menu."
+  },
+  "paused_resume": {
+    "note": "Button on the pause menu. Closes the menu and goes back to the game."
+  },
+  "paused_close": {
+    "note": "The X on the pause menu. Closes the menu. Not the same word as Resume, so screen readers hear one Resume button."
+  },
+  "paused_back": {
+    "note": "The X when the menu is showing a question (leave the game, or progress changed). Goes back one step."
+  },
+  "paused_mute": {
+    "note": "Button on the pause menu. Turns all sound off."
+  },
+  "paused_unmute": {
+    "note": "Button on the pause menu when sound is off. Turns sound back on."
+  },
+  "paused_settings": {
+    "note": "Button on the pause menu. Opens the Settings screen."
+  },
+  "paused_quit": {
+    "note": "Button on the pause menu. Asks to leave the game and go to the title screen."
+  },
+  "paused_quit_prompt": {
+    "note": "The question after pressing Back to menu. Warns that progress not saved is lost."
+  },
+  "paused_quit_confirm": {
+    "note": "Button under the leave question. Leaves the game for good."
+  },
+  "paused_cancel": {
+    "note": "Button under the leave question. Cancels and keeps playing."
+  },
+  "paused_reconnect": {
+    "note": "Shown when the game paused because the controller in use was unplugged. Tells the player to plug it back in."
+  },
+  "settings_screen_title": {
+    "note": "Heading of the Settings screen."
+  },
+  "settings_screen_back": {
+    "note": "Button on the Settings screen. Goes back to the menu it came from."
+  },
+  "settings_screen_tabs": {
+    "note": "Name of the row of tabs on the Settings screen. Read aloud by screen readers."
+  },
+  "settings_screen_settings_tab": {
+    "note": "Tab on the Settings screen. Shows sound, display and language."
+  },
+  "settings_screen_controls_tab": {
+    "note": "Tab on the Settings screen. Shows the buttons and keys, and lets the player change them."
+  },
+  "settings_screen_more": {
+    "note": "Says how many more items are hidden in a long list. {count} is a number."
+  },
+  "settings_prompts_unbound": {
+    "note": "Shown beside an action that has no button yet."
+  },
+  "settings_prompts_touch": {
+    "note": "Name of the touch screen's way of pressing a button."
+  },
+  "settings_prompts_pad_bottom": {
+    "note": "Controller button name: the bottom one of the four face buttons."
+  },
+  "settings_prompts_pad_right": {
+    "note": "Controller button name: the right one of the four face buttons."
+  },
+  "settings_prompts_pad_left": {
+    "note": "Controller button name: the left one of the four face buttons."
+  },
+  "settings_prompts_pad_top": {
+    "note": "Controller button name: the top one of the four face buttons."
+  },
+  "settings_prompts_pad_left_bumper": {
+    "note": "Controller button name: the shoulder button on the left."
+  },
+  "settings_prompts_pad_right_bumper": {
+    "note": "Controller button name: the shoulder button on the right."
+  },
+  "settings_prompts_pad_left_trigger": {
+    "note": "Controller button name: the trigger on the left."
+  },
+  "settings_prompts_pad_right_trigger": {
+    "note": "Controller button name: the trigger on the right."
+  },
+  "settings_prompts_pad_select": {
+    "note": "Controller button name: the Select (or Back) button."
+  },
+  "settings_prompts_pad_start": {
+    "note": "Controller button name: the Start (or Menu) button."
+  },
+  "settings_prompts_pad_left_stick": {
+    "note": "Controller button name: pressing down on the left stick."
+  },
+  "settings_prompts_pad_right_stick": {
+    "note": "Controller button name: pressing down on the right stick."
+  },
+  "settings_prompts_pad_home": {
+    "note": "Controller button name: the Home (or Guide) button."
+  },
+  "settings_controls_title": {
+    "note": "Heading of the controls section."
+  },
+  "settings_controls_keyboard": {
+    "note": "Name of the keyboard column in the controls list."
+  },
+  "settings_controls_gamepad": {
+    "note": "Name of the controller column in the controls list."
+  },
+  "settings_controls_touch": {
+    "note": "Name of the touch screen column in the controls list."
+  },
+  "settings_controls_in_use": {
+    "note": "Marks the device the player is using right now."
+  },
+  "settings_controls_reset": {
+    "note": "Button in the controls list. Puts every button back to how the game had it. Asks nothing first."
+  },
+  "settings_controls_press": {
+    "note": "Shown while waiting for the player to press the new button or key."
+  },
+  "settings_controls_rebind": {
+    "note": "Read aloud on a button that changes one action on one device. {action} is the action, {device} the device."
+  },
+  "settings_controls_capturing": {
+    "note": "Read aloud while waiting for a new button. {device} is the device, {action} the action, {seconds} the seconds left."
+  },
+  "settings_controls_conflict": {
+    "note": "Said when the chosen button is already used. {other} is the action that uses it, {action} the one being changed."
+  },
+  "settings_controls_reserved": {
+    "note": "Said when the chosen button is kept for the menus. {action} is the action being changed."
+  },
+  "settings_controls_timed_out": {
+    "note": "Said when no button was pressed in time. {action} is the action that stays as it was."
+  },
+  "settings_controls_saved": {
+    "note": "Said after a new button was chosen. {action} is the action."
+  },
+  "settings_language_title": {
+    "note": "Heading of the language section."
+  },
+  "settings_language_automatic": {
+    "note": "Choice in the language list. Uses the language the device is set to."
+  },
+  "settings_vibration_title": {
+    "note": "Heading of the vibration section."
+  },
+  "settings_vibration_toggle": {
+    "note": "Switch that turns controller rumble and phone vibration on or off."
+  },
+  "settings_vibration_on": {
+    "note": "Word on the vibration switch when it is on."
+  },
+  "settings_vibration_off": {
+    "note": "Word on the vibration switch when it is off."
+  },
+  "settings_audio_title": {
+    "note": "Heading of the sound section."
+  },
+  "settings_audio_mute": {
+    "note": "Switch that turns all sound off."
+  },
+  "settings_audio_mute_unfocused": {
+    "note": "Switch. When on, sound stops while the player is in another app or tab."
+  },
+  "settings_audio_on": {
+    "note": "Word on a sound switch when it is on."
+  },
+  "settings_audio_off": {
+    "note": "Word on a sound switch when it is off."
+  },
+  "settings_audio_buses_master": {
+    "note": "Name of the slider for every sound at once."
+  },
+  "settings_audio_buses_music": {
+    "note": "Name of the slider for music."
+  },
+  "settings_audio_buses_sfx": {
+    "note": "Name of the slider for sound effects."
+  },
+  "settings_audio_buses_ui": {
+    "note": "Name of the slider for menu clicks and sounds."
+  },
+  "settings_audio_buses_voice": {
+    "note": "Name of the slider for voices."
+  },
+  "settings_audio_percent": {
+    "note": "The value next to a volume slider. {percent} is a number from 0 to 100."
+  },
+  "settings_audio_unavailable": {
+    "note": "Shown when sound could not start on this device."
+  },
+  "settings_audio_host_volume": {
+    "note": "Shown under the sound sliders. Tells the player the device's own volume still matters."
+  },
+  "settings_touch_title": {
+    "note": "Heading of the touch controls section."
+  },
+  "settings_touch_mode": {
+    "note": "Label of the choice of how to play on a touch screen."
+  },
+  "settings_touch_modes_buttons": {
+    "note": "Choice: play with on-screen buttons."
+  },
+  "settings_touch_modes_swipe": {
+    "note": "Choice: play by swiping."
+  },
+  "settings_display_title": {
+    "note": "Heading of the display section."
+  },
+  "settings_display_quality": {
+    "note": "Label of the choice of picture quality."
+  },
+  "settings_display_qualities_high": {
+    "note": "Choice of picture quality: the best."
+  },
+  "settings_display_qualities_medium": {
+    "note": "Choice of picture quality: in between."
+  },
+  "settings_display_qualities_low": {
+    "note": "Choice of picture quality: the lightest, for slow devices."
+  },
+  "settings_display_reduced_motion_on": {
+    "note": "Says the device is set to reduce motion, so the game moves less."
+  },
+  "settings_display_reduced_motion_off": {
+    "note": "Says the device is not set to reduce motion."
+  },
+  "saves_slots_title": {
+    "note": "Heading of the list of saved games."
+  },
+  "saves_slots_loading": {
+    "note": "Shown while the saved games are being read."
+  },
+  "saves_slots_slot": {
+    "note": "Name of one save slot. {number} is its number, starting at 1."
+  },
+  "saves_slots_empty": {
+    "note": "Shown on a save slot that has nothing in it."
+  },
+  "saves_slots_unreadable": {
+    "note": "Shown on a save slot that cannot be read."
+  },
+  "saves_slots_newer": {
+    "note": "Shown on a save made by a newer version of the game."
+  },
+  "saves_slots_other_content": {
+    "note": "Shown on a save made by another version. It still loads, but some things may reset."
+  },
+  "saves_slots_writing": {
+    "note": "Shown while a save is being written."
+  },
+  "saves_slots_failed": {
+    "note": "Shown when saving did not work."
+  },
+  "saves_slots_load": {
+    "note": "Button on a save slot that has a game. Loads it and carries on playing."
+  },
+  "saves_slots_new_game": {
+    "note": "Button on a save slot. Starts a new game in it."
+  },
+  "saves_slots_delete": {
+    "note": "Button on a save slot. Opens a question before anything is deleted."
+  },
+  "saves_slots_delete_title": {
+    "note": "Heading of the question before a save is deleted."
+  },
+  "saves_slots_delete_body": {
+    "note": "Text of the delete question. {name} is the slot's name."
+  },
+  "saves_slots_delete_newer_body": {
+    "note": "Text of the delete question for a save made by a newer version of the game."
+  },
+  "saves_slots_delete_confirm": {
+    "note": "Button under the delete question. Deletes the save for good."
+  },
+  "saves_slots_cancel": {
+    "note": "Button under the delete question. Keeps the save."
+  },
+  "saves_slots_more": {
+    "note": "Says how many more save slots are hidden in a long list. {count} is a number."
+  },
+  "saves_status_checking": {
+    "note": "Shown while the game checks the player's saved progress."
+  },
+  "saves_status_syncing": {
+    "note": "Shown while progress is being saved."
+  },
+  "saves_status_saved": {
+    "note": "Shown when progress has been saved."
+  },
+  "saves_status_offline_queued": {
+    "note": "Shown when there is no internet. Progress will be saved when the connection is back."
+  },
+  "saves_status_retry": {
+    "note": "Shown when saving failed once and the game will try again by itself."
+  },
+  "saves_status_conflict": {
+    "note": "Shown when two different saved progresses exist and the player must pick one."
+  },
+  "saves_status_recovered": {
+    "note": "Shown when saved progress was brought back."
+  },
+  "saves_status_no_grant": {
+    "note": "Shown when this place does not allow the game to keep progress."
+  },
+  "saves_changed_elsewhere_message": {
+    "note": "Text of the question when progress changed on another device. The player loads it or plays on and the next save replaces it."
+  },
+  "saves_changed_elsewhere_load_newer": {
+    "note": "Button under the changed-progress question. Loads the newer progress."
+  },
+  "saves_changed_elsewhere_keep_playing": {
+    "note": "Button under the changed-progress question. Keeps playing as before."
+  },
+  "saves_changed_elsewhere_failed": {
+    "note": "Shown when the newer progress could not be loaded. The game goes on as it was."
+  },
+  "saves_changed_elsewhere_toast": {
+    "note": "A short message at the top of the screen when progress changed on another device."
+  },
+  "board_title": {
+    "note": "Heading of the high scores list."
+  },
+  "board_loading": {
+    "note": "Shown while the scores are being fetched."
+  },
+  "board_empty": {
+    "note": "Shown when the scores list has nothing in it."
+  },
+  "board_unavailable": {
+    "note": "Shown when this place has no scores."
+  },
+  "board_offline": {
+    "note": "Shown when there is no internet, so scores cannot be fetched."
+  },
+  "board_you": {
+    "note": "Marks the player's own row in the scores list."
+  },
+  "board_more": {
+    "note": "Says how many more scores are hidden in a long list. {count} is a number."
+  },
+  "pad_unsupported": {
+    "note": "Told once when a controller the game does not support is plugged in."
+  },
+  "runtime_start": {
+    "note": "Shown when the game could not start. A button lets the player try again."
+  },
+  "runtime_start_final": {
+    "note": "Shown when the game could not start and trying again will not help."
+  },
+  "runtime_connect": {
+    "note": "Shown when the game could not reach Ruken, the platform it runs in. Ruken is a name: keep it."
+  },
+  "runtime_progress": {
+    "note": "Shown when the player's saved progress could not be loaded."
+  },
+  "runtime_damaged": {
+    "note": "Shown when the game's files do not match, so this copy is damaged."
+  },
+  "runtime_download": {
+    "note": "Shown when the game could not download a file it needs."
+  },
+  "runtime_download_stalled": {
+    "note": "Shown when a download is taking very long."
+  },
+  "runtime_unsupported": {
+    "note": "Shown when this device cannot run the game at all."
+  },
+  "runtime_model_invalid": {
+    "note": "Shown when a 3D model file in the game is damaged. {file} is the file's name."
+  },
+  "runtime_retry": {
+    "note": "Button on an error. Tries again."
+  },
+  "runtime_continue": {
+    "note": "Button on an error. Goes on without loading the saved progress."
+  },
+  "runtime_exit": {
+    "note": "Button on an error. Leaves the game and goes back to the app it runs in. {host} is that app's name."
+  },
+  "runtime_quit": {
+    "note": "Button on an error on the desktop. Closes the game."
+  },
+  "runtime_loading": {
+    "note": "Shown over the screen while the game loads."
+  },
+  "runtime_slow": {
+    "note": "Shown over the loading screen when loading takes long."
+  },
+  "runtime_context_lost": {
+    "note": "Shown when the picture stopped drawing. A button lets the player try again."
+  },
+  "display_gate_title": {
+    "note": "Heading of the cover shown on a phone held sideways in a browser. Asks to play fullscreen."
+  },
+  "display_gate_body": {
+    "note": "Text of the cover on a sideways phone. The browser's bar takes room; one tap hides it."
+  },
+  "display_gate_go": {
+    "note": "Button on the cover on a sideways phone. Goes fullscreen."
+  },
+  "display_gate_upright_title": {
+    "note": "Heading of the cover on a phone that cannot go fullscreen. Asks to hold the phone upright."
+  },
+  "display_gate_upright_body": {
+    "note": "Text of that cover. Suggests adding the game to the Home Screen to play sideways."
+  },
+  "display_rotate_portrait_title": {
+    "note": "Heading of the cover shown when a portrait game is held sideways."
+  },
+  "display_rotate_portrait_body": {
+    "note": "Text of that cover."
+  },
+  "display_rotate_landscape_title": {
+    "note": "Heading of the cover shown when a landscape game is held upright."
+  },
+  "display_rotate_landscape_body": {
+    "note": "Text of that cover."
+  },
+  "display_toast_text": {
+    "note": "A short tip at the top of the screen. The game runs on; turning the phone gives a bigger view."
+  },
+  "display_toast_ok": {
+    "note": "Button on that tip. Closes it."
+  },
+  "display_toast_dismiss": {
+    "note": "Name of the close button on that tip. Read aloud by screen readers."
+  }
+}
