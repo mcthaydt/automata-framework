@@ -28,12 +28,12 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 2 of 21 tasks (10%).**
+**Progress: 2 of 21 tasks (10%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
 | 1 | The six languages as data, and the negotiation rules pinned | 1 | done | `0500f409` |
-| 2 | Core's menu words as catalogs in six languages | 1 | done | (this commit) |
+| 2 | Core's menu words as catalogs in six languages | 1 | done | `48352386` |
 | 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | todo | |
 | 4 | `automata words`: the AI translates | 1 | todo | |
 | 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | todo | |
@@ -50,9 +50,10 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 14 | Stale-build check | 7 | todo | |
 | 15 | The four examples and their journeys | examples | todo | |
 | 16 | Emberwick in six languages, with an achievement | 1, 6 | todo | |
-| 17 | Ember Hall (`games/base-3d`) in six languages | 1 | todo | |
+| 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
 | 18 | Guides, API report and index, changesets, final gates | done means | todo | |
 | 19 | The site's Editor page is cut; the link opens the editor | site | todo | |
+| 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | todo | |
 
 ## Global constraints
 
@@ -1494,7 +1495,9 @@ redirect is a host rule, not a page: a `_redirects` file for Cloudflare Pages (t
   `docs/refactor/progress.md` (one line pointing at this workstream), `docs/superpowers/progress.md`
 
 - [ ] **Step 1:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, `pnpm agent-skills`. Read each diff:
-  every new export has a doc comment a first-time author can follow.
+  every new export has a doc comment a first-time author can follow. `pnpm api-index --write` already exits 1 on `main` for
+  three exports with no doc comment (`@automata/content/controls#STICK_DIRECTIONS`, `@automata/content/level-2d#Picture`,
+  `@automata/framework#PROMPT_COPY`): write theirs here so the command passes (the coordinator, 2026-11-11, a named deviation).
 - [ ] **Step 2:** `pnpm format`, then `pnpm check`. Fix what it finds (`knip` on unused exports, `check-changesets` on a
   published package with no changeset).
 - [ ] **Step 3:** `pnpm test:browser:2d -- --browser.name=chromium` (the root script forwards through turbo, which
