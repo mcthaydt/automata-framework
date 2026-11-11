@@ -48,6 +48,12 @@ Two more pieces are plugins of their own, so a game that does not use them keeps
   a burn of one tick of fuel a tick, and `refuel(ctx, entity, ticks, cap)` for your refill. While lit, its pool is added to
   `env.lights`, so a creature that refuses light stays out of it. Which item is the lamp, and how much a bottle is, are your
   game's. Write `env.lights` fresh each step, earlier than the `gameplay` phase, as the rest of the env is.
+  The numbers are content: register `carriedLightContent` and write `content/carried-light.toml` (`radius` in metres;
+  `start`, `fill` and `cap` in seconds of fuel; `burn`, the ticks of fuel a lit tick costs, a whole number, 1 for real time;
+  each optional, a missing one is the old game's hand lamp: 2.2 m, nothing to start, a refill of 40 s, 80 s held, burn 1).
+  Give `createCarriedLight({ def: carriedLightDefOf(file) })` the file's numbers, spawn the light with
+  `fuelTicks: fuelTicksOf(def.start, sim.tickHz)` and refill it with `refill(ctx, entity, def)`; with a `def` the pool's radius
+  is the file's and the component's `radius` is not read. A bad number is told, with its file and line, when content compiles.
 
 ## Editing characters in Schematic
 

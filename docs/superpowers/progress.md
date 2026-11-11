@@ -70,6 +70,7 @@ step fails on content with no editor unless its row is here with the Owner's wor
 | 3 | Interact data: a hotspot's `reach`, `name` and `hide` are scalar fields, which Levels 3D edits when the level's `entityDefs` declares them; its `when` conditions (a list of nested conditions) have no field type in the editor kit, so no editor opens them | Workstream 2, task 1 (`@automata/interact`), 2026-11-11 | To be specced; the data stays an entity of the level with a schema (`hotspotSchema`), so `automata check` names a bad one |
 | 4 | Footsteps by floor: the audio file's `steps` table (floor surface → cue). The Audio editor opens a file with it and keeps it through an edit, but offers no rows to change it | Workstream 2, task 7 (`@automata/audio-synth`), 2026-11-11 | To be specced; the table is data with a schema, so a check names a floor whose cue is missing |
 | 5 | Peek numbers: `content/peek.toml` (reach, dwell, arc, lean, ease) has a schema and a content kind (`peekContent`, sim content); no editor opens it | Workstream 2, task 4 follow-up (`@automata/systems`), 2026-11-11 | To be specced |
+| 6 | Carried-light numbers: `content/carried-light.toml` (radius, start, fill, cap, burn) has a schema and a content kind (`carriedLightContent`, sim content); no editor opens it | Workstream 2, task 4 follow-up (`@automata/systems`), 2026-11-11 | To be specced |
 
 ## Findings so far (2026-11-11)
 

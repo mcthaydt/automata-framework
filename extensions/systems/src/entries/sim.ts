@@ -1,12 +1,22 @@
 // @automata/systems/sim: world rules and agents as data, a sim entry.
 
+export { carriedLightContent, carriedLightFileSchema } from '../shared/carried-light.content'
 export { peekContent, peekFileSchema } from '../shared/peek.content'
 export { ARRIVE } from '../shared/sim/agent-step'
-export { refuel } from '../shared/sim/carried-light'
+export {
+  type CarriedLightDef,
+  type CarriedLightFile,
+  carriedLightDefOf,
+  carriedLightProblems,
+  DEFAULT_CARRIED_LIGHT,
+  fuelTicksOf,
+  refill,
+  refuel,
+} from '../shared/sim/carried-light'
 export { ToggleLight } from '../shared/sim/carried-light.command'
 export { CarriedLight } from '../shared/sim/carried-light.component'
 export { LightDry } from '../shared/sim/carried-light.event'
-export { createCarriedLight } from '../shared/sim/carried-light.plugin'
+export { type CarriedLightOptions, createCarriedLight } from '../shared/sim/carried-light.plugin'
 export type { Outcome } from '../shared/sim/effect'
 export { followPlayer } from '../shared/sim/follow'
 export {

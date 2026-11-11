@@ -9,8 +9,13 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
   CarriedLight,
+  type CarriedLightDef,
+  carriedLightDefOf,
   createCarriedLight,
+  DEFAULT_CARRIED_LIGHT,
+  fuelTicksOf,
   LightDry,
+  refill,
   refuel,
   SystemsEnv,
   ToggleLight,
@@ -22,6 +27,7 @@ import { agentAt, createWardGame, kinds, load, move, place } from '#src/testing/
 const NODES = clinicGraph().nodes as Record<string, Point>
 const HALL_N = NODES.hallN as Point
 const Refuel = defineCommand('test.refuel', z.strictObject({ ticks: z.number(), cap: z.number() }))
+const Refill = defineCommand('test.refill', z.strictObject({}))
 
 let sims: Sim[] = []
 afterEach(() => {
@@ -44,15 +50,16 @@ async function lamp(
   radius = 2,
   def = quiet,
   options: Parameters<typeof createWardGame>[1] = {},
+  light?: CarriedLightDef,
 ) {
-  const carried = createCarriedLight()
+  const carried = createCarriedLight(light === undefined ? {} : { def: light })
   const game = await createWardGame(def, options, [], {
     plugins: [
       carried,
       definePlugin({
         name: 'lamp-game',
         dependsOn: ['systems'],
-        commands: [Refuel],
+        commands: [Refuel, Refill],
         systems: [
           defineSystem('lamp-game.input', 'input', (ctx: SimContext) => {
             const env = ctx.resource(SystemsEnv)
@@ -60,6 +67,7 @@ async function lamp(
             env.lights = []
             for (const { payload } of ctx.commands.of(Refuel))
               refuel(ctx, env.player, payload.ticks, payload.cap)
+            if (light !== undefined && ctx.commands.of(Refill).length > 0) refill(ctx, env.player, light)
           }),
         ],
       }),
@@ -174,5 +182,74 @@ describe('a carried light that burns fuel', () => {
       for (let i = 0; i < 30; i++) stepWith(sim, [])
     }
     expect(stateHash(a.sim)).toBe(stateHash(b.sim))
+  })
+})
+
+describe('a carried light with its numbers from a file', () => {
+  const file = (over: Partial<CarriedLightDef> = {}): CarriedLightDef => carriedLightDefOf({ ...over })
+  const refillCommand = { type: 'test.refill', payload: {} }
+
+  it('has the old game’s numbers when the file says none: 2.2 m, a refill of 40 s, twice that held, burning in real time', () => {
+    expect(carriedLightDefOf(undefined)).toEqual({ radius: 2.2, start: 0, fill: 40, cap: 80, burn: 1 })
+    expect(DEFAULT_CARRIED_LIGHT).toEqual(carriedLightDefOf({}))
+  })
+
+  it('counts its fuel in ticks at the sim’s rate', () => {
+    expect(fuelTicksOf(40, 60)).toBe(2400)
+    expect(fuelTicksOf(0.5, 60)).toBe(30)
+    expect(fuelTicksOf(40, 30)).toBe(1200)
+  })
+
+  it('its pool is the file’s radius, whatever the component carries', async () => {
+    const { sim } = await lamp(10, 99, quiet, {}, file({ radius: 3.1 }))
+    stepWith(sim, [toggle])
+    expect(sim.resource(SystemsEnv).lights).toEqual([{ x: 0, z: 4, radius: 3.1 }])
+  })
+
+  it('burns the file’s rate: a burn of 2 costs two ticks of fuel a lit tick, and runs dry in half the time', async () => {
+    const { sim, state } = await lamp(10, 2, quiet, {}, file({ burn: 2 }))
+    stepWith(sim, [toggle])
+    expect(state()).toMatchObject({ lit: true, fuelTicks: 8 })
+    stepWith(sim, [])
+    expect(state().fuelTicks).toBe(6)
+    const events = []
+    for (let i = 0; i < 4; i++) events.push(...stepWith(sim, []).events)
+    expect(state()).toMatchObject({ lit: false, fuelTicks: 0 })
+    expect(kinds(events, LightDry.id)).toEqual([{}])
+  })
+
+  it('a refill adds the file’s fill and stops at its cap, in seconds of fuel', async () => {
+    const small = file({ fill: 1, cap: 1.5 })
+    const { sim, state } = await lamp(0, 2, quiet, {}, small)
+    stepWith(sim, [refillCommand])
+    expect(state().fuelTicks).toBe(60)
+    stepWith(sim, [refillCommand])
+    expect(state().fuelTicks).toBe(90)
+  })
+
+  it('with a file the light burns as it did without one, at the default rate', async () => {
+    const a = await lamp(20, 2, quiet, {}, file())
+    const b = await lamp(20, 2)
+    for (const { sim } of [a, b]) {
+      stepWith(sim, [toggle])
+      for (let i = 0; i < 5; i++) stepWith(sim, [])
+    }
+    expect(a.state().fuelTicks).toBe(b.state().fuelTicks)
+  })
+
+  it('gives the same hash for the same file and the same play', async () => {
+    const a = await lamp(20, 2, quiet, {}, file({ burn: 3 }))
+    const b = await lamp(20, 2, quiet, {}, file({ burn: 3 }))
+    for (const { sim } of [a, b]) {
+      stepWith(sim, [toggle])
+      for (let i = 0; i < 4; i++) stepWith(sim, [])
+    }
+    expect(stateHash(a.sim)).toBe(stateHash(b.sim))
+  })
+
+  it('a bad number is refused when the plugin is made, in words', () => {
+    expect(() => createCarriedLight({ def: { ...DEFAULT_CARRIED_LIGHT, burn: 0.5 } })).toThrow(
+      /carried light: burn must be a whole number of 1 or more, not 0.5/,
+    )
   })
 })
