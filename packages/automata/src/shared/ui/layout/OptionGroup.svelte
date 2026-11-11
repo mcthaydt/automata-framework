@@ -11,6 +11,7 @@
 -->
 <script lang="ts">
 import { flushSync } from 'svelte'
+import Icon from '../icon/Icon.svelte'
 
 interface Option {
   readonly value: string
@@ -71,7 +72,7 @@ function choose(chosen: string): void {
           aria-label={option.ariaLabel}
           onchange={() => choose(option.value)}
         />
-        {#if selected}<span class="af-option__mark" data-option-mark aria-hidden="true">✓</span>{/if}
+        {#if selected}<span class="af-option__mark" data-option-mark aria-hidden="true"><Icon name="check" /></span>{/if}
         {option.label}
       </label>
     {/each}

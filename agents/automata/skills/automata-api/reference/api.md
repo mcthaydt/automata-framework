@@ -1824,6 +1824,17 @@ interface FontOutputs {
 }
 ```
 
+#### `FontRename` (interface)
+
+The new family name for a subset of a font whose licence reserves its name, and the name it reserves.
+
+```ts
+interface FontRename {
+  readonly family: string;
+  readonly reservedName: string;
+}
+```
+
 #### `FontsFile` (interface)
 
 `content/fonts.toml`: each source font by name.
@@ -1844,6 +1855,10 @@ interface FontSource {
   readonly sha256: string;
   readonly license: string;
   readonly locales: readonly string[];
+  /** A name the licence reserves (the OFL's Reserved Font Name): a subset is renamed `<font> <language>` and may not keep it. */
+  readonly reserved_name?: string | undefined;
+  /** The licence text, relative to the project root; the build copies it beside the subsets. */
+  readonly license_file?: string | undefined;
 }
 ```
 
@@ -1857,6 +1872,16 @@ interface FrameSize {
   readonly width: number;
   readonly height: number;
 }
+```
+
+#### `gameWords` (function)
+
+Every word a game shows in `lang`, by catalog: `content` (the catalog the content compiled, passed in), `ui` (the
+game's own interface words) and each of {@link WORD_PACKAGES } that the game can resolve. A catalog the game does not
+have is left out.
+
+```ts
+function gameWords(gameDir: string, lang: string, content: MessageCatalog): Promise<ReadonlyMap<string, MessageCatalog>>;
 ```
 
 #### `PackedAtlas` (interface)
@@ -1897,10 +1922,13 @@ interface Placement {
 
 #### `subsetWoff2` (function)
 
-The font cut to `characters`, as woff2. A character the font lacks is simply not in the subset.
+The font cut to `characters`, as woff2. A character the font lacks is simply not in the subset. With `rename`, the
+cut keeps the font's copyright and licence records, takes the new family name and drops any other record that names
+the reserved one: it is cut to an sfnt, its `name` table is rewritten, and it is cut again to woff2 with the same
+characters, which converts it and changes no glyph.
 
 ```ts
-function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>, rename?: FontRename): Promise<Uint8Array>;
 ```
 
 ### `import { … } from '@automata/content/controls'`

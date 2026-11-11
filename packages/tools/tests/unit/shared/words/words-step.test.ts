@@ -145,4 +145,21 @@ describe('wordsStep', () => {
       ['words-parity', 'content/messages/es-419.json', 'es-419 has no content/messages/es-419.json'],
     ])
   })
+
+  it('holds the words of a framework package the game has to the font too, at that package’s file', async () => {
+    const dir = game({
+      'messages/ui/ja.json': catalog({ play: 'Play', more: '+{count}' }),
+      'content/fonts.toml': fontsToml(['en', 'ja']),
+      'node_modules/@automata/framework/package.json': JSON.stringify({
+        name: '@automata/framework',
+        exports: { './words/*.json': './words/*.json' },
+      }),
+      'node_modules/@automata/framework/words/ja.json': catalog({ paused_title: '一時停止' }),
+    })
+    const findings = await run(dir)
+    expect(findings.map((f) => [f.rule, f.file])).toEqual(
+      Array(4).fill(['words-font', '@automata/framework/words/ja.json']),
+    )
+    expect(findings[0]?.message).toBe('U+4E00 "一" in ja "paused_title" is not in any font that serves ja')
+  })
 })

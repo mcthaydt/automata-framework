@@ -64,6 +64,8 @@ export function keyLabel(code: string, layout?: ReadonlyMap<string, string>): st
 type PadLabel = string | { readonly word: PadWord }
 const word = (name: PadWord): PadLabel => ({ word: name })
 const DPAD: readonly PadLabel[] = ['↑', '↓', '←', '→']
+/** The PlayStation face button 0, printed as a cross. Drawn as an icon where it is shown (`Prompt.svelte`), not typed. */
+export const PLAYSTATION_CROSS = '✕'
 const PAD_LABELS: Readonly<Record<PromptGlyphs, readonly PadLabel[]>> = {
   xbox: [
     'A',
@@ -82,7 +84,7 @@ const PAD_LABELS: Readonly<Record<PromptGlyphs, readonly PadLabel[]>> = {
     word('home'),
   ],
   playstation: [
-    '✕',
+    PLAYSTATION_CROSS,
     '○',
     '□',
     '△',

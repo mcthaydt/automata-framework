@@ -182,13 +182,15 @@
 - `buildFonts` (const): Builds every subset `<root>/content/fonts.toml` names, or fails with every problem found.
 - `fontCoverage(font)`: Whether a font file (TrueType, OpenType, woff or woff2) has a glyph for each character.
 - `FontOutputs` (interface): What `buildFonts` produces; the caller writes it.
+- `FontRename` (interface): The new family name for a subset of a font whose licence reserves its name, and the name it reserves.
 - `FontsFile` (interface): `content/fonts.toml`: each source font by name.
 - `FontSource` (interface): One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves.
 - `FrameSize` (interface): A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
+- `gameWords(gameDir, lang, content)`: Every word a game shows in `lang`, by catalog: `content` (the catalog the content compiled, passed in), `ui` (the game's own interface words) and each of {@link WORD_PACKAGES } that the game can resolve.
 - `PackedAtlas` (interface): Every frame's placement, and the pages they fill.
 - `packFrames(frames)`: Packs `frames` into atlas pages.
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
-- `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
+- `subsetWoff2(source, characters, rename?)`: The font cut to `characters`, as woff2.
 
 ### `import { … } from '@automata/content/controls'`
 

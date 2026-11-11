@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 5 of 21 tasks (24%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 6 of 21 tasks (29%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -36,8 +36,8 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 2 | Core's menu words as catalogs in six languages | 1 | done | `48352386` |
 | 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | done | `3763a3d8` |
 | 4 | `automata words`: the AI translates | 1 | done (the live model call is unverified: no key here) | `e61b179f` |
-| 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | done (it reads the game's own catalogs; task 5b switches it to `gameWords`) | TASK5 |
-| 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | todo | |
+| 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | done (it reads the game's own catalogs; task 5b switches it to `gameWords`) | `29ccea7f` |
+| 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | done | TASK5B |
 | 6 | The opening sequence and the seen flags (core) | 2, 3 | todo | |
 | 7 | First-run language pick | 2 | todo | |
 | 8 | Photosensitivity warning | 3 | todo | |
@@ -69,6 +69,25 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   `languagesOnDisk` moved from `run-words.ts` to `catalog.ts` so the command and the step find languages the same way.
 - **Task 5, Ruling:** a source language, a missing key and a catalog whose language file is absent are each a `words-parity`
   finding; a missing language file is one finding for the file, not one per key.
+- **Task 5b, Ruling:** the rename goes `subsetWoff2` (sfnt cut, a `name` table rewrite in `font-rename.ts`, a second cut to
+  woff2 with the same characters) instead of `fontverter`, which is only a transitive dependency of `subset-font`; no
+  new dependency. The font is CFF, so the intermediate is an `sfnt`, not a `truetype`. IDs 1, 4 and 16 become
+  `<font> <lang>`, 6 the same with hyphens, 3 is derived, and 17 stays `Regular`; the copyright (0) and licence (13, 14)
+  records are kept; any other record naming the reserved name is dropped. Cost if wrong: a font manager lists a subset
+  slightly differently from the plan's literal wording; the OFL is met either way.
+- **Task 5b, Ruling:** a licence file is copied as `<font>-<its file name>` (`pixel-OFL.txt`), not plain `OFL.txt`, so two
+  fonts with different licences never collide.
+- **Task 5b, Ruling:** `gameWords` finds a package's words by walking up `node_modules` from the game and reading its
+  `exports['./words/*.json']`, not by `require.resolve`, which also reads `NODE_PATH` (pnpm sets it) and made the result
+  depend on the shell. Tools has its own copy (`package-words.ts`, the same ruling as task 5) and a test pins the two.
+- **Task 5b, Ruling:** with a `fonts.toml`, every content language must be served; the three older tests that pinned "a
+  language no font serves is not checked" now pin the refusal, as the plan says. `OFL.txt` was converted from CRLF to LF
+  (the repository normalises text files) and its hash recorded as LF.
+- **Task 5b, Ruling:** core draws `OptionGroup`'s and `SaveStatus`'s check marks too (the plan named six components; these
+  two held the same glyph), through one `Icon.svelte`. The PlayStation cross prompt keeps `✕` as its screen-reader text
+  and is drawn as the cross icon. The `!` warning mark is ASCII and stays text.
+- **Task 5b, note:** `package-words.test.ts` and the words-step package case were written together with the code, not
+  watched failing first.
 
 ## Global constraints
 

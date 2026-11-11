@@ -13,6 +13,7 @@ import {
   translationProblems,
 } from './catalog.ts'
 import { fontCoverage, undrawable } from './characters.ts'
+import { packageCatalogs } from './package-words.ts'
 
 // The `words` step of `automata check`: every language a game ships has all its words with their `{placeholders}`,
 // and the game's fonts can draw every letter of them. There is no model and no network. A game with one language and
@@ -106,6 +107,9 @@ export const wordsStep = (gameDir: string): Effect.Effect<readonly CheckFinding[
         }
         for (const [key, text] of Object.entries(translated)) words[`${catalog.name}.${key}`] = text
       }
+      // The framework packages' screens are drawn in the same face as the game's own words.
+      for (const [name, packageWords] of yield* packageCatalogs(gameDir, lang))
+        for (const [key, text] of Object.entries(packageWords)) words[`${name}.${key}`] = text
       shown.set(lang, words)
     }
 
@@ -150,9 +154,10 @@ export const wordsStep = (gameDir: string): Effect.Effect<readonly CheckFinding[
       for (const { key, character } of undrawable(words, covers)) {
         const [catalog = '', word = key] = splitKey(key)
         const where = catalogs.find((candidate) => candidate.name === catalog)
+        const file = where !== undefined ? rel(where.translation(lang)) : `${catalog}/words/${lang}.json`
         findings.push(
           finding(
-            where === undefined ? FONTS_FILE : rel(where.translation(lang)),
+            file,
             'words-font',
             `${codePoint(character)} in ${lang} "${word}" is not in any font that serves ${lang}`,
           ),
@@ -170,7 +175,7 @@ const safeToml = (text: string): unknown => {
   }
 }
 
-/** `content.play` to `['content', 'play']`: the catalog's name never has a dot, a message key may. */
+/** `content.play` to `['content', 'play']`: a catalog's name, or a package's, has no dot; a message key may. */
 const splitKey = (joined: string): [string, string] => {
   const dot = joined.indexOf('.')
   return [joined.slice(0, dot), joined.slice(dot + 1)]

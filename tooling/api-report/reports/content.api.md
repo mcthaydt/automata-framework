@@ -590,6 +590,15 @@ interface FontOutputs {
 }
 ```
 
+### `FontRename` (interface)
+
+```ts
+interface FontRename {
+    readonly family: string;
+    readonly reservedName: string;
+}
+```
+
 ### `FontsFile` (interface)
 
 ```ts
@@ -606,6 +615,8 @@ interface FontSource {
     readonly sha256: string;
     readonly license: string;
     readonly locales: readonly string[];
+    readonly reserved_name?: string | undefined;
+    readonly license_file?: string | undefined;
 }
 ```
 
@@ -617,6 +628,12 @@ interface FrameSize {
     readonly width: number;
     readonly height: number;
 }
+```
+
+### `gameWords` (function)
+
+```ts
+function gameWords(gameDir: string, lang: string, content: MessageCatalog): Promise<ReadonlyMap<string, MessageCatalog>>;
 ```
 
 ### `PackedAtlas` (interface)
@@ -650,7 +667,7 @@ interface Placement {
 ### `subsetWoff2` (function)
 
 ```ts
-function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>, rename?: FontRename): Promise<Uint8Array>;
 ```
 
 ## `./controls`
