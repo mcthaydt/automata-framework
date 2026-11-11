@@ -1849,7 +1849,7 @@ ledger and recomputes the tracker's percentage after the merge.
   the literal in `game.ts` (4 lines) and the option's type in `make-game.ts` if `GameSpec['locale']` were exported by the
   root entry; (d) the `fonts.css` export is not plumbing in this measure (it is a line of `package.json`), and the six tags in
   `ship.config.ts` are outside it (that file is not reached from `main.ts`; a `defaultLanguages` export that plain Node can
-  load would remove them). Estimate of what the framework could absorb: about 35 of the 49 extra lines ((b) 23, (c) 4 and about 8 of `make-game.ts`), and about 15 of `words.ts`'s 83. The test is
+  load would remove them). Estimate of what the framework could absorb: about 35 of the 49 extra lines ((b) 23, (c) 4 and about 8 of `make-game.ts`), and about 15 of `words.ts`'s 83. With that done the measure would be about 444 (479 − 35), so a limit of 450 instead of 490; counting `words.ts` as plumbing it would be about 512 (562 − 35 − 15). The test is
   otherwise untouched, and nothing further has been changed there.
 - **Task 16, Ruling:** type sizes are whole multiples of the font's 12 px grid (title 60 px, 36 px on a compact screen;
   headings and the splash mark 24 px; the time 36 px) and the title's shadow is two steps, not four. Looked at in
