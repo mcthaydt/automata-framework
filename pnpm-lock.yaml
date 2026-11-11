@@ -723,6 +723,40 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
+  extensions/interact:
+    dependencies:
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../../packages/automata
+      '@automata/nav':
+        specifier: workspace:*
+        version: link:../nav
+      '@automata/puzzle':
+        specifier: workspace:*
+        version: link:../puzzle
+      '@automata/sectors':
+        specifier: workspace:*
+        version: link:../sectors
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
   extensions/level-2d:
     devDependencies:
       '@automata/content':

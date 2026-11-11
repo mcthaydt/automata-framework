@@ -1081,6 +1081,7 @@
 ### `import { … } from '@automata/puzzle'`
 
 - `Action` (interface): One thing the player can do at a hotspot: where it is aimed (`at`), the item or pair of items it uses, the conditions that must hold, its effects, the line said and how many seconds it takes.
+- `applyVerb(ctx, verb, options?)`: What the verb system does for one `puzzle.verb`, for another system to call: a use that a game's own walker has reached its target for (the `interact` extension).
 - `Cond` (type): A condition on the puzzle's state.
 - `condSchema` (const): The Zod schema of a condition.
 - `createPuzzlePlugin(options?)`: Makes the puzzle plugin with the game's options: its functions for `call` effects, where facts live, and what hears noises, dialogues and cutscenes.
@@ -1123,11 +1124,13 @@
 - `valueSchema` (const): The Zod schema of a fact's value.
 - `Verb` (interface): What the player did, as the interpreter reads it: where it is aimed, the item held, a pair of items, a typed code or a floor point.
 - `VerbCommand` (const): A verb: what the player did, sent by the game once its walker is in reach.
+- `VerbPayload` (interface): What a `puzzle.verb` carries, and what `applyVerb` takes: where the verb is aimed and what it holds, combines or types.
 - `VerbReport` (interface): What happened to one verb: where it was aimed, the item held, the action taken (null for none), whether a line was said and whether the action turned away to a cutscene, dialogue, keypad or exit.
 
 ### `import { … } from '@automata/puzzle/sim'`
 
 - `Action` (interface): One thing the player can do at a hotspot: where it is aimed (`at`), the item or pair of items it uses, the conditions that must hold, its effects, the line said and how many seconds it takes.
+- `applyVerb(ctx, verb, options?)`: What the verb system does for one `puzzle.verb`, for another system to call: a use that a game's own walker has reached its target for (the `interact` extension).
 - `Cond` (type): A condition on the puzzle's state.
 - `condSchema` (const): The Zod schema of a condition.
 - `createPuzzlePlugin(options?)`: Makes the puzzle plugin with the game's options: its functions for `call` effects, where facts live, and what hears noises, dialogues and cutscenes.
@@ -1165,6 +1168,7 @@
 - `valueSchema` (const): The Zod schema of a fact's value.
 - `Verb` (interface): What the player did, as the interpreter reads it: where it is aimed, the item held, a pair of items, a typed code or a floor point.
 - `VerbCommand` (const): A verb: what the player did, sent by the game once its walker is in reach.
+- `VerbPayload` (interface): What a `puzzle.verb` carries, and what `applyVerb` takes: where the verb is aimed and what it holds, combines or types.
 - `VerbReport` (interface): What happened to one verb: where it was aimed, the item held, the action taken (null for none), whether a line was said and whether the action turned away to a cutscene, dialogue, keypad or exit.
 
 ### `import { … } from '@automata/puzzle/solver'`
