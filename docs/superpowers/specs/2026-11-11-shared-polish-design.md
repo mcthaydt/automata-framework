@@ -211,6 +211,17 @@ The framework's `site/` is the site: it reads the guides, the API index and `exa
 `mcthaydt/automata-website` repository is retired (the Owner, 2026-11-11) and is out of this work.
 `mcthaydt/automata-skills` is kept. The new examples and guide lines reach the site through the framework's build.
 
+### The Editor page is cut
+
+The Owner, 2026-11-11: "We can realistically cut the try the editor page since the editors are on the site". The site
+has a page at `/editor` whose job is to describe the level editor and send the reader on with a "Try the editor"
+button to the editor itself, which the site already serves at `/editor/app/`. The page in between goes: the header's
+Editor link opens the editor directly, `/editor` redirects there (the site's redirects feature), and the page's
+component, words, pictures and their checks are removed. What it said that is still needed (the command that opens
+the editor on your own game, and that the editors are free on the web) is already in the editor guide and on Pricing;
+the builder confirms that before deleting, and moves a line only if it would otherwise be lost. The editor itself is
+not changed.
+
 ## Left to the builder
 
 - The exact `defineGame` field names, the copy keys, and how the first-run steps sit in `app/flow/`.

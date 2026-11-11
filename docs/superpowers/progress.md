@@ -55,4 +55,5 @@ runs in its own session on its own branch and hands off through committed docume
 - Achievements are generic: declared host-neutral in the game, mapped by each target (Ruken's manifest today).
 - Fonts: a game's font covers every language it ships; no device fallback.
 - The clinic work already begun in the framework (#575, #596, #606, #588) is superseded by workstream 2.
+- The site's Editor page (`/editor`) is cut; its link goes straight to the editor at `/editor/app/`.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
