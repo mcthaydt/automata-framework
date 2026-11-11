@@ -3,12 +3,19 @@
 import { spawn } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { createServer } from 'node:net'
 import { join } from 'node:path'
 const repo = new URL('../..', import.meta.url).pathname
 const { chromium } = createRequire(join(repo, 'packages/3d/package.json'))('playwright')
 const [out, scene, view, ...variants] = process.argv.slice(2)
 mkdirSync(out, { recursive: true })
-const port = 5000 + Math.floor(Math.random() * 3000)
+// A free port the OS picks, so the repo names no port of its own.
+const port = await new Promise((resolve) => {
+  const s = createServer().listen(0, '127.0.0.1', () => {
+    const { port: free } = s.address()
+    s.close(() => resolve(free))
+  })
+})
 const server = spawn('pnpm', ['exec', 'vite', '--config', join(repo, 'spikes/eb-look/vite.config.ts'), '--port', String(port), '--strictPort'], { cwd: join(repo, 'examples/3d'), stdio: ['ignore', 'pipe', 'pipe'], detached: true })
 let log = ''
 server.stdout.on('data', (d) => (log += d)); server.stderr.on('data', (d) => (log += d))
