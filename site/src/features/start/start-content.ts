@@ -13,7 +13,7 @@ export const STEPS: readonly Step[] = [
   {
     title: '1. Make a game',
     command: CREATE_COMMAND,
-    what: 'A folder called my-game with a small working game in it: a square you move around a level, its menus, saves and controls, and its tests.',
+    what: 'A folder called my-game with a small working game in it: a square you move around a level, its menus in six languages, saves and controls, and its tests.',
   },
   {
     title: '2. Play it',

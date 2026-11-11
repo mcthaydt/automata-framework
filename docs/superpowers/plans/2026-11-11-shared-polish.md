@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 20 of 21 tasks (56%)** (22 listed; task 17 is cut, so 21 are live; tasks 16 and 19, done on the side branch `claude/shared-polish-emberwick-site`, were merged into this branch on 2026-11-11; task 20 is the one left). Overall: `(3 + 20/21) / 7`.
+**Progress: 21 of 21 tasks (57%)** (22 listed; task 17 is cut, so 21 are live; tasks 16 and 19, done on the side branch `claude/shared-polish-emberwick-site`, were merged into this branch on 2026-11-11; task 20, the site pass, was done on the joined branch the same day). Overall: `(3 + 21/21) / 7` (stages 4 to 7 are still to run).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -53,7 +53,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
 | 18 | Guides, API report and index, changesets, final gates | done means | done on this branch (the "Done means" list is in `../progress.md`; Emberwick's and the Editor page's lines wait for tasks 16 and 19 on the side branch) | see the ledger |
 | 19 | The site's Editor page is cut; the link opens the editor | site | done on the side branch `claude/shared-polish-emberwick-site` (site unit tests 510, the site build, `check:site`, the site's whole Chromium suite 469; WebKit not run; `check:deployed` not run: needs the live site) | see the ledger below |
-| 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | todo | |
+| 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | done (Chromium only: site unit 518, `check:site`, the site's whole Chromium suite 505 and the five new phone cases, the playground suites 41; WebKit not run; `check:deployed` not run: needs the live site) | see the ledger below |
 
 ## Execution log and deviations ledger
 
@@ -1938,4 +1938,51 @@ ledger and recomputes the tracker's percentage after the merge.
   answer is the Owner's to run once the site is uploaded (Cloudflare Pages reads `_redirects` at the build's root).
 - **Task 19, not run:** WebKit for the site's e2e; `pnpm check:deployed` against the live site; `check:launch`, Lighthouse.
 - **Task 19, editor gap:** none (no new content).
+
+## Execution log: the join and task 20 (the sixth session, `claude/shared-polish-build`)
+
+- **The join:** `origin/claude/shared-polish-emberwick-site` (5d45bac8) merged into this branch (`e0b2394e`). Conflict: only the tracking rows
+  (kept 15 and 18 from this side, 16 and 19 from the side branch). The lockfile is the side's, and `pnpm install` on the merged manifests
+  leaves it as it is (only the old pixel font package is gone from two importers; `examples/2d` and the site keep `@automata/ui-screens`).
+  `docs/versions.md` and `knip.jsonc` merged as text. `origin/main` (`a8f2d40a`) was already in this branch. The whole `pnpm check` on the
+  merged tree: exit 0 (52 and 61 tasks, 65 changesets). The hook was skipped (`LEFTHOOK=0`) after that whole check on that tree.
+- **The joined tree, Chromium only:** Emberwick's journeys 38 passed (phone, compact, iPad-sized Chromium, the dev server's, the six
+  language projects); the examples' config 106 passed and 2 skipped (examples, examples-compact, the runner, the hot-reload demo's two
+  journeys, the UI primitives); site unit 515 passed; the playground suites (`site/playground/playwright.config.ts`, Chromium projects) 41
+  passed.
+- **Task 20, the build and the checks:** `pnpm build`, `pnpm api-index` (1283 exports, 0 undocumented), the site's `pnpm build` (51 pages),
+  `pnpm check:site` and `pnpm check` (svelte-check, 0 errors) pass; `pnpm check:deployed`, `check:launch` and Lighthouse were not run (they need
+  the live site).
+- **Task 20, checked in Chromium on the built site (a scratch script, not committed):** `/examples` links to `core-languages`,
+  `core-first-run`, `audio-ui-sounds` and `ui-splash-credits`, and each runs in the playground (a canvas, `data-preview="running"`);
+  the API pages for `@automata/framework`, `content`, `net`, `net-ui` and `ui-screens` carry all 59 index rows of the exports this work
+  added (the opening sequence, the warning, interface sounds, `LinksProbe`, languages, achievements, the splash and credits screens, the
+  stale-build check) with the first fifty characters of each doc comment; `/docs` lists Languages and the guide says `automata words`, the
+  six tags and the font; the publish guides say what a link does and the Ruken guide says achievements; `llms.txt`, `llms-api.txt`,
+  `llms-full.txt`, `llms-guides.txt` and the cheatsheet carry the new names and the guide; Home says languages; the header's Editor link goes
+  to `/editor/app/` and `/editor` answers 301 to it. **`passFirstRun` is not on the API pages by design:** it is in `@automata/tools`'s
+  `./e2e` entry, which is not a published entry (`publishConfig.exports` has `.` only).
+- **Task 20, Ruling (a defect the site pass found, fixed here with the coordinator's word):** at phone height (390 x 844) the playground
+  preview sits below the first screen, and the page started its frame when it was within a screen of view, so the browser throttled a frame
+  nobody could see. A game with an opening sequence (`core-first-run`, `ui-splash-credits`) or saves, a filter or the host-lifecycle demo
+  (`core-saves`, `render-filter`, `core-host-lifecycle`, all older) never reached ready, and its 20 s boot clock ended in "The preview
+  couldn't load" before a reader had scrolled down from the code. The frame now starts when the box it sits in is on screen
+  (`Playground.svelte`: the observer watches the preview box, with no margin). Test first: `playground.e2e.ts` has a case per example at
+  390 x 844 (no frame and no `/playground/` request until the preview is scrolled to, then running); it was watched failing for
+  `ui-splash-credits` before the fix (a frame already started), and the other four were not watched failing under the old code (the same
+  start path; their states at 390 x 844 under the old code, `failed` after 24 s, were measured with a script). All five pass after it.
+  Cost if wrong: a preview at phone height starts a moment after the reader reaches it instead of before.
+- **Task 20, Ruling (copy that had become untrue):** Home said "Automata runs no AI of its own, so there are no credits to run out", and
+  `/app` said the same. `automata words` asks a Claude model with the maker's own key, so both now say Automata sells no credits and
+  meters nothing and that this one command runs on the maker's own key (`home-content.ts`, `AppPage.svelte`). Unit tests first (watched
+  failing): Home's agent point names `automata words` and "your own key". Home's Languages item says six languages and names the command, and
+  Start's step 1 says its menus come in six languages (tests first, watched failing).
+- **Task 20, the site's own playground suite:** `site/tests/e2e/playground.e2e.ts` (37 cases) and the playground's own config (41 cases)
+  start their web servers here in a few seconds against a built site, in Chromium. The earlier session's 60 s timeout did not happen and
+  was not reproduced; its cause is not known. Both need the site built first (`pnpm build` in `site/`).
+- **Task 20, not run:** WebKit for the site's browser suite and the playground's; Firefox; `check:deployed`; the site on a real phone.
+- **The joined tree, the known failure (for the implementation audit):** `automata check --only no-eval` in `games/emberwick` fails the same
+  way as on the side branch: `FAIL no-eval`, `ERR_MODULE_NOT_FOUND`: cannot find
+  `packages/content/src/features/vite/index` imported from `packages/content/src/entries/vite.ts`, `automata check: 1 finding`. It also fails on
+  `main`. Not changed here (not a one-line fix: the source entry has an extensionless import that plain Node cannot resolve).
 

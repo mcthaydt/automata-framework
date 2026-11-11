@@ -308,12 +308,15 @@ let playedThisVisit = false
     resize?.observe(playground!)
     let observer: IntersectionObserver | undefined
     const onLoad = () => {
-      // The frame starts once the page's own downloads are done and the preview is within a screen of view (R-9).
+      // The frame starts once the page's own downloads are done and the preview itself (the box the frame sits in, not
+      // the panel around it) is on screen (R-9). A browser throttles a frame nobody can see: a game with an opening
+      // sequence, saves or a filter never reaches ready there, so a frame started a screen early timed out before a
+      // reader at phone height had scrolled down from the code.
       if (typeof IntersectionObserver === 'undefined') return start()
       observer = new IntersectionObserver(entries => {
         if (entries.some(entry => entry.isIntersecting)) { observer?.disconnect(); start() }
-      }, { rootMargin: '100% 0px' })
-      observer.observe(box!)
+      })
+      observer.observe(stage?.parentElement ?? box!)
     }
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches && !playedThisVisit) waitingForPlay = true
     else if (document.readyState === 'complete') onLoad()

@@ -14,7 +14,7 @@ runs in its own session on its own branch and hands off through committed docume
 
 | # | Workstream | Stage | Progress | Record |
 |---|---|---|---|---|
-| 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Stage 4, execution, in progress | 56% (3 of 7 stages done; execution 20 of 21 tasks; the side branch is merged, task 20 is left) | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
+| 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Stage 4, execution: all 21 tasks done on `claude/shared-polish-build` (task 17 cut), ready for 5, the implementation audit | 57% (3 of 7 stages done; execution 21 of 21 tasks; the side branch is merged and the site pass is done; the closing record is below) | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
 | 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 3, plan audit: done 2026-11-11, 32 findings (9 blocking, 15 should fix, 8 tidy), all fixed in the plan and the survey, which now match the spec and the code at `main` `6a70f9b1` (the spec's amendments `acb0361d`, `864361d4` and `909f6b10` included: the 3D examples go in tasks 19 and 20; a homes table, with interact and the HUD as genre extensions and a carried light in `@automata/systems`; the dressing waits for workstream 4) and the game at `92e6704`. Nothing open: every recorded file the prologue plays crosses (twelve, option B); workstream 1's task 17 is cut on its build branch. Next is 4, execution (22 tasks on three branches). Slices 2 to 4 not started | Slice 1: 43% (3 of 7 stages); execution 0 of 22 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md), [audit](audits/2026-11-11-last-light-prologue-plan-audit.md) |
 | 3 | An editor for every kind of authorable content: the UI editor first, others as gaps are found | Not started: specced with the Owner when we get to it; gaps are logged in the ledger below as they are found | 0% | |
 | 4 | The builders' look and figures in the framework (takes over #588, #589, #590, #603, #607) | 2, plan: done 2026-11-11. A survey measured on `main` `6a70f9b1`, planned against `main` `f93a2402` (12 side-by-side sheets with their numbers, the causes of the two dark examples, every work package and figure piece marked, the five drafts read, merged with `main` on trial and checked step by step) and a plan of 17 tasks on five branches. The baked room on `main` draws at 0.29 to 0.50 of the builder's brightness; the fix exists in #590 and sits on #589's code, so #589 lands first. 3, plan audit: done 2026-11-11 at `main` `b80bfc84`, 28 findings (5 blocking, 15 should fix, 8 tidy), all fixed in the plan and the survey; the merge order checked step by step: green but for `main`'s own `knip` fault (the survey's shoot script, moved to `spikes/builders-look/` here) and, until #590, a probe's port that task 2 now fixes by picking `dd8d72bb` with the fix; the whole-pixel letterbox kept and room-visibility dropped (rulings for the Owner to confirm); the coordinator's answers taken in (#588: option A, `lcd-panel` and `retro-crisp` land; three items for workstream 2 taken by the coordinator, with the interfaces it relies on now in the plan; the shoot script's move sent to `main` alone as `71fdfd53`); a figure's cast shadow stays the Owner's. 4, execution: group 1 (`claude/builders-look-room`, tasks 1 to 5) done 2026-11-11 and ready to merge: #589 in whole, the lit room healthy (a browser test that failed on `main` and passes), an empty level reported, the two dark examples repaired, and a fault in the bake's sun found by the street's diagnosis and fixed; all eight scene sheets are 0.84 to 1.01 of the builder's brightness (the street was 0.29 to 0.71). Next is group 2 (`claude/builders-look-figures`, after group 1 merges). Runs ahead of the prologue's dressing task | 43% (3 of 7 stages); execution 5 of 17 tasks (29%) | [spec](specs/2026-11-11-builders-look-and-figures-design.md), [survey](audits/2026-11-11-builders-look-survey.md), [plan](plans/2026-11-11-builders-look.md), [audit](audits/2026-11-11-builders-look-plan-audit.md) |
@@ -35,42 +35,61 @@ runs in its own session on its own branch and hands off through committed docume
 | 4. Execution, fourth session | the fourth session, from `000e4e92` (merged with `main` `abe713d4`) | `claude/shared-polish-build` | Started 2026-11-11 at task 11: tasks 11 (splash, `5a6e7eb9`), 11b (`Hosting.openLink`, `7dc3e29c`) 12 (credits, `618d03a3`) 13 (achievements, `474d2f96`) and 14 (stale-build check, `2d87462f`) done; FigureBuilder attached and placed at `d6e3c9fb` again (a fresh container). The percentage is `(3 + done/21) / 7` |
 | 4. Execution, handoff at 90 minutes | the fourth session (from `000e4e92`, `main` `abe713d4` merged) | `claude/shared-polish-build` | Last commit `05c8e036` (task 15, partly). Done this session: 11 `5a6e7eb9`, 11b `7dc3e29c`, 12 `618d03a3`, 13 `474d2f96`, 14 `2d87462f`, and 3 of task 15's 4 examples. Resume at task 15's four leftovers (the plan's ledger lists them: `ui-splash-credits` and the site playground step 4, the examples' fonts, the iPad run), then 16, 18, 19, 20 (task 17 cut). Notes: a commit touching `packages/automata` takes about 9.5 minutes (the hook runs every affected package's unit tests), one touching only an extension about 20 seconds; FigureBuilder is a copy at `d6e3c9fb` in `vendor/FigureBuilder` (not a submodule checkout); no `AUTOMATA_ANTHROPIC_KEY` was in this environment, so the live `automata words` call is still unverified; WebKit is not installed (the iPad project and the Safari-sized journeys cannot run here) |
 | 4. Execution, fifth session | the fifth session (`session_01HNdX7HKo5CyAEE1X5WpfB8`), from `8b8e901e` merged with `main` `db54a511` (`d242263b`) | `claude/shared-polish-build` | Started 2026-11-11: the whole `pnpm check` on the merged tree passed (exit 0). Task 15 finished: the playground answers `@automata/ui-screens` and `ui-splash-credits` is in the catalog (`848b33ed`); the language examples draw in the pixel font (`76bfe33c`); `audio-ui-sounds` proven to start a real source on a running AudioContext. `examples-ipad` not run (WebKit not installed). Tasks 16 and 19 are on `claude/shared-polish-emberwick-site` (a second session); this session does 15, 18, then stops, and 20 runs last on the combined branch. Done 2026-11-11 against `main` `a8f2d40a`: task 15 (`848b33ed`, `76bfe33c`, `39bcf8f1`) and task 18 (`f863ad00`, then the commit after it: the `create-game` `check` fix the consumer smoke found, and the record); the whole `pnpm check` exit 0 on the final tree (52 and 61 tasks) |
+| 4. Execution, sixth session | the sixth session (`session_01HNdX7HUAsN1bp7XDAKsQGg`), from `11ce6dd9` | `claude/shared-polish-build` | Started 2026-11-11: joined the side branch (`e0b2394e`, whole `pnpm check` exit 0), checked Emberwick's, the examples' and the hot-reload demo's journeys, the site's unit tests and playground suites on the joined tree, then did task 20 (the site pass; the plan's ledger has the findings: the playground's frame starts only when seen, and the copy that said Automata runs no AI). The percentage is now `(3 + 21/21) / 7` |
 | Merge | One long-lived session (`session_01HNdX7LEALEpFdpPWLXPuy7`) | none of its own | Started 2026-11-11; merged the spec as #608 (`6fa386e9`) |
 
-## Workstream 1: "Done means" (task 18, the fifth session, `claude/shared-polish-build`)
+## Workstream 1: "Done means" (the closing record, the sixth session, `claude/shared-polish-build`)
 
-Checked line by line. The lines for Emberwick (task 16) and the Editor page (task 19) wait for the side branch
-`claude/shared-polish-emberwick-site`; the site pass (task 20) runs last.
+Every line of the spec's "Done means", with its evidence or its reason. Chromium only: WebKit, Firefox and the iPad projects were not
+run (not installed here).
 
-- **The four examples' journeys:** pass in Chromium at the phone (`examples`) and compact (`examples-compact`) sizes (106 passed, 2
-  skipped over the whole examples config) and in the playground frame under its policy. **`examples-ipad` was not run:** WebKit is not
-  installed here.
-- **Interface sounds:** the journey proves a real source node starts on a running `AudioContext` (the framework's mixer, the three
-  files told apart by length); what a person hears is not verified (no speakers).
-- **Emberwick in six languages, its achievement in the manifest:** task 16, on the side branch; not checked here.
-- **`automata words`:** tested against the fake model (`run-words.test.ts`, `cli-words.test.ts`: every missing and stale word into
-  every language, `--to`, a key, `--all`, `--mark`, a dropped placeholder asked again once, an unreachable translator). **The live call is
-  unverified:** no `AUTOMATA_ANTHROPIC_KEY` in this environment.
-- **`automata check`:** `words-step.test.ts` (a missing key, a lost placeholder, a character no font can draw, a language with no
-  font, the words of a framework package held to the font) and, on a generated game, `pass words (308 ms)` in the stranger journey. Core
-  (`screens-catalog.test.ts`, 19), `ui-screens` (`words/`, 8) and `net-ui` (`catalogs.test.ts`, 7) hold their catalogs to six languages
-  and to their placeholders. Emberwick's words and the by-hand break: task 16. Ember Hall is cut (task 17).
-- **Every game and the template draw all six languages in the font set, no device fallback:** `template-fonts.test.ts`,
-  `example-fonts.test.ts` (the examples' faces are rebuilt and compared) and the journeys' `--af-font` and loaded-face checks
-  (`ja ja`, `ko ko`, `zh-hans zh-Hans`); a screenshot of Settings in Chinese shows the pixel face. The licence is in
-  `LICENSE-SCOPE.md` and `vendor/fonts/README.md`, and ships beside every subset.
-- **`Hosting.openLink`:** in the contract suite and on every adapter (task 11b); the four publish guides say what a link does.
-- **`pnpm check` passes** on the merged tree and before each commit that touched `packages/` (52 and 61 tasks, exit 0). API reports and the
-  index are updated (1283 exports, 0 undocumented). Changesets of this workstream: `words-catalogs`, `automata-words`,
-  `words-check-step`, `default-languages`, `default-screens-six-languages`, `fonts-cut-to-every-word`, `opening-sequence`,
-  `first-run-language`, `photosensitivity-warning`, `interface-sounds`, `new-game-six-languages`, `language-tag-region-numbers`,
-  `ui-screens-splash`, `ui-screens-credits`, `host-open-link`, `achievements`, `stale-build`, `e2e-pass-first-run`,
-  `shared-polish-examples`, `doc-comments-three-exports`, `create-game-check-cuts-fonts`.
-- **Browser suites, Chromium only:** the 2D package suites (every package that has one, about 3,900 tests), Emberwick's journeys (31),
-  the examples' (106) and the consumer smoke's 2D stranger journey (passes after two fixes: `create-game`'s `check` script cuts the fonts
-  first, and the smoke finds the square by the template's green). A vite build of a generated game ran inside that journey.
-- **Not run:** WebKit, Firefox, `examples-ipad`, a real desktop and a real Ruken host, a real `ruken publish`, the 3D workflow, the site's
-  own `playground.e2e.ts`.
+1. **"The four examples run and their journeys pass in Chromium at phone, compact and iPad sizes": done for phone and compact, not for
+   iPad.** The examples' config on the joined tree: 106 passed, 2 skipped (`examples` at phone size, `examples-compact`, the runner, the
+   hot-reload demo, the UI primitives). All four also run in the site's playground (the playground's own config, 41 passed, and the built
+   site in Chromium at desktop size and at 390 x 844 once scrolled to). `examples-ipad` is a WebKit project and was **not run**.
+2. **"Emberwick's journeys pass in each of the six languages' menus, and its Ruken manifest carries an achievement": done.** 38 passed
+   (phone, compact, iPad-sized Chromium, the dev server's, and the six `emberwick-language-*` projects); the manifest's achievement is held
+   by `games/emberwick/tests/unit/ship-config.test.ts` (in `pnpm check`). The WebKit projects were **not run**.
+3. **"`automata words` translates ... against a fake model in tests; and `automata check` fails on a missing word, a lost placeholder,
+   or a character a font cannot draw": done, with the live call unverified.** `run-words.test.ts` and `cli-words.test.ts` (every missing
+   and stale word into every language, `--to`, a key, `--all`, `--mark`, a dropped placeholder asked again once, an unreachable
+   translator); `words-step.test.ts` (a missing key, a lost placeholder, a character no font can draw, a language with no font) and
+   `pass words` on a generated game in the consumer smoke. **The live model call was not made:** no `AUTOMATA_ANTHROPIC_KEY` exists in this
+   environment (checked with `env`), so what the real model returns for a line is unverified.
+4. **"`pnpm check` passes; API reports and the index are updated; changesets are written": done.** The whole `pnpm check` on the joined
+   tree, exit 0 (52 and 61 tasks, 65 changesets, 0 problems); `pnpm build` (16 tasks); `pnpm api-report` (10 breaks against the base, 0
+   undeclared); `pnpm api-index` (1283 exports from 49 entry points, 0 undocumented). The site changes of task 20 need no changeset (the site
+   is private). The closing `pnpm check` on the final tree is in the plan's ledger.
+5. **"The site shows all of it": done.** The site was built from this branch and checked in Chromium (the plan's ledger lists each
+   check): the Examples page lists `core-languages`, `core-first-run`, `audio-ui-sounds` and `ui-splash-credits`, and each runs in the
+   playground; the API pages show every new export (59 index rows in five packages) with its doc comment; Docs lists the new Languages guide
+   and the changed publish guides; the cheatsheet and the four `llms*.txt` files carry the same; Home and Start say languages (Start and the
+   copy about "no AI" were changed in task 20); the header's Editor link opens `/editor/app/` and `/editor` answers 301; `pnpm check:site`
+   passes; the site's unit tests (518), the site's whole Chromium suite (505 passed, then the five phone cases added after it, passing) and the
+   playground suites (41) pass. Two defects were found and fixed in the task (the playground's frame at phone height, and copy that said
+   Automata runs no AI). **Not run:** WebKit, `check:deployed`, `check:launch`, Lighthouse (they need the live site or WebKit).
+6. **"Reported, not claimed: WebKit, Firefox and real devices are the Owner's": reported.** Not run, so not claimed: WebKit (the iPad
+   projects, `emberwick-phone-webkit`, the site's WebKit project and the playground's), Firefox (the playground's and parity), a real
+   desktop build opening a real browser, a real Ruken host (links, achievements, a locale it supplies), a real `ruken publish`, the 3D
+   workflow, sound heard through speakers.
+
+**Open for the Owner (not settled):** `games/emberwick/tests/unit/plumbing.test.ts`'s limit moved from 430 to 490 (measured 479) so the
+gate could run; the side session's list of what the framework could take over is in the plan's ledger (task 16). The number is left as it is.
+
+**Known and not caused by this work, for the implementation audit:**
+
+- `automata check --only no-eval` fails for a game inside this repository: `FAIL no-eval`, then `ERR_MODULE_NOT_FOUND` (cannot find
+  `packages/content/src/features/vite/index`, imported from `packages/content/src/entries/vite.ts`), `automata check: 1 finding`. The step runs a
+  plain-Node `vite build` of the game and the content package's vite source entry has an extensionless import Node cannot resolve; it fails the
+  same way on `main`. Reproduced on the joined tree, not fixed (it is not a one-line change). A published install (built `dist`) is not affected;
+  that was not run.
+- The flow's, the boot-failure panel's and the display policy's words are a boot-time snapshot, not live on a language switch.
+- The web `openLink` uses `window.open` with a nulled opener rather than `noopener`.
+- Two tests in task 5b were not watched failing first.
+- In Settings at phone width the "+N more" badge overlaps the last Vibration row's label.
+- The live `automata words` call is tested against the fake only.
+- The merge commit `e0b2394e` carries the earlier execution session's id in its `Claude-Session` trailer (a slip; not rewritten, since the commit is pushed).
+- Task 20's second defect fix was watched failing under the old code for one of its five cases only (the plan's ledger says which).
 
 ## Workstream 2 sessions (slice 1, the prologue)
 

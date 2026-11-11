@@ -79,6 +79,33 @@ test('with reduced motion an example page requests nothing under /playground/ be
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
 })
 
+// A frame the reader cannot see is throttled by the browser: a game with an opening sequence, saves or a filter never
+// reaches ready there, and its boot clock runs out before the reader scrolls down from the code. At phone height the
+// preview sits below the first screen, so it starts when it comes into view, not a screen early.
+// The five that timed out at 390 x 844 before the frame waited to be seen: two new (an opening sequence), three older.
+for (const id of [
+  'ui-splash-credits',
+  'core-first-run',
+  'core-saves',
+  'core-host-lifecycle',
+  'render-filter',
+]) {
+  test(`${id}: a preview below the first screen starts when the reader scrolls to it, not before`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    const requests = playgroundRequests(page)
+    await page.goto(`/examples/${id}`, { waitUntil: 'networkidle' })
+    const preview = page.locator('.playground .preview-box')
+    expect((await preview.boundingBox())!.y, 'the preview is below the first screen').toBeGreaterThan(844)
+    await expect(page.locator('.playground iframe')).toHaveCount(0)
+    await expect(root(page)).toHaveAttribute('data-preview', 'poster')
+    expect(requests).toEqual([])
+    await preview.scrollIntoViewIfNeeded()
+    await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  })
+}
+
 test('/examples runs nothing and requests nothing under /playground/', async ({ page }) => {
   const requests = playgroundRequests(page)
   await page.goto('/examples', { waitUntil: 'networkidle' })
