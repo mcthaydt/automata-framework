@@ -61,7 +61,7 @@ Three ways to place the seven were considered.
 - **B. All in one new extension** (`@automata/polish`). Keeps core small, but menu translations and the first-run
   step belong to core's own screens and flow; an extension would have to reach into them, which extensions may not do.
 - **C. Each where its owner already is** (chosen). Words and the first-run flow go with core's screens; the ready-made
-  screens go with `@automata/ui-screens`; achievements go with the Ruken ship step; the stale-build check goes with
+  screens go with `@automata/ui-screens`; achievements are declared host-neutral and mapped by each target's ship step; the stale-build check goes with
   `@automata/net`; the font check goes with `automata check` in `@automata/tools`.
 
 The Owner handed the placement to the coordinator; C is the coordinator's call.
