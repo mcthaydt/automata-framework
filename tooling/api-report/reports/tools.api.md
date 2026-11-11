@@ -44,6 +44,9 @@ interface ItchSettings {
 interface ShipConfig extends GameConfig {
     readonly itch?: ItchConfig | undefined;
     readonly tauri?: TauriConfig | undefined;
+    readonly words?: {
+        readonly model?: string | undefined;
+    } | undefined;
     readonly audience?: 'public' | 'private' | undefined;
 }
 ```

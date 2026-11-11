@@ -28,14 +28,14 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 3 of 21 tasks (14%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 4 of 21 tasks (19%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
 | 1 | The six languages as data, and the negotiation rules pinned | 1 | done | `0500f409` |
 | 2 | Core's menu words as catalogs in six languages | 1 | done | `48352386` |
-| 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | done | (this commit) |
-| 4 | `automata words`: the AI translates | 1 | todo | |
+| 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | done | `3763a3d8` |
+| 4 | `automata words`: the AI translates | 1 | done (the live model call is unverified: no key here) | (this commit) |
 | 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | todo | |
 | 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | todo | |
 | 6 | The opening sequence and the seen flags (core) | 2, 3 | todo | |

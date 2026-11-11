@@ -6,6 +6,9 @@ import { Files } from '../node/files.ts'
 // wherever the text needs a name or a number. What `automata words` and `automata check` share about them lives
 // here, with no model and no network.
 
+/** The schema line every catalog file starts with. */
+export const CATALOG_SCHEMA = 'https://inlang.com/schema/inlang-message-format'
+
 /** A catalog without its `$schema` line: key to text. */
 export type Catalog = Readonly<Record<string, string>>
 

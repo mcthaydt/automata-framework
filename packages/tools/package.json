@@ -48,6 +48,7 @@
     "check:example": "node src/app/bin.ts check ../../games/emberwick --csp"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "1.6.0",
     "@automata/content": "workspace:*",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",
@@ -71,8 +72,8 @@
     "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
-    "yaml": "2.9.1",
     "vite": "8.3.3",
-    "vitest": "5.0.3"
+    "vitest": "5.0.3",
+    "yaml": "2.9.1"
   }
 }

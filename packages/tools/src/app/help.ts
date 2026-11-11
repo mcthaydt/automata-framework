@@ -9,6 +9,7 @@ export const ROOT_HELP = `Usage: automata <command>
   build [folder]         Build a game.
   editor [folder]        Open the editors on a game, play it and publish it.
   ship <command>         Check a build for a place to publish it, and publish it.
+  words [key]            Have an AI translate the game's words into every language it ships.
 Run automata <command> --help for more.
 `
 
@@ -56,4 +57,20 @@ export const BUILD_HELP = `Usage: automata build [folder] [--debug]
 
 Builds a game with its own Vite build. <folder> is the game (default: this folder).
 A normal build leaves out the game's developer-only tools. --debug keeps them in.
+`
+
+export const WORDS_HELP = `Usage: automata words [key] [--to <language>] [--all] [--mark] [--dir <folder>]
+
+Has an AI translate the game's words into every language the game ships. It translates the words that have no
+translation yet and the words whose English changed since they were translated, and leaves the rest alone. Give a
+key to translate that one line.
+
+  --to <language>  Translate into that language only, such as ja or pt-BR.
+  --all            Translate every word again, even the ones that already have a translation.
+  --mark           Do not translate: note that the translations already written match the English now.
+  --dir <folder>   The game (default: this folder).
+  --catalog <folder>  Work on one folder of words that is not a game's, into the six default languages.
+  --source <language> The language the words are written in (default: en).
+
+It needs ANTHROPIC_API_KEY set on this computer. The key is used to reach the translator and nothing else.
 `

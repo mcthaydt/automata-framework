@@ -13,6 +13,7 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 
 | Package | Version | Date | Why |
 |---|---|---|---|
+| `@anthropic-ai/sdk` | 1.6.0 | 2026-11-11 | The official Anthropic SDK, in `@automata/tools` only: `automata words` asks a Claude model to translate a game's words. It reads `ANTHROPIC_API_KEY` from the computer running the command and never reaches a game, a build or the run time. Loaded only when that command runs |
 | `@biomejs/biome` | 2.5.15 | 2026-10-01 | Lint and format in one fast tool |
 | `@changesets/cli` | 3.0.3 | 2026-10-11 | One shared `0.0.x` version for every published package and the "Version packages" release PR |
 | `@inlang/paraglide-js` | 2.25.4 | 2026-10-16 | Compiles message catalogs into typed message functions. A dependency of `packages/content`, whose build compiles a game's catalogs (`ContentOptions.paraglide`), loaded only when a game asks for it; the runtime binds a game's generated `runtime.js` structurally |
