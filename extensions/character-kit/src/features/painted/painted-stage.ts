@@ -12,7 +12,7 @@ import { type Camera3D, type Container3D, Matrix4, type View3D } from '@pixi/3d'
 import { RendererType } from 'pixi.js'
 import { type Cell, TIE_BIAS, texelDepths, type V3, type View } from '../../shared/figure-builder/door.ts'
 import { CellSprite, poseQuaternion } from '../../shared/figure-builder/door-view.ts'
-import { type Placed, paintView, place, ranked } from './place.ts'
+import { type Placed, type PlaceOptions, paintView, place, ranked } from './place.ts'
 import { poseOf } from './pose.ts'
 import { shadowInput } from './shadow-input.ts'
 
@@ -20,6 +20,8 @@ import { shadowInput } from './shadow-input.ts'
 export interface StageMember {
   /** The entity's node. The quad is its child, so it is hidden with it, and goes with it when it is destroyed. */
   readonly node: Container3D
+  /** How its cell is placed: the density it paints at and whether a texel is a whole number of pixels (whole pixels at density 2 by default). */
+  readonly placing?: PlaceOptions | undefined
   /** The figure's cast shadow on the floor (the room's: `SceneLight.shadows`), cast each frame the figure is drawn; none without one. */
   readonly shadow?: FigureShadow | undefined
   /** Paints for this frame: `view` is the view the camera gives a figure at that place. */
@@ -103,7 +105,7 @@ class Stage implements PaintedStage {
         continue
       }
       const { cell, at, name } = entry.member.frame((where) => paintView(pose, where))
-      const placed = place(pose, at, cell, name)
+      const placed = place(pose, at, cell, name, entry.member.placing)
       entry.quad.sprite.visible = placed !== undefined
       if (placed === undefined) {
         entry.member.shadow?.hide()

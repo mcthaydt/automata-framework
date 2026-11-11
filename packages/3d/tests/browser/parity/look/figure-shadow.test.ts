@@ -109,7 +109,8 @@ describe.runIf(hasWebGL2)('a figure’s cast shadow on WebGL2', () => {
         `the floor at (${x}, ${z}) with the shadow on (${lit}) is darker than with it off (${bare})`,
       ).toBeLessThan(bare - 8)
     }
-  })
+    // Two renderers on software GL: about 5 s alone, over 15 s when the suite's files draw at once.
+  }, 60_000)
 
   it('leaves the rest of the floor as it was: a metre to the left, and in front of the figure', async () => {
     const on = await draw(true)
@@ -122,10 +123,10 @@ describe.runIf(hasWebGL2)('a figure’s cast shadow on WebGL2', () => {
       expect(colourAt(on.pixels, on.at(x, z)), `the floor at (${x}, ${z})`).toBe(
         colourAt(off.pixels, off.at(x, z)),
       )
-  })
+  }, 60_000)
 
   it('moves the floor whole DUEL steps: the shadowed pixel is a palette colour, not a grey in between', async () => {
     const on = await draw(true)
     expect(PALETTE.has(colourAt(on.pixels, on.at(0, 0)))).toBe(true)
-  })
+  }, 60_000)
 })

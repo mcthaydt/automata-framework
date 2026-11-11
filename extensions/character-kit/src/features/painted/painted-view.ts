@@ -7,6 +7,7 @@ import { Container3D } from '@pixi/3d'
 import type { CharacterDef, V3 } from '../../shared/figure-builder/door.ts'
 import { type PaintedStage, type StageMember, stageFor } from './painted-stage.ts'
 import { Painter } from './painter.ts'
+import { DEFAULT_DENSITY } from './place.ts'
 import { type RoomLight, roomLight } from './room-light.ts'
 import { checkState, type PaintedState } from './state.ts'
 
@@ -18,6 +19,12 @@ type Components = Parameters<typeof placeView3d>[1]
 export interface PaintedFigureOptions {
   /** Texels per texel of the base cell: 1 is 64 × 96, 2 is 128 × 192 (the default, the builder's working resolution) and 4. */
   readonly density?: 1 | 2 | 4 | undefined
+  /**
+   * Whether a texel is a whole number of pixels (the default) or the figure stands at its true height, a texel `zoom / density`
+   * pixels wide with uneven widths on screen (the way The Last Light draws its figures). With density 1 this is the old game's
+   * size: 36.9 texels a metre.
+   */
+  readonly crisp?: boolean | undefined
   /** The figure's state from the entity's components; standing by default. */
   readonly state?: ((components: Components) => PaintedState) | undefined
   /** Seconds, for the figure's pose clock; the page's clock by default. */
@@ -46,7 +53,7 @@ function roomOf(light: SceneLight | undefined, at: V3, azimuth: number): RoomLig
 export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions = {}): View3dFactory {
   const now = options.now ?? (() => performance.now() / 1000)
   const stateOf = options.state ?? (() => STANDING)
-  const density = options.density ?? 2
+  const density = options.density ?? DEFAULT_DENSITY
   return (row, componentId, _models, light, camera) => {
     if (camera === undefined) return undefined
     const stage: PaintedStage = stageFor(camera)
@@ -60,6 +67,7 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
     const shadow = light?.shadows?.add(node)
     const figure: StageMember = {
       node,
+      placing: { density, crisp: options.crisp },
       shadow,
       frame(view) {
         const t = now()

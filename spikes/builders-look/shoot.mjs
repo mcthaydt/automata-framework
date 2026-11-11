@@ -266,6 +266,45 @@ if (process.env.READS_ONLY === '1') {
   process.exit(0)
 }
 
+// SHADOW_ONLY=1 (with `figures=painted`) shoots each baked-light panel with the cast shadow on and off (`shadow=0`) and writes
+// `shadow.json`: the shadow's footprint (the pixels the two frames do not share; a figure is the same in both, so they are the
+// floor's) and how much darker it makes them (the mean of luma on over luma off). The builder's own is measured the same way by
+// eb-shadow-probe.ts, which draws its frame with `figureShadow` 0.6 and 1.
+const shadows = []
+if (process.env.SHADOW_ONLY === '1') {
+  // A screenshot that times out is taken once more (a page that is busy is not a result); the file grows as it goes, so a run that
+  // stops keeps what it measured (SCENES= picks it up again).
+  const again1 = async (url, size) => shoot(url, size).catch(() => shoot(url, size))
+  for (const scene of SCENES)
+    for (const [view, size, name] of [
+      ['diorama', fieldOf(scene, 'diorama'), 'diorama'],
+      ['fp', fieldOf(scene, 'fp'), 'fp'],
+    ]) {
+      const url = `${local()}/?scene=${scene}&view=${view}&pref=webgl`
+      const on = await again1(`${url}${QUERY}`, size)
+      const off = await again1(`${url}&shadow=0${QUERY}`, size)
+      // The scene itself differs a little between two page loads (a leaf's sway): a third load, with the shadow on again, counts those.
+      const again = await again1(`${url}${QUERY}`, size)
+      const [a, b, c] = await Promise.all([pixelsOf(on.b64, ...size), pixelsOf(off.b64, ...size), pixelsOf(again.b64, ...size)])
+      let noise = 0
+      for (let k = 0; k < a.length; k += 4) if (a[k] !== c[k] || a[k + 1] !== c[k + 1] || a[k + 2] !== c[k + 2]) noise++
+      let footprint = 0
+      let ratio = 0
+      for (let k = 0; k < a.length; k += 4) {
+        if (a[k] === b[k] && a[k + 1] === b[k + 1] && a[k + 2] === b[k + 2]) continue
+        // A texel the scene itself moved between two loads is not the shadow's.
+        if (a[k] !== c[k] || a[k + 1] !== c[k + 1] || a[k + 2] !== c[k + 2]) continue
+        footprint++
+        ratio += (0.2126 * a[k] + 0.7152 * a[k + 1] + 0.0722 * a[k + 2]) / Math.max(1, 0.2126 * b[k] + 0.7152 * b[k + 1] + 0.0722 * b[k + 2])
+      }
+      shadows.push({ scene, view: name, noise, footprint, darkening: footprint === 0 ? 1 : Math.round((ratio / footprint) * 1000) / 1000 })
+      writeFileSync(join(out, 'shadow.json'), `${JSON.stringify(shadows, null, 2)}\n`)
+    }
+  await browser.close()
+  stop()
+  process.exit(0)
+}
+
 for (const scene of SCENES) {
   for (const view of ['diorama', 'fp']) {
     const panels = [{ title: "EnvironmentBuilder's CPU frame", b64: fileB64(EB_DIR, `${scene}-${view}.png`) }]
