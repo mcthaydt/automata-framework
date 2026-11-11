@@ -123,4 +123,6 @@ step fails on content with no editor unless its row is here with the Owner's wor
   in parallel where their packages do not meet. Workstream 1's last tasks are split over two branches
   (`claude/shared-polish-build`: 15, 18, then 20; `claude/shared-polish-emberwick-site`: 16, 19), and workstream 2's
   framework branch starts before workstream 1 lands, leaving its joins to workstream 1 written in its plan's log.
+- The reference game's picture size and figure size match the old game's: a picture capped at 640 x 480, figures at
+  density 1 in play, the finer density in cutscene close-ups only.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
