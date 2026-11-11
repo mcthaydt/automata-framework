@@ -112,4 +112,7 @@ step fails on content with no editor unless its row is here with the Owner's wor
   delete (all their work is on `main`), the rest hold unmerged work.
 - Workstream 4 takes over the builders' look and figures work that other coordinators began (the Owner: yes).
 - Ubicloud 8-core runners are planned for this repository's CI; until they are live, sessions run the gates themselves.
+- #588's LCD panel and retro grade land as opt-in look extensions (only its room-visibility is superseded); the
+  letterbox's whole-pixel scale stays in core. Both await the Owner's confirmation and hold nothing.
+- Every branch, documents included, gets the whole `pnpm check` before it merges.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
