@@ -1473,10 +1473,28 @@ interface ContentTextOptions {
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
+### `DEFAULT_LOCALES` (const)
+
+```ts
+const DEFAULT_LOCALES: readonly ["en", "ja", "ko", "es-419", "pt-BR", "zh-Hans"];
+```
+
+### `DefaultLocale` (type)
+
+```ts
+type DefaultLocale = (typeof DEFAULT_LOCALES)[number];
+```
+
 ### `endonymOf` (function)
 
 ```ts
 function endonymOf(tag: string): string;
+```
+
+### `ENDONYMS` (const)
+
+```ts
+const ENDONYMS: Readonly<Record<DefaultLocale, string>>;
 ```
 
 ### `hasRawText` (function)

@@ -2940,13 +2940,40 @@ A lookup over the messages module Paraglide compiles into `paraglide.outdir` (it
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
+#### `DEFAULT_LOCALES` (const)
+
+The default languages in the order the language picker lists them. The first is the source of every catalog.
+
+```ts
+const DEFAULT_LOCALES: readonly ["en", "ja", "ko", "es-419", "pt-BR", "zh-Hans"];
+```
+
+#### `DefaultLocale` (type)
+
+One of the six default languages.
+
+```ts
+type DefaultLocale = (typeof DEFAULT_LOCALES)[number];
+```
+
 #### `endonymOf` (function)
 
-A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`. An engine without
-it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
+A language's name in its own language ("日本語" for `ja`): the framework's own spelling for the six default
+languages, otherwise the browser's `Intl.DisplayNames`. An engine without it, or a tag it cannot name, gives the tag
+back, so the picker never shows nothing.
 
 ```ts
 function endonymOf(tag: string): string;
+```
+
+#### `ENDONYMS` (const)
+
+Each default language's name in itself. Written out rather than asked of `Intl.DisplayNames`, because engines
+disagree about some of them (`es-419` is "Español (Latinoamérica)" in one and "Español" in another), and the font
+build must cut exactly the characters the picker will draw.
+
+```ts
+const ENDONYMS: Readonly<Record<DefaultLocale, string>>;
 ```
 
 #### `hasRawText` (function)

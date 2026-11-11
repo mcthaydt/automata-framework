@@ -292,7 +292,10 @@
 - `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
 - `ContentTextOptions` (interface): Options for `createContentText`.
 - `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
-- `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
+- `DEFAULT_LOCALES` (const): The default languages in the order the language picker lists them.
+- `DefaultLocale` (type): One of the six default languages.
+- `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`): the framework's own spelling for the six default languages, otherwise the browser's `Intl.DisplayNames`.
+- `ENDONYMS` (const): Each default language's name in itself.
 - `hasRawText(text)`: True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII letter outside a ⟦ ⟧ span.
 - `localeCharacters(catalog)`: A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
