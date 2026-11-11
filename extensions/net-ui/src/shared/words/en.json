@@ -1,0 +1,5 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "stale_message": "This game was updated. Reload to get the new version.",
+  "stale_reload": "Reload"
+}

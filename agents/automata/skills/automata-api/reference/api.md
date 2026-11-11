@@ -9120,6 +9120,37 @@ function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is Defined
 
 ### `import { … } from '@automata/net'`
 
+#### `BuildFacts` (interface)
+
+What identifies a build: the wire protocol, the sim's schema and the content, as a join sends them.
+
+```ts
+interface BuildFacts {
+  readonly protocol: number;
+  readonly schemaHash: string;
+  readonly contentHash: string;
+}
+```
+
+#### `buildFactsSchema` (const)
+
+The shape of a build's facts, as `GET /version` answers them. Strict, so a shape it does not know is unreadable.
+
+```ts
+const buildFactsSchema: z.ZodType<BuildFacts>;
+```
+
+#### `checkServerVersion` (function)
+
+Asks the server for its build facts (`fetchFacts` is the game's own fetch of `<server>/version`) and compares them
+with `own`. `stale` only when the server answered readable facts that differ. A throw, a rejection, a 503 or a shape
+it does not know is `current`: the join check refuses a stale client either way, and a flaky probe must never lock a
+player out.
+
+```ts
+function checkServerVersion(fetchFacts: () => Promise<unknown>, own: BuildFacts): Promise<"current" | "stale">;
+```
+
 #### `ClientMessage` (type)
 
 Everything a client may send the room: a command, a clock probe, ready or not, add or remove a
@@ -11556,6 +11587,8 @@ it has one.
 interface ProbeState {
   readonly readiness: () => Readiness;
   readonly securityTxt?: SecurityTxt | undefined;
+  /** The game's version, undefined until its content has loaded; read on every `/version` request. */
+  readonly version?: (() => GameVersion | undefined) | undefined;
 }
 ```
 
@@ -12717,6 +12750,68 @@ The banner shown while the game reconnects: it counts down the grace, then says 
 ```ts
 const ReconnectOverlay: import("svelte").Component<Record<string, never>, {}, "">;
 type ReconnectOverlay = ReturnType<typeof ReconnectOverlay>;
+```
+
+#### `StaleBuild` (const)
+
+The tab is out of date: core's ErrorPanel with the code `stale-build`, what happened and one primary action, Reload,
+which takes focus. There is no other way forward on purpose: a tab that cannot join is no use until it is reloaded.
+
+```ts
+const StaleBuild: import("svelte").Component<Props, {}, "">;
+type StaleBuild = ReturnType<typeof StaleBuild>;
+```
+
+#### `StaleBuildOptions` (interface)
+
+How a game sets up its stale-build check.
+
+```ts
+interface StaleBuildOptions {
+    /** The game's own build facts: what it joins with (`PROTOCOL_VERSION`, and the schema and content hashes). */
+    readonly facts: BuildFacts;
+    /** The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know, passes. */
+    readonly fetchFacts: () => Promise<unknown>;
+    /** The longest the title waits for the answer, in milliseconds, on the runtime's clock. Default 1500. */
+    readonly waitMs?: number;
+    /** What Reload does. Default: reloads the page. */
+    readonly reload?: () => void;
+    /** The panel's words: fixed, or for a locale. Default: this package's, in the player's language. */
+    readonly copy?: StaleCopy | ((locale: string) => StaleCopy);
+}
+```
+
+#### `staleBuildStep` (function)
+
+An opening step that asks the server for its build facts before an online game's title. Current, unreadable or slower
+than `waitMs` (a later answer is dropped): it resolves and the title follows. Stale: it shows the error with Reload and
+stays, so the title of an out-of-date tab is never reached. The join check stays the authority; this only says so
+before the player has tried to join.
+
+```ts
+function staleBuildStep(options: StaleBuildOptions): OpeningStep;
+```
+
+#### `StaleCopy` (interface)
+
+What the stale-build panel says.
+
+```ts
+interface StaleCopy {
+    /** That the game was updated and what to do about it. */
+    readonly message: string;
+    /** The one button: reloads the page. */
+    readonly reload: string;
+}
+```
+
+#### `staleWords` (function)
+
+The words for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds
+`pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise. The framework's own locale negotiation follows the same rule.
+
+```ts
+function staleWords(locale: string): StaleCopy;
 ```
 
 #### `watchStatus` (function)

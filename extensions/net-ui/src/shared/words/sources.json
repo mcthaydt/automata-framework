@@ -1,0 +1,24 @@
+{
+  "words": {
+    "es-419": {
+      "stale_message": "5f166288d13fe8d78ba0cdf2b6f296a985ff86ce1aff645d76ae17309b1b4ba8",
+      "stale_reload": "bdc090ec61e3fcfc65f469951dfe00f3f2ecfc6003c44deac8e05b7237092de6"
+    },
+    "ja": {
+      "stale_message": "5f166288d13fe8d78ba0cdf2b6f296a985ff86ce1aff645d76ae17309b1b4ba8",
+      "stale_reload": "bdc090ec61e3fcfc65f469951dfe00f3f2ecfc6003c44deac8e05b7237092de6"
+    },
+    "ko": {
+      "stale_message": "5f166288d13fe8d78ba0cdf2b6f296a985ff86ce1aff645d76ae17309b1b4ba8",
+      "stale_reload": "bdc090ec61e3fcfc65f469951dfe00f3f2ecfc6003c44deac8e05b7237092de6"
+    },
+    "pt-BR": {
+      "stale_message": "5f166288d13fe8d78ba0cdf2b6f296a985ff86ce1aff645d76ae17309b1b4ba8",
+      "stale_reload": "bdc090ec61e3fcfc65f469951dfe00f3f2ecfc6003c44deac8e05b7237092de6"
+    },
+    "zh-Hans": {
+      "stale_message": "5f166288d13fe8d78ba0cdf2b6f296a985ff86ce1aff645d76ae17309b1b4ba8",
+      "stale_reload": "bdc090ec61e3fcfc65f469951dfe00f3f2ecfc6003c44deac8e05b7237092de6"
+    }
+  }
+}

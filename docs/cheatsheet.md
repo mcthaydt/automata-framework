@@ -766,6 +766,9 @@
 
 ### `import { … } from '@automata/net'`
 
+- `BuildFacts` (interface): What identifies a build: the wire protocol, the sim's schema and the content, as a join sends them.
+- `buildFactsSchema` (const): The shape of a build's facts, as `GET /version` answers them.
+- `checkServerVersion(fetchFacts, own)`: Asks the server for its build facts (`fetchFacts` is the game's own fetch of `<server>/version`) and compares them with `own`.
 - `ClientMessage` (type): Everything a client may send the room: a command, a clock probe, ready or not, add or remove a bot, and leave.
 - `clientMessageSchema` (const): The Zod schema of a client message.
 - `ClientNetworkPort` (interface): The sim's link to the room on a client: it sends the player's commands and never hears remote ones or publishes a snapshot, because the room is the authority.
@@ -1060,6 +1063,11 @@
 - `NetUiHost` (interface): What the badge and overlay need from the game: the connection, the grace, a way to leave and the words.
 - `OverlayState` (type): What the reconnect overlay shows: nothing, a countdown while the game reconnects, or the words for giving up once the grace has passed.
 - `ReconnectOverlay` (const): The banner shown while the game reconnects: it counts down the grace, then says it could not reconnect.
+- `StaleBuild` (const): The tab is out of date: core's ErrorPanel with the code `stale-build`, what happened and one primary action, Reload, which takes focus.
+- `StaleBuildOptions` (interface): How a game sets up its stale-build check.
+- `staleBuildStep(options)`: An opening step that asks the server for its build facts before an online game's title.
+- `StaleCopy` (interface): What the stale-build panel says.
+- `staleWords(locale)`: The words for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds `pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise.
 - `watchStatus(host, onView)`: Calls `onView` with what to draw now, and again whenever the connection changes or time passes.
 
 ## `@automata/physics`
