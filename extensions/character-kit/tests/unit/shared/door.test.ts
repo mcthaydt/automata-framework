@@ -1,6 +1,6 @@
 // The figure builder is reached through the files of src/shared/figure-builder/ and nowhere else, so an upstream refactor
 // breaks those files only: no other source or test file of the kit imports `figure-builder`. `door.ts` takes the builder's
-// Pixi-free entries (safe in Node); the view entry, which loads Pixi, gets a file of its own.
+// Pixi-free entries (safe in Node); `door-view.ts` takes the view entry, which loads Pixi.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -22,12 +22,16 @@ describe('the door', () => {
     const importers = [...walk(join(ROOT, 'src')), ...walk(join(ROOT, 'tests'))]
       .filter((file) => IMPORTS.test(readFileSync(file, 'utf8')))
       .map((file) => relative(ROOT, file))
-    expect(importers).toEqual(['src/shared/figure-builder/door.ts'])
+    expect(importers).toEqual(['src/shared/figure-builder/door-view.ts', 'src/shared/figure-builder/door.ts'])
   })
 
   it('takes the builder’s Pixi-free entries and nothing deeper', () => {
     for (const specifier of specifiersOf('src/shared/figure-builder/door.ts')) {
       expect(['figure-builder', 'figure-builder/kit']).toContain(specifier)
     }
+  })
+
+  it('takes the view entry, the one that loads Pixi, in a file of its own', () => {
+    expect(specifiersOf('src/shared/figure-builder/door-view.ts')).toEqual(['figure-builder/view'])
   })
 })
