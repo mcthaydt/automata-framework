@@ -35,6 +35,7 @@ import {
   segments,
   type V2,
 } from './sectors.ts'
+import { subdivide } from './subdivide.ts'
 import { isSurfaceTex, type TexPlace, texOf, tileName, wallFrame } from './surface.ts'
 import { hasSwatch, type WorldLibrary } from './swatches.ts'
 
@@ -82,7 +83,16 @@ export interface WorldOptions {
   readonly night?: boolean
   /** Lit windows show curtains, a plant, a figure. Default: yes. */
   readonly interiors?: boolean
+  /**
+   * The longest edge (metres) a piece that stays put is cut to, so the baked vertex light has a vertex wherever a
+   * lamp's pool or a shadow's edge falls (the look's `seg`). A door, a prop and a swaying leaf keep
+   * the builder's own triangles: they move, so no light is baked into them. 0 cuts nothing. Default 0.35.
+   */
+  readonly seg?: number
 }
+
+/** `WorldOptions.seg`'s default: the look profile's `seg`. */
+const SEG = 0.35
 
 // The first-person defaults the builder drew with when a wall or a plane named nothing.
 const FLOOR = 'oakFloor'
@@ -118,6 +128,7 @@ interface Opening {
 export function buildWorld(level: AfSector2, library: WorldLibrary, options: WorldOptions = {}): World {
   const night = options.night === true
   const interiors = options.interiors !== false
+  const seg = options.seg ?? SEG
   const pieces: WorldPiece[] = []
   const problems: LevelProblem[] = []
   const told = new Set<string>()
@@ -166,7 +177,10 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       id: `${sector.id}:${id}`,
       sector: sector.id,
       part,
-      mesh,
+      mesh:
+        extra.door === undefined && extra.sway === undefined && extra.prop === undefined
+          ? subdivide(mesh, seg)
+          : mesh,
       surface,
       ...(tex === undefined ? {} : { tex }),
       ...extra,

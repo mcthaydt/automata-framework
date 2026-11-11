@@ -92,6 +92,45 @@ describe('one room', () => {
     expect(buildWorld(level(room('a', [0, 0, 4, 4])), LIB)).toEqual({ pieces, lamps: [], problems }))
 })
 
+describe('subdivision', () => {
+  const longest = (p: WorldPiece): number => {
+    const { positions: v, indices: i } = p.mesh
+    let most = 0
+    for (let t = 0; t < i.length; t += 3)
+      for (let e = 0; e < 3; e++) {
+        const [a, b] = [i[t + e]! * 3, i[t + ((e + 1) % 3)]! * 3]
+        most = Math.max(most, Math.hypot(v[a]! - v[b]!, v[a + 1]! - v[b + 1]!, v[a + 2]! - v[b + 2]!))
+      }
+    return most
+  }
+  const lv = level(room('a', [0, 0, 6, 5]))
+  it('cuts a room’s floor, ceiling and walls until no edge is over 0.35 m, so light can vary across them', () => {
+    const { pieces } = buildWorld(lv, LIB)
+    for (const p of pieces) expect(longest(p), p.id).toBeLessThanOrEqual(0.35 + 1e-9)
+    expect(of(pieces, 'floor')[0]!.mesh.positions.length / 3).toBeGreaterThan(4)
+  })
+  it('takes the length from `seg`, and 0 leaves the builder’s own triangles', () => {
+    const coarse = buildWorld(lv, LIB, { seg: 0 }).pieces
+    expect(longest(of(coarse, 'floor')[0]!)).toBeGreaterThan(0.35)
+    expect(of(coarse, 'floor')[0]!.mesh.indices.length).toBeLessThan(
+      of(buildWorld(lv, LIB).pieces, 'floor')[0]!.mesh.indices.length,
+    )
+    const wide = buildWorld(lv, LIB, { seg: 1 }).pieces
+    for (const p of wide) expect(longest(p), p.id).toBeLessThanOrEqual(1 + 1e-9)
+  })
+  it('leaves a door, a prop and a swaying leaf as they are: no light is baked into them', () => {
+    const doorway = level(room('a', [0, 0, 1.2, 0.3], { door: {} }))
+    const moving = buildWorld(doorway, LIB).pieces.filter((p) => p.door !== undefined)
+    expect(moving.length).toBeGreaterThan(0)
+    const bare = buildWorld(doorway, LIB, { seg: 0 }).pieces
+    for (const p of moving) expect(p.mesh, p.id).toEqual(bare.find((q) => q.id === p.id)!.mesh)
+  })
+  it('keeps the floor’s up-facing normals', () => {
+    const [floor] = of(buildWorld(lv, LIB).pieces, 'floor') as [WorldPiece]
+    for (let i = 1; i < floor.mesh.normals.length; i += 3) expect(floor.mesh.normals[i]).toBeCloseTo(1)
+  })
+})
+
 describe('faults', () => {
   it('reports a degenerate room instead of throwing', () => {
     const lv = level(room('room-1', [0, 0, 4, 4]), room('room-2', [10, 0, 14, 0]))
