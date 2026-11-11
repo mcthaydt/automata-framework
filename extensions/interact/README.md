@@ -43,5 +43,5 @@ imports no extension, so they can move to the framework core when a second game 
 
 ## Not here
 
-The words a hotspot shows and the button that shows them are the HUD's (`@automata/hud`). There is no
+The words a hotspot shows and the button that shows them are the HUD's ([`@automata/hud`](../hud/README.md)). There is no
 editor for a hotspot yet: Levels 3D places the entities, and `hide` and `when` are edited as the entity's fields.
