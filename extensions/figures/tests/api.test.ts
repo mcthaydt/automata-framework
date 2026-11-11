@@ -7,7 +7,10 @@ import {
   type Measure, type Skeleton, type Anchor, type Hold, type ItemDef, type HairInput, type HairStyle, type HairFinish, type Piece,
   type Skull, type Tone, type Tie, type Fabric, type Casting, type Cell, type CameraPose, type StageFrame, type StageSprite, type StageOptions, type Backdrop,
 } from '../src';
-import type { GBuffer, Mesh as KitMesh, Material, V3 } from '../src/kit';
+import type { GBuffer, HeadForm, Mesh as KitMesh, Material, Skull as KitSkull, V3 } from '../src/kit';
+import { headForm, onHead, skull } from '../src/kit';
+import { measure } from '../src/features/body/genes';
+import { skeleton } from '../src/features/body/rig';
 
 /** Every runtime name src/index.ts exports. A removal or rename is a breaking change (docs/contract.md): it raises
  * STAGE_VERSION and the package version, and is written in the changelog; so it is made on purpose, here too. */
@@ -22,7 +25,12 @@ describe('the public surface', () => {
   const def = BASE[0].def;
   it('the painter\'s toolkit exports exactly these names (a change is a breaking change: docs/contract.md)', async () => {
     expect(Object.keys(await import('../src/kit')).sort()).toEqual(['GROUP', 'J', 'RAMPS', 'RAMP_OUTLINE', 'STYLE', 'TRI', 'VERT', 'apply', 'axisAngle',
-      'cleanup', 'cross', 'dot', 'duel', 'fk', 'gbuffer', 'lerp', 'limb', 'noise3', 'normalize', 'oklab', 'placed', 'qmul', 'rampOf', 'rasterize', 'resolve', 'smooth', 'sub', 'superquadric', 'weights'].sort());
+      'cleanup', 'cross', 'dot', 'duel', 'fk', 'gbuffer', 'headForm', 'lerp', 'limb', 'noise3', 'normalize', 'oklab', 'onHead', 'placed', 'qmul', 'rampOf', 'rasterize', 'resolve', 'skull', 'smooth', 'sub', 'superquadric', 'weights'].sort());
+  });
+  it('the kit hands a headwear kind the head\'s form: the skull, the form, and a point on it', () => {
+    const m = measure(def.sliders), s = skeleton(m.genes), k: KitSkull = skull(s), f: HeadForm = headForm(m, s), p = onHead(f, k, 0, 0.5, 0.01);
+    expect(p.every(Number.isFinite)).toBe(true);
+    expect(onHead(f, k, 0, 0.5, 0.05)[2]).toBeGreaterThan(onHead(f, k, 0, 0.5, 0)[2]);
   });
   it('the public surface exports exactly these names', async () => {
     expect(Object.keys(await import('../src')).sort()).toEqual(INDEX_NAMES);

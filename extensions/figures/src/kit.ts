@@ -15,3 +15,7 @@ export { GROUP, weights, type Limb, type Ring } from './features/body/parts';
 export { axisAngle, normalize, apply, sub, cross, dot, lerp, type V3 } from './lib/math';
 export { qmul, smooth } from './lib/math';
 export { fk, J } from './features/body/rig';
+// For a host's headwear kinds (H1): the head's form and the skull's measures, from which a crown is lofted over the head the sliders make
+// (the hair's own pieces are built from them), and a point on the head's form at a skull angle and height.
+export { skull, onHead, type Skull } from './features/hair/hair';
+export { headForm, type HeadForm } from './features/body/head';
