@@ -12,6 +12,7 @@ type Project = {
     globalSetup?: string[]
     css?: boolean
     testTimeout?: number
+    hookTimeout?: number
     server?: { deps?: { inline?: RegExp[] } }
     browser?: {
       enabled: boolean
@@ -179,6 +180,14 @@ describe('defineTests', () => {
         expect(named(config, name).test.browser?.commands).toBe(commands)
         expect(named(config, name).test.testTimeout).toBe(90_000)
       }
+    })
+
+    it('gives every browser project 90 s for a hook, because the command line flag does not reach it', () => {
+      // A hook that loads a fixture timed out at 30 s on a loaded runner with `--hookTimeout=90000` on the command.
+      const config = defineTests({ browserProjects: projects })
+      for (const name of ['parity', 'canvas']) expect(named(config, name).test.hookTimeout).toBe(90_000)
+      expect(named(defineTests(), 'browser').test.hookTimeout).toBe(90_000)
+      expect(named(defineTests(), 'unit').test.hookTimeout).toBeUndefined()
     })
 
     it('leaves the single browser project alone when the option is absent, and drops it for none', () => {

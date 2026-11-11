@@ -18,6 +18,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { createStageRenderer } from '#src/features/studio/stage/stage-renderer.ts'
 import { createStudio } from '#src/features/studio/studio-suite-editor.ts'
+import { untilAttribute } from '#src/testing/canvas-ready.ts'
 import { studioFixtureFiles } from '#src/testing/studio/studio-fixtures.ts'
 
 // The Studio on an iPad (editor suite spec §6.2, §12; EDS-q, EDS-r, EDS-s, EDS-x, EDS-aa): WebKit in an iPad context, real
@@ -58,9 +59,7 @@ async function open(profile: IpadProfile) {
   })
   await settleLayout()
   await chooseEditor('Characters')
-  await expect
-    .poll(() => document.querySelector('[data-testid="studio-stage"][data-status="ready"]'))
-    .not.toBeNull()
+  await untilAttribute('studio-stage', 'data-status', 'ready')
   await arrived()
   return { ports }
 }

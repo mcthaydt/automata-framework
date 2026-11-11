@@ -62,6 +62,8 @@ async function setNumber(editors: Page, label: string, value: number): Promise<v
 }
 const fileHas = (file: string, text: string) =>
   expect.poll(() => readFileSync(root + file, 'utf8')).toContain(text)
+const fileMatches = (file: string, pattern: RegExp) =>
+  expect.poll(() => readFileSync(root + file, 'utf8')).toMatch(pattern)
 
 test('the guard stays on patrol for 3 s while the player is 22 m away, outside its 9 m sight', async ({
   page,
@@ -164,7 +166,8 @@ test('a Sentry added at the Hall’s east end exists there in play and sounds th
   await expect(editors.getByRole('heading', { name: 'Sentry', level: 2 })).toBeVisible()
   await inspector(editors, 'Place')
   await editors.getByLabel('Place', { exact: true }).first().selectOption('hallE')
-  await fileHas(GUARD_FILE, 'routine = [{node = "hallE"')
+  // The file the editor saves lists the stop as a `[[agents.routine]]` table, not an inline array.
+  await fileMatches(GUARD_FILE, /\[\[agents\.routine\]\]\s+node = "hallE"/)
   await editors.screenshot({ path: test.info().outputPath('5-sentry-added.png') })
   await play(page)
   const sentry = await probe(page, (d) => d.agents().find((a) => a.id === 'sentry'))

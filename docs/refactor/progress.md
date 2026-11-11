@@ -737,6 +737,18 @@ customer - we are customer obsessed, we are crafting the perfect product from so
 | 1. Audit | Done, 2026-11-08: 3 critical (V1 to V3), 5 high (V4 to V8), 6 medium (V9 to V14), 5 low (V15 to V19), one decision for the Owner (D1, whether Publish puts the game on itch.io). A game made from the packed tools outside the workspace was given a coin feature by an agent, edited in the editors, played, reloaded, reopened and published to a zip that played; the story and 3D games were edited in every editor. Typed words were lost on reload (V2, sent to the sign-in and saving thread) | [audit](2026-11-08-customer-value-audit.md) |
 | 2. Plan and spec | Not started; V1, V3, V4 and V6 make one "agent experience" slice; V2, V5 and V8 belong to running threads | |
 
+## FigureBuilder on Pixi 3D, as a submodule (2026-11-10)
+
+The Owner, 2026-11-10: "port our figurebuilder to pixi3D here", "do it here first, then do it there", 8 directions; then,
+relayed by the coordinator and confirmed in this session, FigureBuilder as a git submodule, not a copy. The copy (#576)
+does not merge.
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. In FigureBuilder | Done, 2026-11-10: the painter's cell on a quad in a Pixi 3D scene, a viewer and `view-check` (16 of 16 views identical). Ran: typecheck, its 467 tests, view-check | FigureBuilder PR #22 |
+| 2. The submodule and the door | Done, 2026-11-10: `vendor/FigureBuilder` at `08f54a6`, the `figure-builder` workspace package (declarations from its own settings), one door in the character kit (a test holds it the only importer), `paintedFigure` in `createPixi3dRenderer` (view factories take the camera); both base figures' 8 views through the renderer are the builder's cells texel for texel (16 of 16, Chromium); `characterkit-painted` and its journey; ADR 0007 amended; CI checks out the submodule with `SUBMODULES_TOKEN` (the Owner's to create). Ran: typecheck, lint, style, boundaries, knip, source-names, repo-hygiene, the kit's unit tests and its browser tests in Chromium (38), the journey in Chromium. Not run: WebKit, Firefox, the GPU runner, the full `pnpm check`, CI (needs the secret) | this branch's PR |
+| 3. The kit rebuilt on the door | Not started: the runway wardrobe and fabrics and the demo characters' library (the Owner's yes), registered through the builder's hooks from the kit; the base pair from the builder's base | |
+
 ## EnvironmentBuilder's look on @automata/3d (phase 2: baseline and gap, 2026-11-10)
 
 The Owner, 2026-11-10: Pixi 3D for WebGL and WebGPU both; parity is judged by eye from side-by-side screenshots; the look

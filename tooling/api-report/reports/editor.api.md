@@ -4055,6 +4055,7 @@ type Mode = 'wide' | 'medium' | 'compact';
 interface Pointers {
     down(kind: PointerKind, at: Point, extras?: ContactExtras): Promise<Contact>;
     tap(at: Point, options?: Gesture): Promise<void>;
+    tapTogether(points: readonly Point[], options?: Gesture): Promise<void>;
     longPress(at: Point, options?: Gesture & {
         readonly holdMs?: number;
     }): Promise<void>;

@@ -203,7 +203,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     light === undefined || options.lamps === undefined ? undefined : lampSwitches(options.lamps)
   const resolver: Record<string, (row: RenderRow, componentId?: string) => EntityView3d | undefined> = {}
   for (const [id, factory] of Object.entries(options.views))
-    resolver[id] = (row, componentId) => factory(row, componentId, models, light)
+    resolver[id] = (row, componentId) => factory(row, componentId, models, light, view.camera)
   const consumer = new RenderDeltaConsumer<Container3D>(view.root, resolver)
   const entities: PixiStageHooks = {
     apply: (result) => {

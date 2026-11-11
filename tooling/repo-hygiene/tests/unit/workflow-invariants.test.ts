@@ -74,6 +74,20 @@ jobs:
     ).toEqual([])
   })
 
+  it("let the private submodules' read-only token reach a pull request's job, in the step that fetches them", () => {
+    expect(
+      fixture(`
+on: [pull_request]
+permissions: {}
+jobs:
+  checks:
+    steps:
+      - env: { SUBMODULES_TOKEN: '\${{ secrets.SUBMODULES_TOKEN }}' }
+        run: git submodule update --init
+`),
+    ).toEqual([])
+  })
+
   it('make the heavy jobs skip draft pull requests, but not the light gate', () => {
     const problems = fixture(`
 on: [pull_request]

@@ -26,8 +26,12 @@ interface Step {
   readonly with?: Readonly<Record<string, unknown>>
 }
 
-/** Secrets every job may hold: the workflow's own token (scoped by `permissions`) and the read-only package token. */
-const READ_ONLY_SECRETS: ReadonlySet<string> = new Set(['GITHUB_TOKEN', 'AF_READ_TOKEN'])
+/**
+ * Secrets every job may hold: the workflow's own token (scoped by `permissions`), the read-only package token, and the
+ * read-only token that checks out the private submodules (`.gitmodules`).
+ */
+const READ_ONLY_SECRETS: ReadonlySet<string> = new Set(['GITHUB_TOKEN', 'AF_READ_TOKEN', 'SUBMODULES_TOKEN'])
+
 /** The light gate every pull request runs, drafts included (lint, typecheck, unit). */
 const LIGHT_GATES: ReadonlySet<string> = new Set(['checks'])
 

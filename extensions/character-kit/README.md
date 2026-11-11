@@ -45,6 +45,11 @@ Core has `sleek` and `straight`.
 **Seats.** A `figure-seat` file says how a figure sits: how high the seat is, whether it leans or slumps, where each hand
 goes. `seated(skeleton, gait, seat, time)` gives the sitting pose.
 
+**Painted figures.** `paintedFigure(def)` is a view for `createPixi3dRenderer`: a character generated from data and painted texel
+by texel by the figures submodule under `vendor/` (see `.gitmodules`), shown on a quad that stands where its entity
+stands and faces the camera, in 8 views. `BASE` is the builder's base pair. The builder is reached only through
+`src/features/painted/door.ts`; clone with `--recurse-submodules`.
+
 ## Try it
 
 The repository's `extensions/character-kit/tests/fixtures/content` has eight hairstyles and eight seats to copy from (they are not in the npm package). `pnpm --filter @automata/character-kit test`

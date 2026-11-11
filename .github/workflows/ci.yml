@@ -62,7 +62,10 @@ jobs:
     # never reached them. The checks need no container or GPU and ran on af-mac from 2026-10-17 to 2026-10-30.
     # vars.AF_CHECKS_RUNNER moves them back.
     runs-on: ${{ vars.AF_CHECKS_RUNNER || 'af-mac' }}
-    timeout-minutes: 20
+    # The checks job on the shared Mac took about 12 min on 2026-11-11 (run 42930399321) and was cancelled at 20 min twice
+    # that evening, in `pnpm test:unit` (run 42940969260, both attempts) while the 3D parity job ran on the same machine
+    # and main had just added the 3D package's light tests. It gates every other job here.
+    timeout-minutes: 30
     outputs:
       docs_only: ${{ steps.scope.outputs.docs_only }}
       parity_full: ${{ steps.scope.outputs.parity_full }}
@@ -74,6 +77,14 @@ jobs:
           # Full history, so `changeset status` on a pull request can find where it left origin/main. Not an
           # expression: `cond && 0 || 1` always gives 1, because 0 is falsy in Actions expressions.
           fetch-depth: 0
+      # The private submodules (.gitmodules), with the Owner's read-only SUBMODULES_TOKEN. It reads only them, so the
+      # checkout above keeps the workflow's own token; the token rides this one command, never git's config.
+      - name: Check out the private submodules
+        env:
+          SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
+        run: |
+          auth="$(printf 'x-access-token:%s' "$SUBMODULES_TOKEN" | base64 | tr -d '\n')"
+          git -c safe.directory='*' -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" submodule update --init --depth 1
       # A pull request that changes only docs/ and Markdown files cannot change what a game builds, so the jobs
       # after this one skip it. The checkout is GitHub's merge commit: its first parent is the base tip, so
       # HEAD^1..HEAD is exactly the pull request's own changes. Anything else (no merge commit, so no way to tell)
@@ -265,11 +276,20 @@ jobs:
       - name: The stranger's journey
         if: github.event_name != 'pull_request' || needs.checks.outputs.stranger == 'true'
         run: pnpm test:e2e --filter @automata/consumer-smoke
+      # Named folders, not **/playwright-report/: nothing writes a playwright-report, and a ** glob walks every
+      # node_modules on the self-hosted runners, and the step ran until the job timeout.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: e2e-report
-          path: "**/playwright-report/"
+          path: |
+            examples/*/test-results/
+            games/*/test-results/
+            extensions/*/test-results/
+            packages/*/test-results/
+            tooling/*/test-results/
+            site/test-results/
+            site/playground/test-results/
           retention-days: 1
 
   e2e-focused:
@@ -307,11 +327,20 @@ jobs:
           cd "$folder"
           # shellcheck disable=SC2086
           pnpm exec playwright test $args
+      # Named folders, not **/playwright-report/: nothing writes a playwright-report, and a ** glob walks every
+      # node_modules on the self-hosted runners, and the step ran until the job timeout.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: e2e-report
-          path: "**/playwright-report/"
+          path: |
+            examples/*/test-results/
+            games/*/test-results/
+            extensions/*/test-results/
+            packages/*/test-results/
+            tooling/*/test-results/
+            site/test-results/
+            site/playground/test-results/
           retention-days: 1
 
   frame-budget:
