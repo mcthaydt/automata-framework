@@ -9,7 +9,7 @@ import type { StyleFinding } from './style.ts'
 /** Folders and files that are records by design: they cite plans and name sources as evidence, so neither rule edits them. */
 // The vendored packages' READMEs record where each tarball came from, as provenance does.
 const RECORDS = [
-  /^docs\/(archive|refactor|provenance|adr)\//,
+  /^docs\/(archive|refactor|superpowers|provenance|adr)\//,
   /(^|\/)PROVENANCE\.md$/,
   /^vendor\//,
   /(^|\/)fixtures\//,
