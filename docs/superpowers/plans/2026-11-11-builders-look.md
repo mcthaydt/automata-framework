@@ -23,7 +23,7 @@ first; this plan argues from its measurements. **Tracker:** [`../progress.md`](.
 
 ## Tracking
 
-**7 of 17 tasks done (41%)**: group 1, `claude/builders-look-room`, merged to `main` (`a024bc4b`); group 2, `claude/builders-look-figures`, in progress (no pull request opened: the stage 4 sessions were told not to). Tick a task only when its checks passed in the session that did it; say what did not run.
+**8 of 17 tasks done (47%)**: group 1, `claude/builders-look-room`, merged to `main` (`a024bc4b`); group 2, `claude/builders-look-figures`, in progress (no pull request opened: the stage 4 sessions were told not to). Tick a task only when its checks passed in the session that did it; say what did not run.
 
 | # | Task | Branch | State | Evidence |
 |---|---|---|---|---|
@@ -34,7 +34,7 @@ first; this plan argues from its measurements. **Tracker:** [`../progress.md`](.
 | 5 | Light: the sheets re-shot, the measure, each difference settled; the pull request | `claude/builders-look-room` | done | all 8 scene sheets 0.84 to 1.01; the street fixed by `ccf0ee65` (the sun's sample grid); [`after-room/`](../audits/builders-look-survey/after-room/README.md); no pull request opened (see the log) |
 | 6 | Bring in the lit painted figures (#607, with #603) | `claude/builders-look-figures` | done | #607 `7167af1f` merged (13 commits, 70 files); the one golden: `runway-cells.json`, commit `ea71e0a3` only; `pnpm check` 61/61 before and after; kit unit 207, Chromium 55 pass (3 skip: the gate scripts), bench medians 1.53 / 0.13 / 1.69 ms |
 | 7 | The painted base pair in the four base scenes; the figures' sheets | `claude/builders-look-figures` | done | 16 sheets (a room view and a gameplay view per scene as well) in [`after-figures/`](../audits/builders-look-survey/after-figures/README.md); baked panels 44.2 to 121.7, no errors; five differences named |
-| 8 | Exposure: measured against the builder's window | `claude/builders-look-figures` | todo | |
+| 8 | Exposure: measured against the builder's window | `claude/builders-look-figures` | done | [`reads.json`](../audits/builders-look-survey/after-figures/reads.json): 22 figure runs, all read (edge 1.43 to 3.51), 15 hot (1.11 to 2.08 over their ring), the exterior's diorama and fp frames not; task 9 runs |
 | 9 | Exposure: the builder's rule, only if task 8 says so; the pull request | `claude/builders-look-figures` | todo | |
 | 10 | Bring in the effects (#590, with #588) | `claude/builders-look-effects` | todo | |
 | 11 | The room-visibility extension leaves | `claude/builders-look-effects` | todo | |

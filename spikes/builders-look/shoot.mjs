@@ -36,6 +36,7 @@ const QUERY = process.argv[4] === undefined ? '' : `&${process.argv[4]}`
 // `reads.json` (READS_ONLY=1, with `figures=painted`): each baked-light panel is shot again without the cast (`cast=0`), a figure's
 // texels are the pixels the two frames do not share, and the file holds how each reads against its ring (the builder's exposure window).
 const HOT = 1.1
+const MIN_FIGURE = 500
 const MIN_EDGE = 1.1
 const reads = []
 mkdirSync(out, { recursive: true })
@@ -215,7 +216,11 @@ async function readsOf(withCast, without, [w, h], record) {
   const frameDepth = new Float32Array(w * h)
   for (let k = 0; k < w * h; k++)
     for (let c = 0; c < 3; c++) if (a[k * 4 + c] !== b[k * 4 + c]) frameDepth[k] = 1
-  const found = figureReads({ width: w, height: h, rgba: a, sceneDepth: new Float32Array(w * h), frameDepth })
+  // A run under MIN_FIGURE texels is not a figure (the pair are 2,800 texels at the least): it is the scene itself differing between
+  // the two page loads (a leaf's sway), which the two frames do not share either.
+  const found = figureReads({ width: w, height: h, rgba: a, sceneDepth: new Float32Array(w * h), frameDepth }).filter(
+    (f) => f.texels >= MIN_FIGURE,
+  )
   for (const [i, f] of found.entries())
     reads.push({
       ...record,

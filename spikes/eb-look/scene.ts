@@ -13,7 +13,7 @@ import {
   createPixi3dRenderer,
   HazeEffect,
   SkyEffect,
-  DEFAULT_LOOK,
+  parseLook,
   drawWorld,
   figure,
   levelTime,
@@ -48,7 +48,8 @@ const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 // only the pieces that bake light, or only those a state can move (doors, props, leaves). ?figures=painted draws the cast as
 // the character kit's painted figures (the builder's own pair, lit by the room) instead of core's meshes.
 const on = (key: string) => q.get(key) !== '0'
-const look = on('look') ? DEFAULT_LOOK : undefined
+// ?shadow=0 turns off a figure's cast shadow on the floor (the look's `shadow` switch).
+const look = on('look') ? parseLook({ switches: { shadow: on('shadow') } }) : undefined
 
 const tiles = albedoTiles(worldKitLibrary.swatches as never)
 const dressed = name.endsWith('-dressed')
