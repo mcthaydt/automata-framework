@@ -39,7 +39,14 @@ interface Reported {
 /** What the device reported over 40 frames of one cube, a Passthrough effect that samples the depth and the present pass, with `change` done at frame 10. */
 async function problemsAfter(change: (view: View3D, cube: Mesh3D) => void): Promise<Reported> {
   const app = new Application()
-  await app.init({ preference: 'webgpu', width: 160, height: 90, backgroundColor: 0x2e222f })
+  try {
+    await app.init({ preference: 'webgpu', width: 160, height: 90, backgroundColor: 0x2e222f })
+  } catch (error) {
+    // An adapter that was there when the machine was probed can be gone by now (the GPU runner's): that is the machine's.
+    const message = error instanceof Error ? error.message : String(error)
+    if (/No GPU adapter|WebGPU not supported/.test(message)) return { problems: [], unjudged: message }
+    throw error
+  }
   const fellBack = notOnWebGpu(app.renderer)
   if (fellBack !== undefined) {
     app.destroy(true)
@@ -95,8 +102,8 @@ describe.runIf(hasWebGpu)('@pixi/3d on WebGPU with a post effect and the present
     }
   }, 60_000)
 
-  it('stays valid after a mesh is added (a bundle re-record)', async () => {
-    const { problems } = await problemsAfter((view) => {
+  it('stays valid after a mesh is added (a bundle re-record)', async ({ skip }) => {
+    const { problems, unjudged } = await problemsAfter((view) => {
       const second = new Mesh3D({
         geometry: new CubeGeometry({ width: 1, height: 1, depth: 1 }),
         material: new FlatMaterial({ baseColor: [0.2, 0.7, 0.9, 1] as never }),
@@ -104,6 +111,7 @@ describe.runIf(hasWebGpu)('@pixi/3d on WebGPU with a post effect and the present
       second.position.set(1.5, 0, 0)
       view.root.addChild(second)
     })
+    if (unjudged !== undefined) return skip(unjudged)
     expect(problems).toEqual([])
   }, 60_000)
 })
