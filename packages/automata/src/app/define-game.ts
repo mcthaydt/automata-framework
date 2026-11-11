@@ -28,6 +28,7 @@ import { CORE_SETTINGS } from './core-settings.ts'
 import { defaultContent } from './default-content.ts'
 import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
 import type { ScreenDef } from './flow/screen.ts'
+import { firstRunSteps } from './opening/first-run.ts'
 import type { OpeningStep } from './opening/opening.ts'
 import { defaultScreens } from './screens/default-screens.ts'
 import type { ScreensCopyInput } from './screens/screens-copy.ts'
@@ -127,6 +128,11 @@ export interface GameSpec<S = never, D = unknown> {
    * `@automata/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
    */
   readonly opening?: readonly OpeningStep[]
+  /**
+   * The first run asks which language to use when the game ships more than one, before the title. Default true; `false`
+   * never shows the screen. A host that supplies the language (Ruken) skips it either way.
+   */
+  readonly firstRunLanguage?: boolean
   /**
    * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
    * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
@@ -352,7 +358,11 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     // They are not the game's `S`: only the default screens read them, through `Settings`.
     settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
-    ...(spec.opening === undefined ? {} : { opening: spec.opening }),
+    // The first run's steps come first, then the game's own.
+    opening: [
+      ...firstRunSteps({ firstRunLanguage: spec.firstRunLanguage, copy: spec.copy?.screens }),
+      ...(spec.opening ?? []),
+    ],
     ...(spec.preload === undefined ? {} : { preload: spec.preload }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.audio === undefined ? {} : { audio: spec.audio }),

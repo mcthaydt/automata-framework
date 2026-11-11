@@ -259,6 +259,12 @@ type PadButton = keyof typeof PAD_BUTTONS;
 type PadMode = 'dpad' | 'stick';
 ```
 
+### `passFirstRun` (function)
+
+```ts
+function passFirstRun(page: Page | Frame, language?: string): Promise<void>;
+```
+
 ### `Point` (interface)
 
 ```ts

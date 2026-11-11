@@ -1,4 +1,3 @@
-import { settle } from '@ruken/sdk-host/testing'
 import { flushSync } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { contentHashOf } from '#src/app/boot/boot-program.ts'
@@ -23,6 +22,11 @@ const data: CompiledContentData = {
     custom_events: [],
     preload_screens: ['title'],
   },
+}
+
+/** Lets the event loop turn `rounds` times, so a boot's promises run. */
+const settle = async (rounds: number): Promise<void> => {
+  for (let round = 0; round < rounds; round++) await new Promise<void>((resolve) => setTimeout(resolve, 0))
 }
 
 let root: HTMLElement

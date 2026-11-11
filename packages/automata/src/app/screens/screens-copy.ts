@@ -42,6 +42,21 @@ export interface SettingsScreenCopy {
   readonly more: (count: number) => string
 }
 
+/** The first run's two screens: which language to use, and the warning before anything flashes. */
+export interface FirstRunCopy {
+  readonly language: { readonly title: string; readonly close: string }
+  readonly warning: {
+    readonly title: string
+    readonly body: string
+    /** The heading over the switches that turn the lights and shaking down. */
+    readonly choose: string
+    /** Where to change the switches later. */
+    readonly later: string
+    readonly continue: string
+    readonly close: string
+  }
+}
+
 /** Every word the default title, play, paused and settings screens show. */
 export interface ScreensCopy {
   readonly title: { readonly play: string }
@@ -84,6 +99,8 @@ export interface ScreensCopy {
   readonly board: LeaderboardCopy
   /** Told once when a controller the input does not support is plugged in. */
   readonly padUnsupported: string
+  /** The first run's language screen and photosensitivity warning. */
+  readonly firstRun: FirstRunCopy
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: a copy function's arguments vary; it is replaced whole.
@@ -148,6 +165,17 @@ export const DEFAULT_SCREENS_COPY: ScreensCopy = {
   },
   board: BOARD_COPY,
   padUnsupported: PAD_UNSUPPORTED,
+  firstRun: {
+    language: { title: 'Language', close: 'Close' },
+    warning: {
+      title: 'Flashing lights warning',
+      body: 'This game has flashing lights and a shaking screen. For a few people these can bring on a seizure, even if they have never had one. If you feel dizzy or unwell, or your eyes or muscles twitch, stop playing and talk to a doctor.',
+      choose: 'Turn down',
+      later: 'You can change these later in Settings.',
+      continue: 'Continue',
+      close: 'Close',
+    },
+  },
 }
 
 const isGroup = (value: unknown): value is Record<string, unknown> =>

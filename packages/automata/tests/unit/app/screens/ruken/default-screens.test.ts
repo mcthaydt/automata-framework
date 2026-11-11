@@ -15,6 +15,7 @@ import { z } from 'zod'
 import type { RuntimeHandle } from '#src/app/boot/game-definition.ts'
 import { runGame } from '#src/app/boot/run-game.ts'
 import { type DefinedGame, defineGame, type GameSpec } from '#src/app/define-game.ts'
+import { SEEN_KEY } from '#src/app/opening/seen-flags.ts'
 import { defaultScreens } from '#src/app/screens/default-screens.ts'
 import {
   type FakeAudioContext,
@@ -26,6 +27,7 @@ import { createHaptics } from '#src/features/input/haptics/haptics.manager.ts'
 import { keys } from '#src/features/input/keys.ts'
 import { ok } from '#src/shared/lib/result.ts'
 import type { GameRenderer, RendererFactory } from '#src/shared/runtime/render/renderer.ts'
+import type { DeviceStorage } from '#src/shared/runtime/settings/device-storage.ts'
 import { realClock } from '#src/testing/host/page/clocks.ts'
 import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
 import { fakeGamepads } from '#src/testing/input/fake-gamepads.ts'
@@ -79,6 +81,13 @@ function recordingRenderer(results: StepResult[], resets: { count: number }): Re
   return async () => ok({ ...renderer, dispose: () => {} })
 }
 
+/** Device storage that says the first-run screens were shown, and holds nothing else. */
+const firstRunSeen: DeviceStorage = {
+  get: (key) => (key === SEEN_KEY ? '{"language":true,"photosensitivity":true}' : null),
+  set: () => {},
+  remove: () => {},
+}
+
 describe('default screens', () => {
   let root: HTMLElement
   let frames: ManualFrames
@@ -116,7 +125,8 @@ describe('default screens', () => {
         },
       },
       root,
-      seams: { frames, fetch: fakeFetch({}).fetch },
+      // A device that has been through the first run: a game with two languages goes straight to its title.
+      seams: { frames, fetch: fakeFetch({}).fetch, deviceStorage: firstRunSeen },
     }
     const input = keys(Move, { ArrowLeft: { x: -1 }, ArrowRight: { x: 1 } })
     game = defineGame({ ...base, ...(withInput ? { input } : {}), ...spec })

@@ -837,6 +837,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
     readonly opening?: readonly OpeningStep[];
+    readonly firstRunLanguage?: boolean;
     readonly draw?: (ctx: DrawContext) => void;
     readonly level?: LevelScene;
     readonly renderer?: PixiRendererOptions;
@@ -1995,6 +1996,7 @@ interface ScreensCopy {
     };
     readonly board: LeaderboardCopy;
     readonly padUnsupported: string;
+    readonly firstRun: FirstRunCopy;
 }
 ```
 

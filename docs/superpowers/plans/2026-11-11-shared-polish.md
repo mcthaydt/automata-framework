@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 7 of 21 tasks (33%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 8 of 21 tasks (38%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -38,8 +38,8 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 4 | `automata words`: the AI translates | 1 | done (the live model call is unverified: no key here) | `e61b179f` |
 | 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | done (it reads the game's own catalogs; task 5b switches it to `gameWords`) | `29ccea7f` |
 | 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | done | `ceb2a014` |
-| 6 | The opening sequence and the seen flags (core) | 2, 3 | done | TASK6 |
-| 7 | First-run language pick | 2 | todo | |
+| 6 | The opening sequence and the seen flags (core) | 2, 3 | done | `dd38dc77` |
+| 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | TASK7 |
 | 8 | Photosensitivity warning | 3 | todo | |
 | 9 | Interface sounds | 4 | todo | |
 | 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | todo | |
@@ -94,6 +94,19 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   entered. The opening layer's element is `data-opening-step`, appended to the overlay.
 - **Task 6, note:** the opening-order tests run a full boot over `fakeHosting` and `nullRenderer`, as the Ruken boot
   tests do over the fake Ruken host.
+- **Task 7, Ruling:** `defineGame` assembles the opening (`firstRunSteps({ firstRunLanguage, copy: spec.copy?.screens })`, then
+  the game's own `opening`), not boot, because only the spec knows `copy.screens`, so a game's override reaches the
+  first-run words. A raw `GameDefinition` given to `runGame` gets only its own `opening`.
+- **Task 7, Ruling:** the focused button is marked `data-initial-focus` (the attribute `Modal` focuses), not the plan's
+  `data-autofocus`. The six buttons sit in a grid (`auto-fit`, two across where the dialog is wide enough), because six
+  48 px rows in one column do not fit a 270 px high landscape phone without scrolling and no action may shrink.
+- **Task 7, Ruling:** every first-run string of tasks 7 and 8 (all eight `first_run_*` keys) is written and recorded now, so
+  task 8 adds no words. Translations written by this session, recorded with `automata words --mark`.
+- **Task 7, Ruling:** the existing default-screens tests that boot two languages under a non-Ruken host now hand the game a
+  device that has seen the first run (`seams.deviceStorage`): that is the "second run goes straight in" case, not the
+  screen switched off. `passFirstRun` (`@automata/tools/e2e`) has no test of its own yet: its first user is task 15's
+  journeys, which exercise it in a real browser.
+- **Task 7, not run:** the browser layout test ran in Chromium only (50 cases pass); WebKit and Firefox are the Owner's.
 
 ## Global constraints
 

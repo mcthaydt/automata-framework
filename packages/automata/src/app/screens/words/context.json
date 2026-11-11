@@ -436,5 +436,29 @@
   },
   "display_toast_dismiss": {
     "note": "Name of the close button on that tip. Read aloud by screen readers."
+  },
+  "first_run_language_title": {
+    "note": "Title of the first screen a new player sees: it asks which language to use. Short, one word."
+  },
+  "first_run_language_close": {
+    "note": "Name of the corner close button on that screen. Closing keeps the language the device suggested. Read aloud by screen readers."
+  },
+  "first_run_warning_title": {
+    "note": "Title of the warning shown once, before a game with flashing lights."
+  },
+  "first_run_warning_body": {
+    "note": "Plain health warning about flashing lights and a shaking screen, in short sentences for any player."
+  },
+  "first_run_warning_choose": {
+    "note": "Heading over switches that make the lights and shaking weaker."
+  },
+  "first_run_warning_later": {
+    "note": "One line saying the switches can be changed later on the Settings screen."
+  },
+  "first_run_warning_continue": {
+    "note": "Primary button that ends the warning and goes on to the game."
+  },
+  "first_run_warning_close": {
+    "note": "Name of the corner close button on the warning. Read aloud by screen readers."
   }
 }

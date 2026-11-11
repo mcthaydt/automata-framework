@@ -5464,6 +5464,11 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly opening?: readonly OpeningStep[];
     /**
+     * The first run asks which language to use when the game ships more than one, before the title. Default true; `false`
+     * never shows the screen. A host that supplies the language (Ruken) skips it either way.
+     */
+    readonly firstRunLanguage?: boolean;
+    /**
      * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
      * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
      */
@@ -7298,6 +7303,8 @@ interface ScreensCopy {
     readonly board: LeaderboardCopy;
     /** Told once when a controller the input does not support is plugged in. */
     readonly padUnsupported: string;
+    /** The first run's language screen and photosensitivity warning. */
+    readonly firstRun: FirstRunCopy;
 }
 ```
 
