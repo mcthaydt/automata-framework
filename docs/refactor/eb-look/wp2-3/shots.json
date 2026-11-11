@@ -1,0 +1,459 @@
+[
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "2066",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 58 ms to build (budget 5 ms)",
+      "figure on cast took 52 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c00cbde00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "959",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 78 ms to build (budget 5 ms)",
+      "figure on cast took 68 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c001a9000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1017",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1260 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 32 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists.",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "923",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 80 ms to build (budget 5 ms)",
+      "figure on cast took 99 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c001a9000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "952",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 71 ms to build (budget 5 ms)",
+      "figure on cast took 75 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c00bbfa00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "fp",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "930",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1159 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 52 ms to build (budget 5 ms)",
+      "figure on cast took 38 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "880",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 66 ms to build (budget 5 ms)",
+      "figure on cast took 81 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c001a9000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1013",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 76 ms to build (budget 5 ms)",
+      "figure on cast took 87 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c008f6000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "961",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1187 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 62 ms to build (budget 5 ms)",
+      "figure on cast took 39 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "911",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 80 ms to build (budget 5 ms)",
+      "figure on cast took 62 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c00abf800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "908",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 72 ms to build (budget 5 ms)",
+      "figure on cast took 43 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c030e0c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "98",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "976",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1225 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 59 ms to build (budget 5 ms)",
+      "figure on cast took 31 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "969",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 58 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c00b50000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "829",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 62 ms to build (budget 5 ms)",
+      "figure on cast took 78 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c001aa800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "932",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1125 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 44 ms to build (budget 5 ms)",
+      "figure on cast took 33 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "992",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 54 ms to build (budget 5 ms)",
+      "figure on cast took 92 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c00ae2a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "963",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 96 ms to build (budget 5 ms)",
+      "figure on cast took 85 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c001a8400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "fp",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "32",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "923",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1136 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 46 ms to build (budget 5 ms)",
+      "figure on cast took 33 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "921",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 58 ms to build (budget 5 ms)",
+      "figure on cast took 88 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c001aae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "932",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 60 ms to build (budget 5 ms)",
+      "figure on cast took 71 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c001a1800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "1012",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1231 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 52 ms to build (budget 5 ms)",
+      "figure on cast took 36 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "1012",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 51 ms to build (budget 5 ms)",
+      "figure on cast took 91 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c001aae00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&light=0",
+    "renderer": "webgl",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "925",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 59 ms to build (budget 5 ms)",
+      "figure on cast took 72 ms to build (budget 5 ms)",
+      "[.WebGL-0xd6c00b01400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "asked": "webgpu",
+    "extra": "",
+    "renderer": "webgpu",
+    "pieces": "42",
+    "problems": "0",
+    "lamps": "0",
+    "time": "day",
+    "readyAt": "962",
+    "ready": "1",
+    "lost": "unknown: A valid external Instance reference no longer exists. (at 1173 ms)",
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance.",
+      "figure on cast took 49 ms to build (budget 5 ms)",
+      "figure on cast took 34 ms to build (budget 5 ms)",
+      "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost",
+      "A valid external Instance reference no longer exists."
+    ]
+  }
+]
