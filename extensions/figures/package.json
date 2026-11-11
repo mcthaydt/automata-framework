@@ -11,6 +11,7 @@
     "lit": "vite-node scripts/lit.ts",
     "actors": "vite-node scripts/actors-demo.ts",
     "c5": "vite-node scripts/c5-finish-sheet.ts",
+    "c9": "vite-node scripts/c9-sheet.ts",
     "viewer": "vite viewer",
     "view-check": "vite-node scripts/view-check.ts"
   },

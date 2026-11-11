@@ -9,6 +9,7 @@ import type { Garment } from '../../../src/features/outfit/garments';
 import { SWATCHES } from '../../../src/features/outfit/garments';
 import type { Material } from '../../../src/features/body/parts';
 import { dressed, turned } from '../draw';
+import { PIN_NAMES, pinCell, pinned } from '../../support/pins';
 
 /**
  * c5-finish's pins, recorded before any painter change: the drawings the tile-last pass, the handed reading and the dark
@@ -56,4 +57,13 @@ describe('an unfabricked figure lit is unchanged', () => {
     const [how, i, d] = key.split(' ');
     it(`${how}: ${BASE[Number(i)].def.id}, direction ${d}`, () => expect(drawn(Number(i), Number(d), how as 'lamps' | 'hook')).toBe(hash));
   }
+});
+
+/**
+ * c9-wardrobe's pins (tests/support/pins.ts): the cells its machinery must leave as they are when a new field is left out
+ * (a sheer material with no `edge`, a shod foot with no form, a fall with no `front`, the faces of today's expressions).
+ * `fear` and `sad` painted as `neutral` before c9 drew them; F8 re-records those four pins, and says so.
+ */
+describe('c9-wardrobe pins', () => {
+  for (const name of PIN_NAMES) it(name, () => expect(pinCell(name)).toBe(pinned(name)));
 });
