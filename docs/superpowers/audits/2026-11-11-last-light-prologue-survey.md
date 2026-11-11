@@ -261,7 +261,7 @@ on these points, and the spec's table is corrected in the same commit as this su
 | Peeking | It is through a doorway, not from a hiding place. The camera side is in `@automata/3d`; the sim rule is added to `@automata/systems` |
 | A catch and a checkpoint | The catch event and the sim's snapshots are there; what a catch does is the game's |
 | Captions and the dialogue box in 3D | Both exist and draw over any renderer. Missing is a **3D cutscene stage**, and **delivery** for lines |
-| Samples and footsteps | Samples need nothing new: core plays sound files and music, and the six recorded files cross as they are. Footstep sound by floor surface is added to `@automata/audio-synth` |
+| Samples and footsteps | Samples need nothing new: core plays sound files and music, and the twelve recorded files the prologue plays cross as they are. Footstep sound by floor surface is added to `@automata/audio-synth` |
 | (not listed) | A camera key relative to an anchor, in `@automata/cutscenes` |
 | (not listed) | Nine prop generators in `@automata/world-kit` |
 | (not listed) | Sequence's preview over a 3D level |
@@ -305,7 +305,7 @@ names the rewrite beside the task that does it. The old behaviour and its tests 
 | T9 | `level.ts` `ZONES`: `contains` and `enter` are closures over `zoneAt` in a generated file | Camera zones as code | A `view` on each sector, as data |
 | T10 | `cutscenes.ts`: `fit()` picks a lens to keep sprites under `MAX_SPRITE_SCALE`; `figureFill`; `clearSpot`, `bedside()` clamp marks at run time | Workarounds for the sprite atlases, and staging computed in code | The figures are drawn from the true view, so the lens is the script's; marks are data |
 | T11 | `src/ui.ts` (501 lines): objective, inventory, messages, keypad, prompts and touch in one DOM module; `src/ui/boot.ts`, `settings-ui.ts`, `gamepad.ts`, `menu-nav.ts`, `focus.ts` | One file for every screen; its own menus, settings and pad code | `@automata/hud` pieces from a file; the framework's shell |
-| T12 | `src/audio/samples.ts`: sound files inlined as data URLs and decoded by hand; `music-play.ts` chains copies of a file to loop it | The game's own loader and looper beside what a framework gives | The six recorded files are ordinary sound and music files played by core's audio (`@automata/framework`'s sound files and music slots); the synth makes the rest |
+| T12 | `src/audio/samples.ts`: sound files inlined as data URLs and decoded by hand; `music-play.ts` chains copies of a file to loop it | The game's own loader and looper beside what a framework gives | The twelve recorded files are ordinary sound and music files played by core's audio (`@automata/framework`'s sound files and music slots); the synth makes the rest |
 | T13 | `src/game/` by kind (`simulation.ts` 325 lines, `session.ts`, `rules.ts` per scene), one flat `tests/` | Grouped by kind, not by feature | `src/features/<feature>/` owning its code and data, `tests/` mirroring `src/`, an architecture test |
 | T14 | `rules.ts`: `resetFor: w => HOOKS.resetFor(w, null, null!)` | A hook called with a null context it happens not to read | A plain function |
 
@@ -346,17 +346,17 @@ So the MIT claim can be judged (the spec's constraint).
 | What the prologue plays | In the old game | Source | In the new game |
 |---|---|---|---|
 | Pick up an item, the keypad's buzz, the keypad's chime, the sighting sting, a footstep, the lamp lighting | Synth recipes in `src/audio/cues.ts` | The game's own code | Written new as rows of the `audio` file for the framework's synth. MIT |
-| The lamps going out as Ada rests (`lamps-out.ogg`), every lamp dying at lights out (`all-lamps-die.ogg`; the old prologue never plays it, because `lightsOut` has its own `sting` key and a cutscene with sound keys skips its event, `src/main.ts:344`), the pulse counted at the practice catch (`pulse-counted.ogg`) | Recorded effects, `src/audio/sfx/` | Made with ElevenLabs sound effects (`eleven_text_to_sound_v2`) through the old sound pipeline (`docs/audio/sound-pipeline.md`) | **Brought across as they are** (the Owner, 2026-11-11: "I paid for the elevenlabs so it's fine"). MIT with the game; each is a line in the provenance file |
+| The lamps going out as Ada rests (`lamps-out.ogg`), the pulse counted at the practice catch (`pulse-counted.ogg`); `all-lamps-die.ogg` is never played by the prologue (`lightsOut` has its own `sting` key, and a cutscene with sound keys skips its event, `src/main.ts:344`) | Recorded effects, `src/audio/sfx/` | Made with ElevenLabs sound effects (`eleven_text_to_sound_v2`) through the old sound pipeline (`docs/audio/sound-pipeline.md`) | **Brought across as they are** (the Owner, 2026-11-11: "I paid for the elevenlabs so it's fine"). MIT with the game; each is a line in the provenance file. `all-lamps-die.ogg` stays out: nothing plays it |
 | Music: the slot `first-night` (it plays `the-last-light.ogg`), `four-seventeen.ogg`, `back-to-bed-ada.ogg` | `src/audio/music/` | Made with ElevenLabs music through the old sound pipeline; the Owner's Suno tracks were planned and are not in the repository | **Brought across as they are,** on the same word. MIT with the game; each is a line in the provenance file |
-| The night ward as the opening starts (`opening-ward.ogg`), the cabinet opening (`cabinet-open.ogg`), and the figure entering `dormant`, `patrol`, `investigate`, `hunt` and `flee` (`nurse-settle`, `nurse-move-off`, `turn-to-sound`, `nurse-sees`, `nurse-back-off`; her agent id is `nurse`) | Recorded effects played by the events table (`src/audio/events.ts:77-79, 118`, `src/main.ts:344, 602`); the first count missed them (audit 2) | Made with ElevenLabs, as above | **Not brought across** under the Owner's decision as it stands, which names six files: each becomes a synth cue written new (a row of `audio.toml` whose `about` names the old file), so bringing one across later is a content change. Whether they cross is with the Owner (audit 2) |
+| The night ward as the opening starts (`opening-ward.ogg`), the cabinet opening (`cabinet-open.ogg`), and the figure entering `dormant`, `patrol`, `investigate`, `hunt` and `flee` (`nurse-settle`, `nurse-move-off`, `turn-to-sound`, `nurse-sees`, `nurse-back-off`; her agent id is `nurse`) | Recorded effects played by the events table (`src/audio/events.ts:77-79, 118`, `src/main.ts:344, 602`); the first count missed them (audit 2) | Made with ElevenLabs, as above | **Brought across as they are,** on the same word (option B, the coordinator, 2026-11-11: every recorded file the prologue plays crosses). MIT with the game; each is a line in the provenance file |
 | Music while Ada hides | `music-rules.ts:80`: silence, above the prologue's rows | | A `music_rule` row, `silence` |
 | Voices | none in the prologue | | |
 | Fonts | `src/ui/font-*.gen.ts` | Generated bitmap fonts | Not brought across: workstream 1's font set (Fusion Pixel, OFL 1.1) |
 | Figures, props, textures | Atlases and models from the paid character, props and art pipelines | Paid | Not brought across: the builders' figures and the world kit |
 
-So the game's provenance file lists seven outside assets: the six ElevenLabs files (file, what it is, made with
-ElevenLabs through the old sound pipeline, its date) and the font with its licence; more if the Owner brings the other
-seven recorded files across. Everything else is made in this repository. Which sound is a recorded file and which a
+So the game's provenance file lists thirteen outside assets: the twelve ElevenLabs files the prologue plays (nine
+effects and three music tracks; file, what it is, made with ElevenLabs through the old sound pipeline, its date) and the
+font with its licence. Everything else is made in this repository. Which sound is a recorded file and which a
 synth cue is a row of `content/audio/audio.toml` (a cue with or without a `sound` alias), so swapping one for the
 other later is a content change.
 
@@ -366,7 +366,7 @@ from the network at run time", which packaged files obey; the coordinator has be
 
 ## Open, for the Owner
 
-One question, at the end of this section. Settled since the first draft, by the Owner through the coordinator (2026-11-11):
+Nothing. Settled since the first draft, by the Owner through the coordinator (2026-11-11):
 
 - **The fixtures** stay, and the port starts from them.
 - **The translations** are written by the building session and recorded with `--mark`; when the Owner's API key is
@@ -375,8 +375,7 @@ One question, at the end of this section. Settled since the first draft, by the 
   the plan lists the three.
 - **The `source-names` rule** drops The Last Light's name ("it's no longer a source game"), and
   `docs/provenance/sources.md` says so.
-- **The six recorded sounds and music files cross as they are** ("I paid for the elevenlabs so it's fine").
+- **Every recorded sound and music file the prologue plays crosses as it is** ("I paid for the elevenlabs so it's
+  fine"): twelve files, found by the plan audit in the game's events table (option B, the coordinator, 2026-11-11);
+  `all-lamps-die.ogg` stays out because nothing plays it.
 
-Open since the plan audit: the old prologue plays seven more recorded files than the six (the table above, audit 2).
-The question went to the Owner through the coordinator with three options; until the answer, the six cross and the
-seven are synth cues.

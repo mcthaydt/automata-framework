@@ -49,8 +49,8 @@ when the one before it has passed its tasks' checks. A fault a game task finds i
 the game's branch with its test first (it is the same repository), and the commit says which task it amends.
 
 Workstream 1's task that put Ember Hall in six languages (its task 17) is cut (the coordinator, 2026-11-11), so
-nothing of workstream 1 leans on Ember Hall. Its plan still listed the task at `81ce53a9` (audit 20); task 19 measures
-Ember Hall's references again before it starts, so a file that task added is found either way.
+nothing of workstream 1 leans on Ember Hall. Its build branch marks it cut; `main`'s copy of its plan updates when that
+branch merges (audit 20). Task 19 measures Ember Hall's references again before it starts all the same.
 
 **Where the branches touch workstream 1's.** None of the framework branch's tasks changes a core file workstream 1
 changes. Three files both touch, each a small textual merge: `tooling/repo-hygiene/src/source-names.ts` (workstream 1's
@@ -100,12 +100,12 @@ From the spec, the tracker and `AGENTS.md`. Every task includes them.
   home tilt, eight 45° turns, no automatic yaw, pitch or roll in play, a peek of at most 1.2 m); no real-time lights;
   no `fetch()` at run time.
 - **Everything in the game's folder is MIT,** and `games/the-last-light/PROVENANCE.md` names each asset the builders
-  did not make. Six recorded files cross as they are (the Owner: "I paid for the elevenlabs so it's fine"):
-  `lamps-out.ogg`, `all-lamps-die.ogg`, `pulse-counted.ogg`, and the music `the-last-light.ogg`, `four-seventeen.ogg`,
-  `back-to-bed-ada.ogg`. Nothing else from the old pipelines comes across: no model, atlas, texture or generated font.
-  No paid API is called by a task. The old prologue plays more recorded files than these six (audit 2: `opening-ward`,
-  `cabinet-open` and five of the figure's mode sounds); until the Owner says otherwise each of those becomes a synth
-  cue written new, or silence, as a row of `content/audio/audio.toml`, so bringing one across later is a content change.
+  did not make. Every recorded file the old prologue actually plays crosses as it is (the Owner: "I paid for the
+  elevenlabs so it's fine"; option B, the coordinator, 2026-11-11; audit 2): twelve files, the effects `opening-ward`, `cabinet-open`, `lamps-out`, `pulse-counted`, `nurse-settle`, `nurse-move-off`, `turn-to-sound`, `nurse-sees`, `nurse-back-off` and
+  the music `the-last-light`, `four-seventeen`, `back-to-bed-ada` (all `.ogg`), each with its `PROVENANCE.md` row.
+  `all-lamps-die.ogg` stays out: nothing in the prologue plays it. Where the old game is silent, the new one is too.
+  No synth remake of a recorded sound. Nothing else from the old pipelines comes across: no model, atlas, texture or
+  generated font. No paid API is called by a task.
 - **Nothing is copied wholesale** from the old game or from the superseded clinic branches (#575, #596, #606). #588
   is now workstream 4's to finish or close (its spec, call 1); what of it reaches `main` is the framework's to use.
   October's fixtures are the one exception the spec allows: content, not code.
@@ -154,15 +154,16 @@ From the spec, the tracker and `AGENTS.md`. Every task includes them.
    task 11 has a test per cutscene so the implementation audit can check each.
 6. **Props are placed again, not converted** (survey 11): each old model becomes a world-kit or core generator at the
    same place and footprint.
-7. **Six recorded files cross; the rest is the synth; all of it is the framework's `audio` content.** The three
-   recorded effects are cues whose `sound` is a core sound alias, and the three tracks are music `slot`s, all in
+7. **The twelve recorded files the prologue plays cross; the rest is the synth; all of it is the framework's `audio`
+   content.** The nine recorded effects are cues whose `sound` is a core sound alias, and the three tracks are music
+   `slot`s, all in
    `content/audio/audio.toml`, the `audio` kind of `@automata/audio-synth` (`extensions/audio-synth/src/shared/audio.schema.ts`),
    which the Audio editor edits. Its `event` rows say which sim event plays which cue (or is `silent`, with why), and its
    `music_rule` rows pick a slot, `hold` or `silence` from the music state the game fills each frame
    (`createMusicDirector`). The game writes no sound table of its own (audit 1). The rows are taken from the old game's
-   own table (`<ref>/src/audio/events.ts`, `music-rules.ts`): where the old one played a recorded file this plan does
-   not bring (audit 2), the row plays a synth cue written new, or nothing, and says so in its `about`. Swapping a cue
-   for a file is a content change, never code. The game's old rule "no `fetch()` at runtime" is read as "nothing from
+   own table (`<ref>/src/audio/events.ts`, `music-rules.ts`): a recorded file where the old one played one, a synth
+   cue written new where the old one was procedural, `silent` where it was silent. Swapping a cue for a file is a
+   content change, never code. The game's old rule "no `fetch()` at runtime" is read as "nothing from
    the network at run time": packaged sound files are loaded as every game on the framework loads them.
 8. **The five translations of the story's 74 lines are written by the building session** in task 18 and recorded with
    `automata words --mark` (the coordinator, relaying the Owner), so "story lines in six languages" closes inside this
@@ -281,7 +282,7 @@ test states the same rules (audit 8).
 | `figure` | The figure's view | view | Her look is the game's |
 | `room` | Drawing the level; the table of states (which fact shows which lamp level, door and prop state) | view | T1 |
 | `objective` | Reading the HUD file's objective rows against the world (the line and its target) | view | T3: one list, not two ladders |
-| `sound` | The music state it fills each frame from the sim (lights out, the figure's mode, hidden, in a cutscene), the core sound aliases of the six files, and the step cue by floor | view | T12: core's audio and `@automata/audio-synth` play everything from `content/audio/audio.toml`; only the state the music rules read is the game's (audit 1) |
+| `sound` | The music state it fills each frame from the sim (lights out, the figure's mode, hidden, in a cutscene), the core sound aliases of the twelve files, and the step cue by floor | view | T12: core's audio and `@automata/audio-synth` play everything from `content/audio/audio.toml`; only the state the music rules read is the game's (audit 1) |
 
 ```
 package.json  tsconfig.json  tsconfig.node.json  vite.config.ts  vitest.config.ts  playwright.config.ts  ship.config.ts
@@ -294,7 +295,8 @@ content/storylets/prologue.toml  content/beats/prologue.toml  content/help/prolo
 content/cutscenes/prologue.toml             content/hud/play.toml
 content/audio/audio.toml   (cues, recorded `sound` aliases, event rows, music slots and rules, the steps table)
 content/feel/feel.toml  content/tuning.toml  content/credits.toml  content/fonts.toml
-public/sounds/{lamps-out,all-lamps-die,pulse-counted}.ogg  public/music/{the-last-light,four-seventeen,back-to-bed-ada}.ogg
+public/sounds/{opening-ward,cabinet-open,lamps-out,pulse-counted,nurse-settle,nurse-move-off,turn-to-sound,nurse-sees,nurse-back-off}.ogg
+public/music/{the-last-light,four-seventeen,back-to-bed-ada}.ogg
 content/figures/{ada,figure}.toml  content/figure-*/…   content/world-props/…  content/world-swatches/…
 content/states/prologue.toml  content/editors.toml
 content/messages/{ja,ko,es-419,pt-BR,zh-Hans}.json  content/messages/context.json
@@ -846,7 +848,7 @@ outside `src/`, so the layer rules do not apply to it.
 
 `PROVENANCE.md` starts with three sections: what was made here (everything, unless listed), what came from the
 game's own repository as content (the story, the puzzle, the scene's layout: the Owner's own work, MIT by the Owner's
-word of 2026-11-11), and outside assets (the six recorded files in task 14, the font in task 18).
+word of 2026-11-11), and outside assets (the twelve recorded files in task 14, the font in task 18).
 `DESIGN.md` carries the game's design rules this plan's constraints quote, so they live with the game.
 
 - [ ] **Step 1: Write the failing tests:** the architecture test above, and `boots.test.ts` (the sim steps a blank
@@ -1076,34 +1078,32 @@ Spec steps 2 and 3. Survey 9, 25 to 27, 30, 45 to 52. T3, T11, T12. Call 7. Audi
 **Files:**
 - Create: `content/hud/play.toml` (pieces: objective top-left, prompt bottom, inventory bottom-right, examine bottom,
   keypad centre; the nine objective rows, each with its line and its target, T3), `content/audio/audio.toml` (below),
-  `public/sounds/{lamps-out,all-lamps-die,pulse-counted}.ogg` and
+  `public/sounds/{opening-ward,cabinet-open,lamps-out,pulse-counted,nurse-settle,nurse-move-off,turn-to-sound,nurse-sees,nurse-back-off}.ogg` and
   `public/music/{the-last-light,four-seventeen,back-to-bed-ada}.ogg` (copied byte for byte from `<ref>/src/audio/sfx/`
   and `<ref>/src/audio/music/`), `src/features/sound/{music-state,sound-files}.ts`,
   `tests/unit/features/sound/*.test.ts`, `tests/unit/content/audio.test.ts`,
   `content/feel/feel.toml`, `src/features/objective/objective.ts`, `src/features/lamp/lamp-view.ts`,
   `src/app/{controls,flow,play-state}.ts`, `tests/unit/app/{play-state,controls,flow}.test.ts`,
   `tests/unit/features/objective/objective.test.ts`
-- Modify: `PROVENANCE.md` (a row for each of the six files: the file, what it is, "made with ElevenLabs through the
+- Modify: `PROVENANCE.md` (a row for each of the twelve files: the file, what it is, "made with ElevenLabs through the
   old sound pipeline", the date of its commit in the game's repository, read with `git log` there, and the sha256 of the
   file); `src/app/game.ts` (`createRenderer` with the play camera following Ada through the level's views and
   `peekOf`; `cutsceneStage3d` wired to the camera, the room's piece states, the two figure views and the fade;
   `hudSlot` in `hud.overlay` with the caption slot; `audioSynthExtension`, `createAudioSynth` and
-  `createMusicDirector` over `content/audio/audio.toml`, the six files as core sounds (`sounds`, `preload`);
+  `createMusicDirector` over `content/audio/audio.toml`, the twelve files as core sounds (`sounds`, `preload`);
   `createFeel`; `input`)
 
 **`content/audio/audio.toml`** is the `audio` kind of `@automata/audio-synth`, which the Audio editor edits (call 7,
 audit 1). The game writes no sound table of its own. Its rows come from the old game's own table, read once from
 `<ref>/src/audio/events.ts`, `cues.ts` and `music-rules.ts` (the old behaviour is the specification):
-- **Cues.** The three recorded effects are cues with `sound` set to their core alias and no voices: `lampsOut`
-  (`rest`), `allLampsDie` and `pulseCounted` (`found`). The old game never played `all-lamps-die` in the prologue,
-  because `lightsOut` has its own `sting` key and a cutscene with sound keys skips its event (`<ref>/src/main.ts:344`);
-  its row stays, `silent` for `cutscene.lightsOut` with that reason, so the Owner can turn it on as a content change.
-  Written new for the synth: pick up, the keypad's buzz and chime, the sting, the lamp lit, a door, a curtain, hiding,
-  the steps (by floor, task 7's `steps` table), and, where the old game played a recorded file this plan does not bring
-  (audit 2), a synth cue whose `about` says so: the opening's ward (`opening-ward`), the cabinet (`cabinet-open`), and
-  the figure entering `dormant`, `patrol`, `investigate`, `hunt` and `flee` (`nurse-settle`, `nurse-move-off`,
-  `turn-to-sound`, `nurse-sees`, `nurse-back-off`). If the Owner's answer brings any of those files across, its cue
-  gains `sound` and the file a `PROVENANCE.md` row; nothing else changes.
+- **Cues.** The nine recorded effects are cues with `sound` set to their core alias and no voices, played on the
+  events the old table gives them (audit 2): `openingWard` (`cutscene.opening`), `cabinetOpen` (`cutscene.keypad`),
+  `lampsOut` (`cutscene.rest`), `pulseCounted` (`cutscene.found`), and the figure entering `dormant`, `patrol`,
+  `investigate`, `hunt` and `flee` (`nurseSettle`, `nurseMoveOff`, `turnToSound`, `nurseSees`, `nurseBackOff`).
+  `cutscene.lightsOut` is `silent`: its script carries the sting, and the old game played no file there
+  (`<ref>/src/main.ts:344`), so `all-lamps-die.ogg` does not cross. Written new for the synth, where the old cues were
+  procedural: pick up, the keypad's buzz and chime, the sting, the lamp lit, a door, a curtain, hiding, the door
+  rattle of a follow, the steps (by floor, task 7's `steps` table).
 - **Events.** One row per sim event the prologue can make, a cue or `silent` with why, as the old table has them.
 - **Music.** Slots `first-night` (its own file does not exist; it falls back to `the-last-light`, as the old one did),
   `four-seventeen`, `back-to-bed-ada`; rules in the old order: paused or the keypad open, `hold`; hidden, `silence`;
@@ -1136,9 +1136,9 @@ export function objectiveNow(file: HudFile, reader: Reader, hotspots: readonly H
   lights out; `prompt` is the nearest hotspot in reach and absent in a cutscene; `locked` is true while
   `cutscenes.locked`; `objectiveNow` gives the bed's point for the last row and no point for `hide`; every control has
   a keyboard, a pad and a touch way (a table test over `controls.ts`); the audio file passes the kind's own checks, every
-  cue's `sound` is one of the six files in `public/`, and every event the prologue's content can make has a row (T12);
+  cue's `sound` is one of the twelve files in `public/`, and every event the prologue's content can make has a row (T12);
   the music rules give `first-night` at the start, `four-seventeen` after lights out, `back-to-bed-ada` while she
-  hunts and silence while Ada hides (`createMusicDirector` over `musicStateOf`); each of the six files' sha256 equals
+  hunts and silence while Ada hides (`createMusicDirector` over `musicStateOf`); each of the twelve files' sha256 equals
   the one in `PROVENANCE.md`; using the register opens the save slots and writing one shows `registerSigned`; after
   `rest`, Credits, then the title.
 - [ ] **Step 2 to 4:** run, implement, run. Then play it by hand in headless Chromium with the debug overlay and fix
@@ -1325,6 +1325,25 @@ task 17, if it ran, audit 20) joins the list.
   example (`site/src/features/examples/`, `site/tests/unit/playground/runtime/playground-catalog.test.ts` names
   `render3d-meshes` as a fixture id, which is left alone if it is only a string).
 
+**What each removed journey covered, and what holds it after** (the coordinator's ask, 2026-11-11; read from the
+journeys' own headers at `6a70f9b1`). A row marked **gap** has no remaining test; task 19 records it in
+`docs/superpowers/progress.md` as a thing the recreated examples must cover, and nothing is added for it here.
+
+| Removed journey | What it proved | Held after by |
+|---|---|---|
+| `games/base-3d/e2e/base-3d.e2e.ts` | Boot under the fake host, the rotate gate on a phone held upright, the shell | The game's journeys (task 15) and the shell journeys (task 18), with the same host |
+| `games/base-3d/e2e/play.e2e.ts` | Play by touch at a phone and an iPad held sideways: the stick, an action, the HUD counting | Task 18's touch-only journey, at the same two sizes |
+| `games/base-3d/tests/e2e-dev/*` | The dev server's page boots with no page error, in Chromium and WebKit | The game's dev projects in Chromium and WebKit (task 15) |
+| `examples/3d-story/tests/e2e/schematic-in-play-3d.test.ts` | A Schematic edit shows in a 3D game's play | Task 16's Schematic journey |
+| `examples/3d/tests/e2e/cutscenes-door-and-lamp.test.ts` | A cutscene drives a door and a lamp in 3D | Task 6's browser test of the 3D stage, and the prologue's cutscenes (task 15) |
+| `examples/3d/tests/e2e/cutscenes-reach-cue.test.ts` | The director starts a figure's clip on its cue | `extensions/cutscenes/tests/unit/director/director.test.ts` (the cue), task 6's stage test (the clip reaching a view) |
+| `examples/3d/tests/e2e/characterkit-{hair,painted,wardrobe}.test.ts` | Hair, painted figures and a wardrobe drawn | `extensions/character-kit/tests/browser/{painted,parity}/` (painted view, depth, outfits, passes); hair: **gap** |
+| `examples/3d/tests/e2e/figures-{aim,clips,outfits-items,poses,stand-and-sliders,walk}.test.ts` | A figure aims, plays clips, wears outfits and items, poses, stands, walks | `packages/3d/tests/browser/parity/figures/` and the figure goldens (`packages/3d/src/testing/golden-*`, given fixtures of their own); Ada and the figure walking and posing in the prologue (tasks 13, 15); aim and sliders: **gap** |
+| `examples/3d/tests/e2e/look-pixel-art.test.ts` | The pixel look at its field size | `packages/3d/tests/browser/parity/look/look.parity.test.ts` |
+| `examples/3d/tests/e2e/render3d-{angled-camera,lighting-fog,meshes}.test.ts` | The renderer's camera, light and fog, and plain meshes | The prologue under the play camera (task 15) for the camera; `look/time-of-day.parity.test.ts` for light and fog; plain meshes: **gap** |
+| `examples/3d/tests/e2e/world-level-room.test.ts` | A level file drawn as a room | The prologue's level drawn (tasks 13, 15) and task 9b's browser test |
+| `examples/3d/tests/e2e/worldkit-{furnished-room,generated-map,sky}.test.ts` | The dresser, a generated map, the sky | `extensions/world-kit/tests/browser/sky/` (the sky); task 9's prop picture test and the ward (task 13) for furnishing; the generated map: **gap** |
+
 - [ ] **Step 1: The failing check:** add to `tooling/repo-hygiene/tests/unit/` a test that greps the tracked files
   outside `games/base-3d`, `docs/archive`, `docs/refactor`, `docs/superpowers` and `pnpm-lock.yaml` for the four
   patterns of the check above (case-insensitive), and the examples' patterns, and expects none but a named list: the files task 20 changes (the
@@ -1372,7 +1391,7 @@ Light; the game's folder carries its provenance file, and everything in it is MI
   `pnpm api-report`, `pnpm api-index`; `pnpm lint:actions` if Docker runs. Run locally what `3d.yml` would run, step
   by step, since hosted CI has no runners; write each result.
 - [ ] **Step 4: MIT and provenance.** Read `games/the-last-light/PROVENANCE.md` against the folder: every file that is
-  not text made here is listed; the only recorded sound and music are the six files
+  not text made here is listed; the only recorded sound and music are the twelve files
   the provenance file lists, with matching sha256; no `.glb`, no atlas `.png` and no other `.ogg` or `.mp3` is in the
   folder (a `git ls-files` listing proves it).
 - [ ] **Step 5: "Done means", line by line,** in `docs/superpowers/progress.md`: each of the spec's six lines with the
@@ -1413,4 +1432,5 @@ Light; the game's folder carries its provenance file, and everything in it is MI
 | 2026-11-11 | Stage 2 (plan), `claude/last-light-prologue-plan` | The survey and a first plan (`43f94569`), written before the spec was re-set |
 | 2026-11-11 | The same session | The survey revised and this plan rewritten for the re-set spec: the game at `games/the-last-light`, by feature, MIT, from October's fixtures; Ember Hall removed. No product code, no test run |
 | 2026-11-11 | The same session | The Owner's last answers applied (spec `3c0a624f`): the six recorded files cross and play through core's audio; the name rule is its own task (10a); rooms per view and two lamp kinds (9b); three branches; a last step runs `automata words` for real |
-| 2026-11-11 | Stage 3 (plan audit), `claude/last-light-prologue-plan-audit` | [The audit](../audits/2026-11-11-last-light-prologue-plan-audit.md) at `main` `81ce53a9` (then `6a70f9b1`) and the game at `92e6704`: 32 findings (9 blocking, 15 should fix, 8 tidy), all fixed here and in the survey. The spec's amendments during the audit: the 3D examples are removed in tasks 19 and 20 and no task leans on them; a "Homes" table rules each addition by the three-homes rule (interact and the HUD adventure-genre extensions with dependency-free halves; a carried light that burns fuel in `@automata/systems`, task 4); the dressing starts on workstream 4's word. The sound is the framework's `audio` kind, not a game table; the recorded files the old prologue plays are listed, six cross until the Owner says otherwise; three editor journeys and the provenance record join Ember Hall's removal; every systems call has a fate; the gates name the new extensions and the game; `main.ts` at the root; the register, the end, hotspot names and the FigureBuilder submodule are planned. Open: the Owner's answer on the other recorded files; workstream 1's plan recording its task 17 as cut. No product code, no test run |
+| 2026-11-11 | Stage 3 (plan audit), `claude/last-light-prologue-plan-audit` | [The audit](../audits/2026-11-11-last-light-prologue-plan-audit.md) at `main` `81ce53a9` (then `6a70f9b1`) and the game at `92e6704`: 32 findings (9 blocking, 15 should fix, 8 tidy), all fixed here and in the survey. The spec's amendments during the audit: the 3D examples are removed in tasks 19 and 20 and no task leans on them; a "Homes" table rules each addition by the three-homes rule (interact and the HUD adventure-genre extensions with dependency-free halves; a carried light that burns fuel in `@automata/systems`, task 4); the dressing starts on workstream 4's word. The sound is the framework's `audio` kind, not a game table; the recorded files the old prologue plays are listed, six cross until the Owner says otherwise; three editor journeys and the provenance record join Ember Hall's removal; every systems call has a fate; the gates name the new extensions and the game; `main.ts` at the root; the register, the end, hotspot names and the FigureBuilder submodule are planned. No product code, no test run |
+| 2026-11-11 | The same session | The coordinator's answers: every recorded file the prologue plays crosses (twelve; option B), `all-lamps-die.ogg` stays out; workstream 1's task 17 is cut on its build branch; what each removed journey covered and what holds it after, in task 19. Nothing left open |

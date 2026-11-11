@@ -56,8 +56,7 @@ constraint, and it would leave which sound plays when out of the Audio editor (s
 `sound` aliases registered with core; the game's `sound` feature only fills the music state from the sim each frame.
 The file structure, the features table, call 7 and survey rows 49 and 51 say so.
 
-**2. The prologue's recorded sounds are not the six files the survey lists.** Fixed in the plan and survey; the
-question is **open** with the Owner (sent to the coordinator).
+**2. The prologue's recorded sounds are not the six files the survey lists.** Fixed.
 In the game at `92e6704`, the events table and the player send the prologue to these recorded files:
 `cutscene.opening` plays `opening-ward.ogg`, `cutscene.keypad` `cabinet-open.ogg`, `cutscene.rest` `lamps-out.ogg`,
 `cutscene.found` `pulse-counted.ogg` (`src/audio/events.ts:109-118`), and the figure (agent id `nurse`) entering
@@ -66,11 +65,12 @@ In the game at `92e6704`, the events table and the player send the prologue to t
 `all-lamps-die.ogg` never plays: `lightsOut` has its own `sting` sound key, and a cutscene with sound keys skips its
 event (`src/main.ts:344`, `src/scenes/prologue/cutscenes.ts:67`). The music has a fourth state the survey omits:
 while Ada hides there is silence (`src/audio/music-rules.ts:80`, above the prologue's rows 81 to 83). The Owner's
-decision names six files, made on the survey's list. **Fix:** the plan keeps the six (the decision binds) and takes
-the sound table from the old event table: every recorded file it does not bring plays as a synth cue written new or
-is silent, each a row of `audio.toml`, so a later swap is a content change. The music rules gain "hidden: silence".
-The survey's sound section is corrected. Which other files cross is the Owner's (options A, B, C sent to the
-coordinator; default A).
+decision named six files, made on the survey's list. Sent to the coordinator with options; the answer (option B):
+the Owner's reason covers every recorded file, so every recorded sound and music file the prologue actually plays
+crosses as it is. **Fix:** twelve files cross (nine effects, three music tracks), each a cue or slot of `audio.toml`
+with its `PROVENANCE.md` row and sha256; `all-lamps-die.ogg` stays out because nothing plays it; `cutscene.lightsOut` is
+`silent`, as the old game was; no synth remake of a recorded sound. The music rules gain "hidden: silence". The
+survey's sound section is corrected.
 
 **3. Three editor journeys lean on Ember Hall through a constant, and the removal list misses them.** Fixed.
 `packages/editor/tests/e2e/harness/fixtures.ts:23` defines `BASE_3D` as the path of `games/base-3d`, and three
@@ -236,11 +236,11 @@ the reports.
 `src` and `base` are links into it), and it is empty in a fresh clone. **Fix:** "Before task 1" says to attach it read
 only, place it at the pinned commit and commit nothing from it.
 
-**20. Workstream 1's task 17 (Ember Hall in six languages) is still in its plan.** Fixed in this plan; **open** for the
-coordinator. The plan says it is cut (the coordinator, 2026-11-11), but workstream 1's plan lists it on `main` and on
+**20. Workstream 1's task 17 (Ember Hall in six languages) is still in its plan.** Fixed. The plan says it is cut (the coordinator, 2026-11-11), but workstream 1's plan lists it on `main` and on
 `claude/shared-polish-build` (`docs/superpowers/plans/2026-11-11-shared-polish.md:53, 1422-1445`). If it runs, Ember
 Hall gains fonts, catalogs and a `words-sources.json` that tasks 19 and 20 must also remove. **Fix:** task 19 measures
-again before it starts; the coordinator is asked to have workstream 1's plan record the cut.
+again before it starts. The coordinator's answer: workstream 1's build branch already marks the task cut, and
+`main`'s copy of its plan updates when that branch merges; the plan says so.
 
 **21. What follows the prologue's end is not said.** Fixed.
 The old prologue ends by moving to act one after `rest` (`rules.ts`, `exit: w.rested ? { to: 'clinic', … }`); slice 1
@@ -281,6 +281,28 @@ tries a `replan` rule on the clock first and adds `every` to `goTo` only if that
 **29. The cutscene mark is not the nav node of the same name.** Fixed: the bedside mark is where the old `bedside()`
 falls back, `(-2.9, 0.7)`, not the nav node `bedside` at `(-2.9, 2.45)`; task 11 says so.
 
+## Homes: every addition under "Where a new piece goes"
+
+The coordinator asked for this as its own section. The rule (the spec at `acb0361d`, corrected at `909f6b10`): core
+only what any game could use, which imports no extension and which every target or both reference games need; an
+extension what is generic within a genre and names no character, room or line of The Last Light; otherwise the game.
+The plan's "Homes" table carries the same rulings.
+
+| Addition | Home | Why | Anything of the game's leaking in? |
+|---|---|---|---|
+| Use a hotspot (task 1) | `@automata/interact`, adventure-genre extension | Emberwick does not use it; it sends `nav.walk-to` and `puzzle.verb`, so core could not hold it. Its pending use and reach sit in a file that imports no extension, a later candidate for core | No: hotspots are level things with generic fields |
+| `applyVerb` (task 1) | `@automata/puzzle` | The puzzle's own verb | No |
+| The play HUD from a file (tasks 2, 3) | `@automata/hud`, adventure-genre extension | Emberwick writes its own HUD; it reads puzzle's conditions and draws narrative's box. Its layout schema and placing import no extension, a later candidate for core when the UI editor needs it | No: the five piece kinds are generic; words are keys the game supplies |
+| Peeking, hide from a system, a re-route on a clock (task 4) | `@automata/systems` | Sneaking within the horror and stealth genre | No: the old game's numbers are defaults in a block a systems file may omit |
+| A carried light that burns fuel (task 4) | `@automata/systems` | Generic within the genre, beside light as a sense; moved out of the game by this audit | No: the item, the fill of 40 s and its cap stay in the game |
+| Delivery on a line; Writer's field (task 5) | `@automata/narrative`, `@automata/editors` | Lines are narrative's | No: pauses by sentence, nothing in the words |
+| A camera key at an anchor; the 3D stage (task 6) | `@automata/cutscenes` | Any 3D game with cutscenes; its test scene is the extension's own | No |
+| Footsteps by floor (task 7) | `@automata/audio-synth` | The table lives beside the cues | No: floors are texture names |
+| Sequence over a 3D level (task 8) | `@automata/editors` | The suite | No |
+| Nine prop generators (task 9) | `@automata/world-kit` | Generic furniture | No: each is named for what it is |
+| Rooms per view; `moon` and `fill` lamps (task 9b) | `@automata/3d`, core | Any 3D game with rooms; imports no extension | No |
+| The hand lamp's item, numbers and lines; the vigil; what a catch does; the checkpoint; the music state; the piece-state table (tasks 12 to 14) | The game | This story's rules and content | n/a |
+
 ## What the merge order needs
 
 The three branches hold together with workstream 1's: the framework branch touches no core file workstream 1 changes.
@@ -303,7 +325,7 @@ files, two character-kit files, the cutscenes README, three spike files, two Pla
 
 ## Counts
 
-32 findings: 9 blocking, 15 should fix, 8 tidy. All are fixed in the plan or the survey. Two stay **open** outside
-them, each sent to the coordinator: the Owner's answer on which recorded files cross (finding 2, default A), and
-workstream 1's plan recording that its task 17 is cut (finding 20). The homes question (finding 31) was settled by the
-spec's correction at `909f6b10` during the audit.
+32 findings: 9 blocking, 15 should fix, 8 tidy. All are fixed in the plan or the survey; none is open. Three
+questions went to the coordinator during the audit and were answered: the recorded files (finding 2, option B), the
+homes of interact, the HUD and the lamp (finding 31, settled in the spec at `909f6b10`), and workstream 1's task 17
+(finding 20, cut on its build branch).
