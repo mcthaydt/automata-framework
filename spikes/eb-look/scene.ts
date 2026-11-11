@@ -1,5 +1,9 @@
 // Draws one base scene with @automata/3d as EnvironmentBuilder frames it (base/base.ts `views`), for shoot.mjs.
-// ?scene=base-interior|base-exterior|base-interior-dressed|base-exterior-dressed  ?view=diorama|fp  ?pref=webgl|webgpu
+// ?scene=base-interior|base-exterior|base-interior-dressed|base-exterior-dressed  ?view=diorama|fp|af|tll  ?pref=webgl|webgpu
+// `af` and `tll` are gameplay cameras on the first cast member, facing north as the diorama does: AF's default view
+// (`CAMERA_DEFAULTS` and `LENS_MM`: 24 mm, 25° down, 5 m back, focus 1 m up) and The Last Light's play camera (50 mm, 30°
+// home tilt, a zone's 16 m, look point 1.1 m up; mcthaydt/PixiJS3D_Experiment_001 `src/render/stage.ts`, its prologue
+// hall and corridor zones), both at a 320 × 180 field.
 // EB's diorama is orthographic, pitched down with no yaw, at PPM × density 2 texels a metre (96/2.6 × 2), centred on
 // `at`; its first person is a 320 × 200 frame at a 90° horizontal field of view, `eye` m over the floor, facing `angle`
 // (map degrees clockwise from east). Map space: x east, z south, y up.
@@ -30,7 +34,12 @@ await detectVideoAlphaMode()
 
 const q = new URLSearchParams(location.search)
 const name = q.get('scene') ?? 'base-interior'
-const viewName = q.get('view') === 'fp' ? 'fp' : 'diorama'
+const VIEWS = ['diorama', 'fp', 'af', 'tll'] as const
+const viewName = VIEWS.find((v) => v === q.get('view')) ?? 'diorama'
+const GAMEPLAY = {
+  af: { lensMm: 24, tiltDeg: 25, distance: 5, focus: 1 },
+  tll: { lensMm: 50, tiltDeg: 30, distance: 16, focus: 1.1 },
+} as const
 const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 // Bisecting switches (all on by default): ?look=0 drops the look, ?cast=0 the figures, ?light=0 the baked room light.
 const on = (key: string) => q.get(key) !== '0'
@@ -50,7 +59,9 @@ const views = (level.views ?? {}) as Record<string, Record<string, unknown>>
 const size =
   viewName === 'fp'
     ? { width: 320, height: 200 }
-    : { width: Number(views.diorama?.w ?? 512), height: Number(views.diorama?.h ?? 320) }
+    : viewName === 'af' || viewName === 'tll'
+      ? { width: 320, height: 180 }
+      : { width: Number(views.diorama?.w ?? 512), height: Number(views.diorama?.h ?? 320) }
 
 // The base pair stand still. AF's base pair names the `loose` and `bounce` gaits and two stands, which only compiled
 // content holds; the spike gives one plain gait under both names and no stand.
@@ -126,6 +137,16 @@ const game = defineGame({
           const back = 40
           camera.position.set(at[0], at[1] + Math.sin(pitch) * back, at[2] + Math.cos(pitch) * back)
           camera.lookAt({ x: at[0], y: at[1], z: at[2] })
+        } else if (viewName === 'af' || viewName === 'tll') {
+          const g = GAMEPLAY[viewName]
+          const who = cast[0]?.at ?? [0, 0]
+          const focus = { x: who[0], y: g.focus, z: who[1] }
+          const tilt = (g.tiltDeg * Math.PI) / 180
+          camera.fov = (2 * Math.atan(12 / g.lensMm) * 180) / Math.PI
+          camera.near = 0.2
+          camera.far = 200
+          camera.position.set(focus.x, focus.y + g.distance * Math.sin(tilt), focus.z + g.distance * Math.cos(tilt))
+          camera.lookAt(focus)
         } else {
           const f = views.fp ?? {}
           const at = (f.at as [number, number]) ?? [0, 0]
@@ -140,7 +161,7 @@ const game = defineGame({
         }
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(library, swatch)
-        drawWorld({ parent: view.root, occluders: viewName === 'diorama' ? occluders : undefined, colourOf, look, light }, world.pieces)
+        drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light }, world.pieces)
         const renderer = stage.app.renderer as unknown as { name: string }
         const { dataset } = stage.app.canvas
         dataset.renderer = renderer.name
