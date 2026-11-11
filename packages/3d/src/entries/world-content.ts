@@ -11,4 +11,4 @@ export { LAMP_KINDS } from '../features/world/lamp-kit.ts'
 // The rules that say whether a level's names exist in a library, for an editor's check: the same ones the world builder
 // uses, so the editor and the game never disagree. Pixi-free.
 export { isFault, type PropFault, type ResolvedProp, resolveProp } from '../features/world/props/resolve.ts'
-export { hasSwatch, swatchColour, type WorldLibrary } from '../features/world/swatches.ts'
+export { hasSwatch, swatchColour, swatchGlow, type WorldLibrary } from '../features/world/swatches.ts'

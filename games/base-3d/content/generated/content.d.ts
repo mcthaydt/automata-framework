@@ -514,6 +514,7 @@ declare module 'virtual:automata/content' {
     readonly emit?: boolean
     readonly flat?: boolean
     readonly gloss?: number
+    readonly interior?: boolean
     readonly noCast?: boolean
     readonly pattern?: Readonly<Record<string, unknown /* world-swatch.pattern has no JSON form */>>
     readonly ramp: 'grey' | 'sand' | 'skin' | 'sea' | 'flame' | 'dusk' | 'moss' | 'sky' | 'pine' | 'rose' | 'slate' | 'clay' | 'mud' | 'plum' | 'teal' | 'wood' | 'wine' | 'indigo' | 'cherry' | 'rust' | 'olive' | 'amber' | 'mauve' | 'forest' | 'brick' | 'sage' | 'ocean' | 'dawn' | 'violet' | 'navy' | 'blush' | 'ember'

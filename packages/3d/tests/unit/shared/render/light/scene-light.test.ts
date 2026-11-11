@@ -210,8 +210,7 @@ describe('createSceneLight tint', () => {
     light.bake(toned, { albedo: 0x808080 })
     expect(colours(plain)[0]).toBeCloseTo(0.4, 6)
     expect(colours(dim)[0]).toBeCloseTo(0.4 * 0.85, 6)
-    // 0x80 in sRGB is 0.502; × 0.4 is 0.2008 on screen, whose linear value over the albedo's linear value is the multiplier.
-    const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
-    expect(colours(toned)[0]).toBeCloseTo(lin(0.2008) / lin(0.502), 3)
+    // 0x80 in sRGB is 0.502; × 0.4 is 0.2008 on screen, written as it is for an unlit material to show.
+    expect(colours(toned)[0]).toBeCloseTo((0x80 / 255) * 0.4, 5)
   })
 })

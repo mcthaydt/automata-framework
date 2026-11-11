@@ -23,15 +23,15 @@ first; this plan argues from its measurements. **Tracker:** [`../progress.md`](.
 
 ## Tracking
 
-**0 of 17 tasks done (0%).** Tick a task only when its checks passed in the session that did it; say what did not run.
+**5 of 17 tasks done (29%)**: group 1, `claude/builders-look-room`, ready to merge (no pull request opened: the stage 4 session was told not to). Tick a task only when its checks passed in the session that did it; say what did not run.
 
 | # | Task | Branch | State | Evidence |
 |---|---|---|---|---|
-| 1 | Bring in glow, windows, openings, baked props and room views (#589) | `claude/builders-look-room` | todo | |
-| 2 | The lit room: the browser test, then the fix | `claude/builders-look-room` | todo | |
-| 3 | A level that does not read is loud; `world-level-room` draws its room | `claude/builders-look-room` | todo | |
-| 4 | `look-pixel-art` draws under the default camera | `claude/builders-look-room` | todo | |
-| 5 | Light: the sheets re-shot, the measure, each difference settled; the pull request | `claude/builders-look-room` | todo | |
+| 1 | Bring in glow, windows, openings, baked props and room views (#589) | `claude/builders-look-room` | done | #589 `0024f81a` merged as `4eb163a8`; `pnpm check` 61/61 before and after; Chromium suites green (see the log); no golden moved |
+| 2 | The lit room: the browser test, then the fix | `claude/builders-look-room` | done | `lit-room.test.ts` failed on main + #589 (saw 13, 13, 13; 6.88), 2/2 after `fc302c35` + `d4e71f7c`; `23c969a8` |
+| 3 | A level that does not read is loud; `world-level-room` draws its room | `claude/builders-look-room` | done | `53516c1f`: unit case and journey seen failing (`[]` problems; brightness 2.8), passing (74.5); example at its 100-line budget |
+| 4 | `look-pixel-art` draws under the default camera | `claude/builders-look-room` | done | `ee8abe87`: journey failed at 30.3 < 40, passes (45.6); no feedback-loop warning |
+| 5 | Light: the sheets re-shot, the measure, each difference settled; the pull request | `claude/builders-look-room` | done | all 8 scene sheets 0.84 to 1.01; the street fixed by `ccf0ee65` (the sun's sample grid); [`after-room/`](../audits/builders-look-survey/after-room/README.md); no pull request opened (see the log) |
 | 6 | Bring in the lit painted figures (#607, with #603) | `claude/builders-look-figures` | todo | |
 | 7 | The painted base pair in the four base scenes; the figures' sheets | `claude/builders-look-figures` | todo | |
 | 8 | Exposure: measured against the builder's window | `claude/builders-look-figures` | todo | |
@@ -924,3 +924,4 @@ That plan's tasks "The kinds" and "Expressions reach the painter", cut to the wa
 |---|---|---|
 | 2026-11-11 | Stage 2 (plan), `claude/builders-look-plan` | The survey and this plan, planned against the spec at `44c4da09` (unchanged since) and `main` at `f93a2402`. No product code written |
 | 2026-11-11 | Stage 3 (plan audit), `claude/builders-look-plan-audit` | [The audit](../audits/2026-11-11-builders-look-plan-audit.md) at `main` `b80bfc84`: 28 findings (5 blocking, 15 should fix, 8 tidy), each fixed here or in the survey; five open items went to the coordinator. Re-measured: the survey's sheets on `main` and on `main` + #589 + the fix, task 2's test failing and passing, the merge order with `pnpm check` step by step on each state, workstream 1's build branch merged with it. The shoot script moved to `spikes/builders-look/` (knip). Calls 3 and 11 ruled: room-visibility dropped (already the Owner's decision), the whole-pixel letterbox kept. No product code changed |
+| 2026-11-11 | Stage 4 (execution), `claude/builders-look-room` (tasks 1 to 5) | #589 merged whole; the dark-room fix with its browser test; `buildWorld` says 'empty-level', `world-level-room` reads its level and throws if it does not; `look-pixel-art`'s fog starts at the camera's distance. **Deviations, each ruled:** (a) `shoot.mjs` passed `view=tll`, which #589 renamed to `af`/`zone`, so the gameplay sheets were dioramas; fixed, and a `zone` sheet added per scene (16 sheets, not 12); (b) the street diagnosis (task 5, step 3) found its stage: the sun's 3 × 3 sample grid was spread across the sun's rays and the ground plane shadowed what it lit, so every floor and wall facing the sun took a quarter less than the builder's formula (the road 0.97 against 1.19); fixed in `sunShare` with three tests seen failing first, and the street moved from 0.73 to 0.84 (diorama) and from 0.89 to 0.94 (first person), so the plan's expectation that the street stays out of the band did not hold; (c) test expectations beyond the default lens moved with #589 (the pass-order lists follow its present pass); (d) difference 6 (a figure's cast shadow) is recorded as built in group 2, as the amendment says; (e) no draft pull request was opened, on the session's instruction; (f) step 6's first shoot folded into task 5. Not run: WebGPU on a real GPU (the `webgpu` project ran on SwiftShader Vulkan with `AF_WEBGPU=software`), WebKit, Firefox; `pnpm api-index --write` exits 1 on three undocumented exports in packages this branch does not touch |

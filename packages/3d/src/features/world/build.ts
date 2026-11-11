@@ -44,6 +44,14 @@ export type { WorldLibrary }
 /** What a piece is a part of. Lamps are not pieces: they are `World.lamps`. */
 export type WorldPart = 'floor' | 'ceiling' | 'wall' | 'decor' | 'prop'
 
+/** A solid rectangle of a wall face: its plan line `a` to `b`, and the heights (metres from the world's floor) it spans. */
+export interface WallFace {
+  readonly a: V2
+  readonly b: V2
+  readonly lo: number
+  readonly hi: number
+}
+
 /** One drawable thing: its mesh and the surface it is painted with, in the room it belongs to. */
 export interface WorldPiece {
   /** `<room>:<role>` or `<room>:<role>:<place>`, stable for a given level. */
@@ -62,6 +70,11 @@ export interface WorldPiece {
   readonly line?: { readonly a: V2; readonly b: V2 }
   /** What the occluder rule does with a wall face (`/2`'s `occlude`); a wall that says nothing is cut. */
   readonly occlude?: Occlude
+  /**
+   * The solid parts of a wall face, each a rectangle on the plan line between two heights (the face with its doorways and
+   * windows cut out), so the light's occluders let light through an opening. A wall with none has one over its whole face.
+   */
+  readonly faces?: readonly WallFace[]
   /** A hinged door's pivot and its swing at fully open (degrees about y); the mesh is built shut. */
   readonly door?: { readonly hinge: V3; readonly swing: number }
   /** Sways in the wind: how far (metres) its top moves, and its phase (leaves, grass, a curtain). */
@@ -86,9 +99,10 @@ export interface WorldOptions {
   /** Lit windows show curtains, a plant, a figure. Default: yes. */
   readonly interiors?: boolean
   /**
-   * The longest edge (metres) a piece that stays put is cut to, so the baked vertex light has a vertex wherever a
-   * lamp's pool or a shadow's edge falls (the look's `seg`). A door, a prop and a swaying leaf keep
-   * the builder's own triangles: they move, so no light is baked into them. 0 cuts nothing. Default 0.35.
+   * The longest edge (metres) a piece that takes baked light is cut to, so the baked vertex light has a vertex wherever a
+   * lamp's pool or a shadow's edge falls (the look's `seg`). A prop is cut too: a state that moves it has its light baked
+   * again where it lands. A door and a swaying leaf keep the builder's own triangles: they move, so no light is baked
+   * into them. 0 cuts nothing. Default 0.35.
    */
   readonly seg?: number
 }
@@ -140,6 +154,17 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     problems.push(problem)
   }
 
+  // A level with no rooms draws nothing, and a level that failed to read comes here as exactly that (`readLevel` hands
+  // back an empty level with its problems). Say so here, so the empty frame is never the only sign.
+  if (level.sectors.length === 0)
+    problems.push({
+      path: ['sectors'],
+      code: 'empty-level',
+      message:
+        'This level has no rooms, so nothing is drawn. If it was read from a file, look at the problems readLevel returned.',
+      where: 'sectors',
+    })
+
   // A room that asks to be dressed is drawn bare: filling a room is the world-kit extension's, and core never fills it
   // some other way. The field stays in the format, so the level is one file for every game.
   if (level.dress?.keep !== false)
@@ -163,7 +188,10 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     mesh: MeshData,
     surface: Surface,
     tex?: TexPlace,
-    extra: Pick<WorldPiece, 'door' | 'line' | 'occlude' | 'sway' | 'phase' | 'noCast' | 'prop'> = {},
+    extra: Pick<
+      WorldPiece,
+      'door' | 'line' | 'occlude' | 'faces' | 'sway' | 'phase' | 'noCast' | 'prop'
+    > = {},
   ): void => {
     const sector = level.sectors[si] as AfSectorEntry2
     const name = tileName(surface)
@@ -180,10 +208,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       sector: sector.id,
       light: sector.light,
       part,
-      mesh:
-        extra.door === undefined && extra.sway === undefined && extra.prop === undefined
-          ? subdivide(mesh, seg)
-          : mesh,
+      mesh: extra.door === undefined && extra.sway === undefined ? subdivide(mesh, seg) : mesh,
       surface,
       ...(tex === undefined ? {} : { tex }),
       ...extra,
@@ -284,19 +309,26 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     const frame = wallFrame(from, floorAt(from), n)
     const tex = (s: Surface | undefined): TexPlace | undefined => texOf(s, 'wall', frame)
     /** The wall from `u0` to `u1`, between `low` and `high` above the floor (the floor or the ceiling when `null`), a hair out. */
-    const strip = (u0: number, u1: number, low: number | null, high: number | null, out = 0): MeshData => {
+    const spanOf = (u0: number, u1: number, low: number | null, high: number | null, out: number) => {
       const [a, b] = [offset(seg.a, n, out), offset(seg.b, n, out)]
       const at = (u: number): V2 => [lerp(a[0], b[0], u), lerp(a[1], b[1], u)]
-      const [pa, pb] = [at(u0), at(u1)]
       const [fl0, fl1] = [lerp(fa, fb, u0), lerp(fa, fb, u1)]
       const [cl0, cl1] = [lerp(ca, cb, u0), lerp(ca, cb, u1)]
-      return wallQuad(
-        pa,
-        pb,
-        [low === null ? fl0 : fl0 + low, high === null ? cl0 : fl0 + high],
-        [low === null ? fl1 : fl1 + low, high === null ? cl1 : fl1 + high],
-        n,
-      )
+      return {
+        pa: at(u0),
+        pb: at(u1),
+        atA: [low === null ? fl0 : fl0 + low, high === null ? cl0 : fl0 + high] as const,
+        atB: [low === null ? fl1 : fl1 + low, high === null ? cl1 : fl1 + high] as const,
+      }
+    }
+    const strip = (u0: number, u1: number, low: number | null, high: number | null, out = 0): MeshData => {
+      const { pa, pb, atA, atB } = spanOf(u0, u1, low, high, out)
+      return wallQuad(pa, pb, atA, atB, n)
+    }
+    /** The solid rectangle of the face a strip covers, for the light's occluders. */
+    const solid = (u0: number, u1: number, low: number | null, high: number | null): WallFace => {
+      const { pa, pb, atA, atB } = spanOf(u0, u1, low, high, 0)
+      return { a: pa, b: pb, lo: (atA[0] + atB[0]) / 2, hi: (atA[1] + atB[1]) / 2 }
     }
     const role = (name: string): string => `${name}:${place}`
 
@@ -322,16 +354,22 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         open(wall.window.at, wall.window.width, wall.window.y0, wall.window.y1, 'window', wall.window.bars)
       openings.sort((p, q) => p.u0 - q.u0)
       const face: MeshData[] = []
+      const faces: WallFace[] = []
+      const cover = (u0: number, u1: number, low: number | null, high: number | null): void => {
+        face.push(strip(u0, u1, low, high))
+        faces.push(solid(u0, u1, low, high))
+      }
       let cursor = 0
       for (const o of openings) {
-        if (o.u0 > cursor + 1e-6) face.push(strip(cursor, o.u0, null, null))
-        face.push(strip(o.u0, o.u1, o.y1, null))
-        if (o.y0 > 1e-6) face.push(strip(o.u0, o.u1, null, o.y0))
+        if (o.u0 > cursor + 1e-6) cover(cursor, o.u0, null, null)
+        cover(o.u0, o.u1, o.y1, null)
+        if (o.y0 > 1e-6) cover(o.u0, o.u1, null, o.y0)
         cursor = Math.max(cursor, o.u1)
       }
-      if (cursor < 1 - 1e-6) face.push(strip(cursor, 1, null, null))
+      if (cursor < 1 - 1e-6) cover(cursor, 1, null, null)
       add(seg.sector, role('wall'), 'wall', merge(...face), surface, tex(surface), {
         line: roomOnLeft(seg, n),
+        faces,
         ...(wall.occlude === undefined ? {} : { occlude: wall.occlude }),
       })
 

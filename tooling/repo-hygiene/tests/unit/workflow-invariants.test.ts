@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
-import { type Workflow, workflowProblems } from '#src/workflow-invariants.ts'
+import { callerProblems, type Workflow, workflowProblems } from '#src/workflow-invariants.ts'
 
 // The repository's workflows keep the few rules that guard something real (where tokens go, which jobs skip drafts);
 // each rule is also shown failing on a small workflow that breaks it, so a pass means the rule looked.
@@ -15,9 +15,13 @@ describe('the workflow invariants', () => {
   it('hold for every workflow in the repository', () => {
     const files = readdirSync(WORKFLOWS).filter((file) => file.endsWith('.yml'))
     expect(files.length).toBeGreaterThan(0)
-    const problems = files.flatMap((file) =>
-      workflowProblems(file, parse(readFileSync(join(WORKFLOWS, file), 'utf8')) as Workflow),
+    const workflows = Object.fromEntries(
+      files.map((file) => [file, parse(readFileSync(join(WORKFLOWS, file), 'utf8')) as Workflow]),
     )
+    const problems = [
+      ...Object.entries(workflows).flatMap(([file, workflow]) => workflowProblems(file, workflow)),
+      ...callerProblems(workflows),
+    ]
     expect(problems).toEqual([])
   })
 
@@ -86,6 +90,68 @@ jobs:
         run: git submodule update --init
 `),
     ).toEqual([])
+  })
+
+  it('want the private submodules reset before a job installs, so a runner never keeps a stale checkout', () => {
+    const job = (steps: string): string => `
+on: [push]
+permissions: {}
+jobs:
+  build:
+    steps:
+${steps}
+`
+    const reset = `      - env: { SUBMODULES_TOKEN: '\${{ secrets.SUBMODULES_TOKEN }}' }
+        run: bash .github/scripts/checkout-submodules.sh
+`
+    const install = '      - run: pnpm install --frozen-lockfile\n'
+    expect(fixture(job(install))).toEqual([
+      'fixture.yml build: runs pnpm install without checking out the private submodules first',
+    ])
+    expect(fixture(job(install + reset))).toEqual([
+      'fixture.yml build: runs pnpm install without checking out the private submodules first',
+    ])
+    expect(fixture(job(reset + install))).toEqual([])
+    expect(fixture(job('      - run: pnpm lint\n'))).toEqual([])
+  })
+
+  it('want a job that calls a reusable workflow holding the submodule step to pass the token', () => {
+    const callee = parse(`
+on: { workflow_call: { secrets: { SUBMODULES_TOKEN: { required: false } } } }
+permissions: {}
+jobs: { game: { steps: [] } }
+`) as Workflow
+    const caller = (secrets: string): Workflow =>
+      parse(`
+on: [push]
+permissions: {}
+jobs:
+  game:
+    uses: ./.github/workflows/callee.yml
+${secrets}
+`) as Workflow
+    const none = callerProblems({ 'callee.yml': callee, 'caller.yml': caller('') })
+    expect(none).toEqual(['caller.yml game: calls callee.yml without passing SUBMODULES_TOKEN'])
+    const passed = caller("    secrets: { SUBMODULES_TOKEN: '${{ secrets.SUBMODULES_TOKEN }}' }")
+    expect(callerProblems({ 'callee.yml': callee, 'caller.yml': passed })).toEqual([])
+    const inherited = caller('    secrets: inherit')
+    expect(callerProblems({ 'callee.yml': callee, 'caller.yml': inherited })).toEqual([])
+  })
+
+  it('want a reusable workflow that uses the submodule token to declare it', () => {
+    const workflow = (declared: string): string => `
+on: { workflow_call: { ${declared} } }
+permissions: {}
+jobs:
+  game:
+    steps:
+      - env: { SUBMODULES_TOKEN: '\${{ secrets.SUBMODULES_TOKEN }}' }
+        run: bash .github/scripts/checkout-submodules.sh
+`
+    expect(fixture(workflow(''))).toEqual([
+      'fixture.yml: uses SUBMODULES_TOKEN without declaring it under workflow_call secrets',
+    ])
+    expect(fixture(workflow('secrets: { SUBMODULES_TOKEN: { required: false } }'))).toEqual([])
   })
 
   it('make the heavy jobs skip draft pull requests, but not the light gate', () => {

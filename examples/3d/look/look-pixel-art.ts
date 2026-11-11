@@ -95,7 +95,9 @@ export default defineGame({
     createPixi3dRenderer({
       ...options,
       look: DEFAULT_LOOK,
-      fog: { near: 5, far: 14, color: 0x31222a },
+      // The fog starts at the default camera's distance (16 m), so the figure stands clear of it and only the floor's far
+      // edge fades; starting nearer would paint the whole frame in the fog's colour.
+      fog: { near: 16, far: 30, color: 0x31222a },
       views: {
         [Hero.id]: figure(wick, {
           library,

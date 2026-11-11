@@ -148,25 +148,28 @@ const SUN_RAY = 80
 const SUN_NEAR = 0.03 / SUN_RAY
 
 /**
- * The share of the sun that reaches a vertex (0 to 1): a 3 × 3 grid of rays toward it, spread across its plane
- * `SUN_SPREAD` either side of the vertex, that nothing blocks. A vertex stands for the ground round it, so a thin
- * caster between vertices (a pole) leaves a soft line across them, not a dot where one happens to fall.
+ * The share of the sun that reaches a vertex (0 to 1): a 3 × 3 grid of rays toward it, spread across the vertex's own
+ * surface `SUN_SPREAD` either side of it, that nothing blocks. A vertex stands for the ground round it, so a thin caster
+ * between vertices (a pole) leaves a soft line across them, not a dot where one happens to fall. The grid lies in the
+ * surface, not across the sun's rays: spread across the rays, the samples on one side start below a floor or a wall
+ * that is itself a plane occluder, which then shadows what it lights (a third of an open road's sun).
  */
 function sunShare(
   sample: LightSample,
   dir: Vec3,
   occluders: Pick<SceneLighting, 'boxes' | 'planes'>,
 ): number {
-  const up: Vec3 = Math.abs(dir[1]) > 0.95 ? [0, 0, 1] : [0, 1, 0]
+  const normal: Vec3 = [sample.nx, sample.ny, sample.nz]
+  const up: Vec3 = Math.abs(normal[1]) > 0.95 ? [0, 0, 1] : [0, 1, 0]
   const cross = (a: Vec3, b: Vec3): Vec3 => [
     a[1] * b[2] - a[2] * b[1],
     a[2] * b[0] - a[0] * b[2],
     a[0] * b[1] - a[1] * b[0],
   ]
-  const u0 = cross(up, dir)
+  const u0 = cross(up, normal)
   const size = Math.hypot(...u0)
   const u: Vec3 = [u0[0] / size, u0[1] / size, u0[2] / size]
-  const v = cross(dir, u)
+  const v = cross(normal, u)
   const ox = sample.x + sample.nx * 0.03
   const oy = sample.y + sample.ny * 0.03
   const oz = sample.z + sample.nz * 0.03

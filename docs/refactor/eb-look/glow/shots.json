@@ -1,0 +1,226 @@
+[
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&glow=0&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "2188",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 51 ms to build (budget 5 ms)",
+      "figure on cast took 40 ms to build (budget 5 ms)",
+      "[.WebGL-0x5840096d600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1727",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 71 ms to build (budget 5 ms)",
+      "figure on cast took 71 ms to build (budget 5 ms)",
+      "[.WebGL-0x584027ace00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1547",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 67 ms to build (budget 5 ms)",
+      "figure on cast took 43 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&glow=0&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1051",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 46 ms to build (budget 5 ms)",
+      "figure on cast took 56 ms to build (budget 5 ms)",
+      "[.WebGL-0x58403f93e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1045",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 44 ms to build (budget 5 ms)",
+      "figure on cast took 48 ms to build (budget 5 ms)",
+      "[.WebGL-0x58400af0200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "44",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1094",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 65 ms to build (budget 5 ms)",
+      "figure on cast took 49 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&glow=0&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "96",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "987",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 65 ms to build (budget 5 ms)",
+      "[.WebGL-0x584001b5400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "96",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "828",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 41 ms to build (budget 5 ms)",
+      "figure on cast took 55 ms to build (budget 5 ms)",
+      "[.WebGL-0x584001b5400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "96",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1082",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 52 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&glow=0&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "96",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1121",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 65 ms to build (budget 5 ms)",
+      "figure on cast took 77 ms to build (budget 5 ms)",
+      "[.WebGL-0x584001b7200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "96",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "1056",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 55 ms to build (budget 5 ms)",
+      "figure on cast took 34 ms to build (budget 5 ms)",
+      "[.WebGL-0x584021f2600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "96",
+    "problems": "0",
+    "lamps": "1",
+    "time": "lampLit",
+    "readyAt": "915",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 52 ms to build (budget 5 ms)"
+    ]
+  }
+]
