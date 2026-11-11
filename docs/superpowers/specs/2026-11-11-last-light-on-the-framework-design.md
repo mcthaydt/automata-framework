@@ -130,6 +130,15 @@ them as framework fixes.
   character kit. Slice 1 uses whatever has merged and lists what it still waits for; it does not rebuild it.
 - **The 3D slice of the refactor** (stage 3 of 6 in `docs/refactor/progress.md`). Slice 1 builds on `main` as it is.
 
+### The earlier clinic work is superseded
+
+Other sessions had begun putting the clinic into the framework: `claude/clinic-level3d` (#575), `claude/clinic-1`
+(#596), `claude/clinic-2` (#606) and `claude/tll-extensions-1` (#588), all drafts, with their records under
+`docs/refactor/clinic/` and `docs/refactor/tll-extensions/` on those branches. The Owner, 2026-11-11: "supersede it".
+This port replaces that work and starts fresh with the prologue. Those branches are references for behaviour and for
+what was learned (room-by-room drawing, wall tops, room visibility); nothing is merged from them, and a framework
+change the port needs is planned and built here. Their pull requests are not this workstream's to close.
+
 ### The pipelines and gates
 
 The Last Light's paid pipelines (character, props, art) are not ported: the builders replace them. The free ones the
