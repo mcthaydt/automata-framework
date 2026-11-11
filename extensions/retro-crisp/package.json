@@ -1,0 +1,51 @@
+{
+  "name": "@automata/retro-crisp",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "A retro colour grade, fade and ordered dither, and a crisp whole-pixel upscale, for AF's 3D pixel-art look: post passes with settings profiles.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/retro-crisp"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./pass": "./src/entries/pass.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@automata/3d": "workspace:^",
+    "@automata/content": "workspace:^",
+    "@pixi/3d": "0.1.0-beta.2",
+    "pixi.js": "8.22.0"
+  },
+  "devDependencies": {
+    "@automata/3d": "workspace:*",
+    "@automata/content": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "pixi.js": "8.22.0",
+    "playwright": "1.63.0",
+    "svelte": "5.57.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
