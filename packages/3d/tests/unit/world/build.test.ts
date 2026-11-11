@@ -1,5 +1,7 @@
 // The world builder: a `/2` level into renderer-free pieces (spec 9), and the faults it reports instead of throwing.
 import { describe, expect, it } from 'vitest'
+import { baseLibrary } from '#src/features/world/base/base-library.ts'
+import { BASE_SCENES } from '#src/features/world/base/base-scenes.ts'
 import { buildWorld, type WorldPiece } from '#src/features/world/build.ts'
 import type { WorldLibrary } from '#src/features/world/swatches.ts'
 import type { AfCorner2, AfSector2, AfSectorEntry2, AfWall2 } from '#src/shared/level/af-sector-2.schema.ts'
@@ -126,7 +128,15 @@ describe('subdivision', () => {
     const wide = buildWorld(lv, LIB, { seg: 1 }).pieces
     for (const p of wide) expect(longest(p), p.id).toBeLessThanOrEqual(1 + 1e-9)
   })
-  it('leaves a door, a prop and a swaying leaf as they are: no light is baked into them', () => {
+  it('cuts a prop too: it takes baked light, and has it taken again where a state moves it', () => {
+    const withCrate: AfSector2 = { ...lv, props: [{ id: 'c', use: 'crate', at: [2, 2] }] }
+    const props = { crate: { kind: 'box', swatch: 'brass', size: [1, 1, 1] } }
+    const { pieces } = buildWorld(withCrate, { ...LIB, props })
+    const crate = pieces.filter((p) => p.prop?.id === 'c')
+    expect(crate.length).toBeGreaterThan(0)
+    for (const p of crate) expect(longest(p), p.id).toBeLessThanOrEqual(0.35 + 1e-9)
+  })
+  it('leaves a door and a swaying leaf as they are: no light is baked into them', () => {
     const doorway = level(room('a', [0, 0, 1.2, 0.3], { door: {} }))
     const moving = buildWorld(doorway, LIB).pieces.filter((p) => p.door !== undefined)
     expect(moving.length).toBeGreaterThan(0)
@@ -140,6 +150,12 @@ describe('subdivision', () => {
 })
 
 describe('faults', () => {
+  it('says so when the level has no rooms, in place of drawing nothing in silence', () => {
+    const empty = { ...BASE_SCENES['base-interior'], sectors: [] }
+    const world = buildWorld(empty, baseLibrary)
+    expect(world.pieces).toEqual([])
+    expect(world.problems.map((p) => p.code)).toEqual(['empty-level'])
+  })
   it('reports a degenerate room instead of throwing', () => {
     const lv = level(room('room-1', [0, 0, 4, 4]), room('room-2', [10, 0, 14, 0]))
     const { pieces, problems } = buildWorld(lv, LIB)

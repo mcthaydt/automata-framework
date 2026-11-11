@@ -1,8 +1,9 @@
 // Lighthouse CI: the budgets for the pages a visitor lands on, judged on the median of three mobile runs.
-// The preview listens on a port taken from portsFor, so AF_RUNNER_PORT_OFFSET moves it with the runner copy.
-const { portsFor } = require('../packages/tools/src/shared/ship/ports/ports-for.ts')
+// The preview listens on a free port claimed when this file loads, so two jobs on one machine never meet on one. The URLs and
+// the server's command are both built from it here, in one load.
+const { claimPort } = require('../packages/tools/src/shared/ship/ports/free-ports.ts')
 
-const port = portsFor(`${__dirname}/..`, process.env).server + 52
+const port = claimPort('site-lighthouse')
 const origin = `http://127.0.0.1:${port}`
 
 const median = (key, bound) => ['error', { [key]: bound, aggregationMethod: 'median-run' }]

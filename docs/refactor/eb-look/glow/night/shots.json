@@ -1,0 +1,58 @@
+[
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&glow=0&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "41",
+    "problems": "0",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "2433",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 65 ms to build (budget 5 ms)",
+      "figure on cast took 63 ms to build (budget 5 ms)",
+      "[.WebGL-0x3f5c001b7200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&bloom=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect",
+    "pieces": "41",
+    "problems": "0",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "1018",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 49 ms to build (budget 5 ms)",
+      "figure on cast took 82 ms to build (budget 5 ms)",
+      "[.WebGL-0x3f5c00b14e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "41",
+    "problems": "0",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "1050",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 48 ms to build (budget 5 ms)",
+      "figure on cast took 27 ms to build (budget 5 ms)"
+    ]
+  }
+]

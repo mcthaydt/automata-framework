@@ -7,7 +7,7 @@ import { worldOccluders } from '#src/features/world/occluders.ts'
 import { part } from '#src/features/world/props/piece.ts'
 import { registerPropGenerator } from '#src/features/world/props/prop-generator-registry.ts'
 import type { WorldLibrary } from '#src/features/world/swatches.ts'
-import type { AfSector2, AfSectorEntry2 } from '#src/shared/level/af-sector-2.schema.ts'
+import type { AfCorner2, AfSector2, AfSectorEntry2, AfWall2 } from '#src/shared/level/af-sector-2.schema.ts'
 import { segmentBlocked } from '#src/shared/render/light/occlusion.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 
@@ -26,7 +26,7 @@ const LIB: WorldLibrary = {
     speck: { kind: 'occ.speck' },
   },
 }
-const room = (corners: [number, number][], extra: Partial<AfSectorEntry2> = {}): AfSectorEntry2 => ({
+const room = (corners: AfSectorEntry2['corners'], extra: Partial<AfSectorEntry2> = {}): AfSectorEntry2 => ({
   id: 'a',
   floor: { z: 0 },
   ceiling: { z: 3 },
@@ -114,5 +114,44 @@ describe('boxes from props', () => {
   })
   it('is something the lighting schema reads', () => {
     expect(() => sceneLightingSchema.parse({ ambient: 0.1, boxes })).not.toThrow()
+  })
+})
+
+// A wall's occluders are cut at its openings, so moonlight and lamplight pass through a doorway or a window.
+describe('planes cut at openings', () => {
+  // The wall along z = 0, with the room behind it.
+  const south = (wall: AfWall2) =>
+    occluders(
+      level(
+        room([
+          [0, 0, wall],
+          [4, 0],
+          [4, 4],
+          [0, 4],
+        ] as AfCorner2[]),
+      ),
+    )
+  const lit = (
+    lv: ReturnType<typeof occluders>,
+    from: [number, number, number],
+    to: [number, number, number],
+  ) => !segmentBlocked(...from, ...to, lv)
+
+  it('lets a lamp outside light through a doorway, and blocks it beside', () => {
+    const lv = south({ door: { at: 2, width: 1, height: 2 } })
+    expect(lit(lv, [2, 1, -2], [2, 1, 1])).toBe(true)
+    expect(lit(lv, [0.8, 1, -2], [0.8, 1, 1])).toBe(false)
+    // Over the lintel the wall stands.
+    expect(lit(lv, [2, 2.6, -2], [2, 2.6, 1])).toBe(false)
+  })
+  it('lets it through a window between its sill and its head, and blocks it under and over', () => {
+    const lv = south({ window: { at: 2, width: 1, y0: 1, y1: 2 } })
+    expect(lit(lv, [2, 1.5, -2], [2, 1.5, 1])).toBe(true)
+    expect(lit(lv, [2, 0.5, -2], [2, 0.5, 1])).toBe(false)
+    expect(lit(lv, [2, 2.5, -2], [2, 2.5, 1])).toBe(false)
+  })
+  it('keeps a plain wall one plane over its whole face', () => {
+    const faces = occluders(level(room(SQUARE))).planes.filter((p) => Math.abs(p.normal[1]) < 0.1)
+    expect(faces).toHaveLength(4)
   })
 })
