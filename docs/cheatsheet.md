@@ -1382,6 +1382,11 @@
 - `ResultsCopy` (interface): The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
+- `screensWords(locale)`: This package's words for a locale (the six; English otherwise).
+- `SplashCopy` (interface): What the splash says.
+- `SplashOptions` (interface): How a game sets up its splash.
+- `SplashScreen` (const): The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a press goes on.
+- `splashStep(options)`: An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key, click or tap.
 - `TitleAction` (interface): An extra button on the title screen beside Play, such as Settings or Credits.
 - `TitleScreen` (const): The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's ScreenFrame and ActionBar.
 
@@ -1399,6 +1404,14 @@
 - `ResultsCopy` (interface): The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
+
+### `import { … } from '@automata/ui-screens/splash'`
+
+- `screensWords(locale)`: This package's words for a locale (the six; English otherwise).
+- `SplashCopy` (interface): What the splash says.
+- `SplashOptions` (interface): How a game sets up its splash.
+- `SplashScreen` (const): The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a press goes on.
+- `splashStep(options)`: An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key, click or tap.
 
 ### `import { … } from '@automata/ui-screens/title'`
 

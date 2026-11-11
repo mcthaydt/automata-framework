@@ -1,6 +1,6 @@
 # @automata/ui-screens
 
-Four ready-made screens for a game: **Title**, **Results**, **Loading** and **Error**. Core already ships the Paused and Settings
+Five ready-made screens for a game: **Title**, **Results**, **Loading**, **Error** and **Splash**. Core already ships the Paused and Settings
 screens, so this package does not repeat them.
 
 ## Add it and use a screen
@@ -19,8 +19,28 @@ mount(TitleScreen, {
 })
 ```
 
-Each screen has its own path: `@automata/ui-screens/title`, `/results`, `/loading` and `/error`. The
-main path, `@automata/ui-screens`, has all four.
+Each screen has its own path: `@automata/ui-screens/title`, `/results`, `/loading`, `/error` and `/splash`. The
+main path, `@automata/ui-screens`, has all five.
+
+## The splash
+
+The splash is not a screen your flow mounts: it is a step of the game's *opening*, which runs after the host is ready and
+before the first screen, so it can never hold the host's ready signal back. It shows the studio's logo for 1.5 seconds,
+or until the player presses a key, clicks or taps, and plays no sound.
+
+```ts
+import { defineGame } from '@automata/framework'
+import { splashStep } from '@automata/ui-screens/splash'
+import logo from './studio-logo.svg'
+
+defineGame({
+  // …
+  opening: [splashStep({ logo: { src: logo, alt: 'Moss Studio' } })], // holdMs and copy are optional
+})
+```
+
+The line under the logo ("Press any key or tap to skip") is translated into the six languages the framework ships; pass `copy`
+to say something else. The opening order on a first run is: language, the photosensitivity warning, the splash, then the title.
 
 ## Change a screen
 

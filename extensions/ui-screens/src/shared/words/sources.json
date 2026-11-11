@@ -1,0 +1,19 @@
+{
+  "words": {
+    "es-419": {
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    },
+    "ja": {
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    },
+    "ko": {
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    },
+    "pt-BR": {
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    },
+    "zh-Hans": {
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    }
+  }
+}

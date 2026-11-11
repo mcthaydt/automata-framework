@@ -16105,6 +16105,68 @@ const ResultsScreen: import("svelte").Component<Props, {}, "">;
 type ResultsScreen = ReturnType<typeof ResultsScreen>;
 ```
 
+#### `screensWords` (function)
+
+This package's words for a locale (the six; English otherwise).
+
+```ts
+function screensWords(locale: string): {
+    readonly splash: SplashCopy;
+};
+```
+
+#### `SplashCopy` (interface)
+
+What the splash says.
+
+```ts
+interface SplashCopy {
+    /** The line under the logo: any key or a tap goes on. */
+    readonly skip: string;
+}
+```
+
+#### `SplashOptions` (interface)
+
+How a game sets up its splash.
+
+```ts
+interface SplashOptions {
+    /** The studio's image, the game's own file, and the words a screen reader says for it. */
+    readonly logo: {
+        readonly src: string;
+        readonly alt: string;
+    };
+    /** How long the logo is held, in milliseconds, unless a press ends it first. Default 1500. */
+    readonly holdMs?: number;
+    /** The line under the logo: fixed words, or words for a locale. Default: this package's words in the player's language. */
+    readonly copy?: SplashCopy | ((locale: string) => SplashCopy);
+}
+```
+
+#### `SplashScreen` (const)
+
+The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a
+press goes on. Any key, click or tap calls `onDone`; how long it is held is the caller's (`splashStep` holds it on the
+runtime's clock). It plays no sound. Edit the logo's setting, or swap the line: the frame keeps both inside the
+visible region. A copy of this folder in a game works alone and takes its own words as props.
+
+```ts
+const SplashScreen: import("svelte").Component<Props, {}, "">;
+type SplashScreen = ReturnType<typeof SplashScreen>;
+```
+
+#### `splashStep` (function)
+
+An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key,
+click or tap. The runtime's `opening` list takes it after the first-run screens and before the first screen; it
+runs once the host is ready, so it can never delay the host's ready signal. It plays no sound, and it resolves at
+once when the runtime shuts down.
+
+```ts
+function splashStep(options: SplashOptions): OpeningStep;
+```
+
 #### `TitleAction` (interface)
 
 An extra button on the title screen beside Play, such as Settings or Credits. `shortLabel` is
@@ -16216,6 +16278,70 @@ focus model are core's (`@automata/framework`), so keep using `ScreenFrame`, `Sc
 ```ts
 const ResultsScreen: import("svelte").Component<Props, {}, "">;
 type ResultsScreen = ReturnType<typeof ResultsScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/splash'`
+
+#### `screensWords` (function)
+
+This package's words for a locale (the six; English otherwise).
+
+```ts
+function screensWords(locale: string): {
+    readonly splash: SplashCopy;
+};
+```
+
+#### `SplashCopy` (interface)
+
+What the splash says.
+
+```ts
+interface SplashCopy {
+    /** The line under the logo: any key or a tap goes on. */
+    readonly skip: string;
+}
+```
+
+#### `SplashOptions` (interface)
+
+How a game sets up its splash.
+
+```ts
+interface SplashOptions {
+    /** The studio's image, the game's own file, and the words a screen reader says for it. */
+    readonly logo: {
+        readonly src: string;
+        readonly alt: string;
+    };
+    /** How long the logo is held, in milliseconds, unless a press ends it first. Default 1500. */
+    readonly holdMs?: number;
+    /** The line under the logo: fixed words, or words for a locale. Default: this package's words in the player's language. */
+    readonly copy?: SplashCopy | ((locale: string) => SplashCopy);
+}
+```
+
+#### `SplashScreen` (const)
+
+The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a
+press goes on. Any key, click or tap calls `onDone`; how long it is held is the caller's (`splashStep` holds it on the
+runtime's clock). It plays no sound. Edit the logo's setting, or swap the line: the frame keeps both inside the
+visible region. A copy of this folder in a game works alone and takes its own words as props.
+
+```ts
+const SplashScreen: import("svelte").Component<Props, {}, "">;
+type SplashScreen = ReturnType<typeof SplashScreen>;
+```
+
+#### `splashStep` (function)
+
+An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key,
+click or tap. The runtime's `opening` list takes it after the first-run screens and before the first screen; it
+runs once the host is ready, so it can never delay the host's ready signal. It plays no sound, and it resolves at
+once when the runtime shuts down.
+
+```ts
+function splashStep(options: SplashOptions): OpeningStep;
 ```
 
 ### `import { … } from '@automata/ui-screens/title'`

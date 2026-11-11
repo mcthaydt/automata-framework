@@ -32,10 +32,15 @@
       "svelte": "./src/entries/results.ts",
       "default": "./src/entries/results.ts"
     },
+    "./splash": {
+      "svelte": "./src/entries/splash.ts",
+      "default": "./src/entries/splash.ts"
+    },
     "./title": {
       "svelte": "./src/entries/title.ts",
       "default": "./src/entries/title.ts"
-    }
+    },
+    "./words/*.json": "./src/shared/words/*.json"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
@@ -61,11 +66,17 @@
         "svelte": "./dist/entries/results.js",
         "import": "./dist/entries/results.js"
       },
+      "./splash": {
+        "types": "./dist/entries/splash.d.ts",
+        "svelte": "./dist/entries/splash.js",
+        "import": "./dist/entries/splash.js"
+      },
       "./title": {
         "types": "./dist/entries/title.d.ts",
         "svelte": "./dist/entries/title.js",
         "import": "./dist/entries/title.js"
-      }
+      },
+      "./words/*.json": "./dist/shared/words/*.json"
     }
   },
   "scripts": {
