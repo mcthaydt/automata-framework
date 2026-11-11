@@ -1,7 +1,8 @@
 # World kit
 
 Ready-made things for 3D rooms and streets. Core's world builder can draw a box, a cylinder, a table, a bin, a lamp,
-a street lamp and a tree. This kit adds the rest (chairs, beds, shelves, plants, cars, shop signs, trees and clouds),
+a street lamp and a tree. This kit adds the rest (chairs, beds, shelves, plants, cars, shop signs, trees and clouds, and the
+furniture of a ward or a workplace),
 a dresser that furnishes a whole room from one word, and two generated maps, so a game does not have to model them.
 
 It is free and MIT licensed. It is optional: a game that does not add it loses nothing.
@@ -19,6 +20,26 @@ export default defineGame({ extensions: [render3dExtension, worldKitExtension] }
 
 If you forget, you are told, in words: a prop that asks for a chair says `unknown-generator` and names it, and a room
 that asks to be furnished is drawn empty with the note `Add @automata/world-kit, or remove "dress" from the room`.
+
+## A ward's furniture
+
+Nine props for a clinic, an office or a school, each a preset of the same name (`{ id = "s1", use = "sink", at = [2, 3] }`)
+and a generator (`kind = "sink"`) that draws without one. A floor prop's origin is the centre of its base and its front is
++z; a wall prop (`wallClock`, `keyCabinet`) has its back on the wall at a `height` of its own.
+
+| Kind | Parameters | Bounds with the defaults (m) |
+|---|---|---|
+| `sink` | `width` (0.6) | 0.6 × 1.1 × 0.45 |
+| `trolley` | `shelves` (2) | 0.75 × 0.95 × 0.45 |
+| `wheelchair` | | 0.65 × 0.95 × 1.05 |
+| `gurney` | `length` (1.9), lengthwise along x, head at −x | 1.9 × 1.0 × 0.7 |
+| `monitorCart` | `on` (true: a lit screen and its trace) | 0.5 × 1.45 × 0.5 |
+| `wallClock` | `hour` (8), `minute` (0), `height` (2.2) | 0.32 × 0.32 × 0.06 |
+| `keyCabinet` | `open` (false: the door swung out), `height` (1.4); a keypad on its face | 0.4 × 0.5 × 0.12 shut |
+| `locker` | `doors` (2, 0.3 m each), `open` (false: the first door swung out) | 0.6 × 1.8 × 0.5 shut |
+| `dripStand` | | 0.6 × 1.9 × 0.6 |
+
+Every swatch is a parameter with a default (`mat`, `metal`, `tyre`), so a game paints them its own way.
 
 ## Furnish a room
 

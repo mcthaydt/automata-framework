@@ -530,5 +530,38 @@
   "fixture.conduit": {
     "kind": "fixture",
     "variant": "conduit"
+  },
+  "sink": {
+    "kind": "sink"
+  },
+  "trolley": {
+    "kind": "trolley"
+  },
+  "wheelchair": {
+    "kind": "wheelchair"
+  },
+  "gurney": {
+    "kind": "gurney"
+  },
+  "monitorCart": {
+    "kind": "monitorCart",
+    "on": true
+  },
+  "wallClock": {
+    "kind": "wallClock",
+    "hour": 8,
+    "minute": 0
+  },
+  "keyCabinet": {
+    "kind": "keyCabinet",
+    "open": false
+  },
+  "locker": {
+    "kind": "locker",
+    "doors": 2,
+    "open": false
+  },
+  "dripStand": {
+    "kind": "dripStand"
   }
 }
