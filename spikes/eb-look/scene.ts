@@ -11,6 +11,8 @@ import '@automata/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
+  HazeEffect,
+  SkyEffect,
   DEFAULT_LOOK,
   drawWorld,
   figure,
@@ -162,6 +164,28 @@ const game = defineGame({
           camera.far = 200
           camera.position.set(at[0], eye, at[1])
           camera.lookAt({ x: at[0] + Math.cos(a), y: eye, z: at[1] + Math.sin(a) })
+        }
+        // The haze counts from the focus: the frame's middle in the orthographic diorama, the man in the gameplay views, 3 m
+        // from the eye in first person (the profile's `focusFp`).
+        const haze = view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)
+        if (viewName === 'diorama') haze?.focusCentre()
+        else if (viewName === 'af' || viewName === 'tll') haze?.focus(GAMEPLAY[viewName].distance)
+        // The sky panorama replaces the flat background where no mesh draws: the time's bands, clouds and the level's
+        // horizon, turned with the camera (heading clockwise from east, pitch up positive).
+        if (on('sky')) {
+          const sky = new SkyEffect(
+            time,
+            (level.sky?.horizon ?? []).map((layer) => ({
+              kind: layer.kind,
+              colour: `#${(swatchColour(library, layer.swatch) ?? 0x7a7799).toString(16).padStart(6, '0')}`,
+              height: layer.height,
+              seed: layer.seed,
+            })),
+          )
+          if (viewName === 'fp') sky.aim((Number(views.fp?.angle ?? 0) * Math.PI) / 180, 0)
+          else if (viewName === 'af' || viewName === 'tll')
+            sky.aim(-Math.PI / 2, -(GAMEPLAY[viewName].tiltDeg * Math.PI) / 180)
+          view.passes = [sky, ...view.passes]
         }
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(library, swatch)
