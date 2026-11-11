@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 12 of 21 tasks (51%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 13 of 21 tasks (52%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -44,7 +44,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 9 | Interface sounds | 4 | done (jsdom unit tests; the sounds themselves are heard only in a browser with a mapped game: task 15's example) | `f68d822e` |
 | 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke needs packed packages and the network: not run) | `3aef5854` |
 | 11 | Splash (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium; WebKit and Firefox not run) | `5a6e7eb9` |
-| 11b | `Hosting.openLink` on every target | 5 | todo | |
+| 11b | `Hosting.openLink` on every target | 5 | done (jsdom/Node unit tests over fakes; a real desktop build opening a real browser and a real Ruken host asking the player are not run) | `7dc3e29c` |
 | 12 | Credits (`@automata/ui-screens`) | 5 | todo | |
 | 13 | Achievements, generic, and their Ruken mapping | 6 | todo | |
 | 14 | Stale-build check | 7 | todo | |
@@ -185,6 +185,27 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   implementation; the browser layout contract (50 cases) was written beside the screen and passed first time. The pre-commit
   hook for a commit touching only `extensions/ui-screens` took 12 seconds.
 - **Task 11, not run:** WebKit, Firefox, and a real browser's timing of the hold (the hold is tested on the injected clock).
+- **Task 11b, Ruling:** the web adapter opens with `page.open(url, '_blank')` and sets the new tab's `opener` to null, not
+  the plan's `'noopener,noreferrer'`: a `noopener` window answers null even when the tab opened, so a blocked popup could not
+  be told from an opened tab and `opened` would always be false. Cost if wrong: the browser still sends the game's address
+  as the referrer to a credits link (harmless; the tab cannot reach back into the game).
+- **Task 11b, Ruling:** the contract's `openLink` cases take a `LinksProbe` (a fourth, optional argument of
+  `describeHostingContract`: `create`, optional `createWithoutGrant`, `opened`, `decline`), not a factory taking grants,
+  because no `Hosting` value shows what its host was asked to open or lets a test make the host say no. The ungranted case
+  runs where a grant can be missing (Ruken and the fake); the web page and the desktop grant `links` unconditionally, so
+  their test files say why they have none. "Never changes the page's location" is held by the type: `WebPage` has no
+  `location`, only `open`.
+- **Task 11b, Ruling:** `Hosting.openLink` refuses an unopenable address (`isOpenableLink`, `shared/host/link.ts`: https, a
+  host name, no name or password, at most 2048 characters: the SDK's own rule) before any host is asked, `INVALID_PAYLOAD` on
+  operation `links.open`, on every adapter and the fake, so the refusal reads alike on all four.
+- **Task 11b, Ruling:** `@tauri-apps/plugin-opener` and the `tauri-plugin-opener` crate are pinned at 2.7.2 (released
+  2026-10-14, 28 days before today; 2.7.3 is 1 day old and fails the 14-day rule in `docs/versions.md`, which gains a row).
+  `create-game` adds the package for a game that builds for `tauri`. The capability allows `opener:allow-open-url` for
+  `https://*` and `https://*/*`; whether Tauri's glob needs both is not verified without a desktop build.
+- **Task 11b, Ruling:** the fake web page's `lastTab` and `blockPopups`, and the fake desktop's `declineLinks`, are test-side
+  controls; `fakeHosting`'s `FakeHostControl` gains `opened` and `answerLinks`, and its options `links: 'open' | 'refuse'`.
+- **Task 11b, not run:** a real desktop build opening a real browser (the Owner's), Ruken's real host asking the player, and
+  the WebKit and Firefox engines for the web adapter (it is plain DOM and is tested over a fake page).
 
 ## Global constraints
 
