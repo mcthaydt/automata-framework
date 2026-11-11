@@ -32,7 +32,7 @@ export type { V3 } from './lib/math';
 export { J, JOINTS, type Joint, type Side, type Pose } from './features/body/rig';
 // ─── Drawing ───
 export { Figure, type View, type FigureInput, type FigureLight } from './features/figure/figure';
-export { member, view, standing, walking, hero, type Frame } from './features/figure/frames';
+export { member, view, standing, walking, hero, SPRITE_PITCH, type Frame } from './features/figure/frames';
 export { RAMPS, RAMP_OUTLINE } from './features/paint/duel-ramps';
 // ─── Lighting ───
 export { lightFigure, type Lighting, type Bounce } from './features/lighting/light';
@@ -40,3 +40,8 @@ export { TIMES, FIGURE_KEY, type Lamp, type TimeOfDay } from './features/lightin
 // ─── Actors: the scripting layer (docs/actors.md) ───
 export { ScriptedActor, Troupe, characterOf, scriptOf, type ActorScript, type ActorOptions, type ActionCue, type Waypoint, type Placement } from './features/actors/actor';
 export { ACTIONS, actionOf, lengthOf, envelopeOf } from './features/actors/actions';
+// ─── The stage: figures in a scene (docs/contract.md) ───
+export { STAGE_VERSION, stageFrame, compose, texelDepths, type StageSprite, type StageFrame, type StageOptions, type Backdrop } from './features/stage/stage';
+export { cellOf, type Cell } from './features/stage/cell';
+export { lookAt, viewOf, project, zoomOf, densityFor, GAMEPLAY, gameplay, type CameraPose } from './features/stage/pose';
+export type { Casting } from './features/actors/actor';

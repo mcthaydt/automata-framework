@@ -217,6 +217,10 @@ export class Figure {
   private hi: GBuffer;
   /** The painter's output (paint.ts): the cell's colours and normal map; and its style. */
   readonly painted: Uint8ClampedArray; readonly normals: Uint8ClampedArray;
+  /** The cell's depth, per texel: metres toward the camera from the root's plane. The G-buffer's where a surface is, the nearest
+   * neighbour's under an outline texel (the ink ring has no surface of its own), −Infinity where the cell is empty. Finite at
+   * every opaque texel, fresh or from the cell cache, so a scene can depth-test the cell (stage/cell.ts). */
+  readonly depth: Float32Array;
   /** With a fabric in use (H5): the cell's untiled colours and tile labels (paint.ts), which `lightFigure` lights the cloth's ground
    * from before it lays the tile; null when no built material names a fabric (and no buffer is allocated). Allocated on first
    * use and kept with each cached cell. */
@@ -227,7 +231,7 @@ export class Figure {
   /** The cell cache (paint.ts cells by pose key, most recent last) and whether it is used; its cap is CELLS. */
   cache = true;
   /** Cells keep only the figure's own rows (y0 up to y0 + rows), most of a cell being empty. */
-  private cells = new Map<string, { y0: number; painted: Uint8ClampedArray; normals: Uint8ClampedArray; weave: Weave | null; world: M[]; face: FaceStamp | null }>();
+  private cells = new Map<string, { y0: number; painted: Uint8ClampedArray; normals: Uint8ClampedArray; depth: Float32Array; weave: Weave | null; world: M[]; face: FaceStamp | null }>();
   private shownKey = ''; private hairPose = { pitch: 0, roll: 0 };
   /** The hands the last raster drew (paint.ts HandStamp). */
   handStamps: HandStamp[] = [];
@@ -246,6 +250,7 @@ export class Figure {
     this.hi = gbuffer(this.cell[0] * this.style.supersample, this.cell[1] * this.style.supersample);
     this.gL = gbuffer(this.cell[0], this.cell[1]); this.hiL = gbuffer(this.hi.w, this.hi.h);
     this.painted = new Uint8ClampedArray(this.cell[0] * this.cell[1] * 4); this.normals = new Uint8ClampedArray(this.painted.length);
+    this.depth = new Float32Array(this.cell[0] * this.cell[1]).fill(-Infinity);
   }
   /** Swaps the outfit or the held item (rebuilds the part list once). */
   wear(outfit: string, item: string | null = this.item) {
@@ -314,6 +319,7 @@ export class Figure {
       // A cell drawn before: its colours, normal map, joints (the flame's socket) and face, with no raster.
       const o = hit.y0 * this.cell[0] * 4;
       this.painted.fill(0); this.normals.fill(0); this.painted.set(hit.painted, o); this.normals.set(hit.normals, o);
+      this.depth.fill(-Infinity); this.depth.set(hit.depth, o / 4);
       if (hit.weave && this.built.cloth) {
         const wv = this.weaveBuf ??= newWeave(this.cell[0] * this.cell[1]), t = o / 4;
         wv.ground.fill(0); wv.labels.fill(0); wv.lo.fill(0); wv.hi.fill(0); wv.on.fill(0);
@@ -334,7 +340,7 @@ export class Figure {
       while (y1 > y0 && empty(y1 - 1)) y1--;
       const wv = this.weave, a = y0 * this.cell[0], b = y1 * this.cell[0];
       const weave = wv ? { ground: wv.ground.slice(a * 4, b * 4), labels: wv.labels.slice(a, b), lo: wv.lo.slice(a, b), hi: wv.hi.slice(a, b), on: wv.on.slice(a, b) } : null;
-      this.cells.set(key, { y0, painted: this.painted.slice(y0 * row, y1 * row), normals: this.normals.slice(y0 * row, y1 * row), weave, world: this.world, face: this.faceStamp });
+      this.cells.set(key, { y0, painted: this.painted.slice(y0 * row, y1 * row), normals: this.normals.slice(y0 * row, y1 * row), depth: this.depth.slice(a, b), weave, world: this.world, face: this.faceStamp });
       if (this.cells.size > CELLS) this.cells.delete(this.cells.keys().next().value!);
     }
     return true;
@@ -427,6 +433,26 @@ export class Figure {
     this.handStamps = this.handsAt(pitch);
     if (cloth) this.weaveBuf ??= newWeave(this.cell[0] * this.cell[1]);
     paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place, cloth ? { place: this.gC!.place, u: (g, c, sn) => clothU(this.built.frame!, g, c, sn) } : undefined, cloth ? this.weaveBuf! : undefined);
+    this.fillDepth();
+  }
+  /** `depth` from the G-buffer and the painted cell: a surface texel keeps its depth; an opaque texel with none (the outline
+   * ring, drawn beside the surface) takes the nearest depth among its neighbours, widening a ring at a time until a surface
+   * is found (the outline's width grows with the density, so no fixed radius would do); an empty one is −Infinity. The root's
+   * plane (0) is only for a cell with no surface at all. */
+  private fillDepth() {
+    const [w, h] = this.cell, z = this.g.depth, px = this.painted, out = this.depth, reach = Math.max(w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const k = y * w + x;
+      if (!px[k * 4 + 3]) { out[k] = -Infinity; continue; }
+      if (z[k] > -Infinity) { out[k] = z[k]; continue; }
+      let best = -Infinity;
+      for (let r = 1; r <= reach && best === -Infinity; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        const X = x + dx, Y = y + dy;
+        if (X >= 0 && X < w && Y >= 0 && Y < h && z[Y * w + X] > best) best = z[Y * w + X];
+      }
+      out[k] = best > -Infinity ? best : 0;
+    }
   }
   /**
    * The hair's spring (secondary motion; the character file's `hair`): it trails behind as the figure walks, bounces with

@@ -8,8 +8,11 @@ import { memberOf, standOf, type CastMember, type CharacterDef } from './cast';
 import { evaluate } from '../motion/motion';
 
 export type Frame = Uint8ClampedArray;
-/** The camera: the sheets' 18° pitch, from the front. */
-export const view = (pitch = 18 * Math.PI / 180) => ({ azimuth: 0, pitch });
+/** The pitch the review sheets and `npm run render` paint at (18°), and so the pitch the stage paints every figure at,
+ * whatever its camera's tilt (stage.ts): the one place the number is named. */
+export const SPRITE_PITCH = 18 * Math.PI / 180;
+/** The camera: the sheets' pitch, from the front. */
+export const view = (pitch = SPRITE_PITCH) => ({ azimuth: 0, pitch });
 /** One frame for every figure (cast.ts memberOf: the builder's tall cell at `density` texels per texel of the brand
  * kit), so a line-up stands at one scale and nothing clips. */
 export const member = (def: CharacterDef, density = 1): CastMember => memberOf(def, density);

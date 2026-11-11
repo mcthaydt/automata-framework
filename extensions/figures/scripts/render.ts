@@ -10,10 +10,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createCanvas } from '@napi-rs/canvas';
-import { BASE, hero, member, standing, walking, type Frame } from '../src';
+import { BASE, SPRITE_PITCH, hero, member, standing, walking, type Frame } from '../src';
 
 const out = resolve(process.argv[2] ?? resolve(import.meta.dirname, '../out'));
-const pitch = Number(process.argv[3] ?? 18) * Math.PI / 180;
+const pitch = process.argv[3] === undefined ? SPRITE_PITCH : Number(process.argv[3]) * Math.PI / 180;
 const ZOOM = 8;
 mkdirSync(out, { recursive: true });
 

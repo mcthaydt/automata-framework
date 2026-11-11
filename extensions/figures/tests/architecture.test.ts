@@ -13,7 +13,9 @@ import { describe, expect, it } from 'vitest';
 const ROOT = resolve(import.meta.dirname, '..');
 const LAYERS = [
   'src/lib', 'src/features/body', 'src/features/paint', 'src/features/lighting', 'src/features/motion',
-  'src/features/hair', 'src/features/outfit', 'src/features/figure', 'base', 'src/features/actors', 'src/index.ts',
+  'src/features/hair', 'src/features/outfit', 'src/features/figure', 'base', 'src/features/actors', 'src/features/stage', 'src/index.ts', 'src/kit.ts',
+  // The Pixi 3D view, above the public surface and on its own entry, so nothing below it loads Pixi.
+  'src/features/view', 'src/view.ts',
 ];
 const layerOf = (file: string) => LAYERS.findIndex(l => file === l || file.startsWith(`${l}/`));
 const walk = (dir: string): string[] => !existsSync(join(ROOT, dir)) ? [] : readdirSync(join(ROOT, dir)).flatMap(n => {
@@ -60,6 +62,15 @@ describe('module boundaries', () => {
     };
     for (const m of MODULES) if (!state.has(m)) visit(m);
     expect(found).toEqual([]);
+  });
+  it('only the view layer and the viewer import Pixi', () => {
+    // static, dynamic and required imports, of the packages and of their subpaths
+    const PIXI = /(?:from\s*|import\s*\(?\s*|require\(\s*)['"](?:pixi\.js|@pixi\/3d)(?:\/[^'"]*)?['"]/;
+    for (const hit of ["import { A } from 'pixi.js'", "import '@pixi/3d'", "await import('pixi.js/lib/x')", "from \"@pixi/3d/dist/y\"", "require('pixi.js')"]) expect(PIXI.test(hit), hit).toBe(true);
+    for (const miss of ["import { A } from './pixi.js'", "from 'pixi-live'", "// pixi.js"]) expect(PIXI.test(miss), miss).toBe(false);
+    const files = [...MODULES, ...walk('scripts'), ...walk('tests'), ...walk('viewer')].filter(m => m.endsWith('.ts') && !m.startsWith('src/features/view/') && !m.startsWith('viewer/') && m !== 'tests/architecture.test.ts');   // this file holds the pattern's own samples
+    expect(files.length).toBeGreaterThan(60);   // the walk found the tree, not nothing
+    expect(files.filter(m => PIXI.test(readFileSync(join(ROOT, m), 'utf8')))).toEqual([]);
   });
   it('no test sits beside the source', () => {
     expect(MODULES.filter(m => /\.(test|spec)\.ts$/.test(m))).toEqual([]);
