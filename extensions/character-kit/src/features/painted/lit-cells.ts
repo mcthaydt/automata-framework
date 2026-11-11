@@ -10,7 +10,8 @@ export const LIT_CELLS = 32
 export interface LitCells {
   /**
    * The figure's cell lit by `light`: its `painted`, `normals`, `depth`, `weave`, `anchor` and `direction` are this frame's, its
-   * `rgba` and `key` the lit ones. The cache holds the lit buffer and its key only, so nothing stale can come back with a hit.
+   * `rgba` and `key` the lit ones (the key names the painted cell and the light, so it changes whenever the lit colours may). The cache
+   * holds the lit buffer and its key only, so nothing stale can come back with a hit.
    */
   lit(figure: Figure, light: RoomLight): Cell
   /** How many lit cells are kept. */
@@ -27,9 +28,9 @@ export function litCells(limit = LIT_CELLS): LitCells {
       const id = `${unlit.key}|${light.key}`
       let hit = kept.get(id)
       if (hit === undefined) {
-        // The lit buffer's key is the builder's own (a hash of its colours), made once on the miss.
-        const { rgba, key } = cellOf(figure, lightSprite(figure, light.lighting))
-        hit = { rgba, key }
+        // The lit cell's key is the painted cell's and the light's, not a hash of its 98 KB of colours: a lit cell is a pure function
+        // of the two, so they name it as surely, and the hash was the second cost of a miss.
+        hit = { rgba: lightSprite(figure, light.lighting), key: `${unlit.key}|${light.key}` }
         kept.set(id, hit)
         const oldest = kept.keys().next()
         if (kept.size > limit && oldest.done !== true) kept.delete(oldest.value)

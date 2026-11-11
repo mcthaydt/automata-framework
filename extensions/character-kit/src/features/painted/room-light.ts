@@ -41,8 +41,12 @@ export interface RoomLight {
 
 /** One step of the DUEL ramps (`SPRITE_STYLE.stepRatio`): the flat light is rebuilt from whole steps at this ratio. */
 const STEP = 1.17
-const SIXTEENTH = 16
+/** A lamp's direction is quantised to eighths a component: finer made a walking figure relight on nearly every step (the bench). */
+const EIGHTH = 8
 const peak = (c: readonly [number, number, number]): number => Math.max(c[0], c[1], c[2])
+const eighths = (v: number): number => Math.round(v * EIGHTH)
+/** The flat light's colour is kept to sixteenths a channel. */
+const SIXTEENTH = 16
 const sixteenths = (v: number): number => Math.round(v * SIXTEENTH)
 const tenths = (v: number): number => Math.round(v * 10)
 /** The way a figure seen from `azimuth` turns a world vector into its lighting frame: Ry(−azimuth) (the builder's contract). */
@@ -52,7 +56,7 @@ function turned(v: readonly [number, number, number], azimuth: number): V3 {
   return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c]
 }
 
-/** A lamp from a world direction (any length) and a strength: turned, normalised, then quantised to sixteenths. */
+/** A lamp from a world direction (any length) and a strength: turned, normalised, then quantised to eighths. */
 function lamp(
   world: readonly [number, number, number],
   strength: number,
@@ -61,10 +65,10 @@ function lamp(
   const length = Math.hypot(world[0], world[1], world[2])
   if (!(length > 0)) return undefined
   const [x, y, z] = turned([world[0] / length, world[1] / length, world[2] / length], azimuth)
-  const q: V3 = [sixteenths(x), sixteenths(y), sixteenths(z)]
+  const q: V3 = [eighths(x), eighths(y), eighths(z)]
   const t = tenths(strength)
   return {
-    dir: [q[0] / SIXTEENTH, q[1] / SIXTEENTH, q[2] / SIXTEENTH],
+    dir: [q[0] / EIGHTH, q[1] / EIGHTH, q[2] / EIGHTH],
     strength: t / 10,
     key: `${q.join(',')};${t}`,
   }
