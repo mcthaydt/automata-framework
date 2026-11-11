@@ -42,7 +42,20 @@ PENDING
 
 ## The merge order, step by step
 
-PENDING
+Built on scratch branches from `main` `b80bfc84` in the order the plan claims: (1) `git merge --no-ff` #589, then
+`git cherry-pick -x 680bbc31a` (no conflict, 8 files, the ones task 2 lists); (2) `git merge --no-ff` #607 (no
+conflict; the submodule moves to `23f889c`); (3) `git merge --no-ff` #590 (one conflict, `spikes/eb-look/probe.mjs`,
+add/add, resolved as the branch's). Each step of `pnpm check` was run alone on each state (`turbo run test:unit
+--continue` for the unit tests), so a later step could not hide behind an earlier failure. A cell is the exit code.
+
+| Step | (1) `main` + #589 + the fix | (2) + #607 | (3) + #590 |
+|---|---|---|---|
+STEPROWS
+
+`knip`'s one failure is `main`'s own (finding 2), the same in every state and gone on this branch. Nothing else fails in
+any state, so the claimed order holds: each draft lands on the one before it with `pnpm check` green but for `main`'s
+fault. Not run on these states: the browser suites and journeys, `pnpm build`, `api-report`, `api-index` (task 10's
+step 4 runs the last three; #590 brings its reports).
 
 ## Findings
 
@@ -50,12 +63,272 @@ Ranked: **blocking** (the plan as written fails its own gates or would make a bu
 premise), **should fix** (a gap or a wrong fact a builder would hit), **tidy**. Each is fixed in the plan or the survey in
 this branch unless it says **open**, with the reason and where it went.
 
-PENDING
+### Blocking
+
+**1. Task 2's browser test does not typecheck.** It calls `renderer.draw(still, frame)` twice; `Pixi3dRenderer.draw`
+takes the frame alone, so `tsc -p packages/3d` fails with TS2554 at the test's lines 66 and 94, and `still` is unused.
+Vitest does not typecheck, which is why the planning session saw it pass; task 2's step 5 (`pnpm check`) would fail.
+Measured with the call as written and as fixed: the same pixels either way (13, 13, 13 and 6.2 on `main`; 64, 64, 64
+and 42.1 on the trial). **Fix:** the test calls `renderer.draw(frame)` and drops `still`; the plan records both
+measurements. **Fixed.**
+
+**2. `main` fails `pnpm check` at `knip`, on the survey's own script.** `pnpm knip` on `main` `b80bfc84`: "Unused
+files (1): docs/superpowers/audits/builders-look-survey/shoot.mjs", exit 1; the same on every state of the merge
+order. #636 committed the script; the plan session re-ran `style` and `source-names` with the documents in, not
+`knip`. The plan's task 7 said "the script under `docs/` is linted", and every task's baseline would have started red.
+**Fix:** the script moves to `spikes/builders-look/shoot.mjs` (knip and biome ignore `spikes/**`, as `knip.jsonc` and
+`biome.json` say), with its repository path and its defaults (the survey's folder and its `builders/`) adjusted;
+the plan's commands and the survey's link follow it. Re-run: `knip` exit 0, `style` 0 findings. A `knip.jsonc` ignore
+was the other way, but it is configuration and this stage changes documents. **Fixed** on this branch; `main` stays
+red until it merges (told to the coordinator at once).
+
+**3. Task 12's switch test rests on a false premise and tells the builder to change code to fit it.** It said that
+with `DEFAULT_LOOK` "the pass list holds no outline and no grade pass" and "if a pass joins while its switch is off,
+the test fails: fix the registration, not the test". But `grade` is a switch that is on by default
+(`packages/3d/src/features/look/library/look.json`, `"grade": true` on `main` and on #590), and #590's
+`createLookPasses` adds a `GradeEffect` whenever it is on (`look-pass.ts`, the grade changes nothing until a mood is
+named). In the world kit, `stars` and `glow` are on unless told `false` (`sky-passes.ts`, `skyLookPasses`). The test as
+written fails on correct code. And the branch already has `look-pass-list.test.ts`, which proves the order with every
+pass. **Fix:** the step lists the switches as they are, adds to the existing test only what it lacks (the default list
+exactly, each switch adding or removing exactly its pass, and a frame with the grade on and no mood equal to one with
+it off), and the world kit's cases name its two default passes. **Fixed.**
+
+**4. The street's remaining gap (0.73 of the builder's) had a diagnosis with no reachable reference and too few
+stops.** Task 5 asked to compare `bakeVertices` with "the per-vertex light EnvironmentBuilder's `docs/lighting.md`
+states for the same surfaces by day". That file states the formula (its lines 15 to 22), not numbers: the numbers
+live in its `look.json`, `times.json` and `paint/vertex-light.ts`, and the plan's constraints said no task needs the
+builders' repositories. Read side by side here, AF's bake and EnvironmentBuilder's are the same formula term for term
+(the key `[0.3, 0.8, 0.5]` at 0.09, the fill's fade `[1.5, 4, 0.25]`, the lamp strength 2.6, the cap 1.6, the step
+0.1, the sun from the time's key turned out of the camera's pitch), so the plan's first branch ("the profile is
+wrong") is the least likely and its second ended in "stop" with no steps. There was no time box, nothing about a fix
+that moves the interiors or an existing test's expectation, and nothing about what group 1's pull request does if
+the street stays out of the band. **Fix:** task 5's bullet is now four stages in `dark-interior.md`'s method
+(figures out; the bake against EnvironmentBuilder's `vertexLight` per vertex; the screen against the bake; the
+composition), each with what to do on each outcome, and stops (two hours; an interior leaving the band; any existing
+expectation moving unnamed; no constant changed to reach a ratio); at a stop the draft pull request opens with the
+street's row open and merges on the coordinator's word. EnvironmentBuilder is named in the constraints (finding 17).
+**Fixed.**
+
+### Should fix
+
+**5. Task 3's repair cannot fit the example's line budget as described.** `examples/3d/world/world-level-room.ts` has
+100 code lines (counted with the catalog's own rule), and the budget is 100 (`CODE_LINE_BUDGET`,
+`tooling/examples-runner/src/catalog.ts:40`), held in `pnpm check` by `catalog.test.ts` ("the real 3d examples pass the
+catalog"). The repair adds at least four (two sector fields, the read, the throw). The plan said "keep the file under
+its line budget" without the number. **Fix:** the step states the count, the budget, the test, and that the repair
+gives back what it adds. **Fixed.** (Its premise holds: with `floor: 0, light: 1` the room reads with 0 problems and
+builds 6 pieces; as it is, 2 problems and 0 pieces, measured.)
+
+**6. Task 10 expects one conflict; task 7 adds a second.** Merging #590 on `main` + #589 + the fix + #607 conflicts in
+`spikes/eb-look/probe.mjs` alone (measured). But task 7, which lands first, adds `?figures=painted` to
+`spikes/eb-look/scene.ts`, and #590 changes that file by 38 lines beyond #589 (`git diff --stat`), and the plan said
+any other conflict is a stop. **Fix:** the step expects it and says how to resolve it (keep every switch of both) and
+to load the page with `?figures=painted&fx=0` before going on. **Fixed.**
+
+**7. Task 15's interface does not match the plan it defers to.** It gave `PaintedState.mood?: string` "one of the
+builder's drawn moods" and called them "afraid, worried, firm". FigureBuilder #29's plan, task A4, which this plan
+names as the step text, produces `PaintedState.expression?: Expression` (the drawn face, from `EXPRESSIONS`) and
+`PaintedState.mood?: readonly string[]` (the tags such as `lookL`); its F8 names are `fear`, `sad`, `worried`, `firm`.
+A builder following both would write two different fields. **Fix:** task 15 takes A4's interface and names; task 13
+names F8's. **Fixed.**
+
+**8. The other plan's changeset is not allowed here.** #29's plan, A3 step 6, adds a `patch` changeset for
+`@automata/character-kit`; that package is private (`"private": true`), and `AGENTS.md` gives changesets to published
+packages only. **Fix:** task 15 says no changeset, and why. **Fixed.**
+
+**9. Task 13 would stop on an expected re-record, and left two parts of #29's plan unplaced.** #29's F8 replaces the
+`face/fear` and `face/sad` pins that its own F0 made on the same branch (they pinned faces that drew as neutral); the
+plan said "no existing golden moves; if one does, stop". #29's Checkpoint B (the coordinator's word before F9's pull
+request) and its Part 3 (Ada and the Nurse in FigureBuilder's showcase) were not mentioned. **Fix:** the two pins are
+named as expected (nothing on FigureBuilder's `main` moves); Checkpoint B is in, cut to the faces sheet; Part 3 is out,
+since Ada and the night figure are the game's, dressed by workstream 2's task 13. **Fixed.**
+
+**10. Task 11's file list reaches into the archive, names a note that does not exist, and drops behaviour without
+handing it over.** `git grep -l room-visibility` on #590 lists `docs/archive/` plans and specs (history, and about the
+old game's policy), `docs/refactor/progress.md` (the record) and `docs/provenance/sources.md` (a row whose target is
+the extension, read by `sources-md --complete`). There is no "room-visibility note": `docs/refactor/tll-extensions/
+README.md` covers all three extensions. And the extension (a port of the old game's `src/render/room-visibility.ts`)
+does more than 9b's "rooms a view draws": the player's own room always drawn, the zone just left held 0.35 s under the
+camera's blend, a peek's far side, every room in a cutscene, and wall cutaway groups by zone (`hideFrom`). Workstream
+2's survey drops `hideFrom` on purpose (its row 1); the other four are in none of its tasks. **Fix:** task 11 names the
+files to change and to leave, adds the line to the README, and gains a step 1b that sends the coordinator the four
+behaviours for workstream 2's task 9b, landing none here. **Fixed** in the plan; the four behaviours are **open** for
+workstream 2 (sent to the coordinator).
+
+**11. The homes table's reason for `lcd-panel` and `retro-crisp` was wrong, and the prologue's use of them is
+unplanned.** It said "no game needs them". `docs/refactor/tll-extensions/README.md` on #590 says all three of #588's
+extensions are "the render features the adventure source's clinic needs", ported from The Last Light's own
+`src/render/lcd-panel.ts`, `retro-filter.ts` and `crisp.ts` at `92e6704`; `retro-crisp`'s default profile is
+`CRISP_CLINIC`. Their home is still an extension (ready-made looks any pixel-art game could use; nothing under
+`packages/` imports either on the branch), so the ruling stands; the reason changes. Workstream 2's plan and survey
+never mention an LCD, a retro grade or crisp scaling, so whether the remade prologue wears its old look's last passes
+is planned nowhere. **Fix:** the reason in the homes table. **Fixed;** the question is **open** for workstream 2 (sent
+to the coordinator).
+
+**12. Call 11's other answer, "revert its two commits", is not two commits and does not apply cleanly.** Reverting
+`bdf4b6d0e` and `3565abc8f` on the whole merge order (scratch worktree) conflicts in
+`examples/3d/retrocrisp/retrocrisp-grade.ts` and `spikes/tll-extensions/shoot.mjs`, and the docs commit `1e01ca1e`
+("the whole-pixel hook, the crisp screenshots") would be left describing a removed option. The ruling itself is below
+("The two calls left to this audit"): keep. **Fix:** the homes table and call 11 record the ruling and what a revert
+would take. **Fixed;** the ruling goes to the coordinator for the Owner.
+
+**13. Task 11 framed room-visibility as "the coordinator's call, open to the Owner"; the Owner has ruled it, and the
+same ruling names all of #588.** The tracker's decisions list: "The clinic work already begun in the framework (#575,
+#596, #606, #588) is superseded by workstream 2." That settles room-visibility. Read literally it also covers
+`lcd-panel`, `retro-crisp` and the two core seams, which are #588's too, while the spec's call 1 gives #588 to this
+workstream "to finish or close" and workstream 2's plan says "what of it reaches `main` is the framework's to use".
+**Fix:** task 11, the homes table and call 3 cite the decision. **Fixed;** whether the decision was meant to cover
+#588's other two extensions is **open** for the coordinator (the plan keeps them, as the spec's call 1 allows).
+
+**14. Four more pull requests are settled by task 1's merge, and the plan did not say so.** The heads of #587
+(`cfb61baa`), #601 (`27001792`), #602 (`eee6141e`) and #604 (`8895c7f5`) are each ancestors of #589's, #607's and
+#590's heads (`git merge-base --is-ancestor`, all twelve true), so all four show as merged when task 1's merge reaches
+`main`. The plan's task 17 listed five pull requests; the survey said #602 and #587 "can then be closed as carried"
+and counted "seven" shared commits (there are nine; finding 25). **Fix:** task 5 checks the four and writes one line on
+each; task 17 lists nine. **Fixed.**
+
+**15. Nothing in the plan gives workstream 2 the word its dressing waits for, and workstream 2's dressing task
+contradicts this one.** Workstream 2's task 13 "starts when workstream 4 says the prologue's dressing can start"; no
+step here says it. **Fix:** a step after group 2's pull request sends that word (lit room and lit figures on `main`,
+the street's row, the ward's outfits to follow), and task 16 says when the ward's entries land. **Fixed.** Still
+**open**, for the coordinator: workstream 2's task 13 writes `content/figures/{ada,figure}.toml` (core's mesh figure
+files) and picks the figures "in the Studio", which opens core's mesh figures only (the tracker's editor gaps ledger,
+row 2), while this workstream's spec (goal 4) and this plan (calls 8 and 10) make Ada and the night figure painted
+figures dressed from the kit's entries, written as a data file in the game.
+
+**16. The plan named the wrong file as the overlap with workstream 2's task 9b.** It said the two branches meet in
+"this plan's `app/world-view.ts`"; 9b's files do not include it. They meet in `src/features/world/build.ts` (#589 and
+task 3; 9b only if rooms are not yet separate meshes) and `src/entries/index.ts` (#589, #590, 9b's `drawnRooms`), and
+9b's `rooms` on a camera view is the field #589's per-room base-scene views would carry. Neither of workstream 2's
+branches exists yet (`git ls-remote`). **Fix:** the branch notes name them, and add workstream 1's build branch
+(finding 26's check: no conflict). **Fixed.**
+
+**17. Two steps need EnvironmentBuilder, and the plan said none did.** Task 5's diagnosis (finding 4) and task 9's port
+of `exposureSteps` (`src/features/view/expose.ts`, 68 lines, checked) both read EnvironmentBuilder's code, which is not
+in the framework's session. **Fix:** the global constraints say to attach it read only at `f7c5356` for those two
+steps, as this audit did. **Fixed.**
+
+**18. The ward's new golden had no arch rule.** Task 15 records `ward-cells.json`, a first golden of painted cells.
+The runway golden needed an arch override until #607 found the hair poles; #29's plan (A6, P1) nudge-tests every new
+frame. **Fix:** task 15 draws the ward's cells again under `ulp.test.ts`'s nudge and fixes a moving cell in
+FigureBuilder, never with a per-arch entry. **Fixed.**
+
+### Tidy
+
+**19. #607 is not a draft.** GitHub shows it ready (`draft: false`); the plan and survey called all five "draft pull
+requests". **Fixed** in both.
+
+**20. Task 8's `reads` is the edge alone; `figureReads` reads the stronger of luma and edge.** Both are fair, but the
+file said its numbers are `figureReads`' definitions. **Fix:** `reads.json` keeps `read` (the kit's rule) and `reads`
+(the builder's exposure window, edge at least 1.1), and says which is which. **Fixed.**
+
+**21. Task 3's problem had `where: ''`.** `LevelProblem.where` is "the JSON path of the member when it is in none"
+(`shared/level/problem.ts`). **Fix:** `where: 'sectors'`. **Fixed.**
+
+**22. Task 6's pointer to the golden's ruling, and the pin in the commit's title.** The ruling's words ("hair or an ear
+moved by the pole rule is accepted") are in `docs/refactor/c8/runway-hair-poles/README.md` on #607, with the moved
+cells' pictures; the progress rows the plan named only report it. The golden's commit `ea71e0a3` is titled
+"FigureBuilder at d5ca055"; the pin then moved to `7797d4a` (`a646ccf5`) and `23f889c` (`0697beac`), and the
+FigureBuilder commits between change `lightSprite`'s speed only. Checked on `7167af1f`: one commit changes
+`runway-cells.json`, 42 of 112 cells, 281 texels, all hair; the golden grep prints the three files the plan says;
+`ARCH_OVERRIDES` survives only in a comment in `ulp.test.ts`; no other golden, hash, snapshot or approved picture
+changes in #589, #607 or #590. **Fix:** task 6 says all of it. **Fixed.** Nothing about the golden needs re-ruling.
+
+**23. The Chromium flags.** The plan said every run is "on software WebGL (`--use-angle=swiftshader
+--enable-unsafe-swiftshader`)"; only the shoot script passes those flags, and the vitest browser projects pass none
+(`packages/3d/vitest.config.ts` gives flags to the `webgpu` project only). Chromium's headless default is the same
+software path here; task 2's test ran so. **Fixed** (the constraint says which run passes what).
+
+**24. FigureBuilder's size.** Task 17 said "about 35 MB with its goldens"; its working tree is 20 MB at `d6e3c9f` and
+its history 46 MB (`du`). **Fixed.**
+
+**25. The survey's shared commits.** Nine, not seven, listed by pull request in the survey now. **Fixed.**
+
+**26. Workstream 1's build branch.** Checked as the coordinator asked: `claude/shared-polish-build` at `29ccea7f`
+merges with the whole order (`git merge-tree`, exit 0). Both change `pnpm-lock.yaml` and the generated
+`agents/automata/skills/automata-api/reference/api.md`. The lockfile merges as text but not as a lockfile: on the merged
+tree `pnpm install --frozen-lockfile` fails (`ERR_PNPM_LOCKFILE_MISSING_DEPENDENCY`, a `vitest@5.0.3` entry), and
+`pnpm install` repairs it in three lines, after which the frozen install passes (measured; the merge alone, without
+workstream 1, installs frozen). `api-index` was not run on the merge. **Fix:** the plan's branch notes say whichever
+lands second runs `pnpm install` and `pnpm api-index --write` after merging `main`. **Fixed.**
 
 ## The two calls left to this audit
 
-PENDING
+### The letterbox's whole-pixel scale: kept
+
+The change (`3565abc8f`, carried by #588 into #590): `@automata/framework`'s letterbox takes `scale: 'fit' | 'whole'`,
+default `fit`; `whole` draws the field at a whole number of device pixels a field pixel, centred and clipped; a `patch`
+changeset; `retro-crisp`'s `crispRendererOptions` asks for it (`bdf4b6d0e`).
+
+- **Any game could use it** (the Owner's rule: core only if generic for any game): yes. Any pixel-art game of any
+  genre, 2D or 3D, wants pixels of one width; nothing in it is a genre's or a game's.
+- **Core imports no extension:** yes. `retro-crisp` imports core; the letterbox imports nothing new.
+- **Every target needs it, or both reference games do** (the framework's own test for the browser package): not
+  plainly. No target needs it. The Last Light does: its renderer scales in whole pixels (`src/render/crisp.ts` at
+  `92e6704`, ported as `retro-crisp`'s default `CRISP_CLINIC`, "whole-pixel scaling"). Emberwick does not ask for it.
+  But core already promises it to every pixel-art game: `createPixi3dRenderer`'s `look` says the letterbox "upscales
+  whole pixels", and `composite-target.ts` says "upscaling by whole pixels is correct whatever the cost", while the
+  default `fit` scale is fractional. The option is how a game gets what core says it does, without changing a frame of
+  a game that does not ask.
+- **It cannot go one step down.** The letterbox is core's; an extension cannot change how the field is scaled without
+  a seam there, and this is that seam, as small as it can be.
+
+**Ruling: keep.** The coordinator of #588's cycle had already allowed it ("at the coordinator's word: opt-in",
+`docs/refactor/tll-extensions/README.md` on #590). It goes to the Owner through the coordinator, because the framework's
+test is met by one reference game, not both. If the Owner says revert: `git revert` of `bdf4b6d0e` and `3565abc8f` on the
+effects branch, resolving `examples/3d/retrocrisp/retrocrisp-grade.ts` and `spikes/tll-extensions/shoot.mjs` (measured
+conflicts), and the docs of `1e01ca1e`; the changeset goes with `3565abc8f`. Separately, core's comments promise whole
+pixels by default and do not deliver them; that is a question for core, not for this workstream.
+
+### `room-visibility` dropped for workstream 2's task 9b: rightly
+
+- The Owner's decisions list #588's clinic work as superseded by workstream 2, so this needed no new call (finding 13).
+- Workstream 2's spec names the core form ("a view that names the rooms it draws" passes the core test), and its task
+  9b builds it in `@automata/3d`, which owns the level format and the camera views. An extension that answers the same
+  question with its own policy file is the second answer the Owner's rule exists to stop.
+- What is lost unless workstream 2 takes it: the player's own room, the 0.35 s hold under the camera's blend, a peek's
+  far side, every room in a cutscene (and `hideFrom`, which workstream 2 drops on purpose). Task 11 now hands that list
+  over (finding 10).
+
+**Ruling: drop it, as the plan says,** with the hand-over.
+
+### The homes of `lcd-panel` and `retro-crisp`
+
+Their own extensions, as the plan says: ready-made looks any pixel-art game could use, ported from The Last Light's
+renderer; core imports neither; private, so no changeset. The reason in the plan was wrong (finding 11) and is fixed.
+
+## A figure's cast shadow (not in scope until the Owner says; no task added)
+
+What the builders do: EnvironmentBuilder's `src/features/stage/cast.ts` gives each figure a contact shadow under its
+feet and throws its silhouette along the key onto the ground, a mask that multiplies the floor's light there by
+`look.figureShadow` (0.6, its `look.json`). FigureBuilder draws none of it; the framework has none.
+
+What building it would add, if the Owner says yes:
+- **Home:** the character kit, beside `room-light.ts`: it is a rule about painted figures, as their light is. Core would
+  gain nothing unless a mesh figure wants it too.
+- **Code:** for each lit figure by day, its cell's silhouette projected along `worldLighting`'s sun direction onto its
+  floor's plane, drawn as a darkening on the floor (a quad under the figure with the mask, multiplied into what is
+  behind it, before the snap so the frame stays on the palette), and a small contact patch under the feet; nothing at
+  night, where the sun is weak or absent. It must keep to the depth rules (a wall in front hides it) on WebGL and
+  WebGPU.
+- **Tests:** a browser case that a figure by day darkens the floor texels on the side away from the sun to 0.6 of their
+  light within a step, and none at night; the `painted-lit` parity case unmoved (the shadow is on the floor, not the
+  figure); the day sheets re-shot with the shadow on and off.
+- **Cost:** one task between the plan's tasks 7 and 8 (the figures must be in the base scenes first), and it changes the
+  street's numbers a little (more dark texels under the pair), so task 5's measure would be taken before it.
+
 
 ## For the coordinator
 
-PENDING
+Sent as found; collected here.
+
+1. **`main` is red at `knip`** (finding 2) until this branch merges.
+2. **The letterbox ruling** (keep) is for the Owner to confirm (above).
+3. **Workstream 2, task 9b:** the four behaviours of the old room visibility it does not cover (finding 10).
+4. **Workstream 2, the old look's last passes:** whether the prologue uses the LCD panel, the retro grade and crisp
+   scaling, which are The Last Light's own and now the framework's extensions; its plan does not say (finding 11).
+5. **Workstream 2, task 13:** it writes core mesh figure files and picks them in the Studio, while this workstream makes
+   Ada and the night figure painted figures from the kit's entries (finding 15).
+6. **The Owner's decision on #588:** read literally it supersedes all of #588, the two kept extensions included; the
+   spec's call 1 keeps them open to this workstream. Which was meant (finding 13)?
+7. **A figure's cast shadow:** what building it would add is above; no task until the Owner says.

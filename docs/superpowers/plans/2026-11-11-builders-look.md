@@ -67,8 +67,10 @@ Against workstream 2's branches ([its plan](2026-11-11-last-light-prologue.md)):
   pull request. If it has already merged when task 1 starts, task 1 merges `main` as it is and the order is moot.
 - Workstream 1's `claude/shared-polish-build` (at `29ccea7f`, being built) merges with all of this plan's drafts in the
   order of this plan with no textual conflict (`git merge-tree`, plan audit); the two files both change are
-  `pnpm-lock.yaml` and the generated `agents/automata/skills/automata-api/reference/api.md`. Whichever lands second
-  runs `pnpm install` and `pnpm api-index --write` after merging `main` and commits what they change.
+  `pnpm-lock.yaml` and the generated `agents/automata/skills/automata-api/reference/api.md`. The lockfile merges as
+  text but not as a lockfile (`pnpm install --frozen-lockfile` fails on the merge; `pnpm install` repairs it in three
+  lines). Whichever lands second runs `pnpm install` and `pnpm api-index --write` after merging `main` and commits
+  what they change (finding 26).
 - `claude/builders-look-figures` must be on `main` before `claude/last-light-prologue` reaches its dressing task
   ("Dress it: props, lamps, Ada and the figure, poses"). The prologue's earlier tasks do not wait.
 - `claude/builders-look-wardrobe` should be on `main` before that dressing task ends: the game composes Ada and the
@@ -882,3 +884,4 @@ That plan's tasks "The kinds" and "Expressions reach the painter", cut to the wa
 | Date | Session | What |
 |---|---|---|
 | 2026-11-11 | Stage 2 (plan), `claude/builders-look-plan` | The survey and this plan, planned against the spec at `44c4da09` (unchanged since) and `main` at `f93a2402`. No product code written |
+| 2026-11-11 | Stage 3 (plan audit), `claude/builders-look-plan-audit` | [The audit](../audits/2026-11-11-builders-look-plan-audit.md) at `main` `b80bfc84`: 26 findings (4 blocking, 14 should fix, 8 tidy), each fixed here or in the survey; five open items went to the coordinator. Re-measured: the survey's sheets on `main` and on `main` + #589 + the fix, task 2's test failing and passing, the merge order with `pnpm check` step by step on each state, workstream 1's build branch merged with it. The shoot script moved to `spikes/builders-look/` (knip). Calls 3 and 11 ruled: room-visibility dropped (already the Owner's decision), the whole-pixel letterbox kept. No product code changed |
