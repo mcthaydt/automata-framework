@@ -7,7 +7,7 @@ import type { Occlude } from '@automata/3d/level'
 import type { FieldValue } from '@automata/editor/kit/fields'
 import type { Edit } from '../../../shared/edit/edit'
 import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor'
-import { setTimeOfDay } from '../../../shared/edit/level-edits'
+import { setTimeOfDay, setViewRooms } from '../../../shared/edit/level-edits'
 import {
   type SetMaterialsArgs,
   type SetTrimArgs,
@@ -51,6 +51,8 @@ export type InspectorChange =
     }
   /** The level's time of day; `null` takes it off. `label` is its name in words, for the Undo. */
   | { readonly kind: 'level'; readonly time: string | null; readonly label?: string }
+  /** The rooms a camera view draws; none ticked takes them off, so the view draws every room. */
+  | { readonly kind: 'view-rooms'; readonly view: string; readonly rooms: readonly string[] }
   | { readonly kind: 'sector'; readonly id: string; readonly floor: number }
   | { readonly kind: 'sector'; readonly id: string; readonly ceiling: number }
   | { readonly kind: 'sector'; readonly id: string; readonly light: number }
@@ -86,6 +88,7 @@ function editOf<D>(change: InspectorChange): Edit<D> {
       ? setThingField({ ...thing, field: change.field, value: change.value })
       : removeThing(thing)
   }
+  if (change.kind === 'view-rooms') return setViewRooms({ view: change.view, rooms: change.rooms })
   if (change.kind === 'level')
     return setTimeOfDay({
       time: change.time ?? undefined,

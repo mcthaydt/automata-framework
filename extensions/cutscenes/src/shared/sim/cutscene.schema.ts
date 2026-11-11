@@ -11,11 +11,16 @@ import { z } from 'zod'
 
 export type V3 = readonly [number, number, number]
 
-/** `lens`: focal length in mm for this key (default the script's), eased with the move. `cut`: arrive without easing. */
+/**
+ * `lens`: focal length in mm for this key (default the script's), eased with the move. `cut`: arrive without easing.
+ * `about`: an anchor (`player`, `actor:<who>`, a hotspot or a nav node the game names): `pos` and `look` are then offsets
+ * from that anchor's point on the floor (x and z; the height is the key's own), settled when the cutscene starts.
+ */
 export interface CameraKey {
   readonly t: number
   readonly pos: V3
   readonly look: V3
+  readonly about?: string | undefined
   readonly cut?: boolean | undefined
   readonly lens?: number | undefined
   readonly ease?: Ease | undefined
@@ -132,6 +137,7 @@ const cameraKey: z.ZodType<CameraKey> = z.strictObject({
   t: z.number(),
   pos: v3,
   look: v3,
+  about: z.string().min(1).optional(),
   cut: z.boolean().optional(),
   lens: z.number().positive().optional(),
   ease: easeSchema.optional(),

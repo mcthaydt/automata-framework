@@ -30,3 +30,35 @@ export function setTimeOfDay<D>(args: SetTimeOfDayArgs): Edit<D> {
     },
   }
 }
+
+export interface SetViewRoomsArgs {
+  /** The camera view's id. */
+  readonly view: string
+  /** The rooms (sector ids) it draws; none, or an empty list, takes them off so it draws every room. */
+  readonly rooms: readonly string[] | undefined
+}
+
+/**
+ * The rooms a camera view draws, written as the view's `rooms` member. A view that names no rooms draws every room, so an
+ * empty list takes the member off rather than writing a view that draws none (the schema refuses one).
+ */
+export function setViewRooms<D>(args: SetViewRoomsArgs): Edit<D> {
+  const wanted = args.rooms === undefined || args.rooms.length === 0 ? undefined : args.rooms
+  return {
+    id: 'level.setViewRooms',
+    label: `Set the rooms the camera ${args.view} draws`,
+    coalesce: `view-rooms:${args.view}`,
+    run(profile, level) {
+      const access = profile.viewRooms
+      if (access === undefined) return refuse('this kind of level has no rooms for a camera to draw')
+      if (!(profile.views?.(level) ?? []).includes(args.view))
+        return refuse(`There is no camera called "${args.view}" in this level`)
+      const have = profile.sectors.list(level).map((each) => each.id)
+      const missing = wanted?.find((room) => !have.includes(room))
+      if (missing !== undefined) return refuse(`There is no room called "${missing}" (${have.join(', ')})`)
+      const before = access.of(level, args.view)
+      if (before?.join('\n') === wanted?.join('\n')) return ok(level)
+      return ok(access.withRooms(level, args.view, wanted))
+    },
+  }
+}

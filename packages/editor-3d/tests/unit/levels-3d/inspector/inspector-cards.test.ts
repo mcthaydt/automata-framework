@@ -22,6 +22,36 @@ const editorWith = (...ids: string[]) => {
   return editor
 }
 
+describe('a sector card’s camera rooms', () => {
+  const withViews = (rooms?: readonly string[]): AfSector2File => ({
+    ...depot,
+    views: { start: rooms === undefined ? {} : { rooms: [...rooms] } },
+    sectors: depot.sectors.map((sector) => (sector.id === 'hall' ? { ...sector, view: 'start' } : sector)),
+  })
+  const cardOf = (level: AfSector2File) => {
+    const editor = createLevelEditor({ profile: afSectorProfile, level })
+    editor.selection.set(['sector:hall'])
+    return inspectorOf(editor)
+  }
+
+  it('lists every room of the level to tick, and the ones the camera draws', () => {
+    expect(cardOf(withViews(['dock']))).toMatchObject({
+      kind: 'sector',
+      viewRooms: { view: 'start', all: ['hall', 'dock'], rooms: ['dock'] },
+    })
+  })
+
+  it('has none ticked for a camera that names no rooms', () => {
+    expect(cardOf(withViews())).toMatchObject({ viewRooms: { view: 'start', rooms: [] } })
+  })
+
+  it('is absent for a room with no camera, and for a camera the level’s file does not hold', () => {
+    expect(cardOf(depot)).not.toHaveProperty('viewRooms', expect.anything())
+    const elsewhere = { ...withViews(), views: { other: {} } }
+    expect(cardOf(elsewhere)).not.toHaveProperty('viewRooms', expect.anything())
+  })
+})
+
 describe('inspectorOf', () => {
   it('reads the time of day the level names', () => {
     const editor = createLevelEditor({ profile: afSectorProfile, level: { ...depot, time: 'dusk' } })

@@ -25,9 +25,12 @@ let sim: Sim
 let mounted: PlayMount | undefined
 const reported: string[] = []
 
-async function open(words: (key: string) => string | undefined = (key) => TEXT[key]) {
+async function open(
+  words: (key: string) => string | undefined = (key) => TEXT[key],
+  more: { lines?: typeof lines; typed?: Parameters<typeof captionSlot>[4] } = {},
+) {
   ;({ sim } = await createCutGame([SCRIPT]))
-  mounted = mountInPlay(captionSlot(words, lines, { wake: SCRIPT }), sim)
+  mounted = mountInPlay(captionSlot(words, more.lines ?? lines, { wake: SCRIPT }, 60, more.typed), sim)
 }
 function stepOnce(...orders: Order[]): void {
   const input = orders.map((order, seq) => ({ tick: sim.tick, source: 0, seq, ...order }))
@@ -81,5 +84,33 @@ describe('the cutscene caption', () => {
     expect(caption()).toBeNull()
     expect(mounted?.host.textContent).not.toContain('toy.stuck')
     expect(reported).toEqual(['The caption "line.stuck" has no words yet. Write them in Writer.'])
+  })
+
+  describe('typed out', () => {
+    // A stand-in for narrative's `typed`, at ten characters a second: cutscenes does not import narrative, so the game hands
+    // its own in, and the caption only passes it the words, the line's delivery and the seconds since the caption came up.
+    const typed = (words: string, _delivery: unknown, seconds: number) => ({
+      shown: Math.min(words.length, Math.floor(seconds * 10)),
+      done: seconds * 10 >= words.length,
+    })
+    const slow = (id: string) => ({ text: LINES[id]?.text ?? '', delivery: { pace: 1 } })
+
+    it('types a line with a delivery by the cutscene’s own clock, keeping the room of the rest', async () => {
+      await open(undefined, { lines: slow, typed })
+      stepOnce(load())
+      stepOnce(play('wake'))
+      for (let tick = 0; tick < 30; tick++) stepOnce() // half a second on
+      expect(caption()?.querySelector('[data-testid=cutscene-caption-typed]')?.textContent).toBe('The g')
+      expect(caption()?.textContent).toBe('The gate sticks in the rain.')
+    })
+
+    it('shows a line with no delivery all at once, whatever it is given to type with', async () => {
+      await open(undefined, { typed })
+      stepOnce(load())
+      stepOnce(play('wake'))
+      expect(caption()?.querySelector('[data-testid=cutscene-caption-typed]')?.textContent).toBe(
+        'The gate sticks in the rain.',
+      )
+    })
   })
 })

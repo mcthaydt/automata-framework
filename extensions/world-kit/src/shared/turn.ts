@@ -8,3 +8,7 @@ export const turnY = (mesh: MeshData, degrees: number, at: V3 = [0, 0, 0]): Mesh
 /** A mesh turned about x (degrees): a panel tipped up, an awning. */
 export const turnX = (mesh: MeshData, degrees: number, at: V3 = [0, 0, 0]): MeshData =>
   placed(mesh, at, axisAngle([1, 0, 0], (degrees * Math.PI) / 180))
+
+/** A mesh turned about z (degrees): a wheel stood on its side, a door swung on a hinge that lies along z. */
+export const turnZ = (mesh: MeshData, degrees: number, at: V3 = [0, 0, 0]): MeshData =>
+  placed(mesh, at, axisAngle([0, 0, 1], (degrees * Math.PI) / 180))

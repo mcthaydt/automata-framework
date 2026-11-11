@@ -34,7 +34,14 @@ import {
   setNextEdit,
   setStanceEdit,
 } from './dialogue-model.ts'
-import { addLineEdits, newLineId, removeLineEdit, wordsEdit } from './writer-model.ts'
+import {
+  addLineEdits,
+  type DeliveryDraft,
+  deliveryEdit,
+  newLineId,
+  removeLineEdit,
+  wordsEdit,
+} from './writer-model.ts'
 import { wayOut } from './writer-problems.ts'
 
 export type WriterView = { readonly kind: 'lines' } | { readonly kind: 'talk'; readonly graph: number }
@@ -238,6 +245,16 @@ export class WriterSession {
     const outcome = await files.lines.change('Change the words', [edit], `words.${String(index)}`)
     if (outcome.ok) this.#wordsChanged()
     return outcome
+  }
+
+  /** How the line is said changed: its direction, pace and pauses, written as one edit and one undo step. */
+  async setDelivery(index: number, draft: DeliveryDraft): Promise<Outcome> {
+    const files = this.files
+    const before = files?.lines.content?.lines[index]
+    if (files === undefined || before === undefined) return { ok: false, message: 'That line is gone.' }
+    const edit = deliveryEdit(index, before.delivery, draft)
+    if (edit === undefined) return { ok: true }
+    return files.lines.change('Change how it is said', [edit], `delivery.${String(index)}`)
   }
 
   /** Asks first when a conversation or cutscene still says the line: sets `removing`; `force` removes anyway. */

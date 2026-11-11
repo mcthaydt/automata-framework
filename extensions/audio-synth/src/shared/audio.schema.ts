@@ -140,6 +140,15 @@ export interface MusicRule {
   readonly why?: string | undefined
 }
 /**
+ * Footsteps by floor: the cue a step makes on each floor surface (a sector's `floorTexture`), and the one for a surface
+ * the table does not name. The game's view plays it when it hears its own step.
+ */
+export interface StepsTable {
+  readonly default: string
+  readonly floors?: Readonly<Record<string, string>> | undefined
+}
+
+/**
  * A game's whole `audio` content: master gain, cues, beds, the map from sim events to cues, the
  * ducking rules, and the music slots and rules.
  */
@@ -151,6 +160,8 @@ export interface AudioContent {
   readonly duck?: readonly DuckRule[] | undefined
   readonly slot?: readonly Slot[] | undefined
   readonly music_rule?: readonly MusicRule[] | undefined
+  /** The cue a step makes on each floor surface; absent means the game plays none of its own. */
+  readonly steps?: StepsTable | undefined
 }
 
 const bus = z.enum(BUSES as [BusId, ...BusId[]])
@@ -268,6 +279,12 @@ export const audioSchema: z.ZodType<AudioContent> = z
     duck: z.array(duckRule).optional(),
     slot: z.array(slot).optional(),
     music_rule: z.array(musicRule).optional(),
+    steps: z
+      .strictObject({
+        default: z.string().min(1),
+        floors: z.record(z.string(), z.string().min(1)).optional(),
+      })
+      .optional(),
   })
   .superRefine((audio, ctx) => {
     const sounds = new Set<string>()
@@ -291,6 +308,17 @@ export const audioSchema: z.ZodType<AudioContent> = z
         ctx.addIssue({ code: 'custom', path: ['event', i, 'on'], message: `two entries answer ${e.on}` })
       seen.add(e.on)
     })
+    if (audio.steps !== undefined) {
+      if (!cues.has(audio.steps.default))
+        ctx.addIssue({ code: 'custom', path: ['steps', 'default'], message: `no cue ${audio.steps.default}` })
+      for (const [floor, id] of Object.entries(audio.steps.floors ?? {}))
+        if (!cues.has(id))
+          ctx.addIssue({
+            code: 'custom',
+            path: ['steps', 'floors', floor],
+            message: `no cue ${id} for the floor ${floor}`,
+          })
+    }
     const slots = new Set<string>()
     ;(audio.slot ?? []).forEach((s, i) => {
       if (slots.has(s.id))

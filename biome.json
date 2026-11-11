@@ -33,6 +33,7 @@
       "includes": [
         "extensions/narrative/**",
         "extensions/puzzle/**",
+        "extensions/interact/**",
         "extensions/systems/**",
         "extensions/cutscenes/**",
         "extensions/editors/src/features/schematic/**",

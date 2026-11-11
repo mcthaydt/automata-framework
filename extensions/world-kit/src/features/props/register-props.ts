@@ -7,6 +7,7 @@ import { NATURE } from './nature.ts'
 import { SIGNS } from './signs.ts'
 import { SMALL_THINGS } from './small-things.ts'
 import { STREET } from './street.ts'
+import { WARD } from './ward.ts'
 
-for (const table of [FURNITURE, SMALL_THINGS, STREET, NATURE, SIGNS])
+for (const table of [FURNITURE, SMALL_THINGS, STREET, NATURE, SIGNS, WARD])
   for (const [kind, generator] of Object.entries(table)) registerPropGenerator(kind, generator)

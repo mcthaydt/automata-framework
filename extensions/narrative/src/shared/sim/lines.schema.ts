@@ -1,6 +1,7 @@
 // Line records: every line a scene says, with what it means for the story. `text` is a locale key
 //: the sim holds the key, and the string exists only on screen.
 import { z } from 'zod'
+import { type Delivery, deliveryProblems, deliverySchema } from './delivery.ts'
 
 export type LineKind =
   | 'examine'
@@ -41,20 +42,28 @@ export interface LineRecord {
   /** Lethal or systemic rule ids this line hints at. */
   readonly hints?: readonly string[] | undefined
   readonly motifs?: readonly string[] | undefined
+  /** How the line is said: absent means plainly. A direction, a pace and pauses by sentence. */
+  readonly delivery?: Delivery | undefined
 }
 /** The line's shape; the content kind passes its own schema for `words` (translatable text), the sim plain text. */
 function lineShape(words: z.ZodType<string, string>): z.ZodType<LineRecord> {
-  return z.strictObject({
-    id: z.string().min(1),
-    kind: z.enum(LINE_KINDS as [LineKind, ...LineKind[]]),
-    speaker: z.string().optional(),
-    text: z.string().min(1),
-    words: words.optional(),
-    facts: z.array(z.string()).optional(),
-    beat: z.string().optional(),
-    hints: z.array(z.string()).optional(),
-    motifs: z.array(z.string()).optional(),
-  })
+  return z
+    .strictObject({
+      id: z.string().min(1),
+      kind: z.enum(LINE_KINDS as [LineKind, ...LineKind[]]),
+      speaker: z.string().optional(),
+      text: z.string().min(1),
+      words: words.optional(),
+      facts: z.array(z.string()).optional(),
+      beat: z.string().optional(),
+      hints: z.array(z.string()).optional(),
+      motifs: z.array(z.string()).optional(),
+      delivery: deliverySchema.optional(),
+    })
+    .superRefine((line, context) => {
+      for (const message of deliveryProblems(line.id, line.delivery, line.words))
+        context.addIssue({ code: 'custom', path: ['delivery', 'beats'], message })
+    })
 }
 export const lineSchema: z.ZodType<LineRecord> = lineShape(z.string())
 export interface LinesFile {

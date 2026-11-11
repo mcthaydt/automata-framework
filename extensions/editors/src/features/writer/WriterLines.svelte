@@ -1,9 +1,10 @@
 <!-- A scene's lines as a script: who says each one, the words, and what the line is for. -->
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
+import { sentences } from '@automata/narrative/sim'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import WordsField from '../../shared/ui/WordsField.svelte'
-import { scriptLines, speakerChoices } from './writer-model.ts'
+import { deliveryOf, scriptLines, speakerChoices } from './writer-model.ts'
 import type { WriterSession } from './writer-session.svelte.ts'
 import { ADDABLE_KINDS, KIND_WORDS } from './writer-words.ts'
 
@@ -15,8 +16,20 @@ let speaker = $state('')
 let kind = $state<(typeof ADDABLE_KINDS)[number]>('dialogue')
 const speakers = $derived(speakerChoices(session.people, lines))
 const NO_ONE = { value: '', label: 'No one' }
+const PAUSES = [
+  { value: '0', label: 'None' },
+  { value: '1', label: 'A short pause' },
+  { value: '2', label: 'A long pause' },
+]
 
 let draft = $state('')
+/** The lines whose delivery is open: a closed one has no controls on the page, so nothing hidden can be tapped by mistake. */
+let saying = $state<ReadonlySet<string>>(new Set())
+const toggled = (set: ReadonlySet<string>, id: string): ReadonlySet<string> => {
+  const next = new Set(set)
+  if (!next.delete(id)) next.add(id)
+  return next
+}
 
 async function add(): Promise<void> {
   const id = await session.addLine(kind, speaker === '' ? undefined : speaker, draft)
@@ -49,6 +62,49 @@ const removing = $derived(session.removing)
       onchange={(words) => void session.setWords(row.index, words)}
     />
     {#if row.words === undefined}<p>No words yet</p>{/if}
+    {#if row.words !== undefined}
+      {@const how = deliveryOf(lines?.lines[row.index]?.delivery, row.words)}
+      {@const parts = sentences(row.words)}
+      <div class="actions">
+        <Button
+          variant="quiet"
+          aria-expanded={saying.has(row.id)}
+          onclick={() => (saying = toggled(saying, row.id))}>{saying.has(row.id) ? 'Hide how it is said' : 'How it is said'}</Button
+        >
+      </div>
+      {#if saying.has(row.id)}
+      <div class="delivery" role="group" aria-label="Delivery">
+        <WordsField
+          label="How it is said"
+          value={how.how}
+          placeholder="A note for whoever reads it aloud"
+          onchange={(value) => void session.setDelivery(row.index, { ...how, how: value })}
+        />
+        <FieldRow
+          label="How fast"
+          kind="number"
+          value={how.pace}
+          min={0.25}
+          max={4}
+          step={0.05}
+          onchange={(value) => void session.setDelivery(row.index, { ...how, pace: Number(value) })}
+        />
+        {#each parts.slice(0, -1) as part, at (at)}
+          <FieldRow
+            label={`Pause after “${part}”`}
+            kind="choice"
+            value={String(how.pauses[at] ?? 0)}
+            options={PAUSES}
+            onchange={(value) =>
+              void session.setDelivery(row.index, {
+                ...how,
+                pauses: how.pauses.map((pause, i) => (i === at ? Number(value) : pause)),
+              })}
+          />
+        {/each}
+      </div>
+      {/if}
+    {/if}
     {#if removing?.index === row.index}
       <div class="confirm" role="group" aria-label="Remove this line?">
         <p>
@@ -102,6 +158,10 @@ const removing = $derived(session.removing)
 {/if}
 
 <style>
+  .delivery {
+    display: grid;
+    gap: var(--space-2);
+  }
   .kind {
     color: var(--color-text-faint);
     font: var(--text-body-13);

@@ -1,7 +1,7 @@
 // A scene's lines as a script: who says what, and in words what each line is for. The edits are the kit's content edits
 // by key path, so the file keeps its comments and order. Writer never reorders a lines file; new lines go at the end.
 import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { Canon, LineKind, LinesFile } from '@automata/narrative/sim'
+import { type Canon, type Delivery, type LineKind, type LinesFile, sentences } from '@automata/narrative/sim'
 import { appendEdits } from '../../shared/fields.ts'
 import { humanize } from '../../shared/humanize.ts'
 import { KIND_WORDS } from './writer-words.ts'
@@ -100,3 +100,44 @@ export function wordsEdit(index: number, before: string | undefined, words: stri
 }
 
 export const removeLineEdit = (index: number): ContentEdit => ({ keyPath: ['lines', index], remove: true })
+
+/** A line's delivery as the fields Writer shows: the direction, the pace (1 is normal) and a pause (0, 1 or 2 beats) after each sentence. */
+export interface DeliveryDraft {
+  readonly how: string
+  readonly pace: number
+  readonly pauses: readonly number[]
+}
+
+/** The delivery of a line with `words`, as the fields: one pause for each sentence, 0 where the file has none. */
+export function deliveryOf(delivery: Delivery | undefined, words: string | undefined): DeliveryDraft {
+  const count = sentences(words ?? '').length
+  const pauses = Array.from(
+    { length: count },
+    (_, i) => delivery?.beats?.find((b) => b.after === i + 1)?.pause ?? 0,
+  )
+  return { how: delivery?.how ?? '', pace: delivery?.pace ?? 1, pauses }
+}
+
+/**
+ * The edit that makes a line's delivery what the fields say: the whole `delivery` written at once (one undo step), with
+ * what is plain left out; the key goes when nothing is left, and nothing is written for a plain line that stays plain.
+ */
+export function deliveryEdit(
+  index: number,
+  before: Delivery | undefined,
+  draft: DeliveryDraft,
+): ContentEdit | undefined {
+  const beats = draft.pauses.flatMap((pause, i) => (pause > 0 ? [{ after: i + 1, pause }] : []))
+  const how = draft.how.trim()
+  const next: Delivery = {
+    ...(how === '' ? {} : { how }),
+    ...(draft.pace === 1 ? {} : { pace: draft.pace }),
+    ...(beats.length === 0 ? {} : { beats }),
+  }
+  const path = ['lines', index, 'delivery']
+  if (Object.keys(next).length === 0)
+    return before === undefined ? undefined : { keyPath: path, remove: true }
+  return before === undefined
+    ? { keyPath: path, insert: next }
+    : { keyPath: path, expected: before, set: next }
+}
