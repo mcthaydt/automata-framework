@@ -41,7 +41,7 @@ export const registeredLookPasses = (): readonly LookPass[] => REGISTERED
 /** The passes for `look` at `time`. The snap always runs: a frame is DUEL or it is not the look. */
 export function createLookPasses(look: Look, time: TimeOfDay): LookPasses {
   const snap = new DuelSnapEffect(look.switches.dither ? look.dither.strength : 0)
-  const outline = look.switches.outline ? new OutlineEffect(look.outline.edge) : undefined
+  const outline = look.switches.outline ? new OutlineEffect(look.outline) : undefined
   const haze = look.switches.haze ? new HazeEffect(hazeOf(look.haze, time.scene.haze)) : undefined
   const extra = REGISTERED.map((pass) => pass.make(look, time))
   return {
