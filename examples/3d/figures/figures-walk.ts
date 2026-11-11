@@ -3,7 +3,7 @@
 // Shows: a figure as data (a FigureDef: sliders, an outfit of garments, palette swatches and a gait) drawn by
 //   @automata/3d's figure view, one mesh per part posed from the gait's pose clock; the sim moves the figure and
 //   says whether it is walking, and the view walks or idles from that; the camera is the Owner's default view
-//   (24 mm, 25° down, 5 m back) following the figure.
+//   (50 mm, 30° down, 16 m back) following the figure.
 // Controls: none
 // Packages: @automata/framework, @automata/3d
 // Difficulty: ★★★☆

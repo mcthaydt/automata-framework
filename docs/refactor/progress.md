@@ -747,3 +747,16 @@ is built in `@automata/3d`, not in EnvironmentBuilder.
 | Baseline screenshots | AF WebGL drawn (baked room light, and material light only) for the four base scenes in the diorama and first person. The AF WebGPU panel shows the device lost in play (headless SwiftShader). The EB CPU panel is empty: running EB's code was refused by this session's permission classifier | [baseline](../superpowers/eb-look/baseline/), script `spikes/eb-look/` |
 | Gap and work packages | Done: 13 parts, WP0 to WP11 | [gap](../superpowers/eb-look/gap.md) |
 | Gates | Not run: no package code changed (docs, PNGs and a spike that biome and knip ignore) | |
+
+## The default 3D gameplay camera (2026-11-11)
+
+The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches the reference game's. It replaces the 24 mm,
+25°, 5 m camera of 2026-10-23 (the Owner confirmed the new one supersedes that lock).
+
+| Step | Status | Record |
+|---|---|---|
+| Rules as pure functions and zone data (`look`, `distance`, `x`, `follow`, `depthFollow`, `enterMargin`) | Done: tests first, `play-camera.ts`, `sim/view-zone.ts`, the view schema | `packages/3d/tests/unit/camera/` |
+| Rig on the new rules (50 mm, 30°, 16 m; follow with dead zone; 1/7 s ease; dolly; peek; shake) | Done; klipp stays as the camera's brain | `angled-camera.test.ts` |
+| The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
+| Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](../superpowers/eb-look/camera/README.md) |
+| Gates | See the PR description for what ran and what is pending | |

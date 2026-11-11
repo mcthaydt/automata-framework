@@ -1,4 +1,4 @@
-// D3-i and M3R-D15: the heading as sim state. A `camera-turn` of N units changes the heading by exactly N (wrapping
+// D3-i and M3R-D15: the heading as sim state. A `camera-turn` turns it one 45° step toward the turn's sign (wrapping
 // at 65,536) and a view with `rotate: false` ignores it; a view change latches the stick's mapping to the old
 // heading until the stick is released or turns by more than 90°; the player's own turn does not latch.
 import { describe, expect, it } from 'vitest'
@@ -32,6 +32,7 @@ describe('the start', () => {
       latchHeading: 0,
       latchX: 0,
       latchY: 0,
+      turning: 0,
     })
     expect(turnCamera(START, 100)).toEqual(START)
   })
@@ -42,15 +43,44 @@ describe('the start', () => {
 })
 
 describe('turnCamera', () => {
-  it('changes the heading by exactly N and wraps at 65,536', () => {
-    expect(turnCamera(inHall(100), 5).heading).toBe(105)
-    expect(turnCamera(inHall(100), -200).heading).toBe(TURN_UNITS - 100)
-    expect(turnCamera(inHall(TURN_UNITS - 1), 1).heading).toBe(0)
+  it('turns one 45° step toward the sign of the turn, and wraps at 65,536', () => {
+    expect(turnCamera(inHall(0), 5).heading).toBe(8_192)
+    expect(turnCamera(inHall(0), -5).heading).toBe(TURN_UNITS - 8_192)
+    expect(turnCamera(inHall(7 * 8_192), 1).heading).toBe(0)
+    expect(turnCamera(inHall(0), -1).heading).toBe(7 * 8_192)
   })
 
-  it('clamps a turn to ±8,192', () => {
+  it('turns one step however far the finger went: a tick never turns more than 45°', () => {
     expect(turnCamera(inHall(0), 20_000).heading).toBe(8_192)
     expect(turnCamera(inHall(0), -20_000).heading).toBe(TURN_UNITS - 8_192)
+  })
+
+  it('from a view’s authored angle off the 45° lines goes to the next line that way', () => {
+    expect(turnCamera(inHall(100), 5).heading).toBe(8_192)
+    expect(turnCamera(inHall(100), -5).heading).toBe(0)
+  })
+
+  it('steps once per press: a turn held across ticks does not step again, a release and a new press does', () => {
+    const pressed = turnCamera(inHall(0), 364)
+    expect(pressed).toMatchObject({ heading: 8_192, turning: 1 })
+    // Every tick of a held key is another `camera-turn`: the same direction is the same press.
+    const held = turnCamera(pressed, 364)
+    expect(held).toBe(pressed)
+    expect(turnCamera(held, 546)).toBe(pressed)
+    const released = turnCamera(held, 0)
+    expect(released).toMatchObject({ heading: 8_192, turning: 0 })
+    expect(turnCamera(released, 364).heading).toBe(16_384)
+  })
+
+  it('turning the other way without letting go steps back at once', () => {
+    const right = turnCamera(inHall(0), 5)
+    expect(turnCamera(right, -5)).toMatchObject({ heading: 0, turning: -1 })
+  })
+
+  it('does not remember a press in a view that ignores the turn', () => {
+    const fixed = enterView(inHall(0), arena, CENTRED)
+    expect(turnCamera(fixed, 1_000)).toBe(fixed)
+    expect(fixed.turning).toBe(0)
   })
 
   it('is ignored in a view with rotate: false', () => {
@@ -132,14 +162,14 @@ describe('the latch (M3R-D15)', () => {
   })
 
   it('a player’s own turn never latches, and lets go of a latch: they asked for the new heading', () => {
-    const turned = turnCamera(inHall(0), 1_000)
+    const turned = turnCamera(inHall(0), 1)
     expect(turned.latched).toBe(false)
-    const unlatched = turnCamera(crossed, 1_000)
-    expect(unlatched).toMatchObject({ heading: QUARTER + 1_000, latched: false })
-    expect(moveDirection(unlatched, UP).direction).toEqual(mapStick(UP, QUARTER + 1_000))
+    const unlatched = turnCamera(crossed, 1)
+    expect(unlatched).toMatchObject({ heading: QUARTER + 8_192, latched: false })
+    expect(moveDirection(unlatched, UP).direction).toEqual(mapStick(UP, QUARTER + 8_192))
   })
 
-  it('a turn of 0 leaves a latch as it is', () => {
+  it('no turn at all leaves a latch, and the state itself, as it is', () => {
     expect(turnCamera(crossed, 0)).toBe(crossed)
   })
 })

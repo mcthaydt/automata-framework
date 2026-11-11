@@ -1,10 +1,10 @@
-// The follow camera of a room (ED3D.4c, the 3D direction spec §4.2, M3R-D9 and D11): 24 mm, 25 degrees down and 5 m back from
+// The follow camera of a room (ED3D.4c, the 3D direction spec §4.2, M3R-D9 and D11): 50 mm, 30 degrees down and 16 m back from
 // a focus a metre above the followed position, along a heading the player turns freely. The editor draws a room as the player
 // sees it: the eye the game would put there, and the walls that eye cuts away. `bounds`, `lag` easing and lock-on framing
 // are the game renderer's; the editor carries `lag` as data only. The view itself (its fields, defaults and ranges) is
 // @automata/3d's `camera-view`, whose own tests cover it.
 
-import { cameraView, TURN_UNITS } from '@automata/3d/camera-view'
+import { cameraView, fovOf, LENS_MM, TURN_UNITS } from '@automata/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { followCamera, roomView } from '#src/features/levels-3d/walk/follow-camera.ts'
 import { headingToYaw } from '#src/features/levels-3d/walk/heading.ts'
@@ -19,20 +19,22 @@ const [QUARTER, HALF] = [TURN_UNITS / 4, TURN_UNITS / 2]
 const MIDDLE: Vec3 = [4, 0, 3]
 
 describe('followCamera', () => {
-  it('stands 2.11 m above the focus and 4.53 m behind it at the defaults, 3.1 m above the floor, and looks 25 degrees down', () => {
+  it('stands 8 m above the focus and 13.86 m behind it at the defaults, 9 m above the floor, and looks 30 degrees down', () => {
     const camera = followCamera(cameraView('view'), [0, 0, 0], 0)
     // Heading 0 looks toward +z, so the eye is behind the player at -z.
     expect(camera.eye[0]).toBeCloseTo(0, 9)
-    expect(camera.eye[1] - 1).toBeCloseTo(2.113, 3)
-    expect(camera.eye[1]).toBeCloseTo(3.113, 3)
-    expect(camera.eye[2]).toBeCloseTo(-4.532, 3)
-    expect(camera.pitch).toBeCloseTo(-25 * DEGREES, 12)
+    expect(camera.eye[1] - 1).toBeCloseTo(8, 9)
+    expect(camera.eye[1]).toBeCloseTo(9, 9)
+    expect(camera.eye[2]).toBeCloseTo(-13.8564, 4)
+    expect(camera.pitch).toBeCloseTo(-30 * DEGREES, 12)
   })
 
-  it('looks through the 24 mm lens: 53.13 degrees', () => {
+  it('looks through the game’s 50 mm lens: 26.99 degrees, not the dollhouse’s 24 mm', () => {
     const camera = followCamera(cameraView('view'), MIDDLE, 0)
-    expect(camera.fov).toBe(ORBIT_FOV)
-    expect(camera.fov / DEGREES).toBeCloseTo(53.13, 2)
+    expect(camera.fov).toBeCloseTo(2 * Math.atan(12 / LENS_MM), 12)
+    expect(camera.fov / DEGREES).toBeCloseTo(fovOf(50), 9)
+    expect(camera.fov / DEGREES).toBeCloseTo(26.99, 2)
+    expect(camera.fov).not.toBe(ORBIT_FOV)
   })
 
   it('looks at the focus, which is the followed position raised by the focus height, from the distance', () => {
@@ -50,10 +52,10 @@ describe('followCamera', () => {
   it('stands behind the player at every quarter heading: the eye is on the side the heading looks away from', () => {
     const behind = (heading: number): Vec3 => followCamera(cameraView('view'), [0, 0, 0], heading).eye
     const [south, east, north, west] = [0, QUARTER, HALF, 3 * QUARTER].map(behind) as [Vec3, Vec3, Vec3, Vec3]
-    expect(south[2]).toBeLessThan(-4)
-    expect(east[0]).toBeLessThan(-4)
-    expect(north[2]).toBeGreaterThan(4)
-    expect(west[0]).toBeGreaterThan(4)
+    expect(south[2]).toBeLessThan(-13)
+    expect(east[0]).toBeLessThan(-13)
+    expect(north[2]).toBeGreaterThan(13)
+    expect(west[0]).toBeGreaterThan(13)
     for (const eye of [south, north]) expect(eye[0]).toBeCloseTo(0, 9)
     for (const eye of [east, west]) expect(eye[2]).toBeCloseTo(0, 9)
   })
@@ -62,7 +64,7 @@ describe('followCamera', () => {
     for (const heading of [0, 1, 4_096, QUARTER, 30_000, HALF, 50_000, 3 * QUARTER, TURN_UNITS - 1]) {
       const turns = (heading / TURN_UNITS) * 2 * Math.PI
       const [x, , z] = forward(followCamera(cameraView('view'), MIDDLE, heading))
-      const level = Math.cos(25 * DEGREES)
+      const level = Math.cos(30 * DEGREES)
       expect(x).toBeCloseTo(Math.sin(turns) * level, 9)
       expect(z).toBeCloseTo(Math.cos(turns) * level, 9)
     }
@@ -71,7 +73,10 @@ describe('followCamera', () => {
   it('is the dollhouse’s orbit camera with the view’s numbers', () => {
     const spec = cameraView('view', { tiltDeg: 33, distance: 6, focusHeight: 0.5 })
     expect(followCamera(spec, [1, 2, 3], 7_777)).toEqual(
-      orbitCamera({ target: [1, 2.5, 3], distance: 6, yaw: headingToYaw(7_777), pitch: 33 * DEGREES }),
+      orbitCamera(
+        { target: [1, 2.5, 3], distance: 6, yaw: headingToYaw(7_777), pitch: 33 * DEGREES },
+        2 * Math.atan(12 / LENS_MM),
+      ),
     )
   })
 })
@@ -90,8 +95,8 @@ describe('roomView', () => {
   })
 
   it('cuts nothing when the camera is inside the room', () => {
-    // 0.5 m from the south wall, the camera stands 4.5 m north of it: at z = 1, in the room.
-    expect(view(0, {}, [4, 0, 5.5]).walls).toEqual({ cut: [], faded: [] })
+    // 0.5 m from the south wall, a 5 m view stands 4.33 m north of it: at z = 1.17, in the room.
+    expect(view(0, { distance: 5 }, [4, 0, 5.5]).walls).toEqual({ cut: [], faded: [] })
   })
 
   it('names a wall once when a door makes it several surfaces', () => {

@@ -240,10 +240,15 @@ const GOLDEN_ROUTE: readonly (readonly [TickInput, number])[] = [
   [{ stick: UP, roll: true }, 1],
   [{ stick: UP }, 110],
 ]
-// Re-recorded when the walk and the roll moved into content/tuning.toml (was `c735b5acacbbc716`): the area, which is the sim's
+// Earlier: re-recorded when the walk and the roll moved into content/tuning.toml (was `c735b5acacbbc716`): the area, which is the sim's
 // content, now carries the tunables, so the hash covers them. Nothing else changed: the route's events, ticks, rolls,
 // embers, goal and Wick's end place are the same, and still asserted above. It is one value in all four engines.
-const GOLDEN_HASH = '369b408a42e81cac'
+// Re-recorded when the camera became the default gameplay camera (was `369b408a42e81cac`): `camera-heading` gained a
+// `turning` field (the schema is in the hash) and the room's `camera-view` content carries the new defaults and fields
+// (follow, enterMargin, 30° and 16 m). The route never turns the camera, and nothing else changed: its events, ticks,
+// rolls, embers, goal and Wick's end place are the same, asserted above before this line. Checked in Node here; the
+// browser engines' runs are pending.
+const GOLDEN_HASH = '7a859e24505d4dfd'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)
