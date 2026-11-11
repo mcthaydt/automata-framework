@@ -15,9 +15,10 @@ runs in its own session on its own branch and hands off through committed docume
 | # | Workstream | Stage | Progress | Record |
 |---|---|---|---|---|
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Next is 4, execution | 43% (3 of 7 stages); execution 0 of 21 tasks | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
-| 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 2, plan: done 2026-11-11, revised the same day for the re-set spec (a survey of the prologue against the framework, the spec's slice 1 row corrected, and a plan of 22 tasks, all in this repository, on three branches: 10 framework additions, 10 for the game at `games/the-last-light`, 2 that remove Ember Hall; planned against the spec at `3c0a624f`). Next is 3, plan audit. Slices 2 to 4 not started | Slice 1: 29% (2 of 7 stages); execution 0 of 22 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md) |
-| 3 | A UI editor in the suite | Not started: the Owner will address it when we get to it; its spec is written with the Owner then | 0% | |
+| 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 3, plan audit: done 2026-11-11, 32 findings (9 blocking, 15 should fix, 8 tidy), all fixed in the plan and the survey, which now match the spec and the code at `main` `6a70f9b1` (the spec's amendments `acb0361d`, `864361d4` and `909f6b10` included: the 3D examples go in tasks 19 and 20; a homes table, with interact and the HUD as genre extensions and a carried light in `@automata/systems`; the dressing waits for workstream 4) and the game at `92e6704`. Nothing open: every recorded file the prologue plays crosses (twelve, option B); workstream 1's task 17 is cut on its build branch. Next is 4, execution (22 tasks on three branches). Slices 2 to 4 not started | Slice 1: 43% (3 of 7 stages); execution 0 of 22 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md), [audit](audits/2026-11-11-last-light-prologue-plan-audit.md) |
+| 3 | An editor for every kind of authorable content: the UI editor first, others as gaps are found | Not started: specced with the Owner when we get to it; gaps are logged in the ledger below as they are found | 0% | |
 | 4 | The builders' look and figures in the framework (takes over #588, #589, #590, #603, #607) | 2, plan: done 2026-11-11. A survey measured on `main` `6a70f9b1` (12 side-by-side sheets with their numbers, the causes of the two dark examples, every work package and figure piece marked, the five drafts read, merged with `main` on trial and checked step by step) and a plan of 17 tasks on five branches. The baked room on `main` draws at 0.29 to 0.50 of the builder's brightness; the fix exists in #590 and sits on #589's code, so #589 lands first. Next is 3, plan audit. Runs ahead of the prologue's dressing task | 29% (2 of 7 stages); execution 0 of 17 tasks | [spec](specs/2026-11-11-builders-look-and-figures-design.md), [survey](audits/2026-11-11-builders-look-survey.md), [plan](plans/2026-11-11-builders-look.md) |
+| 5 | CI on rented Ubicloud runners, matching Ruken's setup | Not started: "for when we get there"; two questions for the Owner before switching on | 0% | [the Owner's brief](briefs/2026-11-11-ci-on-ubicloud.md) |
 
 ## Workstream 1 sessions
 
@@ -34,7 +35,7 @@ runs in its own session on its own branch and hands off through committed docume
 |---|---|---|---|
 | 1. Spec | The coordinator (`session_01HNdX7JDtQV1qVssEcnsxHM`) | `claude/optimistic-newton-yszrte` | Done 2026-11-11, and re-set the same day on the Owner's word: The Last Light is the 3D reference game in this repository, MIT, by feature; Ember Hall is cut |
 | 2. Plan | Fable 5.2 (`session_01HNdX7KiEkdV6ZYyFkipam4`) | `claude/last-light-prologue-plan` | Done 2026-11-11. The survey: 56 run-time rows marked, the editors table, the game's 76-row editor-gaps ledger read against the suite, 14 tangles in the old code, October's fixtures as the starting point, what names Ember Hall (173 files; 58 files of code and tooling), the sounds and music with their source. The plan: 22 tasks with a tracking table, 13 calls named. A first plan (`43f94569`) was written before the re-set reached the session and is replaced. The game was read at `92e6704`, read only. No product code written and nothing run: `node_modules` is not installed in the container, so no test, no `pnpm check` and no `pnpm format` ran; the counts were measured from the files |
-| 3. Plan audit | Not started | | |
+| 3. Plan audit | `session_01HNdX7JSqWtHtS5iTUs3VvD` | `claude/last-light-prologue-plan-audit` | Done 2026-11-11: the plan and survey checked against the spec, `AGENTS.md`, the code on `main` `81ce53a9`, workstream 1's spec and plan (on `main` and `claude/shared-polish-build`) and the game at `92e6704` (cloned read only; its prologue, audio tables and player read, the fixtures compared). 32 findings, all fixed in the plan and the survey (three from the spec's amendments and workstream 4's spec, merged in at `6a70f9b1`); three questions went to the coordinator and were answered (the recorded files: option B, twelve cross; the homes; workstream 1's task 17). A contradiction between the new homes rule and the code (core may not import the extensions interact and the HUD use) went to the coordinator and was settled in the spec at `909f6b10` during the audit. The 3D examples' cut, decided in the spec while the audit ran, is in tasks 19 and 20. No product code changed, no test run (`node_modules` is not installed), `pnpm format` not run for the same reason; FigureBuilder not attached (not needed) |
 
 ## Workstream 4 sessions
 
@@ -52,6 +53,18 @@ sit on screen, how they look, what they show, and make whole new screens; and it
 screens that come by default, such as the main menu and the splash. Details are settled when the work comes up.
 Until then, a HUD screen the port needs (journal, map, inventory, objectives, dialer) is built so that an editor can
 take it over later: its layout and words as data, not buried in code.
+
+## Editor gaps ledger
+
+The Owner, 2026-11-11: "every piece of authorable content should have an editor, so UI is just one, we should build out
+others when a gap is found". Every stage that meets a kind of content a person would want to change by hand and that
+no editor in the suite opens adds a row here; each row becomes suite work (workstream 3). A slice's "prove it edits"
+step fails on content with no editor unless its row is here with the Owner's word that it may wait.
+
+| # | Content with no editor | Found by | State |
+|---|---|---|---|
+| 1 | Screens and HUD: layout, look, what they show, whole new screens, and the default screens (main menu, splash) | The Owner, 2026-11-11 | To be specced |
+| 2 | Painted figures: the character kit's characters and outfits (`CharacterDef`, `RUNWAY_CAST`, the ward's outfits to come) are TypeScript data; the Studio opens core's mesh figures only, and no editor imports the kit's painted figures | Workstream 4, stage 2 (plan), 2026-11-11 | To be specced; the prologue's dressing task says it makes its figures in the Studio |
 
 ## Findings so far (2026-11-11)
 
