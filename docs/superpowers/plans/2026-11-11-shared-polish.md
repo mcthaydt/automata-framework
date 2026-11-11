@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 11 of 21 tasks (52%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 12 of 21 tasks (51%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -43,7 +43,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `d2e9d7f9` |
 | 9 | Interface sounds | 4 | done (jsdom unit tests; the sounds themselves are heard only in a browser with a mapped game: task 15's example) | `f68d822e` |
 | 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke needs packed packages and the network: not run) | `3aef5854` |
-| 11 | Splash (`@automata/ui-screens`) | 5 | todo | |
+| 11 | Splash (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium; WebKit and Firefox not run) | `5a6e7eb9` |
 | 11b | `Hosting.openLink` on every target | 5 | todo | |
 | 12 | Credits (`@automata/ui-screens`) | 5 | todo | |
 | 13 | Achievements, generic, and their Ruken mapping | 6 | todo | |
@@ -172,6 +172,19 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
 - **Task 10, not run:** `tooling/consumer-smoke` (it packs the packages and installs from a registry); its first-run step
   is updated by reading, so the language screen is pressed (`first-language-en`) before the title. A `vite build` of a
   generated game was not run either (the temporary workspace link had no Svelte plugin); the font build and `check` were.
+- **Task 11, Ruling:** `screensWords(locale)` returns `{ splash }` only for now, and README says "Five ready-made screens": the
+  plan's `credits: CreditsCopy` does not exist until task 12, which adds it and moves the README to six. The package's
+  catalogs hold `splash_skip` only; task 12 adds the credits keys.
+- **Task 11, Ruling:** the screen listens to the page itself (`<svelte:document onkeydown>` and the root's `pointerdown` and
+  `click`), so a copy of `features/splash/` in a game works alone; the step only owns the hold, the abort and the mount.
+  `screensWords` matches a locale as core's negotiation does (same tag, else same primary language, else English) with its own
+  five lines: `ui-screens` may import only `@automata/framework`'s public entries and core does not export `matchLocale`.
+- **Task 11, Ruling:** the logo's 60% limit is `60cqmin` of the frame's body (a size container), so it follows the space the
+  frame leaves, not the window. The fade is a CSS animation switched off under `prefers-reduced-motion`.
+- **Task 11, note:** the unit file was watched failing against the missing modules (red) and passed whole on the first
+  implementation; the browser layout contract (50 cases) was written beside the screen and passed first time. The pre-commit
+  hook for a commit touching only `extensions/ui-screens` took 12 seconds.
+- **Task 11, not run:** WebKit, Firefox, and a real browser's timing of the hold (the hold is tested on the injected clock).
 
 ## Global constraints
 
