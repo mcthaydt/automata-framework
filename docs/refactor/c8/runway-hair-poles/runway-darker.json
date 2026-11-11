@@ -1,0 +1,115 @@
+{
+  "texels": 12,
+  "skipped_cells_before_not_the_golden": ["june/muscular/5", "nia/own/0"],
+  "parts": [2101, 2103, 2106, 2107, 2109, 2110, 2139],
+  "list": [
+    {
+      "cell": "june/curvy/0",
+      "x": 64,
+      "y": 62,
+      "part_before": 2107,
+      "part_after": 2107,
+      "before": "5e0711",
+      "after": "94363a"
+    },
+    {
+      "cell": "june/heavy/5",
+      "x": 76,
+      "y": 97,
+      "part_before": 2109,
+      "part_after": 2109,
+      "before": "b64d46",
+      "after": "94363a"
+    },
+    {
+      "cell": "june/own/3",
+      "x": 64,
+      "y": 62,
+      "part_before": 2106,
+      "part_after": 2106,
+      "before": "5e0711",
+      "after": "94363a"
+    },
+    {
+      "cell": "june/short/0",
+      "x": 62,
+      "y": 68,
+      "part_before": 2110,
+      "part_after": 2110,
+      "before": "5e0711",
+      "after": "94363a"
+    },
+    {
+      "cell": "june/short/0",
+      "x": 63,
+      "y": 68,
+      "part_before": 2109,
+      "part_after": 2109,
+      "before": "5e0711",
+      "after": "94363a"
+    },
+    {
+      "cell": "june/short/0",
+      "x": 64,
+      "y": 68,
+      "part_before": 2107,
+      "part_after": 2107,
+      "before": "5e0711",
+      "after": "94363a"
+    },
+    {
+      "cell": "june/thin/0",
+      "x": 62,
+      "y": 45,
+      "part_before": 2110,
+      "part_after": 2110,
+      "before": "b64d46",
+      "after": "94363a"
+    },
+    {
+      "cell": "nia/own/6",
+      "x": 55,
+      "y": 49,
+      "part_before": 2139,
+      "part_after": 2139,
+      "before": "23324d",
+      "after": "181f2f"
+    },
+    {
+      "cell": "sam/heavy/0",
+      "x": 57,
+      "y": 61,
+      "part_before": 2101,
+      "part_after": 2101,
+      "before": "4a353c",
+      "after": "31222a"
+    },
+    {
+      "cell": "sam/heavy/0",
+      "x": 68,
+      "y": 61,
+      "part_before": 2103,
+      "part_after": 2103,
+      "before": "31222a",
+      "after": "1d1d21"
+    },
+    {
+      "cell": "sam/heavy/0",
+      "x": 69,
+      "y": 61,
+      "part_before": 2103,
+      "part_after": 2103,
+      "before": "31222a",
+      "after": "1d1d21"
+    },
+    {
+      "cell": "sam/heavy/0",
+      "x": 57,
+      "y": 62,
+      "part_before": 2101,
+      "part_after": 2101,
+      "before": "4a353c",
+      "after": "31222a"
+    }
+  ]
+}

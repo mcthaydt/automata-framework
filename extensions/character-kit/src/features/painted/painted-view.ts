@@ -2,11 +2,12 @@
 // painted stage (painted-stage.ts) places it by the stage contract and draws it with per-texel depth, standing where the
 // entity stands and turned the way it faces. The entity owns the figure's place and facing (the sim decides them); the
 // painter only draws them.
-import { placeView3d, type View3dFactory } from '@automata/3d'
+import { placeView3d, type SceneLight, type View3dFactory } from '@automata/3d'
 import { Container3D } from '@pixi/3d'
 import type { CharacterDef, V3 } from '../../shared/figure-builder/door.ts'
 import { type PaintedStage, type StageMember, stageFor } from './painted-stage.ts'
 import { Painter } from './painter.ts'
+import { type RoomLight, roomLight } from './room-light.ts'
 import { checkState, type PaintedState } from './state.ts'
 
 export type { PaintedState } from './state.ts'
@@ -21,9 +22,20 @@ export interface PaintedFigureOptions {
   readonly state?: ((components: Components) => PaintedState) | undefined
   /** Seconds, for the figure's pose clock; the page's clock by default. */
   readonly now?: (() => number) | undefined
+  /**
+   * Whether the room's light is on the figure: by default true when the renderer has `lighting`, and the figure takes its
+   * flat light, a step of form and a rim from the lamps and the sun where it stands. `false` keeps it as the painter drew it.
+   */
+  readonly lit?: boolean | undefined
 }
 
 const STANDING: PaintedState = { moving: false }
+
+/** The renderer's light on the figure at `at`, seen from `azimuth`; none when the renderer has no `lighting`. */
+function roomOf(light: SceneLight | undefined, at: V3, azimuth: number): RoomLight | undefined {
+  if (light === undefined) return undefined
+  return roomLight((x, y, z, normal) => light.tint(x, y, z, normal), light.lighting.sun, at, azimuth)
+}
 
 /**
  * A painted figure for `views` in `createPixi3dRenderer`: `views: { [Hero.id]: paintedFigure(BASE[0].def) }`. The
@@ -35,7 +47,7 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
   const now = options.now ?? (() => performance.now() / 1000)
   const stateOf = options.state ?? (() => STANDING)
   const density = options.density ?? 2
-  return (row, componentId, _models, _light, camera) => {
+  return (row, componentId, _models, light, camera) => {
     if (camera === undefined) return undefined
     const stage: PaintedStage = stageFor(camera)
     const node = new Container3D()
@@ -49,7 +61,9 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
       frame(view) {
         const t = now()
         const at: V3 = [node.position.x, node.position.y, node.position.z]
-        const cell = painter.paint({ t, dt: Math.max(0, t - last), facing, state, view: view(at) })
+        const seen = view(at)
+        const room = options.lit === false ? undefined : roomOf(light, at, seen.azimuth)
+        const cell = painter.paint({ t, dt: Math.max(0, t - last), facing, state, view: seen, light: room })
         last = t
         return { cell, at, name: def.id }
       },
