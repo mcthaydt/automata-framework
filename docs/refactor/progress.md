@@ -786,8 +786,19 @@ journeys' web server exited before any test ran. Only `--app suite` goes; `--app
 | Step | Status | Record |
 |---|---|---|
 | Editor command | Done: red first (the web server exited "This option is gone"), then the editors start | `playwright.config.ts` |
-| Journeys, after the fix | Not green, and not fixed here. Full run (14): 2 passed, 2 failed, 10 not run (serial). "Watch: stepping the player into sight" fails on phone and iPad, alone too (2 of 2 runs): the log says Patrol to Hunt, then the live box is "Catch, stands still", not Hunt. Without Watch (12): run 1 10 passed, 1 failed, 1 not run; run 2 8 passed, 2 failed, 2 not run. "pointing Patrol to Hunt at Search" fails in a full run (first change is `hunt`, not `search`) and passes alone on phone | `schematic-in-play-3d.test.ts:81`, `:170` |
+| Journeys, after the fix | Were red for two other reasons, fixed in the next section | `schematic-in-play-3d.test.ts` |
 | Not run | The other browser suites, parity | |
+
+## The Schematic journeys' timing (2026-11-11)
+
+Three journeys failed on timing. All three were in the tests; the sim and the editors' live-edit path were right.
+
+| Journey | Cause | Fix |
+|---|---|---|
+| 2D "pointing the sees-the-player switch at Follow" (got `hunt`, 1 in 10) and 3D "pointing Patrol to Hunt at Search" (got `hunt` in a full run) | The game started right after the edit, without waiting for the file; Schematic saves through an async port, so a game started first plays the old switch. A probe on the 2D journey, 10 runs: 9 had the switch in the file before play and passed, 1 did not and got `hunt` | Both wait for the switch in the file, as the other edits already do |
+| 3D "Watch: stepping the player into sight lights Hunt" (phone and iPad, every run) | The guard is in Hunt for 0.5 s (log: Hunt at 0.7 s, Catch at 1.2 s) because the player walks at it; the test read the diagram at one moment. The Watch pane is right: the log has both lines and the diagram follows the last mode heard | The test records each mode the diagram lights and asks for Hunt among them. With `Search` asked for instead it fails, receiving `["Hunt, 2.2 m/s", "Catch, stands still"]` |
+
+Ran: `--repeat-each=10`, one worker: 2D phone 50 of 50 and 2D iPad 50 of 50 (all five journeys); 3D phone 20 of 20 and 3D iPad 20 of 20 (Watch and the Search switch). The 2D switch journey leans on the 24 m sight that the one before it leaves in the file, so it runs with its group, not alone. Not run: the other 3D journeys 10 times, the other browser suites, parity.
 
 ## The default 3D gameplay camera (2026-11-11)
 
