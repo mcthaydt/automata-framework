@@ -1,11 +1,11 @@
 // A mesh drawn through Pixi's WebGPU renderer (WP0, 2026-11-10). AF's other WebGPU test draws the sky and no mesh, so
 // `@pixi/3d`'s pipeline on WebGPU went unchecked: a lost device or a validation error on the first mesh frame showed
-// only in a game. The `webgpu` project launches Chromium with WebGPU on (vitest.config.ts); a machine with no adapter
-// skips these.
+// only in a game. The `webgpu` project launches Chromium with WebGPU on (vitest.config.ts); a machine with no adapter,
+// or one whose adapter goes away mid-test, skips these with the reason (`webgpu-skip.ts`).
 import '#src/entries/no-eval.ts'
 import type { RenderRow, StepResult } from '@automata/sim'
 import { DirectionalLight } from '@pixi/3d'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, type TestContext } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'
 import { drawWorld, sceneLamps } from '#src/app/world-view.ts'
 import { BASE_PAIR, BASE_PAIR_SWATCHES } from '#src/features/figures/base/base-pair.ts'
@@ -23,6 +23,7 @@ import { levelTime } from '#src/shared/time-of-day/time-light.ts'
 import { builtRenderer } from '#src/testing/built-renderer.ts'
 import { encodeGlb, fixtureBox } from '#src/testing/model/model-fixtures.ts'
 import { testTarget } from '#src/testing/test-target.ts'
+import { adapterGone, notOnWebGpu } from '#src/testing/webgpu-skip.ts'
 
 const hasWebGpu =
   typeof navigator !== 'undefined' && 'gpu' in navigator
@@ -43,13 +44,47 @@ afterEach(() => {
   document.body.replaceChildren()
 })
 
-interface Drawn {
-  readonly renderer: Pixi3dRenderer
-  /** What the GPU said went wrong: validation errors, and why the device was lost, if it was. */
+/** What the GPU said while a test drew. */
+interface Watched {
+  /** Validation errors, and why the device was lost, if it was. */
   readonly problems: string[]
+  lost: boolean
 }
 
-async function start(look: typeof DEFAULT_LOOK | undefined): Promise<Drawn> {
+/** Listens to `renderer`'s WebGPU device for errors and its loss. */
+function watch(renderer: Pixi3dRenderer): Watched {
+  const watched: Watched = { problems: [], lost: false }
+  const device = (renderer.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
+  device?.addEventListener('uncapturederror', (event) =>
+    watched.problems.push((event as GPUUncapturedErrorEvent).error.message),
+  )
+  void device?.lost.then((info) => {
+    watched.lost = true
+    watched.problems.push(`device lost: ${info.reason}: ${info.message}`)
+  })
+  return watched
+}
+
+/** Skips the test when Pixi is not drawing through WebGPU here (it fell back: no adapter on this machine). */
+function skipUnlessOnWebGpu(renderer: Pixi3dRenderer, skip: TestContext['skip']): void {
+  const fellBack = notOnWebGpu(renderer.stage.app.renderer)
+  if (fellBack !== undefined) skip(fellBack)
+}
+
+/**
+ * Skips the test when the device was lost and the machine no longer returns an adapter: what the test saw is the
+ * machine, not the renderer. A loss with an adapter still there stays the test's to report.
+ */
+async function skipIfAdapterGone(watched: Watched, skip: TestContext['skip']): Promise<void> {
+  const gone = watched.lost ? await adapterGone() : undefined
+  if (gone !== undefined) skip(gone)
+}
+
+interface Drawn extends Watched {
+  readonly renderer: Pixi3dRenderer
+}
+
+async function start(look: typeof DEFAULT_LOOK | undefined, skip: TestContext['skip']): Promise<Drawn> {
   const host = document.createElement('div')
   document.body.appendChild(host)
   const target = testTarget(host, { 'models/box.glb': encodeGlb(fixtureBox()) })
@@ -74,13 +109,8 @@ async function start(look: typeof DEFAULT_LOOK | undefined): Promise<Drawn> {
   })
   const renderer = await builtRenderer(factory(target))
   scope = renderer
-  const problems: string[] = []
-  const device = (renderer.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
-  device?.addEventListener('uncapturederror', (event) =>
-    problems.push((event as GPUUncapturedErrorEvent).error.message),
-  )
-  void device?.lost.then((info) => problems.push(`device lost: ${info.reason}: ${info.message}`))
-  return { renderer, problems }
+  skipUnlessOnWebGpu(renderer, skip)
+  return Object.assign(watch(renderer), { renderer })
 }
 
 /**
@@ -141,21 +171,23 @@ describe.runIf(hasWebGpu)('a mesh on WebGPU', () => {
       { ...DEFAULT_LOOK, switches: { ...DEFAULT_LOOK.switches, outline: true } },
     ],
   ] as const)
-    it(`draws a box and a model, and the device keeps working ${name}`, async () => {
-      const { renderer, problems } = await start(look)
-      expect(renderer.stage.app.renderer.name).toBe('webgpu')
+    it(`draws a box and a model, and the device keeps working ${name}`, async ({ skip }) => {
+      const drawn = await start(look, skip)
+      const { renderer } = drawn
       renderer.draw(frame)
       const empty = presented(renderer)
       renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
       renderer.draw(frame)
-      const drawn = presented(renderer)
+      const pixels = presented(renderer)
+      await skipIfAdapterGone(drawn, skip)
       // The box and the model cover a few hundred of the 160 × 90 field's pixels, as on WebGL2.
-      expect(differing(empty, drawn)).toBeGreaterThan(200)
+      expect(differing(empty, pixels)).toBeGreaterThan(200)
       // Lit, not black: the light tiles `@pixi/3d` culls lights with reach the shader as integers. The look snaps
       // colours to the palette, so only the unsnapped draw is checked for the crate's own yellow.
-      if (look === undefined) expect(yellow(drawn), 'the crate lit yellow').toBeGreaterThan(200)
+      if (look === undefined) expect(yellow(pixels), 'the crate lit yellow').toBeGreaterThan(200)
       await settle(renderer)
-      expect(problems).toEqual([])
+      await skipIfAdapterGone(drawn, skip)
+      expect(drawn.problems).toEqual([])
     }, 60_000)
 })
 
@@ -210,7 +242,7 @@ const gait: Gait = {
 }
 
 describe.runIf(hasWebGpu)('a figure on WebGPU', () => {
-  it('draws under a lamp with the look, and the device keeps working', async () => {
+  it('draws under a lamp with the look, and the device keeps working', async ({ skip }) => {
     const host = document.createElement('div')
     document.body.appendChild(host)
     const { stand: _stand, ...def } = BASE_PAIR.man
@@ -245,12 +277,8 @@ describe.runIf(hasWebGpu)('a figure on WebGPU', () => {
     })
     const renderer = await builtRenderer(factory(testTarget(host)))
     scope = renderer
-    const problems: string[] = []
-    const device = (renderer.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
-    device?.addEventListener('uncapturederror', (event) =>
-      problems.push((event as GPUUncapturedErrorEvent).error.message),
-    )
-    void device?.lost.then((info) => problems.push(`device lost: ${info.reason}: ${info.message}`))
+    skipUnlessOnWebGpu(renderer, skip)
+    const watched = watch(renderer)
     renderer.draw(frame)
     const empty = presented(renderer)
     renderer.apply(
@@ -262,10 +290,13 @@ describe.runIf(hasWebGpu)('a figure on WebGPU', () => {
       }),
     )
     renderer.draw(frame)
+    const pixels = presented(renderer)
+    await skipIfAdapterGone(watched, skip)
     // The figure covers about 390 pixels of the field, on WebGL2 and on WebGPU alike.
-    expect(differing(empty, presented(renderer))).toBeGreaterThan(300)
+    expect(differing(empty, pixels)).toBeGreaterThan(300)
     await settle(renderer)
-    expect(problems).toEqual([])
+    await skipIfAdapterGone(watched, skip)
+    expect(watched.problems).toEqual([])
   }, 60_000)
 })
 
@@ -273,7 +304,7 @@ describe.runIf(hasWebGpu)('a figure on WebGPU', () => {
 // pieces that bake light and the ones a state can move (a door, a prop) take different materials, and a figure draws
 // among them.
 describe.runIf(hasWebGpu)('the base interior and a figure on WebGPU', () => {
-  it('draws the room and the figure, and the device reports nothing', async () => {
+  it('draws the room and the figure, and the device reports nothing', async ({ skip }) => {
     const host = document.createElement('div')
     document.body.appendChild(host)
     const level = BASE_SCENES['base-interior']
@@ -319,12 +350,8 @@ describe.runIf(hasWebGpu)('the base interior and a figure on WebGPU', () => {
     })
     const renderer = await builtRenderer(factory(testTarget(host)))
     scope = renderer
-    const problems: string[] = []
-    const device = (renderer.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
-    device?.addEventListener('uncapturederror', (event) =>
-      problems.push((event as GPUUncapturedErrorEvent).error.message),
-    )
-    void device?.lost.then((info) => problems.push(`device lost: ${info.reason}: ${info.message}`))
+    skipUnlessOnWebGpu(renderer, skip)
+    const watched = watch(renderer)
     renderer.apply(
       step({
         resync: true,
@@ -339,6 +366,7 @@ describe.runIf(hasWebGpu)('the base interior and a figure on WebGPU', () => {
     await settle(renderer, 10)
     renderer.stage.app.renderer.resize(640, 400)
     await settle(renderer, 20)
-    expect(problems).toEqual([])
+    await skipIfAdapterGone(watched, skip)
+    expect(watched.problems).toEqual([])
   }, 60_000)
 })
