@@ -5,6 +5,7 @@
 import Icon from '../../shared/components/Icon.svelte'
 import InlineText from '../../shared/components/InlineText.svelte'
 import NearView from '../../shared/components/NearView.svelte'
+import { EDITOR_URL } from '../../shared/editor-link'
 import { pictureOf } from '../../shared/pictures'
 import { EDITOR_SECTION } from './home-content'
 
@@ -22,7 +23,7 @@ const editor = pictureOf('editor')
           <li><Icon name="check" /><span><strong>{lead}</strong> <InlineText text={rest} /></span></li>
         {/each}
       </ul>
-      <p class="more"><a class="home-secondary" href="/editor">Try the level editor <Icon name="arrowRight" /></a></p>
+      <p class="more"><a class="home-secondary" href={EDITOR_URL} data-sveltekit-reload>Try the level editor <Icon name="arrowRight" /></a></p>
     </div>
     <div class="show home-panel shot">
       <!-- Far below the poster: in the page only once the reader is near it (NearView). -->

@@ -36,14 +36,7 @@ describe('the docs', () => {
   })
 
   it('send every old docs address to a page that exists', () => {
-    const pages = new Set([
-      '/',
-      '/start',
-      '/editor',
-      '/api',
-      '/terms',
-      ...docs.map((doc) => '/docs/' + doc.slug),
-    ])
+    const pages = new Set(['/', '/start', '/api', '/terms', ...docs.map((doc) => '/docs/' + doc.slug)])
     for (const slug of [
       'overview',
       'quick-start',

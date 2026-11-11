@@ -52,7 +52,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 16 | Emberwick in six languages, with an achievement | 1, 6 | done on the side branch `claude/shared-polish-emberwick-site` (Chromium only: 135 unit tests, 38 journeys, the hot-reload demo's 2; WebKit and Firefox not run; the live model call unverified: no key here) | see the ledger below |
 | 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
 | 18 | Guides, API report and index, changesets, final gates | done means | todo | |
-| 19 | The site's Editor page is cut; the link opens the editor | site | todo | |
+| 19 | The site's Editor page is cut; the link opens the editor | site | done on the side branch `claude/shared-polish-emberwick-site` (site unit tests 515, the site build, `check:site`, the site's whole Chromium suite 469; WebKit not run; `check:deployed` not run: needs the live site) | see the ledger below |
 | 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | todo | |
 
 ## Execution log and deviations ledger
@@ -1783,4 +1783,28 @@ ledger and recomputes the tracker's percentage after the merge.
   `automata words` with no key said it needs `ANTHROPIC_API_KEY` and changed nothing.
 - **Editor gap (for the ledger):** `messages/ui/*.json` (a game's own words) and `content/fonts.toml` have no editor; the
   fonts list is already gap 6, and a game's own interface words are the same kind of gap as the credits file's.
+
+### Task 19
+
+- **Task 19, step 1 (read before deleting):** nothing had to move. The command that opens the editor on your own game is in
+  `docs/guides/editor.md` (the first code block, and `automata editor` with its options). That the editors are free on the
+  web is on Pricing (`/app`: `app-offer.ts`, `AppPage.svelte`) and in Home's pricing section. The page's other two notes
+  (the try-it editor cannot play a level; work is kept in this browser and Share keeps a copy) were its own and are said by
+  the editor itself and by `docs/guides/editor.md` ("nothing you draw is kept, and Share downloads or copies your level").
+- **Task 19, Ruling:** the redirect list is `site/src/shared/redirects.ts` (`REDIRECTS`) and the editor's address and the
+  `reloads(href)` helper for `data-sveltekit-reload` are `site/src/shared/editor-link.ts`. `write-redirects.ts`,
+  `check-deployed.ts` and `serve-static.ts` all read the same list or file. `serve-static.ts` (the server the site's e2e
+  runs on) now answers `_redirects` rules, so `/editor` behaves in the browser suite as on the host: a journey opens
+  `/editor` and lands on the editor.
+- **Task 19, Ruling:** `build-script.test.ts`'s "writes no redirect pages" pinned that no build step mentioned "redirect"; it now
+  pins that the one such step is `write-redirects.ts` (the rule for the host, not a page). It is still stricter than before
+  about any other.
+- **Task 19, Ruling:** the picture `editor-new` and the `cut` field of a picture (only that picture used it, and the cropped
+  screenshot code in `take-pictures.ts`) are removed with the page; the `editor` picture stays (Home shows it).
+- **Task 19, note:** the site-checks case "fails a page that links to `/editor`" passed when written: the check "missing
+  destination" already refuses a link to a page the build lacks, so it is a pin of existing behaviour, not a new check.
+- **Task 19, note:** `check:deployed`'s `/editor` probe is tested against a fake host (status and `Location`); the live host's
+  answer is the Owner's to run once the site is uploaded (Cloudflare Pages reads `_redirects` at the build's root).
+- **Task 19, not run:** WebKit for the site's e2e; `pnpm check:deployed` against the live site; `check:launch`, Lighthouse.
+- **Task 19, editor gap:** none (no new content).
 

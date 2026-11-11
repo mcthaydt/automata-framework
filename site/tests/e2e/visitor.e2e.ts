@@ -1,9 +1,10 @@
 import { devices, expect, type FrameLocator, type Locator, type Page, test } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
 import { watchPage } from './gates'
+import { openEditorFromHeader } from './header'
 
 // A visitor's first visit, end to end on the built site: they land on Home and play Emberwick in the page, go to
-// Start and copy the command that makes a game, open the Editor page and try the editor, make a platformer level,
+// Start and copy the command that makes a game, open the editor from the header, make a platformer level,
 // paint on it, and share it. Once on a desktop and once on an upright phone (the demo plays
 // upright there). Every step is found the way a visitor finds it: by its role and its words.
 
@@ -87,10 +88,10 @@ async function copyTheCommand(page: Page): Promise<void> {
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(CREATE_COMMAND)
 }
 
-/** The Editor page, Try the editor, a platformer level and one painted cell: Download hands over the level. */
+/** The header's Editor link, a platformer level and one painted cell: Download hands over the level. */
 async function drawAndShareALevel(page: Page): Promise<void> {
-  await page.goto('/editor')
-  await page.getByRole('link', { name: 'Try the editor' }).click()
+  await page.goto('/start')
+  await openEditorFromHeader(page)
   await expect(page).toHaveURL(/\/editor\/app\/$/)
   await page.getByRole('button', { name: 'New level' }).click()
   await page.getByRole('button', { name: /Platformer/ }).click()

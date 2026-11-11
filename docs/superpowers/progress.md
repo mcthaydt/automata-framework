@@ -60,7 +60,7 @@ the percentage above (this section does not).
 | Task | State |
 |---|---|
 | 16. Emberwick in six languages, with an achievement | Done (Chromium only; WebKit and Firefox not run; the live model call unverified, no key). The rulings are in the plan's "Execution log: tasks 16 and 19" |
-| 19. The site's Editor page is cut | Not started |
+| 19. The site's Editor page is cut | Done (Chromium only; WebKit not run; `check:deployed` needs the live site). The rulings are in the plan's "Execution log: tasks 16 and 19" |
 
 ## Workstream 3: what the Owner has said so far (2026-11-11)
 
