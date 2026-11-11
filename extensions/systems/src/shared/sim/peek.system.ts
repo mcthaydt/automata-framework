@@ -7,7 +7,7 @@ import type { Places } from '@automata/places'
 import { VerbCommand } from '@automata/puzzle/sim'
 import { sectorsPlaces } from '@automata/sectors/sim'
 import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
-import { advance, DEFAULT_PEEK, type Doorway, holds, type PeekDef, peekTarget } from './peek'
+import { advance, type Doorway, holds, type PeekDef, type PeekFile, peekDefOf, peekTarget } from './peek'
 import { SystemsPeek } from './peek.event'
 import { SystemsPeekState } from './peek.resource'
 import { SystemsEnv, SystemsPursuit } from './systems.resource'
@@ -17,7 +17,7 @@ export interface PeekOptions {
   /** The player's facing now, in radians: the direction is (sin f, cos f). The game keeps it; the sim cannot see a heading. */
   readonly facing: (ctx: SimContext) => number
   /** Any of the numbers of a peek; the old game's where absent. */
-  readonly def?: Partial<PeekDef> | undefined
+  readonly def?: PeekFile | undefined
   /** Where the player stands and which rooms touch; by default sectors' 3D rooms. */
   readonly places?: Places | undefined
   /** The game's movement query, so its own doors and boxes shut a doorway; as `createSystems` takes it. */
@@ -27,18 +27,7 @@ export interface PeekOptions {
 }
 
 /** The peek's numbers: the options' over the defaults. A number that cannot be one is refused in words, when the plugin is made. */
-export function defOf(options: PeekOptions): PeekDef {
-  const def = { ...DEFAULT_PEEK, ...options.def }
-  const bad = (name: keyof PeekDef, need: string): Error =>
-    new Error(`peek: ${name} must be ${need}, not ${def[name]}`)
-  for (const name of ['reach', 'dwell', 'arc', 'lean', 'ease'] as const)
-    if (!Number.isFinite(def[name])) throw new Error(`peek: ${name} must be a number, not ${def[name]}`)
-  if (def.reach <= 0) throw bad('reach', 'above 0')
-  if (def.arc < 0 || def.arc > 180) throw bad('arc', 'between 0 and 180 degrees')
-  for (const name of ['dwell', 'lean', 'ease'] as const)
-    if (def[name] < 0) throw bad(name, 'a number of 0 or more')
-  return def
-}
+export const defOf = (options: PeekOptions): PeekDef => peekDefOf(options.def)
 
 /** The doorways from the zone of room `here` into the other zones. */
 function doorways(ctx: SimContext, places: Places, here: number): Doorway[] {

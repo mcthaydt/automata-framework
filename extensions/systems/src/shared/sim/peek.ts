@@ -18,7 +18,40 @@ export interface PeekDef {
   readonly ease: number
 }
 
+/** The numbers a file or an option may give: any of them. */
+export type PeekFile = { readonly [K in keyof PeekDef]?: number | undefined }
+
 export const DEFAULT_PEEK: PeekDef = { reach: 1.4, dwell: 0.6, arc: 50, lean: 1.2, ease: 0.4 }
+
+/** What is wrong with a peek's numbers, by name, in words; empty when they are usable. */
+export function peekProblems(def: PeekFile): { readonly name: keyof PeekDef; readonly message: string }[] {
+  const problems: { name: keyof PeekDef; message: string }[] = []
+  for (const name of ['reach', 'dwell', 'arc', 'lean', 'ease'] as const) {
+    const value = def[name]
+    if (value === undefined) continue
+    if (!Number.isFinite(value)) problems.push({ name, message: `${name} must be a number, not ${value}` })
+    else if (name === 'reach' && value <= 0)
+      problems.push({ name, message: `reach must be above 0, not ${value}` })
+    else if (name === 'arc' && (value < 0 || value > 180))
+      problems.push({ name, message: `arc must be between 0 and 180 degrees, not ${value}` })
+    else if (name !== 'reach' && name !== 'arc' && value < 0)
+      problems.push({ name, message: `${name} must be a number of 0 or more, not ${value}` })
+  }
+  return problems
+}
+
+/** The peek's numbers: the file's or the options' over the old game's. A number that cannot be one throws, in words. */
+export function peekDefOf(def: PeekFile | undefined): PeekDef {
+  const [first] = peekProblems(def ?? {})
+  if (first !== undefined) throw new Error(`peek: ${first.message}`)
+  return {
+    reach: def?.reach ?? DEFAULT_PEEK.reach,
+    dwell: def?.dwell ?? DEFAULT_PEEK.dwell,
+    arc: def?.arc ?? DEFAULT_PEEK.arc,
+    lean: def?.lean ?? DEFAULT_PEEK.lean,
+    ease: def?.ease ?? DEFAULT_PEEK.ease,
+  }
+}
 
 /**
  * A peek: the doorway (`from>to`, as pursuit keys a crossing), the room looked into, seconds since she began to dwell,

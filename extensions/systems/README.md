@@ -38,7 +38,8 @@ Two more pieces are plugins of their own, so a game that does not use them keeps
 
 - **Peeking** (`createPeek`): the player stands still, not hiding, facing a doorway into another zone for 0.6 seconds, and
   the camera may lean up to 1.2 metres across it. Moving, turning more than 50° away, hiding, a shut door or a verb ends it.
-  The numbers are options (those are the old game's); you give it the player's facing, since the sim has no heading. The
+  The numbers are content: register `peekContent` and write `content/peek.toml` (`reach`, `dwell`, `arc`, `lean`, `ease`, each
+  optional; a missing one is the old game's), then give `createPeek({ def: peekDefOf(file) })` its numbers; you also give it the player's facing, since the sim has no heading. The
   peek is in the sim's state, so a replay carries it: `peekOf(sim)` gives `{ portal, into, x, z }` once it holds, and the
   `systems.peek` event says when it starts and ends. A door shuts a doorway through the movement query you give
   `createSystems` (`blocked`), so no door is named here.
