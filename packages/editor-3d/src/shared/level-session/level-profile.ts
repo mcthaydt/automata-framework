@@ -58,6 +58,8 @@ export interface LevelProfile<D> extends FileCodec<D> {
   views?(doc: D): readonly string[]
   /** The level's time of day; a format with none leaves it out. */
   readonly time?: TimeAccess<D> | undefined
+  /** The rooms each camera view draws; a format whose views have none to name leaves it out. */
+  readonly viewRooms?: ViewRoomsAccess<D> | undefined
   /** The unit, Walk's eye and lens, and the snap (ED3D.8a). */
   readonly hints: LevelHints
   /** The things the level joins in pairs (ED3D.7c: Last Light's nav edges); a format with none leaves it out. */
@@ -72,6 +74,14 @@ export interface TimeAccess<D> {
   of(doc: D): string | undefined
   /** The level with `id` as its time, keeping any changes of its own; none takes the time off. */
   withTime(doc: D, id: string | undefined): D
+}
+
+/** How the editor reads and writes the rooms a camera view draws (`rooms` of a level's `views`). */
+export interface ViewRoomsAccess<D> {
+  /** The rooms (sector ids) `view` draws; none when it names none, so it draws every room. */
+  of(doc: D, view: string): readonly string[] | undefined
+  /** The level with `rooms` as the view's rooms, its other fields kept; none takes them off. */
+  withRooms(doc: D, view: string, rooms: readonly string[] | undefined): D
 }
 
 /** The resolved sectors, or the engine's sentence as a `GeometryError`. */

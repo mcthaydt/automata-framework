@@ -24,6 +24,7 @@ import { decorPieces, doorPieces } from './decor.ts'
 import { box } from './mesh.ts'
 import { placeProps, type WorldLamp } from './place-props.ts'
 import { onWall, planeMesh, wallQuad } from './plane-mesh.ts'
+import { viewRoomProblems } from './room-draw.ts'
 import {
   cornersOf,
   fill,
@@ -522,6 +523,8 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       ...(piece.noCast === true ? { noCast: true } : {}),
       ...(piece.prop === undefined ? {} : { prop: piece.prop }),
     })
+  // A camera view that names a room the level lacks: told here, so `automata check` says it and the rest still draws.
+  problems.push(...viewRoomProblems(level))
   return { pieces, lamps: placed.lamps, problems }
 }
 

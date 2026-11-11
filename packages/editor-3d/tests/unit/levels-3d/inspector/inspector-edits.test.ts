@@ -54,6 +54,24 @@ describe('inspector edits', () => {
     expect(editor.level).toEqual(depot)
   })
 
+  it('sets the rooms a camera draws as one undo step, and answers the model’s sentence for a room that is not there', () => {
+    const level: AfSector2File = {
+      ...depot,
+      views: { start: {} },
+      sectors: depot.sectors.map((sector) => (sector.id === 'hall' ? { ...sector, view: 'start' } : sector)),
+    }
+    const editor = createLevelEditor({ profile: afSectorProfile, level })
+    editor.selection.set(['sector:hall'])
+    const edits = createInspectorEdits(editor)
+    expect(edits.change({ kind: 'view-rooms', view: 'start', rooms: ['dock'] }, 'set')).toBeUndefined()
+    expect(inspectorOf(editor)).toMatchObject({ viewRooms: { rooms: ['dock'] } })
+    expect(editor.history.undoLabel).toBe('Set the rooms the camera start draws')
+    editor.history.undo()
+    expect(editor.level).toEqual(level)
+    expect(edits.change({ kind: 'view-rooms', view: 'start', rooms: ['attic'] }, 'set')).toMatch(/attic/)
+    expect(editor.level).toEqual(level)
+  })
+
   it('changes a wall’s kind, its door, its occlude and its flags, each one step', () => {
     const { editor, edits, card } = setup('wall:hall/2')
     expect(edits.change({ kind: 'wall', sector: 'hall', corner: 2, type: 'door' }, 'set')).toBeUndefined()

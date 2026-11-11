@@ -165,6 +165,37 @@ describe('Inspector', () => {
     expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', view: null }, 'set')
   })
 
+  it('the camera’s rooms are a checklist: a tick adds the room, an untick takes it off, in the level’s order', async () => {
+    const viewRooms = { view: 'middle', all: ['hall', 'dock', 'yard'], rooms: ['dock'] }
+    const onchange = mount({ ...hall, view: 'middle', views: ['middle'], viewRooms })
+    expect(screen.getByRole('group', { name: 'Rooms this camera draws' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'dock' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'hall' })).not.toBeChecked()
+    expect(screen.getByText('The room the player stands in is always drawn too.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('checkbox', { name: 'hall' }))
+    expect(onchange).toHaveBeenCalledWith(
+      { kind: 'view-rooms', view: 'middle', rooms: ['hall', 'dock'] },
+      'set',
+    )
+    await userEvent.click(screen.getByRole('checkbox', { name: 'dock' }))
+    expect(onchange).toHaveBeenCalledWith({ kind: 'view-rooms', view: 'middle', rooms: [] }, 'set')
+  })
+
+  it('with no room ticked the card says every room is drawn, and a room with no camera has no checklist', () => {
+    mount({
+      ...hall,
+      view: 'middle',
+      views: ['middle'],
+      viewRooms: { view: 'middle', all: ['hall', 'dock'], rooms: [] },
+    })
+    expect(screen.getByText('None ticked: every room is drawn.')).toBeInTheDocument()
+  })
+
+  it('has no rooms checklist for a room whose camera is not one the file has', () => {
+    mount({ ...hall, view: 'middle', views: ['middle'] })
+    expect(screen.queryByRole('group', { name: 'Rooms this camera draws' })).toBeNull()
+  })
+
   it('has no Camera when the file names no views', () => {
     mount(hall)
     expect(screen.queryByRole('button', { name: /Camera/ })).toBeNull()

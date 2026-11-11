@@ -61,6 +61,15 @@ export interface WorldView {
    * with no baked light (a door, a leaf, or any piece in a room with no `light`) is left alone.
    */
   relight(id: string): void
+  /**
+   * Draws only the pieces of these rooms (sector ids); `undefined` draws every room. `@pixi/3d` hides a node and its
+   * descendants together and has no other flag, so the first call moves each room's meshes under a node of their own (an
+   * identity transform, so nothing moves and the baked light stays true) and hiding a room hides that node. A mesh's own
+   * `visible` is left to the occluder rule and a prop's state, so a wall the rule hid stays hidden in a room that is shown.
+   * A world never asked to show rooms keeps its meshes directly under `node`. Baked light is unaffected: a hidden room
+   * still lights the rooms beside it.
+   */
+  showRooms(rooms: ReadonlySet<string> | undefined): void
   /** Takes the meshes down and frees their geometry and materials. */
   dispose(): void
 }
@@ -148,6 +157,8 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   const node = new Container3D()
   scene.parent.addChild(node)
   const meshes = new Map<string, Mesh3D>()
+  // The room nodes `showRooms` makes the first time it is asked, by sector.
+  let groups: Map<string, Container3D> | undefined
   for (const piece of pieces) {
     const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
     const glows = scene.glow?.(tileName(piece.surface))
@@ -201,6 +212,24 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     relight(id) {
       const mesh = meshes.get(id)
       if (mesh !== undefined) scene.light?.rebake(mesh)
+    },
+    showRooms(rooms) {
+      if (groups === undefined) {
+        const made = new Map<string, Container3D>()
+        for (const piece of pieces) {
+          const mesh = meshes.get(piece.id)
+          if (mesh === undefined) continue
+          let group = made.get(piece.sector)
+          if (group === undefined) {
+            group = new Container3D()
+            node.addChild(group)
+            made.set(piece.sector, group)
+          }
+          group.addChild(mesh)
+        }
+        groups = made
+      }
+      for (const [sector, group] of groups) group.visible = rooms === undefined || rooms.has(sector)
     },
     dispose() {
       for (const mesh of meshes.values()) mesh.destroy({ children: true })

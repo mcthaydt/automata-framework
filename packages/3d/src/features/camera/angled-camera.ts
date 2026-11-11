@@ -39,6 +39,8 @@ export interface CameraRig {
   setViews(views: readonly CameraView[]): void
   /** The view `id` among the rig's views, if any. */
   viewOf(id: string): CameraView | undefined
+  /** The active view's id: the one the rig started in until `activate` names another. */
+  active(): string | undefined
   /**
    * Makes `id` the active view: `ease` lets the camera ease to its shot (a cut under reduced motion); `cut` snaps to the
    * followed position, even into the view already active (a new sim, a resync). An unknown id warns once.
@@ -178,6 +180,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
     lensMm: LENS_MM,
     setViews,
     viewOf: (id) => views.get(id),
+    active: () => active?.id,
     activate(id, how) {
       const view = views.get(id)
       if (view === undefined) {

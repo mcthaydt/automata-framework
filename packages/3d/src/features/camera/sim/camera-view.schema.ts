@@ -73,6 +73,11 @@ export interface CameraViewFields {
   readonly depthFollow?: { readonly rate: number; readonly about: number } | undefined
   /** Metres inside this zone's `bounds` the player must be before the view is entered (the hysteresis). */
   readonly enterMargin: number
+  /**
+   * The sectors (by id) drawn while this view is active, besides the player's own room and what a peek or a cutscene adds
+   * (`createRoomDraw`). Absent: every room is drawn.
+   */
+  readonly rooms?: readonly string[] | undefined
 }
 
 /** A `camera-view` file as written: every field optional. */
@@ -105,6 +110,11 @@ export const cameraViewSchema: z.ZodType<CameraViewFields, CameraViewInput> = z
     depthFollow: z.strictObject({ rate: z.number(), about: z.number() }).optional(),
     /** Metres inside the zone's `bounds` the player must be before the view is entered. */
     enterMargin: z.number().min(0).default(CAMERA_DEFAULTS.enterMargin),
+    /** The sectors drawn while this view is active; leave it out to draw every room. */
+    rooms: z
+      .array(z.string())
+      .min(1, 'a view that draws no rooms is not one: leave `rooms` out to draw every room')
+      .optional(),
   })
   .refine(({ follow, look }) => follow >= 1 || look !== undefined, {
     message: 'a fixed shot (follow below 1) needs a look to hold',
