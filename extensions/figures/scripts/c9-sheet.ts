@@ -20,6 +20,8 @@ import { J, skeleton } from '../src/features/body/rig';
 import { bodyOf } from '../src/features/outfit/fit';
 import type { Garment } from '../src/features/outfit/garments';
 import '../tests/support/pins'; // registers the `fxPaint` kind: a row repaints body regions with it
+import { FALL_PLAIN } from '../tests/support/pins';
+import type { HairStyle } from '../src/features/hair/hair';
 import { shod, useFixtures } from '../tests/features/outfit/wardrobe-fixtures';
 useFixtures();
 
@@ -34,10 +36,19 @@ export const pair = (rows: (def: CharacterDef, who: string) => Row[]): Row[] => 
 /** A base figure with garments added to its own (its blocks, hair and face stay), and swatches beside the library's. */
 export const wearing = (def: CharacterDef, garments: Garment[], swatches?: CharacterDef['swatches']): CharacterDef =>
   ({ ...def, outfits: { [def.default]: [...def.outfits[def.default], ...garments] }, swatches: { ...def.swatches, ...swatches } });
+/** A base figure with its hair style replaced (a style, or a name of the library's): the rest of its outfit stays. */
+export const hairOf = (def: CharacterDef, style: HairStyle | string, tie?: string): CharacterDef =>
+  ({ ...def, outfits: { [def.default]: def.outfits[def.default].map((g: Garment) => ('hair' in g ? { ...g, style, ...(tie ? { tie } : {}) } : g)) } });
+/** The plain fall (tests/support/pins.ts) with fields of its own over it. */
+export const fallWith = (extra: Record<string, unknown>): HairStyle => ({ ...FALL_PLAIN, pieces: [{ fall: { ...(FALL_PLAIN.pieces[0] as { fall: object }).fall, ...extra } }] } as HairStyle);
 /** The sheets, in the order the plan makes them. */
 export const SHEETS: Sheet[] = [
   // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/features/outfit/wardrobe-fixtures.ts).
   { name: 'shoes', rows: pair((def, who) => Object.entries({ plain: undefined, ankle: { shaft: 0.15 }, mid: { shaft: 0.5 }, knee: { shaft: 1 }, heel: { heel: 1 }, 'thick sole': { sole: 2 }, 'toe cap': { cap: 'wood' } }).map(([label, form]) => ({ label: `${who} ${label}`, def: wearing(def, [shod('charcoal', form)]) }))), views: ALL_VIEWS, walk: true, density: 2 },
+  // F4–F6: hair, on base-f (the base man's cut is short).
+  { name: 'hair', rows: BASE.slice(1).flatMap(b => Object.entries({
+    'fall as before': {}, 'front .5': { front: 0.5 }, 'front 1': { front: 1 }, 'front 1 len 1.6': { front: 1, length: 1.6 }, 'turn .6 len .3': { turn: 0.6, length: 0.3 }, 'turn -.6 len .3': { turn: -0.6, length: 0.3 },
+  }).map(([label, extra]) => ({ label: `${b.def.id} ${label}`, def: hairOf(b.def, fallWith(extra)) }))), views: ALL_VIEWS, walk: false, density: 2 },
   { name: 'before', rows: pair((def, who) => [{ label: `${who} as they are`, def }]), views: ALL_VIEWS, walk: true, density: 2 },
 ];
 
