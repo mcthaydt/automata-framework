@@ -67,6 +67,8 @@ export interface Wearing {
   m: Measure; s: Skeleton; garments: Garment[];
   swatch: (name: string) => Material; swatches: Record<string, Material>;
   ppm?: number; worn: Part[]; state: Record<string, unknown>;
+  /** The wearer's skin swatch (the name `dress()` is given), so a kind mixes from the skin it covers: `rampOf(c.swatch(c.skin))`. */
+  skin: string;
   /** The body's real measures (fit.ts): its ring at a height, its girth over a span and the clearance to leave, so a sleeve
    * end or a hem sizes from the body (fat, bust, seat, limb girth) and clears any body the sliders make. */
   body: Body;
@@ -147,7 +149,7 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   let thighs = true, faceLook: FaceLook = { shape: m.face };
   // What the registered kinds are given, and the anchors they publish, each with the garment that made it.
   const state: Record<string, unknown> = {}, anchors: { anchor: Anchor; from: Garment }[] = [];
-  const fit = bodyOf(m, s, ppm), c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state, body: fit };
+  const fit = bodyOf(m, s, ppm), c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state, skin, body: fit };
   /** A kind's fit, applied in order: its parts, marks, materials, the regions it repaints, its openings. */
   const wear = (f: Fit, from: Garment) => {
     parts.push(...f.parts); decals.push(...f.decals ?? []); Object.assign(made, f.materials); Object.assign(r, f.paint);

@@ -7,7 +7,7 @@
  * tests/api.test.ts pins the list. A downstream that needs more asks for it to be added here.
  */
 export { gbuffer, rasterize, resolve, cleanup, noise3, STYLE, TRI, VERT, type GBuffer } from './features/paint/raster';
-export { duel, oklab } from './features/paint/paint';
+export { duel, oklab, rampOf } from './features/paint/paint';
 export { RAMPS, RAMP_OUTLINE } from './features/paint/duel-ramps';
 export { placed, superquadric, limb, type Mesh, type Material } from './features/body/parts';
 // For a host's own garment kinds (H1): the part groups, skin weights, and the limb and ring shapes they are built from.

@@ -22,7 +22,7 @@ describe('the public surface', () => {
   const def = BASE[0].def;
   it('the painter\'s toolkit exports exactly these names (a change is a breaking change: docs/contract.md)', async () => {
     expect(Object.keys(await import('../src/kit')).sort()).toEqual(['GROUP', 'J', 'RAMPS', 'RAMP_OUTLINE', 'STYLE', 'TRI', 'VERT', 'apply', 'axisAngle',
-      'cleanup', 'cross', 'dot', 'duel', 'fk', 'gbuffer', 'lerp', 'limb', 'noise3', 'normalize', 'oklab', 'placed', 'qmul', 'rasterize', 'resolve', 'smooth', 'sub', 'superquadric', 'weights'].sort());
+      'cleanup', 'cross', 'dot', 'duel', 'fk', 'gbuffer', 'lerp', 'limb', 'noise3', 'normalize', 'oklab', 'placed', 'qmul', 'rampOf', 'rasterize', 'resolve', 'smooth', 'sub', 'superquadric', 'weights'].sort());
   });
   it('the public surface exports exactly these names', async () => {
     expect(Object.keys(await import('../src')).sort()).toEqual(INDEX_NAMES);
