@@ -2,56 +2,20 @@
 // `automata-world-textures` and committed. A tile file holds the labels of one swatch's texture at the scale it is seen at,
 // with the sha-256 of the photo it was made from, so a tile older than its photo is found (`staleTiles`).
 
-import { DUEL_RAMP_NAMES, type DuelRampName } from '@automata/content/palette'
 import { type PhotoLibrary, photoBytes, photoHash, photoOf, photoSource } from './photos.ts'
-import { READS, type Reads } from './structure.ts'
+import { READS } from './structure.ts'
 import { TEXTURE_DEFAULTS, type TextureSpec } from './texture-spec.ts'
-import { type Ladder, type Tile, tileFromLab } from './tile.ts'
+import { type Tile, tileFromLab } from './tile.ts'
+import { type TexturedSwatch, TILE_FORMAT, type TileFile, textureOf } from './tile-read.ts'
 
-/** The fields of a swatch the tile maker reads. */
-export interface TexturedSwatch {
-  readonly ramp: DuelRampName
-  readonly step: number
-  readonly texture?: Readonly<Record<string, unknown>> | undefined
-  readonly accent?: string | undefined
-  readonly reads?: Partial<Reads> | undefined
-}
-
-export const TILE_FORMAT = 'world-kit-tile/1'
-
-/** A tile as the file holds it. */
-export interface TileFile {
-  readonly format: typeof TILE_FORMAT
-  /** The swatch it is for. */
-  readonly swatch: string
-  readonly photo: string
-  /** The sha-256, in hex, of the photo's bytes when the tile was made. */
-  readonly sha256: string
-  /** The texture's own knobs, as the swatch wrote them. */
-  readonly texture: Readonly<Record<string, unknown>>
-  /** Texels a metre the tile was made for, along u and along v. */
-  readonly texels: readonly [number, number]
-  readonly width: number
-  readonly height: number
-  /** The labels, two bytes each, little endian, as base64. */
-  readonly labels: string
-}
-
-/** The texture a swatch declares, or `undefined` for a flat one. */
-export function textureOf(swatch: TexturedSwatch): TextureSpec | undefined {
-  const t = swatch.texture
-  return typeof t?.photo === 'string' ? (t as unknown as TextureSpec) : undefined
-}
-
-/** The ladder a swatch's labels are read against: its own ramp and step, and its accent's. */
-export function ladderOf(swatch: TexturedSwatch, swatches: Readonly<Record<string, TexturedSwatch>>): Ladder {
-  const row = (s: TexturedSwatch): { ramp: number; step: number } => ({
-    ramp: DUEL_RAMP_NAMES.indexOf(s.ramp),
-    step: s.step,
-  })
-  const accent = swatch.accent === undefined ? undefined : swatches[swatch.accent]
-  return { base: row(swatch), accent: accent === undefined ? undefined : row(accent) }
-}
+export {
+  decodeTileFile,
+  ladderOf,
+  type TexturedSwatch,
+  TILE_FORMAT,
+  type TileFile,
+  textureOf,
+} from './tile-read.ts'
 
 /** A swatch's tile, made at its declared scale (`reads.at`, 32 texels a metre unless it says), with its worn variant when
  * `unworn` is true (wear 0, as a scene with no grime draws it). */
@@ -77,14 +41,6 @@ export function encodeLabels(labels: Uint16Array): string {
   const bytes = Buffer.alloc(labels.length * 2)
   for (const [i, label] of labels.entries()) bytes.writeUInt16LE(label, i * 2)
   return bytes.toString('base64')
-}
-
-/** The labels a tile file holds. */
-export function decodeTileFile(file: TileFile): Tile {
-  const bytes = Buffer.from(file.labels, 'base64')
-  const labels = new Uint16Array(bytes.length / 2)
-  for (let i = 0; i < labels.length; i++) labels[i] = bytes.readUInt16LE(i * 2)
-  return { width: file.width, height: file.height, labels }
 }
 
 /** The tile file for a textured swatch. */
