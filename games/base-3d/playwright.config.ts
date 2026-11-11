@@ -41,6 +41,9 @@ export default defineJourneys({
         AF_E2E_HOST_ORIGIN: demoHostOrigin,
       },
       reuseExistingServer: reuse,
+      // It builds the game before it serves it: more than Playwright's 60 s on the shared runner (the story examples give
+      // their build-and-serve servers the same).
+      timeout: 180_000,
     },
     {
       command: `pnpm exec vite --configLoader runner --strictPort --port ${base3dDevPort}`,

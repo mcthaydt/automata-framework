@@ -45,6 +45,54 @@ Core has `sleek` and `straight`.
 **Seats.** A `figure-seat` file says how a figure sits: how high the seat is, whether it leans or slumps, where each hand
 goes. `seated(skeleton, gait, seat, time)` gives the sitting pose.
 
+## Painted figures and the wardrobe
+
+A painted figure is a character drawn the way the figure builder's own renders are: texel by texel, 128 × 192 texels for 2.6 m,
+always from the same angle (18° down, whatever the camera does), one pixel to a texel, and each texel has its own depth, so a
+figure goes behind a wall or behind another figure a texel at a time. The builder is a git submodule under `vendor/`
+(`.gitmodules`; clone with `--recurse-submodules`) and the kit reaches it only through `src/shared/figure-builder/`.
+
+```ts
+import { BASE, paintedFigure } from '@automata/character-kit'
+
+createPixi3dRenderer({
+  views: { [Walker.id]: paintedFigure(BASE[0].def, { state: (c) => ({ moving: c.walker?.walking === true }) }) },
+})
+```
+
+Make the game's field big enough that a texel is a pixel at the figure's feet. At 720 × 405 under the follow camera it is.
+A figure that stands can hold one of the builder's stands: `state: () => ({ moving: false, pose: 'handOnHip' })`. A name that
+is not there is an error that says so.
+
+**The runway wardrobe.** Nine more things to wear, written in a painted character's outfit. Not the same as the eight above:
+these are for painted figures, and each is sized from the body under it, so it fits any body the sliders make.
+
+| Garment    | What it is                                                               |
+| ---------- | ------------------------------------------------------------------------ |
+| `tee`      | A tee, a knit or a shirt: `sleeves` none, short or long; `length` of the hem. |
+| `hoodie`   | Roomy, with the hood down behind the neck and a pouch pocket.            |
+| `jacket`   | Wool or leather, to the hip, with lapels or a `collar`, a `zip`, and an `inner` shirt in a V. |
+| `coat`     | Long sleeves, lapels and skirts to `length`.                             |
+| `skirt`    | From the waist to `length` (0 the hip, 0.5 the knee, 1 the ankle).       |
+| `dress`    | A fitted top and a skirt in one cloth.                                   |
+| `jeans`    | Straight legs to the ankle.                                              |
+| `trousers` | The same, roomier; `wide` widens the leg.                                |
+| `shoes`    | Shoes and their `sole`.                                                  |
+
+They come with seven fabrics (twill, rib, gingham, Breton stripe, pinstripe, plaid, windowpane), their swatches (cloth,
+leather, skin, hair, lips, eyes), twelve hair styles and a glossy `silk` finish. `registerFashion()` adds them to the
+builder once; loading the kit's extension calls it, so a second call is harmless.
+
+**The cast.** Fifteen characters as data, to use or to learn from: `RUNWAY_CAST` (Mara, Dre, June, Theo, Edith, Sam, Nia and Otto,
+each in an outfit of the wardrobe) and `DEMO_CAST` (Beauty, Ugly, Elder, Lifter, Big, Lanky and Poised, in plain blocks, to show
+how far the sliders go). Each is `{ def, pose, about }`: `def` is what `paintedFigure` takes.
+
+```ts
+import { RUNWAY_CAST, paintedFigure } from '@automata/character-kit'
+
+views: { [Mara.id]: paintedFigure(RUNWAY_CAST[0].def, { state: () => ({ moving: false, pose: RUNWAY_CAST[0].pose }) }) }
+```
+
 ## Try it
 
 The repository's `extensions/character-kit/tests/fixtures/content` has eight hairstyles and eight seats to copy from (they are not in the npm package). `pnpm --filter @automata/character-kit test`

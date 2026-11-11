@@ -37,3 +37,6 @@ spikes/tll-camera/node_modules
 
 # wrangler's local state (the miniflare databases of `host:local`)
 .wrangler/
+
+# The figure builder's declarations, built from the submodule by vendor/figure-builder (pnpm install, typecheck).
+vendor/figure-builder/types/

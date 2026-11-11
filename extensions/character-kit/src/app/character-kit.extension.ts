@@ -6,9 +6,13 @@
 // An extension has no setup hook, so the kinds register when the files below load: loading this file is what adds them.
 
 import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+import { registerFashion } from '../features/fashion/register-fashion.ts'
 import '../features/garments/register-wardrobe.ts'
 import '../features/hair/register-hair.ts'
 import { figureSeatContent } from '../features/seats/seat.content.ts'
+
+// The runway wardrobe goes on the figure builder the painted figures use; it is guarded, so a second load does nothing.
+registerFashion()
 
 export const characterKitExtension: ExtensionDef<'character-kit'> = defineExtension({
   name: 'character-kit',

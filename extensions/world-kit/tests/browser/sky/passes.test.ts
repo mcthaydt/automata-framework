@@ -92,7 +92,8 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
     expect(() => addSkyPasses({ stars: false, glow: false, reflect: {} })).toThrow()
     const renderer = await start()
     const names = renderer.view.passes.map((p) => p.constructor.name)
-    // The haze and the mood grade run before the snap, the kit's passes after it.
+    // Core's haze (on by default) and the mood grade come before its snap; the kit's passes follow it. Core's present pass is
+    // last by design: on WebGPU it rebinds an empty depth, so every pass that samples the scene depth must run before it.
     expect(names).toEqual([
       'HazeEffect',
       'GradeEffect',
@@ -103,7 +104,18 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
       'ShaftsEffect',
       'ParticlesEffect',
       'RainEffect',
+      'PresentEffect',
     ])
+    const present = names.indexOf('PresentEffect')
+    for (const kit of [
+      'StarsEffect',
+      'ReflectEffect',
+      'GlowEffect',
+      'ShaftsEffect',
+      'ParticlesEffect',
+      'RainEffect',
+    ])
+      expect(names.indexOf(kit)).toBeLessThan(present)
   })
 
   it('stars are DUEL colours in the sky above the horizon, and only there', async () => {
