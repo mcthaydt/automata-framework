@@ -1,0 +1,178 @@
+[
+  {
+    "scene": "base-interior",
+    "step": "0",
+    "renderer": "webgl",
+    "headingDeg": "0",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x3634001a9600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "step": "1",
+    "renderer": "webgl",
+    "headingDeg": "45",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x3634001a6600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "step": "2",
+    "renderer": "webgl",
+    "headingDeg": "90",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x3634056b7a00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "step": "3",
+    "renderer": "webgl",
+    "headingDeg": "135",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x3634001a1600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "step": "4",
+    "renderer": "webgl",
+    "headingDeg": "180",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x363400b81e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "step": "5",
+    "renderer": "webgl",
+    "headingDeg": "225",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x3634001a9000] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "step": "6",
+    "renderer": "webgl",
+    "headingDeg": "270",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x36340107c800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-interior",
+    "step": "7",
+    "renderer": "webgl",
+    "headingDeg": "315",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x363403abf800] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "step": "0",
+    "renderer": "webgl",
+    "headingDeg": "0",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x363400d8d200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "step": "1",
+    "renderer": "webgl",
+    "headingDeg": "45",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x363400ab4200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "step": "2",
+    "renderer": "webgl",
+    "headingDeg": "90",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x3634008b9c00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "step": "3",
+    "renderer": "webgl",
+    "headingDeg": "135",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x363400a90200] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "step": "4",
+    "renderer": "webgl",
+    "headingDeg": "180",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x3634001a5400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "step": "5",
+    "renderer": "webgl",
+    "headingDeg": "225",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x363404f28600] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "step": "6",
+    "renderer": "webgl",
+    "headingDeg": "270",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x363405968400] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "step": "7",
+    "renderer": "webgl",
+    "headingDeg": "315",
+    "distance": "16",
+    "ready": "1",
+    "errors": [
+      "[.WebGL-0x3634001a4e00] GL_INVALID_OPERATION: glDrawElements: Feedback loop formed between Framebuffer and active Texture."
+    ]
+  }
+]
