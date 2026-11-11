@@ -59,7 +59,12 @@ const library = dressed ? worldKitLibrary : baseLibrary
 const time = levelTime(q.get('at') ?? level.time)
 const night = time.name !== 'day'
 const world = buildWorld(level, library, { night })
-const lighting = worldLighting(world, time)
+// ?uniform=1 lights every surface by 1 (white ambient alone), so a frame shows each surface's albedo: the measure of how
+// much light each side puts on a surface is the frame's brightness over this one.
+const lighting =
+  q.get('uniform') === '1'
+    ? { ...worldLighting(world, time), ambient: 1, ambientColor: 0xffffff, key: undefined, fill: undefined, sun: undefined, lamps: [] }
+    : worldLighting(world, time)
 const views = (level.views ?? {}) as Record<string, Record<string, unknown>>
 const zoneOf = (level.views ?? {}) as Record<string, { distance?: number }>
 const zoneDistance = (zoneOf.room ?? zoneOf.pavement)?.distance

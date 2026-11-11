@@ -108,6 +108,27 @@ describe('the sun', () => {
     expect(sunPart).toBeGreaterThan(0.2)
     expect(sunPart).toBeLessThan(0.9)
   })
+  it('does not shadow a surface with its own plane: a slanted sun on an open floor lights it in full', () => {
+    // The 3 × 3 grid of rays is spread across the vertex's own surface, so none starts under the floor that is itself a
+    // plane occluder: on open ground the share is 1, not the 6 of 9 that start above it.
+    const slanted = { dir: [-0.5, 0.78, 0.38], color: 0xffffff, level: 1, shadow: true }
+    const open = lightModel(lighting({ sun: slanted }))
+    const noShadow = lightModel(lighting({ sun: { ...slanted, shadow: false } }))
+    const floorOnly = { boxes: [], planes: [...profile.planes] }
+    expect(baseLight(floor, open, floorOnly)[0]).toBeCloseTo(
+      baseLight(floor, noShadow, floorOnly)[0] as number,
+      5,
+    )
+  })
+  it('lights a wall that is a plane occluder in full, too', () => {
+    const slanted = { dir: [-0.5, 0.78, 0.38], color: 0xffffff, level: 1, shadow: true }
+    const wallPlane = { x: 0, y: 2, z: 0, normal: [0, 0, 1], width: 40, height: 4 }
+    const facing: LightSample = { x: 0, y: 2, z: 0, nx: 0, ny: 0, nz: 1 }
+    const open = lightModel(lighting({ sun: slanted }))
+    const noShadow = lightModel(lighting({ sun: { ...slanted, shadow: false } }))
+    const only = { boxes: [], planes: [wallPlane] }
+    expect(baseLight(facing, open, only)[0]).toBeCloseTo(baseLight(facing, noShadow, only)[0] as number, 5)
+  })
   it('ignores the occluders when the time casts no shadow', () => {
     const noShadow = lightModel(lighting({ sun: { ...sun, shadow: false } }))
     const lit = baseLight(floor, noShadow, { boxes: [crate], planes: [] })

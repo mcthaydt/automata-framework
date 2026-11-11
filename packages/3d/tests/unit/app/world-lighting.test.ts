@@ -7,6 +7,8 @@ import { BASE_SCENES, baseLibrary } from '#src/entries/base.ts'
 import { buildWorld } from '#src/features/world/build.ts'
 import { worldOccluders } from '#src/features/world/occluders.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
+import { bakeVertices } from '#src/shared/render/light/vertex-bake.ts'
+import { stepLight } from '#src/shared/render/light/vertex-light.ts'
 import { levelTime } from '#src/shared/time-of-day/time-light.ts'
 
 const interior = BASE_SCENES['base-interior']
@@ -67,5 +69,48 @@ describe('worldLighting', () => {
     expect(sun!.color).toBe(0xfff3d6)
     expect(sun!.level).toBe(1)
     expect(sun!.shadow).toBe(day.scene.light.shadow)
+  })
+  it('lights the open road by day as the builder’s formula does: the ambient and key, plus the sun times N·L, stepped', () => {
+    // EnvironmentBuilder's `baseLight` for an upright-up surface in the open: (ambient + key level × (n · key dir)) × the
+    // ambient's tint (its brightest channel 1), plus the sun's colour × its level × N·L, then the cap and the 0.1 steps.
+    // No fill (it lights upright surfaces), no contact darkening on the open road, no shadow over it.
+    const day = levelTime(exterior.time)
+    const world = worldOf(exterior, false)
+    const lighting = worldLighting(world, day)
+    const tint = [16, 8, 0].map((shift) => ((lighting.ambientColor >> shift) & 255) / 255)
+    const top = Math.max(...tint)
+    const keyed = lighting.ambient + 0.8 * lighting.key!.level
+    const sun = lighting.sun!
+    const sunRgb = [16, 8, 0].map((shift) => (((sun.color >> shift) & 255) / 255) * sun.level)
+    const sum = tint.map((t, c) => keyed * (t / top) + (sunRgb[c] as number) * sun.dir[1]) as [
+      number,
+      number,
+      number,
+    ]
+    const expected = stepLight(
+      sum.map((v) => Math.min(lighting.max, v)) as [number, number, number],
+      lighting.step,
+    )
+    const road = world.pieces.find((p) => p.id === 'road:floor')!
+    const bake = bakeVertices(
+      new Float32Array(road.mesh.positions),
+      new Float32Array(road.mesh.normals),
+      [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+      lighting,
+      [],
+      { textured: true },
+    )
+    const out = new Float32Array(bake.vertexCount * 4)
+    bake.write({}, out)
+    // Away from the kerb (whose contact darkening is the builder's own rule) every vertex of the road has the same light:
+    // nothing stands over it, and it does not shadow itself.
+    let checked = 0
+    for (let i = 0; i < bake.vertexCount; i++) {
+      if ((road.mesh.positions[i * 3 + 2] as number) < 1) continue
+      checked++
+      for (let c = 0; c < 3; c++)
+        expect(out[i * 4 + c], `vertex ${i} channel ${c}`).toBeCloseTo(expected[c], 4)
+    }
+    expect(checked).toBeGreaterThan(500)
   })
 })
