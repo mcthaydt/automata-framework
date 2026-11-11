@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 14 of 21 tasks (52%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 15 of 21 tasks (53%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -46,7 +46,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 11 | Splash (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium; WebKit and Firefox not run) | `5a6e7eb9` |
 | 11b | `Hosting.openLink` on every target | 5 | done (jsdom/Node unit tests over fakes; a real desktop build opening a real browser and a real Ruken host asking the player are not run) | `7dc3e29c` |
 | 12 | Credits (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium, 100 cases; WebKit and Firefox not run) | `618d03a3` |
-| 13 | Achievements, generic, and their Ruken mapping | 6 | todo | |
+| 13 | Achievements, generic, and their Ruken mapping | 6 | done (unit tests over fakes and Ruken's own parser; a real `ruken publish` is not run) | `474d2f96` |
 | 14 | Stale-build check | 7 | todo | |
 | 15 | The four examples and their journeys | examples | todo | |
 | 16 | Emberwick in six languages, with an achievement | 1, 6 | todo | |
@@ -218,6 +218,25 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   essential where a control has no test id (a Modal's Close, `[data-modal-close]`).
 - **Task 12, Ruling:** editor gap 4 logged in `docs/superpowers/progress.md`: the credits file has no editor.
 - **Task 12, not run:** the panel with a real host (Ruken asking the player, a browser's popup blocker); WebKit and Firefox.
+- **Task 13, Ruling:** the achievements' words use the folder catalog mechanism, not a catalog whose source is only derived in
+  memory: `automata words` rewrites `messages/achievements/en.json` from the declaration (through the loader it already
+  uses) before it finds the catalogs, and `gameCatalogs` finds that folder like `messages/ui`. A message key turns the id's
+  hyphens into underscores (`achievement_score_20_title`). `automata check`'s `achievements` step says when the file is
+  missing or behind (`achievement-words`), and the `words` step then asks for each language's translation like any
+  catalog, so a game that declares achievements ships them in every language it ships (Ruken itself takes the source text).
+- **Task 13, Ruling:** the Ruken-only refusal of a top share (`checkAchievementGoals`, the shares read from
+  `ACHIEVEMENT_TOP_PERCENTS`) lives in `targets/ruken/check-manifest.ts`, because `pnpm boundaries` allows `@ruken/manifest` only under
+  a `ruken/` folder; `prepare-build.ts` calls it. The refusal is its own error, `AchievementUnsupported`.
+- **Task 13, Ruling:** `ManifestInvalid`'s message puts an achievement or board-title problem in plain words, then Ruken's own
+  words in brackets after it; every other problem reads as before.
+- **Task 13, Ruling:** `@automata/content/game-config` re-exported its schema without a `.ts` extension, so plain Node could
+  not load it from source (the `automata` bin then failed `ERR_MODULE_NOT_FOUND`); the entry now names `.ts`, as the other
+  entries do. `tools` needed it at run time for the first time (`achievementsStep` parses with `gameConfigSchema`).
+- **Task 13, Ruling:** the tauri case of "prepares exactly as before" is held at `tauriProjectFiles` (the generated project is
+  byte-identical with achievements declared), not at a `prepareTauri` run, which needs a fake Tauri CLI; web and itch run
+  their prepare. The `automata-verify` skill lists the new step and its two rules (its test requires every rule documented).
+- **Task 13, Ruling:** editor gaps 5 (the achievements declaration) and 6 (the font list, logged late) are in the ledger.
+- **Task 13, not run:** a real `ruken publish`, and a live `automata words` over the achievements.
 
 ## Global constraints
 
