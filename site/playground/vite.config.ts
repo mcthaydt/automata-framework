@@ -27,6 +27,7 @@ export default defineConfig({
       input: {
         automata: PLAYGROUND_ENTRIES.automata,
         zod: PLAYGROUND_ENTRIES.zod,
+        'ui-screens': PLAYGROUND_ENTRIES.uiScreens,
         'no-eval': PLAYGROUND_ENTRIES.noEval,
         frame: PLAYGROUND_ENTRIES.frame,
       },

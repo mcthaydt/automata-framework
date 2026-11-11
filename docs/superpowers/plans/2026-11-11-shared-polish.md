@@ -280,6 +280,20 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
 - **Task 15, Ruling:** `@automata/ui-screens` is not yet a dependency of `examples/2d` (knip would flag it unused while the one example
   that uses it waits in `pending/`); the pending README says to add it. The three sounds are synthesized by a script not committed (the
   scratchpad); `PROVENANCE.md` says how each is made and gives the hashes.
+- **Task 15, step 4 and the fourth example (fifth session):** the playground answers `@automata/ui-screens` and the six screens it
+  publishes (`/credits`, `/error`, `/loading`, `/results`, `/splash`, `/title`). One list, `site/playground/src/playground-imports.ts`,
+  feeds both the compile allow-list and the frame's import map; its test reads `extensions/ui-screens/package.json` and fails when a
+  screen is published that the list lacks. The runtime has one `ui-screens` entry (`export * from '@automata/ui-screens'`), and the map
+  points every name at that one file, so the screens share the umbrella's chunks (one Pixi, one sim). The compile message now reads
+  "The playground can import only @automata/framework, @automata/ui-screens and zod." `@automata/ui-screens` is a dependency of
+  `site` and of `examples/2d`. The runtime is 427,480 B gzip against the 460,000 budget (unchanged); the screens' own entry is 4,272 B.
+  The example and its journey are in place (`examples/2d/ui/ui-splash-credits.ts`, `tests/e2e/ui-splash-credits.test.ts`), the README row is
+  added, the site's counts are 21 and the `ui` module is listed, and `docs/superpowers/pending/` is deleted. Red first: the site's unit
+  tests (import map, compile allow-list, manifest entry, 21 examples) failed for the missing module and the missing entry. Ran in
+  Chromium: the examples' `examples` and `examples-compact` projects (52 passed, the four journeys and every smoke boot), the example in
+  the playground frame under its policy (`playground-frame-chromium`, 4 passed with the gzip-budget case), the site's unit tests (514).
+  Not run: the site's own `playground.e2e.ts` (its web server did not start in 60 s; only the message text changed there), WebKit and
+  Firefox.
 
 ## Global constraints
 

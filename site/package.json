@@ -30,6 +30,7 @@
     "@automata/framework": "workspace:*",
     "@automata/sim": "workspace:*",
     "@automata/tools": "workspace:*",
+    "@automata/ui-screens": "workspace:*",
     "@babel/parser": "8.0.10",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-javascript": "6.2.4",

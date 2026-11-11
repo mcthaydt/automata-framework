@@ -47,6 +47,9 @@ importers:
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/ui-screens':
+        specifier: workspace:*
+        version: link:../../extensions/ui-screens
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
@@ -1936,6 +1939,9 @@ importers:
       '@automata/tools':
         specifier: workspace:*
         version: link:../packages/tools
+      '@automata/ui-screens':
+        specifier: workspace:*
+        version: link:../extensions/ui-screens
       '@babel/parser':
         specifier: 8.0.10
         version: 8.0.10
