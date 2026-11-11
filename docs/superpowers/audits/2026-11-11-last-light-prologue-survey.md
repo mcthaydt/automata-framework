@@ -21,10 +21,9 @@ editors, marks each item, and corrects the spec's slice table where the code dis
   prologue pulls from `src/game`, `src/narrative`, `src/render`, `src/ui`, `src/audio` and `src/scenes/clinic` (sizes
   and the parts the prologue calls).
 - **Not run:** nothing was built or tested. `node_modules` is not installed in this container, and this stage writes
-  documents only. Every "already in the framework" below was read in the source, not exercised. Three things were
+  documents only. Every "already in the framework" below was read in the source, not exercised. Two things were
   not read closely and are marked **to check** where they matter: the framework's room occluders against the game's
-  room-by-room visibility, the look's lamp kinds against the game's nine lamp kinds, and the systems presets against
-  the figure's three movement hooks.
+  room-by-room visibility, and the look's lamp kinds against the game's nine lamp kinds.
 
 ## Six findings that change the plan
 
@@ -83,7 +82,7 @@ workstream is open for the Owner (options A, B and C in the tracker).
 | # | The prologue has | In the game | Mark | In the framework |
 |---|---|---|---|---|
 | 1 | 7 sectors with corners, walls, portals, holes (the counter), windows, doors, handrails and trims; 3 masses | `map.ts`, generated from `blockout.json` | (b) | An `af-sector/2` level: `packages/3d/src/shared/level/af-sector-2.schema.ts`, read with `readLevel` from `@automata/3d/level`; file `content/levels/prologue.af-sector.json`. Two wall members the format leaves out (`hideFrom`, `cut`) are the old renderer's; the converter reports them and drops them |
-| 2 | Which room hides which (the clinic's policy, borrowed) | `../clinic/visibility.ts`, `src/render/room-visibility.ts` | (a), **to check** | The camera's occluders (`packages/3d/src/features/camera/occluders/`). The superseded clinic branches learned that rooms are drawn one by one and walls need tops; if the occluders do not hide the corridor from the hall as the game does, that is a `@automata/3d` fix found in task 11, not a private copy |
+| 2 | Which room hides which (the clinic's policy, borrowed) | `../clinic/visibility.ts`, `src/render/room-visibility.ts` | (a), **to check** | The camera's occluders (`packages/3d/src/features/camera/occluders/`). The superseded clinic branches learned that rooms are drawn one by one and walls need tops; if the occluders do not hide the corridor from the hall as the game does, that is a `@automata/3d` fix found in plan task 15, not a private copy |
 | 3 | 21 collider boxes | `level.ts` `BOXES` | (b) | Props with footprints in the level, and nav's `blocked` (the precedent is `clinic.boxes.toml`) |
 | 4 | 22 hotspots: a point, a name, a reach, two of them hiding places | `level.ts` `HOTSPOTS` | (b) | Level entities of a definition `hotspot` (`entityDefs`, `entities`); Levels 3D's Things tool places and edits them; the editor's `puzzle-hotspots` check reads them. The name becomes a message key |
 | 5 | 15 lamps of 9 kinds (desk, screen, pendant, bulb, fluorescent, fire, spark, moon, fill) | `level.ts` `LAMPS`, `src/render/look.ts` | (b), **to check** | `lamps` in the level (`LampPlace`), kinds from the look's lamp kit (`packages/3d/src/features/world/library/lamp-kit.json`). A kind the kit lacks is reported by the converter and mapped by hand to the nearest |
@@ -125,9 +124,9 @@ workstream is open for the Owner (options A, B and C in the tracker).
 | 31 | The hand lamp: off or lit, fuel that burns, a refill, F to toggle, a radius | `src/game/tools.ts`, `rules.ts` | (d) | A small sim feature in the game, `lamp`: a component, a toggle command, a burn system, and the light it gives systems (row 29). It is this game's rule; when the clinic's lighter and torch cross, the three are looked at together |
 | 32 | Footsteps as noise | hook `footsteps` | (d) | `systems.hear` from a game system (the README's own example). Six lines |
 | 33 | Waking her, her vigil, her leaving | hooks `wake`, `vigil`, `leave` | (d) | `systemsExtension({ hooks })`: the vigil's clock and the two moves |
-| 34 | Chasing, re-routing and fleeing to the dark | hooks `chase`, `replan`, `fleeGoal` | (c), **to check** | Generic creature moves: every hunter needs them and the clinic uses the same three. Systems has `goTo`, `flee` and `followThrough` as effects; if its presets (Hunter, Coward) already chase and flee without hooks, the converter rewrites the three calls as those effects. If not, they become built-in effects of `@automata/systems` (plan task 4) |
+| 34 | Chasing, re-routing and fleeing to the dark | hooks `chase`, `replan`, `fleeGoal` | (b), with one small (c) | The systems presets (`extensions/systems/src/testing/fixtures/presets.json`: Hunter, Coward) chase with `goTo = "player"` and flee with `flee`, with no hooks, so the converter writes `chase` as `goTo = "player"` and `fleeGoal` as `flee = "light"`. `replan` re-routes to her every 0.4 s on its own clock; if a transition cannot say "again every so often" without the agent's one timer, `goTo` gains an optional `every` in `@automata/systems` (plan task 4) |
 | 35 | Hiding: two places, she pulls Ada out if she saw her go in | `src/game/pursuit.ts` | (a) | `systems.hide` and `systems.unhide`, `sawHide`, `pursuit.ts` in `@automata/systems`. `@automata/interact` sends `hide` when the hotspot is a hiding place |
-| 36 | Peeking from a hiding place: a bounded camera offset | `src/game/peek.ts` (129 lines) | (a) for the camera, (c) for the rule | The camera side is there (`clampPeek`, `PEEK_REACH` in `play-camera.ts`). The sim side (a command that sets the offset while hidden, and what peeking lets her see) is missing; it goes in `@automata/systems` beside hiding (plan task 4) |
+| 36 | Peeking through a doorway: Ada stands still facing a doorway into another camera zone for 0.6 s, and the camera leans up to 1.2 m through it; moving, turning, hiding or a verb ends it; a shut door shows nothing | `src/game/peek.ts` (129 lines) | (a) for the camera, (c) for the rule | The camera side is there (`clampPeek`, `PEEK_REACH` in `play-camera.ts`). The sim rule (who is peeking through which doorway, kept in sim state so replays carry it) is missing. It is generic sneaking, so it goes in `@automata/systems` beside hiding and door-follow, which already read the same doorways (plan task 4) |
 | 37 | A catch that only practises: `found` plays, Ada is back at the lights-out checkpoint, the figure is somewhere fair | `emit: { caught: 'practice' }`, `resetFor` | (a) and (d) | `systems.caught` carries the cause. What a catch does is the game's: play `found`, restore the checkpoint (row 24), put her far away (a hook) |
 | 38 | Door-follow | transitions `crossed`, `followThrough` | (a) | In `@automata/systems` (`pursuit.ts`) |
 | 39 | The bots' tactic: hide behind the screen until she has gone | `PLAYTEST` | (a) and (d) | `@automata/systems/bots` (`play`, `playtest`, `fairness`); the tactic is a function in the game's test file |
@@ -143,7 +142,7 @@ workstream is open for the Owner (options A, B and C in the tracker).
 | 44 | The canon (people, motifs) the lines name | `src/narrative/canon.ts` | (b) | The `canon` kind. Only the part the prologue's lines name is converted |
 | 45 | Five cutscenes (`opening`, `keypad`, `lightsOut`, `found`, `rest`): shots with lens changes, cuts, fades, flicker, lamp levels, a sting, a prop state, actors with poses and turns, captions | `cutscenes.ts`, `src/game/cutscene-builder.ts` | (b), with one (c) | The `cutscene` kind (`cutscenes.content.ts`), `content/cutscenes/prologue.toml`; the director, the caption and the lint are there. **One gap:** four of the five are functions of where Ada stands. Actors can stand at an anchor (`at = "player"`), but a camera key cannot, so `found` (shot where the catch happened) cannot be said. A camera key relative to an anchor is added to `@automata/cutscenes` (plan task 6). `opening`, `lightsOut` and `rest` put Ada on a mark first, which the old code nearly does already |
 | 46 | A cutscene drawn in 3D: the camera, the figures posed, lamps, doors, fades | `src/render/stage.ts` | (a) in pieces, (c) as one | `examples/3d/cutscenes` wires the director to the camera, `updatePieces` and the light by hand. There is a ready stage for 2D (`@automata/cutscenes/stage-2d`) and none for 3D. A `stage-3d` in `@automata/cutscenes` that does that wiring once, with actors, is missing and generic (plan task 6) |
-| 47 | Cutscene poses: `read`, `flinch`, `sit`, `sleep`, `pulse` | actor keys | (b), **waits** | Figure actions and seats (`figure-actions`, `figure-seat` from character-kit). `flinch` exists in `games/base-3d`; the others are written as content in the Studio (plan task 12). No paid stage |
+| 47 | Cutscene poses: `read`, `flinch`, `sit`, `sleep`, `pulse` | actor keys | (b), **waits** | Figure actions and seats (`figure-actions`, `figure-seat` from character-kit). `flinch` exists in `games/base-3d`; the others are written as content in the Studio (plan task 15). No paid stage |
 | 48 | Films before and after cutscenes | `presentation.ts` `fmv` | out | The Owner: films are out |
 
 ## Run time: sound, feel and the shell
@@ -156,7 +155,7 @@ workstream is open for the Owner (options A, B and C in the tracker).
 | 52 | Feel: flicker, a flinch, shake within limits | `src/feel/` | (a) | `@automata/feel` and its `feel` kind; the Feel editor edits it |
 | 53 | Title, pause, settings, save slots, gamepad, touch, rebinding | `src/ui/boot.ts`, `settings-ui.ts`, `gamepad.ts`, `menu-nav.ts`, `focus.ts`, `access.ts` | (a) | Core's default screens and input (`@automata/framework`). None of the game's copies cross |
 | 54 | Six languages, a first-run language pick, a flashing warning, interface sounds, a splash, credits, fonts for every language | (the game has none of these) | (a), **from workstream 1** | Shared polish, being built on `claude/shared-polish-build`: `defineGame`'s `firstRunLanguage`, `photosensitivity`, `opening`, `uiSounds`; `automata words`; `fonts.toml` and the font build; Splash and Credits in `@automata/ui-screens`. The prologue flickers, so it turns the warning on |
-| 55 | A debug driver the playthrough script calls (`window.game.click`, `skip`, `light`) | `src/main.ts` | (a) | `@automata/debug`'s driver and the sim's replay and hash tools. The bot in plan task 13 drives the sim with commands, not the page |
+| 55 | A debug driver the playthrough script calls (`window.game.click`, `skip`, `light`) | `src/main.ts` | (a) | `@automata/debug`'s driver and the sim's replay and hash tools. The bots in plan tasks 14 and 17 send the commands a player's input sends |
 
 ## The editors: which one opens what, today
 
@@ -164,7 +163,7 @@ workstream is open for the Owner (options A, B and C in the tracker).
 |---|---|---|---|
 | Rooms, walls, doors, windows, masses | `content/levels/prologue.af-sector.json` | Levels 3D | Opens and saves `af-sector/2` |
 | Hotspots, the spawn, hiding places | the same file, as things | Levels 3D (Things) | Opens. The definitions (`hotspot` with a name, a reach, a hide flag, a condition) are data in the level |
-| Lamps, props, lettering | the same file | Levels 3D | Opens lamps and props. **To check in task 14:** that a lamp's level and a prop's kit parameters are editable, not only its place |
+| Lamps, props, lettering | the same file | Levels 3D | Opens lamps and props. **To check in plan task 18:** that a lamp's level and a prop's kit parameters are editable, not only its place |
 | Camera views per room | the same file | Levels 3D (areas) | Opens: a definition with an area is the camera zone |
 | Nav nodes and edges | `content/nav/prologue.toml` | Schematic (Places) | Opens. Levels 3D also links nav things on the plan; the file is Schematic's |
 | The figure, the rules, the tuned numbers, the patrol | `content/systems/prologue.toml` | Schematic | Opens; Watch shows her modes beside the game through `@automata/debug` |
@@ -238,7 +237,7 @@ on these points, and the spec's table is corrected in the same commit as this su
 | The hand lamp and its fuel | The game's own (a small sim feature), not the framework's |
 | Light as a sense | Already in `@automata/systems` |
 | Hiding | Already in `@automata/systems` |
-| Peeking | The camera side is in `@automata/3d`; the sim rule is added to `@automata/systems` |
+| Peeking | It is through a doorway, not from a hiding place. The camera side is in `@automata/3d`; the sim rule is added to `@automata/systems` |
 | A catch and a checkpoint | The catch event and the sim's snapshots are there; what a catch does is the game's |
 | Captions and the dialogue box in 3D | Both exist and draw over any renderer. Missing is a **3D cutscene stage**, and **delivery** for lines |
 | Samples and footsteps | No samples needed. Footstep sound by floor surface is added to `@automata/audio-synth` |
@@ -254,10 +253,9 @@ figure already runs on her rules less the water and the ambush, so most of her c
 ## What slice 1 waits for
 
 - **Workstream 1** (shared polish), on `claude/shared-polish-build`: the languages, `automata words`, the fonts, the
-  first-run steps, Splash and Credits. The game's shell tasks (plan tasks 15 and 16) start after it merges.
+  first-run steps, Splash and Credits. The game's shell task (plan task 19) and the framework's closing task (10) start after it merges.
 - **The builders' look** (`docs/refactor/progress.md`, "eb-look"): haze, sky and the dresser are done; albedo tiles are
-  on a branch; WebGPU still loses its device in the headless container. Slice 1 uses what is on `main` when task 11
-  starts and lists the difference in its report.
+  on a branch; WebGPU still loses its device in the headless container. Slice 1 uses what is on `main` at the pin and lists the difference in its report.
 - **Painted figures** (cycle c7, `claude/c7-af`): the character kit's painted figures and fashion are done on the
   branch; the runway example is on hold. Ada and the figure are built in the Studio from whatever has merged.
 - **An API key** on the Owner's machine for `automata words` to translate the story lines. Without it the command
@@ -269,7 +267,7 @@ figure already runs on her rules less the water and the ambush, so most of her c
 1. **The fixtures.** The game's story is already in the framework's repository (above). Leave, replace with invented
    text, or a separate clean-up.
 2. **The story's translations need a key.** `automata words` calls a Claude model with `ANTHROPIC_API_KEY`. The
-   options: the Owner runs it once on their machine (the plan's default: task 16 leaves the five catalogs to that
+   options: the Owner runs it once on their machine (the plan's default: task 19 leaves the five catalogs to that
    run and proves the pipeline with one invented line); or the executing session writes the translations itself and
    records them with `--mark`, as workstream 1 does for menus.
 3. **Restaging three cutscenes.** `opening`, `lightsOut` and `rest` frame Ada wherever she stands; as data they put
