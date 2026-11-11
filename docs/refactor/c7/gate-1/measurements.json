@@ -7,11 +7,11 @@
     "field": [480, 270],
     "figuresFound": 2,
     "standerBox": {
-      "x0": 187,
+      "x0": 188,
       "y0": 87,
-      "x1": 206,
+      "x1": 207,
       "y1": 155,
-      "size": 704
+      "size": 712
     },
     "standerHeightPx": 69,
     "cellPaintedRows": 123,
@@ -22,9 +22,9 @@
     "field": [720, 405],
     "figuresFound": 2,
     "standerBox": {
-      "x0": 283,
+      "x0": 285,
       "y0": 109,
-      "x1": 314,
+      "x1": 316,
       "y1": 234,
       "size": 2174
     },
@@ -32,6 +32,20 @@
     "cellPaintedRows": 128,
     "cellPitchDeg": 18,
     "texelsPerPixel": 1.0158730158730158,
-    "exactTexelShare": 0.9885301614273577
+    "groundRow": 178.5,
+    "cellRowsAboveGround": 125,
+    "standerHeightAboveGroundPx": 125,
+    "texelsPerPixelAboveGround": 1,
+    "matchedIdleStep": 1,
+    "matchedIdleSeconds": 0.016666666666666666,
+    "idleStepsAtBest": 4,
+    "opaqueTexels": 2354,
+    "exactTexels": 2327,
+    "exactTexelShare": 0.9885301614273577,
+    "exactTexelShareAboveGround": 1,
+    "opaqueTexelsBelowGround": 45,
+    "belowGroundTexelsSeen": 18,
+    "belowGroundTexelsHiddenByFloor": 27,
+    "exactTexelShareVsStanding": 0.9885301614273577
   }
 }
