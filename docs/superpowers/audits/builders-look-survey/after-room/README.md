@@ -106,6 +106,16 @@ middle columns are equal to the tenth).
     floor and road, the dresser's furniture, sign and props, and the camera's lens and tilt
     ([`base-exterior-dressed-fp.png`](base-exterior-dressed-fp.png) beside the builder's).
 
+## Every 3D example's first frame
+
+The 19 examples of `examples/3d`, built (`pnpm --filter @af-examples/examples-3d build`) and served statically, each past its Play
+button and drawn for 40 frames in Chromium on software WebGL, 844 × 390. **None draws under a brightness of 20**: the lowest is
+`worldkit-generated-map` at 43.3, then `look-pixel-art` 45.6 (it was 19.7 to 32.3), `render3d-lighting-fog` 46.3 and
+`worldkit-furnished-room` 57.0; `world-level-room` reads 74.5 (it was 4.6) and the rest 64.7 to 206.1. **None logs an error or a
+feedback-loop warning.** The only console messages are `warning: figure on <id> took 22 to 155 ms to build (budget 5 ms)`, one per
+figure on 13 of the 19, which is the first build of a figure on software rendering in a cold page, in each example as on
+`main`'s; it is not new and nothing here changes it. They are cut with Ember Hall soon.
+
 ## A fault found on the way, not fixed here
 
 `drawWorld`'s tile textures are cached per tile in a module-level `WeakMap` (`textureOf`), not per renderer: a second renderer
