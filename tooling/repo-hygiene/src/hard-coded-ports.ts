@@ -1,5 +1,7 @@
-// A test server that names its own port ignores AF_RUNNER_PORT_OFFSET, so two runner copies on one machine both start it
-// on that port and the second fails with "http://localhost:4800/ is already used". This finds the lines that do it.
+// A test server whose port is written down, or worked out from the checkout, a runner offset or another server's port, has
+// that port in every job on the machine, so two jobs both start it there and the second fails with
+// "http://localhost:4800/ is already used". A port is claimed from the operating system instead (packages/tools
+// free-ports.ts). This finds the lines that name one, and the lines that let a CI job reuse a server it did not start.
 
 export interface PortFinding {
   readonly file: string
@@ -12,7 +14,7 @@ export interface PortFinding {
 /** A port is written as digits; `0` (any free port) and a variable are fine. */
 const PORT = '[1-9]\\d{1,4}\\b'
 
-/** What puts a port in a line: a flag, a listen call, an option, an env fallback or entry, or an origin. */
+/** What puts a port in a line: a flag, a listen call, an option, an env fallback or entry, an origin, or a sum on another port. */
 const NAMES_A_PORT: readonly RegExp[] = [
   new RegExp(`--port[\\s=]+['"]?${PORT}`),
   new RegExp(`\\.listen\\(\\s*${PORT}`),
@@ -22,13 +24,19 @@ const NAMES_A_PORT: readonly RegExp[] = [
   new RegExp(`process\\.env\\.\\w*PORT\\w*\\s*\\?\\?\\s*${PORT}`),
   // Ruken's dev port (5173) is the other project's server, which a game names as the host that may frame it.
   new RegExp(`(?:localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\]):(?!5173\\b)${PORT}`),
+  // A port worked out from another: `ports.preview + 1100`, `demoPort + 200`. Every job on the machine works out the same one.
+  /\.(?:preview|server)\s*\+\s*\d/,
+  /(?:\bport|[a-z]Port)\s*\+\s*\d/,
+  // The checkout-derived ports the helper replaced: the same in every job of a runner copy.
+  /\bbrowserSafePort\(/,
+  /\bportsFor\([^)]*(?:process\.env|import\.meta)/,
+  /(?:ports-for|browser-safe-port)(?:\.ts)?['"]/,
+  // Playwright's webServer reuses whatever answers on the port, which on a shared runner is another job's server.
+  /\breuseExistingServer:\s*true\b/,
 ]
 
-/** The files that define the ports: they are where a number may be written down. */
-const DEFINES_PORTS: ReadonlySet<string> = new Set([
-  'packages/tools/src/shared/ship/ports/ports-for.ts',
-  'packages/tools/src/shared/ship/ports/browser-safe-port.ts',
-])
+/** The file that defines the ports: it is where the browsers' bad ports are written down. */
+const DEFINES_PORTS: ReadonlySet<string> = new Set(['packages/tools/src/shared/ship/ports/free-ports.ts'])
 
 /**
  * Where a literal port is not a server: a fake origin no server listens on (the host test page's game), checked by the file,
@@ -64,7 +72,7 @@ function isComment(line: string): boolean {
   return /^(?:\/\/|\*|\/\*|#)/.test(line)
 }
 
-/** Each line of `text`, the file at `file`, that writes a port down instead of taking it from `portsFor`. */
+/** Each line of `text`, the file at `file`, that writes a port down or works one out instead of claiming it, or reuses a server on CI. */
 export function hardCodedPorts(file: string, text: string): PortFinding[] {
   const found: PortFinding[] = []
   text.split('\n').forEach((raw, index) => {

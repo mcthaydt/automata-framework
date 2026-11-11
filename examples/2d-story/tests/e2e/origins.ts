@@ -1,12 +1,10 @@
-import { browserSafePort } from '../../../../packages/tools/src/shared/ship/ports/browser-safe-port.ts'
-import { portsFor } from '../../../../packages/tools/src/shared/ship/ports/ports-for.ts'
+import { claimPorts } from '../../../../packages/tools/src/shared/ship/ports/free-ports.ts'
 
-// The 2D story's game and the editors that edit it, each on its own port from the checkout's pair: 1100 above the preview
-// port for the game's dev server and 1200 above for `automata editor`, clear of the other examples' (+100 to +800), so one
-// `pnpm test:e2e` runs them all side by side. Both step past the browsers' bad ports.
-const ports = portsFor(new URL('../../../..', import.meta.url).pathname, process.env)
+// The 2D story's game and the editors that edit it, each on a free port. Both are claimed here, before either server
+// starts, because the editors are started with the game's URL (`--game-url`).
+const ports = claimPorts(['story-2d-game', 'story-2d-editor'])
 
-export const gamePort: number = browserSafePort(ports.preview + 1100)
-export const editorPort: number = browserSafePort(ports.preview + 1200)
+export const gamePort: number = ports['story-2d-game']
+export const editorPort: number = ports['story-2d-editor']
 export const gameUrl = `http://localhost:${gamePort}/`
 export const editorUrl = `http://127.0.0.1:${editorPort}/`
