@@ -80,6 +80,123 @@
       "emit": true,
       "flat": true,
       "noCast": true
+    },
+    "moonBeam": {
+      "ramp": "sky",
+      "step": 4,
+      "flat": true
+    },
+    "lampPool": {
+      "ramp": "sand",
+      "step": 5,
+      "flat": true
+    },
+    "puddleDark": {
+      "ramp": "slate",
+      "step": 1,
+      "flat": true
+    },
+    "puddleSheen": {
+      "ramp": "sky",
+      "step": 6,
+      "flat": true
+    },
+    "grimeDark": {
+      "ramp": "violet",
+      "step": 0,
+      "flat": true
+    },
+    "pipeSteel": {
+      "ramp": "slate",
+      "step": 3
+    },
+    "cableBlack": {
+      "ramp": "violet",
+      "step": 0
+    },
+    "ceilingTilePale": {
+      "ramp": "sand",
+      "step": 6
+    },
+    "noticePaper": {
+      "ramp": "sand",
+      "step": 7
+    },
+    "plaqueFace": {
+      "ramp": "sand",
+      "step": 5
+    },
+    "plaqueLit": {
+      "ramp": "sand",
+      "step": 7,
+      "emit": true
+    },
+    "plaqueFrame": {
+      "ramp": "wood",
+      "step": 2
+    },
+    "curtainClinic": {
+      "ramp": "sage",
+      "step": 3
+    },
+    "screenGlow": {
+      "ramp": "sky",
+      "step": 6,
+      "emit": true
+    },
+    "tyre": {
+      "ramp": "violet",
+      "step": 1
+    },
+    "rust": {
+      "ramp": "amber",
+      "step": 2
+    },
+    "posterPaper": {
+      "ramp": "sand",
+      "step": 6,
+      "line": "none"
+    },
+    "canvasSea": {
+      "ramp": "ocean",
+      "step": 4,
+      "pattern": {
+        "kind": "noise",
+        "size": [
+          0.12,
+          0
+        ],
+        "amount": 0.5
+      }
+    },
+    "canvasSun": {
+      "ramp": "flame",
+      "step": 5,
+      "pattern": {
+        "kind": "stripes",
+        "size": [
+          0.12,
+          0.05
+        ],
+        "step": -1
+      }
+    },
+    "oak": {
+      "ramp": "wood",
+      "step": 3,
+      "texture": {
+        "photo": "planks",
+        "seed": 15
+      }
+    },
+    "crateWood": {
+      "ramp": "wood",
+      "step": 4,
+      "texture": {
+        "photo": "planks",
+        "wear": 0.4,
+        "seed": 16
+      }
     }
   },
   "props": {
@@ -287,6 +404,109 @@
       "kind": "model",
       "model": "models/stock-bandages.glb",
       "swatch": "prop"
+    },
+    "moon-shaft": {
+      "kind": "moonShaft",
+      "height": 3.4,
+      "foot": [
+        1,
+        2
+      ],
+      "topHalf": 0.4,
+      "footHalf": 0.8
+    },
+    "light-pool": {
+      "kind": "lightPool",
+      "radius": 1.4
+    },
+    "puddle": {
+      "kind": "puddle",
+      "size": [
+        0.9,
+        0.6
+      ]
+    },
+    "grime": {
+      "kind": "grime",
+      "size": [
+        1.4,
+        2.2
+      ]
+    },
+    "cable": {
+      "kind": "cable",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0.25,
+          -0.15
+        ],
+        [
+          0.4,
+          -0.45
+        ]
+      ]
+    },
+    "pipe-run": {
+      "kind": "pipeRun",
+      "points": [
+        [
+          0,
+          3,
+          0
+        ],
+        [
+          2,
+          3,
+          0
+        ]
+      ]
+    },
+    "noticeboard": {
+      "kind": "noticeboard"
+    },
+    "wall-notice": {
+      "kind": "wallNotice",
+      "size": [
+        0.22,
+        0.3
+      ],
+      "y": 1.5
+    },
+    "plaque": {
+      "kind": "plaque",
+      "size": [
+        0.42,
+        0.2
+      ],
+      "y": 2.2,
+      "lit": true
+    },
+    "screen": {
+      "kind": "screen",
+      "size": [
+        0.3,
+        0.22
+      ],
+      "y": 1.6,
+      "face": "screenGlow",
+      "body": "tyre"
+    },
+    "ceiling-tile": {
+      "kind": "ceilingTile",
+      "ceiling": 2.9
+    },
+    "curtain": {
+      "kind": "curtains",
+      "mat": "curtainClinic",
+      "width": 1.4,
+      "height": 2.1
+    },
+    "shelving": {
+      "kind": "shelvingUnit"
     }
   }
 }

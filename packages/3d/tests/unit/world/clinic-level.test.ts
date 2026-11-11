@@ -65,11 +65,17 @@ describe('the converted clinic', () => {
     ])
     expect(read.level.sectors.find((s) => s.id === 'closet')?.view).toBe('closet')
   })
-  it('builds with no lamp off its tone, no missing swatch and no missing prop', () => {
-    const { problems, lamps, pieces } = buildWorld(read.level, library, { night: true })
+  it('builds with no lamp off its tone, no missing swatch and no missing model prop', () => {
+    // The dressing (`dress-*`) is the world kit's pieces: core has no generator for them, and the kit's own test builds them.
+    const models = (clinic.props as { id: string }[]).filter((p) => !p.id.startsWith('dress-'))
+    const { problems, lamps, pieces } = buildWorld(
+      { ...read.level, props: read.level.props?.filter((p) => !p.id.startsWith('dress-')) },
+      library,
+      { night: true },
+    )
     expect(problems).toEqual([])
     expect(lamps).toHaveLength(15)
-    expect(pieces.filter((p) => p.part === 'prop' && p.model !== undefined).length).toBe(clinic.props.length)
+    expect(pieces.filter((p) => p.part === 'prop' && p.model !== undefined).length).toBe(models.length)
   })
   it('draws the reception counter: a kick, a front and a top on the step up to it', () => {
     const { pieces } = buildWorld(read.level, library, { night: true })

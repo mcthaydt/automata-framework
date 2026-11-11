@@ -12,6 +12,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { stripTypeScriptTypes } from 'node:module'
 import { join } from 'node:path'
 import { DUEL_RAMP_NAMES, DUEL_RAMPS, nearestDuel } from '../../packages/content/src/shared/palette/duel.ts'
+import { DRESSING, DRESSING_SWATCHES } from './dressing.ts'
 
 const source = process.argv[2]
 if (source === undefined) throw new Error('usage: node spikes/clinic/convert.ts <source checkout> [out dir]')
@@ -188,6 +189,23 @@ const presets: Record<string, Json> = {}
 for (const file of new Set((props.PROPS as Spec[]).map((p) => p.file)))
   presets[`model.${file}`] = { kind: 'model', model: `models/${file}.glb`, swatch: 'prop' }
 
+// The dressing's presets and the swatches they and their generators name come from the world kit's own library, as they are
+// (the clinic's own surfaces keep their names: a kit swatch of the same name is not taken over them).
+const kitLibrary = (name: string): Record<string, Json> => JSON.parse(readFileSync(new URL(`../../extensions/world-kit/library/${name}.json`, import.meta.url), 'utf8'))
+const kitProps = kitLibrary('props')
+const kitSwatches = kitLibrary('swatches')
+for (const use of new Set(DRESSING.map((place) => place.use))) {
+  const preset = kitProps[use]
+  if (preset === undefined) throw new Error(`the world kit has no preset "${use}"`)
+  presets[use] = preset
+}
+for (const name of DRESSING_SWATCHES) {
+  if (swatches[name] !== undefined) continue
+  const swatch = kitSwatches[name]
+  if (swatch === undefined) throw new Error(`the world kit has no swatch "${name}"`)
+  swatches[name] = swatch
+}
+
 // --- the level -----------------------------------------------------------------------------------------------------------
 const clinic = {
   format: 'af-sector/2',
@@ -195,7 +213,7 @@ const clinic = {
   title: 'St. Agnes Clinic',
   sectors,
   masses: map.MASSES,
-  props: placed,
+  props: [...placed, ...DRESSING],
   lamps,
   bounce,
   // The source's room light: a cool teal-grey ambient (its look bible's `LIGHT.ambient` is 0.15; AF's flat swatches need more) and a low cool fill on
@@ -217,5 +235,5 @@ write('clinic.af-sector.json', clinic)
 write('clinic.library.json', { swatches, props: presets })
 write('clinic.opening-state.json', { lamps: openingLamps })
 console.log(
-  `wrote ${sectors.length} sectors, ${(map.MASSES as unknown[]).length} masses, ${placed.length} props, ${lamps.length} lamps, ${bounce.length} bounce points, ${Object.keys(views).length} views, ${Object.keys(swatches).length} swatches to ${out}`,
+  `wrote ${sectors.length} sectors, ${(map.MASSES as unknown[]).length} masses, ${placed.length} model props and ${DRESSING.length} dressing props, ${lamps.length} lamps, ${bounce.length} bounce points, ${Object.keys(views).length} views, ${Object.keys(swatches).length} swatches to ${out}`,
 )

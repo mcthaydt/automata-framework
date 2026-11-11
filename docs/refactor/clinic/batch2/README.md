@@ -13,7 +13,7 @@ spots only and show its HUD). `shots.json` holds the facts of the last run of `s
 | 2 | The WebGPU play camera | Done. The camera did reach the view; every WebGPU frame after the first was rejected (below), so the canvas kept the first one |
 | 3 | The frame artefacts | The black line at 77% and the blue band at the bottom went with the framing (the line was a near wall's top crossing the frame; the band, the sky past a cut wall). Blue still shows past the building where the other rooms are not hidden: item 4 |
 | 4 | Room visibility on the clinic's zones, wall tops back | Waits for PR 588 (room-visibility), still an open draft |
-| 5 | The 12 world-kit pieces | Started: translucent parts (`veil`) in the builder and the view |
+| 5 | The 12 world-kit pieces | Done: the generators and presets (translucent parts, `veil`), and the dressing table that places 52 of them in the clinic (below) |
 | 6 | Procedural props instead of the stand-in boxes | Not started |
 | 7 | "On" frames | Waits for PRs 588 and 590 |
 
@@ -34,6 +34,38 @@ spots only and show its HUD). `shots.json` holds the facts of the last run of `s
   The fix is in `features/look/present-pass.ts`: the snap reads colour only, and a `PresentEffect` ends the look's passes
   whenever the haze or a pass after the snap runs, putting the engine's own empty depth back in the slot on WebGPU.
 - **Shoots one browser a shot.** A closed WebGPU page took a shared browser's GPU process down in a long run.
+
+## Item 5, part 2: the dressing (2026-11-11)
+
+`spikes/clinic/dressing.ts` is the table: 52 places of the kit's pieces at the spots `dressClinic` puts its boxes and decals, read
+as coordinates and sizes only. `convert.ts` appends them to the level's props and copies the 13 presets they name, and the 21
+swatches those and their generators name, from `extensions/world-kit/library` into `clinic.library.json` as they are (a kit
+swatch never replaces one of the clinic's own, like `chrome`). `scene.ts` imports `@automata/world-kit`, which registers the
+generators. The test is `extensions/world-kit/tests/unit/clinic-dressing.test.ts`: the level builds with no problem, every
+place draws, each preset is the kit's own, nothing pokes out of the building, and the wall pieces stand off their walls on the room's
+side (north, east and west walls, the shaft from the ward's window to the floor).
+
+| Family | Places | Source |
+|---|---|---|
+| Pipe runs | 14 on the walls, 2 curtain rails | `onWall` pipes and the tall upper wall's services |
+| Moon shafts | 2 (ward window to the hall, corridor end across the leak) | `moonShaft` |
+| Light pools | 4 (exit, corridor, ward, hall) | `lampSheens`; the opacity is the source's gain times each lamp's opening level, so the hall's and ward's are faint |
+| Floor | the leak's puddle, 7 grime patches, 2 cables | `puddles` (the others are runtime state), grime and `cable` |
+| Walls | the noticeboard and 4 notices, a drawing, a photo, 5 plaques (2 frames, 3 posters), the lit exit sign, the ward CRT, a loose ceiling tile | `onWall`, `plaque`, `tile` |
+| Furnishing | the 2 ward curtains, the supply room's 3 shelving bays | `curtains`, `shelf*` |
+
+Calls made:
+
+- **The shaft's patch is axis-aligned**; the source's is turned 45° along the shaft. The kit's generator draws the foot square to
+  the wall. The shaft and its patch still run from the same window to the same floor.
+- **Curtains are drawn closed** by giving each panel half the width, where the kit's curtain is two folds drawn back.
+- **Not placed** (not in the kit, or runtime state): the floor's tile grid (a texture, below), the worn paths, the floor papers,
+  the supply door and the exit door's leaf and halo, the fuse box, the sink's mirror, the coat on the drip stand, the charred
+  curtain decals, the wall-mounted lamps' bulbs, the fire and spark sprites, and puddles other than the leak's.
+- **The frames current as of this item**: the four play frames and the three zone stills. The four turned frames are from before
+  it; they come back with item C.
+- **What shows that should not**: the dressing of rooms the camera is not in (the hall's north-east pipes and noticeboard in the
+  supply and corridor frames). The source hides those rooms; room visibility does it here, item E.
 
 ## The framing, re-checked by eye (2026-11-11)
 

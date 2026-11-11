@@ -1761,6 +1761,1020 @@
         ],
         "uniform": true
       }
+    },
+    {
+      "id": "dress-moon-ward",
+      "use": "moon-shaft",
+      "at": [
+        -4,
+        -3.8
+      ],
+      "angle": 90,
+      "with": {
+        "height": 3.75,
+        "foot": [
+          3.75,
+          1.5
+        ],
+        "topHalf": 0.35,
+        "footHalf": 0.7,
+        "footDepth": 4.6
+      }
+    },
+    {
+      "id": "dress-moon-corridor",
+      "use": "moon-shaft",
+      "at": [
+        -0.95,
+        -6.875
+      ],
+      "angle": 90,
+      "with": {
+        "height": 3.15,
+        "foot": [
+          -0.05,
+          1.4
+        ],
+        "topHalf": 0.26,
+        "footHalf": 0.45,
+        "footDepth": 2.4
+      }
+    },
+    {
+      "id": "dress-pool-exit",
+      "use": "light-pool",
+      "at": [
+        0,
+        -5.7
+      ],
+      "with": {
+        "radius": 1.25,
+        "opacity": 0.2
+      }
+    },
+    {
+      "id": "dress-pool-corridor",
+      "use": "light-pool",
+      "at": [
+        0,
+        -3.2
+      ],
+      "with": {
+        "radius": 1.5,
+        "opacity": 0.07
+      }
+    },
+    {
+      "id": "dress-pool-ward",
+      "use": "light-pool",
+      "at": [
+        -3.2,
+        3.4
+      ],
+      "with": {
+        "radius": 1.6,
+        "opacity": 0.05
+      }
+    },
+    {
+      "id": "dress-pool-hall",
+      "use": "light-pool",
+      "at": [
+        0.2,
+        2.6
+      ],
+      "with": {
+        "radius": 2.2,
+        "opacity": 0.05
+      }
+    },
+    {
+      "id": "dress-puddle-leak",
+      "use": "puddle",
+      "at": [
+        -1.05,
+        -4.1
+      ],
+      "with": {
+        "size": [
+          1.2,
+          0.9
+        ],
+        "seed": 3
+      }
+    },
+    {
+      "id": "dress-grime-1",
+      "use": "grime",
+      "at": [
+        -4.5,
+        2.5
+      ],
+      "with": {
+        "size": [
+          1.4,
+          6.5
+        ],
+        "seed": 1
+      }
+    },
+    {
+      "id": "dress-grime-2",
+      "use": "grime",
+      "at": [
+        4.5,
+        4.4
+      ],
+      "with": {
+        "size": [
+          1.4,
+          4.5
+        ],
+        "seed": 2
+      }
+    },
+    {
+      "id": "dress-grime-3",
+      "use": "grime",
+      "at": [
+        -3.3,
+        -0.55
+      ],
+      "with": {
+        "size": [
+          3.2,
+          1
+        ],
+        "seed": 3
+      }
+    },
+    {
+      "id": "dress-grime-4",
+      "use": "grime",
+      "at": [
+        3.3,
+        -0.55
+      ],
+      "with": {
+        "size": [
+          3.2,
+          1
+        ],
+        "seed": 4
+      }
+    },
+    {
+      "id": "dress-grime-5",
+      "use": "grime",
+      "at": [
+        0,
+        -6.4
+      ],
+      "with": {
+        "size": [
+          3,
+          1.2
+        ],
+        "seed": 5
+      }
+    },
+    {
+      "id": "dress-grime-6",
+      "use": "grime",
+      "at": [
+        -1.3,
+        -3.6
+      ],
+      "with": {
+        "size": [
+          0.9,
+          5
+        ],
+        "seed": 6
+      }
+    },
+    {
+      "id": "dress-grime-7",
+      "use": "grime",
+      "at": [
+        1.3,
+        -4.4
+      ],
+      "with": {
+        "size": [
+          0.9,
+          4
+        ],
+        "seed": 7
+      }
+    },
+    {
+      "id": "dress-cable-monitor",
+      "use": "cable",
+      "at": [
+        -2.4,
+        -3.1
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            0.25,
+            -0.15
+          ],
+          [
+            0.4,
+            -0.45
+          ],
+          [
+            0.45,
+            -0.65
+          ]
+        ]
+      }
+    },
+    {
+      "id": "dress-cable-lamp",
+      "use": "cable",
+      "at": [
+        3.05,
+        0.08
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            0.15,
+            -0.38
+          ],
+          [
+            0.05,
+            -0.94
+          ]
+        ]
+      }
+    },
+    {
+      "id": "dress-pipe-ne-low",
+      "use": "pipe-run",
+      "at": [
+        1.9,
+        -0.83
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            3.35,
+            0
+          ],
+          [
+            2.9,
+            3.35,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ne-corner",
+      "use": "pipe-run",
+      "at": [
+        4.75,
+        -0.83
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            0.1,
+            0
+          ],
+          [
+            0,
+            3.4,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ne-riser",
+      "use": "pipe-run",
+      "at": [
+        2.2,
+        -0.83
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            1.45,
+            0
+          ],
+          [
+            0,
+            2.95,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ne-high-a",
+      "use": "pipe-run",
+      "at": [
+        3.9,
+        -0.83
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            3.35,
+            0
+          ],
+          [
+            0,
+            4.65,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ne-high-b",
+      "use": "pipe-run",
+      "at": [
+        2.75,
+        -0.83
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            3.3,
+            0
+          ],
+          [
+            0,
+            4.85,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ne-high",
+      "use": "pipe-run",
+      "at": [
+        1.7,
+        -0.83
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            4.55,
+            0
+          ],
+          [
+            3.1,
+            4.55,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ward-low",
+      "use": "pipe-run",
+      "at": [
+        -4.85,
+        -3.77
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            2.75,
+            0
+          ],
+          [
+            2.9,
+            2.75,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ward-corner",
+      "use": "pipe-run",
+      "at": [
+        -4.75,
+        -3.77
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            0.6,
+            0
+          ],
+          [
+            0,
+            3,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ward-high",
+      "use": "pipe-run",
+      "at": [
+        -4.85,
+        -3.77
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            4.55,
+            0
+          ],
+          [
+            2.9,
+            4.55,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-ward-riser",
+      "use": "pipe-run",
+      "at": [
+        -2.05,
+        -3.77
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            2.8,
+            0
+          ],
+          [
+            0,
+            4.8,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-corridor",
+      "use": "pipe-run",
+      "at": [
+        -1.43,
+        -6.8
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            3.08,
+            0
+          ],
+          [
+            0,
+            3.08,
+            5.4
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-west-high",
+      "use": "pipe-run",
+      "at": [
+        -4.83,
+        -0.8
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            4.3,
+            0
+          ],
+          [
+            0,
+            4.3,
+            7.6
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-east-high",
+      "use": "pipe-run",
+      "at": [
+        4.83,
+        -0.8
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            4.3,
+            0
+          ],
+          [
+            0,
+            4.3,
+            7.6
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-pipe-east-riser",
+      "use": "pipe-run",
+      "at": [
+        4.83,
+        4.6
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            1.1,
+            0
+          ],
+          [
+            0,
+            4.3,
+            0
+          ]
+        ],
+        "mat": "rust",
+        "radius": 0.045,
+        "bracketMat": "rust"
+      }
+    },
+    {
+      "id": "dress-rail-west",
+      "use": "pipe-run",
+      "at": [
+        -4.8,
+        -0.72
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            2.75,
+            0
+          ],
+          [
+            2.75,
+            2.75,
+            0
+          ]
+        ],
+        "mat": "chrome",
+        "radius": 0.025,
+        "bracketMat": "chrome"
+      }
+    },
+    {
+      "id": "dress-rail-east",
+      "use": "pipe-run",
+      "at": [
+        -2.35,
+        -0.75
+      ],
+      "angle": 90,
+      "with": {
+        "points": [
+          [
+            0,
+            2.75,
+            0
+          ],
+          [
+            0,
+            2.75,
+            2.4
+          ]
+        ],
+        "mat": "chrome",
+        "radius": 0.025,
+        "bracketMat": "chrome"
+      }
+    },
+    {
+      "id": "dress-noticeboard",
+      "use": "noticeboard",
+      "at": [
+        3.3,
+        -0.86,
+        1.95
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          1.7,
+          0.9
+        ],
+        "seed": 4
+      }
+    },
+    {
+      "id": "dress-notice-board-1",
+      "use": "wall-notice",
+      "at": [
+        2.75,
+        -0.84
+      ],
+      "angle": 90,
+      "with": {
+        "y": 1.85,
+        "roll": 2.9,
+        "size": [
+          0.26,
+          0.34
+        ]
+      }
+    },
+    {
+      "id": "dress-notice-board-2",
+      "use": "wall-notice",
+      "at": [
+        3.3,
+        -0.84
+      ],
+      "angle": 90,
+      "with": {
+        "y": 1.75,
+        "roll": -2.3,
+        "size": [
+          0.26,
+          0.34
+        ]
+      }
+    },
+    {
+      "id": "dress-notice-board-3",
+      "use": "wall-notice",
+      "at": [
+        3.85,
+        -0.84
+      ],
+      "angle": 90,
+      "with": {
+        "y": 1.9,
+        "roll": 4.6,
+        "size": [
+          0.26,
+          0.34
+        ]
+      }
+    },
+    {
+      "id": "dress-notice-board-4",
+      "use": "wall-notice",
+      "at": [
+        3.55,
+        -0.84
+      ],
+      "angle": 90,
+      "with": {
+        "y": 1.5,
+        "roll": -3.4,
+        "size": [
+          0.26,
+          0.34
+        ]
+      }
+    },
+    {
+      "id": "dress-notice-drawing",
+      "use": "wall-notice",
+      "at": [
+        2.8,
+        -0.84
+      ],
+      "angle": 90,
+      "with": {
+        "y": 1.62,
+        "roll": 4,
+        "size": [
+          0.3,
+          0.3
+        ]
+      }
+    },
+    {
+      "id": "dress-notice-photo",
+      "use": "wall-notice",
+      "at": [
+        -3.2,
+        -3.79
+      ],
+      "angle": 90,
+      "with": {
+        "y": 2.25,
+        "size": [
+          0.4,
+          0.45
+        ]
+      }
+    },
+    {
+      "id": "dress-frame-west-1",
+      "use": "plaque",
+      "at": [
+        -4.86,
+        4.4
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.6,
+          0.45
+        ],
+        "y": 1.65,
+        "lit": false,
+        "face": "canvasSea"
+      }
+    },
+    {
+      "id": "dress-poster-west-1",
+      "use": "plaque",
+      "at": [
+        -4.86,
+        5.3
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.5,
+          0.7
+        ],
+        "y": 1.6,
+        "lit": false,
+        "face": "posterPaper"
+      }
+    },
+    {
+      "id": "dress-poster-east-1",
+      "use": "plaque",
+      "at": [
+        4.84,
+        1
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.55,
+          0.7
+        ],
+        "y": 1.75,
+        "lit": false,
+        "face": "posterPaper"
+      }
+    },
+    {
+      "id": "dress-frame-east-1",
+      "use": "plaque",
+      "at": [
+        4.84,
+        2.3
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.55,
+          0.42
+        ],
+        "y": 1.7,
+        "lit": false,
+        "face": "canvasSun"
+      }
+    },
+    {
+      "id": "dress-poster-ward-1",
+      "use": "plaque",
+      "at": [
+        -4.3,
+        -3.79
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.45,
+          0.6
+        ],
+        "y": 1.6,
+        "lit": false,
+        "face": "posterPaper"
+      }
+    },
+    {
+      "id": "dress-sign-exit",
+      "use": "plaque",
+      "at": [
+        0,
+        -6.86
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.42,
+          0.2
+        ],
+        "y": 2.25,
+        "lit": true
+      }
+    },
+    {
+      "id": "dress-crt-ward",
+      "use": "screen",
+      "at": [
+        -4.84,
+        -1.7
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.3,
+          0.22
+        ],
+        "y": 2.1,
+        "face": "plaqueFace"
+      }
+    },
+    {
+      "id": "dress-tile-loose",
+      "use": "ceiling-tile",
+      "at": [
+        0.75,
+        -0.45
+      ],
+      "with": {
+        "ceiling": 4.9,
+        "drop": 40
+      }
+    },
+    {
+      "id": "dress-curtain-west",
+      "use": "curtain",
+      "at": [
+        -3.85,
+        -0.72
+      ],
+      "angle": 90,
+      "with": {
+        "width": 1.7,
+        "height": 2.7,
+        "panel": 0.85,
+        "rail": "chrome"
+      }
+    },
+    {
+      "id": "dress-curtain-east",
+      "use": "curtain",
+      "at": [
+        -2.35,
+        1.15
+      ],
+      "angle": 0,
+      "with": {
+        "width": 1.1,
+        "height": 2.7,
+        "panel": 0.55,
+        "rail": "chrome"
+      }
+    },
+    {
+      "id": "dress-shelving-east",
+      "use": "shelving",
+      "at": [
+        4.25,
+        -4.5
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          1.6,
+          1.9,
+          0.45
+        ],
+        "shelves": 4,
+        "mat": "pipeSteel"
+      }
+    },
+    {
+      "id": "dress-shelving-north",
+      "use": "shelving",
+      "at": [
+        3.94,
+        -6.175
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          1.07,
+          1.9,
+          0.4
+        ],
+        "shelves": 4,
+        "mat": "pipeSteel"
+      }
+    },
+    {
+      "id": "dress-shelving-west",
+      "use": "shelving",
+      "at": [
+        1.925,
+        -5.525
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          1.55,
+          1.3,
+          0.4
+        ],
+        "shelves": 3,
+        "mat": "pipeSteel"
+      }
     }
   ],
   "lamps": [

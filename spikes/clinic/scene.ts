@@ -5,6 +5,8 @@
 // A zone still is a zone's authored camera (its distance, looking at its look point) with nothing in frame; a play frame
 // is the play camera following a stand-in for the player (1.62 m tall) at one of the baseline's spots.
 import '@automata/3d/no-eval'
+// Loading the world kit registers the prop generators the dressing's presets name (moon shafts, pipes, plaques, curtains…).
+import '@automata/world-kit'
 import {
   box,
   buildWorld,
