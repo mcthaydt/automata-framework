@@ -798,3 +798,14 @@ The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches 
 | The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
 | Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
 | Gates | See the PR description for what ran and what is pending | |
+
+## The examples page start test no longer races a cold import (2026-11-11)
+
+`site/tests/unit/examples/examples-pages.test.ts`, "an example page starts the original after load with no input", failed on the af-mac runner of PR #604 (`expected null not to be null` after 1145 ms). The page code was right: `Playground.svelte` loads its runtime with a lazy `import('./orchestrator')` on the first run (the preload budget). That test is the first in its file to start a page, so it paid the cold load of the module, and its `waitFor` gives up after 1 s. Under load that import took about 1.2 s alone (8 vitest processes pinned to one core plus CPU hogs; the iframe appeared 1.2 to 2.0 s after load in 24 of 24 probe runs). The test now waits for the module itself (`beforeAll` in `/examples/<id>` awaits `#src/features/playground/orchestrator.ts`), not for a time; the assertion and the timeout are unchanged.
+
+| Check | Result |
+|---|---|
+| Failing first: the runtime delayed 1.5 s by a scratch `vi.mock`, unmodified test | Fails every time, `AssertionError: expected null not to be null`, as on CI |
+| Same delay, with the fix | Passes |
+| Whole file, 40 runs, pinned to one core with 16 CPU hogs | 40 of 40 pass (15 tests each) |
+| `TURBO_FORCE=true pnpm check` | See the PR description |

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import IndexPage from '#src/features/examples/ExamplesIndex.svelte'
 import { compileExample } from '#src/features/playground/compile.ts'
 import type { HighlightedLine } from '#src/features/playground/highlight.ts'
@@ -136,6 +136,13 @@ describe('/examples', () => {
 })
 
 describe('/examples/<id>', () => {
+  // The page loads its runtime lazily, on the first run (the preload budget). A cold load of that module can outlast
+  // waitFor's 1 s on a loaded runner, so the suite waits for the module itself, not for a time. The page's own
+  // import() then resolves from the same module instance.
+  beforeAll(async () => {
+    await import('#src/features/playground/orchestrator.ts')
+  })
+
   it('prerenders a page for every example', async () => {
     expect((await entries()).map((entry) => entry.id).sort()).toEqual(
       getExamples()
