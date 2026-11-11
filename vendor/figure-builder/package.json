@@ -19,6 +19,13 @@
     "typecheck": "node types.mjs"
   },
   "devDependencies": {
+    "pixi.js": "8.22.0",
     "typescript": "6.0.3"
+  },
+  "peerDependencies": {
+    "pixi.js": "8.22.0"
+  },
+  "dependencies": {
+    "@pixi/3d": "file:../pixi-3d/pixi-3d-0.1.0-beta.2.tgz"
   }
 }

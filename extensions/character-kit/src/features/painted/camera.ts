@@ -1,6 +1,6 @@
 // The camera of a 3D scene as a painted figure sees it, and how its cell's quad stands in the scene: the geometry the
 // view (figure-sprite.ts) needs, free of Pixi so it is tested in Node.
-import type { CastMember, View } from './door.ts'
+import type { CastMember, View } from '../../shared/figure-builder/door.ts'
 
 /** A point in the scene, in metres (x right, y up). */
 export type Point3 = readonly [number, number, number]

@@ -6,8 +6,8 @@ import '@automata/3d/no-eval'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '@automata/3d'
 import { builtRenderer, snapshot, testTarget } from '@automata/3d/testing-checks'
 import { afterEach, describe, expect, it } from 'vitest'
-import { BASE, member, standing } from '#src/features/painted/door.ts'
 import { paintedFigure } from '#src/features/painted/painted-view.ts'
+import { BASE, member, standing } from '#src/shared/figure-builder/door.ts'
 
 const hasWebGL2 = document.createElement('canvas').getContext('webgl2') !== null
 type Step = Parameters<Pixi3dRenderer['apply']>[0]

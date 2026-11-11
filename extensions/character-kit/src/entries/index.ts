@@ -16,8 +16,6 @@ export type { Rows } from '../features/hair/rows.ts'
 export type { Strands } from '../features/hair/strands.ts'
 export type { Sweep } from '../features/hair/sweep.ts'
 export type { Tail } from '../features/hair/tail.ts'
-// Painted figures: the figure builder's characters, painted texel by texel and drawn in the 3D scene.
-export { BASE, type CharacterDef } from '../features/painted/door.ts'
 export {
   type PaintedFigureOptions,
   type PaintedState,
@@ -26,3 +24,5 @@ export {
 export { figureSeatContent } from '../features/seats/seat.content.ts'
 export { type Seat, type SeatHand, seatSchema } from '../features/seats/seat.schema.ts'
 export { SIT, seated } from '../features/seats/seated.ts'
+// Painted figures: the figure builder's characters, painted texel by texel and drawn in the 3D scene.
+export { BASE, type CharacterDef } from '../shared/figure-builder/door.ts'

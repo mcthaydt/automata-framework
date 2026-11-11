@@ -7,8 +7,8 @@
 // an orthographic camera the scene shows the cell's texels where the painter put them.
 import { Sprite3D } from '@pixi/3d'
 import { BufferImageSource, Texture } from 'pixi.js'
+import { type CastMember, Figure, type FigureInput } from '../../shared/figure-builder/door.ts'
 import { anchorOf, facing, type Point3, texelOf, viewFrom } from './camera.ts'
-import { type CastMember, Figure, type FigureInput } from './door.ts'
 
 export interface FigureSpriteInput extends Omit<FigureInput, 'view'> {
   /** The camera's position and the point it looks at. */

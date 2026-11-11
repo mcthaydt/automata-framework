@@ -2,8 +2,8 @@
 // (figure-sprite.ts), standing where the entity stands and turned the way it faces, seen from the renderer's camera.
 import { placeView3d, type View3dFactory } from '@automata/3d'
 import { Container3D } from '@pixi/3d'
+import { type CharacterDef, member } from '../../shared/figure-builder/door.ts'
 import { eyeOf } from './camera.ts'
-import { type CharacterDef, member } from './door.ts'
 import { FigureSprite } from './figure-sprite.ts'
 
 /** An entity's components, as the renderer hands them to a view. */

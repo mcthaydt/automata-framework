@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { anchorOf, eyeOf, facing, texelOf, viewFrom } from '#src/features/painted/camera.ts'
-import { BASE, member } from '#src/features/painted/door.ts'
+import { BASE, member } from '#src/shared/figure-builder/door.ts'
 
 /** Turns v by the unit quaternion q. */
 const rotate = (q: { x: number; y: number; z: number; w: number }, v: readonly [number, number, number]) => {

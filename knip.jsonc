@@ -25,8 +25,10 @@
     },
     // DX.7: the example imports @automata/sim, which tooling/agent-skills' vitest config aliases to the source.
     "tooling/agent-skills": { "ignoreDependencies": ["@automata/sim"] },
-    // The figure builder as a package: its surface is the submodule's, used through the character kit's door.
-    "vendor/figure-builder": { "entry": [], "project": [] },
+    // The figure builder as a package: its surface is the submodule's, used through the character kit's door. Its view
+    // entry imports Pixi, which the wrapper declares so the declarations and the sources resolve; no file of the wrapper's
+    // own imports them.
+    "vendor/figure-builder": { "entry": [], "project": [], "ignoreDependencies": ["@pixi/3d", "pixi.js"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
     "games/emberwick": {
       // The journeys sit in tests/e2e; the config names its directory, which knip does not follow.
