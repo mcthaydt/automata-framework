@@ -5,24 +5,21 @@
 // opening (`door`, `window`) is cut out of its face; a room's holes are walled and left out of its floor; the shared
 // stretch is found by geometry, as the builder did, and a wall's `next` must agree with it.
 
-import { createRng } from '@automata/sim'
 import type {
   AfSector2,
   AfSectorEntry2,
   AfWall2,
-  Band,
   Decor,
   Surface,
-  WindowGrid,
 } from '../../shared/level/af-sector-2.schema.ts'
 import type { Occlude } from '../../shared/level/occlude.ts'
 import type { LevelProblem } from '../../shared/level/problem.ts'
-import type { PartialTrim } from '../../shared/level/sector.schema.ts'
+import { type PartialTrim, WALL_THICK } from '../../shared/level/sector.schema.ts'
 import { type MeshData, merge } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
 import { decorPieces, doorPieces } from './decor.ts'
 import { box } from './mesh.ts'
-import { placeProps, type WorldLamp } from './place-props.ts'
+import { placeProps, roomAt, type WorldLamp } from './place-props.ts'
 import { onWall, planeMesh, wallQuad } from './plane-mesh.ts'
 import {
   cornersOf,
@@ -35,9 +32,22 @@ import {
   segments,
   type V2,
 } from './sectors.ts'
+import {
+  bandMeshes,
+  bandsOf,
+  corniceOf,
+  handrail,
+  isBanded,
+  massMeshes,
+  pilaster,
+  type Run,
+  runsAround,
+  wallTop,
+} from './structure.ts'
 import { subdivide } from './subdivide.ts'
 import { isSurfaceTex, type TexPlace, texOf, tileName, wallFrame } from './surface.ts'
 import { hasSwatch, type WorldLibrary } from './swatches.ts'
+import { windowsOf } from './window-grid.ts'
 
 export type { WorldLibrary }
 
@@ -62,6 +72,8 @@ export interface WorldPiece {
   readonly line?: { readonly a: V2; readonly b: V2 }
   /** What the occluder rule does with a wall face (`/2`'s `occlude`); a wall that says nothing is cut. */
   readonly occlude?: Occlude
+  /** The camera-cut group of the wall (or mass) it belongs to: room visibility hides a group's pieces together. */
+  readonly cut?: string
   /** A hinged door's pivot and its swing at fully open (degrees about y); the mesh is built shut. */
   readonly door?: { readonly hinge: V3; readonly swing: number }
   /** Sways in the wind: how far (metres) its top moves, and its phase (leaves, grass, a curtain). */
@@ -106,7 +118,10 @@ const lerp = (a: number, b: number, u: number): number => a + (b - a) * u
 const offset = (p: V2, n: V2, d: number): V2 => [p[0] + n[0] * d, p[1] + n[1] * d]
 
 /** A wall's trim heights and surface, from `trim` (heights or a surface), the sector's trim and the wall's own. */
-function trimOf(sector: AfSectorEntry2, wall: AfWall2): { surface: Surface; skirting: number; rail: number } {
+function trimOf(
+  sector: AfSectorEntry2,
+  wall: AfWall2,
+): { surface: Surface; skirting: number; rail: number; wainscot: number; capital: number; cap: boolean } {
   const trim = wall.trim
   const heights: PartialTrim | undefined =
     trim === undefined || typeof trim === 'string' || isSurfaceTex(trim) ? undefined : trim
@@ -114,6 +129,9 @@ function trimOf(sector: AfSectorEntry2, wall: AfWall2): { surface: Surface; skir
     surface: trim !== undefined && heights === undefined ? (trim as Surface) : TRIM,
     skirting: wall.skirting ?? heights?.skirting ?? sector.trim?.skirting ?? 0,
     rail: wall.rail ?? heights?.rail ?? sector.trim?.rail ?? 0,
+    wainscot: heights?.wainscot ?? sector.trim?.wainscot ?? 0,
+    capital: heights?.capital ?? sector.trim?.capital ?? 0,
+    cap: heights?.cap ?? sector.trim?.cap ?? false,
   }
 }
 
@@ -123,7 +141,7 @@ interface Opening {
   readonly u1: number
   readonly y0: number
   readonly y1: number
-  readonly kind: 'door' | 'window'
+  readonly kind: 'door' | 'window' | 'recess'
   readonly bars?: number
 }
 
@@ -155,6 +173,9 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       })
     })
 
+  /** A swatch the library has under this name, or the fallback. */
+  const swatchOf = (name: string, fallback: Surface): Surface => (hasSwatch(library, name) ? name : fallback)
+
   /** Adds a piece, saying so once if its swatch is not in the library. */
   const add = (
     si: number,
@@ -163,7 +184,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     mesh: MeshData,
     surface: Surface,
     tex?: TexPlace,
-    extra: Pick<WorldPiece, 'door' | 'line' | 'occlude' | 'sway' | 'phase' | 'noCast' | 'prop'> = {},
+    extra: Pick<WorldPiece, 'door' | 'line' | 'occlude' | 'sway' | 'phase' | 'noCast' | 'prop' | 'cut'> = {},
   ): void => {
     const sector = level.sectors[si] as AfSectorEntry2
     const name = tileName(surface)
@@ -299,6 +320,17 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       )
     }
     const role = (name: string): string => `${name}:${place}`
+    /** `add`, for a piece of this wall: it carries the wall's cut group. */
+    const addW: typeof add = (si, id, part, mesh, surface, texPlace, extra = {}) =>
+      add(si, id, part, mesh, surface, texPlace, wall.cut === undefined ? extra : { ...extra, cut: wall.cut })
+    const wallRun: Run = { a: seg.a, b: seg.b, n, fa, fb }
+    // A trim that names a wainscot or a capital is drawn in bands; one that does not keeps the skirting and the rail
+    // at a height it always had (where `rail` is a height, not a thickness).
+    const banded = isBanded(trim)
+    const bandsOnFace = (top: number) => (banded ? bandsOf(trim, wall, tileName(trim.surface), top) : [])
+    // A band set back into the face (a kick plate) shows only if the face above it starts where it ends.
+    const recessTop = (bands: ReturnType<typeof bandsOnFace>): number =>
+      Math.max(0, ...bands.filter((b) => b.depth < 0 && b.lo === 0).map((b) => b.hi))
 
     if (seg.next < 0) {
       if (wall.none === true) continue
@@ -320,6 +352,10 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       if (wall.door !== undefined) open(wall.door.at, wall.door.width, 0, wall.door.height, 'door')
       if (wall.window !== undefined)
         open(wall.window.at, wall.window.width, wall.window.y0, wall.window.y1, 'window', wall.window.bars)
+      const bands = bandsOnFace(Math.min(ca - fa, cb - fb))
+      const setBack = recessTop(bands)
+      if (setBack > 0 && openings.length === 0)
+        openings.push({ u0: 0, u1: 1, y0: 0, y1: setBack, kind: 'recess' })
       openings.sort((p, q) => p.u0 - q.u0)
       const face: MeshData[] = []
       let cursor = 0
@@ -330,7 +366,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         cursor = Math.max(cursor, o.u1)
       }
       if (cursor < 1 - 1e-6) face.push(strip(cursor, 1, null, null))
-      add(seg.sector, role('wall'), 'wall', merge(...face), surface, tex(surface), {
+      addW(seg.sector, role('wall'), 'wall', merge(...face), surface, tex(surface), {
         line: roomOnLeft(seg, n),
         ...(wall.occlude === undefined ? {} : { occlude: wall.occlude }),
       })
@@ -338,13 +374,23 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       // Panes and bars in a window's opening.
       for (const [i, o] of openings.entries()) {
         if (o.kind !== 'window') continue
-        const pane = night ? 'glassNight' : 'glassDay'
-        add(seg.sector, role(`pane${i}`), 'decor', strip(o.u0, o.u1, o.y0, o.y1, -0.06), pane)
+        // A moon window is glazed with a glass that glows with the moon, where the library has one.
+        const moon = wall.window?.moon === true && hasSwatch(library, 'moonGlass')
+        const pane = moon ? 'moonGlass' : night ? 'glassNight' : 'glassDay'
+        addW(
+          seg.sector,
+          role(`pane${i}`),
+          'decor',
+          strip(o.u0, o.u1, o.y0, o.y1, -0.06),
+          pane,
+          undefined,
+          moon ? { noCast: true } : {},
+        )
         const bars = o.bars ?? 0
         for (let k = 1; k <= bars; k++) {
           const u = lerp(o.u0, o.u1, k / (bars + 1))
           const p = offset([lerp(seg.a[0], seg.b[0], u), lerp(seg.a[1], seg.b[1], u)], n, -0.05)
-          add(
+          addW(
             seg.sector,
             role(`bar${i}.${k}`),
             'decor',
@@ -374,43 +420,73 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
           .map((o) => ({ pos: along2(seg, axis, (o.u0 + o.u1) / 2), width: (o.u1 - o.u0) * length })),
       ].sort((p, q) => p.pos - q.pos)
 
-      if (trim.skirting > 0) {
-        const dir = Math.sign(seg.b[axis] - seg.a[axis]) || 1
-        const ordered = dir > 0 ? doors : [...doors].reverse()
-        const runs: [V2, V2][] = []
-        let start = seg.a
-        for (const d of ordered) {
-          runs.push([start, along(d.pos - dir * (d.width / 2 + 0.08))])
-          start = along(d.pos + dir * (d.width / 2 + 0.08))
-        }
-        runs.push([start, seg.b])
-        const meshes = runs
-          .filter(([p, q]) => Math.hypot(q[0] - p[0], q[1] - p[1]) > 0.02)
-          .map(([p, q]) =>
-            wallQuad(
-              offset(p, n, 0.02),
-              offset(q, n, 0.02),
-              [fa, fa + trim.skirting],
-              [fb, fb + trim.skirting],
-              n,
-            ),
-          )
+      if (!banded && trim.skirting > 0) {
+        const meshes = runsAround(seg.a, seg.b, doors, 0.08).map(([p, q]) =>
+          wallQuad(
+            offset(p, n, 0.02),
+            offset(q, n, 0.02),
+            [fa, fa + trim.skirting],
+            [fb, fb + trim.skirting],
+            n,
+          ),
+        )
         if (meshes.length > 0)
-          add(seg.sector, role('skirting'), 'wall', merge(...meshes), trim.surface, tex(trim.surface))
+          addW(seg.sector, role('skirting'), 'wall', merge(...meshes), trim.surface, tex(trim.surface))
       }
+      for (const { band: b, mesh } of bandMeshes(wallRun, bands, runsAround(seg.a, seg.b, doors, 0.08)))
+        addW(seg.sector, role(b.role), 'wall', mesh, b.surface, tex(b.surface))
       const band = (name: string, mesh: MeshData, surface: Surface): void =>
-        add(seg.sector, role(name), 'wall', mesh, surface, tex(surface))
+        addW(seg.sector, role(name), 'wall', mesh, surface, tex(surface))
       if (wall.dado !== undefined) band('dado', strip(0, 1, 0, wall.dado.height, 0.006), wall.dado.surface)
-      if (trim.rail > 0) band('rail', strip(0, 1, trim.rail, trim.rail + 0.06, 0.025), trim.surface)
+      if (!banded && trim.rail > 0)
+        band('rail', strip(0, 1, trim.rail, trim.rail + 0.06, 0.025), trim.surface)
       if (wall.cornice !== undefined)
         band('cornice', corniceOf(wall.cornice, seg, n, [ca, cb]), wall.cornice.surface)
+
+      // The top of the wall, across its masonry: where the room is cut away it is what shows of the wall.
+      const thick = wall.thick ?? WALL_THICK
+      if (trim.cap && thick > 0) {
+        const surfaceOfTop = swatchOf('cap', trim.surface)
+        addW(
+          seg.sector,
+          role('top'),
+          'wall',
+          wallTop(wallRun, thick, [ca, cb]),
+          surfaceOfTop,
+          tex(surfaceOfTop),
+          {
+            line: roomOnLeft(seg, n),
+            ...(wall.occlude === undefined ? {} : { occlude: wall.occlude }),
+          },
+        )
+      }
+      if (wall.handrail !== undefined) {
+        const mesh = handrail(wallRun, runsAround(seg.a, seg.b, doors, 0.1), wall.handrail)
+        const rails = swatchOf('chrome', trim.surface)
+        if (mesh !== undefined) addW(seg.sector, role('handrail'), 'wall', mesh, rails, tex(rails))
+      }
+      for (const side of ['start', 'end'] as const) {
+        const size = wall.pilaster?.[side]
+        if (size === undefined || (side === 'start' ? seg.t0 > 1e-6 : seg.t1 < 1 - 1e-6)) continue
+        addW(
+          seg.sector,
+          `${role('pilaster')}.${side}`,
+          'wall',
+          pilaster(wallRun, side, size, [ca, cb]),
+          surface,
+          tex(surface),
+          {
+            line: roomOnLeft(seg, n),
+          },
+        )
+      }
 
       for (const d of decor) {
         if (!within(d.pos)) continue
         const o = along(d.pos)
         const base = heightAt(sector.floor, origin, o[0], o[1])
         for (const piece of decorPieces(d, night, tileName(trim.surface), interiors))
-          add(
+          addW(
             seg.sector,
             `${piece.role}:${place}.${d.pos}`,
             'decor',
@@ -434,14 +510,20 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     ]
     if (nfa > fa + 1e-3 || nfb > fb + 1e-3) {
       const lower: Surface = wall.lower ?? surface
-      add(
+      // The step's face is trimmed like a wall (a counter's kick, front and top).
+      const step = [Math.max(fa, nfa) - fa, Math.max(fb, nfb) - fb] as const
+      const bands = bandsOnFace(Math.min(...step))
+      const setBack = recessTop(bands)
+      addW(
         seg.sector,
         role('lower'),
         'wall',
-        wallQuad(seg.a, seg.b, [fa, Math.max(fa, nfa)], [fb, Math.max(fb, nfb)], n),
+        wallQuad(seg.a, seg.b, [fa + setBack, Math.max(fa, nfa)], [fb + setBack, Math.max(fb, nfb)], n),
         lower,
         tex(lower),
       )
+      for (const { band: b, mesh } of bandMeshes(wallRun, bands, [[seg.a, seg.b]]))
+        addW(seg.sector, role(b.role), 'wall', mesh, b.surface, tex(b.surface))
     }
     const skyBoth = sector.ceiling.sky === true && next.ceiling.sky === true
     // An indoor doorway gets a frame: two jambs and a head in the trim, standing proud of the wall on this side.
@@ -453,7 +535,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         box([length + f / 2, 0, 0.015], [f, top + f, 0.03]),
         box([length / 2, top, 0.015], [length + 2 * f, f, 0.03]),
       )
-      add(
+      addW(
         seg.sector,
         role('doorway'),
         'wall',
@@ -464,7 +546,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     }
     if (!skyBoth && (nca < ca - 1e-3 || ncb < cb - 1e-3)) {
       const upper: Surface = wall.upper ?? surface
-      add(
+      addW(
         seg.sector,
         role('upper'),
         'wall',
@@ -474,6 +556,21 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       )
     }
   }
+
+  // --- the masses between rooms ---
+  level.masses?.forEach((mass, index) => {
+    const built = massMeshes(mass)
+    if (built === undefined) return
+    const si = roomAt(level, built.centre[0], built.centre[1])
+    const room = level.sectors[si] as AfSectorEntry2
+    const extra = mass.cut === undefined ? {} : { cut: mass.cut }
+    const cap = swatchOf('cap', TRIM)
+    add(si, `mass${index}:top`, 'wall', built.top, cap, texOf(cap, 'plane'), extra)
+    for (const { edge, mesh } of built.faces) {
+      const wallSurface: Surface = room.wallTexture ?? WALL
+      add(si, `mass${index}:face${edge}`, 'wall', mesh, wallSurface, texOf(wallSurface, 'plane'), extra)
+    }
+  })
 
   // --- props and lamps ---
   const placed = placeProps(level, library, tell)
@@ -495,42 +592,3 @@ function roomOnLeft(seg: Segment, n: V2): { a: V2; b: V2 } {
 
 /** The coordinate along the dominant axis at `u` of the segment. */
 const along2 = (seg: Segment, axis: 0 | 1, u: number): number => lerp(seg.a[axis], seg.b[axis], u)
-
-/** The cornice: a band under the ceiling, in its own surface; it is not broken at doors and windows. */
-function corniceOf(band: Band, seg: Segment, n: V2, ceilings: readonly [number, number]): MeshData {
-  return wallQuad(
-    offset(seg.a, n, 0.025),
-    offset(seg.b, n, 0.025),
-    [ceilings[0] - band.height, ceilings[0]],
-    [ceilings[1] - band.height, ceilings[1]],
-    n,
-  )
-}
-
-/** A facade's grid of windows as decor, lit by a seeded share at night. */
-function windowsOf(grid: WindowGrid, seg: Segment, night: boolean, horizontal: boolean): Decor[] {
-  const rng = createRng(grid.seed ?? seg.sector * 31 + seg.edge)
-  const out: Decor[] = []
-  for (let row = 0; row < grid.rows; row++)
-    for (let col = 0; col < grid.cols; col++) {
-      const t = (col + 0.5) / grid.cols
-      const pos = horizontal ? lerp(seg.a[0], seg.b[0], t) : lerp(seg.a[1], seg.b[1], t)
-      const lit = night && rng.next() < (grid.lit ?? 0.5)
-      out.push({
-        kind: 'window',
-        pos,
-        width: grid.width,
-        height: grid.height,
-        sill: grid.from + row * (grid.height + grid.gap),
-        lit,
-        ...(grid.frame === undefined ? {} : { frame: grid.frame }),
-        ...(lit && grid.glassLit !== undefined
-          ? { glass: grid.glassLit }
-          : grid.glass === undefined || lit
-            ? {}
-            : { glass: grid.glass }),
-        seed: Math.floor(rng.next() * 1e6),
-      })
-    }
-  return out
-}

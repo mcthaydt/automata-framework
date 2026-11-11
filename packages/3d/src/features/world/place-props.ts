@@ -59,7 +59,7 @@ export interface Placed {
 type Tell = (key: string, problem: LevelProblem) => void
 
 /** The index of the room a point stands in, else the nearest room by its corners. */
-function roomAt(level: AfSector2, x: number, z: number): number {
+export function roomAt(level: AfSector2, x: number, z: number): number {
   const inRoom = level.sectors.findIndex((sector) => standsIn(sector, x, z))
   if (inRoom >= 0) return inRoom
   let best = 0
