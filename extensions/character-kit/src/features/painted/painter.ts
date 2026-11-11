@@ -13,6 +13,8 @@ import {
   ScriptedActor,
   type View,
 } from '../../shared/figure-builder/door.ts'
+import { litCells } from './lit-cells.ts'
+import type { RoomLight } from './room-light.ts'
 import type { PaintedState } from './state.ts'
 
 /** An eighth of a turn: the painter draws the nearest of 8 directions, so a stand needs only 8 facings. */
@@ -28,12 +30,16 @@ export interface PaintInput {
   readonly state: PaintedState
   /** The view the camera gives it this frame. */
   readonly view: View
+  /** The room's light where it stands, when the figure is lit (`lit-cells.ts`); unlit without one. */
+  readonly light?: RoomLight | undefined
 }
 
 export class Painter {
   private readonly cast: CastMember
   private readonly figures = new Map<string | undefined, Figure>()
   private readonly stands = new Map<string, ScriptedActor>()
+  /** The lit cells of this figure, kept by the painted cell and the quantised light. */
+  private readonly cells = litCells()
 
   constructor(
     private readonly def: CharacterDef,
@@ -43,12 +49,17 @@ export class Painter {
   }
 
   /** The cell for this frame, valid until the next one. */
-  paint({ t, dt, facing, state, view }: PaintInput): Cell {
+  paint({ t, dt, facing, state, view, light }: PaintInput): Cell {
     if (!state.moving && state.pose !== undefined)
-      return cellOf(this.stand(state, facing).draw(t, view, this.density))
+      return this.cell(this.stand(state, facing).draw(t, view, this.density), light)
     const figure = this.figure(state.outfit)
     figure.update(dt, { facing, moving: state.moving, view })
-    return cellOf(figure)
+    return this.cell(figure, light)
+  }
+
+  /** The figure's cell, lit by the room when there is one: its `painted` stays the unlit cell either way. */
+  private cell(figure: Figure, light: RoomLight | undefined): Cell {
+    return light === undefined ? cellOf(figure) : this.cells.lit(figure, light)
   }
 
   private figure(outfit: string | undefined): Figure {

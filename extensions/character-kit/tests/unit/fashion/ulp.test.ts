@@ -13,7 +13,7 @@ import { nudged } from '../../fixtures/ulp.ts'
 
 registerFashion()
 
-/** Seeds tried a cell: eight, as the plan's budget allows (`tests/slow/` tries every cell by hand). */
+/** Seeds tried a cell: eight, so the job stays short (`tests/slow/` tries every cell by hand). */
 const SEEDS = [1, 2, 3, 4, 5, 6, 7, 8]
 
 /** The cells that were unstable on the builder at `d6e3c9f` (found by nudging all 112): `<model>/<body>/<direction>`, the
