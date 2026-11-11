@@ -16,8 +16,9 @@ runs in its own session on its own branch and hands off through committed docume
 |---|---|---|---|---|
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Next is 4, execution | 43% (3 of 7 stages); execution 0 of 21 tasks | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
 | 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 3, plan audit: done 2026-11-11, 32 findings (9 blocking, 15 should fix, 8 tidy), all fixed in the plan and the survey, which now match the spec and the code at `main` `6a70f9b1` (the spec's amendments `acb0361d`, `864361d4` and `909f6b10` included: the 3D examples go in tasks 19 and 20; a homes table, with interact and the HUD as genre extensions and a carried light in `@automata/systems`; the dressing waits for workstream 4) and the game at `92e6704`. Nothing open: every recorded file the prologue plays crosses (twelve, option B); workstream 1's task 17 is cut on its build branch. Next is 4, execution (22 tasks on three branches). Slices 2 to 4 not started | Slice 1: 43% (3 of 7 stages); execution 0 of 22 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md), [audit](audits/2026-11-11-last-light-prologue-plan-audit.md) |
-| 3 | A UI editor in the suite | Not started: the Owner will address it when we get to it; its spec is written with the Owner then | 0% | |
+| 3 | An editor for every kind of authorable content: the UI editor first, others as gaps are found | Not started: specced with the Owner when we get to it; gaps are logged in the ledger below as they are found | 0% | |
 | 4 | The builders' look and figures in the framework (takes over #588, #589, #590, #603, #607) | 2, plan: session started 2026-11-11; it surveys first. Runs ahead of the prologue's dressing tasks | 14% (1 of 7 stages) | [spec](specs/2026-11-11-builders-look-and-figures-design.md) |
+| 5 | CI on rented Ubicloud runners, matching Ruken's setup | Not started: "for when we get there"; two questions for the Owner before switching on | 0% | [the Owner's brief](briefs/2026-11-11-ci-on-ubicloud.md) |
 
 ## Workstream 1 sessions
 
@@ -44,6 +45,17 @@ sit on screen, how they look, what they show, and make whole new screens; and it
 screens that come by default, such as the main menu and the splash. Details are settled when the work comes up.
 Until then, a HUD screen the port needs (journal, map, inventory, objectives, dialer) is built so that an editor can
 take it over later: its layout and words as data, not buried in code.
+
+## Editor gaps ledger
+
+The Owner, 2026-11-11: "every piece of authorable content should have an editor, so UI is just one, we should build out
+others when a gap is found". Every stage that meets a kind of content a person would want to change by hand and that
+no editor in the suite opens adds a row here; each row becomes suite work (workstream 3). A slice's "prove it edits"
+step fails on content with no editor unless its row is here with the Owner's word that it may wait.
+
+| # | Content with no editor | Found by | State |
+|---|---|---|---|
+| 1 | Screens and HUD: layout, look, what they show, whole new screens, and the default screens (main menu, splash) | The Owner, 2026-11-11 | To be specced |
 
 ## Findings so far (2026-11-11)
 
