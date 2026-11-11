@@ -1,0 +1,49 @@
+{
+  "name": "@af-games/the-last-light",
+  "version": "0.1.0",
+  "private": true,
+  "automata": {
+    "title": "The Last Light"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./game": "./src/entries/game.ts",
+    "./sim": "./src/entries/sim.ts"
+  },
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "scripts": {
+    "dev": "vite --configLoader runner",
+    "build": "vite build --configLoader runner",
+    "build:web": "vite build --mode web --configLoader runner",
+    "build:itch": "vite build --mode itch --configLoader runner",
+    "prepare:web": "automata ship prepare --target web",
+    "prepare:itch": "automata ship prepare --target itch",
+    "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
+    "test": "vitest run --configLoader runner",
+    "test:unit": "vitest run --configLoader runner --project unit",
+    "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src"
+  },
+  "dependencies": {
+    "@automata/3d": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/sectors": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "pixi.js": "8.22.0",
+    "svelte": "5.57.1",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@automata/content": "workspace:*",
+    "@automata/tools": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/node": "24.19.1",
+    "jsdom": "30.1.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

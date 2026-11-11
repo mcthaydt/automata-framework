@@ -1,0 +1,19 @@
+{
+  "format": "af-sector/2",
+  "name": "blank",
+  "title": "A blank room",
+  "sectors": [
+    {
+      "id": "room",
+      "floor": 0,
+      "ceiling": 3,
+      "light": 1,
+      "corners": [[-4, -4], [4, -4], [4, 4], [-4, 4]],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
+    }
+  ],
+  "entityDefs": [{ "id": "spawn" }],
+  "entities": [{ "def": "spawn", "id": "spawn", "x": 0, "z": 0 }]
+}

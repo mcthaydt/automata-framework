@@ -1,0 +1,14 @@
+{
+  // The files that run in Node (Vite, Vitest, ship.config.ts, the converter, the tests that read the folder).
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node", "vite/client"] },
+  "include": [
+    "ship.config.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "tests/unit/architecture.test.ts",
+    "tests/unit/package.test.ts",
+    "content/generated/content.d.ts"
+  ],
+  "exclude": []
+}

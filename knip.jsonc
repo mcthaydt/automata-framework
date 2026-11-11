@@ -55,6 +55,11 @@
       "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
       "playwright": false
     },
+    // The reference game's ship.config.ts is read by `automata ship` by path (its playwright config and journeys join in task 15).
+    "games/the-last-light": {
+      "entry": ["ship.config.ts"],
+      "playwright": false
+    },
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "examples/2d/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     // The site: the compile worker starts from `new URL(...)`, which knip does not follow; the scripts and the playground

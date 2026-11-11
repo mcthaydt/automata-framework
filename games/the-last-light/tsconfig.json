@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "allowImportingTsExtensions": true,
+    "isolatedDeclarations": false,
+    "declaration": false
+  },
+  "include": ["main.ts", "src/**/*.ts", "tests/unit/**/*.ts", "content/generated/*.d.ts"],
+  // Tests that read Node-only files (the package's own, the sources of the layers) are checked by tsconfig.node.json.
+  "exclude": ["tests/unit/architecture.test.ts", "tests/unit/package.test.ts"]
+}

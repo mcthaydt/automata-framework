@@ -1,0 +1,10 @@
+format = "af-editors/1"
+
+# Every kind of content the game has opens in the editor that edits it. The game has no gates, so each row says
+# `gates = []`. Rows are added as the content arrives (the level, the lines, the cutscenes, the systems, the sound).
+[[file]]
+glob = "content/levels/*.af-sector.json"
+editor = "levels-3d"
+modes = ["edit"]
+gates = []
+checks = ["content"]

@@ -18,6 +18,7 @@ on:
     paths:
       # Their own files.
       - "games/base-3d/**"
+      - "games/the-last-light/**"
       - "examples/3d/**"
       - "vendor/pixi-3d/**"
       # The figure builder (the git submodule, and its wrapper package): a bump alone changes what the painted figures show.
