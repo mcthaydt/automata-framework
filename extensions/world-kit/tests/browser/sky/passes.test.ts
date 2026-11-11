@@ -87,8 +87,9 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
   })
 
   it('adding the passes puts them after core’s snap, and a taken name is refused', async () => {
-    addSkyPasses({ rain: { density: 1 } })
+    addSkyPasses({ rain: { density: 1 }, reflect: {}, shafts: {}, particles: {} })
     expect(() => addSkyPasses({ stars: true, glow: false })).toThrow()
+    expect(() => addSkyPasses({ stars: false, glow: false, reflect: {} })).toThrow()
     const renderer = await start()
     const names = renderer.view.passes.map((p) => p.constructor.name)
     // The haze and the mood grade run before the snap, the kit's passes after it.
@@ -97,7 +98,10 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
       'GradeEffect',
       'DuelSnapEffect',
       'StarsEffect',
+      'ReflectEffect',
       'GlowEffect',
+      'ShaftsEffect',
+      'ParticlesEffect',
       'RainEffect',
     ])
   })

@@ -3,6 +3,13 @@
 
 export type { TrackedCamera } from '../features/sky/camera-track.ts'
 export { GlowEffect, type GlowOptions } from '../features/sky/glow-effect.ts'
+export { particleSprites, type Sprite } from '../features/sky/particle-sprites.ts'
+export {
+  type Emitter,
+  MAX_SPRITES,
+  ParticlesEffect,
+  type ParticlesOptions,
+} from '../features/sky/particles-effect.ts'
 export { RainEffect } from '../features/sky/rain-effect.ts'
 export { PUDDLE_STEP, ReflectEffect, type ReflectOptions, WET_STEP } from '../features/sky/reflect-effect.ts'
 export {
