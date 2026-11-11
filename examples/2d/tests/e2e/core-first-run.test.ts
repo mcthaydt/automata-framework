@@ -3,6 +3,7 @@ import { collectErrors } from '@automata/examples-runner/host/testing'
 import ja from '@automata/framework/words/ja.json' with { type: 'json' }
 import { passFirstRun } from '@automata/tools/e2e'
 import { expect, test } from '@playwright/test'
+import { drawsIn } from './draws-in.ts'
 
 // A first run (shared polish, items 2 and 3), opened directly rather than under the fake host: the Ruken adapter's
 // standalone session reads the browser's language, so the language screen shows (a Ruken host supplies its own
@@ -18,11 +19,13 @@ test('language, then the warning, then the title; the second run goes straight i
 
   // The device's language is the one with focus.
   await expect(page.getByTestId('first-language-ko')).toBeFocused()
+  await drawsIn(page.locator('html'), 'ko ko')
   await page.getByTestId('first-language-ja').click()
 
   // The warning is read in the language just picked.
   await expect(page.getByTestId('photosensitivity-continue')).toBeVisible()
   await expect(page.getByRole('heading', { name: ja.first_run_warning_title })).toBeVisible()
+  await drawsIn(page.locator('html'), 'ja ja')
   await page.getByTestId('photosensitivity-continue').click()
 
   await expect(page.getByTestId('title-screen')).toBeVisible()

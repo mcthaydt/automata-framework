@@ -9,6 +9,16 @@
 // Tier: core
 import { defineGame } from '@automata/framework'
 
+// The pixel font, cut to the words these menus show (content/fonts.toml): `fonts.css` is served beside this page
+// (public/core/languages/) and sets the face each language draws in, so Japanese, Korean and Chinese are not left to a device.
+document.head.append(
+  Object.assign(document.createElement('link'), {
+    rel: 'stylesheet',
+    href: 'fonts.css',
+    crossOrigin: 'anonymous',
+  }),
+)
+
 export default defineGame({
   id: 'core-languages',
   size: { width: 320, height: 180 },

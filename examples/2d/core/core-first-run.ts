@@ -10,6 +10,16 @@
 // Tier: core
 import { defineGame } from '@automata/framework'
 
+// The pixel font, cut to the words these menus show (content/fonts.toml): `fonts.css` is served beside this page
+// (public/core/first-run/) and sets the face each language draws in, so Japanese, Korean and Chinese are not left to a device.
+document.head.append(
+  Object.assign(document.createElement('link'), {
+    rel: 'stylesheet',
+    href: 'fonts.css',
+    crossOrigin: 'anonymous',
+  }),
+)
+
 // The game's own effect setting, kept in memory here; a real game keeps it in its settings.
 let reduced = false
 

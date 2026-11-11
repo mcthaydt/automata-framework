@@ -294,6 +294,21 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   the playground frame under its policy (`playground-frame-chromium`, 4 passed with the gzip-budget case), the site's unit tests (514).
   Not run: the site's own `playground.e2e.ts` (its web server did not start in 60 s; only the message text changed there), WebKit and
   Firefox.
+- **Task 15, the examples' fonts (fifth session):** the two language examples draw in the pixel font in every language. The
+  build is `examples/2d/content/fonts.toml` (Fusion Pixel from `vendor/fonts/fusion-pixel-12/`, three flavours) over five empty
+  catalogs in `content/messages/` (so the content has the six languages and the examples have no words of their own); it holds the
+  framework's and `@automata/ui-screens`' words, found through the examples' own dependencies, to the faces. The outputs (a face per
+  language, `fonts.css`, `fonts.json`, three licences; 144 KB a folder) are committed in `public/core/languages/` and
+  `public/core/first-run/`, beside each page as the atlas is, and each example appends `<link rel="stylesheet" href="fonts.css">`:
+  the playground copies a page's own public folder and a bare import of a `.css` file could not be compiled there. Ruling: two
+  copies (288 KB) and not one shared folder, because the playground build copies only `public/<module>/<name>/` and teaching it a
+  shared folder would be more code than the bytes cost. The freshness test is `packages/content/tests/unit/shared/assets/example-fonts.test.ts`
+  (red first: the build was empty, no faces; then green over the committed files, in both folders). Journeys, red first (`--af-font`
+  was `system-ui, ...`): `core-languages` checks `ja ja`, `ko ko` and `zh-hans zh-Hans` named by `--af-font` and loaded, and
+  `core-first-run` checks `ko ko` on the language screen and `ja ja` on the warning (`tests/e2e/draws-in.ts`). A screenshot of the
+  Settings screen in Chinese was looked at: the pixel face, no device glyphs. Ran in Chromium: `examples` and `examples-compact`
+  (10 passed) and both examples in the playground frame under its policy. The other examples are English and keep core's face.
+  How to rebuild is written at the top of `fonts.toml`.
 
 ## Global constraints
 
