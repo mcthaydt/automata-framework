@@ -1,15 +1,16 @@
-// A known `@pixi/3d` 0.1.0-beta.2 hazard on WebGPU (WP0, 2026-11-10), with no AF code in it: once a `PostEffect` has run,
-// a mesh added to the view makes every later frame invalid ("Texture sceneDepth ... usage includes writable usage and
-// another usage in the same synchronization scope"), so the frame is dropped. Every effect declares a read of
-// `graph.sceneDepth`, which `sample` binds in the shared global bind group's opaque-depth slot; the forward pass's
-// render bundle, re-recorded when the draw list changes, then captures that slot still holding `sceneDepth`, which the
-// same pass attaches for writing. The controls stay clean, so only the re-record triggers it.
+// A known `@pixi/3d` 0.1.0-beta.2 hazard on WebGPU (WP0, 2026-11-10): once a `PostEffect` has run, a mesh added to the
+// view makes every later frame invalid ("Texture sceneDepth ... usage includes writable usage and another usage in the
+// same synchronization scope"), so the frame is dropped. Every effect declares a read of `graph.sceneDepth`, which
+// `sample` binds in the shared global bind group's opaque-depth slot; the forward pass's render bundle, re-recorded when
+// the draw list changes, then captures that slot still holding `sceneDepth`, which the same pass attaches for writing.
 //
-// `it.fails` documents the bug and flips red when a @pixi/3d release fixes it: then it becomes a plain `it` (and the
-// look's WebGPU frames stop dropping when a figure or prop is added).
+// AF's look keeps clear of it: a `PresentEffect` ends the chain and puts the engine's empty depth back in the slot
+// (`features/look/present-pass.ts`). The bare effect alone still has the hazard, so these tests run the chain the look
+// builds: an effect that samples the depth, then the present pass.
 import { CubeGeometry, FlatMaterial, Mesh3D, PostEffect, View3D } from '@pixi/3d'
 import { Application, UniformGroup } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
+import { PresentEffect } from '#src/features/look/present-pass.ts'
 import { adapterGone, notOnWebGpu } from '#src/testing/webgpu-skip.ts'
 
 const hasWebGpu =
@@ -35,7 +36,7 @@ interface Reported {
   readonly unjudged?: string
 }
 
-/** What the device reported over 40 frames of one cube and a Passthrough effect, with `change` done at frame 10. */
+/** What the device reported over 40 frames of one cube, a Passthrough effect that samples the depth and the present pass, with `change` done at frame 10. */
 async function problemsAfter(change: (view: View3D, cube: Mesh3D) => void): Promise<Reported> {
   const app = new Application()
   await app.init({ preference: 'webgpu', width: 160, height: 90, backgroundColor: 0x2e222f })
@@ -56,7 +57,7 @@ async function problemsAfter(change: (view: View3D, cube: Mesh3D) => void): Prom
     problems.push(`device lost: ${info.reason}`)
   })
   const view = new View3D({ width: 160, height: 90, toneMapping: 'none' })
-  view.passes = [new Passthrough()]
+  view.passes = [new Passthrough(), new PresentEffect()]
   app.stage.addChild(view)
   view.camera.position.set(0, 2, 5)
   view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
@@ -78,7 +79,7 @@ async function problemsAfter(change: (view: View3D, cube: Mesh3D) => void): Prom
   return gone === undefined ? { problems } : { problems, unjudged: gone }
 }
 
-describe.runIf(hasWebGpu)('@pixi/3d on WebGPU with a post effect', () => {
+describe.runIf(hasWebGpu)('@pixi/3d on WebGPU with a post effect and the present pass', () => {
   it('stays valid while the scene holds still and while a mesh moves or hides', async ({ skip }) => {
     const changes: ((view: View3D, cube: Mesh3D) => void)[] = [
       () => {},
@@ -94,7 +95,7 @@ describe.runIf(hasWebGpu)('@pixi/3d on WebGPU with a post effect', () => {
     }
   }, 60_000)
 
-  it.fails('stays valid after a mesh is added (a bundle re-record), but does not yet', async () => {
+  it('stays valid after a mesh is added (a bundle re-record)', async () => {
     const { problems } = await problemsAfter((view) => {
       const second = new Mesh3D({
         geometry: new CubeGeometry({ width: 1, height: 1, depth: 1 }),
