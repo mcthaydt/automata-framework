@@ -1,13 +1,5 @@
 {
   "swatches": {
-    "floor": {
-      "ramp": "sand",
-      "step": 0
-    },
-    "floorDim": {
-      "ramp": "slate",
-      "step": 2
-    },
     "plaster": {
       "ramp": "sage",
       "step": 1
@@ -80,6 +72,19 @@
       "emit": true,
       "flat": true,
       "noCast": true
+    },
+    "tileFloor": {
+      "ramp": "slate",
+      "step": 3,
+      "texture": {
+        "photo": "floorTiles",
+        "contrast": 0.035,
+        "facet": 0,
+        "flatten": 0.5,
+        "cluster": 2,
+        "seed": 70
+      },
+      "reads": {}
     },
     "moonBeam": {
       "ramp": "sky",

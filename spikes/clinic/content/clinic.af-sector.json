@@ -296,7 +296,7 @@
           ]
         ]
       ],
-      "floorTexture": "floor",
+      "floorTexture": "tileFloor",
       "ceilingTexture": "ceiling",
       "wallTexture": "plaster",
       "trim": {
@@ -415,7 +415,7 @@
           }
         ]
       ],
-      "floorTexture": "floor",
+      "floorTexture": "tileFloor",
       "ceilingTexture": "ceiling",
       "wallTexture": "plaster",
       "trim": {
@@ -469,7 +469,7 @@
           }
         ]
       ],
-      "floorTexture": "floor",
+      "floorTexture": "tileFloor",
       "ceilingTexture": "ceiling",
       "wallTexture": "plaster",
       "trim": {
@@ -556,7 +556,7 @@
           }
         ]
       ],
-      "floorTexture": "floor",
+      "floorTexture": "tileFloor",
       "wallTexture": "plaster",
       "trim": {
         "skirting": 0.14,
@@ -608,7 +608,7 @@
           }
         ]
       ],
-      "floorTexture": "floor",
+      "floorTexture": "tileFloor",
       "ceilingTexture": "ceiling",
       "wallTexture": "plaster",
       "view": "corridor"
@@ -620,7 +620,7 @@
       "ceiling": 4.9,
       "light": 1,
       "open": true,
-      "floorTexture": "floorDim",
+      "floorTexture": "tileFloor",
       "corners": [
         [
           1.725,

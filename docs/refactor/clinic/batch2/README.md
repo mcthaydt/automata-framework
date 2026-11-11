@@ -16,6 +16,8 @@ spots only and show its HUD). `shots.json` holds the facts of the last run of `s
 | 5 | The 12 world-kit pieces | Done: the generators and presets (translucent parts, `veil`), and the dressing table that places 52 of them in the clinic (below) |
 | 6 | Procedural props instead of the stand-in boxes | In progress, WIP (below): 45 of 57 stand-ins are kit furniture at the source's box; 12 remain boxes |
 | 7 | "On" frames | Waits for PRs 588 and 590 |
+| 8 | D: the wall lighting and the floor | Walls: the unfounded swatch lift is removed (see below). The floor is the kit's tile floor through a textured-swatch path in the spike. Left: the desk lamp's pool on the counter top is about 3 times the source's, the floor has no teal, hall re-shot only |
+| 9 | The editor ledger: can the level editor author the clinic? | Done: [../editor-gaps.md](../editor-gaps.md). Not yet |
 
 ## Calls made
 
@@ -116,6 +118,16 @@ the source, and as a level one in AF:
    are the brightest things in the frame; the source's are dim and even (item D).
 3. **What the source puts in front of the far wall**: the notice board, the pipes, the curtains and the bench (items B and C),
    which break the far wall into small parts at the same scale as the floor's tiles.
+
+## Item D: the wall lighting and the floor (2026-11-11)
+
+- **The swatch lift was a misreading.** Batch 1 read `mat(color, texture, 4.8)` in the source's `stage.ts` as a texture gain and lifted
+  the floor, walls and ceiling four steps of their ramp. The third argument is the texture's repeat in metres. With it gone the walls are
+  dim and even; the source's left wall measures 0.3 of its albedo, ours 0.6 (fill lamps and ambient: the next thing to tune).
+- **The floor is the kit's `tileFloor` at step 3.** It is a textured swatch (a 30 cm glaze with a grout line), which the spike's `scene.ts`
+  now draws through `albedoTiles` (`drawWorld`'s `tiles`). The kit's step 5 gave a frame mean of (42, 48, 44) against the source's
+  (26, 32, 31); step 3 gives (34, 40, 35). The closet's dimmer `floorDim` is the same floor now.
+- **`shoot.mjs` takes `EXTRA`** (a query string such as `&ambient=0.15`) and `scene.ts` takes `?off=<lamp ids>`, for bisecting a frame.
 
 ## Not done here
 

@@ -48,7 +48,7 @@ async function shoot(frame, turned, pref) {
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e)))
   page.on('console', (m) => (m.type() === 'error' || m.type() === 'warning') && errors.push(m.text().slice(0, 300)))
-  await page.goto(`http://localhost:${port}/?frame=${frame}&turned=${turned ? 1 : 0}&pref=${pref}`)
+  await page.goto(`http://localhost:${port}/?frame=${frame}&turned=${turned ? 1 : 0}&pref=${pref}${process.env.EXTRA ?? ""}`)
   const canvas = page.locator('canvas[data-ready="1"]')
   try {
     await page.getByRole('button', { name: 'Play' }).click({ timeout: 120000 })

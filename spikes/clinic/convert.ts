@@ -49,10 +49,13 @@ const visibility = await load('visibility.ts')
 const DEFAULT_TRIM = { skirting: 0.14, wainscot: 1.14, rail: 0.08, cap: false }
 const round = (n: number): number => Math.round(n * 1e6) / 1e6
 
+// The source's floor and its dimmer twin are tile grids (a 30 cm glaze with a dark grout line); the kit's `tileFloor` is that.
+// Its tile is found by the swatch's name, so the level names it outright.
+const tiled = (name: unknown): unknown => (name === 'floor' || name === 'floorDim' ? 'tileFloor' : name)
 const sectors = (map.SECTORS as Json[]).map((s) => ({
   ...s,
   // Every room says its surfaces and its trim outright: AF has no hidden defaults to lean on.
-  floorTexture: s.floorTexture ?? 'floor',
+  floorTexture: tiled(s.floorTexture ?? 'floor'),
   ceilingTexture: s.ceilingTexture ?? 'ceiling',
   wallTexture: s.wallTexture ?? 'plaster',
   trim: { ...DEFAULT_TRIM, ...((s.trim as Json | undefined) ?? {}) },
@@ -154,8 +157,6 @@ const placed = (props.PROPS as Spec[]).map((spec) => {
 // colours, so the dominant colour is an exact palette entry): a step of a ramp, as every AF swatch is. No step is lifted: the
 // source's `mat(color, texture, 4.8)` is the texture's repeat in metres, not a gain.
 const DOMINANT: Record<string, string> = {
-  floor: '#625d54',
-  floorDim: '#5b5c69',
   plaster: '#47655a',
   plasterWarm: '#47655a',
   ceiling: '#aea189',
@@ -192,6 +193,9 @@ for (const file of new Set((props.PROPS as Spec[]).map((p) => p.file)))
 const kitLibrary = (name: string): Record<string, Json> => JSON.parse(readFileSync(new URL(`../../extensions/world-kit/library/${name}.json`, import.meta.url), 'utf8'))
 const kitProps = kitLibrary('props')
 const kitSwatches = kitLibrary('swatches')
+// The kit's tile floor sits at step 5 of its ramp; the clinic's floor is the source's dim glaze, so it takes step 3, which puts the
+// hall frame's mean (34, 40, 35) nearest the source baseline's (26, 32, 31); step 5 gave (42, 48, 44).
+swatches.tileFloor = { ...(kitSwatches.tileFloor as Json), step: 3 }
 for (const use of new Set(DRESSING.map((place) => place.use))) {
   const preset = kitProps[use]
   if (preset === undefined) throw new Error(`the world kit has no preset "${use}"`)

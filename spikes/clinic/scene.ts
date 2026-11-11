@@ -6,7 +6,7 @@
 // is the play camera following a stand-in for the player (1.62 m tall) at one of the baseline's spots.
 import '@automata/3d/no-eval'
 // Loading the world kit registers the prop generators the dressing's presets name (moon shafts, pipes, plaques, curtains…).
-import '@automata/world-kit'
+import { albedoTiles } from '@automata/world-kit'
 import {
   box,
   buildWorld,
@@ -58,7 +58,10 @@ const time = q.has('ambient') || q.has('fill')
 const read = readLevel(clinic)
 if (read.problems.length > 0) throw new Error(read.problems.map((p) => p.message).join('; '))
 const world = buildWorld(read.level, library as never, { night: true })
-const lighting = worldLighting(world, time, { states: opening.lamps })
+// ?off=<id>,<id> puts those lamps out (a bisecting switch, like the others).
+const off = new Set((q.get('off') ?? '').split(',').filter(Boolean))
+const lit = worldLighting(world, time, { states: opening.lamps })
+const lighting = off.size === 0 ? lit : { ...lit, lamps: lit.lamps.filter((l) => !off.has(l.id)) }
 const size = { width: 1024, height: 768 }
 // The zone as a camera view, with the source's room bounds (the box its sectors span) so the room follow clamps as it does there.
 const ZONE_ID = kind === 'zone' ? name : (ZONE[name] as string)
@@ -109,7 +112,7 @@ startGame(
           ;(window as unknown as { __camera: unknown }).__camera = view.camera
           view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)?.focus(VIEW.distance)
           drawWorld(
-            { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), look: on('look') ? LOOK : undefined, light, models },
+            { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), tiles: albedoTiles(library.swatches as never), look: on('look') ? LOOK : undefined, light, models },
             world.pieces.filter((p) => (on('walls') || p.part !== 'wall') && (on('tops') || !p.id.includes(':top:'))),
           )
           const { dataset } = stage.app.canvas

@@ -43,7 +43,9 @@ describe('the converted clinic', () => {
     ])
   })
   it('holds every sector and mass of the fixture of the earlier conversion, member for member', () => {
-    expect(holds(clinic.sectors, fixture.sectors)).toEqual([])
+    // Except the floors, which are the kit's tile floor now (the fixture names the flat `floor` and `floorDim`).
+    const tiled = JSON.parse(JSON.stringify(fixture.sectors).replace(/:"floor(Dim)?"/g, ':"tileFloor"'))
+    expect(holds(clinic.sectors, tiled)).toEqual([])
     expect(holds(clinic.masses, fixture.masses)).toEqual([])
   })
   it('carries the fifteen lamps, the four bounce points and the camera zones', () => {
@@ -93,8 +95,19 @@ describe('the converted clinic', () => {
     // `mat(color, texture, 4.8)` in the source is the texture's repeat in metres, not a gain. A lifted floor and wall made the
     // walls neon under the room's lamps; the swatches' steps are the DUEL entries their textures are mostly made of.
     const step = (name: string) => (library.swatches[name] as { step: number }).step
-    expect(step('floor')).toBe(0)
     expect(step('plaster')).toBe(1)
     expect(step('wainscot')).toBe(5)
+  })
+  it("lays the kit's tile floor, a textured swatch, where the source has its floor tiles", () => {
+    const floors = new Set(
+      read.level.sectors.flatMap((sector) =>
+        sector.floorTexture === undefined ? [] : [sector.floorTexture],
+      ),
+    )
+    // The reception counter's top is its own surface; every room floor is the tile floor.
+    expect([...floors].sort()).toEqual(['counterTop', 'tileFloor'])
+    expect((library.swatches.tileFloor as { texture?: unknown }).texture).toMatchObject({
+      photo: 'floorTiles',
+    })
   })
 })
