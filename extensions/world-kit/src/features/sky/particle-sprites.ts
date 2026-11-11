@@ -1,5 +1,5 @@
 // The particles of a scene at a time, as sprites to lay on the frame: where each is (world metres), its colour and its radius.
-// A port of the source look's emitters (post.ts particles): steam rising from a vent in puffs that thin as they rise, drips
+// A port of the source look's emitters: steam rising from a vent in puffs that thin as they rise, drips
 // falling off an edge, a carried flame's core and tongue, moths circling a lamp. The motion steps twelve times a second. The
 // pass (particles-effect.ts) lays the sprites on the frame, depth-tested.
 

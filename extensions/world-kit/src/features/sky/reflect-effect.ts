@@ -1,4 +1,4 @@
-// Wet-ground reflections, as the source look has them (post.ts reflect): a ground pixel mirrors the frame about the ground
+// Wet-ground reflections, as the source look has them: a ground pixel mirrors the frame about the ground
 // plane. Its reflected view ray is marched through the depth buffer, steps growing, until it passes behind what was drawn
 // (or runs out into the sky), and the pixel takes the colour it met, a step down its own ramp: one in a puddle, where
 // everything reflects, two on wet ground between puddles, where only what glows does. Whole steps, never a blur, so every

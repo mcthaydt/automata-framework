@@ -1,4 +1,4 @@
-// Particles on the frame, as the source look draws them (post.ts particles): the sprites of the scene's emitters (steam, drips,
+// Particles on the frame, as the source look draws them: the sprites of the scene's emitters (steam, drips,
 // a flame, moths; particle-sprites.ts works them out from the time) laid on the frame in their own DUEL colours, one to a few
 // pixels across, depth-tested against what was drawn. A `PostEffect` in GLSL + WGSL, run after the snap. The sprites are
 // in the world and the pass works in view space, so `track` is told the camera once and follows it from then on.

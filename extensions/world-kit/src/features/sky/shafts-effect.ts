@@ -1,4 +1,4 @@
-// Light shafts, as the source look has them (post.ts shafts): in the cones of the lamps that aim and throw a shaft (street
+// Light shafts, as the source look has them: in the cones of the lamps that aim and throw a shaft (street
 // lamps, spots), the air catches light. Along each pixel's view ray the lamps' in-scatter is summed (the lamp's falloff
 // and its cone, sampled eight times across the stretch of the ray inside the lamp's reach); where the sum passes a 4 × 4
 // ordered threshold the pixel steps up its own ramp toward the lamp's colour, and in the thickest part dust glints. Whole
