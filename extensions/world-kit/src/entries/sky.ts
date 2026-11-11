@@ -3,6 +3,14 @@
 export { GlowEffect, type GlowOptions } from '../features/sky/glow-effect.ts'
 export { RainEffect } from '../features/sky/rain-effect.ts'
 export {
+  MAX_SHAFTS,
+  type ShaftLamp,
+  ShaftsEffect,
+  type ShaftsOptions,
+  shaftLamps,
+  type TrackedCamera,
+} from '../features/sky/shafts-effect.ts'
+export {
   addSkyPasses,
   type RainOptions,
   SKY_PASS_NAMES,

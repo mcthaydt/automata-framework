@@ -80,3 +80,64 @@ fn stepUp(index: i32) -> vec3<f32> {
   let step = clamp(index - row * 8 + 1, 1, 7);
   return DUEL[row * 8 + step];
 }`
+
+/** OKLab in a shader: a colour in and out of it, and the source's `toward` (a colour moved `amt` of the way to another, the lightness half as far). */
+export const OKLAB_GLSL = `
+vec3 toLin(vec3 c) { return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c)); }
+vec3 toSrgb(vec3 c) { return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c)); }
+vec3 oklab(vec3 c) {
+  vec3 l = toLin(c);
+  vec3 lms = pow(max(vec3(0.0), vec3(
+    0.4122214708 * l.r + 0.5363325363 * l.g + 0.0514459929 * l.b,
+    0.2119034982 * l.r + 0.6806995451 * l.g + 0.1073969566 * l.b,
+    0.0883024619 * l.r + 0.2817188376 * l.g + 0.6299787005 * l.b)), vec3(1.0 / 3.0));
+  return vec3(
+    0.2104542553 * lms.x + 0.7936177850 * lms.y - 0.0040720468 * lms.z,
+    1.9779984951 * lms.x - 2.4285922050 * lms.y + 0.4505937099 * lms.z,
+    0.0259040371 * lms.x + 0.7827717662 * lms.y - 0.8086757660 * lms.z);
+}
+vec3 fromOklab(vec3 o) {
+  vec3 lms = vec3(o.x + 0.3963377774 * o.y + 0.2158037573 * o.z, o.x - 0.1055613458 * o.y - 0.0638541728 * o.z, o.x - 0.0894841775 * o.y - 1.2914855480 * o.z);
+  vec3 q = lms * lms * lms;
+  vec3 lin = vec3(
+    4.0767416621 * q.x - 3.3077115913 * q.y + 0.2309699292 * q.z,
+    -1.2684380046 * q.x + 2.6097574011 * q.y - 0.3413193965 * q.z,
+    -0.0041960863 * q.x - 0.7034186147 * q.y + 1.7076147010 * q.z);
+  return toSrgb(clamp(lin, 0.0, 1.0));
+}
+// The source toward: a colour moved amt of the way to another in OKLab, the lightness half as far.
+vec3 toward(vec3 c, vec3 t, float amt) {
+  vec3 a = oklab(c);
+  vec3 b = oklab(t);
+  return fromOklab(vec3(a.x + (b.x - a.x) * amt * 0.5, a.yz + (b.yz - a.yz) * amt));
+}
+`
+export const OKLAB_WGSL = `
+fn toLin(c: vec3<f32>) -> vec3<f32> { return select(c / 12.92, pow((c + 0.055) / 1.055, vec3<f32>(2.4)), c >= vec3<f32>(0.04045)); }
+fn toSrgb(c: vec3<f32>) -> vec3<f32> { return select(c * 12.92, 1.055 * pow(c, vec3<f32>(1.0 / 2.4)) - 0.055, c >= vec3<f32>(0.0031308)); }
+fn oklab(c: vec3<f32>) -> vec3<f32> {
+  let l = toLin(c);
+  let lms = pow(max(vec3<f32>(0.0), vec3<f32>(
+    0.4122214708 * l.r + 0.5363325363 * l.g + 0.0514459929 * l.b,
+    0.2119034982 * l.r + 0.6806995451 * l.g + 0.1073969566 * l.b,
+    0.0883024619 * l.r + 0.2817188376 * l.g + 0.6299787005 * l.b)), vec3<f32>(1.0 / 3.0));
+  return vec3<f32>(
+    0.2104542553 * lms.x + 0.7936177850 * lms.y - 0.0040720468 * lms.z,
+    1.9779984951 * lms.x - 2.4285922050 * lms.y + 0.4505937099 * lms.z,
+    0.0259040371 * lms.x + 0.7827717662 * lms.y - 0.8086757660 * lms.z);
+}
+fn fromOklab(o: vec3<f32>) -> vec3<f32> {
+  let lms = vec3<f32>(o.x + 0.3963377774 * o.y + 0.2158037573 * o.z, o.x - 0.1055613458 * o.y - 0.0638541728 * o.z, o.x - 0.0894841775 * o.y - 1.2914855480 * o.z);
+  let q = lms * lms * lms;
+  let lin = vec3<f32>(
+    4.0767416621 * q.x - 3.3077115913 * q.y + 0.2309699292 * q.z,
+    -1.2684380046 * q.x + 2.6097574011 * q.y - 0.3413193965 * q.z,
+    -0.0041960863 * q.x - 0.7034186147 * q.y + 1.7076147010 * q.z);
+  return toSrgb(clamp(lin, vec3<f32>(0.0), vec3<f32>(1.0)));
+}
+fn toward(c: vec3<f32>, t: vec3<f32>, amt: f32) -> vec3<f32> {
+  let a = oklab(c);
+  let b = oklab(t);
+  return fromOklab(vec3<f32>(a.x + (b.x - a.x) * amt * 0.5, a.y + (b.y - a.y) * amt, a.z + (b.z - a.z) * amt));
+}
+`
