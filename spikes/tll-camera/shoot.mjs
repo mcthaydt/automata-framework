@@ -3,7 +3,7 @@
 // upscaled ×SCALE nearest) and one contact sheet a scene (`<scene>-sheet.png`).
 //
 //   ln -sfn ../../examples/3d/node_modules spikes/tll-camera/node_modules   # once; git-ignored
-//   node spikes/tll-camera/shoot.mjs [out dir]     # default docs/superpowers/eb-look/camera; DISTANCE=<m> for another distance
+//   node spikes/tll-camera/shoot.mjs [out dir]     # default docs/refactor/eb-look/camera; DISTANCE=<m> for another distance
 import { spawn } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -14,7 +14,7 @@ const repo = new URL('../..', import.meta.url).pathname
 const require = createRequire(join(repo, 'packages/3d/package.json'))
 const { chromium } = require('playwright')
 
-const out = process.argv[2] ?? join(repo, 'docs/superpowers/eb-look/camera')
+const out = process.argv[2] ?? join(repo, 'docs/refactor/eb-look/camera')
 const SCALE = Number(process.env.SCALE ?? 2)
 // A free port, asked of the system: nothing here owns one.
 const port = await new Promise((resolve) => {

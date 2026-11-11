@@ -85,7 +85,8 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     if (scene.light !== undefined && stays(piece)) {
       // Baked after it is placed under the node, so the light sees where it stands.
       mesh.material = new FlatMaterial({ baseColor: colour })
-      scene.light.bake(mesh)
+      // A room's `light` is 1 when normal; each 1 less is a whole step darker.
+      scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light })
     }
     if (scene.occluders === undefined) continue
     if (piece.part === 'ceiling') scene.occluders.ceiling(mesh)
