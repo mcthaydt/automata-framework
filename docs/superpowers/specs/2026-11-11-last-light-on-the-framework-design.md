@@ -73,10 +73,12 @@ becomes the framework's 3D reference.
 - The framework's `AGENTS.md`: the seven laws, feature folders, tests first and in `tests/`, `pnpm check`. The game
   keeps The Last Light's own design rules: the script wins, tone (worn, not grimy; no gore), the camera rules in its
   `docs/design/camera-rules.md`, no real-time lights, no `fetch()` at runtime.
-- The reference game's story, lines and art are the Owner's, and they now live in the framework's repository. The
-  framework's code is MIT; example content keeps its own terms (`LICENSE-SCOPE.md`), so the game's folder carries a
-  notice saying its story and art are not MIT, and a provenance file for anything the builders did not make (sounds,
-  music). Nothing from a paid pipeline is brought across without that record.
+- The reference game is fully open source, like Emberwick (the Owner, 2026-11-11: "The story, art, and music can be
+  MIT; it's a fully open source game like emberwick is"). Its story, lines, art, sounds and music are MIT with the
+  rest of the repository; there is no separate notice. As the framework's other examples do, the game keeps a
+  provenance file saying where each asset the builders did not make came from (the sounds and the music), so the
+  claim can be checked. An asset whose source does not allow MIT is not brought across; it is remade or left out, and
+  the plan says which.
 - No subagents. Each stage in its own session and branch.
 
 ## Approaches
@@ -212,13 +214,13 @@ can take it over without a rewrite.
   are in the six languages.
 - Every framework addition has its tests and passes `pnpm check`.
 - `games/base-3d` is gone and nothing names it; the 3D workflow's suites and journeys pass on The Last Light.
-- The game's folder carries its content notice and provenance file.
+- The game's folder carries its provenance file, and everything in it is MIT.
 
 ## The coordinator's calls, for the Owner to check
 
 1. The game is `games/the-last-light`; Ember Hall is removed in slice 1, when the prologue plays, not before.
 2. The 3D template keeps a small starter of its own rather than The Last Light's content.
-3. The game's story and art carry a not-MIT notice in the framework's repository.
+3. Settled by the Owner: the game's story, art and music are MIT, like Emberwick's.
 4. The scene order and what each brings (the table above).
 5. The Last Light's paid pipelines and its own editor are not brought across.
 6. Each slice is its own plan, audit, build, audit and fixes cycle; this spec covers all four, and slice 1 is planned
