@@ -1219,5 +1219,63 @@
       "contrast": 0.04,
       "seed": 82
     }
+  },
+  "moonBeam": {
+    "ramp": "sky",
+    "step": 4,
+    "flat": true
+  },
+  "lampPool": {
+    "ramp": "sand",
+    "step": 5,
+    "flat": true
+  },
+  "puddleDark": {
+    "ramp": "slate",
+    "step": 1,
+    "flat": true
+  },
+  "puddleSheen": {
+    "ramp": "sky",
+    "step": 6,
+    "flat": true
+  },
+  "grimeDark": {
+    "ramp": "violet",
+    "step": 0,
+    "flat": true
+  },
+  "pipeSteel": {
+    "ramp": "slate",
+    "step": 3
+  },
+  "cableBlack": {
+    "ramp": "violet",
+    "step": 0
+  },
+  "ceilingTilePale": {
+    "ramp": "sand",
+    "step": 6
+  },
+  "noticePaper": {
+    "ramp": "sand",
+    "step": 7
+  },
+  "plaqueFace": {
+    "ramp": "sand",
+    "step": 5
+  },
+  "plaqueLit": {
+    "ramp": "sand",
+    "step": 7,
+    "emit": true
+  },
+  "plaqueFrame": {
+    "ramp": "wood",
+    "step": 2
+  },
+  "curtainClinic": {
+    "ramp": "sage",
+    "step": 3
   }
 }

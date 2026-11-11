@@ -13,7 +13,7 @@ import type { MeshData } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
 import { lampFault, type ResolvedLamp, resolveLamp } from './lamp-kit.ts'
 import { rotateY } from './plane-mesh.ts'
-import type { ModelSpec, PropPiece } from './props/piece.ts'
+import type { ModelSpec, PropPiece, Veil } from './props/piece.ts'
 import { isFault, resolveProp } from './props/resolve.ts'
 import { heightAt, ringsOf, standsIn, type V2 } from './sectors.ts'
 import { objectFrame, type Surface, type TexPlace, texOf } from './surface.ts'
@@ -40,6 +40,7 @@ export interface PlacedPiece {
   readonly model?: ModelPlacement
   readonly cut?: string
   readonly ceiling?: boolean
+  readonly veil?: Veil
   /** The prop it belongs to and where its base stands, for a state that moves the prop. */
   readonly prop?: { readonly id: string; readonly at: V3 }
 }
@@ -162,7 +163,8 @@ export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell):
           : { tex: texOf(surface, 'object', frame) as TexPlace }),
         ...(piece.sway === undefined ? {} : { sway: piece.sway }),
         ...(piece.phase === undefined ? {} : { phase: piece.phase }),
-        ...(piece.noCast === true ? { noCast: true } : {}),
+        ...(piece.noCast === true || piece.veil !== undefined ? { noCast: true } : {}),
+        ...(piece.veil === undefined ? {} : { veil: piece.veil }),
         ...(piece.model === undefined ? {} : { model: { ...piece.model, turn } }),
         ...(piece.cut === undefined ? {} : { cut: piece.cut }),
         ...(piece.ceiling === true ? { ceiling: true } : {}),

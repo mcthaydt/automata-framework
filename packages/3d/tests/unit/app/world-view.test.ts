@@ -1,5 +1,5 @@
 // The world on `@pixi/3d`: a mesh for each piece, the swatch's colour on it, and the occluder rule on walls and ceilings.
-import { Container3D, type Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Container3D, type FlatMaterial, type Mesh3D, PhongMaterial } from '@pixi/3d'
 import { Texture } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { drawWorld, sceneLamps } from '#src/app/world-view.ts'
@@ -34,6 +34,31 @@ const level: AfSector2 = {
 }
 const colours: Record<string, number> = { oakFloor: 0x8690b2, plasterWarm: 0x3a4568 }
 const { pieces } = buildWorld(level, LIB)
+
+describe('a translucent piece', () => {
+  const beam = (veil: { opacity: number; add?: boolean }) => ({
+    ...(pieces[0] as (typeof pieces)[number]),
+    id: 'a:prop:shaft.0.beam',
+    part: 'prop' as const,
+    veil,
+  })
+
+  it('is drawn blended at its opacity, unlit and with no shadow', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0xffffff }, [beam({ opacity: 0.3 })])
+    const mesh = view.mesh('a:prop:shaft.0.beam') as Mesh3D
+    expect(mesh.material.alphaMode).toBe('blend')
+    expect((mesh.material as FlatMaterial).alpha).toBeCloseTo(0.3, 6)
+    expect(mesh.material.state.blendMode).not.toBe('add')
+    expect(mesh.castShadow).toBe(false)
+  })
+
+  it('adds its light to what is behind it when it says so', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0xffffff }, [
+      beam({ opacity: 0.5, add: true }),
+    ])
+    expect((view.mesh('a:prop:shaft.0.beam') as Mesh3D).material.state.blendMode).toBe('add')
+  })
+})
 
 describe('drawWorld', () => {
   it('adds a mesh for each piece under one node, in the swatch’s colour', () => {

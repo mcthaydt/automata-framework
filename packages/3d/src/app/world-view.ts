@@ -148,7 +148,14 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
       meshOf(piece, colour, scene.look, tile)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
-    if (scene.light !== undefined && stays(piece)) {
+    if (piece.veil !== undefined) {
+      // A veil (a shaft of light, a pool, a puddle) is a flat blended colour: no baked light, no shadow, and the picture behind it shows through.
+      const material = new FlatMaterial({ baseColor: colour, alphaMode: 'blend', doubleSided: true })
+      material.alpha = piece.veil.opacity
+      if (piece.veil.add === true) material.state.blendMode = 'add'
+      mesh.material = material
+      mesh.castShadow = false
+    } else if (scene.light !== undefined && stays(piece)) {
       // Baked after it is placed under the node, so the light sees where it stands.
       // A room's `light` is 1 when normal; each 1 less is a whole step darker.
       if (tile === undefined) {

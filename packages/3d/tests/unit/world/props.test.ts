@@ -29,6 +29,10 @@ registerPropGenerator('test.lamp', () => ({
   lights: [{ at: [0, 1.2, 0.2], kind: 'bulb' }],
 }))
 
+registerPropGenerator('test.shaft', () => ({
+  pieces: [part(box([0, 0, 0], [0.4, 2, 0.4]), 'wood', 'beam', { veil: { opacity: 0.3, add: true } })],
+}))
+
 const LIBRARY: WorldLibrary = {
   swatches: {
     wood: { ramp: 'mud', step: 3 },
@@ -45,6 +49,7 @@ const LIBRARY: WorldLibrary = {
     bench: { kind: 'test.bench' },
     oak: { kind: 'test.tree' },
     'lamp.wall': { kind: 'test.lamp' },
+    shaft: { kind: 'test.shaft' },
   },
 }
 
@@ -213,6 +218,13 @@ describe('a prop in the world', () => {
     )
     expect(pieces.some((piece) => piece.id.startsWith('hall:prop:oak.') && (piece.sway ?? 0) > 0)).toBe(true)
     expect(pieces.find((piece) => piece.id === 'hall:prop:sign.0.shade')?.noCast).toBe(true)
+  })
+
+  it('keeps a translucent part translucent, and casting no shadow', () => {
+    const { pieces } = buildWorld(levelWith([{ id: 'shaft', use: 'shaft', at: [3, 3] }]), LIBRARY)
+    const beam = pieces.find((piece) => piece.id === 'hall:prop:shaft.0.beam')
+    expect(beam?.veil).toEqual({ opacity: 0.3, add: true })
+    expect(beam?.noCast).toBe(true)
   })
 
   it('reports a preset the library lacks and still draws the room', () => {

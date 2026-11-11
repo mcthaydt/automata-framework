@@ -37,6 +37,14 @@ export interface PropPiece {
   readonly cut?: string
   /** Hangs from the ceiling: it goes with the ceilings. */
   readonly ceiling?: boolean
+  /** A translucent part (a shaft of moonlight, a pool of light, a puddle): its opacity, and whether it adds its colour to what is behind it. */
+  readonly veil?: Veil
+}
+
+/** How a translucent part is drawn: blended at `opacity` (0 to 1), or added to the picture behind it. Unlit, and it casts no shadow. */
+export interface Veil {
+  readonly opacity: number
+  readonly add?: boolean
 }
 
 /** A light a prop carries (a lamp's bulb), in the prop's own space: a lamp of a kind from the look's lamp kit. */
@@ -58,7 +66,7 @@ export function part(
   mesh: MeshData,
   swatch: string,
   label: string,
-  extra: Pick<PropPiece, 'noCast' | 'sway' | 'phase' | 'model' | 'cut' | 'ceiling'> = {},
+  extra: Pick<PropPiece, 'noCast' | 'sway' | 'phase' | 'model' | 'cut' | 'ceiling' | 'veil'> = {},
 ): PropPiece {
   return { mesh, swatch, label, ...extra }
 }

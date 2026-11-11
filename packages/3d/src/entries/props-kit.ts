@@ -13,6 +13,7 @@ export {
   type PropLight,
   type PropPiece,
   part,
+  type Veil,
 } from '../features/world/props/piece.ts'
 export { registerPropGenerator } from '../features/world/props/prop-generator-registry.ts'
 export { isFault, resolveProp } from '../features/world/props/resolve.ts'
