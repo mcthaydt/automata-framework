@@ -113,7 +113,7 @@ describe.runIf(hasWebGL2)('painted figures in a lit 3D room', () => {
     // The haze starts 8 m behind the focus, so the near figure (5 m from the camera) is clear and the far one (about 17 m) is veiled.
     const look: Look = {
       ...DEFAULT_LOOK,
-      switches: { outline: false, grade: false, dither: false, haze: true },
+      switches: { outline: false, grade: false, dither: false, haze: true, shadow: false },
       haze: { ...DEFAULT_LOOK.haze, near: 8, far: 20 },
     }
     scene = await buildScene({

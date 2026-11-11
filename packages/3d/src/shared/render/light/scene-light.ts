@@ -1,6 +1,7 @@
 // A room's light on `@pixi/3d`: static meshes baked once at load and rebaked only when a lamp that reaches them changes;
 // characters tinted per frame from the same lamps (M3R-D4).
 import { type Container3D, Geometry3D, type Mesh3D } from '@pixi/3d'
+import type { FigureShadows } from './figure-shadow.ts'
 import type { SceneLighting } from './scene-lighting.schema.ts'
 import { type BakeExtras, bakeVertices, type VertexBake } from './vertex-bake.ts'
 import { type LampLevels, levelOf, prepareLighting, tintInto } from './vertex-light.ts'
@@ -13,6 +14,11 @@ export interface BakeOptions extends BakeExtras {
 /** The light of one room: what the renderer gives `scene` and the entity views when `Pixi3dOptions.lighting` is set. */
 export interface SceneLight {
   readonly lighting: SceneLighting
+  /**
+   * A figure's cast shadow on the floor: present when the look's `shadow` switch is on, absent otherwise. A view that draws
+   * a figure with a silhouette (a painted figure) asks it for one shadow, under the figure's node, and casts it each frame.
+   */
+  readonly shadows?: FigureShadows | undefined
   /**
    * Bakes vertex light into a static mesh, at its place now: its own position, rotation and scale and its parents'
    * (up to the view's root, which does not move). It must not move afterwards. Its geometry is replaced by a dynamic copy with a colour per vertex (the
@@ -120,7 +126,7 @@ function placement(node: Container3D): Float64Array {
 }
 
 /** Creates a room's light from its content. */
-export function createSceneLight(lighting: SceneLighting): SceneLight {
+export function createSceneLight(lighting: SceneLighting, shadows?: FigureShadows): SceneLight {
   let baked: Baked[] = []
   let levels: LampLevels = {}
   let rebakes = 0
@@ -133,6 +139,7 @@ export function createSceneLight(lighting: SceneLighting): SceneLight {
 
   return {
     lighting,
+    shadows,
     bake(mesh, options = {}) {
       const source = mesh.geometry
       const attributes = source.attributes as Record<string, Attribute | undefined>

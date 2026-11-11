@@ -109,6 +109,12 @@ export {
 } from '../features/world/props/piece.ts'
 export { registerPropGenerator } from '../features/world/props/prop-generator-registry.ts'
 export { swatchColour, swatchGlow, type WorldLibrary } from '../features/world/swatches.ts'
+export type {
+  FigureShadow,
+  FigureShadowInput,
+  FigureShadows,
+  Silhouette,
+} from '../shared/render/light/figure-shadow.ts'
 export { type BakeOptions, createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 export { sceneLightingContent } from '../shared/render/light/scene-lighting.content.ts'
 export {

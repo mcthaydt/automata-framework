@@ -7,17 +7,21 @@
 // It runs in `View3D.onRender`, which Pixi runs at the start of each render, after the draw hooks (the camera driver among
 // them): so a figure is placed by the camera as it is drawn, not by last frame's. `onRender` is one slot, so the stage
 // calls whatever was there first and puts it back when its last figure leaves.
+import type { FigureShadow } from '@automata/3d'
 import { type Camera3D, type Container3D, Matrix4, type View3D } from '@pixi/3d'
 import { RendererType } from 'pixi.js'
 import { type Cell, TIE_BIAS, texelDepths, type V3, type View } from '../../shared/figure-builder/door.ts'
 import { CellSprite, poseQuaternion } from '../../shared/figure-builder/door-view.ts'
 import { type Placed, paintView, place, ranked } from './place.ts'
 import { poseOf } from './pose.ts'
+import { shadowInput } from './shadow-input.ts'
 
 /** A figure on the stage: where it stands, and the cell it paints for the view the stage gives it. */
 export interface StageMember {
   /** The entity's node. The quad is its child, so it is hidden with it, and goes with it when it is destroyed. */
   readonly node: Container3D
+  /** The figure's cast shadow on the floor (the room's: `SceneLight.shadows`), cast each frame the figure is drawn; none without one. */
+  readonly shadow?: FigureShadow | undefined
   /** Paints for this frame: `view` is the view the camera gives a figure at that place. */
   frame(view: (at: V3) => View): { cell: Cell; at: V3; name: string }
 }
@@ -94,11 +98,19 @@ class Stage implements PaintedStage {
     const found: Placed[] = []
     for (const entry of this.entries) {
       const { node } = entry.member
-      if (!shown(node)) continue
+      if (!shown(node)) {
+        entry.member.shadow?.hide()
+        continue
+      }
       const { cell, at, name } = entry.member.frame((where) => paintView(pose, where))
       const placed = place(pose, at, cell, name)
       entry.quad.sprite.visible = placed !== undefined
-      if (placed === undefined) continue
+      if (placed === undefined) {
+        entry.member.shadow?.hide()
+        continue
+      }
+      // The shadow is the floor's, not the quad's: it is cast from the cell and where the figure stands.
+      entry.member.shadow?.cast(shadowInput(cell, at, pose.right))
       around.set(placed, entry)
       found.push(placed)
     }

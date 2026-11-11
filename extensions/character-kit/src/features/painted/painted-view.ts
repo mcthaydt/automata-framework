@@ -56,8 +56,11 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
     let state = STANDING
     let last = now()
     let onStage: { remove(): void } | undefined
+    // The room's cast shadow for this figure, when the renderer has lighting and the look's `shadow` switch is on.
+    const shadow = light?.shadows?.add(node)
     const figure: StageMember = {
       node,
+      shadow,
       frame(view) {
         const t = now()
         const at: V3 = [node.position.x, node.position.y, node.position.z]
@@ -87,6 +90,7 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
       },
       destroy() {
         onStage?.remove()
+        shadow?.destroy()
         node.destroy({ children: true })
       },
     }
