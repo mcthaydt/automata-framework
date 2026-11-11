@@ -25,7 +25,8 @@ import {
   worldLighting,
 } from '@automata/3d'
 import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automata/3d/base'
-import type { Gait } from '@automata/3d/figures'
+import { figuresExtension, type Gait } from '@automata/3d/figures'
+import { BASE as PAINTED_BASE, characterKitExtension, paintedFigure } from '@automata/character-kit'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
 import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
 import { GlowEffect } from '@automata/world-kit/sky'
@@ -44,7 +45,8 @@ const viewName = VIEWS.find((v) => v === q.get('view')) ?? 'diorama'
 const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 // Bisecting switches (all on by default): ?look=0 drops the look, ?cast=0 the figures, ?light=0 the baked room light,
 // ?time=0 the time of day, ?env=0 the hemisphere environment, ?world=0 the room's pieces, ?pieces=static|moving to draw
-// only the pieces that bake light, or only those a state can move (doors, props, leaves).
+// only the pieces that bake light, or only those a state can move (doors, props, leaves). ?figures=painted draws the cast as
+// the character kit's painted figures (the builder's own pair, lit by the room) instead of core's meshes.
 const on = (key: string) => q.get(key) !== '0'
 const look = on('look') ? DEFAULT_LOOK : undefined
 
@@ -96,6 +98,7 @@ const motion = { gaits: { loose, bounce: loose }, poses: {}, clips: {}, items: {
 const figureLibrary = { swatches: BASE_PAIR_SWATCHES, hair: {}, headwear: {}, items: {} }
 
 const cast = on('cast') ? (level.cast ?? []) : []
+const painted = q.get('figures') === 'painted'
 const Cast = defineComponent('cast', { i: 'f32', x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' })
 const castView: View3dFactory = (row, id, models, light) => {
   const index = Math.round(Number(row.components[Cast.id]?.i ?? 0))
@@ -106,7 +109,7 @@ const castView: View3dFactory = (row, id, models, light) => {
   if (view === undefined) return undefined
   const update = view.update
   // EB's angle is map degrees clockwise from east; AF's yaw 0 faces +z (south).
-  const yaw = ((90 - (member.angle ?? 90)) * Math.PI) / 180
+  const yaw = yawOf(member.angle)
   return {
     ...view,
     update(...args) {
@@ -116,6 +119,16 @@ const castView: View3dFactory = (row, id, models, light) => {
     },
   }
 }
+
+// The painted pair: the base pair is `BASE[0]` (the man) and `BASE[1]` (the woman), each stands where the level puts its
+// member, turned as the mesh cast is (the sim holds the pose; the painter only draws it).
+const paintedView: View3dFactory = (row, id, models, light, camera) => {
+  const member = cast[Math.round(Number(row.components[Cast.id]?.i ?? 0))]
+  if (member === undefined) return undefined
+  const def = PAINTED_BASE[member.who === 'woman' ? 1 : 0]?.def
+  return def === undefined ? undefined : paintedFigure(def)(row, id, models, light, camera)
+}
+const yawOf = (angle: number | undefined) => ((90 - (angle ?? 90)) * Math.PI) / 180
 
 const sky = time.scene.sky
 const skyMid = sky[Math.floor(sky.length / 2)]?.colour ?? '#808080'
@@ -127,10 +140,15 @@ const game = defineGame({
     plugins: [definePlugin({ name: 'cast', defs: [Cast] })],
     seed: 1,
     setup: (sim) => {
-      cast.forEach((_, i) => void sim.spawn([[Cast, { i, x: 0, y: 0, z: 0, yaw: 0 }]]))
+      cast.forEach((member, i) => {
+        // The painted figure takes its pose from the entity (an entity's yaw 0 faces −z, a figure's facing 0 faces +z: half a turn
+        // between them); the mesh figure's view places itself.
+        const at = painted ? { x: member.at[0], y: member.at[2] ?? 0, z: member.at[1], yaw: yawOf(member.angle) + Math.PI } : { x: 0, y: 0, z: 0, yaw: 0 }
+        sim.spawn([[Cast, { i, ...at }]])
+      })
     },
   },
-  extensions: dressed ? [render3dExtension, worldKitExtension] : [render3dExtension],
+  extensions: [render3dExtension, ...(dressed ? [worldKitExtension] : []), ...(painted ? [figuresExtension, characterKitExtension] : [])],
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
@@ -139,7 +157,7 @@ const game = defineGame({
       time: on('time') ? time : undefined,
       lighting: on('light') ? lighting : undefined,
       backgroundColor: Number.parseInt(skyMid.slice(1), 16),
-      views: { [Cast.id]: castView },
+      views: { [Cast.id]: painted ? paintedView : castView },
       scene: (view, stage, occluders, light) => {
         const camera = view.camera
         if (viewName === 'diorama') {

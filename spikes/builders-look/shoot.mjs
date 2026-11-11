@@ -15,7 +15,8 @@
 //
 //   ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules      # once; git-ignored
 //   pnpm --filter @af-examples/examples-3d build                            # for figures-af-painted.png
-//   node spikes/builders-look/shoot.mjs [out dir] [builders' frames dir]
+//   node spikes/builders-look/shoot.mjs [out dir] [builders' frames dir] [query text]
+// The third argument is added to every scene's URL (`figures=painted`, `fx=0`); with it the figures-* sheets are not shot again.
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
@@ -26,11 +27,21 @@ const repo = new URL('../..', import.meta.url).pathname
 const require = createRequire(join(repo, 'packages/3d/package.json'))
 const { chromium } = require('playwright')
 const survey = join(repo, 'docs/superpowers/audits/builders-look-survey')
+// The world kit's own readability measure (it imports nothing, so Node runs the TypeScript as it is).
+const { figureReads } = await import(join(repo, 'extensions/world-kit/src/features/reads/figure-reads.ts'))
 const out = process.argv[2] ?? survey
 const EB_DIR = process.argv[3] ?? join(survey, 'builders')
 const FB_DIR = EB_DIR
+const QUERY = process.argv[4] === undefined ? '' : `&${process.argv[4]}`
+// `reads.json` (READS_ONLY=1, with `figures=painted`): each baked-light panel is shot again without the cast (`cast=0`), a figure's
+// texels are the pixels the two frames do not share, and the file holds how each reads against its ring (the builder's exposure window).
+const HOT = 1.1
+const MIN_EDGE = 1.1
+const reads = []
 mkdirSync(out, { recursive: true })
-const SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
+const ALL_SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
+// SCENES=base-exterior,base-exterior-dressed shoots only those (a run that stopped is picked up again); shots.json keeps the others' facts.
+const SCENES = process.env.SCENES === undefined ? ALL_SCENES : ALL_SCENES.filter((s) => process.env.SCENES.split(',').includes(s))
 const LIGHTS = [
   { extra: '', title: 'AF main, baked room light' },
   { extra: '&light=0', title: 'AF main, material light only' },
@@ -177,6 +188,47 @@ const sheet = (panels, w, h, scale) =>
     },
     { panels, w, h, scale },
   )
+/** A shot's pixels at the field's size, four bytes each. */
+const pixelsOf = (b64, w, h) =>
+  compose.evaluate(
+    async ({ b64, w, h }) => {
+      const img = new Image()
+      img.src = `data:image/png;base64,${b64}`
+      await img.decode()
+      const one = document.createElement('canvas')
+      one.width = w
+      one.height = h
+      const g = one.getContext('2d')
+      g.imageSmoothingEnabled = false
+      g.drawImage(img, 0, 0, w, h)
+      return Array.from(g.getImageData(0, 0, w, h).data)
+    },
+    { b64, w, h },
+  )
+
+/**
+ * How each figure in `withCast` reads against its ring: its texels are the pixels that differ from `without`. `figureReads`
+ * takes two depth buffers; here the scene's is 0 everywhere and the frame's is 1 where a figure is.
+ */
+async function readsOf(withCast, without, [w, h], record) {
+  const [a, b] = await Promise.all([pixelsOf(withCast, w, h), pixelsOf(without, w, h)])
+  const frameDepth = new Float32Array(w * h)
+  for (let k = 0; k < w * h; k++)
+    for (let c = 0; c < 3; c++) if (a[k * 4 + c] !== b[k * 4 + c]) frameDepth[k] = 1
+  const found = figureReads({ width: w, height: h, rgba: a, sceneDepth: new Float32Array(w * h), frameDepth })
+  for (const [i, f] of found.entries())
+    reads.push({
+      ...record,
+      figure: i,
+      texels: f.texels,
+      around: Math.round(f.around * 1000) / 1000,
+      luma: Math.round(f.figure * 1000) / 1000,
+      edge: Math.round(f.edge * 1000) / 1000,
+      read: Math.round(f.read * 1000) / 1000,
+      hot: f.figure > HOT * f.around,
+      reads: f.edge >= MIN_EDGE,
+    })
+}
 const fileB64 = (dir, name) =>
   dir && existsSync(join(dir, name)) ? readFileSync(join(dir, name)).toString('base64') : null
 
@@ -188,13 +240,34 @@ async function write(name, panels, [w, h], scale, record) {
   console.log(name, JSON.stringify(measures))
 }
 
+// READS_ONLY=1 shoots only what reads.json needs (the baked-light panel of each scene and view, with and without the cast),
+// not the sheets.
+if (process.env.READS_ONLY === '1') {
+  for (const scene of SCENES)
+    for (const [view, size, name] of [
+      ['diorama', fieldOf(scene, 'diorama'), 'diorama'],
+      ['fp', fieldOf(scene, 'fp'), 'fp'],
+      ['af', [320, 180], 'gameplay'],
+      ['zone', [320, 180], 'zone'],
+    ]) {
+      const url = `${local()}/?scene=${scene}&view=${view}&pref=webgl`
+      const withCast = await shoot(`${url}${QUERY}`, size)
+      const without = await shoot(`${url}&cast=0${QUERY}`, size)
+      await readsOf(withCast.b64, without.b64, size, { scene, view: name })
+    }
+  writeFileSync(join(out, 'reads.json'), `${JSON.stringify(reads, null, 2)}\n`)
+  await browser.close()
+  stop()
+  process.exit(0)
+}
+
 for (const scene of SCENES) {
   for (const view of ['diorama', 'fp']) {
     const panels = [{ title: "EnvironmentBuilder's CPU frame", b64: fileB64(EB_DIR, `${scene}-${view}.png`) }]
     for (const { extra, title } of LIGHTS)
       panels.push({
         title,
-        ...(await shoot(`${local()}/?scene=${scene}&view=${view}&pref=webgl${extra}`, fieldOf(scene, view))),
+        ...(await shoot(`${local()}/?scene=${scene}&view=${view}&pref=webgl${extra}${QUERY}`, fieldOf(scene, view))),
       })
     await write(`${scene}-${view}.png`, panels, fieldOf(scene, view), view === 'fp' ? 2 : 1, { scene, view })
   }
@@ -208,7 +281,7 @@ for (const scene of SCENES) {
     for (const { extra, title: light } of LIGHTS)
       panels.push({
         title: `${light} (${title})`,
-        ...(await shoot(`${local()}/?scene=${scene}&view=${view}&pref=webgl${extra}`, [320, 180])),
+        ...(await shoot(`${local()}/?scene=${scene}&view=${view}&pref=webgl${extra}${QUERY}`, [320, 180])),
       })
     await write(`${scene}-${view === 'af' ? 'gameplay' : 'zone'}.png`, panels, [320, 180], 2, { scene, view: view === 'af' ? 'gameplay' : 'zone' })
   }
@@ -216,7 +289,7 @@ for (const scene of SCENES) {
 
 // The figures: the builder's base pair at density 2 and its lit sheet, beside the kit's painted figures on main.
 const dist = join(repo, 'examples/3d/dist')
-if (existsSync(join(dist, 'characterkit/painted/index.html'))) {
+if (QUERY === '' && existsSync(join(dist, 'characterkit/painted/index.html'))) {
   const server = await serve(dist)
   const painted = await shoot(`http://127.0.0.1:${server.address().port}/characterkit/painted/`, [720, 405])
   server.close()
@@ -228,7 +301,7 @@ if (existsSync(join(dist, 'characterkit/painted/index.html'))) {
     { view: 'figures' },
   )
 }
-for (const who of ['base-m', 'base-f'])
+for (const who of QUERY === '' ? ['base-m', 'base-f'] : [])
   await write(
     `figures-fb-${who}.png`,
     [{ title: `FigureBuilder ${who}, 8 views, density 2`, b64: fileB64(FB_DIR, `${who}-turn.png`) }],
@@ -236,15 +309,19 @@ for (const who of ['base-m', 'base-f'])
     1,
     { view: 'figures' },
   )
-await write(
-  'figures-fb-lit.png',
-  [{ title: "FigureBuilder's lit sheet", b64: fileB64(FB_DIR, 'lit/lit-sheet.png') }],
-  [858, 1728],
-  1,
-  { view: 'figures' },
-)
+if (QUERY === '')
+  await write(
+    'figures-fb-lit.png',
+    [{ title: "FigureBuilder's lit sheet", b64: fileB64(FB_DIR, 'lit/lit-sheet.png') }],
+    [858, 1728],
+    1,
+    { view: 'figures' },
+  )
 
-writeFileSync(join(out, 'shots.json'), `${JSON.stringify(facts, null, 2)}\n`)
+// A run of some scenes keeps the facts of the sheets it did not shoot.
+const before = existsSync(join(out, 'shots.json')) && process.env.SCENES !== undefined ? JSON.parse(readFileSync(join(out, 'shots.json'), 'utf8')) : []
+const kept = before.filter((f) => f.scene !== undefined && !SCENES.includes(f.scene))
+writeFileSync(join(out, 'shots.json'), `${JSON.stringify([...kept, ...facts], null, 2)}\n`)
 await browser.close()
 stop()
 process.exit(0)
