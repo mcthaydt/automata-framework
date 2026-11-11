@@ -173,17 +173,18 @@ for each). #590 contains #588 and #589 whole; #607 contains #603 whole. All four
 seven commits that are not on `main`: the colour-only present pass (#602) and its WebGL follow-up, the journeys'
 free ports (#604), the submodule reset in CI (#601) and three test fixes (#587).
 
-`main` itself does not pass `pnpm check` today, for reasons that are not this workstream's, so each step was run on
-its own on `main` and on each merge.
+`main` at `6a70f9b1` did not pass `pnpm check`, for reasons that were not this workstream's, so each step was run
+on its own on `main` and on each merge. `main` at `f93a2402` has since made `docs/superpowers/` a record folder:
+`style` and `source-names` were re-run there with this survey and the plan in the tree, and both report 0 findings.
 
 | Step, run alone | `main` `6a70f9b1` | #607 merged | #590 merged | #589 merged | #588 merged | #603 merged |
 |---|---|---|---|---|---|---|
 | `lint` | 0 | 0 | 0 | not run | not run | not run |
-| `typecheck` | 0 | 0 | not run | not run | not run | not run |
-| `boundaries` | 0 | 0 | not run | not run | not run | not run |
-| `style` | **1**: 10 findings | **1**: 10 findings | not run | not run | not run | not run |
-| `source-names` | **1**: 170 findings | **1**: 170 findings | not run | not run | not run | not run |
-| `knip` | 0 | 0 | not run | not run | not run | not run |
+| `typecheck` | 0 | 0 | 0 | not run | not run | not run |
+| `boundaries` | 0 | 0 | 0 | not run | not run | not run |
+| `style` | **1**: 10 findings | **1**: 10 findings | **1**: 10 findings | not run | not run | not run |
+| `source-names` | **1**: 170 findings | **1**: 170 findings | **1**: 170 findings | not run | not run | not run |
+| `knip` | 0 | 0 | 0 | not run | not run | not run |
 | unit tests, every package (`turbo run test:unit --continue`) | **1**: 60 of 61 packages pass; failed: `@automata/repo-hygiene` | **1**: 60 of 61 packages pass; failed: `@automata/repo-hygiene` | not run | not run | not run | not run |
 | `check:changesets` | 0 | 0 | not run | not run | not run | not run |
 

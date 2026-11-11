@@ -70,7 +70,10 @@ Against workstream 2's branches ([its plan](2026-11-11-last-light-prologue.md)):
 ## Where each addition lives
 
 The Owner's rule: core only if any 3D game could use it; an extension if generic within a genre or a library of
-ready-made things; otherwise the game. The 2026-11-07 trim
+ready-made things; otherwise the game. As corrected on `main` (`909f6b10`): core imports no extension, and for the
+browser package the framework's own test still applies (every target needs it, or both reference games do).
+`@automata/3d` is the 3D core: what follows puts there only what the trim already lists as core, and nothing
+in it imports an extension. The 2026-11-07 trim
 ([`../../refactor/2026-11-07-3d-scope-trim.md`](../../refactor/2026-11-07-3d-scope-trim.md)) rules most of the look.
 
 | Addition | Home | Why |
@@ -85,7 +88,8 @@ ready-made things; otherwise the game. The 2026-11-07 trim
 | Exposure, if built (task 9) | Character kit | It is a rule about painted figures |
 | The outline's colour rule, the mood grade (task 10) | Core | The trim: the outline is core; the grade is the look's own pass before the snap |
 | Shafts, wet-ground reflections, particles (task 10) | World kit | Ready-made passes, each with its switch, beside stars and rain |
-| A look pass may run before the snap; the letterbox's whole-pixel scale (task 10) | Core (`packages/3d`; `packages/automata`, with its changeset) | Seams any game's pass or any game's letterbox could use |
+| A look pass may run before the snap (task 10) | Core, `packages/3d` | A seam any game's pass could use; the mood grade needs it |
+| The letterbox's opt-in whole-pixel scale (task 10) | `@automata/framework`, with its changeset: **a call** | The only piece here that touches the browser package. The corrected core test asks that every target needs it or both reference games do. It is opt-in and changes nothing for a game that does not ask, and a pixel-art game of either kind can ask; but Emberwick does not use it today. The plan audit rules: keep it, or revert its two commits on the effects branch (`3565abc8f`, `bdf4b6d0e`; `retro-crisp`'s `crispRendererOptions` then goes too) |
 | `lcd-panel`, `retro-crisp` (task 10) | Their own extensions | Ready-made looks; no game needs them and core never imports them |
 | `room-visibility` (task 11) | Not landed | Workstream 2 builds the rooms a view draws; two answers to one question is the tangle the Owner's rule exists to stop |
 | Hosiery, boots, a cap, a tabard, front hair and a bob, moods (tasks 13 to 15) | FigureBuilder for the generic machinery; the character kit for the garment kinds and outfits | The trim: clothes and hairstyles are the kit's |
@@ -113,22 +117,14 @@ From the spec, the tracker's decisions and `AGENTS.md`. Every task includes them
 - `pnpm format` before each commit; Conventional Commits; only published packages get a changeset, and it is
   `patch`.
 
-### The gates, as they can be run today
+### The gates
 
-`pnpm check` stops at its first failing step, and on `main` at `6a70f9b1` two steps fail for reasons outside this
-workstream (the survey has the numbers): `style` (10 findings in one audit document) and `source-names` (170
-findings, all under `docs/superpowers/`), and with it `@automata/repo-hygiene`'s unit test. Until `main` is repaired,
-"the gates" in every task below means each step run on its own, with this expected result:
-
-```sh
-pnpm lint && pnpm typecheck && pnpm boundaries && pnpm knip && pnpm check:changesets   # each exits 0
-pnpm style; pnpm source-names          # may fail, only with findings under docs/superpowers/
-pnpm exec turbo run test:unit --continue -- --testTimeout=90000
-                                       # every package passes except, at most, @automata/repo-hygiene's source-names test
-```
-
-A finding or a failing test anywhere else is this branch's and is fixed before the commit. When `main` is repaired,
-run `pnpm check` whole and expect exit 0. Say in each task's report which form ran.
+`pnpm check`, whole, exit 0. It stops at its first failing step, so when it fails, run the steps after it one by
+one (`pnpm lint`, `typecheck`, `boundaries`, `style`, `source-names`, `knip`,
+`pnpm exec turbo run test:unit --continue -- --testTimeout=90000`, `check:changesets`) and report each: a later step
+may be hiding a second failure. (During the survey `main` at `6a70f9b1` failed `style` and `source-names` on
+documents; `main` at `f93a2402` repaired that, and both steps were re-run there with these documents in: 0
+findings.) The unit tests take about 9 minutes alone on the planning machine and 15 with other work running.
 
 "The 3D browser suites" means, in Chromium:
 
@@ -200,8 +196,8 @@ spec lists glow later.
   per base room. Task 2 builds on `app/world-view.ts` and `shared/render/light/vertex-bake.ts` as this leaves them.
 
 - [ ] **Step 1: Branch and baseline.** `git fetch origin main claude/eb-look-glow && git checkout -b
-  claude/builders-look-room origin/main`; place the submodule; `pnpm install`. Run the gates and write down each
-  step's result: this is the baseline every later task is compared with.
+  claude/builders-look-room origin/main`; place the submodule; `pnpm install`. Run the gates and write down the
+  result: this is the baseline every later task is compared with.
 - [ ] **Step 2: Check the head.** `git rev-parse origin/claude/eb-look-glow` is `0024f81a…`. If it has moved, read
   the new commits and tell the coordinator before going on.
 - [ ] **Step 3: Read it.** `git log --reverse --no-merges origin/main..origin/claude/eb-look-glow` lists 18
@@ -775,12 +771,16 @@ That plan's tasks "The kinds" and "Expressions reach the painter", cut to the wa
 8. **The kit names no character.** It ships outfits; the game says who wears them.
 9. **The two dark examples are repaired** although they are to be cut, because each repair is a few lines and each
    exposed a guard that was missing.
-10. **Painted figures stay data in TypeScript** (as `RUNWAY_CAST` and `DEMO_CAST` are). Whether the Studio edits
-    a painted figure is not in this workstream; workstream 2's dressing task says it makes its figures in the
-    Studio, which today edits core's mesh figures. That gap is named here for the coordinator, not closed.
+10. **Painted figures stay data in TypeScript** (as `RUNWAY_CAST` and `DEMO_CAST` are). No editor opens them:
+    the Studio edits core's mesh figures, and workstream 2's dressing task says it makes its figures in the Studio.
+    Under the Owner's rule that every kind of authorable content has an editor, this is logged as row 2 of the
+    tracker's editor gaps ledger. It is suite work, not this workstream's; until it is built, the game's painted
+    characters are a data file in the game.
+11. **The letterbox's whole-pixel scale** is the one change to `@automata/framework`; whether it passes the
+    corrected core test is put to the plan audit (the homes table has both answers).
 
 ## Log
 
 | Date | Session | What |
 |---|---|---|
-| 2026-11-11 | Stage 2 (plan), `claude/builders-look-plan` | The survey and this plan. No product code written |
+| 2026-11-11 | Stage 2 (plan), `claude/builders-look-plan` | The survey and this plan, planned against the spec at `44c4da09` (unchanged since) and `main` at `f93a2402`. No product code written |
