@@ -4,11 +4,11 @@
 // in the world and the pass works in view space, so `track` is told the camera once and follows it from then on.
 
 import { UniformGroup } from 'pixi.js'
-import { type TrackedCamera, TrackingEffect } from './camera-track.ts'
+import { TrackingEffect } from './camera-track.ts'
 import { type Emitter, particleSprites } from './particle-sprites.ts'
 import { SURFACE_GLSL, SURFACE_WGSL } from './shader-parts.ts'
 
-export type { Emitter, TrackedCamera }
+export type { Emitter }
 
 /** The most sprites a frame holds: each is a slot of uniforms of its own (an array's size is not carried to the shader). */
 export const MAX_SPRITES = 48

@@ -9,7 +9,7 @@
 
 import type { WorldLamp } from '@automata/3d'
 import { UniformGroup } from 'pixi.js'
-import { type TrackedCamera, TrackingEffect } from './camera-track.ts'
+import { TrackingEffect } from './camera-track.ts'
 import {
   DUEL_GLSL,
   DUEL_WGSL,
@@ -53,8 +53,6 @@ export function shaftLamps(lamps: readonly WorldLamp[]): ShaftLamp[] {
       : [],
   )
 }
-
-export type { TrackedCamera }
 
 const SLOTS = Array.from({ length: MAX_SHAFTS }, (_, i) => i)
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
