@@ -81,15 +81,15 @@ afterEach(() => {
 })
 
 describe('the example data', () => {
-  it('has all 17 catalog examples, each findable by id', () => {
-    expect(getExamples()).toHaveLength(17)
+  it('has all 20 catalog examples, each findable by id', () => {
+    expect(getExamples()).toHaveLength(20)
     expect(getExample('shapes-rects')?.title).toBe('Rectangles that move, slide and spin')
     expect(getExample('nope')).toBeUndefined()
   })
 
   it('groups the index by module without carrying any source', () => {
     const index = exampleIndex()
-    expect(index.flatMap((group) => group.examples)).toHaveLength(17)
+    expect(index.flatMap((group) => group.examples)).toHaveLength(20)
     expect(index.map((group) => group.module)).toEqual(['core', 'shapes', 'textures', 'render', 'audio'])
     expect(JSON.stringify(index)).not.toContain("from '@automata/framework'")
   })
@@ -152,7 +152,7 @@ describe('/examples/<id>', () => {
     expect(view.container.querySelector('[data-testid="static-code"] code')?.textContent).toBe(synced)
     expect(view.getByText(data.example.shows)).toBeTruthy()
     expect(view.getByRole('link', { name: data.example.title, current: 'page' })).toBeTruthy()
-    expect(view.container.querySelectorAll('nav[aria-label="Examples"] a')).toHaveLength(17)
+    expect(view.container.querySelectorAll('nav[aria-label="Examples"] a')).toHaveLength(20)
   })
 
   it('highlights the static code with the editor’s tok- classes and keeps it the source byte for byte', async () => {

@@ -19,14 +19,17 @@ A file starts with a header (what it shows, its controls, its base and its packa
 | Example | What it shows |
 |---|---|
 | [`2d/audio/audio-sound.ts`](2d/audio/audio-sound.ts) | A chime that plays when the game says so |
+| [`2d/audio/audio-ui-sounds.ts`](2d/audio/audio-ui-sounds.ts) | Buttons that sound, a Back that sounds different, one that stays silent |
 | [`2d/content/hot-reload/main.ts`](2d/content/hot-reload/main.ts) | the room as a content file, edited while the game runs |
 | [`2d/core/core-basic-window.ts`](2d/core/core-basic-window.ts) | A game window with a coloured field and a line of text |
 | [`2d/core/core-camera-2d.ts`](2d/core/core-camera-2d.ts) | A camera that follows a square around a world bigger than the screen |
+| [`2d/core/core-first-run.ts`](2d/core/core-first-run.ts) | A first run asks for a language and warns about flashing |
 | [`2d/core/core-host-lifecycle.ts`](2d/core/core-host-lifecycle.ts) | The game stops and pauses while its tab is in the background |
 | [`2d/core/core-input-gamepad.ts`](2d/core/core-input-gamepad.ts) | Move a square with a controller |
 | [`2d/core/core-input-keys.ts`](2d/core/core-input-keys.ts) | Move a square with the keyboard, a controller or touch |
 | [`2d/core/core-input-rebind.ts`](2d/core/core-input-rebind.ts) | Change a control in Settings, and keep it next time |
 | [`2d/core/core-input-touch.ts`](2d/core/core-input-touch.ts) | Steer a square by swiping, and flick down to drop it |
+| [`2d/core/core-languages.ts`](2d/core/core-languages.ts) | The menus in six languages |
 | [`2d/core/core-leaderboard.ts`](2d/core/core-leaderboard.ts) | Each run's score on a leaderboard, shown when you pause |
 | [`2d/core/core-saves.ts`](2d/core/core-saves.ts) | Three save slots, and progress kept while you play |
 | [`3d/figures/figures-aim.ts`](3d/figures/figures-aim.ts) | Wick turning his head, chest and right hand to follow an orb circling him |

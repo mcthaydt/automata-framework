@@ -1404,6 +1404,8 @@
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
 - `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+- `showCredits(options)`: Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
+- `ShowCreditsOptions` (interface): What `showCredits` needs.
 - `SplashCopy` (interface): What the splash says.
 - `SplashOptions` (interface): How a game sets up its splash.
 - `SplashScreen` (const): The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a press goes on.
@@ -1422,6 +1424,8 @@
 - `creditsSchemaWith` (const): The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable text in the content kind.
 - `CreditsSection` (interface): A heading and the names under it.
 - `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+- `showCredits(options)`: Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
+- `ShowCreditsOptions` (interface): What `showCredits` needs.
 
 ### `import { … } from '@automata/ui-screens/error'`
 
