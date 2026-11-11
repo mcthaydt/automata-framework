@@ -177,20 +177,22 @@ free ports (#604), the submodule reset in CI (#601) and three test fixes (#587).
 on its own on `main` and on each merge. `main` at `f93a2402` has since made `docs/superpowers/` a record folder:
 `style` and `source-names` were re-run there with this survey and the plan in the tree, and both report 0 findings.
 
-| Step, run alone | `main` `6a70f9b1` | #607 merged | #590 merged | #589 merged | #588 merged | #603 merged |
-|---|---|---|---|---|---|---|
-| `lint` | 0 | 0 | 0 | not run | not run | not run |
-| `typecheck` | 0 | 0 | 0 | not run | not run | not run |
-| `boundaries` | 0 | 0 | 0 | not run | not run | not run |
-| `style` | **1**: 10 findings | **1**: 10 findings | **1**: 10 findings | not run | not run | not run |
-| `source-names` | **1**: 170 findings | **1**: 170 findings | **1**: 170 findings | not run | not run | not run |
-| `knip` | 0 | 0 | 0 | not run | not run | not run |
-| unit tests, every package (`turbo run test:unit --continue`) | **1**: 60 of 61 packages pass; failed: `@automata/repo-hygiene` | **1**: 60 of 61 packages pass; failed: `@automata/repo-hygiene` | not run | not run | not run | not run |
-| `check:changesets` | 0 | 0 | not run | not run | not run | not run |
+| Step, run alone | `main` `6a70f9b1` | #607 merged with it | #590 merged with it | #589 merged with `main` `f93a2402` |
+|---|---|---|---|---|
+| `lint` | 0 | 0 | 0 | 0 |
+| `typecheck` | 0 | 0 | 0 | 0 |
+| `boundaries` | 0 | 0 | 0 | 0 |
+| `style` | **1**: 10 findings, all in one audit document under `docs/superpowers/` | **1**: the same 10 | **1**: the same 10 | 0 |
+| `source-names` | **1**: 170 findings, all under `docs/superpowers/` | **1**: the same 170 | **1**: the same 170 | 0 |
+| `knip` | 0 | 0 | 0 | 0 |
+| unit tests, every package (`turbo run test:unit --continue`) | **1**: 60 of 61 packages pass; `@automata/repo-hygiene` fails its source-names test (the same 170) | **1**: 60 of 61; the same one | **1**: 63 of 64 (three new extension packages); the same one | 0: 61 of 61. The first run failed `@automata/site` on a folder the previous trial merge had left in the scratch worktree; on a clean tree its 509 tests pass |
+| `check:changesets` | 0 | 0 | 0 | 0 |
 
-A cell reads the step's exit code. `main`'s three failures are documents under `docs/superpowers/` and belong to
-no draft: a merge that shows the same counts as `main` adds none of its own. "Not run" means the step had not
-finished when this was written; the plan's first task on each branch runs every step again as its baseline.
+A cell reads the step's exit code. `main`'s three failures at `6a70f9b1` were documents under `docs/superpowers/`
+and belonged to no draft: #607 and #590 add none of their own. `main` at `f93a2402` repaired them, and #589, checked
+after that, passes every step, which is `pnpm check` whole. #588 and #603 were not checked on their own: each is
+contained whole in a branch that was (#590 and #607). The browser suites and the journeys were not run on any merge;
+the plan's "bring in" tasks run them.
 
 
 ### The rulings
