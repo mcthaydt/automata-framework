@@ -3,15 +3,12 @@
 import { spawn } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { portsFor } from '../../packages/tools/src/shared/ship/ports/ports-for.ts'
+import { claimPort } from '../../packages/tools/src/shared/ship/ports/free-ports.ts'
 const require = createRequire('/home/user/automata-framework/games/base-3d/package.json')
 const { chromium } = require('playwright')
 
 const mode = process.argv[2] ?? 'full'
-const port =
-  portsFor(new URL('../..', import.meta.url).pathname, process.env).preview +
-  200 +
-  ['full', 'lowres', 'passes', 'bake'].indexOf(mode)
+const port = claimPort(`spike-3d-look-${mode}`)
 const seconds = Number(process.env.SECONDS ?? 8)
 const out = new URL('../out/', import.meta.url).pathname
 mkdirSync(out, { recursive: true })
