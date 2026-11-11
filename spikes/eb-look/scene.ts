@@ -42,7 +42,9 @@ const GAMEPLAY = {
   tll: { lensMm: 50, tiltDeg: 30, distance: 16, focus: 1.1 },
 } as const
 const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
-// Bisecting switches (all on by default): ?look=0 drops the look, ?cast=0 the figures, ?light=0 the baked room light.
+// Bisecting switches (all on by default): ?look=0 drops the look, ?cast=0 the figures, ?light=0 the baked room light,
+// ?time=0 the time of day, ?env=0 the hemisphere environment, ?world=0 the room's pieces, ?pieces=static|moving to draw
+// only the pieces that bake light, or only those a state can move (doors, props, leaves).
 const on = (key: string) => q.get(key) !== '0'
 const look = on('look') ? DEFAULT_LOOK : undefined
 
@@ -123,7 +125,7 @@ const game = defineGame({
       ...options,
       preference: pref === 'webgpu' ? 'webgpu' : 'webgl',
       look,
-      time,
+      time: on('time') ? time : undefined,
       lighting: on('light') ? lighting : undefined,
       backgroundColor: Number.parseInt(skyMid.slice(1), 16),
       views: { [Cast.id]: castView },
@@ -163,12 +165,18 @@ const game = defineGame({
           camera.position.set(at[0], eye, at[1])
           camera.lookAt({ x: at[0] + Math.cos(a), y: eye, z: at[1] + Math.sin(a) })
         }
-        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        if (on('env')) view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(library, swatch)
-        drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light }, world.pieces)
+        if (on('world')) {
+          const moves = (p: (typeof world.pieces)[number]) => p.door !== undefined || p.prop !== undefined || p.sway !== undefined
+          const which = q.get('pieces')
+          const pieces = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
+          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light }, pieces)
+        }
         const renderer = stage.app.renderer as unknown as { name: string }
         const { dataset } = stage.app.canvas
         dataset.renderer = renderer.name
+        dataset.passes = ((view as unknown as { passes?: { constructor: { name: string } }[] }).passes ?? []).map((p) => p.constructor.name).join(',')
         dataset.pieces = String(world.pieces.length)
         dataset.problems = String(world.problems.length)
         dataset.lamps = String(lighting.lamps.length)

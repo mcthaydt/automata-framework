@@ -155,3 +155,52 @@ describe('the installed shim', () => {
     expect([...data.slice(4, 15)]).toEqual([10, 9, 8, 0, 7, 6, 5, 0, 4, 3, 2])
   })
 })
+
+// pixi.js 8.22's eval-free WGSL polyfill writes an integer uniform through the buffer's float view, where the eval path
+// writes `dataInt32`. A shader reading `array<vec4<i32>>` then sees the bit pattern of 1.0, not 1. `@pixi/3d`'s light
+// tiles (`uLightTiles`, `uLightDepthMasks`) are such arrays: on WebGPU every lit mesh came out black (WP0, 2026-11-10).
+describe('integer uniforms in a WebGPU uniform buffer', () => {
+  const generate = privateMethod(GpuUboSystem.prototype, '_generateUboSync')
+  const sync = (elements: unknown[]) =>
+    generate.call({}, elements) as (
+      uniforms: unknown,
+      data: Float32Array,
+      dataInt32: Int32Array | null,
+      offset: number,
+    ) => void
+
+  it('are written as integers: an array of vec4<i32>, a scalar i32 and a vec2<u32>, beside a float', () => {
+    const run = sync([
+      { data: { name: 'tiles', type: 'vec4<i32>', size: 2, value: new Int32Array(8) }, offset: 0 },
+      { data: { name: 'count', type: 'i32', size: 1, value: 0 }, offset: 32 },
+      { data: { name: 'pair', type: 'vec2<u32>', size: 1, value: new Uint32Array(2) }, offset: 40 },
+      { data: { name: 'scale', type: 'f32', size: 1, value: 0 }, offset: 48 },
+    ])
+    const data = new Float32Array(16)
+    run(
+      { tiles: Int32Array.of(1, 2, 3, 4, 5, 6, 7, 8), count: 7, pair: Uint32Array.of(9, 10), scale: 0.5 },
+      data,
+      new Int32Array(data.buffer),
+      0,
+    )
+    const ints = new Int32Array(data.buffer)
+    expect([...ints.slice(0, 8)]).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(ints[8]).toBe(7)
+    expect([...ints.slice(10, 12)]).toEqual([9, 10])
+    expect(data[12]).toBe(0.5)
+  })
+
+  it('are written as integers when the caller gives no integer view (a batched buffer)', () => {
+    const run = sync([{ data: { name: 'count', type: 'i32', size: 1, value: 0 }, offset: 4 }])
+    const data = new Float32Array(4)
+    run({ count: 3 }, data, null, 0)
+    expect(new Int32Array(data.buffer)[1]).toBe(3)
+  })
+
+  it('honour the buffer offset', () => {
+    const run = sync([{ data: { name: 'count', type: 'i32', size: 1, value: 0 }, offset: 0 }])
+    const data = new Float32Array(8)
+    run({ count: 5 }, data, new Int32Array(data.buffer), 4)
+    expect(new Int32Array(data.buffer)[4]).toBe(5)
+  })
+})
