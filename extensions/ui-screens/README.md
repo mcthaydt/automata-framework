@@ -1,6 +1,6 @@
 # @automata/ui-screens
 
-Five ready-made screens for a game: **Title**, **Results**, **Loading**, **Error** and **Splash**. Core already ships the Paused and Settings
+Six ready-made screens for a game: **Title**, **Results**, **Loading**, **Error**, **Splash** and **Credits**. Core already ships the Paused and Settings
 screens, so this package does not repeat them.
 
 ## Add it and use a screen
@@ -19,8 +19,8 @@ mount(TitleScreen, {
 })
 ```
 
-Each screen has its own path: `@automata/ui-screens/title`, `/results`, `/loading`, `/error` and `/splash`. The
-main path, `@automata/ui-screens`, has all five.
+Each screen has its own path: `@automata/ui-screens/title`, `/results`, `/loading`, `/error`, `/splash` and `/credits`. The
+main path, `@automata/ui-screens`, has all six.
 
 ## The splash
 
@@ -41,6 +41,29 @@ defineGame({
 
 The line under the logo ("Press any key or tap to skip") is translated into the six languages the framework ships; pass `copy`
 to say something else. The opening order on a first run is: language, the photosensitivity warning, the splash, then the title.
+
+## The credits
+
+`CreditsPanel` is core's `Modal` around sections of names, drawn from a content file, with the links routed through the
+host (`Hosting.openLink`): Ruken asks the player, a web page opens a new tab, the desktop opens the player's own browser. A
+name with a link is a button only where the host grants `links` (add `'links'` to `hosting.wants` for Ruken); elsewhere it is
+plain text. A link the host refuses is said politely under the list and the panel stays open. Credits are reached from the
+title, as an action beside Play; core's Settings does not depend on this package.
+
+```toml
+# content/credits/credits.toml, listed in automata.content.ts as `creditsContent`
+[[sections]]
+title = "Game"
+names = [{ name = "Ada Lovelace", role = "Design", url = "https://example.test/ada" }, { name = "Bo" }]
+```
+
+```ts
+import { CreditsPanel, screensWords } from '@automata/ui-screens/credits'
+mount(CreditsPanel, { target, props: { credits, copy: screensWords(locale).credits, onClose, hosting } })
+```
+
+A section's `title` and a name's `role` are words `automata words` translates (pass `text` to the panel to read the
+translation); a `name` and a `url` are not. A link must be `https:`: the file is refused at compile time otherwise.
 
 ## Change a screen
 

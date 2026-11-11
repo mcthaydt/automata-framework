@@ -1,0 +1,6 @@
+export { default as CreditsPanel } from '../features/credits/CreditsPanel.svelte'
+export { creditsContent } from '../shared/credits/credits.content.ts'
+export type { CreditName, Credits, CreditsSection } from '../shared/credits/credits.schema.ts'
+export { creditsSchema, creditsSchemaWith } from '../shared/credits/credits.schema.ts'
+export type { CreditsCopy } from '../shared/words/screens-words.ts'
+export { screensWords } from '../shared/words/screens-words.ts'

@@ -72,6 +72,7 @@ step fails on content with no editor unless its row is here with the Owner's wor
 | 1 | Screens and HUD: layout, look, what they show, whole new screens, and the default screens (main menu, splash) | The Owner, 2026-11-11 | To be specced |
 | 2 | Painted figures: the character kit's characters and outfits (`CharacterDef`, `RUNWAY_CAST`, the ward's outfits to come) are TypeScript data; the Studio opens core's mesh figures only, and no editor imports the kit's painted figures | Workstream 4, stage 2 (plan), 2026-11-11 | To be specced; the prologue's dressing task says it makes its figures in the Studio |
 | 3 | The interface-sound map: which cue each name (`press`, `back`, `focus`, `open`, `close`, `error`) plays. `defineGame({ uiSounds })` takes a map or a function, in code; the Audio editor opens the cues, not the name-to-cue map | Workstream 1, task 9, 2026-11-11 | To be specced; task 10 makes the starter map, which a person changes by hand until then |
+| 4 | The credits file: `content/credits/credits.toml` (sections, names, roles, links) is authored by hand; no editor in the suite opens it | Workstream 1, task 12, 2026-11-11 | To be specced; a person edits the TOML until then |
 
 ## Findings so far (2026-11-11)
 

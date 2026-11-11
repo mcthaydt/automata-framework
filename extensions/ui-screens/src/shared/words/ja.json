@@ -1,4 +1,8 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "splash_skip": "何かキーを押すか、タップするとスキップします"
+  "splash_skip": "何かキーを押すか、タップするとスキップします",
+  "credits_title": "クレジット",
+  "credits_close": "閉じる",
+  "credits_opens": "{name}のページを開く",
+  "credits_refused": "このページを開けませんでした。"
 }

@@ -20,6 +20,10 @@
       "svelte": "./src/entries/index.ts",
       "default": "./src/entries/index.ts"
     },
+    "./credits": {
+      "svelte": "./src/entries/credits.ts",
+      "default": "./src/entries/credits.ts"
+    },
     "./error": {
       "svelte": "./src/entries/error.ts",
       "default": "./src/entries/error.ts"
@@ -50,6 +54,11 @@
         "types": "./dist/entries/index.d.ts",
         "svelte": "./dist/entries/index.js",
         "import": "./dist/entries/index.js"
+      },
+      "./credits": {
+        "types": "./dist/entries/credits.d.ts",
+        "svelte": "./dist/entries/credits.js",
+        "import": "./dist/entries/credits.js"
       },
       "./error": {
         "types": "./dist/entries/error.d.ts",
@@ -87,7 +96,11 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
     "build": "svelte-package -i src -o dist --tsconfig tsconfig.package.json && node build/finish-dist.ts"
   },
+  "dependencies": {
+    "zod": "4.6.6"
+  },
   "peerDependencies": {
+    "@automata/content": "workspace:^",
     "@automata/framework": "workspace:^",
     "svelte": "^5.57.1"
   },

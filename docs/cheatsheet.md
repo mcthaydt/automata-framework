@@ -1377,19 +1377,39 @@
 
 ### `import { … } from '@automata/ui-screens'`
 
+- `CreditName` (interface): One person or group in a credits section.
+- `Credits` (interface): What a game's credits file holds.
+- `creditsContent` (const): The `credits` content kind: `content/credits/credits.toml` is the game's credits.
+- `CreditsCopy` (interface): What the credits panel says.
+- `CreditsPanel` (const): The credits: core's Modal around sections of names, each with a role and, where the game gives one, a link.
+- `creditsSchema` (const): The Zod schema of a credits file.
+- `creditsSchemaWith` (const): The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable text in the content kind.
+- `CreditsSection` (interface): A heading and the names under it.
 - `ErrorScreen` (const): The error screen: core's ErrorPanel on core's ScreenFrame (the frame gives Back its place).
 - `LoadingScreen` (const): The loading screen: the game's title on core's ScreenFrame with core's LoaderOverlay over it.
 - `ResultsAction` (interface): A button on the results screen's action bar.
 - `ResultsCopy` (interface): The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
-- `screensWords(locale)`: This package's words for a locale (the six; English otherwise).
+- `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
 - `SplashCopy` (interface): What the splash says.
 - `SplashOptions` (interface): How a game sets up its splash.
 - `SplashScreen` (const): The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a press goes on.
 - `splashStep(options)`: An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key, click or tap.
 - `TitleAction` (interface): An extra button on the title screen beside Play, such as Settings or Credits.
 - `TitleScreen` (const): The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's ScreenFrame and ActionBar.
+
+### `import { … } from '@automata/ui-screens/credits'`
+
+- `CreditName` (interface): One person or group in a credits section.
+- `Credits` (interface): What a game's credits file holds.
+- `creditsContent` (const): The `credits` content kind: `content/credits/credits.toml` is the game's credits.
+- `CreditsCopy` (interface): What the credits panel says.
+- `CreditsPanel` (const): The credits: core's Modal around sections of names, each with a role and, where the game gives one, a link.
+- `creditsSchema` (const): The Zod schema of a credits file.
+- `creditsSchemaWith` (const): The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable text in the content kind.
+- `CreditsSection` (interface): A heading and the names under it.
+- `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
 
 ### `import { … } from '@automata/ui-screens/error'`
 
@@ -1408,7 +1428,7 @@
 
 ### `import { … } from '@automata/ui-screens/splash'`
 
-- `screensWords(locale)`: This package's words for a locale (the six; English otherwise).
+- `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
 - `SplashCopy` (interface): What the splash says.
 - `SplashOptions` (interface): How a game sets up its splash.
 - `SplashScreen` (const): The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a press goes on.

@@ -15,6 +15,17 @@ export interface SplashCopy {
   readonly skip: string
 }
 
+/** What the credits panel says. */
+export interface CreditsCopy {
+  readonly title: string
+  /** The Close button's name. */
+  readonly close: string
+  /** What a screen reader says for a name that links to a page. */
+  readonly opens: (name: string) => string
+  /** Said under the list when a link could not be opened. */
+  readonly refused: string
+}
+
 /** One catalog: message key to text. */
 type Catalog = Readonly<Record<string, string>>
 
@@ -42,8 +53,17 @@ function catalogFor(locale: string): Catalog {
   return CATALOGS[tag] ?? en
 }
 
-/** This package's words for a locale (the six; English otherwise). */
-export function screensWords(locale: string): { readonly splash: SplashCopy } {
+/** This package's words for a locale (the six; English otherwise): `{ splash, credits }`. */
+export function screensWords(locale: string): { readonly splash: SplashCopy; readonly credits: CreditsCopy } {
   const catalog = catalogFor(locale)
-  return { splash: { skip: catalog.splash_skip ?? en.splash_skip } }
+  const word = (key: keyof typeof en): string => catalog[key] ?? en[key]
+  return {
+    splash: { skip: word('splash_skip') },
+    credits: {
+      title: word('credits_title'),
+      close: word('credits_close'),
+      opens: (name) => word('credits_opens').replaceAll('{name}', name),
+      refused: word('credits_refused'),
+    },
+  }
 }

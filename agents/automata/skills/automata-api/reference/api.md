@@ -16059,6 +16059,100 @@ interface TauriConfig {
 
 ### `import { … } from '@automata/ui-screens'`
 
+#### `CreditName` (interface)
+
+One person or group in a credits section.
+
+```ts
+interface CreditName {
+    /** Who they are. A name is not translated. */
+    readonly name: string;
+    /** What they did, in the source language; `automata words` translates it. */
+    readonly role?: string | undefined;
+    /** Where to read more: an `https:` address, opened by the host. */
+    readonly url?: string | undefined;
+}
+```
+
+#### `Credits` (interface)
+
+What a game's credits file holds.
+
+```ts
+interface Credits {
+    readonly sections: readonly CreditsSection[];
+}
+```
+
+#### `creditsContent` (const)
+
+The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
+`role` are translatable; a `name` and a `url` are not.
+
+```ts
+const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
+```
+
+#### `CreditsCopy` (interface)
+
+What the credits panel says.
+
+```ts
+interface CreditsCopy {
+    readonly title: string;
+    /** The Close button's name. */
+    readonly close: string;
+    /** What a screen reader says for a name that links to a page. */
+    readonly opens: (name: string) => string;
+    /** Said under the list when a link could not be opened. */
+    readonly refused: string;
+}
+```
+
+#### `CreditsPanel` (const)
+
+The credits: core's Modal around sections of names, each with a role and, where the game gives one, a link. The
+Modal's body is the declared scroll region, so any number of names fits a phone with Close always in reach. A name with
+a link is a button, at least 44 px, only where the host granted `links`; without the grant it is plain text, so there
+is never a control that cannot work. Pressing it asks the host (`hosting.openLink`); the panel never opens a window or
+touches the page's location. A link the host or the player refused is said politely under the list, and the panel
+stays open. `text` is the game's lookup for translated titles and roles; a name is a person's and is never looked up.
+A copy of this folder in a game works alone and takes its words as props.
+
+```ts
+const CreditsPanel: import("svelte").Component<Props, {}, "">;
+type CreditsPanel = ReturnType<typeof CreditsPanel>;
+```
+
+#### `creditsSchema` (const)
+
+The Zod schema of a credits file. At least one section, and one name in each.
+
+```ts
+const creditsSchema: z.ZodType<Credits>;
+```
+
+#### `creditsSchemaWith` (const)
+
+The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
+text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+
+```ts
+const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+```
+
+#### `CreditsSection` (interface)
+
+A heading and the names under it.
+
+```ts
+interface CreditsSection {
+    /** The heading, in the source language; `automata words` translates it. */
+    readonly title: string;
+    readonly names: readonly CreditName[];
+}
+```
+
 #### `ErrorScreen` (const)
 
 The error screen: core's ErrorPanel on core's ScreenFrame (the frame gives Back its place). The panel is opaque and sits at the top of the visible region, so the screen carries no title of its own. Every failure names a way forward: an
@@ -16143,11 +16237,12 @@ type ResultsScreen = ReturnType<typeof ResultsScreen>;
 
 #### `screensWords` (function)
 
-This package's words for a locale (the six; English otherwise).
+This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
 
 ```ts
 function screensWords(locale: string): {
     readonly splash: SplashCopy;
+    readonly credits: CreditsCopy;
 };
 ```
 
@@ -16226,6 +16321,113 @@ that here by copying the slot list from `@automata/framework`'s title when you n
 ```ts
 const TitleScreen: import("svelte").Component<Props, {}, "">;
 type TitleScreen = ReturnType<typeof TitleScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/credits'`
+
+#### `CreditName` (interface)
+
+One person or group in a credits section.
+
+```ts
+interface CreditName {
+    /** Who they are. A name is not translated. */
+    readonly name: string;
+    /** What they did, in the source language; `automata words` translates it. */
+    readonly role?: string | undefined;
+    /** Where to read more: an `https:` address, opened by the host. */
+    readonly url?: string | undefined;
+}
+```
+
+#### `Credits` (interface)
+
+What a game's credits file holds.
+
+```ts
+interface Credits {
+    readonly sections: readonly CreditsSection[];
+}
+```
+
+#### `creditsContent` (const)
+
+The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
+`role` are translatable; a `name` and a `url` are not.
+
+```ts
+const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
+```
+
+#### `CreditsCopy` (interface)
+
+What the credits panel says.
+
+```ts
+interface CreditsCopy {
+    readonly title: string;
+    /** The Close button's name. */
+    readonly close: string;
+    /** What a screen reader says for a name that links to a page. */
+    readonly opens: (name: string) => string;
+    /** Said under the list when a link could not be opened. */
+    readonly refused: string;
+}
+```
+
+#### `CreditsPanel` (const)
+
+The credits: core's Modal around sections of names, each with a role and, where the game gives one, a link. The
+Modal's body is the declared scroll region, so any number of names fits a phone with Close always in reach. A name with
+a link is a button, at least 44 px, only where the host granted `links`; without the grant it is plain text, so there
+is never a control that cannot work. Pressing it asks the host (`hosting.openLink`); the panel never opens a window or
+touches the page's location. A link the host or the player refused is said politely under the list, and the panel
+stays open. `text` is the game's lookup for translated titles and roles; a name is a person's and is never looked up.
+A copy of this folder in a game works alone and takes its words as props.
+
+```ts
+const CreditsPanel: import("svelte").Component<Props, {}, "">;
+type CreditsPanel = ReturnType<typeof CreditsPanel>;
+```
+
+#### `creditsSchema` (const)
+
+The Zod schema of a credits file. At least one section, and one name in each.
+
+```ts
+const creditsSchema: z.ZodType<Credits>;
+```
+
+#### `creditsSchemaWith` (const)
+
+The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
+text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+
+```ts
+const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+```
+
+#### `CreditsSection` (interface)
+
+A heading and the names under it.
+
+```ts
+interface CreditsSection {
+    /** The heading, in the source language; `automata words` translates it. */
+    readonly title: string;
+    readonly names: readonly CreditName[];
+}
+```
+
+#### `screensWords` (function)
+
+This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+
+```ts
+function screensWords(locale: string): {
+    readonly splash: SplashCopy;
+    readonly credits: CreditsCopy;
+};
 ```
 
 ### `import { … } from '@automata/ui-screens/error'`
@@ -16320,11 +16522,12 @@ type ResultsScreen = ReturnType<typeof ResultsScreen>;
 
 #### `screensWords` (function)
 
-This package's words for a locale (the six; English otherwise).
+This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
 
 ```ts
 function screensWords(locale: string): {
     readonly splash: SplashCopy;
+    readonly credits: CreditsCopy;
 };
 ```
 

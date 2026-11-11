@@ -1,5 +1,17 @@
 {
   "splash_skip": {
     "note": "A small line under the studio's logo on the opening splash. Tells the player that pressing any key or tapping the screen goes straight on to the game."
+  },
+  "credits_title": {
+    "note": "Heading of the credits panel: the list of the people who made the game."
+  },
+  "credits_close": {
+    "note": "The X button on the credits panel. Closes it and goes back. Same word as Close elsewhere in the game."
+  },
+  "credits_opens": {
+    "note": "Read aloud by screen readers for a name in the credits that links to a web page. {name} is the person or group; keep it a plain sentence a person could say."
+  },
+  "credits_refused": {
+    "note": "Shown under the credits when a link could not be opened, for example the browser or the platform said no. Short and calm; nothing is broken."
   }
 }

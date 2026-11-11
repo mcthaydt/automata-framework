@@ -1,4 +1,8 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "splash_skip": "Presiona cualquier tecla o toca la pantalla para omitir"
+  "splash_skip": "Presiona cualquier tecla o toca la pantalla para omitir",
+  "credits_title": "Créditos",
+  "credits_close": "Cerrar",
+  "credits_opens": "Abrir la página de {name}",
+  "credits_refused": "No se pudo abrir esa página."
 }
