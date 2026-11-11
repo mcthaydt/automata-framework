@@ -22,7 +22,7 @@ first; this plan argues from its measurements. **Tracker:** [`../progress.md`](.
 
 ## Tracking
 
-**0 of 17 tasks done (0%).** Tick a task only when its checks passed in the session that did it; say what did not run.
+**0 of 17 tasks done (0%).** Task 18 is optional and is not counted until the Owner asks for it. Tick a task only when its checks passed in the session that did it; say what did not run.
 
 | # | Task | Branch | State | Evidence |
 |---|---|---|---|---|
@@ -43,6 +43,7 @@ first; this plan argues from its measurements. **Tracker:** [`../progress.md`](.
 | 15 | The ward's clothes as kit entries; moods reach the painter | `claude/builders-look-wardrobe` | todo | |
 | 16 | The ward gate sheet; the pull request | `claude/builders-look-wardrobe` | todo | |
 | 17 | The record: the survey's table re-measured, the pull requests settled, the builders' fate asked | `claude/builders-look-record` | todo | |
+| 18 | Optional, on the Owner's word: a painted figure's cast shadow | `claude/builders-look-shadow` | not asked | |
 
 ## Branches and merge order
 
@@ -51,7 +52,7 @@ first; this plan argues from its measurements. **Tracker:** [`../progress.md`](.
 | 1 | `claude/builders-look-room` | `main` | Tasks 1 to 5 | To `main` first. It repairs what `main` draws, so nothing waits behind it |
 | 2 | `claude/builders-look-figures` | `main`, after 1 has merged | Tasks 6 to 9 | Second |
 | 3 | `claude/builders-look-effects` | `main`, after 2 has merged | Tasks 10 to 12 | Third |
-| 4 | FigureBuilder `claude/c9-wardrobe`, then `claude/builders-look-wardrobe` | their `main`s, after 2 | Tasks 13 to 16 | May run beside 3: it touches the character kit and the submodule only |
+| 4 | FigureBuilder `claude/c9-wardrobe`, then `claude/builders-look-wardrobe` | their `main`s, after 2 | Tasks 13 to 16 | The last group of work. It may run beside 3: it touches the character kit and the submodule only. Task 13 needs a session with push access to FigureBuilder; from it the framework needs two things only: the commit on FigureBuilder's `main` to pin (task 14) and the builder's names the ward's kinds and moods use (task 15) |
 | 5 | `claude/builders-look-record` | `main`, after all | Task 17 | Last |
 
 Against workstream 2's branches ([its plan](2026-11-11-last-light-prologue.md)):
@@ -90,8 +91,8 @@ in it imports an extension. The 2026-11-07 trim
 | Shafts, wet-ground reflections, particles (task 10) | World kit | Ready-made passes, each with its switch, beside stars and rain |
 | A look pass may run before the snap (task 10) | Core, `packages/3d` | A seam any game's pass could use; the mood grade needs it |
 | The letterbox's opt-in whole-pixel scale (task 10) | `@automata/framework`, with its changeset: **a call** | The only piece here that touches the browser package. The corrected core test asks that every target needs it or both reference games do. It is opt-in and changes nothing for a game that does not ask, and a pixel-art game of either kind can ask; but Emberwick does not use it today. The plan audit rules: keep it, or revert its two commits on the effects branch (`3565abc8f`, `bdf4b6d0e`; `retro-crisp`'s `crispRendererOptions` then goes too) |
-| `lcd-panel`, `retro-crisp` (task 10) | Their own extensions | Ready-made looks; no game needs them and core never imports them |
-| `room-visibility` (task 11) | Not landed | Workstream 2 builds the rooms a view draws; two answers to one question is the tangle the Owner's rule exists to stop |
+| `lcd-panel`, `retro-crisp` (task 10) | Their own extensions | Ready-made looks, opt-in; the reference game uses both, and core never imports them |
+| `room-visibility` (task 11) | Not landed | Workstream 2 builds the rooms a view draws; two answers to one question is the tangle the Owner's rule exists to stop. Its code stays on #588's branch, where workstream 2's task "the rooms a view draws; two lamp kinds" may read it as a reference |
 | Hosiery, boots, a cap, a tabard, front hair and a bob, moods (tasks 13 to 15) | FigureBuilder for the generic machinery; the character kit for the garment kinds and outfits | The trim: clothes and hairstyles are the kit's |
 | Ada and the night figure themselves | The game, `games/the-last-light` | A kit entry names no character of the game: the kit ships a ward uniform and street clothes, the game says who wears them |
 
@@ -460,8 +461,8 @@ The survey's cause: fog from 5 to 14 m under a camera now 16 m away.
     switch) to see whether it is the haze; write what it is. If it is the haze drawn over the letterbox's field
     where no mesh is, it is a fault of where the haze reads depth and gets its own failing browser test and fix
     here; if it is the sky's lowest band, it is right;
-  - difference 6, a figure's cast shadow: not built. The coordinator's call is to accept it as a named difference
-    until the Owner says otherwise.
+  - difference 6, a figure's cast shadow: not built. The coordinator's ruling is to accept it as a named difference
+    for now; the Owner has been asked, and task 18 is the fix if the answer is yes.
 - [ ] **Step 4: Every 3D example's first frame.** With the examples built, open each example's page and take one
   picture (the survey's scratch method: a static server over `examples/3d/dist`, Play, 40 frames). List any that
   draws under a brightness of 20 or logs a console warning, with its cause if it takes under ten minutes to find.
@@ -617,8 +618,9 @@ with its changeset), and the three extensions of #588 with their examples and jo
 
 ### Task 11: The room-visibility extension leaves
 
-The coordinator's call, open to the Owner: workstream 2 builds "the rooms a view draws" in its own task; two
-answers to one question do not both land. `lcd-panel` and `retro-crisp` stay.
+The coordinator's ruling (2026-11-11): workstream 2 builds "the rooms a view draws" in its own task; two answers to
+one question do not both land. `lcd-panel` and `retro-crisp` stay as opt-in look extensions; the reference game
+uses both. Workstream 2's task may read #588's `room-visibility` on its branch as a reference.
 
 **Files:**
 - Delete: `extensions/room-visibility/`, `examples/3d/roomvisibility/`, its journey under `examples/3d/tests/e2e/`
@@ -632,7 +634,6 @@ answers to one question do not both land. `lcd-panel` and `retro-crisp` stay.
   examples' journeys.
 - [ ] **Step 3: Commit:** `chore(extensions): room-visibility is not landed; workstream 2 builds the rooms a view draws`.
 
-If the coordinator has answered otherwise before this task starts, follow the answer and record it here.
 
 ### Task 12: Every pass behind its switch; the effects' sheets; the pull request
 
@@ -756,17 +757,60 @@ That plan's tasks "The kinds" and "Expressions reach the painter", cut to the wa
 
 ---
 
-## Calls made in this plan, for the coordinator to check
+## Optional: a painted figure's cast shadow
+
+### Task 18: A painted figure casts a shadow on the floor (only on the Owner's word)
+
+The builder's figures cast a sun shadow on the pavement at strength 0.6; the framework's cast none (the survey's
+difference 6). This is a content-and-pass change, not a redesign: no shadow map, no change to the bake, nothing in
+`packages/3d`.
+
+**Files:**
+- Create: `extensions/character-kit/src/features/painted/cast-shadow.ts`,
+  `extensions/character-kit/tests/unit/painted/cast-shadow.test.ts`,
+  `extensions/character-kit/tests/browser/painted/cast-shadow.test.ts`
+- Modify: `extensions/character-kit/src/features/painted/painted-view.ts`
+
+**Interfaces:**
+- Consumes: the renderer's `SceneLight` as `paintedFigure` already receives it (`light.lighting.sun`: its direction
+  and level), and the figure's place and height in metres.
+- Produces: `castShadowOf(sun: { dir: readonly [number, number, number]; level: number } | undefined, height: number): { along: readonly [number, number]; length: number; strength: number } | undefined`:
+  the shadow's direction on the floor (the sun's direction projected onto it, normalised), its length
+  (`height × horizontal / vertical` of the sun's direction, capped at 3 × `height`), and its strength, `0.6`.
+  `undefined` with no sun, a sun at level 0, or a sun at or under the horizon.
+- Produces: `PaintedFigureOptions.shadow?: boolean`, default `false`. With it on, the figure's view adds one flat
+  quad on the floor under it: the figure's width across, `length` long, turned to `along`, drawn in the palette's
+  darkest step at `strength`, in whole pixels, before the figure. It moves with the figure and is retired with it.
+
+- [ ] **Step 1: The failing unit tests:** a sun straight overhead gives length 0; a sun 45° up gives `length ===
+  height` along the sun's floor direction; a sun under the horizon, a level of 0 and no sun each give `undefined`;
+  a low sun is capped at `3 × height`. Run: FAIL (no module). Implement. Run: PASS.
+- [ ] **Step 2: The failing browser test:** the base exterior by day with one painted figure and `shadow: true`:
+  the floor pixels in the box where the shadow falls are darker than the same box with `shadow: false`, and no
+  pixel outside the box and the figure changes. Run: FAIL. Wire the quad in `painted-view.ts`. Run: PASS.
+- [ ] **Step 3: Look.** Re-shoot the exterior sheets with the switch on, beside the builder's: the shadow lies the
+  way the builder's does and is no darker. Write what differs (the builder's shadow has the figure's outline; this
+  one is a quad).
+- [ ] **Step 4:** Gates, the kit's suites, format, commit
+  `feat(character-kit): a painted figure can cast a shadow on the floor`, draft pull request.
+
+---
+
+## Calls made in this plan
+
+The coordinator answered calls 1 and 3 to 7 on 2026-11-11: each stands as written. Calls 2 and 8 to 11 are still
+for the coordinator or the plan audit to check.
 
 1. **#589 lands first, inside "the lit room healthy".** The fix depends on its code. The spec's order is kept in
-   every other respect.
+   every other respect. The coordinator: this is right, and the spec is not amended for the order.
 2. **Bring branches in by merge, not by rewriting.** Each was cut from one commit of `main`, merges cleanly and was
    audited in its own cycle; a rewrite would lose that and gain nothing.
 3. **`room-visibility` does not land;** `lcd-panel` and `retro-crisp` do.
 4. **#607's re-recorded runway golden is accepted as ruled** by that cycle's coordinator, checked in task 6 to be
-   the only golden that moves.
+   the only golden that moves; with it the pin of `vendor/FigureBuilder` moves from `d6e3c9f` to `23f889c`.
 5. **Exposure is measured before it is ported.**
-6. **A figure's cast shadow is a named difference, not built,** until the Owner says.
+6. **A figure's cast shadow is a named difference, not built,** until the Owner says; task 18 is the fix, written
+   and waiting.
 7. **Glyphs are out;** drawn moods are in.
 8. **The kit names no character.** It ships outfits; the game says who wears them.
 9. **The two dark examples are repaired** although they are to be cut, because each repair is a few lines and each
