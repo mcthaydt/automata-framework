@@ -87,7 +87,7 @@ export {
   spriteLight,
 } from '../features/look/sprite-light.ts'
 export { targetSize } from '../features/look/target-size.ts'
-export type { GlowSwatch } from '../features/world/albedo/glow.ts'
+export { type GlowSwatch, glowColours } from '../features/world/albedo/glow.ts'
 export type { AlbedoTile } from '../features/world/albedo/place.ts'
 export {
   buildWorld,
