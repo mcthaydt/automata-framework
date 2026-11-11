@@ -106,4 +106,15 @@ describe('look passes', () => {
     const on = createLookPasses(parseLook({ switches: { outline: true } }), timeOfDay('day'))
     expect(on.outline).toBeDefined()
   })
+
+  it('a pass added before the snap runs before it, so what it does is snapped, and the passes after the snap are unchanged', () => {
+    addLookPass({ name: 'spec-grade', beforeSnap: true, make: () => ({ stage: 'post' as const }) as never })
+    const passes = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
+    const grade = passes.early[0] as never
+    expect(passes.early).toHaveLength(1)
+    expect(passes.list.indexOf(grade)).toBeLessThan(passes.list.indexOf(passes.snap as never))
+    expect(passes.list[0]).toBe(grade)
+    expect(passes.extra).toHaveLength(1)
+    expect(passes.list.at(-1)).toBe(passes.extra[0])
+  })
 })
