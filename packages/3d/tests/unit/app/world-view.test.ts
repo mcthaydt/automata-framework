@@ -67,6 +67,22 @@ describe('drawWorld', () => {
     expect(hung.material.vertexColors).toBe(false)
     expect(hung.material).toBeInstanceOf(PhongMaterial)
   })
+  it('bakes each piece’s room shade and its swatch colour into the light', () => {
+    const light = createSceneLight(sceneLightingSchema.parse({ ambient: 0.4, colorSpace: 'srgb' }))
+    const dark = { ...level, sectors: level.sectors.map((s) => ({ ...s, light: 0 })) }
+    const draw = (lv: AfSector2) => {
+      const view = drawWorld(
+        { parent: new Container3D(), colourOf: () => 0xffffff, light },
+        buildWorld(lv, LIB).pieces,
+      )
+      const colours = (view.mesh('a:floor') as Mesh3D).geometry.attributes.aColor?.buffer.data as Float32Array
+      return colours[0] as number
+    }
+    // A white swatch under an sRGB light of 0.4 is a linear 0.4 over 1; a room one step darker (light 0) takes 0.85 of it.
+    const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+    expect(draw(level)).toBeCloseTo(lin(0.4), 5)
+    expect(draw(dark)).toBeCloseTo(lin(0.4 * 0.85), 5)
+  })
   it('gives each mesh the geometry of its piece', () => {
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0 }, pieces)
     const floor = pieces.find((p) => p.id === 'a:floor')

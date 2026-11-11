@@ -50,6 +50,8 @@ export interface WorldPiece {
   readonly id: string
   /** The room's id. */
   readonly sector: string
+  /** The room's shade, as the level states it (1 is normal, lower is darker): the light baked into the piece takes it. */
+  readonly light: number
   readonly part: WorldPart
   readonly mesh: MeshData
   /** A swatch name, or a swatch with its placement. */
@@ -176,6 +178,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     pieces.push({
       id: `${sector.id}:${id}`,
       sector: sector.id,
+      light: sector.light,
       part,
       mesh:
         extra.door === undefined && extra.sway === undefined && extra.prop === undefined

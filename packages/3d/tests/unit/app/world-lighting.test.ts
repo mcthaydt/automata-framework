@@ -19,7 +19,7 @@ describe('worldLighting', () => {
     const time = levelTime(interior.time)
     const lighting = worldLighting(world, time)
     expect(lighting.ambient).toBe(time.scene.light.ambient.level)
-    expect(lighting.lamps).toEqual(sceneLamps(world.lamps, true))
+    expect(lighting.lamps.map((l) => l.id)).toEqual(sceneLamps(world.lamps, true).map((l) => l.id))
     const { boxes, planes } = worldOccluders(world.pieces)
     expect(lighting.boxes).toEqual(boxes)
     expect(lighting.planes).toEqual(planes)
@@ -36,5 +36,36 @@ describe('worldLighting', () => {
   it('is something the lighting schema reads', () => {
     const lighting = worldLighting(worldOf(interior, true), levelTime(interior.time))
     expect(() => sceneLightingSchema.parse(lighting)).not.toThrow()
+  })
+
+  it('lights as the look profile does: sRGB light with a key, a fill, steps of 0.1 and a cap of 1.6', () => {
+    const lighting = worldLighting(worldOf(interior, true), levelTime(interior.time))
+    expect(lighting.colorSpace).toBe('srgb')
+    expect(lighting.key).toEqual({ dir: [0.3, 0.8, 0.5], level: 0.09 })
+    expect(lighting.fill).toEqual({ level: 0.08, color: 0xc6ecff, fade: [1.5, 4, 0.25] })
+    expect([lighting.step, lighting.max, lighting.shade]).toEqual([0.1, 1.6, 0.85])
+    expect(lighting.sun).toBeUndefined()
+  })
+  it('makes each lamp 2.6 times its level, and keeps its aim and cone', () => {
+    const world = worldOf(interior, true)
+    const lighting = worldLighting(world, levelTime(interior.time))
+    const pendant = world.lamps.find((l) => l.kind === 'pendant')!
+    const lamp = lighting.lamps.find((l) => l.id === pendant.id)!
+    expect(lamp.strength).toBeCloseTo(2.6)
+    expect(lamp.aim).toEqual(pendant.aim)
+    expect(lamp.cone).toBe(pendant.cone)
+  })
+  it('gives the day a sun toward the time’s key, seen from 18° up, with the time’s shadow rule', () => {
+    const day = levelTime(exterior.time)
+    const { sun } = worldLighting(worldOf(exterior, false), day)
+    // The figures' key (-0.5, 0.62, 0.6) in view space, turned out of a camera pitched 18° down: (x, y c + z s, -y s + z c).
+    const [x, y, z] = [-0.5, 0.62, 0.6]
+    const [c, s] = [Math.cos(0.1 * Math.PI), Math.sin(0.1 * Math.PI)]
+    const world = [x, y * c + z * s, -y * s + z * c]
+    const length = Math.hypot(...world)
+    for (const [i, v] of world.entries()) expect(sun!.dir[i]).toBeCloseTo(v / length, 9)
+    expect(sun!.color).toBe(0xfff3d6)
+    expect(sun!.level).toBe(1)
+    expect(sun!.shadow).toBe(day.scene.light.shadow)
   })
 })

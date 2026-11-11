@@ -21,7 +21,18 @@ export const lampSchema: z.ZodType<Lamp> = z.strictObject({
   range: size,
   /** The level before the sim says otherwise: 0 is off, 1 full; 1 by default. */
   level: z.number().min(0).default(1),
+  /** Which way it points (any length): with `cone`, it lights only what lies within `cone` degrees of this line. */
+  aim: z.tuple([metres, metres, metres]).optional(),
+  /** Half the angle (degrees) of the light's cone about `aim`; its edge is soft over a third of it. */
+  cone: z.number().positive().max(180).optional(),
 })
+
+const vector = z
+  .tuple([metres, metres, metres])
+  .refine(([x, y, z]) => Math.hypot(x, y, z) > 1e-6, 'a direction must not be zero')
+
+/** A sky or fill light as content: how strong it is, and its tint (0xRRGGBB, its brightest channel taken as full). */
+const tinted = z.strictObject({ level: z.number().min(0), color: colour })
 
 /** A solid box that blocks light (and darkens the floor round its foot). `y` is its base, as a box view stands. */
 export const occluderBoxSchema: z.ZodType<OccluderBox> = z.strictObject({
@@ -65,6 +76,30 @@ export const sceneLightingSchema: z.ZodType<SceneLighting> = z
     /** Light everywhere, 0 to 1, before any lamp. */
     ambient: z.number().min(0).max(1),
     ambientColor: colour.default(0xffffff),
+    /**
+     * What the light's numbers multiply. `linear` (the default): each light is in linear light and multiplies a surface's
+     * linear colour, as the shader does. `srgb`: each light multiplies the surface's sRGB colour channel by channel (a
+     * pixel-art look's rule: a texel is its albedo times its light), and the bake turns that into the linear
+     * multiplier the shader needs for the albedo it is told (`SceneLight.bake`'s `albedo`).
+     */
+    colorSpace: z.enum(['linear', 'srgb']).default('linear'),
+    /** A small key light on the normal, added to the ambient: `dir` as given (not normalised), `level` its strength. */
+    key: z.strictObject({ dir: vector, level: z.number().min(0) }).optional(),
+    /**
+     * A fill on upright surfaces, `(1 - |n.y|) · level · fade`, the fade falling with height over the floor:
+     * `max(fade[2], min(1, fade[0] - height / fade[1]))`.
+     */
+    fill: tinted.extend({ fade: z.tuple([z.number(), z.number().positive(), z.number()]) }).optional(),
+    /** The sun: `dir` toward it (any length), its colour times `level`, and whether boxes and planes shadow it. */
+    sun: z
+      .strictObject({ dir: vector, color: colour, level: z.number().min(0), shadow: z.boolean() })
+      .optional(),
+    /** The brightest a light value gets, per channel. Default 1.6. */
+    max: z.number().positive().default(1.6),
+    /** Light comes in steps of this size (its brightest channel snapped, its hue kept); 0 for no steps. */
+    step: z.number().min(0).default(0),
+    /** What one whole step of a room's shade multiplies its light by (0.85). */
+    shade: z.number().positive().default(0.85),
     lamps: z.array(lampSchema).default([]),
     boxes: z.array(occluderBoxSchema).default([]),
     planes: z.array(occluderPlaneSchema).default([]),
@@ -95,6 +130,9 @@ export interface Lamp {
   /** Metres. */
   readonly range: number
   readonly level: number
+  readonly aim?: readonly [number, number, number] | undefined
+  /** Degrees. */
+  readonly cone?: number | undefined
 }
 
 /** A box that blocks light: centred on `x` and `z`, standing on `y`. */
@@ -131,6 +169,31 @@ export interface SceneLighting {
   readonly ambient: number
   /** 0xRRGGBB. */
   readonly ambientColor: number
+  readonly colorSpace: 'linear' | 'srgb'
+  readonly key?: { readonly dir: readonly [number, number, number]; readonly level: number } | undefined
+  readonly fill?:
+    | {
+        readonly level: number
+        /** 0xRRGGBB. */
+        readonly color: number
+        readonly fade: readonly [number, number, number]
+      }
+    | undefined
+  readonly sun?:
+    | {
+        readonly dir: readonly [number, number, number]
+        /** 0xRRGGBB. */
+        readonly color: number
+        readonly level: number
+        readonly shadow: boolean
+      }
+    | undefined
+  /** The brightest a light value gets, per channel. */
+  readonly max: number
+  /** The size of a light step; 0 for none. */
+  readonly step: number
+  /** What a whole step of a room's shade multiplies its light by. */
+  readonly shade: number
   readonly lamps: readonly Lamp[]
   readonly boxes: readonly OccluderBox[]
   readonly planes: readonly OccluderPlane[]

@@ -43,9 +43,11 @@ function crossesBox(
   by: number,
   bz: number,
   box: OccluderBox,
+  from0 = NEAR,
+  to0 = FAR,
 ): boolean {
-  let near = NEAR
-  let far = FAR
+  let near = from0
+  let far = to0
   const slabs: readonly [number, number, number, number][] = [
     [ax, bx, box.x - box.width / 2, box.x + box.width / 2],
     [ay, by, box.y, box.y + box.height],
@@ -75,12 +77,14 @@ function crossesPlane(
   by: number,
   bz: number,
   plane: OccluderPlane,
+  from0 = NEAR,
+  to0 = FAR,
 ): boolean {
   const from = dot(plane.normal, ax - plane.x, ay - plane.y, az - plane.z)
   const to = dot(plane.normal, bx - plane.x, by - plane.y, bz - plane.z)
   if (from * to >= 0) return false
   const t = from / (from - to)
-  if (t < NEAR || t > FAR) return false
+  if (t < from0 || t > to0) return false
   const { u, v } = planeAxes(plane)
   const hx = ax + (bx - ax) * t - plane.x
   const hy = ay + (by - ay) * t - plane.y
@@ -101,12 +105,33 @@ export function segmentBlocked(
   bz: number,
   occluders: Occluders,
   ignore: readonly string[] = [],
+  /** The part of the segment that counts, as shares of it from `a`: default its middle, so its ends never block. */
+  span: readonly [number, number] = [NEAR, FAR],
 ): boolean {
-  for (const plane of occluders.planes) if (crossesPlane(ax, ay, az, bx, by, bz, plane)) return true
+  for (const plane of occluders.planes)
+    if (crossesPlane(ax, ay, az, bx, by, bz, plane, span[0], span[1])) return true
   for (const box of occluders.boxes)
-    if ((box.id === undefined || !ignore.includes(box.id)) && crossesBox(ax, ay, az, bx, by, bz, box))
+    if (
+      (box.id === undefined || !ignore.includes(box.id)) &&
+      crossesBox(ax, ay, az, bx, by, bz, box, span[0], span[1])
+    )
       return true
   return false
+}
+
+/**
+ * The height of the floor a point stands over: the highest up-facing plane at or just under it whose rectangle holds
+ * its x and z (a floor, the top of a step), else 0. The fill's fade reads it.
+ */
+export function floorUnder(occluders: Occluders, x: number, y: number, z: number): number {
+  let floor = 0
+  let found = false
+  for (const plane of occluders.planes) {
+    if (plane.normal[1] <= 0.9 || plane.y > y + 0.1) continue
+    if (Math.abs(x - plane.x) > plane.width / 2 || Math.abs(z - plane.z) > plane.height / 2) continue
+    if (!found || plane.y > floor) [floor, found] = [plane.y, true]
+  }
+  return floor
 }
 
 /**

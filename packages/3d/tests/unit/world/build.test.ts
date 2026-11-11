@@ -92,6 +92,14 @@ describe('one room', () => {
     expect(buildWorld(level(room('a', [0, 0, 4, 4])), LIB)).toEqual({ pieces, lamps: [], problems }))
 })
 
+describe('a room’s light', () => {
+  it('carries the room’s shade on each of its pieces, for the light baked into them', () => {
+    const { pieces } = buildWorld(level(room('a', [0, 0, 4, 4], { light: 0.5 })), LIB)
+    expect(pieces.length).toBeGreaterThan(4)
+    for (const p of pieces) expect(p.light, p.id).toBe(0.5)
+  })
+})
+
 describe('subdivision', () => {
   const longest = (p: WorldPiece): number => {
     const { positions: v, indices: i } = p.mesh
