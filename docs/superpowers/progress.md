@@ -82,4 +82,6 @@ take it over later: its layout and words as data, not buried in code.
 - The Last Light is fully open source like Emberwick: its story, art and music are MIT.
 - The Last Light is no longer a source game: the source-names check drops its name. Its ElevenLabs sounds and music
   come across as they are (the Owner paid for them).
+- Where a new piece goes: core only if generic for any game; an extension if generic within a genre; otherwise custom
+  code in the reference game.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
