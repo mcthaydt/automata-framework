@@ -16,6 +16,7 @@ runs in its own session on its own branch and hands off through committed docume
 |---|---|---|---|---|
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 2, plan: written 2026-11-11 and revised for the Owner's amendments; next is 3, the plan audit | 29% (2 of 7 stages); execution 0 of 20 tasks | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md) |
 | 2 | The Last Light on the framework, one scene at a time (the prologue first) | 1, spec: drafted 2026-11-11, its six calls open to the Owner. Slice 1's plan session starts when workstream 1 reaches execution | 3% | [spec](specs/2026-11-11-last-light-on-the-framework-design.md) |
+| 3 | A UI editor in the suite | Not started: the Owner will address it when we get to it; its spec is written with the Owner then | 0% | |
 
 ## Workstream 1 sessions
 
@@ -24,6 +25,15 @@ runs in its own session on its own branch and hands off through committed docume
 | 1. Spec | The coordinator (`session_01HNdX7JDtQV1qVssEcnsxHM`) | `claude/optimistic-newton-yszrte` | Done 2026-11-11. The Owner said to begin ("begin with adding in Missing from the framework ... then do A"), so the stages run without waiting; the six calls stay open to correction |
 | 2. Plan | Fable 5.2, medium (`session_01HNdX7HfQXxQqDGztKzgibK`) | `claude/shared-polish-plan` | Done 2026-11-11: 20 tasks with a tracking table, 15 calls named in the plan; revised the same day for the Owner's amendments (nothing copied from FloorFifty, no review state, fonts cover every language, `Hosting.openLink`). No product code written and no test run (this stage writes the plan only) |
 | Merge | One long-lived session (`session_01HNdX7LEALEpFdpPWLXPuy7`) | none of its own | Started 2026-11-11; merged the spec as #608 (`6fa386e9`) |
+
+## Workstream 3: what the Owner has said so far (2026-11-11)
+
+No UI editor was ever planned: the 2026-10-30 suite spec put "a UI composer" out of scope and the HUD-pieces idea was
+cut on 2026-11-08, so every HUD is code today. The Owner wants one. It should let a person change by hand where things
+sit on screen, how they look, what they show, and make whole new screens; and it should also be able to change the
+screens that come by default, such as the main menu and the splash. Details are settled when the work comes up.
+Until then, a HUD screen the port needs (journal, map, inventory, objectives, dialer) is built so that an editor can
+take it over later: its layout and words as data, not buried in code.
 
 ## Findings so far (2026-11-11)
 
