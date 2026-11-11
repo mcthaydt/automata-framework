@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lightFigure, ScriptedActor, SPRITE_PITCH, TIMES, type FigureLight, type V3 } from '../../../src';
+import { lightFigure, lightSprite, ScriptedActor, SPRITE_PITCH, TIMES, type FigureLight, type SpriteLighting, type V3 } from '../../../src';
 import { lookAt, viewOf } from '../../../src/features/stage/pose';
 import { stageFrame } from '../../../src/features/stage/stage';
 import { registerFixtures } from '../paint/fabric-fixtures';
@@ -44,7 +44,42 @@ describe('stageFrame lights', () => {
     expect(s.cell.weave).not.toBeNull();
     expect(md5(s.cell.rgba)).toBe(md5(lightFigure(f, { ...NIGHT, at: [0.5, 0, -1] })));
   });
-  it('refuses both light paths at once', () => {
-    expect(() => stageFrame([], 0, ortho(1, [64, 96]), { lighting: NIGHT, lights: () => null })).toThrow(/two light paths/);
+  it('refuses more than one light path at once', () => {
+    const three = /lighting, lights and sprite are three light paths; give one/, sprite = () => null;
+    expect(() => stageFrame([], 0, ortho(1, [64, 96]), { lighting: NIGHT, lights: () => null })).toThrow(three);
+    expect(() => stageFrame([], 0, ortho(1, [64, 96]), { lighting: NIGHT, sprite })).toThrow(three);
+    expect(() => stageFrame([], 0, ortho(1, [64, 96]), { lights: () => null, sprite })).toThrow(three);
+  });
+});
+
+describe('stageFrame sprite light', () => {
+  /** A warm lamp in the world on +x, strength 0.8, and the light where the figure stands. */
+  const room = (dir: V3): SpriteLighting => ({ flat: [1.3, 1.1, 0.8], lamps: [{ dir, strength: 0.8 }] });
+  it('lights the cell with the sprite light, the lamp turned into the actor\'s frame; painted stays unlit', () => {
+    // seen from +x (azimuth 90°) a lamp on world +x is toward the camera: the lighting frame's +z
+    const side = lookAt([20, 6, 0], [0, 1, 0], { pixelsPerMetre: 2 * 96 / 2.6 }, [512, 384]);
+    const seen: { who: string; at: V3 }[] = [];
+    const s = stageFrame([actor('base-m', [0, 0])], 0, side, { sprite: (a, at) => { seen.push({ who: a.name, at }); return room([1, 0, 0]); } }).sprites[0];
+    const f = actor('base-m', [0, 0]).draw(0, { ...viewOf(side, [0, 0, 0]), pitch: SPRITE_PITCH }, 2);
+    expect(seen).toHaveLength(1);
+    expect(seen[0].at).toEqual([0, 0, 0]);
+    expect(md5(s.cell.rgba)).toBe(md5(lightSprite(f, room([0, 0, 1]))));
+    expect(md5(s.cell.painted)).toBe(md5(f.painted));
+    const unlit = stageFrame([actor('base-m', [0, 0])], 0, side).sprites[0];
+    expect(s.cell.key).not.toBe(unlit.cell.key);
+    expect(md5(s.cell.rgba)).not.toBe(md5(unlit.cell.rgba));
+  });
+  it('is given the actor\'s feet in the world', () => {
+    let at: V3 | null = null;
+    stageFrame([actor('base-m', [1.5, -2])], 0, ortho(2, [512, 384]), { sprite: (_, p) => { at = p; return null; } });
+    expect(at).toEqual([1.5, 0, -2]);
+  });
+  it('null leaves that actor unlit', () => {
+    const lit = stageFrame([actor('base-m', [0, 0]), actor('base-f', [1, 0])], 0, ortho(2, [512, 384]), { sprite: a => (a.name === 'base-m' ? null : room([0, 0, 1])) }).sprites;
+    const plain = stageFrame([actor('base-m', [0, 0]), actor('base-f', [1, 0])], 0, ortho(2, [512, 384])).sprites;
+    const by = (list: typeof lit, who: string) => list.find(x => x.name === who)!;
+    expect(by(lit, 'base-m').cell.key).toBe(by(plain, 'base-m').cell.key);
+    expect(md5(by(lit, 'base-m').cell.rgba)).toBe(md5(by(plain, 'base-m').cell.rgba));
+    expect(md5(by(lit, 'base-f').cell.rgba)).not.toBe(md5(by(plain, 'base-f').cell.rgba));
   });
 });

@@ -1,4 +1,4 @@
-import { BASE, SPRITE_PITCH, ScriptedActor, TIMES, cellOf, gameplay, lookAt, member, stageFrame, STAGE_VERSION, project, type ActorScript, type Backdrop, type CameraPose, type Lighting, type StageFrame, type V3 } from '../src';
+import { BASE, SPRITE_PITCH, ScriptedActor, TIMES, cellOf, gameplay, lookAt, member, stageFrame, STAGE_VERSION, project, type ActorScript, type Backdrop, type CameraPose, type Lighting, type SpriteLighting, type StageFrame, type V3 } from '../src';
 import { sheetFigures, type SheetKind } from './sheets';
 
 /**
@@ -114,6 +114,14 @@ CASES['tie/reversed'] = { frame: () => stageFrame([new ScriptedActor({ who: 'bas
 CASES.scene4 = { frame: () => stageFrame(scene4(), T4, SCENE_POSE()), claim: 'bytes' };
 CASES.day = { frame: () => stageFrame(scene4(), T4, SCENE_POSE(), { lighting: { time: TIMES.day, lamps: [] } }), claim: 'bytes' };
 CASES.lit = { frame: () => stageFrame(scene4(), T4, SCENE_POSE(), { lighting: NIGHT }), claim: 'bytes' };
+// The sprite light (`StageOptions.sprite`): two figures under a warm lamp on the world's left; each cell is lit, so the frame
+// is `compose` of lit cells.
+const WARM_LEFT: SpriteLighting = { flat: [1.3, 1.1, 0.8], lamps: [{ dir: [-0.8, 0.4, 0.45], strength: 0.8 }] };
+CASES['stage/sprite-lit'] = { frame: () => {
+  const fr = stageFrame([new ScriptedActor({ who: 'base-m', at: [-0.5, 0] }), new ScriptedActor({ who: 'base-f', at: [0.5, 0.3] })], 0, ortho(2, [256, 192]), { sprite: () => WARM_LEFT });
+  if (!fr.sprites.every(s => s.cell.rgba !== s.cell.painted)) throw new Error('stage/sprite-lit: a cell was not lit');
+  return fr;
+}, claim: 'bytes' };
 for (let k = 0; k < 8; k++) {
   CASES[`gameplay/crisp/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k)), claim: 'bytes' };
   CASES[`gameplay/true/${k}`] = { frame: () => stageFrame(trio(), 0, gameplay([0, 0.6, 0], k), { crisp: false }), claim: 'palette' };
