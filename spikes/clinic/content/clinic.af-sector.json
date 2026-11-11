@@ -1,0 +1,2083 @@
+{
+  "format": "af-sector/2",
+  "name": "clinic",
+  "title": "St. Agnes Clinic",
+  "sectors": [
+    {
+      "id": "hall",
+      "zone": "hall",
+      "floor": 0,
+      "ceiling": 4.9,
+      "light": 1,
+      "open": true,
+      "corners": [
+        [
+          -1.475,
+          -0.875,
+          {
+            "next": "mouth"
+          }
+        ],
+        [
+          1.475,
+          -0.875,
+          {
+            "thick": 0,
+            "trim": {
+              "skirting": 0.3,
+              "capital": 3.35
+            },
+            "trimDepth": {
+              "skirting": 0.05
+            },
+            "trimTexture": {
+              "skirting": "cap"
+            },
+            "cut": "north-east"
+          }
+        ],
+        [
+          1.475,
+          -0.725,
+          {
+            "thick": 0,
+            "trim": {
+              "skirting": 0.3,
+              "capital": 3.35
+            },
+            "trimDepth": {
+              "skirting": 0.05
+            },
+            "trimTexture": {
+              "skirting": "cap"
+            },
+            "cut": "north-east"
+          }
+        ],
+        [
+          2,
+          -0.725,
+          {
+            "thick": 0,
+            "trim": {
+              "skirting": 0.3,
+              "capital": 3.35
+            },
+            "trimDepth": {
+              "skirting": 0.05
+            },
+            "trimTexture": {
+              "skirting": "cap"
+            },
+            "cut": "north-east"
+          }
+        ],
+        [
+          2,
+          -0.875,
+          {
+            "cut": "north-east"
+          }
+        ],
+        [
+          4.875,
+          -0.875,
+          {
+            "cut": "east"
+          }
+        ],
+        [
+          4.875,
+          6.875,
+          {
+            "cut": "south"
+          }
+        ],
+        [
+          -4.875,
+          6.875,
+          {
+            "cut": "west"
+          }
+        ],
+        [
+          -4.875,
+          3.5,
+          {
+            "cut": "west"
+          }
+        ],
+        [
+          -5.225,
+          3.5,
+          {
+            "cut": "west"
+          }
+        ],
+        [
+          -5.225,
+          2.5,
+          {
+            "cut": "west"
+          }
+        ],
+        [
+          -4.875,
+          2.5,
+          {
+            "cut": "west"
+          }
+        ],
+        [
+          -4.875,
+          -0.875,
+          {
+            "next": "ward"
+          }
+        ],
+        [
+          -1.9,
+          -0.875,
+          {
+            "thick": 0,
+            "trim": {
+              "skirting": 0.3,
+              "capital": 3.35
+            },
+            "trimDepth": {
+              "skirting": 0.05
+            },
+            "trimTexture": {
+              "skirting": "cap"
+            },
+            "cut": "north-west"
+          }
+        ]
+      ],
+      "holes": [
+        [
+          [
+            2.55,
+            0.1,
+            {
+              "next": "counter",
+              "cut": "counter",
+              "trim": {
+                "skirting": 0.1,
+                "wainscot": 1.02,
+                "rail": 0.08
+              },
+              "trimTexture": {
+                "skirting": "kick",
+                "wainscot": "counterFront",
+                "rail": "counterTop"
+              },
+              "trimDepth": {
+                "skirting": -0.06,
+                "wainscot": 0.016,
+                "rail": 0.05
+              }
+            }
+          ],
+          [
+            2.55,
+            3.4,
+            {
+              "next": "counter",
+              "cut": "counter",
+              "trim": {
+                "skirting": 0.1,
+                "wainscot": 1.02,
+                "rail": 0.08
+              },
+              "trimTexture": {
+                "skirting": "kick",
+                "wainscot": "counterFront",
+                "rail": "counterTop"
+              },
+              "trimDepth": {
+                "skirting": -0.06,
+                "wainscot": 0.016,
+                "rail": 0.05
+              }
+            }
+          ],
+          [
+            3.35,
+            3.4,
+            {
+              "next": "counter",
+              "cut": "counter",
+              "trim": {
+                "skirting": 0.1,
+                "wainscot": 1.02,
+                "rail": 0.08
+              },
+              "trimTexture": {
+                "skirting": "kick",
+                "wainscot": "counterFront",
+                "rail": "counterTop"
+              },
+              "trimDepth": {
+                "skirting": -0.06,
+                "wainscot": 0.016,
+                "rail": 0.05
+              }
+            }
+          ],
+          [
+            3.35,
+            0.8,
+            {
+              "next": "counter",
+              "cut": "counter",
+              "trim": {
+                "skirting": 0.1,
+                "wainscot": 1.02,
+                "rail": 0.08
+              },
+              "trimTexture": {
+                "skirting": "kick",
+                "wainscot": "counterFront",
+                "rail": "counterTop"
+              },
+              "trimDepth": {
+                "skirting": -0.06,
+                "wainscot": 0.016,
+                "rail": 0.05
+              }
+            }
+          ],
+          [
+            4.6,
+            0.8,
+            {
+              "next": "counter",
+              "cut": "counter",
+              "trim": {
+                "skirting": 0.1,
+                "wainscot": 1.02,
+                "rail": 0.08
+              },
+              "trimTexture": {
+                "skirting": "kick",
+                "wainscot": "counterFront",
+                "rail": "counterTop"
+              },
+              "trimDepth": {
+                "skirting": -0.06,
+                "wainscot": 0.016,
+                "rail": 0.05
+              }
+            }
+          ],
+          [
+            4.6,
+            0.1,
+            {
+              "next": "counter",
+              "cut": "counter",
+              "trim": {
+                "skirting": 0.1,
+                "wainscot": 1.02,
+                "rail": 0.08
+              },
+              "trimTexture": {
+                "skirting": "kick",
+                "wainscot": "counterFront",
+                "rail": "counterTop"
+              },
+              "trimDepth": {
+                "skirting": -0.06,
+                "wainscot": 0.016,
+                "rail": 0.05
+              }
+            }
+          ]
+        ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "plaster",
+      "trim": {
+        "skirting": 0.14,
+        "wainscot": 1.14,
+        "rail": 0.08,
+        "cap": true
+      },
+      "view": "hall"
+    },
+    {
+      "id": "counter",
+      "zone": "hall",
+      "floor": 1.1,
+      "ceiling": 4.9,
+      "light": 1,
+      "open": true,
+      "floorTexture": "counterTop",
+      "trim": {
+        "skirting": 0,
+        "wainscot": 0,
+        "rail": 0,
+        "cap": true
+      },
+      "corners": [
+        [
+          2.55,
+          0.1,
+          {
+            "next": "hall"
+          }
+        ],
+        [
+          4.6,
+          0.1,
+          {
+            "next": "hall"
+          }
+        ],
+        [
+          4.6,
+          0.8,
+          {
+            "next": "hall"
+          }
+        ],
+        [
+          3.35,
+          0.8,
+          {
+            "next": "hall"
+          }
+        ],
+        [
+          3.35,
+          3.4,
+          {
+            "next": "hall"
+          }
+        ],
+        [
+          2.55,
+          3.4,
+          {
+            "next": "hall"
+          }
+        ]
+      ],
+      "ceilingTexture": "ceiling",
+      "wallTexture": "plaster",
+      "view": "hall"
+    },
+    {
+      "id": "ward",
+      "zone": "hall",
+      "floor": 0,
+      "ceiling": 4.9,
+      "light": 1.2,
+      "open": true,
+      "corners": [
+        [
+          -4.875,
+          -3.8,
+          {
+            "cut": "ward-back",
+            "window": {
+              "at": 0.875,
+              "width": 0.7,
+              "y0": 3.05,
+              "y1": 3.75,
+              "bars": 4,
+              "moon": true
+            }
+          }
+        ],
+        [
+          -1.9,
+          -3.8,
+          {
+            "cut": "ward-east",
+            "thick": 0.2125
+          }
+        ],
+        [
+          -1.9,
+          -0.875,
+          {
+            "next": "hall"
+          }
+        ],
+        [
+          -4.875,
+          -0.875,
+          {
+            "cut": "west"
+          }
+        ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "plaster",
+      "trim": {
+        "skirting": 0.14,
+        "wainscot": 1.14,
+        "rail": 0.08,
+        "cap": true
+      },
+      "view": "hall"
+    },
+    {
+      "id": "mouth",
+      "zone": "corridor",
+      "floor": 0,
+      "ceiling": 4.9,
+      "light": 1,
+      "open": true,
+      "corners": [
+        [
+          -1.475,
+          -1.4,
+          {
+            "next": "corridor",
+            "cut": "bulkhead",
+            "hideFrom": [
+              "hall"
+            ],
+            "frame": false
+          }
+        ],
+        [
+          1.475,
+          -1.4,
+          {
+            "cut": "corridor-east"
+          }
+        ],
+        [
+          1.475,
+          -0.875,
+          {
+            "next": "hall"
+          }
+        ],
+        [
+          -1.475,
+          -0.875,
+          {
+            "cut": "corridor-west",
+            "thick": 0.2125
+          }
+        ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "plaster",
+      "trim": {
+        "skirting": 0.14,
+        "wainscot": 1.14,
+        "rail": 0.08,
+        "cap": true
+      },
+      "view": "corridor"
+    },
+    {
+      "id": "corridor",
+      "zone": "corridor",
+      "floor": 0,
+      "ceiling": 3.2,
+      "light": 1,
+      "ceilingTexture": "ceilingTile",
+      "corners": [
+        [
+          -1.475,
+          -6.875,
+          {
+            "cut": "end",
+            "door": {
+              "at": 1.475,
+              "width": 1.5,
+              "height": 2.1,
+              "id": "exit"
+            },
+            "window": {
+              "at": 0.525,
+              "width": 0.55,
+              "y0": 2.45,
+              "y1": 2.95,
+              "bars": 3,
+              "moon": true
+            }
+          }
+        ],
+        [
+          1.475,
+          -6.875,
+          {
+            "cut": "corridor-east-north",
+            "handrail": 0.92
+          }
+        ],
+        [
+          1.475,
+          -4.5,
+          {
+            "next": "doorway",
+            "cut": "corridor-east"
+          }
+        ],
+        [
+          1.475,
+          -3.5,
+          {
+            "cut": "corridor-east",
+            "handrail": 0.92
+          }
+        ],
+        [
+          1.475,
+          -1.4,
+          {
+            "next": "mouth"
+          }
+        ],
+        [
+          -1.475,
+          -1.4,
+          {
+            "cut": "corridor-west",
+            "door": {
+              "at": 0.95,
+              "width": 0.9,
+              "height": 2.05,
+              "id": "staff"
+            },
+            "handrail": 0.92,
+            "thick": 0.2125
+          }
+        ]
+      ],
+      "floorTexture": "floor",
+      "wallTexture": "plaster",
+      "trim": {
+        "skirting": 0.14,
+        "wainscot": 1.14,
+        "rail": 0.08,
+        "cap": true
+      },
+      "view": "corridor"
+    },
+    {
+      "id": "doorway",
+      "zone": "corridor",
+      "floor": 0,
+      "ceiling": 2.1,
+      "light": 1,
+      "trim": {
+        "skirting": 0,
+        "wainscot": 0,
+        "rail": 0,
+        "cap": true
+      },
+      "corners": [
+        [
+          1.475,
+          -4.5,
+          {
+            "thick": 0
+          }
+        ],
+        [
+          1.725,
+          -4.5,
+          {
+            "next": "closet"
+          }
+        ],
+        [
+          1.725,
+          -3.5,
+          {
+            "thick": 0
+          }
+        ],
+        [
+          1.475,
+          -3.5,
+          {
+            "next": "corridor"
+          }
+        ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "plaster",
+      "view": "corridor"
+    },
+    {
+      "id": "closet",
+      "zone": "closet",
+      "floor": 0,
+      "ceiling": 4.9,
+      "light": 1,
+      "open": true,
+      "floorTexture": "floorDim",
+      "corners": [
+        [
+          1.725,
+          -6.375,
+          {
+            "cut": "closet-north"
+          }
+        ],
+        [
+          4.475,
+          -6.375,
+          {
+            "cut": "closet-east"
+          }
+        ],
+        [
+          4.475,
+          -2.625,
+          {
+            "cut": "closet-south"
+          }
+        ],
+        [
+          1.725,
+          -2.625,
+          {
+            "cut": "corridor-east"
+          }
+        ],
+        [
+          1.725,
+          -3.5,
+          {
+            "next": "doorway",
+            "cut": "corridor-east"
+          }
+        ],
+        [
+          1.725,
+          -4.5,
+          {
+            "cut": "corridor-east-north"
+          }
+        ]
+      ],
+      "ceilingTexture": "ceiling",
+      "wallTexture": "plaster",
+      "trim": {
+        "skirting": 0.14,
+        "wainscot": 1.14,
+        "rail": 0.08,
+        "cap": true
+      },
+      "view": "closet"
+    }
+  ],
+  "masses": [
+    {
+      "points": [
+        {
+          "x": 1.725,
+          "z": -2.375
+        },
+        {
+          "x": 4.875,
+          "z": -2.375
+        },
+        {
+          "x": 4.875,
+          "z": -1.125
+        },
+        {
+          "x": 1.725,
+          "z": -1.125
+        }
+      ],
+      "top": 0.24
+    },
+    {
+      "points": [
+        {
+          "x": -1.6875,
+          "z": -3.8
+        },
+        {
+          "x": -1.475,
+          "z": -3.8
+        },
+        {
+          "x": -1.475,
+          "z": -1.4
+        },
+        {
+          "x": -1.6875,
+          "z": -1.4
+        }
+      ],
+      "top": 4.9,
+      "faces": {
+        "edges": [
+          1
+        ],
+        "from": 3.2
+      }
+    },
+    {
+      "points": [
+        {
+          "x": 1.475,
+          "z": -1
+        },
+        {
+          "x": 2,
+          "z": -1
+        },
+        {
+          "x": 2,
+          "z": -0.725
+        },
+        {
+          "x": 1.475,
+          "z": -0.725
+        }
+      ],
+      "top": 4.9,
+      "cut": "north-east"
+    }
+  ],
+  "props": [
+    {
+      "id": "bed-1",
+      "use": "model.bed",
+      "at": [
+        -4.1,
+        0.4
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          1.05,
+          0.95,
+          2.05
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "wheelchair-1",
+      "use": "model.wheelchair",
+      "at": [
+        -4.2,
+        1.9
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.65,
+          0.95,
+          0.95
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "fallen-chair-1",
+      "use": "model.fallen-chair",
+      "at": [
+        -1.2,
+        0.35
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.47,
+          0.42,
+          0.66
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "bench-1",
+      "use": "model.bench",
+      "at": [
+        -2.85,
+        3.35
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          1.66,
+          0.9,
+          0.52
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "sink-1",
+      "use": "model.sink",
+      "at": [
+        -4.984999999999999,
+        3,
+        0.2
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.51,
+          0.8,
+          0.45
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "trolley-1",
+      "use": "model.trolley",
+      "at": [
+        2.3,
+        2.4
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.75,
+          0.95,
+          0.5
+        ]
+      }
+    },
+    {
+      "id": "filing-1",
+      "use": "model.filing",
+      "at": [
+        -4.32,
+        -3.4699999999999998
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.52,
+          1.34,
+          0.63
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "filing-2",
+      "use": "model.filing",
+      "at": [
+        -3.76,
+        -3.4699999999999998
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.52,
+          1.34,
+          0.63
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "drawers-1",
+      "use": "model.drawers",
+      "at": [
+        2.4,
+        -0.62
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.75,
+          0.88,
+          0.45
+        ],
+        "gain": 1.3
+      }
+    },
+    {
+      "id": "clock-1",
+      "use": "model.clock",
+      "at": [
+        4.45,
+        -0.845,
+        2.57
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.56,
+          0.56,
+          0.06
+        ],
+        "uniform": true,
+        "wall": "north"
+      }
+    },
+    {
+      "id": "nightstand-1",
+      "use": "model.nightstand",
+      "at": [
+        -3.12,
+        -0.3
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.42,
+          0.7,
+          0.49
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "monitor-cart-1",
+      "use": "model.monitor-cart",
+      "at": [
+        -2.4,
+        -3.35
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.71,
+          1.1,
+          0.54
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "iv-stand-1",
+      "use": "model.iv-stand",
+      "at": [
+        -2.6,
+        1.15
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.84,
+          1.8,
+          0.86
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "office-chair-1",
+      "use": "model.office-chair",
+      "at": [
+        3.9,
+        -0.4
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.66,
+          0.95,
+          0.71
+        ],
+        "uniform": true,
+        "gain": 1.4
+      }
+    },
+    {
+      "id": "wall-tv-1",
+      "use": "model.wall-tv",
+      "at": [
+        -4.525,
+        -1.7,
+        1.8
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.45,
+          0.55,
+          0.69
+        ],
+        "uniform": true,
+        "wall": "west"
+      }
+    },
+    {
+      "id": "mop-bucket-1",
+      "use": "model.mop-bucket",
+      "at": [
+        1.1,
+        -5.3
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.59,
+          1.25,
+          0.44
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "desk-lamp-1",
+      "use": "model.desk-lamp",
+      "at": [
+        3.05,
+        1.1,
+        1.08
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.35,
+          0.42,
+          0.21
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "waste-bin-1",
+      "use": "model.waste-bin",
+      "at": [
+        4.55,
+        2.95
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.41,
+          0.5,
+          0.41
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "waste-bin-2",
+      "use": "model.waste-bin",
+      "at": [
+        4.5,
+        5.62
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.37,
+          0.45,
+          0.37
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "coat-hook-1",
+      "use": "model.coat-hook",
+      "at": [
+        2.35,
+        -0.745,
+        0.92
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.51,
+          1.15,
+          0.24
+        ],
+        "uniform": true,
+        "wall": "north"
+      }
+    },
+    {
+      "id": "wall-sconce-1",
+      "use": "model.wall-sconce",
+      "at": [
+        2.3,
+        -0.725,
+        2.56
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.22,
+          0.3,
+          0.28
+        ],
+        "uniform": true,
+        "wall": "north"
+      }
+    },
+    {
+      "id": "junction-box-1",
+      "use": "model.junction-box",
+      "at": [
+        3.9,
+        -0.725,
+        2.6
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.43,
+          0.9,
+          0.28
+        ],
+        "uniform": true,
+        "wall": "north"
+      }
+    },
+    {
+      "id": "key-cabinet-1",
+      "use": "model.key-cabinet",
+      "at": [
+        4.715,
+        3.6,
+        1.12
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.6,
+          0.75,
+          0.31
+        ],
+        "uniform": true,
+        "wall": "east"
+      }
+    },
+    {
+      "id": "floor-plant-1",
+      "use": "model.floor-plant",
+      "at": [
+        -4.4,
+        6.3
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.86,
+          1.3,
+          0.81
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "floor-plant-2",
+      "use": "model.floor-plant",
+      "at": [
+        4.4,
+        6.35
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.79,
+          1.15,
+          0.75
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "desk-plant-1",
+      "use": "model.desk-plant",
+      "at": [
+        4.3,
+        0.45,
+        1.1
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.36,
+          0.4,
+          0.33
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "book-stack-1",
+      "use": "model.book-stack",
+      "at": [
+        3.9,
+        0.45,
+        1.1
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.26,
+          0.2,
+          0.19
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "book-stack-2",
+      "use": "model.book-stack",
+      "at": [
+        2.95,
+        2.95,
+        1.1
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.22,
+          0.17,
+          0.19
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "ledger-1",
+      "use": "model.ledger",
+      "at": [
+        2.95,
+        1.5,
+        1.1
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.45,
+          0.06,
+          0.42
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "overbed-table-1",
+      "use": "model.overbed-table",
+      "at": [
+        -3.3,
+        0.9
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.8,
+          0.9,
+          0.45
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "privacy-screen-1",
+      "use": "model.privacy-screen",
+      "at": [
+        -2.75,
+        -2.55
+      ],
+      "angle": 67.081688,
+      "with": {
+        "size": [
+          1.25,
+          1.6,
+          0.45
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "radiator-1",
+      "use": "model.radiator",
+      "at": [
+        -4.755,
+        4.2
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.9,
+          0.62,
+          0.2
+        ],
+        "uniform": true,
+        "wall": "west"
+      }
+    },
+    {
+      "id": "radiator-2",
+      "use": "model.radiator",
+      "at": [
+        1.355,
+        -2.35
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.9,
+          0.62,
+          0.2
+        ],
+        "uniform": true,
+        "wall": "corridor-east"
+      }
+    },
+    {
+      "id": "extinguisher-cabinet-1",
+      "use": "model.extinguisher-cabinet",
+      "at": [
+        -1.385,
+        -3.3,
+        0.95
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.42,
+          0.75,
+          0.17
+        ],
+        "uniform": true,
+        "wall": "corridor-west"
+      }
+    },
+    {
+      "id": "gurney-1",
+      "use": "model.gurney",
+      "at": [
+        -1.1,
+        -5.75
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          1.8,
+          0.9,
+          0.62
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "water-cooler-1",
+      "use": "model.water-cooler",
+      "at": [
+        4.62,
+        4.4
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.36,
+          1.2,
+          0.34
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "pendant-lamp-1",
+      "use": "model.pendant-lamp",
+      "at": [
+        -4.1,
+        0.4,
+        2.75
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.5,
+          0.75,
+          0.5
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "strip-light-1",
+      "use": "model.strip-light",
+      "at": [
+        0,
+        -2.5,
+        3.08
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          1.25,
+          0.1,
+          0.3
+        ],
+        "ceiling": true
+      }
+    },
+    {
+      "id": "strip-light-2",
+      "use": "model.strip-light",
+      "at": [
+        0,
+        -4.6,
+        3.08
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          1.25,
+          0.1,
+          0.3
+        ],
+        "ceiling": true
+      }
+    },
+    {
+      "id": "stock-boxes-1",
+      "use": "model.stock-boxes",
+      "at": [
+        3.72,
+        -6.17,
+        0.16
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.3,
+          0.4,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-archive-1",
+      "use": "model.stock-archive",
+      "at": [
+        3.72,
+        -6.17,
+        0.64
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.3,
+          0.36,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-linen-1",
+      "use": "model.stock-linen",
+      "at": [
+        3.72,
+        -6.17,
+        1.14
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.3,
+          0.3,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-bottles-1",
+      "use": "model.stock-bottles",
+      "at": [
+        3.72,
+        -6.17,
+        1.66
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.3,
+          0.2,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-canisters-1",
+      "use": "model.stock-canisters",
+      "at": [
+        4.2,
+        -6.17,
+        0.16
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.3,
+          0.36,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-toolbox-1",
+      "use": "model.stock-toolbox",
+      "at": [
+        4.2,
+        -6.17,
+        0.64
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.3,
+          0.24,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-rolls-1",
+      "use": "model.stock-rolls",
+      "at": [
+        4.2,
+        -6.17,
+        1.14
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.3,
+          0.34,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-bandages-1",
+      "use": "model.stock-bandages",
+      "at": [
+        4.2,
+        -6.17,
+        1.66
+      ],
+      "angle": 90,
+      "with": {
+        "size": [
+          0.3,
+          0.22,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-archive-2",
+      "use": "model.stock-archive",
+      "at": [
+        1.93,
+        -5.95,
+        0.16
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.3,
+          0.4,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-bandages-2",
+      "use": "model.stock-bandages",
+      "at": [
+        1.93,
+        -5.95,
+        0.64
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.3,
+          0.26,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-bottles-2",
+      "use": "model.stock-bottles",
+      "at": [
+        1.93,
+        -5.95,
+        1.14
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.3,
+          0.2,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-boxes-2",
+      "use": "model.stock-boxes",
+      "at": [
+        1.93,
+        -5.2,
+        0.16
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.3,
+          0.4,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-linen-2",
+      "use": "model.stock-linen",
+      "at": [
+        1.93,
+        -5.2,
+        0.64
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.3,
+          0.3,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-rolls-2",
+      "use": "model.stock-rolls",
+      "at": [
+        1.93,
+        -5.2,
+        1.14
+      ],
+      "angle": 0,
+      "with": {
+        "size": [
+          0.3,
+          0.3,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-canisters-2",
+      "use": "model.stock-canisters",
+      "at": [
+        4.25,
+        -3.95,
+        0.49
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.3,
+          0.36,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-linen-3",
+      "use": "model.stock-linen",
+      "at": [
+        4.25,
+        -3.95,
+        0.99
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.3,
+          0.28,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-boxes-3",
+      "use": "model.stock-boxes",
+      "at": [
+        4.25,
+        -4.95,
+        0.49
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.3,
+          0.4,
+          0.3
+        ],
+        "uniform": true
+      }
+    },
+    {
+      "id": "stock-toolbox-2",
+      "use": "model.stock-toolbox",
+      "at": [
+        4.25,
+        -4.95,
+        0.99
+      ],
+      "angle": 180,
+      "with": {
+        "size": [
+          0.3,
+          0.24,
+          0.3
+        ],
+        "uniform": true
+      }
+    }
+  ],
+  "lamps": [
+    {
+      "id": "deskLamp",
+      "kind": "desk",
+      "at": [
+        3.05,
+        1.15,
+        1.55
+      ],
+      "range": 5,
+      "radius": 1.7,
+      "color": "#ffb866"
+    },
+    {
+      "id": "monitorGlow",
+      "kind": "screen",
+      "at": [
+        -2.4,
+        -3.05,
+        1.5
+      ],
+      "range": 2.6,
+      "radius": 0,
+      "color": "#73d98c"
+    },
+    {
+      "id": "hallLamp",
+      "kind": "pendant",
+      "at": [
+        0,
+        2.6,
+        3.4
+      ],
+      "range": 7.5,
+      "radius": 3.4,
+      "color": "#ffd699"
+    },
+    {
+      "id": "wardLamp",
+      "kind": "pendant",
+      "at": [
+        -3.2,
+        3.4,
+        3.4
+      ],
+      "range": 6,
+      "radius": 2.6,
+      "color": "#ffdb9e"
+    },
+    {
+      "id": "corridorLamp",
+      "kind": "bulb",
+      "at": [
+        0,
+        -3.2,
+        3
+      ],
+      "range": 5.5,
+      "radius": 2.6,
+      "color": "#ffcc85"
+    },
+    {
+      "id": "exitLamp",
+      "kind": "bulb",
+      "at": [
+        0,
+        -5.8,
+        2.75
+      ],
+      "range": 5.5,
+      "radius": 1.8,
+      "color": "#ffc780"
+    },
+    {
+      "id": "closetLamp",
+      "kind": "fluorescent",
+      "at": [
+        3.1,
+        -4.5,
+        3.4
+      ],
+      "range": 4.5,
+      "radius": 2.2,
+      "color": "#e6e6bf"
+    },
+    {
+      "id": "curtainWest",
+      "kind": "fire",
+      "at": [
+        -4.1,
+        -0.5,
+        1.3
+      ],
+      "range": 6,
+      "radius": 3.2,
+      "color": "#ff9940"
+    },
+    {
+      "id": "curtainEast",
+      "kind": "fire",
+      "at": [
+        -2.35,
+        1.4,
+        1.3
+      ],
+      "range": 6,
+      "radius": 3.2,
+      "color": "#ff9940"
+    },
+    {
+      "id": "spark",
+      "kind": "spark",
+      "at": [
+        -1.15,
+        -4.1,
+        0.4
+      ],
+      "range": 4,
+      "radius": 0,
+      "color": "#99bfff"
+    },
+    {
+      "id": "moon",
+      "kind": "moon",
+      "at": [
+        0.3,
+        0.2,
+        2.2
+      ],
+      "range": 4.2,
+      "radius": 0,
+      "color": "#8cadf2"
+    },
+    {
+      "id": "moonCorridor",
+      "kind": "moon",
+      "at": [
+        -0.9,
+        -4.9,
+        2.3
+      ],
+      "range": 3.2,
+      "radius": 0,
+      "color": "#8cadf2"
+    },
+    {
+      "id": "wardFill",
+      "kind": "fill",
+      "at": [
+        -3.5,
+        3.7,
+        2.5
+      ],
+      "range": 4.8,
+      "radius": 0,
+      "color": "#80a8c7"
+    },
+    {
+      "id": "bayFill",
+      "kind": "fill",
+      "at": [
+        -3.4,
+        -0.8,
+        2.7
+      ],
+      "range": 4.4,
+      "radius": 0,
+      "color": "#99bdc2"
+    },
+    {
+      "id": "sconce",
+      "kind": "bulb",
+      "at": [
+        2.4,
+        -0.3,
+        2.7
+      ],
+      "range": 3.6,
+      "radius": 0,
+      "color": "#ffc780"
+    }
+  ],
+  "bounce": [
+    [
+      3.05,
+      1.3,
+      1.15
+    ],
+    [
+      0,
+      1.3,
+      -6
+    ],
+    [
+      -3.2,
+      1.3,
+      2.4
+    ],
+    [
+      0,
+      1.3,
+      3.2
+    ]
+  ],
+  "time": "night",
+  "views": {
+    "hall": {
+      "look": [
+        0,
+        1.1,
+        0.75
+      ],
+      "distance": 16.6,
+      "follow": 0.12,
+      "depthFollow": {
+        "rate": 0.15,
+        "about": 2
+      },
+      "enterMargin": 0.25
+    },
+    "corridor": {
+      "look": [
+        0,
+        0.6,
+        -4
+      ],
+      "distance": 16,
+      "follow": 1,
+      "enterMargin": 0.25
+    },
+    "closet": {
+      "look": [
+        2.8,
+        0.6,
+        -4.4
+      ],
+      "distance": 15,
+      "x": 2.2,
+      "follow": 1,
+      "enterMargin": 0.25
+    },
+    "spot-hall": {
+      "at": [
+        0,
+        3.2
+      ],
+      "yaw": 180
+    },
+    "spot-ward": {
+      "at": [
+        -2.6,
+        2.6
+      ],
+      "yaw": 180
+    },
+    "spot-corridor": {
+      "at": [
+        0,
+        -3
+      ],
+      "yaw": 180
+    },
+    "spot-supply": {
+      "at": [
+        3,
+        -4.2
+      ],
+      "yaw": 90,
+      "doorOpen": true
+    }
+  },
+  "visibility": {
+    "rooms": {
+      "reception": [
+        "hall",
+        "counter"
+      ],
+      "ward": [
+        "ward"
+      ],
+      "northCorridor": [
+        "mouth",
+        "corridor",
+        "doorway"
+      ],
+      "supply": [
+        "closet"
+      ]
+    },
+    "zones": {
+      "hall": [
+        "reception",
+        "ward",
+        "northCorridor"
+      ],
+      "corridor": [
+        "northCorridor"
+      ],
+      "closet": [
+        "supply"
+      ]
+    },
+    "masses": {
+      "0": [
+        "reception",
+        "ward"
+      ],
+      "1": [
+        "ward",
+        "northCorridor"
+      ],
+      "2": [
+        "reception",
+        "northCorridor"
+      ]
+    }
+  }
+}

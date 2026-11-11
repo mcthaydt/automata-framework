@@ -37,3 +37,4 @@ spikes/tll-camera/node_modules
 
 # wrangler's local state (the miniflare databases of `host:local`)
 .wrangler/
+spikes/clinic/node_modules

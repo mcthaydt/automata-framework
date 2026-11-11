@@ -1,0 +1,49 @@
+{
+  "lamps": {
+    "deskLamp": {
+      "level": 0.819
+    },
+    "monitorGlow": {
+      "level": 0.55
+    },
+    "hallLamp": {
+      "level": 0.1
+    },
+    "wardLamp": {
+      "level": 0.12
+    },
+    "corridorLamp": {
+      "level": 0.234
+    },
+    "exitLamp": {
+      "level": 0.931
+    },
+    "closetLamp": {
+      "level": 0
+    },
+    "moon": {
+      "level": 0.85
+    },
+    "moonCorridor": {
+      "level": 0.8
+    },
+    "wardFill": {
+      "level": 1.15
+    },
+    "bayFill": {
+      "level": 0.95
+    },
+    "sconce": {
+      "level": 0.585
+    },
+    "curtainWest": {
+      "level": 0
+    },
+    "curtainEast": {
+      "level": 0
+    },
+    "spark": {
+      "level": 0
+    }
+  }
+}
