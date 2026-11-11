@@ -41,7 +41,7 @@ steps, so the day exterior and the lamp-lit floor come out nearly black. Without
 the time of day and reads, but flat.
 
 Three more findings:
-- **WebGPU:** AF loses the device on the first frame in play (headless SwiftShader), so there is no WebGPU picture yet.
+- **WebGPU:** with Vulkan on SwiftShader the room draws on WebGPU; the figures do not yet, from an `@pixi/3d` bug (see WebGPU below).
 - **Gameplay camera:** AF's default (24 mm, 25°, 5 m, free turn, no dead zone) is not The Last Light's (50 mm, 30°,
   zones at about 16 m, eight 45° steps, a dead zone, a push-in dolly only).
 - **The dresser:** AF's dressed street has a bench that EB's has not, so the two dressers place differently with the
@@ -57,7 +57,7 @@ Three more findings:
    and the level's `time`. This is how a game lights a level today.
 3. **AF WebGL, material light only**: the same without `lighting`, so every piece keeps the ramp material, lit by the
    time of day's hemisphere and sun.
-4. **AF WebGPU, baked room light**: shows AF's "The picture stopped" panel (see WebGPU below).
+4. **AF WebGPU, baked room light**: the room draws; the figures are missing (see WebGPU below). `wp0/` has the same set drawn after WP0.
 
 **`<scene>-gameplay.png`: the gameplay cameras.** On WebGL, AF's default view (two panels: baked room light, then
 material light only) beside TLL's play camera (the same two). Both frame the man from the south, at a 320 × 180 field.
@@ -82,18 +82,21 @@ The time is the level's (`lampLit`, `day`). What still differs:
 - AF's figures are the base pair as `@automata/3d` draws them today, standing with a plain gait and no stand pose.
 - The diorama draws the walls through AF's occluder rule, not EB's dollhouse cut.
 
-**WebGPU.** Chromium here has WebGPU headless (SwiftShader adapter, `--enable-unsafe-webgpu`, on a localhost page).
-AF's renderer takes it (`drew: webgpu`). Then the device is lost on the first frame in play, with `unknown: A valid
-external Instance reference no longer exists.`, and AF shows its context-loss panel. Traced:
-- The page asks for two devices at boot. Device #2 is lost as play starts, with no `GPUDevice.destroy()` call.
-- AF's recovery asks for device #3, which never draws.
-- It still happens with the look, the figures or the baked light left out (`?look=0`, `?cast=0`, `?light=0`). With the
-  figures left out, the reason is `destroyed` instead.
-- A bare WebGPU device in the same browser, beside a lost WebGL context, survives.
+**WebGPU.** *Corrected by WP0 (2026-11-10, [wp0/README.md](wp0/README.md)); the first reading, that AF loses the device, was wrong.*
+Chromium here has WebGPU headless (SwiftShader adapter, `--enable-unsafe-webgpu`, on a localhost page). The device loss is
+the browser's: a bare page with no Pixi and no AF that only configures and clears a WebGPU canvas loses its device on
+frame 1, because the software adapter has no shared-image backing for a swap chain unless Chromium also runs Vulkan on
+SwiftShader (`--enable-features=Vulkan --use-vulkan=swiftshader` fixes it; `shoot.mjs` has them). With that, AF draws on
+WebGPU, and two things were found:
+- **Fixed in AF.** Lit meshes drew black on WebGPU under no-eval: pixi's eval-free WGSL polyfill wrote `i32` uniforms
+  (`@pixi/3d`'s light tile tables) through the float view. AF's shim now writes integers itself.
+- **Open, in `@pixi/3d`.** A mesh added after a post effect has run makes every later WebGPU frame invalid (a `sceneDepth`
+  usage conflict; the frame's commands are dropped). The figures are added after the first frame, so they are missing in
+  the WebGPU panels (the room draws). Smallest reproduction, cause and the options: the README. Any mesh that spawns later
+  on WebGPU with the look on is affected.
 
-AF's only WebGPU browser test draws a background and no mesh ("draws the same sky as WebGL2", in
-`packages/3d/tests/browser/parity/shared/parity/renderer.test.ts`). So a Pixi 3D scene on WebGPU has never been drawn in
-AF's tests. Whether a real GPU does the same is not yet known (WP1).
+AF's only other WebGPU browser test ("draws the same sky as WebGL2") draws a background and no mesh; the new
+`tests/browser/webgpu/mesh.test.ts` draws a crate, a model, a figure and the base interior.
 
 ## Part by part
 

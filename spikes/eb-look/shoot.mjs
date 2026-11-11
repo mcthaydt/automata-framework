@@ -53,7 +53,12 @@ process.on('exit', stop)
 for (let i = 0; i < 120 && !log.includes('Local:'); i++) await new Promise((r) => setTimeout(r, 500))
 if (!log.includes('Local:')) throw new Error(`vite did not start:\n${log}`)
 
-const browser = await chromium.launch({ args: ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
+// Vulkan on SwiftShader is what lets Chromium present a WebGPU canvas here: without it the GPU process cannot make the
+// swap chain's shared image ("Could not find SharedImageBackingFactory ... WebgpuSwapChainTexture") and the device is
+// lost on the first frame, with or without a mesh (docs/refactor/eb-look/wp0/README.md).
+const browser = await chromium.launch({
+  args: ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-features=Vulkan', '--use-vulkan=swiftshader'],
+})
 const facts = []
 
 const FIELD = { 'base-interior': [512, 320], 'base-exterior': [640, 360] }
@@ -83,7 +88,7 @@ async function shoot(scene, view, pref, extra) {
   // The pause button and any notice sit over the field: hidden for the picture only.
   await page.addStyleTag({ content: '[data-layer="screens"] { visibility: hidden !important }' })
   // The game draws at its logical size and the letterbox upscales whole pixels: read back the logical field.
-  const png = await canvas.screenshot()
+  const png = await canvas.screenshot({ timeout: 120000 })
   await page.close()
   return { png, renderer: data.renderer, data, errors }
 }
