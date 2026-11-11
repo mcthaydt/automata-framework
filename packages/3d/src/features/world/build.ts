@@ -154,6 +154,17 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     problems.push(problem)
   }
 
+  // A level with no rooms draws nothing, and a level that failed to read comes here as exactly that (`readLevel` hands
+  // back an empty level with its problems). Say so here, so the empty frame is never the only sign.
+  if (level.sectors.length === 0)
+    problems.push({
+      path: ['sectors'],
+      code: 'empty-level',
+      message:
+        'This level has no rooms, so nothing is drawn. If it was read from a file, look at the problems readLevel returned.',
+      where: 'sectors',
+    })
+
   // A room that asks to be dressed is drawn bare: filling a room is the world-kit extension's, and core never fills it
   // some other way. The field stays in the format, so the level is one file for every game.
   if (level.dress?.keep !== false)

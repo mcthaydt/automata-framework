@@ -57,5 +57,8 @@ test('draws the room and Wick in it under the CSP', async ({ page }) => {
     .poll(async () => (await seen(frame)).blue.reduce((sum, count) => sum + count, 0), { timeout: 15_000 })
     .toBeGreaterThan(100)
   expect((await seen(frame)).colours).toBeGreaterThan(8)
+  // The room itself, not only Wick: a lit floor and walls lift the frame well clear of a black one (4.6 when the
+  // level failed to read and only the figure drew).
+  expect((await seen(frame)).brightness).toBeGreaterThan(20)
   expect(errors).toEqual([])
 })

@@ -1,5 +1,7 @@
 // The world builder: a `/2` level into renderer-free pieces (spec 9), and the faults it reports instead of throwing.
 import { describe, expect, it } from 'vitest'
+import { baseLibrary } from '#src/features/world/base/base-library.ts'
+import { BASE_SCENES } from '#src/features/world/base/base-scenes.ts'
 import { buildWorld, type WorldPiece } from '#src/features/world/build.ts'
 import type { WorldLibrary } from '#src/features/world/swatches.ts'
 import type { AfCorner2, AfSector2, AfSectorEntry2, AfWall2 } from '#src/shared/level/af-sector-2.schema.ts'
@@ -148,6 +150,12 @@ describe('subdivision', () => {
 })
 
 describe('faults', () => {
+  it('says so when the level has no rooms, in place of drawing nothing in silence', () => {
+    const empty = { ...BASE_SCENES['base-interior'], sectors: [] }
+    const world = buildWorld(empty, baseLibrary)
+    expect(world.pieces).toEqual([])
+    expect(world.problems.map((p) => p.code)).toEqual(['empty-level'])
+  })
   it('reports a degenerate room instead of throwing', () => {
     const lv = level(room('room-1', [0, 0, 4, 4]), room('room-2', [10, 0, 14, 0]))
     const { pieces, problems } = buildWorld(lv, LIB)
