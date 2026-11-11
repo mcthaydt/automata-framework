@@ -3,14 +3,15 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: use superpowers:executing-plans to do this plan task by task, in this
 > session, with no subagents (`AGENTS.md`). Steps use checkbox (`- [ ]`) syntax. Tick a step only when its check passed.
 
-**Goal:** every game on the framework gets six languages, a translator's workflow, a first-run language pick, a
-photosensitivity warning, interface sounds, a splash, credits, Ruken achievements and a stale-build check, with four
-examples a person can see.
+**Goal:** every game on the framework gets six languages, `automata words` (an AI translates), a first-run language
+pick, a photosensitivity warning, interface sounds, a splash, credits, generic achievements (mapped to Ruken) and a
+stale-build check, with four examples a person can see.
 
 **Architecture:** each item goes where its owner already is (the spec's approach C). Core (`packages/automata`) gets the
 translated menu words, an *opening* sequence that runs after the host is ready and before the first screen, and one
 root listener for interface sounds. `@automata/ui-screens` gets Splash and Credits. `@automata/tools` gets
-`automata words` and achievements in `ruken.toml`. `@automata/net`, `-net-server` and `-net-ui` get the stale-build check.
+`automata words`, the `words` and `achievements` checks and the Ruken mapping of achievements, which `@automata/content`'s
+game config declares. `@automata/net`, `-net-server` and `-net-ui` get the stale-build check.
 
 **Tech stack:** TypeScript, Svelte 5, Zod, Vitest (jsdom and real-browser projects), Playwright journeys, Effect in
 Node tools only.
@@ -21,20 +22,21 @@ reference; attach it read-only with `add_repo` and clone it to `/home/user/floor
 `ff:` are under that clone. **Nothing is copied from FloorFifty**: no code, no tests, no translations, no branding, no
 art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, close it, and write the framework's own.
 **Audit:** [`../audits/2026-11-11-shared-polish-plan-audit.md`](../audits/2026-11-11-shared-polish-plan-audit.md)
-(stage 3). Its findings are folded in below; the ones still open are marked *open* where they bite.
+(stage 3). Its findings are folded in below; the spec it matches is `main` at the audit's merge (the amendments
+`b119393b`, `df992aaa` and `87b48662` included). Nothing is left open.
 
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 0 of 20 tasks (0%).**
+**Progress: 0 of 21 tasks (0%).**
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
 | 1 | The six languages as data, and the negotiation rules pinned | 1 | todo | |
 | 2 | Core's menu words as catalogs in six languages | 1 | todo | |
-| 3 | `words`: catalogs, CSV and the source stamps (pure) | 1 | todo | |
-| 4 | `automata words export`, `import`, `status` | 1 | todo | |
-| 5 | `automata words check`, and the `words` step of `automata check` | 1 | todo | |
+| 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | todo | |
+| 4 | `automata words`: the AI translates | 1 | todo | |
+| 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | todo | |
 | 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | todo | |
 | 6 | The opening sequence and the seen flags (core) | 2, 3 | todo | |
 | 7 | First-run language pick | 2 | todo | |
@@ -44,12 +46,13 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 11 | Splash (`@automata/ui-screens`) | 5 | todo | |
 | 11b | `Hosting.openLink` on every target | 5 | todo | |
 | 12 | Credits (`@automata/ui-screens`) | 5 | todo | |
-| 13 | Achievements in `ruken.toml` and `automata check` | 6 | todo | |
+| 13 | Achievements, generic, and their Ruken mapping | 6 | todo | |
 | 14 | Stale-build check | 7 | todo | |
 | 15 | The four examples and their journeys | examples | todo | |
 | 16 | Emberwick in six languages, with an achievement | 1, 6 | todo | |
 | 17 | Ember Hall (`games/base-3d`) in six languages | 1 | todo | |
 | 18 | Guides, API report and index, changesets, final gates | done means | todo | |
+| 19 | The site's Editor page is cut; the link opens the editor | site | todo | |
 
 ## Global constraints
 
@@ -107,10 +110,17 @@ The spec left these to the builder, or the code did not have what the spec assum
    all of core's words, not only `ScreensCopy`: the boot and failure words (`BOOT_FAILURE_COPY_EN`, the loading and
    lost-picture lines) and the display policy's (`DISPLAY_COPY_EN`), under `runtime_*` and `display_*` keys, because
    the spec's goal 1 names errors (audit B1).
-7. **Stale words:** per catalog and language, a *stamps* file, `key → sha256 of the English when it was translated`.
-   A key whose stamp differs from the English now is stale. There is no review state (the Owner).
-8. **Where the translations come from:** the executor writes them new, for each string, in the five languages, in
-   plain short words. None is taken from FloorFifty, and no test compares against FloorFifty's files.
+7. **Stale words:** the spec has `automata words` translate what is missing or "whose source changed", so each
+   catalog keeps a record, `key → sha256 of the source it was translated from`, per language: one `words-sources.json`
+   at a game's root for its catalogs, and `sources.json` in a package's words folder. Only `automata words` writes it
+   (`--mark` records translations written without a model). A key whose record differs from the source now is stale.
+   There is no review state (the Owner). The coordinator settled it (its earlier "no source stamps" predated the
+   command).
+8. **Where the translations come from:** `automata words` asks a Claude model (task 4). This container has no
+   `ANTHROPIC_API_KEY`, so the framework's own words (core, `ui-screens`, `net-ui`) and the reference games' are written
+   new by the executing session, for each string, in the five languages, in plain short words, and recorded with
+   `automata words --mark`. None is taken from FloorFifty, and no test compares against FloorFifty's files. The live
+   model call is tested only against the fake and stays unverified until someone runs `automata words` with a key.
 9. **Sound names:** `press` (the default), `back`, `none`, `focus`, and by request `open`, `close`, `error`. A game may
    add any name. Starter sounds in task 10.
 10. **Credits schema:** task 12. Sections of names; a name may have a role and a link.
@@ -130,9 +140,10 @@ The spec left these to the builder, or the code did not have what the spec assum
     600 KB of `woff2` each). Checked by the audit: each holds 31,345 code points, including every es/pt letter, the six
     language names, kana, all Hangul syllables, GB2312 level 1 and JIS X 0208 level 1; it lacks ✓, ✕ and ⟳ (call 18).
     It replaces Pixelify Sans in Emberwick, and the device fonts in Ember Hall and the template (which draws in
-    `sans-serif` today), cut to the characters used. *Open, for the Owner (audit B7):* a subset is a Modified Version
-    under the OFL and may not keep a reserved name; the default here is that the font build renames such a subset
-    (task 5b). If the Owner picks another font, this call and task 5b step 1 change, nothing else.
+    `sans-serif` today), cut to the characters used. A subset is a Modified Version under the OFL and may not keep a
+    reserved name, so the font build renames a subset's family when `fonts.toml` marks the font's reserved name, and
+    ships the copyright and licence text beside the subsets (`OFL.txt` copied next to `fonts.json` in the build output)
+    (the coordinator, settling audit B7: option A; task 5b).
 14. **Emberwick's words** live in `games/emberwick/messages/ui/<lang>.json` (the game catalog path the content compiler
     documents) and are read as plain JSON, with no Paraglide, because Emberwick's screens are plain DOM.
 15. **The stale-build "journey"** is a real-browser test in `@automata/net-ui` against a fake `fetch`, plus a unit test
@@ -150,13 +161,12 @@ The spec left these to the builder, or the code did not have what the spec assum
 18. **Core's three symbols are drawn, not typed.** ✕, ✓ and ⟳ are not in the font; core draws them as inline SVG
     (`Modal`, `Chip`, `Toast`, `RotateHint`, `RotateToast`, and the PlayStation ✕ prompt), so no game's font must hold an
     icon (audit S12).
-19. **Credits are reached from the title.** Core's Settings screen cannot import `ui-screens`, so it gets no Credits
-    entry; a game may add one to its own screens. *Open, for the coordinator (audit S13):* the spec says "from the title
-    or Settings".
-20. **The site's Examples page** builds the four examples with no site code, except that its playground's import map
-    holds only `@automata/framework` and `zod` (`site/playground/src/frame-page.ts:35`). *Open, for the coordinator
-    (audit S9):* add `@automata/ui-screens` there, or leave `ui-splash-credits` off the site. Until answered, task 15
-    builds the playground and reports what it does.
+19. **Credits are reached from the title,** or wherever the game places it; core's Settings gains no dependency on
+    `ui-screens` (the spec as amended, `87b48662`, settling audit S13).
+20. **The site's Examples page** builds the examples from `examples/`. Its playground's import map holds only
+    `@automata/framework` and `zod` (`site/playground/src/frame-page.ts:35`), so task 15 adds `@automata/ui-screens`,
+    and any other published extension an example imports, to the playground's runtime and import map, with its site
+    test: the one site change the amended spec allows (settling audit S9).
 
 **Later, not in this work:** a translation editor in the suite; achievements on hosts other than Ruken; a served
 two-process journey for the stale-build check.
@@ -165,8 +175,8 @@ two-process journey for the stale-build check.
 
 Inputs the spec implies and a person would meet. Each has a test in the task named.
 
-1. A translator's CSV saved by Excel: a BOM, CRLF, quoted commas, an added empty row. Import reads it (task 3).
-2. A translation that drops or renames a `{placeholder}`: import refuses the whole file and changes nothing (task 4).
+1. The model answers a line without its `{placeholder}`: asked once more, then reported, never written (task 4).
+2. No key on the machine: one sentence, nothing read or written (task 4).
 3. Device storage blocked (private mode): the first-run screens still show and go on, once per visit, and never throw
    (task 6).
 4. A language picked while the warning is next: the warning reads in the language just picked (task 8).
@@ -226,7 +236,7 @@ expect(pick(['fr'])).toBe('en')
 - Create: `packages/automata/src/app/screens/screens-catalog.ts`,
   `packages/automata/src/app/screens/words/{en,ja,ko,es-419,pt-BR,zh-Hans}.json`,
   `packages/automata/src/app/screens/words/context.json`
-  (`words/stamps/<lang>.json` is written by task 4's import, in task 4's commit)
+  (`words/sources.json` is written by task 4's `--mark`, in task 4's commit)
 - Modify: `packages/automata/src/app/screens/screens-copy.ts` (`resolveScreensCopy`), `packages/automata/package.json`
   (export `"./words/*.json"`, in both `exports` and `publishConfig.exports`); the English outside `ScreensCopy` (call 6):
   `shared/ui/status/boot-failure.ts` (`BOOT_FAILURE_COPY_EN`), `shared/ui/status/BootFailurePanel.svelte`,
@@ -293,7 +303,7 @@ test('the failure, loading and rotate words follow the locale', () => {
 - [ ] **Step 3: Implement** `screens-catalog.ts` and write `en.json` from `flattenScreensCopy` (a one-off `node -e`; the
   test is the guard from then on).
 - [ ] **Step 4: Write `words/context.json`**: `{ key: { note } }`, one plain line per key saying where the word shows and
-  what pressing it does. A translator, and you in the next step, read it.
+  what pressing it does. `automata words` sends it to the model, and you read it in the next step.
 - [ ] **Step 5: Write the five translations, new.** For every key, in `ja`, `ko`, `es-419` (Latin American Spanish, the
   informal `tú`), `pt-BR` and `zh-Hans`: the word a game in that language would put on that control, short enough for a
   phone button, with every `{placeholder}` kept. Use the same word for the same action everywhere (one word for Back,
@@ -306,14 +316,17 @@ test('the failure, loading and rotate words follow the locale', () => {
 - [ ] **Step 7: Commit** `feat(framework): the default screens' words in six languages`; the changeset states the
   measured growth of the built entry in bytes.
 
-### Task 3: `words`: catalogs, CSV and the source stamps (pure)
+### Task 3: `words`: catalogs, placeholders and the source record (pure)
 
-Behaviour reference (read, do not copy): `ff:tools/i18n/{catalogue,csv}.ts`. Its `review.ts` is not wanted. Content
-catalogs are plain text (`checkTranslation` refuses anything else), so there are no plural variants here.
+The spec (amended 2026-11-11, `b119393b` and `df992aaa`): no translator's workflow, no CSV, no export or import, no
+review state. `automata words` has an AI translate (task 4). It must know what is *missing* and what is *stale* (the
+source changed since the translation was made), so each catalog keeps a small record of the source each translation was
+made from (call 7). Content catalogs are plain text (`checkTranslation` refuses anything else), so there are no plural
+variants here.
 
 **Files:**
-- Create: `packages/tools/src/shared/words/catalog.ts`, `csv.ts`, `stamps.ts`
-- Test: `packages/tools/tests/unit/shared/words/{catalog,csv,stamps}.test.ts`
+- Create: `packages/tools/src/shared/words/catalog.ts`, `sources.ts`
+- Test: `packages/tools/tests/unit/shared/words/{catalog,sources}.test.ts`
 
 **Interfaces (produced):**
 
@@ -321,126 +334,157 @@ catalogs are plain text (`checkTranslation` refuses anything else), so there are
 // catalog.ts
 export type Catalog = Readonly<Record<string, string>>            // without `$schema`
 export interface CatalogPaths { readonly name: string; readonly source: string; readonly context: string | undefined
-  translation(lang: string): string; stamps(lang: string): string }
+  translation(lang: string): string; readonly record: string }
 /** A game's catalogs: `content` (source `content/generated/messages/<src>.json`, translations
- *  `content/messages/<lang>.json`, stamps `content/messages-stamps/<lang>.json`) when the source file exists, and
- *  `ui` (`<ui>/<lang>.json`, stamps `<ui>/stamps/<lang>.json`, context `<ui>/context.json`), where `<ui>` is the
- *  first of `messages/ui` and `src/messages/ui` that holds `<src>.json` (Ember Hall keeps its in `src/`). It looks
- *  for files, so it is an Effect over `Files`. */
+ *  `content/messages/<lang>.json`) when the source file exists, and `ui` (`<ui>/<lang>.json`, context
+ *  `<ui>/context.json`), where `<ui>` is the first of `messages/ui` and `src/messages/ui` that holds `<src>.json`
+ *  (Ember Hall keeps its in `src/`). Their record is the game's one `words-sources.json`, at its root. It looks for
+ *  files, so it is an Effect over `Files`. */
 export function gameCatalogs(gameDir: string, sourceLanguage: string): Effect.Effect<readonly CatalogPaths[], never, Files>
-/** One folder as a catalog: `<dir>/<lang>.json`, `<dir>/stamps/<lang>.json`, `<dir>/context.json`. */
+/** One folder as a catalog: `<dir>/<lang>.json`, `<dir>/context.json`, record `<dir>/sources.json`. */
 export function folderCatalog(dir: string, sourceLanguage: string): CatalogPaths
 export function placeholders(text: string): string[]             // `{name}` names, sorted, unique; `\{` is not one
 export function translationProblems(source: Catalog, translated: Catalog): string[] // missing, not a source key, placeholders differ
-// csv.ts
-export function toCsv(rows: readonly (readonly string[])[], options?: { bom?: boolean }): string  // RFC 4180, CRLF
-export function parseCsv(text: string): string[][]
-// stamps.ts
-export const stampsSchema: z.ZodType<Stamps>                     // z.record(z.string(), z.string().regex(/^[0-9a-f]{64}$/))
-export type Stamps = Readonly<Record<string, string>>            // key → sha256 hex of the English when it was translated
-export function sourceStamp(source: string): string
+// sources.ts
+/** catalog name → language → key → sha256 hex of the source it was translated from */
+export const sourcesFileSchema: z.ZodType<SourcesFile>
+export type SourcesFile = Readonly<Record<string, Readonly<Record<string, SourceRecord>>>>
+export type SourceRecord = Readonly<Record<string, string>>
+export function sourceHash(source: string): string
 export interface WordsState { readonly missing: string[]; readonly stale: string[] }
-export function wordsState(source: Catalog, translated: Catalog, stamps: Stamps): WordsState
+export function wordsState(source: Catalog, translated: Catalog, record: SourceRecord): WordsState
 ```
 
-`wordsState`: `missing` is a source key with no translation (or an empty one); `stale` is a translated key whose stamp
-is absent or differs from `sourceStamp(the English now)`. Both sorted. File reads go through the `Files` service the
-other tools use (`shared/node/files.ts`), so tests use its fake.
+`wordsState`: `missing` is a source key with no translation (or an empty one); `stale` is a translated key whose
+record is absent or differs from `sourceHash(the source now)`. Both sorted. File reads go through the `Files` service the
+other tools use (`shared/node/files.ts`), so tests use its fake. The record is never inside `content/messages/`: the
+content compiler reads every file there as a translation and refuses a name that is not a language tag
+(`packages/content/src/shared/compile/read-sources.ts:173-193`).
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
-// csv
-expect(parseCsv('﻿key,source\r\n"a,b","say ""hi"""\r\n\r\n')).toEqual([['key', 'source'], ['a,b', 'say "hi"'], ['']])
-expect(parseCsv(toCsv([['k', 'line\nbreak']], { bom: true }))).toEqual([['k', 'line\nbreak']])
 // catalog
 expect(placeholders('+{count} more \\{x}')).toEqual(['count'])
 expect(translationProblems({ a: 'Hi {name}' }, { a: 'Hola', b: 'x' })).toEqual(['a: placeholders (none) are not {name}', 'b: not a source key'])
-// stamps
-const stamps = { a: sourceStamp('Play') }
-expect(wordsState({ a: 'Play', b: 'Back' }, { a: 'Jugar' }, stamps)).toEqual({ missing: ['b'], stale: [] })
-expect(wordsState({ a: 'Play now' }, { a: 'Jugar' }, stamps)).toEqual({ missing: [], stale: ['a'] })
+// sources
+const record = { a: sourceHash('Play') }
+expect(wordsState({ a: 'Play', b: 'Back' }, { a: 'Jugar' }, record)).toEqual({ missing: ['b'], stale: [] })
+expect(wordsState({ a: 'Play now' }, { a: 'Jugar' }, record)).toEqual({ missing: [], stale: ['a'] })
 expect(wordsState({ a: 'Play' }, { a: 'Jugar' }, {})).toEqual({ missing: [], stale: ['a'] })
-expect(stampsSchema.safeParse({ a: 'not a hash' }).success).toBe(false)
+expect(sourcesFileSchema.safeParse({ ui: { ja: { a: 'not a hash' } } }).success).toBe(false)
 ```
 
-- [ ] **Step 2: Run; confirm they fail** on the missing modules.
-- [ ] **Step 3: Implement** the three files.
-- [ ] **Step 4: Run** `pnpm --filter @automata/tools exec vitest run --project unit tests/unit/shared/words`. Pass.
-- [ ] **Step 5: Commit** `feat(tools): message catalogs, CSV and source stamps for translators`.
+- [ ] **Step 2: Implement** the two files.
+- [ ] **Step 3: Run** `pnpm --filter @automata/tools exec vitest run --project unit tests/unit/shared/words`. Pass.
+- [ ] **Step 4: Commit** `feat(tools): message catalogs, placeholders and the source each translation was made from`.
 
-### Task 4: `automata words export`, `import`, `status`
+### Task 4: `automata words`: the AI translates
 
-Behaviour reference (read, do not copy): `ff:tools/i18n/cli.ts`, without its reviewer and approval parts.
+The spec's section 1 as amended: `automata words` translates every missing or stale word into every language the game
+ships; `--to <lang>` limits it to one language; `automata words <key>` does one line; `--all` retranslates words that
+already have a translation. **Load the `claude-api` skill before writing the model call** and follow it for the
+request, the SDK and the default model; this plan names no model id.
 
 **Files:**
-- Create: `packages/tools/src/shared/words/words-args.ts`, `run-words.ts`
-- Modify: `packages/tools/src/app/cli.ts` (route `words`), `packages/tools/src/app/help.ts` (`WORDS_HELP`, one line in
-  `ROOT_HELP`: `words <command>        Send a game's words to a translator and take them back.`)
-- Test: `packages/tools/tests/unit/shared/words/run-words.test.ts`, `packages/tools/tests/unit/app/cli-words.test.ts`
+- Create: `packages/tools/src/shared/words/words-args.ts`, `run-words.ts`, `words-prompt.ts`, `words-model.ts` (the
+  port and its errors), `packages/tools/src/shared/node/words-model-live.ts` (the one file that reaches the network),
+  `packages/tools/src/shared/node/ship-config-loader.ts` (`ShipConfigLoader`: production imports `ship.config.ts` as
+  `app/ship-cli.ts:34` does; tests give a value; task 13 reuses it)
+- Modify: `packages/tools/src/app/cli.ts` (route `words`, providing `FilesLive` and the live model as `checkCommand`
+  provides its layers), `packages/tools/src/app/help.ts` (`WORDS_HELP`, one line in `ROOT_HELP`:
+  `words [key]            Have an AI translate the game's words into every language it ships.`),
+  `packages/tools/src/shared/ship/config/ship-config.ts` (`words?: { readonly model?: string }`, not a Ruken field,
+  like `itch` and `tauri`), `packages/tools/package.json` (the SDK the skill names, if any, as a dependency of
+  `@automata/tools` only; `pnpm deps:new` reports it)
+- Test: `packages/tools/tests/unit/shared/words/{run-words,words-prompt}.test.ts`,
+  `packages/tools/tests/unit/app/cli-words.test.ts`
 
-**Interfaces:**
-- Consumes: task 3.
-- Produces:
+**Interfaces (produced):**
 
 ```ts
-export type WordsCommand =
-  | { readonly kind: 'export'; readonly lang: string; readonly out?: string }
-  | { readonly kind: 'import'; readonly lang: string; readonly file: string }
-  | { readonly kind: 'status' } | { readonly kind: 'check' }
-export interface WordsOptions { readonly command: WordsCommand; readonly dir: string; readonly catalog?: string; readonly source: string /* default 'en' */ }
+// words-model.ts
+export interface TranslationRequest {
+  readonly lang: string                 // 'ja'
+  readonly key: string
+  readonly source: string               // the source text, placeholders and all
+  readonly note: string | undefined     // the catalog's context.json note for the key, for the translator
+  readonly terms: Catalog               // the words already chosen for this language, so a term stays the same
+}
+export class WordsModelUnavailable extends Data.TaggedError('WordsModelUnavailable')<{ readonly reason: 'no-key' | 'refused' | 'offline' }> {}
+export interface WordsModel { translate(request: TranslationRequest): Effect.Effect<string, WordsModelUnavailable> }
+export const WordsModel: Context.Tag<WordsModel, WordsModel>
+// words-prompt.ts: the text the model is sent; pure, and the one place it is written
+export function wordsPrompt(request: TranslationRequest): string
+// words-args.ts
+export interface WordsOptions { readonly dir: string; readonly key?: string; readonly to?: string; readonly all: boolean
+  readonly mark: boolean; readonly catalog?: string; readonly source: string /* default 'en' */ }
 export function parseWordsArgs(args: readonly string[]): { ok: true; options: WordsOptions } | { ok: false; problem: string }
-/** Exit code: 0 fine, 1 a check found something, 2 a usage or input error. */
-export function runWords(options: WordsOptions, io: CliIo): Effect.Effect<number, never, Files>
+// run-words.ts
+/** Exit code: 0 done (or nothing to do), 1 some words could not be translated, 2 a usage or input error, or no key. */
+export function runWords(options: WordsOptions, io: CliIo): Effect.Effect<number, never, Files | WordsModel | ShipConfigLoader>
 ```
 
 Behaviour:
-- `--catalog <dir>` works on that one folder (`folderCatalog`); otherwise on `gameCatalogs(dir)`.
-- `export <lang>` writes `words-<lang>.csv` in `dir` (or `--out`), with a BOM, columns
-  `catalog,key,source,translation,note`, every source key, in source order.
-- `import <lang> <file>` needs the columns `key` and `translation` (and `catalog` when the game has more than one). An
-  unknown key, or a translation whose placeholders differ from the source's, refuses the whole file: nothing is
-  written, exit 2, each problem on its own line. An empty translation cell leaves that key as it was. Otherwise it writes
-  the translation file (`$schema` first, then keys in source order, two-space JSON, a final newline) and stamps every
-  key the file translated with the English as it is now. It prints `<lang>: imported N`.
-- `status` prints, per language the game ships (the translation files found beside each catalog's source; with
-  `--catalog`, the six defaults, an absent file being all missing): `<lang>: <m> missing, <s> stale`, then each
-  missing and each stale key, indented, all of them. Exit 0. A game that ships only English prints nothing to do.
-- What *missing* costs differs by catalog, and the help says so: a missing key in a `ui` catalog shows the English
-  word; a missing key in `content/messages/<lang>.json` fails the content build (`checkTranslation`,
-  `packages/content/src/shared/locale/messages.ts:90`), so `import` of a partial CSV into the content catalog writes
-  nothing and says which keys are still empty.
+- Languages: those the game ships (a catalog's translation files, plus `content.languages` from `ship.config.ts`
+  through `ShipConfigLoader`), each one `--to` names, the source never. With `--catalog <dir>` (a package's own words,
+  such as core's), the six defaults.
+- Words: per catalog and language, `wordsState`'s missing and stale keys; with `--all`, every key; with `<key>`, that
+  key alone (an unknown key is exit 2, with the nearest known keys).
+- For each word, one `translate` call with the key, the source, the catalog's `context.json` note and the language's
+  current translations as `terms`. The answer must pass the placeholder check (`translationProblems` on that key); one
+  that fails is asked for once more, and a second failure is reported (`ja "paused_resume": the answer dropped {name}`)
+  and not written. Nothing is written for a word whose answer is empty. A word left untranslated costs differently by
+  catalog, and the report says which: in a `ui` catalog the player sees the English word; in
+  `content/messages/<lang>.json` a missing key fails the content build (`checkTranslation`,
+  `packages/content/src/shared/locale/messages.ts:90`).
+- Writes each changed translation file (`$schema` first, then keys in source order, two-space JSON, a final newline)
+  and the record for each written key. Prints one line per language, `ja: 12 translated, 1 not
+  (see above)`, and nothing more for a language with nothing to do.
+- No `ANTHROPIC_API_KEY` in the environment: `automata words needs ANTHROPIC_API_KEY set on this computer to reach the
+  translator; nothing was changed.`, exit 2, before any file is read. The key is read by `words-model-live.ts` alone,
+  from `process.env`, and is never written, logged or passed to a game, a build or the run time.
+- The model is the skill's current capable model unless `ship.config.ts` sets `words.model`.
+- `--mark`: records the current source for every key of the named languages that already has a translation, and
+  calls no model (no key needed). It is how translations written without the command, such as the framework's own words
+  written by an AI session, stop counting as stale.
 
-- [ ] **Step 1: Write the failing tests** over the fake `Files`:
+- [ ] **Step 1: Write the failing tests** over the fake `Files`, a fake `WordsModel` that answers from a table and records
+  each request, and a fake `ShipConfigLoader`:
 
 ```ts
-test('export then import round-trips and stamps every key', …)
-test('import refuses an unknown key and writes nothing', …)                      // exit 2, files unchanged
-test('import refuses a broken placeholder and writes nothing', …)                // "{count}" dropped; review focus 2
-test('import reads a BOM, CRLF file with a blank row, as a spreadsheet saves it', …) // review focus 1
-test('status lists what is missing and what is stale', …)   // after the English of one key changes: 'ja: 1 missing, 1 stale' and both keys
-test('status with nothing to do prints 0 missing, 0 stale for each language', …)
-test('a CSV that leaves a content key empty writes nothing and names the key', …) // the content build would fail
-test('automata words with no command prints its help and exits 2', …)            // cli-words.test.ts
+test('translates every missing and stale word into every shipped language, and records their sources', …)
+test('--to ja translates into ja alone', …)
+test('a key translates that one line into every language; with --to, into one', …)
+test('--all retranslates words that already have a translation', …)
+test('an answer that drops a placeholder is asked for again once, then reported and not written', …)
+test('the request carries the key, the source, the note and the language’s existing words', …)
+test('no key: one sentence, exit 2, no file read or written', …)        // the live layer's own test, with env cleared
+test('--mark records the sources of existing translations and calls no model', …)
+test('nothing to do prints nothing and exits 0', …)
+test('automata words --help prints its help', …)                          // cli-words.test.ts
+// words-prompt
+test('the prompt names the language, the key, the note, the terms and keeps placeholders verbatim', …)
 ```
 
-- [ ] **Step 2: Implement.** `cli.ts` gets `if (command === 'words') return wordsCommand(rest, io)`, which provides
-  `FilesLive` as `checkCommand` does.
-- [ ] **Step 3: Stamp core's words through the tool** (the first real use): for each of the five languages,
-  `node packages/tools/src/app/bin.ts words export <lang> --catalog packages/automata/src/app/screens/words`, then
-  `words import <lang> <that file>`, then `words status --catalog …`. Paste the status output into the commit body: it
-  must read `0 missing, 0 stale` for all five. Commit the `stamps/` files, not the CSVs.
-- [ ] **Step 4: Run** the two test files and `pnpm --filter @automata/tools exec vitest run --project unit tests/unit/app`.
-- [ ] **Step 5: Commit** `feat(tools): automata words export, import and status`.
+- [ ] **Step 2: Implement,** with the live model in `words-model-live.ts` as the skill says. Its own test runs with no
+  network: it checks the no-key sentence and that a request is built, and never calls out.
+- [ ] **Step 3: Stamp core's words** once task 2's five translations exist (they were written by the executing session,
+  with no key here): `node packages/tools/src/app/bin.ts words --mark --catalog packages/automata/src/app/screens/words`.
+  Commit `sources.json`. Every later task that adds words writes the English, writes the five translations the
+  same way and runs `--mark` on its catalog; with a key on the Owner's machine, `automata words` does it instead.
+- [ ] **Step 4: Run** the test files and `pnpm --filter @automata/tools exec vitest run --project unit tests/unit/app`.
+- [ ] **Step 5: Commit** `feat(tools): automata words, an AI translator for a game's words`. A real call to the model
+  needs the Owner's key: report it as not run.
 
-### Task 5: `automata words check`, and the `words` step of `automata check`
+### Task 5: The `words` step of `automata check`: missing words, placeholders, fonts
 
 **Files:**
 - Create: `packages/tools/src/shared/words/characters.ts`, `words-step.ts`
 - Modify: `packages/tools/src/shared/check/run-check.ts` (add `['words', wordsStep]` after `levels`, in
   `NEEDS_SOURCES`), `check-report.ts` (`STEP_NAMES`, in the same place; `--only words` then parses with no change to
   `check-args.ts`), `app/help.ts` (`CHECK_HELP` line:
-  `words         every language has all its words, and the game's fonts can draw every letter of them`)
+  `words         every language has all its words and their {placeholders}, and the game's fonts draw every letter`)
 - Test: `packages/tools/tests/unit/shared/words/characters.test.ts`, `words-step.test.ts`;
   fixture `packages/tools/tests/fixtures/words-game/` (a `content/fonts.toml` that names the Latin-only font already in
   the repository, `packages/content/src/shared/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2`, read from
@@ -471,8 +515,6 @@ export const wordsStep: (gameDir: string) => StepEffect
 - Nothing, for a game with one language and no `content/fonts.toml` (every game that exists today), and for a game with
   no catalogs. Control characters draw nothing and are skipped.
 
-`automata words check` runs the same function and prints the findings; exit 1 when there are any.
-
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
@@ -481,7 +523,8 @@ test('a font that covers the words passes', …)             // en only
 test('two languages and no fonts.toml: one finding per language without a font', …)
 test('a language fonts.toml does not list is a finding', …)
 test('one language and no fonts.toml: nothing to check', …)
-test('a missing key is a words-parity finding', …)
+test('a missing key is a words-parity finding', …)                    // a ui catalog; the compiler already refuses one in content
+test('a translation that drops a source placeholder is a words-parity finding', …) // the spec's placeholder check
 test('automata check runs the words step and exits 1 on a finding', …) // run-check over the fixture, only: 'words'
 ```
 
@@ -501,7 +544,7 @@ the faces as CSS (calls 13 and 16); and it brings in the font set.
 **Files:**
 - Create: `packages/content/src/shared/locale/game-words.ts`,
   `vendor/fonts/fusion-pixel-12/{ja,ko,zh_hans}.woff2`, `vendor/fonts/fusion-pixel-12/OFL.txt`, `vendor/fonts/README.md`
-- Modify: `packages/content/src/shared/assets/build-fonts.ts`, `fonts.schema.ts` (an optional `reserved_name` on a
+- Modify: `packages/content/src/shared/assets/build-fonts.ts`, `fonts.schema.ts` (optional `reserved_name` and `license_file` on a
   font), `font-subset.ts` (rename), `asset-outputs.ts` (`fonts.css` beside `fonts.json`), content's Node entry (export
   `gameWords`), `packages/tools/src/shared/words/words-step.ts` (use `gameWords`), `LICENSE-SCOPE.md` (the fonts and
   their licence); core's symbols (call 18): `packages/automata/src/shared/ui/dialog/Modal.svelte`,
@@ -531,8 +574,8 @@ export function gameWords(gameDir: string, lang: string, content: MessageCatalog
   become `"<font> <lang>"` (the `@font-face` family of call 16), IDs 0 (copyright) and 13-14 (licence) are kept.
   `subset-font` does not rename: cut to `truetype`, rewrite the `name` table, then convert to `woff2` with
   `fontverter` (already under `subset-font`). If that cannot be done in Node without a new native dependency, stop and
-  report. *Open, for the Owner (audit B7):* if the Owner settles the reserved name another way, drop the rename and the
-  field.
+  report. The licence text ships with the subsets: a `fonts.toml` entry names its licence file (`license_file`), and
+  the build copies it beside `fonts.json`.
 - `fonts.css`, beside `fonts.json`, as call 16 says, sorted so the same input gives the same bytes. Both are committed
   outputs of `automata-content assets`, like `fonts.json`, and `check --verify-artifact` catches a stale one.
 
@@ -551,8 +594,8 @@ export function gameWords(gameDir: string, lang: string, content: MessageCatalog
   `node_modules/@automata/framework` with a `package.json` whose `exports` maps `./words/*.json`: both catalogs come
   back; a missing package is skipped) and for `buildFonts` (a word that is only in the `ui` catalog is in the subset; a
   `ui` word the font lacks fails the build naming `ui` and the key; a content language no font serves fails; a font with
-  `reserved_name` comes out under the new family name with its copyright kept; `fonts.css` holds one face per font and
-  language and one `:lang()` rule per language).
+  `reserved_name` comes out under the new family name with its copyright notice (name ID 0) kept and its licence file
+  beside it in the output; `fonts.css` holds one face per font and language and one `:lang()` rule per language).
 - [ ] **Step 3: Implement,** switch task 5's `wordsStep` to `gameWords` so the check and the build read the same words,
   and draw core's three symbols as SVG.
 - [ ] **Step 4: Run** `pnpm --filter @automata/content exec vitest run --project unit tests/unit/shared`,
@@ -633,7 +676,7 @@ Behaviour reference (read, do not copy): `ff:apps/client/src/ui/components/Langu
 **Files:**
 - Create: `packages/automata/src/app/opening/LanguageFirst.svelte`, `first-run.ts`
 - Modify: `app/screens/screens-copy.ts` (add `firstRun` to `ScreensCopy` and English defaults), the six
-  `words/*.json`, `words/context.json` and stamps, `app/define-game.ts` (`firstRunLanguage`), `boot-program.ts`
+  `words/*.json`, `words/context.json` and `sources.json`, `app/define-game.ts` (`firstRunLanguage`), `boot-program.ts`
 - Test: `packages/automata/tests/unit/app/opening/language-first.test.ts`,
   `packages/automata/tests/browser/app/language-first.test.ts`
 
@@ -680,8 +723,8 @@ test('a pad moves focus down the list and its bottom button picks', …)   // th
 test('every language button is whole, at least 48 px, and hit-testable; no document scroll', …) // use #src/testing/layout helpers
 ```
 
-- [ ] **Step 2: Implement.** Add the `firstRun.language` words to `en.json`, write the five translations new, and bring
-  them in with `automata words export` and `import` (so they are stamped), not by editing the JSON by hand.
+- [ ] **Step 2: Implement.** Add the `firstRun.language` words to `en.json`, write the five translations new and record
+  them with `automata words --mark --catalog packages/automata/src/app/screens/words` (call 8).
 - [ ] **Step 3: Run** the unit file, then `pnpm --filter @automata/framework exec vitest run --project browser --browser.name=chromium tests/browser/app/language-first.test.ts`.
   Report WebKit and Firefox as not run.
 - [ ] **Step 4: Write the journeys' helper now,** `passFirstRun(page, tag?)` in `@automata/tools/e2e` (presses the
@@ -744,7 +787,7 @@ test('language first, then the warning, in the language just picked', …) // re
 test('the warning fits: body scrolls inside its region, Continue is whole and 48 px, no document scroll', …)
 ```
 
-- [ ] **Step 2: Implement.** Write the five translations new and bring them in through `automata words import`.
+- [ ] **Step 2: Implement.** Write the five translations new and record them with `automata words --mark` (call 8).
 - [ ] **Step 3: Run** the unit file and the browser file (`--browser.name=chromium`).
 - [ ] **Step 4: Commit** `feat(framework): a photosensitivity warning a game opts into`.
 
@@ -835,7 +878,7 @@ which the words check accepts. Say so in its doc comment.
   - `ui.focus`: a tick, 880 Hz, 25 ms, half the level of `ui.press`
 
   and a `content/fonts.toml` that names the three flavours and the languages each serves (`ja`: `en`, `es-419`,
-  `pt-BR`, `ja`; `ko`: `ko`; `zh_hans`: `zh-Hans`), with `license = "OFL-1.1"` and `reserved_name = "Fusion Pixel"`, in
+  `pt-BR`, `ja`; `ko`: `ko`; `zh_hans`: `zh-Hans`), with `license = "OFL-1.1"`, `license_file = "assets/fonts/OFL.txt"` and `reserved_name = "Fusion Pixel"`, in
   the form `build-fonts.ts` reads. The cues are written in the template's existing form
   (`template-content/audio/audio.toml`: `[[cue]]` with `id`, `about`, `bus = "ui"`,
   `voices = [{ tone, from, to, length, volume }]`).
@@ -867,7 +910,7 @@ in `app/`.
 **Files:**
 - Create: `extensions/ui-screens/src/features/splash/SplashScreen.svelte`,
   `extensions/ui-screens/src/shared/words/{en,ja,ko,es-419,pt-BR,zh-Hans}.json`, `shared/words/context.json`,
-  `shared/words/stamps/<lang>.json`, `shared/words/screens-words.ts`, `extensions/ui-screens/src/app/splash-step.ts`
+  `shared/words/sources.json`, `shared/words/screens-words.ts`, `extensions/ui-screens/src/app/splash-step.ts`
   (with `SplashCopy`, `SplashOptions`), `extensions/ui-screens/src/entries/splash.ts`
 - Modify: `extensions/ui-screens/src/entries/index.ts`, `package.json` (exports `./splash` and `./words/*.json`, in
   `exports` and `publishConfig.exports`), `README.md` (Splash in the table; "Four ready-made screens" becomes six),
@@ -912,7 +955,7 @@ test('the logo and the line fit with no document scroll', …)
 ```
 
 - [ ] **Step 2: Implement.** Write the five translations new and bring them in with
-  `automata words import --catalog extensions/ui-screens/src/shared/words` (so they are stamped).
+  `automata words --mark --catalog extensions/ui-screens/src/shared/words` (call 8).
 - [ ] **Step 3: Run** `pnpm --filter @automata/ui-screens test:unit` and `test:browser --browser.name=chromium`.
 - [ ] **Step 4: Commit** `feat(ui-screens): a studio splash as an opening step`.
 
@@ -1014,7 +1057,7 @@ words are `shared/`. `CreditsPanel.svelte` declares its props' types in its own 
 export interface CreditName { readonly name: string; readonly role?: string; readonly url?: string }
 export interface CreditsSection { readonly title: string; readonly names: readonly CreditName[] }
 export interface Credits { readonly sections: readonly CreditsSection[] }
-/** Strict. `title` and `role` are text a translator sees; `url` must be `https:`. At least one section, one name each. */
+/** Strict. `title` and `role` are words `automata words` translates; `url` must be `https:`. At least one section, one name each. */
 export const creditsSchema: z.ZodType<Credits>
 export const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>
 // shared/credits/credits.content.ts, in the form of extensions/feel/src/features/frame/feel.content.ts
@@ -1054,87 +1097,107 @@ test('Escape and Close call onClose', …)
 test('the list scrolls inside the panel; Close stays whole and hit-testable; no document scroll', …)
 ```
 
-- [ ] **Step 2: Implement.** Write the words' five translations new and bring them in through `automata words import`.
+- [ ] **Step 2: Implement.** Write the words' five translations new and record them with `automata words --mark` (call 8).
 - [ ] **Step 3: Run** `pnpm --filter @automata/ui-screens test:unit` and `test:browser --browser.name=chromium`, and the package’s
   screens-rule and copy-in tests.
 - [ ] **Step 4: Commit** `feat(ui-screens): a credits panel drawn from a content file, its links opened by the host`.
 
-### Task 13: Achievements in `ruken.toml` and `automata check`
+### Task 13: Achievements, generic, and their Ruken mapping
 
-Behaviour reference (read, do not copy): `ff:apps/client/src/ruken/score-boards.ts`; `@ruken/manifest` (`vendor/ruken/ruken-manifest-0.0.0.tgz`).
+The spec's section 6 as amended (`b119393b`, the Owner: "keep achievements generic"): an achievement is the
+framework's own idea. A game declares each one beside its leaderboards with an id, a title, a description and one goal
+on a board's score (reach a value, or stand in a top share of players), validated by the framework's own Zod schema,
+naming no host. Each target maps it: Ruken writes `ruken.toml` and checks it with `@ruken/manifest`'s parser, refusing a
+goal Ruken cannot express in a plain sentence; web, itch and tauri accept the declaration and do nothing. Behaviour
+reference (read, do not copy): `ff:apps/client/src/ruken/score-boards.ts`; `@ruken/manifest`
+(`vendor/ruken/ruken-manifest-0.0.0.tgz`).
 
 **Files:**
-- Modify: `packages/content/src/shared/game/game-config.schema.ts`,
-  `packages/tools/src/shared/ship/targets/ruken/ruken-toml.ts`,
+- Modify: `packages/content/src/shared/game/game-config.schema.ts` (the generic declaration),
+  `packages/tools/src/shared/ship/targets/ruken/ruken-toml.ts` (the mapping), `packages/tools/src/shared/ship/prepare/prepare-build.ts`
+  (it already runs `checkManifest(rukenToml(config))` at line 110; a goal Ruken cannot express is refused before it,
+  and Ruken's achievement errors are put in plain words), `packages/tools/src/shared/ship/errors.ts` (the refusal),
   `packages/tools/src/shared/check/check-source-steps.ts` (new `achievementsStep`), `run-check.ts`, `check-report.ts`
-  (`STEP_NAMES`), `app/help.ts`, `packages/tools/src/shared/words/catalog.ts` (the `achievements` catalog), and a
-  ship-config loader port beside `Files` in `packages/tools/src/shared/node/` (`ShipConfigLoader`: production imports
-  the file as `app/ship-cli.ts:34` does; tests give a value)
-- Test: `packages/content/tests/unit/shared/game/game-config.schema.test.ts` (and its Ruken conformance cases),
-  `packages/tools/tests/unit/shared/ship/` (the `ruken-toml` test), `packages/tools/tests/unit/shared/check/achievements-step.test.ts`
+  (`STEP_NAMES`), `app/help.ts`, `packages/tools/src/shared/words/catalog.ts` (the `achievements` catalog)
+- Test: `packages/content/tests/unit/shared/game/game-config.schema.test.ts`,
+  `packages/tools/tests/unit/shared/ship/` (the `ruken-toml` and prepare tests, and each other target's prepare test),
+  `packages/tools/tests/unit/shared/check/achievements-step.test.ts`
 
 **Interfaces (produced):**
 
 ```ts
-// game-config.schema.ts: shapes only, no limits (Ruken's parser is the judge)
-export type AchievementConfig = { readonly title: string; readonly description?: string; readonly board: string } &
-  ({ readonly reach: number } | { readonly top_percent: number } | { readonly top_rank: number })
+// game-config.schema.ts: the framework's own declaration; names no host
+/** One goal on a board's score: reach a value (in the board's order), or stand in the top share of its players. */
+export type AchievementGoal = { readonly reach: number } | { readonly top_percent: number }
+export interface AchievementConfig {
+  readonly title: string
+  readonly description: string
+  readonly board: string
+  readonly goal: AchievementGoal
+}
 // GameConfig
 readonly achievements?: Readonly<Record<string, AchievementConfig>>
 // check-source-steps.ts
 export const achievementsStep: (gameDir: string) => StepEffect
 ```
 
-- The Zod schema is a union of three strict objects (exactly one rule key), each with `title`, optional `description`
-  and `board`. It holds no length, count or percent limit.
-- `rukenToml` writes, after the boards and sorted by id, `[achievements."<id>"]` with `title`, `description` when set,
-  `board`, and the one rule key. A board's `title` is written too when set (it is in the schema and was not written).
-- `achievementsStep` loads `ship.config.ts` through `ShipConfigLoader`, builds the manifest text with `rukenToml` and
-  parses it with `parseManifest`. It cannot scan the text as the `boards` step does (`check-source-steps.ts:48-77` reads
-  only board names from the object literal): `rukenToml` needs the whole config (audit S4). A config that fails to load
-  is a tool error, never a pass. Each error whose code starts `ACHIEVEMENT_` or `LEADERBOARD_TITLE` becomes a finding
-  in plain words, with Ruken's own message after it:
+- The Zod schema: a strict object; `title` and `description` non-empty text; `board` a key of the same config's
+  `leaderboards` (a `superRefine` on `gameConfigSchema`); `goal` a strict union, exactly one of `reach` (a number) and
+  `top_percent` (above 0, at most 100). The id is lowercase letters, digits and hyphens. It holds no host's limits: no
+  title length, no count, no list of allowed percents.
+- Ruken (`rukenToml`): after the boards and sorted by id, `[achievements."<id>"]` with `title`, `description`, `board`
+  and `reach` or `top_percent` from the goal. A board's `title` is written too when set (it is in the schema and was
+  not written). Before the manifest is checked, prepare refuses a goal Ruken has no rule for, naming the achievement,
+  with the allowed values read from `@ruken/manifest`'s `ACHIEVEMENT_TOP_PERCENTS`, never retyped:
+  `achievement "top-fifth": Ruken can award a top share of 1, 5, 10 or 25 percent, not 20. Pick one of those.` Then
+  `checkManifest` runs as today, and each error whose code starts `ACHIEVEMENT_` or `LEADERBOARD_TITLE` is put in plain
+  words, with Ruken's own message after it:
 
   | Code | Finding starts |
   |---|---|
-  | `ACHIEVEMENT_ID_INVALID` | `achievement "<id>": the id must be lowercase letters, digits and hyphens, and not start with "ruken-".` |
-  | `ACHIEVEMENT_BOARD_UNKNOWN` | `achievement "<id>": its board is not one of this game's leaderboards.` |
-  | `ACHIEVEMENT_RULE_INVALID` | `achievement "<id>": it needs exactly one rule: reach, top_percent or top_rank.` |
-  | `ACHIEVEMENT_TEXT_INVALID` | `achievement "<id>": its title or description is empty or too long.` |
+  | `ACHIEVEMENT_ID_INVALID` | `achievement "<id>": Ruken refuses this id (an id may not start with "ruken-").` |
+  | `ACHIEVEMENT_TEXT_INVALID` | `achievement "<id>": its title or description is too long for Ruken.` |
   | `ACHIEVEMENT_LIMIT` | `this game declares more achievements than Ruken allows.` |
-
-  No `ship.config.ts`, or no achievements: no findings. The step is named `achievements`, runs after `boards`, and
-  `CHECK_HELP` gains `achievements  every achievement is one Ruken will accept`.
-- The `itch`, `web` and `tauri` targets ignore the table; add one assertion to each target's prepare test that a config
-  with achievements prepares as before.
-- Titles and descriptions reach the words workflow as a third game catalog, `achievements`, whose source is derived
-  from `ship.config.ts` through the same loader (`achievement_<id>_title`, `achievement_<id>_description`) and whose
-  translations are
-  `messages/achievements/<lang>.json`. Ruken's manifest takes one language today, so the manifest carries the source
-  text; the translations are kept for when it takes more. Add this to `gameCatalogs` with a test.
+  | `ACHIEVEMENT_RULE_INVALID`, `ACHIEVEMENT_BOARD_UNKNOWN` | `achievement "<id>": Ruken refused its goal.` (the framework's schema should have caught these first) |
+- web, itch and tauri: the declaration is accepted and nothing is drawn, stored or written; one assertion in each
+  target's prepare test that a config with achievements prepares exactly as before.
+- `achievementsStep` (`automata check`): loads `ship.config.ts` through `ShipConfigLoader` (task 4) and reports what the
+  framework's schema refuses, in plain words (`achievement "x": its board "best" is not one of this game's leaderboards`).
+  It cannot scan the text as the `boards` step does (`check-source-steps.ts:48-77` reads only board names): it needs the
+  whole config (audit S4). A config that fails to load is a tool error, never a pass. No `ship.config.ts`, or no
+  achievements: no findings. Named `achievements`, it runs after `boards`; `CHECK_HELP` gains
+  `achievements  every achievement names one of the game's boards and one goal`. Ruken's own limits are checked by
+  `ship prepare --target ruken`, where they apply.
+- Titles and descriptions are messages, translated like the rest: a third game catalog, `achievements`, whose source is
+  derived from `ship.config.ts` through the same loader (`achievement_<id>_title`, `achievement_<id>_description`) and
+  whose translations are `messages/achievements/<lang>.json`. Ruken's manifest takes one language today, so it carries
+  the source text; the translations wait for a host that takes more. Add this to `gameCatalogs` with a test.
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
 // ruken-toml
 expect(rukenToml(configWith({ leaderboards: { best: { order: 'desc', min: 0, max: 999, title: 'Best score' } },
-  achievements: { 'score-20': { title: 'Twenty', description: 'Score 20.', board: 'best', reach: 20 },
-                  'top-ten': { title: 'Top 10%', board: 'best', top_percent: 10 } } })))
+  achievements: { 'score-20': { title: 'Twenty', description: 'Score 20.', board: 'best', goal: { reach: 20 } },
+                  'top-ten': { title: 'Top 10%', description: 'Stand in the top tenth.', board: 'best', goal: { top_percent: 10 } } } })))
   .toContain('[achievements."score-20"]\ntitle = "Twenty"\ndescription = "Score 20."\nboard = "best"\nreach = 20\n')
 test('the manifest with achievements parses with Ruken’s own parser', …) // manifestOf(toml).achievements has both
 test('a config with no achievements writes the same text as before', …) // snapshot of the existing fixture unchanged
+test('a top share Ruken has no rule for is refused at prepare with the allowed values', …) // top_percent: 20
+test('a title Ruken finds too long is refused at prepare in plain words, by Ruken’s rule, not ours', …) // 49 characters
+test('web, itch and tauri prepare a config with achievements exactly as before', …)
 // schema
-test('two rules on one achievement are refused', …); test('no rule is refused', …)
+test('a goal with both reach and top_percent is refused', …); test('a goal with neither is refused', …)
+test('a board the config does not declare is refused', …)
 // step
-test('an unknown board is a finding in plain words', …) // message starts 'achievement "x": its board is not one of this game’s leaderboards.'
-test('a title of 49 characters is a finding, by Ruken’s rule, not ours', …)
+test('an unknown board is a finding in plain words', …)
 test('no ship.config.ts: no findings', …)
 ```
 
 - [ ] **Step 2: Implement.**
 - [ ] **Step 3: Run** `pnpm --filter @automata/content exec vitest run --project unit tests/unit/shared/game` and
   `pnpm --filter @automata/tools exec vitest run --project unit tests/unit/shared`.
-- [ ] **Step 4: Commit** `feat(tools): a game declares Ruken achievements beside its leaderboards`.
+- [ ] **Step 4: Commit** `feat(tools): achievements declared once, written into ruken.toml for Ruken`.
 
 ### Task 14: Stale-build check
 
@@ -1149,7 +1212,7 @@ FloorFifty never holds its title and reports a late answer whenever it comes; he
   `extensions/net-ui/src/features/stale/StaleBuild.svelte`, `stale-build-step.ts`,
   `extensions/net-ui/src/shared/words/{en,ja,ko,es-419,pt-BR,zh-Hans}.json` (in `shared/`, not a feature of its own, so
   the `stale` feature may import them under `pnpm boundaries`),
-  `shared/words/context.json`, `shared/words/stamps/<lang>.json`, `shared/words/stale-copy.ts`
+  `shared/words/context.json`, `shared/words/sources.json`, `shared/words/stale-copy.ts`
 - Modify: `extensions/net/src/entries/index.ts`, `extensions/net-ui/src/entries/index.ts`, `extensions/net-ui/package.json`
   (export `./words/*.json` in `exports` and `publishConfig.exports`, so `gameWords` finds it),
   `extensions/net/README.md`, `extensions/net-server/README.md`
@@ -1185,7 +1248,7 @@ export function staleBuildStep(options: StaleBuildOptions): OpeningStep
 step never resolves while the stale panel shows, so the title of a stale tab is never reached; Reload is its way
 forward. The join check stays the authority (`refuseStaleVersion` is untouched). The six languages of `StaleCopy` are
 this package's own catalog (`extensions/net-ui/src/shared/words/`, exported as `./words/*.json`), written new and
-brought in through `automata words import --catalog extensions/net-ui/src/shared/words`. The facts a game passes are
+recorded with `automata words --mark --catalog extensions/net-ui/src/shared/words`. The facts a game passes are
 what it already joins with (`extensions/net/src/features/client/room/net-room.ts:300-302`).
 
 - [ ] **Step 1: Write the failing tests**
@@ -1273,17 +1336,22 @@ made the way `chime.wav` was (`resources/sounds/PROVENANCE.md` says how); they a
 - [ ] **Step 2: Run** `pnpm --filter @af-examples/examples-2d test:e2e --project examples -g "core-languages|core-first-run|audio-ui-sounds|ui-splash-credits" --trace off`
   (pnpm passes the flags on; no `--`); confirm the four fail for the missing page.
 - [ ] **Step 3: Write the four examples.**
-- [ ] **Step 4: Run** the same command for `examples`, `examples-compact` and `examples-ipad`; then the catalog and
-  smoke tests (`examples.test.ts`) and `pnpm --filter @af-examples/examples-2d typecheck`. All pass in Chromium. Then
-  build the site's playground (`site/playground/build.ts`) and report whether `ui-splash-credits` runs there (call 20,
-  open).
-- [ ] **Step 5: Commit** `feat(examples): languages, a first run, interface sounds, and a splash with credits`.
+- [ ] **Step 4: The site (call 20).** Add `@automata/ui-screens` to the playground runtime: an entry
+  `site/playground/runtime/ui-screens.ts` (`export * from '@automata/ui-screens'` and its subpaths the example uses),
+  `PLAYGROUND_ENTRIES` in `site/playground/src/vite-runtime.ts`, the Vite input in `site/playground/vite.config.ts`, and
+  the import map in `site/playground/src/frame-page.ts`. Test first in `site/tests/unit/playground/runtime/frame-page.test.ts`
+  (the map names every published extension an example imports, read from the catalog) and keep the runtime under its
+  gzip budget (`site/playground/src/runtime-size.ts`; say the number).
+- [ ] **Step 5: Run** the same command for `examples`, `examples-compact` and `examples-ipad`; then the catalog and
+  smoke tests (`examples.test.ts`), `pnpm --filter @af-examples/examples-2d typecheck`, the site's unit tests and its
+  playground build (`node site/playground/build.ts`). All pass in Chromium.
+- [ ] **Step 6: Commit** `feat(examples): languages, a first run, interface sounds, and a splash with credits`.
 
 ### Task 16: Emberwick in six languages, with an achievement
 
 **Files:**
 - Create: `games/emberwick/messages/ui/{en,ja,ko,es-419,pt-BR,zh-Hans}.json`, `games/emberwick/messages/ui/context.json`,
-  `games/emberwick/messages/ui/stamps/<lang>.json`, `games/emberwick/src/features/screens/words.ts`,
+  `games/emberwick/words-sources.json`, `games/emberwick/src/features/screens/words.ts`,
   `games/emberwick/content/fonts.toml`, `games/emberwick/assets/fonts/` (the three flavours and `OFL.txt`, copied from
   `vendor/fonts/fusion-pixel-12/`), `games/emberwick/content/messages/{ja,ko,es-419,pt-BR,zh-Hans}.json` (empty
   catalogs: Emberwick's content has no text, and these files are what make the five content languages, call 17;
@@ -1308,7 +1376,8 @@ made the way `chime.wav` was (`resources/sounds/PROVENANCE.md` says how); they a
   `hosting: { wants: ['menu', 'leaderboards'] }`.
 - `ship.config.ts`: `content.languages` the six; `leaderboards: { fastest: { order: 'asc', min: 1000, max: 3_600_000,
   title: 'Fastest climb' } }`; `achievements: { 'ember-in-a-minute': { title: 'Ember in a minute', description: 'Reach
-  the ember in under 60 seconds.', board: 'fastest', reach: 60_000 } }`.
+  the ember in under 60 seconds.', board: 'fastest', goal: { reach: 60_000 } } }` (the generic form, task 13; Ruken's
+  manifest gets `reach = 60000`).
 - The end screen submits `Math.round(seconds * 1000)` to `fastest` through `services.leaderboards` (read
   `features/leaderboards/leaderboards.manager.ts` for the call). The sim and `GoalReached` are not touched: no hash and
   no golden may move, and `pnpm --filter @af-games/emberwick test:unit` proves it.
@@ -1333,10 +1402,9 @@ test('the manifest carries the achievement', () => {
 - [ ] **Step 2: Implement.** Move the English out of `PANELS` into `messages/ui/en.json` and build the panels from
   `emberwickWords(services.locale.current)`; subscribe to the locale for as long as the screen is open and redraw the
   words in place (set `textContent`, never rebuild the panel, so focus stays). Text goes in with `textContent`.
-- [ ] **Step 3: Translate through the workflow,** as a translator would: `automata words export ja` (and the other
-  four) in `games/emberwick`, fill the CSVs with translations written new, `automata words import <lang>
-  words-<lang>.csv`, then `automata words status` (`0 missing, 0 stale` for all five). Paste the status output into the
-  commit body. Do not commit the CSVs.
+- [ ] **Step 3: Translate,** with no key here (call 8): write the five `messages/ui/<lang>.json` new, run
+  `automata words --mark` in `games/emberwick`, then `automata words` there, which must say it needs a key and change
+  nothing, and `automata check --only words`, which must find nothing missing. Paste both outputs into the commit body.
 - [ ] **Step 4: Move Emberwick to the font set.** `content/fonts.toml` names the three flavours and the languages each
   serves, as the template's does (task 10); `automata-content assets` writes the subsets, `fonts.json` and `fonts.css`,
   committed; `style.css` imports `fonts.css`. The end screen's leaderboard submit runs under the existing journeys' fake
@@ -1357,7 +1425,7 @@ Ember Hall already has Paraglide, its catalog at `src/messages/ui/{locale}.json`
 menus translate with no work. This task translates its own few words.
 
 **Files:**
-- Create: `games/base-3d/src/messages/ui/{ja,ko,es-419,pt-BR,zh-Hans}.json`, `src/messages/ui/stamps/<lang>.json`,
+- Create: `games/base-3d/src/messages/ui/{ja,ko,es-419,pt-BR,zh-Hans}.json`, `games/base-3d/words-sources.json`,
   `src/messages/ui/context.json`; `games/base-3d/content/messages/{ja,ko,es-419,pt-BR,zh-Hans}.json` (translations of
   its content text, or empty catalogs if it has none: these files are what make the content languages, call 17, and
   Paraglide compiles only those, `packages/content/src/shared/locale/compile-messages.ts:5-6`);
@@ -1368,14 +1436,52 @@ menus translate with no work. This task translates its own few words.
   `translationProblems`)
 
 - [ ] **Step 1: Write the failing test.**
-- [ ] **Step 2: Run; confirm it fails** on the missing files.
-- [ ] **Step 3: Translate through the workflow** (`automata words export|import|status` in `games/base-3d`), as in task
-  16, with translations written new. Then move the game to the font set as in task 16's font step (its text is the menus
+- [ ] **Step 2: Translate** as in task 16 (written new, `automata words --mark`, the check finds nothing missing).
+  Then move the game to the font set as in task 16's font step (its text is the menus
   and the HUD; the 3D scene's goldens hold no text and must not move).
-- [ ] **Step 4: Run** `pnpm --filter @af-games/base-3d test:unit` and `automata check --only words` there. The game's
+- [ ] **Step 3: Run** `pnpm --filter @af-games/base-3d test:unit` and `automata check --only words` there. The game's
   browser suites and journeys are the 3D workflow's: run them if this machine can (`pnpm ci:local`), and otherwise report
   them as not run, with the helper change described.
-- [ ] **Step 5: Commit** `feat(base-3d): Ember Hall's words in six languages`.
+- [ ] **Step 4: Commit** `feat(base-3d): Ember Hall's words in six languages`.
+
+### Task 19: The site's Editor page is cut; the link opens the editor
+
+The spec's section "The Editor page is cut" (`134d7fd1`). The page at `/editor`
+(`site/src/routes/editor/+page.svelte`, `site/src/features/editor/EditorPage.svelte`, `editor-content.ts`) goes; the
+editor itself, served at `/editor/app/`, is not changed. The spec says `/editor` redirects "through the site's redirects
+feature", but the site has none: `site/scripts/site-checks.ts:56-58` refuses a page that only redirects ("cut pages get
+the 404 page"), and the host files the build writes are `_headers` only (`site/scripts/write-headers.ts`). So the
+redirect is a host rule, not a page: a `_redirects` file for Cloudflare Pages (the host, `.github/workflows/site.yml:78`),
+`/editor /editor/app/ 301`, written by the build beside `_headers`. The site's rule against redirect pages stands.
+
+**Files:**
+- Create: `site/scripts/write-redirects.ts` (writes `build/_redirects` from one list in the site's source), and its test
+- Delete: `site/src/routes/editor/+page.svelte`, `site/src/features/editor/EditorPage.svelte`, `editor-content.ts`,
+  `site/tests/unit/editor/editor-page.test.ts`, the page's pictures in `site/src/shared/pictures.ts` and
+  `site/scripts/take-pictures.ts` (the ones only the page shows; keep any another page uses) and their files under
+  `site/static/previews/` (`editor*.webp`, `editor*.jpg`, if no other page shows them), and the parts of
+  `site/tests/e2e/editor-try.e2e.ts` that test the page; its try-it editor cases stay, opened at `/editor/app/`.
+  `site/scripts/site-checks/pages.ts` keeps `editor/app/` among the trees it skips.
+- Modify: `site/package.json` (`build` runs `write-redirects.ts` after `write-headers.ts`),
+  `site/src/shared/components/Header.svelte:16` and `Footer.svelte:21`, `site/src/features/search/CommandMenu.svelte:24`
+  and `site/src/features/home/HomeEditor.svelte:25` (each `/editor` link becomes `/editor/app/` with
+  `data-sveltekit-reload`, since the editor is not a SvelteKit page), `site/scripts/check-deployed.ts` (the live host
+  answers `/editor` with a 301 to `/editor/app/`)
+- Test: `site/tests/unit/scripts/write-redirects.test.ts`, `site/tests/unit/scripts/site-checks.test.ts` (add cases),
+  a header journey in `site/tests/e2e/`
+
+- [ ] **Step 1: Read before deleting.** The spec keeps two lines the page said: the command that opens the editor on
+  your own game, and that the editors are free on the web. Find each in the editor guide (`docs/guides/`) and on
+  Pricing (`site/src/features/app/app-offer.ts:1-42` says the second). Move a line only if it is nowhere else, and say
+  which in the commit.
+- [ ] **Step 2: Write the failing tests:** `_redirects` holds exactly `/editor /editor/app/ 301`; the site checks fail a
+  built page that links to `/editor` (a dead link once the page is gone) and pass the build; the header's Editor link
+  opens `/editor/app/` and the editor loads (the journey, Chromium); `check-deployed` expects the 301.
+- [ ] **Step 3: Implement,** delete the page and its parts, and change the links.
+- [ ] **Step 4: Run** the site's unit tests, its build and `check:site`, and the header journey
+  (`pnpm --filter @automata/site test:e2e --trace off`, Chromium). `check:deployed` needs the deployed site: report it
+  as not run.
+- [ ] **Step 5: Commit** `feat(site): the Editor link opens the editor; the page in between is cut`.
 
 ### Task 18: Guides, API report and index, changesets, final gates
 
@@ -1396,16 +1502,17 @@ menus translate with no work. This task translates its own few words.
 - [ ] **Step 4: Check "Done means" line by line** and write the result in `docs/superpowers/progress.md`:
   - the four examples' journeys pass at phone, compact and iPad sizes (which projects, which commit);
   - Emberwick's journeys pass in each of the six languages; its manifest carries the achievement (the unit test's name);
-  - `automata words status` prints what is missing or stale (paste its output for core, ui-screens, net-ui, Emberwick
-    and Ember Hall: all `0 missing, 0 stale`; and the unit test's name that shows a stale key listed);
-    `automata check` fails on a character a font cannot draw (the test's name, and the by-hand break in task 16);
+  - `automata words` translates everything or one line, into one language or all, against the fake model (the tests'
+    names in task 4); a real call is the Owner's, with a key;
+  - `automata check` fails on a missing word, a lost placeholder and a character a font cannot draw (the tests' names
+    in task 5, and the by-hand break in task 16); its `words` step finds nothing in core, `ui-screens`, `net-ui`,
+    Emberwick and Ember Hall (paste the output);
   - every game and the template draw all six languages in the font set, with no device fallback (the tests' names);
     the fonts' licence is in `LICENSE-SCOPE.md` and `vendor/fonts/README.md`;
   - `Hosting.openLink` is in the contract suite and on every adapter; the four publish guides say what a link does;
   - `pnpm check` passes; API reports and the index are updated; changesets are written (list them);
   - not run here: WebKit, Firefox, real devices, the 3D workflow if so. These are the Owner's;
-  - the open calls, as answered or still open: the font's reserved name (call 13), Credits from Settings (call 19), the
-    site's playground (call 20).
+  - the live model call of `automata words`: unverified until run with a key (call 8).
 - [ ] **Step 5: Commit** `docs: shared polish, the guides, the API index and the record`, push, and report the commit to
   the coordinator.
 
@@ -1413,7 +1520,8 @@ menus translate with no work. This task translates its own few words.
 
 ## Order and checks
 
-- **Order:** 1, 2, 3, 4, 5, 5b, 6, 7, 8, 9, 10, 11, 11b, 12, 13, 14, 15, 16, 17, 18. Task 11's `screensWords` names
+- **Order:** 1, 2, 3, 4, 5, 5b, 6, 7, 8, 9, 10, 11, 11b, 12, 13, 14, 15, 16, 17, 19, 18 (task 19 stands alone and may run
+  at any point; 18 closes). Task 11's `screensWords` names
   `CreditsCopy`: declare the type in task 11 with the splash words alone and widen it in task 12.
 - **Checked:** the plan was written against the spec and its amendments, then audited against the spec, `AGENTS.md`
   and the code on `main` at `b1f339c3` (the audit linked at the top: spec coverage, every named file, export, code and

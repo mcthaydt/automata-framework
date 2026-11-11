@@ -92,9 +92,9 @@ own screens in any game. *Fix:* task 5b's build also writes `fonts.css`, an `@fo
 Under the OFL a subset is a Modified Version and may not carry a Reserved Font Name. The font build cuts with
 `subset-font` and keeps the name table (`shared/assets/font-subset.ts:16-20`), so every shipped subset would still be
 named `Fusion Pixel 12px Proportional ja` (name ID 1). Ark Pixel, the plan's fallback, reserves its name too.
-*Fix written into the plan (default A):* the build renames a subset whose `fonts.toml` entry declares a reserved name,
-keeping the copyright and licence. *Open, for the Owner* (sent to the coordinator with options: A rename in the build;
-B ask TakWolf for permission; C a pixel CJK font with no reserved name).
+*Fix:* the build renames a subset whose `fonts.toml` entry declares a reserved name, keeping the copyright notice and
+shipping the licence file beside the subsets (call 13, task 5b). Asked of the coordinator with options (A rename in the
+build; B ask TakWolf; C another font); the coordinator settled A. **Fixed.**
 
 ### Should fix
 
@@ -150,10 +150,9 @@ language screen first, and the test installs only published packages, so it cann
 **S9. The site's Examples page cannot run an example that imports `@automata/ui-screens`.** The playground's import map
 holds `@automata/framework` and `zod` only (`site/playground/src/frame-page.ts:35`), and no 2D example imports an
 extension today. The spec says the examples "appear there with no site code". The playground runtime also has a gzip
-budget of 460,000 bytes (`site/playground/src/runtime-size.ts:4`) that six catalogs in core will grow. *Fix:* task 15
-builds the site's playground and reports; task 2 measures the budget. *Open, for the coordinator:* add
-`@automata/ui-screens` to the playground's import map (site code, against the spec's line), or keep
-`ui-splash-credits` off the site.
+budget of 460,000 bytes (`site/playground/src/runtime-size.ts:4`) that six catalogs in core will grow. Asked of the coordinator, who amended the spec (`87b48662`) to allow exactly
+that site change. *Fix:* task 15 adds `@automata/ui-screens` to the playground's runtime and import map with its site
+test; task 2 and task 15 measure the budget. **Fixed.**
 
 **S10. The examples' build compiles no content, and their host is Ruken's.** The runner has no content plugin
 (`tooling/examples-runner/src/vite-plugin.ts`); the one asset build (`examples/2d/content/atlases.toml`) is kept fresh by
@@ -174,8 +173,9 @@ never sees them. *Fix:* core draws those three as inline SVG (they are icons, no
 every other non-ASCII character core's Svelte files hold (· × ← ↑ → ↓ □ △ ○, all present). **Fixed.**
 
 **S13. The spec reaches Credits "from the title or Settings"; the plan reaches it from the title only.** Core's Settings
-screen cannot import `ui-screens`. *Fix:* the plan says so and keeps Settings out. *Open, for the coordinator* (a spec
-line not met).
+screen cannot import `ui-screens`. Asked of the coordinator, who amended the spec (`87b48662`): Credits is reached from the
+title or wherever the game places it, and core's Settings gains no dependency on `ui-screens`. *Fix:* call 19 says so.
+**Fixed.**
 
 **S14. Task 14's file list misses `net-ui`'s words.** The words folder and its `./words/*.json` export are in the prose,
 not the files. A game's own facts are `{ protocol: PROTOCOL_VERSION, ...version }` (the join already sends them,
@@ -184,8 +184,8 @@ not the files. A game's own facts are `{ protocol: PROTOCOL_VERSION, ...version 
 **S15. "Missing" breaks a content build.** The content compiler refuses a translation that lacks a source key
 (`shared/locale/messages.ts:90`), so a missing key in `content/messages/<lang>.json` fails the build, while a missing key
 in a `ui` catalog falls back to English. And `words status` for a game that ships only English would list five languages
-as missing. *Fix:* task 4 says what missing means per catalog kind and reports only the languages the game ships.
-**Fixed.**
+as missing. *Fix:* task 4 says what an untranslated word costs per catalog kind. The `status` and `import` parts were
+then cut by the spec's amendment (M1). **Fixed.**
 
 **S16. Fusion Pixel's flavour names and download are not as the plan says.** Fontsource's packages are `jp`, `kr`,
 `sc` (and `tc`); each covers the same full Latin, so a separate `latin` flavour is not needed and its upstream name is
@@ -220,6 +220,45 @@ size. **Fixed.**
 - **T13.** The journey commands put `--` before `--trace off` after a `pnpm` script; pnpm passes flags on, and only npm
   needs the `--` (the session's own instructions). **Fixed.**
 
+### The spec moved under the plan
+
+The Owner amended the spec while this audit ran (`b119393b`, `df992aaa`, `87b48662`, `134d7fd1`, merged into this
+branch from `main`). Each change left the plan out of date.
+
+**M1 (blocking). The translator's workflow is cut.** The amended section 1 and goal 2 drop `automata words export`,
+`import`, `status` and `check`, the CSV and the review: "cut the translation workflow, AI is capable". The plan's call 7
+and tasks 3 and 4 were that workflow. *Fix:* task 3 keeps the catalogs, placeholders and a source record and drops the
+CSV; task 5 becomes the `words` step of `automata check` alone (a missing word, a lost placeholder, a font that cannot
+draw a letter, the amended "Done means"); every later task that brought words in by `import` now writes them and runs
+`automata words --mark`. **Fixed.**
+
+**M2 (blocking). `automata words` is an AI translator.** `df992aaa`: it translates every missing or stale word into every
+shipped language, `--to <lang>`, `<key>` and `--all`, through one model port with a fake in tests, the key from
+`ANTHROPIC_API_KEY` on the developer's machine only, the placeholder check before every write with one retry. *Fix:* task
+4 is rewritten to that, with its port, prompt, write, report and model setting (`words.model` in `ship.config.ts`), tests
+first, and the `claude-api` skill loaded before the model call. Stale detection needs a record of the source each
+translation came from, which the first amendment's "no source stamps" seemed to forbid; asked of the coordinator, who
+withdrew that line: the record stays, written only by the tool, `--mark` for translations written without a model
+(call 7). This container has no key, so the framework's own words are written by the executing session and marked, and
+the live call stays unverified until someone runs it with a key (call 8). **Fixed.**
+
+**M3 (blocking). Achievements are generic.** `b119393b`: a host-neutral declaration beside the leaderboards (id, title,
+description, one goal: reach a value or a top share), the framework's own Zod schema, mapped by each target; Ruken
+refuses at ship a goal it cannot express. The plan's task 13 was Ruken's manifest shape with `top_rank`. *Fix:* task 13
+declares `goal: { reach } | { top_percent }` in the game config with no host limits, maps it in `rukenToml`, refuses at
+`ship prepare --target ruken` a top share outside `@ruken/manifest`'s `ACHIEVEMENT_TOP_PERCENTS` (read, never retyped),
+and leaves web, itch and tauri unchanged; the `achievements` step of `automata check` holds the framework's schema only.
+Emberwick's achievement uses the generic form. **Fixed.**
+
+**M4 (blocking). The site's Editor page is cut.** `134d7fd1`: the header's Editor link opens `/editor/app/`, `/editor`
+redirects there, and the page, its words, pictures and checks go. *Fix:* task 19, tests first. **Fixed.**
+
+**M5 (should fix). The site has no redirects feature.** The amended spec says `/editor` redirects "through the site's
+redirects feature". There is none: the build writes `_headers` only (`site/scripts/write-headers.ts`), and the site
+checks refuse a page that only redirects (`site/scripts/site-checks.ts:56-58`, "cut pages get the 404 page"). *Fix:*
+task 19 writes a host rule, `_redirects` for Cloudflare Pages (the host, `.github/workflows/site.yml:78`), so the rule
+against redirect pages stands. Reported to the coordinator as a wording to correct in the spec. **Fixed in the plan.**
+
 ## The four things "not verified while planning"
 
 | Item | Result |
@@ -243,11 +282,14 @@ The plan was 1,292 lines. Cut in this branch without losing what an executor nee
 lists its files), the self-review's coverage, amendments and "names used across tasks" paragraphs (the tracking table
 and each task's Interfaces carry them; this audit carries the coverage check), the twelve bare "run; confirm they fail"
 steps and the per-task changeset clauses (the global constraints now say each once), and the "not verified" list
-(answered above). The fixes added more than that removed: the plan is now 1,421 lines. Further cuts that would cost an
+(answered above), and the CSV, export, import and status parts the spec cut (M1). The fixes and the spec's new work
+(M2, M4) added more than that removed: the plan is now 1,529 lines. Further cuts that would cost an
 executor nothing: the test blocks whose bodies are `…` could become one line per task naming the cases; the "Review
 focus" list repeats cases already in tasks 3, 4, 6, 8 and 9.
 
 ## Counts
 
-7 blocking (B1-B7), 16 should fix (S1-S16), 13 tidy (T1-T13): 36 findings. Open: B7 (the Owner), S9 and S13 (the
-coordinator); the plan carries a default for each.
+Against the plan as written: 7 blocking (B1-B7), 16 should fix (S1-S16), 13 tidy (T1-T13). From the spec's amendments:
+4 blocking (M1-M4), 1 should fix (M5). In all 41 findings: 11 blocking, 17 should fix, 13 tidy. All are fixed in the
+plan. B7, S9, S13 and call 7 were settled by the coordinator during the audit; M5 asks for a wording change in the spec.
+The plan matches the spec at `main` `0332302c`.
