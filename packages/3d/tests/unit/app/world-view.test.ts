@@ -252,3 +252,60 @@ describe('drawWorld: glow', () => {
     expect(first(view.mesh('lamp:bulb') as Mesh3D)).toEqual(linear(ember.steps[5] as number))
   })
 })
+
+// A prop that stays put takes the room's baked light as scenery does; one a state moves has its light taken again where it
+// lands, and a swaying leaf keeps its own material.
+describe('drawWorld: props', () => {
+  const quad = {
+    positions: [0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0],
+    normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+    indices: [0, 1, 2, 0, 2, 3],
+  }
+  const crate: WorldPiece = {
+    id: 'crate:body',
+    sector: 'a',
+    light: 1,
+    part: 'prop',
+    mesh: quad,
+    surface: 'wood',
+    prop: { id: 'crate', at: [0, 0, 0] },
+  }
+  const light = () =>
+    createSceneLight(
+      sceneLightingSchema.parse({
+        ambient: 0.1,
+        colorSpace: 'srgb',
+        lamps: [{ id: 'lamp', x: 0.5, y: 0.5, z: 2, color: 0xffffff, range: 6 }],
+        boxes: [{ id: 'crate:body', x: 0.5, y: 0, z: 0, width: 1, height: 1, depth: 0.2 }],
+      }),
+    )
+  const first = (mesh: Mesh3D) =>
+    ((mesh.geometry.attributes.aColor?.buffer.data ?? []) as Float32Array)[0] as number
+
+  it('bakes a prop’s light into its vertex colours, on a flat material', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0xffffff, light: light() }, [crate])
+    const mesh = view.mesh('crate:body') as Mesh3D
+    expect(mesh.material).toBeInstanceOf(FlatMaterial)
+    expect(mesh.material.vertexColors).toBe(true)
+  })
+  it('leaves a swaying leaf on its own material, which light cannot be baked into', () => {
+    const leaf: WorldPiece = { ...crate, id: 'tree:leaves', sway: 0.1, phase: 0 }
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0xffffff, light: light() }, [leaf])
+    expect((view.mesh('tree:leaves') as Mesh3D).material.vertexColors).toBe(false)
+  })
+  it('does not shade a prop with its own box', () => {
+    const near = light()
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0xffffff, light: near }, [crate])
+    // The lamp is in front of the face: lit, not in the shadow of the prop’s own box.
+    expect(first(view.mesh('crate:body') as Mesh3D)).toBeGreaterThan(0.2)
+  })
+  it('takes the light again where a moved prop now stands', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0xffffff, light: light() }, [crate])
+    const mesh = view.mesh('crate:body') as Mesh3D
+    const before = first(mesh)
+    mesh.position.set(0, 0, -30)
+    view.relight('crate:body')
+    // Thirty metres behind the lamp's reach: the ambient alone.
+    expect(first(mesh)).toBeLessThan(before)
+  })
+})

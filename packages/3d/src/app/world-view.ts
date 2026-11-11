@@ -55,6 +55,11 @@ export interface WorldView {
   readonly pieces: readonly WorldPiece[]
   /** A piece's mesh by its id. */
   readonly mesh: (id: string) => Mesh3D | undefined
+  /**
+   * Takes the baked light of a piece again where its mesh now stands: call it after a state has moved a prop. A piece
+   * with no baked light (a door, a leaf, or any piece in a room with no `light`) is left alone.
+   */
+  relight(id: string): void
   /** Takes the meshes down and frees their geometry and materials. */
   dispose(): void
 }
@@ -115,9 +120,11 @@ function meshOf(
   return new Mesh3D({ geometry, material })
 }
 
-/** A piece a state can move (a door, a prop, a leaf in the wind) cannot hold baked light. */
-const stays = (piece: WorldPiece): boolean =>
-  piece.door === undefined && piece.prop === undefined && piece.sway === undefined
+/**
+ * A piece that can hold baked light: not a door, which turns about its hinge, nor a leaf that sways. A prop can: a state
+ * that moves it has its light taken again (`WorldView.relight`).
+ */
+const stays = (piece: WorldPiece): boolean => piece.door === undefined && piece.sway === undefined
 
 /** Draws `pieces` into `scene.parent`. */
 export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): WorldView {
@@ -146,14 +153,15 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
         scene.light.bake(mesh, { glow: { steps: ladder.steps, base: ladder.base, lamps } })
       }
     } else if (scene.light !== undefined && stays(piece)) {
-      // Baked after it is placed under the node, so the light sees where it stands.
+      // Baked after it is placed under the node, so the light sees where it stands. A prop's own box never shadows it.
+      const ignore = piece.part === 'prop' ? [piece.id] : []
       // A room's `light` is 1 when normal; each 1 less is a whole step darker.
       if (tile === undefined) {
         mesh.material = new FlatMaterial({ baseColor: colour })
-        scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light })
+        scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light, ignore })
       } else {
         mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile) })
-        scene.light.bake(mesh, { textured: true, shadeSteps: 1 - piece.light })
+        scene.light.bake(mesh, { textured: true, shadeSteps: 1 - piece.light, ignore })
       }
     }
     if (scene.occluders === undefined) continue
@@ -173,6 +181,10 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     node,
     pieces,
     mesh: (id) => meshes.get(id),
+    relight(id) {
+      const mesh = meshes.get(id)
+      if (mesh !== undefined) scene.light?.rebake(mesh)
+    },
     dispose() {
       for (const mesh of meshes.values()) mesh.destroy({ children: true })
       meshes.clear()

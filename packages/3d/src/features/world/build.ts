@@ -99,9 +99,10 @@ export interface WorldOptions {
   /** Lit windows show curtains, a plant, a figure. Default: yes. */
   readonly interiors?: boolean
   /**
-   * The longest edge (metres) a piece that stays put is cut to, so the baked vertex light has a vertex wherever a
-   * lamp's pool or a shadow's edge falls (the look's `seg`). A door, a prop and a swaying leaf keep
-   * the builder's own triangles: they move, so no light is baked into them. 0 cuts nothing. Default 0.35.
+   * The longest edge (metres) a piece that takes baked light is cut to, so the baked vertex light has a vertex wherever a
+   * lamp's pool or a shadow's edge falls (the look's `seg`). A prop is cut too: a state that moves it has its light baked
+   * again where it lands. A door and a swaying leaf keep the builder's own triangles: they move, so no light is baked
+   * into them. 0 cuts nothing. Default 0.35.
    */
   readonly seg?: number
 }
@@ -196,10 +197,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       sector: sector.id,
       light: sector.light,
       part,
-      mesh:
-        extra.door === undefined && extra.sway === undefined && extra.prop === undefined
-          ? subdivide(mesh, seg)
-          : mesh,
+      mesh: extra.door === undefined && extra.sway === undefined ? subdivide(mesh, seg) : mesh,
       surface,
       ...(tex === undefined ? {} : { tex }),
       ...extra,
