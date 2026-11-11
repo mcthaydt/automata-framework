@@ -16,7 +16,7 @@ import {
   type SimEvent,
 } from '@automata/sim'
 import { z } from 'zod'
-import { createSystems } from '../shared/sim/systems.plugin'
+import { createSystems, type Systems } from '../shared/sim/systems.plugin'
 import { type AgentRecord, SystemsEnv, SystemsState } from '../shared/sim/systems.resource'
 import type { SystemsDef } from '../shared/sim/systems.schema'
 import type { SystemsOptions } from '../shared/sim/world'
@@ -47,8 +47,8 @@ export interface WardExtras {
   readonly puzzle?: PuzzleDef
   /** The player walks with nav (`nav.agent`, at `speed` m/s) instead of only being moved. */
   readonly walker?: number
-  /** More plugins (a run's watcher). */
-  readonly plugins?: readonly PluginDef[]
+  /** More plugins (a run's watcher); a function gets the game's `Systems`, for a plugin that calls `hide` or `hear`. */
+  readonly plugins?: readonly PluginDef[] | ((systems: Systems) => readonly PluginDef[])
 }
 
 export async function createWardGame(
@@ -105,7 +105,7 @@ export async function createWardGame(
       }),
       systems.plugin,
       game,
-      ...(extras.plugins ?? []),
+      ...(typeof extras.plugins === 'function' ? extras.plugins(systems) : (extras.plugins ?? [])),
     ],
   })
   const player =

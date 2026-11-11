@@ -9,7 +9,7 @@ import { SystemsAgent } from './systems.component'
 import { SystemsCaught, SystemsCutscene, SystemsLine, SystemsMode, SystemsNoise } from './systems.event'
 import { SystemsEnv, SystemsNoises, SystemsPursuit, SystemsScene, SystemsState } from './systems.resource'
 import type { SystemsDef } from './systems.schema'
-import { hearWith, systemsNoiseAgeSystem, systemsStepSystem } from './systems.system'
+import { hearWith, hideWith, systemsNoiseAgeSystem, systemsStepSystem, unhideWith } from './systems.system'
 import type { SystemsOptions } from './world'
 
 export interface Systems {
@@ -19,6 +19,10 @@ export interface Systems {
     ctx: SimContext,
     noise: { readonly at: Point; readonly loudness: number; readonly kind: string },
   ) => void
+  /** Hides the player at a hiding place from a sim system: what the `systems.hide` command does. */
+  readonly hide: (ctx: SimContext, spot: string) => void
+  /** Brings the player out of hiding from a sim system: what the `systems.unhide` command does. */
+  readonly unhide: (ctx: SimContext) => void
   /** Loads a scene's systems; call it from a game system after its map and nav graph. */
   readonly load: (ctx: SimContext, def: SystemsDef, places?: Readonly<Record<string, Point>>) => void
 }
@@ -43,6 +47,8 @@ export function createSystems(options: SystemsOptions = {}): Systems {
       systems: [systemsStepSystem(options), systemsNoiseAgeSystem],
     }),
     hear: hearWith(options),
+    hide: hideWith(options),
+    unhide: unhideWith(options),
     load: (ctx, def, places) => loadSystems(ctx, def, options, places),
   }
 }

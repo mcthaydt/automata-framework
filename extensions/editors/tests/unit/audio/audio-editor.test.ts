@@ -445,3 +445,34 @@ describe('Audio', () => {
     await vi.waitFor(async () => expect(await text(ports)).toContain('indoors = true'))
   })
 })
+
+describe('Audio: a file with footsteps by floor', () => {
+  const STEPS = `master_gain = 0.8
+
+[[cue]]
+id = "step"
+bus = "sfx"
+voices = []
+
+[[cue]]
+id = "stepTile"
+bus = "sfx"
+voices = []
+
+[steps]
+default = "step"
+
+[steps.floors]
+tile = "stepTile"
+`
+
+  it('opens, and an edit elsewhere keeps the table as it was (the Audio editor has no rows for it yet)', async () => {
+    const { ports } = await open({ [AUDIO_PATH]: STEPS })
+    await userEvent.click(screen.getByRole('button', { name: 'Mix' }))
+    const volume = screen.getByLabelText('Overall volume')
+    await userEvent.clear(volume)
+    await userEvent.type(volume, '0.5{Enter}')
+    await vi.waitFor(async () => expect(await text(ports)).toContain('master_gain = 0.5'))
+    expect(await text(ports)).toContain('[steps]\ndefault = "step"\n\n[steps.floors]\ntile = "stepTile"\n')
+  })
+})

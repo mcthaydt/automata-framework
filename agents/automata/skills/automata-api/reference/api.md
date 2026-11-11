@@ -29,6 +29,8 @@ interface AudioContent {
   readonly duck?: readonly DuckRule[] | undefined;
   readonly slot?: readonly Slot[] | undefined;
   readonly music_rule?: readonly MusicRule[] | undefined;
+  /** The cue a step makes on each floor surface; absent means the game plays none of its own. */
+  readonly steps?: StepsTable | undefined;
 }
 ```
 
@@ -587,6 +589,26 @@ A value a music rule can test: text, a number or a yes-or-no.
 
 ```ts
 type StateValue = string | number | boolean;
+```
+
+#### `stepCue` (function)
+
+The cue for a step on `floor`; the table's default when it has no row for it (or no floor is known); nothing with no table.
+
+```ts
+function stepCue(table: StepsTable | undefined, floor: string | undefined): string | undefined;
+```
+
+#### `StepsTable` (interface)
+
+Footsteps by floor: the cue a step makes on each floor surface (a sector's `floorTexture`), and the one for a surface
+the table does not name. The game's view plays it when it hears its own step.
+
+```ts
+interface StepsTable {
+  readonly default: string;
+  readonly floors?: Readonly<Record<string, string>> | undefined;
+}
 ```
 
 #### `Voice` (interface)
@@ -12763,6 +12785,17 @@ interface Action {
 }
 ```
 
+#### `applyVerb` (function)
+
+What the verb system does for one `puzzle.verb`, for another system to call: a use that a game's own walker has
+reached its target for (the `interact` extension). `options` are the ones the game gave `createPuzzlePlugin`, since
+the plugin's own closure is out of reach of a caller. Like a command, a verb is ignored while the scene's puzzle is
+not loaded or the game's `locked` holds.
+
+```ts
+function applyVerb(ctx: SimContext, verb: Verb, options?: PuzzleOptions): void;
+```
+
 #### `Cond` (type)
 
 A condition on the puzzle's state. It asks that a fact is a value or within `atLeast` and
@@ -13267,6 +13300,23 @@ typed code and `point` a floor point.
 const VerbCommand: CommandDef<z.ZodType<VerbPayload>>;
 ```
 
+#### `VerbPayload` (interface)
+
+What a `puzzle.verb` carries, and what `applyVerb` takes: where the verb is aimed and what it holds, combines or types.
+
+```ts
+interface VerbPayload {
+  readonly at: string;
+  readonly held?: string | undefined;
+  readonly pair?: readonly [string, string] | undefined;
+  readonly code?: string | undefined;
+  readonly point?: {
+    readonly x: number;
+    readonly z: number;
+  } | undefined;
+}
+```
+
 #### `VerbReport` (interface)
 
 What happened to one verb: where it was aimed, the item held, the action taken (null for none),
@@ -13300,6 +13350,17 @@ interface Action {
   readonly say: string;
   readonly seconds?: number | undefined;
 }
+```
+
+#### `applyVerb` (function)
+
+What the verb system does for one `puzzle.verb`, for another system to call: a use that a game's own walker has
+reached its target for (the `interact` extension). `options` are the ones the game gave `createPuzzlePlugin`, since
+the plugin's own closure is out of reach of a caller. Like a command, a verb is ignored while the scene's puzzle is
+not loaded or the game's `locked` holds.
+
+```ts
+function applyVerb(ctx: SimContext, verb: Verb, options?: PuzzleOptions): void;
 ```
 
 #### `Cond` (type)
@@ -13752,6 +13813,23 @@ typed code and `point` a floor point.
 
 ```ts
 const VerbCommand: CommandDef<z.ZodType<VerbPayload>>;
+```
+
+#### `VerbPayload` (interface)
+
+What a `puzzle.verb` carries, and what `applyVerb` takes: where the verb is aimed and what it holds, combines or types.
+
+```ts
+interface VerbPayload {
+  readonly at: string;
+  readonly held?: string | undefined;
+  readonly pair?: readonly [string, string] | undefined;
+  readonly code?: string | undefined;
+  readonly point?: {
+    readonly x: number;
+    readonly z: number;
+  } | undefined;
+}
 ```
 
 #### `VerbReport` (interface)

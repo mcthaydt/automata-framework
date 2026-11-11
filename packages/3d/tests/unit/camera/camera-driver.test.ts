@@ -22,6 +22,7 @@ function fakeRig() {
       calls.push('setViews')
     },
     viewOf: (id) => views.get(id),
+    active: () => undefined,
     activate: (id, how) => calls.push(`activate ${id} ${how}`),
     heading: (yaw, how = 'track') => calls.push(`heading ${yaw} ${how}`),
     follow: (x, y, z) => calls.push(`follow ${x} ${y} ${z}`),

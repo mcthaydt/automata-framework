@@ -103,6 +103,40 @@ const materials = $derived(
     onpick={(id) => onchange({ kind: 'sector', id: card.id, view: id === '' ? null : id }, 'set')}
   />
 {/if}
+{#if card.viewRooms !== undefined}
+  {@const camera = card.viewRooms}
+  <!-- The camera's own card: the rooms it draws. None ticked draws every room, and the line says so. -->
+  <fieldset class="rooms" aria-label="Rooms this camera draws">
+    <legend>This camera draws</legend>
+    <div class="list">
+      {#each camera.all as room (room)}
+        <label class="check">
+          <input
+            type="checkbox"
+            checked={camera.rooms.includes(room)}
+            onchange={(event) =>
+              onchange(
+                {
+                  kind: 'view-rooms',
+                  view: camera.view,
+                  rooms: event.currentTarget.checked
+                    ? camera.all.filter((each) => each === room || camera.rooms.includes(each))
+                    : camera.rooms.filter((each) => each !== room),
+                },
+                'set',
+              )}
+          />
+          {room}
+        </label>
+      {/each}
+    </div>
+    <p class="meta">
+      {camera.rooms.length === 0
+        ? 'None ticked: every room is drawn.'
+        : 'The room the player stands in is always drawn too.'}
+    </p>
+  </fieldset>
+{/if}
 <ul class="materials" aria-label="Materials">
   {#each materials as material (material.label)}
     <li><span class="label">{material.label}</span> <span class="value">{material.value}</span></li>
@@ -128,6 +162,17 @@ const materials = $derived(
     padding: 0;
     list-style: none;
     font: var(--text-body-13);
+  }
+  .rooms {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  /* A level with many rooms scrolls its list here, not the card. */
+  .list {
+    max-height: 12rem;
+    overflow-y: auto;
   }
   .check {
     display: inline-flex;

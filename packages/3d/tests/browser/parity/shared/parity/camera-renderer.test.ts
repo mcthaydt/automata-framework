@@ -50,4 +50,22 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer with the angled camera', () => {
     // 2·atan(12 / 50) on the 24 mm tall gate.
     expect(fov).toBeCloseTo(26.99, 2)
   })
+
+  it('hands the rig to the scene hook, so a room hook can read the active view', async () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    let seen: string | undefined = 'not called'
+    const factory = createPixi3dRenderer({
+      logicalWidth: 160,
+      logicalHeight: 90,
+      views: { body: box({ width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xf9c22b }) },
+      camera: { views: [cameraView('hall'), cameraView('cell')], initial: 'hall', follow: 'body' },
+      scene: (_view, _stage, _occluders, _light, _models, camera) => {
+        seen = camera?.active()
+        return undefined
+      },
+    })
+    scope = await builtRenderer(factory(testTarget(host)))
+    expect(seen).toBe('hall')
+  })
 })

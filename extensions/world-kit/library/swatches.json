@@ -1219,5 +1219,17 @@
       "contrast": 0.04,
       "seed": 82
     }
+  },
+  "enamel": {
+    "ramp": "grey",
+    "step": 6
+  },
+  "vinylTeal": {
+    "ramp": "teal",
+    "step": 4
+  },
+  "steelGrey": {
+    "ramp": "slate",
+    "step": 3
   }
 }

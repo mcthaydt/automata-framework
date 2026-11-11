@@ -1,5 +1,15 @@
 // @automata/narrative/sim: dialogue, line records, the canon's shape and storylets, a sim entry.
+
 export { type Canon, canonSchema, DEFAULT_STANCE } from '../shared/sim/canon.schema'
+export {
+  BEAT_SECONDS,
+  type Beat,
+  type Delivery,
+  deliveryProblems,
+  deliverySchema,
+  sentences,
+  typed,
+} from '../shared/sim/delivery'
 export {
   advance,
   applyChoice,
