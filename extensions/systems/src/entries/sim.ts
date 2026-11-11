@@ -1,6 +1,17 @@
 // @automata/systems/sim: world rules and agents as data, a sim entry.
 export { ARRIVE } from '../shared/sim/agent-step'
+export { refuel } from '../shared/sim/carried-light'
+export { ToggleLight } from '../shared/sim/carried-light.command'
+export { CarriedLight } from '../shared/sim/carried-light.component'
+export { LightDry } from '../shared/sim/carried-light.event'
+export { createCarriedLight } from '../shared/sim/carried-light.plugin'
 export type { Outcome } from '../shared/sim/effect'
+export { followPlayer } from '../shared/sim/follow'
+export { DEFAULT_PEEK, type Doorway, type PeekDef, type PeekState } from '../shared/sim/peek'
+export { type PeekPayload, SystemsPeek } from '../shared/sim/peek.event'
+export { createPeek, peekOf } from '../shared/sim/peek.plugin'
+export { SystemsPeekState } from '../shared/sim/peek.resource'
+export type { PeekOptions } from '../shared/sim/peek.system'
 export { AT_NODE, type Subject } from '../shared/sim/probe'
 export {
   BUILT_IN_HOOKS,

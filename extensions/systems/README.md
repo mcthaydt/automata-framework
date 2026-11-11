@@ -25,10 +25,28 @@ If one of them is missing, the game refuses to start and says who needs what.
 ## What you get
 
 - **A `systems` content kind**: agents, their modes (patrol, hunt) and the rules between them.
-- **Sim**: commands to hide and unhide, and events for a change of mode, a noise and a catch. `systems.hear` makes a
-  noise from your own system.
+- **Sim**: commands to hide and unhide, and events for a change of mode, a noise and a catch. `systems.hear`,
+  `systems.hide` and `systems.unhide` do the same from your own system (a hiding place a person walked to, for one).
+- **Chasing on a clock**: `followPlayer(0.4)` is a hook a transition calls (`{ call = "chase" }`) that routes the agent to the
+  player now and again every 0.4 seconds, so a chaser follows a player who moves. `goTo` alone routes once, to where she was.
 - **Bots** (`@automata/systems/bots`, Node only): scripted players, scenarios, playtests and a fairness report, for
   build time and tests.
+
+## Peeking and carried lights (opt-in plugins)
+
+Two more pieces are plugins of their own, so a game that does not use them keeps the saves and recordings it has.
+
+- **Peeking** (`createPeek`): the player stands still, not hiding, facing a doorway into another zone for 0.6 seconds, and
+  the camera may lean up to 1.2 metres across it. Moving, turning more than 50° away, hiding, a shut door or a verb ends it.
+  The numbers are options (those are the old game's); you give it the player's facing, since the sim has no heading. The
+  peek is in the sim's state, so a replay carries it: `peekOf(sim)` gives `{ portal, into, x, z }` once it holds, and the
+  `systems.peek` event says when it starts and ends. A door shuts a doorway through the movement query you give
+  `createSystems` (`blocked`), so no door is named here.
+- **A carried light** (`createCarriedLight`): a `CarriedLight` component on the carrier (`lit`, `fuelTicks`, `radius`),
+  the `systems.light-toggle` command (lights it only with fuel; a dry light stays dark and says so with `systems.light-dry`),
+  a burn of one tick of fuel a tick, and `refuel(ctx, entity, ticks, cap)` for your refill. While lit, its pool is added to
+  `env.lights`, so a creature that refuses light stays out of it. Which item is the lamp, and how much a bottle is, are your
+  game's. Write `env.lights` fresh each step, earlier than the `gameplay` phase, as the rest of the env is.
 
 ## Editing characters in Schematic
 

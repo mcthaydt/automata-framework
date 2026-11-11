@@ -73,6 +73,27 @@ export const systemsNoiseAgeSystem: SystemDef = defineSystem('systems.noise-age'
   })
 })
 
+/**
+ * Hides the player from any sim system, as the `systems.hide` command does (any hiding she was in ends first); a hiding
+ * place is only a name. With no scene loaded there are no agents to note, and nothing happens.
+ */
+export const hideWith =
+  (options: SystemsOptions) =>
+  (ctx: SimContext, spot: string): void => {
+    const w = worldOf(ctx, options)
+    if (w === undefined) return
+    unhide(w)
+    hide(w, spot)
+  }
+
+/** Brings the player out of hiding from any sim system, as the `systems.unhide` command does. */
+export const unhideWith =
+  (options: SystemsOptions) =>
+  (ctx: SimContext): void => {
+    const w = worldOf(ctx, options)
+    if (w !== undefined) unhide(w)
+  }
+
 /** Makes a noise from any sim system (puzzle's `noise` option, a game's): heard on the step it is made. */
 export const hearWith =
   (options: SystemsOptions) =>
