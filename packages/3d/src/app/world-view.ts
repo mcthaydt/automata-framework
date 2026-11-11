@@ -16,6 +16,7 @@ import { tileName } from '../features/world/surface.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
 import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
+import { toSrgb } from '../shared/render/light/vertex-light.ts'
 
 export interface WorldScene {
   /** Where the pieces are added. */
@@ -67,26 +68,42 @@ export interface WorldView {
 const MISSING = 0x808080
 
 const textures = new WeakMap<AlbedoTile, Texture>()
+const plainTextures = new WeakMap<AlbedoTile, Texture>()
 
-/** A tile as a texture: nearest-sampled, repeating, no mips, so every texel stays one DUEL colour. */
-function textureOf(tile: AlbedoTile): Texture {
-  let texture = textures.get(tile)
+/**
+ * A tile as a texture: nearest-sampled, repeating, no mips, so every texel stays one DUEL colour. A lit material wants the
+ * sRGB format (the sampler decodes it, the view's encode brings it back); an unlit one is not encoded, so it shows the
+ * texture as the sampler gives it, and wants the plain format (`plain`), which gives each texel as it is.
+ */
+function textureOf(tile: AlbedoTile, plain = false): Texture {
+  const made = plain ? plainTextures : textures
+  let texture = made.get(tile)
   if (texture === undefined) {
     texture = new Texture({
       source: new BufferImageSource({
         resource: tile.rgba,
         width: tile.width,
         height: tile.height,
-        format: 'rgba8unorm-srgb',
+        format: plain ? 'rgba8unorm' : 'rgba8unorm-srgb',
         scaleMode: 'nearest',
         addressMode: 'repeat',
         autoGenerateMipmaps: false,
       }),
     })
-    textures.set(tile, texture)
+    made.set(tile, texture)
   }
   return texture
 }
+
+/**
+ * A colour for an unlit material to show as it is. The material takes its base colour as sRGB, decodes it and does not
+ * encode it again, so the colour to give is the one whose decoded value is the colour wanted.
+ */
+const shownAs = (colour: number): [number, number, number] => [
+  toSrgb(((colour >> 16) & 255) / 255),
+  toSrgb(((colour >> 8) & 255) / 255),
+  toSrgb((colour & 255) / 255),
+]
 
 /** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour (or its tile), with a material of its own. */
 function meshOf(
@@ -141,12 +158,12 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
     if (room !== undefined) {
-      mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(room.tile) })
+      mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(room.tile, true) })
     } else if (glows !== undefined) {
       // A glow takes no light, so a moving piece may carry it baked: where it goes does not change what it shows.
       const ladder = ladderOf(glows)
       if (scene.light === undefined)
-        mesh.material = new FlatMaterial({ baseColor: ladder.steps[ladder.base] ?? colour })
+        mesh.material = new FlatMaterial({ baseColor: shownAs(ladder.steps[ladder.base] ?? colour) })
       else {
         mesh.material = new FlatMaterial({ baseColor: 0xffffff })
         const lamps = piece.prop === undefined ? [] : lampsOfProp(scene.light.lighting.lamps, piece.prop.id)
@@ -157,10 +174,10 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
       const ignore = piece.part === 'prop' ? [piece.id] : []
       // A room's `light` is 1 when normal; each 1 less is a whole step darker.
       if (tile === undefined) {
-        mesh.material = new FlatMaterial({ baseColor: colour })
+        mesh.material = new FlatMaterial({ baseColor: 0xffffff })
         scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light, ignore })
       } else {
-        mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile) })
+        mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile, true) })
         scene.light.bake(mesh, { textured: true, shadeSteps: 1 - piece.light, ignore })
       }
     }

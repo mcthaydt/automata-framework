@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import { ladderOf } from '#src/features/world/albedo/ladder.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import { bakeVertices } from '#src/shared/render/light/vertex-bake.ts'
-import { toLinear, toSrgb } from '#src/shared/render/light/vertex-light.ts'
 
 // A 4 × 4 floor patch of 25 vertices around the origin, facing up.
 function floorPatch(): { positions: Float32Array; normals: Float32Array } {
@@ -178,7 +177,9 @@ describe('the look’s light', () => {
     expect(out[0]).toBeCloseTo(0.15 + 0.8 * 0.09 + 1, 5)
   })
 
-  it('turns an sRGB light into the multiplier that leaves the albedo times the light on screen', () => {
+  // A baked mesh is drawn unlit (`FlatMaterial` skips the tone map and its encode), so the screen shows the vertex colour as
+  // written: the albedo times the light is written as it is, in sRGB, with no curve in between.
+  it('writes the albedo times the light as the vertex colour, for an unlit material to show as it is', () => {
     const { positions, normals } = floorPatch()
     const albedo = 0x8690b2
     const out = colours(bakeVertices(positions, normals, IDENTITY, base, [], { albedo }))
@@ -187,10 +188,8 @@ describe('the look’s light', () => {
       [0, 0x86],
       [1, 0x90],
       [2, 0xb2],
-    ] as const) {
-      const lin = a / 255 <= 0.04045 ? a / 255 / 12.92 : ((a / 255 + 0.055) / 1.055) ** 2.4
-      expect(toSrgb(lin * out[c]!)).toBeCloseTo((a / 255) * light, 4)
-    }
+    ] as const)
+      expect(out[c]).toBeCloseTo((a / 255) * light, 5)
   })
 
   it('leaves a bright texel at 1 on screen, not past it, when the light would push it over', () => {
@@ -198,18 +197,18 @@ describe('the look’s light', () => {
     const out = colours(
       bakeVertices(positions, normals, IDENTITY, { ...base, ambient: 1, max: 1.6 }, [], { albedo: 0xffffff }),
     )
-    // albedo 1 × light 1.09 → clamped at 1 on screen: a linear multiplier of 1.
+    // albedo 1 × light 1.09 → clamped at 1 on screen.
     expect(out[0]).toBeCloseTo(1, 5)
   })
 
-  it('gives a textured mesh the light as a linear multiplier, past 1 where the light is, for the texture to take', () => {
+  it('gives a textured mesh the light itself, past 1 where the light is, for the texture to take', () => {
     const { positions, normals } = floorPatch()
     const bright = { ...base, ambient: 1, max: 1.6 }
     const light = colours(bakeVertices(positions, normals, IDENTITY, bright))[0] as number
     const out = colours(bakeVertices(positions, normals, IDENTITY, bright, [], { textured: true }))
-    // A texel's colour × this, in linear light, is the sRGB albedo × light on screen (a power of 2.2 stands for the curve).
+    // The tile is a non-sRGB texture of DUEL colours, so a texel × this is its albedo × light on screen, whole.
     expect(light).toBeGreaterThan(1)
-    expect(out[0]).toBeCloseTo(light ** 2.2, 4)
+    expect(out[0]).toBeCloseTo(light, 5)
   })
 })
 
@@ -223,9 +222,9 @@ describe('a glowing swatch', () => {
     colorSpace: 'srgb',
     lamps: lighting.lamps,
   })
-  // A glowing mesh is drawn on a white base, so its vertex colour is the step's linear colour.
+  // A glowing mesh is drawn unlit on a white base, so its vertex colour is the step's colour as the screen shows it.
   const linear = (rgb: number): number[] =>
-    [(rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255].map((c) => toLinear(c / 255))
+    [(rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255].map((c) => c / 255)
   const first = (out: Float32Array) => [out[0], out[1], out[2]]
 
   it('keeps its own step at every vertex, lit or dark', () => {

@@ -79,8 +79,9 @@ export const sceneLightingSchema: z.ZodType<SceneLighting> = z
     /**
      * What the light's numbers multiply. `linear` (the default): each light is in linear light and multiplies a surface's
      * linear colour, as the shader does. `srgb`: each light multiplies the surface's sRGB colour channel by channel (a
-     * pixel-art look's rule: a texel is its albedo times its light), and the bake turns that into the linear
-     * multiplier the shader needs for the albedo it is told (`SceneLight.bake`'s `albedo`).
+     * pixel-art look's rule: a texel is its albedo times its light), and the bake writes the product for an unlit
+     * mesh to show as it is (`SceneLight.bake`'s `albedo`, `textured` and `glow`): an unlit material takes no tone map and
+     * no encode, so nothing curves it.
      */
     colorSpace: z.enum(['linear', 'srgb']).default('linear'),
     /** A small key light on the normal, added to the ambient: `dir` as given (not normalised), `level` its strength. */
