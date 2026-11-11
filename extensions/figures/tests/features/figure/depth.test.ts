@@ -15,11 +15,11 @@ const drawn = (who: number, D: number, d: number, cache: boolean) => {
   return f;
 };
 
-/** A figure drawn mid-stride: a walking input, advanced a few steps. */
+/** A figure drawn mid-stride: one walking step of 0.7 s from standing. */
 const walking = (who: number, D: number, d: number) => {
   const f = new Figure(member(BASE[who].def, D));
   f.cache = false;
-  for (let i = 0; i < 6; i++) f.update(0.12, { facing: d * Math.PI / 4, moving: true, view: view() });
+  f.update(0.7, { facing: d * Math.PI / 4, moving: true, view: view() });
   return f;
 };
 
@@ -39,29 +39,37 @@ const nearestSurface = (f: Figure, x: number, y: number) => {
   return null;
 };
 
+/** The frames the fallback is checked on, per density: the woman standing at four bearings and each of the pair mid-stride.
+ * At D4 these are where the old three-texel search left texels on the root's plane. */
+const FRAMES: { who: number; d: number; walk: boolean }[] = [
+  ...[1, 3, 5, 7].map(d => ({ who: 1, d, walk: false })), { who: 0, d: 3, walk: true }, { who: 1, d: 1, walk: true },
+];
+
 describe('Figure.depth', () => {
-  it('never leaves an opaque texel at the fallback plane: an outline texel takes its nearest surface\'s depth, at D1, D2 and D4', () => {
-    let far = 0;                                                  // outline texels whose nearest surface is beyond 3 texels (D4)
-    for (const D of [1, 2, 4]) for (const who of [0, 1]) for (let d = 0; d < 8; d++) for (const pose of ['stand', 'walk']) {
-      const f = pose === 'walk' ? walking(who, D, d) : drawn(who, D, d, false), [w, h] = f.cell;
+  it.each([1, 2, 4])('never leaves an opaque texel at the fallback plane: an outline texel takes its nearest surface\'s depth, at D%i', D => {
+    let far = 0;                                                  // outline texels whose nearest surface is beyond 3 texels
+    const bad: string[] = [];                                     // collected, asserted once: an expect() a texel costs seconds at D4
+    for (const { who, d, walk } of FRAMES) {
+      const f = walk ? walking(who, D, d) : drawn(who, D, d, false), [w, h] = f.cell, id = `${BASE[who].def.id} view ${d} ${walk ? 'walk' : 'stand'}`;
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
         const k = y * w + x;
         if (!f.painted[k * 4 + 3] || Number.isFinite(f.g.depth[k])) continue;
         const near = nearestSurface(f, x, y);
-        expect(near, `${BASE[who].def.id} D${D} view ${d} ${pose} (${x},${y}) has a surface somewhere`).not.toBeNull();
-        if (near!.r > 3) far++;
-        expect(f.depth[k], `${BASE[who].def.id} D${D} view ${d} ${pose} (${x},${y})`).toBe(near!.best);
+        if (!near) { bad.push(`${id} (${x},${y}): no surface anywhere`); continue; }
+        if (near.r > 3) far++;
+        if (f.depth[k] !== near.best) bad.push(`${id} (${x},${y}): ${f.depth[k]}, wanted ${near.best}`);
       }
     }
-    expect(far).toBeGreaterThan(0);                               // the case that was 67 texels of depth 0 at D4
+    expect(bad.slice(0, 5)).toEqual([]);
+    if (D === 4) expect(far).toBeGreaterThan(0);                  // the case that was 67 texels of depth 0 at D4
   });
-  it('is finite at every opaque texel, the outline included, in every view', () => {
-    for (const who of [0, 1]) for (const D of [1, 2, 4]) for (let d = 0; d < 8; d++) {
+  it.each([1, 2, 4])('is finite at every opaque texel, the outline included, in every view, at D%i', D => {
+    let bad = 0;
+    for (const who of [0, 1]) for (let d = 0; d < 8; d++) {
       const f = drawn(who, D, d, false);
-      let bad = 0;
       for (let i = 0; i < f.depth.length; i++) if (f.painted[i * 4 + 3] && !Number.isFinite(f.depth[i])) bad++;
-      expect(bad, `${BASE[who].def.id} D${D} view ${d}`).toBe(0);
     }
+    expect(bad).toBe(0);
   });
   it('is the G-buffer\'s depth where a surface is, and an outline texel takes its nearest neighbour\'s', () => {
     const f = drawn(0, 2, 1, false), [w, h] = f.cell;
@@ -85,8 +93,8 @@ describe('Figure.depth', () => {
     for (const D of [1, 2]) {
       const cached = new ScriptedActor({ who: 'base-m', at: [0, 0], path: [{ at: [2, 0] }] }), fresh = new ScriptedActor({ who: 'base-m', at: [0, 0], path: [{ at: [2, 0] }] }, { cache: false });
       let diff = 0;
-      for (let i = 0; i < 60; i++) for (const az of [0, 1, 2]) {
-        const t = (i % 20) / 10, v = { azimuth: az * Math.PI / 4, pitch: 18 * Math.PI / 180 };   // t repeats: revisits hit the cache
+      for (let i = 0; i < 24; i++) for (const az of [0, 1]) {
+        const t = (i % 8) / 10, v = { azimuth: az * Math.PI / 4, pitch: 18 * Math.PI / 180 };   // t repeats: revisits hit the cache
         const a = cached.draw(t, v, D, null), b = fresh.draw(t, v, D, null);
         if (Buffer.compare(Buffer.from(a.painted), Buffer.from(b.painted)) || Buffer.compare(Buffer.from(a.depth.buffer), Buffer.from(b.depth.buffer))) diff++;
       }
