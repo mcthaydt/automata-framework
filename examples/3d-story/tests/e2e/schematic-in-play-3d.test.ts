@@ -86,6 +86,25 @@ test('Watch: stepping the player into sight lights Hunt on the diagram and logs 
   await editors.getByRole('button', { name: 'Watch it run' }).click()
   const pane = editors.getByRole('region', { name: 'Watch' })
   await expect(pane).toBeVisible()
+  // The guard is in Hunt for half a second before it touches the player (the log says Hunt at 0.7 s and Catch at 1.2 s), too
+  // briefly to read the diagram at one moment. So note each mode the diagram lights while it runs, and ask for Hunt among them.
+  await editors.evaluate(() => {
+    const lit: string[] = []
+    ;(window as never as { __lit: string[] }).__lit = lit
+    const note = () => {
+      for (const box of document.querySelectorAll('[data-live="true"]')) {
+        const name = box.getAttribute('aria-label') ?? ''
+        if (!lit.includes(name)) lit.push(name)
+      }
+    }
+    new MutationObserver(note).observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['data-live'],
+    })
+    note()
+  })
   const game = pane.frameLocator('iframe')
   await game.getByRole('button', { name: 'Play' }).click()
   // The player starts 5 m from the guard; stepping toward it (screen left is east) brings it within 4 m.
@@ -97,7 +116,9 @@ test('Watch: stepping the player into sight lights Hunt on the diagram and logs 
     },
   )
   await editors.keyboard.up('KeyA')
-  await expect(editors.locator('[data-live="true"]').first()).toHaveAccessibleName(/^Hunt, /)
+  await expect
+    .poll(() => editors.evaluate(() => (window as never as { __lit: string[] }).__lit))
+    .toContainEqual(expect.stringMatching(/^Hunt, /))
   await editors.screenshot({ path: test.info().outputPath('watch-hunt.png') })
 })
 
@@ -184,6 +205,11 @@ test('pointing Patrol to Hunt at Search instead: the guard’s first change is t
   if (!(await to.isVisible())) await editors.getByRole('button', { name: 'Details' }).click()
   await expect(to).toBeVisible()
   await to.selectOption('search')
+  // Schematic writes through an async port: a game started before the file has the switch plays the old one and its first
+  // change is Hunt. Like the other edits here, wait for the file, not for time.
+  await expect
+    .poll(() => readFileSync(root + (FILES[0] as string), 'utf8'))
+    .toMatch(/from = "patrol"\s+to = "search"\s+priority = 30/)
   await editors.screenshot({ path: test.info().outputPath('4-switch-to-search.png') })
   await play(page)
   await page.waitForFunction(

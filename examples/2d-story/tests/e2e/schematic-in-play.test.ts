@@ -143,6 +143,9 @@ test('pointing the sees-the-player switch at Follow instead: the guard’s first
   if (!(await to.isVisible())) await editors.getByRole('button', { name: 'Details' }).click()
   await expect(to).toBeVisible()
   await to.selectOption('follow')
+  // Schematic writes through an async port: a game started before the file has the switch plays the old one and its first
+  // change is Hunt. Like the other edits here, wait for the file, not for time.
+  await fileMatches(GUARD_FILE, /from = "\*"\s+to = "follow"\s+priority = 70/)
   await editors.screenshot({ path: test.info().outputPath('4-switch-to-follow.png') })
   await play(page)
   await page.waitForFunction(
