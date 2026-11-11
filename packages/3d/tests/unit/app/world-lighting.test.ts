@@ -71,7 +71,7 @@ describe('worldLighting', () => {
     expect(sun!.shadow).toBe(day.scene.light.shadow)
   })
   it('lights the open road by day as the builder’s formula does: the ambient and key, plus the sun times N·L, stepped', () => {
-    // EnvironmentBuilder's `baseLight` for an upright-up surface in the open: (ambient + key level × (n · key dir)) × the
+    // The look's base light for an up-facing surface in the open, the formula of the painter this look comes from: (ambient + key level × (n · key dir)) × the
     // ambient's tint (its brightest channel 1), plus the sun's colour × its level × N·L, then the cap and the 0.1 steps.
     // No fill (it lights upright surfaces), no contact darkening on the open road, no shadow over it.
     const day = levelTime(exterior.time)
