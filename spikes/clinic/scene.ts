@@ -6,17 +6,22 @@
 // is the play camera following a stand-in for the player (1.62 m tall) at one of the baseline's spots.
 import '@automata/3d/no-eval'
 // Loading the world kit registers the prop generators the dressing's presets name (moon shafts, pipes, plaques, curtains…).
+import { addLcdPanelPass } from '@automata/lcd-panel/pass'
+import { addRetroPass } from '@automata/retro-crisp/pass'
 import { albedoTiles } from '@automata/world-kit'
+import { GlowEffect } from '@automata/world-kit/sky'
 import {
   box,
   buildWorld,
   createPixi3dRenderer,
   parseLook,
   drawWorld,
+  glowColours,
   HazeEffect,
   levelTime,
   render3dExtension,
   swatchColour,
+  swatchGlow,
   worldLighting,
 } from '@automata/3d'
 import { readLevel } from '@automata/3d/level'
@@ -34,6 +39,14 @@ isWebGLSupported()
 await detectVideoAlphaMode()
 
 const q = new URLSearchParams(location.search)
+// ?fx=1 is the "on" frame: the retro grade, the bloom and the LCD panel, in the source's order (grade before the snap, bloom and panel after).
+// Each is added once, before the renderer is made. The default is the "off" frame.
+const fx = q.get('fx') === '1'
+if (fx) {
+  // ?retro=0 / ?lcd=0 / ?bloom=0 leave one out, to read the frame without it.
+  if (q.get('retro') !== '0') addRetroPass()
+  if (q.get('lcd') !== '0') addLcdPanelPass()
+}
 const frame = q.get('frame') ?? 'play-hall'
 const turned = q.get('turned') === '1'
 // Bisecting switches: ?look=0 drops the look, ?light=0 the baked light, ?occ=0 the camera's occluder rule, ?walls=0 leaves out the walls,
@@ -130,7 +143,7 @@ startGame(
           const hider = masks.createWallHider()
           const draw: masks.DrawByRoom<(typeof world.pieces)[number]>['draw'] = (parent, pieces) =>
             drawWorld(
-              { parent, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), tiles: albedoTiles(library.swatches as never), look: on('look') ? LOOK : undefined, light, models },
+              { parent, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), tiles: albedoTiles(library.swatches as never), look: on('look') ? LOOK : undefined, light, models, ...(fx ? { glow: (swatch: string) => swatchGlow(library as never, swatch) } : {}) },
               pieces,
             )
           masks.drawByRoom({
@@ -141,6 +154,12 @@ startGame(
             pieces: world.pieces.filter((p) => (on('walls') || p.part !== 'wall') && (on('tops') || !p.id.includes(':top:'))),
             draw,
           })
+          // The bloom rings what the room's glowing swatches show, after the snap and before the panel, which sits on top of the picture.
+          if (fx && on('bloom')) {
+            const bloom = new GlowEffect({ colours: glowColours(world.pieces, (swatch) => swatchGlow(library as never, swatch)) })
+            const panel = view.passes.findIndex((p) => p.constructor.name === 'LcdPanelEffect')
+            view.passes = panel < 0 ? [...view.passes, bloom] : [...view.passes.slice(0, panel), bloom, ...view.passes.slice(panel)]
+          }
           owned.own(view.camera, 'global')
           // The stand-in for the player and the lights are not room content: they draw in every room.
           for (const node of [...view.root.children]) if (owned.owners(node as never) === undefined && !isMask(node)) owned.own(node as never, 'global')

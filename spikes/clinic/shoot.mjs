@@ -113,9 +113,9 @@ for (const [frame, turned] of FRAMES) {
     console.log(stem, pref, shot.data.renderer ?? 'FAILED', shot.errors.slice(0, 1).join(' | '))
   }
   const spot = frame.startsWith('play-') ? frame.slice(5) : undefined
-  const baseline = reference && spot && !turned ? join(reference, `${spot}-off.png`) : undefined
+  const baseline = reference && spot && !turned ? join(reference, `${spot}-${process.env.BASELINE ?? 'off'}.png`) : undefined
   const panels = [
-    { title: baseline && existsSync(baseline) ? 'source game baseline (effects off, with its HUD)' : `${stem}: no baseline frame`, b64: baseline && existsSync(baseline) ? readFileSync(baseline).toString('base64') : null },
+    { title: baseline && existsSync(baseline) ? `source game baseline (effects ${process.env.BASELINE ?? 'off'}, with its HUD)` : `${stem}: no baseline frame`, b64: baseline && existsSync(baseline) ? readFileSync(baseline).toString('base64') : null },
     { title: 'AF WebGL', b64: shots.webgl?.png?.toString('base64') ?? null },
     { title: 'AF WebGPU', b64: shots.webgpu?.png?.toString('base64') ?? null },
   ]

@@ -39,7 +39,7 @@ flags. Paths are under `packages/editor-3d/` unless they say otherwise.
 | 11 | **`fit` props** (any preset scaled to a box) | **No**: it is a kit `kind` with `of`, `with`, `size` and `turn`, all inside `with` (row 9) | `extensions/world-kit/library/props.json` `fit`; same code as row 9 |
 | 12 | **Veils** (light pools, moon shafts, translucent parts) | **No**: they are kit generators' parts, authored through `with` (row 9); no veil is placed or edited | same as row 9; no `veil` in `src/` |
 | 13 | **Camera zones** (`views`): the zone's `look`, `distance`, `x`, `follow`, `depthFollow`, `enterMargin`, `bounds` | **Partly**: a room takes a camera view by id from a picker (`setView`, the `views` keys); the view itself cannot be created or edited | `sector-edits.ts` `setView` (the editor "holds the id"); `SectorCard.svelte` "Camera"; `af-sector-profile.ts` line 52 `views: Object.keys(level.views ?? {})`; no view edit anywhere |
-| 14 | **Room visibility and cut groups**: the level's `visibility` policy, a wall's `cut` group | **No**: a wall's `occlude` (`cut`, `fade`, `never`, the "Hide in 3D" control) yes, but the named `cut` group and the policy are kept as written, with no edit | `wall-edits.ts` `setWallOcclude`, `WallCard.svelte` "Hide in 3D"; `3d/src/shared/level/af-sector-2-parts.schema.ts` line 202 (`cut`); `af-codec.ts` `FILE_ORDER` names neither `bounce` nor `visibility` |
+| 14 | **Room visibility and cut groups**: the level's `visibility` policy, a wall's `cut` group | **No**: the extension reads the policy and the clinic draws with it (`spikes/clinic/scene.ts`), but the editor has no edit for it. A wall's `occlude` (`cut`, `fade`, `never`, the "Hide in 3D" control) yes, but the named `cut` group and the policy are kept as written, with no edit | `wall-edits.ts` `setWallOcclude`, `WallCard.svelte` "Hide in 3D"; `3d/src/shared/level/af-sector-2-parts.schema.ts` line 202 (`cut`); `af-codec.ts` `FILE_ORDER` names neither `bounce` nor `visibility` |
 | 15 | **Swatches**: picking one for a floor, ceiling or wall | **Yes** | `sector-edits.ts` `setMaterials`, `wall-edits.ts` `setWallMaterial`, `material-edits.ts` `applyMaterial` (wall, room, matching), `MaterialSheet.svelte` |
 | 16 | **Swatches, authoring them** (a DUEL ramp and step, `emit`, `flat`, `noCast`, `uv`) | **No**: the editor reads the game's `world-swatches/*.toml` and never writes them; its `materials` table edits (`add`, `set`, `rename`, `remove`) are the level's own table, which the clinic does not use | `game-library.ts` header ("this editor never writes them"); `af-material-edits.ts` |
 | 17 | **Textured swatches** (a tile floor) | **No**, and not shown either: the editor's game view takes a flat colour from a swatch | `src/features/levels-3d/dollhouse/game-scene.ts` (`colourOf`, "a missing material draws grey"); same gap as the spike's `scene.ts` |
@@ -49,7 +49,7 @@ flags. Paths are under `packages/editor-3d/` unless they say otherwise.
 
 ## What `spikes/clinic/scene.ts` does that a level should carry
 
-The frames are drawn by 127 lines of per-scene code. Each is a place where the level, not a script, should say it; the editor can
+The frames are drawn by about 190 lines of per-scene code. Each is a place where the level, not a script, should say it; the editor can
 author none of it today.
 
 | In `scene.ts` | What a level or the game's content should hold instead (the format field) |
@@ -59,6 +59,7 @@ author none of it today.
 | A stand-in body for the player (a 1.62 m box) | `cast` (a `who` and an `at`) for the player's place, or a `spawn` entity; the editor places `cast` things as read-only boxes |
 | The opening's lamp levels (`opening.lamps`) | A level member for initial piece states, e.g. `states: { lamps: { deskLamp: { level: 0.82 } } }` (row 19) |
 | `colourOf: swatchColour(...)` and `tiles: albedoTiles(...)` | The world view should build both from the library itself (`drawWorld` takes a `library`), so neither is passed in by a script (row 17) |
+| The room layers, the wall hider and the zone's rooms each frame (`drawByRoom`, `createRoomVisibility`) | The game's "play this level" wiring should read the level's `visibility` and do this itself; the level already holds the policy (row 14) |
 | The sky colour, `view.environment` | `time.scene.sky` (the level's `time` member already holds it; the spike reads it by hand) (row 20) |
 
 ## To make the editor able to build the clinic (priority order)
@@ -73,7 +74,7 @@ author none of it today.
 4. **Textured swatches in the game view, and a swatch editor** (rows 16 to 18): the clinic's floor is tiles.
 5. **Trim in full** (row 2: capital, cap, depth, texture) and **masses and pilasters** (rows 3, 5).
 6. **Camera views and zones** (row 13): author a zone's look, distance, follow and bounds, not only pick one.
-7. **Room visibility and cut groups** (row 14) once the extension is on main; **bounce points** (row 8); **the opening state** (row 19).
+7. **Room visibility and cut groups** (row 14), the extension is in the tree now; **bounce points** (row 8); **the opening state** (row 19).
 
 ## Format and converter gaps the clinic work met
 
@@ -98,8 +99,19 @@ Each is what was done, and what it points to.
    nowhere in the preset. The converter had to find them by building and reading the "unknown swatch" problems. A generator should
    be able to list the swatches it can use, so a library copy is complete by construction.
 7. **Rooms and cut groups for props.** A wall's pieces carry a `cut` group so room visibility hides them with the wall; a
-   prop does not. The hall's north-east pipes and noticeboard draw in the supply and corridor frames, where the source hides them.
-   A prop needs an owner room (or a wall to ride on), authored, not guessed from where it stands.
+   prop does not. Two parts, measured in batch 2 item E. (a) *Owner room*: the builder gives every prop piece the room it
+   stands in (`roomAt`, the nearest corner when the place is in no sector), which is enough for the clinic (tested in
+   `extensions/room-visibility`), but it is a guess from position, and two pipe runs start inside a wall's return, in no room. A
+   prop should be able to name its room, or the wall it is mounted on, authored. (b) *Cut with its wall*: a wall-mounted prop
+   (pipe, plaque, notice, CRT) stays up when the occluder rule or a zone cuts its wall away, so the turned hall frame has a black
+   pipe floating across it. The format needs `mount: <wall>` on a prop (or on `onWall`), which `drawWorld` registers with
+   `occluders.face` on that wall and the wall hider puts in that wall's group.
+7a. **A mass is owned by the policy, not by its sector.** `drawByRoom` drew a mass in the sector its middle falls in, so a block two rooms
+    share hid with one of them. Fixed in the extension (it reads `policy.masses`); an editor still has no way to say which rooms own a
+    mass (row 14).
+7b. **Post effects are not part of a level.** The "on" look (retro grade, bloom, LCD panel) is three calls before the renderer is made and
+    one in the scene hook, ordered by hand (the bloom between the snap and the panel). A level's `look` should list them, so a view
+    and an editor preview turn them on and off together.
 8. **Textures on the floor and walls.** The source's floor is a tile-grid texture and its pictures read as steeper because of
    it. A swatch can name a photo texture, but `drawWorld`'s `colourOf` path takes a flat colour; the spike has no way to show the
    kit's `tileFloor`. The spike needs the textured-swatch path the world view has, and the editor a floor-pattern picker.

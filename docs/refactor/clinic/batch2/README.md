@@ -12,11 +12,11 @@ spots only and show its HUD). `shots.json` holds the facts of the last run of `s
 | 1 | The framing | Done, and re-checked by eye (below): the camera matches the source on all four spots. The difference was the camera, not the lens: the hall zone's own `look` (0, 1.1, 0.75), `follow` 0.12 and `depthFollow` keep the shot off the player (she stands low in the frame), while batch 1's spike put the look on her. The frames now shoot the zone's own play shot, with the framework's 5% letterbox bars off (they cropped 76 px of every frame). Home heading: see below |
 | 2 | The WebGPU play camera | Done. The camera did reach the view; every WebGPU frame after the first was rejected (below), so the canvas kept the first one |
 | 3 | The frame artefacts | The black line at 77% and the blue band at the bottom went with the framing (the line was a near wall's top crossing the frame; the band, the sky past a cut wall). Blue still shows past the building where the other rooms are not hidden: item 4 |
-| 4 | Room visibility on the clinic's zones, wall tops back | Waits for PR 588 (room-visibility), still an open draft |
+| 4 | Room visibility on the clinic's zones, wall tops back | Done (`ba064276`): the scene draws room by room through `@automata/room-visibility`, and the wall tops are back (`cap: true`). One defect left, in the turned frames: wall-mounted pipes stay up when their wall is cut ("Item E", below) |
 | 5 | The 12 world-kit pieces | Done: the generators and presets (translucent parts, `veil`), and the dressing table that places 52 of them in the clinic (below) |
 | 6 | Procedural props instead of the stand-in boxes | Done: all 57 stand-ins are kit pieces at the source's box (below, and "Item 3") |
-| 7 | "On" frames | Waits for PRs 588 and 590 |
-| 8 | D: the wall lighting and the floor | Walls: the unfounded swatch lift is removed (see below). The floor is the kit's tile floor through a textured-swatch path in the spike. Re-shot: the four play frames and the three zone stills. Not re-shot: the four turned frames (stale since B). Left: the desk lamp's pool on the counter top is about 3 times the source's, the floor has no teal. The corridor and supply frames show the hall's furniture in front of the corridor: the source hides the hall there, which is room visibility (item 4) |
+| 7 | "On" frames | Not shot. `scene.ts` takes `?fx=1` (retro grade, bloom, LCD panel), but the headless page never settles with them on: Playwright's screenshot times out at 120 s on the canvas and on the page, with or without the LCD, and stopping the ticker did not help. Cause not found ("Item E", below) |
+| 8 | D: the wall lighting and the floor | Walls: the unfounded swatch lift is removed (see below). The floor is the kit's tile floor through a textured-swatch path in the spike. Re-shot: the four play frames and the three zone stills. Not re-shot: the four turned frames (stale since B). Left: the desk lamp's pool on the counter top is about 3 times the source's, the floor has no teal. The corridor and supply frames no longer show the hall's furniture (item 4). All eight play frames and the three zone stills are re-shot on both renderers (item E) |
 | 9 | The editor ledger: can the level editor author the clinic? | Done: [../editor-gaps.md](../editor-gaps.md). Not yet |
 
 ## Calls made
@@ -165,3 +165,31 @@ Measured on the hall (region means, source | before | now): floor mid (33,44,44)
   source: the falloff `(1 - d/range)^2 * 2.6 * level`, the lamp's range and level, the contact and wall occlusion (a port), the vertex density
   (the source also cuts the counter on a 0.35 m grid), `colorSpace: 'srgb'`. The left wall's rest is the fill and moon lamps. Not measured to
   a cause; the counter's top reads hot and orange.
+
+## Item E: room visibility, wall tops, re-shoot (2026-11-11)
+
+- **Room visibility** (`ba064276`). `scene.ts` draws through `drawByRoom` with the level's own `visibility` policy: each room's pieces go
+  into a layer that room owns, a wall piece (its top too) into its cutaway group, and the zone's frame is `createRoomVisibility(...).update`
+  and `hiddenWallGroups`. `?rooms=0` draws every room, for comparing. The corridor and supply frames show only their own room.
+- **`drawByRoom` owns masses by the policy.** It drew every piece by the sector it was built in, and a mass is built in the sector its middle
+  falls in, so a block the ward and the corridor share vanished when the corridor was seen alone. A mass's pieces (`<sector>:mass<N>:…`) now
+  go in a layer owned by `policy.masses[N]`. Test: `extensions/room-visibility/tests/unit/room-visibility/draw-by-room.test.ts` (masses).
+- **A prop's room is the room it stands in**, which the builder already gave every prop piece (`piece.sector`, by `roomAt`, the nearest corner
+  when the place is in no sector). No new code; `clinic-rooms.test.ts` pins it (every prop's pieces in one room, the room of the sector its
+  `at` is in, with the two pipe runs that start inside a wall's return named as off the plan) and that the hall's NE pipes are hidden in the
+  corridor and supply zones. It is a guess from position, so the ledger lists it as a gap the format should own.
+- **Wall tops are back** (`cap: true` in `convert.ts`; the level differs only in those flags). A top carries its wall's `line` and `cut`, so
+  `wallGroupOfPiece` puts it in its wall's group (tested: every top has a group and a face of the same group). The play frames show no black bar.
+- **The frames clear to black**, as the source does (`backgroundColor: 0x000000`); the night sky's mid-blue showed past the building. `?sky=0` brings it back.
+- **Re-shot**: the eight play frames (four spots, plain and turned) and the three zone stills, WebGL and WebGPU, each stem in its own run.
+  The facts are in `shots.json`: 468 pieces, 18 lamps, 0 builder problems, in every frame.
+- **Defect left: a wall-mounted prop does not go with its wall.** In the turned hall frame the east wall is cut by the occluder rule (the
+  camera is outside it) but its pipe run and riser stay up, a black pipe across the frame, and it stays with `?tops=0`, so it is not a wall
+  top. A prop has no cut group and is not registered with the occluders. The fix is a `mount` on a prop (the wall it is on) that `drawWorld`
+  registers with `occluders.face` on that wall's line; until then the turned frames have it. Not started: no time.
+- **"On" frames: not shot** (item 7). `?fx=1` in `scene.ts` adds the retro pass, the LCD panel (both before the renderer is made) and the bloom
+  (`GlowEffect`, between the snap and the panel), as `spikes/eb-look` does. The page never settles with them on: `canvas.screenshot` and
+  `page.screenshot` both time out (60 to 120 s), with `?lcd=0` as well, and stopping the ticker before the capture did not change it. Nothing
+  is in the page's errors. Next: bisect `?retro=0&lcd=0` (bloom alone) and try a WebGL context with software rendering off.
+- **Item 5 (lamp brightness): not started.** The walls still read about twice the source's, and the counter's pool is still hot.
+
