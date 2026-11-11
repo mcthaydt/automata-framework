@@ -71,4 +71,5 @@ take it over later: its layout and words as data, not buried in code.
 - **What workstream 2 is:** building into the framework what The Last Light has and it lacks; The Last Light is the 3D
   reference game in `games/`, as Emberwick is the 2D one, not a product shipped from its own repository. Ember Hall
   (`games/base-3d`) is cut. The game content already in the framework's fixtures is therefore where it belongs.
+- The Last Light is fully open source like Emberwick: its story, art and music are MIT.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
