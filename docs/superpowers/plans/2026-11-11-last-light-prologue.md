@@ -32,6 +32,36 @@ in its own repository behind a pin). Nothing of that plan's Part B stands.
 (`acb0361d` and `909f6b10`, where a new piece goes; `864361d4`, the 3D examples cut) and workstream 4's spec ([the plan
 audit](../audits/2026-11-11-last-light-prologue-plan-audit.md), 32 findings, all fixed here or in the survey). "Audit 7" below is a finding of that document.
 
+## Amendments after the plan audit (the coordinator, 2026-11-11)
+
+These bind every task below; where a task's text disagrees, this section wins and the executing session records the
+difference in the log. They come from workstream 4's plan audit
+([audit](../audits/2026-11-11-builders-look-plan-audit.md), "for workstream 2") and from the Owner's later word.
+
+1. **Task 9b, the rooms a view draws, gains four behaviours** the old game has and the task lacked. Each gets its
+   failing test first: the player's own room is always drawn; the room just left stays drawn for 0.35 s under the
+   camera blend; a peek draws the far side of the doorway; a cutscene draws every room. `room-visibility` in draft
+   #588 is a reference for these and is not merged.
+2. **The prologue uses The Last Light's own look:** the LCD panel, the retro grade and whole-pixel scaling, on by
+   default as in the old game. Task 14 adds them through the interfaces workstream 4's plan names in its section
+   "What workstream 2 relies on" (`@automata/lcd-panel/pass` `addLcdPanelPass`, `@automata/retro-crisp/pass`
+   `addRetroPass` before the snap, `crispRendererOptions` giving the letterbox's `scale: 'whole'`), with the clinic
+   profiles as the game's content. Task 14 waits for workstream 4's effects branch for these three only; the rest of
+   task 14 does not.
+3. **Task 13 dresses Ada and the night figure as painted figures**, the builders' figures the Owner set as the target,
+   not core mesh figures: each is a `CharacterDef` in the game, dressed from the character kit's ward entries plus
+   hair and eyes, drawn with `paintedFigure`. It writes no `content/figures/*.toml` for them and does not pick them
+   in the Studio. The Studio cannot open a painted figure; that is row 2 of the editor gaps ledger, and task 16's
+   "one edit in the Studio" is replaced, for the figures, by an edit to the `CharacterDef` shown in play, with the gap
+   stated. Task 13 waits for workstream 4's figures and wardrobe branches.
+4. **Every kind of authorable content has an editor** (the Owner). Task 16 names, for each kind of content the
+   prologue has, the editor that opens it; a kind none opens is added to the editor gaps ledger in the tracker and
+   kept as a data file with a schema. It is not a reason to stop.
+5. **Merge order with the other builds:** workstream 1's `claude/shared-polish-build` lands first; then workstream 4's
+   `claude/builders-look-room` (it touches `packages/3d`); then this plan's `claude/last-light-framework`. Whichever
+   branch lands after another runs `pnpm install` and commits the repaired lockfile.
+6. **Every branch, documents included, gets the whole `pnpm check`** before it merges.
+
 ## One repository, three branches
 
 All twenty-two tasks are in `mcthaydt/automata-framework`. The game's own repository
