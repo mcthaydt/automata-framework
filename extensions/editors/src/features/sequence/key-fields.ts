@@ -15,9 +15,18 @@ export interface SequenceNames {
   readonly clips: Readonly<Record<string, readonly string[]>>
   readonly lamps: readonly string[]
   readonly doors: readonly string[]
+  readonly props: readonly string[]
 }
 
-export const NO_NAMES: SequenceNames = { lines: [], actors: [], anchors: [], clips: {}, lamps: [], doors: [] }
+export const NO_NAMES: SequenceNames = {
+  lines: [],
+  actors: [],
+  anchors: [],
+  clips: {},
+  lamps: [],
+  doors: [],
+  props: [],
+}
 
 export interface KeyField {
   readonly field: Field
@@ -378,7 +387,7 @@ export function keyFields(
       const where = (row.at as readonly number[] | undefined) ?? [0, 0, 0]
       return [
         timeField('When', row.t as number),
-        textField('Which prop', 'prop'),
+        nameField('Which prop', 'prop', names.props, WORDS_REMOVED),
         ...vector('Where', 'at', ['across', 'height', 'along']).map((field, place) => ({
           ...field,
           edits: (next: string | number) =>

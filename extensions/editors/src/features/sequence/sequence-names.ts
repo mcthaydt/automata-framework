@@ -8,9 +8,11 @@ import type { SuitePorts, WorkspaceFile } from '@automata/editor/kit/ports'
 import type { LinesFile } from '@automata/narrative/sim'
 import { humanize } from '../../shared/humanize.ts'
 import type { SequenceNames } from './key-fields.ts'
+import { levelNamesOf } from './plan-view.ts'
 
 const LINES_FILE = /^content\/lines\/([^/]+)\.toml$/
 const LEVEL_FILE = /^content\/levels\/([^/]+)\.toml$/
+const LEVEL_3D_FILE = /^content\/levels\/([^/]+)\.af-sector\.json$/
 const CUTSCENE_FILE = /^content\/cutscenes\/([^/]+)\.toml$/
 
 export interface GameNames {
@@ -18,9 +20,17 @@ export interface GameNames {
   /** A placed character: its name and where it stands, in metres (one metre a cell). */
   readonly people: readonly { readonly name: string; readonly x: number; readonly z: number }[]
   /** What the game's other cutscenes use. */
-  readonly used: Pick<SequenceNames, 'actors' | 'anchors' | 'lamps' | 'doors' | 'clips'>
-  /** The 2D levels a preview can show walls from. */
+  readonly used: Pick<SequenceNames, 'actors' | 'anchors' | 'lamps' | 'doors' | 'props' | 'clips'>
+  /** The levels (2D, and 3D `af-sector` files) a preview can show walls from. */
   readonly levels: readonly { readonly name: string; readonly path: string }[]
+}
+
+const openDocumentValue = (text: string, path: string): unknown => {
+  try {
+    return openDocument(path, text).value()
+  } catch {
+    return undefined
+  }
 }
 
 async function readValue(ports: SuitePorts, path: string): Promise<unknown> {
@@ -39,6 +49,7 @@ export function namesUsedBy(script: CutsceneScript): GameNames['used'] {
   const anchors = new Set<string>()
   const lamps = new Set<string>()
   const doors = new Set<string>()
+  const props = new Set<string>()
   const clips: Record<string, Set<string>> = {}
   for (const key of script.actor ?? []) {
     actors.add(key.who)
@@ -46,6 +57,7 @@ export function namesUsedBy(script: CutsceneScript): GameNames['used'] {
   }
   for (const key of script.light ?? []) lamps.add(key.lamp)
   for (const key of script.doors ?? []) doors.add(key.door)
+  for (const key of script.props ?? []) props.add(key.prop)
   for (const key of script.cues ?? []) {
     actors.add(key.who)
     const set = clips[key.who] ?? new Set<string>()
@@ -57,6 +69,7 @@ export function namesUsedBy(script: CutsceneScript): GameNames['used'] {
     anchors: [...anchors],
     lamps: [...lamps],
     doors: [...doors],
+    props: [...props],
     clips: Object.fromEntries(Object.entries(clips).map(([who, set]) => [who, [...set].sort()])),
   }
 }
@@ -68,11 +81,12 @@ export async function readGameNames(
   const lines: { id: string; words: string; file: string }[] = []
   const people: { name: string; x: number; z: number }[] = []
   const levels: { name: string; path: string }[] = []
-  const used: Record<'actors' | 'anchors' | 'lamps' | 'doors', Set<string>> = {
+  const used: Record<'actors' | 'anchors' | 'lamps' | 'doors' | 'props', Set<string>> = {
     actors: new Set(),
     anchors: new Set(),
     lamps: new Set(),
     doors: new Set(),
+    props: new Set(),
   }
   const clips: Record<string, Set<string>> = {}
 
@@ -98,6 +112,27 @@ export async function readGameNames(
       }
       continue
     }
+    // A 3D level offers its own lamps, doors, props and things (a hotspot is a place a shot can be about) to the pickers.
+    if (LEVEL_3D_FILE.test(file.path)) {
+      const text = (await ports.workspace.read(file.path))?.text
+      if (text === undefined) continue
+      const found = levelNamesOf(text, file.path)
+      const name = (openDocumentValue(text, file.path) as { name?: unknown } | undefined)?.name
+      if (
+        found.lamps.length + found.doors.length + found.props.length + found.things.length === 0 &&
+        typeof name !== 'string'
+      )
+        continue
+      levels.push({
+        name: typeof name === 'string' && name !== '' ? name : humanize(file.path),
+        path: file.path,
+      })
+      for (const lamp of found.lamps) used.lamps.add(lamp)
+      for (const door of found.doors) used.doors.add(door)
+      for (const prop of found.props) used.props.add(prop)
+      for (const thing of found.things) used.anchors.add(thing)
+      continue
+    }
     if (CUTSCENE_FILE.test(file.path)) {
       const script = (await readValue(ports, file.path)) as CutsceneScript | undefined
       if (script === undefined || typeof script !== 'object') continue
@@ -106,6 +141,7 @@ export async function readGameNames(
       for (const at of found.anchors) used.anchors.add(at)
       for (const lamp of found.lamps) used.lamps.add(lamp)
       for (const door of found.doors) used.doors.add(door)
+      for (const prop of found.props) used.props.add(prop)
       for (const [who, list] of Object.entries(found.clips)) {
         const set = clips[who] ?? new Set<string>()
         for (const clip of list) set.add(clip)
@@ -122,6 +158,7 @@ export async function readGameNames(
       anchors: [...used.anchors],
       lamps: [...used.lamps],
       doors: [...used.doors],
+      props: [...used.props],
       clips: Object.fromEntries(Object.entries(clips).map(([who, set]) => [who, [...set].sort()])),
     },
   }
@@ -151,5 +188,6 @@ export function namesFor(game: GameNames, script: CutsceneScript | undefined): S
     clips: { ...game.used.clips, ...own?.clips },
     lamps: unique(game.used.lamps, own?.lamps),
     doors: unique(game.used.doors, own?.doors),
+    props: unique(game.used.props, own?.props),
   }
 }

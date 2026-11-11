@@ -65,6 +65,9 @@ describe('Writer’s How it is said', () => {
   it('shows How, Pace and the pause after each sentence but the last, for a line', async () => {
     await open()
     const first = screen.getByRole('article', { name: 'Line 1' })
+    // Closed, a line's delivery has no controls on the page; the button opens them.
+    expect(within(first).queryByLabelText('How fast')).toBeNull()
+    await userEvent.click(within(first).getByRole('button', { name: 'How it is said' }))
     expect(within(first).getByLabelText('How it is said')).toHaveValue('')
     expect(within(first).getByLabelText('How fast')).toHaveValue(1)
     // "Welcome in. Mind the step." has two sentences, so one pause to choose, after the first.
@@ -75,6 +78,7 @@ describe('Writer’s How it is said', () => {
   it('writes the direction into the lines file, as one undo step', async () => {
     const { ports, session } = await open()
     const first = screen.getByRole('article', { name: 'Line 1' })
+    await userEvent.click(within(first).getByRole('button', { name: 'How it is said' }))
     await userEvent.type(within(first).getByLabelText('How it is said'), 'Warm, a little tired')
     await userEvent.tab()
     await vi.waitFor(async () =>
@@ -89,6 +93,7 @@ describe('Writer’s How it is said', () => {
   it('writes a pause after a sentence and a pace', async () => {
     const { ports } = await open()
     const first = screen.getByRole('article', { name: 'Line 1' })
+    await userEvent.click(within(first).getByRole('button', { name: 'How it is said' }))
     await userEvent.selectOptions(within(first).getByLabelText('Pause after “Welcome in.”'), '2')
     await vi.waitFor(async () => expect((await ports.workspace.read(LINES))?.text).toContain('pause = 2'))
     const pace = within(first).getByLabelText('How fast')

@@ -23,6 +23,13 @@ const PAUSES = [
 ]
 
 let draft = $state('')
+/** The lines whose delivery is open: a closed one has no controls on the page, so nothing hidden can be tapped by mistake. */
+let saying = $state<ReadonlySet<string>>(new Set())
+const toggled = (set: ReadonlySet<string>, id: string): ReadonlySet<string> => {
+  const next = new Set(set)
+  if (!next.delete(id)) next.add(id)
+  return next
+}
 
 async function add(): Promise<void> {
   const id = await session.addLine(kind, speaker === '' ? undefined : speaker, draft)
@@ -58,8 +65,15 @@ const removing = $derived(session.removing)
     {#if row.words !== undefined}
       {@const how = deliveryOf(lines?.lines[row.index]?.delivery, row.words)}
       {@const parts = sentences(row.words)}
-      <details class="delivery">
-        <summary>How it is said</summary>
+      <div class="actions">
+        <Button
+          variant="quiet"
+          aria-expanded={saying.has(row.id)}
+          onclick={() => (saying = toggled(saying, row.id))}>{saying.has(row.id) ? 'Hide how it is said' : 'How it is said'}</Button
+        >
+      </div>
+      {#if saying.has(row.id)}
+      <div class="delivery" role="group" aria-label="Delivery">
         <WordsField
           label="How it is said"
           value={how.how}
@@ -88,7 +102,8 @@ const removing = $derived(session.removing)
               })}
           />
         {/each}
-      </details>
+      </div>
+      {/if}
     {/if}
     {#if removing?.index === row.index}
       <div class="confirm" role="group" aria-label="Remove this line?">
@@ -143,6 +158,10 @@ const removing = $derived(session.removing)
 {/if}
 
 <style>
+  .delivery {
+    display: grid;
+    gap: var(--space-2);
+  }
   .kind {
     color: var(--color-text-faint);
     font: var(--text-body-13);
