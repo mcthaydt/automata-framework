@@ -32,6 +32,7 @@
   "peerDependencies": {
     "@automata/content": "workspace:^",
     "@automata/framework": "workspace:^",
+    "@automata/narrative": "workspace:^",
     "@automata/puzzle": "workspace:^",
     "@automata/sim": "workspace:^",
     "svelte": "5.57.1"
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@automata/content": "workspace:*",
     "@automata/framework": "workspace:*",
+    "@automata/narrative": "workspace:*",
     "@automata/puzzle": "workspace:*",
     "@automata/sim": "workspace:*",
     "@automata/vitest-preset": "workspace:*",

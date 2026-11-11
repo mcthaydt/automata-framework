@@ -5,6 +5,8 @@ export {
   type NarrativeExtensionOptions,
   narrativeExtension,
 } from '../app/narrative.extension'
+export { default as DialogueBox } from '../features/box/DialogueBox.svelte'
+export { default as LineBox } from '../features/box/LineBox.svelte'
 export {
   beatsContent,
   canonContent,

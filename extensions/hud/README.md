@@ -9,7 +9,9 @@ It is free, MIT licensed and optional. It is not published to npm yet.
 
 ## Turn it on
 
-The HUD reads the puzzle's conditions to choose the objective line, so it needs [`@automata/puzzle`](../puzzle/README.md):
+The HUD reads the puzzle's conditions to choose the objective line, so it needs [`@automata/puzzle`](../puzzle/README.md);
+its examine piece draws [`@automata/narrative`](../narrative/README.md)'s box, so a game passes no `words` to
+`narrativeExtension`:
 
 ```ts
 import { hudExtension } from '@automata/hud'
@@ -52,6 +54,13 @@ is a sentence that says what is wrong and what is allowed.
 ## What you get
 
 - **The objective line** and **the prompt**, a 48 px button naming the hotspot in reach; Enter and a pad's confirm press it.
+- **The inventory**: a row of item buttons (44 px) with the held one marked. Pressing an item opens a sheet with its name, its
+  text, Hold (48 px), Combine (then press the second item) and Close. A long row scrolls sideways inside the piece.
+- **The examine box**: a line said about something, drawn in [`@automata/narrative`](../narrative/README.md)'s box
+  (`LineBox`). Any press dismisses it, and it stays while a cutscene holds input.
+- **The keypad**: ten digits (48 px), Delete, Enter and Close, for a code of the length the model says. Keyboard digits,
+  Backspace, Enter and Escape work too.
+- **A pad** steers each piece: the D-pad moves between controls, A presses, B goes back.
 - **Placing** that reads the framework's layout variables and invents no breakpoints, tested at 390 by 844 and 844 by 390.
 - **A `hud` content kind**, which the sim never receives.
 

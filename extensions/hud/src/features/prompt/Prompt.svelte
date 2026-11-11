@@ -21,6 +21,8 @@ const { name, label, style, onuse }: Props = $props()
 /** A control that takes Enter itself. */
 const TAKES_ENTER = 'button, a, input, textarea, select, summary, [contenteditable], [role=button]'
 
+let button: HTMLButtonElement | undefined = $state()
+
 onMount(() => {
   const onKey = (event: KeyboardEvent): void => {
     if (event.key !== 'Enter' || event.repeat || event.altKey || event.ctrlKey || event.metaKey) return
@@ -36,7 +38,10 @@ onMount(() => {
   let frame = 0
   const poll = (): void => {
     const now = pressed()
-    if (now && !held) onuse()
+    // A is for another control when one has the focus (a sheet's button, the keypad's); the prompt's own is this one.
+    const focus = document.activeElement
+    const free = focus === null || focus === document.body || focus === button
+    if (now && !held && free) onuse()
     held = now
     frame = requestAnimationFrame(poll)
   }
@@ -53,6 +58,7 @@ onMount(() => {
   class="af-control af-control--primary hud-prompt"
   data-kind="primary"
   data-testid="hud-prompt"
+  bind:this={button}
   {style}
   onclick={onuse}
 >

@@ -735,6 +735,9 @@ importers:
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/narrative':
+        specifier: workspace:*
+        version: link:../narrative
       '@automata/puzzle':
         specifier: workspace:*
         version: link:../puzzle

@@ -29,6 +29,8 @@ export function placeStyle(anchor: HudAnchor, width?: number): string {
   const move = [h === 'centre' ? 'translateX(-50%)' : '', v === 'centre' ? 'translateY(-50%)' : '']
   if (h === 'centre' && v === 'centre') rules.push('transform: translate(-50%, -50%)')
   else if (h === 'centre' || v === 'centre') rules.push(`transform: ${move.find((m) => m !== '')}`)
+  // `max-content` so a piece pinned at a centre line is not squeezed to the room left of it; the cap keeps it on screen.
+  rules.push('width: max-content')
   rules.push(`max-width: ${width === undefined ? screen : `min(${width}px, ${screen})`}`)
   return `${rules.join('; ')};`
 }

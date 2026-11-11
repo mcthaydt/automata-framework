@@ -14,6 +14,7 @@ import type { LineRecord } from '../../shared/sim/lines.schema.ts'
 import { NarrativeDialogue, NarrativeSceneResource } from '../../shared/sim/narrative.resource.ts'
 import { puzzleReader } from '../../shared/sim/puzzle-reader.ts'
 import { BOX_HEIGHT_VAR, dialogueBoxModel } from './dialogue-box.ts'
+import LineBox from './LineBox.svelte'
 
 interface Props {
   /** The game's message catalog: the words for a locale key, or undefined when there are none. */
@@ -140,9 +141,7 @@ onMount(() => {
 </script>
 
 {#if model !== null}
-  <section class="af-dialogue-box" data-testid="dialogue-box" aria-live="polite" bind:this={box}>
-    <p class="speaker" data-testid="dialogue-speaker">{model.speaker}</p>
-    <p class="line" data-testid="dialogue-line">{model.text}</p>
+  <LineBox speaker={model.speaker} text={model.text} bind:element={box}>
     {#if model.choices.length > 0}
       <ol class="choices">
         {#each model.choices as choice, position (choice.index)}
@@ -170,36 +169,10 @@ onMount(() => {
         onclick={advance}>{words('dialogue.next') ?? 'Next'}</button
       >
     {/if}
-  </section>
+  </LineBox>
 {/if}
 
 <style>
-  .af-dialogue-box {
-    position: absolute;
-    inset: auto 0 0;
-    box-sizing: border-box;
-    display: grid;
-    gap: 8px;
-    max-height: 100%;
-    overflow-y: auto;
-    padding: 12px var(--af-gutter, 16px);
-    border: var(--af-edge-width, 2px) solid var(--af-edge, #a6aeba);
-    border-radius: var(--af-radius, 6px);
-    background: var(--af-surface, #181f2f);
-    color: var(--af-ink, #f5f7fa);
-    font: var(--af-text-body, 16px) / 1.4 var(--af-font, system-ui, sans-serif);
-    pointer-events: auto;
-  }
-  .speaker {
-    margin: 0;
-    color: var(--af-accent, #ffcf05);
-    font-weight: 700;
-  }
-  .line {
-    margin: 0;
-    overflow-wrap: anywhere;
-    min-height: 1.4em;
-  }
   .choices {
     display: grid;
     gap: 8px;

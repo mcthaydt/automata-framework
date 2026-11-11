@@ -29,6 +29,10 @@ describe('placeStyle', () => {
     expect(placeStyle('top')).toContain('max-width: calc(100% - 2 * var(--af-gutter, 16px))')
   })
 
+  it('is as wide as its words, so a centred piece is not squeezed to the room beside it', () => {
+    expect(placeStyle('bottom', 480)).toContain('width: max-content')
+  })
+
   it('knows all nine places', () => {
     for (const anchor of [
       'top-left',

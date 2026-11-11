@@ -25,5 +25,9 @@ extension is missing, the game refuses to start and names it.
 
 - **Six content kinds**: canon, lines, dialogue, storylets, beats and help.
 - **Sim**: commands to start, advance and choose, and events for each line, choice, end and storylet.
+- **The box**: pass `words` to `narrativeExtension` and the dialogue box draws along the bottom of the play field. The
+  box is also exported: `DialogueBox` (a conversation read from the sim) and `LineBox` (only the box: a speaker, the words
+  and your controls). A game that uses [`@automata/hud`](../hud/README.md) passes no `words`: the HUD's examine piece
+  draws a `LineBox`, so one box is drawn, not two.
 - **Tools** (`@automata/narrative/tools`, for Node): lint a conversation, find lines nobody can reach, count what a
   test covered, and write a screenplay from the tree.
