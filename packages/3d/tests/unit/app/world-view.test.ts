@@ -234,7 +234,8 @@ describe('drawWorld: glow', () => {
   })
 
   it('draws a lit window’s glass as the room behind it, a texture whatever the light', () => {
-    const pane: WorldPiece = { ...bulb, id: 'a:glass', part: 'decor', surface: 'windowLit', prop: undefined }
+    const { prop: _lamp, ...bare } = bulb
+    const pane: WorldPiece = { ...bare, id: 'a:glass', part: 'decor', surface: 'windowLit' }
     const lit = (name: string) =>
       name === 'windowLit' ? { ramp: 'flame' as const, step: 6, interior: true } : undefined
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow: lit, light: room() }, [pane])
