@@ -1828,12 +1828,29 @@ ledger and recomputes the tracker's percentage after the merge.
 - **Task 16, Ruling:** the touch buttons' arrows (`◀ ▶ ▲`) are drawn with CSS (`clip-path`), not typed: the font build cuts
   a subset to the characters in the catalogs, so a typed symbol would fall back to a device font. `←` and `→` in the key
   caps are in the build's always-kept set.
-- **Task 16, Ruling:** `plumbing.test.ts` (the DX measure: lines of non-sim, non-art, non-content code reached from
-  `main.ts`) was at its 430 limit and measured 564 after the work. `words.ts` is the game's text, so it is now counted as
-  content (83 lines, the way `features/room/` is); the remaining 481 is real growth (the panels' markup and redraw, the
-  board submit, the options), so the limit moves from 430 to 490 with the reason in the test's comment, as its two earlier
-  raises did. This is a limit raised by the session, not by the Owner: it is the one place a test's number moved, and the
-  Owner may prefer the code smaller.
+- **Task 16, OPEN FOR THE OWNER (not settled):** `plumbing.test.ts`'s limit moved from 430 to 490, and `words.ts` is counted as
+  content. A test number that moves to get green is the Owner's call; the session moved it so the gate could run and the
+  Owner can choose between accepting it and moving the plumbing into the framework. The measure (non-sim, non-art,
+  non-content, non-drawing `.ts` lines reached from `main.ts`) was exactly 430 on `main` and is **479** now (the limit has 11
+  lines of room), file by file (before → now): `main.ts` 41 → 40 (−1: two font imports became one); `src/app/game.ts` 8 → 12
+  (+4: the `DEFAULT_LOCALES` import and the `locale` literal); `src/app/make-game.ts` 60 → 71 (+11: the `EmberwickOptions`
+  type with its comment, the `locale` option, the `leaderboards` want); `src/features/screens/emberwick-screens.ts` 234 → 269
+  (+35: the panels' `data-word` markup 6, `applyWords` 8, the locale subscription in `show` 8, the time written for the
+  language 6, the board submit with its comment 5, the board id constant 2); `flow.ts`, `scene-renderer.ts`, `game-id.ts`
+  unchanged. `src/features/screens/words.ts` (83 lines, the catalog loader) would add 83 more and is the reclassified file:
+  as plumbing the measure would be 562. What the framework could take off the game's hands: (a) a core export of
+  `matchLocale`, or a `pickCatalog(locale, { en, ja, … })`, which would remove `catalogFor` and `primary` (about 15 lines
+  of `words.ts`; `@automata/ui-screens` carries the same five lines, so it is three copies today); (b) a helper for plain-DOM
+  screens that binds `data-word` elements to a catalog and redraws on `locale.subscribe` (about 20 lines of `show` and
+  `applyWords`: every game with its own DOM screens needs the same), and `formatNumber` exported from the framework's
+  entries (core has `features/locale/format.ts`; no entry exports it, so the game calls `Intl.NumberFormat` itself, 3
+  lines); (c) a default-languages shorthand on `defineGame` (for example `locale: 'default'`, or an exported
+  `defaultLocale()` that builds `{ locales: [...DEFAULT_LOCALES], baseLocale: 'en' }`), which would remove the import and
+  the literal in `game.ts` (4 lines) and the option's type in `make-game.ts` if `GameSpec['locale']` were exported by the
+  root entry; (d) the `fonts.css` export is not plumbing in this measure (it is a line of `package.json`), and the six tags in
+  `ship.config.ts` are outside it (that file is not reached from `main.ts`; a `defaultLanguages` export that plain Node can
+  load would remove them). Estimate of what the framework could absorb: about 35 of the 49 extra lines ((b) 23, (c) 4 and about 8 of `make-game.ts`), and about 15 of `words.ts`'s 83. The test is
+  otherwise untouched, and nothing further has been changed there.
 - **Task 16, Ruling:** type sizes are whole multiples of the font's 12 px grid (title 60 px, 36 px on a compact screen;
   headings and the splash mark 24 px; the time 36 px) and the title's shadow is two steps, not four. Looked at in
   Chromium at phone and compact size: the old four-step shadow at 56 px closed the "c" of "Emberwick" and read "Emberwiok".
@@ -1845,10 +1862,18 @@ ledger and recomputes the tracker's percentage after the merge.
   before the landscape gate: the gate is mounted when the first screen enters, so waiting for it first times out at
   compact size. The six language journeys are projects `emberwick-language-<tag>` (browser `locale`; `zh-CN` is matched to
   Simplified), Chromium at phone size, each checking the face the language is drawn in is loaded.
-- **Task 16, Ruling:** `automata check` as a whole fails here at its `no-eval` step (a plain-Node `vite build` of this
-  workspace cannot load `@automata/content/vite` from source, the same fault as task 13's); the steps this task changes
-  (`words`, `boards`, `achievements`) pass, and a character the font lacks (U+1F600 put into `ja.json` by hand, then taken
-  out) made `words` fail with `words-font`.
+- **Task 16, the game's own check command fails at `no-eval` (the implementation audit must see this):** in
+  `games/emberwick`, `pnpm exec automata check --only no-eval` (and the plain `automata check`, whose other steps `inputs`,
+  `levels` and `words` pass) prints `FAIL  no-eval`, then `build  vite build failed: failed to load config from
+  <game>/vite.config.ts`, then `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '<repo>/packages/content/src/features/vite/index'
+  imported from <repo>/packages/content/src/entries/vite.ts` (code `ERR_MODULE_NOT_FOUND`); `secrets` and `data-urls` then
+  report `build  not scanned: the build failed (see no-eval)`, so the command finds 3 findings and 1 step that could not run.
+  Cause: the step runs a plain-Node `vite build` of the game, and in this workspace `vite.config.ts` imports
+  `@automata/content/vite`, whose source entry has an extensionless import Node cannot resolve (the game's own scripts use
+  `--configLoader runner`, which the step does not). It fails the same way on `main` (checked at `a8f2d40a` in a clean
+  worktree with `pnpm install --frozen-lockfile`: the same `FAIL  no-eval` and the same error, with the worktree's paths), so it
+  is not caused by this task; the `words`, `boards` and `achievements` steps this task changes pass. A published install
+  (built `dist`) is not affected, which this session did not run.
 - **Task 16, note:** the `ship-config` cases were written after the config and then watched failing with the config stashed (three
   failures); the screens' three new cases and the words file were watched failing first.
 - **Task 16, measured:** the font subsets total 62,220 bytes (six `woff2` files: `en` 6,448, `es-419` 6,548, `pt-BR` 6,584,
