@@ -2062,7 +2062,8 @@ const STANDARD_PAD_BUTTON_MAX = 16;
 
 #### `STICK_DIRECTIONS` (const)
 
-_No doc comment._
+The eight directions a gamepad stick can be bound to in a game's controls: a stick (`left` or `right`) pushed one way
+(`up`, `down`, `left` or `right`), written `left-up`. A binding's `stick` list holds these names.
 
 ```ts
 const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
@@ -2882,7 +2883,8 @@ function parseTileToken(base: string): TileCell | undefined;
 
 #### `Picture` (type)
 
-_No doc comment._
+How one character definition is drawn: a `tile` (a tile of a named tileset, by index) or a `flat` shape (a rectangle,
+an ellipse or a point) in one colour as `#rrggbb`. `pictureOf` makes it from a definition.
 
 ```ts
 type Picture = {
@@ -6775,7 +6777,10 @@ interface PresentationBus<Facts = RuntimeFacts> {
 
 #### `PROMPT_COPY` (const)
 
-_No doc comment._
+The English words a control prompt shows where the device's own label is not known: "Not set" for an action with no
+binding, "Tap" for an on-screen button, and a name for each pad button a generic pad does not label ("Bottom button",
+"Start"). A label printed on a pad (A, B, LB) is the same in every language and is not here. A game that speaks another
+language gives its own in `copy.screens` (`prompts`).
 
 ```ts
 const PROMPT_COPY: PromptCopy;
