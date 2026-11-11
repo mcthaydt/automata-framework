@@ -109,7 +109,9 @@ model by default and can be set in the game's config.
 Two checks join `automata check` so a gap cannot ship: a placeholder in the source must appear in each translation,
 and the font check below. The compiler already checks that every translation has exactly the source's keys.
 
-**Fonts (the Owner, 2026-11-11: "go with a font that supports those languages").** A game's font must draw every
+**Fonts (the Owner, 2026-11-11: "go with a font that supports those languages").** The plan audit found the chosen
+font (Fusion Pixel, OFL 1.1) reserves its name, and a cut-down copy may not keep a reserved name: the font build
+renames a subset's family when the font is marked so, and ships the copyright and licence text. A game's font must draw every
 language it ships; no language falls back to whatever the device has. Emberwick's font (Pixelify Sans) has no Japanese,
 Korean or Chinese, so the reference games and the template move to a font, or a matched set of fonts, that covers all
 six, openly licensed, in the pixel style, and subset to the characters used so the download stays small.
@@ -150,7 +152,8 @@ template maps a starter set from `@automata/audio-synth`, which the Audio editor
 - **Splash:** the studio's logo (an image the game supplies), held briefly, skippable by any press, never blocking a
   host's ready signal (`ui/components/SplashRoot.svelte`, `StudioLogo.svelte`).
 - **Credits:** a scrolling panel drawn from a content file of sections, names and links, with links routed through the
-  host (`ui/components/CreditsPanel.svelte`, `common/credits.ts`). Reached from the title or Settings.
+  host (`ui/components/CreditsPanel.svelte`, `common/credits.ts`). Reached from the title, or wherever the game places
+  it; core's Settings gains no dependency on `ui-screens`.
 
 Both take their words from copy records in the six languages, like core's screens.
 
@@ -188,7 +191,8 @@ facts from the build stamp the ship step already knows.
 ## Examples
 
 In `examples/2d/`, one file each, with the header the catalog test checks and a journey in `examples/2d/tests`. The
-site's Examples page reads these files when it builds (`site/README.md`), so they appear there with no site code.
+site's Examples page reads these files when it builds (`site/README.md`). The one site change allowed is adding the
+extensions an example imports (`@automata/ui-screens`) to the playground's import map, with its test.
 
 | Example | Shows |
 |---|---|
