@@ -752,3 +752,14 @@ is built in `@automata/3d`, not in EnvironmentBuilder.
 | Open for the Owner | A room's `light` (1 normal, lower darker) is read as `1 - light` whole 0.85 steps darker; the base scenes are all 1, so no frame shows it. A doorway or window does not let light through its wall (one plane per face); a floor or ceiling that is not a rectangle gives no plane | |
 | Gates (WP2, WP3) | `pnpm check` green (lint, typecheck, boundaries, style, source-names, knip, every unit test, changesets). Not run: the 2D and 3D browser suites, parity, the journeys | |
 | Gates (baseline) | Not run: no package code changed (docs, PNGs and a spike that biome and knip ignore) | |
+
+### Albedo as palette indices and photo tiles (WP6, WP7; 2026-11-11, branch `claude/eb-look-albedo`)
+
+| Step | Status | Record |
+|---|---|---|
+| Exact DUEL colours kept | Done: the old snap tipped 48 exact DUEL colours onto a near neighbour in some Bayer cells; a colour already in the palette now skips the dither, in GLSL, WGSL and a CPU mirror (FigureBuilder's figure texels pass the look pass unchanged) | `features/look/duel-snap*.ts`, `tests/unit/look/duel-exact.test.ts` |
+| Swatch ladders | Done: a swatch's ramp as 8 DUEL steps with its base step, an offset moves a texel along it, a photo-mode texel is a step of its own ramp | `features/world/albedo/ladder.ts` |
+| Photo tiles | Done: world-kit reads each committed tile's labels against the swatch's ladder (tone, accent, photo ramp) into an RGBA texture of DUEL colours; `drawWorld` lays it with Build's placement (tile, repeat, pan, align wall, world or object, turn), nearest-sampled and repeating, in place of the flat colour | `extensions/world-kit/src/features/textures/{albedo-tiles,tile-read,tile-colours,tile-files}.ts`, `features/world/albedo/place.ts`, `app/world-view.ts` |
+| Light on a tile | A tiled piece bakes the light alone (`textured`): a linear multiplier `light^2.2`, past 1 where the light is, so texel x light is the sRGB albedo x light to within the curve; the one DUEL snap with the dither stays the look pass's | `shared/render/light/vertex-bake.ts` |
+| Screenshots | [albedo](eb-look/albedo/): EB CPU beside AF WebGL baked, WebGL material light only, WebGPU. EB's panel was cut from the committed WP2/WP3 sheets (EB's render branch was not reachable here). The WebGPU panel still shows the device lost in play | `spikes/eb-look/` |
+| Not done | Patterns (stripes, checker, noise, grass, leaves, glass) and the grime marks are not ladders yet; a tile is the committed tile (a map's grime does not scale its wear); the light is multiplied in linear space by a 2.2 power, not in sRGB as the CPU does (near black the two differ); the baked WebGL room is still dark as before, so the walls show in the material-light panel | |

@@ -5,13 +5,17 @@ import { DEFAULT_PALETTE } from '@automata/content/palette'
 /** The 4 × 4 Bayer matrix, 0 to 15, row by row. */
 export const BAYER: readonly number[] = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
-const COLOURS = DEFAULT_PALETTE.colors.map((hex) => {
-  const c = Number.parseInt(hex.slice(1), 16)
-  return { c, v: [((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255] as const }
-})
+const COLOURS: readonly { readonly c: number; readonly v: readonly [number, number, number] }[] =
+  DEFAULT_PALETTE.colors.map((hex) => {
+    const c = Number.parseInt(hex.slice(1), 16)
+    return {
+      c,
+      v: [((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255] as [number, number, number],
+    }
+  })
 
 /** Squared distance under which a colour is a palette colour (under half a 1/255 step on a channel, as 8-bit holds it). */
-export const EXACT = 1 / (510 * 510)
+export const EXACT: number = 1 / (510 * 510)
 
 /** The DUEL colour nearest `rgb` (0 to 1 a channel) after the Bayer offset at pixel (x, y), as `0xRRGGBB`. */
 export function duelSnap(
