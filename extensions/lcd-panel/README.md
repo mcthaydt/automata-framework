@@ -4,13 +4,18 @@ The look of a small LCD screen, as one pass over the pixel-art look: a mesh of r
 scanlines, a little glow round bright pixels (halation), a slight colour split at the edges and a vignette round the
 frame. It is a post pass, so it draws the same on WebGL2 and on WebGPU, and a settings profile says how strong each part is.
 
+**It runs after core's DUEL snap, and its output is not on the palette, on purpose.** The panel simulates the display, not the
+scene: the stripes, the glow and the colour split are what a screen does to the picture it is given, as the source game's LCD
+does. Everything that belongs to the picture (a colour grade, say) goes before the snap, as the
+[retro pass](../retro-crisp/README.md) does.
+
 It is free and MIT licensed. It is optional: a game that does not add it loses nothing. It is not published to npm yet,
 because it builds on `@automata/3d`.
 
 ## Turn it on
 
-Add the pass once, before the renderer is made. Passes run in the order they were added, after core's, so add the panel
-last if it should sit on top of the others (the retro pass, stars, glow).
+Add the pass once, before the renderer is made. Passes run in the order they were added, after core's snap, so add the panel
+last if it should sit on top of the other passes that follow the snap (stars, glow).
 
 ```ts
 import { addLcdPanelPass } from '@automata/lcd-panel/pass'

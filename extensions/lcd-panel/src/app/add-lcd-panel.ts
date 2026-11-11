@@ -1,5 +1,6 @@
 // Adds the LCD panel to core's look: call it once, before the renderer is created, after any pass the panel should sit on
-// top of (passes run in the order they were added, after core's). A name already taken is refused by core (`RegistryClash`).
+// top of. Passes without `beforeSnap` run in the order they were added, after core's snap; the panel simulates the display,
+// so its output is not on the palette. A name already taken is refused by core (`RegistryClash`).
 
 import { addLookPass } from '@automata/3d'
 import { LcdPanelEffect } from '../features/lcd-panel/lcd-effect.ts'

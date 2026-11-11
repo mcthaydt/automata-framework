@@ -1,7 +1,7 @@
 // The retro pass as a post effect's fragment, in GLSL and WGSL (WebGL2 stays at parity with WebGPU, ADR 0002): unsharp
 // mask, the grade, the vignette, the film fade, then the ordered-dither quantise when the profile asks. The maths is
-// retro-colour.ts's; the uniform names are `RETRO_UNIFORMS` (retro-uniforms.ts). The pass runs after the look's DUEL
-// snap, so with `RETRO_NEUTRAL` an exact DUEL colour comes out as it went in.
+// retro-colour.ts's; the uniform names are `RETRO_UNIFORMS` (retro-uniforms.ts). The pass runs before the look's DUEL
+// snap, so what it does is snapped to the palette, and with `RETRO_NEUTRAL` an exact DUEL colour comes out as it went in.
 
 export const RETRO_GLSL = `
 const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);

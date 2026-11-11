@@ -1,5 +1,6 @@
-// Adds the retro pass to core's look: call it once, before the renderer is created. Passes run in the order they were
-// added, after core's, so add it before the LCD panel. A name already taken is refused by core (`RegistryClash`).
+// Adds the retro pass to core's look: call it once, before the renderer is created. It runs before core's DUEL snap, so
+// the colours it grades, fades and grains are snapped to the palette (the final frame is DUEL, as the look's rule is). A name
+// already taken is refused by core (`RegistryClash`).
 
 import { addLookPass } from '@automata/3d'
 import { Ticker } from 'pixi.js'
@@ -21,6 +22,7 @@ export function addRetroPass(options: RetroOptions = {}): { readonly passes: rea
   const made: RetroEffect[] = []
   addLookPass({
     name: RETRO_PASS,
+    beforeSnap: true,
     make: () => {
       const pass = new RetroEffect(profile, { enabled: options.enabled ?? true })
       made.push(pass)

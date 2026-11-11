@@ -74,11 +74,11 @@ describe.runIf(hasWebGL2)('the retro pass on WebGL2', () => {
     expect(DUEL.has(cube.colour)).toBe(true)
   })
 
-  it('goes after core’s snap, and a taken name is refused', async () => {
+  it('goes before core’s snap, and a taken name is refused', async () => {
     passes = addRetroPass({ profile: RETRO_NEUTRAL })
     expect(() => addRetroPass()).toThrow()
     const renderer = await start()
-    expect(renderer.view.passes.map((p) => p.constructor.name)).toEqual(['DuelSnapEffect', 'RetroEffect'])
+    expect(renderer.view.passes.map((p) => p.constructor.name)).toEqual(['RetroEffect', 'DuelSnapEffect'])
     expect(passes.passes).toHaveLength(1)
   })
 
@@ -89,14 +89,17 @@ describe.runIf(hasWebGL2)('the retro pass on WebGL2', () => {
     expect(diff).toEqual([])
   })
 
-  it('the clinic profile grades the frame off the palette, and off puts the frame back', async () => {
+  it('the clinic profile grades the frame and the snap puts every colour back on the palette; off puts the frame back', async () => {
     const renderer = await start()
     const retro = retroOf(renderer)
     retro.profile = {}
     const graded = shot(renderer)
     const moved = drawn(bare, graded)
     expect(moved.length).toBeGreaterThan(200)
-    expect(moved.some((i) => !DUEL.has(colourAt(graded, i)))).toBe(true)
+    // What the scene drew is on the palette again. (The empty sky shows the page's fill, which this test does not judge.)
+    const content = moved.filter((i) => colourAt(bare, i) !== 0 && colourAt(bare, i) !== SKY)
+    expect(content.length).toBeGreaterThan(100)
+    expect(content.every((i) => DUEL.has(colourAt(graded, i)))).toBe(true)
     retro.enabled = false
     expect(drawn(bare, shot(renderer))).toEqual([])
   })

@@ -4,8 +4,9 @@ Two small things that make AF's pixel-art look read like old hardware.
 
 **Retro** is a post pass: an unsharp mask, a colour grade (warmth, tint, contrast, saturation, vibrance, black crush), a
 vignette, and a film fade that lifts black toward a tint, settles white, and adds moving grain, dust and the odd scratch.
-It runs after core's DUEL snap, so it grades colours that are already on the palette. A neutral profile
-(`RETRO_NEUTRAL`) changes nothing: an exact DUEL colour comes out as it went in.
+It runs **before** core's DUEL snap (`addLookPass` with `beforeSnap`), as the look's haze does, so the colours it grades,
+fades and grains are snapped to the palette: the final frame is DUEL. A neutral profile (`RETRO_NEUTRAL`) changes nothing: an
+exact DUEL colour comes out as it went in, and the snap leaves it there.
 
 **Crisp** is how the picture reaches the screen without a pixel being smeared or drawn at an uneven width: the maths for
 a whole-number scale of the field (`letterboxScale`), for billboards whose texels land on whole field pixels
@@ -16,7 +17,8 @@ because it builds on `@automata/3d`.
 
 ## Turn the retro pass on
 
-Add it once, before the renderer is made, and before the LCD panel so the panel sits on top:
+Add it once, before the renderer is made. It takes its place ahead of the snap whatever order the passes were added in; the
+LCD panel runs after the snap, so it sits on top:
 
 ```ts
 import { addRetroPass } from '@automata/retro-crisp/pass'

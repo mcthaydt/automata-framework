@@ -1,6 +1,6 @@
 // The retro pass's settings: a colour grade, an unsharp mask, a vignette, a film fade (black lifted toward a tint, grain,
 // dust and a scratch) and, for a look with no palette snap, an ordered-dither quantise. One profile, Zod-checked, with the
-// clinic's numbers as the defaults. The look's own DUEL snap and its dither stay core's; this pass runs after them.
+// clinic's numbers as the defaults. The look's own DUEL snap and its dither stay core's; this pass runs before them, so its colours are snapped.
 
 import { z } from 'zod'
 

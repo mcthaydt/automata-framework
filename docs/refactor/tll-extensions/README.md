@@ -16,10 +16,13 @@ Nothing was copied. The LCD mesh is a port of `lcd-perfect` (MIT, sinedied) and 
 
 ## Decisions
 
-- **Passes are `PostEffect`s on core's look.** They run after the DUEL snap, in the order added. The retro pass therefore grades
-  colours already on the palette; the source's palette LUT and luma-weighted 8 x 8 dither stay core's snap (the retro profile's
-  optional `quantise` is the source's no-palette branch). The look sessions' files (world view, vertex bake, the DUEL snap,
-  bloom) are untouched.
+- **Passes are `PostEffect`s on core's look.** The retro grade runs **before** the DUEL snap (the coordinator's rule: the final
+  snap is DUEL, as the haze runs before it), so its graded, faded and grained colours are snapped to the palette. That needed a
+  small core hook: `LookPass.beforeSnap` (`createLookPasses` returns `early` beside `extra`; a pass without it runs where it
+  always did). The LCD panel runs after the snap and its output is off the palette on purpose: it simulates the display, as the
+  source game's LCD does (its README says so). The source's palette LUT and luma-weighted 8 x 8 dither stay core's snap (the
+  retro profile's optional `quantise` is the source's no-palette branch). The look sessions' files (world view, vertex bake, the
+  DUEL snap, bloom) are untouched; only the pass registry `look-pass.ts` gained the option.
 - **An exact DUEL colour passes unchanged** with `RETRO_NEUTRAL` and with the LCD panel zeroed and its vignette off: proved on the
   CPU (retro) and on a WebGL2 frame for both (`tests/browser/*-pass.test.ts`). The neutral grade is blended in at 0, because a grade
   at its identity values still rounds a channel by a unit in the last place.
@@ -57,6 +60,7 @@ is Chromium's note that the WebGPU canvas uses a different format than the devic
 
 Measured on the crisp pair (runs of equal pixels along the middle 40 rows): the whole-pixel frame is runs of 2 and 4 device
 pixels (7430 and 154 runs); the fractional fit is runs of 3 and 2 (5852 and 1336), so some field pixels are drawn a third wider
-than others. WebGL and WebGPU give the same counts. By eye, WebGL and WebGPU match in every pair. The rooms are flat floors under a plain orthographic camera, since the example is about
+than others. WebGL and WebGPU give the same counts. The example's field is 512 x 320. The `retro-*` frames use the whole-pixel scale (2, a border round the field) and the `lcd-*` frames
+the core default, the fit (2.5, so uneven pixels at 1280 wide); the retro grade is before the snap in every `retro-*` frame. By eye, WebGL and WebGPU match in every pair. The rooms are flat floors under a plain orthographic camera, since the example is about
 which rooms draw; the lit base interior in the other two is dim by its own baked lamp. The black between rooms is the background
 and the walls that face away from the camera.
