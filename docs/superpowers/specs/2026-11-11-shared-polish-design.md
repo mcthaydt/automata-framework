@@ -19,8 +19,8 @@ is the next spec and inherits all of this.
 
 1. Every game's menus (title, pause, settings, save slots, errors, prompts) are in six languages without the game
    doing anything.
-2. A game's words are translated by the AI that works on it, straight into the message files; the build says when a
-   language is missing a word or a font cannot draw one.
+2. One command, `automata words`, has an AI translate everything or one line, into one language or all; the build
+   says when a language is missing a word or a font cannot draw one.
 3. The first run of a game asks for a language, and warns about flashing where the game says it flashes.
 4. Every button makes a sound by default.
 5. A game gets a splash with its studio's logo and a credits panel from data.
@@ -62,7 +62,7 @@ Three ways to place the seven were considered.
   step belong to core's own screens and flow; an extension would have to reach into them, which extensions may not do.
 - **C. Each where its owner already is** (chosen). Words and the first-run flow go with core's screens; the ready-made
   screens go with `@automata/ui-screens`; achievements are declared host-neutral and mapped by each target's ship step; the stale-build check goes with
-  `@automata/net`; the font check goes with `automata check` in `@automata/tools`.
+  `@automata/net`; `automata words` and the font check go with `@automata/tools`.
 
 The Owner handed the placement to the coordinator; C is the coordinator's call.
 
@@ -87,11 +87,27 @@ overrides any of it.
 and shipped. There is no review state and no review round (the Owner, 2026-11-11: "I don't care about the review for
 translations").
 
-**No translator's workflow (the Owner, 2026-11-11: "cut the translation workflow, AI is capable").** There is no
-`automata words` command, no CSV export or import and no status report. An AI session writes each language's
-`content/messages/<lang>.json` directly, in the format the content compiler already produces and already checks (every
-translation has exactly the source's keys). Two checks join `automata check` so a gap cannot ship: a placeholder in the
-source must appear in each translation, and the font check below.
+**`automata words`: the AI translates (`@automata/tools`, Node).** The Owner, 2026-11-11: "cut the translation
+workflow, AI is capable", then "Create an automata words that translates everything or one line, to one language, or
+all". There is no CSV, no export or import and no review state. One command writes the translations:
+
+- `automata words`: every word that is missing or whose source changed, into every language the game ships.
+- `automata words --to ja`: the same, into one language.
+- `automata words <key>`: one line, into every language; with `--to`, into one.
+- `--all` retranslates words that already have a translation.
+
+It reads the source messages the content compiler already produces, asks a Claude model for each translation with the
+key, the source text, the game's notes for translators and the words already chosen for that language (so a term stays
+the same across lines), and writes `content/messages/<lang>.json`. Before it writes, each result passes the checks
+below; one that fails is asked for again once and then reported, never written. It prints what it changed.
+
+The model is called through one small port, so tests use a fake and never reach the network. The key comes from the
+environment (`ANTHROPIC_API_KEY`) on the developer's machine only: never in the repository, never in a build, never at
+run time. With no key the command says so in one sentence and changes nothing. The model is the latest capable Claude
+model by default and can be set in the game's config.
+
+Two checks join `automata check` so a gap cannot ship: a placeholder in the source must appear in each translation,
+and the font check below. The compiler already checks that every translation has exactly the source's keys.
 
 **Fonts (the Owner, 2026-11-11: "go with a font that supports those languages").** A game's font must draw every
 language it ships; no language falls back to whatever the device has. Emberwick's font (Pixelify Sans) has no Japanese,
@@ -201,7 +217,8 @@ The framework's `site/` is the site: it reads the guides, the API index and `exa
 
 - The four examples run and their journeys pass in Chromium at phone, compact and iPad sizes.
 - Emberwick's journeys pass in each of the six languages' menus, and its Ruken manifest carries an achievement.
-- `automata check` fails on a missing word, a lost placeholder, or a character a font cannot draw.
+- `automata words` translates everything or one line, into one language or all, against a fake model in tests; and
+  `automata check` fails on a missing word, a lost placeholder, or a character a font cannot draw.
 - `pnpm check` passes; API reports and the index are updated; changesets are written.
 - Reported, not claimed: WebKit, Firefox and real devices are the Owner's.
 

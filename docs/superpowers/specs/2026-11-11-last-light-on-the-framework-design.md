@@ -163,7 +163,7 @@ slice 1's survey, and what the suite still lacks becomes suite work.
 3. The scene order and what each brings (the table above).
 4. The paid pipelines and The Last Light's own editor are retired, not ported.
 5. Settled by the Owner (2026-11-11): the story lines are translated too. Each scene's lines ship in the six languages,
-   written straight into the message files by an AI session, with no translator's workflow and no review state. English stays the approved
+   written by workstream 1's `automata words` command, with no review state. English stays the approved
    script; a translation never changes a line.
 6. Each slice is its own plan, audit, build, audit and fixes cycle; this spec covers all four, and slice 1 is planned
    first.
