@@ -50,6 +50,7 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `smol-toml` | 1.9.0 | 2026-10-11 | Reads the TOML under `content/` in `@automata/content`, writes the 2D editor's content export and reads the game's editor list, `content/editors.toml` |
 | `subset-font` | 2.9.0 | 2026-10-18 | Cuts each language's font subset to woff2 (harfbuzz wasm) in `automata-content assets`. Build time only, through the `./assets` subpath; never in a game bundle |
 | `tsdown` | 0.23.0 | 2026-10-11 | Builds every published package's `dist`. With isolatedDeclarations it writes `.d.ts` with oxc and never needs TypeScript's JS API, which TypeScript 7 lacks |
+| `tsx` | 4.23.15 | 2026-11-11 | Runs `extensions/character-kit/scripts/gate.ts` (`pnpm --filter @automata/character-kit gate`), which imports the figure builder's sources straight from the submodule. Those import `.json` without an import attribute, which Node's own loader (the way `goldens` runs its script) refuses, so the gate needs a loader that handles it. Nothing else runs under it |
 | `turbo` | 2.11.6 | 2026-10-01 | Task runner, local cache only |
 | `typescript` | 7.0.2 | 2026-10-01 | Everything but `svelte-check` and the two tools below; TypeScript 7's native compiler |
 | `vite` | 8.3.3 | 2026-10-23 | Builds every AF game, example, editor and the site |
