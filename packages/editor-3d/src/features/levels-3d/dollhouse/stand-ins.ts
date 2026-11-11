@@ -137,6 +137,8 @@ export function standInPieces(thing: StandIn): WorldPiece[] {
   return PARTS[thing.kind].map((part) => ({
     id: `stand:${thing.id}:${part.name}`,
     sector: '',
+    // In no room, so the normal shade every base room has.
+    light: 1,
     part: 'prop' as const,
     surface: part.surface,
     mesh: boxMesh(

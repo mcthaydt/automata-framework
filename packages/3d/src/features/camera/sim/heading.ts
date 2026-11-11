@@ -5,7 +5,10 @@
 
 /** Turn units in a full turn: a heading wraps here. */
 export const TURN_UNITS = 65_536
-/** The most one tick's `camera-turn` turns the heading either way: 8,192 units, 45°. */
+/**
+ * One step of the player's camera turn: 8,192 units, 45° (Q and R). A tick turns one step or none,
+ * so the camera is only ever on one of eight headings, bar a zone's authored angle.
+ */
 export const MAX_CAMERA_TURN = 8_192
 const DEGREES_PER_UNIT = 360 / TURN_UNITS
 
@@ -17,9 +20,19 @@ export function wrapHeading(units: number): number {
 /** `units` turned by `by` and wrapped. */
 export const turnHeading = (units: number, by: number): number => wrapHeading(units + by)
 
-/** A tick's turn, clamped to ±`MAX_CAMERA_TURN` and rounded to a whole unit. Never `-0`. */
-export const clampTurn = (units: number): number =>
-  Math.max(-MAX_CAMERA_TURN, Math.min(MAX_CAMERA_TURN, Math.round(units))) + 0
+/** The direction of a tick's turn: −1, 0 or 1. Only the sign counts; the size of a drag does not. Never `-0`. */
+export const turnDirection = (units: number): number => Math.sign(units) + 0
+
+/**
+ * `units` turned one 45° step in `direction` (−1 or 1): to the next of the eight headings that way. A heading off those
+ * lines (a zone's authored `yawDeg`) goes to the nearest line in that direction, not past it. 0 changes nothing.
+ */
+export function stepHeading(units: number, direction: number): number {
+  const heading = wrapHeading(units)
+  if (direction > 0) return wrapHeading((Math.floor(heading / MAX_CAMERA_TURN) + 1) * MAX_CAMERA_TURN)
+  if (direction < 0) return wrapHeading((Math.ceil(heading / MAX_CAMERA_TURN) - 1) * MAX_CAMERA_TURN)
+  return heading
+}
 
 /** The nearest heading to `deg` degrees, in any turn (a view's `yawDeg`). */
 export const degToHeading = (deg: number): number => wrapHeading(deg / DEGREES_PER_UNIT)

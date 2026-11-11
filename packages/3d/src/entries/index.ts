@@ -19,8 +19,6 @@ export {
   angledCamera,
   type CameraPose,
   type CameraRig,
-  HEADING_EASE_SECONDS,
-  VIEW_EASE_SECONDS,
 } from '../features/camera/angled-camera.ts'
 export { type Pixi3dCameraOptions, PLAYER_HEIGHT } from '../features/camera/camera-driver.ts'
 export { LOCK_SHARE, type Vec3 } from '../features/camera/camera-pose.ts'

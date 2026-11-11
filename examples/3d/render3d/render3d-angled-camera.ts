@@ -1,6 +1,6 @@
 // render3d-angled-camera: the angled camera, cut-away walls and a fading pillar
 //
-// Shows: the angled camera (a 24 mm lens, here 30° down and 8 m back) follows the player around a 4 m room while
+// Shows: the angled camera (a 50 mm lens, here 30° down and 12 m back) follows the player around a 4 m room while
 //   the heading turns. Each frame the occluder rule takes the near walls away (a floor trim keeps the room's outline,
 //   with a 150 ms fade and 5° of hysteresis), never draws the ceiling, and fades the pillar to 25% when it stands
 //   between the camera and the player. The view keeps the whole floor in frame at 4:3 and 21:9 (D3-g).
@@ -14,13 +14,14 @@ import { CameraHeading, cameraView, enterView, START, turnCamera } from '@automa
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // --- scene ---
-const ROOM = cameraView('room', { tiltDeg: 30, distance: 8 })
+const ROOM = cameraView('room', { tiltDeg: 30, distance: 12 })
 
 // --- sim ---
 // The player's feet, in metres on the floor (y up).
 const Body = defineComponent('body', { x: 'f32', y: 'f32', z: 'f32' })
 
-// The player walks a 2 m square around the pillar, 0.02 m a tick, while the camera turns 64 units (0.35°) a tick.
+// The player walks a 2 m square around the pillar, 0.02 m a tick, while the camera turns one 45° step a side: a press,
+// then a tick with no turn, as a key pressed and let go.
 const walk = defineSystem('walk', (ctx) => {
   const lap = ctx.tick % 400
   const side = Math.floor(lap / 100)
@@ -33,7 +34,8 @@ const walk = defineSystem('walk', (ctx) => {
   ][side] as [number, number]
   for (const player of ctx.query(Body, CameraHeading)) {
     player.set(Body, { x, z })
-    player.set(CameraHeading, turnCamera(player.get(CameraHeading), 64))
+    const press = lap % 100 === 0
+    player.set(CameraHeading, turnCamera(player.get(CameraHeading), press ? 1 : 0))
   }
 })
 

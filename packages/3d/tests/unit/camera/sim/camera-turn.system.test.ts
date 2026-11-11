@@ -1,4 +1,4 @@
-// The `camera-turn { units }` command on a real sim (D3-i): the tick's commands add up, clamp to ±8,192 and wrap at
+// The `camera-turn { units }` command on a real sim (D3-i): the tick's commands add up, their sign turns one 45° step and it wraps at
 // 65,536 on every entity with `camera-heading`; a view with `rotate: false` ignores them; a payload that is not an
 // integer is rejected, so a replay stores integers only.
 import { type Command, createSim, type Sim } from '@automata/sim'
@@ -31,20 +31,37 @@ const turn = (s: Sim, units: unknown): Command => ({
 const headingOf = (s: Sim, sid: number): number => s.entity(sid)?.get(CameraHeading).heading ?? -1
 
 describe('camera-turn', () => {
-  it('changes the heading by exactly N, wrapping at 65,536', async () => {
-    const { sim, player } = await start(TURN_UNITS - 10)
+  it('turns one 45° step toward the sign of the turn, wrapping at 65,536', async () => {
+    const { sim, player } = await start(TURN_UNITS - 8_192)
     sim.step([turn(sim, 25)])
-    expect(headingOf(sim, player)).toBe(15)
+    expect(headingOf(sim, player)).toBe(0)
+    sim.step([])
     sim.step([turn(sim, -16)])
-    expect(headingOf(sim, player)).toBe(TURN_UNITS - 1)
+    expect(headingOf(sim, player)).toBe(TURN_UNITS - 8_192)
   })
 
-  it('adds a tick’s commands, then clamps the sum to ±8,192', async () => {
+  it('adds a tick’s commands, then turns one step by the sum’s sign', async () => {
     const { sim, player } = await start(0)
     sim.step([turn(sim, 5_000), turn(sim, 5_000)])
     expect(headingOf(sim, player)).toBe(8_192)
+    sim.step([])
     sim.step([turn(sim, 3), turn(sim, -1)])
-    expect(headingOf(sim, player)).toBe(8_194)
+    expect(headingOf(sim, player)).toBe(16_384)
+    sim.step([])
+    sim.step([turn(sim, 3), turn(sim, -3)])
+    expect(headingOf(sim, player)).toBe(16_384)
+  })
+
+  it('steps once per press: a key held for many ticks is one step, and a tick with no command lets go', async () => {
+    const { sim, player } = await start(0)
+    for (let tick = 0; tick < 30; tick++) sim.step([turn(sim, 364)])
+    expect(headingOf(sim, player)).toBe(8_192)
+    sim.step([])
+    for (let tick = 0; tick < 30; tick++) sim.step([turn(sim, 364)])
+    expect(headingOf(sim, player)).toBe(16_384)
+    sim.step([turn(sim, 0)])
+    sim.step([turn(sim, -364)])
+    expect(headingOf(sim, player)).toBe(8_192)
   })
 
   it('is ignored in a view with rotate: false', async () => {
@@ -64,6 +81,6 @@ describe('camera-turn', () => {
     const { sim, player } = await start(0)
     const result = sim.step([turn(sim, 7)])
     const row = [...result.render.added, ...result.render.changed].find((r) => r.sid === player)
-    expect(row?.components[CameraHeading.id]).toMatchObject({ view: 'hall', heading: 7 })
+    expect(row?.components[CameraHeading.id]).toMatchObject({ view: 'hall', heading: 8_192 })
   })
 })
