@@ -162,3 +162,16 @@ describe('garments sized from the body (cuffs, collar)', () => {
     expect(width(1.2)).toBeGreaterThan(width(0));
   });
 });
+
+describe('Body.foot (outfit/shoe.ts)', () => {
+  it('is the shod foot of the body: its knee is the rig\'s, its ankle the shoe\'s top, at the default and at each end of the feet, height and fat sliders', () => {
+    for (const key of ['feet', 'height', 'fat'] as const) for (const v of endsOf(key)) {
+      const { m, s } = rig({ ...BASE[0].def.sliders, [key]: v }), F = bodyOf(m, s).foot;
+      expect(F.knee).toBeCloseTo(s.hipY - s.thigh, 12);
+      expect(F.ankle).toBeCloseTo(0.132 * m.k * m.foot, 12);
+      expect(F.length).toBeGreaterThan(0); expect(F.width).toBeGreaterThan(0);
+      // The shod foot grows with the feet slider.
+      if (key === 'feet') expect(bodyOf(m, s).foot.length).toBeCloseTo(0.975 * s.genes.foot, 9);
+    }
+  });
+});

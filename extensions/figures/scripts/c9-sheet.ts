@@ -18,6 +18,10 @@ import { GROUP } from '../src/features/body/parts';
 import { measure } from '../src/features/body/genes';
 import { J, skeleton } from '../src/features/body/rig';
 import { bodyOf } from '../src/features/outfit/fit';
+import type { Garment } from '../src/features/outfit/garments';
+import '../tests/support/pins'; // registers the `fxPaint` kind: a row repaints body regions with it
+import { shod, useFixtures } from '../tests/features/outfit/wardrobe-fixtures';
+useFixtures();
 
 /** One row of a sheet: a character, what the figure is told (an expression, mood tags), and its own density if not the sheet's. */
 export interface Row { label: string; def: CharacterDef; input?: Partial<FigureInput>; density?: number }
@@ -27,8 +31,13 @@ const ZOOM = 8, GUTTER = 150, ALL_VIEWS = [0, 1, 2, 3, 4, 5, 6, 7];
 /** The base pair as they are, each a row of `rows(def)`-many variants (a sheet builds each figure's rows from its def). */
 export const pair = (rows: (def: CharacterDef, who: string) => Row[]): Row[] => BASE.flatMap(b => rows(b.def, b.def.id));
 
+/** A base figure with garments added to its own (its blocks, hair and face stay), and swatches beside the library's. */
+export const wearing = (def: CharacterDef, garments: Garment[], swatches?: CharacterDef['swatches']): CharacterDef =>
+  ({ ...def, outfits: { [def.default]: [...def.outfits[def.default], ...garments] }, swatches: { ...def.swatches, ...swatches } });
 /** The sheets, in the order the plan makes them. */
 export const SHEETS: Sheet[] = [
+  // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/features/outfit/wardrobe-fixtures.ts).
+  { name: 'shoes', rows: pair((def, who) => Object.entries({ plain: undefined, ankle: { shaft: 0.15 }, mid: { shaft: 0.5 }, knee: { shaft: 1 }, heel: { heel: 1 }, 'thick sole': { sole: 2 }, 'toe cap': { cap: 'wood' } }).map(([label, form]) => ({ label: `${who} ${label}`, def: wearing(def, [shod('charcoal', form)]) }))), views: ALL_VIEWS, walk: true, density: 2 },
   { name: 'before', rows: pair((def, who) => [{ label: `${who} as they are`, def }]), views: ALL_VIEWS, walk: true, density: 2 },
 ];
 
