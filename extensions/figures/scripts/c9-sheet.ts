@@ -20,8 +20,8 @@ import { J, skeleton } from '../src/features/body/rig';
 import { bodyOf } from '../src/features/outfit/fit';
 import type { Garment } from '../src/features/outfit/garments';
 import '../tests/support/pins'; // registers the `fxPaint` kind: a row repaints body regions with it
-import { FALL_PLAIN } from '../tests/support/pins';
-import type { HairStyle } from '../src/features/hair/hair';
+import { FALL_PLAIN, sheerTest } from '../tests/support/pins';
+import { HAIR_STYLES, type HairStyle } from '../src/features/hair/hair';
 import { shod, useFixtures } from '../tests/features/outfit/wardrobe-fixtures';
 useFixtures();
 
@@ -41,14 +41,31 @@ export const hairOf = (def: CharacterDef, style: HairStyle | string, tie?: strin
   ({ ...def, outfits: { [def.default]: def.outfits[def.default].map((g: Garment) => ('hair' in g ? { ...g, style, ...(tie ? { tie } : {}) } : g)) } });
 /** The plain fall (tests/support/pins.ts) with fields of its own over it. */
 export const fallWith = (extra: Record<string, unknown>): HairStyle => ({ ...FALL_PLAIN, pieces: [{ fall: { ...(FALL_PLAIN.pieces[0] as { fall: object }).fall, ...extra } }] } as HairStyle);
+/** A library style with a piece added to it. */
+export const withPiece = (name: string, piece: object): HairStyle => ({ ...HAIR_STYLES[name], pieces: [...HAIR_STYLES[name].pieces, piece as HairStyle['pieces'][number]] });
+/** A library style whose fall has fields of its own over it. */
+export const withFall = (name: string, extra: Record<string, unknown>): HairStyle => ({ ...HAIR_STYLES[name], pieces: HAIR_STYLES[name].pieces.map(p => ('fall' in p ? { fall: { ...(p as { fall: object }).fall, ...extra } } : p)) as HairStyle['pieces'] });
+/** The Nurse's head and hair, as sliders and a spring (no character is named in base): a head tilted 15°, a drooping posture and a loose hair spring. */
+export const nurse = (def: CharacterDef): CharacterDef => ({ ...def, sliders: { ...def.sliders, headTilt: 15, posture: 0.52 }, hair: { stiff: 14, damp: 2.6, trail: 0.55, bounce: 0.02 } });
+/** A slight build: height 162 and a frame of 0.2. */
+export const slight = (def: CharacterDef): CharacterDef => ({ ...def, sliders: { ...def.sliders, height: 162, frame: 0.2 } });
 /** The sheets, in the order the plan makes them. */
 export const SHEETS: Sheet[] = [
   // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/features/outfit/wardrobe-fixtures.ts).
   { name: 'shoes', rows: pair((def, who) => Object.entries({ plain: undefined, ankle: { shaft: 0.15 }, mid: { shaft: 0.5 }, knee: { shaft: 1 }, heel: { heel: 1 }, 'thick sole': { sole: 2 }, 'toe cap': { cap: 'wood' } }).map(([label, form]) => ({ label: `${who} ${label}`, def: wearing(def, [shod('charcoal', form)]) }))), views: ALL_VIEWS, walk: true, density: 2 },
   // F4–F6: hair, on base-f (the base man's cut is short).
-  { name: 'hair', rows: BASE.slice(1).flatMap(b => Object.entries({
-    'fall as before': {}, 'front .5': { front: 0.5 }, 'front 1': { front: 1 }, 'front 1 len 1.6': { front: 1, length: 1.6 }, 'turn .6 len .3': { turn: 0.6, length: 0.3 }, 'turn -.6 len .3': { turn: -0.6, length: 0.3 },
-  }).map(([label, extra]) => ({ label: `${b.def.id} ${label}`, def: hairOf(b.def, fallWith(extra)) }))), views: ALL_VIEWS, walk: false, density: 2 },
+  { name: 'hair', rows: BASE.slice(1).flatMap(b => [
+    ...Object.entries({ 'fall as before': {}, 'front .5': { front: 0.5 }, 'front 1': { front: 1 }, 'front 1 len 1.6': { front: 1, length: 1.6 }, 'turn .6 len .3': { turn: 0.6, length: 0.3 }, 'turn -.6 len .3': { turn: -0.6, length: 0.3 } })
+      .map(([label, extra]) => ({ label: `${b.def.id} ${label}`, def: hairOf(b.def, fallWith(extra)) })),
+    ...['bob', 'bobFringe', 'longFront'].map(style => ({ label: `${b.def.id} ${style}`, def: hairOf(b.def, style) })),
+    { label: `${b.def.id} longFront + fringe 3`, def: hairOf(b.def, withPiece('longFront', { fringe: { from: [[0, 0.5], [0.7, 0.45], [1.1, 0.3]], width: 0.75, length: 3, count: 9, rope: { r: 0.15 }, sweep: 0.2 } })) },
+  ]), views: ALL_VIEWS, walk: true, density: 2 },
+  // Gap 4 (the Nurse's loop): longFront on a head tilted 15°, posture 0.52, the loose hair spring, rest: head against rest: trunk, standing and walking.
+  { name: 'standoff', rows: BASE.slice(1).flatMap(b => (['head', 'trunk'] as const).map(rest => ({ label: `${b.def.id} rest ${rest}`, def: nurse(hairOf(b.def, withFall('longFront', { rest }))) }))), views: [0, 1, 2, 4], walk: true, density: 2 },
+  // The bob's under-turn and the fringe's line, on a slight build, D2, three views.
+  { name: 'slight', rows: BASE.slice(1).flatMap(b => ['bob', 'bobFringe'].map(style => ({ label: `${b.def.id} slight ${style}`, def: slight(hairOf(b.def, style)) }))), views: [0, 1, 2], walk: false, density: 2 },
+  // F1: sheer legs over both figures at 0.3, 0.6 and 1 with an edge of 0.6 (and 0.3 with none, for the eye to judge by).
+  { name: 'sheer', rows: pair((def, who) => [[0.3, 0], [0.3, 0.6], [0.6, 0.6], [1, 0.6]].map(([at, edge]) => ({ label: `${who} at ${at} edge ${edge}`, def: wearing(def, [{ fxPaint: { thigh: 'sheerTest', knee: 'sheerTest', shin: 'sheerTest' } }], { sheerTest: sheerTest(at, edge || undefined) }) }))), views: ALL_VIEWS, walk: true, density: 2 },
   { name: 'before', rows: pair((def, who) => [{ label: `${who} as they are`, def }]), views: ALL_VIEWS, walk: true, density: 2 },
 ];
 
