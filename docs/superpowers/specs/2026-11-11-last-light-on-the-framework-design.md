@@ -130,6 +130,18 @@ carries a workaround for something the framework now does, the port writes it pr
 the old behaviour and its tests are the specification, the old code is not. Each such rewrite is named in the plan with
 its reason, and the playthrough proves the behaviour held.
 
+### The 3D examples go too, and are recreated after the prologue
+
+The Owner looked at screenshots of all 19 examples in `examples/3d` on 2026-11-11 (none crashes; two draw almost
+nothing, `world-level-room` and `look-pixel-art`; about half are a lone figure on a bare slab) and decided: "all
+examples should be recreated after the prologue". So `examples/3d`, its journeys and goldens, and `examples/3d-story`
+are removed in the same slice as Ember Hall, when the prologue plays, and the site's Examples page lists no 3D example
+until the new ones exist. The 3D workflow's coverage then comes from the reference game's own journeys and the
+packages' browser tests. Recreating them is its own piece of work straight after slice 1: each new example is a small
+cut of the reference game (a room, a figure, a cutscene, the look, the HUD), so it looks right because the game
+does, and each has its journey. `examples/3d/wardrobe`, the worked example of a wardrobe extension, is judged with the
+rest. The 2D examples are untouched.
+
 ### Where a new piece goes
 
 The Owner, 2026-11-11: "it shouldn't go into the framework unless it's generic, it can go into extensions if it's

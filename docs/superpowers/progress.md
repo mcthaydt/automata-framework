@@ -84,4 +84,8 @@ take it over later: its layout and words as data, not buried in code.
   come across as they are (the Owner paid for them).
 - Where a new piece goes: core only if generic for any game; an extension if generic within a genre; otherwise custom
   code in the reference game.
+- The 3D examples (`examples/3d`, `examples/3d-story`) are cut with Ember Hall when the prologue plays, and recreated
+  from the reference game straight after.
+- Old branches: the session's git proxy refuses branch deletion (HTTP 403), so none were cut from here; 18 are safe to
+  delete (all their work is on `main`), the rest hold unmerged work.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
