@@ -1,0 +1,34 @@
+/**
+ * The CPU's albedo as an index: a debug export, not a pass. The painter's albedo (`shade`: a texel's swatch ladder at
+ * its base step plus its offset) is always one of the 256 DUEL ramp colours, so a texel's albedo is one number, its
+ * place in `PALETTE`. The Pixi/3D harness (features/gpu) draws the same index on the GPU and the two are compared
+ * texel for texel; nothing is lit, hazed or dithered here. Nothing about a frame changes by this file.
+ */
+import { RAMPS } from '../../lib/figure';
+import type { SceneMaterial } from '../world/types';
+import { albedoStepAt, ladderOf, swatchAt, type Prepared } from './paint';
+
+/** The 256 DUEL colours: index = ramp · 8 + step. */
+export const PALETTE: readonly number[] = RAMPS.flat();
+const FIRST = new Map<number, number>();
+PALETTE.forEach((c, i) => { if (!FIRST.has(c)) FIRST.set(c, i); });
+/** The index of a palette colour (its first, were it in two ramps); a colour that is not in it throws. */
+export function paletteIndex(colour: number): number {
+  const i = FIRST.get(colour);
+  if (i === undefined) throw new Error(`#${colour.toString(16).padStart(6, '0')} is not a palette colour`);
+  return i;
+}
+/** An empty texel's index. PALETTE[255] is a colour too, so emptiness is told by `part < 0`, not by this. */
+export const EMPTY = 255;
+
+/** Every texel's albedo index and part id: for a covered texel its swatch's ladder step, as `shade` takes it (without the
+ * outline's `owner`); `EMPTY` and −1 where nothing is drawn. */
+export function albedoIndex(pr: Prepared, materials: SceneMaterial[]): { index: Uint8Array; part: Int32Array } {
+  const { g } = pr, n = g.w * g.h, index = new Uint8Array(n).fill(EMPTY), part = new Int32Array(n).fill(-1);
+  for (let k = 0; k < n; k++) {
+    if (g.material[k] < 0) continue;
+    index[k] = paletteIndex(ladderOf(swatchAt(pr, materials, k)).steps[albedoStepAt(pr, materials, k)]);
+    part[k] = g.part[k];
+  }
+  return { index, part };
+}

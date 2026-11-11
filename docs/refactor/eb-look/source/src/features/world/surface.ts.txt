@@ -1,0 +1,41 @@
+/**
+ * Surfaces: where a map or a prop names a swatch, it may give a placement with it, as Build's Mapster32 does a wall's
+ * picnum: how often the tile repeats, how it is panned, where it starts (aligned to the wall, the world or the prop) and
+ * whether it is turned a quarter. A plain swatch name has no placement at all and tiles in the world, as it always did.
+ *
+ * The types are declared in types.ts (it needs `Surface` and this file needs its vectors: declared here it would be a
+ * cycle) and re-exported here for their callers.
+ */
+import type { Surface, SurfaceSite, SurfaceTex, TexFrame, TexPlace, V2, V3 } from './types';
+export type { Align, Surface, SurfaceSite, SurfaceTex, TexFrame, TexPlace } from './types';
+
+export const isSurfaceTex = (s: unknown): s is SurfaceTex => !!s && typeof s === 'object' && !Array.isArray(s) && typeof (s as SurfaceTex).tile === 'string';
+/** The swatch a surface names. */
+export const tileName = (s: Surface): string => (typeof s === 'string' ? s : s.tile);
+
+/** A surface's placement at a site, with the site's own frame (a wall's, a prop's): none for a string (today's world
+ * mapping); for a SurfaceTex its align (default by site: wall → 'wall', plane → 'world', object → 'object') picks the
+ * frame ('world': none; a floor or ceiling has none), and its repeat, pan and turn are kept as given (only those it sets). */
+export function texOf(s: Surface | undefined, site: SurfaceSite, frame?: TexFrame): TexPlace | undefined {
+  if (s === undefined || typeof s === 'string') return undefined;
+  const align = s.align ?? ({ wall: 'wall', plane: 'world', object: 'object' } as const)[site];
+  const f = site === 'plane' || align === 'world' ? undefined : frame;
+  return { ...(f ? { frame: f } : {}), ...(s.repeat ? { repeat: s.repeat } : {}), ...(s.pan ? { pan: s.pan } : {}), ...(s.turn ? { turn: true } : {}) };
+}
+
+/** A map wall's frame: origin at its start `from` (map x, y) on the floor at height `floor`; x along the wall, left to
+ * right seen from the room, `u = (n.y, −n.x)` in map terms; y up; z the inward normal `n`. World = (map x, z, map y). */
+export function wallFrame(from: V2, floor: number, n: V2): TexFrame {
+  return { o: [from[0], floor, from[1]], x: [n[1], 0, -n[0]], y: [0, 1, 0], z: [n[0], 0, n[1]] };
+}
+/** A prop's frame: placed at `at` (world), turned `turn` degrees about y, as build.ts place turns it:
+ * x = (cos, 0, −sin), y = (0, 1, 0), z = (sin, 0, cos). */
+export function objectFrame(turn: number, at: V3): TexFrame {
+  const a = turn * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  return { o: at, x: [c, 0, -s], y: [0, 1, 0], z: [s, 0, c] };
+}
+/** A world place and normal in a frame: ((p − o)·x, ·y, ·z) and (n·x, n·y, n·z). */
+export function toLocal(f: TexFrame, p: V3, n: V3): [V3, V3] {
+  const d: V3 = [p[0] - f.o[0], p[1] - f.o[1], p[2] - f.o[2]], dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  return [[dot(d, f.x), dot(d, f.y), dot(d, f.z)], [dot(n, f.x), dot(n, f.y), dot(n, f.z)]];
+}

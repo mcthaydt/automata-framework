@@ -1,0 +1,364 @@
+/**
+ * The scene painter: a background as a pixel artist paints one, from the scene's G-buffer (raster.ts, the figures' own
+ * rasteriser). It shares the figure painter's palette (DUEL ramps), but not its body-specific passes (faces, hands,
+ * limbs, cloth): scenery is big flat surfaces, which want textures, patterns and light instead.
+ *
+ * - Each swatch is a ladder of DUEL steps (its DUEL row, or its hand-picked `paint` ramp extended up and down in OKLab
+ *   and snapped back). A texel's albedo is its swatch's base step plus its texture's or pattern's offset (and the
+ *   grime's): where the surface is, not how it is lit.
+ * - The light is not painted here. It is per vertex (vertex-light.ts), stepped, interpolated across each triangle by the
+ *   rasteriser, and arrives as a per-texel RGB: a texel is albedo × light, hazed toward the veil, and snapped once to
+ *   DUEL with a Bayer dither (colour.ts). Nothing leaves the palette.
+ * - Glowing things (a lamp's bulb, a neon tube, a lit window) are drawn at their own step whatever the light, and hazed.
+ * - An outline (switch `outline`, off by default) is coloured: where a nearer shape stands in front of a farther one (or
+ *   the sky), the far texel takes the near shape's own deep step, a step lighter on the key's side (selout).
+ */
+import { RAMPS } from '../../lib/figure';
+import { duel, oklab } from '../../lib/figure';
+import { noise3, type GBuffer } from '../../lib/figure';
+import { hash } from '../../lib/rng';
+import { rgbFromLab } from '../../lib/colour';
+import { strength } from './light';
+import { type Look, type Switches } from './look';
+import { hazed, litColour, snap } from './colour';
+import type { Lamp, Pattern, SceneMaterial, TexPlace, TimeOfDay, V3 } from '../world/types';
+import { toLocal } from '../world/surface';
+import { textureAt, WEAR, type TextureSpec } from '../photo/textures';
+import { swatchOf } from '../world/swatches';
+
+// ─── Colour: OKLab both ways, DUEL snapping, ladders ───
+const hex = (h: string) => parseInt(h.slice(1), 16);
+/** A swatch's ladder: 8 DUEL steps dark to light and the step it sits on lit. A DUEL row as it is; a hand-picked ramp
+ * (light, mid, shadow, deep) set at steps 5…2 and extended two steps either way, darker leaning cool, lighter warm. */
+export interface Ladder { steps: number[]; base: number }
+const ladders = new Map<SceneMaterial, Ladder>();
+export function ladderOf(m: SceneMaterial): Ladder {
+  let hit = ladders.get(m);
+  if (hit) return hit;
+  if (!m.paint) hit = { steps: [...RAMPS[m.ramp]], base: m.base };
+  else {
+    const [li, mi, sh, de] = m.paint.map(c => duel(hex(c)));
+    const off = (c: number, dL: number, db: number) => { const [L, A, B] = oklab(c); for (let i = 1; i < 5; i++) { const t = duel(rgbFromLab(L + dL * i, A, B + db * i)); if (t !== c) return t; } return c; };
+    const d1 = off(de, -0.07, -0.012), d2 = off(d1, -0.07, -0.012), l1 = off(li, 0.07, 0.01), l2 = off(l1, 0.07, 0.01);
+    hit = { steps: [d2, d1, de, sh, mi, li, l1, l2], base: 4 };
+  }
+  ladders.set(m, hit);
+  return hit;
+}
+/** A swatch moved onto DUEL ramp `r` (a photo-mode texel's own colour): the swatch's every rule, that ramp's ladder. */
+const onRampCache = new WeakMap<SceneMaterial, SceneMaterial[]>();
+export function onRamp(m: SceneMaterial, r: number): SceneMaterial {
+  let by = onRampCache.get(m); if (!by) onRampCache.set(m, by = []);
+  return by[r] ??= { ...m, ramp: r, paint: undefined };
+}
+/** A swatch's texture worn by a grime factor: one spec object per (swatch, grime), so tiles cache by identity. */
+const worn = new WeakMap<SceneMaterial, Map<number, NonNullable<SceneMaterial['texture']>>>();
+function wornSpec(m: SceneMaterial, g: number) {
+  let by = worn.get(m); if (!by) worn.set(m, by = new Map());
+  let s = by.get(g); if (!s) by.set(g, s = { ...m.texture!, wear: Math.min(1, (m.texture!.wear ?? WEAR) * g) });
+  return s;
+}
+// ─── Patterns, laid in each surface's world place ───
+/** A texel's place on its surface: (u, v) in metres and how many metres a texel spans along each, by which way the
+ * surface faces (a floor's v runs into the scene and is foreshortened by the pitch). */
+export function uv(nx: number, ny: number, nz: number, p: V3, ppm: number, pitch: number, axis?: 'x' | 'z'): [number, number, number, number] {
+  if (Math.abs(ny) >= 0.7) return axis === 'z' ? [p[2], p[0], 1 / (ppm * Math.sin(pitch)), 1 / ppm] : [p[0], p[2], 1 / ppm, 1 / (ppm * Math.sin(pitch))];
+  if (Math.abs(nz) >= Math.abs(nx)) return [p[0], p[1], 1 / ppm, 1 / (ppm * Math.cos(pitch))];
+  return [p[2], p[1], 1 / (ppm * Math.sin(pitch) + 1e-3), 1 / (ppm * Math.cos(pitch))];
+}
+/** A pattern's tone offset at a texel. Patterns are graphic designs and painting techniques only; a material's surface is a
+ * photo (photo/). */
+export function patternAt(pt: Pattern, nx: number, ny: number, nz: number, p: V3, ppm: number, pitch: number): number {
+  const [u, v, mu, mv] = uv(nx, ny, nz, p, ppm, pitch, pt.axis), size = pt.size ?? [1, 0.2], step = pt.step ?? -1, amt = pt.amount ?? 0.3;
+  const fr = (a: number, s: number) => a - Math.floor(a / s) * s;
+  switch (pt.kind) {
+    case 'checker': return (Math.floor(u / size[0]) + Math.floor(v / size[1])) % 2 ? step : 0;
+    case 'stripes': return fr(u, size[0]) < size[1] ? step : 0;
+    case 'noise': {
+      const s = size[0], q = noise3(u / s, v / s, p[2] * 0.3 + 5) * 0.7 + noise3(u / s * 2.3 + 9, v / s * 2.3, 1) * 0.3;
+      return q > 0.5 + amt * 0.5 ? 1 : q < 0.5 - amt * 0.5 ? -1 : 0;
+    }
+    case 'grass': {
+      // Broad clumps a step down, a few lighter, and sparse blades: a 1×2 stroke a step up.
+      const q = noise3(u * 0.7, v * 0.9, 2) * 0.75 + noise3(u * 2.2, v * 2.6, 7) * 0.25;
+      const i = Math.floor(u / mu), j = Math.floor(v / mv);
+      if (hash(i, Math.floor(j / 2), 13) < amt * 0.06) return 1;
+      return q > 0.7 ? 1 : q < 0.36 ? -1 : 0;
+    }
+    case 'leaves': {
+      const s = 1 / (size[0] || 0.25), q = noise3(p[0] * s, p[1] * s, p[2] * s) * 0.65 + noise3(p[0] * s * 2.7, p[1] * s * 2.7 + 3, p[2] * s * 2.7) * 0.35;
+      return q > 0.6 ? 1 : q < 0.36 ? -1 : 0;
+    }
+    case 'glass': {
+      const d = fr(u * 0.9 + v * 0.7, size[0] || 1.4);
+      return d < (size[1] || 0.1) || (d > (size[1] || 0.1) * 1.6 && d < (size[1] || 0.1) * 2.1) ? (pt.step ?? 2) : 0;
+    }
+    default: return 0;
+  }
+}
+
+// ─── The prepared scene: everything that does not change while lamps flicker and figures walk ───
+export interface Prepared {
+  w: number; h: number; D: number;
+  g: GBuffer;
+  /** Per texel: its albedo step offset from its swatch's base (its texture's or pattern's, the grime's, a foliage
+   * clump's), the ladder its texture puts it on (0 its swatch's, 1 its accent's, 2 + r DUEL ramp r: a photo's own
+   * colour), the nearer texel whose outline it is (−1 none) and whether that outline lies on the key's side. */
+  pat: Int8Array; slot: Uint8Array; owner: Int32Array; keySide: Uint8Array;
+  /** The foliage growth: pairs (a texel the growth filled, the texel it copied), which the light buffer follows too. */
+  grown: Int32Array;
+}
+/** What `prepare` also needs, and a perspective view's extras (fp.ts): each texel's own pattern scale (texels a metre,
+ * and the angle it is seen at), and how the outline gap grows with distance. */
+export interface PrepareExtras {
+  /** Which refinements are on (look.ts Switches): foliage as clumps, the outline. */
+  switches: Switches;
+  /** How far (m) a nearer shape must stand in front of a farther one for an outline (0.06). */
+  gap?: number;
+  texel?: (k: number) => [number, number]; gapPerMetre?: number;
+  /** How grimy a texel's place is (map.ts grime: 0 pristine, 1 lived-in, 2 derelict): its texture's wear scales by it,
+   * and the grime marks (stains, soot, scuffs) are laid by `grimeAt`. */
+  grime?: (k: number) => number;
+  /** A grime mark's step at a texel (map.ts grimeMarks), 0 for none. */
+  grimeAt?: (k: number) => number;
+  /** A texel's tile placement (world/surface.ts): its part's frame, repeat, pan and turn. None (a string surface) tiles
+   * the swatch in the world, as it always did. Patterns are not placed: they stay graphic designs in the world's place. */
+  placeOf?: (k: number) => TexPlace | undefined;
+}
+/** A swatch's texture turned a quarter: one spec object per original, so tiles cache by identity. */
+const turnedSpecs = new WeakMap<TextureSpec, TextureSpec>();
+function turnedSpec(s: TextureSpec): TextureSpec {
+  let t = turnedSpecs.get(s); if (!t) turnedSpecs.set(s, t = { ...s, turn: !s.turn });
+  return t;
+}
+/** Foliage as a pixel artist draws it: the surface cut into clumps (cells of `size` m in its world place), each lit as
+ * its own ball (its light crescent toward the key), the whole crown's light under it, and the rim between clumps dark
+ * on the shadow side. Returns the clump's step (−1 a step down … +1 a step up) and whether the texel is a clump's rim. */
+function foliageAt(p: V3, nx: number, ny: number, nz: number, key: V3, size: number): [number, boolean] {
+  const s = size, i0 = Math.floor(p[0] / s), j0 = Math.floor(p[1] / s), k0 = Math.floor(p[2] / s);
+  let d1 = Infinity, d2 = Infinity, c: V3 = [0, 0, 0];
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let e = -1; e <= 1; e++) {
+    const ci = i0 + a, cj = j0 + b, ck = k0 + e, q: V3 = [(ci + 0.15 + hash(ci, cj, ck) * 0.7) * s, (cj + 0.15 + hash(ci, cj, ck + 91) * 0.7) * s, (ck + 0.15 + hash(ci, cj + 37, ck) * 0.7) * s];
+    const d = Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+    if (d < d1) { d2 = d1; d1 = d; c = q; } else if (d < d2) d2 = d;
+  }
+  // The clump's own ball normal, leaned toward the crown's so a clump on the far side stays dark.
+  let bx = p[0] - c[0] + nx * s * 0.4, by = p[1] - c[1] + ny * s * 0.4, bz = p[2] - c[2] + nz * s * 0.4; const l = Math.hypot(bx, by, bz) || 1; bx /= l; by /= l; bz /= l;
+  const ball = bx * key[0] + by * key[1] + bz * key[2], crown = nx * key[0] + ny * key[1] + nz * key[2], f = ball * 0.55 + crown * 0.6;
+  const step = f > 0.62 ? 1 : f > 0.12 ? 0 : -1;
+  return [step, d2 - d1 < s * 0.16 && ball < 0.25];
+}
+
+export function prepare(g: GBuffer, materials: SceneMaterial[], key: V3, ppm: number, pitch: number, extras: PrepareExtras): Prepared {
+  const { switches } = extras;
+  const { w, h, material, part, group, depth, normal, place } = g, n = w * h, D = Math.max(1, Math.round(ppm / 36.9));
+  const slot = new Uint8Array(n), pat = new Int8Array(n), owner = new Int32Array(n).fill(-1), keySide = new Uint8Array(n), grown: number[] = [];
+  // Foliage's silhouette broken into leaves: where a crown meets what is behind it, leaf texels grow a texel or two out
+  // at seeded spots of its world place (so they hold still as the camera moves), two passes, the second sparser.
+  if (switches.foliage) {
+    const leafy = materials.map(m => m.pattern?.kind === 'leaves');
+    for (const odds of [0.42, 0.18]) {
+      const grow: number[] = [];
+      for (let k = 0; k < n; k++) {
+        if (material[k] < 0 || !leafy[material[k]]) continue;
+        const x = k % w, cell = Math.floor(place[k * 3] * 14) * 7 + Math.floor(place[k * 3 + 1] * 14) * 13 + Math.floor(place[k * 3 + 2] * 14) * 3;
+        [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w].forEach((q, i) => {
+          if (q < 0 || q >= n || (material[q] >= 0 && depth[q] > depth[k] - 0.3) || hash(cell, i, 41) > odds) return;
+          grow.push(q, k);
+        });
+      }
+      for (let i = 0; i < grow.length; i += 2) {
+        const q = grow[i], k = grow[i + 1];
+        material[q] = material[k]; part[q] = part[k]; group[q] = group[k]; depth[q] = depth[k];
+        for (let c = 0; c < 3; c++) { normal[q * 3 + c] = normal[k * 3 + c]; place[q * 3 + c] = place[k * 3 + c]; }
+      }
+      grown.push(...grow);
+    }
+  }
+  for (let k = 0; k < n; k++) {
+    const mi = material[k]; if (mi < 0) continue;
+    const m = materials[mi], nx = normal[k * 3], ny = normal[k * 3 + 1], nz = normal[k * 3 + 2], p: V3 = [place[k * 3], place[k * 3 + 1], place[k * 3 + 2]];
+    const [tp, tpitch] = extras.texel ? extras.texel(k) : [ppm, pitch];
+    const leafy = switches.foliage && m.pattern?.kind === 'leaves';
+    if (m.texture) {
+      // The texture: its tile at the scale this texel sees it, in the surface's place (v up a wall, toward the camera
+      // on a floor), worn by the grime there. A part's placement (placeOf) takes the place in its own frame, repeats,
+      // pans and turns the tile; the scale is still how the texel is seen.
+      const tx = extras.placeOf?.(k), gr = extras.grime ? extras.grime(k) : 1;
+      let [u, v, mu, mv] = uv(nx, ny, nz, p, tp, tpitch, m.pattern?.axis), down = Math.abs(ny) < 0.7;
+      if (tx?.frame) {
+        const [lp, ln] = toLocal(tx.frame, p, [nx, ny, nz]);
+        [u, v] = uv(ln[0], ln[1], ln[2], lp, tp, tpitch, m.pattern?.axis);
+        down = Math.abs(ln[1]) < 0.7;
+      }
+      let spec = gr === 1 ? m.texture : wornSpec(m, gr);
+      if (tx?.turn) spec = turnedSpec(spec);
+      const [o, s] = textureAt(spec, u, v, 1 / mu, 1 / mv, down, tx?.frame ? { ...tx, anchored: true } : tx ?? {});
+      // A photo-mode texel (slot 2 + ramp) carries its own step on its own ramp: its offset is that step less the
+      // swatch's base, so it moves along that ramp as any texel moves along its swatch's.
+      pat[k] = (s >= 2 ? o - m.base : o) + (extras.grimeAt ? extras.grimeAt(k) : 0); slot[k] = s >= 2 ? s : m.accent ? s : 0;
+    } else if (m.pattern && !leafy) pat[k] = patternAt(m.pattern, nx, ny, nz, p, tp, tpitch) + (extras.grimeAt ? extras.grimeAt(k) : 0);
+    else if (extras.grimeAt && !m.emit) pat[k] = extras.grimeAt(k);
+    // A clump of foliage is a step up or down as its crescent faces the key; the rim between clumps a step down.
+    if (leafy && !m.emit) { const [step, rim] = foliageAt(p, nx, ny, nz, key, m.pattern!.size?.[0] ?? 0.4); pat[k] = rim ? -1 : pat[k] + step; }
+  }
+  // The outline (switch `outline`): a texel (or the sky) beside a nearer shape of another prop or surface takes that
+  // shape's line.
+  if (switches.outline) {
+    const gap = extras.gap ?? 0.06, K2 = (() => { const x = key[0], y = -(key[1] * Math.cos(pitch) - key[2] * Math.sin(pitch)), l = Math.hypot(x, y) || 1; return [x / l, y / l]; })();
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const k = y * w + x;
+      let best = -1;
+      for (let i = 0; i < 4; i++) {
+        const xx = x + (i === 0 ? -1 : i === 1 ? 1 : 0), yy = y + (i === 2 ? -1 : i === 3 ? 1 : 0);
+        if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+        const q = yy * w + xx, mq = material[q];
+        if (mq < 0) continue;
+        const m = materials[mq];
+        if (m.emit || m.line === 'none') continue;
+        if (material[k] >= 0 && (group[q] === group[k] && part[q] === part[k] || depth[q] - depth[k] < gap + (extras.gapPerMetre ?? 0) * Math.abs(depth[q]))) continue;
+        if (best < 0 || depth[q] > depth[best]) best = q;
+      }
+      if (best < 0) continue;
+      owner[k] = best;
+      // The key's side of the near shape: this texel lies toward the key from it.
+      const bx = best % w - x, by = Math.floor(best / w) - y;
+      keySide[k] = -(bx * K2[0] + by * K2[1]) > 0.3 ? 1 : 0;
+    }
+  }
+  return { w, h, D, g, pat, slot, owner, keySide, grown: Int32Array.from(grown) };
+}
+
+/** What a frame adds over the prepared scene. */
+export interface FrameLight {
+  /** Per texel RGB light (3 per texel): the light pass's (the vertex light, interpolated). */
+  light: Float32Array;
+  /** Per texel multiplier on the light (fp's distance shading), optional. */
+  scale?: Float32Array;
+  /** The time (s), for the lamps' strength: a glowing prop dims with its own lamp. */
+  t: number; lamps: Lamp[];
+  /** Texels under a figure's shadow (cast.ts shadowOf): their light is multiplied by `look.figureShadow`. */
+  shade?: Uint8Array;
+  /** A texel's haze share (colour.ts hazeShare), by its distance. */
+  haze: (k: number) => number;
+  /** The sky at an empty texel (sky.ts, or the time's bands). */
+  sky: (x: number, y: number) => number;
+  /** Where the eye is (first person), or the direction the camera looks (a diorama): what interiors are seen along. */
+  eye?: V3; look?: V3;
+  /** Whole steps a glowing swatch moves now (state.ts emissive: a neon pulse), by swatch; none: as authored. */
+  emitShift?: (m: SceneMaterial) => number;
+}
+/**
+ * Interior mapping (a lit window's depth): the view ray through the glass at `p` (window normal `n`, out of the wall)
+ * traced into a box room behind the wall (2.6 m wide, 2.8 m high, 3 m deep, one per cell of the wall), and the step its
+ * hit takes: the back wall lit near the ceiling's lamp and darker down, side walls and the floor darker, the ceiling's
+ * light; a shelf, a sofa or a cabinet's silhouette on the back wall, by the room's seed.
+ */
+export function interiorStep(px: number, py: number, pz: number, nx: number, nz: number, dx: number, dy: number, dz: number): number {
+  const l = Math.hypot(nx, nz) || 1, ux = nz / l, uz = -nx / l, inx = -nx / l, inz = -nz / l;
+  const W = 2.6, H = 2.8, D = 3, a = px * ux + pz * uz, ia = Math.floor(a / W), ib = Math.floor(py / H), la = a - ia * W, lb = py - ib * H;
+  const da = dx * ux + dz * uz, dn = Math.max(0.05, dx * inx + dz * inz);
+  const tSide = da > 0 ? (W - la) / da : da < 0 ? -la / da : Infinity, tFloor = dy > 0 ? (H - lb) / dy : dy < 0 ? -lb / dy : Infinity, tBack = D / dn;
+  let t = Math.min(tSide, tFloor, tBack), face = t === tBack ? 0 : t === tFloor ? (dy > 0 ? 1 : 2) : 3, boxTone = -2;
+  // The room's furniture, seeded: boxes in room space (along the wall, up, into the room): a sofa or a bed against the
+  // back wall, a table, a floor lamp (thin and tall) whose light pools on the floor round it.
+  const h = (k: number) => hash(ia * 7 + k, ib * 13, 23), boxes: [number, number, number, number, number, number, number][] = [];
+  const sx = h(1) * (W - 1.6), tx = 0.3 + h(2) * (W - 1.4), lx = h(3) < 0.5 ? 0.25 : W - 0.45, lamp = h(6) < 0.6;
+  boxes.push([sx, 0, D - 0.85, sx + 1.5, h(4) < 0.5 ? 0.75 : 0.5, D, -3]);
+  if (h(5) < 0.7) boxes.push([tx, 0, 1.2, tx + 0.9, 0.75, 1.9, -2]);
+  if (lamp) boxes.push([lx, 0, D - 1.3, lx + 0.2, 1.55, D - 1.1, -3]);
+  for (const [a0, b0, c0, a1, b1, c1, tone] of boxes) {
+    // A slab test along the ray (la + da·s, lb + dy·s, dn·s): the face it enters by is the face it shows.
+    let t0 = 0, t1 = t, hit = -1;
+    const slab = (o: number, d: number, lo: number, hi: number, f: number) => {
+      if (Math.abs(d) < 1e-6) return o >= lo && o <= hi;
+      let s0 = (lo - o) / d, s1 = (hi - o) / d; if (s0 > s1) [s0, s1] = [s1, s0];
+      if (s0 > t0) { t0 = s0; hit = f; }
+      t1 = Math.min(t1, s1);
+      return t0 <= t1;
+    };
+    if (slab(la, da, a0, a1, 3) && slab(lb, dy, b0, b1, 1) && slab(0, dn, c0, c1, 0) && t0 < t) { t = t0; face = 10 + hit; boxTone = tone; }
+  }
+  const ha = la + da * t, hb = lb + dy * t, hc = dn * t;
+  // A box: its top lit, its side a step down from it, its front darkest.
+  if (face >= 10) return face === 11 ? boxTone + 2 : face === 13 ? boxTone + 1 : boxTone;
+  if (face === 0) return hb > H * 0.62 ? 0 : hb > H * 0.3 ? -1 : -2;
+  if (face === 2) {
+    // The floor: the lamp's pool, then the ceiling light's.
+    if (lamp && Math.hypot(ha - lx - 0.1, hc - (D - 1.2)) < 0.75) return 0;
+    return Math.hypot(ha - W / 2, hc - D * 0.5) < 0.6 ? -1 : -3;
+  }
+  if (face === 1) return Math.hypot(ha - W / 2, hc - D * 0.5) < 0.45 ? 1 : -1;
+  return -2;
+}
+/** A texel's swatch: its own, or its texture's accent, or its own colour on a DUEL ramp. */
+export function swatchAt(pr: Prepared, materials: SceneMaterial[], k: number): SceneMaterial {
+  const m = materials[pr.g.material[k]], s = pr.slot[k];
+  return s >= 2 ? onRamp(m, s - 2) : s && m.accent ? swatchOf(m.accent) : m;
+}
+/** A lit surface's albedo step (0…7): its swatch's base and its texture's offset. */
+export function albedoStepAt(pr: Prepared, materials: SceneMaterial[], k: number): number {
+  return Math.max(0, Math.min(7, ladderOf(swatchAt(pr, materials, k)).base + pr.pat[k]));
+}
+/** Paints a frame: the prepared scene's albedo × its light (the vertex light, per texel), hazed and snapped to DUEL, its
+ * glow, its outline and its sky. Writes RGBA; empty texels are the sky. */
+export function shade(pr: Prepared, materials: SceneMaterial[], look: Look, light: FrameLight, out: Uint8ClampedArray, lampProps: number[] = []) {
+  const { w, g } = pr, { material, group, normal, place } = g, n = pr.w * pr.h, L = light.light;
+  // A glowing prop dims with its lamp: its strength, by prop.
+  const glow = new Map<number, number>();
+  light.lamps.forEach((l, i) => { const p = lampProps[i]; if (p !== undefined && p >= 0) glow.set(p, Math.min(glow.get(p) ?? 1, strength(l, light.t))); });
+  const matAt = (k: number) => swatchAt(pr, materials, k);
+  /** A texel's light: the vertex light, under a figure's shadow darker, and Build's distance shading over it. */
+  const lightAt = (k: number): V3 => {
+    const f = (light.shade?.[k] ? look.figureShadow : 1) * (light.scale?.[k] ?? 1);
+    return [L[k * 3] * f, L[k * 3 + 1] * f, L[k * 3 + 2] * f];
+  };
+  /** A glowing swatch's step: its own, whatever the light (a lit window shows the room behind it). */
+  const emitStep = (k: number) => {
+    const m = matAt(k), s = glow.get(group[k] - 16) ?? 1;
+    let o = pr.pat[k];
+    if (m.interior && (light.eye || light.look)) {
+      const px = place[k * 3], py = place[k * 3 + 1], pz = place[k * 3 + 2];
+      let dx: number, dy: number, dz: number;
+      if (light.eye) { dx = px - light.eye[0]; dy = py - light.eye[1]; dz = pz - light.eye[2]; const l = Math.hypot(dx, dy, dz) || 1; dx /= l; dy /= l; dz /= l; } else [dx, dy, dz] = light.look!;
+      // The room behind; the glass's own glint (its pattern's lighter marks) over it.
+      o = interiorStep(px, py, pz, normal[k * 3], normal[k * 3 + 2], dx, dy, dz) + Math.max(0, pr.pat[k]);
+    }
+    return Math.max(0, Math.min(7, ladderOf(m).base + o - (s < 0.6 ? 2 : s < 0.9 ? 1 : 0) + (light.emitShift ? light.emitShift(m) : 0)));
+  };
+  const albedoStep = (k: number) => albedoStepAt(pr, materials, k);
+  const put = (k: number, c: number) => { out[k * 4] = (c >> 16) & 255; out[k * 4 + 1] = (c >> 8) & 255; out[k * 4 + 2] = c & 255; out[k * 4 + 3] = 255; };
+  /** A texel's colour from a palette `albedo`, lit as texel `lit` is (an outline takes its owner's light), hazed as `k` is
+   * and snapped to DUEL with the dither. A glowing texel takes no light: it is its own albedo. */
+  const colourOf = (k: number, albedo: number, lit: number, glowing: boolean) => {
+    const l = lightAt(lit), c = litColour(albedo, glowing ? [1, 1, 1] : l, glowing ? 1 : look.light.gain);
+    return snap(hazed(c, l, light.haze(k), look.haze), k % w, Math.floor(k / w), look.dither.strength);
+  };
+  for (let k = 0; k < n; k++) {
+    const q = pr.owner[k];
+    if (q >= 0) {
+      // The outline: the near shape's own deep (two steps under its albedo step, three off the key's side), lit as it is.
+      const step = Math.min(albedoStep(q) - (pr.keySide[k] ? 2 : 3), ladderOf(matAt(q)).base - 1);
+      put(k, colourOf(k, ladderOf(matAt(q)).steps[Math.max(0, step)], q, false));
+      continue;
+    }
+    if (material[k] < 0) { put(k, light.sky(k % w, Math.floor(k / w))); continue; }
+    const m = matAt(k), steps = ladderOf(m).steps;
+    put(k, m.emit ? colourOf(k, steps[emitStep(k)], k, true) : colourOf(k, steps[albedoStep(k)], k, false));
+  }
+}
+/** The sky: its bands top to horizon, a two-row checker where they meet, and (unless `stars` is off: look.json switches) stars
+ * that twinkle a step. */
+export function skyAt(time: TimeOfDay, x: number, y: number, w: number, h: number, t: number, stars = true) {
+  const s = y / h, bands = time.sky;
+  let i = 0; while (i < bands.length - 1 && s >= bands[i + 1].at) i++;
+  let c = hex(bands[i].color);
+  // The dither: the two rows over a band's start take the band above's colour on a checker.
+  if (i < bands.length - 1) { const edge = bands[i + 1].at * h; if (edge - y <= 2 && edge - y > 0 && (x + y) % 2 === 0) c = hex(bands[i + 1].color); }
+  if (stars && time.stars) {
+    const r = hash(x, y, 77);
+    if (r < time.stars * (1 - s)) { const tw = hash(x, y, Math.floor(t * 3)) < 0.15; return duel(tw ? 0x7a7799 : r < time.stars * 0.25 ? 0xf5f7fa : 0xc6ecff); }
+  }
+  return c;
+}
+export { hash, rgbFromLab };

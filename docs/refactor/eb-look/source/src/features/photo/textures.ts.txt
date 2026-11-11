@@ -1,0 +1,129 @@
+/**
+ * Photo textures: every textured surface is a photo from the library (library/photos.json and library/photos/*.png),
+ * run through the photo pipeline (pipeline.ts) at the texel scale it is seen at. Nothing is drawn by hand, and nothing
+ * is drawn by a procedural pattern: the variety is the photo's.
+ *
+ * A tile is made for its two texel scales (texels a metre along u and v, quantised to √2 steps): the photo, faceted
+ * once, is scaled down to the tile's size in texels, indexed and cleaned there, so a far wall is its own small clean
+ * tile, never a blur of the near one. Tiles are laid in world space on the texel grid (a texel's place on its surface,
+ * floored), so nothing swims when the camera pans, and a seed shifts where a surface's tile starts.
+ */
+import { readFileSync } from 'node:fs';
+import { decodePng } from '../../lib/png';
+import { hash } from '../../lib/rng';
+import { clean, facet, flatten, indexPhoto, indexTone, labOf, resample, wear, type Lab } from './pipeline';
+import photoLibrary from './library/photos.json';
+
+/** A photo in the library: its file, the metres it spans (width, height), where it came from and its licence. */
+export interface Photo { file: string; size: [number, number]; source: string; licence: string; credit?: string }
+export const PHOTOS: Record<string, Photo> = photoLibrary as unknown as Record<string, Photo>;
+
+/** A swatch's texture: a library photo and how it is indexed. */
+export interface TextureSpec {
+  photo: string;
+  /** 'tone' (default): the photo's light on the swatch's ladder (and its accent's). 'photo': its own colours. */
+  colour?: 'tone' | 'photo';
+  /** Scales the photo's size in the world (2: each brick twice as big). */
+  scale?: number;
+  /** Turns the photo a quarter (planks run up a wall instead of across). */
+  turn?: boolean;
+  /** The facet radius (texels of the imported photo, 0 none). */
+  facet?: number;
+  /** How much of the photo's slow light changes are taken out (0–1; pipeline.ts flatten). */
+  flatten?: number;
+  /** Tone mode: OKLab lightness a tone step spans, offsets kept (low, high), and the accent's hue distance (0 none). */
+  contrast?: number; range?: [number, number]; accent?: number;
+  /** Photo mode: how many colours the photo keeps before they snap to DUEL. */
+  colours?: number;
+  /** The smallest cluster (texels) the clean-up keeps. */
+  cluster?: number;
+  /** Worn patches a step darker (0 new … 1 derelict; WEAR by default); a map's grime scales it (paint.ts wornSpec). */
+  wear?: number;
+  seed?: number;
+}
+/** A texture's wear when its swatch sets none: the painter's grime scales this same default (paint.ts wornSpec). */
+export const WEAR = 0.3;
+/** What a texture's knobs are when its swatch sets none: written once, so `makeTile` and the tuner (structure.ts `findKnob`)
+ * read the same numbers. A swatch that names every one of them makes the tile it makes without. */
+export const TEXTURE_DEFAULTS = {
+  scale: 1, facet: 1, flatten: 0.85, contrast: 0.07, range: [-2, 1] as [number, number], accent: 0.06, colours: 8, cluster: 4,
+  wear: WEAR, seed: 0,
+};
+/** A tile: W×H labels (pipeline.ts: slot · 16 + value). */
+export interface Tile { w: number; h: number; data: Int16Array }
+/** A label's tone offset (slot 0, 1) or ramp step (slot 2 + ramp), and its slot. */
+export const unpack = (v: number): [number, number] => { const slot = v >> 4; return [slot < 2 ? (v & 15) - 8 : v & 15, slot]; };
+
+/** A library photo by name; an unknown name throws with the library's names. */
+export function photoOf(name: string): Photo {
+  const p = PHOTOS[name];
+  if (!p) throw new Error(`no photo ${name} (library/photos.json: ${Object.keys(PHOTOS).join(', ')})`);
+  return p;
+}
+const faceted = new Map<string, Lab>();
+const dir = new URL('./library/photos/', import.meta.url);
+/** A photo, imported, flattened (`flat` of its slow light changes out) and faceted (cached). */
+export function photoLab(name: string, radius: number, flat = 0): Lab {
+  const key = `${name}|${radius}|${flat}`;
+  let hit = faceted.get(key);
+  if (hit) return hit;
+  const p = photoOf(name);
+  const lab = labOf(decodePng(readFileSync(new URL(p.file, dir))));
+  hit = facet(flatten(lab, Math.max(lab.w, lab.h) / 8, flat), radius);
+  faceted.set(key, hit);
+  return hit;
+}
+const turned = (s: Lab): Lab => {
+  const { w, h, lab } = s, out = new Float32Array(lab.length);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const a = (y * w + x) * 3, b = (x * h + (h - 1 - y)) * 3; out[b] = lab[a]; out[b + 1] = lab[a + 1]; out[b + 2] = lab[a + 2]; }
+  return { w: h, h: w, lab: out };
+};
+
+/** A texel scale (texels a metre) quantised to √2 steps, 3 to 200. */
+const LEVELS = Array.from({ length: 64 }, (_, i) => 2 ** (i / 2));
+export const level = (t: number) => Math.min(200, Math.max(3, LEVELS[Math.max(0, Math.min(63, Math.round(Math.log2(Math.max(1e-3, t)) * 2)))]));
+
+const cache = new Map<string, Tile>();
+const bySpec = new WeakMap<TextureSpec, Map<number, Tile>>();
+/** The tile for a spec at texel scales (texels a metre along u and v), cached. */
+export function tileOf(spec: TextureSpec, su: number, sv: number): Tile {
+  const lu = level(su), lv = level(sv), lk = lu * 1000 + lv;
+  let levels = bySpec.get(spec);
+  if (!levels) bySpec.set(spec, levels = new Map());
+  let t = levels.get(lk);
+  if (t) return t;
+  const key = `${JSON.stringify(spec)}|${lu}|${lv}`;
+  t = cache.get(key);
+  if (!t) { t = makeTile(spec, lu, lv); cache.set(key, t); }
+  levels.set(lk, t);
+  return t;
+}
+function makeTile(spec: TextureSpec, lu: number, lv: number): Tile {
+  const p = photoOf(spec.photo);
+  const d = TEXTURE_DEFAULTS;
+  let src = photoLab(spec.photo, spec.facet ?? d.facet, spec.flatten ?? d.flatten);
+  let [mw, mh] = p.size.map(s => s * (spec.scale ?? d.scale));
+  if (spec.turn) { src = turned(src); [mw, mh] = [mh, mw]; }
+  const W = Math.max(2, Math.round(mw * lu)), H = Math.max(2, Math.round(mh * lv)), small = resample(src, W, H);
+  const photo = spec.colour === 'photo', range = spec.range ?? d.range;
+  const data = photo ? indexPhoto(small, spec.colours ?? d.colours) : indexTone(small, { contrast: spec.contrast ?? d.contrast, range, accent: spec.accent ?? d.accent });
+  // Wear keeps a tone inside its range (a ramp step stays on its ramp, 0 at the darkest).
+  wear(data, W, H, spec.wear ?? d.wear, (spec.seed ?? d.seed) * 31 + 7, photo ? 0 : range[0] + 8);
+  clean(data, W, H, spec.cluster ?? d.cluster);
+  return { w: W, h: H, data };
+}
+/** Where a tile lies on its surface: its repeat (the tile's size × these along u, v), its pan (metres along u, v,
+ * snapped to whole tile texels) and whether it is anchored: the tile starts at u = v = 0 (a wall's start, a prop's
+ * origin), with no seed offset. A surface tiled in the world keeps the seed's offset, so swatches differ there. */
+export interface TilePlace { repeat?: [number, number]; pan?: [number, number]; anchored?: boolean }
+/** A texel of the texture on a surface at (u, v) metres (v up the surface: tile rows run down), seen at scales su, sv, and
+ * placed by `place`: its offset or step, and its slot. */
+export function textureAt(spec: TextureSpec, u: number, v: number, su: number, sv: number, down = true, place: TilePlace = {}): [number, number] {
+  const [r0, r1] = place.repeat ?? [1, 1], [p0, p1] = place.pan ?? [0, 0];
+  const t = tileOf(spec, su * r0, sv * r1), lu = level(su * r0), lv = level(sv * r1), s = spec.seed ?? 0;
+  const du = Math.round(p0 / r0 * lu), dv = Math.round(p1 / r1 * lv);
+  const ox = place.anchored ? 0 : Math.floor(hash(s, 1) * t.w), oy = place.anchored ? 0 : Math.floor(hash(s, 2) * t.h);
+  const x = Math.floor(u / r0 * lu) - du + ox;
+  const y = (down ? -Math.floor(v / r1 * lv) - 1 + dv : Math.floor(v / r1 * lv) - dv) + oy;
+  return unpack(t.data[(((y % t.h) + t.h) % t.h) * t.w + (((x % t.w) + t.w) % t.w)]);
+}

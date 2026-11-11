@@ -1,0 +1,31 @@
+/**
+ * The scene's swatches (library/swatches.json), by name. A name may carry a seed, `name#123`: the swatch with its
+ * texture's seed set (decals: each poster, each tag its own), so seeded variety is still a library name.
+ */
+import type { TextureSpec } from '../photo/textures';
+import swatchLibrary from './library/swatches.json';
+import type { SceneMaterial } from './types';
+
+export const SCENE_SWATCHES = swatchLibrary as unknown as Record<string, SceneMaterial>;
+const seeded = new Map<string, SceneMaterial>();
+export function swatchOf(name: string): SceneMaterial {
+  const hit = SCENE_SWATCHES[name] ?? seeded.get(name);
+  if (hit) return hit;
+  const [base, seed] = name.split('#'), m = SCENE_SWATCHES[base];
+  if (!m || seed === undefined) throw new Error(`no scene swatch ${name}`);
+  const v: SceneMaterial = { ...m, texture: m.texture ? { ...m.texture, seed: Number(seed) } : undefined };
+  seeded.set(name, v);
+  return v;
+}
+
+/**
+ * A photo as a swatch uses it: the texture of the first swatch that names `photo` and sets `contrast`, else of the first
+ * that names it, else `undefined` (a photo no swatch uses). At the default knobs a flat photo indexes to one label in tone
+ * mode (`contrast` 0.07), so its plain tile can't tell it from another flat photo; a swatch's own knobs can (`concrete` is
+ * used by `baseFacade` at 0.011, and not by `concreteWall` at the default). The tile golden and the contact sheet both
+ * draw a photo this way (`tests/golden/tiles.ts`, `npm run textures`).
+ */
+export function swatchTextureOf(photo: string): TextureSpec | undefined {
+  const uses = Object.values(SCENE_SWATCHES).flatMap(m => (m.texture?.photo === photo ? [m.texture] : []));
+  return uses.find(t => t.contrast !== undefined) ?? uses[0];
+}

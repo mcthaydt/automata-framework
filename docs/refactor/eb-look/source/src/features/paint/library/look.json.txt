@@ -1,0 +1,23 @@
+{
+  "seg": 0.35,
+  "ambient": { "level": 0.15, "tint": "#e0faeb" },
+  "fill": { "level": 0.08, "tint": "#c6ecff", "fade": [1.5, 4, 0.25] },
+  "key": { "dir": [0.3, 0.8, 0.5], "level": 0.09 },
+  "light": { "step": 0.1, "gain": 1.0, "strength": 2.6, "max": 1.6 },
+  "shade": 0.85,
+  "ao": { "floor": 0.38, "corner": 0.3, "other": 0.15, "reach": 0.28, "wallBase": [0.28, 0.35], "ceiling": [0.3, 0.35], "foot": [0.45, 0.18, 0.6], "min": 0.3 },
+  "haze": { "colour": "#47655a", "near": 0, "far": 10, "amount": 0.85, "glow": 0.5, "focusFp": 3 },
+  "dither": { "strength": 0.04 },
+  "figureShadow": 0.6,
+  "figureLight": { "ambient": 2.6, "threshold": 0.07, "ink": 40, "floor": 0.8, "rim": 0.35, "floorCap": 0.8, "expose": true, "exposeHot": 1.1 },
+  "switches": { "outline": false, "foliage": true, "windows": true, "sky": true, "stars": true, "rain": true, "reflect": true, "bloom": true, "shafts": true, "grade": true, "particles": true, "bounce": false },
+  "tone": 0.06,
+  "kit": {
+    "pendant": { "color": "#ffd59b", "range": [3.5, 6], "peak": 1.0 },
+    "bulb": { "color": "#ffce7f", "range": [3.5, 6], "peak": 1.5 },
+    "desk": { "color": "#ffbc4e", "range": [3.5, 5.5], "peak": 1.25 },
+    "fluorescent": { "color": "#eadbc9", "range": [4, 8], "peak": 1.25 },
+    "sodium": { "color": "#ffbc4e", "range": [6, 10], "peak": 1.25, "dusk": true },
+    "neon": { "color": "#ff7daf", "range": [1.5, 3.5], "peak": 1.25 }
+  }
+}

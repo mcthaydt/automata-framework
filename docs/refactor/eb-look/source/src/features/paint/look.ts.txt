@@ -1,0 +1,88 @@
+/**
+ * The look profile (library/look.json): every number that sets how a scene is lit, in one place, after The Last Light's
+ * (a Pixi 3D game's) vertex light: the ambient and fill, the small key, the lamps' strength and the cap on the sum, the
+ * steps light comes in, the sector shade, the ambient occlusion, the haze, the dither, the switches for each post pass,
+ * and the lamp kit. The values are starting values: the review rounds tune them here, in times.json and in kits.json.
+ *
+ * The lamp kit is the lamps' vocabulary: a lamp names a kind, and the kind sets its colour, how far it reaches and how
+ * bright it may get. A lamp may carry its own colour (a lamp is rarely the exact white of its kind) but only within
+ * `tone` of the kind's in OKLab, so one scene's lamps read as one set of lights. A neon is a coloured glow (a tube, a
+ * screen, a headlight), so it may be any DUEL colour.
+ */
+import look from './library/look.json';
+import { oklab } from '../../lib/figure';
+import type { LampKind } from '../world/types';
+
+export type { LampKind };
+/** The switches for each post pass and refinement (the old `Refine`): a scene turns one off to show the look without it. */
+export interface Switches { outline: boolean; foliage: boolean; windows: boolean; sky: boolean; stars: boolean; rain: boolean; reflect: boolean; bloom: boolean; shafts: boolean; grade: boolean; particles: boolean; bounce: boolean }
+export interface Look {
+  /** The longest triangle edge (m) after subdivision (world/subdivide.ts). */
+  seg: number;
+  ambient: { level: number; tint: string }; fill: { level: number; tint: string; fade: [number, number, number] };
+  key: { dir: [number, number, number]; level: number };
+  light: { step: number; gain: number; strength: number; max: number };
+  /** The factor a sector's whole shade step multiplies the light by (Build's 0.85 per step). */
+  shade: number;
+  ao: { floor: number; corner: number; other: number; reach: number; wallBase: [number, number]; ceiling: [number, number]; foot: [number, number, number]; min: number };
+  haze: { colour: string; near: number; far: number; amount: number; glow: number; focusFp: number };
+  dither: { strength: number };
+  /** What a figure's cast shadow multiplies a floor texel's light by. */
+  figureShadow: number;
+  /** A figure's sprite light (stage/sprite-light.ts): the ambient at its chest × `ambient`; `threshold`, how much harder
+   * than the figure's mean a texel must face the lights to step (0–1 of their strength); `ink`, the peak channel at or
+   * under which a texel never steps (the ink, the eyes); `floor`, a light's least share of the figure in the flat light
+   * (a lamp that reaches the figure lights it from any side); `rim`, the share of the lights' strength an edge's outward
+   * direction must take, in the picture plane, to rim; `floorCap`, the most the lights' floors may add up to, so a figure
+   * under several lamps is no hotter than its room. `expose` turns on each figure's exposure (view/expose.ts: its flat light
+   * is stepped down, in whole light steps, to the most that is not hot against its ring, never taking its edge under
+   * 1.1); `exposeHot`, how hot that is: the figure's luma over its ring's. */
+  figureLight: { ambient: number; threshold: number; ink: number; floor: number; rim: number; floorCap: number; expose: boolean; exposeHot: number };
+  switches: Switches;
+  /** How far a lamp's own colour may be from its kind's (OKLab distance). */
+  tone: number;
+  /** A kind with `dusk` is lit only at night (a street lamp on its photocell): light.ts lampOn. */
+  kit: Record<LampKind, { color: string; range: [number, number]; peak: number; dusk?: boolean }>;
+}
+export const LOOK = look as unknown as Look;
+
+/** Runs `fn` with `over` set on the figure light, then puts it back, even if `fn` throws (a key `over` added is deleted
+ * again). The renderers read `LOOK.figureLight` on every figure, so a frame drawn inside `fn` is drawn with the trial
+ * values: it is how `npm run tune-light` tries them without writing look.json. */
+export function withFigureLight<T>(over: Partial<Look['figureLight']>, fn: () => T): T {
+  const light = LOOK.figureLight as Record<string, unknown>, before = { ...light };
+  Object.assign(light, over);
+  try { return fn(); } finally {
+    for (const k of Object.keys(light)) delete light[k];
+    Object.assign(light, before);
+  }
+}
+
+/** A hex colour as RGB 0–1. */
+export const rgb01 = (hex: string): [number, number, number] => { const c = parseInt(hex.slice(1), 16); return [(c >> 16) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255]; };
+/** A tint: its RGB scaled so its brightest channel is 1 (a tint sets hue; its level sets strength). */
+export const tintOf = (hex: string): [number, number, number] => { const [r, g, b] = rgb01(hex), m = Math.max(r, g, b) || 1; return [r / m, g / m, b / m]; };
+/** The OKLab distance between two hex colours (FigureBuilder's oklab, via src/lib/figure). */
+export const labDistance = (a: string, b: string): number => {
+  const p = oklab(parseInt(a.slice(1), 16)), q = oklab(parseInt(b.slice(1), 16));
+  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+};
+
+/** A lamp named for an error: its id, else its kind and place. */
+const nameOf = (l: { kind?: string; id?: string; at?: unknown }) => l.id ?? `${l.kind} lamp${l.at ? ` at ${JSON.stringify(l.at)}` : ''}`;
+/** Why a lamp breaks the kit (empty when it does not): an unknown kind, or a colour off the kind's tone (a neon's is free). */
+export function lampIssues(l: { kind?: string; color?: string; range?: number; id?: string; at?: unknown }, look = LOOK): string[] {
+  const k = look.kit[l.kind as LampKind];
+  if (!k) return [`${nameOf(l)}: no lamp kind ${l.kind} (${Object.keys(look.kit).join(', ')})`];
+  if (l.kind !== 'neon' && l.color && labDistance(l.color, k.color) > look.tone) return [`${nameOf(l)}: colour ${l.color} is off the ${l.kind} tone ${k.color} (OKLab ${labDistance(l.color, k.color).toFixed(3)} > ${look.tone})`];
+  return [];
+}
+/** A lamp resolved against its kind: colour (its own, within `tone` of the kind's unless neon; else the kind's), range
+ * (clamped into the band; the band's middle if unset), level (default 1, capped at the peak). Throws on an unknown kind
+ * or a colour off tone, naming the lamp (its id, else its kind and place). */
+export function resolveLamp<L extends { kind: LampKind; color?: string; range?: number; level?: number; id?: string; at?: unknown }>(l: L, look = LOOK): L & { color: string; range: number; level: number; peak: number } {
+  const [issue] = lampIssues(l, look);
+  if (issue) throw new Error(issue);
+  const k = look.kit[l.kind], [lo, hi] = k.range;
+  return { ...l, color: l.color ?? k.color, range: l.range === undefined ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, l.range)), level: Math.min(l.level ?? 1, k.peak), peak: k.peak };
+}
