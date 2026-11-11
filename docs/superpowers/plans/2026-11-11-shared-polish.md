@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 9 of 21 tasks (43%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 10 of 21 tasks (48%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -41,7 +41,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 6 | The opening sequence and the seen flags (core) | 2, 3 | done | `dd38dc77` |
 | 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | `6c0ccee0` |
 | 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `d2e9d7f9` |
-| 9 | Interface sounds | 4 | todo | |
+| 9 | Interface sounds | 4 | done (jsdom unit tests; the sounds themselves are heard only in a browser with a mapped game: task 15's example) | `PENDING9` |
 | 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | todo | |
 | 11 | Splash (`@automata/ui-screens`) | 5 | todo | |
 | 11b | `Hosting.openLink` on every target | 5 | todo | |
@@ -127,6 +127,24 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
 - **Task 8, Ruling:** the tracker's percentage is `(3 + done/21) / 7`, recomputed (it read 52% at 8 tasks, which the
   formula gives as 48%); 9 tasks gives 49%.
 - **Task 8, not run:** WebKit and Firefox; the one browser file ran in Chromium (50 cases).
+- **Task 9, Ruling:** the listener is installed on the page root (`layers.root`), not the overlay layer, so the screens
+  layer (title, paused, settings) and the overlay (first run, dialogs) are heard by one listener. The plan said "the game
+  root" in boot and "the overlay" in the spec; the root contains both. Cost if wrong: a control outside the overlay
+  sounds too, which is the point.
+- **Task 9, Ruling:** `ui-sounds.ts` has its own `UiSoundEntry` (`string | { alias, gain? }`), and `event-sounds.ts` is
+  untouched: the two entries differ (a sim event's has a bus; an interface sound is always on `ui`), so the plan's
+  `SoundEntry` export would have joined two shapes. `UI_CONTROL` stays module-private (knip); `UI_SOUND_NAMES`,
+  `requestUiSound`, `UiSounds` and `UiSoundEntry` are exported from `entries/runtime.ts`.
+- **Task 9, Ruling:** `data-sfx="none"` plays nothing even for a function map (the function is not asked), and `data-sfx`
+  is read from the control or the nearest element above it, so a wrapper can mark a group. A label that wraps a
+  checkbox sounds once (the click on its input), not twice. `Toggle` gained an `sfx` prop for the Mute switch.
+- **Task 9, Ruling:** marked `back`: Modal's Close, CornerControls' Back, Settings' Back, the paused screen's "Keep playing"
+  and quit Cancel, the save-delete dialog's "Keep it". Marked `none`: Pause's Mute, Settings' Mute switch, every touch
+  button (a held action is the game's to sound). `RotateToast`'s OK is left on the default press.
+- **Task 9, note:** the function-map `none` case in `ui-sounds.test.ts` was added after the boot test failed on it, not
+  before; every per-component mark test was watched failing with its source change stashed.
+- **Task 9, not run:** a listen: nothing here plays a real sound. The audio path (`audio.sound(alias, { bus: 'ui' })`) is
+  tested against a recording stand-in; the example in task 15 and the created game's journey are where it is heard.
 
 ## Global constraints
 

@@ -771,6 +771,7 @@ interface GameDefinition<S = never> {
     readonly extensions?: readonly ExtensionDef[] | undefined;
     readonly opening?: readonly OpeningStep[] | undefined;
     readonly sounds?: EventSounds | undefined;
+    readonly uiSounds?: UiSounds | undefined;
     readonly audio?: GameAudioStart | undefined;
     readonly scores?: EventScores | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
@@ -823,6 +824,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly input?: InputMap;
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
     readonly sounds?: EventSounds;
+    readonly uiSounds?: UiSounds;
     readonly audio?: GameAudioStart;
     readonly scores?: EventScores;
     readonly saves?: GameSaves<D>;
@@ -1687,6 +1689,12 @@ interface RenderTarget {
 }
 ```
 
+### `requestUiSound` (function)
+
+```ts
+function requestUiSound(from: Element, name: string): void;
+```
+
 ### `ResourceDef` (interface)
 
 ```ts
@@ -2351,6 +2359,27 @@ function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean)
 
 ```ts
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
+```
+
+### `UI_SOUND_NAMES` (const)
+
+```ts
+const UI_SOUND_NAMES: readonly ["press", "back", "focus", "open", "close", "error"];
+```
+
+### `UiSoundEntry` (type)
+
+```ts
+type UiSoundEntry = string | {
+    readonly alias: string;
+    readonly gain?: number;
+};
+```
+
+### `UiSounds` (type)
+
+```ts
+type UiSounds = Readonly<Record<string, UiSoundEntry>> | ((name: string) => void);
 ```
 
 ### `usePlay` (function)

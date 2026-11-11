@@ -68,6 +68,7 @@ function onScrimClick(event: MouseEvent): void {
         type="button"
         class="af-control af-control--ghost af-modal__close"
         data-modal-close
+        data-sfx="back"
         aria-label={closeLabel}
         title={closeLabel}
         onclick={() => onclose()}

@@ -168,6 +168,7 @@ async function confirmDelete(slot: SaveSlotView): Promise<void> {
         class="af-control af-control--primary"
         data-kind="primary"
         data-initial-focus
+        data-sfx="back"
         data-testid={`${testId}-cancel`}
         onclick={() => {
           asking = undefined

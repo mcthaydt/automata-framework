@@ -598,6 +598,7 @@
 - `RendererFactory` (type): Builds the game's renderer for a target.
 - `RendererUnavailable` (class): Neither WebGL2 nor WebGPU could be initialized.
 - `RenderTarget` (interface): Where a renderer draws: the host element, the layout geometry, the loaded assets and the presentation bus.
+- `requestUiSound(from, name)`: Asks for a sound from inside a component that has no press behind it (an error arriving, a panel opening).
 - `ResourceDef` (interface): A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting value.
 - `RoundOutcome` (type): How a round ended.
 - `RoundOutcomeSchema` (const): Checks a round outcome.
@@ -659,6 +660,9 @@
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
+- `UI_SOUND_NAMES` (const): The names the framework itself asks for; a game may add any other.
+- `UiSoundEntry` (type): A sound: the asset it plays, or the asset with a gain (0..1).
+- `UiSounds` (type): The interface's sounds by name, or one function that plays a name (for a game whose sounds are cues in its own mixer).
 - `usePlay()`: The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
 - `WarningSwitch` (interface): A switch the warning offers: one of the game's own effect settings.

@@ -5333,6 +5333,11 @@ interface GameDefinition<S = never> {
     /** The sound each sim event plays, by the event's type. */
     readonly sounds?: EventSounds | undefined;
     /**
+     * The interface's sounds by name (`press`, `back`, `focus`, `open`, `close`, `error`, or the game's own): one listener
+     * on the game's root plays them for every control. Absent: silent.
+     */
+    readonly uiSounds?: UiSounds | undefined;
+    /**
      * The game's own audio player, started once the runtime has built its audio service: cues for events, music for the
      * game's state. It plays through the service's buses, hears the presentation bus and never writes the sim. What it
      * returns undoes it at shutdown.
@@ -5423,6 +5428,14 @@ interface GameSpec<S = never, D = unknown> {
      * Silent until the player's first gesture (browsers allow no sound before it).
      */
     readonly sounds?: EventSounds;
+    /**
+     * The interface's sounds by name: every control sounds `press` by default, and a control says otherwise with
+     * `data-sfx="back"` (leaving or cancelling), `data-sfx="none"` (its consequence has its own sound) or a name of the
+     * game's own. `focus` ticks softly as focus moves; `open`, `close` and `error` are asked for by the screens that
+     * have them (`requestUiSound`). A map of names to assets, or one function that plays a name (a game whose sounds are
+     * cues in its own mixer). They play on the interface bus, under its volume and mute. Absent: silent.
+     */
+    readonly uiSounds?: UiSounds;
     /**
      * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
      * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
@@ -6823,6 +6836,16 @@ interface RenderTarget {
 }
 ```
 
+#### `requestUiSound` (function)
+
+Asks for a sound from inside a component that has no press behind it (an error arriving, a panel opening). The
+request bubbles to the root `installUiSounds` listens on. `open` and `close` also quiet the focus ticks for 400 ms,
+since the panel moving focus is part of the opening.
+
+```ts
+function requestUiSound(from: Element, name: string): void;
+```
+
 #### `ResourceDef` (interface)
 
 A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting
@@ -7874,6 +7897,34 @@ Safe because PresentationBus stores facts dynamically by string key.
 
 ```ts
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
+```
+
+#### `UI_SOUND_NAMES` (const)
+
+The names the framework itself asks for; a game may add any other.
+
+```ts
+const UI_SOUND_NAMES: readonly ["press", "back", "focus", "open", "close", "error"];
+```
+
+#### `UiSoundEntry` (type)
+
+A sound: the asset it plays, or the asset with a gain (0..1).
+
+```ts
+type UiSoundEntry = string | {
+    readonly alias: string;
+    readonly gain?: number;
+};
+```
+
+#### `UiSounds` (type)
+
+The interface's sounds by name, or one function that plays a name (for a game whose sounds are cues in its own
+mixer). A name the map lacks plays nothing.
+
+```ts
+type UiSounds = Readonly<Record<string, UiSoundEntry>> | ((name: string) => void);
 ```
 
 #### `usePlay` (function)

@@ -17,6 +17,11 @@ describe('CornerControls', () => {
     expect(back).toHaveBeenCalledOnce()
   })
 
+  it('marks Back as leaving, for the interface sounds', () => {
+    render(CornerControls, { back: vi.fn(), backLabel: 'Back' })
+    expect(screen.getByRole('button', { name: 'Back' })).toHaveAttribute('data-sfx', 'back')
+  })
+
   it('puts the header between the corners and the end controls at the end', () => {
     const { container } = render(CornerControls, {
       back: vi.fn(),

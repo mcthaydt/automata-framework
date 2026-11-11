@@ -19,9 +19,11 @@ interface Props {
   onchange: (checked: boolean) => void
   disabled?: boolean | undefined
   testId?: string | undefined
+  /** The interface sound a flip makes (`data-sfx`): `none` where the flip is itself the sound. Absent: the default. */
+  sfx?: string | undefined
 }
 
-const { label, checked, onLabel, offLabel, onchange, disabled = false, testId }: Props = $props()
+const { label, checked, onLabel, offLabel, onchange, disabled = false, testId, sfx }: Props = $props()
 
 function flip(event: Event & { currentTarget: HTMLInputElement }): void {
   const input = event.currentTarget
@@ -32,7 +34,7 @@ function flip(event: Event & { currentTarget: HTMLInputElement }): void {
 }
 </script>
 
-<label class="af-control af-toggle" data-testid={testId} data-checked={String(checked)}>
+<label class="af-control af-toggle" data-testid={testId} data-sfx={sfx} data-checked={String(checked)}>
   <span class="af-toggle__label">{label}</span>
   <input class="af-toggle__input" type="checkbox" role="switch" {checked} {disabled} onchange={flip} />
   <span class="af-toggle__track" aria-hidden="true"><span class="af-toggle__thumb"></span></span>

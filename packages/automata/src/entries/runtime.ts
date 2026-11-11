@@ -27,6 +27,12 @@ export {
   audioBusGainsSchema,
 } from '../features/audio/audio-buses.schema.js'
 export {
+  requestUiSound,
+  UI_SOUND_NAMES,
+  type UiSoundEntry,
+  type UiSounds,
+} from '../features/audio/ui-sounds.js'
+export {
   MAX_TURN_UNITS_PER_STEP,
   turnUnitsFromPixels,
 } from '../features/input/analog/camera-turn.js'

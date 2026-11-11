@@ -51,6 +51,11 @@ describe('TouchControls', () => {
     for (const action of ['left', 'right', 'drop']) expect(button(action).tabIndex).toBe(-1)
   })
 
+  it('keeps the interface sounds off its buttons: a held action is the game’s to sound', () => {
+    const { button } = open()
+    for (const action of ['left', 'right', 'drop']) expect(button(action).dataset['sfx']).toBe('none')
+  })
+
   it('puts each button on its side', () => {
     const { side } = open()
     expect(

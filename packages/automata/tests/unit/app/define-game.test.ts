@@ -48,6 +48,14 @@ describe('defineGame’s first run', () => {
   })
 })
 
+describe('defineGame’s interface sounds', () => {
+  it('hands the map to the runtime, and has none when the game maps none', () => {
+    const uiSounds = { press: 'press.wav' }
+    expect(defineGame({ ...spec, uiSounds }).uiSounds).toBe(uiSounds)
+    expect(defineGame(spec).uiSounds).toBeUndefined()
+  })
+})
+
 describe('defineGame defaults (DX spec §3.1)', () => {
   afterEach(() => {
     document.body.replaceChildren()

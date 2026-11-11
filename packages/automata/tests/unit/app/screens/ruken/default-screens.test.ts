@@ -374,6 +374,34 @@ describe('default screens', () => {
     await until(() => screen('play') !== null, 'play after Escape')
   })
 
+  it('with interface sounds mapped, presses name press, leaving names back and Mute stays silent', async () => {
+    const heard: string[] = []
+    // A function map hears every name the root listener decides on; focus ticks are not what this case is about.
+    const pressed = () => heard.filter((name) => name !== 'focus')
+    await boot({ uiSounds: (name) => void heard.push(name) })
+    await toPlay()
+    expect(pressed()).toEqual(['press'])
+    press('Escape')
+    await until(() => screen('paused') !== null, 'the paused screen')
+    heard.length = 0
+    button('pause-mute')?.click()
+    expect(pressed()).toEqual([])
+    button('quit')?.click()
+    await until(() => button('quit-cancel') !== null, 'the confirm')
+    expect(pressed()).toEqual(['press'])
+    button('quit-cancel')?.click()
+    await until(() => button('quit') !== null, 'the menu after Cancel')
+    expect(pressed()).toEqual(['press', 'back'])
+    root.querySelector<HTMLButtonElement>('[data-modal-close]')?.click()
+    expect(pressed()).toEqual(['press', 'back', 'back'])
+  })
+
+  it('with no interface sounds mapped, nothing is listened for and the screens work as before', async () => {
+    await boot()
+    await toPlay()
+    expect(screen('play')).not.toBeNull()
+  })
+
   it('Quit to title drops the sim: the next Play starts again at tick 0', async () => {
     await boot()
     await toPlay()
@@ -741,6 +769,17 @@ describe('default screens', () => {
         slider.dispatchEvent(new Event('input', { bubbles: true }))
         slider.dispatchEvent(new Event('change', { bubbles: true }))
         await until(() => context?.started.at(-1)?.alias === 'tone', 'the sample')
+      })
+
+      it('Settings’ Back sounds as leaving and its Mute switch stays silent, with interface sounds mapped', async () => {
+        const heard: string[] = []
+        const pressed = () => heard.filter((name) => name !== 'focus')
+        await toSettings({ ...withSound(), uiSounds: (name) => void heard.push(name) }, true, 'settings')
+        heard.length = 0
+        root.querySelector<HTMLInputElement>('[data-testid="audio-muted"] input')?.click()
+        expect(pressed()).toEqual([])
+        button('settings-back')?.click()
+        expect(pressed()).toEqual(['back'])
       })
 
       it('mutes from the Audio group and from Pause’s Mute, one setting, saved', async () => {

@@ -3,6 +3,7 @@ import { createHosting } from '@automata/framework/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { createAudio } from '../../features/audio/audio.manager.js'
 import { playEventSounds } from '../../features/audio/event-sounds.js'
+import { installUiSounds } from '../../features/audio/ui-sounds.js'
 import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
 import { browserHaptics } from '../../features/input/haptics/haptics.manager.js'
 import { submitEventScores } from '../../features/leaderboards/event-scores.js'
@@ -325,6 +326,8 @@ async function boot<S>(
   })
   owned.add(() => audio.dispose())
   if (game.sounds !== undefined) owned.add(playEventSounds(bus, audio, game.sounds))
+  // On the page root, so the screens and the overlay (first run, dialogs) are all heard by one listener.
+  if (game.uiSounds !== undefined) owned.add(installUiSounds(layers.root, audio, game.uiSounds))
   const stopOwnAudio = game.audio?.({ audio, bus })
   if (stopOwnAudio !== undefined) owned.add(stopOwnAudio)
   const leaderboards = createLeaderboards(hosting, bus)

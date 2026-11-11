@@ -4,6 +4,7 @@
 import { GAME_ID_PATTERN } from '@automata/content/game-config'
 import type { PluginDef, Sim } from '@automata/sim'
 import type { EventSounds } from '../features/audio/event-sounds.ts'
+import type { UiSounds } from '../features/audio/ui-sounds.ts'
 import type { GameOrientation, RotateHintMode } from '../features/display/display-policy.svelte.ts'
 import type { ExtensionDef } from '../features/extension/define-extension.ts'
 import { resolveExtensions } from '../features/extension/resolve-extensions.ts'
@@ -93,6 +94,14 @@ export interface GameSpec<S = never, D = unknown> {
    * Silent until the player's first gesture (browsers allow no sound before it).
    */
   readonly sounds?: EventSounds
+  /**
+   * The interface's sounds by name: every control sounds `press` by default, and a control says otherwise with
+   * `data-sfx="back"` (leaving or cancelling), `data-sfx="none"` (its consequence has its own sound) or a name of the
+   * game's own. `focus` ticks softly as focus moves; `open`, `close` and `error` are asked for by the screens that
+   * have them (`requestUiSound`). A map of names to assets, or one function that plays a name (a game whose sounds are
+   * cues in its own mixer). They play on the interface bus, under its volume and mute. Absent: silent.
+   */
+  readonly uiSounds?: UiSounds
   /**
    * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
    * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
@@ -376,6 +385,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     ],
     ...(spec.preload === undefined ? {} : { preload: spec.preload }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
+    ...(spec.uiSounds === undefined ? {} : { uiSounds: spec.uiSounds }),
     ...(spec.audio === undefined ? {} : { audio: spec.audio }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),

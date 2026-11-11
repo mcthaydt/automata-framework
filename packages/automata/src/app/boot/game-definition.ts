@@ -3,6 +3,7 @@ import type { Audio } from '../../features/audio/audio.manager.js'
 import type { AudioBuses } from '../../features/audio/audio-buses.js'
 import type { AudioContextLike } from '../../features/audio/audio-graph.js'
 import type { EventSounds } from '../../features/audio/event-sounds.js'
+import type { UiSounds } from '../../features/audio/ui-sounds.js'
 import type { GameOrientation, RotateHintMode } from '../../features/display/display-policy.svelte.js'
 import type { ExtensionDef } from '../../features/extension/define-extension.js'
 import type { Haptics } from '../../features/input/haptics/haptics.manager.js'
@@ -137,6 +138,11 @@ export interface GameDefinition<S = never> {
   readonly opening?: readonly OpeningStep[] | undefined
   /** The sound each sim event plays, by the event's type. */
   readonly sounds?: EventSounds | undefined
+  /**
+   * The interface's sounds by name (`press`, `back`, `focus`, `open`, `close`, `error`, or the game's own): one listener
+   * on the game's root plays them for every control. Absent: silent.
+   */
+  readonly uiSounds?: UiSounds | undefined
   /**
    * The game's own audio player, started once the runtime has built its audio service: cues for events, music for the
    * game's state. It plays through the service's buses, hears the presentation bus and never writes the sim. What it

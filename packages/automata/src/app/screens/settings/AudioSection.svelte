@@ -43,6 +43,7 @@ const { copy, value, available, hostBelowFull, onchange, onsample }: Props = $pr
     offLabel={copy.off}
     disabled={!available}
     testId="audio-muted"
+    sfx="none"
     onchange={(muted) => onchange({ kind: 'muted', value: muted })}
   />
   <Toggle
