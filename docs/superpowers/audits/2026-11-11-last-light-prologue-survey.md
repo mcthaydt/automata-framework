@@ -14,7 +14,8 @@ Hall's references, the sounds and music with their source) and re-ruled every (c
 games, Emberwick and The Last Light.
 
 **Audited** the same day ([the plan audit](2026-11-11-last-light-prologue-plan-audit.md), at `main` `81ce53a9`): rows
-5, 26, 49 and 51, the sounds and music section and Ember Hall's table were corrected; each correction names its finding.
+5, 26, 49 and 51, the sounds and music section and Ember Hall's table were corrected, and the marks follow the spec's
+three homes; each correction names its finding.
 
 ## What was read, and what was not run
 
@@ -88,9 +89,10 @@ and from then on the game's files are the source for the game.
 
 - **(a)** Already in the framework: the package, the file and the content kind are named.
 - **(b)** Expressible as framework content after conversion: the converter writes it; nothing new is built.
-- **(c)** Missing from the framework and generic: built in core or an extension. The framework's rule decides which:
-  core only if every target or both reference games (Emberwick and The Last Light) need it, otherwise an extension.
-  Every (c) below is something Emberwick does not need, so each is an extension or an addition to one.
+- **(c)** Missing from the framework and generic: built in core or an extension. Since `acb0361d` the spec decides
+  which ("Where a new piece goes"): core if any game could use it, an extension if it is generic within a genre, the
+  game otherwise. The plan's "Homes" table rules each (c) below; three are open with the coordinator (the plan audit,
+  finding 31). The first draft's rule ("both reference games") is replaced.
 - **(d)** This game's own: a small feature in `games/the-last-light`.
 
 ## Run time: the rooms
@@ -277,6 +279,9 @@ figure already runs on her rules less the water and the ambush, so most of her c
   on a branch; WebGPU still loses its device in the headless container. Slice 1 uses what is on `main` when plan task 13 starts and lists the difference in its report.
 - **Painted figures** (cycle c7, `claude/c7-af`): the character kit's painted figures and fashion are done on the
   branch; the runway example is on hold. Ada and the figure are built in the Studio from whatever has merged.
+- **Workstream 4** (the builders' look and figures, spec at `44c4da09`): it runs ahead of the dressing (plan task 13),
+  which starts when it says so, and it adds the wardrobe the game's figures need (street clothes, a ward nurse's
+  uniform, the Night Nurse) as character-kit entries (the plan audit, finding 32).
 - Nothing from the Owner for the translations: the building session writes the five translations of the prologue's
   lines and records them with `automata words --mark`, as workstream 1 does for menus (the coordinator, relaying the
   Owner, 2026-11-11).

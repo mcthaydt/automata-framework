@@ -2,8 +2,9 @@
 
 **Date:** 2026-11-11. **Stage:** 3 (plan audit) of workstream 2, slice 1. **Tracker:** [`../progress.md`](../progress.md).
 **Audited:** [the plan](../plans/2026-11-11-last-light-prologue.md) and [the survey](2026-11-11-last-light-prologue-survey.md)
-as merged at `main` `81ce53a9`, against [the spec](../specs/2026-11-11-last-light-on-the-framework-design.md) (last
-changed at `94f2a216`), `AGENTS.md`, the code on `main` `81ce53a9`, workstream 1's
+as merged at `main` `81ce53a9`, against [the spec](../specs/2026-11-11-last-light-on-the-framework-design.md) (at
+`94f2a216`, and again after `main` was merged in at `32b90536`, which amended it twice: `acb0361d`, where a new piece
+goes, and `864361d4`, the 3D examples cut, and added workstream 4's spec, `44c4da09`; findings 30 to 32), `AGENTS.md`, the code on `main` `81ce53a9`, workstream 1's
 [spec](../specs/2026-11-11-shared-polish-design.md) and [plan](../plans/2026-11-11-shared-polish.md) on `main` and on
 `claude/shared-polish-build` (`04887266`), and the game's repository `mcthaydt/PixiJS3D_Experiment_001` at `92e6704`
 (read only, cloned shallow; nothing pushed to it).
@@ -34,7 +35,8 @@ changed at `94f2a216`), `AGENTS.md`, the code on `main` `81ce53a9`, workstream 1
 
 Ranked: **blocking** (the plan as written would fail its own gates, break something, or contradict the spec or a
 decision), **should fix** (a gap or a wrong fact a builder would hit), **tidy**. Each was fixed in the plan or the
-survey in this branch unless it says **open**.
+survey in this branch unless it says **open**. Findings 30 to 32 come from the spec's two amendments and workstream 4's
+spec, which landed while the audit ran; they are numbered last and ranked where they belong.
 
 ### Blocking
 
@@ -118,6 +120,33 @@ name an unknown fact and an unknown call. **Fix:** task 11's converter rule list
 `wake` and `vigil` to `nightHooks`; R15 and its `burnLight` dropped (the lamp feature burns), reported; the `footsteps`
 rule dropped (the night feature's steps system calls `systems.hear`), reported; any `light` condition rewritten to
 `lit`. A content test asserts every call the systems file names is a hook the game passes.
+
+**30. The plan keeps and leans on the 3D examples, which the spec now cuts in this slice.** Fixed.
+The spec, amended at `864361d4` while this audit ran ("The 3D examples go too, and are recreated after the prologue"):
+`examples/3d` and `examples/3d-story` are removed with Ember Hall when the prologue plays, the site's Examples page lists
+no 3D example, and the 3D workflow's coverage comes from the reference game's journeys and the packages' browser tests.
+The plan built on them: task 6 rewired `examples/3d/cutscenes/cutscenes-door-and-lamp.ts` and ran its journey, task 8
+tested on `examples/3d-story`'s hall, task 9 looked at its props in `examples/3d/worldkit/`, and task 17 added a hotspot
+and the HUD to `examples/3d-story`. **Fix:** tasks 6, 8 and 9 test on small scenes of their own package; task 17 is the
+guide alone, with the prologue as its example; tasks 19 and 20 remove both folders (76 and 58 files, measured at
+`32b90536`) and everything that names them (the 28 files of the measure below, and `extensions/systems/README.md`,
+`knip.jsonc`, `pnpm-workspace.yaml` and the workflow for `examples/3d-story`), and the site's Examples page shows no 3D
+example. The wardrobe example's garments are judged with the rest, as the spec says.
+
+**31. The plan rules homes by the old rule, and three of its homes disagree with the spec's new examples.** Fixed in
+part; **open** for the coordinator.
+The spec, amended at `acb0361d` ("Where a new piece goes"): core only what any game could use; an extension what is
+generic within a genre; the game what is its alone; "the plan says for each addition which home it has and why; the plan
+audit checks each one". The plan ruled by "core only if … both reference games need it" (its global constraint and
+call 9) and had no table. Checked against the new rule: rooms per view is core (`@automata/3d`), as the spec's own
+example says; peeking and hiding are `@automata/systems`, as its example says; delivery, the 3D stage, footsteps by
+floor, the props and Sequence stay where planned; the vigil, the catch and the music state are the game's. Three
+disagree with the spec's examples and cannot simply move: "using a thing in the world" and "a HUD drawn from data" are
+named core, but `@automata/interact` imports `nav` and `puzzle`, and `@automata/hud` imports `puzzle` and `narrative`,
+and core never imports an extension (`AGENTS.md`, `pnpm boundaries`); "a lamp that burns fuel" is named an extension,
+and the plan has it as the game's. **Fix:** the plan's constraint states the new rule; a "Homes" table rules every
+addition; the three are marked open, with options sent to the coordinator; until the answer the tasks build them as
+written. No piece the plan adds carries the game's names (the props are named for what they are).
 
 ### Should fix
 
@@ -211,6 +240,15 @@ The old prologue ends by moving to act one after `rest` (`rules.ts`, `exit: w.re
 has no act one. **Fix:** task 14: after `rest`, the game shows Credits (workstream 1) and returns to the title; the
 journey of task 15 reads `rest` ending and the Credits screen.
 
+**32. The dressing task does not know workstream 4, which now supplies its figures and goes first.** Fixed.
+Workstream 4's spec (`44c4da09`, merged at `32b90536`) runs "ahead of the prologue's dressing tasks", ends when "the
+prologue's dressing tasks can start", and adds "a ward nurse's uniform, street clothes, the Night Nurse, as
+character-kit library entries, not per-character code" (its "Done means" line 4, "Finish" step 5, call 2); it also
+takes over #588, which this plan listed among the superseded clinic branches. Task 13 made the figures itself from
+whatever was on `main`. **Fix:** task 13 starts on workstream 4's word and picks its library entries in the Studio;
+tasks 1 to 12 do not wait; the constraint on superseded branches leaves #588 to workstream 4; the survey's "What slice
+1 waits for" names it.
+
 ### Tidy
 
 **22. Seven of the lamps are of kinds the kit has, not nine.** Fixed in the survey (row 5): desk, two pendants, three
@@ -244,27 +282,21 @@ Three textual overlaps, each trivial, are named in the plan: `tooling/repo-hygie
 (both add rows) and the root `package.json` scripts. Task 18 merges `main` first, after workstream 1 has merged; the
 second branch's other tasks do not need it.
 
-## The pending decision: the 3D examples (`examples/3d`)
+## The 3D examples: decided while the audit ran
 
-Not a task here, on the coordinator's word. What each choice would add to this plan, measured on `81ce53a9`:
-`examples/3d` is 76 tracked files (19 examples, each with a journey, and the `@af-examples/wardrobe-3d` workspace
-package), and 28 files outside it and the record folders name it (`3d.yml`, root `package.json` and
-`pnpm-workspace.yaml`, `knip.jsonc`, `.vscode/settings.json`, `examples/README.md`, `docs/provenance/sources.md`,
-`tooling/examples-runner` ports and two tests, three repo-hygiene tests, six `packages/3d` files, two character-kit
-files, the cutscenes README, three spike files, two Playwright configs and the lockfile).
-
-- **Cut now, before slice 1 runs:** task 6 loses `examples/3d/cutscenes/cutscenes-door-and-lamp.ts` (it rewires it and
-  its browser test plays it) and task 9 loses its look harness (`examples/3d/worldkit/`). Both would test on small
-  scenes of their extension's own, in that extension's browser suite. The removal itself is another workstream's
-  task list.
-- **Cut in this slice:** a task group like 19 and 20 after task 15 (the 28 files and the folder), ordered after tasks 6
-  and 9 have used them; the six `packages/3d` files (tests, goldens and an entry) that read an example's content get fixtures of their
-  own; what the examples prove that The Last Light does not (the character kit's wardrobe, hair and painted figures,
-  the figures' aim and stands) is either moved to its package's browser suite or recorded as given up.
-- **Kept:** nothing changes.
+The coordinator's brief said the 3D examples' fate was pending and asked for no task. The spec settled it at
+`864361d4` (merged here at `32b90536`): both `examples/3d` and `examples/3d-story` are cut in this slice and recreated
+after it. That made it a spec section the plan had to cover, so finding 30 adds it to tasks 19 and 20 and takes it out
+of tasks 6, 8, 9 and 17; the coordinator was told at once. What it adds, measured at `32b90536`: `examples/3d` is 76
+tracked files (19 examples, each with a journey, and the `@af-examples/wardrobe-3d` workspace package),
+`examples/3d-story` 58, and 28 files outside them and the record folders name `examples/3d` (`3d.yml`, root
+`package.json` and `pnpm-workspace.yaml`, `knip.jsonc`, `.vscode/settings.json`, `examples/README.md`,
+`docs/provenance/sources.md`, `tooling/examples-runner` ports and two tests, three repo-hygiene tests, six `packages/3d`
+files, two character-kit files, the cutscenes README, three spike files, two Playwright configs and the lockfile).
 
 ## Counts
 
-29 findings: 7 blocking, 14 should fix, 8 tidy. All 29 are fixed in the plan or the survey. Two stay **open** outside
-them: the Owner's answer on which recorded files cross (finding 2, default A) and workstream 1's plan recording that
-its task 17 is cut (finding 20).
+32 findings: 9 blocking, 15 should fix, 8 tidy. All are fixed in the plan or the survey, finding 31 in part. Three
+stay **open** outside them, each sent to the coordinator: the Owner's answer on which recorded files cross (finding 2,
+default A), workstream 1's plan recording that its task 17 is cut (finding 20), and the homes of `interact`, `hud` and
+the lamp under the spec's new rule (finding 31, default B and the lamp in a genre extension).
