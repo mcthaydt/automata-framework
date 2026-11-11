@@ -778,6 +778,17 @@ is built in `@automata/3d`, not in EnvironmentBuilder.
 | Screenshots | [albedo](eb-look/albedo/): EB CPU beside AF WebGL baked, WebGL material light only, WebGPU. EB's panel was cut from the committed WP2/WP3 sheets (EB's render branch was not reachable here). The WebGPU panel still shows the device lost in play | `spikes/eb-look/` |
 | Not done | Patterns (stripes, checker, noise, grass, leaves, glass) and the grime marks are not ladders yet; a tile is the committed tile (a map's grime does not scale its wear); the light is multiplied in linear space by a 2.2 power, not in sRGB as the CPU does (near black the two differ); the baked WebGL room is still dark as before, so the walls show in the material-light panel | |
 
+## The 3D journeys' editor command (2026-11-11)
+
+`examples/3d-story/playwright.config.ts` passed `--app suite` to `automata editor`, which refuses it (`APP_IS_GONE`), so the
+journeys' web server exited before any test ran. Only `--app suite` goes; `--app-dir ../../extensions/editors/dist/suite` stays.
+
+| Step | Status | Record |
+|---|---|---|
+| Editor command | Done: red first (the web server exited "This option is gone"), then the editors start | `playwright.config.ts` |
+| Journeys, after the fix | Not green, and not fixed here. Full run (14): 2 passed, 2 failed, 10 not run (serial). "Watch: stepping the player into sight" fails on phone and iPad, alone too (2 of 2 runs): the log says Patrol to Hunt, then the live box is "Catch, stands still", not Hunt. Without Watch (12): run 1 10 passed, 1 failed, 1 not run; run 2 8 passed, 2 failed, 2 not run. "pointing Patrol to Hunt at Search" fails in a full run (first change is `hunt`, not `search`) and passes alone on phone | `schematic-in-play-3d.test.ts:81`, `:170` |
+| Not run | The other browser suites, parity | |
+
 ## The default 3D gameplay camera (2026-11-11)
 
 The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches the reference game's. It replaces the 24 mm,
