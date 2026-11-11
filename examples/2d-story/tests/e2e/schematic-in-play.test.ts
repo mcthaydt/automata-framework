@@ -164,7 +164,11 @@ test('a Sentry added at the Hall’s east end exists there in play and sounds th
   await expect(editors.getByRole('heading', { name: 'Sentry', level: 2 })).toBeVisible()
   await inspector(editors, 'Place')
   await editors.getByLabel('Place', { exact: true }).first().selectOption('hallE')
-  await fileHas(GUARD_FILE, 'routine = [{node = "hallE"')
+  // The kit writes a new list of tables as `[[agents.routine]]` sections after the character's others (71394182). The guard
+  // has its own `[[agents.routine]]` rows, so the stop must come after the Sentry's id.
+  await expect
+    .poll(() => readFileSync(root + GUARD_FILE, 'utf8'))
+    .toMatch(/id = "sentry"[\s\S]*\[\[agents\.routine\]\]\nnode = "hallE"\ndwell = 1\n/)
   await editors.screenshot({ path: test.info().outputPath('5-sentry-added.png') })
   await play(page)
   const sentry = await probe(page, (d) => d.agents().find((a) => a.id === 'sentry'))

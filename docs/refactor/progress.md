@@ -778,3 +778,14 @@ The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches 
 | The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
 | Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
 | Gates | See the PR description for what ran and what is pending | |
+
+## The 2D journeys job on main (2026-11-11)
+
+The 2D journeys job (`examples/2d-story`, the self-hosted runner) failed for two reasons.
+
+| Step | Status | Record |
+|---|---|---|
+| Editor command | Done: `playwright.config.ts` passed `--app suite`, which `automata editor` has refused since it picks the editors the game needs (`APP_IS_GONE`), so the web server exited and the Schematic tab never came. Only `--app suite` goes; `--app-dir ../../extensions/editors/dist/suite` stays (without it the tools serve suite-2d, which has no Schematic). | `74520dd7` |
+| Sentry save | Done: not a save bug. The journey expected `routine = [{node = "hallE"` (an inline array), but `71394182` (2026-11-08, after the test's `23c776c5`) made the kit write a new list of tables as `[[agents.routine]]` sections. The file had the right stop (hallE, dwell 1); the expectation now matches the section and must come after the Sentry's id, because the guard has `[[agents.routine]]` rows too. | `schematic-in-play.test.ts` |
+| Journeys | Ran: `playwright test` in `examples/2d-story`, 10 of 10 (story-2d-phone 5, story-2d-ipad 5). Not run: the other browser suites, parity. | |
+| Left alone | `examples/3d-story/playwright.config.ts` also passes `--app`; it is the 3D journeys' and was not touched. | |
