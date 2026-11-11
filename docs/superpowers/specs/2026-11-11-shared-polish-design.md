@@ -171,8 +171,8 @@ documented in `extensions/net/README.md` and covered by a journey.
 ## The website
 
 The framework's `site/` is the site: it reads the guides, the API index and `examples/` at build time. The separate
-`mcthaydt/automata-website` repository is retired (the Owner, 2026-11-11) and is out of this work, as is
-`mcthaydt/automata-skills`. The new examples and guide lines reach the site through the framework's build.
+`mcthaydt/automata-website` repository is retired (the Owner, 2026-11-11) and is out of this work.
+`mcthaydt/automata-skills` is kept. The new examples and guide lines reach the site through the framework's build.
 
 ## Left to the builder
 
