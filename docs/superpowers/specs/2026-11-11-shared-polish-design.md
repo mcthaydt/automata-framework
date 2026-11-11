@@ -19,8 +19,8 @@ is the next spec and inherits all of this.
 
 1. Every game's menus (title, pause, settings, save slots, errors, prompts) are in six languages without the game
    doing anything.
-2. A person who translates a game has a workflow: send words out, take them back, see what is missing or stale, and
-   know the font can draw them.
+2. A game's words are translated by the AI that works on it, straight into the message files; the build says when a
+   language is missing a word or a font cannot draw one.
 3. The first run of a game asks for a language, and warns about flashing where the game says it flashes.
 4. Every button makes a sound by default.
 5. A game gets a splash with its studio's logo and a credits panel from data.
@@ -61,8 +61,8 @@ Three ways to place the seven were considered.
 - **B. All in one new extension** (`@automata/polish`). Keeps core small, but menu translations and the first-run
   step belong to core's own screens and flow; an extension would have to reach into them, which extensions may not do.
 - **C. Each where its owner already is** (chosen). Words and the first-run flow go with core's screens; the ready-made
-  screens go with `@automata/ui-screens`; achievements go with the Ruken ship step; the stale-build check goes with
-  `@automata/net`; the translator's commands go with `@automata/tools`.
+  screens go with `@automata/ui-screens`; achievements are declared host-neutral and mapped by each target's ship step; the stale-build check goes with
+  `@automata/net`; the font check goes with `automata check` in `@automata/tools`.
 
 The Owner handed the placement to the coordinator; C is the coordinator's call.
 
@@ -72,7 +72,7 @@ The FloorFifty paths (under `apps/client/src/` unless they start elsewhere) are 
 thing behaves, then write it new on the framework's own pieces. Nothing is copied from FloorFifty: no code, no
 translations, no branding, no art (the Owner, 2026-11-11: "we shouldn't be copying directly anyway").
 
-### 1. Six languages and the translator's workflow
+### 1. Six languages
 
 **Languages:** `en` (source), `ja`, `ko`, `es-419`, `pt-BR`, `zh-Hans`, FloorFifty's six in its picker order, each named
 in its own script (`i18n/locales.ts`). A browser's language is matched on its primary subtag; every Chinese tag lands on
@@ -87,23 +87,19 @@ overrides any of it.
 and shipped. There is no review state and no review round (the Owner, 2026-11-11: "I don't care about the review for
 translations").
 
-**The translator's workflow (`@automata/tools`, Node).** A new `automata words` command (the reference is
-FloorFifty's `tools/i18n`: `catalogue`, `csv`, `characters`, `cli`; its `review` part is not wanted):
-- `automata words export <lang>`: one CSV of key, source, current translation and a note, for a translator.
-- `automata words import <lang> <file>`: takes the CSV back, refusing unknown keys and broken placeholders.
-- `automata words status`: per language, what is missing and what changed in the source since it was translated.
-- `automata words check`: every character each language uses can be drawn by the game's fonts; `automata check` runs it.
-
-It reads and writes the message files the content compiler already produces (`content/messages/<lang>.json`, inlang
-format), so the files stay the one source.
+**No translator's workflow (the Owner, 2026-11-11: "cut the translation workflow, AI is capable").** There is no
+`automata words` command, no CSV export or import and no status report. An AI session writes each language's
+`content/messages/<lang>.json` directly, in the format the content compiler already produces and already checks (every
+translation has exactly the source's keys). Two checks join `automata check` so a gap cannot ship: a placeholder in the
+source must appear in each translation, and the font check below.
 
 **Fonts (the Owner, 2026-11-11: "go with a font that supports those languages").** A game's font must draw every
 language it ships; no language falls back to whatever the device has. Emberwick's font (Pixelify Sans) has no Japanese,
 Korean or Chinese, so the reference games and the template move to a font, or a matched set of fonts, that covers all
 six, openly licensed, in the pixel style, and subset to the characters used so the download stays small.
-`automata words check` fails a language the game's fonts cannot draw.
+`automata check` fails a language the game's fonts cannot draw.
 
-**Reference games.** Emberwick and Ember Hall ship in the six, through the workflow, as the proof it works end to end.
+**Reference games.** Emberwick and Ember Hall ship in the six, as the proof it works end to end.
 
 ### 2. First-run language pick (core)
 
@@ -149,14 +145,22 @@ call to open one, so a game cannot send a player to a web page the way its host 
 Ruken through its SDK, the web and itch in a new tab, the desktop in the system browser. A host that refuses says so;
 the game never navigates away on its own. The credits panel is its first user.
 
-### 6. Achievements (the Ruken ship step in `@automata/tools`)
+### 6. Achievements (generic; declared in the game, mapped by each target)
 
-Ruken's achievements are declared, not called: each is one rule on a leaderboard ("reach 20", "top 10%") in the
-manifest, and Ruken awards it (`ruken/score-boards.ts`; `@ruken/manifest`'s `[achievements.*]`). So this is no runtime
-API. A game declares `achievements` beside its leaderboards; the Ruken target writes them into `ruken.toml`
-(`shared/ship/targets/ruken/ruken-toml.ts` writes `[leaderboards.*]` today) and `automata check` validates them with
-`@ruken/manifest`'s own parser, reporting its errors in plain words. Other targets ignore the table. The titles and
-descriptions go through the words workflow.
+The Owner, 2026-11-11: "keep achievements generic". An achievement is the framework's own idea, not Ruken's: a game
+declares each one beside its leaderboards with an id, a title, a description and one goal on a board's score (reach a
+value, or stand in a top share of players). The declaration is validated by the framework's own Zod schema and names
+no host. Each target then does what its host can:
+
+- **Ruken** awards achievements from rules in the manifest, so the Ruken ship step writes the declarations into
+  `ruken.toml` (`shared/ship/targets/ruken/ruken-toml.ts` writes `[leaderboards.*]` today) and checks the result with
+  `@ruken/manifest`'s own parser, reporting its errors in plain words. A goal Ruken cannot express is refused at ship
+  with a sentence that says which.
+- **web, itch and tauri** have no achievements today. The declaration is accepted and nothing is drawn or stored; a
+  later host with achievements gets its own mapping in its target, with no change to a game.
+
+The titles and descriptions are messages, translated like the rest. (Reference for how Ruken's rules look:
+FloorFifty's `ruken/score-boards.ts`.)
 
 ### 7. Stale-build check (`@automata/net`, with `@automata/net-server`)
 
@@ -197,7 +201,7 @@ The framework's `site/` is the site: it reads the guides, the API index and `exa
 
 - The four examples run and their journeys pass in Chromium at phone, compact and iPad sizes.
 - Emberwick's journeys pass in each of the six languages' menus, and its Ruken manifest carries an achievement.
-- `automata words status` prints what is missing or stale, and `automata check` fails on a character a font cannot draw.
+- `automata check` fails on a missing word, a lost placeholder, or a character a font cannot draw.
 - `pnpm check` passes; API reports and the index are updated; changesets are written.
 - Reported, not claimed: WebKit, Firefox and real devices are the Owner's.
 
