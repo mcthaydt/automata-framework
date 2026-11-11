@@ -80,14 +80,26 @@ function lamp(
  * - The flat light is `tint` at the chest with no normal.
  * - The lean on each axis is the peak channel of `tint` facing +axis less facing −axis; the three leans are one resultant, one
  *   lamp (two equal lamps either side cancel, and the figure is lit flat, which is right). Under `floor` there is none.
- * - The sun, which `tint` does not hold, is one more lamp. It is not occluded (the occluder test is not public), so a
- *   figure in shade by day still takes the sun's form; the fill has no direction and is left out.
+ * - The sun, which `tint` does not hold, is one more lamp, and its level x colour is added to the flat light too (by day the sun lights
+ *   the figure, not only its form). It is added to the ring as the ground takes it (its pull on a floor, `dir.y`), so the figure
+ *   is held within `hot` steps of the sunlit ground and never brighter. It is not occluded (the occluder test is not public),
+ *   so a figure in shade by day still takes the sun; the fill has no direction and is left out.
  * - The ring is `tint` facing up at four points round the feet; the figure's steps are held within `hot` of it.
  */
 export function roomLight(tint: Tint, sun: Sun | undefined, at: V3, azimuth: number): RoomLight {
   const [x, y, z] = at
   const chest = y + ROOM_LIGHT.chest
-  const flat = tint(x, chest, z)
+  // The sun's light as a colour in light units (the level times its colour), 0 when there is none.
+  const sunLight: V3 =
+    sun === undefined
+      ? [0, 0, 0]
+      : [
+          (sun.level * ((sun.color >> 16) & 255)) / 255,
+          (sun.level * ((sun.color >> 8) & 255)) / 255,
+          (sun.level * (sun.color & 255)) / 255,
+        ]
+  const ground = tint(x, chest, z)
+  const flat: V3 = [ground[0] + sunLight[0], ground[1] + sunLight[1], ground[2] + sunLight[2]]
   const lean = (axis: 0 | 1 | 2): number => {
     const plus: [number, number, number] = [0, 0, 0]
     const minus: [number, number, number] = [0, 0, 0]
@@ -114,8 +126,12 @@ export function roomLight(tint: Tint, sun: Sun | undefined, at: V3, azimuth: num
   const r = ROOM_LIGHT.ring
   const up: readonly [number, number, number] = [0, 1, 0]
   const around = [tint(x + r, y, z, up), tint(x - r, y, z, up), tint(x, y, z + r, up), tint(x, y, z - r, up)]
-  const ring: V3 = [0, 1, 2].map((c) => around.reduce((sum, v) => sum + (v[c] ?? 0), 0) / around.length) as V3
-  const steps = flatSteps([flat[0], flat[1], flat[2]])
+  // The ground takes the sun by its slope: `dir.y` over the length of the sun's direction (a floor's N·L).
+  const pull = sun === undefined ? 0 : Math.max(0, sun.dir[1]) / (Math.hypot(...sun.dir) || 1)
+  const ring: V3 = [0, 1, 2].map(
+    (c) => around.reduce((sum, v) => sum + (v[c] ?? 0), 0) / around.length + sunLight[c as 0 | 1 | 2] * pull,
+  ) as V3
+  const steps = flatSteps(flat)
   const exposure = Math.max(0, steps - flatSteps(ring) - ROOM_LIGHT.hot)
   // The light the sprite is lit with is rebuilt from the quantised values only (steps taken off already, colour in sixteenths),
   // so the key decides the bytes.

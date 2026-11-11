@@ -37,9 +37,11 @@ a lower density, lighting every other frame, spreading a relight over frames.
   under the pendant is as bright as he is. He is brighter than the dark green wall behind him, which is the room.
 - **The form is one step and reads as a side**: the man's torso has one lighter band on the pendant's side; the rim is a thin warm edge on his left.
 - **The walker's bands do not swim**: `interior-walk.png`: the cloth's band sits at the same place on the torso in four poses.
-- **The exterior figure** (flat light is the ambient alone, ``-3|9,11,16|-4,6,3;10` (exposure 0)`: three steps down, the sun gives only its form): it goes blue and dark beside the ground
-  the sun lights; the figure reads as in shade, not washed out, but it is murkier than the ground. **A finding for the coordinator**: the sun is not in `SceneLight.tint`, so
-  its warmth never reaches the flat light; adding the sun's level x colour to the flat light would lift it, and is a one-line change in `room-light.ts` (not made).
+- **The exterior figure, by day** (the coordinator's fix: the sun's level x colour is in the flat light as well as in the form): the key is `2|-|-4,6,3;10`: flat light
+  +2 steps (it was three steps down and blue: ambient alone), the sun's direction as the one lamp. The ground it is held to is the room's light on the floor round its
+  feet plus the sun's pull on a floor, and the figure is within a step of it, so the exposure is 0. In the picture the figures are brighter than the street: the street's
+  drawn colour is a dark swatch, so the same light is a dim ground and a bright skin. A sunlit figure on a dim street, not murky; if it reads too bright, the cap is one step
+  off `ROOM_LIGHT.hot` (not changed).
 - **A figure in shade by day** (the exterior has none of its own): not checked; the sun is not occluded for a painted figure (spec section 11).
 - **The eyes** (painted colours of peak 40 or less): FigureBuilder's `sprite.test.ts` prints which are stepped under a bright flat light; in the crops the eyes stay dark.
 - **Against EnvironmentBuilder's frames** (`docs/refactor/eb-look/baseline/`): the exterior's baked room light is as dark there; the interior's figure is not a step brighter than

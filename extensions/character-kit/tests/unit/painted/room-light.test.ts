@@ -107,6 +107,21 @@ describe('roomLight', () => {
     expect(roomLight(grey(1), { ...sun, level: 0.01 }, FEET, 0).lighting.lamps).toEqual([])
   })
 
+  it('by day the sun lights the figure’s flat too, and not past the ground beside it', () => {
+    // A dim ambient room (0.3) and a high white sun: the flat light with the sun is well over the flat light without.
+    const sun: Sun = { dir: [0.3, 0.9, 0.3], color: 0xffffff, level: 1 }
+    const without = roomLight(grey(0.3), undefined, FEET, 0)
+    const withSun = roomLight(grey(0.3), sun, FEET, 0)
+    expect(stepsOf(without.key)).toBe(-3)
+    expect(stepsOf(withSun.key)).toBeGreaterThanOrEqual(0)
+    // The ground takes the sun by its slope, so the figure sits within a step of it: the sunlit floor's light is 0.3 + dir.y of the sun.
+    const ground = 0.3 + (0.9 / Math.hypot(0.3, 0.9, 0.3)) * 1
+    expect(stepsOf(withSun.key)).toBeLessThanOrEqual(flatSteps([ground, ground, ground]) + 1)
+    // A low sun lights the ground little: the figure is held to it, never brighter than the ground beside it by more than a step.
+    const low = roomLight(grey(0.3), { ...sun, dir: [1, 0.05, 0] }, FEET, 0)
+    expect(stepsOf(low.key)).toBeLessThanOrEqual(flatSteps([0.3, 0.3, 0.3]) + 1)
+  })
+
   it('one key, one picture', () => {
     const figure = new Figure(member(woman, 2))
     for (let i = 0; i < 3; i++)
