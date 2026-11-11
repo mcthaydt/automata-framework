@@ -6,6 +6,7 @@ import { NOT_WEBGL } from '#src/features/painted/painted-stage.ts'
 import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
 import {
   buildScene,
+  crossings,
   differing,
   expectedPixels,
   type FigureAt,
@@ -19,11 +20,6 @@ const DEFS: readonly CharacterDef[] = BASE.map((base) => base.def)
 const MAN = DEFS[0] as CharacterDef
 const WOMAN = DEFS[1] as CharacterDef
 const SIZE = [640, 360] as const
-/** Two figures' surfaces cross where an arm passes through a body: the pixels on that line can differ by one between GPUs (the
- * builder's contract, docs/contract.md section 4b: "the pixels within the GPU's depth step of the crossing can differ by a pixel").
- * WebKit differs from Chromium by 2 of 230,400 here; more than this is a different bug. */
-const CROSSING = 8
-
 let scene: StageScene | undefined
 afterEach(() => {
   scene?.dispose()
@@ -36,11 +32,22 @@ function expectEqual(
   drawn: StageScene,
   skip?: (x: number, y: number) => boolean,
   backdrop?: Parameters<typeof expectedPixels>[1],
-  allowed = 0,
 ) {
   const got = drawn.draw()
   const { wrong, first } = differing(got, expectedPixels(drawn.frame(), backdrop), drawn.size[0], skip)
-  expect(wrong, first).toBeLessThanOrEqual(allowed)
+  expect(wrong, first).toBe(0)
+}
+
+/** Two figures' surfaces cross where an arm passes through a body: the pixels on that line can differ by one between GPUs (the
+ * builder's contract, docs/contract.md section 4b: "the pixels within the GPU's depth step of the crossing can differ by a pixel").
+ * Only those pixels are skipped (two sprites' test depths within the depth step), and every other pixel must be equal, in every
+ * engine: WebKit differs from Chromium at 2 of 230,400 here, both on such a crossing. */
+function expectEqualButCrossings(drawn: StageScene) {
+  drawn.draw() // the stage places its figures when it draws, and the frame is what it placed
+  const { skip, count } = crossings(drawn.frame())
+  // The allowance stays local: a handful of pixels on a line, never a region.
+  expect(count).toBeLessThan(500)
+  expectEqual(drawn, skip)
 }
 
 describe.runIf(hasWebGL2)('painted figures in the 3D renderer, per texel', () => {
@@ -89,7 +96,7 @@ describe.runIf(hasWebGL2)('painted figures in the 3D renderer, per texel', () =>
     ]
     for (const [near, far] of pairs) {
       scene = await buildScene({ size: SIZE, camera: 'ortho', figures: [near, far] })
-      expectEqual(scene, undefined, undefined, CROSSING)
+      expectEqualButCrossings(scene)
       expect(scene.stage.placed).toHaveLength(2)
       expect(scene.stage.placed.map((placed) => placed.sprite.name)).toEqual([far.def.id, near.def.id])
       scene.dispose()
@@ -103,7 +110,7 @@ describe.runIf(hasWebGL2)('painted figures in the 3D renderer, per texel', () =>
         { def: WOMAN, at: [0, 0] },
       ],
     })
-    expectEqual(scene, undefined, undefined, CROSSING)
+    expectEqualButCrossings(scene)
     expect(scene.stage.placed.map((placed) => placed.sprite.name)).toEqual([MAN.id, WOMAN.id])
   })
 

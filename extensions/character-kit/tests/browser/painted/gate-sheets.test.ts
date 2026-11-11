@@ -109,7 +109,9 @@ describe.runIf(on && hasWebGL2)('gate 1: the depth sheet and parity with the bui
       const want = expectedPixels(frame, backdrop)
       const skip = (_x: number, y: number) => Math.abs(y - cut) <= 1
       const { wrong, first } = differing(got, want, SIZE[0], skip)
-      counts[c.name] = { compared: SIZE[0] * SIZE[1], differing: wrong }
+      let compared = 0
+      for (let y = 0; y < SIZE[1]; y++) for (let x = 0; x < SIZE[0]; x++) if (!skip(x, y)) compared++
+      counts[c.name] = { compared, differing: wrong }
       expect(wrong, `${c.name}: ${first}`).toBe(0)
       const tile = (pixels: ArrayLike<number>) => ({ pixels, width: SIZE[0], height: SIZE[1] })
       await write.gateWrite(

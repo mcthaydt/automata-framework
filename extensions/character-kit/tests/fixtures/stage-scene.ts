@@ -15,6 +15,8 @@ import {
   compose,
   STAGE_VERSION,
   type StageFrame,
+  TIE_BIAS,
+  texelDepths,
 } from '#src/shared/figure-builder/door.ts'
 
 type Step = Parameters<Pixi3dRenderer['apply']>[0]
@@ -236,4 +238,52 @@ export function differing(
     }
   }
   return { wrong, first }
+}
+
+/** The depth buffer's step under the ortho fixture's camera (20 m back, near and far fitted to the figures): a tenth of a millimetre,
+ * far above what the GPU's 24 bits resolve there and far below the tie rule's millimetre. */
+export const DEPTH_STEP = 1e-4
+
+/**
+ * The pixels where two sprites' surfaces cross: where two sprites both paint a texel and their test depths (`texelDepths` less the
+ * rank's `(rank + 1) · TIE_BIAS`, the numbers `compose` and the GPU compare) are within `step` of each other. The builder's contract
+ * (docs/contract.md, section 4b) lets exactly those differ by a pixel between a GPU and the CPU reference; nothing else may, so a
+ * test skips only these and requires every other pixel equal.
+ */
+export function crossings(
+  frame: StageFrame,
+  step = DEPTH_STEP,
+): { skip(x: number, y: number): boolean; count: number } {
+  const [width, height] = frame.camera.size
+  const tests = frame.sprites.map((sprite, rank) => {
+    const depths = texelDepths(frame.camera, sprite)
+    const [w, h] = sprite.cell.size
+    const [sx, sy] = sprite.screen
+    const out = new Float32Array(width * height).fill(Infinity)
+    for (let y = 0; y < height; y++) {
+      const v = Math.floor((y + 0.5 - sy) / sprite.scale)
+      if (v < 0 || v >= h) continue
+      for (let x = 0; x < width; x++) {
+        const u = Math.floor((x + 0.5 - sx) / sprite.scale)
+        if (u < 0 || u >= w) continue
+        const texel = v * w + u
+        if (sprite.cell.rgba[texel * 4 + 3])
+          out[y * width + x] = Math.fround((depths[texel] ?? Infinity) - (rank + 1) * TIE_BIAS)
+      }
+    }
+    return out
+  })
+  const near = new Uint8Array(width * height)
+  let count = 0
+  for (let i = 0; i < width * height; i++) {
+    const seen = tests
+      .map((t) => t[i] ?? Infinity)
+      .filter(Number.isFinite)
+      .sort((a, b) => a - b)
+    if (seen.length >= 2 && (seen[1] as number) - (seen[0] as number) <= step) {
+      near[i] = 1
+      count++
+    }
+  }
+  return { skip: (x, y) => near[y * width + x] === 1, count }
 }
