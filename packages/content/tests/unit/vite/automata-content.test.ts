@@ -2,7 +2,7 @@
 // behavior worth pinning is recovery. A bad save reports, keeps the last good bytes and module, and leaves
 // the watcher alive, so the fix is one more save rather than a restarted server.
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect } from 'effect'
 import { build, createLogger, createServer, type HotPayload, type ViteDevServer } from 'vite'
@@ -294,7 +294,8 @@ describe('vite dev', () => {
    * what the file watcher saw, so a failure names the file that made it send what it sent.
    */
   async function hmrPage() {
-    const root = copyFixture('valid')
+    // The real path: Vite names the file behind a reload by it, and macOS's tmpdir() (/tmp) is a symlink to /private/tmp.
+    const root = realpathSync(copyFixture('valid'))
     writeFileSync(
       join(root, 'main.js'),
       "import { contentHash } from 'virtual:automata/content'\nimport.meta.hot.accept('virtual:automata/content', () => {})\nconsole.log(contentHash)\n",
