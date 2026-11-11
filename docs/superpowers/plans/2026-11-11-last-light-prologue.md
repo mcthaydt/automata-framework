@@ -28,10 +28,9 @@ HUD pieces, Zod 4, smol-toml, Vitest and Playwright (Chromium), pnpm and turbo.
 **This plan replaces the one committed at `43f94569`,** which was written before the spec was re-set (it put the game
 in its own repository behind a pin). Nothing of that plan's Part B stands.
 
-**Audited** at `main` `81ce53a9`, and again after merging `main` at `32b90536` with the spec's two amendments
-(`acb0361d`, where a new piece goes; `864361d4`, the 3D examples cut) ([the plan
-audit](../audits/2026-11-11-last-light-prologue-plan-audit.md), 32 findings, all fixed here or in the survey, three
-homes left open with the coordinator). "Audit 7" below is a finding of that document.
+**Audited** at `main` `81ce53a9`, and again after merging `main` at `6a70f9b1` with the spec's amendments
+(`acb0361d` and `909f6b10`, where a new piece goes; `864361d4`, the 3D examples cut) and workstream 4's spec ([the plan
+audit](../audits/2026-11-11-last-light-prologue-plan-audit.md), 32 findings, all fixed here or in the survey). "Audit 7" below is a finding of that document.
 
 ## One repository, three branches
 
@@ -68,7 +67,7 @@ Progress: **0 of 22 tasks (0%)**. Tick a task only when its checks pass; write w
 | 1 | `@automata/interact`: use a hotspot | todo | |
 | 2 | `@automata/hud`: the `hud` file, the objective line and the prompt | todo | |
 | 3 | `@automata/hud`: inventory, examine box, keypad | todo | |
-| 4 | `@automata/systems`: peeking, hide from a system, a re-route on a clock | todo | |
+| 4 | `@automata/systems`: peeking, hide from a system, a re-route on a clock, a carried light that burns fuel | todo | |
 | 5 | `@automata/narrative`: delivery on a line, typed out; Writer's field | todo | |
 | 6 | `@automata/cutscenes`: a camera key at an anchor, a 3D stage | todo | |
 | 7 | `@automata/audio-synth`: footsteps by floor | todo | |
@@ -168,11 +167,13 @@ From the spec, the tracker and `AGENTS.md`. Every task includes them.
 8. **The five translations of the story's 74 lines are written by the building session** in task 18 and recorded with
    `automata words --mark` (the coordinator, relaying the Owner), so "story lines in six languages" closes inside this
    plan. Task 18's last step runs `automata words` for real once the coordinator says the Owner's key is saved.
-9. **The homes of `@automata/interact`, `@automata/hud` and the lamp are open** with the coordinator (audit 31):
-   the spec names "using a thing in the world" and "a HUD drawn from data" as core, but as planned both import
-   extensions (`nav`, `puzzle`, `narrative`), which core may not; and it names "a lamp that burns fuel" as an
-   extension, where this plan had it as the game's. Until the answer, tasks 1 to 3 build them as written, as
-   extensions, and the lamp stays the game's in task 12; the answer may move them. See "Homes".
+9. **`@automata/interact` and `@automata/hud` are adventure-genre extensions; the hand lamp's mechanism is a genre
+   extension's** (the spec at `909f6b10`, audit 31). Core imports no extension, and as planned both lean on `puzzle`,
+   `nav` and `narrative`, so they are extensions; each keeps its dependency-free half (interact's pending use and
+   reach, the HUD's layout file and placing) in its own folder that imports no extension, so it can move to core later
+   unchanged. "A lamp that burns fuel" is the spec's own example of a genre extension: a carried light with fuel goes in
+   `@automata/systems`, beside light as a sense (task 4); the game keeps the item, its numbers and the `fill` call. See
+   "Homes".
 10. **Checkpoints stay in the game** for this slice (survey 24): one sim snapshot kept by the game's `catch` feature.
     It moves to an extension when the clinic needs it.
 11. **Ember Hall's tests move to the smallest thing that serves them:** a test that needed "a 3D game folder" gets a
@@ -185,21 +186,22 @@ From the spec, the tracker and `AGENTS.md`. Every task includes them.
 
 ## Homes
 
-Each addition under the spec's three homes (audit 31). "Open" waits for the coordinator; the rest are ruled.
+Each addition under the spec's three homes (audit 31), as the spec reads at `909f6b10`.
 
 | Addition | Task | Home | Why |
 |---|---|---|---|
-| Use a hotspot: walk into reach, then act | 1 | **Open**: `@automata/interact`, an extension, as planned | The spec's example puts "using a thing in the world" in core; as designed it sends `nav.walk-to` and `puzzle.verb`, extensions core may not import. A core half (a use command and event, with reach) under a thin genre extension is one answer |
+| Use a hotspot: walk into reach, then act | 1 | `@automata/interact`, an adventure-genre extension | It sends `nav.walk-to` and `puzzle.verb`, so not core (the spec at `909f6b10`). Its dependency-free half (the pending use, reach, one at a time) is `src/shared/sim/pending.ts`, importing no extension, so it can move to core later |
 | `applyVerb` | 1 | `@automata/puzzle` (extension) | It is the puzzle's own verb, callable by a system |
-| The play HUD from a file: objective, prompt, inventory, examine, keypad | 2, 3 | **Open**: `@automata/hud`, an extension, as planned | The spec's example puts "a HUD drawn from data" in core; as designed it reads `puzzle`'s conditions and draws `narrative`'s box. A core layout file and slots, fed by a model the game supplies, is one answer |
+| The play HUD from a file: objective, prompt, inventory, examine, keypad | 2, 3 | `@automata/hud`, an adventure-genre extension | It reads `puzzle`'s conditions and draws `narrative`'s box, so not core (the spec at `909f6b10`). Its dependency-free half (the `hud` file's layout schema, `place.ts`, the pieces' shells fed by `HudModel`) is `src/features/layout/` and `src/shared/hud.schema.ts`, importing no extension |
 | Peeking through a doorway; hide from a system; a route made again on a clock | 4 | `@automata/systems` (extension) | Sneaking within the horror and stealth genre; the spec's own example ("hiding and peeking") |
+| A carried light that burns fuel: lit or not, fuel in ticks, a toggle, a refill, the pool it gives the senses | 4 | `@automata/systems` (extension) | The spec's own example ("a lamp that burns fuel"); it feeds `env.lights`, which the senses already read; it names no item of the game's |
 | Delivery on a line, typed out; Writer's field | 5 | `@automata/narrative` (extension), `@automata/editors` | Lines are narrative's; nothing in it names the game |
 | A camera key at an anchor; a 3D stage | 6 | `@automata/cutscenes` (extension) | Cutscenes are an extension; the stage is generic to any 3D game using it |
 | Footsteps by floor | 7 | `@automata/audio-synth` (extension) | The `steps` table lives beside the cues it names |
 | Sequence over a 3D level | 8 | `@automata/editors` | The suite |
 | Nine prop generators | 9 | `@automata/world-kit` (extension) | Generic ward and workplace furniture; the names are what the things are (`sink`, `gurney`), none the game's |
 | The rooms a view draws; `moon` and `fill` lamps | 9b | `@automata/3d` (core) | Any 3D game with rooms; the spec's own example ("a view that names the rooms it draws") |
-| The hand lamp and its fuel | 12 | **Open**: the game's `lamp` feature, as planned | The spec's example puts "a lamp that burns fuel" in an extension; the lamp's arithmetic (one fill, at most two) is the game's either way |
+| The hand lamp: which item it is, its numbers, the `fill` call | 12 | The game's `lamp` feature, over task 4's carried light | The item, the fill of 40 s and the cap of twice it are this game's content and rules |
 | The vigil, what a catch does, the checkpoint kept, the music state, the table of piece states | 12, 13, 14 | The game | This story's rules; the checkpoint is small and moves to an extension when the clinic needs it (call 10) |
 
 ## Review focus
@@ -228,6 +230,7 @@ extensions/interact/            @automata/interact (new)
   src/app/interact.extension.ts
   src/shared/sim/{interact.command,interact.event,interact.resource,interact.system,interact.plugin}.ts
   src/shared/sim/{hotspot.schema,hotspots-of}.ts
+  src/shared/sim/pending.ts     the pending use and reach; imports no extension (it can move to core later)
   src/shared/use-commands.ts    the two commands a tap sends
   src/entries/{index,sim}.ts    src/testing/pantry.ts
   tests/unit/shared/…
@@ -237,7 +240,7 @@ extensions/hud/                 @automata/hud (new)
   src/features/{objective,prompt,inventory,examine,keypad}/<Piece>.svelte (+ a .ts model each)
   src/app/hud.extension.ts      src/entries/{index,content}.ts
   tests/{unit,browser}/…
-extensions/systems/src/shared/sim/peek.ts (new), pursuit.ts, systems.plugin.ts, systems.schema.ts (modified)
+extensions/systems/src/shared/sim/{peek,carried-light}.ts (new), pursuit.ts, systems.plugin.ts, systems.schema.ts (modified)
 extensions/narrative/src/shared/sim/lines.schema.ts (modified), src/shared/delivery.ts (new),
   src/features/box/{DialogueBox.svelte,dialogue-box.ts,typing.ts} (modified, new), src/entries/index.ts (exports the box)
 extensions/editors/src/features/writer/… (delivery field), …/sequence/plan-view.ts (3D walls)
@@ -272,7 +275,7 @@ test states the same rules (audit 8).
 | Feature | Owns | Sim or view | Why it is the game's own |
 |---|---|---|---|
 | `ada` | The walker: a component, a move command, a walk system, her figure's view | both | Every game writes its own walker (`examples/3d-story` has one) |
-| `lamp` | The hand lamp: lit or not, fuel in ticks, the toggle, the fill, the light it gives systems, its glow | both | The lamp's arithmetic is this game's rule (T2) |
+| `lamp` | The hand lamp over `@automata/systems`' carried light (task 4): which item lights it, the `fill` call, its numbers, its glow | both | The item and its arithmetic are this game's (T2); the mechanism is the genre's (audit 31) |
 | `night` | Lights out: waking the figure, the vigil's clock, her leaving, footsteps as noise | sim | The vigil is this scene's story |
 | `catch` | One checkpoint, and what a practice catch does | sim | Call 10 |
 | `figure` | The figure's view | view | Her look is the game's |
@@ -504,12 +507,13 @@ Behaviour, each piece keyboard, pad and touch:
 - [ ] **Step 2 to 4:** run, implement, run (unit and browser).
 - [ ] **Step 5: Commit:** `feat(hud): inventory, examine box and keypad`
 
-### Task 4: `@automata/systems`: peeking, hide from a system, a re-route on a clock
+### Task 4: `@automata/systems`: peeking, hide from a system, a re-route on a clock, a carried light that burns fuel
 
-Survey 34, 35, 36.
+Survey 31, 34, 35, 36. Audit 31: "a lamp that burns fuel" is the spec's own example of a genre extension.
 
 **Files:**
-- Create: `extensions/systems/src/shared/sim/peek.ts`
+- Create: `extensions/systems/src/shared/sim/peek.ts`, `src/shared/sim/carried-light.ts`; test
+  `tests/unit/shared/carried-light.test.ts`
 - Modify: `systems.plugin.ts` (the `Systems` object), `pursuit.ts`, `systems.resource.ts`, `systems.schema.ts`,
   `systems.event.ts`, `systems-checks.ts`, `entries/sim.ts`, `README.md`
 - Test: `extensions/systems/tests/unit/shared/{peek,hide-from-system,goto-every}.test.ts`
@@ -531,6 +535,11 @@ export interface PeekState { readonly portal: string; readonly into: string; rea
 export const SystemsPeek: EventDef   // 'systems.peek' { portal, into, on: boolean }
 /** The player's peek now, or undefined. The view gives `x, z` to the play camera's `clampPeek`. */
 export function peekOf(ctx: SimContext): PeekState | undefined
+// a carried light: a component on the carrier, a command, a burn system, an event; it adds its pool to `env.lights`
+export const CarriedLight: ComponentDef     // { lit: boolean, fuelTicks: number, radius: number }
+export const ToggleLight: CommandDef        // 'systems.light-toggle' {}: lights only with fuel; refused in words when dry
+export const LightDry: EventDef             // 'systems.light-dry' {}: fuel reached 0, the light went out
+export function refuel(ctx: SimContext, entity: number, ticks: number, cap: number): void   // a game's refill calls it
 // effect: `{ goTo: place, every?: number }`: with `every`, the route is made again each `every` seconds while the mode holds
 ```
 
@@ -553,9 +562,12 @@ doorway. `env` (`SystemsEnvValue`: `player`, the player's entity, `moving`, `lig
   same `t`; `systems.hide(ctx, 'cupboard')` from a system equals the `Hide` command (same hash); an agent with
   `goTo = "player", every = 0.4` follows a player who moves after the first route, and one without `every` walks to
   where she was; `systems-checks` reports a `peek` block with a negative number, in words.
+  The carried light: lit, it burns one tick of fuel a tick and goes out at 0 with one `LightDry`; `ToggleLight`
+  with no fuel does nothing; `refuel` caps at `cap`; while lit its pool is in `env.lights` at its radius, so an agent
+  with `refuses` will not step into it (the existing light sense); two runs give the same hash.
 - [ ] **Step 2 to 4:** run (`pnpm --filter @automata/systems test:unit`), implement, run. The extension's golden hash
   for existing scenes must not move (no existing scene has a `peek` block or `every`); if it moves, stop and find why.
-- [ ] **Step 5: Commit:** `feat(systems): peeking through a doorway, hide from a system, a route made again on a clock`
+- [ ] **Step 5: Commit:** `feat(systems): peeking, hide from a system, a route on a clock, a carried light that burns fuel`
 
 ### Task 5: `@automata/narrative`: delivery on a line, typed out; Writer's field
 
@@ -945,7 +957,7 @@ Spec steps 2 and 4. Survey 15, 19, 20, 24, 31 to 33, 37, 39. T2, T5, T6, T14. Re
 
 **Files:**
 - Create: `src/features/ada/{ada.component,move.command,walk.system,ada.plugin}.ts`,
-  `src/features/lamp/{lamp.component,lamp.command,lamp.event,lamp.system,lamp.plugin,lamp-facts,fill}.ts`,
+  `src/features/lamp/{lamp-controls,lamp.plugin,lamp-facts,fill}.ts` (the mechanism is task 4's carried light),
   `src/features/night/{vigil.resource,vigil.system,night-hooks,steps.system,night.plugin}.ts`,
   `src/features/catch/{checkpoint.resource,catch.event,catch.system,catch.plugin}.ts`,
   `src/shared/{constants,tuning}.ts`, `src/app/{scene.plugin,content}.ts`, `src/testing/{bot,route}.ts`,
@@ -958,11 +970,10 @@ Spec steps 2 and 4. Survey 15, 19, 20, 24, 31 to 33, 37, 39. T2, T5, T6, T14. Re
 **Interfaces (produced, the game's):**
 
 ```ts
-// lamp (T2: a lamp, not a lighter in disguise). Fuel is whole ticks, so the hash is exact.
-export const Lamp: ComponentDef            // { lit: boolean, fuelTicks: number }
-export const ToggleLamp: CommandDef        // 'lamp.toggle' {}
-export const LampDry: EventDef             // 'lamp.dry' {}
-export function fillLamp(ctx: SimContext): void          // the puzzle's `fill` call: + the tuned fill, at most twice it, and lit
+// lamp (T2: a lamp, not a lighter in disguise), over `@automata/systems`' carried light (task 4, audit 31).
+// Fuel is whole ticks, so the hash is exact.
+export function fillLamp(ctx: SimContext): void          // the puzzle's `fill` call: `refuel` by the tuned fill, cap twice it, and lit
+export const lampControls: …                             // F and the pad's north send `ToggleLight` once Ada holds `handLamp`
 export const lampFacts: PuzzleOptions['facts']           // T6: only `lit` and `fuel` are mapped; the rest are the puzzle's own
 // night
 export const nightHooks: SystemsOptions['hooks']         // wake, vigil, leave, stop (audit 7); resetFor as a plain function (T14)
@@ -976,8 +987,9 @@ export function playRoute(route: readonly BotStep[], seed: number): BotResult
 
 Rules, from the old behaviour (read `<ref>/src/scenes/prologue/rules.ts`, `src/game/tools.ts` and the old tests for
 the cases; write new):
-- The lamp burns one tick of fuel each tick it is lit; at zero it goes out and `LampDry` fires. `ToggleLamp` does
-  nothing without the lamp item, and says the dry line when dry.
+- The carried light (task 4) burns the fuel; the game says when it may be lit: `ToggleLight` is sent only once Ada
+  holds `handLamp`; on `LightDry` Ada says `prologue.lighterEmpty` (the old line for the lamp guttering out), and on a
+  toggle refused for want of fuel, `prologue.lampDry`, as the old game did.
 - Each step the game gives systems `env.lights`: the lamp's pool at the tuned radius when lit, and the four room
   lamps until lights out; and the player's facing, for peeking.
 - The tuned numbers (the fill, the lamp radius, the walk speed, the step interval) are in `content/tuning.toml` and
@@ -986,7 +998,7 @@ the cases; write new):
 - A practice catch (`systems.caught` with cause `practice`) is ignored while a cutscene holds input; otherwise it
   starts `found` and, when that ends, restores `Checkpoint` and puts the figure at the node farthest from Ada.
 
-- [ ] **Step 1: Failing tests,** smallest first: the lamp lit for its fill goes out and fires `LampDry` once; toggling
+- [ ] **Step 1: Failing tests,** smallest first: the lamp lit for its fill goes out and fires `LightDry` once; toggling
   with no lamp does nothing; two fills cap at twice the fill; `lampFacts` reads `lit`; every call the systems file
   names is a key of `nightHooks` (audit 7); two sims with different tuning
   differ (T5); the vigil is over after its tuned seconds unless she hunts; a catch during a cutscene does nothing
@@ -1002,7 +1014,7 @@ it('a cautious bot is never caught in 20 seeds; the fairness targets of the syst
 
 `ROUTE` is the old solver's order: the note, its back, the lamp, the paraffin, fill, the register, the cabinet and the
 code `2000`, the supply door, the shelf, the bed with the sheets, hide behind the screen until she has gone, the bed.
-The bot sends the commands a player's input sends (`useCommands`, `Combine`, `EnterCode`, `ToggleLamp`,
+The bot sends the commands a player's input sends (`useCommands`, `Combine`, `EnterCode`, `ToggleLight`,
 `CutsceneSkip`), never a private door into the sim.
 
 - [ ] **Step 2 to 4:** run (`pnpm --filter @af-games/the-last-light test:unit`), implement, run; `pnpm boundaries`.
@@ -1401,4 +1413,4 @@ Light; the game's folder carries its provenance file, and everything in it is MI
 | 2026-11-11 | Stage 2 (plan), `claude/last-light-prologue-plan` | The survey and a first plan (`43f94569`), written before the spec was re-set |
 | 2026-11-11 | The same session | The survey revised and this plan rewritten for the re-set spec: the game at `games/the-last-light`, by feature, MIT, from October's fixtures; Ember Hall removed. No product code, no test run |
 | 2026-11-11 | The same session | The Owner's last answers applied (spec `3c0a624f`): the six recorded files cross and play through core's audio; the name rule is its own task (10a); rooms per view and two lamp kinds (9b); three branches; a last step runs `automata words` for real |
-| 2026-11-11 | Stage 3 (plan audit), `claude/last-light-prologue-plan-audit` | [The audit](../audits/2026-11-11-last-light-prologue-plan-audit.md) at `main` `81ce53a9` (then `32b90536`) and the game at `92e6704`: 32 findings (9 blocking, 15 should fix, 8 tidy), all fixed here and in the survey. The spec's amendments during the audit: the 3D examples are removed in tasks 19 and 20 and no task leans on them; a "Homes" table rules each addition by the three-homes rule, with `interact`, `hud` and the lamp open; the dressing starts on workstream 4's word. The sound is the framework's `audio` kind, not a game table; the recorded files the old prologue plays are listed, six cross until the Owner says otherwise; three editor journeys and the provenance record join Ember Hall's removal; every systems call has a fate; the gates name the new extensions and the game; `main.ts` at the root; the register, the end, hotspot names and the FigureBuilder submodule are planned. Open: the Owner's answer on the other recorded files; workstream 1's plan recording its task 17 as cut; the three homes. No product code, no test run |
+| 2026-11-11 | Stage 3 (plan audit), `claude/last-light-prologue-plan-audit` | [The audit](../audits/2026-11-11-last-light-prologue-plan-audit.md) at `main` `81ce53a9` (then `6a70f9b1`) and the game at `92e6704`: 32 findings (9 blocking, 15 should fix, 8 tidy), all fixed here and in the survey. The spec's amendments during the audit: the 3D examples are removed in tasks 19 and 20 and no task leans on them; a "Homes" table rules each addition by the three-homes rule (interact and the HUD adventure-genre extensions with dependency-free halves; a carried light that burns fuel in `@automata/systems`, task 4); the dressing starts on workstream 4's word. The sound is the framework's `audio` kind, not a game table; the recorded files the old prologue plays are listed, six cross until the Owner says otherwise; three editor journeys and the provenance record join Ember Hall's removal; every systems call has a fate; the gates name the new extensions and the game; `main.ts` at the root; the register, the end, hotspot names and the FigureBuilder submodule are planned. Open: the Owner's answer on the other recorded files; workstream 1's plan recording its task 17 as cut. No product code, no test run |

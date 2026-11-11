@@ -3,8 +3,9 @@
 **Date:** 2026-11-11. **Stage:** 3 (plan audit) of workstream 2, slice 1. **Tracker:** [`../progress.md`](../progress.md).
 **Audited:** [the plan](../plans/2026-11-11-last-light-prologue.md) and [the survey](2026-11-11-last-light-prologue-survey.md)
 as merged at `main` `81ce53a9`, against [the spec](../specs/2026-11-11-last-light-on-the-framework-design.md) (at
-`94f2a216`, and again after `main` was merged in at `32b90536`, which amended it twice: `acb0361d`, where a new piece
-goes, and `864361d4`, the 3D examples cut, and added workstream 4's spec, `44c4da09`; findings 30 to 32), `AGENTS.md`, the code on `main` `81ce53a9`, workstream 1's
+`94f2a216`, and again after `main` was merged in at `32b90536` and `6a70f9b1`, which amended it three times:
+`acb0361d` and its correction `909f6b10`, where a new piece goes, and `864361d4`, the 3D examples cut; and added
+workstream 4's spec, `44c4da09`; findings 30 to 32), `AGENTS.md`, the code on `main` `81ce53a9`, workstream 1's
 [spec](../specs/2026-11-11-shared-polish-design.md) and [plan](../plans/2026-11-11-shared-polish.md) on `main` and on
 `claude/shared-polish-build` (`04887266`), and the game's repository `mcthaydt/PixiJS3D_Experiment_001` at `92e6704`
 (read only, cloned shallow; nothing pushed to it).
@@ -133,8 +134,9 @@ guide alone, with the prologue as its example; tasks 19 and 20 remove both folde
 `knip.jsonc`, `pnpm-workspace.yaml` and the workflow for `examples/3d-story`), and the site's Examples page shows no 3D
 example. The wardrobe example's garments are judged with the rest, as the spec says.
 
-**31. The plan rules homes by the old rule, and three of its homes disagree with the spec's new examples.** Fixed in
-part; **open** for the coordinator.
+**31. The plan rules homes by the old rule, and three of its homes disagree with the spec's new examples.** Fixed.
+(Sent to the coordinator as a contradiction; the spec was corrected at `909f6b10` while the audit ran, and the fix
+follows it.)
 The spec, amended at `acb0361d` ("Where a new piece goes"): core only what any game could use; an extension what is
 generic within a genre; the game what is its alone; "the plan says for each addition which home it has and why; the plan
 audit checks each one". The plan ruled by "core only if … both reference games need it" (its global constraint and
@@ -144,9 +146,14 @@ floor, the props and Sequence stay where planned; the vigil, the catch and the m
 disagree with the spec's examples and cannot simply move: "using a thing in the world" and "a HUD drawn from data" are
 named core, but `@automata/interact` imports `nav` and `puzzle`, and `@automata/hud` imports `puzzle` and `narrative`,
 and core never imports an extension (`AGENTS.md`, `pnpm boundaries`); "a lamp that burns fuel" is named an extension,
-and the plan has it as the game's. **Fix:** the plan's constraint states the new rule; a "Homes" table rules every
-addition; the three are marked open, with options sent to the coordinator; until the answer the tasks build them as
-written. No piece the plan adds carries the game's names (the props are named for what they are).
+and the plan has it as the game's. The spec's correction at `909f6b10` settles the first two: core imports no
+extension and still needs every target or both reference games, so interact and the HUD are adventure-genre
+extensions, with their dependency-free halves written so they can move to core later. It left "a lamp that burns fuel"
+as its example of a genre extension. **Fix:** the plan's constraint states the rule; a "Homes" table rules every
+addition; interact keeps its pending use and reach in a file that imports no extension, and the HUD its layout schema
+and placing; task 4 adds a carried light that burns fuel to `@automata/systems` (beside light as a sense), and the
+game's `lamp` feature keeps only the item, its numbers, the `fill` call and its lines. No piece the plan adds carries
+the game's names (the props are named for what they are).
 
 ### Should fix
 
@@ -296,7 +303,7 @@ files, two character-kit files, the cutscenes README, three spike files, two Pla
 
 ## Counts
 
-32 findings: 9 blocking, 15 should fix, 8 tidy. All are fixed in the plan or the survey, finding 31 in part. Three
-stay **open** outside them, each sent to the coordinator: the Owner's answer on which recorded files cross (finding 2,
-default A), workstream 1's plan recording that its task 17 is cut (finding 20), and the homes of `interact`, `hud` and
-the lamp under the spec's new rule (finding 31, default B and the lamp in a genre extension).
+32 findings: 9 blocking, 15 should fix, 8 tidy. All are fixed in the plan or the survey. Two stay **open** outside
+them, each sent to the coordinator: the Owner's answer on which recorded files cross (finding 2, default A), and
+workstream 1's plan recording that its task 17 is cut (finding 20). The homes question (finding 31) was settled by the
+spec's correction at `909f6b10` during the audit.

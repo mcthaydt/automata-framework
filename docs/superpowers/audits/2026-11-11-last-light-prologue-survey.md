@@ -91,8 +91,9 @@ and from then on the game's files are the source for the game.
 - **(b)** Expressible as framework content after conversion: the converter writes it; nothing new is built.
 - **(c)** Missing from the framework and generic: built in core or an extension. Since `acb0361d` the spec decides
   which ("Where a new piece goes"): core if any game could use it, an extension if it is generic within a genre, the
-  game otherwise. The plan's "Homes" table rules each (c) below; three are open with the coordinator (the plan audit,
-  finding 31). The first draft's rule ("both reference games") is replaced.
+  game otherwise. The plan's "Homes" table rules each (c) below (the plan audit, finding 31; the spec as corrected at
+  `909f6b10`): interact and the HUD are adventure-genre extensions, and the hand lamp's mechanism (row 31) is a carried
+  light in `@automata/systems`, the game keeping its item and numbers. The first draft's rule ("both reference games") is replaced.
 - **(d)** This game's own: a small feature in `games/the-last-light`.
 
 ## Run time: the rooms
