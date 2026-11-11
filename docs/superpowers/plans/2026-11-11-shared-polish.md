@@ -42,7 +42,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | `6c0ccee0` |
 | 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `d2e9d7f9` |
 | 9 | Interface sounds | 4 | done (jsdom unit tests; the sounds themselves are heard only in a browser with a mapped game: task 15's example) | `f68d822e` |
-| 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke needs packed packages and the network: not run) | `PENDING10` |
+| 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke needs packed packages and the network: not run) | `3aef5854` |
 | 11 | Splash (`@automata/ui-screens`) | 5 | todo | |
 | 11b | `Hosting.openLink` on every target | 5 | todo | |
 | 12 | Credits (`@automata/ui-screens`) | 5 | todo | |
