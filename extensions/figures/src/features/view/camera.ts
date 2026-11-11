@@ -56,9 +56,9 @@ export function checkCentred(pose: Pick<CameraPose, 'size' | 'f' | 'cx' | 'cy'>)
     throw new Error(`StageView: the pose's principal point (${pose.cx ?? w / 2}, ${pose.cy ?? h / 2}) is not the frame's centre (${w / 2}, ${h / 2}); Camera3D's frustum is symmetric, so a scene's geometry would not meet the figures`);
 }
 
-/** The warning a host gets when its renderer cannot draw per-texel depth, or null when it can: only the WebGL renderer has
- * the shader bit (`cellDepthBit` has a GLSL stage and no WGSL one). `type` is Pixi's `RendererType` (WEBGL 1, WEBGPU 2,
- * CANVAS 4). */
+/** The warning a host gets when its renderer cannot draw per-texel depth, or null when it can: the WebGL renderer (the GLSL
+ * `cellDepthBit` stage) and the WebGPU renderer (its WGSL stage, through `CELL_TEMPLATE`) both can. `type` is Pixi's
+ * `RendererType` (WEBGL 1, WEBGPU 2, CANVAS 4). */
 export function perTexelDepthWarning(type: number): string | null {
-  return type === 1 ? null : `StageView: per-texel depth needs the WebGL renderer (this one is ${type === 2 ? 'WebGPU' : `type ${type}`}), so figures depth-test as flat quads at their root depth: they cannot hide behind scene geometry or each other texel by texel. Init Pixi with preference: 'webgl'.`;
+  return type === 1 || type === 2 ? null : `StageView: per-texel depth needs the WebGL or WebGPU renderer (this one is type ${type}), so figures depth-test as flat quads at their root depth: they cannot hide behind scene geometry or each other texel by texel. Init Pixi with preference: 'webgl' or 'webgpu'.`;
 }

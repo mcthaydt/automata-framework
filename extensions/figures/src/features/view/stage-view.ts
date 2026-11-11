@@ -1,4 +1,5 @@
 import { Matrix4, View3D } from '@pixi/3d';
+import { RendererType } from 'pixi.js';
 import type { V3 } from '../../lib/math';
 import { checkPose } from '../stage/pose';
 import { TIE_BIAS, texelDepths, type StageFrame } from '../stage/stage';
@@ -27,8 +28,8 @@ import { CellSprite } from './cell-sprite';
  *
  * Two limits, both loud. The pose's principal point must be the frame's centre (`checkCentred`: `Camera3D`'s frustum is
  * symmetric, so `draw` throws on an off-centre `cx`, `cy` rather than put the figures and the scene's geometry in different
- * places). And the renderer must be WebGL (the depth shader bit is GLSL): the first render under another warns once
- * (`perTexelDepthWarning`) and `perTexelDepth` is false; init Pixi with `preference: 'webgl'`.
+ * places). And the renderer must be WebGL or WebGPU (the depth shader bit has a GLSL and a WGSL stage): the first render under another warns once
+ * (`perTexelDepthWarning`) and `perTexelDepth` is false; init Pixi with `preference: 'webgl'` or `'webgpu'`.
  */
 export class StageView {
   /** Add this to the scene (`app.stage.addChild(stage.view)`). */
@@ -39,6 +40,9 @@ export class StageView {
   constructor(private readonly size: [number, number], private readonly range?: { near: number; far: number }) {
     this.view = new View3D({ width: size[0], height: size[1], toneMapping: 'none' });
     this.view.onRender = renderer => {
+      // Before the pass compiles any quad's shader: under WebGPU a depth-writing quad compiles from its own template.
+      const gpu = renderer.type === RendererType.WEBGPU;
+      if (gpu !== this.webgpu) { this.webgpu = gpu; for (const q of this.pool) q.gpu(gpu); }
       if (this.depthChecked !== undefined) return;
       const warning = perTexelDepthWarning(renderer.type);
       this.depthChecked = warning === null;
@@ -47,7 +51,9 @@ export class StageView {
   }
 
   private depthChecked: boolean | undefined;
-  /** Whether the renderer draws per-texel depth (WebGL): undefined until the view has rendered once. */
+  /** Whether the last render was by the WebGPU renderer. */
+  private webgpu = false;
+  /** Whether the renderer draws per-texel depth (WebGL or WebGPU): undefined until the view has rendered once. */
   get perTexelDepth(): boolean | undefined { return this.depthChecked; }
 
   /** Draws `frame`: sets the camera, places a quad for each sprite far to near, and hides the rest of the pool. */
@@ -90,6 +96,7 @@ export class StageView {
 
   private grow(): CellSprite {
     const quad = new CellSprite(true);
+    quad.gpu(this.webgpu);
     this.view.root.addChild(quad.sprite);
     return quad;
   }

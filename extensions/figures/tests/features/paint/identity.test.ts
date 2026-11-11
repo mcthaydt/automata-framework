@@ -49,7 +49,7 @@ describe('an unfabricked figure lit is unchanged', () => {
     return md5(how === 'lamps' ? lightFigure(f, night) : f.painted);
   };
   const pins: Record<string, string> = {
-    'lamps 0 0': '2757a1c571ad9078042b2105f5379c71', 'lamps 0 4': '1d3b136711383ea9dba1c314f6f545be', 'lamps 1 0': 'ad1b4c8363a18e306521225160cac6e4', 'lamps 1 4': 'af3bed48f28930166b461c8505b75b97',
+    'lamps 0 0': '2757a1c571ad9078042b2105f5379c71', 'lamps 0 4': '1d3b136711383ea9dba1c314f6f545be', 'lamps 1 0': '62d1f234b72f9e41157ee65d743956f8', 'lamps 1 4': 'af3bed48f28930166b461c8505b75b97',
     'hook 0 0': 'e8d90429a0ca694c1a71fb794f520904', 'hook 0 4': 'd79f341486be8bace4228eb6b9323254', 'hook 1 0': '246a660cf0068ea220b86fd0582d3a2a', 'hook 1 4': 'c788b42e5a22fc7423a65958cae73baf',
   };
   for (const [key, hash] of Object.entries(pins)) {

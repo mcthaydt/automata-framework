@@ -70,6 +70,8 @@ export function along(line: Line, a: number) {
 }
 
 // ─── Meshes ───
+/** A grid point this close (m) to its row's inner point is a pole: its outward direction is its row's, not its offset's. */
+const POLE = 1e-6;
 /** A grid of points into a mesh: normals from its neighbours, turned away from `inner` (a point, per row, inside it). */
 export function grid(rows: number, cols: number, at: (i: number, j: number) => V3, wrap: boolean, inner: (i: number) => V3, skip?: (i: number, j: number) => boolean): Mesh {
   const P: V3[][] = [];
@@ -82,7 +84,11 @@ export function grid(rows: number, cols: number, at: (i: number, j: number) => V
     if (Math.hypot(...dv) < 1e-7) dv = sub(get(i === 0 ? 1 : i - 1, j + 1), get(i === 0 ? 1 : i - 1, j - 1));
     let n = normalize(cross(dv, du));
     const p = P[i][j];
-    if (dot(n, sub(p, inner(i))) < 0) n = scale(n, -1);
+    // Outward is away from `inner`. At a pole that offset is exactly 0 or rounding (1e-10 m), so its sign, and the whole
+    // normal's, was the maths library's last bit and not the shape's: the pole faces the way the row beside it does.
+    const k = i === 0 ? 1 : i - 1;
+    const away = Math.hypot(...sub(p, inner(i))) < POLE ? sub(get(k, j), inner(k)) : sub(p, inner(i));
+    if (dot(n, away) < 0) n = scale(n, -1);
     positions.push(...p); normals.push(...n);
   }
   const id = (i: number, j: number) => i * cols + (wrap ? j % cols : j);

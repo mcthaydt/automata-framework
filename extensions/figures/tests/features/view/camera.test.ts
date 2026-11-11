@@ -65,9 +65,9 @@ describe('the view\'s guards', () => {
     expect(() => checkCentred({ ...p, cy: h / 2 - 0.5 })).toThrow(/principal point/);
     expect(() => checkCentred({ size: [w, h], cx: 10, cy: 10 })).not.toThrow();   // orthographic: no principal point
   });
-  it('only the WebGL renderer draws per-texel depth: WebGPU and Canvas get a warning naming the fix', () => {
+  it('the WebGL and WebGPU renderers draw per-texel depth: any other gets a warning naming the fix', () => {
     expect(perTexelDepthWarning(1)).toBeNull();
-    expect(perTexelDepthWarning(2)).toMatch(/WebGPU.*preference: 'webgl'/);
-    expect(perTexelDepthWarning(4)).toMatch(/type 4/);
+    expect(perTexelDepthWarning(2)).toBeNull();
+    expect(perTexelDepthWarning(4)).toMatch(/type 4.*preference: 'webgl' or 'webgpu'/);
   });
 });
