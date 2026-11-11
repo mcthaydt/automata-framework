@@ -2,10 +2,10 @@
 // characters tinted per frame from the same lamps (M3R-D4).
 import { type Container3D, Geometry3D, type Mesh3D } from '@pixi/3d'
 import type { SceneLighting } from './scene-lighting.schema.ts'
-import { bakeVertices, type VertexBake } from './vertex-bake.ts'
+import { type BakeExtras, bakeVertices, type VertexBake } from './vertex-bake.ts'
 import { type LampLevels, levelOf, prepareLighting, tintInto } from './vertex-light.ts'
 
-export interface BakeOptions {
+export interface BakeOptions extends BakeExtras {
   /** Occluder boxes (by `id`) that never shadow this mesh: its own broad collider, say. */
   readonly ignore?: readonly string[] | undefined
 }
@@ -129,7 +129,7 @@ export function createSceneLight(lighting: SceneLighting): SceneLight {
       const attributes = source.attributes as Record<string, Attribute | undefined>
       const positions = threeFloats(attributes.aPosition, 'positions')
       const normals = threeFloats(attributes.aNormal, 'normals')
-      const bake = bakeVertices(positions, normals, placement(mesh), lighting, options.ignore)
+      const bake = bakeVertices(positions, normals, placement(mesh), lighting, options.ignore, options)
       const colors = new Float32Array(bake.vertexCount * 4)
       bake.write(levels, colors)
       // The baked copy keeps positions, normals, UVs and indices. Anything else on the source (tangents, joints and

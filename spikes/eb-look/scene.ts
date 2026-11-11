@@ -16,10 +16,9 @@ import {
   figure,
   levelTime,
   render3dExtension,
-  sceneLamps,
-  sceneLightingSchema,
   swatchColour,
   type View3dFactory,
+  worldLighting,
 } from '@automata/3d'
 import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automata/3d/base'
 import type { Gait } from '@automata/3d/figures'
@@ -57,10 +56,7 @@ const library = dressed ? worldKitLibrary : baseLibrary
 const time = levelTime(level.time)
 const night = time.name !== 'day'
 const world = buildWorld(level, library, { night })
-const lighting = sceneLightingSchema.parse({
-  ambient: time.scene.light.ambient.level,
-  lamps: sceneLamps(world.lamps, night),
-})
+const lighting = worldLighting(world, time)
 const views = (level.views ?? {}) as Record<string, Record<string, unknown>>
 const size =
   viewName === 'fp'
