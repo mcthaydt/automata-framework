@@ -177,10 +177,16 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
   const missing = placed.ok ? [] : placed.missing
   for (const name of missing) add('error', 'anchor', `no anchor '${name}' in the scene`, undefined, name)
   const settled = placeScript(
-    { ...script, actor: (script.actor ?? []).filter((a) => a.at === undefined || !missing.includes(a.at)) },
+    {
+      ...script,
+      actor: (script.actor ?? []).filter((a) => a.at === undefined || !missing.includes(a.at)),
+      camera: script.camera.filter((k) => k.about === undefined || !missing.includes(k.about)),
+    },
     world.anchor,
   )
-  const play: PlacedScript = settled.ok ? settled.script : { ...script, actor: [] }
+  const play: PlacedScript = settled.ok
+    ? settled.script
+    : { ...script, actor: [], camera: script.camera.filter((k) => k.about === undefined) }
   // Starts no clips: the lint only looks at the frames.
   const director = createDirector(play, () => {})
 

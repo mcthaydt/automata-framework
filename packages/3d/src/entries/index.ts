@@ -11,6 +11,7 @@ export {
   type RendererKind,
 } from '../app/create-renderer.ts'
 export { render3dExtension } from '../app/render3d.extension.ts'
+export { type RoomHooksOptions, roomHooks } from '../app/room-hooks.ts'
 export { updatePieces } from '../app/update-pieces.ts'
 export { type WorldLightingOptions, worldLighting } from '../app/world-lighting.ts'
 export { drawWorld, sceneLamps, type WorldScene, type WorldView } from '../app/world-view.ts'
@@ -108,6 +109,15 @@ export {
   part as propPart,
 } from '../features/world/props/piece.ts'
 export { registerPropGenerator } from '../features/world/props/prop-generator-registry.ts'
+export {
+  createRoomDraw,
+  drawnRooms,
+  ROOM_HOLD,
+  type RoomDraw,
+  type RoomDrawInput,
+  type RoomSet,
+  viewRoomProblems,
+} from '../features/world/room-draw.ts'
 export { swatchColour, swatchGlow, type WorldLibrary } from '../features/world/swatches.ts'
 export type {
   FigureShadow,

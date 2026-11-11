@@ -195,9 +195,18 @@ function applyEffect(
   }
 }
 
+/**
+ * What the verb system does for one `puzzle.verb`, for another system to call: a use that a game's own walker has
+ * reached its target for (the `interact` extension). `options` are the ones the game gave `createPuzzlePlugin`, since
+ * the plugin's own closure is out of reach of a caller. Like a command, a verb is ignored while the scene's puzzle is
+ * not loaded or the game's `locked` holds.
+ */
+export function applyVerb(ctx: SimContext, verb: Verb, options: PuzzleOptions = {}): void {
+  const { def } = ctx.resource(PuzzleSceneResource)
+  if (def && options.locked?.(ctx) !== true) runVerb(ctx, def, verb, options)
+}
+
 export const puzzleVerbSystem = (options: PuzzleOptions): SystemDef =>
   defineSystem('puzzle.verbs', 'gameplay', (ctx) => {
-    const { def } = ctx.resource(PuzzleSceneResource)
-    for (const { payload } of ctx.commands.of(VerbCommand))
-      if (def && options.locked?.(ctx) !== true) runVerb(ctx, def, payload, options)
+    for (const { payload } of ctx.commands.of(VerbCommand)) applyVerb(ctx, payload, options)
   })

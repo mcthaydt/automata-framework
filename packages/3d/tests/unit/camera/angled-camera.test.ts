@@ -102,6 +102,17 @@ describe('angledCamera: the default gameplay camera', () => {
   })
 })
 
+describe('the active view', () => {
+  it('is the one the rig started in, then the one activated, and an unknown id leaves it', () => {
+    const { rig: r } = rig()
+    expect(r.active()).toBe('hall')
+    r.activate('crypt', 'cut')
+    expect(r.active()).toBe('crypt')
+    r.activate('nowhere', 'cut')
+    expect(r.active()).toBe('crypt')
+  })
+})
+
 describe('the follow', () => {
   it('snaps on the first follow, then trails with a time constant of 1/7 s and never overshoots', () => {
     const { camera, rig: r } = rig()

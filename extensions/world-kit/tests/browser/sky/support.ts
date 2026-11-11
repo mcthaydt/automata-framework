@@ -7,9 +7,9 @@ import type { RenderTarget } from '@automata/framework'
 
 export const SIZE = { width: 160, height: 90 }
 
-/** A target with the usable rectangle `SIZE`, no assets, and a bus that listens to nothing. */
-export function target(host: HTMLElement): RenderTarget {
-  const usable = { x: 0, y: 0, ...SIZE }
+/** A target with the usable rectangle `size` (`SIZE` unless said), no assets, and a bus that listens to nothing. */
+export function target(host: HTMLElement, size: { width: number; height: number } = SIZE): RenderTarget {
+  const usable = { x: 0, y: 0, ...size }
   return {
     host,
     geometry: {
@@ -17,7 +17,7 @@ export function target(host: HTMLElement): RenderTarget {
         current: {
           usable,
           formFactor: 'desktop',
-          layout: { ...SIZE },
+          layout: { ...size },
           heightTier: undefined,
           insets: { top: 0, right: 0, bottom: 0, left: 0 },
           hostReserved: { left: 0, right: 0 },

@@ -55,6 +55,8 @@ export interface Pixi3dOptions extends PixiRendererOptions {
         occluders: Occluders,
         light: SceneLight | undefined,
         models: ModelLibrary,
+        /** The angled camera's rig when `camera` was given: its `active()` is the view a room hook reads. */
+        camera: CameraRig | undefined,
       ) => PixiStageHooks | undefined)
     | undefined
   /**
@@ -292,7 +294,7 @@ async function buildInstance(
       const made = mount(stage, options, models)
       mounted = made
       const own = options.setup?.(stage) ?? undefined
-      const scene = options.scene?.(made.view, stage, made.occluders, made.light, models)
+      const scene = options.scene?.(made.view, stage, made.occluders, made.light, models, made.camera)
       lightEnvironment(made.view, options.time)
       return mergeHooks(made.hooks, own, scene)
     },

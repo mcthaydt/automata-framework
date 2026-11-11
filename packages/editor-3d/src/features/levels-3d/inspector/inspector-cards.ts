@@ -39,6 +39,13 @@ export type InspectorCard = { readonly selected: number } & (
       readonly trim: { readonly skirting?: number; readonly wainscot?: number; readonly rail?: number }
       /** The camera views the file names, for the Camera picker; none when the format has none to name. */
       readonly views: readonly string[]
+      /**
+       * The rooms the room's camera draws, for its checklist: every room of the level to tick, the ones ticked (none: the
+       * camera draws every room). None when the room has no camera or the format has no rooms to name.
+       */
+      readonly viewRooms?:
+        | { readonly view: string; readonly all: readonly string[]; readonly rooms: readonly string[] }
+        | undefined
       readonly walls: number
       readonly portals: number
     }
@@ -145,6 +152,16 @@ export function inspectorOf<D>(
         ...(sector.trim?.rail === undefined ? {} : { rail: sector.trim.rail }),
       },
       views: editor.profile.views?.(editor.level) ?? [],
+      viewRooms:
+        sector.view === undefined ||
+        editor.profile.viewRooms === undefined ||
+        !(editor.profile.views?.(editor.level) ?? []).includes(sector.view)
+          ? undefined
+          : {
+              view: sector.view,
+              all: editor.profile.sectors.list(editor.level).map((each) => each.id),
+              rooms: editor.profile.viewRooms.of(editor.level, sector.view) ?? [],
+            },
       walls: sector.corners.length,
       portals: walls.filter((wall) => wall?.next !== undefined).length,
     }

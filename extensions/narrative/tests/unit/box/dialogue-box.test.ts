@@ -37,6 +37,8 @@ describe('dialogueBoxModel', () => {
     )
     expect(model).toEqual({
       speaker: 'Nurse jo',
+      lineId: 'g.hello',
+      delivery: undefined,
       text: 'Good morning!',
       next: true,
       choices: [],
@@ -107,6 +109,14 @@ describe('dialogueBoxModel', () => {
 
   it('shows the speaker with an empty line when the conversation has no line to say', () => {
     const model = dialogueBoxModel({ node: 'x', line: null, choices: [], last: true }, lines, words, 'ada')
-    expect(model).toEqual({ speaker: 'Ada Reyes', text: '', next: true, choices: [], missing: [] })
+    expect(model).toEqual({
+      speaker: 'Ada Reyes',
+      lineId: '',
+      delivery: undefined,
+      text: '',
+      next: true,
+      choices: [],
+      missing: [],
+    })
   })
 })

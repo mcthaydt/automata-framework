@@ -26,7 +26,7 @@ function wedge(camera: NonNullable<typeof plan>['camera']): string {
 </script>
 
 <section class="preview" aria-label="Preview">
-  {#if session.is2d}
+  {#if session.is2d || session.levels.length > 0}
     {#if session.levels.length > 0}
       <label class="over">
         Show over:

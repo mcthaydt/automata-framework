@@ -1,3 +1,4 @@
+import type { Delivery } from '../../shared/sim/delivery.ts'
 import type { View } from '../../shared/sim/dialogue.ts'
 import type { LineRecord } from '../../shared/sim/lines.schema.ts'
 
@@ -8,6 +9,10 @@ import type { LineRecord } from '../../shared/sim/lines.schema.ts'
 /** What the box draws for one view of a conversation. */
 export interface BoxModel {
   readonly speaker: string
+  /** The line's id, which says when a new line begins (so its typing starts over); empty when the view has no line. */
+  readonly lineId: string
+  /** How the line is said, when its record says. */
+  readonly delivery: Delivery | undefined
   readonly text: string
   /** Whether "Next" is on offer: when there are no choices, even on the last line (it ends the conversation). */
   readonly next: boolean
@@ -52,6 +57,8 @@ export function dialogueBoxModel(
   const choices = view.choices.map((choice) => ({ index: choice.index, text: textOf(choice.line) }))
   return {
     speaker: words(`speaker.${speaker}`) ?? spoken(speaker),
+    lineId: view.line ?? '',
+    delivery: view.line === null ? undefined : lines(view.line)?.delivery,
     text,
     next: choices.length === 0,
     choices,

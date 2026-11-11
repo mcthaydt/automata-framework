@@ -11,7 +11,13 @@ import { afThingAccess } from './af-sector/af-things'
 import { AfBuildError, buildSectors } from './af-sector/build'
 import { EMPTY_LIBRARY, type GameLibrary } from './game-library'
 import { SECTOR_HINTS } from './level-hints'
-import { GeometryError, type LevelProfile, resolveOrThrow, type TimeAccess } from './level-profile'
+import {
+  GeometryError,
+  type LevelProfile,
+  resolveOrThrow,
+  type TimeAccess,
+  type ViewRoomsAccess,
+} from './level-profile'
 import { afMaterials } from './materials'
 
 /** The times of day the 3D package has, by their words. */
@@ -24,6 +30,23 @@ const afTimeAccess: TimeAccess<AfSector2File> = {
     if (id === undefined) return rest as AfSector2File
     // A time with changes of its own keeps them, over the new one.
     return { ...rest, time: typeof time === 'object' ? { ...time, preset: id } : id } as AfSector2File
+  },
+}
+
+/** The rooms a camera view of the level draws: the `rooms` member of the view, absent when it draws every room. */
+const afViewRoomsAccess: ViewRoomsAccess<AfSector2File> = {
+  of(level, view) {
+    const rooms = level.views?.[view]?.rooms
+    return Array.isArray(rooms) && rooms.every((room) => typeof room === 'string') ? rooms : undefined
+  },
+  withRooms(level, view, rooms) {
+    const fields = level.views?.[view]
+    if (fields === undefined) return level
+    const { rooms: _old, ...rest } = fields
+    return {
+      ...level,
+      views: { ...level.views, [view]: rooms === undefined ? rest : { ...rest, rooms: [...rooms] } },
+    }
   },
 }
 
@@ -51,6 +74,7 @@ export const afSectorProfileFor = (library: GameLibrary): LevelProfile<AfSector2
   materials: (level) => afMaterials(level, library),
   views: (level) => Object.keys(level.views ?? {}),
   time: afTimeAccess,
+  viewRooms: afViewRoomsAccess,
   hints: SECTOR_HINTS,
 })
 

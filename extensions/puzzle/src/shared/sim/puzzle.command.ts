@@ -4,6 +4,7 @@
 import { type CommandDef, defineCommand } from '@automata/sim'
 import { z } from 'zod'
 
+/** What a `puzzle.verb` carries, and what `applyVerb` takes: where the verb is aimed and what it holds, combines or types. */
 export interface VerbPayload {
   readonly at: string
   readonly held?: string | undefined

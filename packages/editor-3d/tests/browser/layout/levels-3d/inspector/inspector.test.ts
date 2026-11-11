@@ -14,9 +14,9 @@ import { startAt, stopEditor } from '#src/testing/layout-start.ts'
 
 afterEach(stopEditor)
 
-async function openDepot(size: EditorSize) {
+async function openDepot(size: EditorSize, text: string = depotText) {
   const started = await startAt(size, async (workspace) => {
-    await workspace.store.write('depot/depot.json', depotText)
+    await workspace.store.write('depot/depot.json', text)
   })
   await expect.poll(() => document.querySelectorAll('[role="option"]').length).toBeGreaterThan(0)
   document
@@ -25,6 +25,14 @@ async function openDepot(size: EditorSize) {
   await expect.poll(() => document.querySelector('[data-testid="plan-canvas"]')).not.toBeNull()
   await arrived()
   return started
+}
+
+/** The depot with a camera `start` that draws the dock, and the hall on it, so the hall's card has the rooms' checklist. */
+const depotWithCamera = (): string => {
+  const level = JSON.parse(depotText) as { views?: unknown; sectors: { id: string; view?: string }[] }
+  level.views = { start: { rooms: ['dock'] } }
+  for (const sector of level.sectors) sector.view = 'start'
+  return JSON.stringify(level)
 }
 
 const statusWords = (): string =>
@@ -93,6 +101,29 @@ describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
       await arrived()
       expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Sector', 'Walls', 'Things', 'Checks'])
       expect(checkLayout(conditions, tabs)).toEqual([])
+    })
+  },
+)
+
+describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
+  'the camera’s rooms in the inspector at $name ($width x $height)',
+  (size) => {
+    test('each room to tick is a whole touch target on screen, scrolled to', async () => {
+      const { conditions } = await openDepot(size, depotWithCamera())
+      await tapARoom()
+      // As above: a wide window under 1100 px has no inspector column.
+      if (size.mode === 'wide' && size.width < 1100) return
+      const group = byTestId('inspector').querySelector<HTMLElement>('[aria-label="Rooms this camera draws"]')
+      expect(group).not.toBeNull()
+      const labels = [...(group?.querySelectorAll<HTMLElement>('label') ?? [])]
+      expect(labels.map((label) => label.textContent?.trim())).toEqual(['hall', 'dock'])
+      const problems: string[] = []
+      for (const label of labels) {
+        label.scrollIntoView({ block: 'nearest' })
+        await arrived()
+        problems.push(...checkLayout(conditions, [label]))
+      }
+      expect(problems).toEqual([])
     })
   },
 )
