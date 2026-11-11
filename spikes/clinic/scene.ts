@@ -93,6 +93,7 @@ startGame(
         ...(q.get('rig') === '1' ? { camera: { views: [VIEW], initial: VIEW.id, follow: Body.id } } : {}),
         scene: (view, stage, occluders, light, models) => {
           view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+          ;(window as unknown as { __camera: unknown }).__camera = view.camera
           if (q.get('rig') !== '1') {
             // The play camera: 50 mm, tilted 30° down, the zone's distance back from its look point, turned by `heading`.
             const camera = view.camera
@@ -109,7 +110,7 @@ startGame(
           view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)?.focus(VIEW.distance)
           drawWorld(
             { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), look: on('look') ? DEFAULT_LOOK : undefined, light, models },
-            on('walls') ? world.pieces : world.pieces.filter((p) => p.part !== 'wall'),
+            world.pieces.filter((p) => (on('walls') || p.part !== 'wall') && (on('tops') || !p.id.includes(':top:'))),
           )
           const { dataset } = stage.app.canvas
           dataset.renderer = (stage.app.renderer as unknown as { name: string }).name

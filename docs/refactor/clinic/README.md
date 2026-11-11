@@ -1,9 +1,9 @@
 # The clinic in level3d: batch 1 (2026-11-11)
 
 The Owner's direction: recreate the source game's clinic in AF's 3D level from data ("it just needs to look nearly
-identical"). The design is in [the spec](../../superpowers/specs/2026-11-10-clinic-in-level3d-design.md) and the
-[gap analysis](../../superpowers/2026-11-10-clinic-in-level3d-gap-analysis.md) (draft PR 575, branch
-`claude/clinic-level3d`). This is batch 1, done in one session with no separate plan or audit stages. Batch 2 adds the
+identical"). The design is in the spec (`docs/superpowers/specs/2026-11-10-clinic-in-level3d-design.md`) and the
+gap analysis (`docs/superpowers/2026-11-10-clinic-in-level3d-gap-analysis.md`), both on draft PR 575's branch
+`claude/clinic-level3d`. This is batch 1, done in one session with no separate plan or audit stages. Batch 2 adds the
 world-kit pieces the clinic's dressing needs.
 
 ## What batch 1 is

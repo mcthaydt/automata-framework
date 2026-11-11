@@ -41,8 +41,10 @@ const props = await load('props.ts', { './level': level })
 const visibility = await load('visibility.ts')
 
 // --- sectors ------------------------------------------------------------------------------------------------------
-// The source's trim for a wall nothing else says anything about: skirting, wainscot and rail, and a top.
-const DEFAULT_TRIM = { skirting: 0.14, wainscot: 1.14, rail: 0.08, cap: true }
+// The source's trim for a wall nothing else says anything about: skirting, wainscot and rail. Its default also draws a top on
+// every wall (`cap`), which here is left off: the builder's tops (4.9 m up, across the masonry) do not cut away with their
+// walls yet, so the near walls' tops cross the frame as black lines. Room visibility (EnvironmentBuilder's) brings them back.
+const DEFAULT_TRIM = { skirting: 0.14, wainscot: 1.14, rail: 0.08, cap: false }
 const round = (n: number): number => Math.round(n * 1e6) / 1e6
 
 const sectors = (map.SECTORS as Json[]).map((s) => ({

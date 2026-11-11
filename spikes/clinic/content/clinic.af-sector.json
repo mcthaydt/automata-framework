@@ -303,7 +303,7 @@
         "skirting": 0.14,
         "wainscot": 1.14,
         "rail": 0.08,
-        "cap": true
+        "cap": false
       },
       "view": "hall"
     },
@@ -422,7 +422,7 @@
         "skirting": 0.14,
         "wainscot": 1.14,
         "rail": 0.08,
-        "cap": true
+        "cap": false
       },
       "view": "hall"
     },
@@ -476,7 +476,7 @@
         "skirting": 0.14,
         "wainscot": 1.14,
         "rail": 0.08,
-        "cap": true
+        "cap": false
       },
       "view": "corridor"
     },
@@ -562,7 +562,7 @@
         "skirting": 0.14,
         "wainscot": 1.14,
         "rail": 0.08,
-        "cap": true
+        "cap": false
       },
       "view": "corridor"
     },
@@ -672,7 +672,7 @@
         "skirting": 0.14,
         "wainscot": 1.14,
         "rail": 0.08,
-        "cap": true
+        "cap": false
       },
       "view": "closet"
     }
