@@ -818,6 +818,7 @@ Starts from `claude/eb-look-glow` (PR #589); `origin/main` merged before the end
 | Registration | The reflections, shafts and particles are opt-in sky passes in the source's order (stars, reflect, glow, shafts, particles, rain); the mood grade is core's and runs before the snap. View-space passes follow the camera they are told of (`track`, then Pixi's ticker) | `sky-passes.ts`, `camera-track.ts` |
 | Screenshots | [effects](eb-look/effects/README.md): the four base scenes in both views, EB beside AF baked, material only and WebGPU; effects off and on with the outline, on the diorama | `spikes/eb-look/` |
 | Merged with #602 (2026-11-11) | The list is `[haze?, grade?, snap, outline?, ...extras, present?]`, and `present` runs whenever any pass but the snap is in it: the mood grade is off until a mood is set but can be set after the list is made, and it samples the depth like any `PostEffect`, so a grade alone now gets a present pass. Unit tests first (`present-pass.test.ts`, `look-pass-list.test.ts`; the grade-alone case failed first). The kit's pass-list test and the look parity test expect the grade before the snap and the present pass last. Ran: look unit tests, the look parity test and the kit's browser suite on Chromium WebGL2. Not run: WebKit, Firefox, WebGPU | `packages/3d/tests/unit/look/look-pass-list.test.ts` |
+| Merged with #588 (2026-11-11), so the queue #589, #588, #590 merges clean | The list is `[haze?, grade?, ...early, snap, outline?, ...extras, present?]` and `present` runs when `haze \|\| grade \|\| early.length \|\| after.length`. Unit test first (`look-pass-list.test.ts`: an early pass alone with haze and grade off failed first). The #588 unit tests and the lcd-panel and retro-crisp browser tests now expect the grade after the haze. Ran: look unit tests, the look parity test, the kit, retro-crisp and lcd-panel browser suites on Chromium WebGL2. Not run: WebKit, Firefox, WebGPU | `packages/3d/tests/unit/look/look-pass-list.test.ts` |
 | Gates | See the PR description for what ran and what is pending | |
 
 ## The default 3D gameplay camera (2026-11-11)
@@ -831,6 +832,24 @@ The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches 
 | Rig on the new rules (50 mm, 30°, 16 m; follow with dead zone; 1/7 s ease; dolly; peek; shake) | Done; klipp stays as the camera's brain | `angled-camera.test.ts` |
 | The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
 | Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
+| Gates | See the PR description for what ran and what is pending | |
+
+## Three render extensions for the clinic (phase 3 groundwork, 2026-11-11)
+
+Three render features of the adventure source become opt-in extensions, so `level3d` can recreate its clinic. Written fresh
+from the source's behaviour, in AF's data (nothing copied; the mesh keeps its third-party MIT notice). Notes, the
+screenshots and what is open are in [tll-extensions](tll-extensions/README.md).
+
+| Step | Status | Record |
+|---|---|---|
+| `@automata/room-visibility`: rooms, zones, masses, wall ownership by `cut`, `hideFrom` | Done: policy schema and `checkRoomPolicy`, the resolver (0.35 s hold, reduced motion, cutscene, peek), wall groups and nearest-span owners, room masks over a `Container3D` | `extensions/room-visibility/tests/unit/`, `examples/3d/roomvisibility/` |
+| `@automata/lcd-panel`: the LCD post pass and its profile | Done: Zod profile with the clinic's numbers, the pitch maths, GLSL and WGSL, `addLcdPanelPass`; zeroed panel without vignette passes an exact DUEL colour unchanged (WebGL2 test) | `extensions/lcd-panel/tests/`, `examples/3d/lcdpanel/` |
+| `@automata/retro-crisp`: the retro post pass, the crisp maths | Done: grade, unsharp, vignette, film fade, optional Bayer quantise, `RETRO_NEUTRAL` passes an exact DUEL colour unchanged (CPU and WebGL2); crisp: `letterboxScale`, `snapRatio`, `figureSnap`, the profile and canvas layout | `extensions/retro-crisp/tests/`, `examples/3d/retrocrisp/` |
+| Screenshots, on and off, WebGL and WebGPU | Done for every state of the three examples (headless Chromium on SwiftShader, the eb-look flags) | [tll-extensions](tll-extensions/README.md) |
+| Core hook: letterbox `scale: 'whole'` | Done, 2026-11-11, at the coordinator's word: an opt-in option (default `'fit'`, every existing frame and test unchanged) on `LetterboxFrame` and `createPixiRenderer`, which `createPixi3dRenderer` passes on; `crispRendererOptions` turns the crisp profile into it. Measured: whole-pixel runs of 2 and 4 device pixels against 3 and 2 for the fit, both backends | `packages/automata/tests/unit/render/`, `.changeset/letterbox-whole-pixel-scale.md` |
+| Retro before the DUEL snap | Done, 2026-11-11, at the coordinator's word: `LookPass.beforeSnap` in core's look registry (test first; a pass without it runs where it did), `addRetroPass` uses it; the LCD panel stays after the snap and its README says why. Browser test: the graded content is on the palette | `packages/3d/tests/unit/look/look.test.ts`, `extensions/retro-crisp/tests/browser/` |
+| Open | The source's palette-LUT dither stays core's snap | |
+| Merged with #602 (2026-11-11) | The pass list is `[haze?, ...early, snap, outline?, ...after-snap extras, present?]`, and `present` runs whenever any pass but the snap runs, an early pass included (it leaves its depth binding as a later one does). Unit test first: `look-pass-order.test.ts` (an early pass alone got no present pass). The LCD and retro browser tests now expect the haze first and the present pass last. Ran: look unit tests, the retro, LCD and kit-sky browser suites on Chromium WebGL2. Not run: WebKit, Firefox, WebGPU | `packages/3d/tests/unit/look/look-pass-order.test.ts` |
 | Gates | See the PR description for what ran and what is pending | |
 
 ## Journeys take free ports (2026-11-11, branch `claude/fix-e2e-ports`)

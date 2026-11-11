@@ -1,0 +1,46 @@
+{
+  "name": "@automata/room-visibility",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Rooms, camera zones and walls that hide what a zone should not see, for AF's angled-camera 3D levels.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/room-visibility"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./view": "./src/entries/view.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@automata/3d": "workspace:^",
+    "@pixi/3d": "0.1.0-beta.2",
+    "pixi.js": "8.22.0"
+  },
+  "devDependencies": {
+    "@automata/3d": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "pixi.js": "8.22.0",
+    "playwright": "1.63.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

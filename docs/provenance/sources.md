@@ -659,6 +659,17 @@ Not ported: `starters/party-racer` (the Owner cut it), Plus's own `tooling/{core
 the committed `.vitest` screenshots. The converted fixtures keep the headers their converter scripts wrote; the scripts
 themselves are not ported, and the fixtures stay as they are.
 
+## The clinic's render features (2026-11-11)
+
+Written fresh as extensions, from reading the adventure source (`mcthaydt/PixiJS3D_Experiment_001`, private, at `92e6704`).
+No file was copied. What was read, and where it went:
+
+| Source | AF | Notes |
+| --- | --- | --- |
+| `src/render/room-visibility.ts`, `room-wall-owners.ts`, `room-ownership.ts`, `src/scenes/clinic/visibility.ts` | `extensions/room-visibility` | rewritten: a Zod policy and a checker that returns problems, the resolver on `@automata/3d/level`'s point test, wall groups read from an `af-sector/2` level, a renderer-free wall hider; the clinic's policy is the example's, not shipped |
+| `src/render/lcd-panel.ts`, `filter-programs.ts` | `extensions/lcd-panel` | rewritten as a `PostEffect` pair (GLSL, WGSL) with a Zod profile; the mesh is a port of `lcd-perfect` v10 by sinedied (MIT, notice kept in `src/features/lcd-panel/lcd-shader.ts`) |
+| `src/render/retro-filter.ts`, `crisp.ts`, `look.ts` (`LOOK.post`) | `extensions/retro-crisp` | rewritten as a `PostEffect` pair with uniforms and a Zod profile, the clinic's numbers as defaults; the crisp maths as pure functions; the palette LUT and the luma-weighted dither stay core's DUEL snap |
+
 ## Third-party assets copied into this repository
 
 | Asset | Source | Licence |
