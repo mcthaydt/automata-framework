@@ -67,4 +67,5 @@ take it over later: its layout and words as data, not buried in code.
 - Fonts: a game's font covers every language it ships; no device fallback.
 - The clinic work already begun in the framework (#575, #596, #606, #588) is superseded by workstream 2.
 - The site's Editor page (`/editor`) is cut; its link goes straight to the editor at `/editor/app/`.
+- The port may refactor the game where its code quality is questionable; feature folders at the least.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
