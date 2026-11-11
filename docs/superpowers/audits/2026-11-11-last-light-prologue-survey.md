@@ -95,7 +95,7 @@ and from then on the game's files are the source for the game.
 | # | The prologue has | In the game | Mark | In the framework |
 |---|---|---|---|---|
 | 1 | 7 sectors with corners, walls, portals, holes (the counter), windows, doors, handrails and trims; 3 masses | `map.ts`, generated from `blockout.json` | (b) | An `af-sector/2` level: `packages/3d/src/shared/level/af-sector-2.schema.ts`, read with `readLevel` from `@automata/3d/level`; file `content/levels/prologue.af-sector.json`. Two wall members the format leaves out (`hideFrom`, `cut`) are the old renderer's; the converter reports them and drops them |
-| 2 | Which room hides which (the clinic's policy, borrowed) | `../clinic/visibility.ts`, `src/render/room-visibility.ts` | (a), **to check** | The camera's occluders (`packages/3d/src/features/camera/occluders/`). The superseded clinic branches learned that rooms are drawn one by one and walls need tops; if the occluders do not hide the corridor from the hall as the game does, that is a `@automata/3d` fix found in plan task 15, not a private copy |
+| 2 | Which room hides which (the clinic's policy, borrowed) | `../clinic/visibility.ts`, `src/render/room-visibility.ts` | (a), **to check** | The camera's occluders (`packages/3d/src/features/camera/occluders/`). The superseded clinic branches learned that rooms are drawn one by one and walls need tops; if the occluders do not hide the corridor from the hall as the game does, that is a `@automata/3d` fix found in plan task 13, not a private copy |
 | 3 | 21 collider boxes | `level.ts` `BOXES` | (b) | Props with footprints in the level, and nav's `blocked` (the precedent is `clinic.boxes.toml`) |
 | 4 | 22 hotspots: a point, a name, a reach, two of them hiding places | `level.ts` `HOTSPOTS` | (b) | Level entities of a definition `hotspot` (`entityDefs`, `entities`); Levels 3D's Things tool places and edits them; the editor's `puzzle-hotspots` check reads them. The name becomes a message key |
 | 5 | 15 lamps of 9 kinds (desk, screen, pendant, bulb, fluorescent, fire, spark, moon, fill) | `level.ts` `LAMPS`, `src/render/look.ts` | (b), **to check** | `lamps` in the level (`LampPlace`), kinds from the look's lamp kit (`packages/3d/src/features/world/library/lamp-kit.json`). A kind the kit lacks is reported by the converter and mapped by hand to the nearest |
@@ -155,7 +155,7 @@ and from then on the game's files are the source for the game.
 | 44 | The canon (people, motifs) the lines name | `src/narrative/canon.ts` | (b) | The `canon` kind. Only the part the prologue's lines name is converted |
 | 45 | Five cutscenes (`opening`, `keypad`, `lightsOut`, `found`, `rest`): shots with lens changes, cuts, fades, flicker, lamp levels, a sting, a prop state, actors with poses and turns, captions | `cutscenes.ts`, `src/game/cutscene-builder.ts` | (b), with one (c) | The `cutscene` kind (`cutscenes.content.ts`), `content/cutscenes/prologue.toml`; the director, the caption and the lint are there. **One gap:** four of the five are functions of where Ada stands. Actors can stand at an anchor (`at = "player"`), but a camera key cannot, so `found` (shot where the catch happened) cannot be said. A camera key relative to an anchor is added to `@automata/cutscenes` (plan task 6). `opening`, `lightsOut` and `rest` put Ada on a mark first, which the old code nearly does already |
 | 46 | A cutscene drawn in 3D: the camera, the figures posed, lamps, doors, fades | `src/render/stage.ts` | (a) in pieces, (c) as one | `examples/3d/cutscenes` wires the director to the camera, `updatePieces` and the light by hand. There is a ready stage for 2D (`@automata/cutscenes/stage-2d`) and none for 3D. A `stage-3d` in `@automata/cutscenes` that does that wiring once, with actors, is missing and generic (plan task 6) |
-| 47 | Cutscene poses: `read`, `flinch`, `sit`, `sleep`, `pulse` | actor keys | (b), **waits** | Figure actions and seats (`figure-actions`, `figure-seat` from character-kit). Ember Hall has a `flinch` action that is rewritten for Ada before Ember Hall goes; the others are written as content in the Studio (plan task 15). No paid stage |
+| 47 | Cutscene poses: `read`, `flinch`, `sit`, `sleep`, `pulse` | actor keys | (b), **waits** | Figure actions and seats (`figure-actions`, `figure-seat` from character-kit). Ember Hall has a `flinch` action that is rewritten for Ada before Ember Hall goes; the others are written as content in the Studio (plan task 13). No paid stage |
 | 48 | Films before and after cutscenes | `presentation.ts` `fmv` | out | The Owner: films are out |
 
 ## Run time: sound, feel and the shell
@@ -169,7 +169,7 @@ and from then on the game's files are the source for the game.
 | 52 | Feel: flicker, a flinch, shake within limits | `src/feel/` | (a) | `@automata/feel` and its `feel` kind; the Feel editor edits it |
 | 53 | Title, pause, settings, save slots, gamepad, touch, rebinding | `src/ui/boot.ts`, `settings-ui.ts`, `gamepad.ts`, `menu-nav.ts`, `focus.ts`, `access.ts` | (a) | Core's default screens and input (`@automata/framework`). None of the game's copies cross |
 | 54 | Six languages, a first-run language pick, a flashing warning, interface sounds, a splash, credits, fonts for every language | (the game has none of these) | (a), **from workstream 1** | Shared polish, being built on `claude/shared-polish-build`: `defineGame`'s `firstRunLanguage`, `photosensitivity`, `opening`, `uiSounds`; `automata words`; `fonts.toml` and the font build; Splash and Credits in `@automata/ui-screens`. The prologue flickers, so it turns the warning on |
-| 55 | A debug driver the playthrough script calls (`window.game.click`, `skip`, `light`) | `src/main.ts` | (a) | `@automata/debug`'s driver and the sim's replay and hash tools. The bots in plan tasks 14 and 17 send the commands a player's input sends |
+| 55 | A debug driver the playthrough script calls (`window.game.click`, `skip`, `light`) | `src/main.ts` | (a) | `@automata/debug`'s driver and the sim's replay and hash tools. The bots in plan tasks 12 and 15 send the commands a player's input sends |
 
 ## The editors: which one opens what, today
 
@@ -177,7 +177,7 @@ and from then on the game's files are the source for the game.
 |---|---|---|---|
 | Rooms, walls, doors, windows, masses | `content/levels/prologue.af-sector.json` | Levels 3D | Opens and saves `af-sector/2` |
 | Hotspots, the spawn, hiding places | the same file, as things | Levels 3D (Things) | Opens. The definitions (`hotspot` with a name, a reach, a hide flag, a condition) are data in the level |
-| Lamps, props, lettering | the same file | Levels 3D | Opens lamps and props. **To check in plan task 18:** that a lamp's level and a prop's kit parameters are editable, not only its place |
+| Lamps, props, lettering | the same file | Levels 3D | Opens lamps and props. **To check in plan task 16:** that a lamp's level and a prop's kit parameters are editable, not only its place |
 | Camera views per room | the same file | Levels 3D (areas) | Opens: a definition with an area is the camera zone |
 | Nav nodes and edges | `content/nav/prologue.toml` | Schematic (Places) | Opens. Levels 3D also links nav things on the plan; the file is Schematic's |
 | The figure, the rules, the tuned numbers, the patrol | `content/systems/prologue.toml` | Schematic | Opens; Watch shows her modes beside the game through `@automata/debug` |
@@ -268,9 +268,9 @@ figure already runs on her rules less the water and the ambush, so most of her c
 ## What slice 1 waits for
 
 - **Workstream 1** (shared polish), on `claude/shared-polish-build`: the languages, `automata words`, the fonts, the
-  first-run steps, Splash and Credits. The game's shell task (plan task 19) and the framework's closing task (10) start after it merges.
+  first-run steps, Splash and Credits. The game's shell task (plan task 18) starts after it merges.
 - **The builders' look** (`docs/refactor/progress.md`, "eb-look"): haze, sky and the dresser are done; albedo tiles are
-  on a branch; WebGPU still loses its device in the headless container. Slice 1 uses what is on `main` at the pin and lists the difference in its report.
+  on a branch; WebGPU still loses its device in the headless container. Slice 1 uses what is on `main` when plan task 13 starts and lists the difference in its report.
 - **Painted figures** (cycle c7, `claude/c7-af`): the character kit's painted figures and fashion are done on the
   branch; the runway example is on hold. Ada and the figure are built in the Studio from whatever has merged.
 - Nothing from the Owner for the translations: the building session writes the five translations of the prologue's
