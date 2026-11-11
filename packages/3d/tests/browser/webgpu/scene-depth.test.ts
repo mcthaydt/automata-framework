@@ -10,6 +10,7 @@
 import { CubeGeometry, FlatMaterial, Mesh3D, PostEffect, View3D } from '@pixi/3d'
 import { Application, UniformGroup } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
+import { adapterGone, notOnWebGpu } from '#src/testing/webgpu-skip.ts'
 
 const hasWebGpu =
   typeof navigator !== 'undefined' && 'gpu' in navigator
@@ -27,17 +28,33 @@ class Passthrough extends PostEffect {
 
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 
+interface Reported {
+  /** What the device reported: validation errors, and why it was lost, if it was. */
+  readonly problems: string[]
+  /** Why this machine could not judge it (no WebGPU adapter, or it went away), if it could not. */
+  readonly unjudged?: string
+}
+
 /** What the device reported over 40 frames of one cube and a Passthrough effect, with `change` done at frame 10. */
-async function problemsAfter(change: (view: View3D, cube: Mesh3D) => void): Promise<string[]> {
+async function problemsAfter(change: (view: View3D, cube: Mesh3D) => void): Promise<Reported> {
   const app = new Application()
   await app.init({ preference: 'webgpu', width: 160, height: 90, backgroundColor: 0x2e222f })
+  const fellBack = notOnWebGpu(app.renderer)
+  if (fellBack !== undefined) {
+    app.destroy(true)
+    return { problems: [], unjudged: fellBack }
+  }
   document.body.appendChild(app.canvas)
   const problems: string[] = []
+  let lost = false
   const { device } = (app.renderer as unknown as { gpu: { device: GPUDevice } }).gpu
   device.addEventListener('uncapturederror', (event) =>
     problems.push((event as GPUUncapturedErrorEvent).error.message),
   )
-  void device.lost.then((info) => problems.push(`device lost: ${info.reason}`))
+  void device.lost.then((info) => {
+    lost = true
+    problems.push(`device lost: ${info.reason}`)
+  })
   const view = new View3D({ width: 160, height: 90, toneMapping: 'none' })
   view.passes = [new Passthrough()]
   app.stage.addChild(view)
@@ -57,23 +74,28 @@ async function problemsAfter(change: (view: View3D, cube: Mesh3D) => void): Prom
   await new Promise((resolve) => setTimeout(resolve, 400))
   app.destroy(true)
   document.body.replaceChildren()
-  return problems
+  const gone = lost ? await adapterGone() : undefined
+  return gone === undefined ? { problems } : { problems, unjudged: gone }
 }
 
 describe.runIf(hasWebGpu)('@pixi/3d on WebGPU with a post effect', () => {
-  it('stays valid while the scene holds still and while a mesh moves or hides', async () => {
-    const still = await problemsAfter(() => {})
-    expect(still).toEqual([])
-    const moved = await problemsAfter((_view, cube) => cube.position.set(0.5, 0, 0))
-    expect(moved).toEqual([])
-    const hidden = await problemsAfter((_view, cube) => {
-      cube.visible = false
-    })
-    expect(hidden).toEqual([])
+  it('stays valid while the scene holds still and while a mesh moves or hides', async ({ skip }) => {
+    const changes: ((view: View3D, cube: Mesh3D) => void)[] = [
+      () => {},
+      (_view, cube) => cube.position.set(0.5, 0, 0),
+      (_view, cube) => {
+        cube.visible = false
+      },
+    ]
+    for (const change of changes) {
+      const { problems, unjudged } = await problemsAfter(change)
+      if (unjudged !== undefined) return skip(unjudged)
+      expect(problems).toEqual([])
+    }
   }, 60_000)
 
   it.fails('stays valid after a mesh is added (a bundle re-record), but does not yet', async () => {
-    const problems = await problemsAfter((view) => {
+    const { problems } = await problemsAfter((view) => {
       const second = new Mesh3D({
         geometry: new CubeGeometry({ width: 1, height: 1, depth: 1 }),
         material: new FlatMaterial({ baseColor: [0.2, 0.7, 0.9, 1] as never }),

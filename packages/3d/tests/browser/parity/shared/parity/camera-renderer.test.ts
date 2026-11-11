@@ -1,6 +1,7 @@
 // The renderer with the angled camera (M3.4b) on a real context: the player's row drives the View3D's camera, which
-// stands at the Owner's view behind the followed position on a 24 mm lens. Headless Firefox here has no WebGL, so
-// this skips there and the GPU runner runs it (M3.1b).
+// stands at the Owner's view behind the followed position: the default gameplay camera (the Owner, 2026-11-10), 30°
+// down and 16 m back on a 50 mm lens. Headless Firefox here has no WebGL, so this skips there and the GPU runner runs
+// it (M3.1b).
 import '#src/entries/no-eval.ts'
 import type { RenderRow, StepResult } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -23,7 +24,7 @@ afterEach(async () => {
 })
 
 describe.runIf(hasWebGL2)('createPixi3dRenderer with the angled camera', () => {
-  it('puts the View3D camera at the player’s view, 24 mm, and exposes the rig', async () => {
+  it('puts the View3D camera at the player’s view, 50 mm, and exposes the rig', async () => {
     const host = document.createElement('div')
     document.body.appendChild(host)
     const factory = createPixi3dRenderer({
@@ -34,18 +35,19 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer with the angled camera', () => {
     })
     const renderer = await builtRenderer(factory(testTarget(host)))
     scope = renderer
-    expect(renderer.camera?.lensMm).toBe(24)
+    expect(renderer.camera?.lensMm).toBe(50)
     const row: RenderRow = {
       sid: 1,
       components: { body: { x: 1, y: 0, z: 2 }, 'camera-heading': { view: 'hall', heading: 16_384 } },
     }
     renderer.apply(step({ resync: true, added: [row], changed: [], removed: [] }))
     renderer.draw({ alpha: 1, frameMs: 16, paused: false })
-    const eye = eyeOf({ x: 1, y: 1, z: 2 }, 90, 25, 5)
+    const eye = eyeOf({ x: 1, y: 1, z: 2 }, 90, 30, 16)
     const { position, fov } = renderer.view.camera
     expect(position.x).toBeCloseTo(eye.x, 4)
     expect(position.y).toBeCloseTo(eye.y, 4)
     expect(position.z).toBeCloseTo(eye.z, 4)
-    expect(fov).toBeCloseTo(53.13, 2)
+    // 2·atan(12 / 50) on the 24 mm tall gate.
+    expect(fov).toBeCloseTo(26.99, 2)
   })
 })
