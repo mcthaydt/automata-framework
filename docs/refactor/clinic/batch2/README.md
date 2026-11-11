@@ -14,7 +14,7 @@ spots only and show its HUD). `shots.json` holds the facts of the last run of `s
 | 3 | The frame artefacts | The black line at 77% and the blue band at the bottom went with the framing (the line was a near wall's top crossing the frame; the band, the sky past a cut wall). Blue still shows past the building where the other rooms are not hidden: item 4 |
 | 4 | Room visibility on the clinic's zones, wall tops back | Waits for PR 588 (room-visibility), still an open draft |
 | 5 | The 12 world-kit pieces | Done: the generators and presets (translucent parts, `veil`), and the dressing table that places 52 of them in the clinic (below) |
-| 6 | Procedural props instead of the stand-in boxes | Not started |
+| 6 | Procedural props instead of the stand-in boxes | In progress, WIP (below): 45 of 57 stand-ins are kit furniture at the source's box; 12 remain boxes |
 | 7 | "On" frames | Waits for PRs 588 and 590 |
 
 ## Calls made
@@ -66,6 +66,29 @@ Calls made:
   it; they come back with item C.
 - **What shows that should not**: the dressing of rooms the camera is not in (the hall's north-east pipes and noticeboard in the
   supply and corridor frames). The source hides those rooms; room visibility does it here, item E.
+
+## Item 6: the stand-in boxes become kit furniture (2026-11-11, WIP)
+
+The world kit gains `fit` (`extensions/world-kit/src/features/props/fit.ts`): it builds any kit generator, turns it about y if
+asked, and scales it axis by axis to a given box, standing on its base and centred on its origin. The converter uses it to put the
+kit's own piece in the box the source's model filled (`with.size`, in the prop's own frame), so the room keeps its masses
+and the shapes are the kit's: `spikes/clinic/furniture.ts` maps each source model to a kit preset, and a prop of the level is
+`{ use: 'fit', with: { of: <kind>, with: <the preset's parameters, less its light>, size, turn } }`. A preset's own light is
+dropped: the level's lamps already give the desk lamp's and the monitor's. Four new generators for the rolling equipment
+(`gurney`, `wheelchair`, `ivStand`, `monitorCart`, in `medical.ts`) cover what the kit lacked.
+
+| | Props |
+|---|---|
+| **Kit furniture, fitted (45)** | bed (turned so its head is north), gurney, wheelchair, IV stand, monitor cart, the three-seat bench, 2 filing cabinets, drawers, nightstand, office chair, overbed table, mop bucket, desk lamp, pendant lamp, 2 waste bins, key cabinet, 2 floor plants, desk plant, 2 book stacks, ledger, 2 radiators, water cooler, 24 stock pieces (crates, bottles, barrels) |
+| **Still stand-in boxes (12)** | fallen chair (a chair on its side: an upright chair squashed to that box would not read), sink, trolley, clock, wall CRT (a deep box; the kit's screen is a slab), coat hook, wall sconce, junction box, privacy screen (turned 67°), extinguisher cabinet, 2 strip lights |
+
+Tested: `tests/unit/props/fit.test.ts`, `tests/unit/props/medical.test.ts`, and `tests/unit/clinic-furniture.test.ts`, which holds
+each fitted prop to its source box (±0.005 m), its spot and its height, and the 12 boxes to a named list.
+
+State: the full gate has **not** run on this item (the world kit's unit tests, its typecheck and the core clinic test pass); the
+frames current with it are the hall and the ward. Corridor, supply, the zone stills and the four turned frames are from item 5
+or before. What reads wrongly now: the desk lamp's lamp lights the counter in saturated orange (item D), and a few things on
+shelves float because their `at` height is the source's.
 
 ## The framing, re-checked by eye (2026-11-11)
 

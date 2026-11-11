@@ -197,27 +197,163 @@
         "wear": 0.4,
         "seed": 16
       }
+    },
+    "leatherBlack": {
+      "ramp": "violet",
+      "step": 2
+    },
+    "cordBlack": {
+      "ramp": "violet",
+      "step": 1
+    },
+    "bookGreen": {
+      "ramp": "moss",
+      "step": 4
+    },
+    "bookCream": {
+      "ramp": "sand",
+      "step": 5
+    },
+    "linen": {
+      "ramp": "sand",
+      "step": 6
+    },
+    "quiltBlue": {
+      "ramp": "sky",
+      "step": 3,
+      "pattern": {
+        "kind": "checker",
+        "size": [
+          0.22,
+          0.22
+        ],
+        "step": -1
+      }
+    },
+    "pillowWhite": {
+      "ramp": "slate",
+      "step": 6
+    },
+    "fabricKnit": {
+      "ramp": "dusk",
+      "step": 3,
+      "texture": {
+        "photo": "fabric",
+        "scale": 0.5,
+        "contrast": 0.08,
+        "seed": 81
+      },
+      "reads": {
+        "at": 64,
+        "maxSpots": 0.18
+      }
+    },
+    "metalSheet": {
+      "ramp": "dusk",
+      "step": 4,
+      "texture": {
+        "photo": "metalSheet",
+        "contrast": 0.04,
+        "seed": 82
+      }
+    },
+    "walnut": {
+      "ramp": "brick",
+      "step": 2
+    },
+    "brass": {
+      "ramp": "amber",
+      "step": 5
+    },
+    "woodGrain": {
+      "ramp": "wood",
+      "step": 3,
+      "texture": {
+        "photo": "woodGrain",
+        "contrast": 0.02,
+        "facet": 0,
+        "flatten": 0.3,
+        "cluster": 2,
+        "seed": 79
+      }
+    },
+    "lampshade": {
+      "ramp": "flame",
+      "step": 6,
+      "emit": true
+    },
+    "binGreen": {
+      "ramp": "pine",
+      "step": 3
+    },
+    "ironDark": {
+      "ramp": "violet",
+      "step": 2
+    },
+    "oakDark": {
+      "ramp": "mud",
+      "step": 3
+    },
+    "leafDeep": {
+      "ramp": "forest",
+      "step": 5,
+      "pattern": {
+        "kind": "leaves",
+        "size": [
+          0.42,
+          0
+        ]
+      }
+    },
+    "potWhite": {
+      "ramp": "slate",
+      "step": 6
+    },
+    "leafGreen": {
+      "ramp": "moss",
+      "step": 4,
+      "pattern": {
+        "kind": "leaves",
+        "size": [
+          0.4,
+          0
+        ]
+      }
+    },
+    "terracotta": {
+      "ramp": "brick",
+      "step": 4
+    },
+    "lampshadeTeal": {
+      "ramp": "teal",
+      "step": 6,
+      "emit": true
+    },
+    "bulbWarm": {
+      "ramp": "ember",
+      "step": 7,
+      "emit": true
+    },
+    "bottleGreen": {
+      "ramp": "pine",
+      "step": 5,
+      "line": "none"
+    },
+    "bottleAmber": {
+      "ramp": "amber",
+      "step": 3,
+      "line": "none"
+    },
+    "bottleClear": {
+      "ramp": "dusk",
+      "step": 6,
+      "line": "none"
     }
   },
   "props": {
-    "model.bed": {
-      "kind": "model",
-      "model": "models/bed.glb",
-      "swatch": "prop"
-    },
-    "model.wheelchair": {
-      "kind": "model",
-      "model": "models/wheelchair.glb",
-      "swatch": "prop"
-    },
     "model.fallen-chair": {
       "kind": "model",
       "model": "models/fallen-chair.glb",
-      "swatch": "prop"
-    },
-    "model.bench": {
-      "kind": "model",
-      "model": "models/bench.glb",
       "swatch": "prop"
     },
     "model.sink": {
@@ -230,59 +366,14 @@
       "model": "models/trolley.glb",
       "swatch": "prop"
     },
-    "model.filing": {
-      "kind": "model",
-      "model": "models/filing.glb",
-      "swatch": "prop"
-    },
-    "model.drawers": {
-      "kind": "model",
-      "model": "models/drawers.glb",
-      "swatch": "prop"
-    },
     "model.clock": {
       "kind": "model",
       "model": "models/clock.glb",
       "swatch": "prop"
     },
-    "model.nightstand": {
-      "kind": "model",
-      "model": "models/nightstand.glb",
-      "swatch": "prop"
-    },
-    "model.monitor-cart": {
-      "kind": "model",
-      "model": "models/monitor-cart.glb",
-      "swatch": "prop"
-    },
-    "model.iv-stand": {
-      "kind": "model",
-      "model": "models/iv-stand.glb",
-      "swatch": "prop"
-    },
-    "model.office-chair": {
-      "kind": "model",
-      "model": "models/office-chair.glb",
-      "swatch": "prop"
-    },
     "model.wall-tv": {
       "kind": "model",
       "model": "models/wall-tv.glb",
-      "swatch": "prop"
-    },
-    "model.mop-bucket": {
-      "kind": "model",
-      "model": "models/mop-bucket.glb",
-      "swatch": "prop"
-    },
-    "model.desk-lamp": {
-      "kind": "model",
-      "model": "models/desk-lamp.glb",
-      "swatch": "prop"
-    },
-    "model.waste-bin": {
-      "kind": "model",
-      "model": "models/waste-bin.glb",
       "swatch": "prop"
     },
     "model.coat-hook": {
@@ -300,44 +391,9 @@
       "model": "models/junction-box.glb",
       "swatch": "prop"
     },
-    "model.key-cabinet": {
-      "kind": "model",
-      "model": "models/key-cabinet.glb",
-      "swatch": "prop"
-    },
-    "model.floor-plant": {
-      "kind": "model",
-      "model": "models/floor-plant.glb",
-      "swatch": "prop"
-    },
-    "model.desk-plant": {
-      "kind": "model",
-      "model": "models/desk-plant.glb",
-      "swatch": "prop"
-    },
-    "model.book-stack": {
-      "kind": "model",
-      "model": "models/book-stack.glb",
-      "swatch": "prop"
-    },
-    "model.ledger": {
-      "kind": "model",
-      "model": "models/ledger.glb",
-      "swatch": "prop"
-    },
-    "model.overbed-table": {
-      "kind": "model",
-      "model": "models/overbed-table.glb",
-      "swatch": "prop"
-    },
     "model.privacy-screen": {
       "kind": "model",
       "model": "models/privacy-screen.glb",
-      "swatch": "prop"
-    },
-    "model.radiator": {
-      "kind": "model",
-      "model": "models/radiator.glb",
       "swatch": "prop"
     },
     "model.extinguisher-cabinet": {
@@ -345,64 +401,9 @@
       "model": "models/extinguisher-cabinet.glb",
       "swatch": "prop"
     },
-    "model.gurney": {
-      "kind": "model",
-      "model": "models/gurney.glb",
-      "swatch": "prop"
-    },
-    "model.water-cooler": {
-      "kind": "model",
-      "model": "models/water-cooler.glb",
-      "swatch": "prop"
-    },
-    "model.pendant-lamp": {
-      "kind": "model",
-      "model": "models/pendant-lamp.glb",
-      "swatch": "prop"
-    },
     "model.strip-light": {
       "kind": "model",
       "model": "models/strip-light.glb",
-      "swatch": "prop"
-    },
-    "model.stock-boxes": {
-      "kind": "model",
-      "model": "models/stock-boxes.glb",
-      "swatch": "prop"
-    },
-    "model.stock-archive": {
-      "kind": "model",
-      "model": "models/stock-archive.glb",
-      "swatch": "prop"
-    },
-    "model.stock-linen": {
-      "kind": "model",
-      "model": "models/stock-linen.glb",
-      "swatch": "prop"
-    },
-    "model.stock-bottles": {
-      "kind": "model",
-      "model": "models/stock-bottles.glb",
-      "swatch": "prop"
-    },
-    "model.stock-canisters": {
-      "kind": "model",
-      "model": "models/stock-canisters.glb",
-      "swatch": "prop"
-    },
-    "model.stock-toolbox": {
-      "kind": "model",
-      "model": "models/stock-toolbox.glb",
-      "swatch": "prop"
-    },
-    "model.stock-rolls": {
-      "kind": "model",
-      "model": "models/stock-rolls.glb",
-      "swatch": "prop"
-    },
-    "model.stock-bandages": {
-      "kind": "model",
-      "model": "models/stock-bandages.glb",
       "swatch": "prop"
     },
     "moon-shaft": {
@@ -507,6 +508,9 @@
     },
     "shelving": {
       "kind": "shelvingUnit"
+    },
+    "fit": {
+      "kind": "fit"
     }
   }
 }

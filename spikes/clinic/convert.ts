@@ -13,6 +13,7 @@ import { stripTypeScriptTypes } from 'node:module'
 import { join } from 'node:path'
 import { DUEL_RAMP_NAMES, DUEL_RAMPS, nearestDuel } from '../../packages/content/src/shared/palette/duel.ts'
 import { DRESSING, DRESSING_SWATCHES } from './dressing.ts'
+import { FURNITURE_SWATCHES, REPLACEMENTS } from './furniture.ts'
 
 const source = process.argv[2]
 if (source === undefined) throw new Error('usage: node spikes/clinic/convert.ts <source checkout> [out dir]')
@@ -187,7 +188,7 @@ if (DUEL_RAMPS.length !== DUEL_RAMP_NAMES.length) throw new Error('the palette a
 
 const presets: Record<string, Json> = {}
 for (const file of new Set((props.PROPS as Spec[]).map((p) => p.file)))
-  presets[`model.${file}`] = { kind: 'model', model: `models/${file}.glb`, swatch: 'prop' }
+  if (REPLACEMENTS[file] === undefined) presets[`model.${file}`] = { kind: 'model', model: `models/${file}.glb`, swatch: 'prop' }
 
 // The dressing's presets and the swatches they and their generators name come from the world kit's own library, as they are
 // (the clinic's own surfaces keep their names: a kit swatch of the same name is not taken over them).
@@ -199,7 +200,36 @@ for (const use of new Set(DRESSING.map((place) => place.use))) {
   if (preset === undefined) throw new Error(`the world kit has no preset "${use}"`)
   presets[use] = preset
 }
-for (const name of DRESSING_SWATCHES) {
+
+/** Every swatch name a preset's parameters carry (a bare name, or a tile of one), that the kit's library has. */
+function swatchesIn(value: unknown, found = new Set<string>()): Set<string> {
+  if (typeof value === 'string') {
+    if (kitSwatches[value] !== undefined) found.add(value)
+  } else if (Array.isArray(value)) for (const v of value) swatchesIn(v, found)
+  else if (value !== null && typeof value === 'object') for (const v of Object.values(value)) swatchesIn(v, found)
+  return found
+}
+// A stand-in box becomes the kit's own piece of furniture, built by `fit` at the same box: the kit's preset (less its light,
+// which the level's own lamps already give) goes in as `with.with`, so the level carries the numbers and `fit` only the shape.
+const furnitureSwatches = new Set(FURNITURE_SWATCHES)
+const furnished = placed.map((prop) => {
+  const file = prop.use.slice('model.'.length)
+  const replacement = REPLACEMENTS[file]
+  if (replacement === undefined) return prop
+  const preset = kitProps[replacement.use]
+  if (preset === undefined) throw new Error(`the world kit has no preset "${replacement.use}"`)
+  const { kind, light: _light, ...own } = preset as Json & { kind: string }
+  for (const name of swatchesIn({ ...own, ...replacement.with })) furnitureSwatches.add(name)
+  return {
+    id: prop.id,
+    use: 'fit',
+    at: prop.at,
+    angle: prop.angle,
+    with: { of: kind, with: { ...own, ...replacement.with }, size: prop.with.size, ...(replacement.turn === undefined ? {} : { turn: replacement.turn }) },
+  }
+})
+presets.fit = kitProps.fit as Json
+for (const name of new Set([...DRESSING_SWATCHES, ...furnitureSwatches])) {
   if (swatches[name] !== undefined) continue
   const swatch = kitSwatches[name]
   if (swatch === undefined) throw new Error(`the world kit has no swatch "${name}"`)
@@ -213,7 +243,7 @@ const clinic = {
   title: 'St. Agnes Clinic',
   sectors,
   masses: map.MASSES,
-  props: [...placed, ...DRESSING],
+  props: [...furnished, ...DRESSING],
   lamps,
   bounce,
   // The source's room light: a cool teal-grey ambient (its look bible's `LIGHT.ambient` is 0.15; AF's flat swatches need more) and a low cool fill on
@@ -235,5 +265,5 @@ write('clinic.af-sector.json', clinic)
 write('clinic.library.json', { swatches, props: presets })
 write('clinic.opening-state.json', { lamps: openingLamps })
 console.log(
-  `wrote ${sectors.length} sectors, ${(map.MASSES as unknown[]).length} masses, ${placed.length} model props and ${DRESSING.length} dressing props, ${lamps.length} lamps, ${bounce.length} bounce points, ${Object.keys(views).length} views, ${Object.keys(swatches).length} swatches to ${out}`,
+  `wrote ${sectors.length} sectors, ${(map.MASSES as unknown[]).length} masses, ${furnished.filter((p) => p.use === 'fit').length} fitted and ${furnished.filter((p) => p.use !== 'fit').length} stand-in props and ${DRESSING.length} dressing props, ${lamps.length} lamps, ${bounce.length} bounce points, ${Object.keys(views).length} views, ${Object.keys(swatches).length} swatches to ${out}`,
 )

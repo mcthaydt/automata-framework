@@ -66,10 +66,12 @@ describe('the converted clinic', () => {
     expect(read.level.sectors.find((s) => s.id === 'closet')?.view).toBe('closet')
   })
   it('builds with no lamp off its tone, no missing swatch and no missing model prop', () => {
-    // The dressing (`dress-*`) is the world kit's pieces: core has no generator for them, and the kit's own test builds them.
-    const models = (clinic.props as { id: string }[]).filter((p) => !p.id.startsWith('dress-'))
+    // The dressing and the fitted furniture are the world kit's pieces: core has no generator for them, and the kit's own tests
+    // build them. What is left here is the stand-in boxes for models.
+    const isModel = (p: { use?: string | undefined }) => p.use?.startsWith('model.') === true
+    const models = (clinic.props as { use: string }[]).filter(isModel)
     const { problems, lamps, pieces } = buildWorld(
-      { ...read.level, props: read.level.props?.filter((p) => !p.id.startsWith('dress-')) },
+      { ...read.level, props: read.level.props?.filter(isModel) },
       library,
       { night: true },
     )

@@ -8,7 +8,10 @@ import { levelWith } from '../../fixtures/level.ts'
 
 const props = worldKitLibrary.props as Record<string, Record<string, unknown>>
 /** The presets that leave a parameter to the place that uses them. */
-const WITH: Record<string, Record<string, unknown>> = { runner: { size: [3, 0.8] } }
+const WITH: Record<string, Record<string, unknown>> = {
+  runner: { size: [3, 0.8] },
+  fit: { of: 'crate', with: { size: [0.6, 0.5, 0.6], mat: 'crateWood', slat: 'oak' }, size: [0.5, 0.4, 0.7] },
+}
 
 const facesAway = (mesh: MeshData): number | undefined => {
   const { positions: pos, normals: nor, indices: idx } = mesh

@@ -585,5 +585,10 @@
     "kind": "wallNotice",
     "size": [0.22, 0.3],
     "y": 1.5
-  }
+  },
+  "fit": { "kind": "fit" },
+  "gurney": { "kind": "gurney" },
+  "wheelchair": { "kind": "wheelchair" },
+  "iv-stand": { "kind": "ivStand" },
+  "monitor-cart": { "kind": "monitorCart" }
 }
