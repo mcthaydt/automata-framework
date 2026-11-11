@@ -17,6 +17,7 @@ runs in its own session on its own branch and hands off through committed docume
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Next is 4, execution | 43% (3 of 7 stages); execution 0 of 21 tasks | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
 | 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 3, plan audit: done 2026-11-11, 29 findings (7 blocking, 14 should fix, 8 tidy), all fixed in the plan and the survey, which now match the spec and the code at `main` `81ce53a9` and the game at `92e6704`. Open: the Owner's answer on the seven recorded files the old prologue plays beyond the six (the plan crosses the six until then), and workstream 1's plan recording its task 17 as cut. Next is 4, execution (22 tasks on three branches). Slices 2 to 4 not started | Slice 1: 43% (3 of 7 stages); execution 0 of 22 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md), [audit](audits/2026-11-11-last-light-prologue-plan-audit.md) |
 | 3 | A UI editor in the suite | Not started: the Owner will address it when we get to it; its spec is written with the Owner then | 0% | |
+| 4 | The builders' look and figures in the framework (takes over #588, #589, #590, #603, #607) | 2, plan: session started 2026-11-11; it surveys first. Runs ahead of the prologue's dressing tasks | 14% (1 of 7 stages) | [spec](specs/2026-11-11-builders-look-and-figures-design.md) |
 
 ## Workstream 1 sessions
 
@@ -82,4 +83,12 @@ take it over later: its layout and words as data, not buried in code.
 - The Last Light is fully open source like Emberwick: its story, art and music are MIT.
 - The Last Light is no longer a source game: the source-names check drops its name. Its ElevenLabs sounds and music
   come across as they are (the Owner paid for them).
+- Where a new piece goes: core only if generic for any game; an extension if generic within a genre; otherwise custom
+  code in the reference game.
+- The 3D examples (`examples/3d`, `examples/3d-story`) are cut with Ember Hall when the prologue plays, and recreated
+  from the reference game straight after.
+- Old branches: the session's git proxy refuses branch deletion (HTTP 403), so none were cut from here; 18 are safe to
+  delete (all their work is on `main`), the rest hold unmerged work.
+- Workstream 4 takes over the builders' look and figures work that other coordinators began (the Owner: yes).
+- Ubicloud 8-core runners are planned for this repository's CI; until they are live, sessions run the gates themselves.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.

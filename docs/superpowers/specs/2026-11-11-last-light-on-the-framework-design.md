@@ -64,7 +64,8 @@ becomes the framework's 3D reference.
 
 - A game that plays but cannot be opened in the editors.
 - A converter that has to be re-run forever. It runs once per scene; after that the content files are the source.
-- A private copy, inside the game, of anything another game would need; that belongs in the framework.
+- A private copy, inside the game, of anything another game would need; or, the other way, game-specific code or
+  names pushed into core or an extension.
 - The game's own menus, settings, gamepad, save or language code beside the framework's.
 - A changed line. A line changes only on the Owner's word.
 
@@ -128,6 +129,36 @@ on a broken layer or a test beside the source. Beyond the folders, where the old
 carries a workaround for something the framework now does, the port writes it properly instead of carrying it across;
 the old behaviour and its tests are the specification, the old code is not. Each such rewrite is named in the plan with
 its reason, and the playthrough proves the behaviour held.
+
+### The 3D examples go too, and are recreated after the prologue
+
+The Owner looked at screenshots of all 19 examples in `examples/3d` on 2026-11-11 (none crashes; two draw almost
+nothing, `world-level-room` and `look-pixel-art`; about half are a lone figure on a bare slab) and decided: "all
+examples should be recreated after the prologue". So `examples/3d`, its journeys and goldens, and `examples/3d-story`
+are removed in the same slice as Ember Hall, when the prologue plays, and the site's Examples page lists no 3D example
+until the new ones exist. The 3D workflow's coverage then comes from the reference game's own journeys and the
+packages' browser tests. Recreating them is its own piece of work straight after slice 1: each new example is a small
+cut of the reference game (a room, a figure, a cutscene, the look, the HUD), so it looks right because the game
+does, and each has its journey. `examples/3d/wardrobe`, the worked example of a wardrobe extension, is judged with the
+rest. The 2D examples are untouched.
+
+### Where a new piece goes
+
+The Owner, 2026-11-11: "it shouldn't go into the framework unless it's generic, it can go into extensions if it's
+generic, but genre-scoped, we can have custom code for 3D example game". Three homes, judged in this order:
+
+1. **Core** (`packages/`): only what any game could use, whatever its genre. Using a thing in the world, a HUD drawn
+   from data, a view that names the rooms it draws.
+2. **An extension** (`extensions/`): generic within a genre. Another game of the same kind would use it unchanged, and
+   a game of another kind would not want it: a creature that hunts by light and sound, hiding and peeking, a lamp that
+   burns fuel, a pacing director. It names no character, room or line of The Last Light.
+3. **The game** (`games/the-last-light`): what is this game's alone, written as its own features: the prologue's rule
+   arithmetic, the Night Nurse's particular behaviour, a hook only this story needs. Custom code here is fine and is
+   not a failure to generalise.
+
+A piece that does not clearly pass the test for a home goes one step down the list. The plan says for each addition
+which home it has and why; the plan audit checks each one, and nothing lands in core or an extension that carries the
+game's own names or assumptions.
 
 ### One scene's slice
 
