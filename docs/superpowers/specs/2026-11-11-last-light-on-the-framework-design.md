@@ -82,6 +82,18 @@ framework's game shape: `content/`, `src/app/`, `src/features/<x>/`, `src/shared
 at a pinned commit, built and packed, since the 3D packages are not on a registry. The old `src/`, `editor/` and
 `scripts/` stay untouched as the reference until the whole game is across, then they are deleted in one change.
 
+### A refactor, not a transcription
+
+The Owner, 2026-11-11: "You have permission to refactor the last light on framework if the code quality is
+questionable, at a minimum, we'd need to do it for the feature folders because it wasn't coded like that". The old
+game is grouped by kind (`src/game/`, `src/render/`, `src/ui/`, `src/audio/`) with one flat `tests/`. The new game is
+written by feature from its first file: `src/features/<feature>/` owning its code and its data, imports going only
+downward, `src/shared/` for what has no feature logic, `tests/` mirroring `src/`, and an architecture test that fails
+on a broken layer or a test beside the source. Beyond the folders, where the old code is tangled, duplicated, or
+carries a workaround for something the framework now does, the port writes it properly instead of carrying it across;
+the old behaviour and its tests are the specification, the old code is not. Each such rewrite is named in the plan with
+its reason, and the playthrough proves the behaviour held.
+
 ### One scene's slice
 
 Each scene goes through the same steps.
