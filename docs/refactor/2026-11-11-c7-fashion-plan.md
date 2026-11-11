@@ -584,3 +584,6 @@ The runway's gate 2 also runs `pnpm build`; Tasks 1 to 8 merge before it, so the
   Node version and dumps the actual cell (`tests/fixtures/cell-miss.ts`), to find out which texels differ. The `characterkit-painted` journey no longer
   waits for a lap (11 s of sim, over 60 s on the owner PC's Chromium) but for `data-walked-behind-wall`, set by the page once the walker has crossed the wall's
   middle with its legs behind it. The depth by texel against the wall stays held by `painted-depth` case 4 in the browser suite, equal to `compose`.
+- 2026-11-11 (the arm64 cell): the dump showed 2 texels of `nia` on `thin`, direction 0 (row 74, columns 55 and 56) one step darker on arm64 than on x64.
+  Ruled by the coordinator: that cell alone carries an `arm64` md5 (`ARCH_OVERRIDES`, `tests/fixtures/runway-golden.ts`, with the evidence beside it) and every
+  other cell must match the shared md5 on every arch. FigureBuilder to make the painter's thresholds arch-stable, then the override goes.
