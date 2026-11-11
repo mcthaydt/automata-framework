@@ -25,7 +25,7 @@ import {
 import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automata/3d/base'
 import type { Gait } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
-import { dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
+import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
 
 // Pixi's capability probes each make a throwaway WebGL context and lose it on purpose. On headless SwiftShader that
@@ -49,6 +49,7 @@ const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 const on = (key: string) => q.get(key) !== '0'
 const look = on('look') ? DEFAULT_LOOK : undefined
 
+const tiles = albedoTiles(worldKitLibrary.swatches as never)
 const dressed = name.endsWith('-dressed')
 const level =
   (BASE_SCENES as Record<string, (typeof BASE_SCENES)['base-interior']>)[name] ??
@@ -191,7 +192,7 @@ const game = defineGame({
           const moves = (p: (typeof world.pieces)[number]) => p.door !== undefined || p.prop !== undefined || p.sway !== undefined
           const which = q.get('pieces')
           const pieces = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
-          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light }, pieces)
+          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('tiles') ? { tiles } : {}) }, pieces)
         }
         const renderer = stage.app.renderer as unknown as { name: string }
         const { dataset } = stage.app.canvas

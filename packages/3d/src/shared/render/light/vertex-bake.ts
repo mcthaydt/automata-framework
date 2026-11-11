@@ -23,6 +23,12 @@ export interface BakeExtras {
    * leaves `albedo × light` on screen, per channel; without one the light itself is written.
    */
   readonly albedo?: number | undefined
+  /**
+   * The mesh takes its colour from a texture of DUEL colours (the albedo per texel): its vertex colour is the light
+   * alone, as the linear multiplier that leaves texel × light on screen (a power of 2.2 for the sRGB curve), and past 1
+   * where the light is, since the clamp falls on the product.
+   */
+  readonly textured?: boolean | undefined
 }
 
 /** A static mesh's vertices with their light computed: `write` turns lamp levels into vertex colours. */
@@ -134,7 +140,12 @@ export function bakeVertices(
         const stepped = stepLight(sum, model.step)
         for (let c = 0; c < 3; c++) {
           // Through a Float32Array, so the comparison is against the value the buffer will hold.
-          const value = Math.fround(onScreen(stepped[c] as number, albedo?.[c]))
+          const light = stepped[c] as number
+          const value = Math.fround(
+            extras.textured === true && lighting.colorSpace === 'srgb'
+              ? light ** 2.2
+              : onScreen(light, albedo?.[c]),
+          )
           if (out[o + c] !== value) {
             out[o + c] = value
             changed = true

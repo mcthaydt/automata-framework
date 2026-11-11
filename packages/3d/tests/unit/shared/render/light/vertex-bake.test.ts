@@ -200,4 +200,14 @@ describe('the look’s light', () => {
     // albedo 1 × light 1.09 → clamped at 1 on screen: a linear multiplier of 1.
     expect(out[0]).toBeCloseTo(1, 5)
   })
+
+  it('gives a textured mesh the light as a linear multiplier, past 1 where the light is, for the texture to take', () => {
+    const { positions, normals } = floorPatch()
+    const bright = { ...base, ambient: 1, max: 1.6 }
+    const light = colours(bakeVertices(positions, normals, IDENTITY, bright))[0] as number
+    const out = colours(bakeVertices(positions, normals, IDENTITY, bright, [], { textured: true }))
+    // A texel's colour × this, in linear light, is the sRGB albedo × light on screen (a power of 2.2 stands for the curve).
+    expect(light).toBeGreaterThan(1)
+    expect(out[0]).toBeCloseTo(light ** 2.2, 4)
+  })
 })
