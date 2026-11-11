@@ -534,7 +534,7 @@ function gateLit(): void {
     AF_WEBGPU: process.env.AF_WEBGPU ?? 'software',
   })
   const benchOut = join(out, '.bench.json')
-  // The bench asserts its budget and may fail it; its numbers are the gate's either way.
+  // The bench asserts its median and may fail it; its numbers are the gate's either way.
   spawnSync('pnpm', ['exec', 'vitest', 'run', '--project', 'bench', 'tests/bench/lit.bench.test.ts'], {
     cwd: KIT,
     stdio: 'inherit',

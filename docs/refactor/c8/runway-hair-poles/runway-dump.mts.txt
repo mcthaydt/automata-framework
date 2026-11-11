@@ -1,0 +1,72 @@
+// Kept as text so the repo's lint and knip do not take it for source: copy it to a file ending .mts and run it with the kit's tsx.
+// Dumps every cell of the runway golden (tests/fixtures/goldens/runway-cells.json) as pixels, with each texel's part (seam) number,
+// for one builder tree, to DUMP_OUT. Run twice (the builder before the pole rule, `d6e3c9f`, and after), then runway-compare.py:
+//   BUILDER=<tree> DUMP_OUT=/tmp/ra/before RUNWAY_CLONE=<FigureBuilder clone with cb4aa9f> tsx runway-dump.mts
+// The showcase's three files are read from the clone and pointed at BUILDER's `src`, as scripts/record-runway-cells.ts does.
+import { spawnSync } from 'node:child_process'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
+
+const BUILDER = process.env.BUILDER!
+const OUT = process.env.DUMP_OUT!
+const CLONE = process.env.RUNWAY_CLONE!
+const COMMIT = 'cb4aa9f40cbaa2894ff7bf3d818db34ca2bde0d6'
+const DIRECTIONS = [0, 1, 3, 6]
+// The slider extremes of record-runway-cells.ts, and the two directions the fit check draws them in.
+const BODIES: Record<string, Record<string, number>> = {
+  thin: { fat: 0, muscle: 0, frame: 0.5, height: 185, shoulders: 0, hips: 0 },
+  heavy: { fat: 1.2, muscle: 0.5, frame: 0.5, hips: 1.1, shoulders: 1, neck: 1 },
+  muscular: { fat: 0, muscle: 1, frame: 0, shoulders: 1, neck: 1 },
+  curvy: { fat: 0.7, frame: 1, bust: 1, seat: 1, hips: 1 },
+  short: { height: 150, legs: 0, fat: 0.5 },
+}
+const work = mkdtempSync(join(tmpdir(), 'runway-dump-'))
+mkdirSync(join(work, 'demo/runway'), { recursive: true })
+writeFileSync(join(work, 'package.json'), '{"type":"module"}\n')
+for (const file of ['characters', 'library', 'wardrobe']) {
+  const shown = spawnSync('git', ['show', `${COMMIT}:demo/runway/${file}.ts`], {
+    cwd: CLONE,
+    encoding: 'utf8',
+  })
+  writeFileSync(
+    join(work, `demo/runway/${file}.ts`),
+    shown.stdout
+      .replaceAll("'../../src'", `'${BUILDER}/src/index.ts'`)
+      .replaceAll("'../../src/", `'${BUILDER}/src/`),
+  )
+}
+const { CAST } = (await import(pathToFileURL(join(work, 'demo/runway/characters.ts')).href)) as {
+  CAST: { def: any }[]
+}
+const { Figure, member, view } = (await import(pathToFileURL(`${BUILDER}/src/index.ts`).href)) as any
+mkdirSync(OUT, { recursive: true })
+const save = (name: string, cast: unknown, d: number) => {
+  const f = new Figure(cast)
+  for (let i = 0; i < 3; i++) f.update(1 / 60, { facing: (d * Math.PI) / 4, moving: false, view: view() })
+  const [w, h] = f.cell,
+    head = Buffer.alloc(8)
+  head.writeUInt32LE(w, 0)
+  head.writeUInt32LE(h, 4)
+  const part = Int16Array.from(f.g.part)
+  writeFileSync(
+    `${OUT}/${name.replaceAll('/', '_')}.bin`,
+    Buffer.concat([
+      head,
+      Buffer.from(f.painted.buffer, f.painted.byteOffset, w * h * 4),
+      Buffer.from(part.buffer),
+    ]),
+  )
+}
+for (const { def } of CAST) {
+  for (const d of DIRECTIONS) save(`${def.id}/own/${d}`, member(def, 2), d)
+  for (const [body, sliders] of Object.entries(BODIES))
+    for (const d of [0, 5])
+      save(
+        `${def.id}/${body}/${d}`,
+        member({ ...def, id: `${def.id}-fit`, sliders: { ...def.sliders, ...sliders } }, 2),
+        d,
+      )
+}
+console.log('dumped to', OUT)

@@ -59,7 +59,9 @@ describe('litCells', () => {
     expect(LIT_CELLS).toBe(32)
     const cells = litCells(3)
     const figure = standing()
-    const lights = [0.5, 0.7, 1, 1.3, 1.6].map((v) => light(() => [v, v, v]))
+    // Five keys: four whole steps and a warm one (a light over the painted cell is held at 0, so 1.3 and 1.6 are 1's key).
+    const lights = [0.5, 0.7, 0.85, 1].map((v) => light(() => [v, v, v]))
+    lights.push(light(() => [1, 0.9, 0.8]))
     const first = cells.lit(figure, lights[0] as ReturnType<typeof light>)
     for (const l of lights.slice(1)) cells.lit(figure, l)
     expect(cells.size).toBe(3)

@@ -3,13 +3,14 @@
 import { buildWorld, createSceneLight, timeOfDay, worldLighting } from '@automata/3d'
 import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
 import { describe, expect, it } from 'vitest'
-import { roomLight, type Sun, type Tint } from '#src/features/painted/room-light.ts'
+import { ROOM_LIGHT, roomLight, type Sun, type Tint } from '#src/features/painted/room-light.ts'
 import {
   BASE,
   Figure,
   flatSteps,
   lightSprite,
   member,
+  RAMPS,
   SPRITE_PITCH,
   type V3,
 } from '#src/shared/figure-builder/door.ts'
@@ -36,7 +37,9 @@ describe('roomLight', () => {
     expect(light.lighting.lamps).toEqual([])
     expect(light.lighting.exposure ?? 0).toBe(0)
     expect(light.key.startsWith('0|-|-')).toBe(true)
-    expect(roomLight(grey(1.6), undefined, FEET, 0).key.startsWith('2|-|-')).toBe(true)
+    // A room brighter than the painted cell does not lift the figure over it (the cell is the daylight look already).
+    expect(roomLight(grey(1.6), undefined, FEET, 0).key.startsWith('0|-|-')).toBe(true)
+    expect(roomLight(grey(0.7), undefined, FEET, 0).key.startsWith('-2|-|-')).toBe(true)
   })
 
   it('a lamp to the east leans the resultant east, turned into the figure’s frame', () => {
@@ -56,8 +59,23 @@ describe('roomLight', () => {
     expect(stepsOf(light.key)).toBe(flatSteps([0.5, 0.5, 0.5]) + 1)
   })
 
-  it('a figure no brighter than its ground is not exposed', () => {
-    expect(stepsOf(roomLight(grey(1.6), undefined, FEET, 0).key)).toBe(2)
+  it('a figure in a pool on a dark floor is held at its painted cell, no brighter', () => {
+    const pool: Tint = (_x, y) => (y > 0.5 ? [1.6, 1.6, 1.6] : [0.5, 0.5, 0.5])
+    expect(stepsOf(roomLight(pool, undefined, FEET, 0).key)).toBeLessThanOrEqual(0)
+  })
+
+  it('a lamp at the ceiling of light adds form and rim, never flat steps over 0', () => {
+    const blazing: Tint = (_x, _y, _z, n) =>
+      n === undefined ? [1.6, 1.6, 1.6] : [1.6 + Math.max(0, n[0]), 1.6, 1.6]
+    const light = roomLight(blazing, undefined, FEET, 0)
+    expect(light.key.startsWith('0|')).toBe(true)
+    expect(light.lighting.lamps.length).toBeGreaterThan(0)
+    expect(light.lighting.flat[0]).toBeLessThanOrEqual(1 + 1e-9)
+    expect(roomLight(() => [1.6, 1.6, 1.6], undefined, FEET, 0).key.startsWith('0|')).toBe(true)
+  })
+
+  it('ROOM_LIGHT names the lift a figure may have over its painted cell: none', () => {
+    expect(ROOM_LIGHT.lift).toBe(0)
   })
 
   it('two equal lamps either side cancel', () => {
@@ -86,7 +104,7 @@ describe('roomLight', () => {
       roomLight(leaning(0, 0.52), undefined, FEET, 0).key,
     )
     // Across one: a different key.
-    expect(roomLight(grey(1.2), undefined, FEET, 0).key).not.toBe(base)
+    expect(roomLight(grey(0.85), undefined, FEET, 0).key).not.toBe(base)
     expect(roomLight(leaning(0, 0.5), undefined, FEET, 0).key).not.toBe(
       roomLight(leaning(0, 0.9), undefined, FEET, 0).key,
     )
@@ -170,5 +188,56 @@ describe('roomLight in the base interior', () => {
 
   it('has no sun at night, so only the lamps lean', () => {
     expect(light.lighting.sun).toBeUndefined()
+  })
+})
+
+describe('roomLight in the base exterior, by day', () => {
+  const level = BASE_SCENES['base-exterior']
+  const light = createSceneLight(
+    worldLighting(buildWorld(level, baseLibrary, { night: false }), timeOfDay('day')),
+  )
+  const at = (x: number, z: number) =>
+    roomLight((px, py, pz, n) => light.tint(px, py, pz, n), light.lighting.sun, [x, 0, z], 0)
+
+  it('by day the flat light is the painted cell: 0 steps, over the whole ground', () => {
+    expect(light.lighting.sun).toBeDefined()
+    expect(stepsOf(at(0, 0).key)).toBe(0)
+    let most = -Infinity
+    for (let x = -6; x <= 6; x += 0.5)
+      for (let z = -6; z <= 6; z += 0.5) most = Math.max(most, stepsOf(at(x, z).key))
+    expect(most).toBeLessThanOrEqual(0)
+    // Held at 0 the figure is not lifted, and the sun still leans on it: a lamp.
+    expect(at(0, 0).lighting.lamps).toHaveLength(1)
+  })
+
+  it('a dark-skinned figure keeps its painted tone by day: no texel climbs its own ramp', () => {
+    const figure = new Figure(member(woman, 2))
+    for (let i = 0; i < 3; i++)
+      figure.update(1 / 60, { facing: Math.PI / 4, moving: false, view: { azimuth: 0, pitch: SPRITE_PITCH } })
+    // The flat light alone, with the sun's lamp left out: form and rim are one step of their own.
+    const flat = { ...at(0, 0).lighting, lamps: [] }
+    const lit = lightSprite(figure, flat)
+    const painted = figure.painted
+    const place = (c: number): [number, number] | undefined => {
+      for (let r = 0; r < RAMPS.length; r++) {
+        const i = RAMPS[r]?.indexOf(c) ?? -1
+        if (i >= 0) return [r, i]
+      }
+      return undefined
+    }
+    const colour = (px: ArrayLike<number>, o: number) =>
+      ((px[o] ?? 0) << 16) | ((px[o + 1] ?? 0) << 8) | (px[o + 2] ?? 0)
+    let checked = 0
+    for (let o = 0; o < painted.length; o += 4) {
+      if (!painted[o + 3]) continue
+      const from = place(colour(painted, o))
+      if (from === undefined) continue
+      const to = place(colour(lit, o))
+      expect(to?.[0]).toBe(from[0])
+      expect(to?.[1] ?? 99).toBeLessThanOrEqual(from[1])
+      checked++
+    }
+    // The figure is mostly skin, so this is the skin's tone, held.
+    expect(checked).toBeGreaterThan(1000)
   })
 })

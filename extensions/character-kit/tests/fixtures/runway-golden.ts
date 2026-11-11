@@ -1,5 +1,10 @@
 // The runway golden (`goldens/runway-cells.json`, made by `scripts/record-runway-cells.ts` from the showcase's own wardrobe), read
 // for the tests that hold the kit's wardrobe to it.
+//
+// It was re-recorded once for the builder's hair-pole rule (42 of 112 cells, 281 texels, all of them hair). Twelve of those texels are darker
+// than every unchanged hair texel beside them; the coordinator's ruling (2026-11-11: a hair or ear
+// texel moved by the pole rule is accepted) covers them, and all twelve are hair (parts 2101 to 2139, the crown or fringe of a band):
+// docs/refactor/c8/runway-hair-poles/ (runway-darker.png, runway-darker.json).
 import { readFileSync } from 'node:fs'
 
 export interface RunwayGolden {

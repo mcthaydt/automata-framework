@@ -30,6 +30,7 @@ export {
   type Part,
   POSES,
   project,
+  RAMPS,
   registerFabric,
   registerFinish,
   registerGarment,

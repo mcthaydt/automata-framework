@@ -90,7 +90,8 @@ async function room(name: RoomName, suffix: string, preference: 'webgpu' | undef
       return rect ? crop(pixels, rect) : canvasOf(1, 1)
     }, dark)
   await write.gateWrite(`${name}-walk${suffix}.png`, sheet([strip(before, false), strip(after, true)], 3))
-  return { before: before.lights, after: after.lights, drawnBy: after.drawnBy }
+  // Only the lit side's light is recorded: the before frame is drawn with `lit: false`, so no light reached its figures.
+  return { after: after.lights, drawnBy: after.drawnBy }
 }
 
 /** The lit two-figure frame against the builder's compose, as `painted-lit.test.ts` counts it. */

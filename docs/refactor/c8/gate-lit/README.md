@@ -8,7 +8,7 @@ look on. **Before** is the same scene with `lit: false` (today's frame); **after
 - `interior.png`, `exterior.png`: before | after (each also alone as `-before`, `-after`); `-webgpu` the same on WebGPU.
 - `interior-crops.png`, `exterior-crops.png`: each figure, before | after, x4.
 - `interior-walk.png`, `exterior-walk.png`: the walker in four consecutive walk poses, before (top) and after (bottom), x3.
-- `measurements.json`: the bench, the light each figure took (flat steps, exposure, the lamp resultant, the key), and the parity counts.
+- `measurements.json`: the bench, the light each figure took in the lit frame (flat steps, exposure, the lamp resultant, the key; the before frame is unlit, so it has none), and the parity counts.
 
 ## Numbers
 
@@ -16,18 +16,20 @@ Parity of a lit frame with the builder's `compose` (two figures, a warm lamp, 64
 230400 pixels differ, WebGPU 0 of 230400
 (2 lit cells each). The two renderers drew the gate pictures from the same keys.
 
-The bench (`AF_BENCH=1`; the light's cost for eight walking D2 figures, ms a frame, linux x64, node v24.21.0); budget 2 ms at the median, 6 ms at the worst frame:
+The bench (`AF_BENCH=1`; the light's cost for eight walking D2 figures, ms a frame, linux x64, node v24.21.0). **This table copies `measurements.json`'s `bench`
+entry, number for number** (the file holds them to two places). The bench first walks one full lap of the circle, lit but not timed (a declared warm-up: every view and place
+the walk reaches is lit and cached once), then times 600 frames. The budget is 2 ms at the median, and the bench asserts it; the worst frame is recorded and not asserted (it is
+one frame of 600 on a shared machine and has ranged 4.9 to 43.6 ms between runs here).
 
 | scenario | median | p95 | worst | hits | misses |
 |---|---|---|---|---|---|
-| steady | 1.84 | 4.32 | 14.46 | 3240 | 1560 |
-| switch | 0.31 | 4.29 | 7.59 | 3439 | 1361 |
-| flicker | 2.00 | 4.35 | 7.52 | 2556 | 2244 |
+| steady | 1.51 | 3.54 | 6.9 | 3209 | 1591 |
+| switch | 0.15 | 3.36 | 5.77 | 3429 | 1371 |
+| flicker | 1.66 | 4.94 | 9.44 | 2555 | 2245 |
 
-**The budget is not met on this machine**: steady's median is inside it, flicker's is on it, and every scenario's worst frame is over (the
-worst is a single frame of 600 on a shared VM and varied 6 to 14 ms between runs). What got it from the first run (steady median 9.0 ms) to here:
-FigureBuilder's `lightSprite` four times faster for the same bytes, the lit cell's key not a hash, a lamp's direction in eighths. Not done, as the plan forbids:
-a lower density, lighting every other frame, spreading a relight over frames.
+All three medians are inside the 2 ms budget. The worst frames (5.77 to 9.44 ms here) are the frames where several figures relight at once; they are not a budget. What got the
+first run (steady median 9.0 ms) to here: FigureBuilder's `lightSprite` four times faster for the same bytes, the lit cell's key not a hash, a lamp's direction in eighths. Not done, as the plan
+forbids: a lower density, lighting every other frame, spreading a relight over frames.
 
 ## What the pictures say
 
@@ -37,11 +39,10 @@ a lower density, lighting every other frame, spreading a relight over frames.
   under the pendant is as bright as he is. He is brighter than the dark green wall behind him, which is the room.
 - **The form is one step and reads as a side**: the man's torso has one lighter band on the pendant's side; the rim is a thin warm edge on his left.
 - **The walker's bands do not swim**: `interior-walk.png`: the cloth's band sits at the same place on the torso in four poses.
-- **The exterior figure, by day** (the coordinator's fix: the sun's level x colour is in the flat light as well as in the form): the key is `2|-|-4,6,3;10`: flat light
-  +2 steps (it was three steps down and blue: ambient alone), the sun's direction as the one lamp. The ground it is held to is the room's light on the floor round its
-  feet plus the sun's pull on a floor, and the figure is within a step of it, so the exposure is 0. In the picture the figures are brighter than the street: the street's
-  drawn colour is a dark swatch, so the same light is a dim ground and a bright skin. A sunlit figure on a dim street, not murky; if it reads too bright, the cap is one step
-  off `ROOM_LIGHT.hot` (not changed).
+- **The exterior figure, by day** (after the implementation audit): the key is `0|-|-4,6,3;10`: flat light 0 steps (flat [1, 1, 1]), the sun's direction as the one lamp. The sun is in the
+  flat light and in the ring the exposure compares with, but a figure is never lit above its painted cell (`ROOM_LIGHT.lift`, 0): the painter's key light already is the daylight look, and
+  a lift of +2 (the first build) washed the woman's brown skin to cream and the man's navy hair to cyan. In `exterior-crops.png` the figures keep their painted skin, clothes and hair; the sun
+  is a side (one lighter step) and a rim. The interior's keys and pictures are byte for byte the same as before the change.
 - **A figure in shade by day** (the exterior has none of its own): not checked; the sun is not occluded for a painted figure (spec section 11).
 - **The eyes** (painted colours of peak 40 or less): FigureBuilder's `sprite.test.ts` prints which are stepped under a bright flat light; in the crops the eyes stay dark.
 - **Against EnvironmentBuilder's frames** (`docs/refactor/eb-look/baseline/`): the exterior's baked room light is as dark there; the interior's figure is not a step brighter than

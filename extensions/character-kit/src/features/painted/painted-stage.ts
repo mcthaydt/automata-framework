@@ -8,13 +8,11 @@
 // them): so a figure is placed by the camera as it is drawn, not by last frame's. `onRender` is one slot, so the stage
 // calls whatever was there first and puts it back when its last figure leaves.
 import { type Camera3D, type Container3D, Matrix4, type View3D } from '@pixi/3d'
+import { RendererType } from 'pixi.js'
 import { type Cell, TIE_BIAS, texelDepths, type V3, type View } from '../../shared/figure-builder/door.ts'
 import { CellSprite, poseQuaternion } from '../../shared/figure-builder/door-view.ts'
 import { type Placed, paintView, place, ranked } from './place.ts'
 import { poseOf } from './pose.ts'
-
-/** Pixi's `RendererType.WEBGPU`: under it a depth-writing quad compiles from the builder's own template (`CellSprite.gpu`). */
-const WEBGPU = 2
 
 /** A figure on the stage: where it stands, and the cell it paints for the view the stage gives it. */
 export interface StageMember {
@@ -111,7 +109,7 @@ class Stage implements PaintedStage {
       const { sprite } = entry.quad
       const { node } = entry.member
       // Before the quad's shader compiles: which renderer draws it decides its template and its depth texture.
-      entry.quad.gpu(rendererType === WEBGPU)
+      entry.quad.gpu(rendererType === RendererType.WEBGPU) // under it a depth-writing quad compiles from the builder's own template
       entry.quad.show(placed.sprite.cell)
       entry.quad.showDepths(
         texelDepths(pose, placed.sprite),
