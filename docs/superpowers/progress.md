@@ -45,7 +45,7 @@ runs in its own session on its own branch and hands off through committed docume
 
 ## The Owner's decisions (2026-11-11)
 
-- `automata-website` is retired; it and `automata-skills` are out of this work. `automata-plus` is cut.
+- `automata-website` is retired and out of this work. `automata-plus` is cut. `automata-skills` is kept.
 - Records: refactor work in `docs/refactor/`, everything else in `docs/superpowers/`.
 - Translations are written new and shipped; no review state or review rounds.
 - Nothing is copied from FloorFifty: it is the reference for behaviour only.
