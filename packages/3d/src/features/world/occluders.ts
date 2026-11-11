@@ -2,7 +2,7 @@
 // A wall face, a floor and a ceiling are planes; a prop's parts that cast are boxes. A game used to write these by hand.
 import type { MeshData } from '../../shared/math/geometry.ts'
 import type { OccluderBox, OccluderPlane } from '../../shared/render/light/scene-lighting.schema.ts'
-import type { WorldPiece } from './build.ts'
+import type { WallFace, WorldPiece } from './build.ts'
 
 export interface WorldOccluders {
   readonly boxes: OccluderBox[]
@@ -62,6 +62,22 @@ function wallPlane(piece: WorldPiece, line: { a: readonly [number, number]; b: r
   }
 }
 
+/** A solid rectangle of a wall face as a plane, facing where the face's normals do. */
+function facePlane(piece: WorldPiece, face: WallFace) {
+  const length = Math.hypot(face.b[0] - face.a[0], face.b[1] - face.a[1])
+  const [nx, nz] = [piece.mesh.normals[0] as number, piece.mesh.normals[2] as number]
+  const size = Math.hypot(nx, nz)
+  if (face.hi - face.lo <= 1e-3 || length <= 1e-3 || size === 0) return undefined
+  return {
+    x: (face.a[0] + face.b[0]) / 2,
+    y: (face.lo + face.hi) / 2,
+    z: (face.a[1] + face.b[1]) / 2,
+    normal: [nx / size, 0, nz / size] as const,
+    width: length,
+    height: face.hi - face.lo,
+  }
+}
+
 /** A floor or ceiling as a plane over its bounds, or nothing where it is not a rectangle. */
 function levelPlane(piece: WorldPiece) {
   const { lo, hi } = boundsOf(piece.mesh)
@@ -84,8 +100,8 @@ function levelPlane(piece: WorldPiece) {
 }
 
 /**
- * The occluders of a world's pieces. A wall face is one plane over its whole face, so a doorway or a window does not
- * let light through it; a floor or ceiling that is not a rectangle (an L-shaped room) gives no plane, and its walls
+ * The occluders of a world's pieces. A wall face is a plane over each solid rectangle of it, cut at its doorways and
+ * windows so light passes them; a floor or ceiling that is not a rectangle (an L-shaped room) gives no plane, and its walls
  * still do. A door, a prop and a part that does not cast are never occluders by their own shape: a prop's parts are
  * boxes over their bounds.
  */
@@ -94,7 +110,13 @@ export function worldOccluders(pieces: readonly WorldPiece[]): WorldOccluders {
   const boxes: OccluderBox[] = []
   for (const piece of pieces) {
     if (piece.noCast === true) continue
-    if (piece.part === 'wall' && piece.line !== undefined) {
+    if (piece.part === 'wall' && piece.faces !== undefined) {
+      // A face with openings is the solid rectangles around them: light passes a doorway and a window.
+      for (const face of piece.faces) {
+        const plane = facePlane(piece, face)
+        if (plane !== undefined) planes.push(plane)
+      }
+    } else if (piece.part === 'wall' && piece.line !== undefined) {
       const plane = wallPlane(piece, piece.line)
       if (plane !== undefined) planes.push(plane)
     } else if (piece.part === 'floor' || piece.part === 'ceiling') {

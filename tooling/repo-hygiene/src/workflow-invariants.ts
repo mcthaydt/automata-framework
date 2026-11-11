@@ -8,6 +8,11 @@
 //    workflow a pull request can trigger, directly or as a reusable workflow, guards such jobs in their `if`.
 // 5. The heavy jobs skip draft pull requests: a job a pull request can start says `draft` in its `if`, unless it is
 //    one of the light gates every pull request runs.
+// 6. A job that runs `pnpm install` first runs the private-submodule step. The self-hosted runners keep their work
+//    folders between jobs, so a submodule left at another commit by an earlier job breaks the install's `prepare`
+//    until something resets it to the pinned commit.
+// 7. A reusable workflow that uses the token declares it under `workflow_call.secrets`, and a job that calls one that
+//    does passes it (`secrets`); otherwise the step runs with an empty token.
 
 /** The parts of a workflow the rules read. */
 export interface Workflow {
@@ -18,11 +23,14 @@ export interface Workflow {
 }
 interface Job {
   readonly if?: string
+  readonly uses?: string
+  readonly secrets?: unknown
   readonly env?: Readonly<Record<string, unknown>>
   readonly steps?: readonly Step[]
 }
 interface Step {
   readonly run?: string
+  readonly env?: Readonly<Record<string, unknown>>
   readonly with?: Readonly<Record<string, unknown>>
 }
 
@@ -34,6 +42,9 @@ const READ_ONLY_SECRETS: ReadonlySet<string> = new Set(['GITHUB_TOKEN', 'AF_READ
 
 /** The light gate every pull request runs, drafts included (lint, typecheck, unit). */
 const LIGHT_GATES: ReadonlySet<string> = new Set(['checks'])
+
+/** The script every job runs to put the private submodules at their pinned commits. */
+const SUBMODULE_SCRIPT = 'checkout-submodules.sh'
 
 const SECRET = /secrets\.([A-Z0-9_]+)/g
 
@@ -71,6 +82,12 @@ export function workflowProblems(file: string, workflow: Workflow): readonly str
   const on = triggers(workflow)
   if (workflow.permissions === undefined) problems.push(`${file}: sets no top-level permissions`)
   if (on.includes('pull_request_target')) problems.push(`${file}: runs on pull_request_target`)
+  if (
+    on.includes('workflow_call') &&
+    secretsIn(workflow.jobs).includes('SUBMODULES_TOKEN') &&
+    !declaresToken(workflow)
+  )
+    problems.push(`${file}: uses SUBMODULES_TOKEN without declaring it under workflow_call secrets`)
   for (const name of secretsIn(workflow.env))
     problems.push(`${file}: hands ${name} to every job (workflow env)`)
   const workflowReachable = on.includes('pull_request') || on.includes('workflow_call')
@@ -80,6 +97,11 @@ export function workflowProblems(file: string, workflow: Workflow): readonly str
     for (const step of job.steps ?? [])
       for (const name of secretsIn([step.run, step.with]))
         problems.push(`${file} ${id}: names ${name} outside a step's env`)
+    const steps = job.steps ?? []
+    const install = steps.findIndex((step) => /\bpnpm install\b/.test(step.run ?? ''))
+    const reset = steps.findIndex((step) => (step.run ?? '').includes(SUBMODULE_SCRIPT))
+    if (install !== -1 && (reset === -1 || reset > install))
+      problems.push(`${file} ${id}: runs pnpm install without checking out the private submodules first`)
     const reachable = reachableByPullRequest(job, workflowReachable)
     const publishing = [...new Set(secretsIn(job))].filter((name) => !READ_ONLY_SECRETS.has(name))
     for (const name of reachable ? publishing : [])
@@ -88,4 +110,30 @@ export function workflowProblems(file: string, workflow: Workflow): readonly str
       problems.push(`${file} ${id}: runs on draft pull requests`)
   }
   return problems
+}
+
+/**
+ * What breaks rule 7 across workflows: a job that calls `./.github/workflows/<file>` whose `workflow_call` declares
+ * SUBMODULES_TOKEN must pass it (or `secrets: inherit`), or the callee's step runs with no token.
+ */
+export function callerProblems(workflows: Readonly<Record<string, Workflow>>): readonly string[] {
+  const needing = new Set(
+    Object.entries(workflows)
+      .filter(([, workflow]) => declaresToken(workflow))
+      .map(([file]) => file),
+  )
+  return Object.entries(workflows).flatMap(([file, workflow]) =>
+    Object.entries(workflow.jobs ?? {}).flatMap(([id, job]) => {
+      const callee = job.uses?.replace(/^\.\/\.github\/workflows\//, '')
+      if (callee === undefined || !needing.has(callee)) return []
+      const passed = job.secrets === 'inherit' || secretsIn(job.secrets).includes('SUBMODULES_TOKEN')
+      return passed ? [] : [`${file} ${id}: calls ${callee} without passing SUBMODULES_TOKEN`]
+    }),
+  )
+}
+
+function declaresToken(workflow: Workflow): boolean {
+  const call = (workflow.on as Record<string, { secrets?: Record<string, unknown> } | null> | undefined)
+    ?.workflow_call
+  return call?.secrets !== undefined && 'SUBMODULES_TOKEN' in call.secrets
 }

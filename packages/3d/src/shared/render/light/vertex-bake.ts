@@ -29,7 +29,24 @@ export interface BakeExtras {
    * where the light is, since the clamp falls on the product.
    */
   readonly textured?: boolean | undefined
+  /**
+   * The mesh glows (a bulb, a neon, a lit window): it is drawn at its own step of its swatch's ladder whatever the light,
+   * on a white base, and dims with the lamps it belongs to. The light itself is not computed for it.
+   */
+  readonly glow?: BakeGlow | undefined
 }
+
+/** A glowing swatch: its ladder and the step it sits on, and the lamps that dim it (the dimmest of them counts). */
+export interface BakeGlow {
+  /** The ladder's eight steps as `0xRRGGBB`, dark to light. */
+  readonly steps: readonly number[]
+  readonly base: number
+  /** Ids of the lamps it belongs to. One the room does not light (a street lamp by day) leaves it at full. */
+  readonly lamps?: readonly string[] | undefined
+}
+
+/** How many whole steps a glow dims under its lamp's level: one under 0.9 of it, two under 0.6. */
+export const glowDim = (level: number): number => (level < 0.6 ? 2 : level < 0.9 ? 1 : 0)
 
 /** A static mesh's vertices with their light computed: `write` turns lamp levels into vertex colours. */
 export interface VertexBake {
@@ -91,6 +108,7 @@ export function bakeVertices(
   extras: BakeExtras = {},
 ): VertexBake {
   const vertexCount = positions.length / 3
+  if (extras.glow !== undefined) return bakeGlow(vertexCount, lighting, extras.glow)
   const model = lightModel(lighting)
   const base = new Float32Array(vertexCount * 3)
   const sector = lighting.shade ** (extras.shadeSteps ?? 0)
@@ -151,6 +169,39 @@ export function bakeVertices(
             changed = true
           }
         }
+        if (out[o + 3] !== 1) {
+          out[o + 3] = 1
+          changed = true
+        }
+      }
+      return changed
+    },
+  }
+}
+
+/** A glowing mesh's bake: one colour for every vertex, the swatch's step less what its lamps' levels dim it by. */
+function bakeGlow(vertexCount: number, lighting: SceneLighting, glow: BakeGlow): VertexBake {
+  const lamps = lighting.lamps.filter((lamp) => glow.lamps?.includes(lamp.id))
+  return {
+    vertexCount,
+    reachedBy: new Set(lamps.map((lamp) => lamp.id)),
+    write(levels, out) {
+      const level = lamps.length === 0 ? 1 : Math.min(...lamps.map((lamp) => levelOf(lamp, levels)))
+      const rgb = glow.steps[Math.max(0, Math.min(glow.steps.length - 1, glow.base - glowDim(level)))] ?? 0
+      // On a white base a linear colour is what the screen shows; unlit colours are written as they are.
+      const channel = (shift: number): number => {
+        const value = ((rgb >> shift) & 255) / 255
+        return Math.fround(lighting.colorSpace === 'srgb' ? toLinear(value) : value)
+      }
+      const colour = [channel(16), channel(8), channel(0)] as const
+      let changed = false
+      for (let i = 0; i < vertexCount; i++) {
+        const o = i * 4
+        for (let c = 0; c < 3; c++)
+          if (out[o + c] !== colour[c]) {
+            out[o + c] = colour[c] as number
+            changed = true
+          }
         if (out[o + 3] !== 1) {
           out[o + 3] = 1
           changed = true

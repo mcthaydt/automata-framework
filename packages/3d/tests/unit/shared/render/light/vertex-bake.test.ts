@@ -1,9 +1,10 @@
 // Bakes every subdivided vertex (fixed lamps scaled by their level), and refreshes changed light inputs to match a
 // fresh lighting pass (no upload when nothing changed), on plain vertex arrays.
 import { describe, expect, it } from 'vitest'
+import { ladderOf } from '#src/features/world/albedo/ladder.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import { bakeVertices } from '#src/shared/render/light/vertex-bake.ts'
-import { toSrgb } from '#src/shared/render/light/vertex-light.ts'
+import { toLinear, toSrgb } from '#src/shared/render/light/vertex-light.ts'
 
 // A 4 × 4 floor patch of 25 vertices around the origin, facing up.
 function floorPatch(): { positions: Float32Array; normals: Float32Array } {
@@ -209,5 +210,52 @@ describe('the look’s light', () => {
     // A texel's colour × this, in linear light, is the sRGB albedo × light on screen (a power of 2.2 stands for the curve).
     expect(light).toBeGreaterThan(1)
     expect(out[0]).toBeCloseTo(light ** 2.2, 4)
+  })
+})
+
+// A glowing swatch (a bulb, a neon, a lit window) is drawn at its own ladder step whatever the light; it dims, a step or
+// two, with the lamp it belongs to.
+describe('a glowing swatch', () => {
+  const EMBER = ladderOf({ ramp: 'ember', step: 7 })
+  const glow = { steps: EMBER.steps, base: EMBER.base, lamps: ['warm'] }
+  const bright = sceneLightingSchema.parse({
+    ambient: 0.05,
+    colorSpace: 'srgb',
+    lamps: lighting.lamps,
+  })
+  // A glowing mesh is drawn on a white base, so its vertex colour is the step's linear colour.
+  const linear = (rgb: number): number[] =>
+    [(rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255].map((c) => toLinear(c / 255))
+  const first = (out: Float32Array) => [out[0], out[1], out[2]]
+
+  it('keeps its own step at every vertex, lit or dark', () => {
+    const { positions, normals } = floorPatch()
+    const out = colours(bakeVertices(positions, normals, IDENTITY, bright, [], { glow }))
+    for (let v = 0; v < 25; v++)
+      expect(first(out.subarray(v * 4))).toEqual(linear(EMBER.steps[7] as number).map(Math.fround))
+  })
+
+  it('dims a step under 0.9 of its lamp and two under 0.6', () => {
+    const { positions, normals } = floorPatch()
+    const bake = bakeVertices(positions, normals, IDENTITY, bright, [], { glow })
+    const at = (level: number) => first(colours(bake, { warm: level }))
+    const step = (n: number) => linear(EMBER.steps[n] as number)
+    expect(at(1)).toEqual(step(7).map(Math.fround))
+    expect(at(0.8)).toEqual(step(6).map(Math.fround))
+    expect(at(0.5)).toEqual(step(5).map(Math.fround))
+    expect(at(0)).toEqual(step(5).map(Math.fround))
+  })
+
+  it('is rebaked when its lamp changes, and by no other', () => {
+    const { positions, normals } = floorPatch()
+    const bake = bakeVertices(positions, normals, translate(30, 0, 0), bright, [], { glow })
+    expect([...bake.reachedBy]).toEqual(['warm'])
+  })
+
+  it('stays full where the lamp is not in the room’s lamps (a street lamp by day)', () => {
+    const { positions, normals } = floorPatch()
+    const day = { ...bright, lamps: [] }
+    const out = colours(bakeVertices(positions, normals, IDENTITY, day, [], { glow }))
+    expect(first(out)).toEqual(linear(EMBER.steps[7] as number).map(Math.fround))
   })
 })

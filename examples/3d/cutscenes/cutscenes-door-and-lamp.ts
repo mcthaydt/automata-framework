@@ -18,6 +18,7 @@ import {
   sceneLamps,
   sceneLightingSchema,
   swatchColour,
+  swatchGlow,
   targetSize,
   updatePieces,
 } from '@automata/3d'
@@ -76,7 +77,14 @@ export default defineGame({
       scene: (view, stage, occluders, light) => {
         const colourOf = (name: string) => swatchColour(baseLibrary, name)
         const drawn = drawWorld(
-          { parent: view.root, occluders, colourOf, look: DEFAULT_LOOK, light },
+          {
+            parent: view.root,
+            occluders,
+            colourOf,
+            glow: (swatch) => swatchGlow(baseLibrary, swatch),
+            look: DEFAULT_LOOK,
+            light,
+          },
           world.pieces,
         )
         // The door swings, so it keeps a plain lit mesh under the room's ambient light.

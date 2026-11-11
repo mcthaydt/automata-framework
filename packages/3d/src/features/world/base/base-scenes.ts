@@ -14,6 +14,7 @@ const interior: AfSector2 = {
   sectors: [
     {
       id: 'room',
+      view: 'room',
       floor: {
         z: 0,
         surface: 'baseFloor',
@@ -75,6 +76,7 @@ const interior: AfSector2 = {
     },
     {
       id: 'doorway',
+      view: 'doorway',
       floor: {
         z: 0,
         surface: 'baseFloor',
@@ -125,6 +127,7 @@ const interior: AfSector2 = {
     },
     {
       id: 'stub',
+      view: 'stub',
       floor: {
         z: 0,
         surface: 'baseFloor',
@@ -218,6 +221,11 @@ const interior: AfSector2 = {
   ],
   time: 'lampLit',
   views: {
+    // The gameplay camera's zones: each room's footprint and how far back the camera stands to frame it as the diorama below
+    // does (its field's height over what a 50 mm lens sees a metre away).
+    room: { distance: 9, bounds: { min: [-3, 0, -2.5], max: [3, 2.7, 2.5] } },
+    doorway: { distance: 9, bounds: { min: [-0.45, 0, -2.66], max: [0.45, 2.1, -2.5] } },
+    stub: { distance: 9, bounds: { min: [-0.6, 0, -4.16], max: [0.6, 2.7, -2.66] } },
     diorama: {
       w: 512,
       h: 320,
@@ -250,6 +258,7 @@ const exterior: AfSector2 = {
   sectors: [
     {
       id: 'pavement',
+      view: 'pavement',
       floor: {
         z: 0.12,
         surface: 'baseGround',
@@ -316,6 +325,7 @@ const exterior: AfSector2 = {
     },
     {
       id: 'road',
+      view: 'road',
       floor: {
         z: 0,
         surface: 'baseRoad',
@@ -390,6 +400,10 @@ const exterior: AfSector2 = {
   ],
   time: 'day',
   views: {
+    // The gameplay camera's zones: each room's footprint and how far back the camera stands to frame it as the diorama below
+    // does (its field's height over what a 50 mm lens sees a metre away).
+    pavement: { distance: 10.2, bounds: { min: [-8, 0, -3], max: [8, 9, 0] } },
+    road: { distance: 10.2, bounds: { min: [-8, 0, 0], max: [8, 9, 4] } },
     diorama: {
       w: 640,
       h: 360,

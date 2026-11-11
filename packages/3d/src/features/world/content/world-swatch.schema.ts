@@ -13,6 +13,8 @@ export interface WorldSwatch {
   readonly step: number
   /** Glows: a lamp shade, a window at night, a neon tube. */
   readonly emit?: boolean | undefined
+  /** A lit window: the glass shows a room behind it. */
+  readonly interior?: boolean | undefined
   /** Unlit: keeps its colour in any light. */
   readonly flat?: boolean | undefined
   /** Casts no shadow. */
@@ -31,6 +33,7 @@ export const worldSwatchSchema: z.ZodType<WorldSwatch> = z.looseObject({
   ramp: z.enum(DUEL_RAMP_NAMES),
   step: z.number().refine((n) => Number.isInteger(n) && n >= 0 && n <= 7, 'step is 0 to 7'),
   emit: z.boolean().optional(),
+  interior: z.boolean().optional(),
   flat: z.boolean().optional(),
   noCast: z.boolean().optional(),
   gloss: z.number().min(0).max(1).optional(),

@@ -1,22 +1,19 @@
-import { browserSafePort } from '../../../packages/tools/src/shared/ship/ports/browser-safe-port.ts'
-import { portsFor } from '../../../packages/tools/src/shared/ship/ports/ports-for.ts'
+import { claimPort, claimPorts } from '../../../packages/tools/src/shared/ship/ports/free-ports.ts'
 
-// Where the feature demos' browser checks listen. The checkout's port pair is left free, the ui demo sits
-// 100 above the preview port, Emberwick 300 above the pair and its dev server 500 above the preview port
-// (games/emberwick/tests/e2e/origins.ts). The shared demo host sits 500 above the server port (5100–5199), and each
-// demo's build 600 + 100 × its slot above the preview port (5300–5399, 5400–5499, …), so one `pnpm test:e2e` runs
-// every example side by side. Each derived port
-// steps past the browsers' bad ports (CI's fixed pair put the runner's fixtures on 6000).
-const ports = portsFor(new URL('../../..', import.meta.url).pathname, process.env)
+// Where the feature demos' browser checks listen: the shared demo host, one port for each demo slot, and the other
+// servers that share the host's fake page (the examples index, the runner's fixtures, the playground, base-3d). Each
+// is claimed from the operating system when the config loads (packages/tools free-ports.ts), so two jobs on one machine
+// never meet on a port, and carried in the environment to the workers and to the servers the config starts, which agree
+// on the same ports because they inherit it.
+const SLOTS = 13
+claimPorts(['demo-host', ...Array.from({ length: SLOTS }, (_, slot) => `demo-slot-${slot}`)])
 
-export const demoHostPort: number = Number(
-  process.env.AF_E2E_DEMO_HOST_PORT ?? browserSafePort(ports.server + 500),
-)
+export const demoHostPort: number = claimPort('demo-host')
 export const demoHostOrigin = `http://127.0.0.1:${demoHostPort}`
 
-/** The preview port of the demo in `slot` (0, 1, 2, …). */
+/** The port of the demo in `slot` (0, 1, 2, …). */
 export function demoPort(slot: number): number {
-  return browserSafePort(ports.preview + 600 + 100 * slot)
+  return claimPort(`demo-slot-${slot}`)
 }
 
 /** The fake host page around the demo served at `gameUrl`, whose ruken.toml says `[game] id = gameId`. */
