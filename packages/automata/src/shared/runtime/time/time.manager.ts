@@ -4,9 +4,10 @@ import type { PresentationBus } from '../presentation/presentation-bus.manager.j
 export type PauseBehavior = HostingOptions['pauseBehavior']
 /**
  * `input`: the active pad was unplugged during play; Resume on the pause screen clears it. `display`: a phone
- * is held the other way from the game's orientation; turning it back clears it.
+ * is held the other way from the game's orientation; turning it back clears it. `opening`: the opening sequence (first-run
+ * screens, the splash) is showing before the first screen.
  */
-export type PauseReason = 'lifecycle' | 'menu' | 'input' | 'display'
+export type PauseReason = 'lifecycle' | 'menu' | 'input' | 'display' | 'opening'
 
 /** The time service: whether the sim is paused, and why; each reason pauses until it is resumed. */
 export interface Time {

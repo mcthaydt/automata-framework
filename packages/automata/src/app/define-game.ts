@@ -28,6 +28,7 @@ import { CORE_SETTINGS } from './core-settings.ts'
 import { defaultContent } from './default-content.ts'
 import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
 import type { ScreenDef } from './flow/screen.ts'
+import type { OpeningStep } from './opening/opening.ts'
 import { defaultScreens } from './screens/default-screens.ts'
 import type { ScreensCopyInput } from './screens/screens-copy.ts'
 
@@ -121,6 +122,11 @@ export interface GameSpec<S = never, D = unknown> {
    */
   readonly settings?: SettingsDef<S>
   readonly extensions?: readonly ExtensionDef[]
+  /**
+   * Steps that run after the host is ready and before the first screen, in order, with the sim held (a studio splash from
+   * `@automata/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
+   */
+  readonly opening?: readonly OpeningStep[]
   /**
    * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
    * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
@@ -346,6 +352,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     // They are not the game's `S`: only the default screens read them, through `Settings`.
     settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+    ...(spec.opening === undefined ? {} : { opening: spec.opening }),
     ...(spec.preload === undefined ? {} : { preload: spec.preload }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.audio === undefined ? {} : { audio: spec.audio }),

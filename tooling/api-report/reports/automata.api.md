@@ -769,6 +769,7 @@ interface GameDefinition<S = never> {
     readonly rotateHint?: RotateHintMode | undefined;
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
+    readonly opening?: readonly OpeningStep[] | undefined;
     readonly sounds?: EventSounds | undefined;
     readonly audio?: GameAudioStart | undefined;
     readonly scores?: EventScores | undefined;
@@ -835,6 +836,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly hosting?: Partial<Omit<HostingOptions, 'gameId' | 'disclosedEvents'>>;
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
+    readonly opening?: readonly OpeningStep[];
     readonly draw?: (ctx: DrawContext) => void;
     readonly level?: LevelScene;
     readonly renderer?: PixiRendererOptions;
@@ -1370,6 +1372,23 @@ class ModelInvalid extends Error {
     readonly reason: string;
     constructor(fields: ModelInvalidFields);
 }
+```
+
+### `OpeningContext` (interface)
+
+```ts
+interface OpeningContext {
+    readonly layer: HTMLElement;
+    readonly services: Pick<RuntimeServices, 'hosting' | 'locale' | 'settings' | 'audio' | 'clock' | 'bus'>;
+    readonly seen: SeenFlags;
+    readonly signal: AbortSignal;
+}
+```
+
+### `OpeningStep` (type)
+
+```ts
+type OpeningStep = (context: OpeningContext) => Promise<void>;
 ```
 
 ### `OptionGroup` (svelte)
@@ -2018,6 +2037,21 @@ interface ScreensGame {
 
 ```ts
 component from '../shared/ui/layout/ScrollList.svelte'
+```
+
+### `SeenFlag` (type)
+
+```ts
+type SeenFlag = 'language' | 'photosensitivity';
+```
+
+### `SeenFlags` (interface)
+
+```ts
+interface SeenFlags {
+    has(flag: SeenFlag): boolean;
+    mark(flag: SeenFlag): void;
+}
 ```
 
 ### `SentCommand` (type)

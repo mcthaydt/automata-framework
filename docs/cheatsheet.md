@@ -565,6 +565,8 @@
 - `mergeStageHooks(...all)`: Every hook of each, called in the order given; `undefined` entries are skipped.
 - `Modal` (const): A panel over the screen with a visible Close.
 - `ModelInvalid` (class): A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet.
+- `OpeningContext` (interface): What an opening step is given.
+- `OpeningStep` (type): One step before the first screen: it shows what it wants in `layer` and resolves when the player may go on.
 - `OptionGroup` (const): A choice of one: a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `OwnedRenderer` (interface): A renderer the runtime owns: `dispose` destroys it (the canvas, its listeners, its GPU resources).
 - `padLabel(button, glyphs, copy)`: A standard-mapping pad button's label on a pad of `glyphs`.
@@ -621,6 +623,8 @@
 - `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
 - `ScrollList` (const): A list that keeps its rows.
+- `SeenFlag` (type): The first-run screens a device can have seen.
+- `SeenFlags` (interface): Which first-run screens this device has shown.
 - `SentCommand` (type): What a slot component asks the game for: a command, without the tick, source and seq the stream fills in.
 - `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.

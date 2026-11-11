@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 6 of 21 tasks (29%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 7 of 21 tasks (33%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -37,8 +37,8 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | done | `3763a3d8` |
 | 4 | `automata words`: the AI translates | 1 | done (the live model call is unverified: no key here) | `e61b179f` |
 | 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | done (it reads the game's own catalogs; task 5b switches it to `gameWords`) | `29ccea7f` |
-| 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | done | TASK5B |
-| 6 | The opening sequence and the seen flags (core) | 2, 3 | todo | |
+| 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | done | `ceb2a014` |
+| 6 | The opening sequence and the seen flags (core) | 2, 3 | done | TASK6 |
 | 7 | First-run language pick | 2 | todo | |
 | 8 | Photosensitivity warning | 3 | todo | |
 | 9 | Interface sounds | 4 | todo | |
@@ -88,6 +88,12 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   and is drawn as the cross icon. The `!` warning mark is ASCII and stays text.
 - **Task 5b, note:** `package-words.test.ts` and the words-step package case were written together with the code, not
   watched failing first.
+- **Task 6, Ruling:** the opening's context holds the services a step may use (the plan's `Pick`), but boot hands it the whole
+  services object, so the "sim held" test reads `time` through a cast; no step is given `time` by type. A development
+  restart (`startAt`) skips the opening, and the host's menu request answers `false` until the first screen has
+  entered. The opening layer's element is `data-opening-step`, appended to the overlay.
+- **Task 6, note:** the opening-order tests run a full boot over `fakeHosting` and `nullRenderer`, as the Ruken boot
+  tests do over the fake Ruken host.
 
 ## Global constraints
 

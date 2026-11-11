@@ -5325,6 +5325,11 @@ interface GameDefinition<S = never> {
      */
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
+    /**
+     * Steps that run after the host is ready and before the first screen, in order, with the sim held: the first-run
+     * language and warning the runtime adds itself come first, then these (a splash). A step that throws is skipped.
+     */
+    readonly opening?: readonly OpeningStep[] | undefined;
     /** The sound each sim event plays, by the event's type. */
     readonly sounds?: EventSounds | undefined;
     /**
@@ -5453,6 +5458,11 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
+    /**
+     * Steps that run after the host is ready and before the first screen, in order, with the sim held (a studio splash from
+     * `@automata/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
+     */
+    readonly opening?: readonly OpeningStep[];
     /**
      * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
      * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
@@ -6303,6 +6313,29 @@ class ModelInvalid extends Error {
     readonly reason: string;
     constructor(fields: ModelInvalidFields);
 }
+```
+
+#### `OpeningContext` (interface)
+
+What an opening step is given.
+
+```ts
+interface OpeningContext {
+    /** The step's own element in the overlay layer, removed when the step ends. */
+    readonly layer: HTMLElement;
+    readonly services: Pick<RuntimeServices, 'hosting' | 'locale' | 'settings' | 'audio' | 'clock' | 'bus'>;
+    readonly seen: SeenFlags;
+    /** Aborted when the runtime shuts down; a step then resolves at once. */
+    readonly signal: AbortSignal;
+}
+```
+
+#### `OpeningStep` (type)
+
+One step before the first screen: it shows what it wants in `layer` and resolves when the player may go on.
+
+```ts
+type OpeningStep = (context: OpeningContext) => Promise<void>;
 ```
 
 #### `OptionGroup` (const)
@@ -7332,6 +7365,26 @@ contracts allow controls to be off screen only inside one.
 ```ts
 const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
+```
+
+#### `SeenFlag` (type)
+
+The first-run screens a device can have seen.
+
+```ts
+type SeenFlag = 'language' | 'photosensitivity';
+```
+
+#### `SeenFlags` (interface)
+
+Which first-run screens this device has shown.
+
+```ts
+interface SeenFlags {
+    has(flag: SeenFlag): boolean;
+    /** Records that the screen was shown. A storage that cannot be written still keeps it for this visit. */
+    mark(flag: SeenFlag): void;
+}
 ```
 
 #### `SentCommand` (type)

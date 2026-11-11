@@ -41,6 +41,8 @@ import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.sve
 import { createFlow, type Flow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { createVeil } from '../flow/veil.js'
+import { runOpening } from '../opening/opening.js'
+import { createSeenFlags } from '../opening/seen-flags.js'
 import { displayCopyFor, runtimeCopyFor } from '../screens/screens-catalog.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
@@ -381,7 +383,9 @@ async function boot<S>(
   // Leaving the current screen comes before the save's last flush and `keptAcrossScreens` (teardown runs last first).
   owned.add(() => flowHandle.dispose())
 
-  owned.add(hosting.onMenuRequest(() => flowHandle.flow.openMenu()))
+  // The host's "Open game menu" has nothing to open until the first screen has entered: the opening comes first.
+  let firstScreenEntered = false
+  owned.add(hosting.onMenuRequest(() => firstScreenEntered && flowHandle.flow.openMenu()))
 
   owned.add(
     watchLifecycle({
@@ -423,7 +427,22 @@ async function boot<S>(
   }
 
   options.onFlow?.(flowHandle.flow)
+  // The opening runs with the sim held, after ready and before the first screen. A development restart that brings the
+  // person back to a screen (`startAt`) skips it: they have been through it.
+  const opening = options.startAt === undefined ? (game.opening ?? []) : []
+  if (opening.length > 0) {
+    time.pause('opening')
+    await runOpening(
+      opening,
+      { services, seen: createSeenFlags(deviceStorage), signal },
+      layers.overlay,
+      (message) => console.warn(message),
+    )
+    time.resume('opening')
+    if (signal.aborted) return ok(undefined)
+  }
   await flowHandle.start(options.startAt)
+  firstScreenEntered = true
   if (signal.aborted) return ok(undefined)
 
   // The landscape gate (standalone) and the rotate hint, over every screen for the session.
