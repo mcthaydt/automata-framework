@@ -20,7 +20,13 @@ export const SOURCE_NAMES: readonly SourceName[] = [
 ]
 
 /** The folders under `docs/` that are records: they name the source projects as evidence, by design. */
-const RECORD_FOLDERS: ReadonlySet<string> = new Set(['adr', 'archive', 'provenance', 'refactor'])
+const RECORD_FOLDERS: ReadonlySet<string> = new Set([
+  'adr',
+  'archive',
+  'provenance',
+  'refactor',
+  'superpowers',
+])
 
 /** Every `.md` file below `dir`, skipping `node_modules` and, under `docs/`, the record folders (the ADRs cite where each decision came from). */
 function markdownBelow(dir: string, skip: ReadonlySet<string> = new Set()): string[] {

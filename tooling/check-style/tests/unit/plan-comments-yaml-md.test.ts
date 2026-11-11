@@ -52,6 +52,7 @@ describe('plan IDs in YAML and Markdown', () => {
     for (const file of [
       'docs/archive/old.md',
       'docs/refactor/plan.md',
+      'docs/superpowers/plans/plan.md',
       'docs/provenance/sources.md',
       'docs/adr/0006-distribution-targets.md',
       'vendor/ruken/README.md',
