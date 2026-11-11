@@ -54,6 +54,8 @@
 - `spatial(listener, at)`: Pan and distance gain of a world sound at `at` for `listener`.
 - `startBed(ctx, out, bed)`: Starts a bed into `out`; returns its stop function.
 - `StateValue` (type): A value a music rule can test: text, a number or a yes-or-no.
+- `stepCue(table, floor)`: The cue for a step on `floor`; the table's default when it has no row for it (or no floor is known); nothing with no table.
+- `StepsTable` (interface): Footsteps by floor: the cue a step makes on each floor surface (a sector's `floorTexture`), and the one for a surface the table does not name.
 - `Voice` (interface): A tone (`tone`, `from`, `to`) or a hiss (`hiss`, `q`), `at` seconds in, `length` long, at `volume`.
 - `Wave` (type): The shape of a tone: sine, square, sawtooth or triangle.
 - `WAVES` (const): Every tone shape.

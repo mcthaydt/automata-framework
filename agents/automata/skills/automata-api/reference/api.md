@@ -29,6 +29,8 @@ interface AudioContent {
   readonly duck?: readonly DuckRule[] | undefined;
   readonly slot?: readonly Slot[] | undefined;
   readonly music_rule?: readonly MusicRule[] | undefined;
+  /** The cue a step makes on each floor surface; absent means the game plays none of its own. */
+  readonly steps?: StepsTable | undefined;
 }
 ```
 
@@ -587,6 +589,26 @@ A value a music rule can test: text, a number or a yes-or-no.
 
 ```ts
 type StateValue = string | number | boolean;
+```
+
+#### `stepCue` (function)
+
+The cue for a step on `floor`; the table's default when it has no row for it (or no floor is known); nothing with no table.
+
+```ts
+function stepCue(table: StepsTable | undefined, floor: string | undefined): string | undefined;
+```
+
+#### `StepsTable` (interface)
+
+Footsteps by floor: the cue a step makes on each floor surface (a sector's `floorTexture`), and the one for a surface
+the table does not name. The game's view plays it when it hears its own step.
+
+```ts
+interface StepsTable {
+  readonly default: string;
+  readonly floors?: Readonly<Record<string, string>> | undefined;
+}
 ```
 
 #### `Voice` (interface)

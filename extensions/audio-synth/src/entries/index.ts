@@ -2,6 +2,7 @@
 // Presentation only.
 
 export { audioSynthExtension } from '../app/audio-synth.extension'
+export { stepCue } from '../features/steps/step-sounds'
 export { audioContent } from '../features/synth/audio.content'
 export {
   type AudioSynth,
@@ -38,6 +39,7 @@ export {
   type MusicRule,
   type Slot,
   type StateValue,
+  type StepsTable,
   type Voice,
   WAVES,
   type Wave,
