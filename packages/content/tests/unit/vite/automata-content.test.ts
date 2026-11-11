@@ -28,6 +28,21 @@ async function waitFor(predicate: () => boolean, what: string): Promise<void> {
   }
 }
 
+/**
+ * Waits until the file watcher has delivered what was written before it. A file system may report a setup write late
+ * (macOS reported main.js and the fixture's files as changed after the server was up, and Vite answers a change to a
+ * module nothing imports with a full reload). Events arrive in order, so a file written now arrives after them.
+ */
+async function watcherCaughtUp(root: string, seen: readonly string[]): Promise<void> {
+  const mark = join(root, 'watcher-mark.txt')
+  let writes = 0
+  await waitFor(() => {
+    writes += 1
+    writeFileSync(mark, String(writes))
+    return seen.some((event) => event.endsWith('/watcher-mark.txt'))
+  }, 'the file watcher to catch up with the setup writes')
+}
+
 const options = (root: string) => {
   const { root: _root, ...rest } = fixtureOptions(root)
   return rest
@@ -298,6 +313,9 @@ describe('vite dev', () => {
     }) as typeof client.hot.send
     // The page's first load: main.js and, through its import, the content module enter the client's module graph.
     await client.transformRequest('/main.js')
+    // Count only what the content change causes, not what the setup's own writes were reported as.
+    await watcherCaughtUp(root, watched)
+    sent.length = 0
 
     setGravity(root, '-300.0')
     await waitFor(() => sent.some((payload) => payload.type === 'update'), 'the HMR update')
