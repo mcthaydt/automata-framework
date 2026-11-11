@@ -1,0 +1,164 @@
+/**
+ * Lighting a painted figure cell the way a pixel artist lights a sprite (The Last Light's ramp light): the room's light
+ * once for the whole figure, and the normal map only to move a texel one step along its own DUEL ramp.
+ *
+ * - The flat light: the ambient plus each light at the figure's mean N·L (never under the style's `floor`), in the sector's
+ *   shade, stepped as the room's light is, times every texel. It sets how bright and how warm the figure is, and never
+ *   shades across it. The floor is why a figure under a pendant is lit like the floor under it: a lamp overhead or behind
+ *   meets most of a figure's normals edge-on, and its mean N·L alone would leave the figure a silhouette. The floors add
+ *   up, so under several lamps they would light a figure hotter than its room: their sum is capped (`floorCap`), the floor
+ *   scaled down evenly. The cap lowers the floor only, never a light a figure faces.
+ * - The exposure: the flat light, scaled by a factor and stepped again, before the snap. The factor is the caller's
+ *   (`view/expose.ts` finds it, in whole steps: `n / flatTop`), so the light stays a whole number of steps and the figure
+ *   sits within its room's readability window. 1 is no exposure.
+ * - The form: a texel whose normal faces the lights clearly harder than the figure as a whole takes the next lighter step
+ *   of its ramp, one clearly turned away the next darker one. The painted bands stay; the lamp's side brightens them.
+ * - The rim: the silhouette's edge on the lamps' side takes the lighter step. A lamp's side is its direction in the cell's
+ *   2D frame (the picture plane), not its raw component: a pendant above and behind has little 2D part and still lights
+ *   the figure's top and its side. A lamp straight from the viewer or from behind has none (`RIM_SIDE`) and rims nothing.
+ * - A stepped texel alone among its own colour's texels goes back to their step, so the bands keep clean edges.
+ *
+ * The ink, the eyes and the outline never step. FigureBuilder paints its own outline, so nothing is grown outside the
+ * figure: a transparent texel stays transparent. Every colour that comes out is a DUEL colour (no dither: spec A6).
+ *
+ * The floor and the 2D rim are this repo's rules, not ramp-light's (which takes the raw mean N·L and the raw component).
+ */
+import { RAMPS, RAMP_OUTLINE, duel } from '../../lib/figure';
+import { stepLight } from '../paint/vertex-light';
+import type { V3 } from '../world/types';
+
+/** A light on a sprite: its direction toward the light in the cell's normal-map frame (unit; paint/light.ts toCell),
+ * and its colour × how much of it reaches the figure (light units, as the vertex light's). */
+export interface SpriteLamp { dir: V3; rgb: V3 }
+/** How a texel steps: `threshold` (0–1 of the lights' total strength) a texel's own N·L must clear the figure's mean
+ * by; `ink`, the peak channel at or under which a texel never steps (the ink, the eyes); `floor`, a light's least share of
+ * the figure in the flat light (its term is `max(mean N·L, floor) × rgb`); `rim`, the share of the lights' total strength
+ * that an edge's outward direction must take, in the cell's 2D frame, for the edge to rim; `floorCap`, the most the lights'
+ * floors may add up to (Σ strength × `floor`, in light units), above which the floor is scaled down evenly, so a figure
+ * under several lamps is no hotter than its room. */
+export interface SpriteStyle { threshold: number; ink: number; floor: number; rim: number; floorCap: number }
+export const SPRITE_STYLE: SpriteStyle = { threshold: 0.22, ink: 40, floor: 0.5, rim: 0.35, floorCap: 0.8 };
+/** A light whose 2D part (x, y in the cell's frame) is under this gives no rim: within 14.5° of the view axis, from the
+ * viewer or from behind, it has no side to light. */
+export const RIM_SIDE = 0.25;
+/** `step` and `max` are the room's light (look.json light); `shade` the sector's, as a factor (1: none); `exposure`, a
+ * factor on the stepped flat light, stepped again (1: none; view/expose.ts). */
+export interface SpriteOptions { step: number; max: number; shade?: number; exposure?: number; style?: SpriteStyle }
+
+/** A texel counts as filled from this alpha up. */
+/** The least alpha a figure's texel keeps: the light clears every texel under it (a faint edge is not part of the figure). */
+export const OPAQUE = 128;
+const strength = (rgb: V3) => Math.max(rgb[0], rgb[1], rgb[2]);
+const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
+/** Where a painted colour sits on the DUEL ramps: its row and step (rows run dark to light). A colour off the ramps takes
+ * the nearest entry. Cached per colour. */
+const place = new Map<number, [number, number]>();
+function onRamp(rgb: number): [number, number] {
+  let found = place.get(rgb);
+  if (found) return found;
+  let best = Infinity;
+  for (let r = 0; r < RAMPS.length; r++) for (let i = 0; i < RAMPS[r].length; i++) {
+    const c = RAMPS[r][i], d = ((c >> 16) - (rgb >> 16)) ** 2 + (((c >> 8) & 255) - ((rgb >> 8) & 255)) ** 2 + ((c & 255) - (rgb & 255)) ** 2;
+    if (d < best) { best = d; found = [r, i]; }
+  }
+  place.set(rgb, found!);
+  return found!;
+}
+
+/** A texel's normal from the cell's normal map (red right, green down the image, blue toward the camera); a texel with
+ * none faces the camera. */
+const normalAt = (normals: Uint8ClampedArray, k: number): V3 =>
+  normals[k * 4 + 3] ? [normals[k * 4] / 127.5 - 1, 1 - normals[k * 4 + 1] / 127.5, normals[k * 4 + 2] / 127.5 - 1] : [0, 0, 1];
+
+/** Each lamp's N·L over the figure's filled texels that have a normal, averaged (0 with none). */
+function meanFacing(normals: Uint8ClampedArray, painted: Uint8ClampedArray, w: number, h: number, lamps: SpriteLamp[]): number[] {
+  const mean = lamps.map(() => 0);
+  let count = 0;
+  for (let k = 0; k < w * h; k++) {
+    if (painted[k * 4 + 3] < OPAQUE || !normals[k * 4 + 3]) continue;
+    const n = normalAt(normals, k);
+    count++;
+    lamps.forEach(({ dir }, i) => { mean[i] += Math.max(0, dot(n, dir)); });
+  }
+  return mean.map(m => (count ? m / count : 0));
+}
+
+/** The flat light (exported for tests): (ambient + Σ max(mean N·L, floor) × rgb) × shade, clamped to `max`, stepped, where
+ * the floor is the style's, scaled down so the lights' floors add up to at most `floorCap` (a cap of 0 takes the floor
+ * away; with no lamps there is nothing to scale). The figure's `mean` facing is found unless the caller has it already. */
+export function flatLight(normals: Uint8ClampedArray, painted: Uint8ClampedArray, w: number, h: number, lamps: SpriteLamp[], ambient: V3, o: SpriteOptions, mean = meanFacing(normals, painted, w, h, lamps)): V3 {
+  const sum: V3 = [ambient[0], ambient[1], ambient[2]], shade = o.shade ?? 1, style = o.style ?? SPRITE_STYLE;
+  // What the floors would add up to, and the floor that keeps it to the cap.
+  const want = lamps.reduce((t, { rgb }) => t + strength(rgb) * style.floor, 0), floor = want > style.floorCap ? (style.floor * style.floorCap) / want : style.floor;
+  lamps.forEach(({ rgb }, i) => { for (let c = 0; c < 3; c++) sum[c] += Math.max(mean[i], floor) * rgb[c]; });
+  return stepLight([Math.min(o.max, sum[0] * shade), Math.min(o.max, sum[1] * shade), Math.min(o.max, sum[2] * shade)], o.step);
+}
+
+/** The flat light's peak in whole light steps (the `top` an exposure counts down from). */
+export const flatTop = (flat: V3, step: number) => Math.round(Math.max(flat[0], flat[1], flat[2]) / step);
+
+/** Lights a painted cell (RGBA, w×h) from its normal map, into `out` (a new array by default), and returns it. */
+export function spriteLight(painted: Uint8ClampedArray, normals: Uint8ClampedArray, w: number, h: number, lamps: SpriteLamp[], ambient: V3, o: SpriteOptions, out = new Uint8ClampedArray(w * h * 4)): Uint8ClampedArray {
+  const style = o.style ?? SPRITE_STYLE, mean = meanFacing(normals, painted, w, h, lamps), lit = flatLight(normals, painted, w, h, lamps, ambient, o, mean);
+  // The exposure scales the stepped flat light and steps it again, so n / top lands on exactly n steps.
+  const e = o.exposure ?? 1, flat = e === 1 ? lit : stepLight([lit[0] * e, lit[1] * e, lit[2] * e], o.step);
+  const filled = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && painted[(y * w + x) * 4 + 3] >= OPAQUE;
+  const rgbAt = (k: number) => (painted[k * 4] << 16) | (painted[k * 4 + 1] << 8) | painted[k * 4 + 2];
+  // `facing` is the figure's mean in lamp strength (what a texel's own light is measured against), `total` the lamps'
+  // strength (it scales the threshold).
+  const total = lamps.reduce((t, { rgb }) => t + strength(rgb), 0), facing = lamps.reduce((t, { rgb }, i) => t + mean[i] * strength(rgb), 0);
+  const threshold = style.threshold * Math.max(total, 1e-6);
+  // How much of the lights' strength lies toward an outward direction (ox, oy) in the picture plane: each light counts by
+  // its strength × the cosine between its 2D direction and the outward one, and not at all within `RIM_SIDE` of the axis.
+  const sideOf = (ox: number, oy: number) => lamps.reduce((s, { dir, rgb }) => {
+    const q = Math.hypot(dir[0], dir[1]);
+    return q < RIM_SIDE ? s : s + strength(rgb) * Math.max(0, (ox * dir[0] + oy * dir[1]) / q);
+  }, 0);
+  const litBy = (n: V3) => lamps.reduce((s, { dir, rgb }) => s + Math.max(0, dot(n, dir)) * strength(rgb), 0);
+  // Ink, outline and eyes: a texel that never steps.
+  const never = (k: number) => {
+    const rgb = rgbAt(k);
+    return painted[k * 4 + 3] < OPAQUE || Math.max(painted[k * 4], painted[k * 4 + 1], painted[k * 4 + 2]) <= style.ink || rgb === RAMP_OUTLINE || rgb === 0;
+  };
+  // The step each texel takes: −1, 0 or +1.
+  const step = new Int8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const k = y * w + x;
+    if (never(k)) continue;
+    const d = litBy(normalAt(normals, k)) - facing;
+    let s = d > threshold ? 1 : d < -threshold ? -1 : 0;
+    // The rim: an edge texel whose outward direction is on the lights' side in the picture plane, by a share (`rim`) of
+    // their total strength (north is y − 1).
+    const e = filled(x + 1, y), wv = filled(x - 1, y), sv = filled(x, y + 1), nv = filled(x, y - 1);
+    if (!(e && wv && sv && nv)) {
+      const ox = (wv ? 0 : -1) + (e ? 0 : 1), oy = (nv ? 0 : 1) + (sv ? 0 : -1), l = Math.hypot(ox, oy);
+      if (l > 0 && sideOf(ox / l, oy / l) >= style.rim * Math.max(total, 1e-6)) s = 1;
+    }
+    step[k] = s;
+  }
+  // Clean edges: a texel stepped unlike every same-coloured neighbour takes theirs.
+  const settled = step.slice();
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const k = y * w + x;
+    if (never(k)) continue;
+    const rgb = rgbAt(k);
+    let same = 0, agree = 0, other = 0;
+    for (const q of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, y > 0 ? k - w : -1, y < h - 1 ? k + w : -1]) {
+      if (q < 0 || painted[q * 4 + 3] < OPAQUE || rgbAt(q) !== rgb) continue;
+      same++;
+      if (step[q] === step[k]) agree++; else other += step[q];
+    }
+    if (same >= 2 && agree === 0) settled[k] = Math.sign(other);
+  }
+  const clamp = (v: number) => Math.min(255, Math.max(0, Math.round(v)));
+  for (let k = 0; k < w * h; k++) {
+    const o4 = k * 4;
+    if (painted[o4 + 3] < OPAQUE) { out[o4] = out[o4 + 1] = out[o4 + 2] = out[o4 + 3] = 0; continue; }
+    let rgb = rgbAt(k);
+    if (settled[k]) { const [r, i] = onRamp(rgb), row = RAMPS[r]; rgb = row[Math.max(0, Math.min(row.length - 1, i + settled[k]))]; }
+    const snapped = duel((clamp((rgb >> 16) * flat[0]) << 16) | (clamp(((rgb >> 8) & 255) * flat[1]) << 8) | clamp((rgb & 255) * flat[2]));
+    out[o4] = snapped >> 16; out[o4 + 1] = (snapped >> 8) & 255; out[o4 + 2] = snapped & 255; out[o4 + 3] = painted[o4 + 3];
+  }
+  return out;
+}

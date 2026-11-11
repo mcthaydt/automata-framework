@@ -1,0 +1,68 @@
+/**
+ * A figure's exposure: how much of its flat light a figure keeps, so it sits within the readability window of its room
+ * (view/readability.ts): not hot (its luma at most `exposeHot` × its ring's) and still reading (its edge at least
+ * `MIN_READ`). The sprite light gives every figure the light of its spot; two figures under one pendant differ in their
+ * colouring, so one light cannot serve both. The exposure is that light stepped down per figure.
+ *
+ * - **A trial, not a render.** For each step tried, the figure is lit alone, composited onto a copy of the room (the frame
+ *   as drawn before any figure, and before the post passes) and measured there, inside a box round its cell. So the
+ *   factor depends on the figure and its room's light, and not on the frame's rain, bloom, shafts or other figures. In a
+ *   dry frame the trial is the frame: the final read equals the trial's, to the digit. Where the post passes touch a figure
+ *   (rain), they move its read after the trial, and exposure can't see that. (So does a figure's bounce, `switches.bounce`: the
+ *   trial reads it off the room, the final draw off the frame with the earlier figures in it. `bounce` is off in look.json,
+ *   so no frame is affected.)
+ * - **Whole steps.** Light is stepped, so the factor is `n / top`: `top` the figure's flat light in whole steps (its peak
+ *   over `light.step`), `n` the largest step whose trial is not hot. The sprite light steps `n / top` again, which is exact.
+ * - **The clamp.** If the figure's edge at `top` is at least `MIN_READ` and the edge at `n` is under it, `n` rises to the
+ *   first step whose edge is. The figure may then still be hot: a measured conflict, which `frameIssues` reports and
+ *   nothing hides. A figure whose edge is under `MIN_READ` even at `top` isn't clamped (the edge isn't monotone in the
+ *   step, so a lower step is no promise of a better edge). A figure with no texels in its trial, or lit under two steps,
+ *   keeps its light.
+ */
+import { largestReadIn, type FigureRead } from './readability';
+
+/** A rectangle of the frame: `[x0, y0, x1, y1]`, x1 and y1 exclusive. Empty (`x0 === x1` or `y0 === y1`) where wholly off. */
+export type Box = [x0: number, y0: number, x1: number, y1: number];
+/** How far the box grows round a cell: the ring of 3 and the neighbour of its edge, so the read inside the box is the whole
+ * frame's. */
+export const EXPOSE_BOX = 4;
+
+/** The box of a cell (its frame rectangle, x1 and y1 exclusive) grown by `EXPOSE_BOX` and clamped to a w × h frame, never
+ * inverted: a cell wholly off the frame gives an empty box, so `restoreBox` writes nothing, `largestReadIn` reads nothing
+ * and `exposureSteps` leaves the figure as it was. */
+export function boxAround(x0: number, y0: number, x1: number, y1: number, w: number, h: number): Box {
+  const bx0 = Math.min(w, Math.max(0, x0 - EXPOSE_BOX)), by0 = Math.min(h, Math.max(0, y0 - EXPOSE_BOX));
+  return [bx0, by0, Math.max(bx0, Math.min(w, x1 + EXPOSE_BOX)), Math.max(by0, Math.min(h, y1 + EXPOSE_BOX))];
+}
+
+/** Puts back the room inside `box`: copies its rows of `src` and `srcDepth` into `dst` and `dstDepth` (w texels a row), so
+ * the next trial starts from the room, not from the last trial's figure. */
+export function restoreBox(dst: Uint8ClampedArray, dstDepth: Float32Array, src: Uint8ClampedArray, srcDepth: Float32Array, w: number, box: Box): void {
+  const [x0, y0, x1, y1] = box;
+  if (x1 <= x0) return;
+  for (let y = y0; y < y1; y++) {
+    const from = y * w + x0, to = y * w + x1;
+    dst.set(src.subarray(from * 4, to * 4), from * 4);
+    dstDepth.set(srcDepth.subarray(from, to), from);
+  }
+}
+
+/**
+ * The step to light a figure at: `top` where it isn't hot (or can't be measured, or has one step), else the largest step
+ * not hot, raised to where its edge is `minEdge` (see the header). `readAt(n)` is the figure's read in the trial lit at `n`
+ * steps (`undefined`: no texels). Each step is read once.
+ */
+export function exposureSteps(readAt: (steps: number) => FigureRead | undefined, top: number, o: { hot: number; minEdge: number }): number {
+  const memo = new Map<number, FigureRead | undefined>();
+  const read = (n: number) => { if (!memo.has(n)) memo.set(n, readAt(n)); return memo.get(n); };
+  const hot = (r?: FigureRead) => !!r && r.figure > o.hot * r.around;
+  const first = read(top);
+  if (top <= 1 || !first || !hot(first)) return top;
+  // Predicted from the ratio (light scales the figure's luma about linearly), then walked to the largest step not hot.
+  let n = Math.max(1, Math.min(top - 1, Math.floor((top * o.hot * first.around) / first.figure)));
+  while (n < top - 1 && !hot(read(n + 1))) n++;
+  while (n > 1 && hot(read(n))) n--;
+  // The edge clamp: never under 1.1 by exposure.
+  if (first.edge >= o.minEdge) while (n < top && (read(n)?.edge ?? Infinity) < o.minEdge) n++;
+  return n;
+}

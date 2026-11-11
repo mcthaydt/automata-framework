@@ -1,0 +1,78 @@
+/**
+ * Ambient occlusion from the map: how much the walls, steps and furniture round a point shut out the ambient and fill
+ * light there. The Last Light's occlusion.ts (a screen-space-free, per-vertex occlusion) on our sectors: a floor
+ * darkens into a wall and a corner darkens more, a wall darkens at its foot and under its ceiling, and the floor round
+ * a piece of furniture darkens at its foot. It is evaluated at a vertex's place and normal, once, not per frame.
+ */
+import { LOOK, type Look } from './look';
+import { heightAt, floorAt, sectorAt, segments, inward, vertsOf } from '../world/sectors';
+import type { MapPlan, V3 } from '../world/types';
+
+/** A wall face for occlusion: its start, its unit direction along it, its inward normal (into its sector), its
+ * length, and the height span it stands over (m, world y). */
+export interface Face { a: [number, number]; dir: [number, number]; n: [number, number]; len: number; y0: number; y1: number }
+/** A footprint on a floor: world x, z centre, half sizes, the floor's height. */
+export interface Footprint { x: number; z: number; hx: number; hz: number; y: number }
+
+/** How far from a face (m) it still occludes: the formula's own cutoff, which the index pads by. */
+const REACH = 0.9;
+/** The shortest a step is worth calling a face (m). */
+const MIN_FACE = 0.05;
+
+/** The faces of a map: each solid wall from floor to ceiling, and each red wall's lower step (the neighbour's floor
+ * higher) and upper step (the neighbour's ceiling lower), each taken at the segment's middle. */
+export function facesOf(map: MapPlan): Face[] {
+  const out: Face[] = [];
+  for (const seg of segments(map)) {
+    const s = map.sectors[seg.sector], o = vertsOf(s)[0], mx = (seg.a[0] + seg.b[0]) / 2, my = (seg.a[1] + seg.b[1]) / 2;
+    const dx = seg.b[0] - seg.a[0], dy = seg.b[1] - seg.a[1], len = Math.hypot(dx, dy), n = inward(map, seg);
+    const f = heightAt(s.floor, o, mx, my), c = heightAt(s.ceil, o, mx, my);
+    const add = (y0: number, y1: number) => { if (y1 - y0 > MIN_FACE) out.push({ a: seg.a, dir: [dx / len, dy / len], n, len, y0, y1 }); };
+    if (seg.next < 0) {
+      // An open edge has no wall at all; a sky ceiling's z is its height (a facade runs up to it).
+      if (!{ ...s.wall, ...(s.walls?.[seg.edge] ?? {}) }.none) add(f, c);
+    } else {
+      const t = map.sectors[seg.next], to = vertsOf(t)[0], nf = heightAt(t.floor, to, mx, my), nc = heightAt(t.ceil, to, mx, my);
+      add(f, nf); add(nc, c);
+    }
+  }
+  return out;
+}
+
+/** Occlusion from a map (The Last Light's occlusion.ts on our sectors): returns (p, n) → a factor to multiply ambient and
+ * fill by, 1 open … `ao.min`. */
+export function occlusionOf(map: MapPlan, footprints: Footprint[], ao: Look['ao'] = LOOK.ao): (p: V3, n: V3) => number {
+  // A 1 m grid over x, z: a face is listed in every cell within REACH of it, so a query visits only the faces near it.
+  const grid = new Map<number, Face[]>(), key = (i: number, j: number) => i * 100003 + j;
+  for (const f of facesOf(map)) {
+    const b: [number, number] = [f.a[0] + f.dir[0] * f.len, f.a[1] + f.dir[1] * f.len];
+    const i0 = Math.floor(Math.min(f.a[0], b[0]) - REACH), i1 = Math.floor(Math.max(f.a[0], b[0]) + REACH), j0 = Math.floor(Math.min(f.a[1], b[1]) - REACH), j1 = Math.floor(Math.max(f.a[1], b[1]) + REACH);
+    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const k = key(i, j), l = grid.get(k); if (l) l.push(f); else grid.set(k, [f]); }
+  }
+  return ([x, y, z], [nx, ny, nz]) => {
+    let open = 1;
+    for (const f of grid.get(key(Math.floor(x), Math.floor(z))) ?? []) {
+      if (y < f.y0 - MIN_FACE || y > f.y1 + MIN_FACE) continue;
+      const d = (x - f.a[0]) * f.n[0] + (z - f.a[1]) * f.n[1], t = (x - f.a[0]) * f.dir[0] + (z - f.a[1]) * f.dir[1];
+      if (d < -0.02 || d > REACH || t < -0.15 || t > f.len + 0.15) continue;
+      // A surface lying on this face (the wall's own) is not occluded by it.
+      if (d < 0.06 && nx * f.n[0] + nz * f.n[1] > 0.7) continue;
+      const reach = Math.exp(-Math.max(0, d) / ao.reach);
+      // A floor or a top running into a wall; an inside corner; anything else (a ceiling).
+      open *= 1 - (ny > 0.5 ? ao.floor : Math.abs(ny) <= 0.5 ? ao.corner : ao.other) * reach;
+    }
+    const sector = sectorAt(map, x, z), floor = floorAt(map, x, z);
+    if (Math.abs(ny) <= 0.5) {
+      open *= 1 - ao.wallBase[0] * Math.exp(-Math.max(0, y - floor) / ao.wallBase[1]);
+      const s = sector >= 0 ? map.sectors[sector] : undefined;
+      if (s && !s.ceil.sky) open *= 1 - ao.ceiling[0] * Math.exp(-Math.max(0, heightAt(s.ceil, vertsOf(s)[0], x, z) - y) / ao.ceiling[1]);
+    }
+    if (ny > 0.5 && y < floor + 0.1) for (const b of footprints) {
+      // A footprint darkens only the floor it stands on, not one above or below it.
+      if (Math.abs(y - b.y) > 0.1) continue;
+      const d = Math.hypot(Math.max(0, Math.abs(x - b.x) - b.hx), Math.max(0, Math.abs(z - b.z) - b.hz));
+      if (d < ao.foot[2]) open *= 1 - ao.foot[0] * Math.exp(-d / ao.foot[1]);
+    }
+    return Math.max(ao.min, open);
+  };
+}

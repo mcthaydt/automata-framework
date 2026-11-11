@@ -1,0 +1,184 @@
+/**
+ * The scene's light, as the pieces the vertex light is made of (vertex-light.ts): the time of day (its sun's key and
+ * shadow map), the lamps' strength over time (a flicker, the runtime state's level and script), and each lamp as lit
+ * (resolved against its kind in look.ts). The light itself is per vertex: stepped, then interpolated across a triangle.
+ */
+import { gbuffer, noise3, rasterize, TRI, VERT, type GBuffer } from '../../lib/figure';
+import type { ScenePart } from '../world/build';
+import timeLibrary from './library/times.json';
+import type { Lamp, ScenePlan, TimeOfDay, V3 } from '../world/types';
+import { LOOK, resolveLamp } from './look';
+
+export const TIMES = timeLibrary as unknown as Readonly<Record<string, TimeOfDay>>;
+const registeredTimes = new Map<string, TimeOfDay>();
+/** Registers a time of day by name (a map's `time`, state.ts setTime), beside the library's; the library never changes. */
+export function registerTime(name: string, time: TimeOfDay) { registeredTimes.set(name, time); }
+/** A time of day by name: registered first, then the library's (library/times.json). */
+export const presetOf = (name: string): TimeOfDay | undefined => registeredTimes.get(name) ?? TIMES[name];
+/** The figures' painted key (FigureBuilder's FIGURE_KEY), in view space. */
+export const FIGURE_KEY: V3 = [-0.5, 0.62, 0.6];
+const norm = (v: V3): V3 => { const l = Math.hypot(...v) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+/** View space (x right, y up, z toward the camera) to world, for a camera pitched down by `pitch`. */
+export const viewToWorld = (v: V3, pitch: number): V3 => { const c = Math.cos(pitch), s = Math.sin(pitch); return [v[0], v[1] * c + v[2] * s, -v[1] * s + v[2] * c]; };
+export const worldToView = (v: V3, pitch: number): V3 => { const c = Math.cos(pitch), s = Math.sin(pitch); return [v[0], v[1] * c - v[2] * s, v[1] * s + v[2] * c]; };
+/** A world direction in a figure cell's normal-map frame (x right, y up, z toward the camera): turned by the figure's
+ * azimuth round it (the camera's: 0 in the diorama, first person's `atan2(eye.x − x, eye.z − z)`), then pitched
+ * (worldToView). The inverse of the azimuth turn FigureBuilder draws the figure at: world = Ry(azimuth)·cell. */
+export const toCell = (v: V3, azimuth: number, pitch: number): V3 => {
+  const c = Math.cos(azimuth), s = Math.sin(azimuth);
+  return worldToView([v[0] * c - v[2] * s, v[1], v[0] * s + v[2] * c], pitch);
+};
+
+/** The plan's time of day: its preset with the plan's overrides. */
+export function timeOf(plan: ScenePlan): TimeOfDay {
+  const t = plan.time, name = typeof t === 'string' ? t : t.preset ?? 'day', preset = presetOf(name);
+  if (!preset) throw new Error(`no time of day ${name}`);
+  return typeof t === 'string' ? preset : { ...preset, ...t };
+}
+/** The key toward its source, in world space. */
+export const keyOf = (time: TimeOfDay, pitch: number) => norm(viewToWorld(norm(time.key ?? FIGURE_KEY), pitch));
+
+/** A lamp's strength at `t` (s): 1, or a flicker that drops in steps (a quarter at a time), now and then to nearly
+ * nothing, held for a sprite frame (1/12 s) at a time. */
+export function strength(l: Lamp, t: number) {
+  const base = flickerOf(l, t);
+  if (l.stateLevel === undefined && l.style === undefined) return base;
+  // The runtime state's level and scripted style (state.ts): a light style's letter ('a' dark, 'm' as authored, 'z'
+  // double) per 1/rate s, times the level, in quarters as the flicker is.
+  const st = l.style ? styleAt(l.style, t, l.styleRate ?? 10) : 1;
+  return Math.max(0, Math.round(base * st * (l.stateLevel ?? 1) * 4) / 4);
+}
+/** A light style's value at `t`: its letters a–z (a 0, m 1, z 2), one per 1/rate s, looping. */
+export function styleAt(style: string, t: number, rate = 10) {
+  if (!style.length) return 1;
+  const c = style.charCodeAt(Math.floor(Math.max(0, t) * rate + 1e-6) % style.length) - 97;
+  return Math.max(0, Math.min(25, c)) / 12;
+}
+function flickerOf(l: Lamp, t: number) {
+  if (!l.flicker) return 1;
+  const tk = Math.floor(t * 12) / 12, rate = l.rate ?? 6, s = l.seed ?? 0;
+  const v = noise3(tk * rate, s * 7.7, 0.5), dip = noise3(tk * rate * 0.37 + 9, s, 3.1) > 0.72 ? 0.85 : 0;
+  return Math.max(0, 1 - Math.round((l.flicker * Math.max(0, v - 0.35) / 0.65 + dip * l.flicker) * 4) / 4);
+}
+/** A lamp's colour as an RGB triple 0–1. */
+export { rgb01 as rgbOf } from './look';
+/** Night: no sun, or one too weak to light a day (it lights windows and brings out the moths). */
+export const isNight = (time: TimeOfDay) => !time.sun || time.sun.level <= 0.5;
+/** Whether a lamp is lit at `time`: a kind the kit marks `dusk` (a street lamp on its photocell) is dark by day. */
+export const lampOn = (l: Lamp, time: TimeOfDay) => !(LOOK.kit[l.kind]?.dusk && !isNight(time));
+const lampLooks = new WeakMap<Lamp, ReturnType<typeof resolveLamp<Lamp & { kind: Lamp['kind'] }>>>();
+/** A lamp as it is lit: resolved against its kind (look.ts: its colour, reach and level), with the runtime state's colour
+ * over its own, unchecked (a script's, as its level is). Cached by lamp. */
+export function lampLook(l: Lamp) {
+  let hit = lampLooks.get(l);
+  if (!hit) { hit = resolveLamp(l); if (l.stateColour) hit = { ...hit, color: l.stateColour }; lampLooks.set(l, hit); }
+  return hit;
+}
+
+/** A shadow map along the key: the casters' depth toward the light, in an orthographic frame across it. */
+export interface ShadowMap { g: GBuffer; u: V3; v: V3; l: V3; u0: number; v1: number; res: number }
+export function shadowMap(parts: ScenePart[], key: V3, texelsPerMetre: number): ShadowMap | null {
+  const casters = parts.filter(p => !p.noCast);
+  if (!casters.length) return null;
+  const l = key, up: V3 = Math.abs(l[1]) > 0.95 ? [0, 0, 1] : [0, 1, 0];
+  const u = norm([up[1] * l[2] - up[2] * l[1], up[2] * l[0] - up[0] * l[2], up[0] * l[1] - up[1] * l[0]]);
+  const v: V3 = [l[1] * u[2] - l[2] * u[1], l[2] * u[0] - l[0] * u[2], l[0] * u[1] - l[1] * u[0]];
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity, nv = 0, nt = 0;
+  for (const p of casters) {
+    const P = p.mesh.positions; nv += P.length / 3; nt += p.mesh.indices.length / 3;
+    for (let i = 0; i < P.length; i += 3) { const a = P[i] * u[0] + P[i + 1] * u[1] + P[i + 2] * u[2], b = P[i] * v[0] + P[i + 1] * v[1] + P[i + 2] * v[2]; u0 = Math.min(u0, a); u1 = Math.max(u1, a); v0 = Math.min(v0, b); v1 = Math.max(v1, b); }
+  }
+  const res = Math.min(texelsPerMetre, 3000 / Math.max(u1 - u0, v1 - v0, 1)), w = Math.ceil((u1 - u0) * res) + 2, h = Math.ceil((v1 - v0) * res) + 2;
+  const verts = new Float32Array(nv * VERT), tris = new Int32Array(nt * TRI);
+  let vi = 0, ti = 0;
+  for (const p of casters) {
+    const P = p.mesh.positions, I = p.mesh.indices, base = vi;
+    for (let i = 0; i < P.length; i += 3) {
+      const o = vi * VERT;
+      verts[o] = (P[i] * u[0] + P[i + 1] * u[1] + P[i + 2] * u[2] - u0) * res + 1;
+      verts[o + 1] = (v1 - (P[i] * v[0] + P[i + 1] * v[1] + P[i + 2] * v[2])) * res + 1;
+      verts[o + 2] = P[i] * l[0] + P[i + 1] * l[1] + P[i + 2] * l[2];
+      vi++;
+    }
+    for (let i = 0; i < I.length; i += 3) { const o = ti * TRI; tris[o] = base + I[i]; tris[o + 1] = base + I[i + 1]; tris[o + 2] = base + I[i + 2]; tris[o + 3] = 0; tris[o + 4] = 16; tris[o + 5] = 0; ti++; }
+  }
+  const g = gbuffer(w, h);
+  rasterize({ verts, count: vi, tris, triCount: ti }, g, 0);
+  return { g, u, v, l, u0, v1, res };
+}
+/** A world box's span in a shadow map's texels [x0, y0, x1, y1] (its 8 corners projected), or null off the map. */
+function boxInMap(m: ShadowMap, lo: V3, hi: V3, pad = 2): [number, number, number, number] | null {
+  let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+  for (let i = 0; i < 8; i++) {
+    const x = i & 1 ? hi[0] : lo[0], y = i & 2 ? hi[1] : lo[1], z = i & 4 ? hi[2] : lo[2];
+    const a = (x * m.u[0] + y * m.u[1] + z * m.u[2] - m.u0) * m.res + 1, b = (m.v1 - (x * m.v[0] + y * m.v[1] + z * m.v[2])) * m.res + 1;
+    a0 = Math.min(a0, a); a1 = Math.max(a1, a); b0 = Math.min(b0, b); b1 = Math.max(b1, b);
+  }
+  const x0 = Math.max(0, Math.floor(a0) - pad), y0 = Math.max(0, Math.floor(b0) - pad), x1 = Math.min(m.g.w, Math.ceil(a1) + pad), y1 = Math.min(m.g.h, Math.ceil(b1) + pad);
+  return x0 < x1 && y0 < y1 ? [x0, y0, x1, y1] : null;
+}
+/** A mesh list's world bounding box (world/mesh.ts). */
+export { boundsOfMesh as boundsOf } from '../world/mesh';
+/**
+ * Updates a shadow map where something changed (a door swung, a prop moved, came or went), not the whole map: the
+ * changed boxes' span in the map is cleared and the casters that reach into it re-rasterised there alone, so no stale
+ * shadow is left where the thing stood, and the rest of the map is untouched. Returns the texels redrawn.
+ */
+export function updateShadowMap(m: ShadowMap, parts: ScenePart[], boxes: [V3, V3][]) {
+  let done = 0;
+  for (const [lo, hi] of boxes) {
+    const r = boxInMap(m, lo, hi); if (!r) continue;
+    const [x0, y0, x1, y1] = r, rw = x1 - x0, rh = y1 - y0, { u, v, l, u0, v1, res } = m;
+    // The casters whose span crosses the rectangle, offset into its own small buffer.
+    const casters = parts.filter(p => !p.noCast), pick: ScenePart[] = [];
+    let nv = 0, nt = 0;
+    for (const p of casters) {
+      const P = p.mesh.positions; let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+      for (let i = 0; i < P.length; i += 3) { const a = (P[i] * u[0] + P[i + 1] * u[1] + P[i + 2] * u[2] - u0) * res + 1, b = (v1 - (P[i] * v[0] + P[i + 1] * v[1] + P[i + 2] * v[2])) * res + 1; a0 = Math.min(a0, a); a1 = Math.max(a1, a); b0 = Math.min(b0, b); b1 = Math.max(b1, b); }
+      if (a1 < x0 - 1 || a0 > x1 + 1 || b1 < y0 - 1 || b0 > y1 + 1) continue;
+      pick.push(p); nv += P.length / 3; nt += p.mesh.indices.length / 3;
+    }
+    const verts = new Float32Array(nv * VERT), tris = new Int32Array(nt * TRI);
+    let vi = 0, ti = 0;
+    for (const p of pick) {
+      const P = p.mesh.positions, I = p.mesh.indices, base = vi;
+      for (let i = 0; i < P.length; i += 3) {
+        const o = vi * VERT;
+        verts[o] = (P[i] * u[0] + P[i + 1] * u[1] + P[i + 2] * u[2] - u0) * res + 1 - x0;
+        verts[o + 1] = (v1 - (P[i] * v[0] + P[i + 1] * v[1] + P[i + 2] * v[2])) * res + 1 - y0;
+        verts[o + 2] = P[i] * l[0] + P[i + 1] * l[1] + P[i + 2] * l[2];
+        vi++;
+      }
+      for (let i = 0; i < I.length; i += 3) { const o = ti * TRI; tris[o] = base + I[i]; tris[o + 1] = base + I[i + 1]; tris[o + 2] = base + I[i + 2]; tris[o + 3] = 0; tris[o + 4] = 16; tris[o + 5] = 0; ti++; }
+    }
+    const g = gbuffer(rw, rh);
+    rasterize({ verts, count: vi, tris, triCount: ti }, g, 0);
+    for (let y = 0; y < rh; y++) m.g.depth.set(g.depth.subarray(y * rw, y * rw + rw), (y + y0) * m.g.w + x0);
+    done += rw * rh;
+  }
+  return done;
+}
+/** Whether the key is blocked at `p` (a caster nearer the light by more than a bias that grows as the surface turns
+ * from the light), tested over a texel's cross so a lone texel of acne does not shade. */
+/** How much of the sun reaches a vertex (0–1): the share of a 3 × 3 grid of `shadowed` tests across the shadow map's
+ * plane, `spread` m either side, that are lit. A vertex stands for the ground round it, so a thin caster between
+ * vertices (a pole) leaves a soft line across them, not a dot where one happens to fall. */
+export function sunVisibility(m: ShadowMap, px: number, py: number, pz: number, nl: number, spread: number) {
+  let lit = 0;
+  for (const i of [-1, 0, 1]) for (const j of [-1, 0, 1]) {
+    const du = i * spread, dv = j * spread;
+    if (!shadowed(m, px + m.u[0] * du + m.v[0] * dv, py + m.u[1] * du + m.v[1] * dv, pz + m.u[2] * du + m.v[2] * dv, nl)) lit++;
+  }
+  return lit / 9;
+}
+export function shadowed(m: ShadowMap, px: number, py: number, pz: number, nl: number) {
+  const a = (px * m.u[0] + py * m.u[1] + pz * m.u[2] - m.u0) * m.res + 1, b = (m.v1 - (px * m.v[0] + py * m.v[1] + pz * m.v[2])) * m.res + 1;
+  const d = px * m.l[0] + py * m.l[1] + pz * m.l[2], bias = 0.05 + 0.12 * (1 - Math.max(0, nl));
+  let hits = 0;
+  for (const [ox, oy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    const x = Math.floor(a) + ox, y = Math.floor(b) + oy;
+    if (x < 0 || y < 0 || x >= m.g.w || y >= m.g.h) continue;
+    if (m.g.depth[y * m.g.w + x] > d + bias) hits++;
+  }
+  return hits >= 3;
+}

@@ -1,0 +1,203 @@
+/**
+ * The vertex light: a scene lit at its vertices, as The Last Light lights its rooms (indirect-light.ts), and then
+ * interpolated across each triangle (Gouraud) by the rasteriser. At a vertex the light is
+ *
+ *   (base + Σ lamps) × the sector's shade, clamped, in steps,
+ *
+ * where the base is the ambient (with a small key on the normal) and the fill, both × occlusion, plus the sun where its
+ * shadow map lets it; and a lamp is its strength × level × colour × its geometric term (falloff, N·L, cone) × how much of
+ * it reaches the vertex (its cube map). Everything that does not move is kept per vertex: only the lamps' strengths
+ * (a flicker, a runtime state) are applied each frame. A figure is lit as a sprite (stage/sprite-light.ts) by the
+ * lights at its chest (`spriteLights`), so figures and scenery stand in the same pools of light.
+ */
+import type { Mesh } from '../../lib/figure';
+import type { ScenePart } from '../world/build';
+import { sectorAt } from '../world/sectors';
+import type { Lamp, MapPlan, TimeOfDay, V3 } from '../world/types';
+import { boundsOf, keyOf, lampLook, shadowed, strength, sunVisibility, type ShadowMap } from './light';
+import { LOOK, rgb01, tintOf, type Look } from './look';
+import type { Footprint } from './occlusion';
+import { cubeVisibility, type CubeMap } from './perspective';
+
+/** A lamp ready to light: resolved (look.ts resolveLamp), in world space. */
+export interface LitLamp { at: V3; rgb: V3; range: number; level: number; aim?: V3; cone?: number }
+/** What lights a scene, for one time of day. */
+export interface LightEnv {
+  look: Look;
+  ambient: { level: number; tint: V3 }; fill: { level: number; tint: V3 };
+  /** The sun (none at night): its direction toward it (world, unit), colour × level, and its shadow map. */
+  sun?: { dir: V3; rgb: V3; map: ShadowMap | null };
+  ao: (p: V3, n: V3) => number;
+  /** A place's floor height (for the fill's fade). */
+  floorAt: (x: number, z: number) => number;
+}
+/** A lamp lit now but not part of the scene's build (a carried torch, a lamp the runtime state added): no cube map. */
+export interface DynamicLamp { lamp: LitLamp; strength: number }
+
+/** The lamps as they are lit (light.ts lampLook): their place, colour (RGB 0–1), reach, level, aim and cone. */
+export const litLamps = (lamps: Lamp[]): LitLamp[] => lamps.map(l => { const r = lampLook(l); return { at: l.at, rgb: rgb01(r.color), range: r.range, level: r.level, aim: l.aim, cone: l.cone }; });
+/** What lights a scene at `time`: its ambient and fill (or the profile's, for a registered time that leaves them out),
+ * its sun (its direction in the figures' key at the camera's `pitch`, its colour × level, its shadow map when the time
+ * casts shadows), the occlusion and the floor. */
+export function envOf(time: TimeOfDay, look: Look, ao: LightEnv['ao'], floorAt: LightEnv['floorAt'], shadow: ShadowMap | null, pitch: number): LightEnv {
+  const a = time.ambient ?? look.ambient, f = time.fill ?? look.fill, sun = time.sun;
+  return {
+    look, ambient: { level: a.level, tint: tintOf(a.tint) }, fill: { level: f.level, tint: tintOf(f.tint) },
+    sun: sun ? { dir: keyOf(time, pitch), rgb: rgb01(sun.colour).map(v => v * sun.level) as V3, map: time.shadow ? shadow : null } : undefined,
+    ao, floorAt,
+  };
+}
+
+/** The footprints of the props that stand on a floor (within 0.1 m of it at `floorAt`), for the occlusion's foot term; a
+ * sector's shell (prop 0, and a map's sectors from 1000) is not one: its bounds are the whole room. */
+export function footprintsOf(parts: ScenePart[], floorAt: LightEnv['floorAt']): Footprint[] {
+  const byProp = new Map<number, ScenePart[]>(), feet: Footprint[] = [];
+  for (const p of parts) if (p.prop >= 2 && p.prop < 1000) byProp.set(p.prop, [...(byProp.get(p.prop) ?? []), p]);
+  for (const ps of byProp.values()) {
+    const b = boundsOf(ps.map(p => p.mesh));
+    if (!b) continue;
+    const [lo, hi] = b, x = (lo[0] + hi[0]) / 2, z = (lo[2] + hi[2]) / 2, y = floorAt(x, z);
+    if (lo[1] - y < 0.1) feet.push({ x, z, hx: (hi[0] - lo[0]) / 2, hz: (hi[2] - lo[2]) / 2, y });
+  }
+  return feet;
+}
+/** A sector's shade (Build's: whole steps darker) as a factor, for a vertex of `prop` at `p`: a shell part (prop 1000 + the
+ * sector) is its sector's, a prop's is the sector it stands in; 1 with no map. */
+export function shadeOfMap(map?: MapPlan): (prop: number, p: V3) => number {
+  if (!map) return () => 1;
+  return (prop, p) => LOOK.shade ** (map.sectors[prop >= 1000 ? prop - 1000 : sectorAt(map, p[0], p[2])]?.shade ?? 0);
+}
+/** The lamps lit in a frame, as the vertex light takes them (`frameLamps`). */
+export interface FrameLamps { strengths: number[]; all: number[]; colours: (V3 | undefined)[]; dynamic: DynamicLamp[] }
+/** The lamps lit now: each one's strength at `t` (the scene's own `own` first, then the runtime state's), the colour a script
+ * set over a lamp's own, and the dynamic lamps (the state's) in full. */
+export function frameLamps(lit: { lamps: Lamp[]; own: number }, t: number): FrameLamps {
+  const all = lit.lamps.map(l => strength(l, t)), colours = lit.lamps.slice(0, lit.own).map(l => (l.stateColour ? rgb01(l.stateColour) : undefined));
+  const dynamic = litLamps(lit.lamps.slice(lit.own)).map((lamp, i) => ({ lamp, strength: all[lit.own + i] }));
+  return { strengths: all.slice(0, lit.own), all, colours, dynamic };
+}
+
+const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+/** The light that does not move: ambient with its small key on the normal, the fill on upright surfaces (fading with
+ * height over the floor), both × AO; plus the sun × its shadow-map visibility (light.ts sunVisibility, across the vertex's
+ * spacing). */
+export function baseLight(p: V3, n: V3, env: LightEnv): V3 {
+  const { look, ambient, fill } = env, [f0, f1, f2] = look.fill.fade;
+  // key.dir is (0.3, 0.8, 0.5) as given, not normalised.
+  const key = ambient.level + Math.max(0, dot(n, look.key.dir)) * look.key.level;
+  const fade = Math.max(f2, Math.min(1, f0 - (p[1] - env.floorAt(p[0], p[2])) / f1)), fillK = (1 - Math.abs(n[1])) * fill.level * fade, ao = env.ao(p, n);
+  const out: V3 = [0, 1, 2].map(c => ao * (key * ambient.tint[c] + fillK * fill.tint[c])) as V3;
+  const sun = env.sun, nl = sun ? dot(n, sun.dir) : 0;
+  const vis = sun && nl > 0 ? (sun.map ? sunVisibility(sun.map, p[0], p[1], p[2], nl, look.seg / 2) : 1) : 0;
+  if (sun && vis > 0) for (let c = 0; c < 3; c++) out[c] += sun.rgb[c] * nl * vis;
+  return out;
+}
+/** A lamp's geometric term at a vertex: (1 − d/range)² · max(0, n·toLamp/d) · cone, 0 out of range. */
+export function lampTerm(l: LitLamp, p: V3, n: V3): number {
+  const dx = l.at[0] - p[0], dy = l.at[1] - p[1], dz = l.at[2] - p[2], d = Math.hypot(dx, dy, dz);
+  if (d >= l.range || d < 1e-4) return 0;
+  let cone = 1;
+  if (l.aim && l.cone) {
+    // The aim is normalised first (a street lamp's [0, −1, 0.15] is not a unit vector); the cone's edge is soft over a third.
+    const a = Math.hypot(...l.aim), cosEdge = Math.cos(l.cone * Math.PI / 180), cosAt = -(l.aim[0] * dx + l.aim[1] * dy + l.aim[2] * dz) / (a * d);
+    cone = Math.min(1, Math.max(0, ((cosAt - cosEdge) / (1 - cosEdge)) * 3));
+  }
+  return (1 - d / l.range) ** 2 * Math.max(0, (n[0] * dx + n[1] * dy + n[2] * dz) / d) * cone;
+}
+/** Light comes in steps: its brightest channel snapped to the nearest `step`, its hue kept (The Last Light's stepLight). */
+export function stepLight(c: V3, step: number): V3 {
+  const peak = Math.max(c[0], c[1], c[2]);
+  if (peak <= 0) return c;
+  const k = (Math.round(peak / step) * step) / peak;
+  return [c[0] * k, c[1] * k, c[2] * k];
+}
+
+/** One lamp's static light on a part: the vertices it reaches, and its term × its cube visibility at each. */
+interface Reach { idx: Int32Array; val: Float32Array }
+/** A scene's vertex light: per part, per vertex, the static terms kept (base, each lamp's term × its cube-map
+ * visibility sampled at the vertex), the lamps' strengths applied per frame. */
+export class VertexLight {
+  private readonly base: Float32Array[] = []; private readonly shade: Float32Array[] = []; private readonly reach: Reach[][] = [];
+  /** `parts` are read live: a part whose mesh changes in place (a door swinging) is made again by `rebake`. */
+  constructor(private readonly parts: { mesh: Mesh; prop: number }[], private readonly lamps: LitLamp[], private readonly cubes: (CubeMap | null)[], private readonly env: LightEnv, private readonly shadeOf: (prop: number, p: V3) => number) {
+    parts.forEach((_, pi) => this.bake(pi));
+  }
+  /** Part `pi`'s static light, from its mesh as it is now: the base, the shade, and each lamp's reach. */
+  private bake(pi: number) {
+    const { mesh, prop } = this.parts[pi], { lamps, cubes, env } = this;
+    const n = mesh.positions.length / 3, base = new Float32Array(n * 3), shade = new Float32Array(n), idx: number[][] = lamps.map(() => []), val: number[][] = lamps.map(() => []);
+    for (let v = 0; v < n; v++) {
+      const p = this.vec(mesh.positions, v), nrm = this.vec(mesh.normals, v), b = baseLight(p, nrm, env);
+      base.set(b, v * 3); shade[v] = this.shadeOf(prop, p);
+      lamps.forEach((l, i) => {
+        const term = lampTerm(l, p, nrm);
+        if (term <= 0) return;
+        // The cube map's visibility is in quarters (0–4): sampled once, here, at the vertex.
+        const vis = cubes[i] ? cubeVisibility(cubes[i]!, p[0], p[1], p[2]) / 4 : 1;
+        if (vis > 0) { idx[i].push(v); val[i].push(term * vis); }
+      });
+    }
+    this.base[pi] = base; this.shade[pi] = shade; this.reach[pi] = lamps.map((_, i) => ({ idx: Int32Array.from(idx[i]), val: Float32Array.from(val[i]) }));
+  }
+  /** Makes parts `indices` again, from their meshes as they are now (a door swung; the other parts did not move). */
+  rebake(indices: number[]) { for (const pi of indices) this.bake(pi); }
+  private vec(a: ArrayLike<number>, v: number): V3 { return [a[v * 3], a[v * 3 + 1], a[v * 3 + 2]]; }
+  /** The sum, shaded, clamped to `look.light.max` a channel and stepped. */
+  private finish(sum: V3, shade: number): V3 {
+    const { max, step } = this.env.look.light;
+    return stepLight([Math.min(max, sum[0] * shade), Math.min(max, sum[1] * shade), Math.min(max, sum[2] * shade)], step);
+  }
+  /** A lamp's colour at a strength, per unit of its term: `rgb` is the runtime state's colour over its own (a script's). */
+  private gain(l: LitLamp, strength: number, rgb: V3 = l.rgb): V3 {
+    const k = this.env.look.light.strength * l.level * strength;
+    return [rgb[0] * k, rgb[1] * k, rgb[2] * k];
+  }
+  /** Every part's per-vertex RGB (Float32Array, 3 per vertex, in the part's vertex order) at these lamp strengths
+   * (light.ts strength at t, one per lamp), plus dynamic lamps (no cube map: visibility 1), each × shade, clamped to
+   * look.light.max per channel, stepped. `colours` are the runtime state's colour for a lamp (by index) over its own. */
+  light(strengths: number[], dynamic: DynamicLamp[] = [], colours: (V3 | undefined)[] = []): Float32Array[] {
+    const gains = this.lamps.map((l, i) => this.gain(l, strengths[i] ?? 0, colours[i]));
+    return this.parts.map(({ mesh }, pi) => {
+      const sum = Float32Array.from(this.base[pi]), n = sum.length / 3, out = new Float32Array(sum.length);
+      this.reach[pi].forEach((r, i) => { const g = gains[i]; if (g[0] || g[1] || g[2]) for (let k = 0; k < r.idx.length; k++) for (let c = 0; c < 3; c++) sum[r.idx[k] * 3 + c] += r.val[k] * g[c]; });
+      const dyn = dynamic.map(d => ({ l: d.lamp, g: this.gain(d.lamp, d.strength) }));
+      for (let v = 0; v < n; v++) {
+        const s: V3 = [sum[v * 3], sum[v * 3 + 1], sum[v * 3 + 2]];
+        if (dyn.length) { const p = this.vec(mesh.positions, v), nrm = this.vec(mesh.normals, v); for (const { l, g } of dyn) { const t = lampTerm(l, p, nrm); for (let c = 0; c < 3; c++) s[c] += t * g[c]; } }
+        out.set(this.finish(s, this.shade[pi][v]), v * 3);
+      }
+      return out;
+    });
+  }
+  /**
+   * The lights a figure standing at `root` is lit by, as a sprite (stage/sprite-light.ts): at its chest (root + 1.1 m),
+   * the ambient × `figureLight.ambient` (no fill), and each lamp lit now and the sun, as a direction toward it (world,
+   * unit) and its colour × its reach there (lampTerm with N·L = 1: falloff and cone) × its visibility there (the lamp's
+   * cube map; the sun's shadow map, `shadowed(…, 0.5)`, yes or no). A lamp or the sun that reaches nothing is left out.
+   * The sector's shade is the caller's (spriteLight's `shade`).
+   */
+  spriteLights(root: V3, strengths: number[], dynamic: DynamicLamp[] = [], colours: (V3 | undefined)[] = []): { ambient: V3; lights: { dir: V3; rgb: V3 }[] } {
+    const { look, ambient, sun } = this.env, c: V3 = [root[0], root[1] + 1.1, root[2]], lights: { dir: V3; rgb: V3 }[] = [];
+    const toward = (l: LitLamp, g: V3, vis: number) => {
+      const v: V3 = [l.at[0] - c[0], l.at[1] - c[1], l.at[2] - c[2]], len = Math.hypot(...v) || 1, dir: V3 = [v[0] / len, v[1] / len, v[2] / len];
+      const reach = lampTerm(l, c, dir) * vis;
+      if (reach > 0) lights.push({ dir, rgb: [g[0] * reach, g[1] * reach, g[2] * reach] });
+    };
+    this.lamps.forEach((l, i) => { if (strengths[i]) toward(l, this.gain(l, strengths[i], colours[i]), this.cubes[i] ? cubeVisibility(this.cubes[i]!, c[0], c[1], c[2]) / 4 : 1); });
+    for (const d of dynamic) toward(d.lamp, this.gain(d.lamp, d.strength), 1);
+    if (sun && !(sun.map && shadowed(sun.map, c[0], c[1], c[2], 0.5))) lights.push({ dir: sun.dir, rgb: sun.rgb });
+    return { ambient: [0, 1, 2].map(k => ambient.level * ambient.tint[k] * look.figureLight.ambient) as V3, lights };
+  }
+  /** The same light at any place and normal (the veil's light at a figure's chest): cube visibility sampled there. */
+  at(p: V3, n: V3, strengths: number[], dynamic: DynamicLamp[] = [], shade = 1, colours: (V3 | undefined)[] = []): V3 {
+    const s = baseLight(p, n, this.env);
+    this.lamps.forEach((l, i) => {
+      const t = lampTerm(l, p, n);
+      if (t <= 0 || !strengths[i]) return;
+      const g = this.gain(l, strengths[i], colours[i]), vis = this.cubes[i] ? cubeVisibility(this.cubes[i]!, p[0], p[1], p[2]) / 4 : 1;
+      for (let c = 0; c < 3; c++) s[c] += t * vis * g[c];
+    });
+    for (const d of dynamic) { const t = lampTerm(d.lamp, p, n), g = this.gain(d.lamp, d.strength); for (let c = 0; c < 3; c++) s[c] += t * g[c]; }
+    return this.finish(s, shade);
+  }
+}

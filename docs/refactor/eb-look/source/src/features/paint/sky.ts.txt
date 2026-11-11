@@ -1,0 +1,70 @@
+/**
+ * The parallax sky, as Build's: a panorama indexed by the view's yaw and elevation, so it turns with the camera and
+ * never comes nearer. Generated, not painted: the time of day's bands (a two-texel checker where they meet), a horizon
+ * of silhouette layers (mountains, hills, a city with lit windows, a tree line; each a seeded profile round the full
+ * 360°) standing on it, drifting clouds by day, fixed stars by night; below the horizon, the haze. Every colour is a DUEL
+ * colour.
+ */
+import { noise3 } from '../../lib/figure';
+import { duel } from '../../lib/figure';
+import { hash } from '../../lib/rng';
+import type { MapPlan } from '../world/map';
+import type { TimeOfDay } from '../world/types';
+import { LOOK } from './look';
+
+const hex = (h: string) => parseInt(h.slice(1), 16);
+/** A horizon layer's height (radians of elevation) at a yaw (degrees). */
+function profile(kind: string, height: number, seed: number, yaw: number): number {
+  const a = ((yaw % 360) + 360) % 360, u = a / 360;
+  // Seamless round the circle: noise on a ring.
+  const ring = (freq: number, s: number) => noise3(Math.cos(u * 2 * Math.PI) * freq + s, Math.sin(u * 2 * Math.PI) * freq + s * 1.7, seed * 3.1);
+  if (kind === 'mountains') { const r = Math.abs(ring(2.2, 1) - 0.5) * 2, q = Math.abs(ring(6, 4) - 0.5) * 2; return height * (0.35 + 0.65 * (1 - r) * 0.8 + 0.2 * (1 - q)); }
+  if (kind === 'hills') return height * (0.45 + 0.55 * ring(3, 2));
+  if (kind === 'trees') { const b = Math.floor(a / 1.6); return height * (0.55 + 0.25 * ring(5, 7) + 0.2 * Math.sin((a / 1.6 - b) * Math.PI) * hash(b, seed, 3)); }
+  // A city: blocks a few degrees wide, of seeded heights, some with a step.
+  const b = Math.floor(a / 3.2), r = hash(b, seed, 1);
+  return height * (r < 0.15 ? 0.15 : 0.3 + r * 0.7) * ((a / 3.2 - b) < 0.3 && hash(b, seed, 2) < 0.4 ? 0.85 : 1);
+}
+/**
+ * The sky's colour looking at `yaw` (degrees) and `elev` (radians up from the horizon), at `t`, with the map's horizon.
+ * `x, y` are the texel's own (stars and windows land on whole texels). `stars` off (look.json switches) leaves the night's
+ * stars out.
+ */
+export function panorama(time: TimeOfDay, horizon: MapPlan['horizon'], yaw: number, elev: number, t: number, stars = true): number {
+  // The bands: the time's, from its top (high up) to its horizon band.
+  const bands = time.sky, top = bands[bands.length - 1].at || 1, s = Math.max(0, Math.min(1, 1 - elev / 0.75)) * top * 1.05;
+  let i = 0; while (i < bands.length - 1 && s >= bands[i + 1].at) i++;
+  let c = hex(bands[i].color);
+  // A dithered seam a little below each band's start.
+  if (i < bands.length - 1) { const e = bands[i + 1].at - s; if (e > 0 && e < 0.012 && (Math.floor(yaw * 4) + Math.floor(elev * 400)) % 2 === 0) c = hex(bands[i + 1].color); }
+  const night = !time.sun;
+  if (stars && time.stars && elev > 0.06) {
+    const sx = Math.floor(yaw * 3), sy = Math.floor(elev * 180), r = hash(sx, sy, 77);
+    if (r < time.stars * 1.2) c = duel(hash(sx, sy, Math.floor(t * 3)) < 0.15 ? 0x7a7799 : r < time.stars * 0.3 ? 0xf5f7fa : 0xc6ecff);
+  }
+  if (!night && elev > 0.08 && elev < 0.6) {
+    // Clouds: slow, a band of lumps, lit on top.
+    const q = noise3((yaw + t * 0.6) / 22, elev * 9, 4) * 0.7 + noise3((yaw + t * 0.6) / 9, elev * 22, 9) * 0.3, edge = 0.6 + (elev - 0.3) * 0.3;
+    if (q > edge) c = duel(q > edge + 0.06 && noise3((yaw + t * 0.6) / 9, elev * 22 + 0.4, 9) > 0.45 ? 0xf5f7fa : 0xc7d6ff);
+  }
+  // Below the horizon is the ground past the map, as the air at the horizon: the time's haze colour, darkening toward the
+  // viewer as Build's floors shade with distance (to half its brightness a quarter radian down), in a two-texel checker.
+  if (elev < 0) {
+    const h = hex(time.haze?.colour ?? LOOK.haze.colour), k = 1 - 0.5 * Math.min(1, -elev / 0.25) + ((Math.floor(yaw * 4) + Math.floor(elev * 400)) % 2 ? 0.02 : -0.02);
+    return duel((Math.round(((h >> 16) & 255) * k) << 16) | (Math.round(((h >> 8) & 255) * k) << 8) | Math.round((h & 255) * k));
+  }
+  // The horizon, back to front: each layer over what is behind it, in the time's light (a silhouette darkens with the
+  // ambient: at night it stands dark against the sky, not lit on it).
+  const a = time.ambient?.level ?? LOOK.ambient.level, lit = Math.min(1, 0.3 + a * 1.6);
+  for (const L of horizon ?? []) {
+    const hgt = profile(L.kind, L.height, L.seed ?? 1, yaw);
+    if (elev < hgt) {
+      const s = hex(L.swatch);
+      c = lit >= 1 ? s : duel((Math.round(((s >> 16) & 255) * lit) << 16) | (Math.round(((s >> 8) & 255) * lit) << 8) | Math.round((s & 255) * lit));
+      // A city's windows at night: lit in rows (its floors), one window a cell, a few of them.
+      const row = Math.floor(elev * 160);
+      if (L.kind === 'city' && night && row % 2 === 0 && hash(Math.floor(yaw * 2.5), row, L.seed ?? 1) < 0.12 && elev < hgt - 0.01) c = 0xffbc4e;
+    }
+  }
+  return c;
+}

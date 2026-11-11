@@ -1,0 +1,208 @@
+/**
+ * Frame passes after the painter, as a modern renderer has them, kept pixel art: every result lands on a DUEL step, in
+ * whole steps or a fixed ordered dither, never a blur. Each takes the painted frame (RGBA), the scene's G-buffer and a
+ * view (a `project` from world to texel and depth, larger nearer, and a `ray` per texel), so the first-person view and
+ * the diorama share them.
+ *
+ * - reflect: screen-space reflections on wet ground. A puddle texel mirrors the frame about the ground plane: its
+ *   reflected ray marched through the depth buffer until it passes behind what was drawn, that texel's colour taken a
+ *   step down, rippled by a texel. On wet ground outside puddles only glowing things reflect.
+ * - bloom: around each glowing texel, a ring a step up and tinted toward its colour, then a dithered ring a step up.
+ * - shafts: light shafts in the cones of spot lamps: in-scattering summed along each texel's view ray, stepped against a
+ *   4×4 ordered dither, a step up in the lamp's tint; dust motes glint in them.
+ * - grade: a mood (warm night, cold dawn, sodium) moved in OKLab and snapped back to DUEL, per colour.
+ * - particles: steam from vents and manholes, drips off awnings, moths round lamps: one- to three-texel sprites,
+ *   depth-tested.
+ */
+import { RAMPS } from '../../lib/figure';
+import { duel, oklab } from '../../lib/figure';
+import type { GBuffer } from '../../lib/figure';
+import { noise3 } from '../../lib/figure';
+import { rgbFromLab } from './paint';
+import { lampLook, strength } from './light';
+import type { Emitter, Lamp, SceneMaterial, V3 } from '../world/types';
+
+export type Project = (p: V3) => [number, number, number] | null;
+/** A texel's view ray: where it starts, its unit direction, and how far it runs before it meets the surface drawn. */
+export type Ray = (x: number, y: number) => { o: V3; d: V3; len: number } | null;
+const rgbAt = (out: Uint8ClampedArray, k: number) => (out[k * 4] << 16) | (out[k * 4 + 1] << 8) | out[k * 4 + 2];
+const put = (out: Uint8ClampedArray, k: number, c: number) => { out[k * 4] = (c >> 16) & 255; out[k * 4 + 1] = (c >> 8) & 255; out[k * 4 + 2] = c & 255; out[k * 4 + 3] = 255; };
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+/** A DUEL colour moved `by` steps along its own row (clamped; off-row colours are snapped first). */
+const rowOf = new Map<number, [number, number]>();
+export function stepBy(c: number, by: number) {
+  let at = rowOf.get(c);
+  if (!at) { const s = duel(c); at = [0, 0]; for (let r = 0; r < RAMPS.length; r++) { const i = RAMPS[r].indexOf(s); if (i >= 0) { at = [r, i]; break; } } rowOf.set(c, at); }
+  const row = RAMPS[at[0]]; return row[Math.max(1, Math.min(7, at[1] + by))];
+}
+const mixed = new Map<string, number>();
+/** A colour moved `amt` of the way toward another in OKLab, snapped. */
+export function toward(c: number, t: number, amt: number) {
+  const key = `${c}|${t}|${amt}`; let hit = mixed.get(key);
+  if (hit === undefined) { const a = oklab(c), b = oklab(t); hit = duel(rgbFromLab(a[0] + (b[0] - a[0]) * amt * 0.5, a[1] + (b[1] - a[1]) * amt, a[2] + (b[2] - a[2]) * amt)); mixed.set(key, hit); }
+  return hit;
+}
+
+/**
+ * Screen-space reflections. `wet(k)` says how a texel reflects: 2 a puddle (everything), 1 wet ground (only what
+ * glows), 0 none; `glow(k)` whether a texel glows; `view(k)` the view ray's direction at a texel (toward the scene).
+ */
+export function reflect(out: Uint8ClampedArray, depth: Float32Array, g: GBuffer, project: Project, view: (k: number) => V3, wet: (k: number) => number, glow: (k: number) => boolean, t: number) {
+  const { w, h } = g, src = out.slice(), tk = Math.floor(t * 12);
+  for (let k = 0; k < w * h; k++) {
+    const kind = wet(k); if (!kind) continue;
+    const P: V3 = [g.place[k * 3], g.place[k * 3 + 1], g.place[k * 3 + 2]], v = view(k), r: V3 = [v[0], -v[1], v[2]];
+    let s = 0.06, hit = -1;
+    for (let i = 0; i < 40 && s < 30; i++, s *= 1.17) {
+      const q = project([P[0] + r[0] * s, P[1] + r[1] * s, P[2] + r[2] * s]); if (!q) break;
+      const x = Math.round(q[0]), y = Math.round(q[1]); if (x < 0 || y < 0 || x >= w || y >= h) break;
+      const j = y * w + x;
+      if (q[2] < depth[j] - 0.06) { hit = j; break; }
+      if (depth[j] === -Infinity && i > 6) { hit = j; break; }
+    }
+    if (hit < 0 || (kind === 1 && !glow(hit))) continue;
+    // A ripple: the sample a texel aside where a slow noise in the water's place and time says.
+    const rip = noise3(P[0] * 6, P[2] * 6, tk * 0.35) > 0.62 ? 1 : 0, hx = hit % w, j = rip && hx + 1 < w ? hit + 1 : hit;
+    put(out, k, stepBy(rgbAt(src, j), kind === 2 ? -1 : -2));
+  }
+}
+/** Stepped bloom: rings round each glowing texel (`glow`), the first `r1` texels a step up tinted toward the glow, the
+ * next to `r2` a step up on a checker. */
+export function bloom(out: Uint8ClampedArray, w: number, h: number, glow: (k: number) => boolean, r1: number, r2: number) {
+  const n = w * h, dist = new Int16Array(n).fill(999), from = new Int32Array(n).fill(-1), queue: number[] = [];
+  for (let k = 0; k < n; k++) if (glow(k)) { dist[k] = 0; from[k] = k; queue.push(k); }
+  for (let qi = 0; qi < queue.length; qi++) {
+    const k = queue[qi], x = k % w, d = dist[k] + 1; if (d > r2) continue;
+    for (const q of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w, x > 0 ? k - w - 1 : -1, x < w - 1 ? k + w + 1 : -1, x < w - 1 ? k - w + 1 : -1, x > 0 ? k + w - 1 : -1]) if (q >= 0 && q < n && dist[q] > d) { dist[q] = d; from[q] = from[k]; queue.push(q); }
+  }
+  const src = out.slice();
+  for (let k = 0; k < n; k++) {
+    const d = dist[k]; if (d === 0 || d > r2) continue;
+    const c = rgbAt(src, k), e = rgbAt(src, from[k]);
+    if (d <= r1) put(out, k, stepBy(toward(c, e, 0.45), 1));
+    else if (((k % w) + Math.floor(k / w)) % 2 === 0) put(out, k, stepBy(c, 1));
+  }
+}
+/** Light shafts in the cones of `lamps` that aim (street lamps, spots): along each texel's ray, the lamps' in-scatter
+ * summed; where it passes a 4×4 ordered threshold the texel steps up toward the lamp's colour; dust motes glint. */
+export function shafts(out: Uint8ClampedArray, w: number, h: number, ray: Ray, lamps: Lamp[], t: number, motes: boolean) {
+  const spots = lamps.filter(l => l.shaft && l.aim && l.cone), str = spots.map(l => strength(l, t)), reach = spots.map(l => lampLook(l).range), tk = Math.floor(t * 6);
+  if (!spots.length) return;
+  // The air's cone is half the lamp's; each lamp's aim and cone worked out once, not per sample.
+  const lit = str.map(v => v > 0), aims = spots.map(l => { const a = l.aim!, n = Math.hypot(...a) || 1; return [a[0] / n, a[1] / n, a[2] / n]; }), cos0 = spots.map(l => Math.cos(l.cone! * 0.5 * Math.PI / 180));
+  if (!lit.some(Boolean)) return;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const R = ray(x, y); if (!R) continue;
+    const len = Math.min(R.len, 22);
+    let sum = 0, top = -1, best = 0;
+    for (let li = 0; li < spots.length; li++) {
+      // Only lamps the ray passes within reach of.
+      if (!lit[li]) continue;
+      const l = spots[li], ox = l.at[0] - R.o[0], oy = l.at[1] - R.o[1], oz = l.at[2] - R.o[2], along = ox * R.d[0] + oy * R.d[1] + oz * R.d[2];
+      const ca = Math.max(0, Math.min(len, along)), cx = ox - R.d[0] * ca, cy = oy - R.d[1] * ca, cz = oz - R.d[2] * ca;
+      const d2 = cx * cx + cy * cy + cz * cz;
+      if (d2 > reach[li] * reach[li]) continue;
+      // Sampled only across the stretch inside the lamp's reach.
+      const half = Math.sqrt(reach[li] * reach[li] - d2), s0 = Math.max(0, along - half), s1 = Math.min(len, along + half), st = (s1 - s0) / 8;
+      if (st <= 0) continue;
+      for (let i = 0; i < 8; i++) {
+        const s = s0 + (i + 0.5) * st, px = R.o[0] + R.d[0] * s, py = R.o[1] + R.d[1] * s, pz = R.o[2] + R.d[2] * s;
+        // The air faces the lamp: scattering takes its falloff and its cone, no Lambert.
+        const lx = l.at[0] - px, ly = l.at[1] - py, lz = l.at[2] - pz, d2 = lx * lx + ly * ly + lz * lz, r2 = reach[li] * reach[li];
+        if (d2 >= r2) continue;
+        const ll = Math.hypot(lx, ly, lz) || 1, nx = lx / ll, ny = ly / ll, nz = lz / ll, d = Math.sqrt(d2) || 1e-6, kk = 1 - d2 / r2;
+        const lambert = Math.max(0, ((nx * lx + ny * ly + nz * lz) / d + 0.35) / (1 + 0.35)), A = aims[li], c = -(A[0] * lx + A[1] * ly + A[2] * lz) / d;
+        const cone = Math.max(0, Math.min(1, (c - cos0[li]) / (1 - cos0[li]) * 3)), v = str[li] * kk * kk * lambert * cone;
+        if (v > 0) { const a = v * st; sum += a; if (a > best) { best = a; top = li; } }
+      }
+    }
+    const k = y * w + x, level = sum * sum * 0.12 + (BAYER[(x & 3) + ((y & 3) << 2)] / 16 - 0.5) * 0.5;
+    if (level < 0.5 || top < 0) continue;
+    const c = toward(rgbAt(out, k), parseInt(lampLook(spots[top]).color.slice(1), 16), 0.4);
+    put(out, k, stepBy(c, 1));
+    if (motes && level > 0.75 && hashi(x, y, tk) < 0.012) put(out, k, 0xf7f4bf);
+  }
+}
+const hashi = (a: number, b: number, c: number) => { let n = Math.imul(a | 0, 0x27d4eb2d) ^ Math.imul(b | 0, 0x165667b1) ^ Math.imul(c | 0, 0x9e3779b1); n = Math.imul(n ^ (n >>> 15), 0x85ebca6b); n ^= n >>> 13; return (n >>> 0) / 4294967296; };
+
+/** A mood: a lightness scale, a shift in OKLab a and b, a pull toward a colour (L, a, b, how far), a chroma scale. */
+export interface Mood { L: number; a: number; b: number; pull?: [number, number, number, number]; chroma: number }
+/** The built-in moods. Add your own with `registerMood`, not by writing here. */
+export const MOODS: Readonly<Record<string, Mood>> = {
+  warmNight: { L: 1.0, a: 0.005, b: 0.014, chroma: 1.03 },
+  coldDawn: { L: 1.03, a: -0.01, b: -0.035, chroma: 0.9 },
+  sodium: { L: 1.0, a: 0.01, b: 0.025, pull: [0, 0.05, 0.1, 0.12], chroma: 0.92 },
+};
+const registered = new Map<string, Mood>();
+/** Registers a mood by name (a map's `grade`, state.ts setGrade), beside the built-in ones; a name already taken is
+ * replaced in the registry, the built-ins themselves never change. */
+export function registerMood(name: string, mood: Mood) { registered.set(name, { ...mood }); moodKeys.delete(name); }
+/** A mood by name: registered first, then the built-ins. */
+export const moodOf = (name: string): Mood | undefined => registered.get(name) ?? MOODS[name];
+/** Two moods mixed (`u` 0 → a, 1 → b), for a grade that changes over time; none is the identity mood. */
+export const IDENTITY: Mood = { L: 1, a: 0, b: 0, chroma: 1 };
+export function mixMoods(a: Mood | undefined, b: Mood | undefined, u: number): Mood {
+  const p = a ?? IDENTITY, q = b ?? IDENTITY, l = (x: number, y: number) => x + (y - x) * u;
+  const pp = p.pull ?? [0, q.pull?.[1] ?? 0, q.pull?.[2] ?? 0, 0], qp = q.pull ?? [0, p.pull?.[1] ?? 0, p.pull?.[2] ?? 0, 0];
+  return { L: l(p.L, q.L), a: l(p.a, q.a), b: l(p.b, q.b), chroma: l(p.chroma, q.chroma), ...(p.pull || q.pull ? { pull: [0, l(pp[1], qp[1]), l(pp[2], qp[2]), l(pp[3], qp[3])] as [number, number, number, number] } : {}) };
+}
+const moodKeys = new Map<string, string>();
+const keyOfMood = (m: Mood) => [m.L, m.a, m.b, m.chroma, ...(m.pull ?? [])].map(v => v.toFixed(4)).join(',');
+const graded = new Map<string, number>();
+/** Grades every texel by a mood (a name: registered or MOODS; or a mood itself), before snapping it back to DUEL. */
+export function grade(out: Uint8ClampedArray, mood: string | Mood) {
+  const m = typeof mood === 'string' ? moodOf(mood) : mood; if (!m) return;
+  // The cache keys by name for the named moods (as before), by value for a mixed one.
+  const id = typeof mood === 'string' ? (registered.has(mood) ? (moodKeys.get(mood) ?? (moodKeys.set(mood, `r:${keyOfMood(m)}`), moodKeys.get(mood)!)) : mood) : `v:${keyOfMood(m)}`;
+  for (let k = 0; k < out.length / 4; k++) {
+    if (!out[k * 4 + 3]) continue;
+    const c = rgbAt(out, k), key = `${id}|${c}`;
+    let hit = graded.get(key);
+    if (hit === undefined) {
+      let [L, A, B] = oklab(c); A *= m.chroma; B *= m.chroma; L *= m.L; A += m.a; B += m.b;
+      if (m.pull) { const [, pa, pb, amt] = m.pull; A += (pa - A) * amt; B += (pb - B) * amt; }
+      hit = duel(rgbFromLab(L, A, B)); graded.set(key, hit);
+    }
+    put(out, k, hit);
+  }
+}
+/** A particle emitter: steam (rising puffs) at a point, drips along an edge (from `at` to `to`), moths round a lamp. */
+export function particles(out: Uint8ClampedArray, depth: Float32Array, w: number, h: number, project: Project, emitters: Emitter[], t: number, scale: number) {
+  const dot = (p: V3, c: number, r: number) => {
+    const q = project(p); if (!q) return;
+    const R = Math.max(0, Math.round(r * scale));
+    for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+      if (dx * dx + dy * dy > R * R + R) continue;
+      const x = Math.round(q[0]) + dx, y = Math.round(q[1]) + dy; if (x < 0 || y < 0 || x >= w || y >= h) continue;
+      const k = y * w + x; if (q[2] < depth[k] - 0.05) continue;
+      put(out, k, c);
+    }
+  };
+  const tk = Math.floor(t * 12) / 12;
+  emitters.forEach((e, ei) => {
+    if (e.kind === 'steam') for (let i = 0; i < 7; i++) {
+      // Puffs rising and spreading over two seconds, lighter low, broken (dithered) as they thin.
+      const ph = (tk * 0.5 + i / 7 + ei * 0.13) % 1, y = e.at[1] + ph * 1.6, x = e.at[0] + Math.sin(ph * 5 + i) * 0.12 * ph, z = e.at[2] + Math.cos(ph * 4 + i) * 0.08;
+      if (ph > 0.7 && (i + Math.floor(tk * 12)) % 2) continue;
+      dot([x, y, z], ph < 0.45 ? 0xcdd2da : 0x848795, 0.6 + ph * 1.6);
+    }
+    if (e.kind === 'drip' && e.to) for (let i = 0; i < 6; i++) {
+      // Drops fall off the edge to the ground in half a second, each from its own place along it.
+      const u = hashi(i, ei, 5), ph = (tk * 2 + hashi(i, ei, 9)) % 1, top = e.at[1], ground = e.ground ?? 0;
+      const p: V3 = [e.at[0] + (e.to[0] - e.at[0]) * u, top - (top - ground) * ph * ph, e.at[2] + (e.to[2] - e.at[2]) * u];
+      dot(p, 0x88d6ff, 0); dot([p[0], p[1] + 0.06, p[2]], 0x88d6ff, 0);
+    }
+    if (e.kind === 'flame') {
+      // A carried flame (a torch): a hot core over a flickering orange tongue, a texel's lick up now and then.
+      const lick = hashi(ei, Math.floor(tk * 12), 3);
+      dot([e.at[0], e.at[1] + 0.02, e.at[2]], 0xf99b4e, 1.2);
+      dot([e.at[0], e.at[1] + 0.06 + (lick > 0.5 ? 0.03 : 0), e.at[2]], 0xffbc4e, 0.8);
+      dot([e.at[0], e.at[1] + 0.05, e.at[2]], 0xffe949, 0.4);
+    }
+    if (e.kind === 'moth') for (let i = 0; i < 3; i++) {
+      // Moths circling the lamp, erratic, dark against its glow.
+      const a = tk * (3 + i) + i * 2.1, r = 0.25 + 0.15 * Math.sin(tk * 7 + i * 3);
+      dot([e.at[0] + Math.cos(a) * r, e.at[1] - 0.15 + Math.sin(tk * 5 + i) * 0.15, e.at[2] + Math.sin(a) * r], 0x3c3151, 0);
+    }
+  });
+}
