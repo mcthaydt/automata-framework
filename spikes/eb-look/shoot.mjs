@@ -9,6 +9,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { createServer } from 'node:net'
 import { join } from 'node:path'
 
 const repo = new URL('../..', import.meta.url).pathname
@@ -18,7 +19,13 @@ const { chromium } = require('playwright')
 const out = process.argv[2] ?? join(repo, 'docs/superpowers/eb-look/baseline')
 const ebDir = process.env.EB_DIR
 const SCALE = Number(process.env.SCALE ?? 2)
-const port = Number(process.env.PORT ?? 5391)
+// A free port, asked of the system: nothing here owns one.
+const port = await new Promise((resolve) => {
+  const probe = createServer().listen(0, () => {
+    const { port: free } = probe.address()
+    probe.close(() => resolve(free))
+  })
+})
 const SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
 const VIEWS = ['diorama', 'fp']
 // The AF panels: the renderer asked for, and switches (scene.ts). `light=0` leaves out the level's baked room light, so
