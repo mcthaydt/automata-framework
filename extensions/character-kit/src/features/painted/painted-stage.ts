@@ -1,4 +1,4 @@
-// The painted figures of one camera, drawn with per-texel depth. One stage per camera (found by the `Camera3D` a view
+// The painted figures of one camera, drawn with per-texel depth under WebGL and WebGPU. One stage per camera (found by the `Camera3D` a view
 // factory is handed, so a game writes nothing for it) places every figure by the stage contract (place.ts), sorts them far to
 // near, and shows each cell on the builder's own depth-writing `CellSprite` in the AF `View3D`, so the figures and AF's
 // meshes share one depth buffer and the builder's tie rule: strictly nearer wins, a tie goes to the later figure, and a
@@ -13,14 +13,8 @@ import { CellSprite, poseQuaternion } from '../../shared/figure-builder/door-vie
 import { type Placed, paintView, place, ranked } from './place.ts'
 import { poseOf } from './pose.ts'
 
-/** What a renderer without per-texel depth is told, once. The builder's depth shader has a WebGL stage and no WebGPU one. */
-export const NOT_WEBGL =
-  'Painted figures: per-texel depth needs the WebGL renderer. This one is not WebGL, so the figures depth-test as flat ' +
-  "quads at their root and cannot hide behind a wall or each other texel by texel. AF's renderer asks for WebGL 2 " +
-  "unless the game sets `preference: 'webgpu'`."
-
-/** Pixi's `RendererType.WEBGL`. */
-const WEBGL = 1
+/** Pixi's `RendererType.WEBGPU`: under it a depth-writing quad compiles from the builder's own template (`CellSprite.gpu`). */
+const WEBGPU = 2
 
 /** A figure on the stage: where it stands, and the cell it paints for the view the stage gives it. */
 export interface StageMember {
@@ -52,7 +46,6 @@ class Stage implements PaintedStage {
   private view: View3D | undefined
   private hook: OnRender | undefined
   private before: View3D['onRender'] = null
-  private warned = false
   /** The camera's projection, one matrix kept so a frame allocates none. */
   private readonly projection = new Matrix4()
 
@@ -96,10 +89,6 @@ class Stage implements PaintedStage {
   }
 
   private draw(view: View3D, rendererType: number): void {
-    if (rendererType !== WEBGL && !this.warned) {
-      this.warned = true
-      console.warn(NOT_WEBGL)
-    }
     const [w, h] = [view.width, view.height]
     const pose = poseOf(this.camera, [w, h])
     const turn = poseQuaternion(pose)
@@ -121,6 +110,8 @@ class Stage implements PaintedStage {
       const entry = around.get(placed) as Entry
       const { sprite } = entry.quad
       const { node } = entry.member
+      // Before the quad's shader compiles: which renderer draws it decides its template and its depth texture.
+      entry.quad.gpu(rendererType === WEBGPU)
       entry.quad.show(placed.sprite.cell)
       entry.quad.showDepths(
         texelDepths(pose, placed.sprite),

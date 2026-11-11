@@ -71,6 +71,16 @@ export interface StageScene {
   dispose(): void
 }
 
+/** The canvas as it was presented: RGBA, top row first. */
+function presented(canvas: HTMLCanvasElement): Uint8ClampedArray {
+  const copy = document.createElement('canvas')
+  copy.width = canvas.width
+  copy.height = canvas.height
+  const context = copy.getContext('2d') as CanvasRenderingContext2D
+  context.drawImage(canvas, 0, 0)
+  return context.getImageData(0, 0, copy.width, copy.height).data
+}
+
 /** Points the view's camera at (x, 1, z): `distance` back along `pitchDeg` down, on +z. */
 export function aim(
   view: View3D,
@@ -152,7 +162,11 @@ export async function buildScene(options: SceneOptions): Promise<StageScene> {
     size: options.size,
     draw() {
       renderer.draw({ alpha: 1, frameMs: 16, paused: false })
-      return snapshot(renderer)
+      // A WebGPU canvas keeps no drawing buffer past the task that drew it, and `snapshot` re-renders into a texture, which reads back
+      // black on a software adapter: copy the canvas as it was presented, in this task.
+      return renderer.stage.app.renderer.name === 'webgpu'
+        ? presented(renderer.stage.app.canvas as HTMLCanvasElement)
+        : snapshot(renderer)
     },
     frame() {
       return {

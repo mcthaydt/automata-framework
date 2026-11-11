@@ -29,6 +29,7 @@
     "test:unit": "vitest run --project unit",
     "test:slow": "vitest run --config vitest.slow.config.ts",
     "test:browser": "vitest run --project browser",
+    "test:webgpu": "vitest run --project webgpu",
     "typecheck": "tsc -p .",
     "gate": "tsx scripts/gate.ts"
   },
