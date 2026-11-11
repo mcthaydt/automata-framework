@@ -14,7 +14,20 @@ const kitFixture: BrowserCommand<[], unknown> = async (ctx) => {
   return (await fixture.kitFixture()).library
 }
 
+// The gates' sheets (tests/browser/painted/gate-sheets.test.ts) are written by the page through this command, into the folder
+// `scripts/gate.ts` names; it does nothing outside a gate run.
+const gateWrite: BrowserCommand<[name: string, base64: string], void> = async (_ctx, name, base64) => {
+  const out = process.env.C7_GATE_OUT
+  if (out === undefined) throw new Error('C7_GATE_OUT is not set: run the sheets through scripts/gate.ts')
+  const { mkdirSync, writeFileSync } = await import('node:fs')
+  const { join } = await import('node:path')
+  mkdirSync(out, { recursive: true })
+  writeFileSync(join(out, name), Buffer.from(base64, 'base64'))
+}
+
+// Svelte compiles the runtime's screens, which the painted figures' renderer test reaches through `@automata/3d`.
 export default defineTests({
+  svelte: true,
   optimizeDeps: ['zod'],
-  browserCommands: { kitFixture } as NonNullable<TestOptions['browserCommands']>,
+  browserCommands: { kitFixture, gateWrite } as NonNullable<TestOptions['browserCommands']>,
 })

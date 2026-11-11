@@ -1,0 +1,20 @@
+{
+  // The builder's own compiler settings (vendor/FigureBuilder/tsconfig.json), not AF's stricter base: its code follows its
+  // own rules, so AF reads only these declarations and never checks its sources.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": [],
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": ".",
+    "outDir": "types"
+  },
+  "include": ["src/**/*.ts", "base/**/*.ts"]
+}

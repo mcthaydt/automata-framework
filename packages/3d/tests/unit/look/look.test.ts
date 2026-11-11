@@ -95,7 +95,9 @@ describe('look passes', () => {
     expect(registeredLookPasses().map((p) => p.name)).toEqual(['spec-rain'])
     expect(() => addLookPass(extra)).toThrow(/spec-rain/)
     const passes = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
-    expect(passes.list.at(-1)).toBe(passes.extra[0])
+    // The present pass ends the list (it keeps a depth binding off the canvas pass), so the added pass is the one before it.
+    expect(passes.list.at(-1)).toBe(passes.present)
+    expect(passes.list.at(-2)).toBe(passes.extra[0])
     expect(passes.list.indexOf(passes.extra[0] as never)).toBeGreaterThan(
       passes.list.indexOf(passes.snap as never),
     )

@@ -33,5 +33,11 @@ const config = defineTests({
 
 export default {
   ...config,
-  test: { ...config.test, provide: { writeVisuals: process.env['ED3D_VISUALS'] === '1' } },
+  test: {
+    ...config.test,
+    // A journey waits on a WebGL canvas with `expect.poll`, whose own default of 1 s ignores the test timeout and is
+    // shorter than a canvas takes to start on a shared runner. 10 s is what suite-draw already gives its renderer polls.
+    expect: { poll: { timeout: 10_000 } },
+    provide: { writeVisuals: process.env['ED3D_VISUALS'] === '1' },
+  },
 }
