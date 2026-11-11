@@ -58,6 +58,14 @@ const SIDES: [number, number][] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 const DX = [-1, 1, 0, 0], DY = [0, 0, -1, 1];
 const INK = 0;
 const colourAt = (px: Uint8ClampedArray, o: number) => (px[o] << 16) | (px[o + 1] << 8) | px[o + 2];
+/** The working arrays of one call, kept between calls (a walking figure lights several cells a frame, and a fresh 600 KB each time is
+ * what makes a frame's worst case a collection). Only the output is a new array; `lightSprite` is synchronous, so one set is enough. */
+interface Scratch { n: number; ground: Int32Array; rows: Int8Array; steps: Int8Array; held: Uint8Array; lit: Float32Array; hasN: Uint8Array; form: Int8Array; settled: Int8Array }
+let scratch: Scratch | null = null;
+function scratchFor(n: number): Scratch {
+  if (scratch === null || scratch.n !== n) scratch = { n, ground: new Int32Array(n), rows: new Int8Array(n), steps: new Int8Array(n), held: new Uint8Array(n), lit: new Float32Array(n), hasN: new Uint8Array(n), form: new Int8Array(n), settled: new Int8Array(n) };
+  return scratch;
+}
 /**
  * A painted cell lit as a sprite: a new RGBA cell. The rules, in order:
  * 1. An empty texel, ink, `RAMP_OUTLINE` and a texel on its row's step 0 (the painter's family darks) come out as they went in.
@@ -77,7 +85,8 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
   const lamps = L.lamps.filter(l => l.strength > 0), total = lamps.reduce((s, l) => s + l.strength, 0);
   // What each texel is lit from, read once: its colour (a fabric's ground where the tile is laid, else the painted colour; −1 for
   // an empty texel), its row and step, and whether it holds (rule 1). Colours run in patches, so the last one is reused.
-  const ground = new Int32Array(n).fill(-1), rows = new Int8Array(n), steps = new Int8Array(n), held = new Uint8Array(n);
+  const { ground, rows, steps, held, lit, hasN, form, settled } = scratchFor(n);
+  ground.fill(-1); hasN.fill(0); form.fill(0);
   let lastColour = -1, lastRow = 0, lastStep = 0, lastHeld = 0, x0 = w, x1 = -1, y0 = h, y1 = -1;
   for (let k = 0; k < n; k++) {
     const o = k * 4;
@@ -97,7 +106,7 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
     rows[k] = lastRow; steps[k] = lastStep; held[k] = lastHeld;
   }
   // Rule 3's light: Σ max(0, n · dir) × strength, and its mean over the filled texels that have a normal.
-  const lit = new Float32Array(n), hasN = new Uint8Array(n), pc = Math.cos(f.pitch), ps = Math.sin(f.pitch), m = lamps.length;
+  const pc = Math.cos(f.pitch), ps = Math.sin(f.pitch), m = lamps.length;
   const lx = Float64Array.from(lamps, l => l.dir[0]), ly = Float64Array.from(lamps, l => l.dir[1]), lz = Float64Array.from(lamps, l => l.dir[2]), ls = Float64Array.from(lamps, l => l.strength);
   let sum = 0, count = 0;
   if (total > 0) for (let y = y0; y <= y1; y++) for (let x = x0, k = y * w + x0; x <= x1; x++, k++) {
@@ -111,7 +120,6 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
   }
   const facing = count ? sum / count : 0;
   // Rules 3 and 4: a form of one step, or a rim of one step instead.
-  const form = new Int8Array(n);
   if (total > 0) {
     const side = SIDES.map(([dx, dy]) => lamps.reduce((s, l) => (Math.hypot(l.dir[0], l.dir[1]) < style.rimSide ? s : s + Math.max(0, l.dir[0] * dx + l.dir[1] * dy) * l.strength), 0) >= style.rim * total);
     const rimDx = SIDES.filter((_, i) => side[i]).map(([dx]) => dx), rimDy = SIDES.filter((_, i) => side[i]).map(([, dy]) => dy);
@@ -133,7 +141,7 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
     }
   }
   // Rule 5: a lone texel takes what its same-coloured neighbours agree on. From a copy, so the order does not matter.
-  const settled = form.slice();
+  settled.set(form);
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const k = y * w + x;
     if (ground[k] < 0 || held[k] === 1) continue;
