@@ -13,6 +13,8 @@ const fields = {
   /** The stick when the latch was taken: it lets go once the stick points more than 90° away. */
   latchX: 'i32',
   latchY: 'i32',
+  /** The direction (−1, 0, 1) the player's turn was held last tick: a held key is one press, so one step. */
+  turning: 'i32',
 } as const
 
 /**

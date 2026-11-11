@@ -23,10 +23,10 @@ function bareImports(file: string, seen = new Set<string>()): Set<string> {
 }
 
 describe('./camera-view', () => {
-  it('is the 24 mm lens: 53.13° vertical, 2·atan(12 / mm)', () => {
-    expect(entry.LENS_MM).toBe(24)
+  it('is the 50 mm lens of the reference game: 26.99° vertical, 2·atan(12 / mm)', () => {
+    expect(entry.LENS_MM).toBe(50)
+    expect(entry.fovOf(entry.LENS_MM)).toBeCloseTo(26.9915, 3)
     expect(entry.fovOf(24)).toBeCloseTo(53.1301, 4)
-    expect(entry.fovOf(50)).toBeCloseTo(27.0, 1)
     // At 24 mm the visible height at distance d is exactly d.
     expect(2 * Math.tan((entry.fovOf(24) * Math.PI) / 360)).toBeCloseTo(1, 12)
   })
@@ -40,8 +40,19 @@ describe('./camera-view', () => {
     expect(entry.turnHeading).toBe(sim.turnHeading)
     expect(entry.degToHeading).toBe(sim.degToHeading)
     expect(entry.headingDegrees).toBe(sim.headingDegrees)
+    expect(entry.stepHeading).toBe(sim.stepHeading)
+    expect(entry.viewAt).toBe(sim.viewAt)
     expect(entry.TURN_UNITS).toBe(65_536)
     expect(entry.MAX_CAMERA_TURN).toBe(8_192)
+  })
+
+  it('carries the play camera’s rules as data and pure functions, for a game, a tool and the level editor', () => {
+    expect(entry.PLAY_FRAMING).toEqual({ min: 0.75, max: 1, rate: 0.25 })
+    expect(entry.PEEK_REACH).toBe(1.2)
+    expect(entry.FOLLOW_DEAD_ZONE).toEqual({ landscape: 0.3, portrait: 0.2 })
+    expect(entry.SHAKE_PX).toBe(3)
+    expect(typeof entry.zoneShot).toBe('function')
+    expect(typeof entry.stepFraming).toBe('function')
   })
 
   it('imports nothing but zod: no pixi.js, no @pixi/3d', () => {

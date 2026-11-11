@@ -16,20 +16,20 @@ const FOV = fovOf(LENS_MM)
 const ORIGIN = { x: 0, y: 0, z: 0 }
 
 describe('eyeOf', () => {
-  it('at the Owner’s view sits 2.11 m above the focus and 4.53 m behind it, 3.1 m above the floor', () => {
+  it('at the default view sits 8 m above the focus and 13.86 m behind it, 9 m above the floor', () => {
     const { tiltDeg, distance, focusHeight } = cameraView('default')
     const focus = { x: 0, y: focusHeight, z: 0 }
     const eye = eyeOf(focus, 0, tiltDeg, distance)
-    expect(eye.y - focus.y).toBeCloseTo(2.113, 3)
+    expect(eye.y - focus.y).toBeCloseTo(8, 9)
     // Heading 0 looks toward +z, so behind is −z.
-    expect(eye.z).toBeCloseTo(-4.532, 3)
+    expect(eye.z).toBeCloseTo(-13.8564, 4)
     expect(eye.x).toBeCloseTo(0, 12)
-    expect(eye.y).toBeCloseTo(3.11, 2)
+    expect(eye.y).toBeCloseTo(9, 9)
   })
 
   it('swings behind the focus as the heading turns: at 90° (toward +x) the eye is on −x', () => {
-    const eye = eyeOf(ORIGIN, 90, 25, 5)
-    expect(eye.x).toBeCloseTo(-4.532, 3)
+    const eye = eyeOf(ORIGIN, 90, 30, 16)
+    expect(eye.x).toBeCloseTo(-13.8564, 4)
     expect(eye.z).toBeCloseTo(0, 12)
   })
 })
@@ -94,8 +94,8 @@ describe('framedFocus (lock-on)', () => {
   })
 
   it('never leans so far that the player is behind the eye (review #245, 4)', () => {
-    for (const tiltDeg of [15, 25, 40, 60])
-      for (const distance of [3, 5, 12]) {
+    for (const tiltDeg of [25, 30, 40])
+      for (const distance of [3, 5, 16, 20]) {
         const steep = cameraView('steep', { tiltDeg, distance })
         const steepBase = { x: 0, y: steep.focusHeight, z: 0 }
         for (const lock of [

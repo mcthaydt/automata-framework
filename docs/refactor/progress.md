@@ -765,3 +765,16 @@ is built in `@automata/3d`, not in EnvironmentBuilder.
 | Light on a tile | A tiled piece bakes the light alone (`textured`): a linear multiplier `light^2.2`, past 1 where the light is, so texel x light is the sRGB albedo x light to within the curve; the one DUEL snap with the dither stays the look pass's | `shared/render/light/vertex-bake.ts` |
 | Screenshots | [albedo](eb-look/albedo/): EB CPU beside AF WebGL baked, WebGL material light only, WebGPU. EB's panel was cut from the committed WP2/WP3 sheets (EB's render branch was not reachable here). The WebGPU panel still shows the device lost in play | `spikes/eb-look/` |
 | Not done | Patterns (stripes, checker, noise, grass, leaves, glass) and the grime marks are not ladders yet; a tile is the committed tile (a map's grime does not scale its wear); the light is multiplied in linear space by a 2.2 power, not in sRGB as the CPU does (near black the two differ); the baked WebGL room is still dark as before, so the walls show in the material-light panel | |
+
+## The default 3D gameplay camera (2026-11-11)
+
+The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches the reference game's. It replaces the 24 mm,
+25°, 5 m camera of 2026-10-23 (the Owner confirmed the new one supersedes that lock).
+
+| Step | Status | Record |
+|---|---|---|
+| Rules as pure functions and zone data (`look`, `distance`, `x`, `follow`, `depthFollow`, `enterMargin`) | Done: tests first, `play-camera.ts`, `sim/view-zone.ts`, the view schema | `packages/3d/tests/unit/camera/` |
+| Rig on the new rules (50 mm, 30°, 16 m; follow with dead zone; 1/7 s ease; dolly; peek; shake) | Done; klipp stays as the camera's brain | `angled-camera.test.ts` |
+| The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
+| Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
+| Gates | See the PR description for what ran and what is pending | |
