@@ -97,6 +97,12 @@ FloorFifty's `tools/i18n`: `catalogue`, `csv`, `characters`, `cli`; its `review`
 It reads and writes the message files the content compiler already produces (`content/messages/<lang>.json`, inlang
 format), so the files stay the one source.
 
+**Fonts (the Owner, 2026-11-11: "go with a font that supports those languages").** A game's font must draw every
+language it ships; no language falls back to whatever the device has. Emberwick's font (Pixelify Sans) has no Japanese,
+Korean or Chinese, so the reference games and the template move to a font, or a matched set of fonts, that covers all
+six, openly licensed, in the pixel style, and subset to the characters used so the download stays small.
+`automata words check` fails a language the game's fonts cannot draw.
+
 **Reference games.** Emberwick and Ember Hall ship in the six, through the workflow, as the proof it works end to end.
 
 ### 2. First-run language pick (core)
@@ -135,6 +141,13 @@ template maps a starter set from `@automata/audio-synth`, which the Audio editor
   host (`ui/components/CreditsPanel.svelte`, `common/credits.ts`). Reached from the title or Settings.
 
 Both take their words from copy records in the six languages, like core's screens.
+
+**Opening a link (core's host contract).** The framework names a `links` capability but its `Hosting` service has no
+call to open one, so a game cannot send a player to a web page the way its host wants. FloorFifty's host has it
+(`ruken/host.ts` `openLink`, over the Ruken SDK's `links.open`), and the SDK the framework vendors already has
+`links.open`, so nothing has to be asked of Ruken. This work adds the call to `Hosting` and to every target's adapter:
+Ruken through its SDK, the web and itch in a new tab, the desktop in the system browser. A host that refuses says so;
+the game never navigates away on its own. The credits panel is its first user.
 
 ### 6. Achievements (the Ruken ship step in `@automata/tools`)
 
