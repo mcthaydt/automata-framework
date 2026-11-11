@@ -1,6 +1,6 @@
 # Shared polish from FloorFifty: design
 
-**Date:** 2026-11-11. **Status:** draft, waiting for the Owner's approval. **Stage:** 1 (spec).
+**Date:** 2026-11-11. **Status:** in force. The Owner said to begin (2026-11-11); the coordinator's calls at the end stay open to correction. **Stage:** 1 (spec).
 **Tracker:** [`../progress.md`](../progress.md).
 
 ## Why

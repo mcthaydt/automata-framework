@@ -14,14 +14,16 @@ runs in its own session on its own branch and hands off through committed docume
 
 | # | Workstream | Stage | Progress | Record |
 |---|---|---|---|---|
-| 1 | Shared polish from FloorFifty (seven items and their examples) | 1, spec: draft waiting for the Owner | 5% | [spec](specs/2026-11-11-shared-polish-design.md) |
-| 2 | The Last Light on the framework, one scene at a time (the prologue first) | Not started: its spec follows workstream 1's approval | 0% | |
+| 1 | Shared polish from FloorFifty (seven items and their examples) | 2, plan: session started 2026-11-11 | 14% (1 of 7 stages) | [spec](specs/2026-11-11-shared-polish-design.md) |
+| 2 | The Last Light on the framework, one scene at a time (the prologue first) | 1, spec: the coordinator writes it while workstream 1 runs | 0% | |
 
 ## Workstream 1 sessions
 
 | Stage | Session | Branch | State |
 |---|---|---|---|
-| 1. Spec | The coordinator | `claude/optimistic-newton-yszrte` | Draft written 2026-11-11; waiting for approval |
+| 1. Spec | The coordinator (`session_01HNdX7JDtQV1qVssEcnsxHM`) | `claude/optimistic-newton-yszrte` | Done 2026-11-11. The Owner said to begin ("begin with adding in Missing from the framework ... then do A"), so the stages run without waiting; the six calls stay open to correction |
+| 2. Plan | Fable 5.2, medium | `claude/shared-polish-plan` | Started 2026-11-11 |
+| Merge | One long-lived session | none of its own | Started 2026-11-11 |
 
 ## Findings so far (2026-11-11)
 
@@ -38,5 +40,5 @@ runs in its own session on its own branch and hands off through committed docume
 
 ## Open, for the Owner
 
-- Approve workstream 1's spec, or correct its six calls.
+- Correct any of workstream 1's six calls (the work proceeds meanwhile).
 - Is `mcthaydt/automata-website` retired in favour of the framework's `site/`?
