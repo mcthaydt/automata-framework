@@ -1,4 +1,4 @@
-// The look's passes, in the order they run: the haze when it is on, the DUEL snap, then the outline when it is switched on, then the passes
+// The look's passes, in the order they run: the haze when it is on, the mood grade (off until a mood is set), the DUEL snap, then the outline when it is switched on, then the passes
 // extensions added with `addLookPass` (stars, rain and bloom are the world kit's). An extension's pass has its own
 // switch, so the look's `switches` name only core's.
 
@@ -6,6 +6,7 @@ import type { Pass3D } from '@pixi/3d'
 import { RegistryClash } from '../../shared/registry/registry-clash.ts'
 import type { TimeOfDay } from '../../shared/time-of-day/time-of-day.ts'
 import { DuelSnapEffect } from './duel-snap-filter.ts'
+import { GradeEffect } from './grade-effect.ts'
 import { HazeEffect, hazeOf } from './haze.ts'
 import type { Look } from './look.schema.ts'
 import { OutlineEffect } from './outline-filter.ts'
@@ -22,6 +23,8 @@ export interface LookPasses {
   readonly snap: DuelSnapEffect
   /** The distance haze, before the snap; absent when the look's `haze` switch is off. */
   readonly haze: HazeEffect | undefined
+  /** The mood grade, before the snap so the frame lands back on the palette; off until `grade.mood` is given one. Absent when the look's `grade` switch is off. */
+  readonly grade: GradeEffect | undefined
   readonly outline: OutlineEffect | undefined
   /** The extensions' passes, in registration order. */
   readonly extra: readonly Pass3D[]
@@ -43,11 +46,13 @@ export function createLookPasses(look: Look, time: TimeOfDay): LookPasses {
   const snap = new DuelSnapEffect(look.switches.dither ? look.dither.strength : 0)
   const outline = look.switches.outline ? new OutlineEffect(look.outline) : undefined
   const haze = look.switches.haze ? new HazeEffect(hazeOf(look.haze, time.scene.haze)) : undefined
+  const grade = look.switches.grade ? new GradeEffect() : undefined
   const extra = REGISTERED.map((pass) => pass.make(look, time))
   return {
-    list: [...(haze ? [haze] : []), snap, ...(outline ? [outline] : []), ...extra],
+    list: [...(haze ? [haze] : []), ...(grade ? [grade] : []), snap, ...(outline ? [outline] : []), ...extra],
     snap,
     haze,
+    grade,
     outline,
     extra,
   }

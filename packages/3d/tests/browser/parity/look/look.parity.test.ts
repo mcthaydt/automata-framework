@@ -120,7 +120,7 @@ describe.runIf(hasWebGL2)('the look on WebGL2', () => {
   it('draws an extension pass after core passes (its own switch, here a custom pass in the list)', async () => {
     const renderer = await start(true)
     expect(renderer.view.passes.length).toBeGreaterThanOrEqual(1)
-    expect(renderer.view.passes[0]?.constructor.name).toBe('DuelSnapEffect')
+    expect(renderer.view.passes.map((p) => p.constructor.name)).toContain('DuelSnapEffect')
   })
 
   it('brings the look back after a lost context', async () => {
