@@ -1,0 +1,202 @@
+# Shared polish from FloorFifty: design
+
+**Date:** 2026-11-11. **Status:** in force. The Owner said to begin (2026-11-11); the coordinator's calls at the end stay open to correction. **Stage:** 1 (spec).
+**Tracker:** [`../progress.md`](../progress.md).
+
+## Why
+
+The framework and its editors exist so that games like The Last Light are easier to make and to change by hand. The
+Owner wants every game on the framework to have FloorFifty's level of finish in the parts that are not about any one
+game: languages, gamepad, responsive screens and the shell around play (2026-11-11: "the non-game specific things should
+be standardized as they're shared").
+
+An audit on 2026-11-11 compared FloorFifty (`SNEKPRTY/floorfifty` at `677d456`) with the framework (`5d7f40d3`). Almost
+all of FloorFifty's shared layer is already in `packages/automata`. Seven things are not. This work adds them, with an
+example for each one a person can see, so the site's Examples page shows them. The Last Light's port onto the framework
+is the next spec and inherits all of this.
+
+## Goals
+
+1. Every game's menus (title, pause, settings, save slots, errors, prompts) are in six languages without the game
+   doing anything.
+2. A person who translates a game has a workflow: send words out, take them back, see what is unreviewed, and know
+   the font can draw them.
+3. The first run of a game asks for a language, and warns about flashing where the game says it flashes.
+4. Every button makes a sound by default.
+5. A game gets a splash with its studio's logo and a credits panel from data.
+6. A game's achievements reach Ruken from the same place its leaderboards do.
+7. An online game tells a player their tab is out of date before they join.
+
+## Non-goals
+
+- Translating any game's own story or content. Emberwick and Ember Hall get their few words translated as the worked
+  examples; The Last Light's lines are its own project.
+- Achievements on `web`, `itch` or `tauri`. Those hosts have none; nothing is drawn or stored for them.
+- A translation editor in the suite (the framework's gap doc leaves it for later; inlang reads the same files).
+- The Last Light's port. Interface motion and streamed music, which the audit could not settle, are out too.
+
+## Anti-goals
+
+- A second copy of anything Ruken owns. Achievement limits and rule shapes come from `@ruken/manifest`, never retyped.
+- A sound, a warning or a language screen a game cannot turn off or restyle.
+- A translation shipped as reviewed when no person read it.
+- A touch target under 44 px or a screen that fails at phone size.
+
+## Constraints
+
+- The framework's `AGENTS.md`: the seven laws, feature folders and `pnpm boundaries`, tests first and in `tests/`,
+  Zod only, phone first, the grandma test for copy, `pnpm format` and `pnpm check` before each commit.
+- Core is small: a thing is core only if every target needs it or both reference games do. Each item below says
+  where it lives and why.
+- Published packages get a `patch` changeset. A changed export means `pnpm build`, `pnpm api-report --update` and
+  `pnpm api-index --write`, committed.
+- No subagents. Hosted CI has no runners: report what ran, in Chromium, and what is left for the Owner's machine.
+
+## Approaches
+
+Three ways to place the seven were considered.
+
+- **A. All in core.** Simplest for a game, but it grows `packages/automata` with a splash, credits and a net check
+  that not every game needs. Against the core rule.
+- **B. All in one new extension** (`@automata/polish`). Keeps core small, but menu translations and the first-run
+  step belong to core's own screens and flow; an extension would have to reach into them, which extensions may not do.
+- **C. Each where its owner already is** (chosen). Words and the first-run flow go with core's screens; the ready-made
+  screens go with `@automata/ui-screens`; achievements go with the Ruken ship step; the stale-build check goes with
+  `@automata/net`; the translator's commands go with `@automata/tools`.
+
+The Owner handed the placement to the coordinator; C is the coordinator's call.
+
+## The design, item by item
+
+Sources are FloorFifty paths under `apps/client/src/` unless they start elsewhere. Port the behaviour and its tests as
+behaviour specs; rewrite onto the framework's own pieces, with no FloorFifty branding or art.
+
+### 1. Six languages and the translator's workflow
+
+**Languages:** `en` (source), `ja`, `ko`, `es-419`, `pt-BR`, `zh-Hans`, FloorFifty's six in its picker order, each named
+in its own script (`i18n/locales.ts`). A browser's language is matched on its primary subtag; every Chinese tag lands on
+Simplified and every Portuguese on Brazilian (`i18n/detect.ts`). The framework already negotiates a locale
+(`features/locale/negotiate-locale.ts`); it takes these rules where it lacks them.
+
+**Core's own words (core).** The default screens' copy (`app/screens/screens-copy.ts`, English today, overridable with
+`copy.screens`) ships in all six. A game that sets a language gets translated menus with no work; `copy.screens` still
+overrides any of it.
+
+**Where the translations come from.** Where a framework string means the same as a FloorFifty string, take
+FloorFifty's reviewed translation (`apps/client/messages/ui/<tag>.json`, reviews in `docs/i18n/review/`). The rest are
+drafted and recorded as **unreviewed** in a ledger the workflow below prints. A human review is the Owner's to arrange;
+the build never calls a draft reviewed.
+
+**The translator's workflow (`@automata/tools`, Node).** A new `automata words` command, from FloorFifty's
+`tools/i18n` (`catalogue`, `csv`, `review`, `characters`, `cli`; about 500 lines):
+- `automata words export <lang>`: one CSV of key, source, current translation and a note, for a translator.
+- `automata words import <lang> <file>`: takes the CSV back, refusing unknown keys and broken placeholders.
+- `automata words status`: per language, what is missing, what changed in the source since it was translated, and
+  what is unreviewed.
+- `automata words check`: every character each language uses can be drawn by the game's fonts; `automata check` runs it.
+
+It reads and writes the message files the content compiler already produces (`content/messages/<lang>.json`, inlang
+format), so the files stay the one source.
+
+**Reference games.** Emberwick and Ember Hall ship in the six, through the workflow, as the proof it works end to end.
+
+### 2. First-run language pick (core)
+
+On the first run, before the title, a game that ships more than one language shows one screen: the languages in their
+own scripts, the detected one focused, one press to continue (`ui/components/LanguageFirst.svelte`,
+`LanguagePicker.svelte`). The choice is saved like the Settings choice and the screen never shows again. A game with one
+language never sees it. A host that supplies a locale (Ruken) is taken at its word and the screen is skipped. It works
+by keyboard, pad and touch at phone size.
+
+### 3. Photosensitivity warning (core)
+
+A game opts in from `defineGame` (the builder names the field beside the existing options). When on, the first run
+shows a warning before anything flashes: what the game does, and the switches that reduce it, which are the settings
+the game already has for effects (core's reduced-motion and, when the game has `@automata/feel`, its strength setting).
+Continue, Close and Escape all go on. It is shown once per device (`ui/components/PhotosensitivityWarning.svelte`; the
+`seen` flag in `common/settings.ts`).
+
+**First-run order:** language, then the warning, then the splash, then the title.
+
+### 4. Interface sounds (core)
+
+One listener at the root of the overlay, so every control sounds without wiring (`ui/ui-sounds.ts`). A control says
+otherwise with an attribute: `data-sfx="back"` for leaving or cancelling, `data-sfx="none"` where the consequence is its
+own sound, and a game may add names. Moving focus has its own quiet sound. The names map to sounds in the game's
+content, through the event-sound table core already has (`features/audio/event-sounds.ts`); they play on the interface
+bus and obey its volume and mute. A game that maps nothing is silent, so no existing game changes. `create-game`'s
+template maps a starter set from `@automata/audio-synth`, which the Audio editor can change.
+
+### 5. Splash and credits (`@automata/ui-screens`)
+
+`ui-screens` already holds Title, Results, Loading and Error; it gains two.
+- **Splash:** the studio's logo (an image the game supplies), held briefly, skippable by any press, never blocking a
+  host's ready signal (`ui/components/SplashRoot.svelte`, `StudioLogo.svelte`).
+- **Credits:** a scrolling panel drawn from a content file of sections, names and links, with links routed through the
+  host (`ui/components/CreditsPanel.svelte`, `common/credits.ts`). Reached from the title or Settings.
+
+Both take their words from copy records in the six languages, like core's screens.
+
+### 6. Achievements (the Ruken ship step in `@automata/tools`)
+
+Ruken's achievements are declared, not called: each is one rule on a leaderboard ("reach 20", "top 10%") in the
+manifest, and Ruken awards it (`ruken/score-boards.ts`; `@ruken/manifest`'s `[achievements.*]`). So this is no runtime
+API. A game declares `achievements` beside its leaderboards; the Ruken target writes them into `ruken.toml`
+(`shared/ship/targets/ruken/ruken-toml.ts` writes `[leaderboards.*]` today) and `automata check` validates them with
+`@ruken/manifest`'s own parser, reporting its errors in plain words. Other targets ignore the table. The titles and
+descriptions go through the words workflow.
+
+### 7. Stale-build check (`@automata/net`, with `@automata/net-server`)
+
+Before the title of an online game, the client asks the server for its build facts and compares them with its own
+(`managers/boot-version-check.ts`, 47 lines). A mismatch shows a recoverable error that says the game was updated and
+offers Reload. Anything unreadable passes, because the join check stays the authority. The server serves its build
+facts from the build stamp the ship step already knows.
+
+## Examples
+
+In `examples/2d/`, one file each, with the header the catalog test checks and a journey in `examples/2d/tests`. The
+site's Examples page reads these files when it builds (`site/README.md`), so they appear there with no site code.
+
+| Example | Shows |
+|---|---|
+| `core/core-languages.ts` | The menus in six languages; change it in Settings and it stays |
+| `core/core-first-run.ts` | A first run: pick a language, read the warning, then the title; a second run goes straight in |
+| `audio/audio-ui-sounds.ts` | Buttons that sound by default, a Back that sounds different, one that stays silent |
+| `ui/ui-splash-credits.ts` | A studio splash, then a title with a Credits panel |
+
+Achievements and the stale-build check have nothing to see in a single page, so they get no example: achievements are
+documented in `docs/guides/publish-to-ruken.md` and shown by Emberwick declaring one; the stale-build check is
+documented in `extensions/net/README.md` and covered by a journey.
+
+## The website
+
+The framework's `site/` is the site: it reads the guides, the API index and `examples/` at build time. The separate
+`mcthaydt/automata-website` repository last moved on 2026-11-08 and looks superseded by it. This work changes no code
+in either; the new examples and guide lines reach the site through the framework's build. **For the Owner:** confirm
+`automata-website` is retired, or say what in it is still wanted.
+
+## Left to the builder
+
+- The exact `defineGame` field names, the copy keys, and how the first-run steps sit in `app/flow/`.
+- Which FloorFifty strings match which framework strings.
+- The sound names beyond `back` and `none`, and the starter sounds.
+- The credits file's schema.
+
+## Done means
+
+- The four examples run and their journeys pass in Chromium at phone, compact and iPad sizes.
+- Emberwick's journeys pass in each of the six languages' menus, and its Ruken manifest carries an achievement.
+- `automata words status` prints the unreviewed list, and `automata check` fails on a character a font cannot draw.
+- `pnpm check` passes; API reports and the index are updated; changesets are written.
+- Reported, not claimed: WebKit, Firefox and real devices are the Owner's.
+
+## The coordinator's calls, for the Owner to check
+
+1. Placement by owner (approach C), including the warning and interface sounds in core.
+2. FloorFifty's six languages become the framework's default set.
+3. Drafted translations ship marked unreviewed rather than waiting for a reviewer.
+4. A host-supplied locale skips the first-run language screen.
+5. No example for achievements or the stale-build check.
+6. Specs and the tracker for this workstream live in `docs/superpowers/`, as the Owner's workflow says; the refactor's
+   own record stays in `docs/refactor/`.
