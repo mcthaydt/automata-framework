@@ -150,13 +150,15 @@ The spec leaves the measure for "as the builders do" to this plan. One per part:
 
 ### The sheets
 
-`docs/superpowers/audits/builders-look-survey/shoot.mjs` shoots every sheet and writes `shots.json`. The builders'
-own frames are committed beside it in `builders/`, so no task needs the builders' repositories to re-shoot:
+`spikes/builders-look/shoot.mjs` shoots every sheet and writes `shots.json` (it lived in the survey's folder until the
+plan audit moved it: `knip` failed `main` on it as an unused file, and it ignores `spikes/**`). The builders' own
+frames are committed in the survey's `builders-look-survey/builders/`, so no task needs the builders' repositories
+to re-shoot:
 
 ```sh
 ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules     # once; git-ignored
 pnpm --filter @af-examples/examples-3d build
-node docs/superpowers/audits/builders-look-survey/shoot.mjs <out dir>  # default: the survey's own folder
+node spikes/builders-look/shoot.mjs <out dir>                          # default: the survey's own folder
 ```
 
 Each group writes its sheets to a folder of its own beside the survey's (`after-room/`, `after-figures/`,
@@ -515,7 +517,7 @@ The survey's sheets draw a level's cast as core meshes. This makes the compariso
 figures in the builders' rooms against the kit's figures in the framework's rooms.
 
 **Files:**
-- Modify: `spikes/eb-look/scene.ts` (a switch `?figures=painted`), `docs/superpowers/audits/builders-look-survey/shoot.mjs`
+- Modify: `spikes/eb-look/scene.ts` (a switch `?figures=painted`), `spikes/builders-look/shoot.mjs`
   (a third argument: query text added to every scene URL, such as `figures=painted` or `fx=0`)
 - Create: `docs/superpowers/audits/builders-look-survey/after-figures/`
 
@@ -530,7 +532,7 @@ figures in the builders' rooms against the kit's figures in the framework's room
 - [ ] **Step 3: Look at all 12 sheets** and write `after-figures/README.md`: for each scene, how the pair reads
   beside the builder's pair: the flat light's warmth under the pendant, the one-step form, the rim on the lamp's
   side, and that a wall or a chair hides the texels behind it. Name each difference.
-- [ ] **Step 4: Gates** (biome and knip ignore `spikes/`; the script under `docs/` is linted). Commit
+- [ ] **Step 4: Gates** (biome and knip ignore `spikes/`, where both the page and the shoot script are). Commit
   `docs(superpowers): the painted base pair in the base scenes, beside the builders' frames`.
 
 ### Task 8: Exposure: measured against the builder's window
@@ -540,7 +542,7 @@ trial composite on the CPU. #607 instead holds a figure at or under its painted 
 measure whether the hold already meets the builder's window.
 
 **Files:**
-- Modify: `docs/superpowers/audits/builders-look-survey/shoot.mjs`
+- Modify: `spikes/builders-look/shoot.mjs`
 - Create: `docs/superpowers/audits/builders-look-survey/after-figures/reads.json`
 
 **Interfaces:**

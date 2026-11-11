@@ -22,8 +22,8 @@ suites and the journeys on `main` (the survey's own pictures and the examples' b
 
 ## The sheets
 
-In [`builders-look-survey/`](builders-look-survey/), made by [`shoot.mjs`](builders-look-survey/shoot.mjs) there,
-which drives the page of `spikes/eb-look` as it is on `main`. [`shots.json`](builders-look-survey/shots.json) holds
+In [`builders-look-survey/`](builders-look-survey/), made by [`spikes/builders-look/shoot.mjs`](../../../spikes/builders-look/shoot.mjs) (moved
+there from this folder by the plan audit, so `knip` leaves it alone as it does every spike), which drives the page of `spikes/eb-look` as it is on `main`. [`shots.json`](builders-look-survey/shots.json) holds
 each panel's two numbers: its mean brightness (the mean of red, green and blue over the field, 0 to 255) and its
 count of distinct colours.
 
