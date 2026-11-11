@@ -147,6 +147,13 @@ and the screenplay stay; the cutscene audit and the look checks cross only when 
 own editor is not ported: its 156-line gaps ledger (`docs/superpowers/editor-gaps.md`) is read against the suite in
 slice 1's survey, and what the suite still lacks becomes suite work.
 
+### HUD screens, with a UI editor coming
+
+The suite has no UI editor yet; the Owner wants one (workstream 3 in the tracker), able to change layout, look,
+content and whole screens, including the default ones. So each HUD screen a slice adds (the objective line, the
+inventory, later the journal, map and dialer) keeps its layout and its words as data from the start, so that editor
+can take it over without a rewrite.
+
 ## Left to the builder
 
 - The converter's shape, and what counts as data against a game hook, scene by scene.
