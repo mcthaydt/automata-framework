@@ -590,5 +590,10 @@
   "gurney": { "kind": "gurney" },
   "wheelchair": { "kind": "wheelchair" },
   "iv-stand": { "kind": "ivStand" },
-  "monitor-cart": { "kind": "monitorCart" }
+  "monitor-cart": { "kind": "monitorCart" },
+  "sink": { "kind": "sink" },
+  "cabinet.extinguisher": { "kind": "extinguisherCabinet" },
+  "light.strip": { "kind": "stripLight" },
+  "coat.hooks": { "kind": "coatHooks" },
+  "screen.privacy": { "kind": "privacyScreen" }
 }

@@ -43,36 +43,57 @@ describe('the clinic furniture', () => {
     expect(built.problems).toEqual([])
   })
 
-  it('replaces most of the stand-in boxes with kit furniture, and keeps the rest as boxes by name', () => {
-    expect(fitted.length).toBeGreaterThanOrEqual(45)
+  it('replaces every stand-in box with kit furniture', () => {
+    expect(fitted.length).toBeGreaterThanOrEqual(57)
     for (const place of fitted) expect(piecesOf(place.id).length, place.id).toBeGreaterThan(0)
-    // What is still a box, and why: the models the kit has no shape for, or whose box is not the kit's shape.
-    expect(standIns.map((p) => p.id.replace(/-\d+$/, '')).sort()).toEqual([
-      'clock',
-      'coat-hook',
-      'extinguisher-cabinet',
-      'fallen-chair',
-      'junction-box',
-      'privacy-screen',
-      'sink',
-      'strip-light',
-      'strip-light',
-      'trolley',
-      'wall-sconce',
-      'wall-tv',
-    ])
+    expect(standIns.map((p) => p.id)).toEqual([])
+  })
+
+  it('draws the six wall fittings and two strip lights with the kit’s generators, and the fallen chair upright', () => {
+    const of = (id: string) => (fitted.find((p) => p.id === id) as Place | undefined)?.with.of
+    expect(of('trolley-1')).toBe('monitorCart')
+    expect(of('wall-tv-1')).toBe('screen')
+    expect(of('wall-sconce-1')).toBe('lamp')
+    expect(of('junction-box-1')).toBe('utilityBox')
+    expect(of('clock-1')).toBe('plaque')
+    // A chair on its side is a turn about z, which `fit` does not have: the chair stands, in the box it would have lain in.
+    expect(of('fallen-chair-1')).toBe('chair')
+    expect(of('sink-1')).toBe('sink')
+    expect(of('privacy-screen-1')).toBe('privacyScreen')
+    expect(of('coat-hook-1')).toBe('coatHooks')
+    expect(of('extinguisher-cabinet-1')).toBe('extinguisherCabinet')
+    expect(of('strip-light-1')).toBe('stripLight')
+    expect(of('strip-light-2')).toBe('stripLight')
   })
 
   it('fills the source’s box, centred on its spot, standing at its height', () => {
     for (const place of fitted) {
       const { lo, hi } = bounds(piecesOf(place.id))
       const [w, h, d] = place.with.size as [number, number, number]
-      // A quarter turn puts the prop's own x along the world's z.
-      const quarter = Math.abs(Math.sin(((90 - place.angle) * Math.PI) / 180)) > 0.99
-      const [ex, ez] = quarter ? [d, w] : [w, d]
-      expect((hi[0] as number) - (lo[0] as number), `${place.id} x`).toBeCloseTo(ex, 2)
-      expect((hi[1] as number) - (lo[1] as number), `${place.id} up`).toBeCloseTo(h, 2)
-      expect((hi[2] as number) - (lo[2] as number), `${place.id} z`).toBeCloseTo(ez, 2)
+      // The box's extent in the world after the turn: a quarter turn puts the prop's own x along the world's z, the privacy
+      // screen's 23° turn is between.
+      const turn = ((90 - place.angle) * Math.PI) / 180
+      const [c, n] = [Math.abs(Math.cos(turn)), Math.abs(Math.sin(turn))]
+      const [ex, ez] = [w * c + d * n, w * n + d * c]
+      const [gx, gy, gz] = [0, 1, 2].map((k) => (hi[k] as number) - (lo[k] as number)) as [
+        number,
+        number,
+        number,
+      ]
+      expect(gy, `${place.id} up`).toBeCloseTo(h, 2)
+      if (n < 0.01 || c < 0.01) {
+        expect(gx, `${place.id} x`).toBeCloseTo(ex, 2)
+        expect(gz, `${place.id} z`).toBeCloseTo(ez, 2)
+      } else {
+        // Turned between: the world extent of a shape inside the box, which a zigzag need not fill at the corners.
+        for (const [got, want, axis] of [
+          [gx, ex, 'x'],
+          [gz, ez, 'z'],
+        ] as const) {
+          expect(got, `${place.id} ${axis}`).toBeLessThanOrEqual(want + 0.005)
+          expect(got, `${place.id} ${axis}`).toBeGreaterThan(want * 0.6)
+        }
+      }
       expect(((lo[0] as number) + (hi[0] as number)) / 2, `${place.id} at x`).toBeCloseTo(
         place.at[0] as number,
         2,

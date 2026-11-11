@@ -799,19 +799,22 @@
     },
     {
       "id": "fallen-chair-1",
-      "use": "model.fallen-chair",
+      "use": "fit",
       "at": [
         -1.2,
         0.35
       ],
       "angle": 0,
       "with": {
+        "of": "chair",
+        "with": {
+          "mat": "oak"
+        },
         "size": [
           0.47,
           0.42,
           0.66
-        ],
-        "uniform": true
+        ]
       }
     },
     {
@@ -838,7 +841,7 @@
     },
     {
       "id": "sink-1",
-      "use": "model.sink",
+      "use": "fit",
       "at": [
         -4.984999999999999,
         3,
@@ -846,23 +849,26 @@
       ],
       "angle": 0,
       "with": {
+        "of": "sink",
+        "with": {},
         "size": [
           0.51,
           0.8,
           0.45
-        ],
-        "uniform": true
+        ]
       }
     },
     {
       "id": "trolley-1",
-      "use": "model.trolley",
+      "use": "fit",
       "at": [
         2.3,
         2.4
       ],
       "angle": 0,
       "with": {
+        "of": "monitorCart",
+        "with": {},
         "size": [
           0.75,
           0.95,
@@ -943,7 +949,7 @@
     },
     {
       "id": "clock-1",
-      "use": "model.clock",
+      "use": "fit",
       "at": [
         4.45,
         -0.845,
@@ -951,13 +957,20 @@
       ],
       "angle": 90,
       "with": {
+        "of": "plaque",
+        "with": {
+          "size": [
+            0.42,
+            0.2
+          ],
+          "y": 2.2,
+          "lit": true
+        },
         "size": [
           0.56,
           0.56,
           0.06
-        ],
-        "uniform": true,
-        "wall": "north"
+        ]
       }
     },
     {
@@ -1050,7 +1063,7 @@
     },
     {
       "id": "wall-tv-1",
-      "use": "model.wall-tv",
+      "use": "fit",
       "at": [
         -4.525,
         -1.7,
@@ -1058,13 +1071,18 @@
       ],
       "angle": 0,
       "with": {
+        "of": "screen",
+        "with": {
+          "size": [
+            0.9,
+            0.55
+          ]
+        },
         "size": [
           0.45,
           0.55,
           0.69
-        ],
-        "uniform": true,
-        "wall": "west"
+        ]
       }
     },
     {
@@ -1152,7 +1170,7 @@
     },
     {
       "id": "coat-hook-1",
-      "use": "model.coat-hook",
+      "use": "fit",
       "at": [
         2.35,
         -0.745,
@@ -1160,18 +1178,18 @@
       ],
       "angle": 90,
       "with": {
+        "of": "coatHooks",
+        "with": {},
         "size": [
           0.51,
           1.15,
           0.24
-        ],
-        "uniform": true,
-        "wall": "north"
+        ]
       }
     },
     {
       "id": "wall-sconce-1",
-      "use": "model.wall-sconce",
+      "use": "fit",
       "at": [
         2.3,
         -0.725,
@@ -1179,18 +1197,22 @@
       ],
       "angle": 90,
       "with": {
+        "of": "lamp",
+        "with": {
+          "variant": "wall",
+          "base": "brass",
+          "shade": "lampshade"
+        },
         "size": [
           0.22,
           0.3,
           0.28
-        ],
-        "uniform": true,
-        "wall": "north"
+        ]
       }
     },
     {
       "id": "junction-box-1",
-      "use": "model.junction-box",
+      "use": "fit",
       "at": [
         3.9,
         -0.725,
@@ -1198,13 +1220,13 @@
       ],
       "angle": 90,
       "with": {
+        "of": "utilityBox",
+        "with": {},
         "size": [
           0.43,
           0.9,
           0.28
-        ],
-        "uniform": true,
-        "wall": "north"
+        ]
       }
     },
     {
@@ -1391,19 +1413,20 @@
     },
     {
       "id": "privacy-screen-1",
-      "use": "model.privacy-screen",
+      "use": "fit",
       "at": [
         -2.75,
         -2.55
       ],
       "angle": 67.081688,
       "with": {
+        "of": "privacyScreen",
+        "with": {},
         "size": [
           1.25,
           1.6,
           0.45
-        ],
-        "uniform": true
+        ]
       }
     },
     {
@@ -1444,7 +1467,7 @@
     },
     {
       "id": "extinguisher-cabinet-1",
-      "use": "model.extinguisher-cabinet",
+      "use": "fit",
       "at": [
         -1.385,
         -3.3,
@@ -1452,13 +1475,13 @@
       ],
       "angle": 0,
       "with": {
+        "of": "extinguisherCabinet",
+        "with": {},
         "size": [
           0.42,
           0.75,
           0.17
-        ],
-        "uniform": true,
-        "wall": "corridor-west"
+        ]
       }
     },
     {
@@ -1523,7 +1546,7 @@
     },
     {
       "id": "strip-light-1",
-      "use": "model.strip-light",
+      "use": "fit",
       "at": [
         0,
         -2.5,
@@ -1531,17 +1554,18 @@
       ],
       "angle": 0,
       "with": {
+        "of": "stripLight",
+        "with": {},
         "size": [
           1.25,
           0.1,
           0.3
-        ],
-        "ceiling": true
+        ]
       }
     },
     {
       "id": "strip-light-2",
-      "use": "model.strip-light",
+      "use": "fit",
       "at": [
         0,
         -4.6,
@@ -1549,12 +1573,13 @@
       ],
       "angle": 0,
       "with": {
+        "of": "stripLight",
+        "with": {},
         "size": [
           1.25,
           0.1,
           0.3
-        ],
-        "ceiling": true
+        ]
       }
     },
     {

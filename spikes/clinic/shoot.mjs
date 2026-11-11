@@ -104,7 +104,8 @@ for (const [frame, turned] of FRAMES) {
   // ONLY=<stem>,<stem> shoots just those frames, so a long run can be done in parts.
   if (process.env.ONLY && !process.env.ONLY.split(',').includes(stem)) continue
   const shots = {}
-  for (const pref of ['webgl', 'webgpu']) {
+  // PREFS=webgl shoots one renderer only (a bisecting run is half the time).
+  for (const pref of (process.env.PREFS ?? 'webgl,webgpu').split(',')) {
     const shot = await shoot(frame, turned, pref)
     shots[pref] = shot
     if (shot.png !== null) writeFileSync(join(out, `${stem}-${pref}.png`), shot.png)
@@ -115,8 +116,8 @@ for (const [frame, turned] of FRAMES) {
   const baseline = reference && spot && !turned ? join(reference, `${spot}-off.png`) : undefined
   const panels = [
     { title: baseline && existsSync(baseline) ? 'source game baseline (effects off, with its HUD)' : `${stem}: no baseline frame`, b64: baseline && existsSync(baseline) ? readFileSync(baseline).toString('base64') : null },
-    { title: 'AF WebGL', b64: shots.webgl.png?.toString('base64') ?? null },
-    { title: 'AF WebGPU', b64: shots.webgpu.png?.toString('base64') ?? null },
+    { title: 'AF WebGL', b64: shots.webgl?.png?.toString('base64') ?? null },
+    { title: 'AF WebGPU', b64: shots.webgpu?.png?.toString('base64') ?? null },
   ]
   writeFileSync(join(out, `${stem}-compare.png`), Buffer.from(await sideBySide(panels), 'base64'))
   if (panels[0].b64 !== null && panels[1].b64 !== null) writeFileSync(join(out, `${stem}-overlay.png`), Buffer.from(await overlay(panels[0].b64, panels[1].b64), 'base64'))

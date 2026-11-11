@@ -219,23 +219,36 @@
       "ramp": "sand",
       "step": 5
     },
-    "linen": {
-      "ramp": "sand",
-      "step": 6
+    "metalBox": {
+      "ramp": "slate",
+      "step": 4
     },
-    "quiltBlue": {
-      "ramp": "sky",
-      "step": 3,
-      "pattern": {
-        "kind": "checker",
-        "size": [
-          0.22,
-          0.22
-        ],
-        "step": -1
+    "doorRed": {
+      "ramp": "rose",
+      "step": 2,
+      "texture": {
+        "photo": "panelling",
+        "seed": 49
       }
     },
-    "pillowWhite": {
+    "carGlass": {
+      "ramp": "navy",
+      "step": 2,
+      "pattern": {
+        "kind": "glass",
+        "size": [
+          1.2,
+          0.1
+        ],
+        "step": 2
+      }
+    },
+    "bulbCool": {
+      "ramp": "dusk",
+      "step": 7,
+      "emit": true
+    },
+    "potWhite": {
       "ramp": "slate",
       "step": 6
     },
@@ -261,6 +274,26 @@
         "contrast": 0.04,
         "seed": 82
       }
+    },
+    "linen": {
+      "ramp": "sand",
+      "step": 6
+    },
+    "quiltBlue": {
+      "ramp": "sky",
+      "step": 3,
+      "pattern": {
+        "kind": "checker",
+        "size": [
+          0.22,
+          0.22
+        ],
+        "step": -1
+      }
+    },
+    "pillowWhite": {
+      "ramp": "slate",
+      "step": 6
     },
     "walnut": {
       "ramp": "brick",
@@ -310,10 +343,6 @@
         ]
       }
     },
-    "potWhite": {
-      "ramp": "slate",
-      "step": 6
-    },
     "leafGreen": {
       "ramp": "moss",
       "step": 4,
@@ -356,61 +385,6 @@
     }
   },
   "props": {
-    "model.fallen-chair": {
-      "kind": "model",
-      "model": "models/fallen-chair.glb",
-      "swatch": "prop"
-    },
-    "model.sink": {
-      "kind": "model",
-      "model": "models/sink.glb",
-      "swatch": "prop"
-    },
-    "model.trolley": {
-      "kind": "model",
-      "model": "models/trolley.glb",
-      "swatch": "prop"
-    },
-    "model.clock": {
-      "kind": "model",
-      "model": "models/clock.glb",
-      "swatch": "prop"
-    },
-    "model.wall-tv": {
-      "kind": "model",
-      "model": "models/wall-tv.glb",
-      "swatch": "prop"
-    },
-    "model.coat-hook": {
-      "kind": "model",
-      "model": "models/coat-hook.glb",
-      "swatch": "prop"
-    },
-    "model.wall-sconce": {
-      "kind": "model",
-      "model": "models/wall-sconce.glb",
-      "swatch": "prop"
-    },
-    "model.junction-box": {
-      "kind": "model",
-      "model": "models/junction-box.glb",
-      "swatch": "prop"
-    },
-    "model.privacy-screen": {
-      "kind": "model",
-      "model": "models/privacy-screen.glb",
-      "swatch": "prop"
-    },
-    "model.extinguisher-cabinet": {
-      "kind": "model",
-      "model": "models/extinguisher-cabinet.glb",
-      "swatch": "prop"
-    },
-    "model.strip-light": {
-      "kind": "model",
-      "model": "models/strip-light.glb",
-      "swatch": "prop"
-    },
     "moon-shaft": {
       "kind": "moonShaft",
       "height": 3.4,

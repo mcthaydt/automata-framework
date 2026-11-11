@@ -44,7 +44,25 @@ export const REPLACEMENTS: Readonly<Record<string, Replacement>> = {
   'stock-bottles': { use: 'bottles' },
   'stock-canisters': { use: 'bottles' },
   'stock-rolls': { use: 'barrel' },
+  // The rolling and wall pieces. A trolley is the monitor cart; the wall TV is the kit's screen (a deep box, not a slab, once fitted).
+  trolley: { use: 'monitor-cart' },
+  'wall-tv': { use: 'screen.tv' },
+  'wall-sconce': { use: 'lamp.wall' },
+  'junction-box': { use: 'box.utility' },
+  clock: { use: 'plaque' },
+  // A chair on its side is a turn about z, which `fit` does not have: it stands, in the box the fallen one lay in.
+  'fallen-chair': { use: 'chair.wood' },
+  // Pieces the kit gained for the clinic (`ward-fittings.ts`).
+  sink: { use: 'sink' },
+  'privacy-screen': { use: 'screen.privacy' },
+  'coat-hook': { use: 'coat.hooks' },
+  'extinguisher-cabinet': { use: 'cabinet.extinguisher' },
+  'strip-light': { use: 'light.strip' },
 }
 
 /** Swatches the kit's furniture generators name by default, which the clinic's library must carry besides its own. */
-export const FURNITURE_SWATCHES: string[] = ['leatherBlack', 'cordBlack', 'bookGreen', 'bookCream']
+export const FURNITURE_SWATCHES: string[] = [
+  'leatherBlack', 'cordBlack', 'bookGreen', 'bookCream',
+  // The new fittings' own: the cabinet's red and glass, the strip light's tube, the sink's porcelain, the coat's cloth.
+  'metalBox', 'doorRed', 'carGlass', 'bulbCool', 'potWhite', 'fabricKnit', 'metalSheet',
+]
