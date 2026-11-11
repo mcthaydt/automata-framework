@@ -798,3 +798,20 @@ The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches 
 | The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
 | Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
 | Gates | See the PR description for what ran and what is pending | |
+
+## Journeys take free ports (2026-11-11, branch `claude/fix-e2e-ports`)
+
+On the shared self-hosted runners (`owner-pc-wsl-af`, `ar2`, `ar3`) concurrent jobs derived the same journey ports from the
+checkout and `AF_RUNNER_PORT_OFFSET`, and Playwright's webServer refused to start ("http://127.0.0.1:5100/ is already used",
+"Port 5900 is already in use"). Every journey config and origin module now claims its ports from the operating system when
+the config loads (`packages/tools/src/shared/ship/ports/free-ports.ts`) and carries them to the workers and the servers it
+starts in `AF_E2E_CLAIMED_PORTS`. A game and its editor (`--game-url`) are claimed in one call, before either starts.
+
+| Step | Status | Record |
+|---|---|---|
+| Helper: distinct, browser-safe, free ports shared through the environment | Done: tests first | `packages/tools/tests/unit/shared/ship/ports/free-ports.test.ts` |
+| Hygiene rule also flags port arithmetic, `portsFor`/`browserSafePort` and `reuseExistingServer: true` | Done: it listed all 11 files first, then none | `tooling/repo-hygiene/tests/unit/hard-coded-ports.test.ts` |
+| Configs and origins: 2d-story, 3d-story, emberwick, base-3d, examples 2d/3d, ui-primitives, hot-reload, editors, design board, site, playground, frame-budget, lighthouse | Done; `portsFor`, `browserSafePort` and `AF_RUNNER_PORT_OFFSET` removed | `tooling/examples-runner/tests/unit/ports.test.ts` |
+| Two copies at once, separate checkouts, `CI=1 GITHUB_ACTIONS=true` | Old code: the second copy fails with "already used" (2d-story) and "Port 5900 is already in use" (examples-2d). New code: both pass (2d-story 5 of 5 twice; examples-2d `ui-primitives` 14 of 14 each) | PR description |
+| Single runs, one copy | emberwick-phone-chromium 10 of 10; base-3d-dev 1 of 1 (starts all three of base-3d's servers) | PR description |
+| Not run | The rest of base-3d (`base-3d`, WebKit), examples-3d, 3d-story, other Emberwick projects, Firefox, the site, playground and frame-budget journeys, and the GPU runner | PR description |
