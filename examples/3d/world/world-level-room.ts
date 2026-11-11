@@ -17,7 +17,6 @@ import {
   figure,
   render3dExtension,
   swatchColour,
-  swatchGlow,
   targetSize,
   type WorldLibrary,
 } from '@automata/3d'
@@ -122,13 +121,7 @@ export default defineGame({
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(world, swatch)
         drawWorld(
-          {
-            parent: view.root,
-            occluders,
-            colourOf,
-            glow: (swatch) => swatchGlow(world, swatch),
-            look: DEFAULT_LOOK,
-          },
+          { parent: view.root, occluders, colourOf, look: DEFAULT_LOOK },
           buildWorld(readLevel(room).level, world).pieces,
         )
         return undefined
