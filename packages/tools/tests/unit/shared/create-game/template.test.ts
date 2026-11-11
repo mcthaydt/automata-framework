@@ -152,7 +152,7 @@ describe('the new game’s scripts and config', () => {
 
   it('tests and checks with one command each', () => {
     expect(manifest().scripts.test).toBe('vitest run')
-    expect(manifest().scripts.check).toBe('automata check')
+    expect(manifest().scripts.check).toBe('pnpm fonts && automata check')
     expect(manifest().devDependencies.vitest).toBeDefined()
   })
 

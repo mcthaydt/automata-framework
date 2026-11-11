@@ -51,7 +51,8 @@ export const packageFile = (
           ...targetScripts(targetsOf(options), { fonts: features.fonts === true }),
           typecheck: 'tsc -p .',
           test: 'vitest run',
-          check: 'automata check',
+          // `check` builds the game (the no-eval step), and the build imports the faces `pnpm fonts` writes.
+          check: features.fonts === true ? 'pnpm fonts && automata check' : 'automata check',
         },
         dependencies: {
           '@automata/framework': frameworkSpec(options),

@@ -95,6 +95,8 @@ describe('the new game’s fonts', () => {
     expect(scripts['fonts']).toBe('automata-content assets')
     expect(scripts['dev']).toBe('pnpm fonts && vite')
     expect(scripts['build:web']).toBe('pnpm fonts && vite build --mode web')
+    // `check` builds the game to prove it runs without eval, and `src/main.ts` imports the faces `pnpm fonts` writes.
+    expect(scripts['check']).toBe('pnpm fonts && automata check')
     expect(read('automata.content.ts')).toContain(
       'export default { schemas: [...level2dKinds(), controlsKind(), feelContent, audioContent] }',
     )

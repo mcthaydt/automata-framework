@@ -66,8 +66,11 @@ a face.
 ## What `automata check` says
 
 ```sh
-pnpm exec automata check --only words
+pnpm check
 ```
+
+(`pnpm check` cuts the fonts first, because the check builds the game. `pnpm exec automata check --only words` runs just
+this step.)
 
 - a **missing** word, in a language the game ships, in any catalog;
 - a **lost placeholder**: a translation with a `{name}` the English does not have, or without one it does;

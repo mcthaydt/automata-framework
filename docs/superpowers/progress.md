@@ -34,8 +34,43 @@ runs in its own session on its own branch and hands off through committed docume
 | 4. Execution, handoff at 90 minutes | the third session (from `9a356651`) | `claude/shared-polish-build` | Last commit `3aef5854` (task 10); tasks 8 (`d2e9d7f9`), 9 (`f68d822e`) and 10 (`3aef5854`) done this session. Resume at task 11 (the splash, `@automata/ui-screens`). Left: 11, 11b, 12, 13, 14, 15, 16, 18, 19, 20 (task 17 cut). Notes: task 15 must exercise `passFirstRun`; task 18 documents `STICK_DIRECTIONS`, `Picture` and `PROMPT_COPY` (`pnpm api-index --write` fails on them until then); every commit that touches a package needs `pnpm build`, `pnpm api-report --update` and `pnpm api-index --write` first (the unit gate fails on a stale report); `pnpm check:changesets` needs `git fetch origin main` first; FigureBuilder is copied (not a submodule checkout) into `vendor/FigureBuilder` at `d6e3c9fb` for typecheck and shows nothing in `git status`; the font build and `automata check --only words` were run on a generated game by linking the workspace packages by hand (see task 10's ruling) |
 | 4. Execution, fourth session | the fourth session, from `000e4e92` (merged with `main` `abe713d4`) | `claude/shared-polish-build` | Started 2026-11-11 at task 11: tasks 11 (splash, `5a6e7eb9`), 11b (`Hosting.openLink`, `7dc3e29c`) 12 (credits, `618d03a3`) 13 (achievements, `474d2f96`) and 14 (stale-build check, `2d87462f`) done; FigureBuilder attached and placed at `d6e3c9fb` again (a fresh container). The percentage is `(3 + done/21) / 7` |
 | 4. Execution, handoff at 90 minutes | the fourth session (from `000e4e92`, `main` `abe713d4` merged) | `claude/shared-polish-build` | Last commit `05c8e036` (task 15, partly). Done this session: 11 `5a6e7eb9`, 11b `7dc3e29c`, 12 `618d03a3`, 13 `474d2f96`, 14 `2d87462f`, and 3 of task 15's 4 examples. Resume at task 15's four leftovers (the plan's ledger lists them: `ui-splash-credits` and the site playground step 4, the examples' fonts, the iPad run), then 16, 18, 19, 20 (task 17 cut). Notes: a commit touching `packages/automata` takes about 9.5 minutes (the hook runs every affected package's unit tests), one touching only an extension about 20 seconds; FigureBuilder is a copy at `d6e3c9fb` in `vendor/FigureBuilder` (not a submodule checkout); no `AUTOMATA_ANTHROPIC_KEY` was in this environment, so the live `automata words` call is still unverified; WebKit is not installed (the iPad project and the Safari-sized journeys cannot run here) |
-| 4. Execution, fifth session | the fifth session (`session_01HNdX7HKo5CyAEE1X5WpfB8`), from `8b8e901e` merged with `main` `db54a511` (`d242263b`) | `claude/shared-polish-build` | Started 2026-11-11: the whole `pnpm check` on the merged tree passed (exit 0). Task 15 finished: the playground answers `@automata/ui-screens` and `ui-splash-credits` is in the catalog (`848b33ed`); the language examples draw in the pixel font (`76bfe33c`); `audio-ui-sounds` proven to start a real source on a running AudioContext. `examples-ipad` not run (WebKit not installed). Tasks 16 and 19 are on `claude/shared-polish-emberwick-site` (a second session); this session does 15, 18, then stops, and 20 runs last on the combined branch |
+| 4. Execution, fifth session | the fifth session (`session_01HNdX7HKo5CyAEE1X5WpfB8`), from `8b8e901e` merged with `main` `db54a511` (`d242263b`) | `claude/shared-polish-build` | Started 2026-11-11: the whole `pnpm check` on the merged tree passed (exit 0). Task 15 finished: the playground answers `@automata/ui-screens` and `ui-splash-credits` is in the catalog (`848b33ed`); the language examples draw in the pixel font (`76bfe33c`); `audio-ui-sounds` proven to start a real source on a running AudioContext. `examples-ipad` not run (WebKit not installed). Tasks 16 and 19 are on `claude/shared-polish-emberwick-site` (a second session); this session does 15, 18, then stops, and 20 runs last on the combined branch. Done 2026-11-11 against `main` `a8f2d40a`: task 15 (`848b33ed`, `76bfe33c`, `39bcf8f1`) and task 18 (`f863ad00`, then the commit after it: the `create-game` `check` fix the consumer smoke found, and the record); the whole `pnpm check` exit 0 on the final tree (52 and 61 tasks) |
 | Merge | One long-lived session (`session_01HNdX7LEALEpFdpPWLXPuy7`) | none of its own | Started 2026-11-11; merged the spec as #608 (`6fa386e9`) |
+
+## Workstream 1: "Done means" (task 18, the fifth session, `claude/shared-polish-build`)
+
+Checked line by line. The lines for Emberwick (task 16) and the Editor page (task 19) wait for the side branch
+`claude/shared-polish-emberwick-site`; the site pass (task 20) runs last.
+
+- **The four examples' journeys:** pass in Chromium at the phone (`examples`) and compact (`examples-compact`) sizes (106 passed, 2
+  skipped over the whole examples config) and in the playground frame under its policy. **`examples-ipad` was not run:** WebKit is not
+  installed here.
+- **Interface sounds:** the journey proves a real source node starts on a running `AudioContext` (the framework's mixer, the three
+  files told apart by length); what a person hears is not verified (no speakers).
+- **Emberwick in six languages, its achievement in the manifest:** task 16, on the side branch; not checked here.
+- **`automata words`:** tested against the fake model (`run-words.test.ts`, `cli-words.test.ts`: every missing and stale word into
+  every language, `--to`, a key, `--all`, `--mark`, a dropped placeholder asked again once, an unreachable translator). **The live call is
+  unverified:** no `AUTOMATA_ANTHROPIC_KEY` in this environment.
+- **`automata check`:** `words-step.test.ts` (a missing key, a lost placeholder, a character no font can draw, a language with no
+  font, the words of a framework package held to the font) and, on a generated game, `pass words (308 ms)` in the stranger journey. Core
+  (`screens-catalog.test.ts`, 19), `ui-screens` (`words/`, 8) and `net-ui` (`catalogs.test.ts`, 7) hold their catalogs to six languages
+  and to their placeholders. Emberwick's words and the by-hand break: task 16. Ember Hall is cut (task 17).
+- **Every game and the template draw all six languages in the font set, no device fallback:** `template-fonts.test.ts`,
+  `example-fonts.test.ts` (the examples' faces are rebuilt and compared) and the journeys' `--af-font` and loaded-face checks
+  (`ja ja`, `ko ko`, `zh-hans zh-Hans`); a screenshot of Settings in Chinese shows the pixel face. The licence is in
+  `LICENSE-SCOPE.md` and `vendor/fonts/README.md`, and ships beside every subset.
+- **`Hosting.openLink`:** in the contract suite and on every adapter (task 11b); the four publish guides say what a link does.
+- **`pnpm check` passes** on the merged tree and before each commit that touched `packages/` (52 and 61 tasks, exit 0). API reports and the
+  index are updated (1283 exports, 0 undocumented). Changesets of this workstream: `words-catalogs`, `automata-words`,
+  `words-check-step`, `default-languages`, `default-screens-six-languages`, `fonts-cut-to-every-word`, `opening-sequence`,
+  `first-run-language`, `photosensitivity-warning`, `interface-sounds`, `new-game-six-languages`, `language-tag-region-numbers`,
+  `ui-screens-splash`, `ui-screens-credits`, `host-open-link`, `achievements`, `stale-build`, `e2e-pass-first-run`,
+  `shared-polish-examples`, `doc-comments-three-exports`, `create-game-check-cuts-fonts`.
+- **Browser suites, Chromium only:** the 2D package suites (every package that has one, about 3,900 tests), Emberwick's journeys (31),
+  the examples' (106) and the consumer smoke's 2D stranger journey (passes after two fixes: `create-game`'s `check` script cuts the fonts
+  first, and the smoke finds the square by the template's green). A vite build of a generated game ran inside that journey.
+- **Not run:** WebKit, Firefox, `examples-ipad`, a real desktop and a real Ruken host, a real `ruken publish`, the 3D workflow, the site's
+  own `playground.e2e.ts`.
 
 ## Workstream 2 sessions (slice 1, the prologue)
 

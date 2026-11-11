@@ -42,16 +42,16 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | `6c0ccee0` |
 | 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `d2e9d7f9` |
 | 9 | Interface sounds | 4 | done (jsdom unit tests; the sounds themselves are heard only in a browser with a mapped game: task 15's example) | `f68d822e` |
-| 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke needs packed packages and the network: not run) | `3aef5854` |
+| 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke was not run here; run in task 18, it found the `check` script's defect, fixed there) | `3aef5854` |
 | 11 | Splash (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium; WebKit and Firefox not run) | `5a6e7eb9` |
 | 11b | `Hosting.openLink` on every target | 5 | done (jsdom/Node unit tests over fakes; a real desktop build opening a real browser and a real Ruken host asking the player are not run) | `7dc3e29c` |
 | 12 | Credits (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium, 100 cases; WebKit and Firefox not run) | `618d03a3` |
 | 13 | Achievements, generic, and their Ruken mapping | 6 | done (unit tests over fakes and Ruken's own parser; a real `ruken publish` is not run) | `474d2f96` |
 | 14 | Stale-build check | 7 | done (jsdom unit tests with a fake clock and a bare HTTP listener; the panel's layout contract in Chromium, 50 cases; no two-process journey, as call 15 says; WebKit and Firefox not run) | `2d87462f` |
-| 15 | The four examples and their journeys | examples | done (Chromium at the phone and compact sizes; `examples-ipad` is added but WebKit is not installed here, so it was not run; see the ledger) | `76bfe33c` |
+| 15 | The four examples and their journeys | examples | done (Chromium at the phone and compact sizes; `examples-ipad` is added but WebKit is not installed here, so it was not run; see the ledger) | `39bcf8f1` |
 | 16 | Emberwick in six languages, with an achievement | 1, 6 | todo | |
 | 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
-| 18 | Guides, API report and index, changesets, final gates | done means | todo | |
+| 18 | Guides, API report and index, changesets, final gates | done means | done on this branch (the "Done means" list is in `../progress.md`; Emberwick's and the Editor page's lines wait for tasks 16 and 19 on the side branch) | see the ledger |
 | 19 | The site's Editor page is cut; the link opens the editor | site | todo | |
 | 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | todo | |
 
@@ -325,6 +325,34 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
 - **Task 15, done:** all four examples and their four journeys are in place and pass in Chromium at the phone and compact sizes;
   the playground runs each under its policy; the examples' fonts and the playground step are done (above). The whole `pnpm check`
   passed before each of the two commits that touched `packages/`.
+- **Task 18 (fifth session):** `docs/guides/languages.md` is the guide for a game's languages and `automata words` (the catalogs, missing and
+  stale, the font rule, what `check` says); it is listed second in `docs/guides/index.md`, and the site's guide-list tests name it
+  (`docs.test.ts`, `guides.test.ts`; red first, then green). `how-it-works.md` gains "The first run". The achievements section of
+  `publish-to-ruken.md` and the link paragraph in all four publish guides were already there (tasks 11b and 13). `PROMPT_COPY`,
+  `STICK_DIRECTIONS` and `Picture` have doc comments, so `pnpm api-index --write` exits 0 for the first time (1283 exports, 0
+  undocumented); the cheatsheet and the agent API reference are regenerated, `pnpm api-report --update` wrote six reports (10 API breaks
+  against the base, 0 undeclared) and `pnpm agent-skills` passed. One changeset covers the doc comments.
+- **Task 18, defect found in task 10 by the consumer smoke (it ran here: it packs the packages and installs from the registry), fixed:** a
+  game made by `create-game` failed `pnpm check` at the no-eval step (`../content/generated/fonts/fonts.css` not found), because `dev`
+  and each `build:<target>` ran `pnpm fonts` first and `check` did not. The generated `check` script is now `pnpm fonts && automata
+  check` for a game with fonts (the 3D template has none and is unchanged). Red first (`template-fonts.test.ts` and `template.test.ts`),
+  then the stranger journey got past `check`. Patch changeset `create-game-check-cuts-fonts`.
+- **Task 18, Ruling (a stale expectation in the smoke, not a product change):** the stranger journey then failed at "play it in a browser":
+  it finds the square by the colour 0xffc825, and `main`'s #582 (`b4caf3a1`) made the template level's player start green, `#22c55e`
+  (`template-content/project.toml`; the smoke and that file are the same as on `main`, so it failed there too). The test now finds
+  the square by that green (low red, high green, lower blue: the olive floor and slate walls have more red), and the whole journey
+  passes: make, install, check, test, build and play in a browser (the first-run language pressed, the square moves, the wall stops
+  it), prepare, the itch.io zip. Cost if wrong: the smoke's colour must follow the template's again when the player start changes.
+- **Task 18, ran in Chromium (before the last two fixes, which touch only `create-game`'s `check` script and the smoke's colour):** `pnpm check` on every commit; the 2D browser suites package by
+  package with `--project "*chromium*"` (the root script runs every engine and WebKit and Firefox are not installed: it failed at once
+  launching Firefox, nothing ran): `packages/automata` 2225, `packages/editor` 796 (5 skipped), `extensions/ui-screens` 550 (1 skipped),
+  `extensions/net-ui` 100, `extensions/editors` 64, `packages/sim` 62, `examples/2d/ui/primitives` 26, `tooling/examples-runner` 12
+  (1 skipped), `extensions/debug` 6, `packages/content` 3, `extensions/physics` 2, `extensions/level-2d` 1, `extensions/puzzle` 1,
+  `games/emberwick` 1; Emberwick's journeys (`emberwick-phone-chromium`, `-compact-chromium`, `-ipad-chromium`: 31 passed); the
+  examples' journeys (`examples`, `examples-compact`, `runner`, `runner-compact`, `demos`, `ui-primitives`: 106 passed, 2 skipped); the
+  consumer smoke's 2D stranger journey (passed after the two fixes above; the 3D stranger journey is skipped by its own condition).
+- **Task 18, not run:** WebKit and Firefox in any suite, `examples-ipad` and `emberwick-ipad-webkit`, a real desktop build and a real
+  Ruken host, a real `ruken publish`, and the live `automata words` call (no `AUTOMATA_ANTHROPIC_KEY` in this environment).
 
 ## Global constraints
 
