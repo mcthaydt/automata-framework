@@ -62,6 +62,7 @@ export function targetDependencies(targets: readonly DistTarget[]): {
     dependencies['@tauri-apps/api'] = '2.12.4'
     dependencies['@tauri-apps/plugin-process'] = '2.4.0'
     dependencies['@tauri-apps/plugin-store'] = '2.5.0'
+    dependencies['@tauri-apps/plugin-opener'] = '2.7.2'
     // `prepare --target tauri` runs the game's own Tauri CLI; ship does not carry it.
     devDependencies['@tauri-apps/cli'] = '2.12.3'
   }

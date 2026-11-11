@@ -2,6 +2,8 @@
 
 A game built for `tauri` runs as a desktop app: Tauri wraps the web build in the system's webview. Saves go to one
 store file in the app's data folder, and Quit closes the app after the game's exit handlers and a save flush.
+A link in the game (the credits panel's, for one) opens in the player's own browser, never inside the game's window. The
+generated project allows `https:` addresses only.
 
 ## Set up once
 

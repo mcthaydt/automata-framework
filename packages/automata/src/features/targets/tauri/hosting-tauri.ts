@@ -1,6 +1,7 @@
 import { type HostResult, refuse } from '../../../shared/host/errors'
 import type { HostingOptions } from '../../../shared/host/hosting'
 import { HOST_EXIT_CAP_MS, type Hosting, type HostingSaves } from '../../../shared/host/hosting'
+import { isOpenableLink } from '../../../shared/host/link'
 import { type Clock, systemClock } from '../../../shared/lib/clock'
 import { ok, refused } from '../../../shared/lib/result'
 import { makeExitHandlers } from '../exit-handlers'
@@ -32,6 +33,8 @@ export interface DesktopPort {
   onCloseRequested(handler: (event: { preventDefault(): void }) => void): Promise<() => void>
   /** Quits the app. */
   exitApp(): Promise<void>
+  /** Opens an address in the system browser; rejects when no browser could be started. */
+  openUrl(url: string): Promise<void>
 }
 
 /**
@@ -114,6 +117,16 @@ export async function createTauriHosting(
       if (!open) return refuse('CANCELLED', false, 'session.exit')
       await quit()
       return ok(undefined)
+    },
+    // The system browser, never the webview: a page opened inside the game's own window could replace the game.
+    openLink: async (url) => {
+      if (!open) return refuse('CANCELLED', false, 'links.open')
+      if (!isOpenableLink(url)) return refuse('INVALID_PAYLOAD', false, 'links.open')
+      const opened = await desktop.openUrl(url).then(
+        () => true,
+        () => false,
+      )
+      return ok({ opened })
     },
     onExiting: exits.register,
     dispose: () => {

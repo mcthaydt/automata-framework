@@ -685,7 +685,7 @@
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
 - `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
-- `describeHostingContract(name, create, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
+- `describeHostingContract(name, create, settled, links?)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.
 - `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself.
 - `FakeAudioContext` (interface): A recording stand-in for an `AudioContext`: what was started, stopped and automated, with a clock tests move by hand.
@@ -721,6 +721,7 @@
 - `HostingFactory` (type): An adapter under test: a fresh `Hosting` per case, with `saves` granted.
 - `installFakeResizeObserver()`: Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components measured under jsdom, which has no layout.
 - `LayoutRect` (interface): Layout assertions as plain DOM functions (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
+- `LinksProbe` (interface): What the `openLink` cases need to see and steer, which no `Hosting` value exposes: each adapter keeps its own record of the links its host was asked to open and its own way for the host to say no.
 - `ManualFrames` (interface): A frame source a test drives: `advance` moves time on and runs the frame asked for, if any.
 - `manualFrames(startMs?)`: A frame source that runs a frame only when a test advances it, starting at `startMs`.
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.

@@ -2,6 +2,8 @@
 
 itch.io runs the web build in its HTML5 player, so a game built for `itch` uses the web host adapter. ship packages
 the build as the zip itch.io accepts and pushes it with butler.
+A link in the game (the credits panel's, for one) opens in a new tab; if the player's browser blocks it, the game is told
+and stays where it is. itch.io's frame is never navigated away.
 
 ## Set up once
 

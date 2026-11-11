@@ -5646,6 +5646,17 @@ interface Hosting {
     readonly leaderboards: HostingLeaderboards;
     /** `support` in the answer says what the device allows (for example `ios-home-screen`). */
     setFullscreen(on: boolean): Promise<HostResult<FullscreenRes>>;
+    /**
+     * Opens a web page outside the game, the way the host wants it done: Ruken asks the player first, a web page opens
+     * a new tab, the desktop opens the system browser. `opened: false` means the player or the host said no, which is an
+     * answer and not an error. Only `https:` links are opened; any other address, or one with a name and password in it, is refused
+     * `INVALID_PAYLOAD`. The game is never navigated away.
+     * Needs the `links` grant: without it the call is refused `UNSUPPORTED`, and nothing falls back to another way of
+     * opening.
+     */
+    openLink(url: string): Promise<HostResult<{
+        readonly opened: boolean;
+    }>>;
     readonly round: {
         /** A round began. A second start before an end is dropped. */
         start(): void;
@@ -8144,10 +8155,11 @@ interface Conditions {
 
 Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `create` builds a fresh
 `Hosting` for each case, with `saves` granted; `settled` lets the host answer (for example one macrotask). Every
-target's adapter and `FakeHosting` pass these cases. Each case disposes its `Hosting`.
+target's adapter and `FakeHosting` pass these cases. Each case disposes its `Hosting`. With `links`, the `openLink`
+cases run too: the address rules, the grant, and a host that says no.
 
 ```ts
-function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void;
+function describeHostingContract(name: string, create: HostingFactory, settled: Settle, links?: LinksProbe): void;
 ```
 
 #### `documentScrolls` (function)
@@ -8345,6 +8357,10 @@ interface FakeHostControl {
     readonly exits: readonly ('player' | 'completed')[];
     /** Every fullscreen request, in order. */
     readonly fullscreen: readonly boolean[];
+    /** Every link the host opened, in order: a valid, granted request the host did not say no to. */
+    readonly opened: readonly string[];
+    /** From now on the host opens a link, or says no to it. */
+    answerLinks(answer: 'open' | 'refuse'): void;
     /** Every round start and end the host received (after the contract's guard), in order. */
     readonly rounds: readonly ({
         readonly start: true;
@@ -8404,6 +8420,8 @@ interface FakeHostingOptions {
     readonly audio?: AudioChange;
     readonly entitlements?: EntitlementsPayload;
     readonly savesStatus?: SavesStatus;
+    /** What the host does with a link it is asked to open: open it, or say no. Default `open`. */
+    readonly links?: 'open' | 'refuse';
 }
 ```
 
@@ -8642,6 +8660,24 @@ interface LayoutRect {
     readonly y: number;
     readonly width: number;
     readonly height: number;
+}
+```
+
+#### `LinksProbe` (interface)
+
+What the `openLink` cases need to see and steer, which no `Hosting` value exposes: each adapter keeps its own record
+of the links its host was asked to open and its own way for the host to say no.
+
+```ts
+interface LinksProbe {
+    /** A fresh `Hosting` whose host opens a link when asked (`links` granted). */
+    create(): Hosting | Promise<Hosting>;
+    /** A fresh `Hosting` without the `links` grant. Omit it for an adapter that always grants links (a page, the desktop). */
+    createWithoutGrant?(): Hosting | Promise<Hosting>;
+    /** The addresses the host was asked to open since `create`, in order. */
+    opened(): readonly string[];
+    /** From now on the host (or the player behind it) says no to a link. */
+    decline(): void;
 }
 ```
 

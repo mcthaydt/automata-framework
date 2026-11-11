@@ -14,6 +14,7 @@ import {
 import { type InputModePayload, InputModePayloadSchema } from '../../shared/host/input-mode.schema.ts'
 import type { LeaderboardQuery, LeaderboardSubmitMeta } from '../../shared/host/leaderboards.schema.ts'
 import { type LifecyclePayload, LifecyclePayloadSchema } from '../../shared/host/lifecycle.schema.ts'
+import { isOpenableLink } from '../../shared/host/link.ts'
 import type { RoundOutcome } from '../../shared/host/round.schema.ts'
 import {
   type SavesChangedPayload,
@@ -55,6 +56,8 @@ export interface FakeHostingOptions {
   readonly audio?: AudioChange
   readonly entitlements?: EntitlementsPayload
   readonly savesStatus?: SavesStatus
+  /** What the host does with a link it is asked to open: open it, or say no. Default `open`. */
+  readonly links?: 'open' | 'refuse'
 }
 
 /** One analytics event the host received. */
@@ -98,6 +101,10 @@ export interface FakeHostControl {
   readonly exits: readonly ('player' | 'completed')[]
   /** Every fullscreen request, in order. */
   readonly fullscreen: readonly boolean[]
+  /** Every link the host opened, in order: a valid, granted request the host did not say no to. */
+  readonly opened: readonly string[]
+  /** From now on the host opens a link, or says no to it. */
+  answerLinks(answer: 'open' | 'refuse'): void
   /** Every round start and end the host received (after the contract's guard), in order. */
   readonly rounds: readonly ({ readonly start: true } | { readonly end: RoundOutcome | undefined })[]
   readonly submits: readonly Submission[]
@@ -170,6 +177,8 @@ export function fakeHosting(options: FakeHostingOptions = {}): {
   const tracked: TrackedEvent[] = []
   const exits: ('player' | 'completed')[] = []
   const fullscreen: boolean[] = []
+  const opened: string[] = []
+  let linkAnswer = options.links ?? 'open'
   const rounds: ({ start: true } | { end: RoundOutcome | undefined })[] = []
   const submits: Submission[] = []
   // Set by `create`: the parts of the live session the control handle reaches.
@@ -209,6 +218,10 @@ export function fakeHosting(options: FakeHostingOptions = {}): {
     tracked,
     exits,
     fullscreen,
+    opened,
+    answerLinks: (answer) => {
+      linkAnswer = answer
+    },
     rounds,
     submits,
     requestMenu: () => live().menu(),
@@ -329,6 +342,14 @@ export function fakeHosting(options: FakeHostingOptions = {}): {
           display.set({ ...display.current(), fullscreen: on })
           return { fullscreen: on, support: 'element' as const }
         }),
+      openLink: async (url) => {
+        if (closed) return fail('links.open', 'CANCELLED')
+        if (!isOpenableLink(url)) return fail('links.open', 'INVALID_PAYLOAD')
+        return request('links.open', 'links', () => {
+          if (linkAnswer === 'open') opened.push(url)
+          return { opened: linkAnswer === 'open' }
+        })
+      },
       round: {
         start: () => {
           if (roundOpen) return

@@ -59,13 +59,20 @@ describe('tauriProjectFiles', () => {
     expect(digit['Cargo.toml']).toContain('name = "game-9lives"')
   })
 
-  it('registers the store and process plugins, and grants the main window only what the adapter calls', () => {
+  it('registers the store, process and opener plugins, and grants the main window only what the adapter calls', () => {
     expect(files['src/main.rs']).toContain('tauri_plugin_store::Builder::default().build()')
     expect(files['src/main.rs']).toContain('tauri_plugin_process::init()')
+    expect(files['src/main.rs']).toContain('tauri_plugin_opener::init()')
     expect(JSON.parse(files['capabilities/default.json'] as string)).toEqual({
       identifier: 'default',
       windows: ['main'],
-      permissions: ['core:default', 'store:default', 'process:allow-exit'],
+      permissions: [
+        'core:default',
+        'store:default',
+        'process:allow-exit',
+        // A credits link opens in the system browser, and only an https address (the adapter refuses the rest first).
+        { identifier: 'opener:allow-open-url', allow: [{ url: 'https://*' }, { url: 'https://*/*' }] },
+      ],
     })
   })
 })

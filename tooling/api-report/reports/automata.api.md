@@ -938,6 +938,9 @@ interface Hosting {
     readonly saves: HostingSaves;
     readonly leaderboards: HostingLeaderboards;
     setFullscreen(on: boolean): Promise<HostResult<FullscreenRes>>;
+    openLink(url: string): Promise<HostResult<{
+        readonly opened: boolean;
+    }>>;
     readonly round: {
         start(): void;
         end(outcome?: RoundOutcome): void;
@@ -2544,7 +2547,7 @@ interface Conditions {
 ### `describeHostingContract` (function)
 
 ```ts
-function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void;
+function describeHostingContract(name: string, create: HostingFactory, settled: Settle, links?: LinksProbe): void;
 ```
 
 ### `documentScrolls` (function)
@@ -2692,6 +2695,8 @@ interface FakeHostControl {
     readonly tracked: readonly TrackedEvent[];
     readonly exits: readonly ('player' | 'completed')[];
     readonly fullscreen: readonly boolean[];
+    readonly opened: readonly string[];
+    answerLinks(answer: 'open' | 'refuse'): void;
     readonly rounds: readonly ({
         readonly start: true;
     } | {
@@ -2736,6 +2741,7 @@ interface FakeHostingOptions {
     readonly audio?: AudioChange;
     readonly entitlements?: EntitlementsPayload;
     readonly savesStatus?: SavesStatus;
+    readonly links?: 'open' | 'refuse';
 }
 ```
 
@@ -2898,6 +2904,17 @@ interface LayoutRect {
     readonly y: number;
     readonly width: number;
     readonly height: number;
+}
+```
+
+### `LinksProbe` (interface)
+
+```ts
+interface LinksProbe {
+    create(): Hosting | Promise<Hosting>;
+    createWithoutGrant?(): Hosting | Promise<Hosting>;
+    opened(): readonly string[];
+    decline(): void;
 }
 ```
 

@@ -2,6 +2,8 @@
 
 A game built for `ruken` bundles the Ruken host adapter, which talks to Ruken through its SDK. ship writes the
 `ruken.toml` manifest from `ship.config.ts`, checks it with Ruken's own parser, and publishes with Ruken's CLI.
+A link in the game (the credits panel's, for one) is asked of Ruken, which asks the player before it opens; add `'links'`
+to `hosting.wants` in `defineGame` for the game to be allowed to ask.
 
 ## Set up once
 

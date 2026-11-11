@@ -25,6 +25,12 @@ export interface FakeWebPage {
   readonly stored: Map<string, string>
   /** Every key the page wrote, in order (including the storage probe's). */
   readonly writes: string[]
+  /** Every address the page was asked to open in a new tab, in order, blocked or not. */
+  readonly opened: string[]
+  /** The newest tab `open` answered with, or undefined when none has opened. */
+  readonly lastTab: { opener: unknown } | undefined
+  /** From now on the browser blocks `window.open()`, as a popup blocker does: it answers null. */
+  blockPopups(): void
   setVisibility(state: DocumentVisibilityState): void
   setFocus(focused: boolean): void
   resize(width: number, height: number): void
@@ -38,6 +44,9 @@ export function fakeWebPage(options: FakeWebPageOptions = {}): FakeWebPage {
   const viewport = new EventTarget()
   const stored = new Map<string, string>()
   const writes: string[] = []
+  const opened: string[] = []
+  let popups: 'allow' | 'block' = 'allow'
+  let lastTab: { opener: unknown } | undefined
   let visibility: DocumentVisibilityState = 'visible'
   let focused = true
   let width = options.width ?? 1280
@@ -82,6 +91,12 @@ export function fakeWebPage(options: FakeWebPageOptions = {}): FakeWebPage {
       if (options.storage === 'blocked') throw new DOMException('Access is denied', 'SecurityError')
       return storage
     },
+    open: (url) => {
+      opened.push(url)
+      if (popups === 'block') return null
+      lastTab = { opener: {} }
+      return lastTab
+    },
     navigator: options.language === undefined ? {} : { language: options.language },
     matchMedia: (query) => ({ matches: query === '(pointer: coarse)' && options.coarsePointer === true }),
     visualViewport: {
@@ -117,6 +132,13 @@ export function fakeWebPage(options: FakeWebPageOptions = {}): FakeWebPage {
     page,
     stored,
     writes,
+    opened,
+    get lastTab() {
+      return lastTab
+    },
+    blockPopups: () => {
+      popups = 'block'
+    },
     setVisibility: (state) => {
       visibility = state
       doc.dispatchEvent(new Event('visibilitychange'))

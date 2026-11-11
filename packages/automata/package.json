@@ -104,6 +104,7 @@
   },
   "peerDependencies": {
     "@tauri-apps/api": "^2.12.4",
+    "@tauri-apps/plugin-opener": "^2.7.2",
     "@tauri-apps/plugin-process": "^2.4.0",
     "@tauri-apps/plugin-store": "^2.5.0",
     "pixi.js": "^8.22.0",
@@ -112,6 +113,9 @@
   },
   "peerDependenciesMeta": {
     "@tauri-apps/api": {
+      "optional": true
+    },
+    "@tauri-apps/plugin-opener": {
       "optional": true
     },
     "@tauri-apps/plugin-process": {
@@ -133,6 +137,7 @@
     "@sveltejs/package": "3.0.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tauri-apps/api": "2.12.4",
+    "@tauri-apps/plugin-opener": "2.7.2",
     "@tauri-apps/plugin-process": "2.4.0",
     "@tauri-apps/plugin-store": "2.5.0",
     "@testing-library/dom": "10.4.2",

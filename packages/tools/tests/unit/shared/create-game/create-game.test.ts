@@ -217,6 +217,7 @@ describe('createGame', () => {
         '@tauri-apps/api': '2.12.4',
         '@tauri-apps/plugin-store': '2.5.0',
         '@tauri-apps/plugin-process': '2.4.0',
+        '@tauri-apps/plugin-opener': '2.7.2',
       })
       expect(pkg.devDependencies['@tauri-apps/cli']).toBe('2.12.3')
       // The Ruken adapter is bundled in @automata/framework's ruken entry, so no target asks for the SDK (N2).
