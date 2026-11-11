@@ -1,0 +1,5 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "stale_message": "游戏已更新。请刷新页面以获取新版本。",
+  "stale_reload": "刷新"
+}

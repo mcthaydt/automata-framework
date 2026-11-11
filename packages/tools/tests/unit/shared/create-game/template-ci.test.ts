@@ -25,7 +25,8 @@ interface Workflow {
 
 const releaseText = (targets?: readonly DistTarget[]): string => {
   const file = TEMPLATE_FILES.find((tpl) => tpl.path === '.github/workflows/release.yml')
-  if (file === undefined) throw new Error('create-game writes no .github/workflows/release.yml')
+  if (file === undefined || !('content' in file))
+    throw new Error('create-game writes no .github/workflows/release.yml')
   return file.content({ id: 'my-game', title: 'My Game', targets })
 }
 const release = (targets?: readonly DistTarget[]): Workflow => parse(releaseText(targets)) as Workflow

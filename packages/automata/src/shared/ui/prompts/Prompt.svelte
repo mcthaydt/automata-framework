@@ -5,7 +5,9 @@
   remounts it, and it is never in the focus order. `data-prompt` is the kind.
 -->
 <script lang="ts">
+import Icon from '../icon/Icon.svelte'
 import {
+  PLAYSTATION_CROSS,
   type PromptBinding,
   type PromptCopy,
   type PromptDevice,
@@ -27,7 +29,10 @@ const { binding, device, glyphs, copy, layout }: Props = $props()
 const view = $derived(promptView(binding, device, glyphs, copy, layout))
 </script>
 
-<span class="af-prompt" data-prompt={view.kind}>{view.label}</span>
+<!-- The PlayStation cross is drawn, since the pixel font has no glyph for it; its text stays for assistive technology. -->
+<span class="af-prompt" data-prompt={view.kind}>
+  {#if view.label === PLAYSTATION_CROSS}<Icon name="cross" /><span class="af-sr-only">{view.label}</span>{:else}{view.label}{/if}
+</span>
 
 <style>
   .af-prompt {

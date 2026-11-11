@@ -25,6 +25,12 @@ describe('Start', () => {
     expect(STEPS[0]?.command).toBe('npx @automata/tools create-game my-game')
   })
 
+  it('says the new game comes in six languages, as the Languages guide and the template do', () => {
+    expect(STEPS[0]?.what).toMatch(/six languages/)
+    expect(read('docs/guides/languages.md')).toMatch(/all six|six languages/)
+    expect(read('packages/tools/src/shared/create-game/template-fonts.ts')).toMatch(/zh-Hans|DEFAULT_LOCALES/)
+  })
+
   it('gives only commands the framework answers to', () => {
     // What create-game prints next, the editor's command and the web build's scripts.
     expect(read('packages/tools/src/app/cli.ts')).toContain('cd ${dir} && pnpm install && pnpm dev')

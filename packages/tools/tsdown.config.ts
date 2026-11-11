@@ -5,7 +5,7 @@ import { publishedBuild } from '../../tooling/release/src/tsdown-shared.ts'
 // finds it, and its runtime dependencies are declared. `automata editor` also reads the editor list through the
 // editor package's headless `core`, which Node cannot load from source: it is a devDependency, so the build bundles it,
 // and the command runs from a checkout of this repository that built an editor. `create-game`'s starter level is copied
-// to `dist/template-content/` (the 3D game's room and Wick, `template-3d-content/`, beside it) and its release workflow to `dist/template-ci/`, where `template-content.ts` and
+// to `dist/template-content/` (the 3D game's room and Wick, `template-3d-content/`, beside it), its font set to `dist/template-fonts/` and its release workflow to `dist/template-ci/`, where `template-content.ts` and
 // `template-ci.ts` find them next to the bundle.
 export default publishedBuild(import.meta.url, {
   entry: {
@@ -21,5 +21,7 @@ export default publishedBuild(import.meta.url, {
     { from: 'src/shared/create-game/template-content', to: 'dist' },
     { from: 'src/shared/create-game/template-3d-content', to: 'dist' },
     { from: 'src/shared/create-game/template-ci', to: 'dist' },
+    // The font set a new game copies in (Fusion Pixel and its licence): the package publishes only `dist`, not `vendor/`.
+    { from: '../../vendor/fonts/fusion-pixel-12/*', to: 'dist/template-fonts' },
   ],
 })

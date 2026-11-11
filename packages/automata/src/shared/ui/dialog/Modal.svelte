@@ -12,6 +12,7 @@
 -->
 <script lang="ts">
 import { onMount } from 'svelte'
+import Icon from '../icon/Icon.svelte'
 import type { ModalProps } from './modal-props.js'
 import { holdModal } from './modal-scope.js'
 
@@ -67,11 +68,12 @@ function onScrimClick(event: MouseEvent): void {
         type="button"
         class="af-control af-control--ghost af-modal__close"
         data-modal-close
+        data-sfx="back"
         aria-label={closeLabel}
         title={closeLabel}
         onclick={() => onclose()}
       >
-        <span aria-hidden="true">✕</span>
+        <Icon name="cross" />
       </button>
     </div>
     <div class="af-modal__body" data-scroll-region>

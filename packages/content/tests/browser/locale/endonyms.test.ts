@@ -4,16 +4,13 @@
 // FR), as Node 24 gives them, in Node, Chromium, WebKit and Firefox. A name an engine spells differently is a
 // character the build may not have cut: change the build or the list here, never this check, to make it pass.
 import { expect, test } from 'vitest'
+import { ENDONYMS } from '#src/shared/locale/default-locales.ts'
 import { endonymOf } from '#src/shared/locale/endonyms.ts'
 
 const NAMES: Readonly<Record<string, string>> = {
-  en: 'English',
+  ...ENDONYMS,
   es: 'Español',
   fr: 'Français',
-  ja: '日本語',
-  ko: '한국어',
-  'pt-BR': 'Português (Brasil)',
-  'zh-Hans': '简体中文',
 }
 
 test('every engine names the planned languages as the font build does', () => {

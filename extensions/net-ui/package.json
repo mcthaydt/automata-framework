@@ -19,7 +19,8 @@
     ".": {
       "svelte": "./src/entries/index.ts",
       "default": "./src/entries/index.ts"
-    }
+    },
+    "./words/*.json": "./src/shared/words/*.json"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
@@ -29,7 +30,8 @@
         "types": "./dist/entries/index.d.ts",
         "svelte": "./dist/entries/index.js",
         "import": "./dist/entries/index.js"
-      }
+      },
+      "./words/*.json": "./dist/shared/words/*.json"
     }
   },
   "scripts": {

@@ -1,10 +1,11 @@
 <!--
-  The site's header, from the approved Home mockup (v2): the logo, five links (Docs, Examples, Editor, Pricing,
-  Changelog; Reference is in the footer and the search, since the GTM research says price is what a maker asks first), Search, GitHub once the repository is public, and Make a game. Below 760 px the links fold into Menu, an
+  The site's header, from the approved Home mockup (v2): the logo, five links (Docs, Examples, Editor, which opens the
+  editor itself, Pricing, Changelog; Reference is in the footer and the search, since the GTM research says price is what a maker asks first), Search, GitHub once the repository is public, and Make a game. Below 760 px the links fold into Menu, an
   opaque sheet under the bar, and Make a game stays in view.
   Search shows its ⌘K hint only where there is a keyboard (a fine pointer), never on a touch screen.
 -->
 <script lang="ts">
+import { EDITOR_URL, reloads } from '../editor-link'
 import { REPOSITORY_PUBLIC, REPOSITORY_URL } from '../site.js'
 import Icon from './Icon.svelte'
 
@@ -13,7 +14,7 @@ let { onOpenSearch, pathname = '/' }: { onOpenSearch?: () => void; pathname?: st
 const links = [
   ['/docs', 'Docs'],
   ['/examples', 'Examples'],
-  ['/editor', 'Editor'],
+  [EDITOR_URL, 'Editor'],
   ['/app', 'Pricing'],
   ['/changelog', 'Changelog'],
 ] as const
@@ -26,7 +27,7 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
   <div class="bar">
     <a class="logo" href="/" aria-label="Automata home"><i aria-hidden="true"></i>automata</a>
     <nav class="links" aria-label="Main navigation">
-      {#each links as [href, label] (href)}<a {href} aria-current={current(href) ? 'page' : undefined}>{label}</a>{/each}
+      {#each links as [href, label] (href)}<a {href} data-sveltekit-reload={reloads(href)} aria-current={current(href) ? 'page' : undefined}>{label}</a>{/each}
     </nav>
     <div class="end">
       <button class="search" type="button" onclick={onOpenSearch} aria-label="Search the docs and the API">
@@ -43,7 +44,7 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
         </summary>
         <nav aria-label="Mobile navigation">
           {#each links as [href, label] (href)}
-            <a {href} aria-current={current(href) ? 'page' : undefined} onclick={() => menu && (menu.open = false)}>{label}</a>
+            <a {href} data-sveltekit-reload={reloads(href)} aria-current={current(href) ? 'page' : undefined} onclick={() => menu && (menu.open = false)}>{label}</a>
           {/each}
         </nav>
       </details>

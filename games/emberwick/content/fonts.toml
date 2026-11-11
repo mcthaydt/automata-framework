@@ -1,0 +1,28 @@
+# The fonts the game draws its words in, and the languages each one serves. Every language the game ships needs a
+# font: none falls back to whatever the device has. `automata-content assets` cuts each font to the characters the game
+# shows and writes the faces as content/generated/fonts/fonts.css.
+# Add a language by adding its tag to a font's list (and its catalog, content/messages/<tag>.json).
+
+[font.ja]
+file = "assets/fonts/ja.woff2"
+sha256 = "dd52d6fa0eb8100ee3a4bee142f2c03b3480a815cf0d53722bd208a7f3bd316b"
+license = "OFL-1.1"
+license_file = "assets/fonts/OFL.txt"
+reserved_name = "Fusion Pixel"
+locales = ["en", "es-419", "pt-BR", "ja"]
+
+[font.ko]
+file = "assets/fonts/ko.woff2"
+sha256 = "f7527814ee81f89ac4596d292c627e4dda645f6b22f5120aaa968ff3ed7d0833"
+license = "OFL-1.1"
+license_file = "assets/fonts/OFL.txt"
+reserved_name = "Fusion Pixel"
+locales = ["ko"]
+
+[font.zh-hans]
+file = "assets/fonts/zh_hans.woff2"
+sha256 = "043eae5e616b0d1e75dc746d3d687b4413f9f1c70c1a09bc4ebb705ef1cc8e32"
+license = "OFL-1.1"
+license_file = "assets/fonts/OFL.txt"
+reserved_name = "Fusion Pixel"
+locales = ["zh-Hans"]

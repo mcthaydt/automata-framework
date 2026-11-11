@@ -99,7 +99,9 @@ describe('SaveStatus', () => {
     const { line } = open(state)
     expect(line()?.dataset.tone).toBe(tone)
     const glyph = line()?.querySelector('[data-save-status-glyph]')
-    expect(glyph?.textContent?.length).toBeGreaterThan(0)
+    // A warning's mark is the text `!`; a success is a drawn check, since no font need hold one.
+    if (tone === 'warning') expect(glyph?.textContent).toBe('!')
+    else expect(glyph?.querySelector('[data-icon="check"]')).not.toBeNull()
     expect(glyph?.getAttribute('aria-hidden')).toBe('true')
     expect(line()?.textContent).toContain(copy[state])
   })

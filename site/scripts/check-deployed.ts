@@ -5,6 +5,7 @@
 import { pathToFileURL } from 'node:url'
 import { playgroundHeaders } from '../src/features/playground/headers.ts'
 import { securityHeaders } from '../src/shared/html/security-headers.ts'
+import { REDIRECTS } from '../src/shared/redirects.ts'
 import { SITE_ORIGIN } from '../src/shared/site.js'
 
 export interface Probe {
@@ -24,13 +25,25 @@ const PATHS = [
 ]
 const MISSING = '/no-such-page'
 
+/** What the host's redirect rules (`_redirects`) must answer: the status, and where the address leads. */
+function redirectProblems(path: string, probe: Probe): string[] {
+  const rule = REDIRECTS.find((candidate) => candidate.from === path)
+  if (rule === undefined) return []
+  const problems: string[] = []
+  if (probe.status !== rule.status) problems.push(`${path}: answered ${probe.status}, not ${rule.status}`)
+  const location = probe.headers.get('Location')
+  if (location === null) problems.push(`${path}: Location is missing`)
+  else if (location !== rule.to) problems.push(`${path}: Location is ${location}, not ${rule.to}`)
+  return problems
+}
+
 /** One message per path and header that is not as meant. The host's own extra headers are not judged. */
 export async function deployedProblems(
   origin: string,
   fetcher: (url: string) => Promise<Probe>,
 ): Promise<string[]> {
   const problems: string[] = []
-  for (const path of [...PATHS, MISSING]) {
+  for (const path of [...PATHS, ...REDIRECTS.map((rule) => rule.from), MISSING]) {
     let probe: Probe
     try {
       probe = await fetcher(origin + path)
@@ -44,6 +57,10 @@ export async function deployedProblems(
       if (probe.status !== 404) problems.push(`${path}: answered ${probe.status}, not 404`)
       if (!probe.body.includes('Page not found'))
         problems.push(`${path}: the 404 answer is not the "Page not found" page`)
+    } else if (REDIRECTS.some((rule) => rule.from === path)) {
+      // A redirect carries the site's headers too, so only its status and place are judged here.
+      problems.push(...redirectProblems(path, probe))
+      continue
     } else if (probe.status !== 200) problems.push(`${path}: answered ${probe.status}, not 200`)
     for (const [name, value] of Object.entries({ ...securityHeaders(path), ...playgroundHeaders(path) })) {
       const got = probe.headers.get(name)

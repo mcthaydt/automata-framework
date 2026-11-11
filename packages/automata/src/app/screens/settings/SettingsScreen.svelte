@@ -77,7 +77,7 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
     {/if}
   </div>
   {#snippet actions()}
-    <button type="button" class="af-control af-control--ghost af-settings__back" data-testid="settings-back" onclick={onback}>
+    <button type="button" class="af-control af-control--ghost af-settings__back" data-testid="settings-back" data-sfx="back" onclick={onback}>
       <span aria-hidden="true">←</span>
       {backLabel}
     </button>

@@ -51,6 +51,11 @@ describe('Modal', () => {
     expect(title?.textContent).toBe('Level')
   })
 
+  it('marks its Close as leaving, for the interface sounds', () => {
+    const { panel } = open(Modal)
+    expect(panel.querySelector('[data-modal-close]')?.getAttribute('data-sfx')).toBe('back')
+  })
+
   it('moves focus in on open, wraps Tab, closes on Escape and gives focus back to the opener', () => {
     const onclose = vi.fn()
     const { opener, panel } = open(Modal, { onclose })

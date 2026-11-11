@@ -14,6 +14,7 @@ import {
   SAVE_STATUS_COPY,
 } from './saves/saves-copy.ts'
 import { PAD_UNSUPPORTED } from './screen-kit.ts'
+import { catalogFor, screensCopyFrom } from './screens-catalog.ts'
 import type { AudioCopy } from './settings/audio-section.ts'
 import type { ControlsCopy } from './settings/controls-section.ts'
 import type { DisplayCopy } from './settings/display-section.ts'
@@ -39,6 +40,21 @@ export interface SettingsScreenCopy {
   readonly settingsTab: string
   readonly controlsTab: string
   readonly more: (count: number) => string
+}
+
+/** The first run's two screens: which language to use, and the warning before anything flashes. */
+export interface FirstRunCopy {
+  readonly language: { readonly title: string; readonly close: string }
+  readonly warning: {
+    readonly title: string
+    readonly body: string
+    /** The heading over the switches that turn the lights and shaking down. */
+    readonly choose: string
+    /** Where to change the switches later. */
+    readonly later: string
+    readonly continue: string
+    readonly close: string
+  }
 }
 
 /** Every word the default title, play, paused and settings screens show. */
@@ -83,6 +99,8 @@ export interface ScreensCopy {
   readonly board: LeaderboardCopy
   /** Told once when a controller the input does not support is plugged in. */
   readonly padUnsupported: string
+  /** The first run's language screen and photosensitivity warning. */
+  readonly firstRun: FirstRunCopy
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: a copy function's arguments vary; it is replaced whole.
@@ -147,6 +165,17 @@ export const DEFAULT_SCREENS_COPY: ScreensCopy = {
   },
   board: BOARD_COPY,
   padUnsupported: PAD_UNSUPPORTED,
+  firstRun: {
+    language: { title: 'Language', close: 'Close' },
+    warning: {
+      title: 'Flashing lights warning',
+      body: 'This game has flashing lights and a shaking screen. For a few people these can bring on a seizure, even if they have never had one. If you feel dizzy or unwell, or your eyes or muscles twitch, stop playing and talk to a doctor.',
+      choose: 'Turn down',
+      later: 'You can change these later in Settings.',
+      continue: 'Continue',
+      close: 'Close',
+    },
+  },
 }
 
 const isGroup = (value: unknown): value is Record<string, unknown> =>
@@ -161,8 +190,25 @@ function merge<T>(base: T, over: unknown): T {
   return out as T
 }
 
-/** The record for `locale`: the defaults with the game's words laid over them. */
+const translated = new Map<string, ScreensCopy>()
+
+/**
+ * The default screens' words in a locale: its bundled catalog (`pt-PT` finds `pt-BR`), or the English record for a
+ * language core has no words in.
+ */
+export function screensCopyFor(locale: string): ScreensCopy {
+  const catalog = catalogFor(locale)
+  if (catalog === undefined || catalog === catalogFor('en')) return DEFAULT_SCREENS_COPY
+  const cached = translated.get(locale)
+  if (cached !== undefined) return cached
+  const built = screensCopyFrom(catalog, DEFAULT_SCREENS_COPY)
+  translated.set(locale, built)
+  return built
+}
+
+/** The record for `locale`: its bundled words with the game's own laid over them. */
 export function resolveScreensCopy(input: ScreensCopyInput | undefined, locale: string): ScreensCopy {
   const overrides = typeof input === 'function' ? input(locale) : input
-  return overrides === undefined ? DEFAULT_SCREENS_COPY : merge(DEFAULT_SCREENS_COPY, overrides)
+  const base = screensCopyFor(locale)
+  return overrides === undefined ? base : merge(base, overrides)
 }

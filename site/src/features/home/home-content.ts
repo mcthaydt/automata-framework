@@ -81,7 +81,10 @@ export const BUILT_IN = {
     ['Controls', 'Keyboard, touch and gamepad. Players can change the keys.'],
     ['Sound', 'Music and sound effects, with volume players can set.'],
     ['Every screen', 'Phones, tablets and computers, upright or sideways.'],
-    ['Languages', "Put your game's words in more than one language."],
+    [
+      'Languages',
+      'Menus in six languages from the first run. The command automata words translates your own words.',
+    ],
   ],
 } as const
 
@@ -107,7 +110,10 @@ export const AGENT_SECTION = {
   points: [
     ['Agent skills', 'tell your agent where gameplay lives and the rules it must keep.'],
     ['One command,', '`automata check`, runs the rules, the types and the tests.'],
-    ['Your agent, your plan.', 'Automata runs no AI of its own, so there are no credits to run out.'],
+    [
+      'Your agent, your plan.',
+      'Automata sells no credits and meters nothing. The one command that asks a model, `automata words`, translates your game with your own key.',
+    ],
   ],
 } as const
 

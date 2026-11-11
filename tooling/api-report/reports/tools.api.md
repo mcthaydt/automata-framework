@@ -44,6 +44,9 @@ interface ItchSettings {
 interface ShipConfig extends GameConfig {
     readonly itch?: ItchConfig | undefined;
     readonly tauri?: TauriConfig | undefined;
+    readonly words?: {
+        readonly model?: string | undefined;
+    } | undefined;
     readonly audience?: 'public' | 'private' | undefined;
 }
 ```
@@ -254,6 +257,12 @@ type PadButton = keyof typeof PAD_BUTTONS;
 
 ```ts
 type PadMode = 'dpad' | 'stick';
+```
+
+### `passFirstRun` (function)
+
+```ts
+function passFirstRun(page: Page | Frame, language?: string): Promise<void>;
 ```
 
 ### `Point` (interface)

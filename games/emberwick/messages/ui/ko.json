@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "splash_label": "시작 화면",
+  "splash_hint": "아무 키나 누르거나 화면을 누르세요",
+  "menu_title": "Emberwick",
+  "menu_hint": "랜턴을 들고 불씨까지 올라가 보세요.",
+  "play": "플레이",
+  "keys_move": "이동",
+  "keys_jump": "점프",
+  "keys_pause": "일시정지",
+  "pause": "일시정지",
+  "paused_title": "일시정지됨",
+  "resume": "계속하기",
+  "back_to_menu": "메뉴로 돌아가기",
+  "end_title": "불씨는 당신의 것",
+  "play_again": "다시 하기",
+  "menu": "메뉴",
+  "end_time": "{seconds}초"
+}

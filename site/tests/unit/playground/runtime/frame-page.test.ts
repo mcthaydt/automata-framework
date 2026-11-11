@@ -1,11 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { playgroundFramePage } from '../../../../playground/src/frame-page.ts'
+import { playgroundImportMap } from '../../../../playground/src/playground-imports.ts'
 import { framePolicy } from '../../../../playground/src/ruken/frame-policy.ts'
 
 const RUNTIME = {
   automata: '/playground/runtime/automata-LRkvFZ12.js',
   zod: '/playground/runtime/zod-CSYgToI_.js',
+  uiScreens: '/playground/runtime/ui-screens-Qw3rTy7u.js',
   noEval: '/playground/runtime/no-eval-Q1w2e3R4.js',
   frame: '/playground/runtime/frame-DCEneEhm.js',
   styles: ['/playground/runtime/automata-CBKxHYFl.css'],
@@ -19,11 +21,16 @@ const between = (html: string, start: string, end: string): string => {
 }
 
 describe('playgroundFramePage', () => {
-  it('maps the two bare imports to the runtime and carries the policy for exactly that import map', () => {
+  it('maps every bare import an example may use to the runtime and carries the policy for exactly that map', () => {
     const html = playgroundFramePage(ENTRY, RUNTIME, SITE)
     const importMap = between(html, '<script type="importmap">', '</script>')
-    expect(JSON.parse(importMap)).toEqual({
-      imports: { '@automata/framework': RUNTIME.automata, zod: RUNTIME.zod },
+    expect(JSON.parse(importMap)).toEqual({ imports: playgroundImportMap(RUNTIME) })
+    expect(JSON.parse(importMap).imports).toMatchObject({
+      '@automata/framework': RUNTIME.automata,
+      zod: RUNTIME.zod,
+      '@automata/ui-screens': RUNTIME.uiScreens,
+      '@automata/ui-screens/credits': RUNTIME.uiScreens,
+      '@automata/ui-screens/splash': RUNTIME.uiScreens,
     })
     expect(between(html, 'http-equiv="Content-Security-Policy" content="', '"')).toBe(
       framePolicy(importMap, SITE),

@@ -14,6 +14,7 @@ import {
   type HostingOptions,
   type HostingSeams,
 } from '../../../shared/host/hosting'
+import { isOpenableLink } from '../../../shared/host/link'
 import { type Clock, systemClock } from '../../../shared/lib/clock'
 import { disposables } from '../../../shared/lib/disposables'
 import { ok, refused } from '../../../shared/lib/result'
@@ -219,6 +220,14 @@ function hostingOver(session: RukenSession, options: HostingOptions, shared: Hos
       get: (board, query) => whileOpen('leaderboard.get', () => session.leaderboards.get(board, query)),
     },
     setFullscreen: (on) => whileOpen('display.fullscreen', () => session.display.setFullscreen(on)),
+    // The SDK asks the player first and refuses an address that is not `https:`; the same rule is applied here so the
+    // refusal reads alike on every target.
+    openLink: async (url) => {
+      if (!state.open) return refuse('CANCELLED', false, 'links.open')
+      if (!isOpenableLink(url)) return refuse('INVALID_PAYLOAD', false, 'links.open')
+      const answered = await whileOpen('links.open', () => session.links.open(url))
+      return answered.ok ? ok({ opened: answered.value.opened }) : answered
+    },
     round: {
       start: () => rounds.start(),
       end: (outcome) => rounds.end(outcome),

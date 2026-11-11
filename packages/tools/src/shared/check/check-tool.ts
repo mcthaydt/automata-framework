@@ -2,6 +2,7 @@ import { dirname, join } from 'node:path'
 import { Effect } from 'effect'
 import { Files } from '../node/files.ts'
 import { ProcessRunner, type RunResult } from '../node/process-runner.ts'
+import type { ShipConfigLoader } from '../node/ship-config-loader.ts'
 import type { CheckFinding } from './check-report.ts'
 import { CheckToolError, type CspProbe } from './csp-probe.ts'
 
@@ -29,7 +30,7 @@ export const TOOLS: Readonly<Record<'boundaries' | 'tsc' | 'vitest' | 'vite', To
 export type StepEffect = Effect.Effect<
   readonly CheckFinding[],
   CheckToolError,
-  ProcessRunner | Files | CspProbe
+  ProcessRunner | Files | CspProbe | ShipConfigLoader
 >
 
 /** The last lines of a tool's output, for a message. */

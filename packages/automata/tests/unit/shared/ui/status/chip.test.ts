@@ -34,13 +34,15 @@ describe('Chip', () => {
   // §4.12: with every colour removed, the tone still reads, from a glyph a sighted player sees and words a screen
   // reader says. The test reads text and attributes only, never a computed colour.
   it.each([
-    ['success', '✓'],
+    ['success', 'check'],
     ['warning', '!'],
-    ['danger', '✕'],
+    ['danger', 'cross'],
   ] as const)('a %s chip shows a hidden glyph and says its tone in words', (tone, glyph) => {
     const chip = open({ tone, toneLabel: 'Problem' })
     const mark = chip.querySelector('[data-chip-glyph]')
-    expect(mark?.textContent).toBe(glyph)
+    // The warning's mark is the text `!`; the others are drawn, since no font need hold them.
+    if (glyph === '!') expect(mark?.textContent).toBe('!')
+    else expect(mark?.querySelector(`[data-icon="${glyph}"]`)).not.toBeNull()
     expect(mark?.getAttribute('aria-hidden')).toBe('true')
     expect(chip.querySelector('.af-sr-only')?.textContent).toBe('Problem')
     expect(chip.textContent).toContain('Saved')

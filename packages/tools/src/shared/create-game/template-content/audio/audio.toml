@@ -1,5 +1,7 @@
 # The game's sounds, and which sound plays when something happens. Open it in the Audio editor (`pnpm exec automata editor`).
 # Music is imported: put a track in assets/music and set it up there. The square bumping into a wall plays "bump".
+# The interface has its own sounds, which the game maps by name in src/app/feel-audio.ts: "ui.press" for every button,
+# "ui.back" for leaving or cancelling, and "ui.focus" as the selection moves. Change them here.
 
 [[cue]]
 id = "bump"
@@ -10,3 +12,21 @@ voices = [{ tone = "square", from = 220, to = 110, length = 0.1, volume = 0.4 }]
 [[event]]
 on = "square.bumped"
 cue = "bump"
+
+[[cue]]
+id = "ui.press"
+about = "Any button pressed."
+bus = "ui"
+voices = [{ tone = "square", from = 660, to = 660, length = 0.06, volume = 0.4 }]
+
+[[cue]]
+id = "ui.back"
+about = "A button that leaves or cancels."
+bus = "ui"
+voices = [{ tone = "square", from = 440, to = 330, length = 0.08, volume = 0.4 }]
+
+[[cue]]
+id = "ui.focus"
+about = "The selection moves to another button: a quiet tick."
+bus = "ui"
+voices = [{ tone = "square", from = 880, to = 880, length = 0.025, volume = 0.2 }]

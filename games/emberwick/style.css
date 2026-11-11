@@ -1,6 +1,8 @@
 /* Colors are DUEL (src/shared/art/palette.ts). Contrast: --text on --panel is about 13:1, --ink on --accent
-   about 14:1, and the --focus ring on --panel about 12:1. The type is Pixelify Sans (OFL, bundled), drawn
-   with hard offset shadows and no blur, so the interface reads as part of the pixel art. */
+   about 14:1, and the --focus ring on --panel about 12:1. The type is Fusion Pixel (OFL, content/fonts.toml), cut to the
+   words the game shows in each of its six languages and set by `fonts.css` as --af-font for the language in play; it is
+   drawn with hard offset shadows and no blur, so the interface reads as part of the pixel art. It has one weight, so
+   nothing asks for bold: a faked bold would smear the pixels. */
 :root {
   --bg: #1d1d21;
   --panel: #181f2f;
@@ -14,7 +16,9 @@
   --ink: #1d1d21;
   --focus: #74f5fd;
   --line: #3a4568;
-  --pixel-font: "Pixelify Sans", system-ui, sans-serif;
+  /* Set per language by content/generated/fonts/fonts.css. No generic or device family follows it: a language the faces
+     cannot draw fails `automata check` instead of falling back. */
+  --pixel-font: var(--af-font);
 }
 
 html,
@@ -24,6 +28,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font: 16px / 1.4 var(--pixel-font);
+  font-synthesis: none;
   overscroll-behavior: none;
   /* A double tap must not zoom, and a hold must not select the screen like text. */
   touch-action: manipulation;
@@ -110,23 +115,23 @@ body {
 }
 
 .panel h2 {
-  font-size: 28px;
-  font-weight: 700;
-  text-shadow: 0 3px 0 var(--panel-edge);
+  font-size: 24px;
+  font-weight: 400;
+  text-shadow: 0 2px 0 var(--panel-edge);
 }
 
-/* The title: warm letters with a stepped ember shadow below them. */
+/* The title: warm letters with a two-step ember shadow below them. Fusion Pixel is drawn on a 12 px grid, so the sizes
+   here are whole multiples of it (60 px is 5 px a pixel) and each shadow step is one or two of its pixels: a shadow
+   deeper than the gap in a letter like "c" would close it and read as an "o". */
 .title {
-  font-size: 56px;
-  font-weight: 700;
+  font-size: 60px;
+  font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
   color: var(--accent-lit);
   text-shadow:
-    0 3px 0 var(--accent),
-    0 6px 0 var(--accent-shade),
-    0 9px 0 var(--ember),
-    0 12px 0 var(--panel-edge);
+    0 5px 0 var(--accent-shade),
+    0 10px 0 var(--panel-edge);
 }
 
 /* More specific than `.panel h1`, which zeroes the margin. */
@@ -135,11 +140,11 @@ body {
 }
 
 .mark {
-  font-size: 30px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 400;
   letter-spacing: 0.06em;
   color: var(--accent-lit);
-  text-shadow: 0 3px 0 var(--accent-shade);
+  text-shadow: 0 2px 0 var(--accent-shade);
 }
 
 .hint,
@@ -148,8 +153,8 @@ body {
 }
 
 .time {
-  font-size: 40px;
-  font-weight: 700;
+  font-size: 36px;
+  font-weight: 400;
   color: var(--accent-lit);
   text-shadow: 0 3px 0 var(--accent-shade);
 }
@@ -210,7 +215,7 @@ button {
   color: var(--text);
   font: inherit;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.03em;
   cursor: pointer;
 }
@@ -256,6 +261,27 @@ button:focus-visible {
   padding: 0;
   width: 44px;
   background: color-mix(in srgb, var(--panel) 85%, transparent);
+}
+
+/* The touch buttons' arrows are drawn, not typed: no font is asked for a symbol it was not cut for. */
+.arrow {
+  display: block;
+  width: 22px;
+  height: 22px;
+  margin: auto;
+  background: currentColor;
+}
+
+.arrow[data-arrow="left"] {
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+.arrow[data-arrow="right"] {
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.arrow[data-arrow="up"] {
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
 /* Touch buttons only where the main pointer is coarse (phones and tablets); keyboard hints only where it isn't. */
@@ -308,18 +334,12 @@ button:focus-visible {
   .title {
     font-size: 36px;
     text-shadow:
-      0 2px 0 var(--accent),
-      0 4px 0 var(--accent-shade),
-      0 6px 0 var(--ember),
-      0 8px 0 var(--panel-edge);
-  }
-
-  .panel h2 {
-    font-size: 22px;
+      0 3px 0 var(--accent-shade),
+      0 6px 0 var(--panel-edge);
   }
 
   .time {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .keys {

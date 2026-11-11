@@ -4,6 +4,7 @@
 import { GAME_ID_PATTERN } from '@automata/content/game-config'
 import type { PluginDef, Sim } from '@automata/sim'
 import type { EventSounds } from '../features/audio/event-sounds.ts'
+import type { UiSounds } from '../features/audio/ui-sounds.ts'
 import type { GameOrientation, RotateHintMode } from '../features/display/display-policy.svelte.ts'
 import type { ExtensionDef } from '../features/extension/define-extension.ts'
 import { resolveExtensions } from '../features/extension/resolve-extensions.ts'
@@ -28,6 +29,9 @@ import { CORE_SETTINGS } from './core-settings.ts'
 import { defaultContent } from './default-content.ts'
 import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
 import type { ScreenDef } from './flow/screen.ts'
+import { firstRunSteps } from './opening/first-run.ts'
+import type { OpeningStep } from './opening/opening.ts'
+import type { PhotosensitivityOption } from './opening/photosensitivity.ts'
 import { defaultScreens } from './screens/default-screens.ts'
 import type { ScreensCopyInput } from './screens/screens-copy.ts'
 
@@ -91,6 +95,14 @@ export interface GameSpec<S = never, D = unknown> {
    */
   readonly sounds?: EventSounds
   /**
+   * The interface's sounds by name: every control sounds `press` by default, and a control says otherwise with
+   * `data-sfx="back"` (leaving or cancelling), `data-sfx="none"` (its consequence has its own sound) or a name of the
+   * game's own. `focus` ticks softly as focus moves; `open`, `close` and `error` are asked for by the screens that
+   * have them (`requestUiSound`). A map of names to assets, or one function that plays a name (a game whose sounds are
+   * cues in its own mixer). They play on the interface bus, under its volume and mute. Absent: silent.
+   */
+  readonly uiSounds?: UiSounds
+  /**
    * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
    * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
    * returns undoes it at shutdown.
@@ -121,6 +133,22 @@ export interface GameSpec<S = never, D = unknown> {
    */
   readonly settings?: SettingsDef<S>
   readonly extensions?: readonly ExtensionDef[]
+  /**
+   * Steps that run after the host is ready and before the first screen, in order, with the sim held (a studio splash from
+   * `@automata/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
+   */
+  readonly opening?: readonly OpeningStep[]
+  /**
+   * The first run asks which language to use when the game ships more than one, before the title. Default true; `false`
+   * never shows the screen. A host that supplies the language (Ruken) skips it either way.
+   */
+  readonly firstRunLanguage?: boolean
+  /**
+   * The game flashes: the first run on a device warns before anything plays, once, after the language. `true` shows the
+   * warning with the device's reduced-motion line; an object adds the game's own effect settings as switches (a game
+   * with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+   */
+  readonly photosensitivity?: PhotosensitivityOption
   /**
    * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
    * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
@@ -346,8 +374,18 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     // They are not the game's `S`: only the default screens read them, through `Settings`.
     settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+    // The first run's steps come first, then the game's own.
+    opening: [
+      ...firstRunSteps({
+        firstRunLanguage: spec.firstRunLanguage,
+        photosensitivity: spec.photosensitivity,
+        copy: spec.copy?.screens,
+      }),
+      ...(spec.opening ?? []),
+    ],
     ...(spec.preload === undefined ? {} : { preload: spec.preload }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
+    ...(spec.uiSounds === undefined ? {} : { uiSounds: spec.uiSounds }),
     ...(spec.audio === undefined ? {} : { audio: spec.audio }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),

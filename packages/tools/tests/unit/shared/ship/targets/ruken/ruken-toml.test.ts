@@ -75,3 +75,51 @@ describe('rukenToml', () => {
     expect(rukenToml(minimal)).toBe(rukenToml(structuredClone(minimal)))
   })
 })
+
+// Achievements are the framework's own declaration; Ruken's mapping writes them after the boards, sorted by id.
+describe('rukenToml: achievements', () => {
+  const withAchievements: ShipConfig = {
+    ...minimal,
+    leaderboards: { best: { order: 'desc', min: 0, max: 999, title: 'Best score' } },
+    achievements: {
+      'top-ten': {
+        title: 'Top 10%',
+        description: 'Stand in the top tenth.',
+        board: 'best',
+        goal: { top_percent: 10 },
+      },
+      'score-20': { title: 'Twenty', description: 'Score 20.', board: 'best', goal: { reach: 20 } },
+    },
+  }
+
+  it('writes each achievement after the boards, sorted by id, with its goal', () => {
+    const toml = rukenToml(withAchievements)
+    expect(toml).toContain(
+      '[achievements."score-20"]\ntitle = "Twenty"\ndescription = "Score 20."\nboard = "best"\nreach = 20\n',
+    )
+    expect(toml).toContain(
+      '[achievements."top-ten"]\ntitle = "Top 10%"\ndescription = "Stand in the top tenth."\nboard = "best"\ntop_percent = 10\n',
+    )
+    expect(toml.indexOf('[achievements."score-20"]')).toBeLessThan(toml.indexOf('[achievements."top-ten"]'))
+    expect(toml.indexOf('[leaderboards."best"]')).toBeLessThan(toml.indexOf('[achievements."score-20"]'))
+  })
+
+  it('writes the board’s title, which achievement rule lines use', () => {
+    expect(rukenToml(withAchievements)).toContain(
+      '[leaderboards."best"]\norder = "desc"\nmin = 0\nmax = 999\ntitle = "Best score"\n',
+    )
+  })
+
+  it('parses with Ruken’s own parser, and both goals arrive', () => {
+    const manifest = parsed(withAchievements)
+    expect(manifest.achievements?.['score-20']).toMatchObject({ board: 'best', reach: 20 })
+    expect(manifest.achievements?.['top-ten']).toMatchObject({ board: 'best', top_percent: 10 })
+  })
+
+  it('writes the same text as before for a config with no achievements', () => {
+    const toml = rukenToml({ ...minimal, leaderboards: { best: { order: 'desc', min: 0, max: 9 } } })
+    expect(toml).not.toContain('achievements')
+    expect(toml).toContain('[leaderboards."best"]\norder = "desc"\nmin = 0\nmax = 9\n')
+    expect(toml).not.toMatch(/title = .*\n\n$/m)
+  })
+})

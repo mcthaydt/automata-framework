@@ -1,6 +1,7 @@
 <script lang="ts">
 import { tick } from 'svelte'
 import './search.css'
+import { EDITOR_URL, reloads } from '../../shared/editor-link'
 import type { ApiSearchRow } from '../../shared/framework/api'
 import { API_VERSION, loadApiSearch, searchApi } from '../../shared/framework/api-reference'
 import { getExamples } from '../../shared/framework/example-catalog'
@@ -21,7 +22,7 @@ const PAGES: readonly SearchEntry[] = [
   { title: 'Home', detail: 'About Automata', url: '/' },
   { title: 'Start', detail: 'Make a game, play it, draw its level and put it online', url: '/start' },
   { title: 'Examples', detail: 'One-file examples that run beside their code', url: '/examples' },
-  { title: 'Editor', detail: 'Draw your levels', url: '/editor' },
+  { title: 'Editor', detail: 'Draw your levels', url: EDITOR_URL },
   { title: 'Docs', detail: 'Guides to the framework', url: '/docs' },
   { title: 'API reference', detail: 'Every export of every package', url: '/api' },
 ]
@@ -93,7 +94,7 @@ function keys(event: KeyboardEvent) {
   <label for="site-search">Search pages, docs, API and demos</label>
   <input bind:this={input} id="site-search" type="search" bind:value={query} placeholder="Search, e.g. jump, save, level" />
   <div class="search-results">
-    {#each results as item}<a href={item.url} onclick={onClose}>{item.title}</a>{/each}
+    {#each results as item}<a href={item.url} data-sveltekit-reload={reloads(item.url)} onclick={onClose}>{item.title}</a>{/each}
     {#each apiResults as item}<a href={item.url} onclick={onClose}>{item.title} <span class="small">{item.detail}</span></a>{/each}
     {#if !results.length && !apiResults.length}<p role="status">Nothing found. Try another word.</p>{/if}
   </div>

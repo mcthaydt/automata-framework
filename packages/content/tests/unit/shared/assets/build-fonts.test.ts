@@ -6,6 +6,7 @@ import { buildFonts } from '#src/shared/assets/build-fonts.ts'
 import { fontCoverage } from '#src/shared/assets/font-subset.ts'
 import { type Diagnostic, formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
 import { copyFixture, fixtureOptions } from '#src/testing/fixture-game.ts'
+import { openFont } from '#src/testing/open-font.ts'
 
 // The font build (M5 spec §4.7 Fonts, M5-D7): each font in `content/fonts.toml` is cut to each language it serves,
 // the same bytes every time (G-a), and every character of every message in a language must be in that language's
@@ -83,15 +84,15 @@ describe('buildFonts', () => {
   it('cuts a subset per language the font serves, with hashed names, and lists them in fonts.json', async () => {
     const files = await built(withFont(project(ONE_FONT)))
     const names = [...files.keys()]
-    expect(names).toHaveLength(3)
-    expect(names[0]).toBe('fonts.json')
-    expect(names[1]).toMatch(/^pixel-en-[0-9a-f]{8}\.woff2$/)
-    expect(names[2]).toMatch(/^pixel-fr-[0-9a-f]{8}\.woff2$/)
+    expect(names).toHaveLength(4)
+    expect(names.slice(0, 2)).toEqual(['fonts.css', 'fonts.json'])
+    expect(names[2]).toMatch(/^pixel-en-[0-9a-f]{8}\.woff2$/)
+    expect(names[3]).toMatch(/^pixel-fr-[0-9a-f]{8}\.woff2$/)
     expect(JSON.parse(new TextDecoder().decode(files.get('fonts.json')))).toEqual({
-      pixel: { en: names[1], fr: names[2] },
+      pixel: { en: names[2], fr: names[3] },
     })
     // Each subset holds its language's text: the French name of a stage.
-    expect(fontCoverage(files.get(names[2] as string) as Uint8Array)('A')).toBe(true)
+    expect(fontCoverage(files.get(names[3] as string) as Uint8Array)('A')).toBe(true)
   })
 
   it('gives the same bytes on every build (G-a)', async () => {
@@ -152,32 +153,24 @@ describe('buildFonts', () => {
     ])
   })
 
-  it('does not check the name of a language no font serves, which draws in the game’s own CSS face', async () => {
+  // With a `fonts.toml`, a game's languages are all drawn by its fonts: no language falls back to the device's.
+  it('refuses a content language no font serves, at the font file', async () => {
     const root = withFont(withJapanese(project(ONE_FONT)))
-    expect([...(await built(root)).keys()].filter((name) => name.endsWith('.woff2'))).toHaveLength(2)
-  })
-
-  // The cut takes every content language's name, served or not (the plan's contract, item 1): `ja` here has no
-  // font, yet the 日本語 face serving `en` and `fr` still holds its name.
-  it('still cuts the name of a language no font serves into every subset', async () => {
-    const fonts = `${ONE_FONT}${fontEntry('cjk', '["en", "fr"]', CJK_HASH, 'fonts/cjk.woff2')}`
-    const files = await built(withFont(withFont(withJapanese(project(fonts))), 'fonts/cjk.woff2', CJK))
-    for (const locale of ['en', 'fr']) {
-      const covers = fontCoverage(fileOf(files, `cjk-${locale}-`))
-      expect([...'日本語'].map(covers), locale).toEqual([true, true, true])
-    }
+    expect((await refused(root)).map(formatDiagnostic)).toEqual([
+      "content/fonts.toml:1:1  missingAsset: no font serves ja: add it to a font's locales",
+    ])
   })
 
   it('does not check a control character such as a newline', async () => {
     const root = withFont(project(ONE_FONT))
     edit(root, 'content/messages/fr.json', (text) => text.replace('"Aube"', '"Au\\nbe"'))
-    expect((await built(root)).size).toBe(3)
+    expect((await built(root)).size).toBe(4)
   })
 
   it('refuses a source whose sha256 differs from the recorded one, and cuts nothing from it', async () => {
     const other = '0'.repeat(64)
     expect(
-      (await refused(withFont(project(fontEntry('pixel', '["en"]', other))))).map(formatDiagnostic),
+      (await refused(withFont(project(fontEntry('pixel', '["en", "fr"]', other))))).map(formatDiagnostic),
     ).toEqual([
       `content/fonts.toml:3:1  font.pixel.sha256  invalidAsset: fonts/pixel.woff2 has sha256 ${HASH}, not the recorded ${other}`,
     ])
@@ -191,9 +184,9 @@ describe('buildFonts', () => {
 
   it('refuses a language the content does not compile', async () => {
     expect(
-      (await refused(withFont(project(fontEntry('pixel', '["en", "de"]'))))).map(formatDiagnostic),
+      (await refused(withFont(project(fontEntry('pixel', '["en", "fr", "de"]'))))).map(formatDiagnostic),
     ).toEqual([
-      'content/fonts.toml:5:1  font.pixel.locales.1  unknownReference: de is not a content language (en, fr)',
+      'content/fonts.toml:5:1  font.pixel.locales.2  unknownReference: de is not a content language (en, fr)',
     ])
   })
 
@@ -205,5 +198,98 @@ describe('buildFonts', () => {
     const root = withFont(project(ONE_FONT))
     edit(root, 'content/stages/dawn.toml', (text) => `${text}\nunknownField = 1\n`)
     expect((await refused(root)).map((d) => d.file)).toContain('content/stages/dawn.toml')
+  })
+
+  // Every word a game shows is cut into the subset, not the content's alone: its interface catalog and the words of
+  // the framework packages it uses are drawn in the same face.
+  describe('the words a game shows besides its content', () => {
+    const ui = (root: string, lang: string, words: Record<string, string>): string => {
+      mkdirSync(join(root, 'messages/ui'), { recursive: true })
+      writeFileSync(join(root, `messages/ui/${lang}.json`), JSON.stringify(words))
+      return root
+    }
+
+    it('cuts a word that is only in the interface catalog into the subset', async () => {
+      const without = await built(withFont(project(ONE_FONT)))
+      expect(fontCoverage(fileOf(without, 'pixel-fr-'))('ö')).toBe(false)
+      const files = await built(ui(withFont(project(ONE_FONT)), 'fr', { only_here: 'ö' }))
+      expect(fontCoverage(fileOf(files, 'pixel-fr-'))('ö')).toBe(true)
+    })
+
+    it('refuses an interface word the font lacks, naming the catalog and the key', async () => {
+      const root = ui(withFont(project(ONE_FONT)), 'fr', { quit_now: 'Quitter 日' })
+      const [problem] = await refused(root)
+      expect(problem).toMatchObject({
+        code: 'missingGlyph',
+        file: 'messages/ui/fr.json',
+        keyPath: 'quit_now',
+      })
+      expect(problem?.message).toBe('U+65E5 "日" is not in the fr subset of pixel (in the ui words)')
+    })
+
+    it('cuts in the words of a framework package the game has, found through its exports', async () => {
+      const root = withFont(project(ONE_FONT))
+      const pkg = join(root, 'node_modules/@automata/framework')
+      mkdirSync(join(pkg, 'words'), { recursive: true })
+      writeFileSync(
+        join(pkg, 'package.json'),
+        JSON.stringify({ name: '@automata/framework', exports: { './words/*.json': './words/*.json' } }),
+      )
+      writeFileSync(join(pkg, 'words/fr.json'), JSON.stringify({ paused_title: 'Pâusé' }))
+      expect(fontCoverage(fileOf(await built(root), 'pixel-fr-'))('â')).toBe(true)
+    })
+  })
+
+  // A font whose licence reserves its name is cut and then renamed, and its licence travels with the subsets.
+  describe('a font with a reserved name', () => {
+    const reserved = (root: string): string => {
+      mkdirSync(join(root, 'fonts'), { recursive: true })
+      writeFileSync(join(root, 'fonts/OFL.txt'), 'SIL Open Font License\n')
+      edit(
+        root,
+        'content/fonts.toml',
+        (text) => `${text.trimEnd()}\nreserved_name = "Pixelify"\nlicense_file = "fonts/OFL.txt"\n`,
+      )
+      return root
+    }
+
+    it('comes out under "<font> <language>", keeps its copyright and ships its licence beside fonts.json', async () => {
+      const files = await built(reserved(withFont(project(ONE_FONT))))
+      const opened = openFont(fileOf(files, 'pixel-fr-'))
+      expect(opened.familyName).toBe('pixel fr')
+      expect(JSON.stringify(opened.name.records)).toContain('The Pixelify Sans Project Authors')
+      expect(new TextDecoder().decode(files.get('pixel-OFL.txt'))).toBe('SIL Open Font License\n')
+    })
+
+    it('refuses a licence file that is not there', async () => {
+      const root = reserved(withFont(project(ONE_FONT)))
+      edit(root, 'content/fonts.toml', (text) => text.replace('fonts/OFL.txt', 'fonts/none.txt'))
+      expect((await refused(root)).map(formatDiagnostic)).toEqual([
+        'content/fonts.toml:7:1  font.pixel.license_file  missingAsset: fonts/none.txt does not exist',
+      ])
+    })
+  })
+
+  // `fonts.css` is how a game loads its faces: one face per font and language, and one `:lang()` rule per language, so
+  // core's theme, which draws in `var(--af-font)`, switches faces when the language changes.
+  describe('fonts.css', () => {
+    it('holds one face per font and language and one :lang() rule per language, in fonts.toml order', async () => {
+      const files = await built(japaneseProject('["en", "fr", "ja"]'))
+      const css = new TextDecoder().decode(files.get('fonts.css'))
+      expect(css.match(/@font-face/g) ?? []).toHaveLength(6)
+      expect(css).toContain('font-family: "pixel en"')
+      expect(css).toContain('font-family: "cjk ja"')
+      expect(css).toContain('font-display: block')
+      expect(css).toContain(':root:lang(fr) {\n  --af-font: "pixel fr", "cjk fr";\n}')
+      expect(css).toContain(':root:lang(ja) {\n  --af-font: "pixel ja", "cjk ja";\n}')
+      expect(css).not.toMatch(/sans-serif|system-ui/)
+      expect(css).toContain(`url("${[...files.keys()].find((name) => name.startsWith('cjk-ja-'))}")`)
+    })
+
+    it('is the same bytes on every build', async () => {
+      const first = await built(withFont(project(ONE_FONT)))
+      const second = await built(withFont(project(ONE_FONT)))
+      expect(second.get('fonts.css')).toEqual(first.get('fonts.css'))
+    })
   })
 })

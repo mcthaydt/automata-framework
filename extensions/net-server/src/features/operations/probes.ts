@@ -8,11 +8,17 @@
  * - `GET /.well-known/security.txt` (RFC 9116) when the server is given a contact, since a Ruken game origin serves
  *   only builds; the contact and the expiry are the game's, never AF's.
  *
- * Neither probe carries player data, and none is cached or sniffed. `/health` carries no build facts: the version check is the matchmaking gate's, so the probe says only that it is up.
+ * - `GET /version` is the build facts a client compares with its own before it joins (`protocol`, `schemaHash`,
+ *   `contentHash`): 503 with no facts before the content has loaded. It is a courtesy so a tab can say it is out of date
+ *   before the title; the matchmaking gate's version check stays the authority.
+ *
+ * No probe carries player data, and none is cached or sniffed. `/health` carries no build facts: it says only that the
+ * process is up.
  */
 
 import type { Server as HttpServer, IncomingMessage, RequestListener, ServerResponse } from 'node:http'
 import type { SecurityTxt } from '../../shared/game/server-config'
+import type { GameVersion } from '../../shared/game-version'
 
 /**
  * `starting` until the content has loaded, `ready` while rooms may open, `full` at the room cap (every new room is
@@ -27,6 +33,8 @@ export type Readiness = 'starting' | 'ready' | 'full' | 'draining'
 export interface ProbeState {
   readonly readiness: () => Readiness
   readonly securityTxt?: SecurityTxt | undefined
+  /** The game's version, undefined until its content has loaded; read on every `/version` request. */
+  readonly version?: (() => GameVersion | undefined) | undefined
 }
 
 /** The probes' answers are never cached and never sniffed. */
@@ -57,6 +65,12 @@ export function answerProbe(request: IncomingMessage, response: ServerResponse, 
   if (path === '/ready') {
     const ready = state.readiness() === 'ready'
     json(response, ready ? 200 : 503, { ready })
+    return true
+  }
+  if (path === '/version') {
+    const version = state.version?.()
+    if (version === undefined) json(response, 503, {})
+    else json(response, 200, version)
     return true
   }
   if (path === '/.well-known/security.txt') {

@@ -35,9 +35,14 @@ export function parseTargets(value: string | undefined): ParsedTargets {
 }
 
 /** The `package.json` scripts per target: a Vite build that picks the target's host adapter, then ship's packaging. */
-export function targetScripts(targets: readonly DistTarget[]): Record<string, string> {
+export function targetScripts(
+  targets: readonly DistTarget[],
+  /** Cut the game's fonts first (`pnpm fonts`): a game that ships in more than one language draws them. */
+  options: { readonly fonts?: boolean } = {},
+): Record<string, string> {
   const scripts: Record<string, string> = {}
-  for (const target of targets) scripts[`build:${target}`] = `vite build --mode ${target}`
+  const first = options.fonts === true ? 'pnpm fonts && ' : ''
+  for (const target of targets) scripts[`build:${target}`] = `${first}vite build --mode ${target}`
   // Ship checks every build for its target (the web's is the checks alone: `dist/` is the thing to upload).
   for (const target of targets) scripts[`prepare:${target}`] = `automata ship prepare --target ${target}`
   return scripts
@@ -57,6 +62,7 @@ export function targetDependencies(targets: readonly DistTarget[]): {
     dependencies['@tauri-apps/api'] = '2.12.4'
     dependencies['@tauri-apps/plugin-process'] = '2.4.0'
     dependencies['@tauri-apps/plugin-store'] = '2.5.0'
+    dependencies['@tauri-apps/plugin-opener'] = '2.7.2'
     // `prepare --target tauri` runs the game's own Tauri CLI; ship does not carry it.
     devDependencies['@tauri-apps/cli'] = '2.12.3'
   }

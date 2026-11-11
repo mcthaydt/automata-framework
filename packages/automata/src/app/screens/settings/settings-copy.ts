@@ -9,6 +9,12 @@ import type { LanguageCopy } from './language-section.ts'
 import type { TouchCopy } from './touch-section.ts'
 import type { VibrationCopy } from './vibration-section.ts'
 
+/**
+ * The English words a control prompt shows where the device's own label is not known: "Not set" for an action with no
+ * binding, "Tap" for an on-screen button, and a name for each pad button a generic pad does not label ("Bottom button",
+ * "Start"). A label printed on a pad (A, B, LB) is the same in every language and is not here. A game that speaks another
+ * language gives its own in `copy.screens` (`prompts`).
+ */
 export const PROMPT_COPY: PromptCopy = {
   unbound: 'Not set',
   touch: 'Tap',

@@ -21,6 +21,8 @@ const OPTIONS: HostingOptions = { gameId: 'cinder', wants: ['saves'], pauseBehav
 function fakeDesktop(options: { readonly store?: 'ok' | 'unloadable'; readonly failWrites?: boolean } = {}) {
   const entries = new Map<string, string>()
   const calls: string[] = []
+  const opened: string[] = []
+  let linkAnswer: 'open' | 'refuse' = 'open'
   let closeHandler: ((event: { preventDefault(): void }) => void) | undefined
   const store: StoreLike = {
     get: async (key) => entries.get(key),
@@ -52,11 +54,22 @@ function fakeDesktop(options: { readonly store?: 'ok' | 'unloadable'; readonly f
     exitApp: async () => {
       calls.push('exit')
     },
+    openUrl: async (url) => {
+      opened.push(url)
+      // The system opener rejects when it cannot hand the address to a browser.
+      if (linkAnswer === 'refuse') throw new Error('no browser')
+    },
   }
   return {
     port,
     entries,
     calls,
+    /** Every address the opener was asked to open, in order. */
+    opened,
+    /** From now on the opener fails, as one with no browser behind it does. */
+    declineLinks: () => {
+      linkAnswer = 'refuse'
+    },
     /** The player closes the window: true when the adapter held the close (it quits by itself afterwards). */
     requestClose: () => {
       let prevented = false
@@ -97,14 +110,65 @@ async function onDesktop<A>(
 const settled = (): Promise<void> => new Promise<void>((resolve) => setTimeout(resolve, 0))
 
 // DIST-c: the cases every adapter passes.
-describeHostingContract('the tauri adapter over a page and a desktop', () => tauriHosting().create(), settled)
+// The desktop grants `links` unconditionally (the system browser is always there), so there is no ungranted case.
+let linkDesktop: ReturnType<typeof fakeDesktop> | undefined
+describeHostingContract(
+  'the tauri adapter over a page and a desktop',
+  () => tauriHosting().create(),
+  settled,
+  {
+    create: () => {
+      const built = tauriHosting()
+      linkDesktop = built.desktop
+      return built.create()
+    },
+    opened: () => linkDesktop?.opened ?? [],
+    decline: () => linkDesktop?.declineLinks(),
+  },
+)
+
+describe('the tauri adapter: links', () => {
+  it('opens an address in the system browser through the desktop port, never the page', () => {
+    const built = tauriHosting()
+    return onDesktop(async (hosting) => {
+      expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: true })
+      expect(built.desktop.opened).toEqual(['https://example.test/'])
+      expect(built.page.opened).toEqual([])
+    }, built)
+  })
+
+  it('a browser that cannot be started is opened: false', () => {
+    const built = tauriHosting()
+    built.desktop.declineLinks()
+    return onDesktop(async (hosting) => {
+      expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: false })
+    }, built)
+  })
+
+  it('is refused CANCELLED once disposed', async () => {
+    const hosting = await tauriHosting().create()
+    hosting.dispose()
+    expect(await hosting.openLink('https://example.test/')).toMatchObject({
+      ok: false,
+      reason: { code: 'CANCELLED' },
+    })
+  })
+})
 
 describe('the tauri adapter: intended differences (DIST spec §4.3)', () => {
-  it("is kind 'tauri', named after the game's title, and grants exit and saves", () =>
+  it("is kind 'tauri', named after the game's title, and grants exit, links and saves", () =>
     onDesktop((hosting) => {
       expect(hosting.kind).toBe('tauri')
       expect(hosting.hostName).toBe('Cinder')
-      expect([...hosting.granted].sort()).toEqual(['audio', 'display', 'exit', 'input', 'lifecycle', 'saves'])
+      expect([...hosting.granted].sort()).toEqual([
+        'audio',
+        'display',
+        'exit',
+        'input',
+        'lifecycle',
+        'links',
+        'saves',
+      ])
     }))
 
   it("keeps saves in the app's store, never in the page's localStorage", async () => {

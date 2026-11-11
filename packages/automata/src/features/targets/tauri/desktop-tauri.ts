@@ -1,4 +1,5 @@
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { openUrl } from '@tauri-apps/plugin-opener'
 import { exit } from '@tauri-apps/plugin-process'
 import { load } from '@tauri-apps/plugin-store'
 import type { DesktopPort, StoreLike } from './hosting-tauri'
@@ -27,5 +28,6 @@ export function tauriDesktop(): DesktopPort {
     },
     onCloseRequested: (handler) => getCurrentWindow().onCloseRequested(handler),
     exitApp: () => exit(0),
+    openUrl: (url) => openUrl(url),
   }
 }

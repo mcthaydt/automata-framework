@@ -22,8 +22,11 @@ describe('the build script', () => {
     expect(move).toBeLessThan(sitemap)
   })
 
-  it('writes no redirect pages', () => {
-    expect(steps.filter((step) => step.includes('redirect'))).toEqual([])
+  // The site refuses a page that only redirects, so the one old address it keeps (/editor) is a rule for the host, not a page.
+  it('writes no redirect pages: its one redirect step is the host’s `_redirects` rule', () => {
+    expect(steps.filter((step) => step.includes('redirect'))).toEqual([
+      'node scripts/write-redirects.ts build',
+    ])
   })
 
   it('asks adapter-static for no fallback page, and for addresses from the root so a nested 404 keeps its styles', async () => {

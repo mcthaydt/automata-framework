@@ -164,10 +164,11 @@ describe('runCli', () => {
     expect(existsSync(generated(root, 'atlases'))).toBe(false)
   }, 90_000)
 
-  it('assets writes each font subset and fonts.json under the output folder', async () => {
+  it('assets writes each font subset, fonts.json and fonts.css under the output folder', async () => {
     const root = withFont(project())
     const result = await cli(root, 'assets')
-    expect(result).toEqual({ code: 0, out: ['atlases 0 files, fonts 3 files'], err: [] })
+    expect(result).toEqual({ code: 0, out: ['atlases 0 files, fonts 4 files'], err: [] })
+    expect(readFileSync(generated(root, 'fonts/fonts.css'), 'utf8')).toContain(':root:lang(fr)')
     const fonts = JSON.parse(readFileSync(generated(root, 'fonts/fonts.json'), 'utf8'))
     expect(Object.keys(fonts.pixel)).toEqual(['en', 'fr'])
     expect(

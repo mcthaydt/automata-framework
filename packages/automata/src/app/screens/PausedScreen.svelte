@@ -113,7 +113,7 @@ $effect(() => {
         data-initial-focus
         onclick={saves.onLoadNewer}>{copy.current.saves.changedElsewhere.loadNewer}</button
       >
-      <button type="button" class="af-control" data-testid="keep-playing" onclick={saves.onKeepPlaying}
+      <button type="button" class="af-control" data-testid="keep-playing" data-sfx="back" onclick={saves.onKeepPlaying}
         >{copy.current.saves.changedElsewhere.keepPlaying}</button
       >
     </div>
@@ -139,7 +139,7 @@ $effect(() => {
             data-initial-focus
             onclick={onResume}>{words.resume}</button
           >
-          <button type="button" class="af-control" data-testid="pause-mute" aria-pressed={muted} onclick={toggleMute}
+          <button type="button" class="af-control" data-testid="pause-mute" data-sfx="none" aria-pressed={muted} onclick={toggleMute}
             >{muted ? words.unmute : words.mute}</button
           >
           <button type="button" class="af-control" data-testid="settings" onclick={onSettings}>{words.settings}</button>
@@ -175,7 +175,7 @@ $effect(() => {
             data-testid="quit-confirm"
             onclick={onQuit}>{words.quitConfirm}</button
           >
-          <button type="button" class="af-control" data-testid="quit-cancel" onclick={() => void show('menu', 'quit')}
+          <button type="button" class="af-control" data-testid="quit-cancel" data-sfx="back" onclick={() => void show('menu', 'quit')}
             >{words.cancel}</button
           >
         </div>

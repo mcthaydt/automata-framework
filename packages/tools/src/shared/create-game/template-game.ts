@@ -120,6 +120,7 @@ export const SQUARE_SIZE = 8
   {
     path: 'src/app/game.ts',
     content: (options) => `import { controlsFileSchema } from '@automata/content/controls'
+import { DEFAULT_LOCALES } from '@automata/content/locale'
 import { controlsFrom, defaultContent, defineGame } from '@automata/framework'
 import { content } from 'virtual:automata/content'
 import { LEVEL } from '../features/level/level.ts'
@@ -129,7 +130,7 @@ import { Square } from '../features/square/square.component.ts'
 import { squarePlugin } from '../features/square/square.plugin.ts'
 import { squareView } from '../features/square/square.view.ts'
 import { SQUARE_SIZE } from '../shared/constants.ts'
-import { audio, feelOnStage } from './feel-audio.ts'
+import { audio, feelOnStage, uiSounds } from './feel-audio.ts'
 
 /** The default controls, as content/controls.toml (arrows or WASD, the pad's D-pad, and touch buttons). */
 if (content.controls === undefined) throw new Error('There is no controls file. Add content/controls.toml.')
@@ -158,6 +159,10 @@ export const game = defineGame({
   // What the player feels (shake, flash, words) and hears, from the files the Feel and Audio editors write.
   renderer: { setup: feelOnStage },
   audio,
+  // Every button sounds: the names map to the cues the Audio editor changes. The menus are in the framework's six
+  // languages, each with a catalog in content/messages and a font in content/fonts.toml.
+  uiSounds,
+  locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' },
 })
 `,
   },
@@ -202,6 +207,12 @@ export function feelOnStage(stage: PixiStage): PixiStageHooks {
   })(stage)
 }
 
+/**
+ * The interface's sounds: every name the framework asks for (press, back, focus, open, close, error) plays the cue
+ * called \`ui.<name>\` in content/audio/audio.toml. A name with no cue there is silent, so add the cue to hear it.
+ */
+export const uiSounds = (name: string): void => void sounds?.cue(\`ui.\${name}\`)
+
 /** The audio player: the sounds the events name, and the music the rules pick (rules that ask for nothing play at once). */
 export const audio: GameAudioStart = (services) => {
   const stop = audioStage({
@@ -226,6 +237,7 @@ export const audio: GameAudioStart = (services) => {
       () => `// The page's entry: starts the game. \`no-eval\` comes first, because the web targets allow no eval.
 import '@automata/framework/no-eval'
 import { startGame } from '@automata/framework'
+import '../content/generated/fonts/fonts.css'
 import { game } from './app/game.ts'
 
 let running = startGame(game)

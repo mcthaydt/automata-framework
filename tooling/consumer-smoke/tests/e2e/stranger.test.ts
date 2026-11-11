@@ -44,8 +44,8 @@ async function squareAt(page: Page): Promise<{ x: number; y: number } | null> {
       let sumY = 0
       let count = 0
       for (let i = 0; i < data.length; i += 4) {
-        // The square is 0xffc825: strong red and green, little blue. The level's walls are slate, so they never count.
-        if ((data[i] ?? 0) > 200 && (data[i + 1] ?? 0) > 160 && (data[i + 2] ?? 255) < 90) {
+        // The square is the level's player start, 0x22c55e: strong green, little red. The walls and floor are slate and olive, with more red, so they never count.
+        if ((data[i] ?? 255) < 80 && (data[i + 1] ?? 0) > 150 && (data[i + 2] ?? 255) < 130) {
           sumX += (i / 4) % bitmap.width
           sumY += Math.floor(i / 4 / bitmap.width)
           count += 1
@@ -136,6 +136,9 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         })
         await page.goto(`${server.url}/`)
         await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+        // A new game ships in six languages, so the first run asks for one before the title. The smoke installs only the
+        // published packages and cannot import `@automata/tools/e2e`'s `passFirstRun`, so it presses English itself.
+        await page.getByTestId('first-language-en').click()
         await expect(page.getByTestId('title-screen')).toBeVisible()
         await page.getByRole('button', { name: 'Play' }).click()
         await expect(page.getByTestId('play-screen')).toBeVisible()

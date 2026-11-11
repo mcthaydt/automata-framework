@@ -69,8 +69,9 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
     <h2>Why there are no credits</h2>
     <p>
       Many AI game makers sell credits: you pay each time their AI works, and the meter runs out mid-project. Automata runs
-      no AI of its own. Your coding agent (Claude Code, Cursor, Codex or another) does the work on the plan you already
-      have, so there is nothing for us to meter.
+      no AI of its own to meter. Your coding agent (Claude Code, Cursor, Codex or another) does the work on the plan you
+      already have, and the one command that asks a model, <code>automata words</code>, which translates your game's
+      words, runs on your own key.
     </p>
     <p>
       Automata's code is MIT licensed. What you pay for is the ready-made app, which installs in one step and keeps itself

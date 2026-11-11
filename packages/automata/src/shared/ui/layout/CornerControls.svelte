@@ -22,7 +22,7 @@ const { back, backLabel = 'Back', backTestId = 'corner-back', header, end }: Pro
 <div class="af-corners" data-corner-controls>
   <div class="af-corners__start">
     {#if back !== undefined}
-      <button type="button" class="af-control af-control--ghost" data-testid={backTestId} onclick={back}>
+      <button type="button" class="af-control af-control--ghost" data-testid={backTestId} data-sfx="back" onclick={back}>
         <span aria-hidden="true">←</span>
         {backLabel}
       </button>
