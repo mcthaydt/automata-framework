@@ -178,14 +178,14 @@ its own on `main` and on each merge.
 
 | Step, run alone | `main` `6a70f9b1` | #607 merged | #590 merged | #589 merged | #588 merged | #603 merged |
 |---|---|---|---|---|---|---|
-| `lint` | 0 | 0 | not run | not run | not run | not run |
+| `lint` | 0 | 0 | 0 | not run | not run | not run |
 | `typecheck` | 0 | 0 | not run | not run | not run | not run |
 | `boundaries` | 0 | 0 | not run | not run | not run | not run |
 | `style` | **1**: 10 findings | **1**: 10 findings | not run | not run | not run | not run |
 | `source-names` | **1**: 170 findings | **1**: 170 findings | not run | not run | not run | not run |
 | `knip` | 0 | 0 | not run | not run | not run | not run |
-| unit tests, every package (`turbo run test:unit --continue`) | **1**: 60 of 61 packages pass; failed: `@automata/repo-hygiene` | not run | not run | not run | not run | not run |
-| `check:changesets` | 0 | not run | not run | not run | not run | not run |
+| unit tests, every package (`turbo run test:unit --continue`) | **1**: 60 of 61 packages pass; failed: `@automata/repo-hygiene` | **1**: 60 of 61 packages pass; failed: `@automata/repo-hygiene` | not run | not run | not run | not run |
+| `check:changesets` | 0 | 0 | not run | not run | not run | not run |
 
 A cell reads the step's exit code. `main`'s three failures are documents under `docs/superpowers/` and belong to
 no draft: a merge that shows the same counts as `main` adds none of its own. "Not run" means the step had not
@@ -196,7 +196,7 @@ finished when this was written; the plan's first task on each branch runs every 
 
 | Pull request | Head | Its own commits, code changed | What it holds | Ruling | Reason |
 |---|---|---|---|---|---|
-| #589 `claude/eb-look-glow` | `0024f81a` | 18 commits; 53 code files, +1687 −314 | Glowing swatches at their own step, dimming with their lamp; a lit window showing the room behind its glass; the light's occluders cut at a wall's openings; static props baked and re-baked when moved; bloom as rings round what glows (world kit); a camera view for each base room at the distance that frames it; the shared fixes above | **Merge**, first | It changes no golden. The dark-room fix cannot land without it: cherry-picked onto `main` alone, the fix conflicts in four files; on top of #589 it applies cleanly. Measured on that trial state: the baked interior diorama reads 44.3 against the builder's 50.8 (it is 15.7 on `main`), first person 48.5 against 47.8 |
+| #589 `claude/eb-look-glow` | `0024f81a` | 18 commits; 53 code files, +1687 −314 | Glowing swatches at their own step, dimming with their lamp; a lit window showing the room behind its glass; the light's occluders cut at a wall's openings; static props baked and re-baked when moved; bloom as rings round what glows (world kit); a camera view for each base room at the distance that frames it; the shared fixes above | **Merge**, first | It changes no golden. The dark-room fix cannot land without it: cherry-picked onto `main` alone, the fix conflicts in four files; on top of #589 it applies cleanly. Measured on that trial state: the baked interior diorama reads 44.3 against the builder's 50.8 (it is 15.7 on `main`), first person 48.5 against 47.8; the street's diorama 90.0 against 123.2, so the street is still about a quarter darker and the plan diagnoses it |
 | #590 `claude/eb-look-effects` | `22b63b54` | 48 commits, 12 of them code of its own beyond #589 and #588; 151 code files in all, +7904 −407 | The dark-room fix and its diagnosis; the outline in the near shape's own deep step; the mood grade before the snap; shafts, wet-ground reflections and particles (world kit), each with a switch; all of #588 | **Finish, then merge**, third | The fix is taken out of it early by cherry-pick (`680bbc31a`). The rest merges after the figures with one conflict, in a spike file. To finish: a test that every pass is off behind its switch and the day sheets unmoved, and the ruling on #588's room-visibility below |
 | #588 `claude/tll-extensions-1` | `8e348d9a` | 19 commits; 97 code files, +4650 −264 | Three extensions with examples and journeys: `lcd-panel`, `retro-crisp`, `room-visibility`; two seams in core: a look pass may run before the snap, and an opt-in whole-pixel scale for the letterbox (`@automata/framework`, with a changeset) | **Finish through #590; close #588 itself as carried by it** | It is contained whole in #590, so it needs no merge of its own. `lcd-panel` and `retro-crisp` are opt-in looks in their own packages and the two seams are generic, so they land. `room-visibility` answers the question workstream 2 answers in `@automata/3d` ("the rooms a view draws"), and the Owner's decisions list #588's clinic work as superseded by workstream 2, so it is removed before #590 merges. This is a call for the coordinator |
 | #607 `claude/c8-lit` | `7167af1f` | 22 commits; 55 code files, +2463 −399 | Painted figures lit by their room (a flat light, one step of form, a rim, never above the painted cell); depth per texel on WebGPU; the kit's lit-cell cache and bench; FigureBuilder's pin from `d6e3c9f` to `23f889c`; the runway golden re-recorded (42 of 112 cells) with the arch override deleted | **Merge**, second | Specified, audited twice and fixed in its own cycle, with 0 pixels against the builder's `compose`. It is the only draft that moves a golden: one commit, named, ruled on by that cycle's coordinator (FigureBuilder's hair-pole rule, which made the painter the same on every machine). That ruling is carried forward, not re-made here; the plan checks it is the only golden that moves |
@@ -208,6 +208,22 @@ Two open pull requests outside the list matter to it: #602 (the colour-only pres
 suites under the new camera) are not drafts and are not on `main`; every code draft above carries both, so they
 land with the first merge and can then be closed as carried.
 
+
+## Remainders the drafts name themselves
+
+Read from each draft's own "not done" list; none is hidden by a pass. The plan carries each to its last task, where
+it is fixed, accepted with the Owner's word, or left open by name.
+
+| Remainder | From |
+|---|---|
+| Patterns (stripes, checker, noise, grass, leaves, glass) and grime marks are not swatch ladders; a map's grime does not scale a tile's wear | The record of the albedo work on `main` |
+| A room's `light` field is read as whole 0.85 steps darker; no base scene uses it | The record, "open for the Owner" |
+| A window's room is a tile seen at a fixed angle; it does not move as the camera turns | #589 |
+| The bloom's mask is a colour match, so a lit surface that lands on a glow colour would ring too | #589 |
+| A closed hinged door does not stop a lamp in the next room | #589 |
+| Reflections, particles and the mood grade show in no base frame (no rain, no emitter, no mood in the base scenes) | #590 |
+| The worst frame when several lit figures relight at once (4.9 to 43.6 ms between runs; the medians hold 2 ms) | #607, ruled a known risk there |
+| A figure's cast shadow; exposure by trial; glyphs | This survey |
 
 ## What this means for the plan
 
