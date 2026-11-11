@@ -61,7 +61,14 @@ export {
   figure,
 } from '../features/figures/view/figure-view.ts'
 export { DuelSnapEffect } from '../features/look/duel-snap-filter.ts'
-export { DEFAULT_LOOK, type Look, type LookSwitches, parseLook } from '../features/look/look.ts'
+export { HazeEffect, hazed, hazeOf, hazeShare } from '../features/look/haze.ts'
+export {
+  DEFAULT_LOOK,
+  type HazeProfile,
+  type Look,
+  type LookSwitches,
+  parseLook,
+} from '../features/look/look.ts'
 export {
   addLookPass,
   createLookPasses,
@@ -72,6 +79,7 @@ export {
 export { OutlineEffect } from '../features/look/outline-filter.ts'
 export { lightSteps, rampLit } from '../features/look/ramp-light.ts'
 export { RampMaterial, type RampMaterialOptions } from '../features/look/ramp-light-material.ts'
+export { type HorizonLayer, SkyEffect } from '../features/look/sky-pass.ts'
 export {
   SPRITE_STYLE,
   type SpriteInput,
