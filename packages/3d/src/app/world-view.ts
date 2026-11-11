@@ -2,9 +2,11 @@
 // each, and the camera's occluder rule on the walls and the ceilings. It lives in `app/` because it reads the world's
 // pieces and the renderer's occluders; the builder itself knows no renderer. Presentation only: the sim never reads it.
 import { Box, Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
+import { BufferImageSource, Texture } from 'pixi.js'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { RampMaterial } from '../features/look/ramp-light-material.ts'
+import { type AlbedoTile, tileUvs } from '../features/world/albedo/place.ts'
 import type { WorldPiece } from '../features/world/build.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
 import { tileName } from '../features/world/surface.ts'
@@ -23,6 +25,12 @@ export interface WorldScene {
   readonly fallback?: number | undefined
   /** With a look, every piece takes the stepped-light material (the look's `steps`) in place of plain Phong. */
   readonly look?: Look | undefined
+  /**
+   * A swatch's photo tile (DUEL colours a texel), by swatch name: a piece whose surface has one is drawn with it,
+   * nearest-sampled, placed as the surface says (repeat, pan, turn, and the wall's, the world's or the prop's frame), in
+   * place of the swatch's flat colour. The light multiplies the texel, so a lit texel is albedo × light.
+   */
+  readonly tiles?: ((swatch: string) => AlbedoTile | undefined) | undefined
   /**
    * The room's light (`createPixi3dRenderer`'s `scene` hook gives it when `lighting` is set). A piece that never moves
    * (not a door, a prop or a swaying leaf) is drawn flat and has the light baked into its vertex colours, so a lamp's
@@ -45,8 +53,30 @@ export interface WorldView {
 
 const MISSING = 0x808080
 
-/** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour, with a material of its own. */
-function meshOf(piece: WorldPiece, colour: number, look: Look | undefined): Mesh3D {
+const textures = new WeakMap<AlbedoTile, Texture>()
+
+/** A tile as a texture: nearest-sampled, repeating, no mips, so every texel stays one DUEL colour. */
+function textureOf(tile: AlbedoTile): Texture {
+  let texture = textures.get(tile)
+  if (texture === undefined) {
+    texture = new Texture({
+      source: new BufferImageSource({
+        resource: tile.rgba,
+        width: tile.width,
+        height: tile.height,
+        format: 'rgba8unorm-srgb',
+        scaleMode: 'nearest',
+        addressMode: 'repeat',
+        autoGenerateMipmaps: false,
+      }),
+    })
+    textures.set(tile, texture)
+  }
+  return texture
+}
+
+/** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour (or its tile), with a material of its own. */
+function meshOf(piece: WorldPiece, colour: number, look: Look | undefined, tile?: AlbedoTile): Mesh3D {
   const { positions, normals, indices } = piece.mesh
   const low = [Infinity, Infinity, Infinity] as [number, number, number]
   const high = [-Infinity, -Infinity, -Infinity] as [number, number, number]
@@ -59,12 +89,15 @@ function meshOf(piece: WorldPiece, colour: number, look: Look | undefined): Mesh
     positions: new Float32Array(positions),
     normals: new Float32Array(normals),
     indices: new Uint32Array(indices),
+    ...(tile === undefined
+      ? {}
+      : { uvs: tileUvs(piece.mesh, tile, piece.tex, piece.tex?.frame !== undefined) }),
     bounds3D: new Box(new Vector3(...low), new Vector3(...high)),
   })
+  const base =
+    tile === undefined ? { baseColor: colour } : { baseColor: 0xffffff, baseColorTexture: textureOf(tile) }
   const material =
-    look === undefined
-      ? new PhongMaterial({ baseColor: colour })
-      : new RampMaterial({ baseColor: colour, steps: look.steps })
+    look === undefined ? new PhongMaterial(base) : new RampMaterial({ ...base, steps: look.steps })
   return new Mesh3D({ geometry, material })
 }
 
@@ -79,14 +112,20 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   const meshes = new Map<string, Mesh3D>()
   for (const piece of pieces) {
     const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
-    const mesh = meshOf(piece, colour, scene.look)
+    const tile = scene.tiles?.(tileName(piece.surface))
+    const mesh = meshOf(piece, colour, scene.look, tile)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
     if (scene.light !== undefined && stays(piece)) {
       // Baked after it is placed under the node, so the light sees where it stands.
-      mesh.material = new FlatMaterial({ baseColor: colour })
       // A room's `light` is 1 when normal; each 1 less is a whole step darker.
-      scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light })
+      if (tile === undefined) {
+        mesh.material = new FlatMaterial({ baseColor: colour })
+        scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light })
+      } else {
+        mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile) })
+        scene.light.bake(mesh, { textured: true, shadeSteps: 1 - piece.light })
+      }
     }
     if (scene.occluders === undefined) continue
     if (piece.part === 'ceiling') scene.occluders.ceiling(mesh)

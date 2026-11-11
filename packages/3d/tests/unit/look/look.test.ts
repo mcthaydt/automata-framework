@@ -10,7 +10,7 @@ import { timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 describe('the look', () => {
   it('the default look is a 180-pixel field with outline off, as the source profile has it', () => {
     expect(DEFAULT_LOOK.pixel.short).toBe(180)
-    expect(DEFAULT_LOOK.switches).toEqual({ outline: false, grade: true, dither: true })
+    expect(DEFAULT_LOOK.switches).toEqual({ outline: false, grade: true, dither: true, haze: true })
   })
 
   it('a look names what is wrong with it', () => {
@@ -95,7 +95,9 @@ describe('look passes', () => {
     expect(registeredLookPasses().map((p) => p.name)).toEqual(['spec-rain'])
     expect(() => addLookPass(extra)).toThrow(/spec-rain/)
     const passes = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
-    expect(passes.list.at(-1)).toBe(passes.extra[0])
+    // The present pass ends the list (it keeps a depth binding off the canvas pass), so the added pass is the one before it.
+    expect(passes.list.at(-1)).toBe(passes.present)
+    expect(passes.list.at(-2)).toBe(passes.extra[0])
     expect(passes.list.indexOf(passes.extra[0] as never)).toBeGreaterThan(
       passes.list.indexOf(passes.snap as never),
     )
@@ -113,8 +115,10 @@ describe('look passes', () => {
     const grade = passes.early[0] as never
     expect(passes.early).toHaveLength(1)
     expect(passes.list.indexOf(grade)).toBeLessThan(passes.list.indexOf(passes.snap as never))
-    expect(passes.list[0]).toBe(grade)
+    // The haze, on by default, comes first; then the early pass; the present pass ends the list after the later ones.
+    expect(passes.list.slice(0, 2)).toEqual([passes.haze, grade])
     expect(passes.extra).toHaveLength(1)
-    expect(passes.list.at(-1)).toBe(passes.extra[0])
+    expect(passes.list.at(-2)).toBe(passes.extra[0])
+    expect(passes.list.at(-1)).toBe(passes.present)
   })
 })

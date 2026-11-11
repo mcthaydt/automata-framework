@@ -9,6 +9,20 @@ export interface LookSwitches {
   readonly outline: boolean
   readonly grade: boolean
   readonly dither: boolean
+  readonly haze: boolean
+}
+
+/** The haze toward the veil: far texels mix to `colour` + `glow` × their light, by a share that rises from 0 at `near`
+ * metres behind the focus to `amount` at `far`. A time of day may set its own colour and amount. */
+export interface HazeProfile {
+  readonly colour: string
+  readonly near: number
+  readonly far: number
+  readonly amount: number
+  readonly glow: number
+  /** The focus, metres from the eye, when the camera is a lens (first person); an orthographic view is focused by the
+   * app on what it frames. */
+  readonly focusFp: number
 }
 
 export interface Look {
@@ -22,6 +36,7 @@ export interface Look {
   readonly dither: { readonly strength: number }
   /** Where the grade comes from: the time of day's, or none. */
   readonly grade: 'time' | 'none'
+  readonly haze: HazeProfile
   readonly switches: LookSwitches
 }
 
@@ -33,11 +48,23 @@ export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
   outline: z.strictObject({ edge: z.number().min(0).max(1) }).default({ edge: 0.35 }),
   dither: z.strictObject({ strength: z.number().min(0).max(1) }).default({ strength: 0.04 }),
   grade: z.enum(['time', 'none']).default('time'),
+  haze: z
+    .strictObject({
+      colour: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'the haze colour is a #rrggbb colour'),
+      near: z.number().min(0),
+      far: z.number().min(0),
+      amount: z.number().min(0).max(1),
+      glow: z.number().min(0),
+      focusFp: z.number().min(0),
+    })
+    .refine((h) => h.far > h.near, { message: 'the haze far distance is beyond its near', path: ['far'] })
+    .default({ colour: '#47655a', near: 0, far: 10, amount: 0.85, glow: 0.5, focusFp: 3 }),
   switches: z
     .strictObject({
       outline: z.boolean().default(false),
       grade: z.boolean().default(true),
       dither: z.boolean().default(true),
+      haze: z.boolean().default(true),
     })
-    .default({ outline: false, grade: true, dither: true }),
+    .default({ outline: false, grade: true, dither: true, haze: true }),
 })

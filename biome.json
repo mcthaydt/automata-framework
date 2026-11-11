@@ -16,7 +16,9 @@
       "!examples/2d/content/hot-reload/content/generated",
       "!site/build",
       "!site/static/demos",
-      "!site/static/playground"
+      "!site/static/playground",
+      "!vendor/FigureBuilder",
+      "!vendor/figure-builder/types"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },

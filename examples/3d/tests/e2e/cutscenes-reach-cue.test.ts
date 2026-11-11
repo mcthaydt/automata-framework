@@ -19,8 +19,9 @@ test('plays the scene: the man walks, his reach cue starts once, then it ends, u
   // The scene says where it is on the canvas: no clip at first, the reach once its cue is passed, and how often a clip started.
   await expect(canvas).toHaveAttribute('data-cutscene', 'playing')
   await expect(canvas).toHaveAttribute('data-clip', '')
-  await expect(canvas).toHaveAttribute('data-clip', 'reach', { timeout: 20_000 })
-  await expect(canvas).toHaveAttribute('data-cutscene', 'done', { timeout: 20_000 })
+  // The scene plays in simulation time, which a loaded runner advances slowly: on 2026-11-10 the door-and-lamp scene had got no further than 0.88 of its lamp after 20 s. The wait ends when the scene does.
+  await expect(canvas).toHaveAttribute('data-clip', 'reach', { timeout: 60_000 })
+  await expect(canvas).toHaveAttribute('data-cutscene', 'done', { timeout: 60_000 })
   await expect(canvas).toHaveAttribute('data-cues', '1')
   expect(errors).toEqual([])
 })

@@ -116,6 +116,33 @@ describe('drawWorld', () => {
     view.dispose()
     expect(parent.children).toHaveLength(0)
   })
+
+  it('lays a swatch’s tile on a piece: its uvs, the texture, and no flat colour; light bakes without the albedo', () => {
+    const tile = {
+      width: 2,
+      height: 2,
+      texels: [2, 2] as [number, number],
+      seed: 0,
+      rgba: new Uint8Array(16).fill(255),
+    }
+    const parent = new Container3D()
+    const view = drawWorld(
+      {
+        parent,
+        colourOf: (name) => colours[name],
+        tiles: (name) => (name === 'oakFloor' ? tile : undefined),
+      },
+      pieces,
+    )
+    const floor = view.mesh('a:floor') as Mesh3D
+    expect((floor.material as PhongMaterial).textures.baseColor).toBeDefined()
+    expect((floor.material as PhongMaterial).baseColor).toBe(0xffffff)
+    expect(floor.geometry.attributes.aUV).toBeDefined()
+    // a swatch with no tile keeps its colour
+    expect(
+      ((view.mesh('a:wall:0') ?? view.node.children[1]) as Mesh3D).geometry.attributes.aUV,
+    ).toBeUndefined()
+  })
 })
 
 describe('sceneLamps', () => {

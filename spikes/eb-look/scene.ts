@@ -11,6 +11,8 @@ import '@automata/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
+  HazeEffect,
+  SkyEffect,
   DEFAULT_LOOK,
   drawWorld,
   figure,
@@ -23,7 +25,7 @@ import {
 import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automata/3d/base'
 import type { Gait } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
-import { dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
+import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
 
 // Pixi's capability probes each make a throwaway WebGL context and lose it on purpose. On headless SwiftShader that
@@ -47,6 +49,7 @@ const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 const on = (key: string) => q.get(key) !== '0'
 const look = on('look') ? DEFAULT_LOOK : undefined
 
+const tiles = albedoTiles(worldKitLibrary.swatches as never)
 const dressed = name.endsWith('-dressed')
 const level =
   (BASE_SCENES as Record<string, (typeof BASE_SCENES)['base-interior']>)[name] ??
@@ -161,13 +164,35 @@ const game = defineGame({
           camera.position.set(at[0], eye, at[1])
           camera.lookAt({ x: at[0] + Math.cos(a), y: eye, z: at[1] + Math.sin(a) })
         }
+        // The haze counts from the focus: the frame's middle in the orthographic diorama, the man in the gameplay views, 3 m
+        // from the eye in first person (the profile's `focusFp`).
+        const haze = view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)
+        if (viewName === 'diorama') haze?.focusCentre()
+        else if (viewName === 'af' || viewName === 'tll') haze?.focus(GAMEPLAY[viewName].distance)
+        // The sky panorama replaces the flat background where no mesh draws: the time's bands, clouds and the level's
+        // horizon, turned with the camera (heading clockwise from east, pitch up positive).
+        if (on('sky')) {
+          const sky = new SkyEffect(
+            time,
+            (level.sky?.horizon ?? []).map((layer) => ({
+              kind: layer.kind,
+              colour: `#${(swatchColour(library, layer.swatch) ?? 0x7a7799).toString(16).padStart(6, '0')}`,
+              height: layer.height,
+              seed: layer.seed,
+            })),
+          )
+          if (viewName === 'fp') sky.aim((Number(views.fp?.angle ?? 0) * Math.PI) / 180, 0)
+          else if (viewName === 'af' || viewName === 'tll')
+            sky.aim(-Math.PI / 2, -(GAMEPLAY[viewName].tiltDeg * Math.PI) / 180)
+          view.passes = [sky, ...view.passes]
+        }
         if (on('env')) view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(library, swatch)
         if (on('world')) {
           const moves = (p: (typeof world.pieces)[number]) => p.door !== undefined || p.prop !== undefined || p.sway !== undefined
           const which = q.get('pieces')
           const pieces = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
-          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light }, pieces)
+          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('tiles') ? { tiles } : {}) }, pieces)
         }
         const renderer = stage.app.renderer as unknown as { name: string }
         const { dataset } = stage.app.canvas

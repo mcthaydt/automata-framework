@@ -53,6 +53,11 @@ interface Gesture {
 export interface Pointers {
   down(kind: PointerKind, at: Point, extras?: ContactExtras): Promise<Contact>
   tap(at: Point, options?: Gesture): Promise<void>
+  /**
+   * Several fingers tapping together (a two-finger undo, a three-finger redo): every finger goes down and comes up in
+   * one task, so the touch cluster sees a tap whatever a frame costs.
+   */
+  tapTogether(points: readonly Point[], options?: Gesture): Promise<void>
   longPress(at: Point, options?: Gesture & { readonly holdMs?: number }): Promise<void>
   drag(path: readonly Point[], options?: Gesture & ContactExtras): Promise<void>
   pinch(
@@ -107,7 +112,13 @@ export function createPointers(target: PointerTarget, options: PointersOptions =
     )
   }
 
-  async function open(kind: PointerKind, at: Point, extras: ContactExtras = {}): Promise<Contact> {
+  /** `settle` false skips the frame after the press: a tap lifts in the same task, because the recogniser drops a press held over 300 ms and one frame on a loaded runner can take that long. */
+  async function open(
+    kind: PointerKind,
+    at: Point,
+    extras: ContactExtras = {},
+    settle = true,
+  ): Promise<Contact> {
     lastId += 1
     const id = lastId
     const active = down.get(kind) ?? new Set<number>()
@@ -126,7 +137,7 @@ export function createPointers(target: PointerTarget, options: PointersOptions =
     }
     let last = at
     send('pointerdown', id, kind, at, { ...pressed, button: extras.button ?? 0 })
-    await frame()
+    if (settle) await frame()
     const end = async (type: 'pointerup' | 'pointercancel'): Promise<void> => {
       active.delete(id)
       send(type, id, kind, last, { ...pressed, button: extras.button ?? 0, buttons: 0, pressure: 0 })
@@ -170,8 +181,14 @@ export function createPointers(target: PointerTarget, options: PointersOptions =
   return {
     down: open,
     async tap(at, gesture = {}) {
-      const contact = await open(gesture.kind ?? 'touch', at)
+      const contact = await open(gesture.kind ?? 'touch', at, {}, false)
       await contact.release()
+    },
+    async tapTogether(points, gesture = {}) {
+      const contacts: Contact[] = []
+      for (const at of points) contacts.push(await open(gesture.kind ?? 'touch', at, {}, false))
+      // Each release sends its pointerup before it first waits, so they all go out in this task.
+      await Promise.all(contacts.map((contact) => contact.release()))
     },
     async longPress(at, gesture = {}) {
       const contact = await open(gesture.kind ?? 'touch', at)

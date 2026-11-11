@@ -5,8 +5,10 @@
 // post effect has none of.
 
 import { DEFAULT_PALETTE } from '@automata/content/palette'
-import { type EffectFragment, PostEffect } from '@pixi/3d'
+import { type EffectFragment, type EffectIO, PostEffect, type RenderGraph } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
+import { EXACT } from './duel-snap.ts'
+import { addColourOnlyPass } from './present-pass.ts'
 
 /** A palette as 0 to 1 channel triples, in palette order. */
 const triples = (hexes: readonly string[]): number[][] =>
@@ -26,6 +28,7 @@ export function paletteWgsl(name: string, hexes: readonly string[]): string {
 }
 
 const COLOURS = DEFAULT_PALETTE.colors
+const EXACT_GLSL = EXACT.toExponential(6)
 
 /** The 4 × 4 Bayer matrix, 0 to 15, row by row. */
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
@@ -40,11 +43,18 @@ vec4 effect(vec2 uv) {
   vec3 want = c.rgb + (BAYER[cell] / 16.0 - 0.5) * uDither;
   float best = 1e9;
   vec3 pick = want;
+  float exact = 1e9;
+  vec3 same = c.rgb;
   for (int i = 0; i < ${COLOURS.length}; i++) {
     vec3 d = DUEL[i] - want;
     float e = dot(d, d);
     if (e < best) { best = e; pick = DUEL[i]; }
+    vec3 x = DUEL[i] - c.rgb;
+    float ex = dot(x, x);
+    if (ex < exact) { exact = ex; same = DUEL[i]; }
   }
+  // A colour that is already a DUEL colour (a figure's texel) stays itself: the dither does not tip it onto a neighbour.
+  if (exact < ${EXACT_GLSL}) pick = same;
   return vec4(pick, c.a);
 }`
 
@@ -58,11 +68,18 @@ fn effect(uv: vec2<f32>) -> vec4<f32> {
   let want = c.rgb + (BAYER[cell] / 16.0 - 0.5) * fx.uDither;
   var best = 1e9;
   var pick = want;
+  var exact = 1e9;
+  var same = c.rgb;
   for (var i = 0; i < ${COLOURS.length}; i++) {
     let d = DUEL[i] - want;
     let e = dot(d, d);
     if (e < best) { best = e; pick = DUEL[i]; }
+    let x = DUEL[i] - c.rgb;
+    let ex = dot(x, x);
+    if (ex < exact) { exact = ex; same = DUEL[i]; }
   }
+  // A colour that is already a DUEL colour (a figure's texel) stays itself: the dither does not tip it onto a neighbour.
+  if (exact < ${EXACT_GLSL}) { pick = same; }
   return vec4<f32>(pick, c.a);
 }`
 
@@ -74,6 +91,11 @@ export class DuelSnapEffect extends PostEffect {
   constructor(dither: number) {
     super()
     this.uniforms = new UniformGroup({ uDither: { value: dither, type: 'f32' } })
+  }
+
+  /** Reads the colour only: this is the pass that draws to the canvas, and it must not sample the depth (`present-pass.ts`). */
+  override build(graph: RenderGraph, io: EffectIO): void {
+    addColourOnlyPass(graph, io, 'DuelSnapEffect', this.fragment, this.uniforms)
   }
 
   get dither(): number {

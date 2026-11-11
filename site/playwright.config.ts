@@ -1,12 +1,12 @@
 import { defineConfig, devices } from '@playwright/test'
-import { portsFor } from '../packages/tools/src/shared/ship/ports/ports-for.ts'
+import { claimPorts } from '../packages/tools/src/shared/ship/ports/free-ports.ts'
 
 // QB.3 browser gates. They run against the prerendered build (`pnpm build` first) and a folder of planted fixtures,
-// each on its own port, 50 to 59 above the checkout's server port (portsFor, so AF_RUNNER_PORT_OFFSET moves them with
-// the runner copy); override them when another checkout uses them.
-const ports = portsFor(new URL('..', import.meta.url).pathname, process.env)
-export const SITE_PORT = Number(process.env.QB_SITE_PORT ?? ports.server + 50)
-export const FIXTURE_PORT = Number(process.env.QB_FIXTURE_PORT ?? ports.server + 51)
+// each on a free port claimed when the config loads (packages/tools free-ports.ts), so two jobs on one machine never meet
+// on one.
+const ports = claimPorts(['site-build', 'site-fixtures'])
+export const SITE_PORT: number = ports['site-build']
+export const FIXTURE_PORT: number = ports['site-fixtures']
 
 export default defineConfig({
   testDir: 'tests/e2e',

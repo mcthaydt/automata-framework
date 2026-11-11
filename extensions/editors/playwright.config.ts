@@ -1,10 +1,9 @@
 import { defineJourneys, sizes } from '@automata/playwright-preset'
-import { browserSafePort } from '../../packages/tools/src/shared/ship/ports/browser-safe-port.ts'
-import { portsFor } from '../../packages/tools/src/shared/ship/ports/ports-for.ts'
+import { claimPort } from '../../packages/tools/src/shared/ship/ports/free-ports.ts'
 
 // The sample page's journey (`pnpm test:e2e` here): the content editors page as the site's try-it page serves it, with
 // no editor server behind it, so it opens the sample game held in memory. A phone and an iPad, Chromium.
-const port = browserSafePort(portsFor(new URL('../..', import.meta.url).pathname, process.env).preview + 1100)
+const port = claimPort('editors-sample-page')
 
 export default defineJourneys({
   testDir: 'tests/e2e',

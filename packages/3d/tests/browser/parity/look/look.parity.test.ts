@@ -119,8 +119,9 @@ describe.runIf(hasWebGL2)('the look on WebGL2', () => {
 
   it('draws an extension pass after core passes (its own switch, here a custom pass in the list)', async () => {
     const renderer = await start(true)
-    expect(renderer.view.passes.length).toBeGreaterThanOrEqual(1)
-    expect(renderer.view.passes[0]?.constructor.name).toBe('DuelSnapEffect')
+    // Core's passes come first, in core's order: the haze (on by default) before the snap.
+    const names = renderer.view.passes.map((pass) => pass.constructor.name)
+    expect(names.slice(0, 2)).toEqual(['HazeEffect', 'DuelSnapEffect'])
   })
 
   it('brings the look back after a lost context', async () => {

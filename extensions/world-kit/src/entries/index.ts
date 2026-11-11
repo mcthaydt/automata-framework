@@ -16,3 +16,4 @@ export {
   readsAgainst,
   waivedBy,
 } from '../features/reads/reads-against.ts'
+export { albedoTiles } from '../features/textures/albedo-tiles.ts'

@@ -77,7 +77,13 @@ describe.runIf(hasWebGL2)('the LCD panel pass on WebGL2', () => {
     addLcdPanelPass()
     expect(() => addLcdPanelPass()).toThrow()
     const renderer = await start()
-    expect(renderer.view.passes.map((p) => p.constructor.name)).toEqual(['DuelSnapEffect', 'LcdPanelEffect'])
+    // Core's haze (on by default) is first and its present pass is last; the panel runs right after the snap.
+    expect(renderer.view.passes.map((p) => p.constructor.name)).toEqual([
+      'HazeEffect',
+      'DuelSnapEffect',
+      'LcdPanelEffect',
+      'PresentEffect',
+    ])
   })
 
   it('draws the mesh, the stripes and the vignette over the cube, off the palette', async () => {

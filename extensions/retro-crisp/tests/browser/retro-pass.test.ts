@@ -78,7 +78,13 @@ describe.runIf(hasWebGL2)('the retro pass on WebGL2', () => {
     passes = addRetroPass({ profile: RETRO_NEUTRAL })
     expect(() => addRetroPass()).toThrow()
     const renderer = await start()
-    expect(renderer.view.passes.map((p) => p.constructor.name)).toEqual(['RetroEffect', 'DuelSnapEffect'])
+    // Core's haze (on by default) is first and its present pass is last; the retro pass is the one before the snap.
+    expect(renderer.view.passes.map((p) => p.constructor.name)).toEqual([
+      'HazeEffect',
+      'RetroEffect',
+      'DuelSnapEffect',
+      'PresentEffect',
+    ])
     expect(passes.passes).toHaveLength(1)
   })
 
