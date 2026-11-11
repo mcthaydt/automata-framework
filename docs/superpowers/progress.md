@@ -1,4 +1,4 @@
-# Progress: The Last Light on the framework
+# Progress: The Last Light, the framework's 3D reference game
 
 The Owner's direction (2026-11-11): the framework and its editors exist to make games like The Last Light easier to
 make and to change by hand. FigureBuilder and EnvironmentBuilder were spikes to improve its figures and scenes, to be
@@ -15,7 +15,7 @@ runs in its own session on its own branch and hands off through committed docume
 | # | Workstream | Stage | Progress | Record |
 |---|---|---|---|---|
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Next is 4, execution | 43% (3 of 7 stages); execution 0 of 21 tasks | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
-| 2 | The Last Light on the framework, one scene at a time (the prologue first) | 1, spec: drafted 2026-11-11, its six calls open to the Owner. Slice 1's plan session starts when workstream 1 reaches execution | 3% | [spec](specs/2026-11-11-last-light-on-the-framework-design.md) |
+| 2 | The Last Light as the framework's 3D reference game (`games/the-last-light`), one scene at a time, the prologue first; Ember Hall is cut | 2, plan: slice 1's survey under way; its plan follows the re-set spec | 5% | [spec](specs/2026-11-11-last-light-on-the-framework-design.md) |
 | 3 | A UI editor in the suite | Not started: the Owner will address it when we get to it; its spec is written with the Owner then | 0% | |
 
 ## Workstream 1 sessions
@@ -68,4 +68,7 @@ take it over later: its layout and words as data, not buried in code.
 - The clinic work already begun in the framework (#575, #596, #606, #588) is superseded by workstream 2.
 - The site's Editor page (`/editor`) is cut; its link goes straight to the editor at `/editor/app/`.
 - The port may refactor the game where its code quality is questionable; feature folders at the least.
+- **What workstream 2 is:** building into the framework what The Last Light has and it lacks; The Last Light is the 3D
+  reference game in `games/`, as Emberwick is the 2D one, not a product shipped from its own repository. Ember Hall
+  (`games/base-3d`) is cut. The game content already in the framework's fixtures is therefore where it belongs.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
