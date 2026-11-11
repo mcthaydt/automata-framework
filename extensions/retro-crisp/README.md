@@ -51,23 +51,27 @@ refused and the message names it.
 
 ## Crisp
 
+The whole-pixel scale is core's letterbox option `scale: 'whole'` (`fit`, the fractional fit to the view's width, is core's
+default). `crispRendererOptions` turns the profile into it:
+
 ```ts
-import { crispFromQuery, letterboxScale } from '@automata/retro-crisp'
+import { crispFromQuery, crispRendererOptions } from '@automata/retro-crisp'
 
 const crisp = crispFromQuery(location.search) // ?crisp=figures,lcd  ?crisp=1  ?scale=fit
-const layout = letterboxScale(innerWidth, innerHeight, devicePixelRatio, crisp.cap)
+createPixi3dRenderer({ ...options, ...crispRendererOptions(crisp) }) // { scale: 'whole' } unless the profile says `fit`
 ```
 
-`layout.scale` device pixels make one field pixel, `layout.frame` is the field to draw (it follows the window's shape up to
-`cap`), and `layout.size` and `layout.offset` say where the canvas goes. Every device length is a whole number of device
-pixels. `applyCrispLayout(canvas, layout)` sets them on a canvas with `image-rendering: pixelated`.
+The field then takes a whole number of device pixels a field pixel, centred and clipped to its own rectangle, so no pixel is
+drawn wider than another. `lcd` is what sets `snap` on the [LCD panel](../lcd-panel/README.md).
 
-Core's letterbox scales the field by the window's width over the field's width, which is not a whole number. Whole-pixel
-scaling in the running game needs a hook there, which is core's to give; until it does, `letterboxScale` is the maths for it
-and the `lcd` flag is what a game can use today.
+For a host that owns its canvas, `letterboxScale(width, height, devicePixelRatio, cap)` is the maths (the scale, the field to
+draw, where the canvas goes, all in whole device pixels) and `applyCrispLayout(canvas, layout)` sets it with
+`image-rendering: pixelated`. `snapRatio`, `texelRatio` and `figureSnap` are for billboards whose texels should land on whole
+field pixels.
 
 ## See it
 
 [`examples/3d/retrocrisp/retrocrisp-grade.ts`](../../examples/3d/retrocrisp/retrocrisp-grade.ts) draws a room with the pass on
-and off (press R) and the panel's colour split snapped to whole pixels with `?crisp=lcd`; `?pref=webgpu` draws it on WebGPU.
+and off (press R), the field at a whole-pixel scale (`?scale=fit` is the fractional fit) and the panel's colour split snapped to
+whole pixels with `?crisp=lcd`; `?pref=webgpu` draws it on WebGPU.
 The pictures are in [`docs/refactor/tll-extensions/`](../../docs/refactor/tll-extensions/).

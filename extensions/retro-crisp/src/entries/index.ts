@@ -8,6 +8,7 @@ export {
   crispProfileSchema,
   parseCrispProfile,
 } from '../features/crisp/crisp-profile.schema.ts'
+export { crispRendererOptions } from '../features/crisp/crisp-renderer.ts'
 export {
   type CrispLayout,
   figureSnap,

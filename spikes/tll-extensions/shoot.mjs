@@ -20,6 +20,8 @@ mkdirSync(out, { recursive: true })
 const SHOTS = [
   { page: 'lcdpanel/screen', size: [640, 360], states: [['lcd-on', ''], ['lcd-off', '?lcd=0']] },
   { page: 'retrocrisp/grade', size: [640, 360], states: [['retro-on', ''], ['retro-off', '?retro=0'], ['retro-on-crisp-lcd', '?crisp=lcd']] },
+  // A 1440 x 810 window: the fractional fit is 2.25 device pixels a pixel (uneven), the whole-pixel scale is 2.
+  { page: 'retrocrisp/grade', size: [720, 405], states: [['crisp-whole', '?retro=0'], ['crisp-fit', '?retro=0&scale=fit']] },
   { page: 'roomvisibility/zones', size: [480, 270], states: [
     ['rooms-on-hall', ''], ['rooms-on-corridor', '?zone=corridor'], ['rooms-on-closet', '?zone=closet'], ['rooms-off', '?rooms=0'],
   ] },

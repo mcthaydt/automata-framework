@@ -2,8 +2,9 @@
 //
 // Shows: the retro look (`@automata/retro-crisp`): the clinic's cold green grade, an unsharp mask, a vignette, and a film
 //   fade (black lifted toward a tint, moving grain, dust and a scratch). The pass runs after core's DUEL snap, so a
-//   `RETRO_NEUTRAL` profile changes no colour at all. The crisp half: the LCD panel's colour split snapped to whole
-//   pixels (`crispFromQuery`, `?crisp=lcd`). `?pref=webgpu` draws on WebGPU, `?retro=0` starts with the pass off.
+//   `RETRO_NEUTRAL` profile changes no colour at all. The crisp half: the field drawn at a whole number of device pixels
+//   (core's letterbox `scale: 'whole'`, on by default; `?scale=fit` is the fractional fit to compare) and the LCD panel's
+//   colour split snapped to whole pixels (`?crisp=lcd`). `?pref=webgpu` draws on WebGPU, `?retro=0` starts with the pass off.
 // Controls: R switches the retro pass on and off
 // Packages: @automata/framework, @automata/3d, @automata/retro-crisp, @automata/lcd-panel
 // Difficulty: ★★★☆
@@ -22,7 +23,7 @@ import {
 import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
 import { defineGame, definePlugin } from '@automata/framework'
 import { addLcdPanelPass } from '@automata/lcd-panel/pass'
-import { crispFromQuery } from '@automata/retro-crisp'
+import { crispFromQuery, crispRendererOptions } from '@automata/retro-crisp'
 import { addRetroPass } from '@automata/retro-crisp/pass'
 
 // --- look ---
@@ -53,6 +54,7 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
+      ...crispRendererOptions(crisp),
       preference: query.get('pref') === 'webgpu' ? 'webgpu' : 'webgl',
       look: DEFAULT_LOOK,
       time,

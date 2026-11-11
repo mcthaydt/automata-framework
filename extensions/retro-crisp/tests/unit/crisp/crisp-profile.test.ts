@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { crispCanvasStyle } from '#src/features/crisp/crisp-canvas.ts'
 import { CRISP_CLINIC, crispFromQuery, parseCrispProfile } from '#src/features/crisp/crisp-profile.schema.ts'
+import { crispRendererOptions } from '#src/features/crisp/crisp-renderer.ts'
 import { letterboxScale } from '#src/features/crisp/crisp-scale.ts'
 
 describe('the crisp profile', () => {
@@ -43,5 +44,17 @@ describe('crispCanvasStyle', () => {
       marginTop: '20px',
       imageRendering: 'pixelated',
     })
+  })
+})
+
+describe('crispRendererOptions', () => {
+  it('asks core for the whole-pixel letterbox by default, and the fractional fit for `fit`', () => {
+    expect(crispRendererOptions(CRISP_CLINIC)).toEqual({ scale: 'whole' })
+    expect(crispRendererOptions({ ...CRISP_CLINIC, scale: 'fit' })).toEqual({ scale: 'fit' })
+  })
+
+  it('follows a page query, so ?scale=fit is the comparison', () => {
+    expect(crispRendererOptions(crispFromQuery('?scale=fit'))).toEqual({ scale: 'fit' })
+    expect(crispRendererOptions(crispFromQuery(''))).toEqual({ scale: 'whole' })
   })
 })
