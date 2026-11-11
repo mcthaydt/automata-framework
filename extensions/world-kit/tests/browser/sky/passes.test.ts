@@ -91,7 +91,8 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
     expect(() => addSkyPasses({ stars: true, glow: false })).toThrow()
     const renderer = await start()
     const names = renderer.view.passes.map((p) => p.constructor.name)
-    expect(names).toEqual(['DuelSnapEffect', 'StarsEffect', 'GlowEffect', 'RainEffect'])
+    // Core's haze (on by default) comes before its snap; the kit's passes follow them.
+    expect(names).toEqual(['HazeEffect', 'DuelSnapEffect', 'StarsEffect', 'GlowEffect', 'RainEffect'])
   })
 
   it('stars are DUEL colours in the sky above the horizon, and only there', async () => {
