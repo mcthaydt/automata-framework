@@ -136,6 +136,9 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         })
         await page.goto(`${server.url}/`)
         await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+        // A new game ships in six languages, so the first run asks for one before the title. The smoke installs only the
+        // published packages and cannot import `@automata/tools/e2e`'s `passFirstRun`, so it presses English itself.
+        await page.getByTestId('first-language-en').click()
         await expect(page.getByTestId('title-screen')).toBeVisible()
         await page.getByRole('button', { name: 'Play' }).click()
         await expect(page.getByTestId('play-screen')).toBeVisible()

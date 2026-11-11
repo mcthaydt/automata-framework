@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 10 of 21 tasks (48%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 11 of 21 tasks (52%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -42,7 +42,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | `6c0ccee0` |
 | 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `d2e9d7f9` |
 | 9 | Interface sounds | 4 | done (jsdom unit tests; the sounds themselves are heard only in a browser with a mapped game: task 15's example) | `f68d822e` |
-| 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | todo | |
+| 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke needs packed packages and the network: not run) | `PENDING10` |
 | 11 | Splash (`@automata/ui-screens`) | 5 | todo | |
 | 11b | `Hosting.openLink` on every target | 5 | todo | |
 | 12 | Credits (`@automata/ui-screens`) | 5 | todo | |
@@ -145,6 +145,33 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   before; every per-component mark test was watched failing with its source change stashed.
 - **Task 9, not run:** a listen: nothing here plays a real sound. The audio path (`audio.sound(alias, { bus: 'ui' })`) is
   tested against a recording stand-in; the example in task 15 and the created game's journey are where it is heard.
+- **Task 10, Ruling:** `create-game` does not run the font build itself. The new game gets `automata.content.ts` and a
+  `fonts` script (`automata-content assets`), which `dev` and every `build:<target>` run first, and imports the built
+  `content/generated/fonts/fonts.css` from `src/main.ts`; `content/generated/` is already git-ignored. Reason: at
+  `create-game` time the game's packages are not installed, and the font build needs the game's content kinds (feel,
+  audio) which tools does not import. Checked by hand on a generated game wired to the workspace's packages:
+  `automata-content assets` wrote 11 files (four subsets for `ja`, `en`, `es-419`, `pt-BR`, one each for `ko`, `zh-Hans`,
+  the licences, `fonts.json`, `fonts.css`) and `automata check --only words` passed. Cost if wrong: a stranger's first
+  `pnpm dev` runs one extra command (about a second).
+- **Task 10, Ruling (plan defect):** the five catalogs are not empty (call 17 assumed the starter has no text): Feel's
+  "Bump!" is the starter's one word, so each catalog holds its key `content_feel_feel_entry_0_word_0_words`, written new
+  in the five languages. Found by running the font build on a generated game, which refused the empty ones as stale.
+- **Task 10, Ruling (plan defect):** `es-419` was refused as "not a language tag" by the content compiler
+  (`LANGUAGE_TAG` allowed only a two-letter region), so no game could ship the framework's own default language. The
+  regex now allows a three-digit region (`@automata/content`, patch changeset, test `language-tag.test.ts`). Ruken's own
+  manifest parser only requires `en` among the languages, so the store accepts it. Task 16 (Emberwick) needed this too.
+- **Task 10, Ruling:** the font flavour in `fonts.toml` is named `zh-hans` (the schema allows `[a-z0-9-]+`), while the
+  vendored file keeps its `zh_hans.woff2` name. A binary template file type (`TemplateBinaryFile`) carries the fonts;
+  the three fonts and `OFL.txt` are read from `vendor/fonts/fusion-pixel-12/` in the repository and from
+  `dist/template-fonts/` in the published package (`tsdown.config.ts` copies them), whichever exists. Their hashes in the
+  template are held to the files by `template-fonts.test.ts`.
+- **Task 10, Ruling:** the 3D template stays on one language with `font-family: sans-serif` (`styleFile('sans-serif')`),
+  its ship config on `['en']`, and no font scripts. The 2D game's ship config now lists the six languages.
+- **Task 10, Ruling:** the starter audio file's schema check lives in `extensions/audio-synth/tests` (it reads the
+  template's `audio.toml` by path), since tools may not import audio-synth.
+- **Task 10, not run:** `tooling/consumer-smoke` (it packs the packages and installs from a registry); its first-run step
+  is updated by reading, so the language screen is pressed (`first-language-en`) before the title. A `vite build` of a
+  generated game was not run either (the temporary workspace link had no Svelte plugin); the font build and `check` were.
 
 ## Global constraints
 

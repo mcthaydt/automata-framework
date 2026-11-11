@@ -185,9 +185,10 @@ describe('createGame', () => {
     it('writes web and itch.io by default: a Vite build for each, ship for itch.io, no plain build', async () => {
       const { pkg } = await generate()
       expect(pkg.scripts).toMatchObject({
-        'build:web': 'vite build --mode web',
+        // Each build cuts the game's fonts first: it ships in six languages and draws them.
+        'build:web': 'pnpm fonts && vite build --mode web',
         'prepare:web': 'automata ship prepare --target web',
-        'build:itch': 'vite build --mode itch',
+        'build:itch': 'pnpm fonts && vite build --mode itch',
         'prepare:itch': 'automata ship prepare --target itch',
       })
       expect(Object.keys(pkg.scripts).filter((name) => /^(build|prepare):/.test(name))).toEqual([
@@ -207,8 +208,8 @@ describe('createGame', () => {
     it('writes all four for --targets web,itch,tauri,ruken, and still no Ruken SDK dependency', async () => {
       const { pkg } = await generate(['web', 'itch', 'tauri', 'ruken'])
       expect(pkg.scripts).toMatchObject({
-        'build:ruken': 'vite build --mode ruken',
-        'build:tauri': 'vite build --mode tauri',
+        'build:ruken': 'pnpm fonts && vite build --mode ruken',
+        'build:tauri': 'pnpm fonts && vite build --mode tauri',
         'prepare:ruken': 'automata ship prepare --target ruken',
         'prepare:tauri': 'automata ship prepare --target tauri',
       })
