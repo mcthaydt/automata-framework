@@ -84,6 +84,21 @@ async function sideBySide(panels) {
   }, panels)
 }
 
+// The registration check: the source's baseline (brightened, its dark frame would not show) at half opacity over AF's WebGL
+// frame. A feature that sits in both pictures is where the two cameras agree; two such features far apart settle the scale.
+async function overlay(sourceB64, afB64) {
+  return compose.evaluate(async ([sourceB64, afB64]) => {
+    const w = 1024, h = 768
+    const c = document.createElement('canvas'); c.width = w; c.height = h
+    const g = c.getContext('2d')
+    const load = async (b64) => { const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode(); return img }
+    g.drawImage(await load(afB64), 0, 0, w, h)
+    g.globalAlpha = 0.5; g.filter = 'brightness(2.5)'
+    g.drawImage(await load(sourceB64), 0, 0, w, h)
+    return c.toDataURL('image/png').split(',')[1]
+  }, [sourceB64, afB64])
+}
+
 for (const [frame, turned] of FRAMES) {
   const stem = `${frame}${turned ? '-turned' : ''}`
   // ONLY=<stem>,<stem> shoots just those frames, so a long run can be done in parts.
@@ -104,8 +119,12 @@ for (const [frame, turned] of FRAMES) {
     { title: 'AF WebGPU', b64: shots.webgpu.png?.toString('base64') ?? null },
   ]
   writeFileSync(join(out, `${stem}-compare.png`), Buffer.from(await sideBySide(panels), 'base64'))
+  if (panels[0].b64 !== null && panels[1].b64 !== null) writeFileSync(join(out, `${stem}-overlay.png`), Buffer.from(await overlay(panels[0].b64, panels[1].b64), 'base64'))
 }
-writeFileSync(join(out, 'shots.json'), `${JSON.stringify(facts, null, 2)}\n`)
+// A part-run (ONLY) keeps the facts of the frames it did not shoot.
+const factsFile = join(out, 'shots.json')
+const kept = existsSync(factsFile) ? JSON.parse(readFileSync(factsFile, 'utf8')).filter((f) => !facts.some((g) => g.frame === f.frame && g.pref === f.pref)) : []
+writeFileSync(factsFile, `${JSON.stringify([...kept, ...facts], null, 2)}\n`)
 await browser.close()
 stop()
 process.exit(0)
