@@ -29,9 +29,12 @@ async function waitFor(predicate: () => boolean, what: string): Promise<void> {
 }
 
 /**
- * Waits until the file watcher has delivered what was written before it. A file system may report a setup write late
- * (macOS reported main.js and the fixture's files as changed after the server was up, and Vite answers a change to a
- * module nothing imports with a full reload). Events arrive in order, so a file written now arrives after them.
+ * Waits until the file watcher has delivered what was written before it, in this folder. A file system may report a
+ * setup write late (macOS reported main.js and the fixture's files as changed after the server was up, and Vite
+ * answers a change to a module nothing imports with a full reload). Events for one folder arrive in the order they
+ * were written, so a file written now arrives after the setup's writes to the root. Across folders there is no such
+ * order: macOS (fsevents) reported the plugin's own content/generated files after this mark, which is why the test
+ * below does not count on the watcher having gone quiet, and names what each reload was triggered by instead.
  */
 async function watcherCaughtUp(root: string, seen: readonly string[]): Promise<void> {
   const mark = join(root, 'watcher-mark.txt')
@@ -286,10 +289,11 @@ describe('vite dev', () => {
     expect(served?.code).toContain(hash)
   }, 90_000)
 
-  it('sends a real HMR update for the content module, so a page that accepts it gets the new content in place', async () => {
-    // The Tuner writes tuning.toml as you drag and the game beside it must change without reloading the page. A
-    // custom event alone leaves the page holding the module it first imported; an HMR update goes up the importers
-    // to the module that accepts it (the game's main.ts), which restarts the game on the new content.
+  /**
+   * A dev server on a page that accepts the content module, with every payload Vite sends its client recorded and
+   * what the file watcher saw, so a failure names the file that made it send what it sent.
+   */
+  async function hmrPage() {
     const root = copyFixture('valid')
     writeFileSync(
       join(root, 'main.js'),
@@ -303,7 +307,9 @@ describe('vite dev', () => {
       server: { middlewareMode: true, ws: false },
     })
     servers.push(server)
-    // What Vite's file watcher saw, so a failure below names the file that made it send what it sent.
+    // The files this setup wrote itself (main.js above): a full reload that names one of them is the watcher reporting
+    // that write late, not something the content change did.
+    const written = [join(root, 'main.js')]
     const watched: string[] = []
     server.watcher.on('all', (event, path) => watched.push(`${event} ${path.replace(root, '')}`))
     const sent: HotPayload[] = []
@@ -316,19 +322,77 @@ describe('vite dev', () => {
     // Count only what the content change causes, not what the setup's own writes were reported as.
     await watcherCaughtUp(root, watched)
     sent.length = 0
+    return { root, sent, watched, written }
+  }
 
-    setGravity(root, '-300.0')
-    await waitFor(() => sent.some((payload) => payload.type === 'update'), 'the HMR update')
+  /**
+   * The full reloads the content change caused. Vite names the file behind each one (`triggeredBy`). One that names a
+   * file this test's setup wrote is the watcher reporting that write late, which a content change did not cause. One
+   * that names anything else (a content or generated file, the content module) or nothing is real.
+   */
+  const reloadsCaused = (sent: readonly HotPayload[], written: readonly string[]) =>
+    sent.flatMap((payload) =>
+      payload.type === 'full-reload' && !written.includes(payload.triggeredBy ?? '') ? [payload] : [],
+    )
+
+  const expectOnlyTheUpdate = (
+    sent: readonly HotPayload[],
+    watched: readonly string[],
+    written: readonly string[],
+  ): void => {
     const update = sent.find((payload) => payload.type === 'update')
     // main.js is the boundary that accepts the content module: Vite re-imports the module there, no page reload.
     expect(
       update?.type === 'update' && update.updates.map(({ path, acceptedPath }) => [path, acceptedPath]),
     ).toEqual([['/main.js', '\0virtual:automata/content']])
+    const reloads = sent.flatMap((payload) => (payload.type === 'full-reload' ? [payload.triggeredBy] : []))
+    expect(
+      reloadsCaused(sent, written),
+      `a full reload was sent; payloads: ${JSON.stringify(sent.map((payload) => payload.type))}, reloads triggered by: ${JSON.stringify(reloads)}, watcher: ${JSON.stringify(watched)}`,
+    ).toEqual([])
+  }
+
+  it('sends a real HMR update for the content module, so a page that accepts it gets the new content in place', async () => {
+    // The Tuner writes tuning.toml as you drag and the game beside it must change without reloading the page. A
+    // custom event alone leaves the page holding the module it first imported; an HMR update goes up the importers
+    // to the module that accepts it (the game's main.ts), which restarts the game on the new content.
+    const { root, sent, watched, written } = await hmrPage()
+    setGravity(root, '-300.0')
+    await waitFor(() => sent.some((payload) => payload.type === 'update'), 'the HMR update')
+    expectOnlyTheUpdate(sent, watched, written)
+  }, 90_000)
+
+  it("does not blame a content change for the watcher reporting the page's own file late", async () => {
+    // macOS reports a write when it likes, files in different folders in no fixed order, so the page's main.js can
+    // be reported changed after the watcher has caught up (Vite answers that, rightly, with a full reload of its own).
+    const { root, sent, watched, written } = await hmrPage()
+    const page = join(root, 'main.js')
+    writeFileSync(page, readFileSync(page, 'utf8'))
+    expect(written).toContain(page)
+    await waitFor(() => watched.some((event) => event.endsWith('/main.js')), 'the late report of main.js')
+    setGravity(root, '-300.0')
+    await waitFor(() => sent.some((payload) => payload.type === 'update'), 'the HMR update')
     expect(
       sent.some((payload) => payload.type === 'full-reload'),
-      `a full reload was sent; payloads: ${JSON.stringify(sent.map((payload) => payload.type))}, watcher: ${JSON.stringify(watched)}`,
-    ).toBe(false)
+      'the stray report of main.js should have made Vite reload the page, as it does',
+    ).toBe(true)
+    expectOnlyTheUpdate(sent, watched, written)
   }, 90_000)
+
+  it('blames a full reload on the content change unless it names a file the test wrote', () => {
+    const written = ['/r/main.js']
+    const reload = (triggeredBy?: string): HotPayload =>
+      triggeredBy === undefined
+        ? { type: 'full-reload', path: '*' }
+        : { type: 'full-reload', path: '*', triggeredBy }
+    expect(reloadsCaused([reload('/r/main.js')], written)).toEqual([])
+    expect(reloadsCaused([reload('/r/content/tuning.toml')], written)).toHaveLength(1)
+    expect(reloadsCaused([reload('/r/content/generated/content.json')], written)).toHaveLength(1)
+    expect(reloadsCaused([reload('/r/\0virtual:automata/content')], written)).toHaveLength(1)
+    expect(reloadsCaused([reload()], written)).toHaveLength(1)
+    // Nothing the setup wrote, nothing excused.
+    expect(reloadsCaused([reload('/r/main.js')], [])).toHaveLength(1)
+  })
 
   it("recovers after the game's code throws during a rebuild (audit of PR #8)", async () => {
     const root = copyFixture('valid')

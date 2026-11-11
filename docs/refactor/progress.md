@@ -790,3 +790,16 @@ The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches 
 | The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
 | Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
 | Gates | See the PR description for what ran and what is pending | |
+
+## The content HMR test names what a full reload was triggered by (2026-11-11)
+
+`@automata/content` `vite dev > sends a real HMR update for the content module` failed on the macOS runner (run
+42971247614, job 130359982913) with payloads `[full-reload, update, custom]`, after the mark-file wait of `4f630107`.
+
+| Step | Status | Record |
+|---|---|---|
+| Cause | Partly found. Only the page's own `main.js` (it accepts a dependency, not itself) can make Vite send a full reload here, and Vite answers a watcher event within microtasks. The CI watcher log has `change main.js` first, and the plugin's own `content/generated/*` events after the mark's `add`: macOS (fsevents) does not deliver events across folders in write order, so the helper's "events arrive in order" was false. Not reproduced on Linux: 0 of 30 unloaded, 0 of 30 on one core with 4 CPU hogs, and 0 of 25 for each of four variants that rewrite `main.js` before, during and after the first transform. The exact late event is not proven | job log |
+| Red first | A new test rewrites `main.js` after the watcher has caught up and then changes the content: with "any full reload fails" it sends the same payloads as CI, `[full-reload, update, custom]`, with the reload triggered by `main.js` | `automata-content.test.ts` |
+| Fix | The assertion is narrowed to what the test is about: the update for the content module is still required and checked as before, and any full reload fails unless Vite names (`triggeredBy`) a file this test's setup wrote (recorded in the test, not named in a list). A reload that names a content or generated file, the content module, or nothing fails, and its trigger is printed. The helper's comment is corrected. The plugin is unchanged | same |
+| Proof | 30 of 30 runs of the two HMR tests, and 15 of 15 on one core with 4 CPU hogs; the whole file passes | |
+| Not run | The macOS runner | |
