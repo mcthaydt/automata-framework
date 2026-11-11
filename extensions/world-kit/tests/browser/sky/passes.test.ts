@@ -171,7 +171,7 @@ describe.runIf(hasWebGL2)('the kit’s look passes on WebGL2', () => {
       (without[i * 4] ?? 0) + (without[i * 4 + 1] ?? 0) + (without[i * 4 + 2] ?? 0)
     let top = 0
     for (let i = 0; i < without.length / 4; i++) if (light(i) > light(top)) top = i
-    glow.setColours([0x123456])
+    glow.setColours([0xff00ff])
     expect(drawn(without, shot(renderer))).toEqual([])
     glow.setColours([colourAt(without, top)])
     expect(drawn(without, shot(renderer)).length).toBeGreaterThan(10)

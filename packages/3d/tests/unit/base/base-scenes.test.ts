@@ -3,6 +3,8 @@
 // the base scenes through the world builder, before the trim's deletions).
 import { describe, expect, it } from 'vitest'
 import { BASE_PAIR, BASE_SCENES, baseLibrary } from '#src/entries/base.ts'
+import { fovOf, LENS_MM } from '#src/features/camera/fov.ts'
+import { cameraViewSchema } from '#src/features/camera/sim/camera-view.schema.ts'
 import { buildWorld } from '#src/features/world/build.ts'
 import { registeredPropGenerators } from '#src/features/world/props/prop-generator-registry.ts'
 import { afSector2Schema } from '#src/shared/level/af-sector-2.schema.ts'
@@ -59,4 +61,34 @@ describe('the base scenes', () => {
       expect(registeredPropGenerators()).toContain(preset.kind)
     expect(Object.keys(baseLibrary.swatches).length).toBe(21)
   })
+
+  // The gameplay camera stands back far enough to frame a room as the source's diorama does: the diorama's field is `h`
+  // texels tall at 96 / 2.6 × 2 texels a metre, and a 50 mm lens sees 2 d tan(fov / 2) metres at distance d.
+  for (const name of names) {
+    it(`${name} gives each room a camera view that frames it as the source's diorama does`, () => {
+      const level = BASE_SCENES[name]
+      const diorama = level.views?.diorama as { h: number }
+      const metres = diorama.h / ((96 / 2.6) * 2)
+      const framing = metres / (2 * Math.tan((fovOf(LENS_MM) * Math.PI) / 360))
+      for (const sector of level.sectors) {
+        const view = level.views?.[sector.view as string]
+        expect(view, `${name}: the room ${sector.id} names a view`).toBeDefined()
+        expect(cameraViewSchema.safeParse(view).success).toBe(true)
+        expect(Math.abs((view as { distance: number }).distance - framing)).toBeLessThan(0.3)
+      }
+    })
+    it(`${name}'s views are the rooms' footprints, floor to ceiling`, () => {
+      const level = BASE_SCENES[name]
+      for (const sector of level.sectors) {
+        const xs = sector.corners.map((c) => c[0])
+        const zs = sector.corners.map((c) => c[1])
+        const ceiling = (sector.ceiling as { z: number }).z
+        const view = level.views?.[sector.view as string] as { bounds: unknown }
+        expect(view.bounds).toEqual({
+          min: [Math.min(...xs), 0, Math.min(...zs)],
+          max: [Math.max(...xs), ceiling, Math.max(...zs)],
+        })
+      }
+    })
+  }
 })

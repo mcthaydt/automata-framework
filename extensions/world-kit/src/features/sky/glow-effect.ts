@@ -18,12 +18,18 @@ export const MAX_REACH = 4
  * the shader), so each colour is a uniform of its own and the test is unrolled.
  */
 export const MAX_COLOURS = 24
+/**
+ * How near (squared, in RGB) a pixel is to a glow colour to count as that glow: the haze and the dither move a glowing
+ * pixel off its exact colour, to a neighbour on the palette, so the match is a little wider than the colour itself.
+ */
+const TOLERANCE = '0.02'
 const SLOTS = Array.from({ length: MAX_COLOURS }, (_, i) => i)
 const GLSL_TESTS = SLOTS.map(
-  (i) => `  if (${i}.0 < uCount) { d = uC${i}.rgb - c; if (dot(d, d) < 0.00005) return true; }`,
+  (i) => `  if (${i}.0 < uCount) { d = uC${i}.rgb - c; if (dot(d, d) < ${TOLERANCE}) return true; }`,
 ).join('\n')
 const WGSL_TESTS = SLOTS.map(
-  (i) => `  if (${i}.0 < fx.uCount) { d = fx.uC${i}.rgb - c; if (dot(d, d) < 0.00005) { return true; } }`,
+  (i) =>
+    `  if (${i}.0 < fx.uCount) { d = fx.uC${i}.rgb - c; if (dot(d, d) < ${TOLERANCE}) { return true; } }`,
 ).join('\n')
 
 const GLSL = `
