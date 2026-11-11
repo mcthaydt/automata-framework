@@ -542,3 +542,11 @@ test('the runway plays: a named model walks, then the next', async ({ page }) =>
   (the coordinator), its wall is on the camera's side (the camera looks toward +z); `painted-scale` is a Node unit test that reads the example's size.
   WebKit and Firefox cannot be installed in this container: every browser run was Chromium. Gate 1: [README](c7/gate-1/README.md). Next: Task 6, unless the
   coordinator says stop.
+- 2026-11-11 (execution, later): Tasks 6 to 8 done (fabrics, swatches and hair; nine garments; the casts, the entry, the README). Task 9 and
+  Task 10 are on hold: the Owner, via the coordinator, "We can hault progress for the fashion runway until the envbuilder is done with
+  stage 2 so the runway actually looks good". The runway example, its journey, its camera test and gate 2's script were started and are not on
+  the branch. WebKit now runs here (`playwright install-deps webkit`, then `playwright install webkit`): the kit's browser suite and the three
+  `characterkit-*` journeys pass in Chromium and WebKit. Case 3 of `painted-depth` (two overlapping figures) differs from `compose` by 2 of 230,400
+  pixels in WebKit where two surfaces cross (the builder's contract allows a pixel there), so it allows 8. Gate 1 measured with no look pass
+  (the example sets none); 91% of the stander's texels equal the builder's cell, the rest not yet attributed between the idle pose's moment and the
+  DUEL snap (EnvironmentBuilder's `claude/eb-look-albedo`).
