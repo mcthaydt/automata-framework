@@ -151,7 +151,8 @@ const placed = (props.PROPS as Spec[]).map((spec) => {
 
 // --- swatches ----------------------------------------------------------------------------------------------------------
 // Each surface the clinic names, as the DUEL colour its texture is mostly made of (the source paints its tiles in DUEL
-// colours, so the dominant colour is an exact palette entry): a step of a ramp, as every AF swatch is.
+// colours, so the dominant colour is an exact palette entry): a step of a ramp, as every AF swatch is. No step is lifted: the
+// source's `mat(color, texture, 4.8)` is the texture's repeat in metres, not a gain.
 const DOMINANT: Record<string, string> = {
   floor: '#625d54',
   floorDim: '#5b5c69',
@@ -172,14 +173,10 @@ const DOMINANT: Record<string, string> = {
   glassNight: '#2d4b47',
   prop: '#73737f',
 }
-// The source lights its big surfaces with a texture gain (the floor's tint is 4.8 over its texture, the ceiling's 1.6), which
-// AF's flat swatches have no field for: those surfaces take a lighter step of their ramp instead, by LIFT steps.
-const LIFT = Number(process.env.LIFT ?? 4)
-const LIFTED = new Set(['floor', 'floorDim', 'plaster', 'plasterWarm', 'ceiling', 'ceilingTile', 'wainscot'])
 const swatches: Record<string, Json> = {}
 for (const [name, colour] of Object.entries(DOMINANT)) {
   const index = nearestDuel(colour)
-  const step = Math.min(7, (index % 8) + (LIFTED.has(name) ? LIFT : 0))
+  const step = index % 8
   swatches[name] = { ramp: DUEL_RAMP_NAMES[Math.floor(index / 8)], step, ...(name.startsWith('glass') ? { noCast: true } : {}) }
 }
 // The moon's glass glows, flat in any light.

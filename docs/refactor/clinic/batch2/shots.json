@@ -198,7 +198,7 @@
     ]
   },
   {
-    "frame": "play-hall",
+    "frame": "play-ward",
     "pref": "webgl",
     "renderer": "webgl",
     "pieces": "427",
@@ -208,7 +208,7 @@
     "errors": []
   },
   {
-    "frame": "play-hall",
+    "frame": "play-ward",
     "pref": "webgpu",
     "renderer": "webgpu",
     "pieces": "427",
@@ -220,7 +220,7 @@
     ]
   },
   {
-    "frame": "play-ward",
+    "frame": "play-hall",
     "pref": "webgl",
     "renderer": "webgl",
     "pieces": "427",
@@ -230,7 +230,7 @@
     "errors": []
   },
   {
-    "frame": "play-ward",
+    "frame": "play-hall",
     "pref": "webgpu",
     "renderer": "webgpu",
     "pieces": "427",

@@ -89,4 +89,12 @@ describe('the converted clinic', () => {
     ] as const)
       expect(hall.some((p) => p.id.split(':')[1] === role && p.surface === surface)).toBe(true)
   })
+  it("keeps each big surface at its texture's own palette step: the source has no gain to lift it", () => {
+    // `mat(color, texture, 4.8)` in the source is the texture's repeat in metres, not a gain. A lifted floor and wall made the
+    // walls neon under the room's lamps; the swatches' steps are the DUEL entries their textures are mostly made of.
+    const step = (name: string) => (library.swatches[name] as { step: number }).step
+    expect(step('floor')).toBe(0)
+    expect(step('plaster')).toBe(1)
+    expect(step('wainscot')).toBe(5)
+  })
 })

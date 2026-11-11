@@ -35,9 +35,9 @@ world-kit pieces the clinic's dressing needs.
   the player as expected. The spike sets the same camera on both (50 mm, 30° down, the zone's distance, the look point at
   the zone's `look` or 1.1 m for a play frame, turned 45° for the turned frames), the way `eb-look` sets its gameplay
   camera. The cause is in `createPixi3dRenderer`'s camera path, which this work does not touch; it needs its owner.
-- **The room light is the source's, lifted**: a cool teal-grey ambient (0.25 here, the source's 0.15 left the flat swatches
-  nearly black) and the surfaces the source lights with a texture gain (floor 4.8, ceiling 1.6) take a lighter step of
-  their DUEL ramp (`LIFT`, 4 steps) in place of the gain, which AF's swatches have no field for.
+- **The room light is the source's**: a cool teal-grey ambient (0.25 here, the source's 0.15) and a low cool fill. Batch 1 lifted
+  the floor, walls and ceiling four steps of their ramp, reading `mat(color, texture, 4.8)` as a texture gain; it is the
+  texture's repeat in metres, so the lift was removed in batch 2 (it made the walls neon under the lamps).
 - **Ada is a 1.62 m box** at the baseline spots; her figure is batch 2.
 - **The supply door and the pieces of `dressClinic`** (curtains, pipes, the exit door and its sign, the CRT, puddles, moon
   shafts, light pools, grime) are batch 2's world-kit pieces. The frames are rough until then.
