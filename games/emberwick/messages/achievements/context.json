@@ -1,0 +1,8 @@
+{
+  "achievement_ember_in_a_minute_title": {
+    "note": "The name of a badge the player earns, shown by the store. Short, like a trophy's name. The ember is the glowing goal at the top of the level; the player climbs to it carrying a lantern."
+  },
+  "achievement_ember_in_a_minute_description": {
+    "note": "One plain sentence under the badge's name that says how to earn it: reach the ember in under 60 seconds. Keep the number 60."
+  }
+}

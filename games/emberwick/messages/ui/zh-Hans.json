@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "splash_label": "开场画面",
+  "splash_hint": "按任意键或点按屏幕",
+  "menu_title": "Emberwick",
+  "menu_hint": "提着灯笼，一路爬到余烬处。",
+  "play": "开始游戏",
+  "keys_move": "移动",
+  "keys_jump": "跳跃",
+  "keys_pause": "暂停",
+  "pause": "暂停",
+  "paused_title": "已暂停",
+  "resume": "继续",
+  "back_to_menu": "返回菜单",
+  "end_title": "余烬属于你",
+  "play_again": "再玩一次",
+  "menu": "菜单",
+  "end_time": "{seconds} 秒"
+}

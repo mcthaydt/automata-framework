@@ -1,3 +1,4 @@
+import { passFirstRun } from '@automata/tools/e2e'
 import { expect, type Page, test } from '@playwright/test'
 import { createBaseSim, moveCommand, readPlayer } from '#src/app/base-sim.ts'
 import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '#src/testing/golden.ts'
@@ -48,6 +49,7 @@ async function passLandscapeGate(page: Page) {
 async function openMenu(page: Page) {
   await page.goto(gameUrl)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+  await passFirstRun(page)
   await passLandscapeGate(page)
   const current = await game(page).getAttribute('data-screen')
   if (current === 'splash') {
@@ -83,6 +85,9 @@ test('boots standalone under Ruken’s headers and shows the splash, then the me
   const response = await page.goto(gameUrl)
   expect(response?.headers()['content-security-policy']).toContain("script-src 'self'")
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+  // A device that has never opened the game is asked for a language first (six ship); the journey presses it as a player
+  // does. The landscape gate comes after: it covers the first screen, which the opening has not entered until then.
+  await passFirstRun(page)
   await passLandscapeGate(page)
   await expect(page.locator('canvas')).toBeVisible()
   const initial = await game(page).getAttribute('data-screen')
@@ -199,6 +204,7 @@ test('playing the golden route with the keyboard reaches the ember and the end s
   await page.clock.install()
   await page.goto(gameUrl)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+  await passFirstRun(page)
   await passLandscapeGate(page)
   await page.keyboard.press('KeyX')
   await expect(game(page)).toHaveAttribute('data-screen', 'menu')

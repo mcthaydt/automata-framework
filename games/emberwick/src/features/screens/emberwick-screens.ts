@@ -9,6 +9,10 @@
 import type { Disposables, InputMap, ScreenContext, ScreenDef } from '@automata/framework'
 import { createSim, type PluginDef, type Sim } from '@automata/sim'
 import { TICK_HZ } from '../../shared/tuning.ts'
+import { type EmberwickWords, emberwickWords } from './words.ts'
+
+/** The board of the fastest climbs, declared in ship.config.ts. */
+const FASTEST_BOARD = 'fastest'
 
 /** How long the splash shows before moving on by itself. */
 const SPLASH_MS = 1500
@@ -23,41 +27,55 @@ export interface ScreensGame {
   readonly input: InputMap
 }
 
+// The panels hold no text of their own. A `data-word` element gets its words from the catalog for the language in play
+// (`textContent`, never markup), a `data-word-label` element its `aria-label`; `show` fills them in on entering and again,
+// in place, on each language change, so focus and the buttons stay where they are.
 const PANELS = {
-  splash: `<section class="panel" aria-label="Splash">
+  splash: `<section class="panel" data-word-label="splashLabel">
       <p class="mark">AutomataFramework</p>
-      <p class="hint blink">Press any key or tap</p>
+      <p class="hint blink" data-word="splashHint"></p>
     </section>`,
   menu: `<section class="panel" aria-labelledby="menu-title">
-      <h1 id="menu-title" class="title">Emberwick</h1>
-      <p class="hint">Carry your lantern up to the ember.</p>
-      <div class="actions"><button type="button" class="primary" data-kind="primary" data-action="play">Play</button></div>
-      <p class="keys"><kbd>←</kbd><kbd>→</kbd> move <kbd>Space</kbd> jump <kbd>Esc</kbd> pause</p>
+      <h1 id="menu-title" class="title" data-word="menuTitle"></h1>
+      <p class="hint" data-word="menuHint"></p>
+      <div class="actions"><button type="button" class="primary" data-kind="primary" data-action="play" data-word="play"></button></div>
+      <p class="keys"><kbd>←</kbd><kbd>→</kbd> <span data-word="keysMove"></span> <kbd>Space</kbd> <span data-word="keysJump"></span> <kbd>Esc</kbd> <span data-word="keysPause"></span></p>
     </section>`,
   room: `<div class="hud">
-      <button type="button" class="pause" data-action="pause" aria-label="Pause">II</button>
+      <button type="button" class="pause" data-action="pause" data-word-label="pause">II</button>
     </div>
     <div class="touch" aria-hidden="true">
-      <button type="button" tabindex="-1" data-hold="left">◀</button>
-      <button type="button" tabindex="-1" data-hold="right">▶</button>
-      <button type="button" tabindex="-1" data-hold="jump" class="jump">▲</button>
+      <button type="button" tabindex="-1" data-hold="left"><i class="arrow" data-arrow="left"></i></button>
+      <button type="button" tabindex="-1" data-hold="right"><i class="arrow" data-arrow="right"></i></button>
+      <button type="button" tabindex="-1" data-hold="jump" class="jump"><i class="arrow" data-arrow="up"></i></button>
     </div>`,
   paused: `<section class="panel" aria-labelledby="paused-title">
-      <h2 id="paused-title">Paused</h2>
+      <h2 id="paused-title" data-word="pausedTitle"></h2>
       <div class="actions">
-        <button type="button" class="primary" data-kind="primary" data-action="resume">Resume</button>
-        <button type="button" data-action="quit">Back to menu</button>
+        <button type="button" class="primary" data-kind="primary" data-action="resume" data-word="resume"></button>
+        <button type="button" data-action="quit" data-word="backToMenu"></button>
       </div>
     </section>`,
   end: `<section class="panel" aria-labelledby="end-title">
-      <h2 id="end-title">The ember is yours</h2>
+      <h2 id="end-title" data-word="endTitle"></h2>
       <p class="time" data-slot="time"></p>
       <div class="actions">
-        <button type="button" class="primary" data-kind="primary" data-action="play">Play again</button>
-        <button type="button" data-action="quit">Menu</button>
+        <button type="button" class="primary" data-kind="primary" data-action="play" data-word="playAgain"></button>
+        <button type="button" data-action="quit" data-word="menu"></button>
       </div>
     </section>`,
 } as const
+
+/** The words a panel's elements name: the strings of `EmberwickWords`, not its `time` function. */
+type WordField = Exclude<keyof EmberwickWords, 'time'>
+
+/** Puts `words` into every element of `layer` that names one. */
+function applyWords(layer: HTMLElement, words: EmberwickWords): void {
+  for (const element of layer.querySelectorAll<HTMLElement>('[data-word]'))
+    element.textContent = words[element.dataset.word as WordField]
+  for (const element of layer.querySelectorAll<HTMLElement>('[data-word-label]'))
+    element.setAttribute('aria-label', words[element.dataset.wordLabel as WordField])
+}
 
 type ScreenId = keyof typeof PANELS
 
@@ -77,14 +95,24 @@ function listen<T extends EventTarget>(
 
 /**
  * Draws a screen's panel into its layer, marks the game root with the screen (`data-screen`, which the page's
- * styles and the browser journeys read) and sends each `[data-action]` button's action to the flow.
+ * styles and the browser journeys read) and sends each `[data-action]` button's action to the flow. The words are the
+ * language's now and follow it while the screen is open; `onWords` is told each time, for what a panel computes
+ * (the end screen's time).
  */
 function show(
-  { layer, services }: ScreenContext,
+  { layer, screen, services }: ScreenContext,
   id: ScreenId,
   actions: Readonly<Record<string, () => void>> = {},
+  onWords: (words: EmberwickWords, locale: string) => void = () => {},
 ): Window {
   layer.innerHTML = PANELS[id]
+  screen.add(
+    services.locale.subscribe((locale) => {
+      const words = emberwickWords(locale)
+      applyWords(layer, words)
+      onWords(words, locale)
+    }),
+  )
   const root = layer.closest('[data-layer="screens"]')?.parentElement
   if (root instanceof HTMLElement) root.dataset.screen = id
   layer.addEventListener('click', (event) => {
@@ -192,6 +220,9 @@ export function emberwickScreens(game: ScreensGame): ScreenDef[] {
           if (!events.some((event) => event.type === 'goal.reached')) return
           seconds = playing.tick / TICK_HZ
           hosting.round.end('complete')
+          // The board counts milliseconds; the round's time is a whole number of ticks, so this is exact. It never
+          // rejects, so a host with no boards (or none reachable) leaves the end screen as it is.
+          void services.leaderboards.submitScore(FASTEST_BOARD, Math.round(seconds * 1000))
           flow.dispatch('goal')
         }),
       )
@@ -224,9 +255,13 @@ export function emberwickScreens(game: ScreensGame): ScreenDef[] {
     id: 'end',
     enter: (context) => {
       const { layer } = context
-      show(context, 'end')
-      const time = layer.querySelector('[data-slot="time"]')
-      if (time !== null) time.textContent = `${seconds.toFixed(2)} s`
+      show(context, 'end', {}, (words, locale) => {
+        const time = layer.querySelector('[data-slot="time"]')
+        if (time === null) return
+        // Written for the language: a decimal comma where it has one.
+        const digits = { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        time.textContent = words.time(new Intl.NumberFormat(locale, digits).format(seconds))
+      })
     },
   }
 

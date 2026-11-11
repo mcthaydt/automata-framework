@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 17 of 21 tasks (54%)** (22 listed; task 17 is cut, so 21 are live; tasks 16 and 19 are on the side branch `claude/shared-polish-emberwick-site` and not counted here).
+**Progress: 20 of 21 tasks (56%)** (22 listed; task 17 is cut, so 21 are live; tasks 16 and 19, done on the side branch `claude/shared-polish-emberwick-site`, were merged into this branch on 2026-11-11; task 20 is the one left). Overall: `(3 + 20/21) / 7`.
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -49,10 +49,10 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 13 | Achievements, generic, and their Ruken mapping | 6 | done (unit tests over fakes and Ruken's own parser; a real `ruken publish` is not run) | `474d2f96` |
 | 14 | Stale-build check | 7 | done (jsdom unit tests with a fake clock and a bare HTTP listener; the panel's layout contract in Chromium, 50 cases; no two-process journey, as call 15 says; WebKit and Firefox not run) | `2d87462f` |
 | 15 | The four examples and their journeys | examples | done (Chromium at the phone and compact sizes; `examples-ipad` is added but WebKit is not installed here, so it was not run; see the ledger) | `39bcf8f1` |
-| 16 | Emberwick in six languages, with an achievement | 1, 6 | todo | |
+| 16 | Emberwick in six languages, with an achievement | 1, 6 | done on the side branch `claude/shared-polish-emberwick-site` (Chromium only: 135 unit tests, 38 journeys, the hot-reload demo's 2; WebKit and Firefox not run; the live model call unverified: no key here) | see the ledger below |
 | 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
 | 18 | Guides, API report and index, changesets, final gates | done means | done on this branch (the "Done means" list is in `../progress.md`; Emberwick's and the Editor page's lines wait for tasks 16 and 19 on the side branch) | see the ledger |
-| 19 | The site's Editor page is cut; the link opens the editor | site | todo | |
+| 19 | The site's Editor page is cut; the link opens the editor | site | done on the side branch `claude/shared-polish-emberwick-site` (site unit tests 510, the site build, `check:site`, the site's whole Chromium suite 469; WebKit not run; `check:deployed` not run: needs the live site) | see the ledger below |
 | 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | todo | |
 
 ## Execution log and deviations ledger
@@ -1829,3 +1829,113 @@ redirect is a host rule, not a page: a `_redirects` file for Cloudflare Pages (t
   and the code on `main` at `b1f339c3` (the audit linked at the top: spec coverage, every named file, export, code and
   command, and the things the first draft left unverified). Where the audit found the code differed from what the plan
   assumed, the task above now says what the code is.
+
+## Execution log: tasks 16 and 19 (the side branch `claude/shared-polish-emberwick-site`)
+
+Rulings of the session that did these two tasks while the build branch did the rest. The main session folds them into its
+ledger and recomputes the tracker's percentage after the merge.
+
+### Task 16
+
+- **Task 16, Ruling (plan defect, the coordinator agreed):** `makeEmberwick(content, { id, locale? })` takes the languages
+  as an option instead of always shipping the six. `game.ts` (the game's own build) passes `DEFAULT_LOCALES`; the base's
+  other consumer, `examples/2d/content/hot-reload`, passes nothing, so it stays one language with no first-run screen and
+  its journey is untouched. The plan's "`make-game.ts`: `locale: { locales: [...DEFAULT_LOCALES] }`" would have put the
+  language screen in front of that demo's standalone journey. The package gains an export `./fonts.css` (the built faces),
+  and the demo swaps its two `@fontsource/pixelify-sans` imports for it (the coordinator allowed that one change in
+  `examples/2d/content/hot-reload`: `main.ts` and `package.json`; the lockfile changes with it, and so does
+  `docs/versions.md`, whose Pixelify row went with the last user of the package). Cost if wrong: a demo that wants the
+  six languages passes `locale` itself.
+- **Task 16, Ruling:** `ship.config.ts` writes the six language tags out, not `DEFAULT_LOCALES`: the `automata` command
+  loads that file in plain Node, and `@automata/content/locale` cannot be loaded there (the same fault as task 13's
+  `game-config`). A unit test pins the six.
+- **Task 16, Ruling:** the panels hold no text. Each element names its word (`data-word`, `data-word-label`) and
+  `show()` fills them from `emberwickWords(locale)` on entering and again on each language change (`textContent` only, so
+  focus stays: a test holds the same button element, still focused, after `locale.set`). The end screen writes the time
+  through `Intl.NumberFormat(locale)`, so Portuguese reads `5,70 s`; English still reads `5.70 s`.
+- **Task 16, Ruling:** the touch buttons' arrows (`◀ ▶ ▲`) are drawn with CSS (`clip-path`), not typed: the font build cuts
+  a subset to the characters in the catalogs, so a typed symbol would fall back to a device font. `←` and `→` in the key
+  caps are in the build's always-kept set.
+- **Task 16, OPEN FOR THE OWNER (not settled):** `plumbing.test.ts`'s limit moved from 430 to 490, and `words.ts` is counted as
+  content. A test number that moves to get green is the Owner's call; the session moved it so the gate could run and the
+  Owner can choose between accepting it and moving the plumbing into the framework. The measure (non-sim, non-art,
+  non-content, non-drawing `.ts` lines reached from `main.ts`) was exactly 430 on `main` and is **479** now (the limit has 11
+  lines of room), file by file (before → now): `main.ts` 41 → 40 (−1: two font imports became one); `src/app/game.ts` 8 → 12
+  (+4: the `DEFAULT_LOCALES` import and the `locale` literal); `src/app/make-game.ts` 60 → 71 (+11: the `EmberwickOptions`
+  type with its comment, the `locale` option, the `leaderboards` want); `src/features/screens/emberwick-screens.ts` 234 → 269
+  (+35: the panels' `data-word` markup 6, `applyWords` 8, the locale subscription in `show` 8, the time written for the
+  language 6, the board submit with its comment 5, the board id constant 2); `flow.ts`, `scene-renderer.ts`, `game-id.ts`
+  unchanged. `src/features/screens/words.ts` (83 lines, the catalog loader) would add 83 more and is the reclassified file:
+  as plumbing the measure would be 562. What the framework could take off the game's hands: (a) a core export of
+  `matchLocale`, or a `pickCatalog(locale, { en, ja, … })`, which would remove `catalogFor` and `primary` (about 15 lines
+  of `words.ts`; `@automata/ui-screens` carries the same five lines, so it is three copies today); (b) a helper for plain-DOM
+  screens that binds `data-word` elements to a catalog and redraws on `locale.subscribe` (about 20 lines of `show` and
+  `applyWords`: every game with its own DOM screens needs the same), and `formatNumber` exported from the framework's
+  entries (core has `features/locale/format.ts`; no entry exports it, so the game calls `Intl.NumberFormat` itself, 3
+  lines); (c) a default-languages shorthand on `defineGame` (for example `locale: 'default'`, or an exported
+  `defaultLocale()` that builds `{ locales: [...DEFAULT_LOCALES], baseLocale: 'en' }`), which would remove the import and
+  the literal in `game.ts` (4 lines) and the option's type in `make-game.ts` if `GameSpec['locale']` were exported by the
+  root entry; (d) the `fonts.css` export is not plumbing in this measure (it is a line of `package.json`), and the six tags in
+  `ship.config.ts` are outside it (that file is not reached from `main.ts`; a `defaultLanguages` export that plain Node can
+  load would remove them). Estimate of what the framework could absorb: about 35 of the 49 extra lines ((b) 23, (c) 4 and about 8 of `make-game.ts`), and about 15 of `words.ts`'s 83. With that done the measure would be about 444 (479 − 35), so a limit of 450 instead of 490; counting `words.ts` as plumbing it would be about 512 (562 − 35 − 15). The test is
+  otherwise untouched, and nothing further has been changed there.
+- **Task 16, Ruling:** type sizes are whole multiples of the font's 12 px grid (title 60 px, 36 px on a compact screen;
+  headings and the splash mark 24 px; the time 36 px) and the title's shadow is two steps, not four. Looked at in
+  Chromium at phone and compact size: the old four-step shadow at 56 px closed the "c" of "Emberwick" and read "Emberwiok".
+  Body text and buttons keep their sizes. Every `font-weight: 700` is 400 with `font-synthesis: none` (one weight).
+- **Task 16, Ruling:** the achievements' words (`messages/achievements/`, written by `automata words` from the declaration) are
+  translated into the five languages too, with `context.json` notes, since the `words` step asks for them.
+- **Task 16, Ruling:** the journeys: Emberwick's own standalone journeys (`emberwick.test.ts`, `dev.test.ts`) call
+  `passFirstRun` (the plan said they ran inside Ruken's fake host; five of them open the game's own origin). It goes
+  before the landscape gate: the gate is mounted when the first screen enters, so waiting for it first times out at
+  compact size. The six language journeys are projects `emberwick-language-<tag>` (browser `locale`; `zh-CN` is matched to
+  Simplified), Chromium at phone size, each checking the face the language is drawn in is loaded.
+- **Task 16, the game's own check command fails at `no-eval` (the implementation audit must see this):** in
+  `games/emberwick`, `pnpm exec automata check --only no-eval` (and the plain `automata check`, whose other steps `inputs`,
+  `levels` and `words` pass) prints `FAIL  no-eval`, then `build  vite build failed: failed to load config from
+  <game>/vite.config.ts`, then `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '<repo>/packages/content/src/features/vite/index'
+  imported from <repo>/packages/content/src/entries/vite.ts` (code `ERR_MODULE_NOT_FOUND`); `secrets` and `data-urls` then
+  report `build  not scanned: the build failed (see no-eval)`, so the command finds 3 findings and 1 step that could not run.
+  Cause: the step runs a plain-Node `vite build` of the game, and in this workspace `vite.config.ts` imports
+  `@automata/content/vite`, whose source entry has an extensionless import Node cannot resolve (the game's own scripts use
+  `--configLoader runner`, which the step does not). It fails the same way on `main` (checked at `a8f2d40a` in a clean
+  worktree with `pnpm install --frozen-lockfile`: the same `FAIL  no-eval` and the same error, with the worktree's paths), so it
+  is not caused by this task; the `words`, `boards` and `achievements` steps this task changes pass. A published install
+  (built `dist`) is not affected, which this session did not run.
+- **Task 16, note:** the `ship-config` cases were written after the config and then watched failing with the config stashed (three
+  failures); the screens' three new cases and the words file were watched failing first.
+- **Task 16, measured:** the font subsets total 62,220 bytes (six `woff2` files: `en` 6,448, `es-419` 6,548, `pt-BR` 6,584,
+  `ja` 14,208, `ko` 11,152, `zh-Hans` 17,280), plus three 18,805-byte licence copies. Emberwick's golden hash and the sim
+  content hash did not move (the unit golden tests, the Chromium browser golden and the 342-frame golden journey all pass).
+- **Task 16, not run:** WebKit and Firefox (the config's WebKit projects were not started); the end screen's board submit
+  *inside* Ruken's fake host (a unit test over the fake host's `ruken` target holds it, and the standalone golden journey
+  runs the submit path with no console error); a real `ruken publish`; a real language switch by a Ruken host.
+- **Task 16, live call:** `AUTOMATA_ANTHROPIC_KEY` is not set in this session, so the live `automata words` call is unverified.
+  `automata words` with no key said it needs `ANTHROPIC_API_KEY` and changed nothing.
+- **Editor gap (for the ledger):** `messages/ui/*.json` (a game's own words) and `content/fonts.toml` have no editor; the
+  fonts list is already gap 6, and a game's own interface words are the same kind of gap as the credits file's.
+
+### Task 19
+
+- **Task 19, step 1 (read before deleting):** nothing had to move. The command that opens the editor on your own game is in
+  `docs/guides/editor.md` (the first code block, and `automata editor` with its options). That the editors are free on the
+  web is on Pricing (`/app`: `app-offer.ts`, `AppPage.svelte`) and in Home's pricing section. The page's other two notes
+  (the try-it editor cannot play a level; work is kept in this browser and Share keeps a copy) were its own and are said by
+  the editor itself and by `docs/guides/editor.md` ("nothing you draw is kept, and Share downloads or copies your level").
+- **Task 19, Ruling:** the redirect list is `site/src/shared/redirects.ts` (`REDIRECTS`) and the editor's address and the
+  `reloads(href)` helper for `data-sveltekit-reload` are `site/src/shared/editor-link.ts`. `write-redirects.ts`,
+  `check-deployed.ts` and `serve-static.ts` all read the same list or file. `serve-static.ts` (the server the site's e2e
+  runs on) now answers `_redirects` rules, so `/editor` behaves in the browser suite as on the host: a journey opens
+  `/editor` and lands on the editor.
+- **Task 19, Ruling:** `build-script.test.ts`'s "writes no redirect pages" pinned that no build step mentioned "redirect"; it now
+  pins that the one such step is `write-redirects.ts` (the rule for the host, not a page). It is still stricter than before
+  about any other.
+- **Task 19, Ruling:** the picture `editor-new` and the `cut` field of a picture (only that picture used it, and the cropped
+  screenshot code in `take-pictures.ts`) are removed with the page; the `editor` picture stays (Home shows it).
+- **Task 19, note:** the site-checks case "fails a page that links to `/editor`" passed when written: the check "missing
+  destination" already refuses a link to a page the build lacks, so it is a pin of existing behaviour, not a new check.
+- **Task 19, note:** `check:deployed`'s `/editor` probe is tested against a fake host (status and `Location`); the live host's
+  answer is the Owner's to run once the site is uploaded (Cloudflare Pages reads `_redirects` at the build's root).
+- **Task 19, not run:** WebKit for the site's e2e; `pnpm check:deployed` against the live site; `check:launch`, Lighthouse.
+- **Task 19, editor gap:** none (no new content).
+

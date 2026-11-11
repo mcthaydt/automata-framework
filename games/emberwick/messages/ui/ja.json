@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "splash_label": "オープニング",
+  "splash_hint": "何かキーを押すか、タップしてください",
+  "menu_title": "Emberwick",
+  "menu_hint": "ランタンを掲げて、残り火まで登ろう。",
+  "play": "プレイ",
+  "keys_move": "移動",
+  "keys_jump": "ジャンプ",
+  "keys_pause": "ポーズ",
+  "pause": "一時停止",
+  "paused_title": "一時停止中",
+  "resume": "再開",
+  "back_to_menu": "メニューに戻る",
+  "end_title": "残り火はあなたのもの",
+  "play_again": "もう一度プレイ",
+  "menu": "メニュー",
+  "end_time": "{seconds} 秒"
+}

@@ -4,6 +4,7 @@
   should be.
 -->
 <script lang="ts">
+import { EDITOR_URL, reloads } from '../editor-link'
 import { CONTACT_EMAIL, REPOSITORY_PUBLIC, REPOSITORY_URL } from '../site.js'
 
 const columns = [
@@ -18,7 +19,7 @@ const columns = [
   {
     title: 'Tools',
     links: [
-      ['/editor', 'Level editor'],
+      [EDITOR_URL, 'Level editor'],
       ['/app', 'Pricing'],
       ['/changelog', 'Changelog'],
       ...(REPOSITORY_PUBLIC ? [[REPOSITORY_URL, 'GitHub']] : []),
@@ -45,7 +46,7 @@ const columns = [
       {#each columns as column (column.title)}
         <div class="column">
           <h2>{column.title}</h2>
-          {#each column.links as [href, label] (href)}<a {href}>{label}</a>{/each}
+          {#each column.links as [href, label] (href)}<a {href} data-sveltekit-reload={reloads(href)}>{label}</a>{/each}
         </div>
       {/each}
     </nav>
