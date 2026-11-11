@@ -39,7 +39,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | done (it reads the game's own catalogs; task 5b switches it to `gameWords`) | `29ccea7f` |
 | 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | done | `ceb2a014` |
 | 6 | The opening sequence and the seen flags (core) | 2, 3 | done | `dd38dc77` |
-| 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | TASK7 |
+| 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | `6c0ccee0` |
 | 8 | Photosensitivity warning | 3 | todo | |
 | 9 | Interface sounds | 4 | todo | |
 | 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | todo | |
