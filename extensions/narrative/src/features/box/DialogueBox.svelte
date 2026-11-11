@@ -15,15 +15,18 @@ import { NarrativeDialogue, NarrativeSceneResource } from '../../shared/sim/narr
 import { puzzleReader } from '../../shared/sim/puzzle-reader.ts'
 import { BOX_HEIGHT_VAR, dialogueBoxModel } from './dialogue-box.ts'
 import LineBox from './LineBox.svelte'
+import { prefersReducedMotion, type TypedView, type TypingOptions, typedFor } from './typing.ts'
 
 interface Props {
   /** The game's message catalog: the words for a locale key, or undefined when there are none. */
   words: (key: string) => string | undefined
   /** A line record by id (the game's `lines` content). */
   lines: (id: string) => LineRecord | undefined
+  /** The clock and rate lines with a delivery are typed at. */
+  typing?: TypingOptions
 }
 
-const { words, lines }: Props = $props()
+const { words, lines, typing = {} }: Props = $props()
 const play = usePlay()
 
 // `tick` changes only when the sim steps, so the conversation is read again then and not at every frame.
@@ -52,7 +55,41 @@ function send(type: string, payload: unknown): void {
   sentAt = tick
   play.send({ type, payload })
 }
-const advance = (): void => send('narrative.advance', {})
+// A line with a delivery is typed out. Time comes from the clock below; a press completes the line before it dismisses it.
+const clock = (): number => typing.clock?.() ?? performance.now() / 1000
+const reduced = prefersReducedMotion()
+let startedAt = $state(0)
+let now = $state(0)
+let completed = $state(false)
+let typedLine = ''
+$effect(() => {
+  const line = model?.lineId ?? ''
+  if (line === typedLine) return
+  typedLine = line
+  startedAt = clock()
+  now = startedAt
+  completed = false
+})
+const reveal: TypedView = $derived(
+  model === null
+    ? { shown: 0, done: true }
+    : completed
+      ? { shown: model.text.length, done: true }
+      : typedFor(model.text, model.delivery, now - startedAt, { rate: typing.rate, reducedMotion: reduced }),
+)
+// While a line is being typed, the clock is read each frame; once it is all there, nothing is.
+$effect(() => {
+  if (reveal.done) return
+  let frame = requestAnimationFrame(function step() {
+    now = clock()
+    frame = requestAnimationFrame(step)
+  })
+  return () => cancelAnimationFrame(frame)
+})
+const advance = (): void => {
+  if (!reveal.done) completed = true
+  else send('narrative.advance', {})
+}
 const choose = (index: number): void => send('narrative.choose', { index })
 
 // A key is never shown: a line with no words is told to whoever writes the game, once.
@@ -75,7 +112,7 @@ let showing = false
 const choiceCount = $derived(model?.choices.length ?? 0)
 $effect(() => {
   const open = model !== null
-  const choices = choiceCount > 0
+  const choices = choiceCount > 0 && reveal.done
   void afterRender().then(() => {
     if (open && !showing) returnTo = document.activeElement
     if (open) (choices ? choiceButtons[0] : next)?.focus({ preventScroll: true })
@@ -107,7 +144,7 @@ onMount(() => {
   // Keys 1 to 9 take the choice with that number.
   const onKey = (event: KeyboardEvent): void => {
     if (event.altKey || event.ctrlKey || event.metaKey || !/^[1-9]$/.test(event.key)) return
-    const choice = model?.choices[Number(event.key) - 1]
+    const choice = reveal.done ? model?.choices[Number(event.key) - 1] : undefined
     if (choice === undefined) return
     event.preventDefault()
     choose(choice.index)
@@ -141,8 +178,8 @@ onMount(() => {
 </script>
 
 {#if model !== null}
-  <LineBox speaker={model.speaker} text={model.text} bind:element={box}>
-    {#if model.choices.length > 0}
+  <LineBox speaker={model.speaker} text={model.text} shown={reveal.shown} bind:element={box}>
+    {#if reveal.done && model.choices.length > 0}
       <ol class="choices">
         {#each model.choices as choice, position (choice.index)}
           <li>
@@ -159,7 +196,7 @@ onMount(() => {
           </li>
         {/each}
       </ol>
-    {:else if model.next}
+    {:else if model.next || !reveal.done}
       <button
         type="button"
         class="af-control af-control--primary"

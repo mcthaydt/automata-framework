@@ -1,4 +1,5 @@
 import type { UiComponent } from '@automata/framework/extension'
+import type { ComponentProps } from 'svelte'
 import type { CutsceneScript } from '../../shared/sim/cutscene.schema.ts'
 import Caption from './Caption.svelte'
 import type { CaptionLine } from './caption.ts'
@@ -12,6 +13,8 @@ export function captionSlot(
   lines: (id: string) => CaptionLine | undefined,
   scripts: Readonly<Record<string, CutsceneScript>>,
   tickHz = 60,
+  typed?: ComponentProps<typeof Caption>['typed'],
 ): UiComponent {
-  return ((anchor, props) => Caption(anchor, { ...props, words, lines, scripts, tickHz })) as UiComponent
+  return ((anchor, props) =>
+    Caption(anchor, { ...props, words, lines, scripts, tickHz, typed })) as UiComponent
 }

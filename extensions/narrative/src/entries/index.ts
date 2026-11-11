@@ -8,6 +8,13 @@ export {
 export { default as DialogueBox } from '../features/box/DialogueBox.svelte'
 export { default as LineBox } from '../features/box/LineBox.svelte'
 export {
+  DEFAULT_RATE,
+  prefersReducedMotion,
+  type TypedView,
+  type TypingOptions,
+  typedFor,
+} from '../features/box/typing'
+export {
   beatsContent,
   canonContent,
   dialogueContent,

@@ -12,6 +12,8 @@ interface Props {
   /** The speaker's name or the title; no line is drawn when it is absent. */
   speaker?: string | undefined
   text: string
+  /** How many characters of `text` to show (a line being typed out); all by default. The rest keeps its room, unseen. */
+  shown?: number | undefined
   /** The caller positions it (with `style`) instead of the bottom of the field. */
   placed?: boolean
   style?: string | undefined
@@ -21,7 +23,9 @@ interface Props {
   children?: Snippet
 }
 
-let { speaker, text, placed = false, style, element = $bindable(), children }: Props = $props()
+let { speaker, text, shown, placed = false, style, element = $bindable(), children }: Props = $props()
+const seen = $derived(shown === undefined ? text : text.slice(0, shown))
+const unseen = $derived(text.slice(seen.length))
 </script>
 
 <section
@@ -33,7 +37,7 @@ let { speaker, text, placed = false, style, element = $bindable(), children }: P
   bind:this={element}
 >
   {#if speaker !== undefined && speaker !== ''}<p class="speaker" data-testid="dialogue-speaker">{speaker}</p>{/if}
-  <p class="line" data-testid="dialogue-line">{text}</p>
+  <p class="line" data-testid="dialogue-line"><span data-testid="dialogue-typed">{seen}</span><span class="unseen" aria-hidden="true">{unseen}</span></p>
   {@render children?.()}
 </section>
 
@@ -57,6 +61,10 @@ let { speaker, text, placed = false, style, element = $bindable(), children }: P
   /* The caller's style says where it is; the field's bottom edge no longer does. */
   .af-dialogue-box.placed {
     inset: auto;
+  }
+  /* The words still to come keep their room, so the box does not grow as the line is typed. */
+  .unseen {
+    visibility: hidden;
   }
   .speaker {
     margin: 0;

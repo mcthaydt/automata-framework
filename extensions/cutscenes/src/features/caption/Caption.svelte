@@ -10,7 +10,7 @@ import { usePlay } from '@automata/framework'
 import { untrack } from 'svelte'
 import { CutsceneState } from '../../shared/sim/cutscene.resource.ts'
 import type { CutsceneScript } from '../../shared/sim/cutscene.schema.ts'
-import { type CaptionLine, captionModel } from './caption.ts'
+import { type CaptionDelivery, type CaptionLine, captionModel } from './caption.ts'
 
 interface Props {
   /** The game's message catalog: the words for a locale key, or undefined when there are none. */
@@ -21,9 +21,21 @@ interface Props {
   scripts: Readonly<Record<string, CutsceneScript>>
   /** The sim's ticks a second. Default 60. */
   tickHz?: number
+  /**
+   * How much of a line to show `seconds` into it (narrative's `typed`, with the game's rate and reduced-motion choice): a
+   * line with a delivery is typed out by the cutscene's own clock, so a replay draws the same frames. Without it, or for a
+   * line with no delivery, the whole line shows at once.
+   */
+  typed?:
+    | ((
+        words: string,
+        delivery: CaptionDelivery,
+        seconds: number,
+      ) => { readonly shown: number; readonly done: boolean })
+    | undefined
 }
 
-const { words, lines, scripts, tickHz = 60 }: Props = $props()
+const { words, lines, scripts, tickHz = 60, typed }: Props = $props()
 const play = usePlay()
 
 // `tick` changes only when the sim steps, so the caption is read again then and not at every frame.
@@ -50,10 +62,18 @@ $effect(() => {
 </script>
 
 {#if model !== null && model.text !== ''}
-  <p class="af-cutscene-caption" data-testid="cutscene-caption" aria-live="polite" style="pointer-events: none">{model.text}</p>
+  {@const shown =
+    typed !== undefined && model.delivery !== undefined
+      ? typed(model.text, model.delivery, model.since).shown
+      : model.text.length}
+  <p class="af-cutscene-caption" data-testid="cutscene-caption" aria-live="polite" style="pointer-events: none"><span data-testid="cutscene-caption-typed">{model.text.slice(0, shown)}</span><span class="unseen" aria-hidden="true">{model.text.slice(shown)}</span></p>
 {/if}
 
 <style>
+  /* The words still to come keep their room, so the caption does not move as it is typed. */
+  .unseen {
+    visibility: hidden;
+  }
   .af-cutscene-caption {
     position: absolute;
     left: 50%;
