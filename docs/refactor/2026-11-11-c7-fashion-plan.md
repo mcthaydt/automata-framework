@@ -579,3 +579,8 @@ The runway's gate 2 also runs `pnpm build`; Tasks 1 to 8 merge before it, so the
 - 2026-11-11 (S9, `main` merged): #577 is on `main` (`c24ca702`). `main`'s new default gameplay camera (50 mm, 30°, 16 m) minified `characterkit-painted` to
   0.69 of a pixel a texel (`painted-scale` failed 2 of 3); the example now states `distance: 10.75` (1.0156, 0.9028, 0.6771 at the three sizes), and gate 1
   was re-made: 1.000 texels a pixel, 100% of the stander's texels equal the builder's, none of the soles hidden. This supersedes the 27-of-45 and 91% figures above.
+- 2026-11-11 (CI on the PR, same day): two reds of this PR's. `nia` on `thin`, direction 0 in `showcase-cells.test.ts` paints a different md5 on the Macs
+  (`259c7a37…`, twice, two runners) than on Linux (`71301072…`); the golden is not changed and the test now reports every miss with the arch and
+  Node version and dumps the actual cell (`tests/fixtures/cell-miss.ts`), to find out which texels differ. The `characterkit-painted` journey no longer
+  waits for a lap (11 s of sim, over 60 s on the owner PC's Chromium) but for `data-walked-behind-wall`, set by the page once the walker has crossed the wall's
+  middle with its legs behind it. The depth by texel against the wall stays held by `painted-depth` case 4 in the browser suite, equal to `compose`.

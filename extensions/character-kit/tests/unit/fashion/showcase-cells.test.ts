@@ -4,11 +4,11 @@
 // only when the submodule moves. A garment that drifts from the showcase's in fit, fabric, swatch or hair fails here with its
 // model and direction, and so does a shell that no longer clears the body under it: the showcase's `fit-check` bodies (thin, heavy,
 // muscular, curvy, short) are held the same way.
-import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { RUNWAY_CAST } from '#src/features/fashion/runway-cast.ts'
 import { member, standing } from '#src/shared/figure-builder/door.ts'
+import { type CellMiss, cellMd5, failOnMisses } from '../../fixtures/cell-miss.ts'
 import { RUNWAY_GOLDEN } from '../../fixtures/runway-golden.ts'
 
 registerFashion()
@@ -22,19 +22,24 @@ describe('the runway wardrobe paints the showcase’s cells', () => {
     expect(golden.density).toBe(2)
   })
 
+  // A model's cells are all tried before the test fails, and every miss is reported with the machine it ran on and the cell
+  // itself (tests/fixtures/cell-miss.ts): a golden made on one platform that another paints differently is one texel or a
+  // region, in one case or many, and the log should say which.
   for (const { def } of RUNWAY_CAST) {
     it(`${def.id}: every direction's cell is the showcase's, byte for byte`, () => {
       const cast = member(def, golden.density)
+      const misses: CellMiss[] = []
       for (const direction of golden.directions) {
         const cell = standing(cast, direction)
-        const md5 = createHash('md5')
-          .update(Buffer.from(cell.buffer, cell.byteOffset, cell.byteLength))
-          .digest('hex')
-        expect(md5, `${def.id}, direction ${direction}`).toBe(golden.cells[def.id]?.[String(direction)])
+        const expected = golden.cells[def.id]?.[String(direction)]
+        if (cellMd5(cell) !== expected)
+          misses.push({ label: `${def.id}, direction ${direction}`, expected, cell })
       }
+      failOnMisses(misses)
     }, 60_000)
 
     it(`${def.id}: on each of the fit check's slider extremes the cell is the showcase's too`, () => {
+      const misses: CellMiss[] = []
       for (const [name, sliders] of Object.entries(golden.bodies)) {
         const grown = member(
           { ...def, id: `${def.id}-fit`, sliders: { ...def.sliders, ...sliders } },
@@ -42,14 +47,13 @@ describe('the runway wardrobe paints the showcase’s cells', () => {
         )
         for (const direction of golden.fitDirections) {
           const cell = standing(grown, direction)
-          const md5 = createHash('md5')
-            .update(Buffer.from(cell.buffer, cell.byteOffset, cell.byteLength))
-            .digest('hex')
-          expect(md5, `${def.id} on ${name}, direction ${direction}`).toBe(
-            golden.fit[def.id]?.[name]?.[String(direction)],
-          )
+          const expected = golden.fit[def.id]?.[name]?.[String(direction)]
+          if (cellMd5(cell) !== expected) {
+            misses.push({ label: `${def.id} on ${name}, direction ${direction}`, expected, cell })
+          }
         }
       }
+      failOnMisses(misses)
     }, 120_000)
   }
 })

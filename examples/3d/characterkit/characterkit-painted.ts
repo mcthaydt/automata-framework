@@ -32,8 +32,9 @@ const Stander = defineComponent('stander', place)
 const Wall = defineComponent('wall', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' })
 // A 2 m square at 1 m/s (one side every 120 ticks), then three seconds standing, then again.
 const LAP = 660
-const walk = defineSystem('walk', (ctx) => {
-  const lap = ctx.tick % LAP
+/** Where the walker is `tick` ticks into the loop (metres), and which way it faces. */
+const route = (tick: number): [x: number, z: number, yaw: number, walking: boolean] => {
+  const lap = tick % LAP
   const side = Math.min(Math.floor(lap / 120), 3)
   const along = lap < 480 ? ((lap % 120) / 120) * 2 : 2
   const [x, z, yaw] = [
@@ -42,10 +43,16 @@ const walk = defineSystem('walk', (ctx) => {
     [1 - along, 1, -1.5708],
     [-1, 1 - along, 3.1416],
   ][side] as [number, number, number]
-  for (const walker of ctx.query(Walker)) walker.set(Walker, { x, z, yaw, walking: lap < 480 })
+  return [x, z, yaw, lap < 480]
+}
+const walk = defineSystem('walk', (ctx) => {
+  const [x, z, yaw, walking] = route(ctx.tick)
+  for (const walker of ctx.query(Walker)) walker.set(Walker, { x, z, yaw, walking })
 })
-// The camera is stated, not defaulted: the example's size is chosen for how far back it is. The default gameplay camera
-// (50 mm, 30°, 16 m) would put a texel at the walker's feet at 0.69 of a pixel here, and texels would drop out.
+// The walker is hidden by the wall when it is less than this far behind it: the wall's 0.9 m top at the camera's 30° tilt
+// covers the ground behind it for 0.9 / tan 30° = 1.56 m. Near the wall's face, a margin inside that, so some of the legs go.
+const WALL_Z = -1.7
+const HIDDEN_BEHIND = 1.2
 const FOLLOW = cameraView('follow', { distance: 10.75 })
 
 // --- game ---
@@ -78,10 +85,13 @@ export default defineGame({
       scene: (view, stage, occluders) => {
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8690b2)
-        // The journey waits on the walker's laps (it has been behind the wall by the end of the first), not on a sleep.
+        // The journey waits on a state, not a sleep: `data-walked-behind-wall` turns true once the walker has crossed the
+        // middle of the wall's face with its legs behind it (about a second in), and stays true.
+        stage.app.canvas.dataset.walkedBehindWall = 'false'
         return {
           apply: (result) => {
-            stage.app.canvas.dataset.lap = String(Math.floor(result.tick / LAP))
+            const [x, z] = route(result.tick)
+            if (x >= 0 && z - WALL_Z <= HIDDEN_BEHIND) stage.app.canvas.dataset.walkedBehindWall = 'true'
           },
         }
       },

@@ -16,7 +16,11 @@ test('draws the painted pair under the CSP, a figure in the middle third', async
   await expect(frame.getByTestId('play-screen')).toBeVisible()
   // A bare third is the sky and the floor; the middle third, where the pair stand, is many colours more (the painter's).
   await expect.poll(async () => (await coloursPerThird(frame))[1], { timeout: 15_000 }).toBeGreaterThan(14)
-  // By the end of the first lap (eleven seconds of play) the walker has gone behind the low wall and out again.
-  await expect(frame.locator('canvas.af-stage')).toHaveAttribute('data-lap', '1', { timeout: 60_000 })
+  // The walker's first side runs along the low wall's far face: a second in, it has crossed the wall's middle with its legs
+  // behind the wall (the sim says so, `data-walked-behind-wall`). The figure is still drawn then, its middle third many colours.
+  await expect(frame.locator('canvas.af-stage')).toHaveAttribute('data-walked-behind-wall', 'true', {
+    timeout: 60_000,
+  })
+  expect((await coloursPerThird(frame))[1]).toBeGreaterThan(14)
   expect(errors).toEqual([])
 })
