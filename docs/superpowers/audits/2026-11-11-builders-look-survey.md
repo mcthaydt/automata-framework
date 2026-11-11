@@ -22,8 +22,8 @@ suites and the journeys on `main` (the survey's own pictures and the examples' b
 
 ## The sheets
 
-In [`builders-look-survey/`](builders-look-survey/), made by [`shoot.mjs`](builders-look-survey/shoot.mjs) there,
-which drives the page of `spikes/eb-look` as it is on `main`. [`shots.json`](builders-look-survey/shots.json) holds
+In [`builders-look-survey/`](builders-look-survey/), made by [`spikes/builders-look/shoot.mjs`](../../../spikes/builders-look/shoot.mjs) (moved
+there from this folder by the plan audit, so `knip` leaves it alone as it does every spike), which drives the page of `spikes/eb-look` as it is on `main`. [`shots.json`](builders-look-survey/shots.json) holds
 each panel's two numbers: its mean brightness (the mean of red, green and blue over the field, 0 to 255) and its
 count of distinct colours.
 
@@ -167,11 +167,15 @@ read must not draw as an empty room in silence.
 
 ## The draft pull requests
 
-All five framework drafts were cut from `main` at `5d7f40d3` (the merge of #595) and `main` has since gained
+All five framework pull requests (four drafts, and #607, which is marked ready) were cut from `main` at `5d7f40d3`
+(the merge of #595) and `main` has since gained
 documents only, so every one merges with `main` with no textual conflict (`git merge-tree --write-tree`, exit 0
 for each). #590 contains #588 and #589 whole; #607 contains #603 whole. All four code branches also carry the same
-seven commits that are not on `main`: the colour-only present pass (#602) and its WebGL follow-up, the journeys'
-free ports (#604), the submodule reset in CI (#601) and three test fixes (#587).
+nine commits that are not on `main` (counted by the plan audit; this line said seven): the colour-only present pass
+and its WebGL follow-up and two of its test fixes (#602: `c5c126fb`, `4411c6e0`, `0cc2e8fa`, `d36e5056`), the
+journeys' free ports and their record (#604: `5ecd0fa8`, `8895c7f5`), the submodule reset in CI (#601: `e680cc5f`)
+and two test fixes (#587: `cd5216cb`, `38710c6f`). Each of those four pull requests' heads is in all three code
+drafts.
 
 `main` at `6a70f9b1` did not pass `pnpm check`, for reasons that were not this workstream's, so each step was run
 on its own on `main` and on each merge. `main` at `f93a2402` has since made `docs/superpowers/` a record folder:
@@ -194,22 +198,28 @@ after that, passes every step, which is `pnpm check` whole. #588 and #603 were n
 contained whole in a branch that was (#590 and #607). The browser suites and the journeys were not run on any merge;
 the plan's "bring in" tasks run them.
 
+**Plan audit, at `main` `b80bfc84`:** `knip` failed on `main` once this survey merged (#636), on its own shoot script,
+then at `docs/superpowers/audits/builders-look-survey/shoot.mjs`, an unused file to knip. The checks above were run
+before the script was committed. The audit moved it to `spikes/builders-look/shoot.mjs`, which knip leaves alone, and
+re-ran `knip` (exit 0) and `style` (0 findings).
+
 
 ### The rulings
 
 | Pull request | Head | Its own commits, code changed | What it holds | Ruling | Reason |
 |---|---|---|---|---|---|
 | #589 `claude/eb-look-glow` | `0024f81a` | 18 commits; 53 code files, +1687 −314 | Glowing swatches at their own step, dimming with their lamp; a lit window showing the room behind its glass; the light's occluders cut at a wall's openings; static props baked and re-baked when moved; bloom as rings round what glows (world kit); a camera view for each base room at the distance that frames it; the shared fixes above | **Merge**, first | It changes no golden. The dark-room fix cannot land without it: cherry-picked onto `main` alone, the fix conflicts in four files; on top of #589 it applies cleanly. Measured on that trial state: the baked interior diorama reads 44.3 against the builder's 50.8 (it is 15.7 on `main`), first person 48.5 against 47.8; the street's diorama 90.0 against 123.2, so the street is still about a quarter darker and the plan diagnoses it |
-| #590 `claude/eb-look-effects` | `22b63b54` | 48 commits, 12 of them code of its own beyond #589 and #588; 151 code files in all, +7904 −407 | The dark-room fix and its diagnosis; the outline in the near shape's own deep step; the mood grade before the snap; shafts, wet-ground reflections and particles (world kit), each with a switch; all of #588 | **Finish, then merge**, third | The fix is taken out of it early by cherry-pick (`680bbc31a`). The rest merges after the figures with one conflict, in a spike file. To finish: a test that every pass is off behind its switch and the day sheets unmoved, and the ruling on #588's room-visibility below |
-| #588 `claude/tll-extensions-1` | `8e348d9a` | 19 commits; 97 code files, +4650 −264 | Three extensions with examples and journeys: `lcd-panel`, `retro-crisp`, `room-visibility`; two seams in core: a look pass may run before the snap, and an opt-in whole-pixel scale for the letterbox (`@automata/framework`, with a changeset) | **Finish through #590; close #588 itself as carried by it** | It is contained whole in #590, so it needs no merge of its own. `lcd-panel` and `retro-crisp` are opt-in looks in their own packages and the two seams are generic, so they land. `room-visibility` answers the question workstream 2 answers in `@automata/3d` ("the rooms a view draws"), and the Owner's decisions list #588's clinic work as superseded by workstream 2, so it is removed before #590 merges. This is a call for the coordinator |
+| #590 `claude/eb-look-effects` | `22b63b54` | 48 commits, 12 of them code of its own beyond #589 and #588; 151 code files in all, +7904 −407 | The dark-room fix and its diagnosis; the outline in the near shape's own deep step; the mood grade before the snap; shafts, wet-ground reflections and particles (world kit), each with a switch; all of #588 | **Finish, then merge**, third | The fix is taken out of it early by cherry-pick (`680bbc31a`, with `dd8d72bb`, the probe's free port, which the plan audit found the gate needs). The rest merges after the figures with one conflict, in a spike file. To finish: a test that every pass is off behind its switch and the day sheets unmoved, and the ruling on #588's room-visibility below |
+| #588 `claude/tll-extensions-1` | `8e348d9a` | 19 commits; 97 code files, +4650 −264 | Three extensions with examples and journeys: `lcd-panel`, `retro-crisp`, `room-visibility`; two seams in core: a look pass may run before the snap, and an opt-in whole-pixel scale for the letterbox (`@automata/framework`, with a changeset) | **Finish through #590; close #588 itself as carried by it** | It is contained whole in #590, so it needs no merge of its own. `lcd-panel` and `retro-crisp` are opt-in looks in their own packages and the two seams are generic, so they land. `room-visibility` answers the question workstream 2 answers in `@automata/3d` ("the rooms a view draws"), and the Owner's decisions list #588's clinic work as superseded by workstream 2, so it is removed before #590 merges. (Plan audit: that decision already rules it; the three extensions are ports of The Last Light's own `src/render/` files for its clinic, `docs/refactor/tll-extensions/README.md` on the branch, and the whole-pixel seam is kept, the audit's ruling) |
 | #607 `claude/c8-lit` | `7167af1f` | 22 commits; 55 code files, +2463 −399 | Painted figures lit by their room (a flat light, one step of form, a rim, never above the painted cell); depth per texel on WebGPU; the kit's lit-cell cache and bench; FigureBuilder's pin from `d6e3c9f` to `23f889c`; the runway golden re-recorded (42 of 112 cells) with the arch override deleted | **Merge**, second | Specified, audited twice and fixed in its own cycle, with 0 pixels against the builder's `compose`. It is the only draft that moves a golden: one commit, named, ruled on by that cycle's coordinator (FigureBuilder's hair-pole rule, which made the painter the same on every machine). That ruling is carried forward, not re-made here; the plan checks it is the only golden that moves |
 | #603 `claude/c8-lit-spec` | `70cc66c4` | 2 commits, documents only | The spec, plan and plan audit of #607 | **Close as carried by #607** | Contained whole in #607; it shows as merged when #607's branch lands |
 | FigureBuilder #29 `claude/c9-wardrobe` | `856498a` | 10 commits; 37 files, +2501 −29 | A spec, an audited plan, and six of its ten FigureBuilder tasks: sheer cloth, the shod foot, the head's form, hair in front of the shoulders, hair that rests on the trunk, a fringe and three styles; a checkpoint's sheets. Not built: glyphs, drawn moods, the wardrobe golden and the merge; nothing of its framework half | **Finish**, cut to the ward | The prologue's figures need a ward uniform, street clothes and moods; they do not need glyphs. Its remaining work is in FigureBuilder's repository, then the kit |
 | #575, #596, #606 | | | The clinic drafts | References only | Superseded by workstream 2 (the Owner) |
 
-Two open pull requests outside the list matter to it: #602 (the colour-only present pass) and #587 (the browser
-suites under the new camera) are not drafts and are not on `main`; every code draft above carries both, so they
-land with the first merge and can then be closed as carried.
+Four open pull requests outside the list matter to it: #602 (the colour-only present pass), #587 (the browser
+suites under the new camera), #601 (the submodule reset in CI) and #604 (the journeys' free ports). None is a draft
+and none is on `main`; each one's head is in every code draft above, so all four land with the first merge and show
+as merged then (the plan's task 5 checks it).
 
 
 ## Remainders the drafts name themselves
