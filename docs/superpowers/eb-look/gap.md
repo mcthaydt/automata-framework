@@ -11,7 +11,7 @@ DUEL colours, and the one DUEL snap with a Bayer dither. It does not light them 
 and a figure under the pendant goes flat orange or red. Without the bake, the ramp material lights by the time of day and
 reads, but that is Pixi's lit material, not EB's stepped light per vertex. Photo tiles, haze, the sky panorama and
 horizon, interior windows, the coloured outline (selout), sprite-lit figures, exposure and most post passes are missing.
-On WebGPU (headless SwiftShader), AF loses the device on the first frame in play, so there is no WebGPU picture yet.
+On WebGPU (headless SwiftShader, with Vulkan on) the room draws and the figures do not yet (see WebGPU below).
 
 ## The screenshots
 
@@ -25,7 +25,7 @@ On WebGPU (headless SwiftShader), AF loses the device on the first frame in play
    level's `time`. This is how a game lights a level today.
 3. **AF WebGL, material light only**: the same without `lighting`, so every piece keeps the ramp material and is lit by
    the time of day's hemisphere and sun.
-4. **AF WebGPU, baked room light**: shows AF's "The picture stopped" panel (see WebGPU below).
+4. **AF WebGPU, baked room light**: the room draws; the figures are missing (see WebGPU below). `wp0/` has the same set drawn after WP0.
 
 | Scene | Diorama | First person |
 |---|---|---|
@@ -46,18 +46,21 @@ What differs:
   `arms-crossed` and `hand-on-hip` stands, which only compiled content holds.
 - The diorama draws the walls through AF's occluder rule, not EB's dollhouse cut.
 
-**WebGPU.** Chromium here has WebGPU headless (SwiftShader adapter, `--enable-unsafe-webgpu`, on a localhost page).
-AF's renderer takes it (`drew: webgpu`), and its device is lost on the first frame in play: `unknown: A valid external
-Instance reference no longer exists.`, then AF's context-loss panel. Traced:
-- The page asks for two devices at boot. Device #2 is lost as play starts, with no `GPUDevice.destroy()` call.
-- AF's recovery asks for device #3 and never draws.
-- It happens with the look, the figures and the baked light each left out (`?look=0`, `?cast=0`, `?light=0`). With the
-  figures left out, the reason is `destroyed` instead.
-- A bare WebGPU device on the same browser, beside a lost WebGL context, survives.
+**WebGPU.** *Corrected by WP0 (2026-11-10, [wp0/README.md](wp0/README.md)); the first reading, that AF loses the device, was wrong.*
+Chromium here has WebGPU headless (SwiftShader adapter, `--enable-unsafe-webgpu`, on a localhost page). The device loss is
+the browser's: a bare page with no Pixi and no AF that only configures and clears a WebGPU canvas loses its device on
+frame 1, because the software adapter has no shared-image backing for a swap chain unless Chromium also runs Vulkan on
+SwiftShader (`--enable-features=Vulkan --use-vulkan=swiftshader` fixes it; `shoot.mjs` has them). With that, AF draws on
+WebGPU, and two things were found:
+- **Fixed in AF.** Lit meshes drew black on WebGPU under no-eval: pixi's eval-free WGSL polyfill wrote `i32` uniforms
+  (`@pixi/3d`'s light tile tables) through the float view. AF's shim now writes integers itself.
+- **Open, in `@pixi/3d`.** A mesh added after a post effect has run makes every later WebGPU frame invalid (a `sceneDepth`
+  usage conflict; the frame's commands are dropped). The figures are added after the first frame, so they are missing in
+  the WebGPU panels (the room draws). Smallest reproduction, cause and the options: the README. Any mesh that spawns later
+  on WebGPU with the look on is affected.
 
-AF's only WebGPU browser test (`packages/3d/tests/browser/parity/shared/parity/renderer.test.ts`, "draws the same sky as
-WebGL2") draws a background and no mesh, so a Pixi 3D scene on WebGPU has never been drawn in AF's tests. Not yet known
-whether a real GPU does the same (WP0).
+AF's only other WebGPU browser test ("draws the same sky as WebGL2") draws a background and no mesh; the new
+`tests/browser/webgpu/mesh.test.ts` draws a crate, a model, a figure and the base interior.
 
 ## Part by part
 
