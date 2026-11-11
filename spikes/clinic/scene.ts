@@ -17,6 +17,7 @@ import {
   swatchColour,
   worldLighting,
 } from '@automata/3d'
+import { readLevel } from '@automata/3d/level'
 import { CameraHeading, cameraView, enterView, MAX_CAMERA_TURN, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
@@ -31,6 +32,8 @@ await detectVideoAlphaMode()
 const q = new URLSearchParams(location.search)
 const frame = q.get('frame') ?? 'play-hall'
 const turned = q.get('turned') === '1'
+// Bisecting switches: ?look=0 drops the look, ?light=0 the baked light, ?occ=0 the camera's occluder rule, ?walls=0 leaves out the walls.
+const on = (key: string) => q.get(key) !== '0'
 const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 const views = clinic.views as unknown as Record<string, Record<string, unknown>>
 
@@ -41,8 +44,16 @@ const zone = views[kind === 'zone' ? name : (ZONE[name] as string)] as { look: n
 const spot = views[`spot-${name}`] as { at: number[] } | undefined
 const focus = kind === 'zone' ? { x: zone.look[0] as number, z: zone.look[2] as number } : { x: spot?.at[0] ?? 0, z: spot?.at[1] ?? 0 }
 
-const time = levelTime(clinic.time)
-const world = buildWorld(clinic as never, library as never, { night: true })
+// ?ambient=<level> and ?fill=<level> try another room light without regenerating the level.
+const base = levelTime(clinic.time)
+const light = base.scene.light
+const time = q.has('ambient') || q.has('fill')
+  ? { ...base, scene: { ...base.scene, light: { ...light, ambient: { ...light.ambient, level: Number(q.get('ambient') ?? light.ambient.level) }, fill: { ...light.fill, level: Number(q.get('fill') ?? light.fill.level) } } } }
+  : base
+// A level is read as a game reads it (a bare height becomes a plane) before it is built.
+const read = readLevel(clinic)
+if (read.problems.length > 0) throw new Error(read.problems.map((p) => p.message).join('; '))
+const world = buildWorld(read.level, library as never, { night: true })
 const lighting = worldLighting(world, time, { states: opening.lamps })
 const size = { width: 1024, height: 768 }
 const VIEW = cameraView('play', { distance: zone.distance })
@@ -69,21 +80,36 @@ startGame(
       createPixi3dRenderer({
         ...options,
         preference: pref,
-        look: DEFAULT_LOOK,
+        look: on('look') ? DEFAULT_LOOK : undefined,
         time,
-        lighting,
+        lighting: on('light') ? lighting : undefined,
         backgroundColor: Number.parseInt(skyMid.slice(1), 16),
         // A stand-in for the player, nothing at all in a zone still.
         views: {
           [Body.id]: box(kind === 'zone' ? { width: 0.01, height: 0.01, depth: 0.01 } : { width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xffbc4e }),
         },
-        camera: { views: [VIEW], initial: VIEW.id, follow: Body.id },
+        // The sim-driven rig is left out unless ?rig=1: on WebGPU it never reached the play view in this scene (the camera stayed
+        // at its start), so the camera is set in the scene hook below, the way the eb-look spike sets its gameplay camera.
+        ...(q.get('rig') === '1' ? { camera: { views: [VIEW], initial: VIEW.id, follow: Body.id } } : {}),
         scene: (view, stage, occluders, light, models) => {
           view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+          if (q.get('rig') !== '1') {
+            // The play camera: 50 mm, tilted 30° down, the zone's distance back from its look point, turned by `heading`.
+            const camera = view.camera
+            const tilt = (30 * Math.PI) / 180
+            const heading = turned ? (45 * Math.PI) / 180 : 0
+            const lookY = kind === 'zone' ? (zone.look[1] as number) : 1.1
+            const back = VIEW.distance * Math.cos(tilt)
+            camera.fov = (2 * Math.atan(12 / 50) * 180) / Math.PI
+            camera.near = 0.2
+            camera.far = 200
+            camera.position.set(focus.x + Math.sin(heading) * back, lookY + VIEW.distance * Math.sin(tilt), focus.z + Math.cos(heading) * back)
+            camera.lookAt({ x: focus.x, y: lookY, z: focus.z })
+          }
           view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)?.focus(VIEW.distance)
           drawWorld(
-            { parent: view.root, occluders, colourOf: (swatch) => swatchColour(library as never, swatch), look: DEFAULT_LOOK, light, models },
-            world.pieces,
+            { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), look: on('look') ? DEFAULT_LOOK : undefined, light, models },
+            on('walls') ? world.pieces : world.pieces.filter((p) => p.part !== 'wall'),
           )
           const { dataset } = stage.app.canvas
           dataset.renderer = (stage.app.renderer as unknown as { name: string }).name

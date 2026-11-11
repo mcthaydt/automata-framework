@@ -164,10 +164,15 @@ const DOMINANT: Record<string, string> = {
   glassNight: '#2d4b47',
   prop: '#73737f',
 }
+// The source lights its big surfaces with a texture gain (the floor's tint is 4.8 over its texture, the ceiling's 1.6), which
+// AF's flat swatches have no field for: those surfaces take a lighter step of their ramp instead, by LIFT steps.
+const LIFT = Number(process.env.LIFT ?? 4)
+const LIFTED = new Set(['floor', 'floorDim', 'plaster', 'plasterWarm', 'ceiling', 'ceilingTile', 'wainscot'])
 const swatches: Record<string, Json> = {}
 for (const [name, colour] of Object.entries(DOMINANT)) {
   const index = nearestDuel(colour)
-  swatches[name] = { ramp: DUEL_RAMP_NAMES[Math.floor(index / 8)], step: index % 8, ...(name.startsWith('glass') ? { noCast: true } : {}) }
+  const step = Math.min(7, (index % 8) + (LIFTED.has(name) ? LIFT : 0))
+  swatches[name] = { ramp: DUEL_RAMP_NAMES[Math.floor(index / 8)], step, ...(name.startsWith('glass') ? { noCast: true } : {}) }
 }
 // The moon's glass glows, flat in any light.
 swatches.moonGlass = { ...(() => { const i = nearestDuel('#96b2d9'); return { ramp: DUEL_RAMP_NAMES[Math.floor(i / 8)], step: i % 8 } })(), emit: true, flat: true, noCast: true }
@@ -187,7 +192,13 @@ const clinic = {
   props: placed,
   lamps,
   bounce,
-  time: 'night',
+  // The source's room light: a cool teal-grey ambient (its look bible's `LIGHT.ambient` is 0.15; AF's flat swatches need more) and a low cool fill on
+  // upright surfaces, over AF's night.
+  time: {
+    preset: 'night',
+    label: 'Clinic night',
+    scene: { light: { shadow: false, ambient: { level: 0.25, tint: '#d6f7fa' }, fill: { level: 0.08, tint: '#c7f2ff' } } },
+  },
   views,
   // Which rooms each camera zone shows and which masses belong to which rooms: stored as the source wrote it, for the room
   // visibility extension to read.

@@ -2,27 +2,27 @@
   "swatches": {
     "floor": {
       "ramp": "sand",
-      "step": 0
+      "step": 4
     },
     "floorDim": {
       "ramp": "slate",
-      "step": 2
+      "step": 6
     },
     "plaster": {
       "ramp": "sage",
-      "step": 1
+      "step": 5
     },
     "plasterWarm": {
       "ramp": "sage",
-      "step": 1
+      "step": 5
     },
     "ceiling": {
       "ramp": "sand",
-      "step": 3
+      "step": 7
     },
     "ceilingTile": {
       "ramp": "sand",
-      "step": 5
+      "step": 7
     },
     "trimWhite": {
       "ramp": "pine",
@@ -54,7 +54,7 @@
     },
     "wainscot": {
       "ramp": "sand",
-      "step": 5
+      "step": 7
     },
     "rail": {
       "ramp": "pine",

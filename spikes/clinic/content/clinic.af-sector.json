@@ -1967,7 +1967,23 @@
       3.2
     ]
   ],
-  "time": "night",
+  "time": {
+    "preset": "night",
+    "label": "Clinic night",
+    "scene": {
+      "light": {
+        "shadow": false,
+        "ambient": {
+          "level": 0.25,
+          "tint": "#d6f7fa"
+        },
+        "fill": {
+          "level": 0.08,
+          "tint": "#c7f2ff"
+        }
+      }
+    }
+  },
   "views": {
     "hall": {
       "look": [

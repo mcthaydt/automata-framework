@@ -56,7 +56,7 @@ async function shoot(frame, turned, pref) {
     return { png: null, data: {}, errors }
   }
   // Readiness, not a sleep: let the camera cut onto the player and the passes run for a number of frames.
-  await page.evaluate(() => new Promise((done) => { let n = 0; const tick = () => (++n >= 40 ? done() : requestAnimationFrame(tick)); requestAnimationFrame(tick) }))
+  await page.evaluate(() => new Promise((done) => { let n = 0; const FRAMES = 40; const tick = () => (++n >= FRAMES ? done() : requestAnimationFrame(tick)); requestAnimationFrame(tick) }))
   const data = await canvas.evaluate((c) => ({ ...c.dataset }))
   await page.addStyleTag({ content: '[data-layer="screens"] { visibility: hidden !important }' })
   const png = await canvas.screenshot({ timeout: 120000 })

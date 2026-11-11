@@ -778,3 +778,19 @@ The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches 
 | The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
 | Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
 | Gates | See the PR description for what ran and what is pending | |
+
+## The clinic in level3d: batch 1 (2026-11-11)
+
+The Owner, 2026-11-10: recreate the source game's clinic in AF's 3D level from data ("it just needs to look nearly
+identical"). Batch 1 is done in one session with no separate plan or audit stages; the record and the calls made are in
+[clinic/README.md](clinic/README.md).
+
+| Step | Status | Record |
+|---|---|---|
+| Core lamp kinds (`screen`, `fire`, `spark`, `moon`, `fill`), a lamp's `radius`, a level's `bounce` | Done: tests first | `packages/3d/tests/unit/world/lamp-kit.test.ts` |
+| A `model` (GLB) prop generator on `parse-glb` and `load-models` | Done: tests first; no model file copied | `model-prop.test.ts`, `fit-model.test.ts`, `world-view.test.ts` |
+| The builder draws trim bands, wall tops, masses, handrails, pilasters and moon glass | Done: tests first | `structure.test.ts` |
+| The clinic as an `af-sector/2` level, by a converter | Done: the level holds the earlier fixture and builds with no problems | `clinic-level.test.ts`, `spikes/clinic/` |
+| The 11 frames on WebGL and WebGPU beside the source's baselines | See [clinic/batch1](clinic/batch1/); "on" frames wait for the effects (PRs 588 and 589) | `spikes/clinic/shoot.mjs` |
+| Gates | See the PR description for what ran and what is pending | |
+
