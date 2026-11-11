@@ -109,7 +109,7 @@ describe('worldLighting', () => {
       if ((road.mesh.positions[i * 3 + 2] as number) < 1) continue
       checked++
       for (let c = 0; c < 3; c++)
-        expect(out[i * 4 + c], `vertex ${i} channel ${c}`).toBeCloseTo(expected[c], 4)
+        expect(out[i * 4 + c], `vertex ${i} channel ${c}`).toBeCloseTo(expected[c] as number, 4)
     }
     expect(checked).toBeGreaterThan(500)
   })

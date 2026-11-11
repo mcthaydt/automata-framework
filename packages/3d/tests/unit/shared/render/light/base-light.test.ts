@@ -122,7 +122,7 @@ describe('the sun', () => {
   })
   it('lights a wall that is a plane occluder in full, too', () => {
     const slanted = { dir: [-0.5, 0.78, 0.38], color: 0xffffff, level: 1, shadow: true }
-    const wallPlane = { x: 0, y: 2, z: 0, normal: [0, 0, 1], width: 40, height: 4 }
+    const wallPlane = { x: 0, y: 2, z: 0, normal: [0, 0, 1] as const, width: 40, height: 4 }
     const facing: LightSample = { x: 0, y: 2, z: 0, nx: 0, ny: 0, nz: 1 }
     const open = lightModel(lighting({ sun: slanted }))
     const noShadow = lightModel(lighting({ sun: { ...slanted, shadow: false } }))
