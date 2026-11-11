@@ -55,5 +55,9 @@ runs in its own session on its own branch and hands off through committed docume
 - Translations are written new and shipped; no review state or review rounds.
 - Nothing is copied from FloorFifty: it is the reference for behaviour only.
 - The Last Light's story lines are translated into the six languages, not only the menus.
+- `automata words` has an AI translate everything or one line, into one language or all; no CSV, no review state;
+  `automata check` catches gaps.
+- Achievements are generic: declared host-neutral in the game, mapped by each target (Ruken's manifest today).
 - Fonts: a game's font covers every language it ships; no device fallback.
+- The clinic work already begun in the framework (#575, #596, #606, #588) is superseded by workstream 2.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
