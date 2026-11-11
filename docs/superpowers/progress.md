@@ -17,6 +17,7 @@ runs in its own session on its own branch and hands off through committed docume
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Next is 4, execution | 43% (3 of 7 stages); execution 0 of 21 tasks | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
 | 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 2, plan: done 2026-11-11, revised the same day for the re-set spec (a survey of the prologue against the framework, the spec's slice 1 row corrected, and a plan of 22 tasks, all in this repository, on three branches: 10 framework additions, 10 for the game at `games/the-last-light`, 2 that remove Ember Hall; planned against the spec at `3c0a624f`). Next is 3, plan audit. Slices 2 to 4 not started | Slice 1: 29% (2 of 7 stages); execution 0 of 22 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md) |
 | 3 | A UI editor in the suite | Not started: the Owner will address it when we get to it; its spec is written with the Owner then | 0% | |
+| 4 | The builders' look and figures in the framework (takes over #588, #589, #590, #603, #607) | 2, plan: session started 2026-11-11; it surveys first. Runs ahead of the prologue's dressing tasks | 14% (1 of 7 stages) | [spec](specs/2026-11-11-builders-look-and-figures-design.md) |
 
 ## Workstream 1 sessions
 
@@ -88,4 +89,6 @@ take it over later: its layout and words as data, not buried in code.
   from the reference game straight after.
 - Old branches: the session's git proxy refuses branch deletion (HTTP 403), so none were cut from here; 18 are safe to
   delete (all their work is on `main`), the rest hold unmerged work.
+- Workstream 4 takes over the builders' look and figures work that other coordinators began (the Owner: yes).
+- Ubicloud 8-core runners are planned for this repository's CI; until they are live, sessions run the gates themselves.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
