@@ -1,16 +1,19 @@
-// characterkit-painted: the base pair as painted pixel art in a 3D room, one walking a loop, the other standing
+// characterkit-painted: the base pair as painted pixel art in a 3D room, one walking a loop behind a low wall, the other standing
 //
 // Shows: `paintedFigure` from the character kit (`@automata/character-kit`): a figure generated from data and painted
-//   texel by texel, drawn in the scene as a quad that stands where its entity stands and faces the camera. It is drawn
-//   in eight views, as a sprite set is: the painter picks the one nearest the camera's bearing, so a turning camera
-//   steps through them. Everything about the look (the light's bands, the outline, the face, the colours) is the
-//   painter's.
+//   texel by texel, drawn in the scene as a quad that stands where its entity stands. It is drawn in eight views, as a
+//   sprite set is: the painter picks the one nearest the camera's bearing, so a turning camera steps through them. It is
+//   always painted at the painter's own 18° pitch, whatever the camera's tilt, and at one screen pixel a texel: the field
+//   is 720 × 405 and the camera 10.75 m back so that a texel at the walker's feet is about a pixel (at 480 × 270 it
+//   would be two thirds of one, and texels would drop out). Each texel has its own depth, so the walker goes behind the low wall on its near side texel by
+//   texel, not as a flat cut-out. Everything about the look (the light's bands, the outline, the face, the colours) is
+//   the painter's.
 // Controls: none
 // Packages: @automata/framework, @automata/3d, @automata/character-kit
 // Difficulty: ★★☆☆
 // Tier: extension
 import '@automata/3d/no-eval'
-import { createPixi3dRenderer, render3dExtension } from '@automata/3d'
+import { box, createPixi3dRenderer, render3dExtension } from '@automata/3d'
 import { figuresExtension } from '@automata/3d/figures'
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { BASE, characterKitExtension, paintedFigure } from '@automata/character-kit'
@@ -25,9 +28,13 @@ const [man, woman] = BASE.map((b) => b.def)
 const place = { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32', walking: 'bool' } as const
 const Walker = defineComponent('walker', place)
 const Stander = defineComponent('stander', place)
+// A low wall between the camera and the near side of the walker's square (the camera looks toward +z): the walker goes behind it.
+const Wall = defineComponent('wall', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' })
 // A 2 m square at 1 m/s (one side every 120 ticks), then three seconds standing, then again.
-const walk = defineSystem('walk', (ctx) => {
-  const lap = ctx.tick % 660
+const LAP = 660
+/** Where the walker is `tick` ticks into the loop (metres), and which way it faces. */
+const route = (tick: number): [x: number, z: number, yaw: number, walking: boolean] => {
+  const lap = tick % LAP
   const side = Math.min(Math.floor(lap / 120), 3)
   const along = lap < 480 ? ((lap % 120) / 120) * 2 : 2
   const [x, z, yaw] = [
@@ -36,16 +43,24 @@ const walk = defineSystem('walk', (ctx) => {
     [1 - along, 1, -1.5708],
     [-1, 1 - along, 3.1416],
   ][side] as [number, number, number]
-  for (const walker of ctx.query(Walker)) walker.set(Walker, { x, z, yaw, walking: lap < 480 })
+  return [x, z, yaw, lap < 480]
+}
+const walk = defineSystem('walk', (ctx) => {
+  const [x, z, yaw, walking] = route(ctx.tick)
+  for (const walker of ctx.query(Walker)) walker.set(Walker, { x, z, yaw, walking })
 })
-const FOLLOW = cameraView('follow')
+// The walker is hidden by the wall when it is less than this far behind it: the wall's 0.9 m top at the camera's 30° tilt
+// covers the ground behind it for 0.9 / tan 30° = 1.56 m. Near the wall's face, a margin inside that, so some of the legs go.
+const WALL_Z = -1.7
+const HIDDEN_BEHIND = 1.2
+const FOLLOW = cameraView('follow', { distance: 10.75 })
 
 // --- game ---
 export default defineGame({
   id: 'characterkit-painted',
-  size: { width: 480, height: 270 },
+  size: { width: 720, height: 405 },
   sim: {
-    plugins: [definePlugin({ name: 'pair', defs: [Walker, Stander, walk] })],
+    plugins: [definePlugin({ name: 'pair', defs: [Walker, Stander, Wall, walk] })],
     seed: 1,
     setup: (sim) => {
       sim.spawn([
@@ -53,6 +68,7 @@ export default defineGame({
         [CameraHeading, enterView(START, FOLLOW, { x: 0, y: 0 })],
       ])
       sim.spawn([[Stander, { x: 0, y: 0, z: 0, yaw: -1.5708, walking: false }]])
+      sim.spawn([[Wall, { x: 0, y: 0, z: -1.7, yaw: 0 }]])
     },
   },
   extensions: [render3dExtension, figuresExtension, characterKitExtension],
@@ -63,12 +79,21 @@ export default defineGame({
       views: {
         [Walker.id]: paintedFigure(man!, { state: (c) => ({ moving: c[Walker.id]?.walking === true }) }),
         [Stander.id]: paintedFigure(woman!),
+        [Wall.id]: box({ width: 3.4, height: 0.9, depth: 0.15 }, { color: 0x6b5a73 }),
       },
       camera: { views: [FOLLOW], initial: FOLLOW.id, follow: Walker.id },
-      scene: (view, _stage, occluders) => {
+      scene: (view, stage, occluders) => {
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8690b2)
-        return undefined
+        // The journey waits on a state, not a sleep: `data-walked-behind-wall` turns true once the walker has crossed the
+        // middle of the wall's face with its legs behind it (about a second in), and stays true.
+        stage.app.canvas.dataset.walkedBehindWall = 'false'
+        return {
+          apply: (result) => {
+            const [x, z] = route(result.tick)
+            if (x >= 0 && z - WALL_Z <= HIDDEN_BEHIND) stage.app.canvas.dataset.walkedBehindWall = 'true'
+          },
+        }
       },
     }),
 })

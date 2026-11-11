@@ -1,5 +1,20 @@
 // @automata/character-kit: clothes, hairstyles and seats for AF's procedural 3D figures. Loading it registers them.
 export { characterKitExtension } from '../app/character-kit.extension.ts'
+export { DEMO_CAST } from '../features/fashion/demo-cast.ts'
+export type {
+  Dress,
+  FashionCoat,
+  FashionSkirt,
+  Hoodie,
+  Jacket,
+  Jeans,
+  Shoes,
+  Tee,
+  Trousers,
+} from '../features/fashion/garments.ts'
+export type { Model } from '../features/fashion/model.ts'
+export { registerFashion } from '../features/fashion/register-fashion.ts'
+export { RUNWAY_CAST } from '../features/fashion/runway-cast.ts'
 export type { Apron } from '../features/garments/apron.ts'
 export type { Belt } from '../features/garments/belt.ts'
 export type { Coat } from '../features/garments/coat.ts'
@@ -16,8 +31,6 @@ export type { Rows } from '../features/hair/rows.ts'
 export type { Strands } from '../features/hair/strands.ts'
 export type { Sweep } from '../features/hair/sweep.ts'
 export type { Tail } from '../features/hair/tail.ts'
-// Painted figures: the figure builder's characters, painted texel by texel and drawn in the 3D scene.
-export { BASE, type CharacterDef } from '../features/painted/door.ts'
 export {
   type PaintedFigureOptions,
   type PaintedState,
@@ -26,3 +39,5 @@ export {
 export { figureSeatContent } from '../features/seats/seat.content.ts'
 export { type Seat, type SeatHand, seatSchema } from '../features/seats/seat.schema.ts'
 export { SIT, seated } from '../features/seats/seated.ts'
+// Painted figures: the figure builder's characters, painted texel by texel and drawn in the 3D scene.
+export { BASE, type CharacterDef } from '../shared/figure-builder/door.ts'
