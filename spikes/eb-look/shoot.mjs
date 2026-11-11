@@ -9,6 +9,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { createServer } from 'node:net'
 import { join } from 'node:path'
 
 const repo = new URL('../..', import.meta.url).pathname
@@ -18,7 +19,15 @@ const { chromium } = require('playwright')
 const out = process.argv[2] ?? join(repo, 'docs/refactor/eb-look/baseline')
 const ebDir = process.env.EB_DIR
 const SCALE = Number(process.env.SCALE ?? 2)
-const port = Number(process.env.PORT ?? 5391)
+// A free port the OS picks (or PORT), so two copies never collide and the repo names no port of its own.
+const freePort = () =>
+  new Promise((resolve) => {
+    const s = createServer().listen(0, '127.0.0.1', () => {
+      const { port: free } = s.address()
+      s.close(() => resolve(free))
+    })
+  })
+const port = process.env.PORT ? Number(process.env.PORT) : await freePort()
 const SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
 const VIEWS = ['diorama', 'fp']
 // The AF panels: the renderer asked for, and switches (scene.ts). `light=0` leaves out the level's baked room light, so
