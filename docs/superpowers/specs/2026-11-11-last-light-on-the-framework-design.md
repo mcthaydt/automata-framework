@@ -88,7 +88,8 @@ Each scene goes through the same steps.
 
 1. **Convert once.** A script reads the scene's package (`src/scenes/<id>/`: level and map, dress and props, story,
    dialogues, beats, help, cutscenes, puzzle, systems, rules) and its `blockout.json`, and writes framework content:
-   an `af-sector/2` level, nav, puzzle, systems, narrative and cutscene files, and the lines as messages. It reports
+   an `af-sector/2` level, nav, puzzle, systems, narrative and cutscene files, and the lines as messages, which are then
+   translated into the other five languages. It reports
    everything it could not express.
 2. **Close the gaps in the framework.** Each thing the converter could not express, or the scene needs at run time,
    is added to the framework as data the editors can show, with tests there first. What only this game needs (a
@@ -149,7 +150,8 @@ slice 1's survey, and what the suite still lacks becomes suite work.
 
 - The prologue plays from its first cutscene to its end under a bot, twice with the same hash, in Chromium.
 - It opens in Levels 3D, Writer, Sequence, Schematic, the Studio and the Tuner; one edit in each shows in play.
-- It runs under the framework's shell in six languages for the menus, with a gamepad and with touch at phone size.
+- It runs under the framework's shell with a gamepad and with touch at phone size, and its menus and its story lines
+  are in the six languages.
 - Every framework addition has its tests and passes `pnpm check`; nothing of the game's story or art is in the
   framework's repository.
 - The old game still builds and plays, untouched.
@@ -160,6 +162,8 @@ slice 1's survey, and what the suite still lacks becomes suite work.
 2. The old runtime, editor and scripts are deleted only when the last scene is across.
 3. The scene order and what each brings (the table above).
 4. The paid pipelines and The Last Light's own editor are retired, not ported.
-5. Story lines stay English for now; only the menus are in six languages.
+5. Settled by the Owner (2026-11-11): the story lines are translated too. Each scene's lines ship in the six languages,
+   through workstream 1's `automata words` workflow, written new with no review state. English stays the approved
+   script; a translation never changes a line.
 6. Each slice is its own plan, audit, build, audit and fixes cycle; this spec covers all four, and slice 1 is planned
    first.
