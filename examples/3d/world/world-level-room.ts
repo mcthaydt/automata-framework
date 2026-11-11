@@ -68,19 +68,16 @@ const wick: FigureDef = { ...body, sliders: average }
 // --- level ---
 // A game writes this as content/levels/<room>.af-sector.json and its swatches in content/world-swatches/*.toml; here
 // they are inline. Colours are DUEL ramps and steps.
-const world: WorldLibrary = {
-  swatches: {
-    floor: { ramp: 'dusk', step: 4 },
-    wall: { ramp: 'dusk', step: 1 },
-    ceiling: { ramp: 'dusk', step: 0 },
-  },
-}
+const dusk = (step: number) => ({ ramp: 'dusk', step })
+const world: WorldLibrary = { swatches: { floor: dusk(4), wall: dusk(1), ceiling: dusk(0) } }
 const room = {
   format: 'af-sector/2',
   name: 'hall',
   sectors: [
     {
       id: 'hall',
+      floor: 0,
+      light: 1,
       ceiling: 3,
       corners: [
         [-4, -3],
@@ -94,6 +91,11 @@ const room = {
     },
   ],
 }
+
+// A level that does not read draws as an empty room, so a fault here is stopped, not dropped.
+const read = readLevel(room)
+if (read.problems.length > 0)
+  throw new Error(`the room did not read: ${read.problems.map((p) => p.message).join('; ')}`)
 
 // --- sim ---
 // Wick stands in the middle of the hall.
@@ -122,7 +124,7 @@ export default defineGame({
         const colourOf = (swatch: string) => swatchColour(world, swatch)
         drawWorld(
           { parent: view.root, occluders, colourOf, look: DEFAULT_LOOK },
-          buildWorld(readLevel(room).level, world).pieces,
+          buildWorld(read.level, world).pieces,
         )
         return undefined
       },

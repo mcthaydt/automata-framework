@@ -16409,6 +16409,38 @@ function screensWords(locale: string): {
 };
 ```
 
+#### `showCredits` (function)
+
+Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
+Returns how to close it; closing twice is harmless.
+
+```ts
+function showCredits(options: ShowCreditsOptions): {
+    close(): void;
+};
+```
+
+#### `ShowCreditsOptions` (interface)
+
+What `showCredits` needs.
+
+```ts
+interface ShowCreditsOptions {
+    /** Where the panel goes: a screen's layer. */
+    readonly target: HTMLElement;
+    readonly credits: Credits;
+    /** The host, asked to open a name's link. */
+    readonly hosting: Pick<Hosting, 'openLink' | 'granted'>;
+    /** The panel's words. Default: this package's, in `locale` (English without one). */
+    readonly copy?: CreditsCopy;
+    readonly locale?: string;
+    /** The game's lookup for translated titles and roles (see `CreditsPanel`). */
+    readonly text?: (section: number, name: number | undefined, authored: string) => string;
+    /** Called once when the panel closes, by Escape, Close or `close()`. */
+    readonly onClose?: () => void;
+}
+```
+
 #### `SplashCopy` (interface)
 
 What the splash says.
@@ -16591,6 +16623,38 @@ function screensWords(locale: string): {
     readonly splash: SplashCopy;
     readonly credits: CreditsCopy;
 };
+```
+
+#### `showCredits` (function)
+
+Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
+Returns how to close it; closing twice is harmless.
+
+```ts
+function showCredits(options: ShowCreditsOptions): {
+    close(): void;
+};
+```
+
+#### `ShowCreditsOptions` (interface)
+
+What `showCredits` needs.
+
+```ts
+interface ShowCreditsOptions {
+    /** Where the panel goes: a screen's layer. */
+    readonly target: HTMLElement;
+    readonly credits: Credits;
+    /** The host, asked to open a name's link. */
+    readonly hosting: Pick<Hosting, 'openLink' | 'granted'>;
+    /** The panel's words. Default: this package's, in `locale` (English without one). */
+    readonly copy?: CreditsCopy;
+    readonly locale?: string;
+    /** The game's lookup for translated titles and roles (see `CreditsPanel`). */
+    readonly text?: (section: number, name: number | undefined, authored: string) => string;
+    /** Called once when the panel closes, by Escape, Close or `close()`. */
+    readonly onClose?: () => void;
+}
 ```
 
 ### `import { … } from '@automata/ui-screens/error'`

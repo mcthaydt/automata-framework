@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 16 of 21 tasks (54%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 17 of 21 tasks (54%)** (22 listed; task 17 is cut, so 21 are live; tasks 16 and 19 are on the side branch `claude/shared-polish-emberwick-site` and not counted here).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -48,11 +48,11 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 12 | Credits (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium, 100 cases; WebKit and Firefox not run) | `618d03a3` |
 | 13 | Achievements, generic, and their Ruken mapping | 6 | done (unit tests over fakes and Ruken's own parser; a real `ruken publish` is not run) | `474d2f96` |
 | 14 | Stale-build check | 7 | done (jsdom unit tests with a fake clock and a bare HTTP listener; the panel's layout contract in Chromium, 50 cases; no two-process journey, as call 15 says; WebKit and Firefox not run) | `2d87462f` |
-| 15 | The four examples and their journeys | examples | todo | |
+| 15 | The four examples and their journeys | examples | done (Chromium at the phone and compact sizes; `examples-ipad` is added but WebKit is not installed here, so it was not run; see the ledger) | `76bfe33c` |
 | 16 | Emberwick in six languages, with an achievement | 1, 6 | done on the side branch `claude/shared-polish-emberwick-site` (Chromium only: 135 unit tests, 38 journeys, the hot-reload demo's 2; WebKit and Firefox not run; the live model call unverified: no key here) | see the ledger below |
 | 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
 | 18 | Guides, API report and index, changesets, final gates | done means | todo | |
-| 19 | The site's Editor page is cut; the link opens the editor | site | done on the side branch `claude/shared-polish-emberwick-site` (site unit tests 515, the site build, `check:site`, the site's whole Chromium suite 469; WebKit not run; `check:deployed` not run: needs the live site) | see the ledger below |
+| 19 | The site's Editor page is cut; the link opens the editor | site | done on the side branch `claude/shared-polish-emberwick-site` (site unit tests 510, the site build, `check:site`, the site's whole Chromium suite 469; WebKit not run; `check:deployed` not run: needs the live site) | see the ledger below |
 | 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | todo | |
 
 ## Execution log and deviations ledger
@@ -247,6 +247,84 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
 - **Task 14, note:** the stale panel takes core's `ErrorPanel` as is, with one primary Reload action focused on mount (the layout
   contract also checks it is 48 px).
 - **Task 14, not run:** a real server answering `/version` to a real browser tab; WebKit and Firefox.
+- **Task 15, partly done, `05c8e036`:** `core-languages`, `core-first-run` and `audio-ui-sounds` are in `examples/2d` with their three
+  journeys, run in Chromium at the phone (`examples`) and compact (`examples-compact`) sizes (6 journeys and 6 smoke boots pass;
+  they were red first for the missing pages). Four things are left, for the next session, in this order:
+  1. **`ui-splash-credits` and step 4 (the site's playground).** The example and its journey are written and passed in
+     Chromium (phone and compact); they wait in `docs/superpowers/pending/` (as `.txt`; its README says how to move them)
+     because the playground allows only `@automata/framework` and `zod` and the site's unit tests compile every catalog
+     example. Step 4 needs: `@automata/ui-screens` (its `/credits` and `/splash` entries) in the playground's compile allow-list
+     (`site/src/features/playground/compile.ts`, `ALLOWED_IMPORTS` and its message), a runtime entry
+     (`site/playground/runtime/ui-screens.ts`), `PLAYGROUND_ENTRIES` and `PlaygroundRuntime`
+     (`site/playground/src/vite-runtime.ts`, `frame-page.ts`), the Vite input and the import map, tests first in
+     `site/tests/unit/playground/runtime/frame-page.test.ts` and the runtime's gzip budget (`runtime-size.ts`; say the number).
+  2. **The examples' fonts** (`examples/2d/public/fonts/` and a freshness test that runs `buildFonts` over a `fonts.toml`, as the
+     atlas is kept): not built. The language examples draw the menus in core's default face, so Japanese, Korean and
+     Chinese come from the device's fonts, which breaks the Owner's "no device fallback" for these two examples until it is done.
+  3. **The iPad run:** `examples-ipad` (a third Playwright project) is added but WebKit is not installed here (`Executable doesn't
+     exist at /opt/pw-browsers/webkit-…`), so it is not run: the Owner's.
+  4. `pnpm check` as a whole (each part ran: typecheck, boundaries, style, knip, the affected unit tests in every commit).
+- **Task 15, Ruling:** a real browser found a defect in `passFirstRun` (`@automata/tools/e2e`): after pressing the language it waited
+  for both first-run screens to be gone, which never happens when the warning follows at once, so it hung. The journey
+  `passFirstRun presses through the language and the warning` was red (30 s timeout), then the helper was fixed to wait only for
+  the screen it pressed, and it passes. This is the "untested until task 15" item from the handoff: it is now exercised.
+- **Task 15, Ruling:** at the compact size (780 × 270) the game first asks to go fullscreen (the landscape gate) and that gate takes
+  focus, so the first-run journey expects focus on Play *or* the gate (not Play alone as the plan says); the language and warning
+  screens are the same at every size.
+- **Task 15, Ruling:** the interface sounds are heard only as names (`window.__uiSounds`, the example's own record) in the journey;
+  nothing here plays or hears a real sound. The `audio-ui-sounds` example uses a function map (so it can record), and a plain map
+  of names to files is the documented simpler form. `showCredits` (in `@automata/ui-screens/credits`, tested) was added because an example may import no
+  `svelte` and so could not mount the panel; and the example's title is plain DOM on the framework's control classes because plain
+  `tsc` (the examples' typecheck) cannot read the types `ui-screens`' `title` and main entries re-export from `.svelte` files.
+  The catalog makes `ui` a core module, so that example's `Tier` is `core`, not the plan's `extension`.
+- **Task 15, Ruling:** `@automata/ui-screens` is not yet a dependency of `examples/2d` (knip would flag it unused while the one example
+  that uses it waits in `pending/`); the pending README says to add it. The three sounds are synthesized by a script not committed (the
+  scratchpad); `PROVENANCE.md` says how each is made and gives the hashes.
+- **Task 15, step 4 and the fourth example (fifth session):** the playground answers `@automata/ui-screens` and the six screens it
+  publishes (`/credits`, `/error`, `/loading`, `/results`, `/splash`, `/title`). One list, `site/playground/src/playground-imports.ts`,
+  feeds both the compile allow-list and the frame's import map; its test reads `extensions/ui-screens/package.json` and fails when a
+  screen is published that the list lacks. The runtime has one `ui-screens` entry (`export * from '@automata/ui-screens'`), and the map
+  points every name at that one file, so the screens share the umbrella's chunks (one Pixi, one sim). The compile message now reads
+  "The playground can import only @automata/framework, @automata/ui-screens and zod." `@automata/ui-screens` is a dependency of
+  `site` and of `examples/2d`. The runtime is 427,480 B gzip against the 460,000 budget (unchanged); the screens' own entry is 4,272 B.
+  The example and its journey are in place (`examples/2d/ui/ui-splash-credits.ts`, `tests/e2e/ui-splash-credits.test.ts`), the README row is
+  added, the site's counts are 21 and the `ui` module is listed, and `docs/superpowers/pending/` is deleted. Red first: the site's unit
+  tests (import map, compile allow-list, manifest entry, 21 examples) failed for the missing module and the missing entry. Ran in
+  Chromium: the examples' `examples` and `examples-compact` projects (52 passed, the four journeys and every smoke boot), the example in
+  the playground frame under its policy (`playground-frame-chromium`, 4 passed with the gzip-budget case), the site's unit tests (514).
+  Not run: the site's own `playground.e2e.ts` (its web server did not start in 60 s; only the message text changed there), WebKit and
+  Firefox.
+- **Task 15, the examples' fonts (fifth session):** the two language examples draw in the pixel font in every language. The
+  build is `examples/2d/content/fonts.toml` (Fusion Pixel from `vendor/fonts/fusion-pixel-12/`, three flavours) over five empty
+  catalogs in `content/messages/` (so the content has the six languages and the examples have no words of their own); it holds the
+  framework's and `@automata/ui-screens`' words, found through the examples' own dependencies, to the faces. The outputs (a face per
+  language, `fonts.css`, `fonts.json`, three licences; 144 KB a folder) are committed in `public/core/languages/` and
+  `public/core/first-run/`, beside each page as the atlas is, and each example appends `<link rel="stylesheet" href="fonts.css">`:
+  the playground copies a page's own public folder and a bare import of a `.css` file could not be compiled there. Ruling: two
+  copies (288 KB) and not one shared folder, because the playground build copies only `public/<module>/<name>/` and teaching it a
+  shared folder would be more code than the bytes cost. The freshness test is `packages/content/tests/unit/shared/assets/example-fonts.test.ts`
+  (red first: the build was empty, no faces; then green over the committed files, in both folders). Journeys, red first (`--af-font`
+  was `system-ui, ...`): `core-languages` checks `ja ja`, `ko ko` and `zh-hans zh-Hans` named by `--af-font` and loaded, and
+  `core-first-run` checks `ko ko` on the language screen and `ja ja` on the warning (`tests/e2e/draws-in.ts`). A screenshot of the
+  Settings screen in Chinese was looked at: the pixel face, no device glyphs. Ran in Chromium: `examples` and `examples-compact`
+  (10 passed) and both examples in the playground frame under its policy. The other examples are English and keep core's face.
+  How to rebuild is written at the top of `fonts.toml`.
+- **Task 15, interface sounds proven played (fifth session), Ruling:** `audio-ui-sounds` now gives `uiSounds` as the plain map of names to
+  files, not the function that recorded each name and played it through an `Audio` element, because only the plain map goes through
+  the framework's own mixer (`installUiSounds` then `audio.sound(…, { bus: 'ui' })`), which is what a game would ship. The journey
+  watches the page's Web Audio: an init script notes every `AudioBufferSourceNode.start` with its buffer's length and whether its
+  context was `running`. Play starts the press sound (0.12 s, read from the WAV's header) on a running context; Mute adds none;
+  Quit adds one more press and Cancel starts the back sound (0.14 s). It was red first (no source ever started, because the function
+  played through `Audio`), then passed at the phone and compact sizes and in the playground frame. What a person *hears* is
+  still unverified: headless Chromium has no speakers; a source node that starts on a running context is as far as a page can show.
+  The earlier ruling's `window.__uiSounds` record is gone with the function. Cost if wrong: the example no longer shows a
+  function map (its header says one exists).
+- **Task 15, the iPad run (fifth session), not run:** `examples-ipad` needs WebKit; `/opt/pw-browsers` holds Chromium only
+  (`Executable doesn't exist at /opt/pw-browsers/webkit-2359/pw_run.sh`), so no journey ran at the iPad size or in WebKit. Run
+  it on the GPU runner or a machine with WebKit: `pnpm --filter @af-examples/examples-2d test:e2e --project examples-ipad --trace off`.
+- **Task 15, done:** all four examples and their four journeys are in place and pass in Chromium at the phone and compact sizes;
+  the playground runs each under its policy; the examples' fonts and the playground step are done (above). The whole `pnpm check`
+  passed before each of the two commits that touched `packages/`.
 
 ## Global constraints
 

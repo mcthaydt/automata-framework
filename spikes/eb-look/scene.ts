@@ -1,6 +1,6 @@
 // Draws one base scene with @automata/3d as EnvironmentBuilder frames it (base/base.ts `views`), for shoot.mjs.
-// ?scene=base-interior|base-exterior|base-interior-dressed|base-exterior-dressed  ?view=diorama|fp|af|tll  ?pref=webgl|webgpu
-// `af` and `tll` are gameplay cameras on the first cast member, facing north as the diorama does: AF's default view
+// ?scene=base-interior|base-exterior|base-interior-dressed|base-exterior-dressed  ?view=diorama|fp|af|zone  ?pref=webgl|webgpu
+// `af` and `zone` are gameplay cameras on the first cast member, facing north as the diorama does: AF's default view
 // (`CAMERA_DEFAULTS` and `LENS_MM`: 24 mm, 25° down, 5 m back, focus 1 m up) and The Last Light's play camera (50 mm, 30°
 // home tilt, a zone's 16 m, look point 1.1 m up; mcthaydt/PixiJS3D_Experiment_001 `src/render/stage.ts`, its prologue
 // hall and corridor zones), both at a 320 × 180 field.
@@ -19,6 +19,8 @@ import {
   levelTime,
   render3dExtension,
   swatchColour,
+  glowColours,
+  swatchGlow,
   type View3dFactory,
   worldLighting,
 } from '@automata/3d'
@@ -26,6 +28,7 @@ import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automa
 import type { Gait } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
 import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
+import { GlowEffect } from '@automata/world-kit/sky'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
 
 // Pixi's capability probes each make a throwaway WebGL context and lose it on purpose. On headless SwiftShader that
@@ -36,12 +39,8 @@ await detectVideoAlphaMode()
 
 const q = new URLSearchParams(location.search)
 const name = q.get('scene') ?? 'base-interior'
-const VIEWS = ['diorama', 'fp', 'af', 'tll'] as const
+const VIEWS = ['diorama', 'fp', 'af', 'zone'] as const
 const viewName = VIEWS.find((v) => v === q.get('view')) ?? 'diorama'
-const GAMEPLAY = {
-  af: { lensMm: 24, tiltDeg: 25, distance: 5, focus: 1 },
-  tll: { lensMm: 50, tiltDeg: 30, distance: 16, focus: 1.1 },
-} as const
 const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 // Bisecting switches (all on by default): ?look=0 drops the look, ?cast=0 the figures, ?light=0 the baked room light,
 // ?time=0 the time of day, ?env=0 the hemisphere environment, ?world=0 the room's pieces, ?pieces=static|moving to draw
@@ -56,15 +55,28 @@ const level =
   (dressedBaseScenes as Record<string, (typeof BASE_SCENES)['base-interior']>)[name]
 if (level === undefined) throw new Error(`no scene ${name}`)
 const library = dressed ? worldKitLibrary : baseLibrary
-const time = levelTime(level.time)
+// ?at=night draws the scene at another time of day (windows lit, lamps on a photocell burning).
+const time = levelTime(q.get('at') ?? level.time)
 const night = time.name !== 'day'
 const world = buildWorld(level, library, { night })
-const lighting = worldLighting(world, time)
+// ?uniform=1 lights every surface by 1 (white ambient alone), so a frame shows each surface's albedo: the measure of how
+// much light each side puts on a surface is the frame's brightness over this one.
+const lighting =
+  q.get('uniform') === '1'
+    ? { ...worldLighting(world, time), ambient: 1, ambientColor: 0xffffff, key: undefined, fill: undefined, sun: undefined, lamps: [] }
+    : worldLighting(world, time)
 const views = (level.views ?? {}) as Record<string, Record<string, unknown>>
+const zoneOf = (level.views ?? {}) as Record<string, { distance?: number }>
+const zoneDistance = (zoneOf.room ?? zoneOf.pavement)?.distance
+const GAMEPLAY = {
+  // The default gameplay camera (50 mm, 30°, 16 m), and the same camera at the distance the base scene's zone names.
+  af: { lensMm: 50, tiltDeg: 30, distance: 16, focus: 1 },
+  zone: { lensMm: 50, tiltDeg: 30, distance: Number(zoneDistance ?? 16), focus: 1 },
+} as const
 const size =
   viewName === 'fp'
     ? { width: 320, height: 200 }
-    : viewName === 'af' || viewName === 'tll'
+    : viewName === 'af' || viewName === 'zone'
       ? { width: 320, height: 180 }
       : { width: Number(views.diorama?.w ?? 512), height: Number(views.diorama?.h ?? 320) }
 
@@ -142,7 +154,7 @@ const game = defineGame({
           const back = 40
           camera.position.set(at[0], at[1] + Math.sin(pitch) * back, at[2] + Math.cos(pitch) * back)
           camera.lookAt({ x: at[0], y: at[1], z: at[2] })
-        } else if (viewName === 'af' || viewName === 'tll') {
+        } else if (viewName === 'af' || viewName === 'zone') {
           const g = GAMEPLAY[viewName]
           const who = cast[0]?.at ?? [0, 0]
           const focus = { x: who[0], y: g.focus, z: who[1] }
@@ -168,7 +180,7 @@ const game = defineGame({
         // from the eye in first person (the profile's `focusFp`).
         const haze = view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)
         if (viewName === 'diorama') haze?.focusCentre()
-        else if (viewName === 'af' || viewName === 'tll') haze?.focus(GAMEPLAY[viewName].distance)
+        else if (viewName === 'af' || viewName === 'zone') haze?.focus(GAMEPLAY[viewName].distance)
         // The sky panorama replaces the flat background where no mesh draws: the time's bands, clouds and the level's
         // horizon, turned with the camera (heading clockwise from east, pitch up positive).
         if (on('sky')) {
@@ -182,18 +194,26 @@ const game = defineGame({
             })),
           )
           if (viewName === 'fp') sky.aim((Number(views.fp?.angle ?? 0) * Math.PI) / 180, 0)
-          else if (viewName === 'af' || viewName === 'tll')
+          else if (viewName === 'af' || viewName === 'zone')
             sky.aim(-Math.PI / 2, -(GAMEPLAY[viewName].tiltDeg * Math.PI) / 180)
           view.passes = [sky, ...view.passes]
         }
+        // ?snap=0 / ?haze=0 drop the DUEL snap / the haze pass, to read the frame before them.
+        view.passes = view.passes.filter((p) => !(q.get('snap') === '0' && p.constructor.name === 'DuelSnapEffect') && !(q.get('haze') === '0' && p.constructor.name === 'HazeEffect'))
         if (on('env')) view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(library, swatch)
         if (on('world')) {
           const moves = (p: (typeof world.pieces)[number]) => p.door !== undefined || p.prop !== undefined || p.sway !== undefined
           const which = q.get('pieces')
           const pieces = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
-          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('tiles') ? { tiles } : {}) }, pieces)
+          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('glow') ? { glow: (swatch: string) => swatchGlow(library, swatch) } : {}), ...(on('tiles') ? { tiles } : {}) }, pieces)
         }
+        // The bloom rings what the room's glowing swatches show, after the snap (?bloom=0 leaves it out).
+        if (on('bloom') && on('glow'))
+          view.passes = [
+            ...view.passes,
+            new GlowEffect({ colours: glowColours(world.pieces, (swatch) => swatchGlow(library, swatch)) }),
+          ]
         const renderer = stage.app.renderer as unknown as { name: string }
         const { dataset } = stage.app.canvas
         dataset.renderer = renderer.name

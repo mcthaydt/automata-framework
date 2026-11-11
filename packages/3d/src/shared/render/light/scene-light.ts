@@ -20,6 +20,11 @@ export interface SceneLight {
    * so that only this light reaches it.
    */
   bake(mesh: Mesh3D, options?: BakeOptions): void
+  /**
+   * Takes a baked mesh's light again where it stands now: for a mesh a state has moved (a prop). Its colours are written
+   * into the same buffers, so nothing is reallocated. A mesh that was not baked is left alone.
+   */
+  rebake(mesh: Mesh3D): void
   /** Stops rebaking a baked mesh and destroys its baked geometry and buffers: call it once the mesh is destroyed. */
   release(mesh: Mesh3D): void
   /**
@@ -46,8 +51,12 @@ export interface SceneLight {
 
 interface Baked {
   readonly mesh: Mesh3D
-  readonly bake: VertexBake
+  bake: VertexBake
   readonly geometry: Geometry3D
+  /** What the bake reads, kept so the mesh can be baked again where it has moved to. */
+  readonly positions: Float32Array
+  readonly normals: Float32Array
+  readonly options: BakeOptions
 }
 
 type Attribute = {
@@ -148,7 +157,17 @@ export function createSceneLight(lighting: SceneLighting): SceneLight {
       })
       mesh.geometry = geometry
       mesh.material.vertexColors = true
-      baked.push({ mesh, bake, geometry })
+      baked.push({ mesh, bake, geometry, positions, normals, options })
+    },
+    rebake(mesh) {
+      const entry = baked.find((candidate) => candidate.mesh === mesh)
+      if (entry === undefined) return
+      const { positions, normals, options } = entry
+      entry.bake = bakeVertices(positions, normals, placement(mesh), lighting, options.ignore, options)
+      const buffer = entry.geometry.attributes.aColor?.buffer
+      if (buffer === undefined) return
+      rebakes += 1
+      if (entry.bake.write(levels, buffer.data as Float32Array)) buffer.update()
     },
     release(mesh) {
       // `true`: the baked copy owns its buffers (no one shares them), so they are freed now, not at Pixi's GC.

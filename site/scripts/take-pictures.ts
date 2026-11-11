@@ -8,14 +8,13 @@ import { type ChildProcess, spawn } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { chromium, type Page } from '@playwright/test'
-import { browserSafePort } from '../../packages/tools/src/shared/ship/ports/browser-safe-port.ts'
-import { portsFor } from '../../packages/tools/src/shared/ship/ports/ports-for.ts'
+import { claimPort } from '../../packages/tools/src/shared/ship/ports/free-ports.ts'
 import { PICTURES, type Picture } from '../src/shared/pictures.ts'
 
 const STEP_MS = 100
 const buildDirectory = resolve(process.argv[2] ?? 'build')
 const outDirectory = resolve('static/previews')
-const port = browserSafePort(portsFor(process.cwd(), process.env).preview + 80)
+const port = claimPort('site-pictures')
 const origin = `http://127.0.0.1:${port}`
 
 /** Moves the page's clock on by `ms` in fixed steps, with a real beat after each so timers and frames settle. */

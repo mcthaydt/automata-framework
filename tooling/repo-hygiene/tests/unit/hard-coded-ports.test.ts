@@ -5,10 +5,10 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { hardCodedPorts, isPortScanned } from '#src/hard-coded-ports.ts'
 
-// Several runner copies share one machine, and each shifts the browser journeys' ports by its own AF_RUNNER_PORT_OFFSET
-// (packages/tools portsFor). A server that names its own port ignores the offset, so two jobs meet on it and the second
-// dies with "http://localhost:4800/ is already used". These tests hold every server in the repository to ports it takes
-// from portsFor.
+// Jobs share one machine (two jobs of one runner copy, or two copies), and a port that is written down, or worked out from
+// the checkout or a runner offset, is the same in every one of them: the second job's Playwright webServer dies with
+// "http://localhost:4800/ is already used". These tests hold every server in the repository to a port it claims from the
+// operating system when the config loads (packages/tools claimPorts).
 
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 
@@ -53,13 +53,58 @@ describe('a literal port in a server command or origin', () => {
   })
 
   it('leaves alone the file that defines the ports, and unit tests', () => {
-    expect(isPortScanned('packages/tools/src/shared/ship/ports/ports-for.ts')).toBe(false)
-    expect(isPortScanned('packages/tools/src/shared/ship/ports/browser-safe-port.ts')).toBe(false)
+    expect(isPortScanned('packages/tools/src/shared/ship/ports/free-ports.ts')).toBe(false)
     expect(isPortScanned('packages/tools/tests/unit/editor/editor-args.test.ts')).toBe(false)
     expect(isPortScanned('extensions/net-server/src/app/server-process.ts')).toBe(false)
     expect(isPortScanned('games/emberwick/playwright.config.ts')).toBe(true)
     expect(isPortScanned('examples/ui/primitives/package.json')).toBe(true)
     expect(isPortScanned('.github/workflows/ci.yml')).toBe(true)
+  })
+})
+
+describe('a port worked out instead of claimed', () => {
+  it.each([
+    ['a derived port', 'export const gamePort: number = browserSafePort(ports.preview + 1100)'],
+    [
+      'an offset from the server port',
+      'export const SITE_PORT = Number(process.env.QB_SITE_PORT ?? ports.server + 50)',
+    ],
+    [
+      'the checkout’s pair',
+      "const ports = portsFor(new URL('../..', import.meta.url).pathname, process.env)",
+    ],
+    ['a port next to the demo port', 'const port = demoPort + 200'],
+    ['a slot above the preview port', 'export const stressPort: number = ports.preview + 200'],
+    [
+      'the helper import',
+      "import { portsFor } from '../../packages/tools/src/shared/ship/ports/ports-for.ts'",
+    ],
+    ['the bad-port step', "import { browserSafePort } from './browser-safe-port.ts'"],
+  ])('is found in %s', (_name, line) => {
+    expect(find(line)).toEqual([line.trim()])
+  })
+
+  it.each([
+    ['a claimed port', "const { game, editor } = claimPorts(['game', 'editor'])"],
+    ['one claimed port', "const port = claimPort('editors-sample')"],
+    ['an index', 'const next = ports.length + 1'],
+    ['a plain sum', 'const total = width + 100'],
+  ])('is not found in %s', (_name, line) => {
+    expect(find(line)).toEqual([])
+  })
+})
+
+describe('a server reused on CI', () => {
+  it('is found when reuseExistingServer is always on', () => {
+    expect(find('      reuseExistingServer: true,')).toEqual(['reuseExistingServer: true,'])
+  })
+
+  it.each([
+    ['off', 'reuseExistingServer: false,'],
+    ['on for a developer only', 'reuseExistingServer: process.env.CI === undefined,'],
+    ['a variable', 'reuseExistingServer: reuse,'],
+  ])('is not found when it is %s', (_name, line) => {
+    expect(find(line)).toEqual([])
   })
 })
 
@@ -75,7 +120,7 @@ describe('the repository', () => {
     const findings = tracked.flatMap((file) => hardCodedPorts(file, readFileSync(join(root, file), 'utf8')))
     expect(
       findings.map((finding) => `${finding.file}:${finding.line}: ${finding.text}`),
-      'Take the port from portsFor (packages/tools) or tooling/examples-runner/host/ports.ts, so AF_RUNNER_PORT_OFFSET moves it',
+      'Claim the port with claimPort / claimPorts (packages/tools free-ports.ts), and reuse a server on a developer’s machine only',
     ).toEqual([])
   })
 })

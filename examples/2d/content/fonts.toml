@@ -1,0 +1,32 @@
+# The pixel font the language examples draw their menus in (`core/languages.ts`, `core/first-run.ts`): Fusion Pixel in
+# three flavours, one per script, from `vendor/fonts/fusion-pixel-12/` (its README has the source and the licence).
+# The examples' runner compiles no content, so the font build is run by hand, and `packages/content`'s `example-fonts`
+# test keeps the committed files fresh: it builds this file again and compares each output with the copy beside each
+# example's page (`public/core/languages/`, `public/core/first-run/`). The build holds every word the framework's menus
+# show, in all six languages (`content/messages/` names them; the examples have no words of their own), to these faces.
+# To rebuild: run `automata-content assets` here with `export default { schemas: [] }` as `automata.content.ts`, copy
+# `content/generated/fonts/` into both folders, and remove the generated folder and the config.
+
+[font.ja]
+file = "../../vendor/fonts/fusion-pixel-12/ja.woff2"
+sha256 = "dd52d6fa0eb8100ee3a4bee142f2c03b3480a815cf0d53722bd208a7f3bd316b"
+license = "OFL-1.1"
+license_file = "../../vendor/fonts/fusion-pixel-12/OFL.txt"
+reserved_name = "Fusion Pixel"
+locales = ["en", "es-419", "pt-BR", "ja"]
+
+[font.ko]
+file = "../../vendor/fonts/fusion-pixel-12/ko.woff2"
+sha256 = "f7527814ee81f89ac4596d292c627e4dda645f6b22f5120aaa968ff3ed7d0833"
+license = "OFL-1.1"
+license_file = "../../vendor/fonts/fusion-pixel-12/OFL.txt"
+reserved_name = "Fusion Pixel"
+locales = ["ko"]
+
+[font.zh-hans]
+file = "../../vendor/fonts/fusion-pixel-12/zh_hans.woff2"
+sha256 = "043eae5e616b0d1e75dc746d3d687b4413f9f1c70c1a09bc4ebb705ef1cc8e32"
+license = "OFL-1.1"
+license_file = "../../vendor/fonts/fusion-pixel-12/OFL.txt"
+reserved_name = "Fusion Pixel"
+locales = ["zh-Hans"]

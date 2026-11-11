@@ -7,6 +7,8 @@ import { drawWorld, type WorldView } from '#src/app/world-view.ts'
 import { buildWorld } from '#src/features/world/build.ts'
 import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
 import { noPieceStates, type PieceStates } from '#src/shared/level/piece-states.ts'
+import { createSceneLight } from '#src/shared/render/light/scene-light.ts'
+import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 
 const room = (id: string, x0: number, door?: boolean) => ({
   id,
@@ -115,5 +117,23 @@ describe('updatePieces', () => {
     updatePieces(view, states({ props: { crate: { hidden: true } } }), noPieceStates())
     expect(mesh.visible).toBe(true)
     expect(mesh.position.x).toBeCloseTo(0, 6)
+  })
+
+  it('takes a moved prop’s baked light again where it lands', () => {
+    const light = createSceneLight(
+      sceneLightingSchema.parse({
+        ambient: 0.05,
+        colorSpace: 'srgb',
+        lamps: [{ id: 'lamp', x: 2, y: 2.5, z: 2, color: 0xffffff, range: 5 }],
+      }),
+    )
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0xffffff, light }, world.pieces)
+    const crate = cratePieces[0] as NonNullable<(typeof cratePieces)[number]>
+    const colours = () => [
+      ...((meshOf(view, crate.id).geometry.attributes.aColor?.buffer.data ?? []) as Float32Array),
+    ]
+    const before = colours()
+    updatePieces(view, noPieceStates(), states({ props: { crate: { at: [2, 0, 40] } } }))
+    expect(colours()).not.toEqual(before)
   })
 })

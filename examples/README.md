@@ -19,14 +19,17 @@ A file starts with a header (what it shows, its controls, its base and its packa
 | Example | What it shows |
 |---|---|
 | [`2d/audio/audio-sound.ts`](2d/audio/audio-sound.ts) | A chime that plays when the game says so |
+| [`2d/audio/audio-ui-sounds.ts`](2d/audio/audio-ui-sounds.ts) | Buttons that sound, a Back that sounds different, one that stays silent |
 | [`2d/content/hot-reload/main.ts`](2d/content/hot-reload/main.ts) | the room as a content file, edited while the game runs |
 | [`2d/core/core-basic-window.ts`](2d/core/core-basic-window.ts) | A game window with a coloured field and a line of text |
 | [`2d/core/core-camera-2d.ts`](2d/core/core-camera-2d.ts) | A camera that follows a square around a world bigger than the screen |
+| [`2d/core/core-first-run.ts`](2d/core/core-first-run.ts) | A first run asks for a language and warns about flashing |
 | [`2d/core/core-host-lifecycle.ts`](2d/core/core-host-lifecycle.ts) | The game stops and pauses while its tab is in the background |
 | [`2d/core/core-input-gamepad.ts`](2d/core/core-input-gamepad.ts) | Move a square with a controller |
 | [`2d/core/core-input-keys.ts`](2d/core/core-input-keys.ts) | Move a square with the keyboard, a controller or touch |
 | [`2d/core/core-input-rebind.ts`](2d/core/core-input-rebind.ts) | Change a control in Settings, and keep it next time |
 | [`2d/core/core-input-touch.ts`](2d/core/core-input-touch.ts) | Steer a square by swiping, and flick down to drop it |
+| [`2d/core/core-languages.ts`](2d/core/core-languages.ts) | The menus in six languages |
 | [`2d/core/core-leaderboard.ts`](2d/core/core-leaderboard.ts) | Each run's score on a leaderboard, shown when you pause |
 | [`2d/core/core-saves.ts`](2d/core/core-saves.ts) | Three save slots, and progress kept while you play |
 | [`3d/figures/figures-aim.ts`](3d/figures/figures-aim.ts) | Wick turning his head, chest and right hand to follow an orb circling him |
@@ -48,5 +51,6 @@ A file starts with a header (what it shows, its controls, its base and its packa
 | [`2d/textures/textures-atlas.ts`](2d/textures/textures-atlas.ts) | Pictures cut from one packed image |
 | [`2d/textures/textures-sprite.ts`](2d/textures/textures-sprite.ts) | A character animated from a sheet of frames |
 | [`2d/ui/primitives/main.ts`](2d/ui/primitives/main.ts) | every ui primitive at every reference size, with no renderer |
+| [`2d/ui/ui-splash-credits.ts`](2d/ui/ui-splash-credits.ts) | A studio splash, then a title with Credits |
 
 `2d/content/hot-reload`, `2d/ui/primitives` and [`3d/wardrobe`](3d/wardrobe/) are small packages with their own `package.json`; the rest are single files. `3d/wardrobe` (`@af-examples/wardrobe-3d`) is the worked example of a wardrobe extension: eleven streetwear garments for the procedural figures, registered with `@automata/3d/figures-kit` the way a game's own garments would be.

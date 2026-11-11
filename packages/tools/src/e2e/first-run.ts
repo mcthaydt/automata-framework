@@ -32,11 +32,10 @@ export async function passFirstRun(page: Page | Frame, language?: string): Promi
         )
         .click()
     }
-    // The pressed screen goes before the next is looked for, so one screen is never pressed twice.
-    await page.waitForFunction(
-      () =>
-        document.querySelector('[data-testid^="first-language-"]') === null &&
-        document.querySelector('[data-testid="photosensitivity-continue"]') === null,
-    )
+    // The pressed screen goes before the next is looked for, so one screen is never pressed twice. Only the screen
+    // pressed is waited on: the one that follows it (the warning after the language) is already there when it goes.
+    const pressed =
+      next === 'warning' ? '[data-testid="photosensitivity-continue"]' : '[data-testid^="first-language-"]'
+    await page.waitForFunction((selector) => document.querySelector(selector) === null, pressed)
   }
 }

@@ -48,6 +48,12 @@ const seen = (frame: Frame): Promise<Seen> =>
 
 test('draws the pixel-art look under the CSP: few colours, in hard-edged blocks', async ({ page }) => {
   const errors = await collectErrors(page)
+  // A WebGL feedback loop is logged as a warning, which `collectErrors` does not see, so it is read here.
+  const loops: string[] = []
+  page.on('console', (message) => {
+    if (['warning', 'error'].includes(message.type()) && /feedback loop/i.test(message.text()))
+      loops.push(message.text())
+  })
   const frame = await openHosted(page, gameUrl, ID)
   await expect(frame.locator('canvas.af-stage')).toHaveAttribute('data-renderer', 'webgl')
   await frame.getByTestId('play').click()
@@ -56,5 +62,9 @@ test('draws the pixel-art look under the CSP: few colours, in hard-edged blocks'
   // this scene holds thousands of distinct colours.
   await expect.poll(async () => (await seen(frame)).colours, { timeout: 15_000 }).toBeGreaterThan(3)
   expect((await seen(frame)).colours).toBeLessThanOrEqual(256)
+  // The fog starts at the camera's distance, so the floor and Wick draw in their own colours and not in the fog's: the
+  // frame reads 48.5 repaired, and 19.7 to 32.3 when the fog began at 5 m under a camera 16 m away.
+  expect((await seen(frame)).brightness).toBeGreaterThan(40)
+  expect(loops).toEqual([])
   expect(errors).toEqual([])
 })

@@ -45,6 +45,8 @@ function moveProp(view: WorldView, piece: WorldPiece, after: PieceStates): void 
   const state = propState(after, piece.prop.id)
   mesh.visible = state.hidden !== true
   placeAbout(mesh, piece.prop.at, state.turn ?? 0, state.at ?? piece.prop.at)
+  // Its baked light was taken where it stood: take it again where it stands now.
+  view.relight(piece.id)
 }
 
 /**

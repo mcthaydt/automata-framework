@@ -16,6 +16,7 @@ import {
   drawWorld,
   render3dExtension,
   swatchColour,
+  swatchGlow,
   targetSize,
 } from '@automata/3d'
 import { defineGame, definePlugin } from '@automata/framework'
@@ -47,7 +48,16 @@ export default defineGame({
         view.camera.lookAt({ x: middle[0], y: 0, z: middle[1] })
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(worldKitLibrary, swatch)
-        drawWorld({ parent: view.root, occluders, colourOf, look: DEFAULT_LOOK }, world.pieces)
+        drawWorld(
+          {
+            parent: view.root,
+            occluders,
+            colourOf,
+            glow: (swatch) => swatchGlow(worldKitLibrary, swatch),
+            look: DEFAULT_LOOK,
+          },
+          world.pieces,
+        )
         // What the scene drew, for the journey.
         stage.app.canvas.dataset.problems = String(problems.length + world.problems.length)
         stage.app.canvas.dataset.sectors = String(level.sectors.length)

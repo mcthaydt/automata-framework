@@ -2,6 +2,7 @@
 // It drives the page of spikes/eb-look (scene.ts, unchanged) in headless Chromium on software WebGL, and writes:
 //   <scene>-<view>.png     EnvironmentBuilder's CPU frame | AF, baked room light | AF, material light only
 //   <scene>-gameplay.png   AF's default gameplay camera (50 mm, 30°, 16 m), both lights; the builders draw no such view
+//   <scene>-zone.png       the same camera at the distance the base scene's room view names (#589)
 //   figures-*.png          FigureBuilder's base pair and its lit sheet; AF's painted figures (characterkit-painted)
 //   shots.json             what each panel drew, its mean brightness (0 to 255) and its count of colours
 //
@@ -36,7 +37,7 @@ const LIGHTS = [
 ]
 const FIELD = { 'base-interior': [512, 320], 'base-exterior': [640, 360] }
 const fieldOf = (scene, view) =>
-  view === 'fp' ? [320, 200] : view === 'tll' ? [320, 180] : FIELD[scene.replace('-dressed', '')]
+  view === 'fp' ? [320, 200] : view === 'af' || view === 'zone' ? [320, 180] : FIELD[scene.replace('-dressed', '')]
 
 /** Serves a folder on a port the OS picks. */
 const serve = (root) =>
@@ -197,13 +198,20 @@ for (const scene of SCENES) {
       })
     await write(`${scene}-${view}.png`, panels, fieldOf(scene, view), view === 'fp' ? 2 : 1, { scene, view })
   }
-  const panels = []
-  for (const { extra, title } of LIGHTS)
-    panels.push({
-      title: `${title} (50 mm, 30°, 16 m)`,
-      ...(await shoot(`${local()}/?scene=${scene}&view=tll&pref=webgl${extra}`, [320, 180])),
-    })
-  await write(`${scene}-gameplay.png`, panels, [320, 180], 2, { scene, view: 'gameplay' })
+  // The gameplay camera (`af`: 50 mm, 30°, 16 m), and the same camera at the distance the base scene's room view names
+  // (`zone`). The page knows these two names; any other falls back to the diorama.
+  for (const [view, title] of [
+    ['af', '50 mm, 30°, 16 m'],
+    ['zone', "the room's view"],
+  ]) {
+    const panels = []
+    for (const { extra, title: light } of LIGHTS)
+      panels.push({
+        title: `${light} (${title})`,
+        ...(await shoot(`${local()}/?scene=${scene}&view=${view}&pref=webgl${extra}`, [320, 180])),
+      })
+    await write(`${scene}-${view === 'af' ? 'gameplay' : 'zone'}.png`, panels, [320, 180], 2, { scene, view: view === 'af' ? 'gameplay' : 'zone' })
+  }
 }
 
 // The figures: the builder's base pair at density 2 and its lit sheet, beside the kit's painted figures on main.
