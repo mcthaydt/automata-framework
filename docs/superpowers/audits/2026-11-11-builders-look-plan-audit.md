@@ -92,7 +92,8 @@ step 4 runs the last three; #590 brings its reports).
 Ranked: **blocking** (the plan as written fails its own gates or would make a builder change product code on a false
 premise), **should fix** (a gap or a wrong fact a builder would hit), **tidy**. Each is fixed in the plan or the survey in
 this branch unless it says **open**, with the reason and where it went. **28 findings: 5 blocking, 15 should fix, 8
-tidy.** All 28 are fixed in the plan or the survey; five parts of them are open with the coordinator (listed at the end).
+tidy.** All 28 are fixed in the plan or the survey. The coordinator answered every open part while the audit ran; what remains
+is workstream 2's, taken by the coordinator (listed at the end).
 `main` was fetched again at the end of the audit and was still `b80bfc84`; the spec and the tracker's decisions had not
 changed.
 
@@ -196,7 +197,7 @@ does more than 9b's "rooms a view draws": the player's own room always drawn, th
 camera's blend, a peek's far side, every room in a cutscene, and wall cutaway groups by zone (`hideFrom`). Workstream
 2's survey drops `hideFrom` on purpose (its row 1); the other four are in none of its tasks. **Fix:** task 11 names the
 files to change and to leave, adds the line to the README, and gains a step 1b that sends the coordinator the four
-behaviours for workstream 2's task 9b, landing none here. **Fixed** in the plan; the four behaviours are **open** for
+behaviours for workstream 2's task 9b, landing none here. **Fixed** in the plan; the four behaviours are **taken by the coordinator** for
 workstream 2 (sent to the coordinator).
 
 **12. The homes table's reason for `lcd-panel` and `retro-crisp` was wrong, and the prologue's use of them is
@@ -206,7 +207,7 @@ extensions are "the render features the adventure source's clinic needs", ported
 `CRISP_CLINIC`. Their home is still an extension (ready-made looks any pixel-art game could use; nothing under
 `packages/` imports either on the branch), so the ruling stands; the reason changes. Workstream 2's plan and survey
 never mention an LCD, a retro grade or crisp scaling, so whether the remade prologue wears its old look's last passes
-is planned nowhere. **Fix:** the reason in the homes table. **Fixed;** the question is **open** for workstream 2 (sent
+is planned nowhere. **Fix:** the reason in the homes table. **Fixed;** the question is **taken by the coordinator** for workstream 2 (sent
 to the coordinator).
 
 **13. Call 11's other answer, "revert its two commits", is not two commits and does not apply cleanly.** Reverting
@@ -222,7 +223,8 @@ same ruling names all of #588.** The tracker's decisions list: "The clinic work 
 `lcd-panel`, `retro-crisp` and the two core seams, which are #588's too, while the spec's call 1 gives #588 to this
 workstream "to finish or close" and workstream 2's plan says "what of it reaches `main` is the framework's to use".
 **Fix:** task 11, the homes table and call 3 cite the decision. **Fixed;** whether the decision was meant to cover
-#588's other two extensions is **open** for the coordinator (the plan keeps them, as the spec's call 1 allows).
+#588's other two extensions went to the coordinator, who answered (option A): only room-visibility was meant; the
+plan keeps the other two.
 
 **15. Four more pull requests are settled by task 1's merge, and the plan did not say so.** The heads of #587
 (`cfb61baa`), #601 (`27001792`), #602 (`eee6141e`) and #604 (`8895c7f5`) are each ancestors of #589's, #607's and
@@ -235,7 +237,7 @@ each; task 17 lists nine. **Fixed.**
 contradicts this one.** Workstream 2's task 13 "starts when workstream 4 says the prologue's dressing can start"; no
 step here says it. **Fix:** a step after group 2's pull request sends that word (lit room and lit figures on `main`,
 the street's row, the ward's outfits to follow), and task 16 says when the ward's entries land. **Fixed.** Still
-**open**, for the coordinator: workstream 2's task 13 writes `content/figures/{ada,figure}.toml` (core's mesh figure
+**taken by the coordinator** for workstream 2: its task 13 writes `content/figures/{ada,figure}.toml` (core's mesh figure
 files) and picks the figures "in the Studio", which opens core's mesh figures only (the tracker's editor gaps ledger,
 row 2), while this workstream's spec (goal 4) and this plan (calls 8 and 10) make Ada and the night figure painted
 figures dressed from the kit's entries, written as a data file in the game.
@@ -369,18 +371,30 @@ What building it would add, if the Owner says yes:
 - **Cost:** one task between the plan's tasks 7 and 8 (the figures must be in the base scenes first), and it changes the
   street's numbers a little (more dark texels under the pair), so task 5's measure would be taken before it.
 
+## The coordinator's answers, and what goes to workstream 2
 
-## For the coordinator
+The coordinator answered the open parts while the audit ran (2026-11-11):
 
-Sent as found; collected here.
+- **The Owner's decision on #588: option A.** "Superseded" meant the clinic scenes and what was built only for them
+  (`room-visibility`). `lcd-panel` and `retro-crisp` are The Last Light's own look, which the reference game needs; they
+  land as opt-in look extensions, as the plan has it. Settled (finding 14).
+- **The letterbox's whole-pixel scale: keep,** as ruled here; the coordinator asks the Owner to confirm, and the plan
+  does not wait for it (finding 13).
+- **`main` red at `knip`:** the move went out ahead of this branch as its own commit, `71fdfd53` (parent `main`
+  `b80bfc84`; `knip` exit 0, `style` and `source-names` 0 findings on it), for the coordinator to send to `main` (finding 2).
+- **The lockfile:** whichever of the two build branches lands second runs `pnpm install` and commits the repaired
+  lockfile (finding 28).
 
-1. **`main` is red at `knip`** (finding 2) until this branch merges.
-2. **The letterbox ruling** (keep) is for the Owner to confirm (above).
-3. **Workstream 2, task 9b:** the four behaviours of the old room visibility it does not cover (finding 11).
-4. **Workstream 2, the old look's last passes:** whether the prologue uses the LCD panel, the retro grade and crisp
-   scaling, which are The Last Light's own and now the framework's extensions; its plan does not say (finding 12).
-5. **Workstream 2, task 13:** it writes core mesh figure files and picks them in the Studio, while this workstream makes
-   Ada and the night figure painted figures from the kit's entries (finding 16).
-6. **The Owner's decision on #588:** read literally it supersedes all of #588, the two kept extensions included; the
-   spec's call 1 keeps them open to this workstream. Which was meant (finding 14)?
-7. **A figure's cast shadow:** what building it would add is above; no task until the Owner says.
+**For workstream 2, taken by the coordinator** (it amends workstream 2's plan once this branch is on `main`):
+
+1. Task 9b gains the four behaviours the old room visibility had and 9b lacked: the player's own room always drawn, the
+   zone just left held 0.35 s under the camera's blend, a peek's far side, every room in a cutscene (finding 11).
+2. The prologue is stated to use `lcd-panel`, `retro-crisp` and whole-pixel scaling (finding 12).
+3. Task 13 dresses Ada and the night figure as painted figures from the kit's entries, not core mesh figures, with the
+   Studio's gap in the editor gaps ledger (finding 16).
+
+The interfaces workstream 2 relies on for 2 and 3 are in the plan's new section "What workstream 2 relies on": the two
+extensions' entries and exports, crisp scaling's renderer option, and a painted figure's `CharacterDef`, the kit's
+outfit entries, `paintedFigure` and `PaintedState`.
+
+**Still the Owner's:** a figure's cast shadow (above; no task added).
