@@ -62,7 +62,10 @@ jobs:
     # never reached them. The checks need no container or GPU and ran on af-mac from 2026-10-17 to 2026-10-30.
     # vars.AF_CHECKS_RUNNER moves them back.
     runs-on: ${{ vars.AF_CHECKS_RUNNER || 'af-mac' }}
-    timeout-minutes: 20
+    # The checks job on the shared Mac took about 12 min on 2026-11-11 (run 42930399321) and was cancelled at 20 min twice
+    # that evening, in `pnpm test:unit` (run 42940969260, both attempts) while the 3D parity job ran on the same machine
+    # and main had just added the 3D package's light tests. It gates every other job here.
+    timeout-minutes: 30
     outputs:
       docs_only: ${{ steps.scope.outputs.docs_only }}
       parity_full: ${{ steps.scope.outputs.parity_full }}
