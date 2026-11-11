@@ -1,5 +1,20 @@
 // @automata/character-kit: clothes, hairstyles and seats for AF's procedural 3D figures. Loading it registers them.
 export { characterKitExtension } from '../app/character-kit.extension.ts'
+export { DEMO_CAST } from '../features/fashion/demo-cast.ts'
+export type {
+  Dress,
+  FashionCoat,
+  FashionSkirt,
+  Hoodie,
+  Jacket,
+  Jeans,
+  Shoes,
+  Tee,
+  Trousers,
+} from '../features/fashion/garments.ts'
+export type { Model } from '../features/fashion/model.ts'
+export { registerFashion } from '../features/fashion/register-fashion.ts'
+export { RUNWAY_CAST } from '../features/fashion/runway-cast.ts'
 export type { Apron } from '../features/garments/apron.ts'
 export type { Belt } from '../features/garments/belt.ts'
 export type { Coat } from '../features/garments/coat.ts'
