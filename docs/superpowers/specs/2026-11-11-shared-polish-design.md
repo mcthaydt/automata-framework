@@ -235,6 +235,15 @@ not changed.
 - `automata words` translates everything or one line, into one language or all, against a fake model in tests; and
   `automata check` fails on a missing word, a lost placeholder, or a character a font cannot draw.
 - `pnpm check` passes; API reports and the index are updated; changesets are written.
+- **The site shows all of it** (the Owner, 2026-11-11: "We need to update the site too for our changes, like languages
+  should def. have an example and the APIs and all that once we finish"). As the last task, the site is built from the
+  finished branch and checked in a browser: the Examples page lists the four new examples, languages among them, and
+  each runs in the playground; the API pages show every new export (the languages, the opening sequence, the warning,
+  interface sounds, `openLink`, achievements, the splash and credits screens, the stale-build check) with its doc
+  comment; Docs shows the new and changed guides, including a guide for a game's languages and `automata words`; the
+  cheatsheet and the agents' text files carry the same; any page of the site that lists what the framework does
+  (Home, Start) says languages and the rest where it lists features; and `pnpm check:site` and the site's browser
+  checks pass. Anything the site still lacks is fixed in that task, not left as a note.
 - Reported, not claimed: WebKit, Firefox and real devices are the Owner's.
 
 ## The coordinator's calls, for the Owner to check

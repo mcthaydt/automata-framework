@@ -1,4 +1,4 @@
-# Progress: The Last Light on the framework
+# Progress: The Last Light, the framework's 3D reference game
 
 The Owner's direction (2026-11-11): the framework and its editors exist to make games like The Last Light easier to
 make and to change by hand. FigureBuilder and EnvironmentBuilder were spikes to improve its figures and scenes, to be
@@ -15,7 +15,7 @@ runs in its own session on its own branch and hands off through committed docume
 | # | Workstream | Stage | Progress | Record |
 |---|---|---|---|---|
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings (11 blocking, 17 should fix, 13 tidy; 5 of them from the spec's amendments during the audit), all fixed in the plan, which now matches the spec at `main` `0332302c`. Next is 4, execution | 43% (3 of 7 stages); execution 0 of 21 tasks | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [audit](audits/2026-11-11-shared-polish-plan-audit.md) |
-| 2 | The Last Light on the framework, one scene at a time (the prologue first) | Slice 1: 2, plan: done 2026-11-11 (a survey of the prologue against the framework, the spec's slice 1 row corrected, and a plan of 20 tasks: 10 in the framework, 10 in the game's repository). Next is 3, plan audit. Slices 2 to 4 not started | Slice 1: 29% (2 of 7 stages); execution 0 of 20 tasks | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md) |
+| 2 | The Last Light as the framework's 3D reference game (`games/the-last-light`), one scene at a time, the prologue first; Ember Hall is cut | 2, plan: slice 1's survey under way; its plan follows the re-set spec | 5% | [spec](specs/2026-11-11-last-light-on-the-framework-design.md) |
 | 3 | A UI editor in the suite | Not started: the Owner will address it when we get to it; its spec is written with the Owner then | 0% | |
 
 ## Workstream 1 sessions
@@ -26,14 +26,6 @@ runs in its own session on its own branch and hands off through committed docume
 | 2. Plan | Fable 5.2, medium (`session_01HNdX7HfQXxQqDGztKzgibK`) | `claude/shared-polish-plan` | Done 2026-11-11: 20 tasks with a tracking table, 15 calls named in the plan; revised the same day for the Owner's amendments (nothing copied from FloorFifty, no review state, fonts cover every language, `Hosting.openLink`). No product code written and no test run (this stage writes the plan only) |
 | 3. Plan audit | `session_01HNdX7MBLx4zWBjBo4a5VCq` | `claude/shared-polish-plan-audit` | Done 2026-11-11: the plan checked against the spec (with the amendments `b119393b`, `df992aaa`, `87b48662` and `134d7fd1` merged in), `AGENTS.md`, the code on `main`, the vendored Ruken packages and FloorFifty at `677d456` (read only); the font's licence and coverage read from Fontsource's npm copies (`github.com` is refused here). 41 findings, all fixed in the plan; the font's reserved name, the site's import map, Credits and the source record settled by the coordinator. No product code changed, no test run (`node_modules` is not installed in the container); `pnpm format` not run for the same reason |
 | Merge | One long-lived session (`session_01HNdX7LEALEpFdpPWLXPuy7`) | none of its own | Started 2026-11-11; merged the spec as #608 (`6fa386e9`) |
-
-## Workstream 2 sessions (slice 1, the prologue)
-
-| Stage | Session | Branch | State |
-|---|---|---|---|
-| 1. Spec | The coordinator (`session_01HNdX7JDtQV1qVssEcnsxHM`) | `claude/optimistic-newton-yszrte` | Done 2026-11-11: one spec for all four slices; slice 1 is planned first |
-| 2. Plan | Fable 5.2 (`session_01HNdX7KiEkdV6ZYyFkipam4`) | `claude/last-light-prologue-plan` | Done 2026-11-11: the survey (55 run-time rows marked, the editors table, the game's 76-row editor-gaps ledger read against the suite, the spec's slice 1 row corrected) and the plan (20 tasks with a tracking table, 11 calls named). The game was read at `92e6704`, read only. No product code written and nothing run: `node_modules` is not installed in the container, so no test, no `pnpm check` and no `pnpm format` ran; the counts in the survey were measured from the files |
-| 3. Plan audit | Not started | | |
 
 ## Workstream 3: what the Owner has said so far (2026-11-11)
 
@@ -52,11 +44,6 @@ take it over later: its layout and words as data, not buried in code.
   (pacing director, crew, grapple, barricade, peek, hiding), the connected facility, faces and acting, the HUD screens
   (journal, map, inventory, objectives, dialer), foley and room acoustics, twelve of its sixteen pipelines, and a
   whole-game playthrough proof. The builders' look and The Last Light's camera are already landing in `@automata/3d`.
-- Slice 1's survey (2026-11-11): the game has not moved since the extraction commit (`92e6704`), so the framework's
-  story extensions already express the prologue's puzzle, creature, cutscenes and lines. Missing and generic: using a
-  hotspot (a new `@automata/interact`), a play HUD drawn from a data file (a new `@automata/hud`), peeking, line
-  delivery, a 3D cutscene stage, footsteps by floor, nine props, Sequence over a 3D level, and a way to pack the
-  framework for a game outside the workspace. The game's own: the hand lamp, the vigil and what a catch does.
 - The framework refuses to publish a 3D game to a public host while Pixi 3D is in beta. Private builds are allowed, so
   the port is not blocked; an itch release is, and that is the Owner's.
 - FloorFifty's shared layer is in `packages/automata` except the seven items of workstream 1.
@@ -64,17 +51,6 @@ take it over later: its layout and words as data, not buried in code.
 
 ## Open, for the Owner
 
-- **The game's content is already in the framework's repository** (found by slice 1's survey): the October extraction
-  left all four scenes' converted content in test fixtures on `main`, including the English story lines word for word
-  (`extensions/narrative/src/testing/fixtures/*.locale.toml` and the files beside them; the full list is in the
-  [survey](audits/2026-11-11-last-light-prologue-survey.md)). The spec says game content never enters this repository.
-  Options: A, leave them and add nothing (slice 1's plan does this while waiting); B, a framework task replaces the
-  story-bearing fixtures with invented text of the same shape; C, a separate clean-up of all of them.
-- **Who translates the story lines.** `automata words` needs `ANTHROPIC_API_KEY`. Slice 1's plan leaves the five story
-  catalogs to one run on the Owner's machine and proves the path with an invented line; the other option is that the
-  executing session writes them and records them with `--mark`, as workstream 1 does for menus.
-- **Three prologue cutscenes put Ada on a mark** before they start, instead of framing her wherever she stands; the
-  lines do not change. The plan takes this as allowed by "not pixel parity".
 - The framework has 122 branches besides `main` from other workstreams; the merge session leaves them alone. Say if
   it should clean them up, and by what rule.
 
@@ -91,4 +67,9 @@ take it over later: its layout and words as data, not buried in code.
 - Fonts: a game's font covers every language it ships; no device fallback.
 - The clinic work already begun in the framework (#575, #596, #606, #588) is superseded by workstream 2.
 - The site's Editor page (`/editor`) is cut; its link goes straight to the editor at `/editor/app/`.
+- The port may refactor the game where its code quality is questionable; feature folders at the least.
+- **What workstream 2 is:** building into the framework what The Last Light has and it lacks; The Last Light is the 3D
+  reference game in `games/`, as Emberwick is the 2D one, not a product shipped from its own repository. Ember Hall
+  (`games/base-3d`) is cut. The game content already in the framework's fixtures is therefore where it belongs.
+- The Last Light is fully open source like Emberwick: its story, art and music are MIT.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
