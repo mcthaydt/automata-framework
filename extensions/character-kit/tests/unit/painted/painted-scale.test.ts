@@ -1,7 +1,7 @@
-// "A texel is never minified": the example's own numbers (its size, the 24 mm lens and the follow rig's defaults), through
-// the builder's own `zoomOf`, never typed. The size is read from the example, so a change there moves this test with it.
-// Under reduced motion klipp's damping is zero, so the camera sits on its target: 5 m back from a focus 1 m above the
-// walker's feet, 25° down, and the feet are 5.42 m deep.
+// "A texel is never minified": the example's own numbers (its size, its camera's distance, the default 30° tilt and the
+// 50 mm lens), through the builder's own `zoomOf`, never typed. The size and the distance are read from the example, so a
+// change there moves this test with it. Under reduced motion klipp's damping is zero, so the camera sits on its target:
+// `distance` back from a focus 1 m above the walker's feet, `tiltDeg` down.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CAMERA_DEFAULTS, fovOf, LENS_MM } from '@automata/3d/camera-view'
@@ -20,6 +20,12 @@ const SIZE = (() => {
   if (!match) throw new Error('characterkit-painted.ts has no `size: { width, height }`')
   return [Number(match[1]), Number(match[2])] as const
 })()
+/** How far back the example's follow camera is. */
+const DISTANCE = (() => {
+  const match = /cameraView\('follow',\s*\{[^}]*distance:\s*([\d.]+)/.exec(readFileSync(EXAMPLE, 'utf8'))
+  if (!match) throw new Error("characterkit-painted.ts has no `cameraView('follow', { distance })`")
+  return Number(match[1])
+})()
 /** The corners of the walker's 2 m square. */
 const CORNERS: readonly (readonly [number, number])[] = [
   [-1, -1],
@@ -27,9 +33,9 @@ const CORNERS: readonly (readonly [number, number])[] = [
   [1, 1],
   [-1, 1],
 ]
-const { distance, tiltDeg, focusHeight } = CAMERA_DEFAULTS
+const { tiltDeg, focusHeight } = CAMERA_DEFAULTS
 const camera = (focus: readonly [number, number, number], size: readonly [number, number]) =>
-  poseOf(followCamera(focus, distance, tiltDeg, focusHeight, fovOf(LENS_MM)), size)
+  poseOf(followCamera(focus, DISTANCE, tiltDeg, focusHeight, fovOf(LENS_MM)), size)
 
 /** The texels a pixel at the walker's feet (what `scale` rounds) with the camera on the walker. */
 const walkerZoom = (size: readonly [number, number]) => zoomOf(camera([0, 0, 0], size), [0, 0, 0]) / 2

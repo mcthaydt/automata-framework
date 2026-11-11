@@ -4,8 +4,8 @@
 //   texel by texel, drawn in the scene as a quad that stands where its entity stands. It is drawn in eight views, as a
 //   sprite set is: the painter picks the one nearest the camera's bearing, so a turning camera steps through them. It is
 //   always painted at the painter's own 18° pitch, whatever the camera's tilt, and at one screen pixel a texel: the field
-//   is 720 × 405 so that a texel at the walker's feet is about a pixel (at 480 × 270 it would be two thirds of one, and
-//   texels would drop out). Each texel has its own depth, so the walker goes behind the low wall on its near side texel by
+//   is 720 × 405 and the camera 10.75 m back so that a texel at the walker's feet is about a pixel (at 480 × 270 it
+//   would be two thirds of one, and texels would drop out). Each texel has its own depth, so the walker goes behind the low wall on its near side texel by
 //   texel, not as a flat cut-out. Everything about the look (the light's bands, the outline, the face, the colours) is
 //   the painter's.
 // Controls: none
@@ -44,7 +44,9 @@ const walk = defineSystem('walk', (ctx) => {
   ][side] as [number, number, number]
   for (const walker of ctx.query(Walker)) walker.set(Walker, { x, z, yaw, walking: lap < 480 })
 })
-const FOLLOW = cameraView('follow')
+// The camera is stated, not defaulted: the example's size is chosen for how far back it is. The default gameplay camera
+// (50 mm, 30°, 16 m) would put a texel at the walker's feet at 0.69 of a pixel here, and texels would drop out.
+const FOLLOW = cameraView('follow', { distance: 10.75 })
 
 // --- game ---
 export default defineGame({

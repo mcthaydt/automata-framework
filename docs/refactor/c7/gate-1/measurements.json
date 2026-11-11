@@ -7,45 +7,45 @@
     "field": [480, 270],
     "figuresFound": 2,
     "standerBox": {
-      "x0": 188,
-      "y0": 87,
-      "x1": 207,
+      "x0": 189,
+      "y0": 86,
+      "x1": 206,
       "y1": 155,
-      "size": 712
+      "size": 688
     },
-    "standerHeightPx": 69,
+    "standerHeightPx": 70,
     "cellPaintedRows": 123,
     "cellPitchDeg": 25,
-    "texelsPerPixel": 1.7826086956521738
+    "texelsPerPixel": 1.7571428571428571
   },
   "after": {
     "field": [720, 405],
     "figuresFound": 2,
     "standerBox": {
-      "x0": 285,
-      "y0": 109,
-      "x1": 316,
-      "y1": 234,
-      "size": 2174
+      "x0": 275,
+      "y0": 103,
+      "x1": 306,
+      "y1": 230,
+      "size": 2199
     },
-    "standerHeightPx": 126,
+    "standerHeightPx": 128,
     "cellPaintedRows": 128,
     "cellPitchDeg": 18,
-    "texelsPerPixel": 1.0158730158730158,
+    "texelsPerPixel": 1,
     "groundRow": 178.5,
     "cellRowsAboveGround": 125,
     "standerHeightAboveGroundPx": 125,
     "texelsPerPixelAboveGround": 1,
-    "matchedIdleStep": 1,
-    "matchedIdleSeconds": 0.016666666666666666,
-    "idleStepsAtBest": 4,
-    "opaqueTexels": 2354,
-    "exactTexels": 2327,
-    "exactTexelShare": 0.9885301614273577,
+    "matchedIdleStep": 5,
+    "matchedIdleSeconds": 0.08333333333333333,
+    "idleStepsAtBest": 5,
+    "opaqueTexels": 2356,
+    "exactTexels": 2356,
+    "exactTexelShare": 1,
     "exactTexelShareAboveGround": 1,
     "opaqueTexelsBelowGround": 45,
-    "belowGroundTexelsSeen": 18,
-    "belowGroundTexelsHiddenByFloor": 27,
-    "exactTexelShareVsStanding": 0.9885301614273577
+    "belowGroundTexelsSeen": 45,
+    "belowGroundTexelsHiddenByFloor": 0,
+    "exactTexelShareVsStanding": 0.921410365335599
   }
 }

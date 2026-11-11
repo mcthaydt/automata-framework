@@ -576,3 +576,6 @@ The runway's gate 2 also runs `pnpm build`; Tasks 1 to 8 merge before it, so the
   clearance mutations of `shells.ts` now fail 10 to 16 unit tests; the skin count alone fails none (a garment repaints what it covers). S5: boxes ticked
   (Task 3 Step 6 stays open: Firefox did not run). S6: ADR 0007. S7: `@pixi/3d` and `figure-builder` forbidden in all 13 published packages. S8: the merge checklist above.
   Skipped: N1 to N6, see the fixes row in `progress.md`.
+- 2026-11-11 (S9, `main` merged): #577 is on `main` (`c24ca702`). `main`'s new default gameplay camera (50 mm, 30°, 16 m) minified `characterkit-painted` to
+  0.69 of a pixel a texel (`painted-scale` failed 2 of 3); the example now states `distance: 10.75` (1.0156, 0.9028, 0.6771 at the three sizes), and gate 1
+  was re-made: 1.000 texels a pixel, 100% of the stander's texels equal the builder's, none of the soles hidden. This supersedes the 27-of-45 and 91% figures above.
