@@ -76,7 +76,7 @@ const wick: FigureDef = {
 // --- sim ---
 // The figure's feet, its facing, and what it wears and holds ('' for an empty hand).
 const place = { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' } as const
-const Model = defineComponent('model', { ...place, outfit: 'string', item: 'string' })
+const Model = defineComponent('model', { ...place, outfit: 'string', item: 'string', tick: 'f32' })
 const OUTFITS = ['wanderer', 'shirtsleeves'] as const
 const ITEMS = ['', 'hand-lamp'] as const
 
@@ -86,15 +86,16 @@ const dress = defineSystem('dress', (ctx) => {
   const item = ITEMS[look % 2] ?? ''
   const outfit = OUTFITS[Math.floor(look / 2) % 2] ?? 'wanderer'
   for (const model of ctx.query(Model))
-    model.set(Model, { outfit, item, yaw: ((ctx.tick % 720) / 720) * 6.2832 })
+    model.set(Model, { outfit, item, yaw: ((ctx.tick % 720) / 720) * 6.2832, tick: ctx.tick })
 })
 
 // What the view reads from the render row: the outfit, and the item or an empty hand.
-const worn = (model?: Readonly<Record<string, unknown>>) => ({
-  moving: false,
-  outfit: String(model?.outfit),
-  item: String(model?.item) || null,
-})
+const worn = (model?: Readonly<Record<string, unknown>>) => {
+  // The page's record of how far the sim has run: the browser journey waits on it, not on the wall clock (a slow
+  // machine draws few frames a second, and the loop runs at most 0.1 s of sim a frame).
+  document.documentElement.dataset.tick = String(model?.tick ?? -1)
+  return { moving: false, outfit: String(model?.outfit), item: String(model?.item) || null }
+}
 
 const wardrobe = definePlugin({ name: 'wardrobe', defs: [Model, dress] })
 
@@ -106,7 +107,7 @@ export default defineGame({
     plugins: [wardrobe],
     seed: 1,
     setup: (sim) => {
-      sim.spawn([[Model, { x: 0, y: 0, z: 0, yaw: 0, outfit: 'wanderer', item: '' }]])
+      sim.spawn([[Model, { x: 0, y: 0, z: 0, yaw: 0, outfit: 'wanderer', item: '', tick: 0 }]])
     },
   },
   extensions: [render3dExtension],

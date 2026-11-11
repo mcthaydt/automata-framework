@@ -39,3 +39,34 @@ export async function openHosted(
   await expect(frame.locator('html')).toHaveAttribute('data-state', 'ready')
   return frame
 }
+
+/** How far the demo's sim has run: the `data-tick` on its `<html>`, or -1 until it says. */
+export async function simTick(frame: Frame): Promise<number> {
+  return Number((await frame.locator('html').getAttribute('data-tick')) ?? -1)
+}
+
+/**
+ * Calls `sample` again and again until the sim has run `ticks` ticks past where it was at the start, and gives back
+ * every sample. The loop runs at most 0.1 s of sim time a frame, so a machine that draws a frame a second runs the
+ * sim at a tenth of real time: a journey that watches a cycle waits on the sim's clock, not the wall clock. `capMs`
+ * is a hang guard only; it fails naming the tick reached.
+ */
+export async function sampleForSimTicks<T>(
+  frame: Frame,
+  ticks: number,
+  sample: () => Promise<T>,
+  { capMs = 90_000 }: { readonly capMs?: number } = {},
+): Promise<T[]> {
+  const begun = Date.now()
+  const samples: T[] = []
+  let start = -1
+  for (;;) {
+    const tick = await simTick(frame)
+    if (start < 0) start = tick
+    if (start >= 0 && tick - start >= ticks) return samples
+    if (Date.now() - begun > capMs) {
+      throw new Error(`the sim reached tick ${tick} (from ${start}) of ${ticks} ticks in ${capMs} ms`)
+    }
+    samples.push(await sample())
+  }
+}

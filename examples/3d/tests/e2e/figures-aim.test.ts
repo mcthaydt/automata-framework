@@ -1,7 +1,7 @@
 // figures-aim under the fake host and Ruken's headers (compileHeaders' CSP), in Chromium (the `examples` projects)
 // and WebKit (`examples-webkit`). Headless Firefox in this container has no WebGL; the GPU runner covers it.
 import { examples3dPort } from '@automata/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
+import { collectErrors, openHosted, sampleForSimTicks } from '@automata/examples-runner/host/testing'
 import { expect, type Frame, test } from '@playwright/test'
 
 const gameUrl = `http://localhost:${examples3dPort}/figures/aim/`
@@ -40,25 +40,22 @@ const cloak = (frame: Frame): Promise<{ count: number; orb: number; where: numbe
       }),
   )
 
+// One lap of the orb is 360 ticks (6 s of sim time). The journey watches a lap and a half of the sim's own clock, so a
+// machine that draws a frame a second (the loop runs 0.1 s of sim a frame) sees the same orbit as a fast one.
+const LAP_TICKS = 360
+
 test('draws Wick under the CSP with the orb he watches circling him', async ({ page }) => {
+  test.setTimeout(150_000)
   const errors = await collectErrors(page)
   const frame = await openHosted(page, gameUrl, ID)
   await expect(frame.locator('canvas.af-stage')).toHaveAttribute('data-renderer', 'webgl')
   await frame.getByTestId('play').click()
   await expect(frame.getByTestId('play-screen')).toBeVisible()
+  const seen = await sampleForSimTicks(frame, LAP_TICKS * 1.5, () => cloak(frame))
   // The cloak and cape are blue and nothing else in the scene is: a drawn figure is a few hundred such pixels.
-  await expect.poll(async () => (await cloak(frame)).count, { timeout: 15_000 }).toBeGreaterThan(200)
-  await expect.poll(async () => (await cloak(frame)).orb, { timeout: 15_000 }).toBeGreaterThan(10)
+  expect(Math.max(...seen.map((s) => s.count))).toBeGreaterThan(200)
+  expect(Math.max(...seen.map((s) => s.orb))).toBeGreaterThan(10)
   // The orb circles, so its pixels move between frames (Wick's head, chest and hand follow it).
-  const seen = new Set<number>()
-  await expect
-    .poll(
-      async () => {
-        seen.add((await cloak(frame)).where)
-        return seen.size
-      },
-      { timeout: 10_000, intervals: [250] },
-    )
-    .toBeGreaterThan(2)
+  expect(new Set(seen.map((s) => s.where)).size).toBeGreaterThan(2)
   expect(errors).toEqual([])
 })

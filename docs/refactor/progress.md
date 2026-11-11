@@ -790,3 +790,18 @@ The Owner, 2026-11-10: the default 3D gameplay camera of `@automata/3d` matches 
 | The player's turn: eight 45° steps, one per press | Done. `camera-heading` gained `turning`, so the base-3d golden hash moved (`369b408a42e81cac` to `7a859e24505d4dfd`): see the comment on `GOLDEN_HASH` | `sim/*.test.ts`, `games/base-3d/tests/browser/sim/game.test.ts` |
 | Screenshots from the base interior and exterior at the eight steps | Done, WebGL only | [camera](eb-look/camera/README.md) |
 | Gates | See the PR description for what ran and what is pending | |
+
+## Two 3D example journeys wait on the sim's clock (2026-11-11)
+
+`figures-aim` and `figures-outfits-items` failed on the 3D journeys job (job 130343348847, head `c24ca702` plus test-only
+changes) and passed everywhere else. They polled for 15 to 20 s of wall time, but the frame loop runs at most
+`MAX_FRAME_MS` (0.1 s) of sim a frame, so a machine that draws a frame a second runs the sim at a tenth of real time, and
+the orbit (6 s) and the lamp and outfit cycle (8 s) do not fit.
+
+| Step | Status | Record |
+|---|---|---|
+| Cause | Found: no commit on main moved the colours or the frame rate (one core, 1.5 to 1.6 fps at `ff50419d`, `39556536` and `c24ca702`; the orb is exactly `(173,62,89)`). The runner is the change: `examples-3d test:e2e` took 1m41s on 2026-11-09 (run 42592507412, runner `owner-pc-wsl-af`) and 6.9 min on 2026-11-11 (runner `ar3`); `base-3d test:e2e` 1m26s against 9.9 min, though `base-3d` is untouched | CI job logs |
+| Red first | The old tests under `taskset -c 0`: `figures-outfits-items` failed with the CI predicate timeout; `figures-aim` passed that run. The new tests with no tick published: "the sim reached tick -1 of 540 ticks" and "of 600 ticks" | this PR |
+| Fix | Both examples publish `html[data-tick]`; `sampleForSimTicks` (`tooling/examples-runner/host/testing.ts`) samples until the sim has run 1.5 laps (540 ticks) or 1.25 cycles (600 ticks). Every pixel and movement threshold is as before; the 90 s wall cap is a hang guard that names the tick reached. `MAX_FRAME_MS` is unchanged | `examples/3d/tests/e2e/figures-*.test.ts` |
+| Proof | `--repeat-each=5` on chromium: 10 of 10 at normal speed (2.0 min) and 10 of 10 under `taskset -c 0` (7.8 min, 1.3 to 1.6 min each). `TURBO_FORCE=true pnpm check`: 61 of 61 tasks | |
+| Not run | The WebKit project and the GPU runner (the WebKit `look-pixel-art` failure is another session's) | |

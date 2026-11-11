@@ -46,7 +46,7 @@ const motion: MotionLibrary = { gaits: { bounce }, poses: {}, clips: {}, items: 
 // --- sim ---
 // Wick's feet and facing, and the orb's: the orb's position is also where Wick looks.
 const place = { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' } as const
-const Hero = defineComponent('hero', { ...place, atX: 'f32', atZ: 'f32' })
+const Hero = defineComponent('hero', { ...place, atX: 'f32', atZ: 'f32', tick: 'f32' })
 const Orb = defineComponent('orb', place)
 const HEAD_HEIGHT = 1.1
 
@@ -62,12 +62,19 @@ const orbit = defineSystem('orbit', (ctx) => {
     [-1, along],
   ][Math.floor(lap / 90)] as [number, number]
   for (const orb of ctx.query(Orb)) orb.set(Orb, { x, z })
-  for (const hero of ctx.query(Hero)) hero.set(Hero, { atX: x, atZ: z })
+  for (const hero of ctx.query(Hero)) hero.set(Hero, { atX: x, atZ: z, tick: ctx.tick })
 })
+
+// The page's record of how far the sim has run: the browser journey waits on it, not on the wall clock (a slow machine
+// draws few frames a second, and the loop runs at most 0.1 s of sim a frame).
+const showTick = (hero?: Readonly<Record<string, unknown>>) => {
+  document.documentElement.dataset.tick = String(hero?.tick ?? -1)
+}
 
 // The head and the right hand point at the orb (in world metres: the view turns them into Wick's frame), the chest
 // half way.
 const watching = (hero?: Readonly<Record<string, unknown>>) => {
+  showTick(hero)
   const at: [number, number, number] = [Number(hero?.atX), HEAD_HEIGHT, Number(hero?.atZ)]
   return {
     moving: false,
@@ -87,7 +94,7 @@ export default defineGame({
     plugins: [definePlugin({ name: 'aim', defs: [Hero, Orb, orbit] })],
     seed: 1,
     setup: (sim) => {
-      sim.spawn([[Hero, { x: 0, y: 0, z: 0, yaw: 0, atX: -1, atZ: 1 }]])
+      sim.spawn([[Hero, { x: 0, y: 0, z: 0, yaw: 0, atX: -1, atZ: 1, tick: 0 }]])
       sim.spawn([[Orb, { x: -1, y: HEAD_HEIGHT, z: 1, yaw: 0 }]])
     },
   },

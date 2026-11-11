@@ -1,7 +1,7 @@
 // figures-outfits-items under the fake host and Ruken's headers (compileHeaders' CSP), in Chromium (the `examples`
 // projects) and WebKit (`examples-webkit`). Headless Firefox in this container has no WebGL; the GPU runner covers it.
 import { examples3dPort } from '@automata/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
+import { collectErrors, openHosted, sampleForSimTicks } from '@automata/examples-runner/host/testing'
 import { expect, type Frame, test } from '@playwright/test'
 
 const gameUrl = `http://localhost:${examples3dPort}/figures/outfits-items/`
@@ -36,31 +36,26 @@ const look = (frame: Frame): Promise<{ blue: number; brass: number }> =>
       }),
   )
 
+// The lamp comes or goes every 120 ticks and the outfit changes every 240: the whole cycle is 480 ticks (8 s of sim
+// time). The journey watches a cycle and a bit of the sim's own clock, not the wall clock: a machine that draws a frame
+// a second runs the loop at a tenth of real time (it runs 0.1 s of sim a frame at most) and still sees every state.
+const CYCLE_TICKS = 480
+
 test('draws Wick under the CSP, changing outfits and picking the lamp up and putting it down', async ({
   page,
 }) => {
+  test.setTimeout(150_000)
   const errors = await collectErrors(page)
   const frame = await openHosted(page, gameUrl, ID)
   await expect(frame.locator('canvas.af-stage')).toHaveAttribute('data-renderer', 'webgl')
   await frame.getByTestId('play').click()
   await expect(frame.getByTestId('play-screen')).toBeVisible()
-  // Every two seconds the lamp comes or goes, and the outfit changes every four: within one cycle (8 s) the cloak
-  // shows much more blue than the shirt, and the lamp's brass shows and then does not.
-  const seen: { blue: number; brass: number }[] = []
-  await expect
-    .poll(
-      async () => {
-        seen.push(await look(frame))
-        const blues = seen.map((s) => s.blue)
-        const brasses = seen.map((s) => s.brass)
-        return (
-          Math.max(...blues) > 2 * Math.min(...blues) + 100 &&
-          Math.max(...brasses) > 20 &&
-          Math.min(...brasses) < 5
-        )
-      },
-      { timeout: 20_000, intervals: [250] },
-    )
-    .toBe(true)
+  // Within one cycle the cloak shows much more blue than the shirt, and the lamp's brass shows and then does not.
+  const seen = await sampleForSimTicks(frame, CYCLE_TICKS * 1.25, () => look(frame))
+  const blues = seen.map((s) => s.blue)
+  const brasses = seen.map((s) => s.brass)
+  expect(Math.max(...blues)).toBeGreaterThan(2 * Math.min(...blues) + 100)
+  expect(Math.max(...brasses)).toBeGreaterThan(20)
+  expect(Math.min(...brasses)).toBeLessThan(5)
   expect(errors).toEqual([])
 })
