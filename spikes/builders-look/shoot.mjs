@@ -294,8 +294,11 @@ if (process.env.SHADOW_ONLY === '1') {
         if (a[k] === b[k] && a[k + 1] === b[k + 1] && a[k + 2] === b[k + 2]) continue
         // A texel the scene itself moved between two loads is not the shadow's.
         if (a[k] !== c[k] || a[k + 1] !== c[k + 1] || a[k + 2] !== c[k + 2]) continue
+        const [on, off] = [0.2126 * a[k] + 0.7152 * a[k + 1] + 0.0722 * a[k + 2], 0.2126 * b[k] + 0.7152 * b[k + 1] + 0.0722 * b[k + 2]]
+        // A shadow only darkens: a texel that is brighter with it on is the scene's own movement that two loads happened to share.
+        if (on >= off) continue
         footprint++
-        ratio += (0.2126 * a[k] + 0.7152 * a[k + 1] + 0.0722 * a[k + 2]) / Math.max(1, 0.2126 * b[k] + 0.7152 * b[k + 1] + 0.0722 * b[k + 2])
+        ratio += on / Math.max(1, off)
       }
       shadows.push({ scene, view: name, noise, footprint, darkening: footprint === 0 ? 1 : Math.round((ratio / footprint) * 1000) / 1000 })
       writeFileSync(join(out, 'shadow.json'), `${JSON.stringify(shadows, null, 2)}\n`)

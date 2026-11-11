@@ -99,6 +99,16 @@ const motion = { gaits: { loose, bounce: loose }, poses: {}, clips: {}, items: {
 const figureLibrary = { swatches: BASE_PAIR_SWATCHES, hair: {}, headwear: {}, items: {} }
 
 const cast = on('cast') ? (level.cast ?? []) : []
+// A figure stands on the floor under it, as EnvironmentBuilder's sprites do (`at[2] ?? floorAt`): the street's pavement is 0.12 m
+// above its road, and a figure whose feet are at 0 is 0.12 m under the plane the cast shadow falls on (`floorReach` is 0.12).
+const floorUnder = (x: number, z: number) =>
+  Math.max(
+    0,
+    ...lighting.planes.flatMap((p) =>
+      p.normal[1] >= 0.7 && Math.abs(x - p.x) <= p.width / 2 && Math.abs(z - p.z) <= p.height / 2 ? [p.y] : [],
+    ),
+  )
+const feetOf = (member: (typeof cast)[number]) => member.at[2] ?? floorUnder(member.at[0], member.at[1])
 const painted = q.get('figures') === 'painted'
 const Cast = defineComponent('cast', { i: 'f32', x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' })
 const castView: View3dFactory = (row, id, models, light) => {
@@ -115,7 +125,7 @@ const castView: View3dFactory = (row, id, models, light) => {
     ...view,
     update(...args) {
       update?.(...args)
-      view.container.position.set(member.at[0], member.at[2] ?? 0, member.at[1])
+      view.container.position.set(member.at[0], feetOf(member), member.at[1])
       view.container.rotation.y = yaw
     },
   }
@@ -144,7 +154,7 @@ const game = defineGame({
       cast.forEach((member, i) => {
         // The painted figure takes its pose from the entity (an entity's yaw 0 faces −z, a figure's facing 0 faces +z: half a turn
         // between them); the mesh figure's view places itself.
-        const at = painted ? { x: member.at[0], y: member.at[2] ?? 0, z: member.at[1], yaw: yawOf(member.angle) + Math.PI } : { x: 0, y: 0, z: 0, yaw: 0 }
+        const at = painted ? { x: member.at[0], y: feetOf(member), z: member.at[1], yaw: yawOf(member.angle) + Math.PI } : { x: 0, y: 0, z: 0, yaw: 0 }
         sim.spawn([[Cast, { i, ...at }]])
       })
     },
