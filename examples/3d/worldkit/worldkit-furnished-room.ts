@@ -17,6 +17,7 @@ import {
   drawWorld,
   render3dExtension,
   swatchColour,
+  swatchGlow,
   targetSize,
 } from '@automata/3d'
 import type { AfSector2 } from '@automata/3d/level'
@@ -65,7 +66,16 @@ export default defineGame({
         view.camera.lookAt({ x: 0, y: 0.4, z: 0 })
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(worldKitLibrary, swatch)
-        drawWorld({ parent: view.root, occluders, colourOf, look: DEFAULT_LOOK }, world.pieces)
+        drawWorld(
+          {
+            parent: view.root,
+            occluders,
+            colourOf,
+            glow: (swatch) => swatchGlow(worldKitLibrary, swatch),
+            look: DEFAULT_LOOK,
+          },
+          world.pieces,
+        )
         // What the scene drew, for the journey: the dresser's problems and how many pieces the room came to.
         stage.app.canvas.dataset.problems = String(problems.length + world.problems.length)
         stage.app.canvas.dataset.pieces = String(world.pieces.length)

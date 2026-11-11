@@ -1,12 +1,14 @@
 // The world on `@pixi/3d`: a mesh for each piece, the swatch's colour on it, and the occluder rule on walls and ceilings.
-import { Container3D, type Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Container3D, FlatMaterial, type Mesh3D, PhongMaterial } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { drawWorld, sceneLamps } from '#src/app/world-view.ts'
 import { createOccluders } from '#src/features/camera/occluders/occluders.ts'
-import { buildWorld } from '#src/features/world/build.ts'
+import { ladderOf } from '#src/features/world/albedo/ladder.ts'
+import { buildWorld, type WorldPiece } from '#src/features/world/build.ts'
 import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
 import { createSceneLight } from '#src/shared/render/light/scene-light.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
+import { toLinear } from '#src/shared/render/light/vertex-light.ts'
 
 const LIB = { swatches: { oakFloor: {}, plasterWarm: {}, trimWhite: {} } }
 const level: AfSector2 = {
@@ -181,5 +183,60 @@ describe('sceneLamps', () => {
   it('leaves out a street lamp by day, which only a night lights', () => {
     expect(sceneLamps(lamps, true).map((lamp) => lamp.id)).toEqual(['in', 'street'])
     expect(sceneLamps(lamps, false).map((lamp) => lamp.id)).toEqual(['in'])
+  })
+})
+
+// A glowing swatch is drawn at its own step whatever the light, and dims with the lamp of the prop it belongs to.
+describe('drawWorld: glow', () => {
+  const quad = {
+    positions: [0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0],
+    normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+    indices: [0, 1, 2, 0, 2, 3],
+  }
+  const bulb: WorldPiece = {
+    id: 'lamp:bulb',
+    sector: 'a',
+    light: 1,
+    part: 'prop',
+    mesh: quad,
+    surface: 'bulbWarm',
+    prop: { id: 'lamp', at: [0, 0, 0] },
+  }
+  const ember = ladderOf({ ramp: 'ember', step: 7 })
+  const glow = (name: string) => (name === 'bulbWarm' ? { ramp: 'ember' as const, step: 7 } : undefined)
+  const room = () =>
+    createSceneLight(
+      sceneLightingSchema.parse({
+        ambient: 0,
+        colorSpace: 'srgb',
+        lamps: [{ id: 'lamp.light0', x: 5, y: 5, z: 5, color: 0xffffff, range: 6 }],
+      }),
+    )
+  const first = (mesh: Mesh3D) => {
+    const data = mesh.geometry.attributes.aColor?.buffer.data as Float32Array
+    return [data[0], data[1], data[2]]
+  }
+  const linear = (rgb: number) =>
+    [(rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255].map((c) => Math.fround(toLinear(c / 255)))
+
+  it('draws an unlit glow in its own step, with no light to take', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow }, [bulb])
+    const material = (view.mesh('lamp:bulb') as Mesh3D).material as FlatMaterial
+    expect(material).toBeInstanceOf(FlatMaterial)
+    expect(material.baseColor).toBe(ember.steps[7])
+  })
+
+  it('bakes a glow at its own step in a room the lamps do not reach, even on a piece that moves', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow, light: room() }, [bulb])
+    const mesh = view.mesh('lamp:bulb') as Mesh3D
+    expect(mesh.material.vertexColors).toBe(true)
+    expect(first(mesh)).toEqual(linear(ember.steps[7] as number))
+  })
+
+  it('dims with the lamp of its prop when the lamp’s level changes', () => {
+    const light = room()
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow, light }, [bulb])
+    light.setLevels({ 'lamp.light0': 0.5 })
+    expect(first(view.mesh('lamp:bulb') as Mesh3D)).toEqual(linear(ember.steps[5] as number))
   })
 })

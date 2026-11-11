@@ -6,6 +6,8 @@ import { BufferImageSource, Texture } from 'pixi.js'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { RampMaterial } from '../features/look/ramp-light-material.ts'
+import { type GlowSwatch, lampsOfProp } from '../features/world/albedo/glow.ts'
+import { ladderOf } from '../features/world/albedo/ladder.ts'
 import { type AlbedoTile, tileUvs } from '../features/world/albedo/place.ts'
 import type { WorldPiece } from '../features/world/build.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
@@ -31,6 +33,11 @@ export interface WorldScene {
    * place of the swatch's flat colour. The light multiplies the texel, so a lit texel is albedo × light.
    */
   readonly tiles?: ((swatch: string) => AlbedoTile | undefined) | undefined
+  /**
+   * A swatch's glow: a bulb, a neon, a lit window (`emit` in the library) gives its ladder. A piece of such a swatch is
+   * drawn at its own step whatever the light, and dims, a step or two, with the lamps of its prop.
+   */
+  readonly glow?: ((swatch: string) => GlowSwatch | undefined) | undefined
   /**
    * The room's light (`createPixi3dRenderer`'s `scene` hook gives it when `lighting` is set). A piece that never moves
    * (not a door, a prop or a swaying leaf) is drawn flat and has the light baked into its vertex colours, so a lamp's
@@ -116,7 +123,18 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     const mesh = meshOf(piece, colour, scene.look, tile)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
-    if (scene.light !== undefined && stays(piece)) {
+    const glows = scene.glow?.(tileName(piece.surface))
+    if (glows !== undefined) {
+      // A glow takes no light, so a moving piece may carry it baked: where it goes does not change what it shows.
+      const ladder = ladderOf(glows)
+      if (scene.light === undefined)
+        mesh.material = new FlatMaterial({ baseColor: ladder.steps[ladder.base] ?? colour })
+      else {
+        mesh.material = new FlatMaterial({ baseColor: 0xffffff })
+        const lamps = piece.prop === undefined ? [] : lampsOfProp(scene.light.lighting.lamps, piece.prop.id)
+        scene.light.bake(mesh, { glow: { steps: ladder.steps, base: ladder.base, lamps } })
+      }
+    } else if (scene.light !== undefined && stays(piece)) {
       // Baked after it is placed under the node, so the light sees where it stands.
       // A room's `light` is 1 when normal; each 1 less is a whole step darker.
       if (tile === undefined) {

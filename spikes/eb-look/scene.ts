@@ -19,6 +19,7 @@ import {
   levelTime,
   render3dExtension,
   swatchColour,
+  swatchGlow,
   type View3dFactory,
   worldLighting,
 } from '@automata/3d'
@@ -192,7 +193,7 @@ const game = defineGame({
           const moves = (p: (typeof world.pieces)[number]) => p.door !== undefined || p.prop !== undefined || p.sway !== undefined
           const which = q.get('pieces')
           const pieces = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
-          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('tiles') ? { tiles } : {}) }, pieces)
+          drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('glow') ? { glow: (swatch: string) => swatchGlow(library, swatch) } : {}), ...(on('tiles') ? { tiles } : {}) }, pieces)
         }
         const renderer = stage.app.renderer as unknown as { name: string }
         const { dataset } = stage.app.canvas
