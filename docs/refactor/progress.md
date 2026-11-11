@@ -806,6 +806,7 @@ Record and calls made: [clinic/batch2/README.md](clinic/batch2/README.md).
 | Room visibility on the zones; the 12 world-kit pieces; procedural props; "on" frames | Item 5 started (translucent parts); 4 and 7 wait for PRs 588 and 590 | |
 | C: kit furniture at the source's boxes (`fit`, medical pieces): 45 of 57 stand-ins | Done; forced `pnpm check` green on 43beab9f | `extensions/world-kit/tests/unit/props/medical.test.ts` |
 | D1: the swatch lift removed (the source's 4.8 is a repeat, not a gain) | Done: test first; hall re-shot, walls dim and even; forced `pnpm check` green on 4f165f7b | `clinic-level.test.ts`, [clinic/batch2/play-hall-compare.png](clinic/batch2/play-hall-compare.png) |
+| D2: the floor is the kit's tile floor (a textured swatch through `albedoTiles`); 4 play frames and 3 zone stills re-shot | Done: test first; forced `pnpm check` green on 5fc70369. The 4 turned frames are not re-shot | `clinic-level.test.ts`, [clinic/batch2](clinic/batch2/) |
 | Item 6: can the level editor author the clinic? | Ledger written: **no, not yet**; 20 rows with evidence, the gaps in priority order | [clinic/editor-gaps.md](clinic/editor-gaps.md), `clinic-in-editor.test.ts` |
 | Gates | See the PR description | |
 

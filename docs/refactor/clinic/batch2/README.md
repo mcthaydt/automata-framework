@@ -16,7 +16,7 @@ spots only and show its HUD). `shots.json` holds the facts of the last run of `s
 | 5 | The 12 world-kit pieces | Done: the generators and presets (translucent parts, `veil`), and the dressing table that places 52 of them in the clinic (below) |
 | 6 | Procedural props instead of the stand-in boxes | In progress, WIP (below): 45 of 57 stand-ins are kit furniture at the source's box; 12 remain boxes |
 | 7 | "On" frames | Waits for PRs 588 and 590 |
-| 8 | D: the wall lighting and the floor | Walls: the unfounded swatch lift is removed (see below). The floor is the kit's tile floor through a textured-swatch path in the spike. Left: the desk lamp's pool on the counter top is about 3 times the source's, the floor has no teal, hall re-shot only |
+| 8 | D: the wall lighting and the floor | Walls: the unfounded swatch lift is removed (see below). The floor is the kit's tile floor through a textured-swatch path in the spike. Re-shot: the four play frames and the three zone stills. Not re-shot: the four turned frames (stale since B). Left: the desk lamp's pool on the counter top is about 3 times the source's, the floor has no teal. The corridor and supply frames show the hall's furniture in front of the corridor: the source hides the hall there, which is room visibility (item 4) |
 | 9 | The editor ledger: can the level editor author the clinic? | Done: [../editor-gaps.md](../editor-gaps.md). Not yet |
 
 ## Calls made
