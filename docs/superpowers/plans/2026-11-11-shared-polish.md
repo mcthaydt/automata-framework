@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 16 of 21 tasks (54%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 17 of 21 tasks (54%)** (22 listed; task 17 is cut, so 21 are live; tasks 16 and 19 are on the side branch `claude/shared-polish-emberwick-site` and not counted here).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -48,7 +48,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 12 | Credits (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium, 100 cases; WebKit and Firefox not run) | `618d03a3` |
 | 13 | Achievements, generic, and their Ruken mapping | 6 | done (unit tests over fakes and Ruken's own parser; a real `ruken publish` is not run) | `474d2f96` |
 | 14 | Stale-build check | 7 | done (jsdom unit tests with a fake clock and a bare HTTP listener; the panel's layout contract in Chromium, 50 cases; no two-process journey, as call 15 says; WebKit and Firefox not run) | `2d87462f` |
-| 15 | The four examples and their journeys | examples | **in progress** (3 of 4 examples, `05c8e036`; left: `ui-splash-credits` and the site's playground (step 4), the examples' fonts, the iPad run; see the ledger) | `05c8e036` |
+| 15 | The four examples and their journeys | examples | done (Chromium at the phone and compact sizes; `examples-ipad` is added but WebKit is not installed here, so it was not run; see the ledger) | `76bfe33c` |
 | 16 | Emberwick in six languages, with an achievement | 1, 6 | todo | |
 | 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
 | 18 | Guides, API report and index, changesets, final gates | done means | todo | |
@@ -309,6 +309,22 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   Settings screen in Chinese was looked at: the pixel face, no device glyphs. Ran in Chromium: `examples` and `examples-compact`
   (10 passed) and both examples in the playground frame under its policy. The other examples are English and keep core's face.
   How to rebuild is written at the top of `fonts.toml`.
+- **Task 15, interface sounds proven played (fifth session), Ruling:** `audio-ui-sounds` now gives `uiSounds` as the plain map of names to
+  files, not the function that recorded each name and played it through an `Audio` element, because only the plain map goes through
+  the framework's own mixer (`installUiSounds` then `audio.sound(…, { bus: 'ui' })`), which is what a game would ship. The journey
+  watches the page's Web Audio: an init script notes every `AudioBufferSourceNode.start` with its buffer's length and whether its
+  context was `running`. Play starts the press sound (0.12 s, read from the WAV's header) on a running context; Mute adds none;
+  Quit adds one more press and Cancel starts the back sound (0.14 s). It was red first (no source ever started, because the function
+  played through `Audio`), then passed at the phone and compact sizes and in the playground frame. What a person *hears* is
+  still unverified: headless Chromium has no speakers; a source node that starts on a running context is as far as a page can show.
+  The earlier ruling's `window.__uiSounds` record is gone with the function. Cost if wrong: the example no longer shows a
+  function map (its header says one exists).
+- **Task 15, the iPad run (fifth session), not run:** `examples-ipad` needs WebKit; `/opt/pw-browsers` holds Chromium only
+  (`Executable doesn't exist at /opt/pw-browsers/webkit-2359/pw_run.sh`), so no journey ran at the iPad size or in WebKit. Run
+  it on the GPU runner or a machine with WebKit: `pnpm --filter @af-examples/examples-2d test:e2e --project examples-ipad --trace off`.
+- **Task 15, done:** all four examples and their four journeys are in place and pass in Chromium at the phone and compact sizes;
+  the playground runs each under its policy; the examples' fonts and the playground step are done (above). The whole `pnpm check`
+  passed before each of the two commits that touched `packages/`.
 
 ## Global constraints
 
