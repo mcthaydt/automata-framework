@@ -102,7 +102,7 @@ second branch do not wait for it.
 
 ## Tracking
 
-Progress: **10 of 22 tasks (45%)**. Tick a task only when its checks pass; write what ran beside it.
+Progress: **11 of 22 tasks (50%)**. Tick a task only when its checks pass; write what ran beside it.
 
 | # | Task | State | Evidence |
 |---|---|---|---|
@@ -116,7 +116,7 @@ Progress: **10 of 22 tasks (45%)**. Tick a task only when its checks pass; write
 | 8 | Sequence: the preview over a 3D level | done 2026-11-11 (the journey extension left, see the log) | `@automata/editors` 660 unit tests (+9 in `plan-view-3d`: walls of a 3-room level, a door wall in two, a file that is neither, the names, the pickers); the existing 2D plan-view and Sequence tests pass unchanged; the editors' `layout` browser project in Chromium 64/64 (it found a fault of task 5's, fixed here); whole `pnpm check` in the log |
 | 9 | `@automata/world-kit`: nine prop generators | done 2026-11-11 | `@automata/world-kit` 231 unit tests (69 new in `props/ward.test.ts`: registered, same twice, within 5% of the documented size, parameters, the clock's hands, `open`, base-interior build and the reads check) and 1 Chromium browser test that draws each prop (and three states) in the base interior and writes `test-results/ward-props.png`; typecheck clean; WebKit and Firefox not run; whole `pnpm check` in the log |
 | 9b | `@automata/3d`: the rooms a view draws; two lamp kinds | done 2026-11-11 | `@automata/3d` 1,417 unit tests in 136 files (42 new in four files: room-draw 20, room hooks and `showRooms` 7, view rooms 6, lamp kit 9; plus 1 for `active()`); its Chromium browser project 38 pass / 2 skip, with no golden moved (2 new: a room hidden and shown in one frame on WebGL2, the scene hook's camera); `@automata/editor-3d` 2,279 unit tests in 160 files (14 new: edit 7, card 3, checklist 3, inspector edit 1; one expectation updated, the editor now offers the two new lamp kinds) and the layout project's inspector file 10/10 in Chromium (a new test per non-compact size for the checklist); `tsc` and `svelte-check` 0/0; `pnpm build`, `api-report --update` and `api-index --write` run (it exits 1 on the same three older exports); WebKit and Firefox not run; whole `pnpm check` in the log |
-| 10a | The name rule: The Last Light is no longer a source game | todo | |
+| 10a | The name rule: The Last Light is no longer a source game | done 2026-11-11 | `@automata/repo-hygiene` 163 unit tests (1 new: the title gives no finding, the old repository's name and the other sources still do; failed first because the entry was still there); `pnpm source-names` 0 findings; whole `pnpm check` exit 0 (10 min 40 s) on the tree committed |
 | 10 | The game package by feature: the layer test, provenance, a blank room that boots | todo | |
 | 11 | The converter, and the content from October's fixtures; the content checks; the puzzle can be finished | todo | |
 | 12 | The game's own sim features; a bot finishes the scene in Node, twice, same hash | todo | |

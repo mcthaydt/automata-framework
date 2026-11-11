@@ -12,7 +12,6 @@ export interface SourceName {
 
 export const SOURCE_NAMES: readonly SourceName[] = [
   { pattern: /floor[\s_-]?fifty/i, sample: 'FloorFifty' },
-  { pattern: /the[\s_-]last[\s_-]light/i, sample: 'The Last Light' },
   { pattern: /pixijs3d[\s_-]?experiment/i, sample: 'PixiJS3D_Experiment_001' },
   { pattern: /figure[\s_-]?builder/i, sample: 'FigureBuilder' },
   { pattern: /environment[\s_-]?builder/i, sample: 'EnvironmentBuilder' },

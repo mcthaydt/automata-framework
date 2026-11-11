@@ -7,6 +7,13 @@ taken, and the licence. Specs, plans and code refer to a source only by its neut
 
 STANDALONE.2 extends this file to every earlier extraction; until then it holds M6's entries only.
 
+## The Last Light is the 3D reference game (2026-11-11)
+
+Since 2026-11-11 The Last Light is the framework's own 3D reference game, at `games/the-last-light`, MIT (the Owner's
+word). Its title is therefore no longer withheld: `tooling/repo-hygiene/src/source-names.ts` has no entry for it. The
+rows below that record what was taken from the old game's repository stay as they are, and that repository's own name
+and the other source projects are still named nowhere but here.
+
 ## M6: gameplay extensions ([M6 spec](../archive/superpowers/specs/2026-10-16-m6-gameplay-extensions-design.md))
 
 ### The adventure source

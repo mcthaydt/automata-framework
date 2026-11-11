@@ -50,6 +50,18 @@ describe('findSourceNames', () => {
     }
   })
 
+  it('does not withhold the title of the 3D reference game, and still catches the other sources', () => {
+    // Since 2026-11-11 The Last Light is the framework's own game, so its title is free to print; its old repository's
+    // name and the other source projects stay withheld.
+    const title = tree({
+      'packages/a/CHANGELOG.md': 'see The Last Light, the_last_light and the-last-light\n',
+    })
+    expect(findSourceNames(title)).toEqual([])
+    const oldRepository = tree({ 'packages/a/CHANGELOG.md': 'from PixiJS3D_Experiment_001\n' })
+    expect(findSourceNames(oldRepository)).toHaveLength(1)
+    expect(SOURCE_NAMES.map((entry) => entry.sample)).not.toContain('The Last Light')
+  })
+
   it('leaves text that is not a published surface alone (provenance, plans, source comments)', () => {
     const sample = SOURCE_NAMES[0]?.sample ?? ''
     const root = tree({
