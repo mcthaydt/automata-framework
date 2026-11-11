@@ -22,6 +22,7 @@ the task-by-task record; this page is the short version.
   files; `narrative`, `cutscenes`, `nav` and `systems` work in a 2D level through `places` and `level-2d`. `examples/2d-story`
   plays all of it, and the journey `story-in-play` makes a change in the editor and plays it (iPad and phone, Chromium). Not yet
   run: changing the words in Writer, a caption in Sequence and the guard's chase speed in Schematic (those editors are PR #478).
+- **Painted figures are lit by their room (c8-lit, on `claude/c8-lit`, not on main yet).** The character kit reads the renderer's light where a figure stands and lights its painted cell in whole DUEL steps (`lit: false` turns it off); painted figures depth-test per texel under WebGPU as under WebGL; and the hair-grid pole rule makes the runway cell the Macs painted differently the same on every machine. The bench's frame budget for eight lit figures is not met on the machine it ran on (worst frames).
 - **Tools.** One `automata` command: create-game (the new game plays a starter feel and sound that the Feel and Audio editors change), add, check, build, editor, ship. `automata --help` works.
 - **Examples.** 27 single-file examples and the content hot-reload demo.
 - **Editors.** Every unit test, 2D and 3D, runs in the gate; the 2D editors' layout, canvas and journey tests run in the 2D

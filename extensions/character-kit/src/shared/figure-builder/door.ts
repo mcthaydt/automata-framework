@@ -37,7 +37,6 @@ export {
   type Side,
   SPRITE_PITCH,
   SPRITE_STYLE,
-  type SpriteLamp,
   type SpriteLighting,
   STAGE_VERSION,
   type StageFrame,

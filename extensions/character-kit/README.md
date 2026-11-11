@@ -61,6 +61,12 @@ createPixi3dRenderer({
 ```
 
 Make the game's field big enough that a texel is a pixel at the figure's feet. At 720 × 405 under the follow camera it is.
+A painted figure sits in the room's light. In a renderer made with `lighting`, `paintedFigure` reads the light where the figure stands (the
+lamps at their levels, the sun, the ground round its feet) and takes it as the builder's sprite light does: a flat light in whole steps of
+its own colours, one lighter step on the lamps' side, a thin rim, and the light's warmth; a figure under a lamp is never hotter than the floor
+beside it. `paintedFigure(def, { lit: false })` keeps a figure as the painter drew it. It draws the same under WebGL and WebGPU (under WebGPU
+a figure hides behind a wall texel by texel too).
+
 A figure that stands can hold one of the builder's stands: `state: () => ({ moving: false, pose: 'handOnHip' })`. A name that
 is not there is an error that says so.
 
