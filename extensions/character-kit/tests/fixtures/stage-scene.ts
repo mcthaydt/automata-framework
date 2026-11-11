@@ -71,6 +71,16 @@ export interface StageScene {
   dispose(): void
 }
 
+/**
+ * The canvas the renderer just drew, as RGBA, top row first. A WebGPU canvas keeps no drawing buffer past the task that drew it, and
+ * `snapshot` re-renders into a texture, which reads back black on a software adapter: copy the canvas as it was presented, in this task.
+ */
+export function readFrame(renderer: Pixi3dRenderer): Uint8ClampedArray | Uint8Array {
+  return renderer.stage.app.renderer.name === 'webgpu'
+    ? presented(renderer.stage.app.canvas as HTMLCanvasElement)
+    : snapshot(renderer)
+}
+
 /** The canvas as it was presented: RGBA, top row first. */
 function presented(canvas: HTMLCanvasElement): Uint8ClampedArray {
   const copy = document.createElement('canvas')
@@ -162,11 +172,7 @@ export async function buildScene(options: SceneOptions): Promise<StageScene> {
     size: options.size,
     draw() {
       renderer.draw({ alpha: 1, frameMs: 16, paused: false })
-      // A WebGPU canvas keeps no drawing buffer past the task that drew it, and `snapshot` re-renders into a texture, which reads back
-      // black on a software adapter: copy the canvas as it was presented, in this task.
-      return renderer.stage.app.renderer.name === 'webgpu'
-        ? presented(renderer.stage.app.canvas as HTMLCanvasElement)
-        : snapshot(renderer)
+      return readFrame(renderer)
     },
     frame() {
       return {
