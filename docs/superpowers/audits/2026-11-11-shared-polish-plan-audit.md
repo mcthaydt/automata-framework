@@ -56,8 +56,9 @@ folder under `features/`, words included (`src/testing/copy-screens.ts:12-22`). 
 screen and nothing else". `ui-screens` has no `zod` dependency and has `@automata/content` only as a dev dependency
 (`package.json:79-100`). *Fix:* each screen folder holds only its Svelte files, which take their words as props; the
 words go to `src/shared/words/`, the schema and content kind to `src/shared/credits/`, the steps and default-word wiring
-to `src/app/`; `package.json` gains `zod` and an `@automata/content` peer; the entries test is widened by name. The same
-shape for `net-ui`. **Fixed.**
+to `src/app/`; `package.json` gains `zod` and an `@automata/content` peer; the entries test is widened by name.
+`net-ui` has no copy-in rule, so its step stays in `features/stale/` and only its words move to `shared/words/`.
+**Fixed.**
 
 **B4. Emberwick's six-language journey cannot pass as written.** Emberwick's journeys run inside Ruken's fake host
 (`games/emberwick/tests/e2e/ruken/host.ts`), whose session locale is fixed at `en-US`
@@ -114,8 +115,11 @@ responder set. The SDK also refuses a URL with a user name or password (`@ruken/
 should be the same on every target. The desktop's `Cargo.toml` needs `tauri-plugin-opener` pinned beside the other
 plugins (`packages/tools/src/shared/ship/targets/tauri/tauri-project.ts:15-16,61-62`). **Fixed.**
 
-**S3. `'opening'` is not a pause reason.** `PauseReason` is `'lifecycle' | 'menu' | 'input' | 'display'`
-(`shared/runtime/time/time.manager.ts:9`). *Fix:* add the reason in task 6's files. **Fixed.**
+**S3. `'opening'` is not a pause reason, and the host's menu is live during the opening.** `PauseReason` is
+`'lifecycle' | 'menu' | 'input' | 'display'` (`shared/runtime/time/time.manager.ts:9`). `hosting.onMenuRequest` is wired
+to `flowHandle.flow.openMenu()` before the flow starts (`app/boot/boot-program.ts:386`), so a Ruken menu press during the
+opening would reach a flow with no screen. *Fix:* add the reason in task 6's files; a menu request before the first
+screen opens nothing, with a test. **Fixed.**
 
 **S4. The achievements step cannot read `ship.config.ts` "as the boards step does".** The boards step scans the
 config's text for names (`shared/check/check-source-steps.ts:48-77`); `rukenToml` needs the whole evaluated config,
@@ -213,6 +217,8 @@ size. **Fixed.**
   maps on and off to two of them. Emberwick's headings are `font-weight: 700` (`games/emberwick/style.css:114`) over a
   one-weight pixel font, which a browser would fake; the panels' `aria-label="Splash"` is missing from `EmberwickWords`.
   **Fixed.**
+- **T13.** The journey commands put `--` before `--trace off` after a `pnpm` script; pnpm passes flags on, and only npm
+  needs the `--` (the session's own instructions). **Fixed.**
 
 ## The four things "not verified while planning"
 
@@ -233,12 +239,15 @@ framework's `matchLocale` already does. The splash and the version check differ 
 
 ## Trimming
 
-The plan was 1,292 lines. Cut in this branch without losing what an executor needs: the file map (each task lists its
-files), the "Names used across tasks" and spec-coverage paragraphs (the tracking table and each task's Interfaces carry
-them; this audit carries the coverage check), the per-task changeset and "run; confirm they fail" boilerplate where the
-global constraints say it once, and the "not verified" list (answered above).
+The plan was 1,292 lines. Cut in this branch without losing what an executor needs: the 24-line file map (each task
+lists its files), the self-review's coverage, amendments and "names used across tasks" paragraphs (the tracking table
+and each task's Interfaces carry them; this audit carries the coverage check), the twelve bare "run; confirm they fail"
+steps and the per-task changeset clauses (the global constraints now say each once), and the "not verified" list
+(answered above). The fixes added more than that removed: the plan is now 1,421 lines. Further cuts that would cost an
+executor nothing: the test blocks whose bodies are `…` could become one line per task naming the cases; the "Review
+focus" list repeats cases already in tasks 3, 4, 6, 8 and 9.
 
 ## Counts
 
-7 blocking (B1-B7), 16 should fix (S1-S16), 12 tidy (T1-T12): 35 findings. Open: B7 (the Owner), S9 and S13 (the
+7 blocking (B1-B7), 16 should fix (S1-S16), 13 tidy (T1-T13): 36 findings. Open: B7 (the Owner), S9 and S13 (the
 coordinator); the plan carries a default for each.
