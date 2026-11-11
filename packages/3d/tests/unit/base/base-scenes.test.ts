@@ -20,7 +20,8 @@ describe('the base scenes', () => {
       expect(world.pieces.length).toBeGreaterThan(20)
     })
     it(`${name} gives the pieces the builder's map gave: the same ids, swatches and meshes' sizes`, () => {
-      const world = buildWorld(level, baseLibrary)
+      // The fixture is the builder's own cut; the light's finer cut (`seg`) is `build.test.ts`'s.
+      const world = buildWorld(level, baseLibrary, { seg: 0 })
       const recorded = builder[name]
       const got = world.pieces.map((p) => ({
         id: p.id,

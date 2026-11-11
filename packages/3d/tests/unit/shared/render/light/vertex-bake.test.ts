@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import { bakeVertices } from '#src/shared/render/light/vertex-bake.ts'
+import { toSrgb } from '#src/shared/render/light/vertex-light.ts'
 
 // A 4 × 4 floor patch of 25 vertices around the origin, facing up.
 function floorPatch(): { positions: Float32Array; normals: Float32Array } {
@@ -98,5 +99,115 @@ describe('bakeVertices', () => {
     const out = colours(bakeVertices(positions, normals, IDENTITY, walled))
     // The row against the wall (x = 2) is darker than the middle (x = 0).
     expect(out[(4 * 5 + 2) * 4]).toBeLessThan(out[(2 * 5 + 2) * 4] ?? 0)
+  })
+
+  it('applies contact darkening to the ambient and fill only, never to a lamp’s light', () => {
+    const { positions, normals } = floorPatch()
+    const lit = { ...lighting, ambient: 0 }
+    const wall = [
+      { x: -2.05, y: 1, z: 0, normal: [1, 0, 0] as [number, number, number], width: 6, height: 2 },
+    ]
+    const without = colours(bakeVertices(positions, normals, IDENTITY, lit))
+    const beside = colours(bakeVertices(positions, normals, IDENTITY, { ...lit, planes: wall }))
+    expect(beside).toEqual(without)
+  })
+})
+
+// The room light as a look gives it: a key, a fill and a sun in the base, a cap and steps on the sum, a shade per room.
+describe('the look’s light', () => {
+  const FLOOR = [{ x: 0, y: 0, z: 0, normal: [0, 1, 0] as [number, number, number], width: 40, height: 40 }]
+  const base = sceneLightingSchema.parse({
+    ambient: 0.15,
+    colorSpace: 'srgb',
+    key: { dir: [0.3, 0.8, 0.5], level: 0.09 },
+    planes: FLOOR,
+  })
+  const peak = (out: Float32Array, vertex: number) =>
+    Math.max(out[vertex * 4]!, out[vertex * 4 + 1]!, out[vertex * 4 + 2]!)
+
+  it('writes the ambient and the key on a floor, the same at every vertex of an open patch', () => {
+    const { positions, normals } = floorPatch()
+    const out = colours(bakeVertices(positions, normals, IDENTITY, base))
+    for (let v = 0; v < 25; v++) expect(out[v * 4]).toBeCloseTo(0.15 + 0.8 * 0.09, 5)
+  })
+
+  it('steps the light: the brightest channel is a multiple of the step, and the hue is kept', () => {
+    const { positions, normals } = floorPatch()
+    const out = colours(
+      bakeVertices(positions, normals, IDENTITY, {
+        ...base,
+        step: 0.1,
+        lamps: lighting.lamps,
+        ambientColor: 0xffcc80,
+      }),
+    )
+    for (let v = 0; v < 25; v++) {
+      const top = peak(out, v)
+      expect(Math.abs(top / 0.1 - Math.round(top / 0.1))).toBeLessThan(1e-4)
+      expect(out[v * 4 + 2]! / top).toBeCloseTo(0x80 / 0xff, 1)
+    }
+  })
+
+  it('caps the sum at `max` a channel', () => {
+    const { positions, normals } = floorPatch()
+    const bright = { ...base, max: 0.5, ambient: 1 }
+    const out = colours(bakeVertices(positions, normals, IDENTITY, bright))
+    for (let v = 0; v < 25; v++) expect(peak(out, v)).toBeCloseTo(0.5, 6)
+  })
+
+  it('multiplies a room’s light by the shade for each whole step it is darker', () => {
+    const { positions, normals } = floorPatch()
+    const plain = colours(bakeVertices(positions, normals, IDENTITY, base))
+    const dim = colours(bakeVertices(positions, normals, IDENTITY, base, [], { shadeSteps: 2 }))
+    expect(dim[0]).toBeCloseTo((plain[0] as number) * 0.85 ** 2, 5)
+    const lighter = colours(bakeVertices(positions, normals, IDENTITY, base, [], { shadeSteps: -1 }))
+    expect(lighter[0]).toBeCloseTo((plain[0] as number) / 0.85, 5)
+  })
+
+  it('adds the sun, and leaves the floor under a box in its shadow', () => {
+    const { positions, normals } = floorPatch()
+    const sunny = {
+      ...base,
+      sun: { dir: [0, 1, 0] as [number, number, number], color: 0xffffff, level: 1, shadow: true },
+      boxes: [{ x: 0, y: 1, z: 0, width: 1, height: 1, depth: 1 }],
+    }
+    const out = colours(bakeVertices(positions, normals, IDENTITY, sunny))
+    // (0, 0) is the patch's middle vertex, under the box; (−2, −2) is clear.
+    expect(out[12 * 4]).toBeCloseTo(0.15 + 0.8 * 0.09, 5)
+    expect(out[0]).toBeCloseTo(0.15 + 0.8 * 0.09 + 1, 5)
+  })
+
+  it('turns an sRGB light into the multiplier that leaves the albedo times the light on screen', () => {
+    const { positions, normals } = floorPatch()
+    const albedo = 0x8690b2
+    const out = colours(bakeVertices(positions, normals, IDENTITY, base, [], { albedo }))
+    const light = 0.15 + 0.8 * 0.09
+    for (const [c, a] of [
+      [0, 0x86],
+      [1, 0x90],
+      [2, 0xb2],
+    ] as const) {
+      const lin = a / 255 <= 0.04045 ? a / 255 / 12.92 : ((a / 255 + 0.055) / 1.055) ** 2.4
+      expect(toSrgb(lin * out[c]!)).toBeCloseTo((a / 255) * light, 4)
+    }
+  })
+
+  it('leaves a bright texel at 1 on screen, not past it, when the light would push it over', () => {
+    const { positions, normals } = floorPatch()
+    const out = colours(
+      bakeVertices(positions, normals, IDENTITY, { ...base, ambient: 1, max: 1.6 }, [], { albedo: 0xffffff }),
+    )
+    // albedo 1 × light 1.09 → clamped at 1 on screen: a linear multiplier of 1.
+    expect(out[0]).toBeCloseTo(1, 5)
+  })
+
+  it('gives a textured mesh the light as a linear multiplier, past 1 where the light is, for the texture to take', () => {
+    const { positions, normals } = floorPatch()
+    const bright = { ...base, ambient: 1, max: 1.6 }
+    const light = colours(bakeVertices(positions, normals, IDENTITY, bright))[0] as number
+    const out = colours(bakeVertices(positions, normals, IDENTITY, bright, [], { textured: true }))
+    // A texel's colour × this, in linear light, is the sRGB albedo × light on screen (a power of 2.2 stands for the curve).
+    expect(light).toBeGreaterThan(1)
+    expect(out[0]).toBeCloseTo(light ** 2.2, 4)
   })
 })

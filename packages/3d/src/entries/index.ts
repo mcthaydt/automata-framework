@@ -12,14 +12,13 @@ export {
 } from '../app/create-renderer.ts'
 export { render3dExtension } from '../app/render3d.extension.ts'
 export { updatePieces } from '../app/update-pieces.ts'
+export { type WorldLightingOptions, worldLighting } from '../app/world-lighting.ts'
 export { drawWorld, sceneLamps, type WorldScene, type WorldView } from '../app/world-view.ts'
 export {
   type AngledCameraOptions,
   angledCamera,
   type CameraPose,
   type CameraRig,
-  HEADING_EASE_SECONDS,
-  VIEW_EASE_SECONDS,
 } from '../features/camera/angled-camera.ts'
 export { type Pixi3dCameraOptions, PLAYER_HEIGHT } from '../features/camera/camera-driver.ts'
 export { LOCK_SHARE, type Vec3 } from '../features/camera/camera-pose.ts'
@@ -61,7 +60,14 @@ export {
   figure,
 } from '../features/figures/view/figure-view.ts'
 export { DuelSnapEffect } from '../features/look/duel-snap-filter.ts'
-export { DEFAULT_LOOK, type Look, type LookSwitches, parseLook } from '../features/look/look.ts'
+export { HazeEffect, hazed, hazeOf, hazeShare } from '../features/look/haze.ts'
+export {
+  DEFAULT_LOOK,
+  type HazeProfile,
+  type Look,
+  type LookSwitches,
+  parseLook,
+} from '../features/look/look.ts'
 export {
   addLookPass,
   createLookPasses,
@@ -72,6 +78,7 @@ export {
 export { OutlineEffect } from '../features/look/outline-filter.ts'
 export { lightSteps, rampLit } from '../features/look/ramp-light.ts'
 export { RampMaterial, type RampMaterialOptions } from '../features/look/ramp-light-material.ts'
+export { type HorizonLayer, SkyEffect } from '../features/look/sky-pass.ts'
 export {
   SPRITE_STYLE,
   type SpriteInput,
@@ -80,6 +87,7 @@ export {
   spriteLight,
 } from '../features/look/sprite-light.ts'
 export { targetSize } from '../features/look/target-size.ts'
+export type { AlbedoTile } from '../features/world/albedo/place.ts'
 export {
   buildWorld,
   type World,

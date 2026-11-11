@@ -235,7 +235,7 @@ describe('occluderHooks', () => {
   it('snaps after a reset, a resync and a camera cut instead of fading (review of #249, 3)', () => {
     const rig = angledCamera({ camera: new Camera3D(), views: [cameraView('hall')], initial: 'hall' })
     const occluders = createOccluders(new Container3D())
-    const [wall] = meshesOf(occluders.wall({ a: { x: 0, z: 0 }, b: { x: 4, z: 0 }, height: 2.5, color: 1 }))
+    const [wall] = meshesOf(occluders.wall({ a: { x: 0, z: 0 }, b: { x: 4, z: 0 }, height: 5, color: 1 }))
     const hooks = occluderHooks(rig, occluders, { height: 1.62, reducedMotion: () => false })
     // The player north of the wall, the camera looking −z from inside the room: the wall stands.
     const inside = () => {
@@ -245,9 +245,10 @@ describe('occluderHooks', () => {
       rig.update(1 / 60)
       hooks.draw?.(draw)
     }
+    // The camera eases round to the new heading, so give it the time to be there.
     const outside = () => {
       rig.heading(0)
-      rig.update(1 / 60)
+      rig.update(5)
     }
     for (const how of ['reset', 'resync', 'cut'] as const) {
       inside()
@@ -264,8 +265,7 @@ describe('occluderHooks', () => {
     }
     // Without any of them the same turn fades over 150 ms.
     inside()
-    rig.heading(0)
-    rig.update(1 / 60)
+    outside()
     hooks.draw?.(draw)
     expect(wall?.material.alpha).toBeGreaterThan(0)
   })

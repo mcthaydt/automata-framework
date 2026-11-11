@@ -31,7 +31,7 @@ import {
 const VIEWS: CameraView[] = [
   cameraView('default'),
   cameraView('high', { tiltDeg: 40, distance: 8 }),
-  cameraView('low', { tiltDeg: 15, distance: 3 }),
+  cameraView('low', { tiltDeg: 25, distance: 3 }),
 ]
 const HEADINGS = Array.from({ length: 24 }, (_, i) => i * 15)
 const HEIGHT = 1.62

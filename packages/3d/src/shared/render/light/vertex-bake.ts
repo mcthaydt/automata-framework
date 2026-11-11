@@ -1,9 +1,35 @@
 // Baked vertex light for a static mesh (2026-10-16). Kept: each lamp's light per vertex is computed once, with its
 // occlusion, because static lamps never move, so a level change is a cheap re-sum; colours are Pure: no Pixi, so it runs
 // in Node.
-import { contactShade, type LightSample } from './occlusion.ts'
+import type { LightSample } from './occlusion.ts'
 import type { SceneLighting } from './scene-lighting.schema.ts'
-import { channels, type LampLevels, LIGHT_CEILING, levelOf, vertexLight } from './vertex-light.ts'
+import {
+  baseLight,
+  type LampLevels,
+  levelOf,
+  lightChannels,
+  lightModel,
+  stepLight,
+  toLinear,
+  vertexLight,
+} from './vertex-light.ts'
+
+/** What the bake knows about one mesh beyond its vertices. */
+export interface BakeExtras {
+  /** Whole steps the mesh's room is darker than normal (negative: brighter): its light is multiplied by `shade` each. */
+  readonly shadeSteps?: number | undefined
+  /**
+   * The mesh's own colour (0xRRGGBB, sRGB). With a `srgb` lighting the vertex colour is the linear multiplier that
+   * leaves `albedo × light` on screen, per channel; without one the light itself is written.
+   */
+  readonly albedo?: number | undefined
+  /**
+   * The mesh takes its colour from a texture of DUEL colours (the albedo per texel): its vertex colour is the light
+   * alone, as the linear multiplier that leaves texel × light on screen (a power of 2.2 for the sRGB curve), and past 1
+   * where the light is, since the clamp falls on the product.
+   */
+  readonly textured?: boolean | undefined
+}
 
 /** A static mesh's vertices with their light computed: `write` turns lamp levels into vertex colours. */
 export interface VertexBake {
@@ -41,6 +67,17 @@ function transform(
 }
 
 /**
+ * A light value as the multiplier the shader needs. With the mesh's albedo (an sRGB channel, 0 to 1) the light is the
+ * look's: the screen shows `albedo × light`, at most 1. The shader multiplies in linear light, so the multiplier is
+ * that product's linear value over the albedo's. Without one, the light is the multiplier.
+ */
+function onScreen(light: number, albedo: number | undefined): number {
+  if (albedo === undefined) return light
+  if (albedo <= 0) return 0
+  return toLinear(Math.min(1, albedo * light)) / toLinear(albedo)
+}
+
+/**
  * Bakes a static mesh's light. `positions` and `normals` hold 3 floats a vertex in the mesh's own space; `matrix`
  * (column-major) places it in the world (normals are turned by it and renormalised, so use a uniform scale). Boxes
  * named in `ignore` never shadow it.
@@ -51,13 +88,19 @@ export function bakeVertices(
   matrix: ArrayLike<number>,
   lighting: SceneLighting,
   ignore: readonly string[] = [],
+  extras: BakeExtras = {},
 ): VertexBake {
   const vertexCount = positions.length / 3
-  const ambient = channels(lighting.ambientColor).map((c) => c * lighting.ambient)
-  const shade = new Float32Array(vertexCount)
+  const model = lightModel(lighting)
+  const base = new Float32Array(vertexCount * 3)
+  const sector = lighting.shade ** (extras.shadeSteps ?? 0)
+  const albedo =
+    extras.albedo === undefined || lighting.colorSpace !== 'srgb'
+      ? undefined
+      : lightChannels(extras.albedo, 'srgb')
   const slots: LampSlot[] = lighting.lamps.map((lamp) => ({
     id: lamp.id,
-    colour: channels(lamp.color),
+    colour: lightChannels(lamp.color, lighting.colorSpace),
     light: new Float32Array(vertexCount),
   }))
   for (let i = 0; i < vertexCount; i++) {
@@ -66,7 +109,7 @@ export function bakeVertices(
     const [nx, ny, nz] = transform(matrix, normals[p] ?? 0, normals[p + 1] ?? 0, normals[p + 2] ?? 0, 0)
     const length = Math.hypot(nx, ny, nz) || 1
     const sample: LightSample = { x, y, z, nx: nx / length, ny: ny / length, nz: nz / length }
-    shade[i] = contactShade(sample, lighting)
+    base.set(baseLight(sample, model, lighting), i * 3)
     lighting.lamps.forEach((lamp, j) => {
       const slot = slots[j]
       if (slot !== undefined) slot.light[i] = vertexLight(sample, lamp, lighting, ignore)
@@ -86,13 +129,23 @@ export function bakeVertices(
       let changed = false
       for (let i = 0; i < vertexCount; i++) {
         const o = i * 4
+        const sum: [number, number, number] = [0, 0, 0]
         for (let c = 0; c < 3; c++) {
-          let light = ambient[c] ?? 0
+          let light = base[i * 3 + c] ?? 0
           active.forEach((slot, j) => {
             light += (slot.light[i] ?? 0) * (level[j] ?? 0) * (slot.colour[c] ?? 0)
           })
+          sum[c] = Math.min(model.max, light * sector)
+        }
+        const stepped = stepLight(sum, model.step)
+        for (let c = 0; c < 3; c++) {
           // Through a Float32Array, so the comparison is against the value the buffer will hold.
-          const value = Math.fround(Math.min(LIGHT_CEILING, light * (shade[i] ?? 1)))
+          const light = stepped[c] as number
+          const value = Math.fround(
+            extras.textured === true && lighting.colorSpace === 'srgb'
+              ? light ** 2.2
+              : onScreen(light, albedo?.[c]),
+          )
           if (out[o + c] !== value) {
             out[o + c] = value
             changed = true

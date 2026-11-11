@@ -1,29 +1,29 @@
 // The follow camera of a room (ED3D.4c, the 3D direction spec §4.2, M3R-D9 and D11): the game's camera follows the player on a
-// 24 mm lens, 25 degrees down and 5 m back from a focus a metre above the followed position, along a heading the player turns
-// freely. It is the dollhouse's orbit with the game's numbers, so a room is drawn as the player sees it and the walls it cuts
+// 50 mm lens (the reference game's, the default since 2026-11-10), 30 degrees down and 16 m back from a focus a metre above the
+// followed position, along a heading the player turns in 45 degree steps. It is the dollhouse's orbit with the game's numbers, so a room is drawn as the player sees it and the walls it cuts
 // are cut by that eye. `bounds`, the easing of `lag` and lock-on framing belong to the game's renderer (M3.4): the editor
 // carries `lag` as data and does not ease. The view is @automata/3d's `camera-view` (one owner, M3 spec §4.2 amended
 // 2026-10-30): the editor keeps no copy of its fields, defaults or ranges.
 
-import { type CameraView, degToHeading, wrapHeading } from '@automata/3d/camera-view'
+import { type CameraView, degToHeading, LENS_MM, wrapHeading } from '@automata/3d/camera-view'
 import { type Camera3D, orbitCamera } from '../../../shared/geometry/camera-3d'
 import type { SectorMesh, Vec3 } from '../../../shared/geometry/sector-mesh'
 import { headingToYaw, type WallsSeen, wallsSeenFrom } from './heading'
 
 const DEGREES = Math.PI / 180
+/** The game's vertical field of view: the film convention's 2·atan(12 / mm) on a 24 mm tall gate (`fovOf`, in radians). */
+const GAME_FOV = 2 * Math.atan(12 / LENS_MM)
 
 /**
  * The camera the game puts on a player at `followed` looking along `heading` (turn units): `distance` metres from the focus,
- * which is the followed position raised by `focusHeight`, tipped `tiltDeg` down, through the 24 mm lens.
+ * which is the followed position raised by `focusHeight`, tipped `tiltDeg` down, through the game's lens (`LENS_MM`).
  */
 export function followCamera(spec: CameraView, followed: Vec3, heading: number): Camera3D {
   const focus: Vec3 = [followed[0], followed[1] + spec.focusHeight, followed[2]]
-  return orbitCamera({
-    target: focus,
-    distance: spec.distance,
-    yaw: headingToYaw(heading),
-    pitch: spec.tiltDeg * DEGREES,
-  })
+  return orbitCamera(
+    { target: focus, distance: spec.distance, yaw: headingToYaw(heading), pitch: spec.tiltDeg * DEGREES },
+    GAME_FOV,
+  )
 }
 
 export interface RoomView {

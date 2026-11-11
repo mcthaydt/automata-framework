@@ -4,6 +4,7 @@
 import { BASE_SCENES } from '@automata/3d/base'
 import type { AfSector2 } from '@automata/3d/level'
 import { dressLevel } from '../features/furnish/dress.ts'
+import '../features/props/register-props.ts' // before dressing: the dresser measures each prop by building it
 import { worldKitLibrary } from './world-kit-library.ts'
 
 /** The scene with `room` asking to be dressed as `as`, then dressed. */
