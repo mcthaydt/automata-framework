@@ -19,7 +19,7 @@ import { type MeshData, merge } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
 import { decorPieces, doorPieces } from './decor.ts'
 import { box } from './mesh.ts'
-import { placeProps, roomAt, type WorldLamp } from './place-props.ts'
+import { type ModelPlacement, placeProps, roomAt, type WorldLamp } from './place-props.ts'
 import { onWall, planeMesh, wallQuad } from './plane-mesh.ts'
 import {
   cornersOf,
@@ -41,6 +41,7 @@ import {
   massMeshes,
   pilaster,
   type Run,
+  roomOnLeft,
   runsAround,
   wallTop,
 } from './structure.ts'
@@ -74,6 +75,10 @@ export interface WorldPiece {
   readonly occlude?: Occlude
   /** The camera-cut group of the wall (or mass) it belongs to: room visibility hides a group's pieces together. */
   readonly cut?: string
+  /** A model the renderer draws in place of this mesh (a `model` prop), and its turn. */
+  readonly model?: ModelPlacement
+  /** Hangs from the ceiling: it goes with the ceilings. */
+  readonly ceiling?: boolean
   /** A hinged door's pivot and its swing at fully open (degrees about y); the mesh is built shut. */
   readonly door?: { readonly hinge: V3; readonly swing: number }
   /** Sways in the wind: how far (metres) its top moves, and its phase (leaves, grass, a curtain). */
@@ -184,7 +189,10 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     mesh: MeshData,
     surface: Surface,
     tex?: TexPlace,
-    extra: Pick<WorldPiece, 'door' | 'line' | 'occlude' | 'sway' | 'phase' | 'noCast' | 'prop' | 'cut'> = {},
+    extra: Pick<
+      WorldPiece,
+      'door' | 'line' | 'occlude' | 'sway' | 'phase' | 'noCast' | 'prop' | 'cut' | 'model' | 'ceiling'
+    > = {},
   ): void => {
     const sector = level.sectors[si] as AfSectorEntry2
     const name = tileName(surface)
@@ -580,14 +588,11 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       ...(piece.phase === undefined ? {} : { phase: piece.phase }),
       ...(piece.noCast === true ? { noCast: true } : {}),
       ...(piece.prop === undefined ? {} : { prop: piece.prop }),
+      ...(piece.model === undefined ? {} : { model: piece.model }),
+      ...(piece.cut === undefined ? {} : { cut: piece.cut }),
+      ...(piece.ceiling === true ? { ceiling: true } : {}),
     })
   return { pieces, lamps: placed.lamps, problems }
-}
-
-/** The segment as the occluder rule reads a wall: from `a` to `b` with the room on the left. */
-function roomOnLeft(seg: Segment, n: V2): { a: V2; b: V2 } {
-  const left: V2 = [-(seg.b[1] - seg.a[1]), seg.b[0] - seg.a[0]]
-  return left[0] * n[0] + left[1] * n[1] > 0 ? { a: seg.a, b: seg.b } : { a: seg.b, b: seg.a }
 }
 
 /** The coordinate along the dominant axis at `u` of the segment. */

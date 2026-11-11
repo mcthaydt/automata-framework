@@ -95,8 +95,8 @@ describe('the generators', () => {
     expect(built.top).toEqual({ y: 0.5, size: [0.6, 0.6] })
   })
 
-  it('core registers box and cylinder first, then the five the base scenes are made of, before any extension', () => {
-    expect(registeredPropGenerators().slice(0, 7)).toEqual([
+  it('core registers box and cylinder first, then the five the base scenes are made of and the model, before any extension', () => {
+    expect(registeredPropGenerators().slice(0, 8)).toEqual([
       'box',
       'cylinder',
       'table',
@@ -104,6 +104,7 @@ describe('the generators', () => {
       'lamp',
       'streetLamp',
       'tree',
+      'model',
     ])
   })
 

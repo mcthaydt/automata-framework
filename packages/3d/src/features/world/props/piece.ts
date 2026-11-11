@@ -11,6 +11,16 @@ import type { V3 } from '../../../shared/math/math.ts'
 // biome-ignore lint/suspicious/noExplicitAny: parameters are data; see above.
 export type Params = Record<string, any>
 
+/** A model a prop piece stands in for: the file, how it fills the piece's box, and its brightness. */
+export interface ModelSpec {
+  readonly file: string
+  readonly size: readonly [number, number, number]
+  readonly uniform: boolean
+  readonly mirror: boolean
+  /** Exposure for a dark texture; 1 leaves it as the file has it. */
+  readonly gain: number
+}
+
 /** One part of a prop: its mesh, its swatch, and what the part is (`seat`, `legs`), which names it in the piece id. */
 export interface PropPiece {
   readonly mesh: MeshData
@@ -21,6 +31,12 @@ export interface PropPiece {
   /** Sways in the wind: how far (metres) its top moves, and its phase (trees, grass, a curtain). */
   readonly sway?: number
   readonly phase?: number
+  /** A model the renderer draws in place of this stand-in mesh, once it has loaded the file. */
+  readonly model?: ModelSpec
+  /** Hung on this wall (its camera-cut group): it hides with the wall. */
+  readonly cut?: string
+  /** Hangs from the ceiling: it goes with the ceilings. */
+  readonly ceiling?: boolean
 }
 
 /** A light a prop carries (a lamp's bulb), in the prop's own space: a lamp of a kind from the look's lamp kit. */
@@ -42,7 +58,7 @@ export function part(
   mesh: MeshData,
   swatch: string,
   label: string,
-  extra: Pick<PropPiece, 'noCast' | 'sway' | 'phase'> = {},
+  extra: Pick<PropPiece, 'noCast' | 'sway' | 'phase' | 'model' | 'cut' | 'ceiling'> = {},
 ): PropPiece {
   return { mesh, swatch, label, ...extra }
 }

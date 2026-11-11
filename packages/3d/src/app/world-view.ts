@@ -13,6 +13,8 @@ import { tileName } from '../features/world/surface.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
 import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
+import { fitModelMesh } from '../shared/render/model/fit-model.ts'
+import type { LoadedModel, ModelLibrary } from '../shared/render/model/load-models.ts'
 
 export interface WorldScene {
   /** Where the pieces are added. */
@@ -25,6 +27,11 @@ export interface WorldScene {
   readonly fallback?: number | undefined
   /** With a look, every piece takes the stepped-light material (the look's `steps`) in place of plain Phong. */
   readonly look?: Look | undefined
+  /**
+   * The models the renderer loaded (`loadModels`): a prop piece that names one is drawn with it, fitted to the prop's box
+   * and textured with the model's own texture, in place of its stand-in box. A model it does not have leaves the box.
+   */
+  readonly models?: ModelLibrary | undefined
   /**
    * A swatch's photo tile (DUEL colours a texel), by swatch name: a piece whose surface has one is drawn with it,
    * nearest-sampled, placed as the surface says (repeat, pan, turn, and the wall's, the world's or the prop's frame), in
@@ -101,6 +108,28 @@ function meshOf(piece: WorldPiece, colour: number, look: Look | undefined, tile?
   return new Mesh3D({ geometry, material })
 }
 
+/**
+ * A model prop piece drawn with its loaded model: the model's vertices fitted to the prop's box and placed in the world, so
+ * the mesh sits at the origin as every piece does and a state can move it like one. Its own texture, one material a mesh.
+ */
+function modelMeshOf(piece: WorldPiece, loaded: LoadedModel, look: Look | undefined): Mesh3D | undefined {
+  const { model, prop } = piece
+  if (model === undefined || prop === undefined) return undefined
+  const fitted = fitModelMesh(loaded.mesh, model, { at: prop.at, turn: model.turn })
+  const low = [Infinity, Infinity, Infinity] as [number, number, number]
+  const high = [-Infinity, -Infinity, -Infinity] as [number, number, number]
+  for (let i = 0; i < fitted.positions.length; i += 3)
+    for (let axis = 0; axis < 3; axis++) {
+      low[axis] = Math.min(low[axis] as number, fitted.positions[i + axis] as number)
+      high[axis] = Math.max(high[axis] as number, fitted.positions[i + axis] as number)
+    }
+  const geometry = new Geometry3D({ ...fitted, bounds3D: new Box(new Vector3(...low), new Vector3(...high)) })
+  const base = { baseColor: 0xffffff, baseColorTexture: loaded.texture }
+  const material =
+    look === undefined ? new PhongMaterial(base) : new RampMaterial({ ...base, steps: look.steps })
+  return new Mesh3D({ geometry, material })
+}
+
 /** A piece a state can move (a door, a prop, a leaf in the wind) cannot hold baked light. */
 const stays = (piece: WorldPiece): boolean =>
   piece.door === undefined && piece.prop === undefined && piece.sway === undefined
@@ -113,7 +142,10 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   for (const piece of pieces) {
     const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
     const tile = scene.tiles?.(tileName(piece.surface))
-    const mesh = meshOf(piece, colour, scene.look, tile)
+    const loaded = piece.model === undefined ? undefined : scene.models?.get(piece.model.file)
+    const mesh =
+      (loaded === undefined ? undefined : modelMeshOf(piece, loaded, scene.look)) ??
+      meshOf(piece, colour, scene.look, tile)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
     if (scene.light !== undefined && stays(piece)) {
@@ -128,7 +160,7 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
       }
     }
     if (scene.occluders === undefined) continue
-    if (piece.part === 'ceiling') scene.occluders.ceiling(mesh)
+    if (piece.part === 'ceiling' || piece.ceiling === true) scene.occluders.ceiling(mesh)
     else if (piece.part === 'wall' && piece.line !== undefined) {
       // The face’s height: the highest point of its mesh, from the floor at 0. A face that never rises above it (the
       // side of a pit) can hide nobody and follows no rule.

@@ -280,3 +280,9 @@ export function corniceOf(
     n,
   )
 }
+
+/** The segment as the occluder rule reads a wall: from `a` to `b` with the room on the left. */
+export function roomOnLeft(seg: Segment, n: V2): { a: V2; b: V2 } {
+  const left: V2 = [-(seg.b[1] - seg.a[1]), seg.b[0] - seg.a[0]]
+  return left[0] * n[0] + left[1] * n[1] > 0 ? { a: seg.a, b: seg.b } : { a: seg.b, b: seg.a }
+}

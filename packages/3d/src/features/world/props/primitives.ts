@@ -4,6 +4,7 @@
 // extension registers (`registerPropGenerator`).
 import { box, cylinder } from '../mesh.ts'
 import { BASE_PROPS } from './base-props.ts'
+import { modelProp } from './model-prop.ts'
 import { type Built, type Generator, part } from './piece.ts'
 
 /** A box: `size` `[width, height, depth]` in metres, painted `swatch`. */
@@ -30,4 +31,5 @@ export const PRIMITIVE_PROPS: Readonly<Record<string, Generator>> = {
   box: boxProp,
   cylinder: cylinderProp,
   ...BASE_PROPS,
+  model: modelProp,
 }

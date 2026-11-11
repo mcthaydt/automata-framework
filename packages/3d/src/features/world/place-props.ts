@@ -13,11 +13,16 @@ import type { MeshData } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
 import { lampFault, type ResolvedLamp, resolveLamp } from './lamp-kit.ts'
 import { rotateY } from './plane-mesh.ts'
-import type { PropPiece } from './props/piece.ts'
+import type { ModelSpec, PropPiece } from './props/piece.ts'
 import { isFault, resolveProp } from './props/resolve.ts'
 import { heightAt, ringsOf, standsIn, type V2 } from './sectors.ts'
 import { objectFrame, type Surface, type TexPlace, texOf } from './surface.ts'
 import type { WorldLibrary } from './swatches.ts'
+
+/** A model piece: what `ModelSpec` says, and the turn (degrees about y) its prop was placed with. */
+export interface ModelPlacement extends ModelSpec {
+  readonly turn: number
+}
 
 /** One prop part standing in a room, ready to become a world piece. */
 export interface PlacedPiece {
@@ -31,6 +36,10 @@ export interface PlacedPiece {
   readonly sway?: number
   readonly phase?: number
   readonly noCast?: boolean
+  /** A model drawn in place of this mesh, with the turn the prop was placed at. */
+  readonly model?: ModelPlacement
+  readonly cut?: string
+  readonly ceiling?: boolean
   /** The prop it belongs to and where its base stands, for a state that moves the prop. */
   readonly prop?: { readonly id: string; readonly at: V3 }
 }
@@ -154,6 +163,9 @@ export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell):
         ...(piece.sway === undefined ? {} : { sway: piece.sway }),
         ...(piece.phase === undefined ? {} : { phase: piece.phase }),
         ...(piece.noCast === true ? { noCast: true } : {}),
+        ...(piece.model === undefined ? {} : { model: { ...piece.model, turn } }),
+        ...(piece.cut === undefined ? {} : { cut: piece.cut }),
+        ...(piece.ceiling === true ? { ceiling: true } : {}),
         prop: { id: place.id, at },
       })
     })

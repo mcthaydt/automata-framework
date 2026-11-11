@@ -1,5 +1,6 @@
 // The world on `@pixi/3d`: a mesh for each piece, the swatch's colour on it, and the occluder rule on walls and ceilings.
 import { Container3D, type Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Texture } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { drawWorld, sceneLamps } from '#src/app/world-view.ts'
 import { createOccluders } from '#src/features/camera/occluders/occluders.ts'
@@ -7,6 +8,10 @@ import { buildWorld } from '#src/features/world/build.ts'
 import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
 import { createSceneLight } from '#src/shared/render/light/scene-light.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
+import type { LoadedModel } from '#src/shared/render/model/load-models.ts'
+import { modelGeometry } from '#src/shared/render/model/model-geometry.ts'
+import { parseGlb } from '#src/shared/render/model/parse-glb.ts'
+import { encodeGlb, fixtureBox } from '#src/testing/model/model-fixtures.ts'
 
 const LIB = { swatches: { oakFloor: {}, plasterWarm: {}, trimWhite: {} } }
 const level: AfSector2 = {
@@ -181,5 +186,76 @@ describe('sceneLamps', () => {
   it('leaves out a street lamp by day, which only a night lights', () => {
     expect(sceneLamps(lamps, true).map((lamp) => lamp.id)).toEqual(['in', 'street'])
     expect(sceneLamps(lamps, false).map((lamp) => lamp.id)).toEqual(['in'])
+  })
+})
+
+describe('drawWorld with models', () => {
+  const lib = {
+    swatches: { oakFloor: {}, plasterWarm: {}, trimWhite: {}, wood: {} },
+    props: { bed: { kind: 'model', model: 'bed.glb', size: [1, 1, 2], swatch: 'wood' } },
+  }
+  const withBed = buildWorld(
+    { ...level, props: [{ id: 'bed1', use: 'bed', at: [2, 2], angle: 90 }] },
+    lib,
+  ).pieces
+  const loaded = (file: string): LoadedModel => {
+    const mesh = parseGlb(encodeGlb(fixtureBox([-1, 0, -1], [1, 4, 1])), file)
+    const texture = Texture.WHITE
+    return {
+      mesh,
+      geometry: modelGeometry(mesh),
+      material: new PhongMaterial({ baseColorTexture: texture }),
+      texture,
+    }
+  }
+  it('fits the loaded model to the prop’s box and textures it with the model’s own texture', () => {
+    const model = loaded('bed.glb')
+    const view = drawWorld(
+      {
+        parent: new Container3D(),
+        colourOf: () => 0x808080,
+        models: { get: (f) => (f === 'bed.glb' ? model : undefined) },
+      },
+      withBed,
+    )
+    const id = withBed.find((p) => p.model !== undefined)?.id as string
+    const mesh = view.mesh(id) as Mesh3D
+    const { min, max } = mesh.geometry.bounds3D
+    expect([min.x, min.y, min.z]).toEqual([1.5, 0, 1])
+    expect([max.x, max.y, max.z]).toEqual([2.5, 1, 3])
+    expect((mesh.material as PhongMaterial).textures.baseColor).toBe(model.texture)
+  })
+  it('draws the stand-in box in the swatch when the model is not loaded', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0x112233 }, withBed)
+    const id = withBed.find((p) => p.model !== undefined)?.id as string
+    expect(((view.mesh(id) as Mesh3D).material as PhongMaterial).baseColor).toBe(0x112233)
+  })
+  it('hides a ceiling prop with the ceilings', () => {
+    const hung = buildWorld(
+      {
+        ...level,
+        props: [
+          {
+            id: 'strip',
+            kind: 'model',
+            at: [2, 2, 3],
+            with: { model: 'a.glb', size: [1, 0.1, 1], ceiling: true },
+          },
+        ],
+      },
+      lib,
+    ).pieces
+    const parent = new Container3D()
+    const occluders = createOccluders(parent)
+    const view = drawWorld({ parent, occluders, colourOf: () => 0 }, hung)
+    occluders.update({
+      eye: { x: 2, y: 3, z: 9 },
+      look: { x: 2, y: 1, z: 2 },
+      feet: { x: 2, y: 0, z: 2 },
+      head: { x: 2, y: 1.6, z: 2 },
+      seconds: 1,
+      reduced: true,
+    })
+    expect((view.mesh(hung.find((p) => p.ceiling === true)?.id as string) as Mesh3D).visible).toBe(false)
   })
 })
