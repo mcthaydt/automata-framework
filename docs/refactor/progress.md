@@ -794,3 +794,15 @@ identical"). Batch 1 is done in one session with no separate plan or audit stage
 | The 11 frames on WebGL and WebGPU beside the source's baselines | See [clinic/batch1](clinic/batch1/); "on" frames wait for the effects (PRs 588 and 589) | `spikes/clinic/shoot.mjs` |
 | Gates | See the PR description for what ran and what is pending | |
 
+## The clinic in level3d: batch 2 (2026-11-11, in progress)
+
+Record and calls made: [clinic/batch2/README.md](clinic/batch2/README.md).
+
+| Step | Status | Record |
+|---|---|---|
+| The framing: the zone's own play shot, no letterbox bars; the home heading | Done: test first (`HOME_HEADING`, `START`) | `view-latch.test.ts`, `spikes/clinic/scene.ts` |
+| The WebGPU play camera: the look ends in a colour-only present pass | Done: tests first; 0 rejected command buffers (40 before) | `tests/unit/look/present-pass.test.ts` |
+| The frame artefacts | Gone with the framing | [clinic/batch2](clinic/batch2/) |
+| Room visibility on the zones; the 12 world-kit pieces; procedural props; "on" frames | Item 5 started (translucent parts); 4 and 7 wait for PRs 588 and 590 | |
+| Gates | See the PR description | |
+

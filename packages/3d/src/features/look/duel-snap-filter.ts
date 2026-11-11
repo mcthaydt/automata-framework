@@ -5,9 +5,10 @@
 // post effect has none of.
 
 import { DEFAULT_PALETTE } from '@automata/content/palette'
-import { type EffectFragment, PostEffect } from '@pixi/3d'
+import { type EffectFragment, type EffectIO, PostEffect, type RenderGraph } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
 import { EXACT } from './duel-snap.ts'
+import { addColourOnlyPass } from './present-pass.ts'
 
 /** A palette as 0 to 1 channel triples, in palette order. */
 const triples = (hexes: readonly string[]): number[][] =>
@@ -90,6 +91,11 @@ export class DuelSnapEffect extends PostEffect {
   constructor(dither: number) {
     super()
     this.uniforms = new UniformGroup({ uDither: { value: dither, type: 'f32' } })
+  }
+
+  /** Reads the colour only: this is the pass that draws to the canvas, and it must not sample the depth (`present-pass.ts`). */
+  override build(graph: RenderGraph, io: EffectIO): void {
+    addColourOnlyPass(graph, io, 'DuelSnapEffect', this.fragment, this.uniforms)
   }
 
   get dither(): number {

@@ -18,7 +18,6 @@ import {
   worldLighting,
 } from '@automata/3d'
 import { readLevel } from '@automata/3d/level'
-import { fovOf, headingDegrees, LENS_MM, zoneShot } from '@automata/3d/camera-view'
 import { CameraHeading, cameraView, enterView, MAX_CAMERA_TURN, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
@@ -100,27 +99,12 @@ startGame(
         views: {
           [Body.id]: box(kind === 'zone' ? { width: 0.01, height: 0.01, depth: 0.01 } : { width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xffbc4e }),
         },
-        // The sim-driven rig is left out unless ?rig=1: on WebGPU it never reached the play view in this scene (the camera stayed
-        // at its start), so the camera is set in the scene hook below, the way the eb-look spike sets its gameplay camera.
-        ...(q.get('rig') === '1' ? { camera: { views: [VIEW], initial: VIEW.id, follow: Body.id } } : {}),
+        // The play camera is the sim-driven rig: it follows the stand-in for the player through the zone's own view (its look,
+        // follow, depth follow and skew), turned by the heading the player starts at.
+        camera: { views: [VIEW], initial: VIEW.id, follow: Body.id },
         scene: (view, stage, occluders, light, models) => {
           view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
           ;(window as unknown as { __camera: unknown }).__camera = view.camera
-          if (q.get('rig') !== '1') {
-            // The play camera, as the rig would shoot it: the zone's own shot for the player at the spot (its look, follow, depth
-            // follow and skew), then orbited by the heading (the home heading is half a turn: the eye south, looking north).
-            const camera = view.camera
-            const fov = fovOf(LENS_MM)
-            const shot = zoneShot(VIEW, { x: focus.x, y: 0, z: focus.z }, size.width / size.height, fov)
-            const heading = (headingDegrees(HEADING.heading) * Math.PI) / 180
-            const { x, y, z } = shot.offset
-            const look = kind === 'zone' ? { x: VIEW.look?.[0] ?? 0, y: VIEW.look?.[1] ?? 0, z: VIEW.look?.[2] ?? 0 } : shot.look
-            camera.fov = fov
-            camera.near = 0.2
-            camera.far = 200
-            camera.position.set(look.x + x * Math.cos(heading) + z * Math.sin(heading), look.y + y, look.z - x * Math.sin(heading) + z * Math.cos(heading))
-            camera.lookAt(look)
-          }
           view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)?.focus(VIEW.distance)
           drawWorld(
             { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), look: on('look') ? LOOK : undefined, light, models },

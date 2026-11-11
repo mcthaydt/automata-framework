@@ -32,7 +32,9 @@ for (let i = 0; i < 120 && !log.includes('Local:'); i++) await new Promise((r) =
 if (!log.includes('Local:')) throw new Error(`vite did not start:\n${log}`)
 
 // Vulkan on SwiftShader lets Chromium present a WebGPU canvas here (see spikes/eb-look).
-const browser = await chromium.launch({ args: ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-features=Vulkan', '--use-vulkan=swiftshader'] })
+// One browser a shot: a WebGPU page that has been closed can take a shared browser's GPU process down with it.
+const ARGS = ['--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-features=Vulkan', '--use-vulkan=swiftshader']
+const browser = await chromium.launch({ args: ARGS })
 const FRAMES = [
   ['zone-hall', false], ['zone-corridor', false], ['zone-closet', false],
   ['play-hall', false], ['play-ward', false], ['play-corridor', false], ['play-supply', false],
@@ -41,7 +43,8 @@ const FRAMES = [
 const facts = []
 
 async function shoot(frame, turned, pref) {
-  const page = await browser.newPage({ viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1 })
+  const own = await chromium.launch({ args: ARGS })
+  const page = await own.newPage({ viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1 })
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e)))
   page.on('console', (m) => (m.type() === 'error' || m.type() === 'warning') && errors.push(m.text().slice(0, 300)))
@@ -52,7 +55,7 @@ async function shoot(frame, turned, pref) {
     await page.locator('[data-layer="screens"] [data-screen="play"]').waitFor({ state: 'attached', timeout: 120000 })
     await canvas.waitFor({ state: 'attached', timeout: 120000 })
   } catch {
-    await page.close()
+    await own.close()
     return { png: null, data: {}, errors }
   }
   // Readiness, not a sleep: let the camera cut onto the player and the passes run for a number of frames.
@@ -60,7 +63,7 @@ async function shoot(frame, turned, pref) {
   const data = await canvas.evaluate((c) => ({ ...c.dataset }))
   await page.addStyleTag({ content: '[data-layer="screens"] { visibility: hidden !important }' })
   const png = await canvas.screenshot({ timeout: 120000 })
-  await page.close()
+  await own.close()
   return { png, data, errors }
 }
 
@@ -83,6 +86,8 @@ async function sideBySide(panels) {
 
 for (const [frame, turned] of FRAMES) {
   const stem = `${frame}${turned ? '-turned' : ''}`
+  // ONLY=<stem>,<stem> shoots just those frames, so a long run can be done in parts.
+  if (process.env.ONLY && !process.env.ONLY.split(',').includes(stem)) continue
   const shots = {}
   for (const pref of ['webgl', 'webgpu']) {
     const shot = await shoot(frame, turned, pref)
