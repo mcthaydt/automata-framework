@@ -15,7 +15,7 @@ runs in its own session on its own branch and hands off through committed docume
 | # | Workstream | Stage | Progress | Record |
 |---|---|---|---|---|
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 2, plan: session started 2026-11-11 | 14% (1 of 7 stages) | [spec](specs/2026-11-11-shared-polish-design.md) |
-| 2 | The Last Light on the framework, one scene at a time (the prologue first) | 1, spec: the coordinator writes it while workstream 1 runs | 0% | |
+| 2 | The Last Light on the framework, one scene at a time (the prologue first) | 1, spec: drafted 2026-11-11, its six calls open to the Owner. Slice 1's plan session starts when workstream 1 reaches execution | 3% | [spec](specs/2026-11-11-last-light-on-the-framework-design.md) |
 
 ## Workstream 1 sessions
 
