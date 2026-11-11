@@ -10,6 +10,7 @@ export const STEP_NAMES = [
   'orientation',
   'inputs',
   'levels',
+  'words',
   'no-eval',
   'secrets',
   'data-urls',

@@ -1,0 +1,6 @@
+# The Latin-only font the content package keeps as a fixture; the test copies it to `content/fonts/latin.woff2`.
+[font.latin]
+file = "content/fonts/latin.woff2"
+sha256 = "d830612ac9131788ebae754b9268f83f7c1d3ffa9bc0f9a5514207a8283fe71e"
+license = "OFL-1.1"
+locales = ["en"]

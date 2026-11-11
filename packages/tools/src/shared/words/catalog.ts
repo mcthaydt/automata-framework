@@ -1,6 +1,6 @@
-import { basename, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { Effect } from 'effect'
-import { Files } from '../node/files.ts'
+import { Files, type FilesService } from '../node/files.ts'
 
 // A game's words are message catalogs: flat `key -> text` JSON in the inlang message format, with a `{name}` slot
 // wherever the text needs a name or a number. What `automata words` and `automata check` share about them lives
@@ -107,4 +107,22 @@ export function gameCatalogs(
     }
     return found
   })
+}
+
+/** The languages a catalog already has files for: `<lang>.json` beside the others, apart from its notes and record. */
+export function languagesOnDisk(
+  files: FilesService,
+  catalog: CatalogPaths,
+  source: string,
+): Effect.Effect<string[]> {
+  const dir = dirname(catalog.translation(source))
+  return files.listFiles(dir).pipe(
+    Effect.map((names) =>
+      names
+        .filter((name) => /^[A-Za-z]{2,3}(-[A-Za-z0-9]+)*\.json$/.test(name))
+        .map((name) => name.slice(0, -'.json'.length))
+        .filter((lang) => lang !== source && lang !== 'context' && lang !== 'sources'),
+    ),
+    Effect.catchAll(() => Effect.succeed([] as string[])),
+  )
 }

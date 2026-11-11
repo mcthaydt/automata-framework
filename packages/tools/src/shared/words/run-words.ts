@@ -1,4 +1,3 @@
-import { dirname } from 'node:path'
 import { Effect } from 'effect'
 import type { FileError } from '../node/errors.ts'
 import { Files, type FilesService } from '../node/files.ts'
@@ -9,10 +8,11 @@ import {
   type CatalogPaths,
   folderCatalog,
   gameCatalogs,
+  languagesOnDisk,
   translationProblems,
 } from './catalog.ts'
 import { DEFAULT_LANGUAGES } from './default-languages.ts'
-import { type SourceRecord, type SourcesFile, sourceHash, sourcesFileSchema, wordsState } from './sources.ts'
+import { type SourcesFile, sourceHash, sourcesFileSchema, wordsState } from './sources.ts'
 import type { WordsOptions } from './words-args.ts'
 import { WordsModel, type WordsModelUnavailable } from './words-model.ts'
 
@@ -68,24 +68,6 @@ function toCatalog(path: string, value: unknown): Effect.Effect<Catalog, Problem
 
 const readCatalog = (files: FilesService, path: string): Effect.Effect<Catalog, Problem> =>
   Effect.flatMap(readJson(files, path), (value) => toCatalog(path, value))
-
-/** The languages a catalog already has files for: `<lang>.json` beside the others, apart from its notes and record. */
-function languagesOnDisk(
-  files: FilesService,
-  catalog: CatalogPaths,
-  source: string,
-): Effect.Effect<string[]> {
-  const dir = dirname(catalog.translation(source))
-  return files.listFiles(dir).pipe(
-    Effect.map((names) =>
-      names
-        .filter((name) => /^[A-Za-z]{2,3}(-[A-Za-z0-9]+)*\.json$/.test(name))
-        .map((name) => name.slice(0, -'.json'.length))
-        .filter((lang) => lang !== source && lang !== 'context' && lang !== 'sources'),
-    ),
-    Effect.catchAll(() => Effect.succeed([] as string[])),
-  )
-}
 
 /** The edit distance between two keys, for suggesting the nearest when one is mistyped. */
 function distance(a: string, b: string): number {

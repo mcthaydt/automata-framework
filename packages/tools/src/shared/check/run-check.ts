@@ -1,6 +1,7 @@
 import { Clock, Effect } from 'effect'
 import type { Files } from '../node/files.ts'
 import type { ProcessRunner } from '../node/process-runner.ts'
+import { wordsStep } from '../words/words-step.ts'
 import { type CheckReport, reportOf, type StepName, type StepResult } from './check-report.ts'
 import { boardsStep, inputsStep, orientationStep } from './check-source-steps.ts'
 import {
@@ -39,6 +40,7 @@ const STEPS: readonly Step[] = [
   ['orientation', orientationStep],
   ['inputs', inputsStep],
   ['levels', levelsStep],
+  ['words', wordsStep],
   ['no-eval', noEvalStep],
   ['secrets', secretsStep],
   ['data-urls', dataUrlsStep],
@@ -51,6 +53,7 @@ const NEEDS_SOURCES: ReadonlySet<StepName> = new Set([
   'orientation',
   'inputs',
   'levels',
+  'words',
   'no-eval',
   'secrets',
   'data-urls',

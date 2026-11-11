@@ -40,6 +40,7 @@ Checks a game one step after another and says what to fix. <folder> is the game 
   orientation   the way the game turns on a phone matches ship.config.ts
   inputs        the controls the code reads match ship.config.ts
   levels        a level and the game files saved from it match (for a game whose editor list sets exports)
+  words         every language has all its words and their {placeholders}, and the game's fonts draw every letter
   no-eval       the build runs without eval (it builds the game to find out)
   secrets       no key or password ended up in the build
   data-urls     no picture or sound was folded into the code as a data: link

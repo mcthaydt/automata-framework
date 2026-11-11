@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 4 of 21 tasks (19%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 5 of 21 tasks (24%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -36,7 +36,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 2 | Core's menu words as catalogs in six languages | 1 | done | `48352386` |
 | 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | done | `3763a3d8` |
 | 4 | `automata words`: the AI translates | 1 | done (the live model call is unverified: no key here) | `e61b179f` |
-| 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | todo | |
+| 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | done (it reads the game's own catalogs; task 5b switches it to `gameWords`) | TASK5 |
 | 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | todo | |
 | 6 | The opening sequence and the seen flags (core) | 2, 3 | todo | |
 | 7 | First-run language pick | 2 | todo | |
@@ -54,6 +54,21 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 18 | Guides, API report and index, changesets, final gates | done means | todo | |
 | 19 | The site's Editor page is cut; the link opens the editor | site | todo | |
 | 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | todo | |
+
+## Execution log and deviations ledger
+
+Each line is a ruling the executing session made, with what it costs if wrong. The final summary lists them all.
+
+- **Task 5, Ruling:** tools gets its own small `fontCoverage` and `catalogCharacters` (`packages/tools/src/shared/words/characters.ts`,
+  on `fontkit` 2.0.4, a new dependency of `@automata/tools` only) instead of importing content's, because
+  `@automata/content/assets` and `/locale` cannot load under plain Node from source (the coordinator's choice (a)).
+  `characters.test.ts` keeps both equal to content's over a Latin font, a Japanese font and printable ASCII. Cost if wrong: a
+  second copy of two small functions that drift; the pin test fails when they do.
+- **Task 5, Ruling:** the step takes `en` as the source language and every language any catalog has a file for; the
+  font check covers the source language too (a game's English words need a face as much as its Japanese ones).
+  `languagesOnDisk` moved from `run-words.ts` to `catalog.ts` so the command and the step find languages the same way.
+- **Task 5, Ruling:** a source language, a missing key and a catalog whose language file is absent are each a `words-parity`
+  finding; a missing language file is one finding for the file, not one per key.
 
 ## Global constraints
 
