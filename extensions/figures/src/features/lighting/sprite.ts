@@ -3,7 +3,6 @@ import { RAMPS, RAMP_OUTLINE } from '../paint/duel-ramps';
 import { oklab } from '../paint/paint';
 import { onRow, tiled } from '../paint/row';
 import { grade } from './grade';
-import { viewToWorld } from './lamps';
 import type { LitSource } from './light';
 /**
  * A painted figure lit as a sprite by the room it stands in (c8-lit): one flat light for the whole figure, taken in whole
@@ -56,6 +55,7 @@ export function flatSteps(flat: V3, style: SpriteStyle = SPRITE_STYLE): number {
 }
 /** The four neighbours, as outward directions in the picture plane (x right, y up; an image's y runs down). */
 const SIDES: [number, number][] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+const DX = [-1, 1, 0, 0], DY = [0, 0, -1, 1];
 const INK = 0;
 const colourAt = (px: Uint8ClampedArray, o: number) => (px[o] << 16) | (px[o + 1] << 8) | px[o + 2];
 /**
@@ -72,60 +72,75 @@ const colourAt = (px: Uint8ClampedArray, o: number) => (px[o] << 16) | (px[o + 1
  * 8. Fabric: a tiled texel lights its ground by 2 to 6, takes no tint, and the tile is laid after with `tiled`.
  */
 export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray {
-  const [w, h] = f.cell, style = L.style ?? SPRITE_STYLE, weave = f.weave ?? null, src = f.painted, N = f.normals;
+  const [w, h] = f.cell, n = w * h, style = L.style ?? SPRITE_STYLE, weave = f.weave ?? null, src = f.painted, N = f.normals;
   const out = src.slice(), shift = flatSteps(L.flat, style) - (L.exposure ?? 0);
   const lamps = L.lamps.filter(l => l.strength > 0), total = lamps.reduce((s, l) => s + l.strength, 0);
-  const filled = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && src[(y * w + x) * 4 + 3] !== 0;
-  /** The colour a texel is lit from: a fabric's ground where the tile is laid, else the painted colour. */
-  const base = (k: number) => (weave && weave.on[k] === 1 ? weave.ground : src);
-  /** Rule 1: whether the texel stays as it is. */
-  const holds = (k: number) => {
-    const c = colourAt(base(k), k * 4);
-    return c === INK || c === RAMP_OUTLINE || onRow(c)[1] === 0;
-  };
+  // What each texel is lit from, read once: its colour (a fabric's ground where the tile is laid, else the painted colour; −1 for
+  // an empty texel), its row and step, and whether it holds (rule 1). Colours run in patches, so the last one is reused.
+  const ground = new Int32Array(n).fill(-1), rows = new Int8Array(n), steps = new Int8Array(n), held = new Uint8Array(n);
+  let lastColour = -1, lastRow = 0, lastStep = 0, lastHeld = 0;
+  for (let k = 0; k < n; k++) {
+    const o = k * 4;
+    if (!src[o + 3]) continue;
+    const from = weave !== null && weave.on[k] === 1 ? weave.ground : src, c = colourAt(from, o);
+    ground[k] = c;
+    if (c !== lastColour) {
+      [lastRow, lastStep] = onRow(c);
+      lastHeld = c === INK || c === RAMP_OUTLINE || lastStep === 0 ? 1 : 0;
+      lastColour = c;
+    }
+    rows[k] = lastRow; steps[k] = lastStep; held[k] = lastHeld;
+  }
   // Rule 3's light: Σ max(0, n · dir) × strength, and its mean over the filled texels that have a normal.
-  const lit = new Float32Array(w * h), hasN = new Uint8Array(w * h);
+  const lit = new Float32Array(n), hasN = new Uint8Array(n), pc = Math.cos(f.pitch), ps = Math.sin(f.pitch), m = lamps.length;
+  const lx = Float64Array.from(lamps, l => l.dir[0]), ly = Float64Array.from(lamps, l => l.dir[1]), lz = Float64Array.from(lamps, l => l.dir[2]), ls = Float64Array.from(lamps, l => l.strength);
   let sum = 0, count = 0;
-  if (total > 0) for (let k = 0; k < w * h; k++) {
+  if (total > 0) for (let k = 0; k < n; k++) {
     const o = k * 4;
     if (!src[o + 3] || !N[o + 3]) continue;
-    const n = viewToWorld([N[o] / 127.5 - 1, 1 - N[o + 1] / 127.5, N[o + 2] / 127.5 - 1], f.pitch);
+    // `viewToWorld` (lamps.ts), written out so the loop allocates nothing.
+    const vx = N[o] / 127.5 - 1, vy = 1 - N[o + 1] / 127.5, vz = N[o + 2] / 127.5 - 1, nx = vx, ny = vy * pc + vz * ps, nz = -vy * ps + vz * pc;
     let s = 0;
-    for (const l of lamps) s += Math.max(0, n[0] * l.dir[0] + n[1] * l.dir[1] + n[2] * l.dir[2]) * l.strength;
+    for (let i = 0; i < m; i++) s += Math.max(0, nx * lx[i] + ny * ly[i] + nz * lz[i]) * ls[i];
     lit[k] = s; hasN[k] = 1; sum += s; count++;
   }
   const facing = count ? sum / count : 0;
   // Rules 3 and 4: a form of one step, or a rim of one step instead.
-  const form = new Int8Array(w * h);
+  const form = new Int8Array(n);
   if (total > 0) {
     const side = SIDES.map(([dx, dy]) => lamps.reduce((s, l) => (Math.hypot(l.dir[0], l.dir[1]) < style.rimSide ? s : s + Math.max(0, l.dir[0] * dx + l.dir[1] * dy) * l.strength), 0) >= style.rim * total);
+    const rimDx = SIDES.filter((_, i) => side[i]).map(([dx]) => dx), rimDy = SIDES.filter((_, i) => side[i]).map(([, dy]) => dy);
+    const up = facing + style.threshold * total, down = facing - style.threshold * total;
+    // The rim: on a side the lamps favour, empty beside the texel, or empty past one held texel. An image's y runs down, so the
+    // neighbour above is the picture plane's +y. The painter outlines the silhouette (a step 0 or ink texel, which holds), so the
+    // rim is the first texel in from it.
+    const empty = (px: number, py: number) => px < 0 || py < 0 || px >= w || py >= h || ground[py * w + px] < 0;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const k = y * w + x;
-      if (!src[k * 4 + 3] || holds(k)) continue;
-      // An image's y runs down, so the neighbour above is the picture plane's +y. The painter outlines the silhouette (a
-      // step 0 or ink texel, which holds), so the rim is the first texel in from it: empty beside it, or empty past one
-      // held texel.
-      const edge = (dx: number, dy: number) => !filled(x + dx, y - dy) || (holds((y - dy) * w + x + dx) && !filled(x + 2 * dx, y - 2 * dy));
       // A texel with no normal (a flat material, a held item) is lit by the flat light alone: no form, no rim.
-      if (!hasN[k]) continue;
-      if (SIDES.some(([dx, dy], i) => side[i] && edge(dx, dy))) { form[k] = 1; continue; }
-      form[k] = lit[k] > facing + style.threshold * total ? 1 : lit[k] < facing - style.threshold * total ? -1 : 0;
+      if (ground[k] < 0 || held[k] === 1 || !hasN[k]) continue;
+      let rim = false;
+      for (let i = 0; i < rimDx.length && !rim; i++) {
+        const x1 = x + rimDx[i], y1 = y - rimDy[i];
+        rim = empty(x1, y1) || (held[y1 * w + x1] === 1 && empty(x + 2 * rimDx[i], y - 2 * rimDy[i]));
+      }
+      form[k] = rim ? 1 : lit[k] > up ? 1 : lit[k] < down ? -1 : 0;
     }
   }
   // Rule 5: a lone texel takes what its same-coloured neighbours agree on. From a copy, so the order does not matter.
   const settled = form.slice();
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const k = y * w + x;
-    if (!src[k * 4 + 3] || holds(k)) continue;
-    const c = colourAt(base(k), k * 4);
-    let n = 0, v = 0, agree = true;
-    for (const [dx, dy] of SIDES) {
-      const nx = x + dx, ny = y + dy, j = ny * w + nx;
-      if (!filled(nx, ny) || colourAt(base(j), j * 4) !== c) continue;
-      if (n === 0) v = form[j]; else if (form[j] !== v) agree = false;
-      n++;
+    if (ground[k] < 0 || held[k] === 1) continue;
+    const c = ground[k];
+    let near = 0, v = 0, agree = true;
+    for (let i = 0; i < 4; i++) {
+      const nx = x + DX[i], ny = y + DY[i], j = ny * w + nx;
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h || ground[j] !== c) continue;
+      if (near === 0) v = form[j]; else if (form[j] !== v) agree = false;
+      near++;
     }
-    if (n >= 2 && agree && v !== form[k]) settled[k] = v;
+    if (near >= 2 && agree && v !== form[k]) settled[k] = v;
   }
   // Rule 7's tint: the flat light's colour at full value, where it has one.
   const peak = Math.max(L.flat[0], L.flat[1], L.flat[2]);
@@ -136,28 +151,32 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
     if (Math.hypot(a, b) > style.chroma) tint = rgb;
   }
   const amount = Math.round(style.tint * 0.7 * 8) / 8;
-  // Rules 6 to 8, per texel; a colour and its step make one result, so each is worked out once.
+  // Rules 6 to 8, per texel; a colour and its step make one result, so each is worked out once (and the last is reused).
   const memo = new Map<number, number>();
-  for (let k = 0; k < w * h; k++) {
-    const o = k * 4;
-    if (!src[o + 3]) continue;
-    const on = weave !== null && weave.on[k] === 1, ground = colourAt(base(k), o);
+  let lastKey = -1, lastCol = 0;
+  for (let k = 0; k < n; k++) {
+    if (ground[k] < 0) continue;
+    const on = weave !== null && weave.on[k] === 1;
+    // A texel nothing changes keeps the painted bytes (a fabric's tile was laid by the painter on the same ground).
+    if (held[k] === 1 && !on) continue;
     let col: number;
-    if (holds(k)) col = ground;
+    if (held[k] === 1) col = ground[k];
     else {
-      const [row, step] = onRow(ground), to = Math.max(1, Math.min(7, step + shift + settled[k])), key = (ground * 8 + to) * 2 + (on ? 1 : 0);
-      let hit = memo.get(key);
-      if (hit === undefined) {
-        const stepped = RAMPS[row][to];
-        // A fabric's ground keeps its own row: no tint to snap it onto a neighbour's, patch by patch.
-        hit = on || tint < 0 ? stepped : grade(stepped, tint, amount);
-        memo.set(key, hit);
+      const to = Math.max(1, Math.min(7, steps[k] + shift + settled[k])), key = (ground[k] * 8 + to) * 2 + (on ? 1 : 0);
+      if (key === lastKey) col = lastCol;
+      else {
+        let hit = memo.get(key);
+        if (hit === undefined) {
+          const stepped = RAMPS[rows[k]][to];
+          // A fabric's ground keeps its own row: no tint to snap it onto a neighbour's, patch by patch.
+          hit = on || tint < 0 ? stepped : grade(stepped, tint, amount);
+          memo.set(key, hit);
+        }
+        col = hit; lastKey = key; lastCol = hit;
       }
-      col = hit;
     }
     if (on) col = tiled(col, weave!.labels[k], weave!.lo[k], weave!.hi[k]);
-    // A texel nothing changes keeps the painted bytes (a fabric's tile was laid by the painter on the same ground).
-    if (!on && holds(k)) continue;
+    const o = k * 4;
     out[o] = (col >> 16) & 255; out[o + 1] = (col >> 8) & 255; out[o + 2] = col & 255; out[o + 3] = 255;
   }
   return out;
