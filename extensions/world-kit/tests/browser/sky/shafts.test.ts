@@ -26,7 +26,7 @@ const LAMP: ShaftLamp = {
   level: 1,
 }
 
-async function start(): Promise<{ renderer: Pixi3dRenderer; shafts: ShaftsEffect }> {
+async function start(far = false): Promise<{ renderer: Pixi3dRenderer; shafts: ShaftsEffect }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
   const made = await createPixi3dRenderer({
@@ -37,7 +37,14 @@ async function start(): Promise<{ renderer: Pixi3dRenderer; shafts: ShaftsEffect
     look: DEFAULT_LOOK,
     time: timeOfDay('night'),
     scene: (view) => {
-      view.camera.position.set(0, 1, 5)
+      if (far) {
+        // An orthographic camera well back, as the diorama has: the ray to a surface starts well before it.
+        view.camera.mode = 'orthographic'
+        view.camera.orthographicSize = 4
+        view.camera.near = 0.1
+        view.camera.far = 200
+        view.camera.position.set(0, 1, 40)
+      } else view.camera.position.set(0, 1, 5)
       view.camera.lookAt({ x: 0, y: 1, z: -3 })
       const wall = new Mesh3D({
         geometry: new CubeGeometry(),
@@ -109,6 +116,18 @@ describe.runIf(hasWebGL2)('light shafts on WebGL2', () => {
     const right = drawn(moved, lit).filter((i) => i % SIZE.width >= SIZE.width / 2).length
     expect(left + right).toBeGreaterThan(30)
     expect(left).toBeGreaterThan(right)
+  })
+})
+
+describe.runIf(hasWebGL2)('light shafts through an orthographic camera', () => {
+  it('lights the air near the lamp when the camera is far back, as the diorama’s is', async () => {
+    const { renderer, shafts } = await start(true)
+    const bare = shot(renderer)
+    shafts.setLamps([LAMP])
+    shafts.track(renderer.view.camera)
+    const moved = drawn(bare, shot(renderer))
+    expect(moved.length).toBeGreaterThan(30)
+    expect(moved.every((i) => DUEL.has(colourAt(pixels(renderer), i)))).toBe(true)
   })
 })
 

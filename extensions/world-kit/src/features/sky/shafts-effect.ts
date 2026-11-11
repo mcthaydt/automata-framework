@@ -99,8 +99,9 @@ vec4 effect(vec2 uv) {
   vec3 o = vec3(0.0);
   vec3 d = vec3(0.0, 0.0, -1.0);
   float rayLen = -P.z;
-  if (uOrtho > 0.5) { o = vec3(P.xy, 0.0); } else { rayLen = length(P); d = P / rayLen; }
-  rayLen = min(rayLen, 22.0);
+  // A lens camera's ray runs from the eye, at most 22 m. An orthographic camera stands well back (the diorama's, 40 m), so its
+  // ray is the last 12 m before the surface.
+  if (uOrtho > 0.5) { rayLen = min(rayLen, 12.0); o = vec3(P.xy, P.z + rayLen); } else { rayLen = min(length(P), 22.0); d = P / length(P); }
   float sum = 0.0;
   float best = 0.0;
   vec3 top = vec3(0.0);
@@ -152,8 +153,9 @@ fn effect(uv: vec2<f32>) -> vec4<f32> {
   var o = vec3<f32>(0.0);
   var d = vec3<f32>(0.0, 0.0, -1.0);
   var rayLen = -P.z;
-  if (fx.uOrtho > 0.5) { o = vec3<f32>(P.xy, 0.0); } else { rayLen = length(P); d = P / rayLen; }
-  rayLen = min(rayLen, 22.0);
+  // A lens camera's ray runs from the eye, at most 22 m. An orthographic camera stands well back (the diorama's, 40 m), so its
+  // ray is the last 12 m before the surface.
+  if (fx.uOrtho > 0.5) { rayLen = min(rayLen, 12.0); o = vec3<f32>(P.xy, P.z + rayLen); } else { rayLen = min(length(P), 22.0); d = P / length(P); }
   var sum = 0.0;
   var best = 0.0;
   var top = vec3<f32>(0.0);
