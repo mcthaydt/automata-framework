@@ -234,6 +234,11 @@ export interface Fall {
   /** −1 to 1 (default 0): the ends' under-turn: over the last fifth of a clump, below the jaw, its path bends toward the
    * neck (positive) or flips out (negative) by at most two rope radii. */
   turn?: number;
+  /** The stand-off model (default `'head'`: a clump rides the head, a hair bone and, at most half, the neck, so long hair swings
+   * out when the head pitches or cocks). `'trunk'`: a clump's points below the shoulder line ride the chest, those between the
+   * jaw and the shoulder blend from the head's skinning to the chest's by height, and the hair bones' swing fades to nothing
+   * by the shoulder: long hair lies on the shoulders and back and stays put, only the part by the head moving with it. */
+  rest?: 'head' | 'trunk';
 }
 /** A tie: `true` the wearer's (HairInput.tie: the outfit's own metal, else a band of the hair's own), or a swatch. */
 export type Tie = boolean | string;
@@ -568,6 +573,12 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       const { mesh, lit, t } = sweep(P, rope, hw, p => normalize([p[0], 0, p[2] - k.c[2]]));
       const bone = sideRide ? (Math.sin(a) > 0 ? 'hair.L' : 'hair.R') : 'hair.back';
       const swing = 0.5, swingOf = (tt: number): [number, number][] => { const w = smooth((tt - 0.08) / 0.4), lay = smooth((tt - 0.45) / 0.55) * (1 - swing); return [[J.head, 1 - w], [J[bone], w * (1 - lay)], [J.neck, w * lay]]; };
+      if (o.rest === 'trunk') {
+        // Skinned by the vertex's own height: u runs 0 at the chin to 1 at the shoulder line, and the head's skinning gives way to the chest's.
+        const ys = mesh.positions.filter((_, n) => n % 3 === 1);
+        hung(mesh, ys.map((_, n) => n), 'hair', n => { const u = smooth((chin - ys[n]) / (chin - shoulder)); return [...swingOf(t[n]).map(([b, w]) => [b, w * (1 - u)] as [number, number]), [J.chest, u]]; }, seam++, lit, curl >= 0.5 ? true : undefined);
+        continue;
+      }
       hung(mesh, t, 'hair', swingOf, seam++, lit, curl >= 0.5 ? true : undefined);
     }
   }
