@@ -2,11 +2,12 @@
 // turn and degree cases moved here from the 3D level editor's `heading.test.ts` (ED3D.4c), which now consumes them.
 import { describe, expect, it } from 'vitest'
 import {
-  clampTurn,
   degToHeading,
   headingDegrees,
   MAX_CAMERA_TURN,
+  stepHeading,
   TURN_UNITS,
+  turnDirection,
   turnHeading,
   wrapHeading,
 } from '#src/features/camera/sim/heading.ts'
@@ -14,9 +15,10 @@ import {
 const QUARTER = TURN_UNITS / 4
 
 describe('the turn', () => {
-  it('is 65,536 units, and a tick turns at most 8,192 of them (45°)', () => {
+  it('is 65,536 units, and a tick turns one step of 8,192 of them (45°): eight steps make a turn', () => {
     expect(TURN_UNITS).toBe(65_536)
     expect(MAX_CAMERA_TURN).toBe(8_192)
+    expect(TURN_UNITS / MAX_CAMERA_TURN).toBe(8)
   })
 
   it('wraps a heading into one turn, from either side, and rounds a fraction to a whole unit', () => {
@@ -40,12 +42,36 @@ describe('the turn', () => {
     expect(turnHeading(5, 3 * TURN_UNITS)).toBe(5)
   })
 
-  it('clamps a tick’s turn to ±8,192 and keeps it whole', () => {
-    expect(clampTurn(100)).toBe(100)
-    expect(clampTurn(8_192)).toBe(8_192)
-    expect(clampTurn(8_193)).toBe(8_192)
-    expect(clampTurn(-1_000_000)).toBe(-8_192)
-    expect(Object.is(clampTurn(-0), 0)).toBe(true)
+  it('reads only the direction of a tick’s turn: its sign, never its size', () => {
+    expect(turnDirection(1)).toBe(1)
+    expect(turnDirection(20_000)).toBe(1)
+    expect(turnDirection(-3)).toBe(-1)
+    expect(turnDirection(0)).toBe(0)
+    expect(Object.is(turnDirection(-0), 0)).toBe(true)
+  })
+
+  it('steps to the next 45° line in the turn’s direction, wrapping', () => {
+    expect(stepHeading(0, 1)).toBe(8_192)
+    expect(stepHeading(0, -1)).toBe(TURN_UNITS - 8_192)
+    expect(stepHeading(7 * 8_192, 1)).toBe(0)
+    expect(stepHeading(8_192, -1)).toBe(0)
+    expect(stepHeading(3 * 8_192, 1)).toBe(4 * 8_192)
+  })
+
+  it('from an authored angle off the lines steps to the nearest line that way, not past it', () => {
+    expect(stepHeading(5_000, 1)).toBe(8_192)
+    expect(stepHeading(5_000, -1)).toBe(0)
+    expect(stepHeading(8_193, -1)).toBe(8_192)
+    expect(stepHeading(TURN_UNITS - 10, 1)).toBe(0)
+  })
+
+  it('does not step for no turn, and every heading it makes is one of the eight', () => {
+    expect(stepHeading(5_000, 0)).toBe(5_000)
+    let heading = 12_345
+    for (let tick = 0; tick < 40; tick++) {
+      heading = stepHeading(heading, tick % 3 === 0 ? -1 : 1)
+      if (tick > 0) expect(heading % 8_192).toBe(0)
+    }
   })
 })
 

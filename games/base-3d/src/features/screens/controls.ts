@@ -7,7 +7,7 @@ import type { AnalogReading, InputMap } from '@automata/framework'
 import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@automata/framework'
 import { TICK_HZ } from '../../shared/constants.ts'
 
-/** The right stick turns the camera at 180° a second: 65,536 × 180 / 360 / 60 ≈ 546 units a tick. */
+/** What the right stick adds a tick when pushed over: any push is a press, and a press is one 45° step of the camera. */
 export const STICK_TURN_UNITS = Math.round((65_536 * 180) / 360 / TICK_HZ)
 
 /** The left stick as `move`; centred, it adds nothing, so WASD (the held payload) still moves. */

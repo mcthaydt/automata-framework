@@ -15,11 +15,12 @@ export {
   cameraViewSchema,
 } from '../features/camera/sim/camera-view.schema.ts'
 export {
-  clampTurn,
   degToHeading,
   headingDegrees,
   MAX_CAMERA_TURN,
+  stepHeading,
   TURN_UNITS,
+  turnDirection,
   turnHeading,
   wrapHeading,
 } from '../features/camera/sim/heading.ts'
@@ -31,3 +32,4 @@ export {
   START,
   turnCamera,
 } from '../features/camera/sim/view-latch.ts'
+export { type FloorPoint, viewAt } from '../features/camera/sim/view-zone.ts'

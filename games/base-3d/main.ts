@@ -56,7 +56,7 @@ performance.measure('base-3d:compile-areas', 'base-3d:compile-areas:start')
 /** The game's sim over the room; the sim takes it as data (`base3dSim`). */
 const BASE3D_SIM = base3dSim(AREA)
 
-/** The keyboard's camera turn, 120° a second (M4-D16): 65,536 × 120 / 360 / 60 ≈ 364 turn units a tick. */
+/** The keyboard's camera turn: Q and E each turn the camera one 45° step a press, however many units a tick they send. */
 const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
 
 /**

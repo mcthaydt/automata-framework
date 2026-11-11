@@ -6,14 +6,14 @@ import { framingMisses } from '#src/features/camera/occluders/framing.ts'
 import { cameraView } from '#src/features/camera/sim/camera-view.schema.ts'
 import { ONE_ROOM } from '#src/testing/occluders/rooms.ts'
 
-// `examples/3d/render3d/render3d-angled-camera.ts`: a 4 m room, its view 30° down and 8 m back.
+// `examples/3d/render3d/render3d-angled-camera.ts`: a 4 m room, its view 30° down and 12 m back (50 mm sees 4 m of room from about 12 m).
 const EXAMPLE_OUTLINE = [
   { x: 0, z: 0 },
   { x: 4, z: 0 },
   { x: 4, z: 4 },
   { x: 0, z: 4 },
 ]
-const EXAMPLE_VIEW = cameraView('room', { tiltDeg: 30, distance: 8 })
+const EXAMPLE_VIEW = cameraView('room', { tiltDeg: 30, distance: 12 })
 
 describe('framingMisses (D3-g)', () => {
   it('finds nothing for the example’s view of its room, every 15° at 4:3 and 21:9', () => {
@@ -21,7 +21,9 @@ describe('framingMisses (D3-g)', () => {
   })
 
   it('reports each heading and aspect at which a corner leaves the frame, naming the corner', () => {
-    const misses = framingMisses({ view: cameraView('close'), outline: ONE_ROOM.outline })
+    // 10 m back is too close for a 6 m room through 50 mm; the default 16 m frames it whole.
+    const misses = framingMisses({ view: cameraView('close', { distance: 10 }), outline: ONE_ROOM.outline })
+    expect(framingMisses({ view: cameraView('default'), outline: ONE_ROOM.outline })).toEqual([])
     expect(misses.length).toBeGreaterThan(0)
     // Looking +z from the centre, the two south corners (behind the player) fall below the frame at 4:3.
     const atZero = misses.filter((m) => m.headingDeg === 0 && m.aspect === 4 / 3).map((m) => m.point)

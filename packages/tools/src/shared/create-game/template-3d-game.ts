@@ -22,7 +22,7 @@ export const TICK_HZ = 60
 /** Half the side of the square Wick collides as, in metres. */
 export const WICK_HALF = 0.3
 
-/** The camera: 24 mm, 25 degrees down and 5 m back, following Wick, turned freely by the player. */
+/** The camera: 50 mm, 30 degrees down and 16 m back, following Wick, turned in 45 degree steps by the player. */
 export const FOLLOW: CameraView = cameraView('follow')
 `,
   },
@@ -72,7 +72,7 @@ const ROOM = roomIn(content)
 /** What the sim reads: the room and the tuning. */
 const PLAY: PlayContent = { room: ROOM, tuning: TUNING }
 
-/** The keyboard turns the camera 120 degrees a second: 65,536 units a turn, about 364 units a tick. */
+/** The keyboard turns the camera one 45 degree step a press, whatever the units a tick: only the sign counts. */
 const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
 
 // WASD and the arrows move; the left touch stick and the pad's stick do too. Q and E, the right stick, two buttons and a

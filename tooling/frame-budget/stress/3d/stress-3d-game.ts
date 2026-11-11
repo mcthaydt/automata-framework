@@ -57,8 +57,8 @@ const HALL = {
 
 const Hero = defineComponent('hero', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32', walking: 'bool' })
 
-/** Camera units a tick: a full turn in about 10 seconds at 60 ticks a second (a turn is 65,536 units). */
-const TURN_UNITS = 109
+/** The camera turns a 45° step every half second: a press, then a tick with no turn, so it is always mid-ease. */
+const TURN_EVERY = 30
 
 // A 4 m square at 1 m/s, one side every 240 ticks, never stopping, so the figure is always mid-stride.
 const walk = defineSystem('walk', (ctx) => {
@@ -73,7 +73,7 @@ const walk = defineSystem('walk', (ctx) => {
   ][side] as [number, number, number]
   for (const hero of ctx.query(Hero, CameraHeading)) {
     hero.set(Hero, { x, z, yaw, walking: true })
-    hero.set(CameraHeading, turnCamera(hero.get(CameraHeading), TURN_UNITS))
+    hero.set(CameraHeading, turnCamera(hero.get(CameraHeading), ctx.tick % TURN_EVERY === 0 ? 1 : 0))
   }
 })
 
