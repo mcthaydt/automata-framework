@@ -27,9 +27,9 @@ Nothing was copied. The LCD mesh is a port of `lcd-perfect` (MIT, sinedied) and 
 
 ## Open
 
-- **Whole-pixel scaling in the running game.** Core's letterbox scales the field by `viewWidth / logicalWidth`, which is not a
-  whole number. `letterboxScale` and `applyCrispLayout` are the maths and the CSS for it; wiring them needs a hook in core's
-  letterbox (an option for the scale, or the scale it chose). Asked of the coordinator; not edited.
+- **Whole-pixel scaling** is core's letterbox option `scale: 'whole'` (added here, at the coordinator's word: opt-in, the default `'fit'`
+  changes no frame, a patch changeset). It rounds the scale down and centres the field; the source's rule of rounding up and
+  shrinking the field when rounding down leaves too much border is not in it, because the field's size is the game's.
 - **`figureSnap`** is for billboard figures; AF's figures are 3D meshes, so nothing in AF calls it yet.
 - **WebGPU parity** is judged by eye from the screenshots. The browser tests run WebGL2 in Chromium; WebKit and WebGPU belong to the
   GPU runner.
@@ -48,11 +48,15 @@ is Chromium's note that the WebGPU canvas uses a different format than the devic
 | `retrocrisp-grade` | retro on (and the panel over it) | [retro-on-webgl](retro-on-webgl.png) | [retro-on-webgpu](retro-on-webgpu.png) |
 | | retro off (the panel alone) | [retro-off-webgl](retro-off-webgl.png) | [retro-off-webgpu](retro-off-webgpu.png) |
 | | retro on, crisp colour split (`?crisp=lcd`) | [retro-on-crisp-lcd-webgl](retro-on-crisp-lcd-webgl.png) | [retro-on-crisp-lcd-webgpu](retro-on-crisp-lcd-webgpu.png) |
+| | whole-pixel scale (core's `scale: 'whole'`), 1440 x 810 window | [crisp-whole-webgl](crisp-whole-webgl.png) | [crisp-whole-webgpu](crisp-whole-webgpu.png) |
+| | fractional fit (`?scale=fit`), same window | [crisp-fit-webgl](crisp-fit-webgl.png) | [crisp-fit-webgpu](crisp-fit-webgpu.png) |
 | `roomvisibility-zones` | zone `hall`: reception and corridor | [rooms-on-hall-webgl](rooms-on-hall-webgl.png) | [rooms-on-hall-webgpu](rooms-on-hall-webgpu.png) |
 | | zone `corridor`: the corridor alone | [rooms-on-corridor-webgl](rooms-on-corridor-webgl.png) | [rooms-on-corridor-webgpu](rooms-on-corridor-webgpu.png) |
 | | zone `closet`: the supply room alone | [rooms-on-closet-webgl](rooms-on-closet-webgl.png) | [rooms-on-closet-webgpu](rooms-on-closet-webgpu.png) |
 | | extension off (`?rooms=0`): every room | [rooms-off-webgl](rooms-off-webgl.png) | [rooms-off-webgpu](rooms-off-webgpu.png) |
 
-By eye, WebGL and WebGPU match in every pair. The rooms are flat floors under a plain orthographic camera, since the example is about
+Measured on the crisp pair (runs of equal pixels along the middle 40 rows): the whole-pixel frame is runs of 2 and 4 device
+pixels (7430 and 154 runs); the fractional fit is runs of 3 and 2 (5852 and 1336), so some field pixels are drawn a third wider
+than others. WebGL and WebGPU give the same counts. By eye, WebGL and WebGPU match in every pair. The rooms are flat floors under a plain orthographic camera, since the example is about
 which rooms draw; the lit base interior in the other two is dim by its own baked lamp. The black between rooms is the background
 and the walls that face away from the camera.

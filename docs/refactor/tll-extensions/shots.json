@@ -208,5 +208,49 @@
     "errors": [
       "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
     ]
+  },
+  {
+    "name": "crisp-whole-webgl",
+    "url": "http://localhost:5173/retrocrisp/grade/?retro=0&pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "retro": "false"
+    },
+    "errors": []
+  },
+  {
+    "name": "crisp-whole-webgpu",
+    "url": "http://localhost:5173/retrocrisp/grade/?retro=0&pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "retro": "false"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
+  },
+  {
+    "name": "crisp-fit-webgl",
+    "url": "http://localhost:5173/retrocrisp/grade/?retro=0&scale=fit&pref=webgl",
+    "drew": "webgl",
+    "data": {
+      "renderer": "webgl",
+      "retro": "false"
+    },
+    "errors": []
+  },
+  {
+    "name": "crisp-fit-webgpu",
+    "url": "http://localhost:5173/retrocrisp/grade/?retro=0&scale=fit&pref=webgpu",
+    "drew": "webgpu",
+    "data": {
+      "renderer": "webgpu",
+      "retro": "false"
+    },
+    "errors": [
+      "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    ]
   }
 ]
