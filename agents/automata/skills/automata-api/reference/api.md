@@ -5469,6 +5469,12 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly firstRunLanguage?: boolean;
     /**
+     * The game flashes: the first run on a device warns before anything plays, once, after the language. `true` shows the
+     * warning with the device's reduced-motion line; an object adds the game's own effect settings as switches (a game
+     * with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+     */
+    readonly photosensitivity?: PhotosensitivityOption;
+    /**
      * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
      * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
      */
@@ -6417,6 +6423,16 @@ Checks a pause behavior.
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+#### `PhotosensitivityOption` (type)
+
+`true`: the warning, with the device's reduced-motion line. An object adds the game's own switches, shown above it.
+
+```ts
+type PhotosensitivityOption = true | {
+    readonly switches?: readonly WarningSwitch[];
+};
 ```
 
 #### `pictureView` (function)
@@ -7891,6 +7907,25 @@ interface ViewportWindow {
     readonly navigator?: object | undefined;
     addEventListener: Listen;
     removeEventListener: Listen;
+}
+```
+
+#### `WarningSwitch` (interface)
+
+A switch the warning offers: one of the game's own effect settings. A switch is on or off, so a setting with more
+steps is mapped: `@automata/feel`'s `intensity` is `0 | 0.5 | 1`, so a "Less shaking" switch maps on to `0.5` and off
+to `1`; its `reduceFlashing` maps straight across. Core cannot import feel, so the game passes its own.
+
+```ts
+interface WarningSwitch {
+    /** Names the switch in tests and for the list's keys; unique among a game's switches. */
+    readonly id: string;
+    /** What the switch is called, or a function of the player's language (it runs again on a language change). */
+    readonly label: string | ((locale: string) => string);
+    /** Whether the effect is turned down now. */
+    get(): boolean;
+    /** Turns the effect down (`true`) or back up. Called the moment the player flips the switch. */
+    set(on: boolean): void;
 }
 ```
 

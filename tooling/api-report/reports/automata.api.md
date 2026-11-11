@@ -838,6 +838,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly extensions?: readonly ExtensionDef[];
     readonly opening?: readonly OpeningStep[];
     readonly firstRunLanguage?: boolean;
+    readonly photosensitivity?: PhotosensitivityOption;
     readonly draw?: (ctx: DrawContext) => void;
     readonly level?: LevelScene;
     readonly renderer?: PixiRendererOptions;
@@ -1434,6 +1435,14 @@ type PauseBehavior = 'pause' | 'continue';
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+### `PhotosensitivityOption` (type)
+
+```ts
+type PhotosensitivityOption = true | {
+    readonly switches?: readonly WarningSwitch[];
+};
 ```
 
 ### `pictureView` (function)
@@ -2369,6 +2378,17 @@ interface ViewportWindow {
     readonly navigator?: object | undefined;
     addEventListener: Listen;
     removeEventListener: Listen;
+}
+```
+
+### `WarningSwitch` (interface)
+
+```ts
+interface WarningSwitch {
+    readonly id: string;
+    readonly label: string | ((locale: string) => string);
+    get(): boolean;
+    set(on: boolean): void;
 }
 ```
 

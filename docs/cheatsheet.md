@@ -574,6 +574,7 @@
 - `PagerDots` (const): Where a paged view is: one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
 - `PauseBehavior` (type): Whether the game pauses when it goes to the background; fixed for the game's whole life.
 - `PauseBehaviorSchema` (const): Checks a pause behavior.
+- `PhotosensitivityOption` (type): `true`: the warning, with the device's reduced-motion line.
 - `pictureView(project, def, images, options?)`: An entity drawn as its character looks in the editor: the tile Characters gave it, else its colour as its shape.
 - `PictureViewOptions` (interface): A `pictureView`'s options.
 - `PixiRenderer` (interface): The runtime's `GameRenderer`, built on PixiJS, with its stage.
@@ -660,6 +661,7 @@
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
 - `usePlay()`: The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
+- `WarningSwitch` (interface): A switch the warning offers: one of the game's own effect settings.
 
 ### `import { … } from '@automata/framework/extension'`
 

@@ -34,6 +34,20 @@ function problemsOf<S = never>(bad: GameSpec<S>): string {
   throw new Error('defineGame accepted an invalid spec')
 }
 
+describe('defineGame’s first run', () => {
+  it('has the language step alone by default, and the warning after it for a game that flashes', () => {
+    expect(defineGame(spec).opening).toHaveLength(1)
+    expect(defineGame({ ...spec, photosensitivity: true }).opening).toHaveLength(2)
+  })
+
+  it('puts the game’s own opening after the first run’s steps', () => {
+    const own = vi.fn(() => Promise.resolve())
+    const { opening } = defineGame({ ...spec, photosensitivity: true, opening: [own] })
+    expect(opening).toHaveLength(3)
+    expect(opening?.at(-1)).toBe(own)
+  })
+})
+
 describe('defineGame defaults (DX spec §3.1)', () => {
   afterEach(() => {
     document.body.replaceChildren()

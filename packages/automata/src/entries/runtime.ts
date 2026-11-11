@@ -18,6 +18,7 @@ export {
 export type { Flow } from '../app/flow/flow.manager.js'
 export type { RuntimeServices, ScreenContext, ScreenDef } from '../app/flow/screen.js'
 export type { OpeningContext, OpeningStep } from '../app/opening/opening.js'
+export type { PhotosensitivityOption, WarningSwitch } from '../app/opening/photosensitivity.js'
 export type { SeenFlag, SeenFlags } from '../app/opening/seen-flags.js'
 export type { Audio } from '../features/audio/audio.manager.js'
 export type { AudioBuses } from '../features/audio/audio-buses.js'

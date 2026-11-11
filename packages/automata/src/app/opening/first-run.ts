@@ -4,6 +4,7 @@ import { screensCopy } from '../screens/screens-copy.svelte.ts'
 import type { ScreensCopyInput } from '../screens/screens-copy.ts'
 import LanguageFirst from './LanguageFirst.svelte'
 import type { OpeningStep } from './opening.ts'
+import { type PhotosensitivityOption, warningStep } from './photosensitivity.ts'
 
 // The first run: what a device that has never opened the game shows before anything else. Language comes first; the
 // warning (a game that flashes) follows, then the game's own opening steps.
@@ -12,6 +13,8 @@ import type { OpeningStep } from './opening.ts'
 export interface FirstRunGame {
   /** The first run asks for a language when the game has more than one. Default true; false never shows the screen. */
   readonly firstRunLanguage?: boolean | undefined
+  /** The game flashes: the first run warns once per device, after the language. Absent: no warning. */
+  readonly photosensitivity?: PhotosensitivityOption | undefined
   /** The game's own words for the default screens, which the first run's screens read as the others do. */
   readonly copy?: ScreensCopyInput | undefined
 }
@@ -66,5 +69,6 @@ export function languageStep(copy?: ScreensCopyInput): OpeningStep {
 export function firstRunSteps(game: FirstRunGame): OpeningStep[] {
   const steps: OpeningStep[] = []
   if (game.firstRunLanguage !== false) steps.push(languageStep(game.copy))
+  if (game.photosensitivity !== undefined) steps.push(warningStep(game.photosensitivity, game.copy))
   return steps
 }

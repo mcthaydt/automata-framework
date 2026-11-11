@@ -28,7 +28,7 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 8 of 21 tasks (38%)** (22 listed; task 17 is cut, so 21 are live).
+**Progress: 9 of 21 tasks (43%)** (22 listed; task 17 is cut, so 21 are live).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
@@ -40,7 +40,7 @@ Update this table and the workstream row in `../progress.md` in the same commit 
 | 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | done | `ceb2a014` |
 | 6 | The opening sequence and the seen flags (core) | 2, 3 | done | `dd38dc77` |
 | 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | `6c0ccee0` |
-| 8 | Photosensitivity warning | 3 | todo | |
+| 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `PENDING8` |
 | 9 | Interface sounds | 4 | todo | |
 | 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | todo | |
 | 11 | Splash (`@automata/ui-screens`) | 5 | todo | |
@@ -107,6 +107,26 @@ Each line is a ruling the executing session made, with what it costs if wrong. T
   screen switched off. `passFirstRun` (`@automata/tools/e2e`) has no test of its own yet: its first user is task 15's
   journeys, which exercise it in a real browser.
 - **Task 7, not run:** the browser layout test ran in Chromium only (50 cases pass); WebKit and Firefox are the Owner's.
+- **Task 8, Ruling:** `warningStep` lives in `app/opening/photosensitivity.ts` (with `WarningSwitch` and
+  `PhotosensitivityOption`), and `first-run.ts` only composes the steps; `GameDefinition` is untouched because
+  `defineGame` assembles the opening (task 7's ruling), so the plan's `boot/game-definition.ts` change is not needed.
+  Both types are exported from `entries/runtime.ts`.
+- **Task 8, Ruling:** a shutdown that aborts the warning does not mark it seen (only Continue, Close and Escape do), so
+  the next run still warns; the language step already behaved so.
+- **Task 8, Ruling:** `Toggle` gained `position: relative` (a one-line change to a shared control). Its hidden
+  checkbox is absolutely positioned and escaped a scrolling region's clipping, so a switch inside the warning's
+  scrolling body was judged "off screen" and "under the keyboard" by the layout contract. Settings' and every other
+  browser test in `tests/browser/app` and `tests/browser/shared` still pass (2151). Cost if wrong: a toggle's input is
+  placed against the toggle, which is where it was drawn anyway.
+- **Task 8, Ruling:** the warning's switches are not "essential" in the layout contract (Continue and Close are): the
+  body scrolls where a short or TV-scale screen cannot show it whole, as the plan says; switches stay at least 44 px.
+  The switches' on/off words are the Audio group's (`settings.audio.on`/`off`), since core has no neutral pair.
+- **Task 8, note:** the unit file's tests were run together against a missing module (red), not one at a time; each
+  assertion passed on first implementation. The `defineGame` pass-through test was watched failing on its own
+  (`length 1`, not `2`), and the browser contract failed 50/50 before the fixture drew the warning.
+- **Task 8, Ruling:** the tracker's percentage is `(3 + done/21) / 7`, recomputed (it read 52% at 8 tasks, which the
+  formula gives as 48%); 9 tasks gives 49%.
+- **Task 8, not run:** WebKit and Firefox; the one browser file ran in Chromium (50 cases).
 
 ## Global constraints
 

@@ -30,6 +30,7 @@ import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } fr
 import type { ScreenDef } from './flow/screen.ts'
 import { firstRunSteps } from './opening/first-run.ts'
 import type { OpeningStep } from './opening/opening.ts'
+import type { PhotosensitivityOption } from './opening/photosensitivity.ts'
 import { defaultScreens } from './screens/default-screens.ts'
 import type { ScreensCopyInput } from './screens/screens-copy.ts'
 
@@ -133,6 +134,12 @@ export interface GameSpec<S = never, D = unknown> {
    * never shows the screen. A host that supplies the language (Ruken) skips it either way.
    */
   readonly firstRunLanguage?: boolean
+  /**
+   * The game flashes: the first run on a device warns before anything plays, once, after the language. `true` shows the
+   * warning with the device's reduced-motion line; an object adds the game's own effect settings as switches (a game
+   * with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+   */
+  readonly photosensitivity?: PhotosensitivityOption
   /**
    * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
    * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
@@ -360,7 +367,11 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
     // The first run's steps come first, then the game's own.
     opening: [
-      ...firstRunSteps({ firstRunLanguage: spec.firstRunLanguage, copy: spec.copy?.screens }),
+      ...firstRunSteps({
+        firstRunLanguage: spec.firstRunLanguage,
+        photosensitivity: spec.photosensitivity,
+        copy: spec.copy?.screens,
+      }),
       ...(spec.opening ?? []),
     ],
     ...(spec.preload === undefined ? {} : { preload: spec.preload }),

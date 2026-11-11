@@ -40,7 +40,10 @@ function flip(event: Event & { currentTarget: HTMLInputElement }): void {
 </label>
 
 <style>
+  /* Positioned so the hidden input is placed against the toggle, not the page: inside a scrolling region it then
+     scrolls and clips with its label rather than escaping to the nearest positioned ancestor. */
   .af-toggle {
+    position: relative;
     justify-content: space-between;
     gap: 12px;
   }
