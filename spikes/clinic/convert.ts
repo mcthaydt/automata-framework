@@ -61,7 +61,11 @@ const sectors = (map.SECTORS as Json[]).map((s) => ({
 const views: Record<string, Json> = {}
 for (const zone of level.ZONES as Json[]) {
   const { id, contains: _contains, enter: _enter, ...rest } = zone as Json & { id: string }
-  views[id] = { ...rest, enterMargin: 0.25 }
+  // AF authors a zone's `x` skew for heading 0 and a player starts at the home heading, half a turn on, so the skew is
+  // mirrored about the look to land where the source's camera stands.
+  const look = rest.look as number[] | undefined
+  const x = typeof rest.x === 'number' && look !== undefined ? round(2 * look[0] - rest.x) : rest.x
+  views[id] = { ...rest, ...(x === undefined ? {} : { x }), enterMargin: 0.25 }
 }
 // `shoot.mjs`'s places: where she stands and which way she faces (radians in the source; degrees here).
 const SPOTS: Record<string, [number, number, number]> = {

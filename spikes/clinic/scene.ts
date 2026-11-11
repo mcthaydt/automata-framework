@@ -18,6 +18,7 @@ import {
   worldLighting,
 } from '@automata/3d'
 import { readLevel } from '@automata/3d/level'
+import { fovOf, headingDegrees, LENS_MM, zoneShot } from '@automata/3d/camera-view'
 import { CameraHeading, cameraView, enterView, MAX_CAMERA_TURN, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
@@ -34,6 +35,8 @@ const frame = q.get('frame') ?? 'play-hall'
 const turned = q.get('turned') === '1'
 // Bisecting switches: ?look=0 drops the look, ?light=0 the baked light, ?occ=0 the camera's occluder rule, ?walls=0 leaves out the walls.
 const on = (key: string) => q.get(key) !== '0'
+// ?haze=0 switches the look's distance haze off.
+const LOOK = q.get('haze') === '0' ? { ...DEFAULT_LOOK, switches: { ...DEFAULT_LOOK.switches, haze: false } } : DEFAULT_LOOK
 const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 const views = clinic.views as unknown as Record<string, Record<string, unknown>>
 
@@ -56,7 +59,14 @@ if (read.problems.length > 0) throw new Error(read.problems.map((p) => p.message
 const world = buildWorld(read.level, library as never, { night: true })
 const lighting = worldLighting(world, time, { states: opening.lamps })
 const size = { width: 1024, height: 768 }
-const VIEW = cameraView('play', { distance: zone.distance })
+// The zone as a camera view, with the source's room bounds (the box its sectors span) so the room follow clamps as it does there.
+const ZONE_ID = kind === 'zone' ? name : (ZONE[name] as string)
+const corners = clinic.sectors.filter((sector) => sector.zone === ZONE_ID).flatMap((sector) => sector.corners.map(([x, z]) => [x as number, z as number]))
+const bounds = { min: [Math.min(...corners.map((c) => c[0] as number)), 0, Math.min(...corners.map((c) => c[1] as number))], max: [Math.max(...corners.map((c) => c[0] as number)), 6, Math.max(...corners.map((c) => c[1] as number))] } as const
+const VIEW = cameraView(ZONE_ID, { ...(zone as object), bounds } as never)
+// The player's heading: the home heading from `START`, one 45° step on for the turned frames.
+const HEADING = { ...enterView(START, VIEW, { x: 0, y: 0 }) }
+if (turned) HEADING.heading += MAX_CAMERA_TURN
 const Body = defineComponent('body', { x: 'f32', y: 'f32', z: 'f32' })
 const sky = time.scene.sky
 const skyMid = sky[Math.floor(sky.length / 2)]?.colour ?? '#808080'
@@ -65,13 +75,15 @@ startGame(
   defineGame({
     id: 'clinic-frames',
     size,
+    // The source's baselines have no bars: the framework's default 5% letterbox bars would crop the frame.
+    renderer: { barFraction: 0 },
     sim: {
       plugins: [definePlugin({ name: 'player', defs: [Body] })],
       seed: 1,
       setup: (sim) => {
         sim.spawn([
           [Body, { x: focus.x, y: 0, z: focus.z }],
-          [CameraHeading, { ...enterView(START, VIEW, { x: 0, y: 0 }), heading: turned ? MAX_CAMERA_TURN : 0 }],
+          [CameraHeading, HEADING],
         ])
       },
     },
@@ -80,7 +92,7 @@ startGame(
       createPixi3dRenderer({
         ...options,
         preference: pref,
-        look: on('look') ? DEFAULT_LOOK : undefined,
+        look: on('look') ? LOOK : undefined,
         time,
         lighting: on('light') ? lighting : undefined,
         backgroundColor: Number.parseInt(skyMid.slice(1), 16),
@@ -95,21 +107,23 @@ startGame(
           view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
           ;(window as unknown as { __camera: unknown }).__camera = view.camera
           if (q.get('rig') !== '1') {
-            // The play camera: 50 mm, tilted 30° down, the zone's distance back from its look point, turned by `heading`.
+            // The play camera, as the rig would shoot it: the zone's own shot for the player at the spot (its look, follow, depth
+            // follow and skew), then orbited by the heading (the home heading is half a turn: the eye south, looking north).
             const camera = view.camera
-            const tilt = (30 * Math.PI) / 180
-            const heading = turned ? (45 * Math.PI) / 180 : 0
-            const lookY = kind === 'zone' ? (zone.look[1] as number) : 1.1
-            const back = VIEW.distance * Math.cos(tilt)
-            camera.fov = (2 * Math.atan(12 / 50) * 180) / Math.PI
+            const fov = fovOf(LENS_MM)
+            const shot = zoneShot(VIEW, { x: focus.x, y: 0, z: focus.z }, size.width / size.height, fov)
+            const heading = (headingDegrees(HEADING.heading) * Math.PI) / 180
+            const { x, y, z } = shot.offset
+            const look = kind === 'zone' ? { x: VIEW.look?.[0] ?? 0, y: VIEW.look?.[1] ?? 0, z: VIEW.look?.[2] ?? 0 } : shot.look
+            camera.fov = fov
             camera.near = 0.2
             camera.far = 200
-            camera.position.set(focus.x + Math.sin(heading) * back, lookY + VIEW.distance * Math.sin(tilt), focus.z + Math.cos(heading) * back)
-            camera.lookAt({ x: focus.x, y: lookY, z: focus.z })
+            camera.position.set(look.x + x * Math.cos(heading) + z * Math.sin(heading), look.y + y, look.z - x * Math.sin(heading) + z * Math.cos(heading))
+            camera.lookAt(look)
           }
           view.passes.find((p): p is HazeEffect => p instanceof HazeEffect)?.focus(VIEW.distance)
           drawWorld(
-            { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), look: on('look') ? DEFAULT_LOOK : undefined, light, models },
+            { parent: view.root, occluders: on('occ') ? occluders : undefined, colourOf: (swatch) => swatchColour(library as never, swatch), look: on('look') ? LOOK : undefined, light, models },
             world.pieces.filter((p) => (on('walls') || p.part !== 'wall') && (on('tops') || !p.id.includes(':top:'))),
           )
           const { dataset } = stage.app.canvas

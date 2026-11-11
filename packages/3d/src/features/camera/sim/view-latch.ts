@@ -9,16 +9,23 @@
 import type { FieldValues } from '@automata/sim'
 import type { CameraHeading } from './camera-heading.component.ts'
 import type { CameraView } from './camera-view.schema.ts'
-import { degToHeading, stepHeading, turnDirection } from './heading.ts'
+import { degToHeading, stepHeading, TURN_UNITS, turnDirection } from './heading.ts'
 import { type Direction, mapStick, type Stick } from './stick-mapper.ts'
 
 /** The fields of `camera-heading`. */
 export type HeadingState = Readonly<FieldValues<(typeof CameraHeading)['fields']>>
 
-/** Before the first view: no view, heading 0, no turning, no latch (the component's defaults). */
+/**
+ * The heading a player starts at: half a turn, so the eye stands south (+z) of the player looking north (−z) and the
+ * stick's up is −z, as in the reference game (Owner, 2026-11-11: the default gameplay camera matches it). The sim's
+ * convention is unchanged (heading 0 looks toward +z); only where a player begins is.
+ */
+export const HOME_HEADING: number = TURN_UNITS / 2
+
+/** Before the first view: no view, the home heading, no turning, no latch. */
 export const START: HeadingState = {
   view: '',
-  heading: 0,
+  heading: HOME_HEADING,
   rotate: false,
   latched: false,
   latchHeading: 0,

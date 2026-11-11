@@ -2,12 +2,14 @@
 // at 65,536) and a view with `rotate: false` ignores it; a view change latches the stick's mapping to the old
 // heading until the stick is released or turns by more than 90°; the player's own turn does not latch.
 import { describe, expect, it } from 'vitest'
+import { eyeOf } from '#src/features/camera/camera-pose.ts'
 import { cameraView } from '#src/features/camera/sim/camera-view.schema.ts'
-import { TURN_UNITS } from '#src/features/camera/sim/heading.ts'
+import { headingDegrees, TURN_UNITS } from '#src/features/camera/sim/heading.ts'
 import { mapStick, Q16 } from '#src/features/camera/sim/stick-mapper.ts'
 import {
   enterView,
   type HeadingState,
+  HOME_HEADING,
   moveDirection,
   START,
   turnCamera,
@@ -23,10 +25,10 @@ const arena = cameraView('arena', { yawDeg: 180, rotate: false })
 const inHall = (heading = 0): HeadingState => ({ ...enterView(START, hall, CENTRED), heading })
 
 describe('the start', () => {
-  it('has no view, heading 0, no latch, and takes no turn until a view is entered', () => {
+  it('has no view, the home heading, no latch, and takes no turn until a view is entered', () => {
     expect(START).toEqual({
       view: '',
-      heading: 0,
+      heading: HOME_HEADING,
       rotate: false,
       latched: false,
       latchHeading: 0,
@@ -35,6 +37,18 @@ describe('the start', () => {
       turning: 0,
     })
     expect(turnCamera(START, 100)).toEqual(START)
+  })
+
+  it('stands the camera south of the player looking north, as the reference game does: the eye is at +z, up on the stick is -z', () => {
+    expect(HOME_HEADING).toBe(TURN_UNITS / 2)
+    const home = enterView(START, hall, CENTRED)
+    const focus = { x: 0, y: 0, z: 0 }
+    const eye = eyeOf(focus, headingDegrees(home.heading), hall.tiltDeg, hall.distance)
+    expect(eye.z).toBeGreaterThan(0)
+    expect(eye.x).toBeCloseTo(0, 9)
+    const up = moveDirection(home, { x: 0, y: -127 }).direction
+    expect(up.x).toBe(0)
+    expect(up.z).toBeLessThan(0)
   })
 
   it('entering the first view never latches, even with the stick held', () => {

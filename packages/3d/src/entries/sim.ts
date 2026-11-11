@@ -28,6 +28,7 @@ export { type Direction, mapStick, Q16, STICK_MAX, type Stick } from '../feature
 export {
   enterView,
   type HeadingState,
+  HOME_HEADING,
   moveDirection,
   START,
   turnCamera,
