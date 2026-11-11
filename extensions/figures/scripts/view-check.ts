@@ -5,7 +5,8 @@
  *    camera at the sheets' 18°, a texel to a pixel, in headless Chromium; every pixel the figure covers must be the
  *    sheets' cell's (frames.ts `standing`), texel for texel, and no pixel outside it may be drawn.
  * 2. The stage cases (viewer/cases.ts, `?case=NAME`): `StageView` draws the case's `StageFrame` and the readback is
- *    compared with `compose(frame)` computed here. `bytes` cases: every byte equal. `palette` cases: alpha 0 or 255
+ *    compared with `compose(frame)` computed here, under WebGL and, where the browser grants an adapter, under WebGPU (`&renderer=`;
+ *    `webgpu: no adapter, skipped` otherwise). `bytes` cases: every byte equal. `palette` cases: alpha 0 or 255
  *    only, and every opaque pixel a colour some sprite's cell holds.
  * 3. Determinism: `scene4` drawn twice in one page load (`&twice`) and once in a fresh one, all three readbacks equal.
  *
@@ -22,16 +23,22 @@ import { createServer } from 'vite';
 import { BASE, SPRITE_PITCH, compose, member, standing, type StageFrame } from '../src';
 import { CASES, wallBackdrop } from '../viewer/cases';
 
+type Renderer = 'webgl' | 'webgpu';
 const out = process.argv[2] ? resolve(process.argv[2]) : null;
 if (out) mkdirSync(out, { recursive: true });
 const server = await createServer({ root: resolve(import.meta.dirname, '../viewer'), server: { port: 0, host: '127.0.0.1' }, logLevel: 'error' });
 await server.listen();
 const url = server.resolvedUrls!.local[0];
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+// WebGPU needs its flag and, with no GPU, a software adapter that can also present a canvas (SwiftShader through Vulkan), as
+// automata-framework's `webgpu` browser project launches it.
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader'] });
 const page = await browser.newPage();
 /** The page's canvas as RGBA, read back through a 2D canvas (a WebGL canvas kept with `preserveDrawingBuffer`). */
 async function readback(p: Page): Promise<{ w: number; h: number; rgba: Buffer }> {
   const shot = await p.evaluate(() => {
+    // A WebGPU page copied its canvas in the task that drew it (viewer/main.ts `present`): the canvas itself is empty by now.
+    const taken = (window as unknown as { __frame?: { w: number; h: number; b64: string } }).__frame;
+    if (taken) return taken;
     const c = document.querySelector('canvas')!, copy = document.createElement('canvas');
     copy.width = c.width; copy.height = c.height;
     const g = copy.getContext('2d')!; g.drawImage(c, 0, 0);
@@ -43,11 +50,12 @@ async function readback(p: Page): Promise<{ w: number; h: number; rgba: Buffer }
   return { w: shot.w, h: shot.h, rgba: Buffer.from(shot.b64, 'base64') };
 }
 /** Draws a stage case on the page and reads it back. */
-async function draw(name: string, query = ''): Promise<{ w: number; h: number; rgba: Buffer }> {
-  await page.goto(`${url}?case=${encodeURIComponent(name)}${query}`);
+async function draw(name: string, query = '', renderer: Renderer = 'webgl'): Promise<{ w: number; h: number; rgba: Buffer }> {
+  await page.goto(`${url}?case=${encodeURIComponent(name)}&renderer=${renderer}${query}`);
   await page.waitForSelector('body[data-ready]', { timeout: 120_000 });
-  const depth = await page.evaluate(() => document.body.dataset.perTexelDepth);
-  if (depth !== 'true') errors.push(`${name}: StageView found no per-texel depth under this renderer (perTexelDepth ${depth})`);   // the renderer check ran, and found WebGL
+  const [depth, got] = await page.evaluate(() => [document.body.dataset.perTexelDepth, document.body.dataset.renderer]);
+  if (got !== renderer) errors.push(`${name}: asked for ${renderer}, the page drew with ${got}`);
+  if (depth !== 'true') errors.push(`${name} [${renderer}]: StageView found no per-texel depth under this renderer (perTexelDepth ${depth})`);   // the renderer check ran, and found the renderer it was asked for
   return readback(page);
 }
 /** The cases the gate sheet shows. */
@@ -174,20 +182,25 @@ try {
       if (wrong) failed++;
     }
   }
-  // The stage cases.
-  for (const [name, c] of Object.entries(CASES)) {
+  // The stage cases, under each renderer: WebGL, and WebGPU where the browser grants an adapter.
+  await page.goto(url);
+  const adapter = await page.evaluate(async () => (navigator as Navigator & { gpu?: { requestAdapter(): Promise<unknown> } }).gpu?.requestAdapter().then(a => a !== null, () => false) ?? false);
+  const renderers: Renderer[] = adapter ? ['webgl', 'webgpu'] : ['webgl'];
+  if (!adapter) console.log('webgpu: no adapter, skipped');
+  for (const renderer of renderers) for (const [name, c] of Object.entries(CASES)) {
     if (only && !only.test(name)) continue;
-    const frame = c.frame(), want = compose(frame, c.wall && wallBackdrop(frame.camera, c.wall)), [W, H] = frame.camera.size, got = await draw(name);
-    if (out && KEEP.has(name)) {
+    const tag = renderer === 'webgl' ? name : `${name} [webgpu]`;
+    const frame = c.frame(), want = compose(frame, c.wall && wallBackdrop(frame.camera, c.wall)), [W, H] = frame.camera.size, got = await draw(name, '', renderer);
+    if (out && renderer === 'webgl' && KEEP.has(name)) {
       kept.set(name, { want, got: got.rgba, w: W, h: H, frame, contrast: name === 'overlap' ? painters(frame) : name === 'wall' ? compose(frame) : undefined });
       writeFileSync(join(out, `${name.replace(/\//g, '_')}.gpu.png`), png(got.rgba, W, H));
       writeFileSync(join(out, `${name.replace(/\//g, '_')}.cpu.png`), png(want, W, H));
     }
-    if (got.w !== W || got.h !== H) { console.log(`${name}: canvas ${got.w}×${got.h}, frame ${W}×${H}`); failed++; continue; }
+    if (got.w !== W || got.h !== H) { console.log(`${tag}: canvas ${got.w}×${got.h}, frame ${W}×${H}`); failed++; continue; }
     if (c.claim === 'bytes') {
       let wrong = 0, first = -1;
       for (let i = 0; i < want.length; i += 4) if (want[i] !== got.rgba[i] || want[i + 1] !== got.rgba[i + 1] || want[i + 2] !== got.rgba[i + 2] || want[i + 3] !== got.rgba[i + 3]) { wrong++; if (first < 0) first = i; }
-      console.log(`${name}: ${wrong === 0 ? 'identical' : `${wrong} pixels differ, first ${at(first, W)} cpu ${Array.from(want.slice(first, first + 4))} gpu ${Array.from(got.rgba.subarray(first, first + 4))}`}`);
+      console.log(`${tag}: ${wrong === 0 ? 'identical' : `${wrong} pixels differ, first ${at(first, W)} cpu ${Array.from(want.slice(first, first + 4))} gpu ${Array.from(got.rgba.subarray(first, first + 4))}`}`);
       if (wrong) failed++;
     } else {
       const held = new Set<number>();
@@ -198,7 +211,7 @@ try {
         if (a !== 0 && a !== 255) bad = `alpha ${a} at ${at(i, W)}`;
         else if (a === 255 && !held.has(rgb)) bad = `new colour #${rgb.toString(16).padStart(6, '0')} at ${at(i, W)}`;
       }
-      console.log(`${name}: ${bad ? `palette broken: ${bad}` : 'palette holds'}`);
+      console.log(`${tag}: ${bad ? `palette broken: ${bad}` : 'palette holds'}`);
       if (bad) failed++;
     }
   }

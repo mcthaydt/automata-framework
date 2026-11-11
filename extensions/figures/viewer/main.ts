@@ -29,11 +29,23 @@ const params = new URLSearchParams(location.search);
 const deg = Math.PI / 180;
 const DENSITY = 2;
 const help = (text: string) => { const el = document.getElementById('help'); if (el) el.textContent = text; };
-const settle = (app: Application) => { app.render(); requestAnimationFrame(() => { app.render(); document.body.dataset.ready = 'true'; }); };
+/** `?renderer=webgpu` draws through Pixi's WebGPU renderer (view-check runs every case under both); WebGL is the default. */
+const preference = params.get('renderer') === 'webgpu' ? 'webgpu' : 'webgl';
+/** The canvas as presented, copied in the task that drew it: a WebGPU canvas keeps no drawing buffer past that task. */
+const present = (app: Application) => {
+  const c = app.canvas as HTMLCanvasElement, copy = document.createElement('canvas');
+  copy.width = c.width; copy.height = c.height;
+  const g = copy.getContext('2d')!; g.drawImage(c, 0, 0);
+  const d = g.getImageData(0, 0, c.width, c.height).data;
+  let bin = '';
+  for (let i = 0; i < d.length; i += 0x8000) bin += String.fromCharCode(...d.subarray(i, i + 0x8000));
+  (window as unknown as { __frame?: { w: number; h: number; b64: string } }).__frame = { w: c.width, h: c.height, b64: btoa(bin) };
+};
+const settle = (app: Application) => { app.render(); requestAnimationFrame(() => { app.render(); if (preference === 'webgpu') present(app); document.body.dataset.ready = 'true'; }); };
 /** A transparent, unsmoothed canvas that keeps its drawing buffer, so it can be read back. */
 const startApp = async (w: number, h: number, background?: number) => {
   const app = new Application();
-  await app.init({ width: w, height: h, background, backgroundAlpha: background === undefined ? 0 : 1, preference: 'webgl', antialias: false, resolution: 1, autoDensity: false, preserveDrawingBuffer: true });
+  await app.init({ width: w, height: h, background, backgroundAlpha: background === undefined ? 0 : 1, preference, antialias: false, resolution: 1, autoDensity: false, preserveDrawingBuffer: true });
   document.body.appendChild(app.canvas);
   return app;
 };
@@ -47,13 +59,14 @@ async function caseMain(name: string) {
   app.stage.addChild(stage.view);
   if (c.wall) {
     // the case's wall, in the scene beside the figures: a plane facing +z, one colour through the same texture path as a cell
-    const { z, x, y, rgba } = c.wall, source = new BufferImageSource({ resource: new Uint8Array(rgba), width: 1, height: 1, scaleMode: 'nearest', alphaMode: 'no-premultiply-alpha' });
+    const { z, x, y, rgba } = c.wall, source = new BufferImageSource({ resource: new Uint8Array(rgba), width: 1, height: 1, format: 'rgba8unorm', scaleMode: 'nearest', alphaMode: 'no-premultiply-alpha' });
     const mesh = new Mesh3D({ geometry: new PlaneGeometry({ width: x[1] - x[0], height: y[1] - y[0] }), material: new FlatMaterial({ baseColorTexture: new Texture({ source }) }) });
     mesh.position.set((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, z);
     stage.view.root.addChild(mesh);
   }
   stage.draw(frame);
   app.render();
+  document.body.dataset.renderer = app.renderer.name;   // view-check asserts a WebGPU page really got WebGPU
   document.body.dataset.perTexelDepth = String(stage.perTexelDepth);   // view-check asserts the first render found WebGL
   if (params.has('twice')) { frame = c.frame(); stage.draw(frame); }
   settle(app);
