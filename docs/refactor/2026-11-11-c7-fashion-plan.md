@@ -291,7 +291,7 @@ export const NOT_WEBGL: string   // the warning's words
       `pnpm --filter @af-examples/examples-3d test:e2e -- characterkit-painted` (both projects). Expected: 2 passed.
 - [ ] **Step 5:** Commit: `feat(examples): characterkit-painted at 640 × 360, one pixel a texel, behind a wall`.
 
-### Task 5: Gate 1 (the Owner's)
+### Task 5: Gate 1 (the coordinator's checkpoint)
 
 **Files:**
 
@@ -307,7 +307,7 @@ export const NOT_WEBGL: string   // the warning's words
       side, the measured numbers, what changed and why, and the WebKit run of Tasks 3 and 4.
 - [ ] **Step 3:** Run before pushing: `pnpm check`; `pnpm --filter @automata/character-kit test:browser` (Chromium,
       WebKit); the two `characterkit-painted` journeys. Update `progress.md` (what ran, what did not: Firefox and the
-      GPU runner pending). Commit, push, and tell the coordinator the gate is ready. **Stop until the Owner approves.**
+      GPU runner pending). Commit, push, and tell the coordinator the gate is ready. **Stop until the coordinator says to go on** (the Owner, 2026-11-11: "show me when you're think you're done"; the gates are the coordinator's).
 
 ### Task 6: Fashion: fabrics, swatches, hair
 
@@ -460,11 +460,11 @@ test('the runway plays: a named model walks, then the next', async ({ page }) =>
       (Chromium, WebKit); `pnpm --filter @af-examples/examples-3d test:e2e`; `pnpm build` (to see nothing published
       includes `@pixi/3d`: the kit, `@automata/3d` and the examples stay private). Pending and said so: Firefox, the GPU
       runner.
-- [ ] **Step 5:** Commit, push, tell the coordinator. **Stop: gate 2 is the Owner's.**
+- [ ] **Step 5:** Commit, push, tell the coordinator. **Stop: gate 2 is the coordinator's, who shows the Owner the finished result.**
 
 ---
 
 ## Log
 
-- 2026-11-11: written with the spec. Not started. Waiting on the Owner's approval of the spec and plan, then the plan
-  audit, then Task 0 (FB's U1 and U2).
+- 2026-11-11: written with the spec. Not started. The Owner approved specs and plans ahead ("auto approve spec and plans", relayed by the
+  coordinator). Next: the plan audit, then Task 0 (FB's U1 and U2).

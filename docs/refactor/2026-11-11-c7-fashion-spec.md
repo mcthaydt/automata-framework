@@ -1,7 +1,11 @@
 # c7: FigureBuilder's look in AF, with depth, a wardrobe and a runway
 
-Cycle c7-af. One cycle, one branch, two visual gates for the Owner. The plan is
+Cycle c7-af. One cycle, one branch, two visual gates. The plan is
 [`2026-11-11-c7-fashion-plan.md`](2026-11-11-c7-fashion-plan.md).
+
+The Owner, 2026-11-11, relayed by the coordinator: "show me when you're think you're done, auto approve spec and
+plans". So the spec and the plan are approved as written, the two visual gates are the coordinator's checkpoints and
+not stops for the Owner, and the Owner sees the finished result.
 
 ## 1. Why
 
@@ -43,7 +47,7 @@ The Owner's decisions, which this spec does not reopen:
 
 **Goals.** In an AF scene a painted figure is FB's render: D2, 18°, crisp, with per-texel depth against AF's own
 geometry and other figures. The kit carries the runway wardrobe, fabrics, library and cast. A runway example shows it,
-with a journey. The Owner sees before and after renders with texels a pixel measured, and the runway.
+with a journey. The gates hold before and after renders with texels a pixel measured, and the runway; the Owner sees the finished result.
 
 **Non-goals.** Lighting painted figures from AF's lamps (the stage's `lighting` path); a WGSL depth bit (WebGPU);
 retiring AF's procedural mesh figures or the kit's garments, hair and seats for them (they stay as they are; whether
@@ -185,7 +189,7 @@ section 4.
 - **Gate 1, after the resolution and depth work.** `characterkit-painted` before (the branch's base) and after, at the
   same sim tick, as PNGs at ×4 nearest, with texels a pixel measured from each render (the figure's height in pixels
   against its cell's rows), beside FB's own render of the same figure and direction. And a depth sheet: a figure cut by a
-  wall, two overlapping figures. The Owner approves before the fashion work is shown.
+  wall, two overlapping figures. The coordinator checks it before the fashion work goes on.
 - **Gate 2, the runway.** Stills of each model at the runway's end, a pass of two models, the doorway, and a short
   capture of the loop; the measured paint and frame times.
 
