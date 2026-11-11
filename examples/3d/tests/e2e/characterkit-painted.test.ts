@@ -39,5 +39,7 @@ test('draws the painted pair under the CSP, a figure in the middle third', async
   await expect(frame.getByTestId('play-screen')).toBeVisible()
   // A bare third is the sky and the floor; the middle third, where the pair stand, is many colours more (the painter's).
   await expect.poll(async () => (await coloursPerThird(frame))[1], { timeout: 15_000 }).toBeGreaterThan(14)
+  // By the end of the first lap (eleven seconds of play) the walker has gone behind the low wall and out again.
+  await expect(frame.locator('canvas.af-stage')).toHaveAttribute('data-lap', '1', { timeout: 60_000 })
   expect(errors).toEqual([])
 })

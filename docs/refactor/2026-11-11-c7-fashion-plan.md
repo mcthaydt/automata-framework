@@ -314,7 +314,7 @@ export const NOT_WEBGL: string   // the warning's words
 - [ ] **Step 7:** `pnpm boundaries && pnpm style && pnpm knip`. Commit:
       `feat(character-kit): painted figures at the painter's pitch, crisp, with per-texel depth`.
 
-### Task 4: `characterkit-painted` at 1:1
+### Task 4: `characterkit-painted` at 1:1 (720 × 405, by the coordinator's ruling; the steps below say 640 × 360 where they were written)
 
 **Files:**
 

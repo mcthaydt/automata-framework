@@ -22,7 +22,7 @@ sections, since each example is one file. Colours are the DUEL palette.
 | [`cutscenes/cutscenes-reach-cue.ts`](cutscenes/cutscenes-reach-cue.ts) | A scripted scene: a man walks and a cue makes him reach, started once |
 | [`characterkit/characterkit-wardrobe.ts`](characterkit/characterkit-wardrobe.ts) | Three figures in a waistcoat and coat, an apron and skirt, a belt (the `character-kit` extension) |
 | [`characterkit/characterkit-hair.ts`](characterkit/characterkit-hair.ts) | Three hairstyles built from the kit's pieces: a bun, braids with a ponytail, cornrows |
-| [`characterkit/characterkit-painted.ts`](characterkit/characterkit-painted.ts) | The base pair painted as pixel art, texel by texel, and drawn in a 3D room: one walks, one stands |
+| [`characterkit/characterkit-painted.ts`](characterkit/characterkit-painted.ts) | The base pair painted as pixel art, one texel to a pixel, with depth: one walks behind a low wall, one stands |
 | [`worldkit/worldkit-furnished-room.ts`](worldkit/worldkit-furnished-room.ts) | An empty room that asks to be an office, furnished by the kit from one word (the `world-kit` extension) |
 | [`worldkit/worldkit-generated-map.ts`](worldkit/worldkit-generated-map.ts) | An apartment generated from a number and furnished, seen from above |
 | [`worldkit/worldkit-sky.ts`](worldkit/worldkit-sky.ts) | A street at night under the kit's stars, rain and glow passes |

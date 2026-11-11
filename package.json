@@ -55,12 +55,14 @@
     "branches:prune": "node tooling/repo-hygiene/src/prune-branches-cli.ts"
   },
   "devDependencies": {
+    "@automata/tools": "workspace:*",
     "@biomejs/biome": "2.5.15",
     "@changesets/cli": "3.0.3",
-    "@automata/tools": "workspace:*",
+    "@pixi/3d": "file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
     "@playwright/test": "1.63.0",
     "knip": "6.39.0",
     "lefthook": "2.1.16",
+    "pixi.js": "8.22.0",
     "tsdown": "0.23.0",
     "turbo": "2.11.6",
     "typescript": "7.0.2"

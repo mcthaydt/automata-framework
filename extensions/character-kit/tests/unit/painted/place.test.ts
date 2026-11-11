@@ -1,13 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { paintView, place, ranked } from '#src/features/painted/place.ts'
+import { place, ranked } from '#src/features/painted/place.ts'
 import { type CameraLike, poseOf } from '#src/features/painted/pose.ts'
 import {
   BASE,
-  type CameraPose,
   type CharacterDef,
-  cellOf,
-  Figure,
-  member,
   project,
   ScriptedActor,
   SPRITE_PITCH,
@@ -16,6 +12,7 @@ import {
   zoomOf,
 } from '#src/shared/figure-builder/door.ts'
 import { followCamera, orthographicCamera, perspectiveCamera } from '../../fixtures/cameras.ts'
+import { painted } from '../../fixtures/painted-cell.ts'
 
 const PPM = 192 / 2.6
 const DEFS: readonly CharacterDef[] = BASE.map((base) => base.def)
@@ -31,13 +28,6 @@ const PLACES: readonly (readonly [number, number])[] = [
   [-2, -4],
   [4.2, 0],
 ]
-
-/** What the kit paints for `def` at `at` under `pose`: the figure the way `paintedFigure` draws it. */
-function painted(def: CharacterDef, pose: CameraPose, at: V3) {
-  const figure = new Figure(member(def, 2))
-  figure.update(1 / 60, { facing: 0, moving: false, view: paintView(pose, at) })
-  return cellOf(figure)
-}
 
 describe("the stage contract's placement for one figure", () => {
   for (const [name, camera] of POSES) {

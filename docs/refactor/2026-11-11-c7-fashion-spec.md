@@ -75,11 +75,13 @@ same pose through FB's own `stageFrame` and `compose` must give the kit's frame,
 **How the 1:1 rule is met.** The contract's crisp rule draws a D2 texel at `max(1, round(zoom / 2))` px, so no texel is
 ever minified; what the host chooses is how far the figure is from true scale. Two cameras:
 
-- *Perspective (AF's follow rig)*: `characterkit-painted` goes to 640 × 360 (focal length 360 px, 72 px a metre at the
-  focus 5 m away, 0.975 px a texel; 66.4 px a metre at the feet 5.42 m deep, 0.90 px a texel): 1 px a texel, about 11%
-  over true scale at the feet (480 × 270 would be about 48% over). The rule holds in the field's own pixels; the
-  letterbox then scales the whole field to the screen (Pixel 7 landscape is 863 × 360 CSS px, iPhone 14 landscape
-  750 × 340), so the phones do not both show it at ×1. (Both corrected at the plan audit.)
+- *Perspective (AF's follow rig)*: `characterkit-painted` goes to 720 × 405 (focal length 405 px, 81 px a metre at the
+  focus 5 m away, 1.10 px a texel; 74.7 px a metre at the feet 5.42 m deep, 1.01 px a texel): 1 px a texel, about 1% 
+  under true scale at the feet, never minified. (480 × 270, 0.67 px a texel, would draw the figure about 48% over true scale; 640 × 360
+  is 0.90, still a little minified at the feet. The coordinator's ruling, 2026-11-11, replaced the first 640 × 360.)
+  The rule holds in the field's own pixels; the letterbox then scales the whole field to the screen (Pixel 7 landscape
+  is 863 × 360 CSS px, iPhone 14 landscape 750 × 340), so the phones do not both show it at ×1. (Corrected at the plan
+  audit.)
 - *Orthographic at the painter's pitch (the runway)*: 73.846 px a metre exactly (`pixelsPerMetre = 192 / 2.6`, a whole
   zoom of 2), tilted 18°. This is the projection the cells are painted for, so the runway is FB's render exactly, and
   depth is exact, not "right to a few millimetres". 640 × 360 shows 8.67 m × 4.88 m. The example sets `view.camera`
@@ -231,7 +233,7 @@ Firefox has no headless WebGL here; the GPU runner covers it, and it is reported
 ## 8. Calls made here (the Owner may overrule any)
 
 1. `CellSprite` in AF's view, placement in the kit, held by a parity test (approach B).
-2. `characterkit-painted` goes from 480 × 270 to 640 × 360; the lens and the view stay.
+2. `characterkit-painted` goes from 480 × 270 to 720 × 405, a texel about a pixel at the walker's feet; the lens and the view stay.
 3. The runway is orthographic at 18° and 73.846 px a metre, so it is exactly FB's render.
 4. AF's mesh figures and the kit's older garments, hair and seats are left alone this cycle.
 5. Painted figures are not lit by AF's lamps this cycle: they carry the painter's own key light.
