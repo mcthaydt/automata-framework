@@ -37,8 +37,16 @@ describe('the lamp kit', () => {
     expect(LAMP_KINDS.fill).toEqual({ color: '#96b2d9', range: [3.5, 6], peak: 1.25 })
   })
 
-  it('leaves the six kinds it had as they were', () => {
-    expect(LAMP_KINDS.pendant).toEqual({ color: '#ffd59b', range: [3.5, 6], peak: 1 })
+  it('lets a pendant reach as far as the source game’s hall lamp (9 m) and keeps its unranged default at 4.75', () => {
+    expect(LAMP_KINDS.pendant?.range).toEqual([3.5, 9])
+    expect(resolveLamp({ kind: 'pendant', range: 7.5 }).range).toBe(7.5)
+    expect(resolveLamp({ kind: 'pendant', range: 99 }).range).toBe(9)
+    expect(resolveLamp({ kind: 'pendant' }).range).toBe(4.75)
+    expect(resolveLamp({ kind: 'bulb' }).range).toBe(4.75)
+  })
+
+  it('leaves the other kinds it had as they were', () => {
+    expect(LAMP_KINDS.pendant).toMatchObject({ color: '#ffd59b', peak: 1 })
     expect(LAMP_KINDS.neon?.peak).toBe(1.25)
     expect(LAMP_KINDS.sodium?.dusk).toBe(true)
   })

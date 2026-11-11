@@ -11,6 +11,8 @@ import kit from './library/lamp-kit.json' with { type: 'json' }
 interface Kind {
   readonly color: string
   readonly range: readonly [number, number]
+  /** How far it reaches when a lamp names no range; the band's middle when the kind names none. */
+  readonly reach?: number
   readonly peak: number
   /** Lit only at night: a street lamp on its photocell. */
   readonly dusk?: boolean
@@ -61,7 +63,8 @@ export function resolveLamp(
   const [low, high] = kind.range
   return {
     color: hexToRgb(lamp.color ?? kind.color),
-    range: lamp.range === undefined ? (low + high) / 2 : Math.min(high, Math.max(low, lamp.range)),
+    range:
+      lamp.range === undefined ? (kind.reach ?? (low + high) / 2) : Math.min(high, Math.max(low, lamp.range)),
     level: Math.min(lamp.level ?? 1, kind.peak),
     radius: lamp.radius ?? 0,
     peak: kind.peak,
