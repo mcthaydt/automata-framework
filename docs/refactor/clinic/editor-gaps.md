@@ -52,14 +52,14 @@ flags. Paths are under `packages/editor-3d/` unless they say otherwise.
 The frames are drawn by 127 lines of per-scene code. Each is a place where the level, not a script, should say it; the editor can
 author none of it today.
 
-| In `scene.ts` | What a level or the game's content should hold instead |
+| In `scene.ts` | What a level or the game's content should hold instead (the format field) |
 |---|---|
-| The camera: the zone's view as a `cameraView`, its room `bounds` computed from the sectors' corners, the focus and heading | A zone's bounds follow from its sectors; the editor needs a view editor (row 13) and the game a generic "play this level" wiring |
-| `HazeEffect.focus(VIEW.distance)` | The look's haze should read the active view's distance itself |
-| A stand-in body for the player (a 1.62 m box) | The level's `spawn`/`cast` (the editor places `cast` things, which are read-only boxes) |
-| The opening's lamp levels (`opening.lamps`) | A level's initial piece states (row 19) |
-| `colourOf: swatchColour(...)`, flat | The textured-swatch path of the world view (row 17) |
-| The sky colour, `view.environment` | A time-of-day member of the level (row 20) |
+| The camera: the zone's view as a `cameraView`, its room `bounds` computed from the sectors' corners, the focus and heading | `views.<id>` already holds `look`, `distance`, `x`, `follow`, `depthFollow`; add `bounds: "sectors"` (or the corner box) to it, or let the camera derive a zone's bounds from the sectors whose `zone` it is. The editor needs a camera-view editor (row 13), and the game a generic "play this level" wiring |
+| `HazeEffect.focus(VIEW.distance)` | None needed in the level: the look's haze should read the active view's `distance` itself, so the call goes |
+| A stand-in body for the player (a 1.62 m box) | `cast` (a `who` and an `at`) for the player's place, or a `spawn` entity; the editor places `cast` things as read-only boxes |
+| The opening's lamp levels (`opening.lamps`) | A level member for initial piece states, e.g. `states: { lamps: { deskLamp: { level: 0.82 } } }` (row 19) |
+| `colourOf: swatchColour(...)` and `tiles: albedoTiles(...)` | The world view should build both from the library itself (`drawWorld` takes a `library`), so neither is passed in by a script (row 17) |
+| The sky colour, `view.environment` | `time.scene.sky` (the level's `time` member already holds it; the spike reads it by hand) (row 20) |
 
 ## To make the editor able to build the clinic (priority order)
 
