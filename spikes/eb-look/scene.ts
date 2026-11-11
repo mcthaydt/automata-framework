@@ -193,6 +193,8 @@ const game = defineGame({
             sky.aim(-Math.PI / 2, -(GAMEPLAY[viewName].tiltDeg * Math.PI) / 180)
           view.passes = [sky, ...view.passes]
         }
+        // ?snap=0 / ?haze=0 drop the DUEL snap / the haze pass, to read the frame before them.
+        view.passes = view.passes.filter((p) => !(q.get('snap') === '0' && p.constructor.name === 'DuelSnapEffect') && !(q.get('haze') === '0' && p.constructor.name === 'HazeEffect'))
         if (on('env')) view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(library, swatch)
         if (on('world')) {

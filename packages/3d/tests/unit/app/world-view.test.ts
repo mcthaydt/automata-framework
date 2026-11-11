@@ -10,6 +10,10 @@ import { createSceneLight } from '#src/shared/render/light/scene-light.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import { toLinear } from '#src/shared/render/light/vertex-light.ts'
 
+/** The format of a mesh's base-colour texture: `rgba8unorm-srgb` is decoded to linear by the sampler, `rgba8unorm` is not. */
+const formatOf = (mesh: Mesh3D): string | undefined =>
+  (mesh.material as FlatMaterial).textures.baseColor?.source.format
+
 const LIB = { swatches: { oakFloor: {}, plasterWarm: {}, trimWhite: {} } }
 const level: AfSector2 = {
   format: 'af-sector/2',
@@ -80,10 +84,9 @@ describe('drawWorld', () => {
       const colours = (view.mesh('a:floor') as Mesh3D).geometry.attributes.aColor?.buffer.data as Float32Array
       return colours[0] as number
     }
-    // A white swatch under an sRGB light of 0.4 is a linear 0.4 over 1; a room one step darker (light 0) takes 0.85 of it.
-    const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
-    expect(draw(level)).toBeCloseTo(lin(0.4), 5)
-    expect(draw(dark)).toBeCloseTo(lin(0.4 * 0.85), 5)
+    // A white swatch under an sRGB light of 0.4 is shown at 0.4; a room one step darker (light 0) takes 0.85 of it.
+    expect(draw(level)).toBeCloseTo(0.4, 5)
+    expect(draw(dark)).toBeCloseTo(0.4 * 0.85, 5)
   })
   it('gives each mesh the geometry of its piece', () => {
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0 }, pieces)
@@ -144,6 +147,48 @@ describe('drawWorld', () => {
     expect(
       ((view.mesh('a:wall:0') ?? view.node.children[1]) as Mesh3D).geometry.attributes.aUV,
     ).toBeUndefined()
+  })
+})
+
+// A baked piece is drawn unlit, and an unlit material is not encoded for the display: what it shows is its texture, decoded
+// by the sampler if it is an sRGB one, times its vertex colour. So the tile is a plain (non-sRGB) texture and the vertex
+// colour is the light, which leaves each texel's DUEL colour × the light on screen.
+describe('drawWorld: baked light is shown as written', () => {
+  const tile = {
+    width: 2,
+    height: 2,
+    texels: [2, 2] as [number, number],
+    seed: 0,
+    rgba: new Uint8Array(16).fill(255),
+  }
+  const room = () =>
+    createSceneLight(sceneLightingSchema.parse({ ambient: 0.4, colorSpace: 'srgb', step: 0 }))
+  const floorOf = (view: ReturnType<typeof drawWorld>) => view.mesh('a:floor') as Mesh3D
+
+  it('lays a baked piece’s tile as a non-sRGB texture, with the light as its vertex colour', () => {
+    const view = drawWorld(
+      { parent: new Container3D(), colourOf: () => 0, light: room(), tiles: () => tile },
+      pieces,
+    )
+    const floor = floorOf(view)
+    expect(floor.material).toBeInstanceOf(FlatMaterial)
+    expect(formatOf(floor)).toBe('rgba8unorm')
+    const colours = floor.geometry.attributes.aColor?.buffer.data as Float32Array
+    expect(colours[0]).toBeCloseTo(0.4, 5)
+  })
+
+  it('keeps the sRGB tile on a piece that is not baked, which a lit material decodes and encodes', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, tiles: () => tile }, pieces)
+    expect(formatOf(floorOf(view))).toBe('rgba8unorm-srgb')
+  })
+
+  it('bakes a flat piece on a white base, its vertex colour the swatch’s colour × the light', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0x8690b2, light: room() }, pieces)
+    const floor = floorOf(view)
+    expect((floor.material as FlatMaterial).baseColor).toBe(0xffffff)
+    const colours = floor.geometry.attributes.aColor?.buffer.data as Float32Array
+    expect(colours[0]).toBeCloseTo((0x86 / 255) * 0.4, 5)
+    expect(colours[2]).toBeCloseTo((0xb2 / 255) * 0.4, 5)
   })
 })
 
@@ -216,14 +261,22 @@ describe('drawWorld: glow', () => {
     const data = mesh.geometry.attributes.aColor?.buffer.data as Float32Array
     return [data[0], data[1], data[2]]
   }
+  // A baked glow is on a white base, unlit: the screen shows its vertex colour as written.
   const linear = (rgb: number) =>
-    [(rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255].map((c) => Math.fround(toLinear(c / 255)))
+    [(rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255].map((c) => Math.fround(c / 255))
 
   it('draws an unlit glow in its own step, with no light to take', () => {
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow }, [bulb])
     const material = (view.mesh('lamp:bulb') as Mesh3D).material as FlatMaterial
     expect(material).toBeInstanceOf(FlatMaterial)
-    expect(material.baseColor).toBe(ember.steps[7])
+    // A flat material is not encoded for the display, and decodes its base colour to linear: so what shows is the
+    // base colour's linear value, and that is the step.
+    const given = material.baseColor as unknown as number
+    const shown = [16, 8, 0].map((shift) => toLinear(((given >> shift) & 255) / 255))
+    const step = ember.steps[7] as number
+    // The colour is packed to 8 bits, so each channel is within a step of the wanted one.
+    for (const [i, shift] of [16, 8, 0].entries())
+      expect(shown[i]).toBeCloseTo(((step >> shift) & 255) / 255, 2)
   })
 
   it('bakes a glow at its own step in a room the lamps do not reach, even on a piece that moves', () => {
@@ -242,6 +295,7 @@ describe('drawWorld: glow', () => {
     const mesh = view.mesh('a:glass') as Mesh3D
     expect(mesh.geometry.attributes.aUV).toBeDefined()
     expect((mesh.material as FlatMaterial).textures.baseColor).toBeDefined()
+    expect(formatOf(mesh)).toBe('rgba8unorm')
     expect(mesh.material.vertexColors).toBe(false)
   })
 
