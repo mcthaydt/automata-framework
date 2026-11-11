@@ -147,8 +147,12 @@ rest. The 2D examples are untouched.
 The Owner, 2026-11-11: "it shouldn't go into the framework unless it's generic, it can go into extensions if it's
 generic, but genre-scoped, we can have custom code for 3D example game". Three homes, judged in this order:
 
-1. **Core** (`packages/`): only what any game could use, whatever its genre. Using a thing in the world, a HUD drawn
-   from data, a view that names the rooms it draws.
+1. **Core** (`packages/`): only what any game could use, whatever its genre, and which imports no extension (core
+   never does). The framework's own test still applies: every target needs it, or both reference games do. A view
+   that names the rooms it draws passes. Using a thing in the world and a HUD drawn from data do not pass today:
+   Emberwick uses neither, and as planned they lean on `puzzle`, `nav` and `narrative`, so they are adventure-genre
+   extensions; their dependency-free halves are written so they can move to core later, when a second game or the UI
+   editor needs them.
 2. **An extension** (`extensions/`): generic within a genre. Another game of the same kind would use it unchanged, and
    a game of another kind would not want it: a creature that hunts by light and sound, hiding and peeking, a lamp that
    burns fuel, a pacing director. It names no character, room or line of The Last Light.
