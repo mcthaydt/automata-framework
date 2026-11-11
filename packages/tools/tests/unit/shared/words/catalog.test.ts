@@ -1,5 +1,6 @@
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { achievementWords } from '#src/shared/words/achievement-words.ts'
 import { folderCatalog, gameCatalogs, placeholders, translationProblems } from '#src/shared/words/catalog.ts'
 import { memoryFiles } from '#src/testing/memory-files.ts'
 
@@ -62,6 +63,15 @@ describe('gameCatalogs', () => {
     expect(ui?.record).toBe('/g/words-sources.json')
   })
 
+  it('finds the achievements catalog in messages/achievements, recorded in the same game record', async () => {
+    const catalogs = await run({ '/g/messages/ui/en.json': '{}', '/g/messages/achievements/en.json': '{}' })
+    expect(catalogs.map((c) => c.name)).toEqual(['ui', 'achievements'])
+    const achievements = catalogs[1]
+    expect(achievements?.source).toBe('/g/messages/achievements/en.json')
+    expect(achievements?.translation('ja')).toBe('/g/messages/achievements/ja.json')
+    expect(achievements?.record).toBe('/g/words-sources.json')
+  })
+
   it('finds the interface catalog in src/messages/ui when that is where the game keeps it', async () => {
     const catalogs = await run({ '/g/src/messages/ui/en.json': '{}' })
     expect(catalogs.map((c) => c.name)).toEqual(['ui'])
@@ -78,5 +88,30 @@ describe('gameCatalogs', () => {
     expect((await run({ '/g/messages/ui/pt-BR.json': '{}' }, 'pt-BR'))[0]?.source).toBe(
       '/g/messages/ui/pt-BR.json',
     )
+  })
+})
+
+describe('achievementWords', () => {
+  it('derives a title and a description key for each achievement, in id order', () => {
+    expect(
+      achievementWords({
+        'top-ten': {
+          title: 'Top 10%',
+          description: 'Stand in the top tenth.',
+          board: 'b',
+          goal: { top_percent: 10 },
+        },
+        'score-20': { title: 'Twenty', description: 'Score 20.', board: 'b', goal: { reach: 20 } },
+      }),
+    ).toEqual({
+      achievement_score_20_title: 'Twenty',
+      achievement_score_20_description: 'Score 20.',
+      achievement_top_ten_title: 'Top 10%',
+      achievement_top_ten_description: 'Stand in the top tenth.',
+    })
+  })
+
+  it('has no words for a game with no achievements', () => {
+    expect(achievementWords(undefined)).toEqual({})
   })
 })

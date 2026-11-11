@@ -1,6 +1,6 @@
 ---
 name: automata-verify
-description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, orientation, inputs, levels, no-eval, data URLs, CSP). Use when automata check or the Automata hook reports findings.
+description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, achievements, orientation, inputs, levels, no-eval, data URLs, CSP). Use when automata check or the Automata hook reports findings.
 ---
 
 # Running and reading `automata check`
@@ -14,6 +14,7 @@ folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp]
 | `typecheck` | `tsc -p . --noEmit` | never |
 | `test` | `vitest run` | never |
 | `boards` | the leaderboards the sources name, against `ship.config.ts`'s `leaderboards` | `--sim-only` |
+| `achievements` | each achievement in `ship.config.ts` names one of the game's `leaderboards` and one goal, and its source words match | `--sim-only` |
 | `orientation` | the `orientation` each `defineGame` plays in, against `ship.config.ts`'s `runtime.orientation` | `--sim-only` |
 | `inputs` | the devices the sources' `keys()` calls bind, against `ship.config.ts`'s `runtime.inputs` | `--sim-only` |
 | `levels` | each level project the editor list's `exports` rows name, exported again and compared with the game files on disk | `--sim-only`, or a game with no such row |
@@ -88,6 +89,13 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 | Rule | Means | Fix |
 |---|---|---|
 | `undeclared-board` | A `scores` entry, `submitScore` or `readBoard` names a board `ship.config.ts` does not declare under `leaderboards` | Declare the board (`order`, `min`, `max`), or fix the name's spelling |
+
+### `achievements` (every achievement names a board and one goal)
+
+| Rule | Means | Fix |
+|---|---|---|
+| `achievement-invalid` | An achievement in `ship.config.ts` names a board the game does not declare under `leaderboards`, or its `goal` is not exactly one of `reach` (a number) and `top_percent` (above 0, at most 100), or its text is empty | Fix the declaration the message names |
+| `achievement-words` | `messages/achievements/en.json`, the achievements' source words, is missing or has fallen behind the titles and descriptions in `ship.config.ts` | Run `automata words`, which rewrites it and translates what changed |
 
 ### `orientation` (the game and the ship config must agree)
 

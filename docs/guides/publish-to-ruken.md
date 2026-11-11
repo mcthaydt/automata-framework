@@ -13,6 +13,28 @@ to `hosting.wants` in `defineGame` for the game to be allowed to ask.
   comes with `@automata/framework`, so there is nothing else to install.
 - Publishing needs `RUKEN_API` (the Ruken instance) and `RUKEN_TOKEN`.
 
+## Achievements
+
+Declare achievements in `ship.config.ts`, beside the leaderboards. A declaration is the framework's own idea, not
+Ruken's: an id, a title, a description and one goal on one of your boards, either `reach` a score or stand in the
+`top_percent` of players.
+
+```ts
+leaderboards: { best: { order: 'desc', min: 0, max: 999, title: 'Best score' } },
+achievements: {
+  'score-20': { title: 'Twenty', description: 'Score 20.', board: 'best', goal: { reach: 20 } },
+  'top-ten': { title: 'Top 10%', description: 'Stand in the top tenth.', board: 'best', goal: { top_percent: 10 } },
+},
+```
+
+`automata check` reports an achievement whose board is not one of yours or whose goal is not exactly one of the two.
+`prepare --target ruken` writes each into `ruken.toml` and checks the result with Ruken's own parser; Ruken awards a
+top share of 1, 5, 10 or 25 percent, so any other share is refused with that list, and Ruken's own limits (a title of
+48 characters, a description of 120, 50 achievements, no id starting `ruken-`) are said in plain words. The web, itch.io
+and desktop builds have no achievements: the declaration is accepted and nothing is drawn or stored. Titles and
+descriptions are words like the rest: `automata words` writes `messages/achievements/en.json` from the declaration and
+translates it into every language the game ships. Ruken's manifest carries one language today, so it gets the source text.
+
 ## Build and package
 
 ```sh

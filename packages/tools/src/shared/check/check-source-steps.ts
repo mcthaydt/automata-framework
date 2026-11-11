@@ -1,6 +1,8 @@
 import { join } from 'node:path'
+import { gameConfigSchema } from '@automata/content/game-config'
 import { Effect } from 'effect'
 import { Files, type FilesService } from '../node/files.ts'
+import { ShipConfigLoader } from '../node/ship-config-loader.ts'
 import { boardNamesIn, declaredBoardsIn, isBoardSource } from '../ship/prepare/board-names.ts'
 import { declaredInputsIn, isInputsSource, keysBindingsIn } from '../ship/prepare/input-bindings.ts'
 import {
@@ -9,6 +11,7 @@ import {
   isOrientationSource,
 } from '../ship/prepare/orientation.ts'
 import { inputsProblems, type ShipInputBindings } from '../ship/targets/ruken/check-inputs.ts'
+import { ACHIEVEMENTS_FOLDER, achievementWords } from '../words/achievement-words.ts'
 import type { CheckFinding } from './check-report.ts'
 import type { StepEffect } from './check-tool.ts'
 import { CheckToolError } from './csp-probe.ts'
@@ -142,4 +145,64 @@ export const inputsStep = (gameDir: string): StepEffect =>
       rule: 'inputs-mismatch',
       message,
     }))
+  })
+
+/**
+ * What the framework's own schema refuses in the game's `achievements`, in plain words. It reads the whole of
+ * `ship.config.ts` through the loader (a goal and a board are values, which the text scans above cannot read), so a
+ * config that will not load is a tool error, never a pass. No `ship.config.ts`, or no achievements: no findings.
+ * Ruken's own limits (a title's length, how many) are checked by `ship prepare --target ruken`, where they apply.
+ */
+export const achievementsStep = (gameDir: string): StepEffect =>
+  Effect.gen(function* () {
+    const files = yield* Files
+    const toolError = toolErrorFor('achievements')
+    if (!(yield* files.exists(join(gameDir, 'ship.config.ts')))) return []
+    const loader = yield* ShipConfigLoader
+    const config = yield* Effect.mapError(loader.load(gameDir), (error) => toolError(error.message))
+    if (config.achievements === undefined) return []
+    const result = gameConfigSchema.safeParse(config)
+    if (result.success) return yield* wordsFindings(files, gameDir, config.achievements)
+    return result.error.issues
+      .filter((issue) => issue.path[0] === 'achievements')
+      .map((issue): CheckFinding => {
+        const [, id, field] = issue.path
+        // A goal that fits neither shape is the union's own "Invalid input": say what a goal needs.
+        const message =
+          field === 'goal'
+            ? `achievement "${String(id)}": its goal needs exactly one of reach and top_percent (above 0, at most 100)`
+            : issue.code === 'custom'
+              ? issue.message
+              : `achievement "${String(id)}": ${issue.path.slice(2).map(String).join('.') || 'it'} ${issue.message.toLowerCase()}`
+        return { file: 'ship.config.ts', line: 0, col: 0, rule: 'achievement-invalid', message }
+      })
+  })
+
+/**
+ * Whether the achievements' source words on disk say what `ship.config.ts` declares. `automata words` writes that file,
+ * so a missing or stale one only means the command has not been run since the declaration changed.
+ */
+const wordsFindings = (
+  files: FilesService,
+  gameDir: string,
+  achievements: Parameters<typeof achievementWords>[0],
+): Effect.Effect<CheckFinding[]> =>
+  Effect.gen(function* () {
+    const file = `${ACHIEVEMENTS_FOLDER}/en.json`
+    const finding = (message: string): CheckFinding[] => [
+      { file, line: 0, col: 0, rule: 'achievement-words', message },
+    ]
+    if (!(yield* files.exists(join(gameDir, file)))) return finding(`${file} is missing: run automata words`)
+    const text = yield* files.readText(join(gameDir, file)).pipe(Effect.orElseSucceed(() => ''))
+    let written: Record<string, unknown> = {}
+    try {
+      written = JSON.parse(text) as Record<string, unknown>
+    } catch {
+      // An unreadable file is as stale as an out-of-date one.
+    }
+    const { $schema: _schema, ...words } = written
+    return JSON.stringify(Object.entries(words).sort()) ===
+      JSON.stringify(Object.entries(achievementWords(achievements)).sort())
+      ? []
+      : finding(`${file} is out of date with the achievements in ship.config.ts: run automata words`)
   })

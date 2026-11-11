@@ -1,9 +1,10 @@
 import { Clock, Effect } from 'effect'
 import type { Files } from '../node/files.ts'
 import type { ProcessRunner } from '../node/process-runner.ts'
+import type { ShipConfigLoader } from '../node/ship-config-loader.ts'
 import { wordsStep } from '../words/words-step.ts'
 import { type CheckReport, reportOf, type StepName, type StepResult } from './check-report.ts'
-import { boardsStep, inputsStep, orientationStep } from './check-source-steps.ts'
+import { achievementsStep, boardsStep, inputsStep, orientationStep } from './check-source-steps.ts'
 import {
   boundariesStep,
   cspStep,
@@ -37,6 +38,7 @@ const STEPS: readonly Step[] = [
   ['typecheck', typecheckStep],
   ['test', testStep],
   ['boards', boardsStep],
+  ['achievements', achievementsStep],
   ['orientation', orientationStep],
   ['inputs', inputsStep],
   ['levels', levelsStep],
@@ -50,6 +52,7 @@ const STEPS: readonly Step[] = [
 /** The steps that run without `--sim-only`: the source scans, the build and what reads it. */
 const NEEDS_SOURCES: ReadonlySet<StepName> = new Set([
   'boards',
+  'achievements',
   'orientation',
   'inputs',
   'levels',
@@ -87,7 +90,7 @@ function distNotScanned(results: readonly StepResult[]): string | undefined {
 
 export function runCheck(
   options: RunCheckOptions,
-): Effect.Effect<CheckReport, never, ProcessRunner | Files | CspProbe> {
+): Effect.Effect<CheckReport, never, ProcessRunner | Files | CspProbe | ShipConfigLoader> {
   return Effect.gen(function* () {
     const results: StepResult[] = []
     for (const [name, step] of stepsFor(options)) {

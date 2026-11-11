@@ -15,6 +15,7 @@ import { TEMPLATES, type TemplateKind } from '../shared/create-game/template-fil
 import { threeDAvailable } from '../shared/create-game/three-d-gate.ts'
 import { FilesLive } from '../shared/node/files.ts'
 import { ProcessRunnerLive } from '../shared/node/process-runner.ts'
+import { ShipConfigLoaderLive } from '../shared/node/ship-config-loader.ts'
 import { parseWordsArgs, type WordsOptions } from '../shared/words/words-args.ts'
 import { type CliIo, PROCESS_IO } from './cli-io.ts'
 import { BUILD_HELP, CHECK_HELP, createGameHelp, ROOT_HELP, WORDS_HELP } from './help.ts'
@@ -70,7 +71,10 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
 /** Runs `automata check` with the real processes, files and browser. */
 export const runCheckLive = (options: RunCheckOptions): Promise<CheckReport> =>
   Effect.runPromise(
-    Effect.provide(runCheck(options), Layer.mergeAll(FilesLive, ProcessRunnerLive, CspProbeLive)),
+    Effect.provide(
+      runCheck(options),
+      Layer.mergeAll(FilesLive, ProcessRunnerLive, CspProbeLive, ShipConfigLoaderLive),
+    ),
   )
 
 /** Runs `automata build` with the real processes and files. */

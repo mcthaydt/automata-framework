@@ -1,7 +1,9 @@
+import { join } from 'node:path'
 import { Effect } from 'effect'
 import type { FileError } from '../node/errors.ts'
 import { Files, type FilesService } from '../node/files.ts'
 import { ShipConfigLoader } from '../node/ship-config-loader.ts'
+import { ACHIEVEMENTS_FOLDER, achievementWords } from './achievement-words.ts'
 import {
   CATALOG_SCHEMA,
   type Catalog,
@@ -118,6 +120,20 @@ function setupFor(options: WordsOptions): Effect.Effect<Setup, Problem, Files | 
         options.to !== undefined ? [options.to] : DEFAULT_LANGUAGES.filter((lang) => lang !== options.source)
       return { catalogs: [folderCatalog(options.catalog, options.source)], languages, model: undefined }
     }
+    // The achievements' source is derived from the declaration, so it is brought up to date before the catalogs are
+    // found: a game that declares achievements always has the catalog, and a changed title is a stale translation.
+    const loader = yield* ShipConfigLoader
+    const config = yield* loader
+      .load(options.dir)
+      .pipe(Effect.mapError((error) => new Problem(error.message)))
+    if (config.achievements !== undefined) {
+      const path = join(options.dir, ACHIEVEMENTS_FOLDER, `${options.source}.json`)
+      const text = sortedJson({ $schema: CATALOG_SCHEMA, ...achievementWords(config.achievements) })
+      const current = (yield* files.exists(path))
+        ? yield* Effect.orElseSucceed(files.readText(path), () => '')
+        : undefined
+      if (current !== text) yield* Effect.mapError(files.writeText(path, text), fileProblem)
+    }
     const catalogs = yield* gameCatalogs(options.dir, options.source)
     if (catalogs.length === 0) {
       return yield* Effect.fail(
@@ -126,10 +142,6 @@ function setupFor(options: WordsOptions): Effect.Effect<Setup, Problem, Files | 
         ),
       )
     }
-    const loader = yield* ShipConfigLoader
-    const config = yield* loader
-      .load(options.dir)
-      .pipe(Effect.mapError((error) => new Problem(error.message)))
     if (options.to !== undefined) return { catalogs, languages: [options.to], model: config.words?.model }
     const found = new Set<string>(config.content.languages)
     for (const catalog of catalogs)

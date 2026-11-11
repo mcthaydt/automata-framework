@@ -38,6 +38,23 @@ export interface LeaderboardConfig {
   readonly title?: string
 }
 
+/**
+ * One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its
+ * players. It names no host: each target maps what its host can award and says so when it cannot.
+ */
+export type AchievementGoal = { readonly reach: number } | { readonly top_percent: number }
+
+/** An achievement a game declares beside its leaderboards: a title, a description and one goal on one board. */
+export interface AchievementConfig {
+  /** Shown to the player, in the source language; `automata words` translates it. */
+  readonly title: string
+  /** What to do to earn it, in the source language. */
+  readonly description: string
+  /** The key of one of the config's `leaderboards`. */
+  readonly board: string
+  readonly goal: AchievementGoal
+}
+
 /** What every target knows about a game. */
 export interface GameConfig {
   readonly game: {
@@ -68,41 +85,76 @@ export interface GameConfig {
   /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
   readonly loading?: { readonly preload: readonly string[] }
   readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>
+  /**
+   * Achievements, by id. Declared once, in the game's own terms: a host that awards achievements maps them (Ruken
+   * writes them into its manifest); a host with none accepts the declaration and does nothing with it.
+   */
+  readonly achievements?: Readonly<Record<string, AchievementConfig>>
 }
 
+/** One goal: exactly one of `reach` (a number) and `top_percent` (above 0, at most 100). */
+const goalSchema: z.ZodType<AchievementGoal> = z.union([
+  z.strictObject({ reach: z.number() }),
+  z.strictObject({ top_percent: z.number().gt(0).max(100) }),
+])
+
 /** Checks a game's config. */
-export const gameConfigSchema: z.ZodType<GameConfig> = z.object({
-  game: z.object({
-    id: z.string().regex(GAME_ID_PATTERN, 'must be lower-case letters, digits and hyphens, at most 64'),
-    title: z.string().min(1),
-    version: z.string().min(1),
-    entry: z.string().min(1),
-    sdk: z.string().exactOptional(),
-  }),
-  runtime: z.object({
-    renderer: z.enum(RENDERERS),
-    orientation: z.enum(ORIENTATIONS),
-    inputs: z.array(z.enum(INPUTS)),
-    pause_behavior: z.enum(['pause', 'continue']),
-  }),
-  network: z.object({ connect: z.array(z.string()) }),
-  content: z.object({
-    languages: z.array(z.string()),
-    rating: z.enum(RATINGS),
-    estimated_hours: z.number().exactOptional(),
-    descriptors: z.array(z.string()),
-  }),
-  analytics: z.object({ custom_events: z.array(z.string()) }).exactOptional(),
-  loading: z.object({ preload: z.array(z.string()) }).exactOptional(),
-  leaderboards: z
-    .record(
-      z.string(),
-      z.object({
-        order: z.enum(LEADERBOARD_ORDERS),
-        min: z.number(),
-        max: z.number(),
-        title: z.string().exactOptional(),
-      }),
-    )
-    .exactOptional(),
-})
+export const gameConfigSchema: z.ZodType<GameConfig> = z
+  .object({
+    game: z.object({
+      id: z.string().regex(GAME_ID_PATTERN, 'must be lower-case letters, digits and hyphens, at most 64'),
+      title: z.string().min(1),
+      version: z.string().min(1),
+      entry: z.string().min(1),
+      sdk: z.string().exactOptional(),
+    }),
+    runtime: z.object({
+      renderer: z.enum(RENDERERS),
+      orientation: z.enum(ORIENTATIONS),
+      inputs: z.array(z.enum(INPUTS)),
+      pause_behavior: z.enum(['pause', 'continue']),
+    }),
+    network: z.object({ connect: z.array(z.string()) }),
+    content: z.object({
+      languages: z.array(z.string()),
+      rating: z.enum(RATINGS),
+      estimated_hours: z.number().exactOptional(),
+      descriptors: z.array(z.string()),
+    }),
+    analytics: z.object({ custom_events: z.array(z.string()) }).exactOptional(),
+    loading: z.object({ preload: z.array(z.string()) }).exactOptional(),
+    leaderboards: z
+      .record(
+        z.string(),
+        z.object({
+          order: z.enum(LEADERBOARD_ORDERS),
+          min: z.number(),
+          max: z.number(),
+          title: z.string().exactOptional(),
+        }),
+      )
+      .exactOptional(),
+    achievements: z
+      .record(
+        z.string().regex(GAME_ID_PATTERN, 'must be lower-case letters, digits and hyphens, at most 64'),
+        z.strictObject({
+          title: z.string().min(1),
+          description: z.string().min(1),
+          board: z.string().min(1),
+          goal: goalSchema,
+        }),
+      )
+      .exactOptional(),
+  })
+  .superRefine((config, ctx) => {
+    // An achievement scores on a board, so the board has to be one this game declares.
+    for (const [id, achievement] of Object.entries(config.achievements ?? {})) {
+      if (config.leaderboards?.[achievement.board] === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['achievements', id, 'board'],
+          message: `achievement "${id}": its board "${achievement.board}" is not one of this game's leaderboards`,
+        })
+      }
+    }
+  })

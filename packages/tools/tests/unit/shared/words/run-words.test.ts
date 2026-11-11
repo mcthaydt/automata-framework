@@ -19,6 +19,8 @@ interface Setup {
   readonly languages?: readonly string[]
   readonly answers?: (request: TranslationRequest) => string | undefined
   readonly key?: boolean
+  /** The achievements `ship.config.ts` declares, when the game has any. */
+  readonly achievements?: Record<string, { title: string; description: string }>
 }
 
 async function run(args: readonly string[], setup: Setup = {}) {
@@ -39,7 +41,11 @@ async function run(args: readonly string[], setup: Setup = {}) {
     },
   })
   const config = Layer.succeed(ShipConfigLoader, {
-    load: () => Effect.succeed({ content: { languages: setup.languages ?? ['en', 'ja'] } } as never),
+    load: () =>
+      Effect.succeed({
+        content: { languages: setup.languages ?? ['en', 'ja'] },
+        ...(setup.achievements === undefined ? {} : { achievements: setup.achievements }),
+      } as never),
   })
   const parsed = parseWordsArgs(args)
   if (!parsed.ok) throw new Error(parsed.problem)
@@ -52,6 +58,50 @@ async function run(args: readonly string[], setup: Setup = {}) {
 const GAME = '/g'
 const UI = `${GAME}/messages/ui`
 const base = { [`${UI}/en.json`]: json({ play: 'Play', more: '+{count} more' }) }
+
+describe('runWords: achievements', () => {
+  const achievements = { 'score-20': { title: 'Twenty', description: 'Score 20.' } }
+
+  it('writes the achievements source from ship.config.ts, then translates it like any catalog', async () => {
+    const result = await run(['--dir', GAME], { achievements })
+    const source = JSON.parse(result.files.get(`${GAME}/messages/achievements/en.json`) ?? '{}')
+    expect(source).toEqual({
+      $schema: SCHEMA,
+      achievement_score_20_title: 'Twenty',
+      achievement_score_20_description: 'Score 20.',
+    })
+    expect(result.requests.map((r) => `${r.lang}:${r.key}`).sort()).toEqual([
+      'ja:achievement_score_20_description',
+      'ja:achievement_score_20_title',
+    ])
+    expect(JSON.parse(result.files.get(`${GAME}/messages/achievements/ja.json`) ?? '{}')).toMatchObject({
+      achievement_score_20_title: '[ja] Twenty',
+    })
+  })
+
+  it('follows a changed title: the source is rewritten and the old translation is stale', async () => {
+    const first = await run(['--dir', GAME], { achievements })
+    const second = await run(['--dir', GAME], {
+      achievements: { 'score-20': { title: 'Twenty points', description: 'Score 20.' } },
+      files: Object.fromEntries(first.files),
+    })
+    expect(
+      JSON.parse(second.files.get(`${GAME}/messages/achievements/en.json`) ?? '{}')
+        .achievement_score_20_title,
+    ).toBe('Twenty points')
+    expect(second.requests.map((r) => r.key)).toEqual(['achievement_score_20_title'])
+  })
+
+  it('a game with no achievements gets no achievements catalog', async () => {
+    const result = await run(['--dir', GAME], { files: base })
+    expect(result.files.has(`${GAME}/messages/achievements/en.json`)).toBe(false)
+  })
+
+  it('--catalog never reads ship.config.ts, so it writes no achievements source', async () => {
+    const result = await run(['--catalog', `${GAME}/messages/ui`], { files: base, achievements })
+    expect(result.files.has(`${GAME}/messages/achievements/en.json`)).toBe(false)
+  })
+})
 
 describe('runWords', () => {
   it('translates every missing and stale word into every shipped language, and records their sources', async () => {

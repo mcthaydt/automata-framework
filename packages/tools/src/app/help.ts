@@ -37,6 +37,7 @@ Checks a game one step after another and says what to fix. <folder> is the game 
   typecheck     the code has no type errors
   test          the game's own tests pass
   boards        every leaderboard the code uses is listed in ship.config.ts
+  achievements  every achievement names one of the game's boards and one goal
   orientation   the way the game turns on a phone matches ship.config.ts
   inputs        the controls the code reads match ship.config.ts
   levels        a level and the game files saved from it match (for a game whose editor list sets exports)

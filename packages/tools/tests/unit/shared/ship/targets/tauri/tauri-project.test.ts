@@ -48,6 +48,15 @@ describe('tauriProjectFiles', () => {
     })
   })
 
+  it('writes the same project for a config with achievements: the desktop has none', () => {
+    const declared = {
+      ...config,
+      leaderboards: { best: { order: 'desc', min: 0, max: 9 } },
+      achievements: { win: { title: 'Win', description: 'Win once.', board: 'best', goal: { reach: 5 } } },
+    } as const
+    expect(tauriProjectFiles(declared, settings, '../../../dist')).toEqual(files)
+  })
+
   it('pins every crate exactly, at versions released at least 14 days before they were chosen', () => {
     const cargo = files['Cargo.toml'] as string
     for (const [crate, version] of Object.entries(CRATE_PINS))

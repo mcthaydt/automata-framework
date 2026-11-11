@@ -1011,6 +1011,35 @@ function tracksFrom(found: Readonly<Record<string, string>>): Readonly<Record<st
 
 ### `import { … } from '@automata/content'`
 
+#### `AchievementConfig` (interface)
+
+An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
+
+```ts
+interface AchievementConfig {
+  /** Shown to the player, in the source language; `automata words` translates it. */
+  readonly title: string;
+  /** What to do to earn it, in the source language. */
+  readonly description: string;
+  /** The key of one of the config's `leaderboards`. */
+  readonly board: string;
+  readonly goal: AchievementGoal;
+}
+```
+
+#### `AchievementGoal` (type)
+
+One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its
+players. It names no host: each target maps what its host can award and says so when it cannot.
+
+```ts
+type AchievementGoal = {
+  readonly reach: number;
+} | {
+  readonly top_percent: number;
+};
+```
+
 #### `AssetsSource` (interface)
 
 What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
@@ -1408,6 +1437,11 @@ interface GameConfig {
     readonly preload: readonly string[];
   };
   readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+  /**
+   * Achievements, by id. Declared once, in the game's own terms: a host that awards achievements maps them (Ruken
+   * writes them into its manifest); a host with none accepts the declaration and does nothing with it.
+   */
+  readonly achievements?: Readonly<Record<string, AchievementConfig>>;
 }
 ```
 
@@ -2044,6 +2078,35 @@ type StickDirection = (typeof STICK_DIRECTIONS)[number];
 
 ### `import { … } from '@automata/content/game-config'`
 
+#### `AchievementConfig` (interface)
+
+An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
+
+```ts
+interface AchievementConfig {
+  /** Shown to the player, in the source language; `automata words` translates it. */
+  readonly title: string;
+  /** What to do to earn it, in the source language. */
+  readonly description: string;
+  /** The key of one of the config's `leaderboards`. */
+  readonly board: string;
+  readonly goal: AchievementGoal;
+}
+```
+
+#### `AchievementGoal` (type)
+
+One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its
+players. It names no host: each target maps what its host can award and says so when it cannot.
+
+```ts
+type AchievementGoal = {
+  readonly reach: number;
+} | {
+  readonly top_percent: number;
+};
+```
+
 #### `GAME_ID_PATTERN` (const)
 
 A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
@@ -2092,6 +2155,11 @@ interface GameConfig {
     readonly preload: readonly string[];
   };
   readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+  /**
+   * Achievements, by id. Declared once, in the game's own terms: a host that awards achievements maps them (Ruken
+   * writes them into its manifest); a host with none accepts the declaration and does nothing with it.
+   */
+  readonly achievements?: Readonly<Record<string, AchievementConfig>>;
 }
 ```
 

@@ -4,6 +4,27 @@
 
 ## `.`
 
+### `AchievementConfig` (interface)
+
+```ts
+interface AchievementConfig {
+    readonly title: string;
+    readonly description: string;
+    readonly board: string;
+    readonly goal: AchievementGoal;
+}
+```
+
+### `AchievementGoal` (type)
+
+```ts
+type AchievementGoal = {
+    readonly reach: number;
+} | {
+    readonly top_percent: number;
+};
+```
+
 ### `AssetsSource` (interface)
 
 ```ts
@@ -285,6 +306,7 @@ interface GameConfig {
         readonly preload: readonly string[];
     };
     readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+    readonly achievements?: Readonly<Record<string, AchievementConfig>>;
 }
 ```
 
@@ -753,6 +775,27 @@ type StickDirection = (typeof STICK_DIRECTIONS)[number];
 
 ## `./game-config`
 
+### `AchievementConfig` (interface)
+
+```ts
+interface AchievementConfig {
+    readonly title: string;
+    readonly description: string;
+    readonly board: string;
+    readonly goal: AchievementGoal;
+}
+```
+
+### `AchievementGoal` (type)
+
+```ts
+type AchievementGoal = {
+    readonly reach: number;
+} | {
+    readonly top_percent: number;
+};
+```
+
 ### `GAME_ID_PATTERN` (const)
 
 ```ts
@@ -792,6 +835,7 @@ interface GameConfig {
         readonly preload: readonly string[];
     };
     readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+    readonly achievements?: Readonly<Record<string, AchievementConfig>>;
 }
 ```
 

@@ -7,6 +7,7 @@ export const STEP_NAMES = [
   'typecheck',
   'test',
   'boards',
+  'achievements',
   'orientation',
   'inputs',
   'levels',

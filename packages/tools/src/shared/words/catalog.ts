@@ -1,6 +1,7 @@
 import { basename, dirname, join } from 'node:path'
 import { Effect } from 'effect'
 import { Files, type FilesService } from '../node/files.ts'
+import { ACHIEVEMENTS_FOLDER } from './achievement-words.ts'
 
 // A game's words are message catalogs: flat `key -> text` JSON in the inlang message format, with a `{name}` slot
 // wherever the text needs a name or a number. What `automata words` and `automata check` share about them lives
@@ -77,7 +78,8 @@ const UI_FOLDERS = ['messages/ui', 'src/messages/ui'] as const
 /**
  * A game's catalogs. `content` is the words its content compiles to (the source in `content/generated/messages`, each
  * translation in `content/messages`), found when the source file exists. `ui` is the interface words, in the first of
- * `messages/ui` and `src/messages/ui` that holds the source language's file. Both are recorded in the game's one
+ * `messages/ui` and `src/messages/ui` that holds the source language's file. `achievements` is the achievements' words in
+ * `messages/achievements`. All are recorded in the game's one
  * `words-sources.json` at its root, never inside `content/messages`, where the content compiler would read it as a
  * translation.
  */
@@ -104,6 +106,11 @@ export function gameCatalogs(
       if (!(yield* files.exists(join(dir, `${sourceLanguage}.json`)))) continue
       found.push({ ...folderCatalog(dir, sourceLanguage), name: 'ui', record })
       break
+    }
+    // The achievements' words: the source is derived from `ship.config.ts` (`automata words` writes it).
+    const achievements = join(gameDir, ACHIEVEMENTS_FOLDER)
+    if (yield* files.exists(join(achievements, `${sourceLanguage}.json`))) {
+      found.push({ ...folderCatalog(achievements, sourceLanguage), name: 'achievements', record })
     }
     return found
   })

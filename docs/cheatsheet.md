@@ -108,6 +108,8 @@
 
 ### `import { … } from '@automata/content'`
 
+- `AchievementConfig` (interface): An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
+- `AchievementGoal` (type): One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its players.
 - `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and `fonts.toml`.
 - `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
 - `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
@@ -208,6 +210,8 @@
 
 ### `import { … } from '@automata/content/game-config'`
 
+- `AchievementConfig` (interface): An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
+- `AchievementGoal` (type): One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its players.
 - `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
 - `GameConfig` (interface): What every target knows about a game.
 - `gameConfigSchema` (const): Checks a game's config.
