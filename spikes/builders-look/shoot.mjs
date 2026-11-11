@@ -5,24 +5,28 @@
 //   figures-*.png          FigureBuilder's base pair and its lit sheet; AF's painted figures (characterkit-painted)
 //   shots.json             what each panel drew, its mean brightness (0 to 255) and its count of colours
 //
-// The builders' own frames are in builders/ beside this file (EnvironmentBuilder f7c5356: `npm run render -- dir`;
+// The builders' own frames are in the survey's builders/ folder (EnvironmentBuilder f7c5356: `npm run render -- dir`;
 // FigureBuilder 23f889c: `DENSITY=2 npm run render -- dir` and `npm run lit -- dir/lit`), so a later shoot needs
 // neither repository. A second argument names another folder of such frames.
 //
+// It lives in spikes/ (which knip and biome leave alone, as they do every spike) and writes into the survey's folder,
+// docs/superpowers/audits/builders-look-survey/, unless told another.
+//
 //   ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules      # once; git-ignored
 //   pnpm --filter @af-examples/examples-3d build                            # for figures-af-painted.png
-//   node docs/superpowers/audits/builders-look-survey/shoot.mjs [out dir] [builders' frames dir]
+//   node spikes/builders-look/shoot.mjs [out dir] [builders' frames dir]
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { extname, join } from 'node:path'
 
-const repo = new URL('../../../..', import.meta.url).pathname
+const repo = new URL('../..', import.meta.url).pathname
 const require = createRequire(join(repo, 'packages/3d/package.json'))
 const { chromium } = require('playwright')
-const out = process.argv[2] ?? import.meta.dirname
-const EB_DIR = process.argv[3] ?? join(import.meta.dirname, 'builders')
+const survey = join(repo, 'docs/superpowers/audits/builders-look-survey')
+const out = process.argv[2] ?? survey
+const EB_DIR = process.argv[3] ?? join(survey, 'builders')
 const FB_DIR = EB_DIR
 mkdirSync(out, { recursive: true })
 const SCENES = ['base-interior', 'base-interior-dressed', 'base-exterior', 'base-exterior-dressed']
