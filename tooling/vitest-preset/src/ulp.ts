@@ -1,8 +1,11 @@
-// The last bit of the maths library, moved on purpose. `Math.sin` and `Math.cos` may differ from one machine to the next in
-// their last bit (a library built with fused multiply-add gives the Macs' answer, not x64's); a painter that is right gives the
-// same cell either way, and a Linux x64 run has no other arch to try. This wraps the functions and moves each result one unit in
-// the last place, by a seeded generator, for the length of one run. It is FigureBuilder's `tests/support/ulp.ts`, written again
-// here because the door hands over the builder's `src`, not its tests.
+/**
+ * The last bit of the maths library, moved on purpose, for the drawing tests of the figure painter and the character kit.
+ *
+ * `Math.sin` and `Math.cos` may differ from one machine to the next in their last bit (a library built with fused
+ * multiply-add gives the Macs' answer, not x64's). A painter that is right gives the same cell either way, and a Linux x64
+ * run has no other arch to try, so this wraps the functions and moves each result one unit in the last place, by a seeded
+ * generator, for the length of one run.
+ */
 const NAMES = [
   'sin',
   'cos',
@@ -22,7 +25,7 @@ const f64 = new Float64Array(1)
 const u64 = new BigUint64Array(f64.buffer)
 
 /** The double one unit in the last place from `x`, toward +Infinity (`dir` 1) or -Infinity (`dir` -1). */
-function step(x: number, dir: 1 | -1): number {
+export function step(x: number, dir: 1 | -1): number {
   f64[0] = x
   // A positive double's bit pattern grows with its value; a negative one's shrinks.
   u64[0] = (u64[0] ?? 0n) + (x > 0 === dir > 0 ? 1n : -1n)

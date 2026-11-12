@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto'
+import { nudged, step } from '@automata/vitest-preset/ulp'
 import { describe, expect, it, vi } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import type { HeadForm } from '#src/shared/body/head.ts'
 import { member, standing } from '#src/shared/figure/frames.ts'
 import { grid } from '#src/shared/hair/hair.ts'
 import type { V3 } from '#src/shared/math/math.ts'
-import { nudged, step } from '../../fixtures/ulp'
 
 /** How the head's form is read in this file: left as it is (0), or each of its numbers a last bit up (1) or down (-1). */
 const form = vi.hoisted(() => ({ dir: 0 as -1 | 0 | 1, calls: 0, size: 0 }))

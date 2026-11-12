@@ -247,7 +247,7 @@ its gate was red (B1); the 4d wording.
 
 ## Fixes
 
-**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 7 of 16 findings answered (44%)**; the
+**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 8 of 16 findings answered (50%)**; the
 table is updated as each fix commits. The commit column holds the short hash once the fix is committed.
 
 | Finding | Commit | What changed | How it is proved, or why it is left |
@@ -264,7 +264,7 @@ table is updated as each fix commits. The commit column holds the short hash onc
 | N4 | this commit | `automata-check-boundaries --confine <package>:<folder> <root>...` (`packages/tools/src/features/boundaries/confine.ts`, rule `confined-import`, the `--forbid` reader with the folder exempt); `pnpm boundaries` runs it as `--confine @automata/figures:extensions/character-kit/src/shared/figures packages extensions games examples tooling`; the verify skill's rule table has the row; a patch changeset for `@automata/tools` (a published package) | `confine.test.ts` (4 cases: the door and its subpaths pass; any other source and test fail naming the specifier and the door; `door-2` is not the door; a lookalike package is not the package) and two CLI cases in `cli.test.ts` (exit 0 / 1 / 2) failed first (missing module, exit 1 for a flag it did not know). Run on the real tree: 4,795 files, 0 findings; with a probe `games/emberwick/src/probe/p.ts` importing `@automata/figures` (removed again): `confined-import … which only extensions/character-kit/src/shared/figures may use`, exit 1 |
 | N5 | | | |
 | N6 | | | |
-| N7 | | | |
+| N7 | this commit | One copy: `tooling/vitest-preset/src/ulp.ts` (`step`, `nudged`; exported as `@automata/vitest-preset/ulp`, a devDependency both packages already have); the painter's and the kit's `fixtures/ulp.ts` are deleted and their three tests import it. The kit's copy was kept (it compiles under the strict flags the painter's does not have yet, and the old reason, "the door hands over the builder's src", is gone) | `tooling/vitest-preset/tests/unit/ulp.test.ts` (3 cases: `step` up and down for both signs, `nudged` moves results by a last bit only and restores `Math`, also when the run throws; seed 0 nudges nothing) failed first (module missing). The painter's `hair/ulp.test.ts` (goldens project, 5 pass) and the kit's `fashion/ulp.test.ts` (1 pass), both typechecks, the preset's 19 tests |
 | N8 | | | |
 | N9 | | | |
 | N10 | | | |
