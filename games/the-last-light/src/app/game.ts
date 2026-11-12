@@ -1,6 +1,6 @@
 import { content } from 'virtual:automata/content'
 import { createPixi3dRenderer, render3dExtension } from '@automata/3d'
-import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
+import { cameraYawPlugin, STICK_MAX } from '@automata/3d/sim'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
 import { prefersReducedMotion, typedFor } from '@automata/narrative'
 import { sectorsExtension } from '@automata/sectors'
@@ -19,7 +19,6 @@ import {
 } from '../features/figures/figure-view.ts'
 import { LIGHTING, MODEL_FILES, TIME } from '../features/room/room.ts'
 import { Ada } from '../shared/ada.component.ts'
-import { TICK_HZ } from '../shared/constants.ts'
 import { audio, SOUND_FILES } from './audio.ts'
 import { playOf } from './content.ts'
 import { BAR_FRACTION, fieldOfWindow } from './field.ts'
@@ -30,7 +29,7 @@ import { actCard, playControls, playHud } from './play.extension.ts'
 import { createRuntime, navigation } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
 import { cutsceneShot, sceneOf } from './stage.ts'
-import { cameraTurnUnits, moveFromStick } from './touch-controls.ts'
+import { CAMERA_INPUT, moveFromStick } from './touch-controls.ts'
 import { lineOf, SCRIPTS, wordsOf } from './words.ts'
 
 const PLAY = playOf(content)
@@ -46,10 +45,7 @@ const RUNTIME = createRuntime(PLAY, {
     typedFor(words, delivery, seconds, { reducedMotion: prefersReducedMotion() }),
 })
 
-/** The keyboard turns the camera 120 degrees a second: 65,536 units a turn, about 364 units a tick. */
-const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
-
-// WASD and the arrows walk; the camera turns with Q and E. The lamp, the inventory and skipping a cutscene are on the
+// WASD and the arrows walk; the camera turns by the right stick, a swipe or a mouse drag (`CAMERA_INPUT`), never a key. The lamp, the inventory and skipping a cutscene are on the
 // screen's own controls (the HUD and the overlay), since a held key would send them every tick.
 const MOVE = keys(
   Move,
@@ -65,12 +61,6 @@ const MOVE = keys(
   },
   // The thumb has a floating stick, not eight key buttons.
   { idle: { x: 0, y: 0 }, touch: false, analog: { touchStick: true, read: moveFromStick } },
-)
-const TURN = keys(
-  CameraTurn,
-  { KeyQ: { units: -KEY_TURN }, KeyE: { units: KEY_TURN } },
-  // A swipe on the scene turns the camera, as it did in the old game; Q and E are the keyboard's.
-  { idle: { units: 0 }, touch: false, analog: { drag: true, read: cameraTurnUnits } },
 )
 
 /** The picture: the old game's, the window's shape capped at 640 by 480 (640 by 360 in a 16:9 window). */
@@ -88,7 +78,8 @@ export const game = defineGame({
   size: SIZE,
   orientation: 'landscape',
   sim: {
-    plugins: [...RUNTIME.plugins, scenePlugin(RUNTIME)],
+    // The free camera turn (`camera-yaw`): the right stick, a swipe and a mouse drag turn the heading smoothly.
+    plugins: [cameraYawPlugin, ...RUNTIME.plugins, scenePlugin(RUNTIME)],
     seed: 1,
     setup: (sim) => spawnAda(sim, PLAY.start, PLAY.tuning.WALK_SPEED),
   },
@@ -102,7 +93,7 @@ export const game = defineGame({
     actCard,
     playControls,
   ],
-  input: inputs(MOVE, TURN),
+  input: inputs(MOVE, CAMERA_INPUT),
   content: { ...defaultContent(), sim: PLAY },
   audio,
   // The night flashes a little (a red wash at a catch, a shake): the first run on a device warns once. The warning's wording will

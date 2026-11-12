@@ -59,6 +59,8 @@ export interface InputMap {
   readonly labels: Readonly<Record<string, string>>
   /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
   readonly touchStick: boolean
+  /** Which mouse buttons drag the camera (the `analog.mouseDrag` option); none reads as `secondary`. */
+  readonly dragMouse?: 'secondary' | 'either' | undefined
   /**
    * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
    * `analog` option, `reading` adds the sticks and the drag; without one it is ignored.
@@ -220,6 +222,7 @@ export function inputMapOf<Z extends z.ZodType>(
     profile,
     labels,
     touchStick: analog?.touchStick === true,
+    dragMouse: analog?.drag === true && analog.mouseDrag === 'either' ? 'either' : 'secondary',
     toCommand: toCommandWith,
     attach(target) {
       // The Input service over `target`, which `dispose` takes down. Nothing here listens to

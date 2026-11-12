@@ -4302,6 +4302,11 @@ interface AnalogOptions<Z extends z.ZodType> {
     read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>;
     /** Bind the `camera-drag` gesture: the play screen mounts the drag surface. */
     readonly drag?: boolean;
+    /**
+     * Which mouse buttons drag the camera: `secondary` (the default, so a primary click on the scene is never a turn) or
+     * `either`, an ordinary 3D drag, for a game whose scene takes no click. Read only with `drag`.
+     */
+    readonly mouseDrag?: 'secondary' | 'either' | undefined;
     /** Show the touch stick; its vector is `stick('left')`. */
     readonly touchStick?: boolean;
 }
@@ -4577,7 +4582,7 @@ interface Camera2dOptions {
 #### `CameraDragSurface` (const)
 
 The camera drag surface: the player turns the camera by dragging the scene,
-a finger anywhere outside the controls or the mouse with its secondary button.
+a finger anywhere outside the controls or the mouse with its secondary button (or its primary, when the tracker allows).
 
 All the rules of who drags are the tracker's (runtime `CameraDragTracker`); this forwards pointer events with their
 `clientX`. It is a fixed layer drawn under the play screen's controls, so a contact on a touch button, the stick,
@@ -6047,6 +6052,8 @@ interface InputMap {
     readonly labels: Readonly<Record<string, string>>;
     /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
     readonly touchStick: boolean;
+    /** Which mouse buttons drag the camera (the `analog.mouseDrag` option); none reads as `secondary`. */
+    readonly dragMouse?: 'secondary' | 'either' | undefined;
     /**
      * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
      * `analog` option, `reading` adds the sticks and the drag; without one it is ignored.
@@ -8142,6 +8149,17 @@ not positive gives 0, and the result is never −0.
 
 ```ts
 function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean): number;
+```
+
+#### `turnUnitsFromStick` (function)
+
+A right stick's turn for one tick, as whole turn units: `x` (−127..127, through the pad's dead zone already) over a full
+push of `unitsPerTick`, scaled by the player's turn speed against its default (so the one "Camera turn speed" row
+tunes the stick and the drag alike), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`. Positive for a push
+to the right; which way that turns the heading is the game's convention. A non-finite input gives 0, never −0.
+
+```ts
+function turnUnitsFromStick(x: number, unitsPerTick: number, camera: CameraSettings): number;
 ```
 
 #### `typedBus` (function)

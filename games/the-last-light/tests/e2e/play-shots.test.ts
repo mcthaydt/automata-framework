@@ -6,7 +6,8 @@ import { begin, stateOf, waitFor } from './driver.ts'
 // Shoots play frames at chosen places, by hand: 1024 by 768, the opening skipped through the probe, Ada walked by holding a key for a number
 // of sim ticks (a software renderer runs the sim slowly, so a position cannot be waited for; a wall stops her). Saves pictures and asserts
 // none. Without `AF_SHOOT` it is skipped. `AF_SHOOT_STEPS` is `name:Key:ticks` entries joined by `;` (default: the hall's south wall, facing us);
-// each takes its frame once the sim has settled 75 ticks after the key is up.
+// each takes its frame once the sim has settled 75 ticks after the key is up. A `drag` entry (`name:drag:px`) turns the camera instead: the
+// mouse drags `px` to the right (negative: left) across the scene with its left button, as a player turns it. A `name` of `-` takes no frame.
 //
 //   AF_WEBGPU=software AF_SHOOT=<folder> AF_SHOOT_STEPS='south:KeyS:150;east:KeyD:520' pnpm --filter @af-games/the-last-light test:e2e --grep "play frames"
 const OUT = process.env.AF_SHOOT
@@ -28,10 +29,17 @@ test('play frames', async ({ page }) => {
   await waitFor(page, { cutscene: null }, 600_000)
   await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 90 })
   for (const { name, key, ticks } of STEPS) {
-    await page.keyboard.down(key)
-    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + ticks }, 300_000)
-    await page.keyboard.up(key)
+    if (key === 'drag') {
+      await page.mouse.move(512 - ticks / 2, 300)
+      await page.mouse.down()
+      await page.mouse.move(512 + ticks / 2, 300, { steps: 8 })
+      await page.mouse.up()
+    } else {
+      await page.keyboard.down(key)
+      await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + ticks }, 300_000)
+      await page.keyboard.up(key)
+    }
     await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 75 })
-    await page.screenshot({ path: join(folder, `${name}.png`) })
+    if (name !== '-') await page.screenshot({ path: join(folder, `${name}.png`) })
   }
 })

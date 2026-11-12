@@ -1,3 +1,4 @@
+import { CameraHeading } from '@automata/3d/sim'
 import { CutsceneState } from '@automata/cutscenes/sim'
 import { useCommands } from '@automata/interact'
 import { Combine, EnterCode, Use } from '@automata/interact/sim'
@@ -22,6 +23,8 @@ export interface ProbeState {
   readonly facts: Readonly<Record<string, unknown>>
   readonly items: readonly string[]
   readonly ada: { readonly x: number; readonly z: number } | undefined
+  /** The camera's heading, in turn units (65,536 a turn); undefined with no Ada. */
+  readonly heading: number | undefined
   /** How many events of each type the sim has made since the page started. */
   readonly events: Readonly<Record<string, number>>
 }
@@ -71,6 +74,7 @@ export function installProbe(
           facts: puzzle.facts,
           items: puzzle.items,
           ada: adaAt(sim),
+          heading: sim.query(Ada, CameraHeading)[0]?.get(CameraHeading).heading,
           events: { ...counts },
         }
       },

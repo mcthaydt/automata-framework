@@ -68,6 +68,18 @@ describe('keys({ analog })', () => {
     expect(turn().touchStick).toBe(false)
   })
 
+  it('mouseDrag: either is carried as the map’s dragMouse, and by inputs() when any map has it; secondary otherwise', () => {
+    const either = keys(
+      Turn,
+      {},
+      { touch: false, analog: { drag: true, mouseDrag: 'either', read: (r) => ({ units: r.cameraDrag() }) } },
+    )
+    expect(either.dragMouse).toBe('either')
+    expect(turn().dragMouse).toBe('secondary')
+    expect(inputs(turn(), keys(Move, { KeyW: { x: 1 } })).dragMouse).toBe('secondary')
+    expect(inputs(keys(Move, { KeyW: { x: 1 } }), either).dragMouse).toBe('either')
+  })
+
   it('touchStick: true is carried by inputs() when any map has it', () => {
     const left = keys(Move, {}, { analog: { touchStick: true, read: (r) => ({ x: r.stick('left').x }) } })
     expect(left.touchStick).toBe(true)

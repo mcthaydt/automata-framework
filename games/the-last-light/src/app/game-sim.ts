@@ -1,4 +1,4 @@
-import { cameraHeadingPlugin } from '@automata/3d/sim'
+import { cameraHeadingPlugin, cameraYawPlugin } from '@automata/3d/sim'
 import { sectorsExtension } from '@automata/sectors'
 import { createSim, type Sim } from '@automata/sim'
 import { spawnAda } from '../features/ada/ada.plugin.ts'
@@ -19,6 +19,7 @@ export async function createGameSim(play: PlayContent, seed = 1): Promise<Sim> {
     plugins: [
       ...[sectorsExtension, navigation, ...runtime.extensions].flatMap((extension) => extension.sim ?? []),
       cameraHeadingPlugin,
+      cameraYawPlugin,
       ...runtime.plugins,
       scenePlugin(runtime),
     ],
