@@ -13,7 +13,7 @@ import {
   createPixi3dRenderer,
   HazeEffect,
   SkyEffect,
-  DEFAULT_LOOK,
+  parseLook,
   drawWorld,
   figure,
   levelTime,
@@ -25,7 +25,8 @@ import {
   worldLighting,
 } from '@automata/3d'
 import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automata/3d/base'
-import type { Gait } from '@automata/3d/figures'
+import { figuresExtension, type Gait } from '@automata/3d/figures'
+import { BASE as PAINTED_BASE, characterKitExtension, paintedFigure } from '@automata/character-kit'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
 import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
 import { GlowEffect } from '@automata/world-kit/sky'
@@ -44,9 +45,11 @@ const viewName = VIEWS.find((v) => v === q.get('view')) ?? 'diorama'
 const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 // Bisecting switches (all on by default): ?look=0 drops the look, ?cast=0 the figures, ?light=0 the baked room light,
 // ?time=0 the time of day, ?env=0 the hemisphere environment, ?world=0 the room's pieces, ?pieces=static|moving to draw
-// only the pieces that bake light, or only those a state can move (doors, props, leaves).
+// only the pieces that bake light, or only those a state can move (doors, props, leaves). ?figures=painted draws the cast as
+// the character kit's painted figures (the builder's own pair, lit by the room) instead of core's meshes.
 const on = (key: string) => q.get(key) !== '0'
-const look = on('look') ? DEFAULT_LOOK : undefined
+// ?shadow=0 turns off a figure's cast shadow on the floor (the look's `shadow` switch).
+const look = on('look') ? parseLook({ switches: { shadow: on('shadow') } }) : undefined
 
 const tiles = albedoTiles(worldKitLibrary.swatches as never)
 const dressed = name.endsWith('-dressed')
@@ -73,11 +76,22 @@ const GAMEPLAY = {
   af: { lensMm: 50, tiltDeg: 30, distance: 16, focus: 1 },
   zone: { lensMm: 50, tiltDeg: 30, distance: Number(zoneDistance ?? 16), focus: 1 },
 } as const
+// ?field=640x360 is the picture's size in the gameplay and room views (the old game's: a picture capped at 640 x 480, 640 x 360 in a
+// 16:9 window); ?density=1 and ?crisp=0 are the painted pair's texel density and its true-size placement (a texel zoom / density
+// pixels wide, of uneven width), the old game's own settings. Left out, the sheets are the kit's defaults (density 2, whole pixels).
+const fieldQuery = /^(\d+)x(\d+)$/.exec(q.get('field') ?? '')
+// ?still=1 holds the painted figures' pose clock at 0, so two loads of a page draw the same figures (the shadow's measure counts the
+// texels two frames do not share: a figure that breathes between loads would be counted as shadow along its edge).
+const paintedOptions = {
+  ...(q.get('still') === '1' ? { now: () => 0 } : {}),
+  ...(q.get('density') === '1' ? { density: 1 as const } : {}),
+  ...(q.get('crisp') === '0' ? { crisp: false } : {}),
+}
 const size =
   viewName === 'fp'
     ? { width: 320, height: 200 }
     : viewName === 'af' || viewName === 'zone'
-      ? { width: 320, height: 180 }
+      ? { width: Number(fieldQuery?.[1] ?? 320), height: Number(fieldQuery?.[2] ?? 180) }
       : { width: Number(views.diorama?.w ?? 512), height: Number(views.diorama?.h ?? 320) }
 
 // The base pair stand still. AF's base pair names the `loose` and `bounce` gaits and two stands, which only compiled
@@ -96,6 +110,17 @@ const motion = { gaits: { loose, bounce: loose }, poses: {}, clips: {}, items: {
 const figureLibrary = { swatches: BASE_PAIR_SWATCHES, hair: {}, headwear: {}, items: {} }
 
 const cast = on('cast') ? (level.cast ?? []) : []
+// A figure stands on the floor under it, as EnvironmentBuilder's sprites do (`at[2] ?? floorAt`): the street's pavement is 0.12 m
+// above its road, and a figure whose feet are at 0 is 0.12 m under the plane the cast shadow falls on (`floorReach` is 0.12).
+const floorUnder = (x: number, z: number) =>
+  Math.max(
+    0,
+    ...lighting.planes.flatMap((p) =>
+      p.normal[1] >= 0.7 && Math.abs(x - p.x) <= p.width / 2 && Math.abs(z - p.z) <= p.height / 2 ? [p.y] : [],
+    ),
+  )
+const feetOf = (member: (typeof cast)[number]) => member.at[2] ?? floorUnder(member.at[0], member.at[1])
+const painted = q.get('figures') === 'painted'
 const Cast = defineComponent('cast', { i: 'f32', x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' })
 const castView: View3dFactory = (row, id, models, light) => {
   const index = Math.round(Number(row.components[Cast.id]?.i ?? 0))
@@ -106,16 +131,26 @@ const castView: View3dFactory = (row, id, models, light) => {
   if (view === undefined) return undefined
   const update = view.update
   // EB's angle is map degrees clockwise from east; AF's yaw 0 faces +z (south).
-  const yaw = ((90 - (member.angle ?? 90)) * Math.PI) / 180
+  const yaw = yawOf(member.angle)
   return {
     ...view,
     update(...args) {
       update?.(...args)
-      view.container.position.set(member.at[0], member.at[2] ?? 0, member.at[1])
+      view.container.position.set(member.at[0], feetOf(member), member.at[1])
       view.container.rotation.y = yaw
     },
   }
 }
+
+// The painted pair: the base pair is `BASE[0]` (the man) and `BASE[1]` (the woman), each stands where the level puts its
+// member, turned as the mesh cast is (the sim holds the pose; the painter only draws it).
+const paintedView: View3dFactory = (row, id, models, light, camera) => {
+  const member = cast[Math.round(Number(row.components[Cast.id]?.i ?? 0))]
+  if (member === undefined) return undefined
+  const def = PAINTED_BASE[member.who === 'woman' ? 1 : 0]?.def
+  return def === undefined ? undefined : paintedFigure(def, paintedOptions)(row, id, models, light, camera)
+}
+const yawOf = (angle: number | undefined) => ((90 - (angle ?? 90)) * Math.PI) / 180
 
 const sky = time.scene.sky
 const skyMid = sky[Math.floor(sky.length / 2)]?.colour ?? '#808080'
@@ -127,10 +162,15 @@ const game = defineGame({
     plugins: [definePlugin({ name: 'cast', defs: [Cast] })],
     seed: 1,
     setup: (sim) => {
-      cast.forEach((_, i) => void sim.spawn([[Cast, { i, x: 0, y: 0, z: 0, yaw: 0 }]]))
+      cast.forEach((member, i) => {
+        // The painted figure takes its pose from the entity (an entity's yaw 0 faces −z, a figure's facing 0 faces +z: half a turn
+        // between them); the mesh figure's view places itself.
+        const at = painted ? { x: member.at[0], y: feetOf(member), z: member.at[1], yaw: yawOf(member.angle) + Math.PI } : { x: 0, y: 0, z: 0, yaw: 0 }
+        sim.spawn([[Cast, { i, ...at }]])
+      })
     },
   },
-  extensions: dressed ? [render3dExtension, worldKitExtension] : [render3dExtension],
+  extensions: [render3dExtension, ...(dressed ? [worldKitExtension] : []), ...(painted ? [figuresExtension, characterKitExtension] : [])],
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
@@ -139,7 +179,7 @@ const game = defineGame({
       time: on('time') ? time : undefined,
       lighting: on('light') ? lighting : undefined,
       backgroundColor: Number.parseInt(skyMid.slice(1), 16),
-      views: { [Cast.id]: castView },
+      views: { [Cast.id]: painted ? paintedView : castView },
       scene: (view, stage, occluders, light) => {
         const camera = view.camera
         if (viewName === 'diorama') {
@@ -156,7 +196,9 @@ const game = defineGame({
           camera.lookAt({ x: at[0], y: at[1], z: at[2] })
         } else if (viewName === 'af' || viewName === 'zone') {
           const g = GAMEPLAY[viewName]
-          const who = cast[0]?.at ?? [0, 0]
+          // The camera and haze focus on the level's first cast member whether or not ?cast=0 draws it: a frame without the figures is the
+          // same frame, which the figures' own measures (reads, heights) rely on.
+          const who = (level.cast ?? [])[0]?.at ?? [0, 0]
           const focus = { x: who[0], y: g.focus, z: who[1] }
           const tilt = (g.tiltDeg * Math.PI) / 180
           camera.fov = (2 * Math.atan(12 / g.lensMm) * 180) / Math.PI
@@ -205,7 +247,10 @@ const game = defineGame({
         if (on('world')) {
           const moves = (p: (typeof world.pieces)[number]) => p.door !== undefined || p.prop !== undefined || p.sway !== undefined
           const which = q.get('pieces')
-          const pieces = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
+          const kept = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
+          // ?only=<regex> keeps the pieces whose id matches (a bisect: which piece draws a flat slab).
+          const only = q.get('only')
+          const pieces = only === null ? kept : kept.filter((p) => new RegExp(only).test(p.id))
           drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('glow') ? { glow: (swatch: string) => swatchGlow(library, swatch) } : {}), ...(on('tiles') ? { tiles } : {}) }, pieces)
         }
         // The bloom rings what the room's glowing swatches show, after the snap (?bloom=0 leaves it out).

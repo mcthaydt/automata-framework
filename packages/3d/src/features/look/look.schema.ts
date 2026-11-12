@@ -10,6 +10,8 @@ export interface LookSwitches {
   readonly grade: boolean
   readonly dither: boolean
   readonly haze: boolean
+  /** A figure's cast shadow on the floor (`figureShadow`). */
+  readonly shadow: boolean
 }
 
 /** The haze toward the veil: far texels mix to `colour` + `glow` × their light, by a share that rises from 0 at `near`
@@ -37,6 +39,8 @@ export interface Look {
   /** Where the grade comes from: the time of day's, or none. */
   readonly grade: 'time' | 'none'
   readonly haze: HazeProfile
+  /** What a figure's cast shadow multiplies the floor's light by, 0 to 1 (the builder's 0.6); the snap then cuts it into whole steps. */
+  readonly figureShadow: number
   readonly switches: LookSwitches
 }
 
@@ -59,12 +63,14 @@ export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
     })
     .refine((h) => h.far > h.near, { message: 'the haze far distance is beyond its near', path: ['far'] })
     .default({ colour: '#47655a', near: 0, far: 10, amount: 0.85, glow: 0.5, focusFp: 3 }),
+  figureShadow: z.number().min(0).max(1).default(0.6),
   switches: z
     .strictObject({
       outline: z.boolean().default(false),
       grade: z.boolean().default(true),
       dither: z.boolean().default(true),
       haze: z.boolean().default(true),
+      shadow: z.boolean().default(true),
     })
-    .default({ outline: false, grade: true, dither: true, haze: true }),
+    .default({ outline: false, grade: true, dither: true, haze: true, shadow: true }),
 })

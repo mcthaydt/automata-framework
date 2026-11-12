@@ -24,6 +24,7 @@ import {
   type Occluders,
   occluderHooks,
 } from '../features/camera/occluders/occluders.ts'
+import { createFigureShadows } from '../features/look/figure-shadow-view.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { createLookPasses, type LookPasses } from '../features/look/look-pass.ts'
 import { type ContextWatch, watchContextLoss } from '../features/renderer/context-loss.ts'
@@ -200,7 +201,12 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   if (letterboxed && sky !== undefined)
     stage.world.addChild(new Graphics().rect(0, 0, view.width, view.height).fill(sky))
   stage.world.addChild(view)
-  const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
+  // A figure's cast shadow is the room's light and the look's switch together.
+  const shadows =
+    options.lighting === undefined || options.look?.switches.shadow !== true
+      ? undefined
+      : createFigureShadows(options.lighting, options.look.figureShadow)
+  const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting, shadows)
   const switches =
     light === undefined || options.lamps === undefined ? undefined : lampSwitches(options.lamps)
   const resolver: Record<string, (row: RenderRow, componentId?: string) => EntityView3d | undefined> = {}

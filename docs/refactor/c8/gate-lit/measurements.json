@@ -1,0 +1,148 @@
+{
+  "bench": {
+    "steady": {
+      "median": 1.51,
+      "p95": 3.54,
+      "worst": 6.9,
+      "hits": 3209,
+      "misses": 1591
+    },
+    "switch": {
+      "median": 0.15,
+      "p95": 3.36,
+      "worst": 5.77,
+      "hits": 3429,
+      "misses": 1371
+    },
+    "flicker": {
+      "median": 1.66,
+      "p95": 4.94,
+      "worst": 9.44,
+      "hits": 2555,
+      "misses": 2245
+    },
+    "machine": "linux x64, node v24.21.0"
+  },
+  "webgl": {
+    "interior": {
+      "after": {
+        "stander": {
+          "key": "0|16,13,7|0,8,0;15",
+          "flat": [1, 0.8125, 0.4375],
+          "lamps": [
+            {
+              "dir": [0, 1, 0],
+              "strength": 1.5
+            }
+          ],
+          "exposure": 0
+        },
+        "walker": {
+          "key": "-2|16,12,7|2,4,-7;9",
+          "flat": [0.7305135510263716, 0.5478851632697788, 0.3195996785740376],
+          "lamps": [
+            {
+              "dir": [0.25, 0.5, -0.875],
+              "strength": 0.9
+            }
+          ],
+          "exposure": 0
+        }
+      },
+      "drawnBy": "webgl"
+    },
+    "exterior": {
+      "after": {
+        "stander": {
+          "key": "0|-|-4,6,3;10",
+          "flat": [1, 1, 1],
+          "lamps": [
+            {
+              "dir": [-0.5, 0.75, 0.375],
+              "strength": 1
+            }
+          ],
+          "exposure": 0
+        },
+        "walker": {
+          "key": "0|-|-4,6,3;10",
+          "flat": [1, 1, 1],
+          "lamps": [
+            {
+              "dir": [-0.5, 0.75, 0.375],
+              "strength": 1
+            }
+          ],
+          "exposure": 0
+        }
+      },
+      "drawnBy": "webgl"
+    },
+    "parityWithCompose": {
+      "compared": 230400,
+      "differing": 0,
+      "litCells": 2
+    }
+  },
+  "webgpu": {
+    "interior": {
+      "after": {
+        "stander": {
+          "key": "0|16,13,7|0,8,0;15",
+          "flat": [1, 0.8125, 0.4375],
+          "lamps": [
+            {
+              "dir": [0, 1, 0],
+              "strength": 1.5
+            }
+          ],
+          "exposure": 0
+        },
+        "walker": {
+          "key": "-2|16,12,7|2,4,-7;9",
+          "flat": [0.7305135510263716, 0.5478851632697788, 0.3195996785740376],
+          "lamps": [
+            {
+              "dir": [0.25, 0.5, -0.875],
+              "strength": 0.9
+            }
+          ],
+          "exposure": 0
+        }
+      },
+      "drawnBy": "webgpu"
+    },
+    "exterior": {
+      "after": {
+        "stander": {
+          "key": "0|-|-4,6,3;10",
+          "flat": [1, 1, 1],
+          "lamps": [
+            {
+              "dir": [-0.5, 0.75, 0.375],
+              "strength": 1
+            }
+          ],
+          "exposure": 0
+        },
+        "walker": {
+          "key": "0|-|-4,6,3;10",
+          "flat": [1, 1, 1],
+          "lamps": [
+            {
+              "dir": [-0.5, 0.75, 0.375],
+              "strength": 1
+            }
+          ],
+          "exposure": 0
+        }
+      },
+      "drawnBy": "webgpu"
+    },
+    "parityWithCompose": {
+      "compared": 230400,
+      "differing": 0,
+      "litCells": 2
+    }
+  }
+}

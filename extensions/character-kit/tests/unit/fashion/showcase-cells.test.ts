@@ -9,7 +9,7 @@ import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { RUNWAY_CAST } from '#src/features/fashion/runway-cast.ts'
 import { member, standing } from '#src/shared/figure-builder/door.ts'
 import { type CellMiss, cellMd5, failOnMisses } from '../../fixtures/cell-miss.ts'
-import { expectedFitMd5, RUNWAY_GOLDEN } from '../../fixtures/runway-golden.ts'
+import { RUNWAY_GOLDEN } from '../../fixtures/runway-golden.ts'
 
 registerFashion()
 
@@ -47,7 +47,7 @@ describe('the runway wardrobe paints the showcase’s cells', () => {
         )
         for (const direction of golden.fitDirections) {
           const cell = standing(grown, direction)
-          const expected = expectedFitMd5(def.id, name, direction)
+          const expected = golden.fit[def.id]?.[name]?.[String(direction)]
           if (cellMd5(cell) !== expected) {
             misses.push({ label: `${def.id} on ${name}, direction ${direction}`, expected, cell })
           }

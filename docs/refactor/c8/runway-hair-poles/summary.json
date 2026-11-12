@@ -1,0 +1,435 @@
+{
+  "total": {
+    "cells": 112,
+    "moved": 42,
+    "texels": 281,
+    "hair": 281,
+    "ear": 0,
+    "beside": 0,
+    "far": 0,
+    "darker": 129
+  },
+  "sheets": ["runway-moved-1.png", "runway-moved-2.png", "runway-moved-3.png", "runway-moved-4.png"],
+  "cells": [
+    {
+      "name": "edith/curvy/5",
+      "count": 1,
+      "hair": 1,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 1
+    },
+    {
+      "name": "edith/heavy/5",
+      "count": 14,
+      "hair": 14,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 14
+    },
+    {
+      "name": "edith/muscular/5",
+      "count": 26,
+      "hair": 26,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 26
+    },
+    {
+      "name": "june/curvy/0",
+      "count": 5,
+      "hair": 5,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 5
+    },
+    {
+      "name": "june/curvy/5",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 2
+    },
+    {
+      "name": "june/heavy/0",
+      "count": 1,
+      "hair": 1,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 1
+    },
+    {
+      "name": "june/heavy/5",
+      "count": 20,
+      "hair": 20,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 16,
+      "lighter": 4
+    },
+    {
+      "name": "june/muscular/5",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 2
+    },
+    {
+      "name": "june/own/1",
+      "count": 8,
+      "hair": 8,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 8
+    },
+    {
+      "name": "june/own/3",
+      "count": 9,
+      "hair": 9,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 6,
+      "lighter": 3
+    },
+    {
+      "name": "june/own/6",
+      "count": 1,
+      "hair": 1,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 1
+    },
+    {
+      "name": "june/short/0",
+      "count": 5,
+      "hair": 5,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 5
+    },
+    {
+      "name": "june/short/5",
+      "count": 11,
+      "hair": 11,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 11
+    },
+    {
+      "name": "june/thin/0",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 2,
+      "lighter": 0
+    },
+    {
+      "name": "june/thin/5",
+      "count": 6,
+      "hair": 6,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 3,
+      "lighter": 3
+    },
+    {
+      "name": "mara/curvy/5",
+      "count": 5,
+      "hair": 5,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 4,
+      "lighter": 1
+    },
+    {
+      "name": "mara/heavy/5",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 2
+    },
+    {
+      "name": "mara/muscular/5",
+      "count": 3,
+      "hair": 3,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 3
+    },
+    {
+      "name": "mara/own/1",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 2
+    },
+    {
+      "name": "mara/own/6",
+      "count": 6,
+      "hair": 6,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 1,
+      "lighter": 5
+    },
+    {
+      "name": "mara/short/5",
+      "count": 4,
+      "hair": 4,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 2,
+      "lighter": 2
+    },
+    {
+      "name": "mara/thin/5",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 2
+    },
+    {
+      "name": "nia/curvy/5",
+      "count": 4,
+      "hair": 4,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 4
+    },
+    {
+      "name": "nia/heavy/5",
+      "count": 5,
+      "hair": 5,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 5
+    },
+    {
+      "name": "nia/muscular/5",
+      "count": 3,
+      "hair": 3,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 3
+    },
+    {
+      "name": "nia/own/0",
+      "count": 6,
+      "hair": 6,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 5,
+      "lighter": 1
+    },
+    {
+      "name": "nia/own/6",
+      "count": 4,
+      "hair": 4,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 2,
+      "lighter": 2
+    },
+    {
+      "name": "nia/short/5",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 2
+    },
+    {
+      "name": "nia/thin/0",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 2,
+      "lighter": 0
+    },
+    {
+      "name": "nia/thin/5",
+      "count": 10,
+      "hair": 10,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 10
+    },
+    {
+      "name": "otto/curvy/5",
+      "count": 1,
+      "hair": 1,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 1
+    },
+    {
+      "name": "otto/heavy/5",
+      "count": 5,
+      "hair": 5,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 5
+    },
+    {
+      "name": "otto/muscular/5",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 2
+    },
+    {
+      "name": "otto/short/5",
+      "count": 2,
+      "hair": 2,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 0,
+      "lighter": 2
+    },
+    {
+      "name": "sam/curvy/0",
+      "count": 4,
+      "hair": 4,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 4,
+      "lighter": 0
+    },
+    {
+      "name": "sam/heavy/0",
+      "count": 19,
+      "hair": 19,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 19,
+      "lighter": 0
+    },
+    {
+      "name": "sam/muscular/0",
+      "count": 7,
+      "hair": 7,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 7,
+      "lighter": 0
+    },
+    {
+      "name": "sam/own/0",
+      "count": 12,
+      "hair": 12,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 6,
+      "lighter": 6
+    },
+    {
+      "name": "sam/own/1",
+      "count": 1,
+      "hair": 1,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 1,
+      "lighter": 0
+    },
+    {
+      "name": "sam/short/0",
+      "count": 25,
+      "hair": 25,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 19,
+      "lighter": 6
+    },
+    {
+      "name": "sam/thin/0",
+      "count": 23,
+      "hair": 23,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 23,
+      "lighter": 0
+    },
+    {
+      "name": "sam/thin/5",
+      "count": 7,
+      "hair": 7,
+      "ear": 0,
+      "beside": 0,
+      "far": 0,
+      "darker": 7,
+      "lighter": 0
+    }
+  ]
+}

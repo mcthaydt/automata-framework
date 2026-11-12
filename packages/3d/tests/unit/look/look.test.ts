@@ -10,7 +10,15 @@ import { timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 describe('the look', () => {
   it('the default look is a 180-pixel field with outline off, as the source profile has it', () => {
     expect(DEFAULT_LOOK.pixel.short).toBe(180)
-    expect(DEFAULT_LOOK.switches).toEqual({ outline: false, grade: true, dither: true, haze: true })
+    expect(DEFAULT_LOOK.switches).toEqual({
+      outline: false,
+      grade: true,
+      dither: true,
+      haze: true,
+      shadow: true,
+    })
+    // A figure's cast shadow multiplies the floor's light by this (the builder's `figureShadow`); the snap cuts it into steps.
+    expect(DEFAULT_LOOK.figureShadow).toBe(0.6)
   })
 
   it('a look names what is wrong with it', () => {
