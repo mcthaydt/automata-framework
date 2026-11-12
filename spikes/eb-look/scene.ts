@@ -37,6 +37,8 @@ import { addRetroPass } from '@automata/retro-crisp/pass'
 import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
 import { GlowEffect, ParticlesEffect, ReflectEffect, ShaftsEffect, shaftLamps, type Emitter } from '@automata/world-kit/sky'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
+// The colour look of `@pixi/3d` 0.1.0-beta.3's move (packages/3d/src/shared/render/light/colour-look.ts): `?colour=beta2` keeps beta.2's picture.
+import { setColourLook } from '../../packages/3d/src/shared/render/light/colour-look.ts'
 
 // Pixi's capability probes each make a throwaway WebGL context and lose it on purpose. On headless SwiftShader that
 // loss also ends the page's WebGPU instance ("A valid external Instance reference no longer exists"), so a WebGPU
@@ -45,6 +47,7 @@ isWebGLSupported()
 await detectVideoAlphaMode()
 
 const q = new URLSearchParams(location.search)
+if (q.get('colour') === 'beta2') setColourLook('beta2')
 const name = q.get('scene') ?? 'base-interior'
 const VIEWS = ['diorama', 'fp', 'af', 'zone'] as const
 const viewName = VIEWS.find((v) => v === q.get('view')) ?? 'diorama'

@@ -280,6 +280,63 @@ puzzle 1, sectors 2, nav 2, cutscenes 2, narrative 4, systems 1, `games/emberwic
    accumulates frame on frame) was not measured, since the pair is left behind by the next commit. The case stays as it is and must pass on beta.3: it is the regression test for this finding.
    The 3D Chromium suites and the 2D suites ran all green at step 3 and above on this pair; none of them toggles a pass after drawing it.
 
+## Handoff 2: the second session, at 90 minutes
+
+Branch `claude/pixi-3d-beta-3`. Pushed: `f1bf5b78` (the beta.3 move, the occluders, `pose.ts` zoom, every pass at `afterToneMapping`) and `ad2f5022` (the colour and effect fixes below). The container was released once after the first
+handoff and the work re-created from the session's record; **the frames described below were lost with it and are to be re-shot** (the commands are in the resume list). No golden, snapshot, parity value or sim hash was re-recorded.
+The whole `pnpm check` has **not** been run on beta.3 yet.
+
+### What was changed on beta.3, each seen failing first
+
+| Change | File | Test that failed first | Why |
+|---|---|---|---|
+| `updateShadow()` call deleted | `packages/3d/src/features/camera/occluders/occluders.ts` | `occluders.test.ts` (7 cases, `updateShadow is not a function`); the spy test became a mask test | the mask is computed on demand; a blended mesh leaves the shadow pass |
+| zoom folded as beta.3: perspective divides `tan(fov / 2)`, orthographic divides the size | `extensions/character-kit/src/features/painted/pose.ts` | `pose.test.ts`: 762.49 against 720; and against a real `Camera3D.computeProjection` | the camera notes |
+| every look and kit pass `stage: 'afterToneMapping'` | 6 core passes, `lcd-panel`, `retro-crisp`, 5 world-kit passes | 4 new unit files, 13 cases (`'beforeToneMapping'` was the default) | each reads or draws palette colours the snap chose; none adds light to the scene |
+| `abs(uFxClip.w)` | `world-kit/src/features/sky/{shader-parts,stars-effect,reflect-effect,particles-effect}.ts` | the 4 world-kit browser cases (shafts "which way is up", stars, 2 reflect) | in beta.3 an effect's `uFxClip.w` is negative where the view draws into a texture (measured with a probe pass: `uv` still runs down the frame, the scale is negative); beta.3's own `viewPos` divides a down-running ndc by it |
+| vertex colours written as the engine reads them (`engineColours`: the shown colour raised to 2.2) | `packages/3d/src/shared/render/light/vertex-bake.ts`, `scene-light.ts` | `lit-room.test.ts` (saw 136, wanted 64: `0.25^(1/2.2)`); 4 new unit cases + 3 for the scene light | `vertexColorBit` multiplies albedo by the raw vertex colour and the output pass encodes it; beta.2's unlit path skipped the encode |
+| `shownAs` removed (an unlit `baseColor` goes in as authored) | `packages/3d/src/app/world-view.ts` | `world-view.test.ts` ("no light to take": 251 against 247) | beta.3 draws an unlit base colour as authored |
+
+Existing unit expectations that read the vertex buffer's value now read it through the 2.2 encode (7 cases in `world-view.test.ts` and `scene-light.test.ts`): the buffer's contract changed, each assertion keeps its meaning and tolerance.
+`tsc` over the workspace on beta.3: only `updateShadow` was a type error; none of the other §2 type changes bite (`PassBuilder.sample`, `globalSlots`, `ShaderBit`, `PostEffect.stage`).
+FigureBuilder's declaration build (`node vendor/figure-builder/types.mjs`, its view code included) compiles clean against beta.3.
+
+### The picture decisions (item 4), measured in the first session; the frames are to be re-shot
+
+- **4a, tone mapping: nothing to decide.** The framework passes `toneMapping: 'none'` itself at all four `View3D` sites (`create-renderer.ts` ×2, `editor-3d`'s `game-view.ts` and `stage-renderer.ts`), so beta.3's new default changes nothing.
+- **4b, unlit colours.** Measured on Chromium, software WebGL, painted pair, `still=1&rig=1` (a beta.2 worktree for "before"):
+  - Beta.3 with nothing adapted: the baked rooms wash out. Dressed interior at 640 × 480: mean luma 55.4 to 84.3 (81.5% of pixels differ); dressed street 109.5 to 114.4 (70.3%); the painted figures are identical. Cause: the vertex colours above, caught by `lit-room.test.ts`. Not a decision.
+  - With the vertex-colour fix: room 55.4 to 55.6 (2.5% of pixels, dither edges and one shadow edge), street 109.5 to 109.6 (0.9%): the beta.2 picture, kept.
+  - **The decision is the fog colour, and a lit moving thing's colour** (`colour-look.ts`, one switch, `'authored'` default or `'beta2'`; the spike takes `?colour=beta2`). `base-3d`, 844 × 390: authored, the sky is the fog colour as written (DUEL ramp 12 step 0, the colour its own comment names;
+    beta.2 showed the darker decoded value, near black) and the floor is lighter (mean luma 43.6 to 57.0). The `'beta2'` look gets the black sky back but the floor darker than beta.2's (43.6 to 29.5): **the switch cannot reproduce beta.2 for an unlit floor under fog**, because beta.2 did not mix fog into an unlit surface
+    up to the fog colour (the beta's notes: "Fog on an unlit surface now reaches the fog colour"). Recommendation: `'authored'` (what the game's comment asks for, needs no compensation); the Owner decides from the pictures, and the loser's branches and `colour-look.ts` are then deleted.
+  - Painted figures, `sprite-light.ts` (pure maths) and the retro fade colour (a post pass at `afterToneMapping`, display colours as in beta.2) need no change.
+- **4c to 4e: not started.** 4c: `world-view.ts` already sets `addressMode: 'repeat'` and `scaleMode: 'nearest'`; WebGL against WebGPU (software) to shoot. 4d: no `cull` option is set, so `'gpu'` now; the figures are not skinned. 4e: the room and street diffs above already include the lamp falloff and the 2.2 gamma and are small.
+
+### First beta.3 Chromium run, before any fix, and where each failure went
+
+| Group | Cases | Explained by | State |
+|---|---|---|---|
+| vertex-colour contract | `lit-room.test.ts` (1) | 4b | fixed, test first |
+| fog colour | `lighting.test.ts` sky-meets-fog (2) | 4b, the colour look | both looks tested (4 cases) and the older fog case now runs under both (2); decision pending |
+| `uFxClip.w` sign | world-kit: shafts, stars, 2 reflect (4) | the named API change (the effects' Y-up rule) | fixed, test first; WebGL only (the `abs` is sign-free) |
+| FigureBuilder view, waits for the fold | `character-kit` `painted-webgpu.test.ts` (3): "The shader template lists the 'global' bind group without `ubo: true`" | FigureBuilder's copied WGSL template (`cell-template.ts`), read only | not fixable on this branch (the coordinator's ruling); WebGL painted passes |
+| unexplained | none | | |
+
+After the fixes, Chromium WebGL: `@automata/3d` 51 passed, 2 skipped (WebGPU project not rerun); world-kit 19 (the `ward.test.ts` case times out at 15 s in a sequence on a cold cache and passes alone: load); lcd-panel 9; retro-crisp 10 (the 8.23 finding is gone, §3b);
+editor-3d layout 285; base-3d 36 (these three before the fixes; the fixes do not touch them). Unit: `@automata/3d` 1,543, character-kit 228.
+
+### Resume list
+
+1. **Re-shoot the frames** into `frames/` (`docs/superpowers/audits/2026-11-12-pixi-3d-beta-3/frames/`): a scratch worktree of `c1c9b7c2` (the last beta.2 commit; `pnpm install --frozen-lockfile --offline`, link `vendor/FigureBuilder`) for "before"; the spike
+   `spikes/eb-look` (vite from `examples/3d`, `ln -sfn ../../examples/3d/node_modules spikes/eb-look/node_modules`) with `?scene=base-interior-dressed&view=zone&pref=webgl&density=1&crisp=0&field=640x480&still=1&rig=1&figures=painted&fx=0&bloom=0` (and
+   `scene=base-exterior-dressed`, `field=640x360`); `base-3d`'s dev server for the third (new game, 60 frames, 844 × 390). Add `&colour=beta2` for the other look (base-3d needs a temporary, uncommitted `setColourLook` call in `main.ts`).
+2. 4c: a tiled surface on WebGL and on WebGPU software (`--use-angle=swiftshader --enable-unsafe-swiftshader --enable-unsafe-webgpu --enable-features=Vulkan --use-vulkan=swiftshader`); 4e: mean luma and a diff of one lit frame; 4d: say what is set.
+3. Golden groups (item 5): the 3D WebGPU project (`AF_WEBGPU=software`), the journeys (base-3d, examples-3d, editor-3d) and the no-eval check on beta.3 have **not** been run.
+4. Items 6 to 8: the no-eval sync proof on beta.3, `PresentEffect`'s depth hazard (the bare-effect case in `scene-depth.test.ts`), `fogSkyColor` is now the colour look; FigureBuilder (the WebGPU template break confirmed above; WebGL not) and the fold's list; the close.
+5. Unrelated and intermittent: `packages/tools` `serve-editor.test.ts` "writes an mtime a later guarded write can use even when the clock has not moved" fails 2 of 3 alone (a fractional-millisecond mtime through `utimes`).
+6. Fresh-container setup: `pnpm install --frozen-lockfile`; clone FigureBuilder into `vendor/FigureBuilder` **at `23f889c8`** (a shallow clone gets `main`, which has moved), then `node vendor/figure-builder/types.mjs`; the character-kit unit files do not load without it.
+
 ## Handoff at 90 minutes
 
 Last commit before the merge below: `5cabf0cd` (step 3), pushed. `main` was merged in at the handoff (it brought two new extensions,
