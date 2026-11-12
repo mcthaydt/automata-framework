@@ -344,3 +344,13 @@ describe('the corridor’s exit sign', () => {
     expect(lamp, 'a lamp of the sign’s own').toBeDefined()
   })
 })
+
+// The ward is a night room (its light says so), and the builder draws its window glass by day unless it is told it is night: the panes came
+// out `glassDay`, DUEL's sky step 5, a bright cyan, where the old game's glass is a dim blue-violet.
+describe('the ward’s window glass', () => {
+  it('is the night’s glass, not the day’s', () => {
+    const panes = WORLD.pieces.filter((piece) => /:pane\d+/.test(piece.id))
+    expect(panes.length).toBeGreaterThan(0)
+    for (const pane of panes) expect(pane.surface, pane.id).toBe('glassNight')
+  })
+})

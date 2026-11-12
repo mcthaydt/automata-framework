@@ -31,8 +31,8 @@ export const LIBRARY: WorldLibrary = {
   swatches: { ...worldKitLibrary.swatches, ...content['world-swatch'] },
 }
 
-/** The level built into pieces and lamps; a problem is a sentence, never a crash (the rest still draws). */
-export const WORLD: World = buildWorld(LEVEL, LIBRARY)
+/** The level built into pieces and lamps; a problem is a sentence, never a crash (the rest still draws). It is built for the night: the builder draws window glass and panes by day unless told. */
+export const WORLD: World = buildWorld(LEVEL, LIBRARY, { night: true })
 
 /** The gain on the old game's lamp numbers, from `content/look.toml` (`[light]`): the framework's light is brighter than the old game's for them. */
 const LAMP_GAIN = content.look?.light.lamps ?? 1

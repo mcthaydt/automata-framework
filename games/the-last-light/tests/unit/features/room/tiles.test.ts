@@ -96,7 +96,7 @@ describe('the ward’s tiles', () => {
 // The Owner's rule for the look: every surface is a photo-made swatch ("photo texture across the board, since that's our environment
 // builder look"). A piece whose surface has no tile is drawn as one flat colour. What stays flat does so because it is light or glass:
 // a photograph of those is their reflections, not their colour.
-const FLAT_ON_PURPOSE = ['bulbWarm', 'glassDay', 'bottleClear', 'exit-green']
+const FLAT_ON_PURPOSE = ['bulbWarm', 'glassNight', 'bottleClear', 'exit-green']
 
 describe('the ward’s surfaces', () => {
   it('are all drawn from a photo-made tile, but the light and the glass', () => {
