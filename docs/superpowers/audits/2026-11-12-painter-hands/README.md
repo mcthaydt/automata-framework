@@ -217,3 +217,37 @@ Tools to rebuild (scratch, not in the repository): a render of the 40 frames per
 texel `drawHands` erases or draws (the hand mask), before/after crops at x10 centred on each stamp's box, whole-figure
 crops at x4, and a moved-texels map masked by the hand region grown by one texel. Flip `HAND_FORM` to `'parted'` only
 in the working tree to measure, and restore it before committing (the pre-commit hook runs the goldens).
+
+## Round 3: what was done (`dd2319a6`), and where to resume
+
+Done, behind `HAND_FORM` (default `'paddle'`, no golden moves), with the form tests rewritten first (29 tests):
+
+- **1, open hand:** at least 1.5 times as long as its knuckles are broad (`PARTED_HAND.long`), the knuckle row half
+  way, the mitten's end tapered on both corners, the breadth trimmed (`size` 1.15 to 1.05).
+- **2, index:** two columns, creased from the mitten by one continuous run from the knuckle row, a row longer than the
+  mitten. No crease is a lone texel: a run of 3 or more, or none (pinned by a test).
+- **3, thumb:** one texel out, along the palm's side, never a sideways spike (pinned: nothing two columns past the
+  palm), the row under its tip clear.
+- **5, density 1:** keeps the size its view gives it, with no enlargement: a plain mitten with a thumb bump.
+
+The sheet, rows before (`main`) | round 2 | round 3:
+[`figure-x4-base-m-round3.png`](figure-x4-base-m-round3.png), [`figure-x4-base-f-round3.png`](figure-x4-base-f-round3.png),
+[`walk-torch-x4-round3.png`](walk-torch-x4-round3.png), [`density1-x8-round3.png`](density1-x8-round3.png). Hands x10
+before | round 3: [`hands-x10-turn0-round3.png`](hands-x10-turn0-round3.png), [`-turn1-`](hands-x10-turn1-round3.png),
+[`-turn2-`](hands-x10-turn2-round3.png), [`-turn4-`](hands-x10-turn4-round3.png). Moved texels:
+[`moved-texels-d2-round3.png`](moved-texels-d2-round3.png).
+
+My eye at x4: relaxed open hands in front, 3/4 and back, the thumb along the side, the index's step at the tips; calm.
+The side view is unchanged (item 4).
+
+Moved, before to round 3 (40 frames per density): density 2, 4,124 texels in the hands and 747 outside, of them **187
+above the shoulders** (the base man's hair in the torch frames, item 6); density 1, 331 in and 26 outside, **0 above the
+shoulders**.
+
+**Not done, resume here:**
+
+- **Item 4**, the closed contour one step darker where the hand lies over skin of its own colour (the side view's nub
+  and "T").
+- **Item 6**, the colour budget: the base man's torch frames still recolour his hair (187 texels at density 2).
+- The goldens' counts for round 3 (round 2's are above). The red test files will be the same; measure them with the
+  default flipped in the working tree only.
