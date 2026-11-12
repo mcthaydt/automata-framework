@@ -875,3 +875,17 @@ starts in `AF_E2E_CLAIMED_PORTS`. A game and its editor (`--game-url`) are claim
 | Two copies at once, separate checkouts, `CI=1 GITHUB_ACTIONS=true` | Old code: the second copy fails with "already used" (2d-story) and "Port 5900 is already in use" (examples-2d). New code: both pass (2d-story 5 of 5 twice; examples-2d `ui-primitives` 14 of 14 each) | PR description |
 | Single runs, one copy | emberwick-phone-chromium 10 of 10; base-3d-dev 1 of 1 (starts all three of base-3d's servers) | PR description |
 | Not run | The rest of base-3d (`base-3d`, WebKit), examples-3d, 3d-story, other Emberwick projects, Firefox, the site, playground and frame-budget journeys, and the GPU runner | PR description |
+
+## CI green, second pass (2026-11-12, branch `claude/ci-green`)
+
+Chromium on SwiftShader only (`AF_WEBGPU=software`), Node 24.21.0. No WebKit, Firefox, real GPU or runner was available.
+
+| Step | Status | Record |
+|---|---|---|
+| Merged `origin/main`; `TURBO_FORCE=true pnpm check` on the result | Red once, then green: everything passed except `changeset status --since=origin/main` (the layout-contract test fix changed a published package) | `.changeset/layout-contract-fixture-line-height.md`; final run 56 typecheck and 66 unit tasks uncached, 13 min |
+| Release checks: `test:dist` failed for `@automata/framework` | Done: the package was right (the words JSON ships and is imported `with { type: 'json' }`); the test looked up an exports pattern as a file name and rejected `.json` imports. It also failed for `@automata/tools` behind the first failure (a stray backtick in a comment broke its template-literal stripping), so the import reader is the TypeScript parser now | `tooling/release/tests/unit/dist-reading.test.ts`; `test:dist` 20 of 20; `build:examples`, `build:demos`, `api-report`, `api-index`, `agent-skills`, `plugin:validate` and the packed-install smoke pass |
+| `worldkit-sky` journey timed out at 120 s | Done: it waited for 90 animation frames; the example now sets `data-frames` and the journey waits for 3 | Chromium, 5 of 5, 9.7 to 11.4 s each (was 47.7 s) |
+| Nightly parity job's `test:browser:2d` | Reproduced three times in Chromium, no failure | 4 m 48 s, 4 m 23 s, 5 m 18 s |
+| `pnpm budget:frame` exit 1 on a runner with no GPU | Not changed; the probe skips the 3D projects on a software renderer before it writes a result, and the check then asks for those results | Owner's decision: a GPU runner for the job, or exit 0 for an all-software run |
+| Pre-commit hook took 10 minutes | Not changed; `--filter="...[HEAD]"` selects all 57 packages for a change in `packages/automata`, and turbo's hash includes dependency files | `--filter="[HEAD]"` recommended |
+| Not run | WebKit (examples-2d `examples-ipad`, 41 tests need it), Firefox, a real GPU, the Mac and Linux runners | |
