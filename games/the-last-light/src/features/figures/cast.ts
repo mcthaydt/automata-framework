@@ -1,21 +1,19 @@
 import type { CharacterDef } from '@automata/character-kit'
+import { ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
 
 // The two painted figures of the night: Ada, and the figure that walks the ward. Each is the old game's character file
-// (`src/render/figure/characters/ada.json` and `nurse.json` at 92e6704: the same sliders, gait, hair physics and face) dressed from
-// the clothes the character kit has today. What the old figures wear that the kit has no garment for is in `MISSING`, with why, and is
-// held until the wardrobe lands; nothing stands in for it.
+// (`src/render/figure/characters/ada.json` and `nurse.json` at 92e6704) dressed piece for piece: the same sliders, gait, hair
+// physics, outfit and swatches, drawn by the character kit's painted wardrobe (a waistcoat, stockings, a belt, a cap and boots are
+// its kinds). What the painter still cannot draw is in `HELD`, with what the figure shows instead; nothing else is left out.
 
 /** How a figure is painted in play: the old game's. Density 1 is about 37 texels a metre (the camera gives 52 lines a metre, so a
  *  texel is 1.4 screen pixels), and `crisp: false` draws it at its true height. A close-up density is for a cutscene key that asks. */
 export const PLAY_FIGURE = { density: 1, crisp: false } as const
 
-/** The face the old game draws on both: drawn by the painter's templates. */
-const EYES = { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite' } as const
-
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
- * `scenes.prologue = street`): a cream top with short sleeves, jeans where the old game had denim trousers, brown shoes, her
- * auburn bob.
+ * `scenes.prologue = street`): a cream top with short sleeves under a maroon waistcoat, denim trousers tucked into brown boots, her
+ * auburn bob, dark eyes. The bob is the kit's `smoothBob`: the builder has no `bob` style of the old kind.
  */
 export const ADA: CharacterDef = {
   id: 'ada',
@@ -39,27 +37,31 @@ export const ADA: CharacterDef = {
     headTilt: 0,
     chunk: 0.6,
   },
-  skin: 'skinPale',
+  skin: 'fair',
   gait: 'brisk',
   gaitOverrides: { armOut: 0.11, idleElbow: 0.15, hang: 0.04, stance: 0, stanceLead: 0, shift: 0 },
   hand: 'R',
   face: { camera: 0.6, turn: 0.15, blink: 3.7, drawn: true },
   hair: { stiff: 70, damp: 9, trail: 0.3, bounce: 0.08 },
+  swatches: ADA_SWATCHES,
   default: 'street',
   outfits: {
     street: [
-      { tee: 'ribCream', sleeves: 'short' },
-      { jeans: 'denim' },
-      { shoes: 'leatherBrown', sole: 'soleBlack' },
-      { hair: 'hairAuburn', style: 'smoothBob' },
-      { ...EYES, brows: 'hairBrown', lips: 'lipsPink' },
+      { top: 'cream', sleeves: 'short' },
+      { waistcoat: 'maroon' },
+      { trousers: 'denim' },
+      { shoes: 'bootBrown', sole: 'bootSole', boots: true },
+      { hair: 'auburn', style: 'smoothBob' },
+      { eyes: 'eyeDark' },
     ],
   },
 }
 
 /**
  * The night nurse, the figure the creature is: tall and thin with arms too long, her head cocked, in a worn white uniform
- * (`nurse.json`). Her pace is the old game's `uncanny` gait, which the builder does not have; she walks the `loose` one.
+ * (`nurse.json`): top and skirt in ward white with the skirt's hem stained, dark stockings, heavy shoes, a belt, a nurse's cap with
+ * its cross, black hair. She has no eyes of her own: the old figure is faceless at the play size. Her hair is the kit's long fall in
+ * place of the old `curtain`, and her skirt hangs without the old folds (`HELD`).
  */
 export const NIGHT_NURSE: CharacterDef = {
   id: 'nurse',
@@ -84,66 +86,54 @@ export const NIGHT_NURSE: CharacterDef = {
     chunk: 0.55,
   },
   genes: { headPitch: 0.2 },
-  skin: 'skinPale',
+  skin: 'pale',
   gait: 'loose',
   gaitOverrides: { armOut: 0.09 },
   hand: 'R',
   face: { camera: 0, turn: 0, blink: 0 },
   hair: { stiff: 14, damp: 2.6, trail: 0.55, bounce: 0.02, sway: 2.2, hang: 0.8 },
+  swatches: NURSE_SWATCHES,
   default: 'uniform',
-  swatches: {
-    heavyShoe: { ramp: 10, base: 1, gloss: 0.95, paint: ['#48474d', '#2d3136', '#121214', '#121214'] },
-  },
   outfits: {
     uniform: [
-      { tee: 'teeWhite', sleeves: 'short' },
-      { skirt: 'teeWhite', length: 0.42, flare: 0.3 },
+      { top: 'wardWhite', sleeves: 'short' },
+      { skirt: 'wardWhite', length: 0.42, flare: 0.3, stain: 'stain', stainHeight: 0.19 },
+      { legs: 'stockingDark' },
       { shoes: 'heavyShoe' },
-      { hair: 'hairBlack', style: 'fallLong' },
-      { ...EYES, brows: 'hairBlack', lips: 'lipsBrown' },
+      { belt: 'wardWhiteShade' },
+      { hair: 'inkBlack', style: 'fallLong' },
+      { cap: 'capWhite', style: 'nurse', mark: 'cross' },
     ],
   },
 }
 
-/** An old garment, hair or gait the kit has nothing for, and what the figure shows instead. */
-export interface Missing {
+/** What the old figures wear or do that the painter cannot draw yet, and what the figure shows instead. */
+export interface Held {
   readonly old: string
   readonly why: string
+  readonly instead: string
 }
 
-/** What the old game's Ada and creature wear or do that the kit's library cannot say today; held until the wardrobe lands. */
-export const MISSING: { readonly ada: readonly Missing[]; readonly nightNurse: readonly Missing[] } = {
-  ada: [
-    {
-      old: 'waistcoat maroon',
-      why: 'the kit has a waistcoat for the mesh figures only; the painted wardrobe has none, so her tee shows bare',
-    },
-    {
-      old: 'boots (shaft and sole)',
-      why: 'the painted `shoes` draw a shoe, not a boot with a shaft up the shin; her shoes are brown leather on a black sole',
-    },
-  ],
-  nightNurse: [
-    { old: 'stockings (stockingDark)', why: 'no painted legwear: her legs are bare under the skirt' },
-    {
-      old: 'belt (wardWhiteShade)',
-      why: 'no painted belt: the tee meets the skirt with nothing round her waist',
-    },
-    {
-      old: 'nurse cap (capWhite, a cross)',
-      why: 'the builder has no headwear: her head is bare under her hair',
-    },
-    {
-      old: 'curtain hair over the face',
-      why: 'the kit’s long hair falls past the shoulders and does not cover the face; her face shows',
-    },
-    {
-      old: 'hem stain and folds on the skirt',
-      why: 'the painted skirt has a length and a flare only: its hem is clean',
-    },
-    {
-      old: 'the uncanny gait',
-      why: 'the builder’s gaits are brisk, strut, loose, bounce and still: she walks the loose one',
-    },
-  ],
-}
+/** Checked against the kit's painted wardrobe, its hair pieces and the builder's gaits; every other piece of the old outfits is worn. */
+export const HELD: readonly Held[] = [
+  {
+    old: 'the nurse’s curtain hair over her face',
+    why: 'the builder’s hair pieces lay clumps from a hairline and let them fall to the sides and back; none hangs a panel across the face, which needs a hair piece of its own (the old `curtain` is a shell over the head and face)',
+    instead: 'the kit’s long fall, so her face shows',
+  },
+  {
+    old: 'the folds of the nurse’s skirt',
+    why: 'the painted skirt is a smooth profile of rings, with no pleats; the old one hangs seven folds of 0.08',
+    instead: 'a smooth skirt with the stained hem',
+  },
+  {
+    old: 'the nurse’s uncanny gait',
+    why: 'the builder’s gaits are brisk, strut, loose, bounce and still, and its gait library takes no new entry',
+    instead: 'the loose gait with the old arm override',
+  },
+  {
+    old: 'Ada’s own bob (the old `bob` style)',
+    why: 'the builder’s hair library has no `bob`; the kit’s `smoothBob` is the same chin-length cut in a smooth finish',
+    instead: 'the kit’s `smoothBob`',
+  },
+]
