@@ -14,7 +14,7 @@ import { member, standing } from '#src/shared/figure/frames.ts'
  */
 /** How many texels change when `key` goes from 0 to 1 on `def`, density 2: any RGBA difference, or with `outline` only
  * those whose alpha differs (the silhouette); the larger of the front (view 0) and the three-quarter (view 1). */
-export function faceReads(def: CharacterDef, key: keyof HeadShape, outline = false): number {
+function faceReads(def: CharacterDef, key: keyof HeadShape, outline = false): number {
   const draw = (v: number, d: number) =>
     standing(member({ ...def, sliders: { ...def.sliders, face: { ...def.sliders.face, [key]: v } } }, 2), d)
   let best = 0

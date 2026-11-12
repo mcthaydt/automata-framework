@@ -81,7 +81,7 @@ function look(st: HairStyle) {
 }
 
 /** Every view and the walk (D2; D4 the views only) builds and paints; the same hair never trips the neckline rule. */
-export function draws(st: HairStyle) {
+function draws(st: HairStyle) {
   const def = wearing(st)
   for (const D of [2, 4])
     for (let d = 0; d < 8; d++)
@@ -96,7 +96,7 @@ export function draws(st: HairStyle) {
  * as it is and with the neck's tag deleted before the first update (the rule then finds no neck): every texel whose part
  * differs between the two takes the top's material, and none takes a hair part.
  */
-export function necklineSpares(st: HairStyle) {
+function necklineSpares(st: HairStyle) {
   const def = wearing(st)
   for (const D of [2, 4])
     for (let d = 0; d < 8; d++) {
@@ -119,7 +119,7 @@ export function necklineSpares(st: HairStyle) {
 }
 /** The trunk check: at rest, every hung hair vertex below the shoulder, inside the trunk's width, lies behind the trunk by
  * hair.ts's own measure (`reach` of the dressed trunk along −z, as the tail's `trunkBack` takes it). */
-export function clearOfTrunk(st: HairStyle) {
+function clearOfTrunk(st: HairStyle) {
   const { parts, trunk, s } = look(st)
   for (const p of parts)
     if (p.skin)
