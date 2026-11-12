@@ -24,6 +24,7 @@ function fakeDesktop(options: { readonly store?: 'ok' | 'unloadable'; readonly f
   const calls: string[] = []
   const opened: string[] = []
   let linkAnswer: 'open' | 'refuse' = 'open'
+  let diskFull = false
   let closeHandler: ((event: { preventDefault(): void }) => void) | undefined
   const store: StoreLike = {
     get: async (key) => entries.get(key),
@@ -38,6 +39,7 @@ function fakeDesktop(options: { readonly store?: 'ok' | 'unloadable'; readonly f
     },
     keys: async () => [...entries.keys()],
     save: async () => {
+      if (diskFull) throw new Error('No space left on device')
       calls.push('save')
     },
   }
@@ -67,6 +69,10 @@ function fakeDesktop(options: { readonly store?: 'ok' | 'unloadable'; readonly f
     calls,
     /** Every address the opener was asked to open, in order. */
     opened,
+    /** From now on writing the store to its file fails, as on a full disk; `true` again lets it through. */
+    fillDisk: (full = true) => {
+      diskFull = full
+    },
     /** From now on the opener fails, as one with no browser behind it does. */
     declineLinks: () => {
       linkAnswer = 'refuse'
@@ -223,6 +229,48 @@ describe('the tauri adapter: intended differences (DIST spec §4.3)', () => {
       await hosting.saves.set('progress', '1')
       expect(failing.clock.pending()).toBe(0)
     }, failing)
+  })
+
+  it('a write that fails on its own says so: savesStatus turns retry, the write is tried again, and saved once it lands', async () => {
+    const built = tauriHosting()
+    await onDesktop(async (hosting) => {
+      const heard: string[] = []
+      const stop = hosting.savesStatus.subscribe((status) => heard.push(status))
+      unwrap(await hosting.saves.set('progress', '1'))
+      built.desktop.fillDisk()
+      built.clock.advance(SAVE_WRITE_DELAY_MS)
+      await settled()
+      expect(hosting.savesStatus.get()).toBe('retry')
+      expect(built.desktop.calls).toEqual(['set progress'])
+      // Tried again a moment later, with no new change from the game.
+      expect(built.clock.pending()).toBe(1)
+      built.clock.advance(SAVE_WRITE_DELAY_MS)
+      await settled()
+      expect(hosting.savesStatus.get()).toBe('retry')
+      built.desktop.fillDisk(false)
+      built.clock.advance(SAVE_WRITE_DELAY_MS)
+      await settled()
+      expect(built.desktop.calls).toEqual(['set progress', 'save'])
+      expect(hosting.savesStatus.get()).toBe('saved')
+      expect(built.clock.pending()).toBe(0)
+      expect(heard).toEqual(['saved', 'retry', 'saved'])
+      stop()
+    }, built)
+  })
+
+  it('a flush that fails is refused INTERNAL and says retry until a write lands', async () => {
+    const built = tauriHosting()
+    await onDesktop(async (hosting) => {
+      unwrap(await hosting.saves.set('progress', '1'))
+      built.desktop.fillDisk()
+      const failed = await hosting.saves.flush()
+      expect(failed.ok === false && failed.reason.code).toBe('INTERNAL')
+      expect(hosting.savesStatus.get()).toBe('retry')
+      built.desktop.fillDisk(false)
+      unwrap(await hosting.saves.flush())
+      expect(hosting.savesStatus.get()).toBe('saved')
+      expect(built.clock.pending()).toBe(0)
+    }, built)
   })
 
   it('a store that will not load: saves are not granted, every call is refused DENIED, and nothing is written (DIST-d)', async () => {

@@ -2,8 +2,11 @@ import { type HostResult, refuse } from '../../../shared/host/errors'
 import type { HostingOptions } from '../../../shared/host/hosting'
 import { HOST_EXIT_CAP_MS, type Hosting, type HostingSaves } from '../../../shared/host/hosting'
 import { isOpenableLink } from '../../../shared/host/link'
+import type { SavesStatus } from '../../../shared/host/saves.schema'
 import { type Clock, systemClock, type TimeoutHandle } from '../../../shared/lib/clock'
+import { disposables } from '../../../shared/lib/disposables'
 import { ok, refused } from '../../../shared/lib/result'
+import { emitter, subscribable } from '../../../shared/lib/subscribable'
 import { makeExitHandlers } from '../exit-handlers'
 import { createWebHosting, type WebPage } from '../web/hosting-web'
 
@@ -11,14 +14,15 @@ import { createWebHosting, type WebPage } from '../web/hosting-web'
  * The `tauri` adapter: `Hosting` for a desktop build. The game runs in Tauri's webview, so the
  * web adapter observes lifecycle, input, display, audio and fullscreen from the page as it does in a browser. What
  * the desktop adds: saves in one store file in the app's data folder (never `localStorage`, never memory), written
- * to disk shortly after each change; Quit, and the window's close request, both of which run the game's exiting
- * handlers and the save flush before the app quits. The Tauri packages are reached only through `DesktopPort` (`desktop-tauri.ts`), so tests use a fake.
+ * to disk shortly after each change, and `savesStatus` says when that write failed and is being tried again; Quit,
+ * and the window's close request, both of which run the game's exiting handlers and the save flush before the app
+ * quits. The Tauri packages are reached only through `DesktopPort` (`desktop-tauri.ts`), so tests use a fake.
  */
 
 /**
  * How long after the game's last change to saves the store is written to disk, in milliseconds. A burst of changes
  * (a settings screen, a level's end) is one write; a crash or a kill loses at most this much. Quit and the window's
- * close write at once.
+ * close write at once. A write that fails (a full disk) is tried again after the same delay.
  */
 export const SAVE_WRITE_DELAY_MS = 500
 
@@ -77,19 +81,33 @@ export async function createTauriHosting(
     }
   }
 
+  // Whether the store on disk holds every change: `retry` from a write that failed until one lands. The game's
+  // `set` answered ok long before (the store's `set` is in memory), so this is the only place a full disk shows.
+  const owner = disposables()
+  const statusChanges = emitter<SavesStatus>(owner)
+  let status: SavesStatus = 'saved'
+  const setStatus = (next: SavesStatus): void => {
+    if (next === status) return
+    status = next
+    statusChanges.emit(next)
+  }
+
   // A change is written to disk SAVE_WRITE_DELAY_MS after the last one; a flush in between takes its place.
   let pendingWrite: TimeoutHandle | undefined
   const cancelWrite = (): void => {
     if (pendingWrite !== undefined) clock.clearTimeout(pendingWrite)
     pendingWrite = undefined
   }
-  const writeSoon = <A>(result: HostResult<A>): HostResult<A> => {
-    if (!result.ok) return result
+  const scheduleWrite = (): void => {
     cancelWrite()
     pendingWrite = clock.setTimeout(() => {
       pendingWrite = undefined
+      // Its answer is in `savesStatus`, and a failure schedules the next try: nothing here is dropped.
       void saves.flush()
     }, SAVE_WRITE_DELAY_MS)
+  }
+  const writeSoon = <A>(result: HostResult<A>): HostResult<A> => {
+    if (result.ok) scheduleWrite()
     return result
   }
 
@@ -97,12 +115,18 @@ export async function createTauriHosting(
     get: (key) => onStore('saves.get', async (s) => (await s.get(key)) ?? null),
     set: async (key, value) => writeSoon(await onStore('saves.set', (s) => s.set(key, value))),
     remove: async (key) => writeSoon(await onStore('saves.remove', async (s) => void (await s.delete(key)))),
-    flush: () => {
+    flush: async () => {
       cancelWrite()
-      return onStore('saves.flush', async (s) => {
+      const written = await onStore('saves.flush', async (s) => {
         await s.save()
         return { persisted: 'device' as const }
       })
+      if (written.ok) setStatus('saved')
+      else if (written.reason.code === 'INTERNAL' && open) {
+        setStatus('retry')
+        scheduleWrite()
+      }
+      return written
     },
     // Code-unit order, as every adapter sorts.
     keys: () => onStore('saves.keys', async (s) => [...(await s.keys())].sort()),
@@ -138,6 +162,11 @@ export async function createTauriHosting(
     hostName: title,
     granted,
     saves,
+    savesStatus: subscribable(
+      () => status,
+      (onChange) => statusChanges.events.subscribe(onChange),
+      owner,
+    ),
     exit: async () => {
       if (!open) return refuse('CANCELLED', false, 'session.exit')
       await quit()
@@ -157,6 +186,7 @@ export async function createTauriHosting(
     dispose: () => {
       open = false
       cancelWrite()
+      owner.dispose()
       stopListening()
       web.dispose()
     },
