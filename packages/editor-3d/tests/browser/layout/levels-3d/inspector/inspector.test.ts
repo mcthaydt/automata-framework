@@ -4,6 +4,7 @@ import '#src/app/main.css'
 import { arrived, type EditorSize, SIZES } from '@automata/editor/kit/testing'
 import { byTestId, checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
+import { fitInto, planViewport, toScreen } from '#src/features/levels-3d/plan/plan-viewport.ts'
 import depotText from '#src/testing/fixtures/depot.af-sector.json?raw'
 import { startAt, stopEditor } from '#src/testing/layout-start.ts'
 
@@ -127,6 +128,60 @@ describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
         problems.push(...checkLayout(conditions, [label]))
       }
       expect(problems).toEqual([])
+    })
+  },
+)
+
+// v2's sidebar is 224 px at `wide` (main's rail was 56), so with the panel and the inspector beside it the plan is
+// 378 px wide at 1194 and 554 at 1366. These pin what is true today so it cannot get worse unseen: the plan keeps that
+// width wherever the inspector shows beside it, and a room in it is still reached by a tap at its centre.
+const PLAN_WIDTH_FLOOR = 378
+
+describe.each(SIZES.filter((size) => size.mode === 'wide' && size.width >= 1100))(
+  'the plan beside the inspector at $name ($width x $height)',
+  (size) => {
+    test('keeps its width, and a tap at the middle of each room selects that room', async () => {
+      await openDepot(size)
+      const plan = byTestId('plan-canvas')
+      const box = plan.getBoundingClientRect()
+      expect(box.width, 'the plan is not squeezed by the columns around it').toBeGreaterThanOrEqual(
+        PLAN_WIDTH_FLOOR,
+      )
+      expect(
+        document.querySelector('[data-testid="inspector"]'),
+        'the inspector shows beside the plan',
+      ).not.toBeNull()
+      // Where the level puts each room's middle on the canvas, by the plan's own fit and viewport (the fixture's two
+      // rooms are 8 x 6 m and 6 x 6 m side by side, so the level is 14 x 6 m from the origin).
+      const [x, y, w, h] = (plan.dataset.usable ?? '').split(' ').map(Number)
+      const canvas = { w: box.width, h: box.height }
+      const camera = fitInto(
+        { x: 0, y: 0, w: 14, h: 6 },
+        { x: x ?? 0, y: y ?? 0, w: w ?? canvas.w, h: h ?? canvas.h },
+        canvas,
+      )
+      const viewport = planViewport(camera, canvas)
+      for (const [room, middle] of [
+        ['hall', { x: 4, z: 3 }],
+        ['dock', { x: 11, z: 3 }],
+      ] as const) {
+        const at = toScreen(viewport, middle)
+        for (const type of ['pointerdown', 'pointerup'])
+          plan.dispatchEvent(
+            new PointerEvent(type, {
+              bubbles: true,
+              cancelable: true,
+              pointerId: 1,
+              pointerType: 'touch',
+              isPrimary: true,
+              clientX: box.left + at.x,
+              clientY: box.top + at.y,
+              buttons: type === 'pointerdown' ? 1 : 0,
+            }),
+          )
+        await arrived()
+        expect(statusWords(), `a tap at the middle of ${room}`).toContain(`Room ${room} selected`)
+      }
     })
   },
 )
