@@ -494,13 +494,21 @@ shoulder, waist, hip 18, 18, 22**, a head with hair of 10 rows (7.5 heads; the o
 [`round7-nurse-variants-numbers.txt`](round7-nurse-variants-numbers.txt), table [`round7-proportions.txt`](round7-proportions.txt). Her stoop, her curtain and her
 folds are still the painter's (list below).
 
-**The face (what data cannot do).** Tried, over the adopted data, on a head crop at x10 beside the old two: the drawn face (`face.drawn`) with `eyeSize` and
-`eyeSpacing` at 1, `hood` 0, `camera` 1 and `turn` 0; the skin swatch's `tones` from +.05 to -3; the `headWidth` gene; the skin ramp lightened.
-None moves the eyes: the drawn face at play size is a lid line and a brow (worse than two dots under a fringe), `eyeSize`/`eyeSpacing` act only
-from density 2, the swatch's `tones` change no texel of the face (counted: 0 / 21 / 9 / 0 of the four skin steps in every case), and `headWidth` .78
-spaces the dots by under a texel. The old face is two black texels, **2 tall**, 4 apart, on a face that is mostly the lightest skin step
-(#ebbd9d, 21 to 25 texels in the head's rows); ours is two texels, 1 tall, 2 to 3 apart, on a face that is mostly the middle step (#d5a39a, 21)
-with a dark chin. Both are painter code, first on the list.
+**The face: the eyes the kit can draw, the tone and the stand it cannot.** Tried first, over the adopted data, on a head crop at x10 beside the old
+two: the drawn face (`face.drawn`) with `eyeSize` and `eyeSpacing` at 1, `hood` 0, `camera` 1 and `turn` 0; the skin swatch's `tones` from +.05 to -3; the
+`headWidth` gene; a lighter skin ramp. None moves the eyes: the drawn face at play size is a lid line and a brow (worse than two dots under a fringe),
+`eyeSize`/`eyeSpacing` act only from density 2, the swatch's `tones` change no texel of the face (counted: 0 / 21 / 9 / 0 of the four skin steps in every
+case), `headWidth` .78 spaces the dots by under a texel. The old face is two black texels, **2 tall**, 4 apart, on a face that is mostly the lightest
+skin step (#ebbd9d, 21 to 25 texels in the head's rows); ours was two texels, 1 tall, 2 to 3 apart, mostly the middle step (#d5a39a, 21), a dark chin.
+
+The garment hook is the kit's, so **the eyes are done in the kit**, not waiting for the painter: `eyeMarks` (`accessories.ts`, test first in
+`tests/unit/fashion/eye-marks.test.ts`, watched failing on the unknown kind) is the builder's `face()` decal pair with a `size` (default 1 by 2), a `spread`
+(0.6 of the head's half-width, the builder's is 0.42) and a `height`; it draws only on a face that is not drawn. Ada's `{ eyes: 'eyeDark' }` is now
+`{ eyeMarks: 'eyeDark' }` (`cast.test.ts` first: eyes two texels tall and four or more apart, found in the picture). Nothing that does not name it moves
+(the builder's `eyes` is untouched; no golden moved). [`round7-ada-face.png`](round7-ada-face.png) (head at x10: eyeMarks at spread .6, .5, .75 and height .42,
+then the old procedural and the atlas): the eyes now read as the old figures' do. What is still the painter's is the face's *tone* (the old face is lit, ours dusty
+with a dark chin: list item 2) and, at the opening's close shot, nothing else in this branch can lift her face: that shot is density 1 too. Single adopted-Ada
+sheets: [`round7-ada-play.png`](round7-ada-play.png), [`-detail`](round7-ada-detail.png), [`-numbers`](round7-ada-numbers.txt).
 
 ### Round 7 in the game
 
@@ -516,12 +524,12 @@ Vite hot reload (an edit of `cast.ts` comments while it ran; `RegistryClash` for
 
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
-Kept here as it grows, **ranked by what each buys at the size she is played** (the first three are the face the Owner asked for; they are the first
+Kept here as it grows, **ranked by what each buys at the size she is played** (the first two are the face the Owner asked for; they are the first
 painter task after the fold merges). Each needs painter code, which this branch does not patch.
 
 | # | Change, file and function | What it buys |
 | --- | --- | --- |
-| 1 | `src/features/outfit/garments.ts`, `face()`: the neutral eye decal (`when: ['neutral', 'sad', 'angry', 'talk']`) is size 1x1 at `x * hw * 0.42`, `h * 0.45`; give it `size: [1, 2]` (the `fear`/`surprised` decal already is) and widen the x to about `hw * 0.6` | eyes 2 tall and 4 apart, as the old Ada's are (ours are 1 tall, 2 to 3 apart): the biggest single thing in her face |
+| 1 | (done in the kit as `eyeMarks`, Ada wears it) `src/features/outfit/garments.ts`, `face()`: the neutral eye decal (`when: ['neutral', 'sad', 'angry', 'talk']`) is size 1x1 at `x * hw * 0.42`, `h * 0.45`; give it `size: [1, 2]` (the `fear`/`surprised` decal already is) and widen the x to about `hw * 0.6` | every figure's decal eyes would be the old size without the kit's garment; Ada's are now 2 tall and 4 apart |
 | 2 | `src/features/paint/paint.ts`, `PAINT.model` (the face's tone budget `[0.06, 0.1, 0.02, 0.08]`: the least and most shares of skin in the light tone and in shadow) and `PAINT.face` (`[0.78, 0.22, -0.4]`, the key's thresholds on a face's planes): at density 1 raise the least light share to about .5 (the old face is mostly the lightest step) and lighten the chin's shadow; `PAINT.shadow` 2 draws the fringe's shadow over the brow | a lit, readable face (a bright mass with two dark eyes) in place of a dusty-pink one with a dark chin |
 | 3 | `src/features/figure/figure.ts` / `motion.ts`, `standing`: the stand draws the weight foot in 25 % (`under: 0.25`) and the free foot at `Math.max(gait.track, 0.75)` of the hip joints' half-width (motion.ts around lines 217 and 518); make the stand's `under` and its feet's track a gait number (`standTrack`) | legs that stand apart on a narrow pelvis (Ada's `hips` slider is at 1 only to open the floor between her legs) |
 | 4 | `src/features/paint/paint.ts`, `INK` (`'#000000'`, line 22): the outline on the shadow side and under; the old game's was the DUEL teal `RAMP_OUTLINE` 0x002219 (`duel-ramps.ts`); make `INK` a `PaintStyle` field | an outline that sits in the room's dark instead of a black line (the in-game frame) |
@@ -536,7 +544,7 @@ painter task after the fold merges). Each needs painter code, which this branch 
 
 ## Log
 
-- Round 7: the proportions helper and its table (`proportions.test.ts` first), Ada brought to the old game's numbers (height 154, legs .3, hips 1, `genes.head` .28; `cast.test.ts` first), the painter list ranked. The Owner's change of target recorded.
+- Round 7: the kit's `eyeMarks` garment (`eye-marks.test.ts` first), Ada's eyes two tall and four apart; the proportions helper and its table (`proportions.test.ts` first), Ada brought to the old game's numbers (height 154, legs .3, hips 1, `genes.head` .28; `cast.test.ts` first), the painter list ranked. The Owner's change of target recorded.
 - Round 6: `curtainLoose` in the kit's hair table (a scalp shell over the face and a wide-spread tail), the nurse wears it (`hair-bob.test.ts` and `cast.test.ts` first); C's `ease` weighed by the numbers and left to the Owner; her first sighting in the game against the old game's.
 - Round 5: `fallCurtain` hair and `nurseBrow` cap in the kit's tables, a skirt `ease` option, the nurse wears the first two (`cast.test.ts` first: her face at most 8 skin texels in her head's rows); `round5-nurse` looks and sheets.
 - Round 4: the fringe's height as one number (0.3), the waistcoat's `open`, `chest`, `hem` and `neckline`, `gap` on the jeans and trousers, `bobFringeBlunt`, `rowGaps`; Ada's eye test widened, her waistcoat, jeans and hips slider set; `legs-default.test.ts`; the variants script writes its own numbers.

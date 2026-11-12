@@ -62,8 +62,22 @@ export interface Cap {
   mark?: string
 }
 
+/**
+ * The eyes of a face that is not drawn (the decal face the play size uses), where the builder's `eyes` is one texel each, two apart: here
+ * they have a `size` (texels, 1 by 2 when left out: the old figures' are two tall) and sit `spread` of the head's half-width either side
+ * of the middle (0.6 left out: about four texels apart on a head nine wide) at `height` of the head's height up from the chin (0.45, the
+ * builder's own). The colour is `eyeMarks`, a swatch. A drawn face draws its own eyes and leaves these out.
+ */
+export interface EyeMarks {
+  eyeMarks: string
+  size?: [number, number]
+  spread?: number
+  height?: number
+}
+
 declare module 'figure-builder' {
   interface GarmentKinds {
+    eyeMarks: EyeMarks
     waistcoat: Waistcoat
     legs: Stockings
     belt: Belt
@@ -214,8 +228,29 @@ function cap(c: Wearing, i: Cap): Fit {
   }
 }
 
-/** Registers the four kinds; `registerGarments` calls this once, after the runway's nine. */
+function eyeMarks(c: Wearing, i: EyeMarks): Fit {
+  const { head, headWidth, headDepth, faceAhead } = c.s.genes
+  const hw = (head * headWidth) / 2
+  const front = (head * headDepth * (1 + faceAhead)) / 2 + 0.006
+  const [x, y] = [hw * (i.spread ?? 0.6), head * (i.height ?? 0.45)]
+  const size = i.size ?? [1, 2]
+  return {
+    parts: [],
+    decals: [1, -1].map((side) => ({
+      bone: J.head,
+      at: [side * x, y, front],
+      normal: [side * 0.5, 0, 0.86],
+      material: i.eyeMarks,
+      size: [size[0], size[1]],
+      blink: false,
+      tag: 'face',
+    })),
+  }
+}
+
+/** Registers the five kinds; `registerGarments` calls this once, after the runway's nine. */
 export function registerAccessories(): void {
+  registerGarment('eyeMarks', kind<EyeMarks>(eyeMarks))
   registerGarment('waistcoat', kind<Waistcoat>(waistcoat))
   registerGarment(
     'legs',

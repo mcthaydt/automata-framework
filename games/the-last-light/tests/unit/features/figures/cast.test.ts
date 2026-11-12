@@ -160,6 +160,8 @@ const asDrawn = (old: readonly Record<string, unknown>[]) =>
     // at it, hung from straps, standing open on a panel of the shirt from a lowered neckline to the hem.
     if ('waistcoat' in item)
       return { ...item, fit: 1, length: 0.05, armhole: 1, open: 1, chest: 0.4, hem: 0.3, neckline: 1 }
+    // The builder's decal eye is one texel, two apart; the kit's `eyeMarks` draws the old figures' eyes: two tall, about four apart.
+    if ('eyes' in item) return { eyeMarks: item.eyes }
     if ('folds' in item) {
       const { folds: _folds, ...rest } = item
       return rest
@@ -305,6 +307,15 @@ describe('the painted frame shows what they wear', () => {
 
   it('shows Ada’s eyes from the front at the size she is played', () => {
     expect(eyePair(ADA)).toBeDefined()
+  })
+
+  it('gives Ada eyes two texels tall and four or more apart, as the old figure’s are (the builder’s decal eye is one texel, two apart)', () => {
+    const eyes = eyePair(ADA)
+    expect(eyes).toBeDefined()
+    if (eyes === undefined) return
+    const { w, dark } = frontView(ADA)
+    expect(eyes.xs[1] - eyes.xs[0]).toBeGreaterThanOrEqual(4)
+    expect(eyes.xs.every((x) => dark((eyes.y + 1) * w + x))).toBe(true)
   })
 
   it('shows the skin of her brow above each eye, so her fringe frames them and does not sit on them', () => {

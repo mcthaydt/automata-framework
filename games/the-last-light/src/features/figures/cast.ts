@@ -74,7 +74,8 @@ export const ADA: CharacterDef = {
       { jeans: 'denim', taper: 1, gap: 1 },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true },
       { hair: 'auburn', style: 'bobFringeFull' },
-      { eyes: 'eyeDark' },
+      // The kit's eyes of a decal face: two texels tall and about four apart, where the builder's `eyes` is one texel each, two apart.
+      { eyeMarks: 'eyeDark' },
     ],
   },
 }
