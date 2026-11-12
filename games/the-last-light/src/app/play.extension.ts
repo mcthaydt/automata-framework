@@ -6,6 +6,7 @@ import { type HudFile, hudSlot } from '@automata/hud'
 import { hudContent } from '@automata/hud/content'
 import { onDestroy } from 'svelte'
 import type { PlayContent } from '../shared/play-content.ts'
+import ActCard from './ActCard.svelte'
 import { attachControls, firstPad } from './controls.ts'
 import { bindLive, live } from './live.ts'
 import PlayControls from './PlayControls.svelte'
@@ -29,6 +30,12 @@ const hudFileOf = (): HudFile => {
 export const playControls: ExtensionDef<'play-controls'> = defineExtension({
   name: 'play-controls',
   ui: { slots: { 'hud.overlay': PlayControls as unknown as UiComponent } },
+})
+
+/** The act card over the opening's first shot, in its own extension since an extension fills a slot once. */
+export const actCard: ExtensionDef<'act-card'> = defineExtension({
+  name: 'act-card',
+  ui: { slots: { 'hud.overlay': ActCard as unknown as UiComponent } },
 })
 
 export function playHud(play: PlayContent, runtime: Runtime): ExtensionDef<'play-hud'> {

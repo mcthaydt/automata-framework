@@ -75,56 +75,88 @@
           2,
           -0.875,
           {
-            "cut": "north-east"
+            "cut": "north-east",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           4.875,
           -0.875,
           {
-            "cut": "east"
+            "cut": "east",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           4.875,
           6.875,
           {
-            "cut": "south"
+            "cut": "south",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           -4.875,
           6.875,
           {
-            "cut": "west"
+            "cut": "west",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           -4.875,
           3.5,
           {
-            "cut": "west"
+            "cut": "west",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           -5.225,
           3.5,
           {
-            "cut": "west"
+            "cut": "west",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           -5.225,
           2.5,
           {
-            "cut": "west"
+            "cut": "west",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           -4.875,
           2.5,
           {
-            "cut": "west"
+            "cut": "west",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
@@ -297,7 +329,7 @@
           ]
         ]
       ],
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster",
       "ceilingTexture": "ceilingTile"
     },
@@ -390,7 +422,11 @@
           -3.8,
           {
             "cut": "ward-east",
-            "thick": 0.2125
+            "thick": 0.2125,
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
@@ -404,13 +440,17 @@
           -4.875,
           -0.875,
           {
-            "cut": "west"
+            "cut": "west",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ]
       ],
       "zone": "hall",
       "view": "hall",
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster",
       "ceilingTexture": "ceilingTile"
     },
@@ -434,7 +474,11 @@
           1.475,
           -1.4,
           {
-            "cut": "corridor-east"
+            "cut": "corridor-east",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
@@ -449,13 +493,17 @@
           -0.875,
           {
             "cut": "corridor-west",
-            "thick": 0.2125
+            "thick": 0.2125,
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ]
       ],
       "zone": "corridor",
       "view": "corridor",
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster",
       "ceilingTexture": "ceilingTile"
     },
@@ -536,7 +584,7 @@
       ],
       "zone": "corridor",
       "view": "corridor",
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster"
     },
     {
@@ -582,7 +630,7 @@
       ],
       "zone": "corridor",
       "view": "corridor",
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster",
       "ceilingTexture": "ceilingTile"
     },
@@ -592,34 +640,50 @@
       "ceiling": 4.9,
       "light": 1,
       "open": true,
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "corners": [
         [
           1.725,
           -6.375,
           {
-            "cut": "closet-north"
+            "cut": "closet-north",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           4.475,
           -6.375,
           {
-            "cut": "closet-east"
+            "cut": "closet-east",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           4.475,
           -2.625,
           {
-            "cut": "closet-south"
+            "cut": "closet-south",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
           1.725,
           -2.625,
           {
-            "cut": "corridor-east"
+            "cut": "corridor-east",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ],
         [
@@ -634,7 +698,11 @@
           1.725,
           -4.5,
           {
-            "cut": "corridor-east-north"
+            "cut": "corridor-east-north",
+            "dado": {
+              "surface": "ward-wainscot",
+              "height": 1.14
+            }
           }
         ]
       ],

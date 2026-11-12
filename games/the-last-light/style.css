@@ -1,3 +1,15 @@
+/* The void: the page behind and beside the picture, black as the old game's was (`--c-void` in its `src/style.css`). The framework's
+   theme paints the page DUEL's navy surface after this file loads, so the page says it with the weight of `:root` to keep it. The
+   bars inside the canvas are `BAR_COLOR` (`src/app/look.ts`). */
+:root {
+  --void: #000000;
+}
+
+:root,
+:root body {
+  background-color: var(--void);
+}
+
 html,
 body {
   margin: 0;
@@ -21,4 +33,28 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* The play HUD as the old game draws it, with what a game can say of a framework piece (no new framework work): the objective is a plain
+   line of cream text with a marker before it, over the picture, no box (the old game's is a pixel-font line with a marker at the top
+   left); and nothing carried draws nothing, where the framework's piece draws a bordered box that says so. The selectors name the pieces'
+   own test ids so they outweigh the pieces' scoped styles. The pixel font, the world marker and the corner map are framework proposals. */
+p.hud-objective[data-testid="hud-objective"] {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #eadbc9;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-shadow: 1px 1px 0 #000;
+}
+
+p.hud-objective[data-testid="hud-objective"]::before {
+  content: "✦ ";
+  color: #ffb866;
+}
+
+div.hud-inventory[data-testid="hud-inventory"]:has([data-testid="hud-inventory-empty"]) {
+  display: none;
 }

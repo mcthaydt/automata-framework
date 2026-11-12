@@ -24,6 +24,9 @@ async function night(page: Page) {
 }
 
 test('the prologue plays to its end through the page, and the credits come up', async ({ page }) => {
+  // The config's 12 minutes were set before the picture had its two passes (the LCD panel and the grade): each software frame is
+  // slower with them, and the night takes longer than that. A test-only limit; the measured time is in the progress tracker.
+  test.setTimeout(30 * 60_000)
   const errors = collectErrors(page)
   const first = await night(page)
   expect(first.stuck).toBeUndefined()

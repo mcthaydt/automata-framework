@@ -1,0 +1,15 @@
+# `ward-wainscot`: the clinic's glazed tile, the lower band of its walls. It stands for the old game's `wainscot` (the canvas texture in
+# `src/render/assets.ts` at 92e6704: cream tiles, base `#ccc3b1`, a glazed top edge `#eadbc9`, a shaded foot `#aea189`, grout `#625d54`).
+# That base is a DUEL colour, sand step 5, so there is no gap to the palette here; it reads teal in the old game's frames because of the
+# green the old room's light and grade lay over it. The kit's wall-tile photograph, as `tileWall` uses it, stands for the glaze.
+ramp = "sand"
+step = 5
+accent = "groutLight"
+
+[texture]
+photo = "wallTiles"
+contrast = 0.035
+facet = 0
+flatten = 0.5
+cluster = 2
+seed = 73

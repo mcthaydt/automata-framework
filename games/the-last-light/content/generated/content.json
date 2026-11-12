@@ -2103,6 +2103,22 @@
           "who": "player",
           "x": 0.6,
           "z": 3.6
+        },
+        {
+          "alpha": 0,
+          "facing": 0,
+          "t": 0,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
+        },
+        {
+          "alpha": 0,
+          "facing": 0,
+          "t": 17,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
         }
       ],
       "camera": [
@@ -3871,7 +3887,7 @@
       "aberration": 0.25,
       "balance": 0.6,
       "brightness": 1.55,
-      "cell": 2,
+      "cell": 1,
       "gamma": 1,
       "glow": 0.3,
       "glowRadius": 1.5,
@@ -3883,6 +3899,9 @@
       "snap": false,
       "subpixels": 0.3,
       "vignette": true
+    },
+    "light": {
+      "lamps": 0.7
     },
     "retro": {
       "cell": 1,
@@ -6106,16 +6125,42 @@
     "WALK_SPEED": 3
   },
   "world-swatch": {
+    "ward-floor": {
+      "accent": "groutDark",
+      "ramp": "sand",
+      "step": 0,
+      "texture": {
+        "cluster": 2,
+        "contrast": 0.035,
+        "facet": 0,
+        "flatten": 0.5,
+        "photo": "floorTiles",
+        "seed": 70
+      }
+    },
     "ward-plaster": {
       "accent": "stainBrown",
       "ramp": "sand",
-      "step": 1,
+      "step": 0,
       "texture": {
         "cluster": 10,
         "contrast": 0.005,
         "photo": "plaster",
         "seed": 1,
         "wear": 0.15
+      }
+    },
+    "ward-wainscot": {
+      "accent": "groutLight",
+      "ramp": "sand",
+      "step": 5,
+      "texture": {
+        "cluster": 2,
+        "contrast": 0.035,
+        "facet": 0,
+        "flatten": 0.5,
+        "photo": "wallTiles",
+        "seed": 73
       }
     }
   }

@@ -23,10 +23,10 @@ import { TICK_HZ } from '../shared/constants.ts'
 import { audio, SOUND_FILES } from './audio.ts'
 import { playOf } from './content.ts'
 import { BAR_FRACTION, fieldOfWindow } from './field.ts'
-import { lookOf } from './look.ts'
+import { BAR_COLOR, lookOf } from './look.ts'
 import { lookPassesOf, RENDERER_SCALE } from './look-passes.ts'
 import { lookProfilesSchema } from './look-profiles.content.ts'
-import { playControls, playHud } from './play.extension.ts'
+import { actCard, playControls, playHud } from './play.extension.ts'
 import { createRuntime, navigation } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
 import { sceneOf } from './stage.ts'
@@ -99,6 +99,7 @@ export const game = defineGame({
     navigation,
     ...RUNTIME.extensions,
     playHud(PLAY, RUNTIME),
+    actCard,
     playControls,
   ],
   input: inputs(MOVE, TURN),
@@ -114,6 +115,7 @@ export const game = defineGame({
       // Whole pixels, as the old game drew the picture.
       ...RENDERER_SCALE,
       barFraction: BAR_FRACTION,
+      barColor: BAR_COLOR,
       look: LOOK,
       time: TIME,
       lighting: LIGHTING,

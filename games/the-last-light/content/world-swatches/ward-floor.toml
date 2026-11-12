@@ -1,0 +1,15 @@
+# `ward-floor`: the clinic's floor. It stands for the old game's `floor` (the canvas texture in `src/render/assets.ts` at 92e6704: a dark
+# glazed tile, `#625d54` three tiles in four and `#5b5c69` on the fourth, grout `#222323`). `#625d54` is a DUEL colour, sand step 0, so there
+# is no gap to the palette. The kit's `tileFloor` is slate step 5 (`#abaebe`), nearly four times the light of the old tile, which drew the
+# whole room twice as bright under the old game's own lamps; the kit's floor-tile photograph is kept for the glaze and the wear.
+ramp = "sand"
+step = 0
+accent = "groutDark"
+
+[texture]
+photo = "floorTiles"
+contrast = 0.035
+facet = 0
+flatten = 0.5
+cluster = 2
+seed = 70

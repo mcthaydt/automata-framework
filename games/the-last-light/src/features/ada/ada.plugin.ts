@@ -30,7 +30,8 @@ export function spawnAda(sim: Sim, start: Start, speed: number): void {
     [
       Ada,
       {
-        // Facing south, toward the camera, as the old spawn did (pi, from the sim's own math: Math.PI is not bit-exact in every engine).
+        // Facing north, away from the camera, as the old spawn did and as the old game's play still shows her after its opening (pi,
+        // from the sim's own math: Math.PI is not bit-exact in every engine).
         yaw: atan2(0, -1),
         walking: false,
         lastX: start.x,
