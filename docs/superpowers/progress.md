@@ -39,6 +39,8 @@ runs in its own session on its own branch and hands off through committed docume
 | 4. Execution, merged | the merge session | `claude/shared-polish-build` | Merged 2026-11-11 as #645 (`2d238cd0`) at `050a7303` after the merge session's own whole `pnpm check`, `pnpm build` and the API report and index checks; no recorded golden or hash moved; no workflow file changed. The sixth session is archived |
 | 5. Implementation audit | Opus 5.5, medium (`session_01HNdX7KWeVco5J6isDwvg6H`), no subagents | `claude/shared-polish-impl-audit` | Done 2026-11-12 at `main` `2d238cd0`, no code or test changed: [the audit](audits/2026-11-11-shared-polish-implementation-audit.md). Ran `pnpm check` (exit 0), `pnpm build`, `agent-skills`, `api-report`, `api-index`, the Chromium browser suites, journeys, the site's build and suites and the consumer smoke (results in the audit); WebKit, Firefox, real hosts and the live model call not run |
 | 6. Fixes | Sonnet 5.5, high (`session_01HNdX7HQTNnRKaroUir7cbf`, archived at its 90 minutes; then `session_01HNdX7K4hJ42HKM6t8Ez3s5`), no subagents | `claude/shared-polish-fixes` | Started 2026-11-12. Session 1: 10 of 18 findings (B1, S1 to S7, T6, T7). Session 2: S8 and S9 done; T1 ruled to keep the blocked-popup answer honest; the rest and the closing run to come |
+| 6. Fixes, merged | the merge session | `claude/shared-polish-fixes` | Merged 2026-11-12 as #654 (`0df11a43`) at `2e371983`: all 18 findings. The merge session's own whole `pnpm check` with the cache off (15,963 unit tests), `pnpm build` and the API report and index checks passed; web `openLink`'s final state checked (a blocked popup answers `opened: false`). Not run anywhere: WebKit, Firefox, real devices and hosts, the live `automata words` call |
+| 7. Review | the Owner | | Open. Workstream 1 is built, audited and fixed |
 | Merge | One long-lived session (`session_01HNdX7LEALEpFdpPWLXPuy7`) | none of its own | Started 2026-11-11; merged the spec as #608 (`6fa386e9`) |
 
 ## Workstream 1: "Done means" (the closing record, the sixth session, `claude/shared-polish-build`)
@@ -291,7 +293,7 @@ Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 
 
 ## Open, for the Owner
 
-- **Emberwick's plumbing limit is 470, not 430** (the audit's S4, stage 6). The framework now has the pieces any game with
+- **Emberwick's plumbing limit is 470, not 430: ACCEPTED by the Owner, 2026-11-12 ("Accept 470").** (The audit's S4, stage 6.) The framework now has the pieces any game with
   plain-DOM screens needs (`bindWords`, `formatNumber`, `DEFAULT_LOCALES`, `matchLocale`, exported from
   `@automata/framework`, and used by Emberwick, `@automata/ui-screens` and `@automata/net-ui`), which took the measure from
   479 to **469** lines. 430 was not reachable: what is left is the game's own (the panels' markup, the board submit, the
@@ -357,3 +359,6 @@ Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 
   footprint, height and collider; a mesh replaces it on screen, fitted to it. With no mesh the blockout draws. To spec in
   workstream 4: the `model` a prop names, the fit, the world kit's editor choosing one, and the prop pipeline taking the
   blockout's bounds as its brief.
+- 2026-11-12: Emberwick's plumbing limit of 470 is accepted. If the reference game's own panels and board-style calls
+  show the same plumbing cost, that is the evidence for a declarative version in the framework, and both games' limits
+  come down together.
