@@ -4,6 +4,7 @@ import { GROUP, type Material, type Part, type Superquadric, superquadric } from
 import type { Side } from '../body/rig'
 import type { GarmentKind, OutfitHooks } from './garments-types'
 import swatchLibrary from './library/swatches.json'
+import { swatchesSchema } from './swatches.schema'
 /**
  * The body and what the base pair wears. A character is sliders (genes.ts) plus a list of garments, each fitted to the
  * body the sliders make: a top painted on the torso and as much of the arms as its sleeves cover, shorts painted on the
@@ -38,7 +39,7 @@ export const box = (
 
 // ─── Swatches: named DUEL ramp rows and steps (src/shared/paint/duel-ramps.ts), from the library (library/swatches.json) ───
 /** The shared palette library; a character file adds its own swatches (cast.ts). Every colour is DUEL-checked (tests). */
-export const SWATCHES = swatchLibrary as unknown as Record<string, Material>
+export const SWATCHES: Record<string, Material> = swatchesSchema.parse(swatchLibrary)
 /** A library entry by name, or the entry itself where one is given in place of a name; throws on a name the library lacks. */
 export const named = <T>(library: Record<string, T>, kind: string, style: string | T): T => {
   if (typeof style !== 'string') return style

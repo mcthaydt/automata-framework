@@ -2,6 +2,7 @@ import type { Material } from '../body/parts'
 import { hexOf } from '../math/colour'
 import { RAMPS } from '../paint/duel-ramps'
 import { tonesOf } from '../paint/paint'
+import { hairSchema } from './hair.schema'
 import type { Finish, HairFinish, HairInput, HairPiece, HairStyle, Tone } from './hair-types'
 import hairLibrary from './library/hair.json'
 /**
@@ -51,7 +52,7 @@ export function registerFinish(name: string, light: HairFinish): void {
   FINISHES.set(name, light)
 }
 /** The hair styles a character names (library/hair.json): the generators' pieces and the finish they are painted with. */
-export const HAIR_STYLES = hairLibrary as unknown as Record<string, HairStyle>
+export const HAIR_STYLES: Record<string, HairStyle> = hairSchema.parse(hairLibrary)
 /** The texels a metre at twice the brand kit's density (paint.ts densityOf): the size the figures are judged at. */
 export const PPM = 73.8
 /** A feature `want` metres across, held to whole texels at `ppm` (at least `least` of them). */

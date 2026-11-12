@@ -35,7 +35,8 @@
     "view-check": "tsx scripts/view-check.ts"
   },
   "dependencies": {
-    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz"
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "zod": "4.6.6"
   },
   "peerDependencies": {
     "pixi.js": "8.22.0"

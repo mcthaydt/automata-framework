@@ -3,6 +3,7 @@ import type { Side, Skeleton } from '../body/rig'
 import { axisAngle, type V3 } from '../math/math'
 import type { Hold } from '../motion/motion'
 import { box } from './garments'
+import { itemsSchema } from './items.schema'
 import itemLibrary from './library/items.json'
 /** A held thing, in a hand socket (library/items.json): its parts and the arm pose that holds it. */
 export interface Item {
@@ -64,5 +65,5 @@ export function itemOf(def: ItemDef): Item {
 }
 /** Every item, by id (library/items.json). */
 export const ITEMS: Record<string, Item> = Object.fromEntries(
-  Object.entries(itemLibrary as unknown as Record<string, ItemDef>).map(([id, d]) => [id, itemOf(d)]),
+  Object.entries<ItemDef>(itemsSchema.parse(itemLibrary)).map(([id, d]) => [id, itemOf(d)]),
 )

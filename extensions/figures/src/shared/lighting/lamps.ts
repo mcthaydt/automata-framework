@@ -1,6 +1,7 @@
 import type { V3 } from '../math/math'
 import { noise3 } from '../paint/raster'
 import timeLibrary from './library/times.json'
+import { timesSchema } from './times.schema'
 /**
  * The light a figure stands in, as a pixel artist lights a sprite: a time of day (its exposure, whole steps down the
  * ramps; the cast's lift over it; an ambient tint) and lamps whose pools lift a texel whole steps up its own ramp,
@@ -37,7 +38,7 @@ export interface TimeOfDay {
   key?: V3
 }
 /** The times of day (library/times.json): day, golden, dusk, night, lampLit, bar. */
-export const TIMES = timeLibrary as unknown as Readonly<Record<string, TimeOfDay>>
+export const TIMES: Readonly<Record<string, TimeOfDay>> = timesSchema.parse(timeLibrary)
 /** The figures' painted key (paint.ts KEY), in view space. */
 export const FIGURE_KEY: V3 = [-0.5, 0.62, 0.6]
 const norm = (v: V3): V3 => {

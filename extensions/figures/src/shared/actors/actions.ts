@@ -1,5 +1,6 @@
 import { smooth } from '../math/math'
 import type { Gait } from '../motion/motion'
+import { actionsSchema } from './actions.schema'
 import library from './library/actions.json'
 import { type Filled, fill, mix, type Spec } from './pose-spec'
 /**
@@ -38,11 +39,9 @@ export interface AliasDef {
   about?: string
   alias: { item: string; bare: string }
 }
-const lib = library as unknown as {
-  modes: Record<string, { scale?: Partial<Record<keyof Gait, number>>; set?: Partial<Gait> }>
-  actions: Record<string, ActionDef | AliasDef>
-}
-export const ACTIONS = lib.actions
+/** The library, checked when it loads: a key the schema does not know is an error naming it. */
+const lib = actionsSchema.parse(library)
+export const ACTIONS: Record<string, ActionDef | AliasDef> = lib.actions
 /** The action an id plays, alias and target resolved. */
 export function actionOf(id: string, item: boolean, target: boolean): { id: string; def: ActionDef } {
   const a = ACTIONS[id]
