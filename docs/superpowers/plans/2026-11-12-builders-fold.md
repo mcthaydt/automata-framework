@@ -25,7 +25,7 @@ argues from their measurements. **Tracker:** [`../progress.md`](../progress.md),
 
 ## Tracking
 
-**1 of 28 tasks done (4%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
+**2 of 28 tasks done (7%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
 ([plan audit](../audits/2026-11-12-builders-fold-plan-audit.md)): its fixes are in the steps below. Numbers 4b to 4d were
 added and 14 was moved to 4b after the Owner's answers of 2026-11-12, so the numbering has letters and a gap. Tick a
 task only when its checks passed in the session that did it; say what did not run.
@@ -33,7 +33,7 @@ task only when its checks passed in the session that did it; say what did not ru
 | # | Task | Branch | State | Evidence |
 |---|---|---|---|---|
 | 1 | The baseline, and the checksum manifest | `claude/builders-fold-figures` | done | `e074227fe`: baseline `pnpm check` exit 0, 11m56s cold (65 tasks; turbo test time 9m13s); kit unit 28 files, 228 tests, 53 s; kit browser (Chromium, software GL) 7 files, 58 tests, 3 files skipped by design (the gate's sheets), 35 s; pack 275.69 MiB; manifest 134 files |
-| 2 | The painter's source arrives with its history; its own suite passes as it is | `claude/builders-fold-figures` | todo | |
+| 2 | The painter's source arrives with its history; its own suite passes as it is | `claude/builders-fold-figures` | done | `e22caf219` (merge), `b192bad57` (the pin, step 3b made early), `ef3cd569e` (the package): filter 111 commits on main, 126 in all, 1.03 MiB, 0 SNEKPRTY blobs, 0 cut paths; manifest 134 files, 0 differ; the builder's suite 47 files, 563 tests (560 of 561 before the pin); typecheck 0 errors; view-check exit 0; `pnpm check` exit 0 (4m40s, cached) |
 | 3 | The character kit's door points at the package | `claude/builders-fold-figures` | todo | |
 | 4 | The submodule and its wrapper go | `claude/builders-fold-figures` | todo | |
 | 4b | The workflows lose the submodule step (the Owner's word given) | `claude/builders-fold-figures` | todo | |
@@ -509,7 +509,7 @@ console.log(files.length)' "$FB" "$PIN"
   `{ "types": "./types/src/<entry>.d.ts", "default": "./src/<entry>.ts" }` for `index`, `kit`, `view`; and its
   scripts `prepare`, `typecheck`, `test:unit`.
 
-- [ ] **Step 1: Filter.** In a second fresh clone (filter-repo rewrites the clone it runs in):
+- [x] **Step 1: Filter.** In a second fresh clone (filter-repo rewrites the clone it runs in):
 
 ```bash
 python3 -m pip install --user git-filter-repo==2.47.0
@@ -554,7 +554,7 @@ test "$(grep "^$PIN " .git/filter-repo/commit-map | cut -d' ' -f2)" = "$(git rev
   'streetwear|graphics\.json|looks\.json|sets\.json|headwear|dressed|portrait|random-cast|render/scene'` prints
   **0**. Anything else is a stop. If `pip` cannot
   install the tool, use the fallback of "History" and say so.
-- [ ] **Step 2: Merge.** In the framework:
+- [x] **Step 2: Merge.** In the framework:
 
 ```bash
 git remote add painter-history "$FB-filtered" && git fetch painter-history
@@ -567,7 +567,7 @@ cp "$FB-filtered/.git/filter-repo/commit-map" docs/provenance/figures-commit-map
   imported commits keep their own subjects, and that the history begins at the last content cut (`6b6819c`, as a root):
   what came before, with the builder's first cast and the Owner's SNEKPRTY graphics, is left out and stays in the
   archived repository ("History", above, lists the paths and the commits that cut them).
-- [ ] **Step 3: The manifest check.** Every file equal to its source:
+- [x] **Step 3: The manifest check.** Every file equal to its source:
 
 ```bash
 node -e '
@@ -578,7 +578,7 @@ console.log(Object.keys(m.files).length, "files,", bad.length, "differ"); proces
 ```
 
   Expected: `134 files, 0 differ`. Anything else is a stop.
-- [ ] **Step 4: Make it a workspace package, changing no source or test.** Edit only
+- [x] **Step 4: Make it a workspace package, changing no source or test.** Edit only
   `extensions/figures/package.json`: `"name": "@automata/figures"`, `"version": "0.0.0"`,
   `"private": true`, `"license": "MIT"`, `"type": "module"`, the `exports` above, `"dependencies"`
   `{ "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz" }`, `"peerDependencies"`
@@ -591,16 +591,16 @@ console.log(Object.keys(m.files).length, "files,", bad.length, "differ"); proces
   its comment. Add `extensions/figures/types/` to `.gitignore`. Add, each with a comment that task 6 or task 7
   removes it, `"!extensions/figures"` to `biome.json`'s `files.includes` and
   `"extensions/figures/**"` to `knip.jsonc`'s `ignore`.
-- [ ] **Step 5: Install and run the builder's suite as it is.** `pnpm install` (the lockfile changes), then
+- [x] **Step 5: Install and run the builder's suite as it is.** `pnpm install` (the lockfile changes), then
   `pnpm --filter @automata/figures test:unit`. Expected: **47 files, 561 tests, all pass.** A failure is a
   stop: nothing has been changed, so the cause is the runtime (Node 24.21, Vitest 5.0.3) and is reported, not fixed
   by touching a golden. Then `pnpm --filter @automata/figures typecheck`: expected 0 errors in `src` and
   `base` (measured on TypeScript 6.0.3); if `tests`, `scripts` or `viewer` report errors under 6.0.3, list them in the
   log and leave them for task 7 with `"include"` unchanged.
-- [ ] **Step 6: The view check, by hand, once:** `pnpm --filter @automata/figures view-check`. Expected: exit
+- [x] **Step 6: The view check, by hand, once:** `pnpm --filter @automata/figures view-check`. Expected: exit
   0 (every case equal, or `webgpu: no adapter, skipped`). It was not run by the plan session; if it fails here on the
   untouched source, record the output and tell the coordinator before going on.
-- [ ] **Step 7:** `pnpm check` (exit 0), then commit by path:
+- [x] **Step 7:** `pnpm check` (exit 0), then commit by path:
   `chore(figures): a workspace package of the painter, as it arrived`.
 
 **Done when:** the manifest check prints `134 files, 0 differ`, the builder's suite passes unchanged in the
@@ -1521,3 +1521,4 @@ pin.
 | 2026-11-12 | Stage 2 (plan), `claude/builders-fold-plan`, revised the same day for the coordinator's rulings (the name `@automata/figures`; the strict flags conformed inside the workstream, tasks 21 to 27; one mechanical commit each for format and lint; the suite split for the hook) and the Owner's answers (the workflows' step removed in the first pull request, task 4b; the two fix branches brought, tasks 4c and 4d; the retirement notes committed by the coordinator). Also measured for the revision: the two fix branches cherry-picked in a scratch clone (five c5 commits clean and no golden moved; one conflict of one hunk; the turned-face fix moves three goldens, 4 tests), the suite's time by file, and the 1,395 strict errors by folder | The two surveys and this plan, against `main` `0df11a43`, FigureBuilder `23f889c8` and EnvironmentBuilder `f7c5356` (both cloned read only; nothing committed in them). Ran: both builders' own suites (FigureBuilder 47 files, 561 tests, at most 227 s; EnvironmentBuilder 55 files, 578 tests, 130 s), FigureBuilder's goldens under Node 24.21 (pass, 27 s), EnvironmentBuilder's suite against the framework's painter pin (27 failures in 4 files), the framework's format, lint, style and strict typecheck over the builders' source, the submodule script with no submodule (exit 0 both ways), byte and key comparisons of the photo library and the kits, and a dry run in a scratch clone of task 2's filter and manifest check (236 commits on `main`, 7 more for the wardrobe branch, 134 files, 0 differ, 1.64 MB). Not run: either builder's view or GPU check, any render, anything on arm64, the wardrobe branch's tests, the tiles cross-check. No product code written; no golden or hash touched |
 | 2026-11-12 | Stage 3 (plan audit), `claude/builders-fold-plan-audit`, no subagents, no product code | Ran: the plan's filter on the archived FigureBuilder (`main` now `c29284c`; filtered `main` is still `23f889c8`'s 236 commits; 251 commits and 1.72 MiB with the four refs); the c5 picks, N4, the turned-face fix and the wardrobe merge in a scratch clone, then the whole suite on Node 24.21 (52 files, 651 tests, 6 fail: the turned face's 5, one wardrobe pin that passes on Node 22.23 only); `tsc` after N4 (4 errors in `lighting/sprite.ts`, which `main` added after the c5 branch); the strict flags over the whole package (`src` 1,427, `tests` 579, `scripts` and `viewer` 79); a checked reader in `rasterize` (generic `at`: 5.5 times slower; inline `?? outside`: no cost); the `goldens` project's files (74 tests, 33 s); the tiles cross-check (112 of 112 equal); every hunk of the ten files EnvironmentBuilder changed after `6d82a52`; the workflow lines at `0de72717` (73, unchanged). Fixed in the plan: tasks 2, 3, 4, 4b, 4c (step 3b), 4d, 5, 7, 12, 15, 16, 19, 21 to 27 (the inline check, the painter's bench, the ledger with tests), the archived sources, the retirement notes as merged, what the upgrade inherits. Findings: [plan audit](../audits/2026-11-12-builders-fold-plan-audit.md) |
 | 2026-11-12 | Stage 4 (execution), group 1, `claude/builders-fold-figures`, Sonnet 5.5, no subagents. Task 1 | Submodule at `23f889c8`, declarations built by hand, Node 24.21 through pnpm. `pnpm check` exit 0 (11m56s cold). Kit unit 28 files, 228 tests. Kit browser in Chromium only (`--project 'browser (chromium)' --project webgpu`: WebKit and Firefox do not exist here, and the package's own script asks for all three): 58 tests pass, 3 files skipped (`gate-lit`, written by `scripts/gate.ts`). Pack 275.69 MiB. Manifest 134 files (47/1/73/6/4/3), commit `e074227fe` made with LEFTHOOK=0 right after the whole check passed on the tree before it (it adds one data file). Not run: WebKit, Firefox, arm64, a real GPU |
+| 2026-11-12 | Task 2 (same session) | Filtered and merged as the plan says (111/7/6/2 commits, main `c85b961`, root `36a135e`, 126 commits and 1.03 MiB fetched empty, 0 and 0 on the content check, grafts `13407db8` and `6b6819cb` only). Manifest `134 files, 0 differ`. **Deviation:** the builder's suite at the pin on Node 24.21 was 560 of 561: `face-d2.test.ts` (the head's profile pin, 1 ulp) is in the builder's `main`, not only in the wardrobe branch, and passes on Node 22.23.4. Task 5 step 3b was done here, in its own commit before the package's (`b192bad57`): the ±1-ulp case (both base figures, densities 1 and 2, eight views, the head form and the ear a last bit up and down: every md5 equal; a control moving the form by 5% does move a cell), then the pin within 2 ulps (measured 1; 0 fails). Node 22.23.4 and 24.21.0 both pass both files. **Also:** the extension manifest rule needs `imports: {"#src/*": "./src/*"}` and `docs/versions.md` needs a row for `@napi-rs/canvas` (found by `pnpm check`), both added in the package commit. `@napi-rs/canvas` installed here (no refusal) and `view-check` ran: exit 0. Typecheck has no error in tests, scripts or viewer. The filtered clone is `/home/user/figurebuilder-filtered`, the remote `painter-history`. Not run: WebKit, Firefox, arm64 |
