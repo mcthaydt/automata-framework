@@ -382,7 +382,7 @@ say = "bedBare"
 id = "combine.fill"
 at = "combine"
 use = [ "handLamp", "paraffin" ]
-say = ""
+say = "combineFluid"
 
 [[actions.then]]
 call = "fill"

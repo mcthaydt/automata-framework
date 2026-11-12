@@ -98,7 +98,7 @@ export function createRuntime(play: PlayContent): Runtime {
         facing: (ctx) => ctx.query(Ada)[0]?.get(Ada).yaw ?? 0,
       }),
       adaPlugin,
-      lampPlugin(play.lamp),
+      lampPlugin(play.lamp, cutscenes.locked),
       nightPlugin(systems.hear, cutscenes.locked),
       catchPlugin(cutscenes.locked),
     ],

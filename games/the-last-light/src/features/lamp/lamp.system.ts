@@ -1,9 +1,10 @@
 import { PuzzleState } from '@automata/puzzle/sim'
-import { defineSystem, type SystemDef } from '@automata/sim'
+import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
 import { CarriedLight, type CarriedLightDef, fuelTicksOf, SystemsEnv } from '@automata/systems/sim'
 import { Ada } from '../../shared/ada.component.ts'
 import { TICK_HZ } from '../../shared/constants.ts'
 import { playIn } from '../../shared/play-content.ts'
+import { LampMemory } from './lamp-memory.resource.ts'
 
 /** The item that is the lamp. */
 export const LAMP_ITEM = 'handLamp'
@@ -55,3 +56,37 @@ export const lampLights: SystemDef = defineSystem({
       if (LIT_UNTIL_LIGHTS_OUT.has(pool.id)) lights.push({ x: pool.x, z: pool.z, radius: pool.radius })
   },
 })
+
+/**
+ * Remembers the lamp as the step begins, before the carried light burns it. Paired with `lampHold`.
+ */
+export const lampRemember: SystemDef = defineSystem({
+  name: 'lamp.remember',
+  phase: 'gameplay',
+  before: ['systems.carried-light'],
+  run: (ctx) => {
+    const memory = ctx.resource(LampMemory)
+    const light = ctx.query(CarriedLight)[0]?.get(CarriedLight)
+    memory.has = light !== undefined
+    memory.lit = light?.lit ?? false
+    memory.fuelTicks = light?.fuelTicks ?? 0
+  },
+})
+
+/**
+ * While a cutscene plays the lamp does not burn: the old game ran no rules in a cutscene, so a tank is as full after lights
+ * out as before it. The carried light burns each step it is lit; this puts back what it remembered, in the steps that are
+ * cutscene steps.
+ */
+export const lampHold = (playing: (ctx: SimContext) => boolean): SystemDef =>
+  defineSystem({
+    name: 'lamp.hold',
+    phase: 'gameplay',
+    after: ['systems.carried-light'],
+    run: (ctx) => {
+      const memory = ctx.resource(LampMemory)
+      if (!memory.has || !playing(ctx)) return
+      for (const carrier of ctx.query(CarriedLight))
+        carrier.set(CarriedLight, { lit: memory.lit, fuelTicks: memory.fuelTicks })
+    },
+  })

@@ -1,3 +1,4 @@
+import { CutsceneState } from '@automata/cutscenes/sim'
 import { PuzzleState } from '@automata/puzzle/sim'
 import { CarriedLight, LightDry, SystemsEnv } from '@automata/systems/sim'
 import { describe, expect, it } from 'vitest'
@@ -101,5 +102,21 @@ describe('the lights the creature’s senses read', () => {
     game.hold(5)
     expect(lights(game)).toHaveLength(1)
     expect(lights(game)[0]?.radius).toBe(2.2)
+  })
+})
+
+describe('the lamp in a cutscene', () => {
+  it('does not burn while a cutscene plays: the old game ran no rules in one', async () => {
+    const game = await withLamp()
+    game.combine('handLamp', 'paraffin')
+    game.sim.resource(PuzzleState).facts.bedMade = true
+    game.hold(0.2) // lights out: its cutscene starts
+    expect(game.sim.resource(CutsceneState).id).toBe('lightsOut')
+    const before = light(game)[0]?.fuelTicks as number
+    for (let i = 0; i < 60 * 20 && game.sim.resource(CutsceneState).id !== null; i += 1) game.send([])
+    expect(game.sim.resource(CutsceneState).id).toBeNull()
+    expect(light(game)[0]).toMatchObject({ lit: true })
+    // The cutscene lasted 16 s; the fuel is what it was when it began, less the tick or two that ended it.
+    expect(before - (light(game)[0]?.fuelTicks as number)).toBeLessThanOrEqual(2)
   })
 })
