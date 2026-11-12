@@ -97,7 +97,7 @@ gate could run; the side session's list of what the framework could take over is
 
 Sonnet 5.5 (`session_01HNdX7HQTNnRKaroUir7cbf`), no subagents, from `main` `62a143ce` with the audit merged. One commit per
 finding or tight group, test first, each test watched failing. Chromium only (software GL); WebKit, Firefox, real devices and
-hosts are not run; no paid API call. **Progress: 13 of 18 findings (72%)** (B1, S6, S7, S1, S2, S3, T7, S4, S5, T6, S8, S9, T1; S6 counts with B1, T7 with S3, T6 with S4+S5). Stage 6 of 7 is this one, so the workstream is
+hosts are not run; no paid API call. **Progress: 14 of 18 findings (78%)** (B1, S6, S7, S1, S2, S3, T7, S4, S5, T6, S8, S9, T1, T8; S6 counts with B1, T7 with S3, T6 with S4+S5). Stage 6 of 7 is this one, so the workstream is
 `(5 + done/18) / 7` of the way.
 
 | Finding | What | State | Commit |
@@ -110,14 +110,14 @@ hosts are not run; no paid API call. **Progress: 13 of 18 findings (72%)** (B1, 
 | S4 + S5 | `bindWords`, `formatNumber`, `DEFAULT_LOCALES` and one `matchLocale` in the framework; Emberwick measures 469 and its limit is 470 | done (`pnpm check` exit 0 on the tree; see "Open, for the Owner") | `77e57029` |
 | S8 | "+N more" never covers a label | done (the framework's Chromium suite 2252 passed; see the commit body) | `13d0f15f` |
 | S9 | The photosensitivity warning says the game's own hazards | done (`photosensitivity: { effects }`; Emberwick declares flashing and shaking; the editor-gaps ledger has row 12) | `f5fca953` |
-| T1 | `openLink` opens `noopener,noreferrer`; each adapter read; doc comment | done (unit tests over every adapter; a real browser's referrer not checked) | `T1_COMMIT` |
+| T1 | `openLink` opens `noopener,noreferrer`; each adapter read; doc comment | done (unit tests over every adapter; a real browser's referrer not checked) | `dcf5cc1a` |
 | T2 | The four playground cases watched failing | | |
 | T3 | Interface sounds nothing plays | | |
 | T4 | Credit names in the font build's glyph gate | | |
 | T5 | Copy that fails the grandma test | | |
 | T6 | The Languages guide names the import | done with S4 | `77e57029` |
 | T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | done with S3 | _with S3_ |
-| T8 | The SDK on the Node-only list | | |
+| T8 | The SDK on the Node-only list | done (`pnpm boundaries`: 0 findings; unit cases for the package and a subpath) | `T8_COMMIT` |
 
 Stage 6 handoff at 90 minutes (the fixes session, `session_01HNdX7HQTNnRKaroUir7cbf`): last code commit `77e57029`, pushed.
 Done: B1+S6, S7, S1, S2, S3+T7, S4+S5, T6. **Resume at S8** (the "+N more" badge), then S9, T1, T2, T3, T4, T5, T8, then the closing

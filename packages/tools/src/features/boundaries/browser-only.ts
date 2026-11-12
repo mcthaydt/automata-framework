@@ -11,7 +11,12 @@ import { readImports, resolveRelative } from './imports.ts'
 // anywhere.
 
 const NODE_BUILTINS: ReadonlySet<string> = new Set(builtinModules)
-const NODE_ONLY_LIBRARIES: ReadonlySet<string> = new Set(['fontkit', 'pngjs', 'subset-font'])
+const NODE_ONLY_LIBRARIES: ReadonlySet<string> = new Set([
+  'fontkit',
+  'pngjs',
+  'subset-font',
+  '@anthropic-ai/sdk',
+])
 
 /** The package name part of a specifier: `effect/Effect` → `effect`, `@scope/pkg/sub` → `@scope/pkg`. */
 function packageName(specifier: string): string {

@@ -79,6 +79,9 @@ describe('browserOnlyFindings', () => {
   it.each([
     ["import { readFileSync } from 'node:fs'", 'node:fs', 'Node built-ins'],
     ["import fontkit from 'fontkit'", 'fontkit', 'Node'],
+    // The translator's SDK is for Node tooling (`automata words`); a browser entry must never reach it (audit T8).
+    ["import Anthropic from '@anthropic-ai/sdk'", '@anthropic-ai/sdk', 'Node-only library'],
+    ["import { toFile } from '@anthropic-ai/sdk/uploads'", '@anthropic-ai/sdk/uploads', 'Node-only library'],
     ["const x = await import('effect')", 'effect', 'Effect is for Node tooling only'],
   ])('fails `%s` in a reachable file', (code, specifier, hint) => {
     const root = pkg({
