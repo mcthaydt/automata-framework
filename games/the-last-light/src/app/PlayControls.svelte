@@ -1,7 +1,9 @@
 <!--
   @component
-  The two controls a phone needs that the HUD does not draw: the lamp (once Ada holds it) and Skip (while a cutscene plays).
-  Each is a button of at least 48 px that sends one command; the keyboard and the pad do the same through `controls.ts`.
+  The two controls a finger needs that the HUD does not draw: the lamp (once Ada holds it) and Skip (while a cutscene plays).
+  Each is a button of at least 48 px that sends one command; the keyboard and the pad do the same through `controls.ts`, so the
+  buttons are drawn only while the player is touching (input mode, which is separate from the layout: the container's size
+  moves them, never whether they are there).
   The lamp sits bottom-left and Skip bottom-right, where the HUD's own pieces are hidden by the cutscene.
 -->
 <script lang="ts">
@@ -33,7 +35,9 @@ const view = $derived.by(() => {
 const send = (type: string): void => play.send({ type, payload: {} })
 </script>
 
-{#if view.cutscene}
+{#if play.inputMethod !== 'touch'}
+  <!-- A keyboard or a pad has F, X (held) and the pad's buttons; a button over their frame is clutter. -->
+{:else if view.cutscene}
   <button
     type="button"
     class="af-control af-control--primary play-skip"
