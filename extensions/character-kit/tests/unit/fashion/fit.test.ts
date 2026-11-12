@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { RUNWAY_CAST } from '#src/features/fashion/runway-cast.ts'
 import { FASHION_SWATCHES } from '#src/features/fashion/swatches.ts'
-import { BASE, type CharacterDef, cellOf, Figure, member, SWATCHES } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef, cellOf, Figure, member, SWATCHES } from '#src/shared/figures/door.ts'
 import { RUNWAY_GOLDEN } from '../../fixtures/runway-golden.ts'
 
 registerFashion()

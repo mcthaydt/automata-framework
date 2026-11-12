@@ -4,7 +4,7 @@
 // painter only draws them.
 import { placeView3d, type SceneLight, type View3dFactory } from '@automata/3d'
 import { Container3D } from '@pixi/3d'
-import type { CharacterDef, V3 } from '../../shared/figure-builder/door.ts'
+import type { CharacterDef, V3 } from '../../shared/figures/door.ts'
 import { type PaintedStage, type StageMember, stageFor } from './painted-stage.ts'
 import { Painter } from './painter.ts'
 import { DEFAULT_DENSITY } from './place.ts'

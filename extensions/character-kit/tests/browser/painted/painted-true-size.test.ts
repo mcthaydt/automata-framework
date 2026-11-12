@@ -2,7 +2,7 @@
 // screen: its texels are `zoom / density` pixels wide, of uneven width, and the figure is as tall as its metres are at its depth.
 // The default stays whole pixels. Headless Firefox here has no WebGL; the GPU runner runs it there.
 import { afterEach, describe, expect, it } from 'vitest'
-import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import { buildScene, type StageScene } from '../../fixtures/stage-scene.ts'
 
 const hasWebGL2 = document.createElement('canvas').getContext('webgl2') !== null

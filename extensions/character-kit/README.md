@@ -49,8 +49,8 @@ goes. `seated(skeleton, gait, seat, time)` gives the sitting pose.
 
 A painted figure is a character drawn the way the figure builder's own renders are: texel by texel, 128 × 192 texels for 2.6 m,
 always from the same angle (18° down, whatever the camera does), one pixel to a texel, and each texel has its own depth, so a
-figure goes behind a wall or behind another figure a texel at a time. The builder is a git submodule under `vendor/`
-(`.gitmodules`; clone with `--recurse-submodules`) and the kit reaches it only through `src/shared/figure-builder/`.
+figure goes behind a wall or behind another figure a texel at a time. The painter is `@automata/figures`, a private package of
+this repository (`extensions/figures`), and the kit reaches it only through `src/shared/figures/`.
 
 ```ts
 import { BASE, paintedFigure } from '@automata/character-kit'

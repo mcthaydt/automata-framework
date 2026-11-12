@@ -1,7 +1,7 @@
-// The stage contract this kit was written for (vendor/FigureBuilder/docs/contract.md). A breaking bump of the builder's
+// The stage contract this kit was written for (`extensions/figures/docs/contract.md`). A breaking bump of the builder's
 // contract fails here first, by name, before it moves a pixel.
 import { describe, expect, it } from 'vitest'
-import { SPRITE_PITCH, STAGE_VERSION, TIE_BIAS } from '#src/shared/figure-builder/door.ts'
+import { SPRITE_PITCH, STAGE_VERSION, TIE_BIAS } from '#src/shared/figures/door.ts'
 
 describe('the stage contract', () => {
   it('is the contract this kit was written for', () => {

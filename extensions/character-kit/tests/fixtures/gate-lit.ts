@@ -20,7 +20,7 @@ import { builtRenderer, testTarget } from '@automata/3d/testing-checks'
 import { stageFor } from '#src/features/painted/painted-stage.ts'
 import { paintedFigure } from '#src/features/painted/painted-view.ts'
 import { type RoomLight, roomLight } from '#src/features/painted/room-light.ts'
-import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import { aim, DEG, LENS_FOV, readFrame, step } from './stage-scene.ts'
 
 /** Where a figure's cell landed on the screen: its top-left and its size in pixels. */

@@ -1,5 +1,5 @@
 // The pieces both casts are written with: a cast member, the face every model shares, the eyes and the base pair's proportions.
-import type { CharacterDef, Garment } from '../../shared/figure-builder/door.ts'
+import type { CharacterDef, Garment } from '../../shared/figures/door.ts'
 
 /** One character of a cast: who, the library stand it holds standing (a key of the builder's `POSES`, where it has one), and a line on it.
  * The showcase's `Model` also names an outfit; here every runway model wears the one called `runway`, so no field says so. */

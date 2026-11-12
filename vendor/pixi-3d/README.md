@@ -7,8 +7,8 @@ M3R-D18; Owner, 2026-10-23: "we launch when pixi 3D goes public"). The Owner con
 
 | Tarball | Package | Used by |
 |---|---|---|
-| `pixi-3d-0.1.0-beta.2.tgz` | `@pixi/3d` 0.1.0-beta.2 (MIT, `LICENSE`) | nothing in the workspace since the beta.3 move; the closed `FigureBuilder` submodule's view still vendors it and builds against it until its source is folded into the framework (`vendor/FigureBuilder` is read only). Peer: `pixi.js` ^8.22.0; dependency: `meshoptimizer` ^1.2.0 |
-| `pixi-3d-0.1.0-beta.3.tgz` | `@pixi/3d` 0.1.0-beta.3 (MIT, the same `LICENSE`) | `packages/3d`, `packages/editor-3d`, `games/base-3d`, `extensions/character-kit`, `world-kit`, `lcd-panel`, `retro-crisp`, the root and `vendor/figure-builder` (the declarations build), through a `file:` specifier; `create-game --template 3d` and the consumer smoke. Peer: `pixi.js` ^8.23.0 (core is on 8.23.0); dependency: `meshoptimizer` ^1.2.0 |
+| `pixi-3d-0.1.0-beta.2.tgz` | `@pixi/3d` 0.1.0-beta.2 (MIT, `LICENSE`) | nothing in the workspace: the builders fold (`extensions/figures`, which carries the painter's view) and the beta.3 move both landed. Kept as the reference the beta.3 conversions are measured against. Peer: `pixi.js` ^8.22.0; dependency: `meshoptimizer` ^1.2.0 |
+| `pixi-3d-0.1.0-beta.3.tgz` | `@pixi/3d` 0.1.0-beta.3 (MIT, the same `LICENSE`) | `packages/3d`, `packages/editor-3d`, `games/base-3d`, `extensions/character-kit`, `figures`, `world-kit`, `lcd-panel`, `retro-crisp`, through a `file:` specifier; `create-game --template 3d` and the consumer smoke. Peer: `pixi.js` ^8.23.0 (core is on 8.23.0); dependency: `meshoptimizer` ^1.2.0 |
 
 **Source:** the release asset of `pixijs-userland/pixi-3d-beta` `v0.1.0-beta.2`, as The Last Light
 (`mcthaydt/PixiJS3D_Experiment_001`) vendors it at `92e6704`; copied byte for byte on 2026-10-30. The Last

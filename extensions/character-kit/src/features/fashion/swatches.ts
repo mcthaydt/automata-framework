@@ -2,7 +2,7 @@
 // `registerFashion`. The wardrobe's cloth, leather, shoes and soles from FigureBuilder's `claude/runway-video`
 // (`demo/runway/wardrobe.ts`, `cb4aa9f`), and the skin, hair, lip and eye tones of the showcase characters from its
 // `demo/runway/library.ts` (the later of the two libraries; `claude/demo-characters` `8fb0242` adds nothing to its swatches).
-import type { Material } from '../../shared/figure-builder/door.ts'
+import type { Material } from '../../shared/figures/door.ts'
 
 const cloth = (ramp: number, base: number, more: Partial<Material> = {}): Material => ({
   ramp,

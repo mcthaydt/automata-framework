@@ -3,7 +3,7 @@
 // cast under neutral names with the hair moved to the pieces that hang, and Otto is new. Each wears one outfit of the wardrobe
 // (`garments.ts`), written as a list the builder dresses. Their swatches, hair styles and garments register through
 // `registerFashion`.
-import type { Garment } from '../../shared/figure-builder/door.ts'
+import type { Garment } from '../../shared/figures/door.ts'
 import { eyes, face, type Model, shared } from './model.ts'
 
 /** An outfit called `runway`: the clothes, the hair, the eyes. */

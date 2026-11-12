@@ -17,7 +17,7 @@ import {
   type StageFrame,
   TIE_BIAS,
   texelDepths,
-} from '#src/shared/figure-builder/door.ts'
+} from '#src/shared/figures/door.ts'
 
 type Step = Parameters<Pixi3dRenderer['apply']>[0]
 export const step = (render: Step['render']): Step => ({ tick: 0, events: [], render, rejected: [] })

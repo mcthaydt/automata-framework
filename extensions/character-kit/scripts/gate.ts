@@ -7,7 +7,7 @@
 //   (gate 2, the runway's stills, loop frames and timings, is written with Task 10 of the plan, which is on hold: `gate runway`
 //   does not exist yet and asking for it throws)
 //
-// Gate 1's "before" is the commit this branch was cut from (BASE, the head of the figure-builder submodule branch), built in a
+// Gate 1's "before" is the commit this branch was cut from (BASE, the last commit before the painter joined this repository), built in a
 // worktree of its own (`git worktree add`, then `pnpm install`: the builder's declarations are built at install and are
 // git-ignored). Both sides run in Chromium under Playwright's fake clock and `reducedMotion: 'reduce'` (which zeroes the camera's
 // damping), so the same tick is the same frame. Numbers come from the pictures and the builder, never typed.
@@ -31,11 +31,11 @@ import {
   Figure,
   member,
   standing,
-} from '../src/shared/figure-builder/door.ts'
+} from '../src/shared/figures/door.ts'
 
 const KIT = join(import.meta.dirname, '..')
 const REPO = join(KIT, '../..')
-/** The head of `claude/figurebuilder-submodule`, which this branch was cut from. */
+/** The last commit before the painter joined this repository, which this branch was cut from. */
 const BASE_COMMIT = 'a66b4e0e'
 const PAINTED = '/characterkit/painted/'
 /** Fake-clock milliseconds the sim runs after its first drawn frame: 2 ticks, the walker a metre to the stander's left, behind the wall, the two figures apart. */
@@ -83,7 +83,7 @@ function baseTree(): string {
   const dir = join(REPO, '../c7-base')
   if (!existsSync(join(dir, 'node_modules'))) {
     throw new Error(
-      `The base tree is missing: git worktree add --detach ${dir} ${BASE_COMMIT}, put vendor/FigureBuilder at the commit its gitlink names, and pnpm install there.`,
+      `The base tree is missing: git worktree add --detach ${dir} ${BASE_COMMIT}, give the figure builder's folder there the commit that tree names, and pnpm install there.`,
     )
   }
   return dir

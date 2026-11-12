@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { LIT_CELLS, litCells, shownLuma } from '#src/features/painted/lit-cells.ts'
 import { roomLight, type Tint } from '#src/features/painted/room-light.ts'
-import { BASE, Figure, member, SPRITE_PITCH, type V3 } from '#src/shared/figure-builder/door.ts'
+import { BASE, Figure, member, SPRITE_PITCH, type V3 } from '#src/shared/figures/door.ts'
 
 const FEET: V3 = [0, 0, 0]
 const woman = BASE.find((b) => b.def.id === 'base-f')?.def

@@ -1,0 +1,56 @@
+{
+  "name": "@automata/figures",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/src/entries/index.d.ts",
+      "default": "./src/entries/index.ts"
+    },
+    "./kit": {
+      "types": "./types/src/entries/kit.d.ts",
+      "default": "./src/entries/kit.ts"
+    },
+    "./view": {
+      "types": "./types/src/entries/view.d.ts",
+      "default": "./src/entries/view.ts"
+    }
+  },
+  "scripts": {
+    "prepare": "tsc -p tsconfig.types.json",
+    "typecheck": "tsc -p tsconfig.types.json && tsc -p .",
+    "test:unit": "vitest run --project goldens ${AF_UNIT_FULL:+--project unit}",
+    "test:browser": "vitest run --project browser --project webgpu",
+    "render": "tsx scripts/render.ts",
+    "golden": "tsx scripts/golden.ts",
+    "lit": "tsx scripts/lit.ts",
+    "actors": "tsx scripts/actors-demo.ts",
+    "c5": "tsx scripts/c5-finish-sheet.ts",
+    "c9": "tsx scripts/c9-sheet.ts",
+    "viewer": "vite viewer"
+  },
+  "dependencies": {
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz",
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "pixi.js": "8.23.0"
+  },
+  "devDependencies": {
+    "@automata/vitest-preset": "workspace:*",
+    "@napi-rs/canvas": "1.0.10",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "pixi.js": "8.23.0",
+    "playwright": "1.63.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

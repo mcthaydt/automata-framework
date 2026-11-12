@@ -1,13 +1,13 @@
 // The runway wardrobe against FigureBuilder's own: each runway model's painted cell (standing, D2) from this kit's port equals,
 // to the byte, the cell the showcase's wardrobe paints (`demo/runway` on FigureBuilder's `claude/runway-video`, `cb4aa9f`) on the
-// pinned builder. The golden is made by `scripts/record-runway-cells.ts` from the showcase's own files, never by hand, and re-made
-// only when the submodule moves. A garment that drifts from the showcase's in fit, fabric, swatch or hair fails here with its
+// painter in this repository. The golden is made by `scripts/record-runway-cells.ts` from the showcase's own files, never by hand, and re-made
+// only when the painter moves. A garment that drifts from the showcase's in fit, fabric, swatch or hair fails here with its
 // model and direction, and so does a shell that no longer clears the body under it: the showcase's `fit-check` bodies (thin, heavy,
 // muscular, curvy, short) are held the same way.
 import { describe, expect, it } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { RUNWAY_CAST } from '#src/features/fashion/runway-cast.ts'
-import { member, standing } from '#src/shared/figure-builder/door.ts'
+import { member, standing } from '#src/shared/figures/door.ts'
 import { type CellMiss, cellMd5, failOnMisses } from '../../fixtures/cell-miss.ts'
 import { RUNWAY_GOLDEN } from '../../fixtures/runway-golden.ts'
 

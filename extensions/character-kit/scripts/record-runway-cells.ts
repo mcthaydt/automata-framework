@@ -2,20 +2,20 @@
 // of each on the five slider extremes the showcase's `fit-check` draws (front and three-quarter back), drawn by FigureBuilder's own
 // showcase wardrobe, not by this kit. The kit's fit test paints the same models from its own port
 // (`src/features/fashion`) and asserts every cell equal, so a garment that drifts from the showcase's, in fit, fabric or hair,
-// fails with its model and direction. The showcase lives on FigureBuilder's `claude/runway-video` (`demo/runway`), not at the
-// commit the submodule pins, so it is read from a FigureBuilder clone that has the commit and run against the submodule's own
-// `src`: the cells are the showcase's code on the pinned builder.
+// fails with its model and direction. The showcase lives on FigureBuilder's `claude/runway-video` (`demo/runway`), in the
+// archived repository and not in this one, so it is read from a clone of that repository that has the commit and run against the
+// painter in this repository (`extensions/figures/src`): the cells are the showcase's code on the painter as it is here.
 //
 //   pnpm --filter @automata/character-kit goldens:runway -- <a FigureBuilder clone with commit cb4aa9f> [--out <dir>]
 //
-// Made only by this script, and re-made only when the submodule moves (the commit that does it says why).
+// Made only by this script, and re-made only when the painter moves (the commit that does it says why).
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { member, standing } from '../src/shared/figure-builder/door.ts'
+import { member, standing } from '../src/shared/figures/door.ts'
 
 /** The showcase commit the golden is read from (FigureBuilder's `claude/runway-video`). */
 export const SHOWCASE_COMMIT = 'cb4aa9f40cbaa2894ff7bf3d818db34ca2bde0d6'
@@ -31,7 +31,8 @@ const BODIES: Readonly<Record<string, Readonly<Record<string, number>>>> = {
 }
 const FIT_DIRECTIONS = [0, 5] as const
 const GOLDENS = join(import.meta.dirname, '../tests/fixtures/goldens')
-const BUILDER = join(import.meta.dirname, '../../../vendor/FigureBuilder')
+// The painter is a package of this repository: the showcase's imports are pointed at its own source, by file.
+const BUILDER = join(import.meta.dirname, '../../figures')
 
 const args = process.argv.slice(2).filter((a) => a !== '--')
 const flag = args.indexOf('--out')
@@ -47,7 +48,7 @@ const git = (cwd: string, ...a: string[]) => {
 }
 
 // The showcase's three files, unchanged but for the path to the builder's `src` (they import it as `../../src`): it is made the
-// submodule's own, by file, so the showcase registers its fabrics, garments and hair on the very module instance the kit's door
+// painter's own, by file, so the showcase registers its fabrics, garments and hair on the very module instance the kit's door
 // loads.
 const work = mkdtempSync(join(tmpdir(), 'runway-showcase-'))
 try {

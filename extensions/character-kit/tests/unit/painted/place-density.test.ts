@@ -4,7 +4,7 @@ import { fovOf } from '@automata/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { place } from '#src/features/painted/place.ts'
 import { poseOf } from '#src/features/painted/pose.ts'
-import { BASE, type CharacterDef, type V3, zoomOf } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef, type V3, zoomOf } from '#src/shared/figures/door.ts'
 import { perspectiveCamera } from '../../fixtures/cameras.ts'
 import { painted } from '../../fixtures/painted-cell.ts'
 
