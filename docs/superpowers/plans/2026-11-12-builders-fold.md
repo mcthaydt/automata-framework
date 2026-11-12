@@ -25,7 +25,7 @@ argues from their measurements. **Tracker:** [`../progress.md`](../progress.md),
 
 ## Tracking
 
-**6 of 28 tasks done (21%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
+**7 of 28 tasks done (25%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
 ([plan audit](../audits/2026-11-12-builders-fold-plan-audit.md)): its fixes are in the steps below. Numbers 4b to 4d were
 added and 14 was moved to 4b after the Owner's answers of 2026-11-12, so the numbering has letters and a gap. Tick a
 task only when its checks passed in the session that did it; say what did not run.
@@ -39,7 +39,7 @@ task only when its checks passed in the session that did it; say what did not ru
 | 4b | The workflows lose the submodule step (the Owner's word given) | `claude/builders-fold-figures` | done | `323a971d9`: the Owner's words quoted in the commit body ("remove the submodule checkout and SUBMODULES_TOKEN from the workflows"); the new invariant test failed first (the 73 lines), passes; hygiene unit 157 tests; `pnpm check` exit 0 (66 tasks); no `SUBMODULES_TOKEN` or `checkout-submodules` left under `.github`, `tooling` or the runbook; actionlint not run (no Docker daemon here) |
 | 4c | The c5-finish fixes come across | `claude/builders-fold-figures` | done | Six cherry-picks (`82c11508a` S1, `a799dc290` S2, `eb02942d2` N1, `6f63f4e3d` N2, `35ba7296a` N5, `3f058313f` N4) and `cc3626b84` (step 3b); after the five: 47 files, 577 tests, no golden moved; after step 3b: 47 files, 578 tests, typecheck 0 errors; kit unit 229 tests, kit Chromium 58 pass as the baseline, no recorded file rewritten; `pnpm check` exit 0 (3m27s) |
 | 4d | A turned face keeps both eyes: the fix, the sheet, the Owner's eye, the re-record | `claude/builders-fold-figures` | waiting on the Owner | Steps 1 to 3 done: the fix applied cleanly and moves exactly the five tests in four files the audit measured (579 tests, 574 pass), the character kit's suites do not move; the sheet is committed (`732ecfa7e`) at `docs/superpowers/audits/2026-11-12-builders-fold-survey/turned-face/`. The fix is held out of the branch (it alone fails the goldens) until the Owner answers |
-| 5 | The wardrobe branch arrives as its own commits | `claude/builders-fold-figures` | todo | |
+| 5 | The wardrobe branch arrives as its own commits | `claude/builders-fold-figures` | done | `1e22885f3` (the merge, seven commits F0 to F6) and `ab909678f` (the documents): the one conflict was `package.json`, resolved as the plan says (`c9` script added); no golden file changed (`git diff --stat HEAD^1 HEAD -- extensions/figures/tests/golden` empty); the painter's suite 52 files, 653 tests, all pass on Node 24.21 (the 2-ulp pin of `b192bad57` already holds the head's profile pin); the goldens, identity, ulp, face-d2 and layer tests also pass on Node 22.23.4 (10 files, 115 tests); kit unit 229 and Chromium 58 as the baseline; `pnpm check` exit 0 (3m34s) |
 | 6 | Conform: one mechanical commit for format, one for lint's automatic fixes | `claude/builders-fold-figures` | todo | |
 | 7 | Conform: the framework's layout, test imports, runner, boundaries; the suite split for the commit hook | `claude/builders-fold-figures` | todo | |
 | 8 | Conform: the lint rules that need a hand, one rule a commit | `claude/builders-fold-figures` | todo | |
@@ -836,14 +836,14 @@ suite passes; or the fix is reverted on the Owner's word.
 - Create (by merge): what `claude/c9-wardrobe` adds under `src`, `tests` and `scripts`
 - Create: `docs/archive/figure-painter/c9-wardrobe/{2026-11-11-c9-wardrobe-design.md,2026-11-11-c9-wardrobe.md,2026-11-11-c9-wardrobe-plan-audit.md,README.md}`
 
-- [ ] **Step 1: Merge.**
+- [x] **Step 1: Merge.**
   `git merge --no-ff painter-history/claude/c9-wardrobe -m "feat(figures): the wardrobe's first six tasks arrive (sheer cloth, the shod foot, the head's form, front hair, hair on the trunk, a fringe)"`.
   **One conflict is expected, in `extensions/figures/package.json`** (the branch adds a script to the file
   task 2 rewrote): keep task 2's file and add `"c9": "tsx scripts/c9-sheet.ts"`. Any other conflict is a stop.
   Expected: seven commits arrive (F0 to F6).
-- [ ] **Step 2: Nothing recorded moved.**
+- [x] **Step 2: Nothing recorded moved.**
   `git diff --stat HEAD^1 HEAD -- extensions/figures/tests/golden` prints nothing.
-- [ ] **Step 3: Its suite.** `pnpm --filter @automata/figures test:unit`. Expected (measured by the plan audit with
+- [x] **Step 3: Its suite.** `pnpm --filter @automata/figures test:unit`. Expected (measured by the plan audit with
   everything before it applied, Node 24.21): **52 files, 651 tests** (plus task 4c step 3b's), every test passing but
   one: `tests/features/body/face-d2.test.ts`, "headForm at the default sliders keeps its width, front and back",
   `front 0.95: expected 0.07329037500000002 to be 0.07329037500000003`. The two numbers are **1 ulp** apart. The branch
@@ -851,7 +851,7 @@ suite passes; or the fix is reverted on the Owner's word.
   last bit. Measured on the wardrobe branch alone, under both Nodes: 29 files, 353 tests (the five goldens, the identity
   and wardrobe cell pins, `ulp.test.ts`, `stage/sheets.test.ts`, and the hair, outfit and paint tests) pass identically,
   and only this pin differs. Record the counts in the log; any other failure is a stop.
-- [ ] **Step 3b: The pin holds within 2 ulps (the coordinator's ruling of 2026-11-12).** Its own commit, after the
+- [x] **Step 3b: The pin holds within 2 ulps (the coordinator's ruling of 2026-11-12).** Its own commit, after the
   merge, never a re-record:
   1. The proof first, in `tests/features/hair/ulp.test.ts` (the suite's last-bit guard): a case that draws the base
      pair's standing views at densities 1 and 2 with `headForm`'s `width`, `front` and `back` nudged by +1 and by -1
@@ -870,13 +870,13 @@ suite passes; or the fix is reverted on the Owner's word.
   `.nvmrc`, `pnpm-workspace.yaml`'s `useNodeVersion: 24.21.0` (so `pnpm` runs it even where the machine's own `node` is
   older: the cloud image's is 22.23.4), and CI's `actions/setup-node` with `node-version-file: .nvmrc`. A cell that ever
   differs by Node version is a stop, never a tolerance.
-- [ ] **Step 4: The kit.** Its unit and Chromium suites at the baseline's counts, `git status` clean. The branch
+- [x] **Step 4: The kit.** Its unit and Chromium suites at the baseline's counts, `git status` clean. The branch
   promises that a field left out changes nothing; a moved kit cell means it did not hold, and is a stop.
-- [ ] **Step 5: Its documents, as a record.** Copy the wardrobe cycle's spec, plan and plan audit from `$FB` at
+- [x] **Step 5: Its documents, as a record.** Copy the wardrobe cycle's spec, plan and plan audit from `$FB` at
   `856498a` into `docs/archive/figure-painter/c9-wardrobe/`, with a `README.md` that gives the source repository and
   commit and says the Checkpoint A sheets (five PNGs, 5.1 MB) stayed there. Commit
   `docs(archive): the wardrobe cycle's spec, plan and plan audit, from the retired repository`.
-- [ ] **Step 6:** `pnpm check`.
+- [x] **Step 6:** `pnpm check`.
 
 **Done when:** the branch's seven code commits are in `git log -- extensions/figures`, no golden changed, and
 both suites pass. (Measured in a scratch clone: the branch merges with no conflict on top of the c5 picks and the
@@ -1527,3 +1527,4 @@ pin.
 | 2026-11-12 | Task 4b | Eight workflow files, the script and its test, rule 6 and 7 of the invariants and the runbook row. The new case ("name no submodule step and no submodule token") was watched failing for the right reason first. Every file parses as YAML; `pnpm lint:actions` could not run (Docker's daemon is not available here), so actionlint is **not run**. For the pull request's text: the Owner, 2026-11-12, "remove the submodule checkout and SUBMODULES_TOKEN from the workflows". The `SUBMODULES_TOKEN` secret is the Owner's to delete once no open branch predates this commit (a branch that has not merged `main` past it still runs the old step, which warns and empties the submodule, and its install fails) |
 | 2026-11-12 | Task 4c | The five apply with no conflict (47 files, 577 tests, all five goldens, the identity pins and the kit pass). N4 had the one expected conflict (one hunk of `figure.ts`; kept the fix's `weave` line and main's `depth`), and the commit hook refused it (its `lighting/sprite.ts` reads the old Weave), so N4 was committed with `LEFTHOOK=0`, said here and in the ledger: the next commit fixes it. Step 3b: the new case (two fabrics of different depth, lit) failed with the TypeError of the old shape; with only the `=== 1` left unfixed it fails with an assertion on a depth-2 texel, so it sees the silent bug; then `sprite.ts` reads `on !== 0` and `depthAt` (commit through the hook). No golden of the painter or the kit moved. Not run: WebKit, Firefox, arm64 |
 | 2026-11-12 | Task 4d, steps 1 to 3 | The fix cherry-picked with `-n` (`3cf1f2a`, no conflict); the painter's whole suite: 5 tests in 4 files fail and nothing else (the actors golden for base-m, 10 frames, and for base-f, 8; the base golden at density 1, `base-m-hero-d1`, 9 bytes, 3 texels; the sprites golden `base-m-D1` frame 0; `stage/sheets.test.ts` "base-m hero0 at D1", 3 texels); the kit's unit (229) and Chromium (58) suites do not move. The sheet (`turned-face/`, 4 PNGs, 256 KB with the readme) shows 20 cells: the far eye in each, plus two things that are not an eye, both explained in its readme (a colour-budget merge of two outline texels in base-m's script frame 10, and one texel of base-f's script frame 10 that the Owner should judge). The fix is not committed (the hook rightly refuses a commit that moves goldens); it is kept as a patch and in the filtered history. **Waiting for the coordinator and the Owner (step 4)** |
+| 2026-11-12 | Task 5 | Done **without the turned-face fix**, as the coordinator said (the fix waits for the Owner). Merged `painter-history/claude/c9-wardrobe` with the one `package.json` conflict. Step 3b was made in task 2 (`b192bad57`), so here it is a verification: the suite passes whole on Node 24.21 and the goldens and pins on Node 22.23.4. The wardrobe's documents are in `docs/archive/figure-painter/c9-wardrobe/` with a readme. No kit cell moved. Not run: WebKit, Firefox, arm64 |
