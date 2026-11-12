@@ -154,3 +154,16 @@ texel is one flat colour and every line falls between texels (crispness inside a
 brief asked when the face stays clean. But honestly: at full strength a dark line every 4 pixels reads as a grid laid over her face, and the
 head with no screen mesh is plainly the closest to the reference. The coordinator may prefer a third on the room, or no mesh over figures.
 `content.hash` moved (look.toml is in the content build). No other recorded picture or hash moved.
+
+## Session 2, item 2: lips and nose (the cause found, not fixed)
+
+Her face's texels in play (the no-mesh frame and the kept one, 1024 by 768) against the painted cell (`pnpm --filter @automata/character-kit
+ada-d2`): skin `#ce9770` plays `#b5816a` (its hue kept); the upper lip `#7c4b47` plays `#583736` (reads); the lower lip `#d28d7a` plays
+`#c58c77`, and is only a little pinker than the skin in the painted cell too (low contrast is partly her data); the nose's highlight `#edb67c`
+plays a grey-beige `#c7b194` / `#b9ad92`. A shot with the retro grade's `moodBlend` at 0 still has it grey-beige (`#e6d0af`), so not the grade.
+The four paints are DUEL colours, so `holdSkinHue`'s skin set does hold them. The stage is `warmer()` in `extensions/character-kit/src/features/
+painted/skin-hue.ts`: a Python replica of its metric picks, for the highlight a step darker, `#cfaf8e` (95% of its lightness) and `#c0a588` (90%),
+and for her base skin `#b39783` (95%) and `#857565` (80%): grey-beige steps, because the chroma term weighs only .25. At 2 the replica keeps the
+highlight warm (`#d89f75` at 90%) and the skin on its own ramp (`#bf7e63`, `#ad6e51`, `#9a624c`). The same grey steps are the likely cause of the
+pale far-cheek patch and the grey cheek in profile (item 4). Not changed here: it is the kit's generic metric and moves the kit's lit goldens; it
+wants a test first (a highlight a step darker keeps chroma), the kit's goldens looked at and listed, and the head shot again.
