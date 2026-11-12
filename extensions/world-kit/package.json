@@ -29,7 +29,8 @@
     "maps": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/convert-builder-maps.ts tests/fixtures/builder-maps.json --out library/maps",
     "textures": "node --import ../../packages/3d/scripts/extensionless-ts.ts src/app/textures-cli.ts",
     "textures:check": "node --import ../../packages/3d/scripts/extensionless-ts.ts src/app/textures-cli.ts --check",
-    "test:browser": "vitest run --project browser"
+    "test:browser": "vitest run --project browser --project webgpu",
+    "test:webgpu": "vitest run --project webgpu"
   },
   "dependencies": {
     "zod": "4.6.6"

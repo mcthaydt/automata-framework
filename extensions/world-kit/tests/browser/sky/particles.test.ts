@@ -17,7 +17,11 @@ afterEach(() => {
   document.body.replaceChildren()
 })
 
-async function start(blocked: boolean): Promise<{ renderer: Pixi3dRenderer; particles: ParticlesEffect }> {
+/** The flame stands `height` m over the floor (1, the middle of the frame, unless said). */
+async function start(
+  blocked: boolean,
+  height = 1,
+): Promise<{ renderer: Pixi3dRenderer; particles: ParticlesEffect }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
   const made = await createPixi3dRenderer({
@@ -51,7 +55,7 @@ async function start(blocked: boolean): Promise<{ renderer: Pixi3dRenderer; part
   })(target(host))
   if (!made.ok) throw made.reason
   open = made.value
-  const particles = new ParticlesEffect([{ kind: 'flame', at: [0, 1, 0] }])
+  const particles = new ParticlesEffect([{ kind: 'flame', at: [0, height, 0] }])
   made.value.view.passes = [...made.value.view.passes, particles]
   made.value.draw(frame)
   particles.track(made.value.view.camera)
@@ -78,6 +82,25 @@ describe.runIf(hasWebGL2)('particles on WebGL2', () => {
     expect(colours).toContain(0xffe949)
     expect(colours).toContain(0xf99b4e)
     expect(moved.every((i) => Math.abs((i % SIZE.width) - SIZE.width / 2) < 12)).toBe(true)
+  })
+
+  it('puts a high flame in the upper rows of the frame and a low one in the lower (which way is up)', async () => {
+    const meanRow = async (y: number): Promise<number> => {
+      const { renderer, particles } = await start(false, y)
+      particles.enabled = false
+      const bare = shot(renderer)
+      particles.enabled = true
+      const moved = drawn(bare, shot(renderer))
+      expect(moved.length).toBeGreaterThan(6)
+      const mean = moved.reduce((sum, i) => sum + Math.floor(i / SIZE.width), 0) / moved.length
+      open?.dispose()
+      open = undefined
+      document.body.replaceChildren()
+      return mean
+    }
+    const high = await meanRow(2)
+    const low = await meanRow(0)
+    expect(high).toBeLessThan(low - 3)
   })
 
   it('hides them behind a shape in front of them', async () => {

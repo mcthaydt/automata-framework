@@ -35,7 +35,7 @@ float hash3(int a, int b, int c) {
 }`
 export const HASH_WGSL = `
 fn hash3(a: i32, b: i32, c: i32) -> f32 {
-  var n = u32(a) * 0x27d4eb2du ^ u32(b) * 0x165667b1u ^ u32(c) * 0x9e3779b1u;
+  var n = (u32(a) * 0x27d4eb2du) ^ (u32(b) * 0x165667b1u) ^ (u32(c) * 0x9e3779b1u);
   n = (n ^ (n >> 15u)) * 0x85ebca6bu;
   n = n ^ (n >> 13u);
   return f32(n) / 4294967296.0;

@@ -13,7 +13,7 @@ contains it (`vendor/pixi-3d/README.md`).
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
 | 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
 | 3b | `main` (#654, #655, #656) merged; the baseline taken again on the merged tree with beta.2; the retro-crisp case that 8.23.0 moved found | done 2026-11-12 | [§3b](#3b-the-merged-tree-with-beta2-the-baseline-taken-again) |
-| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 and 2 done | [third session](#third-session-the-work-list-in-order) |
+| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 to 3 done | [third session](#third-session-the-work-list-in-order) |
 | 5 | Workarounds the beta makes unnecessary | not started | |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
@@ -376,7 +376,35 @@ Room and street agree with the first session's numbers to within 0.3 (55.4 to 84
   contrast that made them readable is gone, which the drunk-grandma rule does not allow. Cause not yet traced (the DUEL snap maps the crates' and the floor's brighter unlit colours to one palette
   entry is the likely one; the lips along the channels, `0xffb108`, and the embers are not in the frame at all, with or without the move, so the frame may not be where the contrast shows); it is
   in the grouped list as unexplained until it is.
-- Recommendation: `'authored'` (needs no compensation, keeps colours, and makes a night room readable); the crates finding is a `base-3d` colour decision, not a switch.
+- **The switch also decides the colour of core's lit moving figures** (the cast drawn as core meshes, not the painted pair; `frames/figures-core-room-beta2-vs-authored-vs-beta2look.png`, the dressed room by day,
+  `figures=core`): `'authored'` lights them up (a dark brown shirt turns grey, black trousers brown, red shoes orange; 6.9% of pixels differ from beta.2, mean luma 53.7 to 56.2) and `'beta2'` keeps the beta.2
+  picture (2.7%, 53.9). So the two halves of the switch want different answers: the fog colour wants `'authored'` (the haze, the sky), a lit figure's colour wants `'beta2'` (what the figures were tuned to).
+  Splitting `colour-look.ts` in two (fog and sky; tinted colour) is one small change, and is the recommendation once the Owner has seen both frames. Painted figures do not depend on it.
+- Recommendation: fog and sky `'authored'` (needs no compensation and makes a night room readable); a lit moving figure's colour as beta.2 drew it; the crates finding is a `base-3d` colour decision, not a switch.
+
+### Item 3: WebGPU (`AF_WEBGPU=software`)
+
+**Before this item no test drew any of the look's effects or the kit's sky effects on WebGPU.** Only `@automata/3d` (`webgpu`: mesh and `scene-depth`, 7 cases) and `character-kit` have a WebGPU project; the world-kit, lcd-panel and
+retro-crisp suites say "WebGPU and WebGL2 parity is the GPU runner's", and no runner had one for them.
+
+- **A real bug, older than beta.3.** The kit's WGSL hash (`HASH_WGSL`, `extensions/world-kit/src/features/sky/shader-parts.ts`) wrote `u32(a) * k ^ u32(b) * k ^ ...`; WGSL refuses `*` mixed with `^` without parentheses, GLSL does not. The shader
+  module fails to compile, **nothing throws and nothing reaches `uncapturederror`** (found by reading `getCompilationInfo()` of each module), the pass's pipeline is invalid and the frame goes black. Stars, shafts, reflections and rain drew a black frame on WebGPU; particles
+  and glow (no hash) drew. The same probe on the beta.2 worktree (`c1c9b7c2`) gives the same black frames, so it is not the move. Fixed with the parentheses core's own sky pass already has.
+  Test first: the new WebGPU cases failed with `line 164: mixing '*' and '^' requires parenthesis`, and a unit test over the kit's WGSL (`tests/unit/sky/shader-parts.test.ts`, no GPU needed) fails without the fix and passes with it.
+- **New: `extensions/world-kit` `webgpu` project** (`tests/browser/webgpu/effects.test.ts`, 5 cases: stars above the horizon, a high lamp's shaft above a low one's, the puddle mirror below the ball, a high flame above a low one, the rain) that reads each WGSL module's compile messages
+  and the properties above; `test:browser` runs it and `test:webgpu` alone. The `browser` project's folder is `{sky,props}` (as `character-kit`'s is `{painted,parity}`). Two backends in one page do not work (a first try drew WebGL then WebGPU: Pixi's shared textures stay bound to the destroyed
+  renderer: `[BindGroup] no usable resource for the shader's 'textureSource17'`), so the cases are WebGPU-only and the WebGL2 cases of `tests/browser/sky` are their pair (a WebGL2 flame-orientation case was added, `particles.test.ts`). **All 5 pass; world-kit's WebGL browser project: 19 passed and `ward.test.ts` timed out at 15 s in the sequence as before (passes alone).**
+- **New: `@automata/3d` `look-compiles.test.ts`** (a `webgpu` case, and `src/testing/shader-compile.ts`, the module watcher both use): the haze, grade, snap, outline, sky and present passes compile as WGSL. Control: breaking the parentheses in core's sky hash makes it fail with the compiler's message. `@automata/3d` `webgpu` project: 8 passed (7 before).
+- **`abs(uFxClip.w)` is the right rule, not a hiding place.** The four kit effects build `ndc` from `uv` (y down), so only the projection's size is needed from `uFxClip.w`, never its sign; the orientation cases pass on WebGL2 (negative `w` under the letterbox's texture, measured last session) and on WebGPU. The sign itself was not measured on WebGPU (a probe pass placed before the
+  present pass was overwritten by it); the answer rests on the orientation cases, which would fail on a sign mismatch. Nothing was replaced.
+- **Not judged:** core's `SkyEffect` (`sky-pass.ts`) still divides `ndc.y / uFxClip.w` signed. A probe with it as the first pass on WebGL2 shows no sky pixel in either beta (every pixel of the column is the clear colour `2e222f`), so `sky-palette.test.ts` passes without seeing a sky and
+  no test says which way up the sky is. It is not in the default look. To settle before the sky is used on beta.3: a test that sees the sky and its orientation on both backends. Likewise no test draws `lcd-panel`'s or `retro-crisp`'s WGSL on WebGPU.
+- Other WebGPU failures: the 3 painted cases of `character-kit` (item 4).
+
+### Item 4c, samplers: tiled and point-filtered textures, WebGL2 against WebGPU (one frame each)
+
+`frames/samplers-room-webgl-vs-webgpu.png` and `samplers-street-webgl-vs-webgpu.png`: the dressed room and street through `spikes/eb-look` with `figures=core`, `pref=webgl` and `pref=webgpu` (`AF_WEBGPU=software` flags), the world's tiled `albedoTiles` surfaces (the floor, the camouflage-patterned walls) and their `nearest` texels. **They match:** 0.5% of the room's pixels differ and 0.1% of the street's, mean luma 56.2 and 56.2, 109.5 and 109.5; the differing pixels are the figures' edges (core cast, drawn by the engine's default style), none on a tiled surface. `world-view.ts` already sets `addressMode: 'repeat'` and `scaleMode: 'nearest'`
+on each tile, which is what beta.3's per-texture sampler asks for. Recommendation: nothing to change; keep these two as the proof.
 
 ## Handoff at 90 minutes
 
