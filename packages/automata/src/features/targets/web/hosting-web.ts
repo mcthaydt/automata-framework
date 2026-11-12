@@ -64,10 +64,10 @@ export interface WebPage extends WebEvents {
   readonly innerHeight: number
   matchMedia?(query: string): { readonly matches: boolean }
   /**
-   * `window.open`: a new tab for `url`. A window opened with `noopener` answers null, whether the browser opened it or
-   * blocked it. The adapter never sets the page's own location, so the page has no `location` here.
+   * `window.open`: a new tab for `url`. It answers null when the browser blocked it. The adapter never sets the page's
+   * own location, so the page has no `location` here.
    */
-  open(url: string, target: string, features: string): unknown
+  open(url: string, target: string): { opener: unknown } | null
 }
 
 /** The build's publish target among those that use this adapter. */
@@ -353,14 +353,18 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
         return refuse('DENIED', false, 'display.fullscreen', cause)
       }
     },
-    // A new tab, never the page's own location, opened `noopener,noreferrer`: the tab gets no handle on the game and is
-    // not told the game's address. A `noopener` window answers null whether it opened or a popup blocker refused it, so
-    // the answer is `opened: true` once the browser was asked (a link the player pressed is not blocked).
+    // A new tab, never the page's own location. `noopener` is NOT in the features string: it makes `window.open` answer
+    // null whether the tab opened or a popup blocker refused it, so a block would read as `opened: true` and the game
+    // would be told a link opened when it did not. Without it a block answers null and is `opened: false`. The new
+    // tab's `opener` is cut by hand, in the same synchronous turn as the call (nothing the tab runs can get in between),
+    // which closes the same hole: the tab cannot reach back into the game. The browser still sends the game's address
+    // as the referrer (see `Hosting.openLink`).
     openLink: async (url) =>
       whileOpen('links.open', () => {
         if (!isOpenableLink(url)) return refuse('INVALID_PAYLOAD', false, 'links.open')
-        page.open(url, '_blank', 'noopener,noreferrer')
-        return ok({ opened: true })
+        const tab = page.open(url, '_blank')
+        if (tab !== null) tab.opener = null
+        return ok({ opened: tab !== null })
       }),
     // No host counts rounds, but the game's round-end autosave reads the ends, so they are kept honest.
     round: {

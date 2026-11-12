@@ -27,12 +27,14 @@ export interface FakeWebPage {
   readonly writes: string[]
   /** Every address the page was asked to open in a new tab, in order, blocked or not. */
   readonly opened: string[]
-  /** The window features of each `open`, in the same order as `opened`. */
-  readonly features: string[]
   /**
-   * From now on the browser blocks `window.open()`, as a popup blocker does. It answers null, as it does for a window
-   * opened with `noopener` whether or not that opened, so the page cannot tell the two apart.
+   * The arguments each `open` got past the address and the target, in the same order as `opened`. A page passes none:
+   * `noopener` in a features string makes a browser answer null for a tab that did open, which hides a blocked popup.
    */
+  readonly extra: unknown[][]
+  /** The newest tab `open` answered with, or undefined when none has opened. */
+  readonly lastTab: { opener: unknown } | undefined
+  /** From now on the browser blocks `window.open()`, as a popup blocker does: it answers null. */
   blockPopups(): void
   setVisibility(state: DocumentVisibilityState): void
   setFocus(focused: boolean): void
@@ -48,8 +50,9 @@ export function fakeWebPage(options: FakeWebPageOptions = {}): FakeWebPage {
   const stored = new Map<string, string>()
   const writes: string[] = []
   const opened: string[] = []
-  const features: string[] = []
+  const extra: unknown[][] = []
   let popups: 'allow' | 'block' = 'allow'
+  let lastTab: { opener: unknown } | undefined
   let visibility: DocumentVisibilityState = 'visible'
   let focused = true
   let width = options.width ?? 1280
@@ -94,11 +97,12 @@ export function fakeWebPage(options: FakeWebPageOptions = {}): FakeWebPage {
       if (options.storage === 'blocked') throw new DOMException('Access is denied', 'SecurityError')
       return storage
     },
-    // A browser answers null for a `noopener` window (opened or not) and for a blocked popup; else a handle on the tab.
-    open: (url, _target, windowFeatures) => {
+    open: (url, _target, ...rest: unknown[]) => {
       opened.push(url)
-      features.push(windowFeatures)
-      return popups === 'block' || windowFeatures.includes('noopener') ? null : { opener: {} }
+      extra.push(rest)
+      if (popups === 'block') return null
+      lastTab = { opener: {} }
+      return lastTab
     },
     navigator: options.language === undefined ? {} : { language: options.language },
     matchMedia: (query) => ({ matches: query === '(pointer: coarse)' && options.coarsePointer === true }),
@@ -136,7 +140,10 @@ export function fakeWebPage(options: FakeWebPageOptions = {}): FakeWebPage {
     stored,
     writes,
     opened,
-    features,
+    extra,
+    get lastTab() {
+      return lastTab
+    },
     blockPopups: () => {
       popups = 'block'
     },

@@ -111,7 +111,7 @@ hosts are not run; no paid API call. **Progress: 15 of 18 findings (83%)** (B1, 
 | S4 + S5 | `bindWords`, `formatNumber`, `DEFAULT_LOCALES` and one `matchLocale` in the framework; Emberwick measures 469 and its limit is 470 | done (`pnpm check` exit 0 on the tree; see "Open, for the Owner") | `77e57029` |
 | S8 | "+N more" never covers a label | done (the framework's Chromium suite 2252 passed; see the commit body) | `13d0f15f` |
 | S9 | The photosensitivity warning says the game's own hazards | done (`photosensitivity: { effects }`; Emberwick declares flashing and shaking; the editor-gaps ledger has row 12) | `f5fca953` |
-| T1 | `openLink` opens `noopener,noreferrer`; each adapter read; doc comment | done (unit tests over every adapter; a real browser's referrer not checked) | `dcf5cc1a` |
+| T1 | `openLink` opens `window.open(url, '_blank')` with the opener nulled in the same turn, so a blocked popup answers `opened: false`; only `https:` addresses reach it; each adapter read | done (corrects `dcf5cc1a`, which put `noopener` in the features and made a block read as opened; unit tests; a real browser's referrer not checked) | see the closing record |
 | T2 | The four playground cases watched failing | | |
 | T3 | Interface sounds nothing plays | done (a Modal asks for `open` and `close`, the error panel for `error`) | `07aeda0d` |
 | T4 | Credit names in the font build's glyph gate | | |
@@ -152,9 +152,8 @@ characters every language's face keeps, which is in `packages/content/src/shared
 and the words step's check. (3) T2: revert `site/` `Playground.svelte`'s observer on a scratch branch and watch each of the four
 playground cases fail; nothing else changes. (4) A commit that touches `packages/automata` runs the hook for about 10 minutes;
 it fails on a stale API report (`pnpm build`, `pnpm api-report --update`, `pnpm api-index --write` first) and on stale committed
-fonts. The whole `pnpm check` takes about 12 and passed on `f5fca953`'s tree. (5) T1 changed one behaviour, reported to the
-coordinator: a web `openLink` is `opened: true` once the browser was asked (a `noopener` window answers null either way), and the
-shared contract's "a host that says no" case no longer runs for the web adapter. (6) FigureBuilder is a copy at `d6e3c9fb` in
+fonts. The whole `pnpm check` takes about 12 and passed on `f5fca953`'s tree. (5) T1's first version (`dcf5cc1a`) was corrected in
+the third session: `noopener` in `window.open`'s features made it answer null always, so a blocked popup read as opened. (6) FigureBuilder is a copy at `d6e3c9fb` in
 `vendor/FigureBuilder` (container-local).
 
 Follow-ups the audit's list leaves open, recorded here (not fixed in stage 6):
@@ -165,6 +164,13 @@ Follow-ups the audit's list leaves open, recorded here (not fixed in stage 6):
   `@automata/content/assets` and `/locale` under plain Node. Left on purpose: the cost of the copies is two pin tests.
 - `sim`'s root, `replay` and `testing` entries still have parameter properties plain Node cannot load (`--experimental-strip-types`
   refuses them); content does not reach them, so S7 holds. Not fixed here.
+- **T1, the referrer.** The page a credits link opens still receives the game's address as its referrer (and starts in the
+  game's browsing context group): `noopener` stays out of the features string because it would hide a blocked popup, and
+  `noreferrer` would need it. What the referrer then is depends on the shell. A built game's `index.html` (the template, Emberwick,
+  the examples) sets no `<meta name="referrer">`, so it is the browser's default (`strict-origin-when-cross-origin` in current
+  browsers) or the host's `Referrer-Policy` header; the site sends `strict-origin-when-cross-origin`
+  (`site/src/shared/html/security-headers.ts`) and its playground frames `no-referrer`. That is origin-only across origins, which is
+  the bar asked for, so nothing is changed here; a game that wants less sets its own policy (a meta tag or a header).
 - Emberwick's plumbing is 470 of its limit of 470 (S9's one-line declaration took it from 469); it stays under "Open, for the Owner".
 
 ## Workstream 2 sessions (slice 1, the prologue)

@@ -2957,7 +2957,7 @@ interface LinksProbe {
     create(): Hosting | Promise<Hosting>;
     createWithoutGrant?(): Hosting | Promise<Hosting>;
     opened(): readonly string[];
-    decline?(): void;
+    decline(): void;
 }
 ```
 

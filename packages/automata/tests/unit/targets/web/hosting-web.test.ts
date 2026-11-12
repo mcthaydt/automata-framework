@@ -28,8 +28,7 @@ const delivered = (): Promise<void> => new Promise<void>((resolve) => setTimeout
 
 // PUB-a and DIST-c: the contract cases every adapter passes (the Ruken adapter's run is in
 // `ruken/hosting-ruken.contract.test.ts`).
-// A page grants `links` unconditionally (a new tab is always there), so there is no ungranted case to build, and it has
-// no `decline`: a link opens `noopener`, which answers nothing, so no host can say no to the page (see 'links' below).
+// A page grants `links` unconditionally (a new tab is always there), so there is no ungranted case to build.
 let linkPage: FakeWebPage | undefined
 describeHostingContract('the web adapter over a page', () => webHosting().hosting, delivered, {
   create: () => {
@@ -38,6 +37,7 @@ describeHostingContract('the web adapter over a page', () => webHosting().hostin
     return made.hosting
   },
   opened: () => linkPage?.opened ?? [],
+  decline: () => linkPage?.blockPopups(),
 })
 
 /** Runs `program` against the web adapter over a fresh fake page, then disposes it. */
@@ -71,23 +71,43 @@ function record<A>(observed: { subscribe(listener: (value: A) => void): () => vo
 }
 
 describe('the web adapter: links', () => {
-  // A link opens with the browser's own `noopener,noreferrer`: the new tab gets no handle on the game and is not told
-  // the game's address. (Audit T1; task 11b had cut the opener by hand to keep an answer for a blocked popup.)
-  it('opens a new tab with noopener and noreferrer, so it has no hold on the game and no referrer', () =>
+  // `noopener` in the features string would make `window.open` answer null whether the tab opened or a popup blocker
+  // refused it, so a block would read as `opened: true`. The call carries no features and the opener is cut by hand.
+  it('opens a new tab with no features string, so a blocked popup can still be told', () =>
     onWebPage(async (hosting, fake) => {
       expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: true })
       expect(fake.opened).toEqual(['https://example.test/'])
-      expect(fake.features).toEqual(['noopener,noreferrer'])
+      expect(fake.extra).toEqual([[]])
     }))
 
-  // A window opened with `noopener` answers null whether it opened or a popup blocker refused it, so the page cannot
-  // tell the two apart and says `opened` once the browser has been asked. (A link pressed by the player is not blocked.)
-  it('answers opened: true once the browser was asked, even if a popup blocker refuses', () =>
+  // The cut has to land before control returns to the caller: nothing the tab's page runs can get in between.
+  it('cuts the new tab’s opener before control returns to the caller', () =>
+    onWebPage(async (hosting, fake) => {
+      const pending = hosting.openLink('https://example.test/')
+      expect(fake.lastTab).toBeDefined()
+      expect(fake.lastTab?.opener).toBeNull()
+      expect(unwrap(await pending)).toEqual({ opened: true })
+    }))
+
+  it('answers opened: false, an answer, when a popup blocker refuses the tab', () =>
     onWebPage(async (hosting, fake) => {
       fake.blockPopups()
-      expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: true })
+      expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: false })
       expect(fake.opened).toEqual(['https://example.test/'])
     }))
+
+  // Only an https: address is opened (stricter than http and https): nothing else reaches window.open.
+  it.each([
+    ['an http link', 'http://example.test/'],
+    ['a javascript: link', 'javascript:alert(1)'],
+    ['a data: link', 'data:text/html,<p>x</p>'],
+    ['a link with a name and password', 'https://name:secret@example.test/'],
+  ])('refuses %s and never calls window.open', (_what, url) =>
+    onWebPage(async (hosting, fake) => {
+      expect(await hosting.openLink(url)).toMatchObject({ ok: false, reason: { code: 'INVALID_PAYLOAD' } })
+      expect(fake.opened).toEqual([])
+    }),
+  )
 
   it('keeps the link even when storage is blocked: a new tab needs none', () =>
     onWebPage(
