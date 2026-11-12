@@ -1,0 +1,5 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "stale_message": "ゲームが更新されました。再読み込みして新しいバージョンを使ってください。",
+  "stale_reload": "再読み込み"
+}

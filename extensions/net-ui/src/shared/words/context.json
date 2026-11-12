@@ -1,0 +1,8 @@
+{
+  "stale_message": {
+    "note": "Shown when the player's browser tab is running an older version of an online game than the server. Says the game was updated and tells them to reload. Calm and short; nothing is broken."
+  },
+  "stale_reload": {
+    "note": "The button under that message. Pressing it reloads the page to get the new version. A single short verb."
+  }
+}

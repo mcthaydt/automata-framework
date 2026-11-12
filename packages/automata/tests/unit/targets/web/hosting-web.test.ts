@@ -28,7 +28,17 @@ const delivered = (): Promise<void> => new Promise<void>((resolve) => setTimeout
 
 // PUB-a and DIST-c: the contract cases every adapter passes (the Ruken adapter's run is in
 // `ruken/hosting-ruken.contract.test.ts`).
-describeHostingContract('the web adapter over a page', () => webHosting().hosting, delivered)
+// A page grants `links` unconditionally (a new tab is always there), so there is no ungranted case to build.
+let linkPage: FakeWebPage | undefined
+describeHostingContract('the web adapter over a page', () => webHosting().hosting, delivered, {
+  create: () => {
+    const made = webHosting()
+    linkPage = made.fake
+    return made.hosting
+  },
+  opened: () => linkPage?.opened ?? [],
+  decline: () => linkPage?.blockPopups(),
+})
 
 /** Runs `program` against the web adapter over a fresh fake page, then disposes it. */
 async function onWebPage<A>(
@@ -60,6 +70,31 @@ function record<A>(observed: { subscribe(listener: (value: A) => void): () => vo
   return { values, step }
 }
 
+describe('the web adapter: links', () => {
+  it('opens a new tab and cuts the new tab’s hold on the game', () =>
+    onWebPage(async (hosting, fake) => {
+      // `noopener` would make the browser answer null for a tab that did open, hiding a blocked popup; the hold is cut by hand.
+      expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: true })
+      expect(fake.opened).toEqual(['https://example.test/'])
+      expect(fake.lastTab?.opener).toBeNull()
+    }))
+
+  it('a blocked popup is opened: false, an answer', () =>
+    onWebPage(async (hosting, fake) => {
+      fake.blockPopups()
+      expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: false })
+    }))
+
+  it('keeps the link even when storage is blocked: a new tab needs none', () =>
+    onWebPage(
+      async (hosting) => {
+        expect(hosting.granted.has('links')).toBe(true)
+        expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: true })
+      },
+      { storage: 'blocked' },
+    ))
+})
+
 describe('the web adapter: what a page outside Ruken can observe (PUB spec §3.1)', () => {
   it('names itch.io for an itch build and "this page" for a web build', async () => {
     expect(await onWebPage((hosting) => hosting.hostName, {}, 'itch')).toBe('itch.io')
@@ -73,9 +108,9 @@ describe('the web adapter: what a page outside Ruken can observe (PUB spec §3.1
     expect(await onWebPage((hosting) => hosting.player)).toEqual({ id: 'standalone', displayName: '' })
   })
 
-  it('grants lifecycle, input, display, audio and saves, and nothing it cannot do', async () => {
+  it('grants lifecycle, input, display, audio, links and saves, and nothing it cannot do', async () => {
     const granted = await onWebPage((hosting) => [...hosting.granted].sort())
-    expect(granted).toEqual(['audio', 'display', 'input', 'lifecycle', 'saves'])
+    expect(granted).toEqual(['audio', 'display', 'input', 'links', 'lifecycle', 'saves'].sort())
   })
 
   it('lifecycle goes to background when the tab is hidden or the page loses focus, with reasons', () =>

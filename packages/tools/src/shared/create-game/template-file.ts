@@ -33,3 +33,12 @@ export interface TemplateFile {
   readonly path: string
   readonly content: (options: TemplateOptions) => string
 }
+
+/** A file that is bytes, not text (the fonts): the same for every game. */
+export interface TemplateBinaryFile {
+  readonly path: string
+  readonly bytes: () => Uint8Array
+}
+
+/** Anything a template writes. */
+export type TemplateEntry = TemplateFile | TemplateBinaryFile

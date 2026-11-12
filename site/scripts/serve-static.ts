@@ -1,5 +1,5 @@
 // Serves a static directory the way the production static host will: `/docs/editor` → `docs/editor.html`,
-// `/x/` → `x/index.html`, and anything else → `404.html` with status 404. The Playwright suite runs against it so the
+// `/x/` → `x/index.html`, an address in `_redirects` → its redirect, and anything else → `404.html` with status 404. The Playwright suite runs against it so the
 // browser checks see the prerendered build, not a dev server.
 //   node scripts/serve-static.ts <directory> <port> [--compressed]
 // Every response carries the site's security header set; those under /playground/ also carry the playground's
@@ -74,8 +74,28 @@ function fileFor(pathname: string): string | undefined {
   return candidates.find(isFile)
 }
 
+/** The build's `_redirects`, as `from to status` lines (write-redirects.ts); none when the build has no such file. */
+const redirects = new Map<string, { to: string; status: number }>()
+const redirectsPath = join(root, '_redirects')
+if (isFile(redirectsPath))
+  for (const line of readFileSync(redirectsPath, 'utf8').split('\n')) {
+    const [from, to, status] = line.trim().split(/\s+/)
+    if (from && to && status) redirects.set(from, { to, status: Number(status) })
+  }
+
 createServer((request, response) => {
   const url = new URL(request.url ?? '/', 'http://localhost')
+  const redirect = redirects.get(url.pathname)
+  if (redirect !== undefined) {
+    // The host sends the site's headers on a redirect too.
+    const security = Object.fromEntries(
+      Object.entries(securityHeaders(url.pathname)).map(([name, value]) => [name.toLowerCase(), value]),
+    )
+    response
+      .writeHead(redirect.status, { ...security, location: redirect.to, 'cache-control': 'no-store' })
+      .end()
+    return
+  }
   const file = fileFor(url.pathname)
   const notFound = join(root, '404.html')
   const [status, path] = file ? [200, file] : isFile(notFound) ? [404, notFound] : [404, undefined]

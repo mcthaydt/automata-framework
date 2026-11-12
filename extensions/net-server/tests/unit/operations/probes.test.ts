@@ -2,6 +2,7 @@ import { createServer, type Server } from 'node:http'
 import { afterEach, describe, expect, it } from 'vitest'
 import { installProbes, type Readiness, securityTxtBody } from '#src/features/operations/probes.ts'
 import type { SecurityTxt } from '#src/shared/game/server-config.ts'
+import type { GameVersion } from '#src/shared/game-version.ts'
 
 // `/health`, `/ready` and security.txt, on a bare listener on an ephemeral port.
 
@@ -14,11 +15,19 @@ afterEach(async () => {
 })
 
 /** A listener whose own handler answers 418 for everything, as Colyseus answers the paths it knows. */
-async function start(state: { readiness: Readiness; securityTxt?: SecurityTxt }): Promise<string> {
+async function start(state: {
+  readiness: Readiness
+  securityTxt?: SecurityTxt
+  version?: GameVersion | undefined
+}): Promise<string> {
   http = createServer((_request, response) => {
     response.writeHead(418).end('next')
   })
-  installProbes(http, { readiness: () => state.readiness, securityTxt: state.securityTxt })
+  installProbes(http, {
+    readiness: () => state.readiness,
+    securityTxt: state.securityTxt,
+    version: () => state.version,
+  })
   await new Promise<void>((resolve) => http?.listen(0, '127.0.0.1', resolve))
   const address = http.address()
   if (typeof address !== 'object' || address === null) throw new Error('no address')
@@ -56,6 +65,42 @@ describe('/ready', () => {
     expect((await fetch(`${base}/ready`)).status).toBe(503)
     state.readiness = 'ready'
     expect((await fetch(`${base}/ready?probe=1`)).status).toBe(200)
+  })
+})
+
+const VERSION: GameVersion = { protocol: 1, schemaHash: '0123456789abcdef', contentHash: 'fedcba9876543210' }
+
+// A tab compares its own build with the server's before it joins; `/version` is the server's side of that, and the
+// join check stays the authority.
+describe('/version', () => {
+  it('answers the server’s version, uncached', async () => {
+    const base = await start({ readiness: 'ready', version: VERSION })
+    const response = await fetch(`${base}/version`)
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(VERSION)
+    expect(response.headers.get('content-type')).toMatch(/^application\/json/)
+    expect(response.headers.get('cache-control')).toBe('no-store')
+    expect(response.headers.get('x-content-type-options')).toBe('nosniff')
+  })
+
+  it('before the content has loaded is 503 with no facts', async () => {
+    const base = await start({ readiness: 'starting' })
+    const response = await fetch(`${base}/version`)
+    expect(response.status).toBe(503)
+    expect(await response.json()).toEqual({})
+  })
+
+  it('reads the version on every request', async () => {
+    const state: { readiness: Readiness; version?: GameVersion } = { readiness: 'starting' }
+    const base = await start(state)
+    expect((await fetch(`${base}/version`)).status).toBe(503)
+    state.version = VERSION
+    expect((await fetch(`${base}/version`)).status).toBe(200)
+  })
+
+  it('/health still carries no build facts: the body is exactly { ok: true }', async () => {
+    const base = await start({ readiness: 'ready', version: VERSION })
+    expect(await (await fetch(`${base}/health`)).json()).toEqual({ ok: true })
   })
 })
 

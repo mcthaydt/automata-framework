@@ -37,6 +37,25 @@ describe('Toggle', () => {
     expect(target.querySelector('label')?.textContent).toContain('Music')
   })
 
+  it('says which interface sound a flip makes only when asked', () => {
+    expect(open(true).target.querySelector('label')?.hasAttribute('data-sfx')).toBe(false)
+    document.body.innerHTML = ''
+    const target = host()
+    component = mount(Toggle, {
+      target,
+      props: {
+        label: 'Mute',
+        checked: false,
+        onLabel: 'On',
+        offLabel: 'Off',
+        onchange: vi.fn(),
+        sfx: 'none',
+      },
+    })
+    flushSync()
+    expect(target.querySelector('label')?.getAttribute('data-sfx')).toBe('none')
+  })
+
   it('shows its state in words as well as colour', () => {
     expect(open(true).target.querySelector('[data-toggle-state]')?.textContent).toBe('On')
     unmount(component as ReturnType<typeof mount>)

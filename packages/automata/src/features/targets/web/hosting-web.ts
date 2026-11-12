@@ -13,6 +13,7 @@ import type {
   LifecycleReason,
   RoundOutcome,
 } from '../../../shared/host/index'
+import { isOpenableLink } from '../../../shared/host/link'
 import { disposables } from '../../../shared/lib/disposables'
 import { ok } from '../../../shared/lib/result'
 import { emitter, type Subscribable, subscribable } from '../../../shared/lib/subscribable'
@@ -62,6 +63,11 @@ export interface WebPage extends WebEvents {
   readonly innerWidth: number
   readonly innerHeight: number
   matchMedia?(query: string): { readonly matches: boolean }
+  /**
+   * `window.open`: a new tab for `url`. It answers null when the browser blocked it. The adapter never sets the page's
+   * own location, so the page has no `location` here.
+   */
+  open(url: string, target: string): { opener: unknown } | null
 }
 
 /** The build's publish target among those that use this adapter. */
@@ -249,7 +255,8 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
   const storage = probeStorage(page)
   // The SDK's standalone prefix, so a game's saves are the same keys whichever adapter wrote them.
   const prefix = `ruken:${options.gameId}:`
-  const granted = new Set<Capability>(['lifecycle', 'input', 'display', 'audio'])
+  // A new tab is always there, so `links` is granted whatever the storage does.
+  const granted = new Set<Capability>(['lifecycle', 'input', 'display', 'audio', 'links'])
   if (storage !== null) granted.add('saves')
   const withStorage = async <A>(
     operation: string,
@@ -346,6 +353,16 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
         return refuse('DENIED', false, 'display.fullscreen', cause)
       }
     },
+    // A new tab, never the page's own location. Not `noopener`: that makes `open` answer null even when the tab opened,
+    // and a blocked popup could not be told from an opened one. The new tab's `opener` is cut by hand instead, so it
+    // cannot reach back into the game.
+    openLink: async (url) =>
+      whileOpen('links.open', () => {
+        if (!isOpenableLink(url)) return refuse('INVALID_PAYLOAD', false, 'links.open')
+        const tab = page.open(url, '_blank')
+        if (tab !== null) tab.opener = null
+        return ok({ opened: tab !== null })
+      }),
     // No host counts rounds, but the game's round-end autosave reads the ends, so they are kept honest.
     round: {
       start: () => rounds.start(),

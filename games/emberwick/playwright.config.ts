@@ -25,7 +25,13 @@ const ports = {
 }
 // The dev journey (dev.test.ts) edits the dev server's one copy of the tuning, so it runs in one project only.
 const DEV_JOURNEY = /dev\.test\.ts/
-const quick = { grepInvert: /@slow/, testIgnore: DEV_JOURNEY }
+// The six-language journey runs in its own projects (one per language) and nowhere else.
+const LANGUAGES_JOURNEY = /emberwick-languages\.test\.ts/
+const OTHER_JOURNEYS = [DEV_JOURNEY, LANGUAGES_JOURNEY]
+const quick = { grepInvert: /@slow/, testIgnore: OTHER_JOURNEYS }
+
+// The browser's language for each of the six: the game matches it on its primary subtag (`zh-CN` lands on Simplified).
+const LANGUAGES = ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-CN'] as const
 
 export default defineJourneys({
   testDir: 'tests/e2e',
@@ -37,9 +43,19 @@ export default defineJourneys({
     {
       name: 'emberwick-ipad-chromium',
       use: { ...sizes.ipad, browserName: 'chromium' },
-      testIgnore: DEV_JOURNEY,
+      testIgnore: OTHER_JOURNEYS,
     },
-    { name: 'emberwick-ipad-webkit', use: { ...sizes.ipad, browserName: 'webkit' }, testIgnore: DEV_JOURNEY },
+    {
+      name: 'emberwick-ipad-webkit',
+      use: { ...sizes.ipad, browserName: 'webkit' },
+      testIgnore: OTHER_JOURNEYS,
+    },
+    // Each language at phone size in Chromium: the first run, the menu, pause and back, in that language's words and font.
+    ...LANGUAGES.map((locale) => ({
+      name: `emberwick-language-${locale}`,
+      use: { ...sizes.phone, browserName: 'chromium' as const, locale },
+      testMatch: LANGUAGES_JOURNEY,
+    })),
     // The game on its dev server, as the Tuner's game pane shows it: a saved setting restarts it in place.
     {
       name: 'emberwick-dev-chromium',

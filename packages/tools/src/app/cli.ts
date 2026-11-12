@@ -15,8 +15,10 @@ import { TEMPLATES, type TemplateKind } from '../shared/create-game/template-fil
 import { threeDAvailable } from '../shared/create-game/three-d-gate.ts'
 import { FilesLive } from '../shared/node/files.ts'
 import { ProcessRunnerLive } from '../shared/node/process-runner.ts'
+import { ShipConfigLoaderLive } from '../shared/node/ship-config-loader.ts'
+import { parseWordsArgs, type WordsOptions } from '../shared/words/words-args.ts'
 import { type CliIo, PROCESS_IO } from './cli-io.ts'
-import { BUILD_HELP, CHECK_HELP, createGameHelp, ROOT_HELP } from './help.ts'
+import { BUILD_HELP, CHECK_HELP, createGameHelp, ROOT_HELP, WORDS_HELP } from './help.ts'
 import { runShip } from './ship-cli.ts'
 
 export interface ParsedArgs {
@@ -69,12 +71,24 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
 /** Runs `automata check` with the real processes, files and browser. */
 export const runCheckLive = (options: RunCheckOptions): Promise<CheckReport> =>
   Effect.runPromise(
-    Effect.provide(runCheck(options), Layer.mergeAll(FilesLive, ProcessRunnerLive, CspProbeLive)),
+    Effect.provide(
+      runCheck(options),
+      Layer.mergeAll(FilesLive, ProcessRunnerLive, CspProbeLive, ShipConfigLoaderLive),
+    ),
   )
 
 /** Runs `automata build` with the real processes and files. */
 export const runBuildLive = (options: { gameDir: string; debug: boolean }): Promise<BuildResult> =>
   Effect.runPromise(Effect.provide(runBuild(options), Layer.mergeAll(FilesLive, ProcessRunnerLive)))
+
+/**
+ * Runs `automata words` with the real files, ship config and translator. Loaded only when the command runs: the
+ * translator's SDK is not part of starting any other command.
+ */
+export const runWordsLive = async (options: WordsOptions, io: CliIo): Promise<number> => {
+  const { runWordsWithLiveServices } = await import('./words-live.ts')
+  return runWordsWithLiveServices(options, io)
+}
 
 const wantsHelp = (args: readonly string[]): boolean => args.includes('--help') || args.includes('-h')
 
@@ -109,6 +123,31 @@ async function buildCommand(
   return 0
 }
 
+async function wordsCommand(
+  args: readonly string[],
+  io: CliIo,
+  words: (options: WordsOptions, io: CliIo) => Promise<number>,
+): Promise<number> {
+  if (wantsHelp(args)) {
+    io.stdout(WORDS_HELP)
+    return 0
+  }
+  const parsed = parseWordsArgs(args)
+  if (!parsed.ok) {
+    io.stderr(`Error: ${parsed.problem}\n\n${WORDS_HELP}`)
+    return 2
+  }
+  const { dir, catalog } = parsed.options
+  return words(
+    {
+      ...parsed.options,
+      dir: resolve(process.cwd(), dir),
+      ...(catalog === undefined ? {} : { catalog: resolve(process.cwd(), catalog) }),
+    },
+    io,
+  )
+}
+
 async function checkCommand(
   args: readonly string[],
   io: CliIo,
@@ -136,6 +175,7 @@ export async function runCli(
   build: (options: { gameDir: string; debug: boolean }) => Promise<BuildResult> = runBuildLive,
   ship: (args: readonly string[], io: CliIo) => Promise<number> = runShip,
   threeD: boolean = threeDAvailable(),
+  words: (options: WordsOptions, io: CliIo) => Promise<number> = runWordsLive,
 ): Promise<number> {
   const [command, ...rest] = args
   if (command === undefined || command === '--help' || command === '-h') {
@@ -146,6 +186,7 @@ export async function runCli(
   if (command === 'ship') return ship(rest, io)
   if (command === 'build') return buildCommand(rest, io, build)
   if (command === 'check') return checkCommand(rest, io, check)
+  if (command === 'words') return wordsCommand(rest, io, words)
   if (command === 'editor') {
     // Loaded only here: the editor suite's sources use extensionless imports that plain Node cannot read, and
     // pnpm runs this bin from source. Every other command must start without touching it.

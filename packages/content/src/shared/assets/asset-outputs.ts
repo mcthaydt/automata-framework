@@ -12,6 +12,9 @@ export const FONTS_FOLDER = 'fonts'
 /** The font build's map from each font and language to its subset file, in `FONTS_FOLDER` (`FontFiles`). */
 export const FONT_FILES = 'fonts.json'
 
+/** The font build's stylesheet, beside `FONT_FILES`: one face per font and language, and a `:lang()` rule per language. */
+export const FONT_CSS = 'fonts.css'
+
 /** The two files of one atlas page: Pixi's Spritesheet JSON, and the image it names. Pages count from 0. */
 export const atlasPageFiles = (
   atlas: string,

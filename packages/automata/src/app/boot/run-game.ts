@@ -7,6 +7,7 @@ import { bootProgram } from './boot-program.js'
 import { failureHost } from './failure-host.js'
 import type { GameDefinition, RuntimeHandle, StartOptions } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
+import { runtimeCopyForGame } from './runtime-copy.ts'
 import { type Teardown, teardown } from './teardown.ts'
 
 /**
@@ -110,7 +111,7 @@ export function runGame<S>(game: GameDefinition<S>, start: StartOptions = {}): R
     const closeFailure = failedLayers.showBootFailure({
       failure: error,
       ...failureHost(failedHosting),
-      copy: game.copy,
+      copy: runtimeCopyForGame(game, doc.defaultView ?? window),
       onRetry: () => {
         if (failedHosting?.kind === 'ruken') {
           const reload = game.seams?.reload ?? (() => doc.defaultView?.location.reload())

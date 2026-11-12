@@ -1,0 +1,8 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "splash_skip": "아무 키나 누르거나 화면을 누르면 건너뜁니다",
+  "credits_title": "크레딧",
+  "credits_close": "닫기",
+  "credits_opens": "{name}의 페이지 열기",
+  "credits_refused": "이 페이지를 열 수 없습니다."
+}

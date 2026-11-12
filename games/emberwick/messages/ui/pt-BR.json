@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "splash_label": "Tela de abertura",
+  "splash_hint": "Aperte qualquer tecla ou toque na tela",
+  "menu_title": "Emberwick",
+  "menu_hint": "Leve seu lampião até a brasa.",
+  "play": "Jogar",
+  "keys_move": "mover",
+  "keys_jump": "pular",
+  "keys_pause": "pausar",
+  "pause": "Pausar",
+  "paused_title": "Pausado",
+  "resume": "Continuar",
+  "back_to_menu": "Voltar ao menu",
+  "end_title": "A brasa é sua",
+  "play_again": "Jogar de novo",
+  "menu": "Menu",
+  "end_time": "{seconds} s"
+}

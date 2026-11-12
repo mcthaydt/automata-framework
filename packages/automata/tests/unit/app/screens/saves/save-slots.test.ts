@@ -261,6 +261,14 @@ describe('SaveSlots: deleting', () => {
     expect(ondelete).not.toHaveBeenCalled()
   })
 
+  it('marks the delete dialog’s safe button as leaving, for the interface sounds', async () => {
+    show()
+    await userEvent.click(row(2))
+    await userEvent.click(screen.getByRole('button', { name: 'Delete…' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Delete this save?' })
+    expect(within(dialog).getByRole('button', { name: 'Keep it' })).toHaveAttribute('data-sfx', 'back')
+  })
+
   it('names the slot by its number when it has no label', async () => {
     show()
     await userEvent.click(row(3))

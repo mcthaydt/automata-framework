@@ -20,6 +20,11 @@ export interface ShipConfig extends GameConfig {
    */
   readonly tauri?: TauriConfig | undefined
   /**
+   * `automata words`' settings. Not a Ruken field: it is never written to `ruken.toml`. `model` names the model that
+   * translates; left out, the command's own default is used.
+   */
+  readonly words?: { readonly model?: string | undefined } | undefined
+  /**
    * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
    * public release: `automata ship prepare` then checks the build as private and writes no `ruken.toml`, and only
    * `publish --private` ships it. Not a Ruken field. Left out, a game is `public`.

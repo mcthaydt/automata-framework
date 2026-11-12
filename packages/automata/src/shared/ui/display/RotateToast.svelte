@@ -5,6 +5,7 @@
   bigger view", with an OK. It covers nothing and pauses nothing; the only part a thumb can hit is the OK, at 44 px.
 -->
 <script lang="ts">
+import Icon from '../icon/Icon.svelte'
 import type { RotateToastCopy } from './display-copy'
 
 interface Props {
@@ -18,7 +19,7 @@ const { shown, copy, ondismiss }: Props = $props()
 
 {#if shown}
   <div class="af-rotate-toast" data-testid="rotate-toast" role="note">
-    <span class="af-rotate-toast__icon" aria-hidden="true">⟳</span>
+    <span class="af-rotate-toast__icon" aria-hidden="true"><Icon name="rotate" /></span>
     <span>{copy.text}</span>
     <button type="button" class="af-control af-control--ghost af-rotate-toast__ok" aria-label={copy.dismiss} onclick={ondismiss}
       >{copy.ok}</button

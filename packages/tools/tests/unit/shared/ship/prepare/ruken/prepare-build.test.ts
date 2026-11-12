@@ -241,3 +241,81 @@ describe('prepareBuild', () => {
     expect(existsSync(join(dir, 'ruken.toml'))).toBe(true)
   })
 })
+
+// Achievements: the framework's declaration is mapped for Ruken. A goal Ruken has no rule for is refused first, in a
+// sentence that names the achievement and the shares Ruken allows (read from its own manifest package, never retyped);
+// then Ruken's parser runs, and what it refuses about achievements is put in plain words with its own message after.
+describe('prepareBuild: achievements', () => {
+  const board = { best: { order: 'desc', min: 0, max: 999 } } as const
+  const withGoal = (
+    goal: { reach: number } | { top_percent: number },
+    text: { title?: string } = {},
+  ): ShipConfig => ({
+    ...config,
+    leaderboards: board,
+    achievements: {
+      'top-fifth': { title: text.title ?? 'Top fifth', description: 'Do well.', board: 'best', goal },
+    },
+  })
+
+  it('refuses a top share Ruken has no rule for, naming the achievement and the allowed shares', () => {
+    const error = failure(check({ distDir: dist(), config: withGoal({ top_percent: 20 }) }))
+    expect(error._tag).toBe('AchievementUnsupported')
+    expect((error as unknown as { message: string }).message).toBe(
+      'achievement "top-fifth": Ruken can award a top share of 1, 5, 10 or 25 percent, not 20. Pick one of those.',
+    )
+  })
+
+  it('writes the manifest for a goal Ruken can award', () => {
+    const { toml } = Effect.runSync(check({ distDir: dist(), config: withGoal({ top_percent: 10 }) }))
+    expect(toml).toContain('top_percent = 10')
+  })
+
+  it('puts a title Ruken finds too long in plain words, by Ruken’s rule, with its message after', () => {
+    const error = failure(
+      check({ distDir: dist(), config: withGoal({ reach: 20 }, { title: 'T'.repeat(49) }) }),
+    )
+    expect(error._tag).toBe('ManifestInvalid')
+    const message = (error as unknown as { message: string }).message
+    expect(message).toContain('achievement "top-fifth": its title or description is too long for Ruken.')
+    expect(message).toContain('The title must be 1 to 48 characters.')
+  })
+
+  it('puts an id Ruken reserves in plain words', () => {
+    const error = failure(
+      check({
+        distDir: dist(),
+        config: {
+          ...config,
+          leaderboards: board,
+          achievements: { 'ruken-mine': { title: 'A', description: 'B', board: 'best', goal: { reach: 1 } } },
+        },
+      }),
+    )
+    expect((error as unknown as { message: string }).message).toContain(
+      'achievement "ruken-mine": Ruken refuses this id (an id may not start with "ruken-").',
+    )
+  })
+
+  it('says a game declares more achievements than Ruken allows', () => {
+    const many = Object.fromEntries(
+      Array.from({ length: 51 }, (_, i) => [
+        `a${i}`,
+        { title: 'A', description: 'B', board: 'best', goal: { reach: 1 } },
+      ]),
+    )
+    const error = failure(
+      check({ distDir: dist(), config: { ...config, leaderboards: board, achievements: many } }),
+    )
+    expect((error as unknown as { message: string }).message).toContain(
+      'this game declares more achievements than Ruken allows.',
+    )
+  })
+
+  it('leaves every other manifest problem as Ruken says it', () => {
+    const error = failure(
+      check({ distDir: dist(), config: { ...config, game: { ...config.game, id: 'Bad Id' } } }),
+    )
+    expect((error as unknown as { message: string }).message).toMatch(/^ruken\.toml game\.id:/m)
+  })
+})

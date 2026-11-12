@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
 import { inertOutside } from '../dialog/modal-scope'
+import Icon from '../icon/Icon.svelte'
 import type { RotateHintCopy } from './display-copy'
 
 interface Props {
@@ -37,7 +38,7 @@ $effect(() => {
   <div bind:this={root} class="af-rotate-hint" data-testid="rotate-hint" role="status">
     <!-- On a panel, as the landscape gate's: the scrim alone lets the paused screen's words show through. -->
     <div class="af-rotate-hint__panel">
-      <span class="af-rotate-hint__icon" aria-hidden="true">⟳</span>
+      <span class="af-rotate-hint__icon" aria-hidden="true"><Icon name="rotate" /></span>
       <p class="af-rotate-hint__title">{copy.title}</p>
       <p class="af-rotate-hint__body">{copy.body}</p>
     </div>

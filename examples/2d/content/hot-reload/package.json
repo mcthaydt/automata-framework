@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@af-games/emberwick": "workspace:*",
-    "@fontsource/pixelify-sans": "5.3.0",
     "@automata/framework": "workspace:*"
   },
   "devDependencies": {

@@ -8,6 +8,7 @@ import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-def
 import { type Teardown, teardown } from '#src/app/boot/teardown.ts'
 import { CORE_SETTINGS, type CoreSettings } from '#src/app/core-settings.ts'
 import type { ScreenDef } from '#src/app/flow/screen.ts'
+import ja from '#src/app/screens/words/ja.json' with { type: 'json' }
 import type { Audio } from '#src/features/audio/audio.manager.ts'
 import type { AudioBuses } from '#src/features/audio/audio-buses.ts'
 import { type FakeAudioContext, fakeAudioContext } from '#src/features/audio/testing/fake-audio-context.ts'
@@ -142,6 +143,40 @@ async function failed(boot: Promise<Result<void, BootError>>): Promise<BootError
 describe('bootProgram', () => {
   it('contentHashOf matches contentHash from @automata/content', () => {
     expect(contentHashOf(fixtureContentData)).toBe(contentHash(fixtureContentData))
+  })
+
+  it("draws the loader in the browser's language when the game ships it, and in English when it does not", async () => {
+    const wording = async (languages: string[]): Promise<string> => {
+      const scope = teardown()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      scope.add(() => root.remove())
+      const frames = manualFrames()
+      const abort = new AbortController()
+      const { screens } = makeTestScreens()
+      const boot = bootProgram(
+        {
+          root,
+          hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+          content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+          screens,
+          locale: { locales: ['en', 'ja'], baseLocale: 'en' },
+          renderer: nullRenderer(),
+          seams: { frames, languages, fonts: { load: () => Promise.resolve([]) } },
+        },
+        scope,
+        { signal: abort.signal },
+      )
+      while (!frames.pending) await yieldNow()
+      const text = root.querySelector('[data-testid="loader-overlay"]')?.textContent ?? ''
+      abort.abort()
+      frames.advance(16)
+      await boot
+      await scope.close()
+      return text
+    }
+    expect(await wording(['ja-JP'])).toContain(ja.runtime_loading)
+    expect(await wording(['ko'])).toContain('Loading…')
   })
 
   it('step order: three layers exist, data-state="loading" and loader mounted before hello; ready unmounts loader, sets ready and enters entry screen', () =>

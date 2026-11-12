@@ -25,6 +25,7 @@ import { demoPort, demoUrl } from './ui/primitives/tests/e2e/origin.ts'
 const PIXEL_RATIO = { deviceScaleFactor: 1 }
 const phone = { ...devices['Pixel 7'], ...PIXEL_RATIO }
 const compact = { ...sizes.compact, ...PIXEL_RATIO }
+const ipad = { ...sizes.ipad, ...PIXEL_RATIO }
 
 const MATRIX_SPEC = 'input-matrix.test.ts'
 const RUNNER_TESTS = '../../tooling/examples-runner/tests/e2e'
@@ -51,6 +52,8 @@ export default defineJourneys({
     // Phone first (AGENTS.md, Responsive UI), then the compact landscape height.
     { name: 'examples', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC], use: phone },
     { name: 'examples-compact', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC], use: compact },
+    // The iPad's size: the menus and panels the shared-polish examples show are checked here too.
+    { name: 'examples-ipad', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC], use: ipad },
     // The runner's own stub example under the same fake host, and its index page (tooling/examples-runner). Its
     // playground journeys need the playground's servers, so they run from the runner's own config.
     { name: 'runner', testDir: RUNNER_TESTS, testIgnore: PLAYGROUND, use: phone },

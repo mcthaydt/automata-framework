@@ -157,6 +157,26 @@ describe('Home', () => {
     expect(names).toEqual(['Saves', 'Menus and settings', 'Controls', 'Sound', 'Every screen', 'Languages'])
   })
 
+  it('says what the languages are: six out of the box, and one command to translate your own words', () => {
+    const view = render(Home)
+    const list = view.getByRole('list', { name: 'Built into every game' })
+    const item = [...list.querySelectorAll('li')].find(
+      (li) => li.querySelector('h3')?.textContent === 'Languages',
+    )
+    expect(item?.textContent).toMatch(/six languages/i)
+    expect(item?.textContent).toContain('automata words')
+    // The command it names is one the framework answers to: its guide documents it.
+    expect(readFileSync(resolve(repo, 'docs/guides/languages.md'), 'utf8')).toContain('automata words')
+  })
+
+  it('does not say Automata runs no AI without naming the one command that asks a model', () => {
+    // `automata words` asks a Claude model, with the maker's own key; "no credits" stays true, "no AI at all" does not.
+    const text = render(Home).container.textContent ?? ''
+    expect(text).toContain('Automata sells no credits')
+    expect(text).not.toMatch(/runs no AI of its own/)
+    expect(text).toMatch(/automata words[^.]*your own key/)
+  })
+
   it('says the price on Home from the same place /app reads it, with no credits', () => {
     const text = render(Home).container.textContent ?? ''
     expect(text).toContain(APP_PRICES.phone)

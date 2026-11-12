@@ -164,6 +164,7 @@ function blockPageGestures(node: HTMLElement): () => void {
           class="af-control af-touch__button"
           data-testid={button.action}
           data-action={button.action}
+          data-sfx="none"
           data-held={String(held.has(button.action))}
           tabindex="-1"
           aria-label={button.ariaLabel ?? button.label}>{button.label}</button

@@ -6,6 +6,8 @@
   without words throws while it mounts.
 -->
 <script lang="ts">
+import Icon, { type IconName } from '../icon/Icon.svelte'
+
 type Tone = 'info' | 'success' | 'warning' | 'danger'
 
 interface Props {
@@ -18,7 +20,13 @@ interface Props {
 
 const { text, tone = 'info', toneLabel, testId }: Props = $props()
 
-const GLYPHS: Record<Tone, string | undefined> = { info: undefined, success: '✓', warning: '!', danger: '✕' }
+// A warning's mark is the text `!`; the check and the cross are drawn, since no font need hold them.
+const GLYPHS: Record<Tone, IconName | '!' | undefined> = {
+  info: undefined,
+  success: 'check',
+  warning: '!',
+  danger: 'cross',
+}
 
 // Checked once, at mount, by design: the first test that mounts a toned chip without words fails.
 // svelte-ignore state_referenced_locally
@@ -30,7 +38,7 @@ const glyph = $derived(GLYPHS[tone])
 
 <span class="af-chip" data-chip data-tone={tone} data-testid={testId}>
   {#if glyph !== undefined}
-    <span class="af-chip__glyph" data-chip-glyph aria-hidden="true">{glyph}</span>
+    <span class="af-chip__glyph" data-chip-glyph aria-hidden="true">{#if glyph === '!'}!{:else}<Icon name={glyph} />{/if}</span>
     <span class="af-sr-only">{toneLabel}</span>
   {/if}
   {text}

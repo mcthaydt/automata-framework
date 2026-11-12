@@ -51,6 +51,19 @@ describe('prepareItch', () => {
     expect(existsSync(join(distDir, 'ruken.toml'))).toBe(false)
   })
 
+  it('prepares a config with achievements exactly as before: itch.io has none, so nothing about them is written', () => {
+    const { distDir } = game()
+    const declared: ShipConfig = {
+      ...config,
+      leaderboards: { best: { order: 'desc', min: 0, max: 9 } },
+      achievements: { win: { title: 'Win', description: 'Win once.', board: 'best', goal: { reach: 5 } } },
+    }
+    const before = prepare({ distDir, config, tag: 'v1.2.0' })
+    const after = prepare({ distDir, config: declared, tag: 'v1.2.0' })
+    expect(Either.isRight(before)).toBe(true)
+    expect(after).toEqual(before)
+  })
+
   it('stops on a tag that is not the version, writing nothing', () => {
     const { gameDir, distDir } = game()
     expect(failure({ distDir, config, tag: 'v1.3.0' })._tag).toBe('VersionMismatch')

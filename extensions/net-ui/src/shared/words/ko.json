@@ -1,0 +1,5 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "stale_message": "게임이 업데이트되었습니다. 새로고침해서 새 버전을 받으세요.",
+  "stale_reload": "새로고침"
+}

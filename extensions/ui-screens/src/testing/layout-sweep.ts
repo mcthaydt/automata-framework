@@ -51,8 +51,16 @@ export function untranslated(root: Element): string[] {
   return problems
 }
 
+/** An essential control: a test id, or a CSS selector where the control has none (a Modal's Close is `[data-modal-close]`). */
+function essential(id: string): HTMLElement {
+  if (!id.startsWith('[')) return byTestId(id)
+  const found = document.querySelector<HTMLElement>(id)
+  if (found === null) throw new Error(`no ${id}`)
+  return found
+}
+
 /**
- * Registers the contract for one screen. `mount` puts the screen on the page in `locale`; `essentials` are the test ids a player
+ * Registers the contract for one screen. `mount` puts the screen on the page in `locale`; `essentials` are the test ids (or selectors) a player
  * must always be able to see and hit (they are not asserted while the keyboard is open, when the frame scrolls what does not fit).
  */
 export function layoutContract(
@@ -69,7 +77,7 @@ export function layoutContract(
           const conditions = publishConditions(document.documentElement, size, variant)
           const fixture = mount(locale)
           await settleLayout()
-          const seen = variant.keyboard === undefined ? essentials.map(byTestId) : []
+          const seen = variant.keyboard === undefined ? essentials.map(essential) : []
           for (const problem of checkLayout(conditions, seen)) problems.push(`${variant.name}: ${problem}`)
           if (locale === PSEUDO_LOCALE)
             for (const problem of untranslated(document.body)) problems.push(`${variant.name}: ${problem}`)

@@ -1,11 +1,14 @@
 import type { HostSettings } from '@automata/examples-runner/header'
 import { escapeHtml, PAGE_STYLE, pendingPage } from '@automata/examples-runner/page-template'
+import { playgroundImportMap } from './playground-imports.ts'
 import { framePolicy } from './ruken/frame-policy.ts'
 
 /** The site paths of one playground runtime build. */
 export interface PlaygroundRuntime {
   readonly automata: string
   readonly zod: string
+  /** One file for every `@automata/ui-screens` path an example may import. */
+  readonly uiScreens: string
   /** Runs no-eval before any other runtime chunk evaluates (R-6). */
   readonly noEval: string
   readonly frame: string
@@ -14,7 +17,7 @@ export interface PlaygroundRuntime {
 
 /**
  * The page a playground frame loads for one example, served from `siteOrigin`. Its
- * one inline script is the import map that points the examples' two bare imports at the runtime; the policy carries
+ * one inline script is the import map that points the examples' bare imports at the runtime; the policy carries
  * that map's hash. The frame script imports no-eval first, then waits for its parent's `run`. The body says which
  * file the example is (stack frames name it through the compile step's sourceURL) and its `Host:` settings, as data
  * attributes the frame parses. A pending example gets the runner's pending page, which runs nothing.
@@ -32,7 +35,7 @@ export function playgroundFramePage(
   siteOrigin: string,
 ): string {
   if (entry.pending !== undefined) return pendingPage({ id: entry.id, pending: entry.pending })
-  const importMap = JSON.stringify({ imports: { '@automata/framework': runtime.automata, zod: runtime.zod } })
+  const importMap = JSON.stringify({ imports: playgroundImportMap(runtime) })
   const styles = runtime.styles
     .map((href) => `    <link rel="stylesheet" href="${escapeHtml(href)}" crossorigin="anonymous" />\n`)
     .join('')

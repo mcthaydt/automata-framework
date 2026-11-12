@@ -4,6 +4,7 @@ import { type FileError, tryFile } from '../../node/errors.ts'
 import { Files } from '../../node/files.ts'
 import type { ShipConfig } from '../config/ship-config.ts'
 import {
+  type AchievementUnsupported,
   EntryMissing,
   ManifestInputsMismatch,
   type ManifestInvalid,
@@ -16,7 +17,7 @@ import {
   type VersionMismatch,
 } from '../errors.ts'
 import { inputsProblems, type ShipInputBindings } from '../targets/ruken/check-inputs.ts'
-import { checkManifest } from '../targets/ruken/check-manifest.ts'
+import { checkAchievementGoals, checkManifest } from '../targets/ruken/check-manifest.ts'
 import { rukenToml } from '../targets/ruken/ruken-toml.ts'
 import { findUndeclaredBoards } from './board-names.ts'
 import { checkTag, scanBuild } from './build-scans.ts'
@@ -63,6 +64,7 @@ export type PrepareError =
   | EntryMissing
   | ManifestInputsMismatch
   | ManifestInvalid
+  | AchievementUnsupported
   | FileError
 
 /**
@@ -107,6 +109,9 @@ export function checkBuild(input: PrepareInput): Effect.Effect<{ toml: string },
       return yield* new EntryMissing({ entry: config.game.entry, distDir })
     }
 
+    // A top share Ruken has no rule for is the host's limit, not a mistake in the declaration: say so before the
+    // manifest is checked.
+    yield* checkAchievementGoals(config)
     const toml = rukenToml(config)
     yield* checkManifest(toml)
     return { toml }

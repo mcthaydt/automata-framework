@@ -11,6 +11,11 @@ function goodHost(change: (path: string, probe: Probe) => Probe = (_p, probe) =>
     const path = new URL(url).pathname
     const missing = path === '/no-such-page'
     const headers = new Headers(securityHeaders(path))
+    // The old Editor address is a rule on the host: a 301 to the editor itself.
+    if (path === '/editor') {
+      headers.set('Location', '/editor/app/')
+      return change(path, { status: 301, headers, body: '' })
+    }
     // The host adds headers of its own; they are not the site's to judge.
     headers.set('Access-Control-Allow-Origin', '*')
     return change(path, {
@@ -61,5 +66,22 @@ describe('deployedProblems', () => {
         throw new Error('timeout')
       }),
     ).toContain('/: could not be fetched (timeout)')
+  })
+
+  it('needs /editor to answer 301 to /editor/app/, as the host’s redirect rule says', async () => {
+    const wrongStatus = goodHost((path, probe) => (path === '/editor' ? { ...probe, status: 200 } : probe))
+    expect(await deployedProblems(ORIGIN, wrongStatus)).toContain('/editor: answered 200, not 301')
+    const wrongPlace = goodHost((path, probe) => {
+      if (path === '/editor') probe.headers.set('Location', '/docs')
+      return probe
+    })
+    expect(await deployedProblems(ORIGIN, wrongPlace)).toContain(
+      '/editor: Location is /docs, not /editor/app/',
+    )
+    const noLocation = goodHost((path, probe) => {
+      if (path === '/editor') probe.headers.delete('Location')
+      return probe
+    })
+    expect(await deployedProblems(ORIGIN, noLocation)).toContain('/editor: Location is missing')
   })
 })

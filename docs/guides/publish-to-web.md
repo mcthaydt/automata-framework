@@ -4,6 +4,8 @@ Run `pnpm build:web && pnpm prepare:web`, then upload everything in the `dist` f
 
 A game built for `web` is a plain website: the `dist` folder holds all of it. Saves stay in the player's browser;
 when the browser blocks storage, the game still runs and its paused screen says progress won't be kept.
+A link in the game (the credits panel's, for one) opens in a new tab; if the browser blocks it as a popup, the game is told and
+stays where it is. The game never leaves its own page.
 
 ## Build
 

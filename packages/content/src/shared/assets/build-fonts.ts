@@ -7,20 +7,27 @@
 // language's subsets. A game may stack faces (a Latin face, then a CJK one), so a language
 // is covered by all its fonts together. A failure names the message where it is written, from the compile's
 // `messageLocations`, and each missing code point. Control characters (a newline) draw nothing and are skipped.
-// A language no font serves is not checked: it draws in whatever face the game's CSS names.
+// Every language the content compiles must be served by a font: no language falls back to the device's.
+//
+// Every word a game shows is cut and checked, not the content's alone: `gameWords` adds the game's own interface
+// words and the words of the framework packages it uses, which are drawn in the same face.
+//
+// A font whose licence reserves its name (`reserved_name`) is renamed `<font> <language>` after the cut, and its licence
+// file (`license_file`) is copied beside the subsets. `fonts.css` loads the faces: one `@font-face` per font and
+// language, and a `:root:lang()` rule per language that sets the `--af-font` the framework's theme draws in.
 //
 // The language picker's names. The picker lists every content language by its own name (`endonymOf`, the
 // same function ui's `LanguageSection` shows), whichever language the game is showing, so every subset is also cut
 // to every content language's name, and the gate holds each language's subsets to the names of the languages the
 // fonts serve: a Latin face for `en` beside a Japanese face for `ja` fails until a face serving `en` holds 日本語. A
 // name has no place in a content file, so a failure is reported at the language's entry in `locales` of the
-// first font (by name) that serves it, where the fix is made. As with messages, a language no font serves is not
-// checked, and neither is its name: both draw in the game's own CSS face.
+// first font (by name) that serves it, where the fix is made.
 //
 // Every problem is a diagnostic and all of them are reported together. A font that could not be cut leaves its
 // languages unchecked, so one broken source is not also reported as every glyph missing.
 import { createHash } from 'node:crypto'
-import { join } from 'node:path'
+import { existsSync } from 'node:fs'
+import { basename, join } from 'node:path'
 import { Effect } from 'effect'
 import { type CompiledContent, type ContentOptions, compileContent } from '../compile/compile-content'
 import { ContentCompileFailed, type InvalidContentConfig } from '../compile/errors'
@@ -28,9 +35,11 @@ import { type Diagnostic, sortDiagnostics } from '../diagnostics/diagnostic'
 import { readBytesIfPresent, readTextIfPresent } from '../files/content-files'
 import { canonicalFile } from '../hash/canonical-file'
 import { endonymOf } from '../locale/endonyms'
+import { gameWords, UI_FOLDERS } from '../locale/game-words'
 import { localeCharacters } from '../locale/glyphs'
+import type { MessageCatalog } from '../locale/messages'
 import { diagnosticAt, type ParsedToml, parseDocument } from '../parse/parse-document'
-import { FONT_FILES } from './asset-outputs'
+import { FONT_CSS, FONT_FILES } from './asset-outputs'
 import { fontCoverage, subsetWoff2 } from './font-subset'
 import { type FontSource, fontsSchema } from './fonts.schema'
 
@@ -92,6 +101,7 @@ export const buildFonts = (
     const coverage = new Map<string, LocaleCoverage>()
     const broken = new Set<string>()
     const served = new Set<string>()
+    const shownWords = new Map<string, ReadonlyMap<string, MessageCatalog>>()
     // Every content language's name, as the language picker shows it, goes into every subset: the picker lists
     // them all whichever language the game is showing.
     const names = new Map(content.languages.map((language) => [language, endonymOf(language)]))
@@ -106,12 +116,19 @@ export const buildFonts = (
         for (const locale of locales) broken.add(locale)
         continue
       }
+      const licence = yield* readLicence(options.root, fonts.toml, name, font, diagnostics)
+      if (licence !== undefined) files.set(`${name}-${basename(font.license_file as string)}`, licence)
       for (const locale of locales) {
+        const shown = yield* Effect.promise(() => wordsOf(options.root, locale, content))
         const characters = new Set([
-          ...localeCharacters(content.catalogs.get(locale) ?? {}),
+          ...[...shown.values()].flatMap((catalog) => [...localeCharacters(catalog)]),
           ...nameCharacters,
         ])
-        const cut = yield* Effect.either(Effect.tryPromise(() => subsetWoff2(source, characters)))
+        const rename =
+          font.reserved_name === undefined
+            ? undefined
+            : { family: `${name} ${locale}`, reservedName: font.reserved_name }
+        const cut = yield* Effect.either(Effect.tryPromise(() => subsetWoff2(source, characters, rename)))
         if (cut._tag === 'Left') {
           const why = reason(cut.left.cause)
           diagnostics.push(
@@ -130,6 +147,7 @@ export const buildFonts = (
         manifest[name] = { ...manifest[name], [locale]: file }
         const at = ['font', name, 'locales', font.locales.indexOf(locale)]
         const covered = coverage.get(locale) ?? { fonts: [], covers: [], at }
+        shownWords.set(locale, shown)
         covered.fonts.push(name)
         covered.covers.push(fontCoverage(cut.right))
         coverage.set(locale, covered)
@@ -138,11 +156,16 @@ export const buildFonts = (
 
     for (const [locale, covered] of coverage) {
       if (broken.has(locale)) continue
-      checkGlyphs(content, locale, covered, diagnostics)
+      checkGlyphs(options.root, content, locale, shownWords.get(locale), covered, diagnostics)
       checkNames(fonts.toml, names, served, locale, covered, diagnostics)
     }
 
+    for (const language of content.languages)
+      if (!served.has(language))
+        diagnostics.push(atFonts('missingAsset', `no font serves ${language}: add it to a font's locales`))
+
     if (diagnostics.length > 0) return yield* fail()
+    files.set(FONT_CSS, new TextEncoder().encode(fontCss(fonts.value.font, manifest)))
     files.set(FONT_FILES, new TextEncoder().encode(canonicalFile(manifest)))
     return { files: new Map([...files].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) }
   })
@@ -209,25 +232,48 @@ function notInSubset(missing: readonly string[], locale: string, covered: Locale
   return `${missing.map(codePoint).join(', ')} ${verb} not in the ${locale} subset of ${fonts}`
 }
 
-/** Reports each of the language's messages with a character none of its subsets holds. */
+/** Where a catalog other than the content's is, for a diagnostic: the game's own file, or the package's. */
+function wordsFile(root: string, catalog: string, locale: string): string {
+  if (catalog !== 'ui') return `${catalog}/words/${locale}.json`
+  return (
+    UI_FOLDERS.map((folder) => `${folder}/${locale}.json`).find((file) => existsSync(join(root, file))) ??
+    `${UI_FOLDERS[0]}/${locale}.json`
+  )
+}
+
+/** Every word shown in `locale`: the content's, the game's interface words and its framework packages'. */
+const wordsOf = (root: string, locale: string, content: CompiledContent) =>
+  gameWords(root, locale, content.catalogs.get(locale) ?? {})
+
+/**
+ * Reports each of the language's messages, whichever catalog it is in, with a character none of its subsets holds. A
+ * content message is reported where it is written; a word of another catalog at its file, named in the message.
+ */
 function checkGlyphs(
+  root: string,
   content: CompiledContent,
   locale: string,
+  shown: ReadonlyMap<string, MessageCatalog> | undefined,
   covered: LocaleCoverage,
   diagnostics: Diagnostic[],
 ): void {
-  const catalog = content.catalogs.get(locale) ?? {}
   const locations = content.messageLocations.get(locale)
-  for (const [key, text] of Object.entries(catalog)) {
-    const missing = missingCharacters(text, covered)
-    if (missing.length === 0) continue
-    const where = locations?.get(key) ?? { file: FONTS_FILE, line: 1, column: 1 }
-    diagnostics.push({
-      code: 'missingGlyph',
-      ...where,
-      keyPath: key,
-      message: notInSubset(missing, locale, covered),
-    })
+  for (const [catalog, words] of shown ?? new Map([['content', content.catalogs.get(locale) ?? {}]])) {
+    for (const [key, text] of Object.entries(words)) {
+      const missing = missingCharacters(text, covered)
+      if (missing.length === 0) continue
+      const where =
+        catalog === 'content'
+          ? (locations?.get(key) ?? { file: FONTS_FILE, line: 1, column: 1 })
+          : { file: wordsFile(root, catalog, locale), line: 1, column: 1 }
+      const named = catalog === 'content' ? '' : ` (in the ${catalog} words)`
+      diagnostics.push({
+        code: 'missingGlyph',
+        ...where,
+        keyPath: key,
+        message: `${notInSubset(missing, locale, covered)}${named}`,
+      })
+    }
   }
 }
 
@@ -250,4 +296,54 @@ function checkNames(
     const message = `${notInSubset(missing, locale, covered)} (the language picker names ${language} ${name})`
     diagnostics.push(diagnosticAt(toml, 'missingGlyph', covered.at, message))
   }
+}
+
+/** The licence file a font names, read; reported when it is named and not there. Undefined when none is named. */
+const readLicence = (
+  root: string,
+  toml: ParsedToml,
+  name: string,
+  font: FontSource,
+  diagnostics: Diagnostic[],
+) =>
+  Effect.gen(function* () {
+    if (font.license_file === undefined) return undefined
+    const read = yield* Effect.either(readBytesIfPresent(join(root, font.license_file)))
+    if (read._tag === 'Right' && read.right !== undefined) return read.right
+    const why = read._tag === 'Left' ? `could not be read: ${reason(read.left.cause)}` : 'does not exist'
+    diagnostics.push(
+      diagnosticAt(toml, 'missingAsset', ['font', name, 'license_file'], `${font.license_file} ${why}`),
+    )
+    return undefined
+  })
+
+const byName = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)
+
+/**
+ * The stylesheet that loads a game's faces. One `@font-face` for each font and language (family `<font> <language>`,
+ * the subset's file, `font-display: block` so a word is never drawn in a stand-in face first), and for each language a
+ * `:root:lang()` rule that sets `--af-font` to that language's faces in `fonts.toml` order. The framework's theme draws
+ * in `var(--af-font)` and the locale service sets `<html lang>`, so changing language changes face with no code. Nothing
+ * names a device or generic family: a language with no face is an error the build already reported.
+ */
+function fontCss(
+  declared: Readonly<Record<string, FontSource>>,
+  manifest: Readonly<Record<string, Readonly<Record<string, string>>>>,
+): string {
+  const faces: string[] = []
+  for (const font of Object.keys(manifest).sort(byName)) {
+    for (const locale of Object.keys(manifest[font] ?? {}).sort(byName)) {
+      faces.push(
+        `@font-face {\n  font-family: "${font} ${locale}";\n  src: url("${manifest[font]?.[locale]}") format("woff2");\n  font-display: block;\n}\n`,
+      )
+    }
+  }
+  const locales = [...new Set(Object.values(manifest).flatMap((files) => Object.keys(files)))].sort(byName)
+  const rules = locales.map((locale) => {
+    const families = Object.keys(declared)
+      .filter((font) => manifest[font]?.[locale] !== undefined)
+      .map((font) => `"${font} ${locale}"`)
+    return `:root:lang(${locale}) {\n  --af-font: ${families.join(', ')};\n}\n`
+  })
+  return `/* Written by \`automata-content assets\` from content/fonts.toml: do not edit. */\n${[...faces, ...rules].join('\n')}`
 }

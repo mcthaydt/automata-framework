@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
+import { passFirstRun } from '@automata/tools/e2e'
 import { expect, test } from '@playwright/test'
 import { devTuningFile, devUrl } from './origins.ts'
 
@@ -23,6 +24,7 @@ test.describe('the dev server', () => {
       if (message.type() === 'error') errors.push(message.text())
     })
     await page.goto(devUrl)
+    await passFirstRun(page)
     const game = page.locator('#game')
     await expect(game).toHaveAttribute('data-content-hash', /^[0-9a-f]+$/)
     await expect(game).toHaveAttribute('data-screen', /splash|menu/)

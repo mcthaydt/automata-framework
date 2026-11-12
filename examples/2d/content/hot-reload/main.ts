@@ -11,8 +11,7 @@
 // Packages: @automata/content (its Vite plugin and `virtual:automata/content`),
 // @automata/framework (`startGame`), and the base's own.
 import '@af-games/emberwick/no-eval'
-import '@fontsource/pixelify-sans/latin-400.css'
-import '@fontsource/pixelify-sans/latin-700.css'
+import '@af-games/emberwick/fonts.css'
 import '@af-games/emberwick/style.css'
 import './content-panel.css'
 import { content, contentHash } from 'virtual:automata/content'

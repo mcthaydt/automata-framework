@@ -23,6 +23,8 @@ export {
 } from '../shared/diagnostics/diagnostic'
 export type { FlowCapabilities, FlowGraph, FlowTransition } from '../shared/flow/check-flow'
 export {
+  type AchievementConfig,
+  type AchievementGoal,
   GAME_ID_PATTERN,
   type GameConfig,
   gameConfigSchema,

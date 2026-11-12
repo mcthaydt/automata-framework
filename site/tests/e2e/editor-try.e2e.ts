@@ -3,16 +3,16 @@ import { resolve } from 'node:path'
 import { expect, type Page, test } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
 import { watchPage } from './gates'
+import { openEditorFromHeader } from './header'
 
-// Spec 10.2 and 18.3: the Editor page shows what the editor does and opens the try-it editor, the same page
-// `automata editor` serves, which starts on a sample game held in the page under the site's headers with nothing wrong
-// in the console. A new level is kept in the browser's private file storage (OPFS) but reopens on the editor's Home;
-// Share is how a level leaves.
-test('the Editor page shows two pictures and opens the try-it editor on a sample game', async ({ page }) => {
+// The header's Editor link opens the try-it editor, the same page `automata editor` serves, which starts on a sample game
+// held in the page under the site's headers with nothing wrong in the console. There is no Editor page in between: the
+// old /editor address is a host rule (`_redirects`) to the editor. A new level is kept in the browser's private file
+// storage (OPFS) but reopens on the editor's Home; Share is how a level leaves.
+test('the header’s Editor link opens the try-it editor on a sample game', async ({ page }) => {
   const watch = watchPage(page, `http://127.0.0.1:${SITE_PORT}`)
-  await page.goto('/editor')
-  await expect(page.locator('main figure')).toHaveCount(2)
-  await page.getByRole('link', { name: 'Try the editor' }).click()
+  await page.goto('/')
+  await openEditorFromHeader(page)
   await expect(page).toHaveURL(/\/editor\/app\/$/)
   await expect(page.getByText('This is a sample game, not yours.', { exact: false })).toBeVisible()
 
@@ -22,6 +22,12 @@ test('the Editor page shows two pictures and opens the try-it editor on a sample
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
   await expect(page.getByRole('button', { name: 'Share' })).toBeVisible()
   expect(watch.problems).toEqual([])
+})
+
+test('the old /editor address leads to the editor', async ({ page }) => {
+  await page.goto('/editor')
+  await expect(page).toHaveURL(/\/editor\/app\/$/)
+  await expect(page.getByText('This is a sample game, not yours.', { exact: false })).toBeVisible()
 })
 
 const SIZES = [

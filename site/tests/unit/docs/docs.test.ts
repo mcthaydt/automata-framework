@@ -11,6 +11,7 @@ describe('the docs', () => {
   it('are the guides, How it works first', () => {
     expect(docs.map((doc) => doc.slug)).toEqual([
       'how-it-works',
+      'languages',
       'editor',
       'extensions',
       'publish-to-web',
@@ -36,14 +37,7 @@ describe('the docs', () => {
   })
 
   it('send every old docs address to a page that exists', () => {
-    const pages = new Set([
-      '/',
-      '/start',
-      '/editor',
-      '/api',
-      '/terms',
-      ...docs.map((doc) => '/docs/' + doc.slug),
-    ])
+    const pages = new Set(['/', '/start', '/api', '/terms', ...docs.map((doc) => '/docs/' + doc.slug)])
     for (const slug of [
       'overview',
       'quick-start',
@@ -77,7 +71,7 @@ describe('the docs', () => {
     const links = [...nav.querySelectorAll('a')]
     expect(links.map((link) => link.getAttribute('href'))).toEqual(docs.map((doc) => '/docs/' + doc.slug))
     expect(nav.querySelector('[aria-current="page"]')?.textContent).toBe('Draw levels in the editor')
-    expect(view.getByRole('link', { name: 'Previous: How it works' })).toBeTruthy()
+    expect(view.getByRole('link', { name: 'Previous: Languages' })).toBeTruthy()
     expect(view.getByRole('link', { name: 'Next: Extensions: add what your game needs' })).toBeTruthy()
   })
 })

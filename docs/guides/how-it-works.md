@@ -57,6 +57,15 @@ the game restarts. Their timers run on a clock the tests can move by hand, so a 
 The screens are built for phones first. One owner measures the space the game has, including notches, the browser's
 bars and the keyboard, and every screen lays itself out from it. Buttons stay at least 44 pixels tall.
 
+## The first run
+
+The first time a device opens a game it shows up to three things, each once, before anything else: a **language** screen
+(one press picks one of the game's languages; skipped on Ruken, which supplies the player's), a **warning** about flashing
+lights with a switch to reduce them (only for a game that says it flashes, with `photosensitivity` in `defineGame`), and
+the studio's **splash** (only a game that adds `splashStep` from `@automata/ui-screens/splash` to its `opening`). Then
+the title. A second visit goes straight in. Nothing of this runs the rules: the sim waits until the title is up. The
+words are the framework's own, in every language; see [Languages](./languages.md).
+
 ## Where the game runs
 
 The same game builds for four places, chosen when it is built: the open web, itch.io, Ruken and a desktop app made

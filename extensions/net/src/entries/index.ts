@@ -57,6 +57,11 @@ export {
   type SessionEnd,
   type SessionRoomState,
 } from '../features/client/session/net-session'
+export {
+  type BuildFacts,
+  buildFactsSchema,
+  checkServerVersion,
+} from '../features/client/version/check-server-version'
 export { type NetConfig, type NetConfigInput, netConfigSchema } from '../shared/net.schema'
 export { createWatchable, type Watchable, type WatchableSource } from '../shared/watchable'
 export { type ClientMessage, clientMessageSchema } from '../shared/wire/client-message.schema'
