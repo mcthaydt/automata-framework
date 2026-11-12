@@ -457,3 +457,39 @@ translations; 117 old branches to delete; the three darker-than-authored colours
 pixel font, minimap and world marker, a pass on screen pixels after the upscale, a linear light space, meshes as a
 content kind with a manifest and palette import, the editor setting a prop's model and fit, a home for story translator
 notes) and the mesh-and-blockout spec.
+
+## The coordinator's state, 2026-11-12 night (the second coordinator; read after the section above)
+
+**The Owner's words since the handover, in order** (each is a standing instruction):
+"Why does she have the boy eyes?" · "Whenever we're doing something without a plan and spec like modifying the look of a
+character, use opus medium" · "yes to the hook change, software run counts as a skip" · "change the comment" · "A"
+(EnvironmentBuilder: its CPU renderer and two goldens stay archived) · "fold reviewed" · "stop using the artifact
+storage unless something fails" · "the cross engine run works" (beta.3) · "go with what looks the best" (Ada at 7 or 5
+heads) · "I'm not reviewing the translations" · "Also cut the Q and E, let it be rotate horizontally with right stick,
+screen swipe, and mouse like normal 3D, but lock vertical rotation" · "can we improve the hands on our builders, make it
+where it's like 3 fingers merged, index, and thumb separated, they look kinda dumb now, for the builder itself, not
+specifically for my character" · "let's just stop at the prologue for the last light; we need a fresh start and a new
+game ... we need to launch; pixi3d is now in public beta" · "We get the automata framework to ship ready before going to
+the next game" · "raise the 2D journeys limit" · "yes, move to the public pixi3d package and lift the deploy rule" · "We
+ship with 3D, Editors, and Desktop Apps too" · "both, publish the painter, port to 0.1.0, fix the publish job's limit"
+(desktop means games as desktop apps and the paid app).
+
+**What changed in the rules.** Work with no plan and spec runs on Opus at medium effort. The reference for a figure's
+face is the base pair at density 2 enlarged crisply (the handover brief has the details); the first section's "density
+8" reading is superseded. The Last Light stops at its prologue; slices 2 to 4 are cut. The framework ships before the
+next game, with 3D, every editor and desktop in the first release. `@pixi/3d` is public: the private-build rule is
+lifted on `claude/pixi-3d-public`; publishing and deploying stay the Owner's. Workstream 6 group 1 is reviewed and
+closed.
+
+**The ship list** is [`audits/2026-11-12-ship-readiness.md`](audits/2026-11-12-ship-readiness.md) (on
+`claude/ship-readiness-audit`), Part 2. Its 3D lane has a spec:
+[`specs/2026-11-12-ship-3d-and-editors-design.md`](specs/2026-11-12-ship-3d-and-editors-design.md).
+
+**Open with the Owner.** The npm organisation's name (`@automata` is another account's; `automataframework` is free);
+the domain and its mailbox; whether GitHub sign-in is revived (#544, closed today when old branches were deleted) or its
+line leaves Home; the hands (round 3 in work: no golden recorded until he says yes); signing certificates for desktop.
+
+**Merged today by the merge session.** #666 (`claude/ci-green`), #665 (the workflow limits). Queued: #667
+(`claude/hook-scope-budget-skip`), `claude/artifacts-on-failure`, #664, then `claude/pixi-3d-public` (it replaces
+`claude/pixi-3d-beta-3`), `claude/editor-journeys-green`, `claude/builders-fold-scenes` (after its implementation
+audit).
