@@ -1,5 +1,5 @@
 import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, DEFAULT_LOOK, render3dExtension, targetSize } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, render3dExtension } from '@automata/3d'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
 import { prefersReducedMotion, typedFor } from '@automata/narrative'
@@ -15,6 +15,7 @@ import { Ada } from '../shared/ada.component.ts'
 import { TICK_HZ } from '../shared/constants.ts'
 import { audio, SOUND_FILES } from './audio.ts'
 import { playOf } from './content.ts'
+import { fieldOfWindow } from './field.ts'
 import { playControls, playHud } from './play.extension.ts'
 import { createRuntime } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
@@ -55,16 +56,15 @@ const TURN = keys(
   { idle: { units: 0 } },
 )
 
-/** The picture: capped at 640 by 480 (640 by 360 in a wide window), what a phone held sideways (844 by 390) gives. */
-const SIZE = targetSize({ width: 844, height: 390 }, DEFAULT_LOOK.pixel.short)
+/** The picture: the old game's, the window's shape capped at 640 by 480 (640 by 360 in a 16:9 window). */
+const SIZE = fieldOfWindow()
+/** The look with its field's short side the picture's, so the passes that read it draw at this size. */
+const LOOK = { ...DEFAULT_LOOK, pixel: { short: Math.min(SIZE.width, SIZE.height) } }
 
 /** The characters a cutscene can place, by who a script calls them. */
 const actors: Actors = new Map()
 
-/**
- * The Last Light, the framework's 3D reference game. Its picture is the old game's: capped at 640 by 480 (640 by 360
- * in a wide window), which is what `DEFAULT_LOOK`'s short side gives a phone held sideways (844 by 390).
- */
+/** The Last Light, the framework's 3D reference game. Its picture is the old game's (`app/field.ts`). */
 export const game = defineGame({
   id: 'the-last-light',
   title: 'The Last Light',
@@ -94,7 +94,7 @@ export const game = defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      look: DEFAULT_LOOK,
+      look: LOOK,
       time: TIME,
       lighting: LIGHTING,
       // Plain figures until the painted ones are dressed (workstream 4): a box each, from where the sim says they stand.
