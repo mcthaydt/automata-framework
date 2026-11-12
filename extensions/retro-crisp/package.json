@@ -21,7 +21,8 @@
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "test:browser": "vitest run --project browser",
+    "test:browser": "vitest run --project browser --project webgpu",
+    "test:webgpu": "vitest run --project webgpu",
     "typecheck": "tsc -p ."
   },
   "dependencies": {

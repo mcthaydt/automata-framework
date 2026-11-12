@@ -6,7 +6,7 @@
 
 import { Container3D, Geometry3D, Mesh3D, PhongMaterial } from '@pixi/3d'
 import type { M, V3 } from '../../../shared/math/math.ts'
-import { UnlitMaterial } from '../../../shared/render/views/unlit-material.ts'
+import { beta2Colour, UnlitMaterial } from '../../../shared/render/views/unlit-material.ts'
 import type { Mesh, Weight } from '../body/mesh.ts'
 import type { Skeleton } from '../body/rig.ts'
 import type { Built } from '../figure/build.ts'
@@ -66,7 +66,9 @@ function materialOf(built: BuiltMaterial, palette: readonly string[], lit: boole
   const colour = materialColour(built, palette)
   const flat = built.flat === true
   const material =
-    flat || lit ? new UnlitMaterial({ baseColor: colour }) : new PhongMaterial({ baseColor: colour })
+    flat || lit
+      ? new UnlitMaterial({ baseColor: beta2Colour(colour) })
+      : new PhongMaterial({ baseColor: colour })
   return { material, colour, flat }
 }
 

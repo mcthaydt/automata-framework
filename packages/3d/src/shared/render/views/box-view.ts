@@ -1,9 +1,8 @@
 import { Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
-import { colourLook } from '../light/colour-look.ts'
 import { channels, toSrgb } from '../light/vertex-light.ts'
 import { placeView3d } from './pose-3d.ts'
 import { shareMaterial } from './shared-material.ts'
-import { UnlitMaterial } from './unlit-material.ts'
+import { beta2Colour, UnlitMaterial } from './unlit-material.ts'
 import type { View3dFactory } from './view-3d.ts'
 
 export interface BoxSize {
@@ -31,20 +30,16 @@ export interface BoxMaterial {
 }
 
 /**
- * A base colour (in linear light) lit by the tint: each channel multiplied by the tint's, as the baked vertex
- * colours multiply a static mesh, then as 0xRRGGBB for an unlit material's base colour, capped at white. `@pixi/3d`
- * 0.1.0-beta.3 shows that colour as authored, so the product goes back to sRGB first ('authored', the default); beta.2 drew an
- * unlit base colour as its linear value, so the product itself was the display value ('beta2', `colour-look.ts`).
+ * A base colour (in linear light) lit by the tint: each channel multiplied by the tint's, as the baked vertex colours multiply a
+ * static mesh, capped at white, as 0xRRGGBB for an unlit material to draw as it stands. That is what `@pixi/3d` 0.1.0-beta.2 drew of
+ * a lit moving thing (its unlit material drew a linear value as a display one, so a figure read darker than its albedo says), and
+ * the picture the figures were tuned to; beta.3 draws the colour it is given as written, so the product itself is that colour.
  */
 export function tinted(
   linear: readonly [number, number, number],
   tint: readonly [number, number, number],
 ): number {
-  const authored = colourLook() === 'authored'
-  const channel = (c: 0 | 1 | 2) => {
-    const lit = Math.min(1, linear[c] * tint[c])
-    return Math.round(255 * (authored ? toSrgb(lit) : lit))
-  }
+  const channel = (c: 0 | 1 | 2) => Math.round(255 * Math.min(1, linear[c] * tint[c]))
   return (channel(0) << 16) | (channel(1) << 8) | channel(2)
 }
 
@@ -76,8 +71,8 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
   const baked =
     material.lit === 'static'
       ? shareMaterial(
-          new UnlitMaterial({ baseColor: material.color }),
-          () => new UnlitMaterial({ baseColor: material.color }),
+          new UnlitMaterial({ baseColor: beta2Colour(material.color) }),
+          () => new UnlitMaterial({ baseColor: beta2Colour(material.color) }),
         )
       : undefined
   // The base colour in linear light, decoded once for the per-frame tint.
@@ -88,7 +83,7 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
     const tint = material.lit === 'moving' ? light : undefined
     // The tint is written here each frame, so a frame allocates nothing.
     const lit: [number, number, number] = [0, 0, 0]
-    const own = tint === undefined ? undefined : new UnlitMaterial({ baseColor: material.color })
+    const own = tint === undefined ? undefined : new UnlitMaterial({ baseColor: beta2Colour(material.color) })
     const bakes = light !== undefined && baked !== undefined
     const drawn = new Mesh3D({ geometry, material: own ?? (bakes ? baked : shared) })
     drawn.position.set(0, size.height / 2, 0)

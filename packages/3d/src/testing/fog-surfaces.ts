@@ -22,7 +22,7 @@ import { snapshot } from './snapshot.ts'
 import { testTarget } from './test-target.ts'
 
 export const DISTANCES = [6, 8, 10, 14] as const
-export const KINDS = ['unlit', 'baked', 'phong', 'ramp'] as const
+export const KINDS = ['unlit', 'baked', 'bakedLinear', 'phong', 'ramp'] as const
 export type Kind = (typeof KINDS)[number]
 export const FOG_NAMES = ['none', 'light', 'dark'] as const
 export type FogName = (typeof FOG_NAMES)[number]
@@ -33,7 +33,11 @@ const BASE = 0xa0c0e0
 const NEAR = 4
 const FAR = 12
 const FOGS = { light: 0x8b9bb4, dark: 0x31222a } as const
-const lighting = sceneLightingSchema.parse({ ambient: 0.6, colorSpace: 'srgb', lamps: [] })
+const lightings = {
+  srgb: sceneLightingSchema.parse({ ambient: 0.6, colorSpace: 'srgb', lamps: [] }),
+  // The schema's default, which the examples' lighting content uses: its baked values were shown as written on beta.2.
+  linear: sceneLightingSchema.parse({ ambient: 0.6, colorSpace: 'linear', lamps: [] }),
+} as const
 
 /** The colours at `DISTANCES`, one `[r, g, b]` each. */
 export type Row = readonly (readonly [number, number, number])[]
@@ -74,6 +78,24 @@ export const EXPECTED: Record<string, Row> = {
     [82, 98, 114],
     [52, 60, 70],
     [22, 21, 26],
+    [8, 4, 6],
+  ],
+  'bakedLinear none': [
+    [153, 153, 153],
+    [153, 153, 153],
+    [153, 153, 153],
+    [153, 153, 153],
+  ],
+  'bakedLinear light': [
+    [139, 142, 147],
+    [109, 118, 135],
+    [79, 94, 122],
+    [66, 84, 116],
+  ],
+  'bakedLinear dark': [
+    [130, 130, 130],
+    [80, 79, 79],
+    [31, 27, 29],
     [8, 4, 6],
   ],
   'phong none': [
@@ -144,7 +166,7 @@ export async function shootFog(
     logicalHeight: H,
     backgroundColor: 0x000000,
     views: {},
-    lighting,
+    lighting: kind === 'bakedLinear' ? lightings.linear : lightings.srgb,
     fog,
     scene: (view, _stage, _occluders, light) => {
       fovDeg = view.camera.fov
@@ -156,7 +178,7 @@ export async function shootFog(
         const material =
           kind === 'unlit'
             ? new UnlitMaterial({ baseColor: BASE })
-            : kind === 'baked'
+            : kind === 'baked' || kind === 'bakedLinear'
               ? new UnlitMaterial({ baseColor: 0xffffff })
               : kind === 'phong'
                 ? new PhongMaterial({ baseColor: BASE })
@@ -167,7 +189,7 @@ export async function shootFog(
         })
         plane.position.set(d * Math.tan(angle(j)), 0, -d)
         view.root.addChild(plane)
-        if (kind === 'baked') light?.bake(plane, { albedo: BASE })
+        if (kind === 'baked' || kind === 'bakedLinear') light?.bake(plane, { albedo: BASE })
       })
       return undefined
     },

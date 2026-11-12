@@ -10,6 +10,7 @@
 // `docs/superpowers/audits/2026-11-12-pixi-3d-beta-3/README.md`, "Item 2" and "Item 3".
 
 import { type BaseMaterial3DOptions, FlatMaterial, type ShaderBit } from '@pixi/3d'
+import { toLinear } from '../light/vertex-light.ts'
 
 /**
  * The display-space fog, in both shader stages. It runs at the end slot, after the material's colour and before the engine's
@@ -53,6 +54,17 @@ const unlitFogBit: ShaderBit = {
 `,
     },
   },
+}
+
+/**
+ * The colour to give an `UnlitMaterial` so it shows what `@pixi/3d` 0.1.0-beta.2's `FlatMaterial` showed for `colour`. Beta.2 decoded an
+ * unlit base colour to linear light and drew that value as it stood, no encode (a 128 grey drew as 55, 0xe37840 as 0xc4300d); beta.3 draws
+ * it as written. The framework's colours (a game's embers, a figure's flat parts, a baked box) were chosen against the darker picture,
+ * so they go through this; a colour a game wants as authored is given to the material as it is.
+ */
+export function beta2Colour(colour: number): number {
+  const channel = (shift: number): number => Math.round(255 * toLinear(((colour >> shift) & 0xff) / 255))
+  return (channel(16) << 16) | (channel(8) << 8) | channel(0)
 }
 
 /**

@@ -111,13 +111,14 @@ describe('box', () => {
     expect((other.container.children[0] as Mesh3D).material).not.toBe(material)
 
     view.update?.({ crate: { x: 10, y: 0, z: 0 } }, undefined, 1)
-    // Out of the lamp's range: a quarter of 0x80 in linear light (0.2158 × 0.25), back in sRGB: 0x42.
-    expect(material.baseColor).toBe(0x424242)
+    // Out of the lamp's range: a quarter of 0x80 in linear light (0.2158 × 0.25 = 0.054), the value beta.2's unlit material drew as it stood:
+    // 14 (0x0e). The material takes a display colour now, so that is the colour it is given.
+    expect(material.baseColor).toBe(0x0e0e0e)
     view.update?.({ crate: { x: 0, y: 0, z: 0 } }, undefined, 1)
-    expect(material.baseColor).toBeGreaterThan(0x424242)
+    expect(material.baseColor).toBeGreaterThan(0x0e0e0e)
     light.setLevels({ lamp: 0 })
     view.update?.({ crate: { x: 0, y: 0, z: 0 } }, undefined, 1)
-    expect(material.baseColor).toBe(0x424242)
+    expect(material.baseColor).toBe(0x0e0e0e)
   })
 
   it('lit without a scene light is the plain shared box', () => {

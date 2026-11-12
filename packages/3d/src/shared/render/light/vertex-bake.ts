@@ -29,9 +29,9 @@ const ENGINE_GAMMA = 2.2
 export interface BakeExtras {
   /**
    * Write each vertex colour as the engine reads it, not as the screen should show it. Beta.2's unlit material showed a vertex
-   * colour as written; beta.3 treats it as linear light and encodes it for the display, so an `srgb` lighting's values (display
-   * colours: `albedo × light`, a texture's light, a glow's step) are raised to 2.2 to come out as they were written. A `linear`
-   * lighting's values already are linear light and stay. Off by default: a caller that wants the screen's value (`groundLuma`) reads those.
+   * colour as written; beta.3 treats it as linear light and encodes it for the display, so what the screen should show (an `srgb`
+   * lighting's `albedo × light`, a texture's light, a glow's step; a `linear` lighting's light value, which beta.2 also drew as it stood)
+   * is raised to 2.2 to come out as it was written. Off by default: a caller that wants the screen's value (`groundLuma`) reads those.
    */
   readonly engineColours?: boolean | undefined
   /** Whole steps the mesh's room is darker than normal (negative: brighter): its light is multiplied by `shade` each. */
@@ -103,11 +103,9 @@ function transform(
   ]
 }
 
-/** What a value the screen should show becomes in the vertex buffer: itself, or (`engineColours` on an `srgb` lighting) as linear light. */
-function engineColour(extras: BakeExtras, lighting: SceneLighting): (shown: number) => number {
-  return extras.engineColours === true && lighting.colorSpace === 'srgb'
-    ? (shown) => shown ** ENGINE_GAMMA
-    : (shown) => shown
+/** What a value the screen should show becomes in the vertex buffer: itself, or (`engineColours`) as linear light, for either lighting space. */
+function engineColour(extras: BakeExtras): (shown: number) => number {
+  return extras.engineColours === true ? (shown) => shown ** ENGINE_GAMMA : (shown) => shown
 }
 
 /**
@@ -134,14 +132,13 @@ export function bakeVertices(
   extras: BakeExtras = {},
 ): VertexBake {
   const vertexCount = positions.length / 3
-  if (extras.glow !== undefined)
-    return bakeGlow(vertexCount, lighting, extras.glow, engineColour(extras, lighting))
+  if (extras.glow !== undefined) return bakeGlow(vertexCount, lighting, extras.glow, engineColour(extras))
   const model = lightModel(lighting)
   const base = new Float32Array(vertexCount * 3)
   const sector = lighting.shade ** (extras.shadeSteps ?? 0)
   const albedo =
     extras.albedo === undefined || lighting.colorSpace !== 'srgb' ? undefined : srgbChannels(extras.albedo)
-  const toEngine = engineColour(extras, lighting)
+  const toEngine = engineColour(extras)
   const slots: LampSlot[] = lighting.lamps.map((lamp) => ({
     id: lamp.id,
     colour: lightChannels(lamp.color, lighting.colorSpace),

@@ -3,6 +3,7 @@
 // it within budget, and S7 has not.
 import type { Fog } from '@pixi/3d'
 import { type SceneFog, sceneFogSchema } from './scene-lighting.schema.ts'
+import { toLinear } from './vertex-light.ts'
 
 /**
  * The view's fog: the options' when given, else the lighting content's (already checked when content compiled), else
@@ -22,9 +23,6 @@ export function viewFog(options: SceneFog | undefined, content: SceneFog | undef
     : { type: 'linear', near: fog.near, far: fog.far, color: engineFogColour(fog.color) }
 }
 
-/** One sRGB channel (0 to 1) decoded to linear light by the piecewise curve (beta.2's `srgbToLinear`). */
-const decodePiecewise = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
-
 /** The pure 2.2 gamma beta.3 encodes with (and decodes with: `srgbToLinear` is its inverse). */
 const encodeGamma = (linear: number): number => linear ** (1 / 2.2)
 
@@ -38,7 +36,7 @@ const encodeGamma = (linear: number): number => linear ** (1 / 2.2)
  * (`fogSkyColor`): beta.2 showed an unlit surface and the sky at `dec_pw(C)` itself (0x8b9bb4 as 0x425474).
  */
 export function engineFogColour(colour: number): [number, number, number] {
-  const channel = (shift: number): number => encodeGamma(decodePiecewise(((colour >> shift) & 0xff) / 255))
+  const channel = (shift: number): number => encodeGamma(toLinear(((colour >> shift) & 0xff) / 255))
   return [channel(16), channel(8), channel(0)]
 }
 
@@ -49,7 +47,6 @@ export function engineFogColour(colour: number): [number, number, number] {
  * `lighting.test.ts` checks the two meet.
  */
 export function fogSkyColor(fog: SceneFog): number {
-  const channel = (shift: number): number =>
-    Math.round(255 * decodePiecewise(((fog.color >> shift) & 0xff) / 255))
+  const channel = (shift: number): number => Math.round(255 * toLinear(((fog.color >> shift) & 0xff) / 255))
   return (channel(16) << 16) | (channel(8) << 8) | channel(0)
 }

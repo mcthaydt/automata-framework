@@ -17,6 +17,7 @@ import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.sch
 import { channels } from '#src/shared/render/light/vertex-light.ts'
 import { emptyModels } from '#src/shared/render/model/load-models.ts'
 import { tinted } from '#src/shared/render/views/box-view.ts'
+import { beta2Colour } from '#src/shared/render/views/unlit-material.ts'
 import { fixtureFigures } from '#src/testing/fixture-library.ts'
 import { fixtureMotion } from '#src/testing/fixture-motion.ts'
 
@@ -235,7 +236,7 @@ describe('figure', () => {
         const m = built.materials[material]
         if (m === undefined) throw new Error(`no material ${material}`)
         const colour = materialColour(m, DEFAULT_PALETTE.colors)
-        return m.flat ? colour : tinted(channels(colour), tint)
+        return m.flat ? beta2Colour(colour) : tinted(channels(colour), tint)
       }),
     )
     const drawn = new Set<number>()

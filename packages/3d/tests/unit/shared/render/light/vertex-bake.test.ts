@@ -296,14 +296,14 @@ describe('a bake written as the engine reads it (`engineColours`)', () => {
     expect(litEngine[3]).toBe(1)
   })
 
-  it('leaves a `linear` lighting alone: its values already are linear light', () => {
+  it('raises a `linear` lighting’s values too: beta.2 drew them as written, and beta.3 encodes a vertex colour', () => {
     const { positions, normals } = floorPatch()
     const linearRoom = sceneLightingSchema.parse({ ambient: 0.5, colorSpace: 'linear', lamps: [] })
     const plain = colours(bakeVertices(positions, normals, IDENTITY, linearRoom, [], {}))
     const engine = colours(
       bakeVertices(positions, normals, IDENTITY, linearRoom, [], { engineColours: true }),
     )
-    expect([...engine]).toEqual([...plain])
+    for (let c = 0; c < 3; c++) expect(engine[c]).toBeCloseTo((plain[c] as number) ** GAMMA, 5)
   })
 
   it('reports no change twice, as the plain bake does', () => {

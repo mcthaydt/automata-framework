@@ -507,11 +507,11 @@ Branch continued from `b3160de1`. Goal: beta.3 draws what beta.2 drew wherever a
 | 3 | The conversion derived; a browser case per surface kind, expected colours from beta.2 | done: derived above; the case watched failing (6 of 12) before the fix |
 | 4 | Applied to the default look and every game and example that sets fog; the game note; `the-last-light`'s note | done: `392a7ca5` (whole check green), the list above |
 | 5 | Frames: night room with haze, base-3d at the play camera | done: within noise outside the painted figures; the figures wait for the fold |
-| 6 | Lit moving figures' colour | not started |
+| 6 | Lit moving figures' colour | done: the conversion above; frames; the colour look deleted |
 | 7 | `SkyEffect`'s signed `uFxClip.w`; WebGPU cases for the LCD panel and the retro grade; Emberwick's language projects | not started |
 | 8 | The grouped list and the merge conditions | not started |
 
-Progress: 5 of 8 items (62%).
+Progress: 6 of 8 items (75%).
 
 ### Item 2: the fog formulas, from the code of each beta
 
@@ -614,6 +614,29 @@ The beta.2 -> authored numbers these replace: night room 32.9 -> 48.7 (85.2% dif
 - **The two painted figures in the night room** (67,300 of the frame's 80,084 differing pixels; 1.0% of the frame elsewhere): the painter's `CellMaterial` is a `FlatMaterial` with its own WGSL template (vendor/FigureBuilder, read only), so the engine's linear fog reaches it, lighter than beta.2's display mix and the dark outline lost. The painter's view is ported with the fold; its material must
   mix fog in display space (`UnlitMaterial`'s bit does it: the cell template needs the same lines at its `end` slot). Without fog the painted figures are identical to beta.2 (item 4 of the third session).
 - **The core figures' colour in the third frame** (the 1.7 of luma): the lit moving figures' tinted colour, item 6.
+
+### Item 6: the unlit colours the framework chose against beta.2 (lit moving figures, flat parts, baked boxes, embers)
+
+**What beta.2 did.** Its `FlatMaterial` decoded the base colour to linear light with the piecewise curve and drew that value as it stood, with no encode (a 128 grey drew as 55). The framework gave the material three kinds of colour:
+(1) `world-view` passed palette steps through `shownAs` (the colour whose decode is the colour wanted), so they showed as written; (2) a **lit moving figure** (core's mesh figures, and a moving box) got `tinted(base linear, tint)`, `enc_pw(L)`, which the material decoded back to `L = base linear x the room's light`
+and drew **raw: the linear value as the display value**, darker than the albedo says; (3) a figure's flat part (its glowing eyes), a baked box's base colour and base-3d's embers got the hex as written, which beta.2 drew as `dec_pw(hex)` (0xe37840 as 0xc4300d: the embers are a darker, redder orange than their hex).
+**What beta.3 does:** an unlit colour shows as given. So (1) needed nothing (done in the second session), and (2) and (3) came out lighter: grey shirts where beta.2 had dark ones, yellow embers where beta.2 had orange (a frame with the fog pushed out, `base-3d` at the journeys' camera: 5.8% of pixels differ, the embers pink in the diff).
+**The input that gives beta.2's colour:** for (2) `tinted` returns `round(255 x min(1, L))`, the lit light as the display value (what the `'beta2'` look did, now the only behaviour); for (3) `beta2Colour(hex) = dec_pw(hex)` (exported from `@automata/3d`, used for a figure's unlit parts, a baked box and `ember-view`). The one place figures' colours enter is `tinted` (`box-view.ts`, used by
+`figure-view.ts`) and `figure-meshes.ts`'s `materialOf`. **The colour look is deleted** (`colour-look.ts`, its test, the spike's `?colour=`): there is no switch left for the Owner to throw.
+**A second place that needed the same:** a `linear` lighting's baked values (the schema's default, the examples' lighting content) were drawn as written by beta.2 and encoded by beta.3 (a 0.6 ambient drew 153 and then 202); `vertex-bake.ts`'s `engineColours` now raises them to 2.2 too (the `srgb` ones already were). Test first: a `bakedLinear` kind in `fog-surfaces.ts`, 3 cases failing (202 against 153) and passing; the unit case that pinned "leaves a `linear` lighting alone" now pins the opposite, and `scene-light.test.ts`'s ambient 0.2 is read through the 2.2 like the seven before it.
+**Existing expectations that moved, each with the reason in its comment:** `box-view.test.ts` ("lit 'moving'": the colour given is 0x0e0e0e where it was 0x424242: the shown linear value, no longer an sRGB colour the engine decodes), `figure-view.test.ts` (a flat part's base colour is `beta2Colour(colour)`), `vertex-bake.test.ts` and `scene-light.test.ts` as above. No golden, snapshot or recorded hash changed.
+
+**Frames** (`frames/figures-core-room-beta2-vs-converted.png`, the dressed room by day, `figures=core`, no fog; `frames/fog-night-room-core-figures-beta2-vs-converted.png`, the night room with haze; both with the figures' pose clock held at 0 in both trees, which the spike now does under `still=1`: without it the two trees' figures were shot at different poses and a blink read as a colour change):
+
+| Frame | beta.2 | beta.3 converted | Differ | of which the figures' box |
+|---|---|---|---|---|
+| `figures-core-room-beta2-vs-converted.png` | 55.0 | 55.3 | 3.0% (37,268 px) | 7,440 px |
+| `fog-night-room-core-figures-beta2-vs-converted.png` | 32.8 | 32.9 | 1.3% (16,404 px) | 3,724 px |
+
+For the day room, the 'authored' look was 7.4% and 57.7, the old `'beta2'` look 3.5% and 55.3. The room's 2.3% (29,828 px) is the baseline of the dressed room (dither edges and one shadow edge, 2.9% on the painted frame of the first session) and two loads of the same tree differ by 0.4% (measured, beta.2 against beta.2 and beta.3 against beta.3); the figures' own 7,440 px are one-pixel rims on silhouettes. The colours of the shirts, trousers, skin and shoes match.
+
+**Which colour of the night room's plant and lamp shade is the authored one.** Tan (the plant) and black (the shade) are what beta.2 drew and what the converted beta.3 draws (`fog-night-room-beta2-vs-converted.png`), and with no fog beta.2 and beta.3 agree on both (room 55.4 and 55.7). Green and yellow were the old `'beta2'` look's doing: it handed the engine the darker fog colour and the engine mixed these unlit props toward it
+in linear light, a power mean that shifts a channel far from the fog colour (inference from the formulas of item 2; the look is deleted, so not re-measured). So beta.2 did not draw them too dark, and the `'beta2'` look drew them wrong; the swatches' own hexes are not what either beta shows of an unlit prop (beta.2 darkened them by the decode, as it did the embers), and which is "authored" for a swatch is the Owner's: the conversion keeps beta.2's.
 
 ## Handoff at 90 minutes
 

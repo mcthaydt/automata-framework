@@ -62,11 +62,13 @@ describe('createSceneLight', () => {
     const dark = floorAt(0, 0)
     light.bake(lit)
     light.bake(dark)
-    expect(brightest(lit)).toBeGreaterThan(0.5)
+    expect(brightest(lit)).toBeGreaterThan(0.5 ** 2.2)
+    // The ambient 0.2, as the buffer holds it for beta.3: the shown value raised to 2.2 (the engine reads a vertex colour as linear
+    // light and encodes it), so the screen shows 0.2, as beta.2 did.
     expect(
       colours(dark)
         .filter((_, i) => i % 4 !== 3)
-        .every((v) => Math.abs(v - 0.2) < 1e-6),
+        .every((v) => Math.abs(v - 0.2 ** 2.2) < 1e-6),
     ).toBe(true)
   })
 
