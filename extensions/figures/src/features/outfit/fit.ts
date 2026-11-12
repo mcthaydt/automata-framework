@@ -3,6 +3,7 @@ import { lerp } from '../../lib/math';
 import { profileAt, type Limb, type Ring } from '../body/parts';
 import type { Measure } from '../body/genes';
 import { PPM } from '../hair/hair';
+import { footOf, type Foot } from './shoe';
 
 /**
  * The body under the clothes, as a query. The profiles are the very ring lists `garments.ts body()` sweeps into the
@@ -111,9 +112,12 @@ export interface Body {
   at(region: Region, side: Side, y: number): Ring;
   girth(region: Region, side: Side, y0: number, y1: number): Ring;
   clear: number;
+  /** The shod foot's measures (m): its length and width (the foot a boot covers, `shoe()`'s own), the shoe's top at the ankle and
+   * the knee's height above the floor, for a kind that sizes a shaft or clears one (shoe.ts). */
+  foot: Foot;
 }
 /** The body query of a measure on a rig, with the clearance at `ppm` texels a metre (default the sheets'). */
 export function bodyOf(m: Measure, s: Skeleton, ppm?: number): Body {
   const p = profiles(m, s);
-  return { profiles: p, at: (region, side, y) => ringAt(p, region, side, y), girth: (region, side, y0, y1) => girth(p, region, side, y0, y1), clear: clearance(m.k, ppm) };
+  return { profiles: p, at: (region, side, y) => ringAt(p, region, side, y), girth: (region, side, y0, y1) => girth(p, region, side, y0, y1), clear: clearance(m.k, ppm), foot: footOf(m, s) };
 }

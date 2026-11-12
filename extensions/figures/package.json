@@ -30,6 +30,7 @@
     "lit": "tsx scripts/lit.ts",
     "actors": "tsx scripts/actors-demo.ts",
     "c5": "tsx scripts/c5-finish-sheet.ts",
+    "c9": "tsx scripts/c9-sheet.ts",
     "viewer": "vite viewer",
     "view-check": "tsx scripts/view-check.ts"
   },

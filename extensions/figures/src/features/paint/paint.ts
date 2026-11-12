@@ -131,6 +131,20 @@ export function tonesOf(m: Material): number[] {
   return [at(1), at(0), at(-1), at(-2)];
 }
 
+/** A material's four painter tones as hex, light to deep, for a garment that mixes from them (a sheer leg over the
+ * wearer's own skin): its `paint` ramp as it stands, else the four DUEL steps its row gives (a `mix` mixed). */
+export function rampOf(m: Material): string[] {
+  return m.paint ? [...m.paint] : tonesOf(m).map(c => `#${c.toString(16).padStart(6, '0')}`);
+}
+/** The share levels of a sheer edge (`Material.mix.edge`): level 0 is the plain mix, level 3 the most the edge adds. */
+const EDGE_LEVELS = 4;
+/** A sheer material's tones at each of its edge levels (index 0 is `tonesOf(m)` filled as the painter fills it), or null
+ * for a material with no edge. The painter picks the level of a texel from how far it turns from the eye. */
+function edgeTonesOf(m: Material, cool: number): number[][] | null {
+  const mix = m.mix; if (!mix?.edge) return null;
+  return Array.from({ length: EDGE_LEVELS }, (_, i) => fillTones(mixTones(mix.from.map(hex), mix.to.map(hex), mix.at + (1 - mix.at) * mix.edge! * i / (EDGE_LEVELS - 1)), m.flat ? 0 : cool));
+}
+
 // ─── Faces: drawn on the lit head, sized from it ───
 /** The face's front planes (facePlane's last value: forehead and brow, bridge, each cheekbone's top, chin) and the share
  * of each in the light tone, its brightest: so the light lands on each as a shape of its own, as a pixel artist blocks
@@ -945,6 +959,8 @@ const NO_FABRICS: readonly (Fabric | null)[] = [];
 export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array, cloth?: Cloth, weaveOut?: Weave): { albedo: Uint8ClampedArray; normals: Uint8ClampedArray; weave: Weave | null } {
   const { w, h } = g, n = w * h, ink = INK_RGB;
   const tones = materials.map(m => fillTones(tonesOf(m), m.flat ? 0 : style.cool)), D = densityOf(w), ppm = 36.9 * D;
+  // A sheer material (`mix.edge`): its tones at each level of edge; none for any other, which run today's code.
+  const edges = materials.map(m => edgeTonesOf(m, style.cool));
   // The fabrics (H5) of the materials; with no cloth channel, none is read.
   const fabrics = cloth ? materials.map(m => (m.fabric ? fabricOf(m.fabric) ?? null : null)) : NO_FABRICS;
   // The tile goes on last (after the budget and the light), so the loop below paints each tiled texel's ground and keeps its
@@ -1552,6 +1568,9 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     // A line inside the figure is the far surface's own (its fold, its normal); one outside, its shape's.
     const at = t >= OUTLINE && material[k] < 0 ? owner[k] : k, mi = material[at];
     let ramp = tones[mi];
+    // Sheer cloth is denser where it turns from the eye: the share's level from how far this texel's normal is from facing it.
+    const sheer = edges[mi];
+    if (sheer && t < OUTLINE) ramp = sheer[Math.round((EDGE_LEVELS - 1) * (1 - Math.max(0, sm[at * 3 + 2])) ** 2)];
     const stain = materials[mi].stain;
     let tt: number = t;
     if (stain && t < OUTLINE) {

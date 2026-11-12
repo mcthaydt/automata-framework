@@ -22,8 +22,11 @@ export interface Material {
   /** Its own key-light thresholds (paint.ts), where the style's do not suit it (skin sits mostly on its light tone). */
   tones?: [number, number, number];
   /** A blend of two ramps, the painter's to mix (paint.ts tonesOf), in place of `paint`: `at` of the way from each of
-   * `from`'s tones to `to`'s (a fade's tier: the hair's toward the skin's). */
-  mix?: { from: string[]; to: string[]; at: number };
+   * `from`'s tones to `to`'s (a fade's tier: the hair's toward the skin's). `edge` (0–1, default 0; c9): sheer cloth
+   * stretched over a limb is denser at its rim, where the surface turns from the eye. At a texel whose normal faces the
+   * eye by `f` (0 edge-on, 1 square on) the share is `at + (1 - at) · edge · (1 - f)²`, in four levels, each DUEL-snapped
+   * as `mix` is (paint.ts). With `edge` 0 or absent the painter runs today's code. */
+  mix?: { from: string[]; to: string[]; at: number; edge?: number };
   /** A stain (paint.ts): from `hem` up to `below` (m, in the surface's rest space) a texel takes this ramp, surely at the
    * hem and ever less often up to `below`, in runs that climb like drips (the Nurse's hem); on trousers and a seat, a
    * wash instead (a fade on the thighs' fronts, whiskers at the hip and behind the knee). */

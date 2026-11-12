@@ -8,6 +8,7 @@ import type { Anchor } from '../motion/motion';
 import { ear, headForm, headMesh } from '../body/head';
 import { hexOf } from '../../lib/colour';
 import { bodyOf, girth, profiles, type Body, type Profiles } from './fit';
+import { shodSeam, shoeExtras, sole, upperMesh, type ShoeForm } from './shoe';
 import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from '../hair/hair';
 /**
  * The body and what the base pair wears. A character is sliders (genes.ts) plus a list of garments, each fitted to the
@@ -67,6 +68,8 @@ export interface Wearing {
   m: Measure; s: Skeleton; garments: Garment[];
   swatch: (name: string) => Material; swatches: Record<string, Material>;
   ppm?: number; worn: Part[]; state: Record<string, unknown>;
+  /** The wearer's skin swatch (the name `dress()` is given), so a kind mixes from the skin it covers: `rampOf(c.swatch(c.skin))`. */
+  skin: string;
   /** The body's real measures (fit.ts): its ring at a height, its girth over a span and the clearance to leave, so a sleeve
    * end or a hem sizes from the body (fat, bust, seat, limb girth) and clears any body the sliders make. */
   body: Body;
@@ -78,6 +81,9 @@ export interface Fit {
   paint?: Partial<Regions>; anchors?: Anchor[];
   /** false: the body draws no thighs under it (a long skirt or coat). And-ed across the outfit. */
   thighs?: boolean;
+  /** The shod foot's form (shoe.ts `ShoeForm`: a shaft, a low heel, a thicker sole, a toe cap), built by `body()` and `dress()`
+   * where the `shoe` region is repainted; the last garment in the outfit that sets one wins. None: today's shoe. */
+  shoe?: ShoeForm;
 }
 /** A garment kind a fork registers (H1): how its items are built, and when in the outfit they are worn. */
 export interface GarmentKind<T = any> {
@@ -144,15 +150,16 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   const g = s.genes, k = m.k, t = m.thick, hw = g.head * g.headWidth / 2, hd = g.head * g.headDepth / 2, h = g.head;
   const r: Regions = { skin, chest: skin, waist: skin, pelvis: skin, shoulder: skin, upper: skin, fore: skin, hand: skin, thigh: skin, knee: skin, shin: skin, shoe: skin, sole: skin, neck: skin };
   const parts: Part[] = [], decals: Decal[] = [], made: Record<string, Material> = {};
-  let thighs = true, faceLook: FaceLook = { shape: m.face };
+  let thighs = true, faceLook: FaceLook = { shape: m.face }, form: ShoeForm | undefined;
   // What the registered kinds are given, and the anchors they publish, each with the garment that made it.
   const state: Record<string, unknown> = {}, anchors: { anchor: Anchor; from: Garment }[] = [];
-  const fit = bodyOf(m, s, ppm), c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state, body: fit };
+  const fit = bodyOf(m, s, ppm), c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state, skin, body: fit };
   /** A kind's fit, applied in order: its parts, marks, materials, the regions it repaints, its openings. */
   const wear = (f: Fit, from: Garment) => {
     parts.push(...f.parts); decals.push(...f.decals ?? []); Object.assign(made, f.materials); Object.assign(r, f.paint);
     for (const anchor of f.anchors ?? []) anchors.push({ anchor, from });
     if (f.thighs === false) thighs = false;
+    if (f.shoe) form = f.shoe;
   };
   for (const item of garments) {
     // A registered kind (a fork's wardrobe); one worn last waits for the rest of the outfit.
@@ -190,7 +197,9 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   for (const item of garments) { const kind = kindOf(item); if (kind?.last) wear(kind.build(c, item), item); }
   for (const item of garments) { const kind = kindOf(item); if (kind?.after) wear(kind.after(c, item), item); }
   Object.assign(made, earSkins(skin, swatch(skin)));
-  const all = [...body(m, s, r, thighs, ppm, fit.profiles), ...parts];
+  // A shoe form's added parts come after every other part (the part index seeds the grain), on a shod foot only.
+  const shod = r.shoe !== r.skin && form ? shoeExtras(m, s, { legs: fit.profiles.leg, clear: fit.clear, foot: fit.foot }, r.shoe, r.sole, form, legGroup, side => SURFACE[legGroup(side)]) : [];
+  const all = [...body(m, s, r, thighs, ppm, fit.profiles, form), ...parts, ...shod];
   return { parts: all, decals, materials: made, face: faceLook, profiles: fit.profiles, anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
 }
 /**
@@ -242,7 +251,7 @@ const across = (upper: number, lower: number, y: number, soft: number) => (py: n
  * repaint (chest, waist, pelvis; shoulder, upper arm, forearm; thigh, knee, shin) is its own stretch of the one profile,
  * cut ring to ring, so a sleeve's end is a material's edge on an unbroken form.
  */
-function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm: number | undefined, P: Profiles): Part[] {
+function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm: number | undefined, P: Profiles, form?: ShoeForm): Part[] {
   const g = s.genes, k = m.k, t = m.thick, fw = m.foot, foot = g.foot, hand = m.hand, fat = m.fat;
   const f = m.sliders.frame, mu = lerp(0.92, 1.1, m.sliders.muscle), D = k * t * m.depth;
   const a = k * t * m.arm * mu * lerp(1.04, 0.94, f), l = k * t * m.leg * lerp(0.96, 1.04, f), sh = g.shoulders, C = m.chest;
@@ -295,7 +304,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm: number 
     if (thighs) parts.push(stretch(r.thigh, lg, leg, Infinity, above, legSkin));
     parts.push(stretch(r.knee, lg, leg, thighs ? above : knee + 0.03 * k, below, legSkin), stretch(r.shin, lg, leg, below, -Infinity, legSkin));
     // ─── Foot: a shoe from the heel's round over the instep to the toe, on its sole ───
-    parts.push(...(r.shoe === r.skin ? bareFoot(J[`foot.${side}`], r.skin, lg, k, fw, foot, ankle) : shoe(J[`foot.${side}`], r.shoe, r.sole, lg, k, fw, foot, ankle)));
+    parts.push(...(r.shoe === r.skin ? bareFoot(J[`foot.${side}`], r.skin, lg, k, fw, foot, ankle) : shoe(J[`foot.${side}`], r.shoe, r.sole, lg, k, fw, foot, ankle, form, shodSeam(form, side))));
   }
   return surfaces(parts);
 }
@@ -381,17 +390,12 @@ function bareFoot(bone: number, skin: string, group: number, k: number, fw: numb
   return [{ bone, material: skin, group, mesh: placed(mesh, [0, 0, 0], axisAngle([1, 0, 0], Math.PI / 2)) }];
 }
 /** A shoe on the foot bone: one profile from the heel along to the toe (heights off the floor `ankle` below the joint),
- * and its sole. `fw` the build's foot factor, `foot` its length. */
-function shoe(bone: number, upper: string, sole: string, group: number, k: number, fw: number, foot: number, ankle: number): Part[] {
-  const floor = -ankle, base = floor + 0.016 * k * fw;
-  // Authored along y (heel to toe) with z as minus the height, then turned so y runs forward and z up.
-  const key = (z: number, high: number, wide: number) => ({ y: z * foot, rx: wide * k * fw, rz: high * k * fw, dz: -(base + high * k * fw) });
-  const mesh = limb({ seg: 12, caps: [0.05 * foot, 0.035 * foot], e: 0.85, rings: [
-    key(0.72, 0.022, 0.04), key(0.56, 0.027, 0.047), key(0.3, 0.042, 0.046), key(0.02, 0.058, 0.04), key(-0.17, 0.044, 0.034),
-  ] });
+ * and its sole (shoe.ts: a `form` shapes the sole and lifts the upper's bottom; a shaft's shoe is one surface with it, `seam`). `fw` the build's foot factor, `foot` its length. */
+function shoe(bone: number, upper: string, soleMaterial: string, group: number, k: number, fw: number, foot: number, ankle: number, form?: ShoeForm, seam?: number): Part[] {
+  const own = seam === undefined ? {} : { seam };
   return [
-    { bone, material: upper, group, mesh: placed(mesh, [0, 0, 0], axisAngle([1, 0, 0], Math.PI / 2)) },
-    box(bone, sole, group, { at: [0, floor + 0.008 * k * fw, foot * 0.27], r: [0.05 * k * fw, 0.009 * k * fw, foot * 0.52], e: [0.3, 0.45], taper: [1, 0.96] }),
+    { bone, material: upper, group, mesh: upperMesh(k, fw, foot, ankle, form), ...own },
+    { ...sole(bone, soleMaterial, group, k, fw, foot, ankle, form), ...own },
   ];
 }
 /**

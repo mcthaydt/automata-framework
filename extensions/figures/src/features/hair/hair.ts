@@ -223,11 +223,35 @@ export interface Bun { at: V3; r: number; flat?: number; turns?: number; rope: R
  * the clumps fatter and shorter as it rises; `volume` 0–1: how far the mass stands off the skull, so curl 1 and volume 1 at
  * a short length is a round afro. The clumps at the sides ride hair.L and hair.R, the rest hair.back, swinging as the tail does.
  */
-export interface Fall { from: Line; part?: number; count: number; length: number; curl?: number; volume?: number; rope: Rope }
+export interface Fall {
+  from: Line; part?: number; count: number;
+  /** 0 the chin, 1 the chest (a curl shortens it); to 2 the waist. Up to 1 it is as it always was. */
+  length: number; curl?: number; volume?: number; rope: Rope;
+  /** 0–1 (default 0): the share of the clumps rooted ahead of the ear that stay ahead: down the temple, in front of the ear
+   * and the shoulder, and on over the chest, clear of the dressed trunk's front (as `trunkBack` clears its back) and never
+   * across the face (outside the outer eye). At 0 every clump goes behind the ear, as it always did. */
+  front?: number;
+  /** −1 to 1 (default 0): the ends' under-turn: over the last fifth of a clump, below the jaw, its path bends toward the
+   * neck (positive) or flips out (negative) by at most two rope radii. */
+  turn?: number;
+  /** The stand-off model (default `'head'`: a clump rides the head, a hair bone and, at most half, the neck, so long hair swings
+   * out when the head pitches or cocks). `'trunk'`: a clump's points below the shoulder line ride the chest, those between the
+   * jaw and the shoulder blend from the head's skinning to the chest's by height, and the hair bones' swing fades to nothing
+   * by the shoulder: long hair lies on the shoulders and back and stays put, only the part by the head moving with it. */
+  rest?: 'head' | 'trunk';
+}
+/**
+ * A fringe: clumps from the crown forward over the forehead (`width` rad either side of the front, `count` of them, each a
+ * rope), down to `length`: 0 the hairline, 1 the brow (the tip a texel above the eye line), 2 the chin, 3 the chest. Past
+ * 1 it lies over the face, clear of it (the nose) and, past 2, of the dressed trunk's front. `sweep` (−1 to 1) combs it
+ * toward one side. Rigid on the head to 2; past it hung from the head's skinning to the chest's by height (`Fall.rest: 'trunk'`).
+ * To 1 it never reaches the eye row: a fringe does not hide the eyes unless the data asks for more.
+ */
+export interface Fringe { from: Line; width: number; length: number; count: number; rope: Rope; sweep?: number }
 /** A tie: `true` the wearer's (HairInput.tie: the outfit's own metal, else a band of the hair's own), or a swatch. */
 export type Tie = boolean | string;
 /** One of the three generators' pieces. */
-type OwnPiece = { scalp: Scalp } | { rows: Rows } | { tail: Tail } | { bun: Bun } | { fall: Fall };
+type OwnPiece = { scalp: Scalp } | { rows: Rows } | { tail: Tail } | { bun: Bun } | { fall: Fall } | { fringe: Fringe };
 /** A piece of a style: one of the three generators', or a registered piece (H3, registerHairPiece) keyed by its kind's
  * name, its value what that kind's builder takes. */
 export type Piece = OwnPiece | { [kind: string]: unknown };
@@ -386,7 +410,7 @@ const PIECES = new Map<string, HairPiece>();
 /** Registers a hair piece under `kind`, the key a style's piece carries ({ bun: {…} }). Throws on a name taken, the
  * generators' (scalp, rows, tail) included. */
 export function registerHairPiece(kind: string, p: HairPiece): void {
-  if (['scalp', 'rows', 'tail', 'bun', 'fall'].includes(kind) || PIECES.has(kind)) throw new Error(`hair piece ${kind} is registered already`);
+  if (['scalp', 'rows', 'tail', 'bun', 'fall', 'fringe'].includes(kind) || PIECES.has(kind)) throw new Error(`hair piece ${kind} is registered already`);
   PIECES.set(kind, p);
 }
 /** A style's parts on the head and its swinging joints, fitted to the skeleton's head and the body under it. */
@@ -455,6 +479,7 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
     } else if ('tail' in own) tail(own.tail);
     else if ('bun' in own) bun(own.bun);
     else if ('fall' in own) fall(own.fall);
+    else if ('fringe' in own) fringe(own.fringe);
     else {
       const name = Object.keys(piece)[0], p = PIECES.get(name);
       if (!p) throw new Error(`no hair piece ${name}`);
@@ -483,18 +508,27 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
     const band = tieOf(o.tie);
     if (band) parts.push({ bone: J.head, mesh: superquadric({ at: add(P, scale(dir, lift * 0.8)), r: [R * 0.45, texels(0.04 * s.genes.head, ppm) / 2, R * 0.45], e: [0.25, 1], seg: 14, rings: 4, turn: alignY(dir) }), material: band, group: 1, seam: seam++ });
   }
+  /** The twin of `trunkBack`, forward: the head-space z a clump at `x` clears the dressed trunk's front by (`clear` off it), or none where the trunk is not (above the shoulders, beside them). */
+  function frontOf(clear: number) { return (x: number, y: number) => { const r = reach(i.trunk ?? [], s.rest, [x + head[0], y + head[1], 0], [0, 0, 1]); return r > 0 ? r - head[2] + clear : -Infinity; }; }
   /**
    * Loose hair: each clump from the crown over the scalp to its hairline, past the ear and the jaw (always outside the head's
    * form, `volume` standing it further off), then straight down, drifting behind the dressed trunk by the shoulders and clear
-   * of it (as the tail's `trunkBack` takes it) to the length; a wave or a spiral about that path by `curl`.
+   * of it (as the tail's `trunkBack` takes it) to the length; a wave or a spiral about that path by `curl`. A share of the
+   * clumps rooted ahead of the ear (`front`) stay ahead of it instead: down beside the face, in front of the shoulder and
+   * over the chest, never in front of the trunk's own surface; the ends turn under or out by `turn`.
    */
   function fall(o: Fall) {
     const curl = clamp(o.curl ?? 0, 0, 1), volume = clamp(o.volume ?? 0, 0, 1), kk = m.k, texel = 1 / ppm;
     // Curls are fatter and shorter than straight hair.
     const rope: Rope = { ...o.rope, r: o.rope.r * (1 + 0.5 * curl), root: 0.02 }, ra = rope.r * hw, clear = ra * 1.2 + texel;
     const chin = s.chinY - head[1], shoulder = s.shoulderY - head[1], chest = s.chestY - head[1];
-    const yEnd = lerp(chin, chest, clamp(o.length, 0, 1) * (1 - 0.35 * curl));
+    // Up to the chest as it always was; past it, on to the waist (the body's, fit.ts `waistY`).
+    const front = clamp(o.front ?? 0, 0, 1), turn = clamp(o.turn ?? 0, -1, 1), waist = s.hipY + 0.155 * kk - head[1];
+    const yEnd = o.length <= 1 ? lerp(chin, chest, clamp(o.length, 0, 1) * (1 - 0.35 * curl)) : lerp(chest, waist, clamp(o.length - 1, 0, 1));
     const trunkBack = (y: number) => { const r = reach(i.trunk ?? [], s.rest, [0, y + head[1], 0], [0, 0, -1]); return r > 0 ? -r - head[2] - clear : Infinity; };
+    const trunkFront = frontOf(clear);
+    // Ahead of the ear is the face's side: the clumps there that stay ahead keep outside the outer eye (this far round the head).
+    const AHEAD = 1.45, FACE = 1.2;
     // Out of the head's form by the rope's own radius (and a little over), and further by the volume.
     const lift = rope.r * 1.6 + 0.55 * volume, gap = 0.35, part = o.part ?? 0;
     for (let j = 0; j < o.count; j++) {
@@ -502,7 +536,8 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       const y0 = along(o.from, a), yb = Math.max(-0.7, y0 + 0.1), sideRide = Math.abs(Math.sin(a)) > 0.55;
       // Down the scalp to the hairline, then down the head to the jaw: a clump that starts in front of the ear sweeps round
       // behind it (past 2.4 rad from the front), so it never lies across the face and reaches the back of the neck, not the sides.
-      const aEar = Math.sign(a) * Math.max(Math.abs(a), 2.4), path: V3[] = [];
+      const stays = front > 0 && Math.abs(a) < AHEAD && hash(j * 7 + 3) < front;
+      const aEar = stays ? Math.sign(a) * Math.max(Math.abs(a), FACE) : Math.sign(a) * Math.max(Math.abs(a), 2.4), path: V3[] = [];
       // From the crown itself (every clump's root meets there, lifted by the volume), so the mass closes over the top.
       for (let q = 0; q <= 4; q++) path.push(onHead(form, k, a, lerp(0.97, yb, q / 4), lift + 0.03 * q / 4));
       for (let q = 1; q <= 5; q++) path.push(onHead(form, k, lerp(a, aEar, smooth(Math.min(1, q / 2.5))), lerp(yb, -0.76, q / 5), lift + 0.03 + 0.02 * q / 5));
@@ -512,6 +547,14 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       const steps = yEnd < yJ - 1e-4 ? Math.max(2, Math.ceil((yJ - yEnd) / (0.05 * kk))) : 0;
       for (let q = 1; q <= steps; q++) {
         const y = lerp(yJ, yEnd, q / steps), w = smooth((yJ - y) / Math.max(1e-6, yJ - shoulder));
+        if (stays) {
+          // In front of the shoulder: where the body is, it is no wider than a little in from the trunk's own side (never out over the arm), and never behind its front.
+          const half = reach(i.trunk ?? [], s.rest, [head[0], y + head[1], 0], [1, 0, 0]), x = half > 0 ? Math.sign(jaw[0]) * Math.min(Math.abs(jaw[0]), 0.7 * half) : jaw[0];
+          // The trunk's front a half step either side too: the spline between the samples must not cut a corner through a bust or a shoulder.
+          const half2 = 0.5 * (yJ - yEnd) / steps;
+          path.push([x, y, Math.max(jaw[2], trunkFront(x, y), trunkFront(x, y + half2), trunkFront(x, y - half2))]);
+          continue;
+        }
         // It follows the back and the tops of the shoulders: narrowing toward the spine as it falls, never out.
         path.push([jaw[0] * (1 - 0.3 * w), y, Math.min(lerp(jaw[2], zBack, w), trunkBack(y))]);
       }
@@ -524,13 +567,65 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
           if (!f) return p;
           const th = 2 * Math.PI * cycles * q + ph, c = curl < 0.5 ? Math.sin(th) : Math.cos(th), t = curl < 0.5 ? 0 : Math.sin(th);
           const q2 = add(p, add(scale(radial, c * amp * f), scale(tangent, t * amp * f)));
-          return [q2[0], q2[1], Math.min(q2[2], trunkBack(q2[1]))] as V3;
+          return [q2[0], q2[1], stays ? Math.max(q2[2], trunkFront(q2[0], q2[1])) : Math.min(q2[2], trunkBack(q2[1]))] as V3;
+        });
+      }
+      // The ends' turn: over the last fifth of the clump, below the jaw, toward the neck (positive) or out (negative), still clear of the trunk.
+      if (turn && steps) {
+        const radial = (p: V3) => normalize([p[0], 0, p[2] - k.c[2]]);
+        P = P.map((p, n) => {
+          const f = smooth((n / (P.length - 1) - 0.8) / 0.2) * smooth((yJ - p[1]) / (0.03 * kk));
+          if (!f) return p;
+          const q2 = add(p, scale(radial(p), -turn * 2 * ra * f));
+          return [q2[0], q2[1], stays ? Math.max(q2[2], trunkFront(q2[0], q2[1])) : Math.min(q2[2], trunkBack(q2[1]))] as V3;
         });
       }
       const { mesh, lit, t } = sweep(P, rope, hw, p => normalize([p[0], 0, p[2] - k.c[2]]));
       const bone = sideRide ? (Math.sin(a) > 0 ? 'hair.L' : 'hair.R') : 'hair.back';
       const swing = 0.5, swingOf = (tt: number): [number, number][] => { const w = smooth((tt - 0.08) / 0.4), lay = smooth((tt - 0.45) / 0.55) * (1 - swing); return [[J.head, 1 - w], [J[bone], w * (1 - lay)], [J.neck, w * lay]]; };
+      if (o.rest === 'trunk') {
+        // Skinned by the vertex's own height: u runs 0 at the chin to 1 at the shoulder line, and the head's skinning gives way to the chest's.
+        const ys = mesh.positions.filter((_, n) => n % 3 === 1);
+        hung(mesh, ys.map((_, n) => n), 'hair', n => { const u = smooth((chin - ys[n]) / (chin - shoulder)); return [...swingOf(t[n]).map(([b, w]) => [b, w * (1 - u)] as [number, number]), [J.chest, u]]; }, seam++, lit, curl >= 0.5 ? true : undefined);
+        continue;
+      }
       hung(mesh, t, 'hair', swingOf, seam++, lit, curl >= 0.5 ? true : undefined);
+    }
+  }
+  /**
+   * A fringe (`Fringe`): each clump from the crown over the scalp to the hairline on the head's own form, then down the
+   * forehead (on the form) and, below the brow, down in front of the face (a plane clear of the nose by the rope and a
+   * texel), past the chin in front of the neck and over the chest clear of the dressed trunk (`frontOf`, as `Fall.front`).
+   * `sweep` drifts the clumps toward a side as they fall. The tip of a clump of length 1 stops a texel over the brow, above any eye.
+   */
+  function fringe(o: Fringe) {
+    const rope: Rope = { ...o.rope, root: 0.02 }, ra = rope.r * hw, texel = 1 / ppm, clear = ra * 1.2 + texel, g = s.genes, h = g.head, hd = h * g.headDepth / 2;
+    const chin = s.chinY - head[1], chest = s.chestY - head[1], shoulder = s.shoulderY - head[1], front = frontOf(clear);
+    const lift = rope.r * 1.3 + texel / hw, length = clamp(o.length, 0, 3), comb = clamp(o.sweep ?? 0, -1, 1);
+    // The levels a length names, head space: the hairline, a tip over the brow, the chin, the chest.
+    const Y0 = onHead(form, k, 0, along(o.from, 0), lift)[1], Y1 = Math.min(Y0, chin + 0.6 * h + ra + texel), Y2 = chin + ra, Y3 = chest;
+    const yEnd = length <= 1 ? lerp(Y0, Y1, length) : length <= 2 ? lerp(Y1, Y2, length - 1) : lerp(Y2, Y3, length - 2);
+    // The face's front plane: the nose's tip, then the rope and a texel clear of it; the forehead above the brow rides the head's own form.
+    const zFace = hd * (g.faceAhead + 1.15 + 0.08 * m.face.bridge) + clear, yBrow = chin + 0.6 * h;
+    const unit = (y: number) => clamp(2 * (y - chin) / h - 1, -1, 1);
+    for (let j = 0; j < o.count; j++) {
+      const a0 = o.count === 1 ? 0 : -o.width + 2 * o.width * j / (o.count - 1), path: V3[] = [];
+      const aAt = (y: number) => a0 + comb * o.width * 1.2 * clamp((Y0 - y) / Math.max(1e-6, Y0 - Math.min(yEnd, Y1)), 0, 1);
+      // From the crown to the hairline, on the form.
+      for (let q = 0; q <= 4; q++) path.push(onHead(form, k, a0, lerp(0.97, along(o.from, a0), q / 4), lift));
+      const yH = path[path.length - 1][1], steps = yEnd < yH - 1e-4 ? Math.max(2, Math.ceil((yH - yEnd) / (0.04 * m.k))) : 0;
+      for (let q = 1; q <= steps; q++) {
+        const y = lerp(yH, yEnd, q / steps), a = aAt(y), on = onHead(form, k, a, unit(Math.max(y, yBrow)), lift);
+        // Above the brow, on the head's form; below it, a plane in front of the face (and of the trunk where it is, past the chin).
+        path.push(y >= yBrow ? onHead(form, k, a, unit(y), lift) : [on[0], y, Math.max(on[2], zFace, front(on[0], y), front(on[0], y + 0.5 * (yH - yEnd) / steps))]);
+      }
+      const { mesh, lit } = sweep(spline(path, 24), { tip: 'round', ...rope }, hw, p => normalize(sub(p, k.c)));
+      // Rigid on the head to the chin; past it, skinned by height from the head's to the chest's, as `Fall.rest: 'trunk'`.
+      if (length <= 2) rigid(mesh, 'hair', seam++, lit);
+      else {
+        const ys = mesh.positions.filter((_, n) => n % 3 === 1);
+        hung(mesh, ys.map((_, n) => n), 'hair', n => { const u = smooth((chin - ys[n]) / (chin - shoulder)); return [[J.head, 1 - u], [J.chest, u]]; }, seam++, lit);
+      }
     }
   }
   /**
