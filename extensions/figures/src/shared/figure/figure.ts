@@ -644,7 +644,8 @@ export class Figure {
       this.depth.fill(-Infinity)
       this.depth.set(hit.depth, o / 4)
       if (hit.weave && this.built.cloth) {
-        const wv = (this.weaveBuf ??= newWeave(this.cell[0] * this.cell[1])),
+        this.weaveBuf ??= newWeave(this.cell[0] * this.cell[1])
+        const wv = this.weaveBuf,
           t = o / 4
         wv.ground.fill(0)
         wv.labels.fill(0)

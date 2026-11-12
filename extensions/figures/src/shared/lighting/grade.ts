@@ -26,9 +26,15 @@ export function grade(rgb: number, tint: number, amt: number, haze = 0, fog = 0)
   if (!amt && !fog) return rgb
   // Keyed by numbers (tint, then haze, then the colour with its quantised amounts): this runs per texel per frame.
   let byTint = tinted.get(tint)
-  if (!byTint) tinted.set(tint, (byTint = new Map()))
+  if (!byTint) {
+    byTint = new Map()
+    tinted.set(tint, byTint)
+  }
   let byHaze = byTint.get(haze)
-  if (!byHaze) byTint.set(haze, (byHaze = new Map()))
+  if (!byHaze) {
+    byHaze = new Map()
+    byTint.set(haze, byHaze)
+  }
   const key = rgb * 1024 + Math.round(amt * 16) * 32 + Math.round(fog * 16)
   let hit = byHaze.get(key)
   if (hit !== undefined) return hit

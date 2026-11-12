@@ -89,7 +89,8 @@ export class StageView {
     }
     const proj = cam.computeProjection(w / h, new Matrix4()).elements
     frame.sprites.forEach((s, i) => {
-      const quad = (this.pool[i] ??= this.grow()),
+      this.pool[i] ??= this.grow()
+      const quad = this.pool[i],
         sprite = quad.sprite
       quad.show(s.cell)
       quad.showDepths(texelDepths(pose, s), pose.f !== undefined, proj[10], proj[14], (i + 1) * TIE_BIAS)

@@ -1196,7 +1196,10 @@ function budget(
     if (col[k] >= 0 && !kept[k]) {
       const m = mat(k)
       let s = on.get(m)
-      if (!s) on.set(m, (s = new Set()))
+      if (!s) {
+        s = new Set()
+        on.set(m, s)
+      }
       s.add(col[k])
     }
   const pairs: [number, number, number][] = []
@@ -1245,10 +1248,16 @@ function budget(
         const m = mat(k),
           c = root(col[k])
         let t = by.get(m)
-        if (!t) by.set(m, (t = new Map()))
+        if (!t) {
+          t = new Map()
+          by.set(m, t)
+        }
         t.set(c, (t.get(c) ?? 0) + 1)
         let s = mats.get(c)
-        if (!s) mats.set(c, (s = new Set()))
+        if (!s) {
+          s = new Set()
+          mats.set(c, s)
+        }
         s.add(m)
       }
     /** Of one family: both near-grey, or of hues within 12° and like chroma (a pocket facing may be the jeans' shadow,
@@ -1538,15 +1547,13 @@ function tint(ramp: number[]) {
     const [, A, B] = oklab(ramp[3]),
       c = Math.hypot(A, B) || 1,
       dark = coolRamp(ramp) ? DARK_COOL : DARK_NEUTRAL
-    tints.set(
-      key,
-      (t = [
-        duelLab(0.34, (A / c) * 0.055, (B / c) * 0.055),
-        dark,
-        duelLab(0.45, (A / c) * 0.07, (B / c) * 0.07),
-        dark,
-      ]),
-    )
+    t = [
+      duelLab(0.34, (A / c) * 0.055, (B / c) * 0.055),
+      dark,
+      duelLab(0.45, (A / c) * 0.07, (B / c) * 0.07),
+      dark,
+    ]
+    tints.set(key, t)
   }
   return t
 }
@@ -1899,7 +1906,10 @@ export function paint(
       if (modelled(k)) {
         const key = surfaceOf(k)
         let a = by.get(key)
-        if (!a) by.set(key, (a = []))
+        if (!a) {
+          a = []
+          by.set(key, a)
+        }
         a.push(lit[k])
       }
     for (const [key, fs] of by) {
@@ -1931,7 +1941,10 @@ export function paint(
     for (let k = 0; k < n; k++)
       if (modelled(k)) {
         let a = by.get(part[k])
-        if (!a) by.set(part[k], (a = []))
+        if (!a) {
+          a = []
+          by.set(part[k], a)
+        }
         a.push(k)
       }
     for (const [p, ks] of by) {
@@ -2071,7 +2084,10 @@ export function paint(
       if (material[k] >= 0 && part[k] >= 0 && hard[material[k]]) {
         const key = surfaceOf(k)
         let a = bySurface.get(key)
-        if (!a) bySurface.set(key, (a = []))
+        if (!a) {
+          a = []
+          bySurface.set(key, a)
+        }
         a.push(k)
       }
     for (const [key, ks] of bySurface) {
@@ -2700,7 +2716,10 @@ export function paint(
       if (mi < 0 || !materials[mi].holo || tone[k] < 0 || tone[k] >= OUTLINE) continue
       const key = part[k] >= 0 ? part[k] * 4096 + mi : -1 - mi
       let a = by.get(key)
-      if (!a) by.set(key, (a = []))
+      if (!a) {
+        a = []
+        by.set(key, a)
+      }
       a.push(k)
     }
     const phase = (k: number) => lit[k] + 0.6 * sm[k * 3] - 0.3 * sm[k * 3 + 1]

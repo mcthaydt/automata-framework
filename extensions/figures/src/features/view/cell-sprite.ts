@@ -100,12 +100,14 @@ export class CellSprite {
   }
 
   private makeMaterial(base: Texture, depth: Texture): CellMaterial {
-    return (this.material = new CellMaterial({
+    const material = new CellMaterial({
       baseColorTexture: base,
       alphaMode: 'mask',
       extraBits: [cellDepthBit],
       textures: { cellDepth: depth },
-    }))
+    })
+    this.material = material
+    return material
   }
 
   /** Shows `cell`: uploads its texels when they may have changed. The texture reads the cell's own buffer when the
