@@ -1696,6 +1696,9 @@ importers:
       '@automata/interact':
         specifier: workspace:*
         version: link:../../extensions/interact
+      '@automata/lcd-panel':
+        specifier: workspace:*
+        version: link:../../extensions/lcd-panel
       '@automata/narrative':
         specifier: workspace:*
         version: link:../../extensions/narrative
@@ -1705,6 +1708,9 @@ importers:
       '@automata/puzzle':
         specifier: workspace:*
         version: link:../../extensions/puzzle
+      '@automata/retro-crisp':
+        specifier: workspace:*
+        version: link:../../extensions/retro-crisp
       '@automata/sectors':
         specifier: workspace:*
         version: link:../../extensions/sectors

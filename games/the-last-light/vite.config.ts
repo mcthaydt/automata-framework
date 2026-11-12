@@ -19,6 +19,7 @@ import { carriedLightContent, peekContent } from '@automata/systems/sim'
 import { creditsContent } from '@automata/ui-screens/content'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
+import { lookProfilesContent } from './src/app/look-profiles.content.ts'
 import { lightsOutContent } from './src/features/lamp/lights-out.content.ts'
 
 // Each build holds one target's host adapter (`vite build --mode <target>`), picked through the package condition;
@@ -58,6 +59,8 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
       creditsContent,
       // The lamps' levels once the lights have gone: the picture's, not the sim's.
       lightsOutContent,
+      // The picture's two passes: the retro grade and the LCD panel, the old game's numbers.
+      lookProfilesContent,
       // The game's own swatches, beside the world kit's: the clinic's plaster.
       worldSwatchContent,
     ],

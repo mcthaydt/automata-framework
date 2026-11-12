@@ -1,0 +1,6 @@
+# The picture's two passes: the old game's retro grade and LCD panel. Their numbers are the old game's, which are the defaults, so
+# there is nothing to set here; add a key under [retro] or [lcd] to change one (the extensions' READMEs list them; a setting out of
+# range is refused when the game builds). No editor opens this file yet (the editor gaps ledger, row 18).
+[retro]
+
+[lcd]

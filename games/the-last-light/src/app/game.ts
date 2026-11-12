@@ -24,6 +24,8 @@ import { audio, SOUND_FILES } from './audio.ts'
 import { playOf } from './content.ts'
 import { BAR_FRACTION, fieldOfWindow } from './field.ts'
 import { lookOf } from './look.ts'
+import { lookPassesOf, RENDERER_SCALE } from './look-passes.ts'
+import { lookProfilesSchema } from './look-profiles.content.ts'
 import { playControls, playHud } from './play.extension.ts'
 import { createRuntime, navigation } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
@@ -32,6 +34,10 @@ import { cameraTurnUnits, moveFromStick } from './touch-controls.ts'
 import { lineOf, SCRIPTS, wordsOf } from './words.ts'
 
 const PLAY = playOf(content)
+
+// The old game's retro grade and LCD panel, added once before the renderer is made; both are on in play and in every cutscene. The
+// film holds still for a player whose system asks for less motion (the retro pass reads that each frame).
+lookPassesOf(lookProfilesSchema.parse(content.look ?? {}))
 const RUNTIME = createRuntime(PLAY, {
   words: wordsOf,
   lines: lineOf,
@@ -105,6 +111,8 @@ export const game = defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
+      // Whole pixels, as the old game drew the picture.
+      ...RENDERER_SCALE,
       barFraction: BAR_FRACTION,
       look: LOOK,
       time: TIME,
