@@ -28,11 +28,115 @@ const OLD_UNIFORM = [
   { cap: 'capWhite', style: 'nurse', mark: 'cross' },
 ]
 
+/** The old `ada.json`'s sliders, as written. Some mean something else in the painter now (`genes.ts` changed its ranges), so the figure keeps
+ *  the old numbers except where `RETUNED_ADA` says, each chosen by what the figure looks like against the old game's own pictures. */
+const OLD_ADA_SLIDERS = {
+  frame: 0.85,
+  height: 162,
+  muscle: 0.5,
+  fat: 0.2,
+  shoulders: 0.47,
+  hips: 0.37,
+  legs: 0.3,
+  arms: 0.15,
+  head: 0.87,
+  neck: 0.5,
+  neckLength: 0.2,
+  hands: 0.5,
+  feet: 0.6,
+  posture: 0.85,
+  age: 0.25,
+  headTilt: 0,
+  chunk: 0.6,
+}
+
+/** Where Ada's sliders depart from the old file (round 1 of the figures' look): the old body is leaner on the page than the same numbers
+ *  draw now, because the painter's `chunk` and clothing grew. */
+const RETUNED_ADA = { fat: 0.05, hips: 0.2, legs: 0.6, chunk: 0.2, muscle: 0.3, shoulders: 0.55 }
+
+/** The old `brisk` gait whole (`library/gaits.json` at 92e6704): the builder's own `brisk` is a tamer walk (lean 0.04, hipYaw 0.1, crouch 0.008). */
+const OLD_BRISK = {
+  cycle: 0.5,
+  speed: 3,
+  stride: 0.62,
+  duty: 0.55,
+  lift: 0.09,
+  bob: 0.03,
+  crouch: 0.04,
+  sway: 0.02,
+  hipYaw: 0.18,
+  hipRoll: 0.05,
+  chestCounter: 0.6,
+  lean: 0.12,
+  armSwing: 0.4,
+  armOut: 0.13,
+  elbow: 0.25,
+  elbowSwing: 0.5,
+  armLag: 0,
+  headLevel: 0,
+  headStabilize: 0.8,
+  drag: 0,
+  track: 0.7,
+  twitch: 0,
+  twitchEvery: 3,
+  idlePoses: 8,
+  stance: 0.04,
+  stanceLead: 0.08,
+  hang: 0.12,
+  idleElbow: 0.45,
+}
+
+/** The old `uncanny` gait whole: the nurse's slow, dragging, head-leading walk and her arms' stiffness. */
+const OLD_UNCANNY = {
+  cycle: 0.8,
+  speed: 1.05,
+  stride: 0.5,
+  duty: 0.62,
+  lift: 0.04,
+  bob: 0.028,
+  crouch: 0.015,
+  sway: 0.03,
+  hipYaw: 0.05,
+  hipRoll: 0.04,
+  chestCounter: 0.15,
+  lean: 0,
+  armSwing: 0.04,
+  armOut: 0.2,
+  elbow: 0.04,
+  elbowSwing: 0,
+  armLag: 0.3,
+  headLevel: 1,
+  headStabilize: 1,
+  drag: 0.6,
+  track: 0.45,
+  poseRate: 8,
+  walkPoses: 6,
+  turnRate: 0.39269908169872414,
+  headLead: 1.8849555921538759,
+  twitch: 0.38,
+  twitchEvery: 3,
+  breath: 0,
+  breathPeriod: 6,
+  shift: 0,
+  shiftPeriod: 7,
+  reach: 2.4,
+  idleLoop: 6,
+  idlePoses: 12,
+  shuffle: false,
+  stance: 0,
+  stanceLead: 0,
+  hang: -0.04,
+  idleElbow: 0,
+}
+
 /** What `HELD` replaces in an old outfit, by item, so the comparison names each difference. */
 const asDrawn = (old: readonly Record<string, unknown>[]) =>
   old.map((item) => {
     if (item.style === 'bob') return { ...item, style: 'smoothBob' }
     if (item.style === 'curtain') return { ...item, style: 'fallLong' }
+    // The kit's `trousers` is a cloth shell grown over the whole leg; the old trousers were paint on the body's own leg. `jeans` is the kit's
+    // closer cut (one clearance, a straighter knee) until the trouser generator is fitted (round 2).
+    if ('trousers' in item) return { jeans: item.trousers }
     if ('folds' in item) {
       const { folds: _folds, ...rest } = item
       return rest
@@ -47,13 +151,24 @@ describe('Ada', () => {
     expect(ADA.default).toBe('street')
     expect(ADA.skin).toBe('fair')
     expect(ADA.gait).toBe('brisk')
+  })
+
+  it('keeps the old sliders but for the ones retuned by what the figure looks like', () => {
+    expect(ADA.sliders).toEqual({ ...OLD_ADA_SLIDERS, ...RETUNED_ADA })
+  })
+
+  it('walks the old brisk walk whole, with the old file’s own overrides on it, not the builder’s tamer `brisk`', () => {
+    expect(ADA.gait).toBe('brisk')
+    // The old `standOut` did not exist: her arms hung at `armOut` standing too, so it is that number.
     expect(ADA.gaitOverrides).toEqual({
+      ...OLD_BRISK,
       armOut: 0.11,
       idleElbow: 0.15,
       hang: 0.04,
       stance: 0,
       stanceLead: 0,
       shift: 0,
+      standOut: 0.11,
     })
   })
 
@@ -77,6 +192,11 @@ describe('the night nurse', () => {
 
   it('wears the old `uniform` piece for piece: a worn white top and skirt, dark stockings, a belt, a nurse’s cap with its cross', () => {
     expect(NIGHT_NURSE.outfits.uniform).toEqual(asDrawn(OLD_UNIFORM))
+  })
+
+  it('walks the old uncanny gait whole (slow, dragging, the head leading), her arms kept close as the builder’s `loose` hangs them', () => {
+    expect(NIGHT_NURSE.gait).toBe('loose')
+    expect(NIGHT_NURSE.gaitOverrides).toEqual({ ...OLD_UNCANNY, armOut: 0.09, standOut: 0, standElbow: 0.04 })
   })
 
   it('has the old swatches of every cloth she wears, by their old names', () => {
@@ -123,7 +243,7 @@ describe('what the old figures do that the painter cannot yet', () => {
     expect(HELD.map((piece) => piece.old)).toEqual([
       'the nurse’s curtain hair over her face',
       'the folds of the nurse’s skirt',
-      'the nurse’s uncanny gait',
+      'the nurse’s stoop',
       'Ada’s own bob (the old `bob` style)',
     ])
     for (const piece of HELD) {

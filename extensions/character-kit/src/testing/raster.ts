@@ -196,7 +196,7 @@ export function decodePng(png: Uint8Array): Raster {
       const pb = Math.abs(p - b)
       const pc = Math.abs(p - c)
       const paeth = pa <= pb && pa <= pc ? a : pb <= pc ? b : c
-      line[i] = (x + [0, a, b, (a + b) >> 1, paeth][filter]!) & 255
+      line[i] = (x + ([0, a, b, (a + b) >> 1, paeth][filter] ?? 0)) & 255
     }
     for (let i = 0; i < w; i++) {
       out.data.set(

@@ -9,8 +9,8 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **round 0 of 3 done** (look before touching). Round 1 data, round 2 painted garments as generators, round 3 the list for the
-painter (kept as it goes).
+Progress: **round 1 of 3 done** (about 40 %). Round 0 look before touching, round 1 data, round 2 painted garments as generators
+(next), and the list for the painter, kept as it goes.
 
 ## Round 0: as they are now
 
@@ -86,12 +86,77 @@ painter (kept as it goes).
    is clean and round where the old one is torn.
 6. **The top is a box** (shoulder 19, waist 19): it does not taper to the waist and the belt reads as a seam.
 
+## Round 1: data (sliders, gait, an outfit item)
+
+Merged `origin/claude/last-light-prologue` first (already up to date). One family changed: the cast data in
+`games/the-last-light/src/features/figures/` (`cast.ts`, the old gaits in `old-gaits.ts`) and its test.
+
+| Sheet | What it shows |
+| --- | --- |
+| [`round1-ada-variants-play.png`](round1-ada-variants-play.png) | Ada at play size, ×4, under the old game's two Adas: BEFORE (round 0), A, B (adopted), C, four views and four walk poses each. |
+| [`round1-ada-variants-detail.png`](round1-ada-variants-detail.png) | The same four at density 2. |
+| [`round1-ada-play.png`](round1-ada-play.png), [`-detail.png`](round1-ada-detail.png), [`-numbers.txt`](round1-ada-numbers.txt) | The adopted Ada alone, 8 views and the walk, and the numbers. |
+| [`round1-nurse-variants-play.png`](round1-nurse-variants-play.png), [`-detail`](round1-nurse-variants-detail.png), [`round1-nurse-play.png`](round1-nurse-play.png), [`-detail`](round1-nurse-detail.png), [`-numbers.txt`](round1-nurse-numbers.txt) | The same for the night nurse. |
+| [`round1-variants.ts`](round1-variants.ts) | The variants as data over the cast file, for `pnpm --filter @automata/character-kit variants`. |
+
+**Ada, four versions** (front view, texels):
+
+| | height | shoulder / waist / hip | hip / height |
+| --- | --- | --- | --- |
+| old procedural / old hand-painted | 59 / 61 | 14, 16, 18 / 17, 19, 20 | 0.305 / 0.328 |
+| BEFORE (round 0) | 64 | 18, 20, 24 | 0.375 |
+| A: the old brisk gait whole, and the kit's `jeans` for `trousers` | 64 | 18, 20, 22 | 0.344 |
+| **B (adopted): A and a leaner build** | 64 | 16, 18, 20 | 0.313 |
+| C: B at 152 cm | 59 | 16, 16, 20 | 0.339 |
+
+- A: the whole old `brisk` walk goes over the builder's (lean 0.12, hipYaw 0.18, crouch 0.04, lift 0.09, elbowSwing 0.5) and
+  `jeans` take the place of `trousers`. The jeans are the kit's one-clearance cut: the leg stops being a pipe of 16 and the boot
+  shaft shows under it. That is the one visible change.
+- B: Ada's sliders mapped by what she looks like, not the numbers: `chunk` 0.6 to 0.2, `fat` 0.2 to 0.05, `muscle` 0.5 to 0.3, `hips`
+  0.37 to 0.2, `legs` 0.3 to 0.6, `shoulders` 0.47 to 0.55 (the old numbers drew a thin figure, these draw a lean one now, and the new
+  `chunk` thickens the limbs by less). Her hips are 0.313 of her height against the old 0.305 and her shoulders 0.250 against 0.237.
+- C: the old Ada is 59 rows tall for 162 cm and ours 64. Nothing in the data says why (the head, the hair and the stand all differ).
+  At 152 cm she is 59 rows like the old one; it is her canon height changed on the page's account, so **it is the Owner's call**.
+- What data cannot do: the waistcoat is still a column from shoulder to belt (166 texels against 100), the cuff of the jeans
+  still falls over the boot's top, and the bob is still a helmet with a tail. These are round 2 (the garments) and the painter's.
+
+**The night nurse, four versions** (front view, texels):
+
+| | height | shoulder / waist / hip |
+| --- | --- | --- |
+| old procedural / old hand-painted | 71 / 75 | 18, 18, 22 / 20, 23, 26 |
+| BEFORE (round 0) | 80 | 19, 19, 22 |
+| **A (adopted): the old `uncanny` gait whole** (slow cycle 0.8, drag 0.6, the head leading, six poses a step, no shuffle), arms as close as before | 80 | 18, 20, 22 |
+| B: A and her head cocked further (`headTilt` 28, `headPitch` 0.4, `posture` 0.3) | 77 | 18, 20, 22 |
+| C: A at 200 cm | 76 | 18, 18, 22 |
+
+- A moves the walk (slower, the feet dragging, six poses), not the stand: standing she looks as she did.
+- B moves her a texel or two: the builder's stand holds a figure upright whatever the sliders say. The stoop of the old figure
+  (71 rows for 210 cm) needs a stand of its own, so it is in `HELD` and on the painter's list.
+- I did not take the old arm flare (`armOut` 0.2): it holds her arms out like a coat hanger on the new body (tried, and left
+  out of the adopted data).
+
+The test (`tests/unit/features/figures/cast.test.ts`) was widened first and watched failing: Ada's sliders are the old file's with
+the six retunes named, her gait is the old `brisk` whole, her outfit is the old one with `jeans` for `trousers`, the nurse's gait is
+the old `uncanny` whole, and `HELD` names her stoop where it named her gait.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
-Kept here as it grows. Round 0: the old `bob`, the nurse's `curtain`, skirt pleats, the `uncanny` gait and its stoop, the old Ada
-hand-held and cutscene poses. Each needs a hair piece, a gait entry or a pose in the painter, which this branch does not patch.
+Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the painter, which this branch does not patch.
+
+| Needs the painter | Why | What it would improve |
+| --- | --- | --- |
+| The old `bob` hair piece | `smoothBob` is a crown cap and ropes hung from the nape: a helmet with a tail | Ada's head: a fringe, volume at the ears, a turned-under hem (half the old hair's texels) |
+| The nurse's `curtain` | no piece hangs a panel across the face | the uncanny: her face hidden, not a blank mask under the cap |
+| A stooping stand | the stand holds a figure upright whatever the sliders (round 1, variant B) | her old shape: 71 rows for 210 cm, leaning down |
+| Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings | the torn, hanging hem |
+| A cap that sits as the old one: a flat band over the brow | the headwear table's cap is a bowl | the nurse's head |
+| A brisk, leaning stand and pose for Ada standing | the stand is the builder's relaxed one: feet together, arms at the sides | her first-night posture |
 
 ## Log
 
+- Round 1: the old `brisk` and `uncanny` gaits whole as overrides (`old-gaits.ts`), Ada's six retuned sliders and `jeans`, the cast test
+  widened first, `figure-variants.ts` and `round1-variants.ts`; sheets and numbers above. Merge of `origin/claude/last-light-prologue`:
+  already up to date.
 - Round 0: kit testing helpers `paintedStand`, `paintedWalk`, `rowWidths`, `silhouette` and a PNG/raster kit (`raster.ts`) with their
   unit tests (watched failing first); the sheet script; the round 0 sheets.

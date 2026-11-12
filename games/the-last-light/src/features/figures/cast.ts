@@ -1,10 +1,13 @@
 import type { CharacterDef } from '@automata/character-kit'
+import { OLD_BRISK, OLD_UNCANNY } from './old-gaits.ts'
 import { ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
 
 // The two painted figures of the night: Ada, and the figure that walks the ward. Each is the old game's character file
-// (`src/render/figure/characters/ada.json` and `nurse.json` at 92e6704) dressed piece for piece: the same sliders, gait, hair
-// physics, outfit and swatches, drawn by the character kit's painted wardrobe (a waistcoat, stockings, a belt, a cap and boots are
-// its kinds). What the painter still cannot draw is in `HELD`, with what the figure shows instead; nothing else is left out.
+// (`src/render/figure/characters/ada.json` and `nurse.json` at 92e6704) dressed piece for piece: the same hair physics, outfit and
+// swatches, and the old gait whole, drawn by the character kit's painted wardrobe (a waistcoat, stockings, a belt, a cap and boots are
+// its kinds). Where a number of the old file means something else in the painter now it is retuned by what the figure looks like against
+// the old game's own pictures (the lines marked `retuned`). What the painter still cannot draw is in `HELD`, with what the figure shows
+// instead; nothing else is left out.
 
 /** How a figure is painted in play: the old game's. Density 1 is about 37 texels a metre (the camera gives 52 lines a metre, so a
  *  texel is 1.4 screen pixels), and `crisp: false` draws it at its true height. A close-up density is for a cutscene key that asks. */
@@ -21,11 +24,11 @@ export const ADA: CharacterDef = {
   sliders: {
     frame: 0.85,
     height: 162,
-    muscle: 0.5,
-    fat: 0.2,
-    shoulders: 0.47,
-    hips: 0.37,
-    legs: 0.3,
+    muscle: 0.3, // retuned: the old 0.5
+    fat: 0.05, // retuned: the old 0.2
+    shoulders: 0.55, // retuned: the old 0.47
+    hips: 0.2, // retuned: the old 0.37
+    legs: 0.6, // retuned: the old 0.3
     arms: 0.15,
     head: 0.87,
     neck: 0.5,
@@ -35,11 +38,21 @@ export const ADA: CharacterDef = {
     posture: 0.85,
     age: 0.25,
     headTilt: 0,
-    chunk: 0.6,
+    chunk: 0.2, // retuned: the old 0.6
   },
   skin: 'fair',
   gait: 'brisk',
-  gaitOverrides: { armOut: 0.11, idleElbow: 0.15, hang: 0.04, stance: 0, stanceLead: 0, shift: 0 },
+  // The old brisk walk whole with the old file's own six numbers on it. `standOut` did not exist then: the arms hung at `armOut` standing too.
+  gaitOverrides: {
+    ...OLD_BRISK,
+    armOut: 0.11,
+    idleElbow: 0.15,
+    hang: 0.04,
+    stance: 0,
+    stanceLead: 0,
+    shift: 0,
+    standOut: 0.11,
+  },
   hand: 'R',
   face: { camera: 0.6, turn: 0.15, blink: 3.7, drawn: true },
   hair: { stiff: 70, damp: 9, trail: 0.3, bounce: 0.08 },
@@ -49,7 +62,8 @@ export const ADA: CharacterDef = {
     street: [
       { top: 'cream', sleeves: 'short' },
       { waistcoat: 'maroon' },
-      { trousers: 'denim' },
+      // The kit's closer cut: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it (round 2 fits it).
+      { jeans: 'denim' },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true },
       { hair: 'auburn', style: 'smoothBob' },
       { eyes: 'eyeDark' },
@@ -88,7 +102,8 @@ export const NIGHT_NURSE: CharacterDef = {
   genes: { headPitch: 0.2 },
   skin: 'pale',
   gait: 'loose',
-  gaitOverrides: { armOut: 0.09 },
+  // The old uncanny walk whole, her arms kept as close as the builder's `loose` hangs them (the old flared arms, 0.2, read as a coat hanger).
+  gaitOverrides: { ...OLD_UNCANNY, armOut: 0.09, standOut: 0, standElbow: 0.04 },
   hand: 'R',
   face: { camera: 0, turn: 0, blink: 0 },
   hair: { stiff: 14, damp: 2.6, trail: 0.55, bounce: 0.02, sway: 2.2, hang: 0.8 },
@@ -127,9 +142,10 @@ export const HELD: readonly Held[] = [
     instead: 'a smooth skirt with the stained hem',
   },
   {
-    old: 'the nurse’s uncanny gait',
-    why: 'the builder’s gaits are brisk, strut, loose, bounce and still, and its gait library takes no new entry',
-    instead: 'the loose gait with the old arm override',
+    old: 'the nurse’s stoop',
+    why: 'the old figure stood bent forward with her head cocked down; the builder’s stand holds a figure upright whatever its gait and sliders (`headTilt`, `posture`, `hunch` move her head and shoulders by a texel or two), so it needs a stand of its own',
+    instead:
+      'the old uncanny gait (a data override of the builder’s `loose`) on an upright figure with her head cocked 15 degrees',
   },
   {
     old: 'Ada’s own bob (the old `bob` style)',

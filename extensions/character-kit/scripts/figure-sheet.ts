@@ -33,13 +33,12 @@ import {
 /** The floor the figures stand on: a mid-dark of the hall's, the same under ours and under the old game's. */
 const FLOOR = [52, 56, 58, 255] as const
 const INK = [225, 225, 215, 255] as const
-const DIM = [150, 155, 150, 255] as const
 /** The sheet's own colour in the old game's review sheets: a texel of it is no figure. */
 const OLD_BG = [31, 42, 38] as const
 
-const NAMES = ['FRONT', '3/4 LEFT', 'LEFT', 'BACK LEFT', 'BACK', 'BACK RIGHT', 'RIGHT', '3/4 RIGHT']
+export const NAMES = ['FRONT', '3/4 LEFT', 'LEFT', 'BACK LEFT', 'BACK', 'BACK RIGHT', 'RIGHT', '3/4 RIGHT']
 
-interface Subject {
+export interface Subject {
   readonly id: 'ada' | 'nurse'
   readonly def: CharacterDef
   /** The old game's review sheet and where the procedural figure's flat row, and the approved atlas's, are in it (rows of 74 or 98 texels). */
@@ -52,7 +51,7 @@ interface Subject {
   /** The swatches whose texels the numbers file counts: the garments and the hair. */
   readonly swatches: readonly string[]
 }
-const SUBJECTS: Subject[] = [
+export const SUBJECTS: Subject[] = [
   {
     id: 'ada',
     def: ADA,
@@ -67,10 +66,17 @@ const SUBJECTS: Subject[] = [
   },
 ]
 
-const asRaster = (c: PaintedCell): Raster => ({ w: c.size[0], h: c.size[1], data: c.painted })
+/** The `i`th of `list`, which a sheet's loops know is there. */
+export function at<T>(list: readonly T[], i: number): T {
+  const item = list[i]
+  if (item === undefined) throw new Error(`no item ${i} of ${list.length}`)
+  return item
+}
+
+export const asRaster = (c: PaintedCell): Raster => ({ w: c.size[0], h: c.size[1], data: c.painted })
 
 /** A panel: the cell on the floor, `scale` pixels a texel, its caption above. Cells of one row share a height, so feet line up. */
-function panel(cell: Raster, scale: number, caption: string, width = cell.w): Raster {
+export function panel(cell: Raster, scale: number, caption: string, width = cell.w): Raster {
   const pad = 2 * scale
   const out = newRaster(width * scale + 2 * pad, cell.h * scale + textHeight(2) + 3 * pad)
   fill(out, 0, 0, out.w, out.h, [30, 33, 35, 255])
@@ -81,7 +87,7 @@ function panel(cell: Raster, scale: number, caption: string, width = cell.w): Ra
 }
 
 /** Panels in a row, with a heading on the left. */
-function row(heading: string, panels: Raster[]): Raster {
+export function row(heading: string, panels: Raster[]): Raster {
   const head = textHeight(3) + 8
   const out = newRaster(
     Math.max(...[panels.reduce((w, p) => w + p.w, 0), textWidth(heading, 3) + 16]),
@@ -97,7 +103,7 @@ function row(heading: string, panels: Raster[]): Raster {
   return out
 }
 
-function stack(rows: Raster[]): Raster {
+export function stack(rows: Raster[]): Raster {
   const out = newRaster(
     Math.max(...rows.map((r) => r.w)),
     rows.reduce((h, r) => h + r.h, 0),
@@ -112,7 +118,7 @@ function stack(rows: Raster[]): Raster {
 }
 
 /** The old game's cell `col` of `row` from its review sheet (a 2-texel gap between cells), its sheet colour made transparent. */
-function oldCell(sheet: Raster, cell: readonly [number, number], row: number, col: number): Raster {
+export function oldCell(sheet: Raster, cell: readonly [number, number], row: number, col: number): Raster {
   const [w, h] = cell
   const c = crop(sheet, 2 + col * (w + 2), 2 + row * (h + 2), w, h)
   for (let i = 0; i < c.data.length; i += 4)
@@ -141,7 +147,7 @@ function numbers(name: string, def: CharacterDef, cell: PaintedCell, swatches: r
 }
 
 /** One line of numbers for a figure: its height and its widths in texels. */
-const measure = (s: Silhouette): string =>
+export const measure = (s: Silhouette): string =>
   `H ${s.height}  SHOULDER ${s.shoulder}  WAIST ${s.waist}  HIP ${s.hip}`
 
 export function sheets(subject: Subject, oldRoot: string | undefined, out: string, round: string): void {
@@ -161,7 +167,7 @@ export function sheets(subject: Subject, oldRoot: string | undefined, out: strin
 
   const playStand = paintedStand(subject.def, 1)
   const playWalk = paintedWalk(subject.def, 1)
-  const front = silhouette(playStand[0]!)
+  const front = silhouette(at(playStand, 0))
   const rows = [
     row(
       `OURS - DENSITY 1, X4 - ${measure(front)}`,
@@ -190,7 +196,7 @@ export function sheets(subject: Subject, oldRoot: string | undefined, out: strin
   writeFileSync(join(out, `${round}-${subject.id}-play.png`), encodePng(stack(rows)))
 
   // The numbers the README quotes, measured from the pictures and never typed.
-  const lines = numbers('ours, density 1, front', subject.def, playStand[0]!, subject.swatches)
+  const lines = numbers('ours, density 1, front', subject.def, at(playStand, 0), subject.swatches)
   if (oldRoot !== undefined) {
     const sheet = decodePng(readFileSync(join(oldRoot, subject.old.file)))
     const asCell = (r: number): PaintedCell => {
