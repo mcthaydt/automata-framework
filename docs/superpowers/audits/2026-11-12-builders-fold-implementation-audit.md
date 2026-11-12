@@ -244,3 +244,27 @@ its gate was red (B1); the 4d wording.
   destructured by each reader; the chain in `paint.ts` spreads about 70 names per call. Workstream 4's step texts in
   `docs/archive/figure-painter/c9-wardrobe/` use the builder's old paths (`src/features/hair/hair.ts` and so on).
 - **Any painter change that moves a kit golden** needs S1 first.
+
+## Fixes
+
+**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 1 of 16 findings answered (6%)**; the
+table is updated as each fix commits. The commit column holds the short hash once the fix is committed.
+
+| Finding | Commit | What changed | How it is proved, or why it is left |
+| --- | --- | --- | --- |
+| B1 | | | |
+| S1 | this commit | `scripts/showcase-imports.ts` names the painter file for each of the showcase's three imports (`src/entries/index.ts`, `src/shared/body/parts.ts`, `src/shared/math/math.ts`) and throws, naming it, on a fourth; `record-runway-cells.ts` uses it. `runway-cells.json` not touched | `tests/unit/fashion/runway-recorder.test.ts` (3 cases: the three showcase lines rewritten and `existsSync` on every file named; an unknown specifier throws). It failed first (module missing). The recorder itself needs the archived clone and has no check mode, so it was not run |
+| S2 | | | |
+| S3 | | | |
+| S4 | | | |
+| S5 | | | |
+| N1 | | | |
+| N2 | | | |
+| N3 | | | |
+| N4 | | | |
+| N5 | | | |
+| N6 | | | |
+| N7 | | | |
+| N8 | | | |
+| N9 | | | |
+| N10 | | | |
