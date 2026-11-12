@@ -51,6 +51,7 @@ export {
   type View,
   viewOf,
   type Wearing,
+  walking,
   zoomOf,
 } from 'figure-builder'
 // The painter's toolkit: what a garment kind of the kit's own is built from (H1).

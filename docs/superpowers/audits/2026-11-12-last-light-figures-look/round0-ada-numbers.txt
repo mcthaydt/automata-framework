@@ -1,0 +1,21 @@
+ours, density 1, front: H 64  SHOULDER 18  WAIST 20  HIP 24  (hip/height 0.375, shoulder/height 0.281)
+  maroon        texels  193  rows 0.20-0.47  widest 14
+  cream         texels   43  rows 0.23-0.39  widest 18
+  denim         texels  397  rows 0.00-0.92  widest 16
+  bootBrown     texels  110  rows 0.08-0.97  widest 19
+  auburn        texels   46  rows 0.02-0.97  widest 10
+  fair          texels  107  rows 0.08-0.95  widest 22
+old procedural, front: H 59  SHOULDER 14  WAIST 16  HIP 18  (hip/height 0.305, shoulder/height 0.237)
+  maroon        texels  100  rows 0.25-0.46  widest 10
+  cream         texels   62  rows 0.24-0.41  widest 14
+  denim         texels  199  rows 0.47-0.81  widest 11
+  bootBrown     texels   70  rows 0.83-0.97  widest 8
+  auburn        texels   88  rows 0.02-0.97  widest 12
+  fair          texels  138  rows 0.14-0.95  widest 16
+old hand-painted atlas, front: H 61  SHOULDER 17  WAIST 19  HIP 20  (hip/height 0.328, shoulder/height 0.279)
+  maroon        texels   92  rows 0.23-0.43  widest 10
+  cream         texels   63  rows 0.23-0.38  widest 18
+  denim         texels  184  rows 0.43-0.80  widest 13
+  bootBrown     texels   55  rows 0.74-0.97  widest 7
+  auburn        texels   89  rows 0.02-0.97  widest 13
+  fair          texels   90  rows 0.13-0.95  widest 18

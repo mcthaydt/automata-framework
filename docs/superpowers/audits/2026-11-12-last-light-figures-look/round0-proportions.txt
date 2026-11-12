@@ -1,0 +1,68 @@
+Ada Voss
+                         ours d1           ours d2           old procedural    old atlas         
+height (rows)            65                127               59                61                
+head rows, hair on       12                22                13                17                
+head rows, skull         9                 17                -                 -                 
+heads tall, hair on      5.42              5.77              4.54              3.59              
+heads tall, skull        6.89              7.18              -                 -                 
+neck rows (skin)         3                 6                 3                 0                 
+trunk rows               16                32                14                14                
+leg rows                 34                67                29                30                
+head width               9                 16                8                 7                 
+shoulder / waist / hip   17 / 17 / 21      32 / 32 / 38      16 / 16 / 18      20 / 19 / 20      
+shoulder in head widths  1.89              2.00              2.00              2.86              
+hip / shoulder           1.24              1.19              1.13              1.00              
+legs part at (picture)   42%               44%               -                 -                 
+hip joint (rig)          53%               53%               -                 -                 
+knee (rig)               29%               29%               -                 -                 
+elbow (rig)              61%               61%               -                 -                 
+wrist (rig)              47%               47%               -                 -                 
+fingertip (rig)          36%               36%               -                 -                 
+foot length (texels)     12                23                11                11                
+foot length, in heads    1.33              1.35              0.85              0.65              
+
+the Night Nurse
+                         ours d1           ours d2           old procedural    old atlas         
+height (rows)            78                155               71                75                
+head rows, hair on       11                21                0                 0                 
+head rows, skull         10                19                -                 -                 
+heads tall, hair on      7.09              7.38              -                 -                 
+heads tall, skull        7.70              8.05              -                 -                 
+neck rows (skin)         4                 6                 0                 0                 
+trunk rows               20                43                25                26                
+leg rows                 43                85                35                37                
+head width               9                 17                0                 0                 
+shoulder / waist / hip   18 / 18 / 22      36 / 34 / 40      18 / 18 / 22      21 / 21 / 26      
+shoulder in head widths  2.00              2.12              -                 -                 
+hip / shoulder           1.22              1.11              1.22              1.24              
+legs part at (picture)   -                 34%               -                 -                 
+hip joint (rig)          55%               55%               -                 -                 
+knee (rig)               30%               30%               -                 -                 
+elbow (rig)              55%               55%               -                 -                 
+wrist (rig)              36%               36%               -                 -                 
+fingertip (rig)          25%               25%               -                 -                 
+foot length (texels)     14                25                14                13                
+foot length, in heads    1.40              1.32              -                 -                 
+
+The builder’s base pair (a bare reference, not the target)
+                         base m d1         base m d2         base f d1         base f d2         
+height (rows)            67                133               66                130               
+head rows, hair on       15                23                14                27                
+head rows, skull         15                22                10                20                
+heads tall, hair on      4.47              5.78              4.71              4.81              
+heads tall, skull        4.47              6.00              6.20              6.15              
+neck rows (skin)         0                 5                 3                 5                 
+trunk rows               18                37                15                32                
+leg rows                 34                68                34                66                
+head width               12                22                11                19                
+shoulder / waist / hip   22 / 21 / 23      43 / 41 / 45      19 / 19 / 21      34 / 34 / 40      
+shoulder in head widths  1.83              1.95              1.73              1.79              
+hip / shoulder           1.05              1.05              1.11              1.18              
+legs part at (picture)   12%               29%               15%               35%               
+hip joint (rig)          51%               51%               51%               51%               
+knee (rig)               28%               28%               28%               28%               
+elbow (rig)              56%               56%               57%               57%               
+wrist (rig)              39%               39%               41%               41%               
+fingertip (rig)          29%               29%               31%               31%               
+foot length (texels)     10                20                10                19                
+foot length, in heads    0.67              0.91              1.00              0.95              

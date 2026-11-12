@@ -152,7 +152,7 @@ interface Top {
   sleeveEase?: number
 }
 /** The torso's rings at and above the shoulder line (the builder's fit profiles: the trapezius, the shoulder, the deltoid's top). */
-const SHOULDER_RINGS = 4
+export const SHOULDER_RINGS = 4
 
 /**
  * A top's shell: the torso from the shoulders to `hem` (m above the floor), grown `ease` clearances below the shoulders and only
@@ -365,16 +365,45 @@ const vee = (c: Wearing, y: number) => {
   return ringOf(c.body.profiles.torso, 0).rx * 0.55 * Math.max(0, (y - bottom) / (topY - bottom))
 }
 
-/** An open front: a V of the inner cloth (the shirt) on the jacket's front, from the neck's root to under the chest. */
-function opening(c: Wearing, material: string, off: number): Part {
+/** How far a vest or jacket stands open on the cloth under it (`opening`): the options of the waistcoat that set it. */
+export interface Panel {
+  /** 0 the V of shirt the front always had, 1 a panel the whole way down to `hemY`; between, the one grows into the other. */
+  readonly open: number
+  /** The panel's half-width at the neck and at the hem, each as a share of the torso's own half-width at that height. */
+  readonly chest: number
+  readonly hem: number
+  /** The height (m above the floor) the garment's front ends at, where the panel stops. */
+  readonly hemY: number
+}
+
+/**
+ * An open front: a V of the inner cloth (the shirt) on the jacket's front, from the neck's root to under the chest. With a `panel`
+ * the V grows into a strip of the shirt of the character's own widths that runs on down to the garment's hem, and `open` 0 is the V.
+ */
+function opening(c: Wearing, material: string, off: number, panel?: Panel): Part {
   const [topY, bottom] = frontSpan(c)
+  const open = panel?.open ?? 0
+  if (panel === undefined || open <= 0)
+    return patch(
+      c,
+      material,
+      off + 0.35 * c.body.clear,
+      topY,
+      bottom,
+      (x, y, z) => z > 0 && Math.abs(x) < vee(c, y),
+    )
+  const lo = lerp(bottom, Math.min(bottom, panel.hemY), open)
+  const half = (y: number) => {
+    const down = Math.min(1, Math.max(0, (y - panel.hemY) / (topY - panel.hemY)))
+    return c.body.at('torso', 'L', y).rx * lerp(panel.hem, panel.chest, down)
+  }
   return patch(
     c,
     material,
     off + 0.35 * c.body.clear,
     topY,
-    bottom,
-    (x, y, z) => z > 0 && Math.abs(x) < vee(c, y),
+    lo,
+    (x, y, z) => z > 0 && Math.abs(x) < lerp(vee(c, y), half(y), open),
   )
 }
 
@@ -419,9 +448,12 @@ function collarBand(c: Wearing, material: string, off: number): Part[] {
 
 /**
  * Trouser legs: each leg grown `ease` clearances, straight from the knee down (`wide` widens them there), from the hip (or from
- * under a long tail) to the ankle; the seat and fly a shell of the torso from the belt down.
+ * under a long tail) to the ankle; the seat and fly a shell of the torso from the belt down. `taper` (0 a straight pipe, 1 the leg's
+ * own narrowing) draws the cloth in from the knee to the ankle, so a slim cut ends at a slim hem and not at the knee's width.
+ * `gap` (0 the cloth clears the leg by `ease` all round, 1 the inside of each leg's cloth lies on the leg and only its outside keeps
+ * the clearance) lets the floor show between two legs the cloth would otherwise join, from the crotch down to the knee and below.
  */
-function legsOf(c: Wearing, material: string, ease: number, wide: number): Fit {
+function legsOf(c: Wearing, material: string, ease: number, wide: number, taper = 0, gap = 0): Fit {
   const h = heights(c)
   const P = c.body.profiles
   const cl = c.body.clear
@@ -435,16 +467,32 @@ function legsOf(c: Wearing, material: string, ease: number, wide: number): Fit {
     ]),
   )
   const under = longTail(c)
-  for (const [side] of SIDES) {
+  for (const [side, out] of SIDES) {
     const L = P.leg[side]
     const kneeR = c.body.at('leg', side, h.knee + 0.1 * h.k)
-    const straight = (r: Ring): Partial<Ring> =>
-      r.y < h.knee + 0.1 * h.k
-        ? { rx: Math.max(r.rx, kneeR.rx * wide) + off, rz: Math.max(r.rz, kneeR.rz * wide) + off }
-        : {}
+    // How far down the shin a ring is, 0 at the knee and 1 at the ankle: the taper's own measure.
+    const down = (r: Ring) => Math.min(1, Math.max(0, (h.knee - r.y) / (h.knee - h.ankle)))
+    const straight = (r: Ring): Partial<Ring> => {
+      if (r.y >= h.knee + 0.1 * h.k) return {}
+      const draw = taper * down(r)
+      return {
+        rx: lerp(Math.max(r.rx, kneeR.rx * wide), r.rx, draw) + off,
+        rz: lerp(Math.max(r.rz, kneeR.rz * wide), r.rz, draw) + off,
+      }
+    }
+    // The clearance the inside of this leg's cloth gives up, building from nothing at the hip to all of `gap` by the knee: the ring
+    // narrows by half of it and moves out by the same half, so its outer edge stays where it was and its inner edge comes in.
+    const trim = (r: Ring): number =>
+      gap * off * smooth(Math.min(1, Math.max(0, (h.hipY - r.y) / (h.hipY - h.knee))))
+    const cut = (r: Ring): Partial<Ring> => {
+      const own = straight(r)
+      const take = trim(r)
+      if (take === 0) return own
+      return { ...own, rx: (own.rx ?? r.rx + off) - take / 2, dx: (r.dx ?? 0) + (out * take) / 2 }
+    }
     parts.push(
       shell(
-        grown(L, off, straight),
+        grown(L, off, cut),
         under ? h.knee + 0.03 * h.k : Infinity,
         h.ankle + 0.025 * h.k,
         material,

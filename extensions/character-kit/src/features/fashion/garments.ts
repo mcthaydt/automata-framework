@@ -52,6 +52,8 @@ export interface FashionSkirt {
   skirt: string
   length: number
   flare?: number
+  /** The clearance (in texels of cloth) the skirt stands off the body at the waist and the hips: 2 when left out, 0.5 for a skirt close to the body. */
+  ease?: number
   /** A swatch whose paint stains the hem, climbing `stainHeight` (a share of the figure's height) from it. */
   stain?: string
   stainHeight?: number
@@ -63,12 +65,20 @@ export interface Dress {
   sleeves?: 'none' | 'short' | 'long'
   flare?: number
 }
+/** Jeans: close-cut legs. `taper` (0 a straight pipe from the knee, 1 the leg's own narrowing to the ankle) is the hem's cut. */
 export interface Jeans {
   jeans: string
+  taper?: number
+  /** 0 … 1: how much of its clearance the inside of each leg's cloth gives up, so the floor shows between the legs below the knee. Default 0. */
+  gap?: number
 }
+/** Trousers: roomier legs, `wide` the width they hold from the knee down and `taper` as for jeans. */
 export interface Trousers {
   trousers: string
   wide?: number
+  taper?: number
+  /** As for jeans. */
+  gap?: number
 }
 /** Shoes: the body's own shoe on its sole, painted. */
 export interface Shoes {
@@ -76,6 +86,8 @@ export interface Shoes {
   sole?: string
   /** A boot: a shaft of the shoe's leather up the shin, over the trousers. */
   boots?: boolean
+  /** How far up the shin a boot's shaft rises, as a share of the shin's length up from the ankle (default 0.42; 0.2 is an ankle boot). */
+  shaft?: number
 }
 
 // The builder widens its `Garment` union by augmentation: a kind declared here is a garment an outfit may list.
@@ -207,7 +219,7 @@ export function registerGarments(): void {
       return {
         parts: [
           tail(c, cloth, h.waist - 0.02 * h.k, i.length, {
-            ease: 2,
+            ease: i.ease ?? 2,
             ...(i.flare === undefined ? {} : { flare: i.flare }),
           }),
         ],
@@ -233,11 +245,11 @@ export function registerGarments(): void {
   )
   registerGarment(
     'jeans',
-    kind<Jeans>((c, i) => legsOf(c, i.jeans, 1, 0.92)),
+    kind<Jeans>((c, i) => legsOf(c, i.jeans, 1, 0.92, i.taper, i.gap)),
   )
   registerGarment(
     'trousers',
-    kind<Trousers>((c, i) => legsOf(c, i.trousers, 1.5, i.wide ?? 1.05)),
+    kind<Trousers>((c, i) => legsOf(c, i.trousers, 1.5, i.wide ?? 1.05, i.taper, i.gap)),
   )
   registerGarment('shoes', {
     build: (_c, i: Shoes) => ({ parts: [], paint: { shoe: i.shoes, sole: i.sole ?? 'soleBlack' } }),
@@ -257,7 +269,7 @@ export function registerGarments(): void {
               : {}
           return shell(
             grown(c.body.profiles.leg[side], off, wide),
-            h.knee - 0.58 * c.s.shin,
+            h.knee - (i.shaft === undefined ? 0.58 : 1 - i.shaft) * c.s.shin,
             h.ankle + 0.015 * h.k,
             i.shoes,
             legGroup(side),

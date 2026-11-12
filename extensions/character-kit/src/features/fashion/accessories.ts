@@ -15,17 +15,38 @@ import {
   type GarmentKind,
   GROUP,
   J,
+  lerp,
   type Part,
+  type Ring,
   registerGarment,
+  smooth,
   superquadric,
   type Wearing,
 } from '../../shared/figure-builder/door.ts'
 import { HEADWEAR } from './headwear.ts'
-import { frontAt, grown, heights, opening, piece, shell, skins, top } from './shells.ts'
+import { frontAt, grown, heights, opening, piece, SHOULDER_RINGS, shell, skins } from './shells.ts'
 
-/** A vest: it covers the chest and waist; its front is open on the shirt under it. */
+/**
+ * A vest: it covers the chest and waist, its front open on the shirt under it. It is cut from the torso (the body's own rings grown by
+ * a little cloth) and each of its options is a way the cut follows the body:
+ */
 export interface Waistcoat {
   waistcoat: string
+  /** 0 a loose vest, 1 a fitted one: the cloth clears the body by the same at the chest, and by less and less toward the waist. Default 0 (loose, as it was drawn before the options). */
+  fit?: number
+  /** Where it ends, 0 at the waist (a short, cropped vest) to 1 at the hip (a long one). Left out, a hand over the belt, as it was drawn before this option. */
+  length?: number
+  /** 0 … 1: the vest narrows across the shoulder, so the shirt shows at the arm and it hangs from straps, not from the arm's cap. Default 0. */
+  armhole?: number
+  /** 0 … 1: how far the front stands open on the shirt. 0 a V of shirt that closes under the chest (as it was drawn before), 1 a strip of shirt from the collar to the hem between the two sides. Default 0. */
+  open?: number
+  /** With `open`: the strip's half-width at the neck and at the hem, each as a share of the torso's half-width there (about 0.3 and 0.2 a vest worn open). */
+  chest?: number
+  hem?: number
+  /** With `open`: how far down the vest, from the neck's root to the hem, the strip of shirt runs: 1 to the hem (the default), 0.4 a short V over the chest. */
+  vend?: number
+  /** 0 … 1: how far below the neck the vest starts, so the shirt's collar shows above it. Default 0. */
+  neckline?: number
 }
 /** Stockings, in one colour. */
 export interface Stockings {
@@ -43,8 +64,22 @@ export interface Cap {
   mark?: string
 }
 
+/**
+ * The eyes of a face that is not drawn (the decal face the play size uses), where the builder's `eyes` is one texel each, two apart: here
+ * they have a `size` (texels, 1 by 2 when left out: the old figures' are two tall) and sit `spread` of the head's half-width either side
+ * of the middle (0.6 left out: about four texels apart on a head nine wide) at `height` of the head's height up from the chin (0.45, the
+ * builder's own). The colour is `eyeMarks`, a swatch. A drawn face draws its own eyes and leaves these out.
+ */
+export interface EyeMarks {
+  eyeMarks: string
+  size?: [number, number]
+  spread?: number
+  height?: number
+}
+
 declare module 'figure-builder' {
   interface GarmentKinds {
+    eyeMarks: EyeMarks
     waistcoat: Waistcoat
     legs: Stockings
     belt: Belt
@@ -69,13 +104,66 @@ const kind = <T>(build: GarmentKind<T>['build'], more: Partial<GarmentKind<T>> =
 /** How far a belt stands off the body: past the roomiest cloth an outfit puts at the waist (a coat is 2.5 clearances). */
 const BELT_EASE = 3
 
+/** The clearance (in texels of cloth) a vest stands off the chest, and the least it keeps off the waist: a shirt under it is 0.8, so a fitted waist is just over it. */
+const VEST_CHEST = 1.6
+const VEST_WAIST = 0.9
+/** The most the neckline drops below the neck's root (a share of the figure's height): a few centimetres, two texels at the play size. */
+const VEST_NECKLINE = 0.05
+/** The shirt's strip, when the vest stands open and names no widths: the share of the torso's half-width at the neck and at the hem. */
+const PANEL_CHEST = 0.3
+const PANEL_HEM = 0.2
+/** How much of its half-width the vest gives up at the shoulder when it is all armhole, at the ring where the arm leaves the trunk. */
+const VEST_ARMHOLE = 0.3
+
+/**
+ * A waistcoat: the torso's rings from the neck to a hem the character sets, grown a vest's clearance. The clearance is the chest's
+ * down to the chest's underside, eases to the waist's at the waist, and is the chest's again at the hip, so a fitted vest follows the
+ * body in at the waist and out over the hip instead of hanging as a tube; the rings at the shoulder narrow by `armhole` so the
+ * shirt's sleeve shows at the arm.
+ */
 function waistcoat(c: Wearing, i: Waistcoat): Fit {
   const h = heights(c)
-  const ease = 1.6
-  const f = top(c, i.waistcoat, { sleeves: 'none', ease, sleeveEase: ease, hem: h.belt + 0.01 * h.k })
+  const cl = c.body.clear
+  const torso = c.body.profiles.torso
+  const fit = i.fit ?? 0
+  const hem = i.length === undefined ? h.belt + 0.01 * h.k : lerp(h.waist, h.hipY, i.length)
+  const armhole = (i.armhole ?? 0) * VEST_ARMHOLE
+  // The torso's own waist and hip rings (builder's fit profile): the vest is closest at the first and as roomy as the chest at the second.
+  const waistY = h.waist + 0.02 * h.k
+  const hipRingY = h.hipY + 0.08 * h.k
+  const chestRingY = c.s.chestY - 0.07 * h.k
+  const waistEase = lerp(VEST_CHEST, VEST_WAIST, fit)
+  const ease = (r: Ring, at: number): number => {
+    if (at < SHOULDER_RINGS) return VEST_CHEST * cl
+    const away = r.y >= waistY ? (r.y - waistY) / (chestRingY - waistY) : (waistY - r.y) / (waistY - hipRingY)
+    // The chest's clearance less what the waist gives up: exactly the chest's where the waist gives up nothing (fit 0).
+    return (VEST_CHEST - (VEST_CHEST - waistEase) * (1 - smooth(away))) * cl
+  }
+  // Rings 1 to 3 carry the shoulder's slope and the arm's root: they narrow most at the shoulder's own ring (2).
+  const armholeAt = (at: number) => armhole * (at === 2 ? 1 : at === 1 || at === 3 ? 0.5 : 0)
+  const cut = {
+    ...torso,
+    rings: torso.rings.map((r, at) => ({
+      ...r,
+      rx: r.rx * (1 - armholeAt(at)) + ease(r, at),
+      rz: r.rz + ease(r, at),
+    })),
+  }
+  // The torso's first ring is the neck's root: the vest's top edge drops below it by `neckline`, or is not cut at all.
+  const neckline = i.neckline ?? 0
+  const top = neckline > 0 ? (torso.rings[0] as Ring).y - neckline * VEST_NECKLINE * h.k : Infinity
+  const parts: Part[] = [
+    shell(cut, top, hem, i.waistcoat, GROUP.torso, skins(c).trunk, [torso.caps?.[0] ?? 0, 0]),
+  ]
   const shirt = shirtOf(c)
-  if (shirt !== undefined) f.parts.push(opening(c, shirt, ease * c.body.clear))
-  return f
+  const panel = {
+    open: i.open ?? 0,
+    chest: i.chest ?? PANEL_CHEST,
+    hem: i.hem ?? PANEL_HEM,
+    hemY: i.vend === undefined ? hem : lerp((torso.rings[0] as Ring).y, hem, i.vend),
+  }
+  if (shirt !== undefined) parts.push(opening(c, shirt, VEST_CHEST * cl, panel))
+  return { parts, paint: { chest: i.waistcoat, waist: i.waistcoat } }
 }
 
 function belt(c: Wearing, i: Belt): Fit {
@@ -142,8 +230,29 @@ function cap(c: Wearing, i: Cap): Fit {
   }
 }
 
-/** Registers the four kinds; `registerGarments` calls this once, after the runway's nine. */
+function eyeMarks(c: Wearing, i: EyeMarks): Fit {
+  const { head, headWidth, headDepth, faceAhead } = c.s.genes
+  const hw = (head * headWidth) / 2
+  const front = (head * headDepth * (1 + faceAhead)) / 2 + 0.006
+  const [x, y] = [hw * (i.spread ?? 0.6), head * (i.height ?? 0.45)]
+  const size = i.size ?? [1, 2]
+  return {
+    parts: [],
+    decals: [1, -1].map((side) => ({
+      bone: J.head,
+      at: [side * x, y, front],
+      normal: [side * 0.5, 0, 0.86],
+      material: i.eyeMarks,
+      size: [size[0], size[1]],
+      blink: false,
+      tag: 'face',
+    })),
+  }
+}
+
+/** Registers the five kinds; `registerGarments` calls this once, after the runway's nine. */
 export function registerAccessories(): void {
+  registerGarment('eyeMarks', kind<EyeMarks>(eyeMarks))
   registerGarment('waistcoat', kind<Waistcoat>(waistcoat))
   registerGarment(
     'legs',

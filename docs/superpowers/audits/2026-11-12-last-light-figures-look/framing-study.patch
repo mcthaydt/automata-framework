@@ -1,0 +1,141 @@
+diff --git a/games/the-last-light/src/app/content.ts b/games/the-last-light/src/app/content.ts
+index 3b0788691..0b478c484 100644
+--- a/games/the-last-light/src/app/content.ts
++++ b/games/the-last-light/src/app/content.ts
+@@ -47,7 +47,16 @@ export function playOf(content: unknown): PlayContent {
+     hotspots,
+     start: { x: spawn.x, z: spawn.z },
+     // The level names each view's numbers, and each room says which view it takes; the camera follows Ada through them.
+-    views: Object.entries(read.views ?? {}).map(([id, fields]) => cameraView(id, fields)),
++    views: Object.entries(read.views ?? {}).map(([id, fields]) => {
++      const q = new URLSearchParams((globalThis as { location?: { search?: string } }).location?.search ?? '')
++      const distance = q.get('distance')
++      const tilt = q.get('tilt')
++      return cameraView(id, {
++        ...fields,
++        ...(distance === null ? {} : { distance: Number(distance) }),
++        ...(tilt === null ? {} : { tiltDeg: Number(tilt) }),
++      })
++    }),
+     viewOf: Object.fromEntries(
+       read.sectors.flatMap((sector) =>
+         sector.view === undefined ? [] : [[sector.id, sector.view] as const],
+diff --git a/games/the-last-light/src/app/field.ts b/games/the-last-light/src/app/field.ts
+index 672e85741..828cc87db 100644
+--- a/games/the-last-light/src/app/field.ts
++++ b/games/the-last-light/src/app/field.ts
+@@ -61,6 +61,11 @@ export function fieldFor(
+ 
+ /** The field for the window the page runs in; the phone's where there is none (a test in Node). */
+ export function fieldOfWindow(): { width: number; height: number } {
++  const study = new URLSearchParams((globalThis as { location?: { search?: string } }).location?.search ?? '').get('field')
++  if (study !== null) {
++    const [width, height] = study.split('x').map(Number)
++    return { width: width as number, height: height as number }
++  }
+   if (typeof window === 'undefined') return fieldFor({ width: 0, height: 0 })
+   return fieldFor({ width: window.innerWidth, height: window.innerHeight }, window.devicePixelRatio)
+ }
+diff --git a/games/the-last-light/src/features/figures/cast.ts b/games/the-last-light/src/features/figures/cast.ts
+index b1f751495..bd07e4b6d 100644
+--- a/games/the-last-light/src/features/figures/cast.ts
++++ b/games/the-last-light/src/features/figures/cast.ts
+@@ -1,4 +1,5 @@
+ import type { CharacterDef } from '@automata/character-kit'
++import { LOOKS } from '../../../../../extensions/character-kit/scripts/ada-rebuilt.ts'
+ import { OLD_BRISK, OLD_UNCANNY } from './old-gaits.ts'
+ import { ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
+ 
+@@ -11,7 +12,10 @@ import { ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
+ 
+ /** How a figure is painted in play: the old game's. Density 1 is about 37 texels a metre (the camera gives 52 lines a metre, so a
+  *  texel is 1.4 screen pixels), and `crisp: false` draws it at its true height. A close-up density is for a cutscene key that asks. */
+-export const PLAY_FIGURE = { density: 1, crisp: false } as const
++export const PLAY_FIGURE = {
++  density: (new URLSearchParams((globalThis as { location?: { search?: string } }).location?.search ?? '').get('density') === '2' ? 2 : 1) as 1 | 2,
++  crisp: false,
++} as const
+ 
+ /**
+  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
+@@ -19,7 +23,7 @@ export const PLAY_FIGURE = { density: 1, crisp: false } as const
+  * auburn bob, dark eyes. The bob is the kit's `bobFringeFull`: the builder has no `bob` style of the old kind, and the kit's plain `smoothBob` is
+  * a helmet with a tail (46 hair texels at the play size to the old bob's 88); the fringe and the fuller mass at the ear make 82.
+  */
+-export const ADA: CharacterDef = {
++const ADA_TODAY: CharacterDef = {
+   id: 'ada',
+   name: 'Ada Voss',
+   sliders: {
+@@ -80,6 +84,12 @@ export const ADA: CharacterDef = {
+   },
+ }
+ 
++/** The study's switch: `?ada=b` draws the rebuilt Ada of round 8 in the game's place. */
++export const ADA: CharacterDef =
++  new URLSearchParams((globalThis as { location?: { search?: string } }).location?.search ?? '').get('ada') === 'b'
++    ? ((LOOKS['round8-ada'] ?? []).find((v) => v.label.includes('ADOPTED'))?.def ?? ADA_TODAY)
++    : ADA_TODAY
++
+ /**
+  * The night nurse, the figure the creature is: tall and thin with arms too long, her head cocked, in a worn white uniform
+  * (`nurse.json`): top and skirt in ward white with the skirt's hem stained, dark stockings, heavy shoes, a belt, a nurse's cap with
+diff --git a/games/the-last-light/tests/e2e/framing.test.ts b/games/the-last-light/tests/e2e/framing.test.ts
+new file mode 100644
+index 000000000..441ff6342
+--- /dev/null
++++ b/games/the-last-light/tests/e2e/framing.test.ts
+@@ -0,0 +1,40 @@
++import { mkdirSync } from 'node:fs'
++import { join } from 'node:path'
++import { passFirstRun } from '@automata/tools/e2e'
++import { test } from '@playwright/test'
++import { stateOf, waitFor } from './driver.ts'
++import { devUrl } from './origins.ts'
++
++// The framing study's shoot: Ada standing in the middle of the hall facing the camera, at the query's lens, field, distance, tilt and
++// figure density. Apply `framing-study.patch` first (it adds this file and the query's switches); run by hand, one worker.
++//   AF_SHOOT=<folder> AF_FRAME='name|lens=70&field=512x384;name2|density=2' pnpm exec playwright test tests/e2e/framing.test.ts --workers 1
++const OUT = process.env.AF_SHOOT
++const FRAMES = (process.env.AF_FRAME ?? '').split(';').filter(Boolean)
++test.skip(OUT === undefined || FRAMES.length === 0, 'set AF_SHOOT and AF_FRAME')
++test.use({ hasTouch: false, isMobile: false, deviceScaleFactor: 1 })
++test.setTimeout(60 * 60_000)
++
++for (const frame of FRAMES) {
++  const [name, query] = frame.split('|') as [string, string]
++  test(`framing ${name}`, async ({ page }) => {
++    await page.setViewportSize({ width: 1024, height: 768 })
++    mkdirSync(OUT as string, { recursive: true })
++    await page.goto(`${devUrl}?${query}`)
++    await passFirstRun(page)
++    await page.getByRole('button', { name: 'Play' }).click()
++    await waitFor(page, { events: 'cutscene.started', atLeast: 1 })
++    await page.getByTestId('cutscene-caption').waitFor({ state: 'visible', timeout: 300_000 })
++    await waitFor(page, { cutscene: null }, 900_000)
++    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 20 })
++    // Walk to the middle of the hall (the fixed shot's centre), then a step toward the camera: she stands there facing the lens.
++    await page.keyboard.down('KeyW')
++    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + Number(process.env.AF_NORTH ?? 95) })
++    await page.keyboard.up('KeyW')
++    await page.keyboard.down('KeyS')
++    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 8 })
++    await page.keyboard.up('KeyS')
++    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 40 })
++    console.log(name, 'ada at', JSON.stringify((await stateOf(page)).ada))
++    await page.screenshot({ path: join(OUT as string, `${name}.png`) })
++  })
++}
+diff --git a/packages/3d/src/features/camera/fov.ts b/packages/3d/src/features/camera/fov.ts
+index 17fba89b5..afccc3093 100644
+--- a/packages/3d/src/features/camera/fov.ts
++++ b/packages/3d/src/features/camera/fov.ts
+@@ -5,7 +5,7 @@
+  * The gameplay lens, in every view: 50 mm, as in the reference game (Owner, 2026-11-10: the default 3D gameplay camera
+  * matches it). It replaces the 24 mm of 2026-10-23. Automatic framing dollies the camera and never changes the lens.
+  */
+-export const LENS_MM = 50
++export const LENS_MM = Number(new URLSearchParams((globalThis as { location?: { search?: string } }).location?.search ?? '').get('lens') ?? 50)
+ 
+ /** The vertical field of view, in degrees, of a `lensMm` lens on a 24 mm gate: 26.99° at 50 mm, 53.13° at 24 mm. */
+ export const fovOf = (lensMm: number): number => (2 * Math.atan(12 / lensMm) * 180) / Math.PI

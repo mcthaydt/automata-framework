@@ -81,10 +81,10 @@ these are for painted figures, and each is sized from the body under it, so it f
 | `coat`     | Long sleeves, lapels and skirts to `length`.                             |
 | `skirt`    | From the waist to `length` (0 the hip, 0.5 the knee, 1 the ankle); `stain` and `stainHeight` darken the hem. |
 | `dress`    | A fitted top and a skirt in one cloth.                                   |
-| `jeans`    | Straight legs to the ankle.                                              |
-| `trousers` | The same, roomier; `wide` widens the leg.                                |
+| `jeans`    | Close legs to the ankle; `taper` (0 a pipe, 1 the leg's own narrowing) draws the hem in. |
+| `trousers` | The same, roomier; `wide` widens the leg, `taper` as for jeans.          |
 | `shoes`    | Shoes and their `sole`; `boots: true` adds a shaft up the shin.          |
-| `waistcoat` | A vest over the chest, open on the shirt under it.                      |
+| `waistcoat` | A vest cut from the torso, open on the shirt under it: `fit` (0 loose, 1 closed in at the waist), `length` (0 ends at the waist, 1 at the hip) and `armhole` (0 … 1, narrower across the shoulder so the shirt shows). |
 | `legs`     | Stockings: the legs from the thigh down in one colour.                   |
 | `belt`     | A band round the waist; `buckle` is the plate's colour.                  |
 | `cap`      | Headwear of a named `style` (`nurse`, `peakedCap`, `flat`); the hair goes under it, and `mark` paints the style's mark. |
