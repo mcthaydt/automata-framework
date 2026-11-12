@@ -65,7 +65,9 @@ jobs:
     # The checks job on the shared Mac took about 12 min on 2026-11-11 (run 42930399321) and was cancelled at 20 min twice
     # that evening, in `pnpm test:unit` (run 42940969260, both attempts) while the 3D parity job ran on the same machine
     # and main had just added the 3D package's light tests. It gates every other job here.
-    timeout-minutes: 30
+    # 45 since 2026-11-12: the figure painter's unit suite arrived with the builders fold and takes about 20 min on a
+    # shared Mac, so the job finished 2 s under 30 min on one run (43245414189) and was cancelled at 30 on others.
+    timeout-minutes: 45
     outputs:
       docs_only: ${{ steps.scope.outputs.docs_only }}
       parity_full: ${{ steps.scope.outputs.parity_full }}

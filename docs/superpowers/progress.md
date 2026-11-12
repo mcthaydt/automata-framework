@@ -418,3 +418,58 @@ tone mapping, tone mapping's default, unlit colour, samplers), and every effect 
     before it can merge: the fold, then the painter's cell material fogging in display space; the grouped list; the
     Owner's cross-engine parity run. One choice for the Owner, not a condition: beta.2 drew three things darker than
     their content colours (unlit and sky fog, lit figures, embers) and the conversion keeps that.
+
+## The coordinator's state, 2026-11-12 evening (written so a fresh coordinator can go on from this file)
+
+**The Owner's words of the day, in order** (each is a standing instruction):
+"I'm not satisfied with how the scene looks ... I'm open to some changes" · "for the character, just go with what
+matches better for the scene; I prefer the old look, I just want the updated painter and face really" · "Don't port
+directly, just see how we did it" · "3D assets can carry over" · "but fit the 3D assets into our pipeline" · "I prefer
+our photo texture replacement" · "we should do photo texture across the board since that's our environment builder
+look" · "What if we rebuild ada from ground up using reference images and change the camera/framing/scene scale to
+support whatever keeps her looking good" · "go with the look from the image generated images rather than our
+pre-existing sprites" · "Use CC0" (a missing photo) · "yes, give me both eyes" (the turned face) · "The quality is
+visibly worse than our existing examples" (with a Floor Fifty ad made with this painter) · "I don't want you to hand me
+anything the quality of what you sent again" · "make both workflow changes".
+
+**The picture rule.** Nothing visual goes to the Owner until the coordinator has opened it and it holds up beside his
+example. His example, read correctly: figures drawn LARGE (a head about 100 texels with hair: density about 8), skin in
+three or four clean flat planes with hard edges, a soft three-tone hair mass, a clean one-texel outline, clothing as
+large soft-shaded masses with real construction, calm plain colours, large heads (4.5 to 5 heads tall), shown plain.
+Its faces are the painter's ordinary minimal faces (slit eyes, a nose plane, a one-row mouth). Proved today: the
+character kit's own runway characters (four of them are the ad's cast) drawn at density 8 match it. The gap was the
+size we drew at and how Ada was built, never the painter. Small sizes are test evidence, never a showcase.
+
+**Where each stream stands.**
+- *Workstream 6, the builders fold:* group 1 merged (#661), audited and fixed (#663). Left: `claude/builders-fold-strict`
+  (the strict flags; 43 files keep a non-null header until then), `claude/builders-fold-scenes` (EnvironmentBuilder; the
+  Owner's A or B still open), the Owner's review. arm64 passed in CI (16,872 unit tests on `af-mac-3`).
+- *The painter's figure options:* `claude/painter-figure-look` at `c7311579`, PR #664 open (bobs `bobFull`/`bobRound`,
+  swatches `skinFair`/`skinPeach`, the `eyes` options, `standTrack`/`standStoop`, `PaintStyle.ink`). Its showcase does not
+  meet the bar: Ada's outfit is the gap, then hair strands and the fringe's edge.
+- *Workstream 2, the game:* `claude/last-light-prologue`, session 14 running (the lavender skin in the room; Ada's
+  outfit as real kit shell garments judged at density 8; a true head-and-shoulders close-up in the opening; a pure
+  `cameraAt` on the director; then leftovers). Done on the branch today: the fold taken in; the kit paints at the
+  density the drawing camera needs by default; photo-made surfaces across the board; the floor's joint colour; window
+  light patches; contact shade on lamp light; dither taper and the grade after the snap (opt-ins); lights-out dark; the
+  cutscene facing fix; walls cut by the drawing camera; five translation catalogues (written by a session, unreviewed).
+  Not done: task 18's shell half, task 16, the curtain screen, the EXIT halo, a frame check of every cutscene.
+- *`@pixi/3d` beta.3:* `claude/pixi-3d-beta-3` at `b25ec539`: the painter's view ported, the grouped list accepted by the
+  coordinator (all eleven as recommended). It waits only for the Owner's cross-engine parity run (the audit's (d)).
+- *Main's CI:* red for days before anyone read it (the merge session had not been reading check runs; it does now, and a
+  pull request's own runs are part of the gate). `claude/ci-green` (in work) has fixed the site's example-page waits,
+  the layout fixture's font dependence, the 2D and 3D story examples' save races and the 3D story's server, and the ward
+  props test; open there: the night-sky test's frame-count wait, why the painter's suite takes 20 minutes on a Mac
+  runner, the full gates. Merged today: the `.gitignore` for a leftover submodule folder and the secret scan's allowlist
+  for two hash files (#662); the two workflow changes (this branch). Until `ci-green` lands, a job red only for a listed
+  known cause does not block a merge; a timeout with no failed assertion on a runner doing two jobs gets one re-run.
+
+**Open with the Owner.** The gameplay framing (a nearer view, a finer picture, or play staying simple with close shots
+carrying the quality); Ada at 7 heads (the generated turnaround) or about 5 (the ad's and the old game's stylisation);
+the parity run for beta.3; the CI artifact quota (full); EnvironmentBuilder's CPU renderer A or B; a reviewer for the
+translations; 117 old branches to delete; the three darker-than-authored colours beta.3 keeps.
+
+**Owed by the coordinator.** The spec for the framework gaps the game found (video in cutscenes, per-cutscene bars, a
+pixel font, minimap and world marker, a pass on screen pixels after the upscale, a linear light space, meshes as a
+content kind with a manifest and palette import, the editor setting a prop's model and fit, a home for story translator
+notes) and the mesh-and-blockout spec.

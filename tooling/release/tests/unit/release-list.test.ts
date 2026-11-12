@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { publishablePackages, type WorkspacePackage, workspacePackages } from '#src/publishable-packages.ts'
+import { publishedFileExists, relativeImports } from '../fixtures/dist-reading.ts'
 
 // What AF publishes to npmjs.org, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
 // act: an example, `@automata/3d` (D-1) or a tool marked publishable fails here before anything is released.
@@ -48,26 +49,6 @@ function targets(entry: unknown): string[] {
   if (entry !== null && typeof entry === 'object') return Object.values(entry).flatMap(targets)
   return []
 }
-
-/** `from './x'`, `import './x'` and `import('./x')`. */
-const RELATIVE_IMPORT = /(?:\bfrom\s*|\bimport\s*\(?\s*)['"](\.{1,2}\/[^'"]*)['"]/g
-
-/**
- * The text of `code` without its comment lines (a line whose first characters are `*`, `/*` or `//`), so a doc
- * comment's example (runtime's "`import * as m from './paraglide/messages.js'`", DX.2a) is not taken for an import.
- * A multi-line import keeps its `} from '…'` line, which is code.
- */
-const withoutCommentLines = (code: string): string =>
-  code
-    .split('\n')
-    .filter((line) => !/^\s*(?:\*|\/\*|\/\/)/.test(line))
-    .join('\n')
-
-/**
- * `code` with the text of its template literals emptied, so the files `create-game` writes (a template holds
- * `import … from './commands.ts'`, which belongs to the new game, not to this package) are not taken for imports.
- */
-const withoutTemplateText = (code: string): string => code.replace(/`(?:\\[\s\S]|[^`\\])*`/g, '``')
 
 const each = (test: (pkg: WorkspacePackage) => void) => () => {
   for (const pkg of published) test(pkg)
@@ -231,7 +212,7 @@ describe.skipIf(process.env.AF_CHECK_DIST !== '1')('the built packages', () => {
         ...Object.values(manifest.publishConfig?.bin ?? {}),
       ]
       expect(
-        named.filter((file) => !existsSync(join(root, dir, file))),
+        named.filter((file) => !publishedFileExists(join(root, dir), file)),
         manifest.name,
       ).toEqual([])
     }),
@@ -278,14 +259,13 @@ describe.skipIf(process.env.AF_CHECK_DIST !== '1')('the built packages', () => {
       const unresolved: string[] = []
       for (const file of filesBelow(join(root, dir, 'dist'))) {
         if (!/\.(js|d\.ts)$/.test(file) || file.includes('/dist/vendor/')) continue
-        for (const [, specifier] of withoutTemplateText(
-          withoutCommentLines(readFileSync(file, 'utf8')),
-        ).matchAll(RELATIVE_IMPORT)) {
-          const target = join(dirname(file), specifier as string)
+        for (const { specifier, jsonAttribute } of relativeImports(readFileSync(file, 'utf8'), file)) {
+          const target = join(dirname(file), specifier)
           // A `.js` import resolves to its `.d.ts` in a declaration file.
           const exists = existsSync(target) || existsSync(target.replace(/\.js$/, '.d.ts'))
-          if (!exists || !/\.(js|svelte|css)$/.test(specifier as string))
-            unresolved.push(`${file}: ${specifier}`)
+          // Node's loader refuses a JSON module without `with { type: 'json' }`.
+          const named = /\.(js|svelte|css)$/.test(specifier) || (specifier.endsWith('.json') && jsonAttribute)
+          if (!exists || !named) unresolved.push(`${file}: ${specifier}`)
         }
       }
       expect(unresolved, manifest.name).toEqual([])
