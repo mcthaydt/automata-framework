@@ -3,6 +3,7 @@
 // pipeline here was ported, not copied, so this is the one proof that it still makes the same tiles texel for texel.
 
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { photoBytes, readPhotoLibrary } from '#src/features/textures/photos.ts'
 import type { TextureSpec } from '#src/features/textures/texture-spec.ts'
@@ -57,11 +58,19 @@ function md5Of(spec: TextureSpec): string {
 }
 
 const made = specs()
+/** The sha-256 of the source's `tests/golden/tiles.json` at its last commit (f7c5356): the fixture is that file, byte for
+ * byte, so nothing but the source can have changed it (Biome leaves it alone, as it does the painter's goldens). */
+const SOURCE_SHA256 = '10add88bd8289642dbbcad5888754c480adf3f0cbca99ceef549fa7e8e7517f7'
 const fixture = golden as Record<string, string>
 
 // One test for each key, not one for all 112: the pipeline reads a photo each time, and a single test that ran it that
 // often would sit past the default timeout, and a drifted tile would not say which one.
 describe('the source’s tiles golden', () => {
+  it('is the source’s file, byte for byte', () => {
+    const bytes = readFileSync(new URL('../../fixtures/builder-tiles.json', import.meta.url))
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(SOURCE_SHA256)
+  })
+
   it('has the keys the kit’s photos and swatches make, and no others', () => {
     expect(Object.keys(made).sort()).toEqual(Object.keys(fixture).sort())
   })

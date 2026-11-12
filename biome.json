@@ -17,7 +17,8 @@
       "!site/build",
       "!site/static/demos",
       "!site/static/playground",
-      "!extensions/figures/tests/fixtures/golden/*.json"
+      "!extensions/figures/tests/fixtures/golden/*.json",
+      "!extensions/world-kit/tests/fixtures/builder-tiles.json"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },
