@@ -26,6 +26,10 @@ const panel = addLcdPanelPass({ profile: { grid: 0.45 } }) // the rest is the cl
 `panel.passes` lists the panels the renderer made. Each is a `PostEffect`, so `pass.enabled = false` takes it out of the
 frame, and `pass.profile = { ... }` retunes it while the game runs.
 
+**At the old game's picture size.** The browser tests draw the panel at 640 x 360 (a 16:9 window) and 640 x 480 (4:3) with the
+clinic's profile: the mesh and the stripes show over a flat colour (a cell of 2 gives a mesh period of 4 field pixels), and a
+zeroed panel leaves the picture alone. The panel has no movement of its own, so reduced motion changes nothing in it.
+
 ## The profile
 
 Every setting has a default, so `{}` is the clinic's panel. A setting that is out of range, or one the profile does not

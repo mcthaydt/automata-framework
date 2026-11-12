@@ -3,10 +3,12 @@
 // before it creates its renderer. A name already taken is refused by core (`RegistryClash`).
 
 import { addLookPass, type Look, type LookPass, type TimeOfDay } from '@automata/3d'
+import { reducedMotion } from '@automata/framework'
 import type { Pass3D } from '@pixi/3d'
 import { Ticker } from 'pixi.js'
 import { GlowEffect, type GlowOptions } from './glow-effect.ts'
 import { ParticlesEffect, type ParticlesOptions } from './particles-effect.ts'
+import { passClock } from './pass-clock.ts'
 import { RainEffect } from './rain-effect.ts'
 import { ReflectEffect, type ReflectOptions } from './reflect-effect.ts'
 import { duelTriple } from './shader-parts.ts'
@@ -45,12 +47,11 @@ export const SKY_PASS_NAMES = {
   rain: 'world-kit:rain',
 } as const
 
-/** Drives a pass's clock from Pixi's shared ticker until the pass is destroyed. */
+/** Drives a pass's clock from Pixi's shared ticker until the pass is destroyed; it stands still under reduced motion. */
 function clocked<T extends Pass3D & { clock: number }>(pass: T): T {
-  let seconds = 0
+  const clock = passClock(() => reducedMotion())
   const tick = (ticker: Ticker): void => {
-    seconds += ticker.deltaMS / 1000
-    pass.clock = seconds
+    pass.clock = clock.tick(ticker.deltaMS)
   }
   Ticker.shared.add(tick)
   const destroy = pass.destroy.bind(pass)

@@ -29,6 +29,13 @@ const retro = addRetroPass({ profile: { grade: { saturation: 1 } } }) // the res
 `retro.passes` lists the passes the renderer made. `pass.enabled = false` takes one out of the frame,
 `pass.profile = { ... }` retunes it, and Pixi's shared ticker drives the film's clock.
 
+**Reduced motion.** The film's grain, dust and scratch are the pass's only movement. While the player has asked for less
+movement (`prefers-reduced-motion`, read each frame) the film's clock stands where it was, so the picture holds still and goes
+on from there if the setting is turned off. A game with its own setting says so: `addRetroPass({ reducedMotion: () => settings.reduceMotion })`.
+
+**At the old game's picture size.** The browser tests draw the pass at 640 x 360 (a 16:9 window) and 640 x 480 (4:3): the clinic's
+grade moves the picture and the snap puts it back on the palette, and the neutral profile leaves it alone.
+
 ## The retro profile
 
 Every setting has a default, so `{}` is the clinic's look. A setting out of range, or one the profile does not know, is

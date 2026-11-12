@@ -30,6 +30,7 @@
   "peerDependencies": {
     "@automata/3d": "workspace:^",
     "@automata/content": "workspace:^",
+    "@automata/framework": "workspace:^",
     "@pixi/3d": "0.1.0-beta.2",
     "pixi.js": "8.22.0"
   },

@@ -39,6 +39,10 @@ export class RetroEffect extends PostEffect {
   }
 
   /** The game's clock, in seconds, for the film's grain and dust. */
+  get clock(): number {
+    return this.#time
+  }
+
   set clock(seconds: number) {
     this.#time = seconds
     this.uniforms.uniforms.uFilmTime = seconds

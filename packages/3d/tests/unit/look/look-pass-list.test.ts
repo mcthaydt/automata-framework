@@ -73,3 +73,35 @@ describe('the look pass list with every core pass and an extension pass', () => 
     expect(made.list).toEqual([early, made.snap, made.present])
   })
 })
+
+// Core's own four switches, as the default look has them: haze and grade on (the grade changes nothing until a mood is named),
+// the snap always, the outline off. A new pass of core's own joins only behind its switch.
+describe('the default look’s passes and their switches', () => {
+  const kinds = (list: readonly unknown[]): string[] => list.map((pass) => (pass as object).constructor.name)
+
+  it('DEFAULT_LOOK is haze, grade, the snap and the present pass: no outline', () => {
+    const made = passes.createLookPasses(look.DEFAULT_LOOK, timeOfDay('day'))
+    expect(kinds(made.list)).toEqual(['HazeEffect', 'GradeEffect', 'DuelSnapEffect', 'PresentEffect'])
+  })
+
+  it('the outline switch adds exactly the outline, after the snap', () => {
+    const made = passes.createLookPasses(look.parseLook({ switches: { outline: true } }), timeOfDay('day'))
+    expect(kinds(made.list)).toEqual([
+      'HazeEffect',
+      'GradeEffect',
+      'DuelSnapEffect',
+      'OutlineEffect',
+      'PresentEffect',
+    ])
+  })
+
+  it('the grade switch off takes out exactly the grade', () => {
+    const made = passes.createLookPasses(look.parseLook({ switches: { grade: false } }), timeOfDay('day'))
+    expect(kinds(made.list)).toEqual(['HazeEffect', 'DuelSnapEffect', 'PresentEffect'])
+  })
+
+  it('the haze switch off takes out exactly the haze', () => {
+    const made = passes.createLookPasses(look.parseLook({ switches: { haze: false } }), timeOfDay('day'))
+    expect(kinds(made.list)).toEqual(['GradeEffect', 'DuelSnapEffect', 'PresentEffect'])
+  })
+})

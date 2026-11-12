@@ -108,6 +108,11 @@ addSkyPasses({ stars: true, glow: true, rain: { density: 0.3 } })
 
 Call it once before the renderer is made; a second call throws, because the pass names are taken.
 
+Beyond those three, `reflect` (wet ground), `shafts` (light in a lamp's cone) and `particles` (steam, drips, flames, moths) are off
+unless you give them. Every pass has its own name (`SKY_PASS_NAMES`) and runs in the source's order: stars, reflections, glow,
+shafts, particles, rain. The moving ones (stars, rain, particles, shafts) stand still while the player has asked for less movement
+(`prefers-reduced-motion`, read each frame), and go on from where they stood if it is turned off.
+
 ## Add your own
 
 Props, swatches and kits are data. Put a TOML file in `content/world-props`, `content/world-swatches` or

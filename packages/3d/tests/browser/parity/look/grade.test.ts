@@ -7,7 +7,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'
 import { MOODS } from '#src/features/look/grade.ts'
 import { GradeEffect } from '#src/features/look/grade-effect.ts'
-import { DEFAULT_LOOK } from '#src/features/look/look.ts'
+import type { Look } from '#src/features/look/look.schema.ts'
+import { DEFAULT_LOOK, parseLook } from '#src/features/look/look.ts'
 import { builtRenderer } from '#src/testing/built-renderer.ts'
 import { snapshot } from '#src/testing/snapshot.ts'
 import { testTarget } from '#src/testing/test-target.ts'
@@ -24,7 +25,9 @@ afterEach(() => {
   document.body.replaceChildren()
 })
 
-async function start(): Promise<{ renderer: Pixi3dRenderer; grade: GradeEffect }> {
+async function start(
+  look: Look = DEFAULT_LOOK,
+): Promise<{ renderer: Pixi3dRenderer; grade: GradeEffect | undefined }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
   const factory = createPixi3dRenderer({
@@ -32,7 +35,7 @@ async function start(): Promise<{ renderer: Pixi3dRenderer; grade: GradeEffect }
     logicalHeight: 90,
     backgroundColor: BACKGROUND,
     views: {},
-    look: DEFAULT_LOOK,
+    look,
     scene: (view) => {
       view.camera.position.set(0, 0, 5)
       view.camera.lookAt({ x: 0, y: 0, z: 0 })
@@ -45,7 +48,6 @@ async function start(): Promise<{ renderer: Pixi3dRenderer; grade: GradeEffect }
   const renderer = await builtRenderer(factory(testTarget(host, {})))
   scope = renderer
   const grade = renderer.view.passes.find((p): p is GradeEffect => p instanceof GradeEffect)
-  if (grade === undefined) throw new Error('no grade pass')
   return { renderer, grade }
 }
 
@@ -58,6 +60,7 @@ function shot(renderer: Pixi3dRenderer): Uint8Array {
 describe.runIf(hasWebGL2)('the mood grade on WebGL2', () => {
   it('leaves the frame as it was with no mood, and moves its colours onto other palette colours with one', async () => {
     const { renderer, grade } = await start()
+    if (grade === undefined) throw new Error('no grade pass')
     expect(grade.enabled).toBe(false)
     const plain = shot(renderer)
     grade.mood(MOODS.coldDawn)
@@ -73,5 +76,15 @@ describe.runIf(hasWebGL2)('the mood grade on WebGL2', () => {
     expect(moved).toBeGreaterThan(100)
     grade.mood(undefined)
     expect(shot(renderer)).toEqual(plain)
+  })
+
+  // The default look carries the grade (its switch is on) so a game can name a mood later; until it does, the pass is not in the frame.
+  it('the default look draws the same frame as one with the grade switched off, pixel for pixel, while no mood is named', async () => {
+    const { renderer } = await start()
+    const withGrade = shot(renderer)
+    scope?.dispose()
+    const off = await start(parseLook({ switches: { grade: false } }))
+    expect(off.grade).toBeUndefined()
+    expect(shot(off.renderer)).toEqual(withGrade)
   })
 })

@@ -3,7 +3,9 @@
 // already taken is refused by core (`RegistryClash`).
 
 import { addLookPass } from '@automata/3d'
+import { reducedMotion } from '@automata/framework'
 import { Ticker } from 'pixi.js'
+import { filmClock } from '../features/retro/film-clock.ts'
 import { RetroEffect } from '../features/retro/retro-effect.ts'
 import { parseRetroProfile } from '../features/retro/retro-profile.schema.ts'
 
@@ -14,6 +16,8 @@ export const RETRO_PASS = 'retro'
 export interface RetroOptions {
   readonly profile?: unknown
   readonly enabled?: boolean
+  /** Whether the player asked for less movement, read each frame: the film's grain, dust and scratch hold still while it is true. Default: `prefers-reduced-motion`. */
+  readonly reducedMotion?: () => boolean
 }
 
 /** Adds the pass. The returned list holds the passes the renderer made (newest last), so a game can switch or retune one. */
@@ -26,11 +30,10 @@ export function addRetroPass(options: RetroOptions = {}): { readonly passes: rea
     make: () => {
       const pass = new RetroEffect(profile, { enabled: options.enabled ?? true })
       made.push(pass)
-      // The film's clock is Pixi's shared ticker until the pass is destroyed.
-      let seconds = 0
+      // The film's clock is Pixi's shared ticker until the pass is destroyed; it stands still under reduced motion.
+      const film = filmClock(options.reducedMotion ?? (() => reducedMotion()))
       const tick = (ticker: Ticker): void => {
-        seconds += ticker.deltaMS / 1000
-        pass.clock = seconds
+        pass.clock = film.tick(ticker.deltaMS)
       }
       Ticker.shared.add(tick)
       const destroy = pass.destroy.bind(pass)
