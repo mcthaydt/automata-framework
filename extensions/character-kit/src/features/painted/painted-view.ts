@@ -36,6 +36,11 @@ export interface PaintedFigureOptions {
    * size: 36.9 texels a metre.
    */
   readonly crisp?: boolean | undefined
+  /**
+   * Whether the figure moves on its texel lattice (`PlaceOptions.grid`): its texels then always lie on the field's grid of whole
+   * texels, where a mesh drawn between texels at the screen's pixels misses them. Off by default.
+   */
+  readonly grid?: boolean | undefined
   /** The figure's state from the entity's components; standing by default. */
   readonly state?: ((components: Components) => PaintedState) | undefined
   /** Seconds, for the figure's pose clock; the page's clock by default. */
@@ -113,7 +118,7 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
     const shadow = light?.shadows?.add(node)
     const figure: StageMember = {
       node,
-      placing: { crisp: options.crisp },
+      placing: { crisp: options.crisp, grid: options.grid },
       shadow,
       frame(view, zoom) {
         const t = now()
