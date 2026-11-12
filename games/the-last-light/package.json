@@ -28,8 +28,10 @@
   },
   "dependencies": {
     "@automata/3d": "workspace:*",
+    "@automata/audio-synth": "workspace:*",
     "@automata/cutscenes": "workspace:*",
     "@automata/framework": "workspace:*",
+    "@automata/hud": "workspace:*",
     "@automata/interact": "workspace:*",
     "@automata/narrative": "workspace:*",
     "@automata/nav": "workspace:*",

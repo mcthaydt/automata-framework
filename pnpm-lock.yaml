@@ -1573,12 +1573,18 @@ importers:
       '@automata/3d':
         specifier: workspace:*
         version: link:../../packages/3d
+      '@automata/audio-synth':
+        specifier: workspace:*
+        version: link:../../extensions/audio-synth
       '@automata/cutscenes':
         specifier: workspace:*
         version: link:../../extensions/cutscenes
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/hud':
+        specifier: workspace:*
+        version: link:../../extensions/hud
       '@automata/interact':
         specifier: workspace:*
         version: link:../../extensions/interact

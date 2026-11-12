@@ -1,0 +1,113 @@
+# The play HUD: where each piece sits, how wide it may be, which words it shows, and the rows that choose the objective line.
+# It is data so the UI editor (workstream 3) can take it over: the pieces read their place and words from here, never from
+# code. A row's `line` is a message key (the prologue's objective lines); its `target` is the hotspot the line points to.
+# The rows are read first to last and the first whose conditions all hold wins.
+
+[[pieces]]
+kind = "objective"
+anchor = "top-left"
+width = 360
+
+[[pieces]]
+kind = "prompt"
+anchor = "bottom"
+width = 280
+
+[[pieces]]
+kind = "inventory"
+anchor = "bottom-right"
+width = 320
+
+[[pieces]]
+kind = "examine"
+anchor = "bottom"
+width = 560
+
+[[pieces]]
+kind = "keypad"
+anchor = "centre"
+width = 280
+
+# She has gone: sit down at Bed 04.
+[[objective]]
+line = "prologue.objective.rest"
+target = "bed"
+
+[[objective.when]]
+fact = "figureGone"
+is = true
+
+# The lights have gone: keep the lamp lit, or hide.
+[[objective]]
+line = "prologue.objective.hide"
+
+[[objective.when]]
+fact = "lightsOut"
+is = true
+
+# She holds the sheets: make up the bed.
+[[objective]]
+line = "prologue.objective.bed"
+target = "bed"
+
+[[objective.when]]
+has = "sheets"
+
+# Before she has read the note or found the lamp: the note on the noticeboard.
+[[objective]]
+line = "prologue.objective.note"
+target = "noticeboard"
+
+[[objective.when]]
+fact = "noteRead"
+is = false
+
+[[objective.when]]
+not = { has = "handLamp" }
+
+# The note read, no lamp yet: it is in the nightstand.
+[[objective]]
+line = "prologue.objective.lamp"
+target = "nightstand"
+
+[[objective.when]]
+not = { has = "handLamp" }
+
+# The lamp is dry or out: fill it (no place: she chooses combine).
+[[objective]]
+line = "prologue.objective.fill"
+
+[[objective.when]]
+any = [{ fact = "fuel", atMost = 0 }, { fact = "lit", is = false }]
+
+# The supply room is open: the sheets on its shelf.
+[[objective]]
+line = "prologue.objective.sheets"
+target = "shelf"
+
+[[objective.when]]
+fact = "closetOpen"
+is = true
+
+# She has the key: the supply room's door.
+[[objective]]
+line = "prologue.objective.closet"
+target = "closetDoor"
+
+[[objective.when]]
+has = "supplyKey"
+
+# The note read: the key is in the cabinet, and the code is in the note.
+[[objective]]
+line = "prologue.objective.key"
+target = "cabinet"
+
+[[objective.when]]
+fact = "noteRead"
+is = true
+
+# Otherwise: the note.
+[[objective]]
+line = "prologue.objective.note"
+target = "noticeboard"
+when = []
