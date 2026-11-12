@@ -33,6 +33,24 @@ const BLIP: Cue = {
 const SPEECH: Cue = { id: 'speech', bus: 'voice', voices: [{ hiss: 800, length: 1, volume: 0.1 }] }
 const RULES: DuckRule[] = [{ bus: 'voice', duck: ['music', 'sfx'], db: -9, attack: 0.08, release: 0.4 }]
 
+describe('a cue’s gain', () => {
+  it('scales a synthesised cue the way it scales a file: a gain node before its bus, none at 1', () => {
+    const quiet = port()
+    createMixer({ port: quiet.p, ducks: [] }).play({ ...BLIP, gain: 0.25 }, { when: 0 })
+    const gain = (quiet.ctx as unknown as { nodes: FakeNode[] }).nodes.find(
+      (node) => node.kind === 'gain' && node.params.gain?.value === 0.25,
+    )
+    expect(gain?.connections).toContain(quiet.inputs.get('sfx'))
+    const plain = port()
+    createMixer({ port: plain.p, ducks: [] }).play(BLIP, { when: 0 })
+    expect(
+      (plain.ctx as unknown as { nodes: FakeNode[] }).nodes.filter(
+        (node) => node.params.gain?.value === 0.25,
+      ),
+    ).toEqual([])
+  })
+})
+
 describe('the overall volume', () => {
   it('plays a cue through a gain of the overall volume into its bus', () => {
     const { ctx, p, inputs } = port()
@@ -78,6 +96,16 @@ describe('a cue with a recorded sound', () => {
       FILE,
     )
     expect(gains).toEqual([0.5])
+  })
+
+  it('plays at its own gain, times the overall volume', () => {
+    const { p } = port()
+    const gains: (number | undefined)[] = []
+    const sound = (_a: string, _b: BusId, gain?: number) => void gains.push(gain)
+    createMixer({ port: { ...p, sound }, ducks: [], master: 0.5 }).play({ ...FILE, gain: 4 })
+    createMixer({ port: { ...p, sound }, ducks: [] }).play({ ...FILE, gain: 0.3 })
+    createMixer({ port: { ...p, sound }, ducks: [] }).play(FILE)
+    expect(gains).toEqual([2, 0.3, undefined])
   })
 
   it('ducks the buses a rule names for the length the file holds', () => {

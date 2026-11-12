@@ -37,6 +37,11 @@ export interface Cue {
   readonly voices: readonly Voice[]
   /** A core sound alias played through `Audio.sound` in place of the voices once it is loaded. */
   readonly sound?: string | undefined
+  /**
+   * How loud the cue plays against the others, a multiplier, 1 when unset: the same meaning as a fallback's `volume`. A recorded
+   * file is as it was made, so this is where its level is set.
+   */
+  readonly gain?: number | undefined
   /** A world sound: panned and attenuated from the listener when the caller passes a position. */
   readonly world?: boolean | undefined
   /** Played on its bus without the ducking that bus normally causes. */
@@ -191,6 +196,7 @@ const cue: z.ZodType<Cue> = z.strictObject({
   bus,
   voices: z.array(voice),
   sound: z.string().min(1).optional(),
+  gain: z.number().min(0).optional(),
   world: z.boolean().optional(),
   no_duck: z.boolean().optional(),
   draft: z.boolean().optional(),

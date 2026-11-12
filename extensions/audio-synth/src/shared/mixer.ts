@@ -96,18 +96,20 @@ export function createMixer({ port, ducks, master = 1 }: MixerOptions): Mixer {
   }
   return {
     play(cue, options = {}) {
+      // The cue's own gain, times the overall volume.
+      const level = (cue.gain ?? 1) * master
       if (cue.sound !== undefined && port.sound !== undefined) {
-        // A recorded file is not panned or distance-attenuated (core plays it as it is); the overall volume rides as its gain.
-        port.sound(cue.sound, cue.bus, master === 1 ? undefined : master)
+        // A recorded file is not panned or distance-attenuated (core plays it as it is); its level rides as its gain.
+        port.sound(cue.sound, cue.bus, level === 1 ? undefined : level)
         duckFor(cue, options.length ?? cueLength(cue))
         return
       }
       let into: AudioNode = port.input(cue.bus)
       const ctx = into.context as BaseAudioContext
       const when = options.when ?? ctx.currentTime
-      if (master !== 1) {
+      if (level !== 1) {
         const overall = ctx.createGain()
-        overall.gain.value = master
+        overall.gain.value = level
         overall.connect(into)
         into = overall
       }
