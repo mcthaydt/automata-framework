@@ -18,6 +18,12 @@
     "paint": ["#ffe2cf", "#ebbd9d", "#c7826c", "#a76057"],
     "tones": [0.55, 0.04, -0.5]
   },
+  "skinPeach": {
+    "ramp": 16,
+    "base": 5,
+    "paint": ["#fedfb1", "#ebbd9d", "#c7826c", "#a76057"],
+    "tones": [0.55, 0.04, -0.5]
+  },
   "skinWarm": {
     "ramp": 16,
     "base": 5,

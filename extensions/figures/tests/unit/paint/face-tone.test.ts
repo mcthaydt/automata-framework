@@ -5,6 +5,7 @@ import { Figure } from '#src/shared/figure/figure.ts'
 import { member, view } from '#src/shared/figure/frames.ts'
 import { SWATCHES } from '#src/shared/outfit/garments.ts'
 import { FACE_SEAM, tonesOf } from '#src/shared/paint/paint.ts'
+import { oklab } from '#src/shared/paint/paint-style.ts'
 
 /**
  * The face's tone budget as a swatch option (`Material.face`): the least share of the face in the lightest step. Today a face is mostly the middle step with a dark chin; a face that is mostly the lightest step is a bright
@@ -71,5 +72,18 @@ describe('a warm peach skin on DUEL', () => {
         if (rgb === light) n++
       }
     expect(n).toBeGreaterThan(0)
+  })
+})
+
+describe('a warm peach skin with a light step that is not near white', () => {
+  it('skinPeach is in the library, on DUEL, its light step warmer and a little darker than skinFair’s', () => {
+    const steps = tonesOf(SWATCHES.skinPeach)
+    expect(steps.map((c) => `#${c.toString(16).padStart(6, '0')}`)).toEqual(SWATCHES.skinPeach.paint)
+    const fair = oklab(tonesOf(SWATCHES.skinFair)[0]),
+      peach = oklab(steps[0])
+    expect(Math.hypot(peach[1], peach[2]), 'chroma').toBeGreaterThan(Math.hypot(fair[1], fair[2]) + 0.01)
+    expect(peach[0], 'lightness').toBeLessThan(fair[0])
+    // Its other steps are skinFair's: only the light one moved.
+    expect(steps.slice(1)).toEqual(tonesOf(SWATCHES.skinFair).slice(1))
   })
 })
