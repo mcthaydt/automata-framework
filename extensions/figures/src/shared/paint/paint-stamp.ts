@@ -133,13 +133,15 @@ export function stampFace(
    * side from an iris of 4.
    */
   const openEye = (x0: number, n: number, iris: number, Y: number) => {
-    const id = Math.max(3, Math.round(n * 0.45)),
+    const id = Math.max(3, Math.round(n * 0.34)),
+      // The opening a row taller than the iris from an iris of 4, so the white shows under it and the lid sits over its top.
+      ah = id + (id >= 4 ? 1 : 0),
       // `iris` is the first column of a two-wide iris: the same place, moved to the middle of this one.
       at = Math.max(0, Math.min(n - id, Math.round(iris + 1 - id / 2))),
       cx = x0 + at + (id - 1) / 2,
       cy = Y + (id - 1) / 2
-    for (let r = 0; r < id; r++) {
-      const cut = r === id - 1 && id >= 3 ? 1 : 0
+    for (let r = 0; r < ah; r++) {
+      const cut = r === ah - 1 ? 1 : 0
       for (let i = cut; i < n - cut; i++) {
         const x = x0 + i,
           d = Math.hypot(x - cx, Y + r - cy),
@@ -150,7 +152,7 @@ export function stampFace(
       }
     }
     // The lower lid: the skin's next step darker along the opening's floor, a texel in from each corner.
-    for (let i = 1; i < n - 1; i++) shade(x0 + i, Y + id, 1)
+    for (let i = 1; i < n - 1; i++) shade(x0 + i, Y + ah, 1)
   }
   /**
    * An eye: `x0` its left column, `n` texels wide, its outer corner to the `outer` side, the iris's first column `iris`
