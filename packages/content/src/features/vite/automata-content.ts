@@ -8,9 +8,11 @@
 //   - Content is published only after a build succeeded, so a bad save reports its diagnostics, keeps the
 //     last good files and module, and leaves the watcher alive for the fix.
 
-import { dirname, join, sep } from 'node:path'
+import { readdir, readFile } from 'node:fs/promises'
+import { dirname, join, posix, sep } from 'node:path'
 import { Effect, Either } from 'effect'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
+import { FONT_CSS, FONT_FILES, FONTS_FOLDER } from '../../shared/assets/asset-outputs.ts'
 import { type CompiledContent, type ContentOptions, outDirOf } from '../../shared/compile/compile-content.ts'
 import type {
   ContentCompileFailed,
@@ -229,6 +231,26 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       await chain
       if (latest === undefined) throw new Error(`content has errors:\n${latestErrors.join('\n')}`)
       return moduleCode(latest)
+    },
+
+    // A font's licence (the OFL asks that its text travel with the font) is written beside the subsets by the font build,
+    // but Vite bundles only what a module imports. So a build that carries font subsets also carries what sits with them
+    // that is not a subset, the map or the stylesheet: the licence texts, in the folder of the first subset.
+    async generateBundle(_output, bundle) {
+      const face = Object.keys(bundle)
+        .sort()
+        .find((file) => file.endsWith('.woff2'))
+      if (face === undefined || options === undefined) return
+      const folder = join(options.root, outDirOf(options), FONTS_FOLDER)
+      const found = await readdir(folder).catch(() => [])
+      for (const name of found.sort()) {
+        if (name.endsWith('.woff2') || name === FONT_FILES || name === FONT_CSS) continue
+        this.emitFile({
+          type: 'asset',
+          fileName: posix.join(posix.dirname(face), name),
+          source: await readFile(join(folder, name)),
+        })
+      }
     },
 
     async buildEnd() {

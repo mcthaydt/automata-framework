@@ -97,14 +97,14 @@ gate could run; the side session's list of what the framework could take over is
 
 Sonnet 5.5 (`session_01HNdX7HQTNnRKaroUir7cbf`), no subagents, from `main` `62a143ce` with the audit merged. One commit per
 finding or tight group, test first, each test watched failing. Chromium only (software GL); WebKit, Firefox, real devices and
-hosts are not run; no paid API call. **Progress: 0 of 18 findings (0%).** Stage 6 of 7 is this one, so the workstream is
+hosts are not run; no paid API call. **Progress: 4 of 18 findings (22%)** (B1, S6, S7, S1; S6 counts with B1). Stage 6 of 7 is this one, so the workstream is
 `(5 + done/18) / 7` of the way.
 
 | Finding | What | State | Commit |
 |---|---|---|---|
-| B1 + S6 | `/version` answers cross-origin; a failed check is "could not check", never "current"; a cross-origin journey | | |
-| S7 | Content entries load under plain Node; `no-eval` passes for Emberwick | | |
-| S1 | Flow, display and lost-picture words follow the language in force | | |
+| B1 + S6 | `/version` answers cross-origin; a failed check is "could not check", never "current"; a cross-origin journey | done (Chromium: net-ui browser suite 103 passed; unit tests in `pnpm check`) | `1961fc59` |
+| S7 | Content entries load under plain Node; `no-eval` passes for Emberwick | done (`automata check --only no-eval` on Emberwick: FAIL before, pass after) | `551a11f2` |
+| S1 | Flow, display and lost-picture words follow the language in force | done (unit tests; Emberwick journeys at the end) | `076ae045` |
 | S2 | The OFL text ships in a built game | | |
 | S3 | `automata words` tells a bad key, a rate limit and an outage from a refusal | | |
 | S4 + S5 | `bindWords`, `formatNumber`, default languages and one `matchLocale` in the framework; Emberwick's limit | | |
