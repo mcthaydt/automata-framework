@@ -97,7 +97,7 @@ gate could run; the side session's list of what the framework could take over is
 
 Sonnet 5.5 (`session_01HNdX7HQTNnRKaroUir7cbf`), no subagents, from `main` `62a143ce` with the audit merged. One commit per
 finding or tight group, test first, each test watched failing. Chromium only (software GL); WebKit, Firefox, real devices and
-hosts are not run; no paid API call. **Progress: 7 of 18 findings (39%)** (B1, S6, S7, S1, S2, S3, T7; S6 counts with B1, T7 with S3). Stage 6 of 7 is this one, so the workstream is
+hosts are not run; no paid API call. **Progress: 10 of 18 findings (56%)** (B1, S6, S7, S1, S2, S3, T7, S4, S5, T6; S6 counts with B1, T7 with S3, T6 with S4+S5). Stage 6 of 7 is this one, so the workstream is
 `(5 + done/18) / 7` of the way.
 
 | Finding | What | State | Commit |
@@ -106,8 +106,8 @@ hosts are not run; no paid API call. **Progress: 7 of 18 findings (39%)** (B1, S
 | S7 | Content entries load under plain Node; `no-eval` passes for Emberwick | done (`automata check --only no-eval` on Emberwick: FAIL before, pass after) | `551a11f2` |
 | S1 | Flow, display and lost-picture words follow the language in force | done (unit tests; Emberwick journeys at the end) | `076ae045` |
 | S2 | The OFL text ships in a built game | done (unit tests; Emberwick built into a temp folder in a test) | `156126ae` |
-| S3 + T7 | `automata words` tells a bad key, a rate limit and an outage from a refusal and stops at the first; the key is `AUTOMATA_ANTHROPIC_KEY`, then `ANTHROPIC_API_KEY` | done (against a local stand-in server only; the live call is not made) | _this commit_ |
-| S4 + S5 | `bindWords`, `formatNumber`, default languages and one `matchLocale` in the framework; Emberwick's limit | | |
+| S3 + T7 | `automata words` tells a bad key, a rate limit and an outage from a refusal and stops at the first; the key is `AUTOMATA_ANTHROPIC_KEY`, then `ANTHROPIC_API_KEY` | done (against a local stand-in server only; the live call is not made) | `d14076d8` |
+| S4 + S5 | `bindWords`, `formatNumber`, `DEFAULT_LOCALES` and one `matchLocale` in the framework; Emberwick measures 469 and its limit is 470 | done (`pnpm check` exit 0 on the tree; see "Open, for the Owner") | `77e57029` |
 | S8 | "+N more" never covers a label | | |
 | S9 | The photosensitivity warning says the game's own hazards | | |
 | T1 | `openLink` doc comment (and `noopener`) | | |
@@ -115,9 +115,24 @@ hosts are not run; no paid API call. **Progress: 7 of 18 findings (39%)** (B1, S
 | T3 | Interface sounds nothing plays | | |
 | T4 | Credit names in the font build's glyph gate | | |
 | T5 | Copy that fails the grandma test | | |
-| T6 | The Languages guide names the import | | |
+| T6 | The Languages guide names the import | done with S4 | `77e57029` |
 | T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | done with S3 | _with S3_ |
 | T8 | The SDK on the Node-only list | | |
+
+Stage 6 handoff at 90 minutes (the fixes session, `session_01HNdX7HQTNnRKaroUir7cbf`): last code commit `77e57029`, pushed.
+Done: B1+S6, S7, S1, S2, S3+T7, S4+S5, T6. **Resume at S8** (the "+N more" badge), then S9, T1, T2, T3, T4, T5, T8, then the closing
+run. Notes for the next session: (1) `ScrollList.svelte`'s badge is `position: sticky` inside the scroll region, so it will
+always cover whatever row is at the bottom of the viewport; the fix needs the badge outside the scrolling box (a frame with
+the region and the badge as siblings, the frame as the grid item, the same `min-height` reserve on both, and `count()`
+run again when the badge toggles, since it shrinks the region), and then a layout-contract rule that no text under
+`[data-scroll-region]` intersects `scroll-more`, checked at phone and compact size in the six languages (the Settings fixture
+with the Language group); only `ScrollList` and its unit test name `scroll-more`. (2) A commit that touches
+`packages/automata` runs the hook for about 9 minutes; the whole `pnpm check` takes about 12 and passes on `77e57029`. (3) The
+tools' own copies of `fontCoverage`, `catalogCharacters` and `packageCatalogs` were kept (the audit's "drop them once S7 is
+fixed" is not done: `packageCatalogs` is bound to tools' `Files` service, and the pin tests keep the copies equal) and Emberwick's
+`ship.config.ts` still writes the six tags out; say if the Owner wants those moved. (4) `sim`'s own root, `replay` and `testing`
+entries still have parameter properties plain Node cannot load; content does not reach them. (5) FigureBuilder is a copy at
+`d6e3c9fb` in `vendor/FigureBuilder` (container-local, not in `git status`).
 
 ## Workstream 2 sessions (slice 1, the prologue)
 
