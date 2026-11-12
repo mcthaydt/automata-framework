@@ -33,3 +33,23 @@ shows at a whole scale (2x here). A 2-pixel cell is one field pixel, which `cont
 the Nyquist limit, where the pass fades the mesh to nothing (`fade` 0 at 0.5 cycles a pixel), so the finest mesh the field can show is 3
 field pixels, 6 on the screen. Matching the old 4 needs the panel drawn after the letterbox's upscale, on screen pixels: a core shape (a
 pass that runs on the screen), not content, and not built (an open proposal).
+
+## The wall (item 6)
+
+`wall-before-after-play.png` (before left, after right; `ours-play-wall-1024x768.png` is the after). The old wall is two bands: a glazed
+tile to 1.14 m (`DEFAULT_TRIM.wainscot`) under plaster. Ours is now two bands too: the level's solid walls of the rooms with the old
+default trim (17 walls) carry a `dado` of the game's new `ward-wainscot` swatch (`content/world-swatches/ward-wainscot.toml`) at 1.14 m,
+under the `ward-plaster` above. It reads on the east wall behind the desk and the west wall. The contrast is low because both bands
+are the sand ramp, and the desk lamp's pool is the old game's (`#ffb866`, 5 m, level 1.05), so it still lands warm and wide on the sand.
+
+What the palette has and lacks:
+
+| Old colour | Where | Nearest DUEL step | Distance (RGB / Lab) |
+|---|---|---|---|
+| `#ccc3b1`, the tile's base | `src/render/assets.ts`, wainscot canvas | sand 5 `#ccc3b1`, **exact** | 0 / 0 |
+| `#858667`, the plaster's mean | `public/art/plaster.png` | sand 1 `#857565` | 17.1 / 11.9 |
+| | | by Lab, `#9e8a6e` (ramp 12 step 5) | 26.3 / 9.7 |
+
+So the gap is the plaster's olive alone: no DUEL step is olive-khaki (the ramps with olive, 20 and 23, are far more saturated or darker).
+The wainscot has no gap: the old tile is cream, and it looked teal in the old frames because the old room's green light and grade lay over
+it. Ours keeps sand 1 for the plaster (the nearest by RGB, as before). The editor gaps ledger's row 16 says so.

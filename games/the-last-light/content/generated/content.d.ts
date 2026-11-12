@@ -770,7 +770,7 @@ declare module 'virtual:automata/content' {
     }
   }
 
-  export type WorldSwatchId = 'ward-plaster'
+  export type WorldSwatchId = 'ward-plaster' | 'ward-wainscot'
   export type WorldSwatch = {
     readonly about?: string
     readonly accent?: string

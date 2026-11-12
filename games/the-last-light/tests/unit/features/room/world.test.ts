@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LEVEL, PAINT, WORLD } from '#src/features/room/room.ts'
+import { LEVEL, LIBRARY, PAINT, WORLD } from '#src/features/room/room.ts'
 
 // The ward as the screen builds it from the level. The builder reports what it could not use as sentences and draws the rest,
 // so a lamp it refuses is not a failure anywhere: the room is simply darker, or lit from the wrong place. These tests are where
@@ -230,5 +230,27 @@ describe('the ward\u2019s props face as the old game turned them', () => {
 
   it('turns the bed’s blockout a quarter the other way, to put its head at the north end', () => {
     expect(turnOf((LEVEL.props ?? []).find((prop) => prop.id === 'bed')?.angle)).toBe(turnOf(BED_ANGLE))
+  })
+})
+
+// The old walls are two bands: cream glazed tile to 1.14 m (`DEFAULT_TRIM.wainscot`, `src/game/sector-format.ts` at 92e6704, painted
+// from `#ccc3b1`, which is a DUEL step: sand 5) under plaster above. A room with the old default trim carries the tile as a wall `dado`;
+// the rooms that name their own trim (the counter, the doorways) and the walls with a door, a window or an opening do not.
+describe('the ward’s walls', () => {
+  const dadoPieces = WORLD.pieces.filter((piece) => piece.id.split(':')[1] === 'dado')
+
+  it('are tile under plaster: the old wainscot, 1.14 m of glazed tile along the solid walls', () => {
+    expect(dadoPieces.length).toBeGreaterThan(10)
+    for (const piece of dadoPieces) expect(piece.surface).toBe('ward-wainscot')
+    const top = Math.max(...dadoPieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === 1)))
+    expect(top).toBeCloseTo(1.14, 2)
+  })
+
+  it('stand on the old tile’s own colour: DUEL sand step 5, #ccc3b1, with no gap to the palette', () => {
+    expect(LIBRARY.swatches['ward-wainscot']).toMatchObject({ ramp: 'sand', step: 5 })
+  })
+
+  it('leave the counter and the doorways bare, as the old trim does', () => {
+    for (const piece of dadoPieces) expect(['counter', 'doorway']).not.toContain(piece.sector)
   })
 })

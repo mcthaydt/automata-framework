@@ -3871,7 +3871,7 @@
       "aberration": 0.25,
       "balance": 0.6,
       "brightness": 1.55,
-      "cell": 2,
+      "cell": 1,
       "gamma": 1,
       "glow": 0.3,
       "glowRadius": 1.5,
@@ -6116,6 +6116,19 @@
         "photo": "plaster",
         "seed": 1,
         "wear": 0.15
+      }
+    },
+    "ward-wainscot": {
+      "accent": "groutLight",
+      "ramp": "sand",
+      "step": 5,
+      "texture": {
+        "cluster": 2,
+        "contrast": 0.035,
+        "facet": 0,
+        "flatten": 0.5,
+        "photo": "wallTiles",
+        "seed": 73
       }
     }
   }
