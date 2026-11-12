@@ -44,6 +44,24 @@ describe('startTauriSession', () => {
     )
   })
 
+  it('fails naming the call when the driver does not answer in time, instead of hanging the journey', async () => {
+    // A driver that takes the connection and never answers; it stops only when the request is aborted.
+    const fetcher = (_url: string | URL | Request, init?: RequestInit): Promise<Response> =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(init.signal?.reason))
+      })
+    await expect(
+      startTauriSession('/app', { base: 'http://127.0.0.1:4444', fetcher, requestTimeoutMs: 20 }),
+    ).rejects.toThrow(/WebDriver POST \/session did not answer within 20 ms/)
+  })
+
+  it('names the call when the driver answers with something that is not JSON', async () => {
+    const fetcher = async (): Promise<Response> => new Response('Bad Gateway', { status: 502 })
+    await expect(startTauriSession('/app', { base: 'http://127.0.0.1:4444', fetcher })).rejects.toThrow(
+      /WebDriver POST \/session failed: 502 Bad Gateway/,
+    )
+  })
+
   it('waits until a script answers truthy, and names the script when it never does', async () => {
     let calls = 0
     const { fetcher } = fakeFetch((method, path) => {

@@ -20,11 +20,21 @@ export function missingDesktopTools(isInstalled: (tool: string) => boolean): str
   return DESKTOP_TOOLS.filter(([tool]) => !isInstalled(tool)).map(([tool, install]) => `${tool}: ${install}`)
 }
 
-/** Where tauri-driver listens, how to reach it (a fake in tests), and how often `until` asks again. */
+/**
+ * The longest one WebDriver request may take. Starting the app is the slowest call (well under a second here); a
+ * driver that takes the connection and never answers would otherwise hold the journey until Vitest's 30 minutes.
+ */
+const REQUEST_TIMEOUT_MS = 60_000
+
+/**
+ * Where tauri-driver listens, how to reach it (a fake in tests), how often `until` asks again, and how long one
+ * request may take.
+ */
 export interface WebDriverOptions {
   readonly base: string
   readonly fetcher?: typeof fetch
   readonly pollMs?: number
+  readonly requestTimeoutMs?: number
 }
 
 /** One running app: scripts run in its window, and ending the session stops the app if it still runs. */
@@ -43,15 +53,32 @@ export async function startTauriSession(
 ): Promise<TauriSession> {
   const fetcher = options.fetcher ?? fetch
   const pollMs = options.pollMs ?? 250
+  const requestTimeoutMs = options.requestTimeoutMs ?? REQUEST_TIMEOUT_MS
 
   const call = async (method: string, path: string, body?: unknown): Promise<unknown> => {
-    const response = await fetcher(`${options.base}${path}`, {
-      method,
-      headers: { 'content-type': 'application/json' },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    })
-    const { value } = (await response.json()) as { value: unknown }
-    if (!response.ok) throw new Error(`WebDriver ${method} ${path} failed: ${JSON.stringify(value)}`)
+    const what = `WebDriver ${method} ${path}`
+    let response: Response
+    let text: string
+    try {
+      response = await fetcher(`${options.base}${path}`, {
+        method,
+        headers: { 'content-type': 'application/json' },
+        signal: AbortSignal.timeout(requestTimeoutMs),
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      })
+      text = await response.text()
+    } catch (cause) {
+      if (cause instanceof DOMException && cause.name === 'TimeoutError')
+        throw new Error(`${what} did not answer within ${requestTimeoutMs} ms`, { cause })
+      throw cause
+    }
+    let value: unknown
+    try {
+      value = (JSON.parse(text) as { value: unknown }).value
+    } catch {
+      throw new Error(`${what} failed: ${response.status} ${text}`)
+    }
+    if (!response.ok) throw new Error(`${what} failed: ${JSON.stringify(value)}`)
     return value
   }
 
