@@ -114,6 +114,9 @@ export function sceneOf(options: StageOptions) {
     fade.alpha = 0
     stage.ui.addChild(fade)
 
+    // The cutscene playing, by id: the lights-out scene keys the lamps the old script names and leaves the rest, which then burn as the level
+    // lit them (the exit lamp at 1.25, not the 0.95 the dark room has), so the dark room's levels sit under the scene's own keys.
+    let playing: string | undefined
     const cutscene = cutsceneStage3d({
       camera: {
         set: ({ pos, look, lens }) => {
@@ -131,7 +134,10 @@ export function sceneOf(options: StageOptions) {
           drawingShot = undefined
         },
       },
-      pieces: apply,
+      pieces: (states) =>
+        apply(
+          playing === 'lightsOut' ? { ...states, lamps: { ...pieceStatesOf(true).lamps, ...states.lamps } } : states,
+        ),
       actor: (who) => options.actors.get(who),
       fade: (value) => {
         fade.alpha = value
@@ -181,6 +187,7 @@ export function sceneOf(options: StageOptions) {
         for (const event of result.events) {
           if (event.type === 'cutscene.started') {
             const id = (event.payload as { id: string }).id
+            playing = id
             const script = options.play.scripts.find((each) => each.id === id)
             const placed =
               script === undefined || live.sim === undefined
@@ -189,7 +196,10 @@ export function sceneOf(options: StageOptions) {
                     anchorsOf(options.play)(live.sim as unknown as SimContext, name),
                   )
             if (placed?.ok === true) cutscene.start(placed.script)
-          } else if (event.type === 'cutscene.ended') cutscene.end()
+          } else if (event.type === 'cutscene.ended') {
+            playing = undefined
+            cutscene.end()
+          }
         }
       },
       draw: (frame) => {

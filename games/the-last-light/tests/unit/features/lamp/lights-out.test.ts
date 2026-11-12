@@ -23,20 +23,20 @@ const burning = (): Record<string, number> =>
 describe('the lamps once the lights have gone', () => {
   it('burn at the levels the old game set: the hall 0.1, the ward 0.12, the exit 0.95, the desk lamp out', () => {
     const levels = burning()
-    expect(levels.hallLamp).toBeCloseTo(0.1, 9)
-    expect(levels.wardLamp).toBeCloseTo(0.12, 9)
-    expect(levels.exitLamp).toBeCloseTo(0.95, 9)
+    expect(levels.hallLamp).toBeCloseTo(0.1 * FILE.dim, 9)
+    expect(levels.wardLamp).toBeCloseTo(0.12 * FILE.dim, 9)
+    expect(levels.exitLamp).toBeCloseTo(0.95 * FILE.dim, 9)
     expect(levels.deskLamp).toBe(0)
   })
 
   it('leave the corridor bulb at 0.3 of the 0.12 it had, as the old dress had it', () => {
-    expect(burning().corridorLamp).toBeCloseTo(0.036, 9)
+    expect(burning().corridorLamp).toBeCloseTo(0.036 * FILE.dim, 9)
   })
 
   it('leave every other lamp as the level lit it', () => {
     const named = new Set(Object.keys(FILE.levels))
     for (const [id, level] of Object.entries(burning()))
-      if (!named.has(id)) expect({ id, level }).toEqual({ id, level: authored[id] })
+      if (!named.has(id)) expect({ id, level }).toEqual({ id, level: (authored[id] ?? 0) * FILE.dim })
   })
 
   it('name only lamps the level has, and a lamp that burns at all in the level', () => {
@@ -48,5 +48,21 @@ describe('the lamps once the lights have gone', () => {
       if (level > 0)
         expect(authored[id], `"${id}" is out in the level, so it cannot burn at ${level}`).toBeGreaterThan(0)
     }
+  })
+
+  it('with `dim` every burning lamp is that share of what it would be, and a lamp the level has out stays out', () => {
+    const lamps = [
+      { id: 'a', level: 1 },
+      { id: 'b', level: 0 },
+      { id: 'c', level: 0.5 },
+    ]
+    const at = (file: ReturnType<typeof lightsOutSchema.parse>) => lightsOutStates(file, lamps).lamps
+    expect(lightsOutSchema.parse({ levels: {} }).dim).toBe(1)
+    expect(at(lightsOutSchema.parse({ levels: {} }))).toEqual({})
+    expect(at(lightsOutSchema.parse({ levels: { a: 0.5 }, dim: 0.5 }))).toEqual({
+      a: { level: 0.25 },
+      c: { level: 0.5 },
+    })
+    expect(() => lightsOutSchema.parse({ levels: {}, dim: 1.5 })).toThrow()
   })
 })

@@ -3076,6 +3076,7 @@
     }
   },
   "lights-out": {
+    "dim": 0.4,
     "levels": {
       "corridorLamp": 0.036,
       "deskLamp": 0,

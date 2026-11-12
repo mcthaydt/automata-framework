@@ -2,6 +2,11 @@
 # hall's pendant to 0.1, the ward's to 0.12, keeps the exit lamp at 0.95 (the flicker at its mean) and puts the desk lamp out.
 # The corridor's bulb, already dead, is 0.3 of the 0.12 it had. A lamp not named here burns as the level lit it. Numbers are the
 # level a lamp burns at (the level file's `level` is what it burns at when the night begins). Nothing here changes the sim.
+# Every lamp, the named ones at the levels above, takes this share more once the lights have gone. At the old game's numbers the exit lamp
+# beside the corridor's far wall still drew it at twice the old luma (measured, 94 against 43) and the side walls at twice theirs: the old
+# game shows linear light raw, so a wall near a lamp stays dark, where the framework's sRGB light draws it bright.
+dim = 0.4
+
 [levels]
 deskLamp = 0
 hallLamp = 0.1

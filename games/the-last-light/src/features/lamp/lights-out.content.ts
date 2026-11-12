@@ -11,6 +11,12 @@ import { z } from 'zod'
 export const lightsOutSchema = z.strictObject({
   /** The level each named lamp burns at after lights out, by the lamp's id; a lamp not named burns as the level lit it. */
   levels: z.record(z.string(), z.number().min(0)),
+  /**
+   * A share every lamp's level is multiplied by once the lights have gone (default 1, the levels as written). The old game shows its
+   * linear light raw, so close to a lamp a wall stays dark; the framework's `srgb` light multiplies the sRGB colour and draws the same
+   * lamp much brighter on the wall beside it. Play's `[light] lamps` gain was set on the lit room, so the dark room asks for its own.
+   */
+  dim: z.number().min(0).max(1).default(1),
 })
 
 export type LightsOutFile = z.infer<typeof lightsOutSchema>
@@ -25,7 +31,7 @@ export const lightsOutContent = defineContentSchema(
 
 /**
  * The pieces' states once the lights are out: each named lamp at its level. A lamp's state scales the level the level file gave
- * it, so the state is the wanted level over the authored one; a lamp the level has out (or does not have) stays as it is.
+ * it, so the state is the wanted level over the authored one; a lamp the level has out (or does not have) stays as it is. `dim` multiplies every burning lamp.
  */
 export function lightsOutStates(
   file: LightsOutFile,
@@ -34,8 +40,10 @@ export function lightsOutStates(
   const states: Record<string, LampState> = {}
   for (const lamp of lamps) {
     const wanted = file.levels[lamp.id]
-    if (wanted === undefined) continue
-    states[lamp.id] = { level: lamp.level > 0 ? wanted / lamp.level : 0 }
+    // A lamp the file does not name burns as the level lit it, less the `dim` every lamp takes.
+    if (wanted === undefined && file.dim === 1) continue
+    if (lamp.level <= 0) continue
+    states[lamp.id] = { level: ((wanted ?? lamp.level) * file.dim) / lamp.level }
   }
   return { ...noPieceStates(), lamps: states }
 }

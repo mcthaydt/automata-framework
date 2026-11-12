@@ -715,6 +715,7 @@ declare module 'virtual:automata/content' {
   }
 
   export type LightsOut = {
+    readonly dim: number
     readonly levels: Readonly<Record<string, number>>
   }
 
