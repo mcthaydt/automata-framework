@@ -126,8 +126,17 @@ export function dress(
       decals.push(...hair.decals)
       Object.assign(made, hair.materials)
     } else if ('eyes' in item) {
-      decals.push(...face(s, item.eyes, item.lids ?? 'lid', item.brows ?? 'brow'))
-      faceLook = { shape: m.face, eyes: item.eyes, white: item.white, brows: item.brows, lips: item.lips }
+      decals.push(...face(s, item.eyes, item.lids ?? 'lid', item.brows ?? 'brow', item.mark))
+      faceLook = {
+        shape: m.face,
+        eyes: item.eyes,
+        white: item.white,
+        brows: item.brows,
+        lips: item.lips,
+        ...(item.nose === false ? { nose: false } : {}),
+        ...(item.mouth === false ? { mouth: false } : {}),
+        ...(item.keep ? { keep: true } : {}),
+      }
       if (item.stubble)
         parts.push(
           box(
@@ -185,7 +194,13 @@ export function dress(
  */
 export const EXPRESSIONS = ['neutral', 'fear', 'surprised', 'sad', 'angry', 'talk', 'smile', 'dead'] as const
 export type Expression = (typeof EXPRESSIONS)[number]
-function face(s: Skeleton, eyes: string, lid: string, brow: string): Decal[] {
+function face(
+  s: Skeleton,
+  eyes: string,
+  lid: string,
+  brow: string,
+  mark: { size?: [number, number]; x?: number } = {},
+): Decal[] {
   const g = s.genes,
     hw = (g.head * g.headWidth) / 2,
     hd = (g.head * g.headDepth) / 2,
@@ -193,10 +208,19 @@ function face(s: Skeleton, eyes: string, lid: string, brow: string): Decal[] {
     front = hd * (1 + g.faceAhead) + 0.006
   const out: Decal[] = []
   for (const [, x] of sides) {
-    const at: V3 = [x * hw * 0.42, h * 0.45, front],
-      normal: V3 = [x * 0.5, 0, 0.86]
+    const at: V3 = [x * hw * (mark.x ?? 0.42), h * 0.45, front],
+      normal: V3 = [x * 0.5, 0, 0.86],
+      size = mark.size ? { size: mark.size } : {}
     out.push(
-      { bone: J.head, at, normal, material: eyes, when: ['neutral', 'sad', 'angry', 'talk'], blink: false },
+      {
+        bone: J.head,
+        at,
+        normal,
+        material: eyes,
+        ...size,
+        when: ['neutral', 'sad', 'angry', 'talk'],
+        blink: false,
+      },
       {
         bone: J.head,
         at: [at[0], h * 0.47, front],
@@ -206,7 +230,7 @@ function face(s: Skeleton, eyes: string, lid: string, brow: string): Decal[] {
         when: ['fear', 'surprised'],
         blink: false,
       },
-      { bone: J.head, at, normal, material: lid, blink: true },
+      { bone: J.head, at, normal, material: lid, ...size, blink: true },
       // Brows: worried (fear, sad) lifts the inner end, angry drops it.
       { bone: J.head, at: [x * hw * 0.25, h * 0.6, front], normal, material: brow, when: ['fear', 'sad'] },
       {

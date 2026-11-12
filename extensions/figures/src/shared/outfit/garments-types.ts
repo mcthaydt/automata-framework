@@ -17,7 +17,23 @@ export type BaseGarment =
   /** `tie`: the band a pony or a bun is tied with (a swatch); left out, a band of the hair's own. */
   | { hair: string; style: string | HairStyle; tie?: string }
   /** The eyes, the marks face's lids and brows, and the drawn face's (paint.ts) whites and lips. */
-  | { eyes: string; stubble?: string; lids?: string; brows?: string; white?: string; lips?: string }
+  | {
+      eyes: string
+      stubble?: string
+      lids?: string
+      brows?: string
+      white?: string
+      lips?: string
+      /** The neutral eye mark of an undrawn face (a decal): its size in texels (default 1 by 1) and its set, a share of the
+       * head's half-width either side of the centre (default 0.42). */
+      mark?: { size?: [number, number]; x?: number }
+      /** The drawn face's nose and mouth: false leaves that mark off (both on by default). */
+      nose?: boolean
+      mouth?: boolean
+      /** The drawn face's eyes kept in the face's visible rows: where hair hangs over the eye row, they are drawn on the skin
+       * that shows below it, not left out. */
+      keep?: boolean
+    }
 /** Materials of the body's regions; garments repaint them. */
 export interface Regions {
   skin: string
@@ -54,6 +70,9 @@ export interface FaceLook {
   white?: string
   brows?: string
   lips?: string
+  nose?: boolean
+  mouth?: boolean
+  keep?: boolean
 }
 
 // ─── Hooks: how a fork adds garments and tunes the outfit, with nothing registered in base ───

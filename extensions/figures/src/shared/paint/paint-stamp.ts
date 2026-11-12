@@ -76,8 +76,23 @@ export function stampFace(
   const A = F.asymmetry,
     lowered = Math.abs(A) >= 0.5 ? Math.sign(A) : 0,
     dk = f.detail >= 6 ? 2 : 1
-  const near = d > 0 ? f.eyes[0] : f.eyes[1],
-    I = Math.floor(view === 2 ? near[1] : f.centre[1])
+  const near = d > 0 ? f.eyes[0] : f.eyes[1]
+  let I = Math.floor(view === 2 ? near[1] : f.centre[1])
+  const noNose = !!f.off?.includes('nose'),
+    noMouth = !!f.off?.includes('mouth')
+  // `keep`: hair hanging over the eye row (a fringe past the brow) hides the eyes; they drop to the first rows it leaves bare,
+  // at most three, so a face under a fringe keeps its eyes.
+  if (f.keep) {
+    const covered = (row: number) => {
+      for (const e of view === 2 ? [near] : f.eyes)
+        for (let y = row - 1; y <= row + 1; y++)
+          for (let x = Math.floor(e[0] - ew / 2) - 1; x <= Math.ceil(e[0] + ew / 2) + 1; x++)
+            if (inside(x, y) && part[y * w + x] >= HAIR_SEAMS[0] && part[y * w + x] < HAIR_SEAMS[1])
+              return true
+      return false
+    }
+    for (let k = 0; k < 3 && covered(I); k++) I++
+  }
   /** The face's last skin texel from `x` toward `d` on row `y`: its front edge, inside the outline. */
   const edge = (x: number, y: number) => {
     while (own(x + d, y)) x += d
@@ -353,7 +368,9 @@ export function stampFace(
       a0 = Math.floor(c2 - nh),
       a = a0 + off,
       b = mirror(a0) + off
-    if (big) {
+    if (noNose) {
+      // Left off.
+    } else if (big) {
       for (let y = I + 1; y < N - 1; y++) {
         if (y >= N - 1 - run) shade(xr - 1, y, -1)
         shade(xr, y, 1)
@@ -363,7 +380,7 @@ export function stampFace(
     } else shade(xr, N, 1)
     cheek(b)
     const ma = Math.floor(c2 - mh)
-    lips(ma, mirror(ma), xc)
+    if (!noMouth) lips(ma, mirror(ma), xc)
   } else if (view === 1) {
     // The near eye whole, the far one foreshortened by a texel; both look where the face does.
     // The far eye keeps a texel of cheek between it and the contour, and the near one a texel of the bridge from it.
@@ -383,7 +400,9 @@ export function stampFace(
     // The nose: its ridge from between the eyes to the tip, lit, the shadow beside it; the nostril on the near side.
     const off = big ? Math.round(A * dk) : 0,
       tip = Math.floor(f.nose[0]) + off
-    if (big) {
+    if (noNose) {
+      // Left off.
+    } else if (big) {
       for (let y = I + 1; y < N; y++) {
         const x = Math.floor(f.centre[0] + ((f.nose[0] - f.centre[0]) * (y - I)) / (N - I)) + off
         if (y < N - 1 && y >= N - 1 - run) shade(x, y, -1)
@@ -395,7 +414,7 @@ export function stampFace(
     cheek(tip + 1)
     const cm = Math.floor(f.mouth[0])
     // The mouth wider on the near side, its far corner foreshortened: two texels of lip between the corners at least.
-    lips(cm - (d > 0 ? mh : Math.max(0, mh - 1)), cm + (d > 0 ? Math.max(0, mh - 1) : mh), cm)
+    if (!noMouth) lips(cm - (d > 0 ? mh : Math.max(0, mh - 1)), cm + (d > 0 ? Math.max(0, mh - 1) : mh), cm)
   } else {
     // The eye from the side, a texel in from the face's front: the lash over it, the iris at its front, the white behind.
     // Big: as the front's eye seen edge on, a texel of the lid's skin in front of it: the lash three texels back along
@@ -434,20 +453,22 @@ export function stampFace(
     }
     brow(xf + d, big ? 4 : 2, -d, seen && !behind)
     // The nostril's wing behind the tip, which stands off the face.
-    shade(Math.floor(f.nose[0]) - (big ? 2 : 1) * d, N, big ? 2 : 1)
+    if (!noNose) shade(Math.floor(f.nose[0]) - (big ? 2 : 1) * d, N, big ? 2 : 1)
     // The lips at the face's front on their rows: the upper dark with the mouth's corner behind it, the lower lit.
     const xm = edge(Math.floor(f.mouth[0]), M)
-    put(xm, M, f.lips[0])
-    if (open) {
-      put(xm, M + 1, f.lash)
-      put(xm - d, M + 1, f.lash)
-      if (big && chin(xm) >= 3) put(edge(Math.floor(f.mouth[0]), M + 2), M + 2, f.lips[1])
-    } else if (smile) shade(xm - 2 * d, M - 1, 2)
-    else if (big) {
-      shade(xm - d, M, 2)
-      const xl = edge(Math.floor(f.mouth[0]), M + 1)
-      if (lipRows >= 1 && chin(xl) >= 2) put(xl, M + 1, f.lips[1])
-      if (lipRows >= 2 && chin(xl) >= 3) put(edge(Math.floor(f.mouth[0]), M + 2), M + 2, f.lips[1])
+    if (!noMouth) {
+      put(xm, M, f.lips[0])
+      if (open) {
+        put(xm, M + 1, f.lash)
+        put(xm - d, M + 1, f.lash)
+        if (big && chin(xm) >= 3) put(edge(Math.floor(f.mouth[0]), M + 2), M + 2, f.lips[1])
+      } else if (smile) shade(xm - 2 * d, M - 1, 2)
+      else if (big) {
+        shade(xm - d, M, 2)
+        const xl = edge(Math.floor(f.mouth[0]), M + 1)
+        if (lipRows >= 1 && chin(xl) >= 2) put(xl, M + 1, f.lips[1])
+        if (lipRows >= 2 && chin(xl) >= 3) put(edge(Math.floor(f.mouth[0]), M + 2), M + 2, f.lips[1])
+      }
     }
   }
 }

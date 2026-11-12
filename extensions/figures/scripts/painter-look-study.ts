@@ -114,7 +114,59 @@ const skinned =
     },
   })
 
+/** A low fringe, to the cheekbone: past the brow, over the eyes (hair.ts `Fringe`, length 1.3). */
+const LOW_FRINGE: HairStyle = {
+  about: 'bobFull with a fringe past the brow',
+  finish: 'smooth',
+  pieces: [
+    shell('bobFull'),
+    { fringe: { ...(FRINGE as { fringe: object }).fringe, length: 1.3, count: 11 } } as Piece,
+  ],
+}
+/** The `eyes` garment's options, and any change to the drawn face, laid over the study figure. */
+const eyed =
+  (extra: object, face: object = {}): Look['patch'] =>
+  (def) => ({
+    ...def,
+    face: { ...def.face, ...face },
+    outfits: {
+      ...def.outfits,
+      street: def.outfits.street.map((g) => ('eyes' in g ? ({ ...g, ...extra } as Garment) : g)),
+    },
+  })
+
 export const LOOKS: Readonly<Record<string, readonly Look[]>> = {
+  eyes: [
+    {
+      label: 'before: the drawn face under a low fringe',
+      note: 'the fringe past the brow hides the eyes',
+      style: LOW_FRINGE,
+    },
+    {
+      label: 'after: keep',
+      note: 'the same, with `keep`: the eyes drawn on the skin the fringe leaves',
+      style: LOW_FRINGE,
+      patch: eyed({ keep: true }),
+    },
+    {
+      label: 'after: nose and mouth off',
+      note: 'the drawn face with `nose: false` and `mouth: false`',
+      style: 'bobFull',
+      patch: eyed({ nose: false, mouth: false }),
+    },
+    {
+      label: 'before: the eye marks of an undrawn face',
+      note: 'decal eyes 1 by 1 at .42 of the half-width',
+      style: 'bobFull',
+      patch: eyed({}, { drawn: false }),
+    },
+    {
+      label: 'after: mark size 1 by 2, x .6',
+      note: 'the same eye mark 2 tall and set wider (`mark`)',
+      style: 'bobFull',
+      patch: eyed({ mark: { size: [1, 2], x: 0.6 } }, { drawn: false }),
+    },
+  ],
   skin: [
     {
       label: 'before: skinWarm',

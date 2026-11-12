@@ -111,6 +111,7 @@ that draws a base figure with it and without it:
   stage: `stage/stage.test.ts`, `stage/depth-cases.test.ts`; a base figure through `stageFrame` with the light hook, a fabric
   and world lamps: `stage/light.test.ts`;
 - the face's tone budget (`Material.face.light`) and the `skinFair` swatch: `paint/face-tone.test.ts`;
+- the `eyes` garment's face options (`mark`, `nose`, `mouth`, `keep`): `figure/eye-marks.test.ts`;
 - the diversity sliders and pieces, each drawn with and without it (at its default the pair is unchanged): fat
   (`body/fat.test.ts`), the face at D2 (`body/face-d2.test.ts`), the eyes (`figure/eyes.test.ts`), asymmetry
   (`body/asymmetry.test.ts`), `bust` and `seat` (`body/bust-seat.test.ts`); every slider pushed to either end:

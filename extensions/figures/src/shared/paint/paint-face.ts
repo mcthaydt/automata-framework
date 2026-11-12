@@ -61,6 +61,10 @@ export interface FaceStamp {
   brow: number
   lips: [number, number, number]
   shape: HeadShape
+  /** Marks the outfit leaves off (`eyes` garment: `nose: false`, `mouth: false`). */
+  off?: ('nose' | 'mouth')[]
+  /** The eyes drawn on the skin that shows below hair hanging over the eye row (`eyes` garment: `keep`), not left out. */
+  keep?: boolean
   blink: boolean
   /**
    * The mood's marks (figure.ts face tags): 'angry' the brows' inner ends down and the mouth's corners turned down;
