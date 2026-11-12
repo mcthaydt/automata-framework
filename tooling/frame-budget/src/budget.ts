@@ -1,7 +1,9 @@
 // The frame-budget check: compares the probe's results with the budget recorded in
 // tooling/frame-budget/budget.json. It fails closed: only a well-formed, hardware-rendered result for every
 // budgeted project, measured on the budget's own GPU and within it, passes. Like S8's `overBudget`, a number
-// that was not measured is a failure, never a pass.
+// that was not measured is a failure, never a pass. The one exception is the Owner's ruling that a software
+// renderer counts as a skip: a project the probe skipped for one leaves a skip record, which stands in for its
+// result, and a run where nothing could be measured is `skipped`, not a failure.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { z } from 'zod'
@@ -46,6 +48,25 @@ export const FrameBudgetResult = z.object({
 })
 export type FrameBudgetResult = z.infer<typeof FrameBudgetResult>
 
+const SKIP_SCHEMA = 'af-frame-budget-skip/1'
+
+/**
+ * What the probe writes in place of a result for a project it skipped because the renderer is software. Without it
+ * the check could not tell a skipped project from one whose probe never ran, which stays a failure.
+ */
+export const FrameBudgetSkip = z.object({
+  schema: z.literal(SKIP_SCHEMA),
+  project: z.string().min(1),
+  skippedAt: z.string(),
+  reason: z.literal('software-renderer'),
+  /** The unmasked WebGL renderer string that was found to be software. */
+  gpu: z.string(),
+})
+export type FrameBudgetSkip = z.infer<typeof FrameBudgetSkip>
+
+const isSkipRecord = (input: unknown): boolean =>
+  typeof input === 'object' && input !== null && (input as { schema?: unknown }).schema === SKIP_SCHEMA
+
 const projectBudget = z.object({ workMsP95: z.number().positive(), intervalMsP95: z.number().positive() })
 
 export const BudgetFile = z.discriminatedUnion('status', [
@@ -71,8 +92,9 @@ export const BudgetFile = z.discriminatedUnion('status', [
 export type BudgetFile = z.infer<typeof BudgetFile>
 
 /**
- * `skipped` is not a failure: every result was drawn by a software renderer (a runner with no GPU), so no frame
- * time was measured that a budget could judge. It is the only verdict besides `pass` that exits 0.
+ * `skipped` is not a failure: every result was drawn by a software renderer, or its project skipped for one (a
+ * runner with no GPU), so no frame time was measured that a budget could judge. It is the only verdict besides
+ * `pass` that exits 0.
  */
 export type Verdict = 'pass' | 'skipped' | 'over' | 'unset' | 'not-comparable' | 'invalid'
 
@@ -108,16 +130,33 @@ export function checkFrameBudget(budgetInput: unknown, resultInputs: readonly un
     add('invalid', 'INVALID no probe results: run `pnpm test:frame-budget` first')
 
   const results: FrameBudgetResult[] = []
+  const skips: FrameBudgetSkip[] = []
   for (const [index, input] of resultInputs.entries()) {
+    if (isSkipRecord(input)) {
+      const skip = FrameBudgetSkip.safeParse(input)
+      if (!skip.success) add('invalid', `INVALID result ${index + 1}: ${z.prettifyError(skip.error)}`)
+      // A record that names a GPU is no excuse for a missing result: only a software renderer is a skip.
+      else if (!isSoftwareGpu(skip.data.gpu))
+        add(
+          'invalid',
+          `INVALID ${skip.data.project}: skipped for a software renderer, but ${skip.data.gpu} is not a software renderer`,
+        )
+      else skips.push(skip.data)
+      continue
+    }
     const parsed = FrameBudgetResult.safeParse(input)
     if (parsed.success) results.push(parsed.data)
     else add('invalid', `INVALID result ${index + 1}: ${z.prettifyError(parsed.error)}`)
   }
 
-  // Every result drawn in software: the runner has no GPU, so there is nothing to compare. That is not a failure.
-  const allSoftware = results.length > 0 && results.every((result) => isSoftwareGpu(result.environment.gpu))
+  // Every result drawn in software, or skipped for it: the runner has no GPU, so there is nothing to compare. That
+  // is not a failure.
+  const allSoftware =
+    results.length + skips.length > 0 && results.every((result) => isSoftwareGpu(result.environment.gpu))
   if (allSoftware) {
-    const renderers = [...new Set(results.map((result) => result.environment.gpu))].join(', ')
+    const renderers = [
+      ...new Set([...results.map((r) => r.environment.gpu), ...skips.map((s) => s.gpu)]),
+    ].join(', ')
     add(
       'skipped',
       `skipped: drawn by a software renderer (${renderers}), so the frame budget cannot be measured here`,
@@ -132,6 +171,11 @@ export function checkFrameBudget(budgetInput: unknown, resultInputs: readonly un
       }
     }
   }
+
+  // These lines only report. An all-software run is already `skipped` by the line above; beside measured hardware
+  // results the skipped projects must not turn the run into one that claims nothing was measured.
+  for (const skip of skips)
+    add('pass', `skipped ${skip.project}: software renderer (${skip.gpu}), nothing was measured`)
 
   if (budget.success && budget.data.status === 'unset') {
     add(
@@ -170,9 +214,9 @@ export function checkFrameBudget(budgetInput: unknown, resultInputs: readonly un
       }
       compareProject(result, limits, add)
     }
-    const measured = new Set(results.map((result) => result.project))
+    const accounted = new Set([...results, ...skips].map((each) => each.project))
     for (const project of Object.keys(set.projects).sort()) {
-      if (!measured.has(project)) add('invalid', `INVALID ${project}: no result for this budgeted project`)
+      if (!accounted.has(project)) add('invalid', `INVALID ${project}: no result for this budgeted project`)
     }
   }
 

@@ -1,6 +1,7 @@
 // The frame-budget probe (PRODUCT spec §2 F5): ms/frame of the core stress example's production build, written as
 // one JSON result per project for `pnpm budget:frame`. Runs from this package's own Playwright config (`pnpm
-// test:frame-budget`), alone, on the GPU runner. It asserts that the page ran cleanly and that frames were
+// test:frame-budget`), alone, on the GPU runner. A 3D project skipped for a software renderer writes a skip record
+// instead of a result. It asserts that the page ran cleanly and that frames were
 // measured; the budget itself is compared by the check, so the first GPU-runner run records numbers even while
 // no budget exists.
 //
@@ -20,7 +21,7 @@ import { expect, test } from '@playwright/test'
 import { FrameBudgetResult } from '#src/budget.ts'
 import { resultsDir, stressUrl } from '#src/origin.ts'
 import { summarize } from '#src/stats.ts'
-import { softwareSkip, stressPageOf } from '#src/stress-3d.ts'
+import { softwareSkip, softwareSkipRecord, stressPageOf } from '#src/stress-3d.ts'
 
 const setting = (name: string, fallback: number): number => Number(process.env[name] ?? fallback)
 const ENTITIES = setting('AF_FRAME_BUDGET_ENTITIES', 2000)
@@ -135,7 +136,16 @@ test('frame budget: the stress scene, ms per frame', async ({ page, browser }, t
   if (is3d) {
     // A machine with no GPU draws the 3D look in software, which measures the CPU rasterizer and not the game.
     await page.goto(stressUrl)
-    const reason = softwareSkip(await page.evaluate(gpuOfPage))
+    const gpu = await page.evaluate(gpuOfPage)
+    const reason = softwareSkip(gpu)
+    if (reason !== undefined) {
+      // The skip is recorded in place of a result (the Owner: a software renderer counts as a skip), so the check
+      // can tell a project skipped for software from one whose probe never ran. It overwrites an older result of
+      // the same name, which no longer describes this machine.
+      mkdirSync(resultsDir, { recursive: true })
+      const record = softwareSkipRecord(testInfo.project.name, gpu, new Date())
+      writeFileSync(join(resultsDir, `${record.project}.json`), `${JSON.stringify(record, null, 2)}\n`)
+    }
     test.skip(reason !== undefined, reason)
     await page.goto(`${stressUrl}${stressPageOf(testInfo.project.name)}`)
     await expect(page.locator('html')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
