@@ -61,3 +61,24 @@ test.describe('touch', () => {
     await page.screenshot({ path: join(folder, 'ours-touch-play-844x390.png') })
   })
 })
+
+// What a resize does today. The field is chosen from the window when the game starts and then fixed, so a window that changes size
+// afterwards keeps its field: core's letterbox draws it at the largest whole scale that fits and centres it (bars where it does not
+// fill). Shot on purpose: a window started at 1024 by 768 and then made 1280 by 720, and a phone turned upright.
+test.describe('a window that changes size', () => {
+  test('keeps the field it started with', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 })
+    const folder = OUT as string
+    mkdirSync(folder, { recursive: true })
+    await begin(page)
+    await page.getByTestId('cutscene-caption').waitFor({ state: 'visible', timeout: 120_000 })
+    await waitFor(page, { cutscene: null }, 600_000)
+    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 30 })
+    await page.setViewportSize({ width: 1280, height: 720 })
+    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 30 })
+    await page.screenshot({ path: join(folder, 'resized-1024x768-to-1280x720.png') })
+    await page.setViewportSize({ width: 640, height: 480 })
+    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 30 })
+    await page.screenshot({ path: join(folder, 'resized-1024x768-to-640x480.png') })
+  })
+})
