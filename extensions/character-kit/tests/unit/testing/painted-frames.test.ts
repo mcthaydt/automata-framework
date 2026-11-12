@@ -7,6 +7,7 @@ import {
   paintedCell,
   paintedStand,
   paintedWalk,
+  rowGaps,
   rowWidths,
   silhouette,
 } from '#src/testing/painted-cell.ts'
@@ -43,6 +44,16 @@ describe('painted frames', () => {
     painted.set([1, 1, 1, 255], 4 * 4 + 12)
     const cell: PaintedCell = { painted, size: [4, 3] }
     expect(rowWidths(cell)).toEqual([2, 1, 0])
+  })
+
+  it('counts the empty texels inside each row: the floor showing between two legs, not the margin round the figure', () => {
+    const painted = new Uint8ClampedArray(5 * 3 * 4)
+    // Row 0: two texels with two empty between them; row 1: one texel alone; row 2: nothing.
+    painted.set([1, 1, 1, 255], 0)
+    painted.set([1, 1, 1, 255], 3 * 4)
+    painted.set([1, 1, 1, 255], 5 * 4 + 8)
+    const cell: PaintedCell = { painted, size: [5, 3] }
+    expect(rowGaps(cell)).toEqual([2, 0, 0])
   })
 
   it('reads the shoulder, waist and hip of a figure as widths in texels', () => {

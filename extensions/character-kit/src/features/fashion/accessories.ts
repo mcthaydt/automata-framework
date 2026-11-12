@@ -38,6 +38,13 @@ export interface Waistcoat {
   length?: number
   /** 0 … 1: the vest narrows across the shoulder, so the shirt shows at the arm and it hangs from straps, not from the arm's cap. Default 0. */
   armhole?: number
+  /** 0 … 1: how far the front stands open on the shirt. 0 a V of shirt that closes under the chest (as it was drawn before), 1 a strip of shirt from the collar to the hem between the two sides. Default 0. */
+  open?: number
+  /** With `open`: the strip's half-width at the neck and at the hem, each as a share of the torso's half-width there (about 0.3 and 0.2 a vest worn open). */
+  chest?: number
+  hem?: number
+  /** 0 … 1: how far below the neck the vest starts, so the shirt's collar shows above it. Default 0. */
+  neckline?: number
 }
 /** Stockings, in one colour. */
 export interface Stockings {
@@ -84,6 +91,11 @@ const BELT_EASE = 3
 /** The clearance (in texels of cloth) a vest stands off the chest, and the least it keeps off the waist: a shirt under it is 0.8, so a fitted waist is just over it. */
 const VEST_CHEST = 1.6
 const VEST_WAIST = 0.9
+/** The most the neckline drops below the neck's root (a share of the figure's height): a few centimetres, two texels at the play size. */
+const VEST_NECKLINE = 0.05
+/** The shirt's strip, when the vest stands open and names no widths: the share of the torso's half-width at the neck and at the hem. */
+const PANEL_CHEST = 0.3
+const PANEL_HEM = 0.2
 /** How much of its half-width the vest gives up at the shoulder when it is all armhole, at the ring where the arm leaves the trunk. */
 const VEST_ARMHOLE = 0.3
 
@@ -121,11 +133,20 @@ function waistcoat(c: Wearing, i: Waistcoat): Fit {
       rz: r.rz + ease(r, at),
     })),
   }
+  // The torso's first ring is the neck's root: the vest's top edge drops below it by `neckline`, or is not cut at all.
+  const neckline = i.neckline ?? 0
+  const top = neckline > 0 ? (torso.rings[0] as Ring).y - neckline * VEST_NECKLINE * h.k : Infinity
   const parts: Part[] = [
-    shell(cut, Infinity, hem, i.waistcoat, GROUP.torso, skins(c).trunk, [torso.caps?.[0] ?? 0, 0]),
+    shell(cut, top, hem, i.waistcoat, GROUP.torso, skins(c).trunk, [torso.caps?.[0] ?? 0, 0]),
   ]
   const shirt = shirtOf(c)
-  if (shirt !== undefined) parts.push(opening(c, shirt, VEST_CHEST * cl))
+  const panel = {
+    open: i.open ?? 0,
+    chest: i.chest ?? PANEL_CHEST,
+    hem: i.hem ?? PANEL_HEM,
+    hemY: hem,
+  }
+  if (shirt !== undefined) parts.push(opening(c, shirt, VEST_CHEST * cl, panel))
   return { parts, paint: { chest: i.waistcoat, waist: i.waistcoat } }
 }
 

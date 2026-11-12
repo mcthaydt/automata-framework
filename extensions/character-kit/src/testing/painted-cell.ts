@@ -102,6 +102,28 @@ export function rowWidths(cell: PaintedCell, only?: { def: CharacterDef; swatch:
   return widths
 }
 
+/**
+ * How many empty texels lie inside each row of `cell`, between its first and last opaque texel: the floor that shows between two
+ * legs or between an arm and the body (the margin to either side of the figure is not counted). 0 for an empty row.
+ */
+export function rowGaps(cell: PaintedCell): number[] {
+  const [w, h] = cell.size
+  const gaps: number[] = []
+  for (let y = 0; y < h; y++) {
+    let first = -1
+    let last = -1
+    let opaque = 0
+    for (let x = 0; x < w; x++) {
+      if ((cell.painted[(y * w + x) * 4 + 3] ?? 0) === 0) continue
+      if (first < 0) first = x
+      last = x
+      opaque++
+    }
+    gaps.push(first < 0 ? 0 : last - first + 1 - opaque)
+  }
+  return gaps
+}
+
 /** A figure's silhouette in texels, read from the front: where it stands, and how wide it is at its shoulder, waist and hip. */
 export interface Silhouette {
   /** First and last opaque rows, and the rows between them inclusive. */

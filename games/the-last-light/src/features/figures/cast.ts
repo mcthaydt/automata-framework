@@ -28,7 +28,10 @@ export const ADA: CharacterDef = {
     muscle: 0.3, // retuned: the old 0.5
     fat: 0.05, // retuned: the old 0.2
     shoulders: 0.55, // retuned: the old 0.47
-    hips: 0.2, // retuned: the old 0.37
+    // retuned: the old 0.37, then 0.2 for a leaner pelvis. The builder stands a figure with its weight foot drawn in a quarter of the way to the
+    // middle line, so the feet stand 0.75 of the hip joints' width apart where the old figure's stood under its hips; at 0.2 her two legs touch
+    // from the hip to the ankle at the size she is played, and at 0.9 the floor shows between them (the hip row grows two texels).
+    hips: 0.9,
     legs: 0.6, // retuned: the old 0.3
     arms: 0.15,
     head: 0.87,
@@ -57,10 +60,12 @@ export const ADA: CharacterDef = {
   outfits: {
     street: [
       { top: 'cream', sleeves: 'short' },
-      // The kit's waistcoat follows the torso: fitted at the waist and ending there, narrow across the shoulder so her cream sleeves show.
-      { waistcoat: 'maroon', fit: 1, length: 0.05, armhole: 1 },
-      // The kit's closer cut, tapered to the ankle: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it.
-      { jeans: 'denim', taper: 0.7 },
+      // The kit's waistcoat follows the torso: fitted at the waist and ending there, narrow across the shoulder so her cream sleeves show,
+      // its neckline lowered and its front standing open on a strip of the shirt (the old atlas's vest) from the collar to the hem.
+      { waistcoat: 'maroon', fit: 1, length: 0.05, armhole: 1, open: 1, chest: 0.4, hem: 0.3, neckline: 1 },
+      // The kit's closer cut, to the leg's own narrowing at the ankle with each leg's inside bare of clearance, so the floor shows between
+      // them: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it.
+      { jeans: 'denim', taper: 1, gap: 1 },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true },
       { hair: 'auburn', style: 'bobFringeFull' },
       { eyes: 'eyeDark' },
@@ -71,8 +76,9 @@ export const ADA: CharacterDef = {
 /**
  * The night nurse, the figure the creature is: tall and thin with arms too long, her head cocked, in a worn white uniform
  * (`nurse.json`): top and skirt in ward white with the skirt's hem stained, dark stockings, heavy shoes, a belt, a nurse's cap with
- * its cross, black hair. She has no eyes of her own: the old figure is faceless at the play size. Her hair is the kit's long fall in
- * place of the old `curtain`, and her skirt hangs without the old folds (`HELD`).
+ * its cross, black hair. She has no eyes of her own: the old figure is faceless at the play size. Her hair is the kit's `curtainLoose`: a
+ * scalp shell whose hairline comes down over her face and the rest fanned wide down her back, in place of the old `curtain` (which hangs free of the face, `HELD`), her cap sits flat on
+ * her brow as the old one does, and her skirt hangs without the old folds (`HELD`).
  */
 export const NIGHT_NURSE: CharacterDef = {
   id: 'nurse',
@@ -113,8 +119,8 @@ export const NIGHT_NURSE: CharacterDef = {
       { legs: 'stockingDark' },
       { shoes: 'heavyShoe' },
       { belt: 'wardWhiteShade' },
-      { hair: 'inkBlack', style: 'fallLong' },
-      { cap: 'capWhite', style: 'nurse', mark: 'cross' },
+      { hair: 'inkBlack', style: 'curtainLoose' },
+      { cap: 'capWhite', style: 'nurseBrow', mark: 'cross' },
     ],
   },
 }
@@ -130,8 +136,9 @@ export interface Held {
 export const HELD: readonly Held[] = [
   {
     old: 'the nurse’s curtain hair over her face',
-    why: 'the builder’s hair pieces lay clumps from a hairline and let them fall to the sides and back; none hangs a panel across the face, which needs a hair piece of its own (the old `curtain` is a shell over the head and face)',
-    instead: 'the kit’s long fall, so her face shows',
+    why: 'the builder’s hair pieces lay clumps from a hairline and let them fall to the sides and back; none hangs a panel in front of the face, free of it, which needs a hair piece of its own (the old `curtain` is a shell over the head and face)',
+    instead:
+      'the kit’s `curtainLoose`: a scalp shell whose hairline comes down to her mouth, so her face is hair from the front, and a wide fan of hair down her back that shows beside her neck; it hugs the face and does not hang in front of her chest',
   },
   {
     old: 'the folds of the nurse’s skirt',

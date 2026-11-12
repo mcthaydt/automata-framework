@@ -1,4 +1,4 @@
-import { paintedCell, texelsOfSwatch } from '@automata/character-kit/testing'
+import { paintedCell, rowGaps, rowWidths, silhouette, texelsOfSwatch } from '@automata/character-kit/testing'
 import { describe, expect, it } from 'vitest'
 import { ADA, HELD, NIGHT_NURSE, PLAY_FIGURE } from '#src/features/figures/cast.ts'
 
@@ -52,7 +52,7 @@ const OLD_ADA_SLIDERS = {
 
 /** Where Ada's sliders depart from the old file (round 1 of the figures' look): the old body is leaner on the page than the same numbers
  *  draw now, because the painter's `chunk` and clothing grew. */
-const RETUNED_ADA = { fat: 0.05, hips: 0.2, legs: 0.6, chunk: 0.2, muscle: 0.3, shoulders: 0.55 }
+const RETUNED_ADA = { fat: 0.05, hips: 0.9, legs: 0.6, chunk: 0.2, muscle: 0.3, shoulders: 0.55 }
 
 /** The old `brisk` gait whole (`library/gaits.json` at 92e6704): the builder's own `brisk` is a tamer walk (lean 0.04, hipYaw 0.1, crouch 0.008). */
 const OLD_BRISK = {
@@ -133,12 +133,17 @@ const OLD_UNCANNY = {
 const asDrawn = (old: readonly Record<string, unknown>[]) =>
   old.map((item) => {
     if (item.style === 'bob') return { ...item, style: 'bobFringeFull' }
-    if (item.style === 'curtain') return { ...item, style: 'fallLong' }
+    // The old curtain hung over her face and loose down her back: the kit's `curtainLoose` brings the hairline down to the mouth and fans the rest wide. Her cap sits flat on the brow.
+    if (item.style === 'curtain') return { ...item, style: 'curtainLoose' }
+    if (item.style === 'nurse') return { ...item, style: 'nurseBrow' }
     // The kit's `trousers` is a cloth shell grown over the whole leg; the old trousers were paint on the body's own leg. `jeans` is the kit's
-    // closer cut (one clearance, a straighter knee), tapered to the ankle, as a slim leg is.
-    if ('trousers' in item) return { jeans: item.trousers, taper: 0.7 }
-    // The old waistcoat was a cropped box on the chest; the kit's follows the torso: fitted at the waist, ending at it, hung from straps.
-    if ('waistcoat' in item) return { ...item, fit: 1, length: 0.05, armhole: 1 }
+    // closer cut (one clearance), cut to the leg's own narrowing at the ankle with the inside of each leg bare of clearance, so two legs
+    // do not join into one block.
+    if ('trousers' in item) return { jeans: item.trousers, taper: 1, gap: 1 }
+    // The old waistcoat was a cropped box on the chest, open at the front on a shirt; the kit's follows the torso: fitted at the waist, ending
+    // at it, hung from straps, standing open on a panel of the shirt from a lowered neckline to the hem.
+    if ('waistcoat' in item)
+      return { ...item, fit: 1, length: 0.05, armhole: 1, open: 1, chest: 0.4, hem: 0.3, neckline: 1 }
     if ('folds' in item) {
       const { folds: _folds, ...rest } = item
       return rest
@@ -214,8 +219,8 @@ describe('the night nurse', () => {
   })
 })
 
-/** Whether the front view of `def` at the play size has an eye pair: two dark texels 2 to 7 apart on one row, each with skin beside it. */
-function hasEyes(def: typeof ADA): boolean {
+/** The front view of `def` at the play size, with a test for its skin texels and its dark ones. */
+function frontView(def: typeof ADA) {
   const cell = paintedCell(def, 0, 1)
   const [w, h] = cell.size
   const p = cell.painted
@@ -227,14 +232,28 @@ function hasEyes(def: typeof ADA): boolean {
   const dark = (i: number) =>
     (p[i * 4 + 3] ?? 0) > 0 &&
     0.3 * (p[i * 4] ?? 0) + 0.59 * (p[i * 4 + 1] ?? 0) + 0.11 * (p[i * 4 + 2] ?? 0) < 60
+  return { w, h, isSkin, dark }
+}
+
+/** The eye pair in the front view of `def` at the play size: two dark texels 2 to 7 apart on one row, each with skin beside it. */
+function eyePair(def: typeof ADA): { y: number; xs: [number, number] } | undefined {
+  const { w, h, isSkin, dark } = frontView(def)
   for (let y = 0; y < h; y++)
     for (let a = 1; a < w - 1; a++)
       for (let b = a + 2; b <= a + 7 && b < w - 1; b++) {
         const [i, j] = [y * w + a, y * w + b]
         if (dark(i) && dark(j) && isSkin(i - 1) && isSkin(i + 1) && isSkin(j - 1) && isSkin(j + 1))
-          return true
+          return { y, xs: [a, b] }
       }
-  return false
+  return undefined
+}
+
+/** Whether the skin shows right above both eyes: a fringe that sits on the eye row reads as one dark brow band, not as eyes under a fringe. */
+const eyesClearOfFringe = (def: typeof ADA): boolean => {
+  const eyes = eyePair(def)
+  if (eyes === undefined) return false
+  const { w, isSkin } = frontView(def)
+  return eyes.xs.every((x) => isSkin((eyes.y - 1) * w + x))
 }
 
 describe('the painted frame shows what they wear', () => {
@@ -247,7 +266,55 @@ describe('the painted frame shows what they wear', () => {
     )
 
   it('shows Ada’s eyes from the front at the size she is played', () => {
-    expect(hasEyes(ADA)).toBe(true)
+    expect(eyePair(ADA)).toBeDefined()
+  })
+
+  it('shows the skin of her brow above each eye, so her fringe frames them and does not sit on them', () => {
+    expect(eyesClearOfFringe(ADA)).toBe(true)
+  })
+
+  it('shows floor between Ada’s legs below the knee at the size she is played: two legs, not one block', () => {
+    const cell = paintedCell(ADA, 0, 1)
+    const { top, height } = silhouette(cell)
+    const rows = rowGaps(cell).slice(top + Math.round(height * 0.7), top + Math.round(height * 0.92))
+    expect(rows.reduce((a, b) => a + b, 0)).toBeGreaterThanOrEqual(8)
+  })
+
+  it('shows Ada’s waistcoat open: a strip of her cream shirt between its two maroon sides, not a slit', () => {
+    const cell = paintedCell(ADA, 0, 1)
+    const [w, h] = cell.size
+    const is = (i: number, swatch: string) =>
+      (ADA.swatches?.[swatch]?.paint ?? []).some((hex) =>
+        [1, 3, 5].every((k, n) => cell.painted[i * 4 + n] === Number.parseInt(hex.slice(k, k + 2), 16)),
+      )
+    let between = 0
+    for (let y = 0; y < h; y++) {
+      const xs = [...Array(w).keys()].filter((x) => is(y * w + x, 'maroon'))
+      const [first, last] = [xs[0] ?? 0, xs[xs.length - 1] ?? 0]
+      for (let x = first + 1; x < last; x++) if (is(y * w + x, 'cream')) between++
+    }
+    expect(between).toBeGreaterThanOrEqual(30)
+  })
+
+  it('hides the night nurse’s face under her hair at the size she is played: a few texels of skin (the loose hair leaves her chin and neck) in the rows of her head, not a mask', () => {
+    const cell = paintedCell(NIGHT_NURSE, 0, 1)
+    const { top, height } = silhouette(cell)
+    const head = { ...cell, painted: cell.painted.slice() }
+    head.painted.fill(0, (top + Math.round(height * 0.16)) * cell.size[0] * 4)
+    expect(texelsOfSwatch(NIGHT_NURSE, head, 'pale')).toBeLessThanOrEqual(10)
+  })
+
+  it('hangs the night nurse’s hair loose and wide down her back, not in a tied tail, and shows it beside her neck from the front', () => {
+    const widest = (view: number, from: number, to: number) => {
+      const cell = paintedCell(NIGHT_NURSE, view, 1)
+      const { top } = silhouette(cell)
+      const hair = rowWidths(cell, { def: NIGHT_NURSE, swatch: 'inkBlack' })
+      return Math.max(...hair.slice(top + from, top + to))
+    }
+    // From behind, below the head: a tied tail is 3 texels wide there, the loose hair 16. From the front, down the sides of her face and neck:
+    // the long fall alone is 11 wide (her head), the loose hair 17.
+    expect(widest(4, 16, 26)).toBeGreaterThanOrEqual(12)
+    expect(widest(0, 9, 20)).toBeGreaterThanOrEqual(15)
   })
 
   it('shows Ada in a maroon waistcoat over her cream top, in brown boots', () => {

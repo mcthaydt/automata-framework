@@ -1,0 +1,24 @@
+ours, density 1, front: H 78  SHOULDER 19  WAIST 20  HIP 22  (hip/height 0.282, shoulder/height 0.244)
+  wardWhite     texels  477  rows 0.00-0.94  widest 18
+  stain         texels   78  rows 0.54-0.65  widest 16
+  stockingDark  texels  116  rows 0.00-0.97  widest 12
+  heavyShoe     texels  112  rows 0.23-0.95  widest 18
+  capWhite      texels    9  rows 0.01-0.06  widest 6
+  inkBlack      texels  144  rows 0.00-0.23  widest 17
+  pale          texels   55  rows 0.06-0.65  widest 20
+old procedural, front: H 71  SHOULDER 18  WAIST 18  HIP 22  (hip/height 0.310, shoulder/height 0.254)
+  wardWhite     texels  319  rows 0.23-0.63  widest 18
+  stain         texels   73  rows 0.55-0.68  widest 18
+  stockingDark  texels  184  rows 0.07-0.86  widest 12
+  heavyShoe     texels   52  rows 0.89-0.97  widest 8
+  capWhite      texels    3  rows 0.01-0.07  widest 3
+  inkBlack      texels   19  rows 0.08-0.17  widest 5
+  pale          texels    2  rows 0.51-0.51  widest 20
+old hand-painted atlas, front: H 75  SHOULDER 20  WAIST 23  HIP 26  (hip/height 0.347, shoulder/height 0.267)
+  wardWhite     texels  499  rows 0.20-0.71  widest 24
+  stain         texels   49  rows 0.67-0.73  widest 15
+  stockingDark  texels  173  rows 0.08-0.91  widest 12
+  heavyShoe     texels   11  rows 0.69-0.97  widest 3
+  capWhite      texels   23  rows 0.01-0.08  widest 10
+  inkBlack      texels   19  rows 0.11-0.23  widest 8
+  pale          texels   47  rows 0.45-0.61  widest 24

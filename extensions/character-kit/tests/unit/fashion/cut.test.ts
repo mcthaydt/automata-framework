@@ -6,15 +6,17 @@ import { describe, expect, it } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { FASHION_SWATCHES } from '#src/features/fashion/swatches.ts'
 import { BASE, type CharacterDef, type Material } from '#src/shared/figure-builder/door.ts'
-import { paintedCell, rowWidths } from '#src/testing/painted-cell.ts'
+import { paintedCell, rowGaps, rowWidths, silhouette } from '#src/testing/painted-cell.ts'
 
 registerFashion()
 
 /** Two cloths of colours the painter's DUEL palette holds, each four steps, so each cloth's texels are its own. */
-const own = (paint: string[]): Material => ({ ramp: 10, base: 4, paint })
+const own = (paint: string[], ramp = 10, base = 4): Material => ({ ramp, base, paint })
 const SWATCHES = {
   vest: own(['#904647', '#6e2434', '#492129', '#2e1026']),
   denim: own(['#366b8a', '#25466b', '#23324d', '#181f2f']),
+  // The shirt a vest opens on, its colours its own (a ribbed knit has none the painter's palette names).
+  shirt: own(['#fff3d6', '#eadbc9', '#ccc3b1', '#bbafa4'], 1, 4),
 } as const
 
 const BASE_DEF = (BASE[0] as { def: CharacterDef }).def
@@ -25,7 +27,7 @@ function wearing(garments: CharacterDef['outfits'][string]): CharacterDef {
     ...BASE_DEF,
     swatches: { ...FASHION_SWATCHES, ...SWATCHES },
     default: 'test',
-    outfits: { test: [{ tee: 'ribCream', sleeves: 'short' }, ...garments, { eyes: 'eyeBrown' }] },
+    outfits: { test: [{ tee: 'shirt', sleeves: 'short' }, ...garments, { eyes: 'eyeBrown' }] },
   }
 }
 
@@ -72,6 +74,60 @@ describe('a waistcoat fits', () => {
   })
 })
 
+/** The texels of the `shirt` between the first and last texel of the vest in each row: the shirt a vest stands open on, not a sleeve beside it. */
+function shirtBetweenVest(def: CharacterDef): number {
+  const { painted, size } = paintedCell(def, 0, 2)
+  const hex = (name: keyof typeof SWATCHES) => SWATCHES[name].paint ?? []
+  const is = (i: number, paint: readonly string[]) =>
+    paint.some((c) =>
+      [1, 3, 5].every((k, n) => painted[i * 4 + n] === Number.parseInt(c.slice(k, k + 2), 16)),
+    )
+  let count = 0
+  for (let y = 0; y < size[1]; y++) {
+    let first = -1
+    let last = -1
+    for (let x = 0; x < size[0]; x++)
+      if (is(y * size[0] + x, hex('vest'))) {
+        if (first < 0) first = x
+        last = x
+      }
+    for (let x = first + 1; x < last; x++) if (is(y * size[0] + x, hex('shirt'))) count++
+  }
+  return count
+}
+
+describe('a waistcoat stands open', () => {
+  const open = (o: object) => wearing([{ waistcoat: 'vest', fit: 1, length: 0.05, ...o }, { jeans: 'denim' }])
+
+  it('on a panel of the shirt down its front: more shirt between its sides than the V it had', () => {
+    expect(shirtBetweenVest(open({ open: 1 }))).toBeGreaterThan(shirtBetweenVest(open({ open: 0 })) + 20)
+  })
+
+  it('as little as a V of shirt at 0', () => {
+    expect(shirtBetweenVest(open({ open: 0 }))).toBe(shirtBetweenVest(open({})))
+  })
+
+  it('as wide at the chest as the character sets it', () => {
+    expect(shirtBetweenVest(open({ open: 1, chest: 0.5 }))).toBeGreaterThan(
+      shirtBetweenVest(open({ open: 1, chest: 0.2 })) + 8,
+    )
+  })
+
+  it('as wide at the hem as the character sets it', () => {
+    expect(shirtBetweenVest(open({ open: 1, hem: 0.45 }))).toBeGreaterThan(
+      shirtBetweenVest(open({ open: 1, hem: 0.1 })) + 8,
+    )
+  })
+})
+
+describe('a waistcoat has a neckline', () => {
+  const vest = (o: object) => rowsOf(wearing([{ waistcoat: 'vest', ...o }, { jeans: 'denim' }]), 'vest')
+
+  it('that starts lower when the character sets one, so the shirt’s collar shows above it', () => {
+    expect(vest({ neckline: 1 }).first).toBeGreaterThan(vest({ neckline: 0 }).first)
+  })
+})
+
 describe('trousers taper', () => {
   const legs = (o: object) => rowsOf(wearing([{ trousers: 'denim', ...o }]), 'denim')
 
@@ -88,5 +144,44 @@ describe('trousers taper', () => {
   it('jeans take the option too', () => {
     const jeans = (o: object) => rowsOf(wearing([{ jeans: 'denim', ...o }]), 'denim')
     expect(widest(jeans({ taper: 1 }), 0.9, 1)).toBeLessThan(widest(jeans({ taper: 0 }), 0.9, 1) - 1)
+  })
+})
+
+describe('legs set a gap', () => {
+  /** The rows of the front view from the knee down (a share of the figure's height, 0.7 to 0.93), as the floor showing between the legs and the width across them. */
+  const below = (def: CharacterDef) => {
+    const cell = paintedCell(def, 0, 2)
+    const { top, height } = silhouette(cell)
+    const rows = (list: number[]) =>
+      list.slice(top + Math.round(height * 0.7), top + Math.round(height * 0.93))
+    return { gaps: rows(rowGaps(cell)), widths: rows(rowWidths(cell)) }
+  }
+  const sum = (list: number[]) => list.reduce((a, b) => a + b, 0)
+
+  for (const kind of ['jeans', 'trousers'] as const) {
+    // A pipe cut (taper 0) is as wide at the shin as the knee, which closes the floor on its own; the leg's own narrowing leaves it to the gap.
+    const legs = (o: object) => wearing([{ [kind]: 'denim', taper: 1, ...o } as never])
+
+    it(`lets the floor show between ${kind} below the knee: each leg’s cloth gives up its clearance on the inside`, () => {
+      const [shut, apart] = [below(legs({ gap: 0 })), below(legs({ gap: 1 }))]
+      expect(sum(apart.gaps)).toBeGreaterThan(sum(shut.gaps) + 10)
+    })
+
+    it(`keeps the outer line of ${kind} where it was: the pair is no narrower across than the body’s own legs`, () => {
+      const [shut, apart] = [below(legs({ gap: 0 })), below(legs({ gap: 1 }))]
+      expect(Math.max(...apart.widths)).toBe(Math.max(...shut.widths))
+    })
+  }
+})
+
+describe('a skirt’s ease', () => {
+  const skirt = (o: object) => rowsOf(wearing([{ skirt: 'vest', length: 0.42, ...o }]), 'vest')
+
+  it('is the clearance at its waist: a tight skirt is narrower there than a loose one', () => {
+    expect(widest(skirt({ ease: 0.5 }), 0, 0.15)).toBeLessThan(widest(skirt({ ease: 2 }), 0, 0.15))
+  })
+
+  it('is 2 clearances when the skirt names none, as it was drawn before', () => {
+    expect(skirt({}).widths).toEqual(skirt({ ease: 2 }).widths)
   })
 })

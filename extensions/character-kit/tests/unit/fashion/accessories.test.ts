@@ -4,6 +4,7 @@
 // one was refused and a game had to leave the clothes off. Each test dresses one figure with and without the piece and counts the
 // texels of the piece's own colours in the painted cell: a piece the painter does not draw leaves none.
 import { describe, expect, it, vi } from 'vitest'
+import { HEADWEAR } from '#src/features/fashion/headwear.ts'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { FASHION_SWATCHES } from '#src/features/fashion/swatches.ts'
 import {
@@ -108,5 +109,15 @@ describe('the painted wardrobe wears the old figures’ pieces', () => {
   it('a skirt takes a stain at its hem', () => {
     const skirt = { skirt: 'navyWool', length: 0.45 }
     expect(added([skirt], [{ ...skirt, stain: 'mud', stainHeight: 0.2 }], 'mud')).toBeGreaterThan(30)
+  })
+
+  it('a cap set on the brow is the nurse’s cap worn low and forward, painted and marked like it', () => {
+    const [crown, brow] = [HEADWEAR.nurse, HEADWEAR.nurseBrow]
+    expect(brow).toBeDefined()
+    const [low, high] = [brow?.pieces[0]?.at, crown?.pieces[0]?.at]
+    expect(low?.[1]).toBeLessThan(high?.[1] ?? 0)
+    expect(low?.[2]).toBeGreaterThan(high?.[2] ?? 0)
+    expect(brow?.mark).toBeDefined()
+    expect(added([], [{ cap: 'hat', style: 'nurseBrow' }], 'hat')).toBeGreaterThan(20)
   })
 })
