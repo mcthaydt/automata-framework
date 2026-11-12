@@ -1,0 +1,36 @@
+[
+  {
+    "scene": "base-interior",
+    "view": "gameplay",
+    "field": "640x360",
+    "crisp": true,
+    "figures": [
+      {
+        "x": [308, 330],
+        "rows": 67
+      },
+      {
+        "x": [360, 381],
+        "rows": 66
+      }
+    ],
+    "trueRows": 83.4
+  },
+  {
+    "scene": "base-interior",
+    "view": "gameplay",
+    "field": "640x360",
+    "crisp": false,
+    "figures": [
+      {
+        "x": [306, 333],
+        "rows": 83
+      },
+      {
+        "x": [357, 383],
+        "rows": 82
+      }
+    ],
+    "trueRows": 83.4
+  }
+]
