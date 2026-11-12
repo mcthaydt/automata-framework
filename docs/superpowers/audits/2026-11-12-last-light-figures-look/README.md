@@ -615,6 +615,13 @@ the skin's tone and the hair are the painter's. The tests still pass (`ada-rebui
 **15.1 % of her height at density 2 against the turnaround's 15.5 %** (19.0 % before), [`round8-b3-sheet.png`](round8-b3-sheet.png), [`round8-b3-numbers.txt`](round8-b3-numbers.txt). The waistcoat's short V
 and the shirt collar are still not options of the kit (list).
 
+#### B, round 4: the waistcoat's short V (a kit option)
+
+`vend` on the kit's `waistcoat` (`accessories.ts`): how far down the vest, from the neck's root to the hem, an open strip of shirt runs; default 1 (to the hem, as it always did;
+`tests/unit/fashion/vest-v.test.ts`, the default pinned and the short-V test watched failing on the missing option). Variant D wears `vend` .45: a short V over the chest instead of the tall strip,
+[`round8-b4-sheet.png`](round8-b4-sheet.png), [`round8-b4-numbers.txt`](round8-b4-numbers.txt) (the proportions unchanged). Still missing against the turnaround: the shirt's collar over the
+vest's neck and the two rows of buttons (a kit mark; listed).
+
 ### C and D. The framing study
 
 In-game frames at 1024 x 768, Ada standing in the hall's middle facing the camera, in the ward's merge (`origin/claude/last-light-prologue` at `baa73132e`
@@ -687,6 +694,7 @@ painter task after the fold merges). Each needs painter code, which this branch 
 
 ## Log
 
+- Round 8 (B, round 4): the kit's `vend` option of the open waistcoat (test first), Ada's short V.
 - Round 8 (B, round 3): the kit's `shaft` option of the boots (test first), Ada's ankle boots.
 - Round 8 (B, round 2): variant D, the lighter jeans, the tail-less bob, no lip mark, the arms closer; the painter's hair change first on the list.
 - Round 8 (C, D): five framings and three with the rebuilt Ada shot in the game under a study patch, the contact sheets, the recommendation.

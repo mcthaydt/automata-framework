@@ -43,6 +43,8 @@ export interface Waistcoat {
   /** With `open`: the strip's half-width at the neck and at the hem, each as a share of the torso's half-width there (about 0.3 and 0.2 a vest worn open). */
   chest?: number
   hem?: number
+  /** With `open`: how far down the vest, from the neck's root to the hem, the strip of shirt runs: 1 to the hem (the default), 0.4 a short V over the chest. */
+  vend?: number
   /** 0 … 1: how far below the neck the vest starts, so the shirt's collar shows above it. Default 0. */
   neckline?: number
 }
@@ -158,7 +160,7 @@ function waistcoat(c: Wearing, i: Waistcoat): Fit {
     open: i.open ?? 0,
     chest: i.chest ?? PANEL_CHEST,
     hem: i.hem ?? PANEL_HEM,
-    hemY: hem,
+    hemY: i.vend === undefined ? hem : lerp((torso.rings[0] as Ring).y, hem, i.vend),
   }
   if (shirt !== undefined) parts.push(opening(c, shirt, VEST_CHEST * cl, panel))
   return { parts, paint: { chest: i.waistcoat, waist: i.waistcoat } }
