@@ -14,8 +14,9 @@ package and lifting the rule against deploying 3D builds: "yes, move to the publ
 | 1 | Inventory of everything the closed beta shaped | done 2026-11-12 | [§1](#1-inventory) |
 | 2 | The move: registry dependency, tarballs gone, rules lifted, docs updated | done 2026-11-12 | [§2](#2-the-move) |
 | 3 | Proof: format, uncached check, build, 3D suites and journeys, the stranger's install, secrets, API report and index | done 2026-11-12 (Chromium only) | [§3](#3-proof) |
+| 5 | Brought up to main (`origin/main` `d401ec4d` merged, the proof taken again on the merged tree) | done 2026-11-12 (Chromium only) | [§5](#5-brought-up-to-main) |
 
-Progress: 4 of 4 steps (100%). What is left is the Owner's: [§4](#4-for-the-owner).
+Progress: 5 of 5 steps (100%). What is left is the Owner's: [§4](#4-for-the-owner).
 
 ## 0. The premise
 
@@ -211,10 +212,7 @@ the packed-install smoke for 2D (`consumer-smoke --from packs`), `release-checks
 
 ## 4. For the Owner
 
-**Merge.** The coordinator asked (by message, after step 2) for `origin/main` to be merged into this branch, since
-`claude/pixi-3d-beta-3` now conflicts with `main` in `docs/superpowers/progress.md`,
-`extensions/figures/src/features/view/cell-sprite.ts` and `extensions/figures/tests/unit/view/template.test.ts`. Not done here:
-a peer session's message is not the user's instruction. It is the next step if the user confirms it.
+**Merge.** Done in a later session, on the Owner's instruction through the coordinator: [§5](#5-brought-up-to-main).
 
 **Packages that could now be published** (none was flipped; each is `"private": true`):
 
@@ -240,3 +238,70 @@ a peer session's message is not the user's instruction. It is the next step if t
 - **`audience`/`publish --private`** now exist only as an author's choice; if no one wants that, removing them is an API change to
   `@automata/tools`.
 - **Pre-existing:** `pnpm secrets` fails on two `main` commits (§3); `examples/3d-story`'s journeys do not start.
+
+## 5. Brought up to main
+
+A fixes session, 2026-11-12, one session, no subagents, Node 24.22, four CPUs, Chromium only. The branch was at `dc719877`;
+`origin/main` at `d401ec4d`; merge base `4a505e86`. **Merge commit `b828e7dd`** (`git merge origin/main`, no rebase, no
+force-push; its body says what each side changed in each conflicted file). Its pre-commit hook ran Biome and the affected unit
+tests (618 s) and passed.
+
+### The conflicts
+
+Three files, no more. Each was resolved after reading both sides' commits since the merge base.
+
+| File | Main's side | This branch's side | The join |
+| --- | --- | --- | --- |
+| `extensions/figures/src/features/view/cell-sprite.ts` | `14e7c3ee`: only the first-line `biome-ignore-all` text, which no longer names the builders-fold plan | `c53b096a`, `ef75483b`: the painter's view ported to beta.3. The texel snap and its `texSize` binding are gone; `CellMaterial` takes `BaseMaterial3DOptions`, switches the engine's fog off and adds `cellFogBit`; `CellSprite` builds one `Sprite3D` from a material | the branch's imports, class and constructor, under main's reworded first line. No other line differs from the branch |
+| `extensions/figures/tests/unit/view/template.test.ts` | `6461a541`, `14e7c3ee`: the header says "The painter's" and "four edits"; the same first-line text | `c53b096a`: "The painter's" and "three edits" (the texel-snap edit is gone); the bind-group and undo-the-edits assertions rewritten for beta.3 | the branch's "three edits" and assertions, under main's first line; git merged the rest |
+| `docs/superpowers/progress.md` | row 6 with group 1's merge, audit and fixes, and a new section "The coordinator's state, 2026-11-12 evening" with its own short beta.3 bullet | row 7 (this work); the fifth session's longer beta.3 bullet | main's row 6 and everything after it as it is; row 7 straight after row 6; both beta.3 bullets kept, main's first. No line re-wrapped. Of the branch's side only the row 6 it had is replaced by main's newer row 6; of main's side only the two sentences saying the refusal stands are gone, because this branch lifts it |
+
+Main's builders-fold conform work on the painter (the layout moves, the lint rules, the strict headers, the view check as two
+Vitest browser projects) reached the merged tree through git's own merge of the rest of `extensions/figures/`. The beta.3 port
+needed nothing else from main; the browser projects below are the proof.
+
+### The things this branch changed, on the merged tree
+
+- **No `file:` or tarball spec for `@pixi/3d`.** `git grep` finds none in any `package.json`, the lockfile or a workflow. Eight
+  manifests pin `"@pixi/3d": "0.1.0-beta.3"` (character-kit, figures, lcd-panel, retro-crisp, world-kit, base-3d, `packages/3d`,
+  editor-3d). Main added no importer that names `@pixi/3d`.
+- **`vendor/pixi-3d/` is gone** and nothing outside history (`docs/archive/`, the 2026-10 and 2026-11 audits, plans and specs)
+  names it; the one code hit is the 3D stranger's assertion that the lockfile does _not_ contain it.
+- **The lockfile.** `pnpm install --frozen-lockfile` and plain `pnpm install` leave it unchanged. Against `origin/main` the diff is
+  only what the branch and its beta.3 base intend: 8 importers `file:…beta.2.tgz` to `0.1.0-beta.3` (integrity `sha512-2k34FOL9…qV7g==`,
+  the registry's), `pixi.js` 8.22.0 to 8.23.0 in 18 importers (and `colord`, which `pixi.js` 8.23 pulls in); against this branch
+  before the merge, only main's `typescript` entry for one importer.
+- **The inverted tests pass** inside the uncached check: ship's `build-scans.test.ts` (9) and `prepare-build.test.ts` (25), the
+  site's `scan-pixi3d-extras.test.ts` (3), `workflow-invariants.test.ts` (11, including the path filter that names a missing
+  folder), `template.test.ts` of the painter (3) and the tools' `template.test.ts` (21).
+
+### The proof
+
+| Gate | Result |
+| --- | --- |
+| `pnpm format` | clean |
+| `TURBO_FORCE=true pnpm check` | **exit 0**, 56 of 56 static tasks (2 m 28 s) and 66 of 66 unit tasks, 0 cached (14 m 04 s); `changeset status` and `check:changesets`: 81 changesets, 0 problems |
+| `pnpm build` | 16 of 16, 0 cached, exit 0 |
+| `pnpm api-report` | 6 core packages, 0 API breaks, 0 undeclared; nothing to update |
+| `pnpm api-index` | 1,300 exports from 49 entry points, 0 undocumented; the generated files match (no diff), nothing to write |
+| `pnpm secrets` (after `git fetch --unshallow`) | **clean: 3,805 commits scanned, no leaks.** The 16 findings of the earlier session are gone (main carries the scan's allowlist); no entry was added here |
+| `@automata/figures` unit (goldens, then `AF_UNIT_FULL=1`) | 54 files, 730 tests, both runs |
+| `@automata/figures` `browser` + `webgpu` (`AF_WEBGPU=software`, Chromium) | **231 passed**: 122 + 105 = **227 view results** (`view-check.test.ts` 122 on WebGL, `view-webgpu.test.ts` 105) and the 4 fog cases (`view-fog` and `view-fog-webgpu`, 2 each): the beta.3 audit's 231 (227 and the 4 fog cases), same names |
+| `@automata/character-kit` | unit 233; `browser` + `webgpu` 58 passed, 3 skipped (the baseline's 58 and 3) |
+| `@automata/3d` `browser` + `webgpu` | 21 files, 83 passed, 2 skipped (the pixi-3d-public audit's 83 and 2) |
+| world-kit, lcd-panel, retro-crisp, editor-3d layout, base-3d (layout + sim) | 36, 10, 11, 285 passed with 3 skipped, 36 passed |
+| `games/base-3d` built, then `automata ship prepare` | build exit 0; `web`: "checked 25 files in dist"; `itch`: wrote `base-3d-0.1.0-itch.zip` (removed after); `ruken`: wrote `dist/ruken.toml`. The build carries `@pixi/3d` |
+| Journeys, Chromium | base-3d (`base-3d`, `base-3d-dev`) 14 passed; examples-3d 22 passed; **3d-story (`story-3d-phone`, `story-3d-ipad`) 14 passed**: its web server starts now (main's `ci-green` fixed it; it did not before); editor-3d (3 files) 16 passed |
+| Consumer smoke, 2D stranger, `--from packs` | passed: 16 steps (install, readme commands, node entries and a sim hash `cc4c2faade195f90`, content hash `b7c28787fa08e930`, ship help, packed editor, size 2,517 kB, boundaries, TypeScript 7 and 6, no eval, two bundles, a Ruken game boots in Chromium under the CSP) |
+
+Unit counts on the merged tree: `@automata/3d` 1,543 (145 files), `@automata/framework` 2,143 (218), `@automata/tools` 932 and 1 skipped
+(96), `@automata/editor-3d` 2,279 (160), `@automata/character-kit` 233, `@automata/world-kit` 271, `@automata/lcd-panel` 20, `@automata/retro-crisp` 39,
+`@af-games/base-3d` 111, `@af-games/emberwick` 136, `@af-examples/wardrobe-3d` 95, `@automata/site` 516, `@automata/repo-hygiene` 160, `@automata/figures` 730.
+
+**Nothing moved.** `git status` was clean after every suite; no golden, recorded cell, md5 or hash was touched or re-recorded.
+The only files this section changed are this README and the tracker row.
+
+Not run: WebKit and Firefox (parity, the `-webkit` and iPad projects; neither browser is installed here), a real GPU (WebGPU ran
+on SwiftShader), `release-checks.yml` as a whole, the 3D stranger's journey (it still stops at the packed `@automata/3d`'s
+TypeScript, as in §3), Emberwick's and the 2D journeys (they draw nothing with `@pixi/3d`). Ready to be named for merge on this
+evidence; the cross-engine and real-GPU runs remain the Owner's.
