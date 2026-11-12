@@ -4,6 +4,7 @@
  * them (docs/superpowers/audits/2026-11-12-painter-figure-look/).
  *
  *   pnpm --filter @automata/figures study <out-dir> <item>      # item: hair | skin | eyes | stand | outline | all
+ *   pnpm --filter @automata/figures study <out-dir> base        # the untouched base pair, large (density 4)
  *
  * The figure is the builder's base woman set to the generated turnaround's look spec ("Ada, rebuilt", variant D of the
  * last-light figures audit): about 7 heads tall, her legs half her height, a slim adult, the turnaround's small oval face
@@ -25,6 +26,7 @@ import { HAIR_STYLES, type HairStyle, type Piece, PPM } from '../src/shared/hair
 import { type Garment, SWATCHES as SWATCHES_LIB } from '../src/shared/outfit/garments'
 import { duel, FACE_SEAM, type PaintStyle, tonesOf } from '../src/shared/paint/paint'
 import { hex } from '../src/shared/paint/paint-style'
+import { largeSheet, sizes } from './study-large'
 
 /** The base woman: the figure every character starts from. */
 const WOMAN: CharacterDef = BASE[1].def
@@ -510,6 +512,16 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
   const out = resolve(process.argv[2] ?? 'out'),
     item = process.argv[3] ?? 'all'
   mkdirSync(out, { recursive: true })
+  if (item === 'base') {
+    const entries = BASE.map((b) => ({ label: `untouched ${b.def.name}`, def: b.def }))
+    writeFileSync(
+      join(out, 'base-d4-sheet.png'),
+      largeSheet(entries, { density: 4, title: 'the base pair at density 4' }),
+    )
+    const rows = entries.map((e) => ({ label: e.label, ...sizes(e.def, 4) }))
+    writeFileSync(join(out, 'base-d4-numbers.json'), `${JSON.stringify(rows, null, 2)}\n`)
+    console.log('base', JSON.stringify(rows))
+  }
   for (const [name, looks] of Object.entries(LOOKS)) {
     if (item !== 'all' && item !== name) continue
     writeFileSync(join(out, `${name}-sheet.png`), sheet(looks, `painter look study: ${name}`))
