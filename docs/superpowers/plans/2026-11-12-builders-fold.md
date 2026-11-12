@@ -7,11 +7,12 @@
 figure painter lives in the framework with its history and its five goldens unmoved; what EnvironmentBuilder still had
 that the framework lacked is in the framework, and the rest is recorded as not wanted, file by file.
 
-**Architecture:** FigureBuilder's code arrives as a private extension, `extensions/painted-figures`
-(`@automata/painted-figures`), by a filtered history merge, byte for byte, and its own suite passes there before
-anything is changed. The character kit's one door then points at the package, the submodule and its wrapper go, the
-wardrobe branch arrives as its own commits, and only then is the source brought under the framework's rules, one rule
-a commit, with the goldens run after each. EnvironmentBuilder moves almost no code: the survey found its features
+**Architecture:** FigureBuilder's code arrives as a private extension, `extensions/figures`
+(`@automata/figures`), by a filtered history merge, byte for byte, and its own suite passes there before
+anything is changed. The character kit's one door then points at the package, the submodule, its wrapper and the
+workflows' checkout step go, the two fix branches and the wardrobe branch arrive as their own commits, and only then
+is the source brought under the framework's rules, one rule a commit, with the goldens run after each. A third branch
+brings the painter under the framework's two strictest compiler flags, folder by folder. EnvironmentBuilder moves almost no code: the survey found its features
 already ported, so its group is proof and record.
 
 **Tech stack:** TypeScript 6.0.3, PixiJS 8.22.0 with `@pixi/3d` 0.1.0-beta.2, Vitest 5.0.3 (unit and browser
@@ -24,8 +25,9 @@ argues from their measurements. **Tracker:** [`../progress.md`](../progress.md),
 
 ## Tracking
 
-**0 of 19 tasks done (0%)** (task 20 is conditional and counted only if the Owner chooses it). Tick a task only when
-its checks passed in the session that did it; say what did not run.
+**0 of 28 tasks done (0%)** (task 20 is conditional and counted only if the Owner chooses it). Numbers 4b to 4d were
+added and 14 was moved to 4b after the Owner's answers of 2026-11-12, so the numbering has letters and a gap. Tick a
+task only when its checks passed in the session that did it; say what did not run.
 
 | # | Task | Branch | State | Evidence |
 |---|---|---|---|---|
@@ -33,22 +35,37 @@ its checks passed in the session that did it; say what did not run.
 | 2 | The painter's source arrives with its history; its own suite passes as it is | `claude/builders-fold-figures` | todo | |
 | 3 | The character kit's door points at the package | `claude/builders-fold-figures` | todo | |
 | 4 | The submodule and its wrapper go | `claude/builders-fold-figures` | todo | |
+| 4b | The workflows lose the submodule step (the Owner's word given) | `claude/builders-fold-figures` | todo | |
+| 4c | The c5-finish fixes come across | `claude/builders-fold-figures` | todo | |
+| 4d | A turned face keeps both eyes: the fix, the sheet, the Owner's eye, the re-record | `claude/builders-fold-figures` | todo | |
 | 5 | The wardrobe branch arrives as its own commits | `claude/builders-fold-figures` | todo | |
-| 6 | Conform: the framework's format | `claude/builders-fold-figures` | todo | |
-| 7 | Conform: the framework's layout, test imports, runner and boundaries | `claude/builders-fold-figures` | todo | |
-| 8 | Conform: lint, one rule a commit | `claude/builders-fold-figures` | todo | |
+| 6 | Conform: one mechanical commit for format, one for lint's automatic fixes | `claude/builders-fold-figures` | todo | |
+| 7 | Conform: the framework's layout, test imports, runner, boundaries; the suite split for the commit hook | `claude/builders-fold-figures` | todo | |
+| 8 | Conform: the lint rules that need a hand, one rule a commit | `claude/builders-fold-figures` | todo | |
 | 9 | Conform: no file over 600 lines | `claude/builders-fold-figures` | todo | |
 | 10 | Conform: the eight libraries are checked by Zod | `claude/builders-fold-figures` | todo | |
 | 11 | Conform: the view check is a browser suite | `claude/builders-fold-figures` | todo | |
 | 12 | Conform: the words (readme, contract, comments, provenance) | `claude/builders-fold-figures` | todo | |
 | 13 | Group 1 closes: the gates whole, the record, the pull request | `claude/builders-fold-figures` | todo | |
-| 14 | The workflows lose the submodule step (only with the Owner's word) | `claude/builders-fold-figures` | todo | |
+| 21 | Strict: the ledger measured; `shared/math` and `shared/body` | `claude/builders-fold-strict` | todo | |
+| 22 | Strict: `shared/paint` but for `paint.ts` | `claude/builders-fold-strict` | todo | |
+| 23 | Strict: `shared/paint/paint.ts` and its parts | `claude/builders-fold-strict` | todo | |
+| 24 | Strict: `shared/lighting` and `shared/motion` | `claude/builders-fold-strict` | todo | |
+| 25 | Strict: `shared/hair` and `shared/outfit` | `claude/builders-fold-strict` | todo | |
+| 26 | Strict: `shared/figure` and `shared/base` | `claude/builders-fold-strict` | todo | |
+| 27 | Strict: `shared/actors`, `shared/stage`, the view; the flags on; the declarations step goes; the pull request | `claude/builders-fold-strict` | todo | |
 | 15 | The tiles golden, restated as a world-kit check | `claude/builders-fold-scenes` | todo | |
 | 16 | What the builder changed after the ports were read | `claude/builders-fold-scenes` | todo | |
 | 17 | The photo process as the world kit's document | `claude/builders-fold-scenes` | todo | |
 | 18 | The provenance table at `f7c5356`; the ledger rows | `claude/builders-fold-scenes` | todo | |
-| 19 | Group 2 closes: the retirement notes, the gates whole, the pull request | `claude/builders-fold-scenes` | todo | |
+| 19 | Group 2 closes: the retirement notes recorded, the gates whole, the pull request | `claude/builders-fold-scenes` | todo | |
 | 20 | Conditional: the CPU scene renderer as a reference tool (only if the Owner chooses option B) | `claude/builders-fold-scenes` | not planned | |
+
+**Order of the branches.** `claude/builders-fold-figures` first. When it has merged: `claude/builders-fold-strict`
+(the painter only) and `claude/builders-fold-scenes` (the world kit and the record only) touch no file in common and
+may run side by side. Workstream 4's wardrobe branch changes the painter, so it starts after
+`claude/builders-fold-strict` merges; the `@pixi/3d` beta.3 upgrade may merge any time after
+`claude/builders-fold-figures`.
 
 ## What this plan settles
 
@@ -59,7 +76,7 @@ Each has the recommendation and its reason. Where the decision is the Owner's, t
 
 **FigureBuilder: a filtered history, merged once.** `git filter-repo` keeps only the code paths (`src`, `base`,
 `tests`, `scripts`, `viewer`, `package.json`, `tsconfig.json`, `vitest.config.ts`), rewrites them under
-`extensions/painted-figures/`, and the result is merged with `--allow-unrelated-histories` in one merge commit whose
+`extensions/figures/`, and the result is merged with `--allow-unrelated-histories` in one merge commit whose
 subject is a Conventional Commit. `git log` and `git blame` then work on the new paths with no extra flags.
 
 - Size, measured: the filtered history is **243 commits and 1.64 MB packed** (`main`, 236 commits, with the wardrobe
@@ -71,10 +88,14 @@ subject is a Conventional Commit. `git log` and `git blame` then work on the new
   in `lefthook.yml` or the workflows). The rule "Conventional Commits on a branch with a pull request" holds for every
   commit this plan authors, the merge commits included.
 - Commit ids change. `filter-repo`'s commit map (old id to new id) is committed as
-  `docs/provenance/painted-figures-commit-map.txt`, so an id quoted in an old document (`d5ca055`) can be found.
-- **A checksum manifest is written whichever way history goes**: `docs/provenance/painted-figures-manifest.json`,
+  `docs/provenance/figures-commit-map.txt`, so an id quoted in an old document (`d5ca055`) can be found.
+- **A checksum manifest is written whichever way history goes**: `docs/provenance/figures-manifest.json`,
   the SHA-256 of each of the 131 files under the five folders and the 3 root files at `23f889c8`, checked against the
   merged tree in task 2.
+- **The 228 audit PNGs (12.2 MB) and the rest of the builder's `docs/` are not brought**, in the tree or in the
+  history. The manifest and `docs/provenance/sources.md` name the source repository and commit where they stay.
+- The two fix branches the Owner asked for are filtered in the same run, so their commits can be cherry-picked with
+  their authorship and messages (tasks 4c and 4d).
 - A subtree merge of the whole history is rejected: it brings the 20.6 MB and 271 `docs/` files whose Markdown the
   framework's `pnpm style` would then read.
 - **Fallback:** if `git filter-repo` cannot be installed in the execution session, a plain copy with the manifest and
@@ -90,11 +111,25 @@ framework, byte-identical.
   every pull request, and in the commit hook when the package or something it depends on changed.** `AGENTS.md`: "The
   gate runs every unit test". Until task 7 they run through the builder's own `vitest.config.ts`; after it, through
   `@automata/vitest-preset`.
-- **Time, measured** (x86_64, 4 cores): the five goldens with `ulp.test.ts` and `identity.test.ts` take **27 s** under
-  the framework's Node 24.21; the whole suite (47 files, 561 tests) takes at most **227 s** (another suite shared the
-  cores). Turbo caches it when the package's inputs have not changed, so it is paid only by commits that touch the
-  painter. A session that has just run the whole `pnpm check` on the tree it commits may skip the hook
-  (`LEFTHOOK=0`), by the Owner's rule of 2026-11-11.
+- **Time, measured** (x86_64, 4 cores): the whole suite (47 files, 561 tests) takes at most **227 s** (another suite
+  shared the cores); the five goldens with `ulp.test.ts` and `identity.test.ts` take **27 s** under the framework's
+  Node 24.21. Per file, 16 of the 47 files take 80% of the time; the goldens, the pins, the last-bit test, the API
+  pin and the layer test (9 files) are 23% of it.
+- **227 s is too long for the commit hook** (the coordinator's ruling), and nothing may leave the gate. So the
+  suite is two Vitest projects from task 7 on:
+  - `goldens`: the five goldens, the identity pins, the last-bit test, the API pin and the layer test. About 30 to
+    60 s. It runs **always**: in the hook, in `pnpm check`, in CI.
+  - `unit`: the other 38 files (each feature's guard tests). About 3 minutes. It runs in **`pnpm check` and CI**,
+    and in the hook only when asked.
+  - How: the root `test:unit`, `test:unit:2d` and `test:unit:3d` scripts set `AF_UNIT_FULL=1`; `turbo.json` names
+    `AF_UNIT_FULL` in `test:unit`'s `env`, so the two runs are cached apart; the package's `test:unit` script is
+    `vitest run --project goldens` plus `--project unit` when the variable is set. The hook's command
+    (`turbo run test:unit --filter="...[HEAD]"`) does not set it. `AGENTS.md`'s "the gate runs every unit test"
+    still holds, because the gate is `pnpm check`.
+  - Rejected: a `tests/slow/` folder. `AGENTS.md` keeps `slow/` for what needs a real browser or the network and is
+    run by hand; these tests need neither and must stay in the gate.
+  - A commit that touches only the kit never runs the painter's tests at all: the hook's filter takes changed
+    packages and what depends on them, not what they depend on.
 - **The view check** (GPU frame equal to the CPU's, byte for byte) becomes a browser suite in task 11 and runs with
   `pnpm test:browser:3d` and in `.github/workflows/3d.yml`, not in `pnpm check`. Until task 11 it is run by hand after
   any change under `src/features/view/`.
@@ -111,10 +146,14 @@ coordinator.**
 |---|---|---|
 | Task 2, the arrival | a file differs from the source; Node 24 or Vitest 5.0.3 in place of the builder's | the manifest check; the builder's suite as it is (measured: the goldens pass under Node 24.21) |
 | Task 3, the door | the kit resolves a different copy of `pixi.js` or `@pixi/3d`, or different source | the kit's unit goldens (`runway-cells.json` and the others under `tests/fixtures/goldens/`) and its Chromium suite |
+| Task 4c, the c5-finish fixes | six commits change `paint.ts`, `fabric.ts`, `light.ts`, `figure.ts` (measured for five of them: no golden moves) | the five goldens, the identity pins, the kit's goldens |
+| Task 4d, the turned face | **expected to move, and the one re-record this plan makes**: the actors, base and sprites goldens (measured: 4 tests fail), and whichever of the kit's cells show a turned face | the sheet; nothing is re-recorded before the Owner has seen it |
 | Task 5, the wardrobe branch | its seven code commits change `hair.ts`, `garments.ts`, `paint.ts`, `parts.ts`, `fit.ts` | the five goldens, the branch's own pins, the kit's goldens |
 | Task 6, format | none expected (syntax only) | the suite |
 | Task 7, the layout | a golden reads its data by a relative path; module load order changes with the move | the suite; a golden that cannot find its data fails loudly |
-| Task 8, lint | a rewritten assignment-in-expression, a NaN test, a removed `!` | the suite after each rule |
+| Task 6, lint's automatic fixes | none expected (Biome's safe fixes only) | the suite |
+| Task 8, lint by hand | a rewritten assignment-in-expression, a NaN test | the suite after each rule |
+| Tasks 21 to 27, the strict flags | a check added where an index can be out of range changes a path that was silently reading `undefined` | the suite after each folder; a golden that moves there has found a real out-of-range read, and is a stop with the index named |
 | Task 9, the splits | registries fill at module load; the part index seeds the grain, so order matters | the suite after each split |
 | Task 10, Zod | a parse that drops or reorders keys changes iteration order | a key-order test written first; the suite |
 | Task 11, the browser suite | none to CPU goldens; the GPU cases are new recordings of equality, not images | the cases themselves |
@@ -130,15 +169,35 @@ to 12 conform, each a commit or a short run of commits that changes one thing an
 
 | Task | Conform step | What it proves |
 |---|---|---|
-| 6 | Biome's format | `pnpm lint` reads the package's formatting; the temporary Biome exclusion is half gone |
-| 7 | `src/shared/<layer>/`, `src/features/view/`, `src/entries/`; tests in `tests/unit/`; `#src/…` imports; the framework's Vitest preset; the layer test restated | `pnpm boundaries --features` and `style`'s test-imports rule pass with the package in their lists; the layer order still holds |
-| 8 | Biome's lint rules, one a commit | `pnpm lint` passes with no exclusion |
+| 6 | Biome's format, then Biome's automatic lint fixes: two mechanical commits, no hand edit, before anything else is touched | later diffs are readable; `pnpm lint` reads the package's formatting |
+| 7 | `src/shared/<layer>/`, `src/features/view/`, `src/entries/`; tests in `tests/unit/`; `#src/…` imports; the framework's Vitest preset; the layer test restated; the suite in two projects | `pnpm boundaries --features` and `style`'s test-imports rule pass with the package in their lists; the layer order still holds; the hook runs the goldens only |
+| 8 | The lint rules that need a hand, one a commit | `pnpm lint` passes with no exclusion |
 | 9 | Files of at most 600 lines | `pnpm style` passes with the package in its names, length and plan-comments list |
 | 10 | Zod schemas for the eight libraries | a wrong library fails at load, in words |
 | 11 | `view-check` as a browser suite | the GPU equality runs in a gate, not by hand |
 | 12 | The readme, the contract, comments, provenance | no path or comment names the submodule; the builder's rules are written in the framework's form |
+| 21 to 27 | `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`, folder by folder | the painter compiles under the framework's base with no exception; the declarations step is gone |
 
-Not conformed in this plan, and named so: the two stricter compiler flags (below).
+**The two strict flags: the ledger.** The package arrives with the two flags off, stated in its `tsconfig.json` with
+a comment that says why (the coordinator's ruling). 1,395 errors at `23f889c8`; the first strict task measures them
+again on the conformed tree (the fix branches, the wardrobe branch and the removed `!`s change the count) and fills
+the last column.
+
+| Task | Folders (after task 7's layout) | Errors at `23f889c8` | Measured at the task |
+|---|---|---|---|
+| 21 | `shared/math`, `shared/body` | 101 + 89 = 190 | |
+| 22 | `shared/paint` but for `paint.ts` (`raster.ts` 142) | 145 | |
+| 23 | `shared/paint/paint.ts` and the parts task 9 split it into | 511 | |
+| 24 | `shared/lighting`, `shared/motion` | 57 + 56 = 113 | |
+| 25 | `shared/hair`, `shared/outfit` | 103 + 23 = 126 | |
+| 26 | `shared/figure`, `shared/base` | 226 + 0 = 226 | |
+| 27 | `shared/actors`, `shared/stage`, `features/view`, `entries` | 68 + 7 + 9 + 0 = 84 | |
+| | | **1,395** | |
+
+Seven tasks, on their own branch right after the first group, **inside this workstream** (recommended, and the
+coordinator's default): figures are about to be changed a lot, and every change made before the flags are on adds to
+the ledger. The first group's pull request is not held up by them, and the declarations step is the only cost of
+the gap.
 
 ### 4. Order against the `@pixi/3d` beta.3 upgrade
 
@@ -162,6 +221,12 @@ Not conformed in this plan, and named so: the two stricter compiler flags (below
     the template copy); a view with a `beforeToneMapping` effect now draws into `rgba16float` linear light, which a
     host's passes must account for.
   - `Sprite3D` takes one options object; `cull` defaults to `'gpu'`.
+- **What the upgrade inherits, exactly:** (1) one more `file:` specifier to move, in
+  `extensions/figures/package.json`, with its `pixi.js` peer; (2) `src/features/view/cell-template.ts`, the copy of
+  the material template, remade from beta.3's, and `tests/unit/view/template.test.ts`, its guard, which fails until
+  it is; (3) `CellMaterial` (a `FlatMaterial`) and `CellSprite` under beta.3's display encoding of unlit colour, held
+  to byte equality with the CPU frame by task 11's browser suite; (4) per-texture samplers in place of the template's
+  texel snap; (5) `Sprite3D`'s single options object in `cell-sprite.ts`.
 - **What the other redoes.** Fold first: the upgrade redoes nothing of the fold; it gains one more package whose
   `file:` specifier moves, and it ports the view in place with the browser suite of task 11 as its proof. Upgrade first
   (not recommended): the fold's task 2 skips `template.test.ts` and the view check with a note, and the view's port
@@ -179,12 +244,12 @@ In tasks 3, 4 and 12 (no workflow file among them):
 | `pnpm-workspace.yaml` | the comment and the entry `vendor/figure-builder` go |
 | `biome.json` lines 20 and 21 | the two exclusions go |
 | `knip.jsonc` lines 8, 9 and 28 to 31 | the ignore entry and the wrapper's workspace go; the package gets its own entry |
-| `.gitignore` lines 41 and 42 | replaced by `extensions/painted-figures/types/` |
-| root `package.json`, `boundaries` | `figure-builder` becomes `@automata/painted-figures` in the 13 `--forbid` entries |
+| `.gitignore` lines 41 and 42 | replaced by `extensions/figures/types/` |
+| root `package.json`, `boundaries` | `figure-builder` becomes `@automata/figures` in the 13 `--forbid` entries |
 | root `package.json`, `@pixi/3d` and `pixi.js` | removed if nothing else needs them (they are there because the submodule's sources resolved from the root); kept with a new comment if a check fails without them |
-| `tooling/release/tests/unit/closed-beta-guard.test.ts` lines 33 and 35 | the forbidden name becomes `@automata/painted-figures` |
-| `extensions/character-kit/package.json` line 38 | `"figure-builder": "workspace:*"` becomes `"@automata/painted-figures": "workspace:*"` |
-| `extensions/character-kit/src/shared/figure-builder/door.ts`, `door-view.ts` | new specifiers; the folder becomes `src/shared/painted-figures/` in task 12 |
+| `tooling/release/tests/unit/closed-beta-guard.test.ts` lines 33 and 35 | the forbidden name becomes `@automata/figures` |
+| `extensions/character-kit/package.json` line 38 | `"figure-builder": "workspace:*"` becomes `"@automata/figures": "workspace:*"` |
+| `extensions/character-kit/src/shared/figure-builder/door.ts`, `door-view.ts` | new specifiers; the folder becomes `src/shared/figures/` in task 12 |
 | `extensions/character-kit/README.md` lines 52 and 53, and the 10 kit files that say "submodule", "upstream" or `vendor/FigureBuilder` | reworded |
 | `docs/provenance/sources.md`, "The figure builder as a submodule (2026-11-10)" | kept as history; a section "The figure painter, folded in" follows it |
 
@@ -194,9 +259,10 @@ the painter's source directly would put its 1,395 strict errors into the kit's t
 builds declarations with the builder's own settings. The package keeps that: `tsconfig.types.json` and a `prepare`
 script emit `types/`, and `exports` names the declarations as `types` and the source as `default`. With the source in
 the repository, `pnpm install` always runs it, so no session runs it by hand and a fresh clone needs no manual step.
-It goes for good when the painter passes the two strict flags (following work).
+It goes for good in task 27, when the painter passes the two strict flags.
 
-In task 14, **only with the Owner's word quoted in the pull request** (line numbers at `main` `0df11a43`):
+In task 4b, on the Owner's word of 2026-11-12, quoted in the commit and in the pull request: **"remove the submodule
+checkout and SUBMODULES_TOKEN from the workflows"** (line numbers at `main` `0df11a43`):
 
 | File | Lines |
 |---|---|
@@ -216,8 +282,9 @@ token's entries in `tooling/repo-hygiene/src/workflow-invariants.ts` (lines 11-1
 with the four cases of its test (lines 81, 95, 118, 141); `docs/runbook.md` line 63. The secret itself is the Owner's
 to delete.
 
-Measured: with no `.gitmodules`, `checkout-submodules.sh` exits 0 with and without a token. So tasks 1 to 13 leave
-every workflow untouched and CI still runs; the step is a no-op until task 14.
+Measured: with no `.gitmodules`, `checkout-submodules.sh` exits 0 with and without a token. So tasks 1 to 4 leave
+every workflow untouched and CI still runs; task 4b is its own commit, made only after the checks pass without the
+submodule.
 
 ### 6. Workstream 4's tasks 13 to 16 after the fold
 
@@ -225,45 +292,47 @@ Written as an addendum at the end of this plan ("Addendum for workstream 4's pla
 
 ### 7. The two old repositories
 
-The note each gets is under "The retirement notes". No session pushes to them. Open branches besides `c9-wardrobe`
-are listed in the surveys; the two that carry painter work not on `main` (`claude/c5-finish-fixes`,
-`claude/turned-face-both-eyes`) are the third question for the Owner.
+The note each gets is under "The retirement notes". The coordinator commits it to each repository on a branch there
+and the Owner merges and archives; this plan records the text and, in task 19, that it is done. No execution session
+pushes to them. Their open branches are in the surveys. By the Owner's answer of 2026-11-12 ("bring the figure
+builder branches in that we missed"), `claude/c5-finish-fixes` and `claude/turned-face-both-eyes` come across (tasks
+4c and 4d); the content branches and spikes do not, and the survey says why each was judged content.
 
 ### 8. Risks, and how the plan would notice each
 
 | Risk | How it is noticed |
 |---|---|
-| A golden moves on another machine architecture | `tests/unit/hair/ulp.test.ts` redraws with the maths a last bit off and runs in every `pnpm check`; the pull request's CI runs the suite on the runner's architecture; task 13 asks the Owner for one run on arm64 before merge (`pnpm --filter @automata/painted-figures test:unit`). A difference is fixed in the painter, never with a per-architecture golden |
+| A golden moves on another machine architecture | `tests/unit/hair/ulp.test.ts` redraws with the maths a last bit off and runs in every `pnpm check`; the pull request's CI runs the suite on the runner's architecture; task 13 asks the Owner for one run on arm64 before merge (`AF_UNIT_FULL=1 pnpm --filter @automata/figures test:unit`). A difference is fixed in the painter, never with a per-architecture golden |
 | Test time added to `pnpm check` and the commit hook | task 1 times `pnpm check` and `pnpm test:unit` before; task 13 times them after. More than 5 minutes added to an uncached `pnpm check` is reported to the coordinator with the slowest files (`vitest --reporter=verbose`), not fixed by moving goldens out of the gate |
 | Repository size | task 1 records `git count-objects -vH`; task 13 records it again. Expected growth about 2 MB. More than 5 MB is a stop: something that is not code came across (check `git rev-list --objects` for the largest new blobs) |
 | Licence records for photos | nothing moves: the 38 photos are already in the kit with source, licence and credit, and `extensions/world-kit/tests/unit/textures/swatch-tiles.test.ts` fails without them. Task 17's document says where the record lives. The painter has no third-party asset: no PNG, font or sound in its source or tests |
 | Name clashes | the package's `Figure`, `Cell`, `stageFrame`, `lightSprite`, `POSES`, `GAITS` sit beside core's mesh figures (`packages/3d/src/features/figures/`), the `figure` content kind and `spriteLight` in `packages/3d/src/features/look/sprite-light.ts`. Task 12 lists every export name the package shares with `@automata/3d`'s entries (a command, below) in the package's readme with one line each on which is which. No module can import the wrong one by accident: the kit's door test allows only the door files to import the package, and `pnpm boundaries --forbid` keeps it out of core |
+| A bounds check in a hot loop slows the painter | tasks 21 to 27 time the painter's suite and the kit's bench (`extensions/character-kit/tests/bench/lit.bench.test.ts`) before and after each folder; more than 10% slower is reported with the loop named before going on |
 | The declarations go stale | the package's `typecheck` rebuilds them and turbo runs it before the kit's (a `dependsOn` in `turbo.json`); `pnpm install` builds them on a fresh clone |
 | The filtered history is not the source | the manifest check of task 2: 134 files, each SHA-256 equal to `git show 23f889c8:<path>` |
 
-## Questions for the Owner
+## Questions for the Owner, and the answers so far
 
-Sent to the coordinator while this plan was written; the plan proceeds on each default.
-
-1. **EnvironmentBuilder's goldens.** Measured: with its painter at the framework's pin, `tests/golden/base.test.ts`
-   (8 of 8) and `tests/golden/scenes.test.ts` (14 of 14) fail; `tiles` passes. **A (default):** the CPU scene renderer
-   and those two goldens do not come; the `tiles` golden comes restated as a world-kit check; the spec's rule 1 is
-   amended to say so. **B:** the CPU scene renderer comes as a private reference tool and the two goldens are
-   re-recorded once, in one named commit (task 20). **C (rejected):** a frozen second copy of the painter.
-2. **The workflow files.** **(a, default):** the fold lands with the submodule steps left as no-ops and task 14 waits
-   for the Owner's word. **(b):** the Owner gives the word now and task 14 runs before task 13.
-3. **FigureBuilder's branches with painter work not on its `main`** (`claude/c5-finish-fixes`, 8 fixes;
-   `claude/turned-face-both-eyes`, a fix that re-records a golden). **(a, default):** they stay in the retired
-   repository and are listed as following work. **(b):** they are brought as framework changes after the fold.
-4. **The retirement note.** **(a, default):** the Owner pastes the note below into each `README.md` and archives.
-   **(b):** the Owner grants one session push access to add it.
-5. **The package's licence.** FigureBuilder records none. **Default:** `"license": "MIT"`, `"private": true`, as the
-   two kits say.
+1. **EnvironmentBuilder's goldens: open.** Measured: with its painter at the framework's pin,
+   `tests/golden/base.test.ts` (8 of 8) and `tests/golden/scenes.test.ts` (14 of 14) fail; `tiles` passes.
+   **A (default, planned):** the CPU scene renderer and those two goldens do not come; the `tiles` golden comes
+   restated as a world-kit check; the spec's rule 1 is amended to say so. The survey's first table says what A gives
+   up. **B:** the CPU scene renderer comes as a private reference tool and the two goldens are re-recorded once
+   (task 20). **C (rejected):** a frozen second copy of the painter. *To change: choose B, and task 20 is planned
+   before group 2 starts.*
+2. **The workflow files: answered, 2026-11-12.** "remove the submodule checkout and SUBMODULES_TOKEN from the
+   workflows". Task 4b, in the first group's pull request, as its own commit.
+3. **FigureBuilder's branches with painter work not on its `main`: answered, 2026-11-12.** "bring the figure builder
+   branches in that we missed". Tasks 4c and 4d. The turned-face fix re-records goldens only after the Owner has seen
+   its sheet.
+4. **The retirement note: answered, 2026-11-12.** The coordinator commits it to each repository on its own branch
+   there; the Owner merges and archives.
+5. **The package's licence: the coordinator agreed.** `"license": "MIT"`, `"private": true`.
 
 ## Calls made in this plan, for the coordinator to check
 
-1. **The home and the name:** a private extension, `extensions/painted-figures`, `@automata/painted-figures`
-   (the other name considered: `@automata/figures`). Reasons in the survey.
+1. **The home and the name:** a private extension, `extensions/figures`, `@automata/figures` (ruled by the
+   coordinator; the first survey draft proposed `painted-figures`).
 2. **The Pixi-free pipeline lives in `src/shared/<layer>/`**, not in `src/features/`: the framework's feature rule
    forbids one feature importing another, and the pipeline is layers. `src/features/view/` is the one feature.
 3. **The layer order stays a test in the package** (`tests/unit/layers.test.ts`), not a new rule in
@@ -271,8 +340,9 @@ Sent to the coordinator while this plan was written; the plan proceeds on each d
    published package for one private consumer.
 4. **The fold lands before the beta.3 upgrade.**
 5. **Filtered history, not a subtree merge and not a plain copy.**
-6. **Two compiler flags stay off for the painter** (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), with
-   the declarations step kept until they are on. 1,395 errors otherwise, each fix a possible change of code path.
+6. **Two compiler flags are off for the painter when it arrives, and are turned on by tasks 21 to 27 on a third
+   branch** (ruled by the coordinator: inside this workstream, folder by folder, no casts and no non-null
+   assertions). The declarations step lives only as long as that gap.
 7. **`@napi-rs/canvas`** (not in the lockfile) stays a `devDependency` of the private package for its hand-run sheet
    scripts; `pnpm deps:new` will report it.
 8. **The builder's `docs/superpowers/` and its 228 PNGs do not come.** The wardrobe cycle's spec, plan and plan audit
@@ -281,12 +351,19 @@ Sent to the coordinator while this plan was written; the plan proceeds on each d
 9. **EnvironmentBuilder's GPU harness is not wanted** (the builder's own log ended it: `9c2df06`, "the look moves to
    AutomataFramework"); its `gpu:parity` idea is listed as following work.
 10. **Tuning a swatch's knobs against its reads is an editor gap**, not a command to port.
+11. **The painter's suite is two Vitest projects**, `goldens` always and `unit` when `AF_UNIT_FULL=1` (set by the
+    root unit-test scripts, so by `pnpm check` and CI), so the commit hook runs about a minute of it and the gate
+    all of it.
+12. **The fix branches are cherry-picked before the wardrobe branch is merged and before any conform step**, so each
+    commit applies as it was written. Measured in a scratch clone: the five clean c5 picks, the turned-face fix and
+    the wardrobe merge apply together with no conflict.
 
 ## Global constraints
 
-- **No pixel changes.** No recorded golden, image or hash is re-recorded in this plan. One that would move stops the
-  task. The only new recordings are first recordings named by their task (none in group 1; the restated tiles list in
-  task 15, which is the builder's own data).
+- **No pixel changes, with one exception the Owner asked for.** No recorded golden, image or hash is re-recorded in
+  this plan but in task 4d (a turned face keeps both eyes), where the Owner sees a before-and-after sheet first and
+  one commit names the reason. Anywhere else, a golden that would move stops the task. The only new recordings are
+  first recordings named by their task (the restated tiles list in task 15, which is the builder's own data).
 - **The move and the conform are separate commits.** Tasks 2 to 5 change no line of the builder's source or tests.
 - **The framework's rules** (`AGENTS.md`): feature folders, `pnpm boundaries`, tests in `tests/` importing `#src/…`,
   kebab-case names, files of at most 600 lines, Zod as the only schema language, PixiJS only for rendering, comments
@@ -294,20 +371,24 @@ Sent to the coordinator while this plan was written; the plan proceeds on each d
 - **Private until Pixi 3D is public.** `"private": true`; no changeset; `pnpm boundaries --forbid` and the closed-beta
   guard keep the package out of everything published.
 - **No paid stage and no model call.**
-- **Neither builder is core.** Brand or game content does not come: no branch but `main` and `claude/c9-wardrobe`.
+- **Neither builder is core.** Brand or game content does not come: no branch but `main`, `claude/c9-wardrobe`,
+  `claude/c5-finish-fixes` and `claude/turned-face-both-eyes`.
+- **The strict tasks never use an `as` cast or a non-null assertion** to quiet the compiler. Where an index really
+  can be out of range, the fix is a check.
 - **Test first where code changes** (tasks 7, 10, 11, 14, 15, 16): the failing test is written and seen to fail for
   the right reason before the change.
 - **Stage files by path.** Never `git commit -a`. `pnpm format` before each commit. Conventional Commits.
-- **Workflow files change only in task 14**, with the Owner's word quoted in the pull request.
+- **Workflow files change only in task 4b**, with the Owner's words quoted in the commit and the pull request.
 - **Never push to `mcthaydt/FigureBuilder` or `mcthaydt/EnvironmentBuilder`.** Clone them read only, outside the
   framework's working tree.
 
 ### The gates
 
 - After every task: `pnpm check` (exit 0), and the suites the task names.
-- The painter's suite: `pnpm --filter @automata/painted-figures test:unit`. Expected until task 5: 47 files, 561
-  tests. After task 5 the count grows by the wardrobe branch's five test files; record the new numbers there and use
-  them from then on. After task 7 the file count is the same and the paths are `tests/unit/…`.
+- The painter's suite, whole: `AF_UNIT_FULL=1 pnpm --filter @automata/figures test:unit` (before task 7 the
+  variable does nothing and the script runs everything). Expected until task 4c: 47 files, 561 tests. Tasks 4c, 4d
+  and 5 each add tests; record the new numbers at each and use them from then on. After task 7 the file count is the
+  same and the paths are `tests/unit/…`.
 - The kit: `pnpm --filter @automata/character-kit test:unit`, then in Chromium
   `AF_WEBGPU=software pnpm --filter @automata/character-kit test:browser`. Record the counts in task 1 and expect the
   same ones after.
@@ -321,27 +402,27 @@ named.
 1. **A fresh clone with no submodule and no manual step.** After task 4, clone the branch into a scratch folder with
    plain `git clone`, run `pnpm install --frozen-lockfile` and `pnpm check`: both must pass with nothing else typed
    (task 4, step 6; again in task 13).
-2. **A pull request from a fork has no secrets.** The submodule step must stay harmless with no token until task 14
+2. **A pull request from a fork has no secrets.** The submodule step must stay harmless with no token until task 4b removes it
    (task 4, step 5 runs the script both ways).
 3. **A stale `types/` folder.** Edit one exported type in the painter and run `pnpm typecheck` once: the kit must see
    the new type without a second command (task 3, step 5).
 4. **A library file with a wrong field.** After task 10 a misspelt key in `swatches.json` fails at load, naming the
    file and the key, not as a wrong colour later (task 10, step 1).
-5. **A consumer that reaches past the entries.** `import '@automata/painted-figures/features/paint/paint'` must not
+5. **A consumer that reaches past the entries.** `import '@automata/figures/features/paint/paint'` must not
    resolve: the package exports three entries and no wildcard (task 3, step 1's test).
 
 ---
 
 ## Group 1: FigureBuilder (`claude/builders-fold-figures`)
 
-From `origin/main`. One draft pull request at the end of task 13. In every command below, `$FB` is a scratch clone of
+From `origin/main`. One draft pull request, opened at the end of task 13. In every command below, `$FB` is a scratch clone of
 `https://github.com/mcthaydt/FigureBuilder` outside the framework's working tree, and `$PIN` is
 `23f889c8a5cda3511f4a2d044324c57ba624dc1c`.
 
 ### Task 1: The baseline, and the checksum manifest
 
 **Files:**
-- Create: `docs/provenance/painted-figures-manifest.json`
+- Create: `docs/provenance/figures-manifest.json`
 
 - [ ] **Step 1: The baseline.** `git submodule update --init`, `pnpm install --frozen-lockfile`, then `pnpm check`
   (expect exit 0), `pnpm --filter @automata/character-kit test:unit`,
@@ -355,14 +436,14 @@ const { execFileSync } = require("node:child_process"), { createHash } = require
 const [src, commit] = process.argv.slice(1)
 const keep = /^(src|base|tests|scripts|viewer)\/|^(package\.json|tsconfig\.json|vitest\.config\.ts)$/
 const files = execFileSync("git", ["-C", src, "ls-tree", "-r", "--name-only", commit], { encoding: "utf8" }).trim().split("\n").filter((f) => keep.test(f))
-const out = { source: "mcthaydt/FigureBuilder", commit, home: "extensions/painted-figures", files: {} }
+const out = { source: "mcthaydt/FigureBuilder", commit, home: "extensions/figures", files: {} }
 for (const f of files) out.files[f] = createHash("sha256").update(execFileSync("git", ["-C", src, "show", `${commit}:${f}`])).digest("hex")
-fs.writeFileSync("docs/provenance/painted-figures-manifest.json", `${JSON.stringify(out, null, 2)}\n`)
+fs.writeFileSync("docs/provenance/figures-manifest.json", `${JSON.stringify(out, null, 2)}\n`)
 console.log(files.length)' "$FB" "$PIN"
 ```
 
   Expected output: `134` (47 in `src`, 1 in `base`, 73 in `tests`, 6 in `scripts`, 4 in `viewer`, 3 root files).
-- [ ] **Step 3: Commit.** `git add docs/provenance/painted-figures-manifest.json`, then
+- [ ] **Step 3: Commit.** `git add docs/provenance/figures-manifest.json`, then
   `chore(provenance): the figure painter's files at 23f889c8, by checksum`.
 
 **Done when:** the log holds the baseline numbers and the manifest lists 134 files.
@@ -370,13 +451,13 @@ console.log(files.length)' "$FB" "$PIN"
 ### Task 2: The painter's source arrives with its history; its own suite passes as it is
 
 **Files:**
-- Create (by merge): `extensions/painted-figures/{src,base,tests,scripts,viewer}/**`, `package.json`,
+- Create (by merge): `extensions/figures/{src,base,tests,scripts,viewer}/**`, `package.json`,
   `tsconfig.json`, `vitest.config.ts`
-- Create: `extensions/painted-figures/tsconfig.types.json`, `docs/provenance/painted-figures-commit-map.txt`
-- Modify: `extensions/painted-figures/package.json`, `biome.json`, `knip.jsonc`, `.gitignore`, `pnpm-lock.yaml`
+- Create: `extensions/figures/tsconfig.types.json`, `docs/provenance/figures-commit-map.txt`
+- Modify: `extensions/figures/package.json`, `biome.json`, `knip.jsonc`, `.gitignore`, `pnpm-lock.yaml`
 
 **Interfaces:**
-- Produces: the workspace package `@automata/painted-figures` with `exports` `"."`, `"./kit"`, `"./view"`, each
+- Produces: the workspace package `@automata/figures` with `exports` `"."`, `"./kit"`, `"./view"`, each
   `{ "types": "./types/src/<entry>.d.ts", "default": "./src/<entry>.ts" }` for `index`, `kit`, `view`; and its
   scripts `prepare`, `typecheck`, `test:unit`.
 
@@ -385,27 +466,29 @@ console.log(files.length)' "$FB" "$PIN"
 ```bash
 python3 -m pip install --user git-filter-repo==2.47.0
 git clone https://github.com/mcthaydt/FigureBuilder "$FB-filtered" && cd "$FB-filtered"
-git branch claude/c9-wardrobe origin/claude/c9-wardrobe
+for b in c9-wardrobe c5-finish-fixes turned-face-both-eyes; do git branch claude/$b origin/claude/$b; done
 git filter-repo --force \
   --path src --path base --path tests --path scripts --path viewer \
   --path package.json --path tsconfig.json --path vitest.config.ts \
-  --to-subdirectory-filter extensions/painted-figures \
-  --refs refs/heads/main refs/heads/claude/c9-wardrobe
+  --to-subdirectory-filter extensions/figures \
+  --refs refs/heads/main refs/heads/claude/c9-wardrobe \
+         refs/heads/claude/c5-finish-fixes refs/heads/claude/turned-face-both-eyes
 ```
 
   Expected, from the plan session's dry run in a scratch clone: `git log --oneline main | wc -l` prints **236** (the
   commits that touched none of the kept paths are dropped); `git ls-tree -r --name-only main | wc -l` prints **134**,
-  none outside `extensions/painted-figures/`; `git rev-list --count main..claude/c9-wardrobe` prints **7** (the
+  none outside `extensions/figures/`; `git rev-list --count main..claude/c9-wardrobe` prints **7** (the
   branch's code commits; its three document and evidence commits are dropped) and the branch sits on the filtered
-  `main`; the two refs together pack to about 1.6 MB. If `pip` cannot install the tool, use the fallback of "History" and say
+  `main`; the two refs together pack to about 1.6 MB. (The dry run filtered `main` and the wardrobe branch; the two
+  fix branches were cherry-picked in an unfiltered scratch clone, which is the same patches without the prefix.) If `pip` cannot install the tool, use the fallback of "History" and say
   so.
 - [ ] **Step 2: Merge.** In the framework:
 
 ```bash
 git remote add painter-history "$FB-filtered" && git fetch painter-history
 git merge --allow-unrelated-histories --no-ff painter-history/main \
-  -m "chore(painted-figures): the figure painter's source arrives with its history"
-cp "$FB-filtered/.git/filter-repo/commit-map" docs/provenance/painted-figures-commit-map.txt
+  -m "chore(figures): the figure painter's source arrives with its history"
+cp "$FB-filtered/.git/filter-repo/commit-map" docs/provenance/figures-commit-map.txt
 ```
 
   The merge commit's body says: the source repository, `$PIN`, the paths kept, the paths left out and why, and that
@@ -415,14 +498,14 @@ cp "$FB-filtered/.git/filter-repo/commit-map" docs/provenance/painted-figures-co
 ```bash
 node -e '
 const { createHash } = require("node:crypto"), fs = require("node:fs")
-const m = JSON.parse(fs.readFileSync("docs/provenance/painted-figures-manifest.json", "utf8"))
+const m = JSON.parse(fs.readFileSync("docs/provenance/figures-manifest.json", "utf8"))
 const bad = Object.entries(m.files).filter(([f, sha]) => createHash("sha256").update(fs.readFileSync(`${m.home}/${f}`)).digest("hex") !== sha)
 console.log(Object.keys(m.files).length, "files,", bad.length, "differ"); process.exit(bad.length ? 1 : 0)'
 ```
 
   Expected: `134 files, 0 differ`. Anything else is a stop.
 - [ ] **Step 4: Make it a workspace package, changing no source or test.** Edit only
-  `extensions/painted-figures/package.json`: `"name": "@automata/painted-figures"`, `"version": "0.0.0"`,
+  `extensions/figures/package.json`: `"name": "@automata/figures"`, `"version": "0.0.0"`,
   `"private": true`, `"license": "MIT"`, `"type": "module"`, the `exports` above, `"dependencies"`
   `{ "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz" }`, `"peerDependencies"`
   `{ "pixi.js": "8.22.0" }`, `"devDependencies"` at the kit's versions (`pixi.js` 8.22.0, `typescript` 6.0.3,
@@ -430,21 +513,21 @@ console.log(Object.keys(m.files).length, "files,", bad.length, "differ"); proces
   `1.0.10`, and the scripts `"prepare": "tsc -p tsconfig.types.json"`,
   `"typecheck": "tsc -p tsconfig.types.json && tsc --noEmit"`, `"test:unit": "vitest run"`, and the builder's
   `render`, `golden`, `lit`, `actors`, `c5`, `view-check` with `tsx` in place of `vite-node`. Copy
-  `vendor/figure-builder/tsconfig.types.json` to `extensions/painted-figures/tsconfig.types.json` unchanged but for
-  its comment. Add `extensions/painted-figures/types/` to `.gitignore`. Add, each with a comment that task 6 or task 7
-  removes it, `"!extensions/painted-figures"` to `biome.json`'s `files.includes` and
-  `"extensions/painted-figures/**"` to `knip.jsonc`'s `ignore`.
+  `vendor/figure-builder/tsconfig.types.json` to `extensions/figures/tsconfig.types.json` unchanged but for
+  its comment. Add `extensions/figures/types/` to `.gitignore`. Add, each with a comment that task 6 or task 7
+  removes it, `"!extensions/figures"` to `biome.json`'s `files.includes` and
+  `"extensions/figures/**"` to `knip.jsonc`'s `ignore`.
 - [ ] **Step 5: Install and run the builder's suite as it is.** `pnpm install` (the lockfile changes), then
-  `pnpm --filter @automata/painted-figures test:unit`. Expected: **47 files, 561 tests, all pass.** A failure is a
+  `pnpm --filter @automata/figures test:unit`. Expected: **47 files, 561 tests, all pass.** A failure is a
   stop: nothing has been changed, so the cause is the runtime (Node 24.21, Vitest 5.0.3) and is reported, not fixed
-  by touching a golden. Then `pnpm --filter @automata/painted-figures typecheck`: expected 0 errors in `src` and
+  by touching a golden. Then `pnpm --filter @automata/figures typecheck`: expected 0 errors in `src` and
   `base` (measured on TypeScript 6.0.3); if `tests`, `scripts` or `viewer` report errors under 6.0.3, list them in the
   log and leave them for task 7 with `"include"` unchanged.
-- [ ] **Step 6: The view check, by hand, once:** `pnpm --filter @automata/painted-figures view-check`. Expected: exit
+- [ ] **Step 6: The view check, by hand, once:** `pnpm --filter @automata/figures view-check`. Expected: exit
   0 (every case equal, or `webgpu: no adapter, skipped`). It was not run by the plan session; if it fails here on the
   untouched source, record the output and tell the coordinator before going on.
 - [ ] **Step 7:** `pnpm check` (exit 0), then commit by path:
-  `chore(painted-figures): a workspace package of the painter, as it arrived`.
+  `chore(figures): a workspace package of the painter, as it arrived`.
 
 **Done when:** the manifest check prints `134 files, 0 differ`, the builder's suite passes unchanged in the
 framework's workspace, and `pnpm check` is green.
@@ -457,16 +540,16 @@ framework's workspace, and `pnpm check` is green.
   (`boundaries`), `tooling/release/tests/unit/closed-beta-guard.test.ts:33-35`, `pnpm-lock.yaml`
 
 **Interfaces:**
-- Consumes: `@automata/painted-figures`, `/kit`, `/view` from task 2.
+- Consumes: `@automata/figures`, `/kit`, `/view` from task 2.
 - Produces: the door's export names unchanged (45 from the index, 10 from the kit entry, 2 from the view entry).
 
 - [ ] **Step 1: The failing test.** In `door.test.ts`, change the specifiers the three cases look for from
-  `figure-builder`, `figure-builder/kit` and `figure-builder/view` to `@automata/painted-figures`,
-  `@automata/painted-figures/kit` and `@automata/painted-figures/view`, and add one case:
+  `figure-builder`, `figure-builder/kit` and `figure-builder/view` to `@automata/figures`,
+  `@automata/figures/kit` and `@automata/figures/view`, and add one case:
 
 ```ts
 it('cannot reach past the three entries', async () => {
-  const manifest = JSON.parse(readFileSync(new URL('../../../../painted-figures/package.json', import.meta.url), 'utf8'))
+  const manifest = JSON.parse(readFileSync(new URL('../../../../figures/package.json', import.meta.url), 'utf8'))
   expect(Object.keys(manifest.exports)).toEqual(['.', './kit', './view'])
 })
 ```
@@ -474,14 +557,14 @@ it('cannot reach past the three entries', async () => {
   Run `pnpm --filter @automata/character-kit exec vitest run --project unit tests/unit/shared/door.test.ts`.
   Expected: the three specifier cases FAIL (the door still imports `figure-builder`); the new case passes.
 - [ ] **Step 2: Switch.** The three specifiers in `door.ts` and `door-view.ts`; the dependency in the kit's
-  `package.json`; `figure-builder` to `@automata/painted-figures` in the root `boundaries` script's 13 `--forbid`
+  `package.json`; `figure-builder` to `@automata/figures` in the root `boundaries` script's 13 `--forbid`
   entries and in the closed-beta guard test. Rewrite the door's header comment: the painter is a package of this
   repository, changed in place; the door stays so the kit takes only the names it uses.
 - [ ] **Step 3: Declarations before the kit's typecheck.** In `turbo.json`'s `tasks` add
-  `"@automata/character-kit#typecheck": { "dependsOn": ["@automata/painted-figures#typecheck"] }`.
+  `"@automata/character-kit#typecheck": { "dependsOn": ["@automata/figures#typecheck"] }`.
 - [ ] **Step 4:** `pnpm install`, then the door test (PASS), `pnpm boundaries` (0 findings), the guard test (PASS).
 - [ ] **Step 5: The stale-types check.** Add a throwaway exported type to
-  `extensions/painted-figures/src/index.ts`, import it in the door, run `pnpm typecheck` once: expected green. Revert
+  `extensions/figures/src/index.ts`, import it in the door, run `pnpm typecheck` once: expected green. Revert
   both edits (`git checkout -- <the two files>`); `git status` shows neither.
 - [ ] **Step 6: The kit's goldens.** The kit's unit suite and its Chromium suite: the same counts as task 1,
   `git status` clean after them (no recorded file rewritten). A moved cell is a stop.
@@ -524,7 +607,120 @@ git rm -f .gitmodules
 - [ ] **Step 7:** Commit `chore(repo): the figure builder's submodule and its wrapper package go`.
 
 **Done when:** `git submodule status` prints nothing, a fresh clone passes `pnpm check`, and no workflow file changed
-(`git diff --stat origin/main -- .github` is empty).
+yet (`git diff --stat origin/main -- .github` is empty): the checks pass without the submodule before task 4b
+touches a workflow.
+
+### Task 4b: The workflows lose the submodule step
+
+The Owner, 2026-11-12: **"remove the submodule checkout and SUBMODULES_TOKEN from the workflows"**. Put those words
+in the commit body and in the pull request's text. Its own commit, after task 4's checks.
+
+**Files** (line numbers at `main` `0df11a43`; "What retires" has the same table):
+- Modify: `.github/workflows/ci.yml` (80-85, 174-179, 252-257, 316-321, 380-385, 419, 436), `3d.yml` (23-25, 58-63,
+  116-121, 162), `release-packages.yml` (81-86, 126, 148-153), `release-checks.yml` (20-21, 46-51), `game-ci.yml`
+  (29-30, 47-52), `site.yml` (22-23, 52-58), `windows-trial.yml` (33-39, 71-77), `consumer-smoke.yml` (40-45); in
+  each, the `secrets:` key itself where `SUBMODULES_TOKEN` was its only entry
+- Delete: `.github/scripts/checkout-submodules.sh`, `tooling/repo-hygiene/tests/unit/checkout-submodules.test.ts`
+- Modify: `tooling/repo-hygiene/src/workflow-invariants.ts` (rule 6 at 11-12, the token at 41, the script's name at
+  46-47, the checks at 87-90, 102-104 and 117-138), `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`
+  (the four cases at 81, 95, 118, 141), `docs/runbook.md:63`
+
+- [ ] **Step 1: The failing test.** In `workflow-invariants.test.ts`, replace the four submodule cases with one
+  (`WORKFLOWS` is the folder constant the file already has):
+
+```ts
+it('names no submodule step and no submodule token: the repository has no submodule', () => {
+  const text = readdirSync(WORKFLOWS)
+    .filter((file) => file.endsWith('.yml'))
+    .map((file) => readFileSync(join(WORKFLOWS, file), 'utf8'))
+    .join('\n')
+  expect(text).not.toMatch(/SUBMODULES_TOKEN|checkout-submodules|vendor\/FigureBuilder|vendor\/figure-builder/)
+})
+```
+
+  Run `pnpm --filter @automata/repo-hygiene test:unit`. Expected: FAIL, 73 lines match.
+- [ ] **Step 2:** Remove the listed lines from the eight files (`3d.yml`'s two path filters go because
+  `extensions/**` already covers the painter); delete the script and its test; take rule 6, `SUBMODULES_TOKEN` in
+  `READ_ONLY_SECRETS`, `SUBMODULE_SCRIPT` and the checks that use them out of `workflow-invariants.ts`; remove the
+  runbook's row.
+- [ ] **Step 3:** The test passes; every other invariant still holds (the case "hold for every workflow in the
+  repository" passes); `pnpm check`; `pnpm lint:actions` if Docker is there (say so if not).
+- [ ] **Step 4:** Commit `ci: the workflows no longer check out a submodule`, with the Owner's words in the body.
+  Tell the coordinator the `SUBMODULES_TOKEN` secret can now be deleted by the Owner.
+
+**Done when:** `grep -rn "SUBMODULES_TOKEN\|checkout-submodules" .github tooling docs/runbook.md` prints nothing and
+`pnpm check` is green.
+
+### Task 4c: The c5-finish fixes come across
+
+`claude/c5-finish-fixes` in the retired repository: eight commits cut from its `08f54a6` (2026-11-10), 49 commits
+behind its `main`. Six come; two touch only files that do not come (`CLAUDE.md`, `docs/superpowers/progress.md`).
+They are cherry-picked from the filtered history, so each keeps its author and message, onto the painter exactly as
+it arrived: before the wardrobe branch and before any conform step, because a reformatted file no longer takes them.
+
+**What they change:** a dark gloss's shine stays within its patch cap, and the leather sheen tests run at density 1
+(S1); the orphan clean-up spares a quilted chamber's crest (S2); a comment (N1); a handed tile tested on the arms at
+three densities (N2); the sheen test's bound is the painter's own cap (N5); the weave keeps a table of fabric depths
+in place of two values a texel (N4). Files: `paint/paint.ts`, `paint/fabric.ts`, `lighting/light.ts`,
+`figure/figure.ts`, and two test files.
+
+**Goldens:** measured in a scratch clone with S1, S2, N1, N2 and N5 applied: the five goldens, the identity pins and
+the painter's tests pass (11 files, 163 tests). **No golden is expected to move, and none may**: the base pair wear
+no gloss and no fabric. N4 was not measured (it needs the hand resolution below).
+
+- [ ] **Step 1: The five that apply cleanly.** `git log --format='%h %s' painter-history/claude/c5-finish-fixes`
+  gives their filtered ids (the commit map has the old ones: `7bd4fac`, `d5205bd`, `d77244c`, `6fff4fa`, `4ded644`).
+  `git cherry-pick -x` each, in that order. Expected: no conflict.
+- [ ] **Step 2:** The whole suite: all pass, the five goldens among them. A moved golden is a stop.
+- [ ] **Step 3: N4** (old id `e97df55`). `git cherry-pick -x` it. **One conflict is expected**, one hunk of
+  `extensions/figures/src/features/figure/figure.ts`, where the cell cache is stored: `main` has since added `depth`
+  to the cached cell, and the fix replaces the weave's `lo` and `hi` with `depths`. Keep both: the fix's `weave`
+  line (`depths: wv.depths.slice()`, no `lo`, no `hi`) and `main`'s `depth: this.depth.slice(a, b)` in the cached
+  object. Any other conflict is a stop.
+- [ ] **Step 4:** `pnpm --filter @automata/figures typecheck`; the whole suite (record the new test count); the
+  kit's unit suite and Chromium suite at the baseline's counts with `git status` clean (the kit registers fabrics, so
+  the weave's change reaches it: a moved kit cell is a stop and a question, not a re-record).
+- [ ] **Step 5:** `pnpm check`. The cherry-picks are the commits; add no squash.
+
+**Done when:** six commits of the branch are in `git log -- extensions/figures`, and no golden of the painter or the
+kit moved.
+
+### Task 4d: A turned face keeps both eyes
+
+`claude/turned-face-both-eyes` in the retired repository: two commits cut from its `025ffb4`, 66 commits behind its
+`main` (`claude/project-thread-2ts3yn` is the same two). The fix, old id `cfc4333`, `fix(paint): a turned face keeps
+both eyes`: on a head turned three quarters, an ear's rim painted in the skin's own tones no longer counts as
+something worn over the far eye (8 lines of `paint/paint.ts`, and 36 of `tests/features/figure/eyes.test.ts`). Its
+second commit re-recorded goldens as they stood on 2026-11-09; the goldens have been re-recorded since, so it does
+not apply and is not brought: the re-record is made afresh here.
+
+**Goldens it moves, measured in a scratch clone with the fix on `23f889c8`:** 4 tests fail in 3 files: the **actors**
+golden (`base-m`, `base-f`), the **base** golden at density 1, and the **sprites** golden (`base-m-D1`). The lit and
+sprite goldens and the painter's tests pass. Which of the **kit's** cells move was not measured: step 2 measures it.
+
+- [ ] **Step 1: The fix.** `git cherry-pick -x` the filtered commit of `cfc4333`. Expected: no conflict (measured
+  on top of the c5 picks).
+- [ ] **Step 2: What moves, exactly.** The whole painter suite and the kit's unit and Chromium suites. Write in the
+  log every failing golden test and, for each, the cells or frames that differ (for the md5 lists, the keys; for the
+  base sheets, the sheet and the count of texels). Expected for the painter: the three goldens above and nothing
+  else. A failing test that is not a golden (a guard test, the identity pins, `ulp.test.ts`) is a stop.
+- [ ] **Step 3: The before-and-after sheet.** For every figure and view whose cell moved, the cell before (from a
+  worktree at the commit before the fix) beside the cell after, at 8 times nearest neighbour, each pair labelled
+  with its golden key, written with the package's render script to
+  `docs/superpowers/audits/2026-11-12-builders-fold-survey/turned-face/` with a `README.md`: what changed in each
+  pair, in words, and anything that changed that is not an eye. Keep the sheets under 1 MB in all.
+- [ ] **Step 4: Stop for the coordinator and the Owner** with the sheet. Nothing is re-recorded until the Owner
+  accepts it. If the Owner does not, `git revert` the fix, say so in the log, and go on to task 5.
+- [ ] **Step 5: The re-record, on the Owner's acceptance.** `pnpm --filter @automata/figures golden -- actors`,
+  `-- base`, `-- sprites`, and the kit's recorder for exactly the kit goldens step 2 named
+  (`pnpm --filter @automata/character-kit goldens:runway` and the others in its `package.json`). `git diff --stat`
+  shows only the recorded files step 2 named. One commit:
+  `fix(figures): a turned face keeps both eyes; re-record the actors, base and sprites goldens`, its body naming
+  each golden, the count of cells or frames moved in each, the sheet's path and the Owner's words.
+- [ ] **Step 6:** The whole painter suite and the kit's suites pass; `pnpm check`.
+
+**Done when:** the fix is in, the re-record is one commit that names its reason and the Owner's acceptance, and every
+suite passes; or the fix is reverted on the Owner's word.
 
 ### Task 5: The wardrobe branch arrives as its own commits
 
@@ -533,13 +729,13 @@ git rm -f .gitmodules
 - Create: `docs/archive/figure-painter/c9-wardrobe/{2026-11-11-c9-wardrobe-design.md,2026-11-11-c9-wardrobe.md,2026-11-11-c9-wardrobe-plan-audit.md,README.md}`
 
 - [ ] **Step 1: Merge.**
-  `git merge --no-ff painter-history/claude/c9-wardrobe -m "feat(painted-figures): the wardrobe's first six tasks arrive (sheer cloth, the shod foot, the head's form, front hair, hair on the trunk, a fringe)"`.
-  **One conflict is expected, in `extensions/painted-figures/package.json`** (the branch adds a script to the file
+  `git merge --no-ff painter-history/claude/c9-wardrobe -m "feat(figures): the wardrobe's first six tasks arrive (sheer cloth, the shod foot, the head's form, front hair, hair on the trunk, a fringe)"`.
+  **One conflict is expected, in `extensions/figures/package.json`** (the branch adds a script to the file
   task 2 rewrote): keep task 2's file and add `"c9": "tsx scripts/c9-sheet.ts"`. Any other conflict is a stop.
   Expected: seven commits arrive (F0 to F6).
 - [ ] **Step 2: Nothing recorded moved.**
-  `git diff --stat HEAD^1 HEAD -- extensions/painted-figures/tests/golden` prints nothing.
-- [ ] **Step 3: Its suite.** `pnpm --filter @automata/painted-figures test:unit`: every test passes, the five goldens
+  `git diff --stat HEAD^1 HEAD -- extensions/figures/tests/golden` prints nothing.
+- [ ] **Step 3: Its suite.** `pnpm --filter @automata/figures test:unit`: every test passes, the five goldens
   among them. Record the new file and test counts in the log; they are the expected counts from here on.
 - [ ] **Step 4: The kit.** Its unit and Chromium suites at the baseline's counts, `git status` clean. The branch
   promises that a field left out changes nothing; a moved kit cell means it did not hold, and is a stop.
@@ -549,22 +745,32 @@ git rm -f .gitmodules
   `docs(archive): the wardrobe cycle's spec, plan and plan audit, from the retired repository`.
 - [ ] **Step 6:** `pnpm check`.
 
-**Done when:** the branch's seven code commits are in `git log -- extensions/painted-figures`, no golden changed, and
-both suites pass.
+**Done when:** the branch's seven code commits are in `git log -- extensions/figures`, no golden changed, and
+both suites pass. (Measured in a scratch clone: the branch merges with no conflict on top of the c5 picks and the
+turned-face fix, but for `package.json`.)
 
-### Task 6: Conform: the framework's format
+### Task 6: Conform: one mechanical commit for format, one for lint's automatic fixes
 
-- [ ] **Step 1:** Remove `"!extensions/painted-figures"` from `biome.json`. Run
-  `pnpm exec biome format --write extensions/painted-figures` (format only; lint is task 8). Until task 8, put the
-  package under a Biome `overrides` entry that turns the linter off for `extensions/painted-figures/**`, with a
-  comment that task 8 removes it.
-- [ ] **Step 2:** The painter's suite (the counts of task 5), the kit's unit suite, `pnpm check`.
-- [ ] **Step 3:** Commit, alone, `style(painted-figures): the framework's formatting`, so `git blame -w` and
-  `git log --follow` step over it easily. (The repository has no `.git-blame-ignore-revs`; do not create one.)
+Two commits made by the tool alone, before any hand edit, so every later diff is readable (the coordinator's
+ruling). Measured at `23f889c8`: the format rewrites 46 of 47 files in `src/`, 1 of 1 in `base/`, 61 of 61 in
+`tests/` and 6 of 6 in `scripts/`; lint reports 137 findings in `src/` and `base/`.
 
-**Done when:** `pnpm exec biome format extensions/painted-figures` reports nothing to change and the suites pass.
+- [ ] **Step 1: Format.** Remove `"!extensions/figures"` from `biome.json`, and add a Biome `overrides` entry that
+  turns the linter off for `extensions/figures/**`, with a comment that task 8 removes it.
+  `pnpm exec biome format --write extensions/figures`. The painter's whole suite, the kit's unit suite, `pnpm check`.
+  Commit, alone: `style(figures): the framework's formatting`.
+- [ ] **Step 2: Lint's automatic fixes.** `pnpm exec biome lint --write extensions/figures` (safe fixes only: never
+  `--unsafe`). Read the diff: it may only remove unused imports, turn `let` into `const`, add `type` to imports and
+  the like. A hunk that changes an expression's value or order is reverted by hand and left for task 8. The
+  painter's whole suite, the kit's unit suite, `pnpm check`. Commit, alone:
+  `style(figures): lint's automatic fixes`. Record in the log how many findings remain, by rule.
+- [ ] **Step 3:** The repository has no `.git-blame-ignore-revs`; do not create one. Write both commits' ids in the
+  log, so a reader of `git blame` knows which to step over.
 
-### Task 7: Conform: the framework's layout, test imports, runner and boundaries
+**Done when:** `pnpm exec biome format extensions/figures` reports nothing to change, both commits are tool output
+only, and the suites pass.
+
+### Task 7: Conform: the framework's layout, test imports, runner and boundaries; the suite split for the hook
 
 **Files:**
 - Move: `src/lib` to `src/shared/math`; `src/features/{body,paint,lighting,motion,hair,outfit,figure,actors,stage}`
@@ -581,7 +787,9 @@ both suites pass.
 **Interfaces:**
 - Produces: `"imports": { "#src/*": "./src/*" }`; `exports` `"."`, `"./kit"`, `"./view"` with
   `"types": "./types/src/entries/<entry>.d.ts"` and `"default": "./src/entries/<entry>.ts"`; scripts
-  `"test:unit": "vitest run --project unit"`, `"typecheck": "tsc -p tsconfig.types.json && tsc -p ."`.
+  `"test:unit": "vitest run --project goldens ${AF_UNIT_FULL:+--project unit}"`,
+  `"typecheck": "tsc -p tsconfig.types.json && tsc -p ."`.
+- Produces: the environment variable `AF_UNIT_FULL` (`1` runs every unit project of a package that splits them).
 
 - [ ] **Step 1: The layer test first.** Move `tests/architecture.test.ts` to `tests/unit/layers.test.ts` and set
 
@@ -602,40 +810,51 @@ const LAYERS = [
   tests every chain into `src/` or `base/` (51 files) becomes `#src/…` with the `.ts` extension, as the kit's tests
   write it. The goldens' data paths become `tests/fixtures/golden/`. Change nothing else in any file.
 - [ ] **Step 3: The runner and the compiler.** `vitest.config.ts` uses `defineTests` from `@automata/vitest-preset`
-  with a `unit` project over `tests/unit`, as `extensions/character-kit/vitest.config.ts` does. `tsconfig.json`
+  as `extensions/character-kit/vitest.config.ts` does, with two Node projects: `goldens` over `tests/unit/golden/`,
+  `tests/unit/actors/actors.test.ts`, `tests/unit/paint/identity.test.ts`, `tests/unit/hair/ulp.test.ts`,
+  `tests/unit/api.test.ts` and `tests/unit/layers.test.ts`; `unit` over the rest of `tests/unit/`. In the root
+  `package.json`, prefix `test:unit`, `test:unit:2d` and `test:unit:3d` with `AF_UNIT_FULL=1`; in `turbo.json` give
+  `test:unit` `"env": ["AF_UNIT_FULL"]`. Check: `pnpm --filter @automata/figures test:unit` runs the `goldens`
+  project only (time it; expected about a minute); `pnpm test:unit --filter @automata/figures` runs both, with the
+  same test count as before the split. `tsconfig.json`
   extends `../../tsconfig.base.json` with `"isolatedDeclarations": false`, `"noUncheckedIndexedAccess": false`,
   `"exactOptionalPropertyTypes": false`, `"resolveJsonModule": true`, and a comment: the painter predates the two
-  flags, each of their 1,395 findings is a possible change of code path under a golden, and the declarations step
-  exists because of them. `tsconfig.types.json` takes the new `include` and stays the builder's settings.
-- [ ] **Step 4: The lists.** Add `extensions/painted-figures` to the root scripts where the kit is listed:
+  flags, their findings are counted in this plan's ledger, tasks 21 to 27 turn them on folder by folder, and the
+  declarations step exists only until then. `tsconfig.types.json` takes the new `include` and stays the builder's settings.
+- [ ] **Step 4: The lists.** Add `extensions/figures` to the root scripts where the kit is listed:
   `boundaries --features`, `--forbid …:effect`, `style`'s `--test-imports` list (not yet its `--plan-comments` list,
-  which also checks file length: task 9 adds that), `test:unit:3d`, `test:browser:3d`, and as `!./extensions/painted-figures` in `test:unit:2d`, `test:browser:2d` and
+  which also checks file length: task 9 adds that), `test:unit:3d`, `test:browser:3d`, and as `!./extensions/figures` in `test:unit:2d`, `test:browser:2d` and
   `test:browser:affected`. Replace the temporary `knip.jsonc` ignore with a workspace entry whose `entry` is the three
   files of `src/entries/` and the scripts.
 - [ ] **Step 5:** The layer test PASSES; the painter's suite at task 5's counts; `pnpm boundaries` and `pnpm style`
   at 0 findings; `pnpm knip`; the kit's unit and Chromium suites; `pnpm check`.
-- [ ] **Step 6:** Commit `refactor(painted-figures): shared layers, one feature, three entries; tests in tests/unit`.
+- [ ] **Step 6:** Commit `refactor(figures): shared layers, one feature, three entries; tests in tests/unit`.
 
-**Done when:** `pnpm boundaries` and `pnpm style --test-imports` pass with the package in their lists, the layer test
-passes over the new paths, and no suite's count changed.
+**Done when:** `pnpm boundaries` and `style`'s test-imports rule pass with the package in their lists, the layer test
+passes over the new paths, no suite's count changed, and a commit that touches the painter runs only the `goldens`
+project in the hook.
 
-### Task 8: Conform: lint, one rule a commit
+### Task 8: Conform: the lint rules that need a hand, one rule a commit
 
-137 findings in the source at `23f889c8` (the survey has the count by rule); the tests' and the wardrobe branch's are
+What task 6's automatic pass left. At `23f889c8` the rules that need a hand were 92 `noNonNullAssertion`, 13
+`noAssignInExpressions`, 4 `noSelfCompare`, 2 `noExplicitAny`, 1 `useIterableCallbackReturn`, 1 `noEmptyInterface`
+and whatever of the unused-variable findings Biome would not fix alone; the tests' and the three branches' are
 counted here first.
 
-- [ ] **Step 1:** Remove the linter override of task 6. `pnpm exec biome lint extensions/painted-figures
+- [ ] **Step 1:** Remove the linter override of task 6. `pnpm exec biome lint extensions/figures
   --max-diagnostics=5000` and record the count by rule in the log.
-- [ ] **Step 2: For each rule, in this order**, fix every finding of that rule, run the painter's suite, commit
-  `style(painted-figures): <rule>`: `noUnusedImports`, `noUnusedVariables`, `noUnusedFunctionParameters`, `useConst`,
-  `useOptionalChain`, `noEmptyInterface`, `noExplicitAny`, `useIterableCallbackReturn`, `noSelfCompare`,
-  `noAssignInExpressions`, `noNonNullAssertion`, then any rule only the tests show.
+- [ ] **Step 2: For each rule, in this order**, fix every finding of that rule, run the painter's whole suite,
+  commit `style(figures): <rule>`: `noUnusedVariables`, `noUnusedFunctionParameters`, `noEmptyInterface`,
+  `noExplicitAny`, `useIterableCallbackReturn`, `noSelfCompare`, `noAssignInExpressions`, `noNonNullAssertion`, then
+  any rule only the tests show.
   - `noSelfCompare`: `x !== x` on a number becomes `Number.isNaN(x)`; if the operand is not provably a number, keep
     the line with a `biome-ignore` that says it is a NaN test.
   - `noAssignInExpressions`: lift the assignment out only where the order of evaluation is plainly the same; in a
     loop of the rasteriser where it is not plain, keep the line with a `biome-ignore` that says why.
-  - `noNonNullAssertion`: the package's compiler flags make most `!` unnecessary, so removing one must leave
-    `pnpm --filter @automata/painted-figures typecheck` green; where it does not, keep it with a `biome-ignore`.
+  - `noNonNullAssertion`: with the package's two flags still off, most `!` are unnecessary and are simply removed;
+    `pnpm --filter @automata/figures typecheck` must stay green. One that the compiler still needs stays, with a
+    `biome-ignore` that names the strict task (21 to 27) that will replace it with a check. No `!` is replaced by an
+    `as` cast.
   - An unused variable that is "generic machinery no base figure reaches" is not deleted if a test under
     `tests/unit/` names it; check before removing.
 - [ ] **Step 3:** A moved texel after any rule: `git revert` that commit, record the finding, go on with the next
@@ -646,7 +865,7 @@ counted here first.
 
 ### Task 9: Conform: no file over 600 lines
 
-Three files after task 5: `src/shared/paint/paint.ts` (about 1,607 lines), `src/shared/motion/motion.ts` (716),
+Three files after task 5 (the fix branches add a few lines to `paint.ts`): `src/shared/paint/paint.ts` (about 1,607 lines), `src/shared/motion/motion.ts` (716),
 `src/shared/hair/hair.ts` (about 692). Formatting in task 6 changes these counts; measure them first with `wc -l`.
 
 - [ ] **Step 1:** For each file, list its top-level declarations and which of them run code at module load (a
@@ -656,8 +875,8 @@ Three files after task 5: `src/shared/paint/paint.ts` (about 1,607 lines), `src/
   file re-exports what moved, so no importer changes. The order in which parts are built is never changed: the part
   index seeds the painter's grain.
 - [ ] **Step 3:** After each file: the painter's suite, the layer test (the new files are in the same layer), commit
-  `refactor(painted-figures): <file> in parts of at most 600 lines`.
-- [ ] **Step 4:** Add `extensions/painted-figures/src` to `style`'s `--plan-comments` list, beside the kit's (that
+  `refactor(figures): <file> in parts of at most 600 lines`.
+- [ ] **Step 4:** Add `extensions/figures/src` to `style`'s `--plan-comments` list, beside the kit's (that
   run checks names, length and plan comments). `pnpm style`: 0 findings. `pnpm check`.
 
 **Done when:** `pnpm style` reports no `file-length` finding for the package and the suites pass.
@@ -688,7 +907,7 @@ it.each(LIBRARIES)('$name with a misspelt key is refused, naming the key', ({ ra
   `schema.parse(json)`; the exported types stay the ones the readers export today (assert with
   `satisfies` that the schema's output is assignable to them; do not replace the types).
 - [ ] **Step 3:** The new test passes; the painter's suite; the kit's unit suite (it fills `SWATCHES` and
-  `HAIR_STYLES` at load); `pnpm check`. Commit `feat(painted-figures): the libraries are checked when they load`.
+  `HAIR_STYLES` at load); `pnpm check`. Commit `feat(figures): the libraries are checked when they load`.
 
 **Done when:** a misspelt key in any of the eight files fails at load and no golden moved.
 
@@ -708,20 +927,20 @@ it.each(LIBRARIES)('$name with a misspelt key is refused, naming the key', ({ ra
   views of each base figure, texel for texel. One for determinism (`scene4` drawn twice in a page and once in a fresh
   one). Run it before the browser project exists: FAIL (no such project).
 - [ ] **Step 2:** Add the projects; run
-  `AF_WEBGPU=software pnpm --filter @automata/painted-figures test:browser`. Expected: every case passes under WebGL
+  `AF_WEBGPU=software pnpm --filter @automata/figures test:browser`. Expected: every case passes under WebGL
   and, where the software adapter is granted, under WebGPU.
-- [ ] **Step 3: Equal to the script.** Run `pnpm --filter @automata/painted-figures view-check` once more and compare
+- [ ] **Step 3: Equal to the script.** Run `pnpm --filter @automata/figures view-check` once more and compare
   the list of cases it reports with the suite's: the same names, none missing. Then delete `scripts/view-check.ts`
   and its `package.json` script; `viewer/` stays as the hand viewer (`"viewer": "vite viewer"`).
-- [ ] **Step 4:** `pnpm check`; commit `test(painted-figures): the GPU frame equals the painter's, as a browser suite`.
+- [ ] **Step 4:** `pnpm check`; commit `test(figures): the GPU frame equals the painter's, as a browser suite`.
 
 **Done when:** `pnpm test:browser:3d` runs the suite and it passes in Chromium.
 
 ### Task 12: Conform: the words
 
 **Files:**
-- Create: `extensions/painted-figures/README.md`, `extensions/painted-figures/docs/contract.md`, `docs/actors.md`
-- Move: `extensions/character-kit/src/shared/figure-builder/` to `src/shared/painted-figures/`
+- Create: `extensions/figures/README.md`, `extensions/figures/docs/contract.md`, `docs/actors.md`
+- Move: `extensions/character-kit/src/shared/figure-builder/` to `src/shared/figures/`
 - Modify: the kit's `README.md:52-53`, the 10 kit files that say "submodule", "upstream" or `vendor/FigureBuilder`,
   `extensions/character-kit/tests/unit/shared/{door,contract}.test.ts`, `docs/provenance/sources.md`, the painter's
   comments that name the old game's repository (`src/shared/stage/pose.ts`)
@@ -740,7 +959,7 @@ const fs = require("node:fs"), path = require("node:path")
 const names = (dir) => new Set(fs.readdirSync(dir).flatMap((f) =>
   [...fs.readFileSync(path.join(dir, f), "utf8").matchAll(/export\s*(?:type\s*)?\{([^}]*)\}/g)].flatMap((m) =>
     m[1].split(",").map((s) => s.trim().replace(/^type\s+/, "").split(/\s+as\s+/).pop()).filter(Boolean))))
-const ours = names("extensions/painted-figures/src/entries"), core = names("packages/3d/src/entries")
+const ours = names("extensions/figures/src/entries"), core = names("packages/3d/src/entries")
 console.log([...ours].filter((n) => core.has(n)).sort().join("\n"))'
 ```
 
@@ -748,7 +967,7 @@ console.log([...ours].filter((n) => core.has(n)).sort().join("\n"))'
   consumers are the character kit's door, in this repository; the entries' paths; the changelog gains "moved into the
   framework, `STAGE_VERSION` unchanged at 1". Run `pnpm style` on them (links and plan IDs) and fix what it finds.
 - [ ] **Step 3: The door folder** renamed with `git mv`; `#src/shared/figure-builder/` becomes
-  `#src/shared/painted-figures/` wherever the kit imports it; the door test's paths follow.
+  `#src/shared/figures/` wherever the kit imports it; the door test's paths follow.
 - [ ] **Step 4: Comments.** In the kit, reword the comments that say the builder is a submodule, is fixed upstream or
   lives under `vendor/`. In the painter, `pose.ts` keeps the game's name and drops the old repository's.
 - [ ] **Step 5: Provenance.** In `docs/provenance/sources.md`, after "The figure builder as a submodule
@@ -756,9 +975,9 @@ console.log([...ours].filter((n) => core.has(n)).sort().join("\n"))'
   branch's `856498a`, the method (filtered history, the commit map, the manifest), what did not come and why, and the
   Owner's decision of 2026-11-12 quoted. `pnpm source-names` passes.
 - [ ] **Step 6:** `pnpm check`, the kit's suites; commit
-  `docs(painted-figures): the readme, the contract and the provenance of the fold`.
+  `docs(figures): the readme, the contract and the provenance of the fold`.
 
-**Done when:** `grep -rIn -iE "submodule|vendor/FigureBuilder" extensions/character-kit extensions/painted-figures`
+**Done when:** `grep -rIn -iE "submodule|vendor/FigureBuilder" extensions/character-kit extensions/figures`
 prints nothing.
 
 ### Task 13: Group 1 closes
@@ -769,7 +988,7 @@ prints nothing.
   commit it with the reason).
 - [ ] **Step 3:** The whole `pnpm check`, timed; then the unit tests once uncached,
   `time pnpm exec turbo run test:unit --force -- --testTimeout=90000`. Compare with task 1's times and write both.
-- [ ] **Step 4: Chromium, software GL:** `AF_WEBGPU=software pnpm --filter @automata/painted-figures test:browser`,
+- [ ] **Step 4: Chromium, software GL:** `AF_WEBGPU=software pnpm --filter @automata/figures test:browser`,
   `AF_WEBGPU=software pnpm --filter @automata/character-kit test:browser`, `pnpm test:journeys:3d`, and the
   `test:browser` of any other workspace that depends on the kit (`pnpm why @automata/character-kit -r` names them).
   `git status` clean after them.
@@ -778,42 +997,102 @@ prints nothing.
   moved, what did not and why, the stops met. **What was not run, stated:** WebKit, Firefox, WebGPU on a real GPU,
   anything on arm64, the journeys of the reference game.
 - [ ] **Step 7:** Push; open a draft pull request,
-  `feat(painted-figures): the figure painter lives in the framework`. Its body: the Owner's decision quoted, the
-  manifest result, the suites and counts, the list of what was not run, and a request to the Owner for one run on
-  arm64: `pnpm install && pnpm --filter @automata/painted-figures test:unit`.
+  `feat(figures): the figure painter lives in the framework`. Its body: the Owner's decision quoted, the Owner's words for the workflows (task 4b) and for the
+  re-record (task 4d) quoted, the manifest result, the suites and counts, the list of what was not run, and a request to the Owner for one run on
+  arm64: `pnpm install && AF_UNIT_FULL=1 pnpm --filter @automata/figures test:unit`.
 
 **Done when:** the pull request is open with every gate's result in it.
 
-### Task 14: The workflows lose the submodule step (only with the Owner's word)
+## Group 1b: the painter under the two strict flags (`claude/builders-fold-strict`)
 
-Do not start without the Owner's sentence. Quote it in the commit body and in the pull request.
+From `origin/main` after group 1 merged, and before workstream 4's wardrobe branch starts. One draft pull request at
+the end of task 27. The ledger is under "What this plan settles", 3.
 
-**Files:** the eight workflow files and the lines under "What retires"; `.github/scripts/checkout-submodules.sh`;
-`tooling/repo-hygiene/src/workflow-invariants.ts` and `tests/unit/workflow-invariants.test.ts`;
-`tooling/repo-hygiene/tests/unit/checkout-submodules.test.ts`; `docs/runbook.md:63`
+**How a folder is brought in.** A second compiler project, `extensions/figures/tsconfig.strict.json`, extends the
+package's `tsconfig.json`, turns `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` **on**, and `include`s
+only the folders done so far. The package's `typecheck` script runs it as well. A folder is done when it is in that
+`include` and the project reports 0 errors.
 
-- [ ] **Step 1: The failing test.** In `workflow-invariants.test.ts`, replace the four submodule cases with one
-  (`WORKFLOWS` is the folder constant the file already has):
+**The rules for a fix**, in order of preference:
+
+1. **Walk the values, not the indices**, where the loop reads every element once (`for (const v of xs)`,
+   `xs.entries()`): the type has no `undefined` and nothing can be out of range.
+2. **Where an index really can be out of range** (it comes from data, from a neighbour offset at an edge, from a
+   look-up by name), **write the check**: handle the missing value the way the surrounding code means to, or throw
+   an `Error` that names the array, the index and the length. This is the case the flags exist to find.
+3. **Where an index is in range by construction** (a typed array read inside its own `w * h` loop), read it through
+   one small checked reader in `src/shared/math/` (`at(buffer, i)`: returns the element or throws a `RangeError`
+   naming the index and the length), so the proof is a check too, not an assertion.
+4. `exactOptionalPropertyTypes`: an optional property is left out, not set to `undefined`; where a caller passes
+   `undefined` on purpose, the property's type says `| undefined`.
+
+Never an `as` cast, never a non-null assertion, never `?? 0` or another default that would hide a value that was
+missing. A fix must not change what a correct input draws: the goldens are the proof.
+
+**After each folder:** the painter's whole suite (`AF_UNIT_FULL=1`), the kit's unit suite, and the times of the
+painter's suite and of `pnpm --filter @automata/character-kit bench` against task 21's baseline. A golden that moves
+has found a place where the old code read past an array: stop, name the index, tell the coordinator. More than 10%
+slower: report the loop before going on. One commit a folder: `refactor(figures): <folder> under the strict flags`.
+
+### Task 21: The ledger measured; `shared/math` and `shared/body`
+
+- [ ] **Step 1: The ledger.** Temporarily set both flags on in `tsconfig.json`, run
+  `pnpm --filter @automata/figures exec tsc -p . --noEmit`, count the errors by folder
+  (`grep -oE "src/(shared|features|entries)/[a-z-]+" | sort | uniq -c`), write them in the ledger's last column, and
+  revert the edit. Record the baseline times of the painter's suite and the kit's bench.
+- [ ] **Step 2: The failing check.** Create `tsconfig.strict.json` with `"include": ["src/shared/math",
+  "src/shared/body"]`, add `tsc -p tsconfig.strict.json` to the `typecheck` script, run it: expected FAIL, about 190
+  errors.
+- [ ] **Step 3: The checked reader, test first.** `tests/unit/math/at.test.ts`:
 
 ```ts
-it('names no submodule step and no submodule token: the repository has no submodule', () => {
-  const text = readdirSync(WORKFLOWS)
-    .filter((file) => file.endsWith('.yml'))
-    .map((file) => readFileSync(join(WORKFLOWS, file), 'utf8'))
-    .join('\n')
-  expect(text).not.toMatch(/SUBMODULES_TOKEN|checkout-submodules|vendor\/FigureBuilder|vendor\/figure-builder/)
+it('reads an element in range, and says which index of which length when out of range', () => {
+  expect(at(Float32Array.of(1, 2), 1)).toBe(2)
+  expect(() => at(Float32Array.of(1, 2), 2)).toThrow(new RangeError('index 2 is outside 0..1'))
+  expect(() => at([], 0)).toThrow(new RangeError('index 0 is outside an empty array'))
 })
 ```
 
-  Expected: FAIL, 73 lines match.
-- [ ] **Step 2:** Remove the lines listed under "What retires" from the eight files; delete the script and its test;
-  take rule 6, `SUBMODULES_TOKEN` in `READ_ONLY_SECRETS`, `SUBMODULE_SCRIPT` and the two checks that use them out of
-  `workflow-invariants.ts`; remove the runbook's row.
-- [ ] **Step 3:** The test passes; `pnpm check`; `pnpm lint:actions` if Docker is there (say so if not).
-- [ ] **Step 4:** Commit `ci: the workflows no longer check out a submodule`, with the Owner's words in the body.
-  Tell the coordinator the `SUBMODULES_TOKEN` secret can be deleted by the Owner.
+  Run it: FAIL, no such module. Then `export function at<T>(xs: ArrayLike<T>, i: number): T` in
+  `src/shared/math/at.ts`; PASS.
+- [ ] **Step 4:** Fix the two folders by the rules; the strict project reports 0 errors; the checks of "After each
+  folder"; commit.
 
-**Done when:** `grep -rn "SUBMODULES_TOKEN\|checkout-submodules" .github tooling docs/runbook.md` prints nothing.
+### Tasks 22 to 26: one folder group each
+
+Each is task 21's steps 2 and 4 for its folders, with the ledger's count as the expected failure and the commit
+naming the folders:
+
+- [ ] **Task 22:** `src/shared/paint` but for `paint.ts` and the parts task 9 split from it (`raster.ts`,
+  `fabric.ts`, `duel-ramps.ts`, `row.ts`). The rasteriser's inner loops are the first place a checked reader costs
+  time: measure before going further.
+- [ ] **Task 23:** `src/shared/paint/paint.ts` and its parts (511 at `23f889c8`, the largest). One commit a part.
+- [ ] **Task 24:** `src/shared/lighting`, `src/shared/motion`.
+- [ ] **Task 25:** `src/shared/hair`, `src/shared/outfit`.
+- [ ] **Task 26:** `src/shared/figure`, `src/shared/base`.
+
+### Task 27: `shared/actors`, `shared/stage`, the view; the flags on; the declarations step goes; the pull request
+
+- [ ] **Step 1:** The last folders (`src/shared/actors`, `src/shared/stage`, `src/features/view`, `src/entries`), as
+  above.
+- [ ] **Step 2: The flags on for good.** Remove the two `false` lines and their comment from `tsconfig.json`; delete
+  `tsconfig.strict.json`; `pnpm --filter @automata/figures typecheck`: 0 errors, tests and scripts included (fix
+  what the tests show by the same rules).
+- [ ] **Step 3: The declarations step goes.** Delete `tsconfig.types.json`, the `prepare` script, the `types`
+  conditions in `exports` (each entry is `"./src/entries/<entry>.ts"`, as the kit's are), the `.gitignore` line for
+  `extensions/figures/types/`, and the `turbo.json` entry of task 3. `pnpm typecheck`: the kit and everything that
+  imports it compile against the painter's source with the framework's base, 0 errors.
+- [ ] **Step 4: No escape was used.** `git diff <the commit before task 21> HEAD -- extensions/figures/src | grep -E
+  "^\+" | grep -cE " as [A-Z]|[a-z\])]!\.|[a-z\])]!\[|\?\? 0\b"` prints `0`, and
+  `grep -rn "biome-ignore" extensions/figures/src` shows none that names a strict task.
+- [ ] **Step 5: The close.** `git merge origin/main`; `pnpm build`; `pnpm api-report`; `pnpm api-index`; the whole
+  `pnpm check`; Chromium, software GL: the painter's and the kit's `test:browser`, `pnpm test:journeys:3d`; the
+  times against task 21's baseline. The ledger's table filled, every row 0. `progress.md`. **Not run, stated:**
+  WebKit, Firefox, a real GPU, arm64. Push; draft pull request
+  `refactor(figures): the painter compiles under the framework's strict flags`, with the ledger and the times in its
+  body.
+
+**Done when:** no compiler flag differs between the package and the framework's base, and no `types/` folder exists.
 
 ---
 
@@ -908,10 +1187,10 @@ The provenance rows were written at `6d82a52`. Eight ported files changed betwee
   the rows for task 15's golden and task 17's document.
 - [ ] **Step 2:** Regenerate the manifest's `environment` entry at `f7c5356` (`pnpm sources-md`, as the section's own
   "Pull again" says). `pnpm source-names` (it runs `sources-md-cli --complete`): exit 0.
-- [ ] **Step 3: The ledger.** In `progress.md`'s editor gaps ledger, one row: a swatch's texture knobs cannot be
-  tuned against its `reads` in an editor; the judge exists (`checkReads`), the search does not. Under workstream 5's
-  notes, one line: a hand-run command that compares a real GPU's frame with SwiftShader's for the framework's own
-  frames would end "WebGPU on a real GPU: not run".
+- [ ] **Step 3: The ledger and the following work.** In `progress.md`'s editor gaps ledger, one row: a swatch's
+  texture knobs cannot be tuned against its `reads` in an editor; the judge exists (`checkReads`), the search does
+  not. Under workstream 6, the lines of this plan's "Following work this fold leaves", as written there, so the
+  Owner sees what retiring the repository gives up.
 - [ ] **Step 4:** `pnpm check`; commit `docs(provenance): every file of the environment source at f7c5356, and where it went`.
 
 **Done when:** `pnpm source-names` passes and no file of the builder at `f7c5356` lacks a row.
@@ -923,8 +1202,9 @@ The provenance rows were written at `6d82a52`. Eight ported files changed betwee
   exports or doc comments).
 - [ ] **Step 2:** The whole `pnpm check`. Chromium, software GL: the 3D package's, the world kit's and the character
   kit's `test:browser`, and `pnpm test:journeys:3d`. `git status` clean after them.
-- [ ] **Step 3: The retirement notes.** Send the coordinator the two notes below, for the Owner (or, if the Owner
-  granted a session access, that session commits each to its repository's `README.md` and nothing else).
+- [ ] **Step 3: The retirement notes.** Ask the coordinator whether both notes are committed and merged in the two
+  repositories and whether the Owner has archived them; record the answer, with the commits, in `progress.md`. Do
+  not push to either repository.
 - [ ] **Step 4: The record.** This plan's table and log; `progress.md`, workstream 6: what moved, what did not and
   why (the survey's summary table, with task 15's and 16's outcomes), and the spec's "Done means" line by line with
   its evidence. **Not run, stated:** WebKit, Firefox, WebGPU on a real GPU, the builder's own `test:gpu` and `check`.
@@ -939,7 +1219,7 @@ The provenance rows were written at `6d82a52`. Eight ported files changed betwee
 plan before group 2 starts, on the pattern of group 1: a filtered history of `src`, `base`, `tests` and `scripts`
 (3.87 MB with the photos, which would be dropped in favour of the kit's identical copies) merged under a private
 home that is not an extension a game can add (it draws nothing a game ships); its door `src/lib/figure.ts` rewritten
-to import `@automata/painted-figures/kit` and `@automata/painted-figures` (the kit entry exports every name the door
+to import `@automata/figures/kit` and `@automata/figures` (the kit entry exports every name the door
 takes from the internals); its suite run, with `base` and `scenes` failing as measured (22 frames); then **one**
 commit that re-records those two goldens, quoting the Owner, with every moved frame shot before and after; the GPU
 harness left out. Nothing of this is done under the default.
@@ -948,13 +1228,18 @@ harness left out. Nothing of this is done under the default.
 
 ## The retirement notes
 
+The coordinator commits each note to its repository on a branch there; the Owner merges and archives (the Owner's
+answer of 2026-11-12). No execution session pushes to either repository. Task 19 records that both are done.
+
 For `mcthaydt/FigureBuilder`, at the top of `README.md`:
 
-> **Retired.** This repository's code now lives in `mcthaydt/automata-framework`, in `extensions/painted-figures`,
-> with its history: `main` at `23f889c8` and the branch `claude/c9-wardrobe` at `856498a`. Work on the painter
-> continues there. Nothing is merged here any more. Still only here: the specs, plans, audits and gate sheets under
-> `docs/superpowers/`; the branches `claude/c5-finish-fixes` and `claude/turned-face-both-eyes` (painter fixes not on
-> `main`); the content branches and spikes; the tag `archive/dressed-golden`.
+> **Retired.** This repository's code now lives in `mcthaydt/automata-framework`, in `extensions/figures`, with its
+> history: `main` at `23f889c8`, the branch `claude/c9-wardrobe` at `856498a`, and the fixes of
+> `claude/c5-finish-fixes` and `claude/turned-face-both-eyes`. Work on the painter continues there. Nothing is
+> merged here any more. Still only here: the specs, plans, audits and gate sheets under `docs/superpowers/`; the
+> content branches (`claude/demo-characters`, `claude/music-video`, `claude/runway-video`,
+> `claude/showcase-ada-nurse`) and two spikes (`claude/spike-live-mesh`, `claude/c3-spike-cloth`); the tag
+> `archive/dressed-golden`.
 
 For `mcthaydt/EnvironmentBuilder`, at the top of `README.md`:
 
@@ -962,18 +1247,38 @@ For `mcthaydt/EnvironmentBuilder`, at the top of `README.md`:
 > photo library with its licence records, the dresser, the kits, the maps and their generators in
 > `extensions/world-kit`; the level format, the world builder and the look in `packages/3d`. That repository's
 > `docs/provenance/sources.md` lists every file here at `f7c5356` and where it went or why it stayed. The CPU scene
-> renderer, its views, the GPU harness and their goldens were not carried over; they remain here as the record.
-> Nothing is merged here any more.
+> renderer, its views, the GPU harness and their goldens were not carried over; they remain here as the record, and
+> this repository still runs if a scene ever has to be drawn its way again. Nothing is merged here any more.
 
 Archiving both repositories is the Owner's.
+
+## Following work this fold leaves, one line each
+
+Not part of this plan. The first five are what retiring EnvironmentBuilder gives up (the survey's first table);
+task 18 writes them into `progress.md`.
+
+- **Review sheets as a kept tool:** a command that shoots the base scenes and a game's levels as stills, at chosen
+  times of day, from the framework's own renderer (today only the spike `spikes/builders-look/shoot.mjs` does).
+- **A level's `reads` as a gate:** a `reads` field on a level (`minEdge`, the hot rule and its shown waiver) and an
+  `automata check` step that runs the world kit's `readsAgainst` over a game's levels.
+- **Tuning a swatch against its reads in the editor:** the judge exists (`checkReads`); nothing searches the knobs.
+  An editor gap.
+- **How every room's figures read, in one report:** what `tune-light --maps all` printed; exposure is now per
+  figure, so the report replaces the search.
+- **A real GPU against SwiftShader:** a hand-run command over the framework's own frames, texel by texel, so
+  "WebGPU on a real GPU: not run" can end. For workstream 5.
+- **A held item and cutscene poses for painted figures**, glyphs, an editor for painted figures: under the addendum
+  below.
+- **The `@pixi/3d` beta.3 port of the painter's view:** on the upgrade branch (the list it inherits is under "What
+  this plan settles", 4).
 
 ## Addendum for workstream 4's plan (its tasks 13 to 16, after the fold)
 
 For the coordinator to move into `2026-11-11-builders-look.md`, replacing the text of its group 4. One branch,
-`claude/builders-look-wardrobe`, from `main` after this plan's group 1; one pull request; no second repository and no
+`claude/builders-look-wardrobe`, from `main` after this plan's groups 1 and 1b (the strict flags); one pull request; no second repository and no
 pin.
 
-- **Task 13, the painter: drawn moods and the wardrobe golden.** In `extensions/painted-figures`. The step-level text
+- **Task 13, the painter: drawn moods and the wardrobe golden.** In `extensions/figures`. The step-level text
   is the wardrobe cycle's plan, now at `docs/archive/figure-painter/c9-wardrobe/2026-11-11-c9-wardrobe.md`: its task
   F8 (the faces `fear`, `sad`, `worried` and `firm` drawn; `EXPRESSIONS` gains `worried` and `firm`), its Checkpoint
   B cut to the faces sheet, and its task F9 cut to the golden and the documents (a first recording,
@@ -984,29 +1289,24 @@ pin.
   pinned faces not yet drawn), in the commit F8 names. "Merge to FigureBuilder's `main`; tell the coordinator the
   commit" is gone.
 - **Task 14, the door.** Step 1 (move the pin) is gone. Step 2 stands: the kit's door
-  (`src/shared/painted-figures/door.ts`) re-exports what the new kinds use (`rampOf`, `skull`, `onHead`, `headForm`
+  (`src/shared/figures/door.ts`) re-exports what the new kinds use (`rampOf`, `skull`, `onHead`, `headForm`
   and the types `Skull`, `HeadForm`, `ShoeForm`, `Foot`, as the wardrobe plan lists them), pinned by `door.test.ts`.
   The runway golden must not move; if it does, the painter changed a cell it promised not to: stop.
 - **Task 15, the ward's clothes as kit entries; moods reach the painter.** As written, with one change: where it says
   a cell that moves under the last-bit nudge "is fixed in FigureBuilder", it is fixed in
-  `extensions/painted-figures`, in the same pull request, with the painter's own goldens run.
+  `extensions/figures`, in the same pull request, with the painter's own goldens run.
 - **Task 16, the ward gate sheet; the pull request.** As written.
 - **Task 17, step 2:** "FigureBuilder #29 is merged by task 13" becomes "FigureBuilder #29 stays open in the retired
   repository; its code is on `main` here". **Step 4** ("ask, do not do": fold or keep the submodule) is answered by
   the Owner's decision of 2026-11-12 and is removed.
 
-**Following work, not part of this plan or that one** (what the reference game still needs from figures, and what
-the fold leaves open):
+**Following work, not part of this plan or that one** (what the reference game still needs from figures):
 
 - **A held item** (the lamp in a figure's hand): the painter has items (`ITEMS`, `itemOf`) and the hand's anchors
   (hook H2); the kit's `PaintedState` has no field for one. A kit change with a painter test, now one pull request.
 - **Cutscene poses:** the painter has `POSES`, `SEATS` and holds (`applyHold`); the cutscenes extension has no way
   to name one for a painted figure at a time on its timeline.
 - **Glyphs** (a watch, a badge): the Owner's to ask for.
-- **The two strict compiler flags** for the painter, one file at a time behind the goldens; then the declarations
-  step and `tsconfig.types.json` go and `exports` points at source.
-- **The painter fixes left in the retired repository** (`claude/c5-finish-fixes`, `claude/turned-face-both-eyes`), if
-  the Owner wants them.
 - **An editor for painted figures** (already row 2 of the editor gaps ledger), and tuning a swatch against its reads
   (task 18's row).
 - **The `@pixi/3d` beta.3 port of `src/features/view/`**, on the upgrade branch.
@@ -1015,4 +1315,4 @@ the fold leaves open):
 
 | Date | Session | What |
 |---|---|---|
-| 2026-11-12 | Stage 2 (plan), `claude/builders-fold-plan` | The two surveys and this plan, against `main` `0df11a43`, FigureBuilder `23f889c8` and EnvironmentBuilder `f7c5356` (both cloned read only; nothing committed in them). Ran: both builders' own suites (FigureBuilder 47 files, 561 tests, at most 227 s; EnvironmentBuilder 55 files, 578 tests, 130 s), FigureBuilder's goldens under Node 24.21 (pass, 27 s), EnvironmentBuilder's suite against the framework's painter pin (27 failures in 4 files), the framework's format, lint, style and strict typecheck over the builders' source, the submodule script with no submodule (exit 0 both ways), byte and key comparisons of the photo library and the kits, and a dry run in a scratch clone of task 2's filter and manifest check (236 commits on `main`, 7 more for the wardrobe branch, 134 files, 0 differ, 1.64 MB). Not run: either builder's view or GPU check, any render, anything on arm64, the wardrobe branch's tests, the tiles cross-check. No product code written; no golden or hash touched |
+| 2026-11-12 | Stage 2 (plan), `claude/builders-fold-plan`, revised the same day for the coordinator's rulings (the name `@automata/figures`; the strict flags conformed inside the workstream, tasks 21 to 27; one mechanical commit each for format and lint; the suite split for the hook) and the Owner's answers (the workflows' step removed in the first pull request, task 4b; the two fix branches brought, tasks 4c and 4d; the retirement notes committed by the coordinator). Also measured for the revision: the two fix branches cherry-picked in a scratch clone (five c5 commits clean and no golden moved; one conflict of one hunk; the turned-face fix moves three goldens, 4 tests), the suite's time by file, and the 1,395 strict errors by folder | The two surveys and this plan, against `main` `0df11a43`, FigureBuilder `23f889c8` and EnvironmentBuilder `f7c5356` (both cloned read only; nothing committed in them). Ran: both builders' own suites (FigureBuilder 47 files, 561 tests, at most 227 s; EnvironmentBuilder 55 files, 578 tests, 130 s), FigureBuilder's goldens under Node 24.21 (pass, 27 s), EnvironmentBuilder's suite against the framework's painter pin (27 failures in 4 files), the framework's format, lint, style and strict typecheck over the builders' source, the submodule script with no submodule (exit 0 both ways), byte and key comparisons of the photo library and the kits, and a dry run in a scratch clone of task 2's filter and manifest check (236 commits on `main`, 7 more for the wardrobe branch, 134 files, 0 differ, 1.64 MB). Not run: either builder's view or GPU check, any render, anything on arm64, the wardrobe branch's tests, the tiles cross-check. No product code written; no golden or hash touched |

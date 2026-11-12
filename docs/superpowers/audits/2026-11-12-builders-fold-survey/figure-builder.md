@@ -18,6 +18,17 @@ plan this survey feeds is [`2026-11-12-builders-fold.md`](../../plans/2026-11-12
   - `npx vitest run tests/golden tests/features/actors/actors.test.ts` (the five goldens alone): **pass, 22 s**.
   - `npx tsc --noEmit`: 0 errors, 3.5 s.
   - The framework's own checks pointed at the builder's source (the numbers under "Rules" below).
+  - Per file (`--reporter=json`, run while the framework's own gate ran on the same cores, so the absolute numbers
+    are high and only the proportions are meant): 16 of the 47 files take 80% of the time. The slowest are
+    `hair/hang.test.ts`, `paint/materials.test.ts`, `body/sliders.test.ts`, `paint/fabric.test.ts`,
+    `golden/actors.test.ts`, `body/bust-seat.test.ts`, `hair/ulp.test.ts`, `body/face-d2.test.ts`,
+    `outfit/fit.test.ts`. The five goldens with the identity pins, the last-bit test, the API pin and the layer test
+    (9 files) are 23% of it.
+  - Under the framework's Node 24.21: the five goldens, `ulp.test.ts` and `identity.test.ts` (7 files, 39 tests)
+    **pass, 27 s**.
+  - The two fix branches, cherry-picked onto `main` in a scratch clone, with the goldens and painter tests run on
+    each (the numbers under "The other branches").
+  - The plan's filter and checksum check, dry-run in a scratch clone (the numbers under "History, measured").
 - **Not run:** `npm run view-check` (needs Chromium on SwiftShader; no number in the plan depends on it), any render
   script, anything on arm64, the tests of the `claude/c9-wardrobe` branch.
 
@@ -44,7 +55,7 @@ goldens are md5 lists in JSON and twelve gzipped RGBA sheets.
 
 ## Every feature, and where it goes
 
-The home is one private package, **`extensions/painted-figures`, named `@automata/painted-figures`** (the reason is in
+The home is one private package, **`extensions/figures`, named `@automata/figures`** (the reason is in
 the next section). Inside it the framework's shape applies: `src/shared/`, `src/features/`, `src/entries/`, and
 `tests/` beside `src/`.
 
@@ -53,7 +64,7 @@ The builder's features are a pipeline: each imports the ones below it. The frame
 Pixi-free pipeline goes to `src/shared/<layer>/`, where layers may import each other, and the one consumer that loads
 Pixi stays a feature.
 
-| Builder path | `.ts` files | Lines | Library data | Tests (`tests/features/<x>`) | Home in `extensions/painted-figures` |
+| Builder path | `.ts` files | Lines | Library data | Tests (`tests/features/<x>`) | Home in `extensions/figures` |
 |---|---|---|---|---|---|
 | `src/lib/` | 2 | 91 | | (used by all) | `src/shared/math/` |
 | `src/features/body/` | 4 | 677 | | 6 files, 385 lines | `src/shared/body/` |
@@ -89,7 +100,7 @@ the framework's copy through the `file:` specifier the character kit already use
 
 ## The home, its name, and the door
 
-**A private extension, `extensions/painted-figures`, `@automata/painted-figures`.** From `AGENTS.md`:
+**A private extension, `extensions/figures`, `@automata/figures`.** From `AGENTS.md`:
 
 - "Extensions are opt-in and never edit core. They live in `extensions/<name>` as `@automata/<name>`, and core never
   imports one." The painter is opt-in, and core must not import it: `pnpm boundaries` already forbids `figure-builder`
@@ -104,19 +115,18 @@ the framework's copy through the `file:` specifier the character kit already use
   different system; putting both under one `figures` folder would hide that.
 - `"private": true`, like `@automata/character-kit`: it depends on the closed `@pixi/3d` beta. No changeset.
 
-**The name.** `tooling/repo-hygiene/src/source-names.ts` lists `figure[\s_-]?builder` as a source project's name that
-published text must not carry. Extensions' code is not scanned today, but a package of the framework's own should not
-be named for the project it came from. `AGENTS.md` already says "Private ones (the editors, figures)". The plain name
-`figures` would clash in a reader's head with core's `features/figures`, the `figure` content kind and the Studio's
-figures; `painted-figures` says which ones these are and matches the kit's own word (`features/painted/`). **A call
-for the coordinator:** `@automata/painted-figures` (default) or `@automata/figures`.
+**The name.** `@automata/figures`, at `extensions/figures`: the coordinator's ruling (2026-11-12). `AGENTS.md`
+already says "Private ones (the editors, figures)", and painting is one thing the package does, not its name. It is
+not named for the project it came from: `tooling/repo-hygiene/src/source-names.ts` lists `figure[\s_-]?builder` as a
+name published text must not carry. The package's readme says how it differs from core's mesh figures
+(`packages/3d/src/features/figures/`) and the `figure` content kind, since the words are now close.
 
 **The door stays, and gets smaller in meaning.** Today `extensions/character-kit/src/shared/figure-builder/door.ts`
 (45 names from the index, 10 from the kit entry) and `door-view.ts` (2 names from the view entry) are the only files
 that import the builder, held by `tests/unit/shared/door.test.ts`. After the fold:
 
-- They import `@automata/painted-figures`, `@automata/painted-figures/kit` and `@automata/painted-figures/view`.
-- The folder is renamed `src/shared/painted-figures/` (a source project's name leaves the path).
+- They import `@automata/figures`, `@automata/figures/kit` and `@automata/figures/view`.
+- The folder is renamed `src/shared/figures/` (a source project's name leaves the path).
 - The door test stays: the kit still takes only the names it uses, through one file, so a change in the painter
   breaks one file of the kit.
 - `contract.test.ts` (`STAGE_VERSION` is 1) stays.
@@ -188,12 +198,29 @@ the framework's `biome.json`; `tooling/check-style`; `tsc` 6.0.3 with `tsconfig.
 | One test suffix, `.test.ts`; tests in `tests/unit/<feature>/` | the suffix is already `.test.ts`; the folders are `tests/features/<x>/` and `tests/golden/` | 47 test files move folder |
 | Names a source project | comments in `src/` and `viewer/` name the game the gameplay camera came from (5 files in `src/`, 1 in `viewer/`, 1 test) | 7 files; extensions are not scanned, so this is a courtesy, not a gate |
 
+**The 1,395 type errors, by folder** (at `23f889c8`; the plan's ledger starts from these):
+
+| Folder | Errors | Most in |
+|---|---|---|
+| `src/features/paint/` | 656 | `paint.ts` 511, `raster.ts` 142 |
+| `src/features/figure/` | 226 | `figure.ts` 208 |
+| `src/features/hair/` | 103 | `hair.ts` 103 |
+| `src/lib/` | 101 | `math.ts` 101 |
+| `src/features/body/` | 89 | `parts.ts` 59 |
+| `src/features/actors/` | 68 | |
+| `src/features/lighting/` | 57 | `sprite.ts` 36 |
+| `src/features/motion/` | 56 | `motion.ts` 56 |
+| `src/features/outfit/` | 23 | |
+| `src/features/view/` | 9 | |
+| `src/features/stage/` | 7 | |
+| `base/`, the three entries | 0 | |
+
 **Note on the 1,395 type errors.** Each is an index into an array or a typed array that the stricter flags treat as
-possibly undefined. Fixing them means about 1,400 edits inside a painter whose every branch is pinned by a golden, and
-a guard added for the type checker can change a code path. The plan's recommendation: the package's `tsconfig.json`
-extends the framework's base and turns those two flags off, with a comment saying why, as the wrapper does today with
-the builder's own settings. Bringing the painter under them is following work, one file at a time, each behind the
-goldens.
+possibly undefined, or an optional property given `undefined`. The coordinator's ruling: the package arrives with the
+two flags off, stated in its `tsconfig.json` with a comment and a counted ledger in the plan, and is then conformed
+folder by folder inside this workstream, each folder proved by the goldens passing unmoved; never one giant commit,
+and never by `as` casts or non-null assertions: where an index really can be out of range, the fix is a check. The
+plan gives that seven tasks on a branch of their own.
 
 **What the two flags mean for the wrapper's type step.** The kit and everything that imports the kit compile with the
 framework's strict base, and TypeScript checks an imported `.ts` source with the importer's options. If the kit
@@ -250,17 +277,45 @@ the goldens run after each, and stops on any moved texel.
 |---|---|---|---|---|
 | `claude/c9-wardrobe` | 10 / 0 | 2026-11-11 | above | **yes; comes across** |
 | `claude/c9-wardrobe-spec` | 2 / 0 | 2026-11-11 | the first two commits of the branch above | no (contained in `c9-wardrobe`) |
-| `claude/c5-finish-fixes` | 8 / 49 | 2026-11-10 | eight c5-finish audit fixes (the weave's depth table, sheen bounds, a quilted crest) | **yes: 8 patches not on `main`** by `git cherry`; whether `main` fixed them another way was not checked |
-| `claude/turned-face-both-eyes`, `claude/project-thread-2ts3yn` | 2 / 66 | 2026-11-09 | the same two commits (`434b5f3`): a turned face keeps both eyes, with a golden re-record | **yes: a painter fix that moves a golden** |
+| `claude/c5-finish-fixes` | 8 / 49 | 2026-11-10 | eight c5-finish audit fixes (the weave's depth table, sheen bounds, a quilted crest) | **yes; comes across** (six of its commits; the other two touch only files that do not come) |
+| `claude/turned-face-both-eyes`, `claude/project-thread-2ts3yn` | 2 / 66 | 2026-11-09 | the same two commits (`434b5f3`): a turned face keeps both eyes, with a golden re-record | **yes; the fix comes across** and re-records three goldens afresh |
 | `claude/spike-live-mesh` | 2 / 21 | 2026-11-10 | a spike: a GPU painter on the live mesh against the CPU painter | a spike with its report; not wanted |
 | `claude/c3-spike-cloth` | 1 / 159 | 2026-11-06 | a spike for cloth, superseded by c3-cloth on `main` | no |
 | `claude/showcase-ada-nurse` | 1 / 12 | 2026-11-11 | two characters of the reference game as builder characters | **game content: must not come** |
 | `claude/demo-characters` | 2 / 142 | 2026-11-06 | seven demo characters and their renders | content |
 | `claude/music-video`, `claude/runway-video` | 2 / 124, 7 / 66 | 2026-11-06 | the Owner's song clips, "on a branch never merged" | content, and third-party music |
 
-Two branches besides the wardrobe carry painter work that is not on `main`: `c5-finish-fixes` and
-`turned-face-both-eyes`. Neither is part of this fold (the spec brings `main` and the wardrobe branch). The plan lists
-them for the Owner: bring later as framework changes, or leave in the retired repository.
+**The Owner's answer (2026-11-12): "bring the figure builder branches in that we missed".** Two branches besides
+the wardrobe carry painter or generator work that is not on `main`, and both come, as framework changes after the
+arrival and before the wardrobe work. Measured in a scratch clone, on top of `23f889c8`:
+
+- **`claude/c5-finish-fixes`** (cut from `08f54a6`, 2026-11-10, 49 commits behind): eight commits. Five apply
+  cleanly with `git cherry-pick` (S1 `7bd4fac`, S2 `d5205bd`, N1 `d77244c`, N2 `6fff4fa`, N5 `4ded644`) and, with
+  them applied, `tests/golden`, `tests/features/paint` and the actors' sprites golden pass: **11 files, 163 tests, no
+  golden moves.** N4 (`e97df55`, the weave keeps a table of fabric depths) conflicts in one hunk of
+  `src/features/figure/figure.ts`, where `main` has since added `depth` to the cell cache: the resolution keeps both.
+  N3 (`ddcfba1`) changes only `CLAUDE.md` and the last commit only `docs/superpowers/progress.md`: neither file
+  comes, so neither commit does.
+- **`claude/turned-face-both-eyes`** (cut from `025ffb4`, 66 commits behind; `claude/project-thread-2ts3yn` is the
+  same two commits): the fix `cfc4333` (a turned face keeps both eyes: an ear's rim painted in the skin's own tones
+  no longer counts as something worn over the eye) applies cleanly. Its second commit re-records goldens as they
+  stood on 2026-11-09 and conflicts; it is not brought. **With the fix applied, 4 tests fail in 3 files: the actors
+  golden (`base-m` and `base-f`), the base golden at density 1, and the sprites golden (`base-m-D1`).** The lit and
+  sprite goldens and the painter's tests pass. So it re-records three of the five goldens, once, in a commit that
+  names the reason, after the Owner has seen a before-and-after sheet.
+- All of it together (the five picks, the turned-face fix, then the wardrobe branch merged on top) applies with no
+  conflict.
+
+**The other branches, checked once more for painter or generator work** (`git diff --stat main...<branch> -- src
+base tests scripts viewer`):
+
+- `claude/demo-characters`, `claude/music-video`, `claude/runway-video`, `claude/showcase-ada-nurse` and
+  `claude/spike-live-mesh` change **no file** under `src/`, `base/`, `tests/`, `scripts/` or `viewer/`. They add
+  characters, clips, renders and a spike's report in folders of their own: content and evidence, judged so because
+  the generator is untouched. They do not come.
+- `claude/c3-spike-cloth` adds a spike script and 11 lines to `parts.ts` and `paint.ts` for a first try at tiled
+  fabric; `main` has the finished form (the fabric registry H5, c3-cloth). Superseded; it does not come.
+- `claude/c9-wardrobe-spec` is contained in `claude/c9-wardrobe`.
 
 ## Brand and game content on `main`
 
@@ -304,5 +359,6 @@ workflow files; `tooling/repo-hygiene` (the workflow invariants and two tests); 
 - Nothing ran on arm64. The arch-stable pole rule (`d5ca055`) and its `ulp.test.ts` are read, not exercised on a
   second architecture.
 - The wardrobe branch's tests were not run.
-- Whether `c5-finish-fixes`' eight patches were superseded on `main`.
+- The whole suite was not run with the fix branches applied, only the goldens and the painter's tests.
+- `main` has an earlier commit on the same subject (`82822ff`, 2026-11-04, "Keep both eyes on a turned face"); how the later fix reads beside it on a sheet was not looked at. The before-and-after sheet in the plan is where it is judged.
 - The framework's full history size (shallow clone).

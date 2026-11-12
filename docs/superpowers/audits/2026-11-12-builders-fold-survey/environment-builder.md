@@ -23,6 +23,25 @@ plan is [`2026-11-12-builders-fold.md`](../../plans/2026-11-12-builders-fold.md)
 - **Not run:** `npm run test:gpu`, `npm run check`, `gpu:diff`, `gpu:parity` (they need Chromium on SwiftShader or a
   real GPU, and no number in the plan depends on them); any render, board or tune script.
 
+## What retiring the repository gives up
+
+For the Owner, before the detail: each piece marked "not wanted" below, what it was for, and what does that job in
+the framework today. "Nothing" means the job is given up until someone builds it; the plan lists each "nothing" as
+following work, one line each, and none is part of this fold.
+
+| Piece left behind | What it was for | What does that job in the framework today | Given up? |
+|---|---|---|---|
+| The CPU diorama, top-down and first-person views, and `npm run render`, `board`, `lit` | Review sheets: every base scene and map drawn as a still, at every time of day, beside the reference game's frames; every visual change was judged on them | The level editor's live room views (`packages/editor-3d/src/shared/level-session/af-sector/room-views.ts`, the dollhouse and the walk view) show a room, not a sheet. The sheets of workstream 4 were shot by `spikes/builders-look/shoot.mjs`, which is a spike, not a kept tool; the character kit has a gate script for figures only (`extensions/character-kit/scripts/gate.ts`) | **Partly. Nothing kept shoots the base scenes as review sheets** |
+| Drawing a scene "the builder's way" at all | The yardstick workstream 4 measures the framework's brightness, shadows and figure reads against | 12 committed frames of the builder (`docs/superpowers/audits/builders-look-survey/builders/`) and the numbers taken from them | **Yes, for new scenes.** The committed frames stay; a scene the builder never drew can no longer be drawn its way. The old repository still runs if it is ever needed (archived, not deleted) |
+| `npm run check`, and each map's declared `reads` (`minEdge`; the hot rule unless waived) | One command, about 40 s, that fails when a figure does not read against its room or reads hot, per map | The measures are in the world kit as functions with unit tests (`features/reads/figure-reads.ts`, `reads-against.ts`: `MIN_READ` 1.1, `HOT` 1.1). The level format has no `reads` field, and nothing runs the measure over a game's levels in a gate; workstream 4 ran it from the spike into `reads.json` | **Partly. The rule exists; no level declares it and no gate runs it** |
+| A swatch's `reads` (blotch, flat, span, spots, patches) | Fails a texture that reads as noise or as flat | `extensions/world-kit/src/features/textures/check-reads.ts` and `structure.ts`, run by the kit's textures command and its unit tests | No |
+| `npm run tune` (sweep a swatch's knobs; `--find` the passing range) | Finding texture knobs that pass the reads without guessing | The judge is there (`checkReads`); **nothing** searches | **Yes** |
+| `npm run tune-light` (search the figure light's floor; judge every declaring map) | Finding the figure light at which figures read and are not hot | Exposure is computed per figure at run time (`roomLight`'s `Exposure`, workstream 4), so there is no global knob to search; **nothing** reports how every room's figures read at once | **Partly** |
+| `gpu:diff` (the CPU's albedo against the GPU's, texel by texel, classed) | Proving a GPU port of the builder's own painter | Not needed: the framework has no CPU scene painter to agree with. Its own frames are held by `packages/3d/tests/browser/parity/` (11 files) across engines | No |
+| `gpu:parity` (a real GPU against SwiftShader, texel by texel) | Knowing that software-GL test results hold on real hardware | **Nothing.** Every session reports "WebGPU on a real GPU: not run" | **Yes** (the builder had it only for its own albedo frame) |
+| The `base` and `scenes` goldens | Pinning the CPU renderer's look to a texel | The framework's own goldens pin its own renderer | No, as a guard; yes, as a picture of the builder's look, which stays in the retired repository |
+| The stage's scripted actors, cast and runtime | Figures acting in a builder scene | The cutscenes extension and a game's own entities | No |
+
 ## What is in the repository
 
 321 tracked files, 13.8 MB in the working tree; 250 commits on `main` (196 without merges; none of the subjects is a
@@ -221,9 +240,9 @@ When both live in one repository:
 - **Under the plan's default** nothing that imports the door comes across, so the door has no successor. The kit and
   core already import their own maths, palette and meshes.
 - **Under the Owner's other option** (the CPU renderer comes as a reference tool) the door becomes an import of
-  `@automata/painted-figures/kit`. FigureBuilder made that entry for exactly this (`src/kit.ts`: "the rig names
+  `@automata/figures/kit`. FigureBuilder made that entry for exactly this (`src/kit.ts`: "the rig names
   EnvironmentBuilder's door imports"): it exports every name the door takes from the internals. The door's public-index
-  names come from `@automata/painted-figures`. `Casting` (a type the door takes from `features/actors/actor`) is on
+  names come from `@automata/figures`. `Casting` (a type the door takes from `features/actors/actor`) is on
   the index already. No deep import is left, and the 22 golden frames are re-recorded once.
 
 ## What changed after the provenance rows were written
