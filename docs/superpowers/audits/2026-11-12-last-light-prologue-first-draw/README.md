@@ -70,3 +70,27 @@ Level and time are not the cause: `lampLit`'s ambient is 0.15, as the old game's
   that open and close is a core feature, not built.
 - The old fog also had drifting mist puffs lit by the lamps (`fog.ts`); the framework's look has none ("its particle mist is not
   extracted").
+
+## Ada's size
+
+The camera rules are the old game's already: a 50 mm lens (27 degrees of the picture's height), 30 degrees down, the zones' own distances (16.6,
+16, 15 m, from the level's `views`). At 480 lines that is 52.1 lines to a metre at the focus (the old game's "about 53"), so a 1.7 m figure
+at the focus is about 89 lines tall (the old "about 90"). `tests/unit/app/camera-rules.test.ts` pins the lens, the distances and the
+figure. Nothing was changed. The earlier "about 1.2 times larger" was the slab being nearer the camera than the focus (Ada at the spawn is
+2.9 m in front of the hall's focus, 1.17 times larger by perspective) plus its top face; on the screen at the spawn the old sprite is
+about 109 lines tall, ours (a 1.55 m box, its top face seen from 30 degrees) about 103. The painted figure (task 13, held) settles it.
+
+## The HUD, old against `content/hud/play.toml`
+
+| | The old game | Ours |
+|---|---|---|
+| Objective | Top left, one line, a diamond glyph then the words, in a small bitmap pixel font, no box | Top left, a rounded dark box, sans font, 360 wide |
+| Where to go | A marker on the goal: a world diamond, or a chevron on the picture's edge toward it | None |
+| Minimap | Top right, always, 80 by 60 (64 by 48 on touch), north up, the current room red, the doors seen | None |
+| Prompt | A box tied to its hotspot by a leader line: "E · Read Patient record · 1/2 · Tab" (key, verb, name, which of how many, the key that cycles) | A box at the bottom centre, not tied to the hotspot |
+| Items | One slot at the bottom centre with its key (1) and a fuel meter | "Nothing carried." bottom right, and the item slots |
+| Debug line | Top left, only with `?debug` | None |
+
+The hud extension gives five pieces (objective, prompt, inventory, examine, keypad), an anchor and a width each, and one boxed sans style; it
+cannot say a minimap, an objective marker, a leader line or a pixel-font unboxed line. Logged as row 15 of the editor gaps ledger (with row 1,
+the UI editor) and not restyled by hand. The hud extension and ui-screens are not changed here.
