@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 
 import { dirname, join, relative } from 'node:path'
 import { Effect } from 'effect'
 import { type FileError, type ProcessError, tryFile } from '../../../node/errors.ts'
-import { ProcessRunner, type ProcessRunnerService } from '../../../node/process-runner.ts'
+import { ProcessRunner } from '../../../node/process-runner.ts'
 import type { ShipConfig } from '../../config/ship-config.ts'
 import type { TauriConfig } from '../../config/tauri-config.schema.ts'
 import {
@@ -11,21 +11,15 @@ import {
   type SecretInBuild,
   TauriBuildFailed,
   TauriBuildInvalid,
-  TauriToolchainMissing,
+  type TauriToolchainMissing,
   type VersionMismatch,
 } from '../../errors.ts'
 import { buildFiles } from '../../prepare/build-files.ts'
 import { checkTag, scanBuild } from '../../prepare/build-scans.ts'
-import { findExecutable } from '../../publish/find-executable.ts'
 import { checkTauriEntry, checkTauriVersion, findEvalInCsp, tauriCsp, tauriSettings } from './tauri-checks.ts'
 import { tauriIconPng } from './tauri-icon.ts'
 import { tauriProjectFiles } from './tauri-project.ts'
-
-/**
- * The `@tauri-apps/cli` a desktop game installs as a dev dependency, named when it is missing: released 2026-10-14,
- * at least 14 days before it was chosen (2.12.4 was not), and the release the adapter's `@tauri-apps/api` pairs with.
- */
-export const TAURI_CLI = '@tauri-apps/cli@2.12.3'
+import { checkToolchain, type DesktopOs, locateTauri } from './tauri-toolchain.ts'
 
 /** What `prepareTauri` builds: the web build, the game's folder, its config, and the release tag. */
 export interface PrepareTauriInput {
@@ -54,7 +48,7 @@ export type PrepareTauriError =
   | ProcessError
 
 /** Each OS's bundles: `tauri build --bundles` names, with the folder and extension Tauri writes each to. */
-const BUNDLES: Readonly<Record<'linux' | 'macos' | 'windows', readonly { kind: string; ext: string }[]>> = {
+const BUNDLES: Readonly<Record<DesktopOs, readonly { kind: string; ext: string }[]>> = {
   linux: [
     { kind: 'deb', ext: '.deb' },
     { kind: 'appimage', ext: '.AppImage' },
@@ -117,6 +111,11 @@ function checkBuildForTauri(
 ): Effect.Effect<TauriConfig, TauriBuildInvalid | FileError> {
   return Effect.gen(function* () {
     const { settings, problems: settingProblems } = tauriSettings(config)
+    // No build at all is the likeliest first mistake: say which command makes it, not which file was not found.
+    if (!existsSync(distDir))
+      return yield* new TauriBuildInvalid({
+        problems: [`there is no web build in ${distDir}: run pnpm build:tauri first, then run this again`],
+      })
     const files = yield* tryFile(distDir, () => buildFiles(distDir))
     const problems = [
       ...settingProblems,
@@ -127,48 +126,6 @@ function checkBuildForTauri(
     if (problems.length > 0 || settings === undefined) return yield* new TauriBuildInvalid({ problems })
     return settings
   })
-}
-
-/** Cargo, then on Linux the WebKitGTK headers: what `tauri build` needs and says unclearly when it is missing. */
-function checkToolchain(
-  runner: ProcessRunnerService,
-  os: keyof typeof BUNDLES,
-): Effect.Effect<void, TauriToolchainMissing | ProcessError> {
-  return Effect.gen(function* () {
-    const cargo = yield* runner.run('cargo', ['--version'])
-    if (cargo.exitCode !== 0) {
-      return yield* new TauriToolchainMissing({
-        missing: 'cargo',
-        message: 'cargo is not installed: install Rust from https://rustup.rs, then build again',
-      })
-    }
-    if (os !== 'linux') return
-    const webkit = yield* runner.run('pkg-config', ['--exists', 'webkit2gtk-4.1'])
-    if (webkit.exitCode !== 0) {
-      return yield* new TauriToolchainMissing({
-        missing: 'webkit2gtk-4.1',
-        message:
-          'WebKitGTK 4.1 headers are not installed: on Debian or Ubuntu, apt install libwebkit2gtk-4.1-dev libsoup-3.0-dev (https://v2.tauri.app/start/prerequisites/)',
-      })
-    }
-  })
-}
-
-/** The game's own `tauri` first, then one on the path. */
-function locateTauri(
-  gameDir: string,
-  platform: NodeJS.Platform,
-  pathEnv: string | undefined,
-): Effect.Effect<string, TauriToolchainMissing> {
-  const installed = join(gameDir, 'node_modules/.bin', platform === 'win32' ? 'tauri.cmd' : 'tauri')
-  const tauri = existsSync(installed) ? installed : findExecutable('tauri', pathEnv, platform)
-  if (tauri !== undefined) return Effect.succeed(tauri)
-  return Effect.fail(
-    new TauriToolchainMissing({
-      missing: 'tauri',
-      message: `the tauri CLI is not installed: add ${TAURI_CLI} to the game's devDependencies`,
-    }),
-  )
 }
 
 /** Writes the generated Tauri project's files, and the game's icon (or a plain one) beside them. */
