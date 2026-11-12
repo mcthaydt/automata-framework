@@ -99,7 +99,7 @@ the UI editor) and not restyled by hand. The hud extension and ui-screens are no
 
 The level names 20 props whose preset the world kit's library lacks, so the builder reports `unknown-prop` and draws nothing for
 them (`WORLD.problems`). The old game draws each as a GLB model (`src/render/models`, packed by `scripts/pack-models.py`) or a
-dressing mesh (`src/scenes/clinic/dress.ts`). By the level's own prop id, then the preset it asked for:
+dressing mesh (`src/scenes/clinic/dress.ts`). By the level's own prop id, then the preset it asked for (the "what it is" column is read from the ids and the puzzle's hotspots, not checked against the old game's models):
 
 | Prop id | Preset the level names | What it is |
 |---|---|---|
