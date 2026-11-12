@@ -4,5 +4,8 @@ pre-commit:
     1_biome:
       glob: "*.{ts,js,json,jsonc}"
       run: pnpm exec biome check --no-errors-on-unmatched {staged_files}
+    # The changed packages only (`[HEAD]`, not `...[HEAD]`): the dependents of a changed package are the job of
+    # `pnpm check` and the pull-request gate. Turbo still selects every package when the change is in one the
+    # root workspace depends on (`@automata/tools` and what it pulls in: `content`, `sim`, `framework`).
     2_affected-unit-tests:
-      run: pnpm exec turbo run test:unit --filter="...[HEAD]" -- --testTimeout=90000
+      run: pnpm exec turbo run test:unit --filter="[HEAD]" -- --testTimeout=90000

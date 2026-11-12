@@ -19,3 +19,12 @@ it("the pre-commit unit tests get the root test:unit script's timeout, after `--
   expect(hook, 'lefthook.yml has a 2_affected-unit-tests command').toBeDefined()
   expect(hook).toMatch(new RegExp(` -- ${budget}$`))
 })
+
+// `...[HEAD]` adds every dependent of a changed package: a change in `packages/3d` selected 22 packages and one in
+// `extensions/physics` 14, nothing cached. Dependents are the job of `pnpm check` and the pull-request gate, so the
+// hook selects the changed packages only.
+it('the pre-commit unit tests run in the changed packages only, not their dependents', () => {
+  const hook = /2_affected-unit-tests:\s*\n\s*run:\s*(.+)/.exec(read('lefthook.yml'))?.[1]
+  expect(hook).toContain('--filter="[HEAD]"')
+  expect(hook).not.toContain('...[HEAD]')
+})
