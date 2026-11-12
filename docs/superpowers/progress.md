@@ -270,8 +270,22 @@ step fails on content with no editor unless its row is here with the Owner's wor
 | 10 | Peek numbers: `content/peek.toml` (reach, dwell, arc, lean, ease) has a schema and a content kind (`peekContent`, sim content); no editor opens it | Workstream 2, task 4 follow-up (`@automata/systems`), 2026-11-11 | To be specced |
 | 11 | Carried-light numbers: `content/carried-light.toml` (radius, start, fill, cap, burn) has a schema and a content kind (`carriedLightContent`, sim content); no editor opens it | Workstream 2, task 4 follow-up (`@automata/systems`), 2026-11-11 | To be specced |
 | 12 | The photosensitivity declaration: `photosensitivity: { effects, switches }` in `defineGame` (which hazards the game has, and the settings that turn them down) is TypeScript a person edits by hand; no editor in the suite opens it | Workstream 1, stage 6 (S9), 2026-11-12 | To be specced |
+| 13 | Tuning a swatch against its `reads`: a swatch's texture knobs (`contrast`, `range`, `scale`, `cluster` and the rest) cannot be searched for the range that passes in an editor. The judge exists in the world kit (`checkReads`); nothing searches the knobs, and the source's `tune --find` is left in the retired repository | Workstream 6, task 18 (the EnvironmentBuilder survey), 2026-11-12 | To be specced |
 
 Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 on its branch and were renumbered at the join with workstream 1's rows 3 to 7. Row 12 is workstream 1's (stage 6).
+
+## Following work workstream 6 leaves
+
+What retiring EnvironmentBuilder gives up, one line each. None is part of the fold; each is for the Owner to start or leave.
+
+- **Review sheets as a kept tool:** a command that shoots the base scenes and a game's levels as stills, at chosen times of day, from the framework's own renderer (today only the spike `spikes/builders-look/shoot.mjs` does).
+- **A level's `reads` as a gate:** a `reads` field on a level (`minEdge`, the hot rule and its shown waiver) and an `automata check` step that runs the world kit's `readsAgainst` over a game's levels. When it exists, the base interior's `hot` waiver (`packages/3d/src/features/world/base/base-scenes.ts`) goes if its figures pass: the source dropped it once its figures were exposed (`d17b13a`), and the framework keeps it because nothing judges a level's reads yet.
+- **Tuning a swatch against its reads in the editor:** the judge exists (`checkReads`); nothing searches the knobs. Row 13 of the editor gaps ledger.
+- **How every room's figures read, in one report:** what the source's `tune-light --maps all` printed; exposure is now per figure, so the report replaces the search.
+- **A real GPU against SwiftShader:** a hand-run command over the framework's own frames, texel by texel, so "WebGPU on a real GPU: not run" can end. For workstream 5.
+- **A held item and cutscene poses for painted figures**, glyphs, an editor for painted figures: under the addendum of [the fold's plan](plans/2026-11-12-builders-fold.md).
+- **The `@pixi/3d` beta.3 port of the painter's view:** on the upgrade branch.
+- **Picture of the source's look, kept only there:** the CPU scene renderer and its `base` and `scenes` goldens stay in the archived repository (the Owner, 2026-11-12: "A"); the committed frames in `docs/superpowers/audits/builders-look-survey/builders/` are the yardstick, and a scene the source never drew cannot be drawn its way.
 
 ## Findings so far (2026-11-11)
 
