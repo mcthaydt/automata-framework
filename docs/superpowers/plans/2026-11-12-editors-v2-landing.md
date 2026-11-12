@@ -53,7 +53,9 @@ rebuild was a shallow clone's figure.
 
 - **Every session starts with full history:** `git rev-parse --is-shallow-repository` prints `false`, or run
   `git fetch --unshallow origin` first. A shallow clone turns a 51-file merge into a 919-file one.
-- **Fetch the tips by pull ref**, since #562, #567, #548 and #564 have no branch:
+- **Fetch the tips by pull ref** (the coordinator has also restored them as branches: #567
+  `claude/project-thread-9gzvdb`, #548 `claude/project-thread-dbrboz`, #564 `claude/project-thread-77gue8`; the pull
+  refs are what GitHub keeps for good):
   `git fetch origin refs/pull/<n>/head:refs/remotes/pr/<n>` for 548, 564 and 567. Expected heads: `pr/567` `47391563`,
   `pr/548` `3c2c37f5`, `pr/564` `cc10fdfd`. Stop if one differs.
 - **Never rebase, squash or force-push the merged history.** The merge commits are what let the next chain merge small.
@@ -128,6 +130,23 @@ The inputs the stack's own tests do not exercise and a person will meet first. E
   from packs. To keep that line clean, Task 6 takes **none** of #532's packing changes
   (`packages/tools/scripts/copy-editor.ts`, the pack budget, the release list): those files stay as `main` has them.
   Part C starts after Task 6 has merged.
+  **What Part C can rely on once Task 6 has merged** (checked against its plan on `claude/ship-3d-plan` `c9c2b990`,
+  tasks C1 to C3):
+  - `pnpm --filter @automata/editors exec vite build` writes **one** page, `extensions/editors/dist/suite/index.html`,
+    holding Levels 2D, Levels 3D, Characters (2D and 3D), the Tuner, Feel, Audio, Writer, Sequence and Schematic. A game
+    sees those of its own kind. C1 plans two pages in the pack (`pages/suite-full` built by `packages/editor-3d` and
+    `pages/content`); after Task 2 there is one, so C1 copies `dist/suite` to `pages/suite-full` and
+    `pagePath('content')` is the same page or goes.
+  - `pageFor(editorList: string | undefined, fullPageThere: boolean): 'suite-2d' | 'suite-full'` in
+    `packages/tools/src/features/editor/page-for.ts`. `'suite-full'` is the page with every editor. C2 passes
+    `fullPageThere` as `deps.editorsPage(root, 'suite-full') !== undefined`; inside the repository it stays the
+    repository's own build (`deps.inRepository`).
+  - The 2D suite (`packages/editor/dist/suite`) stays as it is and stays in `@automata/tools`, as Part C decided.
+  - The sample game is `extensions/editors/src/app/suite/sample/`, kept in the browser's private storage.
+  - **The hosted editor:** Task 7 here makes the site serve the page with every editor. C3's step 3 ("make the words
+    agree with what is served") then has nothing to change; one of the two is dropped, and this plan proposes C3's.
+- **Typed words are not in the v2 merge.** The fix is #544's phase 1, in the sync chain only (`refs/pull/564/head`), so
+  it is its own first task (Task 1), and Task 8's later merge of that chain meets it as the same change.
 - **The paid app** (`docs/refactor/2026-11-08-apps-plan.md`). Its task 1.1 (`SuiteHost`: Play and Publish belong to the
   host) edits `SuiteHeader.svelte` and `boot.ts`; 2.4 (Home and a header that fits a phone) builds on #567's two-row
   phone header; 6.2 (the Review row) adds a row to `kit/nav/Sidebar.svelte`: all three wait for **Task 4 merged**. Its
@@ -566,8 +585,8 @@ accounts.** The whole plan: 1 of 12 rows done (the plan itself), 8%.
 
 ## For the coordinator
 
-- **Restore or keep reachable `refs/pull/562`, `567`, `548` and `564`.** The plan uses the pull refs, which GitHub
-  keeps; no branch is needed.
+- **The tips are restored as branches** (2026-11-12, the coordinator); the plan uses the pull refs, which point at
+  the same commits.
 - **The paid-app re-audit's B1 and "do not revive #544" were sized on a shallow clone.** Its plan can go back to v2's
   file names after Task 4, and its sync phase can reuse Task 8's merge.
 - **The rename's order:** merge `main` first, run the codemod after (the survey's measurement on #531).
