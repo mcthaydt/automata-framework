@@ -9,6 +9,7 @@
   "scripts": {
     "smoke": "node src/run.ts",
     "test": "vitest run",
+    "test:desktop": "vitest run --config vitest.install.config.ts",
     "test:e2e": "playwright test",
     "test:unit": "vitest run",
     "typecheck": "tsc -p ."
