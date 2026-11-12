@@ -1,9 +1,10 @@
 // The editor list as a page holds it: read when the page opens, and read again when an editor adds its rows to it. The
 // page's ports class every path by this, so the file an editor starts right after being listed is classed by the new
 // list and not by the one the page opened with.
-import { loadEditorList } from '../../../editor-list/editor-list'
-import { workspaceFile } from '../../../editor-list/workspace-policy'
-import type { UnlistedFile, WorkspaceFile } from '../suite-ports'
+import { listGrowsBy } from '../../../shared/editor-list/editor-rows'
+import type { ListPolicy } from '../../../shared/kit/ports/memory/memory-workspace'
+import type { UnlistedFile, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
+import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
 
 export interface LiveList {
   classify(path: string): WorkspaceFile | UnlistedFile
@@ -23,3 +24,10 @@ export function createLiveList(text: string | undefined): LiveList {
     },
   }
 }
+
+/** The list's rules for the memory workspace: an editor may add its own rows, and the live list hears each write. */
+export const listPolicyOf = (list: LiveList): ListPolicy => ({
+  path: EDITOR_LIST_PATH,
+  grows: listGrowsBy,
+  changed: list.replace,
+})

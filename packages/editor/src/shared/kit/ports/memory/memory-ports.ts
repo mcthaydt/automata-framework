@@ -5,7 +5,7 @@ import type { ProjectStore } from '../../storage/project-store'
 import type { SuitePorts, UnlistedFile, WorkspaceFile } from '../suite-ports'
 import { createMemoryChecks, type MemoryCheck } from './memory-checks'
 import { createMemoryGates, type GateRecords } from './memory-gates'
-import { createMemoryWorkspace } from './memory-workspace'
+import { createMemoryWorkspace, type ListPolicy } from './memory-workspace'
 
 export interface MemoryPortsOptions {
   readonly files?: Readonly<Record<string, string>> | undefined
@@ -14,7 +14,7 @@ export interface MemoryPortsOptions {
   readonly store?: ProjectStore | undefined
   readonly checks?: readonly MemoryCheck[] | undefined
   readonly gates?: GateRecords | 'unreadable' | undefined
-  readonly listChanged?: ((text: string) => void) | undefined
+  readonly list?: ListPolicy | undefined
 }
 
 export interface MemoryPorts {
@@ -27,7 +27,7 @@ export async function createMemoryPorts(options: MemoryPortsOptions): Promise<Me
     classify: options.classify,
     generated: options.generated,
     store: options.store,
-    listChanged: options.listChanged,
+    list: options.list,
   })
   return {
     ports: {

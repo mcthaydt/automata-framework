@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
 import sampleList from '#src/features/suite/shell/platformer.editors.toml?raw'
 import { createSuiteSession } from '#src/features/suite/shell/suite-session.ts'
+import { listGrowsBy } from '#src/shared/editor-list/editor-rows.ts'
 import type { MemoryCheck } from '#src/shared/kit/ports/memory/memory-checks.ts'
 import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 
@@ -101,7 +102,7 @@ describe('the session behind the suite’s editors', () => {
     const memory = await createMemoryPorts({
       files: FILES,
       classify: (path) => workspaceFile(loadedList(), path),
-      listChanged: () => undefined,
+      list: { path: EDITOR_LIST_PATH, grows: listGrowsBy, changed: () => undefined },
     })
     const session = createSuiteSession(memory.ports)
     const mine = session.portsFor('feel')

@@ -2,12 +2,12 @@
 // `main.ts` serves a sample game's list through it until `automata editor` serves a real checkout.
 
 import { listGrowsBy } from '../../../shared/editor-list/editor-rows.ts'
-import { createLiveList } from '../../../shared/kit/ports/memory/live-list.ts'
 import { createMemoryPorts } from '../../../shared/kit/ports/memory/memory-ports.ts'
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { createMemoryStore } from '../../../shared/kit/storage/memory-store.ts'
 import type { ProjectStore } from '../../../shared/kit/storage/project-store.ts'
 import { EDITOR_LIST_PATH } from '../core'
+import { createLiveList, listPolicyOf } from './live-list.ts'
 import sampleList from './platformer.editors.toml?raw'
 
 /**
@@ -31,7 +31,7 @@ export async function samplePorts(
   const { ports } = await createMemoryPorts({
     store,
     classify: list.classify,
-    listChanged: list.replace,
+    list: listPolicyOf(list),
   })
   return ports
 }

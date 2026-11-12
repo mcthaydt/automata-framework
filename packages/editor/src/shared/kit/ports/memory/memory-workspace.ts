@@ -4,12 +4,24 @@
 // path no row matches is refused, a read-only file is refused with its reason, a path outside the root reads as
 // nothing, and `remove` takes only a file this workspace created.
 
-import { listGrowsBy } from '../../../editor-list/editor-rows'
-import { EDITOR_LIST_PATH } from '../../../editor-list/editors.schema'
 import { createMemoryStore } from '../../storage/memory-store'
 import { type ProjectStore, statPath, type WriteResult } from '../../storage/project-store'
 import { assertStorePath } from '../../storage/store-path'
 import type { SuiteWorkspace, UnlistedFile, WorkspaceFile } from '../suite-ports'
+
+/**
+ * How the editor list may change, said by the suite that owns the list (this folder knows no list): an editor may add its
+ * own rows to it (`grows`), and its owner hears what it now reads (`changed`), so it can class the next write by the new
+ * list and not by the one the page opened with.
+ */
+export interface ListPolicy {
+  /** The list's path in the workspace. */
+  readonly path: string
+  /** Whether `after` only adds rows to `before`. */
+  readonly grows: (before: string, after: string) => boolean
+  /** The list now reads `text`. */
+  readonly changed: (text: string) => void
+}
 
 export interface MemoryWorkspaceOptions {
   /** The files present at the start, by path. */
@@ -20,11 +32,8 @@ export interface MemoryWorkspaceOptions {
   readonly generated?: ((path: string) => boolean) | undefined
   /** The store underneath (default: a fresh memory store). */
   readonly store?: ProjectStore | undefined
-  /**
-   * Lets the editor list grow by an editor's own rows (`listGrowsBy`), and says what it now reads, so the owner of
-   * `classify` can class the next write by the new list. Without it the list is never written, as a contract run has it.
-   */
-  readonly listChanged?: ((text: string) => void) | undefined
+  /** The editor list's own rules, which the suite owns: without it the list is never written, as a contract run has it. */
+  readonly list?: ListPolicy | undefined
 }
 
 const decoder = new TextDecoder()
@@ -95,11 +104,12 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
     },
 
     async write(path, text, expected) {
-      if (path === EDITOR_LIST_PATH && options.listChanged !== undefined) {
+      const { list } = options
+      if (list !== undefined && path === list.path) {
         const before = await readText(path)
-        if (before === undefined || !listGrowsBy(before, text)) return refused(LIST_GROWS_ONLY)
+        if (before === undefined || !list.grows(before, text)) return refused(LIST_GROWS_ONLY)
         const written = await store.write(path, text, expected)
-        if (written.ok) options.listChanged(text)
+        if (written.ok) list.changed(text)
         return written
       }
       const refusal = writeRefusal(path)

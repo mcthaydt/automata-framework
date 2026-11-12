@@ -4,7 +4,6 @@
 // browser, and the top bar says so. The served suite has no change sets, so its edits write the checkout directly, and
 // its Publish builds the game into a zip on the computer that serves it.
 
-import { createLiveList } from '../../../shared/kit/ports/memory/live-list.ts'
 import { createMemoryPorts } from '../../../shared/kit/ports/memory/memory-ports.ts'
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { createMemoryStore } from '../../../shared/kit/storage/memory-store.ts'
@@ -15,6 +14,7 @@ import {
   type ServedWorkspaceEnv,
 } from '../../../shared/kit/storage/workspace.ts'
 import { EDITOR_LIST_PATH } from '../core'
+import { createLiveList, listPolicyOf } from './live-list.ts'
 import { SAMPLE_GAME, samplePorts } from './sample-ports.ts'
 
 export interface OpenedSuitePorts {
@@ -69,7 +69,7 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
     classify: list.classify,
     // The compiler's outputs (`tuning-meta.json`, `events.json`) are read from the checkout, never written.
     generated: (path) => path.startsWith(GENERATED_FOLDER),
-    listChanged: list.replace,
+    list: listPolicyOf(list),
   })
   return { ports, sample: false, gameUrl, playOff, game, publish }
 }
