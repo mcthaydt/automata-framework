@@ -3,8 +3,8 @@
 // A game without `content/palette.toml` gets AF's default, DUEL.
 
 import { z } from 'zod'
-import type { Problem } from '../diagnostics/diagnostic'
-import { DUEL_RAMPS } from './duel'
+import type { Problem } from '../diagnostics/diagnostic.ts'
+import { DUEL_RAMPS } from './duel.ts'
 
 /** The game's palette: a name and its colors. */
 export interface Palette {

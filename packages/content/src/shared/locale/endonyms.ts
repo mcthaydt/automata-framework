@@ -2,7 +2,7 @@
 // 2026-10-18) and as the font build cuts it into every
 // language's subset, so the picker can draw every name whichever language the game is showing.
 // One function for both: it lives here, in content's browser-safe entry, and ui re-exports it.
-import { DEFAULT_LOCALES, type DefaultLocale, ENDONYMS } from './default-locales'
+import { DEFAULT_LOCALES, type DefaultLocale, ENDONYMS } from './default-locales.ts'
 
 const isDefault = (tag: string): tag is DefaultLocale => (DEFAULT_LOCALES as readonly string[]).includes(tag)
 

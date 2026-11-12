@@ -1,10 +1,16 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
-import { expect, type Locator, type Page, test } from '@playwright/test'
+import { passFirstRun } from '@automata/tools/e2e'
+import { expect, type Frame, type Locator, type Page, test } from '@playwright/test'
 import { devUrl, e2eRoomFile, GAME_ID, url } from './origin.ts'
 
-/** Gets past the splash and the menu into the room: the demo plays the base's whole game, screens included. */
-async function playRoom(page: Page, game: Locator): Promise<void> {
+/**
+ * Gets past the first run, the splash and the menu into the room: the demo plays the base's whole game, screens
+ * included, and Emberwick warns about its flashing and shaking on a device that has not seen it. `scope` is the page
+ * or the frame the game is in.
+ */
+async function playRoom(page: Page, scope: Page | Frame, game: Locator): Promise<void> {
+  await passFirstRun(scope)
   await expect(game).toHaveAttribute('data-screen', /splash|menu/)
   if ((await game.getAttribute('data-screen')) === 'splash') await page.keyboard.press('KeyX')
   await expect(game).toHaveAttribute('data-screen', 'menu')
@@ -19,7 +25,7 @@ test('the build boots under the fake host, ready and quiet, with its content emb
   const errors = await collectErrors(page)
   const frame = await openHosted(page, url, GAME_ID)
   await expect(frame.locator('#game')).toHaveAttribute('data-content-hash', /^[0-9a-f]{16}$/)
-  await playRoom(page, frame.locator('#game'))
+  await playRoom(page, frame, frame.locator('#game'))
   await expect(frame.locator('#game')).toHaveAttribute('data-tick', /\d+/)
   expect(errors).toEqual([])
 })
@@ -38,7 +44,7 @@ test.describe('the dev server', () => {
     await page.goto(devUrl)
     await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
     const game = page.locator('#game')
-    await playRoom(page, game)
+    await playRoom(page, page, game)
     const first = await game.getAttribute('data-content-hash')
 
     // A good save: Wick starts one tile further right. The page is not reloaded, so the marker survives.

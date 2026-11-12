@@ -1,6 +1,7 @@
 <!--
   @component
-  The first run's flashing-lights warning: what the game does, the switches that turn it down (the game's own effect
+  The first run's flashing-lights warning: what the game has (the effects it declares, said in the player's language,
+  or the general sentence when it declares none), the switches that turn it down (the game's own effect
   settings, each applied the moment it is flipped), what the device says about reduced motion, and a primary Continue.
   It is a Modal, so the page behind is inert, Tab wraps, and Close, Escape and the pad's Back all go on: the warning is
   never a gate the player cannot leave. Continue is focused and 48 px high; the body scrolls inside its own region
@@ -11,6 +12,7 @@ import Toggle from '../../shared/ui/controls/Toggle.svelte'
 import Modal from '../../shared/ui/dialog/Modal.svelte'
 import type { LiveScreensCopy, LocaleReader } from '../screens/screens-copy.svelte'
 import type { WarningSwitch } from './photosensitivity'
+import { sayEffects, type WarningEffect } from './warning-effects'
 
 interface Props {
   /** The screens' words in the player's language; they follow a change in place. */
@@ -19,13 +21,15 @@ interface Props {
   locale: LocaleReader
   /** The game's own effect settings the warning offers. */
   switches: readonly WarningSwitch[]
+  /** The hazards the game declares; none, and the warning says what a game may have. */
+  effects: readonly WarningEffect[]
   /** `prefers-reduced-motion`, as the browser reports it. */
   reducedMotion: boolean
   /** Continue, Close and Escape all end the warning. */
   ondone: () => void
 }
 
-const { copy, locale, switches, reducedMotion, ondone }: Props = $props()
+const { copy, locale, switches, effects, reducedMotion, ondone }: Props = $props()
 
 const words = $derived(copy.current.firstRun.warning)
 
@@ -47,12 +51,26 @@ function flip(index: number, on: boolean): void {
   held[index] = each.get()
 }
 
+// The sentence: the game's declared hazards, each in the player's words and joined as their language joins a list, or
+// the general sentence for a game that declares none. The effects are fixed for the mount; the words and the language
+// follow a change in place.
+const body = $derived(
+  effects.length === 0
+    ? words.body
+    : words.declared(
+        sayEffects(
+          effects.map((each) => words.effects[each]),
+          language,
+        ),
+      ),
+)
+
 const labelOf = (each: WarningSwitch): string =>
   typeof each.label === 'function' ? each.label(language) : each.label
 </script>
 
 <Modal title={words.title} closeLabel={words.close} onclose={ondone} testId="photosensitivity-warning">
-  <p class="af-warning__body">{words.body}</p>
+  <p class="af-warning__body">{body}</p>
   {#if switches.length > 0}
     <section class="af-warning__switches" data-warning-switches aria-labelledby="af-warning-choose">
       <h3 id="af-warning-choose" class="af-warning__heading">{words.choose}</h3>

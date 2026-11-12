@@ -7,7 +7,7 @@
 // a custom check) becomes `unknown` with a comment naming the field, rather than a guessed type.
 
 import { z } from 'zod'
-import { type ContentSchemaDef, contentRefKinds, localizedTexts } from '../schema/content-schema'
+import { type ContentSchemaDef, contentRefKinds, localizedTexts } from '../schema/content-schema.ts'
 
 export interface TypesInput {
   readonly schemas: readonly ContentSchemaDef[]

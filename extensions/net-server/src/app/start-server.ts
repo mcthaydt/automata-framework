@@ -267,7 +267,7 @@ export function createServerRuntime(
       if (version === undefined) return 'starting'
       return rooms.size >= config.limits.maxRooms ? 'full' : 'ready'
     }
-    installProbes(http, { readiness, securityTxt: config.securityTxt, version: () => version })
+    installProbes(http, { readiness, securityTxt: config.securityTxt, version: () => version, origins })
 
     // The game's version (its schema and content hashes) is read from one throwaway sim of it, which is also the proof
     // that its content loads. The read runs beside the server rather than ahead of it: `/health` answers meanwhile,

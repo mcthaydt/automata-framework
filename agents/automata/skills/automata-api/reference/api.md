@@ -1163,6 +1163,11 @@ interface CompiledContent {
    * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
    */
   readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
+  /**
+   * The text every kind marks `verbatim()` (a credits name): drawn as written in every language, so it is in no
+   * catalog. The font build cuts every face to it and names it, by place, when a language's faces lack a character.
+   */
+  readonly verbatim: readonly VerbatimText[];
 }
 ```
 
@@ -1777,6 +1782,28 @@ debug sliders.
 
 ```ts
 type TuningMeta = Readonly<Record<string, TuningEntryMeta>>;
+```
+
+#### `verbatim` (function)
+
+Text drawn as written, in every language: a person's name, a studio, a trademark. It gets no message key and is never
+translated (`automata words` leaves it alone), and the font build cuts every language's faces to its characters and
+refuses a build in which a language's faces lack one, so it is never drawn in a device's font. Use `localized()` for
+words a translator should render in each language, and this for text that must stay the same in all of them.
+
+```ts
+function verbatim(): z.ZodType<string, string>;
+```
+
+#### `VerbatimText` (interface)
+
+A text marked `verbatim()`, with where it is written, 1-based, and its path in the file (`sections.0.names.0.name`).
+
+```ts
+interface VerbatimText extends MessageLocation {
+  readonly text: string;
+  readonly keyPath: string;
+}
 ```
 
 #### `verifyContent` (const)
@@ -3326,6 +3353,17 @@ Text a player reads, written in the source language. It gets a message key for t
 function localized(): z.ZodType<string, string>;
 ```
 
+#### `verbatim` (function)
+
+Text drawn as written, in every language: a person's name, a studio, a trademark. It gets no message key and is never
+translated (`automata words` leaves it alone), and the font build cuts every language's faces to its characters and
+refuses a build in which a language's faces lack one, so it is never drawn in a device's font. Use `localized()` for
+words a translator should render in each language, and this for text that must stay the same in all of them.
+
+```ts
+function verbatim(): z.ZodType<string, string>;
+```
+
 ### `import { … } from '@automata/content/vite'`
 
 #### `automataContent` (function)
@@ -4443,6 +4481,18 @@ interface BarAction {
 }
 ```
 
+#### `bindWords` (function)
+
+Puts the words for the language in force into every `[data-word]` (as its text) and `[data-word-label]` (as its
+`aria-label`) element under `root`, now and each time the language changes. `wordsFor` gives a locale's words by name;
+a name whose word is not text (a function that fills a number in) or is not there leaves its element alone. `after`
+is told each time, with the words and the locale, for what the panel works out itself. Returns what stops it: add it
+to the screen's disposables.
+
+```ts
+function bindWords<W extends object>(root: HTMLElement, locale: Pick<Locale, 'subscribe'>, wordsFor: (locale: string) => W, after?: (words: W, locale: string) => void): () => void;
+```
+
 #### `BootFailurePanel` (const)
 
 The state a boot failure draws: an ErrorPanel with the
@@ -4775,6 +4825,14 @@ An unknown key throws, naming it: the types already forbid it, so it means the c
 
 ```ts
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
+```
+
+#### `DEFAULT_LOCALES` (const)
+
+The default languages in the order the language picker lists them. The first is the source of every catalog.
+
+```ts
+const DEFAULT_LOCALES = ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'] as const;
 ```
 
 #### `defaultContent` (function)
@@ -5243,6 +5301,8 @@ the corner row, so it rises over Back only when its actions cannot fit any other
 panel has no actions and is the screen's last word, so it never rises: Back is its way out. The
 actions sit outside the scrolling part and never shrink (framework audit of #7).
 
+It asks for the interface sound `error` when it appears (`requestUiSound`).
+
 ```ts
 const ErrorPanel: import("svelte").Component<Props, {}, "">;
 type ErrorPanel = ReturnType<typeof ErrorPanel>;
@@ -5298,6 +5358,14 @@ interface Flow {
     /** Resolves once no transition is queued or running (at once when the flow is idle). */
     settled(): Promise<void>;
 }
+```
+
+#### `formatNumber` (const)
+
+A number in `locale`'s convention (Intl.NumberFormat with `options`).
+
+```ts
+const formatNumber: (locale: string, value: number, options?: Intl.NumberFormatOptions) => string;
 ```
 
 #### `FormFactor` (type)
@@ -5371,7 +5439,7 @@ type GameAudioStart = (services: GameAudioServices) => (() => void) | undefined;
 A game's words: the runtime's boot and failure copy, and the default screens' words.
 
 ```ts
-type GameCopy = NonNullable<GameDefinition['copy']> & {
+type GameCopy = RuntimeWords & {
     /** The default screens' words, over their English defaults: a part of `ScreensCopy`, or a function of the locale. */
     readonly screens?: ScreensCopyInput | undefined;
 };
@@ -5437,12 +5505,11 @@ interface GameDefinition<S = never> {
     readonly audio?: GameAudioStart | undefined;
     /** The board and score each sim event submits, by the event's type. Needs the `leaderboards` grant. */
     readonly scores?: EventScores | undefined;
-    readonly copy?: Partial<BootFailureCopy> & {
-        readonly loading?: string;
-        readonly slow?: string;
-        /** The panel when the renderer's graphics context is lost for good. */
-        readonly contextLost?: string;
-    };
+    /**
+     * The runtime's own words over the bundled ones, in the player's language: a record that wins in every language, or a
+     * function of the locale (run again when the language changes) so each language has its own.
+     */
+    readonly copy?: RuntimeWords | ((locale: string) => RuntimeWords);
     readonly seams?: RuntimeSeams;
 }
 ```
@@ -5575,8 +5642,10 @@ interface GameSpec<S = never, D = unknown> {
     readonly firstRunLanguage?: boolean;
     /**
      * The game flashes: the first run on a device warns before anything plays, once, after the language. `true` shows the
-     * warning with the device's reduced-motion line; an object adds the game's own effect settings as switches (a game
-     * with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+     * warning with the device's reduced-motion line, saying what a game may have ("flashing lights or a shaking screen").
+     * An object says what this game has: `effects` lists its hazards (`'flashing'`, `'strobing'`, `'shaking'`,
+     * `'patterns'`) and the warning names exactly those, in the player's language; `switches` adds the game's own effect
+     * settings (a game with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
      */
     readonly photosensitivity?: PhotosensitivityOption;
     /**
@@ -5607,9 +5676,11 @@ interface GameSpec<S = never, D = unknown> {
     /**
      * The game's words: the runtime's boot and failure copy, and `screens`, the default screens' words over their
      * English defaults. `screens` may be a function of the locale, run again on each language change, so a
-     * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`.
+     * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`. The whole of `copy` may
+     * instead be a function of the locale, for a game that rewords the runtime's own words (`loading`, `contextLost`,
+     * the failure panels') in each of its languages.
      */
-    readonly copy?: GameCopy;
+    readonly copy?: GameCopy | ((locale: string) => GameCopy);
     /** The game's languages: Settings' Language group offers them. Absent, the content's one language. */
     readonly locale?: GameDefinition['locale'];
     /** Tests only. */
@@ -5743,6 +5814,11 @@ interface Hosting {
      * a new tab, the desktop opens the system browser. `opened: false` means the player or the host said no, which is an
      * answer and not an error. Only `https:` links are opened; any other address, or one with a name and password in it, is refused
      * `INVALID_PAYLOAD`. The game is never navigated away.
+     * A web page (and itch.io) cuts the new tab's `opener` at once, so the page it shows cannot reach back into the game,
+     * and a popup blocker's refusal still answers `opened: false` (`noopener` in the features string would hide it).
+     * The browser still sends the game's address as the referrer and the tab starts in the game's browsing context
+     * group; the shell's referrer policy decides how much of the address that is. On Ruken the game must ask for `links`
+     * in `wants` (the credits panel hides its link buttons without it).
      * Needs the `links` grant: without it the call is refused `UNSUPPORTED`, and nothing falls back to another way of
      * opening.
      */
@@ -6385,6 +6461,15 @@ interface Locale {
 }
 ```
 
+#### `matchLocale` (function)
+
+The game's locale for a requested tag: the same tag (ignoring case), else the first locale with the same
+primary language subtag. `fr-CA` finds `fr`; `pt` finds `pt-BR`. Undefined when the game lacks the language.
+
+```ts
+function matchLocale(requested: string, locales: readonly string[]): string | undefined;
+```
+
 #### `MAX_TURN_UNITS_PER_STEP` (const)
 
 The most one step's `camera-turn` may carry either way: 45°.
@@ -6422,6 +6507,9 @@ calls `onclose`. A tap on the dimmed page calls `onbackdrop` only when one is gi
 such a tap does nothing, so a stray tap never loses the player's place.
 
 `anchor="bottom"` puts it on the bottom edge at every form factor; Sheet is that.
+
+It asks for the interface sounds `open` when it shows and `close` when it goes (`requestUiSound`); a game that maps
+neither hears nothing.
 
 ```ts
 const Modal: import("svelte").Component<$$ComponentProps, {}, "">;
@@ -6543,10 +6631,15 @@ const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
 
 #### `PhotosensitivityOption` (type)
 
-`true`: the warning, with the device's reduced-motion line. An object adds the game's own switches, shown above it.
+`true`: the warning, with the device's reduced-motion line. An object adds what the game has, as data: `effects`
+names each hazard (`'flashing'`, `'strobing'`, `'shaking'`, `'patterns'`) and the warning says them in the player's
+language ("This game has flashing lights and a shaking screen."); a game that declares none gets the general sentence
+("This game may have flashing lights or a shaking screen."). `switches` are the game's own effect settings, shown
+above the device's reduced-motion line.
 
 ```ts
 type PhotosensitivityOption = true | {
+    readonly effects?: readonly WarningEffect[];
     readonly switches?: readonly WarningSwitch[];
 };
 ```
@@ -6946,7 +7039,8 @@ interface RenderTarget {
 
 Asks for a sound from inside a component that has no press behind it (an error arriving, a panel opening). The
 request bubbles to the root `installUiSounds` listens on. `open` and `close` also quiet the focus ticks for 400 ms,
-since the panel moving focus is part of the opening.
+since the panel moving focus is part of the opening. It lives in `shared/` so the shared panels can ask; the
+listener that plays the sounds is the audio feature's.
 
 ```ts
 function requestUiSound(from: Element, name: string): void;
@@ -7191,6 +7285,19 @@ interface RuntimeServices {
     readonly leaderboards: Leaderboards;
     readonly haptics: Haptics;
 }
+```
+
+#### `RuntimeWords` (type)
+
+The runtime's words a game may reword: its failure panels', the loader's and the lost picture's.
+
+```ts
+type RuntimeWords = Partial<BootFailureCopy> & {
+    readonly loading?: string;
+    readonly slow?: string;
+    /** The panel when the renderer's graphics context is lost for good. */
+    readonly contextLost?: string;
+};
 ```
 
 #### `Save` (interface)
@@ -7513,6 +7620,13 @@ fits and scrolls the rest inside its own box, rather than painting over the cont
 `1fr` grid row or `flex: 1 1 auto`, never `minmax(0, 1fr)`, which ignores an item's minimum.
 Rows mark themselves `data-row`. It is a declared scroll region (`data-scroll-region`): the layout
 contracts allow controls to be off screen only inside one.
+
+It is two siblings in one frame: the scroll box, and below it the "+N more" label when rows are out of view.
+The label is never inside the box, where it would sit over the last row in view and cover its words; the frame
+reserves the label's height on top of the rows, so showing it takes room from the box, not from a row's label.
+The frame is what the parent lays out (the `1fr` row, the flex item). Where even the reserve and the label together
+do not fit the room the parent gives (a compact screen at TV scale), the label gives way, not a row: the box keeps
+its reserved rows whole, and the soft edge and `data-more` still say that there are more.
 
 ```ts
 const ScrollList: import("svelte").Component<Props, {}, "">;
@@ -8067,6 +8181,24 @@ interface ViewportWindow {
 }
 ```
 
+#### `WARNING_EFFECTS` (const)
+
+The effects a game can declare: `flashing` (lights that flash), `strobing` (lights that flash fast and repeatedly),
+`shaking` (the screen shakes) and `patterns` (stripes, checks or other high-contrast patterns). Each has a word in
+every language the framework ships (`first_run_warning_effects_<name>`).
+
+```ts
+const WARNING_EFFECTS: readonly ["flashing", "strobing", "shaking", "patterns"];
+```
+
+#### `WarningEffect` (type)
+
+One of `WARNING_EFFECTS`.
+
+```ts
+type WarningEffect = (typeof WARNING_EFFECTS)[number];
+```
+
 #### `WarningSwitch` (interface)
 
 A switch the warning offers: one of the game's own effect settings. A switch is on or off, so a setting with more
@@ -8225,7 +8357,7 @@ never under a reserved area or a touch button and never over the corner row; the
 `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
 ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
 region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no
-action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
+action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), no control's words run past its edge, and no "+N more" badge covers words in a scroll region; and each of `essentials` is reachable without scrolling.
 
 ```ts
 function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[];
@@ -9170,12 +9302,12 @@ const buildFactsSchema: z.ZodType<BuildFacts>;
 #### `checkServerVersion` (function)
 
 Asks the server for its build facts (`fetchFacts` is the game's own fetch of `<server>/version`) and compares them
-with `own`. `stale` only when the server answered readable facts that differ. A throw, a rejection, a 503 or a shape
-it does not know is `current`: the join check refuses a stale client either way, and a flaky probe must never lock a
-player out.
+with `own`. `current` and `stale` only when the server answered readable facts. A throw, a rejection, a 503 or a
+shape it does not know is `unchecked`: the join check refuses a stale client either way, so a caller goes on, and a
+flaky probe never locks a player out, but it is told the check did not run.
 
 ```ts
-function checkServerVersion(fetchFacts: () => Promise<unknown>, own: BuildFacts): Promise<"current" | "stale">;
+function checkServerVersion(fetchFacts: () => Promise<unknown>, own: BuildFacts): Promise<VersionVerdict>;
 ```
 
 #### `ClientMessage` (type)
@@ -10456,6 +10588,14 @@ A whole number from 0.
 const uintSchema: z.ZodType<number>;
 ```
 
+#### `VersionVerdict` (type)
+
+What `checkServerVersion` found: the same build, a different one, or no answer it could read.
+
+```ts
+type VersionVerdict = "current" | "stale" | "unchecked";
+```
+
 #### `Watchable` (interface)
 
 What a reader gets: the value now, and a way to hear it change.
@@ -11616,6 +11756,8 @@ interface ProbeState {
   readonly securityTxt?: SecurityTxt | undefined;
   /** The game's version, undefined until its content has loaded; read on every `/version` request. */
   readonly version?: (() => GameVersion | undefined) | undefined;
+  /** Which pages may read `/version`; without it the answer carries no CORS header (a same-origin page only). */
+  readonly origins?: ProbeOrigins | undefined;
 }
 ```
 
@@ -12797,7 +12939,11 @@ How a game sets up its stale-build check.
 interface StaleBuildOptions {
     /** The game's own build facts: what it joins with (`PROTOCOL_VERSION`, and the schema and content hashes). */
     readonly facts: BuildFacts;
-    /** The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know, passes. */
+    /**
+     * The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know,
+     * lets the title through and is logged to the console as a check that could not run. (A server on another origin
+     * must answer with CORS headers, or the browser refuses the answer to the page; `@automata/net-server` does.)
+     */
     readonly fetchFacts: () => Promise<unknown>;
     /** The longest the title waits for the answer, in milliseconds, on the runtime's clock. Default 1500. */
     readonly waitMs?: number;
@@ -12810,10 +12956,11 @@ interface StaleBuildOptions {
 
 #### `staleBuildStep` (function)
 
-An opening step that asks the server for its build facts before an online game's title. Current, unreadable or slower
-than `waitMs` (a later answer is dropped): it resolves and the title follows. Stale: it shows the error with Reload and
-stays, so the title of an out-of-date tab is never reached. The join check stays the authority; this only says so
-before the player has tried to join.
+An opening step that asks the server for its build facts before an online game's title. Current, or slower than
+`waitMs` (a later answer is dropped): it resolves and the title follows. Unreadable: the same, with a console line
+saying the check could not run, so a broken probe is seen by the maker rather than read as a pass. Stale: it shows the
+error with Reload and stays, so the title of an out-of-date tab is never reached. The join check stays the authority;
+this only says so before the player has tried to join.
 
 ```ts
 function staleBuildStep(options: StaleBuildOptions): OpeningStep;
@@ -12834,8 +12981,8 @@ interface StaleCopy {
 
 #### `staleWords` (function)
 
-The words for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds
-`pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise. The framework's own locale negotiation follows the same rule.
+The words for a locale, by the framework's own matching rule (`pt` finds `pt-BR`, `zh-CN` finds `zh-Hans`); English
+where there is none.
 
 ```ts
 function staleWords(locale: string): StaleCopy;
@@ -16333,7 +16480,8 @@ interface Credits {
 #### `creditsContent` (const)
 
 The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
-`role` are translatable; a `name` and a `url` are not.
+`role` are translatable; a `name` and a `url` are not. A `name` is `verbatim()`: drawn as written in every language, so
+the font build keeps its characters in every face and refuses a build in which a language's faces lack one.
 
 ```ts
 const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
@@ -16381,10 +16529,11 @@ const creditsSchema: z.ZodType<Credits>;
 #### `creditsSchemaWith` (const)
 
 The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
-text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+text in the content kind. A name is checked by `name` (plain text by default; the content kind marks it `verbatim()`
+so the font build holds it to every language's faces). Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
 
 ```ts
-const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+const creditsSchemaWith: (text: z.ZodType<string, string>, name?: z.ZodType<string, string>) => z.ZodType<Credits>;
 ```
 
 #### `CreditsSection` (interface)
@@ -16631,7 +16780,8 @@ interface Credits {
 #### `creditsContent` (const)
 
 The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
-`role` are translatable; a `name` and a `url` are not.
+`role` are translatable; a `name` and a `url` are not. A `name` is `verbatim()`: drawn as written in every language, so
+the font build keeps its characters in every face and refuses a build in which a language's faces lack one.
 
 ```ts
 const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
@@ -16679,10 +16829,11 @@ const creditsSchema: z.ZodType<Credits>;
 #### `creditsSchemaWith` (const)
 
 The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
-text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+text in the content kind. A name is checked by `name` (plain text by default; the content kind marks it `verbatim()`
+so the font build holds it to every language's faces). Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
 
 ```ts
-const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+const creditsSchemaWith: (text: z.ZodType<string, string>, name?: z.ZodType<string, string>) => z.ZodType<Credits>;
 ```
 
 #### `CreditsSection` (interface)

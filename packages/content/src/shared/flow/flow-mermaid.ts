@@ -1,7 +1,7 @@
 // The flow graph as a Mermaid state diagram, written beside the artifact so a reviewer can see the screen
 // flow a change produces (GitHub renders `.mmd` and fenced `mermaid` blocks).
 
-import type { FlowGraph } from './check-flow'
+import type { FlowGraph } from './check-flow.ts'
 
 export function flowMermaid(graph: FlowGraph): string {
   const lines = ['stateDiagram-v2', `  [*] --> ${graph.entry}`]

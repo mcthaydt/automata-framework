@@ -10,17 +10,17 @@
 
 import { join } from 'node:path'
 import { Effect } from 'effect'
-import type { Diagnostic } from '../diagnostics/diagnostic'
-import { pathKind, readTextIfPresent, removeFile, writeFileAtomically } from '../files/content-files'
-import { compileMessages } from '../locale/compile-messages'
+import type { Diagnostic } from '../diagnostics/diagnostic.ts'
+import { pathKind, readTextIfPresent, removeFile, writeFileAtomically } from '../files/content-files.ts'
+import { compileMessages } from '../locale/compile-messages.ts'
 import {
   type CompiledContent,
   type ContentOptions,
   compileContent,
   OUTPUT_LIST,
   outDirOf,
-} from './compile-content'
-import { ContentCompileFailed, ContentWriteFailed, type InvalidContentConfig } from './errors'
+} from './compile-content.ts'
+import { ContentCompileFailed, ContentWriteFailed, type InvalidContentConfig } from './errors.ts'
 
 /**
  * The outputs the last build listed in `outputs.txt` that this compile no longer produces. Only listed

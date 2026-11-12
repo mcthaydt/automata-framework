@@ -1,6 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "splash_label": "Pantalla de inicio",
+  "splash_label": "Emberwick, iniciando",
   "splash_hint": "Presiona cualquier tecla o toca la pantalla",
   "menu_title": "Emberwick",
   "menu_hint": "Lleva tu linterna hasta la brasa.",

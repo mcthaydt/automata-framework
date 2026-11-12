@@ -1,6 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "splash_label": "시작 화면",
+  "splash_label": "Emberwick, 시작 중",
   "splash_hint": "아무 키나 누르거나 화면을 누르세요",
   "menu_title": "Emberwick",
   "menu_hint": "랜턴을 들고 불씨까지 올라가 보세요.",

@@ -26,6 +26,11 @@ import type { GameVersion } from '../../shared/game-version'
  */
 export type Readiness = 'starting' | 'ready' | 'full' | 'draining'
 
+/** What `/version` needs of the origin policy: the CORS headers an answer to a page's origin carries. */
+export interface ProbeOrigins {
+  corsHeaders(origin: string | undefined): Record<string, string>
+}
+
 /**
  * What the server's own routes report: whether it is ready, and the contact for `security.txt` if
  * it has one.
@@ -35,6 +40,8 @@ export interface ProbeState {
   readonly securityTxt?: SecurityTxt | undefined
   /** The game's version, undefined until its content has loaded; read on every `/version` request. */
   readonly version?: (() => GameVersion | undefined) | undefined
+  /** Which pages may read `/version`; without it the answer carries no CORS header (a same-origin page only). */
+  readonly origins?: ProbeOrigins | undefined
 }
 
 /** The probes' answers are never cached and never sniffed. */
@@ -50,8 +57,13 @@ export function securityTxtBody(security: SecurityTxt): string {
   )
 }
 
-const json = (response: ServerResponse, status: number, body: unknown): void => {
-  response.writeHead(status, { 'content-type': 'application/json', ...PROBE_HEADERS })
+const json = (
+  response: ServerResponse,
+  status: number,
+  body: unknown,
+  extra: Readonly<Record<string, string>> = {},
+): void => {
+  response.writeHead(status, { 'content-type': 'application/json', ...PROBE_HEADERS, ...extra })
   response.end(JSON.stringify(body))
 }
 
@@ -69,8 +81,9 @@ export function answerProbe(request: IncomingMessage, response: ServerResponse, 
   }
   if (path === '/version') {
     const version = state.version?.()
-    if (version === undefined) json(response, 503, {})
-    else json(response, 200, version)
+    const cors = state.origins?.corsHeaders(request.headers.origin) ?? {}
+    if (version === undefined) json(response, 503, {}, cors)
+    else json(response, 200, version, cors)
     return true
   }
   if (path === '/.well-known/security.txt') {

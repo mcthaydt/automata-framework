@@ -1,8 +1,8 @@
 // A `.replay` file is raw deflate over the encoded bytes. The sim imports neither zlib nor
 // CompressionStream: callers pass an adapter (testing/sim has one for Node and one for browsers).
-import { decodeReplay, encodeReplay } from './codec'
-import { ReplayFormatError } from './errors'
-import type { Replay } from './replay'
+import { decodeReplay, encodeReplay } from './codec.ts'
+import { ReplayFormatError } from './errors.ts'
+import type { Replay } from './replay.ts'
 
 /**
  * The deflate and inflate a `.replay` file needs. The sim imports no compression library, so callers pass an

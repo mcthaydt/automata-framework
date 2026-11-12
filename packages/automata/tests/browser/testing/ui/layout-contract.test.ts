@@ -91,6 +91,31 @@ describe('checkLayout', () => {
     expect(await check(region(tall + margin))).toEqual([])
   })
 
+  // PRODUCT.L3a (audit S8): the "+N more" badge sat over the last visible row of a Settings list, on its label. The badge
+  // is a label for the rows that are out of view, so it may sit beside the scroll box but never on the words in it.
+  const more = (style: string): string =>
+    `<span data-testid="scroll-more" aria-hidden="true" style="${style};padding:2px 10px">+2 more</span>`
+  const words = '<div data-row style="height:48px">Rumble and vibration</div>'
+  const frameOf = (inside: string, after = ''): string =>
+    `<div style="position:fixed;left:0;top:0;width:200px">${region(inside)}${after}</div>`
+
+  test('fails a "+N more" badge drawn over words in a scroll region', async () => {
+    const over = frameOf(words, more('position:absolute;left:0;top:8px'))
+    expect(await check(over)).toEqual(['scroll-more covers the words "Rumble and vibration"'])
+  })
+
+  test('fails a badge inside the scroll box that sits over a row’s words, as it did on Settings', async () => {
+    const inside = frameOf(
+      words + more('position:sticky;display:block;width:max-content;bottom:4px;margin-top:-30px'),
+    )
+    expect(await check(inside)).toEqual(['scroll-more covers the words "Rumble and vibration"'])
+  })
+
+  test('passes a badge that sits below the scroll box, and one that is not drawn', async () => {
+    expect(await check(frameOf(words, more('display:block;width:max-content')))).toEqual([])
+    expect(await check(frameOf(words, more('display:none')))).toEqual([])
+  })
+
   // An editor's dock holds a strip of scenes wider than itself, which a player scrolls sideways (editor-kit's
   // EditorShell): a region that scrolls both ways on purpose says so, and a control past its side is reached by
   // scrolling it.

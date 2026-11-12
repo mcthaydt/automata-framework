@@ -1,4 +1,7 @@
+import { REQUEST_EVENT } from '../../shared/ui/sound/request-ui-sound.js'
 import type { Audio } from './audio.manager.js'
+
+export { requestUiSound } from '../../shared/ui/sound/request-ui-sound.js'
 
 // Interface sounds: one set of listeners on the root of the game's overlay makes every control sound without wiring.
 // A control says otherwise with `data-sfx`: `back` for leaving or cancelling, `none` where the consequence has its own
@@ -20,9 +23,6 @@ export type UiSoundEntry = string | { readonly alias: string; readonly gain?: nu
  */
 export type UiSounds = Readonly<Record<string, UiSoundEntry>> | ((name: string) => void)
 
-/** The event `requestUiSound` sends; it bubbles to the root. */
-const REQUEST_EVENT = 'automata-sfx'
-
 /** Two focus ticks are never closer than this, so a held arrow key ticks as a rattle, not a buzz. */
 const FOCUS_SPACING_MS = 90
 /** The focus a press brings is part of the press: it stays silent for this long. */
@@ -31,15 +31,6 @@ const PRESS_QUIET_MS = 400
 const SCROLL_QUIET_MS = 250
 /** The default level of a focus tick, under a press. */
 const FOCUS_GAIN = 0.5
-
-/**
- * Asks for a sound from inside a component that has no press behind it (an error arriving, a panel opening). The
- * request bubbles to the root `installUiSounds` listens on. `open` and `close` also quiet the focus ticks for 400 ms,
- * since the panel moving focus is part of the opening.
- */
-export function requestUiSound(from: Element, name: string): void {
-  from.dispatchEvent(new CustomEvent(REQUEST_EVENT, { bubbles: true, detail: name }))
-}
 
 /**
  * Listens on `root` (capture phase, passive) and plays the game's interface sounds through `audio` on the `ui` bus.

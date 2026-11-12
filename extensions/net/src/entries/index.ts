@@ -61,6 +61,7 @@ export {
   type BuildFacts,
   buildFactsSchema,
   checkServerVersion,
+  type VersionVerdict,
 } from '../features/client/version/check-server-version'
 export { type NetConfig, type NetConfigInput, netConfigSchema } from '../shared/net.schema'
 export { createWatchable, type Watchable, type WatchableSource } from '../shared/watchable'

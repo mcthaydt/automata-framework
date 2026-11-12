@@ -1058,6 +1058,9 @@ importers:
       '@automata/net':
         specifier: workspace:*
         version: link:../net
+      '@automata/net-server':
+        specifier: workspace:*
+        version: link:../net-server
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset

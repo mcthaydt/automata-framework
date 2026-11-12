@@ -1,8 +1,8 @@
 import { createWorld, type Entity, type World } from 'koota'
-import type { EntityRef, SpawnPart } from '../define/context'
-import type { ComponentDef } from '../define/definitions'
-import { coerceField, defaultField, type FieldType } from '../define/fields'
-import { ownKeyCount, sortedKeys } from '../util/sorted'
+import type { EntityRef, SpawnPart } from '../define/context.ts'
+import type { ComponentDef } from '../define/definitions.ts'
+import { coerceField, defaultField, type FieldType } from '../define/fields.ts'
+import { ownKeyCount, sortedKeys } from '../util/sorted.ts'
 
 /** One component's field values on an entity, by field name. */
 export type FieldRecord = Record<string, number | boolean | string>

@@ -101,6 +101,24 @@ test('boots standalone under Ruken’s headers and shows the splash, then the me
   expect(errors).toEqual([])
 })
 
+test('a first run says what the game has, in the player’s language, before anything plays', async ({
+  page,
+}) => {
+  const errors = await collectErrors(page)
+  await page.goto(gameUrl)
+  await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+  // The language comes first; the suggested one has focus.
+  await page.locator('[data-testid^="first-language-"]:focus').click()
+  // Emberwick's landing flash and its shake are what the warning names, and nothing it does not have.
+  const warning = page.getByTestId('photosensitivity-warning')
+  await expect(warning).toContainText('This game has flashing lights and a shaking screen.')
+  await expect(warning).not.toContainText('strobing')
+  await page.getByTestId('photosensitivity-continue').click()
+  await passFirstRun(page)
+  await passLandscapeGate(page)
+  expect(errors).toEqual([])
+})
+
 test('counts a CSP violation as an error, even one the console never shows', async ({ page }) => {
   const errors = await collectErrors(page)
   await openMenu(page)
@@ -313,6 +331,11 @@ test('completes the Ruken handshake inside a fake host frame on another origin',
   const errors = await collectErrors(page)
   await page.goto(`${hostOrigin}/`)
   const frame = page.frameLocator('iframe')
+  // Ruken skips the language screen but not the flashing-lights warning, which Emberwick declares: a player presses
+  // Continue inside the frame, as the journeys that run standalone do.
+  const gameFrame = await (await page.locator('iframe').elementHandle())?.contentFrame()
+  if (gameFrame == null) throw new Error('the host page has no game frame')
+  await passFirstRun(gameFrame)
   await expect(frame.locator('#game')).toHaveAttribute('data-screen', /splash|menu/)
   expect(page.frames().map((f) => f.url())).toContain(gameUrl)
   const trace = await page.evaluate(() => (window as unknown as { hostTrace: () => string[] }).hostTrace())

@@ -1,7 +1,7 @@
 import type { z } from 'zod'
-import type { Rng } from '../rng/rng'
-import type { CommandDef, ComponentDef, EventDef, ResourceDef } from './definitions'
-import type { FieldSchema, FieldValues } from './fields'
+import type { Rng } from '../rng/rng.ts'
+import type { CommandDef, ComponentDef, EventDef, ResourceDef } from './definitions.ts'
+import type { FieldSchema, FieldValues } from './fields.ts'
 
 /** A live entity, addressed by its StableId. Writes are coerced per field type and mark the entity changed. */
 export interface EntityRef {

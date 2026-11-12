@@ -51,6 +51,7 @@
     "@automata/content": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/net": "workspace:*",
+    "@automata/net-server": "workspace:*",
     "@automata/vitest-preset": "workspace:*",
     "@sveltejs/package": "3.0.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",

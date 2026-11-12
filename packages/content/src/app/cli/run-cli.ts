@@ -17,25 +17,25 @@
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { normalizePath, runnerImport } from 'vite'
-import { ATLASES_FOLDER, FONTS_FOLDER } from '../../shared/assets/asset-outputs'
-import { buildAtlases } from '../../shared/assets/build-atlases'
-import { buildFonts } from '../../shared/assets/build-fonts'
+import { ATLASES_FOLDER, FONTS_FOLDER } from '../../shared/assets/asset-outputs.ts'
+import { buildAtlases } from '../../shared/assets/build-atlases.ts'
+import { buildFonts } from '../../shared/assets/build-fonts.ts'
 import {
   type CompiledContent,
   type ContentOptions,
   compileContent,
   outDirOf,
-} from '../../shared/compile/compile-content'
+} from '../../shared/compile/compile-content.ts'
 import type {
   ContentCompileFailed,
   ContentWriteFailed,
   InvalidContentConfig,
-} from '../../shared/compile/errors'
-import { buildContent, verifyContent } from '../../shared/compile/write-outputs'
-import { type Diagnostic, formatDiagnostic } from '../../shared/diagnostics/diagnostic'
-import { readTextIfPresent, writeFileAtomically } from '../../shared/files/content-files'
-import type { TuningMeta } from '../../shared/tuning/check-tuning'
-import { withTuningTable } from '../../shared/tuning/tuning-table'
+} from '../../shared/compile/errors.ts'
+import { buildContent, verifyContent } from '../../shared/compile/write-outputs.ts'
+import { type Diagnostic, formatDiagnostic } from '../../shared/diagnostics/diagnostic.ts'
+import { readTextIfPresent, writeFileAtomically } from '../../shared/files/content-files.ts'
+import type { TuningMeta } from '../../shared/tuning/check-tuning.ts'
+import { withTuningTable } from '../../shared/tuning/tuning-table.ts'
 
 /** The default export of `automata.content.ts`. */
 export type ContentConfig = Omit<ContentOptions, 'root'> & {

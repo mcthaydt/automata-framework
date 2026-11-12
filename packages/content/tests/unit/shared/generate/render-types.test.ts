@@ -103,6 +103,8 @@ describe('renderTypes', () => {
           noEmit: true,
           module: 'esnext',
           moduleResolution: 'bundler',
+          // The source names its `.ts` files, as plain Node needs.
+          allowImportingTsExtensions: true,
           // The package's source uses Node types (its file access), so the consumer needs them too.
           types: ['node'],
           typeRoots: [join(import.meta.dirname, '../../../../node_modules/@types')],

@@ -22,6 +22,14 @@ import type { BootFailureCopy } from '../../shared/ui/status/boot-failure.ts'
 import type { ScreenDef } from '../flow/screen.js'
 import type { OpeningStep } from '../opening/opening.js'
 
+/** The runtime's words a game may reword: its failure panels', the loader's and the lost picture's. */
+export type RuntimeWords = Partial<BootFailureCopy> & {
+  readonly loading?: string
+  readonly slow?: string
+  /** The panel when the renderer's graphics context is lost for good. */
+  readonly contextLost?: string
+}
+
 /** The compiled JSON content read by the runtime. */
 export interface CompiledContentData {
   readonly flow: FlowGraph
@@ -151,11 +159,10 @@ export interface GameDefinition<S = never> {
   readonly audio?: GameAudioStart | undefined
   /** The board and score each sim event submits, by the event's type. Needs the `leaderboards` grant. */
   readonly scores?: EventScores | undefined
-  readonly copy?: Partial<BootFailureCopy> & {
-    readonly loading?: string
-    readonly slow?: string
-    /** The panel when the renderer's graphics context is lost for good. */
-    readonly contextLost?: string
-  }
+  /**
+   * The runtime's own words over the bundled ones, in the player's language: a record that wins in every language, or a
+   * function of the locale (run again when the language changes) so each language has its own.
+   */
+  readonly copy?: RuntimeWords | ((locale: string) => RuntimeWords)
   readonly seams?: RuntimeSeams
 }

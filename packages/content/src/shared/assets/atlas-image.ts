@@ -1,7 +1,7 @@
 // Atlas pages as pixels and files. PNGs are read and written with `pngjs`,
 // always as 8-bit RGBA with fixed encoder options, so the same pixels always give the same bytes (G-c).
 import { PNG } from 'pngjs'
-import { ATLAS_EXTRUDE, type Placement } from './atlas-pack'
+import { ATLAS_EXTRUDE, type Placement } from './atlas-pack.ts'
 
 /** An image as 8-bit RGBA rows, top to bottom. */
 export interface Rgba {

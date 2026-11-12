@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import type { MessageCatalog } from './messages'
+import type { MessageCatalog } from './messages.ts'
 
 // Every word a game shows in one language, by catalog. The font build cuts its subsets to all of them, and `automata
 // check` holds all of them to the font, so a letter a screen draws is never missing from the face the game ships.

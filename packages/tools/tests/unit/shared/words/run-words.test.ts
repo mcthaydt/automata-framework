@@ -18,6 +18,11 @@ interface Setup {
   readonly files?: Record<string, string>
   readonly languages?: readonly string[]
   readonly answers?: (request: TranslationRequest) => string | undefined
+  /** Makes a request fail with this reason (the translator says no), by request; no failure when it answers undefined. */
+  readonly unavailable?: (
+    request: TranslationRequest,
+    index: number,
+  ) => WordsModelUnavailable['reason'] | undefined
   readonly key?: boolean
   /** The achievements `ship.config.ts` declares, when the game has any. */
   readonly achievements?: Record<string, { title: string; description: string }>
@@ -34,6 +39,8 @@ async function run(args: readonly string[], setup: Setup = {}) {
       setup.key === false ? Effect.fail(new WordsModelUnavailable({ reason: 'no-key' })) : Effect.void,
     translate: (request) => {
       requests.push(request)
+      const why = setup.unavailable?.(request, requests.length - 1)
+      if (why !== undefined) return Effect.fail(new WordsModelUnavailable({ reason: why }))
       const answer = (setup.answers ?? ((r) => `[${r.lang}] ${r.source}`))(request)
       return answer === undefined
         ? Effect.fail(new WordsModelUnavailable({ reason: 'offline' }))
@@ -211,6 +218,60 @@ describe('runWords', () => {
     expect(result.err).toContain('offline')
   })
 
+  // A bad key, a rate limit and an outage are not the model declining a word: asking for the next word would fail the
+  // same way, a hundred times for a real game. The run stops at the first, keeps what it had, and says what to do.
+  describe('when the translator cannot answer at all', () => {
+    const three = { [`${UI}/en.json`]: json({ a: 'Alpha', b: 'Bravo', c: 'Charlie' }) }
+
+    it.each([
+      ['bad-key', /did not accept the key/i],
+      ['busy', /busy|limit/i],
+      ['offline', /could not be reached|down/i],
+    ] as const)('%s: stops at the first answer instead of asking for every word', async (reason, words) => {
+      const result = await run(['--dir', GAME, '--to', 'ja'], { files: three, unavailable: () => reason })
+      expect(result.requests).toHaveLength(1)
+      expect(result.code).toBe(1)
+      expect(result.err).toMatch(words)
+      expect(result.err).toMatch(/stopped/i)
+      expect(result.files.has(`${UI}/ja.json`)).toBe(false)
+    })
+
+    it('stops across languages and catalogs too: one request for a run of six languages', async () => {
+      const result = await run(['--dir', GAME], {
+        files: three,
+        languages: ['en', 'ja', 'ko', 'es-419'],
+        unavailable: () => 'bad-key',
+      })
+      expect(result.requests).toHaveLength(1)
+    })
+
+    it('keeps what was translated before it stopped, and records it', async () => {
+      const result = await run(['--dir', GAME, '--to', 'ja'], {
+        files: three,
+        unavailable: (_request, index) => (index === 1 ? 'busy' : undefined),
+      })
+      expect(result.requests).toHaveLength(2)
+      expect(JSON.parse(result.files.get(`${UI}/ja.json`) ?? '{}')).toEqual({
+        $schema: SCHEMA,
+        a: '[ja] Alpha',
+      })
+      expect(result.files.get(`${GAME}/words-sources.json`)).toContain('"a"')
+    })
+
+    it('goes on after the model declines one word: that is that word’s problem', async () => {
+      const result = await run(['--dir', GAME, '--to', 'ja'], {
+        files: three,
+        unavailable: (request) => (request.key === 'a' ? 'refused' : undefined),
+      })
+      expect(result.requests).toHaveLength(3)
+      expect(result.code).toBe(1)
+      expect(JSON.parse(result.files.get(`${UI}/ja.json`) ?? '{}')).toMatchObject({
+        b: '[ja] Bravo',
+        c: '[ja] Charlie',
+      })
+    })
+  })
+
   it('the request carries the key, the source, the note and the language’s existing words', async () => {
     const files = {
       ...base,
@@ -234,7 +295,7 @@ describe('runWords', () => {
     const result = await run(['--dir', GAME], { files: base, key: false })
     expect(result.code).toBe(2)
     expect(result.err).toBe(
-      'automata words needs ANTHROPIC_API_KEY set on this computer to reach the translator; nothing was changed.\n',
+      'automata words needs an API key for the translator: set AUTOMATA_ANTHROPIC_KEY (or ANTHROPIC_API_KEY) on this computer; nothing was changed.\n',
     )
     expect(result.requests).toEqual([])
     expect([...result.files.keys()]).toEqual([`${UI}/en.json`])

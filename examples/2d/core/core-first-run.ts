@@ -30,6 +30,8 @@ export default defineGame({
   locale: { locales: ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'], baseLocale: 'en' },
   // The game flashes, so the first run warns once and offers the switches that reduce it.
   photosensitivity: {
+    // What the game has, as data: the warning says it in the player's language ("This game has flashing lights.").
+    effects: ['flashing'],
     switches: [
       {
         id: 'flashing',

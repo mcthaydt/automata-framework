@@ -7,7 +7,8 @@ import { bootProgram } from './boot-program.js'
 import { failureHost } from './failure-host.js'
 import type { GameDefinition, RuntimeHandle, StartOptions } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
-import { runtimeCopyForGame } from './runtime-copy.ts'
+import { runtimeCopyIn } from './runtime-copy.ts'
+import type { RuntimeLanguage } from './runtime-language.ts'
 import { type Teardown, teardown } from './teardown.ts'
 
 /**
@@ -73,6 +74,7 @@ export function runGame<S>(game: GameDefinition<S>, start: StartOptions = {}): R
     let layers: PageLayers | null = null
     let loader: LoaderControls | null = null
     let hosting: Hosting | null = null
+    let language: RuntimeLanguage | null = null
 
     const booted = await bootProgram(game, owned, {
       skipSettingsRead,
@@ -85,6 +87,9 @@ export function runGame<S>(game: GameDefinition<S>, start: StartOptions = {}): R
       },
       onLoader: (opened) => {
         loader = opened
+      },
+      onLanguage: (known) => {
+        language = known
       },
       onFlow: (opened) => {
         flow = opened
@@ -111,7 +116,8 @@ export function runGame<S>(game: GameDefinition<S>, start: StartOptions = {}): R
     const closeFailure = failedLayers.showBootFailure({
       failure: error,
       ...failureHost(failedHosting),
-      copy: runtimeCopyForGame(game, doc.defaultView ?? window),
+      // The language as far as the boot got: the host's, or the saved choice if the locale service was already up.
+      copy: runtimeCopyIn(game.copy, (language as RuntimeLanguage | null)?.current ?? 'en'),
       onRetry: () => {
         if (failedHosting?.kind === 'ruken') {
           const reload = game.seams?.reload ?? (() => doc.defaultView?.location.reload())

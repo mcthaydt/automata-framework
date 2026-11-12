@@ -13,9 +13,13 @@
   the corner row, so it rises over Back only when its actions cannot fit any other way. A final
   panel has no actions and is the screen's last word, so it never rises: Back is its way out. The
   actions sit outside the scrolling part and never shrink (framework audit of #7).
+
+  It asks for the interface sound `error` when it appears (`requestUiSound`).
 -->
 <script lang="ts">
+import { onMount } from 'svelte'
 import { observeSize, observeWidth } from '../layout/observe-size'
+import { requestUiSound } from '../sound/request-ui-sound'
 import { assertWayForward, type ErrorAction } from './error-panel'
 
 interface Props {
@@ -36,6 +40,11 @@ $effect.pre(() => {
 })
 
 let panel = $state<HTMLElement | undefined>(undefined)
+
+// An error arriving is a moment worth a sound (`error`); a game that maps none hears nothing.
+onMount(() => {
+  if (panel !== undefined) requestUiSound(panel, 'error')
+})
 let messageBox = $state<HTMLElement | undefined>(undefined)
 let actionsBox = $state<HTMLElement | undefined>(undefined)
 /** The panel's least height: its padding and border, one line of message and the actions, in px. */

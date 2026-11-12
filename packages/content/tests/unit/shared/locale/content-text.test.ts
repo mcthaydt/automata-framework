@@ -47,7 +47,7 @@ describe('@automata/content/locale', () => {
       const source = readFileSync(file, 'utf8')
       for (const [, specifier] of source.matchAll(/^(?:import|export)\b[^\n]*from '([^']+)'/gm)) {
         expect(specifier, file).not.toMatch(/^node:/)
-        if (specifier?.startsWith('.')) visit(`${resolve(dirname(file), specifier)}.ts`)
+        if (specifier?.startsWith('.')) visit(resolve(dirname(file), specifier))
       }
     }
     visit(join(here, '../../../../src/shared/locale/index.ts'))
