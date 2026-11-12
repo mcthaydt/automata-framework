@@ -58,7 +58,12 @@ describe.runIf(hasWebGL2)('painted figures in the 3D renderer, per texel', () =>
   })
 
   it('2. one figure under perspective at 640 × 360: every pixel is the reference’s, a texel a pixel', async () => {
-    scene = await buildScene({ size: SIZE, camera: 'follow', figures: [{ def: MAN, at: [0, 0] }] })
+    // Recorded at density 2, a texel a pixel at this camera (zoom 1.95): the default would paint it at 1 and show it two pixels a texel.
+    scene = await buildScene({
+      size: SIZE,
+      camera: 'follow',
+      figures: [{ def: MAN, at: [0, 0], options: { density: 2 } }],
+    })
     const got = scene.draw()
     const placed = scene.stage.placed[0]
     expect(placed?.sprite.scale).toBe(1)

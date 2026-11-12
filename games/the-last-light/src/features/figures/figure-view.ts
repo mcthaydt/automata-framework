@@ -7,7 +7,7 @@ import { PLAY_FIGURE } from './cast.ts'
 
 // A painted figure for a character of the night, standing where `InSector` says, turned the way the sim says, walking when it walks.
 // Each is also the cutscene's actor for its character: the stage places and turns it, and the sim's place takes it back when the
-// scene ends. The figure is the character kit's painted one, at the old game's density and size (`PLAY_FIGURE`), lit by the room and
+// scene ends. The figure is the character kit's painted one, at the old game's size and the density its camera needs (`PLAY_FIGURE`), lit by the room and
 // casting its shadow on the floor, as the renderer's `lighting` and the look's `shadow` switch say.
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>

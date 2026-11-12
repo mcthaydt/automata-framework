@@ -20,7 +20,7 @@ export const DEFAULT_DENSITY = 2
 /** How a cell is placed: the density it was painted at, and whether a texel is a whole number of pixels. */
 export interface PlaceOptions {
   /** Texels per texel of the base cell; `zoomOf` counts screen pixels per density-1 texel, so a texel is `zoom / density` pixels. */
-  readonly density?: 1 | 2 | 4 | undefined
+  readonly density?: number | undefined
   /**
    * Whole pixels a texel (the default): `max(1, round(zoom / density))`, never minified, evenly wide, and a figure's height
    * is off by the rounding. `false` draws it at its true height, a texel `zoom / density` pixels wide, so texels are of uneven

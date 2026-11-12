@@ -15,6 +15,7 @@ export {
   type CharacterDef,
   cellOf,
   compose,
+  densityFor,
   type Fabric,
   Figure,
   type Fit,

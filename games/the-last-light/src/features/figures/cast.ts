@@ -9,9 +9,11 @@ import { ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
 // the old game's own pictures (the lines marked `retuned`). What the painter still cannot draw is in `HELD`, with what the figure shows
 // instead; nothing else is left out.
 
-/** How a figure is painted in play: the old game's. Density 1 is about 37 texels a metre (the camera gives 52 lines a metre, so a
- *  texel is 1.4 screen pixels), and `crisp: false` draws it at its true height. A close-up density is for a cutscene key that asks. */
-export const PLAY_FIGURE = { density: 1, crisp: false } as const
+/** How a figure is painted: at its true height (`crisp: false`, the old game's: whole pixels a texel would shrink Ada by the camera's
+ *  1.4 pixels a density-1 texel, to 71%), and at the density its camera needs, which the kit chooses each frame. Play's camera
+ *  (52 lines a metre, a zoom of 1.4) asks for density 1, about 37 texels a metre, which is the old game's; a cutscene shot closer than
+ *  play asks for more, and a shot at zoom 2 or over gets density 2 or over. */
+export const PLAY_FIGURE = { crisp: false } as const
 
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:

@@ -13,6 +13,7 @@ import {
   ScriptedActor,
   type View,
 } from '../../shared/figures/door.ts'
+import type { Density } from './density.ts'
 import { litCells } from './lit-cells.ts'
 import type { Exposure, RoomLight } from './room-light.ts'
 import type { PaintedState } from './state.ts'
@@ -35,6 +36,11 @@ export interface PaintInput {
    * this frame's figure, how bright it shows lit by a candidate light, to choose the light by (the exposure, `room-light.ts`).
    */
   readonly light?: RoomLight | ((shownAt: Exposure['shownAt']) => RoomLight | undefined) | undefined
+  /**
+   * The figure's own clock, when it is kept outside the painter (several painters of one figure, `auto-painter.ts`, each stepped by the
+   * same time): a figure left to itself adds each frame's `dt`, which is the same number when it is stepped every frame.
+   */
+  readonly clock?: number | undefined
 }
 
 export class Painter {
@@ -46,17 +52,17 @@ export class Painter {
 
   constructor(
     private readonly def: CharacterDef,
-    private readonly density: 1 | 2 | 4,
+    private readonly density: Density,
   ) {
     this.cast = member(def, density)
   }
 
   /** The cell for this frame, valid until the next one. */
-  paint({ t, dt, facing, state, view, light }: PaintInput): Cell {
+  paint({ t, dt, facing, state, view, light, clock }: PaintInput): Cell {
     if (!state.moving && state.pose !== undefined)
       return this.cell(this.stand(state, facing).draw(t, view, this.density), light)
     const figure = this.figure(state.outfit)
-    figure.update(dt, { facing, moving: state.moving, view })
+    figure.update(dt, { facing, moving: state.moving, view, ...(clock === undefined ? {} : { clock }) })
     return this.cell(figure, light)
   }
 

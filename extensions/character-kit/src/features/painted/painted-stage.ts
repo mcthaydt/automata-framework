@@ -10,7 +10,7 @@
 import type { FigureShadow } from '@automata/3d'
 import { type Camera3D, type Container3D, Matrix4, type View3D } from '@pixi/3d'
 import { RendererType } from 'pixi.js'
-import { type Cell, TIE_BIAS, texelDepths, type V3, type View } from '../../shared/figures/door.ts'
+import { type Cell, TIE_BIAS, texelDepths, type V3, type View, zoomOf } from '../../shared/figures/door.ts'
 import { CellSprite, poseQuaternion } from '../../shared/figures/door-view.ts'
 import { type Placed, type PlaceOptions, paintView, place, ranked } from './place.ts'
 import { poseOf } from './pose.ts'
@@ -20,12 +20,12 @@ import { shadowInput } from './shadow-input.ts'
 export interface StageMember {
   /** The entity's node. The quad is its child, so it is hidden with it, and goes with it when it is destroyed. */
   readonly node: Container3D
-  /** How its cell is placed: the density it paints at and whether a texel is a whole number of pixels (whole pixels at density 2 by default). */
+  /** How its cell is placed: whether a texel is a whole number of pixels (the default). The density is the cell's own, whichever it was painted at. */
   readonly placing?: PlaceOptions | undefined
   /** The figure's cast shadow on the floor (the room's: `SceneLight.shadows`), cast each frame the figure is drawn; none without one. */
   readonly shadow?: FigureShadow | undefined
-  /** Paints for this frame: `view` is the view the camera gives a figure at that place. */
-  frame(view: (at: V3) => View): { cell: Cell; at: V3; name: string }
+  /** Paints for this frame: `view` is the view the camera gives a figure at that place, `zoom` the screen pixels one density-1 texel covers there (`zoomOf`), which is what decides the density to paint at. */
+  frame(view: (at: V3) => View, zoom: number): { cell: Cell; at: V3; name: string }
 }
 
 export interface PaintedStage {
@@ -104,8 +104,10 @@ class Stage implements PaintedStage {
         entry.member.shadow?.hide()
         continue
       }
-      const { cell, at, name } = entry.member.frame((where) => paintView(pose, where))
-      const placed = place(pose, at, cell, name, entry.member.placing)
+      const standing: V3 = [node.position.x, node.position.y, node.position.z]
+      const { cell, at, name } = entry.member.frame((where) => paintView(pose, where), zoomOf(pose, standing))
+      // Placed by the density the cell was painted at: the figure chooses it from the zoom, and a texel is that paint's.
+      const placed = place(pose, at, cell, name, { ...entry.member.placing, density: cell.density })
       entry.quad.sprite.visible = placed !== undefined
       if (placed === undefined) {
         entry.member.shadow?.hide()

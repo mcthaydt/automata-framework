@@ -396,7 +396,8 @@ describe('what the old figures do that the painter cannot yet', () => {
 })
 
 describe('how a figure is painted in play', () => {
-  it('is the old game’s: density 1 (about 37 texels a metre) at true size, so the camera’s 52 lines a metre make a 1.62 m Ada about 85 lines tall', () => {
-    expect(PLAY_FIGURE).toEqual({ density: 1, crisp: false })
+  it('is at true size and leaves the density to the camera: play’s 52 lines a metre are a zoom of 1.4, which the kit paints at 1 (about 37 texels a metre, the old game’s), and a close shot gets more', () => {
+    expect(PLAY_FIGURE).toEqual({ crisp: false })
+    expect('density' in PLAY_FIGURE).toBe(false)
   })
 })

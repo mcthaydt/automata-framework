@@ -77,8 +77,12 @@ export default defineGame({
       ...options,
       backgroundColor: 0x31222a,
       views: {
-        [Walker.id]: paintedFigure(man!, { state: (c) => ({ moving: c[Walker.id]?.walking === true }) }),
-        [Stander.id]: paintedFigure(woman!),
+        // Density 2, a texel a pixel at this follow camera (its zoom is about 2): a figure left to `'auto'` would be painted at 1 there.
+        [Walker.id]: paintedFigure(man!, {
+          density: 2,
+          state: (c) => ({ moving: c[Walker.id]?.walking === true }),
+        }),
+        [Stander.id]: paintedFigure(woman!, { density: 2 }),
         [Wall.id]: box({ width: 3.4, height: 0.9, depth: 0.15 }, { color: 0x6b5a73 }),
       },
       camera: { views: [FOLLOW], initial: FOLLOW.id, follow: Walker.id },

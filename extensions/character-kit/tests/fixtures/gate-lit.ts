@@ -96,7 +96,7 @@ export async function drawRoom(options: RoomOptions): Promise<RoomFrame> {
   const sequence = options.sequence ?? [{ t: 0, at: -0.9 }]
   const clock = { t: sequence[0]?.t ?? 0 }
   const figure = (def: CharacterDef, moving: boolean) =>
-    paintedFigure(def, { now: () => clock.t, lit: options.lit, state: () => ({ moving }) })
+    paintedFigure(def, { density: 2, now: () => clock.t, lit: options.lit, state: () => ({ moving }) })
   let seen: SceneLight | undefined
   let viewSeen: Parameters<typeof camera>[0] | undefined
   const host = document.createElement('div')
