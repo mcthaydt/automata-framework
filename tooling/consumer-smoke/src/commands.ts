@@ -49,6 +49,6 @@ export function pack3d(root: string, project: string): Record<string, string> {
   if (file === undefined) throw new Error('pnpm pack wrote nothing for @automata/3d')
   return {
     '@automata/3d': `file:${join(out, file)}`,
-    '@pixi/3d': `file:${join(root, 'vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz')}`,
+    '@pixi/3d': `file:${join(root, 'vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz')}`,
   }
 }

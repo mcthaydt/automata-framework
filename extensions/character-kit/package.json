@@ -34,7 +34,7 @@
     "gate": "tsx scripts/gate.ts"
   },
   "dependencies": {
-    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz",
     "figure-builder": "workspace:*",
     "zod": "4.6.6"
   },

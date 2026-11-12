@@ -16,7 +16,7 @@ import {
 // project files; what differs is the 3D package, the content kinds its folders hold and the game itself.
 
 /** The pinned release of Pixi 3D every 3D game installs beside @automata/3d (the closed beta, until the npm release). */
-export const PIXI_3D_SPEC = '0.1.0-beta.2'
+export const PIXI_3D_SPEC = '0.1.0-beta.3'
 
 /** The lines of a 3D game's README that say where its code and content are. */
 const WHERE = `- \`src/features/wick/\`: Wick and how he walks. One folder for each thing in your game.
@@ -36,7 +36,7 @@ export const TEMPLATE_3D_FILES: readonly TemplateFile[] = [
   packageFile((options) => ({
     '@automata/3d': frameworkSpec(options),
     '@pixi/3d':
-      options.linkWorkspace === true ? 'file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz' : PIXI_3D_SPEC,
+      options.linkWorkspace === true ? 'file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz' : PIXI_3D_SPEC,
   })),
   shipConfigFile('landscape'),
   viteConfigFile({

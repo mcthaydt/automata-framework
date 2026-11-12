@@ -128,7 +128,8 @@ export class ReflectEffect extends TrackingEffect {
   private view: ArrayLike<number> = TrackingEffect.NO_VIEW
 
   constructor(options: ReflectOptions = {}) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.ground = options.ground ?? 0
     this.uniforms = new UniformGroup({
       uOrtho: { value: 0, type: 'f32' },

@@ -1,4 +1,4 @@
-// The closed-beta guard. `@pixi/3d` 0.1.0-beta.2 is a closed beta whose terms allow no
+// The closed-beta guard. `@pixi/3d` 0.1.0-beta.3 is a closed beta whose terms allow no
 // public deployment, and its `./extras` entry probes `new Function` at load, a CSP violation under
 // Ruken. A build is read for strings that survive minification (checked against Vite's minified builds of the
 // vendored tarball by packages/3d's pixi3d-bundle.test.ts): error and warning ids from @pixi/3d's main

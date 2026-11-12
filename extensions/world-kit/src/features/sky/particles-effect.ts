@@ -84,7 +84,8 @@ export class ParticlesEffect extends TrackingEffect {
   private readonly scale: number
 
   constructor(emitters: readonly Emitter[] = [], options: ParticlesOptions = {}) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.emitters = emitters
     this.scale = options.scale ?? 2
     this.uniforms = new UniformGroup({

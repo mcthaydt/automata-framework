@@ -3,7 +3,7 @@
 // blends while fading and is opaque when shown; a ceiling is never drawn in the angled view; a prop's material alpha
 // follows the rule. `occluderHooks` feeds the pass from the rig's pose each frame.
 import type { RenderRow } from '@automata/sim'
-import { Camera3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Camera3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial, RenderPassBit } from '@pixi/3d'
 import { describe, expect, it, vi } from 'vitest'
 import { angledCamera } from '#src/features/camera/angled-camera.ts'
 import { eyeOf, type Vec3 } from '#src/features/camera/camera-pose.ts'
@@ -188,15 +188,20 @@ describe('review of #249', () => {
     expect(() => occluders.update(frameAt(0, 0, true))).not.toThrow()
   })
 
-  it('tells a mesh to recheck its shadow when its alpha mode changes (10)', () => {
+  it('a faded prop leaves the shadow pass and a shown one rejoins it, with no call to make (10)', () => {
     const occluders = createOccluders(new Container3D())
     const pillar = occluders.box(PILLAR, 0xc0cbdc)
+    pillar.castShadow = true
     occluders.prop(pillar, { bounds: PILLAR })
-    const recheck = vi.spyOn(pillar, 'updateShadow')
+    const casts = () => (pillar.renderPassMask & RenderPassBit.SHADOW) !== 0
+    expect(casts()).toBe(true)
+    // `@pixi/3d` strips the shadow bit from a blended material by itself: the rule only sets the alpha mode.
     occluders.update(frameAt(0, 0, true))
-    expect(recheck).toHaveBeenCalledTimes(1)
-    occluders.update(frameAt(0, 0, true))
-    expect(recheck).toHaveBeenCalledTimes(1)
+    expect(pillar.material.alphaMode).toBe('blend')
+    expect(casts()).toBe(false)
+    // Out of the way again: opaque, and the pillar's own `castShadow` brings the bit back.
+    pillar.material.alphaMode = 'opaque'
+    expect(casts()).toBe(true)
   })
 
   it('builds walls and boxes on one unit cube, freed by dispose (11)', () => {

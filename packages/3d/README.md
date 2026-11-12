@@ -5,7 +5,7 @@ walk in it, and a camera, in the same low-resolution pixel look as the 2D side, 
 library and no generators beyond a small base set, so it stays as light as the 2D core; everything bigger is an
 extension.
 
-This package is **private** until Pixi 3D is public. `@pixi/3d` is a vendored beta (`0.1.0-beta.2`), and no game
+This package is **private** until Pixi 3D is public. `@pixi/3d` is a vendored beta (`0.1.0-beta.3`), and no game
 imports it directly: every game goes through this package, which installs the no-eval build first.
 
 ```ts

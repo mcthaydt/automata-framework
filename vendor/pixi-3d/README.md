@@ -7,8 +7,8 @@ M3R-D18; Owner, 2026-10-23: "we launch when pixi 3D goes public"). The Owner con
 
 | Tarball | Package | Used by |
 |---|---|---|
-| `pixi-3d-0.1.0-beta.2.tgz` | `@pixi/3d` 0.1.0-beta.2 (MIT, `LICENSE`) | spike S7 (M3.1) and `packages/3d` (M3.4), through a `file:` specifier. Peer: `pixi.js` ^8.22.0 (M3.2 moves core to 8.22); dependency: `meshoptimizer` ^1.2.0 |
-| `pixi-3d-0.1.0-beta.3.tgz` | `@pixi/3d` 0.1.0-beta.3 (MIT, the same `LICENSE`) | nothing yet: vendored on 2026-11-12 for the upgrade branch, which moves the `file:` specifier and the pins. Peer: `pixi.js` ^8.23.0 (core is on 8.22.0 today, so the upgrade moves core too); dependency: `meshoptimizer` ^1.2.0 |
+| `pixi-3d-0.1.0-beta.2.tgz` | `@pixi/3d` 0.1.0-beta.2 (MIT, `LICENSE`) | nothing in the workspace since the beta.3 move; the closed `FigureBuilder` submodule's view still vendors it and builds against it until its source is folded into the framework (`vendor/FigureBuilder` is read only). Peer: `pixi.js` ^8.22.0; dependency: `meshoptimizer` ^1.2.0 |
+| `pixi-3d-0.1.0-beta.3.tgz` | `@pixi/3d` 0.1.0-beta.3 (MIT, the same `LICENSE`) | `packages/3d`, `packages/editor-3d`, `games/base-3d`, `extensions/character-kit`, `world-kit`, `lcd-panel`, `retro-crisp`, the root and `vendor/figure-builder` (the declarations build), through a `file:` specifier; `create-game --template 3d` and the consumer smoke. Peer: `pixi.js` ^8.23.0 (core is on 8.23.0); dependency: `meshoptimizer` ^1.2.0 |
 
 **Source:** the release asset of `pixijs-userland/pixi-3d-beta` `v0.1.0-beta.2`, as The Last Light
 (`mcthaydt/PixiJS3D_Experiment_001`) vendors it at `92e6704`; copied byte for byte on 2026-10-30. The Last

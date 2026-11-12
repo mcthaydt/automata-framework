@@ -56,7 +56,8 @@ export class StarsEffect extends PostEffect {
 
   /** `density` is the time of day's `stars` (0 none, 1 thick). */
   constructor(density: number, options: { readonly enabled?: boolean } = {}) {
-    super(options)
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping', ...options })
     this.uniforms = new UniformGroup({
       uDensity: { value: density, type: 'f32' },
       uAimYaw: { value: 0, type: 'f32' },

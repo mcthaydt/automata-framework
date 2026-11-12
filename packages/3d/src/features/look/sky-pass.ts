@@ -329,7 +329,8 @@ export class SkyEffect extends PostEffect {
 
   /** The sky for `time` behind `layers` (back to front). */
   constructor(time: TimeOfDay, layers: readonly HorizonLayer[] = []) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.fragment = skyShaders(time, layers)
     this.uniforms = new UniformGroup({
       uAimYaw: { value: 0, type: 'f32' },

@@ -89,7 +89,8 @@ export class DuelSnapEffect extends PostEffect {
 
   /** `dither` is the Bayer offset in colour units (0 snaps flat). */
   constructor(dither: number) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.uniforms = new UniformGroup({ uDither: { value: dither, type: 'f32' } })
   }
 

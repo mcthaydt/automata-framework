@@ -77,6 +77,11 @@ export class PresentEffect extends PostEffect {
   protected override readonly fragment: EffectFragment = PASS_THROUGH
   protected override readonly uniforms = null
 
+  constructor() {
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
+  }
+
   override build(graph: RenderGraph, io: EffectIO): void {
     const webgl = 'gl' in io.renderer
     graph.addPass(

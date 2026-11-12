@@ -84,7 +84,8 @@ export class GradeEffect extends PostEffect {
 
   /** A grade with a mood, or with none (the pass is then off). */
   constructor(mood?: Mood) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.uniforms = new UniformGroup({
       uL: { value: 1, type: 'f32' },
       uA: { value: 0, type: 'f32' },

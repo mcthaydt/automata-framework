@@ -58,7 +58,7 @@
     "@automata/tools": "workspace:*",
     "@biomejs/biome": "2.5.15",
     "@changesets/cli": "3.0.3",
-    "@pixi/3d": "file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "@pixi/3d": "file:vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz",
     "@playwright/test": "1.63.0",
     "knip": "6.39.0",
     "lefthook": "2.1.16",
