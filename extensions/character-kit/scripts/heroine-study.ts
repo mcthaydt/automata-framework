@@ -56,7 +56,7 @@ const HAIR: HairStyle = {
 }
 /** The study figure: the builder's base woman set to the look spec (7 heads, a slim adult, a small oval face with large almond eyes). */
 const WOMAN = BASE[1]?.def as CharacterDef
-const HEROINE: CharacterDef = {
+const heroine = (full: boolean, body: Record<string, number> = {}): CharacterDef => ({
   ...WOMAN,
   id: 'heroine',
   name: 'HEROINE',
@@ -74,6 +74,7 @@ const HEROINE: CharacterDef = {
     neckLength: 0.25,
     posture: 0.9,
     shoulders: 0.4,
+    ...body,
     face: {
       ...(WOMAN.sliders.face ?? {}),
       width: 0.5,
@@ -102,16 +103,24 @@ const HEROINE: CharacterDef = {
   // A cream shirt (a collar, long sleeves with cuffs), an oxblood waistcoat over it (a sleeveless knit shell standing a texel off), slim jeans, ankle boots.
   outfits: {
     street: [
-      { top: 'cream', sleeves: 'long', cuffs: 'cream', collar: 'cream' },
+      { top: 'cream', sleeves: 'long', cuffs: 'cream' },
       { tee: 'oxblood', sleeves: 'none', ease: 0.9, length: 0.35 },
       { jeans: 'washedDenim', taper: 0.8 },
       { shoes: 'leatherBrown', sole: 'soleGum', boots: true, shaft: 0.2 },
       { hair: 'auburn', style: HAIR },
-      { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'auburn', keep: true, full: true },
+      {
+        eyes: 'eyeBrown',
+        lids: 'lidDeep',
+        white: 'eyeWhite',
+        brows: 'auburn',
+        keep: true,
+        ...(full ? { full: true } : {}),
+      },
     ] as unknown as Garment[],
   },
   default: 'street',
-}
+})
+const HEROINE = heroine(true)
 /** The painter's style for the heroine: the outline in the old game's dark teal. */
 const PAINT = { ink: '#002219' }
 
@@ -125,6 +134,79 @@ const stand = (def: CharacterDef, d: number, density: number, paint: Paint = {})
   return { px: f.painted.slice() as Uint8ClampedArray, w: cast.cell[0], h: cast.cell[1] }
 }
 
+// `variants` as the third argument: the heroine at 7 heads and at about 5 with a larger head, each with the sprite's slit eye and with
+// `eyes.full`: full body (x1) over the head and shoulders (x2), for the eye to choose.
+if (process.argv[4] === 'variants') {
+  const FIVE = { head: 0.95, legs: 0.15, neckLength: 0.1, height: 158 }
+  const cols = [
+    { def: heroine(false), name: '7 heads, slit eye', paint: { ink: '#002219' } },
+    { def: heroine(true), name: '7 heads, eyes.full', paint: { ink: '#002219' } },
+    { def: heroine(false, FIVE), name: '5 heads, slit eye', paint: { ink: '#002219' } },
+    { def: heroine(true, FIVE), name: '5 heads, eyes.full', paint: { ink: '#002219' } },
+    { def: WOMAN, name: 'the untouched base woman', paint: {} },
+  ]
+  const C = Math.round((90 * D) / 4),
+    CW = C * 2,
+    BW = Math.round(32.5 * D) + 20,
+    SW = Math.max(CW * 5, BW * 5),
+    STRIP = 270,
+    SH = Math.round(66 * D) + 40 + CW + 10 + STRIP
+  const sheet = new Uint8Array(SW * SH * 4)
+  for (let i = 0; i < sheet.length; i += 4) {
+    sheet[i] = 0x26
+    sheet[i + 1] = 0x28
+    sheet[i + 2] = 0x2b
+    sheet[i + 3] = 255
+  }
+  const figs = cols.map(({ def, name, paint }) => {
+    const f0 = stand(def, 0, D, paint),
+      bb = bbox(f0.px, f0.w, f0.h)
+    console.log(name, 'figure rows', bb.y1 - bb.y0 + 1)
+    return { f0, bb }
+  })
+  const top = Math.min(...figs.map((f) => f.bb.y0)) - 4
+  figs.forEach(({ f0, bb }, i) => {
+    const cx = Math.round((bb.x0 + bb.x1) / 2)
+    blit(sheet, SW, f0.px, f0.w, [cx - BW / 2, top, BW, Math.round(66 * D) + 30], i * BW, 5, 1)
+    blit(
+      sheet,
+      SW,
+      f0.px,
+      f0.w,
+      [Math.round(cx - C / 2), bb.y0 - 4, C, C],
+      i * CW,
+      Math.round(66 * D) + 40,
+      2,
+    )
+  })
+  // The two proportions with `eyes.full` at density 4, 2 and 1, each at about the same size on the screen (x1, x2, x4 or x8).
+  let sx = 10
+  for (const def of [heroine(true), heroine(true, FIVE)])
+    for (const [sd, sz] of [
+      [4, 1],
+      [2, 2],
+      [1, 4],
+    ] as const)
+      for (const d of [0, 1]) {
+        const s = stand(def, d, sd, { ink: '#002219' }),
+          sb = bbox(s.px, s.w, s.h),
+          w = 30 * sd + 12
+        blit(
+          sheet,
+          SW,
+          s.px,
+          s.w,
+          [Math.round((sb.x0 + sb.x1) / 2 - w / 2), sb.y0 - 2, w, sb.y1 - sb.y0 + 4],
+          sx,
+          SH - STRIP + 5,
+          sz,
+        )
+        sx += w * sz + 12
+      }
+  writeFileSync(join(out, `heroine-variants-d${D}.png`), png(sheet, SW, SH))
+  console.log(`heroine-variants-d${D}.png ${SW}x${SH}`)
+  process.exit(0)
+}
 const ZB = D > 4 ? 1 : 2,
   C = Math.round((100 * D) / 4),
   ZH = Math.max(1, Math.floor(400 / C)),
@@ -167,7 +249,7 @@ const rows: Record<string, number> = {}
       for (const d of [0, 1]) {
         const s = stand(def, d, sd, paint),
           sb = bbox(s.px, s.w, s.h),
-          w = 26 * sd + 12
+          w = 30 * sd + 12
         blit(
           sheet,
           SW,

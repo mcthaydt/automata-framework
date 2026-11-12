@@ -1,0 +1,16 @@
+[
+  {
+    "label": "untouched BASE M",
+    "density": 4,
+    "rows": 264,
+    "headRows": 52,
+    "headsTall": 5.08
+  },
+  {
+    "label": "untouched BASE F",
+    "density": 4,
+    "rows": 258,
+    "headRows": 58,
+    "headsTall": 4.45
+  }
+]

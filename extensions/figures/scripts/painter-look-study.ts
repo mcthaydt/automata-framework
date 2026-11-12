@@ -529,9 +529,20 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
     const entries = [
       { label: 'untouched BASE F', def: BASE[1].def },
       { label: FULL.label, def: study(FULL), paint: FULL.paint },
+      {
+        label: 'the same at about 5 heads (head .95, legs .15, neckLength .1, height 158)',
+        def: study({
+          ...FULL,
+          patch: (def) => {
+            const d = FULL.patch?.(def) ?? def
+            return { ...d, sliders: { ...d.sliders, head: 0.95, legs: 0.15, neckLength: 0.1, height: 158 } }
+          },
+        }),
+        paint: FULL.paint,
+      },
     ]
     writeFileSync(
-      join(out, 'd4-sheet.png'),
+      join(out, `d${D}-sheet.png`),
       largeSheet(entries, {
         density: D,
         zoom: D > 4 ? 1 : 2,
@@ -540,17 +551,24 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
       }),
     )
     const rows = entries.map((e) => ({ label: e.label, ...sizes(e.def, D, e.paint) }))
-    writeFileSync(join(out, 'd4-numbers.json'), `${JSON.stringify(rows, null, 2)}\n`)
+    writeFileSync(join(out, `d${D}-numbers.json`), `${JSON.stringify(rows, null, 2)}\n`)
     console.log('d4', JSON.stringify(rows))
   }
   if (item === 'base') {
+    // The untouched base pair, large: DENSITY=<n> (default 4); above 4 the figures are drawn at x1 and the head at x2, to fit a sheet.
+    const D = Number(process.env.DENSITY ?? 4)
     const entries = BASE.map((b) => ({ label: `untouched ${b.def.name}`, def: b.def }))
     writeFileSync(
-      join(out, 'base-d4-sheet.png'),
-      largeSheet(entries, { density: 4, title: 'the base pair at density 4' }),
+      join(out, `base-d${D}-sheet.png`),
+      largeSheet(entries, {
+        density: D,
+        zoom: D > 4 ? 1 : 2,
+        zoomHead: D > 4 ? 2 : 4,
+        title: `the base pair at density ${D}`,
+      }),
     )
-    const rows = entries.map((e) => ({ label: e.label, ...sizes(e.def, 4) }))
-    writeFileSync(join(out, 'base-d4-numbers.json'), `${JSON.stringify(rows, null, 2)}\n`)
+    const rows = entries.map((e) => ({ label: e.label, ...sizes(e.def, D) }))
+    writeFileSync(join(out, `base-d${D}-numbers.json`), `${JSON.stringify(rows, null, 2)}\n`)
     console.log('base', JSON.stringify(rows))
   }
   for (const [name, looks] of Object.entries(LOOKS)) {

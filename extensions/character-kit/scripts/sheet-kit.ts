@@ -52,7 +52,7 @@ export function blit(
     for (let x = 0; x < cw * z; x++) {
       const X = sx + Math.floor(x / z),
         Y = sy + Math.floor(y / z)
-      if (X < 0 || Y < 0 || X >= sw) continue
+      if (X < 0 || Y < 0 || X >= sw || (Y + 1) * sw * 4 > src.length) continue
       const s = (Y * sw + X) * 4,
         d = ((dy + y) * dw + dx + x) * 4
       if (src[s + 3] === 0) continue
