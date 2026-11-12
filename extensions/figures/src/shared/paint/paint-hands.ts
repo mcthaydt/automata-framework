@@ -44,6 +44,25 @@ export interface HandStamp {
   hangs: boolean
 }
 /**
+ * The texels a hand may touch, whatever its form (paint-hand-form.ts): the raster's hand it erases and the stamp it draws,
+ * within a disc round the wrist as large as the largest form's box. It is read by the colour budget (paint-budget.ts
+ * `budget`, its `vote`), so that what a hand covers or draws never decides a colour elsewhere on the figure: a hand
+ * swinging across a held torch, or drawn in another form, must not recolour the hair.
+ */
+export function handReach(hands: readonly HandStamp[], w: number, h: number): Uint8Array {
+  const reach = new Uint8Array(w * h)
+  for (const hs of hands) {
+    const len = Math.hypot(hs.tip[0] - hs.wrist[0], hs.tip[1] - hs.wrist[1]),
+      W = 2 * PARTED_HAND.size * Math.max(hs.half[1], hs.breadth[1]) + 2,
+      r = Math.ceil(Math.max(len, PARTED_HAND.long * W) + W + 3),
+      [cx, cy] = hs.wrist
+    for (let y = Math.max(0, Math.floor(cy - r)); y <= Math.min(h - 1, Math.ceil(cy + r)); y++)
+      for (let x = Math.max(0, Math.floor(cx - r)); x <= Math.min(w - 1, Math.ceil(cx + r)); x++)
+        if (Math.hypot(x + 0.5 - cx, y + 0.5 - cy) <= r) reach[y * w + x] = 1
+  }
+  return reach
+}
+/**
  * The hands, drawn into the painter's G-buffer and toned (`tone`, −1 where no hand): the raster's hand gives way to a
  * designed one, and only where nothing nearer covers it.
  * - The shape (paint-hand-form.ts, `form`): the paddle (a wrist, a palm, a one-texel thumb on its edge, the tips notched)

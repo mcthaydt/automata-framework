@@ -72,7 +72,9 @@ const PALETTE = 24,
  * fourth shadow) takes the nearest colour round it on that surface that has its place, and while the figure has more
  * than `PALETTE` colours the closest pair painted on one material (ΔE under `MERGE`) merge, the rarer into the
  * commoner. The face's own marks (eyes, brows, lips), a gloss's shine and a hologram's ramp (`kept`) are its accents,
- * and stay.
+ * and stay. Which of a pair is the commoner is counted on the texels that `vote` marks (all, by default): the painter
+ * leaves out what the hands may touch (paint-hands.ts `handReach`), so a hand's form or swing never decides which of two
+ * colours the hair keeps.
  */
 export function budget(
   out: Uint8ClampedArray,
@@ -81,6 +83,7 @@ export function budget(
   D: number,
   kept: Uint8Array,
   mat: (k: number) => number,
+  vote?: Uint8Array,
 ) {
   const n = w * h,
     col = new Int32Array(n).fill(-1),
@@ -198,16 +201,30 @@ export function budget(
       const r = into.get(c)
       return r === undefined ? c : root(r)
     }
+  // The commoner of a pair, as the texels that vote count it; a tie (two colours only the hands' reach holds) by all.
+  const votes = new Map<number, number>()
+  for (let k = 0; k < n; k++)
+    if (col[k] >= 0 && (!vote || vote[k])) votes.set(col[k], (votes.get(col[k]) ?? 0) + 1)
+  const commoner = (a: number, b: number) => {
+      const va = votes.get(a) ?? 0,
+        vb = votes.get(b) ?? 0
+      return va === vb ? count.get(a)! >= count.get(b)! : va > vb
+    },
+    join = (keep: number, drop: number) => {
+      into.set(drop, keep)
+      count.set(keep, count.get(keep)! + count.get(drop)!)
+      count.delete(drop)
+      votes.set(keep, (votes.get(keep) ?? 0) + (votes.get(drop) ?? 0))
+      votes.delete(drop)
+    }
   let colours = count.size
   for (const [, a0, b0] of pairs) {
     if (colours <= PALETTE) break
     const a = root(a0),
       b = root(b0)
     if (a === b) continue
-    const [keep, drop] = count.get(a)! >= count.get(b)! ? [a, b] : [b, a]
-    into.set(drop, keep)
-    count.set(keep, count.get(keep)! + count.get(drop)!)
-    count.delete(drop)
+    const [keep, drop] = commoner(a, b) ? [a, b] : [b, a]
+    join(keep, drop)
     colours--
   }
   // Still over: a minor tone (under `MINOR[1]` of each material it is painted on, or on small parts only, under
@@ -264,12 +281,10 @@ export function budget(
       const a = root(a0),
         b = root(b0)
       if (a === b || !count.has(a) || !count.has(b)) continue
-      const drop = minor(a) && (!minor(b) || count.get(a)! <= count.get(b)!) ? a : minor(b) ? b : -1
+      const drop = minor(a) && (!minor(b) || commoner(b, a)) ? a : minor(b) ? b : -1
       if (drop < 0) continue
       const keep = drop === a ? b : a
-      into.set(drop, keep)
-      count.set(keep, count.get(keep)! + count.get(drop)!)
-      count.delete(drop)
+      join(keep, drop)
       colours--
       for (const m of mats.get(drop) ?? []) {
         const t = by.get(m)!

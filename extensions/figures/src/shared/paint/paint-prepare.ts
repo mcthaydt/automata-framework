@@ -91,7 +91,7 @@ export function prepare(ctx: PaintInputs) {
     normal = g.normal.slice(),
     place = g.place.slice()
   // The hands, designed (drawHands): their texels' tones are theirs.
-  const handTone = drawHands(hands, w, h, D, { material, part, group, depth, normal, place })
+  const handTone = drawHands(hands, w, h, D, { material, part, group, depth, normal, place }, style.hand)
   const filled = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && material[y * w + x] >= 0
   return {
     w,

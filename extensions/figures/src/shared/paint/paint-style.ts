@@ -2,6 +2,7 @@
 
 import type { Material } from '../body/parts'
 import { RAMPS } from './duel-ramps'
+import type { HandFormKind } from './paint-hand-form'
 /**
  * The painter: a figure's colours as pixel-art sprites are made, so a procedural figure is a sprite cell drawn live,
  * which the lighting feature (src/shared/lighting) then lights from its normal map.
@@ -65,6 +66,8 @@ export interface PaintStyle {
   /** A large surface's least share in shadow, its most in its light tone, and the size (texels at density 1, x density
    * squared past it) from which it counts as large. */
   surface: [number, number, number]
+  /** The hands' form (paint-hand-form.ts); HAND_FORM where it is not given, so a sheet can draw the other beside it. */
+  hand?: HandFormKind
 }
 export const PAINT: PaintStyle = {
   tones: [0.62, 0.05, -0.45],

@@ -4,6 +4,8 @@ import { GROUP } from '../body/parts'
 import { depthAt, labelAt } from './fabric'
 import { budget, isLeg, LINE, lightTexels, MIRROR, OUTLINE, RIM, tint } from './paint-budget'
 import type { AfterStainsAndHolo } from './paint-detail'
+import { HAND_FORM } from './paint-hand-form'
+import { handReach } from './paint-hands'
 import { stampFace } from './paint-stamp'
 import { EDGE_LEVELS } from './paint-style'
 import { noise3 } from './raster'
@@ -147,6 +149,7 @@ export function stampAndBudget(ctx: AfterStainsAndHolo) {
     g,
     group,
     h,
+    hands,
     hue,
     light,
     material,
@@ -154,6 +157,7 @@ export function stampAndBudget(ctx: AfterStainsAndHolo) {
     owner,
     part,
     skinny,
+    style,
     through,
     tone,
     tones,
@@ -175,7 +179,22 @@ export function stampAndBudget(ctx: AfterStainsAndHolo) {
       kept,
       (m) => skinny[m],
     )
-  budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k])
+  // The hands have no vote in which of two close colours the figure keeps (paint-hands.ts handReach). It comes with the
+  // parted hand: the paddle's own reach decides a pair in a few frames (the actors' torch swing), and the paddle stays
+  // byte-identical until the Owner's yes, when the switch goes and this is always so.
+  const vote =
+    (style.hand ?? HAND_FORM) === 'parted' && hands.length
+      ? handReach(hands, w, h).map((r) => 1 - r)
+      : undefined
+  budget(
+    albedo,
+    w,
+    h,
+    D,
+    kept,
+    (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k],
+    vote,
+  )
   if (light) lightTexels(light, g, albedo, D)
   if (weave) {
     // The tile, last: the ground as painted, budgeted and lit, then a step along its own row by the label (row.ts tiled).
