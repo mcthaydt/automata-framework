@@ -323,8 +323,10 @@ commented or closed there (FigureBuilder #29 stays open for good). So:
 - Each `main` has moved past the commit this plan reads (the merged notes). **No step reads `main`**: every step names
   `$PIN` (`23f889c8`), `856498a` (the wardrobe branch), the fix branches by name, or `f7c5356`. Task 2 sets the filtered
   clone's `main` to `$PIN` before filtering and checks it.
-- A step that would need a change there (a fix, a re-record, a note) is made in the framework instead, or not at all. Their open branches are in the surveys. By the Owner's answer of 2026-11-12 ("bring the figure
-builder branches in that we missed"), `claude/c5-finish-fixes` and `claude/turned-face-both-eyes` come across (tasks
+- A step that would need a change there (a fix, a re-record, a note) is made in the framework instead, or not at all.
+
+Their open branches are in the surveys. By the Owner's answer of 2026-11-12 ("bring the figure builder branches in
+that we missed"), `claude/c5-finish-fixes` and `claude/turned-face-both-eyes` come across (tasks
 4c and 4d); the content branches and spikes do not, and the survey says why each was judged content.
 
 ### 8. Risks, and how the plan would notice each
