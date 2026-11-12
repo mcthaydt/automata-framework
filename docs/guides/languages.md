@@ -29,6 +29,12 @@ Core's `DEFAULT_LOCALES` is that same list, so `locale: { locales: [...DEFAULT_L
 six. A player picks in Settings, and the choice is kept. On a first visit the game asks (see
 [How it works](./how-it-works.md#the-first-run)); on Ruken the player's own language is used.
 
+The runtime's own words (loading, a failed download, the lost-picture panel, the rotate hint) follow that language too,
+and change with it. Before anything is saved they are in the browser's language; once the host and the saved choice are
+known, in theirs. To reword them yourself, `defineGame({ copy: { loading: '…', contextLost: '…' } })` words them in every
+language, and `copy: (locale) => ({ loading: … })` words them for each (`screens`, the default screens' words, may sit
+inside either).
+
 ## Have an AI translate: `automata words`
 
 ```sh

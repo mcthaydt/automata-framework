@@ -1,6 +1,7 @@
 import type { FlowGraph } from '@automata/content'
 import { type Disposables, disposables } from '../../shared/lib/disposables.ts'
 import type { Assets } from '../../shared/runtime/assets.manager.js'
+import { type LiveWords, wordsNow } from '../../shared/runtime/live-words.ts'
 import type { PageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { Time } from '../../shared/runtime/time/time.manager.js'
@@ -22,6 +23,9 @@ export interface Flow {
   settled(): Promise<void>
 }
 
+/** What the flow says itself: a slow load, a download that stalls, a screen that fails to enter. */
+type FlowCopy = Partial<BootFailureCopy> & { readonly loading?: string; readonly slow?: string }
+
 export interface FlowOptions {
   readonly graph: FlowGraph
   readonly screens: readonly ScreenDef[]
@@ -31,7 +35,8 @@ export interface FlowOptions {
   readonly bus: PresentationBus
   readonly geometry: GeometryOwner
   readonly veil: Veil
-  readonly copy?: Partial<BootFailureCopy> & { readonly loading?: string; readonly slow?: string }
+  /** The words of the loader and of a failed enter: fixed, or live, because the language can change while a screen is up. */
+  readonly copy?: FlowCopy | LiveWords<FlowCopy>
   /** Read when a screen enters: boot builds the services after the flow, which is one of them. */
   readonly services: () => RuntimeServices
   readonly logUnmatched?: (screen: string, event: string) => void
@@ -95,6 +100,8 @@ function findByName(root: HTMLElement, name: FocusName): HTMLElement | null {
 export function createFlow(options: FlowOptions): FlowHandle {
   const ownRuntime = options.runtime === undefined ? disposables() : undefined
   const keptAcrossScreens = options.runtime ?? (ownRuntime as Disposables)
+  // Read each time a panel is shown: the language may have changed since the flow was made.
+  const copyNow = (): FlowCopy | undefined => wordsNow(options.copy)
   const queue: QueuedTransition[] = []
   const loggedUnmatched = new Set<string>()
 
@@ -154,11 +161,11 @@ export function createFlow(options: FlowOptions): FlowHandle {
   const showStartFailure = (screen: string, style: string, from: string | undefined): void => {
     const dismiss = options.layers.showError({
       code: 'start',
-      message: options.copy?.start ?? BOOT_FAILURE_COPY_EN.start,
+      message: copyNow()?.start ?? BOOT_FAILURE_COPY_EN.start,
       actions: [
         {
           id: 'retry',
-          label: options.copy?.retry ?? BOOT_FAILURE_COPY_EN.retry,
+          label: copyNow()?.retry ?? BOOT_FAILURE_COPY_EN.retry,
           kind: 'primary',
           onSelect: () => {
             dismiss()
@@ -182,8 +189,8 @@ export function createFlow(options: FlowOptions): FlowHandle {
     // (1) Load target's files and fonts with LoaderOverlay over the current screen when anything is missing (Q8)
     if (!options.assets.isLoaded(targetScreen.id)) {
       const loader = options.layers.showLoader({
-        label: options.copy?.loading ?? 'Loading…',
-        slowLabel: options.copy?.slow ?? 'Taking a while…',
+        label: copyNow()?.loading ?? 'Loading…',
+        slowLabel: copyNow()?.slow ?? 'Taking a while…',
       })
       const loadResult = await options.assets
         .load(targetScreen.id, (fraction) => loader.setProgress(fraction))
@@ -193,15 +200,15 @@ export function createFlow(options: FlowOptions): FlowHandle {
         const isStalled = loadResult.reason._tag === 'LoadStalled'
         const code = isStalled ? 'download-stalled' : 'download'
         const message = isStalled
-          ? (options.copy?.['download-stalled'] ?? BOOT_FAILURE_COPY_EN['download-stalled'])
-          : (options.copy?.download ?? BOOT_FAILURE_COPY_EN.download)
+          ? (copyNow()?.['download-stalled'] ?? BOOT_FAILURE_COPY_EN['download-stalled'])
+          : (copyNow()?.download ?? BOOT_FAILURE_COPY_EN.download)
         const dismiss = options.layers.showError({
           code,
           message,
           actions: [
             {
               id: 'retry',
-              label: options.copy?.retry ?? BOOT_FAILURE_COPY_EN.retry,
+              label: copyNow()?.retry ?? BOOT_FAILURE_COPY_EN.retry,
               kind: 'primary',
               onSelect: () => {
                 dismiss()

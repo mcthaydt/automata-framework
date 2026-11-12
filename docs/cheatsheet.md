@@ -614,6 +614,7 @@
 - `RuntimeHandle` (interface): Controls the running game: `shutdown` closes everything the runtime opened, last opened first.
 - `RuntimeSeams` (interface): Test seams injected into the runtime boot program.
 - `RuntimeServices` (interface): The runtime services a screen may use, as one plain object: boot builds them in order and hands them over.
+- `RuntimeWords` (type): The runtime's words a game may reword: its failure panels', the loader's and the lost picture's.
 - `Save` (interface): A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for the autosave triggers to write.
 - `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
 - `Saves` (interface): The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.

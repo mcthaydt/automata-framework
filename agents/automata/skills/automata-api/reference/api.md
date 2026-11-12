@@ -5371,7 +5371,7 @@ type GameAudioStart = (services: GameAudioServices) => (() => void) | undefined;
 A game's words: the runtime's boot and failure copy, and the default screens' words.
 
 ```ts
-type GameCopy = NonNullable<GameDefinition['copy']> & {
+type GameCopy = RuntimeWords & {
     /** The default screens' words, over their English defaults: a part of `ScreensCopy`, or a function of the locale. */
     readonly screens?: ScreensCopyInput | undefined;
 };
@@ -5437,12 +5437,11 @@ interface GameDefinition<S = never> {
     readonly audio?: GameAudioStart | undefined;
     /** The board and score each sim event submits, by the event's type. Needs the `leaderboards` grant. */
     readonly scores?: EventScores | undefined;
-    readonly copy?: Partial<BootFailureCopy> & {
-        readonly loading?: string;
-        readonly slow?: string;
-        /** The panel when the renderer's graphics context is lost for good. */
-        readonly contextLost?: string;
-    };
+    /**
+     * The runtime's own words over the bundled ones, in the player's language: a record that wins in every language, or a
+     * function of the locale (run again when the language changes) so each language has its own.
+     */
+    readonly copy?: RuntimeWords | ((locale: string) => RuntimeWords);
     readonly seams?: RuntimeSeams;
 }
 ```
@@ -5607,9 +5606,11 @@ interface GameSpec<S = never, D = unknown> {
     /**
      * The game's words: the runtime's boot and failure copy, and `screens`, the default screens' words over their
      * English defaults. `screens` may be a function of the locale, run again on each language change, so a
-     * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`.
+     * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`. The whole of `copy` may
+     * instead be a function of the locale, for a game that rewords the runtime's own words (`loading`, `contextLost`,
+     * the failure panels') in each of its languages.
      */
-    readonly copy?: GameCopy;
+    readonly copy?: GameCopy | ((locale: string) => GameCopy);
     /** The game's languages: Settings' Language group offers them. Absent, the content's one language. */
     readonly locale?: GameDefinition['locale'];
     /** Tests only. */
@@ -7191,6 +7192,19 @@ interface RuntimeServices {
     readonly leaderboards: Leaderboards;
     readonly haptics: Haptics;
 }
+```
+
+#### `RuntimeWords` (type)
+
+The runtime's words a game may reword: its failure panels', the loader's and the lost picture's.
+
+```ts
+type RuntimeWords = Partial<BootFailureCopy> & {
+    readonly loading?: string;
+    readonly slow?: string;
+    /** The panel when the renderer's graphics context is lost for good. */
+    readonly contextLost?: string;
+};
 ```
 
 #### `Save` (interface)

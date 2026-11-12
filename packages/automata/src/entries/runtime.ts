@@ -8,6 +8,7 @@ export type {
   GameDefinition,
   RuntimeHandle,
   RuntimeSeams,
+  RuntimeWords,
   StartOptions,
 } from '../app/boot/game-definition.js'
 export { runGame } from '../app/boot/run-game.js'

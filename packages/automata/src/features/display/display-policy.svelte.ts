@@ -12,6 +12,7 @@
 // has no bar to hide and nothing to turn.
 
 import { mount, unmount } from 'svelte'
+import { isLiveWords, type LiveWords, wordsNow } from '../../shared/runtime/live-words.ts'
 import type { Time } from '../../shared/runtime/time/time.manager.js'
 import {
   enterFullscreen,
@@ -72,7 +73,8 @@ export interface DisplayPolicyOptions {
   /** The page's overlay layer, over every screen. */
   readonly layer: HTMLElement
   readonly time: Time
-  readonly copy?: DisplayCopy | undefined
+  /** The covers' words: fixed, or live, because the language can change while the game runs. Default English. */
+  readonly copy?: DisplayCopy | LiveWords<DisplayCopy> | undefined
   /** `'block'` (the default) pauses under a cover; `'toast'` says so at the top and lets the game run. */
   readonly rotateHint?: RotateHintMode | undefined
 }
@@ -90,7 +92,7 @@ export interface DisplayPolicy {
 /** Mounts the landscape gate, the rotate hint and the rotate toast over the layer, and keeps them current. */
 export function createDisplayPolicy(options: DisplayPolicyOptions): DisplayPolicy {
   const { orientation, hosted, win, geometry, layer, time } = options
-  const copy = options.copy ?? DISPLAY_COPY_EN
+  const copy = wordsNow(options.copy) ?? DISPLAY_COPY_EN
   const doc = win.document
   // A window without `matchMedia` (a test's, a replay's) is a fine pointer, not installed.
   const query = (
@@ -143,7 +145,15 @@ export function createDisplayPolicy(options: DisplayPolicyOptions): DisplayPolic
   }
   update()
 
+  // The words are read again whenever the language changes, so a cover that comes up later is in the language in force.
+  const rewords = (): void => {
+    const words = wordsNow(options.copy) ?? DISPLAY_COPY_EN
+    gateProps.copy = words.gate
+    hintProps.copy = words.rotate[orientation === 'portrait' ? 'portrait' : 'landscape']
+    toastProps.copy = words.toast
+  }
   const stops = [
+    ...(options.copy !== undefined && isLiveWords(options.copy) ? [options.copy.subscribe(rewords)] : []),
     geometry.onChange(update),
     onFullscreenChange(doc, update),
     (() => {

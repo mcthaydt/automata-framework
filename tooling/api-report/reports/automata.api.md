@@ -745,7 +745,7 @@ type GameAudioStart = (services: GameAudioServices) => (() => void) | undefined;
 ### `GameCopy` (type)
 
 ```ts
-type GameCopy = NonNullable<GameDefinition['copy']> & {
+type GameCopy = RuntimeWords & {
     readonly screens?: ScreensCopyInput | undefined;
 };
 ```
@@ -774,11 +774,7 @@ interface GameDefinition<S = never> {
     readonly uiSounds?: UiSounds | undefined;
     readonly audio?: GameAudioStart | undefined;
     readonly scores?: EventScores | undefined;
-    readonly copy?: Partial<BootFailureCopy> & {
-        readonly loading?: string;
-        readonly slow?: string;
-        readonly contextLost?: string;
-    };
+    readonly copy?: RuntimeWords | ((locale: string) => RuntimeWords);
     readonly seams?: RuntimeSeams;
 }
 ```
@@ -846,7 +842,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly renderer?: PixiRendererOptions;
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
     readonly preload?: readonly string[];
-    readonly copy?: GameCopy;
+    readonly copy?: GameCopy | ((locale: string) => GameCopy);
     readonly locale?: GameDefinition['locale'];
     readonly seams?: RuntimeSeams;
 }
@@ -1855,6 +1851,16 @@ interface RuntimeServices {
     readonly leaderboards: Leaderboards;
     readonly haptics: Haptics;
 }
+```
+
+### `RuntimeWords` (type)
+
+```ts
+type RuntimeWords = Partial<BootFailureCopy> & {
+    readonly loading?: string;
+    readonly slow?: string;
+    readonly contextLost?: string;
+};
 ```
 
 ### `Save` (interface)
