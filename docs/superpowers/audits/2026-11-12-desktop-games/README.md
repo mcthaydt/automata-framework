@@ -236,3 +236,14 @@ example, collected at `vite build` and by `cargo about` for the crates) is a dec
 - The journey on the Owner's runners (it ran in this container only), and any workflow (none was added).
 - The 3D desktop build (stopped by the 3D gate, above).
 - Clicking a link in the real app (no browser in the container to receive it).
+
+## For the tracker
+
+The row this session added to `docs/superpowers/progress.md`, moved here verbatim on the coordinator's rule of 2026-11-12
+(code branches carry no tracker edits; the coordinator gathers the rows). Two of its words are out of date: the journey
+now kills the app before reading the save, and a Quit needed no new word (see the
+[implementation audit](../2026-11-12-desktop-games-implementation-audit.md), S5 and N8).
+
+| # | Workstream | Stage | Progress | Links |
+|---|---|---|---|---|
+| 7 | Games as desktop apps (the ship audit's item 12, reading (a); the Owner: "Desktop Apps too", "both") | Done 2026-11-12 on `claude/desktop-games`, as far as Linux goes, no subagents: the Tauri 2 toolchain installs in this container (36 s, every command recorded), and a game made from the packed packages with `create-game --targets tauri` builds with `ship prepare --target tauri` first time (230 s cold; `.deb` 4,135,330 bytes, AppImage 82,688,504 bytes). A new journey, `tooling/consumer-smoke/tests/install/stranger-desktop.test.ts` (`pnpm --filter @automata/consumer-smoke test:desktop`), opens the `.deb`'s app on a virtual screen through tauri-driver 2.1.0, picks a language, closes the window, finds the save in the app's store file and not in page storage, and reads it back on a second start: passed, 3 m 59 s. Fixed test first: a desktop save reached the disk only on Quit or a window close (now 500 ms after the last change, proved by killing the app); a missing `cargo` or `pkg-config` and a missing web build printed raw `ENOENT` errors; each message now names the one command that fixes it (changesets for `@automata/tools` and `@automata/framework`). The guide rewritten from the measurements. A desktop CI workflow proposed, not added (Linux, macOS, Windows; signing skipped until the secrets exist). Gaps reported: no Quit on the desktop's screens (a new word in six languages), no third-party licence notices in any build, Windows signing needs ship to write the certificate's settings, the 3D desktop build stops at the 3D package's publication. Not run: macOS and Windows builds, signing, notarisation, real devices | Linux: 100% (7 of 7 items); macOS and Windows: 0% (the Owner's machines and certificates) | [record](audits/2026-11-12-desktop-games/README.md), [proposed workflow](audits/2026-11-12-desktop-games/proposed-desktop.yml) |
