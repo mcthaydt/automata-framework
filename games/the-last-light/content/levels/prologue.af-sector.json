@@ -863,6 +863,16 @@
       "model": "models/clock.bin"
     },
     {
+      "id": "noticeboard",
+      "at": [3.3, -0.86, 1.5],
+      "kind": "noticeboard",
+      "with": {
+        "size": [1.7, 0.9],
+        "seed": 4,
+        "board": "ward-cork"
+      }
+    },
+    {
       "id": "nightstand",
       "at": [-3.12, -0.3],
       "use": "nightstand",

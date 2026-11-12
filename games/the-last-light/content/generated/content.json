@@ -6146,6 +6146,10 @@
     "WALK_SPEED": 3
   },
   "world-swatch": {
+    "ward-cork": {
+      "ramp": "wood",
+      "step": 1
+    },
     "ward-floor": {
       "accent": "ward-floor-warm",
       "ramp": "slate",

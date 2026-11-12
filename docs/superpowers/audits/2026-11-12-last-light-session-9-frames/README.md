@@ -99,3 +99,18 @@ Causes found, measured, in the order the coordinator listed them:
 | west wall (0 170 110 400) | 22.8 / 29.0 / 19.5 | 23.8 / 29.1 / 29.3 |
 
 (Isolated speckle: a field pixel, the 2 by 2 screen pixels averaged, that differs by more than 6 levels from the median of its four neighbours.)
+
+## Item 3: the walls
+
+`item3` strip: [`strip-item3-old-before-after.png`](strip-item3-old-before-after.png) (old, ours before this session, ours now); the east wall at 2x: [`item3-east-wall-zoom-old-above-ours-below.png`](item3-east-wall-zoom-old-above-ours-below.png).
+
+- **Flat slabs and the peach east wall: item 1's cause.** The plaster and the wainscot were flat colours (no tile file), and the plaster was the wrong colour (sand, where the old
+  plaster is sea-green). With the tiles made and the plaster sage step 1, the east wall's hue is 141 (old 149), the west wall's 172 (old 166); see item 1's table.
+- **The noticeboard was missing.** The old hall has a cork board, 1.7 by 0.9 m, centred at (3.3, 1.95) on the north wall with the day shift's note, a photograph and a drawing
+  pinned on (`dress.ts` line 126 and 153 at `92e6704`), and the objective's marker over it. The level had the hotspot and no board. The kit has a `noticeboard` preset (a framed
+  panel with three to six slips pinned on, by seed): the level now carries one at the old board's place and size, on a game swatch `ward-cork` (wood step 1; amber step 2, the cork's own colour,
+  drew bright orange under the sRGB light). Test first (`world.test.ts`, "the ward's noticeboard", watched failing: no piece).
+- **Not done: the tiled band.** The old hall's lower wall shows a row of tile with a light face and dark grout (the wainscot's `#ccc3b1` on `#625d54`). The wainscot is drawn now, but with no visible grid: the
+  kit's photographs that have a grid are brown floor tiles (`floorTiles`) and a concrete slab (`wallTiles`) with no deep joints, and the cream mosaic (`tiles`) has none. `floorTiles` read at the wainscot's 22 cm
+  keeps a one-texel grout at 32 texels a metre only at the floor's 30 cm. What the swatch system lacks: a cream glazed tile photograph with a dark joint, or a pattern kind for "tiles on grout"
+  (size, joint width, two tones, a lit top edge) that the world builder draws; the `pattern` field of a swatch is in the schema and read by nothing today.

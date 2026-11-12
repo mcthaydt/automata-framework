@@ -285,3 +285,31 @@ describe('the ward\u2019s lamps', () => {
       expect(lamp.strength).toBeCloseTo((old[i]?.strength ?? 0) * 0.7, 6)
   })
 })
+
+// The old hall's noticeboard (`dress.ts` at 92e6704: a cork box 1.7 by 0.9 at (3.3, 1.95, -0.84) on the north wall, the day shift's note and
+// a photograph pinned on it) is what the objective points at and the hotspot `noticeboard` reaches. Without a piece there the hotspot
+// named a bare wall.
+describe('the ward’s noticeboard', () => {
+  const pieces = WORLD.pieces.filter((piece) => piece.id.includes(':prop:noticeboard.'))
+  const bounds = (axis: number) => {
+    const values = pieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === axis))
+    return [Math.min(...values), Math.max(...values)] as const
+  }
+
+  it('hangs on the hall’s north wall where the hotspot is, as wide as the old board, with its slips pinned on', () => {
+    expect(pieces.length).toBeGreaterThan(0)
+    const [x0, x1] = bounds(0)
+    const [y0, y1] = bounds(1)
+    const [z0, z1] = bounds(2)
+    expect((x0 + x1) / 2).toBeCloseTo(3.3, 1)
+    expect(x1 - x0).toBeGreaterThan(1.6)
+    expect(x1 - x0).toBeLessThan(1.9)
+    // The hotspot is at 1.9 m, and the board holds it.
+    expect(y0).toBeLessThan(1.9)
+    expect(y1).toBeGreaterThan(1.9)
+    // Its back on the wall (z -0.875), its face into the hall.
+    expect(z0).toBeGreaterThan(-0.9)
+    expect(z1).toBeLessThan(-0.7)
+    expect(pieces.some((piece) => piece.id.endsWith('.slips'))).toBe(true)
+  })
+})
