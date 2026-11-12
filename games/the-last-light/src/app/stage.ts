@@ -136,7 +136,9 @@ export function sceneOf(options: StageOptions) {
       },
       pieces: (states) =>
         apply(
-          playing === 'lightsOut' ? { ...states, lamps: { ...pieceStatesOf(true).lamps, ...states.lamps } } : states,
+          playing === 'lightsOut'
+            ? { ...states, lamps: { ...pieceStatesOf(true).lamps, ...states.lamps } }
+            : states,
         ),
       actor: (who) => options.actors.get(who),
       fade: (value) => {
