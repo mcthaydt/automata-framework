@@ -27,7 +27,7 @@
     "knip": "knip --no-progress",
     "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm source-names && pnpm knip && pnpm test:unit && pnpm check:changesets",
     "check:changesets": "changeset status --since=origin/main && node tooling/release/src/check-changesets.ts",
-    "test:e2e": "turbo run test:e2e",
+    "test:e2e": "turbo run test:e2e --log-order stream",
     "test:frame-budget": "pnpm --filter @automata/frame-budget exec playwright test",
     "budget:frame": "node tooling/frame-budget/src/check-cli.ts",
     "build:demos": "pnpm --filter \"./examples/2d/*/*\" build",

@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, openRoom, test } from '../harness/fixtures.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
-import { runEditor } from '../harness/run-editor.ts'
+import { runEditorWithPlay } from '../harness/run-editor.ts'
 import { copyInstalledGame } from '../harness/temp-game.ts'
 
 // A story made in the editors is the story the game plays. The 2D story (a Hall and a Yard with a wall and a gap between
@@ -33,7 +33,7 @@ test('the keeper’s colour, his words, the cutscene and the guard are what the 
 }) => {
   test.setTimeout(120_000)
   const game = copyInstalledGame(STORY)
-  const editor = await runEditor(game.dir)
+  const editor = await runEditorWithPlay(game.dir)
   try {
     await openRoom(page, editor, 'Start')
 

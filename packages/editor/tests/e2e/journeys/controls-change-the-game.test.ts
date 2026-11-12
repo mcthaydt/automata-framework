@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { EMBERWICK, expect, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
+import { pressPlay } from '../harness/press-play.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
-import { runEditor } from '../harness/run-editor.ts'
+import { runEditorWithPlay } from '../harness/run-editor.ts'
 
 // A control added in the Tuner is a control the played game has. A new game is made, "J" is added to Left in the Tuner's
 // Controls section (the person presses the key themselves), saved by the editor, and the game's Play button opens it: held,
@@ -15,7 +16,7 @@ const SQUARE: readonly [number, number, number] = [0x22, 0xc5, 0x5e]
 test('a key added to Left in the Tuner moves the played game’s square left', async ({ page, context }) => {
   test.setTimeout(180_000)
   const game = await newGame(EMBERWICK)
-  const editor = await runEditor(game.dir)
+  const editor = await runEditorWithPlay(game.dir)
   try {
     await page.goto(editor.url)
     await page.getByRole('tab', { name: 'Tuner' }).click()
@@ -35,7 +36,7 @@ test('a key added to Left in the Tuner moves the played game’s square left', a
     ])
     const canvas = play.locator('#game canvas')
     await expect(canvas).toBeVisible({ timeout: 30_000 })
-    await play.getByRole('button', { name: /play/i }).first().click()
+    await pressPlay(play)
     await play.waitForTimeout(1500)
     const squareX = async (): Promise<number> => {
       const found = boxOf(readPng(await canvas.screenshot()), SQUARE)

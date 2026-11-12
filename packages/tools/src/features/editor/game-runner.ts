@@ -19,7 +19,9 @@ export const NOT_INSTALLED =
   'Your game’s packages are not installed. Run pnpm install in its folder, then start the editor again.'
 
 const READY_WITHIN_MS = 60_000
-const TAIL_CHARS = 2_000
+/** How much of the game's output is kept: its start, because Vite prints the cause first and a long stack after it. */
+const KEPT_CHARS = 4_000
+const CAUSE_CHARS = 300
 
 /**
  * The game's own `vite/bin/vite.js`, in its `node_modules` (a game lists Vite among its own packages); undefined when
@@ -29,6 +31,20 @@ const TAIL_CHARS = 2_000
 export function gameVite(root: string): string | undefined {
   const bin = join(root, 'node_modules/vite/bin/vite.js')
   return existsSync(bin) ? bin : undefined
+}
+
+/**
+ * The one line that says why the game stopped, in plain words: the message of the first error line (Vite prints
+ * "Error: Cannot find module 'x' imported from …" ahead of its stack), else the first line that is not a stack frame.
+ */
+export function whyItStopped(output: string): string {
+  const lines = output
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '')
+  const error = lines.find((line) => /^\w*Error: /.test(line))
+  const cause = error?.replace(/^\w*Error: /, '') ?? lines.find((line) => !line.startsWith('at ')) ?? ''
+  return cause.slice(0, CAUSE_CHARS).replace(/\.$/, '') || 'it printed nothing'
 }
 
 /** A port nothing listens on now, picked by the system. */
@@ -66,14 +82,17 @@ export async function startGame(root: string): Promise<RunningGame> {
   )
   let said = ''
   const listen = (chunk: Buffer) => {
-    said = (said + chunk.toString()).slice(-TAIL_CHARS)
+    said = (said + chunk.toString()).slice(0, KEPT_CHARS)
   }
   child.stdout?.on('data', listen)
   child.stderr?.on('data', listen)
   const url = `http://localhost:${port}/`
   const deadline = Date.now() + READY_WITHIN_MS
   for (;;) {
-    if (child.exitCode !== null) throw new Error(`Your game stopped before it started:\n${said.trim()}`)
+    if (child.exitCode !== null)
+      throw new Error(
+        `Your game stopped before it started: ${whyItStopped(said)}.\nFix that in the game, then start the editor again.`,
+      )
     if (
       await fetch(url).then(
         (response) => response.ok,

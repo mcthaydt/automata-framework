@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
+import { pressPlay } from '../harness/press-play.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
-import { runEditor } from '../harness/run-editor.ts'
+import { runEditorWithPlay } from '../harness/run-editor.ts'
 import { framesPng } from '../harness/tiles-picture.ts'
 
 // An animation made in Characters is what the played game shows moving. A new game is made, the player start is given a
@@ -22,7 +23,7 @@ const key = (color: readonly number[]): string => color.join(',')
 test('a clip made in Characters plays in the game, frame after frame', async ({ page, context }) => {
   test.setTimeout(180_000)
   const game = await newGame(EMBERWICK)
-  const editor = await runEditor(game.dir)
+  const editor = await runEditorWithPlay(game.dir)
   try {
     await openRoom(page, editor, 'Start')
     await page.getByRole('radio', { name: 'Characters' }).click()
@@ -55,7 +56,7 @@ test('a clip made in Characters plays in the game, frame after frame', async ({ 
     ])
     const canvas = play.locator('#game canvas')
     await expect(canvas).toBeVisible({ timeout: 30_000 })
-    await play.getByRole('button', { name: /play/i }).first().click()
+    await pressPlay(play)
 
     // Read the square's colour again and again: every reading is one frame's colour, and more than one frame shows.
     const seen = new Set<string>()

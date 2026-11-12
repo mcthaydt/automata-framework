@@ -58,4 +58,30 @@ describe('startGame', () => {
     await installFakeVite("console.error('vite.config.ts: something broke'); process.exit(1)")
     await expect(startGame(game)).rejects.toThrow(/Your game stopped before it started[\s\S]*something broke/)
   })
+
+  it('says the cause in one line and what to do, not a stack, when the game’s config cannot load', async () => {
+    // What Vite prints for a package it cannot find: the cause is the third line, and a long stack follows it.
+    const stack = Array.from(
+      { length: 40 },
+      (_, i) => `    at fetchModule (file:///node_modules/vite/chunk.js:${i}:1)`,
+    )
+    await installFakeVite(
+      `console.error(${JSON.stringify(
+        [
+          'failed to load config from /g/vite.config.ts',
+          'error when starting dev server:',
+          "Error: Cannot find module '@automata/audio-synth' imported from '/g/vite.config.ts'",
+          ...stack,
+        ].join('\n'),
+      )}); process.exit(1)`,
+    )
+    const message = await startGame(game).then(
+      () => '',
+      (error: Error) => error.message,
+    )
+    expect(message).toBe(
+      "Your game stopped before it started: Cannot find module '@automata/audio-synth' imported from '/g/vite.config.ts'.\n" +
+        'Fix that in the game, then start the editor again.',
+    )
+  })
 })
