@@ -57,7 +57,7 @@ describe('isLocalStack', () => {
   )
 })
 
-describe('publishBuild (M3 spec §4.8, X-b)', () => {
+describe('publishBuild', () => {
   it('uploads a build with @pixi/3d to Ruken’s local stack when asked for a private publish', () => {
     const { result, runs } = run({ api: 'http://localhost:5173', private: true })
     expect(result).toEqual(Either.right({ url: 'http://g.localhost:5173/b/1/' }))
@@ -70,9 +70,10 @@ describe('publishBuild (M3 spec §4.8, X-b)', () => {
     expect(runs).toEqual([])
   })
 
-  it('refuses a public publish of a build with @pixi/3d, and uploads nothing', () => {
-    const { result, runs } = run({ api: 'http://localhost:5173' })
-    expect(Either.isLeft(result) && result.left._tag).toBe('Pixi3dInPublicBuild')
-    expect(runs).toEqual([])
+  // Pixi 3D is public (npmjs.org, MIT): a public publish uploads a build that carries it, to any Ruken.
+  it('uploads a public publish of a build with @pixi/3d', () => {
+    const { result, runs } = run({ api: 'https://ruken.app' })
+    expect(result).toEqual(Either.right({ url: 'http://g.localhost:5173/b/1/' }))
+    expect(runs).toHaveLength(1)
   })
 })

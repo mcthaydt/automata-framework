@@ -27,6 +27,12 @@ describe('base-3d ship.config.ts', () => {
     sim.dispose()
   })
 
+  // Pixi 3D is public (npmjs.org, MIT), so base-3d is a public game: CI's prepare writes its ruken.toml, and its web
+  // and itch.io builds are prepared like Emberwick's.
+  it('is a public game, so prepare writes its ruken.toml', () => {
+    expect(config.audience ?? 'public').toBe('public')
+  })
+
   it('asks for no network and no eval', () => {
     expect(config.network.connect).toEqual([])
     expect(rukenToml(config)).toContain('allow_eval = false')

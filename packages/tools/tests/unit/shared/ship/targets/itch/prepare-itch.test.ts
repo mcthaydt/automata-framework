@@ -90,14 +90,18 @@ describe('prepareItch', () => {
     expect(zips(gameDir)).toEqual([])
   })
 
-  // X-b (M3 spec §4.8): an itch.io page is public, so the closed beta never goes there; nor do its extras (S7-g).
-  it.each([
-    ['View3D.screenToRay:degenerate', 'Pixi3dInPublicBuild'],
-    ['generateSpawnBurst', 'Pixi3dExtrasInBuild'],
-  ])('stops on a build carrying %j (%s), writing nothing', (marker, tag) => {
-    const { gameDir, distDir } = game({ ...goodBuild, 'assets/main.js': `"${marker}"` })
+  // Pixi 3D is public (npmjs.org, MIT), so a 3D game goes to itch.io like a 2D one; its extras never do (S7-g: they
+  // probe `new Function` at load).
+  it('zips a build that carries @pixi/3d', () => {
+    const { gameDir, distDir } = game({ ...goodBuild, 'assets/main.js': '"View3D.screenToRay:degenerate"' })
+    expect(Either.isRight(prepare({ distDir, config }))).toBe(true)
+    expect(zips(gameDir)).toHaveLength(1)
+  })
+
+  it('stops on a build carrying @pixi/3d/extras, writing nothing', () => {
+    const { gameDir, distDir } = game({ ...goodBuild, 'assets/main.js': '"generateSpawnBurst"' })
     const error = failure({ distDir, config })
-    expect(error._tag).toBe(tag)
+    expect(error._tag).toBe('Pixi3dExtrasInBuild')
     expect(error.message).toContain('assets/main.js')
     expect(zips(gameDir)).toEqual([])
   })

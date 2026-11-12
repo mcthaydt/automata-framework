@@ -155,7 +155,8 @@ describe('prepareBuild', () => {
     })
   })
 
-  // X-b and S7-g (M3 spec §4.8): the closed beta never reaches a public build, and its extras never reach any.
+  // Pixi 3D is public (npmjs.org, MIT), so a public build may carry it. Its `./extras` still never reaches any build
+  // (S7-g): its particle code probes `new Function` at load, which a no-eval CSP refuses.
   describe('@pixi/3d in the build', () => {
     const with3d = () => {
       const dir = dist()
@@ -163,43 +164,31 @@ describe('prepareBuild', () => {
       return dir
     }
 
-    it('stops a public build that contains @pixi/3d, saying why and where it may go, writing nothing', () => {
+    it('prepares a public build that contains @pixi/3d, writing ruken.toml', () => {
       const dir = with3d()
-      const error = failure(prepare({ distDir: dir, config }))
-      expect(error._tag).toBe('Pixi3dInPublicBuild')
-      const message = (error as unknown as { message: string }).message
-      expect(message).toContain('assets/main.js')
-      expect(message).toContain('may not be shipped publicly yet')
-      expect(message).not.toContain('D-1')
-      expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+      expect(Effect.runSync(prepare({ distDir: dir, config })).manifestPath).toBe(join(dir, 'ruken.toml'))
+      expect(existsSync(join(dir, 'ruken.toml'))).toBe(true)
     })
 
-    it('prepares a private build (Ruken’s local stack) that contains @pixi/3d', () => {
-      const dir = with3d()
-      expect(Effect.runSync(prepare({ distDir: dir, config, audience: 'private' })).manifestPath).toBe(
-        join(dir, 'ruken.toml'),
-      )
-    })
-
-    // CI's `prepare` of a game whose ship config says `audience: 'private'` (base-3d until Pixi 3D's public
-    // release): every check runs, but no ruken.toml is written, so a raw `ruken publish` of the folder has no
+    // CI's `prepare` of a game whose ship config says `audience: 'private'` (one its author keeps off the store): every
+    // check runs, but no ruken.toml is written, so a raw `ruken publish` of the folder has no
     // manifest to upload (the review of #241 refused a private prepare that wrote one).
     it('checks a private build without writing ruken.toml (checkBuild)', () => {
       const dir = with3d()
-      expect(Effect.runSync(check({ distDir: dir, config, audience: 'private' })).toml).toContain('[game]')
+      expect(Effect.runSync(check({ distDir: dir, config })).toml).toContain('[game]')
       expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
     })
 
     it('still refuses what Ruken refuses when it writes nothing', () => {
       const dir = with3d()
       const bad = { ...config, content: { ...config.content, languages: ['fr'] } }
-      expect(failure(check({ distDir: dir, config: bad, audience: 'private' }))._tag).toBe('ManifestInvalid')
+      expect(failure(check({ distDir: dir, config: bad }))._tag).toBe('ManifestInvalid')
     })
 
-    it('stops any build that contains @pixi/3d/extras, private too', () => {
+    it('stops a build that contains @pixi/3d/extras', () => {
       const dir = dist()
       writeFileSync(join(dir, 'assets/main.js'), 'const s = "ctx.packedFrames"')
-      const error = failure(prepare({ distDir: dir, config, audience: 'private' }))
+      const error = failure(prepare({ distDir: dir, config }))
       expect(error._tag).toBe('Pixi3dExtrasInBuild')
       expect((error as unknown as { message: string }).message).toContain('assets/main.js')
     })

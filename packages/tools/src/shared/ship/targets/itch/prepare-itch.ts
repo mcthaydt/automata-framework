@@ -6,7 +6,6 @@ import {
   ItchBuildInvalid,
   type ItchCheck,
   type Pixi3dExtrasInBuild,
-  type Pixi3dInPublicBuild,
   RootAbsoluteReference,
   type SecretInBuild,
   type VersionMismatch,
@@ -39,14 +38,13 @@ export type PrepareItchError =
   | VersionMismatch
   | RootAbsoluteReference
   | SecretInBuild
-  | Pixi3dInPublicBuild
   | Pixi3dExtrasInBuild
   | ItchBuildInvalid
   | FileError
 
 /**
  * Makes a built folder ready for itch.io: the tag, root-absolute paths, secrets (a page on
- * itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d`, `index.html`, itch.io's
+ * itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d/extras`, `index.html`, itch.io's
  * limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops
  * prepare before anything is written. Then `<id>-<version>-itch.zip` is written beside the build folder (not in
  * it, so `butler push <dist>` never uploads it), for a manual upload; butler pushes the folder itself.
@@ -62,7 +60,7 @@ export function prepareItch(input: PrepareItchInput): Effect.Effect<{ zipPath: s
     const references = yield* tryFile(distDir, () => findRootAbsoluteReferences(distDir))
     if (references.length > 0) return yield* new RootAbsoluteReference({ references })
 
-    // An itch.io page is public, so the build is scanned as Ruken's is: no secret, and not the closed beta (X-b).
+    // An itch.io page is public, so the build is scanned as Ruken's is: no secret, and not Pixi 3D's extras.
     yield* scanBuild({ distDir, gameDir })
 
     const files = yield* tryFile(distDir, () => buildFiles(distDir))

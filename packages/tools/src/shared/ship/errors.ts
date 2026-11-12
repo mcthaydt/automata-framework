@@ -56,26 +56,12 @@ export class SecretInBuild extends SecretInBuildBase {
   }
 }
 
-const Pixi3dInPublicBuildBase: TaggedErrorClass<
-  'Pixi3dInPublicBuild',
-  {
-    readonly found: readonly Pixi3dFound[]
-  }
-> = Data.TaggedError('Pixi3dInPublicBuild')
-/** A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta. */
-export class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
-  override get message(): string {
-    const listed = this.found.map((found) => `${found.file}: "${found.marker}"`).join('\n')
-    return `the build contains @pixi/3d, a closed beta that may not be shipped publicly yet. Ship it only to Ruken's local stack (publish --private, with RUKEN_API on localhost):\n${listed}`
-  }
-}
-
 const PrivatePublishNotLocalBase: TaggedErrorClass<'PrivatePublishNotLocal', { readonly api: string }> =
   Data.TaggedError('PrivatePublishNotLocal')
-/** `publish --private` named a Ruken that is not the local stack: a private build stays local. */
+/** `publish --private` named a Ruken that is not the local stack: a private build is one its author keeps local. */
 export class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
   override get message(): string {
-    return `publish --private uploads only to Ruken's local stack (RUKEN_API on localhost, a .localhost name or a loopback address), not ${this.api}: a private build may contain @pixi/3d, a closed beta`
+    return `publish --private uploads only to Ruken's local stack (RUKEN_API on localhost, a .localhost name or a loopback address), not ${this.api}: a private build stays on this machine`
   }
 }
 

@@ -1,10 +1,11 @@
-// The closed-beta guard. `@pixi/3d` 0.1.0-beta.3 is a closed beta whose terms allow no
-// public deployment, and its `./extras` entry probes `new Function` at load, a CSP violation under
-// Ruken. A build is read for strings that survive minification (checked against Vite's minified builds of the
-// vendored tarball by packages/3d's pixi3d-bundle.test.ts): error and warning ids from @pixi/3d's main
-// entry, and for `./extras` the spawn code generator's own source strings (S7 found the name `generateSpawnBurst`
-// can be renamed by a minifier; the spike's guard, spikes/s7-pixi3d/src/bundle/extras-guard.ts at 86a5298).
-// When Pixi 3D is public, the core markers' check goes (the AF 1.0 launch task); the extras check stays.
+// Finds Pixi 3D in a build. `@pixi/3d` is public (npmjs.org, MIT), so a game's build may carry it; its `./extras` entry
+// may not, because it probes `new Function` at load, a CSP violation under Ruken (S7-g). The main entry's markers are
+// still read: the build of `-tools` keeps the 3D runtime out of the published package, and packages/3d's bundle test
+// checks that the main entry and `./extras` land where they should. A build is read for strings that survive
+// minification (checked against Vite's minified builds of `@pixi/3d` by packages/3d's pixi3d-bundle.test.ts): error and
+// warning ids from the main entry, and for `./extras` the spawn code generator's own source strings (S7 found the name
+// `generateSpawnBurst` can be renamed by a minifier; the spike's guard, spikes/s7-pixi3d/src/bundle/extras-guard.ts at
+// 86a5298).
 
 import { readFileSync } from 'node:fs'
 import { relative, sep } from 'node:path'

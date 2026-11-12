@@ -6,7 +6,8 @@ import { PIXI3D_EXTRAS_MARKERS, PIXI3D_MARKERS } from '#src/shared/ship/prepare/
 import { copyEditor } from '../../../scripts/copy-editor.ts'
 
 // The build of `-tools` copies the suite's 2D page (the editor package's only page) into `dist/editors/suite`, after the
-// closed-beta scan has read it: the published package must never carry the private Pixi 3D beta.
+// Pixi 3D scan has read it: the 3D editors and runtime are not part of the published package (which 3D packages are
+// published is the Owner's decision).
 
 const made: string[] = []
 
@@ -53,11 +54,11 @@ describe('copyEditor', () => {
   })
 
   it.each([PIXI3D_MARKERS[0], PIXI3D_EXTRAS_MARKERS[0]])(
-    'refuses a suite build that holds the private Pixi 3D beta, naming the file, and copies nothing (%s)',
+    'refuses a suite build that holds Pixi 3D, naming the file, and copies nothing (%s)',
     (marker) => {
       const { editorDist, outDir } = folders({ 'suite/assets/leak.js': `var a = "${marker}"` })
       expect(() => copyEditor(editorDist, outDir)).toThrow(
-        'This build contains the private Pixi 3D beta (suite/assets/leak.js). It cannot be published.',
+        'This build contains Pixi 3D (suite/assets/leak.js), and the 3D editors are not part of @automata/tools.',
       )
       expect(() => readFileSync(join(outDir, 'editors/suite/index.html'))).toThrow()
     },

@@ -116,7 +116,7 @@ function shipItch({ config, distDir, command }: ShipRun): ShipResult {
 function shipRuken({ config, distDir, command }: ShipRun): ShipResult {
   if (command.command === 'prepare') {
     const mode = prepareMode(config)
-    const input = { distDir, gameDir: cwd, config, tag: command.tag, audience: mode.audience }
+    const input = { distDir, gameDir: cwd, config, tag: command.tag }
     const done = mode.writeManifest
       ? Effect.map(prepareBuild(input), (result) => `wrote ${result.manifestPath}`)
       : Effect.as(

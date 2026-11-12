@@ -8,7 +8,6 @@ import type { ShipConfig } from '../../config/ship-config.ts'
 import {
   EntryMissing,
   type Pixi3dExtrasInBuild,
-  type Pixi3dInPublicBuild,
   RootAbsoluteReference,
   type SecretInBuild,
   type VersionMismatch,
@@ -34,7 +33,6 @@ export type PrepareWebError =
   | VersionMismatch
   | RootAbsoluteReference
   | SecretInBuild
-  | Pixi3dInPublicBuild
   | Pixi3dExtrasInBuild
   | EntryMissing
   | WebBuildInvalid
@@ -42,8 +40,8 @@ export type PrepareWebError =
 
 /**
  * Checks a built folder before it goes on any static host. The web target has nothing to package, so this is the
- * checks every public target runs and nothing else: the tag, the entry page, root-absolute paths, secrets, the
- * closed Pixi 3D beta, then the two scans of the bundle that `automata check` makes (no eval, no assets inlined as
+ * checks every public target runs and nothing else: the tag, the entry page, root-absolute paths, secrets, Pixi
+ * 3D's extras, then the two scans of the bundle that `automata check` makes (no eval, no assets inlined as
  * `data:` URLs). The first that fails stops it, and the folder is never changed.
  */
 export function prepareWeb(input: PrepareWebInput): Effect.Effect<{ files: number }, PrepareWebError> {
@@ -59,7 +57,7 @@ export function prepareWeb(input: PrepareWebInput): Effect.Effect<{ files: numbe
     const references = yield* tryFile(distDir, () => findRootAbsoluteReferences(distDir))
     if (references.length > 0) return yield* new RootAbsoluteReference({ references })
 
-    // A web page is public: secrets and the closed Pixi 3D beta never go there.
+    // A web page is public: secrets and Pixi 3D's extras never go there.
     yield* scanBuild({ distDir, gameDir })
 
     const scripts = files.filter((name) => name.endsWith('.js'))

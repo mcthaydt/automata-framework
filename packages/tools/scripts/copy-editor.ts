@@ -1,7 +1,8 @@
 // Part of `-tools`' build: puts the suite's 2D page (the level editor beside the Tuner) inside the package, so
 // `automata editor` opens it from `dist/editors/suite` with nothing else to install. Before the copy it reads the build
-// for the private Pixi 3D beta, the one scan `ship prepare` runs (the editor's own build cannot run it: `-tools` depends
-// on the editor, not the other way round). The full page, with the 3D editors, is not copied: it waits for the 3D slice.
+// for Pixi 3D with the same scan `ship prepare` runs (the editor's own build cannot run it: `-tools` depends on the
+// editor, not the other way round): the 3D editors and runtime are not published yet, so the 2D page must not carry
+// them. The full page, with the 3D editors, is not copied: it waits for the Owner's decision to publish 3D.
 import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,7 +10,7 @@ import { findPixi3d } from '../src/shared/ship/prepare/pixi3d-markers.ts'
 
 /**
  * Copies `<editorDist>/suite` to `<outDir>/editors/suite`, replacing an earlier copy.
- * Throws, copying nothing, when the build holds the Pixi 3D beta or there is no build.
+ * Throws, copying nothing, when the build holds Pixi 3D or there is no build.
  */
 export function copyEditor(editorDist: string, outDir: string): void {
   const source = join(editorDist, 'suite')
@@ -19,7 +20,7 @@ export function copyEditor(editorDist: string, outDir: string): void {
   const found = core[0] ?? extras[0]
   if (found !== undefined)
     throw new Error(
-      `This build contains the private Pixi 3D beta (suite/${found.file}). It cannot be published.`,
+      `This build contains Pixi 3D (suite/${found.file}), and the 3D editors are not part of @automata/tools.`,
     )
   const target = join(outDir, 'editors', 'suite')
   rmSync(target, { recursive: true, force: true })

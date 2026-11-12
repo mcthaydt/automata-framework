@@ -11,8 +11,8 @@ export interface PublishBuildInput extends PublishInput {
   readonly config: ShipConfig
   readonly tag?: string | undefined
   /**
-   * A private upload, to Ruken's local stack only: the build may contain `@pixi/3d`, a closed beta
-   * whose terms allow no public deployment. Refused unless `api` is a loopback or `.localhost` host.
+   * A private upload, to Ruken's local stack only: a build its author keeps on this machine. Refused unless `api` is a
+   * loopback or `.localhost` host.
    */
   readonly private?: boolean | undefined
 }
@@ -34,10 +34,8 @@ export function isLocalStack(api: string): boolean {
 }
 
 /**
- * `ship publish` for Ruken: prepare the build, then hand it to Ruken's own CLI. A public publish
- * (the default) refuses a build that contains `@pixi/3d`. A private one prepares with the closed beta allowed
- * and uploads only to Ruken's local stack, checked before anything is prepared, so the beta never reaches a public
- * Ruken through ship.
+ * `ship publish` for Ruken: prepare the build, then hand it to Ruken's own CLI. A private publish uploads only to
+ * Ruken's local stack, checked before anything is prepared.
  */
 export function publishBuild(
   input: PublishBuildInput,
@@ -54,7 +52,6 @@ export function publishBuild(
       gameDir: input.cwd,
       config: input.config,
       tag: input.tag,
-      audience: input.private === true ? 'private' : 'public',
     })
     return yield* publishToRuken(input)
   })
