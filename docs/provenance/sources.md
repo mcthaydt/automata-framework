@@ -381,7 +381,10 @@ purpose: its `vendor/FigureBuilder` submodule (its door, `src/lib/figure.ts`, be
 both `docs/superpowers/` folders and the review tooling.
 
 Pull again: clone the builder, `git diff f7c5356..<new> -- <the rows' source paths>`, port each hunk (tests first), add
-a row for every new file, run `pnpm sources-md`, and record the new commit here and in the manifest.
+a row for every new file, and record the new commit here and in the manifest. Nothing writes the manifest: set its
+`environment.commit` to the new commit and its `environment.files` to `git -C <clone> ls-tree -r --name-only <new>`
+(the command that gives both the 214 files of `6d82a52` and the 282 of `f7c5356`). Then `pnpm sources-md --complete`,
+which only checks: every file has a row and every AF file a row names exists.
 
 | Source file | AF file | How |
 | --- | --- | --- |
