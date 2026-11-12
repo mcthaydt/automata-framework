@@ -13,6 +13,14 @@ export {
   texelsOfSwatch,
 } from '../testing/painted-cell.ts'
 export {
+  bald,
+  type Proportions,
+  proportions,
+  proportionsOfCells,
+  type RiggedHeights,
+  riggedHeights,
+} from '../testing/proportions.ts'
+export {
   blit,
   crop,
   decodePng,
