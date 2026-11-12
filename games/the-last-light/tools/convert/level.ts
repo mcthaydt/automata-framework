@@ -192,7 +192,9 @@ function propsOf(models: readonly PlacedModel[], report: Unexpressed[]): Json[] 
         did: 'approximated',
       })
     }
-    if (model.yaw !== undefined && model.yaw !== 0) prop.angle = Math.round((model.yaw * 180) / Math.PI)
+    // The old yaw turns a model about y (0 faces south); the level's angle is degrees clockwise from east, 90 facing south, and the
+    // builder turns a prop by `90 - angle`, so the same turn is an angle of `90 - yaw`.
+    if (model.yaw !== undefined && model.yaw !== 0) prop.angle = 90 - Math.round((model.yaw * 180) / Math.PI)
     return prop
   })
 }

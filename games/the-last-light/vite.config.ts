@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import { worldSwatchContent } from '@automata/3d/world-content'
 import { audioContent } from '@automata/audio-synth'
 import { automataContent } from '@automata/content/vite'
 import { cutsceneContent } from '@automata/cutscenes/content'
@@ -18,6 +19,7 @@ import { carriedLightContent, peekContent } from '@automata/systems/sim'
 import { creditsContent } from '@automata/ui-screens/content'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
+import { lightsOutContent } from './src/features/lamp/lights-out.content.ts'
 
 // Each build holds one target's host adapter (`vite build --mode <target>`), picked through the package condition;
 // any other mode (plain `vite` while developing) gets the web adapter, the default. The targets are peers (ADR 0006).
@@ -54,6 +56,10 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
       audioContent,
       feelContent,
       creditsContent,
+      // The lamps' levels once the lights have gone: the picture's, not the sim's.
+      lightsOutContent,
+      // The game's own swatches, beside the world kit's: the clinic's plaster.
+      worldSwatchContent,
     ],
   })
 }

@@ -714,6 +714,25 @@ declare module 'virtual:automata/content' {
     })[]
   }
 
+  export type LightsOut = {
+    readonly levels: Readonly<Record<string, number>>
+  }
+
+  export type WorldSwatchId = 'ward-plaster'
+  export type WorldSwatch = {
+    readonly about?: string
+    readonly accent?: string
+    readonly emit?: boolean
+    readonly flat?: boolean
+    readonly gloss?: number
+    readonly interior?: boolean
+    readonly noCast?: boolean
+    readonly pattern?: Readonly<Record<string, unknown /* world-swatch.pattern has no JSON form */>>
+    readonly ramp: 'grey' | 'sand' | 'skin' | 'sea' | 'flame' | 'dusk' | 'moss' | 'sky' | 'pine' | 'rose' | 'slate' | 'clay' | 'mud' | 'plum' | 'teal' | 'wood' | 'wine' | 'indigo' | 'cherry' | 'rust' | 'olive' | 'amber' | 'mauve' | 'forest' | 'brick' | 'sage' | 'ocean' | 'dawn' | 'violet' | 'navy' | 'blush' | 'ember'
+    readonly step: number
+    readonly texture?: Readonly<Record<string, unknown /* world-swatch.texture has no JSON form */>>
+  }
+
   export type ScreenId = never
   export type FlowEvent = never
   export type TuningName = 'WALK_SPEED'
@@ -734,6 +753,8 @@ declare module 'virtual:automata/content' {
     readonly audio: Readonly<Record<AudioId, Audio>>
     readonly feel: Readonly<Record<FeelId, Feel>>
     readonly credits: Readonly<Record<CreditsId, Credits>>
+    readonly 'lights-out': LightsOut
+    readonly 'world-swatch': Readonly<Record<WorldSwatchId, WorldSwatch>>
     readonly tuning: Readonly<Record<TuningName, number | boolean | string>>
     readonly palette: Palette
   }

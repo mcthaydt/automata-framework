@@ -1,0 +1,14 @@
+# `ward-plaster`: the clinic's walls. They stand for the old game's `plaster` (public/art/plaster.png at 92e6704, a mean colour of
+# #858667, a khaki grey). The kit's `plasterPaint` is a mint green (#8ac196, a luma of 170 against 131) and its `plasterWarm` a
+# pale sand; the palette has no olive, so this is the nearest ramp step to the old plaster (DUEL ramp sand, step 1: #857565),
+# with the kit's plaster photograph and wear. The gap is the colour's: an olive-khaki is not a step of any DUEL ramp.
+ramp = "sand"
+step = 1
+accent = "stainBrown"
+
+[texture]
+photo = "plaster"
+contrast = 0.005
+cluster = 10
+wear = 0.15
+seed = 1

@@ -85,6 +85,8 @@ const BLOCKOUT = {
 const MODELS: readonly PlacedModel[] = [
   { file: 'bed', x: -4.1, z: 0.4, size: [1.05, 0.95, 2.05], collider: 'bed' },
   { file: 'coat-hook', x: 2.35, z: -0.7, y: 0.92, size: [0.51, 1.15, 0.24] },
+  { file: 'wall-tv', x: -4.5, z: -1.7, y: 1.8, yaw: Math.PI / 2, size: [0.69, 0.55, 0.45] },
+  { file: 'key-cabinet', x: 4.7, z: 3.6, y: 1.12, yaw: -Math.PI / 2, size: [0.31, 0.75, 0.6] },
 ]
 
 function converted() {
@@ -202,6 +204,14 @@ describe('convertLevel', () => {
     expect(report).toContainEqual(
       expect.objectContaining({ kind: 'prop', where: 'coat-hook', did: 'approximated' }),
     )
+  })
+
+  it('turns a model as the old game did: its yaw is a turn about y, and the level\u2019s angle is clockwise from east (90 faces south)', () => {
+    const props = converted().json.props as { id: string; angle?: number }[]
+    // A quarter turn faces east (angle 0), a quarter the other way faces west (180), and no yaw faces south (the default).
+    expect(props.find((prop) => prop.id === 'wall-tv')?.angle).toBe(0)
+    expect(props.find((prop) => prop.id === 'key-cabinet')?.angle).toBe(180)
+    expect(props.find((prop) => prop.id === 'bed')?.angle).toBeUndefined()
   })
 
   it('is the same text twice', () => {

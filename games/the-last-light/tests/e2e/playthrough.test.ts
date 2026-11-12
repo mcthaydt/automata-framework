@@ -34,6 +34,9 @@ test('the prologue plays to its end through the page, and the credits come up', 
 })
 
 test('a second night, from a fresh page, ends in the same state', async ({ page }) => {
+  // Two nights in one test: the config's timeout is for one (a night takes 8 to 9 minutes in a software renderer), so this one gets
+  // twice that, with room for the slower frames of a lit, painted room.
+  test.setTimeout(2 * 15 * 60_000)
   const errors = collectErrors(page)
   const first = await night(page)
   const second = await (async () => {

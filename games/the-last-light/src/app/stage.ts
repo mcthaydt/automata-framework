@@ -12,7 +12,7 @@ import type { SimContext } from '@automata/sim'
 import { peekOf } from '@automata/systems/sim'
 import type { Camera3D, Container3D, View3D } from '@pixi/3d'
 import { Graphics } from 'pixi.js'
-import { LIT_UNTIL_LIGHTS_OUT } from '../features/lamp/lamp.system.ts'
+import { lightsOutSchema, lightsOutStates } from '../features/lamp/lights-out.content.ts'
 import { centreOf, LEVEL, PAINT, WORLD } from '../features/room/room.ts'
 import type { Actors } from '../features/stand-in/stand-in.ts'
 import { TICK_HZ } from '../shared/constants.ts'
@@ -31,12 +31,12 @@ import { noteEvents, resetScreen } from './screen-state.ts'
 
 const feelTable = feelSchema.parse((content as unknown as { feel?: { feel?: unknown } }).feel?.feel ?? {})
 
-/** What a lamp of the level is at: out once the lights go, otherwise as the level lit it. */
+/** The levels the lamps burn at once the lights have gone (`content/lights-out.toml`). */
+const lightsOutFile = lightsOutSchema.parse(content['lights-out'])
+
+/** What a lamp of the level is at: dimmed as the old game dims them once the lights go, otherwise as the level lit it. */
 function pieceStatesOf(lightsOut: boolean): PieceStates {
-  if (!lightsOut) return noPieceStates()
-  const lamps: Record<string, { level: number }> = {}
-  for (const id of LIT_UNTIL_LIGHTS_OUT) lamps[id] = { level: 0 }
-  return { ...noPieceStates(), lamps }
+  return lightsOut ? lightsOutStates(lightsOutFile, WORLD.lamps) : noPieceStates()
 }
 
 /** Whether the lights have gone, by the puzzle's own fact. */

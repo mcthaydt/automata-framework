@@ -1,3 +1,4 @@
+import { content } from 'virtual:automata/content'
 import {
   buildWorld,
   DEFAULT_LOOK,
@@ -5,6 +6,7 @@ import {
   swatchGlow,
   timeOfDay,
   type World,
+  type WorldLibrary,
   worldLighting,
 } from '@automata/3d'
 import { type AfSector2, readLevel } from '@automata/3d/level'
@@ -18,8 +20,14 @@ import levelFile from '../../../content/levels/prologue.af-sector.json' with { t
 /** The level, as the 3D level editor wrote it. */
 export const LEVEL: AfSector2 = readLevel(levelFile).level
 
+/** The kit's swatches and props, and the game's own swatches (`content/world-swatches`): the clinic's plaster is not a step of the kit's. */
+export const LIBRARY: WorldLibrary = {
+  ...worldKitLibrary,
+  swatches: { ...worldKitLibrary.swatches, ...content['world-swatch'] },
+}
+
 /** The level built into pieces and lamps; a problem is a sentence, never a crash (the rest still draws). */
-export const WORLD: World = buildWorld(LEVEL, worldKitLibrary)
+export const WORLD: World = buildWorld(LEVEL, LIBRARY)
 
 /** The ward is a night room lit by its lamps. */
 export const TIME = timeOfDay('lampLit')
@@ -29,9 +37,9 @@ export const LIGHTING = worldLighting(WORLD, TIME, { night: true })
 
 /** What the world builder needs to colour and light a piece: the kit's swatches, their glow and their photo tiles. */
 export const PAINT = {
-  colourOf: (swatch: string) => swatchColour(worldKitLibrary, swatch),
-  glow: (swatch: string) => swatchGlow(worldKitLibrary, swatch),
-  tiles: albedoTiles(worldKitLibrary.swatches as Parameters<typeof albedoTiles>[0]),
+  colourOf: (swatch: string) => swatchColour(LIBRARY, swatch),
+  glow: (swatch: string) => swatchGlow(LIBRARY, swatch),
+  tiles: albedoTiles(LIBRARY.swatches as Parameters<typeof albedoTiles>[0]),
   look: DEFAULT_LOOK,
 } as const
 

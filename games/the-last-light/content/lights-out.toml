@@ -1,0 +1,10 @@
+# How the room's lamps burn once the lights have gone. The old game does not black the room: at lights out its dress sets the
+# hall's pendant to 0.1, the ward's to 0.12, keeps the exit lamp at 0.95 (the flicker at its mean) and puts the desk lamp out.
+# The corridor's bulb, already dead, is 0.3 of the 0.12 it had. A lamp not named here burns as the level lit it. Numbers are the
+# level a lamp burns at (the level file's `level` is what it burns at when the night begins). Nothing here changes the sim.
+[levels]
+deskLamp = 0
+hallLamp = 0.1
+wardLamp = 0.12
+exitLamp = 0.95
+corridorLamp = 0.036

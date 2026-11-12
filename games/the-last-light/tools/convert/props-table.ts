@@ -19,7 +19,13 @@ export interface PlacedModel {
   readonly collider?: string | undefined
 }
 
-/** The generator (a library preset of the same name) for a model, or undefined when none draws it. */
+/**
+ * The generator (a library preset of the same name) for a model, or undefined when none draws it. This is what the converter
+ * wrote once. The level file is the game's source now and has since been dressed by hand: where a name below is a generator
+ * and not a preset the library has (`bed`, `cabinet`, `chair`, `screen`, `lamp`, `plant`, `table`...) the level names the kit's
+ * preset or the generator with its settings (`use` and `with`), and two models no kit prop is (a chair on its side, a folding
+ * screen) are left out of it.
+ */
 export const GENERATOR_OF: Readonly<Record<string, string>> = {
   bed: 'bed',
   wheelchair: 'wheelchair',

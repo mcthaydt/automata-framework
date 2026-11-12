@@ -3059,6 +3059,15 @@
       ]
     }
   },
+  "lights-out": {
+    "levels": {
+      "corridorLamp": 0.036,
+      "deskLamp": 0,
+      "exitLamp": 0.95,
+      "hallLamp": 0.1,
+      "wardLamp": 0.12
+    }
+  },
   "lines": {
     "prologue": {
       "lines": [
@@ -6047,5 +6056,19 @@
   },
   "tuning": {
     "WALK_SPEED": 3
+  },
+  "world-swatch": {
+    "ward-plaster": {
+      "accent": "stainBrown",
+      "ramp": "sand",
+      "step": 1,
+      "texture": {
+        "cluster": 10,
+        "contrast": 0.005,
+        "photo": "plaster",
+        "seed": 1,
+        "wear": 0.15
+      }
+    }
   }
 }
