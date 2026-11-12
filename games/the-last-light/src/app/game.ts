@@ -28,6 +28,7 @@ import { playControls, playHud } from './play.extension.ts'
 import { createRuntime, navigation } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
 import { sceneOf } from './stage.ts'
+import { cameraTurnUnits, moveFromStick } from './touch-controls.ts'
 import { lineOf, SCRIPTS, wordsOf } from './words.ts'
 
 const PLAY = playOf(content)
@@ -56,12 +57,14 @@ const MOVE = keys(
     KeyD: { x: STICK_MAX },
     ArrowRight: { x: STICK_MAX },
   },
-  { idle: { x: 0, y: 0 } },
+  // The thumb has a floating stick, not eight key buttons.
+  { idle: { x: 0, y: 0 }, touch: false, analog: { touchStick: true, read: moveFromStick } },
 )
 const TURN = keys(
   CameraTurn,
   { KeyQ: { units: -KEY_TURN }, KeyE: { units: KEY_TURN } },
-  { idle: { units: 0 } },
+  // A swipe on the scene turns the camera, as it did in the old game; Q and E are the keyboard's.
+  { idle: { units: 0 }, touch: false, analog: { drag: true, read: cameraTurnUnits } },
 )
 
 /** The picture: the old game's, the window's shape capped at 640 by 480 (640 by 360 in a 16:9 window). */
