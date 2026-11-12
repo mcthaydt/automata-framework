@@ -2545,7 +2545,7 @@ export function paint(
     for (let y = 0; y < h; y++)
       for (let x = 0; x < w; x++) {
         const k = y * w + x
-        if (score[k] !== score[k]) continue
+        if (Number.isNaN(score[k])) continue
         const ownPart = part[owner[k]]
         let s = 0,
           c = 0
@@ -2559,7 +2559,7 @@ export function paint(
               yy >= 0 &&
               xx < w &&
               yy < h &&
-              score[q] === score[q] &&
+              !Number.isNaN(score[q]) &&
               part[owner[q]] === ownPart
             ) {
               s += score[q]
@@ -2572,7 +2572,7 @@ export function paint(
     // Runs: a short run of line between ink (or of ink between line) along one shape's contour takes the other.
     const runSeen = new Uint8Array(n)
     for (let s0 = 0; s0 < n; s0++) {
-      if (runSeen[s0] || along[s0] !== along[s0]) continue
+      if (runSeen[s0] || Number.isNaN(along[s0])) continue
       const t0 = tone[s0],
         ownPart = part[owner[s0]]
       run.length = 0
@@ -2595,7 +2595,7 @@ export function paint(
               yy < 0 ||
               xx >= w ||
               yy >= h ||
-              along[q] !== along[q] ||
+              Number.isNaN(along[q]) ||
               part[owner[q]] !== ownPart ||
               !outlined(q)
             )
