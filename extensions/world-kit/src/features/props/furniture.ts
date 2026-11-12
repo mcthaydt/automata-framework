@@ -16,7 +16,7 @@ import {
   rbox,
   rod,
   stream,
-} from '@automata/3d/props-kit'
+} from '@automataframework/3d/props-kit'
 import { CORNERS } from '../../shared/piece-helpers.ts'
 import { turnX, turnY } from '../../shared/turn.ts'
 

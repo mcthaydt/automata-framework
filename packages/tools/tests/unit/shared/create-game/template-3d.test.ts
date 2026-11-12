@@ -107,7 +107,9 @@ describe('the new 3D game’s files', () => {
 
   it('keeps the sim free of the renderer, so its tests need no browser', () => {
     for (const file of files.filter((each) => /^src\/features\/(wick|room)\/(?!\w+\.view)/.test(each)))
-      expect(read(file), file).not.toMatch(/from '@automata\/framework'|from '@automata\/3d'|pixi/)
+      expect(read(file), file).not.toMatch(
+        /from '@automataframework\/framework'|from '@automataframework\/3d'|pixi/,
+      )
   })
 })
 
@@ -122,10 +124,10 @@ describe('the new 3D game’s project', () => {
   it('depends on the 3D package and Pixi 3D as well as the framework', () => {
     const { dependencies } = manifest()
     for (const name of [
-      '@automata/framework',
-      '@automata/3d',
-      '@automata/content',
-      '@automata/sim',
+      '@automataframework/framework',
+      '@automataframework/3d',
+      '@automataframework/content',
+      '@automataframework/sim',
       '@pixi/3d',
     ])
       expect(dependencies[name], name).toBeDefined()
@@ -139,8 +141,8 @@ describe('the new 3D game’s project', () => {
 
   it('compiles the figures, swatches and props with the 3D content kinds', () => {
     const config = read('vite.config.ts')
-    expect(config).toContain("from '@automata/3d/figures'")
-    expect(config).toContain("from '@automata/3d/world-content'")
+    expect(config).toContain("from '@automataframework/3d/figures'")
+    expect(config).toContain("from '@automataframework/3d/world-content'")
     expect(config).toContain('figuresExtension.content')
     expect(config).toContain('worldSwatchContent')
     expect(config).toContain('worldPropContent')
@@ -155,8 +157,10 @@ describe('the new 3D game’s project', () => {
 
   it('starts the game from main.ts, with the 3D no-eval entry first', () => {
     const main = read('src/main.ts')
-    expect(main.indexOf("import '@automata/3d/no-eval'")).toBeGreaterThan(-1)
-    expect(main.indexOf("import '@automata/3d/no-eval'")).toBeLessThan(main.indexOf("from './app/game.ts'"))
+    expect(main.indexOf("import '@automataframework/3d/no-eval'")).toBeGreaterThan(-1)
+    expect(main.indexOf("import '@automataframework/3d/no-eval'")).toBeLessThan(
+      main.indexOf("from './app/game.ts'"),
+    )
     expect(main).toContain('startGame(game)')
     expect(main).toContain("import.meta.hot.accept('./app/game.ts'")
   })

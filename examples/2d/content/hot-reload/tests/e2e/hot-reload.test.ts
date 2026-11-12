@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
-import { passFirstRun } from '@automata/tools/e2e'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
+import { passFirstRun } from '@automataframework/tools/e2e'
 import { expect, type Frame, type Locator, type Page, test } from '@playwright/test'
 import { devUrl, e2eRoomFile, GAME_ID, url } from './origin.ts'
 

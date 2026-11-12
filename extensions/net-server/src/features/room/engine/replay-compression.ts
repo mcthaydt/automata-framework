@@ -4,7 +4,7 @@
  */
 
 import { deflateRawSync, inflateRawSync } from 'node:zlib'
-import type { ReplayCompression } from '@automata/sim/replay'
+import type { ReplayCompression } from '@automataframework/sim/replay'
 
 export const nodeReplayCompression: ReplayCompression = {
   deflate: async (bytes) => new Uint8Array(deflateRawSync(bytes)),

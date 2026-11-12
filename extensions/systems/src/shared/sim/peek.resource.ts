@@ -1,5 +1,5 @@
 // The peek, in the sim's state so snapshots and replays carry it: the player's peek now, or none.
-import { defineResource, type ResourceDef } from '@automata/sim'
+import { defineResource, type ResourceDef } from '@automataframework/sim'
 import { z } from 'zod'
 import type { PeekState } from './peek'
 

@@ -1,5 +1,5 @@
-import { PuzzleSceneResource, PuzzleState } from '@automata/puzzle/sim'
-import { createSim, definePlugin } from '@automata/sim'
+import { PuzzleSceneResource, PuzzleState } from '@automataframework/puzzle/sim'
+import { createSim, definePlugin } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { puzzleReader } from '#src/shared/sim/puzzle-reader.ts'
 

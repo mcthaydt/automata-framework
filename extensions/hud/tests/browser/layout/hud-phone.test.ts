@@ -1,5 +1,5 @@
-import { mountInPlay, settleLayout } from '@automata/framework/testing'
-import { createSim, definePlugin, type Sim } from '@automata/sim'
+import { mountInPlay, settleLayout } from '@automataframework/framework/testing'
+import { createSim, definePlugin, type Sim } from '@automataframework/sim'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'

@@ -16,8 +16,8 @@ import {
   NET_BYTES_CHANNEL,
   NET_CHANNEL,
   type NetConfig,
-} from '@automata/net'
-import { createSim } from '@automata/sim'
+} from '@automataframework/net'
+import { createSim } from '@automataframework/sim'
 import { type Client, CloseCode, Room } from '@colyseus/core'
 import type { Bucket, RoomLogEvent } from '../../../shared/game/server-config'
 import type { ServerDef } from '../../../shared/game/server-game'

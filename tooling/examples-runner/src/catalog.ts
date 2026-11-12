@@ -22,7 +22,7 @@ export const CORE_MODULES: readonly string[] = [
   'render3d',
   // Procedural characters, drawn only by render3d, so private with it (M3R-D7) and core like it.
   'figures',
-  // The pixel-art look and the world builder, also `@automata/3d`'s.
+  // The pixel-art look and the world builder, also `@automataframework/3d`'s.
   'look',
   'world',
 ]
@@ -76,56 +76,56 @@ const EXAMPLE_PATH = /^([a-z0-9]+)\/\1-([a-z0-9]+(?:-[a-z0-9]+)*)\.ts$/
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist', 'e2e', 'resources', '__goldens__'])
 const ROOT_FILES: ReadonlySet<string> = new Set(['vite.config.ts', 'playwright.config.ts'])
 // The core umbrella: every core verb an example uses comes through it.
-const UMBRELLA = '@automata/framework'
+const UMBRELLA = '@automataframework/framework'
 // Zod is AF's only schema language: every command takes a Zod schema, and no core package re-exports `z`. It stays
 // a public import: re-exporting `z` would tie an example's schema library to the umbrella's pinned copy.
 const SCHEMA_LANGUAGE = 'zod'
 /**
  * The packages that are extensions rather than core: an example shows one by importing its
- * published entry. Every other `@automata/*` package is core or tooling, and is reached through the
+ * published entry. Every other `@automataframework/*` package is core or tooling, and is reached through the
  * umbrella. A new extension package fails the catalog until it is listed here, which is when to decide its tier.
  */
 const EXTENSION_PACKAGES: ReadonlySet<string> = new Set([
-  '@automata/physics',
-  '@automata/feel',
-  '@automata/audio-synth',
-  '@automata/debug',
-  '@automata/puzzle',
-  '@automata/net',
-  '@automata/net-ui',
-  '@automata/net-server',
-  '@automata/ui-screens',
-  '@automata/cutscenes',
-  '@automata/character-kit',
-  '@automata/world-kit',
-  '@automata/lcd-panel',
-  '@automata/retro-crisp',
+  '@automataframework/physics',
+  '@automataframework/feel',
+  '@automataframework/audio-synth',
+  '@automataframework/debug',
+  '@automataframework/puzzle',
+  '@automataframework/net',
+  '@automataframework/net-ui',
+  '@automataframework/net-server',
+  '@automataframework/ui-screens',
+  '@automataframework/cutscenes',
+  '@automataframework/character-kit',
+  '@automataframework/world-kit',
+  '@automataframework/lcd-panel',
+  '@automataframework/retro-crisp',
 ])
 /**
- * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is built on the
- * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes`, `@automata/character-kit`,
- * `@automata/world-kit`, `@automata/lcd-panel` and `@automata/retro-crisp` build on
- * `@automata/3d`, so they wait for it. The website's playground leaves
+ * Extensions that stay private for now, whose entries examples may still import: `@automataframework/3d` is built on the
+ * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automataframework/cutscenes`, `@automataframework/character-kit`,
+ * `@automataframework/world-kit`, `@automataframework/lcd-panel` and `@automataframework/retro-crisp` build on
+ * `@automataframework/3d`, so they wait for it. The website's playground leaves
  * its examples out (`playgroundCatalog`), because it is public.
  */
 const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set([
-  '@automata/3d',
-  '@automata/cutscenes',
-  '@automata/character-kit',
-  '@automata/world-kit',
-  '@automata/lcd-panel',
-  '@automata/retro-crisp',
+  '@automataframework/3d',
+  '@automataframework/cutscenes',
+  '@automataframework/character-kit',
+  '@automataframework/world-kit',
+  '@automataframework/lcd-panel',
+  '@automataframework/retro-crisp',
 ])
 
 /** Whether an import names an unpublished extension's entry. */
 export const isUnpublishedExtension = (specifier: string): boolean =>
   [...UNPUBLISHED_EXTENSIONS].some((name) => specifier === name || specifier.startsWith(`${name}/`))
-const AUTOMATA_PACKAGE = /^(@automata\/[a-z0-9-]+)(?:\/|$)/
+const AUTOMATA_PACKAGE = /^(@automataframework\/[a-z0-9-]+)(?:\/|$)/
 
 interface PublicEntries {
   /** Every specifier an example may import: the umbrella, Zod and the published extensions' entries. */
   readonly entries: ReadonlySet<string>
-  /** The names of the `@automata/*` packages in the workspace, private ones too. */
+  /** The names of the `@automataframework/*` packages in the workspace, private ones too. */
   readonly packages: ReadonlySet<string>
 }
 
@@ -158,7 +158,7 @@ function publicEntries(packagesDirs: readonly string[]): PublicEntries {
       exports?: Record<string, unknown>
     }
     // Every workspace package but the umbrella itself, which is always a public entry.
-    if (!manifest.name.startsWith('@automata/') || manifest.name === UMBRELLA) continue
+    if (!manifest.name.startsWith('@automataframework/') || manifest.name === UMBRELLA) continue
     packages.add(manifest.name)
     const published = manifest.private !== true && EXTENSION_PACKAGES.has(manifest.name)
     if (!published && !UNPUBLISHED_EXTENSIONS.has(manifest.name)) continue
@@ -215,7 +215,7 @@ function importsOf(file: string, source: string): string[] {
 
 /**
  * Why an import is not allowed, if it is not. A core package is reached through the umbrella, whatever the path
- * into it. A pending example may import an `@automata/*` package the workspace does not have yet: its
+ * into it. A pending example may import an `@automataframework/*` package the workspace does not have yet: its
  * pending task adds it. Once the example is no longer pending, the package must exist and declare the entry.
  */
 function importProblem(

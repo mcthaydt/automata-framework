@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
-import { examplesPort } from '@automata/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
+import { examplesPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
 import { expect, test } from '@playwright/test'
 
 // Interface sounds (shared polish, item 4): every control sounds by default with no wiring, a control marked

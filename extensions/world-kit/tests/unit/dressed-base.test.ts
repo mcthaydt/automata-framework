@@ -1,6 +1,6 @@
 // The dressed base scenes: core's bare interior and exterior with one place furnished, a waiting room and a street.
-import { BASE_SCENES } from '@automata/3d/base'
-import { buildWorld } from '@automata/3d/props-kit'
+import { BASE_SCENES } from '@automataframework/3d/base'
+import { buildWorld } from '@automataframework/3d/props-kit'
 import { describe, expect, it } from 'vitest'
 import { dressedBaseScenes } from '#src/app/dressed-base-scenes.ts'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'

@@ -1,8 +1,8 @@
-// The content hash. It is one XXH64 from `@automata/sim/hash`, over the sim's canonical
+// The content hash. It is one XXH64 from `@automataframework/sim/hash`, over the sim's canonical
 // JSON, so the hash the compiler writes is exactly the one the sim recomputes when it checks a snapshot
 //. The preimage never contains the hash itself.
 
-import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 
 /** 16 lowercase hex digits. */
 export function contentHash(data: unknown): string {

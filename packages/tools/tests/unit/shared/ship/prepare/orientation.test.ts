@@ -22,7 +22,7 @@ function game(files: Record<string, string>): string {
   return dir
 }
 
-const playing = (orientation: string) => `import { defineGame } from '@automata/framework'
+const playing = (orientation: string) => `import { defineGame } from '@automataframework/framework'
 export default defineGame({
   id: 'g',
   orientation: '${orientation}',

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import type { DefinedGame, RuntimeServices } from '@automata/framework'
-import { type RendererFactory, type RuntimeHandle, runGame } from '@automata/framework'
+import type { DefinedGame, RuntimeServices } from '@automataframework/framework'
+import { type RendererFactory, type RuntimeHandle, runGame } from '@automataframework/framework'
 import {
   type FakeHostControl,
   type FakeHostingOptions,
@@ -8,8 +8,8 @@ import {
   fakeHosting,
   type ManualFrames,
   manualFrames,
-} from '@automata/framework/testing'
-import type { StepResult } from '@automata/sim'
+} from '@automataframework/framework/testing'
+import type { StepResult } from '@automataframework/sim'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { emberwick } from '#src/app/game.ts'
 import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '#src/testing/golden.ts'

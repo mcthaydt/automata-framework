@@ -2,7 +2,7 @@
 // `materials` table the picker shows. A rename rewrites every member that names the material, so the `materials` check
 // still passes; a removal is refused while anything names it.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import {
   addMaterial,

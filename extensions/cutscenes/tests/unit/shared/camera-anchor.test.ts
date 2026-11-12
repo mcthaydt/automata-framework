@@ -2,8 +2,8 @@
 // the key's own), so a shot can be said as "over her shoulder" or "where she was caught" and not as a point in the level.
 // The anchor is resolved when the cutscene starts, as an actor's is, and a camera is never placed by a name the scene lacks.
 
-import { readSectorMap, resolveLevel } from '@automata/sectors/sim'
-import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
+import { readSectorMap, resolveLevel } from '@automataframework/sectors/sim'
+import clinicLevel from '@automataframework/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { describe, expect, it } from 'vitest'
 import { anchorsOf, type CutsceneScript, cutsceneSchema, placeScript } from '#src/entries/sim.ts'
 import { type LintWorld, lintCutscene } from '#src/shared/lint.ts'

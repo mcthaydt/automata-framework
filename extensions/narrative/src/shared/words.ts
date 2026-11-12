@@ -1,7 +1,7 @@
 // The words of every line, by the line's `text` key, for the dialogue box and the captions. A line's words are a
 // translatable text of the `lines` content kind, so its message key is made from its file's content id and its place
 // in the file; `createContentText` owns that key, so this builds none.
-import type { ContentText } from '@automata/content/locale'
+import type { ContentText } from '@automataframework/content/locale'
 import type { LinesFile } from './sim/lines.schema'
 
 /**

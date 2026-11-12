@@ -1,6 +1,6 @@
 // What the debug overlay shows of the puzzle: a plain object built from the play state. `debug` imports no extension, so
 // the game hands this over under a `summaryPanel` id. It reads the state and never writes it.
-import { sortedKeys } from '@automata/sim'
+import { sortedKeys } from '@automataframework/sim'
 import type { PuzzleStateValue } from './puzzle.resource'
 import type { Value } from './value.schema'
 

@@ -1,4 +1,4 @@
-// The base interior and exterior (`@automata/3d/base`): two plain places every look change is judged on. They build from
+// The base interior and exterior (`@automataframework/3d/base`): two plain places every look change is judged on. They build from
 // core alone, name only what the base library has, and give the pieces the builder's maps gave (recorded from
 // the base scenes through the world builder, before the trim's deletions).
 import { describe, expect, it } from 'vitest'

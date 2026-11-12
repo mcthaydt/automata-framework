@@ -4,8 +4,8 @@
 // Shows: the 3D renderer with the pixel-art look and every core pass on, a figure posed each frame, a turning camera.
 // Controls: none
 // It reports the first figure's pose time on `<html data-first-pose-ms>`, which the probe checks against the budget.
-import '@automata/3d/no-eval'
-import { startGame } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { startGame } from '@automataframework/framework'
 import { stress3dGame } from './stress-3d-game.ts'
 
 startGame(

@@ -19,7 +19,7 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 | `SHIP_DEV_SSH_KEY`, `SHIP_DEV_KNOWN_HOSTS` | Secrets of each game repository | Deploy a game to the dev host |
 | The `af-linux` runner registration | The runner PC (`owner-pc-wsl-af`, the Owner's Windows PC under WSL2 Ubuntu-24.04; service `actions.runner.mcthaydt-automata-framework.owner-pc-wsl-af`) | Run the games' CI and the browser journeys for this repository (the checks and the consumer smoke moved to `af-mac` on 2026-11-09; `AF_CHECKS_RUNNER` moves them back) |
 | The `af-mac` runner registrations | The Owner's Mac | Run parity, the checks and the consumer smoke (since 2026-11-09) and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
-| `NPM_TOKEN` (an npm automation token for the `@automata` organisation) | The `release` environment's secrets (not created yet) | Publish the public packages from `release-packages.yml`; games install them with no token |
+| `NPM_TOKEN` (an npm automation token for the `@automataframework` organisation) | The `release` environment's secrets (not created yet) | Publish the public packages from `release-packages.yml`; games install them with no token |
 | `CLOUDFLARE_API_TOKEN` | This repository's secrets (not created yet) | Upload the website to Cloudflare Pages from `main` (`site.yml`); without it the deploy says "No host configured yet." Create it with only the Pages edit permission for one account |
 | `CLOUDFLARE_ACCOUNT_ID` | This repository's variables (not created yet) | Names the Cloudflare account `site.yml` uploads to; not a secret |
 | `SKILLS_TOKEN` | This repository's secrets (not created yet) | Push the agent package to `mcthaydt/automata-skills` after each release; without it the release says "No skills token yet." and the mirror waits |
@@ -29,7 +29,7 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 1. **GitHub account.** Change the password. In Settings → Sessions, sign out every other session. In SSH and
    GPG keys and in Developer settings → Personal access tokens, delete every key and token the lost device
    held. Check that two-factor authentication is still yours, and regenerate the recovery codes.
-2. **Tokens.** Revoke `NPM_TOKEN` on npmjs.org and create a new automation token for the `@automata` organisation,
+2. **Tokens.** Revoke `NPM_TOKEN` on npmjs.org and create a new automation token for the `@automataframework` organisation,
    then update the `release` environment's secret. Rotate `RUKEN_TOKEN` in Ruken and the dev host's SSH key in each
    game repository the same way. Games need no token to install AF: its packages are public.
 3. **Runner.** If the runner PC was lost, remove `af-linux` in Settings → Actions → Runners. Jobs then wait in
@@ -51,7 +51,7 @@ Everything that builds, tests and publishes AF is in this repository:
 - Ruken's packages as vendored tarballs (`vendor/ruken/`);
 - the workflows, the plans, the specs and the decisions (`docs/`).
 
-Published versions live on npmjs.org, public, under the `@automata` organisation.
+Published versions live on npmjs.org, public, under the `@automataframework` organisation.
 
 **Not in Git, and where each is kept:**
 
@@ -79,7 +79,7 @@ Published versions live on npmjs.org, public, under the `@automata` organisation
 
 The website (`site/`) builds and is tested on every pull request inside `ci.yml`'s 2D journeys. From `main`, the
 `site` job (`.github/workflows/site.yml`) deploys it to Cloudflare Pages. Every push to `main` after step 7 runs
-`pnpm --filter @automata/site check:launch` first and stops if any of these is not true yet: the contact address is not a
+`pnpm --filter @automataframework/site check:launch` first and stops if any of these is not true yet: the contact address is not a
 personal mailbox and its domain has a mail record, `npx <the first command's package> create-game` finds a package on
 npmjs.org, Pixi 3D (`@pixi/3d`) is public, and the repository is public (`REPOSITORY_PUBLIC` in `site/src/shared/site.js`).
 So do the steps in this order. Steps marked (Owner) need an account or a decision only the Owner has; the agent does the rest.

@@ -22,7 +22,7 @@ describe('Start', () => {
       '4. Put it online',
       'Using a coding agent',
     ])
-    expect(STEPS[0]?.command).toBe('npx @automata/tools create-game my-game')
+    expect(STEPS[0]?.command).toBe('npx @automataframework/tools create-game my-game')
   })
 
   it('says the new game comes in six languages, as the Languages guide and the template do', () => {

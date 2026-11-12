@@ -2,8 +2,8 @@
 // cases are the shapes a level has (rectangles, an L, rooms with one or two holes), the shipped levels themselves, and
 // seeded random rooms; a polygon that is not simple must still come back, with whatever can be made of it.
 
-import type { Point } from '@automata/3d/level'
-import { polygonArea, triangulate } from '@automata/3d/level'
+import type { Point } from '@automataframework/3d/level'
+import { polygonArea, triangulate } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'

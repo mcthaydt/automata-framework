@@ -1,8 +1,8 @@
 // The mix: how loud everything is overall, and the ducks, which quiet some sounds while others play ("While a voice
 // plays, music drops 6 dB"). In the file a duck's drop is a negative number of dB; on screen it is the plain number of dB
 // it drops by. Both are heard in play: the player scales every sound by the overall volume and applies the ducks.
-import type { AudioContent, BusId, DuckRule } from '@automata/audio-synth'
-import type { ContentEdit } from '@automata/editor/kit/documents'
+import type { AudioContent, BusId, DuckRule } from '@automataframework/audio-synth'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 import { appendEdits, type Field, setOrInsert } from '../../shared/fields.ts'
 import { busWords } from './audio-model.ts'
 

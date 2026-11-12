@@ -1,11 +1,11 @@
-import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
+import type { ContentLevel, ContentProject } from '@automataframework/content/level-2d'
 import {
   type Camera2d,
   type LevelScene,
   type LevelSceneHooks,
   type PictureViewOptions,
   pictureView,
-} from '@automata/framework'
+} from '@automataframework/framework'
 import { Graphics } from 'pixi.js'
 import { createDirector, type Director } from '../../shared/director/director.ts'
 import type { PlacedScript } from '../../shared/sim/anchors.ts'

@@ -1,9 +1,9 @@
 // Wet-ground reflections on a real WebGL2 context: a ground pixel mirrors the frame about the ground plane, its reflected ray
 // marched through the depth buffer, and takes the colour it meets a step down its own ramp (one in a puddle, two on wet
 // ground, where only what glows reflects). WebGPU and WebGL2 parity is the GPU runner's.
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automata/3d'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automataframework/3d'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { CubeGeometry, FlatMaterial, Mesh3D, SphereGeometry } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ReflectEffect } from '#src/features/sky/reflect-effect.ts'

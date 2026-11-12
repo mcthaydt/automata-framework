@@ -1,6 +1,6 @@
 // A small level to dress: one rectangular room of `w` × `d` metres with a door in one wall and a window in another, so
 // the dresser has something to keep clear and something to put things under.
-import type { AfSector2 } from '@automata/3d/level'
+import type { AfSector2 } from '@automataframework/3d/level'
 
 export function room(as: string, seed = 1, w = 6, d = 5): AfSector2 {
   return {

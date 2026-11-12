@@ -3,7 +3,7 @@
   after it stops or gets stuck. Inside a group they are in the order they are checked.
 -->
 <script lang="ts">
-import type { AgentDef } from '@automata/systems/sim'
+import type { AgentDef } from '@automataframework/systems/sim'
 import { switchNote } from './decide-words.ts'
 import type { Names } from './pieces/piece.ts'
 import type { Selection } from './schematic-session.svelte.ts'

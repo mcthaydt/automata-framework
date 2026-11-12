@@ -4,8 +4,8 @@
   not changed here. "Can it be finished?" asks the solver, in a worker, about the puzzle as it is now.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import type { Action, Cond, Effect, Value } from '@automata/puzzle/sim'
+import { Button } from '@automataframework/editor/kit'
+import type { Action, Cond, Effect, Value } from '@automataframework/puzzle/sim'
 import { onDestroy } from 'svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import AddPiece from './AddPiece.svelte'

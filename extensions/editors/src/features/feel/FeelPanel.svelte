@@ -3,7 +3,7 @@
   to. Adding a feel asks only what happens; its effects are added on the canvas.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import { addFeelEdit, eventWords } from './feel-model.ts'
 import type { FeelSession } from './feel-session.svelte.ts'

@@ -1,6 +1,6 @@
 // The nav plugin. `createNavPlugin` takes the game's movement query, for obstacles of its own.
-import { sectorsPlaces } from '@automata/sectors/sim'
-import { definePlugin, type PluginDef } from '@automata/sim'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
+import { definePlugin, type PluginDef } from '@automataframework/sim'
 import { NavDoor, WalkTo } from './nav.command'
 import { NavAgent } from './nav.component'
 import { NavArrived, NavUnreachable } from './nav.event'

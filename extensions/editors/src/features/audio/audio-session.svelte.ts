@@ -1,7 +1,7 @@
 // The Audio editor's session: the game's audio file, and what is chosen: a sound, an imported music track, the order the
 // music plays in, or the page of what plays when things happen. It also holds the track files the game folder has.
 
-import type { AudioContent } from '@automata/audio-synth'
+import type { AudioContent } from '@automataframework/audio-synth'
 import type { AudioPlay } from '../../shared/audio-play.ts'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
 import type { GameEvent } from '../../shared/game-events.ts'

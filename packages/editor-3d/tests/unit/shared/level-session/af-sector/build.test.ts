@@ -2,7 +2,7 @@
 // `SectorDef` per sector, with a named style layered under the sector's own fields, and
 // nothing of the sector's other members.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { resolveMap } from '#src/shared/geometry/sectors.ts'
 import { AfBuildError, buildSectors } from '#src/shared/level-session/af-sector/build.ts'

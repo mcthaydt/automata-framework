@@ -1,4 +1,4 @@
-import type { Hosting } from '@automata/framework'
+import type { Hosting } from '@automataframework/framework'
 import { mount, unmount } from 'svelte'
 import CreditsPanel from '../features/credits/CreditsPanel.svelte'
 import type { Credits } from '../shared/credits/credits.schema.ts'

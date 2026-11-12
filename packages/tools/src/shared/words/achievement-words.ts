@@ -1,4 +1,4 @@
-import type { AchievementConfig } from '@automata/content/game-config'
+import type { AchievementConfig } from '@automataframework/content/game-config'
 import type { Catalog } from './catalog.ts'
 
 // A game's achievements are declared once in `ship.config.ts`; their titles and descriptions are words like the rest, so

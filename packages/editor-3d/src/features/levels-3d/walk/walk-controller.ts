@@ -8,9 +8,9 @@
 // blocking masks). It crosses at a portal and slides along a wall. Fly goes anywhere.
 // Orbit looks at a point from 8 m off at the dollhouse's 30 degrees. All three are one camera (D8).
 
-import type { Point } from '@automata/3d/level'
-import { crossing, segmentDistance } from '@automata/3d/level'
-import type { Point as ScreenPoint, Size } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import { crossing, segmentDistance } from '@automataframework/3d/level'
+import type { Point as ScreenPoint, Size } from '@automataframework/editor/kit/core'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import {
   type Camera3D,

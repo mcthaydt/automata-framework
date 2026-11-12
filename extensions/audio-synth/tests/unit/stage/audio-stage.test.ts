@@ -1,7 +1,7 @@
 // audioStage: a game's own audio player. Cues play for the sim's events once the audio is unlocked, music follows the
 // game's state through the rules, and shutting down stops both. Core's audio and bus are fakes here.
-import { fakeClock } from '@automata/framework/testing'
-import type { SimEvent } from '@automata/sim'
+import { fakeClock } from '@automataframework/framework/testing'
+import type { SimEvent } from '@automataframework/sim'
 import { parse } from 'smol-toml'
 import { describe, expect, it, vi } from 'vitest'
 import { audioStage } from '#src/app/audio-stage.ts'

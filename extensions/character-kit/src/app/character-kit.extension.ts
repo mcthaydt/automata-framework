@@ -5,7 +5,7 @@
 //
 // An extension has no setup hook, so the kinds register when the files below load: loading this file is what adds them.
 
-import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+import { defineExtension, type ExtensionDef } from '@automataframework/framework/extension'
 import { registerFashion } from '../features/fashion/register-fashion.ts'
 import '../features/garments/register-wardrobe.ts'
 import '../features/hair/register-hair.ts'

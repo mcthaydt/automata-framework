@@ -1,7 +1,7 @@
 // The checks of an `af-sector/1` level (ED3D.1b step 4): the id rules, then the generic checks over the sectors it
 // builds, in Last Light's order and with its early-outs for a level that cannot be built or resolved.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afIdProblems, afSectorChecks } from '#src/shared/level-session/af-sector/af-checks.ts'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'

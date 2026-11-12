@@ -2,10 +2,10 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★☆☆☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { box } from '@automata/3d'
+import '@automataframework/3d/no-eval'
+import { box } from '@automataframework/3d'
 
 export default { id: 'render3d-boxes', view: box }

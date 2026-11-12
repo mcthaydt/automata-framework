@@ -1,7 +1,7 @@
 // The part of the 3D canvas that a card or sheet over it leaves clear. The room is drawn on the whole canvas, under them,
 // but it is framed in what they leave, so the details card never covers the room (the plan does the same with
 // `usableArea`, which only knows the sheets along its bottom edge; this view's card floats at a corner).
-import type { Rect, Size } from '@automata/editor/kit/core'
+import type { Rect, Size } from '@automataframework/editor/kit/core'
 
 /** The regions of the shell that can float or rise over the canvas. */
 const COVERS = '[data-region=inspector], [data-region=dock], [data-region=panel]'

@@ -1,6 +1,6 @@
 // Opening a level from the workspace (ED3D.5b step 5; ED3D spec §5.3 flow 1, §8, §11): stat, read, the registry's
 // profile, the checks run once, the autosave offered.
-import { type ProjectStore, StorageError } from '@automata/editor/kit/core'
+import { type ProjectStore, StorageError } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { createEditorApp, type OpenOutcome } from '#src/features/levels-3d/document/editor-app.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'

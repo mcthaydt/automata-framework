@@ -10,12 +10,12 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 Add the plugin for the dimension you play in to the game's sim:
 
 ```ts
-import { physics2d } from '@automata/physics/2d'
+import { physics2d } from '@automataframework/physics/2d'
 
 export default defineGame({ sim: { plugins: [physics2d({ gravity: { x: 0, y: -9.81 } })] } })
 ```
 
-For 3D, import `physics3d` from `@automata/physics/3d` the same way. Gravity is part of the game's identity: a
+For 3D, import `physics3d` from `@automataframework/physics/3d` the same way. Gravity is part of the game's identity: a
 different gravity is a different game, and an old save will not load into it.
 
 ## What you get

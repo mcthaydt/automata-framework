@@ -1,7 +1,7 @@
 // What the inspector does to the behaviour file, as the kit's content edits by key path: a value edit rewrites only its
 // own literal, a structural edit only the table it touches, and a rename changes every place that names the thing in one
 // list, so it is one undo step. Nothing here writes: the session applies the list.
-import type { ContentEdit } from '@automata/editor/kit/documents'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 import {
   type AgentDef,
   type Probe,
@@ -9,7 +9,7 @@ import {
   type SysEffect,
   type SystemsDef,
   type Transition,
-} from '@automata/systems/sim'
+} from '@automataframework/systems/sim'
 import { timingOf } from './diagram/layout.ts'
 import { groupOf } from './switch-words.ts'
 

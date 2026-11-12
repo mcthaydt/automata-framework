@@ -4,8 +4,8 @@
 // to 4.8 m) and a door on its west wall (corner 3, from z = 3.6 down to 2.4). The canvas is 800 by 400 px with the camera at
 // (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with `toScreen`, so no test hides a unit.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
-import type { PointerKind } from '@automata/editor/kit/core'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
+import type { PointerKind } from '@automataframework/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
 import { planViewport, toScreen } from '#src/features/levels-3d/plan/plan-viewport.ts'

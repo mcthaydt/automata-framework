@@ -1,9 +1,9 @@
 // The 3D renderer on a real context in each engine (M3.4a). Headless Firefox in this container has no WebGL at all,
 // so there the drawing cases skip and the refusal case runs instead; the GPU runner runs them all (M3.1b).
 import '#src/entries/no-eval.ts'
-import type { Clock } from '@automata/framework'
-import { fakeClock } from '@automata/framework/testing'
-import type { RenderRow, StepResult } from '@automata/sim'
+import type { Clock } from '@automataframework/framework'
+import { fakeClock } from '@automataframework/framework/testing'
+import type { RenderRow, StepResult } from '@automataframework/sim'
 import { DirectionalLight } from '@pixi/3d'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'

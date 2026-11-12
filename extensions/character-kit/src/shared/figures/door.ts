@@ -1,4 +1,4 @@
-// The door to the figure painter (`@automata/figures`, a private package of this repository, changed in place), the half
+// The door to the figure painter (`@automataframework/figures`, a private package of this repository, changed in place), the half
 // that is plain TypeScript: its `index` and `kit` entries, safe in Node. The figures are its own: it generates, poses and
 // paints them, and this kit shows the cells it paints. Every module reaches the painter through this file (and
 // `door-view.ts`, the half that loads Pixi) and nowhere else (tests/unit/shared/door.test.ts). The door stays so the kit
@@ -52,7 +52,7 @@ export {
   viewOf,
   type Wearing,
   zoomOf,
-} from '@automata/figures'
+} from '@automataframework/figures'
 // The painter's toolkit: what a garment kind of the kit's own is built from (H1).
 export {
   axisAngle,
@@ -65,4 +65,4 @@ export {
   smooth,
   superquadric,
   weights,
-} from '@automata/figures/kit'
+} from '@automataframework/figures/kit'

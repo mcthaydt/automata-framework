@@ -2,7 +2,7 @@
 // loads the kit, so what it writes is what core builds alone; the tests then show the same figures built with the kit.
 // Run it only to re-record on purpose, from a commit where core's own goldens moved, and say why in the commit.
 //
-//   pnpm --filter @automata/character-kit goldens:core
+//   pnpm --filter @automataframework/character-kit goldens:core
 
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'

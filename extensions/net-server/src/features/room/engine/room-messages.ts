@@ -10,7 +10,7 @@
  * on the tick it arrives.
  */
 
-import { type ClientMessage, parseClientMessage } from '@automata/net'
+import { type ClientMessage, parseClientMessage } from '@automataframework/net'
 import type { RoomEngine } from './room-engine'
 
 /** The rule a correlated request runs for the seat that sent it; it refuses by throwing `RoomCommandError`. */

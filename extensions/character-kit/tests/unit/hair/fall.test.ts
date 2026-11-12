@@ -1,5 +1,5 @@
-import { hairStyleSchema, J, measure, skeletonFromGenes } from '@automata/3d/figures'
-import { hairParts } from '@automata/3d/figures-kit'
+import { hairStyleSchema, J, measure, skeletonFromGenes } from '@automataframework/3d/figures'
+import { hairParts } from '@automataframework/3d/figures-kit'
 import { describe, expect, it } from 'vitest'
 import '#src/features/hair/register-hair.ts'
 

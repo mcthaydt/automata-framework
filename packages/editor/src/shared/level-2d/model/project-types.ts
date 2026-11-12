@@ -1,4 +1,4 @@
-import type { ContentAnimation, EntityDef, FieldDef, FieldValues } from '@automata/content/level-2d'
+import type { ContentAnimation, EntityDef, FieldDef, FieldValues } from '@automataframework/content/level-2d'
 import type { RuleGroup } from '../tiles/autotile/rule.schema.ts'
 import type { Grid } from './grid.ts'
 

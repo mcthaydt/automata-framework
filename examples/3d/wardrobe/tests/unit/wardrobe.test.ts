@@ -1,8 +1,8 @@
 // The wardrobe as an extension: once loaded, a figure may wear its eleven garments after core's seven; without it, a
 // figure naming one is refused, at compile time and at dressing.
 
-import { registeredGarments } from '@automata/3d/figures-kit'
-import { compileFixture } from '@automata/3d/testing'
+import { registeredGarments } from '@automataframework/3d/figures-kit'
+import { compileFixture } from '@automataframework/3d/testing'
 import { describe, expect, it, vi } from 'vitest'
 import wardrobeExtension from '../../wardrobe.extension.ts'
 
@@ -27,7 +27,7 @@ const STREETWEAR = [
 async function keeperIn(garment: string) {
   const { readFileSync } = await import('node:fs')
   const { join } = await import('node:path')
-  const { FIXTURE_ROOT } = await import('@automata/3d/testing')
+  const { FIXTURE_ROOT } = await import('@automataframework/3d/testing')
   const text = readFileSync(join(FIXTURE_ROOT, KEEPER), 'utf8')
   return { text: text.replace(SHIRT, garment) }
 }
@@ -62,8 +62,8 @@ describe('without the wardrobe', () => {
   it('a figure in a bomber is refused when its file compiles, and when it is dressed', async () => {
     // A fresh copy of core: nothing has loaded the wardrobe into its registry.
     vi.resetModules()
-    const core = await import('@automata/3d/testing')
-    const figures = await import('@automata/3d/figures')
+    const core = await import('@automataframework/3d/testing')
+    const figures = await import('@automataframework/3d/figures')
     const { text } = await keeperIn('bomber = "navy"')
     const compiled = await core.compileFixture({ [KEEPER]: text })
     expect(compiled.ok).toBe(false)

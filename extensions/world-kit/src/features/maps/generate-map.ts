@@ -1,6 +1,6 @@
 // A generated map as an `af-sector/2` level: the plan a generator makes, converted. Maps are a generator plus data, as
 // figures are: the same seed gives the same level in every engine, and every name in it is a library name.
-import type { AfSector2 } from '@automata/3d/level'
+import type { AfSector2 } from '@automataframework/3d/level'
 import { apartment } from './apartment.ts'
 import { block } from './block.ts'
 import { convertBuilderMap } from './convert-builder-map.ts'

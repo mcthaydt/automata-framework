@@ -1,6 +1,6 @@
 // A switch as a person reads it: where it goes from and to, and what must be true. The diagram's arrows, the list and the
 // inspector all say a switch the same way.
-import type { AgentDef, Transition } from '@automata/systems/sim'
+import type { AgentDef, Transition } from '@automataframework/systems/sim'
 import { ANY_MODE, type Timing, timingOf } from './diagram/layout.ts'
 import { conditionWords } from './pieces/conditions.ts'
 import { modeWords, type Names } from './pieces/piece.ts'

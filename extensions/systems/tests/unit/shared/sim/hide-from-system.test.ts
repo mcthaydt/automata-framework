@@ -1,7 +1,7 @@
 // `Systems.hide` and `unhide` are what the `systems.hide` and `systems.unhide` commands do, callable from a game's own
 // system (the `interact` extension calls it for a hiding place): the same hiding gives the same state, hash and all.
-import { stateHash, stepWith } from '@automata/sectors/testing'
-import { defineCommand, definePlugin, defineSystem, type Sim } from '@automata/sim'
+import { stateHash, stepWith } from '@automataframework/sectors/testing'
+import { defineCommand, definePlugin, defineSystem, type Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import type { Systems } from '#src/shared/sim/systems.plugin.ts'

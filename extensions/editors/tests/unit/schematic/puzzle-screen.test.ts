@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
-import type { PuzzleDef } from '@automata/puzzle/sim'
+import { EDITOR_LIST_PATH } from '@automataframework/editor/editor-list'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
 import { render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { stringify } from 'smol-toml'

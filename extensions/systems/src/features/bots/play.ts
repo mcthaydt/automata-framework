@@ -1,9 +1,9 @@
 // One run of a bot in a real sim: the bot answers each step's view with
 // commands, and the run measures what fairness rates. A catch reloads the last checkpoint (or the start) until the run
 // has caught the player more than `maxDeaths` times.
-import { PuzzleState } from '@automata/puzzle/sim'
-import type { Point } from '@automata/sectors/sim'
-import { canonicalJson, createRng, type Sim, type SimEvent } from '@automata/sim'
+import { PuzzleState } from '@automataframework/puzzle/sim'
+import type { Point } from '@automataframework/sectors/sim'
+import { canonicalJson, createRng, type Sim, type SimEvent } from '@automataframework/sim'
 import { SystemsPursuit, SystemsState } from '../../shared/sim/systems.resource'
 import type { Probe } from '../../shared/sim/systems.schema'
 import { createWatch } from '../../shared/sim/watch.plugin'

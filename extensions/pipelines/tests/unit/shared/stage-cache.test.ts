@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import { hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { FilesLive } from '#src/shared/node/files.ts'

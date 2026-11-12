@@ -1,6 +1,6 @@
 // The page's entry: starts the game. `no-eval` comes first, because the web targets allow no eval.
-import '@automata/3d/no-eval'
-import { startGame } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { startGame } from '@automataframework/framework'
 import { game } from './app/game.ts'
 
 let running = startGame(game)

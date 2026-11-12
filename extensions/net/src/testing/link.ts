@@ -1,5 +1,5 @@
-import type { Clock } from '@automata/framework'
-import { createRng, type Rng } from '@automata/sim'
+import type { Clock } from '@automataframework/framework'
+import { createRng, type Rng } from '@automataframework/sim'
 
 /** One message as it travels: text (JSON) or binary (a snapshot, a packed replay). */
 export type WireData = string | Uint8Array

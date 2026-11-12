@@ -1,6 +1,6 @@
 // The sectors plugin: the map is a resource set once per scene, each walker's sector is decided on the
 // fixed step from the plan position the game writes, and `sector.entered` and `zone.crossed` say when it changes.
-import type { Sim } from '@automata/sim'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { InSector } from '#src/entries/sim.ts'
 import { type Order, stepWith } from '#src/testing/step-with.ts'

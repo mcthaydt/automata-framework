@@ -3,7 +3,7 @@
   the editor list does not name the files, or the file has a mistake. Each says what to do next, in one line.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import { LIST_ROWS } from './schematic-facts.ts'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 

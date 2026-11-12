@@ -26,11 +26,11 @@ describe('playgroundFramePage', () => {
     const importMap = between(html, '<script type="importmap">', '</script>')
     expect(JSON.parse(importMap)).toEqual({ imports: playgroundImportMap(RUNTIME) })
     expect(JSON.parse(importMap).imports).toMatchObject({
-      '@automata/framework': RUNTIME.automata,
+      '@automataframework/framework': RUNTIME.automata,
       zod: RUNTIME.zod,
-      '@automata/ui-screens': RUNTIME.uiScreens,
-      '@automata/ui-screens/credits': RUNTIME.uiScreens,
-      '@automata/ui-screens/splash': RUNTIME.uiScreens,
+      '@automataframework/ui-screens': RUNTIME.uiScreens,
+      '@automataframework/ui-screens/credits': RUNTIME.uiScreens,
+      '@automataframework/ui-screens/splash': RUNTIME.uiScreens,
     })
     expect(between(html, 'http-equiv="Content-Security-Policy" content="', '"')).toBe(
       framePolicy(importMap, SITE),

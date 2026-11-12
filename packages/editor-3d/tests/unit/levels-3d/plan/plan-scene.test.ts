@@ -1,7 +1,7 @@
 // What the plan paints (ED3D.4 step 2): fills and walls as plain data, read from the geometry layers alone, each with
 // the selection id the app selects it by.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { planScene } from '#src/features/levels-3d/plan/plan-scene.ts'
 import { levelBounds } from '#src/features/levels-3d/plan/plan-viewport.ts'

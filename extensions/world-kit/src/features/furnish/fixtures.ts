@@ -5,7 +5,7 @@
 //
 // Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52 (`hang`,
 // `standOn`, `fixtures`). Changed: nothing is kept out of a diorama (a level is built whole).
-import { heightAt, inward, ringsOf, type Segment, type V2 } from '@automata/3d/props-kit'
+import { heightAt, inward, ringsOf, type Segment, type V2 } from '@automataframework/3d/props-kit'
 import {
   alongSeg,
   type Ctx,

@@ -21,7 +21,9 @@ export const scriptsOf = (scene: Scene): CutsceneScript[] =>
 export const textOf = (scene: Scene): Record<string, string> =>
   parse(
     readFileSync(
-      createRequire(import.meta.url).resolve(`@automata/narrative/testing/fixtures/${scene}.locale.toml`),
+      createRequire(import.meta.url).resolve(
+        `@automataframework/narrative/testing/fixtures/${scene}.locale.toml`,
+      ),
       'utf8',
     ),
   ) as Record<string, string>

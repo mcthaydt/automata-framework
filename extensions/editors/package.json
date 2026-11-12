@@ -1,5 +1,5 @@
 {
-  "name": "@automata/editors",
+  "name": "@automataframework/editors",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -28,27 +28,27 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
-    "@automata/audio-synth": "workspace:*",
-    "@automata/cutscenes": "workspace:*",
-    "@automata/editor": "workspace:*",
-    "@automata/feel": "workspace:*",
-    "@automata/narrative": "workspace:*",
-    "@automata/nav": "workspace:*",
-    "@automata/puzzle": "workspace:*",
-    "@automata/systems": "workspace:*",
+    "@automataframework/audio-synth": "workspace:*",
+    "@automataframework/cutscenes": "workspace:*",
+    "@automataframework/editor": "workspace:*",
+    "@automataframework/feel": "workspace:*",
+    "@automataframework/narrative": "workspace:*",
+    "@automataframework/nav": "workspace:*",
+    "@automataframework/puzzle": "workspace:*",
+    "@automataframework/systems": "workspace:*",
     "smol-toml": "1.9.0",
     "svelte": "5.57.1",
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "@automata/3d": "workspace:^",
-    "@automata/content": "workspace:^",
-    "@automata/framework": "workspace:^",
-    "@automata/sim": "workspace:^"
+    "@automataframework/3d": "workspace:^",
+    "@automataframework/content": "workspace:^",
+    "@automataframework/framework": "workspace:^",
+    "@automataframework/sim": "workspace:^"
   },
   "devDependencies": {
-    "@automata/playwright-preset": "workspace:*",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/playwright-preset": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
@@ -63,9 +63,9 @@
     "typescript": "6.0.3",
     "vite": "8.3.3",
     "vitest": "5.0.3",
-    "@automata/3d": "workspace:*",
-    "@automata/content": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/sim": "workspace:*"
+    "@automataframework/3d": "workspace:*",
+    "@automataframework/content": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/sim": "workspace:*"
   }
 }

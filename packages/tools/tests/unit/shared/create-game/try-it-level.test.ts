@@ -7,9 +7,9 @@ import {
   levelContentSchema,
   projectContentSchema,
   worldContentSchema,
-} from '@automata/content/level-2d'
-import { type ExportFile, exportContent } from '@automata/editor/level-export'
-import { newProject } from '@automata/editor/level-templates'
+} from '@automataframework/content/level-2d'
+import { type ExportFile, exportContent } from '@automataframework/editor/level-export'
+import { newProject } from '@automataframework/editor/level-templates'
 import { Effect } from 'effect'
 import { parse } from 'smol-toml'
 import { afterAll, describe, expect, it } from 'vitest'
@@ -31,7 +31,7 @@ afterAll(() => {
   for (const dir of made) rmSync(dir, { recursive: true, force: true })
 })
 
-/** The level code `create-game` writes, loaded from a game folder inside this package so `@automata/*` resolves. */
+/** The level code `create-game` writes, loaded from a game folder inside this package so `@automataframework/*` resolves. */
 async function levelCode(): Promise<LevelCode> {
   const dir = mkdtempSync(join(process.cwd(), 'scratch-try-it-'))
   made.push(dir)

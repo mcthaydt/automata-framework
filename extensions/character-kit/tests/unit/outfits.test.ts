@@ -2,14 +2,14 @@
 // here and compared part for part with the recording, and shown not to move when a last bit does. The recording is byte for
 // byte the one these outfits had in core before the kit existed (the `fall` that listed locks is written `strands`).
 
-import { build, type FigureLibrary, skeleton } from '@automata/3d/figures'
+import { build, type FigureLibrary, skeleton } from '@automataframework/3d/figures'
 import {
   expectMatchesGolden,
   expectPlatformStable,
   expectSound,
   figureOf,
   type OutfitGoldens,
-} from '@automata/3d/testing'
+} from '@automataframework/3d/testing'
 import { beforeAll, describe, expect, it } from 'vitest'
 import '#src/app/character-kit.extension.ts'
 import { kitFixture } from '#src/testing/kit-fixture.ts'

@@ -1,6 +1,6 @@
-import { openDocument } from '@automata/editor/kit/documents'
-import { navGraphSchema } from '@automata/nav/sim'
-import { systemsDefShape } from '@automata/systems/sim'
+import { openDocument } from '@automataframework/editor/kit/documents'
+import { navGraphSchema } from '@automataframework/nav/sim'
+import { systemsDefShape } from '@automataframework/systems/sim'
 import { describe, expect, it } from 'vitest'
 import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
 import {

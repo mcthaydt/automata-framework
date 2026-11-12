@@ -1,7 +1,7 @@
 // The numbers base-3d's sim reads (the free game, DESIGN.md). Positions are Q16.16 metres (`Q16`
 // to a metre, the stick mapper's unit); angles are turn units (65,536 to a turn, the heading's unit). The walk and the
 // roll are tunables in content/tuning.toml (`tuning.ts`); what is here changes what a tick or a metre means.
-import { Q16 } from '@automata/3d/sim'
+import { Q16 } from '@automataframework/3d/sim'
 
 /** Fixed steps a second: the sim's default, which the page runs at (`defineGame` takes no `tickHz`). */
 export const TICK_HZ = 60

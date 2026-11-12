@@ -1,9 +1,9 @@
 // The retro pass at the old game's picture sizes (640 x 360 in 16:9, 640 x 480 in 4:3), on a real WebGL2 context: the grade moves the
 // picture and the snap puts it back on the palette at each size, and the neutral profile leaves it alone. The pass is added once,
 // after the frames without it (the look's registry is the page's).
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer } from '@automata/3d'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer } from '@automataframework/3d'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { addRetroPass } from '#src/app/add-retro.ts'

@@ -10,7 +10,7 @@ import {
   type PluginDef,
   type Sim,
   type SimContext,
-} from '@automata/sim'
+} from '@automataframework/sim'
 import { z } from 'zod'
 import {
   BodyKind,

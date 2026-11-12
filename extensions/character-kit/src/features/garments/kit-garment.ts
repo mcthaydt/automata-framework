@@ -1,8 +1,8 @@
 // What a garment file of the kit hands the register: the key its items carry, and how core's registry treats it.
 // The shared pieces of its schema are here too, so every garment bounds its numbers the same way.
 
-import type { GarmentKind } from '@automata/3d/figures'
-import { contentRef } from '@automata/content/schema'
+import type { GarmentKind } from '@automataframework/3d/figures'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 
 /** A garment of the kit: `name` is the key an item carries (`{ skirt = "navy" }`), `kind` how it is built and checked. */

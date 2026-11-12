@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// The 3D template needs @automata/3d, which stays private until Pixi 3D is public. Until then `create-game` offers the
+// The 3D template needs @automataframework/3d, which stays private until Pixi 3D is public. Until then `create-game` offers the
 // template only where that package is: inside this repository's workspace, or where AF_BETA_3D=1 says the author has it.
 
 /** What an author is told when they ask for a 3D game and the package is not there. */
@@ -15,7 +15,9 @@ function workspaceHas3d(dir: string): boolean {
     const manifest = join(current, 'packages/3d/package.json')
     if (existsSync(manifest)) {
       try {
-        if ((JSON.parse(readFileSync(manifest, 'utf8')) as { name?: unknown }).name === '@automata/3d')
+        if (
+          (JSON.parse(readFileSync(manifest, 'utf8')) as { name?: unknown }).name === '@automataframework/3d'
+        )
           return true
       } catch {
         // A manifest that cannot be read is not the 3D package.

@@ -3,7 +3,7 @@
 // places the hands on the outfit's openings is the motion's; this is the content shape. `fallback` names other
 // stands, checked like every library reference.
 
-import { contentRef } from '@automata/content/schema'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 import { keyedUnion } from './keyed-union.ts'
 import { about, side, type Vec3, vec3 } from './shapes.schema.ts'

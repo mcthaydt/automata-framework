@@ -1,4 +1,4 @@
-import { fakeClock } from '@automata/framework/testing'
+import { fakeClock } from '@automataframework/framework/testing'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { staleBuildStep } from '#src/features/stale/stale-build-step.ts'
 import { staleWords } from '#src/shared/words/stale-copy.ts'

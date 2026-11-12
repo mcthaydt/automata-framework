@@ -1,7 +1,7 @@
 // The film's grain, dust and scratch hold still while the player has asked for less movement: the pass's clock, driven by Pixi's
 // shared ticker, stands where it was while the setting is on and goes on when it is off. The setting is the game's to read each frame.
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, DEFAULT_LOOK } from '@automata/3d'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, DEFAULT_LOOK } from '@automataframework/3d'
 import { Ticker } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
 import { addRetroPass } from '#src/app/add-retro.ts'

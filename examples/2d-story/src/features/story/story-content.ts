@@ -1,9 +1,14 @@
 import { content } from 'virtual:automata/content'
-import { cutsceneSchema } from '@automata/cutscenes/sim'
-import { wordsOf as wordsOfLines } from '@automata/narrative'
-import { dialogueFileSchema, type LineRecord, type LinesFile, linesFileSchema } from '@automata/narrative/sim'
-import { navGraphSchema } from '@automata/nav/sim'
-import { systemsDefShape } from '@automata/systems/sim'
+import { cutsceneSchema } from '@automataframework/cutscenes/sim'
+import { wordsOf as wordsOfLines } from '@automataframework/narrative'
+import {
+  dialogueFileSchema,
+  type LineRecord,
+  type LinesFile,
+  linesFileSchema,
+} from '@automataframework/narrative/sim'
+import { navGraphSchema } from '@automataframework/nav/sim'
+import { systemsDefShape } from '@automataframework/systems/sim'
 import words from '../../../content/words/en.json'
 
 // What the story's files say, read once: the keeper's lines and conversation, the cutscene, where the guard may walk and how

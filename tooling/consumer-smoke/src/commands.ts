@@ -37,7 +37,7 @@ export function packAll(root: string, project: string): ConsumerPackage[] {
 }
 
 /**
- * Packs `@automata/3d`, which is private until Pixi 3D is public and so is not among the published packages, and says
+ * Packs `@automataframework/3d`, which is private until Pixi 3D is public and so is not among the published packages, and says
  * where each of its two kinds of dependency comes from instead of a registry: itself, and the vendored Pixi 3D
  * tarball. Only the 3D stranger's journey (AF_BETA_3D=1) uses it.
  */
@@ -46,9 +46,9 @@ export function pack3d(root: string, project: string): Record<string, string> {
   mkdirSync(out, { recursive: true })
   sh(join(root, 'packages/3d'), 'pnpm', ['pack', '--pack-destination', out])
   const [file] = readdirSync(out)
-  if (file === undefined) throw new Error('pnpm pack wrote nothing for @automata/3d')
+  if (file === undefined) throw new Error('pnpm pack wrote nothing for @automataframework/3d')
   return {
-    '@automata/3d': `file:${join(out, file)}`,
+    '@automataframework/3d': `file:${join(out, file)}`,
     '@pixi/3d': `file:${join(root, 'vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz')}`,
   }
 }

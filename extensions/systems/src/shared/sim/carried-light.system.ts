@@ -1,8 +1,8 @@
 // The carried lights' step, in `gameplay` before the systems': a toggle, then the burn, then each lit light's pool is added
 // to the lights the senses read (`systems.env`). The game writes the rest of that list each step, earlier in the step.
-import type { Places } from '@automata/places'
-import { sectorsPlaces } from '@automata/sectors/sim'
-import { defineSystem, type SystemDef } from '@automata/sim'
+import type { Places } from '@automataframework/places'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
+import { defineSystem, type SystemDef } from '@automataframework/sim'
 import type { CarriedLightDef } from './carried-light'
 import { ToggleLight } from './carried-light.command'
 import { CarriedLight } from './carried-light.component'

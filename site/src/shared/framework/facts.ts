@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { BROWSER_ENGINES } from '@automata/vitest-preset/engines'
+import { BROWSER_ENGINES } from '@automataframework/vitest-preset/engines'
 import { playgroundExamples } from './examples.ts'
 import { repositoryRoot } from './root.ts'
 

@@ -1,4 +1,4 @@
-// @automata/interact/sim: using a hotspot, a sim entry. The level's hotspots, the commands and events, and the plugin.
+// @automataframework/interact/sim: using a hotspot, a sim entry. The level's hotspots, the commands and events, and the plugin.
 export { type Hotspot, hotspotSchema } from '../shared/sim/hotspot.schema'
 export { type HotspotsRead, hotspotsOf } from '../shared/sim/hotspots-of'
 export {

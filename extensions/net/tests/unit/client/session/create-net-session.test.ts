@@ -1,5 +1,5 @@
-import type { Clock } from '@automata/framework'
-import type { Sim } from '@automata/sim'
+import type { Clock } from '@automataframework/framework'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createClientPort } from '#src/features/client/room/net-port.ts'
 import type { ConnectionState } from '#src/features/client/room/net-room.ts'

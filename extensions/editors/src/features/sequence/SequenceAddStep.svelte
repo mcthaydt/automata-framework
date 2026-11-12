@@ -3,7 +3,7 @@
   that names something asks it first: who, and which line, lamp, door, clip or prop.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import { untrack } from 'svelte'
 import type { SequenceSession } from './sequence-session.svelte.ts'
 import { TRACK_WORDS, type TrackId } from './tracks.ts'

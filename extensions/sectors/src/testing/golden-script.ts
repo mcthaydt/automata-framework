@@ -1,8 +1,8 @@
 // The sectors golden: three walkers pace through three rooms, a raised step and a pilastered wall for
 // 600 steps, and a scene change at step 300 loads a second map. Paths are triangle waves in exact binary fractions, so
 // the positions the game writes are the same in every engine; what the golden proves is the sim's own arithmetic.
-import { canonicalJson, type Sim } from '@automata/sim'
-import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import { canonicalJson, type Sim } from '@automataframework/sim'
+import { hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 import type { SectorMap } from '../entries/sim'
 import { type Order, stepWith } from './step-with'
 import { createWalkers, load, spawn, type WalkersOptions, walk } from './walkers'

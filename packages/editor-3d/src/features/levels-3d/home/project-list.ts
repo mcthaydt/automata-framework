@@ -1,7 +1,7 @@
 // The projects Home shows (ED3D spec §8; kit spec §4.7): one entry for each level a profile opens, newest first, and
 // nothing for textures, notes or JSON no profile claims. Only `.json` files are
 // read, so a workspace imported from a game checkout does not decode every image on each refresh.
-import type { ProjectStore } from '@automata/editor/kit/core'
+import type { ProjectStore } from '@automataframework/editor/kit/core'
 import type { ParseIssue } from '../../../shared/level-session/file-codec'
 import { problemCount } from '../checks/problem-count'
 import { readLevel } from '../document/read-level'

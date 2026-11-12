@@ -1,5 +1,10 @@
-import { arrived, createPointers, type IpadProfile, type Pointers } from '@automata/editor/kit/testing'
-import { byTestId } from '@automata/framework/testing'
+import {
+  arrived,
+  createPointers,
+  type IpadProfile,
+  type Pointers,
+} from '@automataframework/editor/kit/testing'
+import { byTestId } from '@automataframework/framework/testing'
 import { expect } from 'vitest'
 import { page } from 'vitest/browser'
 import depotText from './fixtures/depot.af-sector.json?raw'

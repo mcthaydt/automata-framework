@@ -1,4 +1,4 @@
-// @automata/cutscenes: the cutscenes extension: its content kind and its sim, re-exported.
+// @automataframework/cutscenes: the cutscenes extension: its content kind and its sim, re-exported.
 
 export {
   type CutscenesExtension,

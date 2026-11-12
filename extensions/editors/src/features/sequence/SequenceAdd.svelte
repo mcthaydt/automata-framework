@@ -1,6 +1,6 @@
 <!-- Asks a new cutscene's name and length, the only two things it needs; it starts with one camera step. -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import type { SequenceSession } from './sequence-session.svelte.ts'
 
 const { session, oncancel }: { session: SequenceSession; oncancel?: (() => void) | undefined } = $props()

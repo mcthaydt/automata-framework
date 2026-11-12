@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
-import { mountInPlay, type PlayMount } from '@automata/framework/testing'
-import { blockedWith, type Places } from '@automata/places'
-import { createPuzzlePlugin } from '@automata/puzzle/sim'
-import { type Command, createSim, definePlugin, type Sim } from '@automata/sim'
+import { mountInPlay, type PlayMount } from '@automataframework/framework/testing'
+import { blockedWith, type Places } from '@automataframework/places'
+import { createPuzzlePlugin } from '@automataframework/puzzle/sim'
+import { type Command, createSim, definePlugin, type Sim } from '@automataframework/sim'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { dialogueBoxSlot } from '#src/features/box/box-slot.ts'
@@ -152,7 +152,7 @@ describe('the dialogue box', () => {
   it('is asked to advance by a pad’s A when it is the focused button', async () => {
     await open()
     stepOnce({ type: 'narrative.start', payload: { graph: 'meet' } })
-    const { fakeGamepads } = await import('@automata/framework/testing')
+    const { fakeGamepads } = await import('@automataframework/framework/testing')
     const pads = fakeGamepads()
     Object.defineProperty(navigator, 'getGamepads', { value: pads.getGamepads, configurable: true })
     const frames: (() => void)[] = []

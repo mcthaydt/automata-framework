@@ -1,4 +1,4 @@
-import { defineTests } from '@automata/vitest-preset'
+import { defineTests } from '@automataframework/vitest-preset'
 import { playwright } from '@vitest/browser-playwright'
 
 // The goldens and the pins that guard them run on every commit that touches the painter (the hook runs `goldens` only);

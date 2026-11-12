@@ -1,4 +1,4 @@
-import { doorOpen, lampState, type PieceStates } from '@automata/3d/level'
+import { doorOpen, lampState, type PieceStates } from '@automataframework/3d/level'
 import { expect, test } from 'vitest'
 import { cutsceneStage3d } from '#src/features/stage-3d/cutscene-stage-3d.ts'
 import { DOOR, DOOR_AND_LAMP, LAMP } from '#src/testing/door-and-lamp.ts'

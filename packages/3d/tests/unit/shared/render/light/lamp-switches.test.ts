@@ -1,4 +1,4 @@
-import type { RenderDelta, RenderRow } from '@automata/sim'
+import type { RenderDelta, RenderRow } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { lampSwitches } from '#src/shared/render/light/lamp-switches.ts'
 

@@ -1,5 +1,5 @@
-import { type EditorSize, REST } from '@automata/editor/kit/testing'
-import { publishConditions, settleLayout } from '@automata/framework/testing'
+import { type EditorSize, REST } from '@automataframework/editor/kit/testing'
+import { publishConditions, settleLayout } from '@automataframework/framework/testing'
 import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '../app/boot'
 import { createPlanRenderer } from '../features/levels-3d/plan/plan-renderer'

@@ -6,10 +6,10 @@ import type { ApiPackage, ApiReference, ApiSearchRow } from './api'
 
 /** The packages every game uses; every other package in the reference is an extension a game can add. */
 export const CORE_PACKAGES: readonly string[] = [
-  '@automata/content',
-  '@automata/framework',
-  '@automata/sim',
-  '@automata/tools',
+  '@automataframework/content',
+  '@automataframework/framework',
+  '@automataframework/sim',
+  '@automataframework/tools',
 ]
 
 /** A version's packages in two groups: the core a game is built on, and the extensions it can add. */

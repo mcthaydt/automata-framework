@@ -6,7 +6,7 @@
   visible region. A copy of this folder in a game works alone and takes its own words as props.
 -->
 <script lang="ts">
-import { ScreenFrame } from '@automata/framework'
+import { ScreenFrame } from '@automataframework/framework'
 
 interface Props {
   /** The studio's image: the game's own file, and the words a screen reader says for it. */

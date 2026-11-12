@@ -1,6 +1,6 @@
 // The sectors golden: the walkers script hashes to one committed value in Node, Chromium, WebKit and
 // Firefox, straight and restored at step 450. A mismatch is investigated, never rebaselined per engine.
-import { recordGoldenEvidence } from '@automata/evidence/golden'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
 import { expect, test } from 'vitest'
 import { runGolden } from '#src/testing/golden-script.ts'
 

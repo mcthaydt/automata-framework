@@ -3,8 +3,8 @@
   ("Then") or offers the player's choices. What is wrong is said beside the part it is about.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import type { DialogueNode } from '@automata/narrative/sim'
+import { Button } from '@automataframework/editor/kit'
+import type { DialogueNode } from '@automataframework/narrative/sim'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import WordsField from '../../shared/ui/WordsField.svelte'
 import {

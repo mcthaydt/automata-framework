@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { act, render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { writable } from 'svelte/store'

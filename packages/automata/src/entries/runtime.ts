@@ -1,7 +1,7 @@
 // The runtime a game can reach for: the clock, loop, content, saves, settings, audio, input and the boot services.
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
 
-export { DEFAULT_LOCALES } from '@automata/content/locale'
+export { DEFAULT_LOCALES } from '@automataframework/content/locale'
 export { contentHashOf } from '../app/boot/boot-program.js'
 export type {
   CompiledContentData,

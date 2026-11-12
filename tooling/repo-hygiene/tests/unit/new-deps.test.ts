@@ -13,21 +13,22 @@ import {
 // used, with its registry, publisher and weekly downloads, so a reviewer can confirm an agent-added package
 // exists and is the intended one. A package missing from its registry fails the report.
 
-const scopes = { '@automata': 'https://npm.pkg.github.com' }
+const scopes = { '@automataframework': 'https://npm.pkg.github.com' }
 
 describe('registryFor', () => {
   it('maps a scope from .npmrc, npmjs.org otherwise, and nothing for workspace or file versions', () => {
     expect(registryFor('left-pad', '1.3.0', scopes)).toBe('https://registry.npmjs.org')
-    expect(registryFor('@automata/sim', '0.0.2', scopes)).toBe('https://npm.pkg.github.com')
-    expect(registryFor('@automata/sim', 'workspace:*', scopes)).toBeUndefined()
+    expect(registryFor('@automataframework/sim', '0.0.2', scopes)).toBe('https://npm.pkg.github.com')
+    expect(registryFor('@automataframework/sim', 'workspace:*', scopes)).toBeUndefined()
     expect(registryFor('@ruken/sdk', 'file:../../vendor/ruken/ruken-sdk-0.0.0.tgz', scopes)).toBeUndefined()
   })
 })
 
 describe('scopeRegistries', () => {
   it('reads each `@scope:registry=url` line and drops a trailing slash', () => {
-    const npmrc = '@automata:registry=https://npm.pkg.github.com/\n# a comment\nauto-install-peers=true\n'
-    expect(scopeRegistries(npmrc)).toEqual({ '@automata': 'https://npm.pkg.github.com' })
+    const npmrc =
+      '@automataframework:registry=https://npm.pkg.github.com/\n# a comment\nauto-install-peers=true\n'
+    expect(scopeRegistries(npmrc)).toEqual({ '@automataframework': 'https://npm.pkg.github.com' })
   })
 
   it('has no scopes when the repository has no .npmrc, so every package resolves from npmjs.org', () => {
@@ -61,7 +62,7 @@ describe('newDependencies', () => {
     const head = {
       'package.json': { devDependencies: { vitest: '5.0.4' } },
       'packages/sim/package.json': {
-        dependencies: { koota: '0.6.6', '@automata/x': 'workspace:*' },
+        dependencies: { koota: '0.6.6', '@automataframework/x': 'workspace:*' },
       },
       'packages/new/package.json': { dependencies: { koota: '0.6.6', '@ruken/sdk': 'file:../sdk.tgz' } },
     }
@@ -126,7 +127,7 @@ describe('describeDependencies', () => {
     const noNetwork = async (): Promise<Response> => {
       throw new Error('fetched')
     }
-    const github = { ...knip, name: '@automata/x', registry: 'https://npm.pkg.github.com' }
+    const github = { ...knip, name: '@automataframework/x', registry: 'https://npm.pkg.github.com' }
     expect(await describeDependencies([github], noNetwork)).toEqual([{ ...github, status: 'not checked' }])
   })
 })

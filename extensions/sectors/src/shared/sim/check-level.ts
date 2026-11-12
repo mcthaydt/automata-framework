@@ -1,7 +1,7 @@
 // What a level must pass before the sim can resolve it, each fault reported at the corner, wall or id it is about as
 // the 3D slice's `LevelProblem`. Nothing here throws: a tool lists the problems, and `loadSectorMap` refuses a level
 // that has any. `SectorMap` is the part of a level the sim keeps (its sectors and masses).
-import type { AfCorner2, AfSector2, AfSectorEntry2, LevelProblem, Plane } from '@automata/3d/level'
+import type { AfCorner2, AfSector2, AfSectorEntry2, LevelProblem, Plane } from '@automataframework/3d/level'
 
 /** A floor or ceiling as the sim keeps it: a bare height when that is all there is, else the whole plane. */
 export type StoredPlane = number | Plane

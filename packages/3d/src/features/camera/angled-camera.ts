@@ -20,7 +20,7 @@
 //
 // Nothing runs before the first `follow`: the renderer draws frames before the player's row exists, and a pose from the
 // origin would make the first view swoop in from there.
-import { reducedMotion as prefersReducedMotion } from '@automata/framework'
+import { reducedMotion as prefersReducedMotion } from '@automataframework/framework'
 import type { Camera3D } from '@pixi/3d'
 import { BlendCurves, Klipp, VirtualCamera } from '@pmndrs/klipp'
 import { framedFocus, shorterArc, type Vec3 } from './camera-pose.ts'

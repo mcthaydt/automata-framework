@@ -1,6 +1,6 @@
 // The `puzzle` content kind: every TOML file in `content/puzzles` is one scene's puzzle. The game says
 // which calls it declares and which extensions it registers, so a reference to either is checked when content compiles.
-import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
+import { type ContentSchemaDef, defineContentSchema } from '@automataframework/content/schema'
 import type { z } from 'zod'
 import { type PuzzleDef, puzzleDefShape } from './sim/puzzle.schema'
 import { checkPuzzle, type PuzzleCheckOptions } from './sim/puzzle-checks'

@@ -2,9 +2,9 @@
 // a focus a metre above the followed position, along a heading the player turns freely. The editor draws a room as the player
 // sees it: the eye the game would put there, and the walls that eye cuts away. `bounds`, `lag` easing and lock-on framing
 // are the game renderer's; the editor carries `lag` as data only. The view itself (its fields, defaults and ranges) is
-// @automata/3d's `camera-view`, whose own tests cover it.
+// @automataframework/3d's `camera-view`, whose own tests cover it.
 
-import { cameraView, fovOf, LENS_MM, TURN_UNITS } from '@automata/3d/camera-view'
+import { cameraView, fovOf, LENS_MM, TURN_UNITS } from '@automataframework/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { followCamera, roomView } from '#src/features/levels-3d/walk/follow-camera.ts'
 import { headingToYaw } from '#src/features/levels-3d/walk/heading.ts'

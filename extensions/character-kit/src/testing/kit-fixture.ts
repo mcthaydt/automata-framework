@@ -6,9 +6,9 @@
 import { cpSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { FIGURE_CONTENT, type FigureLibrary, type Gait } from '@automata/3d/figures'
-import { FIXTURE_ROOT } from '@automata/3d/testing'
-import { compileContentResult, formatDiagnostic } from '@automata/content'
+import { FIGURE_CONTENT, type FigureLibrary, type Gait } from '@automataframework/3d/figures'
+import { FIXTURE_ROOT } from '@automataframework/3d/testing'
+import { compileContentResult, formatDiagnostic } from '@automataframework/content'
 // The fixture's hairstyles name the kit's pieces and finishes, so the kit is loaded for the compile to accept them.
 import '../app/character-kit.extension.ts'
 import { figureSeatContent } from '../features/seats/seat.content.ts'

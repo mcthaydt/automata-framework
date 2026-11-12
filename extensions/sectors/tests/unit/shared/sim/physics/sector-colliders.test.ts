@@ -2,9 +2,16 @@
 // walker cannot pass (a solid wall, a step taller than STEP, a blocking masked portal), as deep as the wall's `thick`
 // (WALL_THICK when it has none), and a new scene's map replaces them. Without physics, `segmentBlocked` is the query.
 
-import { WALL_THICK } from '@automata/3d/level'
-import { BodyKind, Collider3D, physics3d, RigidBody3D, ShapeKind, Transform3D } from '@automata/physics/3d'
-import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automata/sim'
+import { WALL_THICK } from '@automataframework/3d/level'
+import {
+  BodyKind,
+  Collider3D,
+  physics3d,
+  RigidBody3D,
+  ShapeKind,
+  Transform3D,
+} from '@automataframework/physics/3d'
+import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { loadSectorMapWithColliders, SectorCollider, sectorCollidersPlugin } from '#src/entries/physics.ts'

@@ -1,9 +1,9 @@
 // What plays when something happens, read the way the game reads it: top to bottom, and only the first row that fits an
 // event plays (the Audio extension's `rowFor`). So a row an earlier row already answers never plays, and the page says
 // so and offers to move it up. The events the game can send that no row answers are listed too, to answer or keep quiet.
-import type { AudioContent } from '@automata/audio-synth'
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import { matches } from '@automata/feel'
+import type { AudioContent } from '@automataframework/audio-synth'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import { matches } from '@automataframework/feel'
 import { eventWords } from '../../shared/event-words.ts'
 import { appendEdits, setOrInsert } from '../../shared/fields.ts'
 import type { GameEvent } from '../../shared/game-events.ts'

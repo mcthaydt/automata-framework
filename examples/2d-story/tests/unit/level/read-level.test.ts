@@ -1,4 +1,4 @@
-import { levelContentSchema } from '@automata/content/level-2d'
+import { levelContentSchema } from '@automataframework/content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { LEVEL } from '../../../src/features/level/level.ts'
 import { levelOf, SOLID } from '../../../src/features/level/read-level.ts'

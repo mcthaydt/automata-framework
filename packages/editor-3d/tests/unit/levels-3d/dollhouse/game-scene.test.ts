@@ -1,4 +1,4 @@
-import { timeOfDay } from '@automata/3d'
+import { timeOfDay } from '@automataframework/3d'
 import { describe, expect, it } from 'vitest'
 import { gameScene } from '#src/features/levels-3d/dollhouse/game-scene.ts'
 import { EMPTY_LIBRARY } from '#src/shared/level-session/game-library.ts'

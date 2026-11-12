@@ -1,7 +1,7 @@
 // Every kind of condition a switch or a rule can ask, as a piece (`piece.ts`): the sentence a person reads, the fields
 // in it, and how a change to one field is written back. The facts the interpreter gives meaning to (`self.idle`,
 // `self.blocked`, `pursuit.hidden`, a character's own notes) are pieces of their own, so they read as what they mean.
-import { type Probe, probeSchema } from '@automata/systems/sim'
+import { type Probe, probeSchema } from '@automataframework/systems/sim'
 import type { Field } from '../../../shared/fields.ts'
 import {
   factFrom,

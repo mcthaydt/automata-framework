@@ -4,8 +4,8 @@
 // the tool's sentence when a tap there would be refused; the Split cut; the rooms Merge would join. In canvas pixels from
 // the plan's own viewport, so the overlay can never drift from the walls under it. Labels are drawn by the DOM.
 
-import type { Point } from '@automata/3d/level'
-import type { Point as ScreenPoint, Size, Viewport2D } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type { Point as ScreenPoint, Size, Viewport2D } from '@automataframework/editor/kit/core'
 import type { ViewState } from '../../../shared/edit/view-store'
 import { PLAN_COLORS } from './plan-colors'
 import type { PaintFill, PaintStroke } from './plan-paint'

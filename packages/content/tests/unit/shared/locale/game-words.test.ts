@@ -17,7 +17,7 @@ const write = (root: string, path: string, content: unknown): void => {
   writeFileSync(join(root, path), typeof content === 'string' ? content : JSON.stringify(content))
 }
 
-/** A game folder with an interface catalog, and a stand-in for `@automata/framework` that exports its words folder. */
+/** A game folder with an interface catalog, and a stand-in for `@automataframework/framework` that exports its words folder. */
 function game(files: Record<string, unknown> = {}): string {
   const root = mkdtempSync(join(tmpdir(), 'game-words-'))
   made.push(root)
@@ -26,13 +26,13 @@ function game(files: Record<string, unknown> = {}): string {
 }
 
 const framework = (words: Record<string, Record<string, string>>): Record<string, unknown> => ({
-  'node_modules/@automata/framework/package.json': {
-    name: '@automata/framework',
+  'node_modules/@automataframework/framework/package.json': {
+    name: '@automataframework/framework',
     exports: { './words/*.json': './words/*.json' },
   },
   ...Object.fromEntries(
     Object.entries(words).map(([lang, text]) => [
-      `node_modules/@automata/framework/words/${lang}.json`,
+      `node_modules/@automataframework/framework/words/${lang}.json`,
       text,
     ]),
   ),
@@ -45,10 +45,10 @@ describe('gameWords', () => {
       ...framework({ ja: { paused_title: '一時停止' } }),
     })
     const words = await gameWords(root, 'ja', { stage: '朝' })
-    expect([...words.keys()]).toEqual(['content', 'ui', '@automata/framework'])
+    expect([...words.keys()]).toEqual(['content', 'ui', '@automataframework/framework'])
     expect(words.get('content')).toEqual({ stage: '朝' })
     expect(words.get('ui')).toEqual({ play: 'あそぶ' })
-    expect(words.get('@automata/framework')).toEqual({ paused_title: '一時停止' })
+    expect(words.get('@automataframework/framework')).toEqual({ paused_title: '一時停止' })
   })
 
   it('reads a game’s interface words from src/messages/ui when that is where its source lives', async () => {

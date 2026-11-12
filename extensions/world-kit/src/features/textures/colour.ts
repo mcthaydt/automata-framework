@@ -1,7 +1,7 @@
 // The photo pipeline's colour helpers: OKLab back to sRGB (core's `oklab` goes the other way), and the DUEL palette index nearest a colour. Colours here
 // are `0xRRGGBB` numbers, as the pipeline works on whole images of them.
 
-import { nearestDuel } from '@automata/content/palette'
+import { nearestDuel } from '@automataframework/content/palette'
 
 const gamma = (v: number): number =>
   Math.round(255 * Math.max(0, Math.min(1, v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055)))

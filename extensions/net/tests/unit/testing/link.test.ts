@@ -1,4 +1,4 @@
-import { fakeClock } from '@automata/framework/testing'
+import { fakeClock } from '@automataframework/framework/testing'
 import { describe, expect, it } from 'vitest'
 import { createLink, type LinkOptions } from '#src/testing/link.ts'
 

@@ -7,11 +7,11 @@ It is free, MIT licensed and optional. It is not published to npm yet.
 
 ## Turn it on
 
-Nav needs [`@automata/sectors`](../sectors/README.md). Add both:
+Nav needs [`@automataframework/sectors`](../sectors/README.md). Add both:
 
 ```ts
-import { navExtension } from '@automata/nav'
-import { sectorsExtension } from '@automata/sectors'
+import { navExtension } from '@automataframework/nav'
+import { sectorsExtension } from '@automataframework/sectors'
 
 export default defineGame({ extensions: [sectorsExtension, navExtension] })
 ```

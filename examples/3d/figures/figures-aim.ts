@@ -4,13 +4,13 @@
 //   into the figure's own frame and solves the aim every frame, over the idle; the rig's limits stop the head and
 //   chest turning past their range, so they hold at the edge while the orb passes behind him.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { box, createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureDef, MotionLibrary, Swatch } from '@automata/3d/figures'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { box, createPixi3dRenderer, figure, render3dExtension } from '@automataframework/3d'
+import type { FigureDef, MotionLibrary, Swatch } from '@automataframework/3d/figures'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- figure ---
 // Wick, his swatches and the `bounce` gait as in figures-walk, written as compiled.

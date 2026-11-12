@@ -1,7 +1,7 @@
-import { examplesPort } from '@automata/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
-import en from '@automata/framework/words/en.json' with { type: 'json' }
-import ja from '@automata/framework/words/ja.json' with { type: 'json' }
+import { examplesPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
+import en from '@automataframework/framework/words/en.json' with { type: 'json' }
+import ja from '@automataframework/framework/words/ja.json' with { type: 'json' }
 import { expect, test } from '@playwright/test'
 import { drawsIn } from './draws-in.ts'
 

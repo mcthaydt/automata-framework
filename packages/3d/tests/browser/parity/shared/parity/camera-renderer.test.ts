@@ -3,7 +3,7 @@
 // down and 16 m back on a 50 mm lens. Headless Firefox here has no WebGL, so this skips there and the GPU runner runs
 // it (M3.1b).
 import '#src/entries/no-eval.ts'
-import type { RenderRow, StepResult } from '@automata/sim'
+import type { RenderRow, StepResult } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer } from '#src/app/create-renderer.ts'
 import { eyeOf } from '#src/features/camera/camera-pose.ts'

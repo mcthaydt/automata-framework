@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { nudged, step } from '@automata/vitest-preset/ulp'
+import { nudged, step } from '@automataframework/vitest-preset/ulp'
 import { describe, expect, it, vi } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import type { HeadForm } from '#src/shared/body/head.ts'

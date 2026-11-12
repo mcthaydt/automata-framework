@@ -7,10 +7,10 @@ It is free, MIT licensed and optional. It is not published to npm yet.
 
 ## Turn it on
 
-Narrative needs [`@automata/sectors`](../sectors/README.md) and [`@automata/puzzle`](../puzzle/README.md):
+Narrative needs [`@automataframework/sectors`](../sectors/README.md) and [`@automataframework/puzzle`](../puzzle/README.md):
 
 ```ts
-import { narrativeExtension } from '@automata/narrative'
+import { narrativeExtension } from '@automataframework/narrative'
 
 const narrative = narrativeExtension()
 export default defineGame({
@@ -34,7 +34,7 @@ extension is missing, the game refuses to start and names it.
   problem naming the line.
 - **The box**: pass `words` to `narrativeExtension` and the dialogue box draws along the bottom of the play field. The
   box is also exported: `DialogueBox` (a conversation read from the sim) and `LineBox` (only the box: a speaker, the words
-  and your controls). A game that uses [`@automata/hud`](../hud/README.md) passes no `words`: the HUD's examine piece
+  and your controls). A game that uses [`@automataframework/hud`](../hud/README.md) passes no `words`: the HUD's examine piece
   draws a `LineBox`, so one box is drawn, not two.
-- **Tools** (`@automata/narrative/tools`, for Node): lint a conversation, find lines nobody can reach, count what a
+- **Tools** (`@automataframework/narrative/tools`, for Node): lint a conversation, find lines nobody can reach, count what a
   test covered, and write a screenplay from the tree.

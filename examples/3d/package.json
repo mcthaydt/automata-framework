@@ -11,19 +11,19 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@automata/3d": "workspace:*",
-    "@automata/character-kit": "workspace:*",
-    "@automata/cutscenes": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/lcd-panel": "workspace:*",
-    "@automata/retro-crisp": "workspace:*",
-    "@automata/world-kit": "workspace:*",
+    "@automataframework/3d": "workspace:*",
+    "@automataframework/character-kit": "workspace:*",
+    "@automataframework/cutscenes": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/lcd-panel": "workspace:*",
+    "@automataframework/retro-crisp": "workspace:*",
+    "@automataframework/world-kit": "workspace:*",
     "pixi.js": "8.22.0",
     "svelte": "5.57.1"
   },
   "devDependencies": {
-    "@automata/examples-runner": "workspace:*",
-    "@automata/playwright-preset": "workspace:*",
+    "@automataframework/examples-runner": "workspace:*",
+    "@automataframework/playwright-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

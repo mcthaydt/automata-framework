@@ -1,6 +1,6 @@
 // What the player does in a conversation: start a graph (a game may also start one from puzzle's
 // `{ dialogue }` effect), advance a line, choose an answer by its index in the node's own list.
-import { type CommandDef, defineCommand } from '@automata/sim'
+import { type CommandDef, defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 
 export interface StartPayload {

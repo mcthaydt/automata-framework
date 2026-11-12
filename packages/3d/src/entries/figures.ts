@@ -1,4 +1,4 @@
-// @automata/3d/figures: procedural characters, renderer-free. The math, the shared rig and its two-bone IK, the gene
+// @automataframework/3d/figures: procedural characters, renderer-free. The math, the shared rig and its two-bone IK, the gene
 // sliders, the figure and library content kinds and the extension that registers them; `build()` and the part, garment
 // and hair generators behind it; locomotion (`base()`, `moveDir`), stands, holds, hems, the pose clock and the hair
 // spring; `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits; poses (`figure-pose`

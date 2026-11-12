@@ -1,4 +1,4 @@
-# @automata/ui-screens
+# @automataframework/ui-screens
 
 Six ready-made screens for a game: **Title**, **Results**, **Loading**, **Error**, **Splash** and **Credits**. Core already ships the Paused and Settings
 screens, so this package does not repeat them.
@@ -6,12 +6,12 @@ screens, so this package does not repeat them.
 ## Add it and use a screen
 
 ```sh
-pnpm add @automata/ui-screens
+pnpm add @automataframework/ui-screens
 ```
 
 ```ts
-import { TitleScreen } from '@automata/ui-screens/title'
-import type { ScreensCopy } from '@automata/framework'
+import { TitleScreen } from '@automataframework/ui-screens/title'
+import type { ScreensCopy } from '@automataframework/framework'
 declare const words: ScreensCopy // your game's words, in the player's language
 mount(TitleScreen, {
   target,
@@ -19,8 +19,8 @@ mount(TitleScreen, {
 })
 ```
 
-Each screen has its own path: `@automata/ui-screens/title`, `/results`, `/loading`, `/error`, `/splash` and `/credits`. The
-main path, `@automata/ui-screens`, has all six.
+Each screen has its own path: `@automataframework/ui-screens/title`, `/results`, `/loading`, `/error`, `/splash` and `/credits`. The
+main path, `@automataframework/ui-screens`, has all six.
 
 ## The splash
 
@@ -29,8 +29,8 @@ before the first screen, so it can never hold the host's ready signal back. It s
 or until the player presses a key, clicks or taps, and plays no sound.
 
 ```ts
-import { defineGame } from '@automata/framework'
-import { splashStep } from '@automata/ui-screens/splash'
+import { defineGame } from '@automataframework/framework'
+import { splashStep } from '@automataframework/ui-screens/splash'
 import logo from './studio-logo.svg'
 
 defineGame({
@@ -58,7 +58,7 @@ names = [{ name = "Ada Lovelace", role = "Design", url = "https://example.test/a
 ```
 
 ```ts
-import { CreditsPanel, screensWords } from '@automata/ui-screens/credits'
+import { CreditsPanel, screensWords } from '@automataframework/ui-screens/credits'
 mount(CreditsPanel, { target, props: { credits, copy: screensWords(locale).credits, onClose, hosting } })
 ```
 
@@ -67,13 +67,13 @@ translation); a `name` and a `url` are not. A link must be `https:`: the file is
 
 ## Change a screen
 
-Copy the screen's folder from `node_modules/@automata/ui-screens/src/features/<screen>/` into your game's `src/screens/` and
-import your copy instead. Every screen is one folder that reaches only `@automata/framework` and `svelte`, so a copy works as it
+Copy the screen's folder from `node_modules/@automataframework/ui-screens/src/features/<screen>/` into your game's `src/screens/` and
+import your copy instead. Every screen is one folder that reaches only `@automataframework/framework` and `svelte`, so a copy works as it
 is.
 
 ## What is core's, and what is this package's
 
-Core (`@automata/framework`) already ships default Title, Paused and Settings screens, and the parts every screen is built from. A game
+Core (`@automataframework/framework`) already ships default Title, Paused and Settings screens, and the parts every screen is built from. A game
 that is happy with the defaults needs nothing from this package. Title here is core's with a different set of buttons: Play, then any
 actions the game names (Credits, Help), with no save slots. Results, Loading and Error are this package's only: core has no such screens.
 It is for a game that wants these screens:
@@ -100,7 +100,7 @@ language with long words, three or more actions need the short form to stay on o
 Each screen has behaviour tests (jsdom) and a layout contract in real Chromium, WebKit and Firefox at every reference size and
 variant, in English and the `xx-long` pseudo-locale: no document scroll, whole 44 px targets (48 px primaries), nothing off screen or
 under the host's strip, every essential action visible and hit-testable. The layout tests stay in this package. After you edit a
-screen, run the same contract in your game with `@automata/framework/testing`.
+screen, run the same contract in your game with `@automataframework/framework/testing`.
 
 The screens also pass core's rule for screens (no `{@html}`, no platform chrome: a password field, the host's name, sign-in or
 payment words).

@@ -1,4 +1,4 @@
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { describe, expect, it } from 'vitest'
 import { decodePng } from '#src/features/textures/png.ts'
 import { photoToTile, tileColours, unpack } from '#src/features/textures/tile.ts'

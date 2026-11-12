@@ -1,5 +1,5 @@
 {
-  "name": "@automata/feel",
+  "name": "@automataframework/feel",
   "version": "0.0.5",
   "license": "MIT",
   "repository": {
@@ -43,16 +43,16 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "@automata/content": "workspace:^",
-    "@automata/framework": "workspace:^",
-    "@automata/sim": "workspace:^",
+    "@automataframework/content": "workspace:^",
+    "@automataframework/framework": "workspace:^",
+    "@automataframework/sim": "workspace:^",
     "pixi.js": "^8.22.0"
   },
   "devDependencies": {
-    "@automata/content": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/sim": "workspace:*",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/content": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/sim": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "pixi.js": "8.22.0",
     "smol-toml": "1.9.0",

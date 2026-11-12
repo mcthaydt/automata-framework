@@ -5,10 +5,10 @@
 // scene module and the solver load when a stage runs (as `systems`).
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { PuzzleScene } from '@automata/puzzle/solver'
-import { canonicalJson } from '@automata/sim'
-import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
-import type { Policy, SystemsScene } from '@automata/systems/bots'
+import type { PuzzleScene } from '@automataframework/puzzle/solver'
+import { canonicalJson } from '@automataframework/sim'
+import { hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
+import type { Policy, SystemsScene } from '@automataframework/systems/bots'
 import { Effect } from 'effect'
 import { z } from 'zod'
 import { Files } from '../../shared/node/files.ts'
@@ -48,9 +48,9 @@ type Ctx = StageContext<PuzzlePipeSpec>
 
 const failing = (stage: string) => (cause: unknown) => new StageFailed({ stage, reason: String(cause) })
 const solverTools = (stage: string) =>
-  Effect.tryPromise({ try: () => import('@automata/puzzle/solver'), catch: failing(stage) })
+  Effect.tryPromise({ try: () => import('@automataframework/puzzle/solver'), catch: failing(stage) })
 const bots = (stage: string) =>
-  Effect.tryPromise({ try: () => import('@automata/systems/bots'), catch: failing(stage) })
+  Effect.tryPromise({ try: () => import('@automataframework/systems/bots'), catch: failing(stage) })
 
 interface Loaded {
   readonly puzzle: PuzzleScene

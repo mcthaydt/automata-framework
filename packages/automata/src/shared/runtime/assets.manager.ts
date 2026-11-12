@@ -1,4 +1,4 @@
-import type { AssetsSource } from '@automata/content'
+import type { AssetsSource } from '@automataframework/content'
 import { ok, type Result, refused } from '../lib/result.ts'
 import { AssetLoadFailed, LoadStalled } from './boot-error.js'
 import { readBlob } from './fetch-progress.js'

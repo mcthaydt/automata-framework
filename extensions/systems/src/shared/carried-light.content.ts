@@ -3,7 +3,7 @@
 // holds and how fast it burns, and the content compiler names the file and line of a number that cannot be one. Every number is
 // optional and a missing one is the old game's. It is sim content: the sim's content hash covers it, since it decides how long
 // a light lasts.
-import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
+import { type ContentSchemaDef, defineContentSchema } from '@automataframework/content/schema'
 import { z } from 'zod'
 import { type CarriedLightFile, carriedLightProblems } from './sim/carried-light'
 

@@ -1,6 +1,6 @@
-import { figure, type View3dFactory } from '@automata/3d'
-import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automata/3d/base'
-import { clipsWithActions, type FigureLibrary, type MotionLibrary } from '@automata/3d/figures'
+import { figure, type View3dFactory } from '@automataframework/3d'
+import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automataframework/3d/base'
+import { clipsWithActions, type FigureLibrary, type MotionLibrary } from '@automataframework/3d/figures'
 import { Actor } from './actor.component.ts'
 
 interface FigureKinds {

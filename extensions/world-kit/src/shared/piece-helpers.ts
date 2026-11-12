@@ -1,5 +1,13 @@
 // Small helpers the generators share.
-import { box, cylinder, type MeshData, merge, type PropPiece, rod, type V3 } from '@automata/3d/props-kit'
+import {
+  box,
+  cylinder,
+  type MeshData,
+  merge,
+  type PropPiece,
+  rod,
+  type V3,
+} from '@automataframework/3d/props-kit'
 import { turnZ } from './turn.ts'
 
 /** The four corners of a footprint, as signs: where a table's or a stool's legs stand. */

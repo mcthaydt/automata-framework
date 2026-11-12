@@ -1,8 +1,8 @@
 // A textured swatch's tile as a texture of DUEL colours: its labels read against the swatch's ladder (tone offsets on its
 // ramp, its accent's, a photo-mode texel on its own ramp) and written as RGBA, one palette colour a texel. `drawWorld`
 // lays it on a piece nearest-sampled and the light multiplies it, so the texel's albedo is a palette index, not a flat colour.
-import type { AlbedoTile } from '@automata/3d'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import type { AlbedoTile } from '@automataframework/3d'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { tileColours } from './tile-colours.ts'
 import { TILE_FILES } from './tile-files.ts'
 import { decodeTileFile, ladderOf, type TexturedSwatch, textureOf } from './tile-read.ts'

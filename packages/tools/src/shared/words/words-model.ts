@@ -77,4 +77,4 @@ export interface WordsModel {
 export const WordsModel: Context.Tag<WordsModel, WordsModelService> = Context.GenericTag<
   WordsModel,
   WordsModelService
->('@automata/tools/WordsModel')
+>('@automataframework/tools/WordsModel')

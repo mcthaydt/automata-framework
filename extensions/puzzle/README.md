@@ -8,7 +8,7 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 ## Turn it on
 
 ```ts
-import { puzzleExtension } from '@automata/puzzle'
+import { puzzleExtension } from '@automataframework/puzzle'
 
 export default defineGame({ extensions: [puzzleExtension({ extensions: ['sectors'] })] })
 ```
@@ -19,7 +19,7 @@ not in the middle of play. Add `calls` to give the rules functions of your own t
 ## What you get
 
 - **A `puzzle` content kind**: the rules and goals, in TOML files.
-- **The sim side** (`@automata/puzzle/sim`): the interpreter, the commands a player's verbs become, and the events
+- **The sim side** (`@automataframework/puzzle/sim`): the interpreter, the commands a player's verbs become, and the events
   other extensions listen to.
-- **A solver** (`@automata/puzzle/solver`, for build time and tests, never in a game bundle): tries the moves and says
+- **A solver** (`@automataframework/puzzle/solver`, for build time and tests, never in a game bundle): tries the moves and says
   which levels cannot be finished.

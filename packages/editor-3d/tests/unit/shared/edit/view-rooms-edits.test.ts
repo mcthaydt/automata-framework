@@ -1,7 +1,7 @@
 // The rooms a camera view draws (`rooms` of a level's `views`): one undoable step written as one member, an empty list taking
 // the member off (a view that draws no rooms is not one), and a refusal in words for a view or a room the level lacks.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit } from '#src/shared/edit/edit.ts'
 import { setViewRooms } from '#src/shared/edit/level-edits.ts'

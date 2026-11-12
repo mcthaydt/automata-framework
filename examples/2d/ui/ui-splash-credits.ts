@@ -1,16 +1,16 @@
 // ui-splash-credits: A studio splash, then a title with Credits
 //
-// Shows: `splashStep` from `@automata/ui-screens` is an opening step: the studio's logo, held for a moment and ended by
+// Shows: `splashStep` from `@automataframework/ui-screens` is an opening step: the studio's logo, held for a moment and ended by
 //   any press, before the first screen. The title has a Credits button beside Play; it opens `CreditsPanel` over a credits
 //   file, and a name's link is opened by the host (Ruken asks the player first), a refusal said under the list. Credits
 //   are data, checked by `creditsSchema`.
 // Controls: tap or click; Escape closes Credits
-// Packages: @automata/framework, @automata/ui-screens
+// Packages: @automataframework/framework, @automataframework/ui-screens
 // Difficulty: ★★★☆
 // Tier: core
-import { defaultContent, defineGame, type ScreenContext } from '@automata/framework'
-import { creditsSchema, showCredits } from '@automata/ui-screens/credits'
-import { splashStep } from '@automata/ui-screens/splash'
+import { defaultContent, defineGame, type ScreenContext } from '@automataframework/framework'
+import { creditsSchema, showCredits } from '@automataframework/ui-screens/credits'
+import { splashStep } from '@automataframework/ui-screens/splash'
 
 // The studio's mark, drawn for this repository (resources/logo/PROVENANCE.md).
 const logo = new URL('../resources/logo/studio.svg', import.meta.url).href

@@ -10,7 +10,7 @@ does. Everything that belongs to the picture (a colour grade, say) goes before t
 [retro pass](../retro-crisp/README.md) does.
 
 It is free and MIT licensed. It is optional: a game that does not add it loses nothing. It is not published to npm yet,
-because it builds on `@automata/3d`.
+because it builds on `@automataframework/3d`.
 
 ## Turn it on
 
@@ -18,7 +18,7 @@ Add the pass once, before the renderer is made. Passes run in the order they wer
 last if it should sit on top of the other passes that follow the snap (stars, glow).
 
 ```ts
-import { addLcdPanelPass } from '@automata/lcd-panel/pass'
+import { addLcdPanelPass } from '@automataframework/lcd-panel/pass'
 
 const panel = addLcdPanelPass({ profile: { grid: 0.45 } }) // the rest is the clinic's numbers
 ```
@@ -56,7 +56,7 @@ know, is refused and the message names it.
 | `vignette` | `true` | The frame's outer vignette |
 
 `LCD_CLINIC` is the defaults and `LCD_OFF` is the panel with every term that changes the picture zeroed (the vignette
-stays, since it belongs to the frame). Both come from `@automata/lcd-panel`, which has no renderer in it, with
+stays, since it belongs to the frame). Both come from `@automataframework/lcd-panel`, which has no renderer in it, with
 `parseLcdProfile`, `derivePitch` and the other pure maths, so Node tests can use them.
 
 ## What it is built from

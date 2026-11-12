@@ -2,7 +2,7 @@ name: release packages
 
 # AF's releases. Changesets opens or updates a "Version packages" pull request on every push to
 # main that carries changesets; merging that pull request (the Owner's word, never automatic) publishes every
-# changed @automata/* package at one shared 0.0.x version to npmjs.org, publicly. Nothing is published on
+# changed @automataframework/* package at one shared 0.0.x version to npmjs.org, publicly. Nothing is published on
 # any other push.
 #
 # Four jobs: `plan` asks whether the pushed commit carries changesets, which is the question
@@ -21,7 +21,7 @@ name: release packages
 # $RUNNER_TEMP because changesets/action writes an .npmrc into $HOME. Publishing still waits for the Owner's
 # approval in the release environment (the publish job, below).
 #
-# Token: NPM_TOKEN (the Owner's to create: an npm automation token that may publish to the `@automata` organisation,
+# Token: NPM_TOKEN (the Owner's to create: an npm automation token that may publish to the `@automataframework` organisation,
 # kept as a secret of the `release` environment) publishes the packages. They are public, so games and the
 # smoke below install them with no token at all. No --provenance yet: it needs a hosted runner, and the release runs
 # on the Owner's Mac.
@@ -143,13 +143,13 @@ jobs:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
           dest: ${{ runner.temp }}/setup-pnpm
       # registry-url and scope make setup-node write an .npmrc that sends NODE_AUTH_TOKEN to npmjs.org for
-      # @automata, for publishing. The lookups after it read public packages and need no token.
+      # @automataframework, for publishing. The lookups after it read public packages and need no token.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
           registry-url: https://registry.npmjs.org
-          scope: "@automata"
+          scope: "@automataframework"
       - run: pnpm install --frozen-lockfile
       # The registry smoke boots Chromium. A no-op once the pinned browser is in the runner's cache; fetched
       # before publishing, so a clean machine cannot fail the smoke after the packages are out (Owner, 2026-10-30:

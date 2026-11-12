@@ -4,12 +4,16 @@ import { Files } from '../node/files.ts'
 import type { Catalog } from './catalog.ts'
 
 // The words of the framework packages a game uses, found the way the font build finds them (`gameWords` in
-// `@automata/content`, which tools never imports at run time, so this is its own small copy and a test keeps the two
+// `@automataframework/content`, which tools never imports at run time, so this is its own small copy and a test keeps the two
 // equal): `<package>/words/<lang>.json` through the package's `exports`, looked for from the game's folder up through the
 // `node_modules` folders on the way and nowhere else.
 
 /** The packages whose screens carry words. */
-const WORD_PACKAGES = ['@automata/framework', '@automata/ui-screens', '@automata/net-ui'] as const
+const WORD_PACKAGES = [
+  '@automataframework/framework',
+  '@automataframework/ui-screens',
+  '@automataframework/net-ui',
+] as const
 
 const textOnly = (value: unknown): Catalog | undefined => {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined

@@ -1,4 +1,4 @@
-import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '@automata/editor/editor-list'
+import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '@automataframework/editor/editor-list'
 import { describe, expect, it } from 'vitest'
 import { contentEditors } from '#src/app/suite/content-editors.ts'
 import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'

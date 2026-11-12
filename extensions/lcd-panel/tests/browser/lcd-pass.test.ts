@@ -1,8 +1,8 @@
 // The LCD panel pass on a real WebGL2 context. The pass is added once, after the test that shows a frame without it (the
 // look's registry is the page's, so order within this file is the point). WebGPU and WebGL2 parity is the GPU runner's.
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer } from '@automata/3d'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer } from '@automataframework/3d'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { addLcdPanelPass } from '#src/app/add-lcd-panel.ts'

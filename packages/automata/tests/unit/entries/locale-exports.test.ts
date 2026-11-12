@@ -5,7 +5,7 @@ import * as framework from '#src/entries/index.ts'
 // (so `pt` finds `pt-BR` the way the runtime does), numbers in the reader's convention, the six default languages and
 // the binding that keeps plain-DOM words in the language.
 
-describe('@automata/framework locale exports', () => {
+describe('@automataframework/framework locale exports', () => {
   it('has matchLocale, formatNumber, DEFAULT_LOCALES and bindWords', () => {
     expect(framework.matchLocale('zh-CN', framework.DEFAULT_LOCALES)).toBe('zh-Hans')
     expect(framework.formatNumber('de', 1.5, { minimumFractionDigits: 2 })).toBe('1,50')

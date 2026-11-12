@@ -1,4 +1,4 @@
-import type { PixiRendererOptions } from '@automata/framework'
+import type { PixiRendererOptions } from '@automataframework/framework'
 import { duel } from '../../shared/art/palette.ts'
 import type { Room } from '../../shared/room.ts'
 import { createScene } from './scene.ts'

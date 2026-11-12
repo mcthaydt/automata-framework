@@ -6,7 +6,7 @@
   app. Every edit is one step the session puts in one undo step, and a refused edit shows its sentence.
 -->
 <script lang="ts">
-import type { ContentAnimation } from '@automata/content/level-2d'
+import type { ContentAnimation } from '@automataframework/content/level-2d'
 import { onDestroy } from 'svelte'
 import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import Button from '../../shared/kit/widgets/Button.svelte'

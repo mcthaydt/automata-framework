@@ -1,7 +1,7 @@
 // What the director hands a renderer for one moment of a scene: the camera, each actor, the caption, the fade, and the
 // states of the world's pieces (`PieceStates`, which the renderer's `updatePieces` already reads).
 
-import type { PieceStates } from '@automata/3d/level'
+import type { PieceStates } from '@automataframework/3d/level'
 import type { Caption, V3 } from '../sim/cutscene.schema'
 
 /**

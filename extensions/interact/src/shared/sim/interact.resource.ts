@@ -1,6 +1,6 @@
 // Interact's state: the level's hotspots, and the one use that is waiting for the walker. It is in the snapshot, so a
 // restored game goes on with the walk it was on.
-import { defineResource, type ResourceDef } from '@automata/sim'
+import { defineResource, type ResourceDef } from '@automataframework/sim'
 import { z } from 'zod'
 import { type Hotspot, hotspotSchema } from './hotspot.schema'
 import type { Pending } from './pending'

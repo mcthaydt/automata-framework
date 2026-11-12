@@ -1,7 +1,7 @@
 // How the editor's edits reach the sectors of a level, whatever format it is in (ED3D spec §4.1): the members both
 // formats share, read out and written back, so that an edit is written once. A format keeps what is its own (Last
 // Light's zone, its openings, its things) inside its own access object; nothing here names a Last Light concept.
-import type { Decor, PartialTrim, WallDef, WindowGrid } from '@automata/3d/level'
+import type { Decor, PartialTrim, WallDef, WindowGrid } from '@automataframework/3d/level'
 
 /** A wall as written: the members of `WallDef`, and Last Light's `preset` (a wall that starts from a named one). */
 export type EditWall = WallDef & {

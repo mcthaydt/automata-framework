@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDef } from '@automata/sim'
+import { definePlugin, type PluginDef } from '@automataframework/sim'
 import { Level2dAt } from './level-2d.component.ts'
 
 /** The sim side of `level-2d`: the position component a game with none of its own uses. */

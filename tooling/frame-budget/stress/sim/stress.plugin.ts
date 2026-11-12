@@ -1,4 +1,4 @@
-import { createRng, definePlugin, type PluginDef, type Sim } from '@automata/sim'
+import { createRng, definePlugin, type PluginDef, type Sim } from '@automataframework/sim'
 import { Body, Pulse, WORLD } from './stress.component.ts'
 import { Beat } from './stress.event.ts'
 import { stressMove, stressWorker } from './stress.system.ts'

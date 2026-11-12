@@ -1,4 +1,4 @@
-import { ModelInvalid, type RenderTarget } from '@automata/framework'
+import { ModelInvalid, type RenderTarget } from '@automataframework/framework'
 import { type Geometry3D, PhongMaterial } from '@pixi/3d'
 import { Texture } from 'pixi.js'
 import { shareMaterial } from '../views/shared-material.ts'

@@ -1,4 +1,4 @@
-// @automata/audio-synth/stage: a game's own audio player, for `defineGame({ audio })`. Cues for the sim's events, and the
+// @automataframework/audio-synth/stage: a game's own audio player, for `defineGame({ audio })`. Cues for the sim's events, and the
 // imported music switched by the game's state. Presentation only.
 
 export { type AudioNote, type AudioStageHandle, type AudioStageOptions, audioStage } from '../app/audio-stage'

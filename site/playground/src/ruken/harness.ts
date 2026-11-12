@@ -1,12 +1,12 @@
 // What a playground frame runs an example with. Browser code: the frame's build
 // bundles it with the runtime, so the game, the sim and the fake host here are the same modules the example imports.
 
-import type { HostSettings } from '@automata/examples-runner/header'
-import type { DefinedGame } from '@automata/framework'
-import { type RuntimeHandle, runGame } from '@automata/framework'
-import { createSim, type Sim } from '@automata/sim'
-import { createReplayStepper, type ReplayStepper, unpackReplay } from '@automata/sim/replay'
-import { streamCompression } from '@automata/sim/testing'
+import type { HostSettings } from '@automataframework/examples-runner/header'
+import type { DefinedGame } from '@automataframework/framework'
+import { type RuntimeHandle, runGame } from '@automataframework/framework'
+import { createSim, type Sim } from '@automataframework/sim'
+import { createReplayStepper, type ReplayStepper, unpackReplay } from '@automataframework/sim/replay'
+import { streamCompression } from '@automataframework/sim/testing'
 import { createFakeHost } from '@ruken/sdk-host/testing'
 import { startAtPlay } from '../start-at-play.ts'
 import { fakeHostOptions } from './fake-host-options.ts'

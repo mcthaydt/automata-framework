@@ -2,7 +2,7 @@
 // strongest test of the two edits is that they undo each other, so most cases below split a sector on the depot and
 // merge the halves again, and smaller levels show the one rule each.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { mergeSectors } from '#src/shared/edit/merge-edits.ts'
 import { splitSector } from '#src/shared/edit/split-edits.ts'

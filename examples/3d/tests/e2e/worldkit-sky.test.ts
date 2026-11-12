@@ -1,7 +1,7 @@
 // worldkit-sky under the fake host and Ruken's headers (compileHeaders' CSP), in Chromium (the `examples-3d` project) and
 // WebKit (`examples-3d-webkit`). Headless Firefox in this container has no WebGL; the GPU runner covers it.
-import { examples3dPort } from '@automata/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
+import { examples3dPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
 import { expect, test } from '@playwright/test'
 
 const gameUrl = `http://localhost:${examples3dPort}/worldkit/sky/`

@@ -1,5 +1,5 @@
 // H3, the hair pieces: how one entry of a style's `pieces` is built. Core registers none: the generators (scalp, rows,
-// tail, fall, bun, sweep, block, edges) are @automata/character-kit's, and a game's own extension registers more here. A
+// tail, fall, bun, sweep, block, edges) are @automataframework/character-kit's, and a game's own extension registers more here. A
 // style then carries `{ <kind> = { … } }`. A name an earlier registration took is refused.
 
 import type { z } from 'zod'

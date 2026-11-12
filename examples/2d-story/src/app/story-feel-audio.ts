@@ -1,9 +1,14 @@
 import { content } from 'virtual:automata/content'
-import { audioSchema, type MusicState } from '@automata/audio-synth'
-import { type AudioNote, type AudioStageHandle, audioStage, tracksFrom } from '@automata/audio-synth/stage'
-import { type FeelFrame, feelSchema } from '@automata/feel'
-import { feelStage } from '@automata/feel/stage'
-import type { GameAudioStart, PixiStage, PixiStageHooks } from '@automata/framework'
+import { audioSchema, type MusicState } from '@automataframework/audio-synth'
+import {
+  type AudioNote,
+  type AudioStageHandle,
+  audioStage,
+  tracksFrom,
+} from '@automataframework/audio-synth/stage'
+import { type FeelFrame, feelSchema } from '@automataframework/feel'
+import { feelStage } from '@automataframework/feel/stage'
+import type { GameAudioStart, PixiStage, PixiStageHooks } from '@automataframework/framework'
 import { LEVEL } from '../features/level/level.ts'
 
 // What the player feels and hears, from the files Feel and Audio write (`content/feel/feel.toml`, `content/audio/audio.toml`

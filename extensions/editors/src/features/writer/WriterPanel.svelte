@@ -3,7 +3,7 @@
   is a place in the story; adding one asks only what to call it.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import { humanize } from '../../shared/humanize.ts'
 import type { WriterSession } from './writer-session.svelte.ts'
 

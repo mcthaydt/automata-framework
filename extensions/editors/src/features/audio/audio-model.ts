@@ -1,7 +1,7 @@
 // The audio file as a person reads it: sounds made of tones and hisses, and what plays when something happens. (Music is
 // imported and arranged, never made: see music-model.ts.) Every name on screen is a person's ("Plays on Effects", "Loudness"); the keys stay in the file.
-import type { AudioContent, BusId, Cue, Voice } from '@automata/audio-synth'
-import type { ContentEdit } from '@automata/editor/kit/documents'
+import type { AudioContent, BusId, Cue, Voice } from '@automataframework/audio-synth'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 import { eventWords } from '../../shared/event-words.ts'
 import { appendEdits, type Field, setOrInsert } from '../../shared/fields.ts'
 import type { Problem } from '../../shared/toml-session.ts'

@@ -3,7 +3,7 @@
   with a name no other sound has, and can be played at once.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import { addSoundEdit, newSoundId } from './audio-model.ts'
 import type { AudioChoice, AudioSession } from './audio-session.svelte.ts'
 

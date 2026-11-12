@@ -1,4 +1,4 @@
-import { DEFAULT_PALETTE, step } from '@automata/content/palette'
+import { DEFAULT_PALETTE, step } from '@automataframework/content/palette'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_LOOK, parseLook } from '#src/features/look/look.ts'
 import { addLookPass, createLookPasses, registeredLookPasses } from '#src/features/look/look-pass.ts'

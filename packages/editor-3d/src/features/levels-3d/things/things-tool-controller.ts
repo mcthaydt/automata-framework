@@ -14,9 +14,9 @@
 //
 // It lives beside `app/` rather than in it while the shell (ED3D.5b) is built there; it follows the same shape.
 
-import type { Point } from '@automata/3d/level'
-import type { Size, Viewport2D } from '@automata/editor/kit/core'
-import type { FieldValue, FieldValues } from '@automata/editor/kit/fields'
+import type { Point } from '@automataframework/3d/level'
+import type { Size, Viewport2D } from '@automataframework/editor/kit/core'
+import type { FieldValue, FieldValues } from '@automataframework/editor/kit/fields'
 import type { Edit } from '../../../shared/edit/edit'
 import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor'
 import { parseSelection } from '../../../shared/edit/selection-ref'

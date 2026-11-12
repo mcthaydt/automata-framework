@@ -1,5 +1,5 @@
-import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
-import type { Places } from '@automata/places'
+import type { ContentLevel, ContentProject } from '@automataframework/content/level-2d'
+import type { Places } from '@automataframework/places'
 import {
   createSim,
   defineCommand,
@@ -7,7 +7,7 @@ import {
   definePlugin,
   defineSystem,
   type SimContext,
-} from '@automata/sim'
+} from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { Level2dAt, level2dPlaces, level2dPlugin } from '#src/entries/sim.ts'

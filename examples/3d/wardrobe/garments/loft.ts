@@ -7,7 +7,7 @@
 // `torus`), with AF's strict types; the formulas and their order are unchanged. Not taken: `backOf`
 // (nothing builds with it).
 
-import type { Section, Shell, Superquadric } from '@automata/3d/figures-kit'
+import type { Section, Shell, Superquadric } from '@automataframework/3d/figures-kit'
 import {
   at,
   clamp,
@@ -19,7 +19,7 @@ import {
   sgnPow,
   sub,
   type V3,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 
 // The contract types are core's (figures-kit); re-exported so a builder imports them with the helpers.
 export type { Section, Shell }

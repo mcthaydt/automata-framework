@@ -1,4 +1,4 @@
-import { defineEvent, type EventDef } from '@automata/sim'
+import { defineEvent, type EventDef } from '@automataframework/sim'
 import { z } from 'zod'
 
 const beatSchema = z.object({ tick: z.number().int() })

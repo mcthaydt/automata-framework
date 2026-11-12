@@ -1,5 +1,5 @@
 // base-3d's progress: the embers taken and whether the goal was reached, which a save keeps and the sim changes. Sim code.
-import { defineResource } from '@automata/sim'
+import { defineResource } from '@automataframework/sim'
 import { z } from 'zod'
 
 /**

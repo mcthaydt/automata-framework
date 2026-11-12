@@ -1,4 +1,4 @@
-import { NetOwner } from '@automata/net/sim'
+import { NetOwner } from '@automataframework/net/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { type EngineHarness, engineHarness } from '#src/testing/engine-harness.ts'
 import { fixtureSim, positions } from '#src/testing/fixture-game.ts'

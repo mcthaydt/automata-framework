@@ -138,7 +138,7 @@ function assertParsers(): void {
   const expected = [...PIXI_UNIFORM_PARSER_TYPES, ...PIXI3D_UNIFORM_PARSER_TYPES]
   if (types.join() !== expected.join())
     throw new Error(
-      `@automata/3d/no-eval: pixi's uniform parsers are [${types.join(', ')}], not [${expected.join(', ')}]: ` +
+      `@automataframework/3d/no-eval: pixi's uniform parsers are [${types.join(', ')}], not [${expected.join(', ')}]: ` +
         'a pixi.js or @pixi/3d update moved them, so the shim would upload the wrong functions',
     )
 }
@@ -245,14 +245,14 @@ function wrapUboSync(
   }
 }
 
-/** Whether `installPixi3dUniformSync` has run in this page (`@automata/3d/no-eval` was imported). */
+/** Whether `installPixi3dUniformSync` has run in this page (`@automataframework/3d/no-eval` was imported). */
 export function pixi3dUniformSyncInstalled(): boolean {
   return (globalThis as { [INSTALLED]?: true })[INSTALLED] === true
 }
 
 /**
  * Lets pixi.js/unsafe-eval upload @pixi/3d's uniforms. Run once, after `pixi.js/unsafe-eval` and `@pixi/3d` are
- * imported and before the first draw (`@automata/3d/no-eval` does). A second call does nothing.
+ * imported and before the first draw (`@automataframework/3d/no-eval` does). A second call does nothing.
  */
 export function installPixi3dUniformSync(): void {
   const registry = globalThis as { [INSTALLED]?: true }

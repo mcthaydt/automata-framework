@@ -1,5 +1,5 @@
 // What ship writes into this build's ruken.toml. Field names and values are Ruken's own.
-import { defineShipConfig } from '@automata/tools'
+import { defineShipConfig } from '@automataframework/tools'
 import packageJson from './package.json' with { type: 'json' }
 
 export default defineShipConfig({
@@ -21,7 +21,7 @@ export default defineShipConfig({
   },
   network: { connect: [] },
   // The six languages the game ships (messages/ui and content/messages), the framework's defaults. Written out, not read
-  // from `@automata/content/locale`: the `automata` command loads this file in plain Node, which cannot load that entry.
+  // from `@automataframework/content/locale`: the `automata` command loads this file in plain Node, which cannot load that entry.
   content: {
     languages: ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'],
     rating: 'everyone',

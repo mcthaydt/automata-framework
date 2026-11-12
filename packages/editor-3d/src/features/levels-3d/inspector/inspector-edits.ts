@@ -3,8 +3,8 @@
 // (`start`, `update`, `commit`) runs in one session, so it is one step too; `cancel` drops the session. A refusal changes
 // nothing and answers the model's own sentence for the card to show.
 
-import type { Occlude } from '@automata/3d/level'
-import type { FieldValue } from '@automata/editor/kit/fields'
+import type { Occlude } from '@automataframework/3d/level'
+import type { FieldValue } from '@automataframework/editor/kit/fields'
 import type { Edit } from '../../../shared/edit/edit'
 import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor'
 import { setTimeOfDay, setViewRooms } from '../../../shared/edit/level-edits'

@@ -5,7 +5,7 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { NetErrorCode } from '@automata/net'
+import type { NetErrorCode } from '@automataframework/net'
 import { ErrorCode } from '@colyseus/core'
 import type { OriginPolicy } from './origins'
 

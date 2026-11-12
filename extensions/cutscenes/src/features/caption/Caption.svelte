@@ -6,7 +6,7 @@
   the game. A caption whose line has no words shows nothing and is told to whoever writes the game, once.
 -->
 <script lang="ts">
-import { usePlay } from '@automata/framework'
+import { usePlay } from '@automataframework/framework'
 import { untrack } from 'svelte'
 import { CutsceneState } from '../../shared/sim/cutscene.resource.ts'
 import type { CutsceneScript } from '../../shared/sim/cutscene.schema.ts'

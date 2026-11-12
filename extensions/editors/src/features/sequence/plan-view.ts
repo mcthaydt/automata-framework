@@ -1,11 +1,11 @@
 // The cutscene seen from above: the scene's state at the playhead turned into dots, a wedge and walls, fitted to a box.
 // It is drawn from the director's state alone, so the preview shows what the game would, without running the game.
 
-import { type AfSector2, readLevel } from '@automata/3d/level'
-import { type ContentLevel, intGridRows, levelContentSchema } from '@automata/content/level-2d'
-import type { SceneState } from '@automata/cutscenes/director'
-import { openDocument } from '@automata/editor/kit/documents'
-import type { SuitePorts } from '@automata/editor/kit/ports'
+import { type AfSector2, readLevel } from '@automataframework/3d/level'
+import { type ContentLevel, intGridRows, levelContentSchema } from '@automataframework/content/level-2d'
+import type { SceneState } from '@automataframework/cutscenes/director'
+import { openDocument } from '@automataframework/editor/kit/documents'
+import type { SuitePorts } from '@automataframework/editor/kit/ports'
 
 /** A wall from one point of the plan to another, in metres. */
 export type Segment = readonly [number, number, number, number]

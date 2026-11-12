@@ -1,4 +1,4 @@
-import { DEFAULT_PALETTE } from '@automata/content'
+import { DEFAULT_PALETTE } from '@automataframework/content'
 import { describe, expect, it } from 'vitest'
 import { materialColour } from '#src/features/figures/view/figure-colour.ts'
 

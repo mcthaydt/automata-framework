@@ -1,7 +1,7 @@
 // Wall pieces, colliders and sight walls: small cases that show one rule each, and the collider rule held on a shipped
 // level (the depot).
 
-import { opening, type SectorDef, STEP, type WallDef, walkBlocker } from '@automata/3d/level'
+import { opening, type SectorDef, STEP, type WallDef, walkBlocker } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import {
   type Edge,

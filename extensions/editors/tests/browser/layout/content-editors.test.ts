@@ -1,12 +1,17 @@
-import '@automata/editor/tokens.css'
-import '@automata/editor/fonts.css'
-import '@automata/editor/suite.css'
-import '@automata/editor/tool-chrome.css'
-import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { editorTargets, SIZES } from '@automata/editor/kit/testing'
-import { fixtureEditor } from '@automata/editor/suite/testing'
-import { inShell, noPageScroll, type OpenedSuite, openSuite } from '@automata/editor/suite/testing/layout'
-import { settleLayout } from '@automata/framework/testing'
+import '@automataframework/editor/tokens.css'
+import '@automataframework/editor/fonts.css'
+import '@automataframework/editor/suite.css'
+import '@automataframework/editor/tool-chrome.css'
+import type { SuiteEditor } from '@automataframework/editor/kit/ports'
+import { editorTargets, SIZES } from '@automataframework/editor/kit/testing'
+import { fixtureEditor } from '@automataframework/editor/suite/testing'
+import {
+  inShell,
+  noPageScroll,
+  type OpenedSuite,
+  openSuite,
+} from '@automataframework/editor/suite/testing/layout'
+import { settleLayout } from '@automataframework/framework/testing'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { contentEditors } from '#src/app/suite/content-editors.ts'

@@ -1,4 +1,4 @@
-import { type SystemsDef, systemsDefShape } from '@automata/systems/sim'
+import { type SystemsDef, systemsDefShape } from '@automataframework/systems/sim'
 import { parse as strictParse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { newAgent, newSystemsFile, systemsFileText } from '#src/features/schematic/starter.ts'

@@ -8,10 +8,10 @@
 // generator, `cast.<who>` for a character and `lamp.<kind>` for a lamp. None can be written in a file (an id has no "."),
 // which is how an entity is told from a placed thing. (Not ":": a selection id is split on ":" and "/".)
 
-import type { AfSector2File, CastPlace, LampPlace, PropPlace } from '@automata/3d/level'
-import { LAMP_KINDS } from '@automata/3d/world-content'
-import type { FieldDef } from '@automata/editor/kit/fields'
-import { fileTitle } from '@automata/editor/suite'
+import type { AfSector2File, CastPlace, LampPlace, PropPlace } from '@automataframework/3d/level'
+import { LAMP_KINDS } from '@automataframework/3d/world-content'
+import type { FieldDef } from '@automataframework/editor/kit/fields'
+import { fileTitle } from '@automataframework/editor/suite'
 import { sameJson } from '../../edit/json-values'
 import type { ThingDef, ThingGroup } from '../../things/thing-def.schema'
 import type { Thing } from '../../things/things'

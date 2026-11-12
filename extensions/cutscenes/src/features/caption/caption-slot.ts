@@ -1,4 +1,4 @@
-import type { UiComponent } from '@automata/framework/extension'
+import type { UiComponent } from '@automataframework/framework/extension'
 import type { ComponentProps } from 'svelte'
 import type { CutsceneScript } from '../../shared/sim/cutscene.schema.ts'
 import Caption from './Caption.svelte'

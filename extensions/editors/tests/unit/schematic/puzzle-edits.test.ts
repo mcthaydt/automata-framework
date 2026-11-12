@@ -1,4 +1,4 @@
-import type { PuzzleDef } from '@automata/puzzle/sim'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
 import { describe, expect, it } from 'vitest'
 import {
   addFactEdits,

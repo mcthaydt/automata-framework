@@ -1,6 +1,6 @@
 // A field of a sentence, as every content editor gives it to `FieldRow`: a number with its range and unit, a short text,
 // or one of a few choices. `key` is the file's key, never shown; `label` is what the person reads.
-import type { ContentEdit } from '@automata/editor/kit/documents'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 
 export type Field =
   | {

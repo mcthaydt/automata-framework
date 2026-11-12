@@ -16,7 +16,7 @@ const RUNTIME = {
   styles: [],
 }
 
-// What `@automata/ui-screens` publishes as code, read from its package: a screen added there with no line in the
+// What `@automataframework/ui-screens` publishes as code, read from its package: a screen added there with no line in the
 // playground's import map would compile in an example and then fail to load in the frame.
 const publishedScreens = (): string[] => {
   const pkg = JSON.parse(
@@ -24,27 +24,27 @@ const publishedScreens = (): string[] => {
   ) as { exports: Record<string, unknown> }
   return Object.keys(pkg.exports)
     .filter((subpath) => !subpath.includes('*'))
-    .map((subpath) => `@automata/ui-screens${subpath.slice(1)}`)
+    .map((subpath) => `@automataframework/ui-screens${subpath.slice(1)}`)
 }
 
 describe('the playground imports', () => {
-  it('serve the framework, Zod and every screen @automata/ui-screens publishes', () => {
+  it('serve the framework, Zod and every screen @automataframework/ui-screens publishes', () => {
     expect([...PLAYGROUND_IMPORT_LIST].sort()).toEqual(
-      ['@automata/framework', 'zod', ...publishedScreens()].sort(),
+      ['@automataframework/framework', 'zod', ...publishedScreens()].sort(),
     )
   })
 
   it('refuse any other name, including a screens file that is not a published entry', () => {
-    expect(isPlaygroundImport('@automata/framework')).toBe(true)
-    expect(isPlaygroundImport('@automata/ui-screens/credits')).toBe(true)
-    expect(isPlaygroundImport('@automata/ui-screens/words/ja.json')).toBe(false)
-    expect(isPlaygroundImport('@automata/net')).toBe(false)
+    expect(isPlaygroundImport('@automataframework/framework')).toBe(true)
+    expect(isPlaygroundImport('@automataframework/ui-screens/credits')).toBe(true)
+    expect(isPlaygroundImport('@automataframework/ui-screens/words/ja.json')).toBe(false)
+    expect(isPlaygroundImport('@automataframework/net')).toBe(false)
     expect(isPlaygroundImport('./other')).toBe(false)
   })
 
   it('map to one runtime file each: every screen to the one screens chunk', () => {
     const map = playgroundImportMap(RUNTIME)
-    expect(map['@automata/framework']).toBe(RUNTIME.automata)
+    expect(map['@automataframework/framework']).toBe(RUNTIME.automata)
     expect(map.zod).toBe(RUNTIME.zod)
     for (const screen of publishedScreens()) expect(map[screen]).toBe(RUNTIME.uiScreens)
     expect(Object.keys(map).sort()).toEqual([...PLAYGROUND_IMPORT_LIST].sort())

@@ -2,8 +2,8 @@
 // keyed by the map's `sectors` array, which `loadSectorMap` replaces (the resource object itself stays the same), with
 // the masses it was resolved with; a restored snapshot brings new arrays and resolves again to the same result.
 // Nothing here is sim state.
-import type { MassDef } from '@automata/3d/level'
-import type { SimContext } from '@automata/sim'
+import type { MassDef } from '@automataframework/3d/level'
+import type { SimContext } from '@automataframework/sim'
 import type { SectorMap, StoredSector } from './check-level'
 import { type ResolvedMap, resolveLevel } from './resolve'
 import { SectorMapResource } from './sectors.resource'

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { mountInPlay, type PlayMount } from '@automata/framework/testing'
-import type { Sim } from '@automata/sim'
+import { mountInPlay, type PlayMount } from '@automataframework/framework/testing'
+import type { Sim } from '@automataframework/sim'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { captionSlot } from '#src/features/caption/caption-slot.ts'

@@ -7,7 +7,7 @@
  * A game with no policy refuses `bot.add`. A game's own colours, personalities, characters and public-room fill stay the game's.
  */
 
-import { deriveSeed } from '@automata/sim'
+import { deriveSeed } from '@automataframework/sim'
 import { isPreGame, type LobbyRules, type LobbyState, takeSeat } from './lobby-rules'
 import { RoomCommandError } from './room-errors'
 

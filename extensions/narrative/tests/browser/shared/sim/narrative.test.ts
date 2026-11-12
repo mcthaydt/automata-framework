@@ -1,7 +1,7 @@
 // The narrative golden: the clinic's conversations and storylets, played by a fixed script, hash to one
 // committed value in Node, Chromium, WebKit and Firefox, straight and restored at step 300. A mismatch is investigated,
 // never rebaselined.
-import { recordGoldenEvidence } from '@automata/evidence/golden'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
 import { expect, test } from 'vitest'
 import { runNarrativeGolden } from '#src/testing/talk-script.ts'
 

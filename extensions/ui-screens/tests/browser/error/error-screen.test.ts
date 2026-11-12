@@ -1,5 +1,5 @@
-import '@automata/framework/theme.css'
-import { mountFixture } from '@automata/framework/testing'
+import '@automataframework/framework/theme.css'
+import { mountFixture } from '@automataframework/framework/testing'
 import ErrorScreen from '#src/features/error/ErrorScreen.svelte'
 import { type Locale, layoutContract, say } from '#src/testing/layout-sweep.ts'
 

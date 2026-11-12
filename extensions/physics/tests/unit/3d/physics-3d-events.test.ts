@@ -1,4 +1,11 @@
-import { createSim, defineCommand, definePlugin, defineSystem, type Sim, type SimEvent } from '@automata/sim'
+import {
+  createSim,
+  defineCommand,
+  definePlugin,
+  defineSystem,
+  type Sim,
+  type SimEvent,
+} from '@automataframework/sim'
 import { afterEach, expect, test } from 'vitest'
 import { z } from 'zod'
 import {

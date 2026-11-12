@@ -1,5 +1,9 @@
 import { content } from 'virtual:automata/content'
-import { type ContentLevel, levelContentSchema, projectContentSchema } from '@automata/content/level-2d'
+import {
+  type ContentLevel,
+  levelContentSchema,
+  projectContentSchema,
+} from '@automataframework/content/level-2d'
 
 // The editor's files as data, with no drawing in them: the characters, tilesets and layers (project.toml) and every level.
 // The screen draws them (level-scene.ts) and the story reads where things are placed (features/story).

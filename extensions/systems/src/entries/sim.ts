@@ -1,4 +1,4 @@
-// @automata/systems/sim: world rules and agents as data, a sim entry.
+// @automataframework/systems/sim: world rules and agents as data, a sim entry.
 
 export { carriedLightContent, carriedLightFileSchema } from '../shared/carried-light.content'
 export { peekContent, peekFileSchema } from '../shared/peek.content'

@@ -1,7 +1,7 @@
 // A sound drawn: each voice a bar across the part of the sound it lasts, standing at its pitch, so a person sees the
 // shape of what they will hear. A tone slopes from where it starts to where it ends; a hiss is a band. Pitch is on a log
 // scale, from 50 Hz at the bottom to 8 kHz at the top, because the ear hears equal ratios as equal steps.
-import type { Cue, Voice } from '@automata/audio-synth'
+import type { Cue, Voice } from '@automataframework/audio-synth'
 
 export interface PictureBar {
   readonly kind: 'tone' | 'hiss'

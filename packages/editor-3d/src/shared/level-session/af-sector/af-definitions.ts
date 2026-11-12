@@ -1,7 +1,7 @@
 // Where the definitions of an `af-sector/2` level live: one list, `entityDefs`, whose ids the codec matches elements by,
 // and the `def` member of each of `entities` (ED3D spec §4.6, §4.7).
 
-import type { AfEntity, AfEntityDef, AfSector2File } from '@automata/3d/level'
+import type { AfEntity, AfEntityDef, AfSector2File } from '@automataframework/3d/level'
 import { sameJson, withoutUndefined } from '../../edit/json-values'
 import type { ThingDef } from '../../things/thing-def.schema'
 import type { DefinitionAccess, InstanceRename } from '../definition-access'

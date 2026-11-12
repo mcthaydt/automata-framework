@@ -2,11 +2,16 @@
 // person has chosen. A scene is the name its files share (`content/systems/<scene>.toml`, `content/nav/<scene>.toml`,
 // `content/puzzles/<scene>.toml`). The session outlives the view, so leaving Schematic and coming back finds the same
 // thing chosen. `revision` only tells Svelte that a history moved.
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { CheckResult, SuitePorts } from '@automata/editor/kit/ports'
-import { type NavGraph, navGraphSchema } from '@automata/nav/sim'
-import { type PuzzleDef, puzzleDefShape } from '@automata/puzzle/sim'
-import { type AgentDef, type SystemsDef, systemsDefShape, type Transition } from '@automata/systems/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import type { CheckResult, SuitePorts } from '@automataframework/editor/kit/ports'
+import { type NavGraph, navGraphSchema } from '@automataframework/nav/sim'
+import { type PuzzleDef, puzzleDefShape } from '@automataframework/puzzle/sim'
+import {
+  type AgentDef,
+  type SystemsDef,
+  systemsDefShape,
+  type Transition,
+} from '@automataframework/systems/sim'
 import { contentOf } from '../../shared/content-session.svelte.ts'
 import {
   type Outcome,

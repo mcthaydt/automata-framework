@@ -7,7 +7,7 @@ import {
   publishConditions,
   settleLayout,
   VARIANTS,
-} from '@automata/framework/testing'
+} from '@automataframework/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import ShellFixture from '#src/testing/kit/ShellFixture.svelte'

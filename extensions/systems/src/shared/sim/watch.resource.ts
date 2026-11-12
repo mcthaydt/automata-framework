@@ -1,5 +1,5 @@
 // The watcher's state: whether the watched condition held at the end of the last step.
-import { defineResource, type ResourceDef } from '@automata/sim'
+import { defineResource, type ResourceDef } from '@automataframework/sim'
 import { z } from 'zod'
 
 const watchSchema: z.ZodType<{ held: boolean }> = z.strictObject({ held: z.boolean() })

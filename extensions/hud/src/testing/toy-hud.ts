@@ -1,6 +1,6 @@
 // A small play HUD of the extension's own, so its tests stand without a game: a file with the five pieces, words for a
 // pantry, a model the test edits and a log of what the pieces asked the game to do. Tests only.
-import type { UiComponent } from '@automata/framework/extension'
+import type { UiComponent } from '@automataframework/framework/extension'
 import { hudSlot } from '../app/hud-slot'
 import type { HudFile } from '../shared/hud.schema'
 import type { HudActions, HudModel } from '../shared/hud-model'

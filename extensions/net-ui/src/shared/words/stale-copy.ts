@@ -2,7 +2,7 @@
 // the source; a game that wants other words passes its own `copy` to the step. All six ship in the package: a language
 // switch must be instant and offline.
 
-import { matchLocale } from '@automata/framework'
+import { matchLocale } from '@automataframework/framework'
 import en from './en.json' with { type: 'json' }
 import es419 from './es-419.json' with { type: 'json' }
 import ja from './ja.json' with { type: 'json' }

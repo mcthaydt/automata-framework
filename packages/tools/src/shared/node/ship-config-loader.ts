@@ -33,7 +33,7 @@ export interface ShipConfigLoader {
 export const ShipConfigLoader: Context.Tag<ShipConfigLoader, ShipConfigLoaderService> = Context.GenericTag<
   ShipConfigLoader,
   ShipConfigLoaderService
->('@automata/tools/ShipConfigLoader')
+>('@automataframework/tools/ShipConfigLoader')
 
 /** The loader on a real import of `ship.config.ts`. */
 export const ShipConfigLoaderLive: Layer.Layer<ShipConfigLoader> = Layer.succeed(ShipConfigLoader, {

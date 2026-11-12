@@ -2,7 +2,7 @@
 // the screen", "Freeze the action") with fields named for what they do, never for their keys. The edits are the kit's
 // content edits by key path, so the file keeps its comments and order.
 
-import type { ContentEdit } from '@automata/editor/kit/documents'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 import {
   DEFAULT_LIMITS,
   DEFAULT_SQUASH,
@@ -11,7 +11,7 @@ import {
   type Limits,
   resolveLimits,
   type SpringTuning,
-} from '@automata/feel'
+} from '@automataframework/feel'
 import { eventWords } from '../../shared/event-words.ts'
 import { appendEdits, type Field, setOrInsert } from '../../shared/fields.ts'
 import type { Problem } from '../../shared/toml-session.ts'

@@ -1,15 +1,15 @@
 // worldkit-furnished-room: an empty room that asks to be an office, and the world-kit extension furnishing it
 //
-// Shows: the world kit (`@automata/world-kit`) furnishing a room from one word. The level is plain data: one room
+// Shows: the world kit (`@automataframework/world-kit`) furnishing a room from one word. The level is plain data: one room
 //   with `dress = { as: 'office', seed: 3 }`. `dressLevel` reads the kit the library has under that name (desks, chairs,
 //   cabinets, a bookcase, signs, clutter, a ceiling lamp), places each as an ordinary prop with an id like
 //   `office:furniture:2`, paints the room with the kit's surfaces and takes `dress` off, so core builds and draws
 //   the result with no extension. The same seed gives the same room; `problems` is empty when all went well.
 // Controls: none
-// Packages: @automata/framework, @automata/3d, @automata/world-kit
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/world-kit
 // Difficulty: ★★★☆
 // Tier: extension
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -19,10 +19,10 @@ import {
   swatchColour,
   swatchGlow,
   targetSize,
-} from '@automata/3d'
-import type { AfSector2 } from '@automata/3d/level'
-import { defineGame, definePlugin } from '@automata/framework'
-import { dressLevel, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
+} from '@automataframework/3d'
+import type { AfSector2 } from '@automataframework/3d/level'
+import { defineGame, definePlugin } from '@automataframework/framework'
+import { dressLevel, worldKitExtension, worldKitLibrary } from '@automataframework/world-kit'
 
 // --- level ---
 // A game writes this as content/levels/office.af-sector.json; here it is inline. Corners run round the room, x east

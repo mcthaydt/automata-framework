@@ -2,8 +2,8 @@
 // selection id the app selects it by, a unit normal and a shade. The rooms are 8 m by 6 m and 4 m high unless a test says
 // otherwise; `z` is the plan's `z`, so a wall's coordinates read the same here as on the plan.
 
-import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
-import { polygonArea } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automataframework/3d/level'
+import { polygonArea } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { planScene } from '#src/features/levels-3d/plan/plan-scene.ts'
 import { selectionOf } from '#src/shared/edit/selection-of.ts'

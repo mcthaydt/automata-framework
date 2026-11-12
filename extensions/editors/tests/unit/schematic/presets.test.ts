@@ -2,9 +2,9 @@
 
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
-import { checkSystems, systemsDefShape } from '@automata/systems/sim'
+import { EDITOR_LIST_PATH } from '@automataframework/editor/editor-list'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
+import { checkSystems, systemsDefShape } from '@automataframework/systems/sim'
 import { render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { parse as strictParse } from 'smol-toml'
@@ -19,7 +19,9 @@ const PLACES = ['door', 'desk', 'window']
 
 describe('the sim tests run what the menu writes', () => {
   it('keeps the systems package’s fixture equal to the presets on the clinic’s first three stops', () => {
-    const path = createRequire(import.meta.url).resolve('@automata/systems/testing/fixtures/presets.json')
+    const path = createRequire(import.meta.url).resolve(
+      '@automataframework/systems/testing/fixtures/presets.json',
+    )
     const fixture = JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>
     const expected = Object.fromEntries(
       PRESETS.map((p) => [p.kind, presetAgent(p.kind, p.kind, ['end', 'cmid', 'mouth'])]),

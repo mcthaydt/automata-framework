@@ -9,8 +9,8 @@ import {
   type PixiStage,
   type PixiStageHooks,
   systemClock,
-} from '@automata/framework'
-import type { StepResult } from '@automata/sim'
+} from '@automataframework/framework'
+import type { StepResult } from '@automataframework/sim'
 import { Graphics, Text } from 'pixi.js'
 import {
   createFeel,

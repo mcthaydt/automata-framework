@@ -1,6 +1,6 @@
 // The project list (ED3D.5b step 6; ED3D spec §8, kit spec §4.7): what Home shows of a workspace, one entry for each
 // level, newest first, with what the checks found.
-import { StorageError } from '@automata/editor/kit/core'
+import { StorageError } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { problemCount } from '#src/features/levels-3d/checks/problem-count.ts'
 import { listProjects } from '#src/features/levels-3d/home/project-list.ts'

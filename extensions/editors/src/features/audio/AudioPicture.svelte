@@ -4,7 +4,7 @@
   it is always the sound as saved.
 -->
 <script lang="ts">
-import type { Cue } from '@automata/audio-synth'
+import type { Cue } from '@automataframework/audio-synth'
 import { picture } from './audio-picture.ts'
 
 const { cue }: { cue: Cue } = $props()

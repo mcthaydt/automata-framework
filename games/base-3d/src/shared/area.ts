@@ -1,6 +1,6 @@
 // The area: the room's level content compiled to fixed point, and the geometry the systems read. The free game has one
 // area: its rooms, walls, pits and camera views, the spawn, the embers and the goal.
-import { type CameraView, cameraViewSchema } from '@automata/3d/sim'
+import { type CameraView, cameraViewSchema } from '@automataframework/3d/sim'
 import { z } from 'zod'
 import { HERO_HALF, metres } from './constants.ts'
 import type { Tuning } from './tuning.ts'
@@ -18,7 +18,7 @@ const planBoxWith = <Extra extends z.ZodRawShape>(extra: Extra) =>
     })
 const planBox = planBoxWith({})
 const point = z.strictObject({ x: z.number(), z: z.number() })
-// A view's id is written beside its `camera-view` fields; `cameraViewSchema` (@automata/3d, the one owner) checks the rest.
+// A view's id is written beside its `camera-view` fields; `cameraViewSchema` (@automataframework/3d, the one owner) checks the rest.
 const viewSource = z.looseObject({ id: z.string().min(1) })
 
 const areaSchema = z.strictObject({

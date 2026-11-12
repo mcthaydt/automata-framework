@@ -1,4 +1,4 @@
-import { createRng } from '@automata/sim'
+import { createRng } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Move, positions } from '#src/testing/fixture-game.ts'
 import { type LinkRoom, linkRoom } from '#src/testing/link-room.ts'

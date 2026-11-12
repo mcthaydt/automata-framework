@@ -2,7 +2,7 @@
 
 Play together online. This is the part that runs in the player's browser: it joins a room, keeps the connection alive,
 predicts the player's own moves so the game feels instant, and smooths what the other players do. The room itself runs
-on [`@automata/net-server`](../net-server/README.md).
+on [`@automataframework/net-server`](../net-server/README.md).
 
 It is free and MIT licensed. It is optional: a game that does not add it loses nothing.
 
@@ -11,24 +11,24 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 The simulation side is a plugin. Add it to the game's sim, then open a room:
 
 ```ts
-import { createNetRoom } from '@automata/net'
-import { netPlugin } from '@automata/net/sim'
+import { createNetRoom } from '@automataframework/net'
+import { netPlugin } from '@automataframework/net/sim'
 
 export default defineGame({ sim: { plugins: [netPlugin] } })
 ```
 
-`createNetRoom` joins a room and tells you the state of the connection. Add [`@automata/net-ui`](../net-ui/README.md)
+`createNetRoom` joins a room and tells you the state of the connection. Add [`@automataframework/net-ui`](../net-ui/README.md)
 for the badge and the "reconnecting" screen.
 
 ## Tell a player their tab is out of date
 
 A player whose tab was open before you deployed has an old build, and the server will refuse it at the join. Say so
-before the title instead. The server serves its build facts on `GET /version`; `@automata/net-ui` has the opening step
+before the title instead. The server serves its build facts on `GET /version`; `@automataframework/net-ui` has the opening step
 that asks for them, three lines in your game:
 
 ```ts
-import { PROTOCOL_VERSION } from '@automata/net'
-import { staleBuildStep } from '@automata/net-ui'
+import { PROTOCOL_VERSION } from '@automataframework/net'
+import { staleBuildStep } from '@automataframework/net-ui'
 
 defineGame({
   // …
@@ -56,4 +56,4 @@ The server is another origin than your game, so `GET /version` carries the CORS 
 - **Prediction and reconciliation** (`createNetSession`): your move happens now and is corrected if the server
   disagrees.
 - **Interpolation**, so the other players move smoothly.
-- **`@automata/net/testing`**: a fake connection and a fake server for tests, so no test needs a network.
+- **`@automataframework/net/testing`**: a fake connection and a fake server for tests, so no test needs a network.

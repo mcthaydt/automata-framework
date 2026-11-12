@@ -1,5 +1,5 @@
-import type { AfSector2File } from '@automata/3d/level'
-import { createToasts, type Toast } from '@automata/editor/kit/core'
+import type { AfSector2File } from '@automataframework/3d/level'
+import { createToasts, type Toast } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import {
   createDocumentController,

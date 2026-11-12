@@ -3,7 +3,7 @@ import type {
   ContentLevel,
   ContentProject,
   ContentTileset,
-} from '@automata/content/level-2d'
+} from '@automataframework/content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { levelDrawList } from '#src/features/render/level-2d/level-draw-list.ts'
 

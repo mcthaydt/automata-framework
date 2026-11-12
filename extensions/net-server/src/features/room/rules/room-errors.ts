@@ -7,7 +7,7 @@
  * `MALFORMED_MESSAGE` answers `REFUSED`, and the message says which.
  */
 
-import type { NetErrorCode } from '@automata/net'
+import type { NetErrorCode } from '@automataframework/net'
 
 /** A refusal the client is expected to show the player, as opposed to a crash. */
 export class RoomCommandError extends Error {

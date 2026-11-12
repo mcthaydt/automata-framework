@@ -1,17 +1,23 @@
 // Pixi's WebGL renderer compiles its shaders with eval unless this runs first (the same rule as the 2D suite page).
-import '@automata/framework/no-eval'
-import '@automata/editor/tokens.css'
-import '@automata/editor/tool-chrome.css'
-import '@automata/editor/fonts.css'
-import '@automata/editor/suite.css'
-import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { createLevels2d, createSuite, createTuner, randomIds, startSuite } from '@automata/editor/suite'
+import '@automataframework/framework/no-eval'
+import '@automataframework/editor/tokens.css'
+import '@automataframework/editor/tool-chrome.css'
+import '@automataframework/editor/fonts.css'
+import '@automataframework/editor/suite.css'
+import type { SuiteEditor } from '@automataframework/editor/kit/ports'
+import {
+  createLevels2d,
+  createSuite,
+  createTuner,
+  randomIds,
+  startSuite,
+} from '@automataframework/editor/suite'
 import { createLevels3d } from '../../features/levels-3d/levels-3d-suite-editor.ts'
 import { lazyPlanRenderer } from '../../features/levels-3d/plan/lazy-renderer.ts'
 import { createStudio } from '../../features/studio/studio-suite-editor.ts'
 import { openSuite3d } from './open-suite-3d.ts'
 
-// The full suite's page: the editors of `@automata/editor` plus Levels 3D and the Studio. The only file that
+// The full suite's page: the editors of `@automataframework/editor` plus Levels 3D and the Studio. The only file that
 // reaches for the page's globals. When no checkout answers, the page opens a sample game held in memory and says so in
 // the top bar. The Studio's stage loads Pixi's 3D view with its first figure, not with the page.
 

@@ -2,7 +2,7 @@
 // floor and ceiling as heights and a wall's texture as a name (`room-views.ts`), and the edits' result written back into
 // the file's own members. The one thing a level cannot hold is a wall written as a name (Last Light's spelling of a
 // cutaway group), which no edit makes for it and which is refused if one arrives.
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { insideOutline } from '../../geometry/loops'
 import {
   type EditCorner,

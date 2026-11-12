@@ -5,7 +5,7 @@
 // What is offered is the profile's list (D10). A profile that has none (Last Light when the host could not read the
 // renderer's materials) offers nothing, and Apply answers its refusal: a list is never guessed. Scale and brightness are
 // the preview's, not the level's: neither format holds a texture scale or a brightness for a surface.
-import { TRIM_PIECES } from '@automata/3d/level'
+import { TRIM_PIECES } from '@automataframework/3d/level'
 import type { EditResult } from '../../../shared/edit/edit'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import {

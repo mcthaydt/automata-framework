@@ -1,21 +1,21 @@
 // characterkit-hair: three figures seen from behind, each in a hairstyle built from the character kit's pieces
 //
-// Shows: hairstyles as data (`@automata/character-kit`): a style is a list of pieces and a finish. Core draws a hairstyle
+// Shows: hairstyles as data (`@automataframework/character-kit`): a style is a list of pieces and a finish. Core draws a hairstyle
 //   as locks; the kit adds the pieces a bun, braided rows and a ponytail are built from (`scalp`, `bun`, `rows`, `tail`)
 //   and the finishes that light them (`sleek`, `braid`). Naming the kit in the game's `extensions` is all it takes; a
 //   style naming a bun without it is refused in words ("There is no hair piece called bun"). Here each style is
 //   written inline in the figure's hair garment; a game keeps its styles in `figure-hair` content.
 // Controls: none
-// Packages: @automata/framework, @automata/3d, @automata/character-kit
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/character-kit
 // Difficulty: ★★★☆
 // Tier: extension
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automata/3d/base'
-import type { FigureDef, FigureLibrary, Gait, HairStyle, MotionLibrary } from '@automata/3d/figures'
-import { figuresExtension } from '@automata/3d/figures'
-import { characterKitExtension } from '@automata/character-kit'
-import { defineComponent, defineGame, definePlugin } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automataframework/3d'
+import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automataframework/3d/base'
+import type { FigureDef, FigureLibrary, Gait, HairStyle, MotionLibrary } from '@automataframework/3d/figures'
+import { figuresExtension } from '@automataframework/3d/figures'
+import { characterKitExtension } from '@automataframework/character-kit'
+import { defineComponent, defineGame, definePlugin } from '@automataframework/framework'
 
 // --- figure ---
 // The `bounce` gait (as in figures-walk), which a standing figure breathes and shifts by.

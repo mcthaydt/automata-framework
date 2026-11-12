@@ -1,10 +1,10 @@
 // Hair styles: a list of registered pieces, or a list of locks (`HairStyle`,
 // `Piece` and `Rope`). Positions are in head units round the skull, so a style fits any
 // head. Core knows the locks and the rope (the one mesh every piece is swept from); the pieces themselves (a scalp,
-// rows, a tail, a fall, a bun, a sweep, a block, edges) are @automata/character-kit's, which registers each kind
+// rows, a tail, a fall, a bun, a sweep, a block, edges) are @automataframework/character-kit's, which registers each kind
 // with its own schema. A tone is one of the hair's own tones or a swatch id, checked like every library reference.
 
-import { contentRef } from '@automata/content/schema'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 import { finishNames } from '../registry/hair-finish-registry.ts'
 import { registeredHairPieces } from '../registry/hair-piece-registry.ts'

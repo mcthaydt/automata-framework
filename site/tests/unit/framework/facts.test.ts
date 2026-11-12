@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { BROWSER_ENGINES } from '@automata/vitest-preset/engines'
+import { BROWSER_ENGINES } from '@automataframework/vitest-preset/engines'
 import { describe, expect, it } from 'vitest'
 import { playgroundExamples } from '#src/shared/framework/examples.ts'
 import { siteFacts } from '#src/shared/framework/facts.ts'

@@ -1,10 +1,10 @@
 // The figures extension (`figuresExtension`): it registers the figure and library content
 // kinds. It has no sim plugin (figures never feed the sim) and no ui; its renderer is the figure view in
-// @automata/3d.
+// @automataframework/3d.
 
-import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+import { defineExtension, type ExtensionDef } from '@automataframework/framework/extension'
 // The classic garment set registers when this file loads (core, so Wick needs no wardrobe of his own); an
-// extension's own garments register the same way, through `registerGarment` from `@automata/3d/figures`.
+// extension's own garments register the same way, through `registerGarment` from `@automataframework/3d/figures`.
 import '../features/figures/outfit/garments/classic-kinds.ts'
 import { FIGURE_CONTENT } from '../features/figures/content/figures.content.ts'
 

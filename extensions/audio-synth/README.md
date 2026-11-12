@@ -8,7 +8,7 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 ## Turn it on
 
 ```ts
-import { audioSynthExtension } from '@automata/audio-synth'
+import { audioSynthExtension } from '@automataframework/audio-synth'
 
 export default defineGame({ extensions: [audioSynthExtension] })
 ```
@@ -24,6 +24,6 @@ Then write the audio table in your content and start the player with `createAudi
   for a floor the table does not name). A cue the file does not define is a problem naming the floor and the cue. The Audio
   editor opens a file with the table and leaves it as it was; it has no rows for it yet.
 - **`createAudioSynth`**: answers each sim event when the picture reaches it, once. It never writes to the sim.
-- **Build-time tools** (`@automata/audio-synth/render` and `/measure`, for Node): render every cue to a WAV file and
+- **Build-time tools** (`@automataframework/audio-synth/render` and `/measure`, for Node): render every cue to a WAV file and
   check its loudness and clicks before you ship.
-- **`@automata/audio-synth/browser`**: the same cues rendered in a page.
+- **`@automataframework/audio-synth/browser`**: the same cues rendered in a page.

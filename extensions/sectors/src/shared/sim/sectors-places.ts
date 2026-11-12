@@ -2,8 +2,8 @@
 // extensions read from sectors before the contract existed (`InSector`, the resolved map, `blockedBy`, systems' own
 // crossing maths), so a 3D game sees exactly what it always saw. A position is the walker's `InSector`, which the game
 // writes; the room is the membership sectors decides at the end of each step.
-import { crossingThrough, type Places, type PlanCrossing, type PlanRoom } from '@automata/places'
-import type { SimContext } from '@automata/sim'
+import { crossingThrough, type Places, type PlanCrossing, type PlanRoom } from '@automataframework/places'
+import type { SimContext } from '@automataframework/sim'
 import { blockedBy } from './blocked'
 import { resolvedMap } from './resolved-map'
 import { InSector } from './sectors.component'

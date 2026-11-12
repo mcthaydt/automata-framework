@@ -41,5 +41,5 @@ export interface CspProbe {
   readonly _CspProbe: unique symbol
 }
 export const CspProbe: Context.Tag<CspProbe, CspProbeService> = Context.GenericTag<CspProbe, CspProbeService>(
-  '@automata/tools/CspProbe',
+  '@automataframework/tools/CspProbe',
 )

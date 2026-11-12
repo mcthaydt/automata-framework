@@ -10,7 +10,7 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 Add it only in development builds, so a release leaves it out:
 
 ```ts
-import { debugExtension } from '@automata/debug'
+import { debugExtension } from '@automataframework/debug'
 
 export default defineGame({ extensions: __AUTOMATA_DEBUG__ ? [debugExtension] : [] })
 ```
@@ -20,7 +20,7 @@ export default defineGame({ extensions: __AUTOMATA_DEBUG__ ? [debugExtension] : 
 - **An overlay** drawn in `hud.overlay`, with a tab for each panel. Opening it pauses nothing; its Pause button pauses
   the game.
 - **Panels for the sim, audio, feel and net** (`shippedPanels`), and `createOverlay` to make your own.
-- **`@automata/debug/vite`**: the build plugin that switches `__AUTOMATA_DEBUG__` on for dev and `--debug` builds.
+- **`@automataframework/debug/vite`**: the build plugin that switches `__AUTOMATA_DEBUG__` on for dev and `--debug` builds.
 - **Events for an editor that frames the game.** When the game is opened inside Schematic's Watch pane (the address
   carries `af-watch=<the editor's origin>` and `events=<names>`), the extension posts those sim events to that one
   origin, and only while the game is framed. It never posts to `*`, and it is in development builds only, so a release

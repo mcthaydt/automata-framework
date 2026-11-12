@@ -4,11 +4,11 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-/** `packages/tools/dist/bin.js`: build the tools first (`pnpm --filter @automata/tools build`). */
+/** `packages/tools/dist/bin.js`: build the tools first (`pnpm --filter @automataframework/tools build`). */
 export const BIN: string = fileURLToPath(
   new URL('../../../../../packages/tools/dist/bin.js', import.meta.url),
 )
-/** This package's built suite page (`pnpm --filter @automata/editors build`). */
+/** This package's built suite page (`pnpm --filter @automataframework/editors build`). */
 export const SUITE_PAGE: string = fileURLToPath(new URL('../../../dist/suite', import.meta.url))
 
 export interface RunningEditor {

@@ -3,8 +3,8 @@
   hard 0.3"). A missing file offers to start one; a file with a mistake opens read only and says where the mistake is.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import { type FeelEntry, resolveLimits } from '@automata/feel'
+import { Button } from '@automataframework/editor/kit'
+import { type FeelEntry, resolveLimits } from '@automataframework/feel'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import FeelPlayer from './FeelPlayer.svelte'

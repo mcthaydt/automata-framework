@@ -2,7 +2,7 @@
 // draws the field the screen's whole width and centres it, so a field shaped like a phone held sideways leaves a
 // tablet's screen a third empty above and below (G6); one shaped like the screen fills it. Presentation only: the sim
 // never reads it (law 1).
-import { DEFAULT_LOOK, targetSize } from '@automata/3d'
+import { DEFAULT_LOOK, targetSize } from '@automataframework/3d'
 
 /** The phone held sideways the page is designed at first, and the field when the screen has no size. */
 const PHONE = { width: 844, height: 390 }

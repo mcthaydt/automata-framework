@@ -4,11 +4,11 @@
 //   which pose and since which tick, and the view plays a hold clip that blends the figure from the last pose into
 //   it over 0.4 s and holds it; the view's clock is the sim's tick, so a clip starts where the sim started it.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automataframework/3d'
 import {
   type FigureClipDef,
   type FigureDef,
@@ -18,8 +18,8 @@ import {
   type PoseLibrary,
   type Swatch,
   type Vec3,
-} from '@automata/3d/figures'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+} from '@automataframework/3d/figures'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- figure ---
 // Wick, his swatches and the `bounce` gait as in figures-walk, written as compiled.

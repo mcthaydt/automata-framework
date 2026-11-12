@@ -2,7 +2,7 @@
 // them), with the player standing in the middle of the room, at one of the eight 45° headings.
 // ?scene=base-interior|base-exterior  ?step=0..7 (each step is 45° of heading, as the player's Q and R turn it)
 //   &distance=<m> an authored distance for the view instead of the default 16 m.
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   box,
   buildWorld,
@@ -14,10 +14,10 @@ import {
   sceneLamps,
   sceneLightingSchema,
   swatchColour,
-} from '@automata/3d'
-import { baseLibrary, BASE_SCENES } from '@automata/3d/base'
-import { CameraHeading, cameraView, enterView, MAX_CAMERA_TURN, START } from '@automata/3d/sim'
-import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
+} from '@automataframework/3d'
+import { baseLibrary, BASE_SCENES } from '@automataframework/3d/base'
+import { CameraHeading, cameraView, enterView, MAX_CAMERA_TURN, START } from '@automataframework/3d/sim'
+import { defineComponent, defineGame, definePlugin, startGame } from '@automataframework/framework'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
 
 // Pixi's capability probes each make a throwaway WebGL context and lose it on purpose: ask once, before any renderer.

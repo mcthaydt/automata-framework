@@ -1,8 +1,8 @@
 // What the game has and has not, found once when the editor opens: whether its code uses the systems extension, and
 // whether its editor list names the files Schematic edits. A game without either gets a sentence saying what to add,
 // never a quiet fallback.
-import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '@automata/editor/editor-list'
-import type { SuitePorts } from '@automata/editor/kit/ports'
+import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '@automataframework/editor/editor-list'
+import type { SuitePorts } from '@automataframework/editor/kit/ports'
 import type { SchematicFacts } from './schematic-session.svelte.ts'
 
 /** The rows an editor list needs, to copy: one for each place Schematic writes. */
@@ -34,7 +34,7 @@ async function usesSystems(ports: SuitePorts): Promise<boolean> {
   try {
     const json = JSON.parse(manifest.text) as Record<string, Record<string, unknown> | undefined>
     return ['dependencies', 'devDependencies', 'peerDependencies'].some(
-      (field) => json[field] !== undefined && '@automata/systems' in (json[field] as object),
+      (field) => json[field] !== undefined && '@automataframework/systems' in (json[field] as object),
     )
   } catch {
     return true

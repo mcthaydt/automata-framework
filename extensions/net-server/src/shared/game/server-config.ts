@@ -7,7 +7,7 @@
  * redacted lines, and a test switch here (`seed`, `manualClock`, a fake `verifier`) is refused in production.
  */
 
-import type { NetConfig } from '@automata/net'
+import type { NetConfig } from '@automataframework/net'
 import type { SessionVerifier } from '../session-verifier'
 
 /** RFC 9116's two required fields: a `mailto:` or `https:` contact, and an ISO 8601 expiry. */

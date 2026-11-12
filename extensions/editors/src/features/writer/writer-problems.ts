@@ -1,7 +1,7 @@
 // What is wrong with a conversation, in words, and a walk through it. Both read the files the page holds; neither runs
 // the game or the narrative tools (those need a scene module a game made in the editors does not have).
-import type { DialogueGraph, DialogueNode, LinesFile } from '@automata/narrative/sim'
-import type { Cond, Value } from '@automata/puzzle/sim'
+import type { DialogueGraph, DialogueNode, LinesFile } from '@automataframework/narrative/sim'
+import type { Cond, Value } from '@automataframework/puzzle/sim'
 import { depths, leadsTo, partWords, readingOrder } from './dialogue-model.ts'
 
 export interface StructureProblem {

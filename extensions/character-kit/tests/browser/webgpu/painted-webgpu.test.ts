@@ -2,7 +2,7 @@
 // (painted-depth.test.ts): what the GPU draws is `compose` of what the stage placed. Chromium is launched with WebGPU on
 // (vitest.config.ts); a machine with no adapter, or whose adapter does not present a frame, skips, in words.
 
-import { sceneLightingSchema } from '@automata/3d'
+import { sceneLightingSchema } from '@automataframework/3d'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import {

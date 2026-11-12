@@ -1,8 +1,8 @@
-// @automata/3d/props-kit: what an extension author needs to make props, the things a room is furnished with. A
+// @automataframework/3d/props-kit: what an extension author needs to make props, the things a room is furnished with. A
 // generator turns a library preset's parameters into pieces (a mesh, the swatch it is painted with, a label);
 // `registerPropGenerator` gives it a `kind` a preset can name. The room's plan (rings, walls, the way is inward) is
 // here too, for an extension that places props (a dresser). Core ships a box, a cylinder and the five props the base
-// scenes use; @automata/world-kit is built on this entry for the rest. Each name is the core one, never a copy.
+// scenes use; @automataframework/world-kit is built on this entry for the rest. Each name is the core one, never a copy.
 
 export { buildWorld } from '../features/world/build.ts'
 export { blob, box, cone, cylinder, quad, rbox, rod } from '../features/world/mesh.ts'

@@ -293,7 +293,7 @@ describe('a room that asks to be dressed', () => {
         path: expect.any(Array),
         code: 'needs-extension',
         message:
-          'This room asks to be furnished by the world kit, which this game doesn\'t have. Add @automata/world-kit, or remove "dress" from the room.',
+          'This room asks to be furnished by the world kit, which this game doesn\'t have. Add @automataframework/world-kit, or remove "dress" from the room.',
         where: 'hall',
         name: 'world-kit',
       })

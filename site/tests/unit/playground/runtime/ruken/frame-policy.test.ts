@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { createHash } from 'node:crypto'
-import { EXAMPLES_SHIP_CONFIG } from '@automata/examples-runner/examples-ship-config'
-import { checkManifest, rukenToml } from '@automata/tools/internal'
+import { EXAMPLES_SHIP_CONFIG } from '@automataframework/examples-runner/examples-ship-config'
+import { checkManifest, rukenToml } from '@automataframework/tools/internal'
 import { compileHeaders } from '@ruken/manifest'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'

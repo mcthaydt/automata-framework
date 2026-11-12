@@ -4,8 +4,8 @@
 // The reach is in screen pixels, as for walls. A thing whose sub-layer, or the whole Things layer, is hidden or locked is
 // not hit; a thing whose definition the level does not have is not drawn and not hit.
 
-import type { Point } from '@automata/3d/level'
-import type { Point as ScreenPoint, Viewport2D } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type { Point as ScreenPoint, Viewport2D } from '@automataframework/editor/kit/core'
 import { entitySelection } from '../../../shared/checks/check'
 import { thingLayer } from '../../../shared/edit/view-store'
 import type { ThingDef } from '../../../shared/things/thing-def.schema'

@@ -10,8 +10,8 @@ import {
   afSector2FileSchema,
   afSectorSchema,
   migrateAfSector1File,
-} from '@automata/3d/level'
-import type { JsonPath, PatchRules } from '@automata/editor/kit/documents'
+} from '@automataframework/3d/level'
+import type { JsonPath, PatchRules } from '@automataframework/editor/kit/documents'
 import { createFileCodec, type FileCodec } from '../file-codec'
 
 // The file's members in the order `AfSector2` declares them, so one the editor adds lands where a hand edit would.

@@ -1,4 +1,4 @@
-import type { AudioContent } from '@automata/audio-synth'
+import type { AudioContent } from '@automataframework/audio-synth'
 
 /**
  * What a Play press asks the page to sound: the file as it is now, and which sound. Shared because Audio plays sounds

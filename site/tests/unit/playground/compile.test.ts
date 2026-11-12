@@ -49,7 +49,7 @@ describe('compileExample', () => {
     expect(result.diagnostics[0]).toMatchObject({ line: 21, column: lines(broken)[20]!.indexOf(';') + 1 })
   })
 
-  it('refuses an import of anything but @automata/framework, @automata/ui-screens and zod, at its line', () => {
+  it('refuses an import of anything but @automataframework/framework, @automataframework/ui-screens and zod, at its line', () => {
     const result = compileExample(`import _ from 'lodash'\n${RECTS}`, EXAMPLE)
     expect(result.ok).toBe(false)
     if (result.ok) return
@@ -57,21 +57,22 @@ describe('compileExample', () => {
       {
         line: 1,
         column: 1,
-        message: 'The playground can import only @automata/framework, @automata/ui-screens and zod.',
+        message:
+          'The playground can import only @automataframework/framework, @automataframework/ui-screens and zod.',
       },
     ])
     expect(compileExample(`export * from './other'\n${RECTS}`, EXAMPLE).ok).toBe(false)
     expect(compileExample(`import { z } from 'zod'\n${RECTS}`, EXAMPLE).ok).toBe(true)
   })
 
-  it('accepts @automata/ui-screens and the screens it publishes, and nothing else under that name', () => {
+  it('accepts @automataframework/ui-screens and the screens it publishes, and nothing else under that name', () => {
     const imports = (from: string) => compileExample(`import { x } from '${from}'\n${RECTS}`, EXAMPLE).ok
-    expect(imports('@automata/ui-screens')).toBe(true)
-    expect(imports('@automata/ui-screens/credits')).toBe(true)
-    expect(imports('@automata/ui-screens/splash')).toBe(true)
-    expect(imports('@automata/ui-screens/words/ja.json')).toBe(false)
-    expect(imports('@automata/ui-screens/src/entries/index.ts')).toBe(false)
-    expect(imports('@automata/net')).toBe(false)
+    expect(imports('@automataframework/ui-screens')).toBe(true)
+    expect(imports('@automataframework/ui-screens/credits')).toBe(true)
+    expect(imports('@automataframework/ui-screens/splash')).toBe(true)
+    expect(imports('@automataframework/ui-screens/words/ja.json')).toBe(false)
+    expect(imports('@automataframework/ui-screens/src/entries/index.ts')).toBe(false)
+    expect(imports('@automataframework/net')).toBe(false)
   })
 
   it('refuses the other ways to reach another module: type-only imports, re-exports and import = require', () => {
@@ -79,7 +80,8 @@ describe('compileExample', () => {
       const result = compileExample(source, EXAMPLE)
       return result.ok ? [] : result.diagnostics.map((diagnostic) => diagnostic.message)
     }
-    const message = 'The playground can import only @automata/framework, @automata/ui-screens and zod.'
+    const message =
+      'The playground can import only @automataframework/framework, @automataframework/ui-screens and zod.'
     expect(refused("import type { Thing } from './other'")).toEqual([message])
     expect(refused("export { a } from './other'")).toEqual([message])
     expect(refused("import x = require('m')")).toEqual([message])

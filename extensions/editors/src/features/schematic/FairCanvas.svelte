@@ -4,7 +4,7 @@
   it needs when the game has none, and a result greys when the file changes after it.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import { fairVerdict, scenarioWords } from './fair-words.ts'
 import { sceneNames } from './names.ts'

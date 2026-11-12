@@ -1,5 +1,5 @@
 ---
-'@automata/tools': patch
+'@automataframework/tools': patch
 ---
 
 `automata editor` picks the editors your game needs from its `content/editors.toml`, so `--app` is gone. A 2D game

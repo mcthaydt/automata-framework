@@ -1,6 +1,6 @@
 # 3D examples
 
-Each file is one example of one feature of `@automata/3d`, run by `pnpm examples:3d` and checked by a journey in
+Each file is one example of one feature of `@automataframework/3d`, run by `pnpm examples:3d` and checked by a journey in
 `tests/e2e` (it boots under Ruken's headers and draws). A file starts with a header (what it shows, its controls, its
 packages) and has `// --- figure ---`, `// --- level ---` or `// --- scene ---`, `// --- sim ---` and `// --- game ---`
 sections, since each example is one file. Colours are the DUEL palette.
@@ -30,6 +30,6 @@ sections, since each example is one file. Colours are the DUEL palette.
 | [`retrocrisp/retrocrisp-grade.ts`](retrocrisp/retrocrisp-grade.ts) | A room graded and faded like old film, with the colour split snapped to whole pixels (the `retro-crisp` extension) |
 
 The `cutscenes`, `characterkit`, `worldkit`, `lcdpanel` and `retrocrisp` sections show extensions
-(`@automata/cutscenes`, `@automata/character-kit`, `@automata/world-kit`, `@automata/lcd-panel` and
-`@automata/retro-crisp`), so their files say `Tier: extension`. A time of day is read by the passes an extension registers,
+(`@automataframework/cutscenes`, `@automataframework/character-kit`, `@automataframework/world-kit`, `@automataframework/lcd-panel` and
+`@automataframework/retro-crisp`), so their files say `Tier: extension`. A time of day is read by the passes an extension registers,
 which is why the night street is the world kit's.

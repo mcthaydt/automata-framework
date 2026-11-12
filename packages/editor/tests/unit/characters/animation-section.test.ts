@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { ContentAnimation } from '@automata/content/level-2d'
+import type { ContentAnimation } from '@automataframework/content/level-2d'
 import { render, screen, waitFor } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'

@@ -2,7 +2,7 @@
 // check's (`entity crate2 is outside every sector`, `contents has no option "gold"`) where the check has one, and an
 // edit that is accepted never makes a level the checks call worse than it was.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit, EditResult } from '#src/shared/edit/edit.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'

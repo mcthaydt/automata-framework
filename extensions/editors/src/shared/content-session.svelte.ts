@@ -1,7 +1,7 @@
 // An editor's session over one TOML file: the file (its history is the TOML session's), what the person has chosen, and
 // the last refusal in words. It outlives the view, so switching to another editor and back finds the same thing chosen.
 // `revision` only tells Svelte that the history moved.
-import type { ContentEdit } from '@automata/editor/kit/documents'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 import type { Outcome, Problem, TomlRead, TomlSession } from './toml-session.ts'
 
 /** The file's content as far as it can be read: what passes the schema, or the parsed value when only a check fails. */

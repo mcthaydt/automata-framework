@@ -16,8 +16,8 @@ import { ProcessRunnerLive } from '#src/shared/node/process.ts'
 import { route } from '#src/shared/router.ts'
 
 const resolve = createRequire(import.meta.url).resolve
-const TOY = resolve('@automata/narrative/testing/toy-scene.pipe')
-const DEAD_END = resolve('@automata/narrative/testing/dead-end-scene.pipe')
+const TOY = resolve('@automataframework/narrative/testing/toy-scene.pipe')
+const DEAD_END = resolve('@automataframework/narrative/testing/dead-end-scene.pipe')
 const temps: string[] = []
 afterEach(() => {
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })

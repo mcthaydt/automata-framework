@@ -1,8 +1,13 @@
-import '@automata/editor/tokens.css'
-import '@automata/editor/fonts.css'
+import '@automataframework/editor/tokens.css'
+import '@automataframework/editor/fonts.css'
 import '#src/app/main.css'
-import { arrived, createPointers, IPAD_PROFILES, type IpadProfile } from '@automata/editor/kit/testing'
-import { byTestId } from '@automata/framework/testing'
+import {
+  arrived,
+  createPointers,
+  IPAD_PROFILES,
+  type IpadProfile,
+} from '@automataframework/editor/kit/testing'
+import { byTestId } from '@automataframework/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { untilAttribute } from '#src/testing/canvas-ready.ts'

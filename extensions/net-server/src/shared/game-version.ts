@@ -6,8 +6,8 @@
  * each room's. The matchmaking gate and the room both check it.
  */
 
-import { PROTOCOL_VERSION } from '@automata/net'
-import { createSim } from '@automata/sim'
+import { PROTOCOL_VERSION } from '@automataframework/net'
+import { createSim } from '@automataframework/sim'
 import type { ServerDef } from './game/server-game'
 
 /**

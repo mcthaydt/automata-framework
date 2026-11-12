@@ -1,6 +1,6 @@
 <!-- The parts of a conversation as boxes and arrows, computed from the file (nothing is saved); tap a box to go there. -->
 <script lang="ts">
-import type { DialogueGraph } from '@automata/narrative/sim'
+import type { DialogueGraph } from '@automataframework/narrative/sim'
 import { layoutConversation, partWords } from './dialogue-model.ts'
 
 const { graph, onpick }: { graph: DialogueGraph; onpick: (part: string) => void } = $props()

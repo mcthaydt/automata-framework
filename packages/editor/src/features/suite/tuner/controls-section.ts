@@ -1,5 +1,5 @@
-import { type ControlsFile, controlsFileSchema, RESERVED_KEYS } from '@automata/content/controls'
-import { keyLabel, PROMPT_COPY, padLabel } from '@automata/framework'
+import { type ControlsFile, controlsFileSchema, RESERVED_KEYS } from '@automataframework/content/controls'
+import { keyLabel, PROMPT_COPY, padLabel } from '@automataframework/framework'
 import {
   type ContentEdit,
   DocumentSyntaxError,

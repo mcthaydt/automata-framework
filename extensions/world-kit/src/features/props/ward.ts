@@ -18,7 +18,7 @@ import {
   rbox,
   rod,
   type V3,
-} from '@automata/3d/props-kit'
+} from '@automataframework/3d/props-kit'
 import { castor, hoop } from '../../shared/piece-helpers.ts'
 import { turnX, turnY } from '../../shared/turn.ts'
 import { wallMounted } from './wall-mounted.ts'

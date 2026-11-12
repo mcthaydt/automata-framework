@@ -1,4 +1,4 @@
-# `@automata/pipelines` (extension, private)
+# `@automataframework/pipelines` (extension, private)
 
 A game's content pipelines: the `automata-pipe` command line for people, and the `automata-pipe-mcp` server for
 agents. The pipelines are `audio`, `narrative`, `puzzle` and `systems`; each runs from a `<name>.pipe.toml` in a scene folder.

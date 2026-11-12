@@ -14,7 +14,7 @@ export const LEVEL_FILES: readonly TemplateFile[] = [
   type ContentWorld,
   entitiesOf,
   intGridRows,
-} from '@automata/content/level-2d'
+} from '@automataframework/content/level-2d'
 
 // Reads a level the 2D editor exported into what this game plays: its size, its walls and where the player starts.
 // Pure, so the sim can hold the result.
@@ -109,7 +109,7 @@ declare module 'virtual:automata/content' {
   {
     path: 'src/features/level/level.ts',
     content: () => `import { content, simContent } from 'virtual:automata/content'
-import { levelContentSchema, worldContentSchema } from '@automata/content/level-2d'
+import { levelContentSchema, worldContentSchema } from '@automataframework/content/level-2d'
 import { type Level, levelOf, startLevelId } from './read-level.ts'
 
 // The level this game plays: the first one content/world.toml places, which the 2D editor's Save writes into
@@ -130,8 +130,8 @@ export const LEVEL: Level = levelOf(levels[START]!)
   {
     path: 'src/features/level/level-scene.ts',
     content: () => `import { content } from 'virtual:automata/content'
-import { levelContentSchema, projectContentSchema } from '@automata/content/level-2d'
-import { levelScene } from '@automata/framework'
+import { levelContentSchema, projectContentSchema } from '@automataframework/content/level-2d'
+import { levelScene } from '@automataframework/framework'
 import { START } from './level.ts'
 import { liveCharacters } from './read-level.ts'
 

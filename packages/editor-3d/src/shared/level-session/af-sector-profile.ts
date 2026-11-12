@@ -1,7 +1,7 @@
 // The `af-sector/2` format as a level profile (the one the editor has; an `/1` file is upgraded when it is read): the codec,
 // the geometry of the sectors it builds (it has no nav graph), its checks, and the entities the file defines and holds.
-import { TIMES } from '@automata/3d'
-import type { AfSector2File } from '@automata/3d/level'
+import { TIMES } from '@automataframework/3d'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { afSectorChecks } from './af-sector/af-checks'
 import { afSectorCodec } from './af-sector/af-codec'
 import { afDefinitionAccess } from './af-sector/af-definitions'

@@ -1,7 +1,7 @@
 // Stockings: the legs repainted from the thigh down.
 
-import type { Garment } from '@automata/3d/figures'
-import type { Dressing } from '@automata/3d/figures-kit'
+import type { Garment } from '@automataframework/3d/figures'
+import type { Dressing } from '@automataframework/3d/figures-kit'
 import { z } from 'zod'
 import { type KitGarment, swatch } from './kit-garment.ts'
 

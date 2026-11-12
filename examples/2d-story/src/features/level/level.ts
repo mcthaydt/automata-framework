@@ -1,5 +1,5 @@
 import { simContent } from 'virtual:automata/content'
-import { levelContentSchema } from '@automata/content/level-2d'
+import { levelContentSchema } from '@automataframework/content/level-2d'
 import { type Level, levelOf } from './read-level.ts'
 
 // The level this game plays: content/levels/start.toml, which the 2D editor's Save writes, compiled by the content

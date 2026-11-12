@@ -4,8 +4,8 @@
  * unlit and at the runway's night under one overhead spot. One PNG per subject, density and lighting, one row of four
  * cells, upscaled nearest by 8/D. Test fixtures only: this registers nothing in src/.
  *
- *   pnpm --filter @automata/figures c5 DIR                        the render
- *   pnpm --filter @automata/figures c5 DIR --pair BEFORE_DIR      each of DIR's PNGs under the same PNG of BEFORE_DIR (before above, after
+ *   pnpm --filter @automataframework/figures c5 DIR                        the render
+ *   pnpm --filter @automataframework/figures c5 DIR --pair BEFORE_DIR      each of DIR's PNGs under the same PNG of BEFORE_DIR (before above, after
  *                                            below), written beside DIR (in its parent), and the crops sheets
  *                                            crops-D2.png, crops-D4.png there too
  */

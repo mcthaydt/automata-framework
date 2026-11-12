@@ -3,7 +3,7 @@
 // time of day (`lightByTime`), and the view's passes are the look's, so the DUEL snap leaves nothing but palette colours.
 // One `View3D` for the renderer; a new scene (an edit) takes the old meshes down and draws the new ones, and the camera
 // moves without touching them.
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   createLookPasses,
   DEFAULT_LOOK,
@@ -13,7 +13,7 @@ import {
   lightHemisphere,
   timeOfDay,
   type WorldView,
-} from '@automata/3d'
+} from '@automataframework/3d'
 import { View3D } from '@pixi/3d'
 import { forward } from '../../../shared/geometry/camera-3d'
 import type { GameFrame } from './dollhouse-paint'

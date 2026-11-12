@@ -8,7 +8,7 @@
 // what a tap would do by running `mergeSectors` against the live level and not committing it, so the tool cannot disagree
 // with the model about what is allowed, and a refusal is the model's own sentence. The first room does not outlive the
 // level it was picked on: an edit, an undo or a redo drops it.
-import type { Size, Viewport2D } from '@automata/editor/kit/core'
+import type { Size, Viewport2D } from '@automataframework/editor/kit/core'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { mergeSectors } from '../../../shared/edit/merge-edits'
 import { pinnedProblem } from '../../../shared/edit/sector-edit-support'

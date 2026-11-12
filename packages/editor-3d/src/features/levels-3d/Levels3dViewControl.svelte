@@ -4,7 +4,7 @@
   choice is kept with the camera and layer. Split needs a wide screen the control does not assume.
 -->
 <script lang="ts">
-import { Menu, Segmented } from '@automata/editor/kit'
+import { Menu, Segmented } from '@automataframework/editor/kit'
 import type { LevelEditor } from '../../shared/edit/level-editor'
 import { modeOptions } from './plan/plan-status'
 

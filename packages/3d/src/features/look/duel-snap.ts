@@ -1,6 +1,6 @@
 // The DUEL snap on the CPU, as the post effect does it on the GPU (duel-snap-filter.ts): the colour plus a 4 × 4 Bayer
 // offset to its nearest DUEL colour. The tests hold the pass to it, and a texel that is already a DUEL colour stays itself.
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 
 /** The 4 × 4 Bayer matrix, 0 to 15, row by row. */
 export const BAYER: readonly number[] = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]

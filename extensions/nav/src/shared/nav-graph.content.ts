@@ -1,5 +1,5 @@
 // The `nav-graph` content kind: every TOML file in `content/nav` is one scene's walking graph.
-import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
+import { type ContentSchemaDef, defineContentSchema } from '@automataframework/content/schema'
 import type { z } from 'zod'
 import { type NavGraph, navGraphSchema } from './sim/nav-graph.schema'
 

@@ -9,7 +9,7 @@
 //
 // Presentation only (law 1): they read what the sim says and write only mesh flags.
 
-import type { FrameInfo, PixiStageHooks } from '@automata/framework'
+import type { FrameInfo, PixiStageHooks } from '@automataframework/framework'
 import { createRoomDraw } from '../features/world/room-draw.ts'
 import type { AfSector2 } from '../shared/level/af-sector-2.schema.ts'
 import type { Point } from '../shared/level/sector.schema.ts'

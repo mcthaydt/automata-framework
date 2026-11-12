@@ -4,7 +4,7 @@
 // reported ("unknown-generator") and a room that asks to be dressed is drawn bare with a note.
 //
 // An extension has no setup hook, so the generators register when the file below loads: loading this file adds them.
-import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+import { defineExtension, type ExtensionDef } from '@automataframework/framework/extension'
 import { worldKitContent } from '../features/furnish/kit.content.ts'
 import '../features/props/register-props.ts'
 

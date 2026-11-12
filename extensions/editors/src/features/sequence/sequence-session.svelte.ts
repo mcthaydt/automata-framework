@@ -1,10 +1,15 @@
 // Sequence's session: the game's cutscenes (each a TOML session), which one is open and which step is chosen, the
 // playhead, and what is drawn from them (the scene at the playhead, the walls of a level the person picked). It
 // outlives the view, so switching to another editor and back finds the same cutscene at the same moment.
-import { createDirector, type SceneState } from '@automata/cutscenes/director'
-import { type CutsceneScript, cutsceneSchema, type PlacedScript, placeScript } from '@automata/cutscenes/sim'
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { SuitePorts, WorkspaceFile } from '@automata/editor/kit/ports'
+import { createDirector, type SceneState } from '@automataframework/cutscenes/director'
+import {
+  type CutsceneScript,
+  cutsceneSchema,
+  type PlacedScript,
+  placeScript,
+} from '@automataframework/cutscenes/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import type { SuitePorts, WorkspaceFile } from '@automataframework/editor/kit/ports'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
 import { humanize } from '../../shared/humanize.ts'
 import { type Outcome, openTomlSession } from '../../shared/toml-session.ts'

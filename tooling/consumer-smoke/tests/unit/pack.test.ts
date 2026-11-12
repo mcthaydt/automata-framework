@@ -26,9 +26,9 @@ function write(root: string, dir: string, manifest: object, withDist = true): vo
 /** Two published packages and a private one, which is never packed. */
 function workspace(): string {
   const root = temp('af-packs-ws-')
-  write(root, 'packages/testing', { name: '@automata/testing', version: '0.0.2' })
-  write(root, 'packages/sim', { name: '@automata/sim', version: '0.0.2' })
-  write(root, 'packages/editor', { name: '@automata/editor', version: '0.0.0', private: true })
+  write(root, 'packages/testing', { name: '@automataframework/testing', version: '0.0.2' })
+  write(root, 'packages/sim', { name: '@automataframework/sim', version: '0.0.2' })
+  write(root, 'packages/editor', { name: '@automataframework/editor', version: '0.0.0', private: true })
   return root
 }
 
@@ -55,10 +55,10 @@ describe('packPublished', () => {
   it('packs every published package, sorted by name, and no private one', () => {
     const out = join(temp('af-packs-out-'), 'packs')
     expect(packPublished(options(workspace(), out))).toEqual([
-      { name: '@automata/sim', file: 'automata-sim-0.0.2.tgz' },
-      { name: '@automata/testing', file: 'automata-testing-0.0.2.tgz' },
+      { name: '@automataframework/sim', file: 'automataframework-sim-0.0.2.tgz' },
+      { name: '@automataframework/testing', file: 'automataframework-testing-0.0.2.tgz' },
     ])
-    expect(existsSync(join(out, 'automata-editor-0.0.0.tgz'))).toBe(false)
+    expect(existsSync(join(out, 'automataframework-editor-0.0.0.tgz'))).toBe(false)
   })
 
   it('fails on a published package without a dist, naming it', () => {
@@ -72,12 +72,14 @@ describe('packPublished', () => {
   it.each(['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'])(
     'fails on a pack that still has a workspace: range in %s, naming the package and the range',
     (field) => {
-      const packed = { [field]: { '@automata/sim': 'workspace:*' } }
+      const packed = { [field]: { '@automataframework/sim': 'workspace:*' } }
       expect(() =>
         packPublished(
           options(workspace(), join(temp('af-packs-out-'), 'p'), { readPackedManifest: () => packed }),
         ),
-      ).toThrow('@automata/sim has a workspace: range after packing: @automata/sim workspace:*')
+      ).toThrow(
+        '@automataframework/sim has a workspace: range after packing: @automataframework/sim workspace:*',
+      )
     },
   )
 

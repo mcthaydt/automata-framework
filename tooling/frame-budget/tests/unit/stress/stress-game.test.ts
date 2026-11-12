@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { runGame } from '@automata/framework'
-import { manualFrames, nullRenderer } from '@automata/framework/testing'
-import { canonicalJson, hex64, xxhash64 } from '@automata/sim'
+import { runGame } from '@automataframework/framework'
+import { manualFrames, nullRenderer } from '@automataframework/framework/testing'
+import { canonicalJson, hex64, xxhash64 } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { stressParams } from '../../../stress/params.ts'
 import { STRESS_CONTENT, STRESS_CONTENT_HASH, stressGame } from '../../../stress/stress-game.ts'

@@ -1,4 +1,4 @@
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { openTomlSession } from '#src/shared/toml-session.ts'

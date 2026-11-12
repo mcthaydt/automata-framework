@@ -1,8 +1,8 @@
 // A rule Last Light has only as a test ("sectors do not overlap", tests/scenes.test.ts): no point on the plan is in two
 // sectors. New here, so its evidence is seeded layouts: touching, nested, holed and concave ones that must pass or fail.
 
-import type { Corner } from '@automata/3d/level'
-import { insideSector } from '@automata/3d/level'
+import type { Corner } from '@automataframework/3d/level'
+import { insideSector } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { overlapProblems } from '#src/shared/checks/overlap.ts'
 import { plainContext } from '#src/testing/check-context.ts'

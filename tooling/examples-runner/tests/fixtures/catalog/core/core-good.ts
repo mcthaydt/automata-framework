@@ -2,9 +2,9 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/framework
+// Packages: @automataframework/framework
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineSystem } from '@automata/framework'
+import { defineSystem } from '@automataframework/framework'
 
 export default { id: 'core-good', system: defineSystem }

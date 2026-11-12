@@ -1,7 +1,13 @@
 // A scene's lines as a script: who says what, and in words what each line is for. The edits are the kit's content edits
 // by key path, so the file keeps its comments and order. Writer never reorders a lines file; new lines go at the end.
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import { type Canon, type Delivery, type LineKind, type LinesFile, sentences } from '@automata/narrative/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import {
+  type Canon,
+  type Delivery,
+  type LineKind,
+  type LinesFile,
+  sentences,
+} from '@automataframework/narrative/sim'
 import { appendEdits } from '../../shared/fields.ts'
 import { humanize } from '../../shared/humanize.ts'
 import { KIND_WORDS } from './writer-words.ts'

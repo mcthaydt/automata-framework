@@ -1,10 +1,10 @@
-// @automata/3d/level: the one sector format. The Build-style vocabulary
+// @automataframework/3d/level: the one sector format. The Build-style vocabulary
 // (sectors, corners, walls with windows and doors, trims, masses) as Zod schemas, the constants a map is read with
 // (`WALL_THICK`, `STEP`, `DEFAULT_TRIM`) the `occlude` member, the `af-sector/1` file envelope (`afSectorSchema`) and
 // `af-sector/2`, the format the game, the editor and the world read: its schema, `readLevel` (either format in, `/2` out),
 // the migration, and the states a world's pieces are in while a scene plays (`PieceStates`), and the one sector geometry (point tests,
 // openings, triangulation). Zod only and declared in `automata.simEntries`, so
-// a sim may import it; the 3D level editor and @automata/3d's `./camera-view` re-export it unchanged.
+// a sim may import it; the 3D level editor and @automataframework/3d's `./camera-view` re-export it unchanged.
 
 export * from '../shared/level/af-sector.schema.ts'
 export { migrateAfSector1, migrateAfSector1File } from '../shared/level/af-sector-1-to-2.migration.ts'

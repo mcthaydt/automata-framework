@@ -9,16 +9,16 @@ import {
   targetSize,
   type View3dFactory,
   type WorldLibrary,
-} from '@automata/3d'
-import { readLevel } from '@automata/3d/level'
-import { CameraHeading, cameraView, enterView, START, turnCamera } from '@automata/3d/sim'
+} from '@automataframework/3d'
+import { readLevel } from '@automataframework/3d/level'
+import { CameraHeading, cameraView, enterView, START, turnCamera } from '@automataframework/3d/sim'
 import {
   type DefinedGame,
   defineComponent,
   defineGame,
   definePlugin,
   defineSystem,
-} from '@automata/framework'
+} from '@automataframework/framework'
 import { library, motion, wick } from './wick.ts'
 
 // The 3D look's stress scene, the one the 3D frame-budget projects measure: Wick walking a loop round a hall under

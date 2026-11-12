@@ -8,11 +8,11 @@ It is free, MIT licensed and optional. It is not published to npm yet.
 
 ## Turn it on
 
-Systems needs [`@automata/sectors`](../sectors/README.md), [`@automata/nav`](../nav/README.md) and
-[`@automata/puzzle`](../puzzle/README.md):
+Systems needs [`@automataframework/sectors`](../sectors/README.md), [`@automataframework/nav`](../nav/README.md) and
+[`@automataframework/puzzle`](../puzzle/README.md):
 
 ```ts
-import { systemsExtension } from '@automata/systems'
+import { systemsExtension } from '@automataframework/systems'
 
 const systems = systemsExtension()
 export default defineGame({
@@ -29,7 +29,7 @@ If one of them is missing, the game refuses to start and says who needs what.
   `systems.hide` and `systems.unhide` do the same from your own system (a hiding place a person walked to, for one).
 - **Chasing on a clock**: `followPlayer(0.4)` is a hook a transition calls (`{ call = "chase" }`) that routes the agent to the
   player now and again every 0.4 seconds, so a chaser follows a player who moves. `goTo` alone routes once, to where she was.
-- **Bots** (`@automata/systems/bots`, Node only): scripted players, scenarios, playtests and a fairness report, for
+- **Bots** (`@automataframework/systems/bots`, Node only): scripted players, scenarios, playtests and a fairness report, for
   build time and tests.
 
 ## Peeking and carried lights (opt-in plugins)

@@ -1,7 +1,7 @@
 // The af-sector profile (ED3D.1b step 5): its codec plus the geometry the views draw and the checks the problems list
 // shows, behind the one shape the editor core imports.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { entitySelection } from '#src/shared/checks/check.ts'
 import { parseSelection } from '#src/shared/edit/selection-ref.ts'

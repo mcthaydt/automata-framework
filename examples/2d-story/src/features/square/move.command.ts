@@ -1,4 +1,4 @@
-import { defineCommand } from '@automata/sim'
+import { defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 
 const axis = z.number().int().min(-1).max(1).default(0)

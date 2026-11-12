@@ -9,7 +9,7 @@ import { type CastMember, type CharacterDef, memberOf, standOf } from './cast'
 import { Figure } from './figure'
 
 export type Frame = Uint8ClampedArray
-/** The pitch the review sheets and `pnpm --filter @automata/figures render` paint at (18°), and so the pitch the stage paints every figure at,
+/** The pitch the review sheets and `pnpm --filter @automataframework/figures render` paint at (18°), and so the pitch the stage paints every figure at,
  * whatever its camera's tilt (stage.ts): the one place the number is named. */
 export const SPRITE_PITCH = (18 * Math.PI) / 180
 /** The camera: the sheets' pitch, from the front. */

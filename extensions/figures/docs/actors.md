@@ -15,7 +15,7 @@ Everything an actor shows at time `t` is a **pure function of `t`**. That covers
 ## Quick start
 
 ```ts
-import { ScriptedActor, Troupe } from '@automata/figures';
+import { ScriptedActor, Troupe } from '@automataframework/figures';
 
 // Alone, with its own Figure: a base id or a CharacterDef.
 const a = new ScriptedActor({ who: 'base-f', at: [0, 0], facing: 30, actions: [{ t: 0.5, action: 'wave' }] }, { density: 2 });
@@ -183,7 +183,7 @@ A `Placement` `{ who, at, to, facing, pose }` is the short form of a script, and
 ## Demo
 
 ```sh
-pnpm --filter @automata/figures actors -- OUT_DIR
+pnpm --filter @automataframework/figures actors -- OUT_DIR
 ```
 
 This writes `actions-sheet.png` and its `-x2`: each action at five moments (start, wind-up, action, end, recovery) on `base-m` and `base-f`, plus the run, the strafe and stepping in place, at D2.

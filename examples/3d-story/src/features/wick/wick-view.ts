@@ -1,10 +1,10 @@
-import { figure, type View3dFactory } from '@automata/3d'
+import { figure, type View3dFactory } from '@automataframework/3d'
 import {
   clipsWithActions,
   type FigureDef,
   type FigureLibrary,
   type MotionLibrary,
-} from '@automata/3d/figures'
+} from '@automataframework/3d/figures'
 import type { Tuning } from '../../shared/tuning.ts'
 import { Wick } from './wick.component.ts'
 

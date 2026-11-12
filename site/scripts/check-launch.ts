@@ -39,7 +39,7 @@ export type OnRegistry = (name: string) => Promise<boolean>
 
 /**
  * One sentence per package the site sends a visitor to that is not on the registry, or that could not be asked about.
- * The `@automata` scope on npmjs.org belongs to another account until the rename to `@automataframework` lands, so until
+ * The `@automataframework` scope on npmjs.org belongs to another account until the rename to `@automataframework` lands, so until
  * then a package of theirs with this name would pass; the runbook makes the rename the first step of the launch.
  */
 export async function unpublishedProblems(
@@ -51,7 +51,7 @@ export async function unpublishedProblems(
     try {
       if (!(await onRegistry(name))) {
         problems.push(
-          `${name} is not on npmjs.org yet, so the site’s first command (npx @automata/tools create-game) would fetch nothing.`,
+          `${name} is not on npmjs.org yet, so the site’s first command (npx @automataframework/tools create-game) would fetch nothing.`,
         )
       }
     } catch (error) {

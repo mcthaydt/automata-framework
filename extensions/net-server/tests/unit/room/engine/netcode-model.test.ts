@@ -1,4 +1,4 @@
-import type { LocalCommand } from '@automata/net'
+import type { LocalCommand } from '@automataframework/net'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Move } from '#src/testing/fixture-game.ts'
 import { type LinkPlayer, type LinkRoom, type LinkRoomOptions, linkRoom } from '#src/testing/link-room.ts'

@@ -1,4 +1,4 @@
-import type { PuzzleDef } from '@automata/puzzle/sim'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
 import { build } from 'vite'
 import { describe, expect, it, vi } from 'vitest'
 import { canFinish } from '#src/features/schematic/puzzle/solve.ts'

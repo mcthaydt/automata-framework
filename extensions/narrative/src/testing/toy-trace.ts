@@ -1,12 +1,12 @@
 // A toy game to play routes in: a drawer that gives a key, a door it unlocks that starts a conversation
 // and a cutscene, and a storylet on the drawer. It has the talk game's shape (sectors, puzzle and narrative loaded by
 // a command) with its own load command, so the narrative golden's commands stay as they are.
-import { createPuzzlePlugin, loadPuzzle, type PuzzleDef } from '@automata/puzzle/sim'
-import type { PuzzleScene } from '@automata/puzzle/solver'
-import { toyScene } from '@automata/puzzle/testing/toy-scene'
-import { loadSectorMap, readSectorMap, sectorsPlugin } from '@automata/sectors/sim'
-import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
-import { createSim, defineCommand, definePlugin, defineSystem } from '@automata/sim'
+import { createPuzzlePlugin, loadPuzzle, type PuzzleDef } from '@automataframework/puzzle/sim'
+import type { PuzzleScene } from '@automataframework/puzzle/solver'
+import { toyScene } from '@automataframework/puzzle/testing/toy-scene'
+import { loadSectorMap, readSectorMap, sectorsPlugin } from '@automataframework/sectors/sim'
+import clinicLevel from '@automataframework/sectors/testing/fixtures/clinic.af-sector.json?raw'
+import { createSim, defineCommand, definePlugin, defineSystem } from '@automataframework/sim'
 import { z } from 'zod'
 import type { NarrativeToolsScene } from '../features/tools/scene'
 import type { TraceGame } from '../features/tools/traces'

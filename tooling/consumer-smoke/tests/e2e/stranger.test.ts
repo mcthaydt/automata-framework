@@ -83,7 +83,7 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         JSON.stringify({ name: 'stranger-tools', private: true, type: 'module' }),
       )
       writeFileSync(join(toolsDir, 'pnpm-workspace.yaml'), overridesYaml(overrides))
-      sh(toolsDir, 'pnpm', ['add', overrides['@automata/tools'] as string])
+      sh(toolsDir, 'pnpm', ['add', overrides['@automataframework/tools'] as string])
       mkdirSync(join(folder, 'work'), { recursive: true })
       sh(join(folder, 'work'), join(toolsDir, 'node_modules/.bin/automata'), ['create-game', GAME])
 
@@ -96,7 +96,7 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         JSON.parse(readFileSync(join(root, 'packages/tools/package.json'), 'utf8')) as { version: string }
       ).version
       const wanted = { ...written.dependencies, ...written.devDependencies }
-      const ours = Object.entries(wanted).filter(([name]) => name.startsWith('@automata/framework'))
+      const ours = Object.entries(wanted).filter(([name]) => name.startsWith('@automataframework/framework'))
       expect(ours.length, 'the game depends on the framework').toBeGreaterThan(0)
       for (const [name, spec] of ours)
         expect(spec, `${name} must ask for the running version, not a workspace link`).toBe(`^${version}`)
@@ -137,7 +137,7 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         await page.goto(`${server.url}/`)
         await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
         // A new game ships in six languages, so the first run asks for one before the title. The smoke installs only the
-        // published packages and cannot import `@automata/tools/e2e`'s `passFirstRun`, so it presses English itself.
+        // published packages and cannot import `@automataframework/tools/e2e`'s `passFirstRun`, so it presses English itself.
         await page.getByTestId('first-language-en').click()
         await expect(page.getByTestId('title-screen')).toBeVisible()
         await page.getByRole('button', { name: 'Play' }).click()

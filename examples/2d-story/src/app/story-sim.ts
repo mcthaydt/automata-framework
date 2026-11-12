@@ -1,5 +1,5 @@
-import { resolveExtensions } from '@automata/framework/extension'
-import { createSim, type Sim } from '@automata/sim'
+import { resolveExtensions } from '@automataframework/framework/extension'
+import { createSim, type Sim } from '@automataframework/sim'
 import { LEVEL } from '../features/level/level.ts'
 import { itemOf } from '../features/level/level-items.ts'
 import { Hero } from '../features/square/hero.component.ts'

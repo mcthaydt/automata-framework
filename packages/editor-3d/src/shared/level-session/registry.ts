@@ -1,7 +1,7 @@
 // The profiles this editor opens, and how a file says which one it is: an AF sector file names its format. Detection
 // reads the text only far enough to choose; the chosen profile's codec does the real reading and says what is wrong
 // with the file.
-import { JsonScanError, scan } from '@automata/editor/kit/documents'
+import { JsonScanError, scan } from '@automataframework/editor/kit/documents'
 import { afSectorProfile } from './af-sector-profile'
 import type { LevelProfile } from './level-profile'
 

@@ -1,8 +1,8 @@
 // The `materials` check (ED3D.2b-2): every material a level names is in the profile's list. Seeded over small rooms,
 // then held to the shipped depot with its own table.
 
-import type { SectorDef } from '@automata/3d/level'
-import { TRIM_PIECES, type WallDef } from '@automata/3d/level'
+import type { SectorDef } from '@automataframework/3d/level'
+import { TRIM_PIECES, type WallDef } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { materialProblems } from '#src/shared/checks/materials.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'

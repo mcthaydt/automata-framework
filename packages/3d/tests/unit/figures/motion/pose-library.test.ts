@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Diagnostic } from '@automata/content'
+import type { Diagnostic } from '@automataframework/content'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { J, JOINTS, restPose, type Skeleton } from '#src/features/figures/body/rig.ts'
 import type { RigLimits } from '#src/features/figures/content/rig-limits.schema.ts'

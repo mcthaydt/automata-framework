@@ -5,9 +5,9 @@
   a name and writes an `af-sector/2` level (ED3D.13b). It only wires; the controller decides (`app/home/home-controller.ts`).
 -->
 <script lang="ts">
-import { Button, FilePick, HomeScreen } from '@automata/editor/kit'
-import type { ToastStore, Workspace } from '@automata/editor/kit/core'
-import type { GeometryState } from '@automata/framework'
+import { Button, FilePick, HomeScreen } from '@automataframework/editor/kit'
+import type { ToastStore, Workspace } from '@automataframework/editor/kit/core'
+import type { GeometryState } from '@automataframework/framework'
 import type { HomeController } from './home-controller'
 import { levelCard } from './home-model'
 import LevelSummary from './LevelSummary.svelte'

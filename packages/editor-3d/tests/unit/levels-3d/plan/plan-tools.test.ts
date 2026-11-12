@@ -2,8 +2,8 @@
 // level (the hall from (0, 0) to (8, 6), the dock from (8, 0) to (14, 6)); the canvas is 800 by 400 px with the camera
 // at (7, 3) and zoom 1, and pixel positions come from `toScreen`, as in the tools' own tests.
 
-import type { AfSector2File } from '@automata/3d/level'
-import type { PointerKind } from '@automata/editor/kit/core'
+import type { AfSector2File } from '@automataframework/3d/level'
+import type { PointerKind } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
 import { createPlanTools } from '#src/features/levels-3d/plan/plan-tools.ts'

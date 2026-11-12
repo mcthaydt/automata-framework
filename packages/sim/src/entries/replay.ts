@@ -1,4 +1,4 @@
-// @automata/sim/replay: record a run, store it as a `.replay`, and play it back bit-identically
+// @automataframework/sim/replay: record a run, store it as a `.replay`, and play it back bit-identically
 //.
 export { decodeReplay, encodeReplay } from '../features/replay/codec.ts'
 export { ReplayFormatError, ReplayRecordError } from '../features/replay/errors.ts'

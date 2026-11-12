@@ -14,7 +14,7 @@ import {
   type CastPlace,
   type Plane,
   type PropPlace,
-} from '@automata/3d/level'
+} from '@automataframework/3d/level'
 import type { MapPlan, MapPlane, MapSector, MapSprite, MapWall, V2 } from './map-plan.ts'
 
 /** The light a Build shade step takes off: a shade of 1 is a tenth darker. */

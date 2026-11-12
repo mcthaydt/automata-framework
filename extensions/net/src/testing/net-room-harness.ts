@@ -3,7 +3,7 @@
  * moves only by `advance`, and `settle` lets promise callbacks already resolved run.
  */
 
-import { type FakeClock, fakeClock } from '@automata/framework/testing'
+import { type FakeClock, fakeClock } from '@automataframework/framework/testing'
 import type { NetError } from '../features/client/room/net-error'
 import type { ConnectionState, NetRoom, NetRoomOptions, RoomEnd } from '../features/client/room/net-room'
 import { createNetRoom } from '../features/client/room/net-room'

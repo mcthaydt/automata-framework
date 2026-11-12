@@ -1,6 +1,6 @@
 # Changesets
 
-A pull request that changes a published `@automata/*` package adds a changeset (`pnpm changeset`),
+A pull request that changes a published `@automataframework/*` package adds a changeset (`pnpm changeset`),
 and CI checks it (`changeset status`). Every published package shares one version (the `fixed` group), and
 before 1.0 every changeset is a `patch` (`tooling/release/src/check-changesets.ts`), except `first-public-release.md`,
 a `minor` that takes the shared version from 0.0.x to 0.1.0 once and is deleted when it is versioned. Merging to `main` opens or

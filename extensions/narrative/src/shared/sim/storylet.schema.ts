@@ -1,7 +1,7 @@
 // Storylets: lines outside dialogue, picked by salience from what the player does, where she
 // is and what she knows. Triggers: `inspect:<hotspot>`, `enter:<room>`, `dwell:<room>:<seconds>`, `system:<event>`.
 // A room is a sector id or a zone. `phase` is a label the game may keep; the sim ignores it.
-import { type Cond, condSchema } from '@automata/puzzle/sim'
+import { type Cond, condSchema } from '@automataframework/puzzle/sim'
 import { z } from 'zod'
 
 export interface Storylet {

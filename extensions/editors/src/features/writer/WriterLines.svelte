@@ -1,7 +1,7 @@
 <!-- A scene's lines as a script: who says each one, the words, and what the line is for. -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import { sentences } from '@automata/narrative/sim'
+import { Button } from '@automataframework/editor/kit'
+import { sentences } from '@automataframework/narrative/sim'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import WordsField from '../../shared/ui/WordsField.svelte'
 import { deliveryOf, scriptLines, speakerChoices } from './writer-model.ts'

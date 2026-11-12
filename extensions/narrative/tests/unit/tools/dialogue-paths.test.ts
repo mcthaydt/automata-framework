@@ -1,6 +1,6 @@
 // `walk`, `stance` and `motifs`: the original's path analyses on toy graphs. The endings a register must
 // offer are the game's (the canon holds none), so `stance` takes them as an option.
-import type { PuzzleDef } from '@automata/puzzle/sim'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
 import { describe, expect, it } from 'vitest'
 import type { DialogueGraph } from '#src/entries/sim.ts'
 import { type Act, motifs, stance, walk } from '#src/features/tools/dialogue-paths.ts'

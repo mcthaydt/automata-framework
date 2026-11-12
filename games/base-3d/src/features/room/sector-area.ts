@@ -1,5 +1,5 @@
 // Reads an `af-sector` level file (either format) as an `AreaSource`: the game consumes the
-// level the editor writes, through core's `@automata/3d/level` reader, and never a copy of it.
+// level the editor writes, through core's `@automataframework/3d/level` reader, and never a copy of it.
 //
 // - Each rectangular sector is a room box (its `view` is a camera view of the file's `views`); a sector flagged
 //   `pit: true` is a pit (no room box, no floor drawn, Wick falls into it).
@@ -9,7 +9,7 @@
 // - Entities: `spawn`, `ember` and `goal` are the area's own; any other is a load error.
 // - Only axis-aligned rectangles in 1.0: another shape, or a sector with holes, is a load error naming its path (a
 //   level-editor gap if the content wants one, EDITOR-GAPS.md). Nothing here runs per tick: it is the load step.
-import { type AfSectorEntry2, pathText, readLevel, WALL_THICK } from '@automata/3d/level'
+import { type AfSectorEntry2, pathText, readLevel, WALL_THICK } from '@automataframework/3d/level'
 import type { AreaSource } from '../../shared/area.ts'
 
 type Box = { min: [number, number]; max: [number, number] }

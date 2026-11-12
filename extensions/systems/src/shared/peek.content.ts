@@ -2,7 +2,7 @@
 // editor) changes how long the player must stand still, how far she may be from a doorway, how far off it she may face and how
 // far the camera leans, and the content compiler names the file and line of a number that cannot be one. Every number is
 // optional and a missing one is the old game's. It is sim content: the sim's content hash covers it, since it decides who peeks.
-import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
+import { type ContentSchemaDef, defineContentSchema } from '@automataframework/content/schema'
 import { z } from 'zod'
 import { type PeekFile, peekProblems } from './sim/peek'
 

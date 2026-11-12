@@ -1,4 +1,4 @@
-import '@automata/framework/theme.css'
+import '@automataframework/framework/theme.css'
 import {
   byTestId,
   checkLayout,
@@ -7,7 +7,7 @@ import {
   REFERENCE_SIZES,
   settleLayout,
   VARIANTS,
-} from '@automata/framework/testing'
+} from '@automataframework/framework/testing'
 import { describe, expect, test, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import StaleBuild from '#src/features/stale/StaleBuild.svelte'

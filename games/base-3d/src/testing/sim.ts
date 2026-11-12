@@ -2,8 +2,8 @@
 // from the player. Test code (`testing/` is exempt from `pnpm style`).
 
 import { content } from 'virtual:automata/content'
-import { CameraHeading, cameraHeadingPlugin } from '@automata/3d/sim'
-import { type Command, createSim, type Sim } from '@automata/sim'
+import { CameraHeading, cameraHeadingPlugin } from '@automataframework/3d/sim'
+import { type Command, createSim, type Sim } from '@automataframework/sim'
 import { base3dSim } from '../app/base-sim.ts'
 import { base3dPlugin, spawnArea } from '../app/base3d.plugin.ts'
 import { ROOM } from '../features/room/room.ts'

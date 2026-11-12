@@ -9,7 +9,7 @@
 // density are drawn once, at density 2 (the fixed pixels per metre), so the chain's rope is two texels
 // wide.
 
-import type { Measure } from '@automata/3d/figures-kit'
+import type { Measure } from '@automataframework/3d/figures-kit'
 import {
   add,
   at,
@@ -42,7 +42,7 @@ import {
   toHead,
   type V3,
   variant,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { WARDROBE_DEFAULTS } from './defaults.ts'
 import type { Chain, Hoops, Shades, Sneakers } from './garment-types.ts'
 import { frontOf, loft, type Section, torus } from './loft.ts'

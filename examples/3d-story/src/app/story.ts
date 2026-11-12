@@ -1,7 +1,7 @@
-import type { NavGraph } from '@automata/nav/sim'
-import type { PuzzleDef } from '@automata/puzzle/sim'
-import type { SectorMap } from '@automata/sectors/sim'
-import type { SystemsDef } from '@automata/systems/sim'
+import type { NavGraph } from '@automataframework/nav/sim'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
+import type { SectorMap } from '@automataframework/sectors/sim'
+import type { SystemsDef } from '@automataframework/systems/sim'
 import type { PlayContent } from '../shared/read-room.ts'
 
 // What the sim reads of the hall's files: the room Wick walks, the walls the guard sees past, the places it walks

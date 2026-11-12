@@ -89,8 +89,8 @@ describe('the new game’s files', () => {
 
   it('starts the game from main.ts, with the no-eval entry first', () => {
     const main = read('src/main.ts')
-    expect(main.indexOf("import '@automata/framework/no-eval'")).toBeGreaterThan(-1)
-    expect(main.indexOf("import '@automata/framework/no-eval'")).toBeLessThan(
+    expect(main.indexOf("import '@automataframework/framework/no-eval'")).toBeGreaterThan(-1)
+    expect(main.indexOf("import '@automataframework/framework/no-eval'")).toBeLessThan(
       main.indexOf("from './app/game.ts'"),
     )
     expect(main).toContain('startGame(game)')
@@ -110,7 +110,7 @@ describe('the new game’s files', () => {
     for (const file of files.filter((each) =>
       /^src\/features\/(square|level)\/(?!\w+\.view|level-scene)/.test(each),
     )) {
-      expect(read(file), file).not.toMatch(/from '@automata\/framework'|pixi/)
+      expect(read(file), file).not.toMatch(/from '@automataframework\/framework'|pixi/)
     }
   })
 })
@@ -137,7 +137,7 @@ describe('the tools package’s README', () => {
   it('starts with the one command that makes a game, with no install first', () => {
     const readme = readFileSync(new URL('../../../../README.md', import.meta.url), 'utf8')
     const firstCommand = /```sh\n([^\n]+)/.exec(readme)?.[1] ?? ''
-    expect(firstCommand).toMatch(/^pnpm dlx @automata\/tools create-game my-game/)
+    expect(firstCommand).toMatch(/^pnpm dlx @automataframework\/tools create-game my-game/)
     expect(readme).not.toContain('github.com/mcthaydt/automata-framework')
   })
 })
@@ -157,7 +157,7 @@ describe('the new game’s scripts and config', () => {
   })
 
   it('depends on the content package, which compiles and reads the level', () => {
-    expect(manifest().dependencies['@automata/content']).toBeDefined()
+    expect(manifest().dependencies['@automataframework/content']).toBeDefined()
   })
 
   it('declares the pad in ship.config.ts, because keys() binds it', () => {
@@ -180,8 +180,8 @@ describe('the new game plays what Feel and Audio make', () => {
   it('asks for the packages that play them, in the version that made the game', () => {
     const dependencies = (JSON.parse(read('package.json')) as { dependencies: Record<string, string> })
       .dependencies
-    expect(dependencies['@automata/feel']).toBe(dependencies['@automata/framework'])
-    expect(dependencies['@automata/audio-synth']).toBe(dependencies['@automata/framework'])
+    expect(dependencies['@automataframework/feel']).toBe(dependencies['@automataframework/framework'])
+    expect(dependencies['@automataframework/audio-synth']).toBe(dependencies['@automataframework/framework'])
   })
 
   it('puts Feel on the renderer and Audio on the audio, both read from the files the editors write', () => {

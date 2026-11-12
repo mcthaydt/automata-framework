@@ -1,6 +1,6 @@
 // Debug panels: a titled component the overlay shows as a tab. The id is kebab-case and unique; the title is a
 // dev-only literal (debug text is not localized). A panel reads the host through the overlay's context, never props.
-import type { UiComponent } from '@automata/framework/extension'
+import type { UiComponent } from '@automataframework/framework/extension'
 import SummaryPanel from './SummaryPanel.svelte'
 
 /**

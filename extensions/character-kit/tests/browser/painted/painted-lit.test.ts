@@ -1,7 +1,7 @@
 // A painted figure in a lit room is the builder's own frame of lit cells: what the GPU draws is `compose` of the cells the stage
 // placed, pixel for pixel, as it is unlit (painted-depth.test.ts), and the haze, a pass over the scene's depth, veils a far
 // figure and leaves a near one. Headless Firefox here has no WebGL; the GPU runner runs it there.
-import { DEFAULT_LOOK, type Look, sceneLightingSchema } from '@automata/3d'
+import { DEFAULT_LOOK, type Look, sceneLightingSchema } from '@automataframework/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import {

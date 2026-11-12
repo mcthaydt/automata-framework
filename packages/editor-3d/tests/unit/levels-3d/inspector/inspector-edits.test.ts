@@ -2,7 +2,7 @@
 // transaction): a set is one undo step; a scrub (start, updates, commit) is one step too; a cancel leaves the level as it
 // was; a refusal changes nothing and answers the model's sentence. The depot, as in `inspector-cards.test.ts`.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { inspectorOf } from '#src/features/levels-3d/inspector/inspector-cards.ts'
 import { createInspectorEdits } from '#src/features/levels-3d/inspector/inspector-edits.ts'

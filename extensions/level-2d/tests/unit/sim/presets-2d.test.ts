@@ -2,8 +2,8 @@
 // definitions are the systems package's `presets.json` (the editors package keeps that file equal to what its menu writes),
 // with the clinic's three stops swapped for this level's three: the west of the Hall, the east of the Hall, and the gate.
 
-import type { AgentDef } from '@automata/systems/sim'
-import presets from '@automata/systems/testing/fixtures/presets.json'
+import type { AgentDef } from '@automataframework/systems/sim'
+import presets from '@automataframework/systems/testing/fixtures/presets.json'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CELL, createPatrol2d, type Patrol2d } from '#src/testing/patrol-2d.ts'
 

@@ -1,7 +1,7 @@
 // The dollhouse as a paint list (ED3D.5e step 2; ED3D spec §6, ED3D-D6): each surface the orbit camera sees, as triangles
 // in canvas pixels, flat-shaded, far to near, the near walls cut away and a faded wall at a quarter, the selection in the
 // accent. Surfaces here are made by hand so each number is plain.
-import { timeOfDay } from '@automata/3d'
+import { timeOfDay } from '@automataframework/3d'
 import { describe, expect, it } from 'vitest'
 import { dollhousePaint, meshPaint } from '#src/features/levels-3d/dollhouse/dollhouse-paint.ts'
 import { PLAN_COLORS } from '#src/features/levels-3d/plan/plan-colors.ts'

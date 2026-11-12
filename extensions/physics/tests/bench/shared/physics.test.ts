@@ -1,4 +1,4 @@
-import { createSim, type Sim } from '@automata/sim'
+import { createSim, type Sim } from '@automataframework/sim'
 import { test } from 'vitest'
 import { body2d, collider2d, physics2d, RigidBody2D, transform2d } from '#src/entries/2d.ts'
 import { BodyKind, body3d, collider3d, physics3d, RigidBody3D, transform3d } from '#src/entries/3d.ts'

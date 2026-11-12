@@ -7,7 +7,7 @@
 //
 // The lamps are in the world; the pass works in view space, so `track` is told the camera once and follows it from then on.
 
-import type { WorldLamp } from '@automata/3d'
+import type { WorldLamp } from '@automataframework/3d'
 import { UniformGroup } from 'pixi.js'
 import { TrackingEffect } from './camera-track.ts'
 import {

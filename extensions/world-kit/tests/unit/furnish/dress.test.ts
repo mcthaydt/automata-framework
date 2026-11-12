@@ -1,5 +1,5 @@
 // The dresser: a room that asks for a kit is filled from it, the same every run, and the result draws with core alone.
-import { buildWorld } from '@automata/3d/props-kit'
+import { buildWorld } from '@automataframework/3d/props-kit'
 import { describe, expect, it } from 'vitest'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import { dressLevel } from '#src/features/furnish/dress.ts'

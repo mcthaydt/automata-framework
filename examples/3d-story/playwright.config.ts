@@ -1,4 +1,4 @@
-import { defineJourneys, sizes } from '@automata/playwright-preset'
+import { defineJourneys, sizes } from '@automataframework/playwright-preset'
 import { editorPort, gamePort, gameUrl } from './tests/e2e/origins.ts'
 
 // The 3D story's served journey: Schematic edits the guard's files through the editors `automata editor` serves, and the
@@ -23,7 +23,7 @@ export default defineJourneys({
     },
     {
       // The editors' page, built from the repository, serving this folder and naming the game beside it.
-      command: `pnpm --filter @automata/editors build && pnpm exec automata editor . --app-dir ../../extensions/editors/dist/suite --port ${editorPort} --game-url ${gameUrl}`,
+      command: `pnpm --filter @automataframework/editors build && pnpm exec automata editor . --app-dir ../../extensions/editors/dist/suite --port ${editorPort} --game-url ${gameUrl}`,
       url: `http://127.0.0.1:${editorPort}/`,
       reuseExistingServer: reuse,
       timeout: 180_000,

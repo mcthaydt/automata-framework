@@ -1,12 +1,12 @@
 // consumer-smoke's types step: the published declarations, read by TypeScript 7.0.2 and by
 // 6.0.3 (a TS 6 consumer can read AF's .d.ts). One use of each entry's main types.
 
-import type { CompiledContent, ContentConfig, Diagnostic } from '@automata/content'
-import { type ContentText, createContentText } from '@automata/content/locale'
-import { automataContent } from '@automata/content/vite'
-import type { Hosting } from '@automata/framework'
-import { createHosting } from '@automata/framework/target'
-import { fakeHosting, REFERENCE_SIZES, type ReferenceSize } from '@automata/framework/testing'
+import type { CompiledContent, ContentConfig, Diagnostic } from '@automataframework/content'
+import { type ContentText, createContentText } from '@automataframework/content/locale'
+import { automataContent } from '@automataframework/content/vite'
+import type { Hosting } from '@automataframework/framework'
+import { createHosting } from '@automataframework/framework/target'
+import { fakeHosting, REFERENCE_SIZES, type ReferenceSize } from '@automataframework/framework/testing'
 import {
   createSim,
   defineComponent,
@@ -14,11 +14,11 @@ import {
   defineSystem,
   type Sim,
   type StepResult,
-} from '@automata/sim'
-import { xxhash64 } from '@automata/sim/hash'
-import { sin } from '@automata/sim/math'
-import { defineShipConfig, type ShipConfig } from '@automata/tools'
-import '@automata/framework/no-eval'
+} from '@automataframework/sim'
+import { xxhash64 } from '@automataframework/sim/hash'
+import { sin } from '@automataframework/sim/math'
+import { defineShipConfig, type ShipConfig } from '@automataframework/tools'
+import '@automataframework/framework/no-eval'
 import {
   type DefinedGame,
   defineGame,
@@ -26,10 +26,10 @@ import {
   keys,
   startGame,
   defineComponent as umbrellaComponent,
-} from '@automata/framework'
-import '@automata/framework/no-eval'
-import { createPixiRenderer, type PixiRendererOptions, rect } from '@automata/framework'
-import '@automata/framework/no-eval'
+} from '@automataframework/framework'
+import '@automataframework/framework/no-eval'
+import { createPixiRenderer, type PixiRendererOptions, rect } from '@automataframework/framework'
+import '@automataframework/framework/no-eval'
 import {
   classifyFormFactor,
   Dialog,
@@ -38,9 +38,9 @@ import {
   type Geometry,
   type RuntimeHandle,
   runGame,
-} from '@automata/framework'
-import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
-import { checkLayout, manualFrames, withRuntimeTest } from '@automata/framework/testing'
+} from '@automataframework/framework'
+import { defineExtension, type ExtensionDef } from '@automataframework/framework/extension'
+import { checkLayout, manualFrames, withRuntimeTest } from '@automataframework/framework/testing'
 
 export const sizes: readonly ReferenceSize[] = REFERENCE_SIZES
 export const factor: FormFactor = classifyFormFactor(390, 844)

@@ -1,8 +1,8 @@
 // defineGame: a `GameSpec` with every default filled in. Pure: it reads no document
 // until the runtime asks for the root, so a game module also loads in Node (the examples' golden parity).
 
-import { GAME_ID_PATTERN } from '@automata/content/game-config'
-import type { PluginDef, Sim } from '@automata/sim'
+import { GAME_ID_PATTERN } from '@automataframework/content/game-config'
+import type { PluginDef, Sim } from '@automataframework/sim'
 import type { EventSounds } from '../features/audio/event-sounds.ts'
 import type { UiSounds } from '../features/audio/ui-sounds.ts'
 import type { GameOrientation, RotateHintMode } from '../features/display/display-policy.svelte.ts'
@@ -104,7 +104,7 @@ export interface GameSpec<S = never, D = unknown> {
    */
   readonly uiSounds?: UiSounds
   /**
-   * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
+   * The game's own audio player (`@automataframework/audio-synth/stage`), started once the runtime has built its audio service:
    * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
    * returns undoes it at shutdown.
    */
@@ -136,7 +136,7 @@ export interface GameSpec<S = never, D = unknown> {
   readonly extensions?: readonly ExtensionDef[]
   /**
    * Steps that run after the host is ready and before the first screen, in order, with the sim held (a studio splash from
-   * `@automata/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
+   * `@automataframework/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
    */
   readonly opening?: readonly OpeningStep[]
   /**
@@ -149,7 +149,7 @@ export interface GameSpec<S = never, D = unknown> {
    * warning with the device's reduced-motion line, saying what a game may have ("flashing lights or a shaking screen").
    * An object says what this game has: `effects` lists its hazards (`'flashing'`, `'strobing'`, `'shaking'`,
    * `'patterns'`) and the warning names exactly those, in the player's language; `switches` adds the game's own effect
-   * settings (a game with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+   * settings (a game with `@automataframework/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
    */
   readonly photosensitivity?: PhotosensitivityOption
   /**

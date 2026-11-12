@@ -1,4 +1,4 @@
-import { levelScene } from '@automata/framework'
+import { levelScene } from '@automataframework/framework'
 import { levels, project, START_LEVEL } from './level-content.ts'
 
 // What the game shows of the level: core draws the tiles, auto tiles, objects and placed characters the editor made,

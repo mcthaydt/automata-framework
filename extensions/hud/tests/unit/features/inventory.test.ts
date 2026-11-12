@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { mountInPlay, type PlayMount } from '@automata/framework/testing'
-import { createSim, definePlugin, type Sim } from '@automata/sim'
+import { mountInPlay, type PlayMount } from '@automataframework/framework/testing'
+import { createSim, definePlugin, type Sim } from '@automataframework/sim'
 import { flushSync, tick } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ITEMS, idle, type ToyHud, toyHud } from '#src/testing/toy-hud.ts'

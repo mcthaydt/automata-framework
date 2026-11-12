@@ -9,7 +9,7 @@ import {
   type PluginDef,
   type Rng,
   type Sim,
-} from '@automata/sim'
+} from '@automataframework/sim'
 
 /**
  * What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of

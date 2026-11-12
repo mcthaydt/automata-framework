@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { catalogCharacters as contentCatalogCharacters } from '@automata/content/locale'
+import { catalogCharacters as contentCatalogCharacters } from '@automataframework/content/locale'
 import { describe, expect, it } from 'vitest'
 import { catalogCharacters, fontCoverage, undrawable } from '#src/shared/words/characters.ts'
 
-// What the `words` step needs to know about letters. Tools never imports `@automata/content` at run time (the bin runs
+// What the `words` step needs to know about letters. Tools never imports `@automataframework/content` at run time (the bin runs
 // from source under plain Node, which cannot load its assets entry), so it keeps its own small copies; these tests keep
 // them equal to content's where they overlap.
 
@@ -58,7 +58,7 @@ describe('fontCoverage', () => {
   })
 
   it('answers as content’s fontCoverage does, over every printable ASCII and a few more', async () => {
-    const { fontCoverage: contentCoverage } = await import('@automata/content/assets')
+    const { fontCoverage: contentCoverage } = await import('@automataframework/content/assets')
     const sample = [
       ...Array.from({ length: 95 }, (_, i) => String.fromCharCode(0x20 + i)),
       '日',

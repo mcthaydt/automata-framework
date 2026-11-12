@@ -1,4 +1,4 @@
-import { defineComponent } from '@automata/sim'
+import { defineComponent } from '@automataframework/sim'
 
 /**
  * Marks the square the player moves (the guard has a body too, and the player's moves must not carry him along).

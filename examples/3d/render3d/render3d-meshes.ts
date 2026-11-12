@@ -5,12 +5,12 @@
 //   interpolated between ticks. Model files load before the first frame through preload, with byte progress; a
 //   skinned or damaged one stops boot with a panel naming the file.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★☆☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { box, createPixi3dRenderer, mesh, render3dExtension } from '@automata/3d'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { box, createPixi3dRenderer, mesh, render3dExtension } from '@automataframework/3d'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- scene ---
 // The same nightstand twice: as a GLB and as its packed .bin (resources/models/PROVENANCE.md).

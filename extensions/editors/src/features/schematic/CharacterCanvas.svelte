@@ -3,7 +3,7 @@
   phone the diagram and the list are two tabs; wider, they share the canvas.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import { tick } from 'svelte'
 import { DECIDE_LINES, modeNotes } from './decide-words.ts'
 import Diagram from './diagram/Diagram.svelte'

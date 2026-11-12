@@ -1,6 +1,6 @@
 // The puzzle's sim state: the scene's def as content gives it, and the play state: facts (a record,
 // canonical in snapshots), carried items (kept sorted), the actions seen, and whether the goal has been reported.
-import { defineResource, type ResourceDef } from '@automata/sim'
+import { defineResource, type ResourceDef } from '@automataframework/sim'
 import { z } from 'zod'
 import { type PuzzleDef, puzzleDefShape } from './puzzle.schema'
 import { type Value, valueSchema } from './value.schema'

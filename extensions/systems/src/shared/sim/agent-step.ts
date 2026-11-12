@@ -1,9 +1,9 @@
 // The agent interpreter: each step an agent counts down an
 // appearance, takes the highest-priority transition whose probes hold, then walks its path at its mode's speed (or
 // waits, and asks its waiting transitions), and runs its routine. Hearing runs when a noise is made.
-import { route } from '@automata/nav/sim'
-import type { Point } from '@automata/sectors/sim'
-import { atan2, hypot } from '@automata/sim/math'
+import { route } from '@automataframework/nav/sim'
+import type { Point } from '@automataframework/sectors/sim'
+import { atan2, hypot } from '@automataframework/sim/math'
 import { applyEffects, type Outcome } from './effect'
 import { AT_NODE, holds, type Subject } from './probe'
 import { hearsIn, isStill, routineMode, waitsIn } from './probe-kinds'

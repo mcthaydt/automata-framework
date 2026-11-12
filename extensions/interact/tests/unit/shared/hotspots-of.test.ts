@@ -1,5 +1,5 @@
 // A level's hotspots are its entities of one definition; each one that is not a usable hotspot is a problem in words.
-import type { AfSector2 } from '@automata/3d/level'
+import type { AfSector2 } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { hotspotsOf } from '#src/entries/sim.ts'
 

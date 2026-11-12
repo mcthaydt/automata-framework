@@ -1,7 +1,7 @@
 // The cutscenes extension: the plugin and the `cutscene` content kind, after whatever provides the places (sectors in 3D),
 // nav (nodes) and narrative (captions). The game wires `start` into puzzle's `cutscene` hook and `locked` into the input it
 // wants held.
-import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+import { defineExtension, type ExtensionDef } from '@automataframework/framework/extension'
 import type { CaptionLine } from '../features/caption/caption'
 import { captionSlot } from '../features/caption/caption-slot'
 import { cutsceneContent } from '../shared/cutscenes.content'

@@ -1,4 +1,4 @@
-// @automata/physics/3d: 3D physics for the sim. Game code never imports Rapier.
+// @automataframework/physics/3d: 3D physics for the sim. Game code never imports Rapier.
 
 export { type Physics3DOptions, physics3d } from '../features/3d/physics-3d'
 export { Collider3D, RigidBody3D, Transform3D } from '../features/3d/physics-3d.component'

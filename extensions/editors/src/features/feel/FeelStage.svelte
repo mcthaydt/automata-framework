@@ -4,7 +4,7 @@
   cannot do (a rumble, a sound) is said in words under it.
 -->
 <script lang="ts">
-import type { FeelContent, FeelFrame, FeelSettings } from '@automata/feel'
+import type { FeelContent, FeelFrame, FeelSettings } from '@automataframework/feel'
 import { missedOutputs, STAGE_SUBJECT, type StageOutputs, stageFrames, wordText } from './feel-stage.ts'
 
 interface Props {

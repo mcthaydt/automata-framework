@@ -1,6 +1,6 @@
 # Character kit
 
-Clothes, hairstyles and seats for the 3D figures. The figure builder in `@automata/3d` can dress a body in seven things
+Clothes, hairstyles and seats for the 3D figures. The figure builder in `@automataframework/3d` can dress a body in seven things
 (a top, trousers, shoes, a cape, hair, a cap and a face). This kit adds the rest, so a game that wants a nurse, a
 lamplighter or a girl with box braids does not have to write them.
 
@@ -11,8 +11,8 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 In the game's list of extensions, put the kit after the figures:
 
 ```ts
-import { characterKitExtension } from '@automata/character-kit'
-import { figuresExtension } from '@automata/3d/figures'
+import { characterKitExtension } from '@automataframework/character-kit'
+import { figuresExtension } from '@automataframework/3d/figures'
 
 export default defineGame({ extensions: [figuresExtension, characterKitExtension] })
 ```
@@ -49,11 +49,11 @@ goes. `seated(skeleton, gait, seat, time)` gives the sitting pose.
 
 A painted figure is a character drawn the way the figure builder's own renders are: texel by texel, 128 × 192 texels for 2.6 m,
 always from the same angle (18° down, whatever the camera does), one pixel to a texel, and each texel has its own depth, so a
-figure goes behind a wall or behind another figure a texel at a time. The painter is `@automata/figures`, a private package of
+figure goes behind a wall or behind another figure a texel at a time. The painter is `@automataframework/figures`, a private package of
 this repository (`extensions/figures`), and the kit reaches it only through `src/shared/figures/`.
 
 ```ts
-import { BASE, paintedFigure } from '@automata/character-kit'
+import { BASE, paintedFigure } from '@automataframework/character-kit'
 
 createPixi3dRenderer({
   views: { [Walker.id]: paintedFigure(BASE[0].def, { state: (c) => ({ moving: c.walker?.walking === true }) }) },
@@ -94,13 +94,13 @@ each in an outfit of the wardrobe) and `DEMO_CAST` (Beauty, Ugly, Elder, Lifter,
 how far the sliders go). Each is `{ def, pose, about }`: `def` is what `paintedFigure` takes.
 
 ```ts
-import { RUNWAY_CAST, paintedFigure } from '@automata/character-kit'
+import { RUNWAY_CAST, paintedFigure } from '@automataframework/character-kit'
 
 views: { [Mara.id]: paintedFigure(RUNWAY_CAST[0].def, { state: () => ({ moving: false, pose: RUNWAY_CAST[0].pose }) }) }
 ```
 
 ## Try it
 
-The repository's `extensions/character-kit/tests/fixtures/content` has eight hairstyles and eight seats to copy from (they are not in the npm package). `pnpm --filter @automata/character-kit test`
-checks everything, and `pnpm --filter @automata/character-kit goldens` re-records the pictures the tests compare
+The repository's `extensions/character-kit/tests/fixtures/content` has eight hairstyles and eight seats to copy from (they are not in the npm package). `pnpm --filter @automataframework/character-kit test`
+checks everything, and `pnpm --filter @automataframework/character-kit goldens` re-records the pictures the tests compare
 against. Only do that on purpose, and say why in the commit.

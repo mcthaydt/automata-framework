@@ -2,7 +2,7 @@
 // distinct payload, ids `<command>-<n>`) and `controlsFrom()` from `content/controls.toml` (the file's own ids and
 // labels); both end here, so a map plays the same whichever way it was written.
 
-import type { Command, CommandDef } from '@automata/sim'
+import type { Command, CommandDef } from '@automataframework/sim'
 import type { z } from 'zod'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { keyLabel } from '../../shared/ui/prompts/prompt-label.ts'

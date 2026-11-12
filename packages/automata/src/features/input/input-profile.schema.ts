@@ -6,7 +6,7 @@ import {
   STANDARD_PAD_BUTTON_MAX,
   STICK_DIRECTIONS,
   type StickDirection,
-} from '@automata/content/controls'
+} from '@automataframework/content/controls'
 import { z } from 'zod'
 
 export type { GestureName, StickDirection }

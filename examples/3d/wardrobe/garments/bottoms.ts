@@ -9,7 +9,7 @@
 // and in the outfit's thread from density 3, is drawn once, in the thread when the outfit names one, and a
 // back pocket is its top edge (the density is fixed).
 
-import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
+import type { Anchor, Garment, Measure } from '@automataframework/3d/figures-kit'
 import {
   at,
   clamp,
@@ -28,7 +28,7 @@ import {
   type V3,
   variant,
   type Weight,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { WARDROBE_DEFAULTS } from './defaults.ts'
 import type { Cargos, WideLegs } from './garment-types.ts'
 import { bandOf, fitLegs, type Legs, legAt, legSection, seatOf, sliceOf } from './layering.ts'

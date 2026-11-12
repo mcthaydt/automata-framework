@@ -6,11 +6,11 @@
 // before the host says ready; opened directly, it runs standalone.
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump, Escape or P to pause; on-screen buttons on touch.
 // Base: this is the 2D base. Demos build on it through `@af-games/emberwick`.
-// Packages: @automata/framework (runtime, renderer, host, ui), @automata/sim, pixi.js,
-// Fusion Pixel (OFL; content/fonts.toml, cut by `automata-content assets`); @automata/tools for packaging.
-import '@automata/framework/no-eval'
+// Packages: @automataframework/framework (runtime, renderer, host, ui), @automataframework/sim, pixi.js,
+// Fusion Pixel (OFL; content/fonts.toml, cut by `automata-content assets`); @automataframework/tools for packaging.
+import '@automataframework/framework/no-eval'
 import './content/generated/fonts/fonts.css'
-import { startGame } from '@automata/framework'
+import { startGame } from '@automataframework/framework'
 import { emberwick, SIM_CONTENT_HASH } from './src/app/game.ts'
 
 /**

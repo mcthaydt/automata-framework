@@ -5,9 +5,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { copyScreens, PACKAGE_ROOT, screenSources, specifiersOf } from '#src/testing/copy-screens.ts'
 
 // A game may copy a screen's folder to change it, so each screen must work from the copy and reach only what a game has:
-// `@automata/framework`, `svelte`, and the files of its own folder.
+// `@automataframework/framework`, `svelte`, and the files of its own folder.
 
-const ALLOWED = [/^@automata\/framework$/, /^svelte(\/.*)?$/, /^\.\/[A-Za-z]+\.svelte$/]
+const ALLOWED = [/^@automataframework\/framework$/, /^svelte(\/.*)?$/, /^\.\/[A-Za-z]+\.svelte$/]
 const copies: string[] = []
 afterEach(() => {
   cleanup()

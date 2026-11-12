@@ -1,4 +1,4 @@
-import { defineResource } from '@automata/sim'
+import { defineResource } from '@automataframework/sim'
 import { z } from 'zod'
 
 /** What the story remembers between ticks. Part of the sim, so a saved game and a replay carry it. */

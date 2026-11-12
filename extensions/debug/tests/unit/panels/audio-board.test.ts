@@ -1,4 +1,4 @@
-import type { AudioContent } from '@automata/audio-synth'
+import type { AudioContent } from '@automataframework/audio-synth'
 import { describe, expect, it, vi } from 'vitest'
 import { audioBoard } from '#src/features/panels/audio-board.ts'
 

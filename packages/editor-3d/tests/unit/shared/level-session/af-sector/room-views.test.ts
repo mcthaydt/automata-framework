@@ -1,7 +1,7 @@
 // The rooms of an `af-sector/2` file as the edits see them and back (Levels 3D spec §5): a number stays a number, an
 // object stays an object, and what no edit touched is written as it was written.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { moveCorner } from '#src/shared/edit/corner-edits.ts'
 import type { Edit } from '#src/shared/edit/edit.ts'

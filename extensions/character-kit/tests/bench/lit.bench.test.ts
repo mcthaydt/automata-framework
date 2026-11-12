@@ -4,7 +4,7 @@
 // a shared machine and ranged 7 to 43 ms between runs, so a ceiling on it would fail on the machine and not on the code. A timing,
 // so it runs in the bench project (`AF_BENCH=1`), never in a gate:
 //
-//   AF_BENCH=1 pnpm --filter @automata/character-kit exec vitest run --project bench tests/bench/lit.bench.test.ts
+//   AF_BENCH=1 pnpm --filter @automataframework/character-kit exec vitest run --project bench tests/bench/lit.bench.test.ts
 //
 // It times what lighting adds to a painted frame: `roomLight` (the probes) and `litCells().lit` (the lit cell, made once on a miss),
 // less the `cellOf(figure)` the painter pays with or without a light. Three scenarios, each its own numbers: `steady` (the walk
@@ -12,8 +12,8 @@
 // in one frame) and `flicker` (one lamp steps between 1 and 0.5 every 1/12 s of the clock). `LIT_BENCH_OUT` names a file the numbers
 // are written to as JSON, for the gate.
 import { writeFileSync } from 'node:fs'
-import { buildWorld, createSceneLight, timeOfDay, worldLighting } from '@automata/3d'
-import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
+import { buildWorld, createSceneLight, timeOfDay, worldLighting } from '@automataframework/3d'
+import { BASE_SCENES, baseLibrary } from '@automataframework/3d/base'
 import { describe, expect, it } from 'vitest'
 import { litCells } from '#src/features/painted/lit-cells.ts'
 import { roomLight } from '#src/features/painted/room-light.ts'

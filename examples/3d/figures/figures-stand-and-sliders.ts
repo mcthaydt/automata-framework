@@ -4,13 +4,13 @@
 //   Tuner sets and no code changes; the same outfit, swatches and gait fit each body; standing is the gait's idle:
 //   a slow breath and a weight shift, with no walking and no clip, drawn from the sim's clock like everything else.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★☆☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figures'
-import { defineComponent, defineGame, definePlugin } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automataframework/3d'
+import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automataframework/3d/figures'
+import { defineComponent, defineGame, definePlugin } from '@automataframework/framework'
 
 // --- figure ---
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml

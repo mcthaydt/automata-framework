@@ -1,10 +1,10 @@
-import '@automata/editor/tokens.css'
-import '@automata/editor/fonts.css'
-import '@automata/editor/suite.css'
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
-import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { contrast, SIZES } from '@automata/editor/kit/testing'
-import { fixtureEditor } from '@automata/editor/suite/testing'
+import '@automataframework/editor/tokens.css'
+import '@automataframework/editor/fonts.css'
+import '@automataframework/editor/suite.css'
+import { EDITOR_LIST_PATH } from '@automataframework/editor/editor-list'
+import type { SuiteEditor } from '@automataframework/editor/kit/ports'
+import { contrast, SIZES } from '@automataframework/editor/kit/testing'
+import { fixtureEditor } from '@automataframework/editor/suite/testing'
 import {
   dockToggle,
   editorControl,
@@ -14,8 +14,8 @@ import {
   noPageScroll,
   type OpenedSuite,
   openSuite,
-} from '@automata/editor/suite/testing/layout'
-import { checkLayout } from '@automata/framework/testing'
+} from '@automataframework/editor/suite/testing/layout'
+import { checkLayout } from '@automataframework/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { createLevels3d } from '#src/features/levels-3d/levels-3d-suite-editor.ts'

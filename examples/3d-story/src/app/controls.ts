@@ -1,6 +1,6 @@
-import { STICK_MAX } from '@automata/3d/sim'
-import type { AnalogReading, InputMap } from '@automata/framework'
-import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@automata/framework'
+import { STICK_MAX } from '@automataframework/3d/sim'
+import type { AnalogReading, InputMap } from '@automataframework/framework'
+import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@automataframework/framework'
 import { TICK_HZ } from '../shared/constants.ts'
 
 // The analog half of the controls: what the touch stick and the camera drag add to the keys' move and camera-turn.

@@ -4,8 +4,8 @@ import {
   pictureOf,
   placeholderColor,
   tileFrame,
-} from '@automata/content/level-2d'
-import type { FieldRecord } from '@automata/sim'
+} from '@automataframework/content/level-2d'
+import type { FieldRecord } from '@automataframework/sim'
 import { type AnimatedSprite, Container, Graphics, Sprite } from 'pixi.js'
 import type { EntityViewFactory } from '../delta/render-delta-consumer.js'
 import { clipSprite, clipTextures, playClip } from '../level-2d/clips.js'

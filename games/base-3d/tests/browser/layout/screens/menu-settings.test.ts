@@ -1,7 +1,7 @@
 // The menu's Settings button with production CSS in Chromium, WebKit and Firefox: a 48 px target, wholly on screen in
 // the corner, at the phone sizes first (844 x 390 held sideways, the compact 780 x 270) and upright.
-import '@automata/framework/theme.css'
-import '@automata/framework'
+import '@automataframework/framework/theme.css'
+import '@automataframework/framework'
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'

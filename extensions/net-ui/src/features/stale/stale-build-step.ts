@@ -1,5 +1,5 @@
-import type { OpeningContext, OpeningStep } from '@automata/framework'
-import { type BuildFacts, checkServerVersion } from '@automata/net'
+import type { OpeningContext, OpeningStep } from '@automataframework/framework'
+import { type BuildFacts, checkServerVersion } from '@automataframework/net'
 import { mount, unmount } from 'svelte'
 import { type StaleCopy, staleWords } from '../../shared/words/stale-copy'
 import StaleBuild from './StaleBuild.svelte'
@@ -13,7 +13,7 @@ export interface StaleBuildOptions {
   /**
    * The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know,
    * lets the title through and is logged to the console as a check that could not run. (A server on another origin
-   * must answer with CORS headers, or the browser refuses the answer to the page; `@automata/net-server` does.)
+   * must answer with CORS headers, or the browser refuses the answer to the page; `@automataframework/net-server` does.)
    */
   readonly fetchFacts: () => Promise<unknown>
   /** The longest the title waits for the answer, in milliseconds, on the runtime's clock. Default 1500. */

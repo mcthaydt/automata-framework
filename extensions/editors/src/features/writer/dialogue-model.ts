@@ -1,9 +1,9 @@
 // A conversation as a branching script: its parts in reading order, a part's choices and what they do, and the edits
 // that change them. A part's name is its key in the file; the person reads it as words ("browsing" is "Browsing") and
 // types it as words, and `partIdOf` turns it back. The edits are the kit's content edits by key path.
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { Choice, DialogueGraph, DialogueNode } from '@automata/narrative/sim'
-import type { Cond, Value } from '@automata/puzzle/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import type { Choice, DialogueGraph, DialogueNode } from '@automataframework/narrative/sim'
+import type { Cond, Value } from '@automataframework/puzzle/sim'
 import { appendEdits } from '../../shared/fields.ts'
 import { humanize } from '../../shared/humanize.ts'
 

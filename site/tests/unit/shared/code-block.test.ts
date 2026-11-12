@@ -150,7 +150,7 @@ describe('CodeBlock', () => {
 
   describe('the command variant', () => {
     const COMMAND =
-      'npx @automata/tools create-game my-game --with-a-very-long-option-name-that-cannot-fit-a-phone'
+      'npx @automataframework/tools create-game my-game --with-a-very-long-option-name-that-cannot-fit-a-phone'
 
     it('shows "$ " and the command on one line that ends in an ellipsis, not a wrap', () => {
       const view = render(CodeBlock, { props: { code: COMMAND, variant: 'command' } })

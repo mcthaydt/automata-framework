@@ -1,11 +1,23 @@
 // A test game for systems on the clinic (nav's fixture: sectors' map, the nav graph and the clinic's boxes): it loads
 // a def by command, moves the player, sets facts and makes noises. The player is an entity with `InSector`, named in
 // `systems.env`. Hooks log what they were called with.
-import { createNavPlugin, loadNavGraph, NavAgent } from '@automata/nav/sim'
-import { clinicBlocked, clinicGraph, clinicMap } from '@automata/nav/testing/clinic'
-import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, PuzzleState, type Value } from '@automata/puzzle/sim'
-import { InSector, loadSectorMap, type Point, resolvedMap, sectorsPlugin } from '@automata/sectors/sim'
-import { type Order, stepWith } from '@automata/sectors/testing'
+import { createNavPlugin, loadNavGraph, NavAgent } from '@automataframework/nav/sim'
+import { clinicBlocked, clinicGraph, clinicMap } from '@automataframework/nav/testing/clinic'
+import {
+  createPuzzlePlugin,
+  loadPuzzle,
+  type PuzzleDef,
+  PuzzleState,
+  type Value,
+} from '@automataframework/puzzle/sim'
+import {
+  InSector,
+  loadSectorMap,
+  type Point,
+  resolvedMap,
+  sectorsPlugin,
+} from '@automataframework/sectors/sim'
+import { type Order, stepWith } from '@automataframework/sectors/testing'
 import {
   createSim,
   defineCommand,
@@ -14,7 +26,7 @@ import {
   type PluginDef,
   type Sim,
   type SimEvent,
-} from '@automata/sim'
+} from '@automataframework/sim'
 import { z } from 'zod'
 import { createSystems, type Systems } from '../shared/sim/systems.plugin'
 import { type AgentRecord, SystemsEnv, SystemsState } from '../shared/sim/systems.resource'

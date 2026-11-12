@@ -1,4 +1,4 @@
-// `@automata/audio-synth/browser`: the page side of the audio pipeline. Loading it puts the renderers on
+// `@automataframework/audio-synth/browser`: the page side of the audio pipeline. Loading it puts the renderers on
 // `globalThis.__automataAudio`.
 import '../features/render/browser'
 

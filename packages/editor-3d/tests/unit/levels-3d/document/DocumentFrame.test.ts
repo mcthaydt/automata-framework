@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { createToasts } from '@automata/editor/kit/core'
-import { stubGeometry } from '@automata/editor/kit/testing'
+import { createToasts } from '@automataframework/editor/kit/core'
+import { stubGeometry } from '@automataframework/editor/kit/testing'
 import { act, render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'

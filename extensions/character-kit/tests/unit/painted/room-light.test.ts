@@ -1,7 +1,7 @@
 // The room's light on one painted figure (room-light.ts): a few numbers read from `SceneLight.tint` and the sun, quantised,
 // whose key is exactly what lights the cell.
-import { buildWorld, createSceneLight, timeOfDay, worldLighting } from '@automata/3d'
-import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
+import { buildWorld, createSceneLight, timeOfDay, worldLighting } from '@automataframework/3d'
+import { BASE_SCENES, baseLibrary } from '@automataframework/3d/base'
 import { describe, expect, it } from 'vitest'
 import { ROOM_LIGHT, roomLight, type Sun, type Tint } from '#src/features/painted/room-light.ts'
 import {

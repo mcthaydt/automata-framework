@@ -1,4 +1,4 @@
-// @automata/world-kit/sky: the kit's look passes, for a game that wants stars, rain or a glow in its 3D look. Loads
+// @automataframework/world-kit/sky: the kit's look passes, for a game that wants stars, rain or a glow in its 3D look. Loads
 // `@pixi/3d`, so it is its own entry: the kit's root stays free of the renderer.
 
 export type { TrackedCamera } from '../features/sky/camera-track.ts'

@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDef } from '@automata/sim'
+import { definePlugin, type PluginDef } from '@automataframework/sim'
 import { Body } from './body.component.ts'
 import { doubleJump } from './double-jump.system.ts'
 import { Jump } from './jump.command.ts'

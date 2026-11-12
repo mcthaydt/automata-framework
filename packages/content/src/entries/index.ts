@@ -1,4 +1,4 @@
-// @automata/content: the content compiler, generic over the schemas a game
+// @automataframework/content: the content compiler, generic over the schemas a game
 // registers.
 
 export type { ContentConfig } from '../app/cli/run-cli.ts'

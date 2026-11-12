@@ -1,4 +1,4 @@
-import type { CutsceneScript } from '@automata/cutscenes/sim'
+import type { CutsceneScript } from '@automataframework/cutscenes/sim'
 import { describe, expect, it } from 'vitest'
 import {
   addKeyEdits,

@@ -1,9 +1,9 @@
 // What the sky tests need to draw 3D on a real WebGL2 context: a render target with a fixed rectangle, the canvas's pixels,
 // and the DUEL colours to compare them with.
 
-import type { Pixi3dRenderer } from '@automata/3d'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
-import type { RenderTarget } from '@automata/framework'
+import type { Pixi3dRenderer } from '@automataframework/3d'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
+import type { RenderTarget } from '@automataframework/framework'
 
 export const SIZE = { width: 160, height: 90 }
 

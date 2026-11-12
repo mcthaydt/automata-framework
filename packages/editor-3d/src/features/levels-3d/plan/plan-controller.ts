@@ -4,8 +4,14 @@
 // says. The level stays in the editor's history, the selection in its selection and the camera in its view store, so the
 // controller keeps only what a pointer is in the middle of; undo, redo and a change of layers need nothing from the view.
 
-import type { Point } from '@automata/3d/level'
-import type { PointerKind, Rect, Point as ScreenPoint, Size, Viewport2D } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type {
+  PointerKind,
+  Rect,
+  Point as ScreenPoint,
+  Size,
+  Viewport2D,
+} from '@automataframework/editor/kit/core'
 import { sectorSelection } from '../../../shared/checks/check'
 import { moveCorner, moveSector } from '../../../shared/edit/corner-edits'
 import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor'

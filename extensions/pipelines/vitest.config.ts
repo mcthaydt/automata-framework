@@ -1,4 +1,4 @@
-import { defineTests } from '@automata/vitest-preset'
+import { defineTests } from '@automataframework/vitest-preset'
 
 export default defineTests({
   setupFiles: ['tests/vitest-setup.ts'],

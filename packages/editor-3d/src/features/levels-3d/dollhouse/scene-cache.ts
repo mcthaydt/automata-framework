@@ -1,7 +1,7 @@
 // The game's scene of the editor's live level, built once for each level the editor holds (by the level's identity, as the
 // geometry is): the pointer moves and the orbit turns cost nothing, and an edit is a new level, so it costs one scene.
 // A level the engine cannot build has no scene, and the views keep their flat blockout.
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'
 import { floorAt } from '../../../shared/geometry/sectors'

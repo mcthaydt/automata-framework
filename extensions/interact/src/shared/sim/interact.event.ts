@@ -1,5 +1,5 @@
 // What a use of a hotspot came to: it is waiting for the walker, it was refused, or it was done.
-import { defineEvent, type EventDef } from '@automata/sim'
+import { defineEvent, type EventDef } from '@automataframework/sim'
 import { z } from 'zod'
 
 export interface InteractPendingPayload {

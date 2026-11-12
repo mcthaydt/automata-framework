@@ -1,4 +1,4 @@
-import { ModelInvalid } from '@automata/framework'
+import { ModelInvalid } from '@automataframework/framework'
 import { Texture, TextureSource } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { type DecodeTexture, loadModels } from '#src/shared/render/model/load-models.ts'

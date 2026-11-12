@@ -4,10 +4,10 @@
 //   own: English, 日本語, 한국어, Español, Português and 简体中文. Pause, open Settings, pick a language in the Language
 //   group and the menus change at once and stay changed on the next visit.
 // Controls: tap or click; Escape or P to pause
-// Packages: @automata/framework
+// Packages: @automataframework/framework
 // Difficulty: ★☆☆☆
 // Tier: core
-import { DEFAULT_LOCALES, defineGame } from '@automata/framework'
+import { DEFAULT_LOCALES, defineGame } from '@automataframework/framework'
 
 // The pixel font, cut to the words these menus show (content/fonts.toml): `fonts.css` is served beside this page
 // (public/core/languages/) and sets the face each language draws in, so Japanese, Korean and Chinese are not left to a device.

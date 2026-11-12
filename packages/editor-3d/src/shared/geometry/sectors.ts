@@ -18,7 +18,7 @@ import {
   WALL_THICK,
   type WallDef,
   walkBlocker,
-} from '@automata/3d/level'
+} from '@automataframework/3d/level'
 
 /** One wall of a sector, with its place in the loop and the numbers every query needs. */
 export interface Edge {
@@ -210,7 +210,7 @@ export function resolveSectors(defs: readonly SectorDef[], massDefs: readonly Ma
 export const edges = (sectors: readonly Sector[]): Edge[] => sectors.flatMap((s) => s.loops.flat())
 
 // ─── Geometry queries ─────────────────────────────────────────────────────
-// `crossing`, `segmentDistance`, `insideSector` and `polygonArea` are the level format's (`@automata/3d/level`).
+// `crossing`, `segmentDistance`, `insideSector` and `polygonArea` are the level format's (`@automataframework/3d/level`).
 
 /** The first sector that holds the point. A point on a wall shared by two goes to the one the ray test puts it in. */
 export const sectorAt = (map: Pick<Resolved, 'sectors'>, p: Point): Sector | undefined =>

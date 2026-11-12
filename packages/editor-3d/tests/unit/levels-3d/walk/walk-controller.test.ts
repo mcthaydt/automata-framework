@@ -2,7 +2,7 @@
 // with Q and E, the Walk, Fly and Orbit modes, the crosshair pick and the start with no spawn. Time is the `tick` the
 // test gives: nothing here reads a clock.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createWalkController } from '#src/features/levels-3d/walk/walk-controller.ts'
 import { moveSector } from '#src/shared/edit/corner-edits.ts'

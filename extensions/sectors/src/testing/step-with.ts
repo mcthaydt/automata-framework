@@ -1,6 +1,6 @@
 // The one way the level's tests step a sim: a command without its header, and one step with a list of them, stamped
 // for the sim's current tick from source 0. `nav` and `systems` use it for their walking games too.
-import type { Command, Sim, StepResult } from '@automata/sim'
+import type { Command, Sim, StepResult } from '@automataframework/sim'
 
 /** A command before it is stamped with the tick it runs on. */
 export type Order = Pick<Command, 'type' | 'payload'>

@@ -3,7 +3,7 @@
   step is chosen. On a phone it is a sheet over the bottom of the timeline while a step is chosen.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import { type KeyField, keyFields, sceneFields } from './key-fields.ts'
 import type { SequenceSession } from './sequence-session.svelte.ts'

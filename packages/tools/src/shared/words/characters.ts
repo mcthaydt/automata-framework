@@ -1,7 +1,7 @@
 import { create, type Font } from 'fontkit'
 import type { Catalog } from './catalog.ts'
 
-// What the `words` check needs to know about letters. `@automata/content` has the same two ideas
+// What the `words` check needs to know about letters. `@automataframework/content` has the same two ideas
 // (`fontCoverage` and `catalogCharacters`), but the tools run from source under plain Node, which cannot load
 // content's assets or locale entries, and tools never imports content at run time. So these are tools' own, small
 // copies, and a test keeps them equal to content's where they overlap.

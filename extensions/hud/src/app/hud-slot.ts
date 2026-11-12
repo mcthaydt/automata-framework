@@ -1,4 +1,4 @@
-import type { UiComponent } from '@automata/framework/extension'
+import type { UiComponent } from '@automataframework/framework/extension'
 import type { HudOptions } from '../shared/hud-model'
 import HudRoot from './HudRoot.svelte'
 

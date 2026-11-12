@@ -1,4 +1,10 @@
-import { canonicalJson, createSim, type Sim, SnapshotFormatError, SnapshotMismatchError } from '@automata/sim'
+import {
+  canonicalJson,
+  createSim,
+  type Sim,
+  SnapshotFormatError,
+  SnapshotMismatchError,
+} from '@automataframework/sim'
 import { afterEach, expect, test } from 'vitest'
 import { BodyKind, body3d, collider3d, physics3d, transform3d } from '#src/entries/3d.ts'
 import { createScene3D, sceneCommands } from '#src/testing/scene-3d.ts'

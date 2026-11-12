@@ -2,8 +2,8 @@
 // fixture (so the files cannot drift from it), and each builds with the kit's library and nothing wrong.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afSector2Schema } from '@automata/3d/level'
-import { buildWorld } from '@automata/3d/props-kit'
+import { afSector2Schema } from '@automataframework/3d/level'
+import { buildWorld } from '@automataframework/3d/props-kit'
 import { describe, expect, it } from 'vitest'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import { dressLevel } from '#src/features/furnish/dress.ts'

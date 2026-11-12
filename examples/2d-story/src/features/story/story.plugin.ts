@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDef } from '@automata/sim'
+import { definePlugin, type PluginDef } from '@automataframework/sim'
 import { Story } from './story.resource.ts'
 import { type StoryOptions, storySystems } from './story.system.ts'
 

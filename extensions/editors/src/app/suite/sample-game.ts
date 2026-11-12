@@ -1,6 +1,6 @@
 // The game the suite page opens when no checkout answers: a tuning file and one file of each kind the content editors
 // edit, so a person trying the editors sees each one working.
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import { EDITOR_LIST_PATH } from '@automataframework/editor/editor-list'
 import audio from './sample/audio.toml?raw'
 import cutscene from './sample/cutscene.toml?raw'
 import dialogue from './sample/dialogue.toml?raw'

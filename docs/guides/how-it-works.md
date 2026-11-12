@@ -8,10 +8,10 @@ they come in.
 
 | Package | What it is for |
 |---|---|
-| `@automata/framework` | The one a game imports: `defineGame`, `startGame`, the screens, input, drawing, saves and the hosts |
-| `@automata/sim` | The rules: components, commands, systems and plugins, run one tick at a time |
-| `@automata/content` | Levels, settings and text, checked and turned into what the game loads |
-| `@automata/tools` | The `automata` command: make a game, open the editor, check and ship it |
+| `@automataframework/framework` | The one a game imports: `defineGame`, `startGame`, the screens, input, drawing, saves and the hosts |
+| `@automataframework/sim` | The rules: components, commands, systems and plugins, run one tick at a time |
+| `@automataframework/content` | Levels, settings and text, checked and turned into what the game loads |
+| `@automataframework/tools` | The `automata` command: make a game, open the editor, check and ship it |
 
 [Make a game](/start) shows them working together. The [Reference](/api) lists every name each one exports, and
 [Extensions](./extensions.md) are the extras a game can add.
@@ -34,7 +34,7 @@ Given the same start, the same content and the same commands, the sim ends in ex
 browser and on Node. That is what lets a test replay a run, a save restore it, and a bug report be played back.
 
 To keep that promise, the sim never reads the clock, the network, the page or `Math.random`. Random numbers come
-from the sim's own seeded streams, and maths beyond the basics comes from `@automata/sim/math`, so every
+from the sim's own seeded streams, and maths beyond the basics comes from `@automataframework/sim/math`, so every
 engine rounds the same way. `pnpm check` looks through the rule files for anything that would break this.
 
 `sim.hash()` sums up the whole state in one short string. `sim.snapshot()` saves it and `sim.restore()` brings it
@@ -63,7 +63,7 @@ The first time a device opens a game it shows up to three things, each once, bef
 (one press picks one of the game's languages; skipped on Ruken, which supplies the player's), a **warning** about flashing
 lights with a switch to reduce them (only for a game that says it flashes, with `photosensitivity` in `defineGame`; the game
 lists what it has, `effects: ['flashing', 'shaking']` (`WARNING_EFFECTS` lists the four names), and the warning names those in the player's language), and
-the studio's **splash** (only a game that adds `splashStep` from `@automata/ui-screens/splash` to its `opening`). Then
+the studio's **splash** (only a game that adds `splashStep` from `@automataframework/ui-screens/splash` to its `opening`). Then
 the title. A second visit goes straight in. Nothing of this runs the rules: the sim waits until the title is up. The
 words are the framework's own, in every language; see [Languages](./languages.md).
 
@@ -79,5 +79,5 @@ it never sneaks the save somewhere else. Each place has its own guide: [the web]
 ## Safe on any web host
 
 Web hosts can forbid code that writes code, so no part of a game uses `eval` or `new Function`. A game's first import
-is `@automata/framework/no-eval`, which sets PixiJS up to work without either. Before a build goes out, the `prepare`
+is `@automataframework/framework/no-eval`, which sets PixiJS up to work without either. Before a build goes out, the `prepare`
 step checks it for `eval`, secrets and anything else a public host refuses.

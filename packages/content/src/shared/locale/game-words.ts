@@ -11,9 +11,9 @@ export const UI_FOLDERS: readonly string[] = ['messages/ui', 'src/messages/ui']
 
 /** The framework packages whose screens carry words, each as `<package>/words/<lang>.json` through its `exports`. */
 export const WORD_PACKAGES: readonly string[] = [
-  '@automata/framework',
-  '@automata/ui-screens',
-  '@automata/net-ui',
+  '@automataframework/framework',
+  '@automataframework/ui-screens',
+  '@automataframework/net-ui',
 ]
 
 /**

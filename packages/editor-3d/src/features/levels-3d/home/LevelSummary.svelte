@@ -5,8 +5,8 @@
   shows it without scrolling.
 -->
 <script lang="ts">
-import { Button, Pill } from '@automata/editor/kit'
-import { modifiedLabel, sizeLabel } from '@automata/editor/kit/core'
+import { Button, Pill } from '@automataframework/editor/kit'
+import { modifiedLabel, sizeLabel } from '@automataframework/editor/kit/core'
 import { levelCard, summaryOf } from './home-model'
 import type { ProjectEntry } from './project-list'
 

@@ -2,8 +2,8 @@
 // place, the Vertex tool a corner, the Split tool the end of a cut. They all measure it the same way, and this is that one
 // way.
 
-import type { Point } from '@automata/3d/level'
-import type { Viewport2D } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type { Viewport2D } from '@automataframework/editor/kit/core'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { parseSelection } from '../../../shared/edit/selection-ref'
 import { cornerAt, wallLength } from '../../../shared/edit/wall-geometry'

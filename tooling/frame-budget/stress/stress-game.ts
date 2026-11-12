@@ -1,5 +1,10 @@
-import type { CompiledContentData, GameDefinition, RendererFactory, RuntimeSeams } from '@automata/framework'
-import { createPixiRenderer } from '@automata/framework'
+import type {
+  CompiledContentData,
+  GameDefinition,
+  RendererFactory,
+  RuntimeSeams,
+} from '@automataframework/framework'
+import { createPixiRenderer } from '@automataframework/framework'
 import type { StressParams } from './params.ts'
 import { WORLD } from './sim/stress.component.ts'
 import { stressScreen } from './stress-screen.ts'

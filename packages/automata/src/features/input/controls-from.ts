@@ -1,8 +1,8 @@
 // controlsFrom(): the input map for `content/controls.toml`, the same map `keys()` builds from code. The file's actions
 // keep their own ids and names (a game's Settings and saved bindings read them), and each has its own touch switch.
 
-import type { ControlsFile } from '@automata/content/controls'
-import type { CommandDef } from '@automata/sim'
+import type { ControlsFile } from '@automataframework/content/controls'
+import type { CommandDef } from '@automataframework/sim'
 import type { z } from 'zod'
 import { type InputMap, inputMapOf, payloadProblem } from './input-map-of.ts'
 

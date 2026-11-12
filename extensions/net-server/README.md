@@ -2,7 +2,7 @@
 
 The server for an online game. It runs the same simulation as the players, in a room, and decides what is true. It
 takes care of the rules around that: who may join, how fast a client may send, what happens when someone drops. Built on
-Colyseus. For the browser side, see [`@automata/net`](../net/README.md).
+Colyseus. For the browser side, see [`@automataframework/net`](../net/README.md).
 
 It is free and MIT licensed. It is optional: a game that does not add it loses nothing.
 
@@ -11,7 +11,7 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 Describe the game once with `defineServer`, then start it:
 
 ```ts
-import { defineServer, startServer } from '@automata/net-server'
+import { defineServer, startServer } from '@automataframework/net-server'
 
 const server = defineServer({ /* seats, the sim, the rules */ })
 await startServer(server)
@@ -28,5 +28,5 @@ numbers. The `automata-server` command starts the process from the environment's
 - **Operations**: probes for the host (`GET /health`, `GET /ready`, and `GET /version`, the build facts a client checks
   to tell a player their tab is out of date), a log line for each event, and a drain that moves players on before a deploy
   stops the process, so no game is cut off.
-- **`@automata/net-server/testing`**: a room driver and a held clock, for tests only. The server refuses to start with
+- **`@automataframework/net-server/testing`**: a room driver and a held clock, for tests only. The server refuses to start with
   a test switch on.

@@ -3,7 +3,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContentResult } from '@automata/content'
+import { compileContentResult } from '@automataframework/content'
 import { stringify } from 'smol-toml'
 import { afterEach, describe, expect, it } from 'vitest'
 import { puzzleContent, puzzleSchema } from '#src/shared/puzzle.content.ts'

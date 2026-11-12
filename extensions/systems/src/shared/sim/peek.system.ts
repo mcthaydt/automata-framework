@@ -2,11 +2,11 @@
 // another zone that is open to her, and no verb has been sent. The doorways are the crossings between the rooms of her
 // zone and the rooms of any other (`places.crossing`); a doorway whose door is shut is blocked for the walk from her to its
 // middle, so a shut door shows nothing without this file knowing any door.
-import { NavDoors } from '@automata/nav/sim'
-import type { Places } from '@automata/places'
-import { VerbCommand } from '@automata/puzzle/sim'
-import { sectorsPlaces } from '@automata/sectors/sim'
-import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
+import { NavDoors } from '@automataframework/nav/sim'
+import type { Places } from '@automataframework/places'
+import { VerbCommand } from '@automataframework/puzzle/sim'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
+import { defineSystem, type SimContext, type SystemDef } from '@automataframework/sim'
 import { advance, type Doorway, holds, type PeekDef, type PeekFile, peekDefOf, peekTarget } from './peek'
 import { SystemsPeek } from './peek.event'
 import { SystemsPeekState } from './peek.resource'

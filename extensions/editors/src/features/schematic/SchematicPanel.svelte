@@ -3,7 +3,7 @@
   that edit more than a character (places, rules, numbers, fair play, the puzzle) join this list as they are built.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import AddCharacter from './AddCharacter.svelte'
 import { modeWords } from './pieces/piece.ts'
 import type { SchematicSession } from './schematic-session.svelte.ts'

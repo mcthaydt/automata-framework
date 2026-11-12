@@ -1,4 +1,4 @@
-import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
+import type { ContentLevel, ContentProject } from '@automataframework/content/level-2d'
 import { Container, Graphics, Sprite, TilingSprite } from 'pixi.js'
 import type { DrawSim } from '../../../shared/draw/read-sim.ts'
 import { clipSprite, clipTextures } from './clips.ts'

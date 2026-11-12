@@ -1,7 +1,7 @@
 // An `af-sector/2` level resolved for the sim: loops normalised so the room is on the left of every edge (outer
 // loops counter-clockwise on the plan, x right and z up; holes clockwise), pilasters expanded into notches with their
 // masonry, portals linked, and the collision spans listed. The same steps as the 3D level editor's float geometry, on
-// the one sector geometry in `@automata/3d/level`. Edges link by index, not by reference: `sector` and `next` index
+// the one sector geometry in `@automataframework/3d/level`. Edges link by index, not by reference: `sector` and `next` index
 // `sectors`, `prev` and `succ` index the edge's own loop, so the result is plain data.
 import {
   type AfCorner2,
@@ -16,8 +16,8 @@ import {
   type Trim,
   WALL_THICK,
   walkBlocker,
-} from '@automata/3d/level'
-import { hypot } from '@automata/sim/math'
+} from '@automataframework/3d/level'
+import { hypot } from '@automataframework/sim/math'
 import { heightOf, type SectorMap, type StoredSector } from './check-level'
 import { type PieceKind, pieceSpans } from './pieces'
 

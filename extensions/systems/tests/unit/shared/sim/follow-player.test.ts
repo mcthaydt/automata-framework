@@ -2,10 +2,10 @@
 // change the schema every systems snapshot carries, so a transition calls `followPlayer(every)`: a hook that routes the
 // agent to the player now and again each `every` seconds while its mode holds. Without it `goTo` routes once, to where
 // she was.
-import { clinicGraph } from '@automata/nav/testing/clinic'
-import type { Point } from '@automata/sectors/sim'
-import { stepWith } from '@automata/sectors/testing'
-import type { Sim } from '@automata/sim'
+import { clinicGraph } from '@automataframework/nav/testing/clinic'
+import type { Point } from '@automataframework/sectors/sim'
+import { stepWith } from '@automataframework/sectors/testing'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { followPlayer } from '#src/entries/sim.ts'
 import type { AgentDef } from '#src/shared/sim/systems.schema.ts'

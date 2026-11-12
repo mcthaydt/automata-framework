@@ -2,8 +2,8 @@
 // level through the profile, so the cards work for both formats. Several selected show the first and say how many (plan
 // decision 2). A selection naming nothing the level has shows the none card.
 
-import type { DoorDef, Occlude, WindowDef } from '@automata/3d/level'
-import type { FieldRow } from '@automata/editor/kit/fields'
+import type { DoorDef, Occlude, WindowDef } from '@automataframework/3d/level'
+import type { FieldRow } from '@automataframework/editor/kit/fields'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { parseSelection } from '../../../shared/edit/selection-ref'
 import type { EditCorner, EditWall } from '../../../shared/level-session/sector-access'

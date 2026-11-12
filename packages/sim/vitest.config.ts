@@ -1,4 +1,4 @@
-import { defineTests } from '@automata/vitest-preset'
+import { defineTests } from '@automataframework/vitest-preset'
 import { goldenCommands } from './src/testing/commands.ts'
 
 export default defineTests({

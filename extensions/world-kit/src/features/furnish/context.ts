@@ -4,8 +4,8 @@
 // Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52 (`Ctx`,
 // `footprintOf`, `fits`, `place`, `reserve`, and the wall helpers). Changed: walls are the corner records of the `/2`
 // level (a ring and an edge, not an edge index), and a wall's door and window of the `/1` vocabulary count as decor.
-import type { AfSector2, AfSectorEntry2, AfWall2, Dress, PropPlace } from '@automata/3d/level'
-import type { WorldLibrary } from '@automata/3d/props-kit'
+import type { AfSector2, AfSectorEntry2, AfWall2, Dress, PropPlace } from '@automataframework/3d/level'
+import type { WorldLibrary } from '@automataframework/3d/props-kit'
 import {
   cornersOf,
   inside,
@@ -15,7 +15,7 @@ import {
   ringsOf,
   type Segment,
   type V2,
-} from '@automata/3d/props-kit'
+} from '@automataframework/3d/props-kit'
 import { boundsOfMesh } from '../../shared/piece-helpers.ts'
 import { boxOf, overlaps, type Rect, type Spot, turned } from './floor-plan.ts'
 import type { Kit } from './kit.schema.ts'

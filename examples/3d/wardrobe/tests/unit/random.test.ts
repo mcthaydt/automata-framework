@@ -1,9 +1,9 @@
 // The seeded random cast, wearing the wardrobe: any character it draws builds, and every swatch a garment wears is of
 // a kind its role takes.
 
-import { build, type FigureLibrary, skeleton } from '@automata/3d/figures'
-import { fieldRole, GARMENTS, garmentOf, roleOf, TAKES } from '@automata/3d/figures-kit'
-import { fixtureFigures, randomCharacter } from '@automata/3d/testing'
+import { build, type FigureLibrary, skeleton } from '@automataframework/3d/figures'
+import { fieldRole, GARMENTS, garmentOf, roleOf, TAKES } from '@automataframework/3d/figures-kit'
+import { fixtureFigures, randomCharacter } from '@automataframework/3d/testing'
 import { beforeAll, describe, expect, it } from 'vitest'
 import '../../wardrobe.extension.ts'
 import { WARDROBE_DRAWS } from '../../testing/wardrobe-draws.ts'

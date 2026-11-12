@@ -5,8 +5,8 @@
   another, which has the focus, goes back to the list. The words are `errorPanel`'s; this file only draws them.
 -->
 <script lang="ts">
-import { Button, Dialog } from '@automata/editor/kit'
-import type { ToastStore, WriteResult } from '@automata/editor/kit/core'
+import { Button, Dialog } from '@automataframework/editor/kit'
+import type { ToastStore, WriteResult } from '@automataframework/editor/kit/core'
 import { errorPanel, type PanelOutcome } from './open-flow-model'
 
 interface Props {

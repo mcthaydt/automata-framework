@@ -1,15 +1,15 @@
 // worldkit-sky: a street at night under stars and rain, its lamp glowing, from the world kit's look passes
 //
-// Shows: a time of day and the look passes the world kit adds to it (`@automata/world-kit/sky`). Core's look has no
+// Shows: a time of day and the look passes the world kit adds to it (`@automataframework/world-kit/sky`). Core's look has no
 //   stars, rain or glow; the kit adds each as a pass under its own name with `addLookPass`, once, before the renderer is
 //   made. `timeOfDay('night')` says how thick the stars are and how dark the sky is, and the renderer reads it
 //   (`time`); the rain streaks over everything and the glow steps out from the brightest pixels, here the street lamp's
 //   bulb. A game that wants a clear night adds only the stars and the glow.
 // Controls: none
-// Packages: @automata/framework, @automata/3d, @automata/world-kit
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/world-kit
 // Difficulty: ★★★★
 // Tier: extension
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -20,10 +20,10 @@ import {
   swatchGlow,
   targetSize,
   timeOfDay,
-} from '@automata/3d'
-import { defineGame, definePlugin } from '@automata/framework'
-import { dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
-import { addSkyPasses, skyLookPasses } from '@automata/world-kit/sky'
+} from '@automataframework/3d'
+import { defineGame, definePlugin } from '@automataframework/framework'
+import { dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automataframework/world-kit'
+import { addSkyPasses, skyLookPasses } from '@automataframework/world-kit/sky'
 
 // --- look ---
 // Stars, a glow and a light rain: the passes run in that order, after core's own.

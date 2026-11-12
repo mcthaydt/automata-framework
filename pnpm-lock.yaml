@@ -8,7 +8,7 @@ importers:
 
   .:
     devDependencies:
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:packages/tools
       '@biomejs/biome':
@@ -38,10 +38,10 @@ importers:
 
   examples/2d:
     dependencies:
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/ui-screens':
+      '@automataframework/ui-screens':
         specifier: workspace:*
         version: link:../../extensions/ui-screens
       pixi.js:
@@ -54,13 +54,13 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/examples-runner':
+      '@automataframework/examples-runner':
         specifier: workspace:*
         version: link:../../tooling/examples-runner
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../../packages/tools
       '@playwright/test':
@@ -78,43 +78,43 @@ importers:
 
   examples/2d-story:
     dependencies:
-      '@automata/audio-synth':
+      '@automataframework/audio-synth':
         specifier: workspace:*
         version: link:../../extensions/audio-synth
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/cutscenes':
+      '@automataframework/cutscenes':
         specifier: workspace:*
         version: link:../../extensions/cutscenes
-      '@automata/debug':
+      '@automataframework/debug':
         specifier: workspace:*
         version: link:../../extensions/debug
-      '@automata/feel':
+      '@automataframework/feel':
         specifier: workspace:*
         version: link:../../extensions/feel
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/level-2d':
+      '@automataframework/level-2d':
         specifier: workspace:*
         version: link:../../extensions/level-2d
-      '@automata/narrative':
+      '@automataframework/narrative':
         specifier: workspace:*
         version: link:../../extensions/narrative
-      '@automata/nav':
+      '@automataframework/nav':
         specifier: workspace:*
         version: link:../../extensions/nav
-      '@automata/places':
+      '@automataframework/places':
         specifier: workspace:*
         version: link:../../extensions/places
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../../extensions/puzzle
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/systems':
+      '@automataframework/systems':
         specifier: workspace:*
         version: link:../../extensions/systems
       pixi.js:
@@ -127,10 +127,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../../packages/tools
       '@playwright/test':
@@ -157,20 +157,20 @@ importers:
       '@af-games/emberwick':
         specifier: workspace:*
         version: link:../../../../games/emberwick
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../../../packages/automata
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../../../packages/content
-      '@automata/examples-runner':
+      '@automataframework/examples-runner':
         specifier: workspace:*
         version: link:../../../../tooling/examples-runner
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../../../../packages/tools
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../../../tooling/vitest-preset
       '@playwright/test':
@@ -194,14 +194,14 @@ importers:
 
   examples/2d/ui/primitives:
     dependencies:
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../../../packages/automata
       svelte:
         specifier: 5.57.1
         version: 5.57.1
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
@@ -228,25 +228,25 @@ importers:
 
   examples/3d:
     dependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/character-kit':
+      '@automataframework/character-kit':
         specifier: workspace:*
         version: link:../../extensions/character-kit
-      '@automata/cutscenes':
+      '@automataframework/cutscenes':
         specifier: workspace:*
         version: link:../../extensions/cutscenes
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/lcd-panel':
+      '@automataframework/lcd-panel':
         specifier: workspace:*
         version: link:../../extensions/lcd-panel
-      '@automata/retro-crisp':
+      '@automataframework/retro-crisp':
         specifier: workspace:*
         version: link:../../extensions/retro-crisp
-      '@automata/world-kit':
+      '@automataframework/world-kit':
         specifier: workspace:*
         version: link:../../extensions/world-kit
       pixi.js:
@@ -256,10 +256,10 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
     devDependencies:
-      '@automata/examples-runner':
+      '@automataframework/examples-runner':
         specifier: workspace:*
         version: link:../../tooling/examples-runner
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
       '@playwright/test':
@@ -277,31 +277,31 @@ importers:
 
   examples/3d-story:
     dependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/debug':
+      '@automataframework/debug':
         specifier: workspace:*
         version: link:../../extensions/debug
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/nav':
+      '@automataframework/nav':
         specifier: workspace:*
         version: link:../../extensions/nav
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../../extensions/puzzle
-      '@automata/sectors':
+      '@automataframework/sectors':
         specifier: workspace:*
         version: link:../../extensions/sectors
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/systems':
+      '@automataframework/systems':
         specifier: workspace:*
         version: link:../../extensions/systems
       pixi.js:
@@ -314,10 +314,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../../packages/tools
       '@playwright/test':
@@ -341,20 +341,20 @@ importers:
 
   examples/3d/wardrobe:
     dependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../../packages/3d
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../../packages/automata
       zod:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../../tooling/vitest-preset
       '@types/node':
@@ -382,19 +382,19 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/feel':
+      '@automataframework/feel':
         specifier: workspace:*
         version: link:../feel
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -412,7 +412,7 @@ importers:
 
   extensions/character-kit:
     dependencies:
-      '@automata/figures':
+      '@automataframework/figures':
         specifier: workspace:*
         version: link:../figures
       '@pixi/3d':
@@ -422,16 +422,16 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -465,28 +465,28 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/sectors':
+      '@automataframework/sectors':
         specifier: workspace:*
         version: link:../sectors
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@testing-library/dom':
@@ -534,19 +534,19 @@ importers:
 
   extensions/debug:
     devDependencies:
-      '@automata/audio-synth':
+      '@automataframework/audio-synth':
         specifier: workspace:*
         version: link:../audio-synth
-      '@automata/feel':
+      '@automataframework/feel':
         specifier: workspace:*
         version: link:../feel
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@sveltejs/package':
@@ -594,28 +594,28 @@ importers:
 
   extensions/editors:
     dependencies:
-      '@automata/audio-synth':
+      '@automataframework/audio-synth':
         specifier: workspace:*
         version: link:../audio-synth
-      '@automata/cutscenes':
+      '@automataframework/cutscenes':
         specifier: workspace:*
         version: link:../cutscenes
-      '@automata/editor':
+      '@automataframework/editor':
         specifier: workspace:*
         version: link:../../packages/editor
-      '@automata/feel':
+      '@automataframework/feel':
         specifier: workspace:*
         version: link:../feel
-      '@automata/narrative':
+      '@automataframework/narrative':
         specifier: workspace:*
         version: link:../narrative
-      '@automata/nav':
+      '@automataframework/nav':
         specifier: workspace:*
         version: link:../nav
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/systems':
+      '@automataframework/systems':
         specifier: workspace:*
         version: link:../systems
       smol-toml:
@@ -628,22 +628,22 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@playwright/test':
@@ -695,16 +695,16 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -732,7 +732,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@napi-rs/canvas':
@@ -769,22 +769,22 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/narrative':
+      '@automataframework/narrative':
         specifier: workspace:*
         version: link:../narrative
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@testing-library/dom':
@@ -830,25 +830,25 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/nav':
+      '@automataframework/nav':
         specifier: workspace:*
         version: link:../nav
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/sectors':
+      '@automataframework/sectors':
         specifier: workspace:*
         version: link:../sectors
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -864,16 +864,16 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@pixi/3d':
@@ -906,31 +906,31 @@ importers:
 
   extensions/level-2d:
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/nav':
+      '@automataframework/nav':
         specifier: workspace:*
         version: link:../nav
-      '@automata/places':
+      '@automataframework/places':
         specifier: workspace:*
         version: link:../places
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/systems':
+      '@automataframework/systems':
         specifier: workspace:*
         version: link:../systems
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -955,28 +955,28 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/places':
+      '@automataframework/places':
         specifier: workspace:*
         version: link:../places
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/sectors':
+      '@automataframework/sectors':
         specifier: workspace:*
         version: link:../sectors
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@testing-library/dom':
@@ -1025,25 +1025,25 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/places':
+      '@automataframework/places':
         specifier: workspace:*
         version: link:../places
-      '@automata/sectors':
+      '@automataframework/sectors':
         specifier: workspace:*
         version: link:../sectors
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -1065,13 +1065,13 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -1102,16 +1102,16 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/net':
+      '@automataframework/net':
         specifier: workspace:*
         version: link:../net
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@colyseus/sdk':
@@ -1135,19 +1135,19 @@ importers:
 
   extensions/net-ui:
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/net':
+      '@automataframework/net':
         specifier: workspace:*
         version: link:../net
-      '@automata/net-server':
+      '@automataframework/net-server':
         specifier: workspace:*
         version: link:../net-server
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@sveltejs/package':
@@ -1205,13 +1205,13 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@vitest/browser-playwright':
@@ -1226,7 +1226,7 @@ importers:
 
   extensions/pipelines:
     dependencies:
-      '@automata/editor':
+      '@automataframework/editor':
         specifier: workspace:*
         version: link:../../packages/editor
       '@modelcontextprotocol/sdk':
@@ -1248,31 +1248,31 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/audio-synth':
+      '@automataframework/audio-synth':
         specifier: workspace:*
         version: link:../audio-synth
-      '@automata/narrative':
+      '@automataframework/narrative':
         specifier: workspace:*
         version: link:../narrative
-      '@automata/nav':
+      '@automataframework/nav':
         specifier: workspace:*
         version: link:../nav
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/sectors':
+      '@automataframework/sectors':
         specifier: workspace:*
         version: link:../sectors
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/systems':
+      '@automataframework/systems':
         specifier: workspace:*
         version: link:../systems
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -1284,10 +1284,10 @@ importers:
 
   extensions/places:
     devDependencies:
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -1303,19 +1303,19 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -1340,16 +1340,16 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@pixi/3d':
@@ -1386,25 +1386,25 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/physics':
+      '@automataframework/physics':
         specifier: workspace:*
         version: link:../physics
-      '@automata/places':
+      '@automataframework/places':
         specifier: workspace:*
         version: link:../places
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -1420,31 +1420,31 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/nav':
+      '@automataframework/nav':
         specifier: workspace:*
         version: link:../nav
-      '@automata/places':
+      '@automataframework/places':
         specifier: workspace:*
         version: link:../places
-      '@automata/puzzle':
+      '@automataframework/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/sectors':
+      '@automataframework/sectors':
         specifier: workspace:*
         version: link:../sectors
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -1466,13 +1466,13 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@sveltejs/package':
@@ -1524,19 +1524,19 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@pixi/3d':
@@ -1569,13 +1569,13 @@ importers:
 
   games/base-3d:
     dependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       '@pixi/3d':
@@ -1591,25 +1591,25 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/editor':
+      '@automataframework/editor':
         specifier: workspace:*
         version: link:../../packages/editor
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/examples-runner':
+      '@automataframework/examples-runner':
         specifier: workspace:*
         version: link:../../tooling/examples-runner
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../../packages/tools
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@playwright/test':
@@ -1642,10 +1642,10 @@ importers:
 
   games/emberwick:
     dependencies:
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       pixi.js:
@@ -1658,19 +1658,19 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../../packages/tools
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@playwright/test':
@@ -1706,13 +1706,13 @@ importers:
 
   packages/3d:
     dependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../sim
       '@pixi/3d':
@@ -1728,7 +1728,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
@@ -1761,17 +1761,17 @@ importers:
 
   packages/automata:
     dependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../content
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../sim
       zod:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@inlang/paraglide-js':
@@ -1849,7 +1849,7 @@ importers:
 
   packages/content:
     dependencies:
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../sim
       '@inlang/paraglide-js':
@@ -1877,7 +1877,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@ruken/manifest':
@@ -1907,10 +1907,10 @@ importers:
 
   packages/editor:
     dependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../content
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../automata
       '@decimalturn/toml-patch':
@@ -1935,10 +1935,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@playwright/test':
@@ -1989,13 +1989,13 @@ importers:
 
   packages/editor-3d:
     dependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../3d
-      '@automata/editor':
+      '@automataframework/editor':
         specifier: workspace:*
         version: link:../editor
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../automata
       '@pixi/3d':
@@ -2017,7 +2017,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
@@ -2069,10 +2069,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
@@ -2093,7 +2093,7 @@ importers:
       '@anthropic-ai/sdk':
         specifier: 1.6.0
         version: 1.6.0(zod@4.6.6)
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../content
       effect:
@@ -2118,10 +2118,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/editor':
+      '@automataframework/editor':
         specifier: workspace:*
         version: link:../editor
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@playwright/test':
@@ -2151,19 +2151,19 @@ importers:
 
   site:
     dependencies:
-      '@automata/editor':
+      '@automataframework/editor':
         specifier: workspace:*
         version: link:../packages/editor
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../packages/sim
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../packages/tools
-      '@automata/ui-screens':
+      '@automataframework/ui-screens':
         specifier: workspace:*
         version: link:../extensions/ui-screens
       '@babel/parser':
@@ -2215,13 +2215,13 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/examples-runner':
+      '@automataframework/examples-runner':
         specifier: workspace:*
         version: link:../tooling/examples-runner
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../tooling/playwright-preset
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../tooling/vitest-preset
       '@axe-core/playwright':
@@ -2288,7 +2288,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       '@types/node':
@@ -2300,7 +2300,7 @@ importers:
 
   tooling/api-index:
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -2315,7 +2315,7 @@ importers:
 
   tooling/api-report:
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -2337,7 +2337,7 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -2349,7 +2349,7 @@ importers:
 
   tooling/codemods:
     dependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
       oxc-parser:
@@ -2368,10 +2368,10 @@ importers:
 
   tooling/consumer-smoke:
     devDependencies:
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../playwright-preset
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@playwright/test':
@@ -2399,10 +2399,10 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/evidence':
+      '@automataframework/evidence':
         specifier: workspace:*
         version: link:../evidence
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -2418,7 +2418,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -2430,13 +2430,13 @@ importers:
 
   tooling/examples-runner:
     dependencies:
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../../packages/tools
       '@ruken/sdk-host':
@@ -2452,7 +2452,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@playwright/test':
@@ -2479,13 +2479,13 @@ importers:
 
   tooling/frame-budget:
     dependencies:
-      '@automata/3d':
+      '@automataframework/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/framework':
+      '@automataframework/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sim':
+      '@automataframework/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       pixi.js:
@@ -2498,16 +2498,16 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/examples-runner':
+      '@automataframework/examples-runner':
         specifier: workspace:*
         version: link:../examples-runner
-      '@automata/playwright-preset':
+      '@automataframework/playwright-preset':
         specifier: workspace:*
         version: link:../playwright-preset
-      '@automata/tools':
+      '@automataframework/tools':
         specifier: workspace:*
         version: link:../../packages/tools
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@playwright/test':
@@ -2538,7 +2538,7 @@ importers:
         specifier: 1.63.0
         version: 1.63.0
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -2553,7 +2553,7 @@ importers:
 
   tooling/release:
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -2568,10 +2568,10 @@ importers:
 
   tooling/repo-hygiene:
     devDependencies:
-      '@automata/content':
+      '@automataframework/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':
@@ -2586,7 +2586,7 @@ importers:
 
   tooling/versions:
     devDependencies:
-      '@automata/vitest-preset':
+      '@automataframework/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
       '@types/node':

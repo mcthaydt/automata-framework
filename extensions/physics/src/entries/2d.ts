@@ -1,4 +1,4 @@
-// @automata/physics/2d: 2D physics for the sim. Game code never imports Rapier.
+// @automataframework/physics/2d: 2D physics for the sim. Game code never imports Rapier.
 
 export { type Physics2DOptions, physics2d } from '../features/2d/physics-2d'
 export { Collider2D, RigidBody2D, Transform2D } from '../features/2d/physics-2d.component'

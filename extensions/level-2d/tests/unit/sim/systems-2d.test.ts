@@ -1,4 +1,4 @@
-import { SystemsPursuit } from '@automata/systems/sim'
+import { SystemsPursuit } from '@automataframework/systems/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CELL, createPatrol2d, type Patrol2d, runPatrol2dGolden } from '#src/testing/patrol-2d.ts'
 

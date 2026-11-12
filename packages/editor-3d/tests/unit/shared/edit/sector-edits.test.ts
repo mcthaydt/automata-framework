@@ -1,6 +1,6 @@
 // The sector edits (ED3D.3 step 5): add, remove, duplicate and the property edits, on the depot (`af-sector/1`).
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit, EditResult } from '#src/shared/edit/edit.ts'
 import {

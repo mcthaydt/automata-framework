@@ -41,12 +41,12 @@ function found(pattern: RegExp, where: (file: string) => boolean = () => true): 
 
 describe('the painter points at what is there', () => {
   it('names no command of another package manager or runner', () => {
-    // The package is run with `pnpm --filter @automata/figures <script>` and its TypeScript with `tsx`.
+    // The package is run with `pnpm --filter @automataframework/figures <script>` and its TypeScript with `tsx`.
     expect(found(/\bnpm run\b|\bnpx\b|\bvite-node\b/g)).toEqual([])
   })
 
   it('names only scripts that package.json has', () => {
-    const named = found(/pnpm\s+--filter\s+@automata\/figures\s+[\w:-]+/g)
+    const named = found(/pnpm\s+--filter\s+@automataframework\/figures\s+[\w:-]+/g)
     expect(named.length).toBeGreaterThan(0)
     const missing = named.filter((hit) => ![...SCRIPTS, 'exec'].includes(hit.split(' ').pop() ?? ''))
     expect(missing).toEqual([])

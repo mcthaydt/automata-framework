@@ -7,15 +7,15 @@
     "build": {
       "dependsOn": [
         "^build",
-        "@automata/physics#build",
-        "@automata/puzzle#build",
-        "@automata/feel#build",
-        "@automata/audio-synth#build",
-        "@automata/debug#build",
-        "@automata/net#build",
-        "@automata/net-server#build",
-        "@automata/net-ui#build",
-        "@automata/ui-screens#build"
+        "@automataframework/physics#build",
+        "@automataframework/puzzle#build",
+        "@automataframework/feel#build",
+        "@automataframework/audio-synth#build",
+        "@automataframework/debug#build",
+        "@automataframework/net#build",
+        "@automataframework/net-server#build",
+        "@automataframework/net-ui#build",
+        "@automataframework/ui-screens#build"
       ],
       "outputs": ["build/**"],
       "inputs": [
@@ -30,15 +30,15 @@
     "test:unit": {
       "dependsOn": [
         "^build",
-        "@automata/physics#build",
-        "@automata/puzzle#build",
-        "@automata/feel#build",
-        "@automata/audio-synth#build",
-        "@automata/debug#build",
-        "@automata/net#build",
-        "@automata/net-server#build",
-        "@automata/net-ui#build",
-        "@automata/ui-screens#build"
+        "@automataframework/physics#build",
+        "@automataframework/puzzle#build",
+        "@automataframework/feel#build",
+        "@automataframework/audio-synth#build",
+        "@automataframework/debug#build",
+        "@automataframework/net#build",
+        "@automataframework/net-server#build",
+        "@automataframework/net-ui#build",
+        "@automataframework/ui-screens#build"
       ],
       "inputs": [
         "$TURBO_DEFAULT$",

@@ -1,5 +1,5 @@
 // Lighting a carried light, or putting it out.
-import { type CommandDef, defineCommand } from '@automata/sim'
+import { type CommandDef, defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 
 const toggleSchema: z.ZodType<Record<string, never>> = z.strictObject({})

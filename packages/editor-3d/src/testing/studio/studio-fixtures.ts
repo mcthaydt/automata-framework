@@ -1,7 +1,7 @@
 // The sample game's figure content as the Studio's tests use it (EDS.9a): Wick, four poses, three clips and what they use,
 // over memory ports whose editor list gives every file to the `studio` editor, writable.
-import type { SuitePorts, UnlistedFile, WorkspaceFile } from '@automata/editor/kit/ports'
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import type { SuitePorts, UnlistedFile, WorkspaceFile } from '@automataframework/editor/kit/ports'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
 
 // The fixture files as Vite hands them over (the same in Node, jsdom and a browser), keyed by their path under `content/`.
 const raw = import.meta.glob('../../app/suite/sample-3d/content/**/*.toml', {

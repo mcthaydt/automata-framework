@@ -1,5 +1,5 @@
-import { DEFAULT_PALETTE } from '@automata/content'
-import type { RenderRow } from '@automata/sim'
+import { DEFAULT_PALETTE } from '@automataframework/content'
+import type { RenderRow } from '@automataframework/sim'
 import { Container3D, type FlatMaterial, Mesh3D } from '@pixi/3d'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { J } from '#src/features/figures/body/rig.ts'

@@ -1,6 +1,6 @@
 // A character's patrol: its stops in order, how long it waits at each, and what it does there. Where it starts follows
 // from them: a character begins at its first stop unless the level places it.
-import type { AgentDef, RoutineStop, SysEffect } from '@automata/systems/sim'
+import type { AgentDef, RoutineStop, SysEffect } from '@automataframework/systems/sim'
 import type { Field } from '../../shared/fields.ts'
 import { choices } from './pieces/conditions.ts'
 import { spaced } from './pieces/piece.ts'

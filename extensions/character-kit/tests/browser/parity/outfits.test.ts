@@ -6,8 +6,12 @@
 // The fixture library is compiled by the content compiler, which reads files, so the `kitFixture` command
 // (vitest.config.ts) compiles it in Node and hands the page its data; build() then runs in the browser.
 
-import type { FigureLibrary } from '@automata/3d/figures'
-import { expectMatchesGolden, expectPlatformStable, type OutfitGoldens } from '@automata/3d/testing-checks'
+import type { FigureLibrary } from '@automataframework/3d/figures'
+import {
+  expectMatchesGolden,
+  expectPlatformStable,
+  type OutfitGoldens,
+} from '@automataframework/3d/testing-checks'
 import { beforeAll, describe, it } from 'vitest'
 import { commands } from 'vitest/browser'
 import '#src/features/garments/register-wardrobe.ts'

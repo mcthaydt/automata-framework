@@ -1,7 +1,7 @@
 // The 2D systems golden: a guard on a flat level (the Hall, a wall with a gap, the Yard) hunts the player and follows through the
 // gap; 600 steps hash to one committed value in Node, Chromium, WebKit and Firefox, straight and restored from a snapshot
 // at step 200. A mismatch is investigated, never rebaselined.
-import { recordGoldenEvidence } from '@automata/evidence/golden'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
 import { expect, test } from 'vitest'
 import { runPatrol2dGolden } from '#src/testing/patrol-2d.ts'
 

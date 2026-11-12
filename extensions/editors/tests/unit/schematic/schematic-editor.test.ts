@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import { EDITOR_LIST_PATH } from '@automataframework/editor/editor-list'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -139,7 +139,7 @@ describe('Schematic', () => {
   })
 
   it('says what to add when the game does not use the systems extension', async () => {
-    await open({ 'package.json': JSON.stringify({ dependencies: { '@automata/feel': '1.0.0' } }) })
+    await open({ 'package.json': JSON.stringify({ dependencies: { '@automataframework/feel': '1.0.0' } }) })
     expect(
       screen.getByRole('heading', { name: 'This game does not use characters that think yet.' }),
     ).toBeInTheDocument()

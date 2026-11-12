@@ -1,4 +1,4 @@
-import type { Size } from '@automata/editor/kit/core'
+import type { Size } from '@automataframework/editor/kit/core'
 import { parseSelection } from '../../../shared/edit/selection-ref'
 import type { Camera3D } from '../../../shared/geometry/camera-3d'
 import type { GeometryLayer } from '../../../shared/level-session/level-profile'

@@ -50,7 +50,7 @@ export function targetScripts(
 
 /**
  * Tauri's packages for a `tauri` build (the host's optional peers). A `ruken` build needs none: its adapter, with
- * Ruken's SDK, is bundled in `@automata/framework`'s `ruken` entry.
+ * Ruken's SDK, is bundled in `@automataframework/framework`'s `ruken` entry.
  */
 export function targetDependencies(targets: readonly DistTarget[]): {
   readonly dependencies: Record<string, string>

@@ -2,7 +2,7 @@
 // (a cut makes a new sector of half a room, a merge takes a room into its neighbour), the wall of the sector on the far
 // side that runs back over it must lead into the sector the wall now belongs to, or the portal pair stops matching.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { type PortalMove, redirectPortals, retargetPortals } from '#src/shared/edit/portal-retarget.ts'
 import type { Changes } from '#src/shared/edit/vertex-edits.ts'

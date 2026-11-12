@@ -1,6 +1,6 @@
 // The objective line: nine sentences in the old game, one ordered list in a file here. The first row whose conditions
 // all hold is the line, and the row may name a place to walk to.
-import type { Reader } from '@automata/puzzle/sim'
+import type { Reader } from '@automataframework/puzzle/sim'
 import { describe, expect, it } from 'vitest'
 import { chooseObjective, type ObjectiveRow } from '#src/entries/index.ts'
 

@@ -1,5 +1,5 @@
-import { ROOM_NAME } from '@automata/net'
-import { createReplayStepper, unpackReplay } from '@automata/sim/replay'
+import { ROOM_NAME } from '@automataframework/net'
+import { createReplayStepper, unpackReplay } from '@automataframework/sim/replay'
 import { CloseCode } from '@colyseus/core'
 import { Effect } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'

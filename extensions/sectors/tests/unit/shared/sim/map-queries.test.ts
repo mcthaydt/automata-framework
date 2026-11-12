@@ -1,6 +1,6 @@
 // The map's queries: where a point is, the floor under it, and whether a walk is blocked. The step rule
 // is the sector format's `STEP`: a lower strip of exactly 0.25 m is climbed, anything taller is a wall.
-import { opening, STEP, walkBlocker } from '@automata/3d/level'
+import { opening, STEP, walkBlocker } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { pieceSpans } from '#src/shared/sim/pieces.ts'
 import { resolveLevel } from '#src/shared/sim/resolve.ts'

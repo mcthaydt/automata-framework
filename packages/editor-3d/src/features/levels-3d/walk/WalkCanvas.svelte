@@ -8,8 +8,8 @@
   lost, a notice says the plan still works and the level is safe, and offers Try again.
 -->
 <script lang="ts">
-import { attachGestures } from '@automata/editor/kit'
-import type { Size } from '@automata/editor/kit/core'
+import { attachGestures } from '@automataframework/editor/kit'
+import type { Size } from '@automataframework/editor/kit/core'
 import { onDestroy } from 'svelte'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'

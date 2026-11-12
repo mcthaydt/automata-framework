@@ -1,6 +1,6 @@
 // What the profile lists for the material picker, and the hints its views take (ED3D.8a step 1, spec §4.1, D8, D10).
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { EMPTY_LIBRARY, readGameLibrary } from '#src/shared/level-session/game-library.ts'

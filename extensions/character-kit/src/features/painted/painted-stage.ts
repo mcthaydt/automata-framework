@@ -7,7 +7,7 @@
 // It runs in `View3D.onRender`, which Pixi runs at the start of each render, after the draw hooks (the camera driver among
 // them): so a figure is placed by the camera as it is drawn, not by last frame's. `onRender` is one slot, so the stage
 // calls whatever was there first and puts it back when its last figure leaves.
-import type { FigureShadow } from '@automata/3d'
+import type { FigureShadow } from '@automataframework/3d'
 import { type Camera3D, type Container3D, Matrix4, type View3D } from '@pixi/3d'
 import { RendererType } from 'pixi.js'
 import { type Cell, TIE_BIAS, texelDepths, type V3, type View } from '../../shared/figures/door.ts'

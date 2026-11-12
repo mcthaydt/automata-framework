@@ -1,5 +1,5 @@
-import { readLevel } from '@automata/3d/level'
-import { readSectorMap, type SectorMap } from '@automata/sectors/sim'
+import { readLevel } from '@automataframework/3d/level'
+import { readSectorMap, type SectorMap } from '@automataframework/sectors/sim'
 import file from '../../../content/levels/hall.af-sector.json' with { type: 'json' }
 import { type PropShape, type Room, roomOf } from '../../shared/read-room.ts'
 

@@ -1,4 +1,4 @@
-import { DEFAULT_PALETTE } from '@automata/content'
+import { DEFAULT_PALETTE } from '@automataframework/content'
 import { describe, expect, it } from 'vitest'
 import { gaitSchema } from '#src/features/figures/content/gait.schema.ts'
 import { DEFAULT_RIG_LIMITS, rigLimitsSchema } from '#src/features/figures/content/rig-limits.schema.ts'

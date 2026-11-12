@@ -2,7 +2,7 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/sim
+// Packages: @automataframework/sim
 // Difficulty: ★☆☆☆
 // Tier: core
 // Pending: NOPE.9

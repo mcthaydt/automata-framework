@@ -5,9 +5,9 @@
 // quarter turn looks east (+x), so the plan's north is up the screen in both. `pitch` is the angle the camera looks above
 // the horizon (negative looks down). `fov` is the vertical field of view; the horizontal one follows from the canvas.
 
-import type { Point } from '@automata/3d/level'
-import { insideSector, triangulate } from '@automata/3d/level'
-import type { Rect, Point as ScreenPoint, Size } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import { insideSector, triangulate } from '@automataframework/3d/level'
+import type { Rect, Point as ScreenPoint, Size } from '@automataframework/editor/kit/core'
 import { WALK_EYE_HEIGHT, WALK_FOV } from '../level-session/level-hints'
 import type { GeometryLayer } from '../level-session/level-profile'
 import type { Box3, Vec3 } from './sector-mesh'

@@ -1,5 +1,5 @@
-import { journeyInstance } from '@automata/editor/kit/journey-project'
-import { defineTests } from '@automata/vitest-preset'
+import { journeyInstance } from '@automataframework/editor/kit/journey-project'
+import { defineTests } from '@automataframework/vitest-preset'
 import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'
 

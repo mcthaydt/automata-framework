@@ -1,4 +1,4 @@
-import { fakeClock } from '@automata/framework/testing'
+import { fakeClock } from '@automataframework/framework/testing'
 import { describe, expect, it } from 'vitest'
 import { CONTEXT_RESTORE_MS, watchContextLoss } from '#src/features/renderer/context-loss.ts'
 

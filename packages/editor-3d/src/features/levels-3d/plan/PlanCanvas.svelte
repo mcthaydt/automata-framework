@@ -10,9 +10,9 @@
   its edge lengths, refusal and the Sector tool's options are DOM over the canvas.
 -->
 <script lang="ts">
-import type { Point } from '@automata/3d/level'
-import { attachGestures } from '@automata/editor/kit'
-import type { Size } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import { attachGestures } from '@automataframework/editor/kit'
+import type { Size } from '@automataframework/editor/kit/core'
 import { onDestroy } from 'svelte'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { loupeOf, nudgePadOf } from './loupe'

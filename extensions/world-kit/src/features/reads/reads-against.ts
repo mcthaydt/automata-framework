@@ -2,7 +2,7 @@
 // `minEdge` (1.1× unless the level says), and no figure may be hot (brighter than its ring by more than `HOT`) unless the
 // level waives it with `hot: true`. The numbers come from the frame (`figureReads`); this says what fails.
 
-import type { LevelReads } from '@automata/3d/level'
+import type { LevelReads } from '@automataframework/3d/level'
 import type { FigureRead } from './figure-reads.ts'
 
 /** The weakest a figure may read (edge or luma against its room). */

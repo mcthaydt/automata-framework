@@ -2,7 +2,7 @@
 // straight from the expanded edge. (The real locator, which maps an edge back to the document's corner, is the
 // `wallLocator`.)
 
-import type { MassDef, SectorDef } from '@automata/3d/level'
+import type { MassDef, SectorDef } from '@automataframework/3d/level'
 import { type GeometryContext, type Locator, wallSelection } from '../shared/checks/check'
 import { type Edge, resolveMap } from '../shared/geometry/sectors'
 

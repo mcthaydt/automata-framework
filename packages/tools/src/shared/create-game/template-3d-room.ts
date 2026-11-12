@@ -8,7 +8,7 @@ export const ROOM_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/room/read-room.ts',
     content:
-      () => `import { type AfCorner2, type AfSector2, insideSector, type SectorPlan } from '@automata/3d/level'
+      () => `import { type AfCorner2, type AfSector2, insideSector, type SectorPlan } from '@automataframework/3d/level'
 import type { Tuning } from '../../shared/tuning.ts'
 
 // Reads a room the 3D level editor wrote into what this game plays: the floors Wick can stand on, the props he cannot
@@ -97,7 +97,7 @@ export function standsAt(room: Room, x: number, z: number, half: number): boolea
   },
   {
     path: 'src/features/room/room.ts',
-    content: () => `import { readLevel } from '@automata/3d/level'
+    content: () => `import { readLevel } from '@automataframework/3d/level'
 import file from '../../../content/levels/room.af-sector.json' with { type: 'json' }
 import { type PropShape, type Room, roomOf } from './read-room.ts'
 
@@ -135,7 +135,7 @@ declare module 'virtual:automata/content' {
   swatchColour,
   type WorldLibrary,
   type WorldScene,
-} from '@automata/3d'
+} from '@automataframework/3d'
 import { ROOM_LEVEL } from './room.ts'
 
 /** The room's swatches and props, from the game's content (content/world-swatches and content/world-props). */

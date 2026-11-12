@@ -1,5 +1,5 @@
 // What a game does to change a screen: copies the screen's folder into its own source. The folder is made inside the
-// package (not the system temp) so the copy resolves `@automata/framework` and `svelte` as a game's files would.
+// package (not the system temp) so the copy resolves `@automataframework/framework` and `svelte` as a game's files would.
 import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'

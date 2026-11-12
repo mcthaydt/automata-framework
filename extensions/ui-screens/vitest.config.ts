@@ -1,4 +1,4 @@
-import { defineTests } from '@automata/vitest-preset'
+import { defineTests } from '@automataframework/vitest-preset'
 import { svelteTesting } from '@testing-library/svelte/vite'
 
 // `unit` runs each screen's states and behaviour in jsdom through Testing Library; `browser` runs the layout contract with

@@ -4,7 +4,7 @@
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`hang`, `band`), with
 // AF's strict types; the formulas and their order are the source's.
 
-import { hemWeights, J, type Part, tube, weights } from '@automata/3d/figures-kit'
+import { hemWeights, J, type Part, tube, weights } from '@automataframework/3d/figures-kit'
 
 /**
  * A tube from `top` to `bottom` (heights above the floor), riding the pelvis and following the thighs below.

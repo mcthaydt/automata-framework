@@ -1,5 +1,5 @@
-import { examplesPort } from '@automata/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
+import { examplesPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
 import { expect, test } from '@playwright/test'
 
 // A studio splash, then a title with a Credits panel (shared polish, item 5). The splash is an opening step: any press

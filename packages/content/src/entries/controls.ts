@@ -1,4 +1,4 @@
-// @automata/content/controls: a game's default controls as data (`content/controls.toml`) and the lists of what may
+// @automataframework/content/controls: a game's default controls as data (`content/controls.toml`) and the lists of what may
 // be bound. Browser-safe: zod and plain values.
 export {
   type ControlAction,

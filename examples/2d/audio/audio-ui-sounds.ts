@@ -4,10 +4,10 @@
 //   marked `data-sfx="back"` (Cancel, Close) sounds `back`, one marked `data-sfx="none"` (Mute) makes none, and focus
 //   moving ticks softly. The sounds play on the interface bus, under its volume and mute.
 // Controls: tap or click any button; Tab moves focus
-// Packages: @automata/framework
+// Packages: @automataframework/framework
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineGame } from '@automata/framework'
+import { defineGame } from '@automataframework/framework'
 
 // Synthesized sounds (resources/sounds/PROVENANCE.md).
 const sounds = {

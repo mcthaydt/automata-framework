@@ -9,7 +9,7 @@ import { LEVEL_FILES } from './template-level.ts'
 const SQUARE_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/square/square.component.ts',
-    content: () => `import { defineComponent } from '@automata/sim'
+    content: () => `import { defineComponent } from '@automataframework/sim'
 
 /** Where the square's centre is, in the game's pixels, and whether it was pressed into a wall last tick. */
 export const Square = defineComponent('square', { x: 'f32', y: 'f32', blocked: 'bool' })
@@ -17,7 +17,7 @@ export const Square = defineComponent('square', { x: 'f32', y: 'f32', blocked: '
   },
   {
     path: 'src/features/square/bumped.event.ts',
-    content: () => `import { defineEvent } from '@automata/sim'
+    content: () => `import { defineEvent } from '@automataframework/sim'
 import { z } from 'zod'
 
 /**
@@ -29,7 +29,7 @@ export const Bumped = defineEvent('square.bumped', z.object({}))
   },
   {
     path: 'src/features/square/move.command.ts',
-    content: () => `import { defineCommand } from '@automata/sim'
+    content: () => `import { defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 
 const axis = z.number().int().min(-1).max(1).default(0)
@@ -40,7 +40,7 @@ export const Move = defineCommand('move', z.object({ x: axis, y: axis }))
   },
   {
     path: 'src/features/square/move.system.ts',
-    content: () => `import { defineSystem } from '@automata/sim'
+    content: () => `import { defineSystem } from '@automataframework/sim'
 import { SPEED, SQUARE_SIZE } from '../../shared/constants.ts'
 import { levelIn } from '../level/read-level.ts'
 import { hitsWall } from '../level/walls.ts'
@@ -72,7 +72,7 @@ export const move = defineSystem('move', (ctx) => {
   },
   {
     path: 'src/features/square/square.plugin.ts',
-    content: (options) => `import { definePlugin } from '@automata/sim'
+    content: (options) => `import { definePlugin } from '@automataframework/sim'
 import { Bumped } from './bumped.event.ts'
 import { Move } from './move.command.ts'
 import { move } from './move.system.ts'
@@ -84,7 +84,7 @@ export const squarePlugin = definePlugin({ name: '${options.id}', defs: [Square,
   },
   {
     path: 'src/features/square/square.view.ts',
-    content: () => `import { pictureView } from '@automata/framework'
+    content: () => `import { pictureView } from '@automataframework/framework'
 import { images, project } from '../level/level-scene.ts'
 import { SQUARE_SIZE } from '../../shared/constants.ts'
 import { Square } from './square.component.ts'
@@ -119,9 +119,9 @@ export const SQUARE_SIZE = 8
   ...SQUARE_FILES,
   {
     path: 'src/app/game.ts',
-    content: (options) => `import { controlsFileSchema } from '@automata/content/controls'
-import { DEFAULT_LOCALES } from '@automata/content/locale'
-import { controlsFrom, defaultContent, defineGame } from '@automata/framework'
+    content: (options) => `import { controlsFileSchema } from '@automataframework/content/controls'
+import { DEFAULT_LOCALES } from '@automataframework/content/locale'
+import { controlsFrom, defaultContent, defineGame } from '@automataframework/framework'
 import { content } from 'virtual:automata/content'
 import { LEVEL } from '../features/level/level.ts'
 import { LEVEL_SCENE } from '../features/level/level-scene.ts'
@@ -169,11 +169,11 @@ export const game = defineGame({
   {
     path: 'src/app/feel-audio.ts',
     content: () => `import { content } from 'virtual:automata/content'
-import { audioSchema } from '@automata/audio-synth'
-import { type AudioStageHandle, audioStage, tracksFrom } from '@automata/audio-synth/stage'
-import { feelSchema } from '@automata/feel'
-import { feelStage } from '@automata/feel/stage'
-import type { GameAudioStart, PixiStage, PixiStageHooks } from '@automata/framework'
+import { audioSchema } from '@automataframework/audio-synth'
+import { type AudioStageHandle, audioStage, tracksFrom } from '@automataframework/audio-synth/stage'
+import { feelSchema } from '@automataframework/feel'
+import { feelStage } from '@automataframework/feel/stage'
+import type { GameAudioStart, PixiStage, PixiStageHooks } from '@automataframework/framework'
 import { LEVEL } from '../features/level/level.ts'
 
 // What the player feels and hears, from the files the Feel and Audio editors write (content/feel/feel.toml,
@@ -235,8 +235,8 @@ export const audio: GameAudioStart = (services) => {
     path: 'src/main.ts',
     content:
       () => `// The page's entry: starts the game. \`no-eval\` comes first, because the web targets allow no eval.
-import '@automata/framework/no-eval'
-import { startGame } from '@automata/framework'
+import '@automataframework/framework/no-eval'
+import { startGame } from '@automataframework/framework'
 import '../content/generated/fonts/fonts.css'
 import { game } from './app/game.ts'
 
@@ -261,7 +261,7 @@ if (import.meta.hot) {
   },
   {
     path: 'tests/unit/level/read-level.test.ts',
-    content: () => `import { levelContentSchema } from '@automata/content/level-2d'
+    content: () => `import { levelContentSchema } from '@automataframework/content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { LEVEL } from '../../../src/features/level/level.ts'
 import { levelOf, SOLID } from '../../../src/features/level/read-level.ts'
@@ -306,7 +306,7 @@ describe('reading a level', () => {
   },
   {
     path: 'tests/unit/square/square-move.test.ts',
-    content: (options) => `import { createSim } from '@automata/sim'
+    content: (options) => `import { createSim } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { LEVEL } from '../../../src/features/level/level.ts'
 import { Bumped } from '../../../src/features/square/bumped.event.ts'

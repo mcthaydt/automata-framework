@@ -1,6 +1,6 @@
 // What `net`'s UI reads: core gives an extension's components no services context, so the game hands `installNetUi` the
 // connection, the grace, a way to leave and the words, and the badge and overlay read them from here (as `debug` does).
-import type { ConnectionState } from '@automata/net'
+import type { ConnectionState } from '@automataframework/net'
 import { NET_COPY_EN } from './net-copy'
 
 /**

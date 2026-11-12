@@ -2,7 +2,7 @@
 // eye hits first among them. A surface that faces away from the eye is cut away, so the dollhouse sees into a room through
 // its near walls and Walk, inside the room, sees them all. Rooms are 8 m by 6 m and 4 m high.
 
-import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { type SelectionOf, selectionOf } from '#src/shared/edit/selection-of.ts'
 import {

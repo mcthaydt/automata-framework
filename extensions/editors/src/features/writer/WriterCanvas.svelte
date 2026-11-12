@@ -3,7 +3,7 @@
   next; a file with a mistake opens read only and says where the mistake is.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import WriterConversation from './WriterConversation.svelte'
 import WriterLines from './WriterLines.svelte'

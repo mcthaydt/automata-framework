@@ -1,4 +1,4 @@
-// @automata/level-2d/sim: a 2D level as `Places` (rooms from its areas, walls from its solid cells, positions from the
+// @automataframework/level-2d/sim: a 2D level as `Places` (rooms from its areas, walls from its solid cells, positions from the
 // game's own component), and the position component a game with none uses. A sim entry: no Node, no clock.
 export { cellWalls } from '../shared/sim/cell-walls.ts'
 export { Level2dAt } from '../shared/sim/level-2d.component.ts'

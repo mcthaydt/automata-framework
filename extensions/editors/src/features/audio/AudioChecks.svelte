@@ -3,7 +3,7 @@
   nothing is heard, and runs only when asked. A sound changed since is marked, never shown with an old finding.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import { findingWords } from './audio-findings.ts'
 import type { AudioSession } from './audio-session.svelte.ts'
 

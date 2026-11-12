@@ -3,10 +3,10 @@
 // or a hotspot or nav node the game names) resolved when the cutscene starts. A caption names a line key; its text is the
 // locale's. The original's one-off marks (`powerAt`, `exitOpenAt`, `flatline`) are `states` rows here.
 //
-// Every keyed row is a key on the one timeline (`@automata/3d/timeline`), and an `ease` is that timeline's. A key with
+// Every keyed row is a key on the one timeline (`@automataframework/3d/timeline`), and an `ease` is that timeline's. A key with
 // no ease is eased `smooth`, which is the cutscene default (a figure's clip, which the timeline also keys, is linear);
 // a camera key with `cut` arrives with no easing at all.
-import { type Ease, easeSchema } from '@automata/3d/timeline'
+import { type Ease, easeSchema } from '@automataframework/3d/timeline'
 import { z } from 'zod'
 
 export type V3 = readonly [number, number, number]

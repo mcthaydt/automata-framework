@@ -4,7 +4,7 @@
   Audio's "When things happen", all ask it this way, so nobody types an id the game offers.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import { eventWords } from '../event-words.ts'
 import type { GameEvent } from '../game-events.ts'
 

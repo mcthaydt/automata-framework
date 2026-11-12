@@ -1,6 +1,6 @@
 // A hotspot: a place in the level a person can use, how near they must stand, what it is called and when it is usable.
 // Its name is a message key, so the words come from the game's catalogs like every other line.
-import { type Cond, condSchema } from '@automata/puzzle/sim'
+import { type Cond, condSchema } from '@automataframework/puzzle/sim'
 import { z } from 'zod'
 
 export interface Hotspot {

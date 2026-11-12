@@ -1,15 +1,15 @@
 // retrocrisp-grade: a room graded and faded like old film, with the retro pass on and off
 //
-// Shows: the retro look (`@automata/retro-crisp`): the clinic's cold green grade, an unsharp mask, a vignette, and a film
+// Shows: the retro look (`@automataframework/retro-crisp`): the clinic's cold green grade, an unsharp mask, a vignette, and a film
 //   fade (black lifted toward a tint, moving grain, dust and a scratch). The pass runs before core's DUEL snap, so its
 //   colours are snapped to the palette, and a `RETRO_NEUTRAL` profile changes no colour at all. The crisp half: the field drawn at a whole number of device pixels
 //   (core's letterbox `scale: 'whole'`, on by default; `?scale=fit` is the fractional fit to compare) and the LCD panel's
 //   colour split snapped to whole pixels (`?crisp=lcd`). `?pref=webgpu` draws on WebGPU, `?retro=0` starts with the pass off.
 // Controls: R switches the retro pass on and off
-// Packages: @automata/framework, @automata/3d, @automata/retro-crisp, @automata/lcd-panel
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/retro-crisp, @automataframework/lcd-panel
 // Difficulty: ★★★☆
 // Tier: extension
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -19,12 +19,12 @@ import {
   render3dExtension,
   swatchColour,
   worldLighting,
-} from '@automata/3d'
-import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
-import { defineGame, definePlugin } from '@automata/framework'
-import { addLcdPanelPass } from '@automata/lcd-panel/pass'
-import { crispFromQuery, crispRendererOptions } from '@automata/retro-crisp'
-import { addRetroPass } from '@automata/retro-crisp/pass'
+} from '@automataframework/3d'
+import { BASE_SCENES, baseLibrary } from '@automataframework/3d/base'
+import { defineGame, definePlugin } from '@automataframework/framework'
+import { addLcdPanelPass } from '@automataframework/lcd-panel/pass'
+import { crispFromQuery, crispRendererOptions } from '@automataframework/retro-crisp'
+import { addRetroPass } from '@automataframework/retro-crisp/pass'
 
 // --- look ---
 // The retro pass runs before the snap, the panel after it, whatever order they are added in.

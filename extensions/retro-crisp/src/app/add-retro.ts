@@ -2,8 +2,8 @@
 // the colours it grades, fades and grains are snapped to the palette (the final frame is DUEL, as the look's rule is). A name
 // already taken is refused by core (`RegistryClash`).
 
-import { addLookPass } from '@automata/3d'
-import { reducedMotion } from '@automata/framework'
+import { addLookPass } from '@automataframework/3d'
+import { reducedMotion } from '@automataframework/framework'
 import { Ticker } from 'pixi.js'
 import { filmClock } from '../features/retro/film-clock.ts'
 import { RetroEffect } from '../features/retro/retro-effect.ts'

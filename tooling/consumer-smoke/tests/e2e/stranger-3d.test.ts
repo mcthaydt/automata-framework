@@ -7,7 +7,7 @@ import { serveStatic } from '#src/serve.ts'
 import { overridesYaml, packOverrides, strangerFolder } from '#src/stranger.ts'
 
 // The stranger's first hour with a 3D game: the same journey as stranger.test.ts, with `create-game --template 3d`.
-// @automata/3d is private until Pixi 3D is public, so the journey runs only where it is asked for (AF_BETA_3D=1, the
+// @automataframework/3d is private until Pixi 3D is public, so the journey runs only where it is asked for (AF_BETA_3D=1, the
 // same switch that opens the template outside this repository) and packs it beside the published packages.
 //
 // It cannot pass yet: the 3D package ships its TypeScript sources until the release builds it to `dist/` like the others,
@@ -35,7 +35,7 @@ test('a stranger makes a 3D game, checks it, plays it and walks Wick', async ({ 
         JSON.stringify({ name: 'stranger-tools', private: true, type: 'module' }),
       )
       writeFileSync(join(toolsDir, 'pnpm-workspace.yaml'), overridesYaml(overrides))
-      sh(toolsDir, 'pnpm', ['add', overrides['@automata/tools'] as string])
+      sh(toolsDir, 'pnpm', ['add', overrides['@automataframework/tools'] as string])
       mkdirSync(join(folder, 'work'), { recursive: true })
       sh(
         join(folder, 'work'),
@@ -48,7 +48,9 @@ test('a stranger makes a 3D game, checks it, plays it and walks Wick', async ({ 
       const written = JSON.parse(readFileSync(join(gameDir, 'package.json'), 'utf8')) as {
         dependencies: Record<string, string>
       }
-      expect(Object.keys(written.dependencies)).toEqual(expect.arrayContaining(['@automata/3d', '@pixi/3d']))
+      expect(Object.keys(written.dependencies)).toEqual(
+        expect.arrayContaining(['@automataframework/3d', '@pixi/3d']),
+      )
       expect(existsSync(join(gameDir, 'content/levels/room.af-sector.json'))).toBe(true)
     })
 

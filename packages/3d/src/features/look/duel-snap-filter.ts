@@ -4,7 +4,7 @@
 // Pixel position comes from the content-space `uv` over one texel (`texel()`), not from the vertex stage, which a
 // post effect has none of.
 
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { type EffectFragment, type EffectIO, PostEffect, type RenderGraph } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
 import { EXACT } from './duel-snap.ts'

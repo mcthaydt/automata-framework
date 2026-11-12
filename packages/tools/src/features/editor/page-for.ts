@@ -1,4 +1,4 @@
-import { loadEditorList } from '@automata/editor/editor-list'
+import { loadEditorList } from '@automataframework/editor/editor-list'
 
 // Which page `automata editor` serves: the game's own editor list decides, so there is no flag to remember. A game
 // whose list names a 3D editor gets the full page (the suite with Levels 3D and Characters); every other game gets the

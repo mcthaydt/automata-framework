@@ -2,7 +2,7 @@
 // beside what a journey checks, named by `?route=`, and writes his place on the page, so a journey that plays with a
 // finger takes seconds of the software-drawn game and not minutes. A normal build has neither: the route is read only
 // under the flag, and the position is never written. Test code: the sim never reads it (law 1).
-import type { StepResult } from '@automata/sim'
+import type { StepResult } from '@automataframework/sim'
 import type { AreaSource } from '../shared/area.ts'
 import type { RoomWorld } from '../shared/room-world.ts'
 

@@ -1,5 +1,5 @@
 {
-  "name": "@automata/site",
+  "name": "@automataframework/site",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -26,11 +26,11 @@
     "lighthouse": "lhci autorun --config=lighthouserc.cjs"
   },
   "dependencies": {
-    "@automata/editor": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/sim": "workspace:*",
-    "@automata/tools": "workspace:*",
-    "@automata/ui-screens": "workspace:*",
+    "@automataframework/editor": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/sim": "workspace:*",
+    "@automataframework/tools": "workspace:*",
+    "@automataframework/ui-screens": "workspace:*",
     "@babel/parser": "8.0.10",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-javascript": "6.2.4",
@@ -49,9 +49,9 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@automata/examples-runner": "workspace:*",
-    "@automata/playwright-preset": "workspace:*",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/examples-runner": "workspace:*",
+    "@automataframework/playwright-preset": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@axe-core/playwright": "4.13.0",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",

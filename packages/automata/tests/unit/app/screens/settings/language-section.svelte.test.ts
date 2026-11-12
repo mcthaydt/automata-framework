@@ -38,7 +38,7 @@ function open(choice: string | null = null, names?: Readonly<Record<string, stri
 // re-exports it.
 describe('endonymOf from ui', () => {
   it('is content’s function, re-exported', async () => {
-    const content = await import('@automata/content/locale')
+    const content = await import('@automataframework/content/locale')
     expect(endonymOf).toBe(content.endonymOf)
   })
 })

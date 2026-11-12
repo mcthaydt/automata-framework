@@ -1,4 +1,4 @@
-import { entitiesOf } from '@automata/content/level-2d'
+import { entitiesOf } from '@automataframework/content/level-2d'
 import { startLevel } from './level-content.ts'
 
 /** Where the editor placed the first character of a kind, in the level's pixels (its pivot, the feet). */

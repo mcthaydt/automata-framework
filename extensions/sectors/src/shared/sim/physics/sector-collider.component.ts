@@ -1,5 +1,5 @@
 // Marks the fixed body sectors made for a collider span, so a new scene's map can replace them.
-import { type ComponentDef, defineComponent } from '@automata/sim'
+import { type ComponentDef, defineComponent } from '@automataframework/sim'
 
 const sectorColliderFields = {
   /** The span's index in `ResolvedMap.colliders`. */

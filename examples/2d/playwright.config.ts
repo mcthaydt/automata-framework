@@ -3,9 +3,9 @@ import {
   demoHostPort,
   examplesPort,
   runnerFixturesPort,
-} from '@automata/examples-runner/host/ports'
-import { defineJourneys, sizes } from '@automata/playwright-preset'
-import { INPUT_MATRIX } from '@automata/tools/e2e'
+} from '@automataframework/examples-runner/host/ports'
+import { defineJourneys, sizes } from '@automataframework/playwright-preset'
+import { INPUT_MATRIX } from '@automataframework/tools/e2e'
 import { devices } from '@playwright/test'
 import * as contentDemo from './content/hot-reload/tests/e2e/origin.ts'
 import { demoPort, demoUrl } from './ui/primitives/tests/e2e/origin.ts'
@@ -70,7 +70,7 @@ export default defineJourneys({
       reuseExistingServer: reuse,
     },
     {
-      command: 'pnpm --filter @automata/examples-runner e2e:host',
+      command: 'pnpm --filter @automataframework/examples-runner e2e:host',
       url: `${demoHostOrigin}/`,
       env: { AF_E2E_DEMO_HOST_PORT: String(demoHostPort) },
       reuseExistingServer: reuse,
@@ -82,7 +82,7 @@ export default defineJourneys({
       reuseExistingServer: reuse,
     },
     {
-      command: 'pnpm --filter @automata/examples-runner e2e:fixtures',
+      command: 'pnpm --filter @automataframework/examples-runner e2e:fixtures',
       url: `http://localhost:${runnerFixturesPort}/`,
       env: { AF_E2E_EXAMPLES_PORT: String(runnerFixturesPort) },
       reuseExistingServer: reuse,

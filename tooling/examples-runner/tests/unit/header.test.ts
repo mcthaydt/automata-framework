@@ -6,13 +6,13 @@ const full = `// core-input-keys: move a square with the keyboard
 // Shows: keys() turns keys into one sim command per tick;
 //   rect() draws an entity, interpolated.
 // Controls: arrows or WASD
-// Packages: @automata/framework, @automata/physics/2d
+// Packages: @automataframework/framework, @automataframework/physics/2d
 // Difficulty: ★★☆☆
 // Tier: core
 // Host: grant=saves,storage; saves=best:12.5,lives:3; offline
 // Golden: 120
 // Pending: DX.2
-import { keys } from '@automata/framework'
+import { keys } from '@automataframework/framework'
 `
 
 const errors = (source: string): HeaderError[] => {
@@ -28,7 +28,7 @@ describe('parseHeader', () => {
       title: 'move a square with the keyboard',
       shows: 'keys() turns keys into one sim command per tick; rect() draws an entity, interpolated.',
       controls: 'arrows or WASD',
-      packages: ['@automata/framework', '@automata/physics/2d'],
+      packages: ['@automataframework/framework', '@automataframework/physics/2d'],
       difficulty: 2,
       tier: 'core',
       host: { grant: ['saves', 'storage'], saves: { best: '12.5', lives: '3' }, offline: true },

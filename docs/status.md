@@ -11,10 +11,10 @@ the task-by-task record; this page is the short version.
   and gamepad; boots standalone and inside Ruken's fake host. Its 28 journeys pass in Chromium (phone, compact and iPad sizes).
 - **Targets.** `web`, `itch`, `ruken` and `tauri` adapters share AF's own host contract. The host contract, the
   adapters and the browser runtime are plain TypeScript (no Effect).
-- **Packages.** `@automata/framework` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
+- **Packages.** `@automataframework/framework` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
   `-content` has browser-safe entries for `game-config`, `locale`, `schema` and `palette`, so a dev server page never
   loads Node modules.
-- **Extensions.** Opt-in extras in `extensions/`, each `@automata/<name>` with its own README: physics, feel, audio-synth,
+- **Extensions.** Opt-in extras in `extensions/`, each `@automataframework/<name>` with its own README: physics, feel, audio-synth,
   debug, puzzle, online play (net, net-ui, net-server), screens, the level and story tools (sectors, nav, systems,
   narrative, cutscenes) and the 3D kits (character-kit, world-kit). Nine publish to npm; the rest are private for now.
 - **Edited content shows in play (PR #484, not on main yet).** A 2D level and its placed characters are drawn from what the editor

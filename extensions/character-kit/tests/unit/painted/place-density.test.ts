@@ -1,6 +1,6 @@
 // Placement takes the cell's density and a `crisp` choice, as FigureBuilder's stage does. The defaults (density 2, whole pixels)
 // are the placement the kit always made; density 1 with `crisp: false` is a figure at its true height, in texels of uneven width.
-import { fovOf } from '@automata/3d/camera-view'
+import { fovOf } from '@automataframework/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { place } from '#src/features/painted/place.ts'
 import { poseOf } from '#src/features/painted/pose.ts'

@@ -1,4 +1,4 @@
-// @automata/hud/content: the `hud` file's kind and schema, for Node tools that read content (they never load the pieces).
+// @automataframework/hud/content: the `hud` file's kind and schema, for Node tools that read content (they never load the pieces).
 export { hudContent } from '../shared/hud.content'
 export { type HudFile, hudSchema } from '../shared/hud.schema'
 export {

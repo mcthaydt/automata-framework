@@ -7,7 +7,7 @@ import { fixtureLimits } from '#src/testing/fixture-limits.ts'
 import { at3, KEEPER, NO_TARGETS, unit, WICK } from '#src/testing/solve-fixtures.ts'
 
 // S7-Q8 (M3 spec §3): a figure's rig solve should cost at most 0.1 ms. Measured and printed, never asserted:
-// not part of the gate; `pnpm --filter @automata/3d/figures bench` runs it.
+// not part of the gate; `pnpm --filter @automataframework/3d/figures bench` runs it.
 const { performance } = globalThis as unknown as { performance: { now(): number } }
 
 function medianMs(run: () => void, times: number): number {

@@ -1,5 +1,5 @@
-import type { HostSettings } from '@automata/examples-runner/header'
-import { escapeHtml, PAGE_STYLE, pendingPage } from '@automata/examples-runner/page-template'
+import type { HostSettings } from '@automataframework/examples-runner/header'
+import { escapeHtml, PAGE_STYLE, pendingPage } from '@automataframework/examples-runner/page-template'
 import { playgroundImportMap } from './playground-imports.ts'
 import { framePolicy } from './ruken/frame-policy.ts'
 
@@ -7,7 +7,7 @@ import { framePolicy } from './ruken/frame-policy.ts'
 export interface PlaygroundRuntime {
   readonly automata: string
   readonly zod: string
-  /** One file for every `@automata/ui-screens` path an example may import. */
+  /** One file for every `@automataframework/ui-screens` path an example may import. */
   readonly uiScreens: string
   /** Runs no-eval before any other runtime chunk evaluates (R-6). */
   readonly noEval: string

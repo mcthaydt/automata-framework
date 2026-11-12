@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import * as core from '#src/features/suite/core/index.ts'
 
-describe('@automata/editor-suite/core', () => {
+describe('@automataframework/editor-suite/core', () => {
   it('names the editor list and its format', () => {
     expect(core.EDITOR_LIST_PATH).toBe('content/editors.toml')
     expect(core.EDITOR_LIST_FORMAT).toBe('af-editors/1')

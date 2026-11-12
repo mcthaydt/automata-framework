@@ -3,8 +3,8 @@
   A duck quiets some sounds while another plays, so a line of speech is not buried. Both are heard in play.
 -->
 <script lang="ts">
-import type { DuckRule } from '@automata/audio-synth'
-import { Button } from '@automata/editor/kit'
+import type { DuckRule } from '@automataframework/audio-synth'
+import { Button } from '@automataframework/editor/kit'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import { removeEdit } from './audio-model.ts'
 import type { AudioSession } from './audio-session.svelte.ts'

@@ -1,9 +1,9 @@
 // The scene's places: where each is, which join, and what in the behaviour file names it. A rename changes the places
 // file and every reference in the behaviour file; the two files keep separate histories, so it is two undo steps (the
 // behaviour file's, which the suite's Undo follows, and the places file's).
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { NavGraph } from '@automata/nav/sim'
-import type { SystemsDef } from '@automata/systems/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import type { NavGraph } from '@automataframework/nav/sim'
+import type { SystemsDef } from '@automataframework/systems/sim'
 import { spaced } from './pieces/piece.ts'
 import { allEffects, allProbes, type Refused } from './schematic-edits.ts'
 

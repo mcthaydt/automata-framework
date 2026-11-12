@@ -2,9 +2,9 @@
 // the compact 780 × 270, in every variant (rest, the host's reserved strips, the keyboard up): the stick zone and the
 // five buttons keep their full size and stay on screen and hit-testable, and a point in the scene between them
 // reaches the camera drag surface, never the host's strip.
-import '@automata/framework/theme.css'
-import '@automata/framework'
-import { STICKY_MARGIN_PX } from '@automata/framework'
+import '@automataframework/framework/theme.css'
+import '@automataframework/framework'
+import { STICKY_MARGIN_PX } from '@automataframework/framework'
 import {
   byTestId,
   checkLayout,
@@ -13,7 +13,7 @@ import {
   REFERENCE_SIZES,
   settleLayout,
   VARIANTS,
-} from '@automata/framework/testing'
+} from '@automataframework/framework/testing'
 import { describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import ControlsInPlay from '#src/testing/ControlsInPlay.svelte'

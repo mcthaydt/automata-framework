@@ -1,6 +1,6 @@
 // A small game's furniture and materials for the tests of the 3D views: four swatches (a floor, a wall, a ceiling, a crate)
 // and a crate that is a box painted with the crate swatch. The same names Ember Hall uses, with sizes that show.
-import type { WorldProp, WorldSwatch } from '@automata/3d/world-content'
+import type { WorldProp, WorldSwatch } from '@automataframework/3d/world-content'
 import type { GameLibrary } from '../shared/level-session/game-library'
 
 const swatch = (ramp: string, step: number): WorldSwatch => ({ ramp, step }) as WorldSwatch

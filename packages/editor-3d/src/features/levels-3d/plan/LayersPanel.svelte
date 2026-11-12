@@ -5,7 +5,7 @@
   hit. A sub-layer under a hidden or locked Things says it is off with Things. Every button is at least 44 px.
 -->
 <script lang="ts">
-import { Icon } from '@automata/editor/kit'
+import { Icon } from '@automataframework/editor/kit'
 import type { LayerRow } from './layers-model'
 
 interface Props {

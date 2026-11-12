@@ -1,9 +1,9 @@
 // Feel as a suite editor: `feel` in the editor list. It opens the first feel file the list hands it (a game has one,
 // `content/feel/feel.toml`, and the editor makes it when there is none) and keeps it for the app's life.
 
-import type { AudioContent } from '@automata/audio-synth'
-import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
-import { type FeelContent, feelSchema } from '@automata/feel'
+import type { AudioContent } from '@automataframework/audio-synth'
+import { defineSuiteEditor, type SuiteEditor } from '@automataframework/editor/kit/ports'
+import { type FeelContent, feelSchema } from '@automataframework/feel'
 import type { AudioPlay } from '../../shared/audio-play.ts'
 import { audioCues, audioFileWith, gameEvents } from '../../shared/game-events.ts'
 import { undoOf } from '../../shared/session-hooks.ts'

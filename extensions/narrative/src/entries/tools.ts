@@ -1,4 +1,4 @@
-// @automata/narrative/tools: the narrative content tools. Build time and tests, never in a game bundle:
+// @automataframework/narrative/tools: the narrative content tools. Build time and tests, never in a game bundle:
 // they are pure functions over content and the locale's text.
 
 export {

@@ -3,8 +3,8 @@
 // add to or remove from, so (like a switch, `switch-text.ts`) the item's own tables are written again as text, and every
 // byte outside them stays. The result is read back with the kit's reader and with the game's, and must be the file as
 // it was with that one change; if not, nothing is written.
-import { openDocument } from '@automata/editor/kit/documents'
-import type { SystemsDef } from '@automata/systems/sim'
+import { openDocument } from '@automataframework/editor/kit/documents'
+import type { SystemsDef } from '@automataframework/systems/sim'
 import { parse as strictParse, stringify } from 'smol-toml'
 import { canonical, headersOf, NOT_FOUND, splice } from './switch-text.ts'
 

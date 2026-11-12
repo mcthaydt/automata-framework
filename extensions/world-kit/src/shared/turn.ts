@@ -1,5 +1,5 @@
 // A mesh turned about an axis (degrees) and moved: a panel tipped up, an awning, a wheel on its side.
-import { axisAngle, type MeshData, placed, type V3 } from '@automata/3d/props-kit'
+import { axisAngle, type MeshData, placed, type V3 } from '@automataframework/3d/props-kit'
 
 /** A mesh turned about y (degrees) and moved. */
 export const turnY = (mesh: MeshData, degrees: number, at: V3 = [0, 0, 0]): MeshData =>

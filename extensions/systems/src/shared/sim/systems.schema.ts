@@ -2,8 +2,8 @@
 // shape, with the pursuit additions (`crossed`, `sawHide`, `followThrough`, `ambush`). Probes ask about the world,
 // effects change it, senses say what an agent can perceive. The definition checks are `systems-checks.ts`.
 
-import { type Value, valueSchema } from '@automata/puzzle/sim'
-import type { Point } from '@automata/sectors/sim'
+import { type Value, valueSchema } from '@automataframework/puzzle/sim'
+import type { Point } from '@automataframework/sectors/sim'
 import { z } from 'zod'
 
 export type Probe =

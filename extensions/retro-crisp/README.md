@@ -13,7 +13,7 @@ a whole-number scale of the field (`letterboxScale`), for billboards whose texel
 (`figureSnap`), and a canvas layout helper. Its `lcd` flag is what sets `snap` on the [LCD panel](../lcd-panel/README.md).
 
 It is free and MIT licensed. It is optional: a game that does not add it loses nothing. It is not published to npm yet,
-because it builds on `@automata/3d`.
+because it builds on `@automataframework/3d`.
 
 ## Turn the retro pass on
 
@@ -21,7 +21,7 @@ Add it once, before the renderer is made. It takes its place ahead of the snap w
 LCD panel runs after the snap, so it sits on top:
 
 ```ts
-import { addRetroPass } from '@automata/retro-crisp/pass'
+import { addRetroPass } from '@automataframework/retro-crisp/pass'
 
 const retro = addRetroPass({ profile: { grade: { saturation: 1 } } }) // the rest is the clinic's numbers
 ```
@@ -42,9 +42,9 @@ One call each at module load, before `createPixi3dRenderer`; the profiles are th
 the keys it changes. There is no look or content key that switches an extension's pass on (core never imports one), so this is code.
 
 ```ts
-import { addLcdPanelPass } from '@automata/lcd-panel/pass'
-import { CRISP_CLINIC, crispRendererOptions } from '@automata/retro-crisp'
-import { addRetroPass } from '@automata/retro-crisp/pass'
+import { addLcdPanelPass } from '@automataframework/lcd-panel/pass'
+import { CRISP_CLINIC, crispRendererOptions } from '@automataframework/retro-crisp'
+import { addRetroPass } from '@automataframework/retro-crisp/pass'
 
 addRetroPass({ profile: content.retro ?? {}, reducedMotion: () => settings.reduceMotion }) // before core's snap
 addLcdPanelPass({ profile: content.lcd ?? {} }) // after it, on top
@@ -81,7 +81,7 @@ The whole-pixel scale is core's letterbox option `scale: 'whole'` (`fit`, the fr
 default). `crispRendererOptions` turns the profile into it:
 
 ```ts
-import { crispFromQuery, crispRendererOptions } from '@automata/retro-crisp'
+import { crispFromQuery, crispRendererOptions } from '@automataframework/retro-crisp'
 
 const crisp = crispFromQuery(location.search) // ?crisp=figures,lcd  ?crisp=1  ?scale=fit
 createPixi3dRenderer({ ...options, ...crispRendererOptions(crisp) }) // { scale: 'whole' } unless the profile says `fit`

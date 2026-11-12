@@ -3,10 +3,10 @@
 // line and, with its last line, the choices on offer. The storylets step each tick from the player's room (sectors'
 // room, as of the last step's membership) and whether it moved, and play on verbs and system events.
 
-import type { Places } from '@automata/places'
-import type { Reader, Value, VerbReport } from '@automata/puzzle/sim'
-import { sectorsPlaces } from '@automata/sectors/sim'
-import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
+import type { Places } from '@automataframework/places'
+import type { Reader, Value, VerbReport } from '@automataframework/puzzle/sim'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
+import { defineSystem, type SimContext, type SystemDef } from '@automataframework/sim'
 import { advance, applyChoice, choose, type Place, readerOf, settle, start, view } from './dialogue'
 import type { DialogueGraph } from './dialogue.schema'
 import { AdvanceCommand, ChooseCommand, StartCommand } from './narrative.command'

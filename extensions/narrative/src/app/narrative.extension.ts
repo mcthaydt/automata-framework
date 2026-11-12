@@ -1,7 +1,7 @@
 // The narrative extension: the plugin and the six content kinds, after whatever provides the places (sectors in 3D) and puzzle
 // (conditions, the `dialogue` and `verb` hooks).
-import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
-import { sectorsPlaces } from '@automata/sectors/sim'
+import { defineExtension, type ExtensionDef } from '@automataframework/framework/extension'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
 import { dialogueBoxSlot } from '../features/box/box-slot'
 import {
   beatsContent,

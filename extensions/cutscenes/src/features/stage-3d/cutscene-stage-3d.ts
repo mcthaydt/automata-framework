@@ -1,4 +1,4 @@
-import type { PieceStates } from '@automata/3d/level'
+import type { PieceStates } from '@automataframework/3d/level'
 import { createDirector, type Director } from '../../shared/director/director.ts'
 import type { PlacedScript } from '../../shared/sim/anchors.ts'
 import type { SoundKey, V3 } from '../../shared/sim/cutscene.schema.ts'

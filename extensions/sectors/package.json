@@ -1,5 +1,5 @@
 {
-  "name": "@automata/sectors",
+  "name": "@automataframework/sectors",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -36,25 +36,25 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "@automata/3d": "workspace:^",
-    "@automata/framework": "workspace:^",
-    "@automata/physics": "workspace:^",
-    "@automata/places": "workspace:^",
-    "@automata/sim": "workspace:^"
+    "@automataframework/3d": "workspace:^",
+    "@automataframework/framework": "workspace:^",
+    "@automataframework/physics": "workspace:^",
+    "@automataframework/places": "workspace:^",
+    "@automataframework/sim": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "@automata/physics": {
+    "@automataframework/physics": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@automata/3d": "workspace:*",
-    "@automata/evidence": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/physics": "workspace:*",
-    "@automata/places": "workspace:*",
-    "@automata/sim": "workspace:*",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/3d": "workspace:*",
+    "@automataframework/evidence": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/physics": "workspace:*",
+    "@automataframework/places": "workspace:*",
+    "@automataframework/sim": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "vitest": "5.0.3"
   }

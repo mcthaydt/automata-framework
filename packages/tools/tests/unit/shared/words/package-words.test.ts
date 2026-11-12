@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { gameWords } from '@automata/content/assets'
+import { gameWords } from '@automataframework/content/assets'
 import { Effect } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { FilesLive } from '#src/shared/node/files.ts'
@@ -38,20 +38,20 @@ const ours = (dir: string, lang: string) =>
 describe('packageCatalogs', () => {
   it('finds each framework package that exports its words, and nothing else', async () => {
     const dir = game({
-      ...pkg('@automata/framework', './words/*.json', { ja: { $schema: 'x', a: 'あ' } }),
-      ...pkg('@automata/ui-screens', { default: './words/*.json' }, { ja: { b: 'い' } }),
-      ...pkg('@automata/net-ui', './words/*.json', { ko: { c: '우' } }),
+      ...pkg('@automataframework/framework', './words/*.json', { ja: { $schema: 'x', a: 'あ' } }),
+      ...pkg('@automataframework/ui-screens', { default: './words/*.json' }, { ja: { b: 'い' } }),
+      ...pkg('@automataframework/net-ui', './words/*.json', { ko: { c: '우' } }),
     })
     expect([...(await ours(dir, 'ja'))]).toEqual([
-      ['@automata/framework', { a: 'あ' }],
-      ['@automata/ui-screens', { b: 'い' }],
+      ['@automataframework/framework', { a: 'あ' }],
+      ['@automataframework/ui-screens', { b: 'い' }],
     ])
   })
 
   it('answers what content’s gameWords answers for the packages', async () => {
     const dir = game({
-      ...pkg('@automata/framework', './words/*.json', { ja: { a: 'あ' }, ko: { a: '가' } }),
-      ...pkg('@automata/net-ui', { default: './words/*.json' }, { ja: { c: 'う' } }),
+      ...pkg('@automataframework/framework', './words/*.json', { ja: { a: 'あ' }, ko: { a: '가' } }),
+      ...pkg('@automataframework/net-ui', { default: './words/*.json' }, { ja: { c: 'う' } }),
     })
     for (const lang of ['ja', 'ko', 'en']) {
       const theirs = [...(await gameWords(dir, lang, {}))].filter(([name]) => name.startsWith('@'))

@@ -1,6 +1,6 @@
 // The kit's props: every preset in the library draws finite, outward-facing meshes with swatches the library has, a lamp a
 // prop carries is one the lamp kit accepts, and the draw is the same every run.
-import { buildWorld, hasSwatch, isFault, type MeshData, resolveProp } from '@automata/3d/props-kit'
+import { buildWorld, hasSwatch, isFault, type MeshData, resolveProp } from '@automataframework/3d/props-kit'
 import { describe, expect, it } from 'vitest'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import '#src/features/props/register-props.ts'

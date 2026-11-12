@@ -3,7 +3,7 @@
 // editor asks of a level: the geometry its views draw, the checks its problems list shows, and the things that stand in
 // it. ED3D.2b adds the checks that need the entities, ED3D.8a the materials and the hints.
 
-import type { MassDef, SectorDef } from '@automata/3d/level'
+import type { MassDef, SectorDef } from '@automataframework/3d/level'
 import type { CheckResult } from '../checks/check'
 import { type ResolvedMap, resolveMap } from '../geometry/sectors'
 import type { EntityKit } from '../things/things'

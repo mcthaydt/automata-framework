@@ -1,4 +1,4 @@
-import type { SysEffect } from '@automata/systems/sim'
+import type { SysEffect } from '@automataframework/systems/sim'
 import { describe, expect, it } from 'vitest'
 import { sceneNames } from '#src/features/schematic/names.ts'
 import { ACTIONS } from '#src/features/schematic/pieces/actions.ts'

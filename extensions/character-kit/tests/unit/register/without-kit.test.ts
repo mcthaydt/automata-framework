@@ -1,6 +1,6 @@
-import { build, garmentSchema, hairStyleSchema, skeleton } from '@automata/3d/figures'
-import { hairParts } from '@automata/3d/figures-kit'
-import { figureOf, fixtureFigures } from '@automata/3d/testing'
+import { build, garmentSchema, hairStyleSchema, skeleton } from '@automataframework/3d/figures'
+import { hairParts } from '@automataframework/3d/figures-kit'
+import { figureOf, fixtureFigures } from '@automataframework/3d/testing'
 import { describe, expect, it } from 'vitest'
 import coreFigures from '../../fixtures/core-figures.json' with { type: 'json' }
 import { coreFigureDigests, expectClose } from '../../fixtures/core-figures.ts'

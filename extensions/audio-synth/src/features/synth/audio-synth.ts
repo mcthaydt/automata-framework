@@ -2,8 +2,8 @@
 // drawn picture reaches its tick, once, by the first row of the event map that matches (`feel`'s `Beats`, the one holder of
 // that rule), so a sound never lands before the picture shows its cause. It never writes the sim. Beds start and stop by id.
 // Everything plays through the mixer port the game builds from core's buses (never a second context).
-import { Beats, hash, matches } from '@automata/feel'
-import type { SimEvent } from '@automata/sim'
+import { Beats, hash, matches } from '@automataframework/feel'
+import type { SimEvent } from '@automataframework/sim'
 import type { AudioContent, Cue, EventRow } from '../../shared/audio.schema'
 import { createMixer, type Listener, type MixerPort } from '../../shared/mixer'
 import { startBed } from '../../shared/synth'

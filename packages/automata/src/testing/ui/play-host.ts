@@ -1,4 +1,4 @@
-import type { Sim } from '@automata/sim'
+import type { Sim } from '@automataframework/sim'
 import { mount, unmount } from 'svelte'
 import '../../app/screens/screens.css'
 import '../../shared/ui/theme.css'

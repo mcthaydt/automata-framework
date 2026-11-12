@@ -15,7 +15,7 @@ import {
 // shape as the 2D game (features by name, shared numbers, the app that wires them, tests of the sim) and the same
 // project files; what differs is the 3D package, the content kinds its folders hold and the game itself.
 
-/** The pinned release of Pixi 3D every 3D game installs beside @automata/3d (the closed beta, until the npm release). */
+/** The pinned release of Pixi 3D every 3D game installs beside @automataframework/3d (the closed beta, until the npm release). */
 export const PIXI_3D_SPEC = '0.1.0-beta.2'
 
 /** The lines of a 3D game's README that say where its code and content are. */
@@ -34,14 +34,14 @@ const WHERE = `- \`src/features/wick/\`: Wick and how he walks. One folder for e
 export const TEMPLATE_3D_FILES: readonly TemplateFile[] = [
   readmeFile(WHERE),
   packageFile((options) => ({
-    '@automata/3d': frameworkSpec(options),
+    '@automataframework/3d': frameworkSpec(options),
     '@pixi/3d':
       options.linkWorkspace === true ? 'file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz' : PIXI_3D_SPEC,
   })),
   shipConfigFile('landscape'),
   viteConfigFile({
-    imports: `import { figuresExtension } from '@automata/3d/figures'
-import { worldPropContent, worldSwatchContent } from '@automata/3d/world-content'`,
+    imports: `import { figuresExtension } from '@automataframework/3d/figures'
+import { worldPropContent, worldSwatchContent } from '@automataframework/3d/world-content'`,
     schemas: '[...(figuresExtension.content ?? []), worldSwatchContent, worldPropContent]',
     compiles: "Wick's figure, the room's swatches and props, and the tuning",
   }),

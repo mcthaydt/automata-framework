@@ -12,7 +12,7 @@
  * the edge and never inside the logic.
  */
 
-import type { NetConfig } from '@automata/net'
+import type { NetConfig } from '@automataframework/net'
 import { Effect, type Scope } from 'effect'
 import { createLogWriter } from '../features/operations/log-writer'
 import { type CrashTarget, installCrashHandlers } from '../features/operations/process-safety'

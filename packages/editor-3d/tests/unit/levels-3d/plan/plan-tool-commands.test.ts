@@ -2,8 +2,8 @@
 // drawn Enter closes it, Backspace takes the last corner back and Escape drops the drawing. A command that would do
 // nothing is disabled, so its key falls through to the page.
 
-import type { AfSector2File } from '@automata/3d/level'
-import { createCommandRegistry, createKeymap, type KeyInput } from '@automata/editor/kit/core'
+import type { AfSector2File } from '@automataframework/3d/level'
+import { createCommandRegistry, createKeymap, type KeyInput } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { planToolCommands } from '#src/features/levels-3d/plan/plan-tool-commands.ts'
 import { createPlanTools } from '#src/features/levels-3d/plan/plan-tools.ts'

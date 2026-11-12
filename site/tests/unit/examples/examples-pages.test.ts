@@ -105,7 +105,7 @@ describe('the example data', () => {
       'audio',
       'ui',
     ])
-    expect(JSON.stringify(index)).not.toContain("from '@automata/framework'")
+    expect(JSON.stringify(index)).not.toContain("from '@automataframework/framework'")
   })
 })
 

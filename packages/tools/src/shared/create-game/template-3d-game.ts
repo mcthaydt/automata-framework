@@ -11,7 +11,7 @@ import type { TemplateFile } from './template-file.ts'
 export const GAME_3D_FILES: readonly TemplateFile[] = [
   {
     path: 'src/shared/constants.ts',
-    content: () => `import { type CameraView, cameraView } from '@automata/3d/sim'
+    content: () => `import { type CameraView, cameraView } from '@automataframework/3d/sim'
 
 // The numbers the game is built from. Both the sim and the screen read them, so they live here. How fast Wick walks is
 // not here: a designer changes it, in content/tuning.toml.
@@ -53,9 +53,9 @@ export function tuningOf(content: unknown): Tuning {
   {
     path: 'src/app/game.ts',
     content: (options) => `import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, DEFAULT_LOOK, levelTime, render3dExtension, targetSize } from '@automata/3d'
-import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
-import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
+import { createPixi3dRenderer, DEFAULT_LOOK, levelTime, render3dExtension, targetSize } from '@automataframework/3d'
+import { CameraTurn, STICK_MAX } from '@automataframework/3d/sim'
+import { defaultContent, defineGame, inputs, keys } from '@automataframework/framework'
 import { cameraTurnUnits, labelled, moveFromStick } from './controls.ts'
 import { drawRoom, worldLibraryOf } from '../features/room/room.view.ts'
 import { ROOM_LEVEL, roomIn } from '../features/room/room.ts'
@@ -136,8 +136,8 @@ export const game = defineGame({
     path: 'src/main.ts',
     content:
       () => `// The page's entry: starts the game. \`no-eval\` comes first, because the web targets allow no eval.
-import '@automata/3d/no-eval'
-import { startGame } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { startGame } from '@automataframework/framework'
 import { game } from './app/game.ts'
 
 let running = startGame(game)
@@ -161,7 +161,7 @@ if (import.meta.hot) {
   },
   {
     path: 'tests/unit/room/read-room.test.ts',
-    content: () => `import { readLevel } from '@automata/3d/level'
+    content: () => `import { readLevel } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { roomOf, standsAt } from '../../../src/features/room/read-room.ts'
 import { ROOM_LEVEL } from '../../../src/features/room/room.ts'
@@ -230,9 +230,9 @@ describe('reading a room', () => {
   },
   {
     path: 'tests/unit/wick/wick-walk.test.ts',
-    content: (options) => `import { readLevel } from '@automata/3d/level'
-import { cameraHeadingPlugin } from '@automata/3d/sim'
-import { createSim } from '@automata/sim'
+    content: (options) => `import { readLevel } from '@automataframework/3d/level'
+import { cameraHeadingPlugin } from '@automataframework/3d/sim'
+import { createSim } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { type PlayContent, roomOf } from '../../../src/features/room/read-room.ts'
 import { Move } from '../../../src/features/wick/move.command.ts'

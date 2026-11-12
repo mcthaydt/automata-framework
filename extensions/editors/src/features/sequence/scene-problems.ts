@@ -1,8 +1,8 @@
 // What is wrong with a cutscene, worked out in the page from the file and the game's lines, and said where it is: on the
 // key or bar it is about. The cutscene lint also needs a 3D map (a camera in a wall, dead air); that waits for a
 // cutscenes check a made game can run, so none of it is run here.
-import type { CutsceneScript } from '@automata/cutscenes/sim'
-import { MIN_SHOT } from '@automata/cutscenes/tools'
+import type { CutsceneScript } from '@automataframework/cutscenes/sim'
+import { MIN_SHOT } from '@automataframework/cutscenes/tools'
 import { endOf, keysOf, TRACK_ORDER, type TrackId, timeOf } from './tracks.ts'
 
 export interface SceneProblem {

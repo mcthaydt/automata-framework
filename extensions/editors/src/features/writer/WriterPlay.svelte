@@ -3,8 +3,8 @@
   choice remembers is kept for the walk only. It reads the files; it never runs the game.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import type { DialogueGraph } from '@automata/narrative/sim'
+import { Button } from '@automataframework/editor/kit'
+import type { DialogueGraph } from '@automataframework/narrative/sim'
 import { untrack } from 'svelte'
 import { type Facts, partView, playChoose } from './writer-problems.ts'
 import type { WriterSession } from './writer-session.svelte.ts'

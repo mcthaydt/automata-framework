@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
 import { THREE_D_NOT_PUBLIC, threeDAvailable } from '#src/shared/create-game/three-d-gate.ts'
 
-// The 3D template needs @automata/3d, which is private until Pixi 3D is public. It is offered where that package is
+// The 3D template needs @automataframework/3d, which is private until Pixi 3D is public. It is offered where that package is
 // found (inside this repository's workspace) and where AF_BETA_3D=1 says the author has it.
 
 const made: string[] = []
@@ -32,7 +32,7 @@ describe('the 3D template gate', () => {
   })
 
   it('is open inside the repository, where packages/3d sits beside the tools', () => {
-    expect(threeDAvailable({}, tree('@automata/3d'))).toBe(true)
+    expect(threeDAvailable({}, tree('@automataframework/3d'))).toBe(true)
   })
 
   it('is shut where no 3D package is found, and for a package of another name', () => {

@@ -2,13 +2,13 @@
 // (tests/fixtures/goldens/dress.json). The tests compare the code against this file; this script is the one place that writes it. A change
 // that moves a golden is re-recorded in a named commit that explains it.
 //
-//   pnpm --filter @automata/character-kit goldens [--out <dir>]     (default: tests/fixtures/goldens)
+//   pnpm --filter @automataframework/character-kit goldens [--out <dir>]     (default: tests/fixtures/goldens)
 //
 // The kit's garments and pieces register when `character-kit.extension.ts` loads, so it is loaded first.
 
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { recordDress } from '@automata/3d/testing'
+import { recordDress } from '@automataframework/3d/testing'
 import '../src/app/character-kit.extension.ts'
 import { kitFixture } from '../src/testing/kit-fixture.ts'
 import { KIT_OUTFITS } from '../src/testing/kit-outfits.ts'

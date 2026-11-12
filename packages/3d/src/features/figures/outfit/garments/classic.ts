@@ -1,7 +1,7 @@
 // The core garments: each fitted to the body the sliders make. A top repaints the torso and as much of the arms as its
 // sleeves cover; trousers and shoes repaint the legs and feet; a cape adds its own parts. (Hair, caps and the face are
 // dress.ts's. The rest of a wardrobe, apron, belt, coat, gloves, legs, mark, skirt and waistcoat, is
-// @automata/character-kit's, and an extension's wardrobe builds its own kinds.)
+// @automataframework/character-kit's, and an extension's wardrobe builds its own kinds.)
 
 import { axisAngle, smooth } from '../../../../shared/math/math.ts'
 import { tube } from '../../../../shared/math/superquadric.ts'

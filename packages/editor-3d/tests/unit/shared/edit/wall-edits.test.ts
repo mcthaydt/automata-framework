@@ -1,7 +1,7 @@
 // The wall edits (ED3D.3 step 7): what a wall is (solid, portal, door, window), the members of a door and a window, its
 // texture and its flags. On the depot (`af-sector/1`) and on small levels that show one rule each.
 
-import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit } from '#src/shared/edit/edit.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'

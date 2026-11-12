@@ -5,7 +5,7 @@
 // `.*5 7h*3 2.*24`. The printer is canonical (maximal runs, one spelling), so equal grids print byte-equal and a
 // git diff shows only the rows that changed.
 
-import { parseTileToken } from '@automata/content/level-2d'
+import { parseTileToken } from '@automataframework/content/level-2d'
 import { Grid } from './grid.ts'
 
 export type CellKind = 'tile' | 'int'

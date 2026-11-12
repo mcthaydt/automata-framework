@@ -6,12 +6,12 @@ import { join } from 'node:path'
 
 /** The packages an extension may use as core: it lists them under `peerDependencies`, never `dependencies`. */
 const CORE_PACKAGES: ReadonlySet<string> = new Set([
-  '@automata/framework',
-  '@automata/tools',
-  '@automata/sim',
-  '@automata/content',
-  '@automata/3d',
-  '@automata/evidence',
+  '@automataframework/framework',
+  '@automataframework/tools',
+  '@automataframework/sim',
+  '@automataframework/content',
+  '@automataframework/3d',
+  '@automataframework/evidence',
 ])
 
 interface Manifest {
@@ -31,7 +31,7 @@ export function extensionManifestProblems(root: string): string[] {
     if (!existsSync(manifestPath)) continue
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as Manifest
     const where = `extensions/${folder}/package.json`
-    const expectedName = `@automata/${folder}`
+    const expectedName = `@automataframework/${folder}`
     if (manifest.name !== expectedName) problems.push(`${where}: name must be ${expectedName}`)
     if (manifest.license !== 'MIT') problems.push(`${where}: license must be "MIT"`)
     if (manifest.imports?.['#src/*'] !== './src/*') {

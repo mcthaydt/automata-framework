@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { globMatch, loadEditorList } from '@automata/editor/editor-list'
+import { globMatch, loadEditorList } from '@automataframework/editor/editor-list'
 import { describe, expect, it } from 'vitest'
 
 // Ember Hall's editor list (`content/editors.toml`): the suite reads it to open the room in Levels 3D, Wick in

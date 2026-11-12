@@ -1,5 +1,5 @@
 // What the two generators share: a seeded stream, picking from a list, and rounding to a build grid.
-import { createRng } from '@automata/sim'
+import { createRng } from '@automataframework/sim'
 
 /** A function that gives the next number in [0, 1) of the stream `seed` starts. */
 export function seeded(seed: number): () => number {

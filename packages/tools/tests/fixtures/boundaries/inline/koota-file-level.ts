@@ -1,4 +1,4 @@
-import { defineSystem } from '@automata/framework'
+import { defineSystem } from '@automataframework/framework'
 import { trait } from 'koota'
 
 document.title = 'file-level browser code may use the DOM'

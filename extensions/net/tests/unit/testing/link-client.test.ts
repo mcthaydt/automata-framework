@@ -1,4 +1,4 @@
-import { fakeClock } from '@automata/framework/testing'
+import { fakeClock } from '@automataframework/framework/testing'
 import { describe, expect, it } from 'vitest'
 import type { NetSnapshot, Pong } from '#src/features/client/room/colyseus-transport.ts'
 import { parseClientMessage } from '#src/shared/wire/parse.ts'

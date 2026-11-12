@@ -11,8 +11,8 @@
  * restored, and whether each command took effect in the player's sim on the tick it was sampled for.
  */
 
-import { fakeClock } from '@automata/framework/testing'
-import { type LocalCommand, type NetConfig, NetSession } from '@automata/net'
+import { fakeClock } from '@automataframework/framework/testing'
+import { type LocalCommand, type NetConfig, NetSession } from '@automataframework/net'
 import {
   createLink,
   type LinkClient,
@@ -20,8 +20,8 @@ import {
   type LinkRoomClient,
   linkClient,
   linkRoomClient,
-} from '@automata/net/testing'
-import { type Command, createSim, type Sim } from '@automata/sim'
+} from '@automataframework/net/testing'
+import { type Command, createSim, type Sim } from '@automataframework/sim'
 import { RoomEngine } from '../features/room/engine/room-engine'
 import { acceptsInput } from '../features/room/rules/lobby-rules'
 import type { RoomLogEvent } from '../shared/game/server-config'

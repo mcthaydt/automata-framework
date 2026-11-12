@@ -3,8 +3,8 @@
 // insert's camera is near a wall the renderer cuts away, and the opening's is above the clinic, outside the map.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { readSectorMap, resolveLevel } from '@automata/sectors/sim'
-import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
+import { readSectorMap, resolveLevel } from '@automataframework/sectors/sim'
+import clinicLevel from '@automataframework/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { describe, expect, it } from 'vitest'
 import { cutsceneSchema } from '#src/entries/sim.ts'
 import { lintCutscenes } from '#src/entries/tools.ts'

@@ -1,7 +1,7 @@
 // A cutscene as rows of marks: one row for each track the scene uses (and one for each actor), a mark for each key.
 // Not every track keys by `t` (a clip uses `at`, a shake is `[from, to, metres]`, a words-on-screen key has `t` and
 // `until`), so every time read and write goes through the accessors here.
-import type { CutsceneScript } from '@automata/cutscenes/sim'
+import type { CutsceneScript } from '@automataframework/cutscenes/sim'
 
 export type TrackId =
   | 'camera'

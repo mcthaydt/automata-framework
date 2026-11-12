@@ -1,7 +1,7 @@
 // The entity check (ED3D.2b-1): what is wrong with the things of a level, seeded into the toy AF level, and the shipped
 // depot that must pass.
 
-import type { AfEntity, AfEntityDef, AfSector2File } from '@automata/3d/level'
+import type { AfEntity, AfEntityDef, AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { entityProblems } from '#src/shared/checks/entities.ts'
 import { resolveMap } from '#src/shared/geometry/sectors.ts'

@@ -1,7 +1,7 @@
 // The systems extension: the plugin and the `systems` content kind, built from the game's options, so
 // the hooks content may name are the hooks the plugin runs.
 
-import { sectorsPlaces } from '@automata/sectors/sim'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
 import { expect, it } from 'vitest'
 import { systemsExtension } from '#src/entries/index.ts'
 import { alarmToy } from '#src/testing/toy.ts'

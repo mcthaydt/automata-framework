@@ -2,8 +2,8 @@
 // box whose footprint is within it, over the sub-layers that are on. The viewport is 32 px to a metre with the world
 // origin at (20, 20), so the cases read in pixels from a known point.
 
-import type { Point } from '@automata/3d/level'
-import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import { createViewport, type Point as ScreenPoint } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { PICK_RADIUS, type PickOptions } from '#src/features/levels-3d/plan/plan-pick.ts'
 import { PLAN_LIMITS, toScreen } from '#src/features/levels-3d/plan/plan-viewport.ts'

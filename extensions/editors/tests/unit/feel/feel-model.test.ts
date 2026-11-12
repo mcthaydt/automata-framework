@@ -1,4 +1,4 @@
-import { DEFAULT_LIMITS, type FeelEntry } from '@automata/feel'
+import { DEFAULT_LIMITS, type FeelEntry } from '@automataframework/feel'
 import { describe, expect, it } from 'vitest'
 import {
   addEffectEdit,

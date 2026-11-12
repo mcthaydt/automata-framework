@@ -1,4 +1,4 @@
-import { examplesRunner } from '@automata/examples-runner'
+import { examplesRunner } from '@automataframework/examples-runner'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defineConfig } from 'vite'
 
@@ -10,8 +10,8 @@ export default defineConfig({
     svelte(),
     examplesRunner({
       root: import.meta.dirname,
-      start: '@automata/framework',
-      noEval: '@automata/framework/no-eval',
+      start: '@automataframework/framework',
+      noEval: '@automataframework/framework/no-eval',
     }),
   ],
 })

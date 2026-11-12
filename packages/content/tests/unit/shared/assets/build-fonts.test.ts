@@ -231,11 +231,14 @@ describe('buildFonts', () => {
 
     it('cuts in the words of a framework package the game has, found through its exports', async () => {
       const root = withFont(project(ONE_FONT))
-      const pkg = join(root, 'node_modules/@automata/framework')
+      const pkg = join(root, 'node_modules/@automataframework/framework')
       mkdirSync(join(pkg, 'words'), { recursive: true })
       writeFileSync(
         join(pkg, 'package.json'),
-        JSON.stringify({ name: '@automata/framework', exports: { './words/*.json': './words/*.json' } }),
+        JSON.stringify({
+          name: '@automataframework/framework',
+          exports: { './words/*.json': './words/*.json' },
+        }),
       )
       writeFileSync(join(pkg, 'words/fr.json'), JSON.stringify({ paused_title: 'Pâusé' }))
       expect(fontCoverage(fileOf(await built(root), 'pixel-fr-'))('â')).toBe(true)

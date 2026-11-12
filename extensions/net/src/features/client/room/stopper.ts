@@ -1,7 +1,7 @@
 // The timers one piece of work owns (a reconnect loop's waits and its attempts' time limits), so that stopping the
 // work ends all of them at once: each waiting call is answered now, and no timer is left on the clock.
 
-import type { Clock, TimeoutHandle } from '@automata/framework'
+import type { Clock, TimeoutHandle } from '@automataframework/framework'
 
 export interface Stopper {
   readonly stopped: boolean

@@ -2,7 +2,7 @@
 // resource's schema (`schemaHash`) and the sector-map resource's schema is now `af-sector/2`'s. This pins that nothing
 // else moved: with the header's schema hash zeroed, the state's bytes hash to the values the TOML-era code produced
 // (measured on the commit before the port), every 100 steps of the golden script.
-import { stateHash } from '@automata/sectors/testing'
+import { stateHash } from '@automataframework/sectors/testing'
 import { expect, test } from 'vitest'
 import { runNavGolden } from '#src/testing/walk-script.ts'
 

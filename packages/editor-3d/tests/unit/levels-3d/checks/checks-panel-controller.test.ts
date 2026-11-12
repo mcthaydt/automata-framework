@@ -1,7 +1,7 @@
 // The checks panel (ED3D.10a steps 2 and 3, spec §5.3 flow 7): when the checks run, what the pill counts, and what
 // Locate does with a problem. The timer is a fake that the test fires, so nothing here waits.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it, vi } from 'vitest'
 import { createChecksPanel, type Scheduler } from '#src/features/levels-3d/checks/checks-panel-controller.ts'
 import type { CheckResult } from '#src/shared/checks/check.ts'

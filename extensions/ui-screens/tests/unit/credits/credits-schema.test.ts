@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContentResult } from '@automata/content'
+import { compileContentResult } from '@automataframework/content'
 import { afterEach, describe, expect, it } from 'vitest'
 import { creditsContent } from '#src/shared/credits/credits.content.ts'
 import { creditsSchema } from '#src/shared/credits/credits.schema.ts'

@@ -8,8 +8,8 @@ import {
   readSectorMap,
   resolveLevel,
   type SectorMap,
-} from '@automata/sectors/sim'
-import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
+} from '@automataframework/sectors/sim'
+import clinicLevel from '@automataframework/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { parse } from 'smol-toml'
 import type { NavGraph } from '../shared/sim/nav-graph.schema'
 import type { Blocked } from '../shared/sim/route'

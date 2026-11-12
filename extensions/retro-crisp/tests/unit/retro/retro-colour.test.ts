@@ -1,4 +1,4 @@
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { describe, expect, it } from 'vitest'
 import { applyGrade, bayer8, lumaWeightedThreshold, retroColour } from '#src/features/retro/retro-colour.ts'
 import { RETRO_CLINIC, RETRO_NEUTRAL } from '#src/features/retro/retro-profile.schema.ts'

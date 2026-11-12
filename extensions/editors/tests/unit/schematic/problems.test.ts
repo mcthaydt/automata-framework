@@ -1,4 +1,4 @@
-import type { SystemsDef } from '@automata/systems/sim'
+import type { SystemsDef } from '@automataframework/systems/sim'
 import { describe, expect, it } from 'vitest'
 import { schematicProblems } from '#src/features/schematic/schematic-problems.ts'
 import { fixture, SCENES } from '../../fixtures/systems-fixtures.ts'

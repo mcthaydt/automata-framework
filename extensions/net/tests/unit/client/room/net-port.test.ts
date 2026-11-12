@@ -1,4 +1,4 @@
-import type { Command } from '@automata/sim'
+import type { Command } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { ColyseusTransport, type TransportEvents } from '#src/features/client/room/colyseus-transport.ts'
 import { createClientPort } from '#src/features/client/room/net-port.ts'

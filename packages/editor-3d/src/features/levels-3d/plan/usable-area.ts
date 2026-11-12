@@ -2,7 +2,7 @@
 // under the tool row along its top and the sheet that rises over its bottom edge; only the framing of the level
 // (`fit`) wants what they leave, so the level is never framed under them. The page reads this as `data-usable` on the
 // canvas, and the layout tests draw inside it.
-import type { Rect, Size } from '@automata/editor/kit/core'
+import type { Rect, Size } from '@automataframework/editor/kit/core'
 
 /** The tool row and the rulers along the top of the canvas, in px: the level is framed below them. */
 export const TOOLS_INSET = 56

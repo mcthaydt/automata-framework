@@ -8,8 +8,8 @@
 // `removeCorner` against the live level and not committing it, so the tool cannot disagree with the model about what
 // is allowed, and a refusal is the model's own sentence.
 
-import type { Point } from '@automata/3d/level'
-import type { Size, Viewport2D } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type { Size, Viewport2D } from '@automataframework/editor/kit/core'
 import type { Edit } from '../../../shared/edit/edit'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { insertCorner, removeCorner } from '../../../shared/edit/vertex-edits'

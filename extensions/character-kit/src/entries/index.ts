@@ -1,4 +1,4 @@
-// @automata/character-kit: clothes, hairstyles and seats for AF's procedural 3D figures. Loading it registers them.
+// @automataframework/character-kit: clothes, hairstyles and seats for AF's procedural 3D figures. Loading it registers them.
 export { characterKitExtension } from '../app/character-kit.extension.ts'
 export { DEMO_CAST } from '../features/fashion/demo-cast.ts'
 export type {

@@ -1,5 +1,5 @@
-import { openDocument } from '@automata/editor/kit/documents'
-import { checkSystems, systemsDefShape } from '@automata/systems/sim'
+import { openDocument } from '@automataframework/editor/kit/documents'
+import { checkSystems, systemsDefShape } from '@automataframework/systems/sim'
 import { describe, expect, it } from 'vitest'
 import { newAgent, newSystemsFile, systemsFileText } from '#src/features/schematic/starter.ts'
 

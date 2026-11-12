@@ -4,8 +4,8 @@
 // garment. Out of range they break the build (cargos of width 0 run out of memory). Defaults come from
 // `WARDROBE_DEFAULTS`, written in as references.
 
-import { type Garment, withSwatchDefaults } from '@automata/3d/figures-kit'
-import { contentRef } from '@automata/content/schema'
+import { type Garment, withSwatchDefaults } from '@automataframework/3d/figures-kit'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 import { WARDROBE_DEFAULTS } from './defaults.ts'
 

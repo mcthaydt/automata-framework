@@ -21,7 +21,8 @@ export type CompileResult =
 
 /** The function the frame defines and every loop body calls first (the protocol's LOOP_GUARD_NAME). */
 const LOOP_GUARD = '__afLoop'
-const IMPORT_MESSAGE = 'The playground can import only @automata/framework, @automata/ui-screens and zod.'
+const IMPORT_MESSAGE =
+  'The playground can import only @automataframework/framework, @automataframework/ui-screens and zod.'
 // sucrase drops a namespace's body and turns `export =` into CommonJS, so either would run as something else.
 const NAMESPACE_MESSAGE = 'The playground does not run namespaces; use a module-level object instead.'
 const EXPORT_ASSIGNMENT_MESSAGE = 'The playground runs ES modules; use export default instead of export =.'

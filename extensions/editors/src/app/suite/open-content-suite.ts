@@ -1,4 +1,4 @@
-import { type OpenedSuitePorts, openSuitePorts, samplePorts } from '@automata/editor/suite'
+import { type OpenedSuitePorts, openSuitePorts, samplePorts } from '@automataframework/editor/suite'
 import { CONTENT_SAMPLE_GAME } from './sample-game.ts'
 
 // The ports the content editors' page opens: the checkout it is served on (`automata editor --app-dir`), as the other

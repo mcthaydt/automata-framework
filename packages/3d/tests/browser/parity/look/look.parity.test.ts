@@ -2,8 +2,8 @@
 // drawn, the stepped-light material takes a lit mesh, an extension's pass runs after core's, and the look comes back
 // after a lost context. WebGPU and WebGL2 parity is the GPU runner's (Chromium here has no WebGPU adapter).
 import '#src/entries/no-eval.ts'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
-import type { RenderRow, StepResult } from '@automata/sim'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
+import type { RenderRow, StepResult } from '@automataframework/sim'
 import { DirectionalLight, Mesh3D, PhongMaterial, SphereGeometry } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'

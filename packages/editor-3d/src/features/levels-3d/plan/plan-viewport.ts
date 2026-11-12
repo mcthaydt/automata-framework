@@ -4,7 +4,7 @@
 // how the plan's metres sit in it (a plan point `{ x, z }` is the viewport's `{ x, y: z }`, so z runs down the screen)
 // and gives the plan its limits (4 to 400 px to a metre, Last Light's). Every function is a value in, a value out.
 
-import type { Point } from '@automata/3d/level'
+import type { Point } from '@automataframework/3d/level'
 import {
   createViewport,
   type Rect,
@@ -12,8 +12,8 @@ import {
   type Size,
   type Viewport2D,
   type ViewportLimits,
-} from '@automata/editor/kit/core'
-import { roundJsonNumber } from '@automata/editor/kit/documents'
+} from '@automataframework/editor/kit/core'
+import { roundJsonNumber } from '@automataframework/editor/kit/documents'
 import type { ViewState } from '../../../shared/edit/view-store'
 import type { GeometryLayer } from '../../../shared/level-session/level-profile'
 

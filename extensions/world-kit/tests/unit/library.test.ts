@@ -1,7 +1,7 @@
 // The kit's library: every entry parses, every name a kit, a preset or a swatch uses is in it, and a base name is
 // told once (the kit's swatch of a base name is the textured one of the same colour).
-import { baseLibrary } from '@automata/3d/base'
-import { worldPropContent, worldSwatchContent } from '@automata/3d/world-content'
+import { baseLibrary } from '@automataframework/3d/base'
+import { worldPropContent, worldSwatchContent } from '@automataframework/3d/world-content'
 import { describe, expect, it } from 'vitest'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import { worldKitSchema } from '#src/features/furnish/kit.schema.ts'

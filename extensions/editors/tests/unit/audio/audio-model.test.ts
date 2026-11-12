@@ -1,5 +1,5 @@
-import type { AudioContent, Voice } from '@automata/audio-synth'
-import { openDocument } from '@automata/editor/kit/documents'
+import type { AudioContent, Voice } from '@automataframework/audio-synth'
+import { openDocument } from '@automataframework/editor/kit/documents'
 import { describe, expect, it } from 'vitest'
 import {
   addEventEdit,

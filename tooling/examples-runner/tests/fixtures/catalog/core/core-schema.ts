@@ -2,10 +2,10 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/framework, zod
+// Packages: @automataframework/framework, zod
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineCommand } from '@automata/framework'
+import { defineCommand } from '@automataframework/framework'
 import { z } from 'zod'
 
 export default { id: 'core-schema', command: defineCommand('jump', z.object({})) }

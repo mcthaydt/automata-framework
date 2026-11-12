@@ -4,7 +4,7 @@
 // part by part. The styles are the kit's fixtures (tests/fixtures/content/figure-hair), core's `bob`, `cropped` and
 // `curtain` are the fixture figures'.
 
-import { type GoldenOutfit, KEEPER_SLIDERS } from '@automata/3d/testing-checks'
+import { type GoldenOutfit, KEEPER_SLIDERS } from '@automataframework/3d/testing-checks'
 
 type Sliders = GoldenOutfit['sliders']
 

@@ -15,7 +15,7 @@ const entry = (path: string): CatalogEntry => {
   return found
 }
 
-const CORE_PACKAGE = 'is a core package; core is imported through "@automata/framework"'
+const CORE_PACKAGE = 'is a core package; core is imported through "@automataframework/framework"'
 
 describe('readCatalog', () => {
   it('skips the root config files, vite.config.ts and playwright.config.ts, which are tooling', () => {
@@ -57,7 +57,7 @@ describe('readCatalog', () => {
       name: 'good',
       url: '/core/good/',
       codeLines: 2,
-      imports: ['@automata/framework'],
+      imports: ['@automataframework/framework'],
       problems: [],
     })
   })
@@ -76,7 +76,7 @@ describe('readCatalog', () => {
   it('accepts zod, the schema language every command takes', () => {
     expect(entry('core/core-schema.ts')).toMatchObject({
       problems: [],
-      imports: ['@automata/framework', 'zod'],
+      imports: ['@automataframework/framework', 'zod'],
     })
   })
 
@@ -84,15 +84,15 @@ describe('readCatalog', () => {
     expect(entry('physics/physics-bodies.ts')).toMatchObject({
       problems: [],
       header: { tier: 'extension' },
-      imports: ['@automata/physics/2d'],
+      imports: ['@automataframework/physics/2d'],
     })
   })
 
-  // D-1: @automata/3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
+  // D-1: @automataframework/3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
   it("accepts an unpublished extension's entries in the render3d module", () => {
     expect(entry('render3d/render3d-boxes.ts')).toMatchObject({
       problems: [],
-      imports: ['@automata/3d/no-eval', '@automata/3d'],
+      imports: ['@automataframework/3d/no-eval', '@automataframework/3d'],
     })
   })
 
@@ -101,7 +101,7 @@ describe('readCatalog', () => {
     expect(entry('figures/figures-stand.ts')).toMatchObject({
       problems: [],
       module: 'figures',
-      imports: ['@automata/3d/no-eval', '@automata/3d', '@automata/3d/figures'],
+      imports: ['@automataframework/3d/no-eval', '@automataframework/3d', '@automataframework/3d/figures'],
     })
   })
 
@@ -118,12 +118,12 @@ describe('readCatalog', () => {
     ['widgets/widgets-spin.ts', '"widgets" is not a module'],
     ['core/core-long.ts', '101 code lines, over the budget of 100'],
     ['core/core-relative.ts', 'import "./core-good.ts" is relative'],
-    ['core/core-future-ready.ts', 'import "@automata/future" is not a public entry'],
+    ['core/core-future-ready.ts', 'import "@automataframework/future" is not a public entry'],
     // EX.6: core is imported through the umbrella, whatever the core package and however deep the path.
-    ['core/core-game.ts', `import "@automata/game" ${CORE_PACKAGE}`],
-    ['core/core-deep.ts', `import "@automata/sim/src/world/sim" ${CORE_PACKAGE}`],
-    ['core/core-private.ts', `import "@automata/render-pixi" ${CORE_PACKAGE}`],
-    ['physics/physics-deep.ts', 'import "@automata/physics/src/2d" is not a public entry'],
+    ['core/core-game.ts', `import "@automataframework/game" ${CORE_PACKAGE}`],
+    ['core/core-deep.ts', `import "@automataframework/sim/src/world/sim" ${CORE_PACKAGE}`],
+    ['core/core-private.ts', `import "@automataframework/render-pixi" ${CORE_PACKAGE}`],
+    ['physics/physics-deep.ts', 'import "@automataframework/physics/src/2d" is not a public entry'],
     ['core/core-shot.ts', 'core/core-shot.png is not in screenshots-approved.json'],
     ['core/core-done.ts', 'Pending: DONE.1 is ticked in the delivery plan; remove the Pending line'],
     ['core/core-ghost.ts', 'Pending: NOPE.9 is not a task in the delivery plan'],

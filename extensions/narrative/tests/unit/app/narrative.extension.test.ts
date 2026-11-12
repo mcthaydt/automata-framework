@@ -1,6 +1,6 @@
 // The narrative extension: the plugin and the six content kinds (canon, lines, dialogue, storylets, beats, help).
 
-import { sectorsPlaces } from '@automata/sectors/sim'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
 import { expect, it } from 'vitest'
 import { narrativeExtension } from '#src/entries/index.ts'
 

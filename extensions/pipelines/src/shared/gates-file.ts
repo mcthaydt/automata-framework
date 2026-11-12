@@ -1,11 +1,11 @@
-// `gates.json`, the file the review desk reads (`@automata/editor/gate-records`) and the pipelines write. The runner keeps
+// `gates.json`, the file the review desk reads (`@automataframework/editor/gate-records`) and the pipelines write. The runner keeps
 // a gate as `pending`, `approved` or `rejected`; the file says `open` for a gate nobody has decided.
-import type { GateRecord as EditorGateRecord } from '@automata/editor/gate-records'
+import type { GateRecord as EditorGateRecord } from '@automataframework/editor/gate-records'
 import { z } from 'zod'
 import type { GateRecord } from './state.schema.ts'
 
 /**
- * A gate as the file keeps it: the editor's keys (`@automata/editor/gate-records`, where a gate not yet decided is
+ * A gate as the file keeps it: the editor's keys (`@automataframework/editor/gate-records`, where a gate not yet decided is
  * `open`) and the keys the pipelines add beside them.
  */
 export type GateFileRecord = EditorGateRecord & Omit<GateRecord, 'id' | 'decision' | 'decidedAt'>

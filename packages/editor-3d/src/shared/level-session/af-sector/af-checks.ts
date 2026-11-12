@@ -4,9 +4,9 @@
 // and `rooms`, and anything else runs every check, the `entities` and `materials` checks last (ED3D.1b2's kit,
 // ED3D.2b).
 
-import type { AfSector2File, SectorDef } from '@automata/3d/level'
-import { hasSwatch, isFault, resolveProp } from '@automata/3d/world-content'
-import { fileTitle } from '@automata/editor/suite'
+import type { AfSector2File, SectorDef } from '@automataframework/3d/level'
+import { hasSwatch, isFault, resolveProp } from '@automataframework/3d/world-content'
+import { fileTitle } from '@automataframework/editor/suite'
 import {
   type CheckResult,
   checkResult,

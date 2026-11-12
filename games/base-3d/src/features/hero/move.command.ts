@@ -1,6 +1,6 @@
-// base-3d's commands: what the input layer sends the sim each fixed step. `camera-turn` is @automata/3d's. Systems read only these and the world, never input devices.
-import { STICK_MAX } from '@automata/3d/sim'
-import { type CommandDef, defineCommand } from '@automata/sim'
+// base-3d's commands: what the input layer sends the sim each fixed step. `camera-turn` is @automataframework/3d's. Systems read only these and the world, never input devices.
+import { STICK_MAX } from '@automataframework/3d/sim'
+import { type CommandDef, defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 
 const axis = z.int().min(-STICK_MAX).max(STICK_MAX)

@@ -14,7 +14,9 @@ import { findPixi3d } from '../src/shared/ship/prepare/pixi3d-markers.ts'
 export function copyEditor(editorDist: string, outDir: string): void {
   const source = join(editorDist, 'suite')
   if (!existsSync(join(source, 'index.html')))
-    throw new Error('There is no editor build to copy. Build it first: pnpm --filter @automata/editor build')
+    throw new Error(
+      'There is no editor build to copy. Build it first: pnpm --filter @automataframework/editor build',
+    )
   const { core, extras } = findPixi3d(source)
   const found = core[0] ?? extras[0]
   if (found !== undefined)

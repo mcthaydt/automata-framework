@@ -2,7 +2,7 @@
 // sim only keeps the fuel. The numbers (the pool's radius, the fuel it starts with, a refill, what it holds, how fast it burns)
 // are data: a game reads `content/carried-light.toml` through `carriedLightContent` and gives the plugin and its own refill the
 // result, so nothing of a lamp's arithmetic is written in source. Fuel is counted in ticks in the sim and in seconds in the file.
-import type { SimContext } from '@automata/sim'
+import type { SimContext } from '@automataframework/sim'
 import { CarriedLight } from './carried-light.component'
 
 /** The numbers of a carried light. The defaults are the old game's hand lamp. */

@@ -1,6 +1,6 @@
 // The coloured outline (selective outlining, "selout"): a pixel beside a nearer shape takes that shape's own colour, a few
 // steps down its ramp, a step lighter on the key's side. The rules are pure and the pass repeats them on the GPU.
-import { DUEL_RAMPS } from '@automata/content/palette'
+import { DUEL_RAMPS } from '@automataframework/content/palette'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_LOOK } from '#src/features/look/look.ts'
 import {

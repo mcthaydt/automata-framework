@@ -1,4 +1,4 @@
-import type { Sim } from '@automata/sim'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { NetSnapshot } from '#src/features/client/room/colyseus-transport.ts'
 import { Prediction } from '#src/features/client/session/prediction.ts'

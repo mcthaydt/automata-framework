@@ -2,7 +2,7 @@
 // the head on it and each hand in the lap, hanging, or on a desk (FigureBuilder src/features/motion/motion.ts `Seat`,
 // `SeatHand`; library/seats.json at 025ffb4). The pose that sits a body down is `seated` (seated.ts).
 
-import { type Vec3, vec3 } from '@automata/3d/figures-kit'
+import { type Vec3, vec3 } from '@automataframework/3d/figures-kit'
 import { z } from 'zod'
 
 /** A seated hand: in the lap (on the near thigh, by the knee), hanging, or on a desk at `to`. */

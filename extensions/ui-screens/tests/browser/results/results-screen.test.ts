@@ -1,6 +1,6 @@
-import '@automata/framework/theme.css'
-import { PSEUDO_LOCALE } from '@automata/content/locale'
-import { mountFixture } from '@automata/framework/testing'
+import '@automataframework/framework/theme.css'
+import { PSEUDO_LOCALE } from '@automataframework/content/locale'
+import { mountFixture } from '@automataframework/framework/testing'
 import ResultsScreen from '#src/features/results/ResultsScreen.svelte'
 import { type Locale, layoutContract, pseudo, say } from '#src/testing/layout-sweep.ts'
 

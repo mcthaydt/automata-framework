@@ -1,7 +1,7 @@
 // The door a game's level file comes in by: `readLevel` reads either format as `af-sector/2`, and `checkLevel` adds
 // what the sim cannot resolve. Nothing throws; the problems say where, and the level is empty when the file was not
 // a level, so the caller can go on and report.
-import { type AfSector2, type LevelProblem, readLevel } from '@automata/3d/level'
+import { type AfSector2, type LevelProblem, readLevel } from '@automataframework/3d/level'
 import { checkLevel } from './check-level'
 
 export interface SectorMapRead {

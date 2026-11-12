@@ -1,4 +1,4 @@
-// @automata/cutscenes/sim: cutscene scripts as data and their tick-time playback, a sim entry.
+// @automataframework/cutscenes/sim: cutscene scripts as data and their tick-time playback, a sim entry.
 
 export { anchorsOf, type PlacedActorKey, type PlacedScript, placeScript } from '../shared/sim/anchors'
 export { CutsceneSkip } from '../shared/sim/cutscene.command'

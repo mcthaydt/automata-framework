@@ -6,9 +6,9 @@
  * game is over (`ended`). Everything else is the room's.
  */
 
-import { MAX_SEATS } from '@automata/net'
-import { netPlugin, ROOM_SOURCE, SeatJoin, SeatLeave } from '@automata/net/sim'
-import type { CommandDef, PluginDef, Rng, SimEvent } from '@automata/sim'
+import { MAX_SEATS } from '@automataframework/net'
+import { netPlugin, ROOM_SOURCE, SeatJoin, SeatLeave } from '@automataframework/net/sim'
+import type { CommandDef, PluginDef, Rng, SimEvent } from '@automataframework/sim'
 import type { SimView } from './sim-view'
 
 /** A command without its header: the room stamps `tick`, `source` and `seq`. */

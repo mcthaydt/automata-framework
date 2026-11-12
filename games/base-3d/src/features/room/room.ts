@@ -2,8 +2,8 @@
 // its camera views in the file's `views`, read by the converter (levels/sector-area.ts) for the sim and built by the world
 // builder (`roomWorld`) for the eye. A third-person room under the
 // angled free-turn camera; the rooms turn freely.
-import { buildWorld, levelTime, type WorldLibrary } from '@automata/3d'
-import { type AfSector2File, readLevel } from '@automata/3d/level'
+import { buildWorld, levelTime, type WorldLibrary } from '@automataframework/3d'
+import { type AfSector2File, readLevel } from '@automataframework/3d/level'
 import file from '../../../content/levels/room.af-sector.json'
 import type { RoomWorld } from '../../shared/room-world.ts'
 import { areaFromSector } from './sector-area.ts'

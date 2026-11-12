@@ -76,7 +76,7 @@ export interface Files {
   readonly _Files: unique symbol
 }
 export const Files: Context.Tag<Files, FilesService> = Context.GenericTag<Files, FilesService>(
-  '@automata/dev-tools/Files',
+  '@automataframework/dev-tools/Files',
 )
 
 function listBelow(root: string): string[] {
@@ -148,7 +148,7 @@ export interface ProcessRunner {
 export const ProcessRunner: Context.Tag<ProcessRunner, ProcessRunnerService> = Context.GenericTag<
   ProcessRunner,
   ProcessRunnerService
->('@automata/dev-tools/ProcessRunner')
+>('@automataframework/dev-tools/ProcessRunner')
 
 function runProcess(
   command: string,

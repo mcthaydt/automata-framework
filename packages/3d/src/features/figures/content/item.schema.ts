@@ -2,7 +2,7 @@
 // poses the arm (`ItemDef`). A part's
 // `material` is a swatch id. The parts become meshes when the figure is built; the hold is applied by the motion.
 
-import { contentRef } from '@automata/content/schema'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 import { about, type Vec2, type Vec3, vec2, vec3 } from './shapes.schema.ts'
 

@@ -1,7 +1,7 @@
 // The objective line: an ordered list in the `hud` file, where the old game had nine `if`s. The first row whose
 // conditions all hold is the line, and it may name a place to walk to. Conditions are the puzzle's, read through the
 // same `Reader` the puzzle reads, so a fact has one owner.
-import { type Cond, condSchema, holds, type Reader } from '@automata/puzzle/sim'
+import { type Cond, condSchema, holds, type Reader } from '@automataframework/puzzle/sim'
 import { z } from 'zod'
 
 export interface ObjectiveRow {

@@ -1,8 +1,8 @@
 // The fields of one step of a cutscene, in the spec's words, and the edits each one makes. A field never shows a key
 // name; a name the game does not have any more (a line removed in Writer) is kept and said in words.
 
-import type { CutsceneScript } from '@automata/cutscenes/sim'
-import type { ContentEdit } from '@automata/editor/kit/documents'
+import type { CutsceneScript } from '@automataframework/cutscenes/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 import { type Field, setOrInsert } from '../../shared/fields.ts'
 import { retimeEdit } from './key-edits.ts'
 import { keysOf, type TrackId } from './tracks.ts'

@@ -8,7 +8,7 @@ import {
   type StorageClock,
   type StorageFailure,
   type Workspace,
-} from '@automata/editor/kit/core'
+} from '@automataframework/editor/kit/core'
 import type { ParseIssue } from '../../../shared/level-session/file-codec'
 import type { LevelProfile } from '../../../shared/level-session/level-profile'
 import { type CreateOutcome, createLevel } from '../home/new-level'

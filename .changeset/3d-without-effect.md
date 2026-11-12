@@ -1,7 +1,7 @@
 ---
-'@automata/framework': patch
-'@automata/content': patch
-'@automata/tools': patch
+'@automataframework/framework': patch
+'@automataframework/content': patch
+'@automataframework/tools': patch
 ---
 
-`@automata/framework/testing` now exports `fakeClock`, and `@automata/framework` exports `systemClock`, so a renderer can time a wait without Effect. `@automata/content` adds `compileContentResult` and `@automata/tools` adds `manifestOf` and `rukenHeadersOf`, plain-value forms of what the Effect API did.
+`@automataframework/framework/testing` now exports `fakeClock`, and `@automataframework/framework` exports `systemClock`, so a renderer can time a wait without Effect. `@automataframework/content` adds `compileContentResult` and `@automataframework/tools` adds `manifestOf` and `rukenHeadersOf`, plain-value forms of what the Effect API did.

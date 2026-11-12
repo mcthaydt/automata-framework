@@ -2,7 +2,7 @@
 // off, in whole DUEL steps (the snap after the shadow cuts the multiplied light), and nowhere else is changed. Headless Firefox here has
 // no WebGL, so these skip there.
 import '#src/entries/no-eval.ts'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'
 import { DEFAULT_LOOK, parseLook } from '#src/features/look/look.ts'

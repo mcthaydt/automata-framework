@@ -1,4 +1,4 @@
-// @automata/world-kit: ready-made props, furnished rooms, signs and generated maps for AF's 3D worlds. Loading it
+// @automataframework/world-kit: ready-made props, furnished rooms, signs and generated maps for AF's 3D worlds. Loading it
 // registers its prop generators.
 export { dressedBaseScenes } from '../app/dressed-base-scenes.ts'
 export { worldKitExtension } from '../app/world-kit.extension.ts'

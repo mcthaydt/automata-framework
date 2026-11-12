@@ -3,7 +3,7 @@
 // only in a game. The `webgpu` project launches Chromium with WebGPU on (vitest.config.ts); a machine with no adapter,
 // or one whose adapter goes away mid-test, skips these with the reason (`webgpu-skip.ts`).
 import '#src/entries/no-eval.ts'
-import type { RenderRow, StepResult } from '@automata/sim'
+import type { RenderRow, StepResult } from '@automataframework/sim'
 import { DirectionalLight } from '@pixi/3d'
 import { afterEach, describe, expect, it, type TestContext } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'

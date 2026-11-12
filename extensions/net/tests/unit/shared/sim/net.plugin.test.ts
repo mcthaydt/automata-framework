@@ -1,4 +1,4 @@
-import { createSim, defineComponent, definePlugin, type Sim } from '@automata/sim'
+import { createSim, defineComponent, definePlugin, type Sim } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { NetOwner, netPlugin, SeatJoin, SeatLeave } from '#src/entries/sim.ts'
 import { MAX_SEATS } from '#src/shared/sim/seat.schema.ts'

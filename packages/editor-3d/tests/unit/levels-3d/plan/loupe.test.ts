@@ -2,7 +2,7 @@
 // plan and the tool's overlay for a camera centred on the point at four times the zoom, in a 140 px lens placed clear of
 // the point. The depot, 800 by 400 px, camera at (7, 3), zoom 1 (32 px a metre).
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { loupeOf, nudgePadOf } from '#src/features/levels-3d/plan/loupe.ts'
 import { createPlanPicture } from '#src/features/levels-3d/plan/plan-picture.ts'

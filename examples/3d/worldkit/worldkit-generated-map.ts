@@ -1,14 +1,14 @@
 // worldkit-generated-map: an apartment the world kit generates from a number, furnished, seen from above
 //
-// Shows: a whole place as a generator and a seed (`@automata/world-kit`): `generateMap('apartment', 7)` makes an
+// Shows: a whole place as a generator and a seed (`@automataframework/world-kit`): `generateMap('apartment', 7)` makes an
 //   `af-sector/2` level (a corridor with four to six rooms, a ramp and a landing), and every room in it asks to be dressed,
 //   so `dressLevel` furnishes each from its kit. The same number gives the same level in every engine; change the
 //   seed and the rooms, their sizes and their furniture change. The camera looks down on the plan.
 // Controls: none
-// Packages: @automata/framework, @automata/3d, @automata/world-kit
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/world-kit
 // Difficulty: ★★★☆
 // Tier: extension
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -18,9 +18,9 @@ import {
   swatchColour,
   swatchGlow,
   targetSize,
-} from '@automata/3d'
-import { defineGame, definePlugin } from '@automata/framework'
-import { dressLevel, generateMap, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
+} from '@automataframework/3d'
+import { defineGame, definePlugin } from '@automataframework/framework'
+import { dressLevel, generateMap, worldKitExtension, worldKitLibrary } from '@automataframework/world-kit'
 
 // --- level ---
 const { level, problems } = dressLevel(generateMap('apartment', 7), worldKitLibrary)

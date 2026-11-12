@@ -1,7 +1,7 @@
 <!-- The world's rules: what the game does whatever any character is doing. Each reads "When … then …". -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import type { Probe, SysEffect } from '@automata/systems/sim'
+import { Button } from '@automataframework/editor/kit'
+import type { Probe, SysEffect } from '@automataframework/systems/sim'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import AddPiece from './AddPiece.svelte'
 import { sceneNames } from './names.ts'

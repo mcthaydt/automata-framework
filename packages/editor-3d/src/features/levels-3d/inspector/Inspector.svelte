@@ -5,7 +5,7 @@
   Several selected show the first and say so; nothing selected says how to select.
 -->
 <script lang="ts">
-import { Button, Picker } from '@automata/editor/kit'
+import { Button, Picker } from '@automataframework/editor/kit'
 import type { InspectorCard } from './inspector-cards'
 import type { InspectorChange, InspectorPhase } from './inspector-edits'
 import type { MaterialTarget } from './material-session'

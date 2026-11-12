@@ -1,6 +1,6 @@
 // A run's watcher: checks a scenario's condition with the systems' own probes at the end of every step and
 // keeps whether it held. Bots and the pipeline add it to a run's sim; a game never registers it.
-import { definePlugin, defineSystem, type PluginDef } from '@automata/sim'
+import { definePlugin, defineSystem, type PluginDef } from '@automataframework/sim'
 import { holds, type Subject } from './probe'
 import type { Probe } from './systems.schema'
 import { SystemsWatch } from './watch.resource'

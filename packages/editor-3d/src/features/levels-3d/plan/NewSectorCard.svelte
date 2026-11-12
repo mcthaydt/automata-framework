@@ -4,7 +4,7 @@
   next tap does (a polygon closes on its first point, a rectangle on its second).
 -->
 <script lang="ts">
-import type { Point } from '@automata/3d/level'
+import type { Point } from '@automataframework/3d/level'
 import type { DrawEdge } from './sector-tool-controller'
 
 interface Props {

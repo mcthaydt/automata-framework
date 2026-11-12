@@ -4,8 +4,8 @@
   the material sheet (ED3D.8b).
 -->
 <script lang="ts">
-import { Button, Picker, Slider, Stepper } from '@automata/editor/kit'
-import { fileTitle } from '@automata/editor/suite'
+import { Button, Picker, Slider, Stepper } from '@automataframework/editor/kit'
+import { fileTitle } from '@automataframework/editor/suite'
 import type { InspectorCard } from './inspector-cards'
 import type { InspectorChange, InspectorPhase } from './inspector-edits'
 import type { MaterialTarget } from './material-session'

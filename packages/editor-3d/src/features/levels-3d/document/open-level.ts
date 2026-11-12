@@ -6,7 +6,7 @@ import {
   type Recovery,
   type StorageClock,
   type Workspace,
-} from '@automata/editor/kit/core'
+} from '@automataframework/editor/kit/core'
 import type { CheckResult } from '../../../shared/checks/check'
 import { createLevelEditor, type LevelEditor } from '../../../shared/edit/level-editor'
 import type { LevelState } from '../../../shared/edit/level-state'

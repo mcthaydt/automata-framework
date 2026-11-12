@@ -1,9 +1,9 @@
-import { defineTests } from '@automata/vitest-preset'
+import { defineTests } from '@automataframework/vitest-preset'
 
 export default defineTests({
   // Pre-bundle browser-side deps; on a cold cache Vite otherwise reloads test pages mid-run.
   optimizeDeps: [
-    '@automata/sim',
+    '@automataframework/sim',
     'zod',
     '@dimforge/rapier2d-deterministic-compat',
     '@dimforge/rapier3d-deterministic-compat',

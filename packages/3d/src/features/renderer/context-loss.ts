@@ -1,4 +1,4 @@
-import type { Clock, RenderTarget, TimeoutHandle } from '@automata/framework'
+import type { Clock, RenderTarget, TimeoutHandle } from '@automataframework/framework'
 
 /**
  * How long the renderer waits for the browser to give a lost WebGL context back before it shows the "picture

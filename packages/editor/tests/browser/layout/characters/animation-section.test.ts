@@ -1,7 +1,7 @@
 import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
-import { type MountedFixture, mountFixture, settleLayout } from '@automata/framework/testing'
+import { type MountedFixture, mountFixture, settleLayout } from '@automataframework/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import AnimationSection from '#src/features/characters/AnimationSection.svelte'

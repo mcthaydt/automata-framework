@@ -1,9 +1,9 @@
-// "Can it be finished?" for a puzzle, in a sentence. The solver (`@automata/puzzle/solver`) searches the puzzle's states for
+// "Can it be finished?" for a puzzle, in a sentence. The solver (`@automataframework/puzzle/solver`) searches the puzzle's states for
 // the goal and for states the player can get stuck in. It runs in a worker in the page (`solver-worker.ts`), because a
 // large puzzle takes long enough to freeze a page. What the game's own code does (`{ call }`) is not data, so the solver is
 // told each call changes nothing, and the answer says which were not counted.
-import type { PuzzleDef } from '@automata/puzzle/sim'
-import { createSolver, type State } from '@automata/puzzle/solver'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
+import { createSolver, type State } from '@automataframework/puzzle/solver'
 import { spaced } from '../pieces/piece.ts'
 
 export interface PuzzleAnswer {

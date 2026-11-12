@@ -39,8 +39,8 @@ import {
   vec2,
   vec3,
   type Weight,
-} from '@automata/3d/figures-kit'
-import { contentRef } from '@automata/content/schema'
+} from '@automataframework/3d/figures-kit'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 import type { KitPiece } from './kit-piece.ts'
 

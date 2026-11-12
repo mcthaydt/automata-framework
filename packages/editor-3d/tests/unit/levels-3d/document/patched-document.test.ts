@@ -2,8 +2,8 @@
 // flows 3 and 4): the kit's DocumentSession writes what the codec's patch gives, a refused patch holds Save, and the
 // autosave keeps the model so Restore patches it into the file as it is now.
 
-import type { AfSector2File } from '@automata/3d/level'
-import { findRecovery, statPath } from '@automata/editor/kit/core'
+import type { AfSector2File } from '@automataframework/3d/level'
+import { findRecovery, statPath } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import {
   createPatchedDocument,

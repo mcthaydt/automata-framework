@@ -14,7 +14,7 @@ function fixture(overrides: Record<string, unknown>): string {
   const root = mkdtempSync(join(tmpdir(), 'extension-manifests-'))
   mkdirSync(join(root, 'extensions/x'), { recursive: true })
   const manifest = {
-    name: '@automata/x',
+    name: '@automataframework/x',
     version: '0.0.0',
     license: 'MIT',
     type: 'module',
@@ -35,13 +35,15 @@ describe('extensionManifestProblems', () => {
   })
 
   it('refuses core in dependencies', () => {
-    expect(extensionManifestProblems(fixture({ dependencies: { '@automata/sim': 'workspace:*' } }))).toEqual([
-      'extensions/x/package.json: @automata/sim is core, so it belongs in peerDependencies',
+    expect(
+      extensionManifestProblems(fixture({ dependencies: { '@automataframework/sim': 'workspace:*' } })),
+    ).toEqual([
+      'extensions/x/package.json: @automataframework/sim is core, so it belongs in peerDependencies',
     ])
   })
 
-  it('refuses a name outside the @automata scope', () => {
-    expect(extensionManifestProblems(fixture({ name: '@other-scope/x' }))[0]).toMatch(/@automata\/x/)
+  it('refuses a name outside the @automataframework scope', () => {
+    expect(extensionManifestProblems(fixture({ name: '@other-scope/x' }))[0]).toMatch(/@automataframework\/x/)
   })
 
   it('refuses a licence other than MIT and a missing #src map', () => {

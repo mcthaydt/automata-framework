@@ -1,5 +1,5 @@
-import type { ContentEntityDef, ContentProject } from '@automata/content/level-2d'
-import type { RenderRow } from '@automata/sim'
+import type { ContentEntityDef, ContentProject } from '@automataframework/content/level-2d'
+import type { RenderRow } from '@automataframework/sim'
 import { Assets, Graphics, Sprite, Texture, TextureSource } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { pictureView } from '#src/features/render/views/picture-view.ts'

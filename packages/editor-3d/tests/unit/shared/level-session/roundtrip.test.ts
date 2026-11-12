@@ -2,7 +2,7 @@
 // codec, each checked for reading back as the edited model and for touching only what it edited, then reverted.
 // The generator is a fixed linear congruential sequence, so a failure replays.
 
-import { type JsonPath, scan } from '@automata/editor/kit/documents'
+import { type JsonPath, scan } from '@automataframework/editor/kit/documents'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
 import type { FileCodec } from '#src/shared/level-session/file-codec.ts'

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { passFirstRun } from '@automata/tools/e2e'
+import { passFirstRun } from '@automataframework/tools/e2e'
 import { expect, test } from '@playwright/test'
 import { gameUrl } from './origins.ts'
 

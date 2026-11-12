@@ -4,8 +4,8 @@
   makes a note.
 -->
 <script lang="ts">
-import type { Condition } from '@automata/audio-synth'
-import { Button } from '@automata/editor/kit'
+import type { Condition } from '@automataframework/audio-synth'
+import { Button } from '@automataframework/editor/kit'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import { removeEdit } from './audio-model.ts'
 import type { AudioSession } from './audio-session.svelte.ts'

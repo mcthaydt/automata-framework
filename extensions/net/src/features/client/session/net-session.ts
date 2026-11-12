@@ -17,7 +17,7 @@
  * `createNetSession` wires it to a `NetRoom`.
  */
 
-import type { Command, Sim } from '@automata/sim'
+import type { Command, Sim } from '@automataframework/sim'
 import { RenderClock } from '../interpolation/render-clock'
 import { type RemoteView, SnapshotBuffer } from '../interpolation/snapshot-buffer'
 import type { NetSnapshot } from '../room/colyseus-transport'

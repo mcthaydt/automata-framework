@@ -1,5 +1,5 @@
 // How the game makes its sim from its compiled area. Sim code: `pnpm boundaries` checks it.
-import type { PluginDef, Sim } from '@automata/sim'
+import type { PluginDef, Sim } from '@automataframework/sim'
 import type { Area } from '../shared/area.ts'
 import { base3dPlugin, spawnArea } from './base3d.plugin.ts'
 

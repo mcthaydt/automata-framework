@@ -1,5 +1,5 @@
 {
-  "name": "@automata/ui-screens",
+  "name": "@automataframework/ui-screens",
   "version": "0.0.5",
   "license": "MIT",
   "repository": {
@@ -100,14 +100,14 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "@automata/content": "workspace:^",
-    "@automata/framework": "workspace:^",
+    "@automataframework/content": "workspace:^",
+    "@automataframework/framework": "workspace:^",
     "svelte": "^5.57.1"
   },
   "devDependencies": {
-    "@automata/content": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/content": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@sveltejs/package": "3.0.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",

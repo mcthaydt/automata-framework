@@ -2,9 +2,9 @@
 // drag add to the keys' `move` and `camera-turn`, and the touch layout's five buttons. Presentation only: the sim
 // sees integers (`move` ±127, `camera-turn` ±8,192), never an input device.
 
-import { STICK_MAX } from '@automata/3d/sim'
-import type { AnalogReading, InputMap } from '@automata/framework'
-import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@automata/framework'
+import { STICK_MAX } from '@automataframework/3d/sim'
+import type { AnalogReading, InputMap } from '@automataframework/framework'
+import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@automataframework/framework'
 import { TICK_HZ } from '../../shared/constants.ts'
 
 /** What the right stick adds a tick when pushed over: any push is a press, and a press is one 45° step of the camera. */

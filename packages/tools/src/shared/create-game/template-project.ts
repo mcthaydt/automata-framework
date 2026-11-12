@@ -55,9 +55,9 @@ export const packageFile = (
           check: features.fonts === true ? 'pnpm fonts && automata check' : 'automata check',
         },
         dependencies: {
-          '@automata/framework': frameworkSpec(options),
-          '@automata/content': frameworkSpec(options),
-          '@automata/sim': frameworkSpec(options),
+          '@automataframework/framework': frameworkSpec(options),
+          '@automataframework/content': frameworkSpec(options),
+          '@automataframework/sim': frameworkSpec(options),
           ...extra(options),
           'pixi.js': '8.22.0',
           svelte: '5.57.1',
@@ -65,7 +65,7 @@ export const packageFile = (
           ...targetDependencies(targetsOf(options)).dependencies,
         },
         devDependencies: {
-          '@automata/tools': frameworkSpec(options),
+          '@automataframework/tools': frameworkSpec(options),
           '@sveltejs/vite-plugin-svelte': '7.3.1',
           '@types/node': '24.19.1',
           typescript: '7.0.2',
@@ -86,7 +86,7 @@ export const shipConfigFile = (
   languages: readonly string[] = ['en'],
 ): TemplateFile => ({
   path: 'ship.config.ts',
-  content: (options) => `import { defineShipConfig } from '@automata/tools'
+  content: (options) => `import { defineShipConfig } from '@automataframework/tools'
 import packageJson from './package.json' with { type: 'json' }
 
 export default defineShipConfig({
@@ -135,7 +135,7 @@ export default { schemas: ${kinds.schemas} }
 export const viteConfigFile = (kinds: ViteContent): TemplateFile => ({
   path: 'vite.config.ts',
   content: (options) => `${kinds.imports}
-import { automataContent } from '@automata/content/vite'
+import { automataContent } from '@automataframework/content/vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
 
@@ -251,7 +251,7 @@ body {
 /** The content kinds the 2D game's folders hold, for the content plugin and the \`automata-content\` command alike. */
 const SQUARE_KINDS: ViteContent = {
   imports:
-    "import { audioContent } from '@automata/audio-synth'\nimport { controlsKind } from '@automata/content/controls'\nimport { level2dKinds } from '@automata/content/level-2d'\nimport { feelContent } from '@automata/feel'",
+    "import { audioContent } from '@automataframework/audio-synth'\nimport { controlsKind } from '@automataframework/content/controls'\nimport { level2dKinds } from '@automataframework/content/level-2d'\nimport { feelContent } from '@automataframework/feel'",
   schemas: '[...level2dKinds(), controlsKind(), feelContent, audioContent]',
   compiles: 'the level the editor writes, the default controls, and what Feel and Audio write',
 }
@@ -262,8 +262,8 @@ export const PROJECT_FILES: readonly TemplateFile[] = [
   packageFile(
     (options) => ({
       // Feel and Audio play what their editors make, so the game asks for the packages that play it.
-      '@automata/audio-synth': frameworkSpec(options),
-      '@automata/feel': frameworkSpec(options),
+      '@automataframework/audio-synth': frameworkSpec(options),
+      '@automataframework/feel': frameworkSpec(options),
     }),
     { fonts: true },
   ),

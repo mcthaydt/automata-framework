@@ -62,7 +62,7 @@ export interface Files {
   readonly _Files: unique symbol
 }
 export const Files: Context.Tag<Files, FilesService> = Context.GenericTag<Files, FilesService>(
-  '@automata/pipelines/Files',
+  '@automataframework/pipelines/Files',
 )
 
 function listBelow(root: string): string[] {

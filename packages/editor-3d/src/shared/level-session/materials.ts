@@ -1,9 +1,9 @@
 // What a level's material picker may offer (ED3D spec §4.1 and D10). The set comes from the profile: an `af-sector/2`
 // file carries its own `materials` table. A level with none is not guessed at: the answer is a refusal, and the edits
 // that need a list refuse with it.
-import type { AfSector2File } from '@automata/3d/level'
-import { swatchColour } from '@automata/3d/world-content'
-import { fileTitle } from '@automata/editor/suite'
+import type { AfSector2File } from '@automataframework/3d/level'
+import { swatchColour } from '@automataframework/3d/world-content'
+import { fileTitle } from '@automataframework/editor/suite'
 import { EMPTY_LIBRARY, type GameLibrary, worldLibrary } from './game-library'
 
 /** The category the game's swatches are filed under in the picker. */

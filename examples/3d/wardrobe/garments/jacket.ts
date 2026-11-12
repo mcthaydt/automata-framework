@@ -7,7 +7,7 @@
 // metal's teeth and pulls, seams) are swatch variants, and a mark the original draws at two sizes by density is
 // one decal at its density-2 size (the density is fixed).
 
-import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
+import type { Anchor, Garment, Measure } from '@automataframework/3d/figures-kit'
 import {
   at,
   axisAngle,
@@ -23,7 +23,7 @@ import {
   smooth,
   type V3,
   variant,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { WARDROBE_DEFAULTS } from './defaults.ts'
 import type { Jacket } from './garment-types.ts'
 import { over, underneath } from './layering.ts'

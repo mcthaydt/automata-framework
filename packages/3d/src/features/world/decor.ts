@@ -2,7 +2,7 @@
 // along it, y up, z out into the room), and a doorway sector's hinged door. Changed: the rng is AF's seeded one, a piece
 // names its swatch for the library to check, and a door carries its hinge and its swing for the stage to turn it (it is
 // built shut). A sign is lettered by the props' generators; with none registered a sign draws nothing.
-import { createRng } from '@automata/sim'
+import { createRng } from '@automataframework/sim'
 import type { AfSectorEntry2, Decor, SectorDoor } from '../../shared/level/af-sector-2.schema.ts'
 import { type MeshData, merge, ringTube } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'

@@ -1,6 +1,6 @@
 // The 3D stage hands each part of the director's scene to the option that owns it. It holds no time of its own: the caller
 // passes the sim's cutscene clock, so a replay draws the same frames.
-import { doorOpen, lampState, type PieceStates } from '@automata/3d/level'
+import { doorOpen, lampState, type PieceStates } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { cutsceneStage3d } from '#src/features/stage-3d/cutscene-stage-3d.ts'
 import { DOOR, DOOR_AND_LAMP, LAMP } from '#src/testing/door-and-lamp.ts'

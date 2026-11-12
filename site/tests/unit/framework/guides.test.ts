@@ -25,7 +25,7 @@ describe('readGuides', () => {
   it('has a guide that says what an extension is and how to add one, and links the Reference', () => {
     const extensions = guides.find((guide) => guide.slug === 'extensions')
     expect(extensions?.title).toBe('Extensions: add what your game needs')
-    expect(extensions?.content).toContain('pnpm add @automata/')
+    expect(extensions?.content).toContain('pnpm add @automataframework/')
     expect(extensions?.content).toContain('](/api)')
   })
 

@@ -3,8 +3,8 @@
 // (one build per level), and the things are read once per level too, so a pointer move that only changes the camera or
 // the hover costs a paint, not a rebuild.
 
-import type { Point } from '@automata/3d/level'
-import type { Point as ScreenPoint, Size } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type { Point as ScreenPoint, Size } from '@automataframework/editor/kit/core'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import type { ViewState } from '../../../shared/edit/view-store'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'

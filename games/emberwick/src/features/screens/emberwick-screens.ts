@@ -13,8 +13,8 @@ import {
   type InputMap,
   type ScreenContext,
   type ScreenDef,
-} from '@automata/framework'
-import { createSim, type PluginDef, type Sim } from '@automata/sim'
+} from '@automataframework/framework'
+import { createSim, type PluginDef, type Sim } from '@automataframework/sim'
 import { TICK_HZ } from '../../shared/tuning.ts'
 import { type EmberwickWords, emberwickWords } from './words.ts'
 

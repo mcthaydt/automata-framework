@@ -1,4 +1,4 @@
-// The figures package's test fixtures for other packages' tests (@automata/3d's figure view, and the wardrobe
+// The figures package's test fixtures for other packages' tests (@automataframework/3d's figure view, and the wardrobe
 // extension's): the compiled fixture content, with Wick and the keeper, and its libraries, and the same content as a
 // `MotionLibrary`; and what a wardrobe checks its own garments with: the golden checks, the seeded random cast, the
 // motion goldens' comparisons and the fixture content's compile.

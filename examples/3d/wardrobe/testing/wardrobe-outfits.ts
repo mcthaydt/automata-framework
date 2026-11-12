@@ -2,7 +2,7 @@
 // bodies, with the core hair styles (locks) and caps they are worn with. scripts/record-goldens.ts dresses each one;
 // tests/unit/outfits.test.ts dresses them again and compares part by part.
 
-import type { GoldenOutfit } from '@automata/3d/testing'
+import type { GoldenOutfit } from '@automataframework/3d/testing'
 
 const MODEL = {}
 const TALL = { height: 197, fat: 1, muscle: 0.85, frame: 0.8 }

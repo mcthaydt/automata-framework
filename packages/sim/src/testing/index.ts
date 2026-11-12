@@ -1,4 +1,4 @@
-// @automata/sim/testing: goldens, replays and the snapshot property test for sim code. No Svelte, so a sim-only package can use it; loadable in a browser page and in Node.
+// @automataframework/sim/testing: goldens, replays and the snapshot property test for sim code. No Svelte, so a sim-only package can use it; loadable in a browser page and in Node.
 export { goldenCommands } from './commands.ts'
 export { nodeCompression, streamCompression } from './compression.ts'
 export { type Difference, diffSnapshotViews } from './diff.ts'

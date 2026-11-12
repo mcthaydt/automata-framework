@@ -1,10 +1,10 @@
 // A carried light that burns fuel (a hand lamp, a torch): lit or not, fuel in ticks, a toggle, a refill, and the pool it
 // gives the senses. It names no item and no number of any game; the game owns which item it is and how much fuel a bottle is.
 
-import { clinicGraph } from '@automata/nav/testing/clinic'
-import type { Point } from '@automata/sectors/sim'
-import { stateHash, stepWith } from '@automata/sectors/testing'
-import { defineCommand, definePlugin, defineSystem, type Sim, type SimContext } from '@automata/sim'
+import { clinicGraph } from '@automataframework/nav/testing/clinic'
+import type { Point } from '@automataframework/sectors/sim'
+import { stateHash, stepWith } from '@automataframework/sectors/testing'
+import { defineCommand, definePlugin, defineSystem, type Sim, type SimContext } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {

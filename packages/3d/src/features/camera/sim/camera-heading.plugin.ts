@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDef } from '@automata/sim'
+import { definePlugin, type PluginDef } from '@automataframework/sim'
 import { CameraHeading } from './camera-heading.component.ts'
 import { CameraTurn } from './camera-turn.command.ts'
 import { cameraTurnSystem } from './camera-turn.system.ts'

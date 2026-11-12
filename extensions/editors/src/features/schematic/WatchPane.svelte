@@ -5,7 +5,7 @@
   extension yet); only after a wait does it say what to add.
 -->
 <script lang="ts">
-import { GameFrame } from '@automata/editor/kit'
+import { GameFrame } from '@automataframework/editor/kit'
 import { onDestroy } from 'svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 import { watchBridge } from './watch-bridge.ts'

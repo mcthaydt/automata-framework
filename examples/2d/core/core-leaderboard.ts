@@ -4,7 +4,7 @@
 //   from sim state and never typed by anyone. The game asks the host for leaderboards; pause to see the board the
 //   host holds, with your row marked. Offline or standalone, paused says so and shows no board kept here.
 // Controls: Escape or P to pause and see the board
-// Packages: @automata/framework, zod
+// Packages: @automataframework/framework, zod
 // Difficulty: ★★☆☆
 // Tier: core
 // Golden: 240
@@ -15,7 +15,7 @@ import {
   definePlugin,
   defineSystem,
   rect,
-} from '@automata/framework'
+} from '@automataframework/framework'
 import { z } from 'zod'
 
 const Runner = defineComponent('runner', { x: 'f32', y: 'f32', laps: 'f32' })

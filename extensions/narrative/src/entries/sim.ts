@@ -1,4 +1,4 @@
-// @automata/narrative/sim: dialogue, line records, the canon's shape and storylets, a sim entry.
+// @automataframework/narrative/sim: dialogue, line records, the canon's shape and storylets, a sim entry.
 
 export { type Canon, canonSchema, DEFAULT_STANCE } from '../shared/sim/canon.schema'
 export {

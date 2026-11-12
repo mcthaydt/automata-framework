@@ -2,7 +2,7 @@
 // (both converted once from the original).
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { type AfSector2, readLevel } from '@automata/3d/level'
+import { type AfSector2, readLevel } from '@automataframework/3d/level'
 
 const fixture = (name: string): string => readFileSync(join(import.meta.dirname, 'fixtures', name), 'utf8')
 

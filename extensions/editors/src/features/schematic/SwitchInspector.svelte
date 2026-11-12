@@ -3,8 +3,8 @@
   the order the game checks them. Every change is one undo step.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import type { AgentDef, Probe, SysEffect, Transition } from '@automata/systems/sim'
+import { Button } from '@automataframework/editor/kit'
+import type { AgentDef, Probe, SysEffect, Transition } from '@automataframework/systems/sim'
 import AddPiece from './AddPiece.svelte'
 import { ANY_MODE, timingOf } from './diagram/layout.ts'
 import PieceRow from './PieceRow.svelte'

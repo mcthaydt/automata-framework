@@ -1,6 +1,6 @@
 <!-- The game's cutscenes, one row each by its name, and a way to add one. -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import SequenceAdd from './SequenceAdd.svelte'
 import type { SequenceSession } from './sequence-session.svelte.ts'
 

@@ -5,7 +5,7 @@
 // unchanged. Cut: graphics (SNEKPRTY marks). Changed: painter materials are swatch variants, and a mark the
 // source draws at two sizes by density is one decal at its density-2 size (the density is fixed).
 
-import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
+import type { Anchor, Garment, Measure } from '@automataframework/3d/figures-kit'
 import {
   clamp,
   type Decal,
@@ -17,7 +17,7 @@ import {
   SIDES,
   type Skeleton,
   smooth,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { WARDROBE_DEFAULTS } from './defaults.ts'
 import type { Puffer, Tee } from './garment-types.ts'
 import { over, underneath } from './layering.ts'

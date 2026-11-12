@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { stubGeometry } from '@automata/editor/kit/testing'
+import { stubGeometry } from '@automataframework/editor/kit/testing'
 import { render, screen } from '@testing-library/svelte'
 import { flushSync } from 'svelte'
 import { describe, expect, it } from 'vitest'

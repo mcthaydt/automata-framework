@@ -1,4 +1,4 @@
-import { figureSchema } from '@automata/3d/figures'
+import { figureSchema } from '@automataframework/3d/figures'
 import { describe, expect, it } from 'vitest'
 import { BODY_SLIDERS, FACE_GROUPS, sliderValue } from '#src/features/studio/studio-fields.ts'
 

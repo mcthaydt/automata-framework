@@ -4,19 +4,19 @@
   "commit": false,
   "fixed": [
     [
-      "@automata/framework",
-      "@automata/content",
-      "@automata/sim",
-      "@automata/tools",
-      "@automata/physics",
-      "@automata/feel",
-      "@automata/audio-synth",
-      "@automata/debug",
-      "@automata/puzzle",
-      "@automata/net",
-      "@automata/net-ui",
-      "@automata/net-server",
-      "@automata/ui-screens"
+      "@automataframework/framework",
+      "@automataframework/content",
+      "@automataframework/sim",
+      "@automataframework/tools",
+      "@automataframework/physics",
+      "@automataframework/feel",
+      "@automataframework/audio-synth",
+      "@automataframework/debug",
+      "@automataframework/puzzle",
+      "@automataframework/net",
+      "@automataframework/net-ui",
+      "@automataframework/net-server",
+      "@automataframework/ui-screens"
     ]
   ],
   "linked": [],

@@ -1,4 +1,4 @@
-// The base pair (`@automata/3d/base`): one man and one woman in painted-on blocks, barefoot, built from the pair's own
+// The base pair (`@automataframework/3d/base`): one man and one woman in painted-on blocks, barefoot, built from the pair's own
 // swatches and nothing else.
 import { describe, expect, it } from 'vitest'
 import { BASE_PAIR, BASE_PAIR_SWATCHES } from '#src/entries/base.ts'

@@ -1,4 +1,9 @@
-import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from '@automata/tools/internal'
+import {
+  checkManifest,
+  inputsProblems,
+  rukenToml,
+  type ShipInputBindings,
+} from '@automataframework/tools/internal'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { input } from '#src/app/game.ts'

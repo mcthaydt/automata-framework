@@ -1,6 +1,6 @@
 // The plan's camera, its grid and its snap values (ED3D.4 step 1): the kit's `Viewport2D` driven by the view state's
 // camera, and the snap and snap step with the cases its tests hold.
-import { createViewport } from '@automata/editor/kit/core'
+import { createViewport } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import {
   cameraOf,

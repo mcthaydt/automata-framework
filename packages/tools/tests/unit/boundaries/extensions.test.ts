@@ -23,34 +23,34 @@ function repo(files: Readonly<Record<string, string>>): string {
   return root
 }
 
-const NAMES: ReadonlySet<string> = new Set(['@automata/physics'])
+const NAMES: ReadonlySet<string> = new Set(['@automataframework/physics'])
 
 describe('extensionImportFindings', () => {
   it('finds core importing an extension, naming the specifier', () => {
-    const root = repo({ 'packages/a/src/x.ts': "import '@automata/physics/2d'\n" })
+    const root = repo({ 'packages/a/src/x.ts': "import '@automataframework/physics/2d'\n" })
     const findings = extensionImportFindings([join(root, 'packages')], NAMES)
     expect(findings).toHaveLength(1)
     expect(findings[0]).toMatchObject({
       file: join(root, 'packages/a/src/x.ts'),
       line: 1,
       rule: 'extension-import',
-      message: expect.stringContaining('core never imports an extension: @automata/physics/2d'),
+      message: expect.stringContaining('core never imports an extension: @automataframework/physics/2d'),
     })
   })
 
   it('lets a game outside the listed roots use an extension', () => {
     const root = repo({
       'packages/a/src/x.ts': 'export const a = 1\n',
-      'games/demo/src/main.ts': "import '@automata/physics'\n",
+      'games/demo/src/main.ts': "import '@automataframework/physics'\n",
     })
     expect(extensionImportFindings([join(root, 'packages')], NAMES)).toEqual([])
   })
 
   it('sees a type-only import and a dynamic import, and ignores a name in a string', () => {
     const root = repo({
-      'packages/a/src/types.ts': "import type { Body } from '@automata/physics'\n",
-      'packages/a/src/lazy.ts': "await import('@automata/physics/3d')\n",
-      'packages/a/src/words.ts': "export const word = '@automata/physics'\n",
+      'packages/a/src/types.ts': "import type { Body } from '@automataframework/physics'\n",
+      'packages/a/src/lazy.ts': "await import('@automataframework/physics/3d')\n",
+      'packages/a/src/words.ts': "export const word = '@automataframework/physics'\n",
     })
     expect(extensionImportFindings([join(root, 'packages')], NAMES).map((f) => f.line)).toEqual([1, 1])
   })
@@ -59,10 +59,13 @@ describe('extensionImportFindings', () => {
 describe('extensionPackageNames', () => {
   it('reads the names from extensions/*/package.json', () => {
     const root = repo({
-      'extensions/physics/package.json': JSON.stringify({ name: '@automata/physics' }),
-      'extensions/feel/package.json': JSON.stringify({ name: '@automata/feel' }),
+      'extensions/physics/package.json': JSON.stringify({ name: '@automataframework/physics' }),
+      'extensions/feel/package.json': JSON.stringify({ name: '@automataframework/feel' }),
     })
-    expect([...extensionPackageNames(root)].sort()).toEqual(['@automata/feel', '@automata/physics'])
+    expect([...extensionPackageNames(root)].sort()).toEqual([
+      '@automataframework/feel',
+      '@automataframework/physics',
+    ])
   })
 })
 
@@ -73,17 +76,17 @@ describe('check-boundaries --no-extension-imports', () => {
 
   it('exits 1 and names the import when core imports an extension', () => {
     const root = repo({
-      'extensions/physics/package.json': JSON.stringify({ name: '@automata/physics' }),
-      'packages/a/src/x.ts': "import { world } from '@automata/physics'\nexport { world }\n",
+      'extensions/physics/package.json': JSON.stringify({ name: '@automataframework/physics' }),
+      'packages/a/src/x.ts': "import { world } from '@automataframework/physics'\nexport { world }\n",
     })
     const result = run(root)
     expect(result.status).toBe(1)
-    expect(result.stdout).toContain('core never imports an extension: @automata/physics')
+    expect(result.stdout).toContain('core never imports an extension: @automataframework/physics')
   })
 
   it('exits 0 when core stays clear of the extensions', () => {
     const root = repo({
-      'extensions/physics/package.json': JSON.stringify({ name: '@automata/physics' }),
+      'extensions/physics/package.json': JSON.stringify({ name: '@automataframework/physics' }),
       'packages/a/src/x.ts': 'export const a = 1\n',
     })
     expect(run(root).status).toBe(0)

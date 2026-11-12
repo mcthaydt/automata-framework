@@ -1,6 +1,6 @@
 // What a person does with a hotspot: use it (the walker goes there first), combine two items, enter a code, or change
 // their mind.
-import { type CommandDef, defineCommand } from '@automata/sim'
+import { type CommandDef, defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 
 export interface UsePayload {

@@ -1,4 +1,4 @@
-import { defineEvent, type EventDef } from '@automata/sim'
+import { defineEvent, type EventDef } from '@automataframework/sim'
 import { z } from 'zod'
 import { seatSchema } from './seat.schema'
 

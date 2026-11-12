@@ -27,7 +27,12 @@ describe('/api', () => {
     }
     const core = listed('Core')
     const extensions = listed('Extensions')
-    expect(core).toEqual(['@automata/content', '@automata/framework', '@automata/sim', '@automata/tools'])
+    expect(core).toEqual([
+      '@automataframework/content',
+      '@automataframework/framework',
+      '@automataframework/sim',
+      '@automataframework/tools',
+    ])
     const published = readdirSync(resolve('../extensions'), { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => JSON.parse(readFileSync(resolve('../extensions', entry.name, 'package.json'), 'utf8')))
@@ -42,19 +47,19 @@ describe('/api', () => {
     const names = getApiReference(API_VERSION)!.packages.map((pkg) => pkg.name)
     // The four core packages and the nine free extensions, which are published too.
     expect(names).toEqual([
-      '@automata/audio-synth',
-      '@automata/content',
-      '@automata/debug',
-      '@automata/feel',
-      '@automata/framework',
-      '@automata/net',
-      '@automata/net-server',
-      '@automata/net-ui',
-      '@automata/physics',
-      '@automata/puzzle',
-      '@automata/sim',
-      '@automata/tools',
-      '@automata/ui-screens',
+      '@automataframework/audio-synth',
+      '@automataframework/content',
+      '@automataframework/debug',
+      '@automataframework/feel',
+      '@automataframework/framework',
+      '@automataframework/net',
+      '@automataframework/net-server',
+      '@automataframework/net-ui',
+      '@automataframework/physics',
+      '@automataframework/puzzle',
+      '@automataframework/sim',
+      '@automataframework/tools',
+      '@automataframework/ui-screens',
     ])
   })
 

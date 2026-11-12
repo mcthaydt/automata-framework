@@ -3,7 +3,7 @@
 // game's own figures and effects (the editor does not run the game's figure builder), as simple boxes in colours of their
 // own, so the editor shows where each thing is and how big, and the game's look (the DUEL snap, the stepped light) is
 // what makes them read as part of the room.
-import type { WorldPiece } from '@automata/3d'
+import type { WorldPiece } from '@automataframework/3d'
 
 type Vec3 = readonly [number, number, number]
 

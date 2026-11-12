@@ -1,5 +1,5 @@
 {
-  "name": "@automata/3d",
+  "name": "@automataframework/3d",
   "private": true,
   "exports": {
     ".": "./src/index.ts",

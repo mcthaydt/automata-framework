@@ -1,5 +1,5 @@
-import '@automata/framework/theme.css'
-import { fakeHosting, mountFixture } from '@automata/framework/testing'
+import '@automataframework/framework/theme.css'
+import { fakeHosting, mountFixture } from '@automataframework/framework/testing'
 import CreditsPanel from '#src/features/credits/CreditsPanel.svelte'
 import type { Credits } from '#src/shared/credits/credits.schema.ts'
 import { type Locale, layoutContract, pseudo, say } from '#src/testing/layout-sweep.ts'

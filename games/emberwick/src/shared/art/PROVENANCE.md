@@ -7,7 +7,7 @@
 | Ember crystal | `sprites.ts` | Same | Same | 2026-10-11 |
 | Night backdrop (dithered sky bands, stars, moon, ruined towers, trees, fog), light shafts, fireflies, particles | `src/features/scene/backdrop.ts`, `scene-renderer.ts`, `particles.ts` | Same | Drawn in code from palette colors at fixed positions | 2026-10-11 |
 | Pixel lights and vignette | `src/shared/light-levels.ts`, `pixels.ts` | Same | Computed: a stepped falloff with a 4 × 4 Bayer dither (`light-levels.test.ts`), tinted with palette colors | 2026-10-11 |
-| Palette | `palette.ts` | DUEL (author and licence not recorded yet: `docs/art/palettes/duel.md`) | AF's default palette, read from `@automata/content/palette`; `art.test.ts` checks every colour the art uses. Replaces Endesga 64 (2026-11-07, Owner: "2D should also use the duel palette") | 2026-11-07 |
+| Palette | `palette.ts` | DUEL (author and licence not recorded yet: `docs/art/palettes/duel.md`) | AF's default palette, read from `@automataframework/content/palette`; `art.test.ts` checks every colour the art uses. Replaces Endesga 64 (2026-11-07, Owner: "2D should also use the duel palette") | 2026-11-07 |
 | Remap to DUEL | `sprites.ts`, `backdrop.ts`, `scene.ts`, `particles.ts`, `scene-renderer.ts`, `style.css` | Claude (AI coding agent), 3D slice task 5.2 | Every Endesga 64 colour became its nearest DUEL colour in OKLab (`tooling/codemods/src/remap-palette.ts`); hand fixes are listed below | 2026-11-07 |
 | Pixelify Sans (screens' type) | `@fontsource/pixelify-sans` 5.3.0 | Stefie Justprince, via Fontsource | OFL-1.1, bundled by Vite | 2026-10-11 |
 

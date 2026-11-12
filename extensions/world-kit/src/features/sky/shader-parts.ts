@@ -2,7 +2,7 @@
 // an integer hash that wraps the same in GLSL and WGSL, the DUEL palette as a constant array with a nearest-colour lookup
 // and a step up its ramp, and a colour as a 0 to 1 triple.
 
-import { DEFAULT_PALETTE, nearestDuel } from '@automata/content/palette'
+import { DEFAULT_PALETTE, nearestDuel } from '@automataframework/content/palette'
 
 const COLOURS = DEFAULT_PALETTE.colors
 const f = (v: number): string => v.toFixed(4)

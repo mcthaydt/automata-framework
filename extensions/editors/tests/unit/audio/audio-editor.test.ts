@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import type { AudioContent } from '@automata/audio-synth'
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import type { AudioContent } from '@automataframework/audio-synth'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'

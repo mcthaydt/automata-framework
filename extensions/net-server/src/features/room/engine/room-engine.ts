@@ -15,9 +15,9 @@
  * the room's final hash.
  */
 
-import type { ServerMessage } from '@automata/net'
-import { SeatJoin, SeatLeave } from '@automata/net/sim'
-import type { Command, Sim } from '@automata/sim'
+import type { ServerMessage } from '@automataframework/net'
+import { SeatJoin, SeatLeave } from '@automataframework/net/sim'
+import type { Command, Sim } from '@automataframework/sim'
 import type { RoomLogEvent } from '../../../shared/game/server-config'
 import { type CommandIntent, ROOM_SOURCE, type ServerDef } from '../../../shared/game/server-game'
 import { type SimView, simViewOf } from '../../../shared/game/sim-view'

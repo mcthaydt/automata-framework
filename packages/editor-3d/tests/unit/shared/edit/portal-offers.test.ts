@@ -3,7 +3,7 @@
 // can be offered (ED3D.6b step 1). The toy level is a hall (0 to 8 m by 0 to 6 m) and a dock beside it (8 to 14 m), which
 // already lead into each other.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { portalOffers, wallPortal } from '#src/shared/edit/portal-offers.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'

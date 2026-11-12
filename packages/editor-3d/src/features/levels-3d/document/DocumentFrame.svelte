@@ -8,7 +8,7 @@
   level editor, so this file only draws and forwards.
 -->
 <script lang="ts">
-import type { Point } from '@automata/3d/level'
+import type { Point } from '@automataframework/3d/level'
 import {
   ConflictDialog,
   EditorShell,
@@ -16,9 +16,9 @@ import {
   StatusLine,
   shellModeAt,
   ToastRegion,
-} from '@automata/editor/kit'
-import { createCommandRegistry, createKeymap, type ToastStore } from '@automata/editor/kit/core'
-import type { GeometryState } from '@automata/framework'
+} from '@automataframework/editor/kit'
+import { createCommandRegistry, createKeymap, type ToastStore } from '@automataframework/editor/kit/core'
+import type { GeometryState } from '@automataframework/framework'
 import { onDestroy } from 'svelte'
 import { createChecksPanel, type Scheduler } from '../checks/checks-panel-controller'
 import DefinitionsSheet from '../definitions/DefinitionsSheet.svelte'

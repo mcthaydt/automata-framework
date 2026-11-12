@@ -3,7 +3,7 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { compileFixture, FIXTURE_ROOT } from '@automata/3d/testing'
+import { compileFixture, FIXTURE_ROOT } from '@automataframework/3d/testing'
 import { describe, expect, it } from 'vitest'
 import '../../wardrobe.extension.ts'
 

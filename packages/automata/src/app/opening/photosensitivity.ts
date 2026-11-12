@@ -12,7 +12,7 @@ import type { WarningEffect } from './warning-effects.ts'
 
 /**
  * A switch the warning offers: one of the game's own effect settings. A switch is on or off, so a setting with more
- * steps is mapped: `@automata/feel`'s `intensity` is `0 | 0.5 | 1`, so a "Less shaking" switch maps on to `0.5` and off
+ * steps is mapped: `@automataframework/feel`'s `intensity` is `0 | 0.5 | 1`, so a "Less shaking" switch maps on to `0.5` and off
  * to `1`; its `reduceFlashing` maps straight across. Core cannot import feel, so the game passes its own.
  */
 export interface WarningSwitch {

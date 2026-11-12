@@ -4,14 +4,20 @@
 //   snap to the DUEL palette, the light steps and a dark outline traces the edges; `targetSize` shapes the field like
 //   the page, and the renderer scales it up in whole pixels so the pixels stay square; fog is the look's distance.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★☆☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension, targetSize } from '@automata/3d'
-import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figures'
-import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import {
+  createPixi3dRenderer,
+  DEFAULT_LOOK,
+  figure,
+  render3dExtension,
+  targetSize,
+} from '@automataframework/3d'
+import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automataframework/3d/figures'
+import { CameraHeading, cameraView, enterView, START } from '@automataframework/3d/sim'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- figure ---
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml

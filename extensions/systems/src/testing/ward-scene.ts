@@ -1,11 +1,11 @@
 // A `SystemsScene` for the bots' tests: the ward game (the clinic's map and graph, the toy watchman) with a small
 // puzzle: take the key from the reception desk and open the hall's exit with it; a bottle thrown into the corridor
 // lures the watchman (the `watchmanLured` systemic). The player walks at 3 m/s.
-import { NavRoutes } from '@automata/nav/sim'
-import { clinicGraph } from '@automata/nav/testing/clinic'
-import { type PuzzleDef, PuzzleState } from '@automata/puzzle/sim'
-import { InSector, type Point } from '@automata/sectors/sim'
-import type { Sim } from '@automata/sim'
+import { NavRoutes } from '@automataframework/nav/sim'
+import { clinicGraph } from '@automataframework/nav/testing/clinic'
+import { type PuzzleDef, PuzzleState } from '@automataframework/puzzle/sim'
+import { InSector, type Point } from '@automataframework/sectors/sim'
+import type { Sim } from '@automataframework/sim'
 import type { BotView, Order } from '../entries/bots'
 import { type Setup, type SystemsScene, stepsFor } from '../features/bots/scene'
 import { SystemsState } from '../shared/sim/systems.resource'

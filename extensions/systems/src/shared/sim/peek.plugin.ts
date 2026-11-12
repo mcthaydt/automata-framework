@@ -1,7 +1,7 @@
 // The peek plugin, opt-in: a game that wants peeking adds it beside `systems`. It is a plugin of its own, and not part of
 // `systems`, so a sim without it keeps the snapshot header (every plugin's schemas are hashed into it) it always had.
-import { sectorsPlaces } from '@automata/sectors/sim'
-import { definePlugin, type PluginDef, type SimContext } from '@automata/sim'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
+import { definePlugin, type PluginDef, type SimContext } from '@automataframework/sim'
 import { holds, type PeekState } from './peek'
 import { SystemsPeek } from './peek.event'
 import { SystemsPeekState } from './peek.resource'

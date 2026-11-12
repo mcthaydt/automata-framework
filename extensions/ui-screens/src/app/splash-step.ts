@@ -1,4 +1,4 @@
-import type { OpeningContext, OpeningStep } from '@automata/framework'
+import type { OpeningContext, OpeningStep } from '@automataframework/framework'
 import { mount, unmount } from 'svelte'
 import SplashScreen from '../features/splash/SplashScreen.svelte'
 import { type SplashCopy, screensWords } from '../shared/words/screens-words.ts'

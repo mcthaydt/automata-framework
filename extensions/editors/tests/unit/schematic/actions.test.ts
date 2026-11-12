@@ -1,4 +1,4 @@
-import { effectSchema, type SysEffect } from '@automata/systems/sim'
+import { effectSchema, type SysEffect } from '@automataframework/systems/sim'
 import { describe, expect, it } from 'vitest'
 import {
   ACTIONS,

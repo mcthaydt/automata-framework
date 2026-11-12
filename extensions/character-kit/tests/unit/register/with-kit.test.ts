@@ -5,8 +5,8 @@ import {
   hairStyleSchema,
   registeredGarments,
   skeleton,
-} from '@automata/3d/figures'
-import { figureOf, fixtureFigures } from '@automata/3d/testing'
+} from '@automataframework/3d/figures'
+import { figureOf, fixtureFigures } from '@automataframework/3d/testing'
 import { describe, expect, it } from 'vitest'
 import { characterKitExtension } from '#src/app/character-kit.extension.ts'
 import coreFigures from '../../fixtures/core-figures.json' with { type: 'json' }

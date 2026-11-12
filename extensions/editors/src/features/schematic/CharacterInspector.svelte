@@ -1,7 +1,7 @@
 <!-- The character itself, with nothing else selected: its name, where it starts, what it notices and its patrol. -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import type { AgentDef, RoutineStop, Sense, SysEffect } from '@automata/systems/sim'
+import { Button } from '@automataframework/editor/kit'
+import type { AgentDef, RoutineStop, Sense, SysEffect } from '@automataframework/systems/sim'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import AddPiece from './AddPiece.svelte'
 import PieceRow from './PieceRow.svelte'

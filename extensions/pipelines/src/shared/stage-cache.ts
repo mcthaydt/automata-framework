@@ -1,5 +1,5 @@
 import { isAbsolute, relative, resolve, sep } from 'node:path'
-import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 import { Effect } from 'effect'
 import { type FileError, Files } from './node/files.ts'
 import type { StageContext, StageDef } from './pipeline.ts'

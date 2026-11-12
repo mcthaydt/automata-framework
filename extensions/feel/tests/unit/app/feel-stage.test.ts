@@ -1,8 +1,8 @@
 // feelStage plays the feel table on the Pixi stage: the shake moves the world, the flash and tint are drawn over the
 // playfield, and cues and rumbles go to the game's own ports. It never writes the sim.
-import type { PixiStage } from '@automata/framework'
-import { fakeClock } from '@automata/framework/testing'
-import type { SimEvent, StepResult } from '@automata/sim'
+import type { PixiStage } from '@automataframework/framework'
+import { fakeClock } from '@automataframework/framework/testing'
+import type { SimEvent, StepResult } from '@automataframework/sim'
 import { Container, Text } from 'pixi.js'
 import { describe, expect, it, vi } from 'vitest'
 import { feelStage } from '#src/app/feel-stage.ts'

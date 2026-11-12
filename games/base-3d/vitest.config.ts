@@ -1,4 +1,4 @@
-import { defineTests } from '@automata/vitest-preset'
+import { defineTests } from '@automataframework/vitest-preset'
 import { contentPlugin } from './vite.config.ts'
 
 // Node runs the unit tests (a screen test says `jsdom` on its first line); the layout project runs the game's own

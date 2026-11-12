@@ -1,7 +1,7 @@
 // Registers the kit's hair pieces and finishes with core's registries when this file loads. A style then carries
 // `{ bun = { … } }` and names `finish = "braid"`; without the kit it is refused at its line.
 
-import { registerFinish, registerHairPiece } from '@automata/3d/figures'
+import { registerFinish, registerHairPiece } from '@automataframework/3d/figures'
 import { BLOCK } from './block.ts'
 import { BUN } from './bun.ts'
 import { EDGES } from './edges.ts'

@@ -1,7 +1,7 @@
 // A scene change: the game's Flow hands the new scene's level to the sim, which replaces the old one. Every
 // walker's membership is cleared, so the next membership pass enters each walker into the new level's sectors.
-import { pathText } from '@automata/3d/level'
-import { type SimContext, sortedKeys } from '@automata/sim'
+import { pathText } from '@automataframework/3d/level'
+import { type SimContext, sortedKeys } from '@automataframework/sim'
 import { checkLevel, type SectorMap, type StoredPlane } from './check-level'
 import { InSector } from './sectors.component'
 import { SectorMapResource } from './sectors.resource'

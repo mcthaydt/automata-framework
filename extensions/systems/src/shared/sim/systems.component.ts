@@ -1,6 +1,6 @@
 // `systems.agent`: an agent's entity. Its plan position is sectors' `InSector`; everything else it knows is its
 // record in `systems.state`, because components hold only numbers.
-import { type ComponentDef, defineComponent } from '@automata/sim'
+import { type ComponentDef, defineComponent } from '@automataframework/sim'
 
 const systemsAgentFields = {
   /** The agent's index in the loaded def's `agents`. */

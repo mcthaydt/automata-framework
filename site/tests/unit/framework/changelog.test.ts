@@ -35,19 +35,19 @@ describe('readChangelog', () => {
       'README.md': '# Changesets',
       'config.json': '{}',
       'one.md':
-        "---\n'@automata/tools': patch\n'@automata/content': patch\n---\n\nA new thing works. More words.\n",
+        "---\n'@automataframework/tools': patch\n'@automataframework/content': patch\n---\n\nA new thing works. More words.\n",
     })
     const entries = readChangelog(root)
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({
       id: 'one',
       title: 'A new thing works.',
-      packages: ['@automata/content', '@automata/tools'],
+      packages: ['@automataframework/content', '@automataframework/tools'],
     })
   })
 
   it('has no date where git cannot say one', () => {
-    const root = folderWith({ 'one.md': "---\n'@automata/tools': patch\n---\nA thing.\n" })
+    const root = folderWith({ 'one.md': "---\n'@automataframework/tools': patch\n---\nA thing.\n" })
     expect(readChangelog(root)[0]?.date).toBeUndefined()
   })
 })

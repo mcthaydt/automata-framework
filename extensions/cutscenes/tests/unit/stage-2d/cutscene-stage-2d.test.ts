@@ -1,5 +1,11 @@
-import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
-import type { Camera2d, DrawSim, LevelScene, LevelSceneHooks, PictureViewOptions } from '@automata/framework'
+import type { ContentLevel, ContentProject } from '@automataframework/content/level-2d'
+import type {
+  Camera2d,
+  DrawSim,
+  LevelScene,
+  LevelSceneHooks,
+  PictureViewOptions,
+} from '@automataframework/framework'
 import { Container, type Graphics } from 'pixi.js'
 import { describe, expect, it, vi } from 'vitest'
 import { cutsceneStage2d } from '#src/features/stage-2d/cutscene-stage-2d.ts'

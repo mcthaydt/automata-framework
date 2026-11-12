@@ -1,4 +1,4 @@
-import { defineSystem } from '@automata/sim'
+import { defineSystem } from '@automataframework/sim'
 import { SPEED, SQUARE_SIZE } from '../../shared/constants.ts'
 import { levelIn } from '../level/read-level.ts'
 import { hitsWall } from '../level/walls.ts'

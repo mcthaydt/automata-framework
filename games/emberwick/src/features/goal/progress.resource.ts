@@ -1,4 +1,4 @@
-import { defineResource, type ResourceDef } from '@automata/sim'
+import { defineResource, type ResourceDef } from '@automataframework/sim'
 import { z } from 'zod'
 
 const progressSchema = z.object({ reached: z.boolean(), tick: z.number().int() })

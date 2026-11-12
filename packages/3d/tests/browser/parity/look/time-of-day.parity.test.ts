@@ -2,7 +2,7 @@
 // room is darker at night, golden at golden hour, and the fog and sky move with it, so the picture shows the time a
 // level file names and not only its `data-time`.
 import '#src/entries/no-eval.ts'
-import type { RenderRow, StepResult } from '@automata/sim'
+import type { RenderRow, StepResult } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer } from '#src/app/create-renderer.ts'
 import { box } from '#src/shared/render/views/box-view.ts'

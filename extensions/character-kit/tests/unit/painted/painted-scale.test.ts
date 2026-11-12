@@ -4,7 +4,7 @@
 // `distance` back from a focus 1 m above the walker's feet, `tiltDeg` down.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { CAMERA_DEFAULTS, fovOf, LENS_MM } from '@automata/3d/camera-view'
+import { CAMERA_DEFAULTS, fovOf, LENS_MM } from '@automataframework/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { place } from '#src/features/painted/place.ts'
 import { poseOf } from '#src/features/painted/pose.ts'

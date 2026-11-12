@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import { EDITOR_LIST_PATH } from '@automataframework/editor/editor-list'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'

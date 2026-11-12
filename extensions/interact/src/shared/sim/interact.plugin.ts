@@ -1,7 +1,7 @@
 // The interact plugin. `createInteract` takes the game's player, reader and hide hook, and gives the plugin with `load`
 // and `inReach` bound to them.
-import { holds } from '@automata/puzzle/sim'
-import { definePlugin, type PluginDef, type SimContext } from '@automata/sim'
+import { holds } from '@automataframework/puzzle/sim'
+import { definePlugin, type PluginDef, type SimContext } from '@automataframework/sim'
 import type { Hotspot } from './hotspot.schema'
 import { Cancel, Combine, EnterCode, Use } from './interact.command'
 import { InteractPending, InteractRefused, InteractUsed } from './interact.event'

@@ -20,8 +20,8 @@ import {
   type StorageClock,
   type StorageFailure,
   type Workspace,
-} from '@automata/editor/kit/core'
-import type { JsonPath, PatchRefusalReason, PatchResult } from '@automata/editor/kit/documents'
+} from '@automataframework/editor/kit/core'
+import type { JsonPath, PatchRefusalReason, PatchResult } from '@automataframework/editor/kit/documents'
 import type { FileCodec, ParseIssue } from '../../../shared/level-session/file-codec'
 
 export interface PatchRefused {

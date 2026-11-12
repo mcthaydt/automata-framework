@@ -134,10 +134,13 @@ describe('diagnosticText', () => {
         {
           line: 1,
           column: 1,
-          message: 'The playground can import only @automata/framework, @automata/ui-screens and zod.',
+          message:
+            'The playground can import only @automataframework/framework, @automataframework/ui-screens and zod.',
         },
         false,
       ),
-    ).toBe('Line 1: The playground can import only @automata/framework, @automata/ui-screens and zod.')
+    ).toBe(
+      'Line 1: The playground can import only @automataframework/framework, @automataframework/ui-screens and zod.',
+    )
   })
 })

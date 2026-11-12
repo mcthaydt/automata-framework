@@ -1,4 +1,4 @@
-import { fakeHosting } from '@automata/framework/testing'
+import { fakeHosting } from '@automataframework/framework/testing'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import CreditsPanel from '#src/features/credits/CreditsPanel.svelte'

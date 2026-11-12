@@ -11,7 +11,7 @@
  * Plain callbacks, no Effect: commands and snapshots cross the port every tick (ADR 0003).
  */
 
-import type { Command } from '@automata/sim'
+import type { Command } from '@automataframework/sim'
 import type { ColyseusTransport, NetSnapshot, Pong, TransportEvents } from './colyseus-transport'
 
 /** Round trips remembered for the estimate; the median of these is the answer. */

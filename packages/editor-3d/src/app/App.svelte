@@ -5,8 +5,13 @@
   its journal first; opening waits for that, so a reopened file finds its autosave.
 -->
 <script lang="ts">
-import type { LifecycleDocument, LifecycleWindow, ToastStore, Workspace } from '@automata/editor/kit/core'
-import type { GeometryState } from '@automata/framework'
+import type {
+  LifecycleDocument,
+  LifecycleWindow,
+  ToastStore,
+  Workspace,
+} from '@automataframework/editor/kit/core'
+import type { GeometryState } from '@automataframework/framework'
 import { onDestroy } from 'svelte'
 import type { Scheduler } from '../features/levels-3d/checks/checks-panel-controller'
 import DocumentFrame from '../features/levels-3d/document/DocumentFrame.svelte'

@@ -1,7 +1,7 @@
 // Registers the kit's garments with core's registry when this file loads. The order is the order a figure's garments are
 // told apart in, and it comes after core's own seven (a cap's `mark` is the cap's, so core's cap is first).
 
-import { registerGarment } from '@automata/3d/figures'
+import { registerGarment } from '@automataframework/3d/figures'
 import { APRON } from './apron.ts'
 import { BELT } from './belt.ts'
 import { COAT } from './coat.ts'

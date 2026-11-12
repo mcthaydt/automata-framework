@@ -1,10 +1,10 @@
 // Music in Audio is imported, never made: a track is a sound file the game folder holds, and Audio decides which track
 // plays when and how the game switches between them. A track is a `slot` in the file; a rule says "when the game is in
 // this state, play that track". Nothing here makes a note.
-import type { AudioContent, Condition, MusicRule, Slot } from '@automata/audio-synth'
-import { isTrackFile, trackAlias } from '@automata/audio-synth/stage'
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { SuiteWorkspace } from '@automata/editor/kit/ports'
+import type { AudioContent, Condition, MusicRule, Slot } from '@automataframework/audio-synth'
+import { isTrackFile, trackAlias } from '@automataframework/audio-synth/stage'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import type { SuiteWorkspace } from '@automataframework/editor/kit/ports'
 import { appendEdits, type Field, setOrInsert } from '../../shared/fields.ts'
 
 export { isTrackFile, trackAlias }

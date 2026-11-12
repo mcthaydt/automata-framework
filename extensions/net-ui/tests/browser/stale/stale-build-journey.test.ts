@@ -1,10 +1,10 @@
-import { fakeClock } from '@automata/framework/testing'
+import { fakeClock } from '@automataframework/framework/testing'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { commands } from 'vitest/browser'
 import { staleBuildStep } from '#src/features/stale/stale-build-step.ts'
 
 // The stale-build check end to end, the way a deployed game meets it: the page and the server are different origins
-// (`@automata/net-server` serves no game files), the server is the real one's probe routes in Node, and the page asks
+// (`@automataframework/net-server` serves no game files), the server is the real one's probe routes in Node, and the page asks
 // with a plain `fetch`, as `extensions/net/README.md` tells a game to. A stand-in fetch cannot see what a browser does
 // with a cross-origin answer, which is how a check that never said "stale" shipped; this can.
 

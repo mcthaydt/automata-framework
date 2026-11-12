@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defineConfig } from 'vite'
 
-// The package builds one page, the full suite (`suite.html`: the editors of `@automata/editor` plus Levels 3D and the
+// The package builds one page, the full suite (`suite.html`: the editors of `@automataframework/editor` plus Levels 3D and the
 // Studio), into `dist/suite/`, where `automata editor` serves it from for a game whose editor list names a 3D editor. The
 // page is written out as `index.html`, the name every served editor has, and names its files relative to itself.
 //

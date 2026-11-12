@@ -58,7 +58,7 @@ export interface Shoes {
 }
 
 // The painter widens its `Garment` union by augmentation: a kind declared here is a garment an outfit may list.
-declare module '@automata/figures' {
+declare module '@automataframework/figures' {
   interface GarmentKinds {
     tee: Tee
     hoodie: Hoodie

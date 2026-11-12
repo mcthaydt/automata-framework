@@ -22,9 +22,9 @@ import type {
   KitSurfaces,
   LevelProblem,
   PropPlace,
-} from '@automata/3d/level'
-import type { WorldLibrary } from '@automata/3d/props-kit'
-import { heightAt, ringsOf, segments, signedArea, type V2 } from '@automata/3d/props-kit'
+} from '@automataframework/3d/level'
+import type { WorldLibrary } from '@automataframework/3d/props-kit'
+import { heightAt, ringsOf, segments, signedArea, type V2 } from '@automataframework/3d/props-kit'
 import { ceilingFixtures, floorClutter, surfaceClutter } from './clutter.ts'
 import { type Ctx, reserve } from './context.ts'
 import { fixtures } from './fixtures.ts'

@@ -3,7 +3,7 @@
 // a warning) and ED3-s (draw a rectangle against the depot's hall wall, accept the portal, walk through it; the
 // generic checks pass and Last Light's rules are not listed). The depot is the shipped sample `af-sector/1` level.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createChecksPanel } from '#src/features/levels-3d/checks/checks-panel-controller.ts'
 import { createInspectorEdits } from '#src/features/levels-3d/inspector/inspector-edits.ts'

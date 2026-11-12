@@ -1,5 +1,5 @@
 // base-3d's last safe spot, where a fall returns Wick. Sim code: `pnpm boundaries` checks it.
-import { defineResource } from '@automata/sim'
+import { defineResource } from '@automataframework/sim'
 import { z } from 'zod'
 
 /**

@@ -144,25 +144,27 @@ describe('goldensFromReports', () => {
 })
 
 describe('packagesFromManifests', () => {
-  const tags = ['@automata/sim@0.0.1', '@automata/sim@0.0.2']
+  const tags = ['@automataframework/sim@0.0.1', '@automataframework/sim@0.0.2']
 
   it("marks a version released when Changesets' release tag for it exists", () => {
     expect(
       packagesFromManifests(
         [
-          { name: '@automata/sim', version: '0.0.2' },
-          { name: '@automata/render-pixi', version: '0.0.1' },
+          { name: '@automataframework/sim', version: '0.0.2' },
+          { name: '@automataframework/render-pixi', version: '0.0.1' },
         ],
         tags,
       ),
     ).toEqual([
-      { name: '@automata/render-pixi', version: '0.0.1', released: false },
-      { name: '@automata/sim', version: '0.0.2', released: true },
+      { name: '@automataframework/render-pixi', version: '0.0.1', released: false },
+      { name: '@automataframework/sim', version: '0.0.2', released: true },
     ])
   })
 
   it('refuses to say nothing was released when the checkout has no tags (fetch them)', () => {
-    expect(() => packagesFromManifests([{ name: '@automata/sim', version: '0.0.2' }], [])).toThrow(/tags/)
+    expect(() => packagesFromManifests([{ name: '@automataframework/sim', version: '0.0.2' }], [])).toThrow(
+      /tags/,
+    )
   })
 })
 
@@ -208,7 +210,7 @@ describe('buildEvidence', () => {
     run: { kind: 'local' } as const,
     playwright: '1.63.0',
     goldens: goldensFromReports([fixture()], '/repo'),
-    packages: [{ name: '@automata/sim', version: '0.0.2', released: true }],
+    packages: [{ name: '@automataframework/sim', version: '0.0.2', released: true }],
   }
 
   it('assembles a file the schema accepts, with the automata check pending on DX.5 and DX.6', () => {

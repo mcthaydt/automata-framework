@@ -1,9 +1,14 @@
 // A 3D renderer with painted figures and flat boxes, drawn on a real GPU, for the browser tests: figures at places, the
 // camera the test chooses, a readback of the canvas, and `compose` (the builder's CPU reference) of what the stage placed.
 // The figures' `now` is fixed, so a frame is the same frame each run.
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, type Look, type Pixi3dRenderer, type SceneLighting } from '@automata/3d'
-import { builtRenderer, snapshot, testTarget } from '@automata/3d/testing-checks'
+import '@automataframework/3d/no-eval'
+import {
+  createPixi3dRenderer,
+  type Look,
+  type Pixi3dRenderer,
+  type SceneLighting,
+} from '@automataframework/3d'
+import { builtRenderer, snapshot, testTarget } from '@automataframework/3d/testing-checks'
 import { CubeGeometry, FlatMaterial, Mesh3D, type View3D } from '@pixi/3d'
 import { type PaintedStage, stageFor } from '#src/features/painted/painted-stage.ts'
 import { type PaintedFigureOptions, paintedFigure } from '#src/features/painted/painted-view.ts'

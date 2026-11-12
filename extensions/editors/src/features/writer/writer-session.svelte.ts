@@ -1,8 +1,8 @@
 // Writer's session: the scenes of the game, the chosen scene's lines file and dialogue file (each a TOML session), what
 // the person is looking at, and the things that touch more than one file: a choice is a line in one file and a choice in
 // the other, and a line can be said by a conversation or a cutscene somewhere else. It outlives the view.
-import { type ContentEdit, openDocument } from '@automata/editor/kit/documents'
-import type { SuitePorts, WorkspaceFile } from '@automata/editor/kit/ports'
+import { type ContentEdit, openDocument } from '@automataframework/editor/kit/documents'
+import type { SuitePorts, WorkspaceFile } from '@automataframework/editor/kit/ports'
 import {
   type Canon,
   DEFAULT_STANCE,
@@ -13,8 +13,8 @@ import {
   type LineKind,
   type LinesFile,
   linesFileSchema,
-} from '@automata/narrative/sim'
-import type { Cond, Value } from '@automata/puzzle/sim'
+} from '@automataframework/narrative/sim'
+import type { Cond, Value } from '@automataframework/puzzle/sim'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
 import { appendEdits } from '../../shared/fields.ts'
 import { humanize } from '../../shared/humanize.ts'

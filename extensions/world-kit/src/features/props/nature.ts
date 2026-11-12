@@ -11,7 +11,7 @@ import {
   part,
   rod,
   stream,
-} from '@automata/3d/props-kit'
+} from '@automataframework/3d/props-kit'
 
 /** A bush: a few lumpy clumps on the ground. */
 const bush: Generator = (p) => {

@@ -1,8 +1,8 @@
 // The systems plugin: the env the game writes drives light and warmth, facts go through puzzle's
 // state and mapped facts, every event's payload, a bad load fails with the scene's name, and reserved nodes.
-import { PuzzleState, type Value } from '@automata/puzzle/sim'
-import { stepWith } from '@automata/sectors/testing'
-import type { Sim } from '@automata/sim'
+import { PuzzleState, type Value } from '@automataframework/puzzle/sim'
+import { stepWith } from '@automataframework/sectors/testing'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, expect, it } from 'vitest'
 import { reachable, reserveNodes } from '#src/shared/sim/reserve.ts'
 import { SystemsEnv } from '#src/shared/sim/systems.resource.ts'

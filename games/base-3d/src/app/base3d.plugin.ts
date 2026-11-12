@@ -1,6 +1,6 @@
 // base-3d's state plugin: the list of every definition, and the entities the sim starts with (`spawnArea`). Sim code: `pnpm boundaries` checks it.
-import { CameraHeading, enterView, START } from '@automata/3d/sim'
-import { definePlugin, type PluginDef, type Sim } from '@automata/sim'
+import { CameraHeading, enterView, START } from '@automataframework/3d/sim'
+import { definePlugin, type PluginDef, type Sim } from '@automataframework/sim'
 import { emberTake } from '../features/embers/ember.system.ts'
 import { heroInput, heroMove, heroView } from '../features/hero/hero.system.ts'
 import { Act, Move } from '../features/hero/move.command.ts'
@@ -35,7 +35,7 @@ export function spawnArea(sim: Sim, area: Area): void {
   sim.spawn([[Ember, { x: area.goal.x, z: area.goal.z, goal: true, index: area.embers.length }]])
 }
 
-/** The free game's sim. It depends on @automata/3d's `camera-heading` plugin for the heading. */
+/** The free game's sim. It depends on @automataframework/3d's `camera-heading` plugin for the heading. */
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],

@@ -1,7 +1,7 @@
 // Particles on a real WebGL2 context: a flame's sprites are laid over the frame in their own DUEL colours, a few pixels
 // across, and a shape in front of them hides them (they are depth-tested). WebGPU and WebGL2 parity is the GPU runner's.
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automata/3d'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automataframework/3d'
 import { CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ParticlesEffect } from '#src/features/sky/particles-effect.ts'

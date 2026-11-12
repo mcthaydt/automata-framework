@@ -1,8 +1,16 @@
 // How each kind of row in a script reads at a time. Every keyed row is a track on the one timeline
-// (`@automata/3d/timeline`), so a camera, a door and a figure's clip all ease the same way; this file turns a placed script
+// (`@automataframework/3d/timeline`), so a camera, a door and a figure's clip all ease the same way; this file turns a placed script
 // into those tracks once and reads them. Everything here is pure: the shake and the shiver are fixed sines.
 
-import { bracket, type Ease, type Mix, mixNumber, sample, type Track, track } from '@automata/3d/timeline'
+import {
+  bracket,
+  type Ease,
+  type Mix,
+  mixNumber,
+  sample,
+  type Track,
+  track,
+} from '@automataframework/3d/timeline'
 import type { PlacedActorKey, PlacedScript } from '../sim/anchors'
 import type { V3 } from '../sim/cutscene.schema'
 import type { ActorFrame } from './scene-state'

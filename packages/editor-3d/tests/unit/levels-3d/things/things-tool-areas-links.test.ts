@@ -4,8 +4,8 @@
 // (links kept beside the level, as a format that has them would keep them in the file). The canvas is 800 by 400 px with
 // the camera at (7, 3), zoom 1 (32 px to a metre); the grid is half a metre.
 
-import type { AfSector2File } from '@automata/3d/level'
-import type { PointerKind } from '@automata/editor/kit/core'
+import type { AfSector2File } from '@automataframework/3d/level'
+import type { PointerKind } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
 import { planViewport, toScreen } from '#src/features/levels-3d/plan/plan-viewport.ts'

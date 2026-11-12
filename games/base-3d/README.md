@@ -10,7 +10,7 @@ pnpm test         # the sim's tests
 pnpm check        # every check before publishing
 ```
 
-3D needs `@automata/3d` and the Pixi 3D beta, so a build of this game is private. The tour of a 3D game is
+3D needs `@automataframework/3d` and the Pixi 3D beta, so a build of this game is private. The tour of a 3D game is
 [Make a 3D game](../../docs/guides/3d.md); the game's own design, with its flow and controls, is [`DESIGN.md`](DESIGN.md).
 
 ## Where things are

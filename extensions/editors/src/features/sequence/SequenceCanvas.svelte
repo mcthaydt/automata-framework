@@ -4,7 +4,7 @@
   and says where the mistake is.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import SequenceAdd from './SequenceAdd.svelte'
 import SequenceInspector from './SequenceInspector.svelte'

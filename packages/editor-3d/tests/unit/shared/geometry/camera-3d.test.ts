@@ -2,8 +2,8 @@
 // walk start. Axes are the plan's: x east, z south, y up. A heading (`yaw`) is a compass bearing in radians, 0 looking
 // north (-z) and a quarter turn looking east (+x); `pitch` is the angle the camera looks above the horizon.
 
-import type { AfSector2File } from '@automata/3d/level'
-import { insideSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
+import { insideSector } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import {
   type Camera3D,

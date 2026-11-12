@@ -1,8 +1,8 @@
 // What the puzzle page does to the puzzle file, as the kit's content edits, and what it refuses: an item or a fact that
 // something still uses cannot be taken out, and the page says what uses it.
 
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { Cond, Effect, PuzzleDef, Value } from '@automata/puzzle/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import type { Cond, Effect, PuzzleDef, Value } from '@automataframework/puzzle/sim'
 import type { Names } from '../pieces/piece.ts'
 
 /** The names the pieces' fields choose from. A puzzle has items, where a behaviour file has characters. */

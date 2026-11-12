@@ -1,4 +1,4 @@
-import { createSim } from '@automata/sim'
+import { createSim } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { LEVEL } from '../../../src/features/level/level.ts'
 import { Hero } from '../../../src/features/square/hero.component.ts'

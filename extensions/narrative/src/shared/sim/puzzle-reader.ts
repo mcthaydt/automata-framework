@@ -1,5 +1,5 @@
-import { PuzzleSceneResource, PuzzleState, type Reader, type Value } from '@automata/puzzle/sim'
-import type { ResourceDef } from '@automata/sim'
+import { PuzzleSceneResource, PuzzleState, type Reader, type Value } from '@automataframework/puzzle/sim'
+import type { ResourceDef } from '@automataframework/sim'
 import type { z } from 'zod'
 
 /** Anything that reads a resource: the sim's context, or the draw layer's read-only view of the sim. */

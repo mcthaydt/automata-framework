@@ -1,6 +1,6 @@
 ---
 name: automata
-description: Rules for writing an Automata Framework game (the seven laws, which layer owns what, where each kind of change goes, and the order to verify in). Use before changing code in a game built on the @automata/* packages.
+description: Rules for writing an Automata Framework game (the seven laws, which layer owns what, where each kind of change goes, and the order to verify in). Use before changing code in a game built on the @automataframework/* packages.
 ---
 
 # Automata Framework: rules for game code
@@ -48,11 +48,11 @@ system uses is sim code too). `automata check` refuses a game that keeps its sim
 | View (`*.view.ts`) | Sprites, cameras, interpolation | Reading each step's render delta and events |
 | Screens (the framework's default screens, or the game's) | Title, pause and result screens, focus, layout | Reading sim state; sending commands |
 | Content (`content/`) | Levels, tuning, strings, compiled and hashed | Passed to the sim as content |
-| Host (`Hosting`, from `@automata/framework`) | Saves, identity, lifecycle | Never directly; the runtime wires it |
+| Host (`Hosting`, from `@automataframework/framework`) | Saves, identity, lifecycle | Never directly; the runtime wires it |
 
-Inside a sim file, use only `@automata/sim` (and `/math`, `/hash`), `zod`, `koota` through the sim's API,
+Inside a sim file, use only `@automataframework/sim` (and `/math`, `/hash`), `zod`, `koota` through the sim's API,
 and relative imports. Use `Math` only for `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`,
-`sign` and `imul`; `@automata/sim/math` has the rest. Iterate objects with `sortedKeys`/`sortedEntries`,
+`sign` and `imul`; `@automataframework/sim/math` has the rest. Iterate objects with `sortedKeys`/`sortedEntries`,
 never `Object.keys` or `for…in`. Prefer integers (subpixels, ticks) for anything that moves.
 
 ## Where a change goes
@@ -61,7 +61,7 @@ never `Object.keys` or `for…in`. Prefer integers (subpixels, ticks) for anythi
   if the player triggers it, components for its state, a system for the rule, and a golden test in
   `tests/unit/<name>/`. Follow the `automata-feature` skill.
 - **How it looks**: the feature's `*.view.ts`, reading components and events. Never compute gameplay there. Colours
-  are DUEL steps (`DUEL_RAMPS`, `step` and `nearestDuel` from `@automata/content/palette`), not hex literals.
+  are DUEL steps (`DUEL_RAMPS`, `step` and `nearestDuel` from `@automataframework/content/palette`), not hex literals.
 - **A screen or menu**: the framework's UI primitives (44 px touch targets, 48 px primary actions, layout from the
   container size).
 - **A level or tuning number**: content, not code. Levels are edited in the level editor (`automata editor`; see the

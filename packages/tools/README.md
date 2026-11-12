@@ -1,9 +1,9 @@
-# @automata/tools
+# @automataframework/tools
 
 The `automata` command line: make a game, check it, build it and ship it.
 
 ```sh
-pnpm dlx @automata/tools create-game my-game   # a new game in ./my-game
+pnpm dlx @automataframework/tools create-game my-game   # a new game in ./my-game
 cd my-game && pnpm install
 pnpm dev                                                # play it in your browser
 pnpm check                                              # every check a game passes before it is published

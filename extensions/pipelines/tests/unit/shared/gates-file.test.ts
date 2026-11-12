@@ -1,4 +1,4 @@
-import { gateRecordsSchema } from '@automata/editor/gate-records'
+import { gateRecordsSchema } from '@automataframework/editor/gate-records'
 import { describe, expect, it } from 'vitest'
 import { gateFileOf, gateFileSchema } from '#src/shared/gates-file.ts'
 

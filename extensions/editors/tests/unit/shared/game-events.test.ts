@@ -1,4 +1,4 @@
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
 import { audioFileWith, gameEvents } from '#src/shared/game-events.ts'
 

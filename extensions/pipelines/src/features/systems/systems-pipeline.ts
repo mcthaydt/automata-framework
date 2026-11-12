@@ -6,8 +6,8 @@
 // does not resolve the extension's extensionless sources, and a scene module is the game's TypeScript.
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { canonicalJson } from '@automata/sim'
-import type { Playtest, Policy, ScenarioResult, SystemsScene } from '@automata/systems/bots'
+import { canonicalJson } from '@automataframework/sim'
+import type { Playtest, Policy, ScenarioResult, SystemsScene } from '@automataframework/systems/bots'
 import { Effect } from 'effect'
 import { z } from 'zod'
 import { Files } from '../../shared/node/files.ts'
@@ -51,7 +51,7 @@ const modulePath = (ctx: Ctx): string => join(ctx.dir, ctx.spec.scene)
 
 const bots = (stage: string) =>
   Effect.tryPromise({
-    try: () => import('@automata/systems/bots'),
+    try: () => import('@automataframework/systems/bots'),
     catch: (cause) => new StageFailed({ stage, reason: `the systems bots: ${String(cause)}` }),
   })
 const loadScene = (ctx: Ctx, stage: string) =>

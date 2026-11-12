@@ -25,8 +25,8 @@ const importsOf = (source: string): string[] =>
   )
 
 function isPublicCoreEntry(specifier: string): boolean {
-  // `@automata/framework` is the folder `packages/automata`; the others are `@automata/<folder>`.
-  const match = /^@automata\/([a-z0-9-]+)(\/.*)?$/.exec(specifier)
+  // `@automataframework/framework` is the folder `packages/automata`; the others are `@automataframework/<folder>`.
+  const match = /^@automataframework\/([a-z0-9-]+)(\/.*)?$/.exec(specifier)
   if (match === null) return false
   const [, name, subpath] = match
   const folder = name === 'framework' ? 'automata' : (name as string)
@@ -52,9 +52,9 @@ describe('the stress example uses only public core APIs', () => {
   })
 
   it('rejects what it should: a deep src import, the testing entry, Koota', () => {
-    expect(isPublicCoreEntry('@automata/sim/src/world/sim')).toBe(false)
-    expect(isPublicCoreEntry('@automata/framework/testing')).toBe(false)
-    expect(isPublicCoreEntry('@automata/sim/math')).toBe(true)
+    expect(isPublicCoreEntry('@automataframework/sim/src/world/sim')).toBe(false)
+    expect(isPublicCoreEntry('@automataframework/framework/testing')).toBe(false)
+    expect(isPublicCoreEntry('@automataframework/sim/math')).toBe(true)
     expect(LIBRARIES.has('koota')).toBe(false)
   })
 })

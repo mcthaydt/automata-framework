@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContentResult, type Diagnostic } from '@automata/content'
+import { compileContentResult, type Diagnostic } from '@automataframework/content'
 import { describe, expect, it } from 'vitest'
 import { sceneLightingContent } from '#src/shared/render/light/scene-lighting.content.ts'
 

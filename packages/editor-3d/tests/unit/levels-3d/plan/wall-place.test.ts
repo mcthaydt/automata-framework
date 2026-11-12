@@ -3,8 +3,8 @@
 // (from the document's start corner, rounded by the keys) and the point there. The depot is the level: the hall runs from
 // (0, 0) to (8, 6) and the dock from (8, 0) to (14, 6), joined by a portal along x = 8.
 
-import type { AfSector2File } from '@automata/3d/level'
-import type { PointerKind } from '@automata/editor/kit/core'
+import type { AfSector2File } from '@automataframework/3d/level'
+import type { PointerKind } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { WallHit } from '#src/features/levels-3d/plan/plan-pick.ts'
 import { planViewport, toScreen } from '#src/features/levels-3d/plan/plan-viewport.ts'

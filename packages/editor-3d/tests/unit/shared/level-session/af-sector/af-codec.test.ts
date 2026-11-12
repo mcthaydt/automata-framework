@@ -2,7 +2,7 @@
 // model is byte-identical (ED3-q), an edit touches only its own bytes, and a new member or element lands where the
 // format's order puts it.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
 import { must } from '#src/testing/edit-helpers.ts'

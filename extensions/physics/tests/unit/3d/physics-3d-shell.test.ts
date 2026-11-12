@@ -1,4 +1,4 @@
-import { createSim } from '@automata/sim'
+import { createSim } from '@automataframework/sim'
 import { expect, test } from 'vitest'
 import {
   BodyKind,

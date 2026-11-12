@@ -1,4 +1,4 @@
-import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
+import type { ContentLevel, ContentProject } from '@automataframework/content/level-2d'
 import { Application, Container, Sprite } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { drawLevelScene, levelScene, mountLevelScene } from '#src/features/render/level-2d/level-scene.ts'

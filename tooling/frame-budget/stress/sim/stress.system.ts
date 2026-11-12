@@ -1,4 +1,4 @@
-import { defineSystem, type SystemDef } from '@automata/sim'
+import { defineSystem, type SystemDef } from '@automataframework/sim'
 import { Body, Pulse, WORLD } from './stress.component.ts'
 import { BEAT_TICKS, Beat } from './stress.event.ts'
 

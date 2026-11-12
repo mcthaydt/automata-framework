@@ -1,4 +1,4 @@
-import type { StepResult } from '@automata/sim'
+import type { StepResult } from '@automataframework/sim'
 import { ok, refused } from '../../shared/lib/result.js'
 import { RendererUnavailable } from '../../shared/runtime/boot-error.js'
 import type { FrameInfo } from '../../shared/runtime/loop/frames.js'

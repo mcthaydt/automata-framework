@@ -7,8 +7,8 @@
 // tint. The view owns what lives between frames: the hair spring, the last evaluated time (`previous`, so a clip's
 // marker is not skipped) and the set of missing clips already warned about. Motion never feeds back into the sim
 // (law 1).
-import { DEFAULT_PALETTE } from '@automata/content/palette'
-import type { FieldRecord } from '@automata/sim'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
+import type { FieldRecord } from '@automataframework/sim'
 import { Container3D } from '@pixi/3d'
 import type { M } from '../../../shared/math/math.ts'
 import { channels } from '../../../shared/render/light/vertex-light.ts'

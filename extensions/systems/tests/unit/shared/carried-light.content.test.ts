@@ -5,7 +5,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContentResult } from '@automata/content'
+import { compileContentResult } from '@automataframework/content'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   carriedLightContent,

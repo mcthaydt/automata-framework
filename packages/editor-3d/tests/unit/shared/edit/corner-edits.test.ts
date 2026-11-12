@@ -1,7 +1,7 @@
 // The corner and sector moves (ED3D.3 step 6): `sector.moveCorner` with the rule that a portal's reverse follows, and
 // `sector.move`, which leaves the neighbours where they are. On the depot and on small levels that show one rule each.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { moveCorner, moveSector } from '#src/shared/edit/corner-edits.ts'
 import type { Edit } from '#src/shared/edit/edit.ts'

@@ -1,7 +1,7 @@
 // Cutscenes wired into puzzle: a `{ cutscene }` effect starts the script through puzzle's `cutscene` hook,
 // and while it plays puzzle's verbs are ignored through its `locked` option.
-import { createPuzzlePlugin, loadPuzzle, type PuzzleDef } from '@automata/puzzle/sim'
-import { createSim, defineCommand, definePlugin, defineSystem } from '@automata/sim'
+import { createPuzzlePlugin, loadPuzzle, type PuzzleDef } from '@automataframework/puzzle/sim'
+import { createSim, defineCommand, definePlugin, defineSystem } from '@automataframework/sim'
 import { expect, it } from 'vitest'
 import { z } from 'zod'
 import { type CutsceneScript, createCutscenes } from '#src/entries/index.ts'

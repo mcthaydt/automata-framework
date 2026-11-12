@@ -1,5 +1,10 @@
-import { createSim } from '@automata/sim'
-import { inputsProblems, manifestOf, rukenToml, type ShipInputBindings } from '@automata/tools/internal'
+import { createSim } from '@automataframework/sim'
+import {
+  inputsProblems,
+  manifestOf,
+  rukenToml,
+  type ShipInputBindings,
+} from '@automataframework/tools/internal'
 import { describe, expect, it } from 'vitest'
 import { TICK_HZ } from '#src/shared/constants.ts'
 import { base3d, input } from '../../main.ts'

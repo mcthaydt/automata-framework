@@ -8,8 +8,8 @@
 // reloads.
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump; on-screen buttons on touch.
 // Base: emberwick (`@af-games/emberwick`: its whole game, built here over this demo's room by `makeEmberwick`).
-// Packages: @automata/content (its Vite plugin and `virtual:automata/content`),
-// @automata/framework (`startGame`), and the base's own.
+// Packages: @automataframework/content (its Vite plugin and `virtual:automata/content`),
+// @automataframework/framework (`startGame`), and the base's own.
 import '@af-games/emberwick/no-eval'
 import '@af-games/emberwick/fonts.css'
 import '@af-games/emberwick/style.css'
@@ -18,7 +18,7 @@ import { content, contentHash } from 'virtual:automata/content'
 import { makeEmberwick } from '@af-games/emberwick/make-game'
 import { parseRoom } from '@af-games/emberwick/room'
 import { tuning } from '@af-games/emberwick/sim'
-import { startGame } from '@automata/framework'
+import { startGame } from '@automataframework/framework'
 
 /** Must equal `[game] id` in ship.config.ts; the host checks it. */
 const GAME_ID = 'demo-content-hot-reload'

@@ -6,8 +6,8 @@ import type {
   MaskGroup,
   PoseDef,
   Vec3,
-} from '@automata/3d/figures'
-import type { ContentEdit } from '@automata/editor/kit/documents'
+} from '@automataframework/3d/figures'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 
 // The Studio's typed edits (EDS.9a to EDS.9c; editor suite spec §6.2): each turns a figure, a pose or a clip and a
 // person's change into the content edits that make it (span-preserving: only the literals it names move), or into the

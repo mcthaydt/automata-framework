@@ -3,8 +3,8 @@
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s belt
 // branch), with AF's strict types; the formulas are the source's.
 
-import type { Garment } from '@automata/3d/figures'
-import { at, box, type Dressing, GROUP, J } from '@automata/3d/figures-kit'
+import type { Garment } from '@automataframework/3d/figures'
+import { at, box, type Dressing, GROUP, J } from '@automataframework/3d/figures-kit'
 import { z } from 'zod'
 import { band } from './hang.ts'
 import { type KitGarment, optionalSwatch, swatch } from './kit-garment.ts'

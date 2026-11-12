@@ -1,7 +1,7 @@
 // The scene audit: what the puzzle, its systems and its
 // generated files say about a scene, for the people who decide. Its findings never fail `check` (a stale doc does,
 // through its file row). Objective guidance, emergent search and recorded gate decisions are not part of it.
-import type { FairnessRow, Policy, ThreatCause } from '@automata/systems/bots'
+import type { FairnessRow, Policy, ThreatCause } from '@automataframework/systems/bots'
 import type { FileStatus } from '../../shared/file-status.ts'
 
 export type { ThreatCause }

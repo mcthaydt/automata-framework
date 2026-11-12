@@ -10,7 +10,7 @@ import {
   type PluginDef,
   type Rng,
   type Sim,
-} from '@automata/sim'
+} from '@automataframework/sim'
 import { z } from 'zod'
 import {
   fileName,

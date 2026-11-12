@@ -3,8 +3,8 @@
 // Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52 (`spotsFor`,
 // `furniture`).
 
-import type { Segment } from '@automata/3d/props-kit'
-import { inside, inward, signedArea, type V2 } from '@automata/3d/props-kit'
+import type { Segment } from '@automataframework/3d/props-kit'
+import { inside, inward, signedArea, type V2 } from '@automataframework/3d/props-kit'
 import {
   alongSeg,
   type Ctx,

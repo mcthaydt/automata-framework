@@ -1,9 +1,9 @@
 // Pursuit: where the player crosses into another zone, hiding, and who saw her
 // hide. The crossing is read from the player's room (`places.roomOf`), which in 3D sectors decides in `cleanup`, so it
 // is the room at the end of the last step.
-import { type PlanRoom, type PlanPoint as Point, THROUGH } from '@automata/places'
-import { sortedKeys } from '@automata/sim'
-import { hypot } from '@automata/sim/math'
+import { type PlanRoom, type PlanPoint as Point, THROUGH } from '@automataframework/places'
+import { sortedKeys } from '@automataframework/sim'
+import { hypot } from '@automataframework/sim/math'
 import type { Crossing } from './systems.resource'
 import type { SystemsWorld } from './world'
 

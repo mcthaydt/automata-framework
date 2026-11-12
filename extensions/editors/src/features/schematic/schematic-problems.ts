@@ -2,7 +2,7 @@
 // The editor runs the same checks the compiler does (`checkSystems`), so what Schematic calls fine is what the game plays.
 // The checks name things the way the file does ("transition 0", "node", "hook"); each message here becomes a sentence a
 // person can act on, and none shows a key name.
-import { checkSystems, type SysEffect, type SystemsDef } from '@automata/systems/sim'
+import { checkSystems, type SysEffect, type SystemsDef } from '@automataframework/systems/sim'
 import type { Problem } from '../../shared/toml-session.ts'
 import { modeWords, spaced } from './pieces/piece.ts'
 

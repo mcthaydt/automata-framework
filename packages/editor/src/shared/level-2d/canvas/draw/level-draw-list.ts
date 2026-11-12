@@ -1,6 +1,6 @@
 // Turns a level and its project into a flat list of things to draw, in order. It reads the model and knows nothing
 // about Pixi, so what is drawn can be tested without a canvas.
-import { pictureOf } from '@automata/content/level-2d'
+import { pictureOf } from '@automataframework/content/level-2d'
 import { entityBounds, entityDefOf } from '../../model/commands/entity-geometry'
 import type {
   Background,

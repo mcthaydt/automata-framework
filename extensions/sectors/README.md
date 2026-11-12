@@ -9,7 +9,7 @@ It is free, MIT licensed and optional. It is not published to npm yet.
 ## Turn it on
 
 ```ts
-import { sectorsExtension } from '@automata/sectors'
+import { sectorsExtension } from '@automataframework/sectors'
 
 export default defineGame({ extensions: [sectorsExtension] })
 ```
@@ -23,7 +23,7 @@ Read the level with `readSectorMap`, which checks the file and says what is wron
 - **`checkLevel`**: finds a room that crosses itself, a wall of no length, a door to nowhere or a slope the sim cannot
   walk. It returns the problems as a list and never throws.
 - **Events**: `sector.entered` and `zone.crossed`.
-- **Rapier colliders** from the same level (`@automata/sectors/physics`), if the game uses physics.
+- **Rapier colliders** from the same level (`@automataframework/sectors/physics`), if the game uses physics.
 
-[`@automata/nav`](../nav/README.md), [`@automata/narrative`](../narrative/README.md) and
-[`@automata/systems`](../systems/README.md) build on it.
+[`@automataframework/nav`](../nav/README.md), [`@automataframework/narrative`](../narrative/README.md) and
+[`@automataframework/systems`](../systems/README.md) build on it.

@@ -2,9 +2,9 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/sim
+// Packages: @automataframework/sim
 // Difficulty: ★☆☆☆
 // Tier: core
-import { createSim } from '@automata/sim/src/world/sim'
+import { createSim } from '@automataframework/sim/src/world/sim'
 
 export default { createSim }

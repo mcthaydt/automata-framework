@@ -1,6 +1,6 @@
 // The parse cases (the GLB reader and packed models) on one prop, plus the static-only rule AF adds: a skinned or malformed file is ModelInvalid naming the file.
 import { readFileSync } from 'node:fs'
-import { ModelInvalid } from '@automata/framework'
+import { ModelInvalid } from '@automataframework/framework'
 import { describe, expect, it } from 'vitest'
 import { parseGlb, parsePack } from '#src/shared/render/model/parse-glb.ts'
 import { encodeGlb, encodePack, fixtureBox } from '#src/testing/model/model-fixtures.ts'

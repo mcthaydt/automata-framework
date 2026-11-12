@@ -10,7 +10,7 @@ to `hosting.wants` in `defineGame` for the game to be allowed to ask.
 - `ship.config.ts` keeps the fields Ruken reads: `game.sdk` (written by `create-game` when you build for Ruken),
   `runtime`, `network.connect`, `content`, and `loading` or `leaderboards` when the game uses them.
 - Make the game with `--targets web,itch,ruken` (a new game builds for web and itch.io unless you ask). Ruken's SDK
-  comes with `@automata/framework`, so there is nothing else to install.
+  comes with `@automataframework/framework`, so there is nothing else to install.
 - Publishing needs `RUKEN_API` (the Ruken instance) and `RUKEN_TOKEN`.
 
 ## Achievements

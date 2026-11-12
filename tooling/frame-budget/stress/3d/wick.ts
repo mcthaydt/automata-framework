@@ -1,4 +1,4 @@
-import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figures'
+import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automataframework/3d/figures'
 
 // Wick as the compiler would hand him over (a game writes him in content/figures/wick.toml): a cloak, boots and a
 // cape, walking with the `bounce` gait. Colours are DUEL ramps and steps.

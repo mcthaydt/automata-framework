@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { fontCoverage, gameWords } from '@automata/content/assets'
-import { DEFAULT_LOCALES } from '@automata/content/locale'
+import { fontCoverage, gameWords } from '@automataframework/content/assets'
+import { DEFAULT_LOCALES } from '@automataframework/content/locale'
 import { describe, expect, it } from 'vitest'
 import { emberwickWords } from '#src/features/screens/words.ts'
 

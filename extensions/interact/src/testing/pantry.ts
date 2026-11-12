@@ -2,7 +2,7 @@
 // the pantry behind a door, and the hotspots a person would tap: a `jar` in the hall, a `cupboard` to hide in, a `crate`
 // behind the door and a `shelf` that is only usable once the door is open. The puzzle's words are message keys, as a
 // game's are. Tests and tools only.
-import { type AfSector2, readLevel } from '@automata/3d/level'
+import { type AfSector2, readLevel } from '@automataframework/3d/level'
 import {
   type Blocked,
   createNavPlugin,
@@ -10,7 +10,7 @@ import {
   NavAgent,
   NavDoors,
   type NavGraph,
-} from '@automata/nav/sim'
+} from '@automataframework/nav/sim'
 import {
   createPuzzlePlugin,
   loadPuzzle,
@@ -18,7 +18,7 @@ import {
   type PuzzleOptions,
   PuzzleSaid,
   PuzzleState,
-} from '@automata/puzzle/sim'
+} from '@automataframework/puzzle/sim'
 import {
   blockedBy,
   InSector,
@@ -26,7 +26,7 @@ import {
   readSectorMap,
   resolvedMap,
   sectorsPlugin,
-} from '@automata/sectors/sim'
+} from '@automataframework/sectors/sim'
 import {
   type Command,
   createSim,
@@ -37,7 +37,7 @@ import {
   type EventDef,
   type Sim,
   type SimContext,
-} from '@automata/sim'
+} from '@automataframework/sim'
 import { z } from 'zod'
 import type { Hotspot } from '../shared/sim/hotspot.schema'
 import { hotspotsOf } from '../shared/sim/hotspots-of'

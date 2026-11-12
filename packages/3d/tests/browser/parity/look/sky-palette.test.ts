@@ -2,7 +2,7 @@
 // is snapped with the rest; a pixel nothing draws (no sky pass, only the page's background colour) is the page's own and is
 // not. WebGPU and WebGL2 parity is the GPU runner's.
 import '#src/entries/no-eval.ts'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'

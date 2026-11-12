@@ -1,4 +1,4 @@
-import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
+import { defineSystem, type SimContext, type SystemDef } from '@automataframework/sim'
 import type { PhysicsWorld } from './physics-world'
 
 // The four physics systems per dimension. Each reads its sim's own PhysicsWorld from

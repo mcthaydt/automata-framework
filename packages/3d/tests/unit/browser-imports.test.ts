@@ -19,7 +19,7 @@ describe("the package's content imports", () => {
     // The scan reads the package's own sources: a path that misses them would pass for the wrong reason.
     expect(sources(src).length).toBeGreaterThan(100)
     const offenders = sources(src).filter((file) =>
-      /^import\s+(?!type\s)[^'"]*from\s+'@automata\/content'/m.test(readFileSync(file, 'utf8')),
+      /^import\s+(?!type\s)[^'"]*from\s+'@automataframework\/content'/m.test(readFileSync(file, 'utf8')),
     )
     expect(offenders.map((file) => file.slice(src.length + 1))).toEqual([])
   })

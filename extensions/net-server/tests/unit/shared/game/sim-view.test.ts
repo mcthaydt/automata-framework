@@ -1,4 +1,4 @@
-import { createSim, defineComponent, definePlugin, defineResource } from '@automata/sim'
+import { createSim, defineComponent, definePlugin, defineResource } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { simViewOf } from '#src/shared/game/sim-view.ts'

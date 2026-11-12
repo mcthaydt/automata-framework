@@ -8,11 +8,11 @@ It is free, MIT licensed and optional. It is not published to npm yet.
 
 ## Turn it on
 
-Interact needs [`@automata/nav`](../nav/README.md) to walk and [`@automata/puzzle`](../puzzle/README.md) for the verbs it
+Interact needs [`@automataframework/nav`](../nav/README.md) to walk and [`@automataframework/puzzle`](../puzzle/README.md) for the verbs it
 acts with. You tell it who the player is and what the hotspots' conditions read:
 
 ```ts
-import { interactExtension } from '@automata/interact'
+import { interactExtension } from '@automataframework/interact'
 
 const interact = interactExtension({
   player: (sim) => /* the player's entity and where it stands */,
@@ -43,5 +43,5 @@ imports no extension, so they can move to the framework core when a second game 
 
 ## Not here
 
-The words a hotspot shows and the button that shows them are the HUD's ([`@automata/hud`](../hud/README.md)). There is no
+The words a hotspot shows and the button that shows them are the HUD's ([`@automataframework/hud`](../hud/README.md)). There is no
 editor for a hotspot yet: Levels 3D places the entities, and `hide` and `when` are edited as the entity's fields.

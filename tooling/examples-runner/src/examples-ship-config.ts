@@ -1,4 +1,4 @@
-import { defineShipConfig } from '@automata/tools'
+import { defineShipConfig } from '@automataframework/tools'
 import { EXAMPLES_GAME_ID } from './page-template.ts'
 
 /**

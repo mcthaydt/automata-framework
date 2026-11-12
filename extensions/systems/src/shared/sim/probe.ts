@@ -1,9 +1,9 @@
 // Probes: the small vocabulary systems data uses to ask about the world. An agent asks from where it
 // stands, with its own senses; a world rule asks about the player. Facts go through puzzle's state, except an
 // agent's own (`self.<name>`) and pursuit's (`pursuit.hidden`, `pursuit.hiddenFor`).
-import { PuzzleState, type Value } from '@automata/puzzle/sim'
-import type { Point } from '@automata/sectors/sim'
-import { sortedKeys } from '@automata/sim'
+import { PuzzleState, type Value } from '@automataframework/puzzle/sim'
+import type { Point } from '@automataframework/sectors/sim'
+import { sortedKeys } from '@automataframework/sim'
 import { isStill } from './probe-kinds'
 import { dist, saw, UNHEARD } from './pursuit'
 import type { AgentRecord, Noise } from './systems.resource'

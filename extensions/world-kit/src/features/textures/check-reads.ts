@@ -5,8 +5,8 @@
 //
 // Node only: the tiles come from the photo library on disk.
 
-import type { LevelProblem } from '@automata/3d/level'
-import { buildWorld, type WorldLibrary } from '@automata/3d/props-kit'
+import type { LevelProblem } from '@automataframework/3d/level'
+import { buildWorld, type WorldLibrary } from '@automataframework/3d/props-kit'
 import { type PhotoLibrary, readPhotoLibrary } from './photos.ts'
 import { swatchIssues } from './swatch-issues.ts'
 import type { TexturedSwatch } from './swatch-tiles.ts'

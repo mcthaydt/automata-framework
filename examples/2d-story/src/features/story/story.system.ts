@@ -1,9 +1,14 @@
-import type { CutsceneScript, Cutscenes } from '@automata/cutscenes/sim'
-import { type DialogueGraph, type Narrative, NarrativeDialogue, NarrativeEnv } from '@automata/narrative/sim'
-import { loadNavGraph, type NavGraph } from '@automata/nav/sim'
-import { defineSystem, type SystemDef } from '@automata/sim'
-import { hypot } from '@automata/sim/math'
-import { type Systems, type SystemsDef, SystemsEnv } from '@automata/systems/sim'
+import type { CutsceneScript, Cutscenes } from '@automataframework/cutscenes/sim'
+import {
+  type DialogueGraph,
+  type Narrative,
+  NarrativeDialogue,
+  NarrativeEnv,
+} from '@automataframework/narrative/sim'
+import { loadNavGraph, type NavGraph } from '@automataframework/nav/sim'
+import { defineSystem, type SystemDef } from '@automataframework/sim'
+import { hypot } from '@automataframework/sim/math'
+import { type Systems, type SystemsDef, SystemsEnv } from '@automataframework/systems/sim'
 import { Hero } from '../square/hero.component.ts'
 import { Square } from '../square/square.component.ts'
 import { Story } from './story.resource.ts'

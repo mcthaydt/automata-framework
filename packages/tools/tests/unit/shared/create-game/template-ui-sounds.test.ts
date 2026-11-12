@@ -49,7 +49,7 @@ describe('the new game’s interface sounds', () => {
     const game = read('src/app/game.ts')
     expect(game).toContain('uiSounds,')
     expect(game).toContain("locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' }")
-    expect(game).toContain("import { DEFAULT_LOCALES } from '@automata/content/locale'")
+    expect(game).toContain("import { DEFAULT_LOCALES } from '@automataframework/content/locale'")
   })
 
   it('has the three cues, on the interface bus, in the form the Audio editor opens', () => {

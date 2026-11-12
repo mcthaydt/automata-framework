@@ -1,4 +1,4 @@
-import { type ContentLevel, entitiesOf, intGridRows } from '@automata/content/level-2d'
+import { type ContentLevel, entitiesOf, intGridRows } from '@automataframework/content/level-2d'
 
 // Reads a level the 2D editor exported into what this game plays: its size, its walls and where the player starts.
 // Pure, so the sim can hold the result.

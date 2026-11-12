@@ -5,10 +5,10 @@
 //   and step; the walls and ceiling between the camera and Wick are the occluders' to cut away. (A time of day is not
 //   here: core reads it only through the passes an extension registers.)
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -19,10 +19,10 @@ import {
   swatchColour,
   targetSize,
   type WorldLibrary,
-} from '@automata/3d'
-import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figures'
-import { readLevel } from '@automata/3d/level'
-import { defineComponent, defineGame, definePlugin } from '@automata/framework'
+} from '@automataframework/3d'
+import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automataframework/3d/figures'
+import { readLevel } from '@automataframework/3d/level'
+import { defineComponent, defineGame, definePlugin } from '@automataframework/framework'
 
 // --- figure ---
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml

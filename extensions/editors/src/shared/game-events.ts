@@ -2,10 +2,10 @@
 // and sim events are code, so this gathers the ids that content can name, best first: the game's own list when it has
 // one, what its feel, audio and systems files already answer, and the events of the extensions whose content the game
 // has (read from the extensions' own event definitions, never retyped here). A file that does not parse is skipped.
-import { CutsceneEnded, CutsceneStarted } from '@automata/cutscenes/sim'
-import { openDocument } from '@automata/editor/kit/documents'
-import type { SuiteWorkspace } from '@automata/editor/kit/ports'
-import { NarrativeChoices, NarrativeEnded, NarrativeLine } from '@automata/narrative/sim'
+import { CutsceneEnded, CutsceneStarted } from '@automataframework/cutscenes/sim'
+import { openDocument } from '@automataframework/editor/kit/documents'
+import type { SuiteWorkspace } from '@automataframework/editor/kit/ports'
+import { NarrativeChoices, NarrativeEnded, NarrativeLine } from '@automataframework/narrative/sim'
 import {
   PuzzleCheckpoint,
   PuzzleCutscene,
@@ -16,8 +16,8 @@ import {
   PuzzleKeypad,
   PuzzleNoise,
   PuzzleSaid,
-} from '@automata/puzzle/sim'
-import { SystemsCaught, SystemsLine, SystemsMode } from '@automata/systems/sim'
+} from '@automataframework/puzzle/sim'
+import { SystemsCaught, SystemsLine, SystemsMode } from '@automataframework/systems/sim'
 import { eventWords } from './event-words.ts'
 
 /** The list of event ids a game's build may write (`content/generated` is the compiler's). */

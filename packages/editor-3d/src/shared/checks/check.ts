@@ -1,7 +1,7 @@
 // What a check answers: Last Light's `result` helper (scripts/pipeline/blockout-lib.ts, 92e6704) with a severity,
 // and with each problem carrying where it is, so the editor can frame it (ED3D spec §7). The sentence of a problem
 // is Last Light's own, so a level that fails in the game fails the same way here.
-import type { Point } from '@automata/3d/level'
+import type { Point } from '@automataframework/3d/level'
 import type { Edge, ResolvedMap } from '../geometry/sectors'
 
 export type Severity = 'error' | 'warning'

@@ -24,7 +24,7 @@ import {
   toneSchema,
   type V3,
   vec3,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { z } from 'zod'
 import type { KitPiece } from './kit-piece.ts'
 

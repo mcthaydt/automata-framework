@@ -3,8 +3,8 @@
 // the app selects it by. It reads the geometry layers alone (ED3D spec §4.3), so the plan can never disagree with the
 // meshes or the checks; the painting, with its colours, strokes and labels, is the app's.
 
-import type { Point } from '@automata/3d/level'
-import type { Rect } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type { Rect } from '@automataframework/editor/kit/core'
 import type { SelectionOf } from '../../../shared/edit/selection-of'
 import type { Edge, Sector } from '../../../shared/geometry/sectors'
 import type { GeometryLayer } from '../../../shared/level-session/level-profile'

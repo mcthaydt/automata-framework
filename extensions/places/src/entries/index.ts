@@ -1,4 +1,4 @@
-// @automata/places: where things are, as one small contract. Types and pure helpers only; the answers come from
+// @automataframework/places: where things are, as one small contract. Types and pure helpers only; the answers come from
 // `sectors` (3D rooms) or `level-2d` (2D areas and walls).
 export {
   type Blocked,

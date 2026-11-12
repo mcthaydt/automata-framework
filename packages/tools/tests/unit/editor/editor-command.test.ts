@@ -197,7 +197,7 @@ describe('editorCommand', () => {
   it('says to build the editor when its build is not there, and starts nothing', async () => {
     const { deps, io, err, served } = setup({ exists: () => false })
     expect(await editorCommand([], io, deps)).toBe(2)
-    expect(err.join('')).toContain('pnpm --filter @automata/editor build')
+    expect(err.join('')).toContain('pnpm --filter @automataframework/editor build')
     expect(served).toEqual([])
   })
 

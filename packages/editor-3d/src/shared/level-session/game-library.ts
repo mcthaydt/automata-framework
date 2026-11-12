@@ -9,9 +9,9 @@ import {
   type WorldSwatch,
   worldPropContent,
   worldSwatchContent,
-} from '@automata/3d/world-content'
-import type { SuiteWorkspace } from '@automata/editor/kit/ports'
-import { fileTitle } from '@automata/editor/suite'
+} from '@automataframework/3d/world-content'
+import type { SuiteWorkspace } from '@automataframework/editor/kit/ports'
+import { fileTitle } from '@automataframework/editor/suite'
 import { parse as parseToml } from 'smol-toml'
 
 export interface GameLibrary {

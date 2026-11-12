@@ -1,4 +1,4 @@
-import { checkSystems, type SystemsDef } from '@automata/systems/sim'
+import { checkSystems, type SystemsDef } from '@automataframework/systems/sim'
 import { describe, expect, it } from 'vitest'
 import { namesOf } from '#src/features/schematic/names.ts'
 import { ruleActions, ruleConditions } from '#src/features/schematic/rule-menu.ts'

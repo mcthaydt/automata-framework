@@ -1,4 +1,4 @@
-// `@automata/net-server`: a game's server (`defineServer`), the process (`startServer`,
+// `@automataframework/net-server`: a game's server (`defineServer`), the process (`startServer`,
 // `runServerProcess`), the generic Colyseus room that adapts the room rules, the rules themselves as plain
 // modules, the gates in front of Colyseus, and operations. The test driver, the clock hold and the fake verifier are `./testing`.
 

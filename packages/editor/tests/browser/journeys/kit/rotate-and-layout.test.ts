@@ -7,7 +7,7 @@ import {
   mountFixture,
   publishConditions,
   settleLayout,
-} from '@automata/framework/testing'
+} from '@automataframework/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { createHistory } from '#src/shared/kit/history/history.ts'

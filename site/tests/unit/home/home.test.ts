@@ -33,7 +33,7 @@ describe('Home', () => {
     expect(closing?.textContent?.trim()).toBe('Make a game')
     expect(closing?.getAttribute('href')).toBe('/start')
     expect(view.getAllByText(CREATE_COMMAND).length).toBeGreaterThan(0)
-    expect(CREATE_COMMAND).toMatch(/^npx @automata\/tools create-game /)
+    expect(CREATE_COMMAND).toMatch(/^npx @automataframework\/tools create-game /)
   })
 
   it('shows code that is in the example, line for line', () => {

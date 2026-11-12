@@ -26,7 +26,7 @@ const fixed = (name: string): string => {
 }
 
 describe('tool-theme.css', () => {
-  test('equals the output for tool-theme.json (run `pnpm --filter @automata/editor tokens` after editing the JSON)', () => {
+  test('equals the output for tool-theme.json (run `pnpm --filter @automataframework/editor tokens` after editing the JSON)', () => {
     expect(css).toBe(toolThemeToCss(theme))
   })
 

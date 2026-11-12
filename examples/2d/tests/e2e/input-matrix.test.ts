@@ -1,6 +1,6 @@
-import { examplesPort } from '@automata/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
-import { FakePad, hold, type MatrixCell, type MatrixHost } from '@automata/tools/e2e'
+import { examplesPort } from '@automataframework/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automataframework/examples-runner/host/testing'
+import { FakePad, hold, type MatrixCell, type MatrixHost } from '@automataframework/tools/e2e'
 import { expect, type Frame, type Page, type TestInfo, test } from '@playwright/test'
 
 // The input × form-factor matrix (M4.10, M4 spec §9.1, M-a). Each `matrix-<cell>` project in playwright.config.ts

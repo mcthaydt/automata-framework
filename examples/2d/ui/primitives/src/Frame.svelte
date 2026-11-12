@@ -26,7 +26,7 @@ import {
   Split,
   Toast,
   Toggle,
-} from '@automata/framework'
+} from '@automataframework/framework'
 import type { Primitive } from '../main'
 
 interface Props {

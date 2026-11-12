@@ -3,7 +3,7 @@
 // not) and is framed once per canvas until it is moved by hand. A tap selects through the editor's one selection, so the
 // plan shows what the dollhouse picked, and the other way round. The mesh is built once per level from the geometry
 // cache, so the dollhouse, the plan and the checks never disagree.
-import type { PointerKind, Rect, Size } from '@automata/editor/kit/core'
+import type { PointerKind, Rect, Size } from '@automataframework/editor/kit/core'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { type Orbit, orbitBy, orbitCamera, rayThrough } from '../../../shared/geometry/camera-3d'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'

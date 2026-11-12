@@ -28,8 +28,8 @@ import {
   TAU,
   twoBoneIK,
   type V3,
-} from '@automata/3d/figures'
-import { at } from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures'
+import { at } from '@automataframework/3d/figures-kit'
 import type { Seat } from './seat.schema.ts'
 
 /** The thigh's flesh under the hip joint on a seat (m at scale 1): the hip rides this far over the seat. */

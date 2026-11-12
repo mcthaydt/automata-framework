@@ -3,7 +3,7 @@
 // above it one lighter, stopping at the ramp's ends. The material's lighting bit cuts light into the same steps on the
 // GPU, so a texture's colour and a lit surface agree (`ramp-light-material.ts`).
 
-import { step } from '@automata/content/palette'
+import { step } from '@automataframework/content/palette'
 import type { Look } from './look.schema.ts'
 
 /** How far light is from 1, in whole steps: the look cuts 0 to 1 into `steps - 1` intervals. */

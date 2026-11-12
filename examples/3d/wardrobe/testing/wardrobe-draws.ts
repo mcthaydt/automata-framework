@@ -2,7 +2,7 @@
 // moves, the ones it moves under an outer layer, and an accessory's chance. Core's seeded random cast takes it as the
 // `wardrobe` argument of `randomCharacter`; core itself has no layered garments to draw.
 
-import type { Wear } from '@automata/3d/testing'
+import type { Wear } from '@automataframework/3d/testing'
 
 export const WARDROBE_DRAWS: Readonly<Record<string, Wear>> = {
   tee: {

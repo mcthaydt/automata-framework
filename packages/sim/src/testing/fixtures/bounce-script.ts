@@ -1,6 +1,6 @@
 // How the bounce goldens drive the fixture: three balls set up before tick 0, then a kick now and then.
-import { type Command, createRng, deriveSeed, type Rng, type Sim } from '@automata/sim'
-import type { Recorder } from '@automata/sim/replay'
+import { type Command, createRng, deriveSeed, type Rng, type Sim } from '@automataframework/sim'
+import type { Recorder } from '@automataframework/sim/replay'
 import { Ball } from './bounce.component.ts'
 
 export const BOUNCE_SEED = 42

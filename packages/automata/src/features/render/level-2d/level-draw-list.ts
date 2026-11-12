@@ -10,11 +10,11 @@ import {
   placeholderColor,
   tileFrame,
   tileRows,
-} from '@automata/content/level-2d'
+} from '@automataframework/content/level-2d'
 
 // A level as a flat list of things to draw, back to front, in level pixels. Pure: it knows nothing of Pixi, so what a
 // game shows of a level is tested in Node. It follows the editor's own list (`level-draw-list.ts` in the editor), which
-// reads the same rules from `@automata/content/level-2d`, so a level looks alike in both places.
+// reads the same rules from `@automataframework/content/level-2d`, so a level looks alike in both places.
 
 /** A rectangle in a tileset's picture. */
 export interface PictureFrame {

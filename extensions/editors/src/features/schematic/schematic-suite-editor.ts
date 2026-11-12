@@ -5,7 +5,7 @@ import {
   type SuiteEditor,
   type SuiteUndo,
   type WorkspaceFile,
-} from '@automata/editor/kit/ports'
+} from '@automataframework/editor/kit/ports'
 import { canvas, inspector, panel, status } from './SchematicRegions.svelte'
 import { findFacts } from './schematic-facts.ts'
 import { scenesOf } from './schematic-scenes.ts'

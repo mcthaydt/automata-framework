@@ -5,9 +5,14 @@
 // Play is the default play screen with one addition: the sim's `goal.reached` ends the round as complete and moves on to
 // the end screen. The round starts when play is entered from the menu and ends as `quit` when Quit leaves paused for the
 // menu.
-import { type Disposables, defaultScreens, type ScreenDef, type ScreensGame } from '@automata/framework'
-import { resolveExtensions } from '@automata/framework/extension'
-import type { Sim } from '@automata/sim'
+import {
+  type Disposables,
+  defaultScreens,
+  type ScreenDef,
+  type ScreensGame,
+} from '@automataframework/framework'
+import { resolveExtensions } from '@automataframework/framework/extension'
+import type { Sim } from '@automataframework/sim'
 import { flushSync, mount, unmount } from 'svelte'
 import { TICK_HZ } from '../../shared/constants.ts'
 import { GoalReached } from '../../shared/ember.event.ts'

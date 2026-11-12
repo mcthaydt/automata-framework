@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDef } from '@automata/sim'
+import { definePlugin, type PluginDef } from '@automataframework/sim'
 import { events3D, step3D, syncIn3D, syncOut3D } from '../../shared/physics.system'
 import { PhysicsWorld } from '../../shared/physics-world'
 import { Collider3D, RigidBody3D, Transform3D } from './physics-3d.component'

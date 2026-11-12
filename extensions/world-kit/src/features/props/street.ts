@@ -22,7 +22,7 @@ import {
   rod,
   stream,
   type V3,
-} from '@automata/3d/props-kit'
+} from '@automataframework/3d/props-kit'
 import { letterMesh, setText, sizeOf } from '../../shared/lettering/lettering.ts'
 import { lifted } from '../../shared/piece-helpers.ts'
 import { turnX } from '../../shared/turn.ts'

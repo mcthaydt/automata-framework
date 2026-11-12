@@ -1,5 +1,13 @@
-import { BASE_PAIR } from '@automata/3d/base'
-import { apply, type Gait, invertRigid, J, measure, position, skeletonFromGenes } from '@automata/3d/figures'
+import { BASE_PAIR } from '@automataframework/3d/base'
+import {
+  apply,
+  type Gait,
+  invertRigid,
+  J,
+  measure,
+  position,
+  skeletonFromGenes,
+} from '@automataframework/3d/figures'
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { Seat } from '#src/features/seats/seat.schema.ts'
 import { SIT, seated } from '#src/features/seats/seated.ts'

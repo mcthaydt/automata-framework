@@ -1,7 +1,7 @@
-// What a painted figure gives the room's cast shadow (`SceneLight.shadows`, in `@automata/3d`): the opaque texels of the cell
+// What a painted figure gives the room's cast shadow (`SceneLight.shadows`, in `@automataframework/3d`): the opaque texels of the cell
 // the painter drew, with how big a texel is and where the feet are in it, and which way the picture's right runs on the floor.
 // The room supplies the sun, the floors and the look's switch; the figure knows only its picture.
-import type { FigureShadowInput } from '@automata/3d'
+import type { FigureShadowInput } from '@automataframework/3d'
 import type { Cell, V3 } from '../../shared/figures/door.ts'
 
 /** The part of a cell a shadow reads. */

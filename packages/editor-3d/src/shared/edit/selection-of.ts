@@ -4,7 +4,7 @@
 // the sector for any other). What only the geometry has, such as Last Light's opening connectors, has no selection:
 // it is drawn, and nothing selects it.
 
-import type { Point } from '@automata/3d/level'
+import type { Point } from '@automataframework/3d/level'
 import { place, sectorSelection } from '../checks/check'
 import { wallLocator } from '../checks/wall-locator'
 import type { Edge } from '../geometry/sectors'

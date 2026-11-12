@@ -1,7 +1,7 @@
 // The entities of an `af-sector/2` level (ED3D spec §4.7): the file's own `entityDefs` read as typed definitions and its
 // `entities` as the things that stand in the level. Nothing is fixed here: what a thing is, the author says.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { type EntityKit, readEntityKit } from '../../things/things'
 import { EMPTY_LIBRARY, type GameLibrary } from '../game-library'
 import { placedDefinitions, placedThings } from './af-placed'

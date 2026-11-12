@@ -1,10 +1,10 @@
 // The ready-made behaviours Schematic offers (spec 9), run in the sim on the clinic, with fixed seeds. The definitions
 // are `src/testing/fixtures/presets.json`; the editors package keeps that file equal to what its menu writes
 // (`presets.test.ts` there), so these runs are of exactly what a person gets.
-import { clinicGraph } from '@automata/nav/testing/clinic'
-import type { Point } from '@automata/sectors/sim'
-import { stepWith } from '@automata/sectors/testing'
-import type { Sim } from '@automata/sim'
+import { clinicGraph } from '@automataframework/nav/testing/clinic'
+import type { Point } from '@automataframework/sectors/sim'
+import { stepWith } from '@automataframework/sectors/testing'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { AgentDef } from '#src/shared/sim/systems.schema.ts'
 import presets from '#src/testing/fixtures/presets.json'

@@ -1,7 +1,7 @@
 // Light shafts on a real WebGL2 context: the air in a spot lamp's cone catches light, a pixel the view ray crosses it for
 // steps up its own ramp toward the lamp's colour, and nothing else moves. WebGPU and WebGL2 parity is the GPU runner's.
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automata/3d'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automataframework/3d'
 import { CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { type ShaftLamp, ShaftsEffect, shaftLamps } from '#src/features/sky/shafts-effect.ts'

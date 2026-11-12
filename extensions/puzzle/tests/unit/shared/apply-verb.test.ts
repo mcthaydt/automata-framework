@@ -1,6 +1,6 @@
 // `applyVerb` is what the verb system does for one `puzzle.verb`, callable by another system (the `interact`
 // extension's use of a hotspot): the same verb applied either way says the same lines and leaves the same state.
-import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automata/sim'
+import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {

@@ -1,4 +1,4 @@
-import type { UiComponent } from '@automata/framework/extension'
+import type { UiComponent } from '@automataframework/framework/extension'
 import type { LineRecord } from '../../shared/sim/lines.schema.ts'
 import DialogueBox from './DialogueBox.svelte'
 import type { TypingOptions } from './typing.ts'

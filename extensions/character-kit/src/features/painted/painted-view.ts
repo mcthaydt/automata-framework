@@ -2,7 +2,7 @@
 // painted stage (painted-stage.ts) places it by the stage contract and draws it with per-texel depth, standing where the
 // entity stands and turned the way it faces. The entity owns the figure's place and facing (the sim decides them); the
 // painter only draws them.
-import { placeView3d, type SceneLight, type View3dFactory } from '@automata/3d'
+import { placeView3d, type SceneLight, type View3dFactory } from '@automataframework/3d'
 import { Container3D } from '@pixi/3d'
 import type { CharacterDef, V3 } from '../../shared/figures/door.ts'
 import { type PaintedStage, type StageMember, stageFor } from './painted-stage.ts'

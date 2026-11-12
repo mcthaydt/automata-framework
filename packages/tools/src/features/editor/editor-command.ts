@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import { EDITOR_LIST_PATH } from '@automataframework/editor/editor-list'
 import { APP_IS_GONE, parseEditorArgs } from './editor-args.ts'
 import { gameVite, type RunningGame, startGame } from './game-runner.ts'
 import { type EditorPage, pageFor } from './page-for.ts'
@@ -53,9 +53,9 @@ If your game is already running (pnpm dev), give its address with --game-url and
 /** Where each page's build is, from the repository root, and the package that builds it. */
 const BUILDS: Readonly<Record<EditorPage, { readonly folder: string; readonly pkg: string }>> = {
   // Levels and the Tuner: packed in the published tools too.
-  'suite-2d': { folder: 'packages/editor/dist/suite', pkg: '@automata/editor' },
+  'suite-2d': { folder: 'packages/editor/dist/suite', pkg: '@automataframework/editor' },
   // The suite with Levels 3D and Characters: built in the repository only.
-  'suite-full': { folder: 'packages/editor-3d/dist/suite', pkg: '@automata/editor-3d' },
+  'suite-full': { folder: 'packages/editor-3d/dist/suite', pkg: '@automataframework/editor-3d' },
 }
 
 const here = dirname(fileURLToPath(import.meta.url))

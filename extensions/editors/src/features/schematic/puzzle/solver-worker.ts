@@ -1,6 +1,6 @@
 // The worker the page asks "Can it be finished?" of: it gets the puzzle as it is being edited, runs the solver, and sends
 // back a sentence. It imports nothing that needs Node.
-import type { PuzzleDef } from '@automata/puzzle/sim'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
 import { canFinish } from './solve.ts'
 
 self.addEventListener('message', (event: MessageEvent<{ id: number; def: PuzzleDef }>) => {

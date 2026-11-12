@@ -1,6 +1,6 @@
 // What narrative tells the presentation: the line a conversation says and the choices it offers,
 // its end, and a storylet's line. Lines are ids whose text is a locale key, never text.
-import { defineEvent, type EventDef } from '@automata/sim'
+import { defineEvent, type EventDef } from '@automataframework/sim'
 import { z } from 'zod'
 
 export interface LinePayload {

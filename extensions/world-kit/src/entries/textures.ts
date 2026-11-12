@@ -1,4 +1,4 @@
-// @automata/world-kit/textures: the kit's photo textures and the checks that read them. Node only: it reads the photo
+// @automataframework/world-kit/textures: the kit's photo textures and the checks that read them. Node only: it reads the photo
 // library from disk. `photoToTile` makes a tile from a PNG's bytes; `checkReads` holds a level's textured swatches to the
 // `reads` they declare. The `automata-world-textures` command makes the tiles the kit commits.
 export { checkReads } from '../features/textures/check-reads.ts'

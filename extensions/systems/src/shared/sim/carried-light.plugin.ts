@@ -1,8 +1,8 @@
 // The carried-light plugin, opt-in, as the peek is: a plugin of its own beside `systems`, so a sim without it keeps the
 // snapshot header it always had.
-import type { Places } from '@automata/places'
-import { sectorsPlaces } from '@automata/sectors/sim'
-import { definePlugin, type PluginDef } from '@automata/sim'
+import type { Places } from '@automataframework/places'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
+import { definePlugin, type PluginDef } from '@automataframework/sim'
 import { type CarriedLightDef, carriedLightDefOf } from './carried-light'
 import { ToggleLight } from './carried-light.command'
 import { CarriedLight } from './carried-light.component'

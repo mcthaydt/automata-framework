@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { ROOM_CODE_ALPHABET, ROOM_NAME } from '@automata/net'
+import { ROOM_CODE_ALPHABET, ROOM_NAME } from '@automataframework/net'
 import { Effect, Exit, Fiber, Scope } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createServerRuntime, startServer } from '#src/app/start-server.ts'

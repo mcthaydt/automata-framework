@@ -7,7 +7,7 @@ import type { TemplateFile } from './template-file.ts'
 export const WICK_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/wick/wick.component.ts',
-    content: () => `import { defineComponent } from '@automata/sim'
+    content: () => `import { defineComponent } from '@automataframework/sim'
 
 /**
  * Wick: where his feet are on the floor (metres, y up), the way he faces (radians, 0 toward +z and growing toward +x)
@@ -18,8 +18,8 @@ export const Wick = defineComponent('wick', { x: 'f32', y: 'f32', z: 'f32', yaw:
   },
   {
     path: 'src/features/wick/move.command.ts',
-    content: () => `import { STICK_MAX } from '@automata/3d/sim'
-import { defineCommand } from '@automata/sim'
+    content: () => `import { STICK_MAX } from '@automataframework/3d/sim'
+import { defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 
 const axis = z.int().min(-STICK_MAX).max(STICK_MAX)
@@ -30,9 +30,9 @@ export const Move = defineCommand('move', z.object({ x: axis, y: axis }))
   },
   {
     path: 'src/features/wick/walk.system.ts',
-    content: () => `import { CameraHeading, moveDirection, Q16 } from '@automata/3d/sim'
-import { defineSystem } from '@automata/sim'
-import { atan2 } from '@automata/sim/math'
+    content: () => `import { CameraHeading, moveDirection, Q16 } from '@automataframework/3d/sim'
+import { defineSystem } from '@automataframework/sim'
+import { atan2 } from '@automataframework/sim/math'
 import { playIn, standsAt } from '../room/read-room.ts'
 import { TICK_HZ, WICK_HALF } from '../../shared/constants.ts'
 import { Move } from './move.command.ts'
@@ -70,8 +70,8 @@ export const walk = defineSystem('walk', (ctx) => {
   },
   {
     path: 'src/features/wick/wick.plugin.ts',
-    content: () => `import { CameraHeading, enterView, START } from '@automata/3d/sim'
-import { definePlugin, type PluginDef, type Sim } from '@automata/sim'
+    content: () => `import { CameraHeading, enterView, START } from '@automataframework/3d/sim'
+import { definePlugin, type PluginDef, type Sim } from '@automataframework/sim'
 import { FOLLOW } from '../../shared/constants.ts'
 import type { Room } from '../room/read-room.ts'
 import { Move } from './move.command.ts'
@@ -96,9 +96,9 @@ export function spawnWick(sim: Sim, room: Room): void {
   },
   {
     path: 'src/app/controls.ts',
-    content: () => `import { STICK_MAX } from '@automata/3d/sim'
-import type { AnalogReading, InputMap } from '@automata/framework'
-import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@automata/framework'
+    content: () => `import { STICK_MAX } from '@automataframework/3d/sim'
+import type { AnalogReading, InputMap } from '@automataframework/framework'
+import { MAX_TURN_UNITS_PER_STEP, turnUnitsFromPixels } from '@automataframework/framework'
 import { TICK_HZ } from '../shared/constants.ts'
 
 // The analog half of the controls: what the touch stick and the camera drag add to the keys' move and camera-turn.
@@ -135,13 +135,13 @@ export function cameraTurnUnits(reading: AnalogReading, held: { readonly units: 
   },
   {
     path: 'src/features/wick/wick.view.ts',
-    content: () => `import { figure, type View3dFactory } from '@automata/3d'
+    content: () => `import { figure, type View3dFactory } from '@automataframework/3d'
 import {
   clipsWithActions,
   type FigureDef,
   type FigureLibrary,
   type MotionLibrary,
-} from '@automata/3d/figures'
+} from '@automataframework/3d/figures'
 import type { Tuning } from '../../shared/tuning.ts'
 import { Wick } from './wick.component.ts'
 

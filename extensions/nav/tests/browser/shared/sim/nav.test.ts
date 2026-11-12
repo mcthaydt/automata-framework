@@ -1,7 +1,7 @@
 // The nav golden: three clinic walkers hash to one committed value in Node, Chromium, WebKit and
 // Firefox, straight and restored at step 300, and one route's points are pinned. A mismatch is investigated, never
 // rebaselined.
-import { recordGoldenEvidence } from '@automata/evidence/golden'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
 import { expect, test } from 'vitest'
 import { route } from '#src/shared/sim/route.ts'
 import { clinicBlocked, clinicGraph, resolvedClinic } from '#src/testing/clinic.ts'

@@ -1,5 +1,5 @@
 {
-  "name": "@automata/codemods",
+  "name": "@automataframework/codemods",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@automata/content": "workspace:*",
+    "@automataframework/content": "workspace:*",
     "oxc-parser": "0.152.0"
   },
   "devDependencies": {

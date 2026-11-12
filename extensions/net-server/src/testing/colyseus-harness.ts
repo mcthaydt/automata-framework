@@ -14,7 +14,7 @@ import {
   parseServerMessage,
   ROOM_NAME,
   type ServerMessage,
-} from '@automata/net'
+} from '@automataframework/net'
 import { ColyseusTestServer } from '@colyseus/testing'
 import { Effect, Exit, Scope } from 'effect'
 import { createServerRuntime, type ServerRuntime } from '../app/start-server'

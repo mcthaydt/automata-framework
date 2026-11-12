@@ -5,7 +5,7 @@
  * sits: the stream the game's `BotPolicy` draws from and the `seq` its commands carry into the input queue.
  */
 
-import { createRng, type Rng } from '@automata/sim'
+import { createRng, type Rng } from '@automataframework/sim'
 import type { BotPolicy } from '../../../shared/game/server-game'
 import type { SimView } from '../../../shared/game/sim-view'
 import type { QueuedInput } from '../rules/input-queue'

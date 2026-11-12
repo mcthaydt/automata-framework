@@ -3,7 +3,7 @@
  * wait for the server is bounded. None of them touches the room's state.
  */
 
-import type { Clock } from '@automata/framework'
+import type { Clock } from '@automataframework/framework'
 import type { RoomEnd } from './room-api'
 import type { NetSdkRoom } from './sdk'
 

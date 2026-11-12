@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { PROMPT_COPY, padLabel } from '@automata/framework'
+import { PROMPT_COPY, padLabel } from '@automataframework/framework'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'

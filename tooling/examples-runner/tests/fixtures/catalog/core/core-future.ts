@@ -2,10 +2,10 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/future
+// Packages: @automataframework/future
 // Difficulty: ★☆☆☆
 // Tier: core
 // Pending: OPEN.1
-import { defineFuture } from '@automata/future'
+import { defineFuture } from '@automataframework/future'
 
 export default defineFuture({ id: 'core-future' })

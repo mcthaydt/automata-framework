@@ -23,7 +23,7 @@ import {
 } from './source-reader.ts'
 
 /** `keys` lives in the main package and the game package; a `keys` from anywhere else is not the input map. */
-const AUTOMATA_MODULE = /^@automata\/(?:framework|game)$/
+const AUTOMATA_MODULE = /^@automataframework\/(?:framework|game)$/
 
 /** Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped. */
 export const isInputsSource: (file: string) => boolean = isShippedSource

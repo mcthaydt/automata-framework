@@ -1,4 +1,4 @@
-import { fakeClock } from '@automata/framework/testing'
+import { fakeClock } from '@automataframework/framework/testing'
 import { cleanup, render, screen } from '@testing-library/svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { splashStep } from '#src/app/splash-step.ts'

@@ -1,4 +1,4 @@
-import { PLACEHOLDER_COLORS, placeholderColor, tileFrame } from '@automata/content/level-2d'
+import { PLACEHOLDER_COLORS, placeholderColor, tileFrame } from '@automataframework/content/level-2d'
 import type { Bounds } from '../../model/commands/entity-geometry'
 import type { TilesetDef } from '../../model/project-types'
 import { tilesetTiles } from '../../model/tileset-grid'

@@ -1,5 +1,5 @@
 {
-  "name": "@automata/frame-budget",
+  "name": "@automataframework/frame-budget",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,18 +15,18 @@
     "e2e:stress": "vite build && vite preview --strictPort --host localhost --port $AF_FRAME_BUDGET_PORT"
   },
   "dependencies": {
-    "@automata/3d": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/sim": "workspace:*",
+    "@automataframework/3d": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/sim": "workspace:*",
     "pixi.js": "8.22.0",
     "svelte": "5.57.1",
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@automata/tools": "workspace:*",
-    "@automata/examples-runner": "workspace:*",
-    "@automata/playwright-preset": "workspace:*",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/tools": "workspace:*",
+    "@automataframework/examples-runner": "workspace:*",
+    "@automataframework/playwright-preset": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

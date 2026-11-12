@@ -8,7 +8,7 @@ import {
   fieldDefSchema,
   fieldValuesSchema,
   HEX_COLOR,
-} from '@automata/content/level-2d'
+} from '@automataframework/content/level-2d'
 import { z } from 'zod'
 import { ruleGroupSchema } from '../tiles/autotile/rule.schema.ts'
 import { DEF_ID, ITEM_ID } from './ids.ts'

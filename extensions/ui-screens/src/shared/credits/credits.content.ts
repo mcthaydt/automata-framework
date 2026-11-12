@@ -1,5 +1,10 @@
 // The `credits` content kind: `content/credits/credits.toml` is the game's credits.
-import { type ContentSchemaDef, defineContentSchema, localized, verbatim } from '@automata/content/schema'
+import {
+  type ContentSchemaDef,
+  defineContentSchema,
+  localized,
+  verbatim,
+} from '@automataframework/content/schema'
 import type { z } from 'zod'
 import { type Credits, creditsSchemaWith } from './credits.schema.ts'
 

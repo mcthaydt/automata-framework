@@ -1,7 +1,7 @@
 // Applying a material (ED3D.8a step 2, spec §5.3 flow 5): to one wall, to a room, or to every wall made of what the target
 // is made of, as one edit. On a small `af-sector/1` level with a style and a hole.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import {

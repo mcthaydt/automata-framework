@@ -5,7 +5,7 @@
   the canvas under it takes the rest.
 -->
 <script lang="ts">
-import { Segmented } from '@automata/editor/kit'
+import { Segmented } from '@automataframework/editor/kit'
 import WalkSticks from './WalkSticks.svelte'
 import { type Minimap } from './walk-hud'
 import type { Stick, WalkMode, WalkView } from './walk-session'

@@ -1,4 +1,4 @@
-import type { SimContext, SpawnPart } from '@automata/sim'
+import type { SimContext, SpawnPart } from '@automataframework/sim'
 
 // The contract `narrative`, `cutscenes`, `nav` and `systems` read the world through. The plan is in metres, in 2D and
 // 3D alike: `z` is down the plan (a 2D level's `y`). Pure types and two helpers; nothing here is sim state.

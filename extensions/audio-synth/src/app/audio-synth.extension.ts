@@ -1,6 +1,6 @@
 // `audio-synth` as an extension a game opts into. Presentation only: no sim plugin, so a game's sim hash is the
 // same with or without it. The offline render, `pipe audio check` and the board panel join it later.
-import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+import { defineExtension, type ExtensionDef } from '@automataframework/framework/extension'
 import { audioContent } from '../features/synth/audio.content'
 
 /** The audio-synth extension a game opts into. It registers the `audio` content kind. */

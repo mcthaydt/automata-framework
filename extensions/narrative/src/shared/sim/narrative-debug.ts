@@ -1,7 +1,7 @@
 // What the debug overlay shows of the dialogue: a plain object built from the dialogue state. `debug` imports no
 // extension, so the game hands this over under a `summaryPanel` id. It reads the state and never writes it.
-import type { Value } from '@automata/puzzle/sim'
-import { sortedKeys } from '@automata/sim'
+import type { Value } from '@automataframework/puzzle/sim'
+import { sortedKeys } from '@automataframework/sim'
 import type { NarrativeDialogueValue } from './narrative.resource'
 
 export interface NarrativeDebugSummary {

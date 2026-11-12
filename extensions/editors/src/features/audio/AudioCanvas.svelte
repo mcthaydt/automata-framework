@@ -4,8 +4,8 @@
   happens, which sound plays or why it is silent.
 -->
 <script lang="ts">
-import type { Cue, Voice } from '@automata/audio-synth'
-import { Button } from '@automata/editor/kit'
+import type { Cue, Voice } from '@automataframework/audio-synth'
+import { Button } from '@automataframework/editor/kit'
 import { problemAt } from '../../shared/content-session.svelte.ts'
 import type { Field } from '../../shared/fields.ts'
 import { setOrInsert } from '../../shared/fields.ts'

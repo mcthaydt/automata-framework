@@ -1,6 +1,6 @@
 // characterkit-painted: the base pair as painted pixel art in a 3D room, one walking a loop behind a low wall, the other standing
 //
-// Shows: `paintedFigure` from the character kit (`@automata/character-kit`): a figure generated from data and painted
+// Shows: `paintedFigure` from the character kit (`@automataframework/character-kit`): a figure generated from data and painted
 //   texel by texel, drawn in the scene as a quad that stands where its entity stands. It is drawn in eight views, as a
 //   sprite set is: the painter picks the one nearest the camera's bearing, so a turning camera steps through them. It is
 //   always painted at the painter's own 18° pitch, whatever the camera's tilt, and at one screen pixel a texel: the field
@@ -9,15 +9,15 @@
 //   texel, not as a flat cut-out. Everything about the look (the light's bands, the outline, the face, the colours) is
 //   the painter's.
 // Controls: none
-// Packages: @automata/framework, @automata/3d, @automata/character-kit
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/character-kit
 // Difficulty: ★★☆☆
 // Tier: extension
-import '@automata/3d/no-eval'
-import { box, createPixi3dRenderer, render3dExtension } from '@automata/3d'
-import { figuresExtension } from '@automata/3d/figures'
-import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
-import { BASE, characterKitExtension, paintedFigure } from '@automata/character-kit'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { box, createPixi3dRenderer, render3dExtension } from '@automataframework/3d'
+import { figuresExtension } from '@automataframework/3d/figures'
+import { CameraHeading, cameraView, enterView, START } from '@automataframework/3d/sim'
+import { BASE, characterKitExtension, paintedFigure } from '@automataframework/character-kit'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- figure ---
 // The base pair as the painter's data: sliders, a gait and outfits of library garments (painted-on blocks, barefoot).

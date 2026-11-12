@@ -2,8 +2,8 @@
 // (`af-sector/1`), and the refusal on a format whose definitions are fixed. A definitions edit
 // never makes a valid instance invalid (the kit's `checkRetype`), and an accepted edit never makes the checks worse.
 
-import type { AfSector2File } from '@automata/3d/level'
-import type { FieldDef } from '@automata/editor/kit/fields'
+import type { AfSector2File } from '@automataframework/3d/level'
+import type { FieldDef } from '@automataframework/editor/kit/fields'
 import { describe, expect, it } from 'vitest'
 import {
   addDefinition,

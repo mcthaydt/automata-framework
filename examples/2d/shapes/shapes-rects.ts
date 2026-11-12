@@ -3,11 +3,11 @@
 // Shows: rect() draws one view per component id, interpolated between ticks: position, an anchor,
 //   and an angle that turns along the shorter arc.
 // Controls: none
-// Packages: @automata/framework
+// Packages: @automataframework/framework
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 120
-import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automata/framework'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automataframework/framework'
 
 const Block = defineComponent('block', { x: 'f32', y: 'f32' })
 const Bar = defineComponent('bar', { x: 'f32', y: 'f32' })

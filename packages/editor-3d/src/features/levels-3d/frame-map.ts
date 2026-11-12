@@ -1,7 +1,7 @@
 // Where each view of a level looks from (spec 10.3): the Plan over the whole level, the 3D view round it from the
 // dollhouse's home angles, and Walk at the spawn. The controllers frame through this one function, so a level opens
 // the same way in the editor's views however each was reached.
-import type { Rect, Size } from '@automata/editor/kit/core'
+import type { Rect, Size } from '@automataframework/editor/kit/core'
 import type { ViewState } from '../../shared/edit/view-store'
 import {
   fitOrbit,

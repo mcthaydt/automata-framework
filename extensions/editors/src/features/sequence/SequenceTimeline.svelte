@@ -4,7 +4,7 @@
   it, snapped to a tenth of a second. Tapping or dragging the ruler moves the playhead.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import { SOUNDS_WORDS } from './key-fields.ts'
 import SequenceAddStep from './SequenceAddStep.svelte'
 import type { SequenceSession } from './sequence-session.svelte.ts'

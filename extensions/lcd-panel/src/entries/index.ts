@@ -1,5 +1,5 @@
-// @automata/lcd-panel: the LCD screen look for AF's pixel-art look. This entry is the settings and the maths, with no
-// renderer in it; the pass is `@automata/lcd-panel/pass`.
+// @automataframework/lcd-panel: the LCD screen look for AF's pixel-art look. This entry is the settings and the maths, with no
+// renderer in it; the pass is `@automataframework/lcd-panel/pass`.
 export {
   derivePitch,
   LCD_UNIFORMS,

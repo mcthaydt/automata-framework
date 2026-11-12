@@ -1,7 +1,7 @@
 // The coloured outline on a real WebGL2 context: a pixel beside a nearer shape takes that shape's own colour, two steps down
 // its ramp on the key's side and three off it, and it stays a DUEL colour. WebGPU and WebGL2 parity is the GPU runner's.
 import '#src/entries/no-eval.ts'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'

@@ -1,6 +1,6 @@
 <!-- What is wrong in the open cutscene, counted in words. -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import ProblemCount from '../../shared/ui/ProblemCount.svelte'
 import type { SequenceSession } from './sequence-session.svelte.ts'
 

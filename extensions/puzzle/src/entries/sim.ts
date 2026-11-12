@@ -1,4 +1,4 @@
-// @automata/puzzle/sim: the puzzle interpreter, a sim entry. `Value` and `Cond` are puzzle's
+// @automataframework/puzzle/sim: the puzzle interpreter, a sim entry. `Value` and `Cond` are puzzle's
 // narrative and systems import them from here.
 export { fallbackLine, holds, match, type Reader, uses, type Verb } from '../shared/sim/interpret'
 export { loadPuzzle } from '../shared/sim/load-puzzle'

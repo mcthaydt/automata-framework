@@ -3,9 +3,14 @@
  * Colyseus or sockets.
  */
 
-import { type ClientMessage, type NetConfig, parseServerMessage, type ServerMessage } from '@automata/net'
-import type { Sim } from '@automata/sim'
-import type { ReplayCompression } from '@automata/sim/replay'
+import {
+  type ClientMessage,
+  type NetConfig,
+  parseServerMessage,
+  type ServerMessage,
+} from '@automataframework/net'
+import type { Sim } from '@automataframework/sim'
+import type { ReplayCompression } from '@automataframework/sim/replay'
 import { type RoomClient, RoomEngine } from '../features/room/engine/room-engine'
 import type { Bucket, RoomLogEvent } from '../shared/game/server-config'
 import type { ServerDef } from '../shared/game/server-game'

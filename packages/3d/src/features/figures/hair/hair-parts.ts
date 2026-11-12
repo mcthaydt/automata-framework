@@ -4,7 +4,7 @@
 // a block, edges) is registered with `registerHairPiece` by the character kit, and this file hands each entry of a style
 // to the one registered under its key. What a piece shares is `HairBuild`. Changed: a piece's tone is a swatch variant
 // (tones.ts) instead of a painter ramp; the texel sizes are held at the fixed ppm; the piece builders left for
-// @automata/character-kit.
+// @automataframework/character-kit.
 
 import type { V3 } from '../../../shared/math/math.ts'
 import type { Measure } from '../body/genes.ts'

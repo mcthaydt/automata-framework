@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
-import { render3dExtension } from '@automata/3d'
-import type { DefinedGame } from '@automata/framework'
-import { type RendererFactory, type RuntimeHandle, runGame } from '@automata/framework'
+import { render3dExtension } from '@automataframework/3d'
+import type { DefinedGame } from '@automataframework/framework'
+import { type RendererFactory, type RuntimeHandle, runGame } from '@automataframework/framework'
 import {
   type FakeHostingOptions,
   fakeFetch,
   fakeHosting,
   type ManualFrames,
   manualFrames,
-} from '@automata/framework/testing'
-import type { StepResult } from '@automata/sim'
+} from '@automataframework/framework/testing'
+import type { StepResult } from '@automataframework/sim'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { base3dSim } from '#src/app/base-sim.ts'
 import { liveCopy } from '#src/features/screens/copy.svelte.ts'

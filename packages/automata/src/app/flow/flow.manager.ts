@@ -1,4 +1,4 @@
-import type { FlowGraph } from '@automata/content'
+import type { FlowGraph } from '@automataframework/content'
 import { type Disposables, disposables } from '../../shared/lib/disposables.ts'
 import type { Assets } from '../../shared/runtime/assets.manager.js'
 import { type LiveWords, wordsNow } from '../../shared/runtime/live-words.ts'

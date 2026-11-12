@@ -1,11 +1,11 @@
 // Peeking: the player stands still facing a doorway into another zone, and after a moment the camera may lean through it.
 // The sim keeps who peeks through what, so replays carry it. The cases are the old game's, on the clinic: the hall's
 // doorway into the corridor (`hall>mouth`, which has no door) and the corridor's closet door (shut until nav opens it).
-import { NavDoors } from '@automata/nav/sim'
-import { clinicBlocked } from '@automata/nav/testing/clinic'
-import { resolvedMap } from '@automata/sectors/sim'
-import { stateHash, stepWith } from '@automata/sectors/testing'
-import type { Sim } from '@automata/sim'
+import { NavDoors } from '@automataframework/nav/sim'
+import { clinicBlocked } from '@automataframework/nav/testing/clinic'
+import { resolvedMap } from '@automataframework/sectors/sim'
+import { stateHash, stepWith } from '@automataframework/sectors/testing'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPeek, peekOf, SystemsEnv, SystemsPeek, SystemsPursuit } from '#src/entries/sim.ts'
 import { sceneOf } from '#src/testing/toy.ts'

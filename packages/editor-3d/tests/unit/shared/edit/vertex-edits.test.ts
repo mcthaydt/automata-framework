@@ -3,7 +3,7 @@
 // window on its north wall, a portal east into the dock, a door on its west wall) and on small levels that show one rule
 // each.
 
-import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit } from '#src/shared/edit/edit.ts'
 import { type Changes, cornerInserted, insertCorner, removeCorner } from '#src/shared/edit/vertex-edits.ts'

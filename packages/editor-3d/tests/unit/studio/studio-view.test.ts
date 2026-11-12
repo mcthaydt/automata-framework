@@ -2,7 +2,7 @@
 // handles stand and which are out of reach, and the view's own state (mode, selection, playhead). Headless: the stage's
 // renderer takes what `stageOf` says, so these are the cases of what a person sees.
 
-import { evaluate, J, skeleton } from '@automata/3d/figures'
+import { evaluate, J, skeleton } from '@automataframework/3d/figures'
 import { get } from 'svelte/store'
 import { describe, expect, it } from 'vitest'
 import { readStudioContent } from '#src/features/studio/studio-content.ts'

@@ -5,10 +5,10 @@
 //   Both screens show once per device. Opened standalone the language screen shows; a Ruken host supplies the player's
 //   language and skips it.
 // Controls: tap, click or Enter on a language, then on Continue
-// Packages: @automata/framework
+// Packages: @automataframework/framework
 // Difficulty: ★★☆☆
 // Tier: core
-import { defineGame } from '@automata/framework'
+import { defineGame } from '@automataframework/framework'
 
 // The pixel font, cut to the words these menus show (content/fonts.toml): `fonts.css` is served beside this page
 // (public/core/first-run/) and sets the face each language draws in, so Japanese, Korean and Chinese are not left to a device.

@@ -1,6 +1,6 @@
-import { openDocument } from '@automata/editor/kit/documents'
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
-import { type AgentDef, checkSystems, type SystemsDef, systemsDefShape } from '@automata/systems/sim'
+import { openDocument } from '@automataframework/editor/kit/documents'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
+import { type AgentDef, checkSystems, type SystemsDef, systemsDefShape } from '@automataframework/systems/sim'
 import { parse as strictParse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import {

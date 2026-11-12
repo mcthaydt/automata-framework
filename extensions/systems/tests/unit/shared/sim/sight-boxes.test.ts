@@ -1,9 +1,9 @@
 // What `wallsOnly` means in the game, so Schematic's "Boxes and closed doors block its view" is tied to it: a sense
 // that leaves it out (or says `true`) is blocked by walls only; `wallsOnly = false` is blocked by boxes too. The desk
 // stands between the two spots, and no wall does.
-import type { Point } from '@automata/sectors/sim'
-import { stepWith } from '@automata/sectors/testing'
-import type { Sim } from '@automata/sim'
+import type { Point } from '@automataframework/sectors/sim'
+import { stepWith } from '@automataframework/sectors/testing'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { AgentDef, Sense } from '#src/shared/sim/systems.schema.ts'
 import { sceneOf } from '#src/testing/toy.ts'

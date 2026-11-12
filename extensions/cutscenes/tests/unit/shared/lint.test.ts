@@ -2,8 +2,8 @@
 // an actor off the floor, a caption whose line does not exist or is shown too briefly, a sound or lamp that does not exist,
 // a shot that is too short, dead air. The original's rules that read its renderer (ceiling, cut-away walls, sprite scale,
 // back to camera, solid boxes) come with the renderer.
-import { readSectorMap, resolveLevel } from '@automata/sectors/sim'
-import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
+import { readSectorMap, resolveLevel } from '@automataframework/sectors/sim'
+import clinicLevel from '@automataframework/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { describe, expect, it } from 'vitest'
 import type { CutsceneScript } from '#src/entries/sim.ts'
 import { type LintWorld, lintCutscene, lintCutscenes, readingTime } from '#src/shared/lint.ts'

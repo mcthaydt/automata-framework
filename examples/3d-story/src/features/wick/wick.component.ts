@@ -1,4 +1,4 @@
-import { defineComponent } from '@automata/sim'
+import { defineComponent } from '@automataframework/sim'
 
 /**
  * Wick: where his feet are on the floor (metres, y up), the way he faces (radians, 0 toward +z and growing toward +x)

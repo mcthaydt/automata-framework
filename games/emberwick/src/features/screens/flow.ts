@@ -1,5 +1,5 @@
-import type { CompiledContentData } from '@automata/framework'
-import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import type { CompiledContentData } from '@automataframework/framework'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 
 // Emberwick's flow, as compiled content the runtime reads.
 

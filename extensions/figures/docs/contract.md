@@ -1,6 +1,6 @@
 # The stage contract
 
-What a scene needs to draw a painted figure of `@automata/figures`, as a versioned public surface. `STAGE_VERSION` is **1**.
+What a scene needs to draw a painted figure of `@automataframework/figures`, as a versioned public surface. `STAGE_VERSION` is **1**.
 The package is private and unpublished, so the contract's version is `STAGE_VERSION` alone; it began as FigureBuilder's, and
 the changelog (section 7) keeps its history. The rules of the package as a whole are in `../README.md`.
 
@@ -83,7 +83,7 @@ largest not above the zoom or `max`; never under 1. `compose` goes by pixel cent
 
 A figure is painted at the nearest of 8 directions, from the bearing `viewOf(pose, at)` gives (the eye round the figure:
 under perspective each figure has its own; under an orthographic pose the bearing `fwd` gives, shared), **at the renders'
-pitch** (`SPRITE_PITCH`, 18°, the pitch of `pnpm --filter @automata/figures render` and the sheets; `Cell.pitch` reads it), **whatever the camera's
+pitch** (`SPRITE_PITCH`, 18°, the pitch of `pnpm --filter @automataframework/figures render` and the sheets; `Cell.pitch` reads it), **whatever the camera's
 tilt** (`viewOf` still returns the pose's own pitch; `StageOptions.pitch` lets a host set another). Figures are sprites
 drawn the way classic 2.5D games draw them, so a tilted camera (The Last Light's is 30°) does not foreshorten them or turn
 them into a different drawing from the one the renders show. The relation a host relies on is
@@ -215,7 +215,7 @@ needs its line in `tests/unit/api.test.ts`, made on purpose.
   types `SpriteLighting`, `SpriteLamp`, `SpriteStyle`; `StageOptions.sprite`, the third light path (the two-path error is now
   "lighting, lights and sprite are three light paths; give one"); per-texel depth under WebGPU (a WGSL stage and a fragment
   template). Adding a name breaks no consumer (section 6), so `STAGE_VERSION` stays 1.
-- **1** (moved into the framework, 2026-11-12): the package arrives as `extensions/figures` (`@automata/figures`) with its history, byte
+- **1** (moved into the framework, 2026-11-12): the package arrives as `extensions/figures` (`@automataframework/figures`) with its history, byte
   for byte, and its goldens unmoved at the move; its layout follows the framework's (`src/shared/<layer>/`, `src/features/view/`,
   `src/entries/`). The three entries are `src/entries/index.ts`, `kit.ts` and `view.ts`; no name on them changed, so `STAGE_VERSION`
   stays 1. One painter fix came across with it and moved recorded pixels, named in its commit: a turned face keeps both eyes

@@ -1,4 +1,4 @@
-import type { ServerMessage } from '@automata/net'
+import type { ServerMessage } from '@automataframework/net'
 import { describe, expect, it, vi } from 'vitest'
 import { type SeatClient, SeatRegistry } from '#src/features/room/rules/seat-registry.ts'
 

@@ -1,8 +1,8 @@
-import '@automata/editor/tokens.css'
-import '@automata/editor/fonts.css'
+import '@automataframework/editor/tokens.css'
+import '@automataframework/editor/fonts.css'
 import '#src/app/main.css'
-import { arrived, IPAD_PROFILES, turned } from '@automata/editor/kit/testing'
-import { byTestId } from '@automata/framework/testing'
+import { arrived, IPAD_PROFILES, turned } from '@automataframework/editor/kit/testing'
+import { byTestId } from '@automataframework/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import {

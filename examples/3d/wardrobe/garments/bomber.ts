@@ -6,8 +6,17 @@
 // graphics (SNEKPRTY marks). Changed: painter materials are swatch variants, and the zip's pull, drawn at two
 // sizes by density, is one decal at its density-2 size (the density is fixed).
 
-import type { Anchor, Decal, Garment, Measure, Part } from '@automata/3d/figures-kit'
-import { clamp, J, lerp, normalize, SIDES, type Skeleton, smooth, type V3 } from '@automata/3d/figures-kit'
+import type { Anchor, Decal, Garment, Measure, Part } from '@automataframework/3d/figures-kit'
+import {
+  clamp,
+  J,
+  lerp,
+  normalize,
+  SIDES,
+  type Skeleton,
+  smooth,
+  type V3,
+} from '@automataframework/3d/figures-kit'
 import { WARDROBE_DEFAULTS } from './defaults.ts'
 import type { Bomber } from './garment-types.ts'
 import { over, underneath } from './layering.ts'

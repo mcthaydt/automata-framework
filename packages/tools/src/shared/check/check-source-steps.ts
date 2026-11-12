@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { gameConfigSchema } from '@automata/content/game-config'
+import { gameConfigSchema } from '@automataframework/content/game-config'
 import { Effect } from 'effect'
 import { Files, type FilesService } from '../node/files.ts'
 import { ShipConfigLoader } from '../node/ship-config-loader.ts'

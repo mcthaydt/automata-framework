@@ -5,7 +5,7 @@
   to it.
 -->
 <script lang="ts">
-import { shellModeOf } from '@automata/editor/kit'
+import { shellModeOf } from '@automataframework/editor/kit'
 import type { LevelEditor } from '../../shared/edit/level-editor'
 import { gameColours } from '../../shared/level-session/materials'
 import DollhouseCanvas from './dollhouse/DollhouseCanvas.svelte'

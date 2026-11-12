@@ -1,7 +1,7 @@
-import { defineGame } from '@automata/framework'
-import { puzzleExtension } from '@automata/puzzle'
-import { sectorsExtension } from '@automata/sectors'
-import { definePlugin } from '@automata/sim'
+import { defineGame } from '@automataframework/framework'
+import { puzzleExtension } from '@automataframework/puzzle'
+import { sectorsExtension } from '@automataframework/sectors'
+import { definePlugin } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { systemsExtension } from '#src/entries/index.ts'
 

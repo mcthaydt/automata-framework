@@ -1,4 +1,4 @@
-import { createGeometryOwner } from '@automata/framework'
+import { createGeometryOwner } from '@automataframework/framework'
 import { mount, unmount } from 'svelte'
 import { createEditorApp } from '../../app/level-2d/editor-app'
 import { componentOf } from '../../app/level-2d/views'

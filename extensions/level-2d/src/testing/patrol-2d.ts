@@ -2,9 +2,9 @@
 // parity run that shows it works the same in every engine. The level is 12 cells by 6 at 16 px a cell (one metre a cell):
 // a Hall on the left, a Yard on the right, a wall one cell thick between them with a two-cell gap, and a guard who patrols
 // the Hall, hunts what he sees, and follows through the gap.
-import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
-import { createNavPlugin, loadNavGraph, type NavGraph } from '@automata/nav/sim'
-import { createPuzzlePlugin } from '@automata/puzzle/sim'
+import type { ContentLevel, ContentProject } from '@automataframework/content/level-2d'
+import { createNavPlugin, loadNavGraph, type NavGraph } from '@automataframework/nav/sim'
+import { createPuzzlePlugin } from '@automataframework/puzzle/sim'
 import {
   canonicalJson,
   createSim,
@@ -13,15 +13,15 @@ import {
   defineSystem,
   type Sim,
   type SimEvent,
-} from '@automata/sim'
-import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
+} from '@automataframework/sim'
+import { hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 import {
   type AgentDef,
   createSystems,
   type SystemsDef,
   SystemsEnv,
   SystemsState,
-} from '@automata/systems/sim'
+} from '@automataframework/systems/sim'
 import { z } from 'zod'
 import { Level2dAt, level2dPlaces, level2dPlugin } from '../entries/sim.ts'
 

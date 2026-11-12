@@ -1,6 +1,6 @@
-import { cameraHeadingPlugin, cameraView } from '@automata/3d/sim'
-import { recordGoldenEvidence } from '@automata/evidence/golden'
-import { createSim, type Sim } from '@automata/sim'
+import { cameraHeadingPlugin, cameraView } from '@automataframework/3d/sim'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
+import { createSim, type Sim } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { base3dPlugin } from '#src/app/base3d.plugin.ts'
 import { type AreaSource, areaOf, compileArea, viewAt } from '#src/shared/area.ts'
@@ -204,7 +204,7 @@ describe('embers and the goal', () => {
   })
 })
 
-describe('camera-turn (@automata/3d’s command, on Wick’s heading)', () => {
+describe('camera-turn (@automataframework/3d’s command, on Wick’s heading)', () => {
   it('turns the heading, and the stick with it, from the same tick', async () => {
     const sim = await startSim(openArea(0))
     run(sim, { stick: UP, turn: 8_192 })

@@ -5,12 +5,12 @@
 //   a lamp entity's level, which rebakes only the boxes that lamp reaches; the walker takes the ambient light plus
 //   the lamps in range at its position every frame; linear fog closes the far side of the room.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { box, createPixi3dRenderer, render3dExtension, sceneLightingSchema } from '@automata/3d'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { box, createPixi3dRenderer, render3dExtension, sceneLightingSchema } from '@automataframework/3d'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- scene ---
 // A game with content writes this in content/lighting/<room>.toml (kind scene-lighting); here it is inline.

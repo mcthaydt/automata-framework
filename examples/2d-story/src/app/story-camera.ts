@@ -1,4 +1,9 @@
-import { type Camera2d, createCamera2d, type PixiStage, type PixiStageHooks } from '@automata/framework'
+import {
+  type Camera2d,
+  createCamera2d,
+  type PixiStage,
+  type PixiStageHooks,
+} from '@automataframework/framework'
 import { LEVEL } from '../features/level/level.ts'
 import { debugHooks } from './debug.ts'
 

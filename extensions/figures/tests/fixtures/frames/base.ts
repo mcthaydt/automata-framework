@@ -1,5 +1,5 @@
 /**
- * The base pair's golden frames: what `pnpm --filter @automata/figures render` draws for each member (scripts/render.ts), flattened per sheet
+ * The base pair's golden frames: what `pnpm --filter @automataframework/figures render` draws for each member (scripts/render.ts), flattened per sheet
  * into one RGBA buffer, named `<id>-<turn|walk|hero>-d<density>`. Shared by the recorder (scripts/golden.ts) and the
  * test (tests/unit/golden/base.test.ts), so both draw exactly the same frames.
  */

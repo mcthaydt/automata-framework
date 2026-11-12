@@ -4,7 +4,7 @@
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s apron
 // branch), with AF's strict types; the formulas are the source's.
 
-import type { Garment } from '@automata/3d/figures'
+import type { Garment } from '@automataframework/3d/figures'
 import {
   axisAngle,
   box,
@@ -15,7 +15,7 @@ import {
   SIDES,
   TRAPEZIUS,
   trapezius,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { z } from 'zod'
 import { hang } from './hang.ts'
 import { flag, type KitGarment, length, optionalSwatch, swatch, within } from './kit-garment.ts'

@@ -1,4 +1,4 @@
-import type { FigureViewState } from '@automata/3d'
+import type { FigureViewState } from '@automataframework/3d'
 import {
   apply,
   chestFrame,
@@ -15,7 +15,7 @@ import {
   type PoseDef,
   type Space,
   skeleton,
-} from '@automata/3d/figures'
+} from '@automataframework/3d/figures'
 import { type Readable, writable } from 'svelte/store'
 import { DEFAULT_ORBIT, type Orbit, type Vec3 } from './stage/stage-camera'
 import type { StudioContent } from './studio-content'

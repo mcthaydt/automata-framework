@@ -19,7 +19,7 @@
 // `--no-extension-imports <root>...` runs only the extension check: nothing under the roots (tests included)
 // imports a package that lives under `extensions/`, so core never depends on an extension.
 // `--confine <package>:<folder> <root>...` runs only the confined-import check: nothing under the roots (tests
-// included) but the folder, a package's one door, imports that package (`@automata/figures`).
+// included) but the folder, a package's one door, imports that package (`@automataframework/figures`).
 // `--browser <package-root>[:<entry>,<entry>]...` runs only the browser-only check: nothing a
 // browser entry reaches imports Effect, a Node built-in or a Node-only library. The entries after `:` name files in
 // src/entries/ (`packages/content:locale,assets`); with none, every file there is a browser entry.

@@ -1,4 +1,4 @@
-import { defineShipConfig } from '@automata/tools'
+import { defineShipConfig } from '@automataframework/tools'
 import packageJson from './package.json' with { type: 'json' }
 
 export default defineShipConfig({

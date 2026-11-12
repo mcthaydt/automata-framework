@@ -5,14 +5,14 @@
 //   right arm and a look of the head and chest; each clip cuts into the last with the action transition; the
 //   view's clock is the sim's tick, so a clip starts where the sim started it.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureClipDef, FigureDef, MotionLibrary, Swatch, Vec3 } from '@automata/3d/figures'
-import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automataframework/3d'
+import type { FigureClipDef, FigureDef, MotionLibrary, Swatch, Vec3 } from '@automataframework/3d/figures'
+import { CameraHeading, cameraView, enterView, START } from '@automataframework/3d/sim'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- figure ---
 // Wick, his swatches and the `bounce` gait as in figures-walk, written as compiled.

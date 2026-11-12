@@ -1,4 +1,4 @@
-import { defineTests, type TestOptions } from '@automata/vitest-preset'
+import { defineTests, type TestOptions } from '@automataframework/vitest-preset'
 import { playwright } from '@vitest/browser-playwright'
 import type { BrowserCommand } from 'vitest/node'
 
@@ -40,7 +40,7 @@ const webgpuArgs = [
     : []),
 ]
 
-// Svelte compiles the runtime's screens, which the painted figures' renderer test reaches through `@automata/3d`.
+// Svelte compiles the runtime's screens, which the painted figures' renderer test reaches through `@automataframework/3d`.
 export default defineTests({
   svelte: true,
   optimizeDeps: ['zod'],

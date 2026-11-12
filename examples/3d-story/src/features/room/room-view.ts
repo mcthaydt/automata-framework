@@ -6,7 +6,7 @@ import {
   swatchColour,
   type WorldLibrary,
   type WorldScene,
-} from '@automata/3d'
+} from '@automataframework/3d'
 import { ROOM_LEVEL } from './room.ts'
 
 /** The room's swatches and props, from the game's content (content/world-swatches and content/world-props). */

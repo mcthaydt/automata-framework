@@ -2,7 +2,7 @@
 // for each room (the base interior at `lampLit`, the exterior by day) the frame unlit (today) and lit, side by side, a close-up of
 // each figure before and after, and the walker's strip (four consecutive walk frames, before and after), with the light each figure
 // took, as the kit read it, and the parity of a lit frame with the builder's compose. Nothing here is typed in by hand.
-import { sceneLightingSchema } from '@automata/3d'
+import { sceneLightingSchema } from '@automataframework/3d'
 import { commands } from 'vitest/browser'
 import { BASE } from '#src/shared/figures/door.ts'
 import { drawRoom, GATE_SIZE, type Rect, type RoomFrame, type RoomName } from './gate-lit.ts'

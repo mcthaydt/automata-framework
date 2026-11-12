@@ -9,7 +9,7 @@
   A copy of this folder in a game works alone and takes its words as props.
 -->
 <script lang="ts">
-import { type Hosting, Modal } from '@automata/framework'
+import { type Hosting, Modal } from '@automataframework/framework'
 
 /** One person or group. `role` and `url` are optional. */
 interface CreditName {

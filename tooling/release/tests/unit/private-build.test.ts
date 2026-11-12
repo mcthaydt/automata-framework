@@ -7,7 +7,7 @@ import { workspacePackages } from '#src/publishable-packages.ts'
 // A private package whose built code a binary must load builds to `dist` like the published
 // packages, so `pnpm pack` (which applies `publishConfig.exports`) hands a consumer a pack that exports built code, not
 // TypeScript source. It stays private: nothing here makes it publishable (release-list.test.ts pins what is). None
-// exists today: the sector format was the one, until it became `@automata/3d/level` (the 3D slice, task 2.1). Any
+// exists today: the sector format was the one, until it became `@automataframework/3d/level` (the 3D slice, task 2.1). Any
 // that returns is checked here.
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 
@@ -40,7 +40,7 @@ describe('private packages that ship built code', () => {
   })
 })
 
-// After `pnpm build` (`pnpm --filter @automata/release test:dist`, run by CI's checks job); skipped by `pnpm check`, which does not build.
+// After `pnpm build` (`pnpm --filter @automataframework/release test:dist`, run by CI's checks job); skipped by `pnpm check`, which does not build.
 describe.skipIf(process.env.AF_CHECK_DIST !== '1')('the built private packages', () => {
   it('have every file publishConfig names', () => {
     for (const { dir, manifest } of builtPrivate) {

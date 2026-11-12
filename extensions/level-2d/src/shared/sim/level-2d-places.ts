@@ -1,7 +1,13 @@
-import type { ContentEntityDef, ContentLevel, ContentProject } from '@automata/content/level-2d'
-import { entitiesOf, intGridRows } from '@automata/content/level-2d'
-import { blockedWith, crossingThrough, type Places, type PlanCrossing, type PlanRoom } from '@automata/places'
-import type { ComponentDef } from '@automata/sim'
+import type { ContentEntityDef, ContentLevel, ContentProject } from '@automataframework/content/level-2d'
+import { entitiesOf, intGridRows } from '@automataframework/content/level-2d'
+import {
+  blockedWith,
+  crossingThrough,
+  type Places,
+  type PlanCrossing,
+  type PlanRoom,
+} from '@automataframework/places'
+import type { ComponentDef } from '@automataframework/sim'
 import { cellWalls } from './cell-walls.ts'
 import { Level2dAt } from './level-2d.component.ts'
 

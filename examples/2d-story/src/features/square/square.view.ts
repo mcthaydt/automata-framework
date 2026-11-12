@@ -1,5 +1,5 @@
-import { pictureView } from '@automata/framework'
-import { SystemsAgent } from '@automata/systems/sim'
+import { pictureView } from '@automataframework/framework'
+import { SystemsAgent } from '@automataframework/systems/sim'
 import { SQUARE_SIZE } from '../../shared/constants.ts'
 import { project } from '../level/level-content.ts'
 import { images } from '../level/level-scene.ts'

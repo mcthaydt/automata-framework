@@ -1,7 +1,7 @@
 // A rule Last Light does not state (its engine takes whatever heights a sector has): a ceiling is above its floor,
 // and a portal leaves an opening, or nobody can pass it and the wall pieces above and below it cross over.
 
-import { opening } from '@automata/3d/level'
+import { opening } from '@automataframework/3d/level'
 import { isPortal } from '../geometry/sectors'
 import { formatPoint, type GeometryContext, type Problem, sectorSelection } from './check'
 

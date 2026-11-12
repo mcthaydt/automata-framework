@@ -4,8 +4,8 @@
 //
 //   node --import ./packages/3d/scripts/extensionless-ts.ts tooling/codemods/src/remap-palette.ts '#ff0040' '#131313'
 //
-// (`@automata/content` writes its imports without `.ts`, which that hook lets Node load.)
-import { DEFAULT_PALETTE, nearestDuel } from '@automata/content/palette'
+// (`@automataframework/content` writes its imports without `.ts`, which that hook lets Node load.)
+import { DEFAULT_PALETTE, nearestDuel } from '@automataframework/content/palette'
 
 /** Each colour's nearest DUEL palette index, in the order given; a colour that is not `#rrggbb` is refused by name. */
 export function remapPalette(fromHex: readonly string[]): number[] {

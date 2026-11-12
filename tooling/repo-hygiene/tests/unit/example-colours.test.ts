@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { DUEL_RAMPS, nearestDuel } from '@automata/content/palette'
+import { DUEL_RAMPS, nearestDuel } from '@automataframework/content/palette'
 import { expect, it } from 'vitest'
 
 // The 2D examples are what the site shows and what a new author copies, so their colours are the palette the framework

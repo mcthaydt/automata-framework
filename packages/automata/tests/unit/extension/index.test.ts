@@ -11,8 +11,8 @@ it('reaches no Svelte, ui or content value import', () => {
   const imports = [...valueImportsOf(ENTRY)]
 
   expect(imports.filter((name) => name === 'svelte' || name.startsWith('svelte/'))).toEqual([])
-  expect(imports).not.toContain('@automata/ui')
-  expect(imports).not.toContain('@automata/content')
+  expect(imports).not.toContain('@automataframework/ui')
+  expect(imports).not.toContain('@automataframework/content')
 })
 
 it('loads in Node', async () => {

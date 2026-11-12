@@ -8,8 +8,8 @@
 // whose sim keeps fixed-point positions reads metres with `position`, and frames a lock-on target with `lock`: the
 // driver then keeps every row's components by sid, so `lock` can find the target's.
 
-import type { FrameInfo, PixiStageHooks } from '@automata/framework'
-import type { FieldRecord, StepResult } from '@automata/sim'
+import type { FrameInfo, PixiStageHooks } from '@automataframework/framework'
+import type { FieldRecord, StepResult } from '@automataframework/sim'
 import { interpolatePose3d } from '../../shared/render/views/pose-3d.ts'
 import type { CameraRig } from './angled-camera.ts'
 import type { Vec3 } from './camera-pose.ts'

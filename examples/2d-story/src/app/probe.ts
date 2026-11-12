@@ -1,4 +1,4 @@
-import type { StepResult } from '@automata/sim'
+import type { StepResult } from '@automataframework/sim'
 
 // A test's window on the running game: what the sim has done, read from the same steps the screen draws (so it can never
 // change the game). Only a development build installs it, as `window.__automataDebug` (app/debug.ts); a journey calls it to

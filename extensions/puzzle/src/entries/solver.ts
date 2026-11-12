@@ -1,4 +1,4 @@
-// @automata/puzzle/solver: the puzzle solver and its tools. Node only: build time and
+// @automataframework/puzzle/solver: the puzzle solver and its tools. Node only: build time and
 // tests, never in a game bundle.
 
 export {

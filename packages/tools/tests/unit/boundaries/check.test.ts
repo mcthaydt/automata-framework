@@ -76,36 +76,36 @@ test('collectSources leaves out a folder it is told to skip, wherever it sits', 
 test('sim plugins outside packages/sim may import the sim’s public entry points, and only those', () => {
   const imports = (source: string) =>
     checkSource('/x/packages/physics/src/a.ts', `import { x } from '${source}'\n`).map((f) => f.rule)
-  expect(imports('@automata/sim')).toEqual([])
-  expect(imports('@automata/sim/math')).toEqual([])
-  expect(imports('@automata/sim/hash')).toEqual([])
-  expect(imports('@automata/sim/src/world/sim')).toEqual(['import'])
+  expect(imports('@automataframework/sim')).toEqual([])
+  expect(imports('@automataframework/sim/math')).toEqual([])
+  expect(imports('@automataframework/sim/hash')).toEqual([])
+  expect(imports('@automataframework/sim/src/world/sim')).toEqual(['import'])
 })
 
 test('a game sim may import the entries its extension declares, and no other path of it', () => {
   const root = mkdtempSync(join(tmpdir(), 'af-boundaries-'))
   try {
-    const installed = join(root, 'node_modules/@automata/physics')
+    const installed = join(root, 'node_modules/@automataframework/physics')
     mkdirSync(installed, { recursive: true })
     const simEntries = ['./2d', './3d']
     writeFileSync(
       join(installed, 'package.json'),
-      JSON.stringify({ name: '@automata/physics', automata: { simEntries } }),
+      JSON.stringify({ name: '@automataframework/physics', automata: { simEntries } }),
     )
     const imports = (source: string) =>
       checkSource(join(root, 'src/sim/a.ts'), `import { x } from '${source}'\n`).map((f) => f.rule)
-    expect(imports('@automata/physics/2d')).toEqual([])
-    expect(imports('@automata/physics/3d')).toEqual([])
-    expect(imports('@automata/physics/src/2d')).toEqual(['import'])
+    expect(imports('@automataframework/physics/2d')).toEqual([])
+    expect(imports('@automataframework/physics/3d')).toEqual([])
+    expect(imports('@automataframework/physics/src/2d')).toEqual(['import'])
   } finally {
     rmSync(root, { recursive: true, force: true })
   }
 })
 
 test('the checker names no extension: without a declaration an extension’s entry is refused as before', () => {
-  const findings = checkSource('/x/game/src/sim/a.ts', "import { x } from '@automata/physics/2d'\n")
+  const findings = checkSource('/x/game/src/sim/a.ts', "import { x } from '@automataframework/physics/2d'\n")
   expect(findings.map((f) => [f.rule, f.message])).toEqual([
-    ['import', 'import of "@automata/physics/2d" is not allowed in the sim'],
+    ['import', 'import of "@automataframework/physics/2d" is not allowed in the sim'],
   ])
 })
 
@@ -237,7 +237,7 @@ describe('inline mode (EX spec §4): only the sim inside a browser file is check
 
   test('a koota call inside a defineSystem argument is reported once', () => {
     const src = [
-      "import { defineSystem } from '@automata/framework'",
+      "import { defineSystem } from '@automataframework/framework'",
       "import { trait } from 'koota'",
       "export const s = defineSystem({ name: 's', run() { trait({ x: 0 }) } })",
       '',

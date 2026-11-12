@@ -2,7 +2,7 @@
 // screen where it stands (a frame of the empty room differs from a frame with the prop in it), and a contact sheet of the nine,
 // one close shot each, is written to `test-results/ward-props.png` for a person to look at. A picture is evidence of shape
 // only: it says what a prop looks like, not that it is right (the unit test holds its size and its parameters).
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -11,7 +11,7 @@ import {
   type Pixi3dRenderer,
   swatchColour,
   worldLighting,
-} from '@automata/3d'
+} from '@automataframework/3d'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'

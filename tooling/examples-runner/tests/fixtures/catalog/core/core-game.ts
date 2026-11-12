@@ -2,9 +2,9 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/game
+// Packages: @automataframework/game
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineGame } from '@automata/game'
+import { defineGame } from '@automataframework/game'
 
 export default { id: 'core-game', define: defineGame }

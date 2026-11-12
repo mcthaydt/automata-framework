@@ -2,10 +2,10 @@
 // every walker in StableId order steps along its route by one stride (speed × dt), carrying what is left of a stride
 // past a point onto the next leg. A route is made once, and again only when the doors' version moves (never per tick).
 // Sectors' membership runs in `cleanup`, so it sees the moved position on the same step.
-import type { Places } from '@automata/places'
-import { type Point, sectorsPlaces } from '@automata/sectors/sim'
-import { defineSystem, type SimContext, type SystemDef, sortedKeys } from '@automata/sim'
-import { hypot } from '@automata/sim/math'
+import type { Places } from '@automataframework/places'
+import { type Point, sectorsPlaces } from '@automataframework/sectors/sim'
+import { defineSystem, type SimContext, type SystemDef, sortedKeys } from '@automataframework/sim'
+import { hypot } from '@automataframework/sim/math'
 import { NavDoor, WalkTo } from './nav.command'
 import { NavAgent } from './nav.component'
 import { NavArrived, NavUnreachable } from './nav.event'

@@ -1,4 +1,4 @@
-// @automata/sim: the deterministic simulation core. Deterministic math is the
+// @automataframework/sim: the deterministic simulation core. Deterministic math is the
 // separate `./math` export. Game code never imports Koota directly.
 
 export type { CommandRecord, EntityRef, SimContext, SpawnPart } from '../shared/define/context.ts'

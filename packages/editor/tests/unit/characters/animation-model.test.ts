@@ -1,4 +1,4 @@
-import type { ContentAnimation } from '@automata/content/level-2d'
+import type { ContentAnimation } from '@automataframework/content/level-2d'
 import { describe, expect, it } from 'vitest'
 import {
   addClip,

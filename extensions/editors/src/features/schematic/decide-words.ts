@@ -1,6 +1,6 @@
 // How a character decides, in the interpreter's own rules (`agent-step.ts`), said once under the list. The editor teaches
 // the rules as they are: `extensions/systems/tests/unit/shared/sim/decide-rules.test.ts` pins each against the interpreter.
-import { type AgentDef, isStill, routineMode, type Transition } from '@automata/systems/sim'
+import { type AgentDef, isStill, routineMode, type Transition } from '@automataframework/systems/sim'
 import { modeWords } from './pieces/piece.ts'
 
 /** The rules, one line each, in the order a person needs them. */

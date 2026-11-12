@@ -5,7 +5,7 @@
 // a perspective view); the sky is far, so a shape against it is outlined in the sky. Off by default.
 // A `PostEffect` in GLSL + WGSL.
 
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { type EffectFragment, PostEffect } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
 import { paletteGlsl, paletteWgsl } from './duel-snap-filter.ts'

@@ -1,6 +1,6 @@
 // The narrative plugin: conversations through commands, puzzle's `{ dialogue }` effect, the
 // storylets on verbs, rooms, standing still and system events, and a restore mid-conversation.
-import type { Sim } from '@automata/sim'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { NarrativeDialogue, NarrativeStorylets } from '#src/entries/sim.ts'
 import {

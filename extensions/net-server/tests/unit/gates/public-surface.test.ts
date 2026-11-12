@@ -1,4 +1,4 @@
-import { definePlugin } from '@automata/sim'
+import { definePlugin } from '@automataframework/sim'
 import { Effect, Exit } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createServerRuntime } from '#src/app/start-server.ts'

@@ -3,7 +3,7 @@
 // through core's audio service and its buses (never a context of its own), hears the presentation bus and never writes
 // the sim. Nothing sounds before the player's first tap: the browser keeps the audio locked until then.
 
-import { type Clock, type GameAudioStart, systemClock } from '@automata/framework'
+import { type Clock, type GameAudioStart, systemClock } from '@automataframework/framework'
 import { createAudioSynth } from '../features/synth/audio-synth'
 import { createMusicDirector, type MusicDirector, type MusicState } from '../features/synth/music'
 import { createMusicPlayer, type MusicPlayer } from '../features/synth/music-player'

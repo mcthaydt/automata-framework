@@ -2,7 +2,7 @@
 // §4.7). Ids are unique across the file, so an element is found by its definition and id and the codec matches it by id,
 // which is why a moved thing is a patch of its `x` and `z` and nothing else.
 
-import type { AfEntity, AfSector2File } from '@automata/3d/level'
+import type { AfEntity, AfSector2File } from '@automataframework/3d/level'
 import { refsOf } from '../../things/thing-refs'
 import type { Thing } from '../../things/things'
 import { mergeMembers, newMembers, noThing, type ThingAccess } from '../thing-access'

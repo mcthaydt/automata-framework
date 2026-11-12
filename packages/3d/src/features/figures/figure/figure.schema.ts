@@ -4,7 +4,7 @@
 // and `face.turn`, `play`, `atlasOutfit`, `story`) and without per-figure swatches (a figure's colours are
 // library swatches, so every one is a palette colour checked in one place).
 
-import { contentRef } from '@automata/content/schema'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 import type { HeadShape, Sliders } from '../body/genes.ts'
 import type { Genes } from '../body/rig.ts'

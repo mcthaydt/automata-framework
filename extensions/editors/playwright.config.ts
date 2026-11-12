@@ -1,4 +1,4 @@
-import { defineJourneys, sizes } from '@automata/playwright-preset'
+import { defineJourneys, sizes } from '@automataframework/playwright-preset'
 import { claimPort } from '../../packages/tools/src/shared/ship/ports/free-ports.ts'
 
 // The sample page's journey (`pnpm test:e2e` here): the content editors page as the site's try-it page serves it, with

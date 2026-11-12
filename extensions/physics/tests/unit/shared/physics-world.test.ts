@@ -1,4 +1,4 @@
-import type { EntityRef, EventDef, SimContext } from '@automata/sim'
+import type { EntityRef, EventDef, SimContext } from '@automataframework/sim'
 import { expect, test } from 'vitest'
 import {
   Collider3D,

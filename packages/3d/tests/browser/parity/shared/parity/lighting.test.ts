@@ -1,7 +1,7 @@
 // Lighting and fog on a real context (M3.4d): D3-e end to end, through the render rows. Headless Firefox in this
 // container has no WebGL, so these skip there and the GPU runner runs them (M3.1b).
 import '#src/entries/no-eval.ts'
-import type { RenderRow, StepResult } from '@automata/sim'
+import type { RenderRow, StepResult } from '@automataframework/sim'
 import { FlatMaterial, Mesh3D, PlaneGeometry } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'

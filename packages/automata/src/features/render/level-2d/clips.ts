@@ -1,4 +1,4 @@
-import type { ContentAnimation, ContentClip } from '@automata/content/level-2d'
+import type { ContentAnimation, ContentClip } from '@automataframework/content/level-2d'
 import { AnimatedSprite, type Texture } from 'pixi.js'
 import type { Pictures } from './pictures.js'
 

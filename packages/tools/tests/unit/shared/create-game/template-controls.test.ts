@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { controlsFileSchema } from '@automata/content/controls'
+import { controlsFileSchema } from '@automataframework/content/controls'
 import { Effect } from 'effect'
 import { parse } from 'smol-toml'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'

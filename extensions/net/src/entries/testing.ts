@@ -1,4 +1,4 @@
-// `@automata/net/testing`: the deterministic link harness and the scripted Colyseus SDK the
+// `@automataframework/net/testing`: the deterministic link harness and the scripted Colyseus SDK the
 // client's tests run on, and net's wire over a link for a room and its clients.
 
 export {

@@ -2,10 +2,10 @@
 // garment is an object named by its first key (`coat`, `top`, `cape`…), whose value is its cloth's swatch.
 // Every swatch field is a library reference, so a missing swatch is a compile error at its line (F-e). The 7
 // garments Wick and the base pair wear are typed here; the rest of a wardrobe (apron, belt, coat, gloves, legs, mark,
-// skirt, waistcoat) is @automata/character-kit's, and an extension's wardrobe types and registers its own
+// skirt, waistcoat) is @automataframework/character-kit's, and an extension's wardrobe types and registers its own
 // (`registerGarment`). Left out: the drawn face's colours (the eyes' `white` and `lips`).
 
-import { contentRef } from '@automata/content/schema'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 import { type HairStyle, hairStyleSchema } from '../content/hair.schema.ts'
 import { type Headwear, headwearSchema, type Lock, lockSchema } from '../content/headwear.schema.ts'

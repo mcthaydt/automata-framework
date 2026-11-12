@@ -1,4 +1,4 @@
-import { definePlugin } from '@automata/sim'
+import { definePlugin } from '@automataframework/sim'
 import { Hero } from './hero.component.ts'
 import { Move } from './move.command.ts'
 import { move } from './move.system.ts'

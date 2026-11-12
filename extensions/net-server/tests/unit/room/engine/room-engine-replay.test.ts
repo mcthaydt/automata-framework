@@ -1,4 +1,4 @@
-import { createReplayStepper, type Replay, unpackReplay } from '@automata/sim/replay'
+import { createReplayStepper, type Replay, unpackReplay } from '@automataframework/sim/replay'
 import { afterEach, describe, expect, it } from 'vitest'
 import { nodeReplayCompression } from '#src/features/room/engine/replay-compression.ts'
 import { defineServer, ROOM_SOURCE } from '#src/shared/game/server-game.ts'

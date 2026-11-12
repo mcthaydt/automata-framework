@@ -1,4 +1,4 @@
-import { type AgentDef, hearsIn, isStill, routineMode, waitsIn } from '@automata/systems/sim'
+import { type AgentDef, hearsIn, isStill, routineMode, waitsIn } from '@automataframework/systems/sim'
 import { describe, expect, it } from 'vitest'
 import { type Diagram, layoutAgent } from '#src/features/schematic/diagram/layout.ts'
 import { fixture, SCENES } from '../../fixtures/systems-fixtures.ts'

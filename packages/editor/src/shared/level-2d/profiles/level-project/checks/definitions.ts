@@ -1,4 +1,4 @@
-import { checkEntityDef } from '@automata/content/level-2d'
+import { checkEntityDef } from '@automataframework/content/level-2d'
 import type { Project } from '../../../model/project-types'
 import { tilesetTiles } from '../../../model/tileset-grid'
 import { ruleIssues } from '../../../tiles/autotile/rule-issues'

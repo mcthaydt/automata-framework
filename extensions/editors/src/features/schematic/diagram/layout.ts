@@ -2,7 +2,7 @@
 // positions, so the file stays the only truth. Modes are boxes in columns (the start mode first, then by how far a
 // walk from it reaches); switches are arrows; switches between the same two modes asked at the same time are one arrow.
 // Pure and DOM-free, so it is tested on the converted scenes without a browser.
-import { type AgentDef, hearsIn, isStill, routineMode, waitsIn } from '@automata/systems/sim'
+import { type AgentDef, hearsIn, isStill, routineMode, waitsIn } from '@automataframework/systems/sim'
 
 export interface Size {
   readonly box: { readonly w: number; readonly h: number }

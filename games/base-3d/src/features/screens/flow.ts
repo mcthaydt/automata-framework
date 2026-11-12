@@ -1,7 +1,7 @@
 // base-3d's flow, as compiled content the runtime reads and checks the hash of at boot: splash → menu (the
 // default title) ⇄ its own Settings, → room (the default play) ⇄ paused ⇄ settings, and the end on the goal ember.
-import type { CompiledContentData } from '@automata/framework'
-import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import type { CompiledContentData } from '@automataframework/framework'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 
 const FLOW_DATA: CompiledContentData = {
   flow: {

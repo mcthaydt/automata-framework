@@ -1,4 +1,4 @@
-import { type CameraView, cameraView } from '@automata/3d/sim'
+import { type CameraView, cameraView } from '@automataframework/3d/sim'
 
 // The numbers the game is built from. Both the sim and the screen read them, so they live here. How fast Wick walks is
 // not here: a designer changes it, in content/tuning.toml.

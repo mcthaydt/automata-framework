@@ -10,8 +10,8 @@ import {
   type Pulse,
   createFeel as startFeel,
   type WordPop,
-} from '@automata/feel'
-import { systemClock } from '@automata/framework'
+} from '@automataframework/feel'
+import { systemClock } from '@automataframework/framework'
 
 /** The view the stage's square stands for: the event is "about" it, so its squash and freeze land there. */
 export const STAGE_SUBJECT = 1

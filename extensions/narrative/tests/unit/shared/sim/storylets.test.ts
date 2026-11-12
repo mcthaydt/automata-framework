@@ -1,6 +1,6 @@
 // Storylets: the original game's salience, once and max, inspect, enter, dwell, system and state
 // cases, re-pointed at the pure functions (a room is a sector id or a zone; an inspect waits AFTER).
-import type { Reader, Value } from '@automata/puzzle/sim'
+import type { Reader, Value } from '@automataframework/puzzle/sim'
 import { describe, expect, it } from 'vitest'
 import {
   freshStorylets,

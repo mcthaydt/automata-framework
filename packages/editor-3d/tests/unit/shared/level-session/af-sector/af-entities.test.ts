@@ -1,4 +1,4 @@
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
 import { afEntityKit } from '#src/shared/level-session/af-sector/af-entities.ts'

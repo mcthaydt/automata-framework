@@ -1,5 +1,5 @@
 {
-  "name": "@automata/interact",
+  "name": "@automataframework/interact",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -32,20 +32,20 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "@automata/3d": "workspace:^",
-    "@automata/framework": "workspace:^",
-    "@automata/nav": "workspace:^",
-    "@automata/puzzle": "workspace:^",
-    "@automata/sim": "workspace:^"
+    "@automataframework/3d": "workspace:^",
+    "@automataframework/framework": "workspace:^",
+    "@automataframework/nav": "workspace:^",
+    "@automataframework/puzzle": "workspace:^",
+    "@automataframework/sim": "workspace:^"
   },
   "devDependencies": {
-    "@automata/3d": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/nav": "workspace:*",
-    "@automata/puzzle": "workspace:*",
-    "@automata/sectors": "workspace:*",
-    "@automata/sim": "workspace:*",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/3d": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/nav": "workspace:*",
+    "@automataframework/puzzle": "workspace:*",
+    "@automataframework/sectors": "workspace:*",
+    "@automataframework/sim": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "vitest": "5.0.3"
   }

@@ -1,6 +1,6 @@
 // Sequence's plan over a 3D level: the walls of an `af-sector/2` file as plan segments (a sector edge that is not a portal,
 // split round a door), and the names the level offers a script's pickers: its lamps, doors, props and things.
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
 import { levelNamesOf, wallsOfFile } from '#src/features/sequence/plan-view.ts'
 import { namesFor, readGameNames } from '#src/features/sequence/sequence-names.ts'

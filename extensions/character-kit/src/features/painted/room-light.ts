@@ -2,7 +2,7 @@
 // light is at a point (`tint`: the ambient plus each lamp at its level, the occluders in it); the sprite light wants a few
 // numbers for the whole figure: a flat light where it stands, and a lamp or two it comes from. This module reads the first
 // into the second, with six probes at the chest and four on the floor, so the kit needs to know none of the room's lamps and
-// nothing in `@automata/3d` changes. It is pure: the same `tint` answers give the same `RoomLight`, whose `key` is exactly
+// nothing in `@automataframework/3d` changes. It is pure: the same `tint` answers give the same `RoomLight`, whose `key` is exactly
 // what is quantised, so two rooms with one key light a cell to the same bytes and a host may cache the lit cell by it.
 import { flatSteps, type SpriteLighting, type V3 } from '../../shared/figures/door.ts'
 

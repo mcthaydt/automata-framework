@@ -1,6 +1,6 @@
 // The level-wide edits (Levels 3D spec §10.3, plan 16.2): the time of day. One undoable step, written as one member.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit } from '#src/shared/edit/edit.ts'
 import { setTimeOfDay } from '#src/shared/edit/level-edits.ts'

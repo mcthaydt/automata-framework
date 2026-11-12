@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { DEFAULT_PALETTE, type Diagnostic } from '@automata/content'
+import { DEFAULT_PALETTE, type Diagnostic } from '@automataframework/content'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_RIG_LIMITS } from '#src/features/figures/content/rig-limits.schema.ts'
 import { swatchColourProblems } from '#src/features/figures/content/swatch-colours.ts'

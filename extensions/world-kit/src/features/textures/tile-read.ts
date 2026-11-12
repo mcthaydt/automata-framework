@@ -1,6 +1,6 @@
 // What a committed tile file is and how it is read, free of the photo pipeline and Node's Buffer, so a browser bundle can
 // hold it.
-import { DUEL_RAMP_NAMES, type DuelRampName } from '@automata/content/palette'
+import { DUEL_RAMP_NAMES, type DuelRampName } from '@automataframework/content/palette'
 import type { Reads } from './structure.ts'
 import type { TextureSpec } from './texture-spec.ts'
 import type { Ladder, Tile } from './tile-colours.ts'

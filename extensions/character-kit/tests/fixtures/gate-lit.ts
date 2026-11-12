@@ -2,7 +2,7 @@
 // `drawWorld` with the room's own light and the look, the base man standing under the pendant (or in the street) and the base woman
 // walking past. The same scene is drawn with the figures lit and unlit (`lit: false`, today's frame), on WebGL or WebGPU.
 // The figures' clock is the test's own, so a frame is the same frame each run.
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -14,9 +14,9 @@ import {
   swatchColour,
   timeOfDay,
   worldLighting,
-} from '@automata/3d'
-import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
-import { builtRenderer, testTarget } from '@automata/3d/testing-checks'
+} from '@automataframework/3d'
+import { BASE_SCENES, baseLibrary } from '@automataframework/3d/base'
+import { builtRenderer, testTarget } from '@automataframework/3d/testing-checks'
 import { stageFor } from '#src/features/painted/painted-stage.ts'
 import { paintedFigure } from '#src/features/painted/painted-view.ts'
 import { type RoomLight, roomLight } from '#src/features/painted/room-light.ts'

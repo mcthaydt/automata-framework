@@ -1,5 +1,5 @@
-import { STICK_MAX } from '@automata/3d/sim'
-import { defineCommand } from '@automata/sim'
+import { STICK_MAX } from '@automataframework/3d/sim'
+import { defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 
 const axis = z.int().min(-STICK_MAX).max(STICK_MAX)

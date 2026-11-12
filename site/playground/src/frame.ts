@@ -1,9 +1,9 @@
 // A playground frame's script. It runs the reader's compiled example, once, and
 // tells the parent what happened. No-eval comes first, so nothing in the runtime reaches for eval under the policy.
-import '@automata/framework/no-eval'
-import type { HostSettings } from '@automata/examples-runner/header'
-import type { DefinedGame } from '@automata/framework'
-import { isDefinedGame } from '@automata/framework/tooling'
+import '@automataframework/framework/no-eval'
+import type { HostSettings } from '@automataframework/examples-runner/header'
+import type { DefinedGame } from '@automataframework/framework'
+import { isDefinedGame } from '@automataframework/framework/tooling'
 import {
   type FrameMessage,
   frameMessage,

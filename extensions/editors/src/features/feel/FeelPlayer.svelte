@@ -3,7 +3,7 @@
   strength lower would feel. They change only the preview, never the file.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import FeelStage from './FeelStage.svelte'
 import { eventWords } from './feel-model.ts'
 import type { FeelSession } from './feel-session.svelte.ts'

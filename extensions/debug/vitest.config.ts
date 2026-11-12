@@ -1,4 +1,4 @@
-import { defineTests } from '@automata/vitest-preset'
+import { defineTests } from '@automataframework/vitest-preset'
 import { svelteTesting } from '@testing-library/svelte/vite'
 
 // Debug is presentation only: no sim entry and no golden. `unit` runs the components in jsdom through Testing Library, and

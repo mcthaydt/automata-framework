@@ -1,10 +1,10 @@
 # Automata cheatsheet
 
-> Every export of every published `@automata/*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm api-index --write` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).
+> Every export of every published `@automataframework/*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm api-index --write` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).
 
-## `@automata/audio-synth`
+## `@automataframework/audio-synth`
 
-### `import { … } from '@automata/audio-synth'`
+### `import { … } from '@automataframework/audio-synth'`
 
 - `audioContent` (const): The `audio` content kind: `content/audio/*.toml` holds a game's cues, beds, event map, ducking and music.
 - `AudioContent` (interface): A game's whole `audio` content: master gain, cues, beds, the map from sim events to cues, the ducking rules, and the music slots and rules.
@@ -60,11 +60,11 @@
 - `Wave` (type): The shape of a tone: sine, square, sawtooth or triangle.
 - `WAVES` (const): Every tone shape.
 
-### `import { … } from '@automata/audio-synth/browser'`
+### `import { … } from '@automataframework/audio-synth/browser'`
 
 - `Renderers` (interface): The offline renderers the page offers the audio pipeline: a cue, a bed, a mix and the ducking demonstration, each answering plain number arrays.
 
-### `import { … } from '@automata/audio-synth/measure'`
+### `import { … } from '@automataframework/audio-synth/measure'`
 
 - `ClickOptions` (interface): How strict the click check is: the smallest second difference that counts (`floor`) and how far it must stand out from its neighbours (`ratio`).
 - `clicks(x, rate, { floor, ratio }?)`: Clicks: a second difference that stands out of everything around it.
@@ -76,7 +76,7 @@
 - `truePeak(channels)`: True peak in dBTP: the sample peak of a 4x windowed-sinc upsampling.
 - `Wav` (interface): A decoded WAV file: its sample rate and one array of samples between -1 and 1 for each channel.
 
-### `import { … } from '@automata/audio-synth/render'`
+### `import { … } from '@automataframework/audio-synth/render'`
 
 - `CueRenderOptions` (interface): How to render one cue: how many seconds, and optionally where it sounds and where the listener is, for a world cue.
 - `DuckRenderOptions` (interface): How to render the ducking demonstration: its length, when the line starts, which cue is the line and which bed to listen on.
@@ -93,7 +93,7 @@
 - `SAMPLE_RATE` (const): The sample rate offline renders use: 48000 Hz.
 - `seeded(seed?)`: A seeded random (mulberry32), so a crackle renders the same every time.
 
-### `import { … } from '@automata/audio-synth/stage'`
+### `import { … } from '@automataframework/audio-synth/stage'`
 
 - `AudioNote` (type): What the player did: a cue sounded, or this music was asked for (`null` is silence).
 - `audioStage(options)`: The `audio` of `defineGame`: `defineGame({ audio: audioStage({ content, tracks, state }) })`.
@@ -106,9 +106,9 @@
 - `trackAlias(path)`: The name the game knows a track's sound by: the file's own name, lower case, words joined with dashes.
 - `tracksFrom(found)`: The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true, query: '?url', import: 'default' })`): each file's name to the address it is served from.
 
-## `@automata/content`
+## `@automataframework/content`
 
-### `import { … } from '@automata/content'`
+### `import { … } from '@automataframework/content'`
 
 - `AchievementConfig` (interface): An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
 - `AchievementGoal` (type): One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its players.
@@ -177,7 +177,7 @@
 - `verifyContent` (const): Fails with `staleArtifact` for each committed output that differs from a fresh compile.
 - `withTuningTable(guide, meta)`: The guide with its generated section replaced, or undefined when it has no markers.
 
-### `import { … } from '@automata/content/assets'`
+### `import { … } from '@automataframework/content/assets'`
 
 - `ATLAS_EXTRUDE` (const): Pixels of each frame's edge repeated around it, so filtering never samples a neighbour.
 - `ATLAS_PADDING` (const): Transparent pixels between cells, and between a cell and the page edge.
@@ -198,7 +198,7 @@
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
 - `subsetWoff2(source, characters, rename?)`: The font cut to `characters`, as woff2.
 
-### `import { … } from '@automata/content/controls'`
+### `import { … } from '@automataframework/content/controls'`
 
 - `ControlAction` (interface): One action: what it sends, and every way to do it.
 - `ControlsFile` (interface): What `content/controls.toml` holds.
@@ -212,7 +212,7 @@
 - `STICK_DIRECTIONS` (const): The eight directions a gamepad stick can be bound to in a game's controls: a stick (`left` or `right`) pushed one way (`up`, `down`, `left` or `right`), written `left-up`.
 - `StickDirection` (type): A stick pushed past its dead zone in one direction (the input service reads them).
 
-### `import { … } from '@automata/content/game-config'`
+### `import { … } from '@automataframework/content/game-config'`
 
 - `AchievementConfig` (interface): An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
 - `AchievementGoal` (type): One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its players.
@@ -230,7 +230,7 @@
 - `Renderer` (type): One renderer a game may ask for.
 - `RENDERERS` (const): The renderers a game may ask for.
 
-### `import { … } from '@automata/content/level-2d'`
+### `import { … } from '@automataframework/content/level-2d'`
 
 - `animationSchema` (const): At least one clip, and no two with one name.
 - `autoStacks(level, layer)`: The grids of an auto layer, one per stack depth, depth 0 first (the order they are drawn in).
@@ -295,7 +295,7 @@
 - `tileRows(level, layer)`: The cells of a tiles layer, one array per row (undefined is empty).
 - `worldContentSchema` (const): The strict schema of `world.toml`.
 
-### `import { … } from '@automata/content/locale'`
+### `import { … } from '@automataframework/content/locale'`
 
 - `ALWAYS_CHARACTERS` (const): Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.
 - `catalogCharacters(catalog)`: Every character the catalog's messages show.
@@ -316,7 +316,7 @@
 - `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
 - `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
 
-### `import { … } from '@automata/content/palette'`
+### `import { … } from '@automataframework/content/palette'`
 
 - `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: DUEL, its ramps row-major (colour `r * 8 + s`).
 - `DUEL_RAMP_NAMES` (const): One lowercase word for each ramp, in ramp order, so a swatch can say `{ ramp = "skin", step = 5 }` instead of a bare number.
@@ -328,7 +328,7 @@
 - `rampOf(index)`: The ramp (0 to 31) a palette index is on.
 - `step(index, by)`: `index` moved `by` steps along its own ramp (negative is darker), stopping at the ramp's ends.
 
-### `import { … } from '@automata/content/schema'`
+### `import { … } from '@automataframework/content/schema'`
 
 - `contentRef(kind)`: The ID of another content item of `kind`.
 - `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
@@ -338,15 +338,15 @@
 - `localized()`: Text a player reads, written in the source language.
 - `verbatim()`: Text drawn as written, in every language: a person's name, a studio, a trademark.
 
-### `import { … } from '@automata/content/vite'`
+### `import { … } from '@automataframework/content/vite'`
 
 - `automataContent(pluginOptions?)`: The Vite plugin that compiles content and serves it as `virtual:automata/content`.
 - `AutomataContentOptions` (type): The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root.
 - `VIRTUAL_MODULE_ID` (const): The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
 
-## `@automata/debug`
+## `@automataframework/debug`
 
-### `import { … } from '@automata/debug'`
+### `import { … } from '@automataframework/debug'`
 
 - `audioBoard(content, controls)`: Builds the audio board for the debug overlay from the game's audio content and its controls.
 - `AudioBoardBed` (interface): One looping bed on the audio board: its id, its bus, a line about it and whether it is still a draft.
@@ -380,13 +380,13 @@
 - `SummaryRow` (interface): One row of a diagnostics summary: a dotted name and its value as text.
 - `summaryRows(summary, prefix?)`: Turns a diagnostics summary into rows: nested objects get dotted names, a distribution (count, last, min, p50, p95, max) takes one row and long fractions are rounded.
 
-### `import { … } from '@automata/debug/vite'`
+### `import { … } from '@automataframework/debug/vite'`
 
 - `debugBuild(debug)`: A Vite plugin that sets `__AUTOMATA_DEBUG__`.
 
-## `@automata/feel`
+## `@automataframework/feel`
 
-### `import { … } from '@automata/feel'`
+### `import { … } from '@automataframework/feel'`
 
 - `AudioRow` (interface): An audio cue to play, named by its id.
 - `Beat` (interface): A sim event with the tick that produced it.
@@ -420,14 +420,14 @@
 - `WordPop` (interface): A word on screen: its locale key, the view it belongs to, its age in seconds and whether it holds still for reduced motion.
 - `WordRow` (interface): A word that pops up, as a locale key, never as text.
 
-### `import { … } from '@automata/feel/stage'`
+### `import { … } from '@automataframework/feel/stage'`
 
 - `feelStage(options)`: The setup to hand to `createPixiRenderer({ setup })`.
 - `FeelStageOptions` (interface): What a game gives `feelStage`: the table (read at each event, so a saved change shows on the next one) and its ports.
 
-## `@automata/framework`
+## `@automataframework/framework`
 
-### `import { … } from '@automata/framework'`
+### `import { … } from '@automataframework/framework'`
 
 - `ActionBar` (const): One row of actions that collapses as its container narrows.
 - `ActionKind` (type): The action bar's model.
@@ -678,12 +678,12 @@
 - `UiSoundEntry` (type): A sound: the asset it plays, or the asset with a gain (0..1).
 - `UiSounds` (type): The interface's sounds by name, or one function that plays a name (for a game whose sounds are cues in its own mixer).
 - `usePlay()`: The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
-- `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
+- `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automataframework/framework/testing` stands in for it in tests.
 - `WARNING_EFFECTS` (const): The effects a game can declare: `flashing` (lights that flash), `strobing` (lights that flash fast and repeatedly), `shaking` (the screen shakes) and `patterns` (stripes, checks or other high-contrast patterns).
 - `WarningEffect` (type): One of `WARNING_EFFECTS`.
 - `WarningSwitch` (interface): A switch the warning offers: one of the game's own effect settings.
 
-### `import { … } from '@automata/framework/extension'`
+### `import { … } from '@automataframework/framework/extension'`
 
 - `defineExtension(def)`: Returns its argument.
 - `ExtensionDef` (interface): One opt-in feature of a game.
@@ -695,7 +695,7 @@
 - `UiComponent` (type): What an extension puts in a slot: a Svelte component that takes no props.
 - `UiSlotName` (type): The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
 
-### `import { … } from '@automata/framework/testing'`
+### `import { … } from '@automataframework/framework/testing'`
 
 - `BAR_ACTIONS` (const): The selector for the controls a player presses in a bar: the buttons, links, tabs and menu items inside a region a screen or an editor declares with `data-region` (`topbar`, `rail`, `panel`, `dock`, `tools`).
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
@@ -770,13 +770,13 @@
 - `visibleControls(root)`: Controls a player could see and reach: laid out, not hidden, not in an inert subtree.
 - `withRuntimeTest(program, options?)`: Runs `program` on an open runtime and always closes it.
 
-### `import { … } from '@automata/framework/tooling'`
+### `import { … } from '@automataframework/framework/tooling'`
 
 - `isDefinedGame(value)`: Whether `value` came from `defineGame`.
 
-## `@automata/net`
+## `@automataframework/net`
 
-### `import { … } from '@automata/net'`
+### `import { … } from '@automataframework/net'`
 
 - `BuildFacts` (interface): What identifies a build: the wire protocol, the sim's schema and the content, as a join sends them.
 - `buildFactsSchema` (const): The shape of a build's facts, as `GET /version` answers them.
@@ -872,7 +872,7 @@
 - `Watchable` (interface): What a reader gets: the value now, and a way to hear it change.
 - `WatchableSource` (interface): The owner's end of a `Watchable`: it can also set the value.
 
-### `import { … } from '@automata/net/sim'`
+### `import { … } from '@automataframework/net/sim'`
 
 - `NetOwner` (const): The seat an entity belongs to.
 - `netPlugin` (const): `net`'s sim side: the same plugin runs in the room and in every client.
@@ -884,7 +884,7 @@
 - `SeatLeft` (const): A player left a seat: its number and the id of the sim entity it owned.
 - `SeatPayload` (interface): Which seat.
 
-### `import { … } from '@automata/net/testing'`
+### `import { … } from '@automataframework/net/testing'`
 
 - `createLink(options, clock)`: A deterministic in-memory link: every delay, loss, duplicate and reorder is drawn from `seed`, one stream per direction, and delivery waits on `clock`, so under a fake clock a failure replays exactly.
 - `fakeColyseus()`: Makes a fake SDK client for tests, so `createNetRoom` runs without a network.
@@ -900,9 +900,9 @@
 - `Transport` (interface): One end of a link: what `net`'s transport and the test server talk through.
 - `WireData` (type): One message as it travels: text (JSON) or binary (a snapshot, a packed replay).
 
-## `@automata/net-server`
+## `@automataframework/net-server`
 
-### `import { … } from '@automata/net-server'`
+### `import { … } from '@automataframework/net-server'`
 
 - `acceptsInput(lobby)`: Whether the room takes commands for the sim: from the countdown on, so a player holding a direction through GO moves on the first tick of play exactly as they would locally; never in the lobby, and never once the game ended.
 - `addBot(lobby, by, rules, botsAllowed)`: The host's tap on an open seat, in the lobby only.
@@ -1039,7 +1039,7 @@
 - `VerifiedSession` (interface): Who a token belongs to.
 - `versionVerdict(options, version)`: `same`, `mismatch`, or `unread` for options this gate cannot read, which are the room's to refuse (its strict schema answers `REFUSED`).
 
-### `import { … } from '@automata/net-server/testing'`
+### `import { … } from '@automataframework/net-server/testing'`
 
 - `CLOCK_NAMES` (const): The clocks a test may ask a room to hold.
 - `ClockName` (type): A clock a room can be asked to hold.
@@ -1054,9 +1054,9 @@
 - `RoomDriver` (interface): Drives a room in a test: stop its clock, step it tick by tick, submit a seat's command, read its state and hold its clocks.
 - `RoomReading` (interface): The room as it decided, read from the room itself and never from a client's copy.
 
-## `@automata/net-ui`
+## `@automataframework/net-ui`
 
-### `import { … } from '@automata/net-ui'`
+### `import { … } from '@automataframework/net-ui'`
 
 - `BadgeState` (type): What the connection badge shows: nothing, connecting, connected, reconnecting (with seconds left) or a poor connection.
 - `CONNECTED_SHOWN_MS` (const): How long the badge says the connection is up before it hides again, in milliseconds.
@@ -1083,9 +1083,9 @@
 - `staleWords(locale)`: The words for a locale, by the framework's own matching rule (`pt` finds `pt-BR`, `zh-CN` finds `zh-Hans`); English where there is none.
 - `watchStatus(host, onView)`: Calls `onView` with what to draw now, and again whenever the connection changes or time passes.
 
-## `@automata/physics`
+## `@automataframework/physics`
 
-### `import { … } from '@automata/physics/2d'`
+### `import { … } from '@automataframework/physics/2d'`
 
 - `body2d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
 - `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
@@ -1101,7 +1101,7 @@
 - `transform2d(at?)`: The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
 - `Transform2D` (const): Position in metres and rotation in radians.
 
-### `import { … } from '@automata/physics/3d'`
+### `import { … } from '@automataframework/physics/3d'`
 
 - `body3d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
 - `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
@@ -1117,9 +1117,9 @@
 - `transform3d(at?)`: The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`, `qz`, `qw`).
 - `Transform3D` (const): Position in metres and rotation as a unit quaternion.
 
-## `@automata/puzzle`
+## `@automataframework/puzzle`
 
-### `import { … } from '@automata/puzzle'`
+### `import { … } from '@automataframework/puzzle'`
 
 - `Action` (interface): One thing the player can do at a hotspot: where it is aimed (`at`), the item or pair of items it uses, the conditions that must hold, its effects, the line said and how many seconds it takes.
 - `applyVerb(ctx, verb, options?)`: What the verb system does for one `puzzle.verb`, for another system to call: a use that a game's own walker has reached its target for (the `interact` extension).
@@ -1168,7 +1168,7 @@
 - `VerbPayload` (interface): What a `puzzle.verb` carries, and what `applyVerb` takes: where the verb is aimed and what it holds, combines or types.
 - `VerbReport` (interface): What happened to one verb: where it was aimed, the item held, the action taken (null for none), whether a line was said and whether the action turned away to a cutscene, dialogue, keypad or exit.
 
-### `import { … } from '@automata/puzzle/sim'`
+### `import { … } from '@automataframework/puzzle/sim'`
 
 - `Action` (interface): One thing the player can do at a hotspot: where it is aimed (`at`), the item or pair of items it uses, the conditions that must hold, its effects, the line said and how many seconds it takes.
 - `applyVerb(ctx, verb, options?)`: What the verb system does for one `puzzle.verb`, for another system to call: a use that a game's own walker has reached its target for (the `interact` extension).
@@ -1212,7 +1212,7 @@
 - `VerbPayload` (interface): What a `puzzle.verb` carries, and what `applyVerb` takes: where the verb is aimed and what it holds, combines or types.
 - `VerbReport` (interface): What happened to one verb: where it was aimed, the item held, the action taken (null for none), whether a line was said and whether the action turned away to a cutscene, dialogue, keypad or exit.
 
-### `import { … } from '@automata/puzzle/solver'`
+### `import { … } from '@automataframework/puzzle/solver'`
 
 - `analyse(p, opts?)`: Solves a scene and checks its softlocks, hints and key-sets.
 - `Analysis` (interface): Everything the tools learn about one scene: the solve, its routes, the softlocks, the hint checks and the key-sets.
@@ -1256,9 +1256,9 @@
 - `Verb` (interface): A verb the player can make in a state, with the action it resolves to.
 - `Walk` (type): Metres walked between two hotspots (null: from the spawn).
 
-## `@automata/sim`
+## `@automataframework/sim`
 
-### `import { … } from '@automata/sim'`
+### `import { … } from '@automataframework/sim'`
 
 - `canonicalJson(value)`: Canonical JSON: object keys sorted at every depth, no whitespace.
 - `CanonicalJsonError` (class): A value canonical JSON cannot represent exactly; hashing it anyway would let different values collide.
@@ -1317,14 +1317,14 @@
 - `SystemSpec` (interface): The object form of `defineSystem`: a name, a phase, the optional `before`/`after` ordering and the run.
 - `xxhash64(data, seed?)`: XXH64 of `data` with an unsigned 64-bit `seed`.
 
-### `import { … } from '@automata/sim/hash'`
+### `import { … } from '@automataframework/sim/hash'`
 
 - `canonicalJson(value)`: Canonical JSON: object keys sorted at every depth, no whitespace.
 - `hex64(value)`: 16 lowercase hex digits.
 - `utf8(s)`: UTF-8 encoding without TextEncoder (the sim's lib has no DOM/Web APIs).
 - `xxhash64(data, seed?)`: XXH64 of `data` with an unsigned 64-bit `seed`.
 
-### `import { … } from '@automata/sim/math'`
+### `import { … } from '@automataframework/sim/math'`
 
 - `atan(x0)`: Deterministic arctangent.
 - `atan2(y, x)`: Finite inputs only (sim values are finite).
@@ -1336,7 +1336,7 @@
 - `sin(x)`: Deterministic sine, in radians.
 - `tan(x)`: Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 
-### `import { … } from '@automata/sim/replay'`
+### `import { … } from '@automataframework/sim/replay'`
 
 - `createRecorder(sim, options?)`: Starts recording `sim` from its current state, for the recorder's `step` to extend.
 - `createReplayStepper(replay, setup)`: Creates a stepper over `replay`: a fresh sim built from the replay's seed and tick rate, restored from its start snapshot.
@@ -1360,7 +1360,7 @@
 - `ReplayStepSetup` (interface): What a stepper needs to rebuild the recorded sim: the same `plugins` and `content` the recording sim had.
 - `unpackReplay(bytes, compression, options?)`: Inflates `.replay` file bytes and decodes them.
 
-### `import { … } from '@automata/sim/testing'`
+### `import { … } from '@automataframework/sim/testing'`
 
 - `Difference` (interface): One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's sid when it is an entity, and both values as printed.
 - `diffSnapshotViews(expected, actual)`: Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header, rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine.
@@ -1380,31 +1380,31 @@
 - `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 - `streamCompression` (const): Browsers and Node: CompressionStream / DecompressionStream('deflate-raw').
 
-### `import { … } from '@automata/sim/testing/commands'`
+### `import { … } from '@automataframework/sim/testing/commands'`
 
 - `goldenCommands(options?)`: The Vitest browser commands that let golden tests read golden files in a browser: register them with `browser: { commands: goldenCommands() }`.
 - `GoldenCommandsOptions` (interface): Options for {@link goldenCommands}.
 
-### `import { … } from '@automata/sim/testing/property'`
+### `import { … } from '@automataframework/sim/testing/property'`
 
 - `RoundTripFailure` (interface): One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore tick, variant and a report of what differed.
 - `RoundTripOptions` (interface): What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of what length to try.
 - `RoundTripVariant` (type): How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 - `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 
-## `@automata/tools`
+## `@automataframework/tools`
 
-### `import { … } from '@automata/tools'`
+### `import { … } from '@automataframework/tools'`
 
 - `defineShipConfig(config)`: Identity function that gives a game's `ship.config.ts` type checking and editor completion.
 - `ItchConfig` (interface): What a game writes in `ship.config.ts`.
 - `ItchSettings` (interface): The checked settings, with the channel filled in.
-- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@automata/content`'s `GameConfig`) and each target's own section.
+- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@automataframework/content`'s `GameConfig`) and each target's own section.
 - `TauriConfig` (interface): What a game writes in `ship.config.ts` to build for the desktop.
 
-## `@automata/ui-screens`
+## `@automataframework/ui-screens`
 
-### `import { … } from '@automata/ui-screens'`
+### `import { … } from '@automataframework/ui-screens'`
 
 - `CreditName` (interface): One person or group in a credits section.
 - `Credits` (interface): What a game's credits file holds.
@@ -1430,7 +1430,7 @@
 - `TitleAction` (interface): An extra button on the title screen beside Play, such as Settings or Credits.
 - `TitleScreen` (const): The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's ScreenFrame and ActionBar.
 
-### `import { … } from '@automata/ui-screens/credits'`
+### `import { … } from '@automataframework/ui-screens/credits'`
 
 - `CreditName` (interface): One person or group in a credits section.
 - `Credits` (interface): What a game's credits file holds.
@@ -1444,22 +1444,22 @@
 - `showCredits(options)`: Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
 - `ShowCreditsOptions` (interface): What `showCredits` needs.
 
-### `import { … } from '@automata/ui-screens/error'`
+### `import { … } from '@automataframework/ui-screens/error'`
 
 - `ErrorScreen` (const): The error screen: core's ErrorPanel on core's ScreenFrame (the frame gives Back its place).
 
-### `import { … } from '@automata/ui-screens/loading'`
+### `import { … } from '@automataframework/ui-screens/loading'`
 
 - `LoadingScreen` (const): The loading screen: the game's title on core's ScreenFrame with core's LoaderOverlay over it.
 
-### `import { … } from '@automata/ui-screens/results'`
+### `import { … } from '@automataframework/ui-screens/results'`
 
 - `ResultsAction` (interface): A button on the results screen's action bar.
 - `ResultsCopy` (interface): The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
 
-### `import { … } from '@automata/ui-screens/splash'`
+### `import { … } from '@automataframework/ui-screens/splash'`
 
 - `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
 - `SplashCopy` (interface): What the splash says.
@@ -1467,7 +1467,7 @@
 - `SplashScreen` (const): The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a press goes on.
 - `splashStep(options)`: An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key, click or tap.
 
-### `import { … } from '@automata/ui-screens/title'`
+### `import { … } from '@automataframework/ui-screens/title'`
 
 - `TitleAction` (interface): An extra button on the title screen beside Play, such as Settings or Credits.
 - `TitleScreen` (const): The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's ScreenFrame and ActionBar.

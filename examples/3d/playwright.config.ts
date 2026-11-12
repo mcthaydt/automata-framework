@@ -1,5 +1,5 @@
-import { demoHostOrigin, demoHostPort, examples3dPort } from '@automata/examples-runner/host/ports'
-import { defineJourneys } from '@automata/playwright-preset'
+import { demoHostOrigin, demoHostPort, examples3dPort } from '@automataframework/examples-runner/host/ports'
+import { defineJourneys } from '@automataframework/playwright-preset'
 import { devices } from '@playwright/test'
 
 // The 3D examples' journeys (render3d and figures): `pnpm test:e2e` in this folder, run by the 3D
@@ -19,7 +19,7 @@ export default defineJourneys({
   ],
   webServer: [
     {
-      command: 'pnpm --filter @automata/examples-runner e2e:host',
+      command: 'pnpm --filter @automataframework/examples-runner e2e:host',
       url: `${demoHostOrigin}/`,
       env: { AF_E2E_DEMO_HOST_PORT: String(demoHostPort) },
       reuseExistingServer: reuse,

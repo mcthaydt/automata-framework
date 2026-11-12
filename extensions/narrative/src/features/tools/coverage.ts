@@ -1,6 +1,6 @@
 // Beat coverage and the hint cross-check. Pure: the caller plays the
 // puzzle solver's routes in the sim (`traces.ts`) and hands over what each one showed.
-import type { Lethal } from '@automata/puzzle/sim'
+import type { Lethal } from '@automataframework/puzzle/sim'
 import type { Beat } from '../../shared/beats.schema'
 import type { LineRecord } from '../../shared/sim/lines.schema'
 import { collect, type Finding } from './finding'

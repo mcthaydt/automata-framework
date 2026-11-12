@@ -2,8 +2,15 @@
 // settings and the clock's readings; and feel never changes the sim, so a run with it hashes the same at every tick as a run
 // without it.
 import { readFileSync } from 'node:fs'
-import { fakeClock } from '@automata/framework/testing'
-import { createSim, defineEvent, definePlugin, defineResource, defineSystem, type Sim } from '@automata/sim'
+import { fakeClock } from '@automataframework/framework/testing'
+import {
+  createSim,
+  defineEvent,
+  definePlugin,
+  defineResource,
+  defineSystem,
+  type Sim,
+} from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { make, slam } from '#src/testing/feel-table.ts'

@@ -1,6 +1,6 @@
 // Writer as a suite editor: `writer` in the editor list. It opens every scene's lines and conversations the list hands
 // it, one scene at a time, and keeps them for the app's life.
-import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
+import { defineSuiteEditor, type SuiteEditor } from '@automataframework/editor/kit/ports'
 import { canvas, panel, status } from './WriterRegions.svelte'
 import { WriterSession } from './writer-session.svelte.ts'
 

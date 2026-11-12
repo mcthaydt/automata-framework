@@ -1,4 +1,4 @@
-import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
+import { defineSuiteEditor, type SuiteEditor } from '@automataframework/editor/kit/ports'
 import { type ChecksPanel, createChecksPanel, type Scheduler } from './checks/checks-panel-controller'
 import type { DollhouseRendererFactory } from './dollhouse/dollhouse-renderer'
 import { lazyDollhouseRenderer } from './dollhouse/lazy-dollhouse-renderer'

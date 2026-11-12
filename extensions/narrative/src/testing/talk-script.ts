@@ -2,9 +2,9 @@
 // script for 600 steps (conversations started, advanced and answered, the player walked through the rooms, bare-hand
 // verbs at the deck's hotspots, the deck's system events), straight or restored from a snapshot.
 
-import type { PuzzleDef } from '@automata/puzzle/sim'
-import { canonicalJson, type Sim } from '@automata/sim'
-import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
+import { canonicalJson, type Sim } from '@automataframework/sim'
+import { hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 import { parse } from 'smol-toml'
 import type { Canon } from '../shared/sim/canon.schema'
 import type { DialogueFile } from '../shared/sim/dialogue.schema'

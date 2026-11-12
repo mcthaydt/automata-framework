@@ -1,4 +1,4 @@
-import type { AudioContent, Cue } from '@automata/audio-synth'
+import type { AudioContent, Cue } from '@automataframework/audio-synth'
 import { describe, expect, it } from 'vitest'
 import {
   checkSounds,

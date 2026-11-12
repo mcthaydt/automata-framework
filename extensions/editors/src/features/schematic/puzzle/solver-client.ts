@@ -1,5 +1,5 @@
 // The page's side of the solver worker: one worker, one question at a time, the newest answer wins.
-import type { PuzzleDef } from '@automata/puzzle/sim'
+import type { PuzzleDef } from '@automataframework/puzzle/sim'
 import type { PuzzleAnswer } from './solve.ts'
 
 export interface FinishChecker {

@@ -1,7 +1,7 @@
 // A swatch's ladder: its ramp's eight DUEL steps dark to light and the step it sits on. A texel's albedo is that base
 // step plus the offset its texture or pattern gives it, clamped to the ladder; a photo-mode texel carries its own colour,
 // so it moves along its own ramp as any texel moves along its swatch's.
-import { DUEL_RAMP_NAMES, DUEL_RAMPS, type DuelRampName } from '@automata/content/palette'
+import { DUEL_RAMP_NAMES, DUEL_RAMPS, type DuelRampName } from '@automataframework/content/palette'
 
 export const STEPS = 8
 

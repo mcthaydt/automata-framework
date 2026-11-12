@@ -1,7 +1,7 @@
 // The systems' state, all of it in resources so snapshots and replays carry it: the loaded def, each
 // agent's record, the rule clocks and reserved nodes, the noises on the world, pursuit, and the env the game writes.
-import { type Value, valueSchema } from '@automata/puzzle/sim'
-import { defineResource, type ResourceDef } from '@automata/sim'
+import { type Value, valueSchema } from '@automataframework/puzzle/sim'
+import { defineResource, type ResourceDef } from '@automataframework/sim'
 import { z } from 'zod'
 import { type SystemsDef, systemsDefShape } from './systems.schema'
 

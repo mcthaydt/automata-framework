@@ -6,7 +6,7 @@ import {
   defineResource,
   defineSystem,
   type Sim,
-} from '@automata/sim'
+} from '@automataframework/sim'
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'

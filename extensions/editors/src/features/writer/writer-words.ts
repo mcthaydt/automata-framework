@@ -1,6 +1,6 @@
 // The words Writer uses for a line's kind. A key (`dialogue`, `bark`) is never shown; the person reads what the line is
 // for.
-import type { LineKind } from '@automata/narrative/sim'
+import type { LineKind } from '@automataframework/narrative/sim'
 
 export const KIND_WORDS: Readonly<Record<LineKind, string>> = {
   dialogue: 'Said in a conversation',

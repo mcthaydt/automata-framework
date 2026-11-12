@@ -1,4 +1,4 @@
-import { DEFAULT_PALETTE } from '@automata/content'
+import { DEFAULT_PALETTE } from '@automataframework/content'
 import { Container3D, FlatMaterial, Mesh3D, PhongMaterial } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { fk, restPose } from '#src/features/figures/body/rig.ts'

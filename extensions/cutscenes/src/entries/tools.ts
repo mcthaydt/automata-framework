@@ -1,4 +1,4 @@
-// @automata/cutscenes/tools: the cutscene lint. Build time and tests, never in a game bundle.
+// @automataframework/cutscenes/tools: the cutscene lint. Build time and tests, never in a game bundle.
 export {
   CAMERA_CLEARANCE,
   type CutsceneFinding,

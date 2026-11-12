@@ -1,7 +1,7 @@
 // Sector resolution: small cases that show one rule each, and the invariants of a shipped level (the depot): loops closed,
 // simple and wound with the room on the left, no overlap, and portals that match on both sides.
 
-import type { Corner, Point } from '@automata/3d/level'
+import type { Corner, Point } from '@automataframework/3d/level'
 import {
   crossing,
   DEFAULT_TRIM,
@@ -9,7 +9,7 @@ import {
   polygonArea,
   segmentDistance,
   WALL_THICK,
-} from '@automata/3d/level'
+} from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import {
   edges,

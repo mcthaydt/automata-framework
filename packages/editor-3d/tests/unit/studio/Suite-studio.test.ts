@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
-import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
+import { EDITOR_LIST_PATH } from '@automataframework/editor/editor-list'
+import type { SuiteEditor } from '@automataframework/editor/kit/ports'
+import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automataframework/editor/suite'
 import { screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { writable } from 'svelte/store'

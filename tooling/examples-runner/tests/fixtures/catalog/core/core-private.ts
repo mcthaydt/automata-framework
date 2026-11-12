@@ -2,9 +2,9 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @automata/render-pixi
+// Packages: @automataframework/render-pixi
 // Difficulty: ★☆☆☆
 // Tier: core
-import { rect } from '@automata/render-pixi'
+import { rect } from '@automataframework/render-pixi'
 
 export default { id: 'core-private', view: rect }

@@ -1,11 +1,11 @@
 // The names a person picks from in Sequence, read from the whole game, because a cutscene names no scene or level: every
 // lines file (shown by its words), the characters placed with a name in the game's 2D levels, and whatever the cutscenes
 // already use. Anything that does not read is skipped; Sequence reports on its own file, not on the game's others.
-import { levelContentSchema } from '@automata/content/level-2d'
-import type { CutsceneScript } from '@automata/cutscenes/sim'
-import { openDocument } from '@automata/editor/kit/documents'
-import type { SuitePorts, WorkspaceFile } from '@automata/editor/kit/ports'
-import type { LinesFile } from '@automata/narrative/sim'
+import { levelContentSchema } from '@automataframework/content/level-2d'
+import type { CutsceneScript } from '@automataframework/cutscenes/sim'
+import { openDocument } from '@automataframework/editor/kit/documents'
+import type { SuitePorts, WorkspaceFile } from '@automataframework/editor/kit/ports'
+import type { LinesFile } from '@automataframework/narrative/sim'
 import { humanize } from '../../shared/humanize.ts'
 import type { SequenceNames } from './key-fields.ts'
 import { levelNamesOf } from './plan-view.ts'

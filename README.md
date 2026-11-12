@@ -6,7 +6,7 @@ Firefox, and PixiJS draws it.
 
 ## Make a game
 
-`npx @automata/tools create-game my-game` makes a game that runs, passes its checks and opens in the
+`npx @automataframework/tools create-game my-game` makes a game that runs, passes its checks and opens in the
 level editor. The steps, the guides and the API are on [automataframework.com](https://automataframework.com).
 
 ## Work on the framework
@@ -52,8 +52,8 @@ pnpm build && node tooling/consumer-smoke/src/run.ts --from packs
 
 | Path | What it holds |
 |---|---|
-| `packages/` | The packages, published as `@automata/*` |
-| `extensions/` | Opt-in extras, each `@automata/<name>` with its own README: physics, feel, audio-synth, debug, puzzle, online play (net, net-ui, net-server), ready-made screens (ui-screens), the level, story and scene tools (sectors, nav, systems, narrative, cutscenes, pipelines) and two kits for 3D (character-kit: clothes, hairstyles and seats; world-kit: props, furnished rooms, generated maps, photo textures and the sky). A game adds the ones it wants; core never imports one |
+| `packages/` | The packages, published as `@automataframework/*` |
+| `extensions/` | Opt-in extras, each `@automataframework/<name>` with its own README: physics, feel, audio-synth, debug, puzzle, online play (net, net-ui, net-server), ready-made screens (ui-screens), the level, story and scene tools (sectors, nav, systems, narrative, cutscenes, pipelines) and two kits for 3D (character-kit: clothes, hairstyles and seats; world-kit: props, furnished rooms, generated maps, photo textures and the sky). A game adds the ones it wants; core never imports one |
 | `games/` | Emberwick (2D) and the 3D game |
 | `examples/` | One file per feature ([`examples/README.md`](examples/README.md)) |
 | `tooling/` | Repository checks: boundaries, style, versions, release, consumer smoke and repo hygiene |

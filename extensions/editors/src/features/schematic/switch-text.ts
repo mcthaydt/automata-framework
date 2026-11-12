@@ -4,8 +4,8 @@
 // added or taken out, a "not", a new or removed switch) replaces that switch's own tables as text, and every byte outside
 // them stays. The caller reads the result back and compares it with the value it meant, so a text this cannot place is
 // refused, never written wrong. A comment inside the replaced tables goes with them; a comment above them stays.
-import { openDocument } from '@automata/editor/kit/documents'
-import type { Transition } from '@automata/systems/sim'
+import { openDocument } from '@automataframework/editor/kit/documents'
+import type { Transition } from '@automataframework/systems/sim'
 import { parse as strictParse, stringify } from 'smol-toml'
 
 export interface Header {

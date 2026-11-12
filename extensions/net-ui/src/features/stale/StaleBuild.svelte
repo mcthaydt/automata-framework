@@ -4,7 +4,7 @@
   which takes focus. There is no other way forward on purpose: a tab that cannot join is no use until it is reloaded.
 -->
 <script lang="ts">
-import { ErrorPanel } from '@automata/framework'
+import { ErrorPanel } from '@automataframework/framework'
 import { onMount } from 'svelte'
 
 interface Props {

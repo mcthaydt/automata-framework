@@ -10,8 +10,8 @@ import {
   type StorageClock,
   type Workspace,
   type WorkspaceEnv,
-} from '@automata/editor/kit/core'
-import { createGeometryOwner, type ViewportWindow } from '@automata/framework'
+} from '@automataframework/editor/kit/core'
+import { createGeometryOwner, type ViewportWindow } from '@automataframework/framework'
 import { mount, unmount } from 'svelte'
 import { createEditorApp } from '../features/levels-3d/document/editor-app'
 import type { PlanRendererFactory } from '../features/levels-3d/plan/plan-renderer'

@@ -2,8 +2,8 @@
 // schema, so it moves whenever a schema's wording does; the bytes after it are the state itself. A test that pins
 // "nothing but the schema moved" hashes these.
 
-import type { Sim } from '@automata/sim'
-import { hex64, xxhash64 } from '@automata/sim/hash'
+import type { Sim } from '@automataframework/sim'
+import { hex64, xxhash64 } from '@automataframework/sim/hash'
 
 /** The `schemaHash` field of a snapshot's header: bytes 6 to 14. */
 const SCHEMA_HASH = { from: 6, to: 14 } as const

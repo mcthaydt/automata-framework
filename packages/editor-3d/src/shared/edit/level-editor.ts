@@ -9,7 +9,7 @@ import {
   HistoryError,
   type Selection,
   type Transaction,
-} from '@automata/editor/kit/core'
+} from '@automataframework/editor/kit/core'
 import type { LevelProfile } from '../level-session/level-profile'
 import type { EditSector } from '../level-session/sector-access'
 import { type Edit, type EditResult, refuse } from './edit'

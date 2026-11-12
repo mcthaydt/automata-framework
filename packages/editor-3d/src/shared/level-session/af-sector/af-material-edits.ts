@@ -14,8 +14,8 @@ import type {
   Surface,
   SurfaceTex,
   WrittenPlane,
-} from '@automata/3d/level'
-import { TRIM_PIECES } from '@automata/3d/level'
+} from '@automataframework/3d/level'
+import { TRIM_PIECES } from '@automataframework/3d/level'
 import { type Edit, ok, refuse } from '../../edit/edit'
 import { sameJson, withoutUndefined } from '../../edit/json-values'
 import { ID_PATTERN } from '../../edit/sector-edit-support'

@@ -1,10 +1,10 @@
 # Automata API reference, version 0.0.5
 
-> Every export of every published `@automata/*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
+> Every export of every published `@automataframework/*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
 
-## `@automata/audio-synth`
+## `@automataframework/audio-synth`
 
-### `import { … } from '@automata/audio-synth'`
+### `import { … } from '@automataframework/audio-synth'`
 
 #### `audioContent` (const)
 
@@ -644,7 +644,7 @@ Every tone shape.
 const WAVES: readonly Wave[];
 ```
 
-### `import { … } from '@automata/audio-synth/browser'`
+### `import { … } from '@automataframework/audio-synth/browser'`
 
 #### `Renderers` (interface)
 
@@ -660,7 +660,7 @@ interface Renderers {
 }
 ```
 
-### `import { … } from '@automata/audio-synth/measure'`
+### `import { … } from '@automataframework/audio-synth/measure'`
 
 #### `ClickOptions` (interface)
 
@@ -746,7 +746,7 @@ interface Wav {
 }
 ```
 
-### `import { … } from '@automata/audio-synth/render'`
+### `import { … } from '@automataframework/audio-synth/render'`
 
 #### `CueRenderOptions` (interface)
 
@@ -904,7 +904,7 @@ A seeded random (mulberry32), so a crackle renders the same every time.
 function seeded(seed?: number): () => number;
 ```
 
-### `import { … } from '@automata/audio-synth/stage'`
+### `import { … } from '@automataframework/audio-synth/stage'`
 
 #### `AudioNote` (type)
 
@@ -1029,9 +1029,9 @@ query: '?url', import: 'default' })`): each file's name to the address it is ser
 function tracksFrom(found: Readonly<Record<string, string>>): Readonly<Record<string, string>>;
 ```
 
-## `@automata/content`
+## `@automataframework/content`
 
-### `import { … } from '@automata/content'`
+### `import { … } from '@automataframework/content'`
 
 #### `AchievementConfig` (interface)
 
@@ -1822,7 +1822,7 @@ The guide with its generated section replaced, or undefined when it has no marke
 function withTuningTable(guide: string, meta: TuningMeta): string | undefined;
 ```
 
-### `import { … } from '@automata/content/assets'`
+### `import { … } from '@automataframework/content/assets'`
 
 #### `ATLAS_EXTRUDE` (const)
 
@@ -2014,7 +2014,7 @@ characters, which converts it and changes no glyph.
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>, rename?: FontRename): Promise<Uint8Array>;
 ```
 
-### `import { … } from '@automata/content/controls'`
+### `import { … } from '@automataframework/content/controls'`
 
 #### `ControlAction` (interface)
 
@@ -2126,7 +2126,7 @@ A stick pushed past its dead zone in one direction (the input service reads them
 type StickDirection = (typeof STICK_DIRECTIONS)[number];
 ```
 
-### `import { … } from '@automata/content/game-config'`
+### `import { … } from '@automataframework/content/game-config'`
 
 #### `AchievementConfig` (interface)
 
@@ -2306,7 +2306,7 @@ The renderers a game may ask for.
 const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 ```
 
-### `import { … } from '@automata/content/level-2d'`
+### `import { … } from '@automataframework/content/level-2d'`
 
 #### `animationSchema` (const)
 
@@ -3042,7 +3042,7 @@ The strict schema of `world.toml`.
 const worldContentSchema: z.ZodType<ContentWorld>;
 ```
 
-### `import { … } from '@automata/content/locale'`
+### `import { … } from '@automataframework/content/locale'`
 
 #### `ALWAYS_CHARACTERS` (const)
 
@@ -3205,7 +3205,7 @@ function pseudoMessages(file: {
 function snakeKey(value: string): string;
 ```
 
-### `import { … } from '@automata/content/palette'`
+### `import { … } from '@automataframework/content/palette'`
 
 #### `DEFAULT_PALETTE` (const)
 
@@ -3284,7 +3284,7 @@ function rampOf(index: number): number;
 function step(index: number, by: number): number;
 ```
 
-### `import { … } from '@automata/content/schema'`
+### `import { … } from '@automataframework/content/schema'`
 
 #### `contentRef` (function)
 
@@ -3364,7 +3364,7 @@ words a translator should render in each language, and this for text that must s
 function verbatim(): z.ZodType<string, string>;
 ```
 
-### `import { … } from '@automata/content/vite'`
+### `import { … } from '@automataframework/content/vite'`
 
 #### `automataContent` (function)
 
@@ -3397,9 +3397,9 @@ The import path of the compiled content: `content`, `contentHash`, `simContent` 
 const VIRTUAL_MODULE_ID = "virtual:automata/content";
 ```
 
-## `@automata/debug`
+## `@automataframework/debug`
 
-### `import { … } from '@automata/debug'`
+### `import { … } from '@automataframework/debug'`
 
 #### `audioBoard` (function)
 
@@ -3767,7 +3767,7 @@ object gives no rows.
 function summaryRows(summary: unknown, prefix?: string): SummaryRow[];
 ```
 
-### `import { … } from '@automata/debug/vite'`
+### `import { … } from '@automataframework/debug/vite'`
 
 #### `debugBuild` (function)
 
@@ -3778,9 +3778,9 @@ A Vite plugin that sets `__AUTOMATA_DEBUG__`. Pass `true` in dev and `--debug` b
 function debugBuild(debug: boolean): Plugin;
 ```
 
-## `@automata/feel`
+## `@automataframework/feel`
 
-### `import { … } from '@automata/feel'`
+### `import { … } from '@automataframework/feel'`
 
 #### `AudioRow` (interface)
 
@@ -4185,7 +4185,7 @@ interface WordRow {
 }
 ```
 
-### `import { … } from '@automata/feel/stage'`
+### `import { … } from '@automataframework/feel/stage'`
 
 #### `feelStage` (function)
 
@@ -4228,9 +4228,9 @@ interface FeelStageOptions {
 }
 ```
 
-## `@automata/framework`
+## `@automataframework/framework`
 
-### `import { … } from '@automata/framework'`
+### `import { … } from '@automataframework/framework'`
 
 #### `ActionBar` (const)
 
@@ -4739,7 +4739,7 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 #### `contentHashOf` (function)
 
 The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
-Matches `@automata/content`'s contentHash formula, pinned by tests.
+Matches `@automataframework/content`'s contentHash formula, pinned by tests.
 
 ```ts
 function contentHashOf(data: unknown): string;
@@ -5596,7 +5596,7 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly uiSounds?: UiSounds;
     /**
-     * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
+     * The game's own audio player (`@automataframework/audio-synth/stage`), started once the runtime has built its audio service:
      * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
      * returns undoes it at shutdown.
      */
@@ -5632,7 +5632,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly extensions?: readonly ExtensionDef[];
     /**
      * Steps that run after the host is ready and before the first screen, in order, with the sim held (a studio splash from
-     * `@automata/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
+     * `@automataframework/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
      */
     readonly opening?: readonly OpeningStep[];
     /**
@@ -5645,7 +5645,7 @@ interface GameSpec<S = never, D = unknown> {
      * warning with the device's reduced-motion line, saying what a game may have ("flashing lights or a shaking screen").
      * An object says what this game has: `effects` lists its hazards (`'flashing'`, `'strobing'`, `'shaking'`,
      * `'patterns'`) and the warning names exactly those, in the player's language; `switches` adds the game's own effect
-     * settings (a game with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+     * settings (a game with `@automataframework/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
      */
     readonly photosensitivity?: PhotosensitivityOption;
     /**
@@ -7231,8 +7231,8 @@ interface RuntimeSeams {
     readonly fonts?: Pick<FontFaceSet, 'load'>;
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
     /**
-     * Builds the game's `Hosting` in place of the build target's adapter (`@automata/framework/target`), for example
-     * `fakeHosting(…).open` from `@automata/framework/testing`. It gets boot's clock and the signal that gives up the
+     * Builds the game's `Hosting` in place of the build target's adapter (`@automataframework/framework/target`), for example
+     * `fakeHosting(…).open` from `@automataframework/framework/testing`. It gets boot's clock and the signal that gives up the
      * handshake; boot disposes what it answers. When given, `sdkEnv` is not used.
      */
     readonly hosting?: (options: HostingOptions, seams: {
@@ -8163,7 +8163,7 @@ function usePlay(): PlayHandle;
 
 #### `ViewportWindow` (interface)
 
-The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
+The parts of `window` the owner reads; a fake from `@automataframework/framework/testing` stands in for it in tests.
 
 ```ts
 interface ViewportWindow {
@@ -8207,7 +8207,7 @@ type WarningEffect = (typeof WARNING_EFFECTS)[number];
 #### `WarningSwitch` (interface)
 
 A switch the warning offers: one of the game's own effect settings. A switch is on or off, so a setting with more
-steps is mapped: `@automata/feel`'s `intensity` is `0 | 0.5 | 1`, so a "Less shaking" switch maps on to `0.5` and off
+steps is mapped: `@automataframework/feel`'s `intensity` is `0 | 0.5 | 1`, so a "Less shaking" switch maps on to `0.5` and off
 to `1`; its `reduceFlashing` maps straight across. Core cannot import feel, so the game passes its own.
 
 ```ts
@@ -8223,7 +8223,7 @@ interface WarningSwitch {
 }
 ```
 
-### `import { … } from '@automata/framework/extension'`
+### `import { … } from '@automataframework/framework/extension'`
 
 #### `defineExtension` (function)
 
@@ -8334,7 +8334,7 @@ The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
 type UiSlotName = (typeof UI_SLOT_NAMES)[number];
 ```
 
-### `import { … } from '@automata/framework/testing'`
+### `import { … } from '@automataframework/framework/testing'`
 
 #### `BAR_ACTIONS` (const)
 
@@ -9270,7 +9270,7 @@ Runs `program` on an open runtime and always closes it.
 function withRuntimeTest<A>(program: (session: RuntimeTestSession) => Promise<A> | A, options?: RuntimeTestOptions): Promise<A>;
 ```
 
-### `import { … } from '@automata/framework/tooling'`
+### `import { … } from '@automataframework/framework/tooling'`
 
 #### `isDefinedGame` (function)
 
@@ -9280,9 +9280,9 @@ Whether `value` came from `defineGame`.
 function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is DefinedGame<S>;
 ```
 
-## `@automata/net`
+## `@automataframework/net`
 
-### `import { … } from '@automata/net'`
+### `import { … } from '@automataframework/net'`
 
 #### `BuildFacts` (interface)
 
@@ -10013,7 +10013,7 @@ interface NetSdkClient {
 #### `NetSdkRoom` (interface)
 
 The part of the Colyseus SDK's room that `net` uses. The real SDK room fits it, and so does the
-fake in `@automata/net/testing`.
+fake in `@automataframework/net/testing`.
 
 ```ts
 interface NetSdkRoom {
@@ -10626,7 +10626,7 @@ interface WatchableSource<T> extends Watchable<T> {
 }
 ```
 
-### `import { … } from '@automata/net/sim'`
+### `import { … } from '@automataframework/net/sim'`
 
 #### `NetOwner` (const)
 
@@ -10710,7 +10710,7 @@ interface SeatPayload {
 }
 ```
 
-### `import { … } from '@automata/net/testing'`
+### `import { … } from '@automataframework/net/testing'`
 
 #### `createLink` (function)
 
@@ -10910,9 +10910,9 @@ One message as it travels: text (JSON) or binary (a snapshot, a packed replay).
 type WireData = string | Uint8Array;
 ```
 
-## `@automata/net-server`
+## `@automataframework/net-server`
 
-### `import { … } from '@automata/net-server'`
+### `import { … } from '@automataframework/net-server'`
 
 #### `acceptsInput` (function)
 
@@ -12614,7 +12614,7 @@ send a shape this server does not know.
 function versionVerdict(options: unknown, version: GameVersion): "same" | "mismatch" | "unread";
 ```
 
-### `import { … } from '@automata/net-server/testing'`
+### `import { … } from '@automataframework/net-server/testing'`
 
 #### `CLOCK_NAMES` (const)
 
@@ -12742,9 +12742,9 @@ interface RoomReading {
 }
 ```
 
-## `@automata/net-ui`
+## `@automataframework/net-ui`
 
-### `import { … } from '@automata/net-ui'`
+### `import { … } from '@automataframework/net-ui'`
 
 #### `BadgeState` (type)
 
@@ -12947,7 +12947,7 @@ interface StaleBuildOptions {
     /**
      * The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know,
      * lets the title through and is logged to the console as a check that could not run. (A server on another origin
-     * must answer with CORS headers, or the browser refuses the answer to the page; `@automata/net-server` does.)
+     * must answer with CORS headers, or the browser refuses the answer to the page; `@automataframework/net-server` does.)
      */
     readonly fetchFacts: () => Promise<unknown>;
     /** The longest the title waits for the answer, in milliseconds, on the runtime's clock. Default 1500. */
@@ -13002,9 +13002,9 @@ Returns a function that stops it.
 function watchStatus(host: NetUiHost, onView: (view: NetStatusView) => void): () => void;
 ```
 
-## `@automata/physics`
+## `@automataframework/physics`
 
-### `import { … } from '@automata/physics/2d'`
+### `import { … } from '@automataframework/physics/2d'`
 
 #### `body2d` (function)
 
@@ -13158,7 +13158,7 @@ Position in metres and rotation in radians. Rendered.
 const Transform2D: ComponentDef<typeof transformFields>;
 ```
 
-### `import { … } from '@automata/physics/3d'`
+### `import { … } from '@automataframework/physics/3d'`
 
 #### `body3d` (function)
 
@@ -13321,9 +13321,9 @@ Position in metres and rotation as a unit quaternion. Rendered.
 const Transform3D: ComponentDef<typeof transformFields>;
 ```
 
-## `@automata/puzzle`
+## `@automataframework/puzzle`
 
-### `import { … } from '@automata/puzzle'`
+### `import { … } from '@automataframework/puzzle'`
 
 #### `Action` (interface)
 
@@ -13890,7 +13890,7 @@ interface VerbReport {
 }
 ```
 
-### `import { … } from '@automata/puzzle/sim'`
+### `import { … } from '@automataframework/puzzle/sim'`
 
 #### `Action` (interface)
 
@@ -14405,7 +14405,7 @@ interface VerbReport {
 }
 ```
 
-### `import { … } from '@automata/puzzle/solver'`
+### `import { … } from '@automataframework/puzzle/solver'`
 
 #### `analyse` (function)
 
@@ -14910,9 +14910,9 @@ Metres walked between two hotspots (null: from the spawn).
 type Walk = (from: string | null, to: string) => number;
 ```
 
-## `@automata/sim`
+## `@automataframework/sim`
 
-### `import { … } from '@automata/sim'`
+### `import { … } from '@automataframework/sim'`
 
 #### `canonicalJson` (function)
 
@@ -15630,7 +15630,7 @@ XXH64 of `data` with an unsigned 64-bit `seed`.
 function xxhash64(data: Uint8Array, seed?: bigint): bigint;
 ```
 
-### `import { … } from '@automata/sim/hash'`
+### `import { … } from '@automataframework/sim/hash'`
 
 #### `canonicalJson` (function)
 
@@ -15668,7 +15668,7 @@ XXH64 of `data` with an unsigned 64-bit `seed`.
 function xxhash64(data: Uint8Array, seed?: bigint): bigint;
 ```
 
-### `import { … } from '@automata/sim/math'`
+### `import { … } from '@automataframework/sim/math'`
 
 #### `atan` (function)
 
@@ -15743,7 +15743,7 @@ Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 function tan(x: number): number;
 ```
 
-### `import { … } from '@automata/sim/replay'`
+### `import { … } from '@automataframework/sim/replay'`
 
 #### `createRecorder` (function)
 
@@ -16022,7 +16022,7 @@ function unpackReplay(bytes: Uint8Array, compression: ReplayCompression, options
 }): Promise<Replay>;
 ```
 
-### `import { … } from '@automata/sim/testing'`
+### `import { … } from '@automataframework/sim/testing'`
 
 #### `Difference` (interface)
 
@@ -16265,7 +16265,7 @@ Browsers and Node: CompressionStream / DecompressionStream('deflate-raw').
 const streamCompression: ReplayCompression;
 ```
 
-### `import { … } from '@automata/sim/testing/commands'`
+### `import { … } from '@automataframework/sim/testing/commands'`
 
 #### `goldenCommands` (function)
 
@@ -16291,7 +16291,7 @@ interface GoldenCommandsOptions {
 }
 ```
 
-### `import { … } from '@automata/sim/testing/property'`
+### `import { … } from '@automataframework/sim/testing/property'`
 
 #### `RoundTripFailure` (interface)
 
@@ -16351,9 +16351,9 @@ function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
 }>;
 ```
 
-## `@automata/tools`
+## `@automataframework/tools`
 
-### `import { … } from '@automata/tools'`
+### `import { … } from '@automataframework/tools'`
 
 #### `defineShipConfig` (function)
 
@@ -16403,7 +16403,7 @@ interface ItchSettings {
 
 #### `ShipConfig` (interface)
 
-What a game tells ship about itself: the game config every target reads (`@automata/content`'s
+What a game tells ship about itself: the game config every target reads (`@automataframework/content`'s
 `GameConfig`) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
 the config reads like the `ruken.toml` the Ruken target writes from it (ship fills in `schema` and `allow_eval`,
 always false); `prepare --target ruken` checks the whole of it with Ruken's own parser.
@@ -16453,9 +16453,9 @@ interface TauriConfig {
 }
 ```
 
-## `@automata/ui-screens`
+## `@automataframework/ui-screens`
 
-### `import { … } from '@automata/ui-screens'`
+### `import { … } from '@automataframework/ui-screens'`
 
 #### `CreditName` (interface)
 
@@ -16628,7 +16628,7 @@ are outside it, so a long list scrolls and the way out never moves. The primary 
 when none is primary); Escape or the system back calls `onBack` when the game gives one.
 
 Edit freely once copied: the layout, the row markup and the order of the actions are yours. The geometry, the targets and the
-focus model are core's (`@automata/framework`), so keep using `ScreenFrame`, `ScrollList` and `ActionBar`.
+focus model are core's (`@automataframework/framework`), so keep using `ScreenFrame`, `ScrollList` and `ActionBar`.
 
 ```ts
 const ResultsScreen: import("svelte").Component<Props, {}, "">;
@@ -16748,14 +16748,14 @@ interface TitleAction {
 
 The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's
 ScreenFrame and ActionBar. Play takes focus on entry. A game with saves keeps core's default title, which lists the slots; add
-that here by copying the slot list from `@automata/framework`'s title when you need it.
+that here by copying the slot list from `@automataframework/framework`'s title when you need it.
 
 ```ts
 const TitleScreen: import("svelte").Component<Props, {}, "">;
 type TitleScreen = ReturnType<typeof TitleScreen>;
 ```
 
-### `import { … } from '@automata/ui-screens/credits'`
+### `import { … } from '@automataframework/ui-screens/credits'`
 
 #### `CreditName` (interface)
 
@@ -16896,7 +16896,7 @@ interface ShowCreditsOptions {
 }
 ```
 
-### `import { … } from '@automata/ui-screens/error'`
+### `import { … } from '@automataframework/ui-screens/error'`
 
 #### `ErrorScreen` (const)
 
@@ -16910,7 +16910,7 @@ const ErrorScreen: import("svelte").Component<Props, {}, "">;
 type ErrorScreen = ReturnType<typeof ErrorScreen>;
 ```
 
-### `import { … } from '@automata/ui-screens/loading'`
+### `import { … } from '@automataframework/ui-screens/loading'`
 
 #### `LoadingScreen` (const)
 
@@ -16924,7 +16924,7 @@ const LoadingScreen: import("svelte").Component<Props, {}, "">;
 type LoadingScreen = ReturnType<typeof LoadingScreen>;
 ```
 
-### `import { … } from '@automata/ui-screens/results'`
+### `import { … } from '@automataframework/ui-screens/results'`
 
 #### `ResultsAction` (interface)
 
@@ -16977,14 +16977,14 @@ are outside it, so a long list scrolls and the way out never moves. The primary 
 when none is primary); Escape or the system back calls `onBack` when the game gives one.
 
 Edit freely once copied: the layout, the row markup and the order of the actions are yours. The geometry, the targets and the
-focus model are core's (`@automata/framework`), so keep using `ScreenFrame`, `ScrollList` and `ActionBar`.
+focus model are core's (`@automataframework/framework`), so keep using `ScreenFrame`, `ScrollList` and `ActionBar`.
 
 ```ts
 const ResultsScreen: import("svelte").Component<Props, {}, "">;
 type ResultsScreen = ReturnType<typeof ResultsScreen>;
 ```
 
-### `import { … } from '@automata/ui-screens/splash'`
+### `import { … } from '@automataframework/ui-screens/splash'`
 
 #### `screensWords` (function)
 
@@ -17049,7 +17049,7 @@ once when the runtime shuts down.
 function splashStep(options: SplashOptions): OpeningStep;
 ```
 
-### `import { … } from '@automata/ui-screens/title'`
+### `import { … } from '@automataframework/ui-screens/title'`
 
 #### `TitleAction` (interface)
 
@@ -17069,7 +17069,7 @@ interface TitleAction {
 
 The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's
 ScreenFrame and ActionBar. Play takes focus on entry. A game with saves keeps core's default title, which lists the slots; add
-that here by copying the slot list from `@automata/framework`'s title when you need it.
+that here by copying the slot list from `@automataframework/framework`'s title when you need it.
 
 ```ts
 const TitleScreen: import("svelte").Component<Props, {}, "">;

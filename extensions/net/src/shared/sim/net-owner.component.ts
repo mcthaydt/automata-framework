@@ -1,4 +1,4 @@
-import { type ComponentDef, defineComponent } from '@automata/sim'
+import { type ComponentDef, defineComponent } from '@automataframework/sim'
 
 /**
  * The seat an entity belongs to. `netPlugin` gives each joined seat one entity with it; a game tags

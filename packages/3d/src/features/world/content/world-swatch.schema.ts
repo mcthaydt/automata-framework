@@ -2,7 +2,7 @@
 // DUEL's 32 ramps (`{ ramp = "wood", step = 3 }`) and the few fields the builder and the view read. The photo a texture
 // is made from (`texture.photo`) and the painter's own knobs stay data for the photo pipeline; a swatch with none draws
 // as its flat palette colour.
-import { DUEL_RAMP_NAMES, DUEL_RAMPS, type DuelRampName } from '@automata/content/palette'
+import { DUEL_RAMP_NAMES, DUEL_RAMPS, type DuelRampName } from '@automataframework/content/palette'
 import { z } from 'zod'
 
 export interface WorldSwatch {

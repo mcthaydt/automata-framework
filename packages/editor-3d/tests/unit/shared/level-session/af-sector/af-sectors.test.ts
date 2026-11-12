@@ -1,6 +1,6 @@
 // The sectors of an `af-sector/1` level as the editor's edits see them (ED3D.3 step 3).
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
 import { afSectorAccess } from '#src/shared/level-session/af-sector/af-sectors.ts'

@@ -6,7 +6,7 @@
 // Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/types.ts (`Kit`, `KitSlot`) and
 // library/kits.json at 6d82a52.
 
-import { type KitSurfaces, kitSurfacesSchema } from '@automata/3d/level'
+import { type KitSurfaces, kitSurfacesSchema } from '@automataframework/3d/level'
 import { z } from 'zod'
 
 /**

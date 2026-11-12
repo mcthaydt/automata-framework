@@ -1,6 +1,6 @@
 // A swatch is a ladder of eight DUEL steps with a base step; a texel's albedo is the base plus its texture's offset; a
 // photo-mode texel is a step of its own ramp. A tile is laid on a surface as Build's placement says.
-import { DUEL_RAMPS } from '@automata/content/palette'
+import { DUEL_RAMPS } from '@automataframework/content/palette'
 import { describe, expect, it } from 'vitest'
 import { albedoStep, ladderOf, onRamp, paletteRgb } from '#src/features/world/albedo/ladder.ts'
 import { type AlbedoTile, tileUvs } from '#src/features/world/albedo/place.ts'

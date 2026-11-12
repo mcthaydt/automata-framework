@@ -3,9 +3,9 @@
 // (unreachable), the door opens at step 200, and it tries again at 210; walker 3 walks to three nodes in turn, the
 // second one given mid-walk.
 
-import { type Order, stepWith } from '@automata/sectors/testing'
-import { canonicalJson, type Sim } from '@automata/sim'
-import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import { type Order, stepWith } from '@automataframework/sectors/testing'
+import { canonicalJson, type Sim } from '@automataframework/sim'
+import { hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 import { createWalkGame, door, load, spawnWalker, walkTo } from './walk-game'
 
 const TICKS = 600

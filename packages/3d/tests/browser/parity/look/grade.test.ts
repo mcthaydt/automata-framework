@@ -1,7 +1,7 @@
 // The mood grade on a real WebGL2 context: with no mood the frame is as it was; with one the colours move, and, because the
 // grade runs before the snap, every pixel still lands on the palette. WebGPU and WebGL2 parity is the GPU runner's.
 import '#src/entries/no-eval.ts'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'

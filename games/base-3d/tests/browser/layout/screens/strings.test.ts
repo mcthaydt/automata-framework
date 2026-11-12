@@ -2,10 +2,10 @@
 // that lengthens every word, at 844 × 390 and 780 × 270 in Chromium, WebKit and Firefox: no word left in English and
 // ui's layout contract met, every primary action reachable. The words come through the live copy (copy.svelte.ts),
 // pseudo-localized here until the catalog compiles with Paraglide (the plan's log has why).
-import '@automata/framework/theme.css'
-import '@automata/framework'
-import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@automata/content/locale'
-import { byTestId, checkLayout, publishConditions, settleLayout } from '@automata/framework/testing'
+import '@automataframework/framework/theme.css'
+import '@automataframework/framework'
+import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@automataframework/content/locale'
+import { byTestId, checkLayout, publishConditions, settleLayout } from '@automataframework/framework/testing'
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'

@@ -1,8 +1,8 @@
 // Effects: what a rule or a transition does, in order. A catch or a cutscene ends the step for the
 // rest of the systems (the original's halt).
-import { route } from '@automata/nav/sim'
-import type { Point } from '@automata/sectors/sim'
-import { sortedKeys } from '@automata/sim'
+import { route } from '@automataframework/nav/sim'
+import type { Point } from '@automataframework/sectors/sim'
+import { sortedKeys } from '@automataframework/sim'
 import { heardNoises, lit, type Subject, setFact } from './probe'
 import { dist, FOLLOW_CLEAR, portal, zoneAt } from './pursuit'
 import { reachable } from './reserve'

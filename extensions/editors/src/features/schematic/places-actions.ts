@@ -1,9 +1,9 @@
 // What Places does to the scene's files: each action is one undo step, and a rename (which changes the places file and
 // the behaviour file that names the place) is one step across both. The session hands itself in as the `host`.
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { SuitePorts } from '@automata/editor/kit/ports'
-import type { NavGraph } from '@automata/nav/sim'
-import type { SystemsDef } from '@automata/systems/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import type { SuitePorts } from '@automataframework/editor/kit/ports'
+import type { NavGraph } from '@automataframework/nav/sim'
+import type { SystemsDef } from '@automataframework/systems/sim'
 import { stringify } from 'smol-toml'
 import type { Outcome, TomlSession } from '../../shared/toml-session.ts'
 import {

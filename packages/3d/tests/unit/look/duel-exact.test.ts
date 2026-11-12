@@ -1,6 +1,6 @@
 // A figure's texels are already DUEL colours, and the look pass runs over the whole view. A texel that is exactly a DUEL
 // colour must come out as itself, in every cell of the Bayer matrix: no dither and no remap of a colour already in the palette.
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { describe, expect, it } from 'vitest'
 import { BAYER, duelSnap } from '#src/features/look/duel-snap.ts'
 import { DEFAULT_LOOK } from '#src/features/look/look.ts'

@@ -1,5 +1,5 @@
 // A RenderTarget for the renderer's tests: a fixed usable rectangle, assets from a map, and a bus that records.
-import type { RenderTarget } from '@automata/framework'
+import type { RenderTarget } from '@automataframework/framework'
 
 type Geometry = RenderTarget['geometry']['geometry']['current']
 

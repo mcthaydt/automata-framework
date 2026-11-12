@@ -1,4 +1,4 @@
-import { type AfCorner2, type AfSector2, insideSector, type SectorPlan } from '@automata/3d/level'
+import { type AfCorner2, type AfSector2, insideSector, type SectorPlan } from '@automataframework/3d/level'
 import type { Tuning } from './tuning.ts'
 
 // Reads a room the 3D level editor wrote into what this game plays: the floors Wick can stand on, the props he cannot

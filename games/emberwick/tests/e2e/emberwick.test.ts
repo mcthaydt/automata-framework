@@ -1,4 +1,4 @@
-import { passFirstRun } from '@automata/tools/e2e'
+import { passFirstRun } from '@automataframework/tools/e2e'
 import { expect, type Page, test } from '@playwright/test'
 import { createBaseSim, moveCommand, readPlayer } from '#src/app/base-sim.ts'
 import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '#src/testing/golden.ts'

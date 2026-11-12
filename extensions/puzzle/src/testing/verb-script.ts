@@ -1,8 +1,15 @@
 // The puzzle golden: the clinic's converted content, played by a fixed script of verbs for 600 steps
 // (hotspots in turn, with and without a carried item, combines and codes), straight or restored from a snapshot.
 // Every call the clinic names is declared and sets a fact, so calls change the state the hash covers.
-import { canonicalJson, createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automata/sim'
-import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import {
+  canonicalJson,
+  createSim,
+  defineCommand,
+  definePlugin,
+  defineSystem,
+  type Sim,
+} from '@automataframework/sim'
+import { hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 import { parse } from 'smol-toml'
 import { z } from 'zod'
 import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, PuzzleState } from '../entries/sim'

@@ -1,5 +1,5 @@
-import { createDirector } from '@automata/cutscenes/director'
-import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import { createDirector } from '@automataframework/cutscenes/director'
+import { createMemoryPorts } from '@automataframework/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
 import { levelWalls, NO_WALLS_WORDS, planView, wallsOfLevel } from '#src/features/sequence/plan-view.ts'
 

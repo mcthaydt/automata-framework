@@ -9,7 +9,7 @@ import {
   effectSchema,
   type Point,
   type Value,
-} from '@automata/puzzle/sim'
+} from '@automataframework/puzzle/sim'
 import { choices } from '../pieces/conditions.ts'
 import {
   hasShape,

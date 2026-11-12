@@ -1,5 +1,5 @@
-import type { EntityView } from '@automata/framework'
-import type { FieldRecord } from '@automata/sim'
+import type { EntityView } from '@automataframework/framework'
+import type { FieldRecord } from '@automataframework/sim'
 import { Sprite, Texture } from 'pixi.js'
 
 const SUB = 256

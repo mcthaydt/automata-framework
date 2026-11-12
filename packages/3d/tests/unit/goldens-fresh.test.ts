@@ -1,6 +1,6 @@
 // The committed goldens (tests/fixtures/goldens) are AF's record of its own behaviour: recording again into a
 // temporary folder must reproduce them. A difference means the code moved a golden; re-record in a named commit
-// that explains the change (`pnpm --filter @automata/3d goldens`).
+// that explains the change (`pnpm --filter @automataframework/3d goldens`).
 
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'

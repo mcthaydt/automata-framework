@@ -14,42 +14,46 @@ const tools = {
 }
 
 describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)', () => {
-  it('depends on every packed tarball and overrides the transitive @automata ones to the same files', () => {
+  it('depends on every packed tarball and overrides the transitive @automataframework ones to the same files', () => {
     const manifest = consumerManifest({
       from: 'packs',
       packages: [
-        { name: '@automata/sim', tarball: 'packs/automata-sim-0.0.1.tgz' },
-        { name: '@automata/testing', tarball: 'packs/automata-testing-0.0.1.tgz' },
+        { name: '@automataframework/sim', tarball: 'packs/automataframework-sim-0.0.1.tgz' },
+        { name: '@automataframework/testing', tarball: 'packs/automataframework-testing-0.0.1.tgz' },
       ],
       tools,
       packageManager: PNPM,
     })
     expect(manifest.dependencies).toEqual({
-      '@automata/testing': 'file:packs/automata-testing-0.0.1.tgz',
-      '@automata/sim': 'file:packs/automata-sim-0.0.1.tgz',
+      '@automataframework/testing': 'file:packs/automataframework-testing-0.0.1.tgz',
+      '@automataframework/sim': 'file:packs/automataframework-sim-0.0.1.tgz',
     })
     expect(
       consumerWorkspace({
         from: 'packs',
-        packages: [{ name: '@automata/sim', tarball: 'packs/automata-sim-0.0.1.tgz' }],
+        packages: [{ name: '@automataframework/sim', tarball: 'packs/automataframework-sim-0.0.1.tgz' }],
       }),
-    ).toBe(['overrides:', "  '@automata/sim': 'file:packs/automata-sim-0.0.1.tgz'", ''].join('\n'))
+    ).toBe(
+      ['overrides:', "  '@automataframework/sim': 'file:packs/automataframework-sim-0.0.1.tgz'", ''].join(
+        '\n',
+      ),
+    )
   })
 
   it('depends on the registry version and needs no overrides', () => {
     const manifest = consumerManifest({
       from: 'registry',
       version: '0.0.3',
-      packages: [{ name: '@automata/sim' }],
+      packages: [{ name: '@automataframework/sim' }],
       tools,
       packageManager: PNPM,
     })
-    expect(manifest.dependencies).toEqual({ '@automata/sim': '0.0.3' })
+    expect(manifest.dependencies).toEqual({ '@automataframework/sim': '0.0.3' })
     expect(
       consumerWorkspace({
         from: 'registry',
         version: '0.0.3',
-        packages: [{ name: '@automata/sim' }],
+        packages: [{ name: '@automataframework/sim' }],
       }),
     ).toBe('overrides: {}\n')
   })

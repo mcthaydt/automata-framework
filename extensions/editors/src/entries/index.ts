@@ -1,4 +1,4 @@
-// `@automata/editors`: the editors of the extensions' content, for a suite page to add.
+// `@automataframework/editors`: the editors of the extensions' content, for a suite page to add.
 export {
   type Outcome,
   openTomlSession,

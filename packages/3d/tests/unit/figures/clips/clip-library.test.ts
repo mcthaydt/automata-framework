@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Diagnostic } from '@automata/content'
+import type { Diagnostic } from '@automataframework/content'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { blendKeyPoses } from '#src/features/figures/clips/blend-key-poses.ts'
 import type { FigureClipDef } from '#src/features/figures/clips/clip.schema.ts'

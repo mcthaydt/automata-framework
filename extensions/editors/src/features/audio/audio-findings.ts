@@ -1,9 +1,9 @@
 // "Check the sounds": every sound is rendered in the page (an `OfflineAudioContext`, the same synth and mixer the game
 // uses) and measured: too loud at its peak, a click inside it, too quiet to hear. A finding belongs to the sound it was
 // found in as that sound was then, so a sound that has changed since, or been renamed, never shows an old finding.
-import { type AudioContent, type Cue, cueLength } from '@automata/audio-synth'
-import { clicks, truePeak } from '@automata/audio-synth/measure'
-import { type OfflineLike, renderCue, SAMPLE_RATE } from '@automata/audio-synth/render'
+import { type AudioContent, type Cue, cueLength } from '@automataframework/audio-synth'
+import { clicks, truePeak } from '@automataframework/audio-synth/measure'
+import { type OfflineLike, renderCue, SAMPLE_RATE } from '@automataframework/audio-synth/render'
 
 /** The true-peak ceiling the audio pipeline holds a sound to. */
 export const PEAK_CEILING_DB = -1

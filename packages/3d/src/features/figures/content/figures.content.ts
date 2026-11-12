@@ -3,7 +3,7 @@
 // of the sim's partition and hash. References between them are `contentRef`s, so the content compiler reports
 // a missing id at its file, line and column (F-e).
 
-import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
+import { type ContentSchemaDef, defineContentSchema } from '@automataframework/content/schema'
 import { clipSchema } from '../clips/clip.schema.ts'
 import { figureSchema } from '../figure/figure.schema.ts'
 import { poseSchema } from '../motion/pose.schema.ts'

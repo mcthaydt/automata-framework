@@ -1,18 +1,18 @@
 // figures-walk: Wick, a procedural figure, walking a loop under the angled camera
 //
 // Shows: a figure as data (a FigureDef: sliders, an outfit of garments, palette swatches and a gait) drawn by
-//   @automata/3d's figure view, one mesh per part posed from the gait's pose clock; the sim moves the figure and
+//   @automataframework/3d's figure view, one mesh per part posed from the gait's pose clock; the sim moves the figure and
 //   says whether it is walking, and the view walks or idles from that; the camera is the Owner's default view
 //   (50 mm, 30° down, 16 m back) following the figure.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figures'
-import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automataframework/3d'
+import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automataframework/3d/figures'
+import { CameraHeading, cameraView, enterView, START } from '@automataframework/3d/sim'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- figure ---
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml

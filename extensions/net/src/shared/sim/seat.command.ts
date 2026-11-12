@@ -1,4 +1,4 @@
-import { type CommandDef, defineCommand } from '@automata/sim'
+import { type CommandDef, defineCommand } from '@automataframework/sim'
 import { z } from 'zod'
 import { seatSchema } from './seat.schema'
 

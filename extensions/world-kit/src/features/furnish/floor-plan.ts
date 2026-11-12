@@ -3,7 +3,7 @@
 // east, the way its front (+z in its own space) faces.
 //
 // Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52.
-import { signedArea, type V2 } from '@automata/3d/props-kit'
+import { signedArea, type V2 } from '@automataframework/3d/props-kit'
 
 /** A rectangle on the floor: x0, z0, x1, z1. */
 export type Rect = readonly [number, number, number, number]

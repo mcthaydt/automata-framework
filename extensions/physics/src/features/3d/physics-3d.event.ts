@@ -1,4 +1,4 @@
-import { defineEvent, type EventDef } from '@automata/sim'
+import { defineEvent, type EventDef } from '@automataframework/sim'
 import { z } from 'zod'
 
 // Collision events: `a < b` are the two entities' StableIds; `sensor` when either is a sensor.

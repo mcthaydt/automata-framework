@@ -1,8 +1,8 @@
-import '@automata/editor/tokens.css'
-import '@automata/editor/tool-chrome.css'
-import '@automata/editor/fonts.css'
-import '@automata/editor/suite.css'
-import type { SuiteEditor } from '@automata/editor/kit/ports'
+import '@automataframework/editor/tokens.css'
+import '@automataframework/editor/tool-chrome.css'
+import '@automataframework/editor/fonts.css'
+import '@automataframework/editor/suite.css'
+import type { SuiteEditor } from '@automataframework/editor/kit/ports'
 import {
   browserPublish,
   createLevels2d,
@@ -10,7 +10,7 @@ import {
   createTuner,
   randomIds,
   startSuite,
-} from '@automata/editor/suite'
+} from '@automataframework/editor/suite'
 import { browserAudio } from '../../features/audio/audio-output.ts'
 import { browserOutputs } from '../../features/feel/feel-stage.ts'
 import { contentEditors } from './content-editors.ts'

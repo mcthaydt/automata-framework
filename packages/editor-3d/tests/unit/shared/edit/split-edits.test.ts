@@ -2,7 +2,7 @@
 // depot (the hall from (0, 0) to (8, 6): a window on its north wall from 3.2 to 4.8 m, a portal east into the dock, a door
 // on its west wall), and on small levels that show one rule each.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { cutProblem, splitSector } from '#src/shared/edit/split-edits.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'

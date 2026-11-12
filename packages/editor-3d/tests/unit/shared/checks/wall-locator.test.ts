@@ -2,7 +2,7 @@
 // locator names that corner, as the file numbers it. A wall that came from none (a hole's) is the sector's: the locator
 // names the sector, never a wrong corner.
 
-import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { wallLocator } from '#src/shared/checks/wall-locator.ts'
 import { resolveMap } from '#src/shared/geometry/sectors.ts'

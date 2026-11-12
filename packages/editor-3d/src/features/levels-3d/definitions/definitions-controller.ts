@@ -4,8 +4,8 @@
 // it was refused (and nothing changed). A format whose definitions or materials the game fixes has no rows
 // for them, and `fixed` says so.
 
-import type { AfMaterial, AfSector2File } from '@automata/3d/level'
-import type { FieldDef } from '@automata/editor/kit/fields'
+import type { AfMaterial, AfSector2File } from '@automataframework/3d/level'
+import type { FieldDef } from '@automataframework/editor/kit/fields'
 import {
   addDefinition,
   removeDefinition,

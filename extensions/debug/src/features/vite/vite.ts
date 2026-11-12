@@ -1,4 +1,4 @@
-// `@automata/debug/vite`: the build constant that gates debug. A game's config passes `true` in dev and
+// `@automataframework/debug/vite`: the build constant that gates debug. A game's config passes `true` in dev and
 // in a `--debug` build, `false` in a release build. Debug code is reached only behind `__AUTOMATA_DEBUG__`, so a release bundle
 // tree-shakes the overlay and the driver; the bundle test fails if it does not.
 import type { Plugin } from 'vite'

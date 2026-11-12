@@ -1,4 +1,4 @@
-// Draws one base scene with @automata/3d as EnvironmentBuilder frames it (base/base.ts `views`), for shoot.mjs.
+// Draws one base scene with @automataframework/3d as EnvironmentBuilder frames it (base/base.ts `views`), for shoot.mjs.
 // ?scene=base-interior|base-exterior|base-interior-dressed|base-exterior-dressed  ?view=diorama|fp|af|zone  ?pref=webgl|webgpu
 // `af` and `zone` are gameplay cameras on the first cast member, facing north as the diorama does: AF's default view
 // (`CAMERA_DEFAULTS` and `LENS_MM`: 24 mm, 25° down, 5 m back, focus 1 m up) and The Last Light's play camera (50 mm, 30°
@@ -7,7 +7,7 @@
 // EB's diorama is orthographic, pitched down with no yaw, at PPM × density 2 texels a metre (96/2.6 × 2), centred on
 // `at`; its first person is a 320 × 200 frame at a 90° horizontal field of view, `eye` m over the floor, facing `angle`
 // (map degrees clockwise from east). Map space: x east, z south, y up.
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -27,15 +27,15 @@ import {
   swatchGlow,
   type View3dFactory,
   worldLighting,
-} from '@automata/3d'
-import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automata/3d/base'
-import { figuresExtension, type Gait } from '@automata/3d/figures'
-import { BASE as PAINTED_BASE, characterKitExtension, paintedFigure } from '@automata/character-kit'
-import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
-import { addLcdPanelPass } from '@automata/lcd-panel/pass'
-import { addRetroPass } from '@automata/retro-crisp/pass'
-import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
-import { GlowEffect, ParticlesEffect, ReflectEffect, ShaftsEffect, shaftLamps, type Emitter } from '@automata/world-kit/sky'
+} from '@automataframework/3d'
+import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automataframework/3d/base'
+import { figuresExtension, type Gait } from '@automataframework/3d/figures'
+import { BASE as PAINTED_BASE, characterKitExtension, paintedFigure } from '@automataframework/character-kit'
+import { defineComponent, defineGame, definePlugin, startGame } from '@automataframework/framework'
+import { addLcdPanelPass } from '@automataframework/lcd-panel/pass'
+import { addRetroPass } from '@automataframework/retro-crisp/pass'
+import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automataframework/world-kit'
+import { GlowEffect, ParticlesEffect, ReflectEffect, ShaftsEffect, shaftLamps, type Emitter } from '@automataframework/world-kit/sky'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
 
 // Pixi's capability probes each make a throwaway WebGL context and lose it on purpose. On headless SwiftShader that

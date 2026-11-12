@@ -1,5 +1,5 @@
 {
-  "name": "@automata/framework",
+  "name": "@automataframework/framework",
   "version": "0.0.5",
   "license": "MIT",
   "repository": {
@@ -98,8 +98,8 @@
     "build": "svelte-package -i src -o dist --tsconfig tsconfig.package.json && tsdown && tsdown -c tsdown.dts.config.ts && node build/finish-dist.ts"
   },
   "dependencies": {
-    "@automata/content": "workspace:*",
-    "@automata/sim": "workspace:*",
+    "@automataframework/content": "workspace:*",
+    "@automataframework/sim": "workspace:*",
     "zod": "4.6.6"
   },
   "peerDependencies": {
@@ -131,7 +131,7 @@
   "devDependencies": {
     "@inlang/paraglide-js": "2.25.4",
     "@inlang/plugin-message-format": "4.4.4",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@sveltejs/package": "3.0.0",

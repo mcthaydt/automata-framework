@@ -1,4 +1,4 @@
-import { type ComponentDef, defineComponent } from '@automata/sim'
+import { type ComponentDef, defineComponent } from '@automataframework/sim'
 
 // 2D physics components. Every number is f32: Rapier computes in f32, so values read back
 // from Rapier are exact and sync-in can compare them with ===.

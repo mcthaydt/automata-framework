@@ -1,7 +1,7 @@
 // The base interior with the nine ward props in it: the floor props in two rows and the two wall props on the north wall,
 // where their backs go. One layout for the unit test (it builds and checks reads) and the browser test (it draws it).
-import { BASE_SCENES } from '@automata/3d/base'
-import type { AfSector2 } from '@automata/3d/level'
+import { BASE_SCENES } from '@automataframework/3d/base'
+import type { AfSector2 } from '@automataframework/3d/level'
 
 /** The kinds that hang on a wall, each at the height its generator hangs it. */
 export const ON_WALL: ReadonlySet<string> = new Set(['wallClock', 'keyCabinet'])

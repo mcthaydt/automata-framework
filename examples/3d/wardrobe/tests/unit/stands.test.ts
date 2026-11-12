@@ -12,7 +12,7 @@ import {
   skeleton,
   standFor,
   standHolds,
-} from '@automata/3d/figures'
+} from '@automataframework/3d/figures'
 import {
   AT_REST,
   type Digest,
@@ -23,7 +23,7 @@ import {
   fixtureFigures,
   type GoldenHold,
   surfaceOf,
-} from '@automata/3d/testing'
+} from '@automataframework/3d/testing'
 import { beforeAll, describe, expect, it } from 'vitest'
 import stands from '../../goldens/stands.json' with { type: 'json' }
 import '../../wardrobe.extension.ts'

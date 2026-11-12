@@ -2,9 +2,9 @@
  * What a room engine is given and what it tells: its clients, its options, and the room as clients see it.
  */
 
-import type { NetConfig, ServerMessage } from '@automata/net'
-import type { Sim } from '@automata/sim'
-import type { ReplayCompression } from '@automata/sim/replay'
+import type { NetConfig, ServerMessage } from '@automataframework/net'
+import type { Sim } from '@automataframework/sim'
+import type { ReplayCompression } from '@automataframework/sim/replay'
 import type { Bucket, RoomLogEvent } from '../../../shared/game/server-config'
 import type { ServerDef } from '../../../shared/game/server-game'
 import type { LobbyState } from '../rules/lobby-rules'

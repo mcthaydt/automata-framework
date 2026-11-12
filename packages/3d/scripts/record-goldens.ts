@@ -3,7 +3,7 @@
 // compare the code against these files; this script is the one place that writes them. A change that moves a
 // golden is re-recorded in a named commit that explains it (the test, `goldens-fresh.test.ts`, fails until then).
 //
-//   pnpm --filter @automata/3d goldens [--out <dir>]     (default: tests/fixtures/goldens)
+//   pnpm --filter @automataframework/3d goldens [--out <dir>]     (default: tests/fixtures/goldens)
 //
 // Node loads it with `--import ./scripts/extensionless-ts.ts`, which the package script passes (a workspace package it
 // imports writes relative imports without `.ts`).

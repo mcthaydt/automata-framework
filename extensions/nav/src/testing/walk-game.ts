@@ -1,8 +1,8 @@
 // A test game for nav: the clinic's map and graph, loaded by a command, with the clinic's boxes behind the game's own
 // `Blocked`. Walkers are spawned at setup with sectors' `InSector` and nav's `NavAgent`.
-import { InSector, loadSectorMap, resolvedMap, sectorsPlugin } from '@automata/sectors/sim'
-import type { Order } from '@automata/sectors/testing'
-import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automata/sim'
+import { InSector, loadSectorMap, resolvedMap, sectorsPlugin } from '@automataframework/sectors/sim'
+import type { Order } from '@automataframework/sectors/testing'
+import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automataframework/sim'
 import { z } from 'zod'
 import { createNavPlugin, loadNavGraph, NavAgent, type NavOptions } from '../entries/sim'
 import { clinicBlocked, clinicGraph, clinicMap } from './clinic'

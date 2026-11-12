@@ -3,11 +3,11 @@
 // Shows: draw(ctx) paints rects, lines, circles and text over the entity views once a frame. It reads the
 //   sim through ctx.sim and never writes it, so the golden is the same with or without it.
 // Controls: none
-// Packages: @automata/framework
+// Packages: @automataframework/framework
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 120
-import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automata/framework'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automataframework/framework'
 
 const Ball = defineComponent('ball', { x: 'f32', y: 'f32', vx: 'f32', vy: 'f32' })
 

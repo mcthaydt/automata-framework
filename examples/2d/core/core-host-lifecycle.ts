@@ -5,10 +5,10 @@
 //   a hidden tab) the runtime stops the sim and opens the pause screen, and Resume plays on from the same tick.
 //   The HUD counts the sim's ticks and says whether the frame is paused.
 // Controls: none; switch to another tab (or open the host's drawer) and come back
-// Packages: @automata/framework
+// Packages: @automataframework/framework
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automata/framework'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automataframework/framework'
 
 const Pacer = defineComponent('pacer', { x: 'f32', y: 'f32', vx: 'f32' })
 

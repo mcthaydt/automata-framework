@@ -3,9 +3,9 @@
 // a mouse and the same metre is a different hit at another zoom. Everything is read from the geometry layers and the
 // selection ids; hidden and locked layers are told in `options`, as the view state holds them.
 
-import type { Point } from '@automata/3d/level'
-import { insideSector, polygonArea } from '@automata/3d/level'
-import type { PointerKind, Point as ScreenPoint, Viewport2D } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import { insideSector, polygonArea } from '@automataframework/3d/level'
+import type { PointerKind, Point as ScreenPoint, Viewport2D } from '@automataframework/editor/kit/core'
 import type { SelectionOf } from '../../../shared/edit/selection-of'
 import type { Edge } from '../../../shared/geometry/sectors'
 import type { GeometryLayer } from '../../../shared/level-session/level-profile'

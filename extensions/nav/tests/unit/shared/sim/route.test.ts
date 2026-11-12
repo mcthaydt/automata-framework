@@ -1,6 +1,6 @@
 // Routes on the clinic: the original game's three nav tests, re-pointed at the converted clinic,
 // plus the determinism rules (sorted scan, ties to the lower id) and the unreachable fallback.
-import type { Point } from '@automata/sectors/sim'
+import type { Point } from '@automataframework/sectors/sim'
 import { describe, expect, it } from 'vitest'
 import type { NavGraph } from '#src/shared/sim/nav-graph.schema.ts'
 import { type Blocked, clear, nearestNode, route } from '#src/shared/sim/route.ts'

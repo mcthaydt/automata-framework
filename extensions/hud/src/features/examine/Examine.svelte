@@ -5,7 +5,7 @@
   confirm. It is the one piece that stays while a cutscene holds input.
 -->
 <script lang="ts">
-import { LineBox } from '@automata/narrative'
+import { LineBox } from '@automataframework/narrative'
 import { onMount } from 'svelte'
 import { padSteer } from '../../shared/pad'
 

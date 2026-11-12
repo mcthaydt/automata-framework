@@ -1,6 +1,6 @@
-import type { ContentSchemaDef } from '@automata/content'
-import type { GameConfig as FullGameConfig } from '@automata/content/game-config'
-import type { PluginDef } from '@automata/sim'
+import type { ContentSchemaDef } from '@automataframework/content'
+import type { GameConfig as FullGameConfig } from '@automataframework/content/game-config'
+import type { PluginDef } from '@automataframework/sim'
 import type { UiComponent, UiSlotName } from '../../shared/ui/slots/ui-slot.ts'
 
 // Type-only imports throughout: `./extension` is loaded in Node by a game's vite.config.ts, so it must

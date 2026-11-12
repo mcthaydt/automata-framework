@@ -5,9 +5,9 @@
 //
 // Reading nav's routes is how a refused walk is known: the sim has no reading of a step's own events, and nav drops a
 // walker's route when there is no way to the target.
-import { NavRoutes } from '@automata/nav/sim'
-import { applyVerb, holds } from '@automata/puzzle/sim'
-import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
+import { NavRoutes } from '@automataframework/nav/sim'
+import { applyVerb, holds } from '@automataframework/puzzle/sim'
+import { defineSystem, type SimContext, type SystemDef } from '@automataframework/sim'
 import type { Hotspot } from './hotspot.schema'
 import { Cancel, Combine, EnterCode, Use } from './interact.command'
 import { InteractPending, InteractRefused, InteractUsed, type RefusedReason } from './interact.event'

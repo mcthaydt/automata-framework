@@ -1,6 +1,6 @@
-# Spike eb-look (EnvironmentBuilder's look on @automata/3d, phase 2: the baseline)
+# Spike eb-look (EnvironmentBuilder's look on @automataframework/3d, phase 2: the baseline)
 
-Draws AF's four base scenes (`@automata/3d/base`'s interior and exterior, and world-kit's dressed variants) the way
+Draws AF's four base scenes (`@automataframework/3d/base`'s interior and exterior, and world-kit's dressed variants) the way
 EnvironmentBuilder frames them, on WebGL and WebGPU, and writes a side-by-side PNG per scene and view. The PNGs and what
 they show are in `docs/refactor/eb-look/`. Spikes are exempt from TDD; nothing here is imported by a package.
 

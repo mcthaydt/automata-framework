@@ -3,7 +3,7 @@
   as a sentence and left alone. "Not" turns a condition round and back; Remove takes it out.
 -->
 <script lang="ts" generics="V">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import type { Names, Piece } from './pieces/piece.ts'
 

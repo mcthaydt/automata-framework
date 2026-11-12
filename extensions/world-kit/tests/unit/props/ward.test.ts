@@ -7,7 +7,7 @@ import {
   type MeshData,
   type PropPiece,
   resolveProp,
-} from '@automata/3d/props-kit'
+} from '@automataframework/3d/props-kit'
 import { describe, expect, it } from 'vitest'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import '#src/features/props/register-props.ts'

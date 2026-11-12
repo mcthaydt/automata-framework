@@ -1,6 +1,6 @@
 // A character's senses as a person reads them: one sentence with its fields each, and a menu to add one it lacks. The
 // table is the whole vocabulary; a sense of a kind it lacks cannot exist (the schema has exactly these five).
-import type { Sense } from '@automata/systems/sim'
+import type { Sense } from '@automataframework/systems/sim'
 import type { Field } from '../../shared/fields.ts'
 import { metres } from './pieces/conditions.ts'
 import { num, spaced, YES_NO } from './pieces/piece.ts'

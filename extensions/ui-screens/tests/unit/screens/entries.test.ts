@@ -17,8 +17,8 @@ const SCREENS = [
 ] as const
 
 describe('the package entries', () => {
-  it.each(SCREENS)('imports %s from @automata/ui-screens/%s', async (entry, name) => {
-    const module = (await import(/* @vite-ignore */ `@automata/ui-screens/${entry}`)) as Record<
+  it.each(SCREENS)('imports %s from @automataframework/ui-screens/%s', async (entry, name) => {
+    const module = (await import(/* @vite-ignore */ `@automataframework/ui-screens/${entry}`)) as Record<
       string,
       unknown
     >
@@ -26,7 +26,7 @@ describe('the package entries', () => {
   })
 
   it('has every screen in the main entry', async () => {
-    const module = (await import('@automata/ui-screens')) as Record<string, unknown>
+    const module = (await import('@automataframework/ui-screens')) as Record<string, unknown>
     for (const [, name] of SCREENS) expect(module[name], name).toBeDefined()
   })
 

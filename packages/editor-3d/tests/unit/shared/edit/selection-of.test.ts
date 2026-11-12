@@ -1,7 +1,7 @@
 // The selection ids a plan, a pick and a mesh share (ED3D.4 step 2): `sector:<id>` for a sector the document lists and
 // `wall:<sector>/<corner>` for the wall that starts at one of its corners, and nothing for what only the geometry has.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { selectionOf } from '#src/shared/edit/selection-of.ts'
 import type { Edge } from '#src/shared/geometry/sectors.ts'

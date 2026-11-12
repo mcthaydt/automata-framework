@@ -1,7 +1,15 @@
 // The shape of a map plan: a level written the way a map is drawn (rectangles, a default wall for a room, sprites that are
 // props or cast), which a generator makes and `convertBuilderMap` turns into an `af-sector/2` level. Anything else a plan
 // carries is the level schema's to refuse.
-import type { AfSector2, Decor, Dress, LampPlace, SectorDoor, Surface, WindowGrid } from '@automata/3d/level'
+import type {
+  AfSector2,
+  Decor,
+  Dress,
+  LampPlace,
+  SectorDoor,
+  Surface,
+  WindowGrid,
+} from '@automataframework/3d/level'
 
 // What this reads of the builder's types; anything else it carries is the schema's to refuse.
 export type V2 = readonly [number, number]

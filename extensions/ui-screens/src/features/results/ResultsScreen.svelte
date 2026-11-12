@@ -8,10 +8,10 @@
   when none is primary); Escape or the system back calls `onBack` when the game gives one.
 
   Edit freely once copied: the layout, the row markup and the order of the actions are yours. The geometry, the targets and the
-  focus model are core's (`@automata/framework`), so keep using `ScreenFrame`, `ScrollList` and `ActionBar`.
+  focus model are core's (`@automataframework/framework`), so keep using `ScreenFrame`, `ScrollList` and `ActionBar`.
 -->
 <script lang="ts">
-import { ActionBar, ScreenFrame, ScrollList } from '@automata/framework'
+import { ActionBar, ScreenFrame, ScrollList } from '@automataframework/framework'
 import { onMount } from 'svelte'
 
 /**

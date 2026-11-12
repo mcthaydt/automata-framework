@@ -4,9 +4,9 @@
 // atan2(-dir.z, dir.x), and the quaternion's half-angle terms come from the direction by the half-angle identities, so
 // no trigonometry is needed. Masses get no box: masonry above a portal would close it.
 
-import { WALL_THICK } from '@automata/3d/level'
-import { BodyKind, body3d, collider3d, transform3d } from '@automata/physics/3d'
-import type { SimContext } from '@automata/sim'
+import { WALL_THICK } from '@automataframework/3d/level'
+import { BodyKind, body3d, collider3d, transform3d } from '@automataframework/physics/3d'
+import type { SimContext } from '@automataframework/sim'
 import type { SectorMap } from '../check-level'
 import { loadSectorMap } from '../load-sector-map'
 import type { Edge } from '../resolve'

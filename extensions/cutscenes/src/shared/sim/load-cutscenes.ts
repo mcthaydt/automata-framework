@@ -1,4 +1,4 @@
-import type { SimContext } from '@automata/sim'
+import type { SimContext } from '@automataframework/sim'
 import { anchorsOf } from './anchors'
 import { CutsceneScene, CutsceneState } from './cutscene.resource'
 import { type CutsceneScript, cutsceneSchema } from './cutscene.schema'

@@ -1,4 +1,4 @@
-import { type ComponentDef, defineComponent } from '@automata/sim'
+import { type ComponentDef, defineComponent } from '@automataframework/sim'
 
 const level2dAtFields = { x: 'f32', y: 'f32' } as const
 

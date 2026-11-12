@@ -2,8 +2,8 @@
 // room and its furniture from the game's materials and furniture, the things the level places stand where they are, and
 // the time of day is the one the file names, so the picture is the game's and not an editor's guess. Pure data: the
 // renderer draws it, and a new level (an edit) is a new scene.
-import { buildWorld, levelTime, type TimeOfDay, type WorldPiece } from '@automata/3d'
-import { type AfSector2File, readLevel } from '@automata/3d/level'
+import { buildWorld, levelTime, type TimeOfDay, type WorldPiece } from '@automataframework/3d'
+import { type AfSector2File, readLevel } from '@automataframework/3d/level'
 import { EMPTY_LIBRARY, type GameLibrary, worldLibrary } from '../../../shared/level-session/game-library'
 import { gameColours } from '../../../shared/level-session/materials'
 import { STAND_IN_COLOURS, type StandIn, type StandInKind, standInPieces } from './stand-ins'

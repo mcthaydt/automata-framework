@@ -1,4 +1,4 @@
-// `@automata/net`: the wire (one owner; `net-server` imports it), the `net.toml` schema, and the client: the Colyseus
+// `@automataframework/net`: the wire (one owner; `net-server` imports it), the `net.toml` schema, and the client: the Colyseus
 // transport, `NetRoom`, reconnection and the room store; prediction and reconciliation (`NetSession`) and the
 // interpolation that draws the others. The sim side is `./sim`, the link harness and the fake SDK `./testing`.
 export type { NetSnapshot, Pong } from '../features/client/room/colyseus-transport'

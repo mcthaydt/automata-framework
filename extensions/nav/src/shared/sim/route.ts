@@ -1,10 +1,10 @@
 // Routes over a scene's authored graph, from the original game's nav. Walls, steps and a game's own
 // obstacles are behind `Blocked`; the graph is a parameter. Determinism: nodes are scanned in sorted id order, so ties
 // go to the lower id, and distances use the sim's `hypot`.
-import type { Blocked } from '@automata/places'
-import type { Point } from '@automata/sectors/sim'
-import { sortedKeys } from '@automata/sim'
-import { hypot } from '@automata/sim/math'
+import type { Blocked } from '@automataframework/places'
+import type { Point } from '@automataframework/sectors/sim'
+import { sortedKeys } from '@automataframework/sim'
+import { hypot } from '@automataframework/sim/math'
 import type { NavGraph } from './nav-graph.schema'
 
 export type { Blocked }

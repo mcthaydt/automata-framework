@@ -1,7 +1,7 @@
 /**
  * Renders the base pair (src/shared/base/base-pair.ts) with the builder, in Node. Free: no API.
  *
- *   [DENSITY=2] pnpm --filter @automata/figures render [OUT_DIR] [PITCH_DEG]
+ *   [DENSITY=2] pnpm --filter @automataframework/figures render [OUT_DIR] [PITCH_DEG]
  *
  * Writes per member: <id>-turn.png (the 8 views in the relaxed stand), <id>-walk.png (the walk's 8 poses, one per step of
  * its cycle, three-quarter front) and <id>-hero.png (the three-quarter lookbook stand, the member's own pose), each at 1×

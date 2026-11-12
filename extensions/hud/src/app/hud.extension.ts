@@ -1,6 +1,6 @@
 // `hud` as an extension a game opts into: the play HUD in the `hud.overlay` slot and the `hud` content kind. A game using
 // it passes no `words` to `narrativeExtension`, so one dialogue box draws, not two (the examine piece draws it).
-import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+import { defineExtension, type ExtensionDef } from '@automataframework/framework/extension'
 import { hudContent } from '../shared/hud.content'
 import type { HudOptions } from '../shared/hud-model'
 import { hudSlot } from './hud-slot'

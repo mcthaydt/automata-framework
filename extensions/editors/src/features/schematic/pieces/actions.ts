@@ -1,6 +1,6 @@
 // Every kind of action a switch, a patrol stop or a rule can do, as a piece (`piece.ts`). Same shape as the
 // conditions: the sentence a person reads, its fields, how a change is written back, and a new one that means something.
-import { effectSchema, type SysEffect } from '@automata/systems/sim'
+import { effectSchema, type SysEffect } from '@automataframework/systems/sim'
 import type { Field } from '../../../shared/fields.ts'
 import { choices, factFields, writeFact } from './conditions.ts'
 import {

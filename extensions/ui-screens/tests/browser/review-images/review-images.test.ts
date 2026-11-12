@@ -1,4 +1,4 @@
-import '@automata/framework/theme.css'
+import '@automataframework/framework/theme.css'
 import {
   byTestId,
   mountFixture,
@@ -6,7 +6,7 @@ import {
   REFERENCE_SIZES,
   settleLayout,
   VARIANTS,
-} from '@automata/framework/testing'
+} from '@automataframework/framework/testing'
 import { expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import ErrorScreen from '#src/features/error/ErrorScreen.svelte'

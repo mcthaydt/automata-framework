@@ -1,4 +1,4 @@
-import { defineTests, type TestOptions } from '@automata/vitest-preset'
+import { defineTests, type TestOptions } from '@automataframework/vitest-preset'
 import { playwright } from '@vitest/browser-playwright'
 import type { BrowserCommand } from 'vitest/node'
 import type { FigureLibrary } from './src/features/figures/figure/build.ts'
@@ -10,7 +10,7 @@ import type { fixtureFigures } from './src/testing/fixture-library.ts'
 // Headless Firefox in this container has no WebGL, so those cases skip there and the GPU runner runs them. The solve
 // bench in `tests/bench` measures and never asserts (`pnpm bench`).
 //
-// Svelte compiles the runtime's screens, which the renderer's tests reach through `@automata/framework`.
+// Svelte compiles the runtime's screens, which the renderer's tests reach through `@automataframework/framework`.
 //
 // `figureFixture` compiles the fixture content in Node (the content compiler reads files) and hands a browser page its
 // library; build() itself then runs in the page. The fixture loads through the project's Vite module runner, which

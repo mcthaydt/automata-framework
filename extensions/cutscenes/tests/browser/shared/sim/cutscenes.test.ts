@@ -1,7 +1,7 @@
 // The cutscenes golden: 600 steps of cutscenes started in turn, input sent throughout and skips
 // now and then hash to one committed value in Node, Chromium, WebKit and Firefox, straight and restored at step 300. A
 // mismatch is investigated, never rebaselined.
-import { recordGoldenEvidence } from '@automata/evidence/golden'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
 import { expect, test } from 'vitest'
 import { runCutsceneGolden } from '#src/testing/cut-script.ts'
 

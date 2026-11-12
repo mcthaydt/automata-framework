@@ -17,12 +17,12 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | First read | `17eb568`, 2026-10-16 (the M6 spec's line and test counts) |
 | Recorded extraction commit | `92e67047a33161c5cfb1c5f9d8b981e91e1c55b9` (`92e6704`, committed 2026-10-22), re-read 2026-10-31 for M6.0a |
 | Taken (M6.3 onward, into `mcthaydt/automata-plus`) | `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`'s frame model and coverage, `audio-synth`, `debug`'s boards and driver, the environment (blockout) pipeline, and the modules in M6 spec §4.13 (storylets, conversations, delivery, portraits, music), all rewritten on Koota under the porting rules (M6 spec §4.9), with the source's tests as behavior specs. The source itself is not edited (decision 8) |
-| Earlier extraction | `@automata/editor-3d` `format/` and `geometry/` (ED3D.1, ED3D.1c) from `src/game/sector-format.ts` at `92e6704` and the source's sector and nav geometry |
-| Moved, M6-D17 (2026-10-31) | The format file (`sector.schema.ts`, from `src/game/sector-format.ts` at `92e6704`) moved with its constants to core `@automata/sector-format` (`packages/sector-format/src`); its header no longer names the source |
-| Moved, M6-D18 (2026-10-31) | The blockout file format and its expansion (`blockout.schema.ts` and `expand.ts`, from `src/blockout-format.ts` at `92e6704`) moved from `@automata/editor-3d` `format/` to core `@automata/sector-format/blockout` (`packages/sector-format/blockout`), outside its sim entry; their headers no longer name the source. Removed 2026-11 (D3): the source game's level format is not AF's, so `@automata/3d` ships `af-sector/1` only |
-| Moved, 3D slice task 2.1 (2026-11-07) | `packages/render-pixi3d`, `packages/figures` and `packages/sector-format` (with the two rows above) became feature folders of one package, `packages/3d` (`@automata/3d`); every file keeps its text and its source rows; the file-by-file map is `docs/refactor/move-map-3d.json` |
-| Moved, 3D slice task 6.5 (2026-11-07) | The streetwear garments (`streetwear/`, eleven files from `src/render/figure/streetwear.ts` at `a1f7246`) moved from `packages/3d/src/features/figures/outfit/streetwear/` to the example extension `examples/3d/wardrobe/garments/`; their text and source rows are unchanged but for imports (core's `@automata/3d/figures-kit` entry) and the garment shapes, schemas and defaults, which left `figure/garment.schema.ts` and `garment-defaults.ts` for `garment-types.ts`, `garment-schemas.ts` and `defaults.ts` |
-| Moved, 3D slice task 7.6 (2026-11-07) | The clothes and hairstyles core left out (scope trim section 2): the garment kinds `apron`, `belt`, `coat`, `gloves`, `legs`, `mark`, `skirt` and `waistcoat` (from `src/render/figure/garments.ts` at `a1f7246`, as ported in `outfit/garments/classic.ts`), the hair piece generators (from `src/render/figure/hair.ts` at `a1f7246`: scalp, rows, tail, loose and older fall, bun, sweep, block, edges), the matte finishes, and the seats (`seated`, the `figure-seat` kind) leave `packages/3d` for `@automata/character-kit`. Their text and source rows are unchanged; the files as they were are in project files `af-character-kit-source/` and in the commit before 7.6's |
+| Earlier extraction | `@automataframework/editor-3d` `format/` and `geometry/` (ED3D.1, ED3D.1c) from `src/game/sector-format.ts` at `92e6704` and the source's sector and nav geometry |
+| Moved, M6-D17 (2026-10-31) | The format file (`sector.schema.ts`, from `src/game/sector-format.ts` at `92e6704`) moved with its constants to core `@automataframework/sector-format` (`packages/sector-format/src`); its header no longer names the source |
+| Moved, M6-D18 (2026-10-31) | The blockout file format and its expansion (`blockout.schema.ts` and `expand.ts`, from `src/blockout-format.ts` at `92e6704`) moved from `@automataframework/editor-3d` `format/` to core `@automataframework/sector-format/blockout` (`packages/sector-format/blockout`), outside its sim entry; their headers no longer name the source. Removed 2026-11 (D3): the source game's level format is not AF's, so `@automataframework/3d` ships `af-sector/1` only |
+| Moved, 3D slice task 2.1 (2026-11-07) | `packages/render-pixi3d`, `packages/figures` and `packages/sector-format` (with the two rows above) became feature folders of one package, `packages/3d` (`@automataframework/3d`); every file keeps its text and its source rows; the file-by-file map is `docs/refactor/move-map-3d.json` |
+| Moved, 3D slice task 6.5 (2026-11-07) | The streetwear garments (`streetwear/`, eleven files from `src/render/figure/streetwear.ts` at `a1f7246`) moved from `packages/3d/src/features/figures/outfit/streetwear/` to the example extension `examples/3d/wardrobe/garments/`; their text and source rows are unchanged but for imports (core's `@automataframework/3d/figures-kit` entry) and the garment shapes, schemas and defaults, which left `figure/garment.schema.ts` and `garment-defaults.ts` for `garment-types.ts`, `garment-schemas.ts` and `defaults.ts` |
+| Moved, 3D slice task 7.6 (2026-11-07) | The clothes and hairstyles core left out (scope trim section 2): the garment kinds `apron`, `belt`, `coat`, `gloves`, `legs`, `mark`, `skirt` and `waistcoat` (from `src/render/figure/garments.ts` at `a1f7246`, as ported in `outfit/garments/classic.ts`), the hair piece generators (from `src/render/figure/hair.ts` at `a1f7246`: scalp, rows, tail, loose and older fall, bun, sweep, block, edges), the matte finishes, and the seats (`seated`, the `figure-seat` kind) leave `packages/3d` for `@automataframework/character-kit`. Their text and source rows are unchanged; the files as they were are in project files `af-character-kit-source/` and in the commit before 7.6's |
 | Converted, M6.5 (automata-plus#24) | `nav`: `src/game/nav.ts` (`clear`, `nearestNode`, `route`) rewritten on Koota; its three tests (`tests/nav.test.ts`) ported as behaviour specs; the clinic's `NODES`, `EDGES` and `BOXES` (`src/game/level.ts`) converted once to TOML fixtures by `packages/nav/scripts/convert-adventure-nav.ts` at `92e6704` (18 nodes, 22 edges, 21 boxes) |
 | Converted, M6.7a (automata-plus#24) | `systems`: `src/game/systems.ts`, `agents.ts`, `probes.ts`, `pursuit.ts`, `contracts/systems.ts` and `nav.ts`'s `reserveNodes` and `reachable` rewritten on Koota; `tests/agents.test.ts`, `systems.test.ts` and `pursuit.test.ts` ported as behaviour specs (all but `wallRing` and `withHiding`); the four scenes' `SYSTEMS` (`src/scenes/{prologue,clinic,clinic-dawn,bay}/systems.ts`) converted once to TOML fixtures by `packages/systems/scripts/convert-adventure-systems.ts` at `92e6704` |
 | Ported, M6.7b (automata-plus#25) | `systems` bots, scenarios and fairness: `src/game/bots.ts` and `scripts/pipeline/systems-lib.ts`'s `play`, `scenario`, `claimsCheck`, `playtest`, `fairness` and `sweep`, rewritten for AF's sim commands at `92e6704`; `tests/bots.test.ts`'s bot, fairness and claim cases ported (not the trace, emergent search and doc cases; not `tests/crew-fairness.test.ts`, the source game's crew) |
@@ -77,8 +77,8 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/body/head.ts` | `packages/3d/src/features/figures/outfit/garments/head.ts` | rewritten: the jaw's underside widens with fat and the jaw with asymmetry (`HeadForm.width` takes a side) |
 | `src/features/outfit/fit.ts` | `packages/3d/src/features/figures/body/profiles.ts` | rewritten: `profiles`, `ringAt`, `girth`, `clearance`, `Body` and `bodyOf` as one query of the body's rings, in `body/` where the layers allow it; the clearance is one texel at the fixed `FIGURE_PPM` (no cell density); the cuffs and the collar are sized from it in `outfit/garments/classic.ts` |
 | `src/features/paint/fabric.ts` | `packages/3d/src/features/figures/registry/fabric-registry.ts` | rewritten: the registry only (`Fabric`, `registerFabric`, `fabricOf`, `labelAt`), a taken name a `RegistryClash`; the painter that reads the labels is not taken, so no base look moves |
-| `src/features/hair/hair.ts` | `packages/3d/src/features/figures/hair/hair-parts.ts` | rewritten: hands each entry of a style's `pieces` to the piece registered under its key (`HairBuild` is what they share) and builds none itself; the generators (scalp, rows, tail with its low `hang`, bun with `flat`, the older fall, sweep, block, edges) and the matte finishes moved to `@automata/character-kit` (3D slice task 7.6; the files as they were are in project files `af-character-kit-source/`); the tones and `shell` stay for caps |
-| `src/features/motion/library/seats.json` | | left out: moved to `@automata/character-kit` (3D slice task 7.6): the `figure-seat` content kind, `seated` and the eight seats leave core with the rest of the clothes, hairstyles and seats; the files as they were are in project files `af-character-kit-source/` |
+| `src/features/hair/hair.ts` | `packages/3d/src/features/figures/hair/hair-parts.ts` | rewritten: hands each entry of a style's `pieces` to the piece registered under its key (`HairBuild` is what they share) and builds none itself; the generators (scalp, rows, tail with its low `hang`, bun with `flat`, the older fall, sweep, block, edges) and the matte finishes moved to `@automataframework/character-kit` (3D slice task 7.6; the files as they were are in project files `af-character-kit-source/`); the tones and `shell` stay for caps |
+| `src/features/motion/library/seats.json` | | left out: moved to `@automataframework/character-kit` (3D slice task 7.6): the `figure-seat` content kind, `seated` and the eight seats leave core with the rest of the clothes, hairstyles and seats; the files as they were are in project files `af-character-kit-source/` |
 | `src/features/motion/motion.ts` | `packages/3d/src/features/figures/motion/base.ts` | rewritten: the natural stand (`relaxed`, the neck's slide, the chest's lift), `standElbow`, `standOut` and the side bend; the actions stay clips, and `seated` moved to the character kit |
 | `src/features/motion/library/gaits.json` | `packages/3d/tests/fixtures/content/figure-gaits/strut.toml` | rewritten: `standOut` is the whole value and `standElbow` is new, so the fixture gaits (strut, loose, bounce, still, with games/base-3d's bounce) carry both |
 | `tests/features/body/fat.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: the fat classes, rings, jaw, bust and seat, the new genes' defaults and the face asymmetry, on the base pair |
@@ -337,9 +337,9 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/motion/stand.test.ts` | `packages/3d/tests/unit/figures/motion/natural-stand.test.ts` | rewritten: checked through `base` |
 | `tests/features/outfit/fit.test.ts` | `packages/3d/tests/unit/figures/outfit/fit.test.ts` | rewritten: to the body as a query (`girth`, `clearance`) |
 | `tests/features/hair/hooks.test.ts` | `packages/3d/tests/unit/figures/registry/hair-registry.test.ts` | rewritten: hair pieces, finishes and fabrics as registries |
-| `tests/features/motion/seats.test.ts` |  | left out: moved to `@automata/character-kit` with the seats (3D slice task 7.6) |
-| `tests/features/hair/hang.test.ts` |  | left out: tests the low pony, bun and fall pieces, which moved to `@automata/character-kit` (3D slice task 7.6) |
-| `tests/features/hair/options.test.ts` |  | left out: tests the hair finishes and pieces that moved to `@automata/character-kit` (3D slice task 7.6) |
+| `tests/features/motion/seats.test.ts` |  | left out: moved to `@automataframework/character-kit` with the seats (3D slice task 7.6) |
+| `tests/features/hair/hang.test.ts` |  | left out: tests the low pony, bun and fall pieces, which moved to `@automataframework/character-kit` (3D slice task 7.6) |
+| `tests/features/hair/options.test.ts` |  | left out: tests the hair finishes and pieces that moved to `@automataframework/character-kit` (3D slice task 7.6) |
 | `tests/features/body/bust-seat.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: folded into the diversity cases (bust and seat are the default at 0.5) |
 | `tests/features/body/asymmetry.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: folded into the diversity cases (asymmetry has defaults that change nothing) |
 | `base/base.ts` | `packages/3d/src/features/figures/base/base-pair.ts` | rewritten: the base pair as data; see the row for `base/base.ts` (FigureBuilder: `BASE`) in the environment source's table |
@@ -349,14 +349,14 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/figure/cloth.ts` |  | left out: the cloth coordinates a fabric is laid by; the fabric painter is not taken (see the `fabric.ts` row), so nothing reads them |
 | `src/features/figure/figure.ts` | `packages/3d/src/features/figures/view/figure-view.ts` | rewritten: the runtime figure is the view (`figure-view.ts`) over `build` and the skeleton, drawn with Pixi 3D |
 | `src/features/figure/frames.ts` |  | left out: the review frames of the CPU painter; AF's goldens are the figure's built parts and the view's frames |
-| `src/features/hair/library/hair.json` | `packages/3d/tests/fixtures/content/figure-hair/bob.toml` | rewritten: hair styles are `figure-hair` content (TOML); core ships none, the tests keep `bob`, `cropped` and `curtain`, and the pieces' styles go to `@automata/character-kit` |
+| `src/features/hair/library/hair.json` | `packages/3d/tests/fixtures/content/figure-hair/bob.toml` | rewritten: hair styles are `figure-hair` content (TOML); core ships none, the tests keep `bob`, `cropped` and `curtain`, and the pieces' styles go to `@automataframework/character-kit` |
 | `src/features/motion/library/poses.json` | `packages/3d/tests/fixtures/content/figure-poses/stand.toml` | rewritten: poses are `figure-pose` content (TOML); core ships none, the tests keep twelve (`stand`, `guard-high`, `reach-out` and the rest) |
 | `src/features/motion/presets.ts` | `packages/3d/src/features/figures/content/gait.schema.ts` | rewritten: gait and pose presets are content (`figure-gait`, `figure-pose` and `figure-stand` TOML), checked by `gait.schema.ts`, `pose.schema.ts` and `stand.schema.ts` |
-| `src/features/outfit/garments.ts` | `packages/3d/src/features/figures/outfit/garments/classic.ts` | rewritten: the garment kinds, registered through `registry/garment-registry.ts`; core registers seven (`classic-kinds.ts`) and the rest went to `@automata/character-kit` (3D slice task 7.6) |
+| `src/features/outfit/garments.ts` | `packages/3d/src/features/figures/outfit/garments/classic.ts` | rewritten: the garment kinds, registered through `registry/garment-registry.ts`; core registers seven (`classic-kinds.ts`) and the rest went to `@automataframework/character-kit` (3D slice task 7.6) |
 | `src/features/outfit/items.ts` | `packages/3d/src/features/figures/figure/build.ts` | rewritten: a held item's parts are built in `build` from the `figure-item` content (`content/item.schema.ts`) |
 | `src/features/outfit/library/items.json` | `packages/3d/tests/fixtures/content/figure-items/torch.toml` | rewritten: items are `figure-item` content (TOML); core ships none, the tests keep `hand-lamp`, `lighter` and `torch` |
 | `src/features/outfit/library/swatches.json` | `packages/3d/tests/fixtures/content/figure-swatches/navy.toml` | rewritten: swatches are `figure-swatch` content (TOML) naming DUEL palette entries; core ships the base pair's (`BASE_PAIR_SWATCHES`) and the tests keep the rest |
-| `src/features/paint/duel-ramps.ts` | `packages/content/src/shared/palette/duel.ts` | rewritten: the DUEL palette as `@automata/content`'s default palette; the ramps a light steps along are `features/look/ramp-light.ts` |
+| `src/features/paint/duel-ramps.ts` | `packages/content/src/shared/palette/duel.ts` | rewritten: the DUEL palette as `@automataframework/content`'s default palette; the ramps a light steps along are `features/look/ramp-light.ts` |
 | `src/index.ts` |  | left out: the builder's public surface; AF's is `packages/3d/src/entries/` |
 | `src/lib/colour.ts` | `packages/3d/src/shared/math/colour.ts` | ported: `oklab`, `labDistance` and `hexToRgb`; the rest of the builder's snapping is the look's DUEL pass |
 | `tests/features/actors/actors.test.ts` | `packages/3d/tests/unit/figures/clips/actions.test.ts` | rewritten: the cases on the actions, run on clips |
@@ -389,14 +389,14 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/paint/library/times.json` | `packages/3d/src/shared/time-of-day/library/times.json` | rewritten: merged with the figure source's six times of day (the light, haze and sky are `scene`) |
 | `src/features/world/types.ts` (`MapPlan`, `Sector`, `Plane`, `MapWall`, `Decor`, `WindowGrid`, `Dress`, `MapSprite`, `Lamp`) | `packages/3d/src/shared/level/af-sector-2.schema.ts` | rewritten: as Zod, the `/2` file's fields, one per row of the 3D spec's section 9 table; `swatch` is `surface`, `ceil` is `ceiling`, a plane is a number or `{ z, slope?, sky?, surface? }`, and what the builder only cached (`dressed`, `doorState`, a door's `shown`, a sprite's `diorama`) is left out |
 | `src/lib/geometry.ts` (`merge`, `tube`) | `packages/3d/src/shared/math/geometry.ts` | ported: `merge` and `tube` as written; `MeshData` (the plain mesh triple) and `windToNormals` (every triangle winds the way its normals point, so a renderer may cull back faces; the builder's raster did not cull) are AF's |
-| `src/features/world/mesh.ts` (`quad`, `box`, `rbox`, `cylinder`, `rod`, `cone`, `blob`) | `packages/3d/src/features/world/mesh.ts` | ported: as written, each winding to its normals; `rbox`, `rod`, `cone` and `blob` return with the five base props (3D slice task 7.7); `turnY` and `turnX` go with the prop library to `@automata/world-kit` |
-| `src/features/world/props.ts` (`table`, `bin`, `lamp`, `streetLamp`, `tree`) and `stream` | `packages/3d/src/features/world/props/base-props.ts` and `packages/3d/src/features/world/stream.ts` | ported: the five generators as written (the numbers are the source's), the ones the base scenes are made of; the rest of the prop library goes to `@automata/world-kit` |
-| `base/base.ts` (EnvironmentBuilder: `interior`, `exterior`) | `packages/3d/src/features/world/base/base-scenes.ts` and `packages/3d/src/features/world/base/base-library.ts` | rewritten: the two bare scenes converted once to `af-sector/2` levels (with the 78e0ca7f converter, then written out), the swatches and presets they name as a library of flat DUEL steps; the dressed variants and the photo textures go to `@automata/world-kit` |
-| `base/base.ts` (FigureBuilder: `BASE`) | `packages/3d/src/features/figures/base/base-pair.ts` | rewritten: the two figures' sliders and faces as written, painted-on blocks, hair as inline locks (the braided pony and the fade go to `@automata/character-kit`), colours as the DUEL swatches `BASE_PAIR_SWATCHES`; the pose and the face's camera and blink are the stand and the view's |
+| `src/features/world/mesh.ts` (`quad`, `box`, `rbox`, `cylinder`, `rod`, `cone`, `blob`) | `packages/3d/src/features/world/mesh.ts` | ported: as written, each winding to its normals; `rbox`, `rod`, `cone` and `blob` return with the five base props (3D slice task 7.7); `turnY` and `turnX` go with the prop library to `@automataframework/world-kit` |
+| `src/features/world/props.ts` (`table`, `bin`, `lamp`, `streetLamp`, `tree`) and `stream` | `packages/3d/src/features/world/props/base-props.ts` and `packages/3d/src/features/world/stream.ts` | ported: the five generators as written (the numbers are the source's), the ones the base scenes are made of; the rest of the prop library goes to `@automataframework/world-kit` |
+| `base/base.ts` (EnvironmentBuilder: `interior`, `exterior`) | `packages/3d/src/features/world/base/base-scenes.ts` and `packages/3d/src/features/world/base/base-library.ts` | rewritten: the two bare scenes converted once to `af-sector/2` levels (with the 78e0ca7f converter, then written out), the swatches and presets they name as a library of flat DUEL steps; the dressed variants and the photo textures go to `@automataframework/world-kit` |
+| `base/base.ts` (FigureBuilder: `BASE`) | `packages/3d/src/features/figures/base/base-pair.ts` | rewritten: the two figures' sliders and faces as written, painted-on blocks, hair as inline locks (the braided pony and the fade go to `@automataframework/character-kit`), colours as the DUEL swatches `BASE_PAIR_SWATCHES`; the pose and the face's camera and blink are the stand and the view's |
 | `src/features/world/subdivide.ts` | `packages/3d/src/features/world/subdivide.ts` | ported |
 | `src/features/stage/state.ts` (`StateScript`, `Snapshot`: doors, lamps, props) | `packages/3d/src/shared/level/piece-states.ts` and `packages/3d/src/app/update-pieces.ts` | rewritten: only the state of the pieces stays in core (a door's opening, a lamp's level and colour, a prop's place, turn and presence) and `updatePieces` applies a change of it to the meshes; the keys, the time of day, the grade, dynamic lights and `SceneState` are the cutscenes extension's |
 | `src/features/world/surface.ts` (`isSurfaceTex`, `tileName`, `texOf`, `wallFrame`) | `packages/3d/src/features/world/surface.ts` | ported: the surface types are the `/2` schema's; `objectFrame` comes with the props |
-| `src/features/world/swatches.ts` | `packages/3d/src/features/world/swatches.ts` | rewritten: the library is handed in (a game adds its own), and an unknown name is a `LevelProblem` the builder reports, not a throw; `name#seed` still reads as its base; the `world-swatch` content kind is core's, the swatch library goes to `@automata/world-kit` |
+| `src/features/world/swatches.ts` | `packages/3d/src/features/world/swatches.ts` | rewritten: the library is handed in (a game adds its own), and an unknown name is a `LevelProblem` the builder reports, not a throw; `name#seed` still reads as its base; the `world-swatch` content kind is core's, the swatch library goes to `@automataframework/world-kit` |
 | `src/features/world/sectors.ts` (`vertsOf`, `inside`, `heightAt`, `signedArea`, `triangulate`, `segments`, `inward`) | `packages/3d/src/features/world/sectors.ts` | rewritten: a sector is `/2`'s `corners` and `holes` (a hole is walled from the room side; the point tests and the triangulation are `shared/level/geometry.ts`, moved from editor-3d's `geometry/{sectors,triangulate}.ts`), a room with no area is `isDegenerate`, and the shared stretch of an edge is found by geometry as the source did; `sectorAt`, `floorAt`, `dollhouseStub`, `wallInDiorama` and `lintel*` are not here (views belong to the editor, and nothing reads the rest yet) |
 | `src/features/world/map.ts` (`planeMesh`, `wallQuad`, `onWall`, `rotY`) | `packages/3d/src/features/world/plane-mesh.ts` | ported: over `/2`'s planes and the bridged fill |
 | `src/features/world/map.ts` (`decorPieces`, `doorPieces`) | `packages/3d/src/features/world/decor.ts` | rewritten: the rng is AF's seeded one, a piece names its swatch for the library to check, a hinged door is built shut and carries its hinge and swing for the stage to turn; a sign draws nothing until the world kit's lettering draws it |
@@ -530,7 +530,7 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/photo/pipeline.test.ts` | `extensions/world-kit/tests/unit/textures/photo-to-tile.test.ts` | rewritten: over generated PNGs (`tests/fixtures/png.ts`), the same properties: deterministic, on the palette, the same tile for the same knobs |
 | `tests/features/photo/structure.test.ts` | `extensions/world-kit/tests/unit/textures/structure.test.ts` | rewritten: over the kit's tiles |
 | `tests/features/photo/textures.test.ts` | `extensions/world-kit/tests/unit/textures/swatch-tiles.test.ts` and `extensions/world-kit/tests/unit/textures/textures-command.test.ts` | rewritten: every committed tile matches its photo's hash, a stale, missing or stray one is reported, and the command exits 0, 1 or 2 |
-| `tests/lib/png.test.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `tests/lib/png.test.ts` | | left out: the photo library and its pipeline go to `@automataframework/world-kit` (scope trim section 2); core draws the textures a game supplies |
 | `src/features/paint/paint.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
 | `src/features/paint/perspective.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
 | `src/features/paint/post.ts` | `extensions/world-kit/src/features/sky/glow-effect.ts` and `extensions/world-kit/src/features/sky/shader-parts.ts` | rewritten: only the bloom is here, as `GlowEffect`, a `@pixi/3d` `PostEffect` (GLSL and WGSL) that lifts the neighbours of what is bright by whole DUEL steps and runs after core's snap; the other passes are the CPU painter's and are left out (core's look draws instead) |
@@ -559,16 +559,16 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/view/scene.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `tests/features/view/shots.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `tests/base/readability.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
-| `src/features/world/dress.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/decals.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/lettering.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/generate.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/library/glyphs.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/library/kits.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/library/maps.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `tests/features/world/dress.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `tests/features/world/signage.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `tests/base/checked-maps.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/dress.ts` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/decals.ts` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/lettering.ts` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/generate.ts` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/library/glyphs.json` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/library/kits.json` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/library/maps.json` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `tests/features/world/dress.test.ts` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `tests/features/world/signage.test.ts` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
+| `tests/base/checked-maps.test.ts` |  | left out: goes to `@automataframework/world-kit` (scope trim section 2); core draws what a game authored |
 | `tests/scripts/bad-values.test.ts` | | left out: tests of the builder's command line, which core does not ship |
 | `tests/scripts/check.test.ts` | | left out: tests of the builder's command line, which core does not ship |
 | `src/lib/search.ts` | | left out: the search the builder's tuning commands share; the tuning tools are not in core |
@@ -584,8 +584,8 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/stage/camera.ts` | `packages/3d/src/features/camera/angled-camera.ts` | rewritten: the camera is the angled 24 mm camera (`camera/`) a game drives; the source's shot cameras are the cutscenes extension's |
 | `src/features/stage/cast.ts` |  | left out: casting figures into a scene; the base scenes name the base pair (`BASE_SCENES`) and a game places its own figures |
 | `src/features/stage/runtime.ts` |  | left out: the stage's runtime state and timeline player; core keeps the pieces' state (`piece-states.ts`) and the one clip player |
-| `src/features/world/library/props.json` |  | left out: the prop library goes to `@automata/world-kit` (scope trim section 2); core keeps the five base props' generators |
-| `src/features/world/library/swatches.json` | `packages/3d/src/features/world/base/base-library.ts` | rewritten: only the swatches the base scenes name, as flat DUEL steps; the library goes to `@automata/world-kit` |
+| `src/features/world/library/props.json` |  | left out: the prop library goes to `@automataframework/world-kit` (scope trim section 2); core keeps the five base props' generators |
+| `src/features/world/library/swatches.json` | `packages/3d/src/features/world/base/base-library.ts` | rewritten: only the swatches the base scenes name, as flat DUEL steps; the library goes to `@automataframework/world-kit` |
 | `src/index.ts` |  | left out: the builder's public surface; AF's is `packages/3d/src/entries/` |
 | `src/lib/colour.ts` | `packages/3d/src/shared/math/colour.ts` | ported: see the figure source's row |
 | `src/lib/figure.ts` |  | left out: the door to the figure builder, which is AF's own `features/figures` now |
@@ -600,8 +600,8 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/world/base-library.test.ts` | `packages/3d/tests/unit/base/base-scenes.test.ts` | rewritten: the library names only DUEL swatches and generators core has |
 | `tests/features/world/map.test.ts` | `packages/3d/tests/unit/world/build.test.ts` | rewritten: the map's pieces are built and checked by `buildWorld` |
 | `tests/features/world/small-props.test.ts` | `packages/3d/tests/unit/world/props.test.ts` | rewritten: the props' cases over `buildWorld` and the registry |
-| `tests/features/world/surface-library.test.ts` |  | left out: the surface library goes to `@automata/world-kit` |
-| `tests/features/world/surface-structure.test.ts` |  | left out: the texture structure checks go with the photo library to `@automata/world-kit` |
+| `tests/features/world/surface-library.test.ts` |  | left out: the surface library goes to `@automataframework/world-kit` |
+| `tests/features/world/surface-structure.test.ts` |  | left out: the texture structure checks go with the photo library to `@automataframework/world-kit` |
 
 ## The figure builder as a submodule (2026-11-10)
 
@@ -623,7 +623,7 @@ Superseded on 2026-11-12: the submodule is gone and the builder's source is a pa
 Repository: `mcthaydt/FigureBuilder` (archived, read only), `main` at `23f889c8a5cda3511f4a2d044324c57ba624dc1c`. Licence: none
 recorded (the Owner's private repository). Taken on the Owner's word, 2026-11-12, asked whether the wardrobe work needed a
 second repository or the source in this one: "Do 1 and do the same for environment builder." (Option 1 was folding the
-builder's source in.) The submodule of the previous section is replaced by `extensions/figures` (`@automata/figures`), a private
+builder's source in.) The submodule of the previous section is replaced by `extensions/figures` (`@automataframework/figures`), a private
 package.
 
 What came, with its history: the code paths (`src`, `base`, `tests`, `scripts`, `viewer`), the root's configuration, and the
@@ -670,22 +670,22 @@ recorded an earlier source, the row says so; the adventure source's rows above d
 
 | Package | Folder | Ported from | Earlier source |
 | --- | --- | --- | --- |
-| `@automata/physics` | `extensions/physics` | `packages/physics` | `mcthaydt/automata-framework` `packages/physics` at `6aee63be` (2026-10-30), byte-identical at `b7ef19d9`; the 2D and 3D golden hashes are unchanged from there |
-| `@automata/feel` | `extensions/feel` | `packages/feel` | The adventure source's frame model and coverage (M6 rows above) |
-| `@automata/audio-synth` | `extensions/audio-synth` | `packages/audio-synth` | The adventure source (M6.10a, M6.10b rows) |
-| `@automata/debug` | `extensions/debug` | `packages/debug` | The adventure source (M6.2 row) |
-| `@automata/puzzle` | `extensions/puzzle` | `packages/puzzle` | The adventure source (M6.6b row) |
-| `@automata/net` | `extensions/net` | `packages/net` | The arcade source (rows below) |
-| `@automata/net-ui` | `extensions/net-ui` | `packages/net-ui` | The arcade source |
-| `@automata/net-server` | `extensions/net-server` | `packages/server` | The arcade source |
-| `@automata/ui-screens` | `extensions/ui-screens` | `kits/ui-screens` | Written in Plus (PRODUCT.6) |
-| `@automata/sectors` | `extensions/sectors` | `packages/sectors` | The adventure source (M6 rows above) |
-| `@automata/nav` | `extensions/nav` | `packages/nav` | The adventure source (M6.5 row) |
-| `@automata/systems` | `extensions/systems` | `packages/systems` | The adventure source (M6.7a, M6.7b rows) |
-| `@automata/narrative` | `extensions/narrative` | `packages/narrative` | The adventure source (M6.8a, M6.8b rows) |
-| `@automata/cutscenes` | `extensions/cutscenes` | `packages/cutscenes` | The adventure source (M6.9a row) |
-| `@automata/pipelines` | `extensions/pipelines` | `tooling/pipelines` | The adventure source (M6.6b to M6.10b rows); the blockout stage is not ported |
-| `@automata/dev-tools` | `tooling/dev-tools` | `packages/dev-tools` | `FloorFifty`'s `tools/promote-evidence` and `tools/worktree-gc` |
+| `@automataframework/physics` | `extensions/physics` | `packages/physics` | `mcthaydt/automata-framework` `packages/physics` at `6aee63be` (2026-10-30), byte-identical at `b7ef19d9`; the 2D and 3D golden hashes are unchanged from there |
+| `@automataframework/feel` | `extensions/feel` | `packages/feel` | The adventure source's frame model and coverage (M6 rows above) |
+| `@automataframework/audio-synth` | `extensions/audio-synth` | `packages/audio-synth` | The adventure source (M6.10a, M6.10b rows) |
+| `@automataframework/debug` | `extensions/debug` | `packages/debug` | The adventure source (M6.2 row) |
+| `@automataframework/puzzle` | `extensions/puzzle` | `packages/puzzle` | The adventure source (M6.6b row) |
+| `@automataframework/net` | `extensions/net` | `packages/net` | The arcade source (rows below) |
+| `@automataframework/net-ui` | `extensions/net-ui` | `packages/net-ui` | The arcade source |
+| `@automataframework/net-server` | `extensions/net-server` | `packages/server` | The arcade source |
+| `@automataframework/ui-screens` | `extensions/ui-screens` | `kits/ui-screens` | Written in Plus (PRODUCT.6) |
+| `@automataframework/sectors` | `extensions/sectors` | `packages/sectors` | The adventure source (M6 rows above) |
+| `@automataframework/nav` | `extensions/nav` | `packages/nav` | The adventure source (M6.5 row) |
+| `@automataframework/systems` | `extensions/systems` | `packages/systems` | The adventure source (M6.7a, M6.7b rows) |
+| `@automataframework/narrative` | `extensions/narrative` | `packages/narrative` | The adventure source (M6.8a, M6.8b rows) |
+| `@automataframework/cutscenes` | `extensions/cutscenes` | `packages/cutscenes` | The adventure source (M6.9a row) |
+| `@automataframework/pipelines` | `extensions/pipelines` | `tooling/pipelines` | The adventure source (M6.6b to M6.10b rows); the blockout stage is not ported |
+| `@automataframework/dev-tools` | `tooling/dev-tools` | `packages/dev-tools` | `FloorFifty`'s `tools/promote-evidence` and `tools/worktree-gc` |
 
 Not ported: `starters/party-racer` (the Owner cut it), Plus's own `tooling/{core,boundary,ci}`, its docs, workflows and
 the committed `.vitest` screenshots. The converted fixtures keep the headers their converter scripts wrote; the scripts
@@ -698,7 +698,7 @@ No file was copied. What was read, and where it went:
 
 | Source | AF | Notes |
 | --- | --- | --- |
-| `src/render/room-visibility.ts`, `room-wall-owners.ts`, `room-ownership.ts`, `src/scenes/clinic/visibility.ts` | not landed (`extensions/room-visibility` was dropped; the rooms a view draws are `@automata/3d`'s `drawnRooms`) | the old game's policy stays history; the extension (a Zod policy, a resolver, wall groups, a wall hider) is on the branch `claude/eb-look-effects` before this commit |
+| `src/render/room-visibility.ts`, `room-wall-owners.ts`, `room-ownership.ts`, `src/scenes/clinic/visibility.ts` | not landed (`extensions/room-visibility` was dropped; the rooms a view draws are `@automataframework/3d`'s `drawnRooms`) | the old game's policy stays history; the extension (a Zod policy, a resolver, wall groups, a wall hider) is on the branch `claude/eb-look-effects` before this commit |
 | `src/render/lcd-panel.ts`, `filter-programs.ts` | `extensions/lcd-panel` | rewritten as a `PostEffect` pair (GLSL, WGSL) with a Zod profile; the mesh is a port of `lcd-perfect` v10 by sinedied (MIT, notice kept in `src/features/lcd-panel/lcd-shader.ts`) |
 | `src/render/retro-filter.ts`, `crisp.ts`, `look.ts` (`LOOK.post`) | `extensions/retro-crisp` | rewritten as a `PostEffect` pair with uniforms and a Zod profile, the clinic's numbers as defaults; the crisp maths as pure functions; the palette LUT and the luma-weighted dither stay core's DUEL snap |
 

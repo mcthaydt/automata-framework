@@ -4,8 +4,8 @@
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s skirt
 // branch), with AF's strict types; the formulas are the source's. Cut: the skirt's stain (a painter wash).
 
-import type { Garment } from '@automata/3d/figures'
-import { type Dressing, GROUP, hemAt } from '@automata/3d/figures-kit'
+import type { Garment } from '@automataframework/3d/figures'
+import { type Dressing, GROUP, hemAt } from '@automataframework/3d/figures-kit'
 import { z } from 'zod'
 import { hang } from './hang.ts'
 import { type KitGarment, length, optionalSwatch, swatch, within } from './kit-garment.ts'

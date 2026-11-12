@@ -1,5 +1,5 @@
 {
-  "name": "@automata/nav",
+  "name": "@automataframework/nav",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -33,20 +33,20 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "@automata/content": "workspace:^",
-    "@automata/framework": "workspace:^",
-    "@automata/places": "workspace:^",
-    "@automata/sectors": "workspace:^",
-    "@automata/sim": "workspace:^"
+    "@automataframework/content": "workspace:^",
+    "@automataframework/framework": "workspace:^",
+    "@automataframework/places": "workspace:^",
+    "@automataframework/sectors": "workspace:^",
+    "@automataframework/sim": "workspace:^"
   },
   "devDependencies": {
-    "@automata/content": "workspace:*",
-    "@automata/evidence": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/places": "workspace:*",
-    "@automata/sectors": "workspace:*",
-    "@automata/sim": "workspace:*",
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/content": "workspace:*",
+    "@automataframework/evidence": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/places": "workspace:*",
+    "@automataframework/sectors": "workspace:*",
+    "@automataframework/sim": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "smol-toml": "1.9.0",
     "vitest": "5.0.3"

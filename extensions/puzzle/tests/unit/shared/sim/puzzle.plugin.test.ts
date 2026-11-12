@@ -1,6 +1,6 @@
 // P-c (engine): the adventure source's five puzzle-engine cases on the same toy room, played through `verb` commands
 // in a real sim, plus the goal, mapped facts, entries and a restore.
-import type { Sim } from '@automata/sim'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { type PuzzleDef, PuzzleState } from '#src/entries/sim.ts'
 import { createToy, loadScene, said, TOY, verb } from '#src/testing/toy-room.ts'

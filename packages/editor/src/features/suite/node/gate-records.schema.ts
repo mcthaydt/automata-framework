@@ -1,5 +1,5 @@
 // A gate records file as the gates reader reads it: `{ "gates": [{ id, decision,
-// decidedAt?, url? }] }`, other keys ignored. The editor owns this shape and the pipelines write it (`@automata/editor/gate-records`),
+// decidedAt?, url? }] }`, other keys ignored. The editor owns this shape and the pipelines write it (`@automataframework/editor/gate-records`),
 // adding the keys they need beside these. A decision outside the three is an unreadable record, never a guess.
 import { z } from 'zod'
 

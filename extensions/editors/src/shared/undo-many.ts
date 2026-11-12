@@ -1,7 +1,7 @@
 // One Undo over several files. An action can write two files (a choice is a line in the lines file and a choice in the
 // dialogue file); the suite's write path takes back one write at a time, in the order they were made, and then tells
 // the editor, so the editor must follow the file written last. The trail remembers that order.
-import type { SuiteUndo } from '@automata/editor/kit/ports'
+import type { SuiteUndo } from '@automataframework/editor/kit/ports'
 import type { TomlSession } from './toml-session.ts'
 
 export class UndoTrail {

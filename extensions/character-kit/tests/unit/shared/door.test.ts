@@ -1,4 +1,4 @@
-// The figure painter (`@automata/figures`, a package of this repository) is reached through the files of
+// The figure painter (`@automataframework/figures`, a package of this repository) is reached through the files of
 // src/shared/figures/ and nowhere else, so a change in the painter breaks those files only: no other source or test
 // file of the kit imports it. `door.ts` takes the painter's Pixi-free entries (safe in Node); `door-view.ts` takes the view
 // entry, which loads Pixi.
@@ -14,8 +14,8 @@ const walk = (dir: string): string[] =>
     return statSync(path).isDirectory() ? walk(path) : path.endsWith('.ts') ? [path] : []
   })
 const IMPORTS =
-  /\bfrom\s+['"]@automata\/figures(?:\/[^'"]*)?['"]|\bimport\s*\(\s*['"]@automata\/figures|\bimport\s+['"]@automata\/figures/
-const SPECIFIERS = /\bfrom\s+['"](@automata\/figures(?:\/[^'"]*)?)['"]/g
+  /\bfrom\s+['"]@automataframework\/figures(?:\/[^'"]*)?['"]|\bimport\s*\(\s*['"]@automataframework\/figures|\bimport\s+['"]@automataframework\/figures/
+const SPECIFIERS = /\bfrom\s+['"](@automataframework\/figures(?:\/[^'"]*)?)['"]/g
 const specifiersOf = (file: string) =>
   [...readFileSync(join(ROOT, file), 'utf8').matchAll(SPECIFIERS)].map((match) => match[1]).sort()
 
@@ -31,7 +31,7 @@ describe('the door', () => {
     // A module augmentation is not an import, so the check above cannot see it. The kinds' types live in
     // features/fashion/garments.ts, and `shared/` (where the door is) may not import `features/`, so the augmentation
     // stays beside the types; any other file naming the painter this way is a break.
-    const AUGMENTS = /\bdeclare\s+module\s+['"]@automata\/figures/
+    const AUGMENTS = /\bdeclare\s+module\s+['"]@automataframework\/figures/
     const files = [...walk(join(ROOT, 'src')), ...walk(join(ROOT, 'tests'))]
       .filter((file) => AUGMENTS.test(readFileSync(file, 'utf8')))
       .map((file) => relative(ROOT, file))
@@ -40,13 +40,13 @@ describe('the door', () => {
 
   it('takes the painter’s Pixi-free entries and nothing deeper', () => {
     expect([...new Set(specifiersOf('src/shared/figures/door.ts'))]).toEqual([
-      '@automata/figures',
-      '@automata/figures/kit',
+      '@automataframework/figures',
+      '@automataframework/figures/kit',
     ])
   })
 
   it('takes the view entry, the one that loads Pixi, in a file of its own', () => {
-    expect(specifiersOf('src/shared/figures/door-view.ts')).toEqual(['@automata/figures/view'])
+    expect(specifiersOf('src/shared/figures/door-view.ts')).toEqual(['@automataframework/figures/view'])
   })
 
   it('cannot reach past the three entries', () => {

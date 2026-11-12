@@ -12,17 +12,17 @@ import {
   type SceneFog,
   swatchColour,
   type View3dFactory,
-} from '@automata/3d'
+} from '@automataframework/3d'
 import type {
   FigureAction,
   FigureClipDef,
   FigureDef,
   FigureLibrary,
   MotionLibrary,
-} from '@automata/3d/figures'
-import { clipsWithActions } from '@automata/3d/figures'
-import { Q16 } from '@automata/3d/sim'
-import type { FieldRecord } from '@automata/sim'
+} from '@automataframework/3d/figures'
+import { clipsWithActions } from '@automataframework/3d/figures'
+import { Q16 } from '@automataframework/3d/sim'
+import type { FieldRecord } from '@automataframework/sim'
 import type { View3D } from '@pixi/3d'
 import type { AreaSource } from '../../shared/area.ts'
 import { ACTION_CLIP, TICK_HZ } from '../../shared/constants.ts'

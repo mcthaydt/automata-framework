@@ -1,8 +1,8 @@
 // The visual gates of cycle c7: renders and measurements, made by this script and never by hand.
 //
-//   pnpm --filter @automata/character-kit gate 1       gate 1: characterkit-painted before and after, texels a pixel, the
+//   pnpm --filter @automataframework/character-kit gate 1       gate 1: characterkit-painted before and after, texels a pixel, the
 //                                                      depth sheet (docs/refactor/c7/gate-1/)
-//   pnpm --filter @automata/character-kit gate lit    the c8 gate: the base pair lit by the room, before and after, on WebGL
+//   pnpm --filter @automataframework/character-kit gate lit    the c8 gate: the base pair lit by the room, before and after, on WebGL
 //                                                      and WebGPU, the bench and the parity counts (docs/refactor/c8/gate-lit/)
 //   (gate 2, the runway's stills, loop frames and timings, is written with Task 10 of the plan, which is on hold: `gate runway`
 //   does not exist yet and asking for it throws)

@@ -1,14 +1,14 @@
 // cutscenes-door-and-lamp: a short scene in a room: the camera drifts in, the lamp warms and the door opens
 //
-// Shows: a cutscene as data (`@automata/cutscenes`): one script of keyed tracks (the camera, a lamp's level, a door's
+// Shows: a cutscene as data (`@automataframework/cutscenes`): one script of keyed tracks (the camera, a lamp's level, a door's
 //   opening) and a director that answers "what does the scene look like at t seconds?". The sim only counts ticks;
 //   the view asks the director each step and moves the camera, turns the door's meshes (`updatePieces`) and hands the
 //   lamp's level to the scene light (`light.setLevels`), which rebakes only the walls and the floor the lamp reaches.
 // Controls: none
-// Packages: @automata/framework, @automata/3d, @automata/cutscenes
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/cutscenes
 // Difficulty: ★★★☆
 // Tier: extension
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -21,12 +21,12 @@ import {
   swatchGlow,
   targetSize,
   updatePieces,
-} from '@automata/3d'
-import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
-import { noPieceStates } from '@automata/3d/level'
-import { createDirector } from '@automata/cutscenes/director'
-import type { PlacedScript } from '@automata/cutscenes/sim'
-import { defineGame, definePlugin } from '@automata/framework'
+} from '@automataframework/3d'
+import { BASE_SCENES, baseLibrary } from '@automataframework/3d/base'
+import { noPieceStates } from '@automataframework/3d/level'
+import { createDirector } from '@automataframework/cutscenes/director'
+import type { PlacedScript } from '@automataframework/cutscenes/sim'
+import { defineGame, definePlugin } from '@automataframework/framework'
 
 // --- level ---
 // The base interior with a hinged door in its doorway (a sector's `door`); its pendant lamp is `prop0.light0`.

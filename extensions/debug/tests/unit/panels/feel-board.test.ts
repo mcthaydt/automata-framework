@@ -1,4 +1,4 @@
-import type { Feel } from '@automata/feel'
+import type { Feel } from '@automataframework/feel'
 import { describe, expect, it, type Mock, vi } from 'vitest'
 import { feelBoard } from '#src/features/panels/feel-board.ts'
 

@@ -2,7 +2,7 @@
 // can answer (does it see the player? has it got where it was going?) or that moves one without saying which. So each
 // menu offers exactly the pieces whose new value passes those checks, asked of the checks themselves, never a list kept
 // here that could drift from them.
-import { checkSystems, type Probe, type SysEffect, type SystemsDef } from '@automata/systems/sim'
+import { checkSystems, type Probe, type SysEffect, type SystemsDef } from '@automataframework/systems/sim'
 import { ACTIONS } from './pieces/actions.ts'
 import { CONDITION_MENU } from './pieces/conditions.ts'
 import type { Names, Piece } from './pieces/piece.ts'

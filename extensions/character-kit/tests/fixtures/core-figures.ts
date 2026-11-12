@@ -2,9 +2,9 @@
 // parts. `tests/fixtures/core-figures.json` is this, recorded by scripts/record-core-figures.ts in a process that never
 // loads the kit; the tests build the same figures with the kit loaded and without it, and both must match the recording.
 
-import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automata/3d/base'
-import { build, type FigureDef, type FigureLibrary, skeleton } from '@automata/3d/figures'
-import { fingerprint, fixtureFigures } from '@automata/3d/testing'
+import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automataframework/3d/base'
+import { build, type FigureDef, type FigureLibrary, skeleton } from '@automataframework/3d/figures'
+import { fingerprint, fixtureFigures } from '@automataframework/3d/testing'
 import { expect } from 'vitest'
 
 /** `x` with every number kept to 13 significant digits, as the geometry goldens are. */

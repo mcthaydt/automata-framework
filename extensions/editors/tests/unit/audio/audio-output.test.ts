@@ -1,4 +1,4 @@
-import type { AudioContent } from '@automata/audio-synth'
+import type { AudioContent } from '@automataframework/audio-synth'
 import { describe, expect, it, vi } from 'vitest'
 import { browserAudio } from '#src/features/audio/audio-output.ts'
 

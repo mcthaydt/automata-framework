@@ -9,7 +9,7 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { fixtureFigures, recordDress, recordStands, section } from '@automata/3d/testing'
+import { fixtureFigures, recordDress, recordStands, section } from '@automataframework/3d/testing'
 import '../wardrobe.extension.ts'
 import { WARDROBE_OUTFITS } from '../testing/wardrobe-outfits.ts'
 

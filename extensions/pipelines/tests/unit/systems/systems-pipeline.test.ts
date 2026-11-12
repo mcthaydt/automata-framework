@@ -14,8 +14,8 @@ import { PIPE_POLICIES } from '#src/shared/policies.ts'
 import { route } from '#src/shared/router.ts'
 
 const resolve = createRequire(import.meta.url).resolve
-const WARD = resolve('@automata/systems/testing/ward-scene.pipe')
-const STRICT = resolve('@automata/systems/testing/ward-scene-strict.pipe')
+const WARD = resolve('@automataframework/systems/testing/ward-scene.pipe')
+const STRICT = resolve('@automataframework/systems/testing/ward-scene-strict.pipe')
 const temps: string[] = []
 afterEach(() => {
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })
@@ -43,7 +43,7 @@ const pipe = (...argv: string[]) =>
 
 describe('systems.pipe.toml', () => {
   it("takes the bots' policies", async () => {
-    expect(PIPE_POLICIES).toEqual((await import('@automata/systems/bots')).POLICIES)
+    expect(PIPE_POLICIES).toEqual((await import('@automataframework/systems/bots')).POLICIES)
   })
 
   it('parses a scene module, seeds, policies and a sweep; an unknown policy and a sweep of no steps fail at their path', () => {

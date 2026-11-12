@@ -9,7 +9,7 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 ## Turn it on
 
 ```ts
-import { feelExtension } from '@automata/feel'
+import { feelExtension } from '@automataframework/feel'
 
 export default defineGame({ extensions: [feelExtension] })
 ```

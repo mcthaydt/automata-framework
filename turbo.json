@@ -10,14 +10,14 @@
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tooling/release/src/**", "$TURBO_ROOT$/vendor/ruken/**"]
     },
     "typecheck": {
-      "dependsOn": ["@automata/figures#typecheck"]
+      "dependsOn": ["@automataframework/figures#typecheck"]
     },
-    "@automata/figures#typecheck": { "outputs": ["types/**"] },
+    "@automataframework/figures#typecheck": { "outputs": ["types/**"] },
     "test": {},
     "test:unit": {
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
-    "@automata/figures#test:unit": {
+    "@automataframework/figures#test:unit": {
       "env": ["AF_UNIT_FULL"],
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
@@ -37,13 +37,13 @@
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
-    "@automata/editors#test:e2e": {
-      "dependsOn": ["build", "@automata/editor#build", "@automata/tools#build"],
+    "@automataframework/editors#test:e2e": {
+      "dependsOn": ["build", "@automataframework/editor#build", "@automataframework/tools#build"],
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
-    "@automata/editor#test:e2e": {
-      "dependsOn": ["build", "@automata/tools#build"],
+    "@automataframework/editor#test:e2e": {
+      "dependsOn": ["build", "@automataframework/tools#build"],
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     }

@@ -7,7 +7,7 @@
  */
 
 import { createServer } from 'node:http'
-import { systemClock } from '@automata/framework'
+import { systemClock } from '@automataframework/framework'
 import {
   createNetRoom,
   type NetRoom,
@@ -15,7 +15,7 @@ import {
   type NetSdkRoom,
   type SeatStorage,
   seatTokenKey,
-} from '@automata/net'
+} from '@automataframework/net'
 import { Client } from '@colyseus/sdk'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

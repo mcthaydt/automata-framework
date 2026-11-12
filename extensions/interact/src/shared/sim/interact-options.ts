@@ -1,6 +1,6 @@
 // What a game gives interact: who the player is, what the hotspots' conditions read, and what hiding does.
-import type { PuzzleOptions, Reader } from '@automata/puzzle/sim'
-import type { SimContext } from '@automata/sim'
+import type { PuzzleOptions, Reader } from '@automataframework/puzzle/sim'
+import type { SimContext } from '@automataframework/sim'
 
 /** What a view of the sim needs to ask: a system's context has it, and so has a `Sim` outside a step. */
 export type SimView = Pick<SimContext, 'entity' | 'query' | 'resource'>

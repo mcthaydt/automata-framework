@@ -2,7 +2,7 @@
 // undo step. The depot's format has no links, so these run on the depot with links held in the test: a profile that has
 // them decides what it refuses, and the edit passes its sentence on.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { addLink, removeLink } from '#src/shared/edit/link-edits.ts'

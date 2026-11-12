@@ -1,7 +1,7 @@
 // A textured swatch's tile as a texture of DUEL colours, read against the swatch's ladder: what `drawWorld` lays on a piece.
 
 import { readdirSync } from 'node:fs'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
+import { DEFAULT_PALETTE } from '@automataframework/content/palette'
 import { describe, expect, it } from 'vitest'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import { albedoTiles } from '#src/features/textures/albedo-tiles.ts'

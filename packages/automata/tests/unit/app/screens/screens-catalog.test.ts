@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALES } from '@automata/content/locale'
+import { DEFAULT_LOCALES } from '@automataframework/content/locale'
 import { describe, expect, it, test } from 'vitest'
 import {
   CATALOG_SCHEMA,

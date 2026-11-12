@@ -1,6 +1,6 @@
-import { InSector } from '@automata/sectors/sim'
-import { defineSystem, sortedKeys } from '@automata/sim'
-import { SystemsScene, SystemsState } from '@automata/systems/sim'
+import { InSector } from '@automataframework/sectors/sim'
+import { defineSystem, sortedKeys } from '@automataframework/sim'
+import { SystemsScene, SystemsState } from '@automataframework/systems/sim'
 import { Actor } from './actor.component.ts'
 
 /**

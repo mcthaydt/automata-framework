@@ -1,8 +1,8 @@
 <!-- One mode: its name, how fast the character moves in it, where it starts, and the switches that leave it. -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
-import type { AgentDef } from '@automata/systems/sim'
-import { routineMode } from '@automata/systems/sim'
+import { Button } from '@automataframework/editor/kit'
+import type { AgentDef } from '@automataframework/systems/sim'
+import { routineMode } from '@automataframework/systems/sim'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import { modeNotes } from './decide-words.ts'
 import { modeWords, type Names, num } from './pieces/piece.ts'

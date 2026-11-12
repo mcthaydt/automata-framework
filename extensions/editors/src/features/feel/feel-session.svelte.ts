@@ -2,8 +2,8 @@
 // than" page), the events the game offers to answer, the sounds it has, and the stage's preview: the player's settings,
 // which never touch the file.
 
-import type { ContentEdit } from '@automata/editor/kit/documents'
-import { DEFAULT_SETTINGS, type FeelContent, type FeelSettings } from '@automata/feel'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
+import { DEFAULT_SETTINGS, type FeelContent, type FeelSettings } from '@automataframework/feel'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
 import type { GameEvent } from '../../shared/game-events.ts'
 import type { Outcome, TomlSession } from '../../shared/toml-session.ts'

@@ -1,5 +1,5 @@
 // The `cutscene` content kind: every TOML file in `content/cutscenes` is one script.
-import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
+import { type ContentSchemaDef, defineContentSchema } from '@automataframework/content/schema'
 import type { z } from 'zod'
 import { type CutsceneScript, cutsceneSchema } from './sim/cutscene.schema'
 

@@ -2,7 +2,7 @@
 // level. Only `read` and `list` are real; a test of the library never writes.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import type { SuiteWorkspace } from '@automata/editor/kit/ports'
+import type { SuiteWorkspace } from '@automataframework/editor/kit/ports'
 
 const BASE_3D = new URL('../../../../games/base-3d/', import.meta.url).pathname
 

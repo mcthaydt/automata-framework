@@ -1,4 +1,4 @@
-// The base pair's sliders, from core's pair (`@automata/3d/base`): the bodies the tests judge every change to the body on.
+// The base pair's sliders, from core's pair (`@automataframework/3d/base`): the bodies the tests judge every change to the body on.
 // A test dresses them with `figureOf`.
 
 import type { Sliders } from '#src/features/figures/body/genes.ts'

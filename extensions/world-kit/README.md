@@ -12,14 +12,14 @@ It is free and MIT licensed. It is optional: a game that does not add it loses n
 In the game's list of extensions, put the kit after `3d`:
 
 ```ts
-import { worldKitExtension } from '@automata/world-kit'
-import { render3dExtension } from '@automata/3d'
+import { worldKitExtension } from '@automataframework/world-kit'
+import { render3dExtension } from '@automataframework/3d'
 
 export default defineGame({ extensions: [render3dExtension, worldKitExtension] })
 ```
 
 If you forget, you are told, in words: a prop that asks for a chair says `unknown-generator` and names it, and a room
-that asks to be furnished is drawn empty with the note `Add @automata/world-kit, or remove "dress" from the room`.
+that asks to be furnished is drawn empty with the note `Add @automataframework/world-kit, or remove "dress" from the room`.
 
 ## A ward's furniture
 
@@ -46,7 +46,7 @@ Every swatch is a parameter with a default (`mat`, `metal`, `tyre`), so a game p
 Give a room a purpose and run `dressLevel` once, before the level is built:
 
 ```ts
-import { dressLevel, worldKitLibrary } from '@automata/world-kit'
+import { dressLevel, worldKitLibrary } from '@automataframework/world-kit'
 
 // the room says: dress = { as = "office", seed = 3 }
 const { level, problems } = dressLevel(myLevel, worldKitLibrary)
@@ -66,7 +66,7 @@ To take a piece out, or move one, name it in the room's `dress`: `remove = ["off
 `generateMap` makes a level from a name and a number. The same number always gives the same level.
 
 ```ts
-import { dressLevel, generateMap, worldKitLibrary } from '@automata/world-kit'
+import { dressLevel, generateMap, worldKitLibrary } from '@automataframework/world-kit'
 
 const { level } = dressLevel(generateMap('apartment', 7), worldKitLibrary)
 ```
@@ -96,12 +96,12 @@ pnpm exec automata-world-textures --out out/tiles   # draw them again
 
 ## Sky passes
 
-`@automata/world-kit/sky` adds stars, rain and a glow to core's look. Each is a pass that runs after core's DUEL snap and
+`@automataframework/world-kit/sky` adds stars, rain and a glow to core's look. Each is a pass that runs after core's DUEL snap and
 lands on whole palette steps, and each has its own switch (stars and glow are on, rain is off unless you give it). The stars
 are as thick as the time of day says. A game that does not add them draws core's look unchanged.
 
 ```ts
-import { addSkyPasses } from '@automata/world-kit/sky'
+import { addSkyPasses } from '@automataframework/world-kit/sky'
 
 addSkyPasses({ stars: true, glow: true, rain: { density: 0.3 } })
 ```
@@ -117,7 +117,7 @@ shafts, particles, rain. The moving ones (stars, rain, particles, shafts) stand 
 
 Props, swatches and kits are data. Put a TOML file in `content/world-props`, `content/world-swatches` or
 `content/world-kits` and lay it over the kit's library: `{ ...worldKitLibrary.props, ...yours }`. Your names win.
-A new shape is a generator you register with `registerPropGenerator` from `@automata/3d/props-kit`.
+A new shape is a generator you register with `registerPropGenerator` from `@automataframework/3d/props-kit`.
 
 ## What is in it
 

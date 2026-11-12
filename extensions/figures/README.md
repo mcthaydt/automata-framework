@@ -1,4 +1,4 @@
-# Figures (`@automata/figures`)
+# Figures (`@automataframework/figures`)
 
 A procedural character painter. A character is data: gene sliders, a gait, and outfits as lists of garments from the
 library. One generator turns that into a rigged, posed figure, and a CPU rasteriser paints it as pixel art (DUEL palette,
@@ -17,9 +17,9 @@ relies on, is [`docs/contract.md`](docs/contract.md); the scripted actors are [`
 painted-on blocks (no garments), barefoot. Every visual change is judged on them.
 
 ```sh
-DENSITY=2 pnpm --filter @automata/figures render out    # <id>-turn.png, <id>-walk.png, <id>-hero.png, at 1× and ×8
-pnpm --filter @automata/figures lit out/lit               # the pair under a few lighting setups
-pnpm --filter @automata/figures actors out/actors         # the actions' contact sheet
+DENSITY=2 pnpm --filter @automataframework/figures render out    # <id>-turn.png, <id>-walk.png, <id>-hero.png, at 1× and ×8
+pnpm --filter @automataframework/figures lit out/lit               # the pair under a few lighting setups
+pnpm --filter @automataframework/figures actors out/actors         # the actions' contact sheet
 ```
 
 `DENSITY=2` doubles the pixels per metre (128×192 cells).
@@ -41,7 +41,7 @@ The package follows the framework's layout (`AGENTS.md`). `pnpm boundaries` and 
 - `src/features/view/`: the figure in a Pixi 3D scene (`CellSprite`, `StageView`, `FigureSprite`, the camera reading). The
   only code that imports Pixi.
 - `scripts/`: thin CLIs for the sheets and for recording the goldens. `viewer/`: the base pair on the gameplay camera in a
-  Pixi 3D scene, for the eye (`pnpm --filter @automata/figures viewer`; Q/R orbit, W walk, C crisp, `?free` the free orbit).
+  Pixi 3D scene, for the eye (`pnpm --filter @automataframework/figures viewer`; Q/R orbit, W walk, C crisp, `?free` the free orbit).
 - `tests/`: `unit/<layer>/` (and `unit/golden/`), `browser/` (the view against the painter), `fixtures/` (the goldens' data
   and the browser suite's cases).
 - `docs/`: the stage contract and the actors' guide. They are inside the package because the repository's `docs/` is a
@@ -58,7 +58,7 @@ Five goldens fail on a change of a single texel:
 
 | Golden | What it pins | Test | Record it with |
 |---|---|---|---|
-| base | every pixel of the pair's sheets at D1 and D2 | `tests/unit/golden/base.test.ts` | `pnpm --filter @automata/figures golden base` |
+| base | every pixel of the pair's sheets at D1 and D2 | `tests/unit/golden/base.test.ts` | `pnpm --filter @automataframework/figures golden base` |
 | lit | the pair lit | `tests/unit/golden/lit.test.ts` | `… golden lit` |
 | actors | every actor frame | `tests/unit/golden/actors.test.ts` | `… golden actors` |
 | sprites | an md5 per frame of each member's hero, 8 standing views and walk, at D1 and D2 | `tests/unit/actors/actors.test.ts` | `… golden sprites` |
@@ -72,8 +72,8 @@ depended on the last bit of a float (Node 22 and 24 differ there): a pole's norm
 and an x64 machine paint the same cell.
 
 The commit hook runs the `goldens` project (the goldens, the identity pins, the layer and API tests: about a minute);
-`AF_UNIT_FULL=1 pnpm --filter @automata/figures test:unit` runs every unit test as well. `pnpm --filter
-@automata/figures test:browser` runs the browser suites (below).
+`AF_UNIT_FULL=1 pnpm --filter @automataframework/figures test:unit` runs every unit test as well. `pnpm --filter
+@automataframework/figures test:browser` runs the browser suites (below).
 
 ## The browser suites
 
@@ -140,13 +140,13 @@ The painter arrived written without them, and this package's `tsconfig.json` swi
 is exactly what it was. Turning them on is done folder by folder in a later workstream; until then a non-null assertion is allowed in the
 files that have a `biome-ignore-all` line for it, and `tsconfig.types.json` writes the declarations the kit's typecheck reads. Both go when the flags are on.
 
-## Names this package shares with `@automata/3d`
+## Names this package shares with `@automataframework/3d`
 
-Core's `@automata/3d` has a mesh figure with the same vocabulary (sliders, rig, registries), drawn as a lit mesh in 3D. This package's are the painter's: they feed the CPU painter that makes sprite cells. A game imports one or the other in a
+Core's `@automataframework/3d` has a mesh figure with the same vocabulary (sliders, rig, registries), drawn as a lit mesh in 3D. This package's are the painter's: they feed the CPU painter that makes sprite cells. A game imports one or the other in a
 file, never both; the character kit's door is the only file that imports this package, and `pnpm boundaries` keeps core
 from importing it.
 
-| Name | In `@automata/3d` | In `@automata/figures` |
+| Name | In `@automataframework/3d` | In `@automataframework/figures` |
 |---|---|---|
 | `Anchor`, `Body`, `Fit`, `Wearing` | a mesh figure's anchors, body rings and the garment's fit | the same ideas for the painter's garments |
 | `CameraPose` | the angled camera's pose | the stage contract's pose a host passes in |

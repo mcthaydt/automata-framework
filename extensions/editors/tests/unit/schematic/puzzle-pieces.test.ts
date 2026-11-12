@@ -1,4 +1,4 @@
-import { condSchema, effectSchema } from '@automata/puzzle/sim'
+import { condSchema, effectSchema } from '@automataframework/puzzle/sim'
 import { describe, expect, it } from 'vitest'
 import type { Names } from '#src/features/schematic/pieces/piece.ts'
 import {

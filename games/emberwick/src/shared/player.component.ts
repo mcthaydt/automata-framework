@@ -1,4 +1,4 @@
-import { type ComponentDef, defineComponent } from '@automata/sim'
+import { type ComponentDef, defineComponent } from '@automataframework/sim'
 
 const playerFields = { x: 'i32', y: 'i32', vx: 'i32', vy: 'i32', facing: 'i32', grounded: 'bool' } as const
 

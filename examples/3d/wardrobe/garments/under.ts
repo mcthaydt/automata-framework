@@ -8,7 +8,17 @@
 // unchanged. Changed: a garment's painter materials (`own`, `lighter`, `mark`, `flatTone`, from the DUEL
 // ramps) are swatch variants (build/materials.ts: `own` and `tone` here).
 
-import type { Decal, Fit, Measure, Mesh, Paint, Part, Shell, Wearing, Weight } from '@automata/3d/figures-kit'
+import type {
+  Decal,
+  Fit,
+  Measure,
+  Mesh,
+  Paint,
+  Part,
+  Shell,
+  Wearing,
+  Weight,
+} from '@automataframework/3d/figures-kit'
 import {
   at,
   hemSkin,
@@ -24,7 +34,7 @@ import {
   type V3,
   variant,
   weights,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { frontOf } from './loft.ts'
 
 // The contract types are core's (figures-kit); re-exported so a builder imports them with the helpers.

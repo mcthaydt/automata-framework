@@ -3,7 +3,7 @@
 // point (a painter's algorithm: a blockout of tens of rooms needs no depth buffer). A surface that faces away from the eye
 // is cut away unless it says `fade` (drawn at a quarter) or `never`; a triangle with a point behind the eye is left out.
 // The selection is a sector's id (all its surfaces) or a wall's (that wall).
-import type { Size } from '@automata/editor/kit/core'
+import type { Size } from '@automataframework/editor/kit/core'
 import {
   type Camera3D,
   clipToNear,

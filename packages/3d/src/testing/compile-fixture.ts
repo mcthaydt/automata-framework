@@ -9,7 +9,7 @@ import {
   compileContentResult,
   type Diagnostic,
   formatDiagnostic,
-} from '@automata/content'
+} from '@automataframework/content'
 import { FIGURE_CONTENT } from '../features/figures/content/figures.content.ts'
 
 export const FIXTURE_ROOT: string = join(import.meta.dirname, '../../tests/fixtures')

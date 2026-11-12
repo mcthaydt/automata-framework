@@ -1,8 +1,8 @@
 // The rules "How it decides" in Schematic tells a person (`decide-words.ts`), pinned against the interpreter
 // (`agent-step.ts`): a line the game does not follow would teach the wrong thing.
-import type { Point } from '@automata/sectors/sim'
-import { stepWith } from '@automata/sectors/testing'
-import type { Sim } from '@automata/sim'
+import type { Point } from '@automataframework/sectors/sim'
+import { stepWith } from '@automataframework/sectors/testing'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { routineMode } from '#src/shared/sim/probe-kinds.ts'
 import type { AgentDef, SysEffect } from '#src/shared/sim/systems.schema.ts'

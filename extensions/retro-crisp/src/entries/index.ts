@@ -1,5 +1,5 @@
-// @automata/retro-crisp: a retro grade and film fade, and a crisp whole-pixel upscale, for AF's pixel-art look. This
-// entry is the settings and the maths, with no renderer in it; the pass is `@automata/retro-crisp/pass`.
+// @automataframework/retro-crisp: a retro grade and film fade, and a crisp whole-pixel upscale, for AF's pixel-art look. This
+// entry is the settings and the maths, with no renderer in it; the pass is `@automataframework/retro-crisp/pass`.
 export { applyCrispLayout, crispCanvasStyle } from '../features/crisp/crisp-canvas.ts'
 export {
   CRISP_CLINIC,

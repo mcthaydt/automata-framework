@@ -17,7 +17,7 @@ import {
   type Surface,
   type WrittenPlane,
   withPlaneZ,
-} from '@automata/3d/level'
+} from '@automataframework/3d/level'
 import type { EditCorner, EditSector, EditWall } from '../sector-access'
 
 const WRITTEN = Symbol('written')

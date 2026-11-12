@@ -2,14 +2,14 @@
 // sectors, and the view modes, registered in the kit's registry and reached through its keymap. They run on the toy
 // level (a hall and a dock that lead into each other, 8 and 6 m wide) so every case can be read off its numbers.
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import {
   type CommandRegistry,
   createCommandRegistry,
   createKeymap,
   type KeyInput,
   type Keymap,
-} from '@automata/editor/kit/core'
+} from '@automataframework/editor/kit/core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { registerEditCommands } from '#src/shared/edit/edit-commands.ts'
 import { createLevelEditor, type LevelEditor } from '#src/shared/edit/level-editor.ts'

@@ -1,5 +1,5 @@
 // base-3d's ember trait: a point in the room Wick can take. Sim code: `pnpm boundaries` checks it.
-import { type ComponentDef, defineComponent } from '@automata/sim'
+import { type ComponentDef, defineComponent } from '@automataframework/sim'
 
 const emberFields = {
   x: 'i32',

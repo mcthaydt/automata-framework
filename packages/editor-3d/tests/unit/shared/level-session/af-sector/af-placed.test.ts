@@ -1,7 +1,7 @@
 // The furniture, characters and lamps a level places, as things (Levels 3D spec §5, §7): defined from the game, read
 // only, placed and moved through the existing thing edits, and every member the editor does not show kept as written.
 import { readFileSync } from 'node:fs'
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { removeDefinition, renameDefinition, setDefinitionField } from '#src/shared/edit/definition-edits.ts'
 import { addThing, moveThing, removeThing, setThingField } from '#src/shared/edit/thing-edits.ts'

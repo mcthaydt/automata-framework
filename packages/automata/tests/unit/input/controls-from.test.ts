@@ -1,5 +1,5 @@
-import type { ControlsFile } from '@automata/content/controls'
-import { defineCommand } from '@automata/sim'
+import type { ControlsFile } from '@automataframework/content/controls'
+import { defineCommand } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { controlsFrom } from '#src/features/input/controls-from.ts'

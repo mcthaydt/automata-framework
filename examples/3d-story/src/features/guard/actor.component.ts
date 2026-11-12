@@ -1,4 +1,4 @@
-import { defineComponent } from '@automata/sim'
+import { defineComponent } from '@automataframework/sim'
 
 /**
  * A character the systems move, as the screen draws it: where its feet are on the floor (metres, y up), the way it

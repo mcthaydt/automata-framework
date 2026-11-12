@@ -6,7 +6,7 @@
   selection made elsewhere never moves it.
 -->
 <script lang="ts">
-import { Tabs } from '@automata/editor/kit'
+import { Tabs } from '@automataframework/editor/kit'
 import Inspector from './Inspector.svelte'
 import type { InspectorCard, InspectorRow } from './inspector-cards'
 import type { InspectorChange, InspectorPhase } from './inspector-edits'

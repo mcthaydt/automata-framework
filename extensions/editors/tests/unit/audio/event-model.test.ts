@@ -1,5 +1,5 @@
-import type { AudioContent } from '@automata/audio-synth'
-import { openDocument } from '@automata/editor/kit/documents'
+import type { AudioContent } from '@automataframework/audio-synth'
+import { openDocument } from '@automataframework/editor/kit/documents'
 import { describe, expect, it } from 'vitest'
 import {
   keepQuietEdits,

@@ -3,8 +3,8 @@
   (compile, the kit's components, runes, the geometry stand-in) before real screens exist.
 -->
 <script lang="ts">
-import { EditorShell } from '@automata/editor/kit'
-import type { GeometryState } from '@automata/framework'
+import { EditorShell } from '@automataframework/editor/kit'
+import type { GeometryState } from '@automataframework/framework'
 
 let { geometry }: { geometry: GeometryState } = $props()
 </script>

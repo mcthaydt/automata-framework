@@ -1,6 +1,6 @@
 // Writes src/shared/kit/tokens.css from tokens/tokens.json and src/shared/kit/tool-theme.css from tokens/tool-theme.json.
 // Run it after editing either JSON:
-//   pnpm --filter @automata/editor tokens
+//   pnpm --filter @automataframework/editor tokens
 // With --check it writes nothing and exits 1 when either file is stale (tokens.test.ts and tool-theme.test.ts run it).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import type { EditorTokens, ToolTheme } from '../src/shared/kit/tokens/editor-tokens.ts'
@@ -25,7 +25,7 @@ if (process.argv.includes('--check')) {
   const stale = files.filter(({ target, css }) => !existsSync(target) || readFileSync(target, 'utf8') !== css)
   if (stale.length > 0) {
     console.error(
-      `${stale.map(({ target }) => target.pathname.split('/').pop()).join(' and ')} is stale. Run: pnpm --filter @automata/editor tokens`,
+      `${stale.map(({ target }) => target.pathname.split('/').pop()).join(' and ')} is stale. Run: pnpm --filter @automataframework/editor tokens`,
     )
     process.exit(1)
   }

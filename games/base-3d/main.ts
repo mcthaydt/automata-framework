@@ -4,15 +4,15 @@
 //
 // Controls: WASD, the arrows, the left stick or the touch stick to walk; Q and E, the right stick or a drag to turn the
 // camera; Space, K, A or the Roll button to roll; Escape to pause.
-// Packages: @automata/framework, @automata/sim,
-// @automata/3d; @automata/content (its Vite plugin) and @automata/tools.
-import '@automata/3d/no-eval'
+// Packages: @automataframework/framework, @automataframework/sim,
+// @automataframework/3d; @automataframework/content (its Vite plugin) and @automataframework/tools.
+import '@automataframework/3d/no-eval'
 import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automata/3d'
-import type { FigureDef } from '@automata/3d/figures'
-import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
-import type { QualityTier } from '@automata/framework'
-import { defineGame, type GameSaves, inputs, keys, startGame } from '@automata/framework'
+import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automataframework/3d'
+import type { FigureDef } from '@automataframework/3d/figures'
+import { CameraTurn, STICK_MAX } from '@automataframework/3d/sim'
+import type { QualityTier } from '@automataframework/framework'
+import { defineGame, type GameSaves, inputs, keys, startGame } from '@automataframework/framework'
 import { base3dSim } from './src/app/base-sim.ts'
 import { emberView } from './src/features/embers/ember-view.ts'
 import { Act, Move } from './src/features/hero/move.command.ts'

@@ -25,7 +25,7 @@ languages are the files beside it. The languages a game offers are the ones it l
 locale: { locales: ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'], baseLocale: 'en' },
 ```
 
-`DEFAULT_LOCALES`, which `@automata/framework` exports, is that same list, so
+`DEFAULT_LOCALES`, which `@automataframework/framework` exports, is that same list, so
 `locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' }` says the six. A player picks in Settings, and the choice is
 kept. On a first visit the game asks (see [How it works](./how-it-works.md#the-first-run)); on Ruken the player's own
 language is used.
@@ -80,7 +80,7 @@ pixel font (Fusion Pixel, in one flavour for each script) in `assets/fonts/` wit
 page's `lang` picks the face. A new word with a character the font lacks is an error from `automata check`, not a box on
 a player's screen. To use another font, list it in `content/fonts.toml` with the languages it serves; each language needs
 a face. A name that is never translated (a credits name) is held to the same rule: a content kind marks it `verbatim()`,
-from `@automata/content/schema`, where it marks translatable text `localized()`, and each language's face must hold its
+from `@automataframework/content/schema`, where it marks translatable text `localized()`, and each language's face must hold its
 characters or `automata check` names the file, the name and what to do.
 
 ## What `automata check` says

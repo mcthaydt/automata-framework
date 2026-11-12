@@ -3,9 +3,15 @@
 // deduction about three clues, all of them lines the player meets by playing: what they interact with (objects,
 // notes, examine lines) or hear (barks, dialogue, cutscenes). There is no hint button, hint voice or counter.
 // `lintHelp` checks them, pure; `currentHint` is the puzzle in play.
-import type { Cond, Reader } from '@automata/puzzle/sim'
-import { holds } from '@automata/puzzle/sim'
-import { createSolver, type PuzzleScene, type Route, routesOf, type State } from '@automata/puzzle/solver'
+import type { Cond, Reader } from '@automataframework/puzzle/sim'
+import { holds } from '@automataframework/puzzle/sim'
+import {
+  createSolver,
+  type PuzzleScene,
+  type Route,
+  routesOf,
+  type State,
+} from '@automataframework/puzzle/solver'
 import type { HintLadder, SceneHelp } from '../../shared/help.schema'
 import type { DialogueGraph } from '../../shared/sim/dialogue.schema'
 import type { LineRecord } from '../../shared/sim/lines.schema'

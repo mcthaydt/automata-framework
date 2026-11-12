@@ -1,5 +1,5 @@
 // base-3d's ember events: what the sim tells presentation and the screens about the embers. Sim code: `pnpm boundaries` checks it.
-import { defineEvent, type EventDef } from '@automata/sim'
+import { defineEvent, type EventDef } from '@automataframework/sim'
 import { z } from 'zod'
 
 const at = z.object({ x: z.int(), z: z.int() })

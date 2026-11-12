@@ -2,7 +2,7 @@
 // the walker is on its way; each tick the game's walker is either in reach (the use fires), still walking, or has
 // nowhere left to walk (the use is dropped). Kept apart from the rest of the extension so it can move to core unchanged
 // if a second game, or the UI editor, needs it.
-import { hypot } from '@automata/sim/math'
+import { hypot } from '@automataframework/sim/math'
 
 /** A use that has been asked for and not yet done: which hotspot, and the item held when it was asked. */
 export interface Pending {

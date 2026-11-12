@@ -1,4 +1,4 @@
-// @automata/feel: game feel as data: hits that shake, hold, flash, squash and pop a word, from `feel.toml`,
+// @automataframework/feel: game feel as data: hits that shake, hold, flash, squash and pop a word, from `feel.toml`,
 // switchable by the player. Presentation only.
 
 export { feelExtension } from '../app/feel.extension'

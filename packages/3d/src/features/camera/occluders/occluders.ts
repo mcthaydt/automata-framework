@@ -2,8 +2,8 @@
 // per-frame pass applied to it. Walls are built here, so each has its own material for its fade and a floor trim that
 // shows while it is cut, as a cut-away shows its low stubs. Ceilings are never drawn in the angled view. A prop fades through its material's
 // alpha, so its mesh must own its material. Presentation only: the sim never reads any of it.
-import type { PixiStageHooks } from '@automata/framework'
-import { reducedMotion as prefersReducedMotion } from '@automata/framework'
+import type { PixiStageHooks } from '@automataframework/framework'
+import { reducedMotion as prefersReducedMotion } from '@automataframework/framework'
 import { type BaseMaterial3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
 import type { Occlude } from '../../../shared/level/occlude.ts'
 import { ownCopyOf } from '../../../shared/render/views/shared-material.ts'

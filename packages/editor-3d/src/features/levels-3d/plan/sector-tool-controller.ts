@@ -8,8 +8,8 @@
 // still open and `view.offers` lists the portals it could have. Each offer is accepted or declined, and the step ends
 // with the last answer (or `finish`), so the sector and the portals it was given are one undo step.
 
-import type { Point } from '@automata/3d/level'
-import type { Size, Viewport2D } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type { Size, Viewport2D } from '@automataframework/editor/kit/core'
 import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor'
 import { type PortalOffer, portalOffers } from '../../../shared/edit/portal-offers'
 import { addSector } from '../../../shared/edit/sector-edits'

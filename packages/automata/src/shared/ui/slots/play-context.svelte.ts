@@ -1,4 +1,4 @@
-import type { Command, Sim } from '@automata/sim'
+import type { Command, Sim } from '@automataframework/sim'
 import { getContext, setContext } from 'svelte'
 import { type DrawSim, readSim } from '../../draw/read-sim.ts'
 

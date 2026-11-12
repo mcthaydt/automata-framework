@@ -6,8 +6,13 @@
  * ends and starts afresh, from where the sim stands, when the room plays again.
  */
 
-import type { Command, Sim } from '@automata/sim'
-import { createRecorder, packReplay, type Recorder, type ReplayCompression } from '@automata/sim/replay'
+import type { Command, Sim } from '@automataframework/sim'
+import {
+  createRecorder,
+  packReplay,
+  type Recorder,
+  type ReplayCompression,
+} from '@automataframework/sim/replay'
 import { nodeReplayCompression } from './replay-compression'
 
 export class ReplayKeeper {

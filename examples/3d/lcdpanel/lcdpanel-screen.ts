@@ -1,14 +1,14 @@
 // lcdpanel-screen: a room seen through an LCD screen, with the panel switched on and off
 //
-// Shows: the LCD panel look (`@automata/lcd-panel`): a mesh of rows and columns, RGB stripes, scanlines, a little
+// Shows: the LCD panel look (`@automataframework/lcd-panel`): a mesh of rows and columns, RGB stripes, scanlines, a little
 //   halation round bright pixels and a frame vignette, one pass over the pixel-art look's field. A profile sets it (the
 //   defaults are the clinic's numbers; here the mesh is a little stronger so it reads at this size), and the pass is
 //   added once, before the renderer is made. `?pref=webgpu` draws on WebGPU, `?lcd=0` starts with the panel off.
 // Controls: L switches the panel on and off
-// Packages: @automata/framework, @automata/3d, @automata/lcd-panel
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/lcd-panel
 // Difficulty: ★★☆☆
 // Tier: extension
-import '@automata/3d/no-eval'
+import '@automataframework/3d/no-eval'
 import {
   buildWorld,
   createPixi3dRenderer,
@@ -18,10 +18,10 @@ import {
   render3dExtension,
   swatchColour,
   worldLighting,
-} from '@automata/3d'
-import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
-import { defineGame, definePlugin } from '@automata/framework'
-import { addLcdPanelPass } from '@automata/lcd-panel/pass'
+} from '@automataframework/3d'
+import { BASE_SCENES, baseLibrary } from '@automataframework/3d/base'
+import { defineGame, definePlugin } from '@automataframework/framework'
+import { addLcdPanelPass } from '@automataframework/lcd-panel/pass'
 
 // --- look ---
 const query = new URLSearchParams(location.search)

@@ -7,7 +7,7 @@
   checks pill. The views show at `wide` only; on a phone the pill is left to the status line, so the title keeps its room.
 -->
 <script lang="ts">
-import { Button, Pill, Segmented } from '@automata/editor/kit'
+import { Button, Pill, Segmented } from '@automataframework/editor/kit'
 import { onMount } from 'svelte'
 import type { ViewMode } from '../../../shared/edit/view-store'
 import { modeOptions, type PillTone } from '../plan/plan-status'

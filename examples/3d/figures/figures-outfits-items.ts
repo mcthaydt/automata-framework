@@ -4,13 +4,13 @@
 //   the figure's meshes once on each change, without moving a joint; an item (its hold: where the
 //   hand goes and how it turns) is data in the figure library, beside the swatches it is made of.
 // Controls: none
-// Packages: @automata/framework, @automata/3d
+// Packages: @automataframework/framework, @automataframework/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureDef, FigureLibrary, Gait, ItemDef, Swatch } from '@automata/3d/figures'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automataframework/3d'
+import type { FigureDef, FigureLibrary, Gait, ItemDef, Swatch } from '@automataframework/3d/figures'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automataframework/framework'
 
 // --- figure ---
 // Content a game compiles from content/figure-swatches/*.toml and content/figure-items/*.toml, written as compiled.

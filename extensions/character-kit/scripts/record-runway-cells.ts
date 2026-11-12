@@ -6,7 +6,7 @@
 // archived repository and not in this one, so it is read from a clone of that repository that has the commit and run against the
 // painter in this repository (`extensions/figures/src`): the cells are the showcase's code on the painter as it is here.
 //
-//   pnpm --filter @automata/character-kit goldens:runway -- <a FigureBuilder clone with commit cb4aa9f> [--out <dir>]
+//   pnpm --filter @automataframework/character-kit goldens:runway -- <a FigureBuilder clone with commit cb4aa9f> [--out <dir>]
 //
 // Made only by this script, and re-made only when the painter moves (the commit that does it says why).
 import { spawnSync } from 'node:child_process'

@@ -7,7 +7,7 @@
   too, and the bar scrolls sideways where its width holds too few.
 -->
 <script lang="ts">
-import { Icon, type IconName } from '@automata/editor/kit'
+import { Icon, type IconName } from '@automataframework/editor/kit'
 import type { PlanToolId } from './plan-tools'
 
 interface Props {

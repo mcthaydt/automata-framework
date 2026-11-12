@@ -14,9 +14,9 @@ import { examplePage, indexPage, type PageModules, pendingPage, sourcePage } fro
 export interface ExamplesRunnerOptions {
   /** The examples folder. */
   readonly root: string
-  /** The module exporting `startGame` (default `@automata/framework`). */
+  /** The module exporting `startGame` (default `@automataframework/framework`). */
   readonly start?: string
-  /** The side-effect import every page runs first (default `@automata/framework/no-eval`). */
+  /** The side-effect import every page runs first (default `@automataframework/framework/no-eval`). */
   readonly noEval?: string
   readonly catalog?: CatalogOptions
 }
@@ -25,8 +25,8 @@ const isPending = (entry: CatalogEntry): boolean => entry.header?.pending !== un
 
 export function examplesRunner(options: ExamplesRunnerOptions): Plugin {
   const modules: PageModules = {
-    start: options.start ?? '@automata/framework',
-    noEval: options.noEval ?? '@automata/framework/no-eval',
+    start: options.start ?? '@automataframework/framework',
+    noEval: options.noEval ?? '@automataframework/framework/no-eval',
   }
   const headers = previewHeaders(EXAMPLES_SHIP_CONFIG)
   const catalog = () => readCatalog(options.root, options.catalog)

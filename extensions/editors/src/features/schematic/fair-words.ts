@@ -1,8 +1,8 @@
 // Fair play in words: the scenarios as sentences, and what the game's check found, said so a person can act on it. The
 // check is the game's own code (it plays a careful player and a scripted one through the scene); this only says what it
 // printed.
-import type { CheckResult } from '@automata/editor/kit/ports'
-import type { SystemsDef } from '@automata/systems/sim'
+import type { CheckResult } from '@automataframework/editor/kit/ports'
+import type { SystemsDef } from '@automataframework/systems/sim'
 import { conditionWords } from './pieces/conditions.ts'
 import { modeWords, type Names, num } from './pieces/piece.ts'
 

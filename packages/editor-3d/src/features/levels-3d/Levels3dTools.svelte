@@ -9,8 +9,8 @@
   typing, as they do in the standalone frame.
 -->
 <script lang="ts">
-import { shellModeOf } from '@automata/editor/kit'
-import { createCommandRegistry, createKeymap } from '@automata/editor/kit/core'
+import { shellModeOf } from '@automataframework/editor/kit'
+import { createCommandRegistry, createKeymap } from '@automataframework/editor/kit/core'
 import { onDestroy } from 'svelte'
 import Levels3dToolRail from './Levels3dToolRail.svelte'
 import Levels3dViewControl from './Levels3dViewControl.svelte'

@@ -1,4 +1,4 @@
-import type { Command, Sim } from '@automata/sim'
+import type { Command, Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { NetSnapshot } from '#src/features/client/room/colyseus-transport.ts'
 import { INITIAL_LEAD_TICKS } from '#src/features/client/session/input-lead.ts'

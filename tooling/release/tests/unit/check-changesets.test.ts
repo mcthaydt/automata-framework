@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { changesetProblems, readChangeset } from '#src/check-changesets.ts'
 
-const published = ['@automata/sim', '@automata/host']
+const published = ['@automataframework/sim', '@automataframework/host']
 const file = (body: string) => `---\n${body}\n---\n\nWhat changed.\n`
 
 describe('changesetProblems (patch only before 1.0)', () => {
   it('passes patch bumps of published packages, in either quote style', () => {
-    const files = { 'a.md': file('\'@automata/sim\': patch\n"@automata/host": patch') }
+    const files = { 'a.md': file('\'@automataframework/sim\': patch\n"@automataframework/host": patch') }
     expect(changesetProblems(files, published)).toEqual([])
   })
 
@@ -16,25 +16,25 @@ describe('changesetProblems (patch only before 1.0)', () => {
 
   it('fails a minor or major bump, naming the file and package', () => {
     const files = {
-      'm.md': file("'@automata/sim': minor"),
-      'x.md': file("'@automata/host': major"),
+      'm.md': file("'@automataframework/sim': minor"),
+      'x.md': file("'@automataframework/host': major"),
     }
     expect(changesetProblems(files, published)).toEqual([
-      'm.md: @automata/sim is a minor bump; before 1.0 every AF changeset is a patch',
-      'x.md: @automata/host is a major bump; before 1.0 every AF changeset is a patch',
+      'm.md: @automataframework/sim is a minor bump; before 1.0 every AF changeset is a patch',
+      'x.md: @automataframework/host is a major bump; before 1.0 every AF changeset is a patch',
     ])
   })
 
   it('allows the one-time minor of the first public release, in its own file only', () => {
-    const minor = file("'@automata/sim': minor")
+    const minor = file("'@automataframework/sim': minor")
     expect(changesetProblems({ 'first-public-release.md': minor }, published)).toEqual([])
     expect(changesetProblems({ 'other.md': minor }, published)).toEqual([
-      'other.md: @automata/sim is a minor bump; before 1.0 every AF changeset is a patch',
+      'other.md: @automataframework/sim is a minor bump; before 1.0 every AF changeset is a patch',
     ])
     expect(
-      changesetProblems({ 'first-public-release.md': file("'@automata/sim': major") }, published),
+      changesetProblems({ 'first-public-release.md': file("'@automataframework/sim': major") }, published),
     ).toEqual([
-      'first-public-release.md: @automata/sim is a major bump; before 1.0 every AF changeset is a patch',
+      'first-public-release.md: @automataframework/sim is a major bump; before 1.0 every AF changeset is a patch',
     ])
   })
 
@@ -53,8 +53,8 @@ describe('changesetProblems (patch only before 1.0)', () => {
 
 describe('readChangeset (shared with tooling/api-report)', () => {
   it('reads each release line and the body after the front matter', () => {
-    expect(readChangeset(`---\n'@automata/host': patch\n---\n\nBREAKING: a member.\n`)).toEqual({
-      releases: [{ name: '@automata/host', bump: 'patch' }],
+    expect(readChangeset(`---\n'@automataframework/host': patch\n---\n\nBREAKING: a member.\n`)).toEqual({
+      releases: [{ name: '@automataframework/host', bump: 'patch' }],
       body: '\nBREAKING: a member.\n',
     })
   })

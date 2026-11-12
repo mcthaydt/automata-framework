@@ -1,6 +1,6 @@
 <!-- The scene's places: where each is, which it joins; add, move, join, rename and remove them. -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button } from '@automataframework/editor/kit'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import { spaced } from './pieces/piece.ts'
 import { neighboursOf, placeSentence } from './places-edits.ts'

@@ -1,8 +1,8 @@
 // Audio as a suite editor: `audio` in the editor list. It opens the first audio file the list hands it, or makes
 // `content/audio/audio.toml` when the game has none. Play is the page's: it renders the sound in the page and plays it
 // only when the person presses Play.
-import { type AudioContent, audioSchema } from '@automata/audio-synth'
-import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
+import { type AudioContent, audioSchema } from '@automataframework/audio-synth'
+import { defineSuiteEditor, type SuiteEditor } from '@automataframework/editor/kit/ports'
 import type { AudioPlay } from '../../shared/audio-play.ts'
 import { gameEvents } from '../../shared/game-events.ts'
 import { undoOf } from '../../shared/session-hooks.ts'

@@ -21,7 +21,7 @@
  * intent (the room goes `offline`, and a room that still arrives is left) and rejects the call with the signal's reason.
  */
 
-import type { Clock } from '@automata/framework'
+import type { Clock } from '@automataframework/framework'
 import { createWatchable } from '../../../shared/watchable'
 import { type JoinOptions, joinOptionsSchema } from '../../../shared/wire/join-options.schema'
 import { PROTOCOL_VERSION } from '../../../shared/wire/limits'

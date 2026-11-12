@@ -5,7 +5,7 @@
 // opening (`door`, `window`) is cut out of its face; a room's holes are walled and left out of its floor; the shared
 // stretch is found by geometry, as the builder did, and a wall's `next` must agree with it.
 
-import { createRng } from '@automata/sim'
+import { createRng } from '@automataframework/sim'
 import type {
   AfSector2,
   AfSectorEntry2,
@@ -181,7 +181,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         path: sector.dress === undefined ? ['dress'] : ['sectors', si, 'dress'],
         code: 'needs-extension',
         message:
-          'This room asks to be furnished by the world kit, which this game doesn\'t have. Add @automata/world-kit, or remove "dress" from the room.',
+          'This room asks to be furnished by the world kit, which this game doesn\'t have. Add @automataframework/world-kit, or remove "dress" from the room.',
         where: sector.id,
         name: 'world-kit',
       })

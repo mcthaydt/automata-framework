@@ -1,8 +1,8 @@
 // The kit's look passes on a real WebGL2 context. Core's look is registered first and the kit's passes are added once,
 // after the test that shows a frame without them (the registry is the page's, so order within this file is the point).
 // WebGPU and WebGL2 parity is the GPU runner's: Chromium here has no WebGPU adapter.
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automata/3d'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automataframework/3d'
 import { CubeGeometry, DirectionalLight, FlatMaterial, Mesh3D, SphereGeometry } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { GlowEffect } from '#src/features/sky/glow-effect.ts'

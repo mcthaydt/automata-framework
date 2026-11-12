@@ -1,4 +1,4 @@
-// @automata/audio-synth: synthesized cues, beds and music slots as data, played on core's audio buses.
+// @automataframework/audio-synth: synthesized cues, beds and music slots as data, played on core's audio buses.
 // Presentation only.
 
 export { audioSynthExtension } from '../app/audio-synth.extension'

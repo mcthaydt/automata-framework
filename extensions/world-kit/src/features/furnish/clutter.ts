@@ -2,7 +2,7 @@
 //
 // Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/dress.ts at 6d82a52
 // (`surfaceClutter`, `floorClutter`, `ceilingFixtures`).
-import { heightAt, inside, ringsOf, type V2 } from '@automata/3d/props-kit'
+import { heightAt, inside, ringsOf, type V2 } from '@automataframework/3d/props-kit'
 import { type Ctx, fits, footprintOf, place } from './context.ts'
 import { ceilingOf } from './fixtures.ts'
 import { centroidOf, mm, overlaps, type Rect, type Spot, turned } from './floor-plan.ts'

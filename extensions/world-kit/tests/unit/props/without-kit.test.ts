@@ -1,5 +1,5 @@
 // Without the kit loaded, core says plainly what is missing and draws the rest: this file imports no generator.
-import { buildWorld, resolveProp } from '@automata/3d/props-kit'
+import { buildWorld, resolveProp } from '@automataframework/3d/props-kit'
 import { describe, expect, it } from 'vitest'
 import { levelWith } from '../../fixtures/level.ts'
 

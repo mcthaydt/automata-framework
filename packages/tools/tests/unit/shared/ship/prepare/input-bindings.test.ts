@@ -23,7 +23,7 @@ function game(files: Record<string, string>): string {
   return dir
 }
 
-const IMPORT = "import { keys } from '@automata/game'\n"
+const IMPORT = "import { keys } from '@automataframework/game'\n"
 /** A file whose `keys(...)` call sits at line 2, column 22. */
 const call = (args: string) => `${IMPORT}export const input = keys(${args})\n`
 const WHERE = 'src/game.ts:2:22'
@@ -85,7 +85,7 @@ describe('keysBindingsIn', () => {
   })
 
   it('reads every keys() call in a file, and follows an aliased import', () => {
-    const code = `import { keys as inputKeys } from '@automata/framework'
+    const code = `import { keys as inputKeys } from '@automataframework/framework'
 export const a = inputKeys(Move, { KeyA: {} })
 export const b = inputKeys(Move, {}, { pad: { 0: {} } })
 `

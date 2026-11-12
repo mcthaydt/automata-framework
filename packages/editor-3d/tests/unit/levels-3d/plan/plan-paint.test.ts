@@ -1,4 +1,4 @@
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it } from 'vitest'
 import { FLOOR_TINT, mixColor, PLAN_COLORS, parseHex } from '#src/features/levels-3d/plan/plan-colors.ts'
 import { groupColor, type PlanPaintInput, planPaint } from '#src/features/levels-3d/plan/plan-paint.ts'

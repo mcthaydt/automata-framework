@@ -8,7 +8,7 @@
 // `hemAnchors`, `SLIVER`, `outerHem`, `Worn`, `tops`, `topOf`), with AF's strict types; the formulas and
 // their order are unchanged.
 
-import type { Anchor, Garment, Measure, Worn } from '@automata/3d/figures-kit'
+import type { Anchor, Garment, Measure, Worn } from '@automataframework/3d/figures-kit'
 import {
   at,
   clamp,
@@ -21,7 +21,7 @@ import {
   SIDES,
   type Skeleton,
   smooth,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { frontOf, type Loft, loft, type Section, type Shell, widthOf } from './loft.ts'
 import { armSkin, SEAM, skinned, torsoBone, torsoSkin, type Under } from './under.ts'
 

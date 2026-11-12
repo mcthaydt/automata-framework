@@ -53,4 +53,4 @@ A file starts with a header (what it shows, its controls, its base and its packa
 | [`2d/ui/primitives/main.ts`](2d/ui/primitives/main.ts) | every ui primitive at every reference size, with no renderer |
 | [`2d/ui/ui-splash-credits.ts`](2d/ui/ui-splash-credits.ts) | A studio splash, then a title with Credits |
 
-`2d/content/hot-reload`, `2d/ui/primitives` and [`3d/wardrobe`](3d/wardrobe/) are small packages with their own `package.json`; the rest are single files. `3d/wardrobe` (`@af-examples/wardrobe-3d`) is the worked example of a wardrobe extension: eleven streetwear garments for the procedural figures, registered with `@automata/3d/figures-kit` the way a game's own garments would be.
+`2d/content/hot-reload`, `2d/ui/primitives` and [`3d/wardrobe`](3d/wardrobe/) are small packages with their own `package.json`; the rest are single files. `3d/wardrobe` (`@af-examples/wardrobe-3d`) is the worked example of a wardrobe extension: eleven streetwear garments for the procedural figures, registered with `@automataframework/3d/figures-kit` the way a game's own garments would be.

@@ -2,8 +2,8 @@
 // own switch (the option that adds it). Core's look has no stars, rain or bloom; a game that wants them adds these once,
 // before it creates its renderer. A name already taken is refused by core (`RegistryClash`).
 
-import { addLookPass, type Look, type LookPass, type TimeOfDay } from '@automata/3d'
-import { reducedMotion } from '@automata/framework'
+import { addLookPass, type Look, type LookPass, type TimeOfDay } from '@automataframework/3d'
+import { reducedMotion } from '@automataframework/framework'
 import type { Pass3D } from '@pixi/3d'
 import { Ticker } from 'pixi.js'
 import { GlowEffect, type GlowOptions } from './glow-effect.ts'

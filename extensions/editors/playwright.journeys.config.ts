@@ -1,4 +1,4 @@
-import { defineJourneys } from '@automata/playwright-preset'
+import { defineJourneys } from '@automataframework/playwright-preset'
 
 // The content editors' real journeys (`pnpm test:e2e`): each one copies the 2D story to a temp folder, runs the built
 // `automata editor` on it with this package's suite page, works Feel, Audio, Writer or Sequence as a person would, then

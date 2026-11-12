@@ -1,4 +1,4 @@
-// `@automata/net-server/testing`: the room driver and the clock hold, for tests only.
+// `@automataframework/net-server/testing`: the room driver and the clock hold, for tests only.
 // The room refuses a clock hold in production; process safety refuses to start with a test switch set, the fake
 // session verifier included.
 

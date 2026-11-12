@@ -1,5 +1,5 @@
-import type { PlanPoint } from '@automata/places'
-import { hypot } from '@automata/sim/math'
+import type { PlanPoint } from '@automataframework/places'
+import { hypot } from '@automataframework/sim/math'
 
 // Walls from a grid: the cells of an IntGrid layer whose value is solid, each `cell` metres across, with the top-left
 // cell's corner at the plan's origin. Plain arithmetic in a fixed order, so every engine answers the same.

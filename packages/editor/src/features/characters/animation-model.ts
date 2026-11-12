@@ -1,8 +1,8 @@
-import type { ContentAnimation, ContentClip } from '@automata/content/level-2d'
+import type { ContentAnimation, ContentClip } from '@automataframework/content/level-2d'
 import type { Size } from '../../shared/level-2d/model/project-types'
 
 // A character's animation as the Characters view edits it: pure functions from one animation to the next, so each edit
-// is one value the session puts in one undo step. The shape is `@automata/content`'s (the editor and the game read the
+// is one value the session puts in one undo step. The shape is `@automataframework/content`'s (the editor and the game read the
 // same one); this file only says how a person builds it: a picture, a frame size, and clips tapped together from frames.
 
 const DEFAULT_FPS = 8

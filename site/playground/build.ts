@@ -13,7 +13,7 @@ import {
 import { basename, dirname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
-import { readCatalog } from '@automata/examples-runner/catalog'
+import { readCatalog } from '@automataframework/examples-runner/catalog'
 import { build, type Rolldown } from 'vite'
 import { playgroundFramePage } from './src/frame-page.ts'
 import { playgroundCatalog } from './src/playground-catalog.ts'
@@ -84,7 +84,7 @@ for (const example of catalog) {
     )
 }
 // The shared resources, less what only an unpublished extension's examples use (The Last Light's models, which
-// @automata/3d draws): the site is public, and those stay private while D-1 stands.
+// @automataframework/3d draws): the site is public, and those stay private while D-1 stands.
 const resourcesRoot = join(examplesRoot, 'resources')
 const resourceFiles = readdirSync(resourcesRoot, { recursive: true, encoding: 'utf8' })
   .filter((name) => statSync(join(resourcesRoot, name)).isFile())

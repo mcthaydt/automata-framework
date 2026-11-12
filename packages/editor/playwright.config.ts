@@ -1,4 +1,4 @@
-import { defineJourneys } from '@automata/playwright-preset'
+import { defineJourneys } from '@automataframework/playwright-preset'
 import { claimPort } from '../tools/src/shared/ship/ports/free-ports.ts'
 
 // The design board's screenshots: `pnpm design:board`. One Vite dev server (the board is served in development only),

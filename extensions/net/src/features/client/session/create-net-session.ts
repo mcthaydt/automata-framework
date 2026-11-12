@@ -12,8 +12,8 @@
  * stays the caller's.
  */
 
-import type { Clock } from '@automata/framework'
-import type { Sim } from '@automata/sim'
+import type { Clock } from '@automataframework/framework'
+import type { Sim } from '@automataframework/sim'
 import { createWatchable, type Watchable } from '../../../shared/watchable'
 import type { RemoteView } from '../interpolation/snapshot-buffer'
 import type { ConnectionState, NetRoom } from '../room/net-room'

@@ -9,7 +9,7 @@ import { Client } from '@colyseus/sdk'
 
 /**
  * The part of the Colyseus SDK's room that `net` uses. The real SDK room fits it, and so does the
- * fake in `@automata/net/testing`.
+ * fake in `@automataframework/net/testing`.
  */
 export interface NetSdkRoom {
   /** The room code. */

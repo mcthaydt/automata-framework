@@ -1,20 +1,20 @@
 // cutscenes-reach-cue: a man walks across a floor and, at a set time, a cue makes him reach
 //
-// Shows: an actor's path and a cue in a cutscene script (`@automata/cutscenes`). The director places the man at t
+// Shows: an actor's path and a cue in a cutscene script (`@automataframework/cutscenes`). The director places the man at t
 //   seconds (his x, z, facing and whether he is walking) and calls the game's `startClip` once as the scene passes
 //   the cue's time, however the scene is played; the figure view plays that clip over the walk. The man is a puppet:
 //   the sim only holds his row and counts ticks, and the view stands him where the director says.
 // Controls: none
-// Packages: @automata/framework, @automata/3d, @automata/cutscenes
+// Packages: @automataframework/framework, @automataframework/3d, @automataframework/cutscenes
 // Difficulty: ★★★☆
 // Tier: extension
-import '@automata/3d/no-eval'
-import { createPixi3dRenderer, figure, render3dExtension, type View3dFactory } from '@automata/3d'
-import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automata/3d/base'
-import type { FigureClipDef, Gait, MotionLibrary } from '@automata/3d/figures'
-import { createDirector, type SceneState } from '@automata/cutscenes/director'
-import type { PlacedScript } from '@automata/cutscenes/sim'
-import { defineComponent, defineGame, definePlugin } from '@automata/framework'
+import '@automataframework/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension, type View3dFactory } from '@automataframework/3d'
+import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automataframework/3d/base'
+import type { FigureClipDef, Gait, MotionLibrary } from '@automataframework/3d/figures'
+import { createDirector, type SceneState } from '@automataframework/cutscenes/director'
+import type { PlacedScript } from '@automataframework/cutscenes/sim'
+import { defineComponent, defineGame, definePlugin } from '@automataframework/framework'
 
 // --- figure ---
 // The base man with the `bounce` gait (as in figures-walk) and a `reach` clip: the right arm fades to `reach-out` and

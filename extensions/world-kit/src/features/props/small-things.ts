@@ -19,7 +19,7 @@ import {
   ringTube,
   rod,
   stream,
-} from '@automata/3d/props-kit'
+} from '@automataframework/3d/props-kit'
 import { turnY } from '../../shared/turn.ts'
 import { wallMounted } from './wall-mounted.ts'
 

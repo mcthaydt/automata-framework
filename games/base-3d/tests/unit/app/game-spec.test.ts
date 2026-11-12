@@ -1,4 +1,4 @@
-import { cameraHeadingPlugin } from '@automata/3d/sim'
+import { cameraHeadingPlugin } from '@automataframework/3d/sim'
 import { describe, expect, it, vi } from 'vitest'
 import { base3dSim } from '#src/app/base-sim.ts'
 import { base3dPlugin } from '#src/app/base3d.plugin.ts'
@@ -8,8 +8,8 @@ import { TUNING } from '#src/testing/sim.ts'
 
 // `startGame` spied on, so importing the page entry shows whether it starts the game (GL spec §4.6).
 const started = vi.hoisted(() => ({ calls: 0 }))
-vi.mock('@automata/framework', async (original) => ({
-  ...(await original<typeof import('@automata/framework')>()),
+vi.mock('@automataframework/framework', async (original) => ({
+  ...(await original<typeof import('@automataframework/framework')>()),
   startGame: () => {
     started.calls++
   },

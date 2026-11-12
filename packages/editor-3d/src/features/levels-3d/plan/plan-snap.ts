@@ -4,8 +4,8 @@
 // one it was, so the app can draw the target, and names the wall where there is one. Reach is in pixels, like
 // picking's, so zooming in snaps to fewer metres.
 
-import type { Point } from '@automata/3d/level'
-import type { Point as ScreenPoint, Viewport2D } from '@automata/editor/kit/core'
+import type { Point } from '@automataframework/3d/level'
+import type { Point as ScreenPoint, Viewport2D } from '@automataframework/editor/kit/core'
 import type { SelectionOf } from '../../../shared/edit/selection-of'
 import type { ViewState } from '../../../shared/edit/view-store'
 import type { GeometryLayer } from '../../../shared/level-session/level-profile'

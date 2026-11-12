@@ -1,7 +1,7 @@
 // A painted figure's cast shadow on a lit floor, on a real GPU: the room's floor is darker under and beside the figure than the
 // same frame with the look's `shadow` switch off, nothing else in the frame moves, and the shadow follows the figure's silhouette
 // (the sun's) as the builder throws it. Headless Firefox here has no WebGL; the GPU runner runs it there.
-import { DEFAULT_LOOK, type Look, sceneLightingSchema } from '@automata/3d'
+import { DEFAULT_LOOK, type Look, sceneLightingSchema } from '@automataframework/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import { buildScene, type StageScene } from '../../fixtures/stage-scene.ts'

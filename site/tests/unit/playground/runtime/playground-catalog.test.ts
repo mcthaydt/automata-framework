@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import type { CatalogEntry } from '@automata/examples-runner/catalog'
+import type { CatalogEntry } from '@automataframework/examples-runner/catalog'
 import { describe, expect, it } from 'vitest'
 import { playgroundCatalog } from '../../../../playground/src/playground-catalog.ts'
 
@@ -9,7 +9,7 @@ const header = {
   title: 'rectangles that move',
   shows: 'rect() draws one view per component id',
   controls: 'none',
-  packages: ['@automata/framework'],
+  packages: ['@automataframework/framework'],
   difficulty: 1,
   tier: 'core',
   golden: 120,
@@ -27,7 +27,7 @@ const entry = (overrides: Partial<CatalogEntry>): CatalogEntry => ({
   url: '/shapes/rects/',
   header,
   codeLines: 44,
-  imports: ['@automata/framework'],
+  imports: ['@automataframework/framework'],
   problems: [],
   ...overrides,
 })
@@ -42,7 +42,7 @@ describe('playgroundCatalog', () => {
       title: 'rectangles that move',
       shows: 'rect() draws one view per component id',
       controls: 'none',
-      packages: ['@automata/framework'],
+      packages: ['@automataframework/framework'],
       difficulty: 1,
       tier: 'core',
       golden: { ticks: 120, replay: '/playground/goldens/shapes-rects.replay' },
@@ -89,14 +89,14 @@ describe('playgroundCatalog', () => {
   })
 
   // the website is public, so an example of an unpublished extension (the closed beta's
-  // @automata/3d) never reaches it.
+  // @automataframework/3d) never reaches it.
   it('leaves out an example that imports an unpublished extension', () => {
     const catalog = playgroundCatalog(
       [
         entry({ id: 'shapes-rects' }),
         entry({
           id: 'render3d-meshes',
-          imports: ['@automata/framework', '@automata/3d/no-eval'],
+          imports: ['@automataframework/framework', '@automataframework/3d/no-eval'],
         }),
       ],
       () => '',

@@ -1,4 +1,4 @@
-import { type OpenedSuitePorts, openSuitePorts } from '@automata/editor/suite'
+import { type OpenedSuitePorts, openSuitePorts } from '@automataframework/editor/suite'
 import { SAMPLE_3D } from './sample-3d.ts'
 
 // The ports the full suite page opens: the checkout it is served on, as the 2D page opens it, or, when no editor server

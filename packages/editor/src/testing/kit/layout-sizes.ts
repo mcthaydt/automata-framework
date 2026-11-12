@@ -1,4 +1,4 @@
-import { type ReferenceSize, settleLayout, VARIANTS } from '@automata/framework/testing'
+import { type ReferenceSize, settleLayout, VARIANTS } from '@automataframework/framework/testing'
 
 // The window sizes the editors' layout tests run at, shared by every `*.layout.test.ts` of both editors so they measure the same screens.
 

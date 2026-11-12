@@ -1,7 +1,7 @@
 // A feel table and helpers for the runtime's tests: the spec's example, a feel made over it, frames at drawn ticks.
 
-import { fakeClock } from '@automata/framework/testing'
-import type { SimEvent } from '@automata/sim'
+import { fakeClock } from '@automataframework/framework/testing'
+import type { SimEvent } from '@automataframework/sim'
 import { parse } from 'smol-toml'
 import {
   createFeel,

@@ -2,7 +2,7 @@
 // prompt for your agent" and Start's setup, so the two cannot drift apart.
 
 /** The first command a new author runs. */
-export const CREATE_COMMAND = 'npx @automata/tools create-game my-game'
+export const CREATE_COMMAND = 'npx @automataframework/tools create-game my-game'
 
 /** The check an agent runs before it writes code: which skills it has loaded, and where to read the game's rules. */
 export const SKILL_PREFLIGHT = `Before coding, check the skills available in this agent session.

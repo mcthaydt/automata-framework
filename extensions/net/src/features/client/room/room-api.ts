@@ -3,7 +3,7 @@
  * implementation is `createNetRoom` (net-room.ts).
  */
 
-import type { Clock } from '@automata/framework'
+import type { Clock } from '@automataframework/framework'
 import type { Watchable } from '../../../shared/watchable'
 import type { ClientNetworkPort } from './net-port'
 import type { RoomInfo } from './room-info'

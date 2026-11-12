@@ -8,7 +8,7 @@ import {
   type FieldDef,
   type FieldValue,
   type FieldValues,
-} from '@automata/editor/kit/fields'
+} from '@automataframework/editor/kit/fields'
 import { entitySelection, place } from '../checks/check'
 import { sectorAt } from '../geometry/sectors'
 import { GeometryError, type LevelProfile } from '../level-session/level-profile'

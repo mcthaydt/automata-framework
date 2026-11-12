@@ -2,7 +2,11 @@
 // and one action at a time) with this editor's actions on top: open a level, import a folder, import a zip. It never
 // navigates and draws nothing: an opened level goes to its owner, a file to look at goes to the owner's error panel,
 // and everything else a person should hear about is a toast.
-import { createProjectBrowser, type ProjectListSource, type ToastStore } from '@automata/editor/kit/core'
+import {
+  createProjectBrowser,
+  type ProjectListSource,
+  type ToastStore,
+} from '@automataframework/editor/kit/core'
 import type { EditorApp, OpenOutcome } from '../document/editor-app'
 import type { ImportOutcome, PickedFile } from '../document/import-files'
 import { needsPanel, type PanelOutcome } from '../document/open-flow-model'

@@ -12,8 +12,8 @@ import {
   RendererUnavailable,
   type RenderTarget,
   systemClock,
-} from '@automata/framework'
-import type { RenderDelta, RenderRow } from '@automata/sim'
+} from '@automataframework/framework'
+import type { RenderDelta, RenderRow } from '@automataframework/sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Graphics } from 'pixi.js'
 import { angledCamera, type CameraRig } from '../features/camera/angled-camera.ts'
@@ -348,7 +348,7 @@ export function createPixi3dRenderer(given: Pixi3dOptions): (target: RenderTarge
     // Without the shim, pixi.js/unsafe-eval cannot upload @pixi/3d's uniforms and the first draw throws (S7-Q1).
     if (!pixi3dUniformSyncInstalled())
       throw new Error(
-        "@automata/3d: import '@automata/3d/no-eval' first, before anything else (in place of render-pixi/no-eval)",
+        "@automataframework/3d: import '@automataframework/3d/no-eval' first, before anything else (in place of render-pixi/no-eval)",
       )
     const files = [
       ...Object.values(options.views).flatMap((factory) => factory.models ?? []),

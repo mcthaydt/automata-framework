@@ -8,7 +8,7 @@
 // `trouserOutline`, `underneath`, `over`), with AF's strict types; the formulas and their order are
 // unchanged.
 
-import type { Garment, Legs, Measure, Superquadric } from '@automata/3d/figures-kit'
+import type { Garment, Legs, Measure, Superquadric } from '@automataframework/3d/figures-kit'
 import {
   at,
   clamp,
@@ -19,7 +19,7 @@ import {
   type Skeleton,
   sgnPow,
   smooth,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import type { Section, Shell } from './loft.ts'
 import { type Under, under } from './under.ts'
 

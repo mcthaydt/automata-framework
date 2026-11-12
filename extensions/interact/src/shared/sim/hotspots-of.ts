@@ -1,7 +1,7 @@
 // A level's hotspots: its entities of one definition, read with the hotspot schema. An entity that is not a usable
 // hotspot is a problem in words naming it, and is left out, so a bad edit is caught by the check that reads the level
 // and not found by a player standing at nothing.
-import type { AfSector2 } from '@automata/3d/level'
+import type { AfSector2 } from '@automataframework/3d/level'
 import { type Hotspot, hotspotSchema } from './hotspot.schema'
 
 export interface HotspotsRead {

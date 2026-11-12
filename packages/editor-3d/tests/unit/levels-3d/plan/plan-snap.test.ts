@@ -2,8 +2,8 @@
 // line, on the horizontal or vertical through the last point, on the grid, or on the data step, in that order, and the
 // answer says which. The viewport is 32 px to a metre with the world origin at (20, 20), as in the picking tests.
 
-import type { AfSector2File, AfSectorEntry2File, Point } from '@automata/3d/level'
-import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
+import type { AfSector2File, AfSectorEntry2File, Point } from '@automataframework/3d/level'
+import { createViewport, type Point as ScreenPoint } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { gridRounded, type SnapOptions, snapPlan } from '#src/features/levels-3d/plan/plan-snap.ts'
 import { PLAN_LIMITS, toScreen } from '#src/features/levels-3d/plan/plan-viewport.ts'

@@ -4,7 +4,7 @@
 // pair stops matching (the `openings` check). The rules for dividing and for joining what is set into a wall live here
 // once, so that no tool re-derives them.
 
-import type { Decor, DoorDef, WindowDef } from '@automata/3d/level'
+import type { Decor, DoorDef, WindowDef } from '@automataframework/3d/level'
 import { wallSelection } from '../checks/check'
 import { outlineProblem } from '../geometry/loops'
 import type { LevelProfile } from '../level-session/level-profile'

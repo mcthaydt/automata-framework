@@ -11,9 +11,9 @@ const SAMPLE = `# Automata API reference, version 1.2.3
 
 > Every export.
 
-## \`@automata/sim\`
+## \`@automataframework/sim\`
 
-### \`import { … } from '@automata/sim'\`
+### \`import { … } from '@automataframework/sim'\`
 
 #### \`createSim\` (function)
 
@@ -34,7 +34,7 @@ interface Sim {
 }
 \`\`\`
 
-### \`import { … } from '@automata/sim/math'\`
+### \`import { … } from '@automataframework/sim/math'\`
 
 #### \`clamp\` (function)
 
@@ -48,8 +48,11 @@ describe('parseApiReference', () => {
     expect(reference.version).toBe('1.2.3')
     expect(reference.packages).toHaveLength(1)
     const [pkg] = reference.packages
-    expect(pkg).toMatchObject({ name: '@automata/sim', slug: 'sim' })
-    expect(pkg.entryPoints.map((e) => e.path)).toEqual(['@automata/sim', '@automata/sim/math'])
+    expect(pkg).toMatchObject({ name: '@automataframework/sim', slug: 'sim' })
+    expect(pkg.entryPoints.map((e) => e.path)).toEqual([
+      '@automataframework/sim',
+      '@automataframework/sim/math',
+    ])
     expect(pkg.entryPoints[0].entries.map((e) => [e.name, e.kind])).toEqual([
       ['createSim', 'function'],
       ['Sim', 'interface'],

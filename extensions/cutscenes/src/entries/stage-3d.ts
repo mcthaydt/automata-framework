@@ -1,4 +1,4 @@
-// @automata/cutscenes/stage-3d: a cutscene drawn in 3D, for a game that has its own play camera, world and figures.
+// @automataframework/cutscenes/stage-3d: a cutscene drawn in 3D, for a game that has its own play camera, world and figures.
 // Presentation only; it reads the director and writes nothing to the sim.
 export {
   type ActorView,

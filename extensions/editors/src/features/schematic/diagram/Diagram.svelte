@@ -4,7 +4,7 @@
   worked out from the character each time (`layout.ts`); the file holds no positions.
 -->
 <script lang="ts">
-import type { AgentDef } from '@automata/systems/sim'
+import type { AgentDef } from '@automataframework/systems/sim'
 import { modeNotes } from '../decide-words.ts'
 import type { Names } from '../pieces/piece.ts'
 import { modeWords, num } from '../pieces/piece.ts'

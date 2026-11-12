@@ -2,7 +2,7 @@
 // middle of a doorway from her camera zone into another, facing it within `arc`; after `dwell` seconds the peek holds and
 // leans the camera across the doorway, up to `lean` metres, over `ease` seconds. These are the old game's numbers; the
 // pure functions here take what they need as arguments, so each is tested without a sim.
-import { atan2, cos, hypot, sin } from '@automata/sim/math'
+import { atan2, cos, hypot, sin } from '@automataframework/sim/math'
 
 /** The numbers of a peek. The defaults are the old game's. */
 export interface PeekDef {

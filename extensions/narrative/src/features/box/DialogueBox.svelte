@@ -7,7 +7,7 @@
   frame keeps clear of Pause, and tells the field its own height (`BOX_HEIGHT_VAR`) so a caption can sit above it.
 -->
 <script lang="ts">
-import { usePlay } from '@automata/framework'
+import { usePlay } from '@automataframework/framework'
 import { tick as afterRender, onMount, untrack } from 'svelte'
 import { readerOf, view } from '../../shared/sim/dialogue.ts'
 import type { LineRecord } from '../../shared/sim/lines.schema.ts'

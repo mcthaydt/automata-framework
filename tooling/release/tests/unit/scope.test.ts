@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// 2D editors and site plan, task 14.1: every package is in the project's npm scope, `@automata`. The Owner's personal
+// 2D editors and site plan, task 14.1: every package is in the project's npm scope, `@automataframework`. The Owner's personal
 // scope survives only in the history (the archive, the refactor records, the changelogs), in the scope codemod and in
 // this check, which must name what they replace. `@mcthaydt` as a registry scope (`@mcthaydt:registry`) and as the
 // GitHub owner are not package names, so they are not matched; task 14.2 moves the registry.

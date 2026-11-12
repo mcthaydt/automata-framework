@@ -6,7 +6,7 @@ import {
   type Sim,
   SimFaultedError,
   type SpawnPart,
-} from '@automata/sim'
+} from '@automataframework/sim'
 import { afterEach, expect, test } from 'vitest'
 import { z } from 'zod'
 import {

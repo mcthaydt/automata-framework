@@ -1,4 +1,4 @@
-import { type Command, createSim } from '@automata/sim'
+import { type Command, createSim } from '@automataframework/sim'
 import { emberwick } from '../app/game.ts'
 import type { MoveInput } from '../features/player/move.command.ts'
 import { routeInputs } from './golden.ts'

@@ -9,7 +9,7 @@
 // strict types. Swatch kinds and roles are AF's swatch fields (library/swatch.schema.ts). Not taken:
 // `recombine` (the random cast is core's testing/random-character.ts).
 
-import type { Anchor, Garment, Measure, Skeleton } from '@automata/3d/figures-kit'
+import type { Anchor, Garment, Measure, Skeleton } from '@automataframework/3d/figures-kit'
 import {
   clamp,
   GARMENTS,
@@ -17,7 +17,7 @@ import {
   garmentOf,
   registerGarment,
   registerOutfitHooks,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { chain, hoops, shades, sneakers } from './accessories.ts'
 import { bomber, bomberShell } from './bomber.ts'
 import { cargoCut, cargos, wideCut, wideLegs } from './bottoms.ts'
@@ -135,7 +135,7 @@ const STREETWEAR: Readonly<Record<string, Omit<GarmentKind, 'schema'>>> = {
   },
 }
 
-// Registered on load (an extension has no setup hook), and only after the classic set: `@automata/3d/figures-kit`
+// Registered on load (an extension has no setup hook), and only after the classic set: `@automataframework/3d/figures-kit`
 // registers the classic garments when it loads, and the garments are told apart in registration order.
 for (const [name, kind] of Object.entries(STREETWEAR)) {
   const schema = STREETWEAR_SCHEMAS[name]

@@ -6,7 +6,7 @@
 // not on the live updates of a drag, so a drag in flight never reaches the pill, and the level a run reads is the one
 // the step left, whatever has been dragged since.
 
-import type { Point } from '@automata/3d/level'
+import type { Point } from '@automataframework/3d/level'
 import type { CheckResult, Locator } from '../../../shared/checks/check'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { parseSelection } from '../../../shared/edit/selection-ref'

@@ -1,7 +1,7 @@
 // The generated maps: an apartment and a street block, each a valid `/2` level, the same for a seed, different for
 // another, and building cleanly once their rooms are dressed.
-import { afSector2Schema } from '@automata/3d/level'
-import { buildWorld } from '@automata/3d/props-kit'
+import { afSector2Schema } from '@automataframework/3d/level'
+import { buildWorld } from '@automataframework/3d/props-kit'
 import { describe, expect, it } from 'vitest'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import { dressLevel } from '#src/features/furnish/dress.ts'

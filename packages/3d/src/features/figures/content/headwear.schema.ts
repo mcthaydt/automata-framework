@@ -1,7 +1,7 @@
 // Headwear and hair locks (`Lock`, `Headwear` and `Cap`). Locks are rounded boxes in head units, so a style fits any head the
 // sliders make. The generators that build them live in the hair and outfit code; these are the content shapes.
 
-import { contentRef } from '@automata/content/schema'
+import { contentRef } from '@automataframework/content/schema'
 import { z } from 'zod'
 import { about, type Line, line, type Vec2, type Vec3, vec2, vec3 } from './shapes.schema.ts'
 

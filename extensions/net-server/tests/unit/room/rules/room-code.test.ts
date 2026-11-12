@@ -1,5 +1,5 @@
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from '@automata/net'
-import { createRng } from '@automata/sim'
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from '@automataframework/net'
+import { createRng } from '@automataframework/sim'
 import { describe, expect, it } from 'vitest'
 import {
   CODE_ATTEMPTS,

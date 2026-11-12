@@ -3,7 +3,7 @@
 // a test fails when it is stale. A catalog is flat, `key -> text`, in the inlang message format the tools already read;
 // a word that needs a number or a name carries it as a `{placeholder}`.
 
-import { DEFAULT_LOCALES, type DefaultLocale } from '@automata/content/locale'
+import { DEFAULT_LOCALES, type DefaultLocale } from '@automataframework/content/locale'
 import { DISPLAY_COPY_EN, type DisplayCopy } from '../../features/display/display-policy.svelte.ts'
 import { matchLocale } from '../../features/locale/negotiate-locale.ts'
 import { BOOT_FAILURE_COPY_EN, type BootFailureCopy } from '../../shared/ui/status/boot-failure.ts'

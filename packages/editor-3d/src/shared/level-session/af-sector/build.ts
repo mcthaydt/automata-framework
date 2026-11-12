@@ -2,7 +2,7 @@
 // `build`). It is Last Light's `roomSector` without presets, camera zones or openings: a named style lies under the
 // sector's own fields, and the sector's other members are the file's, not the engine's. The rooms come as the editor
 // sees them (heights, and a wall's texture as a name), so what is drawn is what the edits change.
-import type { AfSector2File, Corner, SectorDef, WallDef } from '@automata/3d/level'
+import type { AfSector2File, Corner, SectorDef, WallDef } from '@automataframework/3d/level'
 import type { EditCorner } from '../sector-access'
 import { afSectorAccess } from './af-sectors'
 

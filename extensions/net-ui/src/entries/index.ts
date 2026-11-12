@@ -1,4 +1,4 @@
-// `@automata/net-ui`: the connection badge and the reconnect overlay for `hud.overlay`, their words as locale
+// `@automataframework/net-ui`: the connection badge and the reconnect overlay for `hud.overlay`, their words as locale
 // keys, and the host the game installs. Svelte, so apart from the main entry, which stays free of it.
 
 export { default as StaleBuild } from '../features/stale/StaleBuild.svelte'

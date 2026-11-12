@@ -1,10 +1,10 @@
 // The agent interpreter: the original game's `agents.test.ts` cases, re-pointed at the clinic
 // fixture and run through the real sim (the toy watchman, the player as an entity, noises made by `hear`).
-import { clinicGraph } from '@automata/nav/testing/clinic'
-import { PuzzleState } from '@automata/puzzle/sim'
-import type { Point } from '@automata/sectors/sim'
-import { stepWith } from '@automata/sectors/testing'
-import type { Sim } from '@automata/sim'
+import { clinicGraph } from '@automataframework/nav/testing/clinic'
+import { PuzzleState } from '@automataframework/puzzle/sim'
+import type { Point } from '@automataframework/sectors/sim'
+import { stepWith } from '@automataframework/sectors/testing'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { AgentDef } from '#src/shared/sim/systems.schema.ts'
 import { sceneOf, watchman } from '#src/testing/toy.ts'

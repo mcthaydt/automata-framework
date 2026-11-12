@@ -5,7 +5,7 @@
 // unchanged. Cut: graphics (SNEKPRTY marks). Changed: painter materials are swatch variants; the aglet, drawn
 // at two sizes by density, is one decal at its density-2 size (the density is fixed).
 
-import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
+import type { Anchor, Garment, Measure } from '@automataframework/3d/figures-kit'
 import {
   at,
   clamp,
@@ -22,7 +22,7 @@ import {
   sweep,
   type V3,
   type Weight,
-} from '@automata/3d/figures-kit'
+} from '@automataframework/3d/figures-kit'
 import { WARDROBE_DEFAULTS } from './defaults.ts'
 import type { Hoodie } from './garment-types.ts'
 import { over, underneath } from './layering.ts'

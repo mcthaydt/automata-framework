@@ -1,6 +1,6 @@
 // The names a field may choose from, read from the scene's files: the open character's modes, the scene's characters,
 // the facts the file mentions, and the scene's places.
-import type { SysEffect, SystemsDef } from '@automata/systems/sim'
+import type { SysEffect, SystemsDef } from '@automataframework/systems/sim'
 import type { Names } from './pieces/piece.ts'
 
 type Probes = SystemsDef['rules'][number]['when']

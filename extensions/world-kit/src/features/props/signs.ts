@@ -13,7 +13,7 @@ import {
   rbox,
   rod,
   type V3,
-} from '@automata/3d/props-kit'
+} from '@automataframework/3d/props-kit'
 import {
   letterMesh,
   setText,

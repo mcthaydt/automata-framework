@@ -1,6 +1,6 @@
 // The kit's wall things say they hang on a wall, so the world builder links them to it and the occluder rule hides them
 // with it: a frame, a pinboard, a radiator, a vent, a clock and a key cabinet. What stands on the floor says nothing.
-import { isFault, resolveProp } from '@automata/3d/props-kit'
+import { isFault, resolveProp } from '@automataframework/3d/props-kit'
 import { describe, expect, it } from 'vitest'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import '#src/features/props/register-props.ts'

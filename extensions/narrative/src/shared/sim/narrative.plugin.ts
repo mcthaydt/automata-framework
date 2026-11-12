@@ -2,9 +2,9 @@
 // puzzle's hooks (`dialogue: startDialogue`, `verb: heardVerb`), with `fireSystem` for its own system events and
 // `load` for a scene change.
 
-import type { VerbReport } from '@automata/puzzle/sim'
-import { sectorsPlaces } from '@automata/sectors/sim'
-import { definePlugin, type PluginDef, type ResourceDef, type SimContext } from '@automata/sim'
+import type { VerbReport } from '@automataframework/puzzle/sim'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
+import { definePlugin, type PluginDef, type ResourceDef, type SimContext } from '@automataframework/sim'
 import type { z } from 'zod'
 import { loadNarrative, type NarrativeScene } from './load-narrative'
 import { AdvanceCommand, ChooseCommand, StartCommand } from './narrative.command'

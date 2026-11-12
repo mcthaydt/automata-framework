@@ -1,4 +1,4 @@
-import { type Probe, probeSchema } from '@automata/systems/sim'
+import { type Probe, probeSchema } from '@automataframework/systems/sim'
 import { describe, expect, it } from 'vitest'
 import {
   CONDITIONS,

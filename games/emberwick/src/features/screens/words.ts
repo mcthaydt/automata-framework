@@ -1,7 +1,7 @@
 // Emberwick's words, one catalog per language (messages/ui/<lang>.json, the inlang format `automata words` writes).
 // The screens are plain DOM, so they read the JSON directly: there is no Paraglide here. All six ship in the bundle,
 // because a language switch must be instant and offline.
-import { matchLocale } from '@automata/framework'
+import { matchLocale } from '@automataframework/framework'
 import en from '../../../messages/ui/en.json' with { type: 'json' }
 import es419 from '../../../messages/ui/es-419.json' with { type: 'json' }
 import ja from '../../../messages/ui/ja.json' with { type: 'json' }

@@ -10,10 +10,10 @@ import { collectPlatformSources, platformImportFindings } from '#src/features/bo
 
 describe('platformImportFindings', () => {
   it.each([
-    ["import { Ruken } from '@ruken/sdk'", '@ruken/sdk', '@automata/framework'],
-    ["import type { Capability } from '@ruken/sdk'", '@ruken/sdk', '@automata/framework'],
+    ["import { Ruken } from '@ruken/sdk'", '@ruken/sdk', '@automataframework/framework'],
+    ["import type { Capability } from '@ruken/sdk'", '@ruken/sdk', '@automataframework/framework'],
     ["export { createFakeHost } from '@ruken/sdk-host/testing'", '@ruken/sdk-host/testing', 'FakeHosting'],
-    ["export * from '@ruken/manifest'", '@ruken/manifest', '@automata/content/game-config'],
+    ["export * from '@ruken/manifest'", '@ruken/manifest', '@automataframework/content/game-config'],
     ["await import('@ruken/cli')", '@ruken/cli', 'automata ship'],
     ["import '@tauri-apps/api/core'", '@tauri-apps/api/core', "'tauri'"],
   ])(

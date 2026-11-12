@@ -6,9 +6,9 @@
 // is paid. The scene module and the tools load when a stage runs (as `puzzle` and `systems`).
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { Finding, NarrativeToolsScene } from '@automata/narrative/tools'
-import { canonicalJson } from '@automata/sim'
-import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import type { Finding, NarrativeToolsScene } from '@automataframework/narrative/tools'
+import { canonicalJson } from '@automataframework/sim'
+import { hex64, utf8, xxhash64 } from '@automataframework/sim/hash'
 import { Effect } from 'effect'
 import { z } from 'zod'
 import { Files } from '../../shared/node/files.ts'
@@ -47,7 +47,7 @@ type Ctx = StageContext<NarrativePipeSpec>
 
 const failing = (stage: string) => (cause: unknown) => new StageFailed({ stage, reason: String(cause) })
 const tools = (stage: string) =>
-  Effect.tryPromise({ try: () => import('@automata/narrative/tools'), catch: failing(stage) })
+  Effect.tryPromise({ try: () => import('@automataframework/narrative/tools'), catch: failing(stage) })
 
 /** The scene module, and the stamp of its sources as they are now (the docs' stamp). */
 const loadScene = (ctx: Ctx, stage: string) =>

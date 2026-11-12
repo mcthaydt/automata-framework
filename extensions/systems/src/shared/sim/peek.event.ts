@@ -1,5 +1,5 @@
 // A peek held (the camera may lean and the far room shows) or ended.
-import { defineEvent, type EventDef } from '@automata/sim'
+import { defineEvent, type EventDef } from '@automataframework/sim'
 import { z } from 'zod'
 
 export interface PeekPayload {

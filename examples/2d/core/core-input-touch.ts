@@ -4,7 +4,7 @@
 //   (40 px within 180 ms) lasts exactly one tick; with no touch buttons, the play screen takes touch as a swipe
 //   surface. The arrows drive the same command.
 // Controls: on a touch screen, swipe left or right and flick down; or the arrows to steer
-// Packages: @automata/framework, zod
+// Packages: @automataframework/framework, zod
 // Difficulty: ★★☆☆
 // Tier: core
 import {
@@ -15,7 +15,7 @@ import {
   defineSystem,
   keys,
   rect,
-} from '@automata/framework'
+} from '@automataframework/framework'
 import { z } from 'zod'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })

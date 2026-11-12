@@ -1,4 +1,4 @@
-import type { Command, Sim } from '@automata/sim'
+import type { Command, Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { blendViews, type RemoteView } from '#src/features/client/interpolation/snapshot-buffer.ts'
 import type { NetSnapshot } from '#src/features/client/room/colyseus-transport.ts'

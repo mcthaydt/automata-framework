@@ -1,8 +1,8 @@
 // The rule ticks: the original game's `systems.test.ts` cases through the real sim, plus the
 // halt: a catch in a rule ends the step before the agents.
 
-import { stepWith } from '@automata/sectors/testing'
-import type { Sim } from '@automata/sim'
+import { stepWith } from '@automataframework/sectors/testing'
+import type { Sim } from '@automataframework/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { SystemsNoises } from '#src/shared/sim/systems.resource.ts'
 import type { SystemsDef } from '#src/shared/sim/systems.schema.ts'

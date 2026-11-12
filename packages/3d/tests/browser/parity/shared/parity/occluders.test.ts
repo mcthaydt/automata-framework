@@ -2,7 +2,7 @@
 // camera a drawn frame cuts the wall between the camera and the player (showing its trim), hides the ceiling and fades
 // a pillar on the line to 25%. Headless Firefox here has no WebGL, so this skips there and the GPU runner runs it.
 import '#src/entries/no-eval.ts'
-import type { RenderRow, StepResult } from '@automata/sim'
+import type { RenderRow, StepResult } from '@automataframework/sim'
 import { Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer } from '#src/app/create-renderer.ts'

@@ -2,7 +2,7 @@
  * Records the goldens. Each golden test draws its frames again and compares them, so a change that moves a single
  * texel fails:
  *
- * - base: the frames `pnpm --filter @automata/figures render` draws (each member's 8 standing views, its walk's poses and its lookbook hero, at
+ * - base: the frames `pnpm --filter @automataframework/figures render` draws (each member's 8 standing views, its walk's poses and its lookbook hero, at
  *   the 18° pitch), at DENSITY 1 and 2, as raw RGBA, gzipped, into tests/fixtures/golden/base/ (tests/unit/golden/base.test.ts);
  * - lit: the md5 of every lit frame tests/fixtures/frames/lit.ts draws, into tests/fixtures/golden/lit.json (tests/unit/golden/lit.test.ts);
  * - actors: the md5 of every frame tests/fixtures/frames/actors.ts draws, into tests/fixtures/golden/actors.json
@@ -13,7 +13,7 @@
  * - sprite: the md5 of every sprite-lit frame tests/fixtures/frames/sprite.ts draws, into tests/fixtures/golden/sprite.json
  *   (tests/unit/golden/sprite.test.ts).
  *
- *   pnpm --filter @automata/figures golden [base|lit|actors|sprites|sprite]
+ *   pnpm --filter @automataframework/figures golden [base|lit|actors|sprites|sprite]
  *
  * With no argument it records them all. Run it only to accept a deliberate visual change, and say so in the commit.
  * The base goldens were recorded at f04063b; the others before the base pair was cut from the first renderer. The dressed golden (the wardrobe's) was recorded in

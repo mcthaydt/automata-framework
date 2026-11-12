@@ -1,8 +1,8 @@
 // The systems plugin. `createSystems` takes the game's hooks, derived facts, refused steps, mapped
 // facts and queries, and gives the plugin with the `hear` and `load` bound to those options.
-import type { PlanPoint as Point } from '@automata/places'
-import { sectorsPlaces } from '@automata/sectors/sim'
-import { definePlugin, type PluginDef, type SimContext, sortedKeys } from '@automata/sim'
+import type { PlanPoint as Point } from '@automataframework/places'
+import { sectorsPlaces } from '@automataframework/sectors/sim'
+import { definePlugin, type PluginDef, type SimContext, sortedKeys } from '@automataframework/sim'
 import { loadSystems } from './load-systems'
 import { Hide, Unhide } from './systems.command'
 import { SystemsAgent } from './systems.component'

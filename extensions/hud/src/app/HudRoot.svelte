@@ -7,7 +7,7 @@
   key; it is told to whoever writes the game, once.
 -->
 <script lang="ts">
-import { usePlay } from '@automata/framework'
+import { usePlay } from '@automataframework/framework'
 import { untrack } from 'svelte'
 import Examine from '../features/examine/Examine.svelte'
 import Inventory from '../features/inventory/Inventory.svelte'

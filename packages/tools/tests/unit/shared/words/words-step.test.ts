@@ -150,15 +150,15 @@ describe('wordsStep', () => {
     const dir = game({
       'messages/ui/ja.json': catalog({ play: 'Play', more: '+{count}' }),
       'content/fonts.toml': fontsToml(['en', 'ja']),
-      'node_modules/@automata/framework/package.json': JSON.stringify({
-        name: '@automata/framework',
+      'node_modules/@automataframework/framework/package.json': JSON.stringify({
+        name: '@automataframework/framework',
         exports: { './words/*.json': './words/*.json' },
       }),
-      'node_modules/@automata/framework/words/ja.json': catalog({ paused_title: '一時停止' }),
+      'node_modules/@automataframework/framework/words/ja.json': catalog({ paused_title: '一時停止' }),
     })
     const findings = await run(dir)
     expect(findings.map((f) => [f.rule, f.file])).toEqual(
-      Array(4).fill(['words-font', '@automata/framework/words/ja.json']),
+      Array(4).fill(['words-font', '@automataframework/framework/words/ja.json']),
     )
     expect(findings[0]?.message).toBe('U+4E00 "一" in ja "paused_title" is not in any font that serves ja')
   })

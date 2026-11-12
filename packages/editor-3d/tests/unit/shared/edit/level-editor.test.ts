@@ -2,7 +2,7 @@
 // protocol every edit goes through. The edits here are small fakes over the depot, so the protocol is tested apart
 // from the sector rules (steps 5 to 7).
 
-import type { AfSector2File } from '@automata/3d/level'
+import type { AfSector2File } from '@automataframework/3d/level'
 import { describe, expect, it, vi } from 'vitest'
 import { type Edit, ok, refuse } from '#src/shared/edit/edit.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'

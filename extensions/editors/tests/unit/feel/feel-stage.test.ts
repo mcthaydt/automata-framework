@@ -1,4 +1,4 @@
-import type { FeelContent, FeelFrame, FeelSettings } from '@automata/feel'
+import type { FeelContent, FeelFrame, FeelSettings } from '@automataframework/feel'
 import { describe, expect, it } from 'vitest'
 import {
   alsoPlays,

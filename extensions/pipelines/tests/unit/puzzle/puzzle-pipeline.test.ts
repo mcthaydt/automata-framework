@@ -14,8 +14,8 @@ import { ProcessRunnerLive } from '#src/shared/node/process.ts'
 import { route } from '#src/shared/router.ts'
 
 const resolve = createRequire(import.meta.url).resolve
-const TOY = resolve('@automata/puzzle/testing/toy-scene.pipe')
-const SOFTLOCK = resolve('@automata/puzzle/testing/softlock-scene.pipe')
+const TOY = resolve('@automataframework/puzzle/testing/toy-scene.pipe')
+const SOFTLOCK = resolve('@automataframework/puzzle/testing/softlock-scene.pipe')
 const temps: string[] = []
 afterEach(() => {
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })

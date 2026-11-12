@@ -4,8 +4,8 @@
 // everything that could not be read. Whether a value fits its field, how many a definition allows and whether a thing
 // stands in a sector are checks (ED3D.2b), made over this answer; the reader only says what is there.
 
-import type { Point } from '@automata/3d/level'
-import { type FieldValue, type FieldValues, fieldValueSchema } from '@automata/editor/kit/fields'
+import type { Point } from '@automataframework/3d/level'
+import { type FieldValue, type FieldValues, fieldValueSchema } from '@automataframework/editor/kit/fields'
 import { z } from 'zod'
 import { type ThingDef, thingDefSchema } from './thing-def.schema'
 

@@ -20,7 +20,7 @@ import {
   savedCopyMessage,
   saveFailure,
   type ToastStore,
-} from '@automata/editor/kit/core'
+} from '@automataframework/editor/kit/core'
 import type { EditorApp, OpenOutcome } from './editor-app'
 import {
   documentHeading,

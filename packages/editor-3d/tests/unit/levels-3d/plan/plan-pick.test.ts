@@ -2,8 +2,8 @@
 // that the pointer kind sets. The viewport is 32 px to a metre with the world origin at (20, 20), so a metre is 32 px and
 // the cases below read in pixels from a known point.
 
-import type { AfSector2File, AfSectorEntry2File, Point } from '@automata/3d/level'
-import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
+import type { AfSector2File, AfSectorEntry2File, Point } from '@automataframework/3d/level'
+import { createViewport, type Point as ScreenPoint } from '@automataframework/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import {
   PICK_RADIUS,

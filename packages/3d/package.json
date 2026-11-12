@@ -1,5 +1,5 @@
 {
-  "name": "@automata/3d",
+  "name": "@automataframework/3d",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -49,9 +49,9 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@automata/content": "workspace:*",
-    "@automata/framework": "workspace:*",
-    "@automata/sim": "workspace:*",
+    "@automataframework/content": "workspace:*",
+    "@automataframework/framework": "workspace:*",
+    "@automataframework/sim": "workspace:*",
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
     "@pmndrs/klipp": "0.16.0",
     "smol-toml": "1.9.0",
@@ -61,7 +61,7 @@
     "pixi.js": "8.22.0"
   },
   "devDependencies": {
-    "@automata/vitest-preset": "workspace:*",
+    "@automataframework/vitest-preset": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",

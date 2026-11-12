@@ -21,7 +21,7 @@
 
 import { randomInt } from 'node:crypto'
 import { createServer, type Server as HttpServer } from 'node:http'
-import { MAX_MESSAGE_BYTES, ROOM_NAME } from '@automata/net'
+import { MAX_MESSAGE_BYTES, ROOM_NAME } from '@automataframework/net'
 import { Server } from '@colyseus/core'
 import { WebSocketTransport } from '@colyseus/ws-transport'
 import { type Cause, type Clock, Data, Effect, type Scope } from 'effect'

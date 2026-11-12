@@ -1,4 +1,4 @@
-import type { SpawnPart } from '@automata/sim'
+import type { SpawnPart } from '@automataframework/sim'
 import { type BodyKind, type ColliderOptions, colliderDefaults, ShapeKind } from '../../shared/kinds'
 import { Collider3D, RigidBody3D, Transform3D } from './physics-3d.component'
 

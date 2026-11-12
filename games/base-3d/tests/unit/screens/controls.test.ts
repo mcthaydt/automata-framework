@@ -1,11 +1,11 @@
 // The controls: G3-F5 (what reaches the sim), G3-aa (the camera settings), and the touch layout's data (the required
 // `end` Roll button, the stick, the drag) over the page's own input map.
-import type { AnalogReading } from '@automata/framework'
-import { MAX_TURN_UNITS_PER_STEP } from '@automata/framework'
+import type { AnalogReading } from '@automataframework/framework'
+import { MAX_TURN_UNITS_PER_STEP } from '@automataframework/framework'
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@automata/framework', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@automata/framework')>()),
+vi.mock('@automataframework/framework', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@automataframework/framework')>()),
   startGame: () => {},
 }))
 const { input } = await import('../../../main.ts')

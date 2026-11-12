@@ -2,8 +2,8 @@
 // what a shorter scene takes away. Every time is a tenth of a second and stays inside the scene; a key stops at its
 // neighbours on its row, because the file refuses a camera key before the one before it (and an actor key likewise).
 
-import type { CutsceneScript } from '@automata/cutscenes/sim'
-import type { ContentEdit } from '@automata/editor/kit/documents'
+import type { CutsceneScript } from '@automataframework/cutscenes/sim'
+import type { ContentEdit } from '@automataframework/editor/kit/documents'
 import { appendEdits } from '../../shared/fields.ts'
 import { endOf, keysOf, type TrackId, timeOf, timePath } from './tracks.ts'
 

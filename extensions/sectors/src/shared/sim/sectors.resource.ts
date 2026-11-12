@@ -1,7 +1,7 @@
 // The `sector-map` resource: the scene's sectors and masses, set once per scene by `loadSectorMap`. It is what a
 // snapshot carries; the resolution is derived from it (`resolvedMap`), so it never needs saving.
-import { massSchema, pairSchema, surfaceSchema } from '@automata/3d/level'
-import { defineResource, type ResourceDef } from '@automata/sim'
+import { massSchema, pairSchema, surfaceSchema } from '@automataframework/3d/level'
+import { defineResource, type ResourceDef } from '@automataframework/sim'
 import { z } from 'zod'
 import type { SectorMap, StoredPlane, StoredSector } from './check-level'
 

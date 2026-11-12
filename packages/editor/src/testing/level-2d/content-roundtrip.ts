@@ -3,7 +3,7 @@ import {
   levelContentSchema,
   projectContentSchema,
   worldContentSchema,
-} from '@automata/content/level-2d'
+} from '@automataframework/content/level-2d'
 import { parse } from 'smol-toml'
 import { decodeRows, packTile } from '../../shared/level-2d/model/cells-codec'
 import { Grid } from '../../shared/level-2d/model/grid'

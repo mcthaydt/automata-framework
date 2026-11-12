@@ -3,9 +3,9 @@
 // changes and the file's comments stay where the person put them. A step is applied first, so the shell's record of
 // the write carries the editor's label, and a write the workspace refuses takes the step back: what the person sees
 // is always what the file holds.
-import { createHistory, type History } from '@automata/editor/kit/core'
-import { type ContentEdit, DocumentSyntaxError, openDocument } from '@automata/editor/kit/documents'
-import type { SuitePorts } from '@automata/editor/kit/ports'
+import { createHistory, type History } from '@automataframework/editor/kit/core'
+import { type ContentEdit, DocumentSyntaxError, openDocument } from '@automataframework/editor/kit/documents'
+import type { SuitePorts } from '@automataframework/editor/kit/ports'
 import type { z } from 'zod'
 import { problemWords } from './problem-words.ts'
 

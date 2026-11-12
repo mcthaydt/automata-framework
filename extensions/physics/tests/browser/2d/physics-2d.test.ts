@@ -1,4 +1,4 @@
-import { recordGoldenEvidence } from '@automata/evidence/golden'
+import { recordGoldenEvidence } from '@automataframework/evidence/golden'
 import { expect, test } from 'vitest'
 import { runScene } from '#src/testing/run-scene.ts'
 import { createScene2D, sceneCommands2D } from '#src/testing/scene-2d.ts'

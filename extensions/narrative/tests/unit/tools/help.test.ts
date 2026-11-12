@@ -1,9 +1,9 @@
 // `lintHelp` and `currentHint`: the owner's two puzzle-design rules (2026-10-11), checked on a toy puzzle
 // scene with its solver routes, and on the four converted scenes' help against their converted puzzles.
 
-import { createSolver, routesOf } from '@automata/puzzle/solver'
-import { scenePuzzle } from '@automata/puzzle/testing/converted-puzzles'
-import { toyScene } from '@automata/puzzle/testing/toy-scene'
+import { createSolver, routesOf } from '@automataframework/puzzle/solver'
+import { scenePuzzle } from '@automataframework/puzzle/testing/converted-puzzles'
+import { toyScene } from '@automataframework/puzzle/testing/toy-scene'
 import { describe, expect, it } from 'vitest'
 import type { DialogueGraph, LineRecord } from '#src/entries/sim.ts'
 import { currentHint, type HelpInput, helpInputOf, lintHelp } from '#src/features/tools/help.ts'
