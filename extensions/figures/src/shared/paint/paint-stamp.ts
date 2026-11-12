@@ -27,7 +27,10 @@ export function stampFace(
     open = has('mouthOpen')
   const gaze = has('lookL') ? -1 : has('lookR') || has('beside') ? 1 : 0
   // Detail by size: from 3 texels an eye has its white and lid, the lips two tones, the nose a lit bridge.
-  const big = f.detail >= 3,
+  // A full face (`eyes.full`): from an eye of 6 texels the face's marks grow with it (the eyes' aperture, thicker brows, lips
+  // of a body, a lower lid). Never at the sizes the base pair is drawn at, so their cells do not move.
+  const rich = !!f.full && f.detail >= 6,
+    big = f.detail >= 3,
     ew = f.eye,
     whiteFar = f.white
   const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h
@@ -146,6 +149,8 @@ export function stampFace(
         else mark(x, Y + r, id >= 4 && r === 1 && x < cx ? f.white : f.iris)
       }
     }
+    // The lower lid: the skin's next step darker along the opening's floor, a texel in from each corner.
+    for (let i = 1; i < n - 1; i++) shade(x0 + i, Y + id, 1)
   }
   /**
    * An eye: `x0` its left column, `n` texels wide, its outer corner to the `outer` side, the iris's first column `iris`
@@ -189,7 +194,7 @@ export function stampFace(
     // further out than the eye's own width.
     const iw = n >= 4 ? 2 : 1,
       at = Math.max(0, Math.min(n - iw, iris)),
-      full = !!f.full && f.detail >= 6 && !f.blink && !dead
+      full = rich && !f.blink && !dead
     for (let i = 0; i < n; i++) {
       const x = x0 + i,
         inIris = i >= at && i < at + iw
@@ -247,6 +252,12 @@ export function stampFace(
       const thin = t === n - 1 && (F.browWeight < 0.4 || F.browArch >= 0.3)
       put(x, y, thin ? tones[3] : f.brow)
       if (seen && big && F.browWeight >= 0.7 && t < n * 0.6) put(x, y - 1, f.brow)
+      // A full face: the brow a body of rows, thickest at its head and thinning to its tail.
+      if (seen && rich && !angry) {
+        const rows = 1 + (F.browWeight >= 0.1 ? 1 : 0) + (F.browWeight >= 0.6 ? 1 : 0)
+        for (let k = 1; k < rows; k++)
+          if (t < n * (1 - 0.3 * k) - 0.5) put(x, y - k, k === 1 ? f.brow : tones[2])
+      }
     }
   }
   // The nose's underside and the lips' line: the mouth where it projects, the nostrils kept two rows over it (a row of
@@ -269,6 +280,15 @@ export function stampFace(
     if (!own(x, y)) return
     while (own(x + 1, y)) x++
     for (let i = 0; i < len && x - i > past; i++) shade(x - i, y, 1)
+  }
+  /**
+   * A full face's mouth over the lips' line (`lips`): an upper lip's body a step darker above the line with the bow's dip at the
+   * middle, and a second row of lower lip, each only where the skin has the rows (never on the jaw's edge).
+   */
+  const fuller = (a: number, b: number, cm: number) => {
+    if (!rich || open || smile || angry || chin(cm) < 3) return
+    for (let x = a + 2; x <= b - 2; x++) if (Math.abs(x - cm) > 0) shade(x, M - 1, 1)
+    if (mh >= 3) for (let x = a + 3; x <= b - 3; x++) if (own(x, M + 2)) put(x, M + 2, f.lips[1])
   }
   /** The lit bridge's run down the nose, in rows up from the tip: none at bridge 0, brow to tip at 1. */
   const run = Math.round(F.bridge * (N - 1 - (I + 1)))
@@ -409,6 +429,7 @@ export function stampFace(
     cheek(b)
     const ma = Math.floor(c2 - mh)
     if (!noMouth) lips(ma, mirror(ma), xc)
+    if (!noMouth) fuller(ma, mirror(ma), xc)
   } else if (view === 1) {
     // The near eye whole, the far one foreshortened by a texel; both look where the face does.
     // The far eye keeps a texel of cheek between it and the contour, and the near one a texel of the bridge from it.
@@ -442,7 +463,10 @@ export function stampFace(
     cheek(tip + 1)
     const cm = Math.floor(f.mouth[0])
     // The mouth wider on the near side, its far corner foreshortened: two texels of lip between the corners at least.
-    if (!noMouth) lips(cm - (d > 0 ? mh : Math.max(0, mh - 1)), cm + (d > 0 ? Math.max(0, mh - 1) : mh), cm)
+    if (!noMouth) {
+      lips(cm - (d > 0 ? mh : Math.max(0, mh - 1)), cm + (d > 0 ? Math.max(0, mh - 1) : mh), cm)
+      fuller(cm - (d > 0 ? mh : Math.max(0, mh - 1)), cm + (d > 0 ? Math.max(0, mh - 1) : mh), cm)
+    }
   } else {
     // The eye from the side, a texel in from the face's front: the lash over it, the iris at its front, the white behind.
     // Big: as the front's eye seen edge on, a texel of the lid's skin in front of it: the lash three texels back along

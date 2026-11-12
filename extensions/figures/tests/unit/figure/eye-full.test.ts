@@ -4,6 +4,7 @@ import { Figure } from '#src/shared/figure/figure.ts'
 import { member, view } from '#src/shared/figure/frames.ts'
 import { type Garment, SWATCHES } from '#src/shared/outfit/garments.ts'
 import { tonesOf } from '#src/shared/paint/paint.ts'
+import { familyTones } from '#src/shared/paint/paint-budget.ts'
 import { dressed } from '../../fixtures/draw'
 
 /**
@@ -85,5 +86,32 @@ describe('a full eye (`eyes.full`)', () => {
     // The base figure blinks on its own timer; `blink: 0` pins it open, so a closed eye is only reached by the mood
     // 'dead', which `full` leaves to the sprite's drawing.
     expect(same(draw({ full: false }, 4), draw({}, 4))).toBe(true)
+  })
+
+  describe('at density 7, the face round the eyes grows with them', () => {
+    const BROW = familyTones(tonesOf(SWATCHES.brow))[1],
+      [LIP_UP, LIP_LOW] = familyTones(tonesOf(SWATCHES.lipsWarm))
+    it('the brows are thicker than one row, tapering to their tails', () => {
+      // The brows' colour is shared with other parts of the figure: count it on the rows between the lid and the hairline.
+      const above = (s: ReturnType<typeof draw>) => {
+        const top = Math.min(...where(s, IRIS).map(([, y]) => y))
+        return where(s, BROW).filter(([, y]) => y < top && y >= top - 10)
+      }
+      const plain = above(draw({}, 7)),
+        full = above(draw({ full: true }, 7))
+      expect(plain.length, 'a brow to compare').toBeGreaterThan(5)
+      expect(full.length, 'brow texels').toBeGreaterThan(plain.length * 1.3)
+    })
+    it('the lips take more rows: an upper lip and a lower lip a texel or two tall', () => {
+      const lips = (s: ReturnType<typeof draw>) => [...where(s, LIP_UP), ...where(s, LIP_LOW)]
+      const plain = lips(draw({}, 7)),
+        full = lips(draw({ full: true }, 7))
+      expect(new Set(full.map(([, y]) => y)).size, 'rows').toBeGreaterThan(
+        new Set(plain.map(([, y]) => y)).size,
+      )
+    })
+    it('draws the same face at density 2 with or without it, view by view', () => {
+      for (const d of [0, 1, 2]) expect(same(draw({ full: true }, 2, d), draw({}, 2, d))).toBe(true)
+    })
   })
 })
