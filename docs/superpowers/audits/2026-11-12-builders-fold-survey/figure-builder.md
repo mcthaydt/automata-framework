@@ -282,6 +282,7 @@ them for the Owner: bring later as framework changes, or leave in the retired re
 | `main` alone, everything | 347 (286 without merges) | 20.6 MB |
 | `main`, only `src base tests scripts viewer`, the root config, `CLAUDE.md`, `README.md`, `docs/contract.md`, `docs/actors.md` | | **1.87 MB** |
 | What `claude/c9-wardrobe` adds, everything | 10 | 1.93 MB (the five sheets are most of it) |
+| `main` and the wardrobe branch after the plan's filter (`git filter-repo`, the code paths only, dry-run in a scratch clone) | 243 (236 and 7) | **1.64 MB** |
 
 10 of `main`'s 347 commit subjects are Conventional Commits. The framework's clone here is shallow (483 commits,
 100.32 MiB packed), so the framework's full history size was not measured.

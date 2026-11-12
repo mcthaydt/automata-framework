@@ -62,8 +62,9 @@ Each has the recommendation and its reason. Where the decision is the Owner's, t
 `extensions/painted-figures/`, and the result is merged with `--allow-unrelated-histories` in one merge commit whose
 subject is a Conventional Commit. `git log` and `git blame` then work on the new paths with no extra flags.
 
-- Size, measured: `main`'s code paths pack to **1.87 MB**; all of `main` is 20.6 MB, because of 228 audit PNGs
-  (12.2 MB) that the framework does not want in its history. The framework's clone here is shallow (483 commits,
+- Size, measured: the filtered history is **243 commits and 1.64 MB packed** (`main`, 236 commits, with the wardrobe
+  branch's 7), dry-run in a scratch clone with the exact command of task 2; all of `main` unfiltered is 347 commits
+  and 20.6 MB, because of 228 audit PNGs (12.2 MB) that the framework does not want in its history. The framework's clone here is shallow (483 commits,
   100.32 MiB), so its full size was not measured; the fold adds about 2 MB to whatever it is.
 - The imported commits keep their own subjects (10 of 347 are Conventional Commits). They are history, not new work;
   rewriting their messages would falsify the record. Nothing in the repository checks commit subjects (no commit-lint
@@ -392,8 +393,11 @@ git filter-repo --force \
   --refs refs/heads/main refs/heads/claude/c9-wardrobe
 ```
 
-  Expected: `git log --oneline main | wc -l` is at most 347; `git ls-tree -r --name-only main | wc -l` is 134; no
-  path outside `extensions/painted-figures/`. If `pip` cannot install the tool, use the fallback of "History" and say
+  Expected, from the plan session's dry run in a scratch clone: `git log --oneline main | wc -l` prints **236** (the
+  commits that touched none of the kept paths are dropped); `git ls-tree -r --name-only main | wc -l` prints **134**,
+  none outside `extensions/painted-figures/`; `git rev-list --count main..claude/c9-wardrobe` prints **7** (the
+  branch's code commits; its three document and evidence commits are dropped) and the branch sits on the filtered
+  `main`; the two refs together pack to about 1.6 MB. If `pip` cannot install the tool, use the fallback of "History" and say
   so.
 - [ ] **Step 2: Merge.** In the framework:
 
@@ -532,6 +536,7 @@ git rm -f .gitmodules
   `git merge --no-ff painter-history/claude/c9-wardrobe -m "feat(painted-figures): the wardrobe's first six tasks arrive (sheer cloth, the shod foot, the head's form, front hair, hair on the trunk, a fringe)"`.
   **One conflict is expected, in `extensions/painted-figures/package.json`** (the branch adds a script to the file
   task 2 rewrote): keep task 2's file and add `"c9": "tsx scripts/c9-sheet.ts"`. Any other conflict is a stop.
+  Expected: seven commits arrive (F0 to F6).
 - [ ] **Step 2: Nothing recorded moved.**
   `git diff --stat HEAD^1 HEAD -- extensions/painted-figures/tests/golden` prints nothing.
 - [ ] **Step 3: Its suite.** `pnpm --filter @automata/painted-figures test:unit`: every test passes, the five goldens
@@ -1010,4 +1015,4 @@ the fold leaves open):
 
 | Date | Session | What |
 |---|---|---|
-| 2026-11-12 | Stage 2 (plan), `claude/builders-fold-plan` | The two surveys and this plan, against `main` `0df11a43`, FigureBuilder `23f889c8` and EnvironmentBuilder `f7c5356` (both cloned read only; nothing committed in them). Ran: both builders' own suites (FigureBuilder 47 files, 561 tests, at most 227 s; EnvironmentBuilder 55 files, 578 tests, 130 s), FigureBuilder's goldens under Node 24.21 (pass, 27 s), EnvironmentBuilder's suite against the framework's painter pin (27 failures in 4 files), the framework's format, lint, style and strict typecheck over the builders' source, the submodule script with no submodule (exit 0 both ways), byte and key comparisons of the photo library and the kits. Not run: either builder's view or GPU check, any render, anything on arm64, the wardrobe branch's tests, the tiles cross-check. No product code written; no golden or hash touched |
+| 2026-11-12 | Stage 2 (plan), `claude/builders-fold-plan` | The two surveys and this plan, against `main` `0df11a43`, FigureBuilder `23f889c8` and EnvironmentBuilder `f7c5356` (both cloned read only; nothing committed in them). Ran: both builders' own suites (FigureBuilder 47 files, 561 tests, at most 227 s; EnvironmentBuilder 55 files, 578 tests, 130 s), FigureBuilder's goldens under Node 24.21 (pass, 27 s), EnvironmentBuilder's suite against the framework's painter pin (27 failures in 4 files), the framework's format, lint, style and strict typecheck over the builders' source, the submodule script with no submodule (exit 0 both ways), byte and key comparisons of the photo library and the kits, and a dry run in a scratch clone of task 2's filter and manifest check (236 commits on `main`, 7 more for the wardrobe branch, 134 files, 0 differ, 1.64 MB). Not run: either builder's view or GPU check, any render, anything on arm64, the wardrobe branch's tests, the tiles cross-check. No product code written; no golden or hash touched |
