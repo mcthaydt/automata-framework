@@ -33,7 +33,7 @@ const captions = (script: Script) => (script.caption ?? []).map((c) => [c.line, 
 /** Everything a script keys besides where people and the camera are: lamps, doors, props, sounds, states, fades, flicker. */
 const namedThings = (script: Script) =>
   Object.entries(script)
-    .filter(([key]) => !['id', 'actor', 'camera', 'caption'].includes(key))
+    .filter(([key]) => !['id', 'actor', 'camera', 'caption', 'lintAllow'].includes(key))
     .map(([key, value]) => [key, value])
 
 describe('the prologue’s cutscenes', () => {
@@ -68,7 +68,10 @@ describe('the prologue’s cutscenes', () => {
     expect(before.every((key) => key.at === 'player')).toBe(true)
   })
 
-  it('keypad is untouched', () => {
-    expect(now.keypad).toEqual(fixture.keypad)
+  it('keypad is the fixture’s but for the lint allowance written by hand', () => {
+    const { lintAllow: allowed, ...rest } = now.keypad as Script
+    const { lintAllow: _was, ...before } = fixture.keypad as Script
+    expect(rest).toEqual(before)
+    expect(allowed).toEqual([expect.objectContaining({ rule: 'camera' })])
   })
 })

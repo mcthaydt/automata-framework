@@ -234,3 +234,7 @@ value = 0
 rule = "direction:unmotivated-move"
 reason = "the last move is the settle onto the hall camera: the handover to play (rule 75)"
 
+
+[[lintAllow]]
+rule = "camera"
+reason = "the establishing shot stands above and behind the hall, outside the map, as the old shot did; the rooms a cutscene draws are all of them"

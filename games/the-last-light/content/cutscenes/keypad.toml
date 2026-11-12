@@ -49,3 +49,7 @@ value = 1
 t = 0.9
 state = "cabinet.open"
 
+
+[[lintAllow]]
+rule = "camera"
+reason = "the insert's camera is near a wall that the camera rules cut away while it is on (the occluder rule); looked at in play"

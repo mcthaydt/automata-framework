@@ -95,5 +95,8 @@ Each row is a thing the old data had that the new files could not say, with what
   draws (`views.*.rooms`, task 13) say what was said by `hideFrom`; the lit room bakes its own light.
 - **Props are boxes where no generator draws the model** (`coat-hook`, `wall-sconce`, `extinguisher-cabinet`,
   `strip-light`, the shelves' stock). Task 13 (dressing) replaces them.
+- **Three cutscenes allow a camera finding.** The lint against the level found the keypad insert's camera within 0.2 m
+  of a wall and the camera of `lightsOut` and `opening` outside the map. Each script has a `lintAllow` row with its reason
+  (the old renderer cut those walls away and drew every room in a cutscene); task 15 looks at each shot in play.
 - **Not converted, on purpose:** `all-lamps-die`'s recorded file (nothing in the prologue plays it), act one's hotspots
   and any model, atlas or texture of the old game.

@@ -387,3 +387,7 @@ value = 1
 rule = "hidden"
 reason = "the reaction shot looks toward the corridor: the figure stands behind its wall, off screen, as intended (C-G1 to confirm)"
 
+
+[[lintAllow]]
+rule = "camera"
+reason = "the camera stands above and behind the ward, outside the map, as the old shot did; the rooms a cutscene draws are all of them"
