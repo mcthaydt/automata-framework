@@ -14,3 +14,17 @@ cell = 1
 # every lamp's strength; the ambient and fill are the old game's. Measured on the real play at 1024 by 768 (the session 8 audit folder).
 [light]
 lamps = 0.7
+
+# The old game's moonlight (`moonShaft` in `src/scenes/clinic/dress.ts` at 92e6704): pale stripes on the floor under each barred window,
+# bright a little way from the window and fading as they go, drawn added to the floor. `window` is where the light comes in on the plan,
+# `centre` the middle of the patch (the old one's, moved 0.35 m along the light for the picture's own start), `width` and `length` its size in
+# metres, `gain` how strongly it shows (the old 0.5, 0.38 here as ours draws brighter; the corridor's window, which the old game also lit (`moon-corridor`, 0.85), is left out until a patch can follow the player's room: the hall's camera draws the corridor too, so its stripes would show through the doorway where the old game hides them). The ward's window is in the back wall at x -4.
+[[moonlight]]
+id = "moon"
+rooms = ["hall", "ward"]
+window = [-4.0, -3.72]
+centre = [0.0, 0.215]
+width = 1.4
+length = 4.6
+bars = 4
+gain = 0.38

@@ -32,9 +32,32 @@ describe('the profiles', () => {
       ...lookProfilesSchema.parse({}),
       lcd: { ...LCD_CLINIC, cell: 1 },
       light: { lamps: 0.7 },
+      moonlight: MOONLIGHT,
     })
   })
+
+  it('light the floor under the ward’s barred window, as the old game laid its moonlight (`moonShaft` in `scenes/clinic/dress.ts`)', () => {
+    // Each patch's size is the old patch's. The ward's middle is where the old one's was and a quarter metre along, its gain 0.38 where the old's was 0.5: measured on the real play, ours draws the stripes brighter (the 95th percentile of the box's luma 104 against 81) and starting earlier.
+    expect(MOONLIGHT.map((patch) => patch.id)).toEqual(['moon'])
+    expect(lookProfilesSchema.parse({}).moonlight).toEqual([])
+    expect(() => lookProfilesSchema.parse({ moonlight: [{ ...MOONLIGHT[0], gain: 2 }] })).toThrow(/gain/)
+    expect(() => lookProfilesSchema.parse({ moonlight: [{ ...MOONLIGHT[0], width: 0 }] })).toThrow(/width/)
+  })
 })
+
+/** The old game's moonlight (`src/scenes/clinic/dress.ts` at 92e6704): the ward's window (the corridor's is left out, see `content/look.toml`). */
+const MOONLIGHT = [
+  {
+    id: 'moon',
+    rooms: ['hall', 'ward'],
+    window: [-4, -3.72],
+    centre: [0, 0.215],
+    width: 1.4,
+    length: 4.6,
+    bars: 4,
+    gain: 0.38,
+  },
+] as const
 
 // The old game drew its LCD panel on the screen's own pixels: a cell of 2 screen pixels and a mesh period of 4 (`LCD_CELL` and `derivePitch`
 // in `src/render/lcd-panel.ts`, measured on its real play at 1024 by 768 as a 4.0 pixel period on both axes). Ours draws the pass on the

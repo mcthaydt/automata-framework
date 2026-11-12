@@ -1,0 +1,5 @@
+# `exit-green`: the glow of the corridor's EXIT sign. The old sign is a green plaque (`#638a73` on `#2d5c4e`, lettering `#ddd9b9`) with a halo
+# of its own light; the brightest green of DUEL's pine ramp, `#91daa1`, step 7, is what the kit's neon lettering lights as a tube.
+ramp = "pine"
+step = 7
+emit = true

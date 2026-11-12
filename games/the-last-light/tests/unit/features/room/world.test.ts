@@ -28,6 +28,8 @@ describe('the ward’s lamps', () => {
     expect(
       WORLD.lamps.filter((lamp) => lamp.prop !== undefined).map((lamp) => [lamp.id, lamp.level]),
     ).toEqual([
+      // The exit sign's own light burns at full: the glow of the old sign's halo (`exitHalo`, up to 0.55 alpha at the exit lamp's level), which is what the corridor's end still shows once the rest have gone.
+      ['exit-sign.light0', 1],
       ['desk-lamp.light0', 0],
       ['pendant-lamp.light0', 0],
     ])
@@ -104,29 +106,19 @@ describe('the ward\u2019s rooms', () => {
 })
 
 describe('the ward\u2019s walls', () => {
-  /** The old game's default wall, `plaster` (`public/art/plaster.png` at 92e6704): its mean colour, 0x858667. */
-  const OLD_PLASTER = [0x85, 0x86, 0x67] as const
-
   it('are the game\u2019s own plaster, not the kit\u2019s mint-green paint, in every room', () => {
     for (const room of LEVEL.sectors)
       expect({ room: room.id, walls: room.wallTexture }).toEqual({ room: room.id, walls: 'ward-plaster' })
   })
 
-  // The old game multiplied the plaster's linear colour (0x858667 decodes to about 0.24, 0.24, 0.14) by the room's light; the `srgb` light
-  // multiplies the sRGB colour. The step that draws as the old plaster did under the old lamps is the palette's darkest sand, #625d54
-  // (measured against the old game's real play: the east wall's mean luma 54 against the old 42, and 68 for step 1), not the step nearest
-  // the old file's sRGB colour.
-  it('is the palette step that draws as the old plaster did: sand step 0, darker than the old file\u2019s colour and no greener', () => {
+  // The old game's plaster is an even sea-green with lighter and darker clusters (the canvas in `src/render/assets.ts` at 92e6704:
+  // base #47655a, clusters #5b7b69 and #394d3c). Session 8 took it for the mean of another file, a khaki grey, and made it sand: the
+  // frames' green walls were not the light's doing. #47655a is DUEL sage step 1 and #5b7b69 step 2, so it needs no gap in the palette.
+  it('is the old plaster\u2019s own green: DUEL sage step 1, #47655a, greener than it is red', () => {
     const colour = PAINT.colourOf('ward-plaster')
     expect(colour, 'the game has no swatch "ward-plaster"').toBeDefined()
-    expect(LIBRARY.swatches['ward-plaster']).toMatchObject({ ramp: 'sand', step: 0 })
-    const rgb = [(colour ?? 0) >> 16, ((colour ?? 0) >> 8) & 0xff, (colour ?? 0) & 0xff]
-    const luma = 0.2126 * (rgb[0] ?? 0) + 0.7152 * (rgb[1] ?? 0) + 0.0722 * (rgb[2] ?? 0)
-    const old =
-      0.2126 * (OLD_PLASTER[0] ?? 0) + 0.7152 * (OLD_PLASTER[1] ?? 0) + 0.0722 * (OLD_PLASTER[2] ?? 0)
-    // The kit's plasterPaint is #8ac196: a luma of 170 against the old plaster's 131.
-    expect(luma).toBeLessThan(old)
-    expect((rgb[1] ?? 0) - (rgb[0] ?? 0)).toBeLessThanOrEqual((OLD_PLASTER[1] ?? 0) - (OLD_PLASTER[0] ?? 0))
+    expect(LIBRARY.swatches['ward-plaster']).toMatchObject({ ramp: 'sage', step: 1 })
+    expect(colour).toBe(0x47655a)
   })
 })
 
@@ -244,8 +236,15 @@ describe('the ward\u2019s props face as the old game turned them', () => {
 // cooler lamps (`src/render/assets.ts` at 92e6704). The kit's `tileFloor` is slate step 5, `#abaebe`: nearly four times the light, so a
 // room lit by the old game's own lamps drew twice as bright (mean luma 88 against 44 on the floor at the spawn) and washed to a grey.
 describe('the ward\u2019s floor', () => {
-  it('is the old tile\u2019s own colour: DUEL sand step 0, #625d54', () => {
-    expect(LIBRARY.swatches['ward-floor']).toMatchObject({ ramp: 'sand', step: 0 })
+  // A tile on dark grout: the cool tile is slate step 2 (#5b5c69, the old floor's fourth tile), the grout two steps down its ramp, and
+  // the warm tiles the accent, DUEL sand step 0 (#625d54, the old floor's other three). Flat sand 0 had no grout to draw.
+  it('is the old tile\u2019s own colours: DUEL slate step 2 with sand step 0 for the warm tiles', () => {
+    expect(LIBRARY.swatches['ward-floor']).toMatchObject({
+      ramp: 'slate',
+      step: 2,
+      accent: 'ward-floor-warm',
+    })
+    expect(LIBRARY.swatches['ward-floor-warm']).toMatchObject({ ramp: 'sand', step: 0 })
   })
 
   it('is what every tiled room stands on, and the counter keeps its laminate', () => {
@@ -286,5 +285,61 @@ describe('the ward\u2019s lamps', () => {
     expect(LIGHTING.lamps.length).toBe(old.length)
     for (const [i, lamp] of LIGHTING.lamps.entries())
       expect(lamp.strength).toBeCloseTo((old[i]?.strength ?? 0) * 0.7, 6)
+  })
+})
+
+// The old hall's noticeboard (`dress.ts` at 92e6704: a cork box 1.7 by 0.9 at (3.3, 1.95, -0.84) on the north wall, the day shift's note and
+// a photograph pinned on it) is what the objective points at and the hotspot `noticeboard` reaches. Without a piece there the hotspot
+// named a bare wall.
+describe('the ward’s noticeboard', () => {
+  const pieces = WORLD.pieces.filter((piece) => piece.id.includes(':prop:noticeboard.'))
+  const bounds = (axis: number) => {
+    const values = pieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === axis))
+    return [Math.min(...values), Math.max(...values)] as const
+  }
+
+  it('hangs on the hall’s north wall where the hotspot is, as wide as the old board, with its slips pinned on', () => {
+    expect(pieces.length).toBeGreaterThan(0)
+    const [x0, x1] = bounds(0)
+    const [y0, y1] = bounds(1)
+    const [z0, z1] = bounds(2)
+    expect((x0 + x1) / 2).toBeCloseTo(3.3, 1)
+    expect(x1 - x0).toBeGreaterThan(1.6)
+    expect(x1 - x0).toBeLessThan(1.9)
+    // The hotspot is at 1.9 m, and the board holds it.
+    expect(y0).toBeLessThan(1.9)
+    expect(y1).toBeGreaterThan(1.9)
+    // Its back on the wall (z -0.875), its face into the hall.
+    expect(z0).toBeGreaterThan(-0.9)
+    expect(z1).toBeLessThan(-0.7)
+    expect(pieces.some((piece) => piece.id.endsWith('.slips'))).toBe(true)
+  })
+})
+
+// The old corridor's end has a green EXIT sign over its door (`signOn` in `dress.ts` at 92e6704: a 0.42 m plaque at (0, 2.25, -6.875)) and a
+// halo of its glow on the wall, which is what still glows once the lights have gone. The level had the door and no sign.
+describe('the corridor’s exit sign', () => {
+  const pieces = WORLD.pieces.filter((piece) => piece.id.includes(':prop:exit-sign.'))
+
+  it('hangs over the exit door on the corridor’s end wall, a little under half a metre wide', () => {
+    expect(pieces.length).toBeGreaterThan(0)
+    const xs = pieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === 0))
+    const ys = pieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === 1))
+    const zs = pieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === 2))
+    expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(0, 1)
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(0.3)
+    expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(0.6)
+    // Above the door (2.1 m) and under the window's sill line (2.45), on the wall (z -6.875).
+    expect(Math.min(...ys)).toBeGreaterThan(2.1)
+    expect(Math.max(...ys)).toBeLessThan(2.5)
+    expect(Math.min(...zs)).toBeGreaterThan(-6.9)
+    expect(Math.max(...zs)).toBeLessThan(-6.7)
+  })
+
+  it('glows green and lights the wall round it', () => {
+    expect(pieces.every((piece) => LIBRARY.swatches[piece.surface] !== undefined)).toBe(true)
+    expect(LIBRARY.swatches['exit-green']).toMatchObject({ emit: true })
+    const lamp = WORLD.lamps.find((each) => each.prop === 'exit-sign')
+    expect(lamp, 'a lamp of the sign’s own').toBeDefined()
   })
 })

@@ -36,3 +36,14 @@ describe('the opening', () => {
     for (const key of keys) expect(key.alpha).toBe(0)
   })
 })
+
+// The lights-out cutscene's figure in the corridor. The old script gives her `facing: 0` and the old game drew her face on to the corridor's
+// camera; the painted figure shows her back at 0 from that shot (measured in the picture: the cap's cross and her face only with a facing of
+// pi), so her keys here turn her to face it. Whether every cutscene facing reads half a turn off in the painted view is open (the notes).
+describe('the lights-out cutscene', () => {
+  it('has the night nurse face the camera that looks down the corridor at her', () => {
+    const keys = (SCRIPTS.lightsOut?.actor ?? []).filter((key) => key.who === 'nurse' && key.alpha !== 0)
+    expect(keys.length).toBeGreaterThan(0)
+    for (const key of keys) expect(key.facing).toBeCloseTo(Math.PI, 6)
+  })
+})

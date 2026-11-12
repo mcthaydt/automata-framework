@@ -16,11 +16,32 @@ const lightGainSchema = z.strictObject({
   lamps: z.number().positive('lamps is above 0').max(2, 'lamps is 2 or less').default(1),
 })
 
-/** What `content/look.toml` says: each pass's profile, and the gain on the room's lamps. A setting out of range or unknown is refused, naming it. */
+/**
+ * A patch of window light on the floor (`LightPatch` in `@automata/3d`): stripes between the bars' shadows, laid where the old game's
+ * moonlight fell. The room's baked light is per vertex and cannot say them, so the stage draws each as a picture added to the floor.
+ */
+const moonlightSchema = z.strictObject({
+  id: z.string().min(1),
+  window: z.tuple([z.number(), z.number()]),
+  centre: z.tuple([z.number(), z.number()]),
+  width: z.number().positive('width is above 0'),
+  length: z.number().positive('length is above 0'),
+  /** The rooms (sector ids) it shows in; every room if none. */
+  rooms: z.array(z.string()).optional(),
+  bars: z.number().int().min(1).max(8).default(4),
+  gain: z.number().min(0, 'gain is 0 to 1').max(1, 'gain is 0 to 1').default(0.5),
+  colour: z
+    .string()
+    .regex(/^#[0-9a-f]{6}$/i, 'colour is #rrggbb')
+    .optional(),
+})
+
+/** What `content/look.toml` says: each pass's profile, the gain on the room's lamps and the patches of moonlight. A setting out of range or unknown is refused, naming it. */
 export const lookProfilesSchema = z.strictObject({
   retro: retroProfileSchema.default(() => retroProfileSchema.parse({})),
   lcd: lcdProfileSchema.default(() => lcdProfileSchema.parse({})),
   light: lightGainSchema.default(() => lightGainSchema.parse({})),
+  moonlight: z.array(moonlightSchema).default([]),
 })
 
 export type LookProfiles = z.infer<typeof lookProfilesSchema>

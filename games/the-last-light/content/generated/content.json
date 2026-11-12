@@ -1602,7 +1602,7 @@
         },
         {
           "alpha": 0,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 0,
           "who": "nurse",
           "x": 0,
@@ -1610,7 +1610,7 @@
         },
         {
           "alpha": 0,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 6.85,
           "who": "nurse",
           "x": 0,
@@ -1618,7 +1618,7 @@
         },
         {
           "alpha": 1,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 7,
           "who": "nurse",
           "x": 0,
@@ -1626,7 +1626,7 @@
         },
         {
           "alpha": 1,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 10.6,
           "who": "nurse",
           "x": 0,
@@ -1634,7 +1634,7 @@
         },
         {
           "alpha": 1,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "moving": true,
           "t": 12.8,
           "who": "nurse",
@@ -1643,7 +1643,7 @@
         },
         {
           "alpha": 1,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 16,
           "who": "nurse",
           "x": 0,
@@ -3903,6 +3903,27 @@
     "light": {
       "lamps": 0.7
     },
+    "moonlight": [
+      {
+        "bars": 4,
+        "centre": [
+          0,
+          0.215
+        ],
+        "gain": 0.38,
+        "id": "moon",
+        "length": 4.6,
+        "rooms": [
+          "hall",
+          "ward"
+        ],
+        "width": 1.4,
+        "window": [
+          -4,
+          -3.72
+        ]
+      }
+    ],
     "retro": {
       "cell": 1,
       "fade": {
@@ -6125,27 +6146,51 @@
     "WALK_SPEED": 3
   },
   "world-swatch": {
+    "exit-green": {
+      "emit": true,
+      "ramp": "pine",
+      "step": 7
+    },
+    "exit-plate": {
+      "ramp": "pine",
+      "step": 3
+    },
+    "ward-cork": {
+      "ramp": "wood",
+      "step": 1
+    },
     "ward-floor": {
-      "accent": "groutDark",
-      "ramp": "sand",
-      "step": 0,
+      "accent": "ward-floor-warm",
+      "ramp": "slate",
+      "step": 2,
       "texture": {
-        "cluster": 2,
-        "contrast": 0.035,
+        "accent": 0.012,
+        "cluster": 5,
+        "contrast": 0.04,
         "facet": 0,
-        "flatten": 0.5,
+        "flatten": 0.95,
         "photo": "floorTiles",
-        "seed": 70
+        "scale": 1.2,
+        "seed": 70,
+        "wear": 0
       }
+    },
+    "ward-floor-warm": {
+      "ramp": "sand",
+      "step": 0
     },
     "ward-plaster": {
       "accent": "stainBrown",
-      "ramp": "sand",
-      "step": 0,
+      "ramp": "sage",
+      "step": 1,
       "texture": {
         "cluster": 10,
-        "contrast": 0.005,
+        "contrast": 0.01,
         "photo": "plaster",
+        "range": [
+          -1,
+          1
+        ],
         "seed": 1,
         "wear": 0.15
       }

@@ -28,12 +28,17 @@ const drawn = drawWorld({ parent: new Container3D(), ...PAINT }, WORLD.pieces, {
   models: library,
 })
 
+/** What the kit's generator draws, not a model: the old game built its noticeboard from a cork-textured box (`dress.ts` line 126 at 92e6704); its exit sign was a plaque (`signOn`). */
+const GENERATED = ['noticeboard', 'exit-sign']
+const MODELLED = WORLD.props.filter((prop) => !GENERATED.includes(prop.id))
+
 /** The old game's models that were stretched to their box in the old game; ours keeps their proportions. */
 const STRETCHED = ['trolley', 'drawers', 'strip-light-1', 'strip-light-2']
 
 describe('the furniture’s models', () => {
   it('are named by every prop of the level: each has the old game’s model', () => {
-    expect(WORLD.props.filter((prop) => prop.model === undefined).map((prop) => prop.id)).toEqual([])
+    expect(MODELLED.filter((prop) => prop.model === undefined).map((prop) => prop.id)).toEqual([])
+    expect(WORLD.props.filter((prop) => prop.model === undefined).map((prop) => prop.id)).toEqual(GENERATED)
     expect(FILES).toHaveLength(41)
   })
 
@@ -46,7 +51,7 @@ describe('the furniture’s models', () => {
   })
 
   it('draw in place of every blockout, which stays in the world as the collider’s source', () => {
-    for (const { id } of WORLD.props) {
+    for (const { id } of MODELLED) {
       expect(drawn.mesh(`model:${id}`), id).toBeDefined()
       for (const piece of WORLD.pieces.filter((each) => each.prop?.id === id))
         expect(drawn.mesh(piece.id), piece.id).toBeUndefined()
@@ -69,7 +74,7 @@ describe('the furniture’s models', () => {
   }
 
   it('stand inside their blockouts, on the same floor, but where the level moves them', () => {
-    for (const prop of WORLD.props) {
+    for (const prop of MODELLED) {
       const { low, high } = boundsOf(prop.id)
       const slack = prop.fit?.offset === undefined ? 0.002 : 0.3
       for (const axis of [0, 1, 2]) {
@@ -85,7 +90,7 @@ describe('the furniture’s models', () => {
 
   it('fill their blockouts: the tightest axis is full and none is under 40% (the blockout is the right size for its model), but for the ones the old game stretched', () => {
     const thin: string[] = []
-    for (const prop of WORLD.props) {
+    for (const prop of MODELLED) {
       if (STRETCHED.includes(prop.id) || prop.fit?.scale !== undefined) continue
       const { low, high } = boundsOf(prop.id)
       const fill = [0, 1, 2].map(

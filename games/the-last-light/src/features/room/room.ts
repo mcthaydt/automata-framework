@@ -12,6 +12,7 @@ import {
 import { type AfSector2, modelsOf, readLevel } from '@automata/3d/level'
 import { albedoTiles, worldKitLibrary } from '@automata/world-kit'
 import levelFile from '../../../content/levels/prologue.af-sector.json' with { type: 'json' }
+import { OWN_TILES } from './tiles.ts'
 
 // The ward as the screen draws it: the level's rooms and props built into pieces, lit at night by its own lamps. The level is
 // the game's file (the 3D level editor saves it), so what is drawn is what the editor shows. The props are the kit's presets
@@ -49,7 +50,7 @@ export const LIGHTING = {
 export const PAINT = {
   colourOf: (swatch: string) => swatchColour(LIBRARY, swatch),
   glow: (swatch: string) => swatchGlow(LIBRARY, swatch),
-  tiles: albedoTiles(LIBRARY.swatches as Parameters<typeof albedoTiles>[0]),
+  tiles: albedoTiles(LIBRARY.swatches as Parameters<typeof albedoTiles>[0], OWN_TILES),
   look: DEFAULT_LOOK,
 } as const
 

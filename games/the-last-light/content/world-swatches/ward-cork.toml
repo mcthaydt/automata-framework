@@ -1,0 +1,5 @@
+# `ward-cork`: the corkboard the day shift pins its notes to. The old game's cork is a dark brown speckle (`src/render/assets.ts` at 92e6704)
+# that reads a dim reddish brown under its lamps. Amber step 2 (the cork's own `#854f12`) drew a bright orange here, since the framework's
+# light multiplies the sRGB colour; the darker brown of DUEL's wood ramp, step 1 (`#614a3c`), is what draws as the old board did.
+ramp = "wood"
+step = 1

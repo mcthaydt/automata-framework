@@ -739,6 +739,17 @@ declare module 'virtual:automata/content' {
     readonly light: {
       readonly lamps: number
     }
+    readonly moonlight: readonly ({
+      readonly bars: number
+      readonly centre: readonly [number, number]
+      readonly colour?: string
+      readonly gain: number
+      readonly id: string
+      readonly length: number
+      readonly rooms?: readonly string[]
+      readonly width: number
+      readonly window: readonly [number, number]
+    })[]
     readonly retro: {
       readonly cell: number
       readonly fade: {
@@ -773,7 +784,7 @@ declare module 'virtual:automata/content' {
     }
   }
 
-  export type WorldSwatchId = 'ward-floor' | 'ward-plaster' | 'ward-wainscot'
+  export type WorldSwatchId = 'exit-green' | 'exit-plate' | 'ward-cork' | 'ward-floor' | 'ward-floor-warm' | 'ward-plaster' | 'ward-wainscot'
   export type WorldSwatch = {
     readonly about?: string
     readonly accent?: string
