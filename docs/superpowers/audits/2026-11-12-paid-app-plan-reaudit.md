@@ -477,3 +477,18 @@ Each item says what it blocks.
 | O15 | Say whether `claude/desktop-games` and `claude/editor-journeys-green` exist anywhere: neither is on `origin` | F14, F16 |
 
 None of O4 to O14 blocks the first task. Only O1 does, for everything but the Rust lane.
+
+## Amendment, 2026-11-12 (the coordinator's ruling 4): the trial merge was shallow
+
+The sizing above is wrong in one place. The trial merge of `pr544` into `main` (in "What was run") that showed 882
+conflicting files ran on a shallow clone. Findings B1 and F6 and the recommendation "do not revive #544" rest on that
+figure. The original findings are left as written; this section corrects them, in the words the v2 landing plan's
+audit supplied ([the plan's "For the coordinator"](../../superpowers/plans/2026-11-12-editors-v2-landing.md)):
+
+- **B1.** The closed stack's base branches are restored (2026-11-12). The v2 look reaches `main` through the v2
+  landing plan's Tasks 2 to 4. Tasks 1.1, 2.4 and 6.2 of the paid app's plan go back to v2's files
+  (`SuiteHeader.svelte`, `kit/nav/Sidebar.svelte`) once that plan's Task 4 has merged, and 2.1 waits for its Task 6.
+- **F6.** On full history the sync tip (#564) conflicts with `main` in 85 files, not 882, and in 12 against the v2 tip.
+  Sync lands by merging #564's tip after launch (the v2 landing plan's Tasks 8 to 11), not by rebuilding it, so
+  "do not revive #544" no longer stands as written.
+- **Recommendation 3** (typed words saved, #544's phase 1) is the v2 landing plan's Task 1.
