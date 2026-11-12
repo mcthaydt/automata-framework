@@ -33,6 +33,17 @@ describe('the footprints of the ward’s props', () => {
       expect(byId(id), id).toBeDefined()
   })
 
+  // The old hall has papers dropped about its floor (`dress.ts` at 92e6704, seven of them): a walker steps over a sheet.
+  it('gives none to a sheet of paper lying on the floor', () => {
+    for (let i = 1; i <= 7; i++) {
+      expect(
+        WORLD.props.some((prop) => prop.id === `floor-paper-${i}`),
+        `floor-paper-${i} is in the level`,
+      ).toBe(true)
+      expect(byId(`floor-paper-${i}`), `floor-paper-${i}`).toBeUndefined()
+    }
+  })
+
   it('gives none to what is on a wall, a desk, a shelf or the ceiling', () => {
     for (const id of [
       'clock',

@@ -132,3 +132,23 @@ Causes found, measured, in the order the coordinator listed them:
   cutscene (shot D, where the camera is set so she faces it) also show her back, so every cutscene facing may be half a turn off in the painted view: `figure-view.ts`'s `kitYaw` (heading + pi) holds for the sim's heading in play and
   not obviously for the director's `facing`. That is the figure view's, shared with `claude/last-light-figures-look`; it wants one test that sets a facing and reads which way the figure's face points.
 - **The window is still a bright cyan** (the barred window high on the end wall: the world kit's `interior` glass draws the sky behind it); the old window is a pale blue-violet with dark bars. Not changed.
+
+## Item 5: colour (measured; no grade number changed)
+
+The grade, the ambient tint and the fog were already the old game's to the digit (session 8). What carried the old green was **the plaster** (item 1). Share of the pixels brighter than 20 luma that are green (hue 90 to 200, saturation over 0.12) / warm / grey:
+old 0.57 / 0.08 / 0.17, ours at session start 0.26 / 0.22 / 0.11, now 0.38 / 0.11 / 0.12. Luma p95 old 68, now 80; p99 93 against 115. Region hue now: floor 182 (old 154), east wall 141 (149), west wall 172 (166), whole frame 163 (170).
+Residual: the lamp pool is brighter and more saturated than the old's (90 against 63), which pulls the whole frame's mean saturation to 0.10 (old 0.19); the floor reads blue (slate) where the old reads green. The old game bakes per-vertex ambient occlusion
+(`src/render/occlusion.ts`: floors and walls into a wall's foot, inside corners, the base of every wall, round furniture feet, floored at 0.3 of the light), which the framework's bake does not; it is the likely cause of the pool and was not built. `[light] lamps = 0.7` is unchanged: the floor matches at it, near-lamp surfaces run bright.
+
+## Item 6: the opening's close shot (cause found, not fixed)
+
+[`item6-opening-close-old-vs-ours-t5-t8.png`](item6-opening-close-old-vs-ours-t5-t8.png): the old frame, ours at about 5 s and 8 s of the opening. The floor is tiled now, but above a low band the wall is a black void.
+**Cause:** the wall behind Ada in this shot (camera at (1.4, 1.95, 0.3) looking south at her at (0.6, 3.6)) is the hall's south wall, a wall tagged `cut: 'south'`, which the occluder rule lowers to a trim when the play camera is south of it.
+`occluderHooks` (`@automata/3d`, `features/camera/occluders/occluders.ts`) reads the camera **rig's** pose, not the cutscene's camera, which the game writes straight into `view.camera` (`release: () => undefined` in `app/stage.ts`), so the rule keeps cutting the walls for the play camera while a cutscene looks at them
+from inside. The dado band that stays is its separate piece. **Fix (a framework change, not made here for want of time):** the hook takes the pose of the camera that is drawing (or a cutscene turns the rule off and shows the cut walls whole), with a test that a cut wall stays whole while a cutscene's camera looks at it. Ada's size in the close shots is the kit's billboard cap, as the proposal already written says.
+The noticeboard slips the kit pins are a bright white square each (the generator's `posterPaper`), brighter than the old board's small papers; the generator takes no swatch for them.
+
+## Item 8: dressing
+
+[`strip-item8-old-session8-after.png`](strip-item8-old-session8-after.png): old, ours at the end of session 8, ours now. Done: the noticeboard (item 3), the seven sheets of paper the old game drops about the floor (`dress.ts` line 189 at `92e6704`: the kit's `paper`, at the old places, size 0.24 by 0.3 m; they must not block Ada, so a prop whose highest part is below 5 cm is no obstacle: `obstacles.ts`, test first) and the EXIT sign (item 7).
+Not done: the curtain screen (the old privacy screen is a curtain on hinges, the kit's `screen` is a television: editor-gaps row 16 already names it), the IV stand's read (the kit's `dripStand` is a thinner stand than the old's with its bag; not measured), the clipboard at the ward step and the drain grate.

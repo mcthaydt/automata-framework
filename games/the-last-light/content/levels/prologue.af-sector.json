@@ -1412,6 +1412,69 @@
       "fit": {
         "turn": 22.92
       }
+    },
+    {
+      "id": "floor-paper-1",
+      "at": [2.15, 2.35, 0.004],
+      "kind": "paper",
+      "with": {
+        "size": [0.24, 0.3],
+        "seed": 1
+      }
+    },
+    {
+      "id": "floor-paper-2",
+      "at": [1.85, 0.75, 0.004],
+      "kind": "paper",
+      "with": {
+        "size": [0.24, 0.3],
+        "seed": 2
+      }
+    },
+    {
+      "id": "floor-paper-3",
+      "at": [-0.65, 4.2, 0.004],
+      "kind": "paper",
+      "with": {
+        "size": [0.24, 0.3],
+        "seed": 3
+      }
+    },
+    {
+      "id": "floor-paper-4",
+      "at": [-0.9, -3.1, 0.004],
+      "kind": "paper",
+      "with": {
+        "size": [0.24, 0.3],
+        "seed": 4
+      }
+    },
+    {
+      "id": "floor-paper-5",
+      "at": [0.7, -5.4, 0.004],
+      "kind": "paper",
+      "with": {
+        "size": [0.24, 0.3],
+        "seed": 5
+      }
+    },
+    {
+      "id": "floor-paper-6",
+      "at": [-2.55, 3.85, 0.004],
+      "kind": "paper",
+      "with": {
+        "size": [0.24, 0.3],
+        "seed": 6
+      }
+    },
+    {
+      "id": "floor-paper-7",
+      "at": [3.4, -4.9, 0.004],
+      "kind": "paper",
+      "with": {
+        "size": [0.24, 0.3],
+        "seed": 7
+      }
     }
   ],
   "lamps": [
