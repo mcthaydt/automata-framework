@@ -3866,6 +3866,54 @@
       ]
     }
   },
+  "look": {
+    "lcd": {
+      "aberration": 0.25,
+      "balance": 0.6,
+      "brightness": 1.55,
+      "cell": 2,
+      "gamma": 1,
+      "glow": 0.3,
+      "glowRadius": 1.5,
+      "glowThreshold": 0.55,
+      "grid": 0.3,
+      "layout": "rgb",
+      "minPitch": 3,
+      "scanlines": 0.3,
+      "snap": false,
+      "subpixels": 0.3,
+      "vignette": true
+    },
+    "retro": {
+      "cell": 1,
+      "fade": {
+        "colour": "#4b5a56",
+        "fps": 12,
+        "grain": 0.04,
+        "lift": 0.13,
+        "scratch": 0.25,
+        "speck": 3,
+        "specks": 0.0008,
+        "white": 0.96
+      },
+      "grade": {
+        "blackCrush": 0.025,
+        "brilliance": 0,
+        "contrast": 1.05,
+        "exposure": 0,
+        "highlights": -0.05,
+        "moodBlend": 0.85,
+        "saturation": 0.85,
+        "shadows": 0,
+        "tint": 0.08,
+        "vibrance": 0.1,
+        "warmth": -0.12
+      },
+      "quantise": null,
+      "sharpness": 0.35,
+      "vignette": 0.85
+    }
+  },
   "nav-graph": {
     "prologue": {
       "edges": [

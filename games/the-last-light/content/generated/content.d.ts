@@ -718,6 +718,58 @@ declare module 'virtual:automata/content' {
     readonly levels: Readonly<Record<string, number>>
   }
 
+  export type Look = {
+    readonly lcd: {
+      readonly aberration: number
+      readonly balance: number
+      readonly brightness: number
+      readonly cell: number
+      readonly gamma: number
+      readonly glow: number
+      readonly glowRadius: number
+      readonly glowThreshold: number
+      readonly grid: number
+      readonly layout: 'rgb' | 'bgr'
+      readonly minPitch: number
+      readonly scanlines: number
+      readonly snap: boolean
+      readonly subpixels: number
+      readonly vignette: boolean
+    }
+    readonly retro: {
+      readonly cell: number
+      readonly fade: {
+        readonly colour: string
+        readonly fps: number
+        readonly grain: number
+        readonly lift: number
+        readonly scratch: number
+        readonly speck: number
+        readonly specks: number
+        readonly white: number
+      }
+      readonly grade: {
+        readonly blackCrush: number
+        readonly brilliance: number
+        readonly contrast: number
+        readonly exposure: number
+        readonly highlights: number
+        readonly moodBlend: number
+        readonly saturation: number
+        readonly shadows: number
+        readonly tint: number
+        readonly vibrance: number
+        readonly warmth: number
+      }
+      readonly quantise: {
+        readonly levels: number
+        readonly lumaWeight: number
+      } | null
+      readonly sharpness: number
+      readonly vignette: number
+    }
+  }
+
   export type WorldSwatchId = 'ward-plaster'
   export type WorldSwatch = {
     readonly about?: string
@@ -754,6 +806,7 @@ declare module 'virtual:automata/content' {
     readonly feel: Readonly<Record<FeelId, Feel>>
     readonly credits: Readonly<Record<CreditsId, Credits>>
     readonly 'lights-out': LightsOut
+    readonly look: Look
     readonly 'world-swatch': Readonly<Record<WorldSwatchId, WorldSwatch>>
     readonly tuning: Readonly<Record<TuningName, number | boolean | string>>
     readonly palette: Palette
