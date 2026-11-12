@@ -95,7 +95,10 @@ describe('checkLayout', () => {
   // is a label for the rows that are out of view, so it may sit beside the scroll box but never on the words in it.
   const more = (style: string): string =>
     `<span data-testid="scroll-more" aria-hidden="true" style="${style};padding:2px 10px">+2 more</span>`
-  const words = '<div data-row style="height:48px">Rumble and vibration</div>'
+  // The row's line is fixed, not the platform font's: the sticky badge below overlaps the words by a set amount (6 px)
+  // on every platform. On the system font's own line (19 px on a Mac, 20 px on Linux) the overlap was 1 or 2 px, and
+  // the check ignores 1 px.
+  const words = '<div data-row style="height:48px;line-height:24px">Rumble and vibration</div>'
   const frameOf = (inside: string, after = ''): string =>
     `<div style="position:fixed;left:0;top:0;width:200px">${region(inside)}${after}</div>`
 
