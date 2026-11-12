@@ -170,4 +170,25 @@ read `main` and saw the retirement note. FigureBuilder's retirement commit was n
 
 ## Fixes
 
-Stage 6 follows on this branch, one commit a finding; this section is filled in as each commits.
+**Stage 6**, 2026-11-12, on the same branch from `7e56a9f4a` (the audit), no subagents. **9 of 9 findings answered**:
+six fixed, three left with their reason. No golden, md5 or hash moved; no tile, level or library file changed.
+
+| Finding | Commit | What changed | How it is proved, or why it is left |
+| --- | --- | --- | --- |
+| S1 | `e9aa8a842` | The fixture is the source's `tiles.json` again, byte for byte (6,138 bytes); `biome.json` excludes it beside the painter's goldens, so the commit hook leaves it | A new case pins its sha-256 (`10add88b…`): watched failing on the re-indented file (`received dceddb54…`), passes after; `pnpm format` and the hook leave the file as it is. The records that said "`cmp`-equal" and "unchanged" are now true |
+| S2 | `0990eea00` | `@automata/sim`: `snapshot.ts`'s `Reader` and `codec.ts`'s `ByteReader` declare their byte field instead of taking it as a parameter property, with a comment saying why; a `patch` changeset | `tests/unit/textures/textures-cli.test.ts` runs the command with a real `node`: watched failing on `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`, passes after; `pnpm --filter @automata/world-kit textures:check` exits 0 and prints the reads lines; sim's unit suite 42 files, 316 tests; the first commit attempt's hook run of the affected unit tests failed once without its log kept, the same command then passed twice (once alone, once in the hook) |
+| S3 | `c4919f3d1` | "Pull again" says nothing writes the manifest, names `git ls-tree -r --name-only <new>` for its file list and `pnpm sources-md --complete` as the check | `pnpm sources-md --complete`: 0 findings |
+| N1 | `5a14876e0` | The six reference-copy rows: the game "is being remade in the framework itself (workstream 2)" | `sources-md --complete` 0 findings |
+| N2 | `6bf3543d1` | The key test compares in order; the source's guard is restated (the frames two photos share are flat at wear 0, and are the six); the provenance row says so | 115 tests pass; the guard fails with one of the six taken out of its list, and with the flatness expected otherwise (both reverted) |
+| N3 | this commit | The plan's task 17 row names the scripts the document gives | The document, `photos.md:89-90` |
+| N4 | none | Left: the README's `pnpm exec automata-world-textures` is right for a game that depends on the kit, which is the README's reader; inside the repository the document's package scripts are the form, and they now run (S2) | On `main` before this branch |
+| N5 | `bc20b3bc3` | `convert.test.ts`'s first comment wrapped at 110 | `awk 'length>110'` prints nothing |
+| N6 | none | Left: the `maps` script's output equals the five library files as parsed JSON today; whether to keep a script that rewrites the folder is the kit's owner's call, not this fold's | On `main` before this branch |
+
+**Runs after the fixes** (Node 24.21.0, `origin/main` `d401ec4d` still the base): the whole `pnpm check` uncached
+(`TURBO_FORCE=true`) exit 0, 66 tasks, 769 s (`style`, `source-names`, `sources-md` 0 findings; `check-changesets` 80
+changesets, 0 problems); `pnpm build` exit 0; `pnpm api-report` 0 breaks; `pnpm api-index` 0 undocumented; the world
+kit's unit suite 23 files, 379 tests, and its Chromium project 5 files, 30 tests; `git status` clean after each. The
+files the branch changes against `main` include no golden, tile, parity or hash file. **Not run:** the cross-engine
+parity suites (S2 touches two of the sim's byte readers; the Node engine's replay and snapshot tests pass in the unit
+gate, and WebKit and Firefox are not installed here), WebGPU on a real GPU.
