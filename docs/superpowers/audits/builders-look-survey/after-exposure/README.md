@@ -64,3 +64,16 @@ Asked after the first sheet: why did the trial step the woman down, from 0.99 to
   ring reads 0.352). A hold on the floor cannot give the builder's number in every view, and a hold on the frame needs the frame (the readback
   the coordinator ruled out). It is the Owner's rule as ruled (the floor's shown colour); what it leaves is that a figure reads hot against
   whatever is behind it in some views. [`reads.json`](reads.json) is every view, with the count of hot figures.
+
+## The suspect reads, shot again (item 4)
+
+[`reads.json`](reads.json): `READS_ONLY=1 node spikes/builders-look/shoot.mjs after-exposure builders 'figures=painted&still=1'`, the final state (the trial, the
+shadow, the camera and haze focused on the level's first cast member whether or not the figures draw: the survey tool's fault fixed). **24 runs
+(the earlier file had 22: its zone and gameplay rows had missed a figure), every one reads (edge 1.30 to 3.46 against 1.1), 11 are hot (15 of 22
+before)** against the builder's window of 1.1 times the ring round the silhouette. By scene: the exterior and its dressed twin are **not hot in any
+view** (0.65 to 0.87; the gameplay and room views, hot at 1.11 to 1.18 before, are 0.81 to 0.87); the interiors are still hot in their first-person frames
+(1.26 to 1.98) and for the man in the diorama (1.22, 1.37) and in the gameplay and room views (1.15 to 1.32); the woman is not hot in the dressed
+interior's diorama (0.94) or room view (0.92). The cause of what remains is the yardstick named above (the hold is on the floor under the feet and
+these views' rings are walls, shadow and haze, which a floor-based hold does not see), plus a first-person eye that stands close to the figure's
+brightest side. These are 320 x 180 (gameplay, room) and the builder's field sizes; the dressed interior's 640 x 480 sheet, with the man at 1.06, is a
+different field and density.

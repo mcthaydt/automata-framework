@@ -57,6 +57,11 @@ cast shadow switched off (`shadow=0`), so the floor is not counted in them. `hot
 over `1.1 ×` its ring's, `HOT`), `reads` its edge at least 1.1 (`MIN_EDGE`). Runs under 500 texels are the scene
 differing between the two page loads (a leaf), not figures. In the gameplay and room-view frames the pair overlap and are one run.
 
+**Superseded (item 4 of the close of the branch).** This table's gameplay and room (`zone`) rows were shot with a fault in the survey tool (the
+camera and haze followed `cast[0]`, which is empty under `cast=0`, so the frame without the figures was a different frame, and the pair
+were read as one run); its counts (22 runs, 15 hot) are not the final state. The final state, with the trial exposure, is in
+[`../after-exposure/reads.json`](../after-exposure/README.md): **24 runs, 11 hot, every one reading**.
+
 | Scene | View | Texels | Figure luma | Ring luma | Figure over ring | Edge | |
 |---|---|---|---|---|---|---|---|
 | base-interior | diorama | 3800 | 0.404 | 0.236 | 1.71 | 1.90 | hot |
