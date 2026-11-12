@@ -793,12 +793,13 @@ measured 23 passed, 15 failed), with the harness change under `packages/editor/t
 journey copies `levels-3d-edit-reaches-the-game.test.ts`'s readiness waits; (3) the journeys' time limit (the audit
 saw a 180 s wait per test that looked like a hang). C starts from a `main` that has all three; it does not redo them.
 
-**Packaging, decided from the survey (section 6):** the published package is `@automata/editors`
-(`extensions/editors`). It carries two built pages: the full suite (2D and 3D, built by `packages/editor-3d`) and the
-content editors (its own). About 1.58 MB packed; budget **2 MB**. **The 2D suite stays in `@automata/tools`**
-(2.58 MB packed, budget 3 MB), so a 2D game's install is what it is today and `automata editor` in a 2D game needs
-nothing new. Moving it would save 0.56 MB in `-tools` and make every 2D maker install a second package for what works
-today.
+**Packaging, decided from the survey (section 6) and the coordinator's ruling:** the published package is
+`@automata/editors` (`extensions/editors`). It carries **one** built page, `dist/suite`, the page with every editor that
+the editors v2 landing builds (nothing is copied from `packages/editor-3d/dist/suite`, and no message tells a maker to
+build `@automata/editor-3d`). The survey's measure of the full suite and the content editors together, about 1.58 MB
+packed, is the ceiling; budget **2 MB**. **The 2D suite stays in `@automata/tools`** (2.58 MB packed, budget 3 MB), so
+a 2D game's install is what it is today and `automata editor` in a 2D game needs nothing new. Moving it would save
+0.56 MB in `-tools` and make every 2D maker install a second package for what works today.
 
 **One page, built once, by the editors v2 landing (the coordinator's ruling, 2026-11-12, after the plan audit's
 finding 6).** `automata editor` serves **one** page per run (`editor-command.ts`: `pageFor(readEditorList(root))`
@@ -860,7 +861,8 @@ is re-checked against `main` at that point (at the plan audit they all exist bot
 
 **Files:**
 - Modify: `packages/tools/src/features/editor/editor-command.ts` (the refusal, at `main`'s lines 92 to 96, wherever the
-  landing left it), its dependencies object, `packages/tools/tests/unit/editor/editor-command.test.ts`, and the place
+  landing left it; on the v2 tip `BUILDS['suite-full']` already points at `extensions/editors/dist/suite`,
+  `editor-command.ts:59`, which stays the repository's build), its dependencies object, `packages/tools/tests/unit/editor/editor-command.test.ts`, and the place
   that builds the real `deps` (`grep -rn "inRepository" packages/tools/src`)
 
 **Interfaces:**
@@ -1084,4 +1086,4 @@ The coordinator: use the measured numbers. Where the spec and the survey differ,
 
 | Date | Session | Task | What happened |
 | --- | --- | --- | --- |
-| 2026-11-12 | plan audit (stage 3) | all | 27 findings fixed in this plan ([the audit](../audits/2026-11-12-ship-3d-plan-audit.md)): A1 is a merge-base check over 108 recorded files; A2 sets no registry while private; A3 has its own pack test; A4 measures 275 undocumented exports by a working-tree flip; A5 writes the shared lists (workspace-only entries, published-imports test, caret peers, the isolatedDeclarations case); A6 runs in the session (`1 passed (35.0s)` on SwiftShader, measured); Part B stepped per task with each kit measured; B4 keeps the painter's declarations step; Part C packages the v2 landing's one page; D2 is eight areas. No task ticked. |
+| 2026-11-12 | plan audit (stage 3), after the editors v2 plan audit (`b9892a25`, finding A9) | all | 27 findings fixed in this plan ([the audit](../audits/2026-11-12-ship-3d-plan-audit.md)): A1 is a merge-base check over 108 recorded files; A2 sets no registry while private; A3 has its own pack test; A4 measures 275 undocumented exports by a working-tree flip; A5 writes the shared lists (workspace-only entries, published-imports test, caret peers, the isolatedDeclarations case); A6 runs in the session (`1 passed (35.0s)` on SwiftShader, measured); Part B stepped per task with each kit measured; B4 keeps the painter's declarations step; Part C packages the v2 landing's one page; D2 is eight areas. No task ticked. |
