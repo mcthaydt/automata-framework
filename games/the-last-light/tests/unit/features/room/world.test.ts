@@ -32,6 +32,33 @@ describe('the ward’s lamps', () => {
     ])
   })
 
+  it('are the old game’s kinds and ranges: a screen, fires and a spark are what they are, a pendant reaches all it did', () => {
+    // `src/scenes/prologue/level.ts` at 92e6704: each lamp's kind and reach. The kit's moon and fill are other colours than the old
+    // game's (it refuses a lamp 0.09 and 0.11 to 0.18 off their tone), so those four stay a neon in the old colour, which keeps
+    // their range as it was.
+    const OLD: Readonly<Record<string, readonly [kind: string, range: number]>> = {
+      deskLamp: ['desk', 5],
+      monitorGlow: ['screen', 2.6],
+      hallLamp: ['pendant', 7.5],
+      wardLamp: ['pendant', 6],
+      corridorLamp: ['bulb', 5.5],
+      exitLamp: ['bulb', 5.5],
+      closetLamp: ['fluorescent', 4.5],
+      curtainWest: ['fire', 6],
+      curtainEast: ['fire', 6],
+      spark: ['spark', 4],
+      moon: ['neon', 4.2],
+      moonCorridor: ['neon', 3.2],
+      wardFill: ['neon', 4.8],
+      bayFill: ['neon', 4.4],
+      sconce: ['bulb', 3.6],
+    }
+    for (const [id, [kind, range]] of Object.entries(OLD)) {
+      const lamp = WORLD.lamps.find((each) => each.id === id)
+      expect({ id, kind: lamp?.kind, range: lamp?.range }).toEqual({ id, kind, range })
+    }
+  })
+
   it('hang where the old game hung them, at their own height', () => {
     for (const [id, [x, height, z]] of Object.entries(OLD_LAMPS)) {
       const lamp = WORLD.lamps.find((each) => each.id === id)

@@ -16,13 +16,11 @@ const AFTER_SUPPLY_DOOR: ReadonlySet<string> = new Set(['shelf', 'locker'])
 
 /**
  * The old lamp kinds the lamp kit cannot hold, each written as a neon with its own colour (the kit's coloured glow, which may be
- * any colour and any tone). The kit has no screen, fire or spark; its moon and fill are other colours than the old game's, and
- * the builder refuses a lamp whose colour is off its kind's tone, which would leave the room without that light.
+ * any colour and any tone). The kit has the old game's screen, fire and spark, with the old colours inside their tone; its moon and
+ * fill are other colours than the old game's, and the builder refuses a lamp whose colour is off its kind's tone (0.09 for the moon,
+ * 0.11 to 0.18 for the fill), which would leave the room without that light.
  */
 const LAMP_KIND_FOR: Readonly<Record<string, string>> = {
-  screen: 'neon',
-  fire: 'neon',
-  spark: 'neon',
   moon: 'neon',
   fill: 'neon',
 }

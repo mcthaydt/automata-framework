@@ -69,6 +69,7 @@ const BLOCKOUT = {
       radius: 0,
       color: [0.45, 0.85, 0.55],
     },
+    { id: 'moon', kind: 'moon', x: 3, y: 2.2, z: 3, range: 4.2, radius: 0, color: [0.55, 0.68, 0.95] },
   ],
   zones: [
     {
@@ -177,13 +178,15 @@ describe('convertLevel', () => {
     expect(lamps[1]).toMatchObject({ id: 'monitorGlow', at: [6, 1, 1.5] })
   })
 
-  it('writes lamps in the kit\u2019s kinds, a kind the kit lacks as a neon with its own colour, and reports it', () => {
+  it('writes lamps in the kit\u2019s kinds, a screen as a screen, and a moon (whose colour the kit refuses) as a neon, reporting only that', () => {
     const { json, report } = converted()
     const lamps = json.lamps as { id: string; kind: string; color: string; radius?: number }[]
     expect(lamps[0]).toMatchObject({ id: 'hallLamp', kind: 'pendant', color: '#ffd699', radius: 3.4 })
-    // The kit's bulb is a warm tone and refuses a green screen's colour; a neon is the kit's coloured glow.
-    expect(lamps[1]?.kind).toBe('neon')
-    expect(report).toContainEqual(expect.objectContaining({ kind: 'lamp-kind', where: 'monitorGlow' }))
+    // The kit has the old game's screen, fire and spark, with the old colours within their tone; its moon and fill are other colours.
+    expect(lamps[1]).toMatchObject({ id: 'monitorGlow', kind: 'screen', color: '#73d98c' })
+    expect(lamps[2]?.kind).toBe('neon')
+    expect(report).toContainEqual(expect.objectContaining({ kind: 'lamp-kind', where: 'moon' }))
+    expect(report.filter((entry) => entry.kind === 'lamp-kind').map((entry) => entry.where)).toEqual(['moon'])
   })
 
   it('writes the level each lamp burns at when the night begins, the old game\u2019s own', () => {

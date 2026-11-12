@@ -1331,7 +1331,7 @@
     },
     {
       "id": "monitorGlow",
-      "kind": "neon",
+      "kind": "screen",
       "at": [-2.4, -3.05, 1.5],
       "color": "#73d98c",
       "range": 2.6,
@@ -1384,7 +1384,7 @@
     },
     {
       "id": "curtainWest",
-      "kind": "neon",
+      "kind": "fire",
       "at": [-4.1, -0.5, 1.3],
       "color": "#ff9940",
       "range": 6,
@@ -1393,7 +1393,7 @@
     },
     {
       "id": "curtainEast",
-      "kind": "neon",
+      "kind": "fire",
       "at": [-2.35, 1.4, 1.3],
       "color": "#ff9940",
       "range": 6,
@@ -1402,7 +1402,7 @@
     },
     {
       "id": "spark",
-      "kind": "neon",
+      "kind": "spark",
       "at": [-1.15, -4.1, 0.4],
       "color": "#99bfff",
       "range": 4,
