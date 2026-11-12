@@ -13,6 +13,7 @@ export {
 export { filterPrograms } from '../features/render/filter/filter-programs.js'
 export {
   type PostFilterDef,
+  type PostFilterPlacement,
   type PostFilterSpec,
   postFilter,
 } from '../features/render/filter/post-filter.js'

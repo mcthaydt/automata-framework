@@ -6750,6 +6750,7 @@ interface PixiRendererOptions {
     /**
      * Screen-space filters declared with `postFilter`. Each is built when the renderer starts and set in the
      * stage's post-filter slot before `setup` runs, so `setup` sees them and may add more. Names must be unique.
+     * One declared `at: 'screen'` goes in `screenFilters` instead, on the upscaled picture.
      */
     readonly postFilters?: readonly PostFilterDef[] | undefined;
     /**
@@ -6784,6 +6785,11 @@ interface PixiStage {
     filters: Filter[] | null;
     /** The post-filter slot over `filters`: each owner keeps its own filters by id and order. */
     readonly postFilters: PostFilterSlot;
+    /**
+     * The slot on the composite's upscaled sprite, at device pixels: filters declared `at: 'screen'`, told each frame
+     * where the field lies (`uScreenScale`, `uScreenOrigin`). Without a composite it holds nothing and draws nothing.
+     */
+    readonly screenFilters: PostFilterSlot;
     /** The graphics quality tier now. */
     readonly quality: QualityTier;
     /** Changes the tier: re-caps the canvas resolution and leaves out post-filter owners registered for a higher one. */
@@ -6890,7 +6896,16 @@ interface PostFilterDef {
     readonly wgsl: string;
     readonly order: number;
     readonly minTier: QualityTier | undefined;
+    readonly at: PostFilterPlacement;
 }
+```
+
+#### `PostFilterPlacement` (type)
+
+Where a declared filter runs: on the field at its logical size, or on the upscaled picture at device pixels.
+
+```ts
+type PostFilterPlacement = 'field' | 'screen';
 ```
 
 #### `PostFilterSpec` (interface)
@@ -6909,6 +6924,16 @@ interface PostFilterSpec {
     readonly order?: number | undefined;
     /** The lowest quality tier it runs at; left out, it runs at every tier. */
     readonly minTier?: QualityTier | undefined;
+    /**
+     * Where it runs. `'field'` (the default): on the picture at the game's logical size, before it is upscaled.
+     * `'screen'`: on the upscaled picture, at device pixels, so a pattern can be finer than a field pixel and sit on its
+     * edges (an LCD mesh between pixel-art texels). A screen filter is given `uScreenScale`, device pixels a field pixel,
+     * and `uScreenOrigin`, where the field's top-left lies in device pixels of the filter's input; a device pixel's
+     * position in the field is `vTextureCoord * uInputPixel.xy - uScreenOrigin` (WGSL: `screen.uScreenScale`,
+     * `screen.uScreenOrigin`, `gfu.uInputPixel`). The slot declares them; the shader must not. It needs the
+     * renderer's composite (`pixelArt` on): without one it is left out with a warning.
+     */
+    readonly at?: PostFilterPlacement | undefined;
 }
 ```
 

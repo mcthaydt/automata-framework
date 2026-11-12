@@ -1,12 +1,17 @@
 import type { StepResult } from '@automata/sim'
-import { Application, Container, type Filter, TextureSource } from 'pixi.js'
+import { Application, Container, type Filter, Matrix, TextureSource } from 'pixi.js'
 import { ok, type Result, refused } from '../../shared/lib/result.ts'
 import { RendererUnavailable } from '../../shared/runtime/boot-error.ts'
 import { DEFAULT_QUALITY, type QualityTier } from '../../shared/runtime/display-settings.schema.ts'
 import type { FrameInfo } from '../../shared/runtime/loop/frames.ts'
 import type { OwnedRenderer, RenderTarget } from '../../shared/runtime/render/renderer.ts'
 import { type EntityViewResolver, RenderDeltaConsumer } from './delta/render-delta-consumer.js'
-import { addPostFilters, assertUniqueNames, type PostFilterDef } from './filter/post-filter.js'
+import {
+  addPostFilters,
+  assertUniqueNames,
+  type PostFilterDef,
+  updateScreenUniforms,
+} from './filter/post-filter.js'
 import {
   createPostFilterSlot,
   type PostFilterSlot,
@@ -56,6 +61,7 @@ export interface PixiRendererOptions {
   /**
    * Screen-space filters declared with `postFilter`. Each is built when the renderer starts and set in the
    * stage's post-filter slot before `setup` runs, so `setup` sees them and may add more. Names must be unique.
+   * One declared `at: 'screen'` goes in `screenFilters` instead, on the upscaled picture.
    */
   readonly postFilters?: readonly PostFilterDef[] | undefined
   /**
@@ -100,6 +106,11 @@ export interface PixiStage {
   filters: Filter[] | null
   /** The post-filter slot over `filters`: each owner keeps its own filters by id and order. */
   readonly postFilters: PostFilterSlot
+  /**
+   * The slot on the composite's upscaled sprite, at device pixels: filters declared `at: 'screen'`, told each frame
+   * where the field lies (`uScreenScale`, `uScreenOrigin`). Without a composite it holds nothing and draws nothing.
+   */
+  readonly screenFilters: PostFilterSlot
   /** The graphics quality tier now. */
   readonly quality: QualityTier
   /** Changes the tier: re-caps the canvas resolution and leaves out post-filter owners registered for a higher one. */
@@ -256,6 +267,17 @@ export function createPixiRenderer(
 
     const postFilters = createPostFilterSlot(sceneFilters)
     postFilters.setTier(quality)
+    // At device pixels on the upscaled sprite; with no composite, a sink (`addPostFilters` leaves screen filters out).
+    const screen = composite?.sprite
+    const screenFilters = createPostFilterSlot({
+      get filters(): Filter[] | null {
+        return (screen?.filters as Filter[] | undefined) ?? null
+      },
+      set filters(val: Filter[] | null) {
+        if (screen) screen.filters = val
+      },
+    })
+    screenFilters.setTier(quality)
     let formFactor = initialGeometry.formFactor
     const applyResolution = (): void => {
       app.renderer.resolution = canvasResolutionFor(formFactor, devicePixelRatio(), quality)
@@ -276,12 +298,14 @@ export function createPixiRenderer(
         sceneFilters.filters = val
       },
       postFilters,
+      screenFilters,
       get quality(): QualityTier {
         return quality
       },
       setQuality(tier: QualityTier): void {
         quality = tier
         postFilters.setTier(tier)
+        screenFilters.setTier(tier)
         applyResolution()
       },
       tryFilter: (id, make) =>
@@ -291,7 +315,10 @@ export function createPixiRenderer(
         }),
     }
 
-    addPostFilters(stage, options.postFilters ?? [])
+    addPostFilters(
+      { postFilters, screenFilters: composite ? screenFilters : undefined, tryFilter: stage.tryFilter },
+      options.postFilters ?? [],
+    )
     const hooks: PixiStageHooks = options.setup?.(stage) ?? {}
 
     const unsubscribe = target.geometry.onChange((g) => {
@@ -302,6 +329,7 @@ export function createPixiRenderer(
       applyResolution()
     })
 
+    const screenTransform = new Matrix()
     let disposed = false
     const renderer: PixiRenderer = {
       stage,
@@ -312,8 +340,18 @@ export function createPixiRenderer(
       draw(frameInfo: FrameInfo): void {
         consumer.interpolate(frameInfo.alpha)
         hooks.draw?.(frameInfo)
-        if (composite)
+        if (composite) {
           app.renderer.render({ container: composite.stage, target: composite.texture, clear: true })
+          if (composite.sprite.filters?.length) {
+            // Where the field lands in device pixels this frame: the sprite's scale and top-left times the resolution.
+            const at = composite.sprite.getGlobalTransform(screenTransform, false)
+            const resolution = app.renderer.resolution
+            updateScreenUniforms(composite.sprite.filters as Filter[], at.a * resolution, [
+              at.tx * resolution,
+              at.ty * resolution,
+            ])
+          }
+        }
         app.render()
       },
       reset(): void {

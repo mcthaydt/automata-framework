@@ -1536,6 +1536,7 @@ interface PixiStage {
     readonly composite?: CompositeTarget | undefined;
     filters: Filter[] | null;
     readonly postFilters: PostFilterSlot;
+    readonly screenFilters: PostFilterSlot;
     readonly quality: QualityTier;
     setQuality(tier: QualityTier): void;
     tryFilter<F extends Filter>(id: string, make: () => F): F | undefined;
@@ -1604,7 +1605,14 @@ interface PostFilterDef {
     readonly wgsl: string;
     readonly order: number;
     readonly minTier: QualityTier | undefined;
+    readonly at: PostFilterPlacement;
 }
+```
+
+### `PostFilterPlacement` (type)
+
+```ts
+type PostFilterPlacement = 'field' | 'screen';
 ```
 
 ### `PostFilterSpec` (interface)
@@ -1615,6 +1623,7 @@ interface PostFilterSpec {
     readonly wgsl: string;
     readonly order?: number | undefined;
     readonly minTier?: QualityTier | undefined;
+    readonly at?: PostFilterPlacement | undefined;
 }
 ```
 

@@ -600,6 +600,7 @@
 - `Pose` (interface): Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`).
 - `postFilter(name, spec)`: Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', { glsl, wgsl })] }`.
 - `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
+- `PostFilterPlacement` (type): Where a declared filter runs: on the field at its logical size, or on the upscaled picture at device pixels.
 - `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
 - `PresentationBus` (interface): The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear.
 - `PROMPT_COPY` (const): The English words a control prompt shows where the device's own label is not known: "Not set" for an action with no binding, "Tap" for an on-screen button, and a name for each pad button a generic pad does not label ("Bottom button", "Start").
