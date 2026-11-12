@@ -205,10 +205,25 @@ branch's last commit (see "Fixes").
 
 ## Fixes
 
-Pending at the time this document was first committed; filled in by the fix commits.
+Each its own commit on `claude/desktop-games`, after this document; code changes with a test watched failing first.
+
+| Finding | Commit | What changed | Test, failing first |
+|---|---|---|---|
+| Tracker (coordinator's rule, N8) | `2c4466b7` | Row 7 moved verbatim to the record's "For the tracker"; `docs/superpowers/progress.md` and `docs/refactor/progress.md` back to `main`'s; `git diff origin/main...HEAD --stat` shows neither | n/a |
+| S1, N7 | `dac75153` | The tauri adapter owns `savesStatus`: `retry` from a failed write until one lands, each failure scheduling the next try after `SAVE_WRITE_DELAY_MS`; a failed `flush` still refused `INTERNAL`; the header comment re-wrapped. Changeset `desktop-save-failure-status.md` (`@automata/framework`, patch) | two cases in `hosting-tauri.test.ts` (`expected 'saved' to be 'retry'`); the target suite 21 files, 219 tests after |
+| S2 (client) | `a80fdd1a` | Each WebDriver request limited to 60 s; a timeout or a non-JSON answer names the method and path | two cases in `webdriver.test.ts` (one hung for its 5 s, one threw a `SyntaxError`) |
+| S3 | `b1d477db` | The proposal: secrets on the one step each, `SIGNED` booleans only, no identity printed, the `.pfx` removed in a `finally` and the certificate taken back out, `AF_DESKTOP_MAC_RUNNER`, the codemod and artifacts notes. Nothing under `.github/workflows/` | n/a (a document) |
+| S4, S5, S2 (journey) | `deb13602` | Quit on the desktop title (tauri with `exit` granted only), after Play or the slots, in the action bar (Tab, arrows, the pad's focus steps), 48 px, through `Hosting.exit`; `title_quit` in six languages beside `runtime_quit`, a context note, hashes by `automata words --mark` (no translator call; no new character, so no font subset moves); the guide and the record corrected; the journey quits by the button on its second start and closes the window on a third, and keeps tauri-driver's log. Changeset `desktop-title-quit.md` (`@automata/framework`, patch) | `title-quit.test.ts` (7 cases: none on web, itch, Ruken, nor on tauri without `exit`; on tauri beside Play, with a save, focusable, quitting through the host); 3 failed before the change |
+
+Left as notes, with reasons: N1 (dispose wrote nothing before either), N3 (`<defunct>` processes are this container's
+init, not the journey), N5 (`patchelf` and `xdg-utils` unproved either way; `pnpm dlx` waits on publication), N6 (other
+lanes' work), N9 (decisions for the Owner or other lanes). Not done: the `.deb`'s metadata, notices, Windows signing in
+`ship`, the 3D desktop build.
+
+The gates on the last code commit are below under "Gates after the fixes".
 
 ## For the tracker
 
 | # | Item | State | Progress | Links |
 |---|---|---|---|---|
-| 7 | Games as desktop apps: implementation audit | Done 2026-11-12 on `claude/desktop-games`, no subagents: 14 findings (0 blockers, 5 should fix, 9 notes); the journey passes here and goes red at the right step under three deliberate breaks of the adapter | audit: 100% | [audit](audits/2026-11-12-desktop-games-implementation-audit.md) |
+| 7 | Games as desktop apps: implementation audit | Done 2026-11-12 on `claude/desktop-games`, no subagents: 14 findings (0 blockers, 5 should fix, 9 notes); the journey passes here and goes red at the right step under three deliberate breaks of the adapter | audit: 100% | [audit](2026-11-12-desktop-games-implementation-audit.md) (from `docs/superpowers/`: `audits/2026-11-12-desktop-games-implementation-audit.md`) |
