@@ -299,9 +299,52 @@ Unit counts on the merged tree: `@automata/3d` 1,543 (145 files), `@automata/fra
 `@af-games/base-3d` 111, `@af-games/emberwick` 136, `@af-examples/wardrobe-3d` 95, `@automata/site` 516, `@automata/repo-hygiene` 160, `@automata/figures` 730.
 
 **Nothing moved.** `git status` was clean after every suite; no golden, recorded cell, md5 or hash was touched or re-recorded.
-The only files this section changed are this README and the tracker row.
+The only file this section changed is this README; the tracker rows are under [For the tracker](#for-the-tracker).
 
 Not run: WebKit and Firefox (parity, the `-webkit` and iPad projects; neither browser is installed here), a real GPU (WebGPU ran
 on SwiftShader), `release-checks.yml` as a whole, the 3D stranger's journey (it still stops at the packed `@automata/3d`'s
 TypeScript, as in §3), Emberwick's and the 2D journeys (they draw nothing with `@pixi/3d`). Ready to be named for merge on this
 evidence; the cross-engine and real-GPU runs remain the Owner's.
+
+## For the tracker
+
+Everything this branch adds or changes in `docs/superpowers/progress.md` relative to `origin/main` (`7b6ce6ac` when this was
+written), verbatim, for the coordinator to paste. It changes nothing in `docs/refactor/progress.md`. The branch itself carries
+neither file's edits (the commit "docs: the tracker rows move to the audit README"), so it no longer collides with the other
+branches' tracker edits.
+
+**1. A new row 7 in the stage table, straight after row 6 (the builders fold):**
+
+~~~markdown
+| 7 | `@pixi/3d` from npmjs.org and the deploy rule lifted (the Owner, 2026-11-12: "yes, move to the public pixi3d package and lift the deploy rule") | Done 2026-11-12 on `claude/pixi-3d-public` (from `claude/pixi-3d-beta-3` `b25ec539`), one session, no subagents: public without a token, beta.3's code byte-identical to the vendored tarball, MIT; the tarballs gone, 8 manifests on the registry, `ship` and the site no longer refuse a build with Pixi 3D (its extras still refused), base-3d public; uncached `pnpm check` exit 0, base-3d web/itch/Ruken prepared, 3D journeys in Chromium pass, no golden moved. Not run: WebKit, Firefox, a real GPU. **Brought up to main 2026-11-12** (`origin/main` `d401ec4d` merged as `b828e7dd`; three conflicts joined, the beta.3 port and main's conform work both kept; the whole uncached `pnpm check` exit 0, build, API checks, the painter's 231 browser cases (227 view results and 4 fog), the 3D suites, base-3d web/itch/Ruken prepared, the 3D journeys, the 2D consumer smoke from packs and `pnpm secrets` all pass in Chromium, no golden or hash moved). Open for the Owner: which 3D packages to publish, `@pixi/3d` 0.1.0, cross-engine parity and a real GPU | 100% (5 of 5 steps) | [audit](audits/2026-11-12-pixi-3d-public/README.md) |
+~~~
+
+**2. In the section that lists the framework's open items (the one that opens "Rows 8 to 11 are the reference game's own"),
+this bullet is replaced.** Main's text is:
+
+~~~markdown
+- The framework refuses to publish a 3D game to a public host while Pixi 3D is in beta. Private builds are allowed, so
+  the port is not blocked; an itch release is, and that is the Owner's.
+~~~
+
+and it becomes:
+
+~~~markdown
+- Lifted 2026-11-12: Pixi 3D is public on npm, and a 3D game now publishes to every host a 2D one does
+  ([the move](audits/2026-11-12-pixi-3d-public/README.md)). An itch release is the Owner's.
+~~~
+
+**3. A bullet in the list that holds main's short "**beta.3:**" bullet** (the one that starts "fog and lit figures are conversions"),
+straight after that bullet and before the section "The coordinator's state, 2026-11-12 evening":
+
+~~~markdown
+  - **beta.3 (`claude/pixi-3d-beta-3`, fifth session, 2026-11-12):** the builders fold is merged in (`main` `4a505e86`) and the painter's view is
+    ported: `extensions/figures` takes beta.3 and `pixi.js` 8.23.0, its WGSL cell template is beta.3's own with three edits (the texel snap is gone:
+    beta.3 samples each texture with its own style), and the cell material fogs in display space as beta.2 fogged an unlit colour. The painter's
+    browser suite is 231 of 231 on WebGL and WebGPU (software), byte for byte with the CPU's `compose`, the character kit's three painted WebGPU
+    cases pass, no golden moved. Night room with fog, beta.2 against beta.3: painted figures 32.94 to 33.05 luma, 1.23% of pixels differ (the figures
+    were 67,300 of 80,084 differing pixels before). The 3D suites, journeys, lcd-panel, retro-crisp and Emberwick's language journeys pass in
+    Chromium. What is left before it can merge: the Owner answers the grouped list (recommended answers in the audit) and runs cross-engine parity
+    and a real GPU (commands in the audit). One choice for the Owner, not a condition: beta.2 drew three things darker than their content colours
+    (unlit and sky fog, lit figures, embers) and the conversion keeps that.
+~~~
