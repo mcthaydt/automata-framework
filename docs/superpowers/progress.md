@@ -93,6 +93,32 @@ gate could run; the side session's list of what the framework could take over is
 - The merge commit `e0b2394e` carries the earlier execution session's id in its `Claude-Session` trailer (a slip; not rewritten, since the commit is pushed).
 - Task 20's second defect fix was watched failing under the old code for one of its five cases only (the plan's ledger says which).
 
+## Workstream 1, stage 6 (the fixes), `claude/shared-polish-fixes`
+
+Sonnet 5.5 (`session_01HNdX7HQTNnRKaroUir7cbf`), no subagents, from `main` `62a143ce` with the audit merged. One commit per
+finding or tight group, test first, each test watched failing. Chromium only (software GL); WebKit, Firefox, real devices and
+hosts are not run; no paid API call. **Progress: 0 of 18 findings (0%).** Stage 6 of 7 is this one, so the workstream is
+`(5 + done/18) / 7` of the way.
+
+| Finding | What | State | Commit |
+|---|---|---|---|
+| B1 + S6 | `/version` answers cross-origin; a failed check is "could not check", never "current"; a cross-origin journey | | |
+| S7 | Content entries load under plain Node; `no-eval` passes for Emberwick | | |
+| S1 | Flow, display and lost-picture words follow the language in force | | |
+| S2 | The OFL text ships in a built game | | |
+| S3 | `automata words` tells a bad key, a rate limit and an outage from a refusal | | |
+| S4 + S5 | `bindWords`, `formatNumber`, default languages and one `matchLocale` in the framework; Emberwick's limit | | |
+| S8 | "+N more" never covers a label | | |
+| S9 | The photosensitivity warning says the game's own hazards | | |
+| T1 | `openLink` doc comment (and `noopener`) | | |
+| T2 | The four playground cases watched failing | | |
+| T3 | Interface sounds nothing plays | | |
+| T4 | Credit names in the font build's glyph gate | | |
+| T5 | Copy that fails the grandma test | | |
+| T6 | The Languages guide names the import | | |
+| T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | | |
+| T8 | The SDK on the Node-only list | | |
+
 ## Workstream 2 sessions (slice 1, the prologue)
 
 | Stage | Session | Branch | State |
