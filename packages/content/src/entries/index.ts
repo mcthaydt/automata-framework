@@ -11,6 +11,7 @@ export {
   compileContentResult,
   DEFAULT_OUT_DIR,
   type MessageLocation,
+  type VerbatimText,
 } from '../shared/compile/compile-content.ts'
 export { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from '../shared/compile/errors.ts'
 export type { SimPartition } from '../shared/compile/sim-partition.ts'
@@ -58,6 +59,7 @@ export {
   contentRef,
   defineContentSchema,
   localized,
+  verbatim,
 } from '../shared/schema/content-schema.ts'
 export {
   checkTuningLayer,

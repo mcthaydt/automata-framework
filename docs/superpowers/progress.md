@@ -114,7 +114,7 @@ hosts are not run; no paid API call. **Progress: 15 of 18 findings (83%)** (B1, 
 | T1 | `openLink` opens `window.open(url, '_blank')` with the opener nulled in the same turn, so a blocked popup answers `opened: false`; only `https:` addresses reach it; each adapter read | done (corrects `dcf5cc1a`, which put `noopener` in the features and made a block read as opened; unit tests; a real browser's referrer not checked) | see the closing record |
 | T2 | The four playground cases watched failing | | |
 | T3 | Interface sounds nothing plays | done (a Modal asks for `open` and `close`, the error panel for `error`) | `07aeda0d` |
-| T4 | Credit names in the font build's glyph gate | | |
+| T4 | Credit names in the font build's glyph gate: a new `verbatim()` in `@automata/content/schema` (coordinator approved the export); the credits kind marks `name` with it; the build cuts every face to it and names a name a language's faces lack | done (unit tests in content and ui-screens; no game ships a credits file yet, so no font changed) | see the closing record |
 | T5 | Copy that fails the grandma test: "Make it gentler" heads the warning's switches; Emberwick's splash is "Emberwick, starting" to a screen reader; six languages each, by hand; fonts rebuilt | done (the catalog-parity unit test watched failing on the English change alone; fonts, words sources and example pages rebuilt) | see the closing record |
 | T6 | The Languages guide names the import | done with S4 | `77e57029` |
 | T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | done with S3 | _with S3_ |

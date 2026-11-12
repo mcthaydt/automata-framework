@@ -172,6 +172,8 @@
 - `TunableDeclaration` (interface): A tunable a game declares in code: `int` or `float`, an inclusive range and a default.
 - `TunableDeclarations` (type): A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`).
 - `TuningMeta` (type): Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for debug sliders.
+- `verbatim()`: Text drawn as written, in every language: a person's name, a studio, a trademark.
+- `VerbatimText` (interface): A text marked `verbatim()`, with where it is written, 1-based, and its path in the file (`sections.0.names.0.name`).
 - `verifyContent` (const): Fails with `staleArtifact` for each committed output that differs from a fresh compile.
 - `withTuningTable(guide, meta)`: The guide with its generated section replaced, or undefined when it has no markers.
 
@@ -334,6 +336,7 @@
 - `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
 - `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
 - `localized()`: Text a player reads, written in the source language.
+- `verbatim()`: Text drawn as written, in every language: a person's name, a studio, a trademark.
 
 ### `import { … } from '@automata/content/vite'`
 

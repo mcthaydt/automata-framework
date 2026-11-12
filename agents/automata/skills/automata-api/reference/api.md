@@ -1163,6 +1163,11 @@ interface CompiledContent {
    * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
    */
   readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
+  /**
+   * The text every kind marks `verbatim()` (a credits name): drawn as written in every language, so it is in no
+   * catalog. The font build cuts every face to it and names it, by place, when a language's faces lack a character.
+   */
+  readonly verbatim: readonly VerbatimText[];
 }
 ```
 
@@ -1777,6 +1782,28 @@ debug sliders.
 
 ```ts
 type TuningMeta = Readonly<Record<string, TuningEntryMeta>>;
+```
+
+#### `verbatim` (function)
+
+Text drawn as written, in every language: a person's name, a studio, a trademark. It gets no message key and is never
+translated (`automata words` leaves it alone), and the font build cuts every language's faces to its characters and
+refuses a build in which a language's faces lack one, so it is never drawn in a device's font. Use `localized()` for
+words a translator should render in each language, and this for text that must stay the same in all of them.
+
+```ts
+function verbatim(): z.ZodType<string, string>;
+```
+
+#### `VerbatimText` (interface)
+
+A text marked `verbatim()`, with where it is written, 1-based, and its path in the file (`sections.0.names.0.name`).
+
+```ts
+interface VerbatimText extends MessageLocation {
+  readonly text: string;
+  readonly keyPath: string;
+}
 ```
 
 #### `verifyContent` (const)
@@ -3324,6 +3351,17 @@ Text a player reads, written in the source language. It gets a message key for t
 
 ```ts
 function localized(): z.ZodType<string, string>;
+```
+
+#### `verbatim` (function)
+
+Text drawn as written, in every language: a person's name, a studio, a trademark. It gets no message key and is never
+translated (`automata words` leaves it alone), and the font build cuts every language's faces to its characters and
+refuses a build in which a language's faces lack one, so it is never drawn in a device's font. Use `localized()` for
+words a translator should render in each language, and this for text that must stay the same in all of them.
+
+```ts
+function verbatim(): z.ZodType<string, string>;
 ```
 
 ### `import { … } from '@automata/content/vite'`
@@ -16442,7 +16480,8 @@ interface Credits {
 #### `creditsContent` (const)
 
 The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
-`role` are translatable; a `name` and a `url` are not.
+`role` are translatable; a `name` and a `url` are not. A `name` is `verbatim()`: drawn as written in every language, so
+the font build keeps its characters in every face and refuses a build in which a language's faces lack one.
 
 ```ts
 const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
@@ -16490,10 +16529,11 @@ const creditsSchema: z.ZodType<Credits>;
 #### `creditsSchemaWith` (const)
 
 The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
-text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+text in the content kind. A name is checked by `name` (plain text by default; the content kind marks it `verbatim()`
+so the font build holds it to every language's faces). Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
 
 ```ts
-const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+const creditsSchemaWith: (text: z.ZodType<string, string>, name?: z.ZodType<string, string>) => z.ZodType<Credits>;
 ```
 
 #### `CreditsSection` (interface)
@@ -16740,7 +16780,8 @@ interface Credits {
 #### `creditsContent` (const)
 
 The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
-`role` are translatable; a `name` and a `url` are not.
+`role` are translatable; a `name` and a `url` are not. A `name` is `verbatim()`: drawn as written in every language, so
+the font build keeps its characters in every face and refuses a build in which a language's faces lack one.
 
 ```ts
 const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
@@ -16788,10 +16829,11 @@ const creditsSchema: z.ZodType<Credits>;
 #### `creditsSchemaWith` (const)
 
 The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
-text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+text in the content kind. A name is checked by `name` (plain text by default; the content kind marks it `verbatim()`
+so the font build holds it to every language's faces). Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
 
 ```ts
-const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+const creditsSchemaWith: (text: z.ZodType<string, string>, name?: z.ZodType<string, string>) => z.ZodType<Credits>;
 ```
 
 #### `CreditsSection` (interface)

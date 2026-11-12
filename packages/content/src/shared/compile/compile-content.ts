@@ -90,6 +90,17 @@ export interface CompiledContent {
    * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
    */
   readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>
+  /**
+   * The text every kind marks `verbatim()` (a credits name): drawn as written in every language, so it is in no
+   * catalog. The font build cuts every face to it and names it, by place, when a language's faces lack a character.
+   */
+  readonly verbatim: readonly VerbatimText[]
+}
+
+/** A text marked `verbatim()`, with where it is written, 1-based, and its path in the file (`sections.0.names.0.name`). */
+export interface VerbatimText extends MessageLocation {
+  readonly text: string
+  readonly keyPath: string
 }
 
 /** A message's place in its file, 1-based. */
@@ -133,6 +144,7 @@ interface ParsedItem {
   readonly toml: ParsedToml
   readonly refs: readonly FoundRef[]
   readonly texts: readonly FoundText[]
+  readonly verbatim: readonly FoundText[]
 }
 
 type CompileOutcome =
@@ -190,8 +202,8 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   const items: ParsedItem[] = []
   const ids = new Map<string, Set<string>>()
   const addItem = (kind: string, id: string | undefined, parsed: { value: unknown; toml: ParsedToml }) => {
-    const { value, refs, texts } = resolveMarkers(parsed.value)
-    items.push({ kind, id, toml: parsed.toml, refs, texts })
+    const { value, refs, texts, verbatim } = resolveMarkers(parsed.value)
+    items.push({ kind, id, toml: parsed.toml, refs, texts, verbatim })
     return value
   }
   for (const def of options.schemas) {
@@ -384,6 +396,14 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
           language,
           index === 0 ? messages : (translated.get(language) as MessageCatalog),
         ]),
+      ),
+      verbatim: items.flatMap(({ toml, verbatim }) =>
+        verbatim.map(({ path, text }) => ({
+          text,
+          file: toml.file,
+          ...positionOf(toml.keys, path),
+          keyPath: path.join('.'),
+        })),
       ),
       messageLocations: new Map(
         languages.map((language, index) => [

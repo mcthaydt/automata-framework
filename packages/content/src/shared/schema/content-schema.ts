@@ -113,6 +113,15 @@ export class LocalizedMarker {
   }
 }
 
+/** A parsed text drawn as written in every language, before it is collected. */
+export class VerbatimMarker {
+  readonly automataContentMarker: 'verbatim' = 'verbatim'
+  readonly text: string
+  constructor(text: string) {
+    this.text = text
+  }
+}
+
 const brandOf = (value: unknown): unknown =>
   typeof value === 'object' && value !== null
     ? (value as { automataContentMarker?: unknown }).automataContentMarker
@@ -120,6 +129,7 @@ const brandOf = (value: unknown): unknown =>
 
 export const isContentRefMarker = (value: unknown): value is ContentRefMarker => brandOf(value) === 'ref'
 export const isLocalizedMarker = (value: unknown): value is LocalizedMarker => brandOf(value) === 'localized'
+export const isVerbatimMarker = (value: unknown): value is VerbatimMarker => brandOf(value) === 'verbatim'
 
 interface Registries {
   readonly refs: z.core.$ZodRegistry<{ kind: string }>
@@ -153,4 +163,17 @@ export function localized(): z.ZodType<string, string> {
     .transform((text) => new LocalizedMarker(text) as unknown as string)
   localizedTexts.add(schema, { localized: true })
   return schema
+}
+
+/**
+ * Text drawn as written, in every language: a person's name, a studio, a trademark. It gets no message key and is never
+ * translated (`automata words` leaves it alone), and the font build cuts every language's faces to its characters and
+ * refuses a build in which a language's faces lack one, so it is never drawn in a device's font. Use `localized()` for
+ * words a translator should render in each language, and this for text that must stay the same in all of them.
+ */
+export function verbatim(): z.ZodType<string, string> {
+  return z
+    .string()
+    .min(1)
+    .transform((text) => new VerbatimMarker(text) as unknown as string)
 }

@@ -16,6 +16,9 @@
 // file (`license_file`) is copied beside the subsets. `fonts.css` loads the faces: one `@font-face` per font and
 // language, and a `:root:lang()` rule per language that sets the `--af-font` the framework's theme draws in.
 //
+// Text a kind marks `verbatim()` (a credits name) is in no catalog and is drawn as written in every language, so every
+// subset is cut to it too and each language's faces are held to it, reported where the text is written.
+//
 // The language picker's names. The picker lists every content language by its own name (`endonymOf`, the
 // same function ui's `LanguageSection` shows), whichever language the game is showing, so every subset is also cut
 // to every content language's name, and the gate holds each language's subsets to the names of the languages the
@@ -105,7 +108,9 @@ export const buildFonts = (
     // Every content language's name, as the language picker shows it, goes into every subset: the picker lists
     // them all whichever language the game is showing.
     const names = new Map(content.languages.map((language) => [language, endonymOf(language)]))
-    const nameCharacters = [...names.values()].join('')
+    // Text a kind marks `verbatim()` (a credits name) is drawn as written in every language, so it goes into every
+    // subset as well, and each language's faces are held to it (`checkVerbatim`).
+    const nameCharacters = [...names.values(), ...content.verbatim.map(({ text }) => text)].join('')
 
     for (const name of Object.keys(fonts.value.font).sort()) {
       const font = fonts.value.font[name] as FontSource
@@ -158,6 +163,7 @@ export const buildFonts = (
       if (broken.has(locale)) continue
       checkGlyphs(options.root, content, locale, shownWords.get(locale), covered, diagnostics)
       checkNames(fonts.toml, names, served, locale, covered, diagnostics)
+      checkVerbatim(content, locale, covered, diagnostics)
     }
 
     for (const language of content.languages)
@@ -295,6 +301,30 @@ function checkNames(
     if (missing.length === 0) continue
     const message = `${notInSubset(missing, locale, covered)} (the language picker names ${language} ${name})`
     diagnostics.push(diagnosticAt(toml, 'missingGlyph', covered.at, message))
+  }
+}
+
+/**
+ * Reports each text a kind marks `verbatim()` (a credits name) with a character none of this language's subsets holds,
+ * where it is written. A name is not translated, so every language draws it, in that language's faces.
+ */
+function checkVerbatim(
+  content: CompiledContent,
+  locale: string,
+  covered: LocaleCoverage,
+  diagnostics: Diagnostic[],
+): void {
+  for (const { text, file, line, column, keyPath } of content.verbatim) {
+    const missing = missingCharacters(text, covered)
+    if (missing.length === 0) continue
+    diagnostics.push({
+      code: 'missingGlyph',
+      file,
+      line,
+      column,
+      keyPath,
+      message: `${notInSubset(missing, locale, covered)} (a name is drawn as written in every language: give ${locale} a font that has these characters in fonts.toml, or change the name)`,
+    })
   }
 }
 

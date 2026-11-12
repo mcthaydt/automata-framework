@@ -43,9 +43,13 @@ const link = z.string().refine(
 
 /**
  * The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
- * text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+ * text in the content kind. A name is checked by `name` (plain text by default; the content kind marks it `verbatim()`
+ * so the font build holds it to every language's faces). Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
  */
-export const creditsSchemaWith = (text: z.ZodType<string, string>): z.ZodType<Credits> =>
+export const creditsSchemaWith = (
+  text: z.ZodType<string, string>,
+  name: z.ZodType<string, string> = z.string().min(1),
+): z.ZodType<Credits> =>
   z.strictObject({
     sections: z
       .array(
@@ -54,7 +58,7 @@ export const creditsSchemaWith = (text: z.ZodType<string, string>): z.ZodType<Cr
           names: z
             .array(
               z.strictObject({
-                name: z.string().min(1),
+                name,
                 role: text.optional(),
                 url: link.optional(),
               }),
