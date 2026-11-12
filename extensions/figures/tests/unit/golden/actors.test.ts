@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { ACTOR_WHO, actorFrames } from '../../fixtures/frames/actors'
 import golden from '../../fixtures/golden/actors.json'
-import { ACTOR_WHO, actorFrames } from './actors'
 
 /** The scriptable actors must draw pixel-identical to their golden (recorded by scripts/golden.ts before the cut, from
- * tests/unit/golden/actors.ts): every frame's md5, for each base figure. A failure names each frame that differs. */
+ * tests/fixtures/frames/actors.ts): every frame's md5, for each base figure. A failure names each frame that differs. */
 describe('the actors match their golden', () => {
   for (const who of ACTOR_WHO)
     it(who, () => {

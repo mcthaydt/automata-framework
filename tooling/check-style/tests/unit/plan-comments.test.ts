@@ -3,7 +3,7 @@ import { planCommentFindings } from '#src/plan-comments.ts'
 
 // A comment should say why, not which plan asked for the code. The rule reads every comment in a .ts, .svelte or .css
 // file, and knows the ways a plan is cited: a milestone (`M4`, `M4.7`, `M4-D9`), a task (`task 6.4`), a plan code
-// (`DX.2d`, `WEB.PLAY.1`, `FR.3`) and a section sign.
+// (`DX.2d`, `WEB.PLAY.1`, `FR.3`), a numbered task of a named plan (`task 27 of the fold plan`) and a section sign.
 const MESSAGE = 'A comment should say why, not which plan asked for it. Explain the reason in plain words.'
 const finding = (file: string, line: number) => ({ file, rule: 'plan-comment', message: MESSAGE, line })
 
@@ -26,6 +26,10 @@ describe('citations in a .ts comment', () => {
     ['// as plan 12.3 says\nexport const a = 1\n'],
     ['// the host default (D8) waits\nexport const a = 1\n'],
     ['// the playground frame (PLAY-D6) needs it\nexport const a = 1\n'],
+    // A numbered task of a named plan, and a named plan's ledger.
+    ['// needed until task 27 of the builders-fold plan replaces each\nexport const a = 1\n'],
+    ['// tasks 21 to 27 of the fold plan turn it on\nexport const a = 1\n'],
+    ["// counted in the builders-fold plan's ledger\nexport const a = 1\n"],
   ])('%j is flagged', (code) => {
     expect(check(code)).toEqual([finding('/p/a.ts', 1)])
   })
@@ -39,6 +43,8 @@ describe('citations in a .ts comment', () => {
     '// A (D) marker or the word D8 outside brackets is not a decision code\nexport const a = 1\n',
     '// The spec is the file the user wrote, so it is read as it is\nexport const a = 1\n',
     '// A plan for 3 days of food, spec by spec\nexport const a = 1\n',
+    '// Task 27 of 30 is the last one in the queue\nexport const a = 1\n',
+    '// The ledger of the plan is a file\nexport const a = 1\n',
   ])('%j passes', (code) => {
     expect(check(code)).toEqual([])
   })

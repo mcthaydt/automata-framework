@@ -1,8 +1,8 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { describe, expect, it } from 'vitest'
 import { compose, gameplay, type StageFrame } from '#src/entries/index.ts'
+import { coloursOf } from '../../fixtures/stage'
 import { CASES, wallBackdrop } from '../../fixtures/view-cases.ts'
-import { coloursOf } from './fixtures'
 
 /**
  * The per-texel depth cases the browser suite draws on the GPU (tests/fixtures/view-cases.ts), asked of the CPU reference: that each really

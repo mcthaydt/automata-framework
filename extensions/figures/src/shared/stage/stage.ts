@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import type { ScriptedActor } from '../actors/actor'
 import type { FigureLight } from '../figure/figure'
 import { SPRITE_PITCH } from '../figure/frames'
@@ -15,7 +15,7 @@ import { type CameraPose, checkPose, densityFor, project, viewOf, zoomOf } from 
  */
 
 /** The contract's version: a whole number, raised on any breaking change to the types in docs/contract.md or to
- * src/kit.ts. */
+ * src/entries/kit.ts. */
 export const STAGE_VERSION = 1
 
 /** One figure in a frame: its cell, its feet in the world, where its cell's top-left lands on screen, how many screen
@@ -39,16 +39,16 @@ export interface StageOptions {
    * `lightFigure` light the cell where the actor stands. Give `t` for a flicker or a light style. */
   lighting?: Lighting
   /** The other light path: a light per actor for the painter's light hook (an outside light per vertex, figure.ts
-   * FigureLight), as EnvironmentBuilder's scene light does. With it no `lightFigure` runs. Not with `lighting`. */
+   * FigureLight), as a scene's light does. With it no `lightFigure` runs. Not with `lighting`. */
   lights?: (actor: ScriptedActor) => FigureLight | null
   /** The third light path: the room's light on each actor, as `lightSprite` takes it (docs/contract.md section 3): `at` is the
    * actor's feet in the world, the lamps' `dir` are unit vectors toward them in the world, and the stage turns each into
    * the actor's lighting frame. `null` leaves that actor unlit. Not with `lighting` or `lights`. */
   sprite?: (actor: ScriptedActor, at: V3) => SpriteLighting | null
-  /** The density every figure is painted at: 2 by default (FigureBuilder's working resolution, the renders' look), 1 or
+  /** The density every figure is painted at: 2 by default (the painter's working resolution, the renders' look), 1 or
    * 4 as asked, or `'auto'` to pick it from the zoom by `densityFor` (up to `maxDensity`), as the showcases did by hand. */
   density?: 1 | 2 | 4 | 'auto'
-  /** Whole pixels per texel and the quad on the pixel grid (The Last Light's `?crisp=figures`). On by default (the
+  /** Whole pixels per texel and the quad on the pixel grid (a game's crisp-figures switch). On by default (the
    * owner's call at the c6 visual gate); `crisp: false` is true scale: any real scale, the anchor unrounded. */
   crisp?: boolean
   /** The highest density `density: 'auto'` paints at (4 by default). */

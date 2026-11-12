@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 22 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 // biome-ignore-all lint/complexity/useLiteralKeys: bracket access is how a test reads a private member (dot access does not compile)
 import { describe, expect, it } from 'vitest'
 import { GROUP, type Material } from '#src/shared/body/parts.ts'

@@ -1,5 +1,3 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 25 of the builders-fold plan (the strict flags) replaces each with a check
-
 import type { HeadShape, Measure } from '../body/genes'
 import type { Decal, Material, Part } from '../body/parts'
 import type { Skeleton } from '../body/rig'

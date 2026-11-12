@@ -1,4 +1,3 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 /**
  * The Pixi 3D view against the painter, under WebGL in Chromium (the same checks run under WebGPU in ../webgpu/):
  *

@@ -5,15 +5,15 @@ import { type ActorScript, ScriptedActor, scriptOf, Troupe } from '#src/shared/a
 import { lowest } from '#src/shared/actors/pose-spec.ts'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import { fk } from '#src/shared/body/rig.ts'
+import { SPRITE_SETS, spriteSet } from '../../fixtures/frames/sprites'
 import golden from '../../fixtures/golden/sprites.json'
-import { SPRITE_SETS, spriteSet } from '../golden/sprites'
 
 const view = { azimuth: 0, pitch: (18 * Math.PI) / 180 }
 const md5 = (px: Uint8ClampedArray) => createHash('md5').update(px).digest('hex')
 
 describe('sprites stay pixel-identical with no new feature used', () => {
   // Every channel of every pixel (an md5 of each frame's RGBA): the hero, the 8 views standing and the walk's 8 poses,
-  // as drawn before the actors came (tests/fixtures/golden/sprites.json, recorded by `npm run golden -- sprites`).
+  // as drawn before the actors came (tests/fixtures/golden/sprites.json, recorded by `pnpm --filter @automata/figures golden sprites`).
   for (const [id, D] of SPRITE_SETS)
     it(`${id}-D${D}`, () => {
       expect(spriteSet(id, D)).toEqual((golden as Record<string, string[]>)[`${id}-D${D}`])

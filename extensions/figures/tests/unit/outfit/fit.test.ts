@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 25 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import type { Sliders } from '#src/shared/body/genes.ts'
@@ -8,7 +8,7 @@ import { J, skeleton } from '#src/shared/body/rig.ts'
 import { axisAngle } from '#src/shared/math/math.ts'
 import { bodyOf, clearance, girth, profiles, ringAt } from '#src/shared/outfit/fit.ts'
 import { box, dress, type Garment, registerGarment } from '#src/shared/outfit/garments.ts'
-import { BODY, endsOf } from '../body/ends'
+import { BODY, endsOf } from '../../fixtures/body-ends'
 
 const rig = (sliders: object = BASE[0].def.sliders) => {
   const m = measure(sliders),

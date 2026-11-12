@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 /**
  * The sprite-light golden's frames (c8-lit): the base pair, 8 directions standing at D2, lit as a sprite (`lightSprite`)
  * under four lights, each kept as an md5 of the frame's RGBA and named `<who>/<light>/<facing>`. The lights are in the
