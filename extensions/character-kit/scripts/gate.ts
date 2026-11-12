@@ -83,7 +83,7 @@ function baseTree(): string {
   const dir = join(REPO, '../c7-base')
   if (!existsSync(join(dir, 'node_modules'))) {
     throw new Error(
-      `The base tree is missing: git worktree add --detach ${dir} ${BASE_COMMIT}, give the figure builder's folder there the commit that tree names, and pnpm install there.`,
+      `The base tree is missing: git worktree add --detach ${dir} ${BASE_COMMIT}, run git submodule update --init vendor/FigureBuilder there (that commit still has the painter as a submodule, read from the archived repository), and pnpm install there.`,
     )
   }
   return dir

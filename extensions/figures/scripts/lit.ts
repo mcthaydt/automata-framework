@@ -4,7 +4,7 @@
  * the four sprite lights (`lightSprite`, the room's light on a sprite: tests/unit/golden/sprite.ts), each base figure in three
  * views (front, three-quarter, side), at D2. Writes OUT_DIR/lit-sheet.png and lit-sheet-x2.png.
  *
- *   npm run lit -- [OUT_DIR]
+ *   pnpm --filter @automata/figures lit [OUT_DIR]
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'

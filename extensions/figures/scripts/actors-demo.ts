@@ -4,7 +4,7 @@
  * in place, at D2, with a base-m standing by as the target of a point or a handshake. Writes into OUT_DIR
  * actions-sheet.png and actions-sheet-x2.png (×2 nearest).
  *
- *   npm run actors -- [OUT_DIR]
+ *   pnpm --filter @automata/figures actors [OUT_DIR]
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'

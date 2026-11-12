@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { CELL_TEMPLATE } from '#src/features/view/cell-template.ts'
 
 /**
- * FigureBuilder's WGSL template for a depth-writing quad is a copy of `@pixi/3d`'s default material template with four edits
+ * The painter's WGSL template for a depth-writing quad is a copy of `@pixi/3d`'s default material template with four edits
  * (src/features/view/cell-template.ts). This reads the installed `@pixi/3d` and checks that, so an upgrade that moves the
  * original fails here, in words, before a frame is wrong.
  */
@@ -26,7 +26,7 @@ describe('the depth-writing template', () => {
   it('finds @pixi/3d’s own template in the installed package', () => {
     expect(
       installed.gpu,
-      `no gpuTemplate in ${installed.file}: @pixi/3d changed, so FigureBuilder's copy must be redone`,
+      `no gpuTemplate in ${installed.file}: @pixi/3d changed, so the painter's copy must be redone`,
     ).toBeTypeOf('string')
   })
   it('binds the groups the installed template binds', () => {

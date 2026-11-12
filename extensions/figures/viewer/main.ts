@@ -1,7 +1,7 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 /**
- * The figure viewer: the base pair in a Pixi 3D scene, each the painter's own cell on a quad (src/view.ts). Not part of
- * the base's public surface; `npm run viewer` serves it.
+ * The figure viewer: the base pair in a Pixi 3D scene, each the painter's own cell on a quad (src/entries/view.ts). Not part of
+ * the base's public surface; `pnpm --filter @automata/figures viewer` serves it.
  *
  *   /               The Last Light's gameplay camera (src/shared/stage/pose.ts `gameplay`: perspective, 30° down, 16 m),
  *                   a 640×480 frame shown at the largest whole multiple the window holds, the base pair drawn through

@@ -15,7 +15,7 @@ import { type CameraPose, checkPose, densityFor, project, viewOf, zoomOf } from 
  */
 
 /** The contract's version: a whole number, raised on any breaking change to the types in docs/contract.md or to
- * src/kit.ts. */
+ * src/entries/kit.ts. */
 export const STAGE_VERSION = 1
 
 /** One figure in a frame: its cell, its feet in the world, where its cell's top-left lands on screen, how many screen

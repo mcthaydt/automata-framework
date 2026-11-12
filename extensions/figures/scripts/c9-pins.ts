@@ -1,4 +1,4 @@
-/** Prints the pins of tests/fixtures/pins.ts as a `PINS` literal, for the recording commit (F0): `npx vite-node scripts/c9-pins.ts`. */
+/** Prints the pins of tests/fixtures/pins.ts as a `PINS` literal, for the recording commit: `pnpm --filter @automata/figures exec tsx scripts/c9-pins.ts`. */
 import { PIN_NAMES, pinCell } from '../tests/fixtures/pins'
 
 console.log('export const PINS: Record<string, string> = {')

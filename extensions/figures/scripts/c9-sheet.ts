@@ -1,8 +1,8 @@
 /**
- * c9-wardrobe's checkpoint sheets (docs/superpowers/plans/2026-11-11-c9-wardrobe.md), drawn in Node. Free: no API.
+ * c9-wardrobe's checkpoint sheets (docs/archive/figure-painter/c9-wardrobe/2026-11-11-c9-wardrobe.md), drawn in Node. Free: no API.
  *
- *   npm run c9 -- <out> [name…]     writes <out>/<name>.png (1×) and <name>-x8.png for each named sheet (all, if none)
- *   npm run c9 -- <out> --measure   prints the numbers the badge, the watch and the faces are sized from (spec 5.5)
+ *   pnpm --filter @automata/figures c9 <out> [name…]     writes <out>/<name>.png (1×) and <name>-x8.png for each named sheet (all, if none)
+ *   pnpm --filter @automata/figures c9 <out> --measure   prints the numbers the badge, the watch and the faces are sized from (the design, 5.5: docs/archive/figure-painter/c9-wardrobe/2026-11-11-c9-wardrobe-design.md)
  *
  * A sheet is `{ name, rows, views, walk, density }`: one row per entry, its views standing from left to right (0 the
  * front, counter-clockwise by 45°) and then, if `walk`, the poses of its walk (three-quarter front). A row is a character
