@@ -113,9 +113,15 @@ builder's.
 
 **To move, in restated form:** a world-kit unit test that feeds each photo and the builder's knobs to the kit's
 `photoToTile` and compares with the builder's md5s
-(`extensions/world-kit/tests/unit/textures/builder-tiles.test.ts`, data in `tests/fixtures/goldens/`). Whether the
-kit's labels come out in a layout the builder's md5 can be taken over was **not measured here**; it is the first
-task of the plan's second group, and a difference is a stop (the port has drifted from its source).
+(`extensions/world-kit/tests/unit/textures/builder-tiles.test.ts`, data in `tests/fixtures/builder-tiles.json`).
+
+**Measured by the plan audit (2026-11-12): 112 of 112 equal.** A scratch script built each key's spec from the
+builder's JSON as its `tiles.ts` and `swatchTextureOf` do, ran the kit's `photoToTile` on the kit's photo bytes (each
+equal to the builder's, size included) at wear 0.3, seed 1 and 32 texels a metre, and hashed `` `${width}x${height}` ``
+and the labels' bytes: 0 differ, 10 s. The kit's `Uint16Array` labels hash as the builder's `Int16Array` because a
+label is never negative. The 36 `/swatch` keys take the builder's swatch knobs; the kit's `library/swatches.json` holds
+all 167 of the builder's swatches with the same `texture` (and three of its own), and the builder's rule over the
+kit's file gives the same spec for all 38 photos, so the test needs nothing of the builder's code.
 
 ### World data, maps and generators
 
@@ -262,9 +268,27 @@ The rows were read at `6d82a52` (2026-11-06). `f7c5356` is 68 commits later: 40 
 | `world/decals.ts`, `world/library/maps.json`, `base/base.ts`, `src/index.ts` | small | left out, ported, ported, left out | **read `maps.json` and `base.ts`** against the kit's maps and the base scenes |
 
 `docs/provenance/sources.md` prescribes this itself ("Pull again: … port each hunk (tests first), add a row for every
-new file, run `pnpm sources-md`, and record the new commit"). Workstream 4 measured the framework's look against the
-builder at `f7c5356`, so some of these hunks are likely already answered; **which ones was not checked here**, and the
-plan gives the reading its own task.
+new file, run `pnpm sources-md`, and record the new commit").
+
+### The hunks, read
+
+By the plan audit (2026-11-12): `git diff 6d82a52 f7c5356` over the ten files the rows name, every hunk against the
+framework file. No hunk moves a recorded frame of the world kit or the 3D package.
+
+| File | Hunk | Answer |
+|---|---|---|
+| `view/readability.ts` | `MIN_READ = 1.1` moved here from `view-frame.ts` | **already answered**: `extensions/world-kit/src/features/reads/reads-against.ts:9` |
+| `view/readability.ts` | `largestReadIn` (a figure's read inside a box, for the CPU exposure's search) | **not wanted**: the CPU renderer's exposure; painted figures are exposed by the character kit's `room-light.ts` |
+| `view/view-frame.ts` | `Room.cpu` and `cpuFrame` (the CPU's G-buffer for the GPU harness) | **not wanted**: the harness |
+| `view/view-frame.ts` | `MIN_READ` re-exported; `FigureLightKey` limited to numeric keys; a comment (no base scene waives the hot rule) | **already answered** (`MIN_READ`); **not wanted** (the tuner's key type) |
+| `world/types.ts` | `GrimeMark`, `GrimeData`, `ScenePlan.grimeData`, `grimeAt`'s `propAt` | **not wanted**: grime marks are the CPU renderer's; the framework's levels carry only a `grime` number |
+| `world/map.ts` | `propSectorOf`; a prop's grime measured from the sector under its placed position, not its first texel drawn | **not wanted**: as above (no `grimeAt` in the framework) |
+| `world/swatches.ts` | `swatchTextureOf` (the photo's spec as a swatch uses it) | **already answered**: task 15's test restates the rule over the kit's own `library/swatches.json` |
+| `stage/sprite-light.ts` | `SpriteOptions.exposure`, `flatTop`: the flat light scaled and stepped again | **not wanted** in `packages/3d/src/features/look/sprite-light.ts` (no framework caller of its `spriteLight`); for painted figures **already answered** by `extensions/character-kit/src/features/painted/room-light.ts` (exposure in whole steps) |
+| `paint/look.ts`, `paint/library/look.json` | `figureLight` gains `expose` and `exposeHot`; `ambient` 2.6, `threshold` 0.07, `floor` 0.8 | **not wanted**: the CPU renderer's figure light; the framework's `look.json` has no `figureLight`, and `SPRITE_STYLE` in both is unchanged (0.22, 0.5) |
+| `paint/paint.ts` | `uv` exported; `swatchAt`, `albedoStepAt` lifted out of `shade` | **not wanted**: for the albedo export (`paint/albedo.ts`), the harness |
+| `world/library/maps.json` | the bedroom gains `"reads": {}` | **to port** (task 16, step 2): the kit's `tests/fixtures/builder-maps.json` (at `6d82a52`) and `library/maps/bedroom.af-sector.json` lack it; the other four maps equal `f7c5356`'s |
+| `base/base.ts` | the interior's `reads: { hot: true }` waiver goes (`d17b13a`: exposure on, no base figure hot) | **follows**: `packages/3d/src/features/world/base/base-scenes.ts` keeps the waiver and no framework step judges a level's reads yet; it goes with the following work "a level's `reads` as a gate" (task 16, step 3) |
 
 ## Summary
 
@@ -272,7 +296,7 @@ plan gives the reading its own task.
 |---|---|
 | Builder `src/` and `base/` TypeScript | 70 files, 9,184 lines |
 | Already ported (a framework file named and checked) | the photo pipeline, tiles and structure checks, world data, maps, generators, dresser and kits, lettering, the look, vertex light, occlusion, sprite light, readability, exposure, sky, rain, bloom, the base scenes |
-| To move | the tiles golden, restated (if it reproduces); `docs/photos.md`; the provenance rows brought to `f7c5356`; one editor-gap row |
+| To move | the tiles golden, restated (it reproduces: 112 of 112, measured by the plan audit); the bedroom's `reads` (one line); `docs/photos.md`; the provenance rows brought to `f7c5356`; one editor-gap row |
 | Not wanted | the CPU scene painter and its views (1,906 lines), the stage's actors and runtime (366), the GPU harness (1,926 and its tests), the tune, check and render commands, the decals' drawing (workstream 4's), two goldens of the CPU renderer |
 
 **The second group is therefore small:** it moves almost no code. Its work is proof and record: the tiles cross-check,
@@ -287,10 +311,10 @@ a row, and the retirement notes.
 
 ## Not verified
 
-- The tiles cross-check (the kit's pipeline against the builder's md5s) was not run.
+- ~~The tiles cross-check was not run.~~ Run by the plan audit: 112 of 112 equal.
 - `npm run test:gpu`, `npm run check` and the `gpu:*` commands were not run.
-- The hunks between `6d82a52` and `f7c5356` in the eight ported files were listed, not read against the framework.
+- ~~The hunks were listed, not read.~~ Read by the plan audit: "The hunks, read".
 - The library comparison is by entry name (kits, props, swatches) and by top-level key (glyphs); values were not
   compared except for `photos.json` (equal as parsed JSON) and the photos (equal bytes).
-- Whether the kit's five converted maps equal the builder's `maps.json` at `f7c5356` (the kit's fixture
-  `builder-maps.json` was not compared with it; `maps.json` changed by 2 lines since `6d82a52`).
+- ~~Whether the kit's fixture equals `maps.json` at `f7c5356`.~~ Compared by the plan audit: four maps equal; the
+  bedroom lacks `"reads": {}` (task 16, step 2).

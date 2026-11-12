@@ -23,7 +23,7 @@ import { TICK_HZ } from '../shared/constants.ts'
 import { audio, SOUND_FILES } from './audio.ts'
 import { playOf } from './content.ts'
 import { BAR_FRACTION, fieldOfWindow } from './field.ts'
-import { lookOf } from './look.ts'
+import { BAR_COLOR, lookOf } from './look.ts'
 import { lookPassesOf, RENDERER_SCALE } from './look-passes.ts'
 import { lookProfilesSchema } from './look-profiles.content.ts'
 import { playControls, playHud } from './play.extension.ts'
@@ -114,6 +114,7 @@ export const game = defineGame({
       // Whole pixels, as the old game drew the picture.
       ...RENDERER_SCALE,
       barFraction: BAR_FRACTION,
+      barColor: BAR_COLOR,
       look: LOOK,
       time: TIME,
       lighting: LIGHTING,
