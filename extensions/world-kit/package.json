@@ -49,7 +49,7 @@
     "@automata/framework": "workspace:*",
     "@automata/sim": "workspace:*",
     "@automata/vitest-preset": "workspace:*",
-    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz",
+    "@pixi/3d": "0.1.0-beta.3",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
     "pixi.js": "8.23.0",

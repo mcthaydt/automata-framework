@@ -6,6 +6,7 @@ import { Effect } from 'effect'
 import { parse } from 'smol-toml'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createGame } from '#src/shared/create-game/create-game.ts'
+import { PIXI_3D_SPEC } from '#src/shared/create-game/template-3d.ts'
 import { TEMPLATE_3D_CONTENT_PATHS } from '#src/shared/create-game/template-3d-content.ts'
 import { THREE_D_NOT_PUBLIC } from '#src/shared/create-game/three-d-gate.ts'
 
@@ -30,7 +31,13 @@ beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'af-template-3d-'))
   dir = join(root, 'game')
   await Effect.runPromise(
-    createGame({ targetDir: dir, id: 'hall-game', title: 'Hall Game', template: '3d', threeD: true }),
+    createGame({
+      targetDir: dir,
+      id: 'hall-game',
+      title: 'Hall Game',
+      template: '3d',
+      threeD: true,
+    }),
   )
   files = listing(dir)
 })
@@ -67,7 +74,9 @@ describe('the new 3D game’s files', () => {
     expect(files).toContain('content/levels/room.af-sector.json')
     expect(files).toContain('content/figures/wick.toml')
     expect(files).toContain('content/tuning.toml')
-    const list = parse(read('content/editors.toml')) as { file: { glob: string; editor: string }[] }
+    const list = parse(read('content/editors.toml')) as {
+      file: { glob: string; editor: string }[]
+    }
     expect(list.file.map((row) => [row.glob, row.editor])).toEqual([
       ['content/levels/*.af-sector.json', 'levels-3d'],
       ['content/figures/*.toml', 'studio'],
@@ -131,6 +140,28 @@ describe('the new 3D game’s project', () => {
       expect(dependencies[name], name).toBeDefined()
   })
 
+  // Pixi 3D is on npmjs.org (MIT), so every 3D game takes it from the registry at the pinned version: one made inside
+  // this repository (--link-workspace) as much as one made anywhere else. No game points at a file in the repository.
+  it('installs Pixi 3D from the registry at the pinned version, inside the workspace too', async () => {
+    expect(manifest().dependencies['@pixi/3d']).toBe(PIXI_3D_SPEC)
+    const linked = join(root, 'linked')
+    await Effect.runPromise(
+      createGame({
+        targetDir: linked,
+        id: 'hall-game',
+        title: 'Hall Game',
+        template: '3d',
+        threeD: true,
+        linkWorkspace: true,
+      }),
+    )
+    const written = JSON.parse(readFileSync(join(linked, 'package.json'), 'utf8')) as {
+      dependencies: Record<string, string>
+    }
+    expect(written.dependencies['@pixi/3d']).toBe(PIXI_3D_SPEC)
+    expect(PIXI_3D_SPEC).toMatch(/^\d+\.\d+\.\d+(?:-[\w.]+)?$/)
+  })
+
   it('tests and checks with one command each, like the 2D game', () => {
     expect(manifest().scripts.test).toBe('vitest run')
     expect(manifest().scripts.check).toBe('automata check')
@@ -186,7 +217,13 @@ describe('--template', () => {
     const target = into('refused')
     const result = await Effect.runPromise(
       Effect.flip(
-        createGame({ targetDir: target, id: 'refused', title: 'Refused', template: '3d', threeD: false }),
+        createGame({
+          targetDir: target,
+          id: 'refused',
+          title: 'Refused',
+          template: '3d',
+          threeD: false,
+        }),
       ),
     )
     expect(result.reason).toBe('three-d-unavailable')
@@ -196,14 +233,28 @@ describe('--template', () => {
 
   it('without a template makes the 2D game it always made, whether or not 3D is available', async () => {
     const target = into('plain')
-    await Effect.runPromise(createGame({ targetDir: target, id: 'plain', title: 'Plain', threeD: true }))
+    await Effect.runPromise(
+      createGame({
+        targetDir: target,
+        id: 'plain',
+        title: 'Plain',
+        threeD: true,
+      }),
+    )
     expect(existsSync(join(target, 'src/features/square/square.plugin.ts'))).toBe(true)
     expect(existsSync(join(target, 'content/levels/room.af-sector.json'))).toBe(false)
   })
 
   it('with template 2d is the same 2D game', async () => {
     const target = into('two-d')
-    await Effect.runPromise(createGame({ targetDir: target, id: 'two-d', title: 'Two D', template: '2d' }))
+    await Effect.runPromise(
+      createGame({
+        targetDir: target,
+        id: 'two-d',
+        title: 'Two D',
+        template: '2d',
+      }),
+    )
     expect(listing(target)).toEqual(listing(into('plain')))
   })
 })

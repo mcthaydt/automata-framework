@@ -35,7 +35,7 @@
     "viewer": "vite viewer"
   },
   "dependencies": {
-    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz",
+    "@pixi/3d": "0.1.0-beta.3",
     "zod": "4.6.6"
   },
   "peerDependencies": {

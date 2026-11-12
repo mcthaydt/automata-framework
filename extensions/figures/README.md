@@ -9,7 +9,8 @@ It is private and unpublished (`"private": true`). Its only consumer is the char
 `extensions/character-kit/src/shared/figures/door.ts`, the one file that imports it. The stage contract, which that door
 relies on, is [`docs/contract.md`](docs/contract.md); the scripted actors are [`docs/actors.md`](docs/actors.md).
 
-`@pixi/3d` is a closed beta, vendored in `vendor/pixi-3d/`. Keep it, and every build of the viewer, private.
+The viewer draws with `@pixi/3d`, which comes from npmjs.org at the version the framework pins (MIT). Whether this
+package is published is the Owner's decision.
 
 ## The base pair
 
@@ -56,13 +57,13 @@ a stray key or a wrong type fails when the library loads. There are no cycles an
 
 Five goldens fail on a change of a single texel:
 
-| Golden | What it pins | Test | Record it with |
-|---|---|---|---|
-| base | every pixel of the pair's sheets at D1 and D2 | `tests/unit/golden/base.test.ts` | `pnpm --filter @automata/figures golden base` |
-| lit | the pair lit | `tests/unit/golden/lit.test.ts` | `… golden lit` |
-| actors | every actor frame | `tests/unit/golden/actors.test.ts` | `… golden actors` |
-| sprites | an md5 per frame of each member's hero, 8 standing views and walk, at D1 and D2 | `tests/unit/actors/actors.test.ts` | `… golden sprites` |
-| sprite | an md5 per frame of the pair as a sprite lit under four lights | `tests/unit/golden/sprite.test.ts` | `… golden sprite` |
+| Golden  | What it pins                                                                    | Test                               | Record it with                                |
+| ------- | ------------------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------- |
+| base    | every pixel of the pair's sheets at D1 and D2                                   | `tests/unit/golden/base.test.ts`   | `pnpm --filter @automata/figures golden base` |
+| lit     | the pair lit                                                                    | `tests/unit/golden/lit.test.ts`    | `… golden lit`                                |
+| actors  | every actor frame                                                               | `tests/unit/golden/actors.test.ts` | `… golden actors`                             |
+| sprites | an md5 per frame of each member's hero, 8 standing views and walk, at D1 and D2 | `tests/unit/actors/actors.test.ts` | `… golden sprites`                            |
+| sprite  | an md5 per frame of the pair as a sprite lit under four lights                  | `tests/unit/golden/sprite.test.ts` | `… golden sprite`                             |
 
 Their data are in `tests/fixtures/golden/`. A re-record is a deliberate visual change, and its commit says what changed
 and why. A hash that moves is investigated, never re-recorded to make a test pass. `tests/unit/paint/identity.test.ts`
@@ -147,17 +148,17 @@ Core's `@automata/3d` has a mesh figure with the same vocabulary (sliders, rig, 
 file, never both; the character kit's door is the only file that imports this package, and `pnpm boundaries` keeps core
 from importing it.
 
-| Name | In `@automata/3d` | In `@automata/figures` |
-|---|---|---|
-| `Anchor`, `Body`, `Fit`, `Wearing` | a mesh figure's anchors, body rings and the garment's fit | the same ideas for the painter's garments |
-| `CameraPose` | the angled camera's pose | the stage contract's pose a host passes in |
-| `DEFAULT_HEAD`, `DEFAULT_SLIDERS`, `HeadShape`, `Sliders`, `Measure` | the mesh figure's genes | the painter's genes |
-| `Decal`, `GROUP`, `Mesh`, `Part`, `Piece`, `Superquadric`, `superquadric`, `limb`, `placed`, `smooth`, `weights` | the mesh figure's geometry | the painter's primitives, rasterised on the CPU |
-| `Fabric`, `registerFabric` | a mesh material's cloth tile | H5: a tile of tone labels laid over the painted colour |
-| `Gait`, `Hold`, `ItemDef`, `Stand`, `HairStyle`, `TIMES`, `TimeOfDay` | the mesh figure's content types and the world's times of day | the painter's libraries, loaded through their own strict schemas |
-| `Garment`, `GarmentKind`, `OutfitHooks`, `HairFinish`, `HairInput`, `HairPiece`, `registerGarment`, `registerFinish`, `registerHairPiece`, `registerOutfitHooks` | the mesh figure's registries | H1 to H4 of the painter |
-| `J`, `JOINTS`, `Joint`, `Pose`, `Side`, `Skeleton`, `fk`, `MotionState`, `applyHold`, `evaluate` | the mesh figure's rig and clips | the painter's rig and motion |
-| `headForm`, `onHead`, `skull` | the mesh hair's head and skull | the painter's, on the painter's skeleton |
-| `Lamp` | a world lamp | a world lamp as the stage's lighting reads it |
-| `SPRITE_STYLE`, `SpriteLamp` | the `spriteLight` look's style | the stage's `lightSprite` style, in whole DUEL steps |
-| `V3`, `axisAngle`, `cross`, `dot`, `lerp`, `normalize`, `sub`, `oklab` | core's maths | the painter's own copies (the kit entry re-exports them for a door's garments) |
+| Name                                                                                                                                                             | In `@automata/3d`                                            | In `@automata/figures`                                                         |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `Anchor`, `Body`, `Fit`, `Wearing`                                                                                                                               | a mesh figure's anchors, body rings and the garment's fit    | the same ideas for the painter's garments                                      |
+| `CameraPose`                                                                                                                                                     | the angled camera's pose                                     | the stage contract's pose a host passes in                                     |
+| `DEFAULT_HEAD`, `DEFAULT_SLIDERS`, `HeadShape`, `Sliders`, `Measure`                                                                                             | the mesh figure's genes                                      | the painter's genes                                                            |
+| `Decal`, `GROUP`, `Mesh`, `Part`, `Piece`, `Superquadric`, `superquadric`, `limb`, `placed`, `smooth`, `weights`                                                 | the mesh figure's geometry                                   | the painter's primitives, rasterised on the CPU                                |
+| `Fabric`, `registerFabric`                                                                                                                                       | a mesh material's cloth tile                                 | H5: a tile of tone labels laid over the painted colour                         |
+| `Gait`, `Hold`, `ItemDef`, `Stand`, `HairStyle`, `TIMES`, `TimeOfDay`                                                                                            | the mesh figure's content types and the world's times of day | the painter's libraries, loaded through their own strict schemas               |
+| `Garment`, `GarmentKind`, `OutfitHooks`, `HairFinish`, `HairInput`, `HairPiece`, `registerGarment`, `registerFinish`, `registerHairPiece`, `registerOutfitHooks` | the mesh figure's registries                                 | H1 to H4 of the painter                                                        |
+| `J`, `JOINTS`, `Joint`, `Pose`, `Side`, `Skeleton`, `fk`, `MotionState`, `applyHold`, `evaluate`                                                                 | the mesh figure's rig and clips                              | the painter's rig and motion                                                   |
+| `headForm`, `onHead`, `skull`                                                                                                                                    | the mesh hair's head and skull                               | the painter's, on the painter's skeleton                                       |
+| `Lamp`                                                                                                                                                           | a world lamp                                                 | a world lamp as the stage's lighting reads it                                  |
+| `SPRITE_STYLE`, `SpriteLamp`                                                                                                                                     | the `spriteLight` look's style                               | the stage's `lightSprite` style, in whole DUEL steps                           |
+| `V3`, `axisAngle`, `cross`, `dot`, `lerp`, `normalize`, `sub`, `oklab`                                                                                           | core's maths                                                 | the painter's own copies (the kit entry re-exports them for a door's garments) |

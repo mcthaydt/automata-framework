@@ -15,7 +15,7 @@ import {
 // shape as the 2D game (features by name, shared numbers, the app that wires them, tests of the sim) and the same
 // project files; what differs is the 3D package, the content kinds its folders hold and the game itself.
 
-/** The pinned release of Pixi 3D every 3D game installs beside @automata/3d (the closed beta, until the npm release). */
+/** The pinned release of Pixi 3D (`@pixi/3d` on npmjs.org) every 3D game installs beside @automata/3d. */
 export const PIXI_3D_SPEC = '0.1.0-beta.3'
 
 /** The lines of a 3D game's README that say where its code and content are. */
@@ -35,8 +35,8 @@ export const TEMPLATE_3D_FILES: readonly TemplateFile[] = [
   readmeFile(WHERE),
   packageFile((options) => ({
     '@automata/3d': frameworkSpec(options),
-    '@pixi/3d':
-      options.linkWorkspace === true ? 'file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz' : PIXI_3D_SPEC,
+    // From the registry wherever the game is made: Pixi 3D is public, so a game inside this repository needs no copy of it.
+    '@pixi/3d': PIXI_3D_SPEC,
   })),
   shipConfigFile('landscape'),
   viteConfigFile({

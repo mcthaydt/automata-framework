@@ -7,8 +7,9 @@ import { serveStatic } from '#src/serve.ts'
 import { overridesYaml, packOverrides, strangerFolder } from '#src/stranger.ts'
 
 // The stranger's first hour with a 3D game: the same journey as stranger.test.ts, with `create-game --template 3d`.
-// @automata/3d is private until Pixi 3D is public, so the journey runs only where it is asked for (AF_BETA_3D=1, the
-// same switch that opens the template outside this repository) and packs it beside the published packages.
+// @automata/3d is not published yet, so the journey runs only where it is asked for (AF_BETA_3D=1, the same switch that
+// opens the template outside this repository) and packs it beside the published packages. Pixi 3D itself comes from
+// npmjs.org.
 //
 // It cannot pass yet: the 3D package ships its TypeScript sources until the release builds it to `dist/` like the others,
 // and Node refuses to run sources under node_modules, so `vite.config.ts` (which reads the 3D content kinds) fails to
@@ -18,7 +19,10 @@ import { overridesYaml, packOverrides, strangerFolder } from '#src/stranger.ts'
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const GAME = 'hall-game'
 
-test.skip(process.env.AF_BETA_3D !== '1', 'The 3D template is behind AF_BETA_3D=1 until Pixi 3D is public.')
+test.skip(
+  process.env.AF_BETA_3D !== '1',
+  'The 3D template is behind AF_BETA_3D=1 until @automata/3d is published.',
+)
 
 test('a stranger makes a 3D game, checks it, plays it and walks Wick', async ({ page }) => {
   const folder = strangerFolder()
@@ -28,11 +32,18 @@ test('a stranger makes a 3D game, checks it, plays it and walks Wick', async ({ 
   let finished = false
   try {
     await test.step('make a 3D game', () => {
-      overrides = { ...packOverrides(folder, packAll(root, folder)), ...pack3d(root, folder) }
+      overrides = {
+        ...packOverrides(folder, packAll(root, folder)),
+        ...pack3d(root, folder),
+      }
       mkdirSync(toolsDir, { recursive: true })
       writeFileSync(
         join(toolsDir, 'package.json'),
-        JSON.stringify({ name: 'stranger-tools', private: true, type: 'module' }),
+        JSON.stringify({
+          name: 'stranger-tools',
+          private: true,
+          type: 'module',
+        }),
       )
       writeFileSync(join(toolsDir, 'pnpm-workspace.yaml'), overridesYaml(overrides))
       sh(toolsDir, 'pnpm', ['add', overrides['@automata/tools'] as string])
@@ -55,6 +66,12 @@ test('a stranger makes a 3D game, checks it, plays it and walks Wick', async ({ 
     await test.step('install it', () => {
       writeFileSync(join(gameDir, 'pnpm-workspace.yaml'), overridesYaml(overrides))
       sh(gameDir, 'pnpm', ['install', '--no-frozen-lockfile'])
+      // Pixi 3D comes from npmjs.org like any other dependency: the lockfile resolves it by the registry's integrity,
+      // and nothing points at a tarball in this repository.
+      const lock = readFileSync(join(gameDir, 'pnpm-lock.yaml'), 'utf8')
+      expect(lock).toMatch(/\n {2}'@pixi\/3d@\d[^']*':\n {4}resolution: \{integrity: sha512-/)
+      expect(lock).not.toMatch(/@pixi\/3d@file:/)
+      expect(lock).not.toContain('vendor/pixi-3d')
     })
 
     await test.step('check it', () => {
@@ -99,6 +116,10 @@ test('a stranger makes a 3D game, checks it, plays it and walks Wick', async ({ 
     finished = true
   } finally {
     if (finished) rmSync(folder, { recursive: true, force: true })
-    else await test.info().attach('the stranger folder', { body: folder, contentType: 'text/plain' })
+    else
+      await test.info().attach('the stranger folder', {
+        body: folder,
+        contentType: 'text/plain',
+      })
   }
 })
