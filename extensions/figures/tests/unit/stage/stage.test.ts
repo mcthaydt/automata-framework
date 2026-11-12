@@ -176,7 +176,9 @@ describe('per-texel depth', () => {
   /** A hand-made cell of `texels` opaque RGBA pixels in a row, depths in metres toward the camera, the root at its top-left. */
   const tiny = (rgb: number[][], depth: number[]): StageSprite['cell'] => {
     const rgba = new Uint8ClampedArray(rgb.length * 4)
-    rgb.forEach((c, i) => rgba.set([...c, 255], i * 4))
+    rgb.forEach((c, i) => {
+      rgba.set([...c, 255], i * 4)
+    })
     return {
       key: String(rgb),
       size: [rgb.length, 1],

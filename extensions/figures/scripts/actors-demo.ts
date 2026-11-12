@@ -104,9 +104,9 @@ rows.forEach((row, r) => {
     const troupe = new Troupe()
     troupe.add({ name: 'other', who: 'base-m', at: [1.2, 1.4] })
     const a = troupe.add(row.script(who), { density: D })
-    row.at.forEach((t, i) =>
-      ctx.drawImage(rgbaCanvas(a.draw(t, view).painted, W, H), LABEL + c * (N * W + PAD) + i * W, r * H),
-    )
+    row.at.forEach((t, i) => {
+      ctx.drawImage(rgbaCanvas(a.draw(t, view).painted, W, H), LABEL + c * (N * W + PAD) + i * W, r * H)
+    })
   })
 })
 save(sheet, join(out, 'actions-sheet.png'))

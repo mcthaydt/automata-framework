@@ -44,9 +44,9 @@ describe('a heavy figure', () => {
   })
   it('walks at fat 1.2 on either base figure: every frame builds and paints', () => {
     for (const c of BASE)
-      walking(member(fatOf(c.def, 1.2), 2)).forEach((f, i) =>
-        expect(filled(f), `${c.def.id} ${i}`).toBeGreaterThan(400 * 4),
-      )
+      walking(member(fatOf(c.def, 1.2), 2)).forEach((f, i) => {
+        expect(filled(f), `${c.def.id} ${i}`).toBeGreaterThan(400 * 4)
+      })
   })
   it('the arms hang further out to clear the heavier body (main: base-m 0.08, base-f 0.18 at fat 1.2)', () => {
     const clearOf = (def: CharacterDef) =>

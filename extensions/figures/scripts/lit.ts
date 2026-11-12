@@ -74,7 +74,7 @@ ROWS.forEach(([label, draw], r) => {
   ctx.fillStyle = '#eadbc9'
   ctx.font = '13px sans-serif'
   ctx.fillText(label, 4, r * H + H / 2)
-  BASE.forEach((c, b) =>
+  BASE.forEach((c, b) => {
     VIEWS.forEach((d, i) => {
       const f = new Figure(member(c.def, D))
       for (let k = 0; k < 3; k++) f.update(1 / 60, { facing: (d * Math.PI) / 4, moving: false, view: view() })
@@ -84,8 +84,8 @@ ROWS.forEach(([label, draw], r) => {
       img.data.set(draw(f))
       cc.putImageData(img, 0, 0)
       ctx.drawImage(cell, LABEL + (b * VIEWS.length + i) * W, r * H)
-    }),
-  )
+    })
+  })
 })
 writeFileSync(join(out, 'lit-sheet.png'), sheet.toBuffer('image/png'))
 const big = createCanvas(sheet.width * 2, sheet.height * 2),

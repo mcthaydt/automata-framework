@@ -85,7 +85,9 @@ export function draws(st: HairStyle) {
   for (const D of [2, 4])
     for (let d = 0; d < 8; d++)
       expect(filled(stand(def, d, D).painted), `D${D} view ${d}`).toBeGreaterThan(400)
-  walking(member(def, 2)).forEach((fr, i) => expect(filled(fr), `walk ${i}`).toBeGreaterThan(400))
+  walking(member(def, 2)).forEach((fr, i) => {
+    expect(filled(fr), `walk ${i}`).toBeGreaterThan(400)
+  })
 }
 /**
  * The neckline check, for hair: `neckline.test.ts`'s teeth() is 0 after the rule by construction, so it cannot catch hair. The

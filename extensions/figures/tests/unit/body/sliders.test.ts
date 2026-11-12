@@ -27,7 +27,9 @@ describe('every slider at either end still builds and paints', () => {
         for (const v of ENDS[key] ?? [0, 1]) {
           const cast = member({ ...c.def, sliders: { ...c.def.sliders, [key]: v } } as CharacterDef, 1)
           expect(filled(standing(cast, 1)), `${key} ${v} standing`).toBeGreaterThan(FILLED)
-          walking(cast).forEach((f, i) => expect(filled(f), `${key} ${v} walk ${i}`).toBeGreaterThan(FILLED))
+          walking(cast).forEach((f, i) => {
+            expect(filled(f), `${key} ${v} walk ${i}`).toBeGreaterThan(FILLED)
+          })
         }
       })
     it(`${c.def.id} face`, () => {

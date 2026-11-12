@@ -119,9 +119,9 @@ describe("the head's form under its own last bit", () => {
       try {
         const moved = cells()
         expect(form.calls, 'the form was read').toBeGreaterThan(0)
-        moved.forEach((cell, i) =>
-          expect(cell.md5, `${cell.key}, a last bit ${dir > 0 ? 'up' : 'down'}`).toBe(plain[i].md5),
-        )
+        moved.forEach((cell, i) => {
+          expect(cell.md5, `${cell.key}, a last bit ${dir > 0 ? 'up' : 'down'}`).toBe(plain[i].md5)
+        })
       } finally {
         form.dir = 0
       }

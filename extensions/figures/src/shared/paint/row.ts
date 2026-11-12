@@ -11,7 +11,7 @@ export function onRow(c: number): [number, number] {
   let hit = placeOf.get(c)
   if (hit) return hit
   let best = Infinity
-  RAMPS.forEach((row, r) =>
+  RAMPS.forEach((row, r) => {
     row.forEach((x, i) => {
       const d =
         ((x >> 16) - (c >> 16)) ** 2 +
@@ -21,8 +21,8 @@ export function onRow(c: number): [number, number] {
         best = d
         hit = [r, i]
       }
-    }),
-  )
+    })
+  })
   placeOf.set(c, hit!)
   return hit!
 }

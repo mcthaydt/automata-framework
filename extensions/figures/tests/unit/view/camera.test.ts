@@ -80,7 +80,9 @@ describe('poseQuaternion', () => {
           [-p.fwd[0], -p.fwd[1], -p.fwd[2]],
         ],
       ] as const)
-        rotate(q, [...local]).forEach((c, i) => expect(c).toBeCloseTo(want[i], 12))
+        rotate(q, [...local]).forEach((c, i) => {
+          expect(c).toBeCloseTo(want[i], 12)
+        })
     }
   })
 })
