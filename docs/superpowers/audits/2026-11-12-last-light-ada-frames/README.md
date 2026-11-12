@@ -209,3 +209,36 @@ Recorded cells: none moved. `holdSkinHue` is opt-in and no kit golden or recorde
 (Chromium + WebGPU software: 66 passed, 3 skipped) pass unchanged, so there is no before/after golden sheet to make; the game's unit tests
 (445) pass. Her head in play (the hall's south wall, x2.5 nearest, before left, after right): the grey-beige band over her brows and the grey
 nose column are warm skin now. Not yet fixed: the lower lip (item 2), the temple blotch and the grey-green at both temples (item 4).
+
+## Session 3, item 2: lips (`12f6339`)
+
+Test first in the game's cast test: the lower lip at least .06 from her skin in OKLab (three just-noticeable steps) and at least .15 lighter
+than the upper. It failed on the data (.033: #d28d7a on #ce9770). Painted at x10 beside four DUEL candidates (#c17e7a, #ae6b60, #c7826c,
+#ac6f6e): #c17e7a is a rose a step deeper, natural, and clearly apart (.076 from the skin, .19 lighter than the upper #7c4b47); #ae6b60 nearly
+meets the upper lip. Kept #c17e7a (`lipsAda` paint[1]; the mouth stays four texels, no painter change). In play the lower lip reads #a5715d to
+#a97864 under the upper #563030 on skin #bf8a73: a band of its own. Item 1's fix does not touch it (the lips are not in the skin set).
+
+Found, not fixed: the mouth's corner texels and the nostrils play a GREY #685f59. The painter's face stamp shades them two steps down the skin's
+own tones (`shade(x, y, 2)` in `extensions/figures/src/shared/paint/paint-stamp.ts`, from `tones[face.skin]`), and the painted cell holds
+#945d4f there, a DUEL colour (row 24) that is not in her swatch's paint, so `skinColours()` leaves it out of the held set and the room lights
+it along row 24 and tints it grey. The generic fix: `skinColours(def)` (kit, `skin-hue.ts`) should hold every tone the painter draws as skin
+(the face stamp's `tones[face.skin]`, not only the swatch's paint), test first with a painted face whose shade steps are off the paint list.
+
+## Session 3, item 3: the gameplay frame for the Owner (`s3-item3-gameplay-frame-1024x768.png`, `s3-item3-head-from-that-frame-x2.5.png`)
+
+1024 by 768, the hall's south wall, facing us, Chromium on software GL; her head cropped generously from that frame (whole hair and the
+collar) and enlarged x2.5 nearest, so a texel is 10 pixels, as the reference's. Against the reference, feature by feature:
+brows: bold, two texels, dark (read, as the reference's). Lid: a dark row over the eye (reads). Whites: near-white each side of the iris (read).
+Nose: a lit warm column now (item 1), but its nostril texels are a grey smudge (the #945d4f cause above), where the reference's is a warm
+shadow. Lips: two tones now, a dark upper over a rose lower, but the corners are grey. Skin: warm and clean across the face and forehead (item
+1); no grey-beige band. Crispness: chunky, one flat colour a texel; the screen mesh at a fifth leaves a faint lattice when looked at closely.
+Hair: the crown's right side has a grey-mauve sheen and the hard dark-red patch at her right temple stays (item 4). Short of the reference in
+the nostrils and mouth corners (cause found, next), the hair's sheen and temple patch. Not gone round again: out of time.
+
+## For the tracker (the ada session 3)
+
+Where to resume: (a) the grey mouth corners and nostrils: `skinColours()` holding the face stamp's skin tones (test first); then re-shoot item 3;
+(b) item 4 (every side: 8 directions and two walk frames; `bobOpen` from behind, the waistcoat back's triangle, the temple blotch, re-check the
+cheek patches after item 1); (c) item 5's gates.
+
+| 4. Look, game branch, the ada session 3 | Opus 5.5 (look session, no subagents) | `claude/last-light-ada` | 2026-11-12, from `8661cd6`. Frames and verdicts: [ada folder](audits/2026-11-12-last-light-ada-frames/README.md), sections "Session 3". **Done, tests first, pushed:** (1) warm steps: `holdSkinHue`'s `warmer()` targets the skin swatch's own ramp at the room's lightness, lost chroma counted against one mean DUEL step (`d4df32b`, kit); 11 grey-beige picks across the six kit skins fixed; the cool-room test's hue bound restated as the swatch's hue span (explained); no recorded cell moved (opt-in, no golden uses it); her nose and forehead are warm in play. (2) lips: `lipsAda`'s lower lip #d28d7a to #c17e7a (`12f6339`, game data, cast test). (3) the gameplay frame and its head at 10 px a texel, verdict in the README. **Found, not fixed:** grey nostrils and mouth corners (#945d4f, a painter shade step outside the held skin set). **Not done:** item 4 (directions); item 5's gates (`pnpm check` uncached, `pnpm build`, api-report/api-index, lcd-panel suites, framework render tests did not run this session; the kit's unit and Chromium browser suites and the game's unit tests ran and pass; the pre-commit affected unit tests passed on each commit). No changeset: only private packages changed this session. `content.hash` not moved (no `look.toml` change; the cast's swatches are TypeScript). Chromium (software GL, software WebGPU) only; WebKit, Firefox and a real GPU unrun; journeys not run. |
