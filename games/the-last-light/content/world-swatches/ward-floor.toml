@@ -1,19 +1,26 @@
-# `ward-floor`: the clinic's floor, dark glazed tile on dark grout. The old game painted it as 30 cm tiles in two tones (mostly a warm
-# grey, now and then a cool slate) with a 1 px near-black grout line and a lit far edge; here the kit's floor-tile photograph is read
-# at that size (the photograph holds five 30 cm tiles a side, so `scale` 1.2 makes them 36 cm; at 1.0 the one-texel joint is lost at this texel scale), in tone mode on slate step 2, so a grout line is two steps down the ramp
-# (#2d3136) and a lit edge one up. The tiles the photo reads as another hue take the accent, a warm grey (`ward-floor-warm`): the
-# old floor's warm/cool mix. A smaller threshold gives more warm tiles but the joint, being another hue, takes the warm accent too and is lost (0.004: grout 1.3 % of the tile, 0.008: 4.8 %, under the test's 5 %), so 0.012 stays; the floor reads hue 182 against the old's 154 until the ramp can have a warm grout. A game's own swatch has no tile file until `tools/tiles/make.ts` writes it into `src/features/room/world-tiles`.
-ramp = "slate"
+# `ward-floor`: the clinic's floor, a green-grey glazed tile on dark grout. The old game painted it as 30 cm tiles (3 in 4 a warm grey,
+# 1 in 4 a cool slate) with a 1 px near-black grout line and a lit edge, and under its green light and grade it reads hue 146 to 154 with a
+# warm tile now and then. Here the kit's floor-tile photograph is read in tone mode on sage step 2 (#5b7b69), so the lit floor lands on that
+# hue; the tiles the photo reads as another hue take the accent, a warm grey (`ward-floor-warm`); and the grout is the texture's `joint`
+# (`ward-floor-joint`, the old grout #222323), taken out before the accent's hue test so a warm tile can never take the grout with it (the
+# first warm draft lost its grid that way). `jointDepth` 0.45: the photo's joint is under a texel wide at this scale, so a joint texel is
+# only a little under the tile's light. `scale` 1.0417 makes a tile 31.25 cm, ten texels at 32 a metre, so the joint falls the same way in
+# every tile and the grid comes out whole (at 1.2, 11.6 texels a tile, a third of it went missing). Flat faces (`range` -1 to 0, `cluster`
+# 8) as the old tile has them. A game's own swatch has no tile file until `tools/tiles/make.ts` writes it into `src/features/room/world-tiles`.
+ramp = "sage"
 step = 2
 accent = "ward-floor-warm"
 
 [texture]
 photo = "floorTiles"
-scale = 1.2
-contrast = 0.04
+scale = 1.0417
+contrast = 0.06
+range = [-1, 0]
+joint = "ward-floor-joint"
+jointDepth = 0.45
 facet = 0
-flatten = 0.95
-cluster = 5
-accent = 0.012
+flatten = 1
+cluster = 8
+accent = 0.007
 wear = 0
 seed = 70

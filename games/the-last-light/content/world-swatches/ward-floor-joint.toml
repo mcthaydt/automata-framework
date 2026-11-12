@@ -1,0 +1,3 @@
+# `ward-floor-joint`: the grout between the clinic's floor tiles (`ward-floor`'s joint): the old game's `#222323`, grey step 1.
+ramp = "grey"
+step = 1

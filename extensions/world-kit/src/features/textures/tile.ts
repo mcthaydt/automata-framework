@@ -55,6 +55,7 @@ export function tileFromLab(source: PhotoSource, spec: Omit<TextureSpec, 'photo'
         contrast: spec.contrast ?? d.contrast,
         range,
         accent: spec.accent ?? d.accent,
+        jointDepth: spec.joint === undefined ? undefined : (spec.jointDepth ?? d.jointDepth),
       })
   // Wear keeps a tone inside its range (a ramp step stays on its ramp, 0 at the darkest).
   wear(labels, width, height, spec.wear ?? d.wear, (spec.seed ?? d.seed) * 31 + 7, photo ? 0 : range[0] + 8)

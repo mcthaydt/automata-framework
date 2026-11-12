@@ -236,15 +236,19 @@ describe('the ward\u2019s props face as the old game turned them', () => {
 // cooler lamps (`src/render/assets.ts` at 92e6704). The kit's `tileFloor` is slate step 5, `#abaebe`: nearly four times the light, so a
 // room lit by the old game's own lamps drew twice as bright (mean luma 88 against 44 on the floor at the spawn) and washed to a grey.
 describe('the ward\u2019s floor', () => {
-  // A tile on dark grout: the cool tile is slate step 2 (#5b5c69, the old floor's fourth tile), the grout two steps down its ramp, and
-  // the warm tiles the accent, DUEL sand step 0 (#625d54, the old floor's other three). Flat sand 0 had no grout to draw.
-  it('is the old tile\u2019s own colours: DUEL slate step 2 with sand step 0 for the warm tiles', () => {
+  // The old floor reads green-grey in its frames (hue 146 to 154, from its green light and grade), with a warm tile now and then: here the
+  // body is sage step 2 (#5b7b69) so the lit floor is that hue, the warm tiles the accent, DUEL sand step 0 (#625d54, the old floor's own
+  // tile), and the grout its own swatch, grey step 1 (#222323, the old grout). The grout is the texture's `joint`, so the warm accent
+  // does not take it (the warm tiles of the first draft made the grout vanish).
+  it('is a green-grey tile on the old grout: DUEL sage step 2, with sand step 0 for the warm tiles and grey step 1 for the joint', () => {
     expect(LIBRARY.swatches['ward-floor']).toMatchObject({
-      ramp: 'slate',
+      ramp: 'sage',
       step: 2,
       accent: 'ward-floor-warm',
+      texture: { joint: 'ward-floor-joint' },
     })
     expect(LIBRARY.swatches['ward-floor-warm']).toMatchObject({ ramp: 'sand', step: 0 })
+    expect(LIBRARY.swatches['ward-floor-joint']).toMatchObject({ ramp: 'grey', step: 1 })
   })
 
   it('is what every tiled room stands on, and the counter keeps its laminate', () => {

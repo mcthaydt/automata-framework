@@ -19,6 +19,7 @@
 import { oklab } from '@automata/3d/props-kit'
 import { duelIndexOf, hash3, rgbFromLab, STEPS } from './colour.ts'
 import type { Image } from './png.ts'
+import { JOINT_SLOT } from './tile-colours.ts'
 
 /** OKLab, three floats a pixel. */
 export interface Lab {
@@ -180,6 +181,9 @@ export interface ToneOptions {
   readonly range: readonly [number, number]
   /** How far a texel's hue must part from the surface's (OKLab a, b distance) to take the accent; 0 for no accent. */
   readonly accent: number
+  /** With a joint colour: how many tone steps under the surface's light a texel is a joint (labelled apart, so neither the
+   * accent's hue test nor its median takes it). Left out for no joint. */
+  readonly jointDepth?: number | undefined
 }
 
 const median = (xs: number[]): number => {
@@ -192,26 +196,44 @@ export function indexTone(src: Lab, options: ToneOptions): Uint16Array {
   const { width, height, lab } = src
   const n = width * height
   const out = new Uint16Array(n)
+  // The joint: a texel at least `jointDepth` steps under the light most texels have. It is taken out before the surface's hue
+  // is measured, so the joint is neither in the mean hue nor in an accent's median.
+  const isJoint = new Uint8Array(n)
+  if (options.jointDepth !== undefined) {
+    const all = median(Array.from({ length: n }, (_, i) => lab[i * 3] ?? 0))
+    for (let i = 0; i < n; i++)
+      isJoint[i] = ((lab[i * 3] ?? 0) - all) / options.contrast <= -options.jointDepth ? 1 : 0
+  }
+  const body = n - isJoint.reduce((sum, v) => sum + v, 0)
   let meanA = 0
   let meanB = 0
-  for (let i = 0; i < n; i++) {
-    meanA += lab[i * 3 + 1] ?? 0
-    meanB += lab[i * 3 + 2] ?? 0
-  }
-  meanA /= n
-  meanB /= n
+  for (let i = 0; i < n; i++)
+    if (!isJoint[i]) {
+      meanA += lab[i * 3 + 1] ?? 0
+      meanB += lab[i * 3 + 2] ?? 0
+    }
+  meanA /= body
+  meanB /= body
   const isAccent = new Uint8Array(n)
   if (options.accent > 0)
     for (let i = 0; i < n; i++)
       isAccent[i] =
-        Math.hypot((lab[i * 3 + 1] ?? 0) - meanA, (lab[i * 3 + 2] ?? 0) - meanB) > options.accent ? 1 : 0
+        !isJoint[i] &&
+        Math.hypot((lab[i * 3 + 1] ?? 0) - meanA, (lab[i * 3 + 2] ?? 0) - meanB) > options.accent
+          ? 1
+          : 0
   // A small accent share is noise in the photo, not a material: under 3% it stays on the surface's ladder.
-  const share = isAccent.reduce((sum, v) => sum + v, 0) / n
+  const share = isAccent.reduce((sum, v) => sum + v, 0) / body
   if (share < 0.03 || share > 0.6) isAccent.fill(0)
   const lights: [number[], number[]] = [[], []]
-  for (let i = 0; i < n; i++) lights[isAccent[i] as 0 | 1].push(lab[i * 3] ?? 0)
+  for (let i = 0; i < n; i++) if (!isJoint[i]) lights[isAccent[i] as 0 | 1].push(lab[i * 3] ?? 0)
   const mid = [median(lights[0]), median(lights[1])]
   for (let i = 0; i < n; i++) {
+    if (isJoint[i]) {
+      // One tone: a joint is a line of one colour, however the photo shades it.
+      out[i] = JOINT_SLOT * 16 + 8
+      continue
+    }
     const slot = isAccent[i] as 0 | 1
     const offset = Math.max(
       options.range[0],
@@ -309,7 +331,11 @@ export function wear(
   if (amount <= 0) return
   const field = wearField(width, height, seed)
   for (let i = 0; i < width * height; i++)
-    if ((field[i] ?? 0) > 1 - amount * 0.45 && ((labels[i] ?? 0) & 15) > floor)
+    if (
+      (field[i] ?? 0) > 1 - amount * 0.45 &&
+      ((labels[i] ?? 0) & 15) > floor &&
+      (labels[i] ?? 0) >> 4 !== JOINT_SLOT
+    )
       labels[i] = (labels[i] ?? 0) - 1
 }
 

@@ -786,7 +786,7 @@ declare module 'virtual:automata/content' {
     }
   }
 
-  export type WorldSwatchId = 'exit-green' | 'exit-plate' | 'ward-cork' | 'ward-floor' | 'ward-floor-warm' | 'ward-plaster' | 'ward-wainscot'
+  export type WorldSwatchId = 'exit-green' | 'exit-plate' | 'ward-cork' | 'ward-floor' | 'ward-floor-joint' | 'ward-floor-warm' | 'ward-plaster' | 'ward-wainscot'
   export type WorldSwatch = {
     readonly about?: string
     readonly accent?: string

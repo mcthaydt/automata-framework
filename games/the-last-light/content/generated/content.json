@@ -6187,19 +6187,29 @@
     },
     "ward-floor": {
       "accent": "ward-floor-warm",
-      "ramp": "slate",
+      "ramp": "sage",
       "step": 2,
       "texture": {
-        "accent": 0.012,
-        "cluster": 5,
-        "contrast": 0.04,
+        "accent": 0.007,
+        "cluster": 8,
+        "contrast": 0.06,
         "facet": 0,
-        "flatten": 0.95,
+        "flatten": 1,
+        "joint": "ward-floor-joint",
+        "jointDepth": 0.45,
         "photo": "floorTiles",
-        "scale": 1.2,
+        "range": [
+          -1,
+          0
+        ],
+        "scale": 1.0417,
         "seed": 70,
         "wear": 0
       }
+    },
+    "ward-floor-joint": {
+      "ramp": "grey",
+      "step": 1
     },
     "ward-floor-warm": {
       "ramp": "sand",
