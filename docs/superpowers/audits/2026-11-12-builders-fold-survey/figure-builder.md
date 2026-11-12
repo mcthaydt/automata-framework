@@ -195,6 +195,13 @@ extends the framework's base and turns those two flags off, with a comment sayin
 the builder's own settings. Bringing the painter under them is following work, one file at a time, each behind the
 goldens.
 
+**What the two flags mean for the wrapper's type step.** The kit and everything that imports the kit compile with the
+framework's strict base, and TypeScript checks an imported `.ts` source with the importer's options. If the kit
+imported the painter's source directly, the 1,395 errors would appear in the kit's typecheck. That is why
+`vendor/figure-builder` builds declarations with the builder's own settings (`tsconfig.types.json`, `types.mjs`) and
+its `exports` names them as `types`. The step cannot simply be deleted with the wrapper: it moves into the package and
+runs in `prepare` and `typecheck`, so no session runs it by hand, until the painter passes the two flags.
+
 **Note on `noSelfCompare` and `noAssignInExpressions`.** `x !== x` is a NaN test and an assignment inside an
 expression may be load-bearing in the rasteriser's loops. The plan fixes lint rule by rule, one commit a rule, with
 the goldens run after each, and stops on any moved texel.
