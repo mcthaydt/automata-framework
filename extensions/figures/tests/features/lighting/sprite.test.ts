@@ -3,6 +3,7 @@ import { BASE } from '../../../base/base';
 import { Figure } from '../../../src/features/figure/figure';
 import { member, view } from '../../../src/features/figure/frames';
 import { RAMPS, RAMP_OUTLINE } from '../../../src/features/paint/duel-ramps';
+import { depthAt } from '../../../src/features/paint/fabric';
 import { onRow, tiled } from '../../../src/features/paint/row';
 import { flatSteps, lightSprite, SPRITE_STYLE, type SpriteLighting } from '../../../src/features/lighting/sprite';
 import { viewToWorld } from '../../../src/features/lighting/lamps';
@@ -161,8 +162,31 @@ describe('lightSprite on a fabric', () => {
     for (const k of texels(out)) {
       if (!w.on[k]) continue;
       on++;
-      expect(colourAt(out, k), `texel ${k}`).toBe(tiled(colourAt(lit, k), w.labels[k], w.lo[k], w.hi[k]));
+      expect(colourAt(out, k), `texel ${k}`).toBe(tiled(colourAt(lit, k), w.labels[k], ...depthAt(w, k)));
     }
     expect(on).toBeGreaterThan(300);
+  });
+  it('two fabrics of different depth each keep their own tile when lit (the weave holds a table of depths)', () => {
+    registerFixtures();
+    // fx-twill reaches one step in, fx-check one step either way: their depths differ, so the weave's `on` holds 1 and 2.
+    const cloth = stand(
+      dressed([{ top: 'fxtwill', sleeves: 'long' }, { shorts: 'fxcheck' }], {
+        fxtwill: { ramp: 26, base: 3, fabric: 'fx-twill' },
+        fxcheck: { ramp: 24, base: 3, fabric: 'fx-check' },
+      }),
+      0,
+    ), w = cloth.weave!;
+    expect(w.depths.length, 'two depths in the table').toBe(2);
+    const L: SpriteLighting = { flat: grey(1.17), lamps: FRONT_LEFT };
+    const out = lightSprite(cloth, L);
+    const ground = w.ground.map((v, i) => (i % 4 === 3 ? cloth.painted[i] : w.on[i >> 2] ? v : cloth.painted[i]));
+    const lit = lightSprite({ ...cloth, painted: new Uint8ClampedArray(ground), weave: null }, L);
+    let second = 0;
+    for (const k of texels(out)) {
+      if (!w.on[k]) continue;
+      if (w.on[k] === 2) second++;
+      expect(colourAt(out, k), `texel ${k} (depth ${w.on[k]})`).toBe(tiled(colourAt(lit, k), w.labels[k], ...depthAt(w, k)));
+    }
+    expect(second, 'texels of the second depth').toBeGreaterThan(50);
   });
 });

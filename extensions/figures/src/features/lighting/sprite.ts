@@ -1,6 +1,7 @@
 import type { V3 } from '../../lib/math';
 import { RAMPS, RAMP_OUTLINE } from '../paint/duel-ramps';
 import { oklab } from '../paint/paint';
+import { depthAt } from '../paint/fabric';
 import { onRow, tiled } from '../paint/row';
 import { grade } from './grade';
 import type { LitSource } from './light';
@@ -97,7 +98,7 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
     if (kx > x1) x1 = kx;
     if (ky < y0) y0 = ky;
     if (ky > y1) y1 = ky;
-    const from = weave !== null && weave.on[k] === 1 ? weave.ground : src, c = colourAt(from, o);
+    const from = weave !== null && weave.on[k] !== 0 ? weave.ground : src, c = colourAt(from, o);
     ground[k] = c;
     if (c !== lastColour) {
       [lastRow, lastStep] = onRow(c);
@@ -172,7 +173,7 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
   let lastKey = -1, lastCol = 0;
   for (let y = y0; y <= y1; y++) for (let x = x0, k = y * w + x0; x <= x1; x++, k++) {
     if (ground[k] < 0) continue;
-    const on = weave !== null && weave.on[k] === 1;
+    const on = weave !== null && weave.on[k] !== 0;
     // A texel nothing changes keeps the painted bytes (a fabric's tile was laid by the painter on the same ground).
     if (held[k] === 1 && !on) continue;
     let col: number;
@@ -191,7 +192,7 @@ export function lightSprite(f: LitSource, L: SpriteLighting): Uint8ClampedArray 
         col = hit; lastKey = key; lastCol = hit;
       }
     }
-    if (on) col = tiled(col, weave!.labels[k], weave!.lo[k], weave!.hi[k]);
+    if (on) col = tiled(col, weave!.labels[k], ...depthAt(weave!, k));
     const o = k * 4;
     out[o] = (col >> 16) & 255; out[o + 1] = (col >> 8) & 255; out[o + 2] = col & 255; out[o + 3] = 255;
   }
