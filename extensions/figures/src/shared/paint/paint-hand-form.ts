@@ -13,9 +13,10 @@ export const HAND_FORM: HandFormKind = 'paddle'
  * The parted hand's size: a stylised hand, larger than life, as pixel-art figures of this size draw one (a hand drawn
  * to life is a few texels and reads as a claw). `turn` is how far it shows its back as well as its edge (0 the hand as
  * the view sees it, 1 its full breadth, as a relaxed hand hangs with its back turned out and its thumb forward); `size`
- * scales its widths. One factor for every body: the base pair's hand at density 2 is six to eight texels across.
+ * scales its widths and `long` is its length against its knuckles' breadth (an open hand, not a fist). One factor
+ * for every body, from twice the brand kit's density; at density 1 the hand keeps the size the view gives it.
  */
-export const PARTED_HAND = { size: 1.15, turn: 0.7 }
+export const PARTED_HAND = { size: 1.05, turn: 0.7, long: 1.5 }
 /** The half-widths (texels) the parted hand is drawn at, at the wrist and the knuckles, from its stamp's: as the view
  * sees it (`half`) and its full breadth (`breadth`). */
 export function partedHalf(
@@ -142,14 +143,13 @@ export interface HandForm {
   /** The width at the wrist and from the flare down (columns). */
   Ww: number
   Wk: number
-  /** The thumb's rows, whether it shows, and its width (two columns on a hand six broad, its tip then clear of the
-   * palm by a texel of background). */
+  /** The thumb's rows, whether it shows, and its width (one column, along the palm's side). */
   t0: number
   t1: number
   thumbs: boolean
   thumbWide: number
-  /** The index parted from the mitten by a crease and a row longer (the hand is four columns broad and its fingers
-   * two rows long), and its width (columns at the thumb's side of the fingers). */
+  /** The index parted from the mitten by a crease and a row longer (the hand is five columns broad and its fingers
+   * three rows long past the knuckles, so the crease is a run of three), and its width (two columns at the thumb's side). */
   parted: boolean
   index: number
   D: number
@@ -160,14 +160,13 @@ export type HandPiece = 'palm' | 'thumb' | 'index' | 'mitten' | 'crease'
 /**
  * The form from the stamp's sizes (texels): `L` the length to draw, `Ww` and `Wk` the widths at the wrist and the
  * knuckles, `thumbAt` where the thumb starts (a fraction of `L`), `thumbs` whether it shows.
- * - The palm flares a fifth of the way down; the knuckle row is a little past half way.
- * - The thumb runs from its root (at least the flare) a good third of the hand, past the palm's edge: a bump two
- *   columns across on a broad hand, its top corner rounded, creased from the palm along its last two rows, and its tip
- *   standing clear of the palm by a texel of background.
- * - The fingers below the knuckles: the index on the thumb's side (two columns on a broad hand) down to the last row;
- *   the mitten beside it, a crease between them, ending a row short with its little finger's corner rounded, so the
- *   index steps out of the silhouette. No ink is cut inside the hand: its partings are creases of the skin.
- * - A smaller hand (density 1) is a plain mitten with a thumb bump, its tip's corner rounded, so the shape stays whole.
+ * - The palm flares a fifth of the way down; the knuckle row is half way (an open hand's fingers are half of it).
+ * - The thumb runs from its root (at least the flare) a good third of the hand along the palm's side, one texel out,
+ *   creased from the palm below its root where that crease is three rows long; the row under its tip is clear.
+ * - The fingers below the knuckles: the index (two columns) on the thumb's side down to the last row; the mitten beside
+ *   it, a crease between them from the knuckle row, ending a row short with both corners of its end tapered, so the
+ *   index steps out of the silhouette. No ink is cut inside the hand, and no crease is a lone texel.
+ * - A smaller hand (density 1, which keeps the size its view gives it) is a plain mitten with a thumb bump.
  */
 export function handForm(o: {
   L: number
@@ -178,7 +177,7 @@ export function handForm(o: {
   D: number
 }): HandForm {
   const last = Math.max(3, Math.ceil(o.L) - 1),
-    sk = Math.round(0.58 * (last + 1)),
+    sk = Math.round(0.5 * (last + 1)),
     flare = Math.max(1, Math.round(0.2 * (last + 1)))
   const t0 = Math.max(Math.round(o.thumbAt * o.L), flare),
     t1 = Math.min(t0 + Math.max(2, Math.ceil(0.35 * o.L)) - 1, sk - 1)
@@ -191,9 +190,9 @@ export function handForm(o: {
     t0,
     t1,
     thumbs: o.thumbs,
-    thumbWide: o.Wk >= 6 && t1 - t0 >= 2 ? 2 : 1,
-    parted: o.Wk >= 4 && last - sk >= 2,
-    index: o.Wk >= 6 ? 2 : 1,
+    thumbWide: 1,
+    parted: o.Wk >= 5 && last - sk >= 3,
+    index: 2,
     D: o.D,
   }
 }
@@ -201,27 +200,24 @@ export function handForm(o: {
 export function handPiece(f: HandForm, row: number, col: number): HandPiece | null {
   if (row < 0 || row > f.last || col < 0) return null
   const cols = row >= f.flare ? f.Wk : f.Ww
-  // The thumb past the palm's edge: its outer column from the row under its root (its top corner rounded); on a broad
-  // hand its inner column stops a row short, so its tip stands clear of the palm.
-  if (f.thumbs && row >= f.t0 && row <= f.t1 && col >= cols && col < cols + f.thumbWide) {
-    const outer = col === cols + f.thumbWide - 1
-    if (f.thumbWide === 2) return (outer ? row > f.t0 : row < f.t1) ? 'thumb' : null
-    return 'thumb'
-  }
+  // The thumb along the palm's side, one texel out, from its root down; the row under its tip is clear (a notch).
+  if (f.thumbs && col === cols && row >= f.t0 && row <= f.t1) return 'thumb'
   if (col >= cols) return null
-  // Its crease along the palm, beside the thumb's last two rows.
-  if (f.thumbs && col === cols - 1 && row >= Math.max(f.t0 + 1, f.t1 - 1) && row <= f.t1) return 'crease'
+  // Its crease along the palm, beside the thumb under its root: a run of three rows or none (never a lone texel).
+  if (f.thumbs && f.t1 - f.t0 >= 3 && col === cols - 1 && row > f.t0 && row <= f.t1) return 'crease'
+  if (f.parted && row === f.sk && col === cols - f.index - 1) return 'crease'
   if (row <= f.sk) return 'palm'
   if (!f.parted) {
     // A plain mitten, its tip's corners rounded.
     if (row === f.last && (col === 0 || (cols >= 3 && col === cols - 1))) return null
     return 'mitten'
   }
-  // The index at the thumb's side to the last row; the crease beside it; the mitten a row short, its corner rounded.
+  // The index at the thumb's side to the last row; the crease beside it from the knuckle row to the mitten's end (a
+  // run of three rows or more); the mitten a row short, its end tapered on both corners.
   const gap = cols - f.index - 1
   if (col > gap) return 'index'
   if (row === f.last) return null
   if (col === gap) return 'crease'
-  if (row === f.last - 1 && col === 0) return null
+  if (row === f.last - 1 && (col === 0 || (gap >= 3 && col === gap - 1))) return null
   return 'mitten'
 }

@@ -1,6 +1,13 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { K2 } from './paint-budget'
-import { HAND_FORM, type HandFormKind, paddleRole, partedHalf, partedRole } from './paint-hand-form'
+import {
+  HAND_FORM,
+  type HandFormKind,
+  PARTED_HAND,
+  paddleRole,
+  partedHalf,
+  partedRole,
+} from './paint-hand-form'
 import { KEY } from './paint-style'
 // ─── Hands: drawn as the face is, from the projected wrist and fingertips ───
 /**
@@ -148,11 +155,13 @@ export function drawHands(
     // Sizes: the wrist as the arm shows it (two texels at least), the knuckles a texel broader from twice the brand
     // kit's density; the length its projection's, a hanging hand's fingers curled short of it (never shorter than the
     // hand is broad).
-    // The parted hand is drawn larger, its back turned toward the view (paint-hand-form.ts PARTED_HAND).
-    const half = form === 'parted' ? partedHalf(hs.half, hs.breadth) : hs.half
+    // The parted hand is drawn larger and longer, its back turned toward the view (paint-hand-form.ts PARTED_HAND),
+    // from twice the brand kit's density.
+    const parted = form === 'parted' && D > 1,
+      half = parted ? partedHalf(hs.half, hs.breadth) : hs.half
     const Ww = Math.max(2, Math.round(2 * half[0])),
       Wk = Math.max(Ww + (D > 1 ? 1 : 0), Math.round(2 * half[1]))
-    L = Math.max(L * (hs.hangs ? 0.86 : 1), Wk + 1)
+    L = Math.max(L * (hs.hangs ? 0.86 : 1), Wk + 1, parted ? PARTED_HAND.long * Wk : 0)
     // The origin on texel edges when straightened, so each column and row is whole.
     let ox = wx,
       oy = wy

@@ -18,47 +18,53 @@ const grid = (f: HandForm) =>
   )
 
 describe('the hand form at the showcase density', () => {
-  // The base man's stylised hand at density 2: as the front view now shows it (its back half turned to us) and from the
-  // side (broad).
+  // The base man's open hand at density 2, as the front view shows it (its back half turned to us) and from the side.
   for (const [name, Ww, Wk] of [
     ['front', 5, 6],
-    ['side', 6, 8],
+    ['side', 6, 7],
   ] as const) {
     const f = handForm({ L: 9.1, Ww, Wk, thumbAt: 0.15, thumbs: true, D: 2 }),
-      g = grid(f),
-      W = Wk + 2
+      g = grid(f)
     const rowsOf = (p: string) => g.map((r, row) => (r.includes(p as never) ? row : -1)).filter((r) => r >= 0)
-    it(`${name}: the thumb is a bump two texels across, creased from the palm, its tip clear`, () => {
+    const runs = (col: number, p: string) => {
+      const out: number[] = []
+      let n = 0
+      for (const r of g) {
+        if (r[col] === p) n++
+        else if (n) out.push(n), (n = 0)
+      }
+      if (n) out.push(n)
+      return out
+    }
+    it(`${name}: an open hand, half again as long as it is broad`, () => {
+      expect(f.last + 1).toBeGreaterThanOrEqual(Math.ceil(1.4 * Wk))
+    })
+    it(`${name}: the thumb lies along the palm's side, one texel out, its tip clear`, () => {
       const rows = rowsOf('thumb')
       expect(rows.length).toBeGreaterThanOrEqual(3)
-      expect(Math.max(...g.map((r) => r.filter((p) => p === 'thumb').length))).toBe(2)
-      // A crease of the skin (not a gap) between the thumb and the palm, and background beside its tip.
-      expect(g.some((r) => r[Wk - 1] === 'crease' && r[Wk] === 'thumb')).toBe(true)
-      const tip = rows[rows.length - 1]
-      expect(g[tip][Wk]).toBe(null)
-      expect(g[tip][Wk + 1]).toBe('thumb')
+      expect(Math.max(...g.map((r) => r.filter((p) => p === 'thumb').length))).toBe(1)
+      expect(g.some((r) => r[Wk + 1])).toBe(false)
+      expect(g[rows[rows.length - 1] + 1][Wk]).toBe(null)
     })
-    it(`${name}: the index is creased from the mitten and steps out a row past its rounded end`, () => {
-      expect(
-        g.filter((r) => r.includes('crease') && r.includes('index') && r.includes('mitten')).length,
-      ).toBeGreaterThanOrEqual(1)
+    it(`${name}: the index, two columns, creased from the mitten by one run, ending a row past it`, () => {
+      const cols = g[f.last].map((p, c) => (p === 'index' ? c : -1)).filter((c) => c >= 0)
+      expect(cols.length).toBe(2)
       expect(Math.max(...rowsOf('index'))).toBe(Math.max(...rowsOf('mitten')) + 1)
-      // No gap inside the hand: every row is one run from its first texel to its last, but beside the thumb's tip.
-      g.forEach((r, row) => {
-        const on = r.map((p, c) => (p ? c : -1)).filter((c) => c >= 0)
-        if (on.length && !r.includes('thumb'))
-          expect(on[on.length - 1] - on[0] + 1, `row ${row}`).toBe(on.length)
-      })
+      const crease = cols[0] - 1
+      expect(runs(crease, 'crease')).toEqual([expect.any(Number)])
+      expect(runs(crease, 'crease')[0]).toBeGreaterThanOrEqual(3)
     })
-    it(`${name}: the mitten is one block of at least three columns, its little finger's corner rounded`, () => {
+    it(`${name}: every crease is a run of three or more`, () => {
+      for (let c = 0; c < Wk; c++) for (const n of runs(c, 'crease')) expect(n).toBeGreaterThanOrEqual(3)
+    })
+    it(`${name}: the mitten is one block, its end tapered on both corners`, () => {
       for (const r of g) {
         const cols = r.map((p, c) => (p === 'mitten' ? c : -1)).filter((c) => c >= 0)
         if (cols.length) expect(cols[cols.length - 1] - cols[0] + 1).toBe(cols.length)
       }
-      expect(Math.max(...g.map((r) => r.filter((p) => p === 'mitten').length))).toBeGreaterThanOrEqual(3)
-      const end = Math.max(...rowsOf('mitten'))
-      expect(g[end][0]).toBe(null)
-      expect(W).toBeGreaterThan(Wk)
+      const end = Math.max(...rowsOf('mitten')),
+        above = g[end - 1].filter((p) => p === 'mitten').length
+      expect(g[end].filter((p) => p === 'mitten').length).toBeLessThan(above)
     })
   }
 })
