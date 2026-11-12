@@ -1,6 +1,8 @@
+import { passFirstRun } from '@automata/tools/e2e'
 import type { Page } from '@playwright/test'
 import type { ProbeState } from '#src/app/probe.ts'
 import type { BotStep } from '#src/testing/bot.ts'
+import { devUrl } from './origins.ts'
 
 // Plays the prologue through the page the way a person's controls do, and waits on the game's own state through the probe
 // (`src/app/probe.ts`, in a development build) and never on a sleep: a software renderer runs the simulation slower than the
@@ -110,4 +112,12 @@ export async function playRoute(page: Page, route: readonly BotStep[]): Promise<
       .map((key) => key.slice('cutscene.ended:'.length))
       .sort(),
   }
+}
+
+/** From a fresh page to the opening cutscene on screen. */
+export async function begin(page: Page): Promise<void> {
+  await page.goto(devUrl)
+  await passFirstRun(page)
+  await page.getByRole('button', { name: 'Play' }).click()
+  await waitFor(page, { events: 'cutscene.started', atLeast: 1 })
 }

@@ -1,8 +1,6 @@
-import { passFirstRun } from '@automata/tools/e2e'
 import { expect, type Page, test } from '@playwright/test'
 import { ROUTE } from '#src/testing/route.ts'
-import { playRoute, waitFor } from './driver.ts'
-import { devUrl } from './origins.ts'
+import { begin, playRoute, waitFor } from './driver.ts'
 
 // The Last Light in a real browser: from the title's Play, through the opening cutscene (played out, not skipped), the whole
 // route of the old solver sent through the page's own controls, to the end of the night, where the credits come up. Every
@@ -16,14 +14,6 @@ function collectErrors(page: Page): string[] {
   })
   page.on('pageerror', (error) => errors.push(String(error)))
   return errors
-}
-
-/** From a fresh page to the opening cutscene on screen. */
-async function begin(page: Page): Promise<void> {
-  await page.goto(devUrl)
-  await passFirstRun(page)
-  await page.getByRole('button', { name: 'Play' }).click()
-  await waitFor(page, { events: 'cutscene.started', atLeast: 1 })
 }
 
 async function night(page: Page) {
