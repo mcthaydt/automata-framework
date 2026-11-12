@@ -2,16 +2,10 @@
 
 import { GROUP, type Material } from '../body/parts'
 import { smooth } from '../math/math'
-import { depthAt, depthOf, type Fabric, fabricOf, labelAt, newWeave, type Weave } from './fabric'
+import { depthAt, labelAt, type Weave } from './fabric'
 import {
   budget,
-  DARK_MID,
-  densityOf,
-  edgeTonesOf,
-  extraTones,
-  fillTones,
   GLOSS_SHEEN,
-  INK_RGB,
   isArm,
   isLeg,
   K2,
@@ -30,22 +24,20 @@ import {
   touching,
 } from './paint-budget'
 import { type FaceStamp, facePlane, onForm } from './paint-face'
-import { type Bends, drawHands, type HandStamp } from './paint-hands'
+import type { Bends, HandStamp } from './paint-hands'
+import type { Cloth } from './paint-prepare'
+import { type PaintInputs, prepare } from './paint-prepare'
 import { stampFace } from './paint-stamp'
 import {
-  duel,
   EDGE_LEVELS,
   FACE_DEEP,
   FACE_KEY,
   FACE_SEAM,
-  HAIR_SEAMS,
-  hex,
   KEY,
   LIGHT,
   oklab,
   PAINT,
   type PaintStyle,
-  tonesOf,
 } from './paint-style'
 import { type GBuffer, noise3 } from './raster'
 import { tiled } from './row'
@@ -77,14 +69,6 @@ export { duel, FACE_SEAM, oklab, PAINT, rampOf, tonesOf } from './paint-style'
  * - Form: a crevice tone where a nearer part sits beside, a cast shadow where one stands between the surface and the key,
  *   reflected light on the shadow side's edge, and a glossy material's shine where it mirrors the key.
  */
-/** The cloth channel (figure/cloth.ts), for a fabric (fabric.ts): each texel's `(cos t, sin t, v)` as the figure's third raster
- * drew it, and `u(group, cos, sin)`, the metres round the group's cylinder (null for an untiled group). */
-export interface Cloth {
-  place: Float32Array
-  u(group: number, c: number, s: number): number | null
-}
-/** The fabrics of a paint with no cloth channel: none (an index reads undefined), with no array built per call. */
-const NO_FABRICS: readonly (Fabric | null)[] = []
 export function paint(
   g: GBuffer,
   materials: Material[],
@@ -99,61 +83,48 @@ export function paint(
   cloth?: Cloth,
   weaveOut?: Weave,
 ): { albedo: Uint8ClampedArray; normals: Uint8ClampedArray; weave: Weave | null } {
-  const { w, h } = g,
-    n = w * h,
-    ink = INK_RGB
-  const tones = materials.map((m) => fillTones(tonesOf(m), m.flat ? 0 : style.cool)),
-    D = densityOf(w),
-    ppm = 36.9 * D
-  // A sheer material (`mix.edge`): its tones at each level of edge; none for any other, which run today's code.
-  const edges = materials.map((m) => edgeTonesOf(m, style.cool))
-  // The fabrics (H5) of the materials; with no cloth channel, none is read.
-  const fabrics = cloth ? materials.map((m) => (m.fabric ? (fabricOf(m.fabric) ?? null) : null)) : NO_FABRICS
-  // The tile goes on last (after the budget and the light), so the loop below paints each tiled texel's ground and keeps its
-  // label here (`weave.on`); with no cloth channel there is none.
-  const depths = fabrics.map((f) => (f ? depthOf(f) : null))
-  const weave = cloth ? (weaveOut ?? newWeave(n)) : null
-  if (weave) weave.depths.length = 0
-  // A texel's `on` is 1 + the index of its fabric's depth in the weave's table (one pair per distinct depth).
-  const slotOf = depths.map((d) => {
-    if (!d || !weave) return 0
-    let i = weave.depths.findIndex((p) => p[0] === d[0] && p[1] === d[1])
-    if (i < 0) i = weave.depths.push(d) - 1
-    return i + 1
-  })
-  if (weave) {
-    weave.labels.fill(0)
-    weave.on.fill(0)
+  const c0: PaintInputs = {
+    g,
+    materials,
+    albedo,
+    normals,
+    face,
+    style,
+    skin,
+    hands,
+    bends,
+    light,
+    cloth,
+    weaveOut,
   }
-  // The skin's family: the skin, and any surface painted in its tones alone (an ear's rim and bowl), which takes its line.
-  const skinSet = new Set(skin >= 0 ? tones[skin] : []),
-    skinny = tones.map((t, i) => i === skin || (skin >= 0 && t.every((c) => skinSet.has(c))))
-  // Black cloth (a dark ramp, not skin, hair or a flat mark) has its own darks and form (extraTones, the rim below).
-  const hairy = (p: number) => p >= HAIR_SEAMS[0] && p < HAIR_SEAMS[1],
-    onHair = new Uint8Array(materials.length)
-  for (let k = 0; k < n; k++) if (g.material[k] >= 0 && hairy(g.part[k])) onHair[g.material[k]] = 1
-  const darkRamp = materials.map(
-    (m, i) => !m.strands && !m.flat && !skinny[i] && !onHair[i] && oklab(tones[i][1])[0] < DARK_MID,
-  )
-  const extra = tones.map((t, i) => extraTones(t, materials[i].ramp, skinny[i], darkRamp[i]))
-  const stains = materials.map((m) =>
-    m.stain
-      ? fillTones(
-          m.stain.paint.map((c) => duel(hex(c))),
-          0,
-        )
-      : null,
-  )
-  // The painter's own copy of the G-buffer's surfaces (the raster's stays as drawn, for the re-shade).
-  const material = g.material.slice(),
-    part = g.part.slice(),
-    group = g.group.slice(),
-    depth = g.depth.slice(),
-    normal = g.normal.slice(),
-    place = g.place.slice()
-  // The hands, designed (drawHands): their texels' tones are theirs.
-  const handTone = drawHands(hands, w, h, D, { material, part, group, depth, normal, place })
-  const filled = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && material[y * w + x] >= 0
+  const c1 = { ...c0, ...prepare(c0) }
+  // @cut-head-end: the names below are what the statements still in paint() read of the phases cut so far
+  const {
+    D,
+    darkRamp,
+    depth,
+    edges,
+    extra,
+    fabrics,
+    filled,
+    group,
+    h,
+    hairy,
+    handTone,
+    ink,
+    material,
+    n,
+    normal,
+    part,
+    place,
+    ppm,
+    skinny,
+    slotOf,
+    stains,
+    tones,
+    w,
+    weave,
+  } = c1
   // The neck under the jaw: a short run of empty texels between the head's skin above and the neck's below (a neck seen
   // from above, the jaw's underside hiding where it meets the head) is the neck in the jaw's shadow, not a hole, so no
   // outline cuts across the throat. It fills from the neck below, and the jaw's crevice shades it.
