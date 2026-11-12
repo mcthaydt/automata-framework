@@ -40,3 +40,8 @@ spikes/tll-camera/node_modules
 
 # The figure painter's declarations, built by its `prepare` and `typecheck` (tsconfig.types.json).
 extensions/figures/types/
+
+# A checkout that once held the FigureBuilder submodule (gone since the painter moved to extensions/figures) can still
+# carry these folders, untracked. Ignoring them keeps Biome, knip and git off the old builder's files.
+/vendor/FigureBuilder/
+/vendor/figure-builder/
