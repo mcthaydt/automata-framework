@@ -97,7 +97,7 @@ gate could run; the side session's list of what the framework could take over is
 
 Sonnet 5.5 (`session_01HNdX7HQTNnRKaroUir7cbf`), no subagents, from `main` `62a143ce` with the audit merged. One commit per
 finding or tight group, test first, each test watched failing. Chromium only (software GL); WebKit, Firefox, real devices and
-hosts are not run; no paid API call. **Progress: 10 of 18 findings (56%)** (B1, S6, S7, S1, S2, S3, T7, S4, S5, T6; S6 counts with B1, T7 with S3, T6 with S4+S5). Stage 6 of 7 is this one, so the workstream is
+hosts are not run; no paid API call. **Progress: 11 of 18 findings (61%)** (B1, S6, S7, S1, S2, S3, T7, S4, S5, T6, S8; S6 counts with B1, T7 with S3, T6 with S4+S5). Stage 6 of 7 is this one, so the workstream is
 `(5 + done/18) / 7` of the way.
 
 | Finding | What | State | Commit |
@@ -108,7 +108,7 @@ hosts are not run; no paid API call. **Progress: 10 of 18 findings (56%)** (B1, 
 | S2 | The OFL text ships in a built game | done (unit tests; Emberwick built into a temp folder in a test) | `156126ae` |
 | S3 + T7 | `automata words` tells a bad key, a rate limit and an outage from a refusal and stops at the first; the key is `AUTOMATA_ANTHROPIC_KEY`, then `ANTHROPIC_API_KEY` | done (against a local stand-in server only; the live call is not made) | `d14076d8` |
 | S4 + S5 | `bindWords`, `formatNumber`, `DEFAULT_LOCALES` and one `matchLocale` in the framework; Emberwick measures 469 and its limit is 470 | done (`pnpm check` exit 0 on the tree; see "Open, for the Owner") | `77e57029` |
-| S8 | "+N more" never covers a label | | |
+| S8 | "+N more" never covers a label | done (the framework's Chromium suite 2252 passed; see the commit body) | `S8_COMMIT` |
 | S9 | The photosensitivity warning says the game's own hazards | | |
 | T1 | `openLink` doc comment (and `noopener`) | | |
 | T2 | The four playground cases watched failing | | |
