@@ -16,8 +16,11 @@ export interface TypedSaveParams {
    * says the person has left the field. Returning false says the text was refused, so leaving tries it again.
    */
   commit(value: string, leaving: boolean, input: Node): void | boolean
-  /** Names the field inside its editor, for the draft a closed page leaves behind. */
-  readonly draftKey?: string | undefined
+  /**
+   * Names the field inside its editor, for the draft a closed page leaves behind: what it edits (a row's id), or, for a
+   * field that has none, where it sits (`fieldPosition`). Never the label: many fields share one.
+   */
+  readonly draftKey?: string | ((node: Node) => string | undefined) | undefined
   /** False for a text that is not a value yet; it waits instead of being committed while typing. */
   valid?(value: string): boolean
   /** The field names something other files point at: it commits on leaving only. */
@@ -27,7 +30,7 @@ export interface TypedSaveParams {
 export function typedSave(node: Node, initial: TypedSaveParams): ActionReturn<TypedSaveParams> {
   let params = initial
   const field: TypingField = params.drafts.field((value, leaving) => params.commit(value, leaving, node), {
-    key: params.draftKey,
+    key: () => (typeof params.draftKey === 'function' ? params.draftKey(node) : params.draftKey),
     current: () => params.value,
     valid: (value) => params.valid?.(value) ?? true,
     leaveOnly: params.leaveOnly,

@@ -6,7 +6,7 @@
   (`commit="leave"`) is written only when it is left.
 -->
 <script lang="ts">
-import { typedSave, typingDrafts } from '@automata/editor/kit/typing'
+import { fieldPosition, typedSave, typingDrafts } from '@automata/editor/kit/typing'
 
 interface Props {
   label: string
@@ -99,7 +99,7 @@ let input = $state<HTMLInputElement>()
         drafts,
         value: String(value),
         commit: (raw) => commit(raw, input),
-        draftKey: label,
+        draftKey: fieldPosition,
         valid: (raw) => check(raw).ok,
         leaveOnly: when === 'leave',
       }}

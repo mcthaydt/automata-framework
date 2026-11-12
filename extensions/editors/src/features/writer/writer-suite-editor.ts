@@ -11,6 +11,8 @@ export function createWriter(): SuiteEditor<WriterSession> {
     icon: 'list',
     hue: 'color/ed/writer',
     open: (files, ports) => WriterSession.open(files, ports),
+    draftView: (session) =>
+      `${session.scene ?? ''}|${JSON.stringify(session.view)}|${JSON.stringify(session.files?.lines.chosen)}|${JSON.stringify(session.files?.dialogue.chosen)}`,
     regions: { panel, canvas, status },
     undo: (session) => session.trail.hook(),
     // Ask proposes whole files; Writer's words are two files at once, so it offers none.

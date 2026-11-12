@@ -3,7 +3,7 @@
   the person leaves it (or presses Ctrl+Enter). Enter makes a new line, so a long speech can be written as it is said.
 -->
 <script lang="ts">
-import { typedSave, typingDrafts } from '@automata/editor/kit/typing'
+import { fieldPosition, typedSave, typingDrafts } from '@automata/editor/kit/typing'
 
 interface Props {
   label: string
@@ -31,7 +31,7 @@ function commit(raw: string): void {
     rows="2"
     {placeholder}
     aria-invalid={problem !== undefined}
-    use:typedSave={{ drafts, value, commit, draftKey: label }}
+    use:typedSave={{ drafts, value, commit, draftKey: fieldPosition }}
     oninput={(event) => oninput?.(event.currentTarget.value)}
   ></textarea>
   {#if problem !== undefined}<p class="problem" role="alert">{problem}</p>{/if}

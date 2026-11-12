@@ -4,7 +4,7 @@
 import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { expect } from 'vitest'
 import { page } from 'vitest/browser'
-import { type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
+import { type SuiteEnv, type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
 import { createSuite } from '../../features/suite/shell/create-suite'
 import { samplePorts } from '../../features/suite/shell/sample-ports'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
@@ -32,6 +32,8 @@ export async function openSuite(
   files: Record<string, string>,
   ready: string,
   entry: string,
+  /** What the page adds to the top bar: the game's name, and whether the sample is the game and is kept. */
+  game: Pick<SuiteEnv, 'game' | 'sample' | 'kept'> = {},
 ): Promise<OpenedSuite> {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST, editorTargets())
@@ -42,6 +44,7 @@ export async function openSuite(
     document,
     ports: await samplePorts(files),
     suite: createSuite({ editors }),
+    ...game,
   })
   await settleLayout()
   await chooseEditor(entry)

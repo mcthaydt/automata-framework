@@ -11,6 +11,7 @@ export function createSequence(): SuiteEditor<SequenceSession> {
     icon: 'list',
     hue: 'color/ed/sequence',
     open: (files, ports) => SequenceSession.open(files, ports),
+    draftView: (session) => `${session.current?.toml.path ?? ''}|${JSON.stringify(session.current?.chosen)}`,
     regions: { panel, canvas, status },
     undo: (session) => session.trail.hook(),
     // Ask proposes whole files; a game has many cutscenes, so Sequence offers none.

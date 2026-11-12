@@ -6,6 +6,8 @@
 
 /** How long after the last key a field's text is written. */
 export const TYPING_DELAY_MS = 500
+/** Typing goes on being "now" this long after the last key: a pause between two bursts is not the end of it. */
+const TYPING_IDLE_MS = 3000
 /** A visit to a field closes this long after the field was left, if the write was not seen before. */
 const VISIT_CLOSE_MS = 1000
 
@@ -44,8 +46,11 @@ export function browserDraftStorage(): DraftStorage | undefined {
 }
 
 export interface TypingFieldOptions {
-  /** Names the field inside its editor, so a draft can find it again after the page is gone. No key, no draft. */
-  readonly key?: string | undefined
+  /**
+   * Names the field inside its editor, so a draft can find it again after the page is gone. No key, no draft. A function
+   * is asked each time (the field's place on the screen can settle after it is made).
+   */
+  readonly key?: string | (() => string | undefined) | undefined
   /** What the field reads now; a draft is offered back only to a field that still reads what it was typed over. */
   readonly current?: (() => string) | undefined
   /** False for a text that is not a value yet ("0." on its way to "0.5"): it waits instead of being committed. */
@@ -77,8 +82,10 @@ export interface TypingDrafts {
   flush(): void
   /** How many fields hold typed text that has not been committed. */
   readonly waiting: number
-  /** Where the fields being made now sit (the open editor's id); part of every draft's key. */
-  place: string
+  /** The person is typing: a key was pressed in the last 3 seconds, or typed text still waits. */
+  readonly typing: boolean
+  /** Where the fields being made now sit (the open editor and what it shows); part of every draft's key. */
+  place: string | (() => string)
   /** The key of the open visit; writes made during it join one Undo step. */
   visit(): string | undefined
   /**
@@ -111,8 +118,8 @@ interface FieldState {
   cancel: (() => void) | undefined
   readonly commit: TypingCommit
   readonly options: TypingFieldOptions
-  /** The draft's key in storage: the field's key inside its place. */
-  readonly key: string | undefined
+  /** The draft's key in storage: the field's key inside its place, as it was when the field last had text. */
+  key: string | undefined
 }
 
 export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps): TypingDrafts {
@@ -120,6 +127,18 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
   const fields = new Set<FieldState>()
   const notify = () => {
     for (const listener of listeners) listener()
+  }
+
+  let typingNow = false
+  let cancelIdle: (() => void) | undefined
+  const typedJustNow = () => {
+    typingNow = true
+    cancelIdle?.()
+    cancelIdle = timers.after(TYPING_IDLE_MS, () => {
+      typingNow = false
+      cancelIdle = undefined
+      notify()
+    })
   }
 
   let visits = 0
@@ -131,6 +150,7 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
     cancelClose = undefined
     visitKey = undefined
     visitLeft = false
+    notify()
   }
 
   /** Drafts of text that was committed, kept until the write that carries it has finished. */
@@ -187,6 +207,12 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
   const api: TypingDrafts = {
     place: '',
     field(commit, options = {}) {
+      // The draft's name: where the field is (the editor and its view) and what it is there. Read again at every use.
+      const place = () => (typeof api.place === 'function' ? api.place() : api.place)
+      const keyOf = (): string | undefined => {
+        const own = typeof options.key === 'function' ? options.key() : options.key
+        return own === undefined ? undefined : `${place()}\u0002${own}`
+      }
       const state: FieldState = {
         waiting: undefined,
         sent: undefined,
@@ -194,7 +220,7 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
         cancel: undefined,
         commit,
         options,
-        key: options.key === undefined ? undefined : `${api.place}\u0002${options.key}`,
+        key: keyOf(),
       }
       fields.add(state)
 
@@ -218,6 +244,8 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
         typed(value) {
           state.base ??= options.current?.() ?? ''
           state.waiting = value
+          state.key = keyOf()
+          typedJustNow()
           writeDraft(state.key, { value, base: state.base })
           state.cancel?.()
           state.cancel = undefined
@@ -252,6 +280,9 @@ export function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps):
       let count = 0
       for (const state of fields) if (state.waiting !== undefined) count++
       return count
+    },
+    get typing() {
+      return typingNow || api.waiting > 0
     },
     visit: () => visitKey,
     wrote(idle = true) {

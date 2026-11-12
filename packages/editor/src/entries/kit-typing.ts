@@ -14,5 +14,6 @@ export {
   type TypingFieldOptions,
   type TypingTimers,
 } from '../shared/kit/storage/typing-drafts'
+export { fieldPosition } from '../shared/kit/widgets/field-position'
 export { type TypedSaveParams, typedSave } from '../shared/kit/widgets/typed-save'
 export { setTypingDrafts, typingDrafts } from '../shared/kit/widgets/typing-context'

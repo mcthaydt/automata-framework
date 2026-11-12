@@ -102,6 +102,9 @@ const entries = $derived(
   suiteEntries(suite.editors, home.kind === 'cards' ? home.cards.map((card) => card.editor) : undefined),
 )
 const entry = $derived(entries.find((candidate) => candidate.id === current))
+// A phone held upright has no width for the saved line beside the game's name and the tools: it takes a row under them,
+// whole, so "Not saved: …" is never cut away.
+const lineBelow = $derived(mode === 'compact' && geometry.current.layout.width < 600)
 // A phone held sideways has no height to spare for a tab bar: the editors fold into a menu in the top bar, so the stage
 // keeps the height (V4).
 const folded = $derived(mode === 'compact' && geometry.current.heightTier === 'short')
@@ -190,10 +193,12 @@ $effect(() => {
   return stop
 })
 
-// The fields being made now belong to the open editor: a draft is offered back to the same field of the same editor.
-$effect.pre(() => {
-  drafts.place = mounted?.editor.id ?? ''
-})
+// The fields being made now belong to the open editor and what it shows (the entry, the scene, the thing chosen): a
+// draft is offered back to the same field of the same view. Asked when a field is made, so it is never a step behind.
+drafts.place = () =>
+  mounted === undefined
+    ? ''
+    : [mounted.editor.id, entry?.id ?? '', mounted.editor.draftView?.(mounted.session) ?? ''].join(':')
 
 // The page going away (a closed tab, a phone put to sleep) writes the words that wait; where a browser asks "Leave
 // site?" it asks while words wait or a write runs.
@@ -263,6 +268,7 @@ function openCard(card: EditorCard): void {
   status={mounted?.editor.regions.status ? status : undefined}
   rail={folded ? undefined : tabs}
   testId="suite-shell"
+  topbarRows={lineBelow ? 2 : 1}
 >
   {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
   {#snippet topbar()}
@@ -276,6 +282,7 @@ function openCard(card: EditorCard): void {
     <SuiteTopBar
       title={sample ? 'Sample game' : (game ?? 'Your game')}
       {line}
+      {lineBelow}
       pills={pillsToShow(pills)}
       {compact}
       onlocate={locate}
