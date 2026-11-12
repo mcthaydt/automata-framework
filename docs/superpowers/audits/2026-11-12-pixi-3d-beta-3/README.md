@@ -496,6 +496,56 @@ First on the merged tree at `c9cf169b` (before this session's code changes): exi
 `shader-compile.ts`): **exit 0, 65 of 65 unit tasks, 78 changesets, 0 problems, but 62 of the 65 unit tasks came from turbo's cache** (the same inputs had passed in the pre-commit hook's affected-test run), so only 3 ran afresh; `pnpm check` with `--force` is the uncached proof if the Owner wants it.
 Also run on it: `typecheck` for `@automata/3d` and `@automata/world-kit`, `pnpm knip` and `pnpm style`: clean.
 
+## Fourth session: the conversion, not a choice
+
+Branch continued from `b3160de1`. Goal: beta.3 draws what beta.2 drew wherever a conversion can do it, so the Owner is not asked to choose between two pictures.
+
+| Item | What | State |
+|---|---|---|
+| 1 | Setup, `origin/main` merged (already), `pnpm check --force` | done: exit 0, 78 changesets, 0 problems, no cache |
+| 2 | The two fog formulas, written down | done, below |
+| 3 | The conversion derived; a browser case per surface kind, expected colours from beta.2 | not started |
+| 4 | Applied to the default look and every game and example that sets fog; the game note; `the-last-light`'s note | not started |
+| 5 | Frames: night room with haze, base-3d at the play camera | not started |
+| 6 | Lit moving figures' colour | not started |
+| 7 | `SkyEffect`'s signed `uFxClip.w`; WebGPU cases for the LCD panel and the retro grade; Emberwick's language projects | not started |
+| 8 | The grouped list and the merge conditions | not started |
+
+Progress: 2 of 8 items (25%).
+
+### Item 2: the fog formulas, from the code of each beta
+
+Read from the two tarballs unpacked in a scratch folder outside the repository (`core/shader/bits/fog/linearFogBit.mjs`, `core/gl/shader/MaterialSystemGl.mjs`,
+`core/gl/View3DPipeGl.mjs`, `materials/BaseMaterial3D.mjs`, `materials/flat/FlatMaterial.mjs`, `core/shader/bits/colorSpaceBits.mjs` and the tone-mapping bits),
+then checked against pixels (below). Common to both: the view is `toneMapping: 'none'`, exposure 1, `Fog.type: 'linear'`, no post effect that runs before tone mapping
+(every effect of the look is `afterToneMapping` on beta.3 and `'post'` on beta.2, so a material encodes itself in both).
+
+`linearFogBit`'s text is **byte for byte the same in both betas**: `fogFactor = smoothstep(near, far, viewDepth)` and `finalColor = mix(finalColor, uFogColor, fogFactor)`, with
+`viewDepth = -(viewMatrix * worldPosition).z` (the distance along the camera's axis, not the distance to the eye). The two betas differ in what `finalColor` is when it reaches that line, in what `uFogColor` is, and in what follows.
+Write `dec_pw(c)` for the piecewise sRGB decode (beta.2's `srgbToLinear`), `dec(c) = c^2.2` (beta.3's), `enc(l) = l^(1/2.2)` (the encode both betas end a tone-mapped material with), `s = smoothstep(near, far, viewDepth)`, `C` the fog colour as given and `B`
+a surface's base colour as given.
+
+| Surface kind | beta.2 (pixi 3d 0.1.0-beta.2) | beta.3 (0.1.0-beta.3) |
+|---|---|---|
+| `uFogColor` | `dec_pw(C)` (times exposure), linear light | `dec(C)` (times exposure), linear light |
+| **Lit** (Phong, and `RampMaterial`, ours: only the lighting differs) | `finalColor` = linear light `dec_pw(B) * light`; fog mixes in **linear** light; then `enc`. Shown `enc((1-s) * L + s * dec_pw(C))`; fully fogged: `enc(dec_pw(C))`, which is `C` within about 1 of 255 for a light fog and a few steps off for a dark one (0x31222a: `enc(dec_pw(C))` is 52.4, 38.9, 46.0 of 255 against 49, 34, 42) | the same line with `dec(B)`, `dec(C)`: shown `enc((1-s) * L + s * dec(C))`; fully fogged `C` exactly. Beta.2 and beta.3 agree on a lit surface to 1 or 2 of 255 for the same `C` (measured) |
+| **Unlit** (`FlatMaterial`; ours: the baked rooms, props, embers, tinted figures) | `toneMapped = false`: no encode. `finalColor = dec_pw(B)`; fog mixes toward `dec_pw(C)` **in the same linear-as-display space**. Shown `(1-s) * dec_pw(B) + s * dec_pw(C)`: a **straight mix of display values**, ending at `dec_pw(C)` (0x8b9bb4 as 0x425474). The framework fed `dec_pw`-inverse colours so that `dec_pw(B_given)` was the palette colour `P`: shown `(1-s) * P + s * dec_pw(C)` | unlit with fog is no longer "display": `selectColorSpaceBit` takes the linear space whenever the fog bit is present, so `finalColor = dec(B)`, mixes toward `dec(C)` in **linear** light, and the encode runs. Shown `enc((1-s) * dec(P) + s * dec(C))`: a **power mean** (exponent 2.2) of `P` and `C`, ending at `C`. Without fog and without vertex colours it is the display path (`P` as authored, no decode, no encode) |
+| **Background** | not the engine's: the framework fills the view's rectangle with a 2D `Graphics` colour (`create-renderer.ts`, `skyOf`), drawn exactly, under the view: `fogSkyColor(C) = dec_pw(C)` so it met the unlit fully fogged colour | the same fill; the look in force (`authored`: `C`) |
+| After the material | the look's effects (haze, mood grade, the snap to a palette, outlines, present) read the picture as shown, unchanged by the fog | the same, at `afterToneMapping` |
+
+The unlit rows are the difference. **What beta.2 did with a fog on a lit and an unlit surface was not one rule**: a lit surface reached `C` at `far`, an unlit one (and the sky) the darker `dec_pw(C)`, and
+they were mixed in different spaces. That is the picture the games were tuned on. The earlier note that beta.2 "did not mix an unlit surface up to the fog colour" is exactly this: it did mix, toward `dec_pw(C)` and in display values.
+
+**Checked on pixels** (`packages/3d/tests/browser/parity/shared/parity/fog-probe.test.ts`, a scratch case, not committed: planes facing the camera at 3, 6, 8, 10 and 14 m, `near 4`, `far 12`, `C = 0x8b9bb4`, base `0xa0c0e0`, Chromium software GL, WebGL2; beta.2 from `/home/user/b2tree` at `c1c9b7c2`):
+
+| Plane | beta.2 at 6 / 8 / 10 / 14 m | beta.3 at 6 / 8 / 10 / 14 m |
+|---|---|---|
+| unlit | 86,126,179 / 78,109,153 / 70,92,128 / 66,84,116 | 157,187,218 / 150,175,203 / 143,161,188 / 139,155,180 |
+| lit, Phong | 111,130,151 / 123,140,163 / 133,150,174 / 138,154,179 | 111,130,151 / 123,141,164 / 134,151,175 / 139,155,180 |
+| lit, ramp | 170,203,238 / 158,185,216 / 144,164,191 / 138,154,179 | 172,205,239 / 159,186,217 / 146,166,193 / 139,155,180 |
+
+The unlit rows are the formulas above to the digit (beta.2: `(1-s)*dec_pw(B) + s*dec_pw(C)`; beta.3: `enc((1-s)*dec(B) + s*dec(C))`, computed by hand). The lit rows agree to 1 or 2 of 255.
+
 ## Handoff at 90 minutes
 
 Last commit before the merge below: `5cabf0cd` (step 3), pushed. `main` was merged in at the handoff (it brought two new extensions,
