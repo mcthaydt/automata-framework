@@ -24,6 +24,7 @@ describe('the outline colour', () => {
       [0, 0, 2],
       [1, 1, 2],
       [1, 4, 1],
+      [1, 1, 4],
     ] as const)
       it(`${ink} recolours the ink texels and moves no other (${BASE[i].def.id}, view ${d}, density ${D})`, () => {
         const plain = paint({}, i, d, D),

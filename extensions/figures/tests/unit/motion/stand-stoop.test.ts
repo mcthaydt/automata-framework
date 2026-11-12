@@ -27,7 +27,7 @@ function side(over: Partial<Gait>, D = 2) {
   return { top, head, px: f.painted.slice() }
 }
 describe('a stooping stand (standStoop)', () => {
-  for (const D of [1, 2])
+  for (const D of [1, 2, 4])
     it(`carries the head forward, and a deep stoop lowers it (density ${D})`, () => {
       const plain = side({}, D),
         stoop = side({ standStoop: 0.35 }, D),

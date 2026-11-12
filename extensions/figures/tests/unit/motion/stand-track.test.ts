@@ -32,7 +32,7 @@ function feet(s: ReturnType<typeof stand>, rows = 6) {
   return x1 - x0 + 1
 }
 describe('the relaxed stand’s feet (standTrack)', () => {
-  for (const D of [1, 2])
+  for (const D of [1, 2, 4])
     it(`1 stands the feet wider apart than the default, and .45 closer together (density ${D})`, () => {
       const plain = feet(stand({}, D)),
         wide = feet(stand({ standTrack: 1 }, D)),

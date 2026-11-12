@@ -39,7 +39,7 @@ function shares(def: typeof woman, D: number, d = 0) {
 }
 
 describe('the face’s tone budget', () => {
-  for (const D of [1, 2])
+  for (const D of [1, 2, 4])
     it(`light: .6 makes a face mostly its lightest step, at density ${D}`, () => {
       const plain = shares(skinned(), D),
         bright = shares(skinned({ light: 0.6 }), D)

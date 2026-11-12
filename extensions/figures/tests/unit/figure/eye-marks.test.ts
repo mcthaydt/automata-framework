@@ -94,7 +94,7 @@ describe('the drawn face’s nose and mouth (`nose`, `mouth`)', () => {
   const differs = (a: Uint8ClampedArray, b: Uint8ClampedArray) =>
     Buffer.compare(Buffer.from(a), Buffer.from(b)) !== 0
   // In profile at these sizes the lips sit on the face's edge and the painter draws none, so only the nose has a mark there.
-  for (const D of [1, 2])
+  for (const D of [1, 2, 4])
     for (const d of [0, 1]) {
       it(`nose: false and mouth: false each change the face, and both together change it more (density ${D}, view ${d})`, () => {
         const plain = frame({}, D, d),
@@ -116,7 +116,7 @@ describe('the drawn face’s nose and mouth (`nose`, `mouth`)', () => {
 describe('eyes kept in the face’s visible rows under hair (`keep`)', () => {
   const hung = (keep: boolean) =>
     wear([{ hair: 'hairBlack', style: HAIR_FRINGE } as Garment, eyes(keep ? { keep: true } : {})])
-  for (const D of [1, 2])
+  for (const D of [1, 2, 4])
     it(`a fringe past the brow hides the eyes; with keep they are drawn on the skin that shows (density ${D})`, () => {
       const hidden = texelsOf(draw(hung(false), D), EYE).length,
         kept = texelsOf(draw(hung(true), D), EYE).length
