@@ -1,35 +1,52 @@
 import { fovOf, LENS_MM } from '@automata/3d/camera-view'
 import { describe, expect, it } from 'vitest'
-import { FIELD_CAP } from '#src/app/field.ts'
 import { LEVEL } from '#src/features/room/room.ts'
 
-// Ada's size on the screen is the old game's because the camera is: a 50 mm lens (27 degrees of the picture's height), 30 degrees
-// down, the zones' own distances. The old game measured about 53 lines to a metre at 480 lines, so a standing figure 1.7 m tall at the
-// camera's focus stands about 90 lines tall. These pin the numbers; the first-draw audit measured the stand-in on the screen.
+// Ada on the screen is the painter's density-2 figure, a texel one field pixel (the Owner, 2026-11-12: "do whatever it takes to make the
+// character look like how it looks on the left during gameplay"). The old game's camera (50 mm, 30 degrees down, 16 m back) drew her at
+// density 1; the views now say their own lens, and these pin the numbers that make a density-2 texel exactly one pixel of the 384-line
+// field at her feet in every view.
 
 const TILT = 30
-const lens = fovOf(LENS_MM)
+const FIELD_LINES = 384
+/** The painter's density-1 texels to a metre (a 96-row cell is 2.6 m): `zoomOf` counts screen pixels per one of them. */
+const D1_TEXELS = 96 / 2.6
+type View = {
+  distance: number
+  lensMm?: number
+  look: [number, number, number]
+  follow: number
+  lead?: number
+}
+const views = LEVEL.views as Record<string, View>
 
-/** Lines a metre of standing height takes at the focus, for a picture `lines` tall and a camera `distance` metres from it. */
-const linesPerMetre = (lines: number, distance: number): number =>
-  (lines / (2 * distance * Math.tan((lens * Math.PI) / 360))) * Math.cos((TILT * Math.PI) / 180)
+/** The zoom at Ada's feet in `id`: field pixels a metre there over a density-1 texel's. The focus is the view's `look` height up. */
+function zoomAtFeet(id: string): number {
+  const view = views[id] as View
+  const fov = fovOf(view.lensMm ?? LENS_MM)
+  const depth = view.distance + view.look[1] * Math.sin((TILT * Math.PI) / 180)
+  return FIELD_LINES / (2 * depth * Math.tan((fov * Math.PI) / 360)) / D1_TEXELS
+}
 
 describe('the play camera', () => {
-  it('has the old game’s lens, a 50 mm through a 24 mm gate', () => {
-    expect(LENS_MM).toBe(50)
-    expect(lens).toBeCloseTo(26.99, 2)
+  it('has a long lens in every view, the same one: 79 mm through a 24 mm gate', () => {
+    for (const id of ['hall', 'corridor', 'closet']) expect(views[id]?.lensMm, id).toBe(79)
   })
 
-  it('has the old game’s zone distances: 16.6 m in the hall, 16 in the corridor, 15 in the closet', () => {
-    const distance = (id: string) => (LEVEL.views as Record<string, { distance: number }>)[id]?.distance
-    expect([distance('hall'), distance('corridor'), distance('closet')]).toEqual([16.6, 16, 15])
+  it('gives a density-2 texel one field pixel at her feet in every view: a zoom of 2, to 3 %', () => {
+    for (const id of ['hall', 'corridor', 'closet']) {
+      expect(zoomAtFeet(id) / 2, id).toBeGreaterThan(0.97)
+      expect(zoomAtFeet(id) / 2, id).toBeLessThan(1.03)
+    }
   })
 
-  it('gives about 53 lines to a metre in the hall at 480 lines, so Ada 1.7 m tall stands about 90 lines tall', () => {
-    const perMetre = linesPerMetre(FIELD_CAP.height, 16.6)
-    expect(perMetre).toBeGreaterThan(51.5)
-    expect(perMetre).toBeLessThan(53.5)
-    expect(perMetre * 1.7).toBeGreaterThan(87)
-    expect(perMetre * 1.7).toBeLessThan(92)
+  it('stands the camera back 16.6 m in the hall and 16.8 in the corridor and the closet', () => {
+    expect(['hall', 'corridor', 'closet'].map((id) => views[id]?.distance)).toEqual([16.6, 16.8, 16.8])
+  })
+
+  it('locks on to Ada in every view and looks ahead of her where she walks far', () => {
+    for (const id of ['hall', 'corridor', 'closet']) expect(views[id]?.follow, id).toBe(1)
+    expect(views.hall?.lead).toBeGreaterThan(0)
+    expect(views.corridor?.lead).toBeGreaterThan(0)
   })
 })

@@ -5,7 +5,6 @@
 //   pnpm --filter @automata/character-kit ada-d2 <out-dir> <name> [candidate ...]
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { ADA, defAtDensity } from '../../../games/the-last-light/src/features/figures/cast.ts'
 import type { CharacterDef } from '../src/entries/index.ts'
 import {
   blit,
@@ -91,7 +90,7 @@ const subjects: { label: string; def: CharacterDef }[] = [
   { label: 'BASE WOMAN', def: baseWoman },
   ...(which.length === 0 ? Object.keys(CANDIDATES) : which).map((k) => ({
     label: k.toUpperCase(),
-    def: defAtDensity(CANDIDATES[k] ?? ADA)(2),
+    def: CANDIDATES[k] as CharacterDef,
   })),
 ]
 const cells = subjects.map((s) => ({
@@ -112,6 +111,6 @@ const bodies = cells.flatMap((s) => [body(s.front, 4), body(s.three, 4)])
 writeFileSync(
   join(out, `${name}-body-x4.png`),
   encodePng(
-    labelled(side(bodies), 'FULL BODY X4, FRONT AND 3/4: ' + subjects.map((s) => s.label).join(' | ')),
+    labelled(side(bodies), `FULL BODY X4, FRONT AND 3/4: ${subjects.map((s) => s.label).join(' | ')}`),
   ),
 )

@@ -1,28 +1,20 @@
+import { BASE, type CharacterDef } from '@automata/character-kit'
 import {
   paintedCell,
   proportions,
   rowGaps,
   rowWidths,
+  SWATCHES,
   silhouette,
   texelsOfSwatch,
 } from '@automata/character-kit/testing'
 import { describe, expect, it } from 'vitest'
-import { ADA, defAtDensity, HELD, NIGHT_NURSE, PLAY_FIGURE } from '#src/features/figures/cast.ts'
+import { ADA, HELD, NIGHT_NURSE, PLAY_FIGURE } from '#src/features/figures/cast.ts'
 
 // The two painted figures of the night, as the old game's character files (`src/render/figure/characters/ada.json` and
 // `nurse.json` at 92e6704) dress them, piece for piece. The old outfits are copied below as the old files have them; the only
 // differences are the two named in `HELD` (and the three it names for the figure's cloth), and each is a line there and never a
 // silent substitute.
-
-/** The old `ada.json`'s `street` outfit, as written: what the prologue puts her in (`story.scenes.prologue`). */
-const OLD_STREET = [
-  { top: 'cream', sleeves: 'short' },
-  { waistcoat: 'maroon' },
-  { trousers: 'denim' },
-  { shoes: 'bootBrown', sole: 'bootSole', boots: true },
-  { hair: 'auburn', style: 'bob' },
-  { eyes: 'eyeDark' },
-]
 
 /** The old `nurse.json`'s `uniform` outfit, as written. */
 const OLD_UNIFORM = [
@@ -34,41 +26,6 @@ const OLD_UNIFORM = [
   { hair: 'inkBlack', style: 'curtain' },
   { cap: 'capWhite', style: 'nurse', mark: 'cross' },
 ]
-
-/** The old `ada.json`'s sliders, as written. Some mean something else in the painter now (`genes.ts` changed its ranges), so the figure keeps
- *  the old numbers except where `RETUNED_ADA` says, each chosen by what the figure looks like against the old game's own pictures. */
-const OLD_ADA_SLIDERS = {
-  frame: 0.85,
-  height: 162,
-  muscle: 0.5,
-  fat: 0.2,
-  shoulders: 0.47,
-  hips: 0.37,
-  legs: 0.3,
-  arms: 0.15,
-  head: 0.87,
-  neck: 0.5,
-  neckLength: 0.2,
-  hands: 0.5,
-  feet: 0.6,
-  posture: 0.85,
-  age: 0.25,
-  headTilt: 0,
-  chunk: 0.6,
-}
-
-/** Where Ada's sliders depart from the old file (round 1 of the figures' look): the old body is leaner on the page than the same numbers
- *  draw now, because the painter's `chunk` and clothing grew. */
-const RETUNED_ADA = {
-  fat: 0.05,
-  hips: 0.65,
-  legs: 0.3,
-  chunk: 0.2,
-  muscle: 0.3,
-  shoulders: 0.55,
-  height: 154,
-  neckLength: 0.1,
-}
 
 /** The old `brisk` gait whole (`library/gaits.json` at 92e6704): the builder's own `brisk` is a tamer walk (lean 0.04, hipYaw 0.1, crouch 0.008). */
 const OLD_BRISK = {
@@ -169,46 +126,89 @@ const asDrawn = (old: readonly Record<string, unknown>[]) =>
     return item
   })
 
+/** The painted colours of a swatch of `def`, as RGB triples. */
+const coloursOf = (def: typeof ADA, swatch: string): number[][] =>
+  (def.swatches?.[swatch]?.paint ?? SWATCHES[swatch]?.paint ?? []).map((hex) =>
+    [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16)),
+  )
+
+/** A reader of Ada's front view at density 2, the size her face is judged at (the painter's own reference for a face: a brow two texels thick,
+ *  an eye with its white under a dark lid, a mouth), by the swatch each part is painted in. */
+function faceAt2(def: typeof ADA) {
+  const cell = paintedCell(def, 0, 2)
+  const [w, h] = cell.size
+  // The head's rows only: the DUEL palette shares colours between swatches (a lip's is a boot's), so the face is read where only a face is.
+  const top = rowWidths(cell).findIndex((width) => width > 0)
+  const bottom = top + 27
+  const is = (x: number, y: number, swatch: string): boolean => {
+    if (x < 0 || y < top || x >= w || y >= bottom) return false
+    const i = y * w + x
+    return coloursOf(def, swatch).some(
+      ([r, g, b]) =>
+        r === cell.painted[i * 4] && g === cell.painted[i * 4 + 1] && b === cell.painted[i * 4 + 2],
+    )
+  }
+  const skin = (x: number, y: number): boolean => is(x, y, def.skin)
+  const all = (swatch: string): [number, number][] => {
+    const found: [number, number][] = []
+    for (let y = top; y < Math.min(h, bottom); y++)
+      for (let x = 0; x < w; x++) if (is(x, y, swatch)) found.push([x, y])
+    return found
+  }
+  return { cell, is, skin, all }
+}
+
 describe('Ada', () => {
-  it('is the old Ada Voss, fair, brisk, in the street clothes the prologue puts her in, drawn as tall as the old game drew her (1.54 m on the page for its 1.62)', () => {
+  it('is Ada Voss, brisk, in the street clothes the prologue puts her in, a little under 1.6 m', () => {
     expect(ADA.id).toBe('ada')
-    expect(ADA.sliders.height).toBe(154)
     expect(ADA.default).toBe('street')
-    expect(ADA.skin).toBe('fair')
     expect(ADA.gait).toBe('brisk')
+    expect(ADA.sliders.height).toBe(160)
   })
 
-  it('keeps the old sliders but for the ones retuned by what the figure looks like', () => {
-    expect(ADA.sliders).toEqual({ ...OLD_ADA_SLIDERS, ...RETUNED_ADA })
+  it('has a warm peach skin: orange in hue, not the pink the old fair skin was', () => {
+    const [r, g, b] = coloursOf(ADA, ADA.skin)[1] ?? [0, 0, 0]
+    const hue = (60 * ((g ?? 0) - (b ?? 0))) / Math.max(1, (r ?? 0) - (b ?? 0))
+    expect(hue).toBeGreaterThanOrEqual(18)
+    expect(hue).toBeLessThanOrEqual(40)
   })
 
-  it('has the old Ada’s proportions on the page: her height in rows, her head and her hips (the Owner prefers the old look)', () => {
-    // Measured from the old game's review sheets (round0-proportions.txt): 59 and 61 rows tall, a head with its hair 13 and 17 rows, a hip row 18 and 20.
-    const p = proportions(ADA, 1)
-    expect(p.height).toBeGreaterThanOrEqual(59)
-    expect(p.height).toBeLessThanOrEqual(63)
-    // 9 since her bob is the painter's `bobFringe` (the look spec: a head with its hair 14.8 % of her, 9 rows of 62); the old sprite's was 13.
-    expect(p.headRowsWithHair).toBeGreaterThanOrEqual(9)
-    // 21 since her sleeves are rolled on a cuff fold: the arms hang at her hips, and a fold a clearance proud of the arm is a row there.
-    expect(p.hip).toBeLessThanOrEqual(21)
-    expect(ADA.genes?.head).toBe(0.28)
-    // The old figure's legs were half of her (29 and 30 rows of 59 and 61), not more.
-    expect(p.legRows / p.height).toBeLessThanOrEqual(0.51)
+  it('has the painter’s clean slim build: each body slider within 0.3 of the base woman’s, no body slider pushed by an earlier round', () => {
+    const base = (BASE[1] as { def: CharacterDef }).def.sliders as Record<string, unknown>
+    for (const [key, value] of Object.entries(ADA.sliders as Record<string, unknown>)) {
+      if (typeof value !== 'number' || key === 'height') continue
+      expect(Math.abs(value - Number(base[key])), key).toBeLessThanOrEqual(0.3)
+    }
+    expect(ADA.genes).toBeUndefined()
   })
 
-  it('walks the old brisk walk whole, with the old file’s own overrides on it, not the builder’s tamer `brisk`', () => {
+  it('stands about as tall as the base woman at density 2, her legs about half of her', () => {
+    const p = proportions(ADA, 2)
+    const woman = proportions((BASE[1] as { def: CharacterDef }).def, 2)
+    expect(p.height).toBeGreaterThanOrEqual(woman.height - 12)
+    expect(p.height).toBeLessThanOrEqual(woman.height)
+    expect(p.legRows / p.height).toBeLessThanOrEqual(0.52)
+  })
+
+  it('walks the old brisk walk whole, with the arms close to her body', () => {
     expect(ADA.gait).toBe('brisk')
-    // The old file zeroed her stance (weight on a leg), shift and hang and cut her idle elbow to 0.15; the old brisk gait's own numbers
-    // (0.04, 0.08, 0.012, hang 0.12, idleElbow 0.45) stand her on one hip with a bent, hung arm, as the old hand-painted atlas does, so
-    // only her `armOut` stays (0.03 now: in the room her hands hang close, and the look spec's A-pose is the turnaround's, not hers). The old `standOut` did not exist: her arms hung at `armOut` standing too, so it is that number.
     expect(ADA.gaitOverrides).toEqual({ ...OLD_BRISK, armOut: 0.03, standOut: 0.03 })
   })
 
-  it('has the old face but for the drawn one: at the size she is played the builder draws a lid line the fringe covers, its decal face two eyes', () => {
-    expect(ADA.face).toEqual({ camera: 0.6, turn: 0.15, blink: 3.7, drawn: false })
+  it('has a drawn face at every density, which is the painter’s own: no decal dots', () => {
+    expect(ADA.face?.drawn).toBe(true)
+    const street = ADA.outfits.street as readonly Record<string, unknown>[]
+    expect(street.some((item) => 'eyeMarks' in item)).toBe(false)
+    expect(street.at(-1)).toMatchObject({
+      eyes: 'eyeBrown',
+      lids: 'lidDeep',
+      white: 'eyeWhite',
+      brows: 'hairBlack',
+      lips: 'lipsWarm',
+    })
   })
 
-  it('wears the generated images’ outfit, which the Owner chose over the old sprites: a shirt with a collar and rolled sleeves, an open oxblood waistcoat with brass buttons, faded jeans cropped and turned up, tan ankle boots, the old auburn bob', () => {
+  it('wears the generated images’ outfit: a shirt with a collar and rolled sleeves, an open oxblood waistcoat with brass buttons, faded jeans cropped and turned up, tan ankle boots, the painter’s auburn bob with its fringe', () => {
     const street = ADA.outfits.street as readonly Record<string, unknown>[]
     expect(street.map((item) => Object.keys(item)[0])).toEqual([
       'shirt',
@@ -216,24 +216,22 @@ describe('Ada', () => {
       'jeans',
       'shoes',
       'hair',
-      'eyeMarks',
+      'eyes',
     ])
     expect(street[0]).toMatchObject({ shirt: 'cream', sleeves: 'rolled', collar: 'collarLinen' })
     expect(street[1]).toMatchObject({ waistcoat: 'oxblood', open: 1, buttons: 'brass' })
-    expect(street[2]).toMatchObject({ jeans: 'fadedDenim', crop: 0.3, turn: 'denimTurn' })
+    expect(street[2]).toMatchObject({ jeans: 'fadedDenim', crop: 0.3, turn: 'denimTurn', taper: 1 })
     expect(street[3]).toMatchObject({ shoes: 'bootBrown', boots: true, heel: 1, toe: 'bootToe' })
-    // The old file's hair and eyes are kept as they were.
-    expect(street.slice(4)).toEqual(asDrawn(OLD_STREET).slice(-2))
+    expect(street[4]).toEqual({ hair: 'auburn', style: 'bobFringe' })
   })
 
-  it('has the swatches of every cloth she wears: the old names for her shirt, boots, hair, eyes and skin, the look’s for the rest', () => {
+  it('has the swatches of every cloth she wears: her shirt, boots, hair and skin, the look’s for the rest; her brows and lids are the painter’s own', () => {
     for (const name of [
       'cream',
       'bootBrown',
       'bootSole',
       'auburn',
-      'eyeDark',
-      'fair',
+      ADA.skin,
       'collarLinen',
       'cuffLinen',
       'oxblood',
@@ -243,7 +241,7 @@ describe('Ada', () => {
       'denimBand',
       'bootToe',
     ])
-      expect(ADA.swatches, name).toHaveProperty(name)
+      expect(ADA.swatches?.[name] ?? SWATCHES[name], name).toBeDefined()
   })
 })
 
@@ -290,43 +288,6 @@ describe('the night nurse', () => {
   })
 })
 
-/** The front view of `def` at the play size, with a test for its skin texels and its dark ones. */
-function frontView(def: typeof ADA) {
-  const cell = paintedCell(def, 0, 1)
-  const [w, h] = cell.size
-  const p = cell.painted
-  const skin = (def.swatches?.[def.skin]?.paint ?? []).map((hex) =>
-    [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16)),
-  )
-  const isSkin = (i: number) =>
-    skin.some(([r, g, b]) => r === p[i * 4] && g === p[i * 4 + 1] && b === p[i * 4 + 2])
-  const dark = (i: number) =>
-    (p[i * 4 + 3] ?? 0) > 0 &&
-    0.3 * (p[i * 4] ?? 0) + 0.59 * (p[i * 4 + 1] ?? 0) + 0.11 * (p[i * 4 + 2] ?? 0) < 60
-  return { w, h, isSkin, dark }
-}
-
-/** The eye pair in the front view of `def` at the play size: two dark texels 2 to 7 apart on one row, each with skin beside it. */
-function eyePair(def: typeof ADA): { y: number; xs: [number, number] } | undefined {
-  const { w, h, isSkin, dark } = frontView(def)
-  for (let y = 0; y < h; y++)
-    for (let a = 1; a < w - 1; a++)
-      for (let b = a + 2; b <= a + 7 && b < w - 1; b++) {
-        const [i, j] = [y * w + a, y * w + b]
-        if (dark(i) && dark(j) && isSkin(i - 1) && isSkin(i + 1) && isSkin(j - 1) && isSkin(j + 1))
-          return { y, xs: [a, b] }
-      }
-  return undefined
-}
-
-/** Whether the skin shows right above both eyes: a fringe that sits on the eye row reads as one dark brow band, not as eyes under a fringe. */
-const eyesClearOfFringe = (def: typeof ADA): boolean => {
-  const eyes = eyePair(def)
-  if (eyes === undefined) return false
-  const { w, isSkin } = frontView(def)
-  return eyes.xs.every((x) => isSkin((eyes.y - 1) * w + x))
-}
-
 describe('the painted frame shows what they wear', () => {
   // The painter drops a garment it does not know without a word, so the proof is in the picture: the swatches' own colours, counted
   // in the cell seen from the front and from the back.
@@ -336,21 +297,46 @@ describe('the painted frame shows what they wear', () => {
       0,
     )
 
-  it('shows Ada’s eyes from the front at the size she is played', () => {
-    expect(eyePair(ADA)).toBeDefined()
+  // The painter's own reference for a face at density 2 (FigureBuilder's record of its base pair): a brow two texels thick, an eye with its
+  // white beside a dark iris under a dark lid, a nose, a mouth. Each is counted from the picture, in the swatch it is painted in.
+  it('draws Ada’s brows two texels thick: a run of two dark brow texels, one above the other, under each side of the fringe', () => {
+    const { all, is } = faceAt2(ADA)
+    const brows = all('hairBlack')
+    expect(brows.length).toBeGreaterThanOrEqual(12)
+    expect(brows.filter(([x, y]) => is(x, y + 1, 'hairBlack')).length).toBeGreaterThanOrEqual(6)
   })
 
-  it('gives Ada eyes two texels tall and four or more apart, as the old figure’s are (the builder’s decal eye is one texel, two apart)', () => {
-    const eyes = eyePair(ADA)
-    expect(eyes).toBeDefined()
-    if (eyes === undefined) return
-    const { w, dark } = frontView(ADA)
-    expect(eyes.xs[1] - eyes.xs[0]).toBeGreaterThanOrEqual(4)
-    expect(eyes.xs.every((x) => dark((eyes.y + 1) * w + x))).toBe(true)
+  it('draws Ada’s eyes with their whites beside a dark iris, under a dark lid', () => {
+    const { cell, is } = faceAt2(ADA)
+    const [w] = cell.size
+    const top = rowWidths(cell).findIndex((width) => width > 0)
+    const light = (x: number, y: number): boolean => {
+      const i = y * w + x
+      return [0, 1, 2].every((k) => (cell.painted[i * 4 + k] ?? 0) >= 200)
+    }
+    const iris = (x: number, y: number): boolean => is(x, y, 'eyeBrown')
+    let whites = 0
+    let lidded = 0
+    for (let y = top + 8; y < top + 24; y++)
+      for (let x = 40; x < 90; x++)
+        if (light(x, y) && (iris(x - 1, y) || iris(x + 1, y))) {
+          whites++
+          // The lid: dark texels directly over the iris beside it.
+          if (iris(x - 1, y - 1) || iris(x + 1, y - 1) || iris(x, y - 1)) lidded++
+        }
+    expect(whites).toBeGreaterThanOrEqual(4)
+    expect(lidded).toBeGreaterThanOrEqual(2)
   })
 
-  it('shows the skin of her brow above each eye, so her fringe frames them and does not sit on them', () => {
-    expect(eyesClearOfFringe(ADA)).toBe(true)
+  it('draws Ada a mouth: lips of at least four texels in the middle of her face, below her eyes', () => {
+    const { cell, is } = faceAt2(ADA)
+    const [w] = cell.size
+    const top = rowWidths(cell).findIndex((width) => width > 0)
+    let lips = 0
+    // The eyes are about 17 rows under the crown; the mouth's rows are below them and the lips are in the middle, clear of the hair at the sides.
+    for (let y = top + 19; y < top + 27; y++)
+      for (let x = Math.round(w / 2) - 5; x <= Math.round(w / 2) + 5; x++) if (is(x, y, 'lipsWarm')) lips++
+    expect(lips).toBeGreaterThanOrEqual(4)
   })
 
   it('shows floor between Ada’s legs below the knee from density 2, where the cutscene shots begin: two legs, not one block', () => {
@@ -367,7 +353,7 @@ describe('the painted frame shows what they wear', () => {
   })
 
   it('shows Ada’s waistcoat open: a strip of her cream shirt between its two oxblood sides, not a slit', () => {
-    const cell = paintedCell(ADA, 0, 1)
+    const cell = paintedCell(ADA, 0, 2)
     const [w, h] = cell.size
     const is = (i: number, swatch: string) =>
       (ADA.swatches?.[swatch]?.paint ?? []).some((hex) =>
@@ -379,8 +365,8 @@ describe('the painted frame shows what they wear', () => {
       const [first, last] = [xs[0] ?? 0, xs[xs.length - 1] ?? 0]
       for (let x = first + 1; x < last; x++) if (is(y * w + x, 'cream')) between++
     }
-    // A V of shirt to the sternum (the generated images' waistcoat), not the old strip to the hem (30): 16 texels at the play size.
-    expect(between).toBeGreaterThanOrEqual(12)
+    // A V of shirt to the sternum (the generated images' waistcoat): four times the texels it is at density 1.
+    expect(between).toBeGreaterThanOrEqual(48)
   })
 
   it('hides the night nurse’s face under her hair at the size she is played: a few texels of skin (the loose hair leaves her chin and neck) in the rows of her head, not a mask', () => {
@@ -433,24 +419,9 @@ describe('what the old figures do that the painter cannot yet', () => {
 })
 
 describe('how a figure is painted in play', () => {
-  it('is at true size and leaves the density to the camera: play’s 52 lines a metre are a zoom of 1.4, which the kit paints at 1 (about 37 texels a metre, the old game’s), and a close shot gets more', () => {
-    // The skin keeps its hue in the ward's dim cool light (the kit's `holdSkinHue`): Ada was lavender in it.
-    // A head-and-shoulders close-up (a zoom of about 8) is painted at density 8.
-    expect(PLAY_FIGURE).toEqual({ crisp: false, holdSkinHue: true, maxDensity: 8 })
-    expect('density' in PLAY_FIGURE).toBe(false)
-  })
-})
-
-describe('a figure’s face by the density it is painted at', () => {
-  it('is Ada’s two eye dots at density 1, where a drawn face is a lid line under her fringe, and her drawn face from density 2', () => {
-    expect(ADA.face?.drawn).toBe(false)
-    expect(defAtDensity(ADA)(1).face?.drawn).toBe(false)
-    for (const density of [2, 4, 8] as const) expect(defAtDensity(ADA)(density).face?.drawn).toBe(true)
-    // Nothing else of her changes.
-    expect({ ...defAtDensity(ADA)(4), face: ADA.face }).toEqual(ADA)
-  })
-
-  it('leaves a figure that has no decal face as it is, at every density', () => {
-    for (const density of [1, 2, 4, 8] as const) expect(defAtDensity(NIGHT_NURSE)(density)).toBe(NIGHT_NURSE)
+  it('is the painter’s density 2 at whole pixels: a texel is a whole number of field pixels, whatever the camera’s zoom, and the skin keeps its hue in the ward’s cool light', () => {
+    // A face reads at density 2 (the painter's note: faces that read at D2): its brows and lids are one or two texels thick at every density,
+    // so a finer paint makes them hair-thin lines, and a coarser one dots. The camera is set so a texel is one field pixel (the level's views).
+    expect(PLAY_FIGURE).toEqual({ crisp: true, density: 2, holdSkinHue: true })
   })
 })

@@ -1611,22 +1611,25 @@
     "hall": {
       "look": [0, 1.1, 0.75],
       "distance": 16.6,
-      "follow": 0.12,
-      "depthFollow": {
-        "rate": 0.1,
-        "about": 2
-      }
+      "lensMm": 79,
+      "follow": 1,
+      "lead": 1.5,
+      "focusBounds": { "min": [-2.2, -0.4], "max": [1.9, 4.4] }
     },
     "corridor": {
       "look": [0, 0.6, -4],
-      "distance": 16,
-      "follow": 1
+      "distance": 16.8,
+      "lensMm": 79,
+      "follow": 1,
+      "lead": 1.5,
+      "focusBounds": { "min": [-0.2, -4.1], "max": [0.2, -3.8] }
     },
     "closet": {
       "look": [2.8, 0.6, -4.4],
-      "distance": 15,
-      "x": 2.2,
-      "follow": 1
+      "distance": 16.8,
+      "lensMm": 79,
+      "follow": 1,
+      "focusBounds": { "min": [3.1, -4.5], "max": [3.1, -4.5] }
     }
   },
   "entityDefs": [

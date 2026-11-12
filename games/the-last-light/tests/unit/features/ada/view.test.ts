@@ -29,6 +29,10 @@ describe('the camera view', () => {
   it('has a view for every one the level names', async () => {
     const game = await boot()
     expect(game.play.views.map((view) => view.id).sort()).toEqual(['closet', 'corridor', 'hall'])
-    expect(game.play.views.find((view) => view.id === 'corridor')).toMatchObject({ distance: 16, follow: 1 })
+    expect(game.play.views.find((view) => view.id === 'corridor')).toMatchObject({
+      distance: 16.8,
+      lensMm: 79,
+      follow: 1,
+    })
   })
 })

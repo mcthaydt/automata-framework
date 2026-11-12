@@ -3,7 +3,7 @@ import { type CharacterDef, paintedFigure } from '@automata/character-kit'
 import type { ActorView } from '@automata/cutscenes/stage-3d'
 import type { FieldRecord } from '@automata/sim'
 import type { Container3D } from '@pixi/3d'
-import { defAtDensity, PLAY_FIGURE } from './cast.ts'
+import { PLAY_FIGURE } from './cast.ts'
 
 // A painted figure for a character of the night, standing where `InSector` says, turned the way the sim says, walking when it walks.
 // Each is also the cutscene's actor for its character: the stage places and turns it, and the sim's place takes it back when the
@@ -80,7 +80,6 @@ type Placed = { x: number; y: number; z: number; yaw: number; moving: boolean }
 export function figureView(look: FigureLook, actors: Actors): View3dFactory {
   const factory = paintedFigure(look.def, {
     ...PLAY_FIGURE,
-    defFor: defAtDensity(look.def),
     state: (components) => ({ moving: components[POSE]?.moving === true }),
   })
   return (row, _componentId, models, light, camera) => {

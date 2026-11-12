@@ -9,58 +9,70 @@ import { ADA_LOOK_SWATCHES, ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.
 // the old game's own pictures (the lines marked `retuned`). What the painter still cannot draw is in `HELD`, with what the figure shows
 // instead; nothing else is left out.
 
-/** How a figure is painted: at its true height (`crisp: false`, the old game's: whole pixels a texel would shrink Ada by the camera's
- *  1.4 pixels a density-1 texel, to 71%), and at the density its camera needs, which the kit chooses each frame. Play's camera
- *  (52 lines a metre, a zoom of 1.4) asks for density 1, about 37 texels a metre, which is the old game's; a cutscene shot closer than
- *  play asks for more, and a shot at zoom 2 or over gets density 2 or over. */
-export const PLAY_FIGURE = { crisp: false, holdSkinHue: true, maxDensity: 8 } as const
-
 /**
- * The character a density paints. A figure whose face is a decal (`face.drawn: false`: two dots, which is what the old figure showed at the
- * size it is played, where the builder's drawn face is a lid line the fringe covers) has its drawn face from density 2, where the painter's
- * lids, brows, nose and mouth fit in the texels. Any other figure is its own at every density.
+ * How a figure is painted in play. At density 2, always: the painter's faces are made of features one or two texels thick at every
+ * density (a brow two texels, a lid, an eye's white, a lip), so a face reads at density 2 and is dots at 1 and hair-thin lines at 8
+ * (the painter's own note: faces that read at D2; the Owner, 2026-11-12: "I want the characters to look like how they do on the left").
+ * At whole pixels (`crisp`): a texel is a whole number of field pixels, never a fraction, so the picture is chunky and clean. The
+ * camera is set so that number is 1 in play (the level's views: a 80 mm lens, about 74 field pixels a metre at the figure), and the
+ * close-up's shot is framed so it is 2, 3 or 4. The skin keeps its hue in the ward's dim cool light (`holdSkinHue`): Ada was lavender in it.
  */
-export const defAtDensity =
-  (def: CharacterDef) =>
-  (density: 1 | 2 | 4 | 8): CharacterDef =>
-    density < 2 || def.face?.drawn !== false ? def : { ...def, face: { ...def.face, drawn: true } }
+export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true } as const
 
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
- * `scenes.prologue = street`): an ivory shirt with a collar, its sleeves rolled to the elbow, under an oxblood waistcoat worn open, faded slim jeans cropped above
- * tan ankle boots, her auburn bob, dark eyes. Her bob is the painter's own `bobFringe`: a chin-length dome with a fringe that ends at the jaw, clear of the chin, with no tail (the kit's
- * quick `bobFringeFull` wrapped under the jaw like a beard from the front).
+ * `scenes.prologue = street`): an ivory shirt with a collar, its sleeves rolled to the elbow, under an oxblood waistcoat worn open, faded slim jeans
+ * cropped above tan ankle boots, her auburn chin-length bob with a fringe that ends over the brow.
+ *
+ * She is the painter's base woman with only what makes her Ada changed (the Owner, 2026-11-12: the characters look like the painter's
+ * own faces at density 2): her skin, her hair, her clothes, and the lids and brows of a bolder face (brow weight .75, a crease, no hood, liner,
+ * larger eyes, fuller lips: the base man's lid, which is what the painter's reference shows reads best). Her body sliders are the
+ * base woman's, slimmed a little (less fat and chunk, narrower hips, thinner arms); nothing is pushed by an earlier round. Her bob is the painter's own `bobFringe`: a chin-length dome whose fringe stops a texel over the brow, so her brows and eyes show.
  */
 export const ADA: CharacterDef = {
   id: 'ada',
   name: 'Ada Voss',
+  // The base woman's own numbers (`extensions/figures/src/shared/base/base-pair.ts`, a test holds them within 0.3 of hers), but for the ones
+  // marked: her face's bolder lid and brows, and a slimmer build.
   sliders: {
-    frame: 0.85,
-    // retuned: the old 162. The old painter drew her 162 cm as 59 rows and ours draws it as 65, so at the same scale she was a head-and-a-bit
-    // bigger on the page than the figure the Owner prefers; 154 draws her 62 (the old atlas is 61). Her canon height is still 1.62 m.
-    height: 154,
-    muscle: 0.3, // retuned: the old 0.5
-    fat: 0.05, // retuned: the old 0.2
-    shoulders: 0.55, // retuned: the old 0.47
-    // retuned: the old 0.37, then 1 for a leg gap. The jeans' own `gap` keeps her legs apart now, so her hips are a slim build's: the look spec's hip is
-    // about her shoulder, not wider (20 % of her height), and 1 drew thighs far wider than her waist.
-    hips: 0.65,
-    legs: 0.3, // the old 0.3 (round 1 had it at 0.6 for longer legs; the old figure's legs are half of her, 29 rows of 59, and ours were 52%)
-    arms: 0.15,
-    head: 0.87,
-    neck: 0.5,
-    neckLength: 0.1, // retuned: the old 0.2 (the head below sits lower)
-    hands: 0.5,
-    feet: 0.6,
-    posture: 0.85,
+    frame: 0.95,
+    // The prologue's canon height is 1.62 m; 160 draws her 124 rows at density 2, six rows under the base woman's 166 cm.
+    height: 160,
+    muscle: 0.3,
+    fat: 0.25, // the base's 0.35
+    shoulders: 0.3,
+    hips: 0.55, // the base's 0.65
+    arms: 0.3, // the base's 0.35
+    head: 1.15,
+    chunk: 0.6, // the base's 0.85
+    legs: 0.5,
+    posture: 0.75,
     age: 0.25,
     headTilt: 0,
-    chunk: 0.2, // retuned: the old 0.6
+    neck: 0.6,
+    neckLength: 0.4,
+    hands: 0.5,
+    feet: 0.55,
+    faceForward: 0.6,
+    face: {
+      width: 0.45,
+      jaw: 0.3,
+      chin: 0.5,
+      cheekHeight: 0.7,
+      cheekWidth: 0.6,
+      bridge: 0.45,
+      nose: 0.45,
+      lips: 0.8, // the base's 0.7
+      browArch: 0.6,
+      browWeight: 0.75, // the base's 0.4
+      browHeight: 0.45,
+      crease: 0.6, // the base's 0.4
+      hood: 0.05, // the base's 0.35
+      liner: 0.5, // the base's 0
+      eyeSize: 0.8, // the base's 0.5
+    },
   },
-  // The head's own size, in metres chin to crown (the slider's 0.87 draws 0.24 m at this height, 12 rows with her bob where the old Ada's head is
-  // 13): the sliders move the head by less than a texel here, the gene does not.
-  genes: { head: 0.28 },
-  skin: 'fair',
+  skin: 'skinWarm',
   gait: 'brisk',
   // The old brisk walk whole. The old file zeroed her stance, stance lead and shift (no weight on a leg) and cut her idle elbow and hang; the
   // old brisk gait's own numbers stand her on one hip with a bent, hung arm, as the old hand-painted atlas does, so only her `armOut` of the
@@ -68,9 +80,7 @@ export const ADA: CharacterDef = {
   // The generated images' A-pose is 15 to 20 degrees; in the room her hands hang close to her body.
   gaitOverrides: { ...OLD_BRISK, armOut: 0.03, standOut: 0.03 },
   hand: 'R',
-  // `drawn` was true in the old file. At the size she is played the builder's drawn face is a lid line the fringe covers (eyes need density 2),
-  // so her front view had no face; its decal face is two eye dots, which is what the old figure showed there.
-  face: { camera: 0.6, turn: 0.15, blink: 3.7, drawn: false },
+  face: { camera: 0.6, turn: 0.15, blink: 3.7, drawn: true },
   hair: { stiff: 70, damp: 9, trail: 0.3, bounce: 0.08 },
   swatches: { ...ADA_SWATCHES, ...ADA_LOOK_SWATCHES },
   default: 'street',
@@ -95,7 +105,7 @@ export const ADA: CharacterDef = {
       },
       {
         jeans: 'fadedDenim',
-        taper: 0.6,
+        taper: 1,
         gap: 1,
         crop: 0.3,
         turn: 'denimTurn',
@@ -104,8 +114,8 @@ export const ADA: CharacterDef = {
       },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true, shaft: 0.2, heel: 1, toe: 'bootToe' },
       { hair: 'auburn', style: 'bobFringe' },
-      // The kit's eyes of a decal face: two texels tall and about four apart, where the builder's `eyes` is one texel each, two apart.
-      { eyeMarks: 'eyeDark' },
+      // The painter's drawn face: eyes with their whites under a lid, brows, lips.
+      { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'hairBlack', lips: 'lipsWarm' },
     ],
   },
 }
