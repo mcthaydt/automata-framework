@@ -875,3 +875,14 @@ starts in `AF_E2E_CLAIMED_PORTS`. A game and its editor (`--game-url`) are claim
 | Two copies at once, separate checkouts, `CI=1 GITHUB_ACTIONS=true` | Old code: the second copy fails with "already used" (2d-story) and "Port 5900 is already in use" (examples-2d). New code: both pass (2d-story 5 of 5 twice; examples-2d `ui-primitives` 14 of 14 each) | PR description |
 | Single runs, one copy | emberwick-phone-chromium 10 of 10; base-3d-dev 1 of 1 (starts all three of base-3d's servers) | PR description |
 | Not run | The rest of base-3d (`base-3d`, WebKit), examples-3d, 3d-story, other Emberwick projects, Firefox, the site, playground and frame-budget journeys, and the GPU runner | PR description |
+
+## The builders' hands (2026-11-12, branch `claude/painter-hands`)
+
+The Owner: "can we improve the hands on our builders, make it where it's like 3 fingers merged, index, and thumb
+separated", then "there should be a sharp divide between the combined 3 fingers, index, and thumb". Behind
+`HAND_FORM` (default `'paddle'`, every golden green); nothing is recorded until the Owner's yes.
+
+| Round | Status | Record |
+|---|---|---|
+| 1 to 3 | Done: the parted hand, larger, open, an index, the thumb along the palm (rounds 2 and 3 on the coordinator's audits) | [audit](../superpowers/audits/2026-11-12-painter-hands/README.md) |
+| 4 | Done, for the coordinator's eye: three shapes divided in ink (thumb two thick, index two, mitten three or more), size 1.25, the closed contour over same-coloured skin (item 4), the hands have no vote in the colour budget's merge (item 6, in part: 0 texels above the shoulders at density 1; at density 2, 114 are `main`'s own and 88 come from the budget's speck floor, not done). Ran: format, lint, typecheck, boundaries, style, knip, source-names, the painter's whole unit suite and the kit's (default `'paddle'`), the form tests. Not run: browser suites, WebKit, Firefox, the GPU runner | [audit, round 4](../superpowers/audits/2026-11-12-painter-hands/README.md#round-4-three-shapes-sharply-divided-2026-11-12) |

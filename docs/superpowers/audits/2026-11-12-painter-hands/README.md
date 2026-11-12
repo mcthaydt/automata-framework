@@ -251,3 +251,120 @@ shoulders**.
 - **Item 6**, the colour budget: the base man's torch frames still recolour his hair (187 texels at density 2).
 - The goldens' counts for round 3 (round 2's are above). The red test files will be the same; measure them with the
   default flipped in the working tree only.
+
+## Round 4: three shapes, sharply divided (2026-11-12)
+
+The Owner, relayed by the coordinator during this round: **"there should be a sharp divide between the combined 3
+fingers, index, and thumb"**. That overrides rounds 2 and 3's "no ink inside the hand, a one-step crease": the divides
+are now the outline's ink. Same rules: generator only, behind `HAND_FORM` (default `'paddle'`, byte-identical to `main`:
+every golden green), nothing recorded.
+
+### What changed
+
+- **Size first.** `PARTED_HAND.size` 1.05 to **1.25**. Measured at density 2 (palm columns at the knuckles; the thumb adds
+  two more): the man 8 to 9 in every view (10 to 11 with the thumb), the woman 6 to 7 (8 to 9). Length 1.5 times the
+  knuckles, as round 3. Density 1 keeps the size its view gives it.
+- **Three shapes** (`handForm`/`handPiece`, the piece `'divide'`; `partedRole` returns `DIVIDE`, which `drawHands` writes
+  as the outline's tone and the painter colours **ink**):
+  - **Thumb**: two texels thick, rooted at the palm's side a row or two under the wrist, angled down and one column away
+    (its tip at most two columns past the palm), three or four rows long, ending above the knuckle row; an ink divide
+    down its free length, its tip standing free (a notch, background under and beside it).
+  - **Index**: two columns on the thumb's side, to the last row.
+  - **Mitten** (the other three fingers): three columns or more, a row short of the index, its outer corner rounded where
+    it is four broad; an ink divide from the knuckle row between it and the index, opening into a notch between their
+    tips. No ink texel is alone: every divide runs to the silhouette (pinned).
+  - A hand narrower than six columns (none of the base pair's at density 2) is **two shapes**: all four fingers as one
+    mitten, and the thumb with its divide.
+  - **Density 1** (my choice, the coordinator asked me to say): a plain mitten with a one-texel thumb bump, the row under
+    its tip clear, as round 3. The one divide there is that notch, which the painter's outline draws. Three shapes, or a
+    two-texel thumb with an ink divide, do not fit in a 3 to 4 texel hand without eating it.
+- **Item 4, the contour.** Where the parted hand lies over skin of its own colour that is not its own arm (the bare thigh
+  in the side views), every texel of that skin beside the hand is ink: a closed contour, so it reads as a hand lying on
+  the leg, and the divides' notches close into the same line. No lone triangle, no "T" (pinned for both figures, views
+  2 and 6).
+- **Item 6, the hair** (`7c361722`). Cause, measured: the budget merges the closest pair of colours and keeps the
+  commoner. In the base man's front torch frame the hair's darkest `#181f2f` (93 texels) and a near-black `#1d1d21` (89
+  with the paddle, 102 with the parted hand: mostly the hand's and the torch's) swap which one is the commoner, and the
+  hair is recoloured. Fix: the commoner is counted outside every hand's reach (`handReach`: a disc round each wrist as
+  large as the largest form; a tie falls back to every texel), so the hand's form or swing cannot decide that merge.
+  It comes with the parted hand (`PaintStyle.hand`): `main`'s own paddle decides that pair in the base man's
+  three-quarter torch frame and in three of the actors' torch-swing frames (`base-m/swing/0..2@D2`), so giving the paddle
+  the vote would move goldens before the Owner's yes. With the default flipped, the vote is always on.
+
+### The above-the-shoulders count: not zero, and why
+
+Measured over the 40 frames per density (8 standing, 8 walk, hero, 3 torch per figure), against `main`:
+
+| | Density 1 | Density 2 |
+|---|---|---|
+| Round 3 | 0 | 200 (base-m torch 0 and 1) |
+| Round 4 | **0** | **202**: base-m torch 1 (114), base-f torch 1 (84), base-f torch 2 (4) |
+| Round 4 against the paddle under the same budget rule | 0 | 88: base-f torch 1 and 2 |
+
+- **base-m torch 1 (114)** is `main`'s own: there the paddle's hand votes the hair's darkest into the near-black (117
+  texels, 94 of them within the hand's reach). The parted hand, with no vote, keeps the hair's colour; `main` does not.
+  No rule that ignores the hand can match `main` there.
+- **base-f torch 1 and 2 (88)** are the budget's speck floor, a second stage that also counts the whole figure: a colour
+  on fewer than 2·D² texels of the figure is folded into its neighbour. The hair shares a colour with the torch, the
+  larger hand covers more of the torch, and a few hair texels cross the floor. Same cure (count outside the hands'
+  reach), but it changes which colours are specks and moves `main`'s own frames; **not done, resume here**.
+- Pinned (`tests/unit/paint/hand-vote.test.ts`): the budget's vote (a unit case), and no texel above the shoulder row
+  moves between paddle and parted for both figures at density 1 and 2 over the 8 standing views, the walk and the torch
+  from the front (it fails with the vote off: 270 bytes in the base man's front torch frame). The three-quarter and side
+  torch frames are left out of the pin for the reason above.
+- The arm and thigh's one-step moves (each surface's tone thresholds are quantiles of its visible texels) are left as
+  they are: no cheap, principled way appeared. The walk frames' magenta round the hands in the map is the walk's smear
+  trail, which the scratch mask does not include.
+
+### The sheet (suffix `-round4`; rows before | round 3 | round 4 unless named)
+
+| Picture | What it shows |
+|---|---|
+| [`figure-x4-base-m-round4.png`](figure-x4-base-m-round4.png), [`figure-x4-base-f-round4.png`](figure-x4-base-f-round4.png) | The whole figure x4: front, 3/4, side, back |
+| [`walk-torch-x4-round4.png`](walk-torch-x4-round4.png) | Four walk frames and the torch in three-quarter, x4 |
+| [`hands-x10-turn0-round4.png`](hands-x10-turn0-round4.png), [`-turn1-`](hands-x10-turn1-round4.png), [`-turn2-`](hands-x10-turn2-round4.png), [`-turn4-`](hands-x10-turn4-round4.png) | Hands x10, before \| round 4: front, 3/4, side, back |
+| [`density1-x8-round4.png`](density1-x8-round4.png) | Density 1, x8 |
+| [`moved-texels-d2-round4.png`](moved-texels-d2-round4.png) | Every moved texel at density 2, before to round 4: cyan in the hands, magenta outside, red above the shoulders |
+
+### My verdict (x4 first, then x10)
+
+| View | Verdict |
+|---|---|
+| Front | Different from before at a glance: a large open hand, the index's ink line clear, the thumb a two-texel shape at the top of the palm's inner side with its notch. The woman's thumb is busy at x10 (ink on three sides of a small shape) |
+| Three-quarter | The best: the far hand's thumb stands free, the index line runs to the notch; the near hand over the shorts reads, darker |
+| Side | The closed contour makes the hand lie on the thigh: no nub, no "T"; the thumb bump at the front edge |
+| Back | **Weak**: a large plain block. The thumb is hidden from behind (the palm faces the thigh, the thumb forward), and the index's side lies behind the shorts, so no divide shows |
+| Walk | The swinging hands read as hands with a thumb and an index line |
+| Torch | The grip is a large block with one ink bar across the shaft; reads as a hand on a stick |
+| Density 1 | As round 3, plus the contour in the side view |
+
+Risks for the Owner's eye: the hand is now large (a stylised hand, 1.25), and ink inside the hand is new to this painter
+(it drew ink only on the silhouette); at x1 the divides are single dark texels.
+
+### Round 4: the goldens that will move on the Owner's yes (they replace round 2's list)
+
+Measured with `HAND_FORM = 'parted'` in the working tree, then restored (nothing written). Texels per base sheet are from
+the scratch frames (the sheets' 8 standing views, the walk, the hero), before (`main`) to round 4:
+
+| Golden | Moves |
+|---|---|
+| base | every sheet: D1 turn 66 / 51 texels (man / woman), walk 144 / 87, hero 6 / 6; D2 turn 1,519 / 925, walk 3,470 / 1,541, hero 172 / 109 (the test reports `base-m-turn-d1` 178 bytes and `base-m-turn-d2` 4,409 bytes first) |
+| lit | 48 frames (the test's count) |
+| actors | 147 of 147 frames per figure |
+| sprites | 4 of 4 |
+| sprite | 64 of 64 |
+
+The red tests are the same files as rounds 1 and 2. Painter, 51 of 772: `golden/base` 2, `golden/lit` 1,
+`golden/sprite` 1, `golden/actors` 2, `actors/actors` 4, `stage/sheets` 3, `paint/identity` 35, `hair/front` 1,
+`outfit/shoe-form` 1, `paint/sheer` 1. Character kit, 16 of 233: `fashion/showcase-cells.test.ts`. No behaviour test
+fails. **On the Owner's yes:** set the default to `'parted'`, delete `paddleRole`, the switch and the vote's gate in
+`paint-colour.ts`, record `pnpm --filter @automata/figures golden` and the kit's showcase cells, and commit the
+re-record naming this sheet.
+
+### Where to resume
+
+- The budget's speck floor (above): count a colour's texels outside the hands' reach there too, measure what it moves on
+  `main`, and bring base-f's three-quarter and side torch frames to 0 above the shoulders.
+- The back view shows no divide (the index's side is behind the shorts); if the Owner wants one there, it is a
+  question of anatomy, not of the stamp.
+- Not run: the browser suites, WebKit, Firefox, the GPU runner.
