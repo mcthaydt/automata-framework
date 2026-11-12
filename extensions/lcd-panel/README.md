@@ -26,6 +26,10 @@ const panel = addLcdPanelPass({ profile: { grid: 0.45 } }) // the rest is the cl
 `panel.passes` lists the panels the renderer made. Each is a `PostEffect`, so `pass.enabled = false` takes it out of the
 frame, and `pass.profile = { ... }` retunes it while the game runs.
 
+**The old game's look.** `addLcdPanelPass()` with no options is the old game's panel (`LCD_CLINIC`); `profile` takes only the keys a game changes, so a
+game's content can hold them. Pair it with `addRetroPass()` (see [the retro pass](../retro-crisp/README.md#the-old-games-look-the-lcd-panel-and-the-retro-grade-together)):
+both are code, called once before the renderer is made; no look or content key turns an extension's pass on.
+
 **At the old game's picture size.** The browser tests draw the panel at 640 x 360 (a 16:9 window) and 640 x 480 (4:3) with the
 clinic's profile: the mesh and the stripes show over a flat colour (a cell of 2 gives a mesh period of 4 field pixels), and a
 zeroed panel leaves the picture alone. The panel has no movement of its own, so reduced motion changes nothing in it.

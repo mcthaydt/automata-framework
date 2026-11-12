@@ -181,6 +181,18 @@ Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 
 - **Question for the implementation audit:** should a lamp-lit room cast a figure's silhouette from its key lamp? The builder casts it along the figure's painted key whenever the time's `shadow` is true, sun or not (the interior: 1223 texels against ours 286; with its shadow off 271); ours casts a silhouette only under a sun that casts and a contact shadow otherwise. Adopting it moves every interior frame with the shadow on. [`after-shadow/README.md`](audits/builders-look-survey/after-shadow/README.md).
 - **Named difference:** a hold on the floor under the feet (`SceneLight.groundLuma`) is not the builder's ring round the silhouette in the frame; the interiors' man still reads hot in some views (11 of 24 runs hot, all read). [`after-exposure/README.md`](audits/builders-look-survey/after-exposure/README.md).
 
+### Workstream 4: follow-ups, not built on `claude/builders-look-effects` (2026-11-12)
+
+The effects branch closes with what is built; `claude/pixi-3d-beta-3` moves the framework to `@pixi/3d` 0.1.0-beta.3 (post effects staged before or after
+tone mapping, tone mapping's default, unlit colour, samplers), and every effect here is ported there, so no new pass is built on beta.2.
+
+- **The drifting mist** (the old game's; no framework counterpart): a pass, so it waits for the beta.3 port.
+- **The day-pane reflections**: the builder's streaks are the `glass` swatch pattern, not a pass; a world-kit albedo tile for glass-pattern swatches (a
+  1.44 x 1.86 m tile repeats the stripe), laid as `tileUvs` lays a photo tile. Small and independent of the port; not built.
+- **The remaining effect sheets**: the dressed street at night with painted figures; reflections and particles, which need a wet ground and an emitter the
+  spike lacks. Shot after the port, so they show the effects as they will ship.
+- **The sky and haze difference** (the green veil off the room): ruled the sky's ([`after-room/README.md`](audits/builders-look-survey/after-room/README.md), difference 10).
+
 ## Open, for the Owner
 
 - The framework has 122 branches besides `main` from other workstreams; the merge session leaves them alone. Say if

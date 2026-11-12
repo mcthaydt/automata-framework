@@ -138,6 +138,39 @@ the kit's entries. These are the interfaces it builds on, as they are on the bra
 | Crisp scaling | `@automata/retro-crisp` and `@automata/framework`, task 10 | `crispRendererOptions(profile: CrispProfile): { scale: 'fit' \| 'whole' }`, spread into `createPixi3dRenderer`'s options, which passes `scale` to the letterbox; `CRISP_CLINIC` (whole pixels, every look change off), `crispFromQuery`, `parseCrispProfile`, `type CrispProfile`. Core's option alone: `renderer: { scale: 'whole' }` (`PixiRendererOptions.scale`, default `'fit'`) |
 | A painted figure | `@automata/character-kit` (private): `paintedFigure` and `CharacterDef` on `main`, lit by its room from task 6, the ward's entries from task 15 | The game writes each character as a `CharacterDef` (FigureBuilder's, re-exported by the kit): `id`, `name`, `sliders`, `skin`, `gait`, `hand`, `face`, `default` (an outfit's name) and `outfits: Record<string, Garment[]>`, where an outfit is a kit entry's `garments` (from `WARD_OUTFITS`, task 15, by its `name`: `ward-uniform`, `ward-uniform-night`, `street-1979`) with the character's hair and eyes added, as `RUNWAY_CAST`'s `dressed` does. It registers the kit once (`registerFashion()`, and `characterKitExtension` in the game's `extensions`) and draws each with `views: { [Id]: paintedFigure(def, { state, lit? }) }`. `state` returns `PaintedState`: `moving`, `pose?` (a name in FigureBuilder's `POSES`), `outfit?` (one of the character's), and from task 15 `expression?` (`EXPRESSIONS`) and `mood?` (tags). A name the builder or the character lacks throws in words the first time the entity is drawn. The data is a TypeScript file in the game: no editor opens it yet (the tracker's editor gaps ledger, row 2) |
 
+### How a game turns the LCD panel and the retro grade on (answer for the reference game's task 14, 2026-11-12)
+
+**In code, one call each, before the renderer is made; nothing to build.** A look's `switches` name core's passes only, and an extension's pass has its
+own switch (`look-pass.ts`), so there is no look or content key that turns an extension on (core never imports one). What a game's content can carry is each
+pass's *profile*: both functions take `profile?: unknown` and parse it with the extension's schema, a setting out of range or unknown is refused by name.
+
+```ts
+import { addLcdPanelPass } from '@automata/lcd-panel/pass'
+import { addRetroPass } from '@automata/retro-crisp/pass'
+import { CRISP_CLINIC, crispRendererOptions } from '@automata/retro-crisp'
+
+// once, at module load, before createPixi3dRenderer (a second call under the same name throws RegistryClash)
+addRetroPass({ profile: content.retro ?? {}, reducedMotion: () => settings.reduceMotion }) // before the snap, whatever the order
+addLcdPanelPass({ profile: content.lcd ?? {} })                                              // after the snap, so it sits on top
+createPixi3dRenderer({ ...options, ...crispRendererOptions(CRISP_CLINIC), look, barFraction: 0 }) // look.pixel.short is the picture's short side (480 at most)
+```
+
+- **The old game's numbers are `{}`**: `LCD_CLINIC` and `RETRO_CLINIC` are the schemas' defaults (`LCD_PANEL`, `LCD_CELL` 2, and `POST.fade`, `POST.grade`
+  at `92e6704`; the tests `lcd-field-sizes` and `retro-field-sizes` hold them). Passing nothing, `{}` or `content.lcd` with only the keys the game
+  changes all give the clinic's panel and grade. `crispRendererOptions(CRISP_CLINIC)` is `{ scale: 'whole' }`; `snap` on the panel stays false unless the
+  game's content says so (the old game's `crisp.lcd` is off by default).
+- **At the old picture size**: the passes draw at whatever field the renderer is given and are proved at 640 x 360 (16:9) and 640 x 480 (4:3). The game
+  makes the field (the prologue's `app/field.ts`: the window's shape capped at 640 x 480, carried as the look's `pixel.short`) and sets core's `barFraction` to 0 in play. The sheet
+  [`look-640x480.png`](../audits/builders-look-survey/after-effects/look-640x480.png) is this recipe with `{}` profiles: mean luma 54.1 with no effects, 45.9 with
+  the LCD panel, 43.9 with the panel and the grade.
+- **Reduced motion**: the retro film (grain, dust, scratch) is the only movement, and it holds still while `reducedMotion()` is true. Left out, the option
+  reads the player's `prefers-reduced-motion` each frame; a game with its own setting passes it, as above. The LCD panel has no motion; the world kit's
+  moving passes (stars, rain, shafts, particles) hold still under the same setting.
+- **Switching at run time**: `addLcdPanelPass(...).passes` and `addRetroPass(...).passes` list what the renderer made; `pass.enabled = false` takes one out
+  and `pass.profile = {...}` retunes it. A game that starts them off says `{ enabled: false }`.
+- **Order of the frame**: haze, mood grade, the retro grade, core's snap (the frame is on the palette), the outline, the LCD panel (not on the palette, on
+  purpose), then the world kit's passes in the order they were added: add the panel *after* any pass it should sit over.
+
 ## Global constraints
 
 From the spec, the tracker's decisions and `AGENTS.md`. Every task includes them.

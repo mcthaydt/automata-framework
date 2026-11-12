@@ -36,6 +36,23 @@ on from there if the setting is turned off. A game with its own setting says so:
 **At the old game's picture size.** The browser tests draw the pass at 640 x 360 (a 16:9 window) and 640 x 480 (4:3): the clinic's
 grade moves the picture and the snap puts it back on the palette, and the neutral profile leaves it alone.
 
+## The old game's look: the LCD panel and the retro grade together
+
+One call each at module load, before `createPixi3dRenderer`; the profiles are the old game's numbers when left out or `{}`, and a game's content can hold
+the keys it changes. There is no look or content key that switches an extension's pass on (core never imports one), so this is code.
+
+```ts
+import { addLcdPanelPass } from '@automata/lcd-panel/pass'
+import { CRISP_CLINIC, crispRendererOptions } from '@automata/retro-crisp'
+import { addRetroPass } from '@automata/retro-crisp/pass'
+
+addRetroPass({ profile: content.retro ?? {}, reducedMotion: () => settings.reduceMotion }) // before core's snap
+addLcdPanelPass({ profile: content.lcd ?? {} }) // after it, on top
+createPixi3dRenderer({ ...options, ...crispRendererOptions(CRISP_CLINIC), look }) // whole-pixel scale; look.pixel.short is the picture's short side (480 at most)
+```
+
+Both are proved at 640 x 360 and 640 x 480. `reducedMotion` is optional (the default reads `prefers-reduced-motion`).
+
 ## The retro profile
 
 Every setting has a default, so `{}` is the clinic's look. A setting out of range, or one the profile does not know, is
