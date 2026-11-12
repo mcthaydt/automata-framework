@@ -875,3 +875,14 @@ starts in `AF_E2E_CLAIMED_PORTS`. A game and its editor (`--game-url`) are claim
 | Two copies at once, separate checkouts, `CI=1 GITHUB_ACTIONS=true` | Old code: the second copy fails with "already used" (2d-story) and "Port 5900 is already in use" (examples-2d). New code: both pass (2d-story 5 of 5 twice; examples-2d `ui-primitives` 14 of 14 each) | PR description |
 | Single runs, one copy | emberwick-phone-chromium 10 of 10; base-3d-dev 1 of 1 (starts all three of base-3d's servers) | PR description |
 | Not run | The rest of base-3d (`base-3d`, WebKit), examples-3d, 3d-story, other Emberwick projects, Firefox, the site, playground and frame-budget journeys, and the GPU runner | PR description |
+
+## Artifact storage only on failure (2026-11-12, branch `claude/artifacts-on-failure`)
+
+The Owner's ruling: "stop using the artifact storage unless something fails". The repository's Actions artifact
+quota was full, so traces no longer uploaded when a run failed.
+
+| Change | Evidence | Check |
+|---|---|---|
+| Evidence uploads are failure-only and kept 7 days at most. Of seven `upload-artifact` steps (ci.yml 5, 3d.yml 1, release-checks.yml 1, game-ci.yml 1; no `download-artifact` anywhere) five already were. `frame-budget-results` went from `always()` and 30 days to `failure()` and 7; game-ci's build upload from every run to `failure()` | `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`: new rule 7; it failed first on exactly those two steps, then passed | `pnpm test:unit` in `tooling/repo-hygiene` (164 of 164) |
+| Still uploads on a green run | `evidence` (ci.yml, push to main, 90 days): the golden-hash file; its comment says the website reads it, nothing in the repository downloads it. It is the one name on the rule's allow-list | — |
+| Not run | The workflows themselves (they run on GitHub); `actionlint` (`pnpm lint:actions` needs Docker, none here), the YAML parses | — |
