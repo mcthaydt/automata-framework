@@ -13,11 +13,11 @@ contains it (`vendor/pixi-3d/README.md`).
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
 | 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
 | 3b | `main` (#654, #655, #656) merged; the baseline taken again on the merged tree with beta.2; the retro-crisp case that 8.23.0 moved found | done 2026-11-12 | [§3b](#3b-the-merged-tree-with-beta2-the-baseline-taken-again) |
-| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 to 8 done at the second 90-minute mark: the crates stop is what is left (and the `--force` check, if wanted) | [third session](#third-session-the-work-list-in-order) |
-| 5 | Workarounds the beta makes unnecessary | not started | |
+| 4 | `@pixi/3d` beta.3 | done on this branch, 2026-11-12: the move, the conversions and, in the fifth session, the painter's view; what is left is the Owner's cross-engine run | [fifth session](#fifth-session-the-painters-view-on-beta3) |
+| 5 | Workarounds the beta makes unnecessary | partly: the no-eval sync proved still needed and `updateShadow` forced out (third session); `PresentEffect`'s depth hazard (the bare-effect case), `snapshot.ts` and the rest of the table in §2 are not decided | [§2](#anything-that-makes-a-framework-workaround-unnecessary) |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
-Progress: 3 of 6 steps (50%).
+Progress: steps 1 to 4 done; step 5 partly (see its row); step 6, the close, is the end of the fifth session's section.
 
 ## 1. Baseline
 
@@ -675,6 +675,96 @@ picture: drop `beta2Colour` and `tinted`'s old reading, and the sky and unlit fo
 **What ran this session** (Chromium, software GL; `AF_WEBGPU=software` for WebGPU): the whole `pnpm check` after the last code change (exit 0, 65 of 65 unit tasks, 56 of 56 static, 78 changesets, 0 problems; units: `@automata/3d` 1,543, world-kit 271, character-kit 228, lcd-panel 20, retro-crisp 39, base-3d 110); `@automata/3d` `browser` + `webgpu`: 21 files, 83 passed, 2 skipped;
 world-kit browser 24 of 25 plus `ward.test.ts` alone (known load timeout in a sequence, passes alone) and webgpu; character-kit browser 55 passed, 2 skipped (its 3 painted WebGPU cases fail as known); lcd-panel browser 9 + webgpu 1; retro-crisp browser 10 + webgpu 1; editor-3d layout 285 passed, 3 skipped, journeys 16; base-3d 14; examples-3d 22; Emberwick's six language journeys 6.
 **Not run:** WebKit, Firefox, a real GPU, `examples/3d-story` (known), the other Emberwick journeys and the 2D suites (nothing 2D changed since the third session's whole run), `pnpm api-index --write` (no published package's API moved; the one report that moved, `3d.api.md`, is regenerated).
+
+## Fifth session: the painter's view on beta.3
+
+Branch continued from `c586c2ed`. The builders fold had merged to `main` (`4a505e86`, #661): the painter is the private package `@automata/figures` at `extensions/figures`, its view (`src/features/view/`) editable here.
+
+| Item | What | State |
+|---|---|---|
+| 1 | `origin/main` merged (`8f9469b6`); the whole `pnpm check` | merged; the check's only failure was the template guard, the red this session turned green |
+| 2 | The painter's view ported: template, three painted WebGPU cases, fog | done: `c53b096a`, `ef75483b` |
+| 3 | The fog frames re-shot | done: [frames](#the-frames-with-the-painters-port) |
+| 4 | The suites on the merged tree | done: [table](#the-suites-on-the-merged-tree) |
+| 5 | This record, the merge conditions, the Owner's commands | done: below |
+| 6 | Close: build, API report and index, the whole check uncached | see the end of this section |
+
+**The merge.** Four conflicts. The root `package.json`: `main` removed the `@pixi/3d` and `pixi.js` lines, taken. `extensions/character-kit/package.json`: `main`'s `@automata/figures` dependency kept, the tarball moved to beta.3.
+`vendor/figure-builder/package.json` (modify/delete): deleted. `pnpm-lock.yaml`: ours, then `pnpm install`, committed as written. `extensions/figures/package.json` merged without a conflict and still named the beta.2 tarball and `pixi.js` 8.22.0 (peer and dev): both moved
+(the tarball to beta.3, `pixi.js` 8.23.0). `vendor/pixi-3d/README.md` now says the beta.2 tarball is used by nothing (kept as the reference the conversions were measured against). The branch's local head was behind its remote (`a692bf8c` against `c586c2ed`); fast-forwarded first.
+
+### What changed in the painter's view, each seen failing first
+
+| Change | File | Test that failed first | Why |
+|---|---|---|---|
+| The WGSL template is beta.3's own with three edits: `bindGroups` `[{ name: 'global', ubo: true }, 'camera', 'batch']`, beta.3's slots (`{{vertexStoreAccess}}`, `{{fragmentStoreAccess}}`, the exposure line), and the fragment entry returning `CellFragment` (colour and `@builtin(frag_depth)`) where the original declares and writes its outputs | `extensions/figures/src/features/view/cell-template.ts`, guard `tests/unit/view/template.test.ts` (rewritten for beta.3's `bindGroups` and slots) | the guard: 2 of 3 (the unit task of `pnpm check`); the painter's WebGPU project: 105 of 105 cases, `assertBindGroups` (the missing `ubo: true`) | beta.3's `FragmentOutput` still carries colour locations only, so a bit cannot write `frag_depth` and the painter keeps a template of its own, now the original with three edits |
+| The texel snap and the `texSize` binding are gone | `cell-template.ts`, `cell-sprite.ts` | none needed: the same 105 WebGPU and 122 WebGL cases, byte for byte with `compose`, pass without it | beta.3 samples each texture with its own `nearest` style (the batch's one linear sampler was beta.2's) |
+| `CellMaterial` fogs in display space: the engine's fog is off for it and `cellFogBit` mixes the display value toward the engine's fog colour, for the depth-writing `StageView` quad and the plain `FigureSprite` quad | `src/features/view/cell-fog.ts`, `cell-sprite.ts` | 4 new browser cases (`view-fog.test.ts`, `view-fog-webgpu.test.ts`; stage quad and sprite, WebGL and WebGPU): a cell texel 24 drew 191 where a display mix wants 146 (the linear power mean) | beta.2 mixed an unlit colour as a plain mix of display values; the painter's package does not import `@automata/3d`, so the bit is `UnlitMaterial`'s logic, in display space (no `pow`), kept in the package |
+
+`StageView`'s `toneMapping: 'none'`, `cell-sprite.ts`'s one options object for `Sprite3D` and `cull` (a billboarded quad, drawn by every case) needed nothing. No painter golden moved (the CPU painter is untouched): the `goldens` project ran in the pre-commit hook of each commit.
+
+### The frames with the painter's port
+
+The beta.2 reference is a scratch worktree of `main` `4a505e86` (beta.2, `pixi.js` **8.22.0**, with the fold), which also settles the earlier note that the beta.2 frames were never shot on 8.22.0. Same queries as the fourth session's item 5, Chromium, software GL, `still=1`, canvas 1280 x 960; luma and the share of pixels differing by more than 2 of 255 in a channel.
+
+| Frame | beta.2 | beta.3 | Differ |
+|---|---|---|---|
+| [`fog-night-room-beta2-vs-converted-painter-port.png`](frames/fog-night-room-beta2-vs-converted-painter-port.png) (painted figures) | 32.94 | 33.05 | 1.23% (15,104 px; 1,848 in the figures' box, 13,256 outside it) |
+| [`fog-night-room-core-figures-beta2-vs-converted-painter-port.png`](frames/fog-night-room-core-figures-beta2-vs-converted-painter-port.png) | 32.79 | 32.89 | 1.31% (16,156 px) |
+| [`room-640x480-painted-beta2-vs-converted-painter-port.png`](frames/room-640x480-painted-beta2-vs-converted-painter-port.png), no fog (the snap's removal moved nothing) | 55.40 | 55.66 | 2.90%, the first session's 55.4 and 55.7 |
+
+The fourth session had the night room at 32.9 and 34.2, 6.5%, with 67,300 of 80,084 differing pixels in the two painted figures. They match now; what is left is the room's dither edges. The base-3d journey-camera frame has no painted figure and was not re-shot (0.1% stands).
+
+### The suites on the merged tree
+
+Chromium, software GL, `AF_WEBGPU=software`, at `ef75483b`; nothing re-recorded.
+
+| Suite | Result |
+|---|---|
+| `@automata/3d` `browser` + `webgpu` | 21 files, 83 passed, 2 skipped |
+| `@automata/world-kit` `browser` + `webgpu` | 24 passed; `ward.test.ts` times out at 15 s in the sequence (23 s: the known load timeout) and passes alone, 1 of 1 |
+| `@automata/character-kit` `browser` + `webgpu` | 58 passed, 3 skipped (the three painted WebGPU cases pass now) |
+| `@automata/figures` `browser` + `webgpu` | 231 passed (227 and the 4 fog cases) |
+| `lcd-panel`, `retro-crisp` (`browser` + `webgpu`) | 10 passed; 11 passed |
+| `@automata/editor-3d` layout + canvas; journeys | 305 passed, 24 skipped; 16 passed |
+| `@af-games/base-3d` layout + sim; journeys (`base-3d`, `base-3d-dev`) | 36 passed; 14 passed |
+| `@af-examples/examples-3d` | 22 passed |
+| Emberwick's six language projects | 6 passed |
+
+Not run: WebKit, Firefox, a real GPU, `examples/3d-story` (its server fails on `main`).
+
+### The grouped list, as it stands (nothing re-recorded; no golden, snapshot, parity value or hash edited)
+
+One answer each. "Moved" counts expectations written in test code, each with its reason in a comment.
+
+| # | Group | Moved | Recommended answer | The frame |
+|---|---|---|---|---|
+| 1 | The vertex-colour contract (`vertexColorBit` reads the raw vertex colour as linear light and the output encodes it; the buffer holds the shown colour raised to 2.2) | 10 (`lit-room`, 7 unit expectations, the two `linear`-lighting ones) | **Accept.** The picture is beta.2's | `room-640x480-beta2-vs-beta3-fixed.png`, `street-640x360-beta2-vs-beta3-fixed.png` (2.9%, 1.1%) |
+| 2 | Unlit colours: beta.3 draws them as authored; `shownAs` removed; `beta2Colour` keeps the colours the framework chose against beta.2 (flat parts, baked boxes, embers) | 2 | **Accept.** Dropping `beta2Colour` is the Owner's choice of picture (the three darker-than-the-hex cases below), not a condition | `fog-base-3d-journey-camera-beta2-vs-converted.png` (0.1%) |
+| 3 | Fog colour | 2 moved, back to beta.2's values | **Nothing to answer**: a conversion (`engineFogColour`, `UnlitMaterial`, `fogSkyColor`); the painter's figures included since this session | `fog-night-room-beta2-vs-converted-painter-port.png` (1.23%) |
+| 4 | Lit moving things' colour | 1 (`box-view.test.ts` 0x424242 to 0x0e0e0e: the colour the material is given) | **Accept** | `figures-core-room-beta2-vs-converted.png`, `fog-night-room-core-figures-beta2-vs-converted-painter-port.png` (1.31%) |
+| 5 | The effects' Y sign (`uFxClip.w` negative where the view draws into a texture) | 0 recorded; 5 browser cases pass with `abs()` | **Accept** | none (orientation cases, WebGL and WebGPU) |
+| 6 | Camera zoom divides `tan(fov / 2)` and `orthographicSize` | 2 (`pose.test.ts`: 762.5 to 720; 80 to 160 px a metre at zoom 2) | **Accept.** At zoom 1 identical; beta.3's is the camera's own | none |
+| 7 | Light falloff and the 2.2 gamma | 0 | **Accept**, no compensation | `lit-night-room-beta2-vs-beta3.png` (50.1 to 50.4, 3.3%) |
+| 8 | Samplers (per-texture styles), and the painter's texel snap gone | 0 | **Accept** | `samplers-room-webgl-vs-webgpu.png`, `samplers-street-webgl-vs-webgpu.png`; the painter: `room-640x480-painted-beta2-vs-converted-painter-port.png` |
+| 9 | Culling defaults to `'gpu'` | 0 | **Leave the default**; the Owner's real-GPU run answers it; `cull: 'off'` at the four `View3D` sites if a piece ever vanishes | none (nothing vanished in any suite) |
+| 10 | The painter's view | 3 character-kit WebGPU cases, the template guard | **Resolved**: ported, 231 painter cases and the kit's WebGPU cases pass, the guard rewritten | the three frames above |
+| 11 | Fog past `far` in `base-3d` | 1 picture | **Resolved** by the fog conversion | `fog-base-3d-journey-camera-beta2-vs-converted.png` |
+
+**One choice for the Owner, not a condition:** beta.2 drew three things darker than their content colours (unlit surfaces and the sky under fog, lit moving figures, embers) and the conversion keeps that; drawing the hexes as authored is a deliberate change of picture (`beta2Colour` and `tinted`'s old reading go, the sky and unlit fog become plain beta.3).
+
+### This branch cannot merge until these hold
+
+- **(a) The fold is on `main` and the painter's view is ported here: done.** `main` `4a505e86` is merged; the three painted WebGPU cases and the painter's 231 cases pass; the cell material fogs in display space.
+- **(b) The Owner decides the fog colour: gone** (a conversion).
+- **(c) The Owner answers the grouped list above:** recommended answers given; none needs a re-record.
+- **(d) Cross-engine parity and a real GPU on the Owner's machine**, `pnpm exec playwright install chromium webkit firefox`, one command at a time, **without `AF_WEBGPU`** so WebGPU uses the real adapter (the old step "`node vendor/figure-builder/types.mjs`" is gone with the submodule):
+  1. `pnpm install --frozen-lockfile`.
+  2. WebGL parity in every engine: `cd packages/3d && npx vitest run --project browser`; `cd extensions/character-kit && npx vitest run --project browser` (the painted figures against the kit in WebKit and Firefox); `cd extensions/world-kit && npx vitest run --project browser`; `cd extensions/lcd-panel && npx vitest run --project browser`; `cd extensions/retro-crisp && npx vitest run --project browser`; `cd packages/automata && npx vitest run --project browser` (the 2D contract, all engines).
+  3. **The painter's browser suite** (Chromium only by its config: `engines: ['chromium']`): `pnpm --filter @automata/figures test:browser` (WebGL `browser` and `webgpu`, 231 cases, each byte for byte with the CPU's `compose`, plus the fog cases). On the real adapter the `webgpu` project must present a frame or it skips in words.
+  4. WebGPU on the real adapter: `cd packages/3d && npx vitest run --project webgpu`; `cd extensions/world-kit && npx vitest run --project webgpu`; `cd extensions/character-kit && npx vitest run --project webgpu` (0 known failures now); `cd extensions/lcd-panel && npx vitest run --project webgpu`; `cd extensions/retro-crisp && npx vitest run --project webgpu`.
+  5. Journeys in WebKit: `cd games/base-3d && npx playwright test --project base-3d-dev-webkit`; `cd examples/3d && npx playwright test --project examples-3d-webkit`; `cd games/emberwick && npx playwright test --project emberwick-phone-webkit --project emberwick-ipad-webkit`.
+  6. Then `pnpm ci:local`, and report which of these ran.
 
 ## Handoff at 90 minutes
 

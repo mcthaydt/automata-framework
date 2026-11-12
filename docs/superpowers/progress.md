@@ -398,7 +398,12 @@ tone mapping, tone mapping's default, unlit colour, samplers), and every effect 
     over the face, the cap low on the brow) are adopted; B to E wait for the Owner. The painter's list (a bob hem as
     wide as the ears, larger eyes, a wider stand, a stoop, hair hanging over the chest, pleats) becomes framework tasks
     once the fold lands.
-  - **beta.3:** fog and lit figures are conversions that draw what beta.2 drew; no fog choice remains. What is left
-    before it can merge: the fold, then the painter's cell material fogging in display space; the grouped list; the
-    Owner's cross-engine parity run. One choice for the Owner, not a condition: beta.2 drew three things darker than
-    their content colours (unlit and sky fog, lit figures, embers) and the conversion keeps that.
+  - **beta.3 (`claude/pixi-3d-beta-3`, fifth session, 2026-11-12):** the builders fold is merged in (`main` `4a505e86`) and the painter's view is
+    ported: `extensions/figures` takes beta.3 and `pixi.js` 8.23.0, its WGSL cell template is beta.3's own with three edits (the texel snap is gone:
+    beta.3 samples each texture with its own style), and the cell material fogs in display space as beta.2 fogged an unlit colour. The painter's
+    browser suite is 231 of 231 on WebGL and WebGPU (software), byte for byte with the CPU's `compose`, the character kit's three painted WebGPU
+    cases pass, no golden moved. Night room with fog, beta.2 against beta.3: painted figures 32.94 to 33.05 luma, 1.23% of pixels differ (the figures
+    were 67,300 of 80,084 differing pixels before). The 3D suites, journeys, lcd-panel, retro-crisp and Emberwick's language journeys pass in
+    Chromium. What is left before it can merge: the Owner answers the grouped list (recommended answers in the audit) and runs cross-engine parity
+    and a real GPU (commands in the audit). One choice for the Owner, not a condition: beta.2 drew three things darker than their content colours
+    (unlit and sky fog, lit figures, embers) and the conversion keeps that.
