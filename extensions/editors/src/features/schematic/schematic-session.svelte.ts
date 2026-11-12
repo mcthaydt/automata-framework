@@ -28,6 +28,7 @@ import {
   sameShape,
 } from './schematic-edits.ts'
 import { schematicProblems } from './schematic-problems.ts'
+import { NAV_DIR, PUZZLE_DIR, SYSTEMS_DIR } from './schematic-scenes.ts'
 import { newAgent, newSystemsFile, systemsFileText } from './starter.ts'
 import { type CharacterList, changeListText, type ListChange, type SwitchChange } from './switch-text.ts'
 import {
@@ -42,10 +43,6 @@ import {
 export type Selection =
   | { readonly kind: 'mode'; readonly mode: string }
   | { readonly kind: 'switch'; readonly index: number }
-
-export const SYSTEMS_DIR = 'content/systems/'
-export const NAV_DIR = 'content/nav/'
-export const PUZZLE_DIR = 'content/puzzles/'
 
 /** What the panel has chosen; the canvas shows it. */
 export type SchematicChoice =
@@ -79,17 +76,6 @@ export interface SchematicFacts {
 
 const EMPTY_SYSTEMS = "# How this scene's characters behave.\n"
 const EMPTY_NAV = '# The places in this scene that characters walk between.\n'
-
-const sceneOf = (path: string): string => path.slice(path.lastIndexOf('/') + 1).replace(/\.toml$/, '')
-
-/** The scenes the files name, sorted. */
-export function scenesOf(paths: readonly string[]): string[] {
-  const scenes = new Set<string>()
-  for (const path of paths)
-    if ([SYSTEMS_DIR, NAV_DIR, PUZZLE_DIR].some((dir) => path.startsWith(dir)) && path.endsWith('.toml'))
-      scenes.add(sceneOf(path))
-  return [...scenes].sort()
-}
 
 interface Step {
   readonly label: string

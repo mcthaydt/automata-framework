@@ -8,7 +8,8 @@ import {
 } from '@automata/editor/kit/ports'
 import { canvas, inspector, panel, status } from './SchematicRegions.svelte'
 import { findFacts } from './schematic-facts.ts'
-import { SchematicSession, scenesOf } from './schematic-session.svelte.ts'
+import { scenesOf } from './schematic-scenes.ts'
+import { SchematicSession } from './schematic-session.svelte.ts'
 
 export interface SchematicOptions {
   /** The address of the game's dev page, when the editors were opened in the game's folder. */
