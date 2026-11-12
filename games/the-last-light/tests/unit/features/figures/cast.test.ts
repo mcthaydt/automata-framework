@@ -312,7 +312,7 @@ describe('the painted frame shows what they wear', () => {
       0,
     )
 
-  // The painter's own reference for a face at density 2 (FigureBuilder's record of its base pair): a brow two texels thick, an eye with its
+  // The painter's own reference for a face at density 2 (the record of its base pair): a brow two texels thick, an eye with its
   // white beside a dark iris under a dark lid, a nose, a mouth. Each is counted from the picture, in the swatch it is painted in.
   it('draws Ada’s brows two texels thick: a run of two dark brow texels, one above the other, under each side of the fringe', () => {
     const { all, is } = faceAt2(ADA)

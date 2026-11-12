@@ -32,6 +32,7 @@
     "test:webgpu": "vitest run --project webgpu",
     "typecheck": "tsc -p .",
     "gate": "tsx scripts/gate.ts",
+    "ada-d2": "tsx scripts/ada-density2.ts",
     "sheet": "tsx scripts/figure-sheet.ts",
     "variants": "tsx scripts/figure-variants.ts",
     "proportions": "tsx scripts/figure-proportions.ts",
