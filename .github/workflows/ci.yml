@@ -338,8 +338,10 @@ jobs:
   frame-budget:
     name: frame budget (nightly, GPU runner)
     # Milliseconds per frame of the core stress example's production build. A performance probe
-    # needs the GPU to itself (AGENTS.md), so it runs one at a time (`concurrency`) and never beside a journey run. `pnpm budget:frame` fails closed until tooling/frame-budget/budget.json is set
-    # from the first run on this runner (Owner acceptance), and on any software-rendered result.
+    # needs the GPU to itself (AGENTS.md), so it runs one at a time (`concurrency`) and never beside a journey run.
+    # `pnpm budget:frame` fails closed until tooling/frame-budget/budget.json is set from the first run on this
+    # runner (Owner acceptance); a run where every project was drawn by software or skipped for it is a skip and
+    # exits 0, saying nothing was measured.
     if: >-
       !cancelled() &&
       (github.event_name == 'schedule' ||
