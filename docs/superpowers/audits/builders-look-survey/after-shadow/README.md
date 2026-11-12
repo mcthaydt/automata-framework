@@ -29,23 +29,37 @@ FigureBuilder `23f889c`; `spikes/builders-look/eb-shadow-probe.ts`) and counting
 | both interiors | fp | 0 | 1 (the pair's feet are out of the frame) |
 
 Ours is `SHADOW_ONLY=1 node spikes/builders-look/shoot.mjs … figures=painted` (`shadow.json`): the same count, between the frame with
-the shadow on and with `shadow=0`, leaving out texels the scene moves by itself between two page loads (a leaf's sway).
-**Not complete, and a finding.** A first run counted the leaf's sway as shadow (footprint 1333, darkening 12: texels that differ between
-two loads brighten as often as they darken). The script now leaves out the texels two loads of the shadow-on frame do not share, and
-the street's rerun (`shadow.json`) reads: **diorama 185 texels, first person 239, with a mean luma ratio of 5.5 and 4.7**. A shadow
-darkens (a ratio near 0.6, the builder's), so these texels are not shadow: they are what is left of the scene's own movement. **That
-is, no measurable cast shadow in the street's two frames, against the builder's 1422 and 46 texels.** The interiors are not measured
-(about a minute a shot on software GL; 24 shots), but the interior diorama sheet shows a contact ellipse by eye. This is the first
-thing the next session looks at: the first session's tests (a floor under a sun, in a fixture room) pass, so what differs in the
-street is in its content (its floor's planes at the feet's height within `floorReach`, or the sun's `lowSun` rule, or the shadow
-not being added for the kit's figure in the base scene's renderer). Not accepted as measured; not a pass.
+the shadow on and with `shadow=0`, over the texels the shadow darkens and the scene does not move by itself between two page loads (a
+leaf's sway: a texel that differs between two loads of the shadow-on frame is left out, and a texel that is brighter with the shadow on
+cannot be shadow).
+
+**The street's missing shadow was the spike's wiring, not the framework.** The first run found 185 texels in the street's diorama and 239
+in first person with a luma ratio above 5: no shadow. The cause (found by reading the room's planes, then a unit check): the spike stood
+each figure at y 0 (`at[2] ?? 0`) while the street's pavement plane is at 0.12 m, which is exactly `floorReach`, and the rule is `< 0.12`
+(the builder's `onFloor`), so no floor cell passed; with the feet at 0.12 the same cast marks 210 cells, at 0 none. EnvironmentBuilder
+stands a sprite at its sector's floor (`at[2] ?? floorAt`), so the spike now does too (`feetOf` in `spikes/eb-look/scene.ts`), and a unit
+case in `figure-shadow.test.ts` fixes the rule (a figure on the pavement casts; one at the road's level, 0.12 m under it, is not on it).
+The interiors' floors are at 0, which is why the contact ellipse showed there.
+
+Measured after the fix (the numbers the run got to; the rest are for the next session to take with the same command):
+
+| Scene | View | Builder: footprint / darkening | Ours: footprint / darkening |
+|---|---|---|---|
+| base-exterior | diorama | 1422 / 0.64 | **1357 / 0.69** (the run before the count kept only darkened texels; noise 2979) |
+| base-interior | diorama | 1223 / 0.61 | **673 / 0.606** |
+
+The street is the builder's within 5% in footprint and 0.05 in darkening. The interior's footprint is 55% of the builder's, at the
+builder's darkening: the contact ellipse alone, and not yet explained (the count leaves out the figures' own pixels in both frames, and the
+two figures stand 1.2 m apart, so the ellipses do not overlap). The next session reads the builder's `shadowOf` for the interior (`stage/cast.ts`) against `figure-shadow.ts` to see where the other 550 texels are.
+Not measured yet: the
+street's first person, both dressed scenes, and the interiors' first person (the builder's footprint there is 0: the feet are out of frame).
 
 ## What the sheets show
 
 - The interiors' dioramas: a dark contact ellipse under each pair's feet and nothing more (the lamp is a pendant: no sun), as the
   builder's.
-- The street's diorama: the builder's pair stand in the sun's sheared bands going right from the feet; ours show no shadow on the
-  pavement by eye, and the measure above agrees (nothing darkens). A defect to find, as above.
+- The street's diorama (and the gameplay and room views of `../after-sizes/`): the pair throw the sun's shadow along the pavement
+  to the right, as the builder's do.
 
 ## Named differences
 

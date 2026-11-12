@@ -176,19 +176,20 @@ export function roomLight(
       const luma = exposure.ground(x + dx, z + dz, y)
       if (luma !== undefined) floors.push(luma)
     }
-  let held: number
+  // The tint's ring: the figure is held within `hot` steps over it, and never lifted over its painted cell (`lift`). The light the
+  // sprite is lit with is rebuilt from the quantised values only (steps taken off already, colour in sixteenths), so the key decides
+  // the bytes.
+  const ringHeld = Math.min(ROOM_LIGHT.lift, steps - Math.max(0, steps - flatSteps(ring) - ROOM_LIGHT.hot))
+  let held = ringHeld
   if (exposure !== undefined && floors.length > 0 && exposure.figure > 0) {
     const ringLuma = floors.reduce((a, b) => a + b, 0) / floors.length
-    // The figure lit by the room is its painted luma times `STEP` to the flat steps (never over its painted cell, `lift`); each
-    // whole step down takes it a `STEP` ratio further, until it is within the window of the floor it stands on.
+    // The figure lit by the room is its painted luma times `STEP` to the flat steps; each whole step down takes it a `STEP` ratio
+    // further, until it is within the window of the floor it stands on. That is an estimate of the frame (the painter's form and rim
+    // and the look's passes add to the figure's luma), so it only ever dims further than the tint's ring did: the stricter hold stands.
     const flatHeld = Math.min(ROOM_LIGHT.lift, steps)
     const shown = exposure.figure * STEP ** flatHeld
     const over = ringLuma > 0 ? Math.log(shown / (ROOM_LIGHT.hotLuma * ringLuma)) / Math.log(STEP) : 0
-    held = flatHeld - Math.max(0, Math.ceil(over - 1e-9))
-  } else {
-    // The light the sprite is lit with is rebuilt from the quantised values only (steps taken off already, colour in sixteenths),
-    // so the key decides the bytes. A figure is never lifted over its painted cell (`lift`).
-    held = Math.min(ROOM_LIGHT.lift, steps - Math.max(0, steps - flatSteps(ring) - ROOM_LIGHT.hot))
+    held = Math.min(ringHeld, flatHeld - Math.max(0, Math.ceil(over - 1e-9)))
   }
   const top = peak(flat)
   const colour: V3 = top > 0 ? [flat[0] / top, flat[1] / top, flat[2] / top] : [1, 1, 1]

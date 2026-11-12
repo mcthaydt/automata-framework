@@ -287,6 +287,14 @@ describe('roomLight exposed toward the floor it stands on (SceneLight.groundLuma
     expect(roomLight(pool, undefined, FEET, 0, none).key).toBe(roomLight(pool, undefined, FEET, 0).key)
   })
 
+  it('never lights a figure more than the tint’s own ring would: a bright floor does not undo the hold', () => {
+    // A pool on a dark ring: the tint's rule dims the figure to one step over the ring. A floor that shows bright (luma 0.9) alone
+    // would leave it at its painted cell; the stricter of the two stands.
+    const pool: Tint = (_x, y) => (y > 0.5 ? [1.6, 1.6, 1.6] : [0.5, 0.5, 0.5])
+    const bright = { ground: () => 0.9, figure: 0.5 }
+    expect(roomLight(pool, undefined, FEET, 0, bright).key).toBe(roomLight(pool, undefined, FEET, 0).key)
+  })
+
   it('is the same key without an exposure, as before', () => {
     expect(roomLight(grey(0.7), undefined, FEET, 0).key.startsWith('-2|-|-')).toBe(true)
   })

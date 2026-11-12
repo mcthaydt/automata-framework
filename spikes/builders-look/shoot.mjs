@@ -310,6 +310,25 @@ if (process.env.SIZES_ONLY === '1') {
   process.exit(0)
 }
 
+// READ_ONE=<scene>:<view>:<WxH>:<label> (with `figures=painted`, and any query such as `density=1&crisp=0`) shoots that one view with the
+// painted pair and again without it (`cast=0`), shadow off in both, keeps both frames (`<label>-with.png`, `<label>-without.png`) and
+// writes how each figure reads against its ring (`<label>-reads.json`): the number to put beside the same run on another build.
+if (process.env.READ_ONE !== undefined) {
+  const [scene, view, fieldText, label] = process.env.READ_ONE.split(':')
+  const field = fieldText.split('x').map(Number)
+  const url = `${local()}/?scene=${scene}&view=${view}&pref=webgl&field=${fieldText}&shadow=0${QUERY}`
+  const withCast = await shoot(url, field)
+  const without = await shoot(`${url}&cast=0`, field)
+  writeFileSync(join(out, `${label}-with.png`), Buffer.from(withCast.b64, 'base64'))
+  writeFileSync(join(out, `${label}-without.png`), Buffer.from(without.b64, 'base64'))
+  await readsOf(withCast.b64, without.b64, field, { scene, view, label })
+  writeFileSync(join(out, `${label}-reads.json`), `${JSON.stringify(reads, null, 2)}\n`)
+  console.log(label, JSON.stringify(reads))
+  await browser.close()
+  stop()
+  process.exit(0)
+}
+
 // READS_ONLY=1 shoots only what reads.json needs (the baked-light panel of each scene and view, with and without the cast),
 // not the sheets.
 if (process.env.READS_ONLY === '1') {
