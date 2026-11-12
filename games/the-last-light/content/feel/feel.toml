@@ -1,0 +1,16 @@
+# What the player feels when something happens in the night. It is the `feel` file of @automata/feel, which the Feel editor
+# opens. Nothing here changes the sim; the player can turn it down. A catch is the one big moment: the figure's touch.
+# (A tint, not a flash, for the dark: the strongest thing here is the red wash, and the settings' reduce-flashing keeps it.)
+
+# The figure's touch: Ada is found. The found cutscene starts as it lands, with its own sound.
+[[entry]]
+on = "systems.caught"
+camera = [{ shake = 0.7 }]
+visual = [{ tint = "#a01020", ms = 700, alpha = 0.3 }]
+haptic = [{ strong = 0.8, weak = 0.4, ms = 300, phone_ms = 200 }]
+
+# The lamp gutters out: a small tremor, no more.
+[[entry]]
+on = "systems.light-dry"
+camera = [{ shake = 0.12 }]
+haptic = [{ strong = 0.0, weak = 0.3, ms = 120 }]

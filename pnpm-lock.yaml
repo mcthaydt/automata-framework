@@ -1580,6 +1580,9 @@ importers:
       '@automata/cutscenes':
         specifier: workspace:*
         version: link:../../extensions/cutscenes
+      '@automata/feel':
+        specifier: workspace:*
+        version: link:../../extensions/feel
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
@@ -1607,6 +1610,12 @@ importers:
       '@automata/systems':
         specifier: workspace:*
         version: link:../../extensions/systems
+      '@automata/ui-screens':
+        specifier: workspace:*
+        version: link:../../extensions/ui-screens
+      '@automata/world-kit':
+        specifier: workspace:*
+        version: link:../../extensions/world-kit
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0

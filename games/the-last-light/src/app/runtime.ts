@@ -52,9 +52,18 @@ const reader = (view: SimView): Reader => {
   }
 }
 
-/** The extensions and plugins of the game, with every join between them made. Needs the numbers of the content. */
-export function createRuntime(play: PlayContent): Runtime {
-  const cutscenes = cutscenesExtension({ anchor: anchorsOf(play) })
+/** What only a screen needs of the cutscenes: the captions' words, their lines, the scripts and the typing. */
+export type Captions = Pick<
+  NonNullable<Parameters<typeof cutscenesExtension>[0]>,
+  'words' | 'lines' | 'scripts' | 'typed'
+>
+
+/**
+ * The extensions and plugins of the game, with every join between them made. Needs the numbers of the content; the page
+ * adds the captions (`captions`), a sim with no screen leaves them out.
+ */
+export function createRuntime(play: PlayContent, captions: Captions = {}): Runtime {
+  const cutscenes = cutscenesExtension({ anchor: anchorsOf(play), ...captions })
   const hooks = nightHooks({
     checkpoint: saveCheckpoint,
     start: cutscenes.start,

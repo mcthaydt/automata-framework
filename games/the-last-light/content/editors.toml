@@ -46,3 +46,26 @@ editor = "schematic"
 modes = ["edit"]
 gates = []
 checks = ["content"]
+
+# The tuning numbers, the sound and what the player feels. The audio file's footsteps table is a gap (the Audio editor opens the
+# file and keeps the table, with no rows for it): editor gaps ledger row 9.
+[[file]]
+glob = "content/tuning.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/audio/*.toml"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/feel/*.toml"
+editor = "feel"
+modes = ["edit"]
+gates = []
+checks = ["content"]

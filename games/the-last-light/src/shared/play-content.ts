@@ -1,3 +1,4 @@
+import type { CameraView } from '@automata/3d/sim'
 import type { CutsceneScript } from '@automata/cutscenes/sim'
 import type { Hotspot } from '@automata/interact/sim'
 import type { Canon, Storylet } from '@automata/narrative/sim'
@@ -30,6 +31,9 @@ export interface PlayContent {
   readonly map: SectorMap
   readonly hotspots: readonly Hotspot[]
   readonly start: Start
+  /** The level's camera views, and the view each room takes (by the room's id). */
+  readonly views: readonly CameraView[]
+  readonly viewOf: Readonly<Record<string, string>>
   /** The level's lamps that have a gameplay radius (a lamp's `radius` field). */
   readonly pools: readonly Pool[]
   readonly graph: NavGraph

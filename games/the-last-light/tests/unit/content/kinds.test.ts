@@ -9,7 +9,7 @@ const kinds = content as unknown as Record<string, Record<string, unknown> | und
 
 describe('the content the game compiles', () => {
   it('has a kind for each of the game’s own files', () => {
-    for (const kind of ['audio', 'hud', 'peek', 'carried-light'])
+    for (const kind of ['audio', 'feel', 'hud', 'peek', 'carried-light'])
       expect(kinds[kind], `no ${kind} in the compiled content`).toBeDefined()
   })
 

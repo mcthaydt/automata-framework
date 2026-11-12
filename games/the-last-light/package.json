@@ -30,6 +30,7 @@
     "@automata/3d": "workspace:*",
     "@automata/audio-synth": "workspace:*",
     "@automata/cutscenes": "workspace:*",
+    "@automata/feel": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/hud": "workspace:*",
     "@automata/interact": "workspace:*",
@@ -39,6 +40,8 @@
     "@automata/sectors": "workspace:*",
     "@automata/sim": "workspace:*",
     "@automata/systems": "workspace:*",
+    "@automata/ui-screens": "workspace:*",
+    "@automata/world-kit": "workspace:*",
     "pixi.js": "8.22.0",
     "svelte": "5.57.1",
     "zod": "4.6.6"

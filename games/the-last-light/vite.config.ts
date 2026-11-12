@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { audioContent } from '@automata/audio-synth'
 import { automataContent } from '@automata/content/vite'
 import { cutsceneContent } from '@automata/cutscenes/content'
+import { feelContent } from '@automata/feel'
 import { hudContent } from '@automata/hud/content'
 import {
   beatsContent,
@@ -50,6 +51,7 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
       peekContent,
       hudContent,
       audioContent,
+      feelContent,
     ],
   })
 }

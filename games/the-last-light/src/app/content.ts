@@ -1,4 +1,5 @@
 import { readLevel } from '@automata/3d/level'
+import { cameraView } from '@automata/3d/sim'
 import type { CutsceneScript } from '@automata/cutscenes/sim'
 import { hotspotsOf } from '@automata/interact/sim'
 import type { Canon, Storylet } from '@automata/narrative/sim'
@@ -42,6 +43,13 @@ export function playOf(content: unknown): PlayContent {
     map: readSectorMap(level).level,
     hotspots,
     start: { x: spawn.x, z: spawn.z },
+    // The level names each view's numbers, and each room says which view it takes; the camera follows Ada through them.
+    views: Object.entries(read.views ?? {}).map(([id, fields]) => cameraView(id, fields)),
+    viewOf: Object.fromEntries(
+      read.sectors.flatMap((sector) =>
+        sector.view === undefined ? [] : [[sector.id, sector.view] as const],
+      ),
+    ),
     pools: (read.lamps ?? []).flatMap((lamp) => {
       const radius = (lamp as { radius?: unknown }).radius
       return typeof radius === 'number' && radius > 0

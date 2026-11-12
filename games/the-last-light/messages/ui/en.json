@@ -17,5 +17,7 @@
   "hotspot.fuseBox": "Fuse box",
   "hotspot.exit": "Emergency exit",
   "hotspot.locker": "Supply locker",
-  "hotspot.screen": "Privacy screen"
+  "hotspot.screen": "Privacy screen",
+  "controls.lamp": "Lamp",
+  "controls.skip": "Skip"
 }
