@@ -425,6 +425,17 @@ export function stampFace(
       }
       shade(xr - 1, N - 1, -1)
       for (let x = a; x <= b; x++) shade(x, N, x === a || x === b ? 2 : 1)
+      // A full face: the nose's side plane on the far side of the bridge, its tip catching the light, the wings above the nostrils.
+      if (rich) {
+        for (let y = I + 2; y < N; y++) {
+          shade(xr + 1, y, 1)
+          if (y >= (I + N) >> 1) shade(xr + 2, y, 1)
+        }
+        shade(xr, N - 1, -2)
+        shade(xr + 1, N - 1, 2)
+        shade(a + 1, N - 1, 1)
+        shade(b - 1, N - 1, 1)
+      }
     } else shade(xr, N, 1)
     cheek(b)
     const ma = Math.floor(c2 - mh)

@@ -110,6 +110,22 @@ describe('a full eye (`eyes.full`)', () => {
         new Set(plain.map(([, y]) => y)).size,
       )
     })
+    it('the nose is modelled: its side plane, its tip and its wings change the skin between the eyes and the mouth', () => {
+      // The region is the plain face's (from its eyes to its mouth, either side of its centre), the same for both.
+      const plain = draw({}, 7),
+        full = draw({ full: true }, 7),
+        iris = where(plain, IRIS),
+        cx = iris.reduce((a, [x]) => a + x, 0) / iris.length,
+        low = Math.max(...iris.map(([, y]) => y)) + 3,
+        mouth = Math.min(...[...where(plain, LIP_UP), ...where(plain, LIP_LOW)].map(([, y]) => y)) - 2
+      let changed = 0
+      for (let y = low; y < mouth; y++)
+        for (let x = Math.round(cx) - 5; x <= Math.round(cx) + 5; x++) {
+          const k = y * plain.w + x
+          if ([0, 1, 2].some((c) => plain.px[k * 4 + c] !== full.px[k * 4 + c])) changed++
+        }
+      expect(changed).toBeGreaterThanOrEqual(12)
+    })
     it('draws the same face at density 2 with or without it, view by view', () => {
       for (const d of [0, 1, 2]) expect(same(draw({ full: true }, 2, d), draw({}, 2, d))).toBe(true)
     })
