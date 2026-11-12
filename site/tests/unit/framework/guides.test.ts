@@ -9,12 +9,13 @@ import { readGuides } from '#src/shared/framework/guides.ts'
 describe('readGuides', () => {
   const guides = readGuides()
 
-  it('lists How it works, Languages, the editor guide and the four publish guides, in the order of index.md', () => {
+  it('lists How it works, Languages, the editor guide, the guide to hotspots and the play HUD and the four publish guides, in the order of index.md', () => {
     expect(guides.map((guide) => guide.slug)).toEqual([
       'how-it-works',
       'languages',
       'editor',
       'extensions',
+      'hotspots-and-the-play-hud',
       'publish-to-web',
       'publish-to-itch',
       'publish-to-desktop',

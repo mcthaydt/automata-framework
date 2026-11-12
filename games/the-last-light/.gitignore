@@ -1,3 +1,1 @@
 .vitest/
-# Written by the content plugin on every run; the game types itself from it.
-content/generated/

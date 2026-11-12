@@ -13,6 +13,7 @@
       "!packages/editor-3d/src/testing/fixtures",
       "!**/*.af2d.json",
       "!games/emberwick/content/generated",
+      "!games/the-last-light/content/generated",
       "!examples/2d/content/hot-reload/content/generated",
       "!site/build",
       "!site/static/demos",

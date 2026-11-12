@@ -1,0 +1,6051 @@
+{
+  "audio": {
+    "audio": {
+      "cue": [
+        {
+          "about": "The opening bed: a monitor beeping slowly in a quiet ward at night.",
+          "bus": "sfx",
+          "gain": 0.3,
+          "id": "openingWard",
+          "sound": "sounds/opening-ward.ogg",
+          "voices": []
+        },
+        {
+          "about": "The cabinet opening: a lock clicks and a steel door swings.",
+          "bus": "sfx",
+          "gain": 0.68,
+          "id": "cabinetOpen",
+          "sound": "sounds/cabinet-open.ogg",
+          "voices": []
+        },
+        {
+          "about": "The lamps going out one by one, and the hush before 04:17.",
+          "bus": "sfx",
+          "gain": 4,
+          "id": "lampsOut",
+          "sound": "sounds/lamps-out.ogg",
+          "voices": []
+        },
+        {
+          "about": "A held breath, and a pulse being counted: the practice catch.",
+          "bus": "sfx",
+          "gain": 3.63,
+          "id": "pulseCounted",
+          "sound": "sounds/pulse-counted.ogg",
+          "voices": []
+        },
+        {
+          "about": "The figure settling: starched cotton, and a chair taking her weight.",
+          "bus": "sfx",
+          "gain": 4,
+          "id": "nurseSettle",
+          "sound": "sounds/nurse-settle.ogg",
+          "voices": []
+        },
+        {
+          "about": "The figure moving off: soft soles going away down the linoleum.",
+          "bus": "sfx",
+          "gain": 4,
+          "id": "nurseMoveOff",
+          "sound": "sounds/nurse-move-off.ogg",
+          "voices": []
+        },
+        {
+          "about": "The figure turning toward a sound: a shoe pivots on the floor, then stillness.",
+          "bus": "sfx",
+          "gain": 4,
+          "id": "turnToSound",
+          "sound": "sounds/turn-to-sound.ogg",
+          "voices": []
+        },
+        {
+          "about": "The figure seeing Ada: a sharp fabric snap and quick steps starting, never a voice.",
+          "bus": "sfx",
+          "gain": 4,
+          "id": "nurseSees",
+          "sound": "sounds/nurse-sees.ogg",
+          "voices": []
+        },
+        {
+          "about": "The figure backing from the light: hurried steps going back, cloth swishing.",
+          "bus": "sfx",
+          "gain": 4,
+          "id": "nurseBackOff",
+          "sound": "sounds/nurse-back-off.ogg",
+          "voices": []
+        },
+        {
+          "about": "Ada takes or uses something.",
+          "bus": "sfx",
+          "id": "pickup",
+          "voices": [
+            {
+              "from": 660,
+              "length": 0.12,
+              "to": 990,
+              "tone": "triangle",
+              "volume": 0.06
+            }
+          ]
+        },
+        {
+          "about": "A heavy door opens.",
+          "bus": "sfx",
+          "id": "door",
+          "voices": [
+            {
+              "from": 70,
+              "length": 0.3,
+              "to": 50,
+              "tone": "square",
+              "volume": 0.12
+            },
+            {
+              "hiss": 500,
+              "length": 0.5,
+              "volume": 0.2
+            }
+          ],
+          "world": true
+        },
+        {
+          "about": "A curtain drawn on its rail: cloth, and a small ring of the runners.",
+          "bus": "sfx",
+          "draft": true,
+          "id": "curtain",
+          "voices": [
+            {
+              "hiss": 1800,
+              "length": 0.3,
+              "q": 0.8,
+              "volume": 0.05
+            },
+            {
+              "at": 0.05,
+              "from": 1400,
+              "length": 0.05,
+              "to": 1250,
+              "tone": "triangle",
+              "volume": 0.012
+            }
+          ],
+          "world": true
+        },
+        {
+          "about": "The keypad refuses a code.",
+          "bus": "sfx",
+          "id": "buzz",
+          "voices": [
+            {
+              "from": 110,
+              "length": 0.35,
+              "to": 105,
+              "tone": "sawtooth",
+              "volume": 0.12
+            }
+          ],
+          "world": true
+        },
+        {
+          "about": "The keypad takes the code: two rising notes.",
+          "bus": "ui",
+          "draft": true,
+          "id": "chime",
+          "voices": [
+            {
+              "from": 660,
+              "length": 0.07,
+              "to": 660,
+              "tone": "triangle",
+              "volume": 0.03
+            },
+            {
+              "at": 0.07,
+              "from": 990,
+              "length": 0.1,
+              "to": 990,
+              "tone": "triangle",
+              "volume": 0.03
+            }
+          ]
+        },
+        {
+          "about": "The sighting sting: a low saw, a thin high sine and a dark hiss.",
+          "bus": "sfx",
+          "id": "sting",
+          "voices": [
+            {
+              "from": 70,
+              "length": 2.2,
+              "to": 64,
+              "tone": "sawtooth",
+              "volume": 0.16
+            },
+            {
+              "from": 1760,
+              "length": 1.6,
+              "to": 1700,
+              "tone": "sine",
+              "volume": 0.04
+            },
+            {
+              "hiss": 300,
+              "length": 1.8,
+              "volume": 0.12
+            }
+          ]
+        },
+        {
+          "about": "A lighter wheel: a short scrape and a click, as the hand lamp is lit or snuffed.",
+          "bus": "ui",
+          "draft": true,
+          "id": "lampLit",
+          "voices": [
+            {
+              "hiss": 2400,
+              "length": 0.12,
+              "q": 1.5,
+              "volume": 0.05
+            },
+            {
+              "at": 0.1,
+              "from": 1800,
+              "length": 0.02,
+              "to": 1700,
+              "tone": "square",
+              "volume": 0.012
+            }
+          ]
+        },
+        {
+          "about": "The flame gutters: the lamp has run out of fuel.",
+          "bus": "sfx",
+          "draft": true,
+          "id": "lampDry",
+          "voices": [
+            {
+              "hiss": 1200,
+              "length": 0.5,
+              "q": 0.6,
+              "volume": 0.1
+            },
+            {
+              "from": 120,
+              "length": 0.4,
+              "to": 60,
+              "tone": "sine",
+              "volume": 0.05
+            }
+          ]
+        },
+        {
+          "about": "Ada slips into a hiding place: cloth and a soft latch.",
+          "bus": "sfx",
+          "draft": true,
+          "id": "hide",
+          "voices": [
+            {
+              "hiss": 420,
+              "length": 0.35,
+              "q": 1,
+              "volume": 0.1
+            },
+            {
+              "at": 0.2,
+              "from": 220,
+              "length": 0.12,
+              "to": 180,
+              "tone": "triangle",
+              "volume": 0.03
+            }
+          ]
+        },
+        {
+          "about": "A door rattles in its frame: the figure is coming through after Ada.",
+          "bus": "sfx",
+          "draft": true,
+          "id": "rattle",
+          "voices": [
+            {
+              "from": 140,
+              "length": 0.05,
+              "to": 120,
+              "tone": "square",
+              "volume": 0.05
+            },
+            {
+              "at": 0.09,
+              "from": 150,
+              "length": 0.05,
+              "to": 122,
+              "tone": "square",
+              "volume": 0.05
+            },
+            {
+              "at": 0.19,
+              "from": 136,
+              "length": 0.05,
+              "to": 116,
+              "tone": "square",
+              "volume": 0.05
+            },
+            {
+              "at": 0.3,
+              "from": 146,
+              "length": 0.05,
+              "to": 118,
+              "tone": "square",
+              "volume": 0.05
+            },
+            {
+              "hiss": 900,
+              "length": 0.4,
+              "q": 2,
+              "volume": 0.08
+            }
+          ],
+          "world": true
+        },
+        {
+          "about": "One footstep on linoleum.",
+          "bus": "sfx",
+          "id": "step",
+          "voices": [
+            {
+              "hiss": 700,
+              "length": 0.07,
+              "q": 2,
+              "volume": 0.05
+            }
+          ]
+        },
+        {
+          "about": "One footstep on ceramic tile: a harder, brighter tap than linoleum.",
+          "bus": "sfx",
+          "draft": true,
+          "id": "stepTile",
+          "voices": [
+            {
+              "hiss": 1500,
+              "length": 0.05,
+              "q": 2.5,
+              "volume": 0.045
+            },
+            {
+              "from": 900,
+              "length": 0.03,
+              "to": 700,
+              "tone": "triangle",
+              "volume": 0.012
+            }
+          ]
+        },
+        {
+          "about": "One footstep on bare concrete: a dull scuff with a little grit.",
+          "bus": "sfx",
+          "draft": true,
+          "id": "stepConcrete",
+          "voices": [
+            {
+              "hiss": 450,
+              "length": 0.08,
+              "q": 1.2,
+              "volume": 0.05
+            },
+            {
+              "hiss": 2600,
+              "length": 0.05,
+              "q": 2,
+              "volume": 0.015
+            }
+          ]
+        },
+        {
+          "about": "One footstep on sheet metal: a hollow tap with a short ring.",
+          "bus": "sfx",
+          "draft": true,
+          "id": "stepMetal",
+          "voices": [
+            {
+              "hiss": 1200,
+              "length": 0.04,
+              "q": 2,
+              "volume": 0.035
+            },
+            {
+              "from": 520,
+              "length": 0.18,
+              "to": 500,
+              "tone": "triangle",
+              "volume": 0.02
+            }
+          ]
+        }
+      ],
+      "event": [
+        {
+          "cue": "openingWard",
+          "on": "cutscene.opening"
+        },
+        {
+          "cue": "cabinetOpen",
+          "on": "cutscene.keypad"
+        },
+        {
+          "cue": "lampsOut",
+          "on": "cutscene.rest"
+        },
+        {
+          "cue": "pulseCounted",
+          "on": "cutscene.found"
+        },
+        {
+          "on": "cutscene.lightsOut",
+          "silent": "its script plays the sting at the right frame; the old game played no file under it"
+        },
+        {
+          "on": "cutscene.started",
+          "silent": "the cutscene's own row, cutscene.<id>, plays"
+        },
+        {
+          "on": "cutscene.ended",
+          "silent": "nothing sounds as a cutscene ends"
+        },
+        {
+          "cue": "nurseSettle",
+          "on": "agent.nurse.dormant"
+        },
+        {
+          "cue": "nurseMoveOff",
+          "on": "agent.nurse.patrol"
+        },
+        {
+          "cue": "turnToSound",
+          "on": "agent.nurse.investigate"
+        },
+        {
+          "cue": "nurseSees",
+          "on": "agent.nurse.hunt"
+        },
+        {
+          "cue": "nurseBackOff",
+          "on": "agent.nurse.flee"
+        },
+        {
+          "cue": "rattle",
+          "on": "agent.nurse.follow"
+        },
+        {
+          "cue": "nurseMoveOff",
+          "on": "agent.nurse.leaving"
+        },
+        {
+          "on": "systems.mode",
+          "silent": "the figure's own row, agent.<who>.<mode>, plays"
+        },
+        {
+          "cue": "buzz",
+          "on": "noise.buzz"
+        },
+        {
+          "on": "noise.step",
+          "silent": "Ada's step sounds by the floor under her (steps), not by the noise the figure hears"
+        },
+        {
+          "on": "systems.noise",
+          "silent": "the noise's own row, noise.<kind>, plays"
+        },
+        {
+          "on": "puzzle.noise",
+          "silent": "the noise's own row, noise.<kind>, plays"
+        },
+        {
+          "cue": "door",
+          "on": "use.closetDoor"
+        },
+        {
+          "cue": "curtain",
+          "on": "use.curtainWest"
+        },
+        {
+          "cue": "curtain",
+          "on": "use.curtainEast"
+        },
+        {
+          "on": "use.screen",
+          "silent": "game.hide plays as Ada hides"
+        },
+        {
+          "on": "use.locker",
+          "silent": "game.hide plays as Ada hides"
+        },
+        {
+          "on": "use.cabinet",
+          "silent": "the keypad opens on this use, and the keypad cutscene has its own sound"
+        },
+        {
+          "on": "use.code",
+          "silent": "the keypad's own cues play: the chime when the code is right, the buzz when it is not"
+        },
+        {
+          "cue": "pickup",
+          "on": "use.*"
+        },
+        {
+          "cue": "hide",
+          "on": "game.hide"
+        },
+        {
+          "on": "puzzle.said",
+          "silent": "the use's own row, use.<hotspot>, plays"
+        },
+        {
+          "on": "puzzle.gave",
+          "silent": "the use that gave the item plays its own pickup"
+        },
+        {
+          "on": "puzzle.keypad",
+          "silent": "the keypad opens on a use, which has its own row"
+        },
+        {
+          "on": "puzzle.checkpoint",
+          "silent": "a checkpoint is made at lights out, which the lights-out cutscene covers"
+        },
+        {
+          "on": "puzzle.cutscene",
+          "silent": "the cutscene's own row plays when it starts"
+        },
+        {
+          "on": "puzzle.dialogue",
+          "silent": "a conversation is text"
+        },
+        {
+          "on": "puzzle.exit",
+          "silent": "the prologue has no exit to another scene"
+        },
+        {
+          "on": "puzzle.goal",
+          "silent": "the rest cutscene ends the night"
+        },
+        {
+          "on": "systems.caught",
+          "silent": "the found cutscene carries it"
+        },
+        {
+          "on": "systems.cutscene",
+          "silent": "the cutscene's own row plays when it starts"
+        },
+        {
+          "on": "systems.line",
+          "silent": "a line is text"
+        },
+        {
+          "on": "systems.peek",
+          "silent": "a peek has no sound of its own"
+        },
+        {
+          "cue": "lampDry",
+          "on": "systems.light-dry"
+        },
+        {
+          "on": "interact.used",
+          "silent": "puzzle.said's row, use.<hotspot>, plays"
+        },
+        {
+          "on": "interact.pending",
+          "silent": "Ada is still walking to it"
+        },
+        {
+          "on": "interact.refused",
+          "silent": "a refused use is said in words"
+        },
+        {
+          "on": "sector.entered",
+          "silent": "the floor's step sound is the only sound of walking"
+        },
+        {
+          "on": "zone.crossed",
+          "silent": "the camera's own cut is silent"
+        },
+        {
+          "on": "nav.arrived",
+          "silent": "arriving is silent"
+        },
+        {
+          "on": "nav.unreachable",
+          "silent": "a refused walk is said in words"
+        },
+        {
+          "on": "narrative.*",
+          "silent": "the dialogue and the story's lines are text"
+        }
+      ],
+      "master_gain": 0.55,
+      "music_rule": [
+        {
+          "slot": "hold",
+          "when": {
+            "phase": [
+              "paused",
+              "keypad"
+            ]
+          },
+          "why": "An overlay over the game: the music goes on under it."
+        },
+        {
+          "slot": "silence",
+          "when": {
+            "hidden": true,
+            "phase": "play"
+          },
+          "why": "Hidden, Ada listens for the figure over her heartbeat: the music gets out of the way, and a chase does not linger."
+        },
+        {
+          "slot": "back-to-bed-ada",
+          "when": {
+            "chasing": true,
+            "phase": [
+              "play",
+              "cutscene"
+            ]
+          },
+          "why": "The prologue's practice chase, after lights out."
+        },
+        {
+          "slot": "four-seventeen",
+          "when": {
+            "figureAbout": true,
+            "phase": [
+              "play",
+              "cutscene"
+            ]
+          },
+          "why": "The prologue after lights out: the figure is about and the cosy theme is over."
+        },
+        {
+          "slot": "first-night",
+          "when": {},
+          "why": "The prologue, lights on."
+        }
+      ],
+      "slot": [
+        {
+          "about": "Ada's theme: the title and the main menu, and the prologue's lamps-on music until its own file exists.",
+          "id": "the-last-light",
+          "mode": "loop",
+          "volume": 0.45
+        },
+        {
+          "about": "The prologue, 1979, 20:00, lights on. Almost cosy.",
+          "fallback": [
+            {
+              "sound": "the-last-light",
+              "volume": 0.8
+            }
+          ],
+          "id": "first-night",
+          "mode": "loop",
+          "volume": 0.3
+        },
+        {
+          "about": "After lights out, the figure about: the cosy theme is over.",
+          "id": "four-seventeen",
+          "mode": "loop",
+          "volume": 0.25
+        },
+        {
+          "about": "The practice chase.",
+          "id": "back-to-bed-ada",
+          "linger": 5,
+          "mode": "loop",
+          "volume": 0.4
+        }
+      ],
+      "steps": {
+        "default": "step",
+        "floors": {
+          "bayFloor": "stepConcrete",
+          "counterTop": "stepMetal",
+          "floorDim": "step",
+          "wainscot": "stepTile"
+        }
+      }
+    }
+  },
+  "beats": {
+    "prologue": {
+      "beats": [
+        {
+          "deliveredBy": [
+            "prologue.cutscene.opening.2",
+            "prologue.handover"
+          ],
+          "id": "prologue.handover",
+          "learn": "Ada's first night at St. Agnes. The day shift has gone home and left her a note.",
+          "required": true
+        },
+        {
+          "after": [
+            "prologue.handover"
+          ],
+          "deliveredBy": [
+            "prologue.bedMade",
+            "prologue.cutscene.rest.1"
+          ],
+          "id": "prologue.quiet",
+          "learn": "All quiet. Ada makes up Bed 04 and sits down to wait for morning.",
+          "required": true
+        }
+      ]
+    }
+  },
+  "canon": {
+    "canon": {
+      "facts": [
+        {
+          "id": "clockStopped",
+          "revealedIn": [
+            "clinic"
+          ],
+          "text": "The clinic clock stopped at 04:17."
+        },
+        {
+          "id": "wakesInBed",
+          "revealedIn": [
+            "clinic"
+          ],
+          "text": "Ada wakes in Bed 04. Her wristband reads A. VOSS."
+        },
+        {
+          "id": "monitorName",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "The monitor at Bed 04 reads PATIENT: VOSS, A. ADMITTED 04:17."
+        },
+        {
+          "id": "recordNoName",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "The patient record for Bed 04 reads: admission 04:17, no name, no pulse."
+        },
+        {
+          "id": "lightsOn",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "The patient in Bed 04 asked for the lights to be left on."
+        },
+        {
+          "id": "registerSigned",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "Every night shift since 1987 is signed A. Voss, in Ada's handwriting."
+        },
+        {
+          "id": "firstNight",
+          "revealedIn": [
+            "clinic"
+          ],
+          "text": "Ada's first night at St. Agnes was in 1979. The register's first page is hers."
+        },
+        {
+          "id": "nightsAlone",
+          "revealedIn": [
+            "clinic",
+            "bay"
+          ],
+          "text": "From 1979 to 1987 Ada covered every night shift. No other name is in the register."
+        },
+        {
+          "id": "noRelief",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "The HANDED OVER TO column of the register is blank on every line. No one ever took over from Ada."
+        },
+        {
+          "id": "lastDate",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "The last dated line in the register is 20.01.87. Every line after it carries the same date."
+        },
+        {
+          "id": "nurseHatesLight",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "The Night Nurse does not like the light."
+        },
+        {
+          "id": "code",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "The key cabinet code is 0417."
+        },
+        {
+          "id": "brassKeyTag",
+          "revealedIn": [
+            "clinic",
+            "clinic-dawn"
+          ],
+          "text": "The brass key has a paper tag: SUPPLY on the front, BED 04 on the back."
+        },
+        {
+          "id": "fuseLabel",
+          "revealedIn": [
+            "clinic"
+          ],
+          "text": "The spare fuse is labelled in Ada's handwriting: for when I finally leave."
+        },
+        {
+          "id": "neverNightShift",
+          "revealedIn": [
+            "clinic"
+          ],
+          "text": "Low on the corridor wall someone has scratched: THERE WAS NEVER A NIGHT SHIFT. THEN WHO SIGNS THE REGISTER?"
+        },
+        {
+          "id": "lighterLamb",
+          "revealedIn": [
+            "clinic",
+            "bay"
+          ],
+          "text": "The brass lighter is F. Lamb's. He left it at Bed 04 the night he came for her. Its base is scratched F.L."
+        },
+        {
+          "id": "stAgnesEve",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "The night is St. Agnes' Eve, 20 January 1987: in the old custom, the night you sit up and keep watch."
+        },
+        {
+          "id": "call",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "A call went out from St. Agnes ward at 04:09."
+        },
+        {
+          "id": "crewAnswered",
+          "revealedIn": [
+            "bay",
+            "clinic-dawn"
+          ],
+          "text": "The ambulance crew answered the 04:09 call. Their run sheet is still open."
+        },
+        {
+          "id": "crewControl",
+          "revealedIn": [
+            "bay",
+            "clinic-dawn"
+          ],
+          "text": "The crew call themselves Echo Four. They call Control, and Control never answers."
+        },
+        {
+          "id": "doa",
+          "revealedIn": [
+            "bay",
+            "clinic-dawn"
+          ],
+          "text": "Ada was found at Bed 04 and declared dead on arrival at 04:17: PT: VOSS, A. (STAFF NURSE)."
+        },
+        {
+          "id": "ledgerEntry",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "Every night the ledger reads: 04:17 RECEIVED VOSS, A., FROM BED 04, DRAWER 4. RELEASE AT FIRST LIGHT."
+        },
+        {
+          "id": "releasedEmpty",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "The RELEASED column against her name has always been empty."
+        },
+        {
+          "id": "drawerFour",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "Drawer 4 is empty. Its toe tag reads A. VOSS."
+        },
+        {
+          "id": "firstLight",
+          "revealedIn": [
+            "bay",
+            "clinic-dawn"
+          ],
+          "text": "First light is at 06:02."
+        },
+        {
+          "id": "porterName",
+          "revealedIn": [
+            "bay",
+            "clinic-dawn"
+          ],
+          "text": "The Porter's name tag and his key tag read F. LAMB."
+        },
+        {
+          "id": "porterBlind",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "F. Lamb is blind."
+        },
+        {
+          "id": "porterCold",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "The heater in the porter's office is broken. He is always cold."
+        },
+        {
+          "id": "porterWaits",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "Every night F. Lamb waits to release Ada at first light, and she never comes."
+        },
+        {
+          "id": "keysOnHook",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "The porter hangs his keys on the hook while he signs in."
+        },
+        {
+          "id": "burnerSign",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "If the mortuary burner is left on, he sits by it all night."
+        },
+        {
+          "id": "clockMoves",
+          "revealedIn": [
+            "clinic-dawn"
+          ],
+          "text": "After Ada leaves the bay, the clinic clock moves again. First light reaches reception at 06:02."
+        },
+        {
+          "id": "releasedWritten",
+          "revealedIn": [
+            "clinic-dawn"
+          ],
+          "text": "In the Release ending, F. Lamb writes RELEASED against her name for the first time."
+        },
+        {
+          "id": "handoverRead",
+          "revealedIn": [
+            "clinic-dawn"
+          ],
+          "text": "In the Handover ending, the day nurse reads the handover aloud. Only someone who can see the page can take it over."
+        },
+        {
+          "id": "nameBadge",
+          "revealedIn": [
+            "clinic"
+          ],
+          "text": "Ada's name badge reads A. VOSS, the same as her wristband."
+        },
+        {
+          "id": "spiritFuel",
+          "revealedIn": [
+            "bay"
+          ],
+          "text": "The methylated spirit on the mortuary shelf will fill the lighter."
+        }
+      ],
+      "glossary": [
+        "Ada",
+        "Ada Voss",
+        "Voss",
+        "A. Voss",
+        "A. VOSS",
+        "VOSS, A.",
+        "Night Nurse",
+        "Nurse",
+        "Porter",
+        "F. Lamb",
+        "F. LAMB",
+        "F.L.",
+        "Lamb",
+        "Mr. Lamb",
+        "Drawer Four",
+        "Keats",
+        "Control",
+        "Echo Four",
+        "ECHO FOUR",
+        "St. Agnes",
+        "ST. AGNES",
+        "St. Agnes Clinic",
+        "St. Agnes ward",
+        "ST. AGNES WARD",
+        "St. Agnes' Eve",
+        "The Eve of St. Agnes",
+        "Bed 04",
+        "BED 04",
+        "ALARM",
+        "SUPPLY",
+        "EMERGENCY POWER",
+        "NIGHT REGISTER",
+        "STAFF NOTICE",
+        "PATIENT RECORD",
+        "PATIENT",
+        "ADMISSION",
+        "ADMITTED",
+        "ADM",
+        "SIGNED ON",
+        "HANDED OVER TO",
+        "RECEIVED",
+        "RELEASED",
+        "RELEASE AT FIRST LIGHT",
+        "DRAWER 4",
+        "Drawer 4",
+        "CALL",
+        "PT",
+        "STAFF NURSE",
+        "FOUND AT BED 04",
+        "DOA",
+        "ACT ONE",
+        "ACT TWO",
+        "ACT THREE",
+        "NIGHT SHIFT",
+        "THE PORTER",
+        "FIRST LIGHT",
+        "Vigil",
+        "Release",
+        "Handover",
+        "VIGIL",
+        "RELEASE",
+        "HANDOVER"
+      ],
+      "motifs": [
+        "four",
+        "pools",
+        "handwriting",
+        "faces",
+        "tags",
+        "thresholds",
+        "clocks",
+        "warmth",
+        "line"
+      ],
+      "numbers": {
+        "bed": "04",
+        "code": "0417",
+        "drawer": "4",
+        "drawers": "6"
+      },
+      "people": {
+        "ada": {
+          "name": "Ada Voss",
+          "role": "Staff nurse, nights at St. Agnes since 1979. Wakes in Bed 04. The one who must choose (synthesis: the handover).",
+          "short": "A. Voss"
+        },
+        "crew": {
+          "name": "the ambulance crew",
+          "role": "Answered the 04:09 call and wrote the run sheet. One attendant is seen, with a stretcher trolley; the driver is only a voice on the radio. Comes to close the sheet. Never hostile, never harmed.",
+          "short": "the crew"
+        },
+        "dayNurse": {
+          "name": "the day nurse",
+          "role": "The synthesis made flesh: the relief who comes in the morning. Appears only in the Handover ending."
+        },
+        "nurse": {
+          "name": "the Night Nurse",
+          "role": "Thesis: the vigil. Ada's duty grown into a shape. Speaks three times in the game, in Ada's voice.",
+          "short": "the Nurse"
+        },
+        "patient": {
+          "name": "the patient in Bed 04",
+          "role": "Never named. Asked for the lights to be left on."
+        },
+        "porter": {
+          "name": "F. Lamb",
+          "role": "Counter-thesis: the release. The blind mortuary porter who signs the dead out at first light.",
+          "short": "the Porter"
+        },
+        "radio": {
+          "name": "the night programme",
+          "role": "The world outside, still going. An unnamed presenter on the radio in the porter's office.",
+          "short": "the radio"
+        }
+      },
+      "places": {
+        "bay": "the ambulance bay",
+        "clinic": "St. Agnes Clinic",
+        "corridor": "the north corridor",
+        "mortuary": "the mortuary",
+        "office": "the porter's office",
+        "reception": "reception",
+        "river": "the river",
+        "street": "the street",
+        "supply": "the supply room",
+        "ward": "St. Agnes ward"
+      },
+      "stance": {
+        "max": 4,
+        "min": -4
+      },
+      "times": {
+        "call": "04:09",
+        "death": "04:17",
+        "eve": "St. Agnes' Eve, 20 January 1987",
+        "eveDate": "20.01.87",
+        "firstLight": "06:02",
+        "firstNight": "1979",
+        "morningDate": "21.01.87",
+        "signOn": "20:00"
+      },
+      "tone": {
+        "banned": [
+          "blood",
+          "bloody",
+          "bleeding",
+          "gore",
+          "gory",
+          "guts",
+          "corpse",
+          "cadaver",
+          "entrails",
+          "severed",
+          "mutilated",
+          "rotting",
+          "maggot",
+          "maggots",
+          "vomit",
+          "kill",
+          "killed",
+          "killing",
+          "murder",
+          "suicide",
+          "ghost",
+          "haunted",
+          "monster",
+          "demon",
+          "evil"
+        ],
+        "style": "Worn, not grimy; no gore. Dialogue is KRZ-style: plain, lyrical lines. Under it: Safdie-brothers momentum (people run on, repeat themselves and talk over their own sentences), Disco Elysium interiority (Ada’s own thoughts answer back, in the second person, sharp and wry), and Hereditary dread (grief in a family register, the wrong thing said kindly, horror only by implication). Ada: short, plain, first person, no exclamation marks. No exclamation marks from anyone. British spelling. Nobody in the game is evil, and no line says what anyone is."
+      }
+    }
+  },
+  "carried-light": {
+    "burn": 1,
+    "cap": 80,
+    "fill": 40,
+    "radius": 2.2,
+    "start": 0
+  },
+  "credits": {
+    "credits": {
+      "sections": [
+        {
+          "names": [
+            {
+              "name": "A game made with Automata Framework",
+              "role": "The engine and the editors"
+            }
+          ],
+          "title": "The Last Light"
+        },
+        {
+          "names": [
+            {
+              "name": "ElevenLabs",
+              "role": "The recorded effects and the music"
+            }
+          ],
+          "title": "Sound and music"
+        }
+      ]
+    }
+  },
+  "cutscene": {
+    "found": {
+      "actor": [
+        {
+          "at": "player",
+          "facing": -2.593043251139265,
+          "pose": "flinch",
+          "t": 0,
+          "who": "player",
+          "y": 0.05
+        },
+        {
+          "at": "player",
+          "facing": -2.593043251139265,
+          "pose": "flinch",
+          "t": 0.6,
+          "who": "player"
+        },
+        {
+          "at": "player",
+          "facing": -2.593043251139265,
+          "shiver": 0.012,
+          "t": 0.7,
+          "who": "player"
+        },
+        {
+          "at": "player",
+          "facing": -2.593043251139265,
+          "shiver": 0.012,
+          "t": 4.2,
+          "who": "player"
+        },
+        {
+          "cut": true,
+          "facing": 2.3671830588750784,
+          "pose": "sit",
+          "t": 4.5,
+          "who": "player",
+          "x": -3.25,
+          "z": 0.7
+        },
+        {
+          "facing": 2.3671830588750784,
+          "pose": "sit",
+          "t": 7,
+          "who": "player",
+          "x": -3.25,
+          "z": 0.7
+        },
+        {
+          "alpha": 1,
+          "at": "actor:nurse",
+          "facing": 0.548549402450528,
+          "frame": 1,
+          "pose": "pulse",
+          "t": 0,
+          "who": "nurse"
+        },
+        {
+          "at": "actor:nurse",
+          "facing": 0.548549402450528,
+          "frame": 3,
+          "pose": "pulse",
+          "t": 0.8,
+          "who": "nurse"
+        },
+        {
+          "alpha": 1,
+          "at": "actor:nurse",
+          "facing": 0.548549402450528,
+          "frame": 3,
+          "pose": "pulse",
+          "t": 4.2,
+          "who": "nurse"
+        },
+        {
+          "alpha": 0,
+          "cut": true,
+          "t": 4.5,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
+        }
+      ],
+      "camera": [
+        {
+          "about": "player",
+          "cut": true,
+          "lens": 20,
+          "look": [
+            0,
+            0.9,
+            0
+          ],
+          "pos": [
+            -3.6,
+            3.4,
+            2.2
+          ],
+          "t": 0
+        },
+        {
+          "about": "player",
+          "ease": "linear",
+          "lens": 25,
+          "look": [
+            0,
+            0.9,
+            0
+          ],
+          "pos": [
+            -3.6,
+            3.4,
+            2.2
+          ],
+          "t": 4.2
+        },
+        {
+          "cut": true,
+          "lens": 21,
+          "look": [
+            -3.25,
+            0.75,
+            0.7
+          ],
+          "pos": [
+            -1,
+            2.6,
+            -1.6
+          ],
+          "t": 4.5
+        },
+        {
+          "ease": "linear",
+          "lens": 23,
+          "look": [
+            -3.25,
+            0.8,
+            0.7
+          ],
+          "pos": [
+            -1,
+            2.6,
+            -1.6
+          ],
+          "t": 7
+        }
+      ],
+      "caption": [
+        {
+          "line": "prologue.cutscene.found.1",
+          "speaker": "ada",
+          "t": 0,
+          "until": 7
+        }
+      ],
+      "duration": 7,
+      "fade": [
+        {
+          "t": 0,
+          "value": 0
+        },
+        {
+          "t": 3.85,
+          "value": 0
+        },
+        {
+          "t": 4.2,
+          "value": 1
+        },
+        {
+          "t": 4.5,
+          "value": 1
+        },
+        {
+          "t": 5.1000000000000005,
+          "value": 0
+        },
+        {
+          "t": 6.3,
+          "value": 0
+        },
+        {
+          "t": 7,
+          "value": 1
+        }
+      ],
+      "flicker": [
+        [
+          0,
+          0.8
+        ]
+      ],
+      "id": "found"
+    },
+    "keypad": {
+      "actor": [
+        {
+          "facing": 2.356194490192345,
+          "t": 0,
+          "who": "player",
+          "x": 4.1,
+          "z": 4.45
+        }
+      ],
+      "camera": [
+        {
+          "cut": true,
+          "lens": 26,
+          "look": [
+            4.7,
+            1.4,
+            3.4
+          ],
+          "pos": [
+            2.95,
+            1.85,
+            3.25
+          ],
+          "t": 0
+        },
+        {
+          "ease": [
+            0.3333333333333333,
+            0.6666666666666666,
+            0.6666666666666666,
+            1
+          ],
+          "lens": 32,
+          "look": [
+            4.7,
+            1.4,
+            3.4
+          ],
+          "pos": [
+            3.2,
+            1.8,
+            3.3
+          ],
+          "t": 3
+        }
+      ],
+      "caption": [
+        {
+          "line": "prologue.cutscene.keypad.1",
+          "t": 0.3,
+          "until": 3
+        }
+      ],
+      "duration": 3,
+      "fade": [
+        {
+          "t": 0,
+          "value": 1
+        },
+        {
+          "t": 0.3,
+          "value": 0
+        },
+        {
+          "t": 2.7,
+          "value": 0
+        },
+        {
+          "t": 3,
+          "value": 1
+        }
+      ],
+      "id": "keypad",
+      "lintAllow": [
+        {
+          "reason": "the insert's camera is near a wall that the camera rules cut away while it is on (the occluder rule); looked at in play",
+          "rule": "camera"
+        }
+      ],
+      "states": [
+        {
+          "state": "cabinet.open",
+          "t": 0.9
+        }
+      ]
+    },
+    "lights-out": {
+      "actor": [
+        {
+          "cut": true,
+          "facing": 1.5707963267948966,
+          "t": 0,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 1.5707963267948966,
+          "t": 1.2,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 2.356194490192345,
+          "t": 1.6,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 2.356194490192345,
+          "t": 2.5,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 1.5707963267948966,
+          "t": 2.75,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 0.7853981633974483,
+          "t": 3,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 0.7853981633974483,
+          "t": 3.9000000000000004,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 1.5707963267948966,
+          "t": 4.1499999999999995,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 1.5707963267948966,
+          "t": 4.5,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 1.5707963267948966,
+          "t": 4.6,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 2.301703033951614,
+          "t": 4.739999999999999,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 2.301703033951614,
+          "pose": "flinch",
+          "t": 7.6,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 2.301703033951614,
+          "pose": "flinch",
+          "t": 8.25,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 2.301703033951614,
+          "moving": true,
+          "t": 8.3,
+          "who": "player",
+          "x": -2.9,
+          "z": 1
+        },
+        {
+          "facing": 2.301703033951614,
+          "shiver": 0.012,
+          "t": 8.5,
+          "who": "player",
+          "x": -2.9,
+          "z": 1
+        },
+        {
+          "facing": 2.301703033951614,
+          "shiver": 0.012,
+          "t": 9.4,
+          "who": "player",
+          "x": -2.9,
+          "z": 1
+        },
+        {
+          "facing": 2.301703033951614,
+          "t": 13.6,
+          "who": "player",
+          "x": -2.9,
+          "z": 1
+        },
+        {
+          "facing": 2.301703033951614,
+          "moving": true,
+          "t": 15.2,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": 2.301703033951614,
+          "t": 16,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "alpha": 0,
+          "facing": 0,
+          "t": 0,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
+        },
+        {
+          "alpha": 0,
+          "facing": 0,
+          "t": 6.85,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
+        },
+        {
+          "alpha": 1,
+          "facing": 0,
+          "t": 7,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
+        },
+        {
+          "alpha": 1,
+          "facing": 0,
+          "t": 10.6,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
+        },
+        {
+          "alpha": 1,
+          "facing": 0,
+          "moving": true,
+          "t": 12.8,
+          "who": "nurse",
+          "x": 0,
+          "z": -5.4
+        },
+        {
+          "alpha": 1,
+          "facing": 0,
+          "t": 16,
+          "who": "nurse",
+          "x": 0,
+          "z": -5.4
+        }
+      ],
+      "camera": [
+        {
+          "cut": true,
+          "lens": 22,
+          "look": [
+            -2.9,
+            0.9,
+            0.7
+          ],
+          "pos": [
+            2,
+            3.4,
+            -0.9
+          ],
+          "t": 0
+        },
+        {
+          "ease": "linear",
+          "lens": 23,
+          "look": [
+            -2.9,
+            0.9,
+            0.7
+          ],
+          "pos": [
+            2,
+            3.4,
+            -0.9
+          ],
+          "t": 3
+        },
+        {
+          "cut": true,
+          "lens": 21,
+          "look": [
+            -2.9,
+            1.1,
+            0.7
+          ],
+          "pos": [
+            -1.2,
+            1.5,
+            -2.0999999999999996
+          ],
+          "t": 3
+        },
+        {
+          "lens": 21,
+          "look": [
+            -2.9,
+            1.1,
+            0.7
+          ],
+          "pos": [
+            -1.2,
+            1.5,
+            -2.0999999999999996
+          ],
+          "t": 6.5
+        },
+        {
+          "cut": true,
+          "lens": 40,
+          "look": [
+            0,
+            1.2,
+            -6.1
+          ],
+          "pos": [
+            0,
+            1.7,
+            0.2
+          ],
+          "t": 6.5
+        },
+        {
+          "ease": "linear",
+          "lens": 41,
+          "look": [
+            0,
+            1.2,
+            -6.1
+          ],
+          "pos": [
+            0,
+            1.7,
+            0.2
+          ],
+          "t": 7.6
+        },
+        {
+          "cut": true,
+          "lens": 22,
+          "look": [
+            -2.9,
+            1.2,
+            0.7
+          ],
+          "pos": [
+            -0.3684639018019329,
+            0.9,
+            -1.5696530535568882
+          ],
+          "t": 7.6
+        },
+        {
+          "ease": "linear",
+          "lens": 23,
+          "look": [
+            -2.9,
+            1.2,
+            0.7
+          ],
+          "pos": [
+            -0.3684639018019329,
+            0.9,
+            -1.5696530535568882
+          ],
+          "t": 9.4
+        },
+        {
+          "cut": true,
+          "lens": 28,
+          "look": [
+            0,
+            1.3,
+            -5.8
+          ],
+          "pos": [
+            0,
+            1.75,
+            -0.6
+          ],
+          "t": 9.4
+        },
+        {
+          "ease": "linear",
+          "lens": 34,
+          "look": [
+            0,
+            1.3,
+            -5.8
+          ],
+          "pos": [
+            0,
+            1.75,
+            -0.6
+          ],
+          "t": 13.6
+        },
+        {
+          "cut": true,
+          "lens": 24,
+          "look": [
+            -2.9,
+            1.1,
+            0.7
+          ],
+          "pos": [
+            -1.0999999999999999,
+            1.55,
+            -2.2
+          ],
+          "t": 13.6
+        },
+        {
+          "ease": "linear",
+          "lens": 21,
+          "look": [
+            -2.9,
+            1,
+            0.7
+          ],
+          "pos": [
+            -1.0999999999999999,
+            1.55,
+            -2.2
+          ],
+          "t": 16
+        }
+      ],
+      "caption": [
+        {
+          "line": "prologue.cutscene.lightsOut.1",
+          "speaker": "ada",
+          "t": 0.8,
+          "until": 6.5
+        },
+        {
+          "line": "prologue.cutscene.lightsOut.2",
+          "speaker": "ada",
+          "t": 7.8,
+          "until": 13.6
+        }
+      ],
+      "duration": 16,
+      "fade": [
+        {
+          "t": 0,
+          "value": 1
+        },
+        {
+          "t": 0.5,
+          "value": 0
+        },
+        {
+          "t": 15.5,
+          "value": 0
+        },
+        {
+          "t": 16,
+          "value": 1
+        }
+      ],
+      "flicker": [
+        [
+          0.7,
+          1
+        ],
+        [
+          6.6,
+          7
+        ],
+        [
+          12.1,
+          12.5
+        ]
+      ],
+      "id": "lightsOut",
+      "light": [
+        {
+          "lamp": "hallLamp",
+          "level": 1,
+          "t": 0
+        },
+        {
+          "lamp": "deskLamp",
+          "level": 1,
+          "t": 0
+        },
+        {
+          "lamp": "sconce",
+          "level": 1,
+          "t": 0
+        },
+        {
+          "lamp": "corridorLamp",
+          "level": 0.6,
+          "t": 0
+        },
+        {
+          "lamp": "hallLamp",
+          "level": 1,
+          "t": 0.95
+        },
+        {
+          "lamp": "deskLamp",
+          "level": 1,
+          "t": 0.95
+        },
+        {
+          "lamp": "sconce",
+          "level": 1,
+          "t": 0.95
+        },
+        {
+          "lamp": "corridorLamp",
+          "level": 0.6,
+          "t": 0.95
+        },
+        {
+          "lamp": "wardLamp",
+          "level": 1,
+          "t": 0
+        },
+        {
+          "lamp": "wardLamp",
+          "level": 1,
+          "t": 0.95
+        },
+        {
+          "lamp": "wardLamp",
+          "level": 0,
+          "t": 1.05
+        },
+        {
+          "lamp": "hallLamp",
+          "level": 0,
+          "t": 1.05
+        },
+        {
+          "lamp": "deskLamp",
+          "level": 0,
+          "t": 1.05
+        },
+        {
+          "lamp": "sconce",
+          "level": 0,
+          "t": 1.05
+        },
+        {
+          "lamp": "corridorLamp",
+          "level": 0,
+          "t": 1.05
+        }
+      ],
+      "lintAllow": [
+        {
+          "reason": "the reaction shot looks toward the corridor: the figure stands behind its wall, off screen, as intended (C-G1 to confirm)",
+          "rule": "hidden"
+        },
+        {
+          "reason": "the camera stands above and behind the ward, outside the map, as the old shot did; the rooms a cutscene draws are all of them",
+          "rule": "camera"
+        }
+      ],
+      "sound": [
+        {
+          "kind": "sting",
+          "t": 6.9
+        }
+      ]
+    },
+    "opening": {
+      "actor": [
+        {
+          "cut": true,
+          "facing": 3.141592653589793,
+          "t": 0,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 3.141592653589793,
+          "t": 4.6,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 3.9269908169872414,
+          "t": 5,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 3.9269908169872414,
+          "t": 5.8,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 3.141592653589793,
+          "t": 6.05,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 2.356194490192345,
+          "t": 6.3,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 2.356194490192345,
+          "t": 7.1,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 3.141592653589793,
+          "t": 7.35,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 3.141592653589793,
+          "t": 7.6,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 3.141592653589793,
+          "t": 7.8,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 2.5972258054002246,
+          "t": 7.9399999999999995,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 2.5972258054002246,
+          "pose": "read",
+          "t": 13,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 2.5972258054002246,
+          "pose": "read",
+          "t": 15.5,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 2.5972258054002246,
+          "t": 15.6,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 1.7314838702668163,
+          "t": 15.719999999999999,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 0.8657419351334081,
+          "t": 15.84,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 0,
+          "t": 15.959999999999999,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        },
+        {
+          "facing": 0,
+          "t": 17,
+          "who": "player",
+          "x": 0.6,
+          "z": 3.6
+        }
+      ],
+      "camera": [
+        {
+          "lens": 22,
+          "look": [
+            0.9,
+            1.5,
+            1.6
+          ],
+          "pos": [
+            -1.6,
+            4.3,
+            6.3
+          ],
+          "t": 0
+        },
+        {
+          "ease": "linear",
+          "lens": 25,
+          "look": [
+            0.9,
+            1.5,
+            1.6
+          ],
+          "pos": [
+            -1.6,
+            4.3,
+            6.3
+          ],
+          "t": 4.6
+        },
+        {
+          "cut": true,
+          "lens": 21,
+          "look": [
+            0.6,
+            1.15,
+            3.6
+          ],
+          "pos": [
+            1.4,
+            1.95,
+            0.3
+          ],
+          "t": 4.6
+        },
+        {
+          "ease": "linear",
+          "lens": 24,
+          "look": [
+            0.6,
+            1.15,
+            3.6
+          ],
+          "pos": [
+            1.4,
+            1.95,
+            0.3
+          ],
+          "t": 11
+        },
+        {
+          "cut": true,
+          "lens": 32,
+          "look": [
+            3.3,
+            1.85,
+            -0.86
+          ],
+          "pos": [
+            2.05,
+            1.95,
+            1.6
+          ],
+          "t": 11
+        },
+        {
+          "ease": "linear",
+          "lens": 35,
+          "look": [
+            3.3,
+            1.85,
+            -0.86
+          ],
+          "pos": [
+            2.05,
+            1.95,
+            1.6
+          ],
+          "t": 13
+        },
+        {
+          "cut": true,
+          "lens": 25,
+          "look": [
+            0.6,
+            1.2,
+            3.6
+          ],
+          "pos": [
+            2,
+            1.9,
+            0.1
+          ],
+          "t": 13
+        },
+        {
+          "ease": "linear",
+          "lens": 27,
+          "look": [
+            0.6,
+            1.2,
+            3.6
+          ],
+          "pos": [
+            2,
+            1.9,
+            0.1
+          ],
+          "t": 15.9
+        },
+        {
+          "cut": true,
+          "lens": 40,
+          "look": [
+            0,
+            1.1,
+            1.1576136
+          ],
+          "pos": [
+            0,
+            9.399999999999999,
+            15.533635302821683
+          ],
+          "t": 15.9
+        },
+        {
+          "ease": [
+            0.3333333333333333,
+            0.6666666666666666,
+            0.6666666666666666,
+            1
+          ],
+          "lens": 50,
+          "look": [
+            0,
+            1.1,
+            1.1576136
+          ],
+          "pos": [
+            0,
+            9.399999999999999,
+            15.533635302821683
+          ],
+          "t": 17
+        }
+      ],
+      "caption": [
+        {
+          "line": "prologue.cutscene.opening.1",
+          "t": 0.8,
+          "until": 3.8
+        },
+        {
+          "line": "prologue.cutscene.opening.2",
+          "speaker": "ada",
+          "t": 4.6,
+          "until": 11.6
+        },
+        {
+          "line": "prologue.cutscene.opening.3",
+          "speaker": "ada",
+          "t": 11.7,
+          "until": 15.6
+        }
+      ],
+      "duration": 17,
+      "fade": [
+        {
+          "t": 0,
+          "value": 1
+        },
+        {
+          "t": 2,
+          "value": 0
+        },
+        {
+          "t": 17,
+          "value": 0
+        }
+      ],
+      "id": "opening",
+      "lintAllow": [
+        {
+          "reason": "the last move is the settle onto the hall camera: the handover to play (rule 75)",
+          "rule": "direction:unmotivated-move"
+        },
+        {
+          "reason": "the establishing shot stands above and behind the hall, outside the map, as the old shot did; the rooms a cutscene draws are all of them",
+          "rule": "camera"
+        }
+      ]
+    },
+    "rest": {
+      "actor": [
+        {
+          "cut": true,
+          "facing": -1.5707963267948966,
+          "t": 0,
+          "who": "player",
+          "x": -2.9,
+          "z": 0.7
+        },
+        {
+          "facing": -1.5707963267948966,
+          "moving": true,
+          "t": 1.6,
+          "who": "player",
+          "x": -3.2,
+          "z": 0.7
+        },
+        {
+          "facing": -1.5707963267948966,
+          "t": 2,
+          "who": "player",
+          "x": -3.2,
+          "z": 0.7
+        },
+        {
+          "facing": -0.7853981633974483,
+          "t": 2.12,
+          "who": "player",
+          "x": -3.2,
+          "z": 0.7
+        },
+        {
+          "facing": 0,
+          "t": 2.24,
+          "who": "player",
+          "x": -3.2,
+          "z": 0.7
+        },
+        {
+          "facing": 0.7853981633974483,
+          "t": 2.36,
+          "who": "player",
+          "x": -3.2,
+          "z": 0.7
+        },
+        {
+          "facing": 1.5707963267948966,
+          "t": 2.48,
+          "who": "player",
+          "x": -3.2,
+          "z": 0.7
+        },
+        {
+          "facing": 1.5707963267948966,
+          "pose": "sit",
+          "t": 3,
+          "who": "player",
+          "x": -3.2,
+          "z": 0.7
+        },
+        {
+          "facing": 1.5707963267948966,
+          "pose": "sit",
+          "t": 12.9,
+          "who": "player",
+          "x": -3.2,
+          "z": 0.7
+        },
+        {
+          "cut": true,
+          "facing": 3.141592653589793,
+          "pose": "sleep",
+          "t": 13,
+          "through": true,
+          "who": "player",
+          "x": -4.1,
+          "y": 0.55,
+          "z": 0.7
+        },
+        {
+          "facing": 3.141592653589793,
+          "pose": "sleep",
+          "t": 16,
+          "through": true,
+          "who": "player",
+          "x": -4.1,
+          "y": 0.55,
+          "z": 0.7
+        }
+      ],
+      "camera": [
+        {
+          "cut": true,
+          "lens": 24,
+          "look": [
+            -2.9,
+            1,
+            0.7
+          ],
+          "pos": [
+            0.4,
+            2.6,
+            -0.6
+          ],
+          "t": 0
+        },
+        {
+          "ease": [
+            0.3333333333333333,
+            0.6666666666666666,
+            0.6666666666666666,
+            1
+          ],
+          "lens": 24,
+          "look": [
+            -2.9,
+            1,
+            0.7
+          ],
+          "pos": [
+            0.1,
+            2.4,
+            -0.4
+          ],
+          "t": 4.5
+        },
+        {
+          "cut": true,
+          "lens": 20,
+          "look": [
+            -3.2,
+            0.9,
+            0.7
+          ],
+          "pos": [
+            -2.75,
+            2.5,
+            3.3
+          ],
+          "t": 4.5
+        },
+        {
+          "lens": 20,
+          "look": [
+            -3.2,
+            0.9,
+            0.7
+          ],
+          "pos": [
+            -2.75,
+            2.5,
+            3.3
+          ],
+          "t": 9
+        },
+        {
+          "cut": true,
+          "lens": 22,
+          "look": [
+            -3.2,
+            0.6,
+            0.7
+          ],
+          "pos": [
+            -1.1,
+            3,
+            -1.9000000000000001
+          ],
+          "t": 9
+        },
+        {
+          "ease": "linear",
+          "lens": 22,
+          "look": [
+            -3.2,
+            0.6,
+            0.7
+          ],
+          "pos": [
+            -1.2000000000000002,
+            2.9,
+            -1.8
+          ],
+          "t": 13
+        },
+        {
+          "cut": true,
+          "lens": 20,
+          "look": [
+            -3.2,
+            0.75,
+            0.7
+          ],
+          "pos": [
+            -0.3,
+            1.1,
+            0
+          ],
+          "t": 13
+        },
+        {
+          "ease": "linear",
+          "lens": 21,
+          "look": [
+            -3.2,
+            0.75,
+            0.7
+          ],
+          "pos": [
+            -0.35,
+            1.1,
+            0.1
+          ],
+          "t": 16
+        }
+      ],
+      "caption": [
+        {
+          "line": "prologue.cutscene.rest.1",
+          "speaker": "ada",
+          "t": 2.5,
+          "until": 8.1
+        },
+        {
+          "line": "prologue.cutscene.rest.2",
+          "speaker": "ada",
+          "t": 8.2,
+          "until": 15.2
+        }
+      ],
+      "duration": 16,
+      "fade": [
+        {
+          "t": 0,
+          "value": 1
+        },
+        {
+          "t": 0.6,
+          "value": 0
+        },
+        {
+          "t": 14.6,
+          "value": 0
+        },
+        {
+          "t": 16,
+          "value": 1
+        }
+      ],
+      "id": "rest",
+      "light": [
+        {
+          "lamp": "wardLamp",
+          "level": 0,
+          "t": 9
+        },
+        {
+          "lamp": "hallLamp",
+          "level": 0,
+          "t": 11
+        },
+        {
+          "lamp": "deskLamp",
+          "level": 0,
+          "t": 13
+        }
+      ],
+      "lintAllow": [
+        {
+          "reason": "an ellipsis: the cut to the low shot skips her lying down, from the bed edge to asleep on the bed",
+          "rule": "direction:match-action"
+        }
+      ]
+    }
+  },
+  "feel": {
+    "feel": {
+      "entry": [
+        {
+          "camera": [
+            {
+              "shake": 0.7
+            }
+          ],
+          "haptic": [
+            {
+              "ms": 300,
+              "phone_ms": 200,
+              "strong": 0.8,
+              "weak": 0.4
+            }
+          ],
+          "on": "systems.caught",
+          "visual": [
+            {
+              "alpha": 0.3,
+              "ms": 700,
+              "tint": "#a01020"
+            }
+          ]
+        },
+        {
+          "camera": [
+            {
+              "shake": 0.12
+            }
+          ],
+          "haptic": [
+            {
+              "ms": 120,
+              "strong": 0,
+              "weak": 0.3
+            }
+          ],
+          "on": "systems.light-dry"
+        }
+      ]
+    }
+  },
+  "help": {
+    "prologue": {
+      "deductions": [
+        {
+          "clues": [
+            {
+              "at": "cutscene:opening",
+              "line": "prologue.cutscene.opening.1"
+            },
+            {
+              "at": "clock",
+              "line": "prologue.clock"
+            },
+            {
+              "at": "noticeboard",
+              "line": "prologue.handover"
+            },
+            {
+              "at": "cabinet",
+              "line": "prologue.keypadWrong"
+            }
+          ],
+          "for": [
+            "cabinet"
+          ],
+          "id": "code",
+          "learn": "The cabinet's code is 2000, the hour the day shift goes home."
+        },
+        {
+          "clues": [
+            {
+              "at": "noticeboard",
+              "line": "prologue.handover"
+            },
+            {
+              "at": "cabinet",
+              "line": "prologue.keypadRight"
+            },
+            {
+              "at": "item:supplyKey",
+              "line": "prologue.item.supplyKey"
+            },
+            {
+              "at": "closetDoor",
+              "line": "prologue.doorLocked"
+            }
+          ],
+          "for": [
+            "supplyDoor"
+          ],
+          "id": "supplyKey",
+          "learn": "The key from the cabinet opens the supply room in the corridor."
+        },
+        {
+          "clues": [
+            {
+              "at": "noticeboard",
+              "line": "prologue.handoverBack"
+            },
+            {
+              "at": "nightstand",
+              "line": "prologue.nightstandLamp"
+            },
+            {
+              "at": "item:paraffin",
+              "line": "prologue.item.paraffin"
+            },
+            {
+              "at": "item:handLamp",
+              "line": "prologue.item.handLamp"
+            }
+          ],
+          "for": [
+            "lamp"
+          ],
+          "id": "fillLamp",
+          "learn": "The hand lamp is dry, and the paraffin from the same drawer fills it."
+        },
+        {
+          "clues": [
+            {
+              "at": "shelf",
+              "line": "prologue.shelfDark"
+            },
+            {
+              "at": "item:handLamp",
+              "line": "prologue.item.handLamp"
+            },
+            {
+              "at": "noticeboard",
+              "line": "prologue.handoverBack"
+            }
+          ],
+          "for": [
+            "sheets"
+          ],
+          "id": "darkShelf",
+          "learn": "The supply room is dark: the sheets are found only with the lamp lit."
+        },
+        {
+          "clues": [
+            {
+              "at": "noticeboard",
+              "line": "prologue.handoverBack"
+            },
+            {
+              "at": "bed",
+              "line": "prologue.bedBare"
+            },
+            {
+              "at": "item:sheets",
+              "line": "prologue.item.sheets"
+            },
+            {
+              "at": "monitor",
+              "line": "prologue.monitor"
+            }
+          ],
+          "for": [
+            "bed"
+          ],
+          "id": "makeBed",
+          "learn": "Bed 04 is the bed to make up, with the clean sheets."
+        },
+        {
+          "clues": [
+            {
+              "at": "cutscene:lightsOut",
+              "line": "prologue.cutscene.lightsOut.2"
+            },
+            {
+              "at": "bed",
+              "line": "prologue.bedWait"
+            },
+            {
+              "at": "noticeboard",
+              "line": "prologue.handoverBack"
+            },
+            {
+              "at": "item:handLamp",
+              "line": "prologue.item.handLamp"
+            }
+          ],
+          "for": [
+            "rest"
+          ],
+          "id": "vigil",
+          "learn": "She does her round and goes: keep the lamp lit or hide, and sit down only once she has gone."
+        }
+      ],
+      "hints": [
+        {
+          "done": [
+            {
+              "not": {
+                "fact": "fuel",
+                "is": 0
+              }
+            }
+          ],
+          "id": "lamp",
+          "levels": [
+            {
+              "at": "noticeboard",
+              "line": "prologue.handoverBack"
+            },
+            {
+              "at": "nightstand",
+              "line": "prologue.nightstandLamp"
+            },
+            {
+              "at": "item:paraffin",
+              "line": "prologue.item.paraffin"
+            }
+          ],
+          "puzzle": "Fill the hand lamp with paraffin."
+        },
+        {
+          "done": [
+            {
+              "fact": "cabinetOpen",
+              "is": true
+            }
+          ],
+          "id": "cabinet",
+          "levels": [
+            {
+              "at": "cutscene:opening",
+              "line": "prologue.cutscene.opening.3"
+            },
+            {
+              "at": "clock",
+              "line": "prologue.clock"
+            },
+            {
+              "at": "noticeboard",
+              "line": "prologue.handover"
+            }
+          ],
+          "puzzle": "Open the key cabinet by the desk with its four-digit code."
+        },
+        {
+          "done": [
+            {
+              "fact": "closetOpen",
+              "is": true
+            }
+          ],
+          "id": "supplyDoor",
+          "levels": [
+            {
+              "at": "cabinet",
+              "line": "prologue.keypadRight"
+            },
+            {
+              "at": "item:supplyKey",
+              "line": "prologue.item.supplyKey"
+            },
+            {
+              "at": "closetDoor",
+              "line": "prologue.doorLocked"
+            }
+          ],
+          "puzzle": "Open the supply room with the supply key."
+        },
+        {
+          "done": [
+            {
+              "fact": "shelfTaken",
+              "is": true
+            }
+          ],
+          "id": "sheets",
+          "levels": [
+            {
+              "at": "noticeboard",
+              "line": "prologue.handoverBack"
+            },
+            {
+              "at": "shelf",
+              "line": "prologue.shelfDark"
+            },
+            {
+              "at": "item:handLamp",
+              "line": "prologue.item.handLamp"
+            }
+          ],
+          "puzzle": "Find the clean sheets on the supply room shelf, by lamplight."
+        },
+        {
+          "done": [
+            {
+              "fact": "bedMade",
+              "is": true
+            }
+          ],
+          "id": "bed",
+          "levels": [
+            {
+              "at": "noticeboard",
+              "line": "prologue.handoverBack"
+            },
+            {
+              "at": "bed",
+              "line": "prologue.bedBare"
+            },
+            {
+              "at": "item:sheets",
+              "line": "prologue.item.sheets"
+            }
+          ],
+          "puzzle": "Make up Bed 04 with the clean sheets."
+        },
+        {
+          "id": "rest",
+          "levels": [
+            {
+              "at": "cutscene:lightsOut",
+              "line": "prologue.cutscene.lightsOut.2"
+            },
+            {
+              "at": "bed",
+              "line": "prologue.bedWait"
+            },
+            {
+              "at": "noticeboard",
+              "line": "prologue.handoverBack"
+            }
+          ],
+          "puzzle": "Outlast the figure in the dark, then sit down at Bed 04."
+        }
+      ]
+    }
+  },
+  "hud": {
+    "play": {
+      "objective": [
+        {
+          "line": "prologue.objective.rest",
+          "target": "bed",
+          "when": [
+            {
+              "fact": "figureGone",
+              "is": true
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.hide",
+          "when": [
+            {
+              "fact": "lightsOut",
+              "is": true
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.bed",
+          "target": "bed",
+          "when": [
+            {
+              "has": "sheets"
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.note",
+          "target": "noticeboard",
+          "when": [
+            {
+              "fact": "noteRead",
+              "is": false
+            },
+            {
+              "not": {
+                "has": "handLamp"
+              }
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.lamp",
+          "target": "nightstand",
+          "when": [
+            {
+              "not": {
+                "has": "handLamp"
+              }
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.fill",
+          "when": [
+            {
+              "any": [
+                {
+                  "atMost": 0,
+                  "fact": "fuel"
+                },
+                {
+                  "fact": "lit",
+                  "is": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.sheets",
+          "target": "shelf",
+          "when": [
+            {
+              "fact": "closetOpen",
+              "is": true
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.closet",
+          "target": "closetDoor",
+          "when": [
+            {
+              "has": "supplyKey"
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.key",
+          "target": "cabinet",
+          "when": [
+            {
+              "fact": "noteRead",
+              "is": true
+            }
+          ]
+        },
+        {
+          "line": "prologue.objective.note",
+          "target": "noticeboard",
+          "when": []
+        }
+      ],
+      "pieces": [
+        {
+          "anchor": "top-left",
+          "kind": "objective",
+          "width": 360
+        },
+        {
+          "anchor": "bottom",
+          "kind": "prompt",
+          "width": 280
+        },
+        {
+          "anchor": "bottom-right",
+          "kind": "inventory",
+          "width": 320
+        },
+        {
+          "anchor": "bottom",
+          "kind": "examine",
+          "width": 560
+        },
+        {
+          "anchor": "centre",
+          "kind": "keypad",
+          "width": 280
+        }
+      ]
+    }
+  },
+  "lines": {
+    "prologue": {
+      "lines": [
+        {
+          "id": "prologue.handover",
+          "kind": "note",
+          "motifs": [
+            "handwriting",
+            "line"
+          ],
+          "text": "prologue.handover",
+          "words": "To nights. Handed over to A. Voss. Sorry, bus. You’ll be fine.\nSign the register when you come on. Everyone does. They check.\nSupply key in the cabinet by the desk. Code is the hour we go home: 2000. Not 0800.\nTurn over."
+        },
+        {
+          "id": "prologue.handoverBack",
+          "kind": "note",
+          "motifs": [
+            "handwriting",
+            "four"
+          ],
+          "text": "prologue.handoverBack",
+          "words": "Lamp and paraffin in the bedside drawer. Fill it before the corridor, that bulb has gone again. I rang.\nMake up 04 for the morning. Sheets in supply.\nLights go? Lamp lit, or behind the screen. Do not sit till she goes.\nIf you hear the pipes knocking, it is the pipes."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 3,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.handoverAgain",
+          "kind": "examine",
+          "motifs": [
+            "handwriting"
+          ],
+          "speaker": "ada",
+          "text": "prologue.handoverAgain",
+          "words": "Her writing leans hard to the right, already halfway out the door. “It is the pipes” is underlined three times. That is two more than a pipe needs. And at the top, my name, after “Handed over to”. Nobody has ever handed me anything."
+        },
+        {
+          "id": "prologue.register",
+          "kind": "note",
+          "motifs": [
+            "line"
+          ],
+          "text": "prologue.register",
+          "words": "NIGHT REGISTER\nThe first page. Two columns: SIGNED ON, HANDED OVER TO. Clean as a plate."
+        },
+        {
+          "id": "prologue.clock",
+          "kind": "examine",
+          "motifs": [
+            "clocks"
+          ],
+          "speaker": "ada",
+          "text": "prologue.clock",
+          "words": "Eight o’clock. Twelve hours. I have never been awake for twelve hours on purpose."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 4,
+                "pause": 1
+              }
+            ],
+            "how": "convincing herself",
+            "pace": 1.25
+          },
+          "id": "prologue.monitor",
+          "kind": "examine",
+          "motifs": [
+            "four"
+          ],
+          "speaker": "ada",
+          "text": "prologue.monitor",
+          "words": "The screen is dark. Nobody in 04 tonight. Good. Fine. Good."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 2,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.record",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.record",
+          "words": "A blank admission form. Someone pressed so hard on the sheet above that the name came through. I cannot read it. I try anyway."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 3,
+                "pause": 1
+              }
+            ],
+            "pace": 0.85
+          },
+          "id": "prologue.bedBare",
+          "kind": "examine",
+          "motifs": [
+            "four"
+          ],
+          "speaker": "ada",
+          "text": "prologue.bedBare",
+          "words": "Bed 04. Stripped to the ticking. There is a dip in the mattress the exact shape of a person lying on their side, facing the wall."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 3,
+                "pause": 1
+              }
+            ],
+            "how": "low, certain",
+            "pace": 0.85
+          },
+          "id": "prologue.bedWait",
+          "kind": "examine",
+          "motifs": [
+            "four"
+          ],
+          "speaker": "ada",
+          "text": "prologue.bedWait",
+          "words": "Not yet. Not with her out there. I sit down on that bed and I never stand up again, I know it the way you know a stair is missing in the dark."
+        },
+        {
+          "id": "prologue.bedMade",
+          "kind": "examine",
+          "motifs": [
+            "four",
+            "warmth"
+          ],
+          "speaker": "ada",
+          "text": "prologue.bedMade",
+          "words": "Hospital corners, the way they drilled us. Tight enough to bounce a coin. Clean, and cold, and waiting for someone."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 2,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.curtain",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.curtain",
+          "words": "A heavy curtain on a rail. Starch, and under the starch something sweeter I decide not to think about."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 2,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.sink",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.sink",
+          "words": "The tap runs clear. Then, for a second, not. Then clear."
+        },
+        {
+          "id": "prologue.nightstandLamp",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.nightstandLamp",
+          "words": "A hand lamp in the drawer. The tank is bone dry. Of course it is."
+        },
+        {
+          "id": "prologue.nightstandParaffin",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.nightstandParaffin",
+          "words": "A bottle of paraffin at the back of the drawer, behind a hair tie that is the same colour as mine."
+        },
+        {
+          "id": "prologue.nightstandMore",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.nightstandMore",
+          "words": "One more bottle of paraffin, behind where the last one was. I could swear it was not there before."
+        },
+        {
+          "id": "prologue.nightstandEmpty",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.nightstandEmpty",
+          "words": "Nothing else. A pencil, chewed to a stub. Someone sat up a long time with this pencil."
+        },
+        {
+          "id": "prologue.trolley",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.trolley",
+          "words": "Folded towels. No sheets. There are never sheets where the sheets go."
+        },
+        {
+          "id": "prologue.cabinetOpen",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.cabinetOpen",
+          "words": "Empty now. Little brass hook, little brass nothing."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 4,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.doorLocked",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.doorLocked",
+          "words": "The supply room. Locked. I knock, for some reason. Nobody answers, which is the right answer."
+        },
+        {
+          "id": "prologue.doorOpened",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.doorOpened",
+          "words": "The key turns. Inside it is fully dark. The kind of dark that has a smell."
+        },
+        {
+          "id": "prologue.doorOpen",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.doorOpen",
+          "words": "The supply room door stands open, the way I left it. I check anyway."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 2,
+                "pause": 2
+              }
+            ],
+            "pace": 0.85
+          },
+          "id": "prologue.shelfDark",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.shelfDark",
+          "words": "I cannot see a thing in here. I put my hand out, touch something soft, and decide it was a towel."
+        },
+        {
+          "id": "prologue.shelfSheets",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.shelfSheets",
+          "words": "Clean sheets, folded square, warm from the pipes. Or warm from something."
+        },
+        {
+          "id": "prologue.shelfEmpty",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.shelfEmpty",
+          "words": "Bandages, bleach, a mousetrap with nothing in it. Sprung."
+        },
+        {
+          "id": "prologue.exit",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.exit",
+          "words": "The way out. Not until morning. The handle is cold in a way the rest of the building is not."
+        },
+        {
+          "id": "prologue.fuseBox",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.fuseBox",
+          "words": "EMERGENCY POWER. A fuse in the socket, snug. One less thing."
+        },
+        {
+          "id": "prologue.valve",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.valve",
+          "words": "A water valve, painted red. Red means do not touch, or touch first. They never told us which."
+        },
+        {
+          "id": "prologue.noEffect",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.noEffect",
+          "words": "That does nothing."
+        },
+        {
+          "id": "prologue.lighterEmpty",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.lighterEmpty",
+          "words": "The lamp gutters and goes. The dark comes back like it was only ever waiting."
+        },
+        {
+          "id": "prologue.torchOut",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.torchOut",
+          "words": "The light goes out."
+        },
+        {
+          "id": "prologue.combineTorch",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.combineTorch",
+          "words": "I hold them together for a while. Nothing. Good, nobody saw."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 3,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.combineFluid",
+          "kind": "examine",
+          "motifs": [
+            "warmth"
+          ],
+          "speaker": "ada",
+          "text": "prologue.combineFluid",
+          "words": "I fill the lamp and light it. Paraffin on my fingers. I will smell it on every night shift for the rest of my life."
+        },
+        {
+          "id": "prologue.lampDry",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.lampDry",
+          "words": "Dry. It needs paraffin before it is anything but a heavy jar."
+        },
+        {
+          "delivery": {
+            "how": "annoyed at herself",
+            "pace": 1.25
+          },
+          "id": "prologue.keypadWrong",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.keypadWrong",
+          "words": "The keypad buzzes at me. Wrong. Not 0800. She said."
+        },
+        {
+          "id": "prologue.keypadRight",
+          "kind": "examine",
+          "speaker": "ada",
+          "text": "prologue.keypadRight",
+          "words": "The keypad chimes. Inside the cabinet, a key on a paper tag, swinging slightly, as if someone just let go of it."
+        },
+        {
+          "id": "prologue.item.handLamp.name",
+          "kind": "item",
+          "text": "prologue.item.handLamp.name",
+          "words": "Hand lamp"
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 3,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.item.handLamp",
+          "kind": "item",
+          "motifs": [
+            "warmth"
+          ],
+          "speaker": "ada",
+          "text": "prologue.item.handLamp",
+          "words": "A paraffin hand lamp. Light it in the dark. The tank will not last all night, and neither, the way I feel, will I."
+        },
+        {
+          "id": "prologue.item.paraffin.name",
+          "kind": "item",
+          "text": "prologue.item.paraffin.name",
+          "words": "Paraffin"
+        },
+        {
+          "id": "prologue.item.paraffin",
+          "kind": "item",
+          "speaker": "ada",
+          "text": "prologue.item.paraffin",
+          "words": "A bottle of lamp oil. Combine it with the lamp."
+        },
+        {
+          "id": "prologue.item.supplyKey.name",
+          "kind": "item",
+          "text": "prologue.item.supplyKey.name",
+          "words": "Supply key"
+        },
+        {
+          "id": "prologue.item.supplyKey",
+          "kind": "item",
+          "motifs": [
+            "tags"
+          ],
+          "speaker": "ada",
+          "text": "prologue.item.supplyKey",
+          "words": "Paper tag: SUPPLY."
+        },
+        {
+          "id": "prologue.item.sheets.name",
+          "kind": "item",
+          "text": "prologue.item.sheets.name",
+          "words": "Clean sheets"
+        },
+        {
+          "id": "prologue.item.sheets",
+          "kind": "item",
+          "motifs": [
+            "four"
+          ],
+          "speaker": "ada",
+          "text": "prologue.item.sheets",
+          "words": "Folded square, for Bed 04. Use them on the bed."
+        },
+        {
+          "id": "prologue.registerAsk",
+          "kind": "note",
+          "motifs": [
+            "line"
+          ],
+          "text": "prologue.registerAsk",
+          "words": "A clean page. SIGNED ON, HANDED OVER TO."
+        },
+        {
+          "id": "prologue.registerSign",
+          "kind": "dialogue",
+          "speaker": "ada",
+          "text": "prologue.registerSign",
+          "words": "Sign on."
+        },
+        {
+          "id": "prologue.registerLeave",
+          "kind": "dialogue",
+          "speaker": "ada",
+          "text": "prologue.registerLeave",
+          "words": "Not now."
+        },
+        {
+          "id": "prologue.registerSigned",
+          "kind": "file",
+          "motifs": [
+            "handwriting",
+            "line"
+          ],
+          "text": "prologue.registerSigned",
+          "words": "NIGHT REGISTER\nSIGNED ON 20:00   A. Voss   First night. All quiet.\nHANDED OVER TO:"
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 2,
+                "pause": 1
+              }
+            ],
+            "pace": 0.85
+          },
+          "id": "prologue.st.p0.blanket",
+          "kind": "examine",
+          "motifs": [
+            "warmth",
+            "pools",
+            "four"
+          ],
+          "speaker": "ada",
+          "text": "prologue.st.p0.blanket",
+          "words": "Under the ward lamp I smooth the ticking flat with both hands, the way you would for somebody already lying there. Square corners, with no sheet to square. The dip stays where it is."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 1,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.st.p0.jug",
+          "kind": "examine",
+          "motifs": [
+            "four"
+          ],
+          "speaker": "ada",
+          "text": "prologue.st.p0.jug",
+          "words": "I wipe the nightstand down with my sleeve, so whoever wakes in 04 tomorrow wakes to something clean. You make a place ready before anybody asks you to."
+        },
+        {
+          "id": "prologue.st.p0.window",
+          "kind": "examine",
+          "motifs": [
+            "clocks"
+          ],
+          "speaker": "ada",
+          "text": "prologue.st.p0.window",
+          "words": "Frost on the high window, at the corners first, the way it starts. Past the bars the county is dark to the edge of it. Eight o’clock, and the whole night still in front of me."
+        },
+        {
+          "id": "prologue.register.code",
+          "kind": "note",
+          "motifs": [
+            "handwriting"
+          ],
+          "text": "prologue.register.code",
+          "words": "The cabinet’s four numbers"
+        },
+        {
+          "id": "prologue.register.supplyKey",
+          "kind": "note",
+          "motifs": [
+            "handwriting"
+          ],
+          "text": "prologue.register.supplyKey",
+          "words": "The key from the cabinet"
+        },
+        {
+          "id": "prologue.register.fillLamp",
+          "kind": "note",
+          "motifs": [
+            "handwriting"
+          ],
+          "text": "prologue.register.fillLamp",
+          "words": "The hand lamp"
+        },
+        {
+          "id": "prologue.register.darkShelf",
+          "kind": "note",
+          "motifs": [
+            "handwriting"
+          ],
+          "text": "prologue.register.darkShelf",
+          "words": "The supply room, in the dark"
+        },
+        {
+          "id": "prologue.register.makeBed",
+          "kind": "note",
+          "motifs": [
+            "handwriting"
+          ],
+          "text": "prologue.register.makeBed",
+          "words": "Bed 04, to be made up"
+        },
+        {
+          "id": "prologue.register.vigil",
+          "kind": "note",
+          "motifs": [
+            "handwriting"
+          ],
+          "text": "prologue.register.vigil",
+          "words": "Her round"
+        },
+        {
+          "id": "prologue.cutscene.opening.1",
+          "kind": "caption",
+          "motifs": [
+            "clocks"
+          ],
+          "text": "prologue.cutscene.opening.1",
+          "words": "St. Agnes Clinic. 20:00."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 2,
+                "pause": 1
+              },
+              {
+                "after": 3,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.cutscene.opening.2",
+          "kind": "caption",
+          "speaker": "ada",
+          "text": "prologue.cutscene.opening.2",
+          "words": "First night. The day shift went out the door like the building was on fire. It isn’t. I checked."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 1,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.cutscene.opening.3",
+          "kind": "caption",
+          "motifs": [
+            "handwriting"
+          ],
+          "speaker": "ada",
+          "text": "prologue.cutscene.opening.3",
+          "words": "She left me a note. A long one."
+        },
+        {
+          "id": "prologue.cutscene.keypad.1",
+          "kind": "caption",
+          "text": "prologue.cutscene.keypad.1",
+          "words": "The cabinet clicks open."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 1,
+                "pause": 1
+              },
+              {
+                "after": 2,
+                "pause": 1
+              }
+            ],
+            "pace": 0.85
+          },
+          "id": "prologue.cutscene.lightsOut.1",
+          "kind": "caption",
+          "motifs": [
+            "warmth"
+          ],
+          "speaker": "ada",
+          "text": "prologue.cutscene.lightsOut.1",
+          "words": "Every lamp goes out at once. Like a held breath. Mine is the last one."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 1,
+                "pause": 1
+              },
+              {
+                "after": 2,
+                "pause": 1
+              }
+            ],
+            "pace": 0.85
+          },
+          "id": "prologue.cutscene.lightsOut.2",
+          "kind": "caption",
+          "speaker": "ada",
+          "text": "prologue.cutscene.lightsOut.2",
+          "words": "Somebody at the end of the corridor. Nobody came in. I would have heard."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 1,
+                "pause": 1
+              },
+              {
+                "after": 2,
+                "pause": 1
+              },
+              {
+                "after": 3,
+                "pause": 1
+              }
+            ],
+            "pace": 0.85
+          },
+          "id": "prologue.cutscene.found.1",
+          "kind": "caption",
+          "motifs": [
+            "four"
+          ],
+          "speaker": "ada",
+          "text": "prologue.cutscene.found.1",
+          "words": "Cold fingers on my wrist, counting my pulse. Gently. I blink. Bed 04 again, in the dark."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 1,
+                "pause": 1
+              },
+              {
+                "after": 2,
+                "pause": 1
+              },
+              {
+                "after": 3,
+                "pause": 1
+              }
+            ]
+          },
+          "id": "prologue.cutscene.rest.1",
+          "kind": "caption",
+          "motifs": [
+            "line"
+          ],
+          "speaker": "ada",
+          "text": "prologue.cutscene.rest.1",
+          "words": "All quiet. I will write that in the register. First night. All quiet."
+        },
+        {
+          "delivery": {
+            "beats": [
+              {
+                "after": 1,
+                "pause": 1
+              },
+              {
+                "after": 2,
+                "pause": 2
+              }
+            ],
+            "pace": 0.85
+          },
+          "id": "prologue.cutscene.rest.2",
+          "kind": "caption",
+          "speaker": "ada",
+          "text": "prologue.cutscene.rest.2",
+          "words": "Just close my eyes. Just until it is light. Somewhere in the walls, a click, like a tongue."
+        },
+        {
+          "id": "prologue.objective.note",
+          "kind": "objective",
+          "text": "prologue.objective.note",
+          "words": "Read the note the day shift left on the desk."
+        },
+        {
+          "id": "prologue.objective.key",
+          "kind": "objective",
+          "text": "prologue.objective.key",
+          "words": "Get the supply key from the cabinet. The code is in the note."
+        },
+        {
+          "id": "prologue.objective.lamp",
+          "kind": "objective",
+          "text": "prologue.objective.lamp",
+          "words": "Find the hand lamp in the ward."
+        },
+        {
+          "id": "prologue.objective.fill",
+          "kind": "objective",
+          "text": "prologue.objective.fill",
+          "words": "Fill the lamp: select it, choose combine, then the paraffin."
+        },
+        {
+          "id": "prologue.objective.closet",
+          "kind": "objective",
+          "text": "prologue.objective.closet",
+          "words": "Take the lit lamp to the supply room in the corridor. F snuffs it and lights it again."
+        },
+        {
+          "id": "prologue.objective.sheets",
+          "kind": "objective",
+          "text": "prologue.objective.sheets",
+          "words": "Take clean sheets from the supply room."
+        },
+        {
+          "id": "prologue.objective.bed",
+          "kind": "objective",
+          "text": "prologue.objective.bed",
+          "words": "Make up Bed 04: select the sheets, then use them on the bed."
+        },
+        {
+          "id": "prologue.objective.hide",
+          "kind": "objective",
+          "text": "prologue.objective.hide",
+          "words": "Keep the lamp lit, or hide behind the privacy screen or in the supply locker, until she goes."
+        },
+        {
+          "id": "prologue.objective.rest",
+          "kind": "objective",
+          "text": "prologue.objective.rest",
+          "words": "She has gone. Sit down at Bed 04."
+        }
+      ]
+    }
+  },
+  "nav-graph": {
+    "prologue": {
+      "edges": [
+        [
+          "end",
+          "cmid"
+        ],
+        [
+          "cmid",
+          "closet",
+          "closetDoor"
+        ],
+        [
+          "closet",
+          "closetN"
+        ],
+        [
+          "cmid",
+          "mouth"
+        ],
+        [
+          "mouth",
+          "hallN"
+        ],
+        [
+          "hallN",
+          "ward"
+        ],
+        [
+          "hallN",
+          "recep"
+        ],
+        [
+          "hallN",
+          "hallS"
+        ],
+        [
+          "hallN",
+          "recepN"
+        ],
+        [
+          "ward",
+          "bench"
+        ],
+        [
+          "wardSouth",
+          "hallS"
+        ],
+        [
+          "ward",
+          "hallS"
+        ],
+        [
+          "ward",
+          "bedside"
+        ],
+        [
+          "bedside",
+          "alcoveMouth"
+        ],
+        [
+          "alcoveMouth",
+          "alcove"
+        ],
+        [
+          "bedside",
+          "sinkSide"
+        ],
+        [
+          "bench",
+          "hallS"
+        ],
+        [
+          "recep",
+          "recepSW"
+        ],
+        [
+          "recepSW",
+          "recepS"
+        ],
+        [
+          "recepSW",
+          "hallS"
+        ],
+        [
+          "recepS",
+          "hallS"
+        ],
+        [
+          "recep",
+          "recepN"
+        ]
+      ],
+      "nodes": {
+        "alcove": {
+          "x": -3.2,
+          "z": -2.2
+        },
+        "alcoveMouth": {
+          "x": -2.15,
+          "z": -0.3
+        },
+        "bedside": {
+          "x": -2.9,
+          "z": 2.45
+        },
+        "bench": {
+          "x": -1.45,
+          "z": 3.4
+        },
+        "closet": {
+          "x": 3,
+          "z": -4
+        },
+        "closetN": {
+          "x": 3,
+          "z": -5.7
+        },
+        "cmid": {
+          "x": 0.3,
+          "z": -4
+        },
+        "end": {
+          "x": 0,
+          "z": -6.1
+        },
+        "hallN": {
+          "x": 0,
+          "z": 0.3
+        },
+        "hallS": {
+          "x": 0,
+          "z": 4.8
+        },
+        "mouth": {
+          "x": 0,
+          "z": -1.9
+        },
+        "recep": {
+          "x": 1.75,
+          "z": 1.45
+        },
+        "recepN": {
+          "x": 2,
+          "z": 0.15
+        },
+        "recepS": {
+          "x": 3.95,
+          "z": 3.95
+        },
+        "recepSW": {
+          "x": 1.4,
+          "z": 3.6
+        },
+        "sinkSide": {
+          "x": -4.2,
+          "z": 2.75
+        },
+        "ward": {
+          "x": -1.6,
+          "z": 2.1
+        },
+        "wardSouth": {
+          "x": -2.75,
+          "z": 5.65
+        }
+      }
+    }
+  },
+  "palette": {
+    "colors": [
+      "#000000",
+      "#222323",
+      "#434549",
+      "#626871",
+      "#828b98",
+      "#a6aeba",
+      "#cdd2da",
+      "#f5f7fa",
+      "#625d54",
+      "#857565",
+      "#9e8c79",
+      "#aea189",
+      "#bbafa4",
+      "#ccc3b1",
+      "#eadbc9",
+      "#fff3d6",
+      "#583126",
+      "#733d3b",
+      "#885041",
+      "#9a624c",
+      "#ad6e51",
+      "#d58d6b",
+      "#fbaa84",
+      "#ffce7f",
+      "#002735",
+      "#003850",
+      "#004d5e",
+      "#0b667f",
+      "#006f89",
+      "#328ca7",
+      "#24aed6",
+      "#88d6ff",
+      "#662b29",
+      "#94363a",
+      "#b64d46",
+      "#cd5e46",
+      "#e37840",
+      "#f99b4e",
+      "#ffbc4e",
+      "#ffe949",
+      "#282b4a",
+      "#3a4568",
+      "#615f84",
+      "#7a7799",
+      "#8690b2",
+      "#96b2d9",
+      "#c7d6ff",
+      "#c6ecff",
+      "#002219",
+      "#003221",
+      "#174a1b",
+      "#225918",
+      "#2f690c",
+      "#518822",
+      "#7da42d",
+      "#a6cc34",
+      "#181f2f",
+      "#23324d",
+      "#25466b",
+      "#366b8a",
+      "#318eb8",
+      "#41b2e3",
+      "#52d2ff",
+      "#74f5fd",
+      "#1a332c",
+      "#2f3f38",
+      "#385140",
+      "#325c40",
+      "#417455",
+      "#498960",
+      "#55b67d",
+      "#91daa1",
+      "#5e0711",
+      "#82211d",
+      "#b63c35",
+      "#e45c5f",
+      "#ff7676",
+      "#ff9ba8",
+      "#ffbbc7",
+      "#ffdbff",
+      "#2d3136",
+      "#48474d",
+      "#5b5c69",
+      "#73737f",
+      "#848795",
+      "#abaebe",
+      "#bac7db",
+      "#ebf0f6",
+      "#3b303c",
+      "#5a3c45",
+      "#8a5258",
+      "#ae6b60",
+      "#c7826c",
+      "#d89f75",
+      "#ecc581",
+      "#fffaab",
+      "#31222a",
+      "#4a353c",
+      "#5e4646",
+      "#725a51",
+      "#7e6c54",
+      "#9e8a6e",
+      "#c0a588",
+      "#ddbf9a",
+      "#2e1026",
+      "#49283d",
+      "#663659",
+      "#975475",
+      "#b96d91",
+      "#c178aa",
+      "#db99bf",
+      "#f8c6da",
+      "#002e49",
+      "#004051",
+      "#005162",
+      "#006b6d",
+      "#008279",
+      "#00a087",
+      "#00bfa3",
+      "#00deda",
+      "#453125",
+      "#614a3c",
+      "#7e6144",
+      "#997951",
+      "#b29062",
+      "#cca96e",
+      "#e8cb82",
+      "#fbeaa3",
+      "#5f0926",
+      "#6e2434",
+      "#904647",
+      "#a76057",
+      "#bd7d64",
+      "#ce9770",
+      "#edb67c",
+      "#edd493",
+      "#323558",
+      "#4a5280",
+      "#64659d",
+      "#7877c1",
+      "#8e8ce2",
+      "#9c9bef",
+      "#b8aeff",
+      "#dcd4ff",
+      "#431729",
+      "#712b3b",
+      "#9f3b52",
+      "#d94a69",
+      "#f85d80",
+      "#ff7daf",
+      "#ffa6c5",
+      "#ffcdff",
+      "#49251c",
+      "#633432",
+      "#7c4b47",
+      "#98595a",
+      "#ac6f6e",
+      "#c17e7a",
+      "#d28d7a",
+      "#e59a7c",
+      "#202900",
+      "#2f4f08",
+      "#495d00",
+      "#617308",
+      "#7c831e",
+      "#969a26",
+      "#b4aa33",
+      "#d0cc32",
+      "#622a00",
+      "#753b09",
+      "#854f12",
+      "#9e6520",
+      "#ba882e",
+      "#d1aa39",
+      "#e8d24b",
+      "#fff64f",
+      "#26233d",
+      "#3b3855",
+      "#56506f",
+      "#75686e",
+      "#917a7b",
+      "#b39783",
+      "#cfaf8e",
+      "#fedfb1",
+      "#1d2c43",
+      "#2e3d47",
+      "#394d3c",
+      "#4c5f33",
+      "#58712c",
+      "#6b842d",
+      "#789e24",
+      "#7fbd39",
+      "#372423",
+      "#53393a",
+      "#784c49",
+      "#945d4f",
+      "#a96d58",
+      "#bf7e63",
+      "#d79374",
+      "#f4a380",
+      "#2d4b47",
+      "#47655a",
+      "#5b7b69",
+      "#71957d",
+      "#87ae8e",
+      "#8ac196",
+      "#a9d1c1",
+      "#e0faeb",
+      "#001b40",
+      "#03315f",
+      "#07487c",
+      "#105da2",
+      "#1476c0",
+      "#4097ea",
+      "#55b1f1",
+      "#6dccff",
+      "#554769",
+      "#765d73",
+      "#977488",
+      "#b98c93",
+      "#d5a39a",
+      "#ebbd9d",
+      "#ffd59b",
+      "#fdf786",
+      "#1d1d21",
+      "#3c3151",
+      "#584a7f",
+      "#7964ba",
+      "#9585f1",
+      "#a996ec",
+      "#baabf7",
+      "#d1bdfe",
+      "#262450",
+      "#28335d",
+      "#2d3d72",
+      "#3d5083",
+      "#5165ae",
+      "#5274c5",
+      "#6c82c4",
+      "#8393c3",
+      "#492129",
+      "#5e414a",
+      "#77535b",
+      "#91606a",
+      "#ad7984",
+      "#b58b94",
+      "#d4aeaa",
+      "#ffe2cf",
+      "#721c03",
+      "#9c3327",
+      "#bf5a3e",
+      "#e98627",
+      "#ffb108",
+      "#ffcf05",
+      "#fff02b",
+      "#f7f4bf"
+    ],
+    "name": "DUEL"
+  },
+  "peek": {
+    "arc": 50,
+    "dwell": 0.6,
+    "ease": 0.4,
+    "lean": 1.2,
+    "reach": 1.4
+  },
+  "puzzle": {
+    "prologue": {
+      "actions": [
+        {
+          "at": "noticeboard",
+          "id": "noticeboard.first",
+          "say": "handover",
+          "seconds": 4,
+          "then": [
+            {
+              "set": "noteRead",
+              "to": true
+            },
+            {
+              "call": "read"
+            }
+          ],
+          "when": [
+            {
+              "fact": "noteRead",
+              "is": false
+            }
+          ]
+        },
+        {
+          "at": "noticeboard",
+          "id": "noticeboard.back",
+          "say": "handoverBack",
+          "seconds": 4,
+          "then": [
+            {
+              "set": "backRead",
+              "to": true
+            }
+          ],
+          "when": [
+            {
+              "fact": "backRead",
+              "is": false
+            }
+          ]
+        },
+        {
+          "at": "noticeboard",
+          "id": "noticeboard.again",
+          "say": "handoverAgain",
+          "then": []
+        },
+        {
+          "at": "register",
+          "id": "register.read",
+          "say": "register",
+          "seconds": 3,
+          "then": [
+            {
+              "call": "read"
+            }
+          ]
+        },
+        {
+          "at": "clock",
+          "id": "clock.read",
+          "say": "clock",
+          "seconds": 3,
+          "then": [
+            {
+              "call": "read"
+            }
+          ]
+        },
+        {
+          "at": "monitor",
+          "id": "monitor.read",
+          "say": "monitor",
+          "seconds": 3,
+          "then": [
+            {
+              "call": "read"
+            }
+          ]
+        },
+        {
+          "at": "record",
+          "id": "record.look",
+          "say": "record",
+          "then": []
+        },
+        {
+          "at": "curtainWest",
+          "id": "curtainWest.look",
+          "say": "curtain",
+          "then": []
+        },
+        {
+          "at": "curtainEast",
+          "id": "curtainEast.look",
+          "say": "curtain",
+          "then": []
+        },
+        {
+          "at": "sink",
+          "id": "sink.look",
+          "say": "sink",
+          "then": []
+        },
+        {
+          "at": "trolley",
+          "id": "trolley.look",
+          "say": "trolley",
+          "then": []
+        },
+        {
+          "at": "exit",
+          "id": "exit.look",
+          "say": "exit",
+          "then": []
+        },
+        {
+          "at": "fuseBox",
+          "id": "fuseBox.look",
+          "say": "fuseBox",
+          "then": []
+        },
+        {
+          "at": "valve",
+          "id": "valve.look",
+          "say": "valve",
+          "then": []
+        },
+        {
+          "at": "cabinet",
+          "id": "cabinet.open",
+          "say": "cabinetOpen",
+          "then": [],
+          "when": [
+            {
+              "fact": "cabinetOpen",
+              "is": true
+            }
+          ]
+        },
+        {
+          "at": "cabinet",
+          "id": "cabinet.keypad",
+          "say": "",
+          "then": [
+            {
+              "keypad": true
+            }
+          ]
+        },
+        {
+          "at": "code",
+          "id": "code.open",
+          "say": "",
+          "then": [],
+          "when": [
+            {
+              "fact": "cabinetOpen",
+              "is": true
+            }
+          ]
+        },
+        {
+          "at": "code",
+          "id": "code.wrong",
+          "say": "keypadWrong",
+          "then": [
+            {
+              "noise": {
+                "at": "cabinet",
+                "kind": "buzz",
+                "loudness": 4
+              }
+            }
+          ],
+          "when": [
+            {
+              "not": {
+                "fact": "code",
+                "is": "2000"
+              }
+            }
+          ]
+        },
+        {
+          "at": "code",
+          "id": "code.right",
+          "say": "keypadRight",
+          "then": [
+            {
+              "set": "cabinetOpen",
+              "to": true
+            },
+            {
+              "give": "supplyKey"
+            },
+            {
+              "cutscene": "keypad"
+            },
+            {
+              "checkpoint": true
+            }
+          ]
+        },
+        {
+          "at": "nightstand",
+          "id": "nightstand.lamp",
+          "say": "nightstandLamp",
+          "then": [
+            {
+              "set": "nightstand",
+              "to": 1
+            },
+            {
+              "give": "handLamp"
+            }
+          ],
+          "when": [
+            {
+              "fact": "nightstand",
+              "is": 0
+            }
+          ]
+        },
+        {
+          "at": "nightstand",
+          "id": "nightstand.paraffin",
+          "say": "nightstandParaffin",
+          "then": [
+            {
+              "set": "nightstand",
+              "to": 2
+            },
+            {
+              "give": "paraffin"
+            }
+          ],
+          "when": [
+            {
+              "fact": "nightstand",
+              "is": 1
+            }
+          ]
+        },
+        {
+          "at": "nightstand",
+          "id": "nightstand.more",
+          "say": "nightstandMore",
+          "then": [
+            {
+              "give": "paraffin"
+            }
+          ],
+          "when": [
+            {
+              "fact": "nightstand",
+              "is": 2
+            },
+            {
+              "not": {
+                "has": "paraffin"
+              }
+            }
+          ]
+        },
+        {
+          "at": "nightstand",
+          "id": "nightstand.empty",
+          "say": "nightstandEmpty",
+          "then": []
+        },
+        {
+          "at": "closetDoor",
+          "id": "closetDoor.open",
+          "say": "doorOpen",
+          "then": [],
+          "when": [
+            {
+              "fact": "closetOpen",
+              "is": true
+            }
+          ]
+        },
+        {
+          "at": "closetDoor",
+          "id": "closetDoor.unlock",
+          "say": "doorOpened",
+          "then": [
+            {
+              "set": "closetOpen",
+              "to": true
+            },
+            {
+              "take": "supplyKey"
+            },
+            {
+              "checkpoint": true
+            }
+          ],
+          "when": [
+            {
+              "has": "supplyKey"
+            },
+            {
+              "any": [
+                {
+                  "fact": "held",
+                  "is": ""
+                },
+                {
+                  "fact": "held",
+                  "is": "supplyKey"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "at": "closetDoor",
+          "id": "closetDoor.locked",
+          "say": "doorLocked",
+          "then": []
+        },
+        {
+          "at": "shelf",
+          "id": "shelf.empty",
+          "say": "shelfEmpty",
+          "then": [],
+          "when": [
+            {
+              "fact": "shelfTaken",
+              "is": true
+            }
+          ]
+        },
+        {
+          "at": "shelf",
+          "id": "shelf.lit",
+          "say": "shelfSheets",
+          "seconds": 3,
+          "then": [
+            {
+              "set": "shelfTaken",
+              "to": true
+            },
+            {
+              "give": "sheets"
+            },
+            {
+              "checkpoint": true
+            }
+          ],
+          "when": [
+            {
+              "fact": "lit",
+              "is": true
+            }
+          ]
+        },
+        {
+          "at": "shelf",
+          "id": "shelf.dark",
+          "say": "shelfDark",
+          "then": []
+        },
+        {
+          "at": "bed",
+          "id": "bed.make",
+          "say": "bedMade",
+          "seconds": 3,
+          "then": [
+            {
+              "take": "sheets"
+            },
+            {
+              "set": "bedMade",
+              "to": true
+            }
+          ],
+          "use": "sheets"
+        },
+        {
+          "at": "bed",
+          "id": "bed.rest",
+          "say": "",
+          "then": [
+            {
+              "set": "rested",
+              "to": true
+            },
+            {
+              "cutscene": "rest"
+            }
+          ],
+          "when": [
+            {
+              "fact": "bedMade",
+              "is": true
+            },
+            {
+              "fact": "figureGone",
+              "is": true
+            }
+          ]
+        },
+        {
+          "at": "bed",
+          "id": "bed.wait",
+          "say": "bedWait",
+          "then": [],
+          "when": [
+            {
+              "fact": "bedMade",
+              "is": true
+            }
+          ]
+        },
+        {
+          "at": "bed",
+          "id": "bed.bare",
+          "say": "bedBare",
+          "then": []
+        },
+        {
+          "at": "combine",
+          "id": "combine.fill",
+          "say": "combineFluid",
+          "then": [
+            {
+              "call": "fill"
+            }
+          ],
+          "use": [
+            "handLamp",
+            "paraffin"
+          ]
+        }
+      ],
+      "entry": [
+        {
+          "items": [],
+          "name": "start"
+        }
+      ],
+      "facts": {
+        "backRead": false,
+        "bedMade": false,
+        "cabinetOpen": false,
+        "closetOpen": false,
+        "figureGone": false,
+        "fuel": 0,
+        "lightsOut": false,
+        "lit": false,
+        "nightstand": 0,
+        "noteRead": false,
+        "rested": false,
+        "shelfTaken": false
+      },
+      "fallback": {
+        "*": "noEffect",
+        "combine": "noEffect",
+        "floor": "noEffect"
+      },
+      "goal": [
+        {
+          "fact": "rested",
+          "is": true
+        }
+      ],
+      "hotspots": {
+        "bed": {
+          "x": -4.1,
+          "z": 0.6
+        },
+        "cabinet": {
+          "x": 4.8,
+          "z": 3.6
+        },
+        "clock": {
+          "x": 4.45,
+          "z": -0.86
+        },
+        "closetDoor": {
+          "x": 1.5,
+          "z": -4
+        },
+        "curtainEast": {
+          "x": -2.35,
+          "z": 1.55
+        },
+        "curtainWest": {
+          "x": -3,
+          "z": -0.66
+        },
+        "exit": {
+          "x": 0,
+          "z": -6.55
+        },
+        "fuseBox": {
+          "x": -1.45,
+          "z": -4.1
+        },
+        "locker": {
+          "x": 3.94,
+          "z": -5.9
+        },
+        "monitor": {
+          "x": -2.4,
+          "z": -3.3
+        },
+        "nightstand": {
+          "x": -3.12,
+          "z": -0.3
+        },
+        "noticeboard": {
+          "x": 3.3,
+          "z": -0.86
+        },
+        "record": {
+          "x": -2.2,
+          "z": 3.3
+        },
+        "register": {
+          "x": 2.95,
+          "z": 1.5
+        },
+        "screen": {
+          "x": -2.75,
+          "z": -2.55
+        },
+        "shelf": {
+          "x": 4,
+          "z": -4.5
+        },
+        "sink": {
+          "x": -4.85,
+          "z": 3
+        },
+        "trolley": {
+          "x": 2.3,
+          "z": 2.4
+        },
+        "valve": {
+          "x": 2.4,
+          "z": -6.35
+        }
+      },
+      "items": [
+        "handLamp",
+        "paraffin",
+        "supplyKey",
+        "sheets"
+      ],
+      "lethal": [],
+      "scene": "prologue",
+      "systemic": []
+    }
+  },
+  "storylets": {
+    "prologue": {
+      "storylets": [
+        {
+          "id": "st.p0.blanket",
+          "lines": [
+            "prologue.st.p0.blanket"
+          ],
+          "once": true,
+          "phase": "P0",
+          "trigger": "inspect:bed",
+          "when": [
+            {
+              "fact": "noteRead",
+              "is": true
+            },
+            {
+              "fact": "lightsOut",
+              "is": false
+            },
+            {
+              "fact": "bedMade",
+              "is": false
+            }
+          ]
+        },
+        {
+          "id": "st.p0.jug",
+          "lines": [
+            "prologue.st.p0.jug"
+          ],
+          "once": true,
+          "phase": "P0",
+          "trigger": "inspect:nightstand",
+          "when": [
+            {
+              "fact": "noteRead",
+              "is": true
+            },
+            {
+              "fact": "lightsOut",
+              "is": false
+            },
+            {
+              "atLeast": 1,
+              "fact": "played.st.p0.blanket"
+            }
+          ]
+        },
+        {
+          "id": "st.p0.window",
+          "lines": [
+            "prologue.st.p0.window"
+          ],
+          "once": true,
+          "phase": "P0",
+          "trigger": "dwell:ward:6",
+          "when": [
+            {
+              "fact": "noteRead",
+              "is": true
+            },
+            {
+              "fact": "lightsOut",
+              "is": false
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "systems": {
+    "prologue": {
+      "agents": [
+        {
+          "hooks": [
+            "replan",
+            "stop",
+            "leave",
+            "caught"
+          ],
+          "id": "nurse",
+          "initial": "dormant",
+          "modes": [
+            "dormant",
+            "patrol",
+            "investigate",
+            "hunt",
+            "flee",
+            "follow",
+            "leaving"
+          ],
+          "routine": [
+            {
+              "dwell": 0.6,
+              "node": "end"
+            },
+            {
+              "dwell": 0.6,
+              "node": "cmid"
+            },
+            {
+              "dwell": 0.6,
+              "node": "mouth"
+            },
+            {
+              "dwell": 0.6,
+              "node": "hallN"
+            },
+            {
+              "dwell": 0.6,
+              "node": "ward"
+            },
+            {
+              "dwell": 0.6,
+              "node": "hallN"
+            },
+            {
+              "dwell": 0.6,
+              "node": "mouth"
+            },
+            {
+              "dwell": 0.6,
+              "node": "cmid"
+            },
+            {
+              "dwell": 0.6,
+              "node": "closet"
+            },
+            {
+              "dwell": 0.6,
+              "node": "closetN"
+            },
+            {
+              "dwell": 0.6,
+              "node": "closet"
+            },
+            {
+              "dwell": 0.6,
+              "node": "cmid"
+            }
+          ],
+          "senses": [
+            {
+              "light": {}
+            },
+            {
+              "sound": {}
+            },
+            {
+              "sight": {
+                "range": 4.5,
+                "wallsOnly": true
+              }
+            },
+            {
+              "touch": {
+                "radius": 0.62
+              }
+            }
+          ],
+          "speed": {
+            "dormant": 0,
+            "flee": 2.8,
+            "follow": 2.2,
+            "hunt": 2.2,
+            "investigate": 1.75,
+            "leaving": 1.05,
+            "patrol": 1.05
+          },
+          "transitions": [
+            {
+              "do": [
+                {
+                  "set": "pursuit.hidden",
+                  "to": ""
+                },
+                {
+                  "set": "self.timer",
+                  "to": 0
+                },
+                {
+                  "set": "self.replan",
+                  "to": 0
+                },
+                {
+                  "goTo": "player"
+                }
+              ],
+              "from": "*",
+              "priority": 85,
+              "to": "hunt",
+              "when": [
+                {
+                  "not": {
+                    "mode": "dormant"
+                  }
+                },
+                {
+                  "not": {
+                    "mode": "leaving"
+                  }
+                },
+                {
+                  "sawHide": {
+                    "los": true,
+                    "radius": 4
+                  }
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "flee": "light"
+                },
+                {
+                  "set": "self.timer",
+                  "to": 0
+                }
+              ],
+              "from": "*",
+              "priority": 80,
+              "to": "flee",
+              "when": [
+                {
+                  "not": {
+                    "mode": "dormant"
+                  }
+                },
+                {
+                  "not": {
+                    "mode": "flee"
+                  }
+                },
+                {
+                  "inLight": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "goTo": "end"
+                }
+              ],
+              "from": "patrol",
+              "priority": 76,
+              "to": "leaving",
+              "when": [
+                {
+                  "fact": "vigilOver",
+                  "is": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "goTo": "end"
+                }
+              ],
+              "from": "investigate",
+              "priority": 76,
+              "to": "leaving",
+              "when": [
+                {
+                  "fact": "vigilOver",
+                  "is": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "goTo": "end"
+                }
+              ],
+              "from": "flee",
+              "priority": 76,
+              "to": "leaving",
+              "when": [
+                {
+                  "fact": "vigilOver",
+                  "is": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "call": "leave"
+                }
+              ],
+              "from": "leaving",
+              "priority": 77,
+              "to": "dormant",
+              "when": [
+                {
+                  "at": "end"
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "set": "self.timer",
+                  "to": 0
+                },
+                {
+                  "set": "self.replan",
+                  "to": 0
+                },
+                {
+                  "goTo": "player"
+                }
+              ],
+              "from": "patrol",
+              "priority": 70,
+              "to": "hunt",
+              "when": [
+                {
+                  "sees": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "set": "self.timer",
+                  "to": 0
+                },
+                {
+                  "set": "self.replan",
+                  "to": 0
+                },
+                {
+                  "goTo": "player"
+                }
+              ],
+              "from": "investigate",
+              "priority": 70,
+              "to": "hunt",
+              "when": [
+                {
+                  "sees": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "goTo": "player"
+                }
+              ],
+              "from": "hunt",
+              "priority": 69,
+              "to": "hunt",
+              "when": [
+                {
+                  "sees": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "followThrough": {
+                    "clear": 1.5,
+                    "delay": 2,
+                    "portal": "crossed",
+                    "then": "hunt"
+                  }
+                }
+              ],
+              "from": "hunt",
+              "priority": 75,
+              "to": "follow",
+              "when": [
+                {
+                  "crossed": true
+                },
+                {
+                  "not": {
+                    "sees": true
+                  }
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "followThrough": {
+                    "clear": 1.5,
+                    "delay": 2,
+                    "portal": "crossed",
+                    "then": "hunt"
+                  }
+                }
+              ],
+              "from": "follow",
+              "priority": 74,
+              "to": "follow",
+              "when": [
+                {
+                  "crossed": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "set": "self.timer",
+                  "to": 0
+                },
+                {
+                  "set": "self.replan",
+                  "to": 0
+                },
+                {
+                  "goTo": "player"
+                }
+              ],
+              "from": "follow",
+              "priority": 73,
+              "to": "hunt",
+              "when": [
+                {
+                  "sees": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "call": "replan"
+                }
+              ],
+              "from": "hunt",
+              "priority": 60,
+              "to": "hunt",
+              "when": []
+            },
+            {
+              "do": [
+                {
+                  "call": "caught"
+                },
+                {
+                  "emit": {
+                    "caught": "practice"
+                  }
+                }
+              ],
+              "from": "patrol",
+              "priority": 50,
+              "to": "patrol",
+              "when": [
+                {
+                  "touching": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "call": "caught"
+                },
+                {
+                  "emit": {
+                    "caught": "practice"
+                  }
+                }
+              ],
+              "from": "investigate",
+              "priority": 50,
+              "to": "investigate",
+              "when": [
+                {
+                  "touching": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "call": "caught"
+                },
+                {
+                  "emit": {
+                    "caught": "practice"
+                  }
+                }
+              ],
+              "from": "hunt",
+              "priority": 50,
+              "to": "hunt",
+              "when": [
+                {
+                  "touching": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "call": "caught"
+                },
+                {
+                  "emit": {
+                    "caught": "practice"
+                  }
+                }
+              ],
+              "from": "follow",
+              "priority": 50,
+              "to": "follow",
+              "when": [
+                {
+                  "touching": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "call": "stop"
+                },
+                {
+                  "set": "self.timer",
+                  "to": 0
+                }
+              ],
+              "from": "*",
+              "priority": 40,
+              "to": "patrol",
+              "when": [
+                {
+                  "not": {
+                    "mode": "dormant"
+                  }
+                },
+                {
+                  "not": {
+                    "mode": "leaving"
+                  }
+                },
+                {
+                  "fact": "self.blocked",
+                  "is": true
+                },
+                {
+                  "timer": 4
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "set": "self.timer",
+                  "to": 0
+                }
+              ],
+              "from": "hunt",
+              "priority": 30,
+              "to": "investigate",
+              "when": [
+                {
+                  "fact": "self.idle",
+                  "is": true
+                },
+                {
+                  "not": {
+                    "sees": true
+                  }
+                },
+                {
+                  "timer": 1.5
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "set": "self.timer",
+                  "to": 0
+                }
+              ],
+              "from": "investigate",
+              "priority": 29,
+              "to": "patrol",
+              "when": [
+                {
+                  "fact": "self.idle",
+                  "is": true
+                },
+                {
+                  "timer": 2.5
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "set": "self.timer",
+                  "to": 0
+                }
+              ],
+              "from": "flee",
+              "priority": 28,
+              "to": "patrol",
+              "when": [
+                {
+                  "fact": "self.idle",
+                  "is": true
+                },
+                {
+                  "not": {
+                    "inLight": true
+                  }
+                },
+                {
+                  "timer": 1
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "flee": "light"
+                }
+              ],
+              "from": "flee",
+              "priority": 27,
+              "to": "flee",
+              "when": [
+                {
+                  "fact": "self.idle",
+                  "is": true
+                },
+                {
+                  "inLight": true
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "goTo": "noise"
+                },
+                {
+                  "set": "self.timer",
+                  "to": 0
+                }
+              ],
+              "from": "patrol",
+              "priority": 20,
+              "to": "investigate",
+              "when": [
+                {
+                  "heard": "*"
+                }
+              ]
+            },
+            {
+              "do": [
+                {
+                  "goTo": "noise"
+                },
+                {
+                  "set": "self.timer",
+                  "to": 0
+                }
+              ],
+              "from": "investigate",
+              "priority": 20,
+              "to": "investigate",
+              "when": [
+                {
+                  "heard": "*"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "fairness": {
+        "cautiousWin": 0.9,
+        "firstThreatAfter": 20,
+        "followClear": 1.5,
+        "hideRelease": 12,
+        "maxDeathsPerRun": 1,
+        "safeWindowMargin": 1.3,
+        "telegraph": 1.5
+      },
+      "matrix": [
+        {
+          "col": "light",
+          "cut": "no interaction",
+          "row": "light",
+          "verb": "–"
+        },
+        {
+          "col": "sound",
+          "cut": "no interaction",
+          "row": "light",
+          "verb": "–"
+        },
+        {
+          "col": "figure",
+          "row": "light",
+          "rule": "R1",
+          "verb": "Repel"
+        },
+        {
+          "col": "light",
+          "cut": "no interaction",
+          "row": "sound",
+          "verb": "–"
+        },
+        {
+          "col": "sound",
+          "cut": "no interaction",
+          "row": "sound",
+          "verb": "–"
+        },
+        {
+          "col": "figure",
+          "row": "sound",
+          "rule": "R2",
+          "verb": "Attract"
+        },
+        {
+          "col": "light",
+          "cut": "not built: light must stay Ada's answer to her",
+          "row": "figure",
+          "verb": "Snuffs the lamp"
+        },
+        {
+          "col": "sound",
+          "row": "figure",
+          "rule": "R2",
+          "verb": "Hunts"
+        },
+        {
+          "col": "figure",
+          "cut": "no interaction",
+          "row": "figure",
+          "verb": "–"
+        },
+        {
+          "col": "tool:handLamp",
+          "cut": "the hand lamp burns its own paraffin (the lamp feature), not a rule of the creature",
+          "row": "light",
+          "verb": "Keep the lamp lit and she will not come close, but the paraffin goes down"
+        },
+        {
+          "col": "tool:handLamp",
+          "cut": "no interaction",
+          "row": "sound",
+          "verb": "–"
+        },
+        {
+          "col": "tool:handLamp",
+          "row": "figure",
+          "rule": "R1",
+          "verb": "Hold the lamp and walk past her"
+        },
+        {
+          "col": "impact:lack",
+          "presentation": "the lamps all go at once",
+          "row": "light",
+          "verb": "Darkness is her ground"
+        },
+        {
+          "col": "impact:tooMany",
+          "presentation": "one lamp, and its paraffin runs down",
+          "row": "light",
+          "verb": "Nothing to fear"
+        },
+        {
+          "col": "impact:fantasy",
+          "presentation": "the hand lamp",
+          "row": "light",
+          "verb": "I held one small light and she would not come near"
+        },
+        {
+          "col": "impact:lack",
+          "presentation": "her patrol",
+          "row": "sound",
+          "verb": "She walks her loop, and nothing else"
+        },
+        {
+          "col": "impact:tooMany",
+          "presentation": "footsteps carry only 1.8 m",
+          "row": "sound",
+          "verb": "She is always on top of you"
+        },
+        {
+          "col": "impact:fantasy",
+          "presentation": "the screen and the locker",
+          "row": "sound",
+          "verb": "I stood still and she walked past"
+        },
+        {
+          "col": "impact:lack",
+          "presentation": "she walks out when the lights go",
+          "row": "figure",
+          "verb": "A tour, not a night shift"
+        },
+        {
+          "col": "impact:tooMany",
+          "presentation": "one figure, slower than Ada, and a catch that only practises",
+          "row": "figure",
+          "verb": "Unfair on the first night"
+        },
+        {
+          "col": "impact:fantasy",
+          "presentation": "the vigil",
+          "row": "figure",
+          "verb": "I learned her before she learned me"
+        }
+      ],
+      "objects": [
+        {
+          "id": "light",
+          "name": "Light",
+          "signal": "the hand lamp's warm pool on the floor; her sprite flickers at its edge"
+        },
+        {
+          "id": "sound",
+          "name": "Sound",
+          "signal": "expanding ring on the floor, on-screen caption"
+        },
+        {
+          "id": "figure",
+          "name": "The figure",
+          "signal": "tall silhouette in the corridor mouth, footfalls"
+        }
+      ],
+      "rules": [
+        {
+          "id": "R1",
+          "text": "Light repels: the figure flees the hand lamp's light (2.2 m) to the darkest reachable node, and will not step into it (her transitions).",
+          "then": [],
+          "when": []
+        },
+        {
+          "id": "R2",
+          "text": "Sound attracts: a noise draws her to it (her transitions).",
+          "then": [],
+          "when": []
+        },
+        {
+          "id": "R3",
+          "text": "Sight hunts: in the dark she sees Ada within 4.5 m past the walls, and chases her at 2.2 m/s (her transitions).",
+          "then": [],
+          "when": []
+        },
+        {
+          "id": "P1",
+          "text": "Practice: her touch finds Ada; Ada is back at the lights-out checkpoint, with no caught screen and no death (her transitions; src/game/session.ts).",
+          "then": [],
+          "when": []
+        },
+        {
+          "id": "lightsOut",
+          "text": "Once Bed 04 is made, every lamp goes out but Ada's, and the figure walks out of the north corridor (a checkpoint first).",
+          "then": [
+            {
+              "set": "lightsOut",
+              "to": true
+            },
+            {
+              "call": "wake"
+            },
+            {
+              "emit": {
+                "cutscene": "lightsOut"
+              }
+            }
+          ],
+          "when": [
+            {
+              "fact": "bedMade",
+              "is": true
+            },
+            {
+              "fact": "lightsOut",
+              "is": false
+            }
+          ]
+        },
+        {
+          "id": "P2",
+          "text": "The vigil: 35 s after the lights go, she goes back into the corridor unless she is hunting; then it is quiet.",
+          "then": [
+            {
+              "call": "vigil"
+            }
+          ],
+          "when": [
+            {
+              "fact": "lightsOut",
+              "is": true
+            }
+          ]
+        }
+      ],
+      "scenarios": [
+        {
+          "expect": {
+            "condition": [
+              {
+                "agent": "nurse",
+                "mode": "flee"
+              }
+            ],
+            "probability": 1,
+            "within": 1
+          },
+          "id": "repelledByLamp",
+          "policy": "scripted",
+          "seeds": 10,
+          "setup": {
+            "facts": {
+              "bedMade": true,
+              "fuel": 40,
+              "light": "lighter",
+              "lightsOut": true,
+              "nurse.mode": "patrol"
+            },
+            "items": [
+              "handLamp"
+            ],
+            "place": {
+              "nurse": {
+                "x": 0,
+                "z": -3.5
+              },
+              "player": {
+                "x": 0,
+                "z": -1.9
+              }
+            }
+          }
+        },
+        {
+          "expect": {
+            "condition": [
+              {
+                "agent": "nurse",
+                "mode": "patrol"
+              },
+              {
+                "fact": "pursuit.hidden",
+                "is": "screen"
+              }
+            ],
+            "probability": 1,
+            "within": 12
+          },
+          "id": "hideUnseen",
+          "policy": "scripted",
+          "seeds": 5,
+          "setup": {
+            "actions": [
+              "hide:screen"
+            ],
+            "facts": {
+              "bedMade": true,
+              "lightsOut": true,
+              "nurse.mode": "hunt"
+            },
+            "place": {
+              "nurse": {
+                "x": 0,
+                "z": -6.1
+              },
+              "player": {
+                "x": -2.6,
+                "z": -2
+              }
+            }
+          }
+        },
+        {
+          "expect": {
+            "condition": [
+              {
+                "touching": true
+              }
+            ],
+            "probability": 1,
+            "within": 4
+          },
+          "id": "practiceCatch",
+          "policy": "scripted",
+          "seeds": 5,
+          "setup": {
+            "facts": {
+              "bedMade": true,
+              "lightsOut": true,
+              "nurse.mode": "hunt"
+            },
+            "place": {
+              "nurse": {
+                "x": 0,
+                "z": -3.6
+              },
+              "player": {
+                "x": 0,
+                "z": -2.6
+              }
+            }
+          }
+        },
+        {
+          "expect": {
+            "condition": [
+              {
+                "fact": "figureGone",
+                "is": true
+              }
+            ],
+            "probability": 1,
+            "within": 75
+          },
+          "id": "vigilEnds",
+          "policy": "scripted",
+          "seeds": 3,
+          "setup": {
+            "facts": {
+              "bedMade": true,
+              "fuel": 80,
+              "light": "lighter",
+              "lightsOut": true
+            },
+            "items": [
+              "handLamp"
+            ],
+            "place": {
+              "nurse": {
+                "x": 0,
+                "z": -6.1
+              },
+              "player": {
+                "x": 3.4,
+                "z": 3.4
+              }
+            }
+          }
+        }
+      ],
+      "scene": "prologue",
+      "tunables": {
+        "catch": {
+          "max": 1,
+          "min": 0.3,
+          "note": "how close she must come to find Ada (act one's value)",
+          "unit": "m",
+          "value": 0.62
+        },
+        "edgeGiveUp": {
+          "max": 10,
+          "min": 1,
+          "note": "R1: waiting at a light's edge this long, she gives up and patrols (act one's value)",
+          "unit": "s",
+          "value": 4
+        },
+        "fleeRest": {
+          "max": 5,
+          "min": 0.2,
+          "note": "R1: out of the light this long, she patrols again (act one's value)",
+          "unit": "s",
+          "value": 1
+        },
+        "fleeSpeed": {
+          "max": 4,
+          "min": 1,
+          "note": "R1: the figure fleeing light (act one's value)",
+          "unit": "m/s",
+          "value": 2.8
+        },
+        "followClear": {
+          "max": 3,
+          "min": 1.5,
+          "note": "door-follow: she never comes through a door this close to Ada (she waits) (act one's value)",
+          "unit": "m",
+          "value": 1.5
+        },
+        "followDelay": {
+          "max": 2.5,
+          "min": 1.5,
+          "note": "door-follow: out of sight, she comes through the door Ada took this long after her (act one's value)",
+          "unit": "s",
+          "value": 2
+        },
+        "huntGiveUp": {
+          "max": 5,
+          "min": 0.5,
+          "note": "R3: at the end of her path, out of sight this long, she investigates (act one's value)",
+          "unit": "s",
+          "value": 1.5
+        },
+        "huntSpeed": {
+          "max": 3,
+          "min": 1,
+          "note": "R3: the figure chasing Ada (act one's value)",
+          "unit": "m/s",
+          "value": 2.2
+        },
+        "investigateGiveUp": {
+          "max": 8,
+          "min": 0.5,
+          "note": "R2: at the noise this long, she goes back to her patrol (act one's value)",
+          "unit": "s",
+          "value": 2.5
+        },
+        "investigateSpeed": {
+          "max": 3,
+          "min": 0.5,
+          "note": "the figure going to a noise (act one's value)",
+          "unit": "m/s",
+          "value": 1.75
+        },
+        "lampRadius": {
+          "max": 4,
+          "min": 1,
+          "note": "R1: the hand lamp's gameplay light, as the lighter's (act one's value)",
+          "unit": "m",
+          "value": 2.2
+        },
+        "patrolDwell": {
+          "max": 5,
+          "min": 0,
+          "note": "she pauses this long at each patrol stop (act one's value)",
+          "unit": "s",
+          "value": 0.6
+        },
+        "patrolSpeed": {
+          "max": 2,
+          "min": 0.5,
+          "note": "the figure on patrol (Ada walks 3 m/s) (act one's value)",
+          "unit": "m/s",
+          "value": 1.05
+        },
+        "replan": {
+          "max": 1,
+          "min": 0.05,
+          "note": "R3: she re-routes to where she saw Ada this often (act one's value)",
+          "unit": "s",
+          "value": 0.25
+        },
+        "seenHide": {
+          "max": 6,
+          "min": 2,
+          "note": "hiding: she sees Ada go in from this close, in sight past the walls, and pulls her out (act one's value)",
+          "unit": "m",
+          "value": 4
+        },
+        "sight": {
+          "max": 8,
+          "min": 2,
+          "note": "R3: how far she sees Ada in the dark, past walls only (act one's value)",
+          "unit": "m",
+          "value": 4.5
+        },
+        "stepEvery": {
+          "max": 1,
+          "min": 0.2,
+          "note": "Ada's footsteps while she walks (act one's value)",
+          "unit": "s",
+          "value": 0.45
+        },
+        "stepLoudness": {
+          "max": 5,
+          "min": 0,
+          "note": "how far Ada's footsteps carry (act one's value)",
+          "unit": "m",
+          "value": 1.8
+        },
+        "vigil": {
+          "max": 90,
+          "min": 15,
+          "note": "P2: after the lights go, she walks this long; then, unless she is hunting, she goes back into the corridor",
+          "unit": "s",
+          "value": 35
+        }
+      }
+    }
+  },
+  "tuning": {
+    "WALK_SPEED": 3
+  }
+}

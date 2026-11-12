@@ -14,6 +14,7 @@ describe('the docs', () => {
       'languages',
       'editor',
       'extensions',
+      'hotspots-and-the-play-hud',
       'publish-to-web',
       'publish-to-itch',
       'publish-to-desktop',
