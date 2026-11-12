@@ -331,6 +331,17 @@ and `bobFringeBlunt` is variant B; on the painter's list.
 
 **Choices open for the Owner:** B (the blunt bob), C (a narrower strip of shirt), D (the legs together, hip 19).
 
+### The pair in the game
+
+Chromium on this container's software GL, `AF_SHOOT=<folder> pnpm exec playwright test tests/e2e/frames.test.ts --grep "frames at"`, desktop context
+(no touch buttons), 1024 by 768; the old game's frames are the earlier session's own shoot
+(`../2026-11-12-last-light-prologue-first-draw/old-*-1024x768.png`, the old game's `?debug`, unchanged since it is archived). Old left, ours right:
+[`round4-ingame-cutscene.png`](round4-ingame-cutscene.png) (the opening's first line typed: the old frame is its title card, a different
+moment of the same cutscene) and [`round4-ingame-play.png`](round4-ingame-play.png) (the hall at the spawn after the opening, Ada's back to the
+camera); the singles are `round4-ingame-ours-*-1024x768.png`. In play she is about 90 lines tall and the player sees her back: the open
+vest and the floor between her legs do not show from there, the back of the bob and the shoulders do. In the cutscene her front shows,
+with the strip of shirt and the lowered neckline readable at that size.
+
 ### Verification
 
 `pnpm --filter @automata/character-kit test:unit`: 35 files, 279 tests; the game's `vitest --project unit`: 51 files, 365 tests; typecheck
