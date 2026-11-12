@@ -29,6 +29,28 @@ export const ADA_SWATCHES: Swatches = {
   },
 }
 
+/**
+ * Ada's clothes as the generated images draw them (`ada-look-spec.md`), which the Owner chose over the old sprites: calm plain cloth on DUEL,
+ * no tile and no wash. An ivory shirt with a lighter collar and a darker cuff fold, a deep oxblood waistcoat with brass buttons, faded
+ * blue-grey denim with a paler turn-up, seam and a darker waistband, tan-brown boots with a lighter toe cap.
+ */
+export const ADA_LOOK_SWATCHES: Swatches = {
+  collarLinen: {
+    ramp: 1,
+    base: 5,
+    paint: ['#fff3d6', '#eadbc9', '#ccc3b1', '#bbafa4'],
+    tones: [0.2, -0.5, -0.9],
+  },
+  cuffLinen: { ramp: 1, base: 3, paint: ['#eadbc9', '#ccc3b1', '#bbafa4', '#aea189'] },
+  oxblood: { ramp: 16, base: 1, lift: 0, paint: ['#904647', '#6e2434', '#49251c', '#2e1026'] },
+  brass: { ramp: 15, base: 5, flat: true, paint: ['#cca96e', '#b29062', '#997951', '#997951'] },
+  // The lightest paint is the mid one, so the form's light on a thigh or a knee is not a pale blotch on plain cloth.
+  fadedDenim: { ramp: 0, base: 3, paint: ['#626871', '#626871', '#2e3d47', '#1d2c43'] },
+  denimTurn: { ramp: 0, base: 4, paint: ['#a6aeba', '#828b98', '#626871', '#434549'] },
+  denimBand: { ramp: 0, base: 2, paint: ['#626871', '#434549', '#2e3d47', '#1d2c43'] },
+  bootToe: { ramp: 24, base: 4, paint: ['#bf7e63', '#a96d58', '#945d4f', '#784c49'] },
+}
+
 /** The night nurse's: the worn uniform, its stained hem, her dark stockings and heavy shoes, her cap and its cross, black hair, pale skin. */
 export const NURSE_SWATCHES: Swatches = {
   wardWhite: {

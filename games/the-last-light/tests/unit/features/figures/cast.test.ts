@@ -188,7 +188,8 @@ describe('Ada', () => {
     expect(p.height).toBeGreaterThanOrEqual(59)
     expect(p.height).toBeLessThanOrEqual(63)
     expect(p.headRowsWithHair).toBeGreaterThanOrEqual(13)
-    expect(p.hip).toBeLessThanOrEqual(20)
+    // 21 since her sleeves are rolled on a cuff fold: the arms hang at her hips, and a fold a clearance proud of the arm is a row there.
+    expect(p.hip).toBeLessThanOrEqual(21)
     expect(ADA.genes?.head).toBe(0.28)
     // The old figure's legs were half of her (29 and 30 rows of 59 and 61), not more.
     expect(p.legRows / p.height).toBeLessThanOrEqual(0.51)
@@ -206,12 +207,41 @@ describe('Ada', () => {
     expect(ADA.face).toEqual({ camera: 0.6, turn: 0.15, blink: 3.7, drawn: false })
   })
 
-  it('wears the old `street` outfit piece for piece: a cream top, a maroon waistcoat, denim, boots, an auburn bob', () => {
-    expect(ADA.outfits.street).toEqual(asDrawn(OLD_STREET))
+  it('wears the generated images’ outfit, which the Owner chose over the old sprites: a shirt with a collar and rolled sleeves, an open oxblood waistcoat with brass buttons, faded jeans cropped and turned up, tan ankle boots, the old auburn bob', () => {
+    const street = ADA.outfits.street as readonly Record<string, unknown>[]
+    expect(street.map((item) => Object.keys(item)[0])).toEqual([
+      'shirt',
+      'waistcoat',
+      'jeans',
+      'shoes',
+      'hair',
+      'eyeMarks',
+    ])
+    expect(street[0]).toMatchObject({ shirt: 'cream', sleeves: 'rolled', collar: 'collarLinen' })
+    expect(street[1]).toMatchObject({ waistcoat: 'oxblood', open: 1, buttons: 'brass' })
+    expect(street[2]).toMatchObject({ jeans: 'fadedDenim', crop: 0.3, turn: 'denimTurn' })
+    expect(street[3]).toMatchObject({ shoes: 'bootBrown', boots: true, heel: 1, toe: 'bootToe' })
+    // The old file's hair and eyes are kept as they were.
+    expect(street.slice(4)).toEqual(asDrawn(OLD_STREET).slice(-2))
   })
 
-  it('has the old swatches of every cloth she wears, by their old names', () => {
-    for (const name of ['cream', 'maroon', 'denim', 'bootBrown', 'bootSole', 'auburn', 'eyeDark', 'fair'])
+  it('has the swatches of every cloth she wears: the old names for her shirt, boots, hair, eyes and skin, the look’s for the rest', () => {
+    for (const name of [
+      'cream',
+      'bootBrown',
+      'bootSole',
+      'auburn',
+      'eyeDark',
+      'fair',
+      'collarLinen',
+      'cuffLinen',
+      'oxblood',
+      'brass',
+      'fadedDenim',
+      'denimTurn',
+      'denimBand',
+      'bootToe',
+    ])
       expect(ADA.swatches, name).toHaveProperty(name)
   })
 })
@@ -329,7 +359,7 @@ describe('the painted frame shows what they wear', () => {
     expect(rows.reduce((a, b) => a + b, 0)).toBeGreaterThanOrEqual(8)
   })
 
-  it('shows Ada’s waistcoat open: a strip of her cream shirt between its two maroon sides, not a slit', () => {
+  it('shows Ada’s waistcoat open: a strip of her cream shirt between its two oxblood sides, not a slit', () => {
     const cell = paintedCell(ADA, 0, 1)
     const [w, h] = cell.size
     const is = (i: number, swatch: string) =>
@@ -338,11 +368,12 @@ describe('the painted frame shows what they wear', () => {
       )
     let between = 0
     for (let y = 0; y < h; y++) {
-      const xs = [...Array(w).keys()].filter((x) => is(y * w + x, 'maroon'))
+      const xs = [...Array(w).keys()].filter((x) => is(y * w + x, 'oxblood'))
       const [first, last] = [xs[0] ?? 0, xs[xs.length - 1] ?? 0]
       for (let x = first + 1; x < last; x++) if (is(y * w + x, 'cream')) between++
     }
-    expect(between).toBeGreaterThanOrEqual(30)
+    // A V of shirt to the sternum (the generated images' waistcoat), not the old strip to the hem (30): 16 texels at the play size.
+    expect(between).toBeGreaterThanOrEqual(12)
   })
 
   it('hides the night nurse’s face under her hair at the size she is played: a few texels of skin (the loose hair leaves her chin and neck) in the rows of her head, not a mask', () => {
@@ -366,8 +397,8 @@ describe('the painted frame shows what they wear', () => {
     expect(widest(0, 9, 20)).toBeGreaterThanOrEqual(15)
   })
 
-  it('shows Ada in a maroon waistcoat over her cream top, in brown boots', () => {
-    expect(seen(ADA, 'maroon')).toBeGreaterThan(150)
+  it('shows Ada in an oxblood waistcoat over her cream shirt, in brown boots', () => {
+    expect(seen(ADA, 'oxblood')).toBeGreaterThan(150)
     expect(seen(ADA, 'cream')).toBeGreaterThan(50)
     expect(seen(ADA, 'bootBrown')).toBeGreaterThan(80)
   })

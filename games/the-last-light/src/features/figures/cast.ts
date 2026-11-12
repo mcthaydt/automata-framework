@@ -1,6 +1,6 @@
 import type { CharacterDef } from '@automata/character-kit'
 import { OLD_BRISK, OLD_UNCANNY } from './old-gaits.ts'
-import { ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
+import { ADA_LOOK_SWATCHES, ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
 
 // The two painted figures of the night: Ada, and the figure that walks the ward. Each is the old game's character file
 // (`src/render/figure/characters/ada.json` and `nurse.json` at 92e6704) dressed piece for piece: the same hair physics, outfit and
@@ -27,8 +27,8 @@ export const defAtDensity =
 
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
- * `scenes.prologue = street`): a cream top with short sleeves under a maroon waistcoat, denim trousers tucked into brown boots, her
- * auburn bob, dark eyes. The bob is the kit's `bobFringeFull`: the builder has no `bob` style of the old kind, and the kit's plain `smoothBob` is
+ * `scenes.prologue = street`): an ivory shirt with a collar, its sleeves rolled to the elbow, under an oxblood waistcoat worn open, faded slim jeans cropped above
+ * tan ankle boots, her auburn bob, dark eyes. The bob is the kit's `bobFringeFull`: the builder has no `bob` style of the old kind, and the kit's plain `smoothBob` is
  * a helmet with a tail (46 hair texels at the play size to the old bob's 88); the fringe and the fuller mass at the ear make 82.
  */
 export const ADA: CharacterDef = {
@@ -73,18 +73,37 @@ export const ADA: CharacterDef = {
   // so her front view had no face; its decal face is two eye dots, which is what the old figure showed there.
   face: { camera: 0.6, turn: 0.15, blink: 3.7, drawn: false },
   hair: { stiff: 70, damp: 9, trail: 0.3, bounce: 0.08 },
-  swatches: ADA_SWATCHES,
+  swatches: { ...ADA_SWATCHES, ...ADA_LOOK_SWATCHES },
   default: 'street',
   outfits: {
     street: [
-      { top: 'cream', sleeves: 'short' },
-      // The kit's waistcoat follows the torso: fitted at the waist and ending there, narrow across the shoulder so her cream sleeves show,
-      // its neckline lowered and its front standing open on a strip of the shirt (the old atlas's vest) from the collar to the hem.
-      { waistcoat: 'maroon', fit: 1, length: 0.05, armhole: 1, open: 1, chest: 0.4, hem: 0.3, neckline: 1 },
-      // The kit's closer cut, to the leg's own narrowing at the ankle with each leg's inside bare of clearance, so the floor shows between
-      // them: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it.
-      { jeans: 'denim', taper: 1, gap: 1 },
-      { shoes: 'bootBrown', sole: 'bootSole', boots: true },
+      // The generated images' Ada (`ada-look-spec.md`), which the Owner chose over the old sprites: an ivory shirt with a spread collar, its sleeves
+      // rolled to the elbow on a thick cuff fold, under an oxblood waistcoat worn open (a V of shirt to the sternum, a row of brass buttons
+      // down each side); faded blue-grey slim jeans with an outer seam and a waistband, cropped above the ankle with a turn-up; tan ankle
+      // boots with a low heel block and a lighter toe cap. All of it the kit's body-fitted shells, in plain calm cloth.
+      { shirt: 'cream', sleeves: 'rolled', collar: 'collarLinen', cuff: 'cuffLinen', length: 0 },
+      {
+        waistcoat: 'oxblood',
+        fit: 1,
+        length: 0.05,
+        armhole: 1,
+        open: 1,
+        chest: 0.4,
+        hem: 0.3,
+        neckline: 0.6,
+        vend: 0.75,
+        buttons: 'brass',
+      },
+      {
+        jeans: 'fadedDenim',
+        taper: 0.6,
+        gap: 1,
+        crop: 0.3,
+        turn: 'denimTurn',
+        seam: 'denimTurn',
+        waistband: 'denimBand',
+      },
+      { shoes: 'bootBrown', sole: 'bootSole', boots: true, shaft: 0.2, heel: 1, toe: 'bootToe' },
       { hair: 'auburn', style: 'bobFringeFull' },
       // The kit's eyes of a decal face: two texels tall and about four apart, where the builder's `eyes` is one texel each, two apart.
       { eyeMarks: 'eyeDark' },

@@ -47,6 +47,10 @@ export interface Waistcoat {
   vend?: number
   /** 0 … 1: how far below the neck the vest starts, so the shirt's collar shows above it. Default 0. */
   neckline?: number
+  /** A cloth for a row of buttons down the front of each side of the opening (about 12 mm round), from the neckline to the hem. */
+  buttons?: string
+  /** How many buttons in each row (default 3). */
+  buttonCount?: number
 }
 /** Stockings, in one colour. */
 export interface Stockings {
@@ -79,11 +83,12 @@ export interface EyeMarks {
 
 // The painter's `GarmentKinds` is widened for these five in `garments.ts`, the one module augmentation outside the door.
 
-/** The cloth of the shirt an outfit wears, the one a vest opens on: a `top` or a `tee`. */
+/** The cloth of the shirt an outfit wears, the one a vest opens on: a `top`, a `tee` or a `shirt`. */
 const shirtOf = (c: Wearing): string | undefined => {
   for (const g of c.garments) {
     if ('top' in g) return g.top
     if ('tee' in g) return g.tee
+    if ('shirt' in g) return g.shirt
   }
   return undefined
 }
@@ -155,7 +160,37 @@ function waistcoat(c: Wearing, i: Waistcoat): Fit {
     hemY: i.vend === undefined ? hem : lerp((torso.rings[0] as Ring).y, hem, i.vend),
   }
   if (shirt !== undefined) parts.push(opening(c, shirt, VEST_CHEST * cl, panel))
-  return { parts, paint: { chest: i.waistcoat, waist: i.waistcoat } }
+  const buttons = i.buttons
+  const rest = c.s.rest[J.spine] ?? [0, 0, 0]
+  const first = top === Infinity ? (torso.rings[0] as Ring).y : top
+  const n = i.buttonCount ?? 3
+  // A button sits on the vest's front a little off the opening's edge, so a worn-open vest has its row on each flap.
+  const decals =
+    buttons === undefined
+      ? undefined
+      : [-1, 1].flatMap((side) =>
+          Array.from({ length: n }, (_, k) => {
+            const y = lerp(first - 0.07 * h.k, hem + 0.045 * h.k, n === 1 ? 0 : k / (n - 1))
+            const ring = c.body.at('torso', 'L', y)
+            const half =
+              ring.rx * lerp(panel.hem, panel.chest, Math.min(1, Math.max(0, (y - hem) / (first - hem))))
+            const x = side * (half + 0.03 * h.k)
+            const across = Math.min(0.95, Math.abs(x) / ring.rx)
+            const z = (ring.dz ?? 0) + ring.rz * Math.sqrt(1 - across * across) + (VEST_CHEST + 1.5) * cl
+            return {
+              bone: J.spine,
+              at: [x - rest[0], y - rest[1], z - rest[2]] as [number, number, number],
+              normal: [side * across * 0.6, 0, 0.8] as [number, number, number],
+              material: buttons,
+              size: [3, 3] as [number, number],
+            }
+          }),
+        )
+  return {
+    parts,
+    paint: { chest: i.waistcoat, waist: i.waistcoat },
+    ...(decals === undefined ? {} : { decals }),
+  }
 }
 
 function belt(c: Wearing, i: Belt): Fit {

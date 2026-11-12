@@ -63,6 +63,7 @@ export {
   type Limb,
   lerp,
   limb,
+  qmul,
   type Ring,
   smooth,
   superquadric,

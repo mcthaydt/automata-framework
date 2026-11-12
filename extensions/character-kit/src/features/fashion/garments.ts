@@ -14,6 +14,7 @@ import {
 } from './accessories.ts'
 import {
   collarBand,
+  collarLeaves,
   frontAt,
   grown,
   heights,
@@ -33,6 +34,18 @@ import {
 export interface Tee {
   tee: string
   sleeves?: 'none' | 'short' | 'long'
+  ease?: number
+  length?: number
+}
+/**
+ * A shirt: close-cut, sleeves long to the wrist or `rolled` back to the elbow (`cuff` the cloth of the fold turned back) or short, and
+ * a `collar` of that cloth: a neckband and two spread leaves, laid over the neckline of a waistcoat worn over it.
+ */
+export interface Shirt {
+  shirt: string
+  sleeves?: 'short' | 'long' | 'rolled'
+  collar?: string
+  cuff?: string
   ease?: number
   length?: number
 }
@@ -78,6 +91,11 @@ export interface Jeans {
   taper?: number
   /** 0 … 1: how much of its clearance the inside of each leg's cloth gives up, so the floor shows between the legs below the knee. Default 0. */
   gap?: number
+  /** An outer seam, a waistband, a cropped hem and a turn-up: each a cloth (or a share of the shin) the pair draws nothing of until it is named. */
+  seam?: string
+  waistband?: string
+  crop?: number
+  turn?: string
 }
 /** Trousers: roomier legs, `wide` the width they hold from the knee down and `taper` as for jeans. */
 export interface Trousers {
@@ -95,12 +113,17 @@ export interface Shoes {
   boots?: boolean
   /** How far up the shin a boot's shaft rises, as a share of the shin's length up from the ankle (default 0.42; 0.2 is an ankle boot). */
   shaft?: number
+  /** A heel block under the shoe, 0 to 1 of the most the flat foot allows (the painter's `ShoeForm.heel`); none by default. */
+  heel?: number
+  /** A cloth for the toe cap: the front fifth of the shoe's upper (`ShoeForm.cap`). */
+  toe?: string
 }
 
 // The painter widens its `Garment` union by augmentation: a kind declared here is a garment an outfit may list.
 declare module '@automata/figures' {
   interface GarmentKinds {
     tee: Tee
+    shirt: Shirt
     hoodie: Hoodie
     jacket: Jacket
     coat: FashionCoat
@@ -119,7 +142,7 @@ declare module '@automata/figures' {
 
 const kind = <T>(build: GarmentKind<T>['build']): GarmentKind<T> => ({ build })
 
-/** Registers the nine kinds. The builder throws on a kind registered twice: `registerFashion` calls this once. */
+/** Registers the ten kinds. The builder throws on a kind registered twice: `registerFashion` calls this once. */
 export function registerGarments(): void {
   registerGarment(
     'tee',
@@ -131,6 +154,21 @@ export function registerGarments(): void {
         sleeveEase: 0.6,
         hem: lerp(h.belt - 0.02 * h.k, h.hipY - 0.06 * h.k, i.length ?? 0.3),
       })
+    }),
+  )
+  registerGarment(
+    'shirt',
+    kind<Shirt>((c, i) => {
+      const h = heights(c)
+      const f = top(c, i.shirt, {
+        sleeves: i.sleeves ?? 'long',
+        ...(i.cuff === undefined ? {} : { cuff: i.cuff }),
+        ease: i.ease ?? 0.8,
+        sleeveEase: 0.6,
+        hem: lerp(h.belt - 0.02 * h.k, h.hipY - 0.06 * h.k, i.length ?? 0.3),
+      })
+      if (i.collar !== undefined) f.parts.push(...collarLeaves(c, i.collar, 1.4 * c.body.clear))
+      return f
     }),
   )
   registerGarment(
@@ -257,14 +295,32 @@ export function registerGarments(): void {
   )
   registerGarment(
     'jeans',
-    kind<Jeans>((c, i) => legsOf(c, i.jeans, 1, 0.92, i.taper, i.gap)),
+    kind<Jeans>((c, i) =>
+      legsOf(c, i.jeans, 1, 0.92, i.taper, i.gap, {
+        ...(i.seam === undefined ? {} : { seam: i.seam }),
+        ...(i.waistband === undefined ? {} : { waistband: i.waistband }),
+        ...(i.crop === undefined ? {} : { crop: i.crop }),
+        ...(i.turn === undefined ? {} : { turn: i.turn }),
+      }),
+    ),
   )
   registerGarment(
     'trousers',
     kind<Trousers>((c, i) => legsOf(c, i.trousers, 1.5, i.wide ?? 1.05, i.taper, i.gap)),
   )
   registerGarment('shoes', {
-    build: (_c, i: Shoes) => ({ parts: [], paint: { shoe: i.shoes, sole: i.sole ?? 'soleBlack' } }),
+    build: (_c, i: Shoes) => ({
+      parts: [],
+      paint: { shoe: i.shoes, sole: i.sole ?? 'soleBlack' },
+      ...(i.heel === undefined && i.toe === undefined
+        ? {}
+        : {
+            shoe: {
+              ...(i.heel === undefined ? {} : { heel: i.heel }),
+              ...(i.toe === undefined ? {} : { cap: i.toe }),
+            },
+          }),
+    }),
     // A boot's shaft is built after the rest, so it lies over the trousers: each leg's profile from under the knee, grown past the
     // trouser leg, over the lower part of the shin.
     after: (c, i: Shoes) => {
