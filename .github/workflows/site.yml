@@ -6,8 +6,8 @@ name: site
 #
 # The host is Cloudflare Pages (the Owner's call; the plan's default). Until `CLOUDFLARE_API_TOKEN` is a repository secret,
 # the job prints "No host configured yet." and passes. With it, the job builds the site, holds it to `check:site` and
-# `check:launch` (a personal address, Pixi 3D not public, a private repository and a domain with no mail all refuse the
-# deploy), uploads `site/build/` with wrangler, and asks the live host for the headers the site means to send.
+# `check:launch` (a personal address, a private repository and a domain with no mail all refuse the deploy), uploads
+# `site/build/` with wrangler, and asks the live host for the headers the site means to send.
 
 on:
   workflow_call:
@@ -56,8 +56,8 @@ jobs:
           node-version-file: .nvmrc
       - if: steps.host.outputs.present == 'true'
         run: pnpm install --frozen-lockfile
-      # The build ends with the closed-beta scan; check:site holds every page and the headers file to the site's rules;
-      # check:launch refuses a personal mailbox, a missing mail record, a private repository and a Pixi 3D that is not public.
+      # The build ends with the Pixi 3D extras scan; check:site holds every page and the headers file to the site's rules;
+      # check:launch refuses a personal mailbox, a missing mail record and a private repository.
       - name: Build and check the site
         if: steps.host.outputs.present == 'true'
         run: |
