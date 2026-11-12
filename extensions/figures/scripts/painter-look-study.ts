@@ -23,7 +23,8 @@ import { Figure } from '../src/shared/figure/figure'
 import { type Frame, member, view } from '../src/shared/figure/frames'
 import { HAIR_STYLES, type HairStyle, type Piece, PPM } from '../src/shared/hair/hair'
 import { type Garment, SWATCHES as SWATCHES_LIB } from '../src/shared/outfit/garments'
-import { FACE_SEAM, tonesOf } from '../src/shared/paint/paint'
+import { duel, FACE_SEAM, type PaintStyle, tonesOf } from '../src/shared/paint/paint'
+import { hex } from '../src/shared/paint/paint-style'
 
 /** The base woman: the figure every character starts from. */
 const WOMAN: CharacterDef = BASE[1].def
@@ -78,7 +79,11 @@ export interface Look {
   readonly style: string | HairStyle
   /** Extra data over the figure (the painter's other options, as later items add them). */
   readonly patch?: (def: CharacterDef) => CharacterDef
+  /** The painter's style over the defaults (`PaintStyle`), for a look drawn in another outline colour. */
+  readonly paint?: Partial<PaintStyle>
 }
+/** The look being drawn: its paint style, laid over every figure this script paints. */
+let painting: Partial<PaintStyle> = {}
 
 /** A fringe over the brow: the study's one piece beside the bob's shell (hair.ts `Fringe`). */
 const FRINGE: Piece = {
@@ -141,6 +146,25 @@ const gaited =
   (def) => ({ ...def, gaitOverrides: { ...def.gaitOverrides, ...over } as CharacterDef['gaitOverrides'] })
 
 export const LOOKS: Readonly<Record<string, readonly Look[]>> = {
+  outline: [
+    {
+      label: 'before: black ink',
+      note: 'the outline on the shadow side and under is DUEL black',
+      style: 'bobFull',
+    },
+    {
+      label: 'after: ink #002219',
+      note: 'the same figure outlined in the old game’s dark teal (`PaintStyle.ink`)',
+      style: 'bobFull',
+      paint: { ink: '#002219' },
+    },
+    {
+      label: 'after: ink #181f2f',
+      note: 'a dark navy from DUEL',
+      style: 'bobFull',
+      paint: { ink: '#181f2f' },
+    },
+  ],
   stand: [
     {
       label: 'before: the relaxed stand',
@@ -269,6 +293,7 @@ const HAIR = (p: number) => p >= 2000 && p < 3000
 function stand(def: CharacterDef, d: number, D: number) {
   const cast = member(def, D),
     f = new Figure(cast)
+  Object.assign(f.paintStyle, painting)
   for (let i = 0; i < 3; i++) f.update(1 / 60, { facing: (d * Math.PI) / 4, moving: false, view: view() })
   return { f, w: cast.cell[0], h: cast.cell[1], px: f.painted.slice() as Frame }
 }
@@ -277,6 +302,7 @@ function walk(def: CharacterDef, D: number): Frame[] {
     f = new Figure({ ...cast, blink: 0 }),
     out: Frame[] = [],
     dt = 1 / 60
+  Object.assign(f.paintStyle, painting)
   let phase = 0
   for (let i = 0; i < Math.round(cast.gait.cycle * 4 * 60); i++) {
     phase = (phase + dt / cast.gait.cycle) % 1
@@ -288,6 +314,7 @@ function walk(def: CharacterDef, D: number): Frame[] {
 
 /** The numbers a look gives, measured on its own pictures (never typed). */
 export function numbers(look: Look) {
+  painting = look.paint ?? {}
   const def = study(look),
     bare = study({ ...look, style: { about: 'none', finish: 'smooth', pieces: [] } }),
     head = measure(def.sliders).genes.head * PPM,
@@ -336,6 +363,15 @@ export function numbers(look: Look) {
           x1 = Math.max(x1, x)
         }
     out['feet span, front, D2 (texels)'] = x1 - x0 + 1
+  }
+  // The outline: the texels painted in the outline's colour, front, density 2, and its colour.
+  {
+    const ink = duel(hex(painting.ink ?? '#000000'))
+    let n = 0
+    for (let k = 0; k < s.w * s.h; k++)
+      if (s.px[k * 4 + 3] && ((s.px[k * 4] << 16) | (s.px[k * 4 + 1] << 8) | s.px[k * 4 + 2]) === ink) n++
+    out['outline texels, front, D2'] = n
+    out['outline colour'] = ink
   }
   // The face's skin in its steps, light to deep (shares of its skin texels, front view): measured from the cell.
   const steps = tonesOf(def.swatches?.[def.skin] ?? SWATCHES_LIB[def.skin])
@@ -409,6 +445,7 @@ export function sheet(looks: readonly Look[], title: string): Buffer {
   ctx.font = FONT
   let y0 = 40
   for (const { l, def } of D2) {
+    painting = l.paint ?? {}
     ctx.fillStyle = '#ffd479'
     ctx.fillText(`${l.label} — ${l.note}`, 8, y0 + 14)
     ctx.fillStyle = '#e8e8e8'

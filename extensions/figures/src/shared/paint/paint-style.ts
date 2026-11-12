@@ -65,6 +65,9 @@ export interface PaintStyle {
   /** A large surface's least share in shadow, its most in its light tone, and the size (texels at density 1, x density
    * squared past it) from which it counts as large. */
   surface: [number, number, number]
+  /** The outline's colour, a hex: the ink on the side away from the key and underneath, snapped to DUEL. Black by default; a
+   * game outlines in a dark DUEL colour of its own (`#002219`, the old game's teal) to sit in its room's dark. */
+  ink: string
 }
 export const PAINT: PaintStyle = {
   tones: [0.62, 0.05, -0.45],
@@ -83,6 +86,7 @@ export const PAINT: PaintStyle = {
   face: [0.78, 0.22, -0.4],
   model: [0.06, 0.1, 0.02, 0.08],
   surface: [0.25, 0.3, 24],
+  ink: INK,
 }
 
 // ─── DUEL snapping (OKLab nearest, as scripts/duel-lut.py bakes the lookup) ───
