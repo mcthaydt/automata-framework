@@ -84,19 +84,34 @@ subject is a Conventional Commit. `git log` and `git blame` then work on the new
   branch's 7; the c5 branch's 6; the turned-face branch's 2), dry-run by the plan audit in a fresh clone with the exact
   command of task 2 and fetched into an empty repository; all of `main` unfiltered is 347 commits
   and 20.6 MB, because of 228 audit PNGs (12.2 MB) that the framework does not want in its history.
-- **What the history holds that the tip does not** (the plan audit, by `git grep` over every kept commit): the builder's
-  first cast, cut on 2026-11-05 (`d8f7fcd`, `e6cbf80`): `src/render/figure/cast.ts`, `streetwear.ts`, `presets.ts`,
-  `library/looks.json`, `library/graphics.json`, with named characters and the Owner's SNEKPRTY graphics (which the
-  framework already carries in `examples/3d/wardrobe/` and `site/`). It is kept as history and said so in the merge
-  commit's body and in `docs/provenance/sources.md`; nothing of it is at the tip. If the coordinator rules it out of
-  history, task 2, step 1 adds `--path-glob` exclusions for those five paths; the manifest does not change. The framework's clone here is shallow (483 commits,
-  100.32 MiB), so its full size was not measured; the fold adds about 2 MB to whatever it is.
+- **The history starts at the last content cut** (the coordinator's ruling of 2026-11-12, after the plan audit
+  found the builder's first cast in its history: "brand or game content does not come, and that holds for history
+  too: this repository is to become public"). Up to 2026-11-05 the builder's history held named characters of the
+  reference game and the Owner's SNEKPRTY graphics: `src/render/figure/streetwear.ts` and
+  `library/graphics.json` (cut in filtered `df78c2f`, "Cut the wardrobe's garments"), `library/looks.json` and
+  `sets.json` (`ea56575`, "Cut the random cast"), `library/headwear.json` (`d5e80af`), the dressed golden's 44 sheets of
+  the cast's garments and `tests/fixtures/dressed.json` (`df78c2f`), the scene pipeline's scenes, props, signage and
+  lettering (`dd3e0cb`), the portraits (`65e343b`), and the characters and story-era fields inside `render/figure/cast.ts`,
+  `genes.ts`, `rig.ts` and `paint.ts` (swept by `d8f7fcd` and `e6cbf80`). Those paths cannot simply be filtered out:
+  `cast.ts`, `presets.ts`, `genes.ts`, `swatches.json` and `items.json` are machinery that was renamed into
+  `src/features/` and lives at the tip, and the engine files of that time name the characters in their own text. So
+  the kept history begins at `e6cbf80` (original `6b6819c`, "Sweep dead exports, … story-era character fields"),
+  the last of the cuts, as a root commit holding its whole tree, and keeps only what descends from it; the one merge
+  whose first parent is older (`1070cd7`, original `13407db`, "Merge the base-pair refactor") keeps only its parent from
+  the cut branch. Measured by the plan audit: **126 commits** (`main` 111, the wardrobe 7, c5 6, turned face 2),
+  **1.04 MiB**, `main`'s tree byte-identical to `$PIN`'s, **0 blobs** naming SNEKPRTY, no path of the cut content in any
+  commit. What is left of the characters in kept text is "the Nurse" in three comments of the tip and in two files of
+  the wardrobe branch (task 12, step 4 rewords them; the blobs before that commit keep them, since the tip must equal
+  the source byte for byte), and the guard in `fringe.test.ts` that checks a hair style's text names none of them.
+  Everything before the cut stays in the archived repository; ids from before it (for example `82822ff`) are not in the
+  framework's history and are found there.
 - The imported commits keep their own subjects (10 of 347 are Conventional Commits). They are history, not new work;
   rewriting their messages would falsify the record. Nothing in the repository checks commit subjects (no commit-lint
   in `lefthook.yml` or the workflows). The rule "Conventional Commits on a branch with a pull request" holds for every
   commit this plan authors, the merge commits included.
 - Commit ids change. `filter-repo`'s commit map (old id to new id) is committed as
-  `docs/provenance/figures-commit-map.txt`, so an id quoted in an old document (`d5ca055`) can be found.
+  `docs/provenance/figures-commit-map.txt`, so an id quoted in an old document (`d5ca055`) can be found. It maps the
+  commits from the cut on; an id from before the cut is found only in the archived repository.
 - **A checksum manifest is written whichever way history goes**: `docs/provenance/figures-manifest.json`,
   the SHA-256 of each of the 131 files under the five folders and the 3 root files at `23f889c8`, checked against the
   merged tree in task 2.
@@ -502,6 +517,17 @@ git clone https://github.com/mcthaydt/FigureBuilder "$FB-filtered" && cd "$FB-fi
 # The archived repository's main is past the pin (the merged retirement note): filter the pin, never main.
 git checkout -B main "$PIN"
 for b in c9-wardrobe c5-finish-fixes turned-face-both-eyes; do git branch claude/$b origin/claude/$b; done
+REFS="main claude/c9-wardrobe claude/c5-finish-fixes claude/turned-face-both-eyes"
+# History starts at the last content cut ("History"): keep only what descends from it, and drop every parent outside
+# that set (the cut itself becomes the root; one merge loses its pre-cut first parent).
+CUT=6b6819cb501d12c7e6d079f208b3ca42d5221333
+{ echo "$CUT"; for r in $REFS; do git rev-list --ancestry-path "$CUT..$r"; done; } | sort -u > ../kept.txt
+while read -r c; do
+  parents=$(git rev-list --parents -n1 "$c" | cut -d' ' -f2-); keep=""
+  for p in $parents; do grep -qx "$p" ../kept.txt && keep="$keep $p"; done
+  [ "$(echo $keep)" = "$(echo $parents)" ] || git replace --graft "$c" $keep
+done < ../kept.txt
+git replace -l   # expected: 13407db8… and 6b6819cb…, nothing else
 git filter-repo --force \
   --path src --path base --path tests --path scripts --path viewer \
   --path package.json --path tsconfig.json --path vitest.config.ts \
@@ -511,15 +537,22 @@ git filter-repo --force \
 test "$(grep "^$PIN " .git/filter-repo/commit-map | cut -d' ' -f2)" = "$(git rev-parse main)" && echo "main is the pin"
 ```
 
-  Expected, from the plan audit's dry run in a fresh clone (filter-repo 2.47.0): `main is the pin`;
-  `git log --oneline main | wc -l` prints **236** (the commits that touched none of the kept paths are dropped);
+  `git filter-repo` writes the grafts into the rewritten commits, so the history fetched from this clone carries them
+  without any `refs/replace`. Expected, from the plan audit's dry run in a fresh clone (filter-repo 2.47.0): `main is
+  the pin`; `git log --oneline main | wc -l` prints **111** (from the cut; the commits that touched none of the kept
+  paths are dropped); `git rev-list --max-parents=0 main` is one commit, "Sweep dead exports, …";
   `git ls-tree -r --name-only main | wc -l` prints **134**, none outside `extensions/figures/`; `git rev-list --count
   main..claude/<b>` prints **7** for `c9-wardrobe` (its three document and evidence commits are dropped), **6** for
   `c5-finish-fixes` (N3 and the handoff touch only files that do not come) and **2** for `turned-face-both-eyes`; the
-  four refs fetched into an empty repository pack to **1.72 MiB**, 251 commits. The filter is deterministic, so the
-  filtered ids are expected to be: `main` `31b9967`; S1 `27a8fa8`, S2 `8dfb448`, N1 `a293d24`, N2 `b3cdafb`, N5
-  `eaebfbf`, N4 `37cf985`; the turned-face fix `8bd4715` (and its old re-record `3a3bb16`, not brought); the wardrobe's F0
-  `f301682` to F6 `f9b1b3d`. Different ids with the same subjects are not a stop; different counts are. If `pip` cannot
+  four refs fetched into an empty repository pack to **1.04 MiB**, 126 commits. The filter is deterministic, so the
+  filtered ids are expected to be: `main` `c85b961`, the root `36a135e`; S1 `4c22b62`, S2 `a03b34f`, N1 `164d9ef`, N2
+  `cb8e24d`, N5 `b121463`, N4 `e468d1f`; the turned-face fix `3cf1f2a` (and its old re-record `4988a0a`, not brought);
+  the wardrobe's F0 `570ff18` to F6 `47b799d`. Different ids with the same subjects are not a stop; different counts
+  are. Then the content check, in an empty repository that fetched the four refs (`git init /tmp/hist && cd /tmp/hist
+  && git fetch "$FB-filtered" 'refs/heads/*:refs/remotes/p/*'`): `git grep -l -i -E 'snek[ _-]?prty' $(git rev-list
+  --all) -- | wc -l` prints **0**, and `git log --all --no-renames --name-only --format= | sort -u | grep -cE
+  'streetwear|graphics\.json|looks\.json|sets\.json|headwear|dressed|portrait|random-cast|render/scene'` prints
+  **0**. Anything else is a stop. If `pip` cannot
   install the tool, use the fallback of "History" and say so.
 - [ ] **Step 2: Merge.** In the framework:
 
@@ -531,8 +564,9 @@ cp "$FB-filtered/.git/filter-repo/commit-map" docs/provenance/figures-commit-map
 ```
 
   The merge commit's body says: the source repository, `$PIN`, the paths kept, the paths left out and why, that the
-  imported commits keep their own subjects, and that the history holds the builder's first cast, cut on 2026-11-05,
-  which the tip does not ("History", above).
+  imported commits keep their own subjects, and that the history begins at the last content cut (`6b6819c`, as a root):
+  what came before, with the builder's first cast and the Owner's SNEKPRTY graphics, is left out and stays in the
+  archived repository ("History", above, lists the paths and the commits that cut them).
 - [ ] **Step 3: The manifest check.** Every file equal to its source:
 
 ```bash
@@ -1091,11 +1125,16 @@ console.log([...ours].filter((n) => core.has(n)).sort().join("\n"))'
   lives under `vendor/`. In the painter, `pose.ts` keeps the game's name and drops the old repository's, and the three
   comments that name a character of the builder's cut cast ("the Nurse": `src/shared/body/parts.ts`, about line 28;
   `src/shared/motion/motion.ts`, about 40; `src/shared/paint/paint.ts` or the part task 9 moved it to, about 1065) say
-  what the rule does without the character. `grep -rn "Nurse" extensions/figures/src` prints nothing.
+  what the rule does without the character, and so do the wardrobe branch's two files that name it
+  (`scripts/c9-sheet.ts`, lines 48 and 63: "the Nurse's head and hair"; `tests/unit/hair/standoff.test.ts`, lines 21
+  and 127: a tilted head, a drooping posture and a loose hair spring). `grep -rn "Nurse" extensions/figures | grep -v
+  "not.toMatch"` prints nothing (the one left is `fringe.test.ts`'s guard that no style's text names a character).
 - [ ] **Step 5: Provenance.** In `docs/provenance/sources.md`, after "The figure builder as a submodule
   (2026-11-10)", a section "The figure painter, folded in (the date)": the source repository and `$PIN`, the wardrobe
-  branch's `856498a`, the method (filtered history, the commit map, the manifest), what did not come and why, and the
-  Owner's decision of 2026-11-12 quoted. `pnpm source-names` passes.
+  branch's `856498a`, the method (filtered history from the last content cut, the commit map, the manifest), what did
+  not come and why, the Owner's decision of 2026-11-12 quoted, and the coordinator's ruling on history: the paths and
+  commits listed under "History" (the first cast, the SNEKPRTY graphics, the dressed golden, the scene pipeline, the
+  portraits) are left out of the framework's history and stay in the archived repository. `pnpm source-names` passes.
 - [ ] **Step 6:** `pnpm check`, the kit's suites; commit
   `docs(figures): the readme, the contract and the provenance of the fold`.
 

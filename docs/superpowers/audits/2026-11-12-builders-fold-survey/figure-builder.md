@@ -353,6 +353,7 @@ base tests scripts viewer`):
 | What `claude/c9-wardrobe` adds, everything | 10 | 1.93 MB (the five sheets are most of it) |
 | `main` and the wardrobe branch after the plan's filter (`git filter-repo`, the code paths only, dry-run in a scratch clone) | 243 (236 and 7) | **1.64 MB** |
 | The four refs the plan filters (`main`, the wardrobe, c5 and turned-face branches), fetched into an empty repository (the plan audit, from the archived repository, `main` set to `23f889c8` first) | 251 (236, 7, 6, 2) | **1.72 MiB** |
+| The same four refs with the history from the last content cut on (the coordinator's ruling: no brand or game content in history; `6b6819c` as the root), fetched into an empty repository | 126 (111, 7, 6, 2) | **1.04 MiB** |
 
 10 of `main`'s 347 commit subjects are Conventional Commits. The framework's clone here is shallow (483 commits,
 100.32 MiB packed), so the framework's full history size was not measured.

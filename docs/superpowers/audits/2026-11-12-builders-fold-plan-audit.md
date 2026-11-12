@@ -114,7 +114,8 @@ repository (the plan said 243 and 1.64 MB, for two refs). The filtered ids: S1 `
 N2 `b3cdafb`, N5 `eaebfbf`, N4 `37cf985`; the turned-face fix `8bd4715` (its re-record `3a3bb16` is not brought); the
 wardrobe's F0 `f301682` to F6 `f9b1b3d`.
 **Changed:** task 2, step 1 sets `main` to `$PIN` before filtering and checks the commit map maps `$PIN` to filtered
-`main`; the expected numbers and ids are the measured ones. The "History" section and the survey say the same.
+`main`; the expected numbers and ids are the measured ones. (Superseded by B9's ruling: the history now starts at the last content cut, 126 commits and
+1.04 MiB, and the ids are those of that run.) The "History" section and the survey say the same.
 
 ### B2, should fix: the c5 picks' listing command lists the whole history
 
@@ -180,14 +181,27 @@ following work "a level's `reads` as a gate"). No hunk moves a recorded frame of
 ### B9, should fix: what the filtered history brings
 
 Checked: `git grep` over every commit the filter keeps. The history carries the builder's first cast, cut on
-2026-11-05 (`d8f7fcd`, `e6cbf80`): `src/render/figure/cast.ts`, `streetwear.ts`, `graphics.json`, `looks.json`, with
-named characters (Ada, the Nurse) and the Owner's SNEKPRTY graphics, which the framework already has in
-`examples/3d/wardrobe/` and `site/`. The tip has none of it, but three comments still name "the Nurse"
-(`body/parts.ts:28`, `motion/motion.ts:40`, `paint/paint.ts:1065`). The coordinator was told at once.
-**Changed:** the merge commit's body and the provenance section say the history holds the cut cast; task 12, step 4
-rewords the three comments. If the coordinator rules the paths out of history instead, task 2, step 1 gains
-`--path-glob` exclusions for `src/render/figure/{cast,streetwear,presets}.ts` and the `library/{looks,graphics}.json`
-files, and the manifest is unaffected (none is at the tip).
+2026-11-05: named characters of the reference game and the Owner's SNEKPRTY graphics (`src/render/figure/streetwear.ts`,
+`library/graphics.json`, `looks.json`, `sets.json`, `headwear.json`, the dressed golden's 44 sheets, the scene
+pipeline, the portraits), and the characters inside `render/figure/cast.ts`, `genes.ts`, `rig.ts`, `paint.ts` until
+`d8f7fcd` and `e6cbf80` swept them. The coordinator was told at once and ruled: **strip it, because history is published
+with the repository.**
+
+A path filter cannot do it: `cast.ts`, `presets.ts`, `genes.ts`, `swatches.json` and `items.json` are machinery
+renamed into `src/features/` and kept at the tip, and the engine files of that time name the characters in their own
+text. So, as the coordinator's fallback proposed, the kept history starts at the last cut. Dry run, in a fresh clone of
+the archived repository, `main` set to `$PIN`: every commit that descends from `6b6819c` (filtered `e6cbf80`) kept,
+every parent outside that set dropped with `git replace --graft` (two grafts: the cut itself becomes the root, and the
+merge `13407db` keeps only its parent from the cut branch), then the plan's one `filter-repo` run, which writes the
+grafts in. Result, fetched into an empty repository: **126 commits** (`main` 111, wardrobe 7, c5 6, turned face 2), one
+root, **1.04 MiB**; `main is the pin` and `main`'s tree `d4976948…` is the same as before (so the checksum manifest
+holds unchanged); **0 blobs** match `snek[ _-]?prty`; **0** paths of the cut content in any commit. Left: "the Nurse"
+in three tip comments (`body/parts.ts`, `motion/motion.ts`, `paint/paint.ts`) and in two wardrobe files
+(`scripts/c9-sheet.ts`, `tests/features/hair/standoff.test.ts`), which must stay byte-identical at arrival, and the
+wardrobe's guard that no hair style's text names Ada, the Nurse or Voss. The root commit holds the whole tree of that
+moment; its message describes a change against a parent that is not there, which the merge body says.
+**Changed:** task 2, step 1's command (the grafts before the filter), its expected counts and ids, and the content
+check; "History"; the merge body; task 12's provenance section; task 12, step 4 rewords all five files' mentions.
 
 ### B10, should fix: the spec, on two points the plan found
 
