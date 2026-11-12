@@ -227,3 +227,16 @@ Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 
 - The reference game's picture size and figure size match the old game's: a picture capped at 640 x 480, figures at
   density 1 in play, the finer density in cutscene close-ups only.
 - Order: the shared polish first, then the port. Slice 1's plan session starts when workstream 1 reaches execution.
+- 2026-11-12: "I think we overuse the procedural geometry, we need to use actual meshes too." The old game ships 62 mesh
+  props (`src/render/models/`, a `.glb` and a pack each) and the framework's 3D package already loads both. The
+  reference game draws the old game's mesh where the old game drew one; a world kit generator stands in only where the
+  old game had no model. Open, for a spec: meshes beside generated props in the world kit and its editor.
+- 2026-11-12: `@pixi/3d` 0.1.0-beta.3 is vendored beside beta.2 with its release notes (`vendor/pixi-3d/`); the upgrade
+  runs on `claude/pixi-3d-beta-3` and moves `pixi.js` to 8.23. It changes the picture (tone mapping defaults to none,
+  unlit colours drawn as authored, per-texture samplers, post effects staged before or after tone mapping), so no golden
+  is re-recorded without the coordinator's answer, and the picture decisions go to the Owner.
+- 2026-11-12, on meshes: "we can just use the procedural meshes for blockout so the AI generated prop knows the size,
+  positioning, and scaling to replace it." The rule: a generated prop is the blockout and owns the place, turn,
+  footprint, height and collider; a mesh replaces it on screen, fitted to it. With no mesh the blockout draws. To spec in
+  workstream 4: the `model` a prop names, the fit, the world kit's editor choosing one, and the prop pipeline taking the
+  blockout's bounds as its brief.
