@@ -11,7 +11,15 @@ name: desktop
 # proves the path, it does not publish (`ship publish --target itch --from tauri` does, from a game's own CI).
 #
 # Unsigned first. The signing steps are present and skipped unless their secrets exist, so the job is the same before
-# and after the Owner buys the certificates.
+# and after the Owner buys the certificates. A secret reaches only the step that needs it (the journey, which runs
+# `tauri build`), never `pnpm install`, whose packages' install scripts would see it; nothing prints one.
+#
+# No artifacts: a failed run keeps the stranger's folder on the runner and prints its path and the driver's log, and a
+# passing run leaves nothing (the Owner, 2026-11-12: "stop using the artifact storage unless something fails").
+#
+# Before copying this file to .github/workflows/: run the scope codemod over it
+# (`node tooling/codemods/src/rename-scope-cli.ts`, once the npm scope is `@automataframework`). It lives under
+# docs/superpowers/, which the codemod keeps as written, so `--filter @automata/consumer-smoke` below would be stale.
 
 on:
   workflow_dispatch:
@@ -30,7 +38,8 @@ jobs:
   linux:
     name: desktop app, Linux (build and open)
     runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
-    # Measured at 5 to 6 minutes on a 4-core container (README); the rest is headroom for a shared runner.
+    # Measured on a 4-core container: the packages 34 s, `pnpm build` 34 s, the journey 3 m 52 s to 4 m 19 s (README and
+    # the implementation audit); the rest is headroom for a shared runner and a cold cargo registry.
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -63,17 +72,13 @@ jobs:
 
   macos:
     name: desktop app, macOS (build; signing when the secrets exist)
-    runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
+    # A Mac that is not the release runner: AF_RELEASE_RUNNER is the Mac that publishes, and a nightly test build has
+    # no business there. AF_DESKTOP_MAC_RUNNER moves it, as the other jobs' variables do.
+    runs-on: ${{ vars.AF_DESKTOP_MAC_RUNNER || 'af-mac' }}
     timeout-minutes: 45
     env:
-      # Tauri signs and notarises the .app and .dmg itself when these six are set
-      # (https://v2.tauri.app/distribute/sign/macos/). Empty, it builds unsigned.
-      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      # Only whether signing is set up, never a secret's value: a step's `if` cannot read `secrets`.
+      SIGNED: ${{ secrets.APPLE_CERTIFICATE != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -92,11 +97,21 @@ jobs:
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Say whether this build is signed
         run: |
-          if [ -n "$APPLE_CERTIFICATE" ]; then echo "signing and notarising with $APPLE_SIGNING_IDENTITY"
+          if [ "$SIGNED" = true ]; then echo "the .dmg is signed and notarised (the APPLE_* secrets are set)"
           else echo "no APPLE_* secrets: the .dmg is unsigned (Gatekeeper will warn the player)"; fi
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @automata/consumer-smoke test:desktop
+      - name: The stranger's desktop journey
+        run: pnpm --filter @automata/consumer-smoke test:desktop
+        env:
+          # Tauri signs and notarises the .app and .dmg itself when these six are set
+          # (https://v2.tauri.app/distribute/sign/macos/). Empty, it builds unsigned.
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
   windows:
     name: desktop app, Windows (build; signing when the secrets exist)
@@ -107,11 +122,8 @@ jobs:
         # As windows-trial.yml: the root scripts are POSIX shell, so Git's bash runs them.
         shell: bash
     env:
-      # A code-signing certificate as a base64 .pfx and its password. Tauri signs the .exe and .msi when
-      # tauri.conf.json's bundle.windows names a certificate thumbprint or a signCommand; the step below imports the
-      # certificate so a thumbprint resolves. Empty, it builds unsigned.
-      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
-      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      # Only whether signing is set up, never a secret's value: a step's `if` cannot read `secrets`.
+      SIGNED: ${{ secrets.WINDOWS_CERTIFICATE != '' }}
     steps:
       - name: Put Git's bash on PATH (the service's PATH has Git's cmd folder only)
         shell: cmd
@@ -131,19 +143,34 @@ jobs:
       # installed once by hand: `winget install --id Rustlang.Rustup -e` and the Visual Studio Build Tools' C++ workload.
       - name: Rust
         run: cargo --version
+      # A code-signing certificate as a base64 .pfx and its password. Tauri signs the .exe and .msi when
+      # tauri.conf.json's bundle.windows names a certificate thumbprint or a signCommand; this step imports the
+      # certificate so a thumbprint resolves. The .pfx file is removed even when the import fails.
       - name: Import the code-signing certificate
-        if: env.WINDOWS_CERTIFICATE != ''
+        if: env.SIGNED == 'true'
         shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
           $pfx = Join-Path $env:RUNNER_TEMP 'certificate.pfx'
-          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
-          $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText
-          Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $password
-          Remove-Item $pfx
+          try {
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+            $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText
+            $imported = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $password
+            "THUMBPRINT=$($imported.Thumbprint)" >> $env:GITHUB_ENV
+          } finally {
+            Remove-Item $pfx -ErrorAction SilentlyContinue
+          }
       - name: Say whether this build is signed
         run: |
-          if [ -n "$WINDOWS_CERTIFICATE" ]; then echo "certificate imported; signing needs ship to write its thumbprint (README)"
+          if [ "$SIGNED" = true ]; then echo "certificate imported; signing needs ship to write its thumbprint (README)"
           else echo "no WINDOWS_CERTIFICATE: the installers are unsigned (SmartScreen will warn the player)"; fi
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm --filter @automata/consumer-smoke test:desktop
+      # The runner is the Owner's own PC and keeps its certificate store between runs: take the certificate back out.
+      - name: Remove the code-signing certificate
+        if: always() && env.SIGNED == 'true' && env.THUMBPRINT != ''
+        shell: pwsh
+        run: Remove-Item -Path "Cert:\CurrentUser\My\$env:THUMBPRINT" -ErrorAction SilentlyContinue
