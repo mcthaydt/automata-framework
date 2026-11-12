@@ -31,7 +31,8 @@
     "test:browser": "vitest run --project browser --project webgpu",
     "test:webgpu": "vitest run --project webgpu",
     "typecheck": "tsc -p .",
-    "gate": "tsx scripts/gate.ts"
+    "gate": "tsx scripts/gate.ts",
+    "sheet": "tsx scripts/figure-sheet.ts"
   },
   "dependencies": {
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
