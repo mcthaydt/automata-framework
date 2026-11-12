@@ -508,10 +508,10 @@ Branch continued from `b3160de1`. Goal: beta.3 draws what beta.2 drew wherever a
 | 4 | Applied to the default look and every game and example that sets fog; the game note; `the-last-light`'s note | done: `392a7ca5` (whole check green), the list above |
 | 5 | Frames: night room with haze, base-3d at the play camera | done: within noise outside the painted figures; the figures wait for the fold |
 | 6 | Lit moving figures' colour | done: the conversion above; frames; the colour look deleted |
-| 7 | `SkyEffect`'s signed `uFxClip.w`; WebGPU cases for the LCD panel and the retro grade; Emberwick's language projects | not started |
-| 8 | The grouped list and the merge conditions | not started |
+| 7 | `SkyEffect`'s signed `uFxClip.w`; WebGPU cases for the LCD panel and the retro grade; Emberwick's language projects | done: `574ce876` |
+| 8 | The grouped list and the merge conditions | done: above |
 
-Progress: 6 of 8 items (75%).
+Progress: 8 of 8 items (100%).
 
 ### Item 2: the fog formulas, from the code of each beta
 
@@ -637,6 +637,44 @@ For the day room, the 'authored' look was 7.4% and 57.7, the old `'beta2'` look 
 
 **Which colour of the night room's plant and lamp shade is the authored one.** Tan (the plant) and black (the shade) are what beta.2 drew and what the converted beta.3 draws (`fog-night-room-beta2-vs-converted.png`), and with no fog beta.2 and beta.3 agree on both (room 55.4 and 55.7). Green and yellow were the old `'beta2'` look's doing: it handed the engine the darker fog colour and the engine mixed these unlit props toward it
 in linear light, a power mean that shifts a channel far from the fog colour (inference from the formulas of item 2; the look is deleted, so not re-measured). So beta.2 did not draw them too dark, and the `'beta2'` look drew them wrong; the swatches' own hexes are not what either beta shows of an unlit prop (beta.2 darkened them by the decode, as it did the embers), and which is "authored" for a swatch is the Owner's: the conversion keeps beta.2's.
+
+### Item 7: the gaps the third session named
+
+- **Core's `SkyEffect` and the signed `uFxClip.w`.** A browser case now sees a sky pixel (`tests/browser/parity/look/sky-orientation.test.ts`, WebGL2, and `tests/browser/webgpu/sky-orientation.test.ts`, WebGPU software; the scene is `src/testing/sky-frame.ts`): the camera level, a small cube in the middle, the sky as the first pass, one pixel high in the frame and one low.
+  It failed first for the right reason on WebGL2 (the pixel below the horizon was the pale sky band `199,214,255`, not the haze: upside down) and the WebGPU case fails the same way with the WGSL's `abs` taken out. `abs(uFxClip.w)` in both stages fixes it: `uv` runs down the frame in an effect, and `uFxClip.w` is negative where the view draws into a texture, so the signed divide put the sky below the horizon.
+  Two facts the case showed. **A view with nothing in it runs none of its effects** (the earlier probe's "every pixel is the clear colour" was an empty scene; any real scene has a mesh), so the case needs the cube. And an earlier "no sky pixel in either beta" was that, not a missing sky: the sky was upside down on beta.3 and, as far as the first probe could say, correct on beta.2.
+- **The LCD panel and the retro grade on WebGPU.** `extensions/lcd-panel` and `extensions/retro-crisp` each have a `webgpu` project now (`tests/browser/webgpu/`, the `browser` project's cases moved to `tests/browser/pass/`; `test:browser` runs both, `test:webgpu` alone, as world-kit has it) with one case each that reads the shader modules' own compile messages
+  (`watchShaderCompile`, new on `@automata/3d/testing-checks`) and checks the pass changed the frame (the panel's stripes put the cube off the palette; the clinic grade moves the picture and the snap puts what the scene drew back on the palette). **Control for each:** an unbound `let broken: f32 = vec3<f32>(1.0);` put into the WGSL fails the case with the compile message, so the cases do run on WebGPU and do see a compile error. Both pass on the real source.
+- **Emberwick's language projects on beta.3** (the six `emberwick-language-*` journeys, Chromium): `en`, `ja`, `ko`, `es-419`, `pt-BR`, `zh-CN`: 6 of 6 pass. (Emberwick draws nothing with `@pixi/3d`; this is the pixi.js 8.23.0 side.)
+
+### Item 8 (fourth session): the grouped list and the merge conditions as they stand
+
+**What the Owner is no longer asked.** The fog colour decision and the lit figures' colour decision are gone: both are conversions now (items 3 to 6), the framework carries no picture switch (`colour-look.ts` is deleted), and the two pictures the second session offered (`authored`, `beta2`) are replaced by one, beta.2's, within dither noise
+outside the painted figures. **What stays the Owner's, and why:** the beta.2 picture is darker than the content's hexes in three places (an unlit surface and the sky fog to the decoded fog colour, a lit moving figure draws its linear light, an ember draws its decoded hex). The conversion keeps beta.2's picture, as asked. If the Owner would rather draw the hexes as authored, it is a deliberate change of
+picture: drop `beta2Colour` and `tinted`'s old reading, and the sky and unlit fog become the plain beta.3 behaviour (the first session's `'authored'` frames, which are in `frames/` for the comparison).
+
+**The grouped list of item 6 of the third session, updated** (nothing re-recorded; no golden, snapshot, parity value or hash edited):
+
+| Group | Now |
+|---|---|
+| The vertex-colour contract (8 cases) | as before, plus a `linear` lighting's baked values (the 9th and 10th: `vertex-bake.test.ts`, `scene-light.test.ts`) and the new `bakedLinear` rows of `fog-surfaces` |
+| Unlit base colours drawn as authored (1 case) | as before; plus `beta2Colour` for the colours the framework chose against beta.2 (figure flat parts, baked boxes, embers): `figure-view.test.ts` 1 case |
+| Fog colour (2 moved, 4 added) | **resolved by conversion**: `lighting.test.ts`'s fog cases are beta.2's own again (the 4 added are gone); 15 new cases (`fog-surfaces`, WebGL2) and 10 (WebGPU) hold the colours beta.2 drew; `view-fog.test.ts` pins the conversion |
+| Lit moving things' colour | **resolved by conversion**: `tinted` is beta.2's reading; `box-view.test.ts` 1 case (0x424242 became 0x0e0e0e: the colour the material is given, not an sRGB colour the engine decodes) |
+| The effects' Y sign | as before, plus `SkyEffect` (case + fix) |
+| Camera zoom, light falloff and gamma, samplers, culling | as before |
+| The painter's view | as before: 3 `character-kit` WebGPU cases wait for the fold; **plus** the painted figures' fog (below) |
+| Fog past `far` | **resolved**: not a framework fault and not a game decision either; with the fog converted, the crates, Wick and the embers are back at the game's own `FOG` |
+
+**This branch cannot merge until these hold** (changes since the third session in bold):
+- **(a) The fold's first group is on main and the painter's view is ported here** (item 4 above), **and the port makes the painter's cell material fog in display space**, as `UnlitMaterial` does (the cell sprite's own WGSL template needs the same lines at its end slot): until then the two painted figures in a fogged room read lighter than beta.2.
+- **(b) ~~The Owner decides the fog colour.~~ Gone.** Nothing to decide; the Owner may overrule the three darker-than-the-hex pictures above, which is a choice of picture, not a condition.
+- **(c) The Owner answers the updated grouped list** (above): no group is unexplained; none needs a re-record.
+- **(d) Cross-engine parity on the Owner's machine**, as the third session listed it (commands unchanged), **with two additions:** `extensions/lcd-panel` and `extensions/retro-crisp` have a `webgpu` project (`npx vitest run --project webgpu` in each, on the real adapter) and `@automata/3d`'s `webgpu` project has two new files (`fog-surfaces`, `sky-orientation`).
+
+**What ran this session** (Chromium, software GL; `AF_WEBGPU=software` for WebGPU): the whole `pnpm check` after the last code change (exit 0, 65 of 65 unit tasks, 56 of 56 static, 78 changesets, 0 problems; units: `@automata/3d` 1,543, world-kit 271, character-kit 228, lcd-panel 20, retro-crisp 39, base-3d 110); `@automata/3d` `browser` + `webgpu`: 21 files, 83 passed, 2 skipped;
+world-kit browser 24 of 25 plus `ward.test.ts` alone (known load timeout in a sequence, passes alone) and webgpu; character-kit browser 55 passed, 2 skipped (its 3 painted WebGPU cases fail as known); lcd-panel browser 9 + webgpu 1; retro-crisp browser 10 + webgpu 1; editor-3d layout 285 passed, 3 skipped, journeys 16; base-3d 14; examples-3d 22; Emberwick's six language journeys 6.
+**Not run:** WebKit, Firefox, a real GPU, `examples/3d-story` (known), the other Emberwick journeys and the 2D suites (nothing 2D changed since the third session's whole run), `pnpm api-index --write` (no published package's API moved; the one report that moved, `3d.api.md`, is regenerated).
 
 ## Handoff at 90 minutes
 
