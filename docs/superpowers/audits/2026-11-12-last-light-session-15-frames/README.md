@@ -15,10 +15,10 @@ HEAD (`c29284c`) was compared.
 ## Item 2, Ada standing alone, plain (no room light, no passes)
 
 `item2-adopted-head-x10.png`, `item2-adopted-body-x4.png` (base man, base woman, Ada); `item2-head-x10.png`, `item2-body-x4.png` add today's
-(session 14's) Ada and two intermediate faces; `item2b-cast-*.png` is the cast file as committed. Made by `extensions/character-kit/scripts/ada-density2.ts`.
+(session 14's) Ada and two intermediate faces; `item2c-cast-*.png` is the cast file as committed after the coordinator's review of round 1 (the eyes were asleep: eye size .8 and hood .05 closed them; now the base man's lid with the base woman's eye size, hood .15, lips .9). Made by `extensions/character-kit/scripts/ada-density2.ts`.
 
 Ada is the base woman's data with her skin (`skinWarm`), the painter's `bobFringe`, her clothes and a bolder lid and brow (brow weight .75, crease .6,
-hood .05, liner .5, eye size .8, lips .8); her body sliders are the base woman's slimmed a little (fat .25, hips .55, arms .3, chunk .6); 160 cm is 124 rows
+hood .15, liner .5, lips .9; eye size the base's); her body sliders are the base woman's slimmed a little (fat .25, hips .55, arms .3, chunk .6); 160 cm is 124 rows
 in the 128 by 192 cell. No painter or kit code changed.
 
 ## Item 3, the camera

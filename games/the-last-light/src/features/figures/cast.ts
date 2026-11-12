@@ -25,8 +25,8 @@ export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true } as con
  * cropped above tan ankle boots, her auburn chin-length bob with a fringe that ends over the brow.
  *
  * She is the painter's base woman with only what makes her Ada changed (the Owner, 2026-11-12: the characters look like the painter's
- * own faces at density 2): her skin, her hair, her clothes, and the lids and brows of a bolder face (brow weight .75, a crease, no hood, liner,
- * larger eyes, fuller lips: the base man's lid, which is what the painter's reference shows reads best). Her body sliders are the
+ * own faces at density 2): her skin, her hair, her clothes, and the lids and brows of a bolder face (brow weight .75, a crease, a light hood, liner,
+ * fuller lips: the base man's lid, which is what the painter's reference shows reads best, with the base woman's eye size). Her body sliders are the
  * base woman's, slimmed a little (less fat and chunk, narrower hips, thinner arms); nothing is pushed by an earlier round. Her bob is the painter's own `bobFringe`: a chin-length dome whose fringe stops a texel over the brow, so her brows and eyes show.
  */
 export const ADA: CharacterDef = {
@@ -62,14 +62,13 @@ export const ADA: CharacterDef = {
       cheekWidth: 0.6,
       bridge: 0.45,
       nose: 0.45,
-      lips: 0.8, // the base's 0.7
+      lips: 0.9, // the base's 0.7
       browArch: 0.6,
       browWeight: 0.75, // the base's 0.4
       browHeight: 0.45,
       crease: 0.6, // the base's 0.4
-      hood: 0.05, // the base's 0.35
+      hood: 0.15, // the base's 0.35: the base man's own lid, which reads open (a lower hood closed the eye)
       liner: 0.5, // the base's 0
-      eyeSize: 0.8, // the base's 0.5
     },
   },
   skin: 'skinWarm',
