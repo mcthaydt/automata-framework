@@ -1,7 +1,7 @@
 // Draws a level's world (features/world/build.ts) with `@pixi/3d`: one mesh per piece under a node, a swatch's colour on
 // each, and the camera's occluder rule on the walls and the ceilings. It lives in `app/` because it reads the world's
 // pieces and the renderer's occluders; the builder itself knows no renderer. Presentation only: the sim never reads it.
-import { Box, Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
+import { Box, Container3D, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
 import { BufferImageSource, Texture } from 'pixi.js'
 import type { WallSpan } from '../features/camera/occluders/occluder-rule.ts'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
@@ -17,6 +17,7 @@ import { tileName } from '../features/world/surface.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
 import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
+import { UnlitMaterial } from '../shared/render/views/unlit-material.ts'
 
 export interface WorldScene {
   /** Where the pieces are added. */
@@ -176,15 +177,15 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
     if (room !== undefined) {
-      mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(room.tile, true) })
+      mesh.material = new UnlitMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(room.tile, true) })
     } else if (glows !== undefined) {
       // A glow takes no light, so a moving piece may carry it baked: where it goes does not change what it shows.
       const ladder = ladderOf(glows)
       if (scene.light === undefined)
         // An unlit material shows its base colour as authored (`@pixi/3d` 0.1.0-beta.3), so the step goes in as it is.
-        mesh.material = new FlatMaterial({ baseColor: ladder.steps[ladder.base] ?? colour })
+        mesh.material = new UnlitMaterial({ baseColor: ladder.steps[ladder.base] ?? colour })
       else {
-        mesh.material = new FlatMaterial({ baseColor: 0xffffff })
+        mesh.material = new UnlitMaterial({ baseColor: 0xffffff })
         const lamps = piece.prop === undefined ? [] : lampsOfProp(scene.light.lighting.lamps, piece.prop.id)
         scene.light.bake(mesh, { glow: { steps: ladder.steps, base: ladder.base, lamps } })
       }
@@ -193,10 +194,10 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
       const ignore = piece.part === 'prop' ? [piece.id] : []
       // A room's `light` is 1 when normal; each 1 less is a whole step darker.
       if (tile === undefined) {
-        mesh.material = new FlatMaterial({ baseColor: 0xffffff })
+        mesh.material = new UnlitMaterial({ baseColor: 0xffffff })
         scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light, ignore })
       } else {
-        mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile, true) })
+        mesh.material = new UnlitMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile, true) })
         // A texture's colours are not known here, so the swatch's own colour stands for them in `SceneLight.groundLuma` (the bake
         // writes the light alone, as the texture multiplies it).
         scene.light.bake(mesh, { textured: true, albedo: colour, shadeSteps: 1 - piece.light, ignore })

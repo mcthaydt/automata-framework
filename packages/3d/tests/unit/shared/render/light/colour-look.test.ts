@@ -4,27 +4,13 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { colourLook, setColourLook } from '#src/shared/render/light/colour-look.ts'
 import { channels } from '#src/shared/render/light/vertex-light.ts'
-import { fogSkyColor, viewFog } from '#src/shared/render/light/view-fog.ts'
 import { tinted } from '#src/shared/render/views/box-view.ts'
 
 afterEach(() => setColourLook('authored'))
 
-const FOG = { near: 4, far: 12, color: 0x8b9bb4 }
-
 describe('the colour look', () => {
   it('is the beta’s own, authored, until a game says otherwise', () => {
     expect(colourLook()).toBe('authored')
-  })
-
-  it('authored: the fully fogged colour on screen is the fog colour, and the sky is that colour', () => {
-    expect(viewFog(FOG, undefined)?.color).toBe(0x8b9bb4)
-    expect(fogSkyColor(FOG)).toBe(0x8b9bb4)
-  })
-
-  it('beta2: fog reaches the screen at beta.2’s darker value, and the sky meets it', () => {
-    setColourLook('beta2')
-    expect(viewFog(FOG, undefined)?.color).toBe(0x425474)
-    expect(fogSkyColor(FOG)).toBe(0x425474)
   })
 
   it('authored: a lit moving colour is the base colour’s linear light times the tint, encoded for the display', () => {

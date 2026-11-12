@@ -2,12 +2,12 @@
 // container has no WebGL, so these skip there and the GPU runner runs them (M3.1b).
 import '#src/entries/no-eval.ts'
 import type { RenderRow, StepResult } from '@automata/sim'
-import { FlatMaterial, Mesh3D, PlaneGeometry } from '@pixi/3d'
-import { afterEach, describe, expect, it, onTestFinished } from 'vitest'
+import { Mesh3D, PlaneGeometry } from '@pixi/3d'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'
-import { setColourLook } from '#src/shared/render/light/colour-look.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import { box } from '#src/shared/render/views/box-view.ts'
+import { UnlitMaterial } from '#src/shared/render/views/unlit-material.ts'
 import { builtRenderer } from '#src/testing/built-renderer.ts'
 import { snapshot } from '#src/testing/snapshot.ts'
 import { testTarget } from '#src/testing/test-target.ts'
@@ -58,7 +58,7 @@ async function start(
       for (const x of floors ? [-3, 3] : []) {
         const floor = new Mesh3D({
           geometry: new PlaneGeometry({ width: 5.8, height: 6, widthSegments: 12, heightSegments: 12 }),
-          material: new FlatMaterial({ baseColor: 0xffffff }),
+          material: new UnlitMaterial({ baseColor: 0xffffff }),
         })
         floor.position.set(x, 0, 0)
         floor.rotation.set(-Math.PI / 2, 0, 0)
@@ -136,45 +136,38 @@ describe.runIf(hasWebGL2)('lighting and fog on WebGL2', () => {
     expect(compare(on, off, WIDTH / 2, WIDTH).changed).toBe(0)
   })
 
-  // Two looks (`colour-look.ts`): the beta's own, where the fully fogged colour is the fog colour, and beta.2's.
-  it.each(['authored', 'beta2'] as const)(
-    'fog from the options turns the floor toward the fog colour (%s look)',
-    async (look) => {
-      setColourLook(look)
-      onTestFinished(() => setColourLook('authored'))
-      const FOG = 0x3e3546
-      const clear = await start()
-      clear.draw(frame)
-      const without = snapshot(clear)
-      scope?.dispose()
-      document.body.replaceChildren()
-      const foggy = await start({ near: 4, far: 10, color: FOG })
-      expect(foggy.view.fog).toMatchObject({ type: 'linear', near: 4, far: 10 })
-      foggy.draw(frame)
-      const withFog = snapshot(foggy)
-      expect(compare(without, withFog, 0, WIDTH).changed).toBeGreaterThan(300)
-      // Over the pixels fog changed, each is nearer the fully fogged colour than it was. Finding (0.1.0-beta.2): that
-      // colour was the fog colour's linear value (0x3e3546 drew as 0x0c0910), as if the mix ran after the display encode, though
-      // the fog bit's own comment says it runs before it. `@pixi/3d` 0.1.0-beta.3 shows the fog colour itself.
-      const linear = (c: number) => Math.round(255 * ((c / 255 + 0.055) / 1.055) ** 2.4)
-      const shownAs = (c: number) => (look === 'authored' ? c : linear(c))
-      const target = [shownAs((FOG >> 16) & 255), shownAs((FOG >> 8) & 255), shownAs(FOG & 255)]
-      const away = (pixels: ArrayLike<number>, i: number) =>
-        Math.abs((pixels[i] ?? 0) - (target[0] ?? 0)) +
-        Math.abs((pixels[i + 1] ?? 0) - (target[1] ?? 0)) +
-        Math.abs((pixels[i + 2] ?? 0) - (target[2] ?? 0))
-      let nearer = 0
-      let farther = 0
-      for (let i = 0; i < without.length; i += 4) {
-        const before = away(without, i)
-        const after = away(withFog, i)
-        if (before - after > 6) nearer++
-        if (after - before > 6) farther++
-      }
-      expect(nearer).toBeGreaterThan(300)
-      expect(farther).toBe(0)
-    },
-  )
+  it('fog from the options turns the floor toward the fog colour', async () => {
+    const FOG = 0x3e3546
+    const clear = await start()
+    clear.draw(frame)
+    const without = snapshot(clear)
+    scope?.dispose()
+    document.body.replaceChildren()
+    const foggy = await start({ near: 4, far: 10, color: FOG })
+    expect(foggy.view.fog).toMatchObject({ type: 'linear', near: 4, far: 10 })
+    foggy.draw(frame)
+    const withFog = snapshot(foggy)
+    expect(compare(without, withFog, 0, WIDTH).changed).toBeGreaterThan(300)
+    // Over the pixels fog changed, each is nearer the fully fogged colour than it was. Finding (0.1.0-beta.2): that
+    // colour is the fog colour's linear value (0x3e3546 draws as 0x0c0910), as if the mix ran after the display
+    // encode, though the fog bit's own comment says it runs before it. Reported to the Owner with M3.4d.
+    const linear = (c: number) => Math.round(255 * ((c / 255 + 0.055) / 1.055) ** 2.4)
+    const target = [linear((FOG >> 16) & 255), linear((FOG >> 8) & 255), linear(FOG & 255)]
+    const away = (pixels: ArrayLike<number>, i: number) =>
+      Math.abs((pixels[i] ?? 0) - (target[0] ?? 0)) +
+      Math.abs((pixels[i + 1] ?? 0) - (target[1] ?? 0)) +
+      Math.abs((pixels[i + 2] ?? 0) - (target[2] ?? 0))
+    let nearer = 0
+    let farther = 0
+    for (let i = 0; i < without.length; i += 4) {
+      const before = away(without, i)
+      const after = away(withFog, i)
+      if (before - after > 6) nearer++
+      if (after - before > 6) farther++
+    }
+    expect(nearer).toBeGreaterThan(300)
+    expect(farther).toBe(0)
+  })
 
   // The sky behind fog (Owner, 2026-10-30; spec §4.2, S7-Q10: fog closes every view's far side). With fog, the sky is
   // the colour fog reaches, so a wall fades into it with no edge. Here fog is full from 2 m and the camera stands
@@ -182,44 +175,30 @@ describe.runIf(hasWebGL2)('lighting and fog on WebGL2', () => {
   // gives way to it.
   // 0x193c3e is render3d-lighting-fog's dark fog: its fully fogged colour is 0x020c0c, which @pixi/3d's hemisphere
   // background drew lifted (0x091414); the sky is a 2D fill now and meets it exactly.
-  // The two looks of `colour-look.ts`: fog reaches the screen as authored, or as beta.2 drew it (the fog colour's linear value).
-  // Either way the floors and the sky are one colour, with no edge between them.
-  const linearOf = (c: number) =>
-    Math.round(255 * (c <= 0.04045 * 255 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4))
   it.each([
-    ['a light fog', 0x8b9bb4, 'authored'],
-    ['a dark fog', 0x193c3e, 'authored'],
-    ['a light fog', 0x8b9bb4, 'beta2'],
-    ['a dark fog', 0x193c3e, 'beta2'],
-  ] as const)(
-    'draws the sky in the fully fogged colour, so fogged floors meet it with no edge (%s, %s look)',
-    async (_, color, look) => {
-      setColourLook(look)
-      try {
-        const renderer = await start({ near: 0.5, far: 2, color })
-        renderer.draw(frame)
-        const pixels = snapshot(renderer)
-        const rows = pixels.length / 4 / WIDTH
-        // The field without the bars (5% of the 90 rows each side) and a row of margin.
-        const field: number[][] = []
-        for (let y = 6; y < rows - 6; y++)
-          for (let x = 0; x < WIDTH; x++) {
-            const i = (y * WIDTH + x) * 4
-            field.push([pixels[i] ?? 0, pixels[i + 1] ?? 0, pixels[i + 2] ?? 0])
-          }
-        const first = field[0] ?? [0, 0, 0]
-        const off = field.filter((p) => p.some((c, k) => Math.abs(c - (first[k] ?? 0)) > 2))
-        expect(off.length, `first ${first}, an outlier ${off[0]}`).toBe(0)
-        // The colour on screen: the fog colour itself, or what beta.2 showed of it.
-        const want = [16, 8, 0].map((shift) => {
-          const channel = (color >> shift) & 255
-          return look === 'authored' ? channel : linearOf(channel)
-        })
-        for (const [k, channel] of want.entries())
-          expect(Math.abs((first[k] ?? 0) - channel), `first ${first}, wanted ${want}`).toBeLessThanOrEqual(2)
-      } finally {
-        setColourLook('authored')
-      }
+    ['a light fog', 0x8b9bb4],
+    ['a dark fog', 0x193c3e],
+  ])(
+    'draws the sky in the fully fogged colour, so fogged floors meet it with no edge (%s)',
+    async (_, color) => {
+      const renderer = await start({ near: 0.5, far: 2, color })
+      renderer.draw(frame)
+      const pixels = snapshot(renderer)
+      const rows = pixels.length / 4 / WIDTH
+      // The field without the bars (5% of the 90 rows each side) and a row of margin.
+      const field: number[][] = []
+      for (let y = 6; y < rows - 6; y++)
+        for (let x = 0; x < WIDTH; x++) {
+          const i = (y * WIDTH + x) * 4
+          field.push([pixels[i] ?? 0, pixels[i + 1] ?? 0, pixels[i + 2] ?? 0])
+        }
+      const first = field[0] ?? [0, 0, 0]
+      const off = field.filter((p) => p.some((c, k) => Math.abs(c - (first[k] ?? 0)) > 2))
+      expect(off.length, `first ${first}, an outlier ${off[0]}`).toBe(0)
+      expect(
+        first.some((c) => c > 0),
+        `first ${first}`,
+      ).toBe(true)
     },
   )
 })

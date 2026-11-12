@@ -1,8 +1,9 @@
-import { Container3D, CubeGeometry, FlatMaterial, Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
 import { colourLook } from '../light/colour-look.ts'
 import { channels, toSrgb } from '../light/vertex-light.ts'
 import { placeView3d } from './pose-3d.ts'
 import { shareMaterial } from './shared-material.ts'
+import { UnlitMaterial } from './unlit-material.ts'
 import type { View3dFactory } from './view-3d.ts'
 
 export interface BoxSize {
@@ -75,8 +76,8 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
   const baked =
     material.lit === 'static'
       ? shareMaterial(
-          new FlatMaterial({ baseColor: material.color }),
-          () => new FlatMaterial({ baseColor: material.color }),
+          new UnlitMaterial({ baseColor: material.color }),
+          () => new UnlitMaterial({ baseColor: material.color }),
         )
       : undefined
   // The base colour in linear light, decoded once for the per-frame tint.
@@ -87,7 +88,7 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
     const tint = material.lit === 'moving' ? light : undefined
     // The tint is written here each frame, so a frame allocates nothing.
     const lit: [number, number, number] = [0, 0, 0]
-    const own = tint === undefined ? undefined : new FlatMaterial({ baseColor: material.color })
+    const own = tint === undefined ? undefined : new UnlitMaterial({ baseColor: material.color })
     const bakes = light !== undefined && baked !== undefined
     const drawn = new Mesh3D({ geometry, material: own ?? (bakes ? baked : shared) })
     drawn.position.set(0, size.height / 2, 0)

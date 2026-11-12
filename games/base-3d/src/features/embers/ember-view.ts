@@ -1,9 +1,9 @@
 // An ember in the 3D scene: a glowing block that turns and pulses, with a paler halo; the goal ember is larger and gold with
 // a tall beam of light over it, so it reads from across the room and from behind Wick. A row view, so a taken ember (its
 // entity removed) disappears. Procedural, in Emberwick's warm palette; the clock is the page's own (presentation, not the sim).
-import type { View3dFactory } from '@automata/3d'
+import { UnlitMaterial, type View3dFactory } from '@automata/3d'
 import { Q16 } from '@automata/3d/sim'
-import { Container3D, CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
+import { Container3D, CubeGeometry, Mesh3D } from '@pixi/3d'
 
 /** One kind of ember: the core's side in metres and colour, the halo's colour, and the beam (the goal's) if it has one. */
 export interface EmberLook {
@@ -30,7 +30,7 @@ export const turn = (seconds: number): number => seconds * 1.5
 const cube = (side: number, colour: number): Mesh3D =>
   new Mesh3D({
     geometry: new CubeGeometry({ width: side, height: side, depth: side }),
-    material: new FlatMaterial({ baseColor: colour }),
+    material: new UnlitMaterial({ baseColor: colour }),
   })
 
 /** The view of every `ember` row, over `clock` (seconds): turning and pulsing core, halo, and the goal's beam. */
@@ -50,7 +50,7 @@ export const emberView =
     if (look.beam !== undefined) {
       const beam = new Mesh3D({
         geometry: new CubeGeometry({ width: 0.12, height: look.beam.height, depth: 0.12 }),
-        material: new FlatMaterial({ baseColor: look.beam.colour }),
+        material: new UnlitMaterial({ baseColor: look.beam.colour }),
       })
       beam.position.set(0, look.beam.height / 2, 0)
       node.addChild(beam)
