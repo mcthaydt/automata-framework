@@ -532,6 +532,37 @@ different moments of the cutscene (the "after" caught the title card, the nurse 
 - Her outline is black where the old game's is the DUEL teal (list item 4); the room's dark takes her well otherwise (her jeans and vest are the old
   swatches). Her size against the props I did not measure; the numbers above are rows of the sprite.
 
+## Round 8: Ada rebuilt from the generated images, and the framing study (a study for the Owner to choose from)
+
+The Owner, 2026-11-12, after round 7: **"What if we rebuild ada from ground up using reference images and change the camera/framing/scene scale to
+support whatever keeps her looking good"** and **"go with the look from the image generated images rather than our pre-existing sprites"**. Earlier the same
+day: "I just want the updated painter and face really." This round is a study on this branch only: no camera or framing change goes to the game branch.
+The old sprites are only "what was shipped" now; where they and the generated images disagree, the images win.
+
+### A. The reference board
+
+The generated images of Ada in `mcthaydt/PixiJS3D_Experiment_001` at `92e6704` (all drawn by the character pipeline's image model; no service is called
+here, the pictures are only looked at and measured, nothing is copied into the game):
+
+| Path (under `docs/art/`) | Size | What it is | Gate |
+| --- | --- | --- | --- |
+| `ada-3d/turnaround.png` | 1536 x 1024 | clean concept-art A-pose turnaround, front, right, back, full body | none recorded; made from the owner's picked front strip + the reference crop (`ada-3d/README.md` step 1); `ada-3d` G6 (install) and G7 (pose) approved 2026-10-11 |
+| `ada-3d/detail/identity-anchor.png` | 1536 x 1024 | the owner-picked front strip, 4 pixel-painted frames; the anchor of every later prompt | owner-picked ("the approved look") |
+| `ada-directions/approved-{0,45,90,135,180,225,270,315}.png` | 1536 x 1024 each | one pixel strip per direction, 4 frames | front, profiles, back owner-approved ("go one by one"); the diagonals rejected, regenerated (`docs/CONTINUATION.md`) |
+| `ada-3d/detail/painted-{0..7}.png` | 1536 x 1024 each | the detail pass painted over the 3D walk, the source of the shipped atlas | G6/G7 era, `ART-ada` approved 2026-10-11 "agent repaint OK" |
+| `portraits/out/ada-{neutral,firm,afraid,worried,sad,surprised,inner}.png`, `portraits/ref/ada-style.png` | 1024 x 1024 | dialogue busts in the nurse uniform, 3/4 view (also `public/art/portrait-ada-*.png` at 256) | `ART-portrait` approved 2026-10-11, owner-delegated |
+| `character-reference-crop.png`, `character-source.png`, `mannequin-ada.png` | 680 x 920, 1536 x 8192, 1024 x 1536 | the in-game crop (back, a candle), the 8 strips stacked, the mannequin they were painted over: inputs, not targets | |
+
+What was shipped (not the target): `public/art/character.png` (192 x 576, cells 48 x 72; `ART-ada` approved 2026-10-11), the old procedural figure
+`ada-figure/ada-review.png` (402 x 594; its gate G1 still `pending`).
+
+Sheet: [`ref-board.png`](ref-board.png) (the generated images on top, the shipped sprites last); the marked turnaround
+[`ref-turnaround-marked.png`](ref-turnaround-marked.png); her look in words and numbers, with each cloth's nearest DUEL colour:
+[`ada-look-spec.md`](ada-look-spec.md); the numbers [`ref-spec-numbers.txt`](ref-spec-numbers.txt). Made by `pnpm --filter @automata/character-kit
+reference <out-dir> --old <old-game>` (`scripts/figure-reference.ts`, `tests/unit/scripts/figure-reference.test.ts` first). The headline: **6.8 heads tall with her hair
+on, legs 50.6 % of her, eyes 69 % of the way down the head, big almond eyes, a thick brow-length fringe, a wide bob (1.2 heads), an oxblood waistcoat, faded
+grey-blue jeans cropped at the ankle, ankle boots**.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
 Kept here as it grows, **ranked by what each buys at the size she is played** (the first two are the face the Owner asked for; they are the first
@@ -554,6 +585,7 @@ painter task after the fold merges). Each needs painter code, which this branch 
 
 ## Log
 
+- Round 8 (A): the reference board of the generated images, the look spec and the turnaround's numbers (`figure-reference.ts`, its test first).
 - Round 7: the kit's `eyeMarks` garment (`eye-marks.test.ts` first), Ada's eyes two tall and four apart; the proportions helper and its table (`proportions.test.ts` first), Ada brought to the old game's numbers (height 154, legs .3, hips 1, `genes.head` .28; `cast.test.ts` first), the painter list ranked. The Owner's change of target recorded.
 - Round 6: `curtainLoose` in the kit's hair table (a scalp shell over the face and a wide-spread tail), the nurse wears it (`hair-bob.test.ts` and `cast.test.ts` first); C's `ease` weighed by the numbers and left to the Owner; her first sighting in the game against the old game's.
 - Round 5: `fallCurtain` hair and `nurseBrow` cap in the kit's tables, a skirt `ease` option, the nurse wears the first two (`cast.test.ts` first: her face at most 8 skin texels in her head's rows); `round5-nurse` looks and sheets.
