@@ -504,14 +504,14 @@ Branch continued from `b3160de1`. Goal: beta.3 draws what beta.2 drew wherever a
 |---|---|---|
 | 1 | Setup, `origin/main` merged (already), `pnpm check --force` | done: exit 0, 78 changesets, 0 problems, no cache |
 | 2 | The two fog formulas, written down | done, below |
-| 3 | The conversion derived; a browser case per surface kind, expected colours from beta.2 | done: derived above; the case written and watched failing (6 of 12), committed with its fix in item 4 |
-| 4 | Applied to the default look and every game and example that sets fog; the game note; `the-last-light`'s note | not started |
-| 5 | Frames: night room with haze, base-3d at the play camera | not started |
+| 3 | The conversion derived; a browser case per surface kind, expected colours from beta.2 | done: derived above; the case watched failing (6 of 12) before the fix |
+| 4 | Applied to the default look and every game and example that sets fog; the game note; `the-last-light`'s note | done: `392a7ca5` (whole check green), the list above |
+| 5 | Frames: night room with haze, base-3d at the play camera | done: within noise outside the painted figures; the figures wait for the fold |
 | 6 | Lit moving figures' colour | not started |
 | 7 | `SkyEffect`'s signed `uFxClip.w`; WebGPU cases for the LCD panel and the retro grade; Emberwick's language projects | not started |
 | 8 | The grouped list and the merge conditions | not started |
 
-Progress: 2 of 8 items (25%).
+Progress: 5 of 8 items (62%).
 
 ### Item 2: the fog formulas, from the code of each beta
 
@@ -568,6 +568,52 @@ Given a fog as a game states it (colour `C`, `near`, `far`; no exposure, no tone
 **The test, first:** `packages/3d/tests/browser/parity/shared/parity/fog-surfaces.test.ts`: four surface kinds (unlit, baked room, lit, stepped-lit) x no fog, a light fog (`0x8b9bb4`) and a dark one (`0x31222a`, the night room's), planes at 6, 8, 10 and 14 m under `near 4`, `far 12`,
 expected colours **recorded from beta.2** (`/home/user/b2tree`, `c1c9b7c2`, pixi.js 8.23.0; no post effect in the frame, so the 8.23 render-target change does not touch it; the unlit input pre-decoded the way beta.2's framework gave it). Watched failing on beta.3 as the formulas say it must:
 unlit light and dark fog (157 against 145 at 6 m), baked light and dark (104 against 91), lit and stepped-lit dark fog at 14 m (49 against 52); the three no-fog rows and the two light-fog lit rows pass (within 2 of 255).
+
+### Item 4: applied
+
+**What changed** (commit `392a7ca5`, the whole `pnpm check` green on exactly that tree): `shared/render/light/view-fog.ts` hands the engine `engineFogColour(C) = enc(dec_pw(C))` as floats and keeps `fogSkyColor(C) = dec_pw(C)`; `shared/render/views/unlit-material.ts` is `UnlitMaterial`
+(exported from `@automata/3d`); every `FlatMaterial` of the framework's own that fog can reach is one now (`box-view.ts` x3, `world-view.ts` x5, `figure-meshes.ts`, and base-3d's `ember-view.ts` x2; `figure-shadow-view.ts` keeps `FlatMaterial` with `fog: false`: a shadow takes no fog).
+The colour look's fog half is deleted (`colour-look.ts` keeps only the lit moving thing's colour until item 6); `lighting.test.ts`'s two fog cases are beta.2's own again (the two looks gone; floors are `UnlitMaterial`). New: `src/testing/fog-surfaces.ts` and the two cases that use it
+(`tests/browser/parity/shared/parity/fog-surfaces.test.ts`, 12 cases on WebGL2; `tests/browser/webgpu/fog-surfaces.test.ts`, 8 on WebGPU software, the bit's WGSL twin). Unit: `view-fog.test.ts` pins `engineFogColour` (0x31222a is 52, 39, 46) and the sky (0x8b9bb4 as 0x425474).
+`tooling/api-report/reports/3d.api.md` gained `UnlitMaterial` (the one report that moved).
+
+**Where fog is set, and what each needed** (the conversion is inside `viewFog`, so a game's fog content stays as it was):
+
+| Where | Fog | Change |
+|---|---|---|
+| `games/base-3d` (`scene.ts` `FOG`, `main.ts`) | near 5, far 14, `0x31222a` | none; its embers use `UnlitMaterial` now |
+| `examples/3d/render3d/render3d-lighting-fog.ts` | near 5, far 11, `0x2f3f38` | none (drawn through the framework's views) |
+| `examples/3d/look/look-pixel-art.ts` | near 16, far 30, `0x31222a` | none |
+| `spikes/eb-look/scene.ts` (`?fog=near,far,rrggbb`) | the query's | none (a spike; draws through `drawWorld`) |
+| `packages/editor-3d` `dollhouse/game-view.ts` | the game's, for the sky behind the room | none (it calls `fogSkyColor`, which is beta.2's) |
+| `packages/tools` `create-game` 3D template | none set | none |
+| the builders' survey scenes (`packages/3d/tests/fixtures/base-scenes-builder.json`) | none | none |
+| `games/the-last-light` (branch `claude/last-light-prologue`, not merged here) | `#121a18`, the focus at the camera's distance | a note, below |
+
+**What a game's fog numbers mean on beta.3.** Nothing about them changed: `near` and `far` are metres along the camera's axis, the colour is the colour you wrote, and the picture is the beta.2 one. Two things to know. (1) As on beta.2, the fully fogged colour is not one colour:
+a lit surface reaches the colour you wrote and an unlit one (and the sky) reaches its darker decoded value (`0x8b9bb4` as `0x425474`), so write the colour the lit things should fade to and the sky takes the matching dark one. (2) A game that draws its own unlit mesh must use `UnlitMaterial` from `@automata/3d`
+where it used `FlatMaterial`: a plain `FlatMaterial` takes the engine's fog, which on beta.3 mixes in linear light and reads brighter in the middle of the range and ends at the colour as written (and a `PhongMaterial` or `RampMaterial` needs nothing). A mesh whose material draws through its own shader template (the painter's cell sprite) needs
+the same display-space fog in its template; that is the fold's port (item 4 above).
+
+**`games/the-last-light`, for its branch** (do not merge here): (a) its fog `#121a18` with the focus at the camera's distance keeps its numbers; on beta.2 a lit surface at `far` was `#121a18` and an unlit surface and the sky were `dec_pw` of it (`#060a09`), which is what `viewFog` and `fogSkyColor` now give. (b) Where it makes a mesh with `FlatMaterial`
+(its props that carry an optional `model` and anything it draws through `drawWorld` besides the world's own pieces), use `UnlitMaterial`. `drawWorld`'s pieces already are. (c) After merging this branch, run `fog-surfaces.test.ts` on its tree and its journeys' frames at the play camera, beta.2 against beta.3, as item 5 does here.
+
+### Item 5: the frames
+
+Shot on Chromium, software GL, WebGL2; beta.2 from `/home/user/b2tree` (`c1c9b7c2`, pixi.js 8.23.0; no post effect in these frames' fog path, and the night room's look effects draw on a cleared frame because the room is drawn once); the numbers are the mean luma (Rec.601, 8-bit) and the share of pixels that differ by more than 2 of 255 in a channel; each file is `beta.2 | beta.3 converted | |difference| x4`.
+
+| Frame | Query | beta.2 | beta.3 converted | Differ |
+|---|---|---|---|---|
+| `frames/fog-night-room-beta2-vs-converted.png` | `scene=base-interior-dressed&at=night&fog=5,14,31222a&view=zone&pref=webgl&density=1&crisp=0&field=640x480&still=1&rig=1&figures=painted&fx=0&bloom=0` | 32.9 | 34.2 | 6.5% |
+| the same, outside the two painted figures | | 31.20 | 31.30 | 1.0% |
+| `frames/fog-base-3d-journey-camera-beta2-vs-converted.png` | `games/base-3d` dev server with `VITE_AF_JOURNEYS=1`, `?route=ember` (Wick beside the first ember, the journeys' camera), 844 x 390, New game, 90 frames, canvas only | 42.6 | 42.6 | 0.1% |
+| `frames/fog-night-room-core-figures-beta2-vs-converted.png` | the night room with `figures=core` | 32.8 | 34.5 | 5.7% |
+
+The beta.2 -> authored numbers these replace: night room 32.9 -> 48.7 (85.2% differ), base-3d 43.9 -> 57.2.
+**Result: the room and base-3d are within dither noise; there is no fog decision for the Owner.** In base-3d the crates, Wick and the embers are back as beta.2 drew them with the game's `FOG` unchanged (the earlier "far 20 brings them back" is not needed). What is left, and where:
+- **The two painted figures in the night room** (67,300 of the frame's 80,084 differing pixels; 1.0% of the frame elsewhere): the painter's `CellMaterial` is a `FlatMaterial` with its own WGSL template (vendor/FigureBuilder, read only), so the engine's linear fog reaches it, lighter than beta.2's display mix and the dark outline lost. The painter's view is ported with the fold; its material must
+  mix fog in display space (`UnlitMaterial`'s bit does it: the cell template needs the same lines at its `end` slot). Without fog the painted figures are identical to beta.2 (item 4 of the third session).
+- **The core figures' colour in the third frame** (the 1.7 of luma): the lit moving figures' tinted colour, item 6.
 
 ## Handoff at 90 minutes
 
