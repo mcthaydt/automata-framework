@@ -25,7 +25,7 @@ describe('the profiles', () => {
     expect(() => lookProfilesSchema.parse({ light: { contact: 1.5 } })).toThrow(/contact/)
   })
 
-  it('are in the committed file: the old game’s but for the LCD cell (one field pixel), the LCD mesh, stripes and scanlines and scanlines drawn at the screen’s pixels between texels at the old strengths, the stripes off (the field pass keeps none of them, nor their gain), and the lamps (a gain on the old game’s light)', async () => {
+  it('are in the committed file: the old game’s but for the LCD cell (one field pixel), the LCD mesh, stripes and scanlines and scanlines drawn at the screen’s pixels between texels at a fifth of the old strengths (a texture, so a face shows no grid), the stripes off (the field pass keeps none of them, nor their gain), and the lamps (a gain on the old game’s light)', async () => {
     const toml = await import('smol-toml').then((m) => m.parse)
     const { readFileSync } = await import('node:fs')
     const file = toml(readFileSync(new URL('../../../content/look.toml', import.meta.url), 'utf8'))
@@ -41,11 +41,11 @@ describe('the profiles', () => {
         brightness: 1,
       },
       lcdScreen: {
-        grid: LCD_CLINIC.grid,
+        grid: 0.06,
         balance: LCD_CLINIC.balance,
         subpixels: 0,
         layout: LCD_CLINIC.layout,
-        scanlines: LCD_CLINIC.scanlines,
+        scanlines: 0.06,
         brightness: SCREEN_GAIN,
         cellPixels: 4,
       },
@@ -63,8 +63,8 @@ describe('the profiles', () => {
   })
 })
 
-/** The screen mesh's gain, measured in play: a face averages what it does with the panel off (the frames folder's README). */
-const SCREEN_GAIN = 1.46
+/** The screen mesh's gain, measured in play: the room's large areas average what they do with no screen mesh (the frames folder's README). */
+const SCREEN_GAIN = 1.09
 
 /** The old game's moonlight (`src/scenes/clinic/dress.ts` at 92e6704): the ward's window (the corridor's is left out, see `content/look.toml`). */
 const MOONLIGHT = [

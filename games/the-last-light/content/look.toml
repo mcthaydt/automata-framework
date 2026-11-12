@@ -15,15 +15,18 @@ scanlines = 0
 aberration = 0
 brightness = 1
 
-# The panel's mesh and scanlines at the old strengths (.3), a line on the last screen pixel of each 4-pixel cell. A figure texel is 2 field
-# pixels, 4 screen pixels, and figures stand on their texel lattice (`PLAY_FIGURE.grid`), so every line falls between texels (session 16 had
-# held the field's mesh to a third to spare her face). The RGB stripes are off: at .3 they tint each texel's columns red, green and blue, and a
-# face reads as a woven grid (the ada frames folder, s2). `brightness` gives back the light the lines take, measured in play: her face then
-# averages what it does with no screen mesh ((150, 114, 96) at 1024 by 768; 1 leaves it at (124, 94, 79)).
+# The panel's mesh and scanlines at the screen's pixels, a line on the last screen pixel of each 4-pixel cell. A figure texel is 2 field pixels,
+# 4 screen pixels, and figures stand on their texel lattice (`PLAY_FIGURE.grid`), so every line falls between texels. At the old strengths (.3)
+# that line outlines every texel and her face reads as a grid; a third and a quarter still show one at 1:1. Held to a fifth of the old (.06), the
+# panel is a faint texture on the room's lighter floor and her face shows no grid at a glance: the character wins (the coordinator's ruling).
+# The RGB stripes are off: they tint each texel's columns. `brightness` gives back what the lines take, measured on two large areas of the room
+# against the frame with no screen mesh (the ada frames folder, s2).
 [lcdScreen]
 cellPixels = 4
+grid = 0.06
+scanlines = 0.06
 subpixels = 0
-brightness = 1.46
+brightness = 1.09
 
 # The old game multiplied a texel's linear colour by its light and showed the product as it was; the framework's `srgb` light multiplies the
 # sRGB colour, so the old game's lamp numbers draw about twice as bright (a mid grey is 0.5 in sRGB and 0.21 in linear light). `lamps` is a gain on

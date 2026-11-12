@@ -155,6 +155,18 @@ brief asked when the face stays clean. But honestly: at full strength a dark lin
 head with no screen mesh is plainly the closest to the reference. The coordinator may prefer a third on the room, or no mesh over figures.
 `content.hash` moved (look.toml is in the content build). No other recorded picture or hash moved.
 
+### Item 1, round 2: the strength (`s2-item1-round2-strengths-heads-x2.5-and-1to1.png`, `s2-item1-round2-gameplay-frame-1024x768.png`, `s2-item1-round2-head-from-that-frame-x2.5.png`)
+
+The coordinator did not accept full strength (the mesh outlines every texel; the frame reads as a mosaic, her face as a grid) and asked for the
+weakest strength at which the panel still reads on the room while her face shows no grid at a glance, the character winning if none does both.
+Shot with the stripes off at gain 1: a third (.1), a quarter (.075) and a fifth (.06) of the old mesh and scanlines. Looked at, heads x2.5 and
+1:1 and the whole frames: a third and a quarter still draw a lattice over her face at 1:1; at a fifth the full frame shows the panel only as a
+faint texture on the floor's lighter tiles and her face shows no grid at a glance, though a faint lattice is still there in a 1:1 crop looked at
+closely. No strength did both, so the character wins: kept a fifth. The gain was measured on two large areas of the room (her face's box moves
+with her placement between frames and was too noisy): a third 1.15, a quarter 1.11, a fifth 1.09 (the maths says 1.087). At 1.09 the two areas
+are (17.2, 21.6, 22.4) and (28.2, 37.3, 36.3) against (17.3, 21.6, 22.4) and (28.3, 37.3, 36.2) with no screen mesh. If the faint lattice on
+her face is still too much, the next step is the mesh off over figures or off altogether.
+
 ## Session 2, item 2: lips and nose (the cause found, not fixed)
 
 Her face's texels in play (the no-mesh frame and the kept one, 1024 by 768) against the painted cell (`pnpm --filter @automata/character-kit

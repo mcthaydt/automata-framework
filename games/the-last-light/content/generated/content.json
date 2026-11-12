@@ -3903,11 +3903,11 @@
     },
     "lcdScreen": {
       "balance": 0.6,
-      "brightness": 1.46,
+      "brightness": 1.09,
       "cellPixels": 4,
-      "grid": 0.3,
+      "grid": 0.06,
       "layout": "rgb",
-      "scanlines": 0.3,
+      "scanlines": 0.06,
       "subpixels": 0
     },
     "light": {
