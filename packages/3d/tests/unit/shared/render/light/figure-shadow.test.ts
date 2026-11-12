@@ -112,3 +112,35 @@ describe('a figure under a sun that casts: the silhouette thrown along the sun',
     expect(marked(castShadow(cast({ at: [0, 0, 0], sun }), [pavement]))).toHaveLength(0)
   })
 })
+
+describe('the rule is the builder’s: the same cell marks the same area', () => {
+  // EnvironmentBuilder f7c5356, `stage/cast.ts shadowOf` on a flat floor: a 64 x 96 cell (all opaque, feet 4 rows up), 73.8 texels a metre
+  // (the diorama's 96 / 2.6 x 2), pitch 18°, key (-0.3, 0.6, 0.7): 256 texels of the screen for the contact ellipse alone and 2416 with the
+  // silhouette. A floor cell here is `texel` metres across and the floor foreshortens by sin(pitch), so the screen area is count x texel² x
+  // ppm² x sin(pitch). The street's diorama footprint measured 93% of the builder's, the interior's contact-only 106%
+  // (`after-shadow/README.md`): what differs is whether a lamp-lit room casts a silhouette at all (the builder does along its painted key, this
+  // only under a sun that casts), not how big the shadow is.
+  const ppm = (96 / 2.6) * 2
+  const pitch = (18 * Math.PI) / 180
+  const silhouette = (opaque: boolean): Silhouette => ({
+    width: 64,
+    height: 96,
+    rgba: new Uint8ClampedArray(64 * 96 * 4).fill(opaque ? 255 : 0),
+    anchor: [32, 92],
+    metresPerTexel: 1 / ppm,
+    pitch,
+  })
+  const onScreen = (mark: ShadowMark): number => mark.count * mark.texel ** 2 * ppm ** 2 * Math.sin(pitch)
+
+  it('the contact ellipse: 256 texels in the builder, within 2% here', () => {
+    const area = onScreen(castShadow({ silhouette: silhouette(false), at: [0, 0, 0], right: [1, 0] }))
+    expect(Math.abs(area / 256 - 1)).toBeLessThan(0.02)
+  })
+
+  it('the silhouette thrown along the key: 2416 texels in the builder, within 3% here', () => {
+    const area = onScreen(
+      castShadow({ silhouette: silhouette(true), at: [0, 0, 0], right: [1, 0], sun: [-0.3, 0.6, 0.7] }),
+    )
+    expect(Math.abs(area / 2416 - 1)).toBeLessThan(0.03)
+  })
+})

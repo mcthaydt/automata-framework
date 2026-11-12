@@ -1,16 +1,16 @@
 [
   {
-    "scene": "base-exterior",
+    "scene": "base-interior",
     "view": "diorama",
-    "noise": 1568,
-    "footprint": 185,
-    "darkening": 5.465
+    "noise": 0,
+    "footprint": 286,
+    "darkening": 0.564
   },
   {
     "scene": "base-exterior",
-    "view": "fp",
-    "noise": 654,
-    "footprint": 239,
-    "darkening": 4.737
+    "view": "diorama",
+    "noise": 0,
+    "footprint": 1327,
+    "darkening": 0.575
   }
 ]

@@ -364,9 +364,15 @@ if (process.env.SHADOW_ONLY === '1') {
       ['diorama', fieldOf(scene, 'diorama'), 'diorama'],
       ['fp', fieldOf(scene, 'fp'), 'fp'],
     ]) {
-      const url = `${local()}/?scene=${scene}&view=${view}&pref=webgl`
+      if (process.env.VIEWS !== undefined && !process.env.VIEWS.split(',').includes(view)) continue
+      const url = `${local()}/?scene=${scene}&view=${view}&pref=webgl&still=1`
       const on = await again1(`${url}${QUERY}`, size)
       const off = await again1(`${url}&shadow=0${QUERY}`, size)
+      // SHADOW_FRAMES=1 keeps the two frames, to look at where the shadow's texels are.
+      if (process.env.SHADOW_FRAMES === '1') {
+        writeFileSync(join(out, `shadow-${scene}-${name}-on.png`), Buffer.from(on.b64, 'base64'))
+        writeFileSync(join(out, `shadow-${scene}-${name}-off.png`), Buffer.from(off.b64, 'base64'))
+      }
       // The scene itself differs a little between two page loads (a leaf's sway): a third load, with the shadow on again, counts those.
       const again = await again1(`${url}${QUERY}`, size)
       const [a, b, c] = await Promise.all([pixelsOf(on.b64, ...size), pixelsOf(off.b64, ...size), pixelsOf(again.b64, ...size)])

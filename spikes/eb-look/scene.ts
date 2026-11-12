@@ -80,7 +80,10 @@ const GAMEPLAY = {
 // 16:9 window); ?density=1 and ?crisp=0 are the painted pair's texel density and its true-size placement (a texel zoom / density
 // pixels wide, of uneven width), the old game's own settings. Left out, the sheets are the kit's defaults (density 2, whole pixels).
 const fieldQuery = /^(\d+)x(\d+)$/.exec(q.get('field') ?? '')
+// ?still=1 holds the painted figures' pose clock at 0, so two loads of a page draw the same figures (the shadow's measure counts the
+// texels two frames do not share: a figure that breathes between loads would be counted as shadow along its edge).
 const paintedOptions = {
+  ...(q.get('still') === '1' ? { now: () => 0 } : {}),
   ...(q.get('density') === '1' ? { density: 1 as const } : {}),
   ...(q.get('crisp') === '0' ? { crisp: false } : {}),
 }

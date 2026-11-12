@@ -41,18 +41,38 @@ stands a sprite at its sector's floor (`at[2] ?? floorAt`), so the spike now doe
 case in `figure-shadow.test.ts` fixes the rule (a figure on the pavement casts; one at the road's level, 0.12 m under it, is not on it).
 The interiors' floors are at 0, which is why the contact ellipse showed there.
 
-Measured after the fix (the numbers the run got to; the rest are for the next session to take with the same command):
+**The first counts were contaminated, by the figures themselves.** The painted figures' pose clock is the page's, so a figure's edge moves
+between two page loads; the count (texels two frames do not share, a darker half kept) took half of that jitter for shadow, and the
+"noise" third load did not remove it (it removes only what the third load differs in). `?still=1` now holds the pose clock at 0
+(`spikes/eb-look/scene.ts`), `SHADOW_ONLY` adds it, and the noise is 0 in every run below (it was 382 in the interior, 1568 in the street).
+The footprints in the earlier text (185, 239, 673, 1357) are superseded.
+
+Measured with it (`SHADOW_ONLY=1 SHADOW_FRAMES=1 VIEWS=diorama SCENES=base-interior,base-exterior … figures=painted`, `shadow.json`):
 
 | Scene | View | Builder: footprint / darkening | Ours: footprint / darkening |
 |---|---|---|---|
-| base-exterior | diorama | 1422 / 0.64 | **1357 / 0.69** (the run before the count kept only darkened texels; noise 2979) |
-| base-interior | diorama | 1223 / 0.61 | **673 / 0.606** |
+| base-exterior | diorama | 1422 / 0.64 | **1327 / 0.575** (93%) |
+| base-interior | diorama | 1223 / 0.61 | **286 / 0.564** (23%) |
+| base-interior | diorama, the builder's `shadow: false` | 271 / 0.61 | 286 / 0.564 (**106%**) |
 
-The street is the builder's within 5% in footprint and 0.05 in darkening. The interior's footprint is 55% of the builder's, at the
-builder's darkening: the contact ellipse alone, and not yet explained (the count leaves out the figures' own pixels in both frames, and the
-two figures stand 1.2 m apart, so the ellipses do not overlap). The next session reads the builder's `shadowOf` for the interior (`stage/cast.ts`) against `figure-shadow.ts` to see where the other 550 texels are.
-Not measured yet: the
-street's first person, both dressed scenes, and the interiors' first person (the builder's footprint there is 0: the feet are out of frame).
+## The interior's footprint: a named difference, with its cause
+
+The builder's interior is 4.3 times ours, and it is not the shadow's rule:
+
+1. **The rule is the builder's.** For the same cell (a 64 x 96 silhouette, 73.8 texels a metre, 18°, the same sun) the builder's `shadowOf`
+   marks 256 texels for the contact ellipse and 2416 for the silhouette; `castShadow` marks the same area, 255 and 2366 screen texels (a
+   unit case in `figure-shadow.test.ts` keeps it, with the builder's numbers). The street's footprint is 93% of the builder's.
+2. **What differs is when the silhouette is cast.** The builder casts it when the time's `shadow` is true, along the time's key (by default the
+   figures' own painted key, `FIGURE_KEY`), whether or not there is a sun: `castShadow = time.shadow` in `view/render.ts`, `key = keyOf(time)`.
+   The interior's time is `lampLit` (`shadow: true`, no sun). With the builder's own frame drawn again with the time's `shadow` set to false
+   (`eb-shadow-probe.ts`, the time as `{ preset: 'lampLit', shadow: false }`) its interior footprint falls from 1223 to **271**, and ours is 286.
+   The 952 texels between are the silhouette thrown along the painted key.
+3. **Ours casts a silhouette only under a sun that casts** (`createFigureShadows`: `lighting.sun?.shadow === true`), and a lamp-lit room has none.
+
+This is kept as a named difference, not tuned: a figure shadow along the figure's own painted key in a room lit by a lamp puts the shadow where
+no light of the room is (the key is the painter's, not the room's), and adopting it would move every interior frame with the shadow on, which
+is a decision for the Owner, not a measure to match. The darkening is 0.05 darker than the builder's in each scene (0.564 against 0.61, 0.575
+against 0.64): the multiplier is the same 0.6, and the framework's steps and dither take it a little further.
 
 ## What the sheets show
 
