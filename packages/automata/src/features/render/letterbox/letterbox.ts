@@ -132,7 +132,12 @@ export class LetterboxFrame {
     }
 
     const ratio = devicePixelRatio > 0 ? devicePixelRatio : 1
-    const wholeDevice = Math.floor((viewWidth * ratio) / this.logicalWidth)
+    // A landscape view is filled by the tighter of its two sides, so the field is never cut at the top and the bottom; a portrait
+    // one lays the field out from its width and its own band (`portraitFieldHeight`).
+    const across = (viewWidth * ratio) / this.logicalWidth
+    const wholeDevice = Math.floor(
+      viewHeight > viewWidth ? across : Math.min(across, (viewHeight * ratio) / this.logicalHeight),
+    )
     const whole = this.scaleMode === 'whole' && wholeDevice >= 1
     const scale = whole ? wholeDevice / ratio : viewWidth / this.logicalWidth
     const width = whole ? this.logicalWidth * scale : viewWidth

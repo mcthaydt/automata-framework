@@ -161,6 +161,14 @@ describe('LetterboxFrame with whole-pixel scale', () => {
     expect(bounds.width).toBe(geo.width)
   })
 
+  it('keeps a landscape field inside the view: a 512 x 384 field in a 1280 x 720 view is 1 a pixel, not the 2 the width allows', () => {
+    // The width alone gives 1280 / 512 = 2.5, so 2: a picture 768 tall in a 720 view, cut at the top and the bottom.
+    const geo = whole({ width: 512, height: 384 }).layout(1280, 720)
+    expect(geo.scale).toBe(1)
+    expect(geo.height).toBeLessThanOrEqual(720)
+    expect(geo.y).toBe(168)
+  })
+
   it('falls back to the fit when the field is bigger than the view, so it never has a scale of 0', () => {
     const geo = whole().layout(480, 270)
     expect(geo.scale).toBeCloseTo(0.5)
