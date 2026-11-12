@@ -32,3 +32,33 @@ Frames: `item1-yaw-0-spawn.png` (the spawn, as before); `item1-yaw-after-400px-r
 degrees: the room turned and she is drawn side-on); `item1-yaw-after-600px-left-drag.png` (then 600 px back: she is drawn from behind, three-quarter).
 Journey: `tests/e2e/camera.test.ts` turns it by a mouse drag (both buttons), a finger's swipe (CDP touch events) and a pad's right stick
 (a stand-in `navigator.getGamepads`), and proves Q and E turn nothing and the stick's y turns nothing.
+
+## Item 2: the rooms under a turning camera at the near scale (partly done)
+
+**The derivation** (`@automata/3d/camera-view`: `spriteBoxAt`, `reachOf`, `fitFocus`, `bestLookHeight`, generic, pure). Her sprite is the
+cell's 124 rows plus 4 of head room at 2 field pixels a texel: 256 field pixels of a 384-line field (4:3) or a 360-line field (16:9), half
+width 48. With 8 pixels kept clear, the look may stand at most **0.52 m** (hall) / **0.52 m** (corridor, closet) from her feet, in any
+direction at any heading (the `reach`; 72 headings by 72 directions, bisected to a centimetre). That is the near scale's price: a camera the
+player turns cannot be held back at a room's edge at all. The follow's dead zone (0.3 m) and the larger of its lag (at 3 m/s) and the lead
+share what is left, so the derived views are:
+
+| view | look height | focus box (the walkable floor) | lead | lag |
+| --- | --- | --- | --- | --- |
+| hall | 1.10 to **1.05** m | x -5.02..4.67, z -3.60..6.67 (was -3..3, -0.4..6.4) | 1.5 to **0.22** m | 1/7 to **0.07** s |
+| corridor | 0.60 to **1.10** m | x -1.27..1.52, z -6.67..-1.08 (was the line x 0, z -4.6..-2.4) | 1.5 to **0.21** m | 1/7 to **0.07** s |
+| closet | 0.60 to **1.10** m | x 1.93..4.27, z -6.17..-2.83 (was one point) | none | 1/7 to **0.07** s |
+
+At the old look height of 0.6 m (corridor, closet) her head cannot fit at all with 8 pixels clear (reach 0): that, not the box, is why her head
+left the top. `tests/unit/app/room-fit.test.ts` pins the level's numbers to the derivation and sweeps the real follow rule (`zoneShot`) at every
+15 degrees of heading, at the walkable floor's corners, middle and doorways, walking 8 ways with the lead ahead and the lag behind, with the dead
+zone holding the look from 8 sides, in both fields: her whole sprite stays inside. It failed against the old level in all three rooms.
+
+**In play (looked at every frame):** turned 75 degrees, the hall's north end (`item2-hall-north-yaw-75.png`) and the corridor's north end
+(`item2-corridor-north-yaw-minus75.png`) show her whole with head room. **Open defect, not fixed:** looking straight north through the mouth
+(`item2-hall-north-yaw0-OCCLUDED-by-bulkhead.png`, `item2-corridor-north-yaw0-OCCLUDED.png`) a flat wall fills the frame and she is not
+seen at all. The corridor's ceiling is 3.2 m and the hall's 4.9 m, so there is a 1.7 m bulkhead face over the mouth (z -1.4, `cut: "bulkhead"`);
+the eye stands about 5.2 m up, and every line from it to her through the mouth passes through that face, which the occluder pass does not cut.
+It is the same black slab that covered her in session 16's defect frame (the "head off the top"). Next: make the occluder pass cut a portal's
+upper face (the bulkhead) when it crosses the eye-to-head line, test first, from all sides. `item2-hall-key-cabinet-NOT-the-closet.png` is named
+for what it is: the walk to the closet went wrong after the camera turns (the keys walk relative to the camera), so **the closet was not shot**,
+nor the hall's south, east and west walls at several yaws.
