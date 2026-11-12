@@ -92,7 +92,7 @@ export function paddleRole({ L, Ww, Wk, D, hs, kSide, dim, lo }: RoleInput): Rol
     return tone(1)
   }
 }
-/** The parted hand (see HandFormKind): its pieces from handForm, toned as the paddle is, its creases the deep step. */
+/** The parted hand (see HandFormKind): its pieces from handForm, toned as the paddle is, its creases a step under its tone. */
 export function partedRole({ L, Ww, Wk, D, hs, kSide, dim, lo }: RoleInput): Role {
   // The hand's form (handForm): the wrist, the palm, the thumb off its side, the index and the mitten.
   const f = handForm({ L, Ww, Wk, thumbAt: hs.thumbAt[0], thumbs: hs.thumbFacing > -0.55, D })
@@ -102,13 +102,14 @@ export function partedRole({ L, Ww, Wk, D, hs, kSide, dim, lo }: RoleInput): Rol
       col = Math.floor(t - lo),
       piece = handPiece(f, row, col)
     if (!piece) return -1
-    // A crease is the skin's deep step, wherever it lies: no ink inside the hand.
-    if (piece === 'crease') return 3
+    const tone = (q: number) => Math.min(2, q + dim)
+    // A crease is one step under the hand's own tone, wherever it lies: no ink inside the hand, and no colour the hand
+    // does not already use when it is lit (a new one would cost the figure's colour budget a merge elsewhere).
+    if (piece === 'crease') return tone(1) + 1
     const cols = row >= flare ? Wk : Ww,
       keyEdge = kSide > 0 ? cols - 1 : 0,
       farEdge = cols - 1 - keyEdge,
       thumbEdge = cols - 1
-    const tone = (q: number) => Math.min(2, q + dim)
     // The thumb: its top catching the light where it turns to the key or the camera, its tip a step down.
     if (piece === 'thumb')
       return row === t1 && t1 > t0 ? 2 : row === t0 && (kSide > 0 || hs.thumbFacing > 0.4) ? tone(0) : tone(1)
@@ -154,7 +155,7 @@ export interface HandForm {
   D: number
 }
 /** What a texel of the hand is: the wrist and palm (to the knuckle row), the thumb, the index, the other three fingers
- * as one mitten, or a crease (the skin's deep step) between the thumb and the palm or the index and the mitten. */
+ * as one mitten, or a crease (a step under the hand's tone) between the thumb and the palm or the index and the mitten. */
 export type HandPiece = 'palm' | 'thumb' | 'index' | 'mitten' | 'crease'
 /**
  * The form from the stamp's sizes (texels): `L` the length to draw, `Ww` and `Wk` the widths at the wrist and the

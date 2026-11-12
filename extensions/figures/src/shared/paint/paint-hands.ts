@@ -44,7 +44,7 @@ export interface HandStamp {
  *   which are one mitten); HAND_FORM is the default.
  * - Its tones, in the skin's ramp: the back's edge toward the key its light plane, the knuckle row a step darker under
  *   it with the light's corner kept, the edge away from the key in shadow, a step of shadow at the thumb's tip; the
- *   parted hand's gaps, where they lie over skin of its own colour, a crease in the ramp's deep step.
+ *   parted hand's partings a crease, a step under the hand's tone.
  * - In a pocket (most of it covered), nothing: only the forearm going into the opening, never a sliver of skin.
  */
 export function drawHands(

@@ -129,8 +129,8 @@ function handsOf(def: (typeof BASE)[number]['def'], d: number, D: number) {
 describe('the base pair standing at density 2: the hand reads in every view', () => {
   for (const c of BASE)
     for (let d = 0; d < 8; d++)
-      it(`${c.def.id} view ${d}: a hand four texels broad or more, its fingers creased`, () => {
-        for (const { hs, w, h, on, tone } of handsOf(c.def, d, 2)) {
+      it(`${c.def.id} view ${d}: a hand four texels broad or more, parted by creases, not gaps`, () => {
+        for (const { hs, w, h, on } of handsOf(c.def, d, 2)) {
           if (!hs.hangs) continue
           // The widest row of the hand: a readable block, whichever way it is turned.
           let widest = 0
@@ -140,34 +140,14 @@ describe('the base pair standing at density 2: the hand reads in every view', ()
             widest = Math.max(widest, n)
           }
           expect(widest, `view ${d}`).toBeGreaterThanOrEqual(4)
-          // The index's crease, drawn in the skin's deep step: no ink inside the hand.
-          expect(tone.filter((t) => t === 3).length, `view ${d} creases`).toBeGreaterThanOrEqual(1)
+          // No ink inside the hand: its partings are creases, so a row of it is one run but beside the thumb's tip.
+          let parted = 0
+          for (let y = 0; y < h; y++) {
+            let runs = 0
+            for (let x = 0; x < w; x++) if (on(x, y) && !on(x - 1, y)) runs++
+            if (runs > 1) parted++
+          }
+          expect(parted, `view ${d} rows parted by background`).toBeLessThanOrEqual(2)
         }
       })
-})
-
-describe('over skin of its own colour, the creases still show', () => {
-  it('a hand hanging over a bare thigh draws its creases a deep step, not the thigh', () => {
-    // The base man's near hand in the side view, drawn over a thigh of his own skin that fills the cell behind it.
-    const f = new Figure(member(BASE[0].def, 2))
-    for (let i = 0; i < 3; i++) f.update(1 / 60, { facing: Math.PI / 2, moving: false, view: view() })
-    const [w, h] = f.member.cell,
-      hs = f.handStamps.find((s) => Math.round(2 * s.half[1]) >= 6 && s.thumbFacing > -0.55)
-    if (!hs) throw new Error('no broad hand with its thumb shown in the side view')
-    const n = w * h,
-      b = {
-        material: new Int16Array(n).fill(hs.material),
-        part: new Int16Array(n).fill(1),
-        group: new Int16Array(n).fill(hs.group + 100),
-        depth: new Float32Array(n).fill(hs.wrist[2] - 1),
-        normal: new Float32Array(n * 3),
-        place: new Float32Array(n * 3),
-      }
-    const k = Math.round(hs.wrist[1]) * w + Math.round(hs.wrist[0])
-    b.group[k] = hs.group
-    b.depth[k] = hs.wrist[2]
-    const tone = drawHands([hs], w, h, 2, b, 'parted')
-    // The creases: a deep tone (3) the hand's own tones (0 to 2) never use, and at least the finger gap's two rows.
-    expect(Array.from(tone).filter((t) => t === 3).length).toBeGreaterThanOrEqual(2)
-  })
 })
