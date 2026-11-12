@@ -25,7 +25,7 @@ argues from their measurements. **Tracker:** [`../progress.md`](../progress.md),
 
 ## Tracking
 
-**3 of 28 tasks done (11%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
+**4 of 28 tasks done (14%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
 ([plan audit](../audits/2026-11-12-builders-fold-plan-audit.md)): its fixes are in the steps below. Numbers 4b to 4d were
 added and 14 was moved to 4b after the Owner's answers of 2026-11-12, so the numbering has letters and a gap. Tick a
 task only when its checks passed in the session that did it; say what did not run.
@@ -35,7 +35,7 @@ task only when its checks passed in the session that did it; say what did not ru
 | 1 | The baseline, and the checksum manifest | `claude/builders-fold-figures` | done | `e074227fe`: baseline `pnpm check` exit 0, 11m56s cold (65 tasks; turbo test time 9m13s); kit unit 28 files, 228 tests, 53 s; kit browser (Chromium, software GL) 7 files, 58 tests, 3 files skipped by design (the gate's sheets), 35 s; pack 275.69 MiB; manifest 134 files |
 | 2 | The painter's source arrives with its history; its own suite passes as it is | `claude/builders-fold-figures` | done | `e22caf219` (merge), `b192bad57` (the pin, step 3b made early), `ef3cd569e` (the package): filter 111 commits on main, 126 in all, 1.03 MiB, 0 SNEKPRTY blobs, 0 cut paths; manifest 134 files, 0 differ; the builder's suite 47 files, 563 tests (560 of 561 before the pin); typecheck 0 errors; view-check exit 0; `pnpm check` exit 0 (4m40s, cached) |
 | 3 | The character kit's door points at the package | `claude/builders-fold-figures` | done | `refactor(character-kit): the door imports the painter as a workspace package`: door test 5 of 5 (three specifier cases watched failing first), boundaries 0 findings, closed-beta guard passes, stale-types and missing-types checks green; kit unit 28 files, 229 tests (228 and the new case); kit browser (Chromium) 58 pass, 3 files skipped, as the baseline; no recorded file rewritten; `pnpm check` exit 0 (2m23s) |
-| 4 | The submodule and its wrapper go | `claude/builders-fold-figures` | todo | |
+| 4 | The submodule and its wrapper go | `claude/builders-fold-figures` | done | `93f7e6ba3`: `git submodule status` prints nothing; a fresh clone (plain `git clone`, `pnpm install --frozen-lockfile`) passes `pnpm check` (66 tasks, 14m53s, nothing else typed); `pnpm check` in the tree 15m54s uncached; kit Chromium 58 pass without the root's Pixi; the hygiene invariants pass; `git diff --stat origin/main -- .github` empty |
 | 4b | The workflows lose the submodule step (the Owner's word given) | `claude/builders-fold-figures` | todo | |
 | 4c | The c5-finish fixes come across | `claude/builders-fold-figures` | todo | |
 | 4d | A turned face keeps both eyes: the fix, the sheet, the Owner's eye, the re-record | `claude/builders-fold-figures` | todo | |
@@ -658,7 +658,7 @@ it('cannot reach past the three entries', async () => {
 - Modify: `pnpm-workspace.yaml`, `biome.json:20-21`, `knip.jsonc:8-9,28-31`, `.gitignore:41-42`, root `package.json`,
   `pnpm-lock.yaml`
 
-- [ ] **Step 1: Remove.**
+- [x] **Step 1: Remove.**
 
 ```bash
 git submodule deinit -f vendor/FigureBuilder
@@ -668,24 +668,24 @@ git rm -r vendor/figure-builder
 git rm -f .gitmodules
 ```
 
-- [ ] **Step 2: The configuration.** Take the comment and the entry out of `pnpm-workspace.yaml`; the two exclusions
+- [x] **Step 2: The configuration.** Take the comment and the entry out of `pnpm-workspace.yaml`; the two exclusions
   out of `biome.json`; the ignore entry and the wrapper's workspace out of `knip.jsonc`; lines 41 and 42 out of
   `.gitignore`.
-- [ ] **Step 3: The root's Pixi.** Remove `@pixi/3d` and `pixi.js` from the root `package.json`, `pnpm install`,
+- [x] **Step 3: The root's Pixi.** Remove `@pixi/3d` and `pixi.js` from the root `package.json`, `pnpm install`,
   `pnpm check`, and the kit's Chromium suite. If all pass, they stay out. If something fails to resolve them, put them
   back with a comment naming what needs them.
-- [ ] **Step 4:** `grep -rIn -iE "figure-builder|vendor/FigureBuilder|gitmodules" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=docs . | grep -v "^./.github/"`
+- [x] **Step 4:** `grep -rIn -iE "figure-builder|vendor/FigureBuilder|gitmodules" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=docs . | grep -v "^./.github/"`
   Expected: only the kit's door folder name and comments (task 12 rewords them). Anything that is configuration or
   code is fixed here.
-- [ ] **Step 5: The workflows' step is harmless.** `SUBMODULES_TOKEN= bash .github/scripts/checkout-submodules.sh;
+- [x] **Step 5: The workflows' step is harmless.** `SUBMODULES_TOKEN= bash .github/scripts/checkout-submodules.sh;
   echo $?` and `SUBMODULES_TOKEN=x bash .github/scripts/checkout-submodules.sh; echo $?`: both print `0`.
   `pnpm --filter @automata/repo-hygiene test:unit` still passes: the invariant wants the step present, and it is.
-- [ ] **Step 6: A fresh clone.** After committing: `git clone --branch claude/builders-fold-figures <this repository's
+- [x] **Step 6: A fresh clone.** After committing: `git clone --branch claude/builders-fold-figures <this repository's
   path> /tmp/fresh && cd /tmp/fresh && git fetch <this repository's path>
   refs/remotes/origin/main:refs/remotes/origin/main && pnpm install --frozen-lockfile && pnpm check`. (The fetch gives
   the clone the `origin/main` that `check:changesets` compares with; a clone of a local path has none of its own.)
   Expected: exit 0 with nothing else typed.
-- [ ] **Step 7:** Commit `chore(repo): the figure builder's submodule and its wrapper package go`.
+- [x] **Step 7:** Commit `chore(repo): the figure builder's submodule and its wrapper package go`.
 
 **Done when:** `git submodule status` prints nothing, a fresh clone passes `pnpm check`, and no workflow file changed
 yet (`git diff --stat origin/main -- .github` is empty): the checks pass without the submodule before task 4b
@@ -1523,3 +1523,4 @@ pin.
 | 2026-11-12 | Stage 4 (execution), group 1, `claude/builders-fold-figures`, Sonnet 5.5, no subagents. Task 1 | Submodule at `23f889c8`, declarations built by hand, Node 24.21 through pnpm. `pnpm check` exit 0 (11m56s cold). Kit unit 28 files, 228 tests. Kit browser in Chromium only (`--project 'browser (chromium)' --project webgpu`: WebKit and Firefox do not exist here, and the package's own script asks for all three): 58 tests pass, 3 files skipped (`gate-lit`, written by `scripts/gate.ts`). Pack 275.69 MiB. Manifest 134 files (47/1/73/6/4/3), commit `e074227fe` made with LEFTHOOK=0 right after the whole check passed on the tree before it (it adds one data file). Not run: WebKit, Firefox, arm64, a real GPU |
 | 2026-11-12 | Task 2 (same session) | Filtered and merged as the plan says (111/7/6/2 commits, main `c85b961`, root `36a135e`, 126 commits and 1.03 MiB fetched empty, 0 and 0 on the content check, grafts `13407db8` and `6b6819cb` only). Manifest `134 files, 0 differ`. **Deviation:** the builder's suite at the pin on Node 24.21 was 560 of 561: `face-d2.test.ts` (the head's profile pin, 1 ulp) is in the builder's `main`, not only in the wardrobe branch, and passes on Node 22.23.4. Task 5 step 3b was done here, in its own commit before the package's (`b192bad57`): the ±1-ulp case (both base figures, densities 1 and 2, eight views, the head form and the ear a last bit up and down: every md5 equal; a control moving the form by 5% does move a cell), then the pin within 2 ulps (measured 1; 0 fails). Node 22.23.4 and 24.21.0 both pass both files. **Also:** the extension manifest rule needs `imports: {"#src/*": "./src/*"}` and `docs/versions.md` needs a row for `@napi-rs/canvas` (found by `pnpm check`), both added in the package commit. `@napi-rs/canvas` installed here (no refusal) and `view-check` ran: exit 0. Typecheck has no error in tests, scripts or viewer. The filtered clone is `/home/user/figurebuilder-filtered`, the remote `painter-history`. Not run: WebKit, Firefox, arm64 |
 | 2026-11-12 | Task 3 | The door's three specifiers, the kit's dependency, the 13 `--forbid` entries and the closed-beta guard point at `@automata/figures`; one new case (the package has three exports and no wildcard). The "Pixi-free entries" case passed vacuously in the plan's form (no specifier matched), so it now asserts the exact specifier set and fails first. **Two things the plan did not name:** `src/features/fashion/garments.ts` augments `declare module 'figure-builder'` (now `'@automata/figures'`), and `turbo.json`'s `@automata/figures#typecheck` needs `"outputs": ["types/**"]`, else a turbo cache hit does not restore `types/` and a consumer type-checks the painter's source under the strict flags (seen: `examples-3d` and the kit failed with `TS2532` with `types/` removed and the cached typecheck). With the outputs, `rm -rf extensions/figures/types && pnpm typecheck` passes on a miss and on a hit. Not run: WebKit, Firefox, arm64 |
+| 2026-11-12 | Task 4 | Submodule, gitlink, wrapper, `.gitmodules`, workspace entry, Biome and knip and `.gitignore` entries gone. The root's `@pixi/3d` and `pixi.js` are out and stay out (`pnpm check` exit 0 and the kit's Chromium suite pass without them). The submodule script exits 0 with and without a token. A fresh clone with the declarations built by `prepare` passes `pnpm check`. `scripts/record-runway-cells.ts` named `vendor/FigureBuilder` in code: it now points at `extensions/figures` (a hand-run recorder; its comments are for task 12). What still names the submodule: the kit's comments (task 12), `gate.ts`'s error text (task 12) and the workflows and their invariants (task 4b). Not run: WebKit, Firefox, arm64 |
