@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join, posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -80,5 +80,75 @@ describe('package scripts that name a folder outside their package', () => {
     const packages = workspacePackages(root)
     expect(packages.length).toBeGreaterThan(0)
     expect(missingScriptPaths(packages, (repoPath) => existsSync(join(root, repoPath)))).toEqual([])
+  })
+})
+
+// A script that runs one test file by path (`vitest run tests/browser/golden.test.ts`) finds "No test files" when the
+// file moves, and fails only where the script runs: `pnpm evidence` in CI's parity job was red for days after
+// "lay the game out by feature" moved emberwick's golden test, hidden behind other failures.
+
+/**
+ * The test files a script names: a word ending `.test.` or `.spec.` and a script extension, after a space, `=`,
+ * a quote or a comma. A glob is a pattern, not a file that must exist, so one is left out.
+ */
+function testFilePaths(script: string): string[] {
+  const paths =
+    script.match(/(?<=^|[\s='"(,])[^\s'"`;&|(),=]+\.(?:test|spec)\.[cm]?[jt]sx?(?=$|[\s'"`;&|),])/g) ?? []
+  return paths.filter((path) => !/[*?[{]/.test(path))
+}
+
+/** `<package folder> <script>: <path> …` for each test file path a script names that is not on disk. */
+function missingTestFiles(
+  packages: readonly WorkspacePackage[],
+  exists: (repoPath: string) => boolean,
+): string[] {
+  const problems: string[] = []
+  for (const { dir, manifest } of packages) {
+    const scripts = (manifest as ScriptsManifest).scripts ?? {}
+    for (const [name, script] of Object.entries(scripts)) {
+      for (const path of testFilePaths(script)) {
+        const repoPath = posix.join(dir, path)
+        if (!exists(repoPath)) problems.push(`${dir} ${name}: ${path} (${repoPath}) does not exist`)
+      }
+    }
+  }
+  return problems
+}
+
+describe('package scripts that name a test file', () => {
+  it('names a test file that is not on disk, and passes one that is, a glob, and a word that is not a path', () => {
+    const planted: WorkspacePackage = {
+      dir: 'games/a',
+      manifest: {
+        name: 'a',
+        version: '0.0.0',
+        scripts: {
+          'test:evidence':
+            'vitest run --project unit tests/browser/golden.test.ts tests/browser/testing/golden.test.ts --outputFile.json=.evidence/goldens.json',
+          'test:one': "vitest run 'tests/unit/real.spec.ts' && vitest run --dir=tests/unit/gone.test.mts",
+          'test:all': 'vitest run tests/unit/*.test.ts',
+          build: 'tsc -p . && echo "see foo.test.ts later"',
+          local: 'node src/bin.ts',
+        },
+      } as WorkspacePackage['manifest'],
+    }
+    const exists = (repoPath: string): boolean =>
+      repoPath === 'games/a/tests/browser/testing/golden.test.ts' ||
+      repoPath === 'games/a/tests/unit/real.spec.ts'
+
+    expect(missingTestFiles([planted], exists)).toEqual([
+      'games/a test:evidence: tests/browser/golden.test.ts (games/a/tests/browser/golden.test.ts) does not exist',
+      'games/a test:one: tests/unit/gone.test.mts (games/a/tests/unit/gone.test.mts) does not exist',
+      'games/a build: foo.test.ts (games/a/foo.test.ts) does not exist',
+    ])
+  })
+
+  it('finds none in the workspace or the root that is not on disk', () => {
+    const rootPackage: WorkspacePackage = {
+      dir: '.',
+      manifest: JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as WorkspacePackage['manifest'],
+    }
+    const packages = [rootPackage, ...workspacePackages(root)]
+    expect(missingTestFiles(packages, (repoPath) => existsSync(join(root, repoPath)))).toEqual([])
   })
 })
