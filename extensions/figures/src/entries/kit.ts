@@ -1,11 +1,11 @@
 // biome-ignore-all assist/source/organizeImports: the exports are grouped by subject under their own comments; a sort would detach the comments
 /**
- * The painter's toolkit: a second public entry, beside `src/index.ts`, for a host that paints its own geometry in
- * FigureBuilder's look (EnvironmentBuilder paints its walls with this rasteriser and palette). These are the internals
- * its door reaches for, made public and stable: a door imports `figure-builder/src/index` and `figure-builder/src/kit`
+ * The painter's toolkit: a second public entry, beside `src/entries/index.ts`, for a host that paints its own geometry in
+ * the painter's look (a scene host paints its walls with this rasteriser and palette). These are the internals
+ * a door reaches for, made public and stable: a door imports `src/entries/index.ts` and `src/entries/kit.ts` (and `view.ts`)
  * and nothing deeper. Re-exports only; no name here is renamed or moved. Every name is stable: adding, removing or
  * changing one follows docs/contract.md (the breaking-change list, STAGE_VERSION and the changelog), and
- * tests/api.test.ts pins the list. A downstream that needs more asks for it to be added here.
+ * tests/unit/api.test.ts pins the list. A downstream that needs more asks for it to be added here.
  */
 export {
   gbuffer,

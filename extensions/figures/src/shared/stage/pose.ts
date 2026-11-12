@@ -3,15 +3,15 @@ import type { View } from '../figure/figure'
 import { cross, dot, normalize, sub, type V3 } from '../math/math'
 
 /**
- * The camera pose a scene is drawn under (docs/contract.md). FigureBuilder owns no camera: the host scene's camera
- * system supplies a pose each frame (@pmndrs/klipp, in EnvironmentBuilder and automata-framework), and a test or the
+ * The camera pose a scene is drawn under (docs/contract.md). The package owns no camera: the host scene's camera
+ * system supplies a pose each frame (@pmndrs/klipp, in the framework's 3D scenes), and a test or the
  * viewer supplies a fixed one, from `lookAt` or `gameplay`. A pose is read here and never changed.
  */
 
 /** A camera's pose, passed in. */
 export interface CameraPose {
   /** The eye and the camera's own axes (unit, orthogonal, right-handed: right × up is −fwd), in world metres: the
-   * fields of EnvironmentBuilder's PCam. */
+   * fields a host's camera system supplies. */
   eye: V3
   right: V3
   up: V3

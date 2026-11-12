@@ -3,7 +3,7 @@
 // named twice, so this is guarded and safe to call again (two games in one page, a hot reload); a name the builder's own
 // tables already hold is a thrown error naming it, never an overwrite. Nothing here is the builder's base, and nothing is
 // added to its sources.
-import { HAIR_STYLES, registerFabric, registerFinish, SWATCHES } from '../../shared/figure-builder/door.ts'
+import { HAIR_STYLES, registerFabric, registerFinish, SWATCHES } from '../../shared/figures/door.ts'
 import { FABRICS } from './fabrics.ts'
 import { registerGarments } from './garments.ts'
 import { FASHION_HAIR, SILK } from './hair.ts'

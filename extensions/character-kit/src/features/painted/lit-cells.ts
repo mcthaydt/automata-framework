@@ -4,7 +4,7 @@
 // The key is the painted cell's key and the light's. It does not hash the normals or `pitch`, which `lightSprite` also reads (the plan accepted this: both follow from
 // the painted cell's pose and view, which its key names). The oldest cell is dropped first, and a hit does not
 // refresh it: a walk that crosses more than `LIT_CELLS` keys in a cycle misses either way (a cyclic walk thrashes a least-recently-used cache as it does this one).
-import { type Cell, cellOf, type Figure, lightSprite } from '../../shared/figure-builder/door.ts'
+import { type Cell, cellOf, type Figure, lightSprite } from '../../shared/figures/door.ts'
 import type { RoomLight } from './room-light.ts'
 
 /** How many lit cells one figure keeps (about 3 MB at D2): a walk cycle through a few light steps. */

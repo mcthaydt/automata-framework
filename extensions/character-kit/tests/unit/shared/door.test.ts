@@ -1,11 +1,11 @@
 // The figure painter (`@automata/figures`, a package of this repository) is reached through the files of
-// src/shared/figure-builder/ and nowhere else, so a change in the painter breaks those files only: no other source or test
+// src/shared/figures/ and nowhere else, so a change in the painter breaks those files only: no other source or test
 // file of the kit imports it. `door.ts` takes the painter's Pixi-free entries (safe in Node); `door-view.ts` takes the view
 // entry, which loads Pixi.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { flatSteps, lightSprite, SPRITE_STYLE } from '#src/shared/figure-builder/door.ts'
+import { flatSteps, lightSprite, SPRITE_STYLE } from '#src/shared/figures/door.ts'
 
 const ROOT = join(import.meta.dirname, '../../..')
 const walk = (dir: string): string[] =>
@@ -24,18 +24,18 @@ describe('the door', () => {
     const importers = [...walk(join(ROOT, 'src')), ...walk(join(ROOT, 'tests'))]
       .filter((file) => IMPORTS.test(readFileSync(file, 'utf8')))
       .map((file) => relative(ROOT, file))
-    expect(importers).toEqual(['src/shared/figure-builder/door-view.ts', 'src/shared/figure-builder/door.ts'])
+    expect(importers).toEqual(['src/shared/figures/door-view.ts', 'src/shared/figures/door.ts'])
   })
 
   it('takes the painter’s Pixi-free entries and nothing deeper', () => {
-    expect([...new Set(specifiersOf('src/shared/figure-builder/door.ts'))]).toEqual([
+    expect([...new Set(specifiersOf('src/shared/figures/door.ts'))]).toEqual([
       '@automata/figures',
       '@automata/figures/kit',
     ])
   })
 
   it('takes the view entry, the one that loads Pixi, in a file of its own', () => {
-    expect(specifiersOf('src/shared/figure-builder/door-view.ts')).toEqual(['@automata/figures/view'])
+    expect(specifiersOf('src/shared/figures/door-view.ts')).toEqual(['@automata/figures/view'])
   })
 
   it('cannot reach past the three entries', () => {

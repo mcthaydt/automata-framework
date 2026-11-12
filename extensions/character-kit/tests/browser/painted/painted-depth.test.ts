@@ -2,7 +2,7 @@
 // frame: what the GPU draws is `compose(frame, backdrop)` of what the stage placed, pixel for pixel. Headless Firefox here
 // has no WebGL; the GPU runner runs it there.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import {
   buildScene,
   crossings,

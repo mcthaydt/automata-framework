@@ -13,7 +13,7 @@ import {
   registerFabric,
   registerFinish,
   SWATCHES,
-} from '#src/shared/figure-builder/door.ts'
+} from '#src/shared/figures/door.ts'
 
 // Read before anything registers: the builder's own names.
 const BUILDER_SWATCHES = new Set(Object.keys(SWATCHES))

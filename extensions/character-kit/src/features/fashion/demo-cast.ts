@@ -2,7 +2,7 @@
 // (`demo/characters.ts`, `8fb0242`). They wear the base pair's painted-on blocks, to show how far the sliders alone carry a body,
 // from a very beautiful figure to a very ugly one and a spread of ages, heights, builds, skin tones, hair and gaits between. Their
 // swatches and hair styles register through `registerFashion`.
-import type { Garment } from '../../shared/figure-builder/door.ts'
+import type { Garment } from '../../shared/figures/door.ts'
 import { eyes, face, type Model, shared } from './model.ts'
 
 const blocks: Garment[] = [{ top: 'flatGrey', sleeves: 'none' }, { shorts: 'charcoal' }]

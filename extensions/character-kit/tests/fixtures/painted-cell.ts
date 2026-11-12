@@ -7,7 +7,7 @@ import {
   Figure,
   member,
   type V3,
-} from '#src/shared/figure-builder/door.ts'
+} from '#src/shared/figures/door.ts'
 
 /** What the kit paints for `def` at `at` under `pose`: the figure the way `paintedFigure` draws it. */
 export function painted(def: CharacterDef, pose: CameraPose, at: V3, density: 1 | 2 | 4 = 2) {

@@ -2,7 +2,7 @@
 // shells, rows, tails, falls, a bun: no piece of the kit's own, so H3 is not used). Data only. Ported from FigureBuilder's
 // `claude/runway-video` (`demo/runway/library.ts`, `cb4aa9f`), which is `claude/demo-characters` `8fb0242` plus the styles
 // that hang.
-import type { HairFinish, HairStyle } from '../../shared/figure-builder/door.ts'
+import type { HairFinish, HairStyle } from '../../shared/figures/door.ts'
 
 /** A smooth finish: straight hair with a gloss, the key reaching down its form further than a coil's. */
 export const SILK: HairFinish = { tones: [0.6, 0.15, -0.55], matte: false }

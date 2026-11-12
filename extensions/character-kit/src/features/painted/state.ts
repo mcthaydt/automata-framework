@@ -1,7 +1,7 @@
 // What a painted figure is doing, and the check that its names are real. Pure, so it runs in Node: the figure itself needs
 // Pixi and a render, but a typo in a pose or outfit name should fail with words, at the first frame, not draw a standing
 // figure and say nothing.
-import { type CharacterDef, POSES } from '../../shared/figure-builder/door.ts'
+import { type CharacterDef, POSES } from '../../shared/figures/door.ts'
 
 /** What a painted figure is doing this frame. */
 export interface PaintedState {
