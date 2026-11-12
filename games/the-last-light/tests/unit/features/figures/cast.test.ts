@@ -328,6 +328,13 @@ describe('the painted frame shows what they wear', () => {
     expect(lidded).toBeGreaterThanOrEqual(2)
   })
 
+  it('has the base woman’s eyes, not the base man’s lid: her crease, hood and liner are base-f’s own (the Owner, 2026-11-12: “Why does she have the boy eyes?”)', () => {
+    const woman = (BASE[1] as { def: CharacterDef }).def.sliders.face
+    const mine = ADA.sliders.face
+    for (const key of ['crease', 'hood', 'liner', 'eyeSize'] as const)
+      expect(mine?.[key], key).toBe(woman?.[key])
+  })
+
   it('draws Ada a mouth: lips of at least four texels in the middle of her face, below her eyes', () => {
     const { cell, is } = faceAt2(ADA)
     const [w] = cell.size

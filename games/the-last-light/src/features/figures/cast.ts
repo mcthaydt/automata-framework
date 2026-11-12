@@ -25,8 +25,7 @@ export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest
  * cropped above tan ankle boots, her auburn chin-length bob with a fringe that ends over the brow.
  *
  * She is the painter's base woman with only what makes her Ada changed (the Owner, 2026-11-12: the characters look like the painter's
- * own faces at density 2): her skin, her hair, her clothes, and the lids and brows of a bolder face (brow weight .75, a crease, a light hood, liner,
- * fuller lips: the base man's lid, which is what the painter's reference shows reads best, with the base woman's eye size). Her body sliders are the
+ * own faces at density 2): her skin, her hair, her clothes, and a bolder brow (weight .75) and fuller lips; her eyes are the base woman's own (crease, hood, liner). Her body sliders are the
  * base woman's, slimmed a little (less fat and chunk, narrower hips, thinner arms); nothing is pushed by an earlier round. Her bob is the painter's own `bobFringe`: a chin-length dome whose fringe stops a texel over the brow, so her brows and eyes show.
  */
 export const ADA: CharacterDef = {
@@ -66,9 +65,11 @@ export const ADA: CharacterDef = {
       browArch: 0.6,
       browWeight: 0.75, // the base's 0.4
       browHeight: 0.45,
-      crease: 0.6, // the base's 0.4
-      hood: 0.15, // the base's 0.35: the base man's own lid, which reads open (a lower hood closed the eye)
-      liner: 0.5, // the base's 0
+      // The base woman's own eye (crease .4, hood .35, liner 0): the Owner, 2026-11-12, "Why does she have the boy eyes?" about the base man's lid
+      // she had borrowed. Her bolder brow stays; a sleepier eye is opened by `eyeSize`, never by the man's lid.
+      crease: 0.4,
+      hood: 0.35,
+      liner: 0,
     },
   },
   skin: 'skinWarm',
