@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 /**
  * The lit golden's frames: the base pair lit as real character lighting lights it, kept as an md5 of each frame's RGBA
  * and named `<who>/<setup>/<facing>@D<density>`. Each frame is the figure's painted cell and normal map, standing in

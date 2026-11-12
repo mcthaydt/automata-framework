@@ -90,7 +90,7 @@ const PARENT: Record<Joint, Joint | null> = {
   hemL: 'shin.L',
   hemR: 'shin.R',
 }
-const PARENTS: number[] = JOINTS.map((name) => (PARENT[name] ? J[PARENT[name]!] : -1))
+const PARENTS: number[] = JOINTS.map((name) => (PARENT[name] ? J[PARENT[name]] : -1))
 
 /** Proportions: one generator, different numbers (the reference's gene sliders). Lengths in metres. */
 export interface Genes {

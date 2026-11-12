@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 import { BASE } from '../base/base-pair'
 import { fk, J, type Pose, type Side, type Skeleton } from '../body/rig'
 import { type CastMember, type CharacterDef, memberOf, standOf } from '../figure/cast'

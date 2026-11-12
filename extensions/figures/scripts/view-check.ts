@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 /**
  * Checks the Pixi 3D view against the painter (npm run view-check [-- OUT_DIR]).
  *

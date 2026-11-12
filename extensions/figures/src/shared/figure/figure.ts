@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 26 of the builders-fold plan (the strict flags) replaces each with a check
 import { DEFAULT_HEAD } from '../body/genes'
 import { boneGroups, type Decal, GROUP, type Material, type Part } from '../body/parts'
 import { fk, J, type Pose, type Side, type Skeleton, skeleton } from '../body/rig'

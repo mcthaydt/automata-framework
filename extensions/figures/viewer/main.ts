@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 /**
  * The figure viewer: the base pair in a Pixi 3D scene, each the painter's own cell on a quad (src/view.ts). Not part of
  * the base's public surface; `npm run viewer` serves it.

@@ -115,6 +115,6 @@ export function modeGait(gait: Gait, mode: string): Gait {
   if (!m) throw new Error(`no gait mode ${mode}`)
   const out = { ...gait, ...m.set } as Gait
   for (const [key, by] of Object.entries(m.scale ?? {}))
-    (out as unknown as Record<string, number>)[key] = (gait as unknown as Record<string, number>)[key] * by!
+    (out as unknown as Record<string, number>)[key] = (gait as unknown as Record<string, number>)[key] * by
   return out
 }

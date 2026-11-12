@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 24 of the builders-fold plan (the strict flags) replaces each with a check
 import { type Part, reach } from '../body/parts'
 import {
   clonePose,

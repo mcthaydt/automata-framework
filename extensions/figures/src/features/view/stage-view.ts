@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 import { Matrix4, View3D } from '@pixi/3d'
 import { RendererType } from 'pixi.js'
 import type { V3 } from '../../shared/math/math'

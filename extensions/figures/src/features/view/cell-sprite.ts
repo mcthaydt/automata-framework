@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 import { FlatMaterial, type ShaderBit, type ShaderDescriptor, Sprite3D, type View3D } from '@pixi/3d'
 import { BufferImageSource, Texture } from 'pixi.js'
 import type { Cell } from '../../shared/stage/cell'

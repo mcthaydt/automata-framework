@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 24 of the builders-fold plan (the strict flags) replaces each with a check
 import { beforeAll, describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import { Figure } from '#src/shared/figure/figure.ts'
