@@ -8,6 +8,7 @@ import { type BaseMaterial3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial }
 import type { Occlude } from '../../../shared/level/occlude.ts'
 import { ownCopyOf } from '../../../shared/render/views/shared-material.ts'
 import type { CameraRig } from '../angled-camera.ts'
+import type { Vec3 } from '../camera-pose.ts'
 import {
   type OccluderFrame,
   type OccluderPass,
@@ -199,11 +200,24 @@ export function createOccluders(parent: Container3D): OccluderStage {
   }
 }
 
+/** The camera that is drawing when something other than the rig writes it (a cutscene): where it stands and what it looks at. */
+export interface DrawingCamera {
+  readonly eye: Vec3
+  readonly look: Vec3
+}
+
 export interface OccluderHookOptions {
   /** Metres from the player's feet to its head: a positive, finite number. */
   readonly height: number
   /** Default: the player's `prefers-reduced-motion`, read every frame. */
   readonly reducedMotion?: (() => boolean) | undefined
+  /**
+   * The camera that is really drawing, while something other than the rig writes the `Camera3D` (a cutscene's own shot):
+   * the rule then reads its eye, and its look point stands for the player (the subject of the shot), so a wall the shot
+   * looks at from inside the room stays whole. None (or `undefined`) means the rig's pose is what is drawn. Switching
+   * between the two makes the next frame jump instead of fading.
+   */
+  readonly drawing?: (() => DrawingCamera | undefined) | undefined
 }
 
 /**
@@ -222,20 +236,37 @@ export function occluderHooks(
   const isReduced = options.reducedMotion ?? (() => prefersReducedMotion())
   const head = { x: 0, y: 0, z: 0 }
   const frame = { eye: head, look: head, feet: head, head, seconds: 0, reduced: false }
+  const subject = { x: 0, y: 0, z: 0 }
+  let wasDrawing = false
   return {
     apply(result) {
       if (result.render.resync) occluders.reset()
     },
     draw(drawn) {
+      const shot = options.drawing?.()
       const pose = rig.pose()
-      if (pose === undefined) return
-      if (pose.cut) occluders.reset()
-      head.x = pose.player.x
-      head.y = pose.player.y + height
-      head.z = pose.player.z
-      frame.eye = pose.eye
-      frame.look = pose.look
-      frame.feet = pose.player
+      if (shot === undefined && pose === undefined) return
+      // Another camera taking over, or giving back, is a cut: the rule jumps to what it says now.
+      if ((shot !== undefined) !== wasDrawing || (shot === undefined && pose?.cut === true)) occluders.reset()
+      wasDrawing = shot !== undefined
+      if (shot !== undefined) {
+        subject.x = shot.look.x
+        subject.y = 0
+        subject.z = shot.look.z
+        head.x = shot.look.x
+        head.y = shot.look.y
+        head.z = shot.look.z
+        frame.eye = shot.eye
+        frame.look = shot.look
+        frame.feet = subject
+      } else if (pose !== undefined) {
+        head.x = pose.player.x
+        head.y = pose.player.y + height
+        head.z = pose.player.z
+        frame.eye = pose.eye
+        frame.look = pose.look
+        frame.feet = pose.player
+      }
       frame.seconds = drawn.frameMs / 1000
       frame.reduced = isReduced()
       occluders.update(frame)

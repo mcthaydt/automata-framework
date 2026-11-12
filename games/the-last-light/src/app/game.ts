@@ -29,7 +29,7 @@ import { lookProfilesSchema } from './look-profiles.content.ts'
 import { actCard, playControls, playHud } from './play.extension.ts'
 import { createRuntime, navigation } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
-import { sceneOf } from './stage.ts'
+import { cutsceneShot, sceneOf } from './stage.ts'
 import { cameraTurnUnits, moveFromStick } from './touch-controls.ts'
 import { lineOf, SCRIPTS, wordsOf } from './words.ts'
 
@@ -139,6 +139,8 @@ export const game = defineGame({
         views: PLAY.views,
         initial: PLAY.views[0]?.id ?? 'hall',
         follow: InSector.id,
+        // While a cutscene draws its own shot the walls are cut for that shot, not for the play camera's.
+        drawing: cutsceneShot,
         // Ada's feet: where the sectors say she stands, on the floor.
         position: (components) => {
           const at = components[InSector.id]

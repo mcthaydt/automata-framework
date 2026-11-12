@@ -1,4 +1,5 @@
 import { content } from 'virtual:automata/content'
+import type { DrawingCamera } from '@automata/3d'
 import {
   drawLightPatches,
   drawWorld,
@@ -59,6 +60,13 @@ function peekSpot(): { x: number; z: number } | undefined {
   return peek === undefined ? undefined : centreOf(peek.into)
 }
 
+/**
+ * The shot a cutscene is drawing, or none: the renderer's occluder rule follows it in place of the play camera's pose, so a wall a
+ * shot looks at from inside the room is not cut away for a play camera standing outside it.
+ */
+let drawingShot: DrawingCamera | undefined
+export const cutsceneShot = (): DrawingCamera | undefined => drawingShot
+
 export interface StageOptions {
   readonly play: PlayContent
   readonly actors: Actors
@@ -113,9 +121,15 @@ export function sceneOf(options: StageOptions) {
           cam.fov = fovOf(lens)
           cam.position.set(pos[0], pos[1], pos[2])
           cam.lookAt({ x: look[0], y: look[1], z: look[2] })
+          drawingShot = {
+            eye: { x: pos[0], y: pos[1], z: pos[2] },
+            look: { x: look[0], y: look[1], z: look[2] },
+          }
         },
-        // The play camera writes itself again on the next frame.
-        release: () => undefined,
+        // The play camera writes itself again on the next frame, and the occluder rule follows it again.
+        release: () => {
+          drawingShot = undefined
+        },
       },
       pieces: apply,
       actor: (who) => options.actors.get(who),

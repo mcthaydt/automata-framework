@@ -292,4 +292,44 @@ describe('occluderHooks', () => {
     expect(ceiling.visible).toBe(false)
     expect(wall?.visible).toBe(false)
   })
+
+  // A cutscene writes the Camera3D itself, so the rig's pose is not what is drawn: a wall cut for the play camera outside the room
+  // stayed cut while a cutscene looked at it from inside (the opening's close shot showed a void behind Ada).
+  it('follows the camera that is drawing while something else drives it, and the rig again after', () => {
+    const rig = angledCamera({
+      camera: new Camera3D(),
+      views: [cameraView('hall')],
+      initial: 'hall',
+      reducedMotion: () => true,
+    })
+    const occluders = createOccluders(new Container3D())
+    const [wall] = meshesOf(occluders.wall({ a: { x: 0, z: 0 }, b: { x: 4, z: 0 }, height: 2.5, color: 1 }))
+    let drawing:
+      | { eye: { x: number; y: number; z: number }; look: { x: number; y: number; z: number } }
+      | undefined
+    const hooks = occluderHooks(rig, occluders, {
+      height: 1.62,
+      reducedMotion: () => true,
+      drawing: () => drawing,
+    })
+    const frame = { alpha: 1, frameMs: 16, paused: false }
+    // The play camera looks +z from outside the wall at the player 2 m inside: the wall is cut.
+    rig.follow(2, 0, 2)
+    rig.update(1 / 60)
+    hooks.draw?.(frame)
+    expect(wall?.visible).toBe(false)
+    // A cutscene camera stands inside the room and looks at that wall: it faces the eye, so it stands whole.
+    drawing = { eye: { x: 2, y: 1.6, z: 3.5 }, look: { x: 2, y: 1, z: 0.5 } }
+    hooks.draw?.(frame)
+    expect(wall?.visible).toBe(true)
+    expect(wall?.material.alpha).toBe(1)
+    // A cutscene camera outside the wall, looking in at the same subject, cuts it as the play camera does.
+    drawing = { eye: { x: 2, y: 1.6, z: -3.5 }, look: { x: 2, y: 1, z: 1.5 } }
+    hooks.draw?.(frame)
+    expect(wall?.visible).toBe(false)
+    // When the cutscene lets go the rig's pose is the camera again.
+    drawing = undefined
+    hooks.draw?.(frame)
+    expect(wall?.visible).toBe(false)
+  })
 })

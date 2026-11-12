@@ -55,6 +55,7 @@ export {
   wallFacesAway,
 } from '../features/camera/occluders/occluder-rule.ts'
 export {
+  type DrawingCamera,
   type Occluders,
   type PropOptions,
   TRIM_HEIGHT,
