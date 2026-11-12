@@ -26,9 +26,9 @@ for (const file of readdirSync(swatchDir).filter((name) => name.endsWith('.toml'
 // The kit's own swatches the ward gives a photograph (`src/features/room/world-photos.ts`).
 const kitSwatches = JSON.parse(
   readFileSync(new URL('../../../../extensions/world-kit/library/swatches.json', import.meta.url), 'utf8'),
-) as Record<string, object>
+) as Record<string, TexturedSwatch>
 for (const name of Object.keys(WARD_PHOTOS)) {
-  const base = kitSwatches[name] as object
+  const base = kitSwatches[name] as TexturedSwatch
   writeFileSync(
     join(tileDir, `${name}.tile.json`),
     `${JSON.stringify(tileFileOf(name, photoSwatch(base, name), photos))}\n`,

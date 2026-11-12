@@ -43,7 +43,7 @@ export const WARD_PHOTO_KNOBS: Omit<TextureSpec, 'photo' | 'seed'> = {
 }
 
 /** A kit swatch with its ward photograph: the kit's swatch, read through `WARD_PHOTOS[name]`, with its own seed so two materials of one photograph differ. */
-export function photoSwatch(base: object, name: string): TexturedSwatch {
+export function photoSwatch(base: TexturedSwatch, name: string): TexturedSwatch {
   const index = Object.keys(WARD_PHOTOS).indexOf(name)
   const photo = WARD_PHOTOS[name] as string
   return {

@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { readPhotoLibrary, tileFileOf } from '@automata/world-kit/textures'
+import { readPhotoLibrary, type TexturedSwatch, tileFileOf } from '@automata/world-kit/textures'
 import { describe, expect, it } from 'vitest'
 import { LIBRARY, PAINT, WORLD } from '#src/features/room/room.ts'
 import { OWN_TILE_NAMES } from '#src/features/room/tiles.ts'
@@ -30,7 +30,9 @@ describe('the ward’s tiles', () => {
         'utf8',
       )
       const swatch =
-        name in WARD_PHOTOS ? photoSwatch(LIBRARY.swatches[name] as object, name) : LIBRARY.swatches[name]
+        name in WARD_PHOTOS
+          ? photoSwatch(LIBRARY.swatches[name] as TexturedSwatch, name)
+          : LIBRARY.swatches[name]
       const made = tileFileOf(name, swatch as never, photos)
       // The compiled swatch lists its keys in order, the file's own as it was written: the data is what must agree.
       expect(JSON.parse(committed), `${name}: run node tools/tiles/make.ts`).toEqual(
