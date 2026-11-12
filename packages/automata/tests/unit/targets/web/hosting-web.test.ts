@@ -71,19 +71,43 @@ function record<A>(observed: { subscribe(listener: (value: A) => void): () => vo
 }
 
 describe('the web adapter: links', () => {
-  it('opens a new tab and cuts the new tab’s hold on the game', () =>
+  // `noopener` in the features string would make `window.open` answer null whether the tab opened or a popup blocker
+  // refused it, so a block would read as `opened: true`. The call carries no features and the opener is cut by hand.
+  it('opens a new tab with no features string, so a blocked popup can still be told', () =>
     onWebPage(async (hosting, fake) => {
-      // `noopener` would make the browser answer null for a tab that did open, hiding a blocked popup; the hold is cut by hand.
       expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: true })
       expect(fake.opened).toEqual(['https://example.test/'])
-      expect(fake.lastTab?.opener).toBeNull()
+      expect(fake.extra).toEqual([[]])
     }))
 
-  it('a blocked popup is opened: false, an answer', () =>
+  // The cut has to land before control returns to the caller: nothing the tab's page runs can get in between.
+  it('cuts the new tab’s opener before control returns to the caller', () =>
+    onWebPage(async (hosting, fake) => {
+      const pending = hosting.openLink('https://example.test/')
+      expect(fake.lastTab).toBeDefined()
+      expect(fake.lastTab?.opener).toBeNull()
+      expect(unwrap(await pending)).toEqual({ opened: true })
+    }))
+
+  it('answers opened: false, an answer, when a popup blocker refuses the tab', () =>
     onWebPage(async (hosting, fake) => {
       fake.blockPopups()
       expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: false })
+      expect(fake.opened).toEqual(['https://example.test/'])
     }))
+
+  // Only an https: address is opened (stricter than http and https): nothing else reaches window.open.
+  it.each([
+    ['an http link', 'http://example.test/'],
+    ['a javascript: link', 'javascript:alert(1)'],
+    ['a data: link', 'data:text/html,<p>x</p>'],
+    ['a link with a name and password', 'https://name:secret@example.test/'],
+  ])('refuses %s and never calls window.open', (_what, url) =>
+    onWebPage(async (hosting, fake) => {
+      expect(await hosting.openLink(url)).toMatchObject({ ok: false, reason: { code: 'INVALID_PAYLOAD' } })
+      expect(fake.opened).toEqual([])
+    }),
+  )
 
   it('keeps the link even when storage is blocked: a new tab needs none', () =>
     onWebPage(

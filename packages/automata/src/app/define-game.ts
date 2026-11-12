@@ -24,6 +24,7 @@ import type {
   GameAudioStart,
   GameDefinition,
   RuntimeSeams,
+  RuntimeWords,
 } from './boot/game-definition.ts'
 import { CORE_SETTINGS } from './core-settings.ts'
 import { defaultContent } from './default-content.ts'
@@ -54,7 +55,7 @@ export interface GameSaves<D> {
 }
 
 /** A game's words: the runtime's boot and failure copy, and the default screens' words. */
-export type GameCopy = NonNullable<GameDefinition['copy']> & {
+export type GameCopy = RuntimeWords & {
   /** The default screens' words, over their English defaults: a part of `ScreensCopy`, or a function of the locale. */
   readonly screens?: ScreensCopyInput | undefined
 }
@@ -145,8 +146,10 @@ export interface GameSpec<S = never, D = unknown> {
   readonly firstRunLanguage?: boolean
   /**
    * The game flashes: the first run on a device warns before anything plays, once, after the language. `true` shows the
-   * warning with the device's reduced-motion line; an object adds the game's own effect settings as switches (a game
-   * with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+   * warning with the device's reduced-motion line, saying what a game may have ("flashing lights or a shaking screen").
+   * An object says what this game has: `effects` lists its hazards (`'flashing'`, `'strobing'`, `'shaking'`,
+   * `'patterns'`) and the warning names exactly those, in the player's language; `switches` adds the game's own effect
+   * settings (a game with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
    */
   readonly photosensitivity?: PhotosensitivityOption
   /**
@@ -177,9 +180,11 @@ export interface GameSpec<S = never, D = unknown> {
   /**
    * The game's words: the runtime's boot and failure copy, and `screens`, the default screens' words over their
    * English defaults. `screens` may be a function of the locale, run again on each language change, so a
-   * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`.
+   * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`. The whole of `copy` may
+   * instead be a function of the locale, for a game that rewords the runtime's own words (`loading`, `contextLost`,
+   * the failure panels') in each of its languages.
    */
-  readonly copy?: GameCopy
+  readonly copy?: GameCopy | ((locale: string) => GameCopy)
   /** The game's languages: Settings' Language group offers them. Absent, the content's one language. */
   readonly locale?: GameDefinition['locale']
   /** Tests only. */
@@ -316,9 +321,26 @@ export function pixiOptions<S>(
  * Throws `BootDefect` (its cause a `GameSpecError`) for an invalid spec.
  */
 export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S> {
-  // The runtime gets its own copy; `screens` is the default screens'.
-  const { screens: _screens, ...rest } = spec.copy ?? {}
-  const runtimeCopy = spec.copy === undefined ? undefined : rest
+  // The runtime gets its own copy; `screens` is the default screens'. A function of the locale splits the same way.
+  const copyIn = (locale: string): GameCopy | undefined =>
+    typeof spec.copy === 'function' ? spec.copy(locale) : spec.copy
+  const withoutScreens = (copy: GameCopy | undefined): RuntimeWords => {
+    const { screens: _screens, ...rest } = copy ?? {}
+    return rest
+  }
+  const runtimeCopy: GameDefinition['copy'] =
+    spec.copy === undefined
+      ? undefined
+      : typeof spec.copy === 'function'
+        ? (locale) => withoutScreens(copyIn(locale))
+        : withoutScreens(spec.copy)
+  const screensCopy: ScreensCopyInput | undefined =
+    typeof spec.copy === 'function'
+      ? (locale) => {
+          const screens = copyIn(locale)?.screens
+          return (typeof screens === 'function' ? screens(locale) : screens) ?? {}
+        }
+      : spec.copy?.screens
   const plugins = simPluginsOf(spec)
   const problems = problemsOf(spec, plugins)
   if (problems.length > 0) throw new BootDefect({ cause: new GameSpecError(problems) })
@@ -367,7 +389,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
         ...(spec.saves === undefined ? {} : { saves: spec.saves as GameSaves<unknown> }),
         setQuality: (tier) => stage?.setQuality(tier),
         ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
-        ...(spec.copy?.screens === undefined ? {} : { copy: spec.copy.screens }),
+        ...(screensCopy === undefined ? {} : { copy: screensCopy }),
       }),
     renderer,
     // Without settings of its own, the game keeps the player's bindings and quality in the core settings.
@@ -379,7 +401,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
       ...firstRunSteps({
         firstRunLanguage: spec.firstRunLanguage,
         photosensitivity: spec.photosensitivity,
-        copy: spec.copy?.screens,
+        copy: screensCopy,
       }),
       ...(spec.opening ?? []),
     ],

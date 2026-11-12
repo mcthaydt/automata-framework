@@ -6,7 +6,14 @@
 // The room owns the round's sim. Entering from the menu or the end screen starts a round on a fresh sim;
 // entering from paused resumes the same one. `AppLoop.run` resets the renderer, so a resume restores the
 // sim's own snapshot first, which makes the next step a full resync.
-import type { Disposables, InputMap, ScreenContext, ScreenDef } from '@automata/framework'
+import {
+  bindWords,
+  type Disposables,
+  formatNumber,
+  type InputMap,
+  type ScreenContext,
+  type ScreenDef,
+} from '@automata/framework'
 import { createSim, type PluginDef, type Sim } from '@automata/sim'
 import { TICK_HZ } from '../../shared/tuning.ts'
 import { type EmberwickWords, emberwickWords } from './words.ts'
@@ -27,9 +34,8 @@ export interface ScreensGame {
   readonly input: InputMap
 }
 
-// The panels hold no text of their own. A `data-word` element gets its words from the catalog for the language in play
-// (`textContent`, never markup), a `data-word-label` element its `aria-label`; `show` fills them in on entering and again,
-// in place, on each language change, so focus and the buttons stay where they are.
+// The panels hold no text of their own: `bindWords` fills each `data-word` and `data-word-label` element from the catalog
+// for the language in play, on entering and again in place on each change, so focus and the buttons stay where they are.
 const PANELS = {
   splash: `<section class="panel" data-word-label="splashLabel">
       <p class="mark">AutomataFramework</p>
@@ -66,17 +72,6 @@ const PANELS = {
     </section>`,
 } as const
 
-/** The words a panel's elements name: the strings of `EmberwickWords`, not its `time` function. */
-type WordField = Exclude<keyof EmberwickWords, 'time'>
-
-/** Puts `words` into every element of `layer` that names one. */
-function applyWords(layer: HTMLElement, words: EmberwickWords): void {
-  for (const element of layer.querySelectorAll<HTMLElement>('[data-word]'))
-    element.textContent = words[element.dataset.word as WordField]
-  for (const element of layer.querySelectorAll<HTMLElement>('[data-word-label]'))
-    element.setAttribute('aria-label', words[element.dataset.wordLabel as WordField])
-}
-
 type ScreenId = keyof typeof PANELS
 
 /** The touch buttons' holds, in the order `keys()` made its buttons: left, right, jump. */
@@ -106,13 +101,7 @@ function show(
   onWords: (words: EmberwickWords, locale: string) => void = () => {},
 ): Window {
   layer.innerHTML = PANELS[id]
-  screen.add(
-    services.locale.subscribe((locale) => {
-      const words = emberwickWords(locale)
-      applyWords(layer, words)
-      onWords(words, locale)
-    }),
-  )
+  screen.add(bindWords(layer, services.locale, emberwickWords, onWords))
   const root = layer.closest('[data-layer="screens"]')?.parentElement
   if (root instanceof HTMLElement) root.dataset.screen = id
   layer.addEventListener('click', (event) => {
@@ -259,8 +248,9 @@ export function emberwickScreens(game: ScreensGame): ScreenDef[] {
         const time = layer.querySelector('[data-slot="time"]')
         if (time === null) return
         // Written for the language: a decimal comma where it has one.
-        const digits = { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-        time.textContent = words.time(new Intl.NumberFormat(locale, digits).format(seconds))
+        time.textContent = words.time(
+          formatNumber(locale, seconds, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        )
       })
     },
   }

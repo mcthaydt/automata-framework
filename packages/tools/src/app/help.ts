@@ -74,5 +74,7 @@ key to translate that one line.
   --catalog <folder>  Work on one folder of words that is not a game's, into the six default languages.
   --source <language> The language the words are written in (default: en).
 
-It needs ANTHROPIC_API_KEY set on this computer. The key is used to reach the translator and nothing else.
+It needs a key set on this computer: AUTOMATA_ANTHROPIC_KEY, or else ANTHROPIC_API_KEY. The key is used to reach the translator
+and nothing else, and is never printed. If the translator turns the key down, is busy or is down, the run stops at the first
+answer and keeps what it translated.
 `

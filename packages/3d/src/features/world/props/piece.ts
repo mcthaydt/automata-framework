@@ -21,6 +21,11 @@ export interface PropPiece {
   /** Sways in the wind: how far (metres) its top moves, and its phase (trees, grass, a curtain). */
   readonly sway?: number
   readonly phase?: number
+  /**
+   * Hung on a wall (a frame, a pinboard, a radiator, a vent): the world builder links the piece to the wall it is against,
+   * so it hides and shows with that wall. A piece that only stands near one (a chair) leaves it out.
+   */
+  readonly mount?: 'wall'
 }
 
 /** A light a prop carries (a lamp's bulb), in the prop's own space: a lamp of a kind from the look's lamp kit. */
@@ -42,7 +47,7 @@ export function part(
   mesh: MeshData,
   swatch: string,
   label: string,
-  extra: Pick<PropPiece, 'noCast' | 'sway' | 'phase'> = {},
+  extra: Pick<PropPiece, 'noCast' | 'sway' | 'phase' | 'mount'> = {},
 ): PropPiece {
   return { mesh, swatch, label, ...extra }
 }

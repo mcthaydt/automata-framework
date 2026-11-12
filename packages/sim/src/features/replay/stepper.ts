@@ -1,11 +1,11 @@
 // Re-simulates a Replay through the one simulation there is: a fresh sim restored from the
 // replay's start snapshot, fed the recorded commands tick by tick, its hash compared at every check.
-import type { PluginDef } from '../../shared/define/definitions'
-import { hex64 } from '../../shared/hash/xxhash64'
-import { type Command, createSim, type Sim, type StepResult } from '../../shared/world/sim'
-import { decodeSnapshotHeader } from '../../shared/world/snapshot'
-import { ReplayFormatError } from './errors'
-import type { Replay, ReplayCommand } from './replay'
+import type { PluginDef } from '../../shared/define/definitions.ts'
+import { hex64 } from '../../shared/hash/xxhash64.ts'
+import { type Command, createSim, type Sim, type StepResult } from '../../shared/world/sim.ts'
+import { decodeSnapshotHeader } from '../../shared/world/snapshot.ts'
+import { ReplayFormatError } from './errors.ts'
+import type { Replay, ReplayCommand } from './replay.ts'
 
 /**
  * What a stepper needs to rebuild the recorded sim: the same `plugins` and `content` the recording sim had.

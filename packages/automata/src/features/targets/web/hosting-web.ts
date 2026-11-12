@@ -353,9 +353,12 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
         return refuse('DENIED', false, 'display.fullscreen', cause)
       }
     },
-    // A new tab, never the page's own location. Not `noopener`: that makes `open` answer null even when the tab opened,
-    // and a blocked popup could not be told from an opened one. The new tab's `opener` is cut by hand instead, so it
-    // cannot reach back into the game.
+    // A new tab, never the page's own location. `noopener` is NOT in the features string: it makes `window.open` answer
+    // null whether the tab opened or a popup blocker refused it, so a block would read as `opened: true` and the game
+    // would be told a link opened when it did not. Without it a block answers null and is `opened: false`. The new
+    // tab's `opener` is cut by hand, in the same synchronous turn as the call (nothing the tab runs can get in between),
+    // which closes the same hole: the tab cannot reach back into the game. The browser still sends the game's address
+    // as the referrer (see `Hosting.openLink`).
     openLink: async (url) =>
       whileOpen('links.open', () => {
         if (!isOpenableLink(url)) return refuse('INVALID_PAYLOAD', false, 'links.open')

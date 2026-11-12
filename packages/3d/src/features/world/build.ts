@@ -22,6 +22,7 @@ import { type MeshData, merge } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
 import { decorPieces, doorPieces } from './decor.ts'
 import { box } from './mesh.ts'
+import { wallOfMounted } from './mounting.ts'
 import { placeProps, type WorldLamp } from './place-props.ts'
 import { onWall, planeMesh, wallQuad } from './plane-mesh.ts'
 import { viewRoomProblems } from './room-draw.ts'
@@ -71,6 +72,11 @@ export interface WorldPiece {
   readonly line?: { readonly a: V2; readonly b: V2 }
   /** What the occluder rule does with a wall face (`/2`'s `occlude`); a wall that says nothing is cut. */
   readonly occlude?: Occlude
+  /**
+   * The wall piece a prop's part hangs on (a frame, a pinboard, a radiator, a vent): it carries that wall's `occlude` and
+   * the occluder rule takes it out of the way with the wall, so the back of a thin box never draws as a flat slab.
+   */
+  readonly onWall?: string
   /**
    * The solid parts of a wall face, each a rectangle on the plan line between two heights (the face with its doorways and
    * windows cut out), so the light's occluders let light through an opening. A wall with none has one over its whole face.
@@ -191,7 +197,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     tex?: TexPlace,
     extra: Pick<
       WorldPiece,
-      'door' | 'line' | 'occlude' | 'faces' | 'sway' | 'phase' | 'noCast' | 'prop'
+      'door' | 'line' | 'occlude' | 'faces' | 'sway' | 'phase' | 'noCast' | 'prop' | 'onWall'
     > = {},
   ): void => {
     const sector = level.sectors[si] as AfSectorEntry2
@@ -516,13 +522,18 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
 
   // --- props and lamps ---
   const placed = placeProps(level, library, tell)
-  for (const piece of placed.pieces)
+  for (const piece of placed.pieces) {
+    const room = (level.sectors[piece.sector] as AfSectorEntry2).id
+    const wall = piece.mount === undefined ? undefined : wallOfMounted(piece.mesh, room, pieces)
     add(piece.sector, `prop:${piece.role}`, 'prop', piece.mesh, piece.surface, piece.tex, {
+      ...(wall === undefined ? {} : { onWall: wall.id }),
+      ...(wall?.occlude === undefined ? {} : { occlude: wall.occlude }),
       ...(piece.sway === undefined ? {} : { sway: piece.sway }),
       ...(piece.phase === undefined ? {} : { phase: piece.phase }),
       ...(piece.noCast === true ? { noCast: true } : {}),
       ...(piece.prop === undefined ? {} : { prop: piece.prop }),
     })
+  }
   // A camera view that names a room the level lacks: told here, so `automata check` says it and the rest still draws.
   problems.push(...viewRoomProblems(level))
   return { pieces, lamps: placed.lamps, problems }

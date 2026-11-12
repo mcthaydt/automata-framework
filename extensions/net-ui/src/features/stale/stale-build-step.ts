@@ -10,7 +10,11 @@ export type { StaleCopy } from '../../shared/words/stale-copy'
 export interface StaleBuildOptions {
   /** The game's own build facts: what it joins with (`PROTOCOL_VERSION`, and the schema and content hashes). */
   readonly facts: BuildFacts
-  /** The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know, passes. */
+  /**
+   * The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know,
+   * lets the title through and is logged to the console as a check that could not run. (A server on another origin
+   * must answer with CORS headers, or the browser refuses the answer to the page; `@automata/net-server` does.)
+   */
   readonly fetchFacts: () => Promise<unknown>
   /** The longest the title waits for the answer, in milliseconds, on the runtime's clock. Default 1500. */
   readonly waitMs?: number
@@ -23,10 +27,11 @@ export interface StaleBuildOptions {
 const DEFAULT_WAIT_MS = 1500
 
 /**
- * An opening step that asks the server for its build facts before an online game's title. Current, unreadable or slower
- * than `waitMs` (a later answer is dropped): it resolves and the title follows. Stale: it shows the error with Reload and
- * stays, so the title of an out-of-date tab is never reached. The join check stays the authority; this only says so
- * before the player has tried to join.
+ * An opening step that asks the server for its build facts before an online game's title. Current, or slower than
+ * `waitMs` (a later answer is dropped): it resolves and the title follows. Unreadable: the same, with a console line
+ * saying the check could not run, so a broken probe is seen by the maker rather than read as a pass. Stale: it shows the
+ * error with Reload and stays, so the title of an out-of-date tab is never reached. The join check stays the authority;
+ * this only says so before the player has tried to join.
  */
 export function staleBuildStep(options: StaleBuildOptions): OpeningStep {
   const waitMs = options.waitMs ?? DEFAULT_WAIT_MS
@@ -50,7 +55,11 @@ export function staleBuildStep(options: StaleBuildOptions): OpeningStep {
       signal.addEventListener('abort', finish, { once: true })
       void checkServerVersion(options.fetchFacts, options.facts).then((verdict) => {
         // A verdict that comes after the step ended is dropped: the join check refuses a stale tab anyway.
-        if (finished || verdict === 'current') return finish()
+        if (verdict === 'unchecked' && !finished)
+          console.warn(
+            'Could not check whether this tab is up to date: the server answered nothing readable on /version. The join still checks it.',
+          )
+        if (finished || verdict !== 'stale') return finish()
         clock.clearTimeout(timer)
         const words =
           typeof options.copy === 'function'

@@ -23,6 +23,7 @@ import {
   tubeMesh,
 } from '../../shared/lettering/lettering.ts'
 import { lifted } from '../../shared/piece-helpers.ts'
+import { wallMounted } from './wall-mounted.ts'
 
 type Point = readonly [number, number]
 
@@ -180,4 +181,9 @@ const streetPlate: Generator = (p) => {
   return { pieces }
 }
 
-export const SIGNS: Readonly<Record<string, Generator>> = { neon, signboard, neonText, streetPlate }
+export const SIGNS: Readonly<Record<string, Generator>> = {
+  neon,
+  signboard: wallMounted(signboard),
+  neonText,
+  streetPlate,
+}

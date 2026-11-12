@@ -1,9 +1,9 @@
 // The bounce fixture: integer-math balls in a box, with RNG spawns, a resource and a command.
 import { definePlugin, type PluginDef } from '@automata/sim'
-import { Kick } from './bounce.command'
-import { Ball } from './bounce.component'
-import { BounceStats } from './bounce.resource'
-import { BounceKick, BounceMove, BounceSpawn } from './bounce.system'
+import { Kick } from './bounce.command.ts'
+import { Ball } from './bounce.component.ts'
+import { BounceStats } from './bounce.resource.ts'
+import { BounceKick, BounceMove, BounceSpawn } from './bounce.system.ts'
 
 export const bouncePlugin: PluginDef = definePlugin({
   name: 'bounce',

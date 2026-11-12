@@ -112,3 +112,63 @@ describe('LetterboxFrame', () => {
     expect(frame.root.destroyed).toBe(true)
   })
 })
+
+describe('LetterboxFrame with whole-pixel scale', () => {
+  const whole = (size = LOGICAL) =>
+    new LetterboxFrame({ logicalWidth: size.width, logicalHeight: size.height, scale: 'whole' })
+
+  it('keeps the fractional fit by default and with scale "fit", frame for frame', () => {
+    const plain = new LetterboxFrame({ logicalWidth: LOGICAL.width, logicalHeight: LOGICAL.height })
+    const fit = new LetterboxFrame({
+      logicalWidth: LOGICAL.width,
+      logicalHeight: LOGICAL.height,
+      scale: 'fit',
+    })
+    for (const view of [DESKTOP, PORTRAIT, LANDSCAPE_WIDE, { width: 1000, height: 700 }])
+      expect(fit.layout(view.width, view.height, 2)).toEqual(plain.layout(view.width, view.height))
+  })
+
+  it('draws a 320 x 180 field at a whole number of pixels a pixel, centred', () => {
+    const frame = whole({ width: 320, height: 180 })
+    const geo = frame.layout(1000, 700)
+    expect(geo.scale).toBe(3)
+    expect(geo.width).toBe(960)
+    expect(geo.height).toBe(540)
+    expect(geo.x).toBe(20)
+    expect(geo.y).toBe(80)
+  })
+
+  it('counts device pixels: at a ratio of 2 a 1000 px view is 2000 device pixels, 6 a pixel, which is 3 CSS px', () => {
+    expect(whole({ width: 320, height: 180 }).layout(1000, 700, 2).scale).toBe(3)
+  })
+
+  it('rounds down to a whole device pixel a pixel at a ratio of 3: 3300 / 320 is 10.3, so 10 device px, 10/3 CSS px', () => {
+    expect(whole({ width: 320, height: 180 }).layout(1100, 700, 3).scale).toBeCloseTo(10 / 3, 9)
+  })
+
+  it('puts every edge on a whole device pixel', () => {
+    const geo = whole({ width: 320, height: 180 }).layout(1001, 701, 1.5)
+    for (const v of [geo.x, geo.y, geo.width, geo.height])
+      expect(Number.isInteger(Math.round(v * 1.5 * 1e6) / 1e6)).toBe(true)
+    expect(Number.isInteger(Math.round(geo.scale * 1.5 * 1e6) / 1e6)).toBe(true)
+  })
+
+  it('clips the field to its own rectangle, not the whole width', () => {
+    const frame = whole({ width: 320, height: 180 })
+    const geo = frame.layout(1000, 700)
+    const bounds = frame.mask.getLocalBounds()
+    expect(bounds.x).toBe(geo.x)
+    expect(bounds.width).toBe(geo.width)
+  })
+
+  it('falls back to the fit when the field is bigger than the view, so it never has a scale of 0', () => {
+    const geo = whole().layout(480, 270)
+    expect(geo.scale).toBeCloseTo(0.5)
+    expect(geo.width).toBeCloseTo(480)
+  })
+
+  it('does not go NaN on a view with no area', () => {
+    const geo = whole().layout(0, 0)
+    expect(geo.scale).toBe(1)
+  })
+})

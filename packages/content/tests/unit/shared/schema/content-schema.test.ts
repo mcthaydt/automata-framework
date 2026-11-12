@@ -7,6 +7,7 @@ import {
   defineContentSchema,
   localized,
   localizedTexts,
+  verbatim,
 } from '#src/shared/schema/content-schema.ts'
 import { checkReferences, resolveMarkers } from '#src/shared/schema/references.ts'
 
@@ -54,6 +55,30 @@ describe('the sim option', () => {
   it('refuses a sim option that is not a boolean', () => {
     const bad = defineContentSchema('x', z.object({}), { folder: 'xs' }, { sim: 'yes' as never })
     expect(configProblems([bad])).toEqual(['kind "x": sim must be true or false'])
+  })
+})
+
+describe('verbatim', () => {
+  const crew = defineContentSchema(
+    'crew',
+    z.strictObject({ title: localized(), names: z.array(z.strictObject({ name: verbatim() })) }),
+    { folder: 'crew' },
+  )
+
+  it('is found with its path, leaves the plain string behind, and is not a message', () => {
+    const resolved = resolveMarkers(
+      crew.schema.parse({ title: 'Band', names: [{ name: '山田' }, { name: 'Muñoz' }] }),
+    )
+    expect(resolved.value).toEqual({ title: 'Band', names: [{ name: '山田' }, { name: 'Muñoz' }] })
+    expect(resolved.verbatim).toEqual([
+      { path: ['names', 0, 'name'], text: '山田' },
+      { path: ['names', 1, 'name'], text: 'Muñoz' },
+    ])
+    expect(resolved.texts).toEqual([{ path: ['title'], text: 'Band' }])
+  })
+
+  it('refuses an empty string, as localized() does', () => {
+    expect(() => crew.schema.parse({ title: 'Band', names: [{ name: '' }] })).toThrow()
   })
 })
 

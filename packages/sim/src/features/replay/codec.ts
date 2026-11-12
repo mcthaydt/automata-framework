@@ -10,10 +10,16 @@
 //              | per snapshot: delta varint (as checks) | length u32 | bytes
 // Payloads are canonical JSON, so the same run encodes to the same bytes in every engine.
 import { z } from 'zod'
-import { canonicalJson, decodeUtf8Strict, utf8 } from '../../shared/hash/canonical'
-import { ReplayFormatError } from './errors'
-import { REPLAY_FORMAT, REPLAY_MAX_TICKS, type Replay, type ReplayCommand, type ReplayHeader } from './replay'
-import { readVarint, writeVarint } from './varint'
+import { canonicalJson, decodeUtf8Strict, utf8 } from '../../shared/hash/canonical.ts'
+import { ReplayFormatError } from './errors.ts'
+import {
+  REPLAY_FORMAT,
+  REPLAY_MAX_TICKS,
+  type Replay,
+  type ReplayCommand,
+  type ReplayHeader,
+} from './replay.ts'
+import { readVarint, writeVarint } from './varint.ts'
 
 const MAGIC = [0x41, 0x46, 0x52, 0x50] // "AFRP"
 const HASH_RE = /^[0-9a-f]{16}$/

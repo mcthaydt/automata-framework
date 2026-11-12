@@ -3,11 +3,11 @@
 // too, so a game's own generator gets exactly what they get. Generators are pure: data in, files and
 // diagnostics out. Writing is the compiler's job.
 
-import type { SimPartition } from '../compile/sim-partition'
-import type { Diagnostic } from '../diagnostics/diagnostic'
-import type { MessageCatalog } from '../locale/messages'
-import type { ContentSchemaDef } from '../schema/content-schema'
-import type { TuningMeta } from '../tuning/check-tuning'
+import type { SimPartition } from '../compile/sim-partition.ts'
+import type { Diagnostic } from '../diagnostics/diagnostic.ts'
+import type { MessageCatalog } from '../locale/messages.ts'
+import type { ContentSchemaDef } from '../schema/content-schema.ts'
+import type { TuningMeta } from '../tuning/check-tuning.ts'
 
 /** The compiled content as it is written to `content.json` and hashed. */
 export type ContentData = Readonly<Record<string, unknown>>

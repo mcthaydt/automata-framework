@@ -17,9 +17,9 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect } from 'effect'
-import { ContentWriteFailed } from '../compile/errors'
-import { type MessageCatalog, renderMessages } from './messages'
-import { syncFolder } from './sync-folder'
+import { ContentWriteFailed } from '../compile/errors.ts'
+import { type MessageCatalog, renderMessages } from './messages.ts'
+import { syncFolder } from './sync-folder.ts'
 
 /** Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build. */
 export interface ParaglideOptions {

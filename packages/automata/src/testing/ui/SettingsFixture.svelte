@@ -1,11 +1,13 @@
 <!--
   The core Settings screen for the layout contracts, in two tabs: `settings` shows
   the Settings tab (Language, Audio, Vibration, Display, Touch controls, in the order a player expects); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
-  shows its first row waiting for a press; `settings-short` the Settings tab with Display alone, for the sheet's height. Words are English stand-ins of a typical length, said in the `locale` the contract runs in.
+  shows its first row waiting for a press; `settings-short` the Settings tab with Display alone, for the sheet's height;
+  `settings-desktop` the Settings tab as a desktop shows it, without Touch controls (which only a coarse pointer gets;
+  not in `SETTINGS_SHOWS`, the sweep, which keeps the longest list). Words are English stand-ins of a typical length, said in the `locale` the contract runs in.
 -->
 <script lang="ts" module>
 export const SETTINGS_SHOWS = ['settings', 'settings-short', 'controls', 'controls-capturing'] as const
-export type SettingsShow = (typeof SETTINGS_SHOWS)[number]
+export type SettingsShow = (typeof SETTINGS_SHOWS)[number] | 'settings-desktop'
 </script>
 
 <script lang="ts">
@@ -158,7 +160,7 @@ const ROWS: ControlsRow[] = [
         { snippet: audio },
         { snippet: vibration },
         { snippet: display },
-        { snippet: touch },
+        ...(show === 'settings-desktop' ? [] : [{ snippet: touch }]),
       ],
     },
     { id: 'controls', label: t('Controls'), sections: [{ snippet: controls }] },

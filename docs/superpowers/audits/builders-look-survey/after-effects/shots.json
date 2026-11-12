@@ -1,0 +1,362 @@
+[
+  {
+    "sheet": "base-interior-diorama.png",
+    "panel": "EnvironmentBuilder's CPU frame",
+    "scene": "base-interior",
+    "view": "diorama",
+    "brightness": 50.8,
+    "colours": 53,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-diorama.png",
+    "panel": "AF main, baked room light",
+    "scene": "base-interior",
+    "view": "diorama",
+    "brightness": 44.9,
+    "colours": 53,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-diorama.png",
+    "panel": "AF main, material light only",
+    "scene": "base-interior",
+    "view": "diorama",
+    "brightness": 43.9,
+    "colours": 57,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-fp.png",
+    "panel": "EnvironmentBuilder's CPU frame",
+    "scene": "base-interior",
+    "view": "fp",
+    "brightness": 47.8,
+    "colours": 47,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-fp.png",
+    "panel": "AF main, baked room light",
+    "scene": "base-interior",
+    "view": "fp",
+    "brightness": 50.4,
+    "colours": 51,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-fp.png",
+    "panel": "AF main, material light only",
+    "scene": "base-interior",
+    "view": "fp",
+    "brightness": 52.8,
+    "colours": 49,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-gameplay.png",
+    "panel": "AF main, baked room light (50 mm, 30°, 16 m)",
+    "scene": "base-interior",
+    "view": "gameplay",
+    "brightness": 47,
+    "colours": 43,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-gameplay.png",
+    "panel": "AF main, material light only (50 mm, 30°, 16 m)",
+    "scene": "base-interior",
+    "view": "gameplay",
+    "brightness": 49.2,
+    "colours": 37,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-zone.png",
+    "panel": "AF main, baked room light (the room's view)",
+    "scene": "base-interior",
+    "view": "zone",
+    "brightness": 49.4,
+    "colours": 54,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-zone.png",
+    "panel": "AF main, material light only (the room's view)",
+    "scene": "base-interior",
+    "view": "zone",
+    "brightness": 50.7,
+    "colours": 56,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-diorama.png",
+    "panel": "EnvironmentBuilder's CPU frame",
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "brightness": 50.7,
+    "colours": 72,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-diorama.png",
+    "panel": "AF main, baked room light",
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "brightness": 44.1,
+    "colours": 68,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-diorama.png",
+    "panel": "AF main, material light only",
+    "scene": "base-interior-dressed",
+    "view": "diorama",
+    "brightness": 44.7,
+    "colours": 63,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-fp.png",
+    "panel": "EnvironmentBuilder's CPU frame",
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "brightness": 48.2,
+    "colours": 63,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-fp.png",
+    "panel": "AF main, baked room light",
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "brightness": 52.6,
+    "colours": 64,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-fp.png",
+    "panel": "AF main, material light only",
+    "scene": "base-interior-dressed",
+    "view": "fp",
+    "brightness": 50.3,
+    "colours": 57,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-gameplay.png",
+    "panel": "AF main, baked room light (50 mm, 30°, 16 m)",
+    "scene": "base-interior-dressed",
+    "view": "gameplay",
+    "brightness": 48.1,
+    "colours": 54,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-gameplay.png",
+    "panel": "AF main, material light only (50 mm, 30°, 16 m)",
+    "scene": "base-interior-dressed",
+    "view": "gameplay",
+    "brightness": 50.2,
+    "colours": 49,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-zone.png",
+    "panel": "AF main, baked room light (the room's view)",
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "brightness": 51.3,
+    "colours": 68,
+    "errors": []
+  },
+  {
+    "sheet": "base-interior-dressed-zone.png",
+    "panel": "AF main, material light only (the room's view)",
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "brightness": 53.8,
+    "colours": 66,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-diorama.png",
+    "panel": "EnvironmentBuilder's CPU frame",
+    "scene": "base-exterior",
+    "view": "diorama",
+    "brightness": 123.2,
+    "colours": 121,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-diorama.png",
+    "panel": "AF main, baked room light",
+    "scene": "base-exterior",
+    "view": "diorama",
+    "brightness": 105.7,
+    "colours": 89,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-diorama.png",
+    "panel": "AF main, material light only",
+    "scene": "base-exterior",
+    "view": "diorama",
+    "brightness": 39.7,
+    "colours": 51,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-fp.png",
+    "panel": "EnvironmentBuilder's CPU frame",
+    "scene": "base-exterior",
+    "view": "fp",
+    "brightness": 129.3,
+    "colours": 93,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-fp.png",
+    "panel": "AF main, baked room light",
+    "scene": "base-exterior",
+    "view": "fp",
+    "brightness": 121.7,
+    "colours": 100,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-fp.png",
+    "panel": "AF main, material light only",
+    "scene": "base-exterior",
+    "view": "fp",
+    "brightness": 97.2,
+    "colours": 82,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-gameplay.png",
+    "panel": "AF main, baked room light (50 mm, 30°, 16 m)",
+    "scene": "base-exterior",
+    "view": "gameplay",
+    "brightness": 100.9,
+    "colours": 89,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-gameplay.png",
+    "panel": "AF main, material light only (50 mm, 30°, 16 m)",
+    "scene": "base-exterior",
+    "view": "gameplay",
+    "brightness": 44.2,
+    "colours": 55,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-zone.png",
+    "panel": "AF main, baked room light (the room's view)",
+    "scene": "base-exterior",
+    "view": "zone",
+    "brightness": 114.3,
+    "colours": 78,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-zone.png",
+    "panel": "AF main, material light only (the room's view)",
+    "scene": "base-exterior",
+    "view": "zone",
+    "brightness": 51.2,
+    "colours": 49,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-diorama.png",
+    "panel": "EnvironmentBuilder's CPU frame",
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "brightness": 121.5,
+    "colours": 141,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-diorama.png",
+    "panel": "AF main, baked room light",
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "brightness": 104.7,
+    "colours": 104,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-diorama.png",
+    "panel": "AF main, material light only",
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "brightness": 41.1,
+    "colours": 63,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-fp.png",
+    "panel": "EnvironmentBuilder's CPU frame",
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "brightness": 128.6,
+    "colours": 96,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-fp.png",
+    "panel": "AF main, baked room light",
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "brightness": 121.1,
+    "colours": 106,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-fp.png",
+    "panel": "AF main, material light only",
+    "scene": "base-exterior-dressed",
+    "view": "fp",
+    "brightness": 97.2,
+    "colours": 87,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-gameplay.png",
+    "panel": "AF main, baked room light (50 mm, 30°, 16 m)",
+    "scene": "base-exterior-dressed",
+    "view": "gameplay",
+    "brightness": 99.4,
+    "colours": 107,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-gameplay.png",
+    "panel": "AF main, material light only (50 mm, 30°, 16 m)",
+    "scene": "base-exterior-dressed",
+    "view": "gameplay",
+    "brightness": 44.4,
+    "colours": 70,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-zone.png",
+    "panel": "AF main, baked room light (the room's view)",
+    "scene": "base-exterior-dressed",
+    "view": "zone",
+    "brightness": 112.4,
+    "colours": 98,
+    "errors": []
+  },
+  {
+    "sheet": "base-exterior-dressed-zone.png",
+    "panel": "AF main, material light only (the room's view)",
+    "scene": "base-exterior-dressed",
+    "view": "zone",
+    "brightness": 51.5,
+    "colours": 68,
+    "errors": []
+  }
+]

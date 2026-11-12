@@ -40,11 +40,15 @@ export interface PackedAtlas {
 
 /** A frame that cannot fit a page even alone. */
 export class AtlasFrameTooLarge extends Error {
-  constructor(readonly frame: FrameSize) {
+  readonly frame: FrameSize
+  // An explicit field, not a parameter property: plain Node's type stripping cannot erase a parameter property, and the
+  // atlas build loads under plain Node (`automata check`).
+  constructor(frame: FrameSize) {
     super(
       `atlas frame '${frame.name}' (${frame.width} × ${frame.height}) does not fit a ${ATLAS_PAGE_MAX} page with its padding and extrusion`,
     )
     this.name = 'AtlasFrameTooLarge'
+    this.frame = frame
   }
 }
 

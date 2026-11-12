@@ -44,10 +44,11 @@ import type { RuntimeServices } from '../flow/screen.js'
 import { createVeil } from '../flow/veil.js'
 import { runOpening } from '../opening/opening.js'
 import { createSeenFlags } from '../opening/seen-flags.js'
-import { displayCopyFor, runtimeCopyFor } from '../screens/screens-catalog.ts'
+import { displayCopyFor } from '../screens/screens-catalog.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
-import { gameLocaleDef, runtimeCopyForGame } from './runtime-copy.ts'
+import { gameBrowserLanguages, gameLocaleDef, runtimeCopyIn } from './runtime-copy.ts'
+import { createRuntimeLanguage, type RuntimeLanguage, wordsIn } from './runtime-language.ts'
 import type { Teardown } from './teardown.ts'
 
 /**
@@ -86,6 +87,8 @@ export interface BootProgramOptions {
   readonly onHosting?: (hosting: Hosting) => void
   readonly onLayers?: (layers: PageLayers) => void
   readonly onLoader?: (loader: LoaderControls) => void
+  /** Hears the language the runtime's own words are in, so a failure panel shown after the boot gave up speaks it. */
+  readonly onLanguage?: (language: RuntimeLanguage) => void
   /** Hears the flow once it exists, so the runtime's handle can say which screen shows. */
   readonly onFlow?: (flow: Flow) => void
   /** The screen the flow starts on instead of its entry (`StartOptions.at`). */
@@ -171,8 +174,14 @@ async function boot<S>(
   const lock = lockOverscroll(doc.documentElement)
   owned.add(() => lock.destroy())
 
-  // The locale service does not exist yet, so these words follow the browser's languages (see runtime-copy.ts).
-  const earlyCopy = runtimeCopyForGame(game, win)
+  // The runtime's own words are in the player's language, which is not known yet: the browser's guess to begin with,
+  // the host's once it is open and the locale service's from then on. Every panel reads it when it shows.
+  const language = createRuntimeLanguage({
+    def: gameLocaleDef(game),
+    browser: gameBrowserLanguages(game, win),
+  })
+  options.onLanguage?.(language)
+  const earlyCopy = runtimeCopyIn(game.copy, language.current)
   const loaderHandle = layers.showLoader({ label: earlyCopy.loading, slowLabel: earlyCopy.slow })
   options.onLoader?.(loaderHandle)
   owned.add(() => loaderHandle.close())
@@ -192,6 +201,7 @@ async function boot<S>(
   const hosting = opened.value
   owned.add(() => hosting.dispose())
   options.onHosting?.(hosting)
+  language.useHost(hosting.kind === 'ruken' ? hosting.locale : undefined)
   if (signal.aborted) return ok(undefined)
 
   // The host's display metrics, now and as they change, for as long as the session lasts.
@@ -263,13 +273,15 @@ async function boot<S>(
     assets,
     bus,
     reportLost: (retry) => {
+      // Read now, not at boot: the picture is lost during play, in whatever language the player has by then.
+      const words = runtimeCopyIn(game.copy, language.current)
       const dismiss = layers.showError({
         code: 'context-lost',
-        message: earlyCopy.contextLost,
+        message: words.contextLost,
         actions: [
           {
             id: 'retry',
-            label: earlyCopy.retry,
+            label: words.retry,
             kind: 'primary',
             onSelect: () => {
               dismiss()
@@ -313,6 +325,7 @@ async function boot<S>(
     element: doc.documentElement,
   })
   if (signal.aborted) return ok(undefined)
+  owned.add(language.follow(locale))
 
   // Built now and silent until the first gesture after ready.
   const audio = createAudio({
@@ -369,7 +382,7 @@ async function boot<S>(
     bus,
     geometry,
     veil,
-    copy: { ...runtimeCopyFor(locale.current), ...game.copy },
+    copy: wordsIn(language, (tag) => runtimeCopyIn(game.copy, tag)),
     services: () => {
       if (services === undefined) throw new Error('A screen entered before the runtime services were built')
       return services
@@ -457,7 +470,7 @@ async function boot<S>(
     geometry,
     layer: layers.overlay,
     time,
-    copy: displayCopyFor(locale.current),
+    copy: wordsIn(language, displayCopyFor),
   })
   owned.add(() => display.dispose())
   return ok(undefined)

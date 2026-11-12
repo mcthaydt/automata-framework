@@ -89,6 +89,7 @@ interface CompiledContent {
     readonly languages: readonly string[];
     readonly catalogs: ReadonlyMap<string, MessageCatalog>;
     readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
+    readonly verbatim: readonly VerbatimText[];
 }
 ```
 
@@ -535,6 +536,21 @@ type TunableDeclarations = Readonly<Record<string, TunableDeclaration>>;
 
 ```ts
 type TuningMeta = Readonly<Record<string, TuningEntryMeta>>;
+```
+
+### `verbatim` (function)
+
+```ts
+function verbatim(): z.ZodType<string, string>;
+```
+
+### `VerbatimText` (interface)
+
+```ts
+interface VerbatimText extends MessageLocation {
+    readonly text: string;
+    readonly keyPath: string;
+}
 ```
 
 ### `verifyContent` (const)
@@ -1722,6 +1738,12 @@ function defineContentSchema<const K extends string, S extends z.ZodType>(kind: 
 
 ```ts
 function localized(): z.ZodType<string, string>;
+```
+
+### `verbatim` (function)
+
+```ts
+function verbatim(): z.ZodType<string, string>;
 ```
 
 ## `./vite`

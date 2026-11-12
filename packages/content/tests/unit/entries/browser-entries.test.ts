@@ -62,9 +62,9 @@ describe('the browser-safe entries', () => {
         expect(external, `${entry} imports ${external}`).not.toMatch(/^node:/)
     })
 
-  it('./schema serves what schemas need in the browser: defineContentSchema, contentRef and localized, and only zod', async () => {
+  it('./schema serves what schemas need in the browser: defineContentSchema, contentRef, localized and verbatim, and only zod', async () => {
     const schema = await import('#src/entries/schema.ts')
-    expect(Object.keys(schema).sort()).toEqual(['contentRef', 'defineContentSchema', 'localized'])
+    expect(Object.keys(schema).sort()).toEqual(['contentRef', 'defineContentSchema', 'localized', 'verbatim'])
     expect(externalsOf(BROWSER_ENTRIES['./schema'].source)).toEqual(['zod'])
   })
 

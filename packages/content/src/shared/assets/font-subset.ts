@@ -9,7 +9,7 @@
 // package's own (the consumer typecheck tests compile `src/` from outside it).
 import { create, type Font } from 'fontkit'
 import subsetFont from 'subset-font'
-import { NAME_IDS, renameFamily } from './font-rename'
+import { NAME_IDS, renameFamily } from './font-rename.ts'
 
 const byCodePoint = (a: string, b: string): number => (a.codePointAt(0) ?? 0) - (b.codePointAt(0) ?? 0)
 

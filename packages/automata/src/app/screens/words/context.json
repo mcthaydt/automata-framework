@@ -447,10 +447,25 @@
     "note": "Title of the warning shown once, before a game with flashing lights."
   },
   "first_run_warning_body": {
-    "note": "Plain health warning about flashing lights and a shaking screen, in short sentences for any player."
+    "note": "Plain health warning for a game that does not say which effects it has: it may have flashing lights or a shaking screen. Short sentences for any player. Keep the second and third sentences the same as in the next one."
+  },
+  "first_run_warning_declared": {
+    "note": "The same health warning for a game that does say which effects it has. {effects} is those effects joined as a list by the player's language (\"flashing lights and a shaking screen\"), each as written in the four notes after this one. The sentence must read well after the word before {effects} for any one effect or all four, with no word that agrees with the effect's gender or number."
+  },
+  "first_run_warning_effects_flashing": {
+    "note": "One effect a game can have, as it reads in the warning after \"This game has\": lights that flash. A noun phrase with no capital letter and no full stop."
+  },
+  "first_run_warning_effects_strobing": {
+    "note": "One effect a game can have: lights that flash fast and over and over, like a strobe. A noun phrase with no capital letter and no full stop."
+  },
+  "first_run_warning_effects_shaking": {
+    "note": "One effect a game can have: the whole screen shakes. A noun phrase with no capital letter and no full stop."
+  },
+  "first_run_warning_effects_patterns": {
+    "note": "One effect a game can have: stripes, checks or other patterns with strong light and dark. A noun phrase with no capital letter and no full stop."
   },
   "first_run_warning_choose": {
-    "note": "Heading over switches that make the lights and shaking weaker."
+    "note": "Heading over switches that make the lights and shaking weaker. Says what the switches do, in plain words a person unsure what to press would understand; it names no effect, since a game may offer only some."
   },
   "first_run_warning_later": {
     "note": "One line saying the switches can be changed later on the Settings screen."

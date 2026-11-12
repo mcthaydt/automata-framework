@@ -5,8 +5,8 @@
 // `ruken/conformance.test.ts`; what else Ruken checks, Ruken's own parser checks (`ruken/ruken-check.ts`).
 
 import { z } from 'zod'
-import type { Problem } from '../diagnostics/diagnostic'
-import { type GameConfig, RATINGS, type Rating } from './game-config.schema'
+import type { Problem } from '../diagnostics/diagnostic.ts'
+import { type GameConfig, RATINGS, type Rating } from './game-config.schema.ts'
 
 /**
  * What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated

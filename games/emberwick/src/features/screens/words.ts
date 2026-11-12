@@ -1,6 +1,7 @@
 // Emberwick's words, one catalog per language (messages/ui/<lang>.json, the inlang format `automata words` writes).
 // The screens are plain DOM, so they read the JSON directly: there is no Paraglide here. All six ship in the bundle,
 // because a language switch must be instant and offline.
+import { matchLocale } from '@automata/framework'
 import en from '../../../messages/ui/en.json' with { type: 'json' }
 import es419 from '../../../messages/ui/es-419.json' with { type: 'json' }
 import ja from '../../../messages/ui/ja.json' with { type: 'json' }
@@ -43,21 +44,9 @@ const CATALOGS: Readonly<Record<string, Catalog>> = {
   'zh-Hans': zhHans,
 }
 
-const primary = (tag: string): string => tag.toLowerCase().split('-')[0] ?? tag
-
-/**
- * The catalog for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds
- * `pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise. This is the framework's own matching rule, kept in five lines
- * because core does not export it.
- */
-function catalogFor(locale: string): Catalog {
-  const tags = Object.keys(CATALOGS)
-  const tag =
-    tags.find((candidate) => candidate.toLowerCase() === locale.toLowerCase()) ??
-    tags.find((candidate) => primary(candidate) === primary(locale)) ??
-    'en'
-  return CATALOGS[tag] ?? en
-}
+/** The catalog for a locale, by the framework's own matching rule (`pt` finds `pt-BR`); English where the game has none. */
+const catalogFor = (locale: string): Catalog =>
+  CATALOGS[matchLocale(locale, Object.keys(CATALOGS)) ?? 'en'] ?? en
 
 /** The words for `locale`; English where the game has no such language. */
 export function emberwickWords(locale: string): EmberwickWords {

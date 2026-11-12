@@ -5,7 +5,7 @@
 // string as a key when it sits directly inside the outer object and a `:` follows it. A byte order mark is
 // skipped without taking a column, as the TOML side does.
 
-import type { KeyIndex, KeyPosition } from './locate-keys'
+import type { KeyIndex, KeyPosition } from './locate-keys.ts'
 
 export function locateJsonKeys(text: string): KeyIndex {
   const index = new Map<string, KeyPosition>()

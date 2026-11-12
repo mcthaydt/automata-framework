@@ -41,8 +41,14 @@ defineGame({
 })
 ```
 
-A current, unreadable or slow answer (1.5 seconds) lets the title through; a stale one shows "This game was updated" with
-a Reload button and stays. The join check is still the authority, so a probe that fails never locks anyone out.
+A current or slow answer (1.5 seconds) lets the title through; a stale one shows "This game was updated" with a Reload
+button and stays. An answer the check cannot read (the server is down, or answers something else) also lets the title
+through, so a probe that fails never locks anyone out, but it is logged to the console as "Could not check whether this
+tab is up to date" and is never counted as a pass (`checkServerVersion` answers a `VersionVerdict`: `current`, `stale` or `unchecked`, never `current` for an answer it could not read). The join check is
+still the authority.
+
+The server is another origin than your game, so `GET /version` carries the CORS header for the origins in
+`allowedOrigins`. A game served from an origin that is not listed gets the console line above, not a stale panel.
 
 ## What you get
 

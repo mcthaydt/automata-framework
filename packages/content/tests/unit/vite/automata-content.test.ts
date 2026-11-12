@@ -2,8 +2,8 @@
 // behavior worth pinning is recovery. A bad save reports, keeps the last good bytes and module, and leaves
 // the watcher alive, so the fix is one more save rather than a restarted server.
 
-import { readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { Effect } from 'effect'
 import { build, createLogger, createServer, type HotPayload, type ViteDevServer } from 'vite'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -112,6 +112,49 @@ describe('vite build', () => {
     expect(code).toContain(hash)
     expect(readFileSync(join(root, 'content/generated/content.hash'), 'utf8')).toBe(`${hash}\n`)
   }, 90_000)
+
+  // The font build writes each font's licence text beside its subsets (`<font>-<licence file>`), but Vite bundles only
+  // what a module imports, so the licence stayed behind and a built game carried the faces without it (the OFL asks
+  // that the text travel with the font).
+  describe('a game that carries font subsets', () => {
+    const FACE = 'ja-en-0123abcd.woff2'
+    const LICENCE = 'ja-OFL.txt'
+    const buildWithFonts = async (root: string, imports: boolean) => {
+      const fonts = join(root, 'content/generated/fonts')
+      mkdirSync(fonts, { recursive: true })
+      writeFileSync(join(fonts, FACE), new Uint8Array([0, 1, 0, 0]))
+      writeFileSync(join(fonts, LICENCE), 'SIL OPEN FONT LICENSE Version 1.1\n')
+      writeFileSync(join(fonts, 'fonts.json'), '{}\n')
+      writeFileSync(
+        join(root, 'main.js'),
+        imports
+          ? `import face from './content/generated/fonts/${FACE}'\nconsole.log(face)\n`
+          : 'console.log(1)\n',
+      )
+      const output = await build({
+        root,
+        configFile: false,
+        logLevel: 'silent',
+        plugins: [automataContent(options(root))],
+        build: { write: false, minify: false, rolldownOptions: { input: join(root, 'main.js') } },
+      })
+      return (Array.isArray(output) ? output : [output])
+        .flatMap((result) => ('output' in result ? result.output : []))
+        .map((chunk) => chunk.fileName)
+    }
+
+    it('ships the licence text next to the subsets', async () => {
+      const files = await buildWithFonts(copyFixture('valid'), true)
+      const face = files.find((file) => file.endsWith('.woff2'))
+      expect(face).toBeDefined()
+      expect(files).toContain(`${dirname(face as string)}/${LICENCE}`)
+    }, 90_000)
+
+    it('ships nothing of the kind when the build carries no font', async () => {
+      const files = await buildWithFonts(copyFixture('valid'), false)
+      expect(files.filter((file) => file.endsWith('.txt'))).toEqual([])
+    }, 90_000)
+  })
 
   // Vite inlines an asset under `build.assetsInlineLimit` (4 kB by default) as a `data:` URL. Pixi's loader fetches
   // that URL and Ruken's CSP (`connect-src`) refuses it, so the asset never loads (DX.5a; the examples' #142).

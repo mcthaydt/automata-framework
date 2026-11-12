@@ -8,8 +8,8 @@
 // One lookup by kind, ID and field path instead of a helper per field, and the report
 // is the caller's callback rather than a development-only `console.warn`.
 
-import type { DataPath } from '../diagnostics/diagnostic'
-import { messageKey } from './messages'
+import type { DataPath } from '../diagnostics/diagnostic.ts'
+import { messageKey } from './messages.ts'
 
 /** Options for `createContentText`. */
 export interface ContentTextOptions {

@@ -25,9 +25,21 @@ languages are the files beside it. The languages a game offers are the ones it l
 locale: { locales: ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'], baseLocale: 'en' },
 ```
 
-Core's `DEFAULT_LOCALES` is that same list, so `locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' }` says the
-six. A player picks in Settings, and the choice is kept. On a first visit the game asks (see
-[How it works](./how-it-works.md#the-first-run)); on Ruken the player's own language is used.
+`DEFAULT_LOCALES`, which `@automata/framework` exports, is that same list, so
+`locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' }` says the six. A player picks in Settings, and the choice is
+kept. On a first visit the game asks (see [How it works](./how-it-works.md#the-first-run)); on Ruken the player's own
+language is used.
+
+A game that draws its own screens in plain DOM names each word on an element (`data-word="play"`, or `data-word-label`
+for an element's accessible name) and calls `bindWords(layer, services.locale, wordsFor)`, which fills them now and again
+when the language changes. `matchLocale(tag, locales)` is the rule the framework chooses a language by (`pt` finds
+`pt-BR`), and `formatNumber(locale, value)` writes a number the way the player reads it.
+
+The runtime's own words (loading, a failed download, the lost-picture panel, the rotate hint) follow that language too,
+and change with it. Before anything is saved they are in the browser's language; once the host and the saved choice are
+known, in theirs. To reword them yourself, `defineGame({ copy: { loading: '…', contextLost: '…' } })` words them in every
+language, and `copy: (locale) => ({ loading: … })` words them for each (`screens`, the default screens' words, may sit
+inside either).
 
 ## Have an AI translate: `automata words`
 
@@ -37,8 +49,14 @@ pnpm exec automata words
 
 It reads each catalog, finds the words that have **no translation yet** (missing) and the words whose English
 **changed** since they were translated (stale), has a model translate those into every language the game ships, and
-writes the files. It leaves the rest alone, so running it again costs nothing. It needs `ANTHROPIC_API_KEY` set on your
-computer; the key is used to reach the translator and nothing else.
+writes the files. It leaves the rest alone, so running it again costs nothing.
+
+It needs a key on your computer: `AUTOMATA_ANTHROPIC_KEY` if that is set, otherwise `ANTHROPIC_API_KEY`. It reads the
+environment and nothing else, sends the key to Anthropic's API and nowhere else, and never prints it. To keep the key out of
+a shell that other programs read, set it for the one command: `AUTOMATA_ANTHROPIC_KEY=… pnpm exec automata words`. If the key
+is turned down, the service is busy or over its limit, or it cannot be reached, the run stops at the first answer instead of
+asking for every word, keeps what it had translated and says what to do; a busy answer is first asked again a few times,
+waiting longer each time. A word the model declines is only that word's problem, and the run goes on.
 
 ```sh
 pnpm exec automata words title_play        # one line, in every language
@@ -61,7 +79,9 @@ pixel font (Fusion Pixel, in one flavour for each script) in `assets/fonts/` wit
 `automata-content assets` cuts it to the characters your words use and writes `fonts.css`, which `src/main.ts` imports; the
 page's `lang` picks the face. A new word with a character the font lacks is an error from `automata check`, not a box on
 a player's screen. To use another font, list it in `content/fonts.toml` with the languages it serves; each language needs
-a face.
+a face. A name that is never translated (a credits name) is held to the same rule: a content kind marks it `verbatim()`,
+from `@automata/content/schema`, where it marks translatable text `localized()`, and each language's face must hold its
+characters or `automata check` names the file, the name and what to do.
 
 ## What `automata check` says
 

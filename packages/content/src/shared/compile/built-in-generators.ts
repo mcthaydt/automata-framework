@@ -3,13 +3,13 @@
 // refused as a clash. `content.json`, `content.hash`, `sim-content.json` and `sim-content.hash` come from the
 // `artifact` generator, which runs first.
 
-import type { FlowGraph } from '../flow/check-flow'
-import { flowMermaid } from '../flow/flow-mermaid'
-import { type GameSource, rukenFields } from '../game/game-facts'
-import { type ContentGenerator, defineContentGenerator } from '../generate/content-generator'
-import { renderTypes } from '../generate/render-types'
-import { canonicalFile } from '../hash/canonical-file'
-import { renderMessages } from '../locale/messages'
+import type { FlowGraph } from '../flow/check-flow.ts'
+import { flowMermaid } from '../flow/flow-mermaid.ts'
+import { type GameSource, rukenFields } from '../game/game-facts.ts'
+import { type ContentGenerator, defineContentGenerator } from '../generate/content-generator.ts'
+import { renderTypes } from '../generate/render-types.ts'
+import { canonicalFile } from '../hash/canonical-file.ts'
+import { renderMessages } from '../locale/messages.ts'
 
 /** Facts the compiler worked out that are not in the hashed data itself. */
 export interface BuiltInFacts {

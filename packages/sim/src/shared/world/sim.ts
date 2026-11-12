@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CommandRecord, EntityRef, SimContext, SpawnPart } from '../define/context'
+import type { CommandRecord, EntityRef, SimContext, SpawnPart } from '../define/context.ts'
 import {
   type CommandDef,
   type ComponentDef,
@@ -10,14 +10,14 @@ import {
   type PreparedRestore,
   type ResourceDef,
   type SystemDef,
-} from '../define/definitions'
-import { canonicalJson, utf8 } from '../hash/canonical'
-import { hex64, xxhash64 } from '../hash/xxhash64'
-import { createRng, deriveSeed, type Rng, rngFromState } from '../rng/rng'
-import { orderPlugins, orderSystems } from '../schedule/schedule'
-import { deepFreeze } from '../util/deep-freeze'
-import { sortedKeys } from '../util/sorted'
-import { EntityStore, type RenderDelta, SimCapacityError } from './entity-store'
+} from '../define/definitions.ts'
+import { canonicalJson, utf8 } from '../hash/canonical.ts'
+import { hex64, xxhash64 } from '../hash/xxhash64.ts'
+import { createRng, deriveSeed, type Rng, rngFromState } from '../rng/rng.ts'
+import { orderPlugins, orderSystems } from '../schedule/schedule.ts'
+import { deepFreeze } from '../util/deep-freeze.ts'
+import { sortedKeys } from '../util/sorted.ts'
+import { EntityStore, type RenderDelta, SimCapacityError } from './entity-store.ts'
 import {
   decodeSnapshot,
   decodeSnapshotHeader,
@@ -27,7 +27,7 @@ import {
   SnapshotMismatchError,
   type SnapshotView,
   viewSnapshot,
-} from './snapshot'
+} from './snapshot.ts'
 
 /** Input to the sim, the only way gameplay state changes from outside. `source` is a player slot (u8), `seq` a per-source counter (u32). */
 export interface Command {

@@ -39,6 +39,11 @@ export interface PixiRendererOptions {
   readonly barFraction?: number | undefined
   /** Bar color in hex. Default is 0x2e222f (plum black). */
   readonly barColor?: number | undefined
+  /**
+   * How the letterboxed field is scaled: `fit` (the default) is one fractional scale to the view's width; `whole` is a
+   * whole number of device pixels a field pixel, centred, so no pixel is drawn wider than another. Needs a letterbox.
+   */
+  readonly scale?: 'fit' | 'whole' | undefined
   /** The graphics quality tier to start at; `PixiStage.setQuality` changes it. Default `high`. */
   readonly quality?: QualityTier | undefined
   /**
@@ -190,6 +195,11 @@ export function createPixiRenderer(
     canvas.classList.add('af-stage')
     target.host.appendChild(canvas)
 
+    // Only the whole-pixel scale needs the device pixel ratio, so the default lays out with the same two arguments as ever.
+    const layoutOf = (letterbox: LetterboxFrame, width: number, height: number) =>
+      options.scale === 'whole'
+        ? letterbox.layout(width, height, devicePixelRatio())
+        : letterbox.layout(width, height)
     let frame: LetterboxFrame | undefined
     let world: Container
     let ui: Container
@@ -202,13 +212,14 @@ export function createPixiRenderer(
         logicalHeight: options.logicalHeight,
         barFraction: options.barFraction,
         barColor: options.barColor,
+        scale: options.scale,
       })
       app.stage.addChild(frame.scene)
       app.stage.addChild(frame.bars)
       world = frame.world
       ui = frame.ui
       backdrop = frame.backdrop
-      const { fieldHeight } = frame.layout(initialGeometry.usable.width, initialGeometry.usable.height)
+      const { fieldHeight } = layoutOf(frame, initialGeometry.usable.width, initialGeometry.usable.height)
       if ((options.composite ?? true) && options.pixelArt !== false) {
         composite = new CompositeTarget({ width: options.logicalWidth, height: options.logicalHeight })
         composite.adopt(frame)
@@ -285,7 +296,7 @@ export function createPixiRenderer(
 
     const unsubscribe = target.geometry.onChange((g) => {
       app.renderer.resize(g.usable.width, g.usable.height)
-      const layout = frame?.layout(g.usable.width, g.usable.height)
+      const layout = frame && layoutOf(frame, g.usable.width, g.usable.height)
       if (layout) composite?.resize(layout.fieldHeight)
       formFactor = g.formFactor
       applyResolution()

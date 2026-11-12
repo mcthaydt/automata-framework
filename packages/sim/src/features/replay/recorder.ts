@@ -1,13 +1,13 @@
 // Records a run as a Replay while stepping it. Nothing else may step the sim while it
 // records; the recorder notices when something did and refuses to continue, since the replay would be wrong.
 
-import { canonicalJson } from '../../shared/hash/canonical'
-import { hex64, xxhash64 } from '../../shared/hash/xxhash64'
-import { sortedKeys } from '../../shared/util/sorted'
-import { SIM_VERSION } from '../../shared/version'
-import type { Command, Sim, StepResult } from '../../shared/world/sim'
-import { ReplayRecordError } from './errors'
-import { DEFAULT_CHECK_EVERY, type Replay, type ReplayCommand } from './replay'
+import { canonicalJson } from '../../shared/hash/canonical.ts'
+import { hex64, xxhash64 } from '../../shared/hash/xxhash64.ts'
+import { sortedKeys } from '../../shared/util/sorted.ts'
+import { SIM_VERSION } from '../../shared/version.ts'
+import type { Command, Sim, StepResult } from '../../shared/world/sim.ts'
+import { ReplayRecordError } from './errors.ts'
+import { DEFAULT_CHECK_EVERY, type Replay, type ReplayCommand } from './replay.ts'
 
 /**
  * What a recording takes: how often to store a check hash, whether to keep a reference hash and snapshots

@@ -1,4 +1,4 @@
-import { sortedKeys } from './sorted'
+import { sortedKeys } from './sorted.ts'
 
 /** Freezes a plain value and everything it holds, so a value that was hashed can't change afterwards. */
 export function deepFreeze<T>(value: T): T {
