@@ -304,6 +304,12 @@ tone mapping, tone mapping's default, unlit colour, samplers), and every effect 
   spike lacks. Shot after the port, so they show the effects as they will ship.
 - **The sky and haze difference** (the green veil off the room): ruled the sky's ([`after-room/README.md`](audits/builders-look-survey/after-room/README.md), difference 10).
 
+## Workstream 7 sessions (the editors' new look, v2, landed on `main`)
+
+| Stage | Session | Branch | State |
+|---|---|---|---|
+| 4. Execution, Task 2 (merge the v2 tip and resolve it) | the Task 2 session | `claude/editors-v2-landing` | Done 2026-11-12: `refs/pull/567/head` (`47391563`) merged into `main` `7b6ce6ac` in one merge commit (`b6fefac9`) plus one fix commit (`93d50a61`: the kit's memory workspace takes the editor list's rules from the suite, which `pnpm boundaries` asked for). 51 conflicting files as measured, 51, 41, 25, 17, 7, 0 at the plan's checkpoints. Green: `pnpm typecheck`, the unit suites of editor (3,473), editors, editor-3d (2,282), narrative, cutscenes, content and the create-game suite, `pnpm boundaries`, `style`, `source-names`, `lint`, `knip`, `check:changesets`. Not done: Task 3 (generated files, the layout suites, `pnpm check`), nothing pushed to a pull request. |
+
 ## Open, for the Owner
 
 - **Emberwick's plumbing limit is 470, not 430: ACCEPTED by the Owner, 2026-11-12 ("Accept 470").** (The audit's S4, stage 6.) The framework now has the pieces any game with
