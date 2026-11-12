@@ -1,5 +1,6 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { K2 } from './paint-budget'
+import { HAND_FORM, type HandFormKind, paddleRole, partedRole } from './paint-hand-form'
 import { KEY } from './paint-style'
 // ─── Hands: drawn as the face is, from the projected wrist and fingertips ───
 /**
@@ -36,11 +37,12 @@ export interface HandStamp {
 /**
  * The hands, drawn into the painter's G-buffer and toned (`tone`, −1 where no hand): the raster's hand gives way to a
  * designed one, and only where nothing nearer covers it.
- * - The shape: a wrist, a palm a texel broader on the thumb's side from a fifth of the way down, the thumb standing a
- *   texel off the contour over the palm's middle, the fingers to the tips, the tips rounded (and at twice the brand
- *   kit's density parted once, so the fingers read as fingers, not a mitten).
+ * - The shape (paint-hand-form.ts, `form`): the paddle (a wrist, a palm, a one-texel thumb on its edge, the tips notched)
+ *   or the parted hand (the thumb hanging free of the palm at its tip, the index parted from the other three fingers,
+ *   which are one mitten); HAND_FORM is the default.
  * - Its tones, in the skin's ramp: the back's edge toward the key its light plane, the knuckle row a step darker under
- *   it with the light's corner kept, the edge away from the key in shadow, a texel of shadow under the thumb's tip.
+ *   it with the light's corner kept, the edge away from the key in shadow, a step of shadow at the thumb's tip; the
+ *   parted hand's gaps, where they lie over skin of its own colour, a crease in the ramp's deep step.
  * - In a pocket (most of it covered), nothing: only the forearm going into the opening, never a sliver of skin.
  */
 export function drawHands(
@@ -56,6 +58,7 @@ export function drawHands(
     normal: Float32Array
     place: Float32Array
   },
+  form: HandFormKind = HAND_FORM,
 ): Int8Array {
   const n = w * h,
     ppm = (96 * D) / 2.6,
@@ -159,63 +162,14 @@ export function drawHands(
         ox = Math.round(wx)
       }
     }
-    // Down the hand (rows from the wrist): the wrist, the palm from its flare (a texel broader on the thumb's side), the
-    // knuckle row, the fingers; across it (columns, toward the thumb), the little finger's side straight. The thumb over
-    // the palm's upper middle, a quarter of the hand long.
-    const last = Math.max(3, Math.ceil(L) - 1),
-      sk = Math.round(0.58 * (last + 1)),
-      flare = Math.max(1, Math.round(0.2 * (last + 1)))
-    const t0 = Math.max(Math.round(hs.thumbAt[0] * L), flare),
-      t1 = Math.min(t0 + Math.max(1, Math.round(0.26 * L)) - 1, sk - 1)
     const lo = -Ww / 2,
       kSide = p[0] * K2[0] + p[1] * K2[1] > 0 ? 1 : -1
     const z = (s: number) => wz + (hs.tip[2] - wz) * Math.min(1, s / L) + hs.front
-    // The thumb shows where it turns to the camera or across the view (from behind, the back of the hand hides it).
-    const thumbs = hs.thumbFacing > -0.55
     // The back of the hand's light: toward the key it has its light plane, turned from it the hand sits a step down.
     const kb = hs.back[0] * KEY[0] + hs.back[1] * KEY[1] + Math.abs(hs.back[2]) * KEY[2],
       dim = kb < -0.25 ? 1 : 0
-    const role = (s: number, t: number): number => {
-      const row = Math.floor(s),
-        col = Math.floor(t - lo),
-        cols = row >= flare ? Wk : Ww
-      if (row < 0 || row > last) return -1
-      const thumb = thumbs && row >= t0 && row <= t1 && col === cols
-      if (col < 0 || (col >= cols && !thumb)) return -1
-      // The tips: the little finger's corner rounded off, and from twice the brand kit's density a notch between the
-      // fingers (a broad hand's nearer the thumb, so two fingers' tips and the hand's own read).
-      const split = cols <= 3 ? 1 : cols - 2
-      if (row === last && ((col === 0 && cols >= 4) || (D > 1 && cols >= 3 && col === split))) return -1
-      if (row === last && D === 1 && col === 0) return -1
-      const keyEdge = kSide > 0 ? cols - 1 : 0,
-        farEdge = cols - 1 - keyEdge,
-        thumbEdge = cols - 1
-      const tone = (q: number) => Math.min(2, q + dim)
-      // The thumb: its top catching the light where it turns to the key or the camera, its tip a step down; a texel
-      // of shadow under its tip where it meets the palm.
-      if (thumb)
-        return row === t1 && t1 > t0
-          ? 2
-          : row === t0 && (kSide > 0 || hs.thumbFacing > 0.4)
-            ? tone(0)
-            : tone(1)
-      if (thumbs && row === t1 + 1 && col === thumbEdge) return 2
-      // The knuckle row a step under the back of the hand, its corner toward the key kept mid.
-      if (row === sk) return col === keyEdge ? tone(1) : 2
-      // The back of the hand's plane toward the key: its edge from the flare down, broadening over the knuckles.
-      if (
-        row >= flare &&
-        row < sk &&
-        col === keyEdge &&
-        !(thumbs && keyEdge === thumbEdge && row >= t0 && row <= t1 && kSide < 0)
-      )
-        return tone(0)
-      if (cols >= 3 && row >= sk - 2 && row < sk && Math.abs(col - keyEdge) === 1 && !dim) return 0
-      // The side away in shadow (below the thumb on its side), and the fingers parted by a line of shadow at D2.
-      if (col === farEdge && row > (thumbs && farEdge === thumbEdge ? t1 + 1 : flare)) return 2
-      if (D > 1 && cols >= 3 && row > sk && row < last && col === split) return 2
-      return tone(1)
-    }
+    // The tone of each texel down and across the hand (paint-hand-form.ts): −1 none, −2 a gap inside it.
+    const role = (form === 'parted' ? partedRole : paddleRole)({ L, Ww, Wk, D, hs, kSide, dim, lo })
     // The texels it covers, and how many of them show (nothing nearer there).
     const r = Math.ceil(L + Wk + 2),
       cx = Math.round(ox),
@@ -229,7 +183,10 @@ export function drawHands(
           s = dx * a[0] + dy * a[1],
           t = dx * p[0] + dy * p[1],
           q = role(s, t)
+        // A gap over skin of the hand's own colour (a bare thigh behind it) would vanish into it: there it is a crease,
+        // the ramp's deep step; over anything else the gap shows what lies behind.
         if (q >= 0) cells.push([y * w + x, q, s])
+        else if (q === -2 && material[y * w + x] === hs.material) cells.push([y * w + x, 3, s])
       }
     const shows = cells.filter(([k, , s]) => material[k] < 0 || depth[k] < z(s))
     // In a pocket: nothing of it but the wrist at the opening.
