@@ -20,7 +20,6 @@ import {
   heights,
   lapels,
   legGroup,
-  legsOf,
   opening,
   piece,
   SIDES,
@@ -29,6 +28,7 @@ import {
   tail,
   top,
 } from './shells.ts'
+import { legsOf } from './trousers.ts'
 
 /** A tee (or a knit, a shirt): the torso and sleeves one clearance out, its hem `length` (0 the belt, 1 the hip's bottom). */
 export interface Tee {
