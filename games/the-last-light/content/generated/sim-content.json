@@ -5382,8 +5382,8 @@
             "facts": {
               "bedMade": true,
               "fuel": 40,
-              "light": "lighter",
               "lightsOut": true,
+              "lit": true,
               "nurse.mode": "patrol"
             },
             "items": [
@@ -5489,8 +5489,8 @@
             "facts": {
               "bedMade": true,
               "fuel": 80,
-              "light": "lighter",
-              "lightsOut": true
+              "lightsOut": true,
+              "lit": true
             },
             "items": [
               "handLamp"

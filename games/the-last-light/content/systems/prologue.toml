@@ -832,7 +832,7 @@ z = -3.5
 bedMade = true
 lightsOut = true
 "nurse.mode" = "patrol"
-light = "lighter"
+lit = true
 fuel = 40
 
 [scenarios.expect]
@@ -920,7 +920,7 @@ z = -6.1
 [scenarios.setup.facts]
 bedMade = true
 lightsOut = true
-light = "lighter"
+lit = true
 fuel = 80
 
 [scenarios.expect]
