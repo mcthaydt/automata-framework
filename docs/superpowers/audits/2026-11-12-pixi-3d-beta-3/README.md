@@ -13,7 +13,7 @@ contains it (`vendor/pixi-3d/README.md`).
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
 | 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
 | 3b | `main` (#654, #655, #656) merged; the baseline taken again on the merged tree with beta.2; the retro-crisp case that 8.23.0 moved found | done 2026-11-12 | [§3b](#3b-the-merged-tree-with-beta2-the-baseline-taken-again) |
-| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 to 4 done | [third session](#third-session-the-work-list-in-order) |
+| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 to 8 done at the second 90-minute mark: a whole `pnpm check` on the final tree and the crates stop are what is left | [third session](#third-session-the-work-list-in-order) |
 | 5 | Workarounds the beta makes unnecessary | not started | |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
@@ -371,16 +371,13 @@ Room and street agree with the first session's numbers to within 0.3 (55.4 to 84
 - `'beta2'` keeps the dark sky and the dark room (38.5 on the night room, 29.6 on base-3d, which is darker than beta.2's 43.9: it cannot reproduce beta.2 for an unlit floor under fog), **and it
   recolours things**: the night room's plant turns from beta.2's tan to bright green and the lamp shade from a dull black to yellow (the diff panel marks both). The look keeps a lit moving
   thing's linear value as its display value, which beta.2 never did for a baked or plant colour; so the switch does not give beta.2 back on a room either.
-- **A finding in `base-3d` that the Owner should see before choosing:** the dark blocks the beta.2 frame shows on the middle platform (the crates and barrels, three of them) **vanish in both beta.3 looks**:
-  in `'authored'` their pixels are the floor's own palette colours (`554769`, `56506f`, `5b5c69`; beta.2 had `3b303c`, `2e3d47`, `2d3136` there); in `'beta2'` the floor falls to their dark colours. Either way the
-  contrast that made them readable is gone, which the drunk-grandma rule does not allow. Cause not yet traced (the DUEL snap maps the crates' and the floor's brighter unlit colours to one palette
-  entry is the likely one; the lips along the channels, `0xffb108`, and the embers are not in the frame at all, with or without the move, so the frame may not be where the contrast shows); it is
-  in the grouped list as unexplained until it is.
+- **A finding in `base-3d` that the Owner should see before choosing:** the dark blocks the beta.2 frame shows on the middle platform (the crates and barrels) **vanish in both beta.3 looks**, and in untouched beta.3 as well. The frame is a fully fogged room (the play camera is past the fog's far plane): see
+  "A stop (item 6)" below. So `base-3d`'s frame is not a fair picture for the fog colour; the night room frame is.
 - **The switch also decides the colour of core's lit moving figures** (the cast drawn as core meshes, not the painted pair; `frames/figures-core-room-beta2-vs-authored-vs-beta2look.png`, the dressed room by day,
   `figures=core`): `'authored'` lights them up (a dark brown shirt turns grey, black trousers brown, red shoes orange; 6.9% of pixels differ from beta.2, mean luma 53.7 to 56.2) and `'beta2'` keeps the beta.2
   picture (2.7%, 53.9). So the two halves of the switch want different answers: the fog colour wants `'authored'` (the haze, the sky), a lit figure's colour wants `'beta2'` (what the figures were tuned to).
   Splitting `colour-look.ts` in two (fog and sky; tinted colour) is one small change, and is the recommendation once the Owner has seen both frames. Painted figures do not depend on it.
-- Recommendation: fog and sky `'authored'` (needs no compensation and makes a night room readable); a lit moving figure's colour as beta.2 drew it; the crates finding is a `base-3d` colour decision, not a switch.
+- Recommendation: fog and sky `'authored'` (needs no compensation and makes a night room readable); a lit moving figure's colour as beta.2 drew it; `base-3d`'s fully fogged frame needs the stop below answered first.
 
 ### Item 3: WebGPU (`AF_WEBGPU=software`)
 
@@ -419,6 +416,73 @@ Not done on this branch (the ruling: no vendoring, patching or copying of the pa
 5. `Sprite3D` takes one options object (`cell-sprite.ts` already passes one); `cull` defaults to `'gpu'` (a billboarded quad: `cull: 'off'` if one vanishes); `stage-view.ts` passes `toneMapping: 'none'` itself.
 6. **One more `file:` specifier** in `extensions/figures/package.json` (and its `pixi.js` peer to `^8.23.0`); `vendor/figure-builder/package.json`, where this branch moved the `pixi.js` pin to 8.23.0, **goes away with the fold** (a modify/delete conflict on merging `main`: delete it and move the pin).
 7. Proof: `extensions/character-kit` `painted-webgpu.test.ts` (3 cases failing today) and the painted WebGL cases (passing), plus the frames of item 2 with `figures=painted` on WebGPU.
+
+### Item 6: every recorded value that moves on beta.3, grouped by cause (nothing re-recorded)
+
+**No golden file, snapshot file, parity hash or sim hash was re-recorded or edited** (`git diff c1c9b7c2 HEAD` touches no `goldens/`, no `__snapshots__`, no hash). What moved is expectations written in test code, which were
+edited, each with the reason in its comment and each of them the Owner's to overrule. Counts are cases whose expected value changed; "frames" are pictures, not recorded values.
+
+| Group | Cases | Expected (beta.2) | Actual (beta.3) | Diff and where the rest are |
+|---|---|---|---|---|
+| **The vertex-colour contract** (`vertexColorBit` reads the raw vertex colour as linear light and the output pass encodes it) | **8**: `lit-room.test.ts` (1, browser) and 7 unit expectations (`world-view.test.ts`, `scene-light.test.ts`) | `lit-room`: a baked grey drew 64; the buffer held the shown colour | `lit-room` saw 136 before the fix (the buffer must hold the shown value raised to 2.2); the 7 unit cases read the buffer through `shown = v ** (1 / 2.2)` and keep their tolerance | frames `room-…-untouched.png` (55.4 to 84.4, 81.5% of pixels) and `…-fixed.png` (55.7, 2.9%); the rest in `packages/3d/tests/unit/app/world-view.test.ts`, `…/shared/render/light/scene-light.test.ts`, new `vertex-bake.test.ts` |
+| **Unlit base colours drawn as authored** (`shownAs` removed) | 1 (`world-view.test.ts` "no light to take") | an unlit base colour was given pre-decoded (247) | given as authored (251) | the picture is the beta.2 one (room 55.4 to 55.7, street 109.5 to 109.6) |
+| **Fog colour** | **2 moved, 4 added**: `lighting.test.ts` "sky meets fog" light and dark (moved), "fog turns the floor toward the fog colour" now under both looks (+2), sky-meets-fog under both looks (+2) | the fully fogged colour was the fog's linear value (`0x3e3546` drew as `0x0c0910`) | the fog colour as written under `'authored'`; the `'beta2'` look reproduces the old values | frames `fog-base-3d-*` (43.9 to 57.2 / 29.6) and `fog-night-room-*` (32.9 to 48.7 / 38.5); **the Owner's decision** |
+| **Lit moving things' colour** (the same switch) | 0 recorded values; frames | core's cast figure colours (dark shirts, red shoes) | `'authored'`: lighter, greyer (6.9% of pixels differ); `'beta2'`: as beta.2 (2.7%) | `figures-core-room-beta2-vs-authored-vs-beta2look.png`; painted figures unchanged |
+| **The effects' Y sign** (`uFxClip.w` negative when the view draws into a texture) | 4 browser cases of world-kit (shafts "which way is up", stars, 2 reflect) | each expects the effect where it belongs; the expectation did not change | failed with the sign unhandled, pass with `abs(uFxClip.w)` | no recorded value; orientation cases on WebGL2 and WebGPU (item 3) |
+| **Camera zoom** (`zoom` divides `tan(fov / 2)` and `orthographicSize`) | **2 moved** in `extensions/character-kit/tests/unit/painted/pose.test.ts`, 1 rewritten to read `Camera3D.computeProjection` | perspective, zoom 2, 53.13 deg, 360 high: f = 762.5; orthographic, size 4, zoom 2, 640 wide: 80 px a metre | f = 720; 160 px a metre | at zoom 1 identical; the rest of the painted pose files unchanged |
+| **Light falloff and the 2.2 gamma** | 0 recorded values | n/a | n/a | the dressed room and street, the beta.2 frame against this branch: 2.9% and 1.1% of pixels, dither edges and one shadow edge; no lamp-lit parity value moved |
+| **Samplers** | 0 | n/a | n/a | WebGL2 against WebGPU: 0.5% (room) and 0.1% (street), figure edges only (`samplers-*.png`) |
+| **Culling** | 0 | n/a | n/a | no figure, prop or piece vanished in any suite or journey |
+| **The painter's view, waits for the fold** | **3**: `character-kit` `painted-webgpu.test.ts` | the painted figures draw on WebGPU | "The shader template lists the 'global' bind group without `ubo: true`" (the painter's copy of beta.2's WGSL template) | item 4; the WebGL painted cases pass |
+| **Unexplained** | **1 picture** | `base-3d` frame 844 x 390: three dark blocks on the middle platform (the crates and barrels, `mud` step 3, against the floor's `dusk` step 4) | gone in both beta.3 looks: their pixels are the floor's palette colours (`authored`), or the floor falls to theirs (`beta2`) | `fog-base-3d-beta2-vs-*.png`; see "A stop" below |
+
+**A stop (item 6): the crates and the fog on `base-3d`, found, not yet explained.** What is known:
+- The crates (and barrels) vanish **in untouched beta.3 too** (`f1bf5b78`, before every colour fix): their pixels are the floor's palette colours (`554769`, `56506f`, `5b5c69`), where beta.2 had `3b303c`, `2e3d47`, `2d3136`. So the move itself does it, not the colour look.
+- The frame the fog decision was made on is **a fully fogged room**: `FOG` is `near 5, far 14`, and with the game's camera at the play distance every surface is past 14 m. With the fog pushed out (`near 40, far 90`, a temporary, uncommitted edit; `frames/base-3d-no-fog-beta3.png`) the same
+  beta.3 build shows what the room is: a light blue floor, the orange embers, the yellow lip along the channel, the brown crates and the blue Wick. In the fogged frames of both betas the embers are not visible at all and Wick is a small dark glyph (beta.2) or gone (beta.3): so in beta.3 a fogged room loses
+  the crates and Wick as well as the walls, because "Fog on an unlit surface now reaches the fog colour" applies to the ramp-lit crates and the figure (a custom `ShaderBit`, `look/ramp-light-material.ts`, whose `end` slot may now be ahead of the engine's fog mix: not read yet).
+  That is a hypothesis; what is measured is the three frames and the pixel colours above.
+- **Whether beta.2's picture at this camera was the intended one is the Owner's to say** (its crates read, its embers did not). What to do next, in order: (1) read `ramp-light-material.ts`'s `end` slot against beta.3's fog placement; (2) a frame of `base-3d` at the journeys' own camera with Wick and an ember in range of the fog's near plane, beta.2 against beta.3; (3) then the fog decision. Until then **the fog colour decision above stands on the three frames, but `base-3d`'s frame is not a fair one**; the night room (`fog-night-room-*`) is.
+
+### Item 5: the journeys and the no-eval check (Chromium)
+
+| Journeys on beta.3 | Result |
+|---|---|
+| `@af-games/base-3d` (`base-3d`, `base-3d-dev`) | 14 passed, 2.6 min |
+| `@af-examples/examples-3d` (`examples-3d`) | 22 passed, 3.1 min (every test draws under the CSP) |
+| `@automata/editor-3d` journeys | 16 passed (3 files) |
+| `@af-games/emberwick` (`phone`, `compact`, `ipad`, `dev`, Chromium; the six language projects were not run) | 35 passed, 2.0 min |
+| `@af-examples/examples-2d` (`examples`, `examples-compact`, `runner`, `runner-compact`, `demos`, `ui-primitives`) | 106 passed, 2 skipped, 2.4 min |
+| `@af-examples/story-2d` (phone, iPad) | 10 passed, 1.3 min (the phone flake did not occur) |
+| `@af-examples/story-3d` | not run: its web server does not start on `main` (known) |
+
+**No-eval.** The uniform sync is still needed, proved on this tree with a throw-away browser file (deleted): a `pixi.js` `Application` with a `View3D` and a lit cube, WebGL, importing only `pixi.js/unsafe-eval` draws **nothing** (centre pixel `0,0,0`) and throws `TypeError: functionMap[i] is not a function` from
+pixi's generated uniform sync; with `@automata/3d/no-eval` (the shim) the same file draws the cube (centre pixel `209,106,56`, no error). `pixi3d-uniform-sync.test.ts`, which pins the four parsers' source strings and the polyfill methods, and the no-eval allowlist test passed in the whole check; the base-3d, examples-3d and editor-3d journeys
+run with Ruken's no-eval CSP and fail on a violation. The shim stays.
+
+### Items 7 and 8
+
+**7. The remaining decisions.**
+- **4c samplers:** see above, they match; nothing to change. Recommendation: keep `addressMode: 'repeat'` and `scaleMode: 'nearest'` as they are.
+- **4d GPU culling by default:** no `cull` option is set at any of the four `View3D` sites, so every view culls on the GPU now where beta.2 drew a view of 300 meshes or fewer unculled. Nothing vanished in any suite, journey or frame (the figures are generated geometry, not skinned meshes; the one risk the notes name does not apply),
+  but software GL cannot tell whether `'gpu'` costs or saves on a small view and WebKit takes the CPU path. Recommendation: leave the default and let the Owner's real-GPU run (item 8) say; if a figure or a piece ever vanishes at the screen's edge the one-line answer is `cull: 'off'` at the four sites (`create-renderer.ts` twice, `editor-3d`'s `game-view.ts` and `stage-renderer.ts`).
+- **4e the size of the light and gamma change:** measured on a lamp-lit night room, painted figures, no fog (`frames/lit-night-room-beta2-vs-beta3.png`): mean luma 50.1 to 50.4, 3.3% of pixels differ (dither edges near the lamps). On the day room 55.4 to 55.7 (2.9%), the street 109.5 to 109.6 (1.1%). Small; **recommendation: accept**, no compensation.
+
+**8. This branch cannot merge until all four hold.** Where each stands:
+- **(a) The fold's first group is on main and the painter's view is ported here.** Not yet: `origin/main` (`80012fef`) has the fold's plan and audit only, not `extensions/figures`. Item 4 has the port list. 3 `character-kit` WebGPU cases fail until then.
+- **(b) The Owner decides the fog colour.** Frames are in `frames/`; recommendation: fog and sky `'authored'`, a lit moving thing's colour as beta.2 drew it (split `colour-look.ts` in two), and do not decide on `base-3d`'s fully fogged frame (see the stop above).
+- **(c) The Owner answers the grouped list** (item 6): one group is unexplained, the crates.
+- **(d) Cross-engine parity on the Owner's machine.** Chromium alone ran here. The exact commands (a machine with a real GPU, WebKit and Firefox installed: `pnpm exec playwright install chromium webkit firefox`), run one at a time, without `AF_WEBGPU` so WebGPU uses the real adapter:
+  1. `pnpm install --frozen-lockfile` and `node vendor/figure-builder/types.mjs` (with `vendor/FigureBuilder` at `23f889c8`).
+  2. Parity, every engine: `cd packages/3d && npx vitest run --project browser` (WebGL2 in Chromium, WebKit, Firefox), `cd extensions/character-kit && npx vitest run --project browser`, `cd extensions/world-kit && npx vitest run --project browser`, `cd extensions/lcd-panel && npx vitest run --project browser`, `cd extensions/retro-crisp && npx vitest run --project browser`, `cd packages/automata && npx vitest run --project browser` (the 2D layout contract, all engines).
+  3. WebGPU on the real adapter: `cd packages/3d && npx vitest run --project webgpu`, `cd extensions/world-kit && npx vitest run --project webgpu`, `cd extensions/character-kit && npx vitest run --project webgpu` (the last has 3 known failures until the fold's port).
+  4. Journeys in WebKit: `cd games/base-3d && npx playwright test --project base-3d-dev-webkit`, `cd examples/3d && npx playwright test --project examples-3d-webkit`, `cd games/emberwick && npx playwright test --project emberwick-phone-webkit --project emberwick-ipad-webkit`.
+  5. Then `pnpm ci:local` (the gate and both CI paths), and report which of these ran.
+
+### The whole `pnpm check` on the final tree
+
+Run on the tree at `c9cf169b` (the merge, before this session's code changes): exit 0 (item 1). **The code commits since (`e25da151`: the world-kit WGSL fix, the world-kit `webgpu` project, `@automata/3d`'s `look-compiles.test.ts` and `shader-compile.ts`) went through the pre-commit hook (biome, the affected unit tests: pass) but the whole `pnpm check` has not been run on the final tree: it is the first thing for the next session.**
+Also run on it: `typecheck` for `@automata/3d` and `@automata/world-kit`, `pnpm knip` and `pnpm style`: clean.
 
 ## Handoff at 90 minutes
 
