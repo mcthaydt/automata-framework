@@ -39,6 +39,23 @@ describe('the recorded cues', () => {
     for (const file of files) expect(existsSync(join(ROOT, 'public', file)), file).toBe(true)
   })
 
+  it('play at the level the old game scaled each file to (its `volume`, read at 92e6704)', () => {
+    const gains = Object.fromEntries(
+      (audio.cue ?? []).flatMap((cue) => (cue.sound === undefined ? [] : [[cue.id, cue.gain]])),
+    )
+    expect(gains).toEqual({
+      openingWard: 0.3,
+      cabinetOpen: 0.68,
+      lampsOut: 4,
+      pulseCounted: 3.63,
+      nurseSettle: 4,
+      nurseMoveOff: 4,
+      turnToSound: 4,
+      nurseSees: 4,
+      nurseBackOff: 4,
+    })
+  })
+
   it('have no voices of their own, so the file is all that plays', () => {
     for (const cue of audio.cue ?? []) if (cue.sound !== undefined) expect(cue.voices).toEqual([])
   })

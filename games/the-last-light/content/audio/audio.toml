@@ -1,7 +1,7 @@
 # The prologue's sound: which sound plays for what happens, and which music for the state of the night. It is the `audio` file
 # of @automata/audio-synth, which the Audio editor opens. The old game's own table (its events, cues and music rules at
-# 92e6704) is the specification; the recorded files below are its ElevenLabs effects, played as they were made (the old game
-# also scaled each by a gain, which a cue cannot carry yet, so a recorded cue plays at the file's own level).
+# 92e6704) is the specification; the recorded files below are its ElevenLabs effects, each at the gain the old game scaled it to
+# (its `volume`: the files were made at one level, and the old game set each against the others).
 #
 # The sim's events reach the rows by their type. The game gives the rows the old game's names for what the type alone cannot
 # say (`cutscene.<id>`, `agent.<who>.<mode>`, `noise.<kind>`, `use.<hotspot>`, `game.hide`): src/features/sound/sound-events.ts.
@@ -14,6 +14,7 @@ master_gain = 0.55
 id = "openingWard"
 about = "The opening bed: a monitor beeping slowly in a quiet ward at night."
 bus = "sfx"
+gain = 0.3
 voices = []
 sound = "sounds/opening-ward.ogg"
 
@@ -21,6 +22,7 @@ sound = "sounds/opening-ward.ogg"
 id = "cabinetOpen"
 about = "The cabinet opening: a lock clicks and a steel door swings."
 bus = "sfx"
+gain = 0.68
 voices = []
 sound = "sounds/cabinet-open.ogg"
 
@@ -28,6 +30,7 @@ sound = "sounds/cabinet-open.ogg"
 id = "lampsOut"
 about = "The lamps going out one by one, and the hush before 04:17."
 bus = "sfx"
+gain = 4
 voices = []
 sound = "sounds/lamps-out.ogg"
 
@@ -35,6 +38,7 @@ sound = "sounds/lamps-out.ogg"
 id = "pulseCounted"
 about = "A held breath, and a pulse being counted: the practice catch."
 bus = "sfx"
+gain = 3.63
 voices = []
 sound = "sounds/pulse-counted.ogg"
 
@@ -42,6 +46,7 @@ sound = "sounds/pulse-counted.ogg"
 id = "nurseSettle"
 about = "The figure settling: starched cotton, and a chair taking her weight."
 bus = "sfx"
+gain = 4
 voices = []
 sound = "sounds/nurse-settle.ogg"
 
@@ -49,6 +54,7 @@ sound = "sounds/nurse-settle.ogg"
 id = "nurseMoveOff"
 about = "The figure moving off: soft soles going away down the linoleum."
 bus = "sfx"
+gain = 4
 voices = []
 sound = "sounds/nurse-move-off.ogg"
 
@@ -56,6 +62,7 @@ sound = "sounds/nurse-move-off.ogg"
 id = "turnToSound"
 about = "The figure turning toward a sound: a shoe pivots on the floor, then stillness."
 bus = "sfx"
+gain = 4
 voices = []
 sound = "sounds/turn-to-sound.ogg"
 
@@ -63,6 +70,7 @@ sound = "sounds/turn-to-sound.ogg"
 id = "nurseSees"
 about = "The figure seeing Ada: a sharp fabric snap and quick steps starting, never a voice."
 bus = "sfx"
+gain = 4
 voices = []
 sound = "sounds/nurse-sees.ogg"
 
@@ -70,6 +78,7 @@ sound = "sounds/nurse-sees.ogg"
 id = "nurseBackOff"
 about = "The figure backing from the light: hurried steps going back, cloth swishing."
 bus = "sfx"
+gain = 4
 voices = []
 sound = "sounds/nurse-back-off.ogg"
 
