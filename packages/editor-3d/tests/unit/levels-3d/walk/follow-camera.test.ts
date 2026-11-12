@@ -37,6 +37,11 @@ describe('followCamera', () => {
     expect(camera.fov).not.toBe(ORBIT_FOV)
   })
 
+  it('looks through a view\u2019s own lens when it names one, as the game does', () => {
+    const camera = followCamera(cameraView('view', { lensMm: 77 }), MIDDLE, 0)
+    expect(camera.fov / DEGREES).toBeCloseTo(fovOf(77), 9)
+  })
+
   it('looks at the focus, which is the followed position raised by the focus height, from the distance', () => {
     const spec = cameraView('view', { distance: 8, focusHeight: 1.5, tiltDeg: 40 })
     const followed: Vec3 = [10, 2, -3]

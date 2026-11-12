@@ -56,6 +56,12 @@ function followShot(view: CameraView, followed: Vec3, aspect: number, from: Vec3
     z = followed.z - dz * keep
   }
   const y = view.look?.[1] ?? followed.y + view.focusHeight
+  // A focus box holds the look inside the room however far the player walks (a long lens shows a narrow slice of it).
+  const box = view.focusBounds
+  if (box !== undefined) {
+    x = clamp(x, box.min[0], box.max[0])
+    z = clamp(z, box.min[1], box.max[1])
+  }
   return { look: { x, y, z }, offset: scaled(presetOffset(view, 0), portraitPullback(aspect)) }
 }
 

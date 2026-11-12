@@ -3,7 +3,8 @@
 // only (law 1): it reads interpolated positions and the sim's heading and writes only the `Camera3D` it is given.
 //
 // The rules, each in `play-camera.ts` and tested there and here:
-// - a 50 mm lens (`LENS_MM`) and a 30° home tilt, in every view; the lens never changes;
+// - a 50 mm lens (`LENS_MM`) and a 30° home tilt, in every view unless a view names its own lens (`lensMm`); the lens never changes
+//   while a view is held;
 // - it follows the player: the look trails them outside a small dead zone, and a fixed zone (`follow` below 1) holds its
 //   authored shot and pans a little inside its bounds. The eye and the look ease with a time constant of the view's
 //   `lag` (1/7 s), so the camera never turns while it catches up;
@@ -30,6 +31,10 @@ import type { CameraView } from './sim/camera-view.schema.ts'
 
 /** How fast the camera turns to the sim's heading: this share of the gap a second (clamped to the whole gap). */
 const HEADING_RATE = 10
+/** How fast a lead eases in and out: the time constant in seconds (about the follow's own lag, but slower, so a stop does not swing the view back). */
+const LEAD_EASE = 0.5
+/** A player slower than this (m/s) is standing: no lead. */
+const STANDING = 0.2
 /** A 180 px tall frame, the base game's: how many pixels a shake of one pixel moves the picture, unless told otherwise. */
 const DEFAULT_VIEWPORT_HEIGHT = 180
 
@@ -106,6 +111,7 @@ export interface AngledCameraOptions {
 interface Written {
   eye: Vec3
   look: Vec3
+  fov: number
 }
 
 const sub = (a: Vec3, b: Vec3): Vec3 => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z })
@@ -125,12 +131,13 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
   const viewportHeight = options.viewportHeight ?? (() => DEFAULT_VIEWPORT_HEIGHT)
   const isReduced = options.reducedMotion ?? (() => prefersReducedMotion())
   const warn = options.warn ?? ((message: string) => console.warn(`[automata-3d] ${message}`))
-  const fov = fovOf(LENS_MM)
+  /** The vertical field of view of `view`'s lens: its own, else the game's 50 mm. */
+  const fovOfView = (view: CameraView | undefined): number => fovOf(view?.lensMm ?? LENS_MM)
 
   // The brain: a cut is the only blend there is, because the shot is eased before it reaches klipp.
   const klipp = new Klipp({ defaultBlend: { curve: BlendCurves.cut, time: 0 } })
-  const written: Written = { eye: { x: 0, y: 0, z: 0 }, look: { x: 0, y: 0, z: 1 } }
-  const play = new VirtualCamera('play', { priority: 1, initialState: { fov } })
+  const written: Written = { eye: { x: 0, y: 0, z: 0 }, look: { x: 0, y: 0, z: 1 }, fov: fovOf(LENS_MM) }
+  const play = new VirtualCamera('play', { priority: 1, initialState: { fov: fovOf(LENS_MM) } })
   play.body = {
     update(out) {
       out.position[0] = written.eye.x
@@ -140,7 +147,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       out.lookAtTarget[1] = written.look.y
       out.lookAtTarget[2] = written.look.z
       out.hasLookAtTarget = true
-      out.fov = fov
+      out.fov = written.fov
     },
   }
   klipp.add(play)
@@ -150,6 +157,9 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
   const warned = new Set<string>()
 
   let followed: Vec3 | undefined
+  // The lead: where the player was last frame (to read her velocity), and the lead the look has now, on the floor.
+  let walkedFrom: Vec3 | undefined
+  let lead = { x: 0, z: 0 }
   let lock: Vec3 | undefined
   let headingTarget = 0
   let azimuth = 0
@@ -214,6 +224,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
     update(frameSeconds) {
       if (followed === undefined || active === undefined) return
       const view = active
+      const fov = fovOfView(view)
       const reduced = isReduced()
       // A cut or reduce motion puts the pose where it belongs this frame; only a cut also drops the dead zone's held look.
       const snap = snapping || reduced
@@ -221,7 +232,18 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       const frameAspect = aspect()
 
       // Lock-on: the player's focus leaned toward the target, kept in the middle third, as a followed position.
-      let tracked = player
+      // The lead: the way she walked since the last frame, eased, as far as the view says; none on a snap.
+      const reach = view.lead ?? 0
+      if (reach <= 0 || snap || walkedFrom === undefined || frameSeconds <= 0) lead = { x: 0, z: 0 }
+      else {
+        const step = Math.hypot(player.x - walkedFrom.x, player.z - walkedFrom.z)
+        const along = step / frameSeconds > STANDING ? reach / step : 0
+        const want = { x: (player.x - walkedFrom.x) * along, z: (player.z - walkedFrom.z) * along }
+        const k = 1 - Math.exp(-frameSeconds / LEAD_EASE)
+        lead = { x: lead.x + (want.x - lead.x) * k, z: lead.z + (want.z - lead.z) * k }
+      }
+      walkedFrom = player
+      let tracked = reach > 0 ? { x: player.x + lead.x, y: player.y, z: player.z + lead.z } : player
       if (lock !== undefined) {
         const focus = framedFocus({ player, lock, view, headingDeg: azimuth, aspect: frameAspect })
         tracked = { x: focus.x, y: focus.y - view.focusHeight, z: focus.z }
@@ -277,6 +299,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       snapping = false
       written.eye = eye
       written.look = look
+      written.fov = fov
       klipp.update(frameSeconds)
       const { position, lookAtTarget } = klipp.shot
       camera.fov = klipp.shot.fov

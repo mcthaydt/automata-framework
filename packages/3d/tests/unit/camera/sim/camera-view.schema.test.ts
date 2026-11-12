@@ -91,7 +91,11 @@ describe('camera-view', () => {
   )
 
   it('has the ranges of the rules: tilt 25° to 40°, distance 3 m to 20 m (16 to 17 m is a real zone)', () => {
-    expect(CAMERA_RANGES).toEqual({ tiltDeg: { min: 25, max: 40 }, distance: { min: 3, max: 20 } })
+    expect(CAMERA_RANGES).toEqual({
+      tiltDeg: { min: 25, max: 40 },
+      distance: { min: 3, max: 20 },
+      lensMm: { min: 24, max: 200 },
+    })
     expect(cameraViewSchema.safeParse({ distance: 16.6 }).success).toBe(true)
   })
 
@@ -118,5 +122,26 @@ describe('camera-view', () => {
   it('cameraView names a view: its id is the file’s name, the rest the file’s fields with defaults', () => {
     expect(cameraView('hall', { distance: 7 })).toEqual({ id: 'hall', ...CAMERA_DEFAULTS, distance: 7 })
     expect(() => cameraView('hall', { distance: 99 })).toThrow()
+  })
+  it('keeps a view\u2019s own lens, in millimetres, and has none unless it is given one', () => {
+    expect(cameraViewSchema.parse({}).lensMm).toBeUndefined()
+    expect(cameraViewSchema.parse({ lensMm: 85 }).lensMm).toBe(85)
+    expect(CAMERA_RANGES.lensMm).toEqual({ min: 24, max: 200 })
+  })
+
+  it('refuses a lens outside 24 to 200 mm, never clamping it', () => {
+    expect(() => cameraViewSchema.parse({ lensMm: 20 })).toThrow()
+    expect(() => cameraViewSchema.parse({ lensMm: 250 })).toThrow()
+  })
+  it('keeps a locked-on view\u2019s focus box, a rectangle on the floor, and refuses one that is turned inside out', () => {
+    const given = { focusBounds: { min: [-2, -1], max: [3, 4] } }
+    expect(cameraViewSchema.parse(given).focusBounds).toEqual(given.focusBounds)
+    expect(cameraViewSchema.parse({}).focusBounds).toBeUndefined()
+    expect(() => cameraViewSchema.parse({ focusBounds: { min: [3, 0], max: [2, 4] } })).toThrow()
+  })
+  it('keeps a view\u2019s lead, in metres, and has none unless it is given one; a negative lead is refused', () => {
+    expect(cameraViewSchema.parse({}).lead).toBeUndefined()
+    expect(cameraViewSchema.parse({ lead: 1.5 }).lead).toBe(1.5)
+    expect(() => cameraViewSchema.parse({ lead: -1 })).toThrow()
   })
 })

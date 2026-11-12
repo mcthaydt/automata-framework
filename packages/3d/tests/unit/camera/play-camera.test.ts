@@ -30,6 +30,43 @@ const near = (a: number, b: number, digits = 6) => expect(a).toBeCloseTo(b, digi
 const feet = (x: number, z: number, y = 0) => ({ x, y, z })
 const horizontal = (shot: Shot) => Math.hypot(shot.offset.x, shot.offset.z)
 
+describe('a locked-on view with a focus box', () => {
+  const boxed = cameraView('boxed', { focusBounds: { min: [-2, 0], max: [3, 4] } })
+
+  it('keeps the look inside the box on the floor, the player’s place however far out', () => {
+    for (const [x, z, lx, lz] of [
+      [10, 2, 3, 2],
+      [-10, 2, -2, 2],
+      [1, 20, 1, 4],
+      [1, -20, 1, 0],
+      [-9, 9, -2, 4],
+    ] as const) {
+      const look = zoneShot(boxed, feet(x, z), LANDSCAPE, FOV).look
+      expect([look.x, look.z]).toEqual([lx, lz])
+    }
+  })
+
+  it('leaves the look on the player inside the box, and the focus height as it was', () => {
+    expect(zoneShot(boxed, feet(1, 2, 2.5), LANDSCAPE, FOV).look).toEqual({ x: 1, y: 3.5, z: 2 })
+  })
+
+  it('clamps the look it trails at as well: held at the edge, a player far out leaves it there', () => {
+    const look = zoneShot(boxed, feet(40, 2), LANDSCAPE, FOV, { x: 3, y: 1, z: 2 }).look
+    expect(look.x).toBe(3)
+  })
+
+  it('does nothing to a view without one, or to a fixed zone (which has its bounds)', () => {
+    expect(zoneShot(follow, feet(40, 40), LANDSCAPE, FOV).look).toEqual({ x: 40, y: 1, z: 40 })
+    const fixed = cameraView('fixed', {
+      look: [0, 1, 0],
+      follow: 0.5,
+      focusBounds: { min: [-1, -1], max: [1, 1] },
+      bounds: BOX,
+    })
+    near(zoneShot(fixed, feet(60, 0), LANDSCAPE, FOV).look.x, 2)
+  })
+})
+
 describe('the follow shot (follow ≥ 1)', () => {
   it('looks at the player’s focus, 30° down from 16 m behind', () => {
     const shot = zoneShot(follow, feet(2, 3), LANDSCAPE, FOV)

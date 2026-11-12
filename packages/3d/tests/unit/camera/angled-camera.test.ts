@@ -84,6 +84,17 @@ describe('angledCamera: the default gameplay camera', () => {
     expect(camera.fov).toBe(fovOf(50))
   })
 
+  it('takes a view\u2019s own lens when it names one, and the 50 mm of every other view otherwise', () => {
+    const tele = cameraView('tele', { lensMm: 77 })
+    const { camera, rig: r } = rig({ views: [tele, hall] })
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    expect(camera.fov).toBeCloseTo(fovOf(77), 6)
+    r.activate('hall', 'cut')
+    r.update(FRAME)
+    expect(camera.fov).toBeCloseTo(fovOf(50), 6)
+  })
+
   it('stands 30° down and 16 m back from a focus 1 m above the player, looking at it', () => {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
@@ -99,6 +110,67 @@ describe('angledCamera: the default gameplay camera', () => {
     r.follow(1, 2.5, 1)
     r.update(FRAME)
     expectNear(positionOf(camera), homeEye({ x: 1, y: 3.5, z: 1 }))
+  })
+})
+
+describe('a view with a focus box', () => {
+  it('holds the look inside the box while the player walks out of it, and trails her inside', () => {
+    const boxed = cameraView('boxed', { focusBounds: { min: [-2, -3], max: [2, 3] } })
+    const { rig: r } = rig({ views: [boxed] })
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    for (const x of [1, 5, 40]) {
+      r.follow(x, 0, 0)
+      for (let i = 0; i < 120; i++) r.update(FRAME)
+    }
+    expect(r.pose()?.look.x).toBeCloseTo(2, 3)
+    expect(r.pose()?.player.x).toBe(40)
+    r.follow(-1, 0, 0)
+    for (let i = 0; i < 240; i++) r.update(FRAME)
+    expect(r.pose()?.look.x).toBeCloseTo(-0.7, 1)
+  })
+})
+
+describe('a view that looks ahead', () => {
+  /** The rig after the player walks `metres` along +x at 3 m a second, one display frame at a time. */
+  function walked(view: CameraView, metres: number) {
+    const { rig: r } = rig({ views: [view] })
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    const steps = Math.round((metres / 3) * 60)
+    for (let i = 1; i <= steps; i++) {
+      r.follow((3 * i) / 60, 0, 0)
+      r.update(FRAME)
+    }
+    return r
+  }
+
+  it('leads the look ahead of a walking player by the view’s lead, in the direction she walks', () => {
+    // Against the same walk with no lead (the look trails her by the follow's ease and dead zone), the look is the lead further on.
+    const plain = walked(cameraView('plain'), 9).pose()
+    const ahead = walked(cameraView('ahead', { lead: 1.5 }), 9).pose()
+    expect((ahead?.look.x ?? 0) - (plain?.look.x ?? 0)).toBeGreaterThan(1.3)
+    expect((ahead?.look.x ?? 0) - (ahead?.player.x ?? 0)).toBeGreaterThan(0)
+    expect(ahead?.look.z).toBeCloseTo(0, 1)
+  })
+
+  it('does not look ahead of a player who is standing, and comes back to her when she stops', () => {
+    const r = walked(cameraView('ahead', { lead: 1.5 }), 9)
+    const player = r.pose()?.player.x ?? 0
+    for (let i = 0; i < 360; i++) r.update(FRAME)
+    expect(Math.abs((r.pose()?.look.x ?? 0) - player)).toBeLessThan(0.4)
+  })
+
+  it('looks ahead of nothing in a view without a lead', () => {
+    // It trails her instead: the follow's ease and its dead zone leave the look behind a walking player.
+    const r = walked(cameraView('plain'), 9)
+    const pose = r.pose()
+    expect((pose?.look.x ?? 0) - (pose?.player.x ?? 0)).toBeLessThan(0)
+  })
+
+  it('stays inside the view’s focus box however far it leads', () => {
+    const r = walked(cameraView('boxed', { lead: 3, focusBounds: { min: [-1, -1], max: [2, 1] } }), 9)
+    expect(r.pose()?.look.x).toBeLessThanOrEqual(2)
   })
 })
 
