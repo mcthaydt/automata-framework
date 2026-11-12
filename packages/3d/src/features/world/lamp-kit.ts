@@ -1,7 +1,7 @@
 // The lamp kit: a lamp names a kind, and the kind sets its colour, how far it reaches and how bright it may get. A lamp
 // may carry its own colour (a lamp is rarely the exact white of its kind) but only within `tone` of the kind's in OKLab,
 // so one level's lamps read as one set of lights; a neon is a coloured glow (a tube, a screen, a headlight), so it may
-// be any colour. The bands cover The Last Light's archetypes (its pendant reaches 9 m, and `fire`, `gas`, `screen` and `spark` are
+// be any colour. The bands cover a reference game's archetypes (its pendant reaches 9 m, and `fire`, `gas`, `screen` and `spark` are
 // kinds here); every kind is steady, a lamp that flickers is moved by the game through its `level`. The rest of that file's look is the renderer's (`shared/render/light`). Changed: a bad lamp is a
 // `LevelProblem`-shaped fault the builder reports, not a throw.
 

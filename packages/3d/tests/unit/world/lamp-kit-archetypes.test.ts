@@ -1,4 +1,4 @@
-// The lamp kit covers The Last Light's lamps. The old game's archetypes are copied here as it had them (`src/render/look.ts`
+// The lamp kit covers a reference game's lamps. The old game's archetypes are copied here as it had them (`src/render/look.ts`
 // at `92e6704`: `ARCHETYPES`), the kit as it was before the bands were widened is copied beside them, and the kit now:
 // - accepts a lamp of each old archetype at its old colour, its old reach (the ends of its band, not clamped) and its old level;
 // - gives every lamp the kit accepted before the same light: the same colour, level and, left to the kit, the same range.
