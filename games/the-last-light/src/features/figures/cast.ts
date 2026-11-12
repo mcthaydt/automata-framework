@@ -25,7 +25,7 @@ export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest
  * cropped above tan ankle boots, her auburn chin-length bob with a fringe that ends over the brow.
  *
  * She is the painter's base woman with only what makes her Ada changed (the Owner, 2026-11-12: the characters look like the painter's
- * own faces at density 2): her skin, her hair, her clothes, and a bolder brow (weight .75) and fuller lips; her eyes are the base woman's own (crease, hood, liner). Her body sliders are the
+ * own faces at density 2): her skin, her hair, her clothes, and a bolder brow (weight .75) and fuller lips; her eyes are the base woman's own (crease, hood, liner). Her head is larger (about five heads tall, the Owner's "go with what looks the best"). Her body sliders are the
  * base woman's, slimmed a little (less fat and chunk, narrower hips, thinner arms); nothing is pushed by an earlier round. Her bob is the painter's own `bobFringe`: a chin-length dome whose fringe stops a texel over the brow, so her brows and eyes show.
  */
 export const ADA: CharacterDef = {
@@ -42,7 +42,9 @@ export const ADA: CharacterDef = {
     shoulders: 0.3,
     hips: 0.55, // the base's 0.65
     arms: 0.3, // the base's 0.35
-    head: 1.25, // the base's 1.15: a face two rows taller at density 2, so the lower lip has its second row and no catch-light sits under the mouth like a tongue
+    // The base's 1.15. About five heads tall (the old game's and the ad's stylisation), shot in play against seven and six heads: her face
+    // reads largest at five (2.05: at 2 the chin's catch-light sits under the lip again), her body still a slim adult's, and the lower lip keeps its second row.
+    head: 2.05,
     chunk: 0.6, // the base's 0.85
     legs: 0.5,
     posture: 0.75,

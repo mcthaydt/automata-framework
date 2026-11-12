@@ -139,7 +139,9 @@ function faceAt2(def: typeof ADA) {
   const [w, h] = cell.size
   // The head's rows only: the DUEL palette shares colours between swatches (a lip's is a boot's), so the face is read where only a face is.
   const top = rowWidths(cell).findIndex((width) => width > 0)
-  const bottom = top + 27
+  // The head with its hair and three rows more, so the window follows the head's own size (24 + 3 rows at six heads tall).
+  const headRows = proportions(def, 2).headRowsWithHair
+  const bottom = top + headRows + 3
   const is = (x: number, y: number, swatch: string): boolean => {
     if (x < 0 || y < top || x >= w || y >= bottom) return false
     const i = y * w + x
@@ -155,8 +157,11 @@ function faceAt2(def: typeof ADA) {
       for (let x = 0; x < w; x++) if (is(x, y, swatch)) found.push([x, y])
     return found
   }
-  return { cell, is, skin, all }
+  return { cell, is, skin, all, headRows }
 }
+
+/** A row of the head, as a share of its rows with the hair (`at` 19 rows of 24 is 19 / 24), so the windows follow the head's size. */
+const rowAt = (headRows: number, share: number): number => Math.round(headRows * share)
 
 describe('Ada', () => {
   it('is Ada Voss, brisk, in the street clothes the prologue puts her in, a little under 1.6 m', () => {
@@ -176,7 +181,8 @@ describe('Ada', () => {
   it('has the painter’s clean slim build: each body slider within 0.3 of the base woman’s, no body slider pushed by an earlier round', () => {
     const base = (BASE[1] as { def: CharacterDef }).def.sliders as Record<string, unknown>
     for (const [key, value] of Object.entries(ADA.sliders as Record<string, unknown>)) {
-      if (typeof value !== 'number' || key === 'height') continue
+      // Her height is her canon's, and her head is her build: about five heads tall, chosen in play (the five-heads test below).
+      if (typeof value !== 'number' || key === 'height' || key === 'head') continue
       expect(Math.abs(value - Number(base[key])), key).toBeLessThanOrEqual(0.3)
     }
     expect(ADA.genes).toBeUndefined()
@@ -188,6 +194,16 @@ describe('Ada', () => {
     expect(p.height).toBeGreaterThanOrEqual(woman.height - 12)
     expect(p.height).toBeLessThanOrEqual(woman.height)
     expect(p.legRows / p.height).toBeLessThanOrEqual(0.52)
+  })
+
+  it('is about five heads tall at density 2, with a head no smaller than the six-head build’s 20 by 18 texels (the Owner, 2026-11-12: “go with what looks the best”)', () => {
+    // Shot in play at 7, 6 and 5 heads (`docs/superpowers/audits/2026-11-12-last-light-ada-frames/item2-*`): at 5 her face reads largest
+    // and her body is still a slim adult's. A texel is fixed on screen in play, so the head's texels are its size on screen.
+    const p = proportions(ADA, 2)
+    expect(p.heads).toBeGreaterThanOrEqual(4.6)
+    expect(p.heads).toBeLessThanOrEqual(5.1)
+    expect(p.headRows).toBeGreaterThanOrEqual(25)
+    expect(p.headWidth).toBeGreaterThanOrEqual(22)
   })
 
   it('walks the old brisk walk whole, with the arms close to her body', () => {
@@ -307,7 +323,7 @@ describe('the painted frame shows what they wear', () => {
   })
 
   it('draws Ada’s eyes with their whites beside a dark iris, under a dark lid', () => {
-    const { cell, is } = faceAt2(ADA)
+    const { cell, is, headRows } = faceAt2(ADA)
     const [w] = cell.size
     const top = rowWidths(cell).findIndex((width) => width > 0)
     const light = (x: number, y: number): boolean => {
@@ -317,7 +333,7 @@ describe('the painted frame shows what they wear', () => {
     const iris = (x: number, y: number): boolean => is(x, y, 'eyeBrown')
     let whites = 0
     let lidded = 0
-    for (let y = top + 8; y < top + 24; y++)
+    for (let y = top + rowAt(headRows, 8 / 24); y < top + headRows; y++)
       for (let x = 40; x < 90; x++)
         if (light(x, y) && (iris(x - 1, y) || iris(x + 1, y))) {
           whites++
@@ -336,18 +352,18 @@ describe('the painted frame shows what they wear', () => {
   })
 
   it('draws Ada a mouth: lips of at least four texels in the middle of her face, below her eyes', () => {
-    const { cell, is } = faceAt2(ADA)
+    const { cell, is, headRows } = faceAt2(ADA)
     const [w] = cell.size
     const top = rowWidths(cell).findIndex((width) => width > 0)
     let lips = 0
-    // The eyes are about 17 rows under the crown; the mouth's rows are below them and the lips are in the middle, clear of the hair at the sides.
-    for (let y = top + 19; y < top + 27; y++)
+    // The eyes are about 17 rows of 24 under the crown; the mouth's rows are below them and the lips are in the middle, clear of the hair at the sides.
+    for (let y = top + rowAt(headRows, 19 / 24); y < top + headRows + 3; y++)
       for (let x = Math.round(w / 2) - 5; x <= Math.round(w / 2) + 5; x++) if (is(x, y, 'lipsAda')) lips++
     expect(lips).toBeGreaterThanOrEqual(4)
   })
 
   it('draws the mouth in two rows and two tones, as the painter’s reference does: a darker upper lip row over a lit lower lip row of the same width', () => {
-    const { cell } = faceAt2(ADA)
+    const { cell, headRows } = faceAt2(ADA)
     const [w] = cell.size
     const top = rowWidths(cell).findIndex((width) => width > 0)
     const [upper, lower] = ((ADA.swatches?.lipsAda?.paint ?? []) as readonly string[]).map((hex) =>
@@ -356,7 +372,7 @@ describe('the painted frame shows what they wear', () => {
     const at = (x: number, y: number, c: number[]) =>
       c.every((v, k) => cell.painted[(y * w + x) * 4 + k] === v)
     let rows: [number, number] | undefined
-    for (let y = top + 19; y < top + 27 && !rows; y++) {
+    for (let y = top + rowAt(headRows, 19 / 24); y < top + headRows + 3 && !rows; y++) {
       const xs = [...Array(w).keys()].filter((x) => at(x, y, upper))
       const same = xs.filter((x) => at(x, y + 1, lower))
       if (xs.length >= 2 && same.length >= xs.length) rows = [xs.length, same.length]
