@@ -193,6 +193,9 @@ to = true
 give = "supplyKey"
 
 [[actions.then]]
+cutscene = "keypad"
+
+[[actions.then]]
 checkpoint = true
 
 [[actions]]

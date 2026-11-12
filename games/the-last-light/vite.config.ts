@@ -1,6 +1,8 @@
 import { fileURLToPath } from 'node:url'
+import { audioContent } from '@automata/audio-synth'
 import { automataContent } from '@automata/content/vite'
 import { cutsceneContent } from '@automata/cutscenes/content'
+import { hudContent } from '@automata/hud/content'
 import {
   beatsContent,
   canonContent,
@@ -11,6 +13,7 @@ import {
 import { navGraphContent } from '@automata/nav'
 import { puzzleContent } from '@automata/puzzle'
 import { systemsContent } from '@automata/systems'
+import { carriedLightContent, peekContent } from '@automata/systems/sim'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
 
@@ -41,6 +44,12 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
       // are answered by the night feature (task 12).
       puzzleContent({ calls: ['read', 'fill'], extensions: ['systems', 'narrative', 'cutscenes'] }),
       systemsContent({ hooks: ['caught', 'replan', 'stop', 'leave', 'wake', 'vigil'] }),
+      // The hand lamp's and the peek's numbers, the play HUD's file and the sound: each is a file a person edits, and a file of a
+      // kind nobody registered is skipped without a word.
+      carriedLightContent,
+      peekContent,
+      hudContent,
+      audioContent,
     ],
   })
 }

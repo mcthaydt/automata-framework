@@ -80,3 +80,15 @@ describe('Ada standing', () => {
     expect(game.sim.resource(SystemsEnv).moving).toBe(true)
   })
 })
+
+describe('Ada in a cutscene', () => {
+  it('does not walk while a cutscene holds the input, and walks again when it ends', async () => {
+    const game = await boot(1, undefined, { opening: true })
+    const from = game.ada()
+    game.hold(1, UP)
+    expect(game.ada()).toEqual(from)
+    game.send([{ type: 'cutscene.skip', payload: {} }])
+    game.hold(1, UP)
+    expect(game.ada()).not.toEqual(from)
+  })
+})

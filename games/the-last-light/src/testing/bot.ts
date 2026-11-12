@@ -3,6 +3,7 @@
 // into the sim), so a run is a replay of a person's. Tests and tools only.
 import { CutsceneStarted, CutsceneState } from '@automata/cutscenes/sim'
 import { InteractRefused, InteractUsed } from '@automata/interact/sim'
+import type { SimEvent } from '@automata/sim'
 import { boot, type Game } from './harness.ts'
 
 /** One thing the bot does. */
@@ -23,6 +24,8 @@ export interface BotResult {
   readonly hash: string
   /** How many times the figure's touch found Ada and `found` played (a touch while a cutscene holds input is not one). */
   readonly caught: number
+  /** Every event the sim made on the way, in order (what the sound rows must answer). */
+  readonly events: readonly SimEvent[]
   /** What stopped it, when it did not finish. */
   readonly stuck?: string
 }
@@ -91,6 +94,7 @@ export async function playRoute(route: readonly BotStep[], seed = 1): Promise<Bo
     ticks: game.sim.tick,
     hash: game.sim.hash(),
     caught,
+    events: [...game.log],
     ...(stuck === undefined ? {} : { stuck }),
   }
   game.dispose()

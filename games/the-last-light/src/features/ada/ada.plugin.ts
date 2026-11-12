@@ -1,7 +1,7 @@
 import { CameraHeading, enterView, START as START_HEADING } from '@automata/3d/sim'
 import { NavAgent } from '@automata/nav/sim'
 import { InSector } from '@automata/sectors/sim'
-import { definePlugin, type PluginDef, type Sim } from '@automata/sim'
+import { definePlugin, type PluginDef, type Sim, type SimContext } from '@automata/sim'
 import { atan2 } from '@automata/sim/math'
 import { SystemsEnv } from '@automata/systems/sim'
 import { Ada } from '../../shared/ada.component.ts'
@@ -10,12 +10,16 @@ import type { Start } from '../../shared/play-content.ts'
 import { Move } from './move.command.ts'
 import { face, walk } from './walk.system.ts'
 
-/** Ada's part of the sim: the stick and her facing. It needs the camera's heading, the sectors, nav and the systems. */
-export const adaPlugin: PluginDef = definePlugin({
-  name: 'ada',
-  dependsOn: ['camera-heading', 'sectors', 'nav', 'systems'],
-  defs: [Ada, Move, walk, face],
-})
+/**
+ * Ada's part of the sim: the stick and her facing. It needs the camera's heading, the sectors, nav and the systems. `locked`
+ * says a cutscene holds the input (`cutscenes.locked`).
+ */
+export const adaPlugin = (locked: (ctx: SimContext) => boolean): PluginDef =>
+  definePlugin({
+    name: 'ada',
+    dependsOn: ['camera-heading', 'sectors', 'nav', 'systems'],
+    defs: [Ada, Move, walk(locked), face],
+  })
 
 /** The speed a tap walks her at: the stick's full push (`WALK_SPEED`), so a tapped walk and a held one match. */
 export function spawnAda(sim: Sim, start: Start, speed: number): void {

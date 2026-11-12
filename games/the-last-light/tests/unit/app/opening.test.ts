@@ -1,0 +1,29 @@
+import { CutsceneEnded, CutsceneStarted, CutsceneState } from '@automata/cutscenes/sim'
+import { describe, expect, it } from 'vitest'
+import { boot } from '#src/testing/harness.ts'
+
+// The prologue opens on the opening cutscene, as the old game's begin did: it starts on the first tick in the sim (a
+// cutscene holds the input, which is game state), plays its 17 seconds and hands Ada the stick; a player may skip it.
+
+describe('the opening', () => {
+  it('starts on the first tick and holds the input', async () => {
+    const game = await boot(1, undefined, { opening: true })
+    expect(game.events(CutsceneStarted)).toEqual([expect.objectContaining({ id: 'opening' })])
+    expect(game.sim.resource(CutsceneState).id).toBe('opening')
+  })
+
+  it('ends by itself after its seventeen seconds', async () => {
+    const game = await boot(1, undefined, { opening: true })
+    game.hold(16)
+    expect(game.sim.resource(CutsceneState).id).toBe('opening')
+    game.hold(2)
+    expect(game.sim.resource(CutsceneState).id).toBeNull()
+    expect(game.events(CutsceneEnded)).toEqual([expect.objectContaining({ id: 'opening', skipped: false })])
+  })
+
+  it('can be skipped, and boots skipped unless a test asks for it', async () => {
+    const skipped = await boot()
+    expect(skipped.sim.resource(CutsceneState).id).toBeNull()
+    expect(skipped.events(CutsceneEnded)).toEqual([expect.objectContaining({ id: 'opening', skipped: true })])
+  })
+})

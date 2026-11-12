@@ -1,6 +1,7 @@
 // A running game with no screen, for tests and the bot: the sim on the game's own content, and the commands a player's
 // input sends (the stick, a tap on a hotspot, combining two items, the lamp's switch, a keypad's code). Tests and tools only.
 import { content } from 'virtual:automata/content'
+import { CutsceneSkip } from '@automata/cutscenes/sim'
 import { useCommands } from '@automata/interact'
 import { Combine, EnterCode, type Hotspot, Use } from '@automata/interact/sim'
 import { PuzzleSaid, PuzzleState } from '@automata/puzzle/sim'
@@ -42,8 +43,15 @@ export interface Game {
 const ALIVE: Sim[] = []
 const MOST_ALIVE = 8
 
-/** The game booted, Ada at the spawn, the first tick stepped (the scene loads on it). */
-export async function boot(seed = 1, play: PlayContent = playOf(content)): Promise<Game> {
+/**
+ * The game booted, Ada at the spawn, the first tick stepped (the scene loads on it, and the opening cutscene starts). A test
+ * that is not about the opening skips it, as a player may; `opening: true` keeps it.
+ */
+export async function boot(
+  seed = 1,
+  play: PlayContent = playOf(content),
+  options: { readonly opening?: boolean } = {},
+): Promise<Game> {
   const sim = await createGameSim(play, seed)
   ALIVE.push(sim)
   while (ALIVE.length > MOST_ALIVE) (ALIVE.shift() as Sim).dispose()
@@ -54,6 +62,7 @@ export async function boot(seed = 1, play: PlayContent = playOf(content)): Promi
     return result.events
   }
   send([])
+  if (options.opening !== true) send([{ type: CutsceneSkip.id, payload: {} }])
   const adaEntity = () => {
     const [ada] = sim.query(Ada, InSector)
     if (ada === undefined) throw new Error('the sim has no Ada')

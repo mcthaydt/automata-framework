@@ -1,0 +1,482 @@
+# The prologue's sound: which sound plays for what happens, and which music for the state of the night. It is the `audio` file
+# of @automata/audio-synth, which the Audio editor opens. The old game's own table (its events, cues and music rules at
+# 92e6704) is the specification; the recorded files below are its ElevenLabs effects, played as they were made (the old game
+# also scaled each by a gain, which a cue cannot carry yet, so a recorded cue plays at the file's own level).
+#
+# The sim's events reach the rows by their type. The game gives the rows the old game's names for what the type alone cannot
+# say (`cutscene.<id>`, `agent.<who>.<mode>`, `noise.<kind>`, `use.<hotspot>`, `game.hide`): src/features/sound/sound-events.ts.
+
+master_gain = 0.55
+
+# ---- Cues: the nine recorded effects -------------------------------------------------------------------------------------
+
+[[cue]]
+id = "openingWard"
+about = "The opening bed: a monitor beeping slowly in a quiet ward at night."
+bus = "sfx"
+voices = []
+sound = "sounds/opening-ward.ogg"
+
+[[cue]]
+id = "cabinetOpen"
+about = "The cabinet opening: a lock clicks and a steel door swings."
+bus = "sfx"
+voices = []
+sound = "sounds/cabinet-open.ogg"
+
+[[cue]]
+id = "lampsOut"
+about = "The lamps going out one by one, and the hush before 04:17."
+bus = "sfx"
+voices = []
+sound = "sounds/lamps-out.ogg"
+
+[[cue]]
+id = "pulseCounted"
+about = "A held breath, and a pulse being counted: the practice catch."
+bus = "sfx"
+voices = []
+sound = "sounds/pulse-counted.ogg"
+
+[[cue]]
+id = "nurseSettle"
+about = "The figure settling: starched cotton, and a chair taking her weight."
+bus = "sfx"
+voices = []
+sound = "sounds/nurse-settle.ogg"
+
+[[cue]]
+id = "nurseMoveOff"
+about = "The figure moving off: soft soles going away down the linoleum."
+bus = "sfx"
+voices = []
+sound = "sounds/nurse-move-off.ogg"
+
+[[cue]]
+id = "turnToSound"
+about = "The figure turning toward a sound: a shoe pivots on the floor, then stillness."
+bus = "sfx"
+voices = []
+sound = "sounds/turn-to-sound.ogg"
+
+[[cue]]
+id = "nurseSees"
+about = "The figure seeing Ada: a sharp fabric snap and quick steps starting, never a voice."
+bus = "sfx"
+voices = []
+sound = "sounds/nurse-sees.ogg"
+
+[[cue]]
+id = "nurseBackOff"
+about = "The figure backing from the light: hurried steps going back, cloth swishing."
+bus = "sfx"
+voices = []
+sound = "sounds/nurse-back-off.ogg"
+
+# ---- Cues: made by the synth, from the old game's recipes -----------------------------------------------------------------
+
+[[cue]]
+id = "pickup"
+about = "Ada takes or uses something."
+bus = "sfx"
+voices = [{ tone = "triangle", from = 660, to = 990, length = 0.12, volume = 0.06 }]
+
+[[cue]]
+id = "door"
+about = "A heavy door opens."
+bus = "sfx"
+world = true
+voices = [
+  { tone = "square", from = 70, to = 50, length = 0.3, volume = 0.12 },
+  { hiss = 500, length = 0.5, volume = 0.2 },
+]
+
+[[cue]]
+id = "curtain"
+about = "A curtain drawn on its rail: cloth, and a small ring of the runners."
+bus = "sfx"
+world = true
+draft = true
+voices = [
+  { hiss = 1800, q = 0.8, length = 0.3, volume = 0.05 },
+  { tone = "triangle", from = 1400, to = 1250, at = 0.05, length = 0.05, volume = 0.012 },
+]
+
+[[cue]]
+id = "buzz"
+about = "The keypad refuses a code."
+bus = "sfx"
+world = true
+voices = [{ tone = "sawtooth", from = 110, to = 105, length = 0.35, volume = 0.12 }]
+
+[[cue]]
+id = "chime"
+about = "The keypad takes the code: two rising notes."
+bus = "ui"
+draft = true
+voices = [
+  { tone = "triangle", from = 660, to = 660, length = 0.07, volume = 0.03 },
+  { tone = "triangle", from = 990, to = 990, at = 0.07, length = 0.1, volume = 0.03 },
+]
+
+[[cue]]
+id = "sting"
+about = "The sighting sting: a low saw, a thin high sine and a dark hiss."
+bus = "sfx"
+voices = [
+  { tone = "sawtooth", from = 70, to = 64, length = 2.2, volume = 0.16 },
+  { tone = "sine", from = 1760, to = 1700, length = 1.6, volume = 0.04 },
+  { hiss = 300, length = 1.8, volume = 0.12 },
+]
+
+[[cue]]
+id = "lampLit"
+about = "A lighter wheel: a short scrape and a click, as the hand lamp is lit or snuffed."
+bus = "ui"
+draft = true
+voices = [
+  { hiss = 2400, q = 1.5, length = 0.12, volume = 0.05 },
+  { tone = "square", from = 1800, to = 1700, at = 0.1, length = 0.02, volume = 0.012 },
+]
+
+[[cue]]
+id = "lampDry"
+about = "The flame gutters: the lamp has run out of fuel."
+bus = "sfx"
+draft = true
+voices = [
+  { hiss = 1200, q = 0.6, length = 0.5, volume = 0.1 },
+  { tone = "sine", from = 120, to = 60, length = 0.4, volume = 0.05 },
+]
+
+[[cue]]
+id = "hide"
+about = "Ada slips into a hiding place: cloth and a soft latch."
+bus = "sfx"
+draft = true
+voices = [
+  { hiss = 420, q = 1, length = 0.35, volume = 0.1 },
+  { tone = "triangle", from = 220, to = 180, at = 0.2, length = 0.12, volume = 0.03 },
+]
+
+[[cue]]
+id = "rattle"
+about = "A door rattles in its frame: the figure is coming through after Ada."
+bus = "sfx"
+world = true
+draft = true
+voices = [
+  { tone = "square", from = 140, to = 120, length = 0.05, volume = 0.05 },
+  { tone = "square", from = 150, to = 122, at = 0.09, length = 0.05, volume = 0.05 },
+  { tone = "square", from = 136, to = 116, at = 0.19, length = 0.05, volume = 0.05 },
+  { tone = "square", from = 146, to = 118, at = 0.3, length = 0.05, volume = 0.05 },
+  { hiss = 900, q = 2, length = 0.4, volume = 0.08 },
+]
+
+# Ada's footsteps by the floor under her (`steps` below): linoleum is the old `step`.
+[[cue]]
+id = "step"
+about = "One footstep on linoleum."
+bus = "sfx"
+voices = [{ hiss = 700, q = 2, length = 0.07, volume = 0.05 }]
+
+[[cue]]
+id = "stepTile"
+about = "One footstep on ceramic tile: a harder, brighter tap than linoleum."
+bus = "sfx"
+draft = true
+voices = [
+  { hiss = 1500, q = 2.5, length = 0.05, volume = 0.045 },
+  { tone = "triangle", from = 900, to = 700, length = 0.03, volume = 0.012 },
+]
+
+[[cue]]
+id = "stepConcrete"
+about = "One footstep on bare concrete: a dull scuff with a little grit."
+bus = "sfx"
+draft = true
+voices = [
+  { hiss = 450, q = 1.2, length = 0.08, volume = 0.05 },
+  { hiss = 2600, q = 2, length = 0.05, volume = 0.015 },
+]
+
+[[cue]]
+id = "stepMetal"
+about = "One footstep on sheet metal: a hollow tap with a short ring."
+bus = "sfx"
+draft = true
+voices = [
+  { hiss = 1200, q = 2, length = 0.04, volume = 0.035 },
+  { tone = "triangle", from = 520, to = 500, length = 0.18, volume = 0.02 },
+]
+
+[steps]
+default = "step"
+
+[steps.floors]
+floorDim = "step"
+wainscot = "stepTile"
+bayFloor = "stepConcrete"
+counterTop = "stepMetal"
+
+# ---- Events: one row for every event the prologue makes, a cue or why it is silent --------------------------------------------
+# A row is the first that matches. The derived names (see the top) come before the sim's own types, which say they are
+# answered by a derived name where one plays.
+
+# The cutscenes: the old table's rows. `lightsOut` carries its own sting in its script, and the old game played no file there.
+[[event]]
+on = "cutscene.opening"
+cue = "openingWard"
+
+[[event]]
+on = "cutscene.keypad"
+cue = "cabinetOpen"
+
+[[event]]
+on = "cutscene.rest"
+cue = "lampsOut"
+
+[[event]]
+on = "cutscene.found"
+cue = "pulseCounted"
+
+[[event]]
+on = "cutscene.lightsOut"
+silent = "its script plays the sting at the right frame; the old game played no file under it"
+
+[[event]]
+on = "cutscene.started"
+silent = "the cutscene's own row, cutscene.<id>, plays"
+
+[[event]]
+on = "cutscene.ended"
+silent = "nothing sounds as a cutscene ends"
+
+# The figure's modes: where she is, what she is doing.
+[[event]]
+on = "agent.nurse.dormant"
+cue = "nurseSettle"
+
+[[event]]
+on = "agent.nurse.patrol"
+cue = "nurseMoveOff"
+
+[[event]]
+on = "agent.nurse.investigate"
+cue = "turnToSound"
+
+[[event]]
+on = "agent.nurse.hunt"
+cue = "nurseSees"
+
+[[event]]
+on = "agent.nurse.flee"
+cue = "nurseBackOff"
+
+[[event]]
+on = "agent.nurse.follow"
+cue = "rattle"
+
+[[event]]
+on = "agent.nurse.leaving"
+cue = "nurseMoveOff"
+
+[[event]]
+on = "systems.mode"
+silent = "the figure's own row, agent.<who>.<mode>, plays"
+
+# Noises: the ones the creature hears. The step is heard in the sim and sounds by the floor (`steps`), played where Ada stands.
+[[event]]
+on = "noise.buzz"
+cue = "buzz"
+
+[[event]]
+on = "noise.step"
+silent = "Ada's step sounds by the floor under her (steps), not by the noise the figure hears"
+
+[[event]]
+on = "systems.noise"
+silent = "the noise's own row, noise.<kind>, plays"
+
+[[event]]
+on = "puzzle.noise"
+silent = "the noise's own row, noise.<kind>, plays"
+
+# Using a hotspot: the old game's rows. A door is a door, a curtain a curtain, hiding is its own sound, and anything else Ada
+# touches is a pickup.
+[[event]]
+on = "use.closetDoor"
+cue = "door"
+
+[[event]]
+on = "use.curtainWest"
+cue = "curtain"
+
+[[event]]
+on = "use.curtainEast"
+cue = "curtain"
+
+[[event]]
+on = "use.screen"
+silent = "game.hide plays as Ada hides"
+
+[[event]]
+on = "use.locker"
+silent = "game.hide plays as Ada hides"
+
+[[event]]
+on = "use.cabinet"
+silent = "the keypad opens on this use, and the keypad cutscene has its own sound"
+
+[[event]]
+on = "use.code"
+silent = "the keypad's own cues play: the chime when the code is right, the buzz when it is not"
+
+[[event]]
+on = "use.*"
+cue = "pickup"
+
+[[event]]
+on = "game.hide"
+cue = "hide"
+
+# The sim's own events, which a derived row answers or which make no sound.
+[[event]]
+on = "puzzle.said"
+silent = "the use's own row, use.<hotspot>, plays"
+
+[[event]]
+on = "puzzle.gave"
+silent = "the use that gave the item plays its own pickup"
+
+[[event]]
+on = "puzzle.keypad"
+silent = "the keypad opens on a use, which has its own row"
+
+[[event]]
+on = "puzzle.checkpoint"
+silent = "a checkpoint is made at lights out, which the lights-out cutscene covers"
+
+[[event]]
+on = "puzzle.cutscene"
+silent = "the cutscene's own row plays when it starts"
+
+[[event]]
+on = "puzzle.dialogue"
+silent = "a conversation is text"
+
+[[event]]
+on = "puzzle.exit"
+silent = "the prologue has no exit to another scene"
+
+[[event]]
+on = "puzzle.goal"
+silent = "the rest cutscene ends the night"
+
+[[event]]
+on = "systems.caught"
+silent = "the found cutscene carries it"
+
+[[event]]
+on = "systems.cutscene"
+silent = "the cutscene's own row plays when it starts"
+
+[[event]]
+on = "systems.line"
+silent = "a line is text"
+
+[[event]]
+on = "systems.peek"
+silent = "a peek has no sound of its own"
+
+[[event]]
+on = "systems.light-dry"
+cue = "lampDry"
+
+[[event]]
+on = "interact.used"
+silent = "puzzle.said's row, use.<hotspot>, plays"
+
+[[event]]
+on = "interact.pending"
+silent = "Ada is still walking to it"
+
+[[event]]
+on = "interact.refused"
+silent = "a refused use is said in words"
+
+[[event]]
+on = "sector.entered"
+silent = "the floor's step sound is the only sound of walking"
+
+[[event]]
+on = "zone.crossed"
+silent = "the camera's own cut is silent"
+
+[[event]]
+on = "nav.arrived"
+silent = "arriving is silent"
+
+[[event]]
+on = "nav.unreachable"
+silent = "a refused walk is said in words"
+
+[[event]]
+on = "narrative.*"
+silent = "the dialogue and the story's lines are text"
+
+# ---- Music ------------------------------------------------------------------------------------------------------------------
+# The old slots, their levels and fades. `first-night` has no file of its own and plays `the-last-light`, as the old game did.
+
+[[slot]]
+id = "the-last-light"
+about = "Ada's theme: the title and the main menu, and the prologue's lamps-on music until its own file exists."
+mode = "loop"
+volume = 0.45
+
+[[slot]]
+id = "first-night"
+about = "The prologue, 1979, 20:00, lights on. Almost cosy."
+mode = "loop"
+volume = 0.3
+fallback = [{ sound = "the-last-light", volume = 0.8 }]
+
+[[slot]]
+id = "four-seventeen"
+about = "After lights out, the figure about: the cosy theme is over."
+mode = "loop"
+volume = 0.25
+
+[[slot]]
+id = "back-to-bed-ada"
+about = "The practice chase."
+mode = "loop"
+volume = 0.4
+linger = 5
+
+# The rules read, in this order: the state `musicStateOf` gives (phase, lightsOut, figureAbout, chasing, hidden). The first row
+# that holds picks the slot, as the old game's did.
+[[music_rule]]
+when = { phase = ["paused", "keypad"] }
+slot = "hold"
+why = "An overlay over the game: the music goes on under it."
+
+[[music_rule]]
+when = { hidden = true, phase = "play" }
+slot = "silence"
+why = "Hidden, Ada listens for the figure over her heartbeat: the music gets out of the way, and a chase does not linger."
+
+[[music_rule]]
+when = { chasing = true, phase = ["play", "cutscene"] }
+slot = "back-to-bed-ada"
+why = "The prologue's practice chase, after lights out."
+
+[[music_rule]]
+when = { figureAbout = true, phase = ["play", "cutscene"] }
+slot = "four-seventeen"
+why = "The prologue after lights out: the figure is about and the cosy theme is over."
+
+[[music_rule]]
+when = {}
+slot = "first-night"
+why = "The prologue, lights on."
