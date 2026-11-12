@@ -123,3 +123,13 @@ side, and the walk frames (the harness shoots only once a key is up). Looked at:
 - The waistcoat's back: a lighter brown triangle across the oxblood (its shading split down the back) reads as a patch. Not fixed.
 - The camera, not hers (the sister session's): facing away at the hall's north end the frame cuts her at the waist; at NW the chairs hide her whole.
 - The dark-red blotch at her right temple (session 16's note) shows in the painted x10 heads; not fixed.
+
+## Item 6: the gates (whole `pnpm check`, uncached, `TURBO_FORCE=true`)
+
+Lint, typecheck, boundaries and style passed. `source-names` failed on a test comment of session 15's (`968e7f56`) naming the old source
+project; reworded. `knip` then found the density-2 study (`72ba4462`) unused: its header documented an `ada-d2` script that the kit's
+`package.json` never had; added (`1d7dd241`). The unit tests, re-run with `--continue` so one failure does not cut the rest: 66 of 67 tasks pass;
+`@automata/api-report` fails one test, `3d.api.md` out of date against `@automata/3d`'s source. Not this branch's: session 15 added the 3D
+views' fields (`a162c8f9d`) and listed `pnpm api-report --update` as not run; the brief gives the API reports to the camera session.
+`check:changesets`: 0 problems. No published package changed here (the kit and the game are private): no changeset. The character kit's and
+the game's own unit suites pass inside that run; the kit's browser suite, the journeys and the build did not run.
