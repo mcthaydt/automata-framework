@@ -33,6 +33,8 @@ export interface PlacedPiece {
   readonly sway?: number
   readonly phase?: number
   readonly noCast?: boolean
+  /** Hung on a wall: the builder links it to the wall it is against. */
+  readonly mount?: 'wall'
   /** The prop it belongs to and where its base stands, for a state that moves the prop. */
   readonly prop?: { readonly id: string; readonly at: V3 }
 }
@@ -183,6 +185,7 @@ export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell):
         ...(piece.sway === undefined ? {} : { sway: piece.sway }),
         ...(piece.phase === undefined ? {} : { phase: piece.phase }),
         ...(piece.noCast === true ? { noCast: true } : {}),
+        ...(piece.mount === undefined ? {} : { mount: piece.mount }),
         prop: { id: place.id, at },
       })
     })

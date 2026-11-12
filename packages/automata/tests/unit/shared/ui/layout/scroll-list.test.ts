@@ -32,6 +32,9 @@ function open(minRows: number, rowCount: number, rowGap?: string) {
   return host.querySelector<HTMLElement>('[data-testid="standings"]') as HTMLElement
 }
 
+/** The frame: what the parent lays out, holding the scroll region and the "+N more" label as siblings. */
+const frameOf = (list: HTMLElement): HTMLElement => list.parentElement as HTMLElement
+
 describe('ScrollList', () => {
   it('declares itself a named scroll region with its minimum, for the layout contract', () => {
     const list = open(4, 6)
@@ -44,13 +47,13 @@ describe('ScrollList', () => {
   // Every reserve is capped at the height the parent gives (`min(..., 100%)`): where even that
   // cannot hold the rows, the list scrolls inside its own box rather than paint over its siblings.
   it('reserves its rows in the row-height token, or every row when there are fewer', () => {
-    expect(open(4, 6).style.minHeight).toBe('min(calc(4 * var(--af-row-h)), 100%)')
+    expect(frameOf(open(4, 6)).style.minHeight).toBe('min(calc(4 * var(--af-row-h)), 100%)')
     document.body.innerHTML = ''
-    expect(open(4, 2).style.minHeight).toBe('min(calc(2 * var(--af-row-h)), 100%)')
+    expect(frameOf(open(4, 2)).style.minHeight).toBe('min(calc(2 * var(--af-row-h)), 100%)')
   })
 
   it('reserves the gaps between its rows too, when told them', () => {
-    expect(open(4, 6, '8px').style.minHeight).toBe('min(calc(4 * var(--af-row-h) + 3 * 8px), 100%)')
+    expect(frameOf(open(4, 6, '8px')).style.minHeight).toBe('min(calc(4 * var(--af-row-h) + 3 * 8px), 100%)')
   })
 
   it('reserves at least where its last reserved row actually ends, once rows have a height', () => {
@@ -61,20 +64,36 @@ describe('ScrollList', () => {
     })
     list.dispatchEvent(new Event('scroll'))
     flushSync()
-    expect(list.style.minHeight).toBe('min(max(calc(2 * var(--af-row-h)), 110px), 100%)')
+    expect(frameOf(list).style.minHeight).toBe('min(max(calc(2 * var(--af-row-h)), 110px), 100%)')
   })
 
   it('says how many rows are out of view, and nothing when none are', () => {
     const list = open(2, 5)
-    expect(list.querySelector('[data-testid="scroll-more"]')).toBeNull()
+    expect(frameOf(list).querySelector('[data-testid="scroll-more"]')).toBeNull()
     Object.defineProperty(list, 'clientHeight', { configurable: true, value: 120 })
     for (const row of list.querySelectorAll<HTMLElement>('[data-row]'))
       Object.defineProperty(row, 'offsetHeight', { configurable: true, value: 40 })
     list.dispatchEvent(new Event('scroll'))
     flushSync()
-    const more = list.querySelector('[data-testid="scroll-more"]')
+    const more = frameOf(list).querySelector('[data-testid="scroll-more"]')
     expect(more?.textContent).toBe('+2 more')
     expect(more?.getAttribute('aria-hidden')).toBe('true')
     expect(list.dataset.more).toBe('true')
+  })
+
+  // Audit S8: inside the scroll box the label was sticky over whatever row was last in view, on its words. It lives
+  // outside the box, beside it in the frame, so no row can be under it.
+  it('keeps its "+N more" label outside the scrolling box, beside it in one frame', () => {
+    const list = open(2, 5)
+    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 120 })
+    for (const row of list.querySelectorAll<HTMLElement>('[data-row]'))
+      Object.defineProperty(row, 'offsetHeight', { configurable: true, value: 40 })
+    list.dispatchEvent(new Event('scroll'))
+    flushSync()
+    const more = frameOf(list).querySelector('[data-testid="scroll-more"]')
+    expect(more).not.toBeNull()
+    expect(list.contains(more)).toBe(false)
+    expect(more?.closest('[data-scroll-region]')).toBeNull()
+    expect(frameOf(list).children).toHaveLength(2)
   })
 })

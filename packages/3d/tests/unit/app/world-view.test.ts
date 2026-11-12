@@ -5,6 +5,9 @@ import { drawWorld, sceneLamps } from '#src/app/world-view.ts'
 import { createOccluders } from '#src/features/camera/occluders/occluders.ts'
 import { ladderOf } from '#src/features/world/albedo/ladder.ts'
 import { buildWorld, type WorldPiece } from '#src/features/world/build.ts'
+import { box } from '#src/features/world/mesh.ts'
+import { part } from '#src/features/world/props/piece.ts'
+import { registerPropGenerator } from '#src/features/world/props/prop-generator-registry.ts'
 import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
 import { createSceneLight } from '#src/shared/render/light/scene-light.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
@@ -35,6 +38,11 @@ const level: AfSector2 = {
 }
 const colours: Record<string, number> = { oakFloor: 0x8690b2, plasterWarm: 0x3a4568 }
 const { pieces } = buildWorld(level, LIB)
+
+// A frame as a generator draws one: a thin box with its back on the wall, marked as hung on it.
+registerPropGenerator('test.hung', () => ({
+  pieces: [part(box([0, 0, 0.02], [0.6, 0.4, 0.04]), 'oakFloor', 'frame', { mount: 'wall' })],
+}))
 
 describe('drawWorld', () => {
   it('adds a mesh for each piece under one node, in the swatch’s colour', () => {
@@ -115,6 +123,79 @@ describe('drawWorld', () => {
     expect((view.mesh('a:wall:0.0.0') as Mesh3D).visible).toBe(true)
     expect((view.mesh('a:floor') as Mesh3D).visible).toBe(true)
   })
+  describe('a wall-mounted piece', () => {
+    // A frame on the south wall (z = 0, the room on +z, facing south) and one on the north wall (z = 4, facing north).
+    const hung = buildWorld(
+      {
+        ...level,
+        props: [
+          { id: 'south', kind: 'test.hung', at: [2, 0.01, 1.4], angle: 90 },
+          { id: 'north', kind: 'test.hung', at: [2, 3.99, 1.4], angle: 270 },
+        ],
+      },
+      LIB,
+    ).pieces
+    const frame = (id: string): string => hung.find((p) => p.prop?.id === id)?.id as string
+    // The eye is south of the room looking north at the player: the south wall stands between them and is cut.
+    const frameAt = (eye: { x: number; y: number; z: number }) => ({
+      eye,
+      look: { x: 2, y: 1, z: 2 },
+      feet: { x: 2, y: 0, z: 2 },
+      head: { x: 2, y: 1.6, z: 2 },
+      seconds: 1,
+      reduced: true,
+    })
+
+    it('hides with its wall when the wall is cut, and a frame on a wall that stands stays', () => {
+      const parent = new Container3D()
+      const occluders = createOccluders(parent)
+      const view = drawWorld({ parent, occluders, colourOf: () => 0 }, hung)
+      occluders.update(frameAt({ x: 2, y: 3, z: -5 }))
+      expect((view.mesh('a:wall:0.0.0') as Mesh3D).visible).toBe(false)
+      expect((view.mesh(frame('south')) as Mesh3D).visible).toBe(false)
+      expect((view.mesh('a:wall:0.2.0') as Mesh3D).visible).toBe(true)
+      expect((view.mesh(frame('north')) as Mesh3D).visible).toBe(true)
+    })
+
+    it('shows again with its wall when the camera comes round', () => {
+      const parent = new Container3D()
+      const occluders = createOccluders(parent)
+      const view = drawWorld({ parent, occluders, colourOf: () => 0 }, hung)
+      occluders.update(frameAt({ x: 2, y: 3, z: -5 }))
+      occluders.update(frameAt({ x: 2, y: 3, z: 9 }))
+      expect((view.mesh('a:wall:0.0.0') as Mesh3D).visible).toBe(true)
+      expect((view.mesh(frame('south')) as Mesh3D).visible).toBe(true)
+    })
+
+    it('takes its wall’s opacity, so a fading wall fades its frame with it', () => {
+      const fading = buildWorld(
+        {
+          ...level,
+          sectors: level.sectors.map((s) => ({
+            ...s,
+            corners: s.corners.map((c, i) => (i === 0 ? [c[0], c[1], { occlude: 'fade' as const }] : c)),
+          })) as AfSector2['sectors'],
+          props: [{ id: 'south', kind: 'test.hung', at: [2, 0.01, 1.4], angle: 90 }],
+        },
+        LIB,
+      ).pieces
+      const parent = new Container3D()
+      const occluders = createOccluders(parent)
+      const view = drawWorld({ parent, occluders, colourOf: () => 0 }, fading)
+      occluders.update(frameAt({ x: 2, y: 3, z: -5 }))
+      const wall = view.mesh('a:wall:0.0.0') as Mesh3D
+      const picture = view.mesh(fading.find((p) => p.prop?.id === 'south')?.id as string) as Mesh3D
+      expect(wall.material.alpha).toBe(0.25)
+      expect(picture.material.alpha).toBe(wall.material.alpha)
+      expect(picture.visible).toBe(true)
+    })
+
+    it('stays drawn where no occluders are given (a view that never cuts a wall)', () => {
+      const view = drawWorld({ parent: new Container3D(), colourOf: () => 0 }, hung)
+      expect((view.mesh(frame('south')) as Mesh3D).visible).toBe(true)
+    })
+  })
+
   it('takes the meshes down on dispose', () => {
     const parent = new Container3D()
     const view = drawWorld({ parent, colourOf: () => 0 }, pieces)

@@ -7,11 +7,11 @@
 // go to the sim; `flow`, `palette`, `game`, `assets` and kinds registered `{ sim: false }` do not. So a store
 // listing, a colour or a preload change never refuses a save, and a room or a tuning change always does.
 
-import type { Problem } from '../diagnostics/diagnostic'
-import type { ContentData } from '../generate/content-generator'
-import { contentHash } from '../hash/content-hash'
-import type { ContentSchemaDef } from '../schema/content-schema'
-import type { FoundRef } from '../schema/references'
+import type { Problem } from '../diagnostics/diagnostic.ts'
+import type { ContentData } from '../generate/content-generator.ts'
+import { contentHash } from '../hash/content-hash.ts'
+import type { ContentSchemaDef } from '../schema/content-schema.ts'
+import type { FoundRef } from '../schema/references.ts'
 
 /**
  * The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash,

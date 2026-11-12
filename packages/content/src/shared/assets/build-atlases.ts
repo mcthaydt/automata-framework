@@ -7,16 +7,16 @@
 // The default DUEL palette is the renderer's, not an authoring rule, so it is never checked here.
 import { join } from 'node:path'
 import { Effect } from 'effect'
-import { ContentCompileFailed } from '../compile/errors'
-import { type Diagnostic, sortDiagnostics } from '../diagnostics/diagnostic'
-import { listFiles, readBytesIfPresent, readTextIfPresent } from '../files/content-files'
-import { checkPalette, type Palette, paletteSchema } from '../palette/palette'
-import { diagnosticAt, type ParsedToml, parseDocument } from '../parse/parse-document'
-import { atlasPageFiles } from './asset-outputs'
-import { composePage, decodePng, encodePng, type Rgba, spritesheetJson } from './atlas-image'
-import { AtlasFrameTooLarge, packFrames } from './atlas-pack'
-import { atlasesSchema } from './atlases.schema'
-import { offPalettePixels } from './palette-pixels'
+import { ContentCompileFailed } from '../compile/errors.ts'
+import { type Diagnostic, sortDiagnostics } from '../diagnostics/diagnostic.ts'
+import { listFiles, readBytesIfPresent, readTextIfPresent } from '../files/content-files.ts'
+import { checkPalette, type Palette, paletteSchema } from '../palette/palette.ts'
+import { diagnosticAt, type ParsedToml, parseDocument } from '../parse/parse-document.ts'
+import { atlasPageFiles } from './asset-outputs.ts'
+import { composePage, decodePng, encodePng, type Rgba, spritesheetJson } from './atlas-image.ts'
+import { AtlasFrameTooLarge, packFrames } from './atlas-pack.ts'
+import { atlasesSchema } from './atlases.schema.ts'
+import { offPalettePixels } from './palette-pixels.ts'
 
 /** What `buildAtlases` produces; the caller writes it. */
 export interface AtlasOutputs {

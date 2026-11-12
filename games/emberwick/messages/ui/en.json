@@ -1,6 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "splash_label": "Splash",
+  "splash_label": "Emberwick, starting",
   "splash_hint": "Press any key or tap",
   "menu_title": "Emberwick",
   "menu_hint": "Carry your lantern up to the ember.",

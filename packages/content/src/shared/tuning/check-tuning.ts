@@ -8,7 +8,7 @@
 //     inline, `NAME = { value, min, max, step }`, which also feeds the debug sliders, and may name itself for the
 //     Tuner with `label` and `feel` (text only: they never reach the values or the meta).
 
-import type { DataPath, Problem } from '../diagnostics/diagnostic'
+import type { DataPath, Problem } from '../diagnostics/diagnostic.ts'
 
 export type TunableType = 'int' | 'float'
 

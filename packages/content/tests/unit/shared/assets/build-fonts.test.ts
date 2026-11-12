@@ -2,9 +2,11 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { z } from 'zod'
 import { buildFonts } from '#src/shared/assets/build-fonts.ts'
 import { fontCoverage } from '#src/shared/assets/font-subset.ts'
 import { type Diagnostic, formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
+import { defineContentSchema, verbatim } from '#src/shared/schema/content-schema.ts'
 import { copyFixture, fixtureOptions } from '#src/testing/fixture-game.ts'
 import { openFont } from '#src/testing/open-font.ts'
 
@@ -291,5 +293,40 @@ describe('buildFonts', () => {
       const second = await built(withFont(project(ONE_FONT)))
       expect(second.get('fonts.css')).toEqual(first.get('fonts.css'))
     })
+  })
+})
+
+// A credits name is not translated, so it is in no catalog; a content kind marks it `verbatim()` and the build holds it
+// to the same rule as a message, in every language the game ships: no name is drawn in a device's face.
+describe('text a kind marks verbatim, such as a credits name', () => {
+  const CREDIT = defineContentSchema('credit', z.strictObject({ name: verbatim() }), { folder: 'credits' })
+  const withName = (root: string, name: string): string => {
+    mkdirSync(join(root, 'content/credits'), { recursive: true })
+    writeFileSync(join(root, 'content/credits/crew.toml'), `name = "${name}"\n`)
+    return root
+  }
+  const buildWith = (root: string) =>
+    Effect.runPromise(
+      Effect.either(
+        buildFonts({ ...fixtureOptions(root), schemas: [...fixtureOptions(root).schemas, CREDIT] }),
+      ),
+    )
+
+  it('is cut into every language’s subset, so a name is drawn in the face the game chose', async () => {
+    // ñ is in the Latin face but in no catalog and not in ALWAYS_CHARACTERS: only the name brings it into the cut.
+    const result = await buildWith(withName(withFont(project(ONE_FONT)), 'Muñoz'))
+    if (Either.isLeft(result)) throw new Error(JSON.stringify(result.left))
+    for (const locale of ['en', 'fr'])
+      expect(fontCoverage(fileOf(result.right.files, `pixel-${locale}-`))('ñ'), locale).toBe(true)
+  })
+
+  it('is refused where it is written when a language’s faces lack a character of it, saying what to do', async () => {
+    const result = await buildWith(withName(withFont(project(ONE_FONT)), '日本'))
+    if (Either.isRight(result)) throw new Error('expected the build to fail')
+    if (result.left._tag !== 'ContentCompileFailed') throw new Error(result.left.message)
+    expect(result.left.diagnostics.map(formatDiagnostic)).toEqual([
+      'content/credits/crew.toml:1:1  name  missingGlyph: U+65E5 "日", U+672C "本" are not in the en subset of pixel (a name is drawn as written in every language: give en a font that has these characters in fonts.toml, or change the name)',
+      'content/credits/crew.toml:1:1  name  missingGlyph: U+65E5 "日", U+672C "本" are not in the fr subset of pixel (a name is drawn as written in every language: give fr a font that has these characters in fonts.toml, or change the name)',
+    ])
   })
 })

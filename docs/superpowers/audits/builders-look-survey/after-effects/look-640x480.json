@@ -1,0 +1,32 @@
+[
+  {
+    "sheet": "look-640x480.png",
+    "panel": "effects off (640 x 480, density 1, true size)",
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "field": "640x480",
+    "brightness": 54.1,
+    "colours": 74,
+    "errors": []
+  },
+  {
+    "sheet": "look-640x480.png",
+    "panel": "LCD panel (640 x 480, density 1, true size)",
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "field": "640x480",
+    "brightness": 45.9,
+    "colours": 31055,
+    "errors": []
+  },
+  {
+    "sheet": "look-640x480.png",
+    "panel": "LCD panel + retro grade (640 x 480, density 1, true size)",
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "field": "640x480",
+    "brightness": 43.9,
+    "colours": 32433,
+    "errors": []
+  }
+]

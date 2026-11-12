@@ -209,14 +209,15 @@ describe('Settings screen tabs', () => {
   })
 
   // The Desk, 2026-10-18: on a desktop Settings is not a narrow column with "+1 more"; it sets its groups two across,
-  // Language beside Audio, and the groups a desktop shows fit without scrolling. (Touch controls, last in the fixture,
-  // shows only on a coarse pointer, so a desktop never has it.)
+  // Language beside Audio, and the groups a desktop shows fit without scrolling. (Touch controls shows only on a coarse
+  // pointer, so a desktop never has it: the fixture's `settings-desktop` leaves it out. The "+1 more" label now has a
+  // line of its own below the list, so the one group the fixture would add there costs the list that line.)
   test('sets its groups two across on a desktop, and its desktop groups fit without scrolling', async () => {
     const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'desktop-720p')
     if (size === undefined) throw new Error('no desktop-720p')
     await page.viewport(size.width, size.height)
     publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
-    const fixture = mountFixture(SettingsFixture, { show: 'settings' })
+    const fixture = mountFixture(SettingsFixture, { show: 'settings-desktop' })
     await settleLayout()
     const language = document.querySelector('[data-settings-section="language"]')?.getBoundingClientRect()
     const audio = document.querySelector('[data-settings-section="audio"]')?.getBoundingClientRect()

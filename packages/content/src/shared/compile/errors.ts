@@ -2,7 +2,7 @@
 // caller handles each by name (`Effect.catchTag`) and the CLI maps them to exit codes.
 
 import { type Cause, Data } from 'effect'
-import type { Diagnostic } from '../diagnostics/diagnostic'
+import type { Diagnostic } from '../diagnostics/diagnostic.ts'
 
 /**
  * The class `Data.TaggedError(tag)` returns, written out. `isolatedDeclarations` cannot infer the type of a

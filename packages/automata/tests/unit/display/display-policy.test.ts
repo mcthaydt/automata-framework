@@ -1,6 +1,12 @@
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createDisplayPolicy } from '#src/features/display/display-policy.svelte.ts'
+import {
+  createDisplayPolicy,
+  DISPLAY_COPY_EN,
+  type DisplayCopy,
+  type DisplayPolicyOptions,
+} from '#src/features/display/display-policy.svelte.ts'
+import type { LiveWords } from '#src/shared/runtime/live-words.ts'
 import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { createTime } from '#src/shared/runtime/time/time.manager.ts'
 import type { FormFactor } from '#src/shared/ui/geometry/form-factor.ts'
@@ -77,6 +83,7 @@ const withPolicy = (
     coarse?: boolean
     grant?: boolean
     rotateHint?: 'block' | 'toast'
+    copy?: DisplayPolicyOptions['copy'] | LiveWords<DisplayCopy>
   },
   body: (parts: {
     root: HTMLElement
@@ -98,6 +105,7 @@ const withPolicy = (
       layer: root,
       time,
       ...(options.rotateHint === undefined ? {} : { rotateHint: options.rotateHint }),
+      ...(options.copy === undefined ? {} : { copy: options.copy }),
     })
     flushSync()
     try {
@@ -238,4 +246,37 @@ describe('closing', () => {
     expect(time.paused).toBe(false)
     bus.dispose()
   })
+})
+
+// The covers' words follow a language change: the policy lives for the whole session, and Settings can change the language
+// while a cover is mounted or about to be.
+describe('the covers’ words', () => {
+  it('are read again when the language changes', () =>
+    (async () => {
+      const listeners = new Set<() => void>()
+      let words: DisplayCopy = DISPLAY_COPY_EN
+      const live: LiveWords<DisplayCopy> = {
+        get current() {
+          return words
+        },
+        subscribe: (listener) => {
+          listeners.add(listener)
+          return () => void listeners.delete(listener)
+        },
+      }
+      await withPolicy({ orientation: 'portrait', hosted: true, copy: live }, async ({ root }) => {
+        expect(hint(root)?.textContent).toContain(DISPLAY_COPY_EN.rotate.portrait.title)
+        words = {
+          ...DISPLAY_COPY_EN,
+          rotate: {
+            ...DISPLAY_COPY_EN.rotate,
+            portrait: { title: 'Dreh dein Gerät', body: DISPLAY_COPY_EN.rotate.portrait.body },
+          },
+        }
+        for (const listener of listeners) listener()
+        flushSync()
+        expect(hint(root)?.textContent).toContain('Dreh dein Gerät')
+      })
+      expect(listeners.size).toBe(0)
+    })())
 })

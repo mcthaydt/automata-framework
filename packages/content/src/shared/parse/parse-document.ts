@@ -4,8 +4,8 @@
 
 import { parse as parseToml, TomlDate, TomlError } from 'smol-toml'
 import type { z } from 'zod'
-import type { Diagnostic, DiagnosticCode } from '../diagnostics/diagnostic'
-import { type KeyIndex, locateKeys, positionOf } from './locate-keys'
+import type { Diagnostic, DiagnosticCode } from '../diagnostics/diagnostic.ts'
+import { type KeyIndex, locateKeys, positionOf } from './locate-keys.ts'
 
 /** One authored file, with the project-relative path a diagnostic names. */
 export interface SourceFile {

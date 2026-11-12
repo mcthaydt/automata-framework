@@ -5,6 +5,7 @@ import { screensCopy } from '../screens/screens-copy.svelte.ts'
 import type { ScreensCopyInput } from '../screens/screens-copy.ts'
 import type { OpeningStep } from './opening.ts'
 import PhotosensitivityWarning from './PhotosensitivityWarning.svelte'
+import type { WarningEffect } from './warning-effects.ts'
 
 // The flashing-lights warning: a game that flashes opts in with `defineGame({ photosensitivity })`, and the first run
 // on a device warns once, before anything plays.
@@ -26,9 +27,15 @@ export interface WarningSwitch {
 }
 
 /**
- * `true`: the warning, with the device's reduced-motion line. An object adds the game's own switches, shown above it.
+ * `true`: the warning, with the device's reduced-motion line. An object adds what the game has, as data: `effects`
+ * names each hazard (`'flashing'`, `'strobing'`, `'shaking'`, `'patterns'`) and the warning says them in the player's
+ * language ("This game has flashing lights and a shaking screen."); a game that declares none gets the general sentence
+ * ("This game may have flashing lights or a shaking screen."). `switches` are the game's own effect settings, shown
+ * above the device's reduced-motion line.
  */
-export type PhotosensitivityOption = true | { readonly switches?: readonly WarningSwitch[] }
+export type PhotosensitivityOption =
+  | true
+  | { readonly effects?: readonly WarningEffect[]; readonly switches?: readonly WarningSwitch[] }
 
 /**
  * Warns about flashing lights, once per device. Continue, Close and Escape all end it, and the switches keep what the
@@ -37,6 +44,7 @@ export type PhotosensitivityOption = true | { readonly switches?: readonly Warni
  */
 export function warningStep(option: PhotosensitivityOption, copy?: ScreensCopyInput): OpeningStep {
   const switches = option === true ? [] : (option.switches ?? [])
+  const effects = option === true ? [] : (option.effects ?? [])
   return ({ layer, services, seen, signal }) => {
     if (seen.has('photosensitivity')) return Promise.resolve()
     return new Promise<void>((resolve) => {
@@ -61,6 +69,7 @@ export function warningStep(option: PhotosensitivityOption, copy?: ScreensCopyIn
           copy: words,
           locale: services.locale,
           switches,
+          effects,
           reducedMotion: reducedMotion(),
           ondone: acknowledge,
         },

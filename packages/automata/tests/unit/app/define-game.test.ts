@@ -152,6 +152,19 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     expect(defineGame(spec).copy).toBeUndefined()
   })
 
+  // The runtime's own words can differ per language: the whole of `copy` may be a function of the locale, and the
+  // runtime gets the function with `screens` taken out, as it gets the record.
+  it('takes copy as a function of the locale and splits it the same way', () => {
+    const copy = (locale: string) => ({
+      loading: `loading ${locale}`,
+      screens: { title: { play: `play ${locale}` } },
+    })
+    const copyOf = defineGame({ ...spec, copy }).copy
+    expect(typeof copyOf).toBe('function')
+    expect((copyOf as (locale: string) => unknown)('ja')).toEqual({ loading: 'loading ja' })
+    expect(defineGame({ ...spec, copy: () => ({}) }).copy).toBeTypeOf('function')
+  })
+
   it('finds its root in #game, unless given one', () => {
     const main = document.body.appendChild(document.createElement('main'))
     main.id = 'game'

@@ -21,6 +21,7 @@ import {
 } from '@automata/3d/props-kit'
 import { castor, hoop } from '../../shared/piece-helpers.ts'
 import { turnX, turnY } from '../../shared/turn.ts'
+import { wallMounted } from './wall-mounted.ts'
 
 /** Which way is `degrees` clockwise from twelve o'clock, as the unit vector a hand points along on a wall. */
 const clockwise = (degrees: number): [number, number] => [
@@ -487,8 +488,8 @@ export const WARD: Readonly<Record<string, Generator>> = {
   wheelchair,
   gurney,
   monitorCart,
-  wallClock,
-  keyCabinet,
+  wallClock: wallMounted(wallClock),
+  keyCabinet: wallMounted(keyCabinet),
   locker,
   dripStand,
 }

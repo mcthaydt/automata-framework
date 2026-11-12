@@ -4,7 +4,7 @@
 // reason the guide denies, so the table is generated between markers and verified in CI. Pure functions:
 // the CLI reads and writes the guide.
 
-import type { TuningMeta } from './check-tuning'
+import type { TuningMeta } from './check-tuning.ts'
 
 export const BEGIN_MARKER = '<!-- BEGIN GENERATED TUNABLES -->'
 export const END_MARKER = '<!-- END GENERATED TUNABLES -->'

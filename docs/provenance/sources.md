@@ -666,6 +666,17 @@ Not ported: `starters/party-racer` (the Owner cut it), Plus's own `tooling/{core
 the committed `.vitest` screenshots. The converted fixtures keep the headers their converter scripts wrote; the scripts
 themselves are not ported, and the fixtures stay as they are.
 
+## The clinic's render features (2026-11-11)
+
+Written fresh as extensions, from reading the adventure source (`mcthaydt/PixiJS3D_Experiment_001`, private, at `92e6704`).
+No file was copied. What was read, and where it went:
+
+| Source | AF | Notes |
+| --- | --- | --- |
+| `src/render/room-visibility.ts`, `room-wall-owners.ts`, `room-ownership.ts`, `src/scenes/clinic/visibility.ts` | not landed (`extensions/room-visibility` was dropped; the rooms a view draws are `@automata/3d`'s `drawnRooms`) | the old game's policy stays history; the extension (a Zod policy, a resolver, wall groups, a wall hider) is on the branch `claude/eb-look-effects` before this commit |
+| `src/render/lcd-panel.ts`, `filter-programs.ts` | `extensions/lcd-panel` | rewritten as a `PostEffect` pair (GLSL, WGSL) with a Zod profile; the mesh is a port of `lcd-perfect` v10 by sinedied (MIT, notice kept in `src/features/lcd-panel/lcd-shader.ts`) |
+| `src/render/retro-filter.ts`, `crisp.ts`, `look.ts` (`LOOK.post`) | `extensions/retro-crisp` | rewritten as a `PostEffect` pair with uniforms and a Zod profile, the clinic's numbers as defaults; the crisp maths as pure functions; the palette LUT and the luma-weighted dither stay core's DUEL snap |
+
 ## Third-party assets copied into this repository
 
 | Asset | Source | Licence |

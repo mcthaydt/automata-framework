@@ -35,7 +35,14 @@ const VIEWS = process.env.EB_VIEWS?.split(',') ?? ['diorama', 'fp']
 // The AF panels: the renderer asked for, and switches (scene.ts). `light=0` leaves out the level's baked room light, so
 // the ramp material lights by the time of day alone.
 const PANELS =
-  process.env.EB_PANELS === 'glow'
+  process.env.EB_PANELS === 'fx'
+    ? [
+        // The effects: the kit's shafts and particles, off and on, then with the coloured outline (off in the source's base look).
+        { pref: 'webgl', extra: '&fx=0', title: 'AF WebGL, no effects' },
+        { pref: 'webgl', extra: '', title: 'AF WebGL, effects' },
+        { pref: 'webgl', extra: '&outline=1', title: 'AF WebGL, effects and the coloured outline' },
+      ]
+    : process.env.EB_PANELS === 'glow'
     ? [
         // Before and after the glow look: the glow, the room behind the windows and the bloom, off and on.
         { pref: 'webgl', extra: '&glow=0&bloom=0', title: 'AF WebGL, no glow' },

@@ -16,9 +16,12 @@ const GAME_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 // 400 until the room learned to pause when the page is hidden (about ten lines of listener), 420 until main.ts learned to
 // restart the game on new content in dev (the Tuner's live game, about fifteen lines), 430 until the screens learned to
 // draw their words in the player's language and redraw them when it changes, and to send the round's time to the fastest
-// board (the panels' markup, the redraw and the submit, about fifty lines); 490 leaves room for the next small piece of
-// behaviour without hiding a real growth in plumbing. The words themselves are content, below.
-const PLUMBING_LIMIT = 490
+// board (the panels' markup, the redraw and the submit, about fifty lines). The language binding, the number format, the
+// default languages and the matching rule are now the framework's (`bindWords`, `formatNumber`, `DEFAULT_LOCALES`,
+// `matchLocale`), which took the plumbing from 479 to 469; the panels' markup and the board submit are the game's own, so 430
+// was not reachable. The limit is the measure rounded up to the next ten, and it leaves no room to hide a real growth.
+// The words themselves are content, below.
+const PLUMBING_LIMIT = 470
 
 const SIM_ROLE = /\.(?:component|system|command|event|resource|plugin)\.ts$/
 const SIM_BY_IMPORT = ['src/shared/tiles.ts', 'src/shared/tuning.ts', 'src/features/player/place-wick.ts']

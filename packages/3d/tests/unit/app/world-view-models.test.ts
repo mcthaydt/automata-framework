@@ -6,7 +6,11 @@ import { Texture } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { updatePieces } from '#src/app/update-pieces.ts'
 import { drawWorld } from '#src/app/world-view.ts'
+import { createOccluders } from '#src/features/camera/occluders/occluders.ts'
 import { buildWorld } from '#src/features/world/build.ts'
+import { box } from '#src/features/world/mesh.ts'
+import { part } from '#src/features/world/props/piece.ts'
+import { registerPropGenerator } from '#src/features/world/props/prop-generator-registry.ts'
 import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
 import { noPieceStates } from '#src/shared/level/piece-states.ts'
 import type { LoadedModel, ModelLibrary } from '#src/shared/render/model/load-models.ts'
@@ -153,5 +157,46 @@ describe('drawWorld with models', () => {
     expect(mesh.visible).toBe(true)
     updatePieces(view, noPieceStates(), { ...noPieceStates(), props: { chest: { at: [3, 0, 2] } } })
     expect(mesh.position.x).toBeCloseTo(1, 5)
+  })
+})
+
+// A frame as a generator draws one: a thin box with its back on the wall, marked as hung on it.
+registerPropGenerator('test.hung-frame', () => ({
+  pieces: [part(box([0, 0, 0.02], [0.6, 0.4, 0.04]), 'oakFloor', 'frame', { mount: 'wall' })],
+}))
+
+describe('a model on a wall', () => {
+  const hung = buildWorld(
+    {
+      ...level,
+      sectors: [room('hall', 0)],
+      props: [
+        { id: 'picture', at: [2, 0.01, 1.4], kind: 'test.hung-frame', angle: 90, model: 'models/chest.bin' },
+      ],
+    },
+    LIB,
+  )
+  const eye = { x: 2, y: 3, z: -5 }
+  const frame = {
+    eye,
+    look: { x: 2, y: 1, z: 2 },
+    feet: { x: 2, y: 0, z: 2 },
+    head: { x: 2, y: 1.6, z: 2 },
+    seconds: 1,
+    reduced: true,
+  }
+
+  it('hides with its wall when the wall is cut, as the prop’s own pieces would', () => {
+    const parent = new Container3D()
+    const occluders = createOccluders(parent)
+    const view = drawWorld({ parent, occluders, colourOf: () => 0 }, hung.pieces, {
+      props: hung.props,
+      models,
+    })
+    const picture = view.mesh('model:picture') as Mesh3D
+    expect(picture).toBeDefined()
+    occluders.update(frame)
+    expect((view.mesh('hall:wall:0.0.0') as Mesh3D).visible).toBe(false)
+    expect(picture.visible).toBe(false)
   })
 })

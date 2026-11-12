@@ -3,8 +3,8 @@
 // an existing item (`unknownReference`), and that item must be the right kind (`wrongKind`). What changed is
 // how references are found: they are marked in the schema (`contentRef`) and collected by walking the data.
 
-import type { DataPath, Problem } from '../diagnostics/diagnostic'
-import { isContentRefMarker, isLocalizedMarker } from './content-schema'
+import type { DataPath, Problem } from '../diagnostics/diagnostic.ts'
+import { isContentRefMarker, isLocalizedMarker, isVerbatimMarker } from './content-schema.ts'
 
 export interface FoundRef {
   readonly path: DataPath
@@ -23,6 +23,8 @@ export interface ResolvedMarkers {
   /** In key order (object keys sorted), so diagnostics and message keys come out in a stable order. */
   readonly refs: FoundRef[]
   readonly texts: FoundText[]
+  /** The text kinds marked `verbatim()`, in the same order: drawn as written, with no message key. */
+  readonly verbatim: FoundText[]
 }
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
@@ -31,6 +33,7 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
 export function resolveMarkers(value: unknown): ResolvedMarkers {
   const refs: FoundRef[] = []
   const texts: FoundText[] = []
+  const verbatim: FoundText[] = []
 
   const walk = (node: unknown, path: (string | number)[]): unknown => {
     if (isContentRefMarker(node)) {
@@ -39,6 +42,10 @@ export function resolveMarkers(value: unknown): ResolvedMarkers {
     }
     if (isLocalizedMarker(node)) {
       texts.push({ path, text: node.text })
+      return node.text
+    }
+    if (isVerbatimMarker(node)) {
+      verbatim.push({ path, text: node.text })
       return node.text
     }
     if (Array.isArray(node)) return node.map((child, index) => walk(child, [...path, index]))
@@ -51,7 +58,7 @@ export function resolveMarkers(value: unknown): ResolvedMarkers {
     return node
   }
 
-  return { value: walk(value, []), refs, texts }
+  return { value: walk(value, []), refs, texts, verbatim }
 }
 
 /** Checks references against the IDs of every kind. `ids` maps a kind to its IDs. */

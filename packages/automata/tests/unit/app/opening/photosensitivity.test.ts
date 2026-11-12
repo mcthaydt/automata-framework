@@ -3,7 +3,12 @@ import { firstRunSteps } from '#src/app/opening/first-run.ts'
 import { type OpeningContext, runOpening } from '#src/app/opening/opening.ts'
 import { warningStep } from '#src/app/opening/photosensitivity.ts'
 import { createSeenFlags } from '#src/app/opening/seen-flags.ts'
+import en from '#src/app/screens/words/en.json' with { type: 'json' }
+import es419 from '#src/app/screens/words/es-419.json' with { type: 'json' }
 import ja from '#src/app/screens/words/ja.json' with { type: 'json' }
+import ko from '#src/app/screens/words/ko.json' with { type: 'json' }
+import ptBR from '#src/app/screens/words/pt-BR.json' with { type: 'json' }
+import zhHans from '#src/app/screens/words/zh-Hans.json' with { type: 'json' }
 import type { Locale } from '#src/features/locale/locale.manager.ts'
 
 // The photosensitivity warning (the second step of the first run): a game that flashes opts in; the first run on a
@@ -212,6 +217,80 @@ describe('the warning step', () => {
     abort.abort()
     await finished
     expect(layer.querySelector('[role="dialog"]')).toBeNull()
+  })
+})
+
+// Audit S9: the warning is a safety notice, so it says what this game has, not one sentence for every game. The game
+// declares its hazards as data (`effects`); the screen builds the sentence from the language's own words for each.
+describe('the warning says what the game has', () => {
+  const CATALOGS: Record<string, Record<string, string>> = {
+    en,
+    ja,
+    ko,
+    'es-419': es419,
+    'pt-BR': ptBR,
+    'zh-Hans': zhHans,
+  }
+  const bodyOf = (run: ReturnType<typeof startWarning>): string =>
+    run.layer.querySelector('.af-warning__body')?.textContent ?? ''
+
+  it.each([
+    ['true', true],
+    ['switches alone', { switches: [] }],
+    ['no effects', { effects: [] }],
+  ] as const)('says what the game may have when it declares no hazards (%s)', async (_name, option) => {
+    const run = startWarning(option)
+    await tick()
+    expect(bodyOf(run)).toContain('This game may have flashing lights or a shaking screen.')
+    expect(bodyOf(run)).toContain('seizure')
+  })
+
+  it('names the hazards the game declares, and only those', async () => {
+    const flashes = startWarning({ effects: ['flashing'] })
+    await tick()
+    expect(bodyOf(flashes)).toContain('This game has flashing lights.')
+    expect(bodyOf(flashes)).not.toContain('shaking')
+    expect(bodyOf(flashes)).not.toContain('may have')
+    flashes.layer.remove()
+    const both = startWarning({ effects: ['flashing', 'shaking'] })
+    await tick()
+    expect(bodyOf(both)).toContain('This game has flashing lights and a shaking screen.')
+  })
+
+  it('names each hazard a game can declare', async () => {
+    const run = startWarning({ effects: ['flashing', 'strobing', 'shaking', 'patterns'] })
+    await tick()
+    expect(bodyOf(run)).toContain(
+      'This game has flashing lights, strobing lights, a shaking screen, and high-contrast patterns.',
+    )
+  })
+
+  it.each(SIX)('builds the sentence from %s’s own words, with no slot left open', async (tag) => {
+    const locale = fakeLocale()
+    locale.set(tag)
+    const run = startWarning({ effects: ['flashing', 'shaking'] }, { locale })
+    await tick()
+    const words = CATALOGS[tag] ?? {}
+    const text = bodyOf(run)
+    expect(text).toContain(words.first_run_warning_effects_flashing)
+    expect(text).toContain(words.first_run_warning_effects_shaking)
+    expect(text).not.toContain('{')
+    expect(text).not.toContain('strobing')
+    // A language the game declares nothing in says its own generic sentence, not the declared one.
+    run.layer.remove()
+    const generic = startWarning(true, { locale })
+    await tick()
+    expect(bodyOf(generic)).toBe(words.first_run_warning_body)
+  })
+
+  it('says the sentence again in the new language when the player changes it', async () => {
+    const locale = fakeLocale()
+    const run = startWarning({ effects: ['flashing'] }, { locale })
+    await tick()
+    expect(bodyOf(run)).toContain('flashing lights')
+    locale.set('ja')
+    await tick()
+    expect(bodyOf(run)).toContain(ja.first_run_warning_effects_flashing)
   })
 })
 

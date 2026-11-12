@@ -1,5 +1,7 @@
 // The runtime a game can reach for: the clock, loop, content, saves, settings, audio, input and the boot services.
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
+
+export { DEFAULT_LOCALES } from '@automata/content/locale'
 export { contentHashOf } from '../app/boot/boot-program.js'
 export type {
   CompiledContentData,
@@ -8,6 +10,7 @@ export type {
   GameDefinition,
   RuntimeHandle,
   RuntimeSeams,
+  RuntimeWords,
   StartOptions,
 } from '../app/boot/game-definition.js'
 export { runGame } from '../app/boot/run-game.js'
@@ -20,6 +23,7 @@ export type { RuntimeServices, ScreenContext, ScreenDef } from '../app/flow/scre
 export type { OpeningContext, OpeningStep } from '../app/opening/opening.js'
 export type { PhotosensitivityOption, WarningSwitch } from '../app/opening/photosensitivity.js'
 export type { SeenFlag, SeenFlags } from '../app/opening/seen-flags.js'
+export { WARNING_EFFECTS, type WarningEffect } from '../app/opening/warning-effects.js'
 export type { Audio } from '../features/audio/audio.manager.js'
 export type { AudioBuses } from '../features/audio/audio-buses.js'
 export {
@@ -43,7 +47,10 @@ export {
   type InputProfile,
   inputProfileSchema,
 } from '../features/input/input-profile.schema.js'
+export { bindWords } from '../features/locale/bind-words.ts'
+export { formatNumber } from '../features/locale/format.ts'
 export type { Locale } from '../features/locale/locale.manager.js'
+export { matchLocale } from '../features/locale/negotiate-locale.ts'
 export { createT, type Translate } from '../features/locale/paraglide.js'
 export type { Save } from '../features/saves/save.manager.js'
 export {

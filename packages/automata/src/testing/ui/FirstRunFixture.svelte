@@ -1,6 +1,6 @@
 <!--
   The first run's screens for the layout contracts: `language` is the language screen with all six languages; `warning`
-  is the photosensitivity warning with two switches. Words are the default English words, said in the `locale` the
+  is the photosensitivity warning with two switches and all four declared effects (the longest sentence it says). Words are the default English words, said in the `locale` the
   contract runs in.
 -->
 <script lang="ts" module>
@@ -26,6 +26,13 @@ const copy: ScreensCopy = {
     warning: {
       title: t(words.warning.title),
       body: t(words.warning.body),
+      declared: (effects) => t(words.warning.declared(effects)),
+      effects: {
+        flashing: t(words.warning.effects.flashing),
+        strobing: t(words.warning.effects.strobing),
+        shaking: t(words.warning.effects.shaking),
+        patterns: t(words.warning.effects.patterns),
+      },
       choose: t(words.warning.choose),
       later: t(words.warning.later),
       continue: t(words.warning.continue),
@@ -61,5 +68,12 @@ const none = (): void => undefined
     onclose={none}
   />
 {:else}
-  <PhotosensitivityWarning copy={live} locale={reader} {switches} reducedMotion={false} ondone={none} />
+  <PhotosensitivityWarning
+    copy={live}
+    locale={reader}
+    {switches}
+    effects={['flashing', 'strobing', 'shaking', 'patterns']}
+    reducedMotion={false}
+    ondone={none}
+  />
 {/if}

@@ -706,7 +706,7 @@ declare module 'virtual:automata/content' {
   export type Credits = {
     readonly sections: readonly ({
       readonly names: readonly ({
-        readonly name: string
+        readonly name: unknown /* credits.sections.names.name has no JSON form */
         readonly role?: string
         readonly url?: string
       })[]

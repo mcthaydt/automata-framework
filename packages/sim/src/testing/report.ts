@@ -1,5 +1,5 @@
 // What a golden check found, and how it prints: one screen that says why a golden broke.
-import type { Difference } from './diff'
+import type { Difference } from './diff.ts'
 
 /**
  * What a golden check found: `pass`, `written`, `missing`, `schema-changed`, `content-changed`,

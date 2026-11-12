@@ -13,6 +13,10 @@ import {
   createPixi3dRenderer,
   HazeEffect,
   SkyEffect,
+  DEFAULT_LOOK,
+  GradeEffect,
+  OutlineEffect,
+  moodOf,
   parseLook,
   drawWorld,
   figure,
@@ -28,8 +32,10 @@ import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automa
 import { figuresExtension, type Gait } from '@automata/3d/figures'
 import { BASE as PAINTED_BASE, characterKitExtension, paintedFigure } from '@automata/character-kit'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
+import { addLcdPanelPass } from '@automata/lcd-panel/pass'
+import { addRetroPass } from '@automata/retro-crisp/pass'
 import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
-import { GlowEffect } from '@automata/world-kit/sky'
+import { GlowEffect, ParticlesEffect, ReflectEffect, ShaftsEffect, shaftLamps, type Emitter } from '@automata/world-kit/sky'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
 
 // Pixi's capability probes each make a throwaway WebGL context and lose it on purpose. On headless SwiftShader that
@@ -48,8 +54,15 @@ const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 // only the pieces that bake light, or only those a state can move (doors, props, leaves). ?figures=painted draws the cast as
 // the character kit's painted figures (the builder's own pair, lit by the room) instead of core's meshes.
 const on = (key: string) => q.get(key) !== '0'
-// ?shadow=0 turns off a figure's cast shadow on the floor (the look's `shadow` switch).
-const look = on('look') ? parseLook({ switches: { shadow: on('shadow') } }) : undefined
+// ?lcd=1 and ?retro=1 turn on the LCD panel and the retro grade the way a game does: one call each, before the renderer is made, with
+// the old game's own numbers (the clinic profiles, which `{}` is). The retro pass goes before core's snap whatever the order; the panel after.
+if (q.get('retro') === '1') addRetroPass({ profile: {} })
+if (q.get('lcd') === '1') addLcdPanelPass({ profile: {} })
+// ?shadow=0 turns off a figure's cast shadow on the floor (the look's `shadow` switch); ?outline=1 turns the coloured outline on
+// (it is off in the source's base look).
+const look = on('look')
+  ? parseLook({ switches: { shadow: on('shadow'), ...(q.get('outline') === '1' ? { outline: true } : {}) } })
+  : undefined
 
 const tiles = albedoTiles(worldKitLibrary.swatches as never)
 const dressed = name.endsWith('-dressed')
@@ -240,8 +253,8 @@ const game = defineGame({
             sky.aim(-Math.PI / 2, -(GAMEPLAY[viewName].tiltDeg * Math.PI) / 180)
           view.passes = [sky, ...view.passes]
         }
-        // ?snap=0 / ?haze=0 drop the DUEL snap / the haze pass, to read the frame before them.
-        view.passes = view.passes.filter((p) => !(q.get('snap') === '0' && p.constructor.name === 'DuelSnapEffect') && !(q.get('haze') === '0' && p.constructor.name === 'HazeEffect'))
+        // ?snap=0 / ?haze=0 / ?grade=0 drop the DUEL snap / the haze pass / the mood grade, to read the frame before them.
+        view.passes = view.passes.filter((p) => !(q.get('snap') === '0' && p.constructor.name === 'DuelSnapEffect') && !(q.get('haze') === '0' && p.constructor.name === 'HazeEffect') && !(q.get('grade') === '0' && p.constructor.name === 'GradeEffect'))
         if (on('env')) view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         const colourOf = (swatch: string) => swatchColour(library, swatch)
         if (on('world')) {
@@ -253,12 +266,54 @@ const game = defineGame({
           const pieces = only === null ? kept : kept.filter((p) => new RegExp(only).test(p.id))
           drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('glow') ? { glow: (swatch: string) => swatchGlow(library, swatch) } : {}), ...(on('tiles') ? { tiles } : {}) }, pieces)
         }
+        // ?rig=1 runs the occluder rule once, as a game's camera rig does each frame: the walls between the eye and the man (and the
+        // wall the eye stands behind) are cut, and what hangs on a cut wall goes with it. The spike has no rig of its own.
+        if (q.get('rig') === '1' && (viewName === 'af' || viewName === 'zone')) {
+          const who = (level.cast ?? [])[0]?.at ?? [0, 0]
+          const g = GAMEPLAY[viewName]
+          const frame = {
+            eye: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+            look: { x: who[0], y: g.focus, z: who[1] },
+            feet: { x: who[0], y: 0, z: who[1] },
+            head: { x: who[0], y: 1.7, z: who[1] },
+            seconds: 1,
+            reduced: true,
+          }
+          occluders.update(frame)
+        }
         // The bloom rings what the room's glowing swatches show, after the snap (?bloom=0 leaves it out).
         if (on('bloom') && on('glow'))
           view.passes = [
             ...view.passes,
             new GlowEffect({ colours: glowColours(world.pieces, (swatch) => swatchGlow(library, swatch)) }),
           ]
+        // The mood a level names (`look.grade`; none in the base scenes; ?grade=warmNight tries one), before the snap.
+        const gradeName = q.get('grade') ?? (level as { look?: { grade?: string } }).look?.grade
+        const grade = view.passes.find((p): p is GradeEffect => p instanceof GradeEffect)
+        if (grade !== undefined && gradeName !== undefined) grade.mood(moodOf(gradeName))
+        const outline = view.passes.find((p): p is OutlineEffect => p instanceof OutlineEffect)
+        if (outline !== undefined && viewName === 'diorama') outline.orthographic()
+        // The kit's effects, in the source's order after the bloom: reflections (rain only: ?wet=1), shafts, particles.
+        // ?fx=0 leaves them out. Their clock is fixed so a frame is the same each time it is shot.
+        if (on('fx')) {
+          const burning = world.lamps.filter((l) => !l.dusk || night)
+          if (q.get('wet') === '1') {
+            const reflect = new ReflectEffect({ ground: 0, puddles: 0.4 })
+            view.passes = [...view.passes.filter((p) => !(p instanceof GlowEffect)), reflect, ...view.passes.filter((p) => p instanceof GlowEffect)]
+            reflect.track(camera)
+          }
+          const shafts = new ShaftsEffect(shaftLamps(burning))
+          shafts.clock = 1
+          shafts.track(camera)
+          const emitters: Emitter[] = [
+            ...burning.filter((l) => l.aim !== undefined && night).map((l) => ({ kind: 'moth' as const, at: [l.at[0], l.at[1], l.at[2]] as [number, number, number] })),
+            ...burning.filter((l) => l.flame === true).map((l) => ({ kind: 'flame' as const, at: [l.at[0], l.at[1], l.at[2]] as [number, number, number] })),
+          ]
+          const particles = new ParticlesEffect(emitters)
+          particles.clock = 1
+          particles.track(camera)
+          view.passes = [...view.passes, shafts, particles]
+        }
         const renderer = stage.app.renderer as unknown as { name: string }
         const { dataset } = stage.app.canvas
         dataset.renderer = renderer.name

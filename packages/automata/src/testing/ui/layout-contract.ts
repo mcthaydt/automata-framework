@@ -187,6 +187,37 @@ function drawnWords(
   return { left, top, right, bottom }
 }
 
+/**
+ * A "+N more" badge (`scroll-more`) drawn over words in a scroll region. The badge labels the rows that are out of
+ * view, so it may sit beside the scroll box but never on a row's label; only the words as drawn count (what the region
+ * clips is not), and the badge's own words never do.
+ */
+function findMoreOverWords(root: ParentNode): string[] {
+  const problems: string[] = []
+  for (const badge of root.querySelectorAll('[data-testid="scroll-more"]')) {
+    const box = badge.getBoundingClientRect()
+    if (box.width === 0 || box.height === 0) continue
+    // Regions nest (a dialog's body holds the list), so a text node is judged once, in its innermost region.
+    const judged = new Set<Node>()
+    for (const region of [...root.querySelectorAll('[data-scroll-region]')].reverse()) {
+      const walker = region.ownerDocument.createTreeWalker(region, NodeFilter.SHOW_TEXT)
+      for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+        if (judged.has(node) || badge.contains(node) || (node.textContent ?? '').trim() === '') continue
+        judged.add(node)
+        const words = drawnWords(node, region)
+        if (words === undefined) continue
+        const crosses =
+          words.left < box.right - 1 &&
+          words.right > box.left + 1 &&
+          words.top < box.bottom - 1 &&
+          words.bottom > box.top + 1
+        if (crosses) problems.push(`${nameOf(badge)} covers the words "${(node.textContent ?? '').trim()}"`)
+      }
+    }
+  }
+  return problems
+}
+
 const px = (value: string): number => Number.parseFloat(value) || 0
 
 /**
@@ -321,7 +352,7 @@ function findTouchIntrusions(root: ParentNode): string[] {
  * `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
  * ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
  * region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no
- * action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
+ * action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), no control's words run past its edge, and no "+N more" badge covers words in a scroll region; and each of `essentials` is reachable without scrolling.
  */
 export function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[] {
   const scale = conditions.geometry.scale
@@ -339,6 +370,7 @@ export function checkLayout(conditions: Conditions, essentials: readonly Element
     ...findCutByBar(document.body, BAR_ACTIONS),
     ...findCoveredBarActions(document.body),
     ...findSpilledWords(document.body),
+    ...findMoreOverWords(document.body),
     ...findUnreachable(essentials),
   ]
 }

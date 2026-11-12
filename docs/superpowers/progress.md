@@ -17,8 +17,9 @@ runs in its own session on its own branch and hands off through committed docume
 | 1 | Shared polish from FloorFifty (seven items and their examples) | 3, plan audit: done 2026-11-11, 41 findings, all fixed in the plan. 4, execution: all 21 tasks done (task 17 cut), merged as #645 (`2d238cd0`). 5, implementation audit: done 2026-11-12 on `claude/shared-polish-impl-audit`, 18 findings (1 blocking, 9 should fix, 8 tidy): the stale-build check cannot read the server's facts across origins (B1); the words that stay in one language, the font licence missing from a built game, `automata words`' handling of a bad key, Emberwick's plumbing limit and the rest are in the audit, with what ran in Chromium and what did not. Ready for 6, the fixes | 71% (5 of 7 stages done) | [spec](specs/2026-11-11-shared-polish-design.md), [plan](plans/2026-11-11-shared-polish.md), [plan audit](audits/2026-11-11-shared-polish-plan-audit.md), [implementation audit](audits/2026-11-11-shared-polish-implementation-audit.md) |
 | 2 | The Last Light, the framework's 3D reference game, one scene at a time (the prologue first) | Slice 1: 3, plan audit: done 2026-11-11, 32 findings (9 blocking, 15 should fix, 8 tidy), all fixed in the plan and the survey, which now match the spec and the code at `main` `6a70f9b1` (the spec's amendments `acb0361d`, `864361d4` and `909f6b10` included: the 3D examples go in tasks 19 and 20; a homes table, with interact and the HUD as genre extensions and a carried light in `@automata/systems`; the dressing waits for workstream 4) and the game at `92e6704`. Nothing open: every recorded file the prologue plays crosses (twelve, option B); workstream 1's task 17 is cut on its build branch. Next is 4, execution (22 tasks on three branches). Slices 2 to 4 not started | Slice 1: 43% (3 of 7 stages); execution 15 of 22 tasks (68%; branch 1 of 3, `claude/last-light-framework`, tasks 1 to 9b, merged as #643; branch 2, `claude/last-light-prologue`, tasks 10a, 10, 11, 12 and 14 done 2026-11-11 and 12 (14 but for the register, the LCD panel and retro grade, and the painted figures), task 13 held for workstream 4's figures and wardrobe; task 15's first journey passes in Chromium and its second is written, not run; tasks 16 to 18 next) | [spec](specs/2026-11-11-last-light-on-the-framework-design.md), [survey](audits/2026-11-11-last-light-prologue-survey.md), [plan](plans/2026-11-11-last-light-prologue.md), [audit](audits/2026-11-11-last-light-prologue-plan-audit.md) |
 | 3 | An editor for every kind of authorable content: the UI editor first, others as gaps are found | Not started: specced with the Owner when we get to it; gaps are logged in the ledger below as they are found | 0% | |
-| 4 | The builders' look and figures in the framework (takes over #588, #589, #590, #603, #607) | 2, plan: done 2026-11-11. A survey measured on `main` `6a70f9b1`, planned against `main` `f93a2402` (12 side-by-side sheets with their numbers, the causes of the two dark examples, every work package and figure piece marked, the five drafts read, merged with `main` on trial and checked step by step) and a plan of 17 tasks on five branches. The baked room on `main` draws at 0.29 to 0.50 of the builder's brightness; the fix exists in #590 and sits on #589's code, so #589 lands first. 3, plan audit: done 2026-11-11 at `main` `b80bfc84`, 28 findings (5 blocking, 15 should fix, 8 tidy), all fixed in the plan and the survey; the merge order checked step by step: green but for `main`'s own `knip` fault (the survey's shoot script, moved to `spikes/builders-look/` here) and, until #590, a probe's port that task 2 now fixes by picking `dd8d72bb` with the fix; the whole-pixel letterbox kept and room-visibility dropped (rulings for the Owner to confirm); the coordinator's answers taken in (#588: option A, `lcd-panel` and `retro-crisp` land; three items for workstream 2 taken by the coordinator, with the interfaces it relies on now in the plan; the shoot script's move sent to `main` alone as `71fdfd53`); a figure's cast shadow stays the Owner's. 4, execution: group 1 (`claude/builders-look-room`, tasks 1 to 5) done 2026-11-11 and ready to merge: #589 in whole, the lit room healthy (a browser test that failed on `main` and passes), an empty level reported, the two dark examples repaired, and a fault in the bake's sun found by the street's diagnosis and fixed; all eight scene sheets are 0.84 to 1.01 of the builder's brightness (the street was 0.29 to 0.71). Group 1 merged to `main` at `a024bc4b`. Group 2 (`claude/builders-look-figures`): task 6 done, #607 merged in (see the sessions table). Runs ahead of the prologue's dressing task | 43% (3 of 7 stages); execution 9 of 18 tasks (50%) | [spec](specs/2026-11-11-builders-look-and-figures-design.md), [survey](audits/2026-11-11-builders-look-survey.md), [plan](plans/2026-11-11-builders-look.md), [audit](audits/2026-11-11-builders-look-plan-audit.md) |
+| 4 | The builders' look and figures in the framework (takes over #588, #589, #590, #603, #607) | 2, plan: done 2026-11-11. A survey measured on `main` `6a70f9b1`, planned against `main` `f93a2402` (12 side-by-side sheets with their numbers, the causes of the two dark examples, every work package and figure piece marked, the five drafts read, merged with `main` on trial and checked step by step) and a plan of 17 tasks on five branches. The baked room on `main` draws at 0.29 to 0.50 of the builder's brightness; the fix exists in #590 and sits on #589's code, so #589 lands first. 3, plan audit: done 2026-11-11 at `main` `b80bfc84`, 28 findings (5 blocking, 15 should fix, 8 tidy), all fixed in the plan and the survey; the merge order checked step by step: green but for `main`'s own `knip` fault (the survey's shoot script, moved to `spikes/builders-look/` here) and, until #590, a probe's port that task 2 now fixes by picking `dd8d72bb` with the fix; the whole-pixel letterbox kept and room-visibility dropped (rulings for the Owner to confirm); the coordinator's answers taken in (#588: option A, `lcd-panel` and `retro-crisp` land; three items for workstream 2 taken by the coordinator, with the interfaces it relies on now in the plan; the shoot script's move sent to `main` alone as `71fdfd53`); a figure's cast shadow stays the Owner's. 4, execution: group 1 (`claude/builders-look-room`, tasks 1 to 5) done 2026-11-11 and ready to merge: #589 in whole, the lit room healthy (a browser test that failed on `main` and passes), an empty level reported, the two dark examples repaired, and a fault in the bake's sun found by the street's diagnosis and fixed; all eight scene sheets are 0.84 to 1.01 of the builder's brightness (the street was 0.29 to 0.71). Group 1 merged to `main` at `a024bc4b`. Group 2 (`claude/builders-look-figures`): task 6 done, #607 merged in (see the sessions table). Group 3 (`claude/builders-look-effects`, tasks 10a to 12 and the lamp kit's task A) done 2026-11-12: the effects, each behind its switch, the LCD panel and the retro grade proved at the old picture sizes with a sheet, the lamp kit widened to the old game's lamps, the whole `pnpm check` and the Chromium suites green; follow-ups below. Runs ahead of the prologue's dressing task | 43% (3 of 7 stages); execution 14 of 19 tasks (74%) | [spec](specs/2026-11-11-builders-look-and-figures-design.md), [survey](audits/2026-11-11-builders-look-survey.md), [plan](plans/2026-11-11-builders-look.md), [audit](audits/2026-11-11-builders-look-plan-audit.md) |
 | 5 | CI on rented Ubicloud runners, matching Ruken's setup | Not started: "for when we get there"; two questions for the Owner before switching on | 0% | [the Owner's brief](briefs/2026-11-11-ci-on-ubicloud.md) |
+| 6 | The builders move into the framework: FigureBuilder first, then EnvironmentBuilder; the submodule goes | 1, spec: done 2026-11-12. Next is 2, the plan with its two surveys | 14% (1 of 7 stages) | `docs/superpowers/specs/2026-11-12-builders-into-the-framework-design.md` |
 
 ## Workstream 1 sessions
 
@@ -39,6 +40,8 @@ runs in its own session on its own branch and hands off through committed docume
 | 4. Execution, merged | the merge session | `claude/shared-polish-build` | Merged 2026-11-11 as #645 (`2d238cd0`) at `050a7303` after the merge session's own whole `pnpm check`, `pnpm build` and the API report and index checks; no recorded golden or hash moved; no workflow file changed. The sixth session is archived |
 | 5. Implementation audit | Opus 5.5, medium (`session_01HNdX7KWeVco5J6isDwvg6H`), no subagents | `claude/shared-polish-impl-audit` | Done 2026-11-12 at `main` `2d238cd0`, no code or test changed: [the audit](audits/2026-11-11-shared-polish-implementation-audit.md). Ran `pnpm check` (exit 0), `pnpm build`, `agent-skills`, `api-report`, `api-index`, the Chromium browser suites, journeys, the site's build and suites and the consumer smoke (results in the audit); WebKit, Firefox, real hosts and the live model call not run |
 | 6. Fixes | Sonnet 5.5, high (`session_01HNdX7HQTNnRKaroUir7cbf`, archived at its 90 minutes; then `session_01HNdX7K4hJ42HKM6t8Ez3s5`), no subagents | `claude/shared-polish-fixes` | Started 2026-11-12. Session 1: 10 of 18 findings (B1, S1 to S7, T6, T7). Session 2: S8 and S9 done; T1 ruled to keep the blocked-popup answer honest; the rest and the closing run to come |
+| 6. Fixes, merged | the merge session | `claude/shared-polish-fixes` | Merged 2026-11-12 as #654 (`0df11a43`) at `2e371983`: all 18 findings. The merge session's own whole `pnpm check` with the cache off (15,963 unit tests), `pnpm build` and the API report and index checks passed; web `openLink`'s final state checked (a blocked popup answers `opened: false`). Not run anywhere: WebKit, Firefox, real devices and hosts, the live `automata words` call |
+| 7. Review | the Owner | | Open. Workstream 1 is built, audited and fixed |
 | Merge | One long-lived session (`session_01HNdX7LEALEpFdpPWLXPuy7`) | none of its own | Started 2026-11-11; merged the spec as #608 (`6fa386e9`) |
 
 ## Workstream 1: "Done means" (the closing record, the sixth session, `claude/shared-polish-build`)
@@ -94,6 +97,113 @@ gate could run; the side session's list of what the framework could take over is
 - The merge commit `e0b2394e` carries the earlier execution session's id in its `Claude-Session` trailer (a slip; not rewritten, since the commit is pushed).
 - Task 20's second defect fix was watched failing under the old code for one of its five cases only (the plan's ledger says which).
 
+## Workstream 1, stage 6 (the fixes), `claude/shared-polish-fixes`
+
+Sonnet 5.5 (`session_01HNdX7HQTNnRKaroUir7cbf`), no subagents, from `main` `62a143ce` with the audit merged. One commit per
+finding or tight group, test first, each test watched failing. Chromium only (software GL); WebKit, Firefox, real devices and
+hosts are not run; no paid API call. **Progress: 18 of 18 findings (100%); stage 6 is done** (B1, S6, S7, S1, S2, S3, T7, S4, S5, T6, S8, S9, T1, T8, T3, T5, T4, T2; S6 counts with B1, T7 with S3, T6 with S4+S5). Stage 6 of 7 is this one, so the workstream is
+`(5 + done/18) / 7` of the way: 6 of 7 stages, 86%, with stage 7 (the final review and merge) left.
+
+| Finding | What | State | Commit |
+|---|---|---|---|
+| B1 + S6 | `/version` answers cross-origin; a failed check is "could not check", never "current"; a cross-origin journey | done (Chromium: net-ui browser suite 103 passed; unit tests in `pnpm check`) | `1961fc59` |
+| S7 | Content entries load under plain Node; `no-eval` passes for Emberwick | done (`automata check --only no-eval` on Emberwick: FAIL before, pass after) | `551a11f2` |
+| S1 | Flow, display and lost-picture words follow the language in force | done (unit tests; Emberwick journeys at the end) | `076ae045` |
+| S2 | The OFL text ships in a built game | done (unit tests; Emberwick built into a temp folder in a test) | `156126ae` |
+| S3 + T7 | `automata words` tells a bad key, a rate limit and an outage from a refusal and stops at the first; the key is `AUTOMATA_ANTHROPIC_KEY`, then `ANTHROPIC_API_KEY` | done (against a local stand-in server only; the live call is not made) | `d14076d8` |
+| S4 + S5 | `bindWords`, `formatNumber`, `DEFAULT_LOCALES` and one `matchLocale` in the framework; Emberwick measures 469 and its limit is 470 | done (`pnpm check` exit 0 on the tree; see "Open, for the Owner") | `77e57029` |
+| S8 | "+N more" never covers a label | done (the framework's Chromium suite 2252 passed; see the commit body) | `13d0f15f` |
+| S9 | The photosensitivity warning says the game's own hazards | done (`photosensitivity: { effects }`; Emberwick declares flashing and shaking; the editor-gaps ledger has row 12) | `f5fca953` |
+| T1 | `openLink` opens `window.open(url, '_blank')` with the opener nulled in the same turn, so a blocked popup answers `opened: false`; only `https:` addresses reach it; each adapter read | done (corrects `dcf5cc1a`, which put `noopener` in the features and made a block read as opened; unit tests; a real browser's referrer not checked) `82598ff8` |
+| T2 | The playground's start-when-seen cases watched failing against a reverted observer | done (all five cases of `playground.e2e.ts` failed with the observer reverted to `rootMargin: '100% 0px'` on the panel, a frame already in the page before the scroll; all five passed with it restored; Chromium, software GL; no source change) | `da9f29fe` |
+| T3 | Interface sounds nothing plays | done (a Modal asks for `open` and `close`, the error panel for `error`) | `07aeda0d` |
+| T4 | Credit names in the font build's glyph gate: a new `verbatim()` in `@automata/content/schema` (coordinator approved the export); the credits kind marks `name` with it; the build cuts every face to it and names a name a language's faces lack | done (unit tests in content and ui-screens; no game ships a credits file yet, so no font changed) | `468b3c68` |
+| T5 | Copy that fails the grandma test: "Make it gentler" heads the warning's switches; Emberwick's splash is "Emberwick, starting" to a screen reader; six languages each, by hand; fonts rebuilt | done (the catalog-parity unit test watched failing on the English change alone; fonts, words sources and example pages rebuilt) | `5a3980b3` |
+| T6 | The Languages guide names the import | done with S4 | `77e57029` |
+| T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | done with S3 | _with S3_ |
+| T8 | The SDK on the Node-only list | done (`pnpm boundaries`: 0 findings; unit cases for the package and a subpath) | `26cb32d4` |
+
+Stage 6 handoff at 90 minutes (the fixes session, `session_01HNdX7HQTNnRKaroUir7cbf`): last code commit `77e57029`, pushed.
+Done: B1+S6, S7, S1, S2, S3+T7, S4+S5, T6. **Resume at S8** (the "+N more" badge), then S9, T1, T2, T3, T4, T5, T8, then the closing
+run. Notes for the next session: (1) `ScrollList.svelte`'s badge is `position: sticky` inside the scroll region, so it will
+always cover whatever row is at the bottom of the viewport; the fix needs the badge outside the scrolling box (a frame with
+the region and the badge as siblings, the frame as the grid item, the same `min-height` reserve on both, and `count()`
+run again when the badge toggles, since it shrinks the region), and then a layout-contract rule that no text under
+`[data-scroll-region]` intersects `scroll-more`, checked at phone and compact size in the six languages (the Settings fixture
+with the Language group); only `ScrollList` and its unit test name `scroll-more`. (2) A commit that touches
+`packages/automata` runs the hook for about 9 minutes; the whole `pnpm check` takes about 12 and passes on `77e57029`. (3) The
+tools' own copies of `fontCoverage`, `catalogCharacters` and `packageCatalogs` were kept (the audit's "drop them once S7 is
+fixed" is not done: `packageCatalogs` is bound to tools' `Files` service, and the pin tests keep the copies equal) and Emberwick's
+`ship.config.ts` still writes the six tags out; say if the Owner wants those moved. (4) `sim`'s own root, `replay` and `testing`
+entries still have parameter properties plain Node cannot load; content does not reach them. (5) FigureBuilder is a copy at
+`d6e3c9fb` in `vendor/FigureBuilder` (container-local, not in `git status`).
+
+Stage 6 handoff at 90 minutes (the second fixes session, Sonnet 5.5, `session_01HNdX7K4hJ42HKM6t8Ez3s5`, from `69887136` merged with
+`main` `70df88b2`): last code commit `07aeda0d`, pushed. Done this session: S8 `13d0f15f`, S9 `f5fca953`, T1 `dcf5cc1a`, T8 `26cb32d4`,
+T3 `07aeda0d`. **Resume at T5, T4, T2** (the three left; they are small), then the closing run in the prompt's order (merge
+`origin/main`, `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, a `patch` changeset for each published package
+changed (`@automata/framework`, `@automata/tools`, `@automata/content` if T4 touches it, none yet written this session), the whole
+`pnpm check`, then the Chromium suites listed in the prompt, the packed-install smoke, the site's Languages guide and example
+for `bindWords`, `matchLocale`, `formatNumber`, `DEFAULT_LOCALES`, and this document). Notes: (1) T5's copy is two places:
+core's `first_run_warning_choose` ("Turn down", six languages in `packages/automata/src/app/screens/words/`, then
+`automata words --mark --catalog packages/automata/src/app/screens/words`) and Emberwick's `splash_label` ("Splash",
+`games/emberwick/messages/ui/<lang>.json`, then `automata words --mark` in the game); changing a catalog character set means the
+committed fonts must be rebuilt (`automata-content assets` in `games/emberwick`, and the examples' two page folders, which the
+test `packages/content/tests/unit/shared/assets/example-fonts.test.ts` compares; delete the stale hash-named `.woff2`), as S9 did.
+(2) T4: the credits content kind (`extensions/ui-screens/src/shared/credits/credits.content.ts`) must add its names to the
+characters every language's face keeps, which is in `packages/content/src/shared/assets/build-fonts.ts` (`wordsOf`, `nameCharacters`)
+and the words step's check. (3) T2: revert `site/` `Playground.svelte`'s observer on a scratch branch and watch each of the four
+playground cases fail; nothing else changes. (4) A commit that touches `packages/automata` runs the hook for about 10 minutes;
+it fails on a stale API report (`pnpm build`, `pnpm api-report --update`, `pnpm api-index --write` first) and on stale committed
+fonts. The whole `pnpm check` takes about 12 and passed on `f5fca953`'s tree. (5) T1's first version (`dcf5cc1a`) was corrected in
+the third session: `noopener` in `window.open`'s features made it answer null always, so a blocked popup read as opened. (6) FigureBuilder is a copy at `d6e3c9fb` in
+`vendor/FigureBuilder` (container-local).
+
+Stage 6 closing run (the third fixes session, `session_01HNdX7Kcr4Jtmso7AuMzMqZ`, Sonnet 5.5, from `3e46c8cf` merged with `main`
+`382ef1bd`, the FigureBuilder pin kept at main's `23f889c8`): the last code commit is `1044f6b2`. Done this session: T1 corrected
+(`82598ff8`: `window.open(url, '_blank')` with the opener nulled in the same turn, so a blocked popup is `opened: false` again),
+T5 `5a3980b3`, T4 `468b3c68` (a new additive `verbatim()` in `@automata/content/schema`, the Owner's coordinator approved the
+export), T2 `da9f29fe` (all five playground cases failed against the reverted observer, then passed), the release changesets and
+guides `b0f31b65`, and two test fixes the Chromium journeys found: `730ececd` (the six-language journey imported game code that
+reaches the framework's Svelte source since S4, so the Playwright run stopped at load) and `1044f6b2` (the fake-host journey never
+pressed Continue on S9's flashing-lights warning). Each finding's commit is in the table above.
+
+What ran, on the tree of `b0f31b65` unless stated, Chromium only with software GL (`AF_WEBGPU=software`):
+
+- The whole `pnpm check`: exit 0 (lint, typecheck, `boundaries`, `style`, `knip`, 63 unit tasks, `changeset status`, 76 changesets, 0 problems).
+- `pnpm build` (16 tasks); `pnpm api-report --update` and `pnpm api-index --write` changed nothing after the T4 commit's own regeneration.
+- The framework's browser suite 2252 passed (27 files); `@automata/ui-screens` 550 passed, 1 skipped; `@automata/net-ui` 103 passed;
+  `@automata/content` 3 passed.
+- Emberwick's journeys in Chromium (phone, compact, iPad with the golden route, the dev server, and the six language projects): all
+  passed after the two test fixes above (35 in the first run, of which 3 failed and now pass, and 6 language runs).
+- The examples config, Chromium projects (`examples`, `examples-compact`, `runner`, `runner-compact`, `demos`, `ui-primitives`, the
+  Chromium matrix cells): 132 passed, 86 skipped by the config. The `examples-ipad` project is WebKit and its 41 cases did not run.
+- The site: `pnpm build`, `check:site` (51 pages), unit 518 passed, Chromium e2e 509 passed (one is the audit's expected failure,
+  `test.fail`), the playground config in Chromium 41 passed.
+- The packed-install smoke (`node tooling/consumer-smoke/src/run.ts --from packs`): passed.
+
+What did not run: WebKit and Firefox anywhere (the examples' `examples-ipad` and the matrix's WebKit and Firefox cells, Emberwick's
+WebKit projects, the playground's other engines), real devices, a real Ruken or Tauri host, a real browser's referrer for T1, the
+live `automata words` call (no paid API call), `pnpm ci:local`'s 3D suites and journeys (workstream 2's, and unchanged here), and a
+second look at `release-checks.yml`'s other steps (`pnpm agent-skills`, `plugin:validate`, `test:dist`).
+
+Follow-ups the audit's list leaves open, recorded here (not fixed in stage 6):
+
+- Tools still carries its own copies of `fontCoverage`, `catalogCharacters` and `packageCatalogs`, kept equal by pin tests.
+  `packageCatalogs` is bound to tools' `Files` service (an Effect service for testing without a disk), so it cannot be content's plain
+  function without giving content that service; the other two are small and could go to content once tools may import
+  `@automata/content/assets` and `/locale` under plain Node. Left on purpose: the cost of the copies is two pin tests.
+- `sim`'s root, `replay` and `testing` entries still have parameter properties plain Node cannot load (`--experimental-strip-types`
+  refuses them); content does not reach them, so S7 holds. Not fixed here.
+- **T1, the referrer.** The page a credits link opens still receives the game's address as its referrer (and starts in the
+  game's browsing context group): `noopener` stays out of the features string because it would hide a blocked popup, and
+  `noreferrer` would need it. What the referrer then is depends on the shell. A built game's `index.html` (the template, Emberwick,
+  the examples) sets no `<meta name="referrer">`, so it is the browser's default (`strict-origin-when-cross-origin` in current
+  browsers) or the host's `Referrer-Policy` header; the site sends `strict-origin-when-cross-origin`
+  (`site/src/shared/html/security-headers.ts`) and its playground frames `no-referrer`. That is origin-only across origins, which is
+  the bar asked for, so nothing is changed here; a game that wants less sets its own policy (a meta tag or a header).
+- Emberwick's plumbing is 470 of its limit of 470 (S9's one-line declaration took it from 469); it stays under "Open, for the Owner".
+
 ## Workstream 2 sessions (slice 1, the prologue)
 
 | Stage | Session | Branch | State |
@@ -122,7 +232,7 @@ gate could run; the side session's list of what the framework could take over is
 | 4. Execution, group 2 (figures), session 3 | Sonnet 5.5, high (`session_01HNdX7JER9Yb1gPG5XDv4Sk`), no subagents | `claude/builders-look-figures` | Started 2026-11-11 from `5012314d` after session 2's handoff at 90 minutes (archived). Left: the street's shadow (cause found: the comparison scene stood figures 0.12 m under the pavement; not a framework fault), the sheets at the old game's picture and figure size, exposure by a core ground probe, then the build, the API reports and the whole check |
 | 4. Execution, group 2 (figures), session 4 (the close) | Sonnet 5.5 (`session_01HNdX7H9fsKJaBnYDTchEQA`), no subagents | `claude/builders-look-figures` | Done 2026-11-12 (no pull request opened, the merge session's). `main` merged (`d71bafea`); exposure by the builder's own trial (`170ea8fe`), the black slabs found to be wall fixtures' backs (a named difference; task 10a of the effects branch), the interior shadow a named difference with a question for the implementation audit, `reads.json` shot again (24 runs, 11 hot, all read). Ran: the whole `pnpm check` (exit 0, 63/63); Chromium only: 3D 48 pass (2 skip), world-kit 8, character-kit 58 pass (3 skip), 3D journeys 16; no golden moved. Not run: WebKit, Firefox, the e2e of base-3d and the 3D examples, the 2D browser suites. |
 | 4. Execution, group 2, merged | the merge session | `claude/builders-look-figures` | Merged 2026-11-12 as #648 (`a8d4e837`) at `5f4cee75` after the merge session's own whole `pnpm check` (uncached), `pnpm build` and the API report and index checks. The `vendor/FigureBuilder` pin moves `d6e3c9fb` to `23f889c8` (FigureBuilder's `main` head). One golden moved, named by `ea71e0a3` (42 runway cells, one golden for every machine). It carried #607 and #603 by ancestry. Not run by the merge session: browser suites, parity, journeys |
-| 4. Execution, group 3 (effects) | Sonnet 5.5, high (`session_01HNdX7JSVBzwMw24JzdZGTD`), no subagents | `claude/builders-look-effects` | Started 2026-11-12 from `5f4cee75`: task 10a first (wall-mounted fixtures follow their wall), then the plan's effects with the LCD panel and the retro grade, then the close |
+| 4. Execution, group 3 (effects) | Sonnet 5.5, high (`session_01HNdX7JSVBzwMw24JzdZGTD`), no subagents | `claude/builders-look-effects` | Started 2026-11-12 from `5f4cee75`. **Done so far (3 of 4 tasks, 2026-11-12):** task 10a (`e5b569b19`: a wall-mounted fixture hides and shows with its wall; the slabs are gone in [`after-effects/base-interior-dressed-zone-640x480.png`](audits/builders-look-survey/after-effects/base-interior-dressed-zone-640x480.png)), task 10 (`f4ac1e19`: #590 and #588 merged), task 11 (`7bc88a9a`: room-visibility left). **Task 12 and task A (the lamp kit) done 2026-11-12 by a second session (the close, no pull request opened, the merge session's):** every pass behind its switch (each switch test shown failing by cutting its behaviour), reduced motion, the LCD panel and the retro grade at 640 x 360 and 640 x 480 with [`look-640x480.png`](audits/builders-look-survey/after-effects/look-640x480.png) (mean luma 54.1 with no effects, 45.9 with the LCD panel, 43.9 with the grade), the recipe a game uses (in the plan, "What workstream 2 relies on"), the lamp kit covering the old game's lamps (`b5643381`), `main` merged twice, the whole `pnpm check` (exit 0, 65 of 65), Chromium on software GL: 3D 48 (2 skip), world-kit 19, character-kit 55 (2 skip), lcd-panel 9, retro-crisp 10, the 3D editor's journeys 16; no golden moved. Not run: WebKit, Firefox, a real GPU, the base-3d and 3D example e2e. The remaining effect work waits for the beta.3 port (follow-ups below) |
 
 ## Workstream 1, tasks 16 and 19 (a side branch)
 
@@ -172,6 +282,9 @@ step fails on content with no editor unless its row is here with the Owner's wor
 | 17 | Meshes for blockouts: a prop's `model` and `fit` (`@automata/3d`) are written by hand, or by `games/the-last-light/tools/convert/models.ts` from the old game's table; no editor places or chooses a mesh for a blockout, shows the model beside it, or shows how far a `fit` leaves it. Levels 3D keeps both fields through load and save (a test) and draws neither. | Workstream 2, 2026-11-12 | Open: a picker in Levels 3D's prop inspector (the model, the fit, a blockout view); the prop pipeline taking the blockout's bounds as its brief |
 
 Rows 8 to 14 are the reference game's own (workstream 2); rows 8 to 12 were rows 3 to 7 on its branch and were renumbered at the join with workstream 1's rows 3 to 7.
+| 12 | The photosensitivity declaration: `photosensitivity: { effects, switches }` in `defineGame` (which hazards the game has, and the settings that turn them down) is TypeScript a person edits by hand; no editor in the suite opens it | Workstream 1, stage 6 (S9), 2026-11-12 | To be specced |
+
+Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 on its branch and were renumbered at the join with workstream 1's rows 3 to 7. Row 12 is workstream 1's (stage 6).
 
 ## Findings so far (2026-11-11)
 
@@ -192,8 +305,29 @@ Rows 8 to 14 are the reference game's own (workstream 2); rows 8 to 12 were rows
 - **Question for the implementation audit:** should a lamp-lit room cast a figure's silhouette from its key lamp? The builder casts it along the figure's painted key whenever the time's `shadow` is true, sun or not (the interior: 1223 texels against ours 286; with its shadow off 271); ours casts a silhouette only under a sun that casts and a contact shadow otherwise. Adopting it moves every interior frame with the shadow on. [`after-shadow/README.md`](audits/builders-look-survey/after-shadow/README.md).
 - **Named difference:** a hold on the floor under the feet (`SceneLight.groundLuma`) is not the builder's ring round the silhouette in the frame; the interiors' man still reads hot in some views (11 of 24 runs hot, all read). [`after-exposure/README.md`](audits/builders-look-survey/after-exposure/README.md).
 
+### Workstream 4: follow-ups, not built on `claude/builders-look-effects` (2026-11-12)
+
+The effects branch closes with what is built; `claude/pixi-3d-beta-3` moves the framework to `@pixi/3d` 0.1.0-beta.3 (post effects staged before or after
+tone mapping, tone mapping's default, unlit colour, samplers), and every effect here is ported there, so no new pass is built on beta.2.
+
+- **The drifting mist** (the old game's; no framework counterpart): a pass, so it waits for the beta.3 port.
+- **The day-pane reflections**: the builder's streaks are the `glass` swatch pattern, not a pass; a world-kit albedo tile for glass-pattern swatches (a
+  1.44 x 1.86 m tile repeats the stripe), laid as `tileUvs` lays a photo tile. Small and independent of the port; not built.
+- **The remaining effect sheets**: the dressed street at night with painted figures; reflections and particles, which need a wet ground and an emitter the
+  spike lacks. Shot after the port, so they show the effects as they will ship.
+- **The sky and haze difference** (the green veil off the room): ruled the sky's ([`after-room/README.md`](audits/builders-look-survey/after-room/README.md), difference 10).
+
 ## Open, for the Owner
 
+- **Emberwick's plumbing limit is 470, not 430: ACCEPTED by the Owner, 2026-11-12 ("Accept 470").** (The audit's S4, stage 6.) The framework now has the pieces any game with
+  plain-DOM screens needs (`bindWords`, `formatNumber`, `DEFAULT_LOCALES`, `matchLocale`, exported from
+  `@automata/framework`, and used by Emberwick, `@automata/ui-screens` and `@automata/net-ui`), which took the measure from
+  479 to **469** lines. 430 was not reachable: what is left is the game's own (the panels' markup, the board submit, the
+  game's flow and its scene wiring), and the test's own rule is that a new piece of behaviour is not hidden. The limit is
+  469 rounded up to 470, and the plumbing test's comment says why.
+- **Two small things stage 6 left as they are** (see "Follow-ups the audit's list leaves open"): `@automata/tools` still carries its own
+  copies of `fontCoverage`, `catalogCharacters` and `packageCatalogs` (two pin tests keep them equal), and `sim`'s root, `replay` and
+  `testing` entries still have parameter properties plain Node cannot load (content does not reach them). Say if either should move.
 - The framework has 122 branches besides `main` from other workstreams; the merge session leaves them alone. Say if
   it should clean them up, and by what rule.
 
@@ -255,3 +389,17 @@ Rows 8 to 14 are the reference game's own (workstream 2); rows 8 to 12 were rows
   `drawWorld` draws the model in place of the prop's pieces, fitted inside the box (the largest uniform scale that fits on every
   axis, resting on the base, centred, turned with it), and fails with the file's name for a model that was not loaded; a blockout
   view draws the boxes; `modelsOf(level)` lists the files. The prologue names the old game's 41 models (`0f00b334`). Editor row 17.
+  blockout's bounds as its brief.
+- 2026-11-12: Emberwick's plumbing limit of 470 is accepted. If the reference game's own panels and board-style calls
+  show the same plumbing cost, that is the evidence for a declarative version in the framework, and both games' limits
+  come down together.
+- 2026-11-12, asked why the wardrobe work needs FigureBuilder's repository, and given the choice of folding
+  FigureBuilder's source into the framework or granting push access: "Do 1 and do the same for environment builder."
+  Workstream 6. Workstream 4's wardrobe tasks (13 to 16) wait for FigureBuilder's group and then run in the framework.
+- 2026-11-12, workstream 6, three answers: (1) "remove the submodule checkout and SUBMODULES_TOKEN from the workflows":
+  it goes in the fold's first pull request, quoted there. (2) "bring the figure builder branches in that we missed":
+  `claude/c5-finish-fixes` and `claude/turned-face-both-eyes` come in as framework changes after the fold, with the
+  wardrobe branch; content branches stay behind. (3) "commit in the note, give gh command to archive both": the
+  retirement note is on `claude/optimistic-newton-yszrte` in each builder (FigureBuilder `3caa9ad`, EnvironmentBuilder
+  `6983342`); the Owner merges and archives. Still open: EnvironmentBuilder's CPU scene renderer, left behind (the
+  default) or brought as a reference tool.

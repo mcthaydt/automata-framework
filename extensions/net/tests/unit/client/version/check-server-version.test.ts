@@ -6,8 +6,9 @@ import {
 } from '#src/features/client/version/check-server-version.ts'
 
 // A tab asks the server for its build facts before an online game's title and compares them with its own. Only a
-// readable answer that differs says "stale": anything else (offline, a 503, a shape it does not know) passes, because
-// the join check is the authority and a flaky probe must never lock a player out.
+// readable answer that differs says "stale". Anything else (offline, a refused cross-origin read, a 503, a shape it does
+// not know) is "unchecked", never "current": the tab then goes on, because the join check is the authority and a flaky
+// probe must never lock a player out, but a check that could not run is not a check that passed.
 
 const own: BuildFacts = { protocol: 1, schemaHash: '0123456789abcdef', contentHash: 'fedcba9876543210' }
 
@@ -24,25 +25,28 @@ describe('checkServerVersion', () => {
     expect(await checkServerVersion(async () => facts, own)).toBe('stale')
   })
 
-  it('is current when the answer cannot be had: a throw, a rejection, a bad shape, nothing', async () => {
+  it('is unchecked, not current, when the answer cannot be had: a throw, a rejection, a bad shape, nothing', async () => {
     expect(
       await checkServerVersion(async () => {
         throw new Error('offline')
       }, own),
-    ).toBe('current')
-    expect(await checkServerVersion(() => Promise.reject(new Error('503')), own)).toBe('current')
-    expect(await checkServerVersion(async () => ({ protocol: 'x' }), own)).toBe('current')
-    expect(await checkServerVersion(async () => ({}), own)).toBe('current')
-    expect(await checkServerVersion(async () => null, own)).toBe('current')
-    expect(await checkServerVersion(async () => 'nope', own)).toBe('current')
+    ).toBe('unchecked')
+    // What a browser does with a cross-origin answer it may not hand to the page.
+    expect(await checkServerVersion(() => Promise.reject(new TypeError('Failed to fetch')), own)).toBe(
+      'unchecked',
+    )
+    expect(await checkServerVersion(async () => ({ protocol: 'x' }), own)).toBe('unchecked')
+    expect(await checkServerVersion(async () => ({}), own)).toBe('unchecked')
+    expect(await checkServerVersion(async () => null, own)).toBe('unchecked')
+    expect(await checkServerVersion(async () => 'nope', own)).toBe('unchecked')
   })
 
-  it('is current when the fetch throws synchronously', async () => {
+  it('is unchecked when the fetch throws synchronously', async () => {
     expect(
       await checkServerVersion(() => {
         throw new Error('no network')
       }, own),
-    ).toBe('current')
+    ).toBe('unchecked')
   })
 })
 

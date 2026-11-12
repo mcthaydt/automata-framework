@@ -12,8 +12,14 @@ import {
   type Sim,
 } from '@automata/sim'
 import { z } from 'zod'
-import { fileName, readGoldenFile, resolveGoldenPath, updatingGoldens, writeGoldenFile } from './golden-files'
-import type { GoldenReport } from './report'
+import {
+  fileName,
+  readGoldenFile,
+  resolveGoldenPath,
+  updatingGoldens,
+  writeGoldenFile,
+} from './golden-files.ts'
+import type { GoldenReport } from './report.ts'
 
 /**
  * What `simGolden` runs: the plugins, content, seed and scripted commands to play for `ticks` ticks, where

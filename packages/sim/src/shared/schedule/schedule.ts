@@ -1,4 +1,4 @@
-import { PHASES, type PluginDef, type SystemDef } from '../define/definitions'
+import { PHASES, type PluginDef, type SystemDef } from '../define/definitions.ts'
 
 /**
  * Kahn's algorithm that always takes the alphabetically smallest ready node, so the result depends only on

@@ -4,6 +4,7 @@
 import { ModelInvalid } from '@automata/framework'
 import { Box, Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
 import { BufferImageSource, Texture } from 'pixi.js'
+import type { WallSpan } from '../features/camera/occluders/occluder-rule.ts'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { RampMaterial } from '../features/look/ramp-light-material.ts'
@@ -177,6 +178,20 @@ function meshOf(
 const stays = (piece: WorldPiece): boolean => piece.door === undefined && piece.sway === undefined
 
 /**
+ * A wall face's line on the plan and its height, for the occluder rule: the highest point of its mesh, from the floor at 0.
+ * A face that never rises above it (the side of a pit) can hide nobody and follows no rule.
+ */
+function wallSpan(piece: WorldPiece): WallSpan | undefined {
+  if (piece.line === undefined) return undefined
+  let height = 0
+  for (let i = 1; i < piece.mesh.positions.length; i += 3)
+    height = Math.max(height, piece.mesh.positions[i] as number)
+  if (height <= 0) return undefined
+  const { a, b } = piece.line
+  return { a: { x: a[0], z: a[1] }, b: { x: b[0], z: b[1] }, height }
+}
+
+/**
  * A prop's model as a mesh of its own, in world space like a piece: the model's vertices moved by the fit of its box to the
  * prop's blockout (`fitModel`), so the mesh stands where the blockout stood and takes the model's material.
  */
@@ -244,6 +259,8 @@ export function drawWorld(
       replaced.add(prop.id)
       drawn.push({ id: `model:${prop.id}`, prop, model })
     }
+  // The wall pieces by id, for what hangs on them.
+  const walls = new Map(pieces.filter((piece) => piece.part === 'wall').map((piece) => [piece.id, piece]))
   // The room nodes `showRooms` makes the first time it is asked, by sector.
   let groups: Map<string, Container3D> | undefined
   for (const piece of pieces) {
@@ -284,21 +301,26 @@ export function drawWorld(
     }
     if (scene.occluders === undefined) continue
     if (piece.part === 'ceiling') scene.occluders.ceiling(mesh)
-    else if (piece.part === 'wall' && piece.line !== undefined) {
-      // The face’s height: the highest point of its mesh, from the floor at 0. A face that never rises above it (the
-      // side of a pit) can hide nobody and follows no rule.
-      let height = 0
-      for (let i = 1; i < piece.mesh.positions.length; i += 3)
-        height = Math.max(height, piece.mesh.positions[i] as number)
-      if (height <= 0) continue
-      const { a, b } = piece.line
-      scene.occluders.face(mesh, { a: { x: a[0], z: a[1] }, b: { x: b[0], z: b[1] }, height }, piece.occlude)
+    else if (piece.part === 'wall') {
+      const span = wallSpan(piece)
+      if (span !== undefined) scene.occluders.face(mesh, span, piece.occlude)
+    } else if (piece.onWall !== undefined) {
+      // Hung on a wall: it follows that wall's rule and span, so the wall takes it away and brings it back (a thin box's
+      // back would otherwise draw behind a culled wall as a flat slab).
+      const wall = walls.get(piece.onWall)
+      const span = wall === undefined ? undefined : wallSpan(wall)
+      if (span !== undefined) scene.occluders.face(mesh, span, piece.occlude)
     }
   }
   for (const { id, prop, model } of drawn) {
     const mesh = modelMesh(prop, model)
     node.addChild(mesh)
     meshes.set(id, mesh)
+    // A model on a wall follows that wall as the prop's own pieces would: the wall its blockout hangs on takes it away and brings it back.
+    const hung = pieces.find((piece) => piece.prop?.id === prop.id && piece.onWall !== undefined)
+    const wall = hung?.onWall === undefined ? undefined : walls.get(hung.onWall)
+    const span = wall === undefined ? undefined : wallSpan(wall)
+    if (span !== undefined) scene.occluders?.face(mesh, span, hung?.occlude)
   }
   return {
     node,

@@ -68,6 +68,16 @@ export {
   figure,
 } from '../features/figures/view/figure-view.ts'
 export { DuelSnapEffect } from '../features/look/duel-snap-filter.ts'
+export {
+  gradeColour,
+  IDENTITY as IDENTITY_MOOD,
+  MOODS,
+  type Mood,
+  mixMoods,
+  moodOf,
+  registerMood,
+} from '../features/look/grade.ts'
+export { GradeEffect } from '../features/look/grade-effect.ts'
 export { HazeEffect, hazed, hazeOf, hazeShare } from '../features/look/haze.ts'
 export {
   DEFAULT_LOOK,

@@ -161,6 +161,12 @@ interface BarAction {
 }
 ```
 
+### `bindWords` (function)
+
+```ts
+function bindWords<W extends object>(root: HTMLElement, locale: Pick<Locale, 'subscribe'>, wordsFor: (locale: string) => W, after?: (words: W, locale: string) => void): () => void;
+```
+
 ### `BootFailurePanel` (svelte)
 
 ```ts
@@ -387,6 +393,12 @@ function createPostFilterSlot(target: PostFilterTarget): PostFilterSlot;
 
 ```ts
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
+```
+
+### `DEFAULT_LOCALES` (const)
+
+```ts
+const DEFAULT_LOCALES: readonly ["en", "ja", "ko", "es-419", "pt-BR", "zh-Hans"];
 ```
 
 ### `defaultContent` (function)
@@ -696,6 +708,12 @@ interface Flow {
 }
 ```
 
+### `formatNumber` (const)
+
+```ts
+const formatNumber: (locale: string, value: number, options?: Intl.NumberFormatOptions) => string;
+```
+
 ### `FormFactor` (type)
 
 ```ts
@@ -745,7 +763,7 @@ type GameAudioStart = (services: GameAudioServices) => (() => void) | undefined;
 ### `GameCopy` (type)
 
 ```ts
-type GameCopy = NonNullable<GameDefinition['copy']> & {
+type GameCopy = RuntimeWords & {
     readonly screens?: ScreensCopyInput | undefined;
 };
 ```
@@ -774,11 +792,7 @@ interface GameDefinition<S = never> {
     readonly uiSounds?: UiSounds | undefined;
     readonly audio?: GameAudioStart | undefined;
     readonly scores?: EventScores | undefined;
-    readonly copy?: Partial<BootFailureCopy> & {
-        readonly loading?: string;
-        readonly slow?: string;
-        readonly contextLost?: string;
-    };
+    readonly copy?: RuntimeWords | ((locale: string) => RuntimeWords);
     readonly seams?: RuntimeSeams;
 }
 ```
@@ -846,7 +860,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly renderer?: PixiRendererOptions;
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
     readonly preload?: readonly string[];
-    readonly copy?: GameCopy;
+    readonly copy?: GameCopy | ((locale: string) => GameCopy);
     readonly locale?: GameDefinition['locale'];
     readonly seams?: RuntimeSeams;
 }
@@ -1352,6 +1366,12 @@ interface Locale {
 }
 ```
 
+### `matchLocale` (function)
+
+```ts
+function matchLocale(requested: string, locales: readonly string[]): string | undefined;
+```
+
 ### `MAX_TURN_UNITS_PER_STEP` (const)
 
 ```ts
@@ -1452,6 +1472,7 @@ const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
 
 ```ts
 type PhotosensitivityOption = true | {
+    readonly effects?: readonly WarningEffect[];
     readonly switches?: readonly WarningSwitch[];
 };
 ```
@@ -1493,6 +1514,7 @@ interface PixiRendererOptions {
     readonly pixelArt?: boolean | undefined;
     readonly barFraction?: number | undefined;
     readonly barColor?: number | undefined;
+    readonly scale?: 'fit' | 'whole' | undefined;
     readonly quality?: QualityTier | undefined;
     readonly composite?: boolean | undefined;
     readonly entityViews?: EntityViewResolver | undefined;
@@ -1862,6 +1884,16 @@ interface RuntimeServices {
     readonly leaderboards: Leaderboards;
     readonly haptics: Haptics;
 }
+```
+
+### `RuntimeWords` (type)
+
+```ts
+type RuntimeWords = Partial<BootFailureCopy> & {
+    readonly loading?: string;
+    readonly slow?: string;
+    readonly contextLost?: string;
+};
 ```
 
 ### `Save` (interface)
@@ -2418,6 +2450,18 @@ interface ViewportWindow {
     addEventListener: Listen;
     removeEventListener: Listen;
 }
+```
+
+### `WARNING_EFFECTS` (const)
+
+```ts
+const WARNING_EFFECTS: readonly ["flashing", "strobing", "shaking", "patterns"];
+```
+
+### `WarningEffect` (type)
+
+```ts
+type WarningEffect = (typeof WARNING_EFFECTS)[number];
 ```
 
 ### `WarningSwitch` (interface)

@@ -1,10 +1,10 @@
 import { type Trait, trait } from 'koota'
 import type { z } from 'zod'
-import { canonicalJson } from '../hash/canonical'
-import { deepFreeze } from '../util/deep-freeze'
-import { sortedKeys } from '../util/sorted'
-import type { SimContext } from './context'
-import { defaultField, FIELD_TYPES, type FieldSchema, type FieldType } from './fields'
+import { canonicalJson } from '../hash/canonical.ts'
+import { deepFreeze } from '../util/deep-freeze.ts'
+import { sortedKeys } from '../util/sorted.ts'
+import type { SimContext } from './context.ts'
+import { defaultField, FIELD_TYPES, type FieldSchema, type FieldType } from './fields.ts'
 
 /** Fixed phase order. */
 export const PHASES = ['input', 'prePhysics', 'physics', 'postPhysics', 'gameplay', 'cleanup'] as const

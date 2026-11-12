@@ -2,6 +2,7 @@
 // source; a game that wants other words passes its own `copy` to the screen's step. All six ship in the package: a
 // language switch must be instant and offline.
 
+import { matchLocale } from '@automata/framework'
 import en from './en.json' with { type: 'json' }
 import es419 from './es-419.json' with { type: 'json' }
 import ja from './ja.json' with { type: 'json' }
@@ -38,20 +39,9 @@ const CATALOGS: Readonly<Record<string, Catalog>> = {
   'zh-Hans': zhHans,
 }
 
-const primary = (tag: string): string => (tag.toLowerCase().split('-')[0] ?? tag).toLowerCase()
-
-/**
- * The catalog for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds
- * `pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise. The framework's own locale negotiation follows the same rule.
- */
-function catalogFor(locale: string): Catalog {
-  const tags = Object.keys(CATALOGS)
-  const tag =
-    tags.find((candidate) => candidate.toLowerCase() === locale.toLowerCase()) ??
-    tags.find((candidate) => primary(candidate) === primary(locale)) ??
-    'en'
-  return CATALOGS[tag] ?? en
-}
+/** The catalog for a locale, by the framework's own matching rule (`pt` finds `pt-BR`); English where there is none. */
+const catalogFor = (locale: string): Catalog =>
+  CATALOGS[matchLocale(locale, Object.keys(CATALOGS)) ?? 'en'] ?? en
 
 /** This package's words for a locale (the six; English otherwise): `{ splash, credits }`. */
 export function screensWords(locale: string): { readonly splash: SplashCopy; readonly credits: CreditsCopy } {

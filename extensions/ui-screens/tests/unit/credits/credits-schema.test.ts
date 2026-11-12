@@ -77,6 +77,21 @@ names = [{ name = "Cy", role = "Composer" }]
     expect(Object.values(english)).not.toContain('Ada')
   })
 
+  // A name is in no catalog, so the font build would never see it; `verbatim()` hands it over, so a name in a script a
+  // language's face lacks is refused at the name and not drawn in a device's font.
+  it('hands the font build each name, to be drawn as written in every language', async () => {
+    root = mkdtempSync(join(tmpdir(), 'credits-'))
+    mkdirSync(join(root, 'content', 'credits'), { recursive: true })
+    writeFileSync(join(root, 'content', 'credits', 'credits.toml'), TOML)
+    const result = await compileContentResult({ root, schemas: [creditsContent] })
+    if (!result.ok) throw new Error(`the compile failed: ${result.error.message}`)
+    expect(result.content.verbatim.map(({ text, keyPath }) => [text, keyPath])).toEqual([
+      ['Ada', 'sections.0.names.0.name'],
+      ['Bo', 'sections.0.names.1.name'],
+      ['Cy', 'sections.1.names.0.name'],
+    ])
+  })
+
   it('refuses a file with an http link, at compile time', async () => {
     root = mkdtempSync(join(tmpdir(), 'credits-'))
     mkdirSync(join(root, 'content', 'credits'), { recursive: true })

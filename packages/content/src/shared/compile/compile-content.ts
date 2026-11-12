@@ -9,8 +9,8 @@
 
 import { Effect } from 'effect'
 import type { z } from 'zod'
-import { type Diagnostic, type Problem, sortDiagnostics } from '../diagnostics/diagnostic'
-import { checkFlow, type FlowCapabilities, type FlowGraph, flowSchema } from '../flow/check-flow'
+import { type Diagnostic, type Problem, sortDiagnostics } from '../diagnostics/diagnostic.ts'
+import { checkFlow, type FlowCapabilities, type FlowGraph, flowSchema } from '../flow/check-flow.ts'
 import {
   type AssetsSource,
   assetsSchema,
@@ -19,29 +19,29 @@ import {
   gameSchema,
   languagesOf,
   rukenFields,
-} from '../game/game-facts'
-import { checkWithRuken } from '../game/ruken/ruken-check'
-import { type ContentData, type ContentGenerator, runGenerators } from '../generate/content-generator'
-import { contentHash } from '../hash/content-hash'
-import { type ParaglideOptions, paraglideProblems } from '../locale/compile-messages'
-import { checkTranslation, collectMessages, type MessageCatalog } from '../locale/messages'
-import { checkPalette, paletteSchema } from '../palette/palette'
-import { locateJsonKeys } from '../parse/locate-json-keys'
-import { positionOf } from '../parse/locate-keys'
+} from '../game/game-facts.ts'
+import { checkWithRuken } from '../game/ruken/ruken-check.ts'
+import { type ContentData, type ContentGenerator, runGenerators } from '../generate/content-generator.ts'
+import { contentHash } from '../hash/content-hash.ts'
+import { type ParaglideOptions, paraglideProblems } from '../locale/compile-messages.ts'
+import { checkTranslation, collectMessages, type MessageCatalog } from '../locale/messages.ts'
+import { checkPalette, paletteSchema } from '../palette/palette.ts'
+import { locateJsonKeys } from '../parse/locate-json-keys.ts'
+import { positionOf } from '../parse/locate-keys.ts'
 import {
   diagnosticAt,
   type ParsedToml,
   parseDocument,
   parseTomlFile,
   type SourceFile,
-} from '../parse/parse-document'
-import { type ContentSchemaDef, configProblems } from '../schema/content-schema'
-import { checkReferences, type FoundRef, type FoundText, resolveMarkers } from '../schema/references'
-import { checkTuning, type TunableDeclarations, type TuningMeta } from '../tuning/check-tuning'
-import { builtInGenerators } from './built-in-generators'
-import { ContentCompileFailed, InvalidContentConfig } from './errors'
-import { readSources, type SourceTree } from './read-sources'
-import { type SimPartition, simKindsOf, simPartition, simReferenceProblems } from './sim-partition'
+} from '../parse/parse-document.ts'
+import { type ContentSchemaDef, configProblems } from '../schema/content-schema.ts'
+import { checkReferences, type FoundRef, type FoundText, resolveMarkers } from '../schema/references.ts'
+import { checkTuning, type TunableDeclarations, type TuningMeta } from '../tuning/check-tuning.ts'
+import { builtInGenerators } from './built-in-generators.ts'
+import { ContentCompileFailed, InvalidContentConfig } from './errors.ts'
+import { readSources, type SourceTree } from './read-sources.ts'
+import { type SimPartition, simKindsOf, simPartition, simReferenceProblems } from './sim-partition.ts'
 
 /**
  * What the content compiler is given: the project root, the registered kinds, and optionally tunables,
@@ -90,6 +90,17 @@ export interface CompiledContent {
    * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
    */
   readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>
+  /**
+   * The text every kind marks `verbatim()` (a credits name): drawn as written in every language, so it is in no
+   * catalog. The font build cuts every face to it and names it, by place, when a language's faces lack a character.
+   */
+  readonly verbatim: readonly VerbatimText[]
+}
+
+/** A text marked `verbatim()`, with where it is written, 1-based, and its path in the file (`sections.0.names.0.name`). */
+export interface VerbatimText extends MessageLocation {
+  readonly text: string
+  readonly keyPath: string
 }
 
 /** A message's place in its file, 1-based. */
@@ -133,6 +144,7 @@ interface ParsedItem {
   readonly toml: ParsedToml
   readonly refs: readonly FoundRef[]
   readonly texts: readonly FoundText[]
+  readonly verbatim: readonly FoundText[]
 }
 
 type CompileOutcome =
@@ -190,8 +202,8 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   const items: ParsedItem[] = []
   const ids = new Map<string, Set<string>>()
   const addItem = (kind: string, id: string | undefined, parsed: { value: unknown; toml: ParsedToml }) => {
-    const { value, refs, texts } = resolveMarkers(parsed.value)
-    items.push({ kind, id, toml: parsed.toml, refs, texts })
+    const { value, refs, texts, verbatim } = resolveMarkers(parsed.value)
+    items.push({ kind, id, toml: parsed.toml, refs, texts, verbatim })
     return value
   }
   for (const def of options.schemas) {
@@ -384,6 +396,14 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
           language,
           index === 0 ? messages : (translated.get(language) as MessageCatalog),
         ]),
+      ),
+      verbatim: items.flatMap(({ toml, verbatim }) =>
+        verbatim.map(({ path, text }) => ({
+          text,
+          file: toml.file,
+          ...positionOf(toml.keys, path),
+          keyPath: path.join('.'),
+        })),
       ),
       messageLocations: new Map(
         languages.map((language, index) => [

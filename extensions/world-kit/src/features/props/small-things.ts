@@ -21,6 +21,7 @@ import {
   stream,
 } from '@automata/3d/props-kit'
 import { turnY } from '../../shared/turn.ts'
+import { wallMounted } from './wall-mounted.ts'
 
 const pick = <T>(list: readonly T[], r: () => number): T => at(list, Math.floor(r() * list.length))
 
@@ -274,14 +275,14 @@ export const SMALL_THINGS: Readonly<Record<string, Generator>> = {
   paper,
   bookStack,
   cup,
-  radiator,
-  noticeboard,
+  radiator: wallMounted(radiator),
+  noticeboard: wallMounted(noticeboard),
   waterCooler,
   mopBucket,
   bottles,
   ledge,
   plant,
-  picture,
+  picture: wallMounted(picture),
   curtains,
   screen,
 }

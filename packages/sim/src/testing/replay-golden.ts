@@ -13,8 +13,8 @@ import {
   type ReplayStepper,
   unpackReplay,
 } from '@automata/sim/replay'
-import { nodeCompression, streamCompression } from './compression'
-import { type Difference, diffSnapshotViews } from './diff'
+import { nodeCompression, streamCompression } from './compression.ts'
+import { type Difference, diffSnapshotViews } from './diff.ts'
 import {
   fileName,
   inNode,
@@ -22,8 +22,8 @@ import {
   resolveGoldenPath,
   updatingGoldens,
   writeGoldenFile,
-} from './golden-files'
-import type { GoldenReport } from './report'
+} from './golden-files.ts'
+import type { GoldenReport } from './report.ts'
 
 /** A golden that passes this cannot be reviewed or loaded cheaply; lower snapshotEvery's cost instead. */
 export const GOLDEN_MAX_PACKED_BYTES: number = 512 * 1024
