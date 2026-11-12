@@ -9,10 +9,17 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **rounds 4, 5 and 6 done** (about 95 %): Ada's fringe, open waistcoat, legs and the back of her bob worked as generators and data, with the in-game pair;
-the night nurse's face, cap and (as an option) waist. Left: the Owner's picks and the painter's list. Round 3: Ada's face, stand and hair adopted, the nurse's cut open. Round 0 look before touching, round 1 data, round 2 painted garments as generators,
-round 3 the nurse's cut (choices open), and the list for the painter, kept as it goes. Left: the Owner's picks, hair as data if the
-Owner allows it, the in-game frame.
+Progress: **round 7 done.** The Owner changed the target on 2026-11-12: "for the character, just go with what matches better for the scene; I prefer the
+old look, I just want the updated painter and face really." So Ada and the night nurse are brought to the old game's proportions (measured with a kept
+helper, [`round7-proportions.txt`](round7-proportions.txt)), Ada's eyes are the old size (the kit's `eyeMarks`), and the painter's list is ranked at the end. Rounds 0 to
+6 below are as they were (look before touching, data, painted garments as generators, the nurse's cut, Ada's fringe, waistcoat and legs, the nurse's hair and
+cap, her first sighting); **round 7 is after round 6**. Left: the Owner's picks (Ada's 154 or 162 cm on the page; the nurse's 200 or 210), and the painter's face tone,
+stand and outline colour.
+
+**Not run for round 7** (this container has Chromium only, software GL): the kit's Firefox and WebKit parity and WebGPU suites, the 3D browser suites and
+journeys, `pnpm check` as a whole (`knip` and `check:changesets` need `site/`'s generated types and an `origin/main` ref; the kit and the game are private,
+so no changeset), `pnpm build` and the packed install. Run: the kit's unit suite (304), its Chromium browser project (55 passed, 2 skipped), the game's unit
+suite (384), both typechecks, Biome on the changed files; no golden moved (no existing option's default changed).
 
 ## Round 0: as they are now
 
