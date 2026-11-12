@@ -1,0 +1,35 @@
+[
+  {
+    "label": "before: the library bob",
+    "rows over the skull, front": 3,
+    "hair width in heads, front": 1.07,
+    "rows over the skull, side": 3,
+    "hair width in heads, side": 1.2,
+    "rows over the skull, back": 3,
+    "hair width in heads, back": 1.07,
+    "figure rows, density 2": 124,
+    "heads tall": 7.83
+  },
+  {
+    "label": "after: bobFull",
+    "rows over the skull, front": 0,
+    "hair width in heads, front": 1.14,
+    "rows over the skull, side": 0,
+    "hair width in heads, side": 1.07,
+    "rows over the skull, back": 0,
+    "hair width in heads, back": 1.14,
+    "figure rows, density 2": 121,
+    "heads tall": 7.64
+  },
+  {
+    "label": "after: bobFull + fringe",
+    "rows over the skull, front": 2,
+    "hair width in heads, front": 1.14,
+    "rows over the skull, side": 2,
+    "hair width in heads, side": 1.07,
+    "rows over the skull, back": 2,
+    "hair width in heads, back": 1.14,
+    "figure rows, density 2": 123,
+    "heads tall": 7.76
+  }
+]

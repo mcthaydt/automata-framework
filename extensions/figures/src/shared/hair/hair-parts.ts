@@ -97,6 +97,7 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       } else {
         const sh = shell(k, o, form)
         rigid(sh.mesh, o.tone ?? 'hair', HAIR_SEAM, sh.lit)
+        if (sh.part) rigid(sh.part, 'parting', HAIR_SEAM)
       }
     } else if ('rows' in own) {
       // Rows from the hairline, gathered to one point, or each straight back over the top to the nape, keeping its

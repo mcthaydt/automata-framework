@@ -48,6 +48,10 @@ const scalp = z.strictObject({
     .optional(),
   grade: z.array(z.tuple([n, tone])).optional(),
   span: n.optional(),
+  foot: line.optional(),
+  reach: n.optional(),
+  under: n.optional(),
+  parting: n.optional(),
 })
 const rows = z.strictObject({
   count: n,
