@@ -873,6 +873,23 @@
       }
     },
     {
+      "id": "exit-sign",
+      "at": [0, -6.83, 2.2],
+      "kind": "neonText",
+      "with": {
+        "text": ["EXIT"],
+        "tube": "exit-green",
+        "px": 0.03,
+        "light": {
+          "kind": "neon",
+          "color": "#91daa1",
+          "range": 3.2,
+          "level": 1
+        },
+        "backing": "exit-plate"
+      }
+    },
+    {
       "id": "nightstand",
       "at": [-3.12, -0.3],
       "use": "nightstand",

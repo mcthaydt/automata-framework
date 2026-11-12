@@ -114,3 +114,21 @@ Causes found, measured, in the order the coordinator listed them:
   kit's photographs that have a grid are brown floor tiles (`floorTiles`) and a concrete slab (`wallTiles`) with no deep joints, and the cream mosaic (`tiles`) has none. `floorTiles` read at the wainscot's 22 cm
   keeps a one-texel grout at 32 texels a metre only at the floor's 30 cm. What the swatch system lacks: a cream glazed tile photograph with a dark joint, or a pattern kind for "tiles on grout"
   (size, joint width, two tones, a lit top edge) that the world builder draws; the `pattern` field of a swatch is in the schema and read by nothing today.
+
+## Item 7: the lights-out cutscene
+
+`item7` strip: [`strip-item7-old-before-after.png`](strip-item7-old-before-after.png): the old game's corridor shot (the left half of
+`round6-ingame-nurse.png` on `origin/claude/last-light-figures-look`, cropped to the picture), ours at the same moment of the cutscene before this session's change, and after.
+(The "before" is on this branch at `93bbd04df`; the figures branch's right-hand picture is an older state with tan walls.)
+
+- **"The room fully lit beige" is gone by itself:** the walls are the old sea-green now (item 1), and the lamps burn at the old lights-out levels (`content/lights-out.toml`, held by a test). Whole-frame mean luma of this shot:
+  old 34.4, ours 40.6 (hue 183 / 144): not near black, but dimmer by the stage's lamps; the old's `exitLamp` 0.95 lights its walls with a linear product shown raw, ours multiplies in sRGB,
+  so a lamp 2 m away still reads brighter than the old (the same cause as item 2 of session 8; the proposal there is the fix). The hall and Ada from low (shot D) are dark.
+- **The EXIT sign was missing.** The old corridor has a green plaque over the exit door with a halo of its own light (`signOn` and `exitHalo` in `dress.ts` at `92e6704`). The kit's `neonText` is
+  placed over the door at the old plaque's place and size ("EXIT" on a dark-green plate, lettering in `exit-green`, a glowing DUEL pine step 7, and a light of its own that tints the wall round it). Test first (`world.test.ts`, "the corridor's exit sign").
+  The old plaque is lit by its lamp and glows as a soft halo; the kit's tube sign is the closest part, a smaller glow.
+- **The nurse faces the camera.** The old keys say `facing: 0` and she faces the corridor camera in the old frame; the painted figure shows her back at 0 from that camera. With a facing of pi (a one-line change in the
+  cutscene file) she shows her cap, her face and the front of her dress (shots at 3x are in the folder's history: `ours-lights-out-after-item7`). Test first (`opening.test.ts`, "the lights-out cutscene"). **Open, not changed:** Ada's keys in the same
+  cutscene (shot D, where the camera is set so she faces it) also show her back, so every cutscene facing may be half a turn off in the painted view: `figure-view.ts`'s `kitYaw` (heading + pi) holds for the sim's heading in play and
+  not obviously for the director's `facing`. That is the figure view's, shared with `claude/last-light-figures-look`; it wants one test that sets a facing and reads which way the figure's face points.
+- **The window is still a bright cyan** (the barred window high on the end wall: the world kit's `interior` glass draws the sky behind it); the old window is a pale blue-violet with dark bars. Not changed.

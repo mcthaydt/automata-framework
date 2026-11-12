@@ -28,8 +28,8 @@ const drawn = drawWorld({ parent: new Container3D(), ...PAINT }, WORLD.pieces, {
   models: library,
 })
 
-/** What the kit's generator draws, not a model: the old game built its noticeboard from a cork-textured box (`dress.ts` line 126 at 92e6704). */
-const GENERATED = ['noticeboard']
+/** What the kit's generator draws, not a model: the old game built its noticeboard from a cork-textured box (`dress.ts` line 126 at 92e6704); its exit sign was a plaque (`signOn`). */
+const GENERATED = ['noticeboard', 'exit-sign']
 const MODELLED = WORLD.props.filter((prop) => !GENERATED.includes(prop.id))
 
 /** The old game's models that were stretched to their box in the old game; ours keeps their proportions. */

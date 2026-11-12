@@ -28,6 +28,8 @@ describe('the ward’s lamps', () => {
     expect(
       WORLD.lamps.filter((lamp) => lamp.prop !== undefined).map((lamp) => [lamp.id, lamp.level]),
     ).toEqual([
+      // The exit sign's own light burns at full: the glow of the old sign's halo (`exitHalo`, up to 0.55 alpha at the exit lamp's level), which is what the corridor's end still shows once the rest have gone.
+      ['exit-sign.light0', 1],
       ['desk-lamp.light0', 0],
       ['pendant-lamp.light0', 0],
     ])
@@ -311,5 +313,33 @@ describe('the ward’s noticeboard', () => {
     expect(z0).toBeGreaterThan(-0.9)
     expect(z1).toBeLessThan(-0.7)
     expect(pieces.some((piece) => piece.id.endsWith('.slips'))).toBe(true)
+  })
+})
+
+// The old corridor's end has a green EXIT sign over its door (`signOn` in `dress.ts` at 92e6704: a 0.42 m plaque at (0, 2.25, -6.875)) and a
+// halo of its glow on the wall, which is what still glows once the lights have gone. The level had the door and no sign.
+describe('the corridor’s exit sign', () => {
+  const pieces = WORLD.pieces.filter((piece) => piece.id.includes(':prop:exit-sign.'))
+
+  it('hangs over the exit door on the corridor’s end wall, a little under half a metre wide', () => {
+    expect(pieces.length).toBeGreaterThan(0)
+    const xs = pieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === 0))
+    const ys = pieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === 1))
+    const zs = pieces.flatMap((piece) => piece.mesh.positions.filter((_, i) => i % 3 === 2))
+    expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(0, 1)
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(0.3)
+    expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(0.6)
+    // Above the door (2.1 m) and under the window's sill line (2.45), on the wall (z -6.875).
+    expect(Math.min(...ys)).toBeGreaterThan(2.1)
+    expect(Math.max(...ys)).toBeLessThan(2.5)
+    expect(Math.min(...zs)).toBeGreaterThan(-6.9)
+    expect(Math.max(...zs)).toBeLessThan(-6.7)
+  })
+
+  it('glows green and lights the wall round it', () => {
+    expect(pieces.every((piece) => LIBRARY.swatches[piece.surface] !== undefined)).toBe(true)
+    expect(LIBRARY.swatches['exit-green']).toMatchObject({ emit: true })
+    const lamp = WORLD.lamps.find((each) => each.prop === 'exit-sign')
+    expect(lamp, 'a lamp of the sign’s own').toBeDefined()
   })
 })

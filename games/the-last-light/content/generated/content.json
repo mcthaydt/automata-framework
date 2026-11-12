@@ -1602,7 +1602,7 @@
         },
         {
           "alpha": 0,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 0,
           "who": "nurse",
           "x": 0,
@@ -1610,7 +1610,7 @@
         },
         {
           "alpha": 0,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 6.85,
           "who": "nurse",
           "x": 0,
@@ -1618,7 +1618,7 @@
         },
         {
           "alpha": 1,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 7,
           "who": "nurse",
           "x": 0,
@@ -1626,7 +1626,7 @@
         },
         {
           "alpha": 1,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 10.6,
           "who": "nurse",
           "x": 0,
@@ -1634,7 +1634,7 @@
         },
         {
           "alpha": 1,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "moving": true,
           "t": 12.8,
           "who": "nurse",
@@ -1643,7 +1643,7 @@
         },
         {
           "alpha": 1,
-          "facing": 0,
+          "facing": 3.141592653589793,
           "t": 16,
           "who": "nurse",
           "x": 0,
@@ -6146,6 +6146,15 @@
     "WALK_SPEED": 3
   },
   "world-swatch": {
+    "exit-green": {
+      "emit": true,
+      "ramp": "pine",
+      "step": 7
+    },
+    "exit-plate": {
+      "ramp": "pine",
+      "step": 3
+    },
     "ward-cork": {
       "ramp": "wood",
       "step": 1
