@@ -7,15 +7,18 @@
 // Left: the base woman. Right: the heroine. Each: front and three-quarter standing (x2), the head and shoulders (x4).
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { FULL, study } from '../../figures/scripts/painter-look-study.ts'
 import { registerFashion } from '../src/features/fashion/register-fashion.ts'
 import {
   BASE,
   type CharacterDef,
   Figure,
   type Garment,
+  HAIR_STYLES,
+  type HairStyle,
+  type Material,
   member,
   SPRITE_PITCH,
+  SWATCHES,
 } from '../src/shared/figures/door.ts'
 import { bbox, blit, png } from './sheet-kit.ts'
 
@@ -25,16 +28,92 @@ const out = resolve(process.argv[2] ?? 'out'),
 mkdirSync(out, { recursive: true })
 registerFashion()
 
-/** The heroine: the study figure's body, face, skin and hair, in the runway's shells: a cream shirt, an oxblood waistcoat over it (a sleeveless knit shell standing off the shirt), slim jeans, ankle boots. */
-const WEAR = [
-  { top: 'cream', sleeves: 'long', cuffs: 'cream', collar: 'cream' },
-  { tee: 'oxblood', sleeves: 'none', ease: 0.9, length: 0.35 },
-  { jeans: 'washedDenim', taper: 0.8 },
-  { shoes: 'leatherBrown', sole: 'soleGum', boots: true, shaft: 0.2 },
-] as unknown as Garment[]
-const own = study(FULL)
-const kept = (own.outfits.street ?? []).filter((g) => 'hair' in g || 'eyes' in g)
-const HEROINE: CharacterDef = { ...own, outfits: { ...own.outfits, street: [...WEAR, ...kept] } }
+/** The study figure's cloths, in DUEL steps (the painter's own study script has the same data): oxblood, cream, washed denim, auburn. */
+const CLOTH = {
+  oxblood: { ramp: 19, base: 1, lift: 0, paint: ['#662b29', '#49251c', '#372423', '#2e1026'] },
+  cream: { ramp: 4, base: 1, paint: ['#fff3d6', '#eadbc9', '#ccc3b1', '#a89d8f'] },
+  washedDenim: { ramp: 7, base: 1, paint: ['#828b98', '#626871', '#434549', '#2e3d47'] },
+  auburn: { ramp: 20, base: 1, paint: ['#885041', '#662b29', '#49251c', '#2e1026'] },
+} as unknown as Record<string, Material>
+/** A fringe over the brow, and the full bob under it: the painter's own pieces. */
+const FRINGE = {
+  fringe: {
+    from: [
+      [0, 0.5],
+      [0.7, 0.45],
+      [1.1, 0.3],
+    ],
+    width: 0.75,
+    length: 1,
+    count: 9,
+    rope: { r: 0.15 },
+  },
+}
+const HAIR: HairStyle = {
+  about: 'bobFull with a fringe',
+  finish: 'smooth',
+  pieces: [...(HAIR_STYLES.bobFull?.pieces ?? []), FRINGE as never],
+}
+/** The study figure: the builder's base woman set to the look spec (7 heads, a slim adult, a small oval face with large almond eyes). */
+const WOMAN = BASE[1]?.def as CharacterDef
+const HEROINE: CharacterDef = {
+  ...WOMAN,
+  id: 'heroine',
+  name: 'HEROINE',
+  skin: 'skinFair',
+  sliders: {
+    ...WOMAN.sliders,
+    height: 162,
+    fat: 0.1,
+    chunk: 0,
+    muscle: 0.3,
+    legs: 0.38,
+    head: 0.45,
+    hips: 0.3,
+    frame: 0.95,
+    neckLength: 0.25,
+    posture: 0.9,
+    shoulders: 0.4,
+    face: {
+      ...(WOMAN.sliders.face ?? {}),
+      width: 0.5,
+      jaw: 0.2,
+      chin: 0.4,
+      cheekHeight: 0.6,
+      cheekWidth: 0.4,
+      bridge: 0.4,
+      nose: 0.3,
+      lips: 0.45,
+      browArch: 0.5,
+      browWeight: 0.2,
+      browHeight: 0.5,
+      crease: 0.3,
+      hood: 0.1,
+      liner: 0.45,
+      eyeSize: 0.7,
+      eyeSpacing: 0.5,
+      eyeTilt: 0.5,
+    },
+  } as CharacterDef['sliders'],
+  gaitOverrides: { armOut: 0.03, standOut: 0.03, standTrack: 1 } as NonNullable<
+    CharacterDef['gaitOverrides']
+  >,
+  swatches: { ...WOMAN.swatches, ...CLOTH, skinFair: SWATCHES.skinFair as Material },
+  // A cream shirt (a collar, long sleeves with cuffs), an oxblood waistcoat over it (a sleeveless knit shell standing a texel off), slim jeans, ankle boots.
+  outfits: {
+    street: [
+      { top: 'cream', sleeves: 'long', cuffs: 'cream', collar: 'cream' },
+      { tee: 'oxblood', sleeves: 'none', ease: 0.9, length: 0.35 },
+      { jeans: 'washedDenim', taper: 0.8 },
+      { shoes: 'leatherBrown', sole: 'soleGum', boots: true, shaft: 0.2 },
+      { hair: 'auburn', style: HAIR },
+      { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'auburn', keep: true, full: true },
+    ] as unknown as Garment[],
+  },
+  default: 'street',
+}
+/** The painter's style for the heroine: the outline in the old game's dark teal. */
+const PAINT = { ink: '#002219' }
 
 type Paint = Record<string, unknown>
 const stand = (def: CharacterDef, d: number, density: number, paint: Paint = {}) => {
@@ -61,8 +140,8 @@ for (let i = 0; i < sheet.length; i += 4) {
 const W = Math.round(32.5 * D)
 const rows: Record<string, number> = {}
 ;[
-  { def: BASE[1].def, paint: {}, x: 0, name: 'base woman' },
-  { def: HEROINE, paint: FULL.paint ?? {}, x: COLW + 40, name: 'heroine' },
+  { def: WOMAN, paint: {}, x: 0, name: 'base woman' },
+  { def: HEROINE, paint: PAINT, x: COLW + 40, name: 'heroine' },
 ].forEach(({ def, paint, x, name }) => {
   const f0 = stand(def, 0, D, paint),
     f1 = stand(def, 1, D, paint),
