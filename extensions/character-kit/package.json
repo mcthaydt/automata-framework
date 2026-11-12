@@ -35,7 +35,8 @@
     "sheet": "tsx scripts/figure-sheet.ts",
     "variants": "tsx scripts/figure-variants.ts",
     "proportions": "tsx scripts/figure-proportions.ts",
-    "reference": "tsx scripts/figure-reference.ts"
+    "reference": "tsx scripts/figure-reference.ts",
+    "rebuild-ada": "tsx scripts/figure-rebuild.ts"
   },
   "dependencies": {
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",

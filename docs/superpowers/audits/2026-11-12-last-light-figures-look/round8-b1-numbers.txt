@@ -1,0 +1,15 @@
+B (ADOPTED)
+                              SPEC      D2        D1
+height (rows)                 947       126       64
+head + hair, share of height  14.8%     14.3%     14.1%
+heads tall, hair on           6.76      7.00      7.11
+legs, crotch to floor         50.6%     50.8%     51.6%
+hip joint (rig)               50.6%     51.0%     51.0%
+knee (rig)                    28.9%     27.8%     27.8%
+trunk, shoulder to crotch     29.4%     30.2%     28.1%
+shoulder width (sleeves)      23.8%     23.8%     26.6%
+hip width (spec: arms apart)  20.0%     27.0%     29.7%
+boots, share of height        15.5%     19.0%     18.8%
+A: the base woman at the spec's proportions, the base's face and the first outfit
+B (ADOPTED): A with the turnaround's face (a small oval, big almond eyes, thin brows, a dark lash line), rolled sleeves and a V-fronted waistcoat (an open strip, wide at the neck, narrowing to a point)
+C: B with a smaller head (head slider .3: more of her is body, 7.4 heads)

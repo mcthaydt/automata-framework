@@ -563,6 +563,42 @@ reference <out-dir> --old <old-game>` (`scripts/figure-reference.ts`, `tests/uni
 on, legs 50.6 % of her, eyes 69 % of the way down the head, big almond eyes, a thick brow-length fringe, a wide bob (1.2 heads), an oxblood waistcoat, faded
 grey-blue jeans cropped at the ankle, ankle boots**.
 
+### B. Ada rebuilt from the base woman (round 8, first round)
+
+Not today's cast entry: the builder's base woman (`BASE[1]`, base-f) with Ada's name, skin, swatches and clothes, then her sliders, genes, face shape,
+hair and outfit set to the look spec (`scripts/ada-rebuilt.ts`, a study: the game's cast file is unchanged; `tests/unit/scripts/ada-rebuilt.test.ts`
+reads her proportions and her eyes from the picture, and was watched failing with the eye size at .95, where the eyes vanish). Sheet:
+[`round8-b1-sheet.png`](round8-b1-sheet.png): the turnaround on top, her eight standing views and her walk at density 2, the face at x8 beside the
+reference's face, **density 1 (x4) beside density 2 (x2), the same size on screen**, every variant, and the table; numbers
+[`round8-b1-numbers.txt`](round8-b1-numbers.txt). Made by `pnpm --filter @automata/character-kit rebuild-ada <out> <name> round8-ada --old <old-game>`.
+
+| | spec (the turnaround) | **B (adopted), density 2** | density 1 |
+| --- | --- | --- | --- |
+| height in rows | 947 (she is 125 at 162 cm) | **126** | 64 |
+| head with hair, share of her | 14.8 % (6.76 heads) | **14.3 % (7.0 heads)** | 14.1 % (7.1) |
+| legs, crotch to floor | 50.6 % | **50.8 %** (hip joint 51.0 %, no hips-slider trick) | 51.6 % |
+| trunk, shoulder to crotch | 29.4 % | **30.2 %** | 28.1 % |
+| shoulder width with the sleeves | 23.8 % | **23.8 %** | 26.6 % |
+| boots | 15.5 % | 19.0 % (the shaft runs over the jeans' hem) | 18.8 % |
+
+- **Set (data):** `height` 162, `fat` .1, `chunk` 0 (the realistic build, not the pixel one), `muscle` .3, `legs` .38 (hip joint 51 %), `head` .45, `frame`
+  .95, `neckLength` .25, `shoulders` .4, `posture` .9; the face: a small oval (`width` .5, `jaw` .2, `chin` .4), `eyeSize` .7, `liner` .45, `crease` .3,
+  `hood` .1, thin soft brows (`browWeight` .2), small nose and lips; the oxblood waistcoat (an open V of shirt narrowing to a point), a cream shirt with
+  a short sleeve and a thick cuff (the rolled sleeve), washed denim cropped at the boot, the old boots; her hair the kit's `bobFringeFull`. The reference's
+  waistcoat and denim swatches are darker and greyer than the old game's (`ada-look-spec.md`): `oxblood` and `washedDenim` are two new swatches of DUEL steps.
+- **What the painter does at density 2:** the drawn face exists: two eyes with their whites, a lid line, a brow, a nose and a mouth (x8 crop on the sheet).
+  It reads as a calm young woman's face in the 3/4 and the front; it is a long way from the reference's painted one: the eyes are 2 texels tall, not a
+  third of the face's width.
+- **Found by trying (so the painter list below is not a guess):** (1) `eyeSize` above .7 pushes the eye up under the fringe and the front view loses
+  its eyes (at .95 and .8 the front face is blank; .7 keeps them): the fringe sits at a fixed 0.3 on the skull. (2) The hair adds 6 to 8 rows over the
+  bare skull at density 2 whatever the scalp's `lift`, `edge`, `crown` or the rope's radius (swept: 6 at best, with the width falling), and its widest
+  row saturates at 28 to 32 rows however much `volume` the fall has (a style, `bobSoft`, was written, tested and dropped: it could not beat `bobFringeFull`).
+  The reference's hair adds about 1 row over her skull and is 1.2 heads wide. (3) The hip row is 27 % of her with the arms hanging, the spec's jeans 20 % with
+  the arms held out; the `hips` slider moves it by under a texel, as round 4 found. (4) The skin is the painter's dusty pink, the reference's is a warm peach
+  (`#ebbd9d` mid): the swatch has that colour but the painter's tone budget gives the face mostly the middle step (list 2).
+- **What a smaller figure costs (the cost row of the sheet):** at density 1 her head is 9 rows and the face is two dots and a mouth texel; the drawing of
+  the face, the cuffs, the V of the waistcoat and the boots' heel exist only from density 2.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
 Kept here as it grows, **ranked by what each buys at the size she is played** (the first two are the face the Owner asked for; they are the first
@@ -581,10 +617,13 @@ painter task after the fold merges). Each needs painter code, which this branch 
 | 9 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings: the torn, hanging hem |
 | 10 | A cap as the old one exactly | the kit's `nurseBrow` is a flat band low on the brow (adopted); the old cap is a hand-tuned piece |
 | 11 | A brisk, leaning stand and pose for Ada standing | her first-night posture (the stand is the builder's relaxed one) |
+| 13 | `src/features/hair/hair.ts` (the scalp shell's thickness and the fall's rope placement): a thin close hair that adds 1 to 2 rows over the skull at density 2, and a fall that can reach 1.2 heads across | the bob's silhouette (ranked first for B: the head reads 5 rows too big and the face too small under it) |
+| 14 | `FRINGE` and the eye's height (hair.ts / the face's eye row): an eye raised by `eyeSize` above .7 goes under the fringe | big eyes (a third of the face) under a fringe |
 | 12 | The drawn face's eyes at density 1 | a face with a mouth and a nose at play size, not two dots (eyes from density 2 now) |
 
 ## Log
 
+- Round 8 (B, first round): `ada-rebuilt.ts` (the base woman to the spec), `figure-rebuild.ts` and its sheet, the test of her proportions and eyes (`ada-rebuilt.test.ts`).
 - Round 8 (A): the reference board of the generated images, the look spec and the turnaround's numbers (`figure-reference.ts`, its test first).
 - Round 7: the kit's `eyeMarks` garment (`eye-marks.test.ts` first), Ada's eyes two tall and four apart; the proportions helper and its table (`proportions.test.ts` first), Ada brought to the old game's numbers (height 154, legs .3, hips 1, `genes.head` .28; `cast.test.ts` first), the painter list ranked. The Owner's change of target recorded.
 - Round 6: `curtainLoose` in the kit's hair table (a scalp shell over the face and a wide-spread tail), the nurse wears it (`hair-bob.test.ts` and `cast.test.ts` first); C's `ease` weighed by the numbers and left to the Owner; her first sighting in the game against the old game's.
