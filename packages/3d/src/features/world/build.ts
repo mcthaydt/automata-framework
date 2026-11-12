@@ -22,7 +22,7 @@ import { type MeshData, merge } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
 import { decorPieces, doorPieces } from './decor.ts'
 import { box } from './mesh.ts'
-import { placeProps, type WorldLamp } from './place-props.ts'
+import { type PlacedProp, placeProps, type WorldLamp } from './place-props.ts'
 import { onWall, planeMesh, wallQuad } from './plane-mesh.ts'
 import { viewRoomProblems } from './room-draw.ts'
 import {
@@ -87,8 +87,19 @@ export interface WorldPiece {
   readonly prop?: { readonly id: string; readonly at: V3 }
 }
 
+/** A placed prop in its room: `PlacedProp` with the room's id. */
+export interface WorldProp extends Omit<PlacedProp, 'sector'> {
+  readonly sector: string
+}
+
 export interface World {
   readonly pieces: WorldPiece[]
+  /**
+   * Every prop the library could build, with the blockout box its generated parts fill and the model it names. The
+   * generated pieces stay in `pieces` whether or not a model replaces them on screen (`drawWorld`), so the footprint,
+   * the height and the collider are the blockout's either way.
+   */
+  readonly props: WorldProp[]
   /** Every lamp: the level's own and the ones props carry, resolved against the lamp kit. */
   readonly lamps: WorldLamp[]
   readonly problems: LevelProblem[]
@@ -525,7 +536,11 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     })
   // A camera view that names a room the level lacks: told here, so `automata check` says it and the rest still draws.
   problems.push(...viewRoomProblems(level))
-  return { pieces, lamps: placed.lamps, problems }
+  const props = placed.props.map((prop) => ({
+    ...prop,
+    sector: (level.sectors[prop.sector] as AfSectorEntry2).id,
+  }))
+  return { pieces, lamps: placed.lamps, props, problems }
 }
 
 /** The segment as the occluder rule reads a wall: from `a` to `b` with the room on the left. */

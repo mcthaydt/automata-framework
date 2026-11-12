@@ -91,7 +91,12 @@ describe('one room', () => {
     }
   })
   it('is deterministic', () =>
-    expect(buildWorld(level(room('a', [0, 0, 4, 4])), LIB)).toEqual({ pieces, lamps: [], problems }))
+    expect(buildWorld(level(room('a', [0, 0, 4, 4])), LIB)).toEqual({
+      pieces,
+      lamps: [],
+      props: [],
+      problems,
+    }))
 })
 
 describe('a room’s light', () => {

@@ -56,6 +56,15 @@ function moveProp(view: WorldView, piece: WorldPiece, after: PieceStates): void 
  */
 export function updatePieces(view: WorldView, before: PieceStates, after: PieceStates): number {
   let changed = 0
+  // A prop drawn as a model moves and goes as its pieces would have: the model's mesh is in world space, like theirs.
+  for (const { id, prop } of view.models) {
+    const [was, now] = [propState(before, prop.id), propState(after, prop.id)]
+    const mesh = view.mesh(id)
+    if (mesh === undefined || sameProp(was, now)) continue
+    mesh.visible = now.hidden !== true
+    placeAbout(mesh, prop.at, now.turn ?? 0, now.at ?? prop.at)
+    changed++
+  }
   for (const piece of view.pieces) {
     if (piece.door !== undefined) {
       if (doorOpen(before, piece.sector) === doorOpen(after, piece.sector)) continue

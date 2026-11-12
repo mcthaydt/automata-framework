@@ -22,6 +22,7 @@ export {
   type WallSpan,
   walkBlocker,
 } from '../shared/level/geometry.ts'
+export { modelsOf } from '../shared/level/models-of.ts'
 export { OCCLUDES, type Occlude, occludeSchema } from '../shared/level/occlude.ts'
 export {
   doorOpen,

@@ -1,6 +1,7 @@
 // Draws a level's world (features/world/build.ts) with `@pixi/3d`: one mesh per piece under a node, a swatch's colour on
 // each, and the camera's occluder rule on the walls and the ceilings. It lives in `app/` because it reads the world's
 // pieces and the renderer's occluders; the builder itself knows no renderer. Presentation only: the sim never reads it.
+import { ModelInvalid } from '@automata/framework'
 import { Box, Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
 import { BufferImageSource, Texture } from 'pixi.js'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
@@ -10,13 +11,15 @@ import { type GlowSwatch, lampsOfProp } from '../features/world/albedo/glow.ts'
 import { windowTile } from '../features/world/albedo/interior.ts'
 import { ladderOf } from '../features/world/albedo/ladder.ts'
 import { type AlbedoTile, tileUvs } from '../features/world/albedo/place.ts'
-import type { WorldPiece } from '../features/world/build.ts'
+import type { WorldPiece, WorldProp } from '../features/world/build.ts'
+import { fitModel, fitPoint } from '../features/world/model-fit.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
 import { tileName } from '../features/world/surface.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
 import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
 import { toSrgb } from '../shared/render/light/vertex-light.ts'
+import type { LoadedModel, ModelLibrary } from '../shared/render/model/load-models.ts'
 
 export interface WorldScene {
   /** Where the pieces are added. */
@@ -49,11 +52,32 @@ export interface WorldScene {
   readonly light?: SceneLight | undefined
 }
 
+/** What `drawWorld` draws beside the pieces: the props that name a model, and the models the game loaded. */
+export interface DrawWorldOptions {
+  /** The world's props (`World.props`): each that names a model is drawn as that model in place of its blockout's pieces. */
+  readonly props?: readonly WorldProp[] | undefined
+  /** The loaded models (the renderer's `scene` hook gives them). A prop that names one that is not here fails with its file's name. */
+  readonly models?: ModelLibrary | undefined
+  /** Draws every prop's generated blockout and no model: for a game's blockout view while it is made, never a shipped build's fallback. */
+  readonly blockout?: boolean | undefined
+}
+
+/** A prop drawn as a model: its mesh's id in `WorldView.mesh` (`model:<prop id>`) and the prop it stands for. */
+export interface ModelledProp {
+  readonly id: string
+  readonly prop: WorldProp
+}
+
 export interface WorldView {
   /** Holds every piece's mesh. */
   readonly node: Container3D
-  /** The pieces drawn, as the builder made them (a door's hinge, a prop's place), for the states that move them. */
+  /**
+   * The pieces drawn, as the builder made them (a door's hinge, a prop's place), for the states that move them. A prop drawn
+   * as a model keeps its generated pieces here (the blockout: its footprint and its collider) but they have no mesh.
+   */
   readonly pieces: readonly WorldPiece[]
+  /** The props drawn as a model in place of their blockout, with the id of each model's mesh. */
+  readonly models: readonly ModelledProp[]
   /** A piece's mesh by its id. */
   readonly mesh: (id: string) => Mesh3D | undefined
   /**
@@ -152,14 +176,78 @@ function meshOf(
  */
 const stays = (piece: WorldPiece): boolean => piece.door === undefined && piece.sway === undefined
 
-/** Draws `pieces` into `scene.parent`. */
-export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): WorldView {
+/**
+ * A prop's model as a mesh of its own, in world space like a piece: the model's vertices moved by the fit of its box to the
+ * prop's blockout (`fitModel`), so the mesh stands where the blockout stood and takes the model's material.
+ */
+function modelMesh(prop: WorldProp, model: LoadedModel): Mesh3D {
+  const { mesh } = model
+  const fit = fitModel({ min: prop.min, max: prop.max, turn: prop.turn }, mesh, prop.fit)
+  const positions = new Float32Array(mesh.positions.length)
+  const normals = new Float32Array(mesh.normals.length)
+  const low = [Infinity, Infinity, Infinity] as [number, number, number]
+  const high = [-Infinity, -Infinity, -Infinity] as [number, number, number]
+  const c = Math.cos((fit.turn * Math.PI) / 180)
+  const s = Math.sin((fit.turn * Math.PI) / 180)
+  for (let i = 0; i < mesh.positions.length; i += 3) {
+    const moved = fitPoint(fit, [
+      mesh.positions[i] as number,
+      mesh.positions[i + 1] as number,
+      mesh.positions[i + 2] as number,
+    ])
+    const [nx, ny, nz] = [
+      mesh.normals[i] as number,
+      mesh.normals[i + 1] as number,
+      mesh.normals[i + 2] as number,
+    ]
+    for (const axis of [0, 1, 2] as const) {
+      positions[i + axis] = moved[axis]
+      low[axis] = Math.min(low[axis], moved[axis])
+      high[axis] = Math.max(high[axis], moved[axis])
+    }
+    normals[i] = c * nx + s * nz
+    normals[i + 1] = ny
+    normals[i + 2] = -s * nx + c * nz
+  }
+  const geometry = new Geometry3D({
+    positions,
+    normals,
+    uvs: new Float32Array(mesh.uvs),
+    indices: Uint32Array.from(mesh.indices),
+    bounds3D: new Box(new Vector3(...low), new Vector3(...high)),
+  })
+  return new Mesh3D({ geometry, material: model.material })
+}
+
+/** Draws `pieces` into `scene.parent`, and the props that name a model as that model in place of their pieces. */
+export function drawWorld(
+  scene: WorldScene,
+  pieces: readonly WorldPiece[],
+  options: DrawWorldOptions = {},
+): WorldView {
   const node = new Container3D()
   scene.parent.addChild(node)
   const meshes = new Map<string, Mesh3D>()
+  // A prop that names a model draws it and not its blockout; one that names a model nobody loaded is a game's bug, told with the
+  // file's name, because a shipped build must never quietly show the blockout.
+  const replaced = new Set<string>()
+  const drawn: { id: string; prop: WorldProp; model: LoadedModel }[] = []
+  if (options.blockout !== true)
+    for (const prop of options.props ?? []) {
+      if (prop.model === undefined) continue
+      const model = options.models?.get(prop.model)
+      if (model === undefined)
+        throw new ModelInvalid({
+          file: prop.model,
+          reason: `not loaded, and the prop "${prop.id}" names it (list the level's models in the renderer: modelsOf(level))`,
+        })
+      replaced.add(prop.id)
+      drawn.push({ id: `model:${prop.id}`, prop, model })
+    }
   // The room nodes `showRooms` makes the first time it is asked, by sector.
   let groups: Map<string, Container3D> | undefined
   for (const piece of pieces) {
+    if (piece.prop !== undefined && replaced.has(piece.prop.id)) continue
     const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
     const glows = scene.glow?.(tileName(piece.surface))
     // A lit window is its room: a tile laid across the glass, drawn as it is whatever the light.
@@ -207,9 +295,15 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
       scene.occluders.face(mesh, { a: { x: a[0], z: a[1] }, b: { x: b[0], z: b[1] }, height }, piece.occlude)
     }
   }
+  for (const { id, prop, model } of drawn) {
+    const mesh = modelMesh(prop, model)
+    node.addChild(mesh)
+    meshes.set(id, mesh)
+  }
   return {
     node,
     pieces,
+    models: drawn.map(({ id, prop }) => ({ id, prop })),
     mesh: (id) => meshes.get(id),
     relight(id) {
       const mesh = meshes.get(id)
@@ -218,14 +312,18 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
     showRooms(rooms) {
       if (groups === undefined) {
         const made = new Map<string, Container3D>()
-        for (const piece of pieces) {
-          const mesh = meshes.get(piece.id)
+        const rooms = [
+          ...pieces.map(({ id, sector }) => ({ id, sector })),
+          ...drawn.map(({ id, prop }) => ({ id, sector: prop.sector })),
+        ]
+        for (const { id, sector } of rooms) {
+          const mesh = meshes.get(id)
           if (mesh === undefined) continue
-          let group = made.get(piece.sector)
+          let group = made.get(sector)
           if (group === undefined) {
             group = new Container3D()
             node.addChild(group)
-            made.set(piece.sector, group)
+            made.set(sector, group)
           }
           group.addChild(mesh)
         }

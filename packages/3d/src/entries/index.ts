@@ -14,7 +14,14 @@ export { render3dExtension } from '../app/render3d.extension.ts'
 export { type RoomHooksOptions, roomHooks } from '../app/room-hooks.ts'
 export { updatePieces } from '../app/update-pieces.ts'
 export { type WorldLightingOptions, worldLighting } from '../app/world-lighting.ts'
-export { drawWorld, sceneLamps, type WorldScene, type WorldView } from '../app/world-view.ts'
+export {
+  type DrawWorldOptions,
+  drawWorld,
+  type ModelledProp,
+  sceneLamps,
+  type WorldScene,
+  type WorldView,
+} from '../app/world-view.ts'
 export {
   type AngledCameraOptions,
   angledCamera,
@@ -96,6 +103,7 @@ export {
   type WorldOptions,
   type WorldPart,
   type WorldPiece,
+  type WorldProp,
 } from '../features/world/build.ts'
 export { box as propBox, cylinder as propCylinder } from '../features/world/mesh.ts'
 export type { WorldLamp } from '../features/world/place-props.ts'

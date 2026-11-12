@@ -6,6 +6,7 @@ import type {
   AfSector2,
   AfSectorEntry2,
   LampPlace,
+  PropFit,
   PropPlace,
 } from '../../shared/level/af-sector-2.schema.ts'
 import type { LevelProblem } from '../../shared/level/problem.ts'
@@ -52,9 +53,27 @@ export interface WorldLamp extends ResolvedLamp {
   readonly prop?: string | undefined
 }
 
+/**
+ * A prop as placed: its base point, the turn that placed it (degrees about up) and the box its generated parts fill, which is
+ * the prop's blockout. The blockout owns the footprint and the height whether or not a model replaces it on screen.
+ */
+export interface PlacedProp {
+  readonly id: string
+  /** The index of the room it stands in. */
+  readonly sector: number
+  readonly at: V3
+  readonly turn: number
+  readonly min: V3
+  readonly max: V3
+  /** The model file that replaces the blockout on screen, and how it sits (`PropPlace.model`, `PropPlace.fit`). */
+  readonly model?: string
+  readonly fit?: PropFit
+}
+
 export interface Placed {
   readonly pieces: PlacedPiece[]
   readonly lamps: WorldLamp[]
+  readonly props: PlacedProp[]
 }
 
 type Tell = (key: string, problem: LevelProblem) => void
@@ -117,7 +136,8 @@ function lampOf(
 export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell): Placed {
   const pieces: PlacedPiece[] = []
   const lamps: WorldLamp[] = []
-  if (level.sectors.length === 0) return { pieces, lamps }
+  const props: PlacedProp[] = []
+  if (level.sectors.length === 0) return { pieces, lamps, props }
 
   level.props?.forEach((place: PropPlace, index) => {
     const resolved = resolveProp(place, library)
@@ -142,12 +162,20 @@ export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell):
     const at: V3 = [x, y, z]
     const frame = objectFrame(turn, at)
     const built = resolved.generator(resolved.params)
+    const low: V3 = [Infinity, Infinity, Infinity]
+    const high: V3 = [-Infinity, -Infinity, -Infinity]
     built.pieces.forEach((piece: PropPiece, n) => {
       const surface: Surface = resolved.placements[piece.swatch] ?? piece.swatch
+      const mesh = rotateY(piece.mesh, turn, at)
+      for (let i = 0; i < mesh.positions.length; i += 3)
+        for (const axis of [0, 1, 2] as const) {
+          low[axis] = Math.min(low[axis], mesh.positions[i + axis] as number)
+          high[axis] = Math.max(high[axis], mesh.positions[i + axis] as number)
+        }
       pieces.push({
         sector: si,
         role: `${place.id}.${n}.${piece.label}`,
-        mesh: rotateY(piece.mesh, turn, at),
+        mesh,
         surface,
         ...(texOf(surface, 'object', frame) === undefined
           ? {}
@@ -158,6 +186,17 @@ export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell):
         prop: { id: place.id, at },
       })
     })
+    if (built.pieces.length > 0)
+      props.push({
+        id: place.id,
+        sector: si,
+        at,
+        turn,
+        min: low,
+        max: high,
+        ...(place.model === undefined ? {} : { model: place.model }),
+        ...(place.fit === undefined ? {} : { fit: place.fit }),
+      })
     built.lights?.forEach((light, n) => {
       const fault = lampFault(light)
       if (fault !== undefined) {
@@ -189,5 +228,5 @@ export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell):
     const [x, z, height = 0] = place.at as [number, number, number?]
     lamps.push(lampOf(place.id, place, [x, height, z], undefined, 0))
   })
-  return { pieces, lamps }
+  return { pieces, lamps, props }
 }
