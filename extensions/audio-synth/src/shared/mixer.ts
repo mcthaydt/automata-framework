@@ -11,6 +11,11 @@ export interface MixerPort {
   input(bus: BusId): AudioNode
   /** `Audio.duck(bus, amount, seconds)`: takes `bus` down by `amount` (0..1) for `seconds`. */
   duck(bus: BusId, amount: number, seconds: number): void
+  /**
+   * `Audio.sound(alias, { bus, gain })`: plays a recorded file once. A cue with a `sound` plays through it in place of
+   * its voices; a port without it (an offline render) plays the voices.
+   */
+  sound?(alias: string, bus: BusId, gain?: number): void
 }
 
 /** Where the ears are: the camera's ground position and yaw (0 looks toward −z, right is +x). */
@@ -82,8 +87,21 @@ export interface MixerOptions {
  */
 export function createMixer({ port, ducks, master = 1 }: MixerOptions): Mixer {
   let ears: Listener | null = null
+  /** A cue that dubs a bus takes the buses its rule names down for as long as it holds. */
+  const duckFor = (cue: Cue, length: number): void => {
+    if (cue.no_duck === true) return
+    for (const rule of ducks)
+      if (rule.bus === cue.bus)
+        for (const bus of rule.duck) port.duck(bus, 1 - dbToGain(rule.db), Math.max(rule.attack, length))
+  }
   return {
     play(cue, options = {}) {
+      if (cue.sound !== undefined && port.sound !== undefined) {
+        // A recorded file is not panned or distance-attenuated (core plays it as it is); the overall volume rides as its gain.
+        port.sound(cue.sound, cue.bus, master === 1 ? undefined : master)
+        duckFor(cue, options.length ?? cueLength(cue))
+        return
+      }
       let into: AudioNode = port.input(cue.bus)
       const ctx = into.context as BaseAudioContext
       const when = options.when ?? ctx.currentTime
@@ -103,11 +121,7 @@ export function createMixer({ port, ducks, master = 1 }: MixerOptions): Mixer {
         into = g
       }
       playCue(ctx, into, cue, when, options.random)
-      if (cue.no_duck === true) return
-      const length = options.length ?? cueLength(cue)
-      for (const rule of ducks)
-        if (rule.bus === cue.bus)
-          for (const bus of rule.duck) port.duck(bus, 1 - dbToGain(rule.db), Math.max(rule.attack, length))
+      duckFor(cue, options.length ?? cueLength(cue))
     },
     listener(l) {
       ears = l

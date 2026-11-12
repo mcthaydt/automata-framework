@@ -387,6 +387,11 @@ interface MixerPort {
   input(bus: BusId): AudioNode;
   /** `Audio.duck(bus, amount, seconds)`: takes `bus` down by `amount` (0..1) for `seconds`. */
   duck(bus: BusId, amount: number, seconds: number): void;
+  /**
+   * `Audio.sound(alias, { bus, gain })`: plays a recorded file once. A cue with a `sound` plays through it in place of
+   * its voices; a port without it (an offline render) plays the voices.
+   */
+  sound?(alias: string, bus: BusId, gain?: number): void;
 }
 ```
 

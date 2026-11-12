@@ -52,6 +52,44 @@ describe('the overall volume', () => {
   })
 })
 
+describe('a cue with a recorded sound', () => {
+  const FILE: Cue = { id: 'file', bus: 'sfx', voices: [], sound: 'sounds/door.ogg' }
+
+  it('plays the file on its bus through the port and makes no voice of its own', () => {
+    const { ctx, p } = port()
+    const played: [string, BusId][] = []
+    createMixer({ port: { ...p, sound: (alias, bus) => played.push([alias, bus]) }, ducks: [] }).play(FILE, {
+      when: 0,
+    })
+    expect(played).toEqual([['sounds/door.ogg', 'sfx']])
+    expect((ctx as unknown as { nodes: FakeNode[] }).nodes.filter((n) => n.kind === 'oscillator')).toEqual([])
+  })
+
+  it('still plays its voices when the port cannot play files', () => {
+    const { ctx, p } = port()
+    createMixer({ port: p, ducks: [] }).play({ ...FILE, voices: BLIP.voices }, { when: 0 })
+    expect((ctx as unknown as { nodes: FakeNode[] }).nodes.some((n) => n.kind === 'oscillator')).toBe(true)
+  })
+
+  it("carries the overall volume as the file's gain", () => {
+    const { p } = port()
+    const gains: (number | undefined)[] = []
+    createMixer({ port: { ...p, sound: (_a, _b, gain) => gains.push(gain) }, ducks: [], master: 0.5 }).play(
+      FILE,
+    )
+    expect(gains).toEqual([0.5])
+  })
+
+  it('ducks the buses a rule names for the length the file holds', () => {
+    const { p, ducks } = port()
+    createMixer({ port: { ...p, sound: () => undefined }, ducks: RULES }).play(
+      { ...FILE, bus: 'voice' },
+      { length: 2 },
+    )
+    expect(ducks.map(([bus]) => bus)).toEqual(['music', 'sfx'])
+  })
+})
+
 describe('spatial', () => {
   const ears = { x: 0, z: 0, yaw: 0 }
   it('is full level and centred at the listener, and within the reference distance', () => {
