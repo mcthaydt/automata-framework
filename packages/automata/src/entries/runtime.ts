@@ -23,6 +23,7 @@ export type { RuntimeServices, ScreenContext, ScreenDef } from '../app/flow/scre
 export type { OpeningContext, OpeningStep } from '../app/opening/opening.js'
 export type { PhotosensitivityOption, WarningSwitch } from '../app/opening/photosensitivity.js'
 export type { SeenFlag, SeenFlags } from '../app/opening/seen-flags.js'
+export { WARNING_EFFECTS, type WarningEffect } from '../app/opening/warning-effects.js'
 export type { Audio } from '../features/audio/audio.manager.js'
 export type { AudioBuses } from '../features/audio/audio-buses.js'
 export {

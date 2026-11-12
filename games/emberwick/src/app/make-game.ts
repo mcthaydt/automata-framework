@@ -66,6 +66,7 @@ export function makeEmberwick(content: EmberwickContent, { id = GAME_ID, locale 
     ...(locale === undefined ? {} : { locale }),
     // 'menu' lets the host's "Open game menu" reach the room (its `openMenu`); 'leaderboards' is the fastest climb.
     hosting: { wants: ['menu', 'leaderboards'] },
+    photosensitivity: { effects: ['flashing', 'shaking'] }, // the landing flash and the hard landing's shake
     renderer: sceneRenderer(room, showWick),
   })
 }

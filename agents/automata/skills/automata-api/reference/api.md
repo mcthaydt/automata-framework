@@ -5602,8 +5602,10 @@ interface GameSpec<S = never, D = unknown> {
     readonly firstRunLanguage?: boolean;
     /**
      * The game flashes: the first run on a device warns before anything plays, once, after the language. `true` shows the
-     * warning with the device's reduced-motion line; an object adds the game's own effect settings as switches (a game
-     * with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+     * warning with the device's reduced-motion line, saying what a game may have ("flashing lights or a shaking screen").
+     * An object says what this game has: `effects` lists its hazards (`'flashing'`, `'strobing'`, `'shaking'`,
+     * `'patterns'`) and the warning names exactly those, in the player's language; `switches` adds the game's own effect
+     * settings (a game with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
      */
     readonly photosensitivity?: PhotosensitivityOption;
     /**
@@ -6581,10 +6583,15 @@ const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
 
 #### `PhotosensitivityOption` (type)
 
-`true`: the warning, with the device's reduced-motion line. An object adds the game's own switches, shown above it.
+`true`: the warning, with the device's reduced-motion line. An object adds what the game has, as data: `effects`
+names each hazard (`'flashing'`, `'strobing'`, `'shaking'`, `'patterns'`) and the warning says them in the player's
+language ("This game has flashing lights and a shaking screen."); a game that declares none gets the general sentence
+("This game may have flashing lights or a shaking screen."). `switches` are the game's own effect settings, shown
+above the device's reduced-motion line.
 
 ```ts
 type PhotosensitivityOption = true | {
+    readonly effects?: readonly WarningEffect[];
     readonly switches?: readonly WarningSwitch[];
 };
 ```
@@ -7565,6 +7572,13 @@ fits and scrolls the rest inside its own box, rather than painting over the cont
 Rows mark themselves `data-row`. It is a declared scroll region (`data-scroll-region`): the layout
 contracts allow controls to be off screen only inside one.
 
+It is two siblings in one frame: the scroll box, and below it the "+N more" label when rows are out of view.
+The label is never inside the box, where it would sit over the last row in view and cover its words; the frame
+reserves the label's height on top of the rows, so showing it takes room from the box, not from a row's label.
+The frame is what the parent lays out (the `1fr` row, the flex item). Where even the reserve and the label together
+do not fit the room the parent gives (a compact screen at TV scale), the label gives way, not a row: the box keeps
+its reserved rows whole, and the soft edge and `data-more` still say that there are more.
+
 ```ts
 const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
@@ -8118,6 +8132,24 @@ interface ViewportWindow {
 }
 ```
 
+#### `WARNING_EFFECTS` (const)
+
+The effects a game can declare: `flashing` (lights that flash), `strobing` (lights that flash fast and repeatedly),
+`shaking` (the screen shakes) and `patterns` (stripes, checks or other high-contrast patterns). Each has a word in
+every language the framework ships (`first_run_warning_effects_<name>`).
+
+```ts
+const WARNING_EFFECTS: readonly ["flashing", "strobing", "shaking", "patterns"];
+```
+
+#### `WarningEffect` (type)
+
+One of `WARNING_EFFECTS`.
+
+```ts
+type WarningEffect = (typeof WARNING_EFFECTS)[number];
+```
+
 #### `WarningSwitch` (interface)
 
 A switch the warning offers: one of the game's own effect settings. A switch is on or off, so a setting with more
@@ -8276,7 +8308,7 @@ never under a reserved area or a touch button and never over the corner row; the
 `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
 ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
 region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no
-action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
+action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), no control's words run past its edge, and no "+N more" badge covers words in a scroll region; and each of `essentials` is reachable without scrolling.
 
 ```ts
 function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[];

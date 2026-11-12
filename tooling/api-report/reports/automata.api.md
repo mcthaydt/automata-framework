@@ -1466,6 +1466,7 @@ const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
 
 ```ts
 type PhotosensitivityOption = true | {
+    readonly effects?: readonly WarningEffect[];
     readonly switches?: readonly WarningSwitch[];
 };
 ```
@@ -2441,6 +2442,18 @@ interface ViewportWindow {
     addEventListener: Listen;
     removeEventListener: Listen;
 }
+```
+
+### `WARNING_EFFECTS` (const)
+
+```ts
+const WARNING_EFFECTS: readonly ["flashing", "strobing", "shaking", "patterns"];
+```
+
+### `WarningEffect` (type)
+
+```ts
+type WarningEffect = (typeof WARNING_EFFECTS)[number];
 ```
 
 ### `WarningSwitch` (interface)

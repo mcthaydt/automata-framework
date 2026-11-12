@@ -95,6 +95,7 @@ export const FUNCTION_LEAVES: readonly FunctionLeaf[] = [
   { path: 'saves.slots.deleteBody', params: ['name'] },
   { path: 'saves.slots.more', params: ['count'] },
   { path: 'board.more', params: ['count'] },
+  { path: 'firstRun.warning.declared', params: ['effects'] },
 ]
 
 const leafAt = (path: string): FunctionLeaf | undefined => FUNCTION_LEAVES.find((leaf) => leaf.path === path)

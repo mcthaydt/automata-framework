@@ -676,6 +676,8 @@
 - `UiSounds` (type): The interface's sounds by name, or one function that plays a name (for a game whose sounds are cues in its own mixer).
 - `usePlay()`: The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
+- `WARNING_EFFECTS` (const): The effects a game can declare: `flashing` (lights that flash), `strobing` (lights that flash fast and repeatedly), `shaking` (the screen shakes) and `patterns` (stripes, checks or other high-contrast patterns).
+- `WarningEffect` (type): One of `WARNING_EFFECTS`.
 - `WarningSwitch` (interface): A switch the warning offers: one of the game's own effect settings.
 
 ### `import { … } from '@automata/framework/extension'`
@@ -694,7 +696,7 @@
 
 - `BAR_ACTIONS` (const): The selector for the controls a player presses in a bar: the buttons, links, tabs and menu items inside a region a screen or an editor declares with `data-region` (`topbar`, `rail`, `panel`, `dock`, `tools`).
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
-- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
+- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), no control's words run past its edge, and no "+N more" badge covers words in a scroll region; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 - `describeHostingContract(name, create, settled, links?)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.

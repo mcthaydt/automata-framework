@@ -25,6 +25,10 @@ test('language, then the warning, then the title; the second run goes straight i
   // The warning is read in the language just picked.
   await expect(page.getByTestId('photosensitivity-continue')).toBeVisible()
   await expect(page.getByRole('heading', { name: ja.first_run_warning_title })).toBeVisible()
+  // It says what this game has (it declares `flashing`), in Japanese, and not what it does not.
+  const warning = page.getByTestId('photosensitivity-warning')
+  await expect(warning).toContainText(ja.first_run_warning_effects_flashing)
+  await expect(warning).not.toContainText(ja.first_run_warning_effects_shaking)
   await drawsIn(page.locator('html'), 'ja ja')
   await page.getByTestId('photosensitivity-continue').click()
 

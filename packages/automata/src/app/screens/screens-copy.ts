@@ -5,6 +5,7 @@
 import type { PromptCopy } from '../../shared/ui/prompts/prompt-label.ts'
 import type { LeaderboardCopy } from '../../shared/ui/status/leaderboard-panel.ts'
 import type { SaveStatusCopy } from '../../shared/ui/status/save-status.ts'
+import type { WarningEffect } from '../opening/warning-effects.ts'
 import type { SaveSlotsCopy } from './saves/save-slots.ts'
 import {
   CHANGED_ELSEWHERE_COPY,
@@ -47,7 +48,15 @@ export interface FirstRunCopy {
   readonly language: { readonly title: string; readonly close: string }
   readonly warning: {
     readonly title: string
+    /** What the game may have, for a game that does not say what it has: the sentence and the advice that follows it. */
     readonly body: string
+    /**
+     * What the game has, for a game that declares its effects: the same sentence and advice, with `effects` (each
+     * declared effect from `effects` below, joined as the language joins a list) where the hazards go.
+     */
+    readonly declared: (effects: string) => string
+    /** Each effect a game can declare, as it reads after "This game has": "flashing lights", "a shaking screen". */
+    readonly effects: Readonly<Record<WarningEffect, string>>
     /** The heading over the switches that turn the lights and shaking down. */
     readonly choose: string
     /** Where to change the switches later. */
@@ -169,7 +178,15 @@ export const DEFAULT_SCREENS_COPY: ScreensCopy = {
     language: { title: 'Language', close: 'Close' },
     warning: {
       title: 'Flashing lights warning',
-      body: 'This game has flashing lights and a shaking screen. For a few people these can bring on a seizure, even if they have never had one. If you feel dizzy or unwell, or your eyes or muscles twitch, stop playing and talk to a doctor.',
+      body: 'This game may have flashing lights or a shaking screen. For a few people these can bring on a seizure, even if they have never had one. If you feel dizzy or unwell, or your eyes or muscles twitch, stop playing and talk to a doctor.',
+      declared: (effects) =>
+        `This game has ${effects}. For a few people these can bring on a seizure, even if they have never had one. If you feel dizzy or unwell, or your eyes or muscles twitch, stop playing and talk to a doctor.`,
+      effects: {
+        flashing: 'flashing lights',
+        strobing: 'strobing lights',
+        shaking: 'a shaking screen',
+        patterns: 'high-contrast patterns',
+      },
       choose: 'Turn down',
       later: 'You can change these later in Settings.',
       continue: 'Continue',

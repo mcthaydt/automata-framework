@@ -146,8 +146,10 @@ export interface GameSpec<S = never, D = unknown> {
   readonly firstRunLanguage?: boolean
   /**
    * The game flashes: the first run on a device warns before anything plays, once, after the language. `true` shows the
-   * warning with the device's reduced-motion line; an object adds the game's own effect settings as switches (a game
-   * with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+   * warning with the device's reduced-motion line, saying what a game may have ("flashing lights or a shaking screen").
+   * An object says what this game has: `effects` lists its hazards (`'flashing'`, `'strobing'`, `'shaking'`,
+   * `'patterns'`) and the warning names exactly those, in the player's language; `switches` adds the game's own effect
+   * settings (a game with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
    */
   readonly photosensitivity?: PhotosensitivityOption
   /**
