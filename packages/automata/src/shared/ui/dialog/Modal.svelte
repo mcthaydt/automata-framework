@@ -9,10 +9,14 @@
   such a tap does nothing, so a stray tap never loses the player's place.
 
   `anchor="bottom"` puts it on the bottom edge at every form factor; Sheet is that.
+
+  It asks for the interface sounds `open` when it shows and `close` when it goes (`requestUiSound`); a game that maps
+  neither hears nothing.
 -->
 <script lang="ts">
 import { onMount } from 'svelte'
 import Icon from '../icon/Icon.svelte'
+import { requestUiSound } from '../sound/request-ui-sound.js'
 import type { ModalProps } from './modal-props.js'
 import { holdModal } from './modal-scope.js'
 
@@ -36,9 +40,17 @@ const titleId = `${id}-title`
 let scrim = $state<HTMLElement | undefined>(undefined)
 let panel = $state<HTMLElement | undefined>(undefined)
 
-onMount(() =>
-  scrim === undefined || panel === undefined ? undefined : holdModal(scrim, panel, () => onclose()),
-)
+onMount(() => {
+  if (scrim === undefined || panel === undefined) return undefined
+  // The request bubbles to the root, so it goes from the scrim's parent when the Modal goes: the scrim is gone by then.
+  const host = scrim.parentElement ?? scrim
+  requestUiSound(scrim, 'open')
+  const release = holdModal(scrim, panel, () => onclose())
+  return () => {
+    release()
+    requestUiSound(host, 'close')
+  }
+})
 
 function onScrimClick(event: MouseEvent): void {
   if (event.target === scrim) onbackdrop?.()

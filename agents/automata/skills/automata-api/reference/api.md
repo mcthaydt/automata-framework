@@ -5263,6 +5263,8 @@ the corner row, so it rises over Back only when its actions cannot fit any other
 panel has no actions and is the screen's last word, so it never rises: Back is its way out. The
 actions sit outside the scrolling part and never shrink (framework audit of #7).
 
+It asks for the interface sound `error` when it appears (`requestUiSound`).
+
 ```ts
 const ErrorPanel: import("svelte").Component<Props, {}, "">;
 type ErrorPanel = ReturnType<typeof ErrorPanel>;
@@ -6467,6 +6469,9 @@ such a tap does nothing, so a stray tap never loses the player's place.
 
 `anchor="bottom"` puts it on the bottom edge at every form factor; Sheet is that.
 
+It asks for the interface sounds `open` when it shows and `close` when it goes (`requestUiSound`); a game that maps
+neither hears nothing.
+
 ```ts
 const Modal: import("svelte").Component<$$ComponentProps, {}, "">;
 type Modal = ReturnType<typeof Modal>;
@@ -6995,7 +7000,8 @@ interface RenderTarget {
 
 Asks for a sound from inside a component that has no press behind it (an error arriving, a panel opening). The
 request bubbles to the root `installUiSounds` listens on. `open` and `close` also quiet the focus ticks for 400 ms,
-since the panel moving focus is part of the opening.
+since the panel moving focus is part of the opening. It lives in `shared/` so the shared panels can ask; the
+listener that plays the sounds is the audio feature's.
 
 ```ts
 function requestUiSound(from: Element, name: string): void;
