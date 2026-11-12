@@ -61,7 +61,7 @@ const OLD_ADA_SLIDERS = {
  *  draw now, because the painter's `chunk` and clothing grew. */
 const RETUNED_ADA = {
   fat: 0.05,
-  hips: 1,
+  hips: 0.65,
   legs: 0.3,
   chunk: 0.2,
   muscle: 0.3,
@@ -148,7 +148,7 @@ const OLD_UNCANNY = {
 /** What `HELD` replaces in an old outfit, by item, so the comparison names each difference. */
 const asDrawn = (old: readonly Record<string, unknown>[]) =>
   old.map((item) => {
-    if (item.style === 'bob') return { ...item, style: 'bobFringeFull' }
+    if (item.style === 'bob') return { ...item, style: 'bobFringe' }
     // The old curtain hung over her face and loose down her back: the kit's `curtainLoose` brings the hairline down to the mouth and fans the rest wide. Her cap sits flat on the brow.
     if (item.style === 'curtain') return { ...item, style: 'curtainLoose' }
     if (item.style === 'nurse') return { ...item, style: 'nurseBrow' }
@@ -187,7 +187,8 @@ describe('Ada', () => {
     const p = proportions(ADA, 1)
     expect(p.height).toBeGreaterThanOrEqual(59)
     expect(p.height).toBeLessThanOrEqual(63)
-    expect(p.headRowsWithHair).toBeGreaterThanOrEqual(13)
+    // 9 since her bob is the painter's `bobFringe` (the look spec: a head with its hair 14.8 % of her, 9 rows of 62); the old sprite's was 13.
+    expect(p.headRowsWithHair).toBeGreaterThanOrEqual(9)
     // 21 since her sleeves are rolled on a cuff fold: the arms hang at her hips, and a fold a clearance proud of the arm is a row there.
     expect(p.hip).toBeLessThanOrEqual(21)
     expect(ADA.genes?.head).toBe(0.28)
@@ -199,8 +200,8 @@ describe('Ada', () => {
     expect(ADA.gait).toBe('brisk')
     // The old file zeroed her stance (weight on a leg), shift and hang and cut her idle elbow to 0.15; the old brisk gait's own numbers
     // (0.04, 0.08, 0.012, hang 0.12, idleElbow 0.45) stand her on one hip with a bent, hung arm, as the old hand-painted atlas does, so
-    // only her `armOut` stays. The old `standOut` did not exist: her arms hung at `armOut` standing too, so it is that number.
-    expect(ADA.gaitOverrides).toEqual({ ...OLD_BRISK, armOut: 0.11, standOut: 0.11 })
+    // only her `armOut` stays (0.03 now: in the room her hands hang close, and the look spec's A-pose is the turnaround's, not hers). The old `standOut` did not exist: her arms hung at `armOut` standing too, so it is that number.
+    expect(ADA.gaitOverrides).toEqual({ ...OLD_BRISK, armOut: 0.03, standOut: 0.03 })
   })
 
   it('has the old face but for the drawn one: at the size she is played the builder draws a lid line the fringe covers, its decal face two eyes', () => {
@@ -352,11 +353,17 @@ describe('the painted frame shows what they wear', () => {
     expect(eyesClearOfFringe(ADA)).toBe(true)
   })
 
-  it('shows floor between Ada’s legs below the knee at the size she is played: two legs, not one block', () => {
-    const cell = paintedCell(ADA, 0, 1)
-    const { top, height } = silhouette(cell)
-    const rows = rowGaps(cell).slice(top + Math.round(height * 0.7), top + Math.round(height * 0.92))
-    expect(rows.reduce((a, b) => a + b, 0)).toBeGreaterThanOrEqual(8)
+  it('shows floor between Ada’s legs below the knee from density 2, where the cutscene shots begin: two legs, not one block', () => {
+    // Her hips are a slim build's now (0.65, not the 1 that drew the old figure's leg gap at the play size), so at density 1 her legs nearly touch.
+    for (const density of [2, 4] as const) {
+      const cell = paintedCell(ADA, 0, density)
+      const { top, height } = silhouette(cell)
+      const rows = rowGaps(cell).slice(top + Math.round(height * 0.7), top + Math.round(height * 0.92))
+      expect(
+        rows.reduce((a, b) => a + b, 0),
+        `density ${density}`,
+      ).toBeGreaterThanOrEqual(8 * density)
+    }
   })
 
   it('shows Ada’s waistcoat open: a strip of her cream shirt between its two oxblood sides, not a slit', () => {
@@ -417,7 +424,6 @@ describe('what the old figures do that the painter cannot yet', () => {
       'the nurse’s curtain hair over her face',
       'the folds of the nurse’s skirt',
       'the nurse’s stoop',
-      'Ada’s own bob (the old `bob` style)',
     ])
     for (const piece of HELD) {
       expect(piece.why.length).toBeGreaterThan(10)

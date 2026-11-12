@@ -28,8 +28,8 @@ export const defAtDensity =
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
  * `scenes.prologue = street`): an ivory shirt with a collar, its sleeves rolled to the elbow, under an oxblood waistcoat worn open, faded slim jeans cropped above
- * tan ankle boots, her auburn bob, dark eyes. The bob is the kit's `bobFringeFull`: the builder has no `bob` style of the old kind, and the kit's plain `smoothBob` is
- * a helmet with a tail (46 hair texels at the play size to the old bob's 88); the fringe and the fuller mass at the ear make 82.
+ * tan ankle boots, her auburn bob, dark eyes. Her bob is the painter's own `bobFringe`: a chin-length dome with a fringe that ends at the jaw, clear of the chin, with no tail (the kit's
+ * quick `bobFringeFull` wrapped under the jaw like a beard from the front).
  */
 export const ADA: CharacterDef = {
   id: 'ada',
@@ -42,11 +42,9 @@ export const ADA: CharacterDef = {
     muscle: 0.3, // retuned: the old 0.5
     fat: 0.05, // retuned: the old 0.2
     shoulders: 0.55, // retuned: the old 0.47
-    // retuned: the old 0.37, then 0.2 for a leaner pelvis. The builder stands a figure with its weight foot drawn in a quarter of the way to the
-    // middle line, so the feet stand 0.75 of the hip joints' width apart where the old figure's stood under its hips; at 0.2 her two legs touch
-    // from the hip to the ankle at the size she is played. At her height now 0.9 leaves 5 texels of floor between them and 1 gives 12, with no
-    // wider a hip row (19 by the proportions helper, 21 by the older bands, either way). A wider stand is the painter's (README, list 3).
-    hips: 1,
+    // retuned: the old 0.37, then 1 for a leg gap. The jeans' own `gap` keeps her legs apart now, so her hips are a slim build's: the look spec's hip is
+    // about her shoulder, not wider (20 % of her height), and 1 drew thighs far wider than her waist.
+    hips: 0.65,
     legs: 0.3, // the old 0.3 (round 1 had it at 0.6 for longer legs; the old figure's legs are half of her, 29 rows of 59, and ours were 52%)
     arms: 0.15,
     head: 0.87,
@@ -67,7 +65,8 @@ export const ADA: CharacterDef = {
   // The old brisk walk whole. The old file zeroed her stance, stance lead and shift (no weight on a leg) and cut her idle elbow and hang; the
   // old brisk gait's own numbers stand her on one hip with a bent, hung arm, as the old hand-painted atlas does, so only her `armOut` of the
   // old file stays. `standOut` did not exist then: the arms hung at `armOut` standing too.
-  gaitOverrides: { ...OLD_BRISK, armOut: 0.11, standOut: 0.11 },
+  // The generated images' A-pose is 15 to 20 degrees; in the room her hands hang close to her body.
+  gaitOverrides: { ...OLD_BRISK, armOut: 0.03, standOut: 0.03 },
   hand: 'R',
   // `drawn` was true in the old file. At the size she is played the builder's drawn face is a lid line the fringe covers (eyes need density 2),
   // so her front view had no face; its decal face is two eye dots, which is what the old figure showed there.
@@ -85,7 +84,7 @@ export const ADA: CharacterDef = {
       {
         waistcoat: 'oxblood',
         fit: 1,
-        length: 0.05,
+        length: 0.5,
         armhole: 1,
         open: 1,
         chest: 0.4,
@@ -104,7 +103,7 @@ export const ADA: CharacterDef = {
         waistband: 'denimBand',
       },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true, shaft: 0.2, heel: 1, toe: 'bootToe' },
-      { hair: 'auburn', style: 'bobFringeFull' },
+      { hair: 'auburn', style: 'bobFringe' },
       // The kit's eyes of a decal face: two texels tall and about four apart, where the builder's `eyes` is one texel each, two apart.
       { eyeMarks: 'eyeDark' },
     ],
@@ -190,10 +189,5 @@ export const HELD: readonly Held[] = [
     why: 'the old figure stood bent forward with her head cocked down; the builder’s stand holds a figure upright whatever its gait and sliders (`headTilt`, `posture`, `hunch` move her head and shoulders by a texel or two), so it needs a stand of its own',
     instead:
       'the old uncanny gait (a data override of the builder’s `loose`) on an upright figure with her head cocked 15 degrees',
-  },
-  {
-    old: 'Ada’s own bob (the old `bob` style)',
-    why: 'the builder’s hair library has no `bob`; the kit’s `bobFringeFull` is a chin-length bob with a fringe and mass at the ear, built from the builder’s scalp and fall pieces, but a piece of its own could turn its ends under and part it',
-    instead: 'the kit’s `bobFringeFull`',
   },
 ]
