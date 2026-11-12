@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import { Figure } from '#src/shared/figure/figure.ts'
 import { member, view } from '#src/shared/figure/frames.ts'
+import { OUTLINE } from '#src/shared/paint/paint-budget.ts'
 import { type HandForm, handForm, handPiece } from '#src/shared/paint/paint-hand-form.ts'
 import { drawHands } from '#src/shared/paint/paint-hands.ts'
 
@@ -17,21 +18,27 @@ const grid = (f: HandForm) =>
     Array.from({ length: f.Wk + 2 }, (_, col) => handPiece(f, row, col)),
   )
 
-describe('the hand form at the showcase density', () => {
-  // The base man's open hand at density 2, as the front view shows it (its back half turned to us) and from the side.
+describe('the hand form at the showcase density: three shapes, sharply divided', () => {
+  // The Owner: "there should be a sharp divide between the combined 3 fingers, index, and thumb". The base man's hand
+  // at density 2 as the front view shows it (its back half turned to us), the woman's, and a broad side view.
   for (const [name, Ww, Wk] of [
-    ['front', 5, 6],
-    ['side', 6, 7],
+    ['man', 6, 7],
+    ['woman', 5, 6],
+    ['broad', 7, 8],
   ] as const) {
-    const f = handForm({ L: 9.1, Ww, Wk, thumbAt: 0.15, thumbs: true, D: 2 }),
+    const f = handForm({ L: 1.5 * Wk, Ww, Wk, thumbAt: 0.15, thumbs: true, D: 2 }),
       g = grid(f)
     const rowsOf = (p: string) => g.map((r, row) => (r.includes(p as never) ? row : -1)).filter((r) => r >= 0)
+    const colsOf = (row: number, p: string) => g[row].map((q, c) => (q === p ? c : -1)).filter((c) => c >= 0)
     const runs = (col: number, p: string) => {
       const out: number[] = []
       let n = 0
       for (const r of g) {
         if (r[col] === p) n++
-        else if (n) out.push(n), (n = 0)
+        else if (n) {
+          out.push(n)
+          n = 0
+        }
       }
       if (n) out.push(n)
       return out
@@ -39,34 +46,75 @@ describe('the hand form at the showcase density', () => {
     it(`${name}: an open hand, half again as long as it is broad`, () => {
       expect(f.last + 1).toBeGreaterThanOrEqual(Math.ceil(1.4 * Wk))
     })
-    it(`${name}: the thumb lies along the palm's side, one texel out, its tip clear`, () => {
+    it(`${name}: the index, two columns, divided from a mitten of three or more by one ink run to a notch`, () => {
+      const index = colsOf(f.last, 'index')
+      expect(index.length).toBe(2)
+      const end = Math.max(...rowsOf('mitten'))
+      expect(end).toBeLessThan(f.last)
+      for (let row = f.sk + 1; row <= end; row++)
+        expect(colsOf(row, 'mitten').length, `row ${row}`).toBeGreaterThanOrEqual(3)
+      // The divide: one run from the knuckle row down, then the notch, background between the tips.
+      const col = index[0] - 1
+      expect(runs(col, 'divide')).toEqual([expect.any(Number)])
+      expect(runs(col, 'divide')[0]).toBeGreaterThanOrEqual(3)
+      expect(g[f.sk + 1][col]).toBe('divide')
+      expect(g[end][col]).toBe(null)
+      expect(g[end][col - 1]).toBe('mitten')
+      expect(g[end][col + 1]).toBe('index')
+    })
+    it(`${name}: the thumb, two texels thick and three or more long, lies down the palm's side, its tip free`, () => {
       const rows = rowsOf('thumb')
       expect(rows.length).toBeGreaterThanOrEqual(3)
-      expect(Math.max(...g.map((r) => r.filter((p) => p === 'thumb').length))).toBe(1)
-      expect(g.some((r) => r[Wk + 1])).toBe(false)
-      expect(g[rows[rows.length - 1] + 1][Wk]).toBe(null)
+      expect(Math.max(...rows)).toBeLessThan(f.sk)
+      expect(Math.max(...rows.map((r) => colsOf(r, 'thumb').length))).toBe(2)
+      // Never horizontal, never more than two columns past the palm, and angled away: its tip no nearer the palm.
+      expect(rows.length).toBeGreaterThan(2)
+      expect(g.some((r) => r[Wk + 2])).toBe(false)
+      const tip = Math.max(...rows)
+      expect(Math.min(...colsOf(tip, 'thumb'))).toBeGreaterThanOrEqual(Math.min(...colsOf(rows[0], 'thumb')))
+      // Divided from the palm in ink along its free length, its tip standing free (background under it and beside it).
+      const free = rows.filter((r) => colsOf(r, 'divide').length)
+      expect(free.length).toBeGreaterThanOrEqual(2)
+      for (const r of free)
+        expect(Math.max(...colsOf(r, 'divide'))).toBeLessThan(Math.min(...colsOf(r, 'thumb')))
+      for (const c of colsOf(tip, 'thumb')) expect(g[tip + 1][c]).toBe(null)
+      expect(g[tip][Math.min(...colsOf(tip, 'thumb')) - 1]).toBe(null)
     })
-    it(`${name}: the index, two columns, creased from the mitten by one run, ending a row past it`, () => {
-      const cols = g[f.last].map((p, c) => (p === 'index' ? c : -1)).filter((c) => c >= 0)
-      expect(cols.length).toBe(2)
-      expect(Math.max(...rowsOf('index'))).toBe(Math.max(...rowsOf('mitten')) + 1)
-      const crease = cols[0] - 1
-      expect(runs(crease, 'crease')).toEqual([expect.any(Number)])
-      expect(runs(crease, 'crease')[0]).toBeGreaterThanOrEqual(3)
-    })
-    it(`${name}: every crease is a run of three or more`, () => {
-      for (let c = 0; c < Wk; c++) for (const n of runs(c, 'crease')) expect(n).toBeGreaterThanOrEqual(3)
-    })
-    it(`${name}: the mitten is one block, its end tapered on both corners`, () => {
-      for (const r of g) {
-        const cols = r.map((p, c) => (p === 'mitten' ? c : -1)).filter((c) => c >= 0)
-        if (cols.length) expect(cols[cols.length - 1] - cols[0] + 1).toBe(cols.length)
-      }
-      const end = Math.max(...rowsOf('mitten')),
-        above = g[end - 1].filter((p) => p === 'mitten').length
-      expect(g[end].filter((p) => p === 'mitten').length).toBeLessThan(above)
+    it(`${name}: no ink texel alone: every divide runs to the silhouette`, () => {
+      const seen = new Set<string>()
+      g.forEach((r, row) => {
+        r.forEach((p, col) => {
+          if (p !== 'divide' || seen.has(`${row},${col}`)) return
+          let open = false
+          const stack: [number, number][] = [[row, col]]
+          for (let next = stack.pop(); next; next = stack.pop()) {
+            const [y, x] = next
+            if (seen.has(`${y},${x}`)) continue
+            seen.add(`${y},${x}`)
+            for (const [yy, xx] of [
+              [y - 1, x],
+              [y + 1, x],
+              [y, x - 1],
+              [y, x + 1],
+            ] as const) {
+              const q = g[yy]?.[xx] ?? null
+              if (q === null) open = true
+              else if (q === 'divide') stack.push([yy, xx])
+            }
+          }
+          expect(open, `the divide at ${row},${col}`).toBe(true)
+        })
+      })
     })
   }
+  it('a hand too narrow for three shapes shows two: the fingers and the thumb, sharply divided', () => {
+    const f = handForm({ L: 8, Ww: 4, Wk: 5, thumbAt: 0.15, thumbs: true, D: 2 }),
+      g = grid(f),
+      flat = g.flat()
+    expect(flat.includes('index')).toBe(false)
+    expect(flat.includes('thumb')).toBe(true)
+    expect(flat.includes('divide')).toBe(true)
+  })
 })
 
 describe('a hand too small to part stays one shape', () => {
@@ -135,25 +183,58 @@ function handsOf(def: (typeof BASE)[number]['def'], d: number, D: number) {
 describe('the base pair standing at density 2: the hand reads in every view', () => {
   for (const c of BASE)
     for (let d = 0; d < 8; d++)
-      it(`${c.def.id} view ${d}: a hand four texels broad or more, parted by creases, not gaps`, () => {
-        for (const { hs, w, h, on } of handsOf(c.def, d, 2)) {
+      it(`${c.def.id} view ${d}: a broad hand, divided in ink`, () => {
+        for (const { hs, w, h, on, tone } of handsOf(c.def, d, 2)) {
           if (!hs.hangs) continue
-          // The widest row of the hand: a readable block, whichever way it is turned.
+          // The widest row of the hand: three shapes and their divides, whichever way it is turned; the man's eight
+          // texels or more across with his thumb where the view shows its back.
           let widest = 0
           for (let y = 0; y < h; y++) {
             let n = 0
             for (let x = 0; x < w; x++) if (on(x, y)) n++
             widest = Math.max(widest, n)
           }
-          expect(widest, `view ${d}`).toBeGreaterThanOrEqual(4)
-          // No ink inside the hand: its partings are creases, so a row of it is one run but beside the thumb's tip.
-          let parted = 0
-          for (let y = 0; y < h; y++) {
-            let runs = 0
-            for (let x = 0; x < w; x++) if (on(x, y) && !on(x - 1, y)) runs++
-            if (runs > 1) parted++
-          }
-          expect(parted, `view ${d} rows parted by background`).toBeLessThanOrEqual(2)
+          expect(widest, `view ${d}`).toBeGreaterThanOrEqual(
+            c.def.id === 'base-m' && [0, 1, 7].includes(d) ? 8 : 6,
+          )
+          // The divides are the outline's ink, a run of three or more.
+          expect(tone.filter((t) => t === OUTLINE).length, `view ${d} ink`).toBeGreaterThanOrEqual(3)
         }
+      })
+})
+
+describe('a hand over skin of its own colour has a closed contour', () => {
+  // The side views, where the hand hangs over the bare thigh: every texel of the thigh beside the hand is the ink line,
+  // so the hand reads as lying against the leg, with nothing poking out as a lone shape.
+  for (const c of BASE)
+    for (const d of [2, 6])
+      it(`${c.def.id} view ${d}`, () => {
+        const f = new Figure(member(c.def, 2))
+        f.cache = false
+        f.paintStyle.hand = 'parted'
+        for (let i = 0; i < 3; i++)
+          f.update(1 / 60, { facing: (d * Math.PI) / 4, moving: false, view: view() })
+        const [w, h] = f.cell,
+          b = {
+            material: f.g.material.slice(),
+            part: f.g.part.slice(),
+            group: f.g.group.slice(),
+            depth: f.g.depth.slice(),
+            normal: f.g.normal.slice(),
+            place: f.g.place.slice(),
+          }
+        const tone = drawHands(f.handStamps, w, h, 2, b, 'parted')
+        let lies = 0
+        for (const hs of f.handStamps)
+          for (let k = 0; k < w * h; k++) {
+            if (tone[k] < 0 || tone[k] === OUTLINE || b.group[k] !== hs.group) continue
+            const x = k % w
+            for (const q of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w]) {
+              if (q < 0 || q >= w * h || b.material[q] !== hs.material || b.group[q] === hs.group) continue
+              lies++
+              expect(tone[q], `the texel beside the hand at ${q % w},${Math.floor(q / w)}`).toBe(OUTLINE)
+            }
+          }
+        expect(lies, 'the hand lies over the thigh').toBeGreaterThan(0)
       })
 })

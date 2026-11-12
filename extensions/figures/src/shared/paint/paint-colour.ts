@@ -115,7 +115,7 @@ export function colourTexels(ctx: AfterStainsAndHolo) {
       through.set(k, tint(tones[mi]))
     const c =
       t === OUTLINE
-        ? at === k
+        ? at === k && handTone[k] !== OUTLINE
           ? extra[mi].fold
           : ink
         : t === LINE

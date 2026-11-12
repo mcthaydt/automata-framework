@@ -1,6 +1,7 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
-import { K2 } from './paint-budget'
+import { K2, OUTLINE } from './paint-budget'
 import {
+  DIVIDE,
   HAND_FORM,
   type HandFormKind,
   PARTED_HAND,
@@ -226,12 +227,22 @@ export function drawHands(
       part[k] = handPart
       group[k] = hs.group
       depth[k] = z(s)
-      tone[k] = q
+      tone[k] = q === DIVIDE ? OUTLINE : q
       for (let i = 0; i < 3; i++) {
         normal[k * 3 + i] = bn[i]
         place[k * 3 + i] = wristPlace >= 0 ? place[wristPlace * 3 + i] : 0
       }
     }
+    // The parted hand over skin of its own colour (a bare thigh): a closed contour in ink on that skin round it, so it
+    // reads as a hand lying against the leg; its divides' notches there close into the same line.
+    if (form === 'parted')
+      for (const [k] of shows) {
+        if (tone[k] === OUTLINE) continue
+        const x = k % w
+        for (const q of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w])
+          if (q >= 0 && q < n && tone[q] < 0 && material[q] === hs.material && group[q] !== hs.group)
+            tone[q] = OUTLINE
+      }
   }
   return tone
 }

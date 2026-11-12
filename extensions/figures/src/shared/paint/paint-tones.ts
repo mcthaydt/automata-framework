@@ -200,6 +200,11 @@ export function toneTexels(ctx: AfterQuiltedBands) {
         tone[k] = OUTLINE
         owner[k] = line
         under[k] = Math.max(t, 2)
+      } else if (handTone[k] === OUTLINE) {
+        // A hand's divide or its contour over its own skin (paint-hands.ts drawHands): a line, drawn in ink.
+        tone[k] = OUTLINE
+        owner[k] = k
+        under[k] = Math.max(t, 2)
       } else tone[k] = handTone[k] >= 0 ? handTone[k] : t
     }
   return { hard, tone, owner, under }
