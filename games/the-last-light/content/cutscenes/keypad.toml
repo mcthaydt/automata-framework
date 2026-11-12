@@ -3,18 +3,20 @@
 id = "keypad"
 duration = 3
 
+# Over her shoulder at the keypad, her head and the pad large (a texel 4 field pixels). The camera used to dolly in and zoom from 3.4 to 4.1
+# field pixels a texel, which drew her a whole texel bigger halfway; it now stands where the move ended and creeps 3% on the lens.
 [[camera]]
 t = 0
-pos = [ 2.95, 1.85, 3.25 ]
+pos = [ 3.2, 1.8, 3.3 ]
 look = [ 4.7, 1.4, 3.4 ]
 cut = true
-lens = 26
+lens = 25.5
 
 [[camera]]
 t = 3
 pos = [ 3.2, 1.8, 3.3 ]
 look = [ 4.7, 1.4, 3.4 ]
-lens = 32
+lens = 26.2
 ease = [ 0.3333333333333333, 0.6666666666666666, 0.6666666666666666, 1 ]
 
 [[actor]]

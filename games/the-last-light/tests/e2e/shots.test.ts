@@ -24,7 +24,8 @@ test.use({ hasTouch: false, isMobile: false, deviceScaleFactor: 1 })
 test.setTimeout(30 * 60_000)
 
 /** The route's steps that lead to each cutscene, from play on screen. */
-const LEAD: Record<string, number> = { lightsOut: 9 }
+// `found`: the lamp put out at lights out and no hiding, so the figure finds her where she stands.
+const LEAD: Record<string, number> = { keypad: 6, lightsOut: 9, found: 10, rest: 12 }
 
 for (const { id, seconds } of WANTED) {
   test(`shots of ${id}`, async ({ page }) => {

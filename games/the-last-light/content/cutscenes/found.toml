@@ -9,14 +9,14 @@ t = 0
 pos = [ -3.6, 3.4, 2.2 ]
 look = [ 0, 0.9, 0 ]
 cut = true
-lens = 20
+lens = 48.5
 about = "player"
 
 [[camera]]
 t = 4.2
 pos = [ -3.6, 3.4, 2.2 ]
 look = [ 0, 0.9, 0 ]
-lens = 25
+lens = 50.2
 ease = "linear"
 about = "player"
 
@@ -25,13 +25,13 @@ t = 4.5
 pos = [ -1, 2.6, -1.6 ]
 look = [ -3.25, 0.75, 0.7 ]
 cut = true
-lens = 21
+lens = 37.1
 
 [[camera]]
 t = 7
 pos = [ -1, 2.6, -1.6 ]
 look = [ -3.25, 0.8, 0.7 ]
-lens = 23
+lens = 38.2
 ease = "linear"
 
 [[actor]]
