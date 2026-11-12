@@ -1,7 +1,8 @@
 // The lamp kit: a lamp names a kind, and the kind sets its colour, how far it reaches and how bright it may get. A lamp
 // may carry its own colour (a lamp is rarely the exact white of its kind) but only within `tone` of the kind's in OKLab,
 // so one level's lamps read as one set of lights; a neon is a coloured glow (a tube, a screen, a headlight), so it may
-// be any colour. The rest of that file's look is the renderer's (`shared/render/light`). Changed: a bad lamp is a
+// be any colour. The bands cover The Last Light's archetypes (its pendant reaches 9 m, and `fire`, `gas`, `screen` and `spark` are
+// kinds here); every kind is steady, a lamp that flickers is moved by the game through its `level`. The rest of that file's look is the renderer's (`shared/render/light`). Changed: a bad lamp is a
 // `LevelProblem`-shaped fault the builder reports, not a throw.
 
 import type { LampPlace } from '../../shared/level/af-sector-2.schema.ts'
@@ -10,7 +11,13 @@ import kit from './library/lamp-kit.json' with { type: 'json' }
 
 interface Kind {
   readonly color: string
+  /** The shortest and longest reach a lamp of this kind may name, in metres; a lamp's own range is clamped into it. */
   readonly range: readonly [number, number]
+  /**
+   * The reach of a lamp that names none. Left out it is the middle of the band; a band widened to cover more lamps names the
+   * reach the narrower band's middle gave, so a lamp that said nothing draws as it did.
+   */
+  readonly reach?: number
   readonly peak: number
   /** Lit only at night: a street lamp on its photocell. */
   readonly dusk?: boolean
@@ -22,7 +29,7 @@ export const LAMP_KINDS: Readonly<Record<string, Kind>> = kit.kit as unknown as 
 export interface ResolvedLamp {
   /** `0xRRGGBB`. */
   readonly color: number
-  /** Metres: clamped into the kind's band, the band's middle when the lamp names none. */
+  /** Metres: clamped into the kind's band, the kind's own `reach` (the band's middle if it names none) when the lamp names none. */
   readonly range: number
   /** Authored level (1 unless it names one), held at the kind's peak. */
   readonly level: number
@@ -57,7 +64,8 @@ export function resolveLamp(lamp: Pick<LampPlace, 'kind' | 'color' | 'range' | '
   const [low, high] = kind.range
   return {
     color: hexToRgb(lamp.color ?? kind.color),
-    range: lamp.range === undefined ? (low + high) / 2 : Math.min(high, Math.max(low, lamp.range)),
+    range:
+      lamp.range === undefined ? (kind.reach ?? (low + high) / 2) : Math.min(high, Math.max(low, lamp.range)),
     level: Math.min(lamp.level ?? 1, kind.peak),
     peak: kind.peak,
     dusk: kind.dusk === true,
