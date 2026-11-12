@@ -70,7 +70,7 @@ a figure hides behind a wall texel by texel too).
 A figure that stands can hold one of the builder's stands: `state: () => ({ moving: false, pose: 'handOnHip' })`. A name that
 is not there is an error that says so.
 
-**The runway wardrobe.** Nine more things to wear, written in a painted character's outfit. Not the same as the eight above:
+**The runway wardrobe.** Thirteen more things to wear, written in a painted character's outfit. Not the same as the eight above:
 these are for painted figures, and each is sized from the body under it, so it fits any body the sliders make.
 
 | Garment    | What it is                                                               |
@@ -79,11 +79,15 @@ these are for painted figures, and each is sized from the body under it, so it f
 | `hoodie`   | Roomy, with the hood down behind the neck and a pouch pocket.            |
 | `jacket`   | Wool or leather, to the hip, with lapels or a `collar`, a `zip`, and an `inner` shirt in a V. |
 | `coat`     | Long sleeves, lapels and skirts to `length`.                             |
-| `skirt`    | From the waist to `length` (0 the hip, 0.5 the knee, 1 the ankle).       |
+| `skirt`    | From the waist to `length` (0 the hip, 0.5 the knee, 1 the ankle); `stain` and `stainHeight` darken the hem. |
 | `dress`    | A fitted top and a skirt in one cloth.                                   |
 | `jeans`    | Straight legs to the ankle.                                              |
 | `trousers` | The same, roomier; `wide` widens the leg.                                |
-| `shoes`    | Shoes and their `sole`.                                                  |
+| `shoes`    | Shoes and their `sole`; `boots: true` adds a shaft up the shin.          |
+| `waistcoat` | A vest over the chest, open on the shirt under it.                      |
+| `legs`     | Stockings: the legs from the thigh down in one colour.                   |
+| `belt`     | A band round the waist; `buckle` is the plate's colour.                  |
+| `cap`      | Headwear of a named `style` (`nurse`, `peakedCap`, `flat`); the hair goes under it, and `mark` paints the style's mark. |
 
 They come with seven fabrics (twill, rib, gingham, Breton stripe, pinstripe, plaid, windowpane), their swatches (cloth,
 leather, skin, hair, lips, eyes), twelve hair styles and a glossy `silk` finish. `registerFashion()` adds them to the

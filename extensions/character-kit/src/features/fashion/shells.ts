@@ -457,4 +457,19 @@ function legsOf(c: Wearing, material: string, ease: number, wide: number): Fit {
   return { parts, paint: { pelvis: material, thigh: material, knee: material, shin: material } }
 }
 
-export { collarBand, frontAt, heights, lapels, legsOf, longTail, opening, piece, tail, top }
+export {
+  collarBand,
+  frontAt,
+  grown,
+  heights,
+  lapels,
+  legGroup,
+  legsOf,
+  longTail,
+  opening,
+  piece,
+  shell,
+  skins,
+  tail,
+  top,
+}

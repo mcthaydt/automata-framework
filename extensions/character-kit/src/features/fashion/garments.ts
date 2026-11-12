@@ -4,7 +4,23 @@
 // (`demo/runway/wardrobe.ts`, `cb4aa9f`), which was written against an older main: where `Wearing`, `Fit` or `Body` moved, the
 // types here are main's. H2 (`registerOutfitHooks`) is not used: no kind here needs more than a kind's own `build`.
 import { type GarmentKind, GROUP, J, lerp, registerGarment } from '../../shared/figure-builder/door.ts'
-import { collarBand, frontAt, heights, lapels, legsOf, opening, piece, tail, top } from './shells.ts'
+import { registerAccessories } from './accessories.ts'
+import {
+  collarBand,
+  frontAt,
+  grown,
+  heights,
+  lapels,
+  legGroup,
+  legsOf,
+  opening,
+  piece,
+  SIDES,
+  shell,
+  skins,
+  tail,
+  top,
+} from './shells.ts'
 
 /** A tee (or a knit, a shirt): the torso and sleeves one clearance out, its hem `length` (0 the belt, 1 the hip's bottom). */
 export interface Tee {
@@ -36,6 +52,9 @@ export interface FashionSkirt {
   skirt: string
   length: number
   flare?: number
+  /** A swatch whose paint stains the hem, climbing `stainHeight` (a share of the figure's height) from it. */
+  stain?: string
+  stainHeight?: number
 }
 /** A dress: a fitted bodice and its skirt from the waist, in one cloth. */
 export interface Dress {
@@ -55,6 +74,8 @@ export interface Trousers {
 export interface Shoes {
   shoes: string
   sole?: string
+  /** A boot: a shaft of the shoe's leather up the shin, over the trousers. */
+  boots?: boolean
 }
 
 // The builder widens its `Garment` union by augmentation: a kind declared here is a garment an outfit may list.
@@ -167,13 +188,30 @@ export function registerGarments(): void {
     'skirt',
     kind<FashionSkirt>((c, i) => {
       const h = heights(c)
+      // A stained hem is the skirt's own cloth, painted: the stain climbs from the hem in ragged runs (the painter's `stain`).
+      const bottom = h.hemAt(i.length)
+      const cloth = i.stain === undefined ? i.skirt : `${i.skirt}@stained`
+      const materials =
+        i.stain === undefined
+          ? undefined
+          : {
+              [cloth]: {
+                ...c.swatch(i.skirt),
+                stain: {
+                  paint: c.swatch(i.stain).paint ?? [],
+                  hem: bottom,
+                  below: bottom + (i.stainHeight ?? 0.1) * h.k,
+                },
+              },
+            }
       return {
         parts: [
-          tail(c, i.skirt, h.waist - 0.02 * h.k, i.length, {
+          tail(c, cloth, h.waist - 0.02 * h.k, i.length, {
             ease: 2,
             ...(i.flare === undefined ? {} : { flare: i.flare }),
           }),
         ],
+        ...(materials === undefined ? {} : { materials }),
         paint: { pelvis: i.skirt },
         thighs: i.length <= 0.3,
       }
@@ -201,8 +239,34 @@ export function registerGarments(): void {
     'trousers',
     kind<Trousers>((c, i) => legsOf(c, i.trousers, 1.5, i.wide ?? 1.05)),
   )
-  registerGarment(
-    'shoes',
-    kind<Shoes>((_c, i) => ({ parts: [], paint: { shoe: i.shoes, sole: i.sole ?? 'soleBlack' } })),
-  )
+  registerGarment('shoes', {
+    build: (_c, i: Shoes) => ({ parts: [], paint: { shoe: i.shoes, sole: i.sole ?? 'soleBlack' } }),
+    // A boot's shaft is built after the rest, so it lies over the trousers: each leg's profile from under the knee, grown past the
+    // trouser leg, over the lower part of the shin.
+    after: (c, i: Shoes) => {
+      if (i.boots !== true) return { parts: [] }
+      const h = heights(c)
+      const sk = skins(c)
+      const off = 2.4 * c.body.clear
+      return {
+        parts: SIDES.map(([side]) => {
+          const kneeR = c.body.at('leg', side, h.knee - 0.4 * c.s.shin)
+          const wide = (r: { y: number; rx: number; rz: number }) =>
+            r.y < h.knee
+              ? { rx: Math.max(r.rx, kneeR.rx * 1.05) + off, rz: Math.max(r.rz, kneeR.rz * 1.05) + off }
+              : {}
+          return shell(
+            grown(c.body.profiles.leg[side], off, wide),
+            h.knee - 0.58 * c.s.shin,
+            h.ankle + 0.015 * h.k,
+            i.shoes,
+            legGroup(side),
+            sk.leg(side),
+            [0, 0],
+          )
+        }),
+      }
+    },
+  })
+  registerAccessories()
 }
