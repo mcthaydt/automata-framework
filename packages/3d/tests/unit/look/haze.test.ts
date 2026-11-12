@@ -1,8 +1,9 @@
 // The haze: the veil toward the far, as pure rules the shader repeats (`hazeShare`, `hazeOf`, `hazed`).
 import { describe, expect, it } from 'vitest'
-import { hazed, hazeOf, hazeShare } from '#src/features/look/haze.ts'
+import { hazeAt, hazed, hazeOf, hazeShare } from '#src/features/look/haze.ts'
 import { DEFAULT_LOOK, parseLook } from '#src/features/look/look.ts'
 import { createLookPasses } from '#src/features/look/look-pass.ts'
+import { lightByTime } from '#src/shared/time-of-day/time-light.ts'
 import { timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 
 const profile = DEFAULT_LOOK.haze
@@ -35,6 +36,23 @@ describe('hazeOf', () => {
     const day = timeOfDay('day').scene.haze
     expect(day).toBeDefined()
     expect(hazeOf(profile, day)).toEqual({ ...profile, colour: '#8690b2', amount: 0.35 })
+  })
+})
+
+describe('hazeAt', () => {
+  it('is the time’s own haze where the time sets one', () => {
+    expect(hazeAt(profile, timeOfDay('day'))).toEqual(hazeOf(profile, timeOfDay('day').scene.haze))
+    expect(hazeAt(profile, timeOfDay('dusk'))).toEqual(hazeOf(profile, timeOfDay('dusk').scene.haze))
+  })
+
+  it('lights the profile’s colour by a time that sets none, as the fog is, so the night’s veil is not a day colour', () => {
+    const night = timeOfDay('night')
+    expect(night.scene.haze).toBeUndefined()
+    const lit = lightByTime(Number.parseInt(profile.colour.slice(1), 16), night)
+    expect(hazeAt(profile, night)).toEqual({ ...profile, colour: `#${lit.toString(16).padStart(6, '0')}` })
+    const sum = (hex: string) =>
+      [1, 3, 5].reduce((total, at) => total + Number.parseInt(hex.slice(at, at + 2), 16), 0)
+    expect(sum(hazeAt(profile, night).colour)).toBeLessThan(sum(profile.colour))
   })
 })
 
