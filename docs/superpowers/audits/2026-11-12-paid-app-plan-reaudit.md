@@ -483,7 +483,7 @@ None of O4 to O14 blocks the first task. Only O1 does, for everything but the Ru
 The sizing above is wrong in one place. The trial merge of `pr544` into `main` (in "What was run") that showed 882
 conflicting files ran on a shallow clone. Findings B1 and F6 and the recommendation "do not revive #544" rest on that
 figure. The original findings are left as written; this section corrects them, in the words the v2 landing plan's
-audit supplied ([the plan's "For the coordinator"](../../superpowers/plans/2026-11-12-editors-v2-landing.md)):
+audit supplied ([the plan's "For the coordinator"](../plans/2026-11-12-editors-v2-landing.md)):
 
 - **B1.** The closed stack's base branches are restored (2026-11-12). The v2 look reaches `main` through the v2
   landing plan's Tasks 2 to 4. Tasks 1.1, 2.4 and 6.2 of the paid app's plan go back to v2's files
