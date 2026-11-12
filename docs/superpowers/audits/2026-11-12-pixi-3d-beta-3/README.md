@@ -12,7 +12,7 @@ contains it (`vendor/pixi-3d/README.md`).
 | 1 | Baseline on `main` before any change | done 2026-11-12 | [§1](#1-baseline) |
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
 | 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
-| 4 | `@pixi/3d` beta.3 | not started | |
+| 4 | `@pixi/3d` beta.3 | not started: handoff at 90 minutes, see below | [handoff](#handoff-at-90-minutes) |
 | 5 | Workarounds the beta makes unnecessary | not started | |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
@@ -218,3 +218,23 @@ sim hash moved.
   The journey edits a content file through a server and plays at once, nothing in it draws with `pixi.js`, and it is not the baseline's failure
   (`examples/3d-story` fails to start on `main`, see §1). Recorded as a flake of that edit-then-play race, not explained further; a
   real fix belongs to the journey's owner.
+
+## Handoff at 90 minutes
+
+Last commit before the merge below: `5cabf0cd` (step 3), pushed. `main` was merged in at the handoff (it brought two new extensions,
+`extensions/lcd-panel` and `extensions/retro-crisp`, whose `package.json` also name the beta.2 tarball: they are in step 4's list now). Steps 1 to 3 are done; step 4 has not started: no `@pixi/3d` file has changed. Resume at
+step 4, in this order:
+
+1. Move the `file:` specifier to `pixi-3d-0.1.0-beta.3.tgz` in every manifest that names beta.2 (find them with
+   `grep -rl "beta.2" --include=package.json . --exclude-dir=node_modules`: root, `packages/3d`, `packages/editor-3d`, `games/base-3d`,
+   `extensions/character-kit`, `extensions/world-kit`, `extensions/lcd-panel`, `extensions/retro-crisp`), `packages/3d`'s peer on `pixi.js`
+   stays `^8.23.0` through the floors rule, and `world-kit`'s peer `@pixi/3d` `0.1.0-beta.2` becomes `0.1.0-beta.3`. Then `pnpm install` (lockfile),
+   the pins test, `docs/versions.md`, `docs/stack.md` (`pnpm docs:stack`), `vendor/pixi-3d/README.md`'s "used by" column,
+   `packages/3d/README.md`, `template-3d.ts` (`PIXI_3D_SPEC` and the tarball path), `pixi3d-markers.ts`, `tooling/consumer-smoke/src/commands.ts`.
+2. `pnpm typecheck`: the type errors are the §2 table's: `updateShadow` (occluders), `PostEffect.stage`, `RenderGraph`/`PassBuilder.sample` and
+   `globalSlots` (look's passes), `ShaderBit` in `ramp-light-material.ts`, `FlatMaterial.toneMapped`.
+3. Test first for: `pose.ts` (zoom now divides `tan(fov/2)` and `orthographicSize`), each look effect's stage (`afterToneMapping` for the DUEL snap, haze, outline,
+   present; the world-kit sky effects need a decision each), the occluders' shadow mask.
+4. Then run the 3D Chromium suites, WebGL and `AF_WEBGPU=software`; for every 3D golden or recorded value that moves, collect the expected, actual and diff, do not
+   re-record, and send the coordinator the list. Commands and baseline numbers are in §1; the per-package loop is
+   `npx vitest run --project '<name>*chromium*'` in the package folder.
