@@ -1,6 +1,6 @@
 # 3D and every editor reach a stranger
 
-Workstream 7, the 3D lane of the launch. The Owner, 2026-11-12: "We get the automata framework to ship ready before going
+Workstream 8, the 3D lane of the launch. The Owner, 2026-11-12: "We get the automata framework to ship ready before going
 to the next game", then, to the audit's advice to launch 2D first: "We ship with 3D, Editors, and Desktop Apps too". His
 answers the same day to the audit's open decisions: "both" (desktop: games as desktop apps, and the paid app), "publish
 the painter", "port to 0.1.0", and "yes, move to the public pixi3d package and lift the deploy rule".

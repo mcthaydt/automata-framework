@@ -1,6 +1,6 @@
 # The 3D and editors ship plan: plan audit
 
-Workstream 7, stage 3. Audited: the spec
+Workstream 8, stage 3. Audited: the spec
 [`2026-11-12-ship-3d-and-editors-design.md`](../specs/2026-11-12-ship-3d-and-editors-design.md), the survey
 [`2026-11-12-ship-3d-survey.md`](2026-11-12-ship-3d-survey.md) and the plan
 [`2026-11-12-ship-3d-and-editors.md`](../plans/2026-11-12-ship-3d-and-editors.md), on `claude/ship-3d-plan` at
