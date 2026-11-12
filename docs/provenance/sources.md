@@ -606,12 +606,12 @@ which only checks: every file has a row and every AF file a row names exists.
 | `tests/features/world/surface-library.test.ts` |  | left out: the surface library goes to `@automata/world-kit` |
 | `tests/features/world/surface-structure.test.ts` |  | left out: the texture structure checks go with the photo library to `@automata/world-kit` |
 | `docs/gpu.md` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
-| `docs/reference/the-last-light/source/docs/design/camera-rules.md` |  | left out: a copy of one of the reference game's source files; the reference game is in the framework itself (`games/`) |
-| `docs/reference/the-last-light/source/src/feel/effects.ts` |  | left out: a copy of one of the reference game's source files; the reference game is in the framework itself (`games/`) |
-| `docs/reference/the-last-light/source/src/render/camera-rig.ts` |  | left out: a copy of one of the reference game's source files; the reference game is in the framework itself (`games/`) |
-| `docs/reference/the-last-light/source/src/render/play-framing.ts` |  | left out: a copy of one of the reference game's source files; the reference game is in the framework itself (`games/`) |
-| `docs/reference/the-last-light/source/src/render/room-camera.ts` |  | left out: a copy of one of the reference game's source files; the reference game is in the framework itself (`games/`) |
-| `docs/reference/the-last-light/source/src/scenes/clinic/level.ts` |  | left out: a copy of one of the reference game's source files; the reference game is in the framework itself (`games/`) |
+| `docs/reference/the-last-light/source/docs/design/camera-rules.md` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/feel/effects.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/render/camera-rig.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/render/play-framing.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/render/room-camera.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/scenes/clinic/level.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
 | `docs/superpowers/audits/2026-11-06-c7-plan-audit.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
 | `docs/superpowers/audits/2026-11-10-c7-implementation-audit.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
 | `docs/superpowers/audits/2026-11-10-c8-implementation-audit.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
