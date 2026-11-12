@@ -184,7 +184,7 @@ Recorded files that Part D may move: `packages/3d` (12 golden files), `extension
    done by the beta.3 port.
 4. `claude/pixi-3d-public` conflicts with `main` in three files, two of them the painter's. Its step 3 (proof) was "not
    started" in its own record.
-5. The shared build needs isolatedDeclarations: five packages (223 errors together) cannot be "built like the
+5. The shared build needs isolatedDeclarations: five packages (213 errors together) cannot be "built like the
    framework" by adding a config alone.
 
 ## 9. Not measured

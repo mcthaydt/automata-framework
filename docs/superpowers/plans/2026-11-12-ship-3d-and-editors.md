@@ -143,6 +143,12 @@ Starts from a `main` that has `claude/pixi-3d-public` merged. That branch change
 `closed-beta-guard.test.ts`, `release-list.test.ts` and `catalog.ts`. Tasks A2, A5 and A6 edit the same files: read its
 diff first (`git log -p --follow` on each) and keep its wording where this plan does not change it.
 
+When this plan was written that branch conflicted with `main` in three files: `docs/superpowers/progress.md`,
+`extensions/figures/src/features/view/cell-sprite.ts` and `extensions/figures/tests/unit/view/template.test.ts`. A
+session brings it up to `main` before it merges (the coordinator, 2026-11-12). Before A1, check all three on the
+merged `main`: `git grep -n '<<<<<<<\|>>>>>>>' -- <the three files>` prints nothing, and
+`pnpm --filter @automata/figures test:unit` passes.
+
 ### Task A1: The baseline and the checksum manifest
 
 **Files:**
@@ -308,6 +314,19 @@ Each guard is changed test first. A guard goes only where its reason is gone.
 `character-kit`, `places`, `sectors`, `nav`, `level-2d`, `systems`, `narrative`, `cutscenes`. **Staying private:**
 `interact`, `hud`, `pipelines` (nothing public imports them), `editor`, `editor-3d` (page sources).
 
+**Why the three stay private (the coordinator agreed, 2026-11-12).** The survey's section 2: no source file of the 3D
+template, `games/base-3d`, `examples/3d`, `examples/3d-story`, `examples/2d-story`, `packages/editor-3d`,
+`extensions/editors` or the site imports `@automata/interact`, `@automata/hud` or `@automata/pipelines`. The check that
+keeps it so is A5's new case in `release-list.test.ts` (every `@automata/*` dependency of a publishable package is
+publishable), which B10 extends with a named assertion: none of the three is a dependency, peer or import of a
+publishable package. A build would fail first (`onlyImport`), and the test says why in words.
+
+**Written types come first, as their own work.** In every kit that has isolatedDeclarations off, the written types
+(recipe step 4) are done and committed **before** the build configuration, as a commit of their own
+(`refactor(<kit>): written types on every export`), with the failing check being the compiler's count from the survey
+(world-kit 17, character-kit 16, retro-crisp 4, lcd-panel 2; the painter's 174 are task B3). The count must be 0 and
+the kit's recorded files unmoved before step 1 starts.
+
 ### The kit recipe (every B task applies it to each kit it owns)
 
 1. **The failing test:** `extensions/<kit>/tests/unit/package/manifest.test.ts`, as A2's: the `exports` keys equal the
@@ -349,6 +368,17 @@ devDependencies.
 ### Task B3: The painter's written types (`claude/ship-3d-b-figures`)
 
 **Files:** `extensions/figures/src/**`, `extensions/figures/tsconfig.json`
+
+**Two other branches rewrite the painter; never at the same time as this task.**
+- `claude/builders-fold-strict` (the two strict compiler flags over the painter, 43 files, not started) touches the
+  same files. **Order: this task first, the strict flags after.** The written types are on the launch path and the
+  strict flags are not, and a file with written export types is easier to make strict than the reverse. The strict
+  session starts only after `claude/ship-3d-b-figures` has merged. If the coordinator would rather have one pass, the
+  alternative is one run per folder that does both in each folder's commit; this plan does not take it, because it
+  would put work that is not needed for launch in front of the build.
+- `claude/painter-hands` is editing `paint-hands.ts` and `paint-hand-form.ts` now. **Those two files are done last**,
+  in their own commit, after that branch has merged; if it has not merged when every other folder is done, stop and
+  say so in the log (the flag cannot go on until they are typed).
 
 - [ ] **Step 1:** `pnpm --filter @automata/figures exec tsc -p . --noEmit --isolatedDeclarations true | grep -c "error TS9"`.
   Expected: 174 (the survey). This is the failing check.
@@ -603,10 +633,13 @@ manifests that pin `@pixi/3d`, `PIXI_3D_SPEC` in `template-3d.ts`, `docs/version
 
 1. **Merge `claude/pixi-3d-public`** after its own proof (it conflicts with `main` in three files today; a session must
    resolve them first) and **`claude/editor-journeys-green`**. Part A and Part C wait on them.
-2. **The DUEL palette:** confirm its source and terms allow redistribution in an MIT package, or name the palette to
-   replace it with (B4, step 3).
-3. **Run the 3D stranger's journey and the two editor journeys on a GPU runner** if the sessions could not finish the
-   browser steps (A6, C4).
+2. **The DUEL palette.** The exact question: "The painter's colours are the palette named DUEL
+   (`extensions/figures/src/shared/paint/duel-ramps.ts`). Who made it, where was it taken from, and do its terms let us
+   ship its colour values inside an MIT package on npm? If not, which palette replaces it?" The painter does not become
+   public until this is answered (B4, step 3; B10).
+3. **Run the 3D stranger's journey and the two editor journeys on a GPU runner** (A6, C4). This is a gate: the
+   journey's last step, "play it and walk Wick", did not finish on a machine without a GPU, so A6 is not done until
+   your runner prints `1 passed`.
 4. **Look at Part D's sheets** and say which moved pictures are accepted (D3).
 5. **Run cross-engine 3D parity** in Chromium, WebKit and Firefox on your runners (D4).
 6. **The site's hosted editor:** whether `/editor/app` should serve the full suite (a deploy).
@@ -628,6 +661,19 @@ manifests that pin `@pixi/3d`, `PIXI_3D_SPEC` in `template-3d.ts`, `docs/version
    after C; no task changes.
 7. **A kit's version before the rename.** *Planned:* the fixed group's version now; the rename changes names, not
    versions.
+
+## Amendment to the spec's figures, 2026-11-12
+
+The coordinator: use the measured numbers. Where the spec and the survey differ, the survey stands:
+
+| The spec says | Measured |
+| --- | --- |
+| Part B publishes 15 kits | 12 kits (and `@automata/3d`): `interact`, `hud` and `pipelines` stay private |
+| "Sixteen packages … are private, unbuilt and source-only" | 13 must publish; 3 stay private; `editor`, `editor-3d` and `editors` are pages, of which `@automata/editors` publishes as built pages |
+| `-tools` packs to 2,513 kB | 2,577,117 bytes |
+| the 3D suite adds about 2.5 MB | 2,600 kB on disk, 902,933 bytes gzipped (it is the full suite, 2D and 3D) |
+| Part D moves `pixi.js` to `^8.23.0` in core | core already pins 8.23.0 after the beta.3 port; D1 checks the templates and `docs/versions.md` |
+| a `tsdown` config "like `@automata/framework`'s" | also written export types in five packages (213 in all: 174, 17, 16, 4, 2), and `vitest` as an optional peer of `@automata/3d` |
 
 ## Log
 
