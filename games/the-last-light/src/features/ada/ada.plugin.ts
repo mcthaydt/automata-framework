@@ -7,6 +7,7 @@ import { SystemsEnv } from '@automata/systems/sim'
 import { Ada } from '../../shared/ada.component.ts'
 import type { Start } from '../../shared/play-content.ts'
 import { Move } from './move.command.ts'
+import { settle } from './settle.system.ts'
 import { view } from './view.system.ts'
 import { face, walk } from './walk.system.ts'
 
@@ -17,8 +18,8 @@ import { face, walk } from './walk.system.ts'
 export const adaPlugin = (locked: (ctx: SimContext) => boolean): PluginDef =>
   definePlugin({
     name: 'ada',
-    dependsOn: ['camera-heading', 'sectors', 'nav', 'systems'],
-    defs: [Ada, Move, walk(locked), face, view],
+    dependsOn: ['camera-heading', 'sectors', 'nav', 'systems', 'cutscenes'],
+    defs: [Ada, Move, walk(locked), settle, face, view],
   })
 
 /** The camera's heading in degrees, 0 looking toward +z: 180 looks toward -z, up the plan. */
@@ -30,7 +31,8 @@ export function spawnAda(sim: Sim, start: Start, speed: number): void {
     [
       Ada,
       {
-        // Facing south, toward the camera, as the old spawn did (pi, from the sim's own math: Math.PI is not bit-exact in every engine).
+        // Facing north, away from the camera, as the old spawn did (pi, from the sim's own math: Math.PI is not bit-exact in every
+        // engine). The opening turns her to face the camera before the stick is hers (`ada.settle`).
         yaw: atan2(0, -1),
         walking: false,
         lastX: start.x,
