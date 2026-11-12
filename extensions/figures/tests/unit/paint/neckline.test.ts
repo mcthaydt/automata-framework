@@ -135,7 +135,7 @@ function teeth(g: GBuffer, neck: Set<number>): number {
 /** The G-buffer part ids of the figure's neck: what soupOf writes (`seam ?? index`) for the parts tagged NECK. */
 const necksOf = (f: Figure) =>
   new Set<number>(
-    (f as any).built.parts.flatMap((p: { tag?: string; seam?: number }, i: number) =>
+    (f as unknown as { built: { parts: { tag?: string; seam?: number }[] } }).built.parts.flatMap((p, i) =>
       p.tag === NECK ? [p.seam ?? i] : [],
     ),
   )

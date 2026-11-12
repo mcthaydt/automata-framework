@@ -16,19 +16,22 @@ const withSliders = (def: CharacterDef, s: Record<string, number>): CharacterDef
   ...def,
   sliders: { ...def.sliders, ...s },
 })
+/** The figure's build, which the class keeps private. */
+const built = (f: Figure) =>
+  (
+    f as unknown as {
+      built: { parts: { tag?: string; seam?: number }[]; materialIndex: Map<string, number> }
+    }
+  ).built
 /** A figure standing in view d: its frame, its G-buffer and its neck's part ids. */
 function drawn(def: CharacterDef, d: number) {
   const f = new Figure(member(def, 2))
   for (let i = 0; i < 3; i++) f.update(1 / 60, { facing: (d * Math.PI) / 4, moving: false, view: view() })
-  const necks = new Set<number>(
-    (f as any).built.parts.flatMap((p: { tag?: string; seam?: number }, i: number) =>
-      p.tag === NECK ? [p.seam ?? i] : [],
-    ),
-  )
+  const necks = new Set<number>(built(f).parts.flatMap((p, i) => (p.tag === NECK ? [p.seam ?? i] : [])))
   return {
     px: f.painted.slice(),
     g: f.g as GBuffer,
-    skin: (f as any).built.materialIndex.get(def.skin) as number,
+    skin: built(f).materialIndex.get(def.skin) as number,
     necks,
   }
 }

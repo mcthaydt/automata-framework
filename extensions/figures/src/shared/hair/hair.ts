@@ -729,7 +729,7 @@ export interface HairCtx {
   seam(): number
 }
 /** A hair piece a fork registers (H3): how one entry of a style's `pieces` is built. */
-export interface HairPiece<T = any> {
+export interface HairPiece<T = unknown> {
   build(c: HairCtx, piece: T): void
   /** Its parts take the CROWN tag, like the scalp's and the rows': what is worn up on the head lies on them. */
   crown?: boolean

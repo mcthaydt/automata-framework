@@ -152,7 +152,7 @@ export interface Fit {
   shoe?: ShoeForm
 }
 /** A garment kind a fork registers (H1): how its items are built, and when in the outfit they are worn. */
-export interface GarmentKind<T = any> {
+export interface GarmentKind<T = unknown> {
   /** The item's fit, built in garment order with the outfit's other kinds. */
   build(c: Wearing, item: T): Fit
   /** Built after the rest of the outfit, on what is worn by then (a belt over the coat, shades pushed up). */
