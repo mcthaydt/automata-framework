@@ -104,29 +104,19 @@ describe('the ward\u2019s rooms', () => {
 })
 
 describe('the ward\u2019s walls', () => {
-  /** The old game's default wall, `plaster` (`public/art/plaster.png` at 92e6704): its mean colour, 0x858667. */
-  const OLD_PLASTER = [0x85, 0x86, 0x67] as const
-
   it('are the game\u2019s own plaster, not the kit\u2019s mint-green paint, in every room', () => {
     for (const room of LEVEL.sectors)
       expect({ room: room.id, walls: room.wallTexture }).toEqual({ room: room.id, walls: 'ward-plaster' })
   })
 
-  // The old game multiplied the plaster's linear colour (0x858667 decodes to about 0.24, 0.24, 0.14) by the room's light; the `srgb` light
-  // multiplies the sRGB colour. The step that draws as the old plaster did under the old lamps is the palette's darkest sand, #625d54
-  // (measured against the old game's real play: the east wall's mean luma 54 against the old 42, and 68 for step 1), not the step nearest
-  // the old file's sRGB colour.
-  it('is the palette step that draws as the old plaster did: sand step 0, darker than the old file\u2019s colour and no greener', () => {
+  // The old game's plaster is an even sea-green with lighter and darker clusters (the canvas in `src/render/assets.ts` at 92e6704:
+  // base #47655a, clusters #5b7b69 and #394d3c). Session 8 took it for the mean of another file, a khaki grey, and made it sand: the
+  // frames' green walls were not the light's doing. #47655a is DUEL sage step 1 and #5b7b69 step 2, so it needs no gap in the palette.
+  it('is the old plaster\u2019s own green: DUEL sage step 1, #47655a, greener than it is red', () => {
     const colour = PAINT.colourOf('ward-plaster')
     expect(colour, 'the game has no swatch "ward-plaster"').toBeDefined()
-    expect(LIBRARY.swatches['ward-plaster']).toMatchObject({ ramp: 'sand', step: 0 })
-    const rgb = [(colour ?? 0) >> 16, ((colour ?? 0) >> 8) & 0xff, (colour ?? 0) & 0xff]
-    const luma = 0.2126 * (rgb[0] ?? 0) + 0.7152 * (rgb[1] ?? 0) + 0.0722 * (rgb[2] ?? 0)
-    const old =
-      0.2126 * (OLD_PLASTER[0] ?? 0) + 0.7152 * (OLD_PLASTER[1] ?? 0) + 0.0722 * (OLD_PLASTER[2] ?? 0)
-    // The kit's plasterPaint is #8ac196: a luma of 170 against the old plaster's 131.
-    expect(luma).toBeLessThan(old)
-    expect((rgb[1] ?? 0) - (rgb[0] ?? 0)).toBeLessThanOrEqual((OLD_PLASTER[1] ?? 0) - (OLD_PLASTER[0] ?? 0))
+    expect(LIBRARY.swatches['ward-plaster']).toMatchObject({ ramp: 'sage', step: 1 })
+    expect(colour).toBe(0x47655a)
   })
 })
 
@@ -244,8 +234,15 @@ describe('the ward\u2019s props face as the old game turned them', () => {
 // cooler lamps (`src/render/assets.ts` at 92e6704). The kit's `tileFloor` is slate step 5, `#abaebe`: nearly four times the light, so a
 // room lit by the old game's own lamps drew twice as bright (mean luma 88 against 44 on the floor at the spawn) and washed to a grey.
 describe('the ward\u2019s floor', () => {
-  it('is the old tile\u2019s own colour: DUEL sand step 0, #625d54', () => {
-    expect(LIBRARY.swatches['ward-floor']).toMatchObject({ ramp: 'sand', step: 0 })
+  // A tile on dark grout: the cool tile is slate step 2 (#5b5c69, the old floor's fourth tile), the grout two steps down its ramp, and
+  // the warm tiles the accent, DUEL sand step 0 (#625d54, the old floor's other three). Flat sand 0 had no grout to draw.
+  it('is the old tile\u2019s own colours: DUEL slate step 2 with sand step 0 for the warm tiles', () => {
+    expect(LIBRARY.swatches['ward-floor']).toMatchObject({
+      ramp: 'slate',
+      step: 2,
+      accent: 'ward-floor-warm',
+    })
+    expect(LIBRARY.swatches['ward-floor-warm']).toMatchObject({ ramp: 'sand', step: 0 })
   })
 
   it('is what every tiled room stands on, and the counter keeps its laminate', () => {

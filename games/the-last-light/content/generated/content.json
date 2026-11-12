@@ -6126,26 +6126,37 @@
   },
   "world-swatch": {
     "ward-floor": {
-      "accent": "groutDark",
-      "ramp": "sand",
-      "step": 0,
+      "accent": "ward-floor-warm",
+      "ramp": "slate",
+      "step": 2,
       "texture": {
-        "cluster": 2,
-        "contrast": 0.035,
+        "accent": 0.012,
+        "cluster": 5,
+        "contrast": 0.04,
         "facet": 0,
-        "flatten": 0.5,
+        "flatten": 0.95,
         "photo": "floorTiles",
-        "seed": 70
+        "scale": 1.2,
+        "seed": 70,
+        "wear": 0
       }
+    },
+    "ward-floor-warm": {
+      "ramp": "sand",
+      "step": 0
     },
     "ward-plaster": {
       "accent": "stainBrown",
-      "ramp": "sand",
-      "step": 0,
+      "ramp": "sage",
+      "step": 1,
       "texture": {
         "cluster": 10,
-        "contrast": 0.005,
+        "contrast": 0.01,
         "photo": "plaster",
+        "range": [
+          -1,
+          1
+        ],
         "seed": 1,
         "wear": 0.15
       }

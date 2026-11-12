@@ -1,16 +1,16 @@
-# `ward-plaster`: the clinic's walls. They stand for the old game's `plaster` (public/art/plaster.png at 92e6704, a mean colour of
-# #858667, a khaki grey). The kit's `plasterPaint` is a mint green (#8ac196, a luma of 170 against 131) and its `plasterWarm` a pale sand;
-# the palette has no olive. The old game multiplied the plaster's linear colour by its light; the framework's `srgb` light multiplies the sRGB
-# colour, so the step that draws as the old plaster did is the darkest sand, #625d54 (DUEL ramp sand, step 0), not step 1 (#857565), the nearest
-# to the old file's colour in RGB (measured on the real play: the east wall's luma 54 with step 0, 68 with step 1, the old's 42). The gap is
-# the colour's: an olive-khaki is not a step of any DUEL ramp. The kit's plaster photograph and wear are kept.
-ramp = "sand"
-step = 0
+# `ward-plaster`: the clinic's walls, a sea-green plaster. The old game painted it as an even sea-green (#47655a) with sparse lighter
+# (#5b7b69) and darker (#394d3c) clusters and a few hairline cracks, and its walls read green in every frame; the first draft here took
+# the colour from the mean of a different file and was a khaki sand. Both greens are DUEL colours: the base is sage step 1, the lighter
+# cluster sage step 2. The kit's plaster photograph and stain wear make the clusters and cracks. The old game multiplied the plaster's linear
+# colour by its light; the framework's `srgb` light multiplies the sRGB colour, so the lamps carry a gain (`content/look.toml`).
+ramp = "sage"
+step = 1
 accent = "stainBrown"
 
 [texture]
 photo = "plaster"
-contrast = 0.005
+contrast = 0.01
+range = [-1, 1]
 cluster = 10
 wear = 0.15
 seed = 1

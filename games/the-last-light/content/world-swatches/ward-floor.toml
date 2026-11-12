@@ -1,15 +1,19 @@
-# `ward-floor`: the clinic's floor. It stands for the old game's `floor` (the canvas texture in `src/render/assets.ts` at 92e6704: a dark
-# glazed tile, `#625d54` three tiles in four and `#5b5c69` on the fourth, grout `#222323`). `#625d54` is a DUEL colour, sand step 0, so there
-# is no gap to the palette. The kit's `tileFloor` is slate step 5 (`#abaebe`), nearly four times the light of the old tile, which drew the
-# whole room twice as bright under the old game's own lamps; the kit's floor-tile photograph is kept for the glaze and the wear.
-ramp = "sand"
-step = 0
-accent = "groutDark"
+# `ward-floor`: the clinic's floor, dark glazed tile on dark grout. The old game painted it as 30 cm tiles in two tones (mostly a warm
+# grey, now and then a cool slate) with a 1 px near-black grout line and a lit far edge; here the kit's floor-tile photograph is read
+# at that size (`scale` 1.2 makes its 25 cm tiles 30 cm), in tone mode on slate step 2, so a grout line is two steps down the ramp
+# (#2d3136) and a lit edge one up. The tiles the photo reads as another hue take the accent, a warm grey (`ward-floor-warm`): the
+# old floor's warm/cool mix. A game's own swatch has no tile file until `tools/tiles/make.ts` writes it into `src/features/room/world-tiles`.
+ramp = "slate"
+step = 2
+accent = "ward-floor-warm"
 
 [texture]
 photo = "floorTiles"
-contrast = 0.035
+scale = 1.2
+contrast = 0.04
 facet = 0
-flatten = 0.5
-cluster = 2
+flatten = 0.95
+cluster = 5
+accent = 0.012
+wear = 0
 seed = 70
