@@ -13,7 +13,7 @@ contains it (`vendor/pixi-3d/README.md`).
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
 | 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
 | 3b | `main` (#654, #655, #656) merged; the baseline taken again on the merged tree with beta.2; the retro-crisp case that 8.23.0 moved found | done 2026-11-12 | [§3b](#3b-the-merged-tree-with-beta2-the-baseline-taken-again) |
-| 4 | `@pixi/3d` beta.3 | in progress | [handoff](#handoff-at-90-minutes) |
+| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 and 2 done | [third session](#third-session-the-work-list-in-order) |
 | 5 | Workarounds the beta makes unnecessary | not started | |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
@@ -336,6 +336,47 @@ editor-3d layout 285; base-3d 36 (these three before the fixes; the fixes do not
 4. Items 6 to 8: the no-eval sync proof on beta.3, `PresentEffect`'s depth hazard (the bare-effect case in `scene-depth.test.ts`), `fogSkyColor` is now the colour look; FigureBuilder (the WebGPU template break confirmed above; WebGL not) and the fold's list; the close.
 5. Unrelated and intermittent: `packages/tools` `serve-editor.test.ts` "writes an mtime a later guarded write can use even when the clock has not moved" fails 2 of 3 alone (a fractional-millisecond mtime through `utimes`).
 6. Fresh-container setup: `pnpm install --frozen-lockfile`; clone FigureBuilder into `vendor/FigureBuilder` **at `23f889c8`** (a shallow clone gets `main`, which has moved), then `node vendor/figure-builder/types.mjs`; the character-kit unit files do not load without it.
+
+## Third session: the work list in order
+
+Branch continued from `4036dbef`. Item 1 (setup, `origin/main` merged as `c9cf169b`, the whole `pnpm check` on beta.3): **exit 0, 56 of 56 static tasks and
+65 of 65 unit tasks, 10 m 18 s, 78 changesets, 0 problems; nothing to fix.** Unit files: `@automata/3d` 145, `@automata/character-kit` 28, `@automata/world-kit` 22,
+`@automata/framework` 218, `@automata/tools` 95, `@automata/editor-3d` 160, `@af-games/base-3d` 20, `@af-games/emberwick` 17, lcd-panel 4, retro-crisp 7.
+
+### Item 2: the picture frames (`frames/`)
+
+All shot on Chromium, software GL (`--use-angle=swiftshader --enable-unsafe-swiftshader`), one browser at a time. "Before" is a worktree of `c1c9b7c2` (the last beta.2 commit);
+"untouched beta.3" is a worktree of `f1bf5b78` (the move, before the colour fixes); "fixed" is this branch. Each file is `beta.2 | beta.3 | |difference| x4`, the title row carrying
+the mean luma (Rec.601 on the 8-bit sRGB values, `0.299 R + 0.587 G + 0.114 B`) and the share of pixels that differ by more than 2/255 in any channel. The spike is
+`spikes/eb-look` (now with `?fog=near,far,rrggbb`); the commands are in the resume list above and `scene.ts`'s header, the queries below.
+
+| Frame file | Query | beta.2 | beta.3 | Differ |
+|---|---|---|---|---|
+| `room-640x480-beta2-vs-beta3-untouched.png` | `scene=base-interior-dressed&view=zone&pref=webgl&density=1&crisp=0&field=640x480&still=1&rig=1&figures=painted&fx=0&bloom=0` | 55.4 | **84.4** | 81.5% |
+| `room-640x480-beta2-vs-beta3-fixed.png` | same | 55.4 | **55.7** | 2.9% |
+| `street-640x360-beta2-vs-beta3-untouched.png` | same with `scene=base-exterior-dressed`, `field=640x360` | 109.5 | **114.3** | 73.6% |
+| `street-640x360-beta2-vs-beta3-fixed.png` | same | 109.5 | **109.6** | 1.1% |
+| `fog-base-3d-beta2-vs-authored.png` | `games/base-3d` dev server, 844 x 390, New game, 60 frames, canvas only | 43.9 | **57.2** | 68.7% |
+| `fog-base-3d-beta2-vs-beta2look.png` | same with `setColourLook('beta2')` called from a temporary, uncommitted line in `main.ts` | 43.9 | **29.6** | 42.0% |
+| `fog-night-room-beta2-vs-authored.png` | `scene=base-interior-dressed&at=night&fog=5,14,31222a`, the room query above | 32.9 | **48.7** | 85.2% |
+| `fog-night-room-beta2-vs-beta2look.png` | same with `&colour=beta2` | 32.9 | **38.5** | 48.9% |
+
+Room and street agree with the first session's numbers to within 0.3 (55.4 to 84.4 untouched and 55.7 fixed; 109.5 to 114.3 and 109.6). The room and street rows are not a decision: the untouched row is the vertex-colour contract
+(fixed, `ad2f5022`) and the fixed row is the beta.2 picture kept (2.9% and 1.1% of pixels: dither edges and one shadow edge).
+
+**The fog decision, from the three scenes (the Owner's):**
+- `'authored'` lifts every fogged scene: the haze reaches the fog colour as written. In `base-3d` the sky is the colour its own comment names (DUEL ramp 12 step 0) where beta.2 showed
+  near black, and the floor is lighter (43.9 to 57.2). On the night room (a hazy night interior, the sort of scene the reference game has) the back wall and the furniture come out of the dark
+  (32.9 to 48.7); the plant, lamp and figures keep beta.2's colours.
+- `'beta2'` keeps the dark sky and the dark room (38.5 on the night room, 29.6 on base-3d, which is darker than beta.2's 43.9: it cannot reproduce beta.2 for an unlit floor under fog), **and it
+  recolours things**: the night room's plant turns from beta.2's tan to bright green and the lamp shade from a dull black to yellow (the diff panel marks both). The look keeps a lit moving
+  thing's linear value as its display value, which beta.2 never did for a baked or plant colour; so the switch does not give beta.2 back on a room either.
+- **A finding in `base-3d` that the Owner should see before choosing:** the dark blocks the beta.2 frame shows on the middle platform (the crates and barrels, three of them) **vanish in both beta.3 looks**:
+  in `'authored'` their pixels are the floor's own palette colours (`554769`, `56506f`, `5b5c69`; beta.2 had `3b303c`, `2e3d47`, `2d3136` there); in `'beta2'` the floor falls to their dark colours. Either way the
+  contrast that made them readable is gone, which the drunk-grandma rule does not allow. Cause not yet traced (the DUEL snap maps the crates' and the floor's brighter unlit colours to one palette
+  entry is the likely one; the lips along the channels, `0xffb108`, and the embers are not in the frame at all, with or without the move, so the frame may not be where the contrast shows); it is
+  in the grouped list as unexplained until it is.
+- Recommendation: `'authored'` (needs no compensation, keeps colours, and makes a night room readable); the crates finding is a `base-3d` colour decision, not a switch.
 
 ## Handoff at 90 minutes
 
