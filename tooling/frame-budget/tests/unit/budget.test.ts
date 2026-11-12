@@ -100,6 +100,80 @@ describe('checkFrameBudget', () => {
   })
 })
 
+// A software renderer is a skip (the Owner: "yes to the hook change, software run counts as a skip"). The probe
+// cannot write a result for a project it skipped, so it writes a skip record, and the check does not demand a result
+// from a project that has one. Everything else still fails closed.
+const SOFTWARE_GPU =
+  'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)'
+const budgetWith3d = {
+  ...(setBudget as { projects: object }),
+  projects: {
+    ...(setBudget as { projects: object }).projects,
+    'frame-budget-3d-phone': { workMsP95: 33.3, intervalMsP95: 33.3 },
+  },
+}
+const skipRecord = (project: string, changes: Record<string, unknown> = {}): unknown => ({
+  schema: 'af-frame-budget-skip/1',
+  project,
+  skippedAt: '2026-11-12T00:00:00.000Z',
+  reason: 'software-renderer',
+  gpu: SOFTWARE_GPU,
+  ...changes,
+})
+
+describe('a project the probe skipped for a software renderer', () => {
+  it('is not demanded as a missing result: an all-software run is skipped', () => {
+    const outcome = checkFrameBudget(budgetWith3d, [swiftshader, skipRecord('frame-budget-3d-phone')])
+    expect(outcome.verdict).toBe('skipped')
+    expect(outcome.lines.join('\n')).not.toContain('INVALID')
+    expect(outcome.lines).toContain(
+      `skipped frame-budget-3d-phone: software renderer (${SOFTWARE_GPU}), nothing was measured`,
+    )
+  })
+
+  it('is skipped when every budgeted project was skipped and no result was written at all', () => {
+    const outcome = checkFrameBudget(setBudget, [skipRecord('frame-budget-phone')])
+    expect(outcome.verdict).toBe('skipped')
+  })
+
+  it('leaves the measured projects judged: a pass passes, and one over budget is still over', () => {
+    const skip = skipRecord('frame-budget-3d-phone')
+    const passed = checkFrameBudget(budgetWith3d, [within, skip])
+    expect(passed.verdict).toBe('pass')
+    expect(passed.lines.some((line) => line.startsWith('ok frame-budget-phone'))).toBe(true)
+    expect(passed.lines.some((line) => line.startsWith('skipped frame-budget-3d-phone'))).toBe(true)
+    const over = checkFrameBudget(budgetWith3d, [overBudget, skip])
+    expect(over.verdict).toBe('over')
+  })
+
+  it('does not excuse another project: a budgeted project with no result and no skip record is INVALID', () => {
+    const outcome = checkFrameBudget(budgetWith3d, [swiftshader])
+    expect(outcome.verdict).toBe('invalid')
+    expect(outcome.lines).toContain('INVALID frame-budget-3d-phone: no result for this budgeted project')
+    const wrongProject = checkFrameBudget(budgetWith3d, [swiftshader, skipRecord('frame-budget-desktop')])
+    expect(wrongProject.verdict).toBe('invalid')
+    expect(wrongProject.lines).toContain('INVALID frame-budget-3d-phone: no result for this budgeted project')
+  })
+
+  it('does not count as a skip when the record names a GPU, or is malformed', () => {
+    const hardware = checkFrameBudget(budgetWith3d, [
+      within,
+      skipRecord('frame-budget-3d-phone', { gpu: (setBudget as { gpu: string }).gpu }),
+    ])
+    expect(hardware.verdict).toBe('invalid')
+    expect(hardware.lines.join('\n')).toContain('not a software renderer')
+    const broken = checkFrameBudget(budgetWith3d, [
+      within,
+      skipRecord('frame-budget-3d-phone', { reason: 'tired' }),
+    ])
+    expect(broken.verdict).toBe('invalid')
+  })
+
+  it('does not hide an unset budget', () => {
+    expect(checkFrameBudget(unsetBudget, [skipRecord('frame-budget-phone')]).verdict).toBe('unset')
+  })
+})
+
 describe('checkFiles', () => {
   it('reads every *.json result in a folder, and a missing folder is invalid', () => {
     const dir = mkdtempSync(join(tmpdir(), 'frame-budget-'))

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, it } from 'vitest'
@@ -18,4 +18,15 @@ it("the pre-commit unit tests get the root test:unit script's timeout, after `--
   const hook = /2_affected-unit-tests:\s*\n\s*run:\s*(.+)/.exec(read('lefthook.yml'))?.[1]
   expect(hook, 'lefthook.yml has a 2_affected-unit-tests command').toBeDefined()
   expect(hook).toMatch(new RegExp(` -- ${budget}$`))
+})
+
+// `...[HEAD]` added every dependent of a changed package (22 for a change in `packages/3d`, 57 for one in
+// `packages/sim`), and `[HEAD]` still selects every package when the change is in one the root workspace depends on
+// (turbo: `RootInternalDepChanged`). Dependents are the job of `pnpm check` and the pull-request gate, so the hook
+// maps the staged files to the packages that own them itself and runs those packages only.
+it('the pre-commit unit tests run in the packages that own the staged files, through the script that maps them', () => {
+  const hook = /2_affected-unit-tests:\s*\n\s*run:\s*(.+)/.exec(read('lefthook.yml'))?.[1]
+  expect(hook).toContain('tooling/repo-hygiene/src/staged-unit-tests-cli.ts')
+  expect(hook).not.toContain('[HEAD]')
+  expect(existsSync(join(root, 'tooling/repo-hygiene/src/staged-unit-tests-cli.ts'))).toBe(true)
 })
