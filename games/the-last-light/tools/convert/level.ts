@@ -14,8 +14,42 @@ const HIDDEN_BY_PROLOGUE: ReadonlySet<string> = new Set(['scratches', 'scrawl', 
 /** Hotspots usable only once the supply room door is open. The solver's model reads the same condition. */
 const AFTER_SUPPLY_DOOR: ReadonlySet<string> = new Set(['shelf', 'locker'])
 
-/** The old lamp kinds the lamp kit has no kind of; each is written as the nearest kit kind, with its own colour. */
-const LAMP_KIND_FOR: Readonly<Record<string, string>> = { screen: 'bulb', fire: 'bulb', spark: 'bulb' }
+/**
+ * The old lamp kinds the lamp kit cannot hold, each written as a neon with its own colour (the kit's coloured glow, which may be
+ * any colour and any tone). The kit has no screen, fire or spark; its moon and fill are other colours than the old game's, and
+ * the builder refuses a lamp whose colour is off its kind's tone, which would leave the room without that light.
+ */
+const LAMP_KIND_FOR: Readonly<Record<string, string>> = {
+  screen: 'neon',
+  fire: 'neon',
+  spark: 'neon',
+  moon: 'neon',
+  fill: 'neon',
+}
+
+/**
+ * What each lamp burns at when the prologue's night begins, the power on: the old clinic's dress levels
+ * (`src/scenes/clinic/dress.ts` at 92e6704, the flicker at its mean), then the prologue's own scale-downs
+ * (`src/scenes/prologue/dress.ts`: the corridor's bulb and the sconce half gone, the moon at 0.4 and 0.6, the closet's tube dead).
+ * The curtains and the spark are not lit yet. A lamp not listed keeps the kit's own level.
+ */
+const LEVEL_WHEN_NIGHT_BEGINS: Readonly<Record<string, number>> = {
+  deskLamp: 1.05,
+  monitorGlow: 0.55,
+  hallLamp: 0.6,
+  wardLamp: 0.5,
+  corridorLamp: 0.12,
+  exitLamp: 1.25,
+  closetLamp: 0,
+  moon: 0.34,
+  moonCorridor: 0.48,
+  wardFill: 1.15,
+  bayFill: 0.95,
+  sconce: 0.375,
+  curtainWest: 0,
+  curtainEast: 0,
+  spark: 0,
+}
 
 const isRecord = (value: unknown): value is Json =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -98,10 +132,13 @@ function lampOf(lamp: Json, report: Unexpressed[]): Json {
     report.push({
       kind: 'lamp-kind',
       where: String(lamp.id),
-      what: `the kit has no "${kind}" lamp; written as "${mapped}" with its own colour`,
+      what: `the kit has no "${kind}" of the old game's colour; written as a "${mapped}" with its own colour`,
       did: 'approximated',
     })
-  const out: Json = { id: lamp.id, kind: mapped ?? kind, at: [lamp.x, lamp.y, lamp.z] }
+  // The level says where on the floor first, then how high: `[x, z, height]`, where the old game's lamp had `x, y (height), z`.
+  const out: Json = { id: lamp.id, kind: mapped ?? kind, at: [lamp.x, lamp.z, lamp.y] }
+  const level = LEVEL_WHEN_NIGHT_BEGINS[String(lamp.id)]
+  if (level !== undefined) out.level = level
   // The old lamp's `radius` is its gameplay pool (where the creature counts as in light), not its range; the level keeps it
   // beside the lamp as a field the render ignores and the lamp feature reads.
   if (typeof lamp.radius === 'number' && lamp.radius > 0) {

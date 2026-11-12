@@ -1,5 +1,5 @@
 import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, DEFAULT_LOOK, render3dExtension } from '@automata/3d'
+import { createPixi3dRenderer, render3dExtension } from '@automata/3d'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
 import { prefersReducedMotion, typedFor } from '@automata/narrative'
@@ -15,7 +15,8 @@ import { Ada } from '../shared/ada.component.ts'
 import { TICK_HZ } from '../shared/constants.ts'
 import { audio, SOUND_FILES } from './audio.ts'
 import { playOf } from './content.ts'
-import { fieldOfWindow } from './field.ts'
+import { BAR_FRACTION, fieldOfWindow } from './field.ts'
+import { lookOf } from './look.ts'
 import { playControls, playHud } from './play.extension.ts'
 import { createRuntime } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
@@ -58,8 +59,8 @@ const TURN = keys(
 
 /** The picture: the old game's, the window's shape capped at 640 by 480 (640 by 360 in a 16:9 window). */
 const SIZE = fieldOfWindow()
-/** The look with its field's short side the picture's, so the passes that read it draw at this size. */
-const LOOK = { ...DEFAULT_LOOK, pixel: { short: Math.min(SIZE.width, SIZE.height) } }
+/** The look with its field's short side the picture's, so the passes that read it draw at this size, and the old game's haze. */
+const LOOK = lookOf(SIZE, PLAY.views[0]?.distance ?? 16)
 
 /** The characters a cutscene can place, by who a script calls them. */
 const actors: Actors = new Map()
@@ -94,6 +95,7 @@ export const game = defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
+      barFraction: BAR_FRACTION,
       look: LOOK,
       time: TIME,
       lighting: LIGHTING,

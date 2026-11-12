@@ -6,6 +6,12 @@
 /** The largest picture, in pixels. */
 export const FIELD_CAP = { width: 640, height: 480 } as const
 
+/**
+ * The share of the picture's height each letterbox bar crops. The framework crops 5% by default, cinematic bars the old game drew
+ * only in a cutscene, so play draws the whole picture: the bars would take 24 of its 480 lines and show a smaller room.
+ */
+export const BAR_FRACTION = 0
+
 /** The phone held sideways the page is designed at first, and the field when the window has no size. */
 const PHONE = { width: 844, height: 390 }
 

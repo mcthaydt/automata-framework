@@ -168,18 +168,27 @@ describe('convertLevel', () => {
     )
   })
 
-  it('writes lamps in the kit’s kinds, and reports a kind the kit lacks', () => {
+  it('writes a lamp at [x, z, height], the level format\u2019s own order, not the old game\u2019s [x, y, z]', () => {
+    const lamps = converted().json.lamps as { id: string; at: number[] }[]
+    // The old hall lamp hangs 3.4 m up over z = 2; the format says where on the floor first, then how high.
+    expect(lamps[0]).toMatchObject({ id: 'hallLamp', at: [2, 2, 3.4] })
+    expect(lamps[1]).toMatchObject({ id: 'monitorGlow', at: [6, 1, 1.5] })
+  })
+
+  it('writes lamps in the kit\u2019s kinds, a kind the kit lacks as a neon with its own colour, and reports it', () => {
     const { json, report } = converted()
-    const lamps = json.lamps as { id: string; kind: string; at: number[]; color: string }[]
-    expect(lamps[0]).toMatchObject({
-      id: 'hallLamp',
-      kind: 'pendant',
-      at: [2, 3.4, 2],
-      color: '#ffd699',
-      radius: 3.4,
-    })
-    expect(lamps[1]?.kind).toBe('bulb')
+    const lamps = json.lamps as { id: string; kind: string; color: string; radius?: number }[]
+    expect(lamps[0]).toMatchObject({ id: 'hallLamp', kind: 'pendant', color: '#ffd699', radius: 3.4 })
+    // The kit's bulb is a warm tone and refuses a green screen's colour; a neon is the kit's coloured glow.
+    expect(lamps[1]?.kind).toBe('neon')
     expect(report).toContainEqual(expect.objectContaining({ kind: 'lamp-kind', where: 'monitorGlow' }))
+  })
+
+  it('writes the level each lamp burns at when the night begins, the old game\u2019s own', () => {
+    const lamps = converted().json.lamps as { id: string; level?: number }[]
+    // Dress levels at power on (src/scenes/clinic/dress.ts, then the prologue's own scale-downs).
+    expect(lamps[0]?.level).toBe(0.6)
+    expect(lamps[1]?.level).toBe(0.55)
   })
 
   it('places a model as a generator and a model with none as a box of its size, reporting the box', () => {

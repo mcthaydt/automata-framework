@@ -296,7 +296,10 @@
             }
           ]
         ]
-      ]
+      ],
+      "floorTexture": "tileFloor",
+      "wallTexture": "plasterPaint",
+      "ceilingTexture": "ceilingTile"
     },
     {
       "id": "counter",
@@ -304,7 +307,7 @@
       "ceiling": 4.9,
       "light": 1,
       "open": true,
-      "floorTexture": "counterTop",
+      "floorTexture": "laminate",
       "trim": {
         "skirting": 0,
         "wainscot": 0,
@@ -356,7 +359,9 @@
         ]
       ],
       "zone": "hall",
-      "view": "hall"
+      "view": "hall",
+      "wallTexture": "plasterPaint",
+      "ceilingTexture": "ceilingTile"
     },
     {
       "id": "ward",
@@ -404,7 +409,10 @@
         ]
       ],
       "zone": "hall",
-      "view": "hall"
+      "view": "hall",
+      "floorTexture": "tileFloor",
+      "wallTexture": "plasterPaint",
+      "ceilingTexture": "ceilingTile"
     },
     {
       "id": "mouth",
@@ -446,7 +454,10 @@
         ]
       ],
       "zone": "corridor",
-      "view": "corridor"
+      "view": "corridor",
+      "floorTexture": "tileFloor",
+      "wallTexture": "plasterPaint",
+      "ceilingTexture": "ceilingTile"
     },
     {
       "id": "corridor",
@@ -524,7 +535,9 @@
         ]
       ],
       "zone": "corridor",
-      "view": "corridor"
+      "view": "corridor",
+      "floorTexture": "tileFloor",
+      "wallTexture": "plasterPaint"
     },
     {
       "id": "doorway",
@@ -568,7 +581,10 @@
         ]
       ],
       "zone": "corridor",
-      "view": "corridor"
+      "view": "corridor",
+      "floorTexture": "tileFloor",
+      "wallTexture": "plasterPaint",
+      "ceilingTexture": "ceilingTile"
     },
     {
       "id": "closet",
@@ -576,7 +592,7 @@
       "ceiling": 4.9,
       "light": 1,
       "open": true,
-      "floorTexture": "floorDim",
+      "floorTexture": "tileFloor",
       "corners": [
         [
           1.725,
@@ -623,7 +639,9 @@
         ]
       ],
       "zone": "closet",
-      "view": "closet"
+      "view": "closet",
+      "wallTexture": "plasterPaint",
+      "ceilingTexture": "ceilingTile"
     }
   ],
   "masses": [
@@ -1084,25 +1102,28 @@
     {
       "id": "deskLamp",
       "kind": "desk",
-      "at": [3.05, 1.55, 1.15],
+      "at": [3.05, 1.15, 1.55],
       "color": "#ffb866",
       "range": 5,
-      "radius": 1.7
+      "radius": 1.7,
+      "level": 1.05
     },
     {
       "id": "monitorGlow",
-      "kind": "bulb",
-      "at": [-2.4, 1.5, -3.05],
+      "kind": "neon",
+      "at": [-2.4, -3.05, 1.5],
       "color": "#73d98c",
-      "range": 2.6
+      "range": 2.6,
+      "level": 0.55
     },
     {
       "id": "hallLamp",
       "kind": "pendant",
-      "at": [0, 3.4, 2.6],
+      "at": [0, 2.6, 3.4],
       "color": "#ffd699",
       "range": 7.5,
-      "radius": 3.4
+      "radius": 3.4,
+      "level": 0.6
     },
     {
       "id": "wardLamp",
@@ -1110,89 +1131,101 @@
       "at": [-3.2, 3.4, 3.4],
       "color": "#ffdb9e",
       "range": 6,
-      "radius": 2.6
+      "radius": 2.6,
+      "level": 0.5
     },
     {
       "id": "corridorLamp",
       "kind": "bulb",
-      "at": [0, 3, -3.2],
+      "at": [0, -3.2, 3],
       "color": "#ffcc85",
       "range": 5.5,
-      "radius": 2.6
+      "radius": 2.6,
+      "level": 0.12
     },
     {
       "id": "exitLamp",
       "kind": "bulb",
-      "at": [0, 2.75, -5.8],
+      "at": [0, -5.8, 2.75],
       "color": "#ffc780",
       "range": 5.5,
-      "radius": 1.8
+      "radius": 1.8,
+      "level": 1.25
     },
     {
       "id": "closetLamp",
       "kind": "fluorescent",
-      "at": [3.1, 3.4, -4.5],
+      "at": [3.1, -4.5, 3.4],
       "color": "#e6e6bf",
       "range": 4.5,
-      "radius": 2.2
+      "radius": 2.2,
+      "level": 0
     },
     {
       "id": "curtainWest",
-      "kind": "bulb",
-      "at": [-4.1, 1.3, -0.5],
+      "kind": "neon",
+      "at": [-4.1, -0.5, 1.3],
       "color": "#ff9940",
       "range": 6,
-      "radius": 3.2
+      "radius": 3.2,
+      "level": 0
     },
     {
       "id": "curtainEast",
-      "kind": "bulb",
-      "at": [-2.35, 1.3, 1.4],
+      "kind": "neon",
+      "at": [-2.35, 1.4, 1.3],
       "color": "#ff9940",
       "range": 6,
-      "radius": 3.2
+      "radius": 3.2,
+      "level": 0
     },
     {
       "id": "spark",
-      "kind": "bulb",
-      "at": [-1.15, 0.4, -4.1],
+      "kind": "neon",
+      "at": [-1.15, -4.1, 0.4],
       "color": "#99bfff",
-      "range": 4
+      "range": 4,
+      "level": 0
     },
     {
       "id": "moon",
-      "kind": "moon",
-      "at": [0.3, 2.2, 0.2],
+      "kind": "neon",
+      "at": [0.3, 0.2, 2.2],
       "color": "#8cadf2",
-      "range": 4.2
+      "range": 4.2,
+      "level": 0.34
     },
     {
       "id": "moonCorridor",
-      "kind": "moon",
-      "at": [-0.9, 2.3, -4.9],
+      "kind": "neon",
+      "at": [-0.9, -4.9, 2.3],
       "color": "#8cadf2",
-      "range": 3.2
+      "range": 3.2,
+      "level": 0.48
     },
     {
       "id": "wardFill",
-      "kind": "fill",
-      "at": [-3.5, 2.5, 3.7],
+      "kind": "neon",
+      "at": [-3.5, 3.7, 2.5],
       "color": "#80a8c7",
-      "range": 4.8
+      "range": 4.8,
+      "level": 1.15
     },
     {
       "id": "bayFill",
-      "kind": "fill",
-      "at": [-3.4, 2.7, -0.8],
+      "kind": "neon",
+      "at": [-3.4, -0.8, 2.7],
       "color": "#99bdc2",
-      "range": 4.4
+      "range": 4.4,
+      "level": 0.95
     },
     {
       "id": "sconce",
       "kind": "bulb",
-      "at": [2.4, 2.7, -0.3],
+      "at": [2.4, -0.3, 2.7],
       "color": "#ffc780",
-      "range": 3.6
+      "range": 3.6,
+      "level": 0.375
     }
   ],
   "views": {

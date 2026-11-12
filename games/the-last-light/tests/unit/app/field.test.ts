@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FIELD_CAP, fieldFor } from '#src/app/field.ts'
+import { BAR_FRACTION, FIELD_CAP, fieldFor } from '#src/app/field.ts'
 
 // The picture is the old game's: the window's own shape, drawn at most 640 wide and 480 tall (the old `pixelScale`: the renderer's
 // resolution is min(1, 640 / w, 480 / h)), so a 16:9 window draws 640 by 360 and the sizes below are the old game's own.
@@ -32,5 +32,9 @@ describe('the picture', () => {
 
   it('falls back to the phone sideways for a window with no size', () => {
     expect(fieldFor({ width: 0, height: 0 })).toEqual({ width: 640, height: 296 })
+  })
+
+  it('has no letterbox bars in play: the old game drew the whole window, and the framework\u2019s 5% bars would crop 24 of 480 lines', () => {
+    expect(BAR_FRACTION).toBe(0)
   })
 })
