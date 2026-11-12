@@ -1,11 +1,12 @@
 import { CameraHeading, moveDirection, Q16 } from '@automata/3d/sim'
 import { NavDoors, NavRoutes } from '@automata/nav/sim'
-import { blockedBy, InSector, resolvedMap } from '@automata/sectors/sim'
+import { InSector } from '@automata/sectors/sim'
 import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
 import { atan2 } from '@automata/sim/math'
 import { SystemsEnv } from '@automata/systems/sim'
 import { Ada } from '../../shared/ada.component.ts'
 import { TICK_HZ } from '../../shared/constants.ts'
+import { furnished } from '../../shared/obstacles.ts'
 import { playIn } from '../../shared/play-content.ts'
 import { Move } from './move.command.ts'
 
@@ -14,7 +15,7 @@ export const ADA_RADIUS = 0.2
 
 /**
  * Walks Ada the way the stick points, seen from the camera, at the walking speed scaled by how far the stick is pushed. The
- * walls and the doors the walk keeps stop her; pushed into a wall at an angle she slides along it. A push drops any route
+ * walls, the doors the walk keeps and the furniture stop her; pushed into a wall at an angle she slides along it. A push drops any route
  * she was walking (a tap's), so the hand always wins over a pending use.
  */
 export const walk = (locked: (ctx: SimContext) => boolean): SystemDef =>
@@ -28,7 +29,7 @@ export const walk = (locked: (ctx: SimContext) => boolean): SystemDef =>
       // A cutscene holds the input: the stick does nothing until it ends.
       const stick = locked(ctx) ? { x: 0, y: 0 } : (moves[moves.length - 1]?.payload ?? { x: 0, y: 0 })
       const step = tuning.WALK_SPEED / TICK_HZ
-      const walls = blockedBy(resolvedMap(ctx), ctx.resource(NavDoors).open)
+      const walls = furnished(ctx, ctx.resource(NavDoors).open)
       for (const ada of ctx.query(Ada, CameraHeading, InSector)) {
         const mapped = moveDirection(ada.get(CameraHeading), stick)
         ada.set(CameraHeading, mapped.state)

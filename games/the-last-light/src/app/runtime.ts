@@ -3,6 +3,7 @@ import type { ExtensionDef } from '@automata/framework/extension'
 import { interactExtension } from '@automata/interact'
 import type { SimView } from '@automata/interact/sim'
 import { narrativeExtension } from '@automata/narrative'
+import { createNavExtension } from '@automata/nav'
 import { puzzleExtension } from '@automata/puzzle'
 import { type PuzzleOptions, PuzzleState, type Reader } from '@automata/puzzle/sim'
 import { InSector } from '@automata/sectors/sim'
@@ -19,6 +20,7 @@ import { nightPlugin } from '../features/night/night.plugin.ts'
 import { Night } from '../features/night/night.resource.ts'
 import { nightHooks } from '../features/night/night-hooks.ts'
 import { Ada } from '../shared/ada.component.ts'
+import { furnished } from '../shared/obstacles.ts'
 import type { PlayContent } from '../shared/play-content.ts'
 import { anchorsOf } from './anchors.ts'
 
@@ -51,6 +53,9 @@ const reader = (view: SimView): Reader => {
     has: (item) => state.items.includes(item),
   }
 }
+
+/** Nav for the walks Ada's taps make: the level's walls and doors, and the furniture, which stops her as it stops her hand. */
+export const navigation = createNavExtension({ blocked: furnished })
 
 /** What only a screen needs of the cutscenes: the captions' words, their lines, the scripts and the typing. */
 export type Captions = Pick<

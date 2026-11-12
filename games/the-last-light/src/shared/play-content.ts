@@ -6,6 +6,7 @@ import type { NavGraph } from '@automata/nav/sim'
 import type { PuzzleDef } from '@automata/puzzle/sim'
 import type { SectorMap } from '@automata/sectors/sim'
 import type { CarriedLightDef, PeekFile, SystemsDef } from '@automata/systems/sim'
+import type { Obstacle } from './obstacles.ts'
 import type { Tuning } from './tuning.ts'
 
 // What the sim reads as `ctx.content`: the level's rooms and hotspots, the walking graph, the puzzle, the creature, and the
@@ -29,6 +30,8 @@ export interface Pool {
 /** Everything the sim holds as its content. */
 export interface PlayContent {
   readonly map: SectorMap
+  /** What the level's props take of the floor, found from their blockouts (`features/room/obstacles.ts`). */
+  readonly obstacles: readonly Obstacle[]
   readonly hotspots: readonly Hotspot[]
   readonly start: Start
   /** The level's camera views, and the view each room takes (by the room's id). */

@@ -1,11 +1,10 @@
 import { cameraHeadingPlugin } from '@automata/3d/sim'
-import { navExtension } from '@automata/nav'
 import { sectorsExtension } from '@automata/sectors'
 import { createSim, type Sim } from '@automata/sim'
 import { spawnAda } from '../features/ada/ada.plugin.ts'
 import { TICK_HZ } from '../shared/constants.ts'
 import type { PlayContent } from '../shared/play-content.ts'
-import { createRuntime } from './runtime.ts'
+import { createRuntime, navigation } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
 
 /**
@@ -18,7 +17,7 @@ export async function createGameSim(play: PlayContent, seed = 1): Promise<Sim> {
     seed,
     tickHz: TICK_HZ,
     plugins: [
-      ...[sectorsExtension, navExtension, ...runtime.extensions].flatMap((extension) => extension.sim ?? []),
+      ...[sectorsExtension, navigation, ...runtime.extensions].flatMap((extension) => extension.sim ?? []),
       cameraHeadingPlugin,
       ...runtime.plugins,
       scenePlugin(runtime),

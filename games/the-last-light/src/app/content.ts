@@ -13,6 +13,8 @@ import {
   type SystemsDef,
 } from '@automata/systems/sim'
 import level from '../../content/levels/prologue.af-sector.json' with { type: 'json' }
+import { obstaclesOf } from '../features/room/obstacles.ts'
+import { WORLD } from '../features/room/room.ts'
 import type { PlayContent } from '../shared/play-content.ts'
 import { tuningOf } from '../shared/tuning.ts'
 
@@ -41,6 +43,7 @@ export function playOf(content: unknown): PlayContent {
   if (spawn === undefined) throw new Error('The level has no spawn point. Place one in the level editor.')
   return {
     map: readSectorMap(level).level,
+    obstacles: obstaclesOf(WORLD.pieces),
     hotspots,
     start: { x: spawn.x, z: spawn.z },
     // The level names each view's numbers, and each room says which view it takes; the camera follows Ada through them.

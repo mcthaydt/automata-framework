@@ -1,5 +1,6 @@
 import { InteractUsed } from '@automata/interact/sim'
 import { NavRoutes } from '@automata/nav/sim'
+import { InSector } from '@automata/sectors/sim'
 import { SystemsEnv } from '@automata/systems/sim'
 import { describe, expect, it } from 'vitest'
 import { Ada } from '#src/shared/ada.component.ts'
@@ -90,5 +91,31 @@ describe('Ada in a cutscene', () => {
     game.send([{ type: 'cutscene.skip', payload: {} }])
     game.hold(1, UP)
     expect(game.ada()).not.toEqual(from)
+  })
+})
+
+describe('Ada and the furniture', () => {
+  it('cannot walk through the bench: pushed west along the bottom of the hall she stops before it', async () => {
+    const game = await boot()
+    game.hold(10, { x: -127, y: 0 })
+    // The bench stands from x -3.65 to -2.05 at z 3.05 to 3.51; she starts at z 3.6, its width from it within her radius.
+    expect(game.ada().x).toBeGreaterThan(-2.05)
+  })
+
+  it('cannot walk through the reception desk: pushed east from the spawn she stops before the counter’s wing', async () => {
+    const game = await boot()
+    game.hold(1, { x: 0, y: -127 })
+    game.hold(10, { x: 127, y: 0 })
+    expect(game.ada().x).toBeLessThan(2.55)
+  })
+
+  it('is stopped by the bed on her way to the ward', async () => {
+    const game = await boot()
+    const sim = game.sim
+    const sid = sim.query(Ada)[0]?.sid as number
+    // Standing east of the bed (x -3.55) at its middle, pushed west into it.
+    sim.entity(sid)?.set(InSector, { x: -3.0, z: 0.4 })
+    game.hold(5, { x: -127, y: 0 })
+    expect(game.ada().x).toBeGreaterThan(-3.55)
   })
 })

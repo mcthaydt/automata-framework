@@ -3,7 +3,6 @@ import { createPixi3dRenderer, render3dExtension } from '@automata/3d'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
 import { prefersReducedMotion, typedFor } from '@automata/narrative'
-import { navExtension } from '@automata/nav'
 import { sectorsExtension } from '@automata/sectors'
 import { InSector } from '@automata/sectors/sim'
 import { SystemsAgent } from '@automata/systems/sim'
@@ -26,7 +25,7 @@ import { playOf } from './content.ts'
 import { BAR_FRACTION, fieldOfWindow } from './field.ts'
 import { lookOf } from './look.ts'
 import { playControls, playHud } from './play.extension.ts'
-import { createRuntime } from './runtime.ts'
+import { createRuntime, navigation } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
 import { sceneOf } from './stage.ts'
 import { lineOf, SCRIPTS, wordsOf } from './words.ts'
@@ -88,7 +87,7 @@ export const game = defineGame({
   extensions: [
     render3dExtension,
     sectorsExtension,
-    navExtension,
+    navigation,
     ...RUNTIME.extensions,
     playHud(PLAY, RUNTIME),
     playControls,
