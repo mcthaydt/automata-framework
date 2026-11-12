@@ -232,7 +232,7 @@ jobs:
       (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
       needs.checks.outputs.docs_only != 'true'))
     runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
