@@ -24,6 +24,7 @@ const SCALP: Piece = {
       [0.7, 0.4],
       [1.2, 0.34],
       [1.9, 0.3],
+      // biome-ignore lint/suspicious/noApproximativeNumericConstant: a knot as recorded; Math.PI is 7e-6 away and would move the curve
       [3.1416, 0.14],
     ],
     lift: 0.06,

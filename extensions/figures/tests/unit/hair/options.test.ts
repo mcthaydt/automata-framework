@@ -44,6 +44,7 @@ const rows = (to: 'nape' | [number, number, number], rope: Rope): HairStyle => (
         from: [
           [0, 0.6],
           [1.2, -0.1],
+          // biome-ignore lint/suspicious/noApproximativeNumericConstant: a knot as recorded; Math.PI is 7e-6 away and would move the curve
           [3.1416, -0.55],
         ],
         to,

@@ -70,6 +70,7 @@ export const FALL_PLAIN: HairStyle = {
           [0.7, 0.35],
           [1.5, 0.0],
           [2.3, -0.35],
+          // biome-ignore lint/suspicious/noApproximativeNumericConstant: a knot as recorded; Math.PI is 7e-6 away and would move the curve
           [3.1416, -0.5],
         ],
         part: 0,
