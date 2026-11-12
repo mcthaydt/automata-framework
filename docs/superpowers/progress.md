@@ -98,8 +98,8 @@ gate could run; the side session's list of what the framework could take over is
 
 Sonnet 5.5 (`session_01HNdX7HQTNnRKaroUir7cbf`), no subagents, from `main` `62a143ce` with the audit merged. One commit per
 finding or tight group, test first, each test watched failing. Chromium only (software GL); WebKit, Firefox, real devices and
-hosts are not run; no paid API call. **Progress: 15 of 18 findings (83%)** (B1, S6, S7, S1, S2, S3, T7, S4, S5, T6, S8, S9, T1, T8, T3; S6 counts with B1, T7 with S3, T6 with S4+S5). Stage 6 of 7 is this one, so the workstream is
-`(5 + done/18) / 7` of the way.
+hosts are not run; no paid API call. **Progress: 18 of 18 findings (100%); stage 6 is done** (B1, S6, S7, S1, S2, S3, T7, S4, S5, T6, S8, S9, T1, T8, T3, T5, T4, T2; S6 counts with B1, T7 with S3, T6 with S4+S5). Stage 6 of 7 is this one, so the workstream is
+`(5 + done/18) / 7` of the way: 6 of 7 stages, 86%, with stage 7 (the final review and merge) left.
 
 | Finding | What | State | Commit |
 |---|---|---|---|
@@ -111,11 +111,11 @@ hosts are not run; no paid API call. **Progress: 15 of 18 findings (83%)** (B1, 
 | S4 + S5 | `bindWords`, `formatNumber`, `DEFAULT_LOCALES` and one `matchLocale` in the framework; Emberwick measures 469 and its limit is 470 | done (`pnpm check` exit 0 on the tree; see "Open, for the Owner") | `77e57029` |
 | S8 | "+N more" never covers a label | done (the framework's Chromium suite 2252 passed; see the commit body) | `13d0f15f` |
 | S9 | The photosensitivity warning says the game's own hazards | done (`photosensitivity: { effects }`; Emberwick declares flashing and shaking; the editor-gaps ledger has row 12) | `f5fca953` |
-| T1 | `openLink` opens `window.open(url, '_blank')` with the opener nulled in the same turn, so a blocked popup answers `opened: false`; only `https:` addresses reach it; each adapter read | done (corrects `dcf5cc1a`, which put `noopener` in the features and made a block read as opened; unit tests; a real browser's referrer not checked) | see the closing record |
-| T2 | The playground's start-when-seen cases watched failing against a reverted observer | done (all five cases of `playground.e2e.ts` failed with the observer reverted to `rootMargin: '100% 0px'` on the panel, a frame already in the page before the scroll; all five passed with it restored; Chromium, software GL; no source change) | see the closing record |
+| T1 | `openLink` opens `window.open(url, '_blank')` with the opener nulled in the same turn, so a blocked popup answers `opened: false`; only `https:` addresses reach it; each adapter read | done (corrects `dcf5cc1a`, which put `noopener` in the features and made a block read as opened; unit tests; a real browser's referrer not checked) `82598ff8` |
+| T2 | The playground's start-when-seen cases watched failing against a reverted observer | done (all five cases of `playground.e2e.ts` failed with the observer reverted to `rootMargin: '100% 0px'` on the panel, a frame already in the page before the scroll; all five passed with it restored; Chromium, software GL; no source change) | `da9f29fe` |
 | T3 | Interface sounds nothing plays | done (a Modal asks for `open` and `close`, the error panel for `error`) | `07aeda0d` |
-| T4 | Credit names in the font build's glyph gate: a new `verbatim()` in `@automata/content/schema` (coordinator approved the export); the credits kind marks `name` with it; the build cuts every face to it and names a name a language's faces lack | done (unit tests in content and ui-screens; no game ships a credits file yet, so no font changed) | see the closing record |
-| T5 | Copy that fails the grandma test: "Make it gentler" heads the warning's switches; Emberwick's splash is "Emberwick, starting" to a screen reader; six languages each, by hand; fonts rebuilt | done (the catalog-parity unit test watched failing on the English change alone; fonts, words sources and example pages rebuilt) | see the closing record |
+| T4 | Credit names in the font build's glyph gate: a new `verbatim()` in `@automata/content/schema` (coordinator approved the export); the credits kind marks `name` with it; the build cuts every face to it and names a name a language's faces lack | done (unit tests in content and ui-screens; no game ships a credits file yet, so no font changed) | `468b3c68` |
+| T5 | Copy that fails the grandma test: "Make it gentler" heads the warning's switches; Emberwick's splash is "Emberwick, starting" to a screen reader; six languages each, by hand; fonts rebuilt | done (the catalog-parity unit test watched failing on the English change alone; fonts, words sources and example pages rebuilt) | `5a3980b3` |
 | T6 | The Languages guide names the import | done with S4 | `77e57029` |
 | T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | done with S3 | _with S3_ |
 | T8 | The SDK on the Node-only list | done (`pnpm boundaries`: 0 findings; unit cases for the package and a subpath) | `26cb32d4` |
@@ -155,6 +155,34 @@ it fails on a stale API report (`pnpm build`, `pnpm api-report --update`, `pnpm 
 fonts. The whole `pnpm check` takes about 12 and passed on `f5fca953`'s tree. (5) T1's first version (`dcf5cc1a`) was corrected in
 the third session: `noopener` in `window.open`'s features made it answer null always, so a blocked popup read as opened. (6) FigureBuilder is a copy at `d6e3c9fb` in
 `vendor/FigureBuilder` (container-local).
+
+Stage 6 closing run (the third fixes session, `session_01HNdX7Kcr4Jtmso7AuMzMqZ`, Sonnet 5.5, from `3e46c8cf` merged with `main`
+`382ef1bd`, the FigureBuilder pin kept at main's `23f889c8`): the last code commit is `1044f6b2`. Done this session: T1 corrected
+(`82598ff8`: `window.open(url, '_blank')` with the opener nulled in the same turn, so a blocked popup is `opened: false` again),
+T5 `5a3980b3`, T4 `468b3c68` (a new additive `verbatim()` in `@automata/content/schema`, the Owner's coordinator approved the
+export), T2 `da9f29fe` (all five playground cases failed against the reverted observer, then passed), the release changesets and
+guides `b0f31b65`, and two test fixes the Chromium journeys found: `730ececd` (the six-language journey imported game code that
+reaches the framework's Svelte source since S4, so the Playwright run stopped at load) and `1044f6b2` (the fake-host journey never
+pressed Continue on S9's flashing-lights warning). Each finding's commit is in the table above.
+
+What ran, on the tree of `b0f31b65` unless stated, Chromium only with software GL (`AF_WEBGPU=software`):
+
+- The whole `pnpm check`: exit 0 (lint, typecheck, `boundaries`, `style`, `knip`, 63 unit tasks, `changeset status`, 76 changesets, 0 problems).
+- `pnpm build` (16 tasks); `pnpm api-report --update` and `pnpm api-index --write` changed nothing after the T4 commit's own regeneration.
+- The framework's browser suite 2252 passed (27 files); `@automata/ui-screens` 550 passed, 1 skipped; `@automata/net-ui` 103 passed;
+  `@automata/content` 3 passed.
+- Emberwick's journeys in Chromium (phone, compact, iPad with the golden route, the dev server, and the six language projects): all
+  passed after the two test fixes above (35 in the first run, of which 3 failed and now pass, and 6 language runs).
+- The examples config, Chromium projects (`examples`, `examples-compact`, `runner`, `runner-compact`, `demos`, `ui-primitives`, the
+  Chromium matrix cells): 132 passed, 86 skipped by the config. The `examples-ipad` project is WebKit and its 41 cases did not run.
+- The site: `pnpm build`, `check:site` (51 pages), unit 518 passed, Chromium e2e 509 passed (one is the audit's expected failure,
+  `test.fail`), the playground config in Chromium 41 passed.
+- The packed-install smoke (`node tooling/consumer-smoke/src/run.ts --from packs`): passed.
+
+What did not run: WebKit and Firefox anywhere (the examples' `examples-ipad` and the matrix's WebKit and Firefox cells, Emberwick's
+WebKit projects, the playground's other engines), real devices, a real Ruken or Tauri host, a real browser's referrer for T1, the
+live `automata words` call (no paid API call), `pnpm ci:local`'s 3D suites and journeys (workstream 2's, and unchanged here), and a
+second look at `release-checks.yml`'s other steps (`pnpm agent-skills`, `plugin:validate`, `test:dist`).
 
 Follow-ups the audit's list leaves open, recorded here (not fixed in stage 6):
 
@@ -269,6 +297,9 @@ Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 
   479 to **469** lines. 430 was not reachable: what is left is the game's own (the panels' markup, the board submit, the
   game's flow and its scene wiring), and the test's own rule is that a new piece of behaviour is not hidden. The limit is
   469 rounded up to 470, and the plumbing test's comment says why.
+- **Two small things stage 6 left as they are** (see "Follow-ups the audit's list leaves open"): `@automata/tools` still carries its own
+  copies of `fontCoverage`, `catalogCharacters` and `packageCatalogs` (two pin tests keep them equal), and `sim`'s root, `replay` and
+  `testing` entries still have parameter properties plain Node cannot load (content does not reach them). Say if either should move.
 - The framework has 122 branches besides `main` from other workstreams; the merge session leaves them alone. Say if
   it should clean them up, and by what rule.
 
