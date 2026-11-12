@@ -20,3 +20,12 @@ cast test caught it); 2.05 clears it. The `head` slider is exempt now from the c
 the build is the Owner's call ("go with what looks the best"). The cast tests that read the face in fixed rows under the crown now read windows
 that are the same shares of the head's measured rows, so they still test the mouth and the eyes on a larger head.
 The shots needed `play-shots.test.ts` to hold two keys at once and let both go in one task (one key let go a tick early turned her side-on).
+
+## Item 5, first round: the gameplay frame (`item5-gameplay-frame-1024x768.png`, `item5-head-from-that-frame-x2.5.png`)
+
+The five-heads build, facing us at the hall's south wall, as the game plays it (no item 3 work in it yet). Her head is cropped from that same
+frame and enlarged x2.5 nearest, so a texel is 10 pixels, the reference's size. Looked at beside the reference's lower half, feature by feature:
+brows bold and two texels thick (they read, bolder than base-f's); the lid is the woman's, a dark row over the white and the iris (reads); the
+whites show both sides of each iris and are near-white but greyed by the mesh; the nose is a faint column, weaker than the reference's shadow;
+the lips are two tones but low in contrast, a grey-pink band; the skin is a pale pink-peach, cooler than the reference's warm tan; crispness
+falls short: the LCD panel's mesh crosses every texel, off the texel borders. The structure matches; the finish does not, which is item 3's.
