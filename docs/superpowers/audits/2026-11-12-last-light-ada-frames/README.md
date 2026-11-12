@@ -39,3 +39,19 @@ x10: base man, base woman, six heads (1.25), between (1.45, the most within .3 o
 base-f's do; between is wider and emptier, and the red-brown patch at her temple shows more. Kept six: `head` is 1.25 again and the cast test's
 "within .3 of the base woman" rule holds it once more (the exemption is gone). Kept from round 1: the cast tests' face windows as shares of the
 head's rows, and the play shots' key pairs. The item 5 frame above is the five-heads build and is re-shot below.
+
+## Item 5, round 2: the gameplay frame at six heads (`item5-round2-gameplay-frame-1024x768.png`, `item5-round2-head-from-that-frame-x2.5.png`)
+
+The six-heads build, facing us at the hall's south wall; her head cropped from that frame and enlarged x2.5 nearest (10 pixels a texel). Beside the
+reference: the features fill her face as base-f's do (brows bold and two texels thick; the woman's lid, a dark row over a white each side of
+the iris; a nose; a mouth under it). The finish is round 1's: the mesh crosses every texel; the mouth reads as one dark band, its two tones barely
+apart; the nose is faint; the skin is a pale pink-peach, cooler than the reference's warm tan. It falls short in crispness, lips and skin.
+
+## Item 3: why the mesh cannot be moved onto texel borders by its numbers (not done)
+
+The panel is a post pass on the field (512 by 384 at 2x), where a texel is two field pixels and the mesh's cell one: a mesh of period 2 sits at
+the Nyquist limit (the pass fades it out), and at period 4, whatever its phase, each texel gets one lighter and one darker pixel, so a line still
+cuts every texel. A clean face needs one of two generic, opt-in changes in `extensions/lcd-panel`, in both shaders: draw the mesh at the screen's
+pixels after the field is scaled (a 4-pixel mesh, the old game's, whose period is one texel and whose phase follows the field's whole scale), or
+read a figure mask (the figures' pixels written to a target the pass samples) and leave those pixels out of the mesh, stripes and scanlines. Then
+the room's panel can go back to full strength. Not started in this session.
