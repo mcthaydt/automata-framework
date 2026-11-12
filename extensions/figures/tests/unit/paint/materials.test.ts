@@ -237,7 +237,7 @@ describe('a dark gloss is leather', () => {
   })
   it('a surface under 6·D² texels takes no shine (a zip pull, a black frame)', () => {
     registerGarment('lthpull', {
-      build: (c) => ({
+      build: () => ({
         parts: [box(J.chest, 'pull', GROUP.torso, { at: [0, 0.1, 0.2], r: [0.012, 0.012, 0.012] })],
       }),
     })

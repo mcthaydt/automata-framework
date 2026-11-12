@@ -1250,7 +1250,7 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
               slant: (n2 % 2 ? 1 : -1) * (o.rope.slant ?? 0),
             }
           : { ...o.rope, r: o.rope.r * 0.7, root: 0.02, plait: false }
-      const { mesh, lit, t } = sweep(path, rope, hw, (p, tt) => (tt < 0.2 ? fore : [0, 0, -1]))
+      const { mesh, lit, t } = sweep(path, rope, hw, (_p, tt) => (tt < 0.2 ? fore : [0, 0, -1]))
       // The top rides the head, the length swings from the back pivot and settles toward the neck as it falls (never the
       // chest: a heavy tail skinned to it would ride the torso's turn and lean).
       const swing = 0.5,

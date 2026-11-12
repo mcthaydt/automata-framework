@@ -321,7 +321,6 @@ function facePlane(
   hw: number,
   H: number,
   p: readonly number[],
-  n: readonly number[],
 ): [number, number, number, number] {
   const t = p[1] / H,
     u = p[0] / hw,
@@ -1740,7 +1739,7 @@ export function paint(
         const hn = [0, 1, 2].map((i) => R[i * 3] * s[0] + R[i * 3 + 1] * s[1] + R[i * 3 + 2] * s[2])
         // The light on the facets mostly (so the cheekbone's top takes it as the brow's does), the normal map's on the
         // form half, so a turned head still turns as a whole.
-        const pl = facePlane(F, hw, H, hp, hn),
+        const pl = facePlane(F, hw, H, hp),
           kl = onForm(pl, hn, 0.8),
           pn = onForm(pl, hn, 0.5)
         facePlaneOf[k] = pl[3]
