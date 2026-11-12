@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -100,14 +100,15 @@ jobs:
 })
 
 // The 3D workflow is the only gate for the 3D browser suites and journeys, so its shape is pinned: three jobs (the unit
-// tests run in the core job of ci.yml, which `pnpm check` also runs) and a path filter that includes the vendored beta.
+// tests run in the core job of ci.yml, which `pnpm check` also runs) and a path filter that includes the lockfile, which is
+// where a new Pixi 3D arrives (it comes from npmjs.org, not from a folder in the repository).
 describe('the 3D workflow', () => {
   const workflow = parse(readFileSync(join(WORKFLOWS, '3d.yml'), 'utf8')) as {
     on: { pull_request: { paths: string[] } }
     jobs: Record<string, { name: string }>
   }
 
-  it('has three jobs and runs on vendor changes', () => {
+  it('has three jobs and runs when the lockfile changes', () => {
     expect(Object.values(workflow.jobs).map((job) => job.name)).toEqual([
       '3D - journeys',
       '3D - parity (chromium, webkit, firefox)',
@@ -118,10 +119,18 @@ describe('the 3D workflow', () => {
         'packages/**',
         'games/base-3d/**',
         'examples/3d/**',
-        'vendor/pixi-3d/**',
         'agents/**',
         'pnpm-lock.yaml',
       ]),
     )
+  })
+
+  // A filter on a folder that is gone matches nothing and only misleads the reader.
+  it('filters on no folder that does not exist', () => {
+    const root = join(WORKFLOWS, '../..')
+    const missing = workflow.on.pull_request.paths
+      .map((path) => path.split('*')[0] as string)
+      .filter((prefix) => prefix !== '' && !existsSync(join(root, prefix)))
+    expect(missing).toEqual([])
   })
 })
