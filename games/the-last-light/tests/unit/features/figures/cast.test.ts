@@ -132,7 +132,7 @@ const OLD_UNCANNY = {
 /** What `HELD` replaces in an old outfit, by item, so the comparison names each difference. */
 const asDrawn = (old: readonly Record<string, unknown>[]) =>
   old.map((item) => {
-    if (item.style === 'bob') return { ...item, style: 'smoothBob' }
+    if (item.style === 'bob') return { ...item, style: 'bobFringeFull' }
     if (item.style === 'curtain') return { ...item, style: 'fallLong' }
     // The kit's `trousers` is a cloth shell grown over the whole leg; the old trousers were paint on the body's own leg. `jeans` is the kit's
     // closer cut (one clearance, a straighter knee), tapered to the ankle, as a slim leg is.

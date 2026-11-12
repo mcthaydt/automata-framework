@@ -16,7 +16,8 @@ export const PLAY_FIGURE = { density: 1, crisp: false } as const
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
  * `scenes.prologue = street`): a cream top with short sleeves under a maroon waistcoat, denim trousers tucked into brown boots, her
- * auburn bob, dark eyes. The bob is the kit's `smoothBob`: the builder has no `bob` style of the old kind.
+ * auburn bob, dark eyes. The bob is the kit's `bobFringeFull`: the builder has no `bob` style of the old kind, and the kit's plain `smoothBob` is
+ * a helmet with a tail (46 hair texels at the play size to the old bob's 88); the fringe and the fuller mass at the ear make 82.
  */
 export const ADA: CharacterDef = {
   id: 'ada',
@@ -61,7 +62,7 @@ export const ADA: CharacterDef = {
       // The kit's closer cut, tapered to the ankle: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it.
       { jeans: 'denim', taper: 0.7 },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true },
-      { hair: 'auburn', style: 'smoothBob' },
+      { hair: 'auburn', style: 'bobFringeFull' },
       { eyes: 'eyeDark' },
     ],
   },
@@ -145,7 +146,7 @@ export const HELD: readonly Held[] = [
   },
   {
     old: 'Ada’s own bob (the old `bob` style)',
-    why: 'the builder’s hair library has no `bob`; the kit’s `smoothBob` is the same chin-length cut in a smooth finish',
-    instead: 'the kit’s `smoothBob`',
+    why: 'the builder’s hair library has no `bob`; the kit’s `bobFringeFull` is a chin-length bob with a fringe and mass at the ear, built from the builder’s scalp and fall pieces, but a piece of its own could turn its ends under and part it',
+    instead: 'the kit’s `bobFringeFull`',
   },
 ]

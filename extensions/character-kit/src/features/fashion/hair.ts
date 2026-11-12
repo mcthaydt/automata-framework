@@ -27,6 +27,18 @@ const hang = [
   [2.3, -0.35],
   [3.1416, -0.5],
 ]
+/** A hairline with a fringe: the brow's height (0.62) brought down to the brow across the front (0.12: lower covers the eyes), the sides and the back as the natural line has them. */
+const fringeLine = [
+  [0, 0.12],
+  [0.5, 0.12],
+  [0.85, 0.12],
+  [1.15, 0.0],
+  [1.3, -0.12],
+  [1.5, 0.1],
+  [1.9, 0.0],
+  [2.5, -0.45],
+  [3.1416, -0.6],
+]
 const crown = {
   scalp: {
     from: line,
@@ -227,6 +239,34 @@ export const FASHION_HAIR: Readonly<Record<string, HairStyle>> = {
     pieces: [
       crown,
       { fall: { from: hang, part: 0.3, count: 22, length: 0.35, curl: 0, volume: 0.2, rope: { r: 0.15 } } },
+    ],
+  },
+  // A bob with a fringe: the shell lifted off the skull and brought down over the brow, the hair falling to the chin with its mass standing
+  // out at the ear (the old game's bob; the helmet `smoothBob` has neither).
+  bobFringe: {
+    about: 'A chin-length bob with a fringe over the brow and volume at the ear.',
+    finish: 'smooth',
+    pieces: [
+      { scalp: { ...crown.scalp, from: fringeLine, lift: 0.1 } },
+      { fall: { from: hang, part: 0.3, count: 28, length: 0.35, curl: 0, volume: 0.38, rope: { r: 0.17 } } },
+    ],
+  },
+  bobFringeFull: {
+    about: 'A fuller bob with a fringe: more mass at the ear and a longer line.',
+    finish: 'smooth',
+    pieces: [
+      { scalp: { ...crown.scalp, from: fringeLine, lift: 0.12 } },
+      {
+        fall: { from: hang, part: 0.3, count: 34, length: 0.42, curl: 0.1, volume: 0.55, rope: { r: 0.19 } },
+      },
+    ],
+  },
+  bobFringeShort: {
+    about: 'A short bob with a fringe, to the jaw.',
+    finish: 'smooth',
+    pieces: [
+      { scalp: { ...crown.scalp, from: fringeLine, lift: 0.1 } },
+      { fall: { from: hang, part: 0.3, count: 28, length: 0.2, curl: 0, volume: 0.38, rope: { r: 0.17 } } },
     ],
   },
 }

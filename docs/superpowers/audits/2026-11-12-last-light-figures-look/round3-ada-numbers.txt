@@ -1,10 +1,10 @@
-ours, density 1, front: H 64  SHOULDER 17  WAIST 17  HIP 19  (hip/height 0.297, shoulder/height 0.266)
-  maroon        texels  131  rows 0.20-0.42  widest 13
-  cream         texels   36  rows 0.23-0.39  widest 15
-  denim         texels  351  rows 0.00-0.91  widest 14
-  bootBrown     texels  106  rows 0.20-0.97  widest 16
-  auburn        texels   45  rows 0.02-0.97  widest 9
-  fair          texels  107  rows 0.08-0.95  widest 17
+ours, density 1, front: H 65  SHOULDER 15  WAIST 17  HIP 19  (hip/height 0.292, shoulder/height 0.231)
+  maroon        texels  129  rows 0.23-0.43  widest 13
+  cream         texels   36  rows 0.25-0.40  widest 15
+  denim         texels  358  rows 0.00-0.91  widest 14
+  bootBrown     texels  102  rows 0.40-0.97  widest 14
+  auburn        texels   82  rows 0.02-0.97  widest 12
+  fair          texels  100  rows 0.12-0.95  widest 17
 old procedural, front: H 59  SHOULDER 14  WAIST 16  HIP 18  (hip/height 0.305, shoulder/height 0.237)
   maroon        texels  100  rows 0.25-0.46  widest 10
   cream         texels   62  rows 0.24-0.41  widest 14

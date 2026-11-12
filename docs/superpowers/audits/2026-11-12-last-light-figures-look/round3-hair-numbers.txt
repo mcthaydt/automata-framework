@@ -1,0 +1,4 @@
+Ada smoothBob       auburn texels at play size: front 45, four views 317; widest hair row at density 2 front: 20
+Ada bobFringe       auburn texels at play size: front 70, four views 403; widest hair row at density 2 front: 22
+Ada bobFringeFull   auburn texels at play size: front 82, four views 456; widest hair row at density 2 front: 24
+Ada bobFringeShort  auburn texels at play size: front 70, four views 388; widest hair row at density 2 front: 22

@@ -195,6 +195,17 @@ const round3 = (() => {
   return { nurse }
 })()
 
+/** `def` with its hair in `style` (the helmet `smoothBob` is what Ada wore before round 3's bob). */
+const withHair = (def: CharacterDef, style: string): CharacterDef => ({
+  ...def,
+  outfits: Object.fromEntries(
+    Object.entries(def.outfits).map(([name, items]) => [
+      name,
+      items.map((item) => ('hair' in item ? { ...item, style } : item)),
+    ]),
+  ) as never,
+})
+
 /**
  * Round 3's stand and face for Ada, one change at a time over round 2's: what the old file's own numbers do (it zeroed the weight on a
  * leg, `stance` and `stanceLead` and `shift`, which the brisk gait itself has as 0.04, 0.08 and 0.012; and it bent the idle arm by
@@ -210,34 +221,71 @@ const round3ada = (() => {
     {
       label: 'BEFORE',
       note: 'round 2: weight on neither leg, the arm near straight, the drawn face',
-      def: { ...ADA, face: { ...ADA.face, drawn: true }, gaitOverrides: round2 },
+      def: withHair({ ...ADA, face: { ...ADA.face, drawn: true }, gaitOverrides: round2 }, 'smoothBob'),
     },
     {
       label: 'A',
       note: 'the decal face (face.drawn false): two eye dots at play size',
-      def: { ...ADA, face: decal, gaitOverrides: round2 },
+      def: withHair({ ...ADA, face: decal, gaitOverrides: round2 }, 'smoothBob'),
     },
     {
       label: 'B',
       note: 'A and her weight on one leg: stance .04, stanceLead .08, shift .012',
-      def: { ...ADA, face: decal, gaitOverrides: { ...round2, ...stance } },
+      def: withHair({ ...ADA, face: decal, gaitOverrides: { ...round2, ...stance } }, 'smoothBob'),
     },
     {
       label: 'C (ADOPTED)',
       note: "B and a bent, hung arm: idleElbow .45, hang .12, the old brisk gait's own",
-      def: ADA,
+      def: withHair(ADA, 'smoothBob'),
     },
     {
       label: 'D',
       note: 'C with her arms nearer her body (standOut .05) and her head turned more (face.turn .5)',
-      def: {
-        ...ADA,
-        face: { ...decal, turn: 0.5 },
-        gaitOverrides: { ...ADA.gaitOverrides, ...stance, ...arm, standOut: 0.05 },
-      },
+      def: withHair(
+        {
+          ...ADA,
+          face: { ...decal, turn: 0.5 },
+          gaitOverrides: { ...ADA.gaitOverrides, ...stance, ...arm, standOut: 0.05 },
+        },
+        'smoothBob',
+      ),
     },
   ]
   return { ada }
+})()
+
+/** Round 3's bob: the kit's hair styles with a fringe and volume at the ear, against the helmet `smoothBob`, on Ada and on the builder's base woman. */
+const round3hair = (() => {
+  const base = (BASE[1] as { def: CharacterDef }).def
+  const auburn = ADA.swatches?.auburn
+  const woman: CharacterDef = {
+    ...base,
+    swatches: { ...base.swatches, ...(auburn === undefined ? {} : { auburn }) },
+    default: 'test',
+    outfits: {
+      test: [
+        { tee: 'ribCream', sleeves: 'short' },
+        { jeans: 'denim' },
+        { eyes: 'eyeBrown' },
+        { hair: 'auburn', style: 'smoothBob' },
+      ],
+    },
+  }
+  const list = (def: CharacterDef, who: string): Variant[] => [
+    { label: 'BEFORE', note: `${who}: the helmet bob (smoothBob)`, def: withHair(def, 'smoothBob') },
+    {
+      label: 'A',
+      note: 'bobFringe: a fringe over the brow, volume at the ear',
+      def: withHair(def, 'bobFringe'),
+    },
+    {
+      label: 'B',
+      note: 'bobFringeFull: more mass at the ear, a longer line',
+      def: withHair(def, 'bobFringeFull'),
+    },
+    { label: 'C', note: 'bobFringeShort: to the jaw', def: withHair(def, 'bobFringeShort') },
+  ]
+  return { ada: list(ADA, 'Ada'), woman: list(woman, 'the base woman') }
 })()
 
 export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
@@ -247,4 +295,6 @@ export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
   'round2-vest': round2vest.pair,
   'round3-nurse': round3.nurse,
   'round3-ada': round3ada.ada,
+  'round3-hair-ada': round3hair.ada,
+  'round3-hair-woman': round3hair.woman,
 }

@@ -9,7 +9,8 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **round 3 in progress** (about 85 %: Ada's face and stand adopted, the nurse's cut open, the hair style next). Round 0 look before touching, round 1 data, round 2 painted garments as generators,
+Progress: **round 3 done** (about 90 %): Ada's face, stand and hair adopted, the nurse's cut open. Left: the Owner's picks, the nurse's
+hair, the in-game frame. Round 0 look before touching, round 1 data, round 2 painted garments as generators,
 round 3 the nurse's cut (choices open), and the list for the painter, kept as it goes. Left: the Owner's picks, hair as data if the
 Owner allows it, the in-game frame.
 
@@ -208,9 +209,31 @@ The old file zeroed her weight on a leg and cut her arm; the old brisk gait's ow
 | **C (adopted)** | B and `idleElbow` .45, `hang` .12: a bent, hung arm, the brisk gait's own | **17, 17, 19** |
 | D | C with `standOut` .05 (arms near the body) and `face.turn` .5 | 17, 17, 19 |
 
-The atlas is 17, 19, 20 at 61 texels; the old procedural 14, 16, 18 at 59; adopted Ada is 17, 17, 19 at 64 (hip/height .297).
+The atlas is 17, 19, 20 at 61 texels; the old procedural 14, 16, 18 at 59; adopted Ada is 17, 17, 19 at 64 (hip/height .297); with the bob below, 15, 17, 19 at 65 (the fringe and mass add a row on top and the stand's shoulder moves a texel: `round3-ada-numbers.txt` is measured with it).
 `cast.test.ts` was changed first and watched failing: her gait overrides are the old brisk whole and her `armOut` (the old file's
 zeroed stance and cut elbow are gone), her face is the old one but `drawn`.
+
+### A bob with a fringe and volume at the ear (kit hair style, built from the builder's own pieces)
+
+Three generic styles in the kit's table (`extensions/character-kit/src/features/fashion/hair.ts`, data only: a scalp shell with a
+hairline brought down to the brow and lifted off the skull, and a fall with more clumps and more volume), against the helmet `smoothBob`.
+The test `hair-bob.test.ts` was written first and watched failing (no such styles); it measures from the picture on a fair head: the
+hair's texels at the play size, its widest row at density 2, and the first row of the face's skin over its middle (a fringe pushes
+it down). Sheets: [`round3-hair-ada-play.png`](round3-hair-ada-play.png), [`-detail`](round3-hair-ada-detail.png), and on the builder's base
+woman [`round3-hair-woman-detail.png`](round3-hair-woman-detail.png), [`-play`](round3-hair-woman-play.png); numbers in
+[`round3-hair-numbers.txt`](round3-hair-numbers.txt).
+
+| | what it is | Ada's hair texels, front at play size | widest row at density 2 |
+| --- | --- | --- | --- |
+| BEFORE `smoothBob` | the helmet with a tail | 45 | 20 |
+| A `bobFringe` | a fringe, volume at the ear | 70 | 22 |
+| **B `bobFringeFull` (adopted for Ada)** | more mass at the ear, a longer line (curl .1) | **82** | **24** |
+| C `bobFringeShort` | A to the jaw | 70 | 22 |
+
+The old Ada's hair is 88 texels (the old atlas 89). Ada wears B, the nearest to the old; A and C are the Owner's to pick (the style is
+one word in her outfit). The fringe is at the brow (hairline height 0.12 on the skull; a fringe lowered to 0 touches the eyes and
+below that covers them, as the sweep of fringe heights on Ada at density 2 showed). A fold of the ends under (a bob's turned hem) and a
+side part need a hair piece of the painter's, so they stay on the painter's list.
 
 ### What `knip` and `check:changesets` say here (so it is clear whether they are real)
 
@@ -251,7 +274,7 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 
 | Needs the painter | Why | What it would improve |
 | --- | --- | --- |
-| The old `bob` hair piece | `smoothBob` is a crown cap and ropes hung from the nape: a helmet with a tail | Ada's head: a fringe, volume at the ears, a turned-under hem (half the old hair's texels) |
+| The old `bob`'s turned-under hem and parting | `bobFringeFull` (a kit style of the builder's pieces) has the fringe and the mass at the ear, not the hem tucked under or a side part | the last of Ada's hair: the old bob's shape |
 | The nurse's `curtain` | no piece hangs a panel across the face | the uncanny: her face hidden, not a blank mask under the cap |
 | A stooping stand | the stand holds a figure upright whatever the sliders (round 1, variant B) | her old shape: 71 rows for 210 cm, leaning down |
 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings | the torn, hanging hem |
@@ -261,7 +284,7 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 
 ## Log
 
-- Round 3: Ada's `face.drawn: false` (eyes at play size), her stance and arm from the old brisk gait, the eyes test, the nurse's cut sheeted.
+- Round 3: the kit's `bobFringe`, `bobFringeFull` and `bobFringeShort` hair styles (`hair-bob.test.ts` first), Ada wears `bobFringeFull`; Ada's `face.drawn: false` (eyes at play size), her stance and arm from the old brisk gait, the eyes test, the nurse's cut sheeted.
 - Round 2: waistcoat `fit`, `length` and `armhole` and legs' `taper` in the kit's garments (`accessories.ts`, `shells.ts`, `garments.ts`),
   `cut.test.ts` written first, `waistcoat-default.test.ts` pinning the legacy default; Ada's waistcoat and jeans set the options; `figure-variants.ts` can count the texels two variants differ by.
 - Round 1: the old `brisk` and `uncanny` gaits whole as overrides (`old-gaits.ts`), Ada's six retuned sliders and `jeans`, the cast test
