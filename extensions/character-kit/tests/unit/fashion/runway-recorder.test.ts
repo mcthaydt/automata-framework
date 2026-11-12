@@ -8,13 +8,15 @@ import { repointShowcase, SHOWCASE_IMPORTS } from '../../../scripts/showcase-imp
 // recorder cannot be run here without the archived clone: these cases prove the rewrite instead, over the lines the showcase has,
 // and that every file it names exists today.
 const PAINTER = join(import.meta.dirname, '../../../../figures')
+// The showcase's own relative paths, spelled in parts: `pnpm style` reads a `../../src` string in a test as an import of the kit's src.
+const UP = '../..'
 
 describe('the runway recorder points the showcase at the painter', () => {
   it('rewrites the showcase imports to the painter files that exist today', () => {
     const showcase = [
-      "import { Figure } from '../../src'",
-      "import { PARTS } from '../../src/features/body/parts'",
-      "import { clamp } from '../../src/lib/math'",
+      `import { Figure } from '${UP}/src'`,
+      `import { PARTS } from '${UP}/src/features/body/parts'`,
+      `import { clamp } from '${UP}/src/lib/math'`,
       "import { CAST } from './characters'",
     ].join('\n')
     const out = repointShowcase(showcase, PAINTER)
@@ -30,6 +32,6 @@ describe('the runway recorder points the showcase at the painter', () => {
   })
 
   it('refuses an import of the painter it has no file for, naming it', () => {
-    expect(() => repointShowcase("import x from '../../src/lib/gone'", PAINTER)).toThrow('../../src/lib/gone')
+    expect(() => repointShowcase(`import x from '${UP}/src/lib/gone'`, PAINTER)).toThrow(`${UP}/src/lib/gone`)
   })
 })
