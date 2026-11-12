@@ -59,7 +59,12 @@ back`: `front 0.95: expected 0.07329037500000002 to be 0.07329037500000003`. The
 bit with `toBe`; the branch recorded it on Node 22. The framework requires Node 24.21 (`engines`, `.nvmrc`), so task 5,
 step 3 ("every test passes") stops. The five goldens and every pin of cells pass on Node 24.21: no texel moves, only the
 last bit of one float of geometry. Which operation differs between the two V8 versions was not traced.
-**Changed:** task 5, step 3 now expects this one failure and makes it a stop for the coordinator with the measured
+**Ruled by the coordinator (2026-11-12):** the pin compares within a few ulps, in its own commit, with a test that no
+painted cell depends on that bit, and the plan names the authoritative Node. Measured for it: the difference is 1 ulp;
+on the wardrobe branch alone, 29 files and 353 tests (goldens, cell pins, `ulp`, `sheets`, hair, outfit, paint) pass
+identically on Node 22.23 and 24.21 but for this pin. **Changed:** task 5, step 3b (a nudge case in `ulp.test.ts` first,
+then the pin within 2 ulps; Node 24.21.0 named authoritative by `engines`, `.nvmrc`, `useNodeVersion` and CI). Earlier
+text: task 5, step 3 expected this one failure and made it a stop for the coordinator with the measured
 cause and the recommended fix: the pin compares within a few units in the last place (the cells are the painter's
 promise, and `ulp.test.ts` already holds them under a last-bit nudge), in its own `test(figures)` commit after the
 merge, never by re-recording under one Node. The Owner's arm64 run (task 13) must use Node 24.21, since the runtime is a

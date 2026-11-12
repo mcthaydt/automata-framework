@@ -846,13 +846,30 @@ suite passes; or the fix is reverted on the Owner's word.
 - [ ] **Step 3: Its suite.** `pnpm --filter @automata/figures test:unit`. Expected (measured by the plan audit with
   everything before it applied, Node 24.21): **52 files, 651 tests** (plus task 4c step 3b's), every test passing but
   one: `tests/features/body/face-d2.test.ts`, "headForm at the default sliders keeps its width, front and back",
-  `front 0.95: expected 0.07329037500000002 to be 0.07329037500000003`. It passes on Node 22.23 (the branch recorded it
-  there) and fails on the framework's Node 24.21: the pin holds one float of the head's profile to the last bit, and
-  the two V8 versions differ in it. No cell moves (the goldens and the cell pins pass). **This is a stop:** report it
-  to the coordinator with these numbers. The recommended answer: the pin compares within a few units in the last
-  place, as a `test(figures)` commit of its own after the merge, because the painter's promise is its cells (which
-  `ulp.test.ts` holds under a last-bit nudge), not the last bit of a profile; never a re-record under one Node. Any
-  other failure is a stop too. Record the file and test counts in the log; they are the expected counts from here on.
+  `front 0.95: expected 0.07329037500000002 to be 0.07329037500000003`. The two numbers are **1 ulp** apart. The branch
+  recorded the pin on Node 22.23, where it passes; the framework's Node is 24.21, and the two V8 versions differ in that
+  last bit. Measured on the wardrobe branch alone, under both Nodes: 29 files, 353 tests (the five goldens, the identity
+  and wardrobe cell pins, `ulp.test.ts`, `stage/sheets.test.ts`, and the hair, outfit and paint tests) pass identically,
+  and only this pin differs. Record the counts in the log; any other failure is a stop.
+- [ ] **Step 3b: The pin holds within 2 ulps (the coordinator's ruling of 2026-11-12).** Its own commit, after the
+  merge, never a re-record:
+  1. The proof first, in `tests/features/hair/ulp.test.ts` (the suite's last-bit guard): a case that draws the base
+     pair's standing views at densities 1 and 2 with `headForm`'s `width`, `front` and `back` nudged by +1 and by -1
+     ulp at every `t` (wrap the form the way `tests/support/ulp.ts` wraps the maths), and expects every cell's md5
+     equal to the un-nudged draw. Run it: it must PASS on Node 24.21, which shows no painted cell depends on that bit.
+     If it fails, a cell does depend on it: **stop**, tell the coordinator, and do not loosen the pin.
+  2. The pin: each `toBe` in that test becomes an ulp distance of at most 2 (a small helper in the test: the two
+     doubles' bit patterns as `BigInt64Array`, their difference), with a comment: the profile is a few float operations
+     whose last bit differs between V8 versions (measured 1 ulp between Node 22.23 and 24.21); 2 allows one more
+     rounding and nothing a cell could see, which step 1's case proves.
+  3. The whole suite on Node 24.21 passes; then the five goldens and both test files once more under Node 22.23, with
+     a Node 22.23 binary run directly (the cloud image's own `node` is 22.23.4; in the package:
+     `node node_modules/vitest/vitest.mjs run <files>`), or say it could not run. Commit `test(figures): the head's profile pin holds within 2 ulps across
+     Node versions`, its body quoting the ruling and naming the Node versions run.
+  The authoritative Node for every gate is **24.21.0**: `package.json` `engines` (`>=24.21.0`, with `engineStrict`),
+  `.nvmrc`, `pnpm-workspace.yaml`'s `useNodeVersion: 24.21.0` (so `pnpm` runs it even where the machine's own `node` is
+  older: the cloud image's is 22.23.4), and CI's `actions/setup-node` with `node-version-file: .nvmrc`. A cell that ever
+  differs by Node version is a stop, never a tolerance.
 - [ ] **Step 4: The kit.** Its unit and Chromium suites at the baseline's counts, `git status` clean. The branch
   promises that a field left out changes nothing; a moved kit cell means it did not hold, and is a stop.
 - [ ] **Step 5: Its documents, as a record.** Copy the wardrobe cycle's spec, plan and plan audit from `$FB` at
