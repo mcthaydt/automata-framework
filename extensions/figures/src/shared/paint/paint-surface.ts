@@ -1,4 +1,4 @@
-import { isArm, isLeg } from './paint-budget'
+import { isArm, isLeg, K2 } from './paint-budget'
 import { facePlane, onForm } from './paint-face'
 import type { AfterPrepare } from './paint-prepare'
 import { FACE_DEEP, FACE_KEY, FACE_SEAM, KEY, LIGHT } from './paint-style'
@@ -342,3 +342,136 @@ export function keyLight(ctx: AfterFaceForm) {
 
 /** The context once `keyLight` has run. */
 export type AfterKeyLight = AfterFaceForm & ReturnType<typeof keyLight>
+
+/**
+ * Quilting: a sewn chamber (a surface beside another of its group in the same ramp under another name, as a
+ * puffer's baffles are) is lit as one pillow by its rows across the band, its crest light, its body mid or shadow,
+ * its last row before the stitch deep.
+ */
+export function quiltedBands(ctx: AfterKeyLight) {
+  const { D, group, h, lit, material, materials, modelled, n, part, thOf, tones, w } = ctx
+  // Quilting: a sewn chamber (a surface beside another of its group in the same ramp under another name, as garments.ts
+  // `chambers` makes a puffer's baffles, and long across its run) is lit as one pillow by its rows across the band: its
+  // first rows on the key's side the crest (light where the band faces the key, mid away from it), its body mid or
+  // shadow by the band's own light, its last row before the stitch deep. Each baffle then reads as one clean roll over a
+  // shadow, varying only in width with the light, never as islands of light where the bumps catch it.
+  const band = new Int8Array(n).fill(-9)
+  {
+    const by = new Map<number, number[]>()
+    for (let k = 0; k < n; k++)
+      if (modelled(k)) {
+        let a = by.get(part[k])
+        if (!a) {
+          a = []
+          by.set(part[k], a)
+        }
+        a.push(k)
+      }
+    for (const [p, ks] of by) {
+      if (ks.length < 4 * D * D) continue
+      let stitched = 0,
+        mx = 0,
+        my = 0
+      for (const k of ks) {
+        const x = k % w,
+          y = (k - x) / w
+        mx += x
+        my += y
+        for (const q of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w])
+          if (
+            q >= 0 &&
+            q < n &&
+            part[q] !== p &&
+            modelled(q) &&
+            group[q] === group[k] &&
+            material[q] !== material[k] &&
+            tones[material[q]] === tones[material[k]]
+          )
+            stitched++
+      }
+      if (stitched < 2 * D) continue
+      mx /= ks.length
+      my /= ks.length
+      let sxx = 0,
+        syy = 0,
+        sxy = 0
+      for (const k of ks) {
+        const x = (k % w) - mx,
+          y = (k - (k % w)) / w - my
+        sxx += x * x
+        syy += y * y
+        sxy += x * y
+      }
+      // The band's run is its long axis; across it (the short one) its rows go from the stitch on the key's side to the next.
+      const tr = (sxx + syy) / 2,
+        det = Math.sqrt(Math.max(0, ((sxx - syy) / 2) ** 2 + sxy * sxy)),
+        lo = tr - det,
+        hi = tr + det
+      if (hi < lo * 3.2) continue
+      let ux = sxy,
+        uy = lo - sxx
+      if (Math.abs(ux) + Math.abs(uy) < 1e-9) {
+        ux = sxx <= syy ? 1 : 0
+        uy = sxx <= syy ? 0 : 1
+      }
+      const ul = Math.hypot(ux, uy)
+      ux /= ul
+      uy /= ul
+      if (Math.abs(ux) > 0.92) {
+        ux = Math.sign(ux)
+        uy = 0
+      } else if (Math.abs(uy) > 0.92) {
+        ux = 0
+        uy = Math.sign(uy)
+      }
+      if (ux * K2[0] + uy * K2[1] > 0) {
+        ux = -ux
+        uy = -uy
+      }
+      const th = thOf(ks[0]),
+        gloss = materials[material[ks[0]]].gloss !== undefined
+      for (const k of ks) {
+        const x = k % w,
+          y = (k - x) / w
+        let a = 0,
+          b = 0,
+          sum = lit[k],
+          c = 1
+        const at = (i: number) => {
+          const xx = Math.round(x + ux * i),
+            yy = Math.round(y + uy * i)
+          return xx >= 0 && yy >= 0 && xx < w && yy < h && part[yy * w + xx] === p ? yy * w + xx : -1
+        }
+        for (let q = at(-1); q >= 0 && a < 12 * D; q = at(-(++a + 1))) {
+          sum += lit[q]
+          c++
+        }
+        for (let q = at(1); q >= 0 && b < 12 * D; q = at(++b + 1)) {
+          sum += lit[q]
+          c++
+        }
+        const fb = sum / c,
+          rows = a + b + 1
+        // A glossy chamber's crest catches the key as one line of shine along its top, where the band faces it.
+        band[k] =
+          a < D && rows > D
+            ? fb > th[0] && a === 0 && gloss
+              ? -1
+              : fb > th[1]
+                ? 0
+                : 1
+            : b === 0 && rows >= 3
+              ? D > 1 && rows >= 4
+                ? 3
+                : 2
+              : fb > th[2]
+                ? 1
+                : 2
+      }
+    }
+  }
+  return { band }
+}
+
+/** The context once `quiltedBands` has run. */
+export type AfterQuiltedBands = AfterKeyLight & ReturnType<typeof quiltedBands>
