@@ -273,7 +273,11 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
           g.ankle + y,
           Math.cos(heading) * z,
         ]
-      : [x * g.hips * (walking ? gait.track : Math.max(gait.track, 0.75)), g.ankle + y, z]
+      : [
+          x * g.hips * (walking ? gait.track : (gait.standTrack ?? Math.max(gait.track, 0.75))),
+          g.ankle + y,
+          z,
+        ]
     return { side, at, pitch, turn: 0, planted: planted && walking }
   })
   // On its heel the ankle rides up the heel's reach (and on its toes, the toes'), so the foot pivots on the floor.

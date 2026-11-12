@@ -88,7 +88,7 @@ export const relaxed = (gait: Gait): Stand => ({
   weight: 'R',
   shift: gait.stance * RELAX,
   roll: gait.stance * 1.4 * RELAX,
-  under: 0.25,
+  under: gait.standTrack === undefined ? 0.25 : 1 - gait.standTrack,
   free: [gait.stanceLead * 0.25, gait.stance ? 0.01 : 0, gait.stance ? 0.11 : 0, 0],
   chest: [gait.stance * 0.3 * RELAX, 0, 0],
 })

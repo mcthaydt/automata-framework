@@ -135,7 +135,37 @@ const eyed =
     },
   })
 
+/** A gait number or two over the study figure's own (the stand's feet and arms). */
+const gaited =
+  (over: object): Look['patch'] =>
+  (def) => ({ ...def, gaitOverrides: { ...def.gaitOverrides, ...over } as CharacterDef['gaitOverrides'] })
+
 export const LOOKS: Readonly<Record<string, readonly Look[]>> = {
+  stand: [
+    {
+      label: 'before: the relaxed stand',
+      note: 'the feet at .75 of the hip joints’ half-width (today), the arms at standOut .03',
+      style: 'bobFull',
+    },
+    {
+      label: 'after: standTrack 1',
+      note: 'the feet under the hip joints: the legs stand apart',
+      style: 'bobFull',
+      patch: gaited({ standTrack: 1 }),
+    },
+    {
+      label: 'after: standTrack .5',
+      note: 'the feet closer together',
+      style: 'bobFull',
+      patch: gaited({ standTrack: 0.5 }),
+    },
+    {
+      label: 'after: standTrack 1, standOut .12',
+      note: 'the legs apart and the arms a little further from the body (standOut, already a gait number)',
+      style: 'bobFull',
+      patch: gaited({ standTrack: 1, standOut: 0.12 }),
+    },
+  ],
   eyes: [
     {
       label: 'before: the drawn face under a low fringe',
@@ -295,6 +325,18 @@ export function numbers(look: Look) {
   for (let y = 0; y < s.h; y++) for (let x = 0; x < s.w; x++) if (s.px[(y * s.w + x) * 4 + 3]) bottom = y
   out['figure rows, density 2'] = bottom - top(s) + 1
   out['heads tall'] = Math.round(((bottom - top(s) + 1) / head) * 100) / 100
+  // The stand: the width of the figure over its last 6 rows (its feet), and the gap between the legs at the knee, front, density 2.
+  {
+    let x0 = Number.POSITIVE_INFINITY,
+      x1 = -1
+    for (let y = bottom - 5; y <= bottom; y++)
+      for (let x = 0; x < s.w; x++)
+        if (s.px[(y * s.w + x) * 4 + 3]) {
+          x0 = Math.min(x0, x)
+          x1 = Math.max(x1, x)
+        }
+    out['feet span, front, D2 (texels)'] = x1 - x0 + 1
+  }
   // The face's skin in its steps, light to deep (shares of its skin texels, front view): measured from the cell.
   const steps = tonesOf(def.swatches?.[def.skin] ?? SWATCHES_LIB[def.skin])
   for (const D of [1, 2]) {
