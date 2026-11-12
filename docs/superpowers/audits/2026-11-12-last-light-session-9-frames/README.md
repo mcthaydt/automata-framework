@@ -40,3 +40,30 @@ Numbers, mean luma / mean hue of the same screen rectangle (old / ours before / 
 
 The east wall's hue 15 (peach) was the plaster's colour, not the lamp: with the old green it is 141 (old 149), and the whole frame's hue
 moves from 36 (a warm grey) to 164 (old 170). That settles most of item 5's "green" and the east-wall question session 8 left open.
+
+## Item 2: the window light on the floor
+
+`item2` strip: [`strip-item2-old-before-after.png`](strip-item2-old-before-after.png) (old, ours after item 1, ours after item 2).
+
+**What the old game does** (`moonShaft` and the `moonPatch` sprite in `src/scenes/clinic/dress.ts` and `src/render/assets.ts` at `92e6704`): there is no lamp
+or shadow. A small picture (32 by 96 texels, 4.4 cm each) of pale-blue stripes (a 7-texel period with 2 clear, so four bars between the
+window's bars' shadows, soft at the sides, fading in over 10 texels and out along its length) is laid flat on the floor, 1.7 cm up, rotated to
+run away from the window, and **drawn additively** (and the light shaft through the air as a second, soft quad). The ward's window is in the back wall at x -4.
+
+**What the framework could say.** Nothing: the baked light is per vertex and its lamps are points, so a pattern a few centimetres across cannot be
+baked; `moon: true` on a window is in the level schema and read by nothing; a thin flat prop is opaque, not added. So this is a **new, small, generic
+shape**, built with tests as the brief allows, and the coordinator is told: `LightPatch` and `drawLightPatches` in `@automata/3d` (`shared/render/light/light-patch.ts`,
+`features/look/light-patch-view.ts`): a window, the patch's middle, its size, its bars, its gain and colour, the rooms it shows in; the stripes' texels and
+corners are pure and tested (`tests/unit/look/light-patch.test.ts`), the quad is a flat unlit mesh added to the floor in the room's pass, so the look's snap that
+follows cuts the sum into whole DUEL steps. The game says its patch as data in `content/look.toml` `[[moonlight]]`, schema-checked.
+
+| Box (330 340 670 500) around the stripes | Mean luma | 95th percentile |
+|---|---|---|
+| old | 46.3 | 80.9 |
+| ours after item 1 (no stripes) | 44.1 | 78.0 |
+| ours with the old gain 0.5, start as the old's | 52.0 | 104.3 |
+| ours at gain 0.38, start 0.35 m further along | 50.4 | 88.4 |
+
+**Not done:** the corridor's window (the old game's second patch and the light shaft in the air). The hall's camera draws the corridor too, so its stripes
+show through the doorway where the old game hides them; it waits for a patch that follows the player's room. The glass in the ward's window draws black with
+dither speckle in play (the dark rectangle top centre): item 7's "bright cyan window" is the other half of it.

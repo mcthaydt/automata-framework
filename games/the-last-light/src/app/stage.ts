@@ -1,5 +1,6 @@
 import { content } from 'virtual:automata/content'
 import {
+  drawLightPatches,
   drawWorld,
   type ModelLibrary,
   type Occluders,
@@ -28,6 +29,7 @@ import { anchorsOf } from './anchors.ts'
 import { sounds } from './audio.ts'
 import { createEnding } from './ending.ts'
 import { live } from './live.ts'
+import { lookProfilesSchema } from './look-profiles.content.ts'
 import { adaAt } from './presentation.ts'
 import { installProbe } from './probe.ts'
 import { noteEvents, resetScreen } from './screen-state.ts'
@@ -80,6 +82,12 @@ export function sceneOf(options: StageOptions) {
       models,
     })
 
+    // The moonlight on the floor under the barred windows: stripes the room's baked light cannot say, laid on the floor and added to it.
+    const moonlight = drawLightPatches(
+      view.root as Container3D,
+      lookProfilesSchema.parse(content.look ?? {}).moonlight,
+    )
+
     // The lights of the room: the level's lamps at the levels the pieces' state says.
     let shown = noPieceStates()
     const apply = (states: PieceStates): void => {
@@ -120,7 +128,12 @@ export function sceneOf(options: StageOptions) {
 
     const rooms = roomHooks({
       level: LEVEL,
-      world: drawn,
+      world: {
+        showRooms: (rooms) => {
+          drawn.showRooms(rooms)
+          moonlight.showRooms(rooms)
+        },
+      },
       view: () => camera?.active(),
       player: () => adaAt(live.sim),
       peek: peekSpot,

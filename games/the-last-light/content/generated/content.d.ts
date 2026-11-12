@@ -739,6 +739,17 @@ declare module 'virtual:automata/content' {
     readonly light: {
       readonly lamps: number
     }
+    readonly moonlight: readonly ({
+      readonly bars: number
+      readonly centre: readonly [number, number]
+      readonly colour?: string
+      readonly gain: number
+      readonly id: string
+      readonly length: number
+      readonly rooms?: readonly string[]
+      readonly width: number
+      readonly window: readonly [number, number]
+    })[]
     readonly retro: {
       readonly cell: number
       readonly fade: {

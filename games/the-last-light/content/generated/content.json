@@ -3903,6 +3903,27 @@
     "light": {
       "lamps": 0.7
     },
+    "moonlight": [
+      {
+        "bars": 4,
+        "centre": [
+          0,
+          0.215
+        ],
+        "gain": 0.38,
+        "id": "moon",
+        "length": 4.6,
+        "rooms": [
+          "hall",
+          "ward"
+        ],
+        "width": 1.4,
+        "window": [
+          -4,
+          -3.72
+        ]
+      }
+    ],
     "retro": {
       "cell": 1,
       "fade": {

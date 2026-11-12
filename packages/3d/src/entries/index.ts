@@ -79,6 +79,7 @@ export {
 } from '../features/look/grade.ts'
 export { GradeEffect } from '../features/look/grade-effect.ts'
 export { HazeEffect, hazed, hazeOf, hazeShare } from '../features/look/haze.ts'
+export { drawLightPatches, type LightPatches } from '../features/look/light-patch-view.ts'
 export {
   DEFAULT_LOOK,
   type HazeProfile,
@@ -143,6 +144,7 @@ export type {
   FigureShadows,
   Silhouette,
 } from '../shared/render/light/figure-shadow.ts'
+export type { LightPatch } from '../shared/render/light/light-patch.ts'
 export { type BakeOptions, createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 export { sceneLightingContent } from '../shared/render/light/scene-lighting.content.ts'
 export {
