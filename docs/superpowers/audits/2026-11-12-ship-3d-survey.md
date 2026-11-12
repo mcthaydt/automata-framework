@@ -70,18 +70,21 @@ world-kit, lcd-panel, retro-crisp → 3d.
 ## 3. Each package to publish, as it is
 
 Lines are `.ts` and `.svelte` under `src/`. "ID errors" is `tsc -p . --noEmit --isolatedDeclarations true` counting
-`TS9xxx`: the shared tsdown build writes declarations with isolatedDeclarations, so each is an export that needs a written
-type before the package can build. A dash means the flag is already on in that package's `tsconfig.json`.
+`TS9xxx`: the shared tsdown setup is meant to write declarations with isolatedDeclarations, so each is an export that
+needs a written type before the package builds the way the setup intends. (Corrected by the plan audit: tsdown does
+build without them, writing the declarations with TypeScript 7's emitter when the flag is off; every kit built that way
+in its trial. The written types are the coordinator's ruling, not a build blocker.) A dash means the flag is already on
+in that package's `tsconfig.json`.
 
 | Package | Lines | Entries | README | Unit / browser test files | Non-code under `src/` | ID errors | Needs beyond a plain tsdown config |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `3d` | 25,425 | 13 | yes | 145 / 21 | 3 JSON libraries (imported `with { type: 'json' }`, bundled); `testing/model/fixtures` (`.glb`, `.pack`, `.md`) | — | `vitest` as an optional peer; the testing fixtures (below) |
 | `figures` | 14,703 | 3 | yes | 54 / 4 | 8 JSON libraries | **174** | the declarations step (`tsconfig.types.json`, `types/`) is replaced by the build |
 | `character-kit` | 4,989 | 2 | yes | 29 / 10 | none | 16 | |
-| `world-kit` | 7,186 | 3 | yes | 23 / 6 | none (38 recorded PNGs under the package) | 17 | |
+| `world-kit` | 7,186 | 3 | yes | 23 / 6 | none (38 source photos under `assets/photos/`, read by the `./textures` command; JSON libraries under `library/`, imported and bundled) | 17 | `./textures` reads `library/` and `assets/photos/` by path (plan audit) |
 | `lcd-panel` | 379 | 2 | yes | 4 / 3 | none | 2 | |
 | `retro-crisp` | 718 | 2 | yes | 7 / 4 | none | 4 | |
-| `cutscenes` | 1,956 | 8 | yes | 13 / 2 | `.svelte`, `.toml` | — | the Svelte build (`svelte-package`, as `debug` and `net-ui` do) |
+| `cutscenes` | 1,956 | 8 | yes | 13 / 2 | `.svelte`, `.toml` | — | the Svelte build (`svelte-package` and `finishSvelteDist`, no tsdown, as `debug` and `net-ui` do) |
 | `narrative` | 4,639 | 7 | yes | 25 / 2 | `.svelte`, `.toml`, `.md` | — | the Svelte build |
 | `sectors` | 1,168 | 5 | yes | 9 / 1 | JSON | — | |
 | `nav` | 661 | 3 | yes | 7 / 1 | `.toml` | — | how the `.toml` is read |
@@ -175,7 +178,8 @@ Changed runtime files outside `math/` and `extras/`, by area, and the AF files t
 | textures, image-based light | `textures/DefaultTextures`, `ibl/generateIblSpecialCubemap` | none found by name |
 
 Recorded files that Part D may move: `packages/3d` (12 golden files), `extensions/figures` (21),
-`extensions/character-kit` (5), `examples/3d` (3), and world-kit's 38 PNGs.
+`extensions/character-kit` (5) and `examples/3d` (3). (World-kit's 38 PNGs are source photos, not recorded pictures:
+corrected by the plan audit.)
 
 ## 8. What contradicts the spec
 
@@ -186,14 +190,20 @@ Recorded files that Part D may move: `packages/3d` (12 golden files), `extension
    done by the beta.3 port.
 4. `claude/pixi-3d-public` conflicts with `main` in three files, two of them the painter's. Its step 3 (proof) was "not
    started" in its own record.
-5. The shared build needs isolatedDeclarations: five packages (213 errors together) cannot be "built like the
-   framework" by adding a config alone.
+5. The shared setup intends isolatedDeclarations: five packages (213 errors together) are not "built like the
+   framework" by adding a config alone, although tsdown does build them (plan audit).
 
 ## 9. Not measured
 
 - Exported names and undocumented exports per package (needs each package in `tooling/api-index`'s entry list).
-- Packed sizes of the twelve kits (only `3d` was trial-built).
+  **Measured by the plan audit**: `@automata/3d` 805 exports, 275 undocumented; the twelve kits 516 undocumented
+  (the plan's Part B table).
+- Packed sizes of the twelve kits (only `3d` was trial-built). **Measured by the plan audit**: 533,977 bytes together,
+  per kit in the plan's Part B table; `nav` builds only without its `./testing/clinic` entry.
 - The journey after the Play click (blocked by the rotate hint), every browser suite, and anything on WebKit or Firefox.
-- `claude/editor-journeys-green` (not fetched).
+  **The journey was run to the end by the plan audit** on SwiftShader: with the built package's `dist` side-effect files
+  listed and the page turned sideways, `1 passed (35.0s)`; without the `dist` side-effect files, the game fails at boot
+  (`import '@automata/3d/no-eval' first`).
+- `claude/editor-journeys-green` (not fetched). Still not on `origin` at the plan audit.
 - The DUEL palette's source and terms (no network search was made).
 - The pixels of 0.1.0: only the file lists were compared.

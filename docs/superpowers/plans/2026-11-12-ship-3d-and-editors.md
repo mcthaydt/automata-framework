@@ -133,6 +133,10 @@ So that either order works, every task obeys these:
 2. No file or folder name carries the scope. Pack file names (`automata-3d-0.0.5.tgz`) are read from `pnpm pack`'s
    output, never written by hand.
 3. No hash, golden or snapshot may contain the scope (it would move on the rename). If a task finds one, it stops.
+   (The games' generated `content.d.ts` files name `@automata/*` in their imports: they are generated types, not
+   records, and the rename rewrites them with everything else.)
+6. Never find a pack by its file name. A pattern such as `/automata-tools-.*\.tgz$/` (`run.ts:178` today) stops
+   matching after the rename and the check it guards passes silently; read the name from the tarball's `package.json`.
 4. If the rename has already merged when a session starts, read every `@automata/<name>` in this plan as the new scope
    and change nothing else.
 5. A session never runs `rename-scope` itself.
@@ -1078,3 +1082,4 @@ The coordinator: use the measured numbers. Where the spec and the survey differ,
 
 | Date | Session | Task | What happened |
 | --- | --- | --- | --- |
+| 2026-11-12 | plan audit (stage 3) | all | 27 findings fixed in this plan ([the audit](../audits/2026-11-12-ship-3d-plan-audit.md)): A1 is a merge-base check over 108 recorded files; A2 sets no registry while private; A3 has its own pack test; A4 measures 275 undocumented exports by a working-tree flip; A5 writes the shared lists (workspace-only entries, published-imports test, caret peers, the isolatedDeclarations case); A6 runs in the session (`1 passed (35.0s)` on SwiftShader, measured); Part B stepped per task with each kit measured; B4 keeps the painter's declarations step; Part C packages the v2 landing's one page; D2 is eight areas. No task ticked. |
