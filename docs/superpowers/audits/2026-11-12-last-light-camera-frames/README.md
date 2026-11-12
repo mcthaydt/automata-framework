@@ -122,3 +122,30 @@ Sheets: `s2-b-sheet-hall-4-sides-3-headings.png`, `s2-b-sheet-corridor-2-ends-3-
 a faint band crosses her head; a bin in front of her legs at the key cabinet fades the same way. **Facing pops at the 8-way boundaries were not
 judged from these frames** (stills cannot show a pop); the hold (7.5 degrees) is covered by the kit's unit tests and `camera.test.ts`, not
 by a slow turn shot.
+
+## Session 2, item (c): see the room: tilt 25 adopted
+
+Measured in Node for the hall's lens and distance (`reachOf`, `bestLookHeight`; the floor the frame's middle column covers, along the view):
+
+| lens, distance | tilt | look height | reach | floor shown along the view |
+| --- | --- | --- | --- | --- |
+| 79 mm, 8 m | 30 | 1.05 m | 0.52 m | -0.61 to 5.98 m (6.6 m) |
+| 79 mm, 8 m | **25** | **1.00 m** | **0.57 m** | -0.67 to 7.67 m (8.3 m) |
+| 79 mm, 8 m | 20 | 0.95 m | 0.66 m | -0.77 to 10.83 m (11.6 m) |
+| 79 mm, 8 m | 15 | 0.90 m | 0.81 m | -0.94 to 18.91 m (19.9 m) |
+| 100 mm, 10.13 m (same zoom) | 25 | 0.95 m | 0.57 m | 7.5 m |
+| 120 mm, 12.15 m (same zoom) | 25 | 0.95 m | 0.59 m | 7.1 m |
+
+A longer lens at the same zoom changes the reach by a centimetre or two and shows less floor: kept at 79 mm. Frames
+(`s2-c-sheet-tilt-30-25-20-15.png`; the hall's south and east walls, tilts below 25 tried by widening the schema's range for the trial only,
+not committed): lower tilts show more of the wall she stands at and sink her in the frame; at 20, and plainly at 15, the room is seen near
+level while her sprite is still painted from the renders' pitch, so she reads tipped toward the camera (the top of her head, the floor
+compressed under her). 25 gives 10% more reach and 26% more floor than 30 with no visible tipping, and stays inside the camera rule's 25
+to 40 degrees. **Adopted for all three rooms**, the pins re-derived by `room-fit.test.ts`'s derivation (from the old asks, a 1.5 m lead and
+a 1/7 s lag): look 1.0 m; lead 0.27 m (hall) and 0.29 m (corridor); lag 0.09 s; peek 0.27 / 0.29 m; the closet's box 1.94..4.26 by
+-6.16..-2.84. On the way, a rounding bug in `fitFocus` (0.29 x 100 is 28.999..., so a view given its own lead of 0.29 derived 0.28) is fixed
+with a test (`play-fit.test.ts`, the fixed point). `content.hash` moves.
+
+In play at the adopted numbers (`s2-c-sheet-tilt-25-adopted-in-play.png`, looked at): mid-hall from two headings, the hall's north end from the
+south (the peek held to 0.27 m: her feet in the frame), mid-corridor side-on, the closet: she is whole, her feet planted on the floor with
+her contact shade under them, and mid-hall shows more floor and furniture than at 30.

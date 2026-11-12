@@ -167,7 +167,9 @@ export function fitFocus(
 ): FocusFit {
   const reach = reachOf(view, sprite, fields, margin)
   const budget = Math.max(0, reach - FOLLOW_DEAD_ZONE.landscape)
-  const floor2 = (value: number): number => Math.floor(value * 100) / 100
+  // Down to the centimetre, with a hair of tolerance: 0.29 × 100 is 28.999999999999996, and a view given its own derived numbers
+  // must derive them again.
+  const floor2 = (value: number): number => Math.floor(value * 100 + 1e-9) / 100
   const lag = Math.min(view.lag, floor2(budget / Math.max(speed, 1e-6)))
   const lead = floor2(Math.min(view.lead ?? 0, budget))
   const spare = Math.max(0, budget - Math.max(lag * speed, lead))

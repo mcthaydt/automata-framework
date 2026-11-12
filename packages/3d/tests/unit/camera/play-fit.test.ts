@@ -73,6 +73,21 @@ describe('fitFocus', () => {
   it('lets a peek lean no further than that budget: a peek starts once the figure stands, with the look held by the dead zone', () => {
     expect(fit.peekReach).toBe(Math.floor(budget * 100) / 100)
   })
+  it('is a fixed point: a view given its own derived numbers derives them again (0.29 m stays 0.29, not 0.28)', () => {
+    // The Last Light's corridor at 25 degrees: its budget is 0.29 m and more, so a lead of 0.29 m must survive the rounding.
+    const corridor = cameraView('corridor', {
+      look: [0, 1, 0],
+      tiltDeg: 25,
+      distance: 8.25,
+      lensMm: 79,
+      lead: 1.5,
+      lag: 0.09,
+    })
+    const first = fitFocus(corridor, walkable, 3, SPRITE, FIELDS, 8)
+    expect(first.lead).toBe(0.29)
+    const again = fitFocus({ ...corridor, lead: first.lead, lag: first.lag }, walkable, 3, SPRITE, FIELDS, 8)
+    expect([again.lead, again.lag, again.peekReach]).toEqual([first.lead, first.lag, first.peekReach])
+  })
   it('keeps the focus box inside the walkable floor', () => {
     expect(fit.focusBounds.min[0]).toBeGreaterThanOrEqual(-4)
     expect(fit.focusBounds.max[1]).toBeLessThanOrEqual(6)

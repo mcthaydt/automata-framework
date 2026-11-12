@@ -1609,42 +1609,45 @@
   ],
   "views": {
     "hall": {
-      "look": [0, 1.05, 0.75],
+      "look": [0, 1, 0.75],
+      "tiltDeg": 25,
       "distance": 8,
       "lensMm": 79,
       "follow": 1,
-      "lead": 0.22,
+      "lead": 0.27,
       "focusBounds": {
         "min": [-5.02, -3.6],
         "max": [4.67, 6.67]
       },
-      "lag": 0.07,
-      "peekReach": 0.22
+      "lag": 0.09,
+      "peekReach": 0.27
     },
     "corridor": {
-      "look": [0, 1.1, -4],
+      "look": [0, 1, -4],
+      "tiltDeg": 25,
       "distance": 8.25,
       "lensMm": 79,
       "follow": 1,
-      "lead": 0.21,
+      "lead": 0.29,
       "focusBounds": {
         "min": [-1.27, -6.67],
         "max": [1.52, -1.08]
       },
-      "lag": 0.07,
-      "peekReach": 0.21
+      "lag": 0.09,
+      "peekReach": 0.29
     },
     "closet": {
-      "look": [2.8, 1.1, -4.4],
+      "look": [2.8, 1, -4.4],
+      "tiltDeg": 25,
       "distance": 8.25,
       "lensMm": 79,
       "follow": 1,
       "focusBounds": {
-        "min": [1.93, -6.17],
-        "max": [4.27, -2.83]
+        "min": [1.94, -6.16],
+        "max": [4.26, -2.84]
       },
-      "lag": 0.07,
-      "peekReach": 0.21
+      "lag": 0.09,
+      "peekReach": 0.29
     }
   },
   "entityDefs": [
