@@ -150,4 +150,10 @@ describe('the figure as the frame shows it', () => {
     pass.reset()
     expect(pass.step(at({ x: 2, y: 0.9, z: 3 }, 0.32)).props[0]).toBe(0.25)
   })
+  it('leaves a tall prop she stands beside: a side of her sprite inside its box is beside it, not behind it', () => {
+    // A cabinet from 0.2 to 0.6 m to her right, level with her: the sprite's right edge (0.32 m) ends inside it.
+    const cabinet = { min: [2.2, 0, -2.2], max: [2.6, 1.9, -1.8] } as const
+    const pass = occluderPass({ walls: [], props: [{ bounds: cabinet, occlude: 'fade' }] })
+    expect(pass.step(at({ x: 2, y: 3, z: 3 }, 0.32)).props[0]).toBe(1)
+  })
 })

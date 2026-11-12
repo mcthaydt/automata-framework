@@ -97,3 +97,28 @@ Frames (Chromium, software GL, 1024 by 768):
 - `s2-a-after-corridor-end-from-north.png`: clear.
 - `s2-a-after-hall-north-from-south-FEET-OFF-FRAME.png`: **a new defect for item (b)**: at the hall's north end looking north, after walking
   north, her feet run off the bottom of the frame: the look is held ahead of her by the walk, at the edge of the derived reach.
+
+## Session 2, item (b): every room in play, looked at
+
+Seven places by coordinates (the hall's south, east, west and north sides, the corridor's two ends, the closet), each from headings 0, 120 and
+240 (the closet also from 300 in its north-west corner). The closet is locked until the key cabinet's code: the shots helper now takes
+`name:tap:hotspot`, `name:code:digits` and `name:press:label` (a message's Close), so the walk reaches it (`-:tap:cabinet;-:code:2000;
+-:tap:closetDoor;-:press:Close;-:walk:3.1,-4.6`). Every frame was looked at; in every one she is whole, in the frame and unoccluded.
+
+**Fixed on the way (tests first):**
+- **The peek took her out of the frame** (`s2-a-after-hall-north-from-south-FEET-OFF-FRAME.png`): standing 0.6 s near a doorway the camera
+  leaned 1.2 m (`peek.toml`) toward the next room, more than twice the 0.52 m this scale's frame allows. A view may now cap its lean
+  (`peekReach`, `@automata/3d`; the rig's `clampPeek` takes it), and `fitFocus` derives it: the reach less the follow's dead zone (a peek
+  starts once she stands, so no lead or lag, but the dead zone may hold the look that far off). The level's views: hall 0.22 m, corridor and
+  closet 0.21 m, pinned to the derivation by `room-fit.test.ts`, which now also sweeps a standing peek 8 ways with the dead zone held 8 ways
+  from every 15 degrees (it fails with the old 1.2 m). `content.hash` moves: the views are sim content.
+  After: `s2-b-after-hall-north-from-south-peek-capped.png`.
+- **A tall prop she stands beside faded** (`s2-b-before-hall-east-h240-key-cabinet-wrongly-faded.png`): the side of her sprite reached into
+  the key cabinet's box, so item (a)'s side lines called it "on the line". A point inside a prop's box is beside it, not behind it.
+  After: `s2-b-after-hall-east-h240-key-cabinet-whole.png`.
+
+Sheets: `s2-b-sheet-hall-4-sides-3-headings.png`, `s2-b-sheet-corridor-2-ends-3-headings.png`, `s2-b-sheet-closet-and-the-two-fixes.png`
+(the closet's and the fixes' frames). Notes: the strip lights fade to 25% (the rule's `fade`), so at the corridor's south end from the north
+a faint band crosses her head; a bin in front of her legs at the key cabinet fades the same way. **Facing pops at the 8-way boundaries were not
+judged from these frames** (stills cannot show a pop); the hold (7.5 degrees) is covered by the kit's unit tests and `camera.test.ts`, not
+by a slow turn shot.

@@ -10,7 +10,10 @@ import { begin, stateOf, waitFor } from './driver.ts'
 // mouse drags `px` to the right (negative: left) across the scene with its left button, as a player turns it. The keys walk relative to the
 // camera, so after a turn a key walk goes somewhere else; a `walk` entry (`name:walk:x,z`) walks her to a point on the plan in metres instead
 // (the probe's nav walk), and a `face` entry (`name:face:deg`) turns the camera to a heading in degrees (0 looks toward +z, so 0 frames her
-// from the north): a shot then means the same place and the same view whatever came before it. A `name` of `-` takes no frame.
+// from the north): a shot then means the same place and the same view whatever came before it. A `tap` entry (`name:tap:hotspot`) uses a
+// hotspot as a tap does and a `code` entry (`name:code:digits`) enters a code, so a shot can reach a room the story opens (the closet: the
+// cabinet, its code, the closet door), and a `press` entry (`name:press:Close`) presses an on-screen button by its words (a message's
+// Close, so it does not cover her). A `name` of `-` takes no frame.
 //
 //   AF_WEBGPU=software AF_SHOOT=<folder> AF_SHOOT_STEPS='-:walk:0,-6.2;corridor-end:face:0' pnpm --filter @af-games/the-last-light test:e2e --grep "play frames"
 const OUT = process.env.AF_SHOOT
@@ -33,18 +36,29 @@ test('play frames', async ({ page }) => {
   await page.evaluate(() => globalThis.__lastLight?.skip())
   await waitFor(page, { cutscene: null }, 600_000)
   await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 90 })
+  /** Waits until she has stopped: her place no longer changes from one look to the next. */
+  const settle = async (): Promise<void> => {
+    let last = { x: Number.NaN, z: Number.NaN }
+    for (;;) {
+      await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 20 }, 300_000)
+      const at = (await stateOf(page)).ada ?? last
+      if (Math.hypot(at.x - last.x, at.z - last.z) < 0.001) break
+      last = at
+    }
+  }
   for (const { name, key, arg, ticks } of STEPS) {
     if (key === 'walk') {
       const [x = 0, z = 0] = arg.split(',').map(Number)
       await page.evaluate(([x, z]) => globalThis.__lastLight?.walk(x, z), [x, z] as const)
-      // There once she has stopped within a few centimetres of it, or as near as a wall lets her (her place stops changing).
-      let last = { x: Number.NaN, z: Number.NaN }
-      for (;;) {
-        await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 20 }, 300_000)
-        const at = (await stateOf(page)).ada ?? last
-        if (Math.hypot(at.x - x, at.z - z) < 0.05 || Math.hypot(at.x - last.x, at.z - last.z) < 0.001) break
-        last = at
-      }
+      await settle()
+    } else if (key === 'tap') {
+      await page.evaluate((at) => globalThis.__lastLight?.tap(at), arg)
+      await settle()
+    } else if (key === 'press') {
+      await page.getByRole('button', { name: arg, exact: true }).click()
+    } else if (key === 'code') {
+      await page.evaluate((code) => globalThis.__lastLight?.code(code), arg)
+      await settle()
     } else if (key === 'face') {
       const want = Math.round((ticks * TURN) / 360) & (TURN - 1)
       while (Math.abs(((((await stateOf(page)).heading ?? want) - want + TURN / 2) % TURN) - TURN / 2) > 1) {

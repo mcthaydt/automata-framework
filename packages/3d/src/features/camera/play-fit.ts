@@ -140,6 +140,11 @@ export interface FocusFit {
   readonly lead: number
   /** The follow's time constant (seconds) the view may keep, at most what it asked for. */
   readonly lag: number
+  /**
+   * The most a peek may lean the camera (metres): the reach less the dead zone, since a peek starts only once the figure has stood
+   * a while, with no lead or lag, and the dead zone may still hold the look that far off.
+   */
+  readonly peekReach: number
   /** The reach the box and the lead were taken from. */
   readonly reach: number
 }
@@ -172,7 +177,13 @@ export function fitFocus(
   const [x0, x1] = axis(walkable.min[0], walkable.max[0])
   const [z0, z1] = axis(walkable.min[1], walkable.max[1])
   const round = (value: number): number => Math.round(value * 100) / 100
-  return { focusBounds: { min: [round(x0), round(z0)], max: [round(x1), round(z1)] }, lead, lag, reach }
+  return {
+    focusBounds: { min: [round(x0), round(z0)], max: [round(x1), round(z1)] },
+    lead,
+    lag,
+    peekReach: floor2(budget),
+    reach,
+  }
 }
 
 /**

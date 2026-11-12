@@ -156,12 +156,15 @@ export function stepFraming(
 export const PEEK_REACH = 1.2
 
 /**
- * A peek `offset` along the floor (x, z), cut back to `PEEK_REACH` in the same direction. The rig slides the eye and the
- * look by it together, eased in and out, so the angle and the lens stay.
+ * A peek `offset` along the floor (x, z), cut back to `reach` (a view's `peekReach`, else `PEEK_REACH`) in the same direction. The
+ * rig slides the eye and the look by it together, eased in and out, so the angle and the lens stay.
  */
-export function clampPeek(offset: { readonly x: number; readonly z: number }): { x: number; z: number } {
+export function clampPeek(
+  offset: { readonly x: number; readonly z: number },
+  reach: number = PEEK_REACH,
+): { x: number; z: number } {
   const length = Math.hypot(offset.x, offset.z)
-  const k = length > PEEK_REACH ? PEEK_REACH / length : 1
+  const k = length > reach ? reach / length : 1
   return { x: offset.x * k, z: offset.z * k }
 }
 

@@ -71,6 +71,8 @@ describe('the rooms at the near scale under a turning camera', () => {
       expect(view.focusBounds).toEqual(fit.focusBounds)
       expect(view.lead ?? 0).toBe(fit.lead)
       expect(view.lag).toBe(fit.lag)
+      // A peek round a doorway leaned 1.2 m and took her out of the frame: it leans no further than the reach leaves.
+      expect(view.peekReach, 'peek reach').toBe(fit.peekReach)
     })
 
     it(`${id}: her whole sprite is in the frame from every heading, at every corner and doorway, walking any way`, () => {
@@ -105,6 +107,35 @@ describe('the rooms at the near scale under a turning camera', () => {
                 if (!insideFrame(box, field, MARGIN))
                   out.push(`${x.toFixed(2)},${z.toFixed(2)} heading ${heading} ${field.lines} lines`)
               }
+            }
+      expect(out.slice(0, 5)).toEqual([])
+    })
+
+    it(`${id}: her whole sprite stays in the frame while she stands and the camera peeks, any way, from every heading`, () => {
+      const view = viewOf(id)
+      const room = walkableOf(id)
+      const reach = view.peekReach ?? 0
+      const out: string[] = []
+      const ways = Array.from({ length: 8 }, (_, i) => ({
+        x: Math.sin((i * Math.PI) / 4),
+        z: Math.cos((i * Math.PI) / 4),
+      }))
+      for (const [x, z] of [room.min, room.max, ...(DOORWAYS[id] ?? [])] as [number, number][])
+        for (let heading = 0; heading < 360; heading += 15)
+          for (const held of ways)
+            for (const lean of ways) {
+              const feet = { x, y: 0, z }
+              // Standing: the dead zone holds the look from any side, and the peek slides it on by its reach.
+              const settled = followLook(
+                view,
+                feet,
+                { x: 0, z: 0 },
+                { x: x + 0.3 * held.x, y: 0, z: z + 0.3 * held.z },
+              )
+              const look = { x: settled.x + reach * lean.x, y: settled.y, z: settled.z + reach * lean.z }
+              for (const field of FIELDS)
+                if (!insideFrame(spriteBoxAt(view, look, heading, feet, SPRITE, field), field, MARGIN))
+                  out.push(`${x.toFixed(2)},${z.toFixed(2)} heading ${heading} ${field.lines} lines`)
             }
       expect(out.slice(0, 5)).toEqual([])
     })

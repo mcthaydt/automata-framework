@@ -139,8 +139,24 @@ function wallOccludes(span: WallSpan, eye: Vec3, points: number): boolean {
   return false
 }
 
+/** Whether `point` is inside `bounds` (on a face counts). */
+const within = (point: Vec3, { min, max }: Box3): boolean =>
+  point.x >= min[0] &&
+  point.x <= max[0] &&
+  point.y >= min[1] &&
+  point.y <= max[1] &&
+  point.z >= min[2] &&
+  point.z <= max[2]
+
+/**
+ * Whether the line to any of the figure's points passes through `bounds`. A point inside the box is beside the prop, not behind it
+ * (the figure standing against a cabinet, its sprite's side reaching into it), so its line does not count.
+ */
 function propOnLine(bounds: Box3, eye: Vec3, points: number): boolean {
-  for (let i = 0; i < points; i++) if (segmentHitsBox(eye, body[i] as Vec3, bounds)) return true
+  for (let i = 0; i < points; i++) {
+    const point = body[i] as Vec3
+    if (!within(point, bounds) && segmentHitsBox(eye, point, bounds)) return true
+  }
   return false
 }
 
