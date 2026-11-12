@@ -170,8 +170,7 @@ What each wears, and what the old game's wore that the kit's library cannot say 
 
 Also not drawn: the lamp in Ada's hand (the painted figure's state has no held item); a cutscene's poses (`read`, `flinch`, `sit`, `sleep`, `pulse`
 are not stands of the builder, so the figure stands or walks); and a cutscene key's close-up density (the prologue's cutscenes name none, so
-every figure is at density 1). Props do not block Ada: the level's props carry no footprints (the old game's colliders were blockout boxes the
-converter did not carry into the sector map), so nothing from the dressing can be read as a collision.
+every figure is at density 1). Props block Ada now (session 5, `c62510eb`): see "Meshes against blockouts" below.
 
 
 ## Meshes against blockouts: every prop of the prologue (stage 4 session 5, 2026-11-12)
@@ -262,3 +261,41 @@ Reading the table:
   place, a footprint and a collider to follow.
 - The framework cannot name a model for a prop today (`PropPlace` has no `model`; `drawWorld` draws pieces only), so no row can say "replaced
   by this mesh" yet. See the plan's log.
+
+
+### What was done about it (session 5)
+
+Frames: `ours-meshes-play-1024x768.png`, `ours-meshes-cutscene-1024x768.png` (Chromium on SwiftShader, a desktop context with no touch, so no
+buttons over the frame), `side-by-side-meshes-play.png` and `side-by-side-meshes-cutscene.png` (old left, ours right), and
+`generated-against-meshes-play.png` (the same frame with the generated props left, the meshes right).
+
+- **All 57 props name the old game's model** (41 files, `public/models/*.bin`, byte for byte from the old game's `.pack`s; rows and
+  checksums in `PROVENANCE.md`). The generated prop stays the blockout: `World.props` keeps its box, the sim's footprint comes from it
+  (`obstaclesOf`), and a model that was not loaded fails the boot with its file's name.
+- **The table's "fits" column was too loose.** It judged height, floor and centre, not the footprint. Fitting the real models found six more
+  blockouts that were far thinner or flatter than their model (the ledger, the wall TV, the overbed table, both radiators, the extinguisher
+  cabinet). In all, **17 blockouts are the old game's box now** (`BOXED` in `tools/convert/models.ts`): the 13 of the table's last column
+  but the pendant (kept as the kit's lamp because its light is the prop's: its model leaves the blockout by 0.12 m each side and 0.18 m in
+  height by a `fit` offset) and the two the level lacked, plus those six. `tests/unit/features/room/models.test.ts` holds it: every model
+  stands inside its blockout, the tightest axis is full, and none is under 40% of its blockout.
+- **The old game stretched three models to their box** (the trolley, the drawers, the strip light: no `uniform`); the rule here does not
+  stretch. The trolley draws 0.42 by 0.71 by 0.75 m where the old one was stretched to 0.50 by 0.95 by 0.75, the drawers 0.60 by 0.57 by 0.48
+  where it was 0.75 by 0.88 by 0.45, and the strip light is turned to lie along its box. These are visible differences, by name.
+- **The fallen chair and the privacy screen** now have a blockout (a box of the old size, turned the old yaw by the fit) and their mesh
+  draws: the chair on its side lies at (-1.2, 0.35); the folding screen stands in the ward's alcove, turned 22.9 degrees (it fills 58% of its
+  blockout's depth, the blockout being the turned model's box on the plan).
+
+**The old textures against the DUEL palette (2d).** Every model's texture is 6 to 12 colours (median 10) at 128 by 128, and every one of
+them is a DUEL colour exactly (the mean distance to the nearest palette colour, over the 41 models' pixels, is 0.0): the old pipeline
+flattened them to the palette, so the frame's final snap to DUEL changes none of a texel. Their mean luma is 96 of 255.
+
+**The room light beside generated props: not the same.** A generated prop takes the room's light baked into its vertex colours (the pools of
+the lamps, the room's shade, the shadows); a model today draws with its own flat Phong material, which takes none of that. Measured on the same
+frame at the same pixels (mean luma 0 to 255, the generated frame against the meshes' frame; the floor beside them, which no model touches,
+is 69.5 in both): bench 50.8 to 35.5 (0.70), wheelchair 33.9 to 28.6 (0.84), the clock and the TV 63.1 to 40.9 (0.65), the bed and table 47.6
+to 41.8 (0.88), the counter and what stands on it 73.1 to 63.4 (0.87). The models read 0.65 to 0.88 of the same prop generated, cooler
+(`bench` blue 29 against red 29 where the generated one is 55, 50, 47) and without the desk lamp's pool on them. See
+`generated-against-meshes-play.png`. The smallest change that would give a model the baked light: in `drawWorld`'s `modelMesh`, put the
+model's texture on a `FlatMaterial` (a plain texture, as the pieces with a photo tile have) and call `light.bake(mesh, { textured: true,
+albedo, shadeSteps: 1 - room.light })` as the piece loop does, since the mesh is already in world space with a geometry of its own.
+Not made: it is a framework decision for the Owner's eye on the frame.
