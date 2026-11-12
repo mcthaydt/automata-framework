@@ -77,3 +77,22 @@ ports its look, and what the port left behind is unknown until it is surveyed.
 The Owner's staged workflow: plan (with the two surveys), plan audit, execution in two groups (FigureBuilder, then
 EnvironmentBuilder), implementation audit, fixes, review. FigureBuilder's group may merge before EnvironmentBuilder's
 starts.
+
+## Amendments
+
+**2026-11-12, at the plan audit: the type-declarations step.** "What moves" said the type-generation step goes with the
+submodule. It cannot while the painter compiles only with two of the framework's strict flags off: TypeScript checks
+an imported `.ts` source with the importer's options, so the kit and every package that imports the kit would report
+the painter's 1,395 strict errors. The step moves into the package instead and stops being manual: its `prepare` (run
+by `pnpm install`) and its `typecheck` (run by turbo before every other package's) build the declarations. It goes for
+good when the painter passes both flags (the plan's `claude/builders-fold-strict`, inside this workstream). "Done
+means" holds as written: a fresh clone needs no manual step.
+
+**2026-11-12, at the plan audit: EnvironmentBuilder's goldens and rule 1.** Rule 1 said its three goldens come across
+and pass unmoved. Measured: with its painter at the framework's figure pin, `base` (8 frames) and `scenes` (14 frames)
+move; they are goldens of its CPU scene renderer, which the framework does not have. Under the Owner's open choice,
+option A (the default): those two do not come and the renderer stays in the archived repository; `tiles` comes,
+restated as a world-kit test (measured: the kit's pipeline gives all 112 of its md5s). Option B: the renderer comes as
+a private reference tool and the two goldens are re-recorded once, in one commit that quotes the Owner. Either way,
+FigureBuilder's goldens and the kits' come and do not move, but for the one re-record the Owner asked for (the turned
+face, after a before-and-after sheet).

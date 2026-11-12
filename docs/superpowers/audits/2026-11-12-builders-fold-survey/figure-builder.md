@@ -198,7 +198,9 @@ the framework's `biome.json`; `tooling/check-style`; `tsc` 6.0.3 with `tsconfig.
 | One test suffix, `.test.ts`; tests in `tests/unit/<feature>/` | the suffix is already `.test.ts`; the folders are `tests/features/<x>/` and `tests/golden/` | 47 test files move folder |
 | Names a source project | comments in `src/` and `viewer/` name the game the gameplay camera came from (5 files in `src/`, 1 in `viewer/`, 1 test) | 7 files; extensions are not scanned, so this is a courtesy, not a gate |
 
-**The 1,395 type errors, by folder** (at `23f889c8`; the plan's ledger starts from these):
+**The 1,395 type errors, by folder** (at `23f889c8`, `src` and `base` only; the plan's ledger starts from these. The
+plan audit counted the whole package with the fix branches and the wardrobe applied: `src` 1,427, `tests` 579,
+`scripts` 51, `viewer` 28):
 
 | Folder | Errors | Most in |
 |---|---|---|
@@ -305,6 +307,18 @@ arrival and before the wardrobe work. Measured in a scratch clone, on top of `23
   names the reason, after the Owner has seen a before-and-after sheet.
 - All of it together (the five picks, the turned-face fix, then the wardrobe branch merged on top) applies with no
   conflict.
+- **Measured by the plan audit (2026-11-12), the whole suite with all of it applied** (N4 included, with its one hunk
+  resolved), on the framework's toolchain and Node 24.21: **52 files, 651 tests, 6 fail, 267 s.**
+  - N4 leaves 4 type errors no conflict shows: `lighting/sprite.ts` (added to `main` by c8-lit after the branch was
+    cut) still reads `weave.lo[k]` and `weave.hi[k]` and tests `weave.on[k] === 1`, which after N4 misses a second
+    fabric depth. With `!== 0` and `...depthAt(weave, k)` (as N4 wrote `light.ts`) it compiles and the suite runs as
+    below. The plan's task 4c, step 3b.
+  - The turned-face fix fails **5 tests in 4 files**: the three goldens above (actors `base-m` 10 frames and `base-f` 8,
+    all `wave`; base `base-m-hero-d1` 9 bytes; sprites `base-m-D1`) and `tests/features/stage/sheets.test.ts`, which
+    reads the base golden's data.
+  - One wardrobe pin fails on Node 24.21 and passes on Node 22.23 (measured on the branch alone, 39 of 39 there):
+    `tests/features/body/face-d2.test.ts`, `front 0.95: expected 0.07329037500000002 to be 0.07329037500000003`. It holds
+    one float of the head's profile to the last bit; no cell moves.
 
 **The other branches, checked once more for painter or generator work** (`git diff --stat main...<branch> -- src
 base tests scripts viewer`):
@@ -338,6 +352,7 @@ base tests scripts viewer`):
 | `main`, only `src base tests scripts viewer`, the root config, `CLAUDE.md`, `README.md`, `docs/contract.md`, `docs/actors.md` | | **1.87 MB** |
 | What `claude/c9-wardrobe` adds, everything | 10 | 1.93 MB (the five sheets are most of it) |
 | `main` and the wardrobe branch after the plan's filter (`git filter-repo`, the code paths only, dry-run in a scratch clone) | 243 (236 and 7) | **1.64 MB** |
+| The four refs the plan filters (`main`, the wardrobe, c5 and turned-face branches), fetched into an empty repository (the plan audit, from the archived repository, `main` set to `23f889c8` first) | 251 (236, 7, 6, 2) | **1.72 MiB** |
 
 10 of `main`'s 347 commit subjects are Conventional Commits. The framework's clone here is shallow (483 commits,
 100.32 MiB packed), so the framework's full history size was not measured.
@@ -354,11 +369,11 @@ workflow files; `tooling/repo-hygiene` (the workflow invariants and two tests); 
 
 ## Not verified
 
-- `npm run view-check` was not run, so "the GPU's frame is `compose`'s, byte for byte" at `23f889c8` is the builder's
-  own claim here.
+- `npm run view-check` was not run (nor by the plan audit), so "the GPU's frame is `compose`'s, byte for byte" at
+  `23f889c8` is the builder's own claim here.
 - Nothing ran on arm64. The arch-stable pole rule (`d5ca055`) and its `ulp.test.ts` are read, not exercised on a
   second architecture.
-- The wardrobe branch's tests were not run.
-- The whole suite was not run with the fix branches applied, only the goldens and the painter's tests.
+- ~~The wardrobe branch's tests were not run.~~ ~~The whole suite was not run with the fix branches applied.~~ Both
+  run by the plan audit (above, "The other branches").
 - `main` has an earlier commit on the same subject (`82822ff`, 2026-11-04, "Keep both eyes on a turned face"); how the later fix reads beside it on a sheet was not looked at. The before-and-after sheet in the plan is where it is judged.
 - The framework's full history size (shallow clone).
