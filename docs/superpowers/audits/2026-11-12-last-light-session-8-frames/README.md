@@ -67,3 +67,48 @@ box round her: old 52.3, ours before 85.1, **ours after 56.2**.
   painted colours (`lift` 0). So she dims with the floor, and the floor was twice too bright: item 2 is what dimmed her, with no change to the figure.
 - **Left, and not the game's to say:** the kit's outline is black where the old is the room's dark teal, and her arms keep a pale rim from the lamp's
   direction (the old shows the same rim, fainter). Both are the character kit's, which `claude/last-light-figures-look` owns, so they are not touched here.
+
+## Item 4: the opening as the old game plays it
+
+`old-real-opening-sheet.png` is the old game's real opening (1024 by 768, no `?debug`, the real clock, Begin clicked) at 1, 3, 5, 7, 9 and 12 s;
+`opening-card-old-before-after.png` is the card's frame: the old at 9 s, ours before, ours after.
+
+The old opening, in order: (1) **a 5 s film** (`signing-on`: Ada's hand signing the register, a 480 by 270 motion comic in a letterboxed 16:9 window, small
+captions under it, `Esc / Enter - Skip` in the corner); (2) the 17 s **opening cutscene**, in a cinematic letterbox (bars top and bottom, about 84 px each at
+1024 by 768): the hall from high in its south-west corner, the card **"PROLOGUE: FIRST NIGHT"** from 1.0 to 4.5 s of the cutscene over it, the first line
+("St. Agnes Clinic. 20:00.") as a small caption under the bar, then Ada from the front and above, then the note, then the hall camera hands over to play.
+
+### (i) The card: done, with today's pieces
+
+`src/app/ActCard.svelte` and `act-card.ts` (test first: `tests/unit/app/act-card.test.ts`, watched failing for the missing component). The words are the
+interface's (`messages/ui/en.json` `card.prologue`), the window is the old game's (`ACT_CARD` in `main.ts`: 1 to 4.5 s), from the sim's own clock so a slow renderer
+shows it as long as a fast one; it takes no pointer and no focus, honours `prefers-reduced-motion`, and is its own extension in the HUD overlay (an extension fills a
+slot once). **What it is not:** the old card is set in the game's pixel font, which the framework does not give a game (open proposal, the HUD's pixel font);
+it is a bold monospace, cream (`#eadbc9`, DUEL sand 6), spaced wide, until then.
+
+### (ii) The establishing camera: the keys are already the old's; two real differences found
+
+The opening's camera keys in `content/cutscenes/opening.toml` are the old script's to the digit (`pos [-1.6, 4.3, 6.3]` to `[0.9, 1.5, 1.6]`, lens 22 to 25, then the cuts at 4.6,
+11, 13 and 15.9 s), and the lens-to-field-of-view formula is the same (`2 atan(12 / mm)`), so the camera is not what differs. Measured instead:
+- **The night nurse stood in the corridor's mouth in plain view for the whole opening;** the old game draws her only once she is awake (her actor is the dormant sim's,
+  alpha 0). Fixed in data: the opening carries two `nurse` actor keys at alpha 0 (`tests/unit/app/opening.test.ts`, watched failing: no nurse keys). The
+  sim content hash moves (the cutscene file is sim content); nothing the sim does changes (371 game unit tests pass, the bot's night is the same).
+- **Ada is drawn 2.5 times larger in the opening's close shots than the old draws her** (about 260 px tall against 90 in the first shot, which is 4.6 m from her): the old
+  game keeps a figure at its cast's fixed field density and caps its scale at `MAX_SPRITE_SCALE` for a close camera (the opening's script comment says every framing
+  keeps the sprites within it), where ours draws her in true perspective. That is the figure view's (the character kit's), not the cutscene's: **a framework
+  proposal** (a billboard cap for close cutscene cameras in `@automata/character-kit`'s painted view).
+- **The bars.** The old cutscene is letterboxed, about 84 px top and bottom at 1024 by 768; ours draws full frame, with the pause button on top. The framework's
+  bars are fixed for the game (`barFraction`) and cannot open per cutscene: already a proposal, not built.
+- **Ada's facing in the opening's first shots looks reversed against the old** (the old shows her back from the south-west camera and her front from the
+  north camera; ours shows front then back). Not resolved in this item: the stage hands a cutscene's `facing` to the figure as a heading, as play does, and play's is right;
+  it needs the kit's yaw read against the first shot's frames. Left as the first thing to look at.
+
+### (iii) The film: NOT ported. What is missing
+
+The old repo ships it: `public/fmv/signing-on.webm` (288,709 bytes; VP9 in WebM, 480 by 270, 24 fps, 5.0 s, no audio track used: the old player mutes it), hooked
+`before: 'opening'`; the prologue's other two are `ff-corridor.webm` (269,290 bytes, after lights out) and `lights-on.webm` (283,585 bytes, after the rest). All three are 5 s clips of
+painted stills, ordered-dithered DUEL pixels, shown at a whole multiple of 480 by 270 over the game, skippable like a cutscene (`src/ui/fmv.ts`). **The framework has no video
+anywhere**: no `<video>` layer or film step in `@automata/cutscenes` (its keys are camera, actor, caption, light, sound, doors, time, grade, props, cues, shake, flicker, fade, states), no
+host overlay that plays and skips a clip, no `before` / `after` hook on a cutscene, and no asset path for a `.webm` (the build's checks name video files only to refuse them in an itch bundle).
+What a port needs is therefore: (a) the three files (copyable, 0.8 MB, provenance to record), (b) a **film beat** in the cutscene script (`before` the opening, `after` lights out and the rest) and a skippable host
+layer that plays a muted clip at a whole scale on a black field, (c) `.webm` accepted as a game asset. None is built; no player was written.

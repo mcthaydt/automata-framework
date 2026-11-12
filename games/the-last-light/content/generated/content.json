@@ -2103,6 +2103,22 @@
           "who": "player",
           "x": 0.6,
           "z": 3.6
+        },
+        {
+          "alpha": 0,
+          "facing": 0,
+          "t": 0,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
+        },
+        {
+          "alpha": 0,
+          "facing": 0,
+          "t": 17,
+          "who": "nurse",
+          "x": 0,
+          "z": -6.1
         }
       ],
       "camera": [

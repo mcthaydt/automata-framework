@@ -238,3 +238,21 @@ reason = "the last move is the settle onto the hall camera: the handover to play
 [[lintAllow]]
 rule = "camera"
 reason = "the establishing shot stands above and behind the hall, outside the map, as the old shot did; the rooms a cutscene draws are all of them"
+
+# The night nurse is dormant through the opening, as in the old game, whose creature is drawn only once she is awake: the empty hall is
+# empty, and the first shot sees the corridor's mouth. Her place is the end of the corridor, where the night puts her.
+[[actor]]
+who = "nurse"
+t = 0
+x = 0
+z = -6.1
+alpha = 0
+facing = 0
+
+[[actor]]
+who = "nurse"
+t = 17
+x = 0
+z = -6.1
+alpha = 0
+facing = 0
