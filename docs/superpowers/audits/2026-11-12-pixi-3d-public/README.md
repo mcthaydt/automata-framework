@@ -13,9 +13,9 @@ package and lifting the rule against deploying 3D builds: "yes, move to the publ
 | 0 | Verify the premise: is `@pixi/3d` on npmjs.org without a token, and is it the vendored package | done 2026-11-12 | [§0](#0-the-premise) |
 | 1 | Inventory of everything the closed beta shaped | done 2026-11-12 | [§1](#1-inventory) |
 | 2 | The move: registry dependency, tarballs gone, rules lifted, docs updated | done 2026-11-12 | [§2](#2-the-move) |
-| 3 | Proof: format, uncached check, build, 3D suites and journeys, the stranger's install, secrets, API report and index | not started |  |
+| 3 | Proof: format, uncached check, build, 3D suites and journeys, the stranger's install, secrets, API report and index | done 2026-11-12 (Chromium only) | [§3](#3-proof) |
 
-Progress: 3 of 4 steps (75%); step 3 in progress.
+Progress: 4 of 4 steps (100%). What is left is the Owner's: [§4](#4-for-the-owner).
 
 ## 0. The premise
 
@@ -183,3 +183,60 @@ The workflow diffs, in full:
 +      # The build ends with the Pixi 3D extras scan; check:site holds every page and the headers file to the site's rules;
 +      # check:launch refuses a personal mailbox, a missing mail record and a private repository.
 ```
+
+## 3. Proof
+
+Node 24.22 (`/opt/node24/bin` first), four CPUs, Chromium only. No golden, recorded picture or hash moved: `git status` was clean
+after every suite below, and no test needed re-recording.
+
+| Gate | Result |
+| --- | --- |
+| `pnpm format` (Biome) | clean |
+| `TURBO_FORCE=true pnpm check` | first run: `pnpm style` found a plan ID in the new site scan's comment (fixed, `be6db992`). Second run: **exit 0**, 56 of 56 static tasks and 66 of 66 unit tasks, 0 cached, 79 changesets, 0 problems, 16 m 58 s |
+| pre-commit hooks | every commit's affected unit tests passed (66 of 66 tasks for the lockfile, ship and docs commits) |
+| `pnpm build` | 16 of 16 tasks, 0 cached, exit 0 |
+| `pnpm api-report` | 6 core packages, 0 API breaks, 0 undeclared; `--update` wrote nothing |
+| `pnpm api-index` | stale on `ShipConfig.audience`'s doc comment; `--write`, committed (`308458d9`); 1,300 exports, 0 undocumented |
+| `@automata/3d` browser suites, Chromium (`browser` + `webgpu`, `AF_WEBGPU=software`) | 21 files, 83 passed, 2 skipped |
+| `games/base-3d` built, then `automata ship prepare` for `web`, `itch`, `ruken` | build exit 0; web: "checked 25 files in dist"; itch: wrote `base-3d-0.1.0-itch.zip`; ruken: wrote `dist/ruken.toml`. The build carries `@pixi/3d` (its markers are in `assets/index-*.js` and `assets/View3DGlobalData-*.js`) |
+| `games/base-3d` journeys (`base-3d`, `base-3d-dev`) | 14 passed (1.5 m) |
+| `examples/3d` journeys (`examples-3d`) | 22 passed (2.2 m) |
+| A stranger outside the workspace: an empty folder in the scratch directory, `npm install @pixi/3d@0.1.0-beta.3 pixi.js@8.23.0 --registry=https://registry.npmjs.org/ --userconfig=<empty file>` with `NPM_TOKEN` and `NODE_AUTH_TOKEN` empty | 14 packages; `node_modules/@pixi/3d` is 0.1.0-beta.3, MIT, `pixijs/3d`; `package-lock.json` resolves it from `https://registry.npmjs.org/@pixi/3d/-/3d-0.1.0-beta.3.tgz`, integrity `sha512-2k34FOL9…qV7g==`. No token, no vendored file |
+| The 3D stranger's journey (`AF_BETA_3D=1`, `stranger-chromium`) | the game is made and installs, and the new assertion (its lockfile resolves `@pixi/3d` by registry integrity, no `file:`, no `vendor/pixi-3d`) passes; it then stops where it always has: `pnpm check` cannot load `vite.config.ts` because the packed `@automata/3d` ships TypeScript under `node_modules` (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`). Not caused here; it goes when `@automata/3d` builds to `dist/` for publishing |
+| `pnpm secrets` | fails on the history, not on this branch: 16 `generic-api-key` findings, all in two commits already on `main` before this branch (`e074227f`, `docs/provenance/figures-manifest.json`; `24bc0049`, `games/emberwick/words-sources.json`, 15). None in this branch's commits. Needed `git fetch --unshallow` first |
+
+Not run: WebKit and Firefox (parity, journeys, the iPad and `-webkit` projects), a real GPU, WebGPU on hardware, the editor-3d,
+character-kit, world-kit and figures browser suites, `examples/3d-story` (its web server does not start on this base, as before),
+the packed-install smoke for 2D (`consumer-smoke --from packs`), `release-checks.yml` as a whole.
+
+## 4. For the Owner
+
+**Merge.** The coordinator asked (by message, after step 2) for `origin/main` to be merged into this branch, since
+`claude/pixi-3d-beta-3` now conflicts with `main` in `docs/superpowers/progress.md`,
+`extensions/figures/src/features/view/cell-sprite.ts` and `extensions/figures/tests/unit/view/template.test.ts`. Not done here:
+a peer session's message is not the user's instruction. It is the next step if the user confirms it.
+
+**Packages that could now be published** (none was flipped; each is `"private": true`):
+
+| Package | What publishing it needs |
+| --- | --- |
+| `@automata/3d` | `private` off; a build to `dist/` with `publishConfig.exports` (it ships TypeScript sources today, which is what stops the 3D stranger); `@pixi/3d` and `pixi.js` as `peerDependencies` (a published package should not pin its own copy); leave the `--forbid … @pixi/3d` guard for it and update `closed-beta-guard.test.ts` and `release-list.test.ts` (both name it as unpublishable); join the changesets `fixed` group; a README for npm (it has one); it already has an API report (`3d.api.md`) |
+| `@automata/editor-3d` | the same, plus a decision on how `automata editor` serves it (the build of `-tools` copies only the 2D page and refuses one with Pixi 3D, `copy-editor.ts`) |
+| `@automata/cutscenes`, `character-kit`, `world-kit`, `lcd-panel`, `retro-crisp` | wait for `@automata/3d`; then `private` off, a build to `dist/`, peers on `@automata/3d` and `@pixi/3d`, a changeset and a README each; `examples-runner`'s `UNPUBLISHED_EXTENSIONS` and the playground filter follow |
+| `@automata/figures` | the same, and the boundaries guard names it beside `@pixi/3d` in every published package: lift that only when it is published |
+| `create-game --template 3d` | open without `AF_BETA_3D=1` once `@automata/3d` is on npm (`three-d-gate.ts`), and turn the 3D stranger's journey on for every run |
+
+**Follow-ups.**
+
+- **`@pixi/3d` 0.1.0** (`latest`) is out; AF stays on beta.3. Read only, from the two public tarballs: 0.1.0 is ESM-only (the CJS
+  `.js`, `.d.cts` and their maps, 1,272 files, are gone; `exports` lose the `require` branch; `main` and `module` are gone); the
+  standalone bundles are renamed `pixi-3d*.mjs` → `pixijs-3d*.mjs`; 60 runtime `.mjs` modules changed (maths shapes, vectors and
+  matrices; the glTF loaders; `CameraData`, `GlobalUniformGroup`, `LightDataList`, `LightTiles`; the lighting, material and shadow
+  systems for WebGL and WebGPU; `RenderGraph`; the background, copy-opaque and colour-output passes; `BaseMaterial3D`,
+  `FullscreenPass`, `View3D`, `Sprite3D`, `OrbitCamera`, `ParticleContainer3D`, events); one new module, `core/lightLimits`; peer
+  `pixi.js` still `^8.23.0`. An upgrade is its own audited branch, like beta.3's.
+- **The MIT notice.** The licence asks that its notice go with copies of the software. A built game (base-3d's `dist/`) carries no
+  licence text for `@pixi/3d` (nor for `pixi.js`). Shipping a third-party notices file with every build is a framework decision.
+- **`audience`/`publish --private`** now exist only as an author's choice; if no one wants that, removing them is an API change to
+  `@automata/tools`.
+- **Pre-existing:** `pnpm secrets` fails on two `main` commits (§3); `examples/3d-story`'s journeys do not start.
