@@ -180,7 +180,11 @@ export function faceForm(ctx: AfterSmoothSurfaces) {
       fs.sort((a, b) => a - b)
       const th = style.face,
         at = (p: number) => fs[Math.min(fs.length - 1, Math.floor(fs.length * p))]
-      const [l0, l1, s0, s1] = style.model
+      // The skin's own budget (`Material.face`) over the style's.
+      const own = ctx.materials[skin].face,
+        [m0, m1, s0, s1] = style.model,
+        l0 = own?.light ?? m0,
+        l1 = Math.max(m1, own?.light ?? 0)
       const t0 = Math.max(at(1 - l1), Math.min(th[0], at(1 - l0)))
       faceTh = [
         framed ? Infinity : t0,
@@ -201,6 +205,11 @@ export function faceForm(ctx: AfterSmoothSurfaces) {
         })
         for (let k = 0; k < n; k++)
           if (isFace(k) && facePlaneOf[k] && faceLit[k] >= planeTh[facePlaneOf[k]]) faceLight[k] = 1
+        // A skin that asks for more light than its planes give (`Material.face.light`): its brightest share besides.
+        if (own?.light !== undefined) {
+          const bright = at(1 - own.light)
+          for (let k = 0; k < n; k++) if (isFace(k) && faceLit[k] >= bright) faceLight[k] = 1
+        }
       }
     }
   }

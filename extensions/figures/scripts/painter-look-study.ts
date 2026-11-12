@@ -22,7 +22,8 @@ import { type CharacterDef, fromDef } from '../src/shared/figure/cast'
 import { Figure } from '../src/shared/figure/figure'
 import { type Frame, member, view } from '../src/shared/figure/frames'
 import { HAIR_STYLES, type HairStyle, type Piece, PPM } from '../src/shared/hair/hair'
-import type { Garment } from '../src/shared/outfit/garments'
+import { type Garment, SWATCHES as SWATCHES_LIB } from '../src/shared/outfit/garments'
+import { FACE_SEAM, tonesOf } from '../src/shared/paint/paint'
 
 /** The base woman: the figure every character starts from. */
 const WOMAN: CharacterDef = BASE[1].def
@@ -101,7 +102,45 @@ const BOB_FULL_FRINGE: HairStyle = {
   pieces: [shell('bobFull'), FRINGE],
 }
 
+/** The skin: a swatch (and the least share of the face in its lightest step, `Material.face.light`, if one is given). */
+const skinned =
+  (name: string, light?: number): Look['patch'] =>
+  (def) => ({
+    ...def,
+    skin: `study-${name}`,
+    swatches: {
+      ...def.swatches,
+      [`study-${name}`]: { ...SWATCHES_LIB[name], ...(light === undefined ? {} : { face: { light } }) },
+    },
+  })
+
 export const LOOKS: Readonly<Record<string, readonly Look[]>> = {
+  skin: [
+    {
+      label: 'before: skinWarm',
+      note: 'the painter’s warm skin: a face mostly the middle step',
+      style: 'bobFull',
+      patch: skinned('skinWarm'),
+    },
+    {
+      label: 'after: skinFair',
+      note: 'the warm peach on DUEL (#ffe2cf, #ebbd9d, #c7826c, #a76057), the face as the style budgets it',
+      style: 'bobFull',
+      patch: skinned('skinFair'),
+    },
+    {
+      label: 'after: skinFair + face.light .6',
+      note: 'the same skin, the least light share of the face .6: mostly its lightest step',
+      style: 'bobFull',
+      patch: skinned('skinFair', 0.6),
+    },
+    {
+      label: 'after: skinWarm + face.light .6',
+      note: 'the warm skin with the same option',
+      style: 'bobFull',
+      patch: skinned('skinWarm', 0.6),
+    },
+  ],
   hair: [
     {
       label: 'before: the library bob',
@@ -204,6 +243,25 @@ export function numbers(look: Look) {
   for (let y = 0; y < s.h; y++) for (let x = 0; x < s.w; x++) if (s.px[(y * s.w + x) * 4 + 3]) bottom = y
   out['figure rows, density 2'] = bottom - top(s) + 1
   out['heads tall'] = Math.round(((bottom - top(s) + 1) / head) * 100) / 100
+  // The face's skin in its steps, light to deep (shares of its skin texels, front view): measured from the cell.
+  const steps = tonesOf(def.swatches?.[def.skin] ?? SWATCHES_LIB[def.skin])
+  for (const D of [1, 2]) {
+    const f = stand(def, 0, D),
+      count = [0, 0, 0, 0]
+    let n = 0
+    for (let k = 0; k < f.w * f.h; k++) {
+      if (!f.px[k * 4 + 3] || f.f.g.part[k] !== FACE_SEAM) continue
+      const q = steps.indexOf((f.px[k * 4] << 16) | (f.px[k * 4 + 1] << 8) | f.px[k * 4 + 2])
+      if (q >= 0) {
+        count[q]++
+        n++
+      }
+    }
+    count.forEach((c, i) => {
+      out[`face skin, step ${['light', 'mid', 'shade', 'deep'][i]}, D${D} (share)`] =
+        Math.round((c / (n || 1)) * 100) / 100
+    })
+  }
   return out
 }
 
@@ -284,6 +342,17 @@ export function sheet(looks: readonly Look[], title: string): Buffer {
     ;[0, 1, 4].forEach((d, i) => {
       const s = stand(def, d, 1)
       put(ctx, s.px, c1[0], c1[1], i * (c1[0] * 4 + 10), y0, 4)
+    })
+    // The face at density 1, front and 3/4, at x12: the size the face is played at, large enough to see its tones.
+    const probe1 = stand(def, 0, 1)
+    let top1 = 0
+    for (let y = 0; y < c1[1] && !top1; y++)
+      for (let x = 0; x < c1[0]; x++) if (probe1.px[(y * c1[0] + x) * 4 + 3]) top1 = y
+    const fw = 20,
+      fx1 = Math.round((c1[0] - fw) / 2)
+    ;[0, 1].forEach((d, i) => {
+      const s = stand(def, d, 1)
+      put(ctx, s.px, c1[0], c1[1], 3 * (c1[0] * 4 + 10) + i * (fw * 12 + 10), y0, 12, [fx1, top1 - 1, fw, 16])
     })
     y0 += c1[1] * 4 + 10
   }
