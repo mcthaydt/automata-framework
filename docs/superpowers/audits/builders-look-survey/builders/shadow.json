@@ -1,0 +1,74 @@
+[
+  {
+    "id": "base-interior",
+    "view": "diorama",
+    "w": 512,
+    "h": 320,
+    "figureTexels": 7044,
+    "differing": 1223,
+    "meanRatio": 0.6076603242938753
+  },
+  {
+    "id": "base-interior",
+    "view": "fp",
+    "w": 320,
+    "h": 200,
+    "figureTexels": 9436,
+    "differing": 0,
+    "meanRatio": 1
+  },
+  {
+    "id": "base-interior-dressed",
+    "view": "diorama",
+    "w": 512,
+    "h": 320,
+    "figureTexels": 7044,
+    "differing": 1141,
+    "meanRatio": 0.6054156804079673
+  },
+  {
+    "id": "base-interior-dressed",
+    "view": "fp",
+    "w": 320,
+    "h": 200,
+    "figureTexels": 9436,
+    "differing": 0,
+    "meanRatio": 1
+  },
+  {
+    "id": "base-exterior",
+    "view": "diorama",
+    "w": 640,
+    "h": 360,
+    "figureTexels": 7044,
+    "differing": 1422,
+    "meanRatio": 0.6363689969520085
+  },
+  {
+    "id": "base-exterior",
+    "view": "fp",
+    "w": 320,
+    "h": 200,
+    "figureTexels": 1185,
+    "differing": 46,
+    "meanRatio": 0.6441439552579462
+  },
+  {
+    "id": "base-exterior-dressed",
+    "view": "diorama",
+    "w": 640,
+    "h": 360,
+    "figureTexels": 7044,
+    "differing": 1422,
+    "meanRatio": 0.6329883680683634
+  },
+  {
+    "id": "base-exterior-dressed",
+    "view": "fp",
+    "w": 320,
+    "h": 200,
+    "figureTexels": 1185,
+    "differing": 46,
+    "meanRatio": 0.6252724999843537
+  }
+]

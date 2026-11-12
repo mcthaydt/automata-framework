@@ -2,7 +2,7 @@
 // camera the test chooses, a readback of the canvas, and `compose` (the builder's CPU reference) of what the stage placed.
 // The figures' `now` is fixed, so a frame is the same frame each run.
 import '@automata/3d/no-eval'
-import { createPixi3dRenderer, type Pixi3dRenderer } from '@automata/3d'
+import { createPixi3dRenderer, type Look, type Pixi3dRenderer, type SceneLighting } from '@automata/3d'
 import { builtRenderer, snapshot, testTarget } from '@automata/3d/testing-checks'
 import { CubeGeometry, FlatMaterial, Mesh3D, type View3D } from '@pixi/3d'
 import { type PaintedStage, stageFor } from '#src/features/painted/painted-stage.ts'
@@ -53,6 +53,10 @@ export interface SceneOptions {
   /** Where the camera looks (x, z); the point is 1 m above the floor. */
   readonly look?: readonly [number, number]
   readonly preference?: 'webgpu'
+  /** The room's light: figures are lit by it unless their options say `lit: false`. */
+  readonly lighting?: SceneLighting
+  /** The pixel-art look's passes (the haze, say). */
+  readonly passes?: Look
 }
 
 export interface StageScene {
@@ -65,6 +69,26 @@ export interface StageScene {
   /** What the stage placed in the last frame, as the builder's own frame. */
   frame(): StageFrame
   dispose(): void
+}
+
+/**
+ * The canvas the renderer just drew, as RGBA, top row first. A WebGPU canvas keeps no drawing buffer past the task that drew it, and
+ * `snapshot` re-renders into a texture, which reads back black on a software adapter: copy the canvas as it was presented, in this task.
+ */
+export function readFrame(renderer: Pixi3dRenderer): Uint8ClampedArray | Uint8Array {
+  return renderer.stage.app.renderer.name === 'webgpu'
+    ? presented(renderer.stage.app.canvas as HTMLCanvasElement)
+    : snapshot(renderer)
+}
+
+/** The canvas as it was presented: RGBA, top row first. */
+function presented(canvas: HTMLCanvasElement): Uint8ClampedArray {
+  const copy = document.createElement('canvas')
+  copy.width = canvas.width
+  copy.height = canvas.height
+  const context = copy.getContext('2d') as CanvasRenderingContext2D
+  context.drawImage(canvas, 0, 0)
+  return context.getImageData(0, 0, copy.width, copy.height).data
 }
 
 /** Points the view's camera at (x, 1, z): `distance` back along `pitchDeg` down, on +z. */
@@ -110,6 +134,8 @@ export async function buildScene(options: SceneOptions): Promise<StageScene> {
     // The letterbox's bars would cover the top and bottom of the field, and a test reads every row of it.
     barFraction: 0,
     ...(options.preference ? { preference: options.preference } : {}),
+    ...(options.lighting ? { lighting: options.lighting } : {}),
+    ...(options.passes ? { look: options.passes } : {}),
     views,
     scene: (view) => {
       seen = view
@@ -146,7 +172,7 @@ export async function buildScene(options: SceneOptions): Promise<StageScene> {
     size: options.size,
     draw() {
       renderer.draw({ alpha: 1, frameMs: 16, paused: false })
-      return snapshot(renderer)
+      return readFrame(renderer)
     },
     frame() {
       return {

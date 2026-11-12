@@ -2,6 +2,8 @@
 //
 //   pnpm --filter @automata/character-kit gate 1       gate 1: characterkit-painted before and after, texels a pixel, the
 //                                                      depth sheet (docs/refactor/c7/gate-1/)
+//   pnpm --filter @automata/character-kit gate lit    the c8 gate: the base pair lit by the room, before and after, on WebGL
+//                                                      and WebGPU, the bench and the parity counts (docs/refactor/c8/gate-lit/)
 //   (gate 2, the runway's stills, loop frames and timings, is written with Task 10 of the plan, which is on hold: `gate runway`
 //   does not exist yet and asking for it throws)
 //
@@ -10,7 +12,15 @@
 // git-ignored). Both sides run in Chromium under Playwright's fake clock and `reducedMotion: 'reduce'` (which zeroes the camera's
 // damping), so the same tick is the same frame. Numbers come from the pictures and the builder, never typed.
 import { spawnSync } from 'node:child_process'
-import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
+import {
+  createReadStream,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import { createServer } from 'node:http'
 import { extname, join } from 'node:path'
 import { type Browser, chromium, type Page } from 'playwright'
@@ -482,15 +492,7 @@ async function gateOne(): Promise<void> {
   // The depth sheet and the parity counts come from the kit's own browser project, on the same GPU path the tests use.
   const sheets = spawnSync(
     'pnpm',
-    [
-      'exec',
-      'vitest',
-      'run',
-      '--project',
-      'browser',
-      '--browser.name=chromium',
-      'tests/browser/painted/gate-sheets.test.ts',
-    ],
+    ['exec', 'vitest', 'run', '--project', 'browser (chromium)', 'tests/browser/painted/gate-sheets.test.ts'],
     {
       cwd: KIT,
       stdio: 'inherit',
@@ -509,6 +511,52 @@ async function gateOne(): Promise<void> {
   )
 }
 
+/**
+ * The c8 gate (`gate lit`): the lit room's pictures from the kit's own browser projects (WebGL in Chromium; WebGPU in a Chromium
+ * launched with it, software if the machine has no GPU), the bench's numbers, and the parity counts, into docs/refactor/c8/gate-lit/.
+ * `measurements.json` is assembled from what those wrote, never typed.
+ */
+function gateLit(): void {
+  const out = join(REPO, 'docs/refactor/c8/gate-lit')
+  mkdirSync(out, { recursive: true })
+  const run = (args: readonly string[], env: Record<string, string>) => {
+    const done = spawnSync('pnpm', ['exec', 'vitest', 'run', ...args], {
+      cwd: KIT,
+      stdio: 'inherit',
+      env: { ...process.env, ...env },
+    })
+    if (done.status !== 0) throw new Error(`${args.join(' ')} failed`)
+  }
+  const gate = { VITE_C8_GATE: '1', C7_GATE_OUT: out }
+  run(['--project', 'browser (chromium)', 'tests/browser/painted/gate-lit.test.ts'], gate)
+  run(['--project', 'webgpu', 'tests/browser/webgpu/gate-lit.test.ts'], {
+    ...gate,
+    AF_WEBGPU: process.env.AF_WEBGPU ?? 'software',
+  })
+  const benchOut = join(out, '.bench.json')
+  // The bench asserts its median and may fail it; its numbers are the gate's either way.
+  spawnSync('pnpm', ['exec', 'vitest', 'run', '--project', 'bench', 'tests/bench/lit.bench.test.ts'], {
+    cwd: KIT,
+    stdio: 'inherit',
+    env: { ...process.env, AF_BENCH: '1', LIT_BENCH_OUT: benchOut },
+  })
+  const read = (name: string) =>
+    existsSync(join(out, name)) ? JSON.parse(readFileSync(join(out, name), 'utf8')) : null
+  const measurements = {
+    bench: read('.bench.json'),
+    webgl: read('lights.json'),
+    webgpu: read('lights-webgpu.json'),
+  }
+  writeFileSync(join(out, 'measurements.json'), `${JSON.stringify(measurements, null, 2)}\n`)
+  for (const name of ['lights.json', 'lights-webgpu.json', '.bench.json'])
+    rmSync(join(out, name), { force: true })
+  spawnSync('pnpm', ['exec', 'biome', 'format', '--write', join(out, 'measurements.json')], {
+    cwd: REPO,
+    stdio: 'inherit',
+  })
+}
+
 const which = process.argv[2] ?? '1'
 if (which === '1') await gateOne()
+else if (which === 'lit') gateLit()
 else throw new Error(`unknown gate ${which}`)

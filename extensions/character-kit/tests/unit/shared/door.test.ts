@@ -4,6 +4,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { flatSteps, lightSprite, SPRITE_STYLE } from '#src/shared/figure-builder/door.ts'
 
 const ROOT = join(import.meta.dirname, '../../..')
 const walk = (dir: string): string[] =>
@@ -33,5 +34,11 @@ describe('the door', () => {
 
   it('takes the view entry, the one that loads Pixi, in a file of its own', () => {
     expect(specifiersOf('src/shared/figure-builder/door-view.ts')).toEqual(['figure-builder/view'])
+  })
+
+  it('hands over the builder’s sprite light (c8-lit): the function, its step count and its style', () => {
+    expect(typeof lightSprite).toBe('function')
+    expect(flatSteps([1, 1, 1])).toBe(0)
+    expect(SPRITE_STYLE.stepRatio).toBeGreaterThan(1)
   })
 })
