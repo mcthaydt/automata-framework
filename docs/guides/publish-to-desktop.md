@@ -2,8 +2,9 @@
 
 A game built for `tauri` runs as a desktop app: Tauri wraps the web build in the system's webview. Saves go to one
 store file in the app's data folder (on Linux `~/.local/share/<identifier>/saves.json`), never to the webview's page
-storage, and they are written to disk when the game flushes them: on Quit, and when the player closes the window, after
-the game's exit handlers. A link in the game (the credits panel's, for one) opens in the player's own browser, never
+storage. A save reaches the disk half a second after the game's last change to it, and at once on Quit and when the
+player closes the window (after the game's exit handlers), so an app that crashes or is killed loses at most that half
+second. A link in the game (the credits panel's, for one) opens in the player's own browser, never
 inside the game's window. The generated project allows `https:` addresses only.
 
 What has been proved, and where: on Linux (Ubuntu 24.04), a new game made from the published packages builds, opens,
@@ -17,6 +18,9 @@ this framework until the first build on a Mac and on a Windows PC.
 pnpm dlx @automata/tools create-game my-game --targets tauri
 cd my-game && pnpm install
 ```
+
+A 3D game (`--template 3d`) cannot be built for the desktop yet: the 3D package is not published, and a desktop build
+is a public one. It waits on the 3D release.
 
 `--targets tauri` gives the game the `build:tauri` and `prepare:tauri` scripts, Tauri's packages and its CLI
 (`@tauri-apps/cli`, a dev dependency). Add `web` or `itch` to the list (`--targets web,itch,tauri`) to keep those too.
@@ -87,7 +91,8 @@ then run this again in a new terminal, so it finds cargo.
 ## Try it
 
 On Linux, install the `.deb` (`sudo apt install ./dist-tauri/my-game-0.1.0-linux-deb.deb`, then start "My Game" from
-the menu) or run the AppImage (`chmod +x` it first). Close the window to quit: the game's save is written then.
+the menu) or run the AppImage (`chmod +x` it first). Close the window to quit; the game's screens have no Quit button
+on the desktop yet.
 
 ## Publish to itch.io downloads
 

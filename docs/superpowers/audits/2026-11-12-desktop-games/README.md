@@ -12,7 +12,7 @@ builds, signing and notarisation did not run: they need the Owner's machines and
 |---|---|---|---|
 | 1 | Build it here | Done | The toolchain installs in 36 s; a bundle builds |
 | 2 | The stranger's desktop path, from packed packages | Done (2D); 3D blocked by the 3D gate | Each step below; two product fixes, test first |
-| 3 | Open it | Done | `stranger-desktop.test.ts` passes, 4 m 18 s |
+| 3 | Open it | Done | `stranger-desktop.test.ts` passes, 3 m 59 s |
 | 4 | The host contract on desktop | Done; gaps listed | The shared contract suite, plus the real app |
 | 5 | CI, as a proposal only | Done | [`proposed-desktop.yml`](proposed-desktop.yml), nothing under `.github/workflows/` |
 | 6 | The guide and the messages | Done | [`publish-to-desktop.md`](../../../guides/publish-to-desktop.md); three messages rewritten, test first |
@@ -50,11 +50,11 @@ last run:
 | Step | Command | Result | Time |
 |---|---|---|---|
 | Pack | `packPublished` (the consumer smoke's) | the published packages | 5.9 s |
-| Make a game | `automata create-game my-game --targets tauri` | works | 3.5 s |
-| Install | `pnpm install` with the packs as overrides | works | 4.2 s |
-| Web build | `pnpm build:tauri` | works | 6.1 s |
-| Desktop build | `pnpm prepare:tauri` (`automata ship prepare --target tauri`) | works, first time | 230.2 s cold (by hand: 3 m 58 s, 3 m 18 s of it `cargo build --release`) |
-| Bundles | `dist-tauri/` | `my-game-0.1.0-linux-deb.deb` 4,135,330 bytes (4,126,952 to 4,135,330 over the builds measured: timestamps); `my-game-0.1.0-linux-appimage.AppImage` 82,688,504 bytes (82,680,312 by hand) | |
+| Make a game | `automata create-game my-game --targets tauri` | works | 3.7 s |
+| Install | `pnpm install` with the packs as overrides | works | 3.5 s |
+| Web build | `pnpm build:tauri` | works | 4.5 s |
+| Desktop build | `pnpm prepare:tauri` (`automata ship prepare --target tauri`) | works, first time | 214.6 s cold (by hand: 3 m 58 s, 3 m 18 s of it `cargo build --release`) |
+| Bundles | `dist-tauri/` | `my-game-0.1.0-linux-deb.deb` 4,135,294 bytes (4,126,952 to 4,135,330 over the builds measured: timestamps); `my-game-0.1.0-linux-appimage.AppImage` 82,688,504 bytes (82,680,312 by hand) | |
 
 The `.deb` also installs (`apt install ./my-game-0.1.0-linux-deb.deb`: `/usr/bin/my-game`, the icon and
 `My Game.desktop`; it depends on `libwebkit2gtk-4.1-0` and `libgtk-3-0`).
@@ -88,15 +88,18 @@ checks, in the real WebKitGTK webview:
 2. the player picks Japanese on the first-run screen and the title shows;
 3. the page's `localStorage` holds no locale key and no `ruken:` key (it holds the device's first-run flags,
    `my-game:automata.seen`, which are device storage by design: `seen-flags.ts`);
-4. the window is closed as a player closes it (the window manager's close, `wmctrl -c`), the app quits, and
-   `<XDG_DATA_HOME>/dev.example.my-game/saves.json` is exactly `{"automata.locale":"ja"}`;
-5. a second start opens on the title in Japanese (`<html lang="ja">`) without asking, and closes the same way.
+4. with no Quit and no close, `<XDG_DATA_HOME>/dev.example.my-game/saves.json` becomes exactly
+   `{"automata.locale":"ja"}` on its own (the adapter writes a change to disk 500 ms after the last one), and the app is
+   then killed (`SIGKILL`, so none of its exit handlers run);
+5. a second start opens on the title in Japanese (`<html lang="ja">`) without asking;
+6. the window is closed as a player closes it (the window manager's close, `wmctrl -c`), and the app quits.
 
-Last run: `Test Files 1 passed (1)`, `Tests 1 passed (1)`, 4 m 18 s (`open the app: 0.2 s`, `close the window: 0.1 s`,
-`open the app again: 0.2 s`). Five runs in all, no assertion failing in any: the 1st stopped in the test itself (`wmctrl` without `DISPLAY`, before the save checks ran); the
+Last run: `Test Files 1 passed (1)`, `Tests 1 passed (1)`, 3 m 59 s (`open the app: 0.2 s`, `the save reaches the disk
+without a close: 0.5 s`, `open the app again: 0.2 s`, `close the window: 0.1 s`). Against the adapter before the
+fix the same journey failed at step 4, `timed out waiting for the save on disk`. Before that step existed, five runs, no assertion failing in any: the 1st stopped in the test itself (`wmctrl` without `DISPLAY`, before the save checks ran); the
 2nd and 4th failed removing the folder while the webview's helper still wrote Mesa's shader cache into it
 (`ENOTEMPTY`); the 3rd passed after the background programs were stopped and waited for first; the 5th passed with
-`rm` retrying as well. Each failure was the test's, fixed in the test.
+`rm` retrying as well. Each of those failures was the test's, fixed in the test.
 
 Found on the way: **WebDriver's own "close window" bypasses Tauri's close request**: the app exits without the
 adapter's handlers or flush, and nothing is saved. A player's close goes through the window manager, which is what the
@@ -118,15 +121,22 @@ saves ungranted and refused `DENIED`, the close held until the handlers and the 
 | leaderboards, entitlements | refused `UNSUPPORTED`, no local board | contract suite |
 | menu request | no host menu on desktop; handlers are taken and given back | contract suite |
 
-Gaps, not fixed here (each is more than a small fix):
+Fixed, test first (the coordinator's ruling on the first report):
+
+- **Saves reached the disk only on exit.** The settings and the language were `saves.set` into the store, which was
+  written only by `flush`: on Quit and on a window close. A crash or a kill lost them. The adapter now writes the
+  store `SAVE_WRITE_DELAY_MS` (500 ms) after the last change, one write per burst; a flush in between takes its place,
+  and dispose cancels it (`hosting-tauri.test.ts`, two new cases, red before the change). The journey kills the app
+  after the change and finds the save (step 4 above).
+
+Gaps, not fixed here:
 
 - **No Quit on the desktop's screens.** `exit` is granted, but only the boot-failure panel offers it; the title and
-  paused screens offer "Quit to title". A player quits by closing the window, which works. A Quit button where `exit` is
-  granted is a UI change for the screens' owner.
-- **Saves are flushed only on exit.** The settings and the language are `saves.set` into the store; the store is
-  written on `flush`, which runs on Quit and on a window close. An app killed by the system, or a crash, loses what was
-  not flushed. A flush after each settings change, or Tauri's own `autoSave`, is a decision about the adapter's
-  contract ("a save the game has not flushed is not half-written").
+  paused screens offer "Back to menu". A player quits by closing the window, which works. Asked for by the coordinator,
+  and larger than it looks: every word on the default screens is translated into six languages
+  (`packages/automata/src/app/screens/words/*.json`) with a hashed source record (`sources.json`) and context notes, so
+  a new "Quit" needs five translations through that pipeline before the button (shown where `granted.has('exit')`,
+  48 px, in the title's action bar) can land. The boot-failure panel's own "Quit" is not in that pipeline.
 - **The `.deb`'s metadata**: `Maintainer: example` (taken from the identifier) and `Description: (none)`; the ship
   config has no description or publisher to give it.
 - **macOS and Windows**: fullscreen, the close request and the store path are unproved there.
@@ -141,7 +151,7 @@ Gaps, not fixed here (each is more than a small fix):
 | `macos` | `vars.AF_RELEASE_RUNNER` or `af-mac` | build, `.dmg` (the journey skips opening: WKWebView has no WebDriver) | when the six `APPLE_*` secrets exist |
 | `windows` | `af-windows` (as `windows-trial.yml`, Git's bash) | build, NSIS `.exe` and `.msi` (opening needs Edge's WebDriver, not wired) | certificate imported when `WINDOWS_CERTIFICATE` exists |
 
-How long: the Linux job's journey took 4 m 18 s here on 4 cores, after `pnpm build` (34 s) and the packages above
+How long: the Linux job's journey took 3 m 59 s to 4 m 19 s here on 4 cores, after `pnpm build` (34 s) and the packages above
 (36 s, once per runner); `timeout-minutes: 30`.
 
 What the Owner provides, to say yes:
@@ -191,12 +201,34 @@ there, so no message was written for them).
 
 ## 7. Third-party licence notices
 
-Nothing in `ship` writes third-party notices, for the web build or the desktop one. Measured on the stranger's game:
+Nothing in `ship` writes third-party notices, for the web build or the desktop one (kept as a finding on the
+coordinator's ruling; not built). Measured on the stranger's game:
 the 13 JavaScript chunks of `dist/assets/` hold no `@license` comment and no "MIT"; the `.deb` holds the binary, the
-icon and the `.desktop` file only, and the binary embeds the web build. PixiJS, Svelte, Zod, the framework's own
-packages and Tauri's crates are MIT or Apache-2.0, whose terms ask the notice to travel with copies. The font's OFL
+icon and the `.desktop` file only, and the binary embeds the web build. What a desktop game bundles, by the licences
+their `package.json` files declare: `pixi.js` 8.22.0 MIT, `svelte` MIT, `zod` MIT, the framework's packages MIT,
+`@tauri-apps/api` and the plugins `MIT OR Apache-2.0`, and for a 3D game `@pixi/3d` MIT; the binary also links some
+hundreds of Rust crates (Tauri's, MIT or Apache-2.0 for the most part). MIT asks that its copyright and permission
+notice travel with every copy. A notices step would need: the list of packages that reach the bundle (Vite's module
+graph, not `package.json`, so dev-only packages stay out), each one's licence text from its package, the same for the
+crates (`cargo about` or `cargo-license` over `.automata/tauri/src-tauri`), the font's OFL, one file written beside
+the build (`dist/THIRD-PARTY-NOTICES.txt`) and, for the desktop, into the bundle as a resource, and a way to show it
+(the credits screen). The font's OFL
 text has the same problem (shared-polish implementation audit, S2). Reported, not invented: a notices step (for
 example, collected at `vite build` and by `cargo about` for the crates) is a decision for the Owner.
+
+## Gates
+
+- `pnpm format`, before each commit.
+- `TURBO_FORCE=true pnpm check`, uncached, after `git fetch origin main` and a rebase onto `main` `7b6ce6ace`: exit 0,
+  19 m 51 s, on the first three commits (the toolchain messages, the journey, the docs).
+- The adapter fix came after, on the coordinator's ruling, and ran its own gates: `pnpm lint`, the package's
+  `typecheck` (0 errors), `pnpm boundaries`, `pnpm style`, `pnpm source-names`, `pnpm knip`, `pnpm check:changesets`
+  (81, 0 problems), the framework's target unit tests (21 files, 217 tests), and the desktop journey (above). The whole
+  uncached `pnpm check` did not run again after it.
+- `pnpm build` (exit 0), `pnpm api-report` (0 breaks, 0 undeclared; `--update` changed nothing), `pnpm api-index`
+  (`--write` changed nothing), `pnpm secrets` on the unshallowed history (no leaks).
+- Changesets: `desktop-toolchain-messages.md` (`@automata/tools`, patch) and `desktop-saves-written-soon.md`
+  (`@automata/framework`, patch).
 
 ## What did not run
 
