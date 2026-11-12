@@ -12,6 +12,12 @@ const lighting = sceneLightingSchema.parse({
   ],
 })
 
+/**
+ * A baked vertex colour as the screen shows it. `@pixi/3d` 0.1.0-beta.3 reads a vertex colour as linear light and the view
+ * encodes it with a 2.2 gamma, so the buffer holds the shown value raised to 2.2 (vertex-bake.ts `engineColours`).
+ */
+const shown = (buffered: number): number => buffered ** (1 / 2.2)
+
 function colourBuffer(mesh: Mesh3D) {
   const attribute = mesh.geometry.attributes.aColor
   if (attribute === undefined) throw new Error('the mesh has no vertex colours')
@@ -208,10 +214,41 @@ describe('createSceneLight tint', () => {
     light.bake(plain)
     light.bake(dim, { shadeSteps: 1 })
     light.bake(toned, { albedo: 0x808080 })
-    expect(colours(plain)[0]).toBeCloseTo(0.4, 6)
-    expect(colours(dim)[0]).toBeCloseTo(0.4 * 0.85, 6)
-    // 0x80 in sRGB is 0.502; × 0.4 is 0.2008 on screen, written as it is for an unlit material to show.
-    expect(colours(toned)[0]).toBeCloseTo((0x80 / 255) * 0.4, 5)
+    expect(shown(colours(plain)[0] as number)).toBeCloseTo(0.4, 6)
+    expect(shown(colours(dim)[0] as number)).toBeCloseTo(0.4 * 0.85, 6)
+    // 0x80 in sRGB is 0.502; × 0.4 is 0.2008 on screen.
+    expect(shown(colours(toned)[0] as number)).toBeCloseTo((0x80 / 255) * 0.4, 5)
+  })
+})
+
+describe('createSceneLight vertex colours', () => {
+  // `@pixi/3d` 0.1.0-beta.3 reads a vertex colour as linear light and the view encodes it, so the buffer holds the screen's value
+  // raised to 2.2 (vertex-bake.ts `engineColours`). `groundLuma` reports what the screen shows, so it does not.
+  const srgb = sceneLightingSchema.parse({ ambient: 0.5, colorSpace: 'srgb', lamps: [] })
+
+  it('holds a mid grey in half light as linear light, which the view encodes back to 64', () => {
+    const light = createSceneLight(srgb)
+    const floor = floorAt(0, 0)
+    light.bake(floor, { albedo: 0x808080 })
+    const written = colours(floor)[0] as number
+    expect(written).toBeCloseTo(((0x80 / 255) * 0.5) ** 2.2, 5)
+    expect(255 * written ** (1 / 2.2)).toBeCloseTo(64, 0)
+  })
+
+  it('writes the same colours when the mesh is baked again where it stands', () => {
+    const light = createSceneLight(srgb)
+    const floor = floorAt(0, 0)
+    light.bake(floor, { albedo: 0x808080 })
+    const first = colours(floor)
+    light.rebake(floor)
+    expect([...colours(floor)]).toEqual([...first])
+  })
+
+  it('still reports the colour the screen shows, light times albedo, from groundLuma', () => {
+    const light = createSceneLight(srgb)
+    const floor = floorAt(0, 0)
+    light.bake(floor, { albedo: 0x808080 })
+    expect(light.groundLuma(0, 0)).toBeCloseTo((0x80 / 255) * 0.5, 4)
   })
 })
 
@@ -221,10 +258,12 @@ describe('createSceneLight groundLuma', () => {
     colorSpace: 'srgb',
     lamps: [{ id: 'lamp', x: 0, y: 2, z: 0, color: 0xffffff, strength: 1.5, range: 6 }],
   })
-  /** The luma of the baked colour at vertex `i` of `mesh`, as the screen shows it (the sRGB channels as written). */
+  /** The luma of the baked colour at vertex `i` of `mesh`, as the screen shows it. */
   const lumaOfVertex = (mesh: Mesh3D, i: number): number => {
     const c = colours(mesh)
-    return 0.2126 * (c[i * 4] ?? 0) + 0.7152 * (c[i * 4 + 1] ?? 0) + 0.0722 * (c[i * 4 + 2] ?? 0)
+    return (
+      0.2126 * shown(c[i * 4] ?? 0) + 0.7152 * shown(c[i * 4 + 1] ?? 0) + 0.0722 * shown(c[i * 4 + 2] ?? 0)
+    )
   }
 
   it('is the floor’s shown colour at the point: what a vertex of the baked floor shows there (light times its albedo)', () => {

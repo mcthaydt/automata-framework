@@ -37,6 +37,12 @@ const level: AfSector2 = {
   ],
 }
 const colours: Record<string, number> = { oakFloor: 0x8690b2, plasterWarm: 0x3a4568 }
+
+/**
+ * A baked vertex colour as the screen shows it. `@pixi/3d` 0.1.0-beta.3 reads a vertex colour as linear light and the view
+ * encodes it with a 2.2 gamma, so the buffer holds the shown value raised to 2.2 (vertex-bake.ts `engineColours`).
+ */
+const shown = (buffered: number): number => buffered ** (1 / 2.2)
 const { pieces } = buildWorld(level, LIB)
 
 // A frame as a generator draws one: a thin box with its back on the wall, marked as hung on it.
@@ -90,7 +96,7 @@ describe('drawWorld', () => {
         buildWorld(lv, LIB).pieces,
       )
       const colours = (view.mesh('a:floor') as Mesh3D).geometry.attributes.aColor?.buffer.data as Float32Array
-      return colours[0] as number
+      return shown(colours[0] as number)
     }
     // A white swatch under an sRGB light of 0.4 is shown at 0.4; a room one step darker (light 0) takes 0.85 of it.
     expect(draw(level)).toBeCloseTo(0.4, 5)
@@ -255,7 +261,7 @@ describe('drawWorld: baked light is shown as written', () => {
     expect(floor.material).toBeInstanceOf(FlatMaterial)
     expect(formatOf(floor)).toBe('rgba8unorm')
     const colours = floor.geometry.attributes.aColor?.buffer.data as Float32Array
-    expect(colours[0]).toBeCloseTo(0.4, 5)
+    expect(shown(colours[0] as number)).toBeCloseTo(0.4, 5)
   })
 
   it('keeps the sRGB tile on a piece that is not baked, which a lit material decodes and encodes', () => {
@@ -268,8 +274,8 @@ describe('drawWorld: baked light is shown as written', () => {
     const floor = floorOf(view)
     expect((floor.material as FlatMaterial).baseColor).toBe(0xffffff)
     const colours = floor.geometry.attributes.aColor?.buffer.data as Float32Array
-    expect(colours[0]).toBeCloseTo((0x86 / 255) * 0.4, 5)
-    expect(colours[2]).toBeCloseTo((0xb2 / 255) * 0.4, 5)
+    expect(shown(colours[0] as number)).toBeCloseTo((0x86 / 255) * 0.4, 5)
+    expect(shown(colours[2] as number)).toBeCloseTo((0xb2 / 255) * 0.4, 5)
   })
 })
 
@@ -338,33 +344,33 @@ describe('drawWorld: glow', () => {
         lamps: [{ id: 'lamp.light0', x: 5, y: 5, z: 5, color: 0xffffff, range: 6 }],
       }),
     )
+  /** The first vertex's colour as the screen shows it. */
   const first = (mesh: Mesh3D) => {
     const data = mesh.geometry.attributes.aColor?.buffer.data as Float32Array
-    return [data[0], data[1], data[2]]
+    return [data[0], data[1], data[2]].map((v) => shown(v as number))
   }
-  // A baked glow is on a white base, unlit: the screen shows its vertex colour as written.
-  const linear = (rgb: number) =>
-    [(rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255].map((c) => Math.fround(c / 255))
+  // A baked glow is on a white base, unlit: the screen shows the step's own colour.
+  const linear = (rgb: number) => [(rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255].map((c) => c / 255)
+  const expectColour = (got: readonly number[], want: readonly number[]) => {
+    for (const [i, channel] of want.entries()) expect(got[i]).toBeCloseTo(channel, 5)
+  }
 
   it('draws an unlit glow in its own step, with no light to take', () => {
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow }, [bulb])
     const material = (view.mesh('lamp:bulb') as Mesh3D).material as FlatMaterial
     expect(material).toBeInstanceOf(FlatMaterial)
-    // A flat material is not encoded for the display, and decodes its base colour to linear: so what shows is the
-    // base colour's linear value, and that is the step.
+    // `@pixi/3d` 0.1.0-beta.3 shows an unlit material's base colour as it is authored (a 128 grey shows as 128; beta.2 drew it
+    // as 55), so the step's own colour is what the material is given.
     const given = material.baseColor as unknown as number
-    const shown = [16, 8, 0].map((shift) => toLinear(((given >> shift) & 255) / 255))
     const step = ember.steps[7] as number
-    // The colour is packed to 8 bits, so each channel is within a step of the wanted one.
-    for (const [i, shift] of [16, 8, 0].entries())
-      expect(shown[i]).toBeCloseTo(((step >> shift) & 255) / 255, 2)
+    for (const shift of [16, 8, 0]) expect((given >> shift) & 255).toBe((step >> shift) & 255)
   })
 
   it('bakes a glow at its own step in a room the lamps do not reach, even on a piece that moves', () => {
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow, light: room() }, [bulb])
     const mesh = view.mesh('lamp:bulb') as Mesh3D
     expect(mesh.material.vertexColors).toBe(true)
-    expect(first(mesh)).toEqual(linear(ember.steps[7] as number))
+    expectColour(first(mesh), linear(ember.steps[7] as number))
   })
 
   it('draws a lit window’s glass as the room behind it, a texture whatever the light', () => {
@@ -384,7 +390,7 @@ describe('drawWorld: glow', () => {
     const light = room()
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0, glow, light }, [bulb])
     light.setLevels({ 'lamp.light0': 0.5 })
-    expect(first(view.mesh('lamp:bulb') as Mesh3D)).toEqual(linear(ember.steps[5] as number))
+    expectColour(first(view.mesh('lamp:bulb') as Mesh3D), linear(ember.steps[5] as number))
   })
 })
 

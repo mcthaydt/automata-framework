@@ -258,3 +258,62 @@ describe('a glowing swatch', () => {
     expect(first(out)).toEqual(linear(EMBER.steps[7] as number).map(Math.fround))
   })
 })
+
+// `@pixi/3d` 0.1.0-beta.3 reads a vertex colour as linear light and the view encodes it (a 2.2 gamma) on its way to the screen, unlit
+// material or not. Beta.2's unlit path skipped that encode, so the screen showed the vertex colour as it was written. A bake
+// that must still show `albedo × light` (an `srgb` lighting's values are display colours) writes the colour the engine decodes to it.
+describe('a bake written as the engine reads it (`engineColours`)', () => {
+  const room = sceneLightingSchema.parse({ ambient: 0.5, colorSpace: 'srgb', lamps: [] })
+  const GAMMA = 2.2
+
+  it('writes albedo × light raised to 2.2, so the view’s encode brings back the product (a mid grey in half light shows 64)', () => {
+    const { positions, normals } = floorPatch()
+    const display = colours(bakeVertices(positions, normals, IDENTITY, room, [], { albedo: 0x808080 }))
+    const engine = colours(
+      bakeVertices(positions, normals, IDENTITY, room, [], { albedo: 0x808080, engineColours: true }),
+    )
+    expect(display[0]).toBeCloseTo((0x80 / 255) * 0.5, 5)
+    for (let c = 0; c < 3; c++) expect(engine[c]).toBeCloseTo((display[c] as number) ** GAMMA, 5)
+    // Encoded again by the view: 0.25 shows as 64 of 255.
+    expect(255 * (engine[0] as number) ** (1 / GAMMA)).toBeCloseTo(255 * (display[0] as number), 3)
+  })
+
+  it('writes the light of a textured mesh and the step of a glow the same way, and leaves alpha at 1', () => {
+    const { positions, normals } = floorPatch()
+    const textured = colours(bakeVertices(positions, normals, IDENTITY, room, [], { textured: true }))
+    const texturedEngine = colours(
+      bakeVertices(positions, normals, IDENTITY, room, [], { textured: true, engineColours: true }),
+    )
+    expect(texturedEngine[1]).toBeCloseTo((textured[1] as number) ** GAMMA, 5)
+    const ember = ladderOf({ ramp: 'ember', step: 7 })
+    const glow = { steps: ember.steps, base: ember.base, lamps: [] }
+    const lit = colours(bakeVertices(positions, normals, IDENTITY, room, [], { glow }))
+    const litEngine = colours(
+      bakeVertices(positions, normals, IDENTITY, room, [], { glow, engineColours: true }),
+    )
+    for (let c = 0; c < 3; c++) expect(litEngine[c]).toBeCloseTo((lit[c] as number) ** GAMMA, 5)
+    expect(texturedEngine[3]).toBe(1)
+    expect(litEngine[3]).toBe(1)
+  })
+
+  it('leaves a `linear` lighting alone: its values already are linear light', () => {
+    const { positions, normals } = floorPatch()
+    const linearRoom = sceneLightingSchema.parse({ ambient: 0.5, colorSpace: 'linear', lamps: [] })
+    const plain = colours(bakeVertices(positions, normals, IDENTITY, linearRoom, [], {}))
+    const engine = colours(
+      bakeVertices(positions, normals, IDENTITY, linearRoom, [], { engineColours: true }),
+    )
+    expect([...engine]).toEqual([...plain])
+  })
+
+  it('reports no change twice, as the plain bake does', () => {
+    const { positions, normals } = floorPatch()
+    const bake = bakeVertices(positions, normals, IDENTITY, room, [], {
+      albedo: 0x808080,
+      engineColours: true,
+    })
+    const out = new Float32Array(bake.vertexCount * 4)
+    expect(bake.write({}, out)).toBe(true)
+    expect(bake.write({}, out)).toBe(false)
+  })
+})

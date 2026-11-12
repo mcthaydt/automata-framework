@@ -1,4 +1,5 @@
 import { Container3D, CubeGeometry, FlatMaterial, Mesh3D, PhongMaterial } from '@pixi/3d'
+import { colourLook } from '../light/colour-look.ts'
 import { channels, toSrgb } from '../light/vertex-light.ts'
 import { placeView3d } from './pose-3d.ts'
 import { shareMaterial } from './shared-material.ts'
@@ -30,13 +31,19 @@ export interface BoxMaterial {
 
 /**
  * A base colour (in linear light) lit by the tint: each channel multiplied by the tint's, as the baked vertex
- * colours multiply a static mesh, then back to sRGB as 0xRRGGBB, capped at white.
+ * colours multiply a static mesh, then as 0xRRGGBB for an unlit material's base colour, capped at white. `@pixi/3d`
+ * 0.1.0-beta.3 shows that colour as authored, so the product goes back to sRGB first ('authored', the default); beta.2 drew an
+ * unlit base colour as its linear value, so the product itself was the display value ('beta2', `colour-look.ts`).
  */
 export function tinted(
   linear: readonly [number, number, number],
   tint: readonly [number, number, number],
 ): number {
-  const channel = (c: 0 | 1 | 2) => Math.round(255 * Math.min(1, toSrgb(linear[c] * tint[c])))
+  const authored = colourLook() === 'authored'
+  const channel = (c: 0 | 1 | 2) => {
+    const lit = Math.min(1, linear[c] * tint[c])
+    return Math.round(255 * (authored ? toSrgb(lit) : lit))
+  }
   return (channel(0) << 16) | (channel(1) << 8) | channel(2)
 }
 

@@ -2,6 +2,7 @@
 // game's options or its lighting content. Its particle mist is not extracted: it stays out unless a measurement shows
 // it within budget, and S7 has not.
 import type { Fog } from '@pixi/3d'
+import { colourLook } from './colour-look.ts'
 import { type SceneFog, sceneFogSchema } from './scene-lighting.schema.ts'
 
 /**
@@ -15,7 +16,9 @@ export function viewFog(options: SceneFog | undefined, content: SceneFog | undef
       throw new Error(`Pixi3dOptions.fog: ${checked.error.issues.map((issue) => issue.message).join('; ')}`)
   }
   const fog = options ?? content
-  return fog === undefined ? null : { type: 'linear', near: fog.near, far: fog.far, color: fog.color }
+  return fog === undefined
+    ? null
+    : { type: 'linear', near: fog.near, far: fog.far, color: fogShown(fog.color) }
 }
 
 /** One sRGB channel (0–255) decoded to linear light, back on the 0–255 scale. */
@@ -25,14 +28,23 @@ const linearChannel = (channel: number): number => {
 }
 
 /**
- * The sky behind fog: the colour fully fogged pixels reach on screen, so a wall fades into the sky with no edge
- *. In `@pixi/3d` 0.1.0-beta.2 that colour is the fog colour's linear value, drawn as if it were
- * sRGB (0x8b9bb4 draws as 0x425474), while a background colour draws as given, so the sky takes the decoded value.
+ * The fog colour as the screen shows it where the fog is full. `@pixi/3d` 0.1.0-beta.3 mixes fog in the same space as the
+ * rest of the picture, so the colour reaches the screen as authored ('authored', the default). Beta.2 showed the fog
+ * colour's linear value, drawn as if it were sRGB (0x8b9bb4 as 0x425474), and every fogged picture was tuned to that: the
+ * 'beta2' look keeps it by handing the view that darker colour (`colour-look.ts`).
+ */
+function fogShown(colour: number): number {
+  if (colourLook() === 'authored') return colour
+  const r = linearChannel((colour >> 16) & 0xff)
+  const g = linearChannel((colour >> 8) & 0xff)
+  const b = linearChannel(colour & 0xff)
+  return (r << 16) | (g << 8) | b
+}
+
+/**
+ * The sky behind fog: the colour fully fogged pixels reach on screen, so a wall fades into the sky with no edge.
  * `lighting.parity.test.ts` checks the two meet; if the beta changes its fog mix, that test fails here first.
  */
 export function fogSkyColor(fog: SceneFog): number {
-  const r = linearChannel((fog.color >> 16) & 0xff)
-  const g = linearChannel((fog.color >> 8) & 0xff)
-  const b = linearChannel(fog.color & 0xff)
-  return (r << 16) | (g << 8) | b
+  return fogShown(fog.color)
 }

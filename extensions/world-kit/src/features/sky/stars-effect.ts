@@ -20,7 +20,7 @@ vec4 effect(vec2 uv) {
   if (sampleDepth(uv) < 0.9999) return c;
   vec2 ndc = uv * 2.0 - 1.0;
   float yaw = uAimYaw + atan(ndc.x / uFxClip.z);
-  float elev = uAimPitch - atan(ndc.y / uFxClip.w);
+  float elev = uAimPitch - atan(ndc.y / abs(uFxClip.w));
   if (elev <= 0.06) return c;
   int sx = int(floor(degrees(yaw) * 3.0));
   int sy = int(floor(elev * 180.0));
@@ -38,7 +38,7 @@ fn effect(uv: vec2<f32>) -> vec4<f32> {
   if (sampleDepth(uv) < 0.9999) { return c; }
   let ndc = uv * 2.0 - 1.0;
   let yaw = fx.uAimYaw + atan(ndc.x / fxh.uFxClip.z);
-  let elev = fx.uAimPitch - atan(ndc.y / fxh.uFxClip.w);
+  let elev = fx.uAimPitch - atan(ndc.y / abs(fxh.uFxClip.w));
   if (elev <= 0.06) { return c; }
   let sx = i32(floor(degrees(yaw) * 3.0));
   let sy = i32(floor(elev * 180.0));

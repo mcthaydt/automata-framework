@@ -33,7 +33,7 @@ ${SLOTS.map(
     zq = -Q.z;
     if (uOrtho > 0.5 || zq > 0.01) {
       float w = uOrtho > 0.5 ? 1.0 : zq;
-      at = vec2(Q.x * uFxClip.z / w * 0.5 + 0.5, 0.5 - Q.y * uFxClip.w / w * 0.5);
+      at = vec2(Q.x * uFxClip.z / w * 0.5 + 0.5, 0.5 - Q.y * abs(uFxClip.w) / w * 0.5);
       d = p - floor(at / t);
       reach = uS${i}.w;
       if (d.x * d.x + d.y * d.y <= reach * reach + reach && zq <= surface + 0.05) hit = vec4(uK${i}.rgb, 1.0);
@@ -58,7 +58,7 @@ ${SLOTS.map(
     if (fx.uOrtho > 0.5 || zq > 0.01) {
       var w = zq;
       if (fx.uOrtho > 0.5) { w = 1.0; }
-      let at = vec2<f32>(Q.x * fxh.uFxClip.z / w * 0.5 + 0.5, 0.5 - Q.y * fxh.uFxClip.w / w * 0.5);
+      let at = vec2<f32>(Q.x * fxh.uFxClip.z / w * 0.5 + 0.5, 0.5 - Q.y * abs(fxh.uFxClip.w) / w * 0.5);
       let d = p - floor(at / t);
       let reach = fx.uS${i}.w;
       if (d.x * d.x + d.y * d.y <= reach * reach + reach && zq <= surface + 0.05) { hit = vec4<f32>(fx.uK${i}.rgb, 1.0); }

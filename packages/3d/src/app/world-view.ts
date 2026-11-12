@@ -17,7 +17,6 @@ import { tileName } from '../features/world/surface.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
 import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
-import { toSrgb } from '../shared/render/light/vertex-light.ts'
 
 export interface WorldScene {
   /** Where the pieces are added. */
@@ -82,8 +81,9 @@ const plainTextures = new WeakMap<AlbedoTile, Texture>()
 
 /**
  * A tile as a texture: nearest-sampled, repeating, no mips, so every texel stays one DUEL colour. A lit material wants the
- * sRGB format (the sampler decodes it, the view's encode brings it back); an unlit one is not encoded, so it shows the
- * texture as the sampler gives it, and wants the plain format (`plain`), which gives each texel as it is.
+ * sRGB format (the sampler decodes it, the view's encode brings it back); an unlit one reads a texture as a display colour
+ * itself (`@pixi/3d` 0.1.0-beta.3 decodes it and the view encodes it again), so it wants the plain format (`plain`), which
+ * gives each texel as it is.
  */
 function textureOf(tile: AlbedoTile, plain = false): Texture {
   const made = plain ? plainTextures : textures
@@ -104,16 +104,6 @@ function textureOf(tile: AlbedoTile, plain = false): Texture {
   }
   return texture
 }
-
-/**
- * A colour for an unlit material to show as it is. The material takes its base colour as sRGB, decodes it and does not
- * encode it again, so the colour to give is the one whose decoded value is the colour wanted.
- */
-const shownAs = (colour: number): [number, number, number] => [
-  toSrgb(((colour >> 16) & 255) / 255),
-  toSrgb(((colour >> 8) & 255) / 255),
-  toSrgb((colour & 255) / 255),
-]
 
 /** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour (or its tile), with a material of its own. */
 function meshOf(
@@ -191,7 +181,8 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
       // A glow takes no light, so a moving piece may carry it baked: where it goes does not change what it shows.
       const ladder = ladderOf(glows)
       if (scene.light === undefined)
-        mesh.material = new FlatMaterial({ baseColor: shownAs(ladder.steps[ladder.base] ?? colour) })
+        // An unlit material shows its base colour as authored (`@pixi/3d` 0.1.0-beta.3), so the step goes in as it is.
+        mesh.material = new FlatMaterial({ baseColor: ladder.steps[ladder.base] ?? colour })
       else {
         mesh.material = new FlatMaterial({ baseColor: 0xffffff })
         const lamps = piece.prop === undefined ? [] : lampsOfProp(scene.light.lighting.lamps, piece.prop.id)
