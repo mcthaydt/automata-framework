@@ -166,7 +166,7 @@ either end). No new per-character code: Ada's data sets the options.
 
 What moved: **nothing that already draws.** A generator gains options and does not change what existing data draws, so the waistcoat's
 defaults are the legacy cut (`fit` 0, `armhole` 0, the hem a hand over the belt) and Ada's data sets her own options. The test
-[`waistcoat-default.test.ts`](../../../extensions/character-kit/tests/unit/fashion/waistcoat-default.test.ts) pins it: the base pair in a
+[`waistcoat-default.test.ts`](../../../../extensions/character-kit/tests/unit/fashion/waistcoat-default.test.ts) pins it: the base pair in a
 tee, a waistcoat and jeans, eight views at density 2 each, cell by cell (a SHA-1 of every cell recorded from the commit before the
 options, `a76c7863`); it was watched failing with an earlier default (`fit` 0.6, `armhole` 0.5) and passes with the legacy one, which
 needed the hem and the clearance written exactly (a `lerp` of 1.6 and 1.6 is not always 1.6). No golden file moved: the kit's runway and
