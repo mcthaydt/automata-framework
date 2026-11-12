@@ -5,3 +5,6 @@ On the desktop (`tauri`), the default title screen has a Quit button after Play 
 Play, in every language the screens ship (`title_quit`). It quits the app through `Hosting.exit`, so the game's exit
 handlers and the save flush run first. The web, itch.io and Ruken titles are unchanged: there the browser or the host
 owns leaving.
+
+BREAKING: `ScreensCopy['title']` gains `quit` (the desktop title's Quit). A game that writes the whole `ScreensCopy`
+type by hand adds it; a game that passes partial `screens` words (the usual way) needs nothing.

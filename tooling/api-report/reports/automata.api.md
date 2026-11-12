@@ -2011,6 +2011,7 @@ component from '../shared/ui/layout/ScreenFrame.svelte'
 interface ScreensCopy {
     readonly title: {
         readonly play: string;
+        readonly quit: string;
     };
     readonly play: {
         readonly pause: string;
