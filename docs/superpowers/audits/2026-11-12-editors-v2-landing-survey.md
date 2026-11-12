@@ -318,3 +318,22 @@ GitHub sync is free on the web". `main`'s Home already says it (`home-content.ts
 **A cheaper honest route for sync than rebuilding it:** the sync tip merges into `main` with 85 conflicting files and
 into the v2 tip with 12. Once v2 and the web chain are on `main`, merging the sync tip is one more merge of the same
 kind, with its tests. The re-audit's "rebuild on `main`" was sized on the 882 figure.
+
+## Addendum: the plan audit, 2026-11-12
+
+Re-measured on `main` `7b6ce6ac` (two merges past `d401ec4d`, none in the editors) with full history, by the plan audit
+([`2026-11-12-editors-v2-landing-plan-audit.md`](2026-11-12-editors-v2-landing-plan-audit.md)). The figures above hold:
+51 files and 63 hunks for the v2 tip, 76 and 113 for the web tip, 85 and 130 for the sync tip. What changed since:
+
+- `claude/ship-3d-plan` (`c9c2b990`) and `claude/editor-journeys-green` (`dc1b2e96`) are now on `origin`;
+  `claude/scope-rename` still is not. The v2 tip merged onto `editor-journeys-green` conflicts in 54 files (adds
+  `harness/new-game.ts`, `harness/run-editor.ts`, `turbo.json`); onto `claude/pixi-3d-public` in 52 (adds
+  `create-game/template-3d.ts`).
+- Section 4's table of what `main` changed that v2 must keep is short by these `main` commits, which also meet v2 in the
+  conflicted files: `dcef7e11` (a camera key at an anchor and `main`'s own 3D cutscene stage, a different API from
+  v2's of the same name), `2f42eb75` (the HUD in `DialogueBox.svelte`), `3aef5854` and `11ce6dd9` (a new game's button
+  sounds, languages, font), `f68d822e` (every control sounds), `156126ae` and `551a11f2` (`packages/content`),
+  `f863ad00` (doc comments), and the layout moves `0aad7f3c` and `372fdc3f`. The plan's K11 to K16 check them.
+- `82a1924e`'s unit test `Suite-ship.test.ts` no longer exists on `main` (it went with the change-set desk, `a15c7b36`).
+- `main`'s commit hook (`4be1afc9`, #667) now runs the unit tests of every package a commit stages, which changes how
+  the merge is committed (the plan's Task 2).
