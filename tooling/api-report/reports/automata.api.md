@@ -1064,6 +1064,12 @@ interface InputMap {
 }
 ```
 
+### `InputMethod` (type)
+
+```ts
+type InputMethod = 'keyboard' | 'gamepad' | 'touch';
+```
+
 ### `InputMode` (type)
 
 ```ts
@@ -1530,6 +1536,7 @@ interface PixiStageHooks {
 interface PlayHandle {
     readonly sim: DrawSim | undefined;
     send(command: SentCommand): void;
+    readonly inputMethod: InputMethod;
 }
 ```
 
@@ -2951,7 +2958,7 @@ function mountFixture<Props extends Record<string, unknown>>(component: Componen
 ### `mountInPlay` (function)
 
 ```ts
-function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement): PlayMount;
+function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement, inputMethod?: InputMethod): PlayMount;
 ```
 
 ### `nullRenderer` (function)
@@ -2996,6 +3003,7 @@ function openRuntimeTest(options?: RuntimeTestOptions): Promise<RuntimeTestSessi
 interface PlayMount {
     readonly host: HTMLElement;
     readonly session: PlaySession;
+    noteInputMethod(method: InputMethod): void;
     unmount(): void;
 }
 ```
@@ -3007,6 +3015,7 @@ class PlaySession {
     #private;
     readonly handle: PlayHandle;
     constructor(sim: Sim | undefined);
+    setInputMethod(method: InputMethod): void;
     refresh(): void;
     commands(tick: number, input: readonly Command[]): readonly Command[];
 }

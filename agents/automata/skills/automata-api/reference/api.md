@@ -5980,6 +5980,19 @@ interface InputMap {
 }
 ```
 
+#### `InputMethod` (type)
+
+The input method the player last used, app-wide.
+
+Menus and tutorials teach the controls in the player's hand, and neither
+lives inside the sim, so this is not the game's input. A mouse moves
+nothing: it says nothing about which controls to teach. Which buttons a
+controller carries (its glyph family) belongs to the input feature.
+
+```ts
+type InputMethod = 'keyboard' | 'gamepad' | 'touch';
+```
+
 #### `InputMode` (type)
 
 How the player is playing right now.
@@ -6710,6 +6723,12 @@ interface PlayHandle {
     readonly sim: DrawSim | undefined;
     /** Queues `command` for the next tick, after the input map's own, in the order sent. */
     send(command: SentCommand): void;
+    /**
+     * How the player is playing now: `touch`, `keyboard` or `gamepad`, whichever they used last (a coarse pointer starts as
+     * touch). Reading it in a template or `$derived` follows each change. A component draws on-screen buttons for `touch` only.
+     * This is the input mode; it is separate from layout, which follows the container's size and usable height whatever the input.
+     */
+    readonly inputMethod: InputMethod;
 }
 ```
 
@@ -8828,10 +8847,11 @@ function mountFixture<Props extends Record<string, unknown>>(component: Componen
 
 #### `mountInPlay` (function)
 
-Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
+Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page. The
+player starts as the page's pointer says (a coarse one is touch); `inputMethod` says otherwise.
 
 ```ts
-function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement): PlayMount;
+function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement, inputMethod?: InputMethod): PlayMount;
 ```
 
 #### `nullRenderer` (function)
@@ -8890,6 +8910,8 @@ interface PlayMount {
     readonly host: HTMLElement;
     /** `refresh()` says a frame passed; `commands(tick, [])` takes what the component sent. */
     readonly session: PlaySession;
+    /** Says how the player is playing now (`touch`, `keyboard` or `gamepad`), as their next press would; the component sees it as `usePlay().inputMethod`. */
+    noteInputMethod(method: InputMethod): void;
     unmount(): void;
 }
 ```
@@ -8904,6 +8926,8 @@ class PlaySession {
     #private;
     readonly handle: PlayHandle;
     constructor(sim: Sim | undefined);
+    /** Says how the player is playing; the play screen gives it from its tracker, and a test sets it by hand. */
+    setInputMethod(method: InputMethod): void;
     /** Says a frame passed, so what reads the sim reads it again. */
     refresh(): void;
     /**

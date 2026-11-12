@@ -531,6 +531,7 @@
 - `IconButton` (const): A button whose face is an icon.
 - `Input` (interface): The input service: held actions from keys, pads, touch buttons and gestures under the game's profile and the player's overrides, menu edges, the active device and pads, and rebinding.
 - `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick.
+- `InputMethod` (type): The input method the player last used, app-wide.
 - `InputMode` (type): How the player is playing right now.
 - `InputModePayload` (interface): The current input mode, and the gamepad when one is in use.
 - `InputModePayloadSchema` (const): Checks an input mode change.
@@ -732,7 +733,7 @@
 - `manualFrames(startMs?)`: A frame source that runs a frame only when a test advances it, starting at `startMs`.
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 - `mountFixture(component, props, target?)`: Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first render is finished.
-- `mountInPlay(slot, sim, target?)`: Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
+- `mountInPlay(slot, sim, target?, inputMethod?)`: Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
 - `nullRenderer(log?, options?)`: A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU.
 - `NullRendererEntry` (type): One call `nullRenderer` recorded.
 - `NullRendererOptions` (interface): Options for `nullRenderer`: `fail` makes it fail `RendererUnavailable`.

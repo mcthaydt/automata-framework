@@ -7,4 +7,5 @@ const tick = $derived(play.sim?.tick ?? -1)
 </script>
 
 <p data-testid="tick">{tick}</p>
+<p data-testid="method">{play.inputMethod}</p>
 <button type="button" data-testid="bump" onclick={() => play.send({ type: 'probe.bump', payload: { by: 2 } })}>Bump</button>

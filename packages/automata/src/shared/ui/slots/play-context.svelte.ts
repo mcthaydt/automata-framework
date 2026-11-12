@@ -1,6 +1,7 @@
 import type { Command, Sim } from '@automata/sim'
 import { getContext, setContext } from 'svelte'
 import { type DrawSim, readSim } from '../../draw/read-sim.ts'
+import type { InputMethod } from '../browser/input-method.svelte.ts'
 
 // What a component in the `hud.overlay` slot may do on the play screen: read the game and send it a command. Reading is
 // the draw layer's read-only view (law 2: presentation observes, it never decides), made reactive so a component that
@@ -16,6 +17,12 @@ export interface PlayHandle {
   readonly sim: DrawSim | undefined
   /** Queues `command` for the next tick, after the input map's own, in the order sent. */
   send(command: SentCommand): void
+  /**
+   * How the player is playing now: `touch`, `keyboard` or `gamepad`, whichever they used last (a coarse pointer starts as
+   * touch). Reading it in a template or `$derived` follows each change. A component draws on-screen buttons for `touch` only.
+   * This is the input mode; it is separate from layout, which follows the container's size and usable height whatever the input.
+   */
+  readonly inputMethod: InputMethod
 }
 
 const KEY = Symbol('af.play')
@@ -26,6 +33,7 @@ const KEY = Symbol('af.play')
  */
 export class PlaySession {
   #frame = $state(0)
+  #method: InputMethod = $state('keyboard')
   readonly #queue: SentCommand[] = []
   readonly handle: PlayHandle
 
@@ -47,7 +55,19 @@ export class PlaySession {
             entity: (sid: number) => follow(() => base.entity(sid)),
             resource: ((def) => follow(() => base.resource(def))) as DrawSim['resource'],
           })
-    this.handle = Object.freeze({ sim: view, send: (command: SentCommand) => void this.#queue.push(command) })
+    const session = this
+    this.handle = Object.freeze({
+      sim: view,
+      send: (command: SentCommand) => void this.#queue.push(command),
+      get inputMethod(): InputMethod {
+        return session.#method
+      },
+    })
+  }
+
+  /** Says how the player is playing; the play screen gives it from its tracker, and a test sets it by hand. */
+  setInputMethod(method: InputMethod): void {
+    this.#method = method
   }
 
   /** Says a frame passed, so what reads the sim reads it again. */
