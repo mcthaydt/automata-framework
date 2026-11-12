@@ -186,3 +186,34 @@ Measured with `HAND_FORM = 'parted'` against the recorded data, then restored (n
 The red tests are the same files as round 1: the painter's 51 of 755 (`golden/base` 2, `golden/lit` 1, `golden/sprite` 1,
 `golden/actors` 2, `actors/actors` 4, `stage/sheets` 3, `paint/identity` 35, `hair/front` 1, `outfit/shoe-form` 1,
 `paint/sheer` 1) and the kit's 16 of 233 (`fashion/showcase-cells.test.ts`). No behaviour test fails.
+
+## Round 3: the resume list (the coordinator's visual audit of round 2, for the Owner)
+
+Round 2 is better than today's hand and not ready to record. Same rules: generator only, behind `HAND_FORM`, nothing
+recorded. Judge at x4 on the whole figure: relaxed open hands, a thumb, a visible index, calm posture. The new sheet takes
+the suffix `-round3` with rows before | round 2 | round 3, and moved-texels is shot again.
+
+1. **It reads as a clenched fist.** Make an open, relaxed hand, clearly longer than wide (length about 1.4 to 1.6 times
+   the knuckle breadth): a palm, then a finger block hanging down, its end gently tapered, not a ball.
+2. **No index.** At x10 the index is one isolated darker texel in the front and back views. It needs a continuous
+   one-texel crease from the knuckle row to the tip, separating a 2-column index from the 3-finger mitten, the two
+   ending on different rows. Rule: no isolated crease texel; a crease is a run of 3 or more texels or it is not drawn.
+3. **The thumb is a spike** (3/4 view, far hand: it sticks out sideways like a pointing finger). A relaxed thumb lies
+   along the palm's side, angled down, its tip clear of the palm by a notch; never more than 1 to 2 texels out, never
+   horizontal.
+4. **Side-view artefacts.** The woman's near hand shows a lone triangular nub on the thigh; the man's creases draw a "T"
+   across it. Where the hand overlaps skin of its own colour, give it a closed contour one step darker on its own ramp,
+   so it reads as a hand against the thigh; nothing pokes out as a lone triangle.
+5. **Density 1 is worse than before** (oven mitts). Density 1 goes back to its old size (no 1.15, no turn): a plain
+   mitten with a one-texel thumb bump, never wider than the forearm + 1.
+6. **The hair moves.** In the base man's torch frames the figure-wide colour budget (`paint-budget.ts` `budget`)
+   recolours a patch of hair. A hand change must move zero texels on the head, hair and neck. Fix the cause: the
+   budget's merge must not depend on the stamp's coverage (take it from the figure before the stamp, or keep the
+   stamp's colours inside the set the budget already holds). Prove it with the moved-texels map: nothing above the
+   shoulders in all 40 frames at each density. Keep driving the arm and thigh one-step moves down where a cheap way
+   appears.
+
+Tools to rebuild (scratch, not in the repository): a render of the 40 frames per density with a recorder of every
+texel `drawHands` erases or draws (the hand mask), before/after crops at x10 centred on each stamp's box, whole-figure
+crops at x4, and a moved-texels map masked by the hand region grown by one texel. Flip `HAND_FORM` to `'parted'` only
+in the working tree to measure, and restore it before committing (the pre-commit hook runs the goldens).
