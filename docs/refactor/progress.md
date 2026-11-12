@@ -423,26 +423,6 @@ the site's 3D parts.
 
 **Where to resume (2026-11-08, session m6iu2z, after 15.3 slice B):** branch `claude/project-thread-m6iu2z` (PR #476). 15.1b, 15.2 and 15.3 slices A and B are done (the plan's log has the rulings): the change-set desk, the change-set port and journal, the Tuner's locks and the `ask` mode are gone. Next: the standalone-app dead code (Map, Home, `TilesetsView`, `App.svelte`, `boot.ts`; about 43 test files use `boot.ts` and `main.css`, so move those first; the 2D Characters view waits for the Owner's word), then 15.4 (the suite on a phone) and 16.x. Owner questions: remove the gate records and check measures that now have no screen? Does the 2D Characters view stay? A commit that moves an export needs `pnpm build`, then `pnpm api-report --update` first (the hook takes up to 5 minutes). `save-reaches-the-game` can fail once under load.
 
-### Build: 22% (4 of 18 tasks)
-
-The base is #532's branch (`claude/project-thread-szjdbh`, `829039d5`) with the plan, spec and audits copied in from #536
-and #537. #531 (`claude/project-thread-hvpv4a`, `e66059ce`) and the site stack (#521, `claude/project-thread-k1ftgu`,
-`5fd3933c`) could not be merged into it: they sit on other bases (135 and 35 conflicts, the 2D editor's folders were
-renamed in one and not the other). Their new files are copied in when a task needs them, and the merge thread settles
-the rest. The page has no editors v2 header, so the header is `SuiteTopBar.svelte`.
-
-| Task | Phase | Status | PR |
-|---|---|---|---|
-| 0.1 The base | 0 | Done, 2026-11-08: `pnpm install`, unit tests of the touched packages green; `pnpm check` not run whole | |
-| 1.1 Typed words are written as they are typed | 1 | Done, 2026-11-08 (jsdom unit tests; Chromium and WebKit journeys are task 1.4) | |
-| 1.2 One Undo step per field visit | 1 | Done, 2026-11-08 (unit) | |
-| 1.3 The saved line, at every size | 1 | Done, 2026-11-08 (unit; the phone-size layout test is with 1.4). 2026-11-09: the line first kept its full width and pushed the 3D studio's Dock off a phone screen (the `3D - parity` check was red on this branch from its first push); it now shortens with an ellipsis when the bar runs short, and the layout suites of the editor (suite-edit, suite-levels) and editor-3d pass | |
-| 1.4 Journeys that reload without leaving the field | 1 | Not started | |
-| 2.1 to 2.4 Your games on this device | 2 | Not started | |
-| 3.1 to 3.2 `/try` and the site's words | 3 | Not started | |
-| 4.1 to 4.3 Sign in with GitHub | 4 | Not started | |
-| 5.1 to 5.4 Sync on the web | 5 | Not started | |
-
 **The whole game loop (2026-11-08, session 6rfl3t, PR stacked on #473; the Owner asked whether a whole game can be made
 from the editors).** The 2D editors audit's E1 to E5 are fixed on the open stack, each with a served journey (E1
 `save-reaches-the-game`, E2 and E3 `new-game-opens`, E4 the 2D default, E5 `suite-opens-the-checkout`); none is on
