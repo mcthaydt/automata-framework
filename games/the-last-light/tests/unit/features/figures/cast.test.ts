@@ -397,7 +397,8 @@ describe('what the old figures do that the painter cannot yet', () => {
 
 describe('how a figure is painted in play', () => {
   it('is at true size and leaves the density to the camera: play’s 52 lines a metre are a zoom of 1.4, which the kit paints at 1 (about 37 texels a metre, the old game’s), and a close shot gets more', () => {
-    expect(PLAY_FIGURE).toEqual({ crisp: false })
+    // The skin keeps its hue in the ward's dim cool light (the kit's `holdSkinHue`): Ada was lavender in it.
+    expect(PLAY_FIGURE).toEqual({ crisp: false, holdSkinHue: true })
     expect('density' in PLAY_FIGURE).toBe(false)
   })
 })

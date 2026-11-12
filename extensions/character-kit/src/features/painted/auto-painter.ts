@@ -16,6 +16,8 @@ export interface AutoPainterOptions {
    * of dots at density 1, where a drawn face is a lid line under the fringe, and a drawn face from density 2. The character's own by default.
    */
   readonly defFor?: ((density: Density) => CharacterDef) | undefined
+  /** Keep the skin's hue where the room's light darkens it, and never tint it by the room's colour (`PaintedFigureOptions.holdSkinHue`). */
+  readonly holdSkinHue?: boolean | undefined
 }
 
 /** How long a density may go undrawn before its painter is let go: a shot is over, and the figure is in the room again. */
@@ -63,7 +65,9 @@ export class AutoPainter {
     // A painter new to the figure starts where the figure's walk is, not at the start of a step.
     if (entry === undefined) {
       entry = {
-        painter: new Painter(this.options.defFor?.(density) ?? this.def, density),
+        painter: new Painter(this.options.defFor?.(density) ?? this.def, density, {
+          holdSkinHue: this.options.holdSkinHue,
+        }),
         owed: before,
         drawnAt: input.t,
       }

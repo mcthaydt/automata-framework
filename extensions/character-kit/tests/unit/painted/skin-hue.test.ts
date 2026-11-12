@@ -1,0 +1,131 @@
+// A face keeps its skin hue under a dim or a cool room's light, and only gets darker (`holdSkinHue`, lit-cells.ts). The DUEL skin row
+// (27) darkens into mauve and purple (554769, 765d73, 977488), and the lit sprite tints toward the room's colour, so a dim cool room
+// turned the painter's pink skin lavender: a skin texel's hue moved by 25 degrees or more where a warm row's steps hold it.
+import { describe, expect, it } from 'vitest'
+import { litCells } from '#src/features/painted/lit-cells.ts'
+import { Painter } from '#src/features/painted/painter.ts'
+import { roomLight, type Tint } from '#src/features/painted/room-light.ts'
+import { skinColours } from '#src/features/painted/skin-hue.ts'
+import { BASE, type CharacterDef, Figure, member, SPRITE_PITCH, type V3 } from '#src/shared/figures/door.ts'
+
+const FEET: V3 = [0, 0, 0]
+const base = (BASE.find((b) => b.def.id === 'base-f') as { def: CharacterDef }).def
+/** The base woman in the old game's fair skin: the quad on DUEL rows 27, 27, 19 and 24, which is what Ada is painted in. */
+const fair: CharacterDef = {
+  ...base,
+  skin: 'fair',
+  swatches: {
+    ...base.swatches,
+    fair: {
+      ramp: 27,
+      base: 5,
+      lift: 0,
+      paint: ['#ebbd9d', '#d5a39a', '#c17e7a', '#945d4f'],
+      tones: [0.05, -0.55, -0.9],
+    },
+  },
+}
+const standing = (density: 1 | 2 | 4 = 2) => {
+  const figure = new Figure(member(fair, density))
+  for (let i = 0; i < 3; i++)
+    figure.update(1 / 60, { facing: 0, moving: false, view: { azimuth: 0, pitch: SPRITE_PITCH } })
+  return figure
+}
+/** The ward's kind of light: dim and a little cool. */
+const cool: Tint = () => [0.6, 0.74, 0.84]
+const dimmer: Tint = () => [0.45, 0.56, 0.66]
+
+const SKIN = new Set(['ebbd9d', 'd5a39a', 'c17e7a', '945d4f'])
+const hex = (px: ArrayLike<number>, o: number) =>
+  (((px[o] as number) << 16) | ((px[o + 1] as number) << 8) | (px[o + 2] as number))
+    .toString(16)
+    .padStart(6, '0')
+
+/** sRGB (0 to 255 each) to OKLab, for the hue angle and lightness. */
+function oklab(c: string): [number, number, number] {
+  const lin = (i: number) => {
+    const v = Number.parseInt(c.slice(i, i + 2), 16) / 255
+    return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+  }
+  const [r, g, b] = [lin(0), lin(2), lin(4)]
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ]
+}
+const hueOf = (c: string) => {
+  const [, a, b] = oklab(c)
+  return (Math.atan2(b, a) * 180) / Math.PI
+}
+const apart = (x: number, y: number) => Math.abs(((x - y + 540) % 360) - 180)
+
+/** Every skin texel of the figure lit by `tint`: its painted colour and its lit one, where the two differ. */
+function skinUnder(tint: Tint, hold: boolean, density: 1 | 2 | 4 = 2) {
+  const figure = standing(density)
+  const lit = litCells(undefined, hold ? { skin: skinColours(fair) } : undefined).lit(
+    figure,
+    roomLight(tint, undefined, FEET, 0),
+  )
+  const out: { was: string; now: string }[] = []
+  for (let o = 0; o < lit.painted.length; o += 4) {
+    if (!lit.painted[o + 3]) continue
+    const was = hex(lit.painted, o)
+    if (SKIN.has(was)) out.push({ was, now: hex(lit.rgba, o) })
+  }
+  return out
+}
+
+describe('a face in a dim cool room', () => {
+  it('turns lavender without the option: the skin the room darkens moves 25 degrees or more of hue', () => {
+    const moved = skinUnder(cool, false).filter((t) => apart(hueOf(t.was), hueOf(t.now)) >= 25)
+    expect(moved.length).toBeGreaterThan(0)
+  })
+
+  it('keeps its skin hue with it: no skin texel moves 20 degrees of hue, at three densities and two lights', () => {
+    for (const density of [1, 2, 4] as const)
+      for (const tint of [cool, dimmer]) {
+        const skin = skinUnder(tint, true, density)
+        expect(skin.length).toBeGreaterThan(50)
+        for (const t of skin) expect(apart(hueOf(t.was), hueOf(t.now))).toBeLessThan(20)
+      }
+  })
+
+  it('only gets darker: the skin is darker on the whole than it was painted, and no texel is more than a step lighter', () => {
+    const skin = skinUnder(cool, true)
+    const mean = (pick: (t: { was: string; now: string }) => string) =>
+      skin.reduce((s, t) => s + oklab(pick(t))[0], 0) / skin.length
+    expect(mean((t) => t.now)).toBeLessThan(mean((t) => t.was))
+    for (const t of skin) expect(oklab(t.now)[0]).toBeLessThan(oklab(t.was)[0] * 1.2)
+  })
+
+  it('is darker in a dimmer room: the mean lightness of the skin falls with the light', () => {
+    const mean = (tint: Tint) => {
+      const skin = skinUnder(tint, true)
+      return skin.reduce((s, t) => s + oklab(t.now)[0], 0) / skin.length
+    }
+    expect(mean(dimmer)).toBeLessThan(mean(cool))
+  })
+})
+
+describe('the painter, with the option', () => {
+  const frame = (light: ReturnType<typeof roomLight>) => ({
+    t: 0,
+    dt: 1 / 60,
+    facing: 0,
+    state: { moving: false },
+    view: { azimuth: 0, pitch: SPRITE_PITCH },
+    light,
+  })
+  it('lights the skin by hue: the same figure and light are different bytes with it, and the default is the lit sprite’s own', () => {
+    const light = roomLight(cool, undefined, FEET, 0)
+    const plain = new Painter(fair, 2).paint(frame(light)).rgba
+    const held = new Painter(fair, 2, { holdSkinHue: true }).paint(frame(light)).rgba
+    const again = new Painter(fair, 2, { holdSkinHue: false }).paint(frame(light)).rgba
+    expect(Buffer.compare(Buffer.from(plain), Buffer.from(held))).not.toBe(0)
+    expect(Buffer.compare(Buffer.from(plain), Buffer.from(again))).toBe(0)
+  })
+})

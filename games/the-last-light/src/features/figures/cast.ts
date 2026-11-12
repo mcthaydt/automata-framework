@@ -13,7 +13,7 @@ import { ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
  *  1.4 pixels a density-1 texel, to 71%), and at the density its camera needs, which the kit chooses each frame. Play's camera
  *  (52 lines a metre, a zoom of 1.4) asks for density 1, about 37 texels a metre, which is the old game's; a cutscene shot closer than
  *  play asks for more, and a shot at zoom 2 or over gets density 2 or over. */
-export const PLAY_FIGURE = { crisp: false } as const
+export const PLAY_FIGURE = { crisp: false, holdSkinHue: true } as const
 
 /**
  * The character a density paints. A figure whose face is a decal (`face.drawn: false`: two dots, which is what the old figure showed at the

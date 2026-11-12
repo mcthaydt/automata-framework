@@ -16,6 +16,7 @@ import {
 import type { Density } from './density.ts'
 import { litCells } from './lit-cells.ts'
 import type { Exposure, RoomLight } from './room-light.ts'
+import { skinColours } from './skin-hue.ts'
 import type { PaintedState } from './state.ts'
 
 /** An eighth of a turn: the painter draws the nearest of 8 directions, so a stand needs only 8 facings. */
@@ -48,13 +49,15 @@ export class Painter {
   private readonly figures = new Map<string | undefined, Figure>()
   private readonly stands = new Map<string, ScriptedActor>()
   /** The lit cells of this figure, kept by the painted cell and the quantised light. */
-  private readonly cells = litCells()
+  private readonly cells: ReturnType<typeof litCells>
 
   constructor(
     private readonly def: CharacterDef,
     private readonly density: Density,
+    options: { readonly holdSkinHue?: boolean | undefined } = {},
   ) {
     this.cast = member(def, density)
+    this.cells = litCells(undefined, options.holdSkinHue === true ? { skin: skinColours(def) } : {})
   }
 
   /** The cell for this frame, valid until the next one. */

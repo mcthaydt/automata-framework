@@ -45,6 +45,12 @@ export interface PaintedFigureOptions {
    * flat light, a step of form and a rim from the lamps and the sun where it stands. `false` keeps it as the painter drew it.
    */
   readonly lit?: boolean | undefined
+  /**
+   * Whether a face keeps its skin's hue in the room's light (false by default, the lit sprite's own): where the room darkens the skin it
+   * takes the shade of the same hue and not a mauve or purple DUEL step, and the room's colour never tints it. The skin colours are the
+   * character's skin swatch's paint (`skinColours`). It costs a second lit sprite on each new lit cell, when the room's light has a colour.
+   */
+  readonly holdSkinHue?: boolean | undefined
 }
 
 const STANDING: PaintedState = { moving: false }
@@ -83,6 +89,7 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
       density: options.density,
       maxDensity: options.maxDensity,
       defFor: options.defFor,
+      holdSkinHue: options.holdSkinHue,
     })
     let facing = Math.PI
     let state = STANDING
