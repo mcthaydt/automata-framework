@@ -110,8 +110,11 @@ export function figureView(look: FigureLook, actors: Actors): View3dFactory {
     // What a cutscene last said of this figure; it is shown through the view on each of its calls.
     const held: Placed = { x: 0, y: 0, z: 0, yaw: 0, moving: false }
     let placed = false
+    // A script's `facing` is the sim's heading, like the sim's own yaw, so it crosses the same half turn into the kit's zero:
+    // shown raw, `facing: 0` drew a painted figure's back where the old game shows her face.
     const show = (): void => {
-      if (placed) view.update?.({ ...row.components, [POSE]: held }, undefined, 1)
+      if (placed)
+        view.update?.({ ...row.components, [POSE]: { ...held, yaw: kitYaw(held.yaw) } }, undefined, 1)
     }
     // Set by a cutscene's actor key; the sim's pose takes the figure back on the next frame the stage no longer places it.
     if (name !== undefined)

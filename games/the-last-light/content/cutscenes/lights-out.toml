@@ -227,14 +227,13 @@ x = -2.9
 z = 0.7
 facing = 2.301703033951614
 
-# The old script says `facing: 0` for her here. In the painted view that shows her back to the corridor camera, so she is turned to face it.
 [[actor]]
 who = "nurse"
 t = 0
 x = 0
 z = -6.1
 alpha = 0
-facing = 3.141592653589793
+facing = 0
 
 [[actor]]
 who = "nurse"
@@ -242,7 +241,7 @@ t = 6.85
 x = 0
 z = -6.1
 alpha = 0
-facing = 3.141592653589793
+facing = 0
 
 [[actor]]
 who = "nurse"
@@ -250,7 +249,7 @@ t = 7
 x = 0
 z = -6.1
 alpha = 1
-facing = 3.141592653589793
+facing = 0
 
 [[actor]]
 who = "nurse"
@@ -258,7 +257,7 @@ t = 10.6
 x = 0
 z = -6.1
 alpha = 1
-facing = 3.141592653589793
+facing = 0
 
 [[actor]]
 who = "nurse"
@@ -266,7 +265,7 @@ t = 12.8
 x = 0
 z = -5.4
 alpha = 1
-facing = 3.141592653589793
+facing = 0
 moving = true
 
 [[actor]]
@@ -275,7 +274,7 @@ t = 16
 x = 0
 z = -5.4
 alpha = 1
-facing = 3.141592653589793
+facing = 0
 
 [[caption]]
 t = 0.8
