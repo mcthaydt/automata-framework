@@ -1,7 +1,7 @@
 // A prop that names a model: when the model is loaded the mesh draws, fitted to the blockout, and the blockout's generated
 // parts do not; a prop that names none draws its blockout; a named model that is not loaded fails with its file's name. The
 // blockout's pieces stay in the world either way, since they are the footprint, the height and the collider.
-import { Container3D, type Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Container3D, FlatMaterial, type Mesh3D, PhongMaterial } from '@pixi/3d'
 import { Texture } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { updatePieces } from '#src/app/update-pieces.ts'
@@ -13,6 +13,8 @@ import { part } from '#src/features/world/props/piece.ts'
 import { registerPropGenerator } from '#src/features/world/props/prop-generator-registry.ts'
 import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
 import { noPieceStates } from '#src/shared/level/piece-states.ts'
+import { createSceneLight } from '#src/shared/render/light/scene-light.ts'
+import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import type { LoadedModel, ModelLibrary } from '#src/shared/render/model/load-models.ts'
 import { modelGeometry } from '#src/shared/render/model/model-geometry.ts'
 import { parseGlb } from '#src/shared/render/model/parse-glb.ts'
@@ -197,6 +199,159 @@ describe('a model on a wall', () => {
     expect(picture).toBeDefined()
     occluders.update(frame)
     expect((view.mesh('hall:wall:0.0.0') as Mesh3D).visible).toBe(false)
+    expect(picture.visible).toBe(false)
+  })
+})
+
+// A model in a lit room takes the room's baked light as a generated prop does: an unlit material on the model's own texture, its
+// vertices carrying the light alone, so the screen shows texel x light. Before this a model drew as a plain Phong mesh, outside the
+// room's light: 0.65 to 0.88 of the generated props beside it, cooler, with no pool under a desk lamp.
+describe('a model in a lit room', () => {
+  /** A cube model that fills a 1 m blockout exactly (the model is not stretched, so this is the shape the box has). */
+  const cube = (file: string): ModelLibrary => {
+    const parsed = parseGlb(encodeGlb(fixtureBox([-1, -1, -1], [1, 1, 1])), file)
+    const model: LoadedModel = {
+      mesh: parsed,
+      geometry: modelGeometry(parsed),
+      material: new PhongMaterial(),
+      texture: Texture.WHITE,
+    }
+    return { get: (name) => (name === file ? model : undefined) }
+  }
+  // Two crates at the same height and depth, a metre either side of a lamp that hangs between them: the one names a model, the other
+  // is generated, and the room lights them alike.
+  const pair = buildWorld(
+    {
+      ...level,
+      sectors: [room('hall', 0)],
+      props: [
+        { id: 'chest', at: [2, 3], use: 'crate', model: 'models/chest.bin' },
+        { id: 'plain', at: [4, 3], use: 'crate' },
+      ],
+    },
+    LIB,
+  )
+  const lit = () =>
+    createSceneLight(
+      sceneLightingSchema.parse({
+        ambient: 0.25,
+        colorSpace: 'srgb',
+        lamps: [{ id: 'lamp', x: 3, y: 1.8, z: 3, color: 0xffd9a0, range: 6, strength: 2.6 }],
+      }),
+    )
+  const drawLit = (
+    options: Parameters<typeof drawWorld>[2] = { props: pair.props, models: cube('models/chest.bin') },
+  ) => drawWorld({ parent: new Container3D(), colourOf: () => 0xffffff, light: lit() }, pair.pieces, options)
+  /** The mean of a mesh's baked vertex light, over its three channels: with a white texture and a white swatch it is what the screen shows. */
+  const shown = (mesh: Mesh3D): number => {
+    const colours = mesh.geometry.attributes.aColor?.buffer.data as Float32Array
+    let sum = 0
+    let count = 0
+    for (let i = 0; i < colours.length; i += 4) {
+      sum += ((colours[i] as number) + (colours[i + 1] as number) + (colours[i + 2] as number)) / 3
+      count++
+    }
+    return sum / count
+  }
+  /** The mean of a prop's generated pieces' light, weighted by their vertices. */
+  const generated = (view: ReturnType<typeof drawLit>, prop: string): number => {
+    const meshes = piecesOf(prop).map((piece) => view.mesh(piece.id) as Mesh3D)
+    const weights = meshes.map((mesh) => mesh.geometry.vertexCount)
+    return (
+      meshes.reduce((sum, mesh, i) => sum + shown(mesh) * (weights[i] as number), 0) /
+      weights.reduce((a, b) => a + b, 0)
+    )
+  }
+
+  it('is an unlit mesh on the model’s own texture, with the room’s light in its vertices', () => {
+    const view = drawLit()
+    const mesh = view.mesh('model:chest') as Mesh3D
+    expect(mesh.material).toBeInstanceOf(FlatMaterial)
+    expect(mesh.material).not.toBe(cube('models/chest.bin').get('models/chest.bin')?.material)
+    expect(mesh.material.vertexColors).toBe(true)
+    expect((mesh.material as FlatMaterial).textures.baseColor).toBe(Texture.WHITE)
+  })
+
+  it('reads within 8 percent of a generated prop of the same albedo beside it, under the same lamp', () => {
+    const view = drawLit()
+    const model = shown(view.mesh('model:chest') as Mesh3D)
+    const twin = generated(view, 'plain')
+    expect(twin).toBeGreaterThan(0.3)
+    expect(model / twin).toBeGreaterThan(0.92)
+    expect(model / twin).toBeLessThan(1.08)
+  })
+
+  it('is lit by a lamp: lower the room and the model darkens with it', () => {
+    const dim = (light: number) =>
+      shown(
+        drawWorld(
+          { parent: new Container3D(), colourOf: () => 0xffffff, light: lit() },
+          buildWorld(
+            {
+              ...level,
+              sectors: [{ ...room('hall', 0), light }],
+              props: [{ id: 'chest', at: [2, 3], use: 'crate', model: 'models/chest.bin' }],
+            },
+            LIB,
+          ).pieces,
+          {
+            props: buildWorld(
+              {
+                ...level,
+                sectors: [{ ...room('hall', 0), light }],
+                props: [{ id: 'chest', at: [2, 3], use: 'crate', model: 'models/chest.bin' }],
+              },
+              LIB,
+            ).props,
+            models: cube('models/chest.bin'),
+          },
+        ).mesh('model:chest') as Mesh3D,
+      )
+    expect(dim(0)).toBeLessThan(dim(1))
+  })
+
+  it('keeps the model’s shared material when the room has no baked light', () => {
+    const models = cube('models/chest.bin')
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0 }, pair.pieces, {
+      props: pair.props,
+      models,
+    })
+    expect((view.mesh('model:chest') as Mesh3D).material).toBe(models.get('models/chest.bin')?.material)
+  })
+
+  it('still hides with its wall when it hangs on one', () => {
+    const hung = buildWorld(
+      {
+        ...level,
+        sectors: [room('hall', 0)],
+        props: [
+          {
+            id: 'picture',
+            at: [2, 0.01, 1.4],
+            kind: 'test.hung-frame',
+            angle: 90,
+            model: 'models/chest.bin',
+          },
+        ],
+      },
+      LIB,
+    )
+    const parent = new Container3D()
+    const occluders = createOccluders(parent)
+    const view = drawWorld({ parent, occluders, colourOf: () => 0, light: lit() }, hung.pieces, {
+      props: hung.props,
+      models: cube('models/chest.bin'),
+    })
+    const picture = view.mesh('model:picture') as Mesh3D
+    expect(picture.material).toBeInstanceOf(FlatMaterial)
+    occluders.update({
+      eye: { x: 2, y: 3, z: -5 },
+      look: { x: 2, y: 1, z: 2 },
+      feet: { x: 2, y: 0, z: 2 },
+      head: { x: 2, y: 1.6, z: 2 },
+      seconds: 1,
+      reduced: true,
+    })
     expect(picture.visible).toBe(false)
   })
 })

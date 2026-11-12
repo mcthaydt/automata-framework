@@ -316,6 +316,23 @@ export function drawWorld(
     const mesh = modelMesh(prop, model)
     node.addChild(mesh)
     meshes.set(id, mesh)
+    // In a lit room a model takes the room's light as a tiled piece does: an unlit material on the model's own texture, the baked
+    // light alone in its vertices, so the screen shows texel x light (the shared Phong material stays for a scene with no baked
+    // light). Its blockout stands for it: the same room shade, its own pieces never shadowing it, its swatch the albedo the floor
+    // probe reads (the texture's colours stay the model's own; the bake never touches them).
+    const blockout = pieces.filter((piece) => piece.prop?.id === prop.id)
+    if (scene.light !== undefined) {
+      mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: model.texture })
+      const first = blockout[0]
+      const albedo =
+        first === undefined ? MISSING : (scene.colourOf(tileName(first.surface)) ?? scene.fallback ?? MISSING)
+      scene.light.bake(mesh, {
+        textured: true,
+        albedo,
+        shadeSteps: 1 - (first?.light ?? 1),
+        ignore: blockout.map((piece) => piece.id),
+      })
+    }
     // A model on a wall follows that wall as the prop's own pieces would: the wall its blockout hangs on takes it away and brings it back.
     const hung = pieces.find((piece) => piece.prop?.id === prop.id && piece.onWall !== undefined)
     const wall = hung?.onWall === undefined ? undefined : walls.get(hung.onWall)
