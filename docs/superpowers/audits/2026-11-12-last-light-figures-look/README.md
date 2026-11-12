@@ -523,7 +523,7 @@ different moments of the cutscene (the "after" caught the title card, the nurse 
 - In the opening's close shot her eyes now read: two dark texels, two tall, set wide, where there were two dots (crop). The face around them is still the
   painter's tone (dusty, darker than the old figure's lit face: list item 2), and in the room's dark it is dim.
 - Her outline is black where the old game's is the DUEL teal (list item 4); the room's dark takes her well otherwise (her jeans and vest are the old
-  swatches). Her size against the props: she now stands about the height of the desk's front edge; the old Ada stood a little lower still.
+  swatches). Her size against the props I did not measure; the numbers above are rows of the sprite.
 
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
