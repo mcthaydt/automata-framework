@@ -1,7 +1,7 @@
 // Emberwick as one `defineGame` call: the base's sim, keys, own screens and flow, and its scene drawn
 // through render-pixi's stage hooks. Built from a room and tuning handed in, so a demo with content of its own
 // (examples/2d/content/hot-reload) plays the same game; `game.ts` makes the one the base ships.
-import { defineGame, keys } from '@automata/framework'
+import { defineGame, type GameSpec, keys } from '@automata/framework'
 import type { Sim } from '@automata/sim'
 import { Move } from '../features/player/move.command.ts'
 import { placeWick } from '../features/player/place-wick.ts'
@@ -41,8 +41,18 @@ function showWick(at: WickAt): void {
   root.dataset.tick = String(at.tick)
 }
 
-/** `id` is Ruken's game id, which the host checks against `[game] id` in ship.config.ts (default: `GAME_ID`). */
-export function makeEmberwick(content: EmberwickContent, { id = GAME_ID }: { readonly id?: string } = {}) {
+/** What a caller may change about the game it builds. */
+export interface EmberwickOptions {
+  /** Ruken's game id, which the host checks against `[game] id` in ship.config.ts (default: `GAME_ID`). */
+  readonly id?: string
+  /**
+   * The languages the game is played in (`baseLocale` is the first of `locales`). Default: English alone, so a demo built
+   * on this game has no language screen to press past; `game.ts` passes the six the game ships.
+   */
+  readonly locale?: GameSpec['locale']
+}
+
+export function makeEmberwick(content: EmberwickContent, { id = GAME_ID, locale }: EmberwickOptions = {}) {
   const { room } = content
   const sim = { plugins: [emberwickPlugin], seed: 1, setup: (made: Sim) => placeWick(made, room) }
   return defineGame({
@@ -53,8 +63,9 @@ export function makeEmberwick(content: EmberwickContent, { id = GAME_ID }: { rea
     input,
     content: { ...EMBERWICK_FLOW, sim: content },
     screens: emberwickScreens({ sim: { ...sim, content }, input }),
-    // 'menu' lets the host's "Open game menu" reach the room (its `openMenu`).
-    hosting: { wants: ['menu'] },
+    ...(locale === undefined ? {} : { locale }),
+    // 'menu' lets the host's "Open game menu" reach the room (its `openMenu`); 'leaderboards' is the fastest climb.
+    hosting: { wants: ['menu', 'leaderboards'] },
     renderer: sceneRenderer(room, showWick),
   })
 }

@@ -34,4 +34,26 @@ describe('emberwick ship.config.ts', () => {
     const bindings: ShipInputBindings = input.profile.bindings
     expect(inputsProblems(config.runtime.inputs, bindings)).toEqual([])
   })
+
+  it('ships the six default languages', () => {
+    expect(config.content.languages).toEqual(['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'])
+    expect(Effect.runSync(checkManifest(rukenToml(config))).content.languages).toEqual(
+      config.content.languages,
+    )
+  })
+
+  it('declares the fastest board the end screen submits to', () => {
+    const manifest = Effect.runSync(checkManifest(rukenToml(config)))
+    expect(manifest.leaderboards?.fastest).toMatchObject({ order: 'asc', min: 1000, max: 3_600_000 })
+  })
+
+  it('carries the achievement in its manifest, as the rule Ruken awards', () => {
+    const manifest = Effect.runSync(checkManifest(rukenToml(config)))
+    expect(manifest.achievements?.['ember-in-a-minute']).toEqual({
+      title: 'Ember in a minute',
+      description: 'Reach the ember in under 60 seconds.',
+      board: 'fastest',
+      reach: 60_000,
+    })
+  })
 })

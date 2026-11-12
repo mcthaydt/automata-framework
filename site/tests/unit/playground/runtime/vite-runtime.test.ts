@@ -10,6 +10,12 @@ const manifest = {
     css: ['assets/automata-CBKxHYFl.css'],
   },
   [PLAYGROUND_ENTRIES.zod]: { file: 'assets/zod-CSYgToI_.js', isEntry: true },
+  [PLAYGROUND_ENTRIES.uiScreens]: {
+    file: 'assets/ui-screens-Qw3rTy7u.js',
+    isEntry: true,
+    imports: ['_src-Dr7noOlv.js'],
+    css: ['assets/ui-screens-Pq8wErT2.css'],
+  },
   [PLAYGROUND_ENTRIES.noEval]: { file: 'assets/no-eval-Q1w2e3R4.js', isEntry: true },
   [PLAYGROUND_ENTRIES.frame]: {
     file: 'assets/frame-DCEneEhm.js',
@@ -24,17 +30,24 @@ const manifest = {
 }
 
 describe('runtimeFromViteManifest', () => {
-  it('names the three entries and every stylesheet the frame and the umbrella pull in, once each', () => {
+  it('names the four entries and every stylesheet the frame, the umbrella and the screens pull in, once each', () => {
     expect(runtimeFromViteManifest(manifest, '/playground/runtime/')).toEqual({
       automata: '/playground/runtime/assets/automata-LRkvFZ12.js',
       zod: '/playground/runtime/assets/zod-CSYgToI_.js',
+      uiScreens: '/playground/runtime/assets/ui-screens-Qw3rTy7u.js',
       noEval: '/playground/runtime/assets/no-eval-Q1w2e3R4.js',
       frame: '/playground/runtime/assets/frame-DCEneEhm.js',
       styles: [
         '/playground/runtime/assets/automata-CBKxHYFl.css',
         '/playground/runtime/assets/src-BzoNNZTi.css',
+        '/playground/runtime/assets/ui-screens-Pq8wErT2.css',
       ],
     })
+  })
+
+  it('refuses a build that lacks the screens entry', () => {
+    const { [PLAYGROUND_ENTRIES.uiScreens]: _screens, ...rest } = manifest
+    expect(() => runtimeFromViteManifest(rest, '/playground/runtime/')).toThrow(/uiScreens/)
   })
 
   it('refuses a build that lacks an entry', () => {

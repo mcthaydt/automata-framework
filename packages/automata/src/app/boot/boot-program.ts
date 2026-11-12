@@ -3,11 +3,12 @@ import { createHosting } from '@automata/framework/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { createAudio } from '../../features/audio/audio.manager.js'
 import { playEventSounds } from '../../features/audio/event-sounds.js'
+import { installUiSounds } from '../../features/audio/ui-sounds.js'
 import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
 import { browserHaptics } from '../../features/input/haptics/haptics.manager.js'
 import { submitEventScores } from '../../features/leaderboards/event-scores.js'
 import { createLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
-import { browserLanguages, createLocale, singleLocale } from '../../features/locale/locale.manager.js'
+import { browserLanguages, createLocale } from '../../features/locale/locale.manager.js'
 import { savesKept } from '../../features/saves/save.manager.js'
 import { createSaves } from '../../features/saves/saves.manager.js'
 import { type HostResult, refuse } from '../../shared/host/errors.ts'
@@ -41,8 +42,12 @@ import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.sve
 import { createFlow, type Flow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { createVeil } from '../flow/veil.js'
+import { runOpening } from '../opening/opening.js'
+import { createSeenFlags } from '../opening/seen-flags.js'
+import { displayCopyFor, runtimeCopyFor } from '../screens/screens-catalog.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
+import { gameLocaleDef, runtimeCopyForGame } from './runtime-copy.ts'
 import type { Teardown } from './teardown.ts'
 
 /**
@@ -69,9 +74,6 @@ function withPreload(
   for (const file of preload) if (!files.includes(file)) files.push(file)
   return { ...assets, screens: { ...screens, [screen]: { files } } }
 }
-
-/** The context-lost panel's English default, in Ruken's quiet tone. */
-const CONTEXT_LOST_COPY_EN = 'The picture stopped. Try again to bring it back.'
 
 /**
  * Ruken's save key pattern (/^[A-Za-z0-9._:-]{1,128}$/).
@@ -169,10 +171,9 @@ async function boot<S>(
   const lock = lockOverscroll(doc.documentElement)
   owned.add(() => lock.destroy())
 
-  const loaderHandle = layers.showLoader({
-    label: game.copy?.loading ?? 'Loading…',
-    slowLabel: game.copy?.slow ?? 'Taking a while…',
-  })
+  // The locale service does not exist yet, so these words follow the browser's languages (see runtime-copy.ts).
+  const earlyCopy = runtimeCopyForGame(game, win)
+  const loaderHandle = layers.showLoader({ label: earlyCopy.loading, slowLabel: earlyCopy.slow })
   options.onLoader?.(loaderHandle)
   owned.add(() => loaderHandle.close())
 
@@ -264,11 +265,11 @@ async function boot<S>(
     reportLost: (retry) => {
       const dismiss = layers.showError({
         code: 'context-lost',
-        message: game.copy?.contextLost ?? CONTEXT_LOST_COPY_EN,
+        message: earlyCopy.contextLost,
         actions: [
           {
             id: 'retry',
-            label: game.copy?.retry ?? 'Try again',
+            label: earlyCopy.retry,
             kind: 'primary',
             onSelect: () => {
               dismiss()
@@ -305,7 +306,7 @@ async function boot<S>(
 
   // The locale is negotiated, and <html lang dir> set, before the first screen enters.
   const locale = await createLocale({
-    def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
+    def: gameLocaleDef(game),
     hosting,
     browser: game.seams?.languages ?? browserLanguages(win.navigator),
     bus,
@@ -325,6 +326,8 @@ async function boot<S>(
   })
   owned.add(() => audio.dispose())
   if (game.sounds !== undefined) owned.add(playEventSounds(bus, audio, game.sounds))
+  // On the page root, so the screens and the overlay (first run, dialogs) are all heard by one listener.
+  if (game.uiSounds !== undefined) owned.add(installUiSounds(layers.root, audio, game.uiSounds))
   const stopOwnAudio = game.audio?.({ audio, bus })
   if (stopOwnAudio !== undefined) owned.add(stopOwnAudio)
   const leaderboards = createLeaderboards(hosting, bus)
@@ -366,7 +369,7 @@ async function boot<S>(
     bus,
     geometry,
     veil,
-    ...(game.copy !== undefined ? { copy: game.copy } : {}),
+    copy: { ...runtimeCopyFor(locale.current), ...game.copy },
     services: () => {
       if (services === undefined) throw new Error('A screen entered before the runtime services were built')
       return services
@@ -383,7 +386,9 @@ async function boot<S>(
   // Leaving the current screen comes before the save's last flush and `keptAcrossScreens` (teardown runs last first).
   owned.add(() => flowHandle.dispose())
 
-  owned.add(hosting.onMenuRequest(() => flowHandle.flow.openMenu()))
+  // The host's "Open game menu" has nothing to open until the first screen has entered: the opening comes first.
+  let firstScreenEntered = false
+  owned.add(hosting.onMenuRequest(() => firstScreenEntered && flowHandle.flow.openMenu()))
 
   owned.add(
     watchLifecycle({
@@ -425,7 +430,22 @@ async function boot<S>(
   }
 
   options.onFlow?.(flowHandle.flow)
+  // The opening runs with the sim held, after ready and before the first screen. A development restart that brings the
+  // person back to a screen (`startAt`) skips it: they have been through it.
+  const opening = options.startAt === undefined ? (game.opening ?? []) : []
+  if (opening.length > 0) {
+    time.pause('opening')
+    await runOpening(
+      opening,
+      { services, seen: createSeenFlags(deviceStorage), signal },
+      layers.overlay,
+      (message) => console.warn(message),
+    )
+    time.resume('opening')
+    if (signal.aborted) return ok(undefined)
+  }
   await flowHandle.start(options.startAt)
+  firstScreenEntered = true
   if (signal.aborted) return ok(undefined)
 
   // The landscape gate (standalone) and the rotate hint, over every screen for the session.
@@ -437,6 +457,7 @@ async function boot<S>(
     geometry,
     layer: layers.overlay,
     time,
+    copy: displayCopyFor(locale.current),
   })
   owned.add(() => display.dispose())
   return ok(undefined)

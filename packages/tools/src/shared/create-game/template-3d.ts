@@ -7,6 +7,7 @@ import {
   readmeFile,
   SHARED_PROJECT_FILES,
   shipConfigFile,
+  styleFile,
   viteConfigFile,
 } from './template-project.ts'
 
@@ -44,6 +45,8 @@ import { worldPropContent, worldSwatchContent } from '@automata/3d/world-content
     schemas: '[...(figuresExtension.content ?? []), worldSwatchContent, worldPropContent]',
     compiles: "Wick's figure, the room's swatches and props, and the tuning",
   }),
+  // One language and no fonts of its own yet, so the page draws in the device's.
+  styleFile('sans-serif'),
   ...SHARED_PROJECT_FILES,
   ...GAME_3D_FILES,
   ...CONTENT_3D_FILES,

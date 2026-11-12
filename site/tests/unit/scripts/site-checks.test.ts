@@ -146,6 +146,19 @@ describe('checkSite', () => {
     expect(checkSite(site.root, { now: NOW })).toContain('docs.html: missing destination /nowhere')
   })
 
+  it('fails a page that links to /editor once the Editor page is gone, and passes a link to the editor itself', () => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { body: '<a href="/editor">Editor</a>' }))
+    expect(checkSite(site.root, { now: NOW })).toContain('docs.html: missing destination /editor')
+    // The editor is copied in as the framework built it (a tree the checks skip), so a link into it is a destination.
+    site.write('editor/app/index.html', '<!doctype html><title>Editor</title>')
+    site.write(
+      'docs.html',
+      page('/docs', { body: '<a href="/editor/app/" data-sveltekit-reload>Editor</a>' }),
+    )
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+
   it('reports an anchor that no element on the page or the linked page carries', () => {
     const site = goodSite()
     site.write(

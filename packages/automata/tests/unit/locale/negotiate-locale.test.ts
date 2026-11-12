@@ -51,3 +51,27 @@ describe('negotiateLocale (PRODUCT spec §4 item 2)', () => {
     expect(negotiateLocale({ ...base, hosted: undefined, saved: 'ko', browser: [] })).toBe('en')
   })
 })
+
+describe('negotiateLocale across the six default languages', () => {
+  const six = ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans']
+  const pick = (browser: string[]) =>
+    negotiateLocale({ hosted: undefined, saved: undefined, browser, locales: six, baseLocale: 'en' })
+
+  it('sends every Chinese tag to the one Chinese the game has', () => {
+    expect(pick(['zh-TW'])).toBe('zh-Hans')
+    expect(pick(['zh-Hant-HK'])).toBe('zh-Hans')
+  })
+
+  it('sends Portuguese and Spanish to the regional file the game ships', () => {
+    expect(pick(['pt-PT'])).toBe('pt-BR')
+    expect(pick(['es-ES'])).toBe('es-419')
+  })
+
+  it("takes the browser's order, the first language the game has", () => {
+    expect(pick(['fr-FR', 'ko-KR'])).toBe('ko')
+  })
+
+  it('falls back to the source language', () => {
+    expect(pick(['fr'])).toBe('en')
+  })
+})

@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGES } from '../words/default-languages.ts'
 import {
   adapterConditions,
   SQUARE_WHERE,
@@ -31,7 +32,11 @@ export const readmeFile = (where: string): TemplateFile => ({
 })
 
 /** The game's `package.json`; `extra` is what a kind of game depends on besides the framework, sim and content. */
-export const packageFile = (extra: (options: TemplateOptions) => Record<string, string>): TemplateFile => ({
+export const packageFile = (
+  extra: (options: TemplateOptions) => Record<string, string>,
+  /** `fonts`: the game ships in several languages, so \`dev\` and every build cut its fonts first. */
+  features: { readonly fonts?: boolean } = {},
+): TemplateFile => ({
   path: 'package.json',
   content: (options) =>
     JSON.stringify(
@@ -41,11 +46,13 @@ export const packageFile = (extra: (options: TemplateOptions) => Record<string, 
         private: true,
         type: 'module',
         scripts: {
-          dev: 'vite',
-          ...targetScripts(targetsOf(options)),
+          ...(features.fonts === true ? { fonts: 'automata-content assets' } : {}),
+          dev: features.fonts === true ? 'pnpm fonts && vite' : 'vite',
+          ...targetScripts(targetsOf(options), { fonts: features.fonts === true }),
           typecheck: 'tsc -p .',
           test: 'vitest run',
-          check: 'automata check',
+          // `check` builds the game (the no-eval step), and the build imports the faces `pnpm fonts` writes.
+          check: features.fonts === true ? 'pnpm fonts && automata check' : 'automata check',
         },
         dependencies: {
           '@automata/framework': frameworkSpec(options),
@@ -73,7 +80,11 @@ export const packageFile = (extra: (options: TemplateOptions) => Record<string, 
 })
 
 /** The ship config; `orientation` is how the game turns on a phone. */
-export const shipConfigFile = (orientation: 'any' | 'landscape'): TemplateFile => ({
+export const shipConfigFile = (
+  orientation: 'any' | 'landscape',
+  /** The languages the game ships in; the source language alone by default. */
+  languages: readonly string[] = ['en'],
+): TemplateFile => ({
   path: 'ship.config.ts',
   content: (options) => `import { defineShipConfig } from '@automata/tools'
 import packageJson from './package.json' with { type: 'json' }
@@ -92,7 +103,7 @@ export default defineShipConfig({
     pause_behavior: 'pause',
   },
   network: { connect: [] },
-  content: { languages: ['en'], rating: 'everyone', descriptors: [] },${shipTargetSections(options)}
+  content: { languages: ${JSON.stringify(languages).replaceAll('"', "'")}, rating: 'everyone', descriptors: [] },${shipTargetSections(options)}
 })
 `,
 })
@@ -106,6 +117,19 @@ export interface ViteContent {
   /** What the content plugin compiles, said in the comment above the plugins. */
   readonly compiles: string
 }
+
+/**
+ * The `automata.content.ts` the \`automata-content\` command reads (the font build is one of its commands): the same
+ * content kinds `vite.config.ts` compiles with, written once from the same piece so the two cannot disagree.
+ */
+export const contentConfigFile = (kinds: ViteContent): TemplateFile => ({
+  path: 'automata.content.ts',
+  content: () => `${kinds.imports}
+
+// What \`automata-content\` compiles \`content/\` with: the kinds vite.config.ts hands the content plugin.
+export default { schemas: ${kinds.schemas} }
+`,
+})
 
 /** The `vite.config.ts`: one target's host adapter per build mode, Svelte for the screens, the content plugin. */
 export const viteConfigFile = (kinds: ViteContent): TemplateFile => ({
@@ -160,7 +184,13 @@ export const SHARED_PROJECT_FILES: readonly TemplateFile[] = [
             // Node's globals, and \`import.meta.hot\` for src/main.ts (the restart in place while \`pnpm dev\` runs).
             types: ['node', 'vite/client'],
           },
-          include: ['src/**/*.ts', 'tests/**/*.ts', 'ship.config.ts', 'vite.config.ts'],
+          include: [
+            'src/**/*.ts',
+            'tests/**/*.ts',
+            'ship.config.ts',
+            'vite.config.ts',
+            'automata.content.ts',
+          ],
         },
         null,
         2,
@@ -183,9 +213,15 @@ export const SHARED_PROJECT_FILES: readonly TemplateFile[] = [
 </html>
 `,
   },
-  {
-    path: 'style.css',
-    content: () => `html,
+]
+
+/**
+ * The page's stylesheet. \`font\` is the game's \`font-family\`: the framework's \`var(--af-font)\`, which the built
+ * \`fonts.css\` sets for each language, or a generic family for a game that has no fonts of its own.
+ */
+export const styleFile = (font: string): TemplateFile => ({
+  path: 'style.css',
+  content: () => `html,
 body {
   margin: 0;
   padding: 0;
@@ -194,7 +230,7 @@ body {
   overflow: hidden;
   background-color: #000;
   color: #fff;
-  font-family: sans-serif;
+  font-family: ${font};
   /* A double tap must not zoom, and a hold must not select the screen like text. */
   touch-action: manipulation;
   user-select: none;
@@ -210,23 +246,30 @@ body {
   justify-content: center;
 }
 `,
-  },
-]
+})
+
+/** The content kinds the 2D game's folders hold, for the content plugin and the \`automata-content\` command alike. */
+const SQUARE_KINDS: ViteContent = {
+  imports:
+    "import { audioContent } from '@automata/audio-synth'\nimport { controlsKind } from '@automata/content/controls'\nimport { level2dKinds } from '@automata/content/level-2d'\nimport { feelContent } from '@automata/feel'",
+  schemas: '[...level2dKinds(), controlsKind(), feelContent, audioContent]',
+  compiles: 'the level the editor writes, the default controls, and what Feel and Audio write',
+}
 
 /** The 2D game's project files, written beside its code. */
 export const PROJECT_FILES: readonly TemplateFile[] = [
   readmeFile(SQUARE_WHERE),
-  packageFile((options) => ({
-    // Feel and Audio play what their editors make, so the game asks for the packages that play it.
-    '@automata/audio-synth': frameworkSpec(options),
-    '@automata/feel': frameworkSpec(options),
-  })),
-  shipConfigFile('any'),
-  viteConfigFile({
-    imports:
-      "import { audioContent } from '@automata/audio-synth'\nimport { controlsKind } from '@automata/content/controls'\nimport { level2dKinds } from '@automata/content/level-2d'\nimport { feelContent } from '@automata/feel'",
-    schemas: '[...level2dKinds(), controlsKind(), feelContent, audioContent]',
-    compiles: 'the level the editor writes, the default controls, and what Feel and Audio write',
-  }),
+  packageFile(
+    (options) => ({
+      // Feel and Audio play what their editors make, so the game asks for the packages that play it.
+      '@automata/audio-synth': frameworkSpec(options),
+      '@automata/feel': frameworkSpec(options),
+    }),
+    { fonts: true },
+  ),
+  shipConfigFile('any', DEFAULT_LANGUAGES),
+  contentConfigFile(SQUARE_KINDS),
+  viteConfigFile(SQUARE_KINDS),
+  styleFile('var(--af-font)'),
   ...SHARED_PROJECT_FILES,
 ]

@@ -49,6 +49,15 @@ describe('browserOnlyFindings', () => {
     expect(browserOnlyFindings(root).findings).toEqual([])
   })
 
+  it('reads no data file a file imports: JSON has no imports to follow', () => {
+    const root = pkg({
+      'entries/index.ts': "export { words } from '../app/words.ts'\n",
+      'app/words.ts': "import en from './words/en.json' with { type: 'json' }\nexport const words = en\n",
+      'app/words/en.json': '{ "play": "Play" }\n',
+    })
+    expect(browserOnlyFindings(root).findings).toEqual([])
+  })
+
   it('passes the same import in a file no entry reaches', () => {
     const root = pkg({
       'entries/index.ts': "export { run } from '../app/run.ts'\n",

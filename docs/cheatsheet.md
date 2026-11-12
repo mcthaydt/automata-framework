@@ -110,6 +110,8 @@
 
 ### `import { … } from '@automata/content'`
 
+- `AchievementConfig` (interface): An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
+- `AchievementGoal` (type): One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its players.
 - `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and `fonts.toml`.
 - `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
 - `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
@@ -184,13 +186,15 @@
 - `buildFonts` (const): Builds every subset `<root>/content/fonts.toml` names, or fails with every problem found.
 - `fontCoverage(font)`: Whether a font file (TrueType, OpenType, woff or woff2) has a glyph for each character.
 - `FontOutputs` (interface): What `buildFonts` produces; the caller writes it.
+- `FontRename` (interface): The new family name for a subset of a font whose licence reserves its name, and the name it reserves.
 - `FontsFile` (interface): `content/fonts.toml`: each source font by name.
 - `FontSource` (interface): One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves.
 - `FrameSize` (interface): A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
+- `gameWords(gameDir, lang, content)`: Every word a game shows in `lang`, by catalog: `content` (the catalog the content compiled, passed in), `ui` (the game's own interface words) and each of {@link WORD_PACKAGES } that the game can resolve.
 - `PackedAtlas` (interface): Every frame's placement, and the pages they fill.
 - `packFrames(frames)`: Packs `frames` into atlas pages.
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
-- `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
+- `subsetWoff2(source, characters, rename?)`: The font cut to `characters`, as woff2.
 
 ### `import { … } from '@automata/content/controls'`
 
@@ -203,11 +207,13 @@
 - `RESERVED_KEYS` (const): Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
 - `RESERVED_PAD_BUTTONS` (const): Never bindable in a game's profile: Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the one back path and Tab moves focus.
 - `STANDARD_PAD_BUTTON_MAX` (const): The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home).
-- `STICK_DIRECTIONS` (const)
+- `STICK_DIRECTIONS` (const): The eight directions a gamepad stick can be bound to in a game's controls: a stick (`left` or `right`) pushed one way (`up`, `down`, `left` or `right`), written `left-up`.
 - `StickDirection` (type): A stick pushed past its dead zone in one direction (the input service reads them).
 
 ### `import { … } from '@automata/content/game-config'`
 
+- `AchievementConfig` (interface): An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
+- `AchievementGoal` (type): One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its players.
 - `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
 - `GameConfig` (interface): What every target knows about a game.
 - `gameConfigSchema` (const): Checks a game's config.
@@ -275,7 +281,7 @@
 - `levelContentSchema` (const): The strict schema of `levels/<id>.toml`.
 - `objectsOf(level, layer)`: The items of an objects layer, in file order.
 - `parseTileToken(base)`: A tile token without its repeat (`7`, `7h`, `7hv`) as a tile, or undefined when it is not one.
-- `Picture` (type)
+- `Picture` (type): How one character definition is drawn: a `tile` (a tile of a named tileset, by index) or a `flat` shape (a rectangle, an ellipse or a point) in one colour as `#rrggbb`.
 - `pictureOf(def)`: The picture of a definition: its tile, else its colour as its flat shape.
 - `PLACEHOLDER_COLORS` (const): Twelve flat colours far enough apart to tell neighbouring indices apart; tile `n` takes colour `n % 12`, so a placeholder looks the same wherever it is drawn and whatever happened to the image.
 - `placeholderColor` (const): The placeholder colour of tile `tile`.
@@ -294,7 +300,10 @@
 - `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
 - `ContentTextOptions` (interface): Options for `createContentText`.
 - `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
-- `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
+- `DEFAULT_LOCALES` (const): The default languages in the order the language picker lists them.
+- `DefaultLocale` (type): One of the six default languages.
+- `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`): the framework's own spelling for the six default languages, otherwise the browser's `Intl.DisplayNames`.
+- `ENDONYMS` (const): Each default language's name in itself.
 - `hasRawText(text)`: True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII letter outside a ⟦ ⟧ span.
 - `localeCharacters(catalog)`: A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
@@ -562,6 +571,8 @@
 - `mergeStageHooks(...all)`: Every hook of each, called in the order given; `undefined` entries are skipped.
 - `Modal` (const): A panel over the screen with a visible Close.
 - `ModelInvalid` (class): A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet.
+- `OpeningContext` (interface): What an opening step is given.
+- `OpeningStep` (type): One step before the first screen: it shows what it wants in `layer` and resolves when the player may go on.
 - `OptionGroup` (const): A choice of one: a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `OwnedRenderer` (interface): A renderer the runtime owns: `dispose` destroys it (the canvas, its listeners, its GPU resources).
 - `padLabel(button, glyphs, copy)`: A standard-mapping pad button's label on a pad of `glyphs`.
@@ -569,6 +580,7 @@
 - `PagerDots` (const): Where a paged view is: one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
 - `PauseBehavior` (type): Whether the game pauses when it goes to the background; fixed for the game's whole life.
 - `PauseBehaviorSchema` (const): Checks a pause behavior.
+- `PhotosensitivityOption` (type): `true`: the warning, with the device's reduced-motion line.
 - `pictureView(project, def, images, options?)`: An entity drawn as its character looks in the editor: the tile Characters gave it, else its colour as its shape.
 - `PictureViewOptions` (interface): A `pictureView`'s options.
 - `PixiRenderer` (interface): The runtime's `GameRenderer`, built on PixiJS, with its stage.
@@ -582,7 +594,7 @@
 - `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
 - `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
 - `PresentationBus` (interface): The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear.
-- `PROMPT_COPY` (const)
+- `PROMPT_COPY` (const): The English words a control prompt shows where the device's own label is not known: "Not set" for an action with no binding, "Tap" for an on-screen button, and a name for each pad button a generic pad does not label ("Bottom button", "Start").
 - `PromptCopy` (interface): Every word a prompt shows, in the game's language.
 - `QualityTier` (type): A graphics quality tier: `high`, `medium` or `low`.
 - `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
@@ -592,6 +604,7 @@
 - `RendererFactory` (type): Builds the game's renderer for a target.
 - `RendererUnavailable` (class): Neither WebGL2 nor WebGPU could be initialized.
 - `RenderTarget` (interface): Where a renderer draws: the host element, the layout geometry, the loaded assets and the presentation bus.
+- `requestUiSound(from, name)`: Asks for a sound from inside a component that has no press behind it (an error arriving, a panel opening).
 - `ResourceDef` (interface): A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting value.
 - `RoundOutcome` (type): How a round ended.
 - `RoundOutcomeSchema` (const): Checks a round outcome.
@@ -618,6 +631,8 @@
 - `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
 - `ScrollList` (const): A list that keeps its rows.
+- `SeenFlag` (type): The first-run screens a device can have seen.
+- `SeenFlags` (interface): Which first-run screens this device has shown.
 - `SentCommand` (type): What a slot component asks the game for: a command, without the tick, source and seq the stream fills in.
 - `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
@@ -651,8 +666,12 @@
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
+- `UI_SOUND_NAMES` (const): The names the framework itself asks for; a game may add any other.
+- `UiSoundEntry` (type): A sound: the asset it plays, or the asset with a gain (0..1).
+- `UiSounds` (type): The interface's sounds by name, or one function that plays a name (for a game whose sounds are cues in its own mixer).
 - `usePlay()`: The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
+- `WarningSwitch` (interface): A switch the warning offers: one of the game's own effect settings.
 
 ### `import { … } from '@automata/framework/extension'`
 
@@ -672,7 +691,7 @@
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
 - `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
-- `describeHostingContract(name, create, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
+- `describeHostingContract(name, create, settled, links?)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.
 - `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself.
 - `FakeAudioContext` (interface): A recording stand-in for an `AudioContext`: what was started, stopped and automated, with a clock tests move by hand.
@@ -708,6 +727,7 @@
 - `HostingFactory` (type): An adapter under test: a fresh `Hosting` per case, with `saves` granted.
 - `installFakeResizeObserver()`: Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components measured under jsdom, which has no layout.
 - `LayoutRect` (interface): Layout assertions as plain DOM functions (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
+- `LinksProbe` (interface): What the `openLink` cases need to see and steer, which no `Hosting` value exposes: each adapter keeps its own record of the links its host was asked to open and its own way for the host to say no.
 - `ManualFrames` (interface): A frame source a test drives: `advance` moves time on and runs the frame asked for, if any.
 - `manualFrames(startMs?)`: A frame source that runs a frame only when a test advances it, starting at `startMs`.
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
@@ -748,6 +768,9 @@
 
 ### `import { … } from '@automata/net'`
 
+- `BuildFacts` (interface): What identifies a build: the wire protocol, the sim's schema and the content, as a join sends them.
+- `buildFactsSchema` (const): The shape of a build's facts, as `GET /version` answers them.
+- `checkServerVersion(fetchFacts, own)`: Asks the server for its build facts (`fetchFacts` is the game's own fetch of `<server>/version`) and compares them with `own`.
 - `ClientMessage` (type): Everything a client may send the room: a command, a clock probe, ready or not, add or remove a bot, and leave.
 - `clientMessageSchema` (const): The Zod schema of a client message.
 - `ClientNetworkPort` (interface): The sim's link to the room on a client: it sends the player's commands and never hears remote ones or publishes a snapshot, because the room is the authority.
@@ -1042,6 +1065,11 @@
 - `NetUiHost` (interface): What the badge and overlay need from the game: the connection, the grace, a way to leave and the words.
 - `OverlayState` (type): What the reconnect overlay shows: nothing, a countdown while the game reconnects, or the words for giving up once the grace has passed.
 - `ReconnectOverlay` (const): The banner shown while the game reconnects: it counts down the grace, then says it could not reconnect.
+- `StaleBuild` (const): The tab is out of date: core's ErrorPanel with the code `stale-build`, what happened and one primary action, Reload, which takes focus.
+- `StaleBuildOptions` (interface): How a game sets up its stale-build check.
+- `staleBuildStep(options)`: An opening step that asks the server for its build facts before an online game's title.
+- `StaleCopy` (interface): What the stale-build panel says.
+- `staleWords(locale)`: The words for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds `pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise.
 - `watchStatus(host, onView)`: Calls `onView` with what to draw now, and again whenever the connection changes or time passes.
 
 ## `@automata/physics`
@@ -1367,14 +1395,43 @@
 
 ### `import { … } from '@automata/ui-screens'`
 
+- `CreditName` (interface): One person or group in a credits section.
+- `Credits` (interface): What a game's credits file holds.
+- `creditsContent` (const): The `credits` content kind: `content/credits/credits.toml` is the game's credits.
+- `CreditsCopy` (interface): What the credits panel says.
+- `CreditsPanel` (const): The credits: core's Modal around sections of names, each with a role and, where the game gives one, a link.
+- `creditsSchema` (const): The Zod schema of a credits file.
+- `creditsSchemaWith` (const): The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable text in the content kind.
+- `CreditsSection` (interface): A heading and the names under it.
 - `ErrorScreen` (const): The error screen: core's ErrorPanel on core's ScreenFrame (the frame gives Back its place).
 - `LoadingScreen` (const): The loading screen: the game's title on core's ScreenFrame with core's LoaderOverlay over it.
 - `ResultsAction` (interface): A button on the results screen's action bar.
 - `ResultsCopy` (interface): The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
+- `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+- `showCredits(options)`: Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
+- `ShowCreditsOptions` (interface): What `showCredits` needs.
+- `SplashCopy` (interface): What the splash says.
+- `SplashOptions` (interface): How a game sets up its splash.
+- `SplashScreen` (const): The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a press goes on.
+- `splashStep(options)`: An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key, click or tap.
 - `TitleAction` (interface): An extra button on the title screen beside Play, such as Settings or Credits.
 - `TitleScreen` (const): The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's ScreenFrame and ActionBar.
+
+### `import { … } from '@automata/ui-screens/credits'`
+
+- `CreditName` (interface): One person or group in a credits section.
+- `Credits` (interface): What a game's credits file holds.
+- `creditsContent` (const): The `credits` content kind: `content/credits/credits.toml` is the game's credits.
+- `CreditsCopy` (interface): What the credits panel says.
+- `CreditsPanel` (const): The credits: core's Modal around sections of names, each with a role and, where the game gives one, a link.
+- `creditsSchema` (const): The Zod schema of a credits file.
+- `creditsSchemaWith` (const): The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable text in the content kind.
+- `CreditsSection` (interface): A heading and the names under it.
+- `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+- `showCredits(options)`: Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
+- `ShowCreditsOptions` (interface): What `showCredits` needs.
 
 ### `import { … } from '@automata/ui-screens/error'`
 
@@ -1390,6 +1447,14 @@
 - `ResultsCopy` (interface): The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
+
+### `import { … } from '@automata/ui-screens/splash'`
+
+- `screensWords(locale)`: This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+- `SplashCopy` (interface): What the splash says.
+- `SplashOptions` (interface): How a game sets up its splash.
+- `SplashScreen` (const): The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a press goes on.
+- `splashStep(options)`: An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key, click or tap.
 
 ### `import { … } from '@automata/ui-screens/title'`
 

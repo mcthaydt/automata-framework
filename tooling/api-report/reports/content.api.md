@@ -4,6 +4,27 @@
 
 ## `.`
 
+### `AchievementConfig` (interface)
+
+```ts
+interface AchievementConfig {
+    readonly title: string;
+    readonly description: string;
+    readonly board: string;
+    readonly goal: AchievementGoal;
+}
+```
+
+### `AchievementGoal` (type)
+
+```ts
+type AchievementGoal = {
+    readonly reach: number;
+} | {
+    readonly top_percent: number;
+};
+```
+
 ### `AssetsSource` (interface)
 
 ```ts
@@ -285,6 +306,7 @@ interface GameConfig {
         readonly preload: readonly string[];
     };
     readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+    readonly achievements?: Readonly<Record<string, AchievementConfig>>;
 }
 ```
 
@@ -590,6 +612,15 @@ interface FontOutputs {
 }
 ```
 
+### `FontRename` (interface)
+
+```ts
+interface FontRename {
+    readonly family: string;
+    readonly reservedName: string;
+}
+```
+
 ### `FontsFile` (interface)
 
 ```ts
@@ -606,6 +637,8 @@ interface FontSource {
     readonly sha256: string;
     readonly license: string;
     readonly locales: readonly string[];
+    readonly reserved_name?: string | undefined;
+    readonly license_file?: string | undefined;
 }
 ```
 
@@ -617,6 +650,12 @@ interface FrameSize {
     readonly width: number;
     readonly height: number;
 }
+```
+
+### `gameWords` (function)
+
+```ts
+function gameWords(gameDir: string, lang: string, content: MessageCatalog): Promise<ReadonlyMap<string, MessageCatalog>>;
 ```
 
 ### `PackedAtlas` (interface)
@@ -650,7 +689,7 @@ interface Placement {
 ### `subsetWoff2` (function)
 
 ```ts
-function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>, rename?: FontRename): Promise<Uint8Array>;
 ```
 
 ## `./controls`
@@ -736,6 +775,27 @@ type StickDirection = (typeof STICK_DIRECTIONS)[number];
 
 ## `./game-config`
 
+### `AchievementConfig` (interface)
+
+```ts
+interface AchievementConfig {
+    readonly title: string;
+    readonly description: string;
+    readonly board: string;
+    readonly goal: AchievementGoal;
+}
+```
+
+### `AchievementGoal` (type)
+
+```ts
+type AchievementGoal = {
+    readonly reach: number;
+} | {
+    readonly top_percent: number;
+};
+```
+
 ### `GAME_ID_PATTERN` (const)
 
 ```ts
@@ -775,6 +835,7 @@ interface GameConfig {
         readonly preload: readonly string[];
     };
     readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+    readonly achievements?: Readonly<Record<string, AchievementConfig>>;
 }
 ```
 
@@ -1473,10 +1534,28 @@ interface ContentTextOptions {
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
+### `DEFAULT_LOCALES` (const)
+
+```ts
+const DEFAULT_LOCALES: readonly ["en", "ja", "ko", "es-419", "pt-BR", "zh-Hans"];
+```
+
+### `DefaultLocale` (type)
+
+```ts
+type DefaultLocale = (typeof DEFAULT_LOCALES)[number];
+```
+
 ### `endonymOf` (function)
 
 ```ts
 function endonymOf(tag: string): string;
+```
+
+### `ENDONYMS` (const)
+
+```ts
+const ENDONYMS: Readonly<Record<DefaultLocale, string>>;
 ```
 
 ### `hasRawText` (function)

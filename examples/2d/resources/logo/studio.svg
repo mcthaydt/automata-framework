@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180" role="img" aria-label="Studio">
+  <rect width="320" height="180" fill="#31222a"/>
+  <circle cx="160" cy="78" r="38" fill="#ffcf05"/>
+  <circle cx="160" cy="78" r="18" fill="#31222a"/>
+  <text x="160" y="150" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="700" fill="#fff3d6">Studio</text>
+</svg>

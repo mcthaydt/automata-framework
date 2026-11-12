@@ -59,6 +59,24 @@ export function rukenToml(config: ShipConfig): string {
       `order = ${str(board.order)}`,
       `min = ${board.min}`,
       `max = ${board.max}`,
+      // Achievement rule lines read the board's title; written only when the game gave one.
+      ...(board.title === undefined ? [] : [`title = ${str(board.title)}`]),
+      '',
+    )
+  }
+  // The framework's own declaration, mapped to the rules Ruken's manifest has: one goal each, on one board.
+  const achievements = Object.entries(config.achievements ?? {}).sort(([a], [b]) =>
+    a < b ? -1 : a > b ? 1 : 0,
+  )
+  for (const [id, achievement] of achievements) {
+    lines.push(
+      `[achievements.${str(id)}]`,
+      `title = ${str(achievement.title)}`,
+      `description = ${str(achievement.description)}`,
+      `board = ${str(achievement.board)}`,
+      'reach' in achievement.goal
+        ? `reach = ${achievement.goal.reach}`
+        : `top_percent = ${achievement.goal.top_percent}`,
       '',
     )
   }

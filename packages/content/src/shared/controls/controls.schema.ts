@@ -18,6 +18,10 @@ export const RESERVED_PAD_BUTTONS: readonly number[] = [8, 16]
 /** Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus). */
 export const RESERVED_KEYS: readonly string[] = ['Escape', 'Tab']
 
+/**
+ * The eight directions a gamepad stick can be bound to in a game's controls: a stick (`left` or `right`) pushed one way
+ * (`up`, `down`, `left` or `right`), written `left-up`. A binding's `stick` list holds these names.
+ */
 export const STICK_DIRECTIONS = [
   'left-up',
   'left-down',

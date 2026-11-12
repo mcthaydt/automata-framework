@@ -9,7 +9,7 @@ import type { OrientationMismatchFound } from './prepare/orientation.ts'
 import type { Pixi3dFound } from './prepare/pixi3d-markers.ts'
 import type { SecretFound } from './prepare/secret-scan.ts'
 
-export { ManifestInvalid } from './targets/ruken/errors-ruken.ts'
+export { AchievementUnsupported, ManifestInvalid } from './targets/ruken/errors-ruken.ts'
 export { TauriBuildFailed, TauriBuildInvalid, TauriToolchainMissing } from './targets/tauri/errors-tauri.ts'
 
 const VersionMismatchBase: TaggedErrorClass<

@@ -50,7 +50,7 @@ describe('Toast', () => {
     const toast = open({ tone: 'error', toneLabel: 'Error' })
     expect(toast.dataset.tone).toBe('error')
     const glyph = toast.querySelector('[data-toast-glyph]')
-    expect(glyph?.textContent).toBe('✕')
+    expect(glyph?.querySelector('[data-icon="cross"]')).not.toBeNull()
     expect(glyph?.getAttribute('aria-hidden')).toBe('true')
     expect(toast.querySelector('.af-sr-only')?.textContent).toBe('Error')
     expect(toast.textContent).toContain('Pad connected')

@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// The package is imported, not copied: each screen has its own entry, `.` has all four, and nothing says to run a
+// The package is imported, not copied: each screen has its own entry, `.` has all six, and nothing says to run a
 // command that copies files into a game.
 
 const ROOT = dirname(dirname(dirname(dirname(fileURLToPath(import.meta.url)))))
@@ -12,6 +12,8 @@ const SCREENS = [
   ['results', 'ResultsScreen'],
   ['loading', 'LoadingScreen'],
   ['error', 'ErrorScreen'],
+  ['splash', 'SplashScreen'],
+  ['credits', 'CreditsPanel'],
 ] as const
 
 describe('the package entries', () => {
@@ -28,12 +30,12 @@ describe('the package entries', () => {
     for (const [, name] of SCREENS) expect(module[name], name).toBeDefined()
   })
 
-  it('exports one path per screen and nothing else', () => {
+  it('exports one path per screen and the words, and nothing else', () => {
     const manifest = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
       exports: Record<string, unknown>
     }
     expect(Object.keys(manifest.exports).sort()).toEqual(
-      ['.', ...SCREENS.map(([entry]) => `./${entry}`)].sort(),
+      ['.', ...SCREENS.map(([entry]) => `./${entry}`), './words/*.json'].sort(),
     )
   })
 })

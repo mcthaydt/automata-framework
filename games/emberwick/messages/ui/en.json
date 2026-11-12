@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "splash_label": "Splash",
+  "splash_hint": "Press any key or tap",
+  "menu_title": "Emberwick",
+  "menu_hint": "Carry your lantern up to the ember.",
+  "play": "Play",
+  "keys_move": "move",
+  "keys_jump": "jump",
+  "keys_pause": "pause",
+  "pause": "Pause",
+  "paused_title": "Paused",
+  "resume": "Resume",
+  "back_to_menu": "Back to menu",
+  "end_title": "The ember is yours",
+  "play_again": "Play again",
+  "menu": "Menu",
+  "end_time": "{seconds} s"
+}

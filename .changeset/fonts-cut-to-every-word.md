@@ -1,0 +1,4 @@
+---
+'@automata/content': patch
+---
+The font build cuts each language's subset to every word a game shows (its content, its interface words in `messages/ui`, and the words of `@automata/framework`, `@automata/ui-screens` and `@automata/net-ui`), and with a `content/fonts.toml` every language the content compiles must be served by a font: no language falls back to the device's fonts. A font may name `reserved_name` and `license_file`: its subsets are renamed `<font> <language>` (the OFL's Reserved Font Name) and the licence ships beside them. The build also writes `fonts.css`, one `@font-face` per font and language and a `:root:lang()` rule that sets `--af-font`, so a language change changes the face with no code. `gameWords` is exported from `@automata/content/assets`, and `subsetWoff2` takes an optional rename.

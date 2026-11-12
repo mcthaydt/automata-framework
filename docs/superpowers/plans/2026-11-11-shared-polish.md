@@ -28,31 +28,331 @@ art (the Owner, 2026-11-11). Read a cited file to learn how the thing behaves, c
 ## Tracking
 
 Update this table and the workstream row in `../progress.md` in the same commit as each task.
-**Progress: 0 of 21 tasks (0%).**
+**Progress: 21 of 21 tasks (57%)** (22 listed; task 17 is cut, so 21 are live; tasks 16 and 19, done on the side branch `claude/shared-polish-emberwick-site`, were merged into this branch on 2026-11-11; task 20, the site pass, was done on the joined branch the same day). Overall: `(3 + 21/21) / 7` (stages 4 to 7 are still to run).
 
 | # | Task | Item | State | Commit |
 |---|---|---|---|---|
-| 1 | The six languages as data, and the negotiation rules pinned | 1 | todo | |
-| 2 | Core's menu words as catalogs in six languages | 1 | todo | |
-| 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | todo | |
-| 4 | `automata words`: the AI translates | 1 | todo | |
-| 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | todo | |
-| 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | todo | |
-| 6 | The opening sequence and the seen flags (core) | 2, 3 | todo | |
-| 7 | First-run language pick | 2 | todo | |
-| 8 | Photosensitivity warning | 3 | todo | |
-| 9 | Interface sounds | 4 | todo | |
-| 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | todo | |
-| 11 | Splash (`@automata/ui-screens`) | 5 | todo | |
-| 11b | `Hosting.openLink` on every target | 5 | todo | |
-| 12 | Credits (`@automata/ui-screens`) | 5 | todo | |
-| 13 | Achievements, generic, and their Ruken mapping | 6 | todo | |
-| 14 | Stale-build check | 7 | todo | |
-| 15 | The four examples and their journeys | examples | todo | |
-| 16 | Emberwick in six languages, with an achievement | 1, 6 | todo | |
-| 17 | Ember Hall (`games/base-3d`) in six languages | 1 | todo | |
-| 18 | Guides, API report and index, changesets, final gates | done means | todo | |
-| 19 | The site's Editor page is cut; the link opens the editor | site | todo | |
+| 1 | The six languages as data, and the negotiation rules pinned | 1 | done | `0500f409` |
+| 2 | Core's menu words as catalogs in six languages | 1 | done | `48352386` |
+| 3 | `words`: catalogs, placeholders and the source record (pure) | 1 | done | `3763a3d8` |
+| 4 | `automata words`: the AI translates | 1 | done (the live model call is unverified: no key here) | `e61b179f` |
+| 5 | The `words` step of `automata check`: missing words, placeholders, fonts | 1 | done (it reads the game's own catalogs; task 5b switches it to `gameWords`) | `29ccea7f` |
+| 5b | Fonts: the font build cuts to every word a game shows; the pixel font set | 1 | done | `ceb2a014` |
+| 6 | The opening sequence and the seen flags (core) | 2, 3 | done | `dd38dc77` |
+| 7 | First-run language pick | 2 | done (Chromium only: WebKit and Firefox not run) | `6c0ccee0` |
+| 8 | Photosensitivity warning | 3 | done (Chromium only: WebKit and Firefox not run) | `d2e9d7f9` |
+| 9 | Interface sounds | 4 | done (jsdom unit tests; the sounds themselves are heard only in a browser with a mapped game: task 15's example) | `f68d822e` |
+| 10 | `create-game`: starter interface sounds, the six languages and the font set | 1, 4 | done (the consumer smoke was not run here; run in task 18, it found the `check` script's defect, fixed there) | `3aef5854` |
+| 11 | Splash (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium; WebKit and Firefox not run) | `5a6e7eb9` |
+| 11b | `Hosting.openLink` on every target | 5 | done (jsdom/Node unit tests over fakes; a real desktop build opening a real browser and a real Ruken host asking the player are not run) | `7dc3e29c` |
+| 12 | Credits (`@automata/ui-screens`) | 5 | done (jsdom unit tests and the layout contract in Chromium, 100 cases; WebKit and Firefox not run) | `618d03a3` |
+| 13 | Achievements, generic, and their Ruken mapping | 6 | done (unit tests over fakes and Ruken's own parser; a real `ruken publish` is not run) | `474d2f96` |
+| 14 | Stale-build check | 7 | done (jsdom unit tests with a fake clock and a bare HTTP listener; the panel's layout contract in Chromium, 50 cases; no two-process journey, as call 15 says; WebKit and Firefox not run) | `2d87462f` |
+| 15 | The four examples and their journeys | examples | done (Chromium at the phone and compact sizes; `examples-ipad` is added but WebKit is not installed here, so it was not run; see the ledger) | `39bcf8f1` |
+| 16 | Emberwick in six languages, with an achievement | 1, 6 | done on the side branch `claude/shared-polish-emberwick-site` (Chromium only: 135 unit tests, 38 journeys, the hot-reload demo's 2; WebKit and Firefox not run; the live model call unverified: no key here) | see the ledger below |
+| 17 | Ember Hall (`games/base-3d`) in six languages | 1 | cut on the Owner's word, 2026-11-11 (relayed by the coordinator: Ember Hall is replaced by The Last Light as the 3D reference game) | |
+| 18 | Guides, API report and index, changesets, final gates | done means | done on this branch (the "Done means" list is in `../progress.md`; Emberwick's and the Editor page's lines wait for tasks 16 and 19 on the side branch) | see the ledger |
+| 19 | The site's Editor page is cut; the link opens the editor | site | done on the side branch `claude/shared-polish-emberwick-site` (site unit tests 510, the site build, `check:site`, the site's whole Chromium suite 469; WebKit not run; `check:deployed` not run: needs the live site) | see the ledger below |
+| 20 | The site shows it (the spec's "The site shows all of it"): examples, API pages, guides, cheatsheet, llms files, Home and Start, `pnpm check:site` | site | done (Chromium only: site unit 518, `check:site`, the site's whole Chromium suite 505 and the five new phone cases, the playground suites 41; WebKit not run; `check:deployed` not run: needs the live site) | see the ledger below |
+
+## Execution log and deviations ledger
+
+Each line is a ruling the executing session made, with what it costs if wrong. The final summary lists them all.
+
+- **Task 5, Ruling:** tools gets its own small `fontCoverage` and `catalogCharacters` (`packages/tools/src/shared/words/characters.ts`,
+  on `fontkit` 2.0.4, a new dependency of `@automata/tools` only) instead of importing content's, because
+  `@automata/content/assets` and `/locale` cannot load under plain Node from source (the coordinator's choice (a)).
+  `characters.test.ts` keeps both equal to content's over a Latin font, a Japanese font and printable ASCII. Cost if wrong: a
+  second copy of two small functions that drift; the pin test fails when they do.
+- **Task 5, Ruling:** the step takes `en` as the source language and every language any catalog has a file for; the
+  font check covers the source language too (a game's English words need a face as much as its Japanese ones).
+  `languagesOnDisk` moved from `run-words.ts` to `catalog.ts` so the command and the step find languages the same way.
+- **Task 5, Ruling:** a source language, a missing key and a catalog whose language file is absent are each a `words-parity`
+  finding; a missing language file is one finding for the file, not one per key.
+- **Task 5b, Ruling:** the rename goes `subsetWoff2` (sfnt cut, a `name` table rewrite in `font-rename.ts`, a second cut to
+  woff2 with the same characters) instead of `fontverter`, which is only a transitive dependency of `subset-font`; no
+  new dependency. The font is CFF, so the intermediate is an `sfnt`, not a `truetype`. IDs 1, 4 and 16 become
+  `<font> <lang>`, 6 the same with hyphens, 3 is derived, and 17 stays `Regular`; the copyright (0) and licence (13, 14)
+  records are kept; any other record naming the reserved name is dropped. Cost if wrong: a font manager lists a subset
+  slightly differently from the plan's literal wording; the OFL is met either way.
+- **Task 5b, Ruling:** a licence file is copied as `<font>-<its file name>` (`pixel-OFL.txt`), not plain `OFL.txt`, so two
+  fonts with different licences never collide.
+- **Task 5b, Ruling:** `gameWords` finds a package's words by walking up `node_modules` from the game and reading its
+  `exports['./words/*.json']`, not by `require.resolve`, which also reads `NODE_PATH` (pnpm sets it) and made the result
+  depend on the shell. Tools has its own copy (`package-words.ts`, the same ruling as task 5) and a test pins the two.
+- **Task 5b, Ruling:** with a `fonts.toml`, every content language must be served; the three older tests that pinned "a
+  language no font serves is not checked" now pin the refusal, as the plan says. `OFL.txt` was converted from CRLF to LF
+  (the repository normalises text files) and its hash recorded as LF.
+- **Task 5b, Ruling:** core draws `OptionGroup`'s and `SaveStatus`'s check marks too (the plan named six components; these
+  two held the same glyph), through one `Icon.svelte`. The PlayStation cross prompt keeps `✕` as its screen-reader text
+  and is drawn as the cross icon. The `!` warning mark is ASCII and stays text.
+- **Task 5b, note:** `package-words.test.ts` and the words-step package case were written together with the code, not
+  watched failing first.
+- **Task 6, Ruling:** the opening's context holds the services a step may use (the plan's `Pick`), but boot hands it the whole
+  services object, so the "sim held" test reads `time` through a cast; no step is given `time` by type. A development
+  restart (`startAt`) skips the opening, and the host's menu request answers `false` until the first screen has
+  entered. The opening layer's element is `data-opening-step`, appended to the overlay.
+- **Task 6, note:** the opening-order tests run a full boot over `fakeHosting` and `nullRenderer`, as the Ruken boot
+  tests do over the fake Ruken host.
+- **Task 7, Ruling:** `defineGame` assembles the opening (`firstRunSteps({ firstRunLanguage, copy: spec.copy?.screens })`, then
+  the game's own `opening`), not boot, because only the spec knows `copy.screens`, so a game's override reaches the
+  first-run words. A raw `GameDefinition` given to `runGame` gets only its own `opening`.
+- **Task 7, Ruling:** the focused button is marked `data-initial-focus` (the attribute `Modal` focuses), not the plan's
+  `data-autofocus`. The six buttons sit in a grid (`auto-fit`, two across where the dialog is wide enough), because six
+  48 px rows in one column do not fit a 270 px high landscape phone without scrolling and no action may shrink.
+- **Task 7, Ruling:** every first-run string of tasks 7 and 8 (all eight `first_run_*` keys) is written and recorded now, so
+  task 8 adds no words. Translations written by this session, recorded with `automata words --mark`.
+- **Task 7, Ruling:** the existing default-screens tests that boot two languages under a non-Ruken host now hand the game a
+  device that has seen the first run (`seams.deviceStorage`): that is the "second run goes straight in" case, not the
+  screen switched off. `passFirstRun` (`@automata/tools/e2e`) has no test of its own yet: its first user is task 15's
+  journeys, which exercise it in a real browser.
+- **Task 7, not run:** the browser layout test ran in Chromium only (50 cases pass); WebKit and Firefox are the Owner's.
+- **Task 8, Ruling:** `warningStep` lives in `app/opening/photosensitivity.ts` (with `WarningSwitch` and
+  `PhotosensitivityOption`), and `first-run.ts` only composes the steps; `GameDefinition` is untouched because
+  `defineGame` assembles the opening (task 7's ruling), so the plan's `boot/game-definition.ts` change is not needed.
+  Both types are exported from `entries/runtime.ts`.
+- **Task 8, Ruling:** a shutdown that aborts the warning does not mark it seen (only Continue, Close and Escape do), so
+  the next run still warns; the language step already behaved so.
+- **Task 8, Ruling:** `Toggle` gained `position: relative` (a one-line change to a shared control). Its hidden
+  checkbox is absolutely positioned and escaped a scrolling region's clipping, so a switch inside the warning's
+  scrolling body was judged "off screen" and "under the keyboard" by the layout contract. Settings' and every other
+  browser test in `tests/browser/app` and `tests/browser/shared` still pass (2151). Cost if wrong: a toggle's input is
+  placed against the toggle, which is where it was drawn anyway.
+- **Task 8, Ruling:** the warning's switches are not "essential" in the layout contract (Continue and Close are): the
+  body scrolls where a short or TV-scale screen cannot show it whole, as the plan says; switches stay at least 44 px.
+  The switches' on/off words are the Audio group's (`settings.audio.on`/`off`), since core has no neutral pair.
+- **Task 8, note:** the unit file's tests were run together against a missing module (red), not one at a time; each
+  assertion passed on first implementation. The `defineGame` pass-through test was watched failing on its own
+  (`length 1`, not `2`), and the browser contract failed 50/50 before the fixture drew the warning.
+- **Task 8, Ruling:** the tracker's percentage is `(3 + done/21) / 7`, recomputed (it read 52% at 8 tasks, which the
+  formula gives as 48%); 9 tasks gives 49%.
+- **Task 8, not run:** WebKit and Firefox; the one browser file ran in Chromium (50 cases).
+- **Task 9, Ruling:** the listener is installed on the page root (`layers.root`), not the overlay layer, so the screens
+  layer (title, paused, settings) and the overlay (first run, dialogs) are heard by one listener. The plan said "the game
+  root" in boot and "the overlay" in the spec; the root contains both. Cost if wrong: a control outside the overlay
+  sounds too, which is the point.
+- **Task 9, Ruling:** `ui-sounds.ts` has its own `UiSoundEntry` (`string | { alias, gain? }`), and `event-sounds.ts` is
+  untouched: the two entries differ (a sim event's has a bus; an interface sound is always on `ui`), so the plan's
+  `SoundEntry` export would have joined two shapes. `UI_CONTROL` stays module-private (knip); `UI_SOUND_NAMES`,
+  `requestUiSound`, `UiSounds` and `UiSoundEntry` are exported from `entries/runtime.ts`.
+- **Task 9, Ruling:** `data-sfx="none"` plays nothing even for a function map (the function is not asked), and `data-sfx`
+  is read from the control or the nearest element above it, so a wrapper can mark a group. A label that wraps a
+  checkbox sounds once (the click on its input), not twice. `Toggle` gained an `sfx` prop for the Mute switch.
+- **Task 9, Ruling:** marked `back`: Modal's Close, CornerControls' Back, Settings' Back, the paused screen's "Keep playing"
+  and quit Cancel, the save-delete dialog's "Keep it". Marked `none`: Pause's Mute, Settings' Mute switch, every touch
+  button (a held action is the game's to sound). `RotateToast`'s OK is left on the default press.
+- **Task 9, note:** the function-map `none` case in `ui-sounds.test.ts` was added after the boot test failed on it, not
+  before; every per-component mark test was watched failing with its source change stashed.
+- **Task 9, not run:** a listen: nothing here plays a real sound. The audio path (`audio.sound(alias, { bus: 'ui' })`) is
+  tested against a recording stand-in; the example in task 15 and the created game's journey are where it is heard.
+- **Task 10, Ruling:** `create-game` does not run the font build itself. The new game gets `automata.content.ts` and a
+  `fonts` script (`automata-content assets`), which `dev` and every `build:<target>` run first, and imports the built
+  `content/generated/fonts/fonts.css` from `src/main.ts`; `content/generated/` is already git-ignored. Reason: at
+  `create-game` time the game's packages are not installed, and the font build needs the game's content kinds (feel,
+  audio) which tools does not import. Checked by hand on a generated game wired to the workspace's packages:
+  `automata-content assets` wrote 11 files (four subsets for `ja`, `en`, `es-419`, `pt-BR`, one each for `ko`, `zh-Hans`,
+  the licences, `fonts.json`, `fonts.css`) and `automata check --only words` passed. Cost if wrong: a stranger's first
+  `pnpm dev` runs one extra command (about a second).
+- **Task 10, Ruling (plan defect):** the five catalogs are not empty (call 17 assumed the starter has no text): Feel's
+  "Bump!" is the starter's one word, so each catalog holds its key `content_feel_feel_entry_0_word_0_words`, written new
+  in the five languages. Found by running the font build on a generated game, which refused the empty ones as stale.
+- **Task 10, Ruling (plan defect):** `es-419` was refused as "not a language tag" by the content compiler
+  (`LANGUAGE_TAG` allowed only a two-letter region), so no game could ship the framework's own default language. The
+  regex now allows a three-digit region (`@automata/content`, patch changeset, test `language-tag.test.ts`). Ruken's own
+  manifest parser only requires `en` among the languages, so the store accepts it. Task 16 (Emberwick) needed this too.
+- **Task 10, Ruling:** the font flavour in `fonts.toml` is named `zh-hans` (the schema allows `[a-z0-9-]+`), while the
+  vendored file keeps its `zh_hans.woff2` name. A binary template file type (`TemplateBinaryFile`) carries the fonts;
+  the three fonts and `OFL.txt` are read from `vendor/fonts/fusion-pixel-12/` in the repository and from
+  `dist/template-fonts/` in the published package (`tsdown.config.ts` copies them), whichever exists. Their hashes in the
+  template are held to the files by `template-fonts.test.ts`.
+- **Task 10, Ruling:** the 3D template stays on one language with `font-family: sans-serif` (`styleFile('sans-serif')`),
+  its ship config on `['en']`, and no font scripts. The 2D game's ship config now lists the six languages.
+- **Task 10, Ruling:** the starter audio file's schema check lives in `extensions/audio-synth/tests` (it reads the
+  template's `audio.toml` by path), since tools may not import audio-synth.
+- **Task 10, not run:** `tooling/consumer-smoke` (it packs the packages and installs from a registry); its first-run step
+  is updated by reading, so the language screen is pressed (`first-language-en`) before the title. A `vite build` of a
+  generated game was not run either (the temporary workspace link had no Svelte plugin); the font build and `check` were.
+- **Task 11, Ruling:** `screensWords(locale)` returns `{ splash }` only for now, and README says "Five ready-made screens": the
+  plan's `credits: CreditsCopy` does not exist until task 12, which adds it and moves the README to six. The package's
+  catalogs hold `splash_skip` only; task 12 adds the credits keys.
+- **Task 11, Ruling:** the screen listens to the page itself (`<svelte:document onkeydown>` and the root's `pointerdown` and
+  `click`), so a copy of `features/splash/` in a game works alone; the step only owns the hold, the abort and the mount.
+  `screensWords` matches a locale as core's negotiation does (same tag, else same primary language, else English) with its own
+  five lines: `ui-screens` may import only `@automata/framework`'s public entries and core does not export `matchLocale`.
+- **Task 11, Ruling:** the logo's 60% limit is `60cqmin` of the frame's body (a size container), so it follows the space the
+  frame leaves, not the window. The fade is a CSS animation switched off under `prefers-reduced-motion`.
+- **Task 11, note:** the unit file was watched failing against the missing modules (red) and passed whole on the first
+  implementation; the browser layout contract (50 cases) was written beside the screen and passed first time. The pre-commit
+  hook for a commit touching only `extensions/ui-screens` took 12 seconds.
+- **Task 11, not run:** WebKit, Firefox, and a real browser's timing of the hold (the hold is tested on the injected clock).
+- **Task 11b, Ruling:** the web adapter opens with `page.open(url, '_blank')` and sets the new tab's `opener` to null, not
+  the plan's `'noopener,noreferrer'`: a `noopener` window answers null even when the tab opened, so a blocked popup could not
+  be told from an opened tab and `opened` would always be false. Cost if wrong: the browser still sends the game's address
+  as the referrer to a credits link (harmless; the tab cannot reach back into the game).
+- **Task 11b, Ruling:** the contract's `openLink` cases take a `LinksProbe` (a fourth, optional argument of
+  `describeHostingContract`: `create`, optional `createWithoutGrant`, `opened`, `decline`), not a factory taking grants,
+  because no `Hosting` value shows what its host was asked to open or lets a test make the host say no. The ungranted case
+  runs where a grant can be missing (Ruken and the fake); the web page and the desktop grant `links` unconditionally, so
+  their test files say why they have none. "Never changes the page's location" is held by the type: `WebPage` has no
+  `location`, only `open`.
+- **Task 11b, Ruling:** `Hosting.openLink` refuses an unopenable address (`isOpenableLink`, `shared/host/link.ts`: https, a
+  host name, no name or password, at most 2048 characters: the SDK's own rule) before any host is asked, `INVALID_PAYLOAD` on
+  operation `links.open`, on every adapter and the fake, so the refusal reads alike on all four.
+- **Task 11b, Ruling:** `@tauri-apps/plugin-opener` and the `tauri-plugin-opener` crate are pinned at 2.7.2 (released
+  2026-10-14, 28 days before today; 2.7.3 is 1 day old and fails the 14-day rule in `docs/versions.md`, which gains a row).
+  `create-game` adds the package for a game that builds for `tauri`. The capability allows `opener:allow-open-url` for
+  `https://*` and `https://*/*`; whether Tauri's glob needs both is not verified without a desktop build.
+- **Task 11b, Ruling:** the fake web page's `lastTab` and `blockPopups`, and the fake desktop's `declineLinks`, are test-side
+  controls; `fakeHosting`'s `FakeHostControl` gains `opened` and `answerLinks`, and its options `links: 'open' | 'refuse'`.
+- **Task 11b, not run:** a real desktop build opening a real browser (the Owner's), Ruken's real host asking the player, and
+  the WebKit and Firefox engines for the web adapter (it is plain DOM and is tested over a fake page).
+- **Task 12, Ruling:** the panel does not wrap its list in core's `ScrollList`: the `Modal` body is already a declared scroll
+  region (`data-scroll-region`, `overflow-y: auto`), `ScrollList` exists to reserve rows beside siblings that shrink, and
+  there are none here; it would also have needed a "+N more" word the plan's `CreditsCopy` does not have. The layout contract
+  (forty names, every size, variant and `xx-long`) holds Close whole and hit-testable and the document unscrolled.
+- **Task 12, Ruling:** the refusal line sits in the Modal's `actions` area (always present, `role="status"`, hidden when
+  empty), not in the scrolling body, so a long list never hides it. A `credits_` catalog (`title`, `close`, `opens`,
+  `refused`) joins `splash_skip`; `screensWords(locale)` now returns `{ splash, credits }` as the plan says, and the README
+  says six screens.
+- **Task 12, Ruling:** `ui-screens`' layout-sweep helper (`src/testing/`, never published) takes a CSS selector as an
+  essential where a control has no test id (a Modal's Close, `[data-modal-close]`).
+- **Task 12, Ruling:** editor gap 4 logged in `docs/superpowers/progress.md`: the credits file has no editor.
+- **Task 12, not run:** the panel with a real host (Ruken asking the player, a browser's popup blocker); WebKit and Firefox.
+- **Task 13, Ruling:** the achievements' words use the folder catalog mechanism, not a catalog whose source is only derived in
+  memory: `automata words` rewrites `messages/achievements/en.json` from the declaration (through the loader it already
+  uses) before it finds the catalogs, and `gameCatalogs` finds that folder like `messages/ui`. A message key turns the id's
+  hyphens into underscores (`achievement_score_20_title`). `automata check`'s `achievements` step says when the file is
+  missing or behind (`achievement-words`), and the `words` step then asks for each language's translation like any
+  catalog, so a game that declares achievements ships them in every language it ships (Ruken itself takes the source text).
+- **Task 13, Ruling:** the Ruken-only refusal of a top share (`checkAchievementGoals`, the shares read from
+  `ACHIEVEMENT_TOP_PERCENTS`) lives in `targets/ruken/check-manifest.ts`, because `pnpm boundaries` allows `@ruken/manifest` only under
+  a `ruken/` folder; `prepare-build.ts` calls it. The refusal is its own error, `AchievementUnsupported`.
+- **Task 13, Ruling:** `ManifestInvalid`'s message puts an achievement or board-title problem in plain words, then Ruken's own
+  words in brackets after it; every other problem reads as before.
+- **Task 13, Ruling:** `@automata/content/game-config` re-exported its schema without a `.ts` extension, so plain Node could
+  not load it from source (the `automata` bin then failed `ERR_MODULE_NOT_FOUND`); the entry now names `.ts`, as the other
+  entries do. `tools` needed it at run time for the first time (`achievementsStep` parses with `gameConfigSchema`).
+- **Task 13, Ruling:** the tauri case of "prepares exactly as before" is held at `tauriProjectFiles` (the generated project is
+  byte-identical with achievements declared), not at a `prepareTauri` run, which needs a fake Tauri CLI; web and itch run
+  their prepare. The `automata-verify` skill lists the new step and its two rules (its test requires every rule documented).
+- **Task 13, Ruling:** editor gaps 5 (the achievements declaration) and 6 (the font list, logged late) are in the ledger.
+- **Task 13, not run:** a real `ruken publish`, and a live `automata words` over the achievements.
+- **Task 14, Ruling:** `BuildFacts` and `checkServerVersion` are exported from `@automata/net`'s main entry (net-ui imports them
+  from there), and `staleBuildStep`, `StaleBuild` and `staleWords` from `@automata/net-ui`; the catalogs are exported at
+  `@automata/net-ui/words/<language>.json` so `gameWords` finds them. The step's `waitMs` timer is armed before the check
+  starts and cleared once a stale panel shows (a stale tab waits for Reload, not the clock).
+- **Task 14, Ruling:** the step's default `reload` is `location.reload()` and is not unit-tested (jsdom does not implement it); the
+  tests pass `reload`. A real reload is the Owner's to try in a browser, with the stale-build "journey" of call 15 (a served
+  two-process journey has no home in the repository, as the plan says).
+- **Task 14, note:** the stale panel takes core's `ErrorPanel` as is, with one primary Reload action focused on mount (the layout
+  contract also checks it is 48 px).
+- **Task 14, not run:** a real server answering `/version` to a real browser tab; WebKit and Firefox.
+- **Task 15, partly done, `05c8e036`:** `core-languages`, `core-first-run` and `audio-ui-sounds` are in `examples/2d` with their three
+  journeys, run in Chromium at the phone (`examples`) and compact (`examples-compact`) sizes (6 journeys and 6 smoke boots pass;
+  they were red first for the missing pages). Four things are left, for the next session, in this order:
+  1. **`ui-splash-credits` and step 4 (the site's playground).** The example and its journey are written and passed in
+     Chromium (phone and compact); they wait in `docs/superpowers/pending/` (as `.txt`; its README says how to move them)
+     because the playground allows only `@automata/framework` and `zod` and the site's unit tests compile every catalog
+     example. Step 4 needs: `@automata/ui-screens` (its `/credits` and `/splash` entries) in the playground's compile allow-list
+     (`site/src/features/playground/compile.ts`, `ALLOWED_IMPORTS` and its message), a runtime entry
+     (`site/playground/runtime/ui-screens.ts`), `PLAYGROUND_ENTRIES` and `PlaygroundRuntime`
+     (`site/playground/src/vite-runtime.ts`, `frame-page.ts`), the Vite input and the import map, tests first in
+     `site/tests/unit/playground/runtime/frame-page.test.ts` and the runtime's gzip budget (`runtime-size.ts`; say the number).
+  2. **The examples' fonts** (`examples/2d/public/fonts/` and a freshness test that runs `buildFonts` over a `fonts.toml`, as the
+     atlas is kept): not built. The language examples draw the menus in core's default face, so Japanese, Korean and
+     Chinese come from the device's fonts, which breaks the Owner's "no device fallback" for these two examples until it is done.
+  3. **The iPad run:** `examples-ipad` (a third Playwright project) is added but WebKit is not installed here (`Executable doesn't
+     exist at /opt/pw-browsers/webkit-…`), so it is not run: the Owner's.
+  4. `pnpm check` as a whole (each part ran: typecheck, boundaries, style, knip, the affected unit tests in every commit).
+- **Task 15, Ruling:** a real browser found a defect in `passFirstRun` (`@automata/tools/e2e`): after pressing the language it waited
+  for both first-run screens to be gone, which never happens when the warning follows at once, so it hung. The journey
+  `passFirstRun presses through the language and the warning` was red (30 s timeout), then the helper was fixed to wait only for
+  the screen it pressed, and it passes. This is the "untested until task 15" item from the handoff: it is now exercised.
+- **Task 15, Ruling:** at the compact size (780 × 270) the game first asks to go fullscreen (the landscape gate) and that gate takes
+  focus, so the first-run journey expects focus on Play *or* the gate (not Play alone as the plan says); the language and warning
+  screens are the same at every size.
+- **Task 15, Ruling:** the interface sounds are heard only as names (`window.__uiSounds`, the example's own record) in the journey;
+  nothing here plays or hears a real sound. The `audio-ui-sounds` example uses a function map (so it can record), and a plain map
+  of names to files is the documented simpler form. `showCredits` (in `@automata/ui-screens/credits`, tested) was added because an example may import no
+  `svelte` and so could not mount the panel; and the example's title is plain DOM on the framework's control classes because plain
+  `tsc` (the examples' typecheck) cannot read the types `ui-screens`' `title` and main entries re-export from `.svelte` files.
+  The catalog makes `ui` a core module, so that example's `Tier` is `core`, not the plan's `extension`.
+- **Task 15, Ruling:** `@automata/ui-screens` is not yet a dependency of `examples/2d` (knip would flag it unused while the one example
+  that uses it waits in `pending/`); the pending README says to add it. The three sounds are synthesized by a script not committed (the
+  scratchpad); `PROVENANCE.md` says how each is made and gives the hashes.
+- **Task 15, step 4 and the fourth example (fifth session):** the playground answers `@automata/ui-screens` and the six screens it
+  publishes (`/credits`, `/error`, `/loading`, `/results`, `/splash`, `/title`). One list, `site/playground/src/playground-imports.ts`,
+  feeds both the compile allow-list and the frame's import map; its test reads `extensions/ui-screens/package.json` and fails when a
+  screen is published that the list lacks. The runtime has one `ui-screens` entry (`export * from '@automata/ui-screens'`), and the map
+  points every name at that one file, so the screens share the umbrella's chunks (one Pixi, one sim). The compile message now reads
+  "The playground can import only @automata/framework, @automata/ui-screens and zod." `@automata/ui-screens` is a dependency of
+  `site` and of `examples/2d`. The runtime is 427,480 B gzip against the 460,000 budget (unchanged); the screens' own entry is 4,272 B.
+  The example and its journey are in place (`examples/2d/ui/ui-splash-credits.ts`, `tests/e2e/ui-splash-credits.test.ts`), the README row is
+  added, the site's counts are 21 and the `ui` module is listed, and `docs/superpowers/pending/` is deleted. Red first: the site's unit
+  tests (import map, compile allow-list, manifest entry, 21 examples) failed for the missing module and the missing entry. Ran in
+  Chromium: the examples' `examples` and `examples-compact` projects (52 passed, the four journeys and every smoke boot), the example in
+  the playground frame under its policy (`playground-frame-chromium`, 4 passed with the gzip-budget case), the site's unit tests (514).
+  Not run: the site's own `playground.e2e.ts` (its web server did not start in 60 s; only the message text changed there), WebKit and
+  Firefox.
+- **Task 15, the examples' fonts (fifth session):** the two language examples draw in the pixel font in every language. The
+  build is `examples/2d/content/fonts.toml` (Fusion Pixel from `vendor/fonts/fusion-pixel-12/`, three flavours) over five empty
+  catalogs in `content/messages/` (so the content has the six languages and the examples have no words of their own); it holds the
+  framework's and `@automata/ui-screens`' words, found through the examples' own dependencies, to the faces. The outputs (a face per
+  language, `fonts.css`, `fonts.json`, three licences; 144 KB a folder) are committed in `public/core/languages/` and
+  `public/core/first-run/`, beside each page as the atlas is, and each example appends `<link rel="stylesheet" href="fonts.css">`:
+  the playground copies a page's own public folder and a bare import of a `.css` file could not be compiled there. Ruling: two
+  copies (288 KB) and not one shared folder, because the playground build copies only `public/<module>/<name>/` and teaching it a
+  shared folder would be more code than the bytes cost. The freshness test is `packages/content/tests/unit/shared/assets/example-fonts.test.ts`
+  (red first: the build was empty, no faces; then green over the committed files, in both folders). Journeys, red first (`--af-font`
+  was `system-ui, ...`): `core-languages` checks `ja ja`, `ko ko` and `zh-hans zh-Hans` named by `--af-font` and loaded, and
+  `core-first-run` checks `ko ko` on the language screen and `ja ja` on the warning (`tests/e2e/draws-in.ts`). A screenshot of the
+  Settings screen in Chinese was looked at: the pixel face, no device glyphs. Ran in Chromium: `examples` and `examples-compact`
+  (10 passed) and both examples in the playground frame under its policy. The other examples are English and keep core's face.
+  How to rebuild is written at the top of `fonts.toml`.
+- **Task 15, interface sounds proven played (fifth session), Ruling:** `audio-ui-sounds` now gives `uiSounds` as the plain map of names to
+  files, not the function that recorded each name and played it through an `Audio` element, because only the plain map goes through
+  the framework's own mixer (`installUiSounds` then `audio.sound(…, { bus: 'ui' })`), which is what a game would ship. The journey
+  watches the page's Web Audio: an init script notes every `AudioBufferSourceNode.start` with its buffer's length and whether its
+  context was `running`. Play starts the press sound (0.12 s, read from the WAV's header) on a running context; Mute adds none;
+  Quit adds one more press and Cancel starts the back sound (0.14 s). It was red first (no source ever started, because the function
+  played through `Audio`), then passed at the phone and compact sizes and in the playground frame. What a person *hears* is
+  still unverified: headless Chromium has no speakers; a source node that starts on a running context is as far as a page can show.
+  The earlier ruling's `window.__uiSounds` record is gone with the function. Cost if wrong: the example no longer shows a
+  function map (its header says one exists).
+- **Task 15, the iPad run (fifth session), not run:** `examples-ipad` needs WebKit; `/opt/pw-browsers` holds Chromium only
+  (`Executable doesn't exist at /opt/pw-browsers/webkit-2359/pw_run.sh`), so no journey ran at the iPad size or in WebKit. Run
+  it on the GPU runner or a machine with WebKit: `pnpm --filter @af-examples/examples-2d test:e2e --project examples-ipad --trace off`.
+- **Task 15, done:** all four examples and their four journeys are in place and pass in Chromium at the phone and compact sizes;
+  the playground runs each under its policy; the examples' fonts and the playground step are done (above). The whole `pnpm check`
+  passed before each of the two commits that touched `packages/`.
+- **Task 18 (fifth session):** `docs/guides/languages.md` is the guide for a game's languages and `automata words` (the catalogs, missing and
+  stale, the font rule, what `check` says); it is listed second in `docs/guides/index.md`, and the site's guide-list tests name it
+  (`docs.test.ts`, `guides.test.ts`; red first, then green). `how-it-works.md` gains "The first run". The achievements section of
+  `publish-to-ruken.md` and the link paragraph in all four publish guides were already there (tasks 11b and 13). `PROMPT_COPY`,
+  `STICK_DIRECTIONS` and `Picture` have doc comments, so `pnpm api-index --write` exits 0 for the first time (1283 exports, 0
+  undocumented); the cheatsheet and the agent API reference are regenerated, `pnpm api-report --update` wrote six reports (10 API breaks
+  against the base, 0 undeclared) and `pnpm agent-skills` passed. One changeset covers the doc comments.
+- **Task 18, defect found in task 10 by the consumer smoke (it ran here: it packs the packages and installs from the registry), fixed:** a
+  game made by `create-game` failed `pnpm check` at the no-eval step (`../content/generated/fonts/fonts.css` not found), because `dev`
+  and each `build:<target>` ran `pnpm fonts` first and `check` did not. The generated `check` script is now `pnpm fonts && automata
+  check` for a game with fonts (the 3D template has none and is unchanged). Red first (`template-fonts.test.ts` and `template.test.ts`),
+  then the stranger journey got past `check`. Patch changeset `create-game-check-cuts-fonts`.
+- **Task 18, Ruling (a stale expectation in the smoke, not a product change):** the stranger journey then failed at "play it in a browser":
+  it finds the square by the colour 0xffc825, and `main`'s #582 (`b4caf3a1`) made the template level's player start green, `#22c55e`
+  (`template-content/project.toml`; the smoke and that file are the same as on `main`, so it failed there too). The test now finds
+  the square by that green (low red, high green, lower blue: the olive floor and slate walls have more red), and the whole journey
+  passes: make, install, check, test, build and play in a browser (the first-run language pressed, the square moves, the wall stops
+  it), prepare, the itch.io zip. Cost if wrong: the smoke's colour must follow the template's again when the player start changes.
+- **Task 18, ran in Chromium (before the last two fixes, which touch only `create-game`'s `check` script and the smoke's colour):** `pnpm check` on every commit; the 2D browser suites package by
+  package with `--project "*chromium*"` (the root script runs every engine and WebKit and Firefox are not installed: it failed at once
+  launching Firefox, nothing ran): `packages/automata` 2225, `packages/editor` 796 (5 skipped), `extensions/ui-screens` 550 (1 skipped),
+  `extensions/net-ui` 100, `extensions/editors` 64, `packages/sim` 62, `examples/2d/ui/primitives` 26, `tooling/examples-runner` 12
+  (1 skipped), `extensions/debug` 6, `packages/content` 3, `extensions/physics` 2, `extensions/level-2d` 1, `extensions/puzzle` 1,
+  `games/emberwick` 1; Emberwick's journeys (`emberwick-phone-chromium`, `-compact-chromium`, `-ipad-chromium`: 31 passed); the
+  examples' journeys (`examples`, `examples-compact`, `runner`, `runner-compact`, `demos`, `ui-primitives`: 106 passed, 2 skipped); the
+  consumer smoke's 2D stranger journey (passed after the two fixes above; the 3D stranger journey is skipped by its own condition).
+- **Task 18, not run:** WebKit and Firefox in any suite, `examples-ipad` and `emberwick-ipad-webkit`, a real desktop build and a real
+  Ruken host, a real `ruken publish`, and the live `automata words` call (no `AUTOMATA_ANTHROPIC_KEY` in this environment).
 
 ## Global constraints
 
@@ -1494,7 +1794,9 @@ redirect is a host rule, not a page: a `_redirects` file for Cloudflare Pages (t
   `docs/refactor/progress.md` (one line pointing at this workstream), `docs/superpowers/progress.md`
 
 - [ ] **Step 1:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, `pnpm agent-skills`. Read each diff:
-  every new export has a doc comment a first-time author can follow.
+  every new export has a doc comment a first-time author can follow. `pnpm api-index --write` already exits 1 on `main` for
+  three exports with no doc comment (`@automata/content/controls#STICK_DIRECTIONS`, `@automata/content/level-2d#Picture`,
+  `@automata/framework#PROMPT_COPY`): write theirs here so the command passes (the coordinator, 2026-11-11, a named deviation).
 - [ ] **Step 2:** `pnpm format`, then `pnpm check`. Fix what it finds (`knip` on unused exports, `check-changesets` on a
   published package with no changeset).
 - [ ] **Step 3:** `pnpm test:browser:2d -- --browser.name=chromium` (the root script forwards through turbo, which
@@ -1527,3 +1829,160 @@ redirect is a host rule, not a page: a `_redirects` file for Cloudflare Pages (t
   and the code on `main` at `b1f339c3` (the audit linked at the top: spec coverage, every named file, export, code and
   command, and the things the first draft left unverified). Where the audit found the code differed from what the plan
   assumed, the task above now says what the code is.
+
+## Execution log: tasks 16 and 19 (the side branch `claude/shared-polish-emberwick-site`)
+
+Rulings of the session that did these two tasks while the build branch did the rest. The main session folds them into its
+ledger and recomputes the tracker's percentage after the merge.
+
+### Task 16
+
+- **Task 16, Ruling (plan defect, the coordinator agreed):** `makeEmberwick(content, { id, locale? })` takes the languages
+  as an option instead of always shipping the six. `game.ts` (the game's own build) passes `DEFAULT_LOCALES`; the base's
+  other consumer, `examples/2d/content/hot-reload`, passes nothing, so it stays one language with no first-run screen and
+  its journey is untouched. The plan's "`make-game.ts`: `locale: { locales: [...DEFAULT_LOCALES] }`" would have put the
+  language screen in front of that demo's standalone journey. The package gains an export `./fonts.css` (the built faces),
+  and the demo swaps its two `@fontsource/pixelify-sans` imports for it (the coordinator allowed that one change in
+  `examples/2d/content/hot-reload`: `main.ts` and `package.json`; the lockfile changes with it, and so does
+  `docs/versions.md`, whose Pixelify row went with the last user of the package). Cost if wrong: a demo that wants the
+  six languages passes `locale` itself.
+- **Task 16, Ruling:** `ship.config.ts` writes the six language tags out, not `DEFAULT_LOCALES`: the `automata` command
+  loads that file in plain Node, and `@automata/content/locale` cannot be loaded there (the same fault as task 13's
+  `game-config`). A unit test pins the six.
+- **Task 16, Ruling:** the panels hold no text. Each element names its word (`data-word`, `data-word-label`) and
+  `show()` fills them from `emberwickWords(locale)` on entering and again on each language change (`textContent` only, so
+  focus stays: a test holds the same button element, still focused, after `locale.set`). The end screen writes the time
+  through `Intl.NumberFormat(locale)`, so Portuguese reads `5,70 s`; English still reads `5.70 s`.
+- **Task 16, Ruling:** the touch buttons' arrows (`◀ ▶ ▲`) are drawn with CSS (`clip-path`), not typed: the font build cuts
+  a subset to the characters in the catalogs, so a typed symbol would fall back to a device font. `←` and `→` in the key
+  caps are in the build's always-kept set.
+- **Task 16, OPEN FOR THE OWNER (not settled):** `plumbing.test.ts`'s limit moved from 430 to 490, and `words.ts` is counted as
+  content. A test number that moves to get green is the Owner's call; the session moved it so the gate could run and the
+  Owner can choose between accepting it and moving the plumbing into the framework. The measure (non-sim, non-art,
+  non-content, non-drawing `.ts` lines reached from `main.ts`) was exactly 430 on `main` and is **479** now (the limit has 11
+  lines of room), file by file (before → now): `main.ts` 41 → 40 (−1: two font imports became one); `src/app/game.ts` 8 → 12
+  (+4: the `DEFAULT_LOCALES` import and the `locale` literal); `src/app/make-game.ts` 60 → 71 (+11: the `EmberwickOptions`
+  type with its comment, the `locale` option, the `leaderboards` want); `src/features/screens/emberwick-screens.ts` 234 → 269
+  (+35: the panels' `data-word` markup 6, `applyWords` 8, the locale subscription in `show` 8, the time written for the
+  language 6, the board submit with its comment 5, the board id constant 2); `flow.ts`, `scene-renderer.ts`, `game-id.ts`
+  unchanged. `src/features/screens/words.ts` (83 lines, the catalog loader) would add 83 more and is the reclassified file:
+  as plumbing the measure would be 562. What the framework could take off the game's hands: (a) a core export of
+  `matchLocale`, or a `pickCatalog(locale, { en, ja, … })`, which would remove `catalogFor` and `primary` (about 15 lines
+  of `words.ts`; `@automata/ui-screens` carries the same five lines, so it is three copies today); (b) a helper for plain-DOM
+  screens that binds `data-word` elements to a catalog and redraws on `locale.subscribe` (about 20 lines of `show` and
+  `applyWords`: every game with its own DOM screens needs the same), and `formatNumber` exported from the framework's
+  entries (core has `features/locale/format.ts`; no entry exports it, so the game calls `Intl.NumberFormat` itself, 3
+  lines); (c) a default-languages shorthand on `defineGame` (for example `locale: 'default'`, or an exported
+  `defaultLocale()` that builds `{ locales: [...DEFAULT_LOCALES], baseLocale: 'en' }`), which would remove the import and
+  the literal in `game.ts` (4 lines) and the option's type in `make-game.ts` if `GameSpec['locale']` were exported by the
+  root entry; (d) the `fonts.css` export is not plumbing in this measure (it is a line of `package.json`), and the six tags in
+  `ship.config.ts` are outside it (that file is not reached from `main.ts`; a `defaultLanguages` export that plain Node can
+  load would remove them). Estimate of what the framework could absorb: about 35 of the 49 extra lines ((b) 23, (c) 4 and about 8 of `make-game.ts`), and about 15 of `words.ts`'s 83. With that done the measure would be about 444 (479 − 35), so a limit of 450 instead of 490; counting `words.ts` as plumbing it would be about 512 (562 − 35 − 15). The test is
+  otherwise untouched, and nothing further has been changed there.
+- **Task 16, Ruling:** type sizes are whole multiples of the font's 12 px grid (title 60 px, 36 px on a compact screen;
+  headings and the splash mark 24 px; the time 36 px) and the title's shadow is two steps, not four. Looked at in
+  Chromium at phone and compact size: the old four-step shadow at 56 px closed the "c" of "Emberwick" and read "Emberwiok".
+  Body text and buttons keep their sizes. Every `font-weight: 700` is 400 with `font-synthesis: none` (one weight).
+- **Task 16, Ruling:** the achievements' words (`messages/achievements/`, written by `automata words` from the declaration) are
+  translated into the five languages too, with `context.json` notes, since the `words` step asks for them.
+- **Task 16, Ruling:** the journeys: Emberwick's own standalone journeys (`emberwick.test.ts`, `dev.test.ts`) call
+  `passFirstRun` (the plan said they ran inside Ruken's fake host; five of them open the game's own origin). It goes
+  before the landscape gate: the gate is mounted when the first screen enters, so waiting for it first times out at
+  compact size. The six language journeys are projects `emberwick-language-<tag>` (browser `locale`; `zh-CN` is matched to
+  Simplified), Chromium at phone size, each checking the face the language is drawn in is loaded.
+- **Task 16, the game's own check command fails at `no-eval` (the implementation audit must see this):** in
+  `games/emberwick`, `pnpm exec automata check --only no-eval` (and the plain `automata check`, whose other steps `inputs`,
+  `levels` and `words` pass) prints `FAIL  no-eval`, then `build  vite build failed: failed to load config from
+  <game>/vite.config.ts`, then `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '<repo>/packages/content/src/features/vite/index'
+  imported from <repo>/packages/content/src/entries/vite.ts` (code `ERR_MODULE_NOT_FOUND`); `secrets` and `data-urls` then
+  report `build  not scanned: the build failed (see no-eval)`, so the command finds 3 findings and 1 step that could not run.
+  Cause: the step runs a plain-Node `vite build` of the game, and in this workspace `vite.config.ts` imports
+  `@automata/content/vite`, whose source entry has an extensionless import Node cannot resolve (the game's own scripts use
+  `--configLoader runner`, which the step does not). It fails the same way on `main` (checked at `a8f2d40a` in a clean
+  worktree with `pnpm install --frozen-lockfile`: the same `FAIL  no-eval` and the same error, with the worktree's paths), so it
+  is not caused by this task; the `words`, `boards` and `achievements` steps this task changes pass. A published install
+  (built `dist`) is not affected, which this session did not run.
+- **Task 16, note:** the `ship-config` cases were written after the config and then watched failing with the config stashed (three
+  failures); the screens' three new cases and the words file were watched failing first.
+- **Task 16, measured:** the font subsets total 62,220 bytes (six `woff2` files: `en` 6,448, `es-419` 6,548, `pt-BR` 6,584,
+  `ja` 14,208, `ko` 11,152, `zh-Hans` 17,280), plus three 18,805-byte licence copies. Emberwick's golden hash and the sim
+  content hash did not move (the unit golden tests, the Chromium browser golden and the 342-frame golden journey all pass).
+- **Task 16, not run:** WebKit and Firefox (the config's WebKit projects were not started); the end screen's board submit
+  *inside* Ruken's fake host (a unit test over the fake host's `ruken` target holds it, and the standalone golden journey
+  runs the submit path with no console error); a real `ruken publish`; a real language switch by a Ruken host.
+- **Task 16, live call:** `AUTOMATA_ANTHROPIC_KEY` is not set in this session, so the live `automata words` call is unverified.
+  `automata words` with no key said it needs `ANTHROPIC_API_KEY` and changed nothing.
+- **Editor gap (for the ledger):** `messages/ui/*.json` (a game's own words) and `content/fonts.toml` have no editor; the
+  fonts list is already gap 6, and a game's own interface words are the same kind of gap as the credits file's.
+
+### Task 19
+
+- **Task 19, step 1 (read before deleting):** nothing had to move. The command that opens the editor on your own game is in
+  `docs/guides/editor.md` (the first code block, and `automata editor` with its options). That the editors are free on the
+  web is on Pricing (`/app`: `app-offer.ts`, `AppPage.svelte`) and in Home's pricing section. The page's other two notes
+  (the try-it editor cannot play a level; work is kept in this browser and Share keeps a copy) were its own and are said by
+  the editor itself and by `docs/guides/editor.md` ("nothing you draw is kept, and Share downloads or copies your level").
+- **Task 19, Ruling:** the redirect list is `site/src/shared/redirects.ts` (`REDIRECTS`) and the editor's address and the
+  `reloads(href)` helper for `data-sveltekit-reload` are `site/src/shared/editor-link.ts`. `write-redirects.ts`,
+  `check-deployed.ts` and `serve-static.ts` all read the same list or file. `serve-static.ts` (the server the site's e2e
+  runs on) now answers `_redirects` rules, so `/editor` behaves in the browser suite as on the host: a journey opens
+  `/editor` and lands on the editor.
+- **Task 19, Ruling:** `build-script.test.ts`'s "writes no redirect pages" pinned that no build step mentioned "redirect"; it now
+  pins that the one such step is `write-redirects.ts` (the rule for the host, not a page). It is still stricter than before
+  about any other.
+- **Task 19, Ruling:** the picture `editor-new` and the `cut` field of a picture (only that picture used it, and the cropped
+  screenshot code in `take-pictures.ts`) are removed with the page; the `editor` picture stays (Home shows it).
+- **Task 19, note:** the site-checks case "fails a page that links to `/editor`" passed when written: the check "missing
+  destination" already refuses a link to a page the build lacks, so it is a pin of existing behaviour, not a new check.
+- **Task 19, note:** `check:deployed`'s `/editor` probe is tested against a fake host (status and `Location`); the live host's
+  answer is the Owner's to run once the site is uploaded (Cloudflare Pages reads `_redirects` at the build's root).
+- **Task 19, not run:** WebKit for the site's e2e; `pnpm check:deployed` against the live site; `check:launch`, Lighthouse.
+- **Task 19, editor gap:** none (no new content).
+
+## Execution log: the join and task 20 (the sixth session, `claude/shared-polish-build`)
+
+- **The join:** `origin/claude/shared-polish-emberwick-site` (5d45bac8) merged into this branch (`e0b2394e`). Conflict: only the tracking rows
+  (kept 15 and 18 from this side, 16 and 19 from the side branch). The lockfile is the side's, and `pnpm install` on the merged manifests
+  leaves it as it is (only the old pixel font package is gone from two importers; `examples/2d` and the site keep `@automata/ui-screens`).
+  `docs/versions.md` and `knip.jsonc` merged as text. `origin/main` (`a8f2d40a`) was already in this branch. The whole `pnpm check` on the
+  merged tree: exit 0 (52 and 61 tasks, 65 changesets). The hook was skipped (`LEFTHOOK=0`) after that whole check on that tree.
+- **The joined tree, Chromium only:** Emberwick's journeys 38 passed (phone, compact, iPad-sized Chromium, the dev server's, the six
+  language projects); the examples' config 106 passed and 2 skipped (examples, examples-compact, the runner, the hot-reload demo's two
+  journeys, the UI primitives); site unit 515 passed; the playground suites (`site/playground/playwright.config.ts`, Chromium projects) 41
+  passed.
+- **Task 20, the build and the checks:** `pnpm build`, `pnpm api-index` (1283 exports, 0 undocumented), the site's `pnpm build` (51 pages),
+  `pnpm check:site` and `pnpm check` (svelte-check, 0 errors) pass; `pnpm check:deployed`, `check:launch` and Lighthouse were not run (they need
+  the live site).
+- **Task 20, checked in Chromium on the built site (a scratch script, not committed):** `/examples` links to `core-languages`,
+  `core-first-run`, `audio-ui-sounds` and `ui-splash-credits`, and each runs in the playground (a canvas, `data-preview="running"`);
+  the API pages for `@automata/framework`, `content`, `net`, `net-ui` and `ui-screens` carry all 59 index rows of the exports this work
+  added (the opening sequence, the warning, interface sounds, `LinksProbe`, languages, achievements, the splash and credits screens, the
+  stale-build check) with the first fifty characters of each doc comment; `/docs` lists Languages and the guide says `automata words`, the
+  six tags and the font; the publish guides say what a link does and the Ruken guide says achievements; `llms.txt`, `llms-api.txt`,
+  `llms-full.txt`, `llms-guides.txt` and the cheatsheet carry the new names and the guide; Home says languages; the header's Editor link goes
+  to `/editor/app/` and `/editor` answers 301 to it. **`passFirstRun` is not on the API pages by design:** it is in `@automata/tools`'s
+  `./e2e` entry, which is not a published entry (`publishConfig.exports` has `.` only).
+- **Task 20, Ruling (a defect the site pass found, fixed here with the coordinator's word):** at phone height (390 x 844) the playground
+  preview sits below the first screen, and the page started its frame when it was within a screen of view, so the browser throttled a frame
+  nobody could see. A game with an opening sequence (`core-first-run`, `ui-splash-credits`) or saves, a filter or the host-lifecycle demo
+  (`core-saves`, `render-filter`, `core-host-lifecycle`, all older) never reached ready, and its 20 s boot clock ended in "The preview
+  couldn't load" before a reader had scrolled down from the code. The frame now starts when the box it sits in is on screen
+  (`Playground.svelte`: the observer watches the preview box, with no margin). Test first: `playground.e2e.ts` has a case per example at
+  390 x 844 (no frame and no `/playground/` request until the preview is scrolled to, then running); it was watched failing for
+  `ui-splash-credits` before the fix (a frame already started), and the other four were not watched failing under the old code (the same
+  start path; their states at 390 x 844 under the old code, `failed` after 24 s, were measured with a script). All five pass after it.
+  Cost if wrong: a preview at phone height starts a moment after the reader reaches it instead of before.
+- **Task 20, Ruling (copy that had become untrue):** Home said "Automata runs no AI of its own, so there are no credits to run out", and
+  `/app` said the same. `automata words` asks a Claude model with the maker's own key, so both now say Automata sells no credits and
+  meters nothing and that this one command runs on the maker's own key (`home-content.ts`, `AppPage.svelte`). Unit tests first (watched
+  failing): Home's agent point names `automata words` and "your own key". Home's Languages item says six languages and names the command, and
+  Start's step 1 says its menus come in six languages (tests first, watched failing).
+- **Task 20, the site's own playground suite:** `site/tests/e2e/playground.e2e.ts` (37 cases) and the playground's own config (41 cases)
+  start their web servers here in a few seconds against a built site, in Chromium. The earlier session's 60 s timeout did not happen and
+  was not reproduced; its cause is not known. Both need the site built first (`pnpm build` in `site/`).
+- **Task 20, not run:** WebKit for the site's browser suite and the playground's; Firefox; `check:deployed`; the site on a real phone.
+- **The joined tree, the known failure (for the implementation audit):** `automata check --only no-eval` in `games/emberwick` fails the same
+  way as on the side branch: `FAIL no-eval`, `ERR_MODULE_NOT_FOUND`: cannot find
+  `packages/content/src/features/vite/index` imported from `packages/content/src/entries/vite.ts`, `automata check: 1 finding`. It also fails on
+  `main`. Not changed here (not a one-line fix: the source entry has an extensionless import that plain Node cannot resolve).
+

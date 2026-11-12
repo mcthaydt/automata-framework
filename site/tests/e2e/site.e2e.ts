@@ -420,7 +420,6 @@ const SHELL_PAGES = [
   '/api/0.0.5/framework',
   '/privacy',
   '/terms',
-  '/editor',
 ]
 
 for (const width of [390, 820, 1440]) {

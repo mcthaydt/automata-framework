@@ -1,6 +1,6 @@
 # The Automata website
 
-The site at automataframework.com: Home, Start, Docs, Examples, the Editor page, the API reference, Privacy and Terms.
+The site at automataframework.com: Home, Start, Docs, Examples, the API reference, Privacy and Terms, and the try-it editor at `/editor/app/` (the header's Editor link opens it).
 It is a SvelteKit app prerendered to static files, so any static host can serve `build/`.
 
 The site keeps no copy of the framework. Its docs are the guides in `docs/guides/` (in the order of their
@@ -39,4 +39,4 @@ pnpm test:e2e --project chromium        # every page at four sizes in a browser 
 | `playground/` | The examples' runtime, built separately and run in a frame |
 | `tests/unit/`, `tests/e2e/`, `tests/playground/e2e/` | Unit tests by feature, the built site's browser checks, the playground's journeys |
 
-An old address of a page the site cut redirects to the page that took its place (`src/features/redirects/`).
+The site has no redirect pages: its checks refuse a page that only redirects, and a cut page gets the 404 page. The one old address it keeps, `/editor`, is a rule for the host, listed in `src/shared/redirects.ts` and written into the build as `_redirects` (Cloudflare Pages) by `scripts/write-redirects.ts`; `pnpm check:deployed` expects the live host to answer it with a 301.

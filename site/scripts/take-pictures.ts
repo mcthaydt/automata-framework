@@ -54,8 +54,6 @@ async function takeEditor(page: Page, picture: Picture): Promise<Buffer> {
   await run(page, picture.ms)
   await page.getByRole('button', { name: 'New level' }).click()
   await run(page, 200)
-  // The "New level" picture is the choice itself, before one is made.
-  if (picture.name === 'editor-new') return shot(page, picture)
   await page.getByRole('button', { name: /Platformer/ }).click()
   for (let waited = 0; waited < 3000; waited += STEP_MS) {
     await run(page, STEP_MS)
@@ -63,7 +61,7 @@ async function takeEditor(page: Page, picture: Picture): Promise<Buffer> {
   }
   await place(page)
   await run(page, 500)
-  return shot(page, picture)
+  return shot(page)
 }
 
 /**
@@ -138,16 +136,9 @@ async function takeExample(page: Page, picture: Picture): Promise<Buffer> {
 }
 
 /** A pointer left over the canvas would show a hover ring in the picture. */
-async function shot(page: Page, picture: Picture): Promise<Buffer> {
+async function shot(page: Page): Promise<Buffer> {
   await page.mouse.move(0, 0)
-  const cut = picture.cut
-  return page.screenshot({
-    type: 'jpeg',
-    quality: 90,
-    ...(cut === undefined
-      ? {}
-      : { clip: { x: cut.x, y: cut.y, width: picture.width, height: picture.height } }),
-  })
+  return page.screenshot({ type: 'jpeg', quality: 90 })
 }
 
 const PLACEMENTS: readonly { readonly what: string; readonly at: readonly [number, number][] }[] = [
@@ -195,7 +186,7 @@ try {
   const only = process.argv[3]
   for (const picture of PICTURES.filter((each) => only === undefined || each.name.startsWith(only))) {
     const context = await browser.newContext({
-      viewport: picture.cut?.window ?? { width: picture.width, height: picture.height },
+      viewport: { width: picture.width, height: picture.height },
       deviceScaleFactor: picture.target === 'example' ? 2 : 1,
       reducedMotion: 'no-preference',
     })

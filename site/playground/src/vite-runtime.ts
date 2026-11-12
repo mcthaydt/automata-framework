@@ -4,6 +4,7 @@ import type { PlaygroundRuntime } from './frame-page.ts'
 export const PLAYGROUND_ENTRIES = {
   automata: 'runtime/automata.ts',
   zod: 'runtime/zod.ts',
+  uiScreens: 'runtime/ui-screens.ts',
   noEval: 'runtime/no-eval.ts',
   frame: 'src/frame.ts',
 } as const
@@ -16,7 +17,7 @@ interface ManifestChunk {
 
 /**
  * Where the runtime's entries and stylesheets landed in a playground build, from its Vite manifest, under `base`
- * (the site path the build is served at). The stylesheets are those of the frame and the umbrella and every chunk
+ * (the site path the build is served at). The stylesheets are those of the frame, the umbrella and the screens and every chunk
  * they import, in the order Vite lists them.
  */
 export function runtimeFromViteManifest(
@@ -40,12 +41,15 @@ export function runtimeFromViteManifest(
   const automata = entry('automata')
   const frame = entry('frame')
   const zod = entry('zod')
+  const uiScreens = entry('uiScreens')
   const noEval = entry('noEval')
   collect(PLAYGROUND_ENTRIES.automata, automata)
   collect(PLAYGROUND_ENTRIES.frame, frame)
+  collect(PLAYGROUND_ENTRIES.uiScreens, uiScreens)
   return {
     automata: base + automata.file,
     zod: base + zod.file,
+    uiScreens: base + uiScreens.file,
     noEval: base + noEval.file,
     frame: base + frame.file,
     styles: styles.map((css) => base + css),

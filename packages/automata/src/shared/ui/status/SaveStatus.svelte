@@ -8,6 +8,7 @@
   technology, which has the words, so the tone never rests on colour alone.
 -->
 <script lang="ts">
+import Icon, { type IconName } from '../icon/Icon.svelte'
 import { SAVE_STATUS_TONES, type SaveStatusCopy, type SaveStatusState } from './save-status'
 
 interface Props {
@@ -19,14 +20,18 @@ interface Props {
 
 const { status, copy, testId = 'save-status' }: Props = $props()
 
-const GLYPHS = { info: undefined, success: '✓', warning: '!' } as const
+// A warning's mark is the text `!`; the check is drawn, since no font need hold it.
+const GLYPHS = { info: undefined, success: 'check', warning: '!' } as const satisfies Record<
+  string,
+  IconName | '!' | undefined
+>
 const tone = $derived(status === undefined ? undefined : SAVE_STATUS_TONES[status])
 const glyph = $derived(tone === undefined ? undefined : GLYPHS[tone])
 </script>
 
 {#if status !== undefined}
   <p class="af-save-status" data-save-status data-state={status} data-tone={tone} data-testid={testId} role="status" aria-live="polite">
-    {#if glyph !== undefined}<span class="af-save-status__glyph" data-save-status-glyph aria-hidden="true">{glyph}</span>{/if}<span class="af-save-status__text" data-save-status-text>{copy[status]}</span>
+    {#if glyph !== undefined}<span class="af-save-status__glyph" data-save-status-glyph aria-hidden="true">{#if glyph === '!'}!{:else}<Icon name={glyph} />{/if}</span>{/if}<span class="af-save-status__text" data-save-status-text>{copy[status]}</span>
   </p>
 {/if}
 

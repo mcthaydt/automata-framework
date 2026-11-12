@@ -32,6 +32,16 @@ describe('UI Components', () => {
       'Changelog',
     ])
     expect(main.querySelector('a[href="/app"]')?.textContent).toBe('Pricing')
+    // The editor is a page of its own, not one of the site's routes: the link goes straight to it and loads it whole.
+    // In the bar and in the folded menu alike.
+    const editors = view.getAllByRole('link', { name: 'Editor' })
+    expect(editors).toHaveLength(2)
+    for (const editor of editors) {
+      expect(editor.getAttribute('href')).toBe('/editor/app/')
+      expect(editor.hasAttribute('data-sveltekit-reload')).toBe(true)
+    }
+    expect(view.container.querySelectorAll('a[href="/editor"]')).toHaveLength(0)
+    expect(main.querySelector('a[href="/docs"]')?.hasAttribute('data-sveltekit-reload')).toBe(false)
     expect(view.getByRole('link', { name: 'Make a game' }).getAttribute('href')).toBe('/start')
   })
 
@@ -50,7 +60,9 @@ describe('UI Components', () => {
     expect(view.getByRole('link', { name: 'Pricing' }).getAttribute('href')).toBe('/app')
     expect(view.container.textContent).toContain('No credits, ever.')
     expect(view.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
-    expect(view.getByRole('link', { name: 'Level editor' }).getAttribute('href')).toBe('/editor')
+    const editor = view.getByRole('link', { name: 'Level editor' })
+    expect(editor.getAttribute('href')).toBe('/editor/app/')
+    expect(editor.hasAttribute('data-sveltekit-reload')).toBe(true)
     expect(view.queryByRole('link', { name: 'GitHub' })).toBeNull()
     for (const name of ['Privacy', 'Terms', 'Contact']) expect(view.getByRole('link', { name })).toBeTruthy()
     expect(view.queryByRole('link', { name: /AI|Showcase|Complete API/ })).toBeNull()

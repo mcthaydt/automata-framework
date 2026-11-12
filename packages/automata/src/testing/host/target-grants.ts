@@ -9,16 +9,17 @@ export type FakeTarget = 'web' | 'itch' | 'ruken' | 'tauri'
 const OBSERVED: readonly Capability[] = ['lifecycle', 'input', 'display', 'audio']
 
 /**
- * What each target grants by default. The web targets add saves; the desktop also quits. Ruken grants
+ * What each target grants by default. The web targets add saves and links (a new tab is always there); the desktop also
+ * quits. Ruken grants
  * what the game asks for (`wants`), as its fake host does by default.
  */
 export function defaultGrants(target: FakeTarget, wants: readonly Capability[]): ReadonlySet<Capability> {
   switch (target) {
     case 'web':
     case 'itch':
-      return new Set([...OBSERVED, 'saves'])
+      return new Set([...OBSERVED, 'saves', 'links'])
     case 'tauri':
-      return new Set([...OBSERVED, 'saves', 'exit'])
+      return new Set([...OBSERVED, 'saves', 'links', 'exit'])
     case 'ruken':
       return new Set([...OBSERVED, ...wants])
   }

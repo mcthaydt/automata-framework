@@ -1,5 +1,6 @@
 import { parse } from '@babel/parser'
 import { transform } from 'sucrase'
+import { isPlaygroundImport } from '../../../playground/src/playground-imports.ts'
 
 // The playground's compile step, a pure function the compile worker wraps. Babel parses the reader's
 // TypeScript, because it places a syntax error inside an arrow function at its own line where sucrase's parser names
@@ -20,8 +21,7 @@ export type CompileResult =
 
 /** The function the frame defines and every loop body calls first (the protocol's LOOP_GUARD_NAME). */
 const LOOP_GUARD = '__afLoop'
-const ALLOWED_IMPORTS: ReadonlySet<string> = new Set(['@automata/framework', 'zod'])
-const IMPORT_MESSAGE = 'The playground can import only @automata/framework and zod.'
+const IMPORT_MESSAGE = 'The playground can import only @automata/framework, @automata/ui-screens and zod.'
 // sucrase drops a namespace's body and turns `export =` into CommonJS, so either would run as something else.
 const NAMESPACE_MESSAGE = 'The playground does not run namespaces; use a module-level object instead.'
 const EXPORT_ASSIGNMENT_MESSAGE = 'The playground runs ES modules; use export default instead of export =.'
@@ -151,7 +151,7 @@ export function compileExample(
       ((node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') && node.source)
     ) {
       const from = (node.source as { value?: unknown } | null)?.value
-      if (typeof from !== 'string' || !ALLOWED_IMPORTS.has(from)) diagnostics.push(at(node))
+      if (typeof from !== 'string' || !isPlaygroundImport(from)) diagnostics.push(at(node))
     } else if (
       node.type === 'TSImportEqualsDeclaration' &&
       (node.moduleReference as Node).type === 'TSExternalModuleReference'

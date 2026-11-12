@@ -113,6 +113,15 @@ export interface Hosting {
   readonly leaderboards: HostingLeaderboards
   /** `support` in the answer says what the device allows (for example `ios-home-screen`). */
   setFullscreen(on: boolean): Promise<HostResult<FullscreenRes>>
+  /**
+   * Opens a web page outside the game, the way the host wants it done: Ruken asks the player first, a web page opens
+   * a new tab, the desktop opens the system browser. `opened: false` means the player or the host said no, which is an
+   * answer and not an error. Only `https:` links are opened; any other address, or one with a name and password in it, is refused
+   * `INVALID_PAYLOAD`. The game is never navigated away.
+   * Needs the `links` grant: without it the call is refused `UNSUPPORTED`, and nothing falls back to another way of
+   * opening.
+   */
+  openLink(url: string): Promise<HostResult<{ readonly opened: boolean }>>
   readonly round: {
     /** A round began. A second start before an end is dropped. */
     start(): void

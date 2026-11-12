@@ -13,6 +13,7 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 
 | Package | Version | Date | Why |
 |---|---|---|---|
+| `@anthropic-ai/sdk` | 1.6.0 | 2026-11-11 | The official Anthropic SDK, in `@automata/tools` only: `automata words` asks a Claude model to translate a game's words. It reads `ANTHROPIC_API_KEY` from the computer running the command and never reaches a game, a build or the run time. Loaded only when that command runs |
 | `@biomejs/biome` | 2.5.15 | 2026-10-01 | Lint and format in one fast tool |
 | `@changesets/cli` | 3.0.3 | 2026-10-11 | One shared `0.0.x` version for every published package and the "Version packages" release PR |
 | `@inlang/paraglide-js` | 2.25.4 | 2026-10-16 | Compiles message catalogs into typed message functions. A dependency of `packages/content`, whose build compiles a game's catalogs (`ContentOptions.paraglide`), loaded only when a game asks for it; the runtime binds a game's generated `runtime.js` structurally |
@@ -41,7 +42,6 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `pixi.js` | 8.22.0 | 2026-10-30 | 2D renderer (ADR 0002). 8.22.0 is the peer floor of the vendored `@pixi/3d` 0.1.0-beta.2 (`^8.22.0`) and was npm latest when moved; no change in it that AF depends on ([the move's plan](archive/superpowers/plans/2026-10-30-m3-2-pixi-822.md)) |
 | `@pixi/3d` | 0.1.0-beta.2 | 2026-11-07 | The post effects of `@automata/world-kit` (stars, rain, glow) extend its `PostEffect`; core `@automata/3d` takes it from the vendored tarball (`vendor/pixi-3d/`), and the kit asks its game for the same version as a peer |
-| `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under a CSP that allows only `font-src 'self' data:` |
 | `@fontsource-variable/geist` | 5.3.0 | 2026-11-06 | The editor kit's and the website's interface face (`packages/editor`, `site`) (OFL-1.1), bundled so the editors load offline and the site makes no third-party request |
 | `@fontsource-variable/geist-mono` | 5.3.0 | 2026-11-06 | The editor kit's and the website's face for paths and numbers (`packages/editor`, `site`) (OFL-1.1), bundled likewise |
 | `@decimalturn/toml-patch` | 3.3.1 | 2026-10-23 | Patches TOML content documents in the editor (`documents/toml/`) while keeping their comments and layout (MIT); an unchanged document prints byte for byte and a one-value edit changes one line. Array-of-tables structure edits are not safe with comments |
@@ -62,6 +62,7 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `@sveltejs/package` | 3.0.0 | 2026-10-11 | Builds `@automata/framework`'s published `dist/`, Svelte's documented library layout: `.svelte` shipped as Svelte source with TypeScript stripped. Peer `typescript` ^6, so it runs on the 6.0.3 the package pins |
 | `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | Compiles Svelte 5 in the UI, the editors, the site and `examples/2d/ui/primitives` |
 | `@tauri-apps/api` | 2.12.4 | 2026-10-31 | The desktop adapter's window API (`onCloseRequested`) and the IPC mocks its tests use, in `@automata/framework`'s `targets/tauri/` folder only. MIT or Apache-2.0; released 2026-10-14. An optional peer: a game that builds for `tauri` installs it |
+| `@tauri-apps/plugin-opener` | 2.7.2 | 2026-11-11 | A link opened in the system browser (`Hosting.openLink`) in the desktop adapter. MIT or Apache-2.0; released 2026-10-14. An optional peer of `@automata/framework`; the generated Tauri project pins the `tauri-plugin-opener` crate at the same release |
 | `@tauri-apps/plugin-process` | 2.4.0 | 2026-10-31 | Quit (`exit(0)`) in the desktop adapter. MIT or Apache-2.0; released 2026-09-26. An optional peer of `@automata/framework` |
 | `@tauri-apps/plugin-store` | 2.5.0 | 2026-10-31 | The desktop adapter's saves, one `saves.json` store in the app's data folder. MIT or Apache-2.0; released 2026-09-26. An optional peer of `@automata/framework` |
 | `@tauri-apps/cli` | 2.12.3 | 2026-10-31 | The Tauri CLI `prepare --target tauri` runs, a dev dependency `create-game` writes for a game that builds for `tauri` (ship does not carry it). MIT or Apache-2.0; released 2026-10-14 |

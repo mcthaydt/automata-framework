@@ -1033,6 +1033,35 @@ function tracksFrom(found: Readonly<Record<string, string>>): Readonly<Record<st
 
 ### `import { … } from '@automata/content'`
 
+#### `AchievementConfig` (interface)
+
+An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
+
+```ts
+interface AchievementConfig {
+  /** Shown to the player, in the source language; `automata words` translates it. */
+  readonly title: string;
+  /** What to do to earn it, in the source language. */
+  readonly description: string;
+  /** The key of one of the config's `leaderboards`. */
+  readonly board: string;
+  readonly goal: AchievementGoal;
+}
+```
+
+#### `AchievementGoal` (type)
+
+One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its
+players. It names no host: each target maps what its host can award and says so when it cannot.
+
+```ts
+type AchievementGoal = {
+  readonly reach: number;
+} | {
+  readonly top_percent: number;
+};
+```
+
 #### `AssetsSource` (interface)
 
 What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
@@ -1430,6 +1459,11 @@ interface GameConfig {
     readonly preload: readonly string[];
   };
   readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+  /**
+   * Achievements, by id. Declared once, in the game's own terms: a host that awards achievements maps them (Ruken
+   * writes them into its manifest); a host with none accepts the declaration and does nothing with it.
+   */
+  readonly achievements?: Readonly<Record<string, AchievementConfig>>;
 }
 ```
 
@@ -1846,6 +1880,17 @@ interface FontOutputs {
 }
 ```
 
+#### `FontRename` (interface)
+
+The new family name for a subset of a font whose licence reserves its name, and the name it reserves.
+
+```ts
+interface FontRename {
+  readonly family: string;
+  readonly reservedName: string;
+}
+```
+
 #### `FontsFile` (interface)
 
 `content/fonts.toml`: each source font by name.
@@ -1866,6 +1911,10 @@ interface FontSource {
   readonly sha256: string;
   readonly license: string;
   readonly locales: readonly string[];
+  /** A name the licence reserves (the OFL's Reserved Font Name): a subset is renamed `<font> <language>` and may not keep it. */
+  readonly reserved_name?: string | undefined;
+  /** The licence text, relative to the project root; the build copies it beside the subsets. */
+  readonly license_file?: string | undefined;
 }
 ```
 
@@ -1879,6 +1928,16 @@ interface FrameSize {
   readonly width: number;
   readonly height: number;
 }
+```
+
+#### `gameWords` (function)
+
+Every word a game shows in `lang`, by catalog: `content` (the catalog the content compiled, passed in), `ui` (the
+game's own interface words) and each of {@link WORD_PACKAGES } that the game can resolve. A catalog the game does not
+have is left out.
+
+```ts
+function gameWords(gameDir: string, lang: string, content: MessageCatalog): Promise<ReadonlyMap<string, MessageCatalog>>;
 ```
 
 #### `PackedAtlas` (interface)
@@ -1919,10 +1978,13 @@ interface Placement {
 
 #### `subsetWoff2` (function)
 
-The font cut to `characters`, as woff2. A character the font lacks is simply not in the subset.
+The font cut to `characters`, as woff2. A character the font lacks is simply not in the subset. With `rename`, the
+cut keeps the font's copyright and licence records, takes the new family name and drops any other record that names
+the reserved one: it is cut to an sfnt, its `name` table is rewritten, and it is cut again to woff2 with the same
+characters, which converts it and changes no glyph.
 
 ```ts
-function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>, rename?: FontRename): Promise<Uint8Array>;
 ```
 
 ### `import { … } from '@automata/content/controls'`
@@ -2022,7 +2084,8 @@ const STANDARD_PAD_BUTTON_MAX = 16;
 
 #### `STICK_DIRECTIONS` (const)
 
-_No doc comment._
+The eight directions a gamepad stick can be bound to in a game's controls: a stick (`left` or `right`) pushed one way
+(`up`, `down`, `left` or `right`), written `left-up`. A binding's `stick` list holds these names.
 
 ```ts
 const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
@@ -2037,6 +2100,35 @@ type StickDirection = (typeof STICK_DIRECTIONS)[number];
 ```
 
 ### `import { … } from '@automata/content/game-config'`
+
+#### `AchievementConfig` (interface)
+
+An achievement a game declares beside its leaderboards: a title, a description and one goal on one board.
+
+```ts
+interface AchievementConfig {
+  /** Shown to the player, in the source language; `automata words` translates it. */
+  readonly title: string;
+  /** What to do to earn it, in the source language. */
+  readonly description: string;
+  /** The key of one of the config's `leaderboards`. */
+  readonly board: string;
+  readonly goal: AchievementGoal;
+}
+```
+
+#### `AchievementGoal` (type)
+
+One goal on a board's score: reach a value (at or better, in the board's order), or stand in the top share of its
+players. It names no host: each target maps what its host can award and says so when it cannot.
+
+```ts
+type AchievementGoal = {
+  readonly reach: number;
+} | {
+  readonly top_percent: number;
+};
+```
 
 #### `GAME_ID_PATTERN` (const)
 
@@ -2086,6 +2178,11 @@ interface GameConfig {
     readonly preload: readonly string[];
   };
   readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+  /**
+   * Achievements, by id. Declared once, in the game's own terms: a host that awards achievements maps them (Ruken
+   * writes them into its manifest); a host with none accepts the declaration and does nothing with it.
+   */
+  readonly achievements?: Readonly<Record<string, AchievementConfig>>;
 }
 ```
 
@@ -2808,7 +2905,8 @@ function parseTileToken(base: string): TileCell | undefined;
 
 #### `Picture` (type)
 
-_No doc comment._
+How one character definition is drawn: a `tile` (a tile of a named tileset, by index) or a `flat` shape (a rectangle,
+an ellipse or a point) in one colour as `#rrggbb`. `pictureOf` makes it from a definition.
 
 ```ts
 type Picture = {
@@ -2962,13 +3060,40 @@ A lookup over the messages module Paraglide compiles into `paraglide.outdir` (it
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
+#### `DEFAULT_LOCALES` (const)
+
+The default languages in the order the language picker lists them. The first is the source of every catalog.
+
+```ts
+const DEFAULT_LOCALES: readonly ["en", "ja", "ko", "es-419", "pt-BR", "zh-Hans"];
+```
+
+#### `DefaultLocale` (type)
+
+One of the six default languages.
+
+```ts
+type DefaultLocale = (typeof DEFAULT_LOCALES)[number];
+```
+
 #### `endonymOf` (function)
 
-A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`. An engine without
-it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
+A language's name in its own language ("日本語" for `ja`): the framework's own spelling for the six default
+languages, otherwise the browser's `Intl.DisplayNames`. An engine without it, or a tag it cannot name, gives the tag
+back, so the picker never shows nothing.
 
 ```ts
 function endonymOf(tag: string): string;
+```
+
+#### `ENDONYMS` (const)
+
+Each default language's name in itself. Written out rather than asked of `Intl.DisplayNames`, because engines
+disagree about some of them (`es-419` is "Español (Latinoamérica)" in one and "Español" in another), and the font
+build must cut exactly the characters the picker will draw.
+
+```ts
+const ENDONYMS: Readonly<Record<DefaultLocale, string>>;
 ```
 
 #### `hasRawText` (function)
@@ -5292,8 +5417,18 @@ interface GameDefinition<S = never> {
      */
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
+    /**
+     * Steps that run after the host is ready and before the first screen, in order, with the sim held: the first-run
+     * language and warning the runtime adds itself come first, then these (a splash). A step that throws is skipped.
+     */
+    readonly opening?: readonly OpeningStep[] | undefined;
     /** The sound each sim event plays, by the event's type. */
     readonly sounds?: EventSounds | undefined;
+    /**
+     * The interface's sounds by name (`press`, `back`, `focus`, `open`, `close`, `error`, or the game's own): one listener
+     * on the game's root plays them for every control. Absent: silent.
+     */
+    readonly uiSounds?: UiSounds | undefined;
     /**
      * The game's own audio player, started once the runtime has built its audio service: cues for events, music for the
      * game's state. It plays through the service's buses, hears the presentation bus and never writes the sim. What it
@@ -5386,6 +5521,14 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly sounds?: EventSounds;
     /**
+     * The interface's sounds by name: every control sounds `press` by default, and a control says otherwise with
+     * `data-sfx="back"` (leaving or cancelling), `data-sfx="none"` (its consequence has its own sound) or a name of the
+     * game's own. `focus` ticks softly as focus moves; `open`, `close` and `error` are asked for by the screens that
+     * have them (`requestUiSound`). A map of names to assets, or one function that plays a name (a game whose sounds are
+     * cues in its own mixer). They play on the interface bus, under its volume and mute. Absent: silent.
+     */
+    readonly uiSounds?: UiSounds;
+    /**
      * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
      * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
      * returns undoes it at shutdown.
@@ -5420,6 +5563,22 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
+    /**
+     * Steps that run after the host is ready and before the first screen, in order, with the sim held (a studio splash from
+     * `@automata/ui-screens/splash`). A step that throws is skipped, so an opening never blocks play.
+     */
+    readonly opening?: readonly OpeningStep[];
+    /**
+     * The first run asks which language to use when the game ships more than one, before the title. Default true; `false`
+     * never shows the screen. A host that supplies the language (Ruken) skips it either way.
+     */
+    readonly firstRunLanguage?: boolean;
+    /**
+     * The game flashes: the first run on a device warns before anything plays, once, after the language. `true` shows the
+     * warning with the device's reduced-motion line; an object adds the game's own effect settings as switches (a game
+     * with `@automata/feel` passes its `reduceFlashing` and `intensity`). Absent: no warning.
+     */
+    readonly photosensitivity?: PhotosensitivityOption;
     /**
      * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
      * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
@@ -5579,6 +5738,17 @@ interface Hosting {
     readonly leaderboards: HostingLeaderboards;
     /** `support` in the answer says what the device allows (for example `ios-home-screen`). */
     setFullscreen(on: boolean): Promise<HostResult<FullscreenRes>>;
+    /**
+     * Opens a web page outside the game, the way the host wants it done: Ruken asks the player first, a web page opens
+     * a new tab, the desktop opens the system browser. `opened: false` means the player or the host said no, which is an
+     * answer and not an error. Only `https:` links are opened; any other address, or one with a name and password in it, is refused
+     * `INVALID_PAYLOAD`. The game is never navigated away.
+     * Needs the `links` grant: without it the call is refused `UNSUPPORTED`, and nothing falls back to another way of
+     * opening.
+     */
+    openLink(url: string): Promise<HostResult<{
+        readonly opened: boolean;
+    }>>;
     readonly round: {
         /** A round began. A second start before an end is dropped. */
         start(): void;
@@ -6272,6 +6442,29 @@ class ModelInvalid extends Error {
 }
 ```
 
+#### `OpeningContext` (interface)
+
+What an opening step is given.
+
+```ts
+interface OpeningContext {
+    /** The step's own element in the overlay layer, removed when the step ends. */
+    readonly layer: HTMLElement;
+    readonly services: Pick<RuntimeServices, 'hosting' | 'locale' | 'settings' | 'audio' | 'clock' | 'bus'>;
+    readonly seen: SeenFlags;
+    /** Aborted when the runtime shuts down; a step then resolves at once. */
+    readonly signal: AbortSignal;
+}
+```
+
+#### `OpeningStep` (type)
+
+One step before the first screen: it shows what it wants in `layer` and resolves when the player may go on.
+
+```ts
+type OpeningStep = (context: OpeningContext) => Promise<void>;
+```
+
 #### `OptionGroup` (const)
 
 A choice of one: a
@@ -6346,6 +6539,16 @@ Checks a pause behavior.
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+#### `PhotosensitivityOption` (type)
+
+`true`: the warning, with the device's reduced-motion line. An object adds the game's own switches, shown above it.
+
+```ts
+type PhotosensitivityOption = true | {
+    readonly switches?: readonly WarningSwitch[];
+};
 ```
 
 #### `pictureView` (function)
@@ -6596,7 +6799,10 @@ interface PresentationBus<Facts = RuntimeFacts> {
 
 #### `PROMPT_COPY` (const)
 
-_No doc comment._
+The English words a control prompt shows where the device's own label is not known: "Not set" for an action with no
+binding, "Tap" for an on-screen button, and a name for each pad button a generic pad does not label ("Bottom button",
+"Start"). A label printed on a pad (A, B, LB) is the same in every language and is not here. A game that speaks another
+language gives its own in `copy.screens` (`prompts`).
 
 ```ts
 const PROMPT_COPY: PromptCopy;
@@ -6734,6 +6940,16 @@ interface RenderTarget {
      */
     readonly reportLost?: ((retry: () => void) => () => void) | undefined;
 }
+```
+
+#### `requestUiSound` (function)
+
+Asks for a sound from inside a component that has no press behind it (an error arriving, a panel opening). The
+request bubbles to the root `installUiSounds` listens on. `open` and `close` also quiet the focus ticks for 400 ms,
+since the panel moving focus is part of the opening.
+
+```ts
+function requestUiSound(from: Element, name: string): void;
 ```
 
 #### `ResourceDef` (interface)
@@ -7232,6 +7448,8 @@ interface ScreensCopy {
     readonly board: LeaderboardCopy;
     /** Told once when a controller the input does not support is plugged in. */
     readonly padUnsupported: string;
+    /** The first run's language screen and photosensitivity warning. */
+    readonly firstRun: FirstRunCopy;
 }
 ```
 
@@ -7299,6 +7517,26 @@ contracts allow controls to be off screen only inside one.
 ```ts
 const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
+```
+
+#### `SeenFlag` (type)
+
+The first-run screens a device can have seen.
+
+```ts
+type SeenFlag = 'language' | 'photosensitivity';
+```
+
+#### `SeenFlags` (interface)
+
+Which first-run screens this device has shown.
+
+```ts
+interface SeenFlags {
+    has(flag: SeenFlag): boolean;
+    /** Records that the screen was shown. A storage that cannot be written still keeps it for this visit. */
+    mark(flag: SeenFlag): void;
+}
 ```
 
 #### `SentCommand` (type)
@@ -7767,6 +8005,34 @@ Safe because PresentationBus stores facts dynamically by string key.
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
 ```
 
+#### `UI_SOUND_NAMES` (const)
+
+The names the framework itself asks for; a game may add any other.
+
+```ts
+const UI_SOUND_NAMES: readonly ["press", "back", "focus", "open", "close", "error"];
+```
+
+#### `UiSoundEntry` (type)
+
+A sound: the asset it plays, or the asset with a gain (0..1).
+
+```ts
+type UiSoundEntry = string | {
+    readonly alias: string;
+    readonly gain?: number;
+};
+```
+
+#### `UiSounds` (type)
+
+The interface's sounds by name, or one function that plays a name (for a game whose sounds are cues in its own
+mixer). A name the map lacks plays nothing.
+
+```ts
+type UiSounds = Readonly<Record<string, UiSoundEntry>> | ((name: string) => void);
+```
+
 #### `usePlay` (function)
 
 The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
@@ -7798,6 +8064,25 @@ interface ViewportWindow {
     readonly navigator?: object | undefined;
     addEventListener: Listen;
     removeEventListener: Listen;
+}
+```
+
+#### `WarningSwitch` (interface)
+
+A switch the warning offers: one of the game's own effect settings. A switch is on or off, so a setting with more
+steps is mapped: `@automata/feel`'s `intensity` is `0 | 0.5 | 1`, so a "Less shaking" switch maps on to `0.5` and off
+to `1`; its `reduceFlashing` maps straight across. Core cannot import feel, so the game passes its own.
+
+```ts
+interface WarningSwitch {
+    /** Names the switch in tests and for the list's keys; unique among a game's switches. */
+    readonly id: string;
+    /** What the switch is called, or a function of the player's language (it runs again on a language change). */
+    readonly label: string | ((locale: string) => string);
+    /** Whether the effect is turned down now. */
+    get(): boolean;
+    /** Turns the effect down (`true`) or back up. Called the moment the player flips the switch. */
+    set(on: boolean): void;
 }
 ```
 
@@ -7965,10 +8250,11 @@ interface Conditions {
 
 Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `create` builds a fresh
 `Hosting` for each case, with `saves` granted; `settled` lets the host answer (for example one macrotask). Every
-target's adapter and `FakeHosting` pass these cases. Each case disposes its `Hosting`.
+target's adapter and `FakeHosting` pass these cases. Each case disposes its `Hosting`. With `links`, the `openLink`
+cases run too: the address rules, the grant, and a host that says no.
 
 ```ts
-function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void;
+function describeHostingContract(name: string, create: HostingFactory, settled: Settle, links?: LinksProbe): void;
 ```
 
 #### `documentScrolls` (function)
@@ -8166,6 +8452,10 @@ interface FakeHostControl {
     readonly exits: readonly ('player' | 'completed')[];
     /** Every fullscreen request, in order. */
     readonly fullscreen: readonly boolean[];
+    /** Every link the host opened, in order: a valid, granted request the host did not say no to. */
+    readonly opened: readonly string[];
+    /** From now on the host opens a link, or says no to it. */
+    answerLinks(answer: 'open' | 'refuse'): void;
     /** Every round start and end the host received (after the contract's guard), in order. */
     readonly rounds: readonly ({
         readonly start: true;
@@ -8225,6 +8515,8 @@ interface FakeHostingOptions {
     readonly audio?: AudioChange;
     readonly entitlements?: EntitlementsPayload;
     readonly savesStatus?: SavesStatus;
+    /** What the host does with a link it is asked to open: open it, or say no. Default `open`. */
+    readonly links?: 'open' | 'refuse';
 }
 ```
 
@@ -8463,6 +8755,24 @@ interface LayoutRect {
     readonly y: number;
     readonly width: number;
     readonly height: number;
+}
+```
+
+#### `LinksProbe` (interface)
+
+What the `openLink` cases need to see and steer, which no `Hosting` value exposes: each adapter keeps its own record
+of the links its host was asked to open and its own way for the host to say no.
+
+```ts
+interface LinksProbe {
+    /** A fresh `Hosting` whose host opens a link when asked (`links` granted). */
+    create(): Hosting | Promise<Hosting>;
+    /** A fresh `Hosting` without the `links` grant. Omit it for an adapter that always grants links (a page, the desktop). */
+    createWithoutGrant?(): Hosting | Promise<Hosting>;
+    /** The addresses the host was asked to open since `create`, in order. */
+    opened(): readonly string[];
+    /** From now on the host (or the player behind it) says no to a link. */
+    decline(): void;
 }
 ```
 
@@ -8836,6 +9146,37 @@ function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is Defined
 ## `@automata/net`
 
 ### `import { … } from '@automata/net'`
+
+#### `BuildFacts` (interface)
+
+What identifies a build: the wire protocol, the sim's schema and the content, as a join sends them.
+
+```ts
+interface BuildFacts {
+  readonly protocol: number;
+  readonly schemaHash: string;
+  readonly contentHash: string;
+}
+```
+
+#### `buildFactsSchema` (const)
+
+The shape of a build's facts, as `GET /version` answers them. Strict, so a shape it does not know is unreadable.
+
+```ts
+const buildFactsSchema: z.ZodType<BuildFacts>;
+```
+
+#### `checkServerVersion` (function)
+
+Asks the server for its build facts (`fetchFacts` is the game's own fetch of `<server>/version`) and compares them
+with `own`. `stale` only when the server answered readable facts that differ. A throw, a rejection, a 503 or a shape
+it does not know is `current`: the join check refuses a stale client either way, and a flaky probe must never lock a
+player out.
+
+```ts
+function checkServerVersion(fetchFacts: () => Promise<unknown>, own: BuildFacts): Promise<"current" | "stale">;
+```
 
 #### `ClientMessage` (type)
 
@@ -11273,6 +11614,8 @@ it has one.
 interface ProbeState {
   readonly readiness: () => Readiness;
   readonly securityTxt?: SecurityTxt | undefined;
+  /** The game's version, undefined until its content has loaded; read on every `/version` request. */
+  readonly version?: (() => GameVersion | undefined) | undefined;
 }
 ```
 
@@ -12434,6 +12777,68 @@ The banner shown while the game reconnects: it counts down the grace, then says 
 ```ts
 const ReconnectOverlay: import("svelte").Component<Record<string, never>, {}, "">;
 type ReconnectOverlay = ReturnType<typeof ReconnectOverlay>;
+```
+
+#### `StaleBuild` (const)
+
+The tab is out of date: core's ErrorPanel with the code `stale-build`, what happened and one primary action, Reload,
+which takes focus. There is no other way forward on purpose: a tab that cannot join is no use until it is reloaded.
+
+```ts
+const StaleBuild: import("svelte").Component<Props, {}, "">;
+type StaleBuild = ReturnType<typeof StaleBuild>;
+```
+
+#### `StaleBuildOptions` (interface)
+
+How a game sets up its stale-build check.
+
+```ts
+interface StaleBuildOptions {
+    /** The game's own build facts: what it joins with (`PROTOCOL_VERSION`, and the schema and content hashes). */
+    readonly facts: BuildFacts;
+    /** The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know, passes. */
+    readonly fetchFacts: () => Promise<unknown>;
+    /** The longest the title waits for the answer, in milliseconds, on the runtime's clock. Default 1500. */
+    readonly waitMs?: number;
+    /** What Reload does. Default: reloads the page. */
+    readonly reload?: () => void;
+    /** The panel's words: fixed, or for a locale. Default: this package's, in the player's language. */
+    readonly copy?: StaleCopy | ((locale: string) => StaleCopy);
+}
+```
+
+#### `staleBuildStep` (function)
+
+An opening step that asks the server for its build facts before an online game's title. Current, unreadable or slower
+than `waitMs` (a later answer is dropped): it resolves and the title follows. Stale: it shows the error with Reload and
+stays, so the title of an out-of-date tab is never reached. The join check stays the authority; this only says so
+before the player has tried to join.
+
+```ts
+function staleBuildStep(options: StaleBuildOptions): OpeningStep;
+```
+
+#### `StaleCopy` (interface)
+
+What the stale-build panel says.
+
+```ts
+interface StaleCopy {
+    /** That the game was updated and what to do about it. */
+    readonly message: string;
+    /** The one button: reloads the page. */
+    readonly reload: string;
+}
+```
+
+#### `staleWords` (function)
+
+The words for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds
+`pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise. The framework's own locale negotiation follows the same rule.
+
+```ts
+function staleWords(locale: string): StaleCopy;
 ```
 
 #### `watchStatus` (function)
@@ -15864,6 +16269,13 @@ interface ShipConfig extends GameConfig {
    */
   readonly tauri?: TauriConfig | undefined;
   /**
+   * `automata words`' settings. Not a Ruken field: it is never written to `ruken.toml`. `model` names the model that
+   * translates; left out, the command's own default is used.
+   */
+  readonly words?: {
+    readonly model?: string | undefined;
+  } | undefined;
+  /**
    * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
    * public release: `automata ship prepare` then checks the build as private and writes no `ruken.toml`, and only
    * `publish --private` ships it. Not a Ruken field. Left out, a game is `public`.
@@ -15892,6 +16304,100 @@ interface TauriConfig {
 ## `@automata/ui-screens`
 
 ### `import { … } from '@automata/ui-screens'`
+
+#### `CreditName` (interface)
+
+One person or group in a credits section.
+
+```ts
+interface CreditName {
+    /** Who they are. A name is not translated. */
+    readonly name: string;
+    /** What they did, in the source language; `automata words` translates it. */
+    readonly role?: string | undefined;
+    /** Where to read more: an `https:` address, opened by the host. */
+    readonly url?: string | undefined;
+}
+```
+
+#### `Credits` (interface)
+
+What a game's credits file holds.
+
+```ts
+interface Credits {
+    readonly sections: readonly CreditsSection[];
+}
+```
+
+#### `creditsContent` (const)
+
+The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
+`role` are translatable; a `name` and a `url` are not.
+
+```ts
+const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
+```
+
+#### `CreditsCopy` (interface)
+
+What the credits panel says.
+
+```ts
+interface CreditsCopy {
+    readonly title: string;
+    /** The Close button's name. */
+    readonly close: string;
+    /** What a screen reader says for a name that links to a page. */
+    readonly opens: (name: string) => string;
+    /** Said under the list when a link could not be opened. */
+    readonly refused: string;
+}
+```
+
+#### `CreditsPanel` (const)
+
+The credits: core's Modal around sections of names, each with a role and, where the game gives one, a link. The
+Modal's body is the declared scroll region, so any number of names fits a phone with Close always in reach. A name with
+a link is a button, at least 44 px, only where the host granted `links`; without the grant it is plain text, so there
+is never a control that cannot work. Pressing it asks the host (`hosting.openLink`); the panel never opens a window or
+touches the page's location. A link the host or the player refused is said politely under the list, and the panel
+stays open. `text` is the game's lookup for translated titles and roles; a name is a person's and is never looked up.
+A copy of this folder in a game works alone and takes its words as props.
+
+```ts
+const CreditsPanel: import("svelte").Component<Props, {}, "">;
+type CreditsPanel = ReturnType<typeof CreditsPanel>;
+```
+
+#### `creditsSchema` (const)
+
+The Zod schema of a credits file. At least one section, and one name in each.
+
+```ts
+const creditsSchema: z.ZodType<Credits>;
+```
+
+#### `creditsSchemaWith` (const)
+
+The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
+text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+
+```ts
+const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+```
+
+#### `CreditsSection` (interface)
+
+A heading and the names under it.
+
+```ts
+interface CreditsSection {
+    /** The heading, in the source language; `automata words` translates it. */
+    readonly title: string;
+    readonly names: readonly CreditName[];
+}
+```
 
 #### `ErrorScreen` (const)
 
@@ -15975,6 +16481,101 @@ const ResultsScreen: import("svelte").Component<Props, {}, "">;
 type ResultsScreen = ReturnType<typeof ResultsScreen>;
 ```
 
+#### `screensWords` (function)
+
+This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+
+```ts
+function screensWords(locale: string): {
+    readonly splash: SplashCopy;
+    readonly credits: CreditsCopy;
+};
+```
+
+#### `showCredits` (function)
+
+Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
+Returns how to close it; closing twice is harmless.
+
+```ts
+function showCredits(options: ShowCreditsOptions): {
+    close(): void;
+};
+```
+
+#### `ShowCreditsOptions` (interface)
+
+What `showCredits` needs.
+
+```ts
+interface ShowCreditsOptions {
+    /** Where the panel goes: a screen's layer. */
+    readonly target: HTMLElement;
+    readonly credits: Credits;
+    /** The host, asked to open a name's link. */
+    readonly hosting: Pick<Hosting, 'openLink' | 'granted'>;
+    /** The panel's words. Default: this package's, in `locale` (English without one). */
+    readonly copy?: CreditsCopy;
+    readonly locale?: string;
+    /** The game's lookup for translated titles and roles (see `CreditsPanel`). */
+    readonly text?: (section: number, name: number | undefined, authored: string) => string;
+    /** Called once when the panel closes, by Escape, Close or `close()`. */
+    readonly onClose?: () => void;
+}
+```
+
+#### `SplashCopy` (interface)
+
+What the splash says.
+
+```ts
+interface SplashCopy {
+    /** The line under the logo: any key or a tap goes on. */
+    readonly skip: string;
+}
+```
+
+#### `SplashOptions` (interface)
+
+How a game sets up its splash.
+
+```ts
+interface SplashOptions {
+    /** The studio's image, the game's own file, and the words a screen reader says for it. */
+    readonly logo: {
+        readonly src: string;
+        readonly alt: string;
+    };
+    /** How long the logo is held, in milliseconds, unless a press ends it first. Default 1500. */
+    readonly holdMs?: number;
+    /** The line under the logo: fixed words, or words for a locale. Default: this package's words in the player's language. */
+    readonly copy?: SplashCopy | ((locale: string) => SplashCopy);
+}
+```
+
+#### `SplashScreen` (const)
+
+The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a
+press goes on. Any key, click or tap calls `onDone`; how long it is held is the caller's (`splashStep` holds it on the
+runtime's clock). It plays no sound. Edit the logo's setting, or swap the line: the frame keeps both inside the
+visible region. A copy of this folder in a game works alone and takes its own words as props.
+
+```ts
+const SplashScreen: import("svelte").Component<Props, {}, "">;
+type SplashScreen = ReturnType<typeof SplashScreen>;
+```
+
+#### `splashStep` (function)
+
+An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key,
+click or tap. The runtime's `opening` list takes it after the first-run screens and before the first screen; it
+runs once the host is ready, so it can never delay the host's ready signal. It plays no sound, and it resolves at
+once when the runtime shuts down.
+
+```ts
+function splashStep(options: SplashOptions): OpeningStep;
+```
+
 #### `TitleAction` (interface)
 
 An extra button on the title screen beside Play, such as Settings or Credits. `shortLabel` is
@@ -15998,6 +16599,145 @@ that here by copying the slot list from `@automata/framework`'s title when you n
 ```ts
 const TitleScreen: import("svelte").Component<Props, {}, "">;
 type TitleScreen = ReturnType<typeof TitleScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/credits'`
+
+#### `CreditName` (interface)
+
+One person or group in a credits section.
+
+```ts
+interface CreditName {
+    /** Who they are. A name is not translated. */
+    readonly name: string;
+    /** What they did, in the source language; `automata words` translates it. */
+    readonly role?: string | undefined;
+    /** Where to read more: an `https:` address, opened by the host. */
+    readonly url?: string | undefined;
+}
+```
+
+#### `Credits` (interface)
+
+What a game's credits file holds.
+
+```ts
+interface Credits {
+    readonly sections: readonly CreditsSection[];
+}
+```
+
+#### `creditsContent` (const)
+
+The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
+`role` are translatable; a `name` and a `url` are not.
+
+```ts
+const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
+```
+
+#### `CreditsCopy` (interface)
+
+What the credits panel says.
+
+```ts
+interface CreditsCopy {
+    readonly title: string;
+    /** The Close button's name. */
+    readonly close: string;
+    /** What a screen reader says for a name that links to a page. */
+    readonly opens: (name: string) => string;
+    /** Said under the list when a link could not be opened. */
+    readonly refused: string;
+}
+```
+
+#### `CreditsPanel` (const)
+
+The credits: core's Modal around sections of names, each with a role and, where the game gives one, a link. The
+Modal's body is the declared scroll region, so any number of names fits a phone with Close always in reach. A name with
+a link is a button, at least 44 px, only where the host granted `links`; without the grant it is plain text, so there
+is never a control that cannot work. Pressing it asks the host (`hosting.openLink`); the panel never opens a window or
+touches the page's location. A link the host or the player refused is said politely under the list, and the panel
+stays open. `text` is the game's lookup for translated titles and roles; a name is a person's and is never looked up.
+A copy of this folder in a game works alone and takes its words as props.
+
+```ts
+const CreditsPanel: import("svelte").Component<Props, {}, "">;
+type CreditsPanel = ReturnType<typeof CreditsPanel>;
+```
+
+#### `creditsSchema` (const)
+
+The Zod schema of a credits file. At least one section, and one name in each.
+
+```ts
+const creditsSchema: z.ZodType<Credits>;
+```
+
+#### `creditsSchemaWith` (const)
+
+The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
+text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+
+```ts
+const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+```
+
+#### `CreditsSection` (interface)
+
+A heading and the names under it.
+
+```ts
+interface CreditsSection {
+    /** The heading, in the source language; `automata words` translates it. */
+    readonly title: string;
+    readonly names: readonly CreditName[];
+}
+```
+
+#### `screensWords` (function)
+
+This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+
+```ts
+function screensWords(locale: string): {
+    readonly splash: SplashCopy;
+    readonly credits: CreditsCopy;
+};
+```
+
+#### `showCredits` (function)
+
+Shows the credits panel in `target` for a game that is plain TypeScript and has no Svelte of its own to mount it with.
+Returns how to close it; closing twice is harmless.
+
+```ts
+function showCredits(options: ShowCreditsOptions): {
+    close(): void;
+};
+```
+
+#### `ShowCreditsOptions` (interface)
+
+What `showCredits` needs.
+
+```ts
+interface ShowCreditsOptions {
+    /** Where the panel goes: a screen's layer. */
+    readonly target: HTMLElement;
+    readonly credits: Credits;
+    /** The host, asked to open a name's link. */
+    readonly hosting: Pick<Hosting, 'openLink' | 'granted'>;
+    /** The panel's words. Default: this package's, in `locale` (English without one). */
+    readonly copy?: CreditsCopy;
+    readonly locale?: string;
+    /** The game's lookup for translated titles and roles (see `CreditsPanel`). */
+    readonly text?: (section: number, name: number | undefined, authored: string) => string;
+    /** Called once when the panel closes, by Escape, Close or `close()`. */
+    readonly onClose?: () => void;
+}
 ```
 
 ### `import { … } from '@automata/ui-screens/error'`
@@ -16086,6 +16826,71 @@ focus model are core's (`@automata/framework`), so keep using `ScreenFrame`, `Sc
 ```ts
 const ResultsScreen: import("svelte").Component<Props, {}, "">;
 type ResultsScreen = ReturnType<typeof ResultsScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/splash'`
+
+#### `screensWords` (function)
+
+This package's words for a locale (the six; English otherwise): `{ splash, credits }`.
+
+```ts
+function screensWords(locale: string): {
+    readonly splash: SplashCopy;
+    readonly credits: CreditsCopy;
+};
+```
+
+#### `SplashCopy` (interface)
+
+What the splash says.
+
+```ts
+interface SplashCopy {
+    /** The line under the logo: any key or a tap goes on. */
+    readonly skip: string;
+}
+```
+
+#### `SplashOptions` (interface)
+
+How a game sets up its splash.
+
+```ts
+interface SplashOptions {
+    /** The studio's image, the game's own file, and the words a screen reader says for it. */
+    readonly logo: {
+        readonly src: string;
+        readonly alt: string;
+    };
+    /** How long the logo is held, in milliseconds, unless a press ends it first. Default 1500. */
+    readonly holdMs?: number;
+    /** The line under the logo: fixed words, or words for a locale. Default: this package's words in the player's language. */
+    readonly copy?: SplashCopy | ((locale: string) => SplashCopy);
+}
+```
+
+#### `SplashScreen` (const)
+
+The studio's splash: the logo, centred and never more than 60% of the shorter side, with one line under it saying a
+press goes on. Any key, click or tap calls `onDone`; how long it is held is the caller's (`splashStep` holds it on the
+runtime's clock). It plays no sound. Edit the logo's setting, or swap the line: the frame keeps both inside the
+visible region. A copy of this folder in a game works alone and takes its own words as props.
+
+```ts
+const SplashScreen: import("svelte").Component<Props, {}, "">;
+type SplashScreen = ReturnType<typeof SplashScreen>;
+```
+
+#### `splashStep` (function)
+
+An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key,
+click or tap. The runtime's `opening` list takes it after the first-run screens and before the first screen; it
+runs once the host is ready, so it can never delay the host's ready signal. It plays no sound, and it resolves at
+once when the runtime shuts down.
+
+```ts
+function splashStep(options: SplashOptions): OpeningStep;
 ```
 
 ### `import { … } from '@automata/ui-screens/title'`

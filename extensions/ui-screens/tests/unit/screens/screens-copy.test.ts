@@ -43,4 +43,15 @@ describe('the screens’ files', () => {
     )
     expect(PACKAGE_ROOT).toContain('ui-screens')
   })
+
+  it('copy into a game’s src/screens/, and the splash mounts from the copy with the game’s own words', async () => {
+    const game = copyScreens()
+    copies.push(game)
+    const { default: Splash } = await import(
+      /* @vite-ignore */ join(game, 'src/screens/splash/SplashScreen.svelte')
+    )
+    render(Splash, { logo: { src: 'logo.png', alt: 'Moss Studio' }, copy: { skip: 'Tap' }, onDone: () => {} })
+    expect(screen.getByRole('img', { name: 'Moss Studio' })).toBeInTheDocument()
+    expect(screen.getByText('Tap')).toBeInTheDocument()
+  })
 })

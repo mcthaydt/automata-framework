@@ -20,6 +20,30 @@ export default defineGame({ sim: { plugins: [netPlugin] } })
 `createNetRoom` joins a room and tells you the state of the connection. Add [`@automata/net-ui`](../net-ui/README.md)
 for the badge and the "reconnecting" screen.
 
+## Tell a player their tab is out of date
+
+A player whose tab was open before you deployed has an old build, and the server will refuse it at the join. Say so
+before the title instead. The server serves its build facts on `GET /version`; `@automata/net-ui` has the opening step
+that asks for them, three lines in your game:
+
+```ts
+import { PROTOCOL_VERSION } from '@automata/net'
+import { staleBuildStep } from '@automata/net-ui'
+
+defineGame({
+  // …
+  opening: [
+    staleBuildStep({
+      facts: { protocol: PROTOCOL_VERSION, schemaHash, contentHash }, // what the game already joins with
+      fetchFacts: () => fetch(`${serverUrl}/version`).then((response) => response.json()),
+    }),
+  ],
+})
+```
+
+A current, unreadable or slow answer (1.5 seconds) lets the title through; a stale one shows "This game was updated" with
+a Reload button and stays. The join check is still the authority, so a probe that fails never locks anyone out.
+
 ## What you get
 
 - **Rooms and seats**: join, leave, and come back after a drop to the seat that was yours.

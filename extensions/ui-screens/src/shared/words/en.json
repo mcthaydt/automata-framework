@@ -1,0 +1,8 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "splash_skip": "Press any key or tap to skip",
+  "credits_title": "Credits",
+  "credits_close": "Close",
+  "credits_opens": "Open {name}’s page",
+  "credits_refused": "That page could not be opened."
+}

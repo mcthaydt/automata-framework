@@ -1,0 +1,8 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "splash_skip": "按任意键或点按屏幕即可跳过",
+  "credits_title": "制作人员",
+  "credits_close": "关闭",
+  "credits_opens": "打开{name}的页面",
+  "credits_refused": "无法打开该页面。"
+}

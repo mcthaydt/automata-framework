@@ -1,0 +1,39 @@
+{
+  "words": {
+    "es-419": {
+      "credits_close": "7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed",
+      "credits_opens": "03cbc86cb87fcca6f1f23265860898ad4b9a97eeb15055d8f213b9d874c0ae46",
+      "credits_refused": "950d34925a5a83ac2e2b5349a59eaf8a4cfdc3c852fe115d8f8018855f762cb9",
+      "credits_title": "2a6b24ad287220345e96eb8021fe29d42b0785766c8df658827e7251da2d36dc",
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    },
+    "ja": {
+      "credits_close": "7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed",
+      "credits_opens": "03cbc86cb87fcca6f1f23265860898ad4b9a97eeb15055d8f213b9d874c0ae46",
+      "credits_refused": "950d34925a5a83ac2e2b5349a59eaf8a4cfdc3c852fe115d8f8018855f762cb9",
+      "credits_title": "2a6b24ad287220345e96eb8021fe29d42b0785766c8df658827e7251da2d36dc",
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    },
+    "ko": {
+      "credits_close": "7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed",
+      "credits_opens": "03cbc86cb87fcca6f1f23265860898ad4b9a97eeb15055d8f213b9d874c0ae46",
+      "credits_refused": "950d34925a5a83ac2e2b5349a59eaf8a4cfdc3c852fe115d8f8018855f762cb9",
+      "credits_title": "2a6b24ad287220345e96eb8021fe29d42b0785766c8df658827e7251da2d36dc",
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    },
+    "pt-BR": {
+      "credits_close": "7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed",
+      "credits_opens": "03cbc86cb87fcca6f1f23265860898ad4b9a97eeb15055d8f213b9d874c0ae46",
+      "credits_refused": "950d34925a5a83ac2e2b5349a59eaf8a4cfdc3c852fe115d8f8018855f762cb9",
+      "credits_title": "2a6b24ad287220345e96eb8021fe29d42b0785766c8df658827e7251da2d36dc",
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    },
+    "zh-Hans": {
+      "credits_close": "7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed",
+      "credits_opens": "03cbc86cb87fcca6f1f23265860898ad4b9a97eeb15055d8f213b9d874c0ae46",
+      "credits_refused": "950d34925a5a83ac2e2b5349a59eaf8a4cfdc3c852fe115d8f8018855f762cb9",
+      "credits_title": "2a6b24ad287220345e96eb8021fe29d42b0785766c8df658827e7251da2d36dc",
+      "splash_skip": "f3e0e702a85557e5631cf291f1fd87ec32861720afd68f6860853c02e7382a39"
+    }
+  }
+}

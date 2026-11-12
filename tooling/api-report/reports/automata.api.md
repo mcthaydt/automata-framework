@@ -769,7 +769,9 @@ interface GameDefinition<S = never> {
     readonly rotateHint?: RotateHintMode | undefined;
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
+    readonly opening?: readonly OpeningStep[] | undefined;
     readonly sounds?: EventSounds | undefined;
+    readonly uiSounds?: UiSounds | undefined;
     readonly audio?: GameAudioStart | undefined;
     readonly scores?: EventScores | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
@@ -822,6 +824,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly input?: InputMap;
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
     readonly sounds?: EventSounds;
+    readonly uiSounds?: UiSounds;
     readonly audio?: GameAudioStart;
     readonly scores?: EventScores;
     readonly saves?: GameSaves<D>;
@@ -835,6 +838,9 @@ interface GameSpec<S = never, D = unknown> {
     readonly hosting?: Partial<Omit<HostingOptions, 'gameId' | 'disclosedEvents'>>;
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
+    readonly opening?: readonly OpeningStep[];
+    readonly firstRunLanguage?: boolean;
+    readonly photosensitivity?: PhotosensitivityOption;
     readonly draw?: (ctx: DrawContext) => void;
     readonly level?: LevelScene;
     readonly renderer?: PixiRendererOptions;
@@ -932,6 +938,9 @@ interface Hosting {
     readonly saves: HostingSaves;
     readonly leaderboards: HostingLeaderboards;
     setFullscreen(on: boolean): Promise<HostResult<FullscreenRes>>;
+    openLink(url: string): Promise<HostResult<{
+        readonly opened: boolean;
+    }>>;
     readonly round: {
         start(): void;
         end(outcome?: RoundOutcome): void;
@@ -1372,6 +1381,23 @@ class ModelInvalid extends Error {
 }
 ```
 
+### `OpeningContext` (interface)
+
+```ts
+interface OpeningContext {
+    readonly layer: HTMLElement;
+    readonly services: Pick<RuntimeServices, 'hosting' | 'locale' | 'settings' | 'audio' | 'clock' | 'bus'>;
+    readonly seen: SeenFlags;
+    readonly signal: AbortSignal;
+}
+```
+
+### `OpeningStep` (type)
+
+```ts
+type OpeningStep = (context: OpeningContext) => Promise<void>;
+```
+
 ### `OptionGroup` (svelte)
 
 ```ts
@@ -1414,6 +1440,14 @@ type PauseBehavior = 'pause' | 'continue';
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+### `PhotosensitivityOption` (type)
+
+```ts
+type PhotosensitivityOption = true | {
+    readonly switches?: readonly WarningSwitch[];
+};
 ```
 
 ### `pictureView` (function)
@@ -1656,6 +1690,12 @@ interface RenderTarget {
     readonly bus?: PresentationBus | undefined;
     readonly reportLost?: ((retry: () => void) => () => void) | undefined;
 }
+```
+
+### `requestUiSound` (function)
+
+```ts
+function requestUiSound(from: Element, name: string): void;
 ```
 
 ### `ResourceDef` (interface)
@@ -1976,6 +2016,7 @@ interface ScreensCopy {
     };
     readonly board: LeaderboardCopy;
     readonly padUnsupported: string;
+    readonly firstRun: FirstRunCopy;
 }
 ```
 
@@ -2018,6 +2059,21 @@ interface ScreensGame {
 
 ```ts
 component from '../shared/ui/layout/ScrollList.svelte'
+```
+
+### `SeenFlag` (type)
+
+```ts
+type SeenFlag = 'language' | 'photosensitivity';
+```
+
+### `SeenFlags` (interface)
+
+```ts
+interface SeenFlags {
+    has(flag: SeenFlag): boolean;
+    mark(flag: SeenFlag): void;
+}
 ```
 
 ### `SentCommand` (type)
@@ -2308,6 +2364,27 @@ function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean)
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
 ```
 
+### `UI_SOUND_NAMES` (const)
+
+```ts
+const UI_SOUND_NAMES: readonly ["press", "back", "focus", "open", "close", "error"];
+```
+
+### `UiSoundEntry` (type)
+
+```ts
+type UiSoundEntry = string | {
+    readonly alias: string;
+    readonly gain?: number;
+};
+```
+
+### `UiSounds` (type)
+
+```ts
+type UiSounds = Readonly<Record<string, UiSoundEntry>> | ((name: string) => void);
+```
+
 ### `usePlay` (function)
 
 ```ts
@@ -2333,6 +2410,17 @@ interface ViewportWindow {
     readonly navigator?: object | undefined;
     addEventListener: Listen;
     removeEventListener: Listen;
+}
+```
+
+### `WarningSwitch` (interface)
+
+```ts
+interface WarningSwitch {
+    readonly id: string;
+    readonly label: string | ((locale: string) => string);
+    get(): boolean;
+    set(on: boolean): void;
 }
 ```
 
@@ -2459,7 +2547,7 @@ interface Conditions {
 ### `describeHostingContract` (function)
 
 ```ts
-function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void;
+function describeHostingContract(name: string, create: HostingFactory, settled: Settle, links?: LinksProbe): void;
 ```
 
 ### `documentScrolls` (function)
@@ -2607,6 +2695,8 @@ interface FakeHostControl {
     readonly tracked: readonly TrackedEvent[];
     readonly exits: readonly ('player' | 'completed')[];
     readonly fullscreen: readonly boolean[];
+    readonly opened: readonly string[];
+    answerLinks(answer: 'open' | 'refuse'): void;
     readonly rounds: readonly ({
         readonly start: true;
     } | {
@@ -2651,6 +2741,7 @@ interface FakeHostingOptions {
     readonly audio?: AudioChange;
     readonly entitlements?: EntitlementsPayload;
     readonly savesStatus?: SavesStatus;
+    readonly links?: 'open' | 'refuse';
 }
 ```
 
@@ -2813,6 +2904,17 @@ interface LayoutRect {
     readonly y: number;
     readonly width: number;
     readonly height: number;
+}
+```
+
+### `LinksProbe` (interface)
+
+```ts
+interface LinksProbe {
+    create(): Hosting | Promise<Hosting>;
+    createWithoutGrant?(): Hosting | Promise<Hosting>;
+    opened(): readonly string[];
+    decline(): void;
 }
 ```
 

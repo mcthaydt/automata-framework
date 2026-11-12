@@ -31,11 +31,34 @@ async function withFake<A>(
 /** One macrotask: lets pending promises finish. */
 const tick = (): Promise<void> => new Promise<void>((resolve) => setTimeout(resolve, 0))
 
+describe('FakeHosting: links', () => {
+  it('records each link it opened, in order, and answers from its option', async () => {
+    await withFake({ links: 'open' }, async (hosting, control) => {
+      unwrap(await hosting.openLink('https://example.test/a'))
+      unwrap(await hosting.openLink('https://example.test/b'))
+      expect(control.opened).toEqual(['https://example.test/a', 'https://example.test/b'])
+    })
+    await withFake({ links: 'refuse' }, async (hosting, control) => {
+      expect(unwrap(await hosting.openLink('https://example.test/a'))).toEqual({ opened: false })
+      expect(control.opened).toEqual([])
+    })
+  })
+
+  it('a refused link is not recorded as opened, and the answer can change mid-session', () =>
+    withFake({}, async (hosting, control) => {
+      control.answerLinks('refuse')
+      expect(unwrap(await hosting.openLink('https://example.test/a'))).toEqual({ opened: false })
+      control.answerLinks('open')
+      expect(unwrap(await hosting.openLink('https://example.test/b'))).toEqual({ opened: true })
+      expect(control.opened).toEqual(['https://example.test/b'])
+    }))
+})
+
 describe('FakeHosting: what each target grants and names (DIST spec §4.3)', () => {
   it.each([
-    ['web', 'web', 'this page', ['audio', 'display', 'input', 'lifecycle', 'saves']],
-    ['itch', 'web', 'itch.io', ['audio', 'display', 'input', 'lifecycle', 'saves']],
-    ['tauri', 'tauri', 'Cinder', ['audio', 'display', 'exit', 'input', 'lifecycle', 'saves']],
+    ['web', 'web', 'this page', ['audio', 'display', 'input', 'lifecycle', 'links', 'saves']],
+    ['itch', 'web', 'itch.io', ['audio', 'display', 'input', 'lifecycle', 'links', 'saves']],
+    ['tauri', 'tauri', 'Cinder', ['audio', 'display', 'exit', 'input', 'lifecycle', 'links', 'saves']],
     ['ruken', 'ruken', 'Ruken', ['audio', 'display', 'input', 'leaderboards', 'lifecycle', 'saves']],
   ] as const)('the %s target is kind %s, named "%s", and grants %j', (target, kind, hostName, granted) =>
     withFake(

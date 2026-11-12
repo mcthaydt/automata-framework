@@ -1,0 +1,5 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "stale_message": "O jogo foi atualizado. Recarregue a página para obter a nova versão.",
+  "stale_reload": "Recarregar"
+}

@@ -18,6 +18,7 @@ const COMMANDS: readonly (readonly string[])[] = [
   ['build', '--help'],
   ['editor', '--help'],
   ['ship', '--help'],
+  ['words', '--help'],
 ]
 
 // Matched in any help: a decision or milestone ID, an internal constant, an exit-code paragraph, a package name.
@@ -33,7 +34,8 @@ describe('automata --help', () => {
   it('is at most eight lines and names every command', async () => {
     const text = await help(['--help'])
     expect(text.trimEnd().split('\n').length).toBeLessThanOrEqual(8)
-    for (const command of ['create-game', 'check', 'build', 'editor', 'ship']) expect(text).toContain(command)
+    for (const command of ['create-game', 'check', 'build', 'editor', 'ship', 'words'])
+      expect(text).toContain(command)
   })
 
   it('names the four steps: make a game, build it, check it, publish it', async () => {
@@ -61,6 +63,13 @@ describe('each command’s own help', () => {
     for (const args of COMMANDS) {
       expect(await help([...args]), args.join(' ')).toMatch(new RegExp(`^Usage: automata ${args[0]}`))
     }
+  })
+
+  it('words says an AI translates, and names its options', async () => {
+    const text = await help(['words', '--help'])
+    expect(text).toMatch(/translat/i)
+    for (const option of ['--to', '--all', '--mark']) expect(text).toContain(option)
+    expect(text).toContain('ANTHROPIC_API_KEY')
   })
 
   it('create-game names its options and the default targets', async () => {

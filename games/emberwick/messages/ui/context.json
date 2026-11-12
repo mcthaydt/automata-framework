@@ -1,0 +1,50 @@
+{
+  "splash_label": {
+    "note": "A screen reader's name for the opening screen that shows the studio's mark. Two or three words at most; it is never drawn."
+  },
+  "splash_hint": {
+    "note": "Blinks under the studio's mark on the opening screen. Tells the player that pressing any key or tapping the screen goes on."
+  },
+  "menu_title": {
+    "note": "The game's name, the big title on the main menu. A proper name: keep it as it is, in the Latin letters."
+  },
+  "menu_hint": {
+    "note": "One line under the title that says what the game is about. The player is a small hooded figure carrying a lantern up through ruins to a glowing ember. Warm and short."
+  },
+  "play": {
+    "note": "The big button on the main menu that starts the game."
+  },
+  "keys_move": {
+    "note": "On the main menu, after the arrow keys: 'left and right arrows move'. One lower-case verb, followed on screen by the next key's name."
+  },
+  "keys_jump": {
+    "note": "On the main menu, after the Space key: 'Space jumps'. One lower-case verb."
+  },
+  "keys_pause": {
+    "note": "On the main menu, after the Esc key: 'Esc pauses'. One lower-case verb."
+  },
+  "pause": {
+    "note": "The name of the small pause button in the corner while playing, read by screen readers; the button shows only two bars. The word for stopping the game for a moment."
+  },
+  "paused_title": {
+    "note": "Heading of the screen that shows while the game is paused: the game is stopped, nothing is lost."
+  },
+  "resume": {
+    "note": "The big button on the paused screen that carries on playing."
+  },
+  "back_to_menu": {
+    "note": "A button on the paused screen that leaves the round and goes back to the main menu."
+  },
+  "end_title": {
+    "note": "Heading when the player reaches the ember and wins. A short, warm line of congratulation."
+  },
+  "play_again": {
+    "note": "The big button on the win screen that starts another round."
+  },
+  "menu": {
+    "note": "A button on the win screen that goes back to the main menu. One short word."
+  },
+  "end_time": {
+    "note": "How long the climb took. {seconds} is a number such as 12.34, already written for the player's language. Keep the unit short: seconds."
+  }
+}

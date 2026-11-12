@@ -25,7 +25,8 @@ numbers. The `automata-server` command starts the process from the environment's
 - **A generic room** that runs your sim and adapts its rules.
 - **Gates in front of Colyseus**: allowed origins, the game's version, how many requests a client may make and the
   size of a request, so a bad one is refused early.
-- **Operations**: probes for the host, a log line for each event, and a drain that moves players on before a deploy
+- **Operations**: probes for the host (`GET /health`, `GET /ready`, and `GET /version`, the build facts a client checks
+  to tell a player their tab is out of date), a log line for each event, and a drain that moves players on before a deploy
   stops the process, so no game is cut off.
 - **`@automata/net-server/testing`**: a room driver and a held clock, for tests only. The server refuses to start with
   a test switch on.
