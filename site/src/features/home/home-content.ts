@@ -4,7 +4,7 @@
 // one `create-game` answers to, the code is the shapes example's own lines, and each target's command is one
 // `automata ship` accepts (the four targets of ADR 0006). The numbers are not here: they are read from the workspace
 // (`virtual:framework/facts`). The page itself only lays these out.
-import { AGENT_PROMPT, CREATE_COMMAND } from '../../shared/content/agent-prompt'
+import { AGENT_PROMPT, CREATE_COMMAND } from '../../shared/content/agent-prompt.ts'
 
 export { AGENT_PROMPT, CREATE_COMMAND }
 
