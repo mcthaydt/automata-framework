@@ -101,14 +101,18 @@ function lampOf(lamp: Json, report: Unexpressed[]): Json {
       what: `the kit has no "${kind}" lamp; written as "${mapped}" with its own colour`,
       did: 'approximated',
     })
-  if (typeof lamp.radius === 'number' && lamp.radius > 0)
+  const out: Json = { id: lamp.id, kind: mapped ?? kind, at: [lamp.x, lamp.y, lamp.z] }
+  // The old lamp's `radius` is its gameplay pool (where the creature counts as in light), not its range; the level keeps it
+  // beside the lamp as a field the render ignores and the lamp feature reads.
+  if (typeof lamp.radius === 'number' && lamp.radius > 0) {
+    out.radius = lamp.radius
     report.push({
       kind: 'lamp-radius',
       where: String(lamp.id),
-      what: `pool radius ${lamp.radius} m: a lamp's pool is its range now`,
-      did: 'dropped',
+      what: `pool radius ${lamp.radius} m kept as the lamp's \`radius\` (the gameplay light; the render uses range)`,
+      did: 'approximated',
     })
-  const out: Json = { id: lamp.id, kind: mapped ?? kind, at: [lamp.x, lamp.y, lamp.z] }
+  }
   const color = hexOf(lamp.color)
   if (color !== undefined) out.color = color
   if (typeof lamp.range === 'number') out.range = lamp.range

@@ -1086,7 +1086,8 @@
       "kind": "desk",
       "at": [3.05, 1.55, 1.15],
       "color": "#ffb866",
-      "range": 5
+      "range": 5,
+      "radius": 1.7
     },
     {
       "id": "monitorGlow",
@@ -1100,49 +1101,56 @@
       "kind": "pendant",
       "at": [0, 3.4, 2.6],
       "color": "#ffd699",
-      "range": 7.5
+      "range": 7.5,
+      "radius": 3.4
     },
     {
       "id": "wardLamp",
       "kind": "pendant",
       "at": [-3.2, 3.4, 3.4],
       "color": "#ffdb9e",
-      "range": 6
+      "range": 6,
+      "radius": 2.6
     },
     {
       "id": "corridorLamp",
       "kind": "bulb",
       "at": [0, 3, -3.2],
       "color": "#ffcc85",
-      "range": 5.5
+      "range": 5.5,
+      "radius": 2.6
     },
     {
       "id": "exitLamp",
       "kind": "bulb",
       "at": [0, 2.75, -5.8],
       "color": "#ffc780",
-      "range": 5.5
+      "range": 5.5,
+      "radius": 1.8
     },
     {
       "id": "closetLamp",
       "kind": "fluorescent",
       "at": [3.1, 3.4, -4.5],
       "color": "#e6e6bf",
-      "range": 4.5
+      "range": 4.5,
+      "radius": 2.2
     },
     {
       "id": "curtainWest",
       "kind": "bulb",
       "at": [-4.1, 1.3, -0.5],
       "color": "#ff9940",
-      "range": 6
+      "range": 6,
+      "radius": 3.2
     },
     {
       "id": "curtainEast",
       "kind": "bulb",
       "at": [-2.35, 1.3, 1.4],
       "color": "#ff9940",
-      "range": 6
+      "range": 6,
+      "radius": 3.2
     },
     {
       "id": "spark",

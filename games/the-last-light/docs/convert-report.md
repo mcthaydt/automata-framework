@@ -51,17 +51,17 @@ Each row is a thing the old data had that the new files could not say, with what
 | prop | stock-linen-3 | no generator draws "stock-linen"; written as a box of its size | approximated |
 | prop | stock-boxes-3 | no generator draws "stock-boxes"; written as a box of its size | approximated |
 | prop | stock-toolbox-2 | no generator draws "stock-toolbox"; written as a box of its size | approximated |
-| lamp-radius | deskLamp | pool radius 1.7 m: a lamp's pool is its range now | dropped |
+| lamp-radius | deskLamp | pool radius 1.7 m kept as the lamp's `radius` (the gameplay light; the render uses range) | approximated |
 | lamp-kind | monitorGlow | the kit has no "screen" lamp; written as "bulb" with its own colour | approximated |
-| lamp-radius | hallLamp | pool radius 3.4 m: a lamp's pool is its range now | dropped |
-| lamp-radius | wardLamp | pool radius 2.6 m: a lamp's pool is its range now | dropped |
-| lamp-radius | corridorLamp | pool radius 2.6 m: a lamp's pool is its range now | dropped |
-| lamp-radius | exitLamp | pool radius 1.8 m: a lamp's pool is its range now | dropped |
-| lamp-radius | closetLamp | pool radius 2.2 m: a lamp's pool is its range now | dropped |
+| lamp-radius | hallLamp | pool radius 3.4 m kept as the lamp's `radius` (the gameplay light; the render uses range) | approximated |
+| lamp-radius | wardLamp | pool radius 2.6 m kept as the lamp's `radius` (the gameplay light; the render uses range) | approximated |
+| lamp-radius | corridorLamp | pool radius 2.6 m kept as the lamp's `radius` (the gameplay light; the render uses range) | approximated |
+| lamp-radius | exitLamp | pool radius 1.8 m kept as the lamp's `radius` (the gameplay light; the render uses range) | approximated |
+| lamp-radius | closetLamp | pool radius 2.2 m kept as the lamp's `radius` (the gameplay light; the render uses range) | approximated |
 | lamp-kind | curtainWest | the kit has no "fire" lamp; written as "bulb" with its own colour | approximated |
-| lamp-radius | curtainWest | pool radius 3.2 m: a lamp's pool is its range now | dropped |
+| lamp-radius | curtainWest | pool radius 3.2 m kept as the lamp's `radius` (the gameplay light; the render uses range) | approximated |
 | lamp-kind | curtainEast | the kit has no "fire" lamp; written as "bulb" with its own colour | approximated |
-| lamp-radius | curtainEast | pool radius 3.2 m: a lamp's pool is its range now | dropped |
+| lamp-radius | curtainEast | pool radius 3.2 m kept as the lamp's `radius` (the gameplay light; the render uses range) | approximated |
 | lamp-kind | spark | the kit has no "spark" lamp; written as "bulb" with its own colour | approximated |
 | bounce | level | the bounce points of the old baked light: the lit room bakes its own | dropped |
 | nav | patrol | the patrol of 12 stops: the creature's rules own its route now | dropped |
@@ -91,7 +91,14 @@ Each row is a thing the old data had that the new files could not say, with what
   `followPlayer(every)`, a hook the night feature answers (task 12), not something the file can say, so the file keeps
   the call. The plan listed four calls; five are named (`tests/unit/content/calls.test.ts`).
 - **A matrix cell cited the dropped fuel rule.** It is now a `cut` saying the lamp feature burns the paraffin.
-- **The level has no wall that hides itself from a room, no lamp pool radius and no bounce points.** The rooms a view
+- **The level has no wall that hides itself from a room and no bounce points; a lamp's gameplay pool is its `radius`.**
+  The converter keeps each lamp's old `radius` as a field of the lamp (the render ignores it, the lamp feature reads it for the
+  creature's senses); the committed level has it on the eight lamps that had one.
+- **The creature's four touching transitions also call `caught`** (before the `emit`, since an emit ends the effect list): the
+  catch feature answers it, so a practice catch plays `found` and puts everything back when it ends.
+- **The creature's scenarios still set the old fact `light`** (`light = "lighter"`, `fuel = 80`). The bots that run scenarios
+  are the extension's; the fact is `lit` now. Left for the Schematic pass (task 16).
+- **The level has no wall that hides itself from a room.** The rooms a view
   draws (`views.*.rooms`, task 13) say what was said by `hideFrom`; the lit room bakes its own light.
 - **Props are boxes where no generator draws the model** (`coat-hook`, `wall-sconce`, `extinguisher-cabinet`,
   `strip-light`, the shelves' stock). Task 13 (dressing) replaces them.

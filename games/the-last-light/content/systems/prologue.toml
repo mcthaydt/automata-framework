@@ -338,7 +338,7 @@ call = "vigil"
 id = "nurse"
 modes = [ "dormant", "patrol", "investigate", "hunt", "flee", "follow", "leaving" ]
 initial = "dormant"
-hooks = [ "replan", "stop", "leave" ]
+hooks = [ "replan", "stop", "leave", "caught" ]
 
 [agents.speed]
 dormant = 0
@@ -585,6 +585,9 @@ priority = 50
 touching = true
 
 [[agents.transitions.do]]
+call = "caught"
+
+[[agents.transitions.do]]
 [agents.transitions.do.emit]
 caught = "practice"
 
@@ -595,6 +598,9 @@ priority = 50
 
 [[agents.transitions.when]]
 touching = true
+
+[[agents.transitions.do]]
+call = "caught"
 
 [[agents.transitions.do]]
 [agents.transitions.do.emit]
@@ -609,6 +615,9 @@ priority = 50
 touching = true
 
 [[agents.transitions.do]]
+call = "caught"
+
+[[agents.transitions.do]]
 [agents.transitions.do.emit]
 caught = "practice"
 
@@ -619,6 +628,9 @@ priority = 50
 
 [[agents.transitions.when]]
 touching = true
+
+[[agents.transitions.do]]
+call = "caught"
 
 [[agents.transitions.do]]
 [agents.transitions.do.emit]

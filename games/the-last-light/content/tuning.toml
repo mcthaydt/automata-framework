@@ -1,0 +1,5 @@
+# The numbers a designer changes by hand: the Tuner opens this file. The range, label and feel are what it shows beside the
+# slider; the game reads only the value. The lamp's numbers are in carried-light.toml and the creature's in systems/.
+
+# 3 m/s: the old game's walk, at a full push of the stick.
+WALK_SPEED = { value = 3, min = 1.5, max = 6, step = 0.1, label = "Walking speed", feel = "How fast Ada walks with the stick pushed all the way.", unit = "m/s" }

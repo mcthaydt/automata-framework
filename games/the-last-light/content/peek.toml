@@ -1,0 +1,6 @@
+# Peeking round a doorway: the old game's numbers, which are the defaults; edit them here.
+reach = 1.4
+dwell = 0.6
+arc = 50
+lean = 1.2
+ease = 0.4

@@ -3,8 +3,7 @@ import { join } from 'node:path'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 
-// Every `{ call }` the game's files make has an answer in code: the creature's file names five (four of the night
-// feature's, and the re-route on a clock the systems extension supplies), the puzzle two. A new call in a file with no
+// Every `{ call }` the game's files make has an answer in code: the creature's file names six (the night feature's four, the catch's, and the re-route on a clock the systems extension supplies), the puzzle two. A new call in a file with no
 // answer would do nothing at play, so this test fails first (audit 7).
 
 const ROOT = join(import.meta.dirname, '../../..')
@@ -20,8 +19,9 @@ function callsOf(value: unknown): string[] {
 }
 
 describe('the calls the files make', () => {
-  it('the creature calls only wake, vigil, stop, leave and replan', () => {
+  it('the creature calls only caught, wake, vigil, stop, leave and replan', () => {
     expect([...new Set(callsOf(file('content/systems/prologue.toml')))].sort()).toEqual([
+      'caught',
       'leave',
       'replan',
       'stop',

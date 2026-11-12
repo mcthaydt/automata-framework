@@ -171,7 +171,13 @@ describe('convertLevel', () => {
   it('writes lamps in the kit’s kinds, and reports a kind the kit lacks', () => {
     const { json, report } = converted()
     const lamps = json.lamps as { id: string; kind: string; at: number[]; color: string }[]
-    expect(lamps[0]).toMatchObject({ id: 'hallLamp', kind: 'pendant', at: [2, 3.4, 2], color: '#ffd699' })
+    expect(lamps[0]).toMatchObject({
+      id: 'hallLamp',
+      kind: 'pendant',
+      at: [2, 3.4, 2],
+      color: '#ffd699',
+      radius: 3.4,
+    })
     expect(lamps[1]?.kind).toBe('bulb')
     expect(report).toContainEqual(expect.objectContaining({ kind: 'lamp-kind', where: 'monitorGlow' }))
   })

@@ -40,7 +40,7 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
       // The calls the puzzle's actions make (`read`, `fill`) are the game's; the creature's four hooks and the re-route
       // are answered by the night feature (task 12).
       puzzleContent({ calls: ['read', 'fill'], extensions: ['systems', 'narrative', 'cutscenes'] }),
-      systemsContent({ hooks: ['replan', 'stop', 'leave', 'wake', 'vigil'] }),
+      systemsContent({ hooks: ['caught', 'replan', 'stop', 'leave', 'wake', 'vigil'] }),
     ],
   })
 }

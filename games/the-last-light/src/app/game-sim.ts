@@ -1,23 +1,30 @@
-import { createSim, type PluginDef, type Sim } from '@automata/sim'
+import { cameraHeadingPlugin } from '@automata/3d/sim'
+import { navExtension } from '@automata/nav'
+import { sectorsExtension } from '@automata/sectors'
+import { createSim, type Sim } from '@automata/sim'
+import { spawnAda } from '../features/ada/ada.plugin.ts'
 import { TICK_HZ } from '../shared/constants.ts'
+import type { PlayContent } from '../shared/play-content.ts'
+import { createRuntime } from './runtime.ts'
 import { scenePlugin } from './scene.plugin.ts'
 
-/** What the game plays in: its sim plugins, in order. The extensions' own are added by `defineGame`. */
-export const GAME_PLUGINS: readonly PluginDef[] = [scenePlugin]
-
 /**
- * A sim of the game on `content`, with no screen: what the unit tests and the bot step. The extensions' plugins are
- * given by the caller (a test names the ones it needs; `game.ts` lets `defineGame` add them).
+ * A sim of the game on `play`, with no screen: what the unit tests and the bot step. Every plugin the page's game runs is
+ * here, in the order `defineGame` gives them, so a test plays the game the page plays.
  */
-export function createGameSim(options: {
-  readonly seed: number
-  readonly content: unknown
-  readonly plugins: readonly PluginDef[]
-}): Promise<Sim> {
-  return createSim({
-    seed: options.seed,
+export async function createGameSim(play: PlayContent, seed = 1): Promise<Sim> {
+  const runtime = createRuntime(play)
+  const sim = await createSim({
+    seed,
     tickHz: TICK_HZ,
-    plugins: [...options.plugins, ...GAME_PLUGINS],
-    content: options.content,
+    plugins: [
+      ...[sectorsExtension, navExtension, ...runtime.extensions].flatMap((extension) => extension.sim ?? []),
+      cameraHeadingPlugin,
+      ...runtime.plugins,
+      scenePlugin(runtime),
+    ],
+    content: play,
   })
+  spawnAda(sim, play.start, play.tuning.WALK_SPEED)
+  return sim
 }

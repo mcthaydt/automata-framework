@@ -1,0 +1,7 @@
+# The hand lamp. Seconds of paraffin: one fill gives 40, it holds up to twice that, and it burns a second a second. The old
+# game's numbers, read once; the lamp feature reads them through carriedLightDefOf.
+radius = 2.2
+start = 0
+fill = 40
+cap = 80
+burn = 1
