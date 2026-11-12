@@ -1,7 +1,7 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 23 of the builders-fold plan (the strict flags) replaces each with a check
 
 import { GROUP } from '../body/parts'
-import { OUTLINE } from './paint-budget'
+import { K2, LINE, OUTLINE, RIM } from './paint-budget'
 import { FACE_SEAM } from './paint-style'
 import type { AfterClusterTones } from './paint-tones'
 
@@ -81,4 +81,161 @@ export function detailFloor(ctx: AfterClusterTones) {
       }
     }
   }
+}
+
+/**
+ * The outline outside the figure (each empty texel beside it, owned by its nearest filled neighbour), the
+ * selective outline on the silhouette (a shape's line toward the key and ink away from it, decided per run of the
+ * contour, not per texel) and black's form: a cool rim inside a dark ramp's lit line and a welt on the key's side
+ * of a fold.
+ */
+export function outlines(ctx: AfterClusterTones) {
+  const { D, darkRamp, depth, filled, h, material, n, owner, part, run, skinny, stack, style, tone, w } = ctx
+  // The outline outside the figure: each empty texel beside it, owned by its nearest filled neighbour.
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const k = y * w + x
+      if (material[k] >= 0) continue
+      let best = -1
+      for (let i = 0; i < 4; i++) {
+        const xx = x + (i === 0 ? -1 : i === 1 ? 1 : 0),
+          yy = y + (i === 2 ? -1 : i === 3 ? 1 : 0)
+        if (filled(xx, yy) && (best < 0 || depth[yy * w + xx] > depth[best])) best = yy * w + xx
+      }
+      if (best >= 0) {
+        tone[k] = OUTLINE
+        owner[k] = best
+      }
+    }
+  // Selective, on the silhouette: an outline texel on the key's side of its shape (the shape lies away from the key)
+  // takes the shape's line. A pixel artist decides it per run of the contour, not per texel, or a diagonal beads into
+  // ink at every stair: the shape's direction is taken over a wide window (its centroid from the texel, so a stair's
+  // corner and its tread agree), averaged along the contour, and a run shorter than `2D + 1` takes its neighbours'.
+  if (style.selout) {
+    const score = new Float32Array(n).fill(NaN),
+      W = D + 1,
+      minRun = 2 * D + 1
+    const outlined = (q: number) => tone[q] === OUTLINE || tone[q] === LINE
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const k = y * w + x
+        if (tone[k] !== OUTLINE || material[k] >= 0) continue
+        const ownPart = part[owner[k]]
+        let gx = 0,
+          gy = 0
+        for (let dy = -2; dy <= 2; dy++)
+          for (let dx = -2; dx <= 2; dx++) {
+            const xx = x + dx,
+              yy = y + dy,
+              q = yy * w + xx
+            if (
+              (dx || dy) &&
+              xx >= 0 &&
+              yy >= 0 &&
+              xx < w &&
+              yy < h &&
+              material[q] >= 0 &&
+              part[q] === ownPart &&
+              tone[q] < OUTLINE
+            ) {
+              const r2 = dx * dx + dy * dy
+              gx += dx / r2
+              gy += dy / r2
+            }
+          }
+        const l = Math.hypot(gx, gy)
+        score[k] = l > 0 ? -(gx * K2[0] + gy * K2[1]) / l : 0
+      }
+    // Along the contour: the mean over the outline of the same shape within W.
+    const along = new Float32Array(n).fill(NaN)
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const k = y * w + x
+        if (Number.isNaN(score[k])) continue
+        const ownPart = part[owner[k]]
+        let s = 0,
+          c = 0
+        for (let dy = -W; dy <= W; dy++)
+          for (let dx = -W; dx <= W; dx++) {
+            const xx = x + dx,
+              yy = y + dy,
+              q = yy * w + xx
+            if (
+              xx >= 0 &&
+              yy >= 0 &&
+              xx < w &&
+              yy < h &&
+              !Number.isNaN(score[q]) &&
+              part[owner[q]] === ownPart
+            ) {
+              s += score[q]
+              c++
+            }
+          }
+        along[k] = s / c
+        if (along[k] > 0.3) tone[k] = LINE
+      }
+    // Runs: a short run of line between ink (or of ink between line) along one shape's contour takes the other.
+    const runSeen = new Uint8Array(n)
+    for (let s0 = 0; s0 < n; s0++) {
+      if (runSeen[s0] || Number.isNaN(along[s0])) continue
+      const t0 = tone[s0],
+        ownPart = part[owner[s0]]
+      run.length = 0
+      stack.push(s0)
+      runSeen[s0] = 1
+      let other = false
+      while (stack.length) {
+        const k = stack.pop()!
+        run.push(k)
+        const x = k % w,
+          y = (k - x) / w
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = x + dx,
+              yy = y + dy,
+              q = yy * w + xx
+            if (
+              (!dx && !dy) ||
+              xx < 0 ||
+              yy < 0 ||
+              xx >= w ||
+              yy >= h ||
+              Number.isNaN(along[q]) ||
+              part[owner[q]] !== ownPart ||
+              !outlined(q)
+            )
+              continue
+            if (tone[q] !== t0) other = true
+            else if (!runSeen[q]) {
+              runSeen[q] = 1
+              stack.push(q)
+            }
+          }
+      }
+      // A bare hand's or limb's run is shorter (its lit edge is the skin's line, never ink round a small form).
+      if (other && run.length < (skinny[material[owner[s0]]] ? D + 1 : minRun))
+        for (const k of run) tone[k] = t0 === LINE ? OUTLINE : LINE
+    }
+  }
+  // Black's form: on a dark ramp the edge inside its lit line is a cool rim (its line alone is as dark as ink), and the
+  // texel on the key's side of a fold (ink, a step under its deep) a welt two steps up, so a lapel, a yoke or a sleeve
+  // reads as a raised edge over its shadow.
+  for (let y = 1; y < h - 1; y++)
+    for (let x = 1; x < w - 1; x++) {
+      const k = y * w + x,
+        mi = material[k]
+      if (mi < 0 || !darkRamp[mi]) continue
+      if (tone[k] >= 0 && tone[k] <= 2) {
+        for (const q of [k - 1, k + 1, k - w, k + w])
+          if (material[q] < 0 && tone[q] === LINE && part[owner[q]] === part[k]) {
+            tone[k] = RIM
+            break
+          }
+      } else if (tone[k] === OUTLINE) {
+        for (const q of [K2[0] < 0 ? k - 1 : k + 1, K2[1] < 0 ? k - w : k + w])
+          if (material[q] >= 0 && darkRamp[material[q]] && tone[q] >= 0 && tone[q] <= 3)
+            tone[q] = Math.max(0, tone[q] - 2)
+      }
+    }
 }
