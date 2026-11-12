@@ -132,11 +132,10 @@ Fixed, test first (the coordinator's ruling on the first report):
 Gaps, not fixed here:
 
 - **No Quit on the desktop's screens.** `exit` is granted, but only the boot-failure panel offers it; the title and
-  paused screens offer "Back to menu". A player quits by closing the window, which works. Asked for by the coordinator,
-  and larger than it looks: every word on the default screens is translated into six languages
-  (`packages/automata/src/app/screens/words/*.json`) with a hashed source record (`sources.json`) and context notes, so
-  a new "Quit" needs five translations through that pipeline before the button (shown where `granted.has('exit')`,
-  48 px, in the title's action bar) can land. The boot-failure panel's own "Quit" is not in that pipeline.
+  paused screens offer "Back to menu". A player quits by closing the window, which works. *Corrected by the
+  implementation audit (S5): the boot-failure panel's "Quit" is in the screens' catalog (`runtime_quit`, six
+  languages, hashed), so a title Quit needed no new translation. The audit added it (S4): `title_quit`, on the
+  desktop title only.*
 - **The `.deb`'s metadata**: `Maintainer: example` (taken from the identifier) and `Description: (none)`; the ship
   config has no description or publisher to give it.
 - **macOS and Windows**: fullscreen, the close request and the store path are unproved there.

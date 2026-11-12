@@ -91,8 +91,8 @@ then run this again in a new terminal, so it finds cargo.
 ## Try it
 
 On Linux, install the `.deb` (`sudo apt install ./dist-tauri/my-game-0.1.0-linux-deb.deb`, then start "My Game" from
-the menu) or run the AppImage (`chmod +x` it first). Close the window to quit; the game's screens have no Quit button
-on the desktop yet.
+the menu) or run the AppImage (`chmod +x` it first). The title screen has a Quit button on the desktop (and only
+there); closing the window quits too. Either way the game's exit handlers run and the saves are written first.
 
 ## Publish to itch.io downloads
 

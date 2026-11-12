@@ -1,5 +1,15 @@
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, expect, it } from 'vitest'
@@ -14,7 +24,7 @@ import { overridesYaml, packOverrides, strangerFolder } from '#src/stranger.ts'
 //   pnpm --filter @automata/consumer-smoke test:desktop
 // What it proves about the host: the app is Tauri's (not a browser); a save goes to the store file in the app's data
 // folder, never to the page's storage, and reaches the disk on its own, so the app killed right after still has it;
-// a second start reads it back; closing the window quits the app.
+// a second start reads it back and the title's Quit quits the app; on a third start, closing the window quits it.
 
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const GAME = 'my-game'
@@ -53,12 +63,29 @@ async function stopBackground(): Promise<void> {
 }
 afterAll(stopBackground)
 
-/** Starts a program in the background with `env` added, on the virtual screen. */
-function background(command: string, args: readonly string[], env: NodeJS.ProcessEnv = {}): ChildProcess {
-  const child = spawn(command, args, { stdio: 'ignore', env: { ...process.env, DISPLAY, ...env } })
+/**
+ * Starts a program in the background with `env` added, on the virtual screen. With `log`, its output (for
+ * tauri-driver, WebKitWebDriver's and the app's too) goes to that file, which a failed run prints.
+ */
+function background(
+  command: string,
+  args: readonly string[],
+  env: NodeJS.ProcessEnv = {},
+  log?: string,
+): ChildProcess {
+  const out = log === undefined ? 'ignore' : openSync(log, 'a')
+  const child = spawn(command, args, {
+    stdio: ['ignore', out, out],
+    env: { ...process.env, DISPLAY, ...env },
+  })
+  if (typeof out === 'number') closeSync(out)
   started.push(child)
   return child
 }
+
+/** The last lines of a log, for a failed run's output. */
+const tail = (file: string, lines = 60): string =>
+  existsSync(file) ? readFileSync(file, 'utf8').split('\n').slice(-lines).join('\n') : '(no log)'
 
 /** Resolves once `ready` answers true, or rejects naming `what` after `timeoutMs`. */
 async function waitFor(
@@ -107,6 +134,7 @@ it('a stranger makes a desktop game, builds the app, and on Linux it opens, save
   const folder = strangerFolder()
   const toolsDir = join(folder, 'tools')
   const gameDir = join(folder, 'work', GAME)
+  const driverLog = join(folder, 'driver.log')
   let finished = false
   try {
     const overrides = await step('pack', () => packOverrides(folder, packAll(root, folder)))
@@ -163,7 +191,7 @@ it('a stranger makes a desktop game, builds the app, and on Linux it opens, save
     background('Xvfb', [DISPLAY, '-screen', '0', '1280x800x24'])
     await waitFor('the virtual screen', () => existsSync(`/tmp/.X11-unix/X${DISPLAY.slice(1)}`))
     background('openbox', [])
-    background('tauri-driver', [], xdg)
+    background('tauri-driver', [], xdg, driverLog)
     await waitFor('tauri-driver', () =>
       fetch(`${DRIVER}/status`).then(
         () => true,
@@ -208,13 +236,30 @@ it('a stranger makes a desktop game, builds the app, and on Linux it opens, save
     await second.until(onTitle, 10_000)
     expect(await second.execute('return document.documentElement.lang')).toBe('ja')
 
-    // The player closes the window as a window manager does; the adapter holds the close, flushes, then quits.
+    // The player quits from the title, by its Quit (desktop only), as tall as Play, in the player's language.
+    await step('quit from the title', async () => {
+      const quit = (await second.execute(
+        'const b = document.querySelector("[data-testid=quit-app]"); return b && { text: b.textContent, height: b.getBoundingClientRect().height }',
+      )) as { text: string; height: number } | null
+      expect(quit, 'the title offers Quit on the desktop').not.toBeNull()
+      expect(quit?.text).toBe('終了')
+      expect(quit?.height).toBeGreaterThanOrEqual(48)
+      await second.execute('document.querySelector("[data-testid=quit-app]").click()')
+      await waitFor('the app to quit', () => !appRunning())
+    })
+    await second.end().catch(() => undefined)
+    expect(readSaves(savesFile)).toEqual({ 'automata.locale': 'ja' })
+
+    // Third start: the player closes the window as a window manager does; the adapter holds the close, flushes, then
+    // quits. (WebDriver's own "close window" would skip Tauri's close request, so the journey does not use it.)
+    const third = await step('open the app a third time', open)
+    await third.until(onTitle, 30_000)
     await step('close the window', async () => {
       expect(appRunning(), 'the app is running before its window is closed').toBe(true)
       sh(folder, 'wmctrl', ['-c', 'My Game'], { DISPLAY })
       await waitFor('the app to quit', () => !appRunning())
     })
-    await second.end().catch(() => undefined)
+    await third.end().catch(() => undefined)
     expect(readSaves(savesFile)).toEqual({ 'automata.locale': 'ja' })
     finished = true
   } finally {
@@ -222,6 +267,9 @@ it('a stranger makes a desktop game, builds the app, and on Linux it opens, save
     // A failed run keeps its folder for a look; a passing one leaves nothing behind. The webview's helper processes
     // outlive the app for a moment and still write Mesa's shader cache into it (ENOTEMPTY): rm retries for that.
     if (finished) rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 })
-    else console.log(`the stranger folder, kept: ${folder}`)
+    else
+      console.log(
+        `the stranger folder, kept: ${folder}\ntauri-driver's log (the app's output too):\n${tail(driverLog)}`,
+      )
   }
 })

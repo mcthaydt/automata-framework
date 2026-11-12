@@ -1,6 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "title_play": "Jugar",
+  "title_quit": "Salir",
   "play_pause": "Pausa",
   "play_move": "Mover",
   "paused_title": "Pausa",
