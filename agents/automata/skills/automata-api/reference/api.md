@@ -9170,12 +9170,12 @@ const buildFactsSchema: z.ZodType<BuildFacts>;
 #### `checkServerVersion` (function)
 
 Asks the server for its build facts (`fetchFacts` is the game's own fetch of `<server>/version`) and compares them
-with `own`. `stale` only when the server answered readable facts that differ. A throw, a rejection, a 503 or a shape
-it does not know is `current`: the join check refuses a stale client either way, and a flaky probe must never lock a
-player out.
+with `own`. `current` and `stale` only when the server answered readable facts. A throw, a rejection, a 503 or a
+shape it does not know is `unchecked`: the join check refuses a stale client either way, so a caller goes on, and a
+flaky probe never locks a player out, but it is told the check did not run.
 
 ```ts
-function checkServerVersion(fetchFacts: () => Promise<unknown>, own: BuildFacts): Promise<"current" | "stale">;
+function checkServerVersion(fetchFacts: () => Promise<unknown>, own: BuildFacts): Promise<VersionVerdict>;
 ```
 
 #### `ClientMessage` (type)
@@ -10456,6 +10456,14 @@ A whole number from 0.
 const uintSchema: z.ZodType<number>;
 ```
 
+#### `VersionVerdict` (type)
+
+What `checkServerVersion` found: the same build, a different one, or no answer it could read.
+
+```ts
+type VersionVerdict = "current" | "stale" | "unchecked";
+```
+
 #### `Watchable` (interface)
 
 What a reader gets: the value now, and a way to hear it change.
@@ -11616,6 +11624,8 @@ interface ProbeState {
   readonly securityTxt?: SecurityTxt | undefined;
   /** The game's version, undefined until its content has loaded; read on every `/version` request. */
   readonly version?: (() => GameVersion | undefined) | undefined;
+  /** Which pages may read `/version`; without it the answer carries no CORS header (a same-origin page only). */
+  readonly origins?: ProbeOrigins | undefined;
 }
 ```
 
@@ -12797,7 +12807,11 @@ How a game sets up its stale-build check.
 interface StaleBuildOptions {
     /** The game's own build facts: what it joins with (`PROTOCOL_VERSION`, and the schema and content hashes). */
     readonly facts: BuildFacts;
-    /** The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know, passes. */
+    /**
+     * The game's own fetch of `<server>/version`. Anything it throws, or answers in a shape the check does not know,
+     * lets the title through and is logged to the console as a check that could not run. (A server on another origin
+     * must answer with CORS headers, or the browser refuses the answer to the page; `@automata/net-server` does.)
+     */
     readonly fetchFacts: () => Promise<unknown>;
     /** The longest the title waits for the answer, in milliseconds, on the runtime's clock. Default 1500. */
     readonly waitMs?: number;
@@ -12810,10 +12824,11 @@ interface StaleBuildOptions {
 
 #### `staleBuildStep` (function)
 
-An opening step that asks the server for its build facts before an online game's title. Current, unreadable or slower
-than `waitMs` (a later answer is dropped): it resolves and the title follows. Stale: it shows the error with Reload and
-stays, so the title of an out-of-date tab is never reached. The join check stays the authority; this only says so
-before the player has tried to join.
+An opening step that asks the server for its build facts before an online game's title. Current, or slower than
+`waitMs` (a later answer is dropped): it resolves and the title follows. Unreadable: the same, with a console line
+saying the check could not run, so a broken probe is seen by the maker rather than read as a pass. Stale: it shows the
+error with Reload and stays, so the title of an out-of-date tab is never reached. The join check stays the authority;
+this only says so before the player has tried to join.
 
 ```ts
 function staleBuildStep(options: StaleBuildOptions): OpeningStep;

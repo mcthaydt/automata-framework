@@ -1,5 +1,6 @@
 import { createServer, type Server } from 'node:http'
 import { afterEach, describe, expect, it } from 'vitest'
+import { type OriginPolicy, originPolicy } from '#src/features/gates/origins.ts'
 import { installProbes, type Readiness, securityTxtBody } from '#src/features/operations/probes.ts'
 import type { SecurityTxt } from '#src/shared/game/server-config.ts'
 import type { GameVersion } from '#src/shared/game-version.ts'
@@ -19,6 +20,7 @@ async function start(state: {
   readiness: Readiness
   securityTxt?: SecurityTxt
   version?: GameVersion | undefined
+  origins?: OriginPolicy
 }): Promise<string> {
   http = createServer((_request, response) => {
     response.writeHead(418).end('next')
@@ -27,6 +29,7 @@ async function start(state: {
     readiness: () => state.readiness,
     securityTxt: state.securityTxt,
     version: () => state.version,
+    origins: state.origins,
   })
   await new Promise<void>((resolve) => http?.listen(0, '127.0.0.1', resolve))
   const address = http.address()
@@ -96,6 +99,45 @@ describe('/version', () => {
     expect((await fetch(`${base}/version`)).status).toBe(503)
     state.version = VERSION
     expect((await fetch(`${base}/version`)).status).toBe(200)
+  })
+
+  // The game's page is another origin (this server serves no game files), so the browser hands the answer to the page
+  // only when the answer carries the origin's own header. The check reads it with a plain GET: no credentials.
+  describe('across origins', () => {
+    const GAME = 'https://game.example.invalid'
+    const origins = originPolicy([GAME])
+
+    it('lets a listed origin read the answer, and says it varies by origin', async () => {
+      const base = await start({ readiness: 'ready', version: VERSION, origins })
+      const response = await fetch(`${base}/version`, { headers: { origin: GAME } })
+      expect(response.status).toBe(200)
+      expect(response.headers.get('access-control-allow-origin')).toBe(GAME)
+      expect(response.headers.get('vary')).toBe('Origin')
+      expect(response.headers.get('access-control-allow-credentials')).toBeNull()
+    })
+
+    it('does not let an unlisted origin read it', async () => {
+      const base = await start({ readiness: 'ready', version: VERSION, origins })
+      const response = await fetch(`${base}/version`, {
+        headers: { origin: 'https://other.example.invalid' },
+      })
+      expect(response.headers.get('access-control-allow-origin')).toBeNull()
+    })
+
+    it('lets a listed origin read the 503 before the content has loaded, so the page can tell "starting" from "unreachable"', async () => {
+      const base = await start({ readiness: 'starting', origins })
+      const response = await fetch(`${base}/version`, { headers: { origin: GAME } })
+      expect(response.status).toBe(503)
+      expect(response.headers.get('access-control-allow-origin')).toBe(GAME)
+    })
+
+    it('adds no CORS header to the other probes: they are for monitors, not pages', async () => {
+      const base = await start({ readiness: 'ready', origins })
+      for (const path of ['/health', '/ready']) {
+        const response = await fetch(`${base}${path}`, { headers: { origin: GAME } })
+        expect(response.headers.get('access-control-allow-origin')).toBeNull()
+      }
+    })
   })
 
   it('/health still carries no build facts: the body is exactly { ok: true }', async () => {

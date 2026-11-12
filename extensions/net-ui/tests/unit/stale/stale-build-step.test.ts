@@ -85,7 +85,8 @@ describe('staleBuildStep', () => {
     expect(settled()).toBe(1)
   })
 
-  it('unreadable (a throw, a bad shape): resolves', async () => {
+  it('could not check (a throw, a bad shape): resolves, and says in the console that the check did not run', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const thrown = start({
       fetchFacts: async () => {
         throw new Error('offline')
@@ -95,6 +96,17 @@ describe('staleBuildStep', () => {
     await flush()
     expect(thrown.settled()).toBe(1)
     expect(odd.settled()).toBe(1)
+    expect(warn).toHaveBeenCalledTimes(2)
+    expect(warn.mock.calls[0]?.[0]).toMatch(/could not check/i)
+    warn.mockRestore()
+  })
+
+  it('current: says nothing in the console', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    start()
+    await flush()
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
   })
 
   it('an aborted signal resolves a stale panel and removes it', async () => {

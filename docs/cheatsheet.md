@@ -858,6 +858,7 @@
 - `SessionEnd` (interface): Why the session stopped: a second snapshot hash mismatch within `DESYNC_WINDOW_MS`, at this snapshot tick.
 - `SessionRoomState` (interface): What the room says about this player: their seat, and whether it takes input now.
 - `uintSchema` (const): A whole number from 0.
+- `VersionVerdict` (type): What `checkServerVersion` found: the same build, a different one, or no answer it could read.
 - `Watchable` (interface): What a reader gets: the value now, and a way to hear it change.
 - `WatchableSource` (interface): The owner's end of a `Watchable`: it can also set the value.
 
