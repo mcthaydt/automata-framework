@@ -307,3 +307,86 @@ export function polishTones(ctx: AfterToneTexels) {
       }
   }
 }
+
+/**
+ * Lines run whole: a gap of a texel or two along a line inside the figure closes, a stray fleck of line goes back
+ * to its shadow tone, and a deep texel on the shadow side's edge lifts to shadow as reflected light, so the form
+ * turns before its line.
+ */
+export function ruleLines(ctx: AfterToneTexels) {
+  const { D, filled, h, material, n, owner, part, style, tone, under, w } = ctx
+  // Lines run whole: a gap of a texel or two along a line inside the figure (where the contact flickers along a flank)
+  // closes, between line texels on one surface drawn for one nearer part, so no line breaks into dashes.
+  const lineOn = (q: number, k: number) =>
+    q >= 0 && q < n && tone[q] === OUTLINE && material[q] >= 0 && part[q] === part[k]
+  for (let y = 2; y < h - 2; y++)
+    for (let x = 2; x < w - 2; x++) {
+      const k = y * w + x
+      if (material[k] < 0 || tone[k] === OUTLINE || tone[k] === -2) continue
+      for (const d of [1, w, w + 1, w - 1]) {
+        // The line's ends either side, one of them next to this texel.
+        const a = lineOn(k - d, k) ? k - d : lineOn(k - 2 * d, k) ? k - 2 * d : -1,
+          b = lineOn(k + d, k) ? k + d : lineOn(k + 2 * d, k) ? k + 2 * d : -1
+        if (a < 0 || b < 0 || (a !== k - d && b !== k + d) || part[owner[a]] !== part[owner[b]]) continue
+        under[k] = Math.max(tone[k], 2)
+        tone[k] = OUTLINE
+        owner[k] = owner[a]
+        break
+      }
+    }
+  // Stray flecks of line: an interior line still of fewer than a few texels (8-connected, not running into the outline
+  // outside) is where two forms only graze; it goes back to its shadow tone whole.
+  const minLine = 2 + D,
+    lineSeen = new Uint8Array(n),
+    lineRun: number[] = [],
+    stack: number[] = []
+  for (let s0 = 0; s0 < n; s0++) {
+    if (lineSeen[s0] || tone[s0] !== OUTLINE || material[s0] < 0) continue
+    lineRun.length = 0
+    stack.push(s0)
+    lineSeen[s0] = 1
+    let outside = false
+    while (stack.length) {
+      const k = stack.pop()!
+      lineRun.push(k)
+      const x = k % w,
+        y = (k - x) / w
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx,
+            yy = y + dy
+          if ((!dx && !dy) || xx < 0 || yy < 0 || xx >= w || yy >= h) continue
+          const q = yy * w + xx
+          if (material[q] < 0) {
+            outside = true
+            continue
+          }
+          if (tone[q] === OUTLINE && !lineSeen[q]) {
+            lineSeen[q] = 1
+            stack.push(q)
+          }
+        }
+    }
+    if (!outside && lineRun.length < minLine)
+      for (const k of lineRun) {
+        tone[k] = under[k]
+        owner[k] = -1
+      }
+  }
+  // Reflected light: a deep texel on the shadow side's edge (beside the outside, or the line on a far part, away from
+  // the key) lifts to shadow, so the form turns before its line and the two darks never double.
+  const edgeAt = (x: number, y: number) => !filled(x, y) || tone[y * w + x] === OUTLINE
+  if (style.bounce)
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const k = y * w + x
+        if (tone[k] !== 3) continue
+        const away = edgeAt(x + 1, y) || edgeAt(x, y + 1),
+          toward = edgeAt(x - 1, y) || edgeAt(x, y - 1)
+        if (away && !toward && (tone[k - 1] === 3 || tone[k - w] === 3)) tone[k] = 2
+      }
+  return { stack }
+}
+
+/** The context once `ruleLines` has run. */
+export type AfterRuleLines = AfterToneTexels & ReturnType<typeof ruleLines>
