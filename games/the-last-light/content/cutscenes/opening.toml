@@ -1,0 +1,236 @@
+# The prologue's cutscenes. They were converted once from the game's prologue at 92e6704 (through October's fixture),
+# and this file is now the source: edit it by hand and in Sequence.
+id = "opening"
+duration = 17
+
+[[camera]]
+t = 0
+pos = [ -1.6, 4.3, 6.3 ]
+look = [ 0.9, 1.5, 1.6 ]
+lens = 22
+
+[[camera]]
+t = 4.6
+pos = [ -1.6, 4.3, 6.3 ]
+look = [ 0.9, 1.5, 1.6 ]
+lens = 25
+ease = "linear"
+
+[[camera]]
+t = 4.6
+pos = [ 1.4, 1.95, 0.3 ]
+look = [ 0.6, 1.15, 3.6 ]
+cut = true
+lens = 21
+
+[[camera]]
+t = 11
+pos = [ 1.4, 1.95, 0.3 ]
+look = [ 0.6, 1.15, 3.6 ]
+lens = 24
+ease = "linear"
+
+[[camera]]
+t = 11
+pos = [ 2.05, 1.95, 1.6 ]
+look = [ 3.3, 1.85, -0.86 ]
+cut = true
+lens = 32
+
+[[camera]]
+t = 13
+pos = [ 2.05, 1.95, 1.6 ]
+look = [ 3.3, 1.85, -0.86 ]
+lens = 35
+ease = "linear"
+
+[[camera]]
+t = 13
+pos = [ 2, 1.9, 0.1 ]
+look = [ 0.6, 1.2, 3.6 ]
+cut = true
+lens = 25
+
+[[camera]]
+t = 15.9
+pos = [ 2, 1.9, 0.1 ]
+look = [ 0.6, 1.2, 3.6 ]
+lens = 27
+ease = "linear"
+
+[[camera]]
+t = 15.9
+pos = [ 0, 9.399999999999999, 15.533635302821683 ]
+look = [ 0, 1.1, 1.1576136 ]
+cut = true
+lens = 40
+
+[[camera]]
+t = 17
+pos = [ 0, 9.399999999999999, 15.533635302821683 ]
+look = [ 0, 1.1, 1.1576136 ]
+lens = 50
+ease = [ 0.3333333333333333, 0.6666666666666666, 0.6666666666666666, 1 ]
+
+[[actor]]
+who = "player"
+t = 0
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+cut = true
+
+[[actor]]
+who = "player"
+t = 4.6
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[actor]]
+who = "player"
+t = 5
+x = 0.6
+z = 3.6
+facing = 3.9269908169872414
+
+[[actor]]
+who = "player"
+t = 5.8
+x = 0.6
+z = 3.6
+facing = 3.9269908169872414
+
+[[actor]]
+who = "player"
+t = 6.05
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[actor]]
+who = "player"
+t = 6.3
+x = 0.6
+z = 3.6
+facing = 2.356194490192345
+
+[[actor]]
+who = "player"
+t = 7.1
+x = 0.6
+z = 3.6
+facing = 2.356194490192345
+
+[[actor]]
+who = "player"
+t = 7.35
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[actor]]
+who = "player"
+t = 7.6
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[actor]]
+who = "player"
+t = 7.8
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[actor]]
+who = "player"
+t = 7.9399999999999995
+x = 0.6
+z = 3.6
+facing = 2.5972258054002246
+
+[[actor]]
+who = "player"
+t = 13
+x = 0.6
+z = 3.6
+facing = 2.5972258054002246
+pose = "read"
+
+[[actor]]
+who = "player"
+t = 15.5
+x = 0.6
+z = 3.6
+facing = 2.5972258054002246
+pose = "read"
+
+[[actor]]
+who = "player"
+t = 15.6
+x = 0.6
+z = 3.6
+facing = 2.5972258054002246
+
+[[actor]]
+who = "player"
+t = 15.719999999999999
+x = 0.6
+z = 3.6
+facing = 1.7314838702668163
+
+[[actor]]
+who = "player"
+t = 15.84
+x = 0.6
+z = 3.6
+facing = 0.8657419351334081
+
+[[actor]]
+who = "player"
+t = 15.959999999999999
+x = 0.6
+z = 3.6
+facing = 0
+
+[[actor]]
+who = "player"
+t = 17
+x = 0.6
+z = 3.6
+facing = 0
+
+[[caption]]
+t = 0.8
+until = 3.8
+line = "prologue.cutscene.opening.1"
+
+[[caption]]
+t = 4.6
+until = 11.6
+line = "prologue.cutscene.opening.2"
+speaker = "ada"
+
+[[caption]]
+t = 11.7
+until = 15.6
+line = "prologue.cutscene.opening.3"
+speaker = "ada"
+
+[[fade]]
+t = 0
+value = 1
+
+[[fade]]
+t = 2
+value = 0
+
+[[fade]]
+t = 17
+value = 0
+
+[[lintAllow]]
+rule = "direction:unmotivated-move"
+reason = "the last move is the settle onto the hall camera: the handover to play (rule 75)"
+

@@ -28,7 +28,13 @@
   },
   "dependencies": {
     "@automata/3d": "workspace:*",
+    "@automata/cutscenes": "workspace:*",
     "@automata/framework": "workspace:*",
+    "@automata/narrative": "workspace:*",
+    "@automata/systems": "workspace:*",
+    "@automata/interact": "workspace:*",
+    "@automata/nav": "workspace:*",
+    "@automata/puzzle": "workspace:*",
     "@automata/sectors": "workspace:*",
     "@automata/sim": "workspace:*",
     "pixi.js": "8.22.0",
@@ -42,6 +48,7 @@
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "jsdom": "30.1.1",
+    "smol-toml": "1.9.0",
     "typescript": "7.0.2",
     "vite": "8.3.3",
     "vitest": "5.0.3"

@@ -71,6 +71,7 @@ step fails on content with no editor unless its row is here with the Owner's wor
 | 4 | Footsteps by floor: the audio file's `steps` table (floor surface → cue). The Audio editor opens a file with it and keeps it through an edit, but offers no rows to change it | Workstream 2, task 7 (`@automata/audio-synth`), 2026-11-11 | To be specced; the table is data with a schema, so a check names a floor whose cue is missing |
 | 5 | Peek numbers: `content/peek.toml` (reach, dwell, arc, lean, ease) has a schema and a content kind (`peekContent`, sim content); no editor opens it | Workstream 2, task 4 follow-up (`@automata/systems`), 2026-11-11 | To be specced |
 | 6 | Carried-light numbers: `content/carried-light.toml` (radius, start, fill, cap, burn) has a schema and a content kind (`carriedLightContent`, sim content); no editor opens it | Workstream 2, task 4 follow-up (`@automata/systems`), 2026-11-11 | To be specced |
+| 7 | Storylets, beats, help ladders and the canon: `content/storylets/`, `content/beats/`, `content/help/`, `content/canon/` have schemas and content kinds; Writer opens lines only, so a person edits these four as text | Workstream 2, task 11 (the prologue's content), 2026-11-11 | To be specced; the survey listed it as suite work. The files carry a header saying so and `pnpm build` checks them |
 
 ## Findings so far (2026-11-11)
 

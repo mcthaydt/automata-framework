@@ -1,5 +1,16 @@
 import { fileURLToPath } from 'node:url'
 import { automataContent } from '@automata/content/vite'
+import { cutsceneContent } from '@automata/cutscenes/content'
+import {
+  beatsContent,
+  canonContent,
+  helpContent,
+  linesContent,
+  storyletsContent,
+} from '@automata/narrative/content'
+import { navGraphContent } from '@automata/nav'
+import { puzzleContent } from '@automata/puzzle'
+import { systemsContent } from '@automata/systems'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
 
@@ -18,7 +29,19 @@ const ADAPTER_CONDITIONS: Record<string, string> = {
 export function contentPlugin(): ReturnType<typeof automataContent> {
   return automataContent({
     root: process.env.AF_E2E_CONTENT_ROOT ?? fileURLToPath(new URL('.', import.meta.url)),
-    schemas: [],
+    schemas: [
+      linesContent,
+      storyletsContent,
+      beatsContent,
+      helpContent,
+      canonContent,
+      cutsceneContent,
+      navGraphContent,
+      // The calls the puzzle's actions make (`read`, `fill`) are the game's; the creature's four hooks and the re-route
+      // are answered by the night feature (task 12).
+      puzzleContent({ calls: ['read', 'fill'], extensions: ['systems', 'narrative', 'cutscenes'] }),
+      systemsContent({ hooks: ['replan', 'stop', 'leave', 'wake', 'vigil'] }),
+    ],
   })
 }
 

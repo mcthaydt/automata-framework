@@ -1,0 +1,54 @@
+# The prologue's the storylets deck. It was converted once from the game's prologue at 92e6704 (through October's fixture),
+# and this file is now the source: edit it by hand and in the editors.
+[[storylets]]
+id = "st.p0.blanket"
+trigger = "inspect:bed"
+phase = "P0"
+lines = [ "prologue.st.p0.blanket" ]
+once = true
+
+[[storylets.when]]
+fact = "noteRead"
+is = true
+
+[[storylets.when]]
+fact = "lightsOut"
+is = false
+
+[[storylets.when]]
+fact = "bedMade"
+is = false
+
+[[storylets]]
+id = "st.p0.jug"
+trigger = "inspect:nightstand"
+phase = "P0"
+lines = [ "prologue.st.p0.jug" ]
+once = true
+
+[[storylets.when]]
+fact = "noteRead"
+is = true
+
+[[storylets.when]]
+fact = "lightsOut"
+is = false
+
+[[storylets.when]]
+fact = "played.st.p0.blanket"
+atLeast = 1
+
+[[storylets]]
+id = "st.p0.window"
+trigger = "dwell:ward:6"
+phase = "P0"
+lines = [ "prologue.st.p0.window" ]
+once = true
+
+[[storylets.when]]
+fact = "noteRead"
+is = true
+
+[[storylets.when]]
+fact = "lightsOut"
+is = false

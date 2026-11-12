@@ -1,0 +1,668 @@
+# The prologue's lines: each line's record and its words. They were converted once from the game's prologue at 92e6704
+# (through October's fixture), and this file is now the source: edit it by hand and in Writer.
+[[lines]]
+id = "prologue.handover"
+kind = "note"
+text = "prologue.handover"
+motifs = [ "handwriting", "line" ]
+words = "To nights. Handed over to A. Voss. Sorry, bus. You’ll be fine.\nSign the register when you come on. Everyone does. They check.\nSupply key in the cabinet by the desk. Code is the hour we go home: 2000. Not 0800.\nTurn over."
+
+[[lines]]
+id = "prologue.handoverBack"
+kind = "note"
+text = "prologue.handoverBack"
+motifs = [ "handwriting", "four" ]
+words = "Lamp and paraffin in the bedside drawer. Fill it before the corridor, that bulb has gone again. I rang.\nMake up 04 for the morning. Sheets in supply.\nLights go? Lamp lit, or behind the screen. Do not sit till she goes.\nIf you hear the pipes knocking, it is the pipes."
+
+[[lines]]
+id = "prologue.handoverAgain"
+kind = "examine"
+speaker = "ada"
+text = "prologue.handoverAgain"
+motifs = [ "handwriting" ]
+words = "Her writing leans hard to the right, already halfway out the door. “It is the pipes” is underlined three times. That is two more than a pipe needs. And at the top, my name, after “Handed over to”. Nobody has ever handed me anything."
+
+[[lines.delivery.beats]]
+after = 3
+pause = 1
+
+[[lines]]
+id = "prologue.register"
+kind = "note"
+text = "prologue.register"
+motifs = [ "line" ]
+words = "NIGHT REGISTER\nThe first page. Two columns: SIGNED ON, HANDED OVER TO. Clean as a plate."
+
+[[lines]]
+id = "prologue.clock"
+kind = "examine"
+speaker = "ada"
+text = "prologue.clock"
+motifs = [ "clocks" ]
+words = "Eight o’clock. Twelve hours. I have never been awake for twelve hours on purpose."
+
+[[lines]]
+id = "prologue.monitor"
+kind = "examine"
+speaker = "ada"
+text = "prologue.monitor"
+motifs = [ "four" ]
+words = "The screen is dark. Nobody in 04 tonight. Good. Fine. Good."
+
+[lines.delivery]
+how = "convincing herself"
+pace = 1.25
+
+[[lines.delivery.beats]]
+after = 4
+pause = 1
+
+[[lines]]
+id = "prologue.record"
+kind = "examine"
+speaker = "ada"
+text = "prologue.record"
+words = "A blank admission form. Someone pressed so hard on the sheet above that the name came through. I cannot read it. I try anyway."
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines]]
+id = "prologue.bedBare"
+kind = "examine"
+speaker = "ada"
+text = "prologue.bedBare"
+motifs = [ "four" ]
+words = "Bed 04. Stripped to the ticking. There is a dip in the mattress the exact shape of a person lying on their side, facing the wall."
+
+[lines.delivery]
+pace = 0.85
+
+[[lines.delivery.beats]]
+after = 3
+pause = 1
+
+[[lines]]
+id = "prologue.bedWait"
+kind = "examine"
+speaker = "ada"
+text = "prologue.bedWait"
+motifs = [ "four" ]
+words = "Not yet. Not with her out there. I sit down on that bed and I never stand up again, I know it the way you know a stair is missing in the dark."
+
+[lines.delivery]
+how = "low, certain"
+pace = 0.85
+
+[[lines.delivery.beats]]
+after = 3
+pause = 1
+
+[[lines]]
+id = "prologue.bedMade"
+kind = "examine"
+speaker = "ada"
+text = "prologue.bedMade"
+motifs = [ "four", "warmth" ]
+words = "Hospital corners, the way they drilled us. Tight enough to bounce a coin. Clean, and cold, and waiting for someone."
+
+[[lines]]
+id = "prologue.curtain"
+kind = "examine"
+speaker = "ada"
+text = "prologue.curtain"
+words = "A heavy curtain on a rail. Starch, and under the starch something sweeter I decide not to think about."
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines]]
+id = "prologue.sink"
+kind = "examine"
+speaker = "ada"
+text = "prologue.sink"
+words = "The tap runs clear. Then, for a second, not. Then clear."
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines]]
+id = "prologue.nightstandLamp"
+kind = "examine"
+speaker = "ada"
+text = "prologue.nightstandLamp"
+words = "A hand lamp in the drawer. The tank is bone dry. Of course it is."
+
+[[lines]]
+id = "prologue.nightstandParaffin"
+kind = "examine"
+speaker = "ada"
+text = "prologue.nightstandParaffin"
+words = "A bottle of paraffin at the back of the drawer, behind a hair tie that is the same colour as mine."
+
+[[lines]]
+id = "prologue.nightstandMore"
+kind = "examine"
+speaker = "ada"
+text = "prologue.nightstandMore"
+words = "One more bottle of paraffin, behind where the last one was. I could swear it was not there before."
+
+[[lines]]
+id = "prologue.nightstandEmpty"
+kind = "examine"
+speaker = "ada"
+text = "prologue.nightstandEmpty"
+words = "Nothing else. A pencil, chewed to a stub. Someone sat up a long time with this pencil."
+
+[[lines]]
+id = "prologue.trolley"
+kind = "examine"
+speaker = "ada"
+text = "prologue.trolley"
+words = "Folded towels. No sheets. There are never sheets where the sheets go."
+
+[[lines]]
+id = "prologue.cabinetOpen"
+kind = "examine"
+speaker = "ada"
+text = "prologue.cabinetOpen"
+words = "Empty now. Little brass hook, little brass nothing."
+
+[[lines]]
+id = "prologue.doorLocked"
+kind = "examine"
+speaker = "ada"
+text = "prologue.doorLocked"
+words = "The supply room. Locked. I knock, for some reason. Nobody answers, which is the right answer."
+
+[[lines.delivery.beats]]
+after = 4
+pause = 1
+
+[[lines]]
+id = "prologue.doorOpened"
+kind = "examine"
+speaker = "ada"
+text = "prologue.doorOpened"
+words = "The key turns. Inside it is fully dark. The kind of dark that has a smell."
+
+[[lines]]
+id = "prologue.doorOpen"
+kind = "examine"
+speaker = "ada"
+text = "prologue.doorOpen"
+words = "The supply room door stands open, the way I left it. I check anyway."
+
+[[lines]]
+id = "prologue.shelfDark"
+kind = "examine"
+speaker = "ada"
+text = "prologue.shelfDark"
+words = "I cannot see a thing in here. I put my hand out, touch something soft, and decide it was a towel."
+
+[lines.delivery]
+pace = 0.85
+
+[[lines.delivery.beats]]
+after = 2
+pause = 2
+
+[[lines]]
+id = "prologue.shelfSheets"
+kind = "examine"
+speaker = "ada"
+text = "prologue.shelfSheets"
+words = "Clean sheets, folded square, warm from the pipes. Or warm from something."
+
+[[lines]]
+id = "prologue.shelfEmpty"
+kind = "examine"
+speaker = "ada"
+text = "prologue.shelfEmpty"
+words = "Bandages, bleach, a mousetrap with nothing in it. Sprung."
+
+[[lines]]
+id = "prologue.exit"
+kind = "examine"
+speaker = "ada"
+text = "prologue.exit"
+words = "The way out. Not until morning. The handle is cold in a way the rest of the building is not."
+
+[[lines]]
+id = "prologue.fuseBox"
+kind = "examine"
+speaker = "ada"
+text = "prologue.fuseBox"
+words = "EMERGENCY POWER. A fuse in the socket, snug. One less thing."
+
+[[lines]]
+id = "prologue.valve"
+kind = "examine"
+speaker = "ada"
+text = "prologue.valve"
+words = "A water valve, painted red. Red means do not touch, or touch first. They never told us which."
+
+[[lines]]
+id = "prologue.noEffect"
+kind = "examine"
+speaker = "ada"
+text = "prologue.noEffect"
+words = "That does nothing."
+
+[[lines]]
+id = "prologue.lighterEmpty"
+kind = "examine"
+speaker = "ada"
+text = "prologue.lighterEmpty"
+words = "The lamp gutters and goes. The dark comes back like it was only ever waiting."
+
+[[lines]]
+id = "prologue.torchOut"
+kind = "examine"
+speaker = "ada"
+text = "prologue.torchOut"
+words = "The light goes out."
+
+[[lines]]
+id = "prologue.combineTorch"
+kind = "examine"
+speaker = "ada"
+text = "prologue.combineTorch"
+words = "I hold them together for a while. Nothing. Good, nobody saw."
+
+[[lines]]
+id = "prologue.combineFluid"
+kind = "examine"
+speaker = "ada"
+text = "prologue.combineFluid"
+motifs = [ "warmth" ]
+words = "I fill the lamp and light it. Paraffin on my fingers. I will smell it on every night shift for the rest of my life."
+
+[[lines.delivery.beats]]
+after = 3
+pause = 1
+
+[[lines]]
+id = "prologue.lampDry"
+kind = "examine"
+speaker = "ada"
+text = "prologue.lampDry"
+words = "Dry. It needs paraffin before it is anything but a heavy jar."
+
+[[lines]]
+id = "prologue.keypadWrong"
+kind = "examine"
+speaker = "ada"
+text = "prologue.keypadWrong"
+words = "The keypad buzzes at me. Wrong. Not 0800. She said."
+
+[lines.delivery]
+how = "annoyed at herself"
+pace = 1.25
+
+[[lines]]
+id = "prologue.keypadRight"
+kind = "examine"
+speaker = "ada"
+text = "prologue.keypadRight"
+words = "The keypad chimes. Inside the cabinet, a key on a paper tag, swinging slightly, as if someone just let go of it."
+
+[[lines]]
+id = "prologue.item.handLamp.name"
+kind = "item"
+text = "prologue.item.handLamp.name"
+words = "Hand lamp"
+
+[[lines]]
+id = "prologue.item.handLamp"
+kind = "item"
+speaker = "ada"
+text = "prologue.item.handLamp"
+motifs = [ "warmth" ]
+words = "A paraffin hand lamp. Light it in the dark. The tank will not last all night, and neither, the way I feel, will I."
+
+[[lines.delivery.beats]]
+after = 3
+pause = 1
+
+[[lines]]
+id = "prologue.item.paraffin.name"
+kind = "item"
+text = "prologue.item.paraffin.name"
+words = "Paraffin"
+
+[[lines]]
+id = "prologue.item.paraffin"
+kind = "item"
+speaker = "ada"
+text = "prologue.item.paraffin"
+words = "A bottle of lamp oil. Combine it with the lamp."
+
+[[lines]]
+id = "prologue.item.supplyKey.name"
+kind = "item"
+text = "prologue.item.supplyKey.name"
+words = "Supply key"
+
+[[lines]]
+id = "prologue.item.supplyKey"
+kind = "item"
+speaker = "ada"
+text = "prologue.item.supplyKey"
+motifs = [ "tags" ]
+words = "Paper tag: SUPPLY."
+
+[[lines]]
+id = "prologue.item.sheets.name"
+kind = "item"
+text = "prologue.item.sheets.name"
+words = "Clean sheets"
+
+[[lines]]
+id = "prologue.item.sheets"
+kind = "item"
+speaker = "ada"
+text = "prologue.item.sheets"
+motifs = [ "four" ]
+words = "Folded square, for Bed 04. Use them on the bed."
+
+[[lines]]
+id = "prologue.registerAsk"
+kind = "note"
+text = "prologue.registerAsk"
+motifs = [ "line" ]
+words = "A clean page. SIGNED ON, HANDED OVER TO."
+
+[[lines]]
+id = "prologue.registerSign"
+kind = "dialogue"
+speaker = "ada"
+text = "prologue.registerSign"
+words = "Sign on."
+
+[[lines]]
+id = "prologue.registerLeave"
+kind = "dialogue"
+speaker = "ada"
+text = "prologue.registerLeave"
+words = "Not now."
+
+[[lines]]
+id = "prologue.registerSigned"
+kind = "file"
+text = "prologue.registerSigned"
+motifs = [ "handwriting", "line" ]
+words = "NIGHT REGISTER\nSIGNED ON 20:00   A. Voss   First night. All quiet.\nHANDED OVER TO:"
+
+[[lines]]
+id = "prologue.st.p0.blanket"
+kind = "examine"
+speaker = "ada"
+text = "prologue.st.p0.blanket"
+motifs = [ "warmth", "pools", "four" ]
+words = "Under the ward lamp I smooth the ticking flat with both hands, the way you would for somebody already lying there. Square corners, with no sheet to square. The dip stays where it is."
+
+[lines.delivery]
+pace = 0.85
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines]]
+id = "prologue.st.p0.jug"
+kind = "examine"
+speaker = "ada"
+text = "prologue.st.p0.jug"
+motifs = [ "four" ]
+words = "I wipe the nightstand down with my sleeve, so whoever wakes in 04 tomorrow wakes to something clean. You make a place ready before anybody asks you to."
+
+[[lines.delivery.beats]]
+after = 1
+pause = 1
+
+[[lines]]
+id = "prologue.st.p0.window"
+kind = "examine"
+speaker = "ada"
+text = "prologue.st.p0.window"
+motifs = [ "clocks" ]
+words = "Frost on the high window, at the corners first, the way it starts. Past the bars the county is dark to the edge of it. Eight o’clock, and the whole night still in front of me."
+
+[[lines]]
+id = "prologue.register.code"
+kind = "note"
+text = "prologue.register.code"
+motifs = [ "handwriting" ]
+words = "The cabinet’s four numbers"
+
+[[lines]]
+id = "prologue.register.supplyKey"
+kind = "note"
+text = "prologue.register.supplyKey"
+motifs = [ "handwriting" ]
+words = "The key from the cabinet"
+
+[[lines]]
+id = "prologue.register.fillLamp"
+kind = "note"
+text = "prologue.register.fillLamp"
+motifs = [ "handwriting" ]
+words = "The hand lamp"
+
+[[lines]]
+id = "prologue.register.darkShelf"
+kind = "note"
+text = "prologue.register.darkShelf"
+motifs = [ "handwriting" ]
+words = "The supply room, in the dark"
+
+[[lines]]
+id = "prologue.register.makeBed"
+kind = "note"
+text = "prologue.register.makeBed"
+motifs = [ "handwriting" ]
+words = "Bed 04, to be made up"
+
+[[lines]]
+id = "prologue.register.vigil"
+kind = "note"
+text = "prologue.register.vigil"
+motifs = [ "handwriting" ]
+words = "Her round"
+
+[[lines]]
+id = "prologue.cutscene.opening.1"
+kind = "caption"
+text = "prologue.cutscene.opening.1"
+motifs = [ "clocks" ]
+words = "St. Agnes Clinic. 20:00."
+
+[[lines]]
+id = "prologue.cutscene.opening.2"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.opening.2"
+words = "First night. The day shift went out the door like the building was on fire. It isn’t. I checked."
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines.delivery.beats]]
+after = 3
+pause = 1
+
+[[lines]]
+id = "prologue.cutscene.opening.3"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.opening.3"
+motifs = [ "handwriting" ]
+words = "She left me a note. A long one."
+
+[[lines.delivery.beats]]
+after = 1
+pause = 1
+
+[[lines]]
+id = "prologue.cutscene.keypad.1"
+kind = "caption"
+text = "prologue.cutscene.keypad.1"
+words = "The cabinet clicks open."
+
+[[lines]]
+id = "prologue.cutscene.lightsOut.1"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.lightsOut.1"
+motifs = [ "warmth" ]
+words = "Every lamp goes out at once. Like a held breath. Mine is the last one."
+
+[lines.delivery]
+pace = 0.85
+
+[[lines.delivery.beats]]
+after = 1
+pause = 1
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines]]
+id = "prologue.cutscene.lightsOut.2"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.lightsOut.2"
+words = "Somebody at the end of the corridor. Nobody came in. I would have heard."
+
+[lines.delivery]
+pace = 0.85
+
+[[lines.delivery.beats]]
+after = 1
+pause = 1
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines]]
+id = "prologue.cutscene.found.1"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.found.1"
+motifs = [ "four" ]
+words = "Cold fingers on my wrist, counting my pulse. Gently. I blink. Bed 04 again, in the dark."
+
+[lines.delivery]
+pace = 0.85
+
+[[lines.delivery.beats]]
+after = 1
+pause = 1
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines.delivery.beats]]
+after = 3
+pause = 1
+
+[[lines]]
+id = "prologue.cutscene.rest.1"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.rest.1"
+motifs = [ "line" ]
+words = "All quiet. I will write that in the register. First night. All quiet."
+
+[[lines.delivery.beats]]
+after = 1
+pause = 1
+
+[[lines.delivery.beats]]
+after = 2
+pause = 1
+
+[[lines.delivery.beats]]
+after = 3
+pause = 1
+
+[[lines]]
+id = "prologue.cutscene.rest.2"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.rest.2"
+words = "Just close my eyes. Just until it is light. Somewhere in the walls, a click, like a tongue."
+
+[lines.delivery]
+pace = 0.85
+
+[[lines.delivery.beats]]
+after = 1
+pause = 1
+
+[[lines.delivery.beats]]
+after = 2
+pause = 2
+
+[[lines]]
+id = "prologue.objective.note"
+kind = "objective"
+text = "prologue.objective.note"
+words = "Read the note the day shift left on the desk."
+
+[[lines]]
+id = "prologue.objective.key"
+kind = "objective"
+text = "prologue.objective.key"
+words = "Get the supply key from the cabinet. The code is in the note."
+
+[[lines]]
+id = "prologue.objective.lamp"
+kind = "objective"
+text = "prologue.objective.lamp"
+words = "Find the hand lamp in the ward."
+
+[[lines]]
+id = "prologue.objective.fill"
+kind = "objective"
+text = "prologue.objective.fill"
+words = "Fill the lamp: select it, choose combine, then the paraffin."
+
+[[lines]]
+id = "prologue.objective.closet"
+kind = "objective"
+text = "prologue.objective.closet"
+words = "Take the lit lamp to the supply room in the corridor. F snuffs it and lights it again."
+
+[[lines]]
+id = "prologue.objective.sheets"
+kind = "objective"
+text = "prologue.objective.sheets"
+words = "Take clean sheets from the supply room."
+
+[[lines]]
+id = "prologue.objective.bed"
+kind = "objective"
+text = "prologue.objective.bed"
+words = "Make up Bed 04: select the sheets, then use them on the bed."
+
+[[lines]]
+id = "prologue.objective.hide"
+kind = "objective"
+text = "prologue.objective.hide"
+words = "Keep the lamp lit, or hide behind the privacy screen or in the supply locker, until she goes."
+
+[[lines]]
+id = "prologue.objective.rest"
+kind = "objective"
+text = "prologue.objective.rest"
+words = "She has gone. Sit down at Bed 04."
+

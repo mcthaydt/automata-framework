@@ -1,0 +1,389 @@
+# The prologue's cutscenes. They were converted once from the game's prologue at 92e6704 (through October's fixture),
+# and this file is now the source: edit it by hand and in Sequence.
+id = "lightsOut"
+duration = 16
+flicker = [ [ 0.7, 1 ], [ 6.6, 7 ], [ 12.1, 12.5 ] ]
+
+[[camera]]
+t = 0
+pos = [ 2, 3.4, -0.9 ]
+look = [ -2.9, 0.9, 0.7 ]
+cut = true
+lens = 22
+
+[[camera]]
+t = 3
+pos = [ 2, 3.4, -0.9 ]
+look = [ -2.9, 0.9, 0.7 ]
+lens = 23
+ease = "linear"
+
+[[camera]]
+t = 3
+pos = [ -1.2, 1.5, -2.0999999999999996 ]
+look = [ -2.9, 1.1, 0.7 ]
+cut = true
+lens = 21
+
+[[camera]]
+t = 6.5
+pos = [ -1.2, 1.5, -2.0999999999999996 ]
+look = [ -2.9, 1.1, 0.7 ]
+lens = 21
+
+[[camera]]
+t = 6.5
+pos = [ 0, 1.7, 0.2 ]
+look = [ 0, 1.2, -6.1 ]
+cut = true
+lens = 40
+
+[[camera]]
+t = 7.6
+pos = [ 0, 1.7, 0.2 ]
+look = [ 0, 1.2, -6.1 ]
+lens = 41
+ease = "linear"
+
+[[camera]]
+t = 7.6
+pos = [ -0.3684639018019329, 0.9, -1.5696530535568882 ]
+look = [ -2.9, 1.2, 0.7 ]
+cut = true
+lens = 22
+
+[[camera]]
+t = 9.4
+pos = [ -0.3684639018019329, 0.9, -1.5696530535568882 ]
+look = [ -2.9, 1.2, 0.7 ]
+lens = 23
+ease = "linear"
+
+[[camera]]
+t = 9.4
+pos = [ 0, 1.75, -0.6 ]
+look = [ 0, 1.3, -5.8 ]
+cut = true
+lens = 28
+
+[[camera]]
+t = 13.6
+pos = [ 0, 1.75, -0.6 ]
+look = [ 0, 1.3, -5.8 ]
+lens = 34
+ease = "linear"
+
+[[camera]]
+t = 13.6
+pos = [ -1.0999999999999999, 1.55, -2.2 ]
+look = [ -2.9, 1.1, 0.7 ]
+cut = true
+lens = 24
+
+[[camera]]
+t = 16
+pos = [ -1.0999999999999999, 1.55, -2.2 ]
+look = [ -2.9, 1, 0.7 ]
+lens = 21
+ease = "linear"
+
+[[actor]]
+who = "player"
+t = 0
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+cut = true
+
+[[actor]]
+who = "player"
+t = 1.2
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[actor]]
+who = "player"
+t = 1.6
+x = -2.9
+z = 0.7
+facing = 2.356194490192345
+
+[[actor]]
+who = "player"
+t = 2.5
+x = -2.9
+z = 0.7
+facing = 2.356194490192345
+
+[[actor]]
+who = "player"
+t = 2.75
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[actor]]
+who = "player"
+t = 3
+x = -2.9
+z = 0.7
+facing = 0.7853981633974483
+
+[[actor]]
+who = "player"
+t = 3.9000000000000004
+x = -2.9
+z = 0.7
+facing = 0.7853981633974483
+
+[[actor]]
+who = "player"
+t = 4.1499999999999995
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[actor]]
+who = "player"
+t = 4.5
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[actor]]
+who = "player"
+t = 4.6
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[actor]]
+who = "player"
+t = 4.739999999999999
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+
+[[actor]]
+who = "player"
+t = 7.6
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+pose = "flinch"
+
+[[actor]]
+who = "player"
+t = 8.25
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+pose = "flinch"
+
+[[actor]]
+who = "player"
+t = 8.3
+x = -2.9
+z = 1
+facing = 2.301703033951614
+moving = true
+
+[[actor]]
+who = "player"
+t = 8.5
+x = -2.9
+z = 1
+facing = 2.301703033951614
+shiver = 0.012
+
+[[actor]]
+who = "player"
+t = 9.4
+x = -2.9
+z = 1
+facing = 2.301703033951614
+shiver = 0.012
+
+[[actor]]
+who = "player"
+t = 13.6
+x = -2.9
+z = 1
+facing = 2.301703033951614
+
+[[actor]]
+who = "player"
+t = 15.2
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+moving = true
+
+[[actor]]
+who = "player"
+t = 16
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+
+[[actor]]
+who = "nurse"
+t = 0
+x = 0
+z = -6.1
+alpha = 0
+facing = 0
+
+[[actor]]
+who = "nurse"
+t = 6.85
+x = 0
+z = -6.1
+alpha = 0
+facing = 0
+
+[[actor]]
+who = "nurse"
+t = 7
+x = 0
+z = -6.1
+alpha = 1
+facing = 0
+
+[[actor]]
+who = "nurse"
+t = 10.6
+x = 0
+z = -6.1
+alpha = 1
+facing = 0
+
+[[actor]]
+who = "nurse"
+t = 12.8
+x = 0
+z = -5.4
+alpha = 1
+facing = 0
+moving = true
+
+[[actor]]
+who = "nurse"
+t = 16
+x = 0
+z = -5.4
+alpha = 1
+facing = 0
+
+[[caption]]
+t = 0.8
+until = 6.5
+line = "prologue.cutscene.lightsOut.1"
+speaker = "ada"
+
+[[caption]]
+t = 7.8
+until = 13.6
+line = "prologue.cutscene.lightsOut.2"
+speaker = "ada"
+
+[[light]]
+t = 0
+lamp = "hallLamp"
+level = 1
+
+[[light]]
+t = 0
+lamp = "deskLamp"
+level = 1
+
+[[light]]
+t = 0
+lamp = "sconce"
+level = 1
+
+[[light]]
+t = 0
+lamp = "corridorLamp"
+level = 0.6
+
+[[light]]
+t = 0.95
+lamp = "hallLamp"
+level = 1
+
+[[light]]
+t = 0.95
+lamp = "deskLamp"
+level = 1
+
+[[light]]
+t = 0.95
+lamp = "sconce"
+level = 1
+
+[[light]]
+t = 0.95
+lamp = "corridorLamp"
+level = 0.6
+
+[[light]]
+t = 0
+lamp = "wardLamp"
+level = 1
+
+[[light]]
+t = 0.95
+lamp = "wardLamp"
+level = 1
+
+[[light]]
+t = 1.05
+lamp = "wardLamp"
+level = 0
+
+[[light]]
+t = 1.05
+lamp = "hallLamp"
+level = 0
+
+[[light]]
+t = 1.05
+lamp = "deskLamp"
+level = 0
+
+[[light]]
+t = 1.05
+lamp = "sconce"
+level = 0
+
+[[light]]
+t = 1.05
+lamp = "corridorLamp"
+level = 0
+
+[[sound]]
+t = 6.9
+kind = "sting"
+
+[[fade]]
+t = 0
+value = 1
+
+[[fade]]
+t = 0.5
+value = 0
+
+[[fade]]
+t = 15.5
+value = 0
+
+[[fade]]
+t = 16
+value = 1
+
+[[lintAllow]]
+rule = "hidden"
+reason = "the reaction shot looks toward the corridor: the figure stands behind its wall, off screen, as intended (C-G1 to confirm)"
+

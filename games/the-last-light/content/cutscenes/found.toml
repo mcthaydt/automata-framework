@@ -1,0 +1,150 @@
+# The prologue's cutscenes. They were converted once from the game's prologue at 92e6704 (through October's fixture),
+# and this file is now the source: edit it by hand and in Sequence.
+id = "found"
+duration = 7
+flicker = [ [ 0, 0.8 ] ]
+
+[[camera]]
+t = 0
+pos = [ -3.6, 3.4, 2.2 ]
+look = [ 0, 0.9, 0 ]
+cut = true
+lens = 20
+about = "player"
+
+[[camera]]
+t = 4.2
+pos = [ -3.6, 3.4, 2.2 ]
+look = [ 0, 0.9, 0 ]
+lens = 25
+ease = "linear"
+about = "player"
+
+[[camera]]
+t = 4.5
+pos = [ -1, 2.6, -1.6 ]
+look = [ -3.25, 0.75, 0.7 ]
+cut = true
+lens = 21
+
+[[camera]]
+t = 7
+pos = [ -1, 2.6, -1.6 ]
+look = [ -3.25, 0.8, 0.7 ]
+lens = 23
+ease = "linear"
+
+[[actor]]
+who = "player"
+t = 0
+facing = -2.593043251139265
+y = 0.05
+pose = "flinch"
+at = "player"
+
+[[actor]]
+who = "player"
+t = 0.6
+facing = -2.593043251139265
+pose = "flinch"
+at = "player"
+
+[[actor]]
+who = "player"
+t = 0.7
+facing = -2.593043251139265
+shiver = 0.012
+at = "player"
+
+[[actor]]
+who = "player"
+t = 4.2
+facing = -2.593043251139265
+shiver = 0.012
+at = "player"
+
+[[actor]]
+who = "player"
+t = 4.5
+x = -3.25
+z = 0.7
+facing = 2.3671830588750784
+pose = "sit"
+cut = true
+
+[[actor]]
+who = "player"
+t = 7
+x = -3.25
+z = 0.7
+facing = 2.3671830588750784
+pose = "sit"
+
+[[actor]]
+who = "nurse"
+t = 0
+alpha = 1
+facing = 0.548549402450528
+pose = "pulse"
+frame = 1
+at = "actor:nurse"
+
+[[actor]]
+who = "nurse"
+t = 0.8
+facing = 0.548549402450528
+pose = "pulse"
+frame = 3
+at = "actor:nurse"
+
+[[actor]]
+who = "nurse"
+t = 4.2
+alpha = 1
+facing = 0.548549402450528
+pose = "pulse"
+frame = 3
+at = "actor:nurse"
+
+[[actor]]
+who = "nurse"
+t = 4.5
+x = 0
+z = -6.1
+alpha = 0
+cut = true
+
+[[caption]]
+t = 0
+until = 7
+line = "prologue.cutscene.found.1"
+speaker = "ada"
+
+[[fade]]
+t = 0
+value = 0
+
+[[fade]]
+t = 3.85
+value = 0
+
+[[fade]]
+t = 4.2
+value = 1
+
+[[fade]]
+t = 4.5
+value = 1
+
+[[fade]]
+t = 5.1000000000000005
+value = 0
+
+[[fade]]
+t = 6.3
+value = 0
+
+[[fade]]
+t = 7
+value = 1
+

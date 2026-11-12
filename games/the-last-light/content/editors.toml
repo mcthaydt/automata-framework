@@ -8,3 +8,41 @@ editor = "levels-3d"
 modes = ["edit"]
 gates = []
 checks = ["content"]
+
+# Ada's lines and the register's, in Writer; the cutscenes in Sequence.
+[[file]]
+glob = "content/lines/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/cutscenes/*.toml"
+editor = "sequence"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+# The creature, the walking graph and the puzzle, in Schematic. The game loads these files as they are, so a Save is a
+# change in play.
+[[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/nav/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/puzzles/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]

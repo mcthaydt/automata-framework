@@ -4,6 +4,7 @@
   "compilerOptions": { "types": ["node", "vite/client"] },
   "include": [
     "ship.config.ts",
+    "tools/convert/*.ts",
     "vite.config.ts",
     "vitest.config.ts",
     "tests/unit/architecture.test.ts",

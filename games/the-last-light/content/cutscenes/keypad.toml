@@ -1,0 +1,51 @@
+# The prologue's cutscenes. They were converted once from the game's prologue at 92e6704 (through October's fixture),
+# and this file is now the source: edit it by hand and in Sequence.
+id = "keypad"
+duration = 3
+
+[[camera]]
+t = 0
+pos = [ 2.95, 1.85, 3.25 ]
+look = [ 4.7, 1.4, 3.4 ]
+cut = true
+lens = 26
+
+[[camera]]
+t = 3
+pos = [ 3.2, 1.8, 3.3 ]
+look = [ 4.7, 1.4, 3.4 ]
+lens = 32
+ease = [ 0.3333333333333333, 0.6666666666666666, 0.6666666666666666, 1 ]
+
+[[actor]]
+who = "player"
+t = 0
+x = 4.1
+z = 4.45
+facing = 2.356194490192345
+
+[[caption]]
+t = 0.3
+until = 3
+line = "prologue.cutscene.keypad.1"
+
+[[fade]]
+t = 0
+value = 1
+
+[[fade]]
+t = 0.3
+value = 0
+
+[[fade]]
+t = 2.7
+value = 0
+
+[[fade]]
+t = 3
+value = 1
+
+[[states]]
+t = 0.9
+state = "cabinet.open"
+

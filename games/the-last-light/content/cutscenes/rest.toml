@@ -1,0 +1,195 @@
+# The prologue's cutscenes. They were converted once from the game's prologue at 92e6704 (through October's fixture),
+# and this file is now the source: edit it by hand and in Sequence.
+id = "rest"
+duration = 16
+
+[[camera]]
+t = 0
+pos = [ 0.4, 2.6, -0.6 ]
+look = [ -2.9, 1, 0.7 ]
+cut = true
+lens = 24
+
+[[camera]]
+t = 4.5
+pos = [ 0.1, 2.4, -0.4 ]
+look = [ -2.9, 1, 0.7 ]
+lens = 24
+ease = [ 0.3333333333333333, 0.6666666666666666, 0.6666666666666666, 1 ]
+
+[[camera]]
+t = 4.5
+pos = [ -2.75, 2.5, 3.3 ]
+look = [ -3.2, 0.9, 0.7 ]
+cut = true
+lens = 20
+
+[[camera]]
+t = 9
+pos = [ -2.75, 2.5, 3.3 ]
+look = [ -3.2, 0.9, 0.7 ]
+lens = 20
+
+[[camera]]
+t = 9
+pos = [ -1.1, 3, -1.9000000000000001 ]
+look = [ -3.2, 0.6, 0.7 ]
+cut = true
+lens = 22
+
+[[camera]]
+t = 13
+pos = [ -1.2000000000000002, 2.9, -1.8 ]
+look = [ -3.2, 0.6, 0.7 ]
+lens = 22
+ease = "linear"
+
+[[camera]]
+t = 13
+pos = [ -0.3, 1.1, 0 ]
+look = [ -3.2, 0.75, 0.7 ]
+cut = true
+lens = 20
+
+[[camera]]
+t = 16
+pos = [ -0.35, 1.1, 0.1 ]
+look = [ -3.2, 0.75, 0.7 ]
+lens = 21
+ease = "linear"
+
+[[actor]]
+who = "player"
+t = 0
+x = -2.9
+z = 0.7
+facing = -1.5707963267948966
+cut = true
+
+[[actor]]
+who = "player"
+t = 1.6
+x = -3.2
+z = 0.7
+facing = -1.5707963267948966
+moving = true
+
+[[actor]]
+who = "player"
+t = 2
+x = -3.2
+z = 0.7
+facing = -1.5707963267948966
+
+[[actor]]
+who = "player"
+t = 2.12
+x = -3.2
+z = 0.7
+facing = -0.7853981633974483
+
+[[actor]]
+who = "player"
+t = 2.24
+x = -3.2
+z = 0.7
+facing = 0
+
+[[actor]]
+who = "player"
+t = 2.36
+x = -3.2
+z = 0.7
+facing = 0.7853981633974483
+
+[[actor]]
+who = "player"
+t = 2.48
+x = -3.2
+z = 0.7
+facing = 1.5707963267948966
+
+[[actor]]
+who = "player"
+t = 3
+x = -3.2
+z = 0.7
+facing = 1.5707963267948966
+pose = "sit"
+
+[[actor]]
+who = "player"
+t = 12.9
+x = -3.2
+z = 0.7
+facing = 1.5707963267948966
+pose = "sit"
+
+[[actor]]
+who = "player"
+t = 13
+x = -4.1
+z = 0.7
+facing = 3.141592653589793
+pose = "sleep"
+y = 0.55
+cut = true
+through = true
+
+[[actor]]
+who = "player"
+t = 16
+x = -4.1
+z = 0.7
+facing = 3.141592653589793
+pose = "sleep"
+y = 0.55
+through = true
+
+[[caption]]
+t = 2.5
+until = 8.1
+line = "prologue.cutscene.rest.1"
+speaker = "ada"
+
+[[caption]]
+t = 8.2
+until = 15.2
+line = "prologue.cutscene.rest.2"
+speaker = "ada"
+
+[[light]]
+t = 9
+lamp = "wardLamp"
+level = 0
+
+[[light]]
+t = 11
+lamp = "hallLamp"
+level = 0
+
+[[light]]
+t = 13
+lamp = "deskLamp"
+level = 0
+
+[[fade]]
+t = 0
+value = 1
+
+[[fade]]
+t = 0.6
+value = 0
+
+[[fade]]
+t = 14.6
+value = 0
+
+[[fade]]
+t = 16
+value = 1
+
+[[lintAllow]]
+rule = "direction:match-action"
+reason = "an ellipsis: the cut to the low shot skips her lying down, from the bed edge to asleep on the bed"
+

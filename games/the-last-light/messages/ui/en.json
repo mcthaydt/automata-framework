@@ -1,0 +1,21 @@
+{
+  "hotspot.bed": "Bed 04",
+  "hotspot.monitor": "Bedside monitor",
+  "hotspot.curtainWest": "Ward curtain",
+  "hotspot.curtainEast": "Privacy curtain",
+  "hotspot.nightstand": "Nightstand",
+  "hotspot.record": "Patient record",
+  "hotspot.sink": "Ward sink",
+  "hotspot.trolley": "Linen trolley",
+  "hotspot.register": "Night register",
+  "hotspot.cabinet": "Key cabinet",
+  "hotspot.noticeboard": "Noticeboard",
+  "hotspot.clock": "Wall clock",
+  "hotspot.closetDoor": "Supply room door",
+  "hotspot.shelf": "Supply shelf",
+  "hotspot.valve": "Water valve",
+  "hotspot.fuseBox": "Fuse box",
+  "hotspot.exit": "Emergency exit",
+  "hotspot.locker": "Supply locker",
+  "hotspot.screen": "Privacy screen"
+}
