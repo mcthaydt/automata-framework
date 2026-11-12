@@ -18,10 +18,12 @@
     "glow": 0.5,
     "focusFp": 3
   },
+  "figureShadow": 0.6,
   "switches": {
     "outline": false,
     "grade": true,
     "dither": true,
-    "haze": true
+    "haze": true,
+    "shadow": true
   }
 }

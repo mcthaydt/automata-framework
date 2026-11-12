@@ -1,4 +1,5 @@
 import { defineTests, type TestOptions } from '@automata/vitest-preset'
+import { playwright } from '@vitest/browser-playwright'
 import type { BrowserCommand } from 'vitest/node'
 
 // `tests/unit`: the kit's registrations, pieces, seats, goldens and content, on Node. `tests/browser`: its geometry goldens
@@ -25,9 +26,37 @@ const gateWrite: BrowserCommand<[name: string, base64: string], void> = async (_
   writeFileSync(join(out, name), Buffer.from(base64, 'base64'))
 }
 
+// WebGPU in Chromium needs its flag, and a machine with no GPU (a cloud session, CI without one) needs a software adapter that can
+// also present a canvas: SwiftShader through Vulkan (`AF_WEBGPU=software`, as `packages/3d`'s `webgpu` project has it).
+const webgpuArgs = [
+  '--enable-unsafe-webgpu',
+  ...(process.env.AF_WEBGPU === 'software'
+    ? [
+        '--use-angle=swiftshader',
+        '--enable-unsafe-swiftshader',
+        '--enable-features=Vulkan',
+        '--use-vulkan=swiftshader',
+      ]
+    : []),
+]
+
 // Svelte compiles the runtime's screens, which the painted figures' renderer test reaches through `@automata/3d`.
 export default defineTests({
   svelte: true,
   optimizeDeps: ['zod'],
   browserCommands: { kitFixture, gateWrite } as NonNullable<TestOptions['browserCommands']>,
+  // `browser`: the painted figures and the geometry goldens in every engine. `webgpu`: the painted figures again through Pixi's
+  // WebGPU renderer, in a Chromium launched with WebGPU on (the `browser` project's has none, so it would only ever fall back).
+  browserProjects: [
+    { name: 'browser', folder: '{painted,parity}', engines: ['chromium', 'webkit', 'firefox'] },
+    {
+      name: 'webgpu',
+      folder: 'webgpu',
+      engines: ['chromium'],
+      instance: () => ({
+        browser: 'chromium',
+        provider: playwright({ launchOptions: { args: webgpuArgs } }),
+      }),
+    },
+  ],
 })

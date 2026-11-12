@@ -1,4 +1,4 @@
-// The painted figures of one camera, drawn with per-texel depth. One stage per camera (found by the `Camera3D` a view
+// The painted figures of one camera, drawn with per-texel depth under WebGL and WebGPU. One stage per camera (found by the `Camera3D` a view
 // factory is handed, so a game writes nothing for it) places every figure by the stage contract (place.ts), sorts them far to
 // near, and shows each cell on the builder's own depth-writing `CellSprite` in the AF `View3D`, so the figures and AF's
 // meshes share one depth buffer and the builder's tie rule: strictly nearer wins, a tie goes to the later figure, and a
@@ -7,25 +7,23 @@
 // It runs in `View3D.onRender`, which Pixi runs at the start of each render, after the draw hooks (the camera driver among
 // them): so a figure is placed by the camera as it is drawn, not by last frame's. `onRender` is one slot, so the stage
 // calls whatever was there first and puts it back when its last figure leaves.
+import type { FigureShadow } from '@automata/3d'
 import { type Camera3D, type Container3D, Matrix4, type View3D } from '@pixi/3d'
+import { RendererType } from 'pixi.js'
 import { type Cell, TIE_BIAS, texelDepths, type V3, type View } from '../../shared/figure-builder/door.ts'
 import { CellSprite, poseQuaternion } from '../../shared/figure-builder/door-view.ts'
-import { type Placed, paintView, place, ranked } from './place.ts'
+import { type Placed, type PlaceOptions, paintView, place, ranked } from './place.ts'
 import { poseOf } from './pose.ts'
-
-/** What a renderer without per-texel depth is told, once. The builder's depth shader has a WebGL stage and no WebGPU one. */
-export const NOT_WEBGL =
-  'Painted figures: per-texel depth needs the WebGL renderer. This one is not WebGL, so the figures depth-test as flat ' +
-  "quads at their root and cannot hide behind a wall or each other texel by texel. AF's renderer asks for WebGL 2 " +
-  "unless the game sets `preference: 'webgpu'`."
-
-/** Pixi's `RendererType.WEBGL`. */
-const WEBGL = 1
+import { shadowInput } from './shadow-input.ts'
 
 /** A figure on the stage: where it stands, and the cell it paints for the view the stage gives it. */
 export interface StageMember {
   /** The entity's node. The quad is its child, so it is hidden with it, and goes with it when it is destroyed. */
   readonly node: Container3D
+  /** How its cell is placed: the density it paints at and whether a texel is a whole number of pixels (whole pixels at density 2 by default). */
+  readonly placing?: PlaceOptions | undefined
+  /** The figure's cast shadow on the floor (the room's: `SceneLight.shadows`), cast each frame the figure is drawn; none without one. */
+  readonly shadow?: FigureShadow | undefined
   /** Paints for this frame: `view` is the view the camera gives a figure at that place. */
   frame(view: (at: V3) => View): { cell: Cell; at: V3; name: string }
 }
@@ -52,7 +50,6 @@ class Stage implements PaintedStage {
   private view: View3D | undefined
   private hook: OnRender | undefined
   private before: View3D['onRender'] = null
-  private warned = false
   /** The camera's projection, one matrix kept so a frame allocates none. */
   private readonly projection = new Matrix4()
 
@@ -96,10 +93,6 @@ class Stage implements PaintedStage {
   }
 
   private draw(view: View3D, rendererType: number): void {
-    if (rendererType !== WEBGL && !this.warned) {
-      this.warned = true
-      console.warn(NOT_WEBGL)
-    }
     const [w, h] = [view.width, view.height]
     const pose = poseOf(this.camera, [w, h])
     const turn = poseQuaternion(pose)
@@ -107,11 +100,19 @@ class Stage implements PaintedStage {
     const found: Placed[] = []
     for (const entry of this.entries) {
       const { node } = entry.member
-      if (!shown(node)) continue
+      if (!shown(node)) {
+        entry.member.shadow?.hide()
+        continue
+      }
       const { cell, at, name } = entry.member.frame((where) => paintView(pose, where))
-      const placed = place(pose, at, cell, name)
+      const placed = place(pose, at, cell, name, entry.member.placing)
       entry.quad.sprite.visible = placed !== undefined
-      if (placed === undefined) continue
+      if (placed === undefined) {
+        entry.member.shadow?.hide()
+        continue
+      }
+      // The shadow is the floor's, not the quad's: it is cast from the cell and where the figure stands.
+      entry.member.shadow?.cast(shadowInput(cell, at, pose.right))
       around.set(placed, entry)
       found.push(placed)
     }
@@ -121,6 +122,8 @@ class Stage implements PaintedStage {
       const entry = around.get(placed) as Entry
       const { sprite } = entry.quad
       const { node } = entry.member
+      // Before the quad's shader compiles: which renderer draws it decides its template and its depth texture.
+      entry.quad.gpu(rendererType === RendererType.WEBGPU) // under it a depth-writing quad compiles from the builder's own template
       entry.quad.show(placed.sprite.cell)
       entry.quad.showDepths(
         texelDepths(pose, placed.sprite),

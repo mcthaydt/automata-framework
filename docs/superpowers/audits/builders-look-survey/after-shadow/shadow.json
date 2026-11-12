@@ -1,0 +1,16 @@
+[
+  {
+    "scene": "base-interior",
+    "view": "diorama",
+    "noise": 0,
+    "footprint": 286,
+    "darkening": 0.564
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "noise": 0,
+    "footprint": 1327,
+    "darkening": 0.575
+  }
+]

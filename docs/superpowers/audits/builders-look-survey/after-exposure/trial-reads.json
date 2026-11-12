@@ -1,0 +1,28 @@
+[
+  {
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "label": "after",
+    "figure": 0,
+    "texels": 8345,
+    "around": 0.352,
+    "luma": 0.374,
+    "edge": 2.432,
+    "read": 2.432,
+    "hot": false,
+    "reads": true
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "label": "after",
+    "figure": 1,
+    "texels": 7444,
+    "around": 0.336,
+    "luma": 0.255,
+    "edge": 2.344,
+    "read": 2.344,
+    "hot": false,
+    "reads": true
+  }
+]

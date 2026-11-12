@@ -2,7 +2,6 @@
 // frame: what the GPU draws is `compose(frame, backdrop)` of what the stage placed, pixel for pixel. Headless Firefox here
 // has no WebGL; the GPU runner runs it there.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { NOT_WEBGL } from '#src/features/painted/painted-stage.ts'
 import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
 import {
   buildScene,
@@ -188,7 +187,7 @@ describe.runIf(hasWebGL2)('painted figures in the 3D renderer, per texel', () =>
     expect(first?.sprite.destroyed).toBe(true)
   })
 
-  it('7. under WebGPU the stage warns once in words and still draws the figures', async (context) => {
+  it('7. asked for WebGPU, given WebGL: the same frame as compose, and no warning', async (context) => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     scene = await buildScene({
       size: SIZE,
@@ -196,13 +195,13 @@ describe.runIf(hasWebGL2)('painted figures in the 3D renderer, per texel', () =>
       figures: [{ def: MAN, at: [0, 0] }],
       preference: 'webgpu',
     })
-    if (scene.renderer.stage.app.renderer.name !== 'webgpu') {
-      context.skip('This browser grants no WebGPU adapter, so the renderer fell back to WebGL.')
+    // Where the browser grants an adapter this is the WebGPU renderer, whose cases are `tests/browser/webgpu`'s.
+    if (scene.renderer.stage.app.renderer.name === 'webgpu') {
+      context.skip('This browser drew with WebGPU; the fallback case runs where it grants no adapter.')
     }
-    scene.draw()
-    scene.draw()
-    expect(warn.mock.calls.filter(([text]) => text === NOT_WEBGL)).toHaveLength(1)
+    expectEqual(scene)
     expect(scene.stage.placed).toHaveLength(1)
+    expect(warn.mock.calls).toEqual([])
   })
 
   it('8. a pose that does not exist is an error in words at the first frame, not a standing figure', async () => {

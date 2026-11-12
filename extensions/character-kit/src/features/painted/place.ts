@@ -14,8 +14,20 @@ import {
   zoomOf,
 } from '../../shared/figure-builder/door.ts'
 
-/** The density the kit paints at: the builder's own working resolution, whose texel `zoomOf` is taken in halves of. */
-const DENSITY = 2
+/** The density the kit paints at unless a figure asks otherwise: the builder's own working resolution. */
+export const DEFAULT_DENSITY = 2
+
+/** How a cell is placed: the density it was painted at, and whether a texel is a whole number of pixels. */
+export interface PlaceOptions {
+  /** Texels per texel of the base cell; `zoomOf` counts screen pixels per density-1 texel, so a texel is `zoom / density` pixels. */
+  readonly density?: 1 | 2 | 4 | undefined
+  /**
+   * Whole pixels a texel (the default): `max(1, round(zoom / density))`, never minified, evenly wide, and a figure's height
+   * is off by the rounding. `false` draws it at its true height, a texel `zoom / density` pixels wide, so texels are of uneven
+   * width on screen, as FigureBuilder's `crisp: false` and The Last Light's own figures are.
+   */
+  readonly crisp?: boolean | undefined
+}
 
 /** A figure behind this many metres of a perspective camera is out of the frame (the contract's `d < 0.1`). */
 const NEAREST = 0.1
@@ -37,17 +49,24 @@ export function paintView(pose: CameraPose, at: V3): View {
 
 /**
  * The contract's placement for a figure standing at `at`, painted as `cell`, or undefined when it is behind a perspective
- * camera. Crisp: `scale = max(1, round(zoom / density))` whole pixels a texel, so a texel is never minified, and the cell's
- * top-left is rounded to a whole pixel. The quad is square to the image plane (its axes the pose's right and up), at
+ * camera. Crisp (the default): `scale = max(1, round(zoom / density))` whole pixels a texel, so a texel is never minified;
+ * not crisp: `scale = zoom / density`. Either way the cell's top-left is rounded to a whole pixel. The quad is square to the image plane (its axes the pose's right and up), at
  * `eye + d · fwd` offset so the anchor texel lands on `screen + scale · anchor`, which is what `StageView.draw` does.
  */
-export function place(pose: CameraPose, at: V3, cell: Cell, name: string): Placed | undefined {
+export function place(
+  pose: CameraPose,
+  at: V3,
+  cell: Cell,
+  name: string,
+  options: PlaceOptions = {},
+): Placed | undefined {
+  const density = options.density ?? DEFAULT_DENSITY
   const [ax, ay, depth] = project(pose, at)
   if (pose.f !== undefined && depth < NEAREST) return undefined
   // A whole zoom to 1e-9 counts as whole: a host's `pixelsPerMetre` need not round-trip, and `round` must not tip over.
   const raw = zoomOf(pose, at)
   const zoom = Math.abs(raw - Math.round(raw)) < 1e-9 && Math.round(raw) >= 1 ? Math.round(raw) : raw
-  const scale = Math.max(1, Math.round(zoom / DENSITY))
+  const scale = options.crisp === false ? zoom / density : Math.max(1, Math.round(zoom / density))
   const screen: [number, number] = [
     Math.round(ax - scale * cell.anchor[0]),
     Math.round(ay - scale * cell.anchor[1]),
