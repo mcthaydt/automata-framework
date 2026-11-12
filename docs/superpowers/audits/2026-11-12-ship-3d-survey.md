@@ -117,9 +117,11 @@ its own entry list, and adding thirteen was not done in a scratch copy. Each tas
 | check it (the audit's failing step: `test`, `no-eval`, `secrets`, `data-urls`) | pass |
 | test it | pass |
 | build it (`build:web`) | pass: the game's `dist/` holds `index.html` and `assets/` |
-| play it and walk Wick | **not finished here**: Chromium was still open on the page when this was written, more than ten minutes in, on SwiftShader (no GPU). No error had been printed. It needs a GPU runner to call |
+| play it and walk Wick | **fail**, after the 20-minute test limit. The page loaded and reached `data-state="ready"`; the click on Play never landed: `<div role="status" data-testid="rotate-hint" class="af-rotate-hint">… from <div data-layer="overlay"> subtree intercepts pointer events` (2,195 retries). The journey's one project is `sizes.phone` (upright), and the 3D game asks an upright phone to turn. Not a renderer or GPU failure: the walk itself was never reached |
 
 So the audit's one cause is confirmed: with `@automata/3d` built, the journey goes four steps further than it ever has.
+The next failure, in order, is the journey's own: at phone size, upright, the rotate hint covers Play. Whether Wick
+then walks on SwiftShader is still unknown.
 
 ## 5. The painter (`extensions/figures`)
 
@@ -191,7 +193,7 @@ Recorded files that Part D may move: `packages/3d` (12 golden files), `extension
 
 - Exported names and undocumented exports per package (needs each package in `tooling/api-index`'s entry list).
 - Packed sizes of the twelve kits (only `3d` was trial-built).
-- The journey's last step (no GPU here), every browser suite, and anything on WebKit or Firefox.
+- The journey after the Play click (blocked by the rotate hint), every browser suite, and anything on WebKit or Firefox.
 - `claude/editor-journeys-green` (not fetched).
 - The DUEL palette's source and terms (no network search was made).
 - The pixels of 0.1.0: only the file lists were compared.

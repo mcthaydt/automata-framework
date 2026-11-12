@@ -297,9 +297,18 @@ Each guard is changed test first. A guard goes only where its reason is gone.
 - [ ] **Step 2:** Remove `test.skip`, the `AF_BETA_3D` environment and `pack3d` from the journey; rewrite its header
   comment to say what it proves. Replace the fixed `waitForTimeout` calls with waits on the page's readiness attribute
   where one exists (browser tests wait on readiness, never a sleep); keep the before-and-after screenshot comparison.
+- [ ] **Step 2b: The rotate hint.** The survey's run failed here, not on the renderer: the journey's project is
+  `sizes.phone`, upright, and the 3D game's rotate hint (`data-testid="rotate-hint"`) covers Play, so the click never
+  lands. Read the template's `orientation` setting first (`git grep -n orientation packages/tools/src/shared/create-game`).
+  If the 3D template is landscape by design, the journey plays it as a stranger with a phone would: set the page to the
+  phone size turned on its side (`page.setViewportSize` with `sizes.phone`'s width and height swapped) before `goto`,
+  and add one assertion before that, at the upright size, that the hint is visible and says to turn the phone (the
+  hint is the product working; the journey must not hide it or shrink anything). If the template is not meant to ask
+  for a turn, that is a defect in the template: stop and report it. Give the journey's steps a 60 s limit each for the
+  browser step, so a blocked click fails in a minute, not twenty.
 - [ ] **Step 3:** `pnpm build && pnpm --filter @automata/consumer-smoke exec playwright test tests/e2e/stranger-3d.test.ts
-  --trace off`. Expected on a GPU runner: `1 passed`. In a session without a GPU the survey reached "build it" and the
-  browser step did not finish: report the step reached and mark the last step **pending the Owner's runner**; do not
+  --trace off`. Expected on a GPU runner: `1 passed`. In a session without a GPU the survey's run passed "build it", loaded the page to
+  `ready` and stopped at the Play click (step 2b); whether Wick walks on SwiftShader is unknown. If the walk does not pass here, report the step reached and mark the last step **pending the Owner's runner**; do not
   tick this task until `1 passed` is seen.
 - [ ] **Step 4:** Manifest check, gates, commit `test(consumer-smoke): the 3D stranger's journey runs on every run, from
   packs`. Open the draft pull request for Part A.
@@ -638,8 +647,9 @@ manifests that pin `@pixi/3d`, `PIXI_3D_SPEC` in `template-3d.ts`, `docs/version
    ship its colour values inside an MIT package on npm? If not, which palette replaces it?" The painter does not become
    public until this is answered (B4, step 3; B10).
 3. **Run the 3D stranger's journey and the two editor journeys on a GPU runner** (A6, C4). This is a gate: the
-   journey's last step, "play it and walk Wick", did not finish on a machine without a GPU, so A6 is not done until
-   your runner prints `1 passed`.
+   journey's last step, "play it and walk Wick", has never passed (the survey's run stopped at the rotate hint, which
+   A6 fixes in the journey), so A6 is not done until a run prints `1 passed`, on your runner if a session's machine
+   cannot draw it.
 4. **Look at Part D's sheets** and say which moved pictures are accepted (D3).
 5. **Run cross-engine 3D parity** in Chromium, WebKit and Firefox on your runners (D4).
 6. **The site's hosted editor:** whether `/editor/app` should serve the full suite (a deploy).
