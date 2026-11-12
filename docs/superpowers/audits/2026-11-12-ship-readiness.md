@@ -298,3 +298,193 @@ Each is the Owner's alone (credentials, money, approvals, devices, licences). In
     the app is on sale, or ask for the page to wait.
 13. **For 3D later:** rule whether the figure painter (from the private FigureBuilder repository) may be published (A5),
     and run the beta.3 branch's cross-engine check (A2).
+
+---
+
+# Part 2: the full launch scope
+
+Added the same day, from `main` `d401ec4d`, after the Owner ruled on scope (relayed by the coordinator, verbatim): "We ship
+with 3D, Editors, and Desktop Apps too". Part 1's "2D first" recommendation is withdrawn. Part 1's evidence stands; its
+A-list becomes MUST. This part does not repeat the `@pixi/3d` move and its rule list, which branch `claude/pixi-3d-public`
+owns (`docs/superpowers/audits/2026-11-12-pixi-3d-public/README.md` on that branch: steps 0 and 1 done, the move and its
+proof not yet, at `d098771f`).
+
+## Part 2 verdict
+
+The full scope is several weeks of sessions, not a few days. 2D is close; 3D, the editors and desktop each need a
+package-building step that has not started. **Biggest new risk: almost everything 3D, and every editor beyond Levels and
+the Tuner, is a private, unbuilt workspace package.** Sixteen packages that a 3D game, the 3D editor or the content
+editors import are `"private": true` with source-only exports and no `build` script (measured below). A stranger cannot
+install any of them. The second risk is the word "Desktop Apps": the repository holds two different things by that name.
+One works in code today and needs signing money (games as desktop apps). The other is a paid app that has not been
+built (0 of 30 tasks). The Owner must say which one he means (or both) before the plan is sized.
+
+## 1. 3D for a stranger
+
+**What a 3D game imports.** `automata create-game g3 --template 3d` (the built bin, inside the workspace so the gate
+lets it) writes dependencies on `@automata/framework`, `content`, `sim`, `tools` and `@automata/3d`, plus `@pixi/3d`
+`0.1.0-beta.2` and `pixi.js` `8.22.0`. Its source imports `@automata/3d`, `/sim`, `/level`, `/figures` and
+`/world-content` (grep of the game's `src` and `vite.config.ts`). So the stranger's minimum is `@automata/3d` alone. Note
+the pins: `PIXI_3D_SPEC` is still beta.2 on `main` (`template-3d.ts:19`), while beta.3 (the port) and 0.1.0 (`latest`)
+both peer `pixi.js ^8.23.0`.
+
+**Every 3D and editor package, as it is today** (each `package.json`: `private`, a `build` script, whether `exports` point
+at `dist`, and its `@automata/*` dependencies):
+
+| Package | Private | Build | Exports | Depends on (`@automata/`) | Needed by |
+|---|---|---|---|---|---|
+| `@automata/3d` | yes | no | `src/*.ts` | content, framework, sim | every 3D game |
+| `@automata/editor-3d` | yes | yes (a page) | — | 3d, editor, framework | the 3D editors |
+| `@automata/editor` | yes | yes (a page) | — | framework, content | the 2D editors (packed into `-tools`) |
+| `@automata/editors` (Feel, Audio, Writer, Sequence, Schematic) | yes | yes (a page) | — | audio-synth, cutscenes, editor, feel, narrative, nav, puzzle, systems, 3d, content, framework, sim | the content editors |
+| `@automata/character-kit` | yes | no | `src` | **figures**, 3d, content, framework | clothes, hair, seats |
+| `@automata/figures` | yes | no | `src` (types from `types/`) | — | the kit's door only |
+| `@automata/world-kit` | yes | no | `src` | 3d, content, framework, sim | props, rooms, sky |
+| `@automata/lcd-panel`, `retro-crisp` | yes | no | `src` | 3d, content (+framework) | looks |
+| `@automata/sectors`, `nav`, `interact`, `cutscenes`, `narrative`, `systems`, `places`, `hud`, `level-2d`, `pipelines` | yes | no | `src` | 3d and each other (`systems` → nav, places, puzzle, sectors; `pipelines` → editor, 3d, …) | story and level tools |
+
+Yes, a kit that would publish depends on a private package: `character-kit` imports `@automata/figures`, the painter
+from the private FigureBuilder repository (`tooling/release/tests/unit/closed-beta-guard.test.ts:6`: "the figure builder is
+a private repository: nothing published may bundle either"). Publishing `character-kit` needs the Owner's ruling on the
+painter's licence first, or the kit ships without its painted figures.
+
+**The 3D stranger's journey** (`AF_BETA_3D=1 pnpm exec playwright test tests/e2e/stranger-3d.test.ts` in
+`tooling/consumer-smoke`, on `517a6eef`). Every step in order:
+
+| Step | Result |
+|---|---|
+| make a 3D game | pass |
+| install it (packed `@automata/3d` 0.0.0 and the vendored `@pixi/3d`) | pass |
+| check it: `boundaries`, `typecheck`, `boards`, `achievements`, `orientation`, `inputs`, `levels`, `words` | pass |
+| check it: `test` | **fail**: `vitest: wrote no report (exit 1): failed to load config from …/vite.config.ts`, `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING` for `@automata/3d` |
+| check it: `no-eval` | **fail**: `vite build failed: failed to load config` (same cause) |
+| check it: `secrets`, `data-urls` | **fail**: "not scanned: the build failed (see no-eval)" |
+| test it, build it, play it, walk Wick | not reached (the journey stops at the first failed step). They load the same `vite.config.ts`, so they fail for the same cause until `@automata/3d` is built |
+
+One cause, four failed checks: `@automata/3d` must be a built package. What that takes: a `tsdown` config and a
+`build` script like `@automata/framework`; `exports` with `types` and `import` pointing at `dist` for every entry (`.`,
+`/sim`, `/level`, `/figures`, `/figures-kit`, `/world-content`, `/camera-view` and the rest); a README written for a
+stranger; `"private"` removed and a 0.x version; joining the fixed group in `.changeset/config.json`; an API report
+(`tooling/api-report`) and API-index entries with doc comments (`pnpm api-index` fails on an undocumented export); and the
+six publishing guards the pixi-3d-public inventory lists in its §D (the `boundaries --forbid` list, `closed-beta-guard.test.ts`,
+`release-list.test.ts`'s "not publishable", `copy-editor.ts`, the `AF_BETA_3D` gate, the playground's filter). Then the
+3D stranger's journey runs in CI with no gate.
+
+**`@pixi/3d` 0.1.0.** Its types are compatible with what AF uses. `MAX_LIGHTS` only moved file (`scene/View3D.d.ts` to
+`core/lightLimits.d.ts`, still exported). `Box`, `Quaternion` and the other math `.d.ts` changes are doc strings
+(`pixi-3d/math` → `@pixi/3d/math`). The risk is the runtime: 60 `.mjs` files change against beta.3. The changed files
+include lighting (`LightTiles`, `LightingSystemGl/Gpu`, `LightDataList`), shadows (`ShadowRenderPassGpu`), batching,
+`RenderGraph`, the background, copy-opaque and output passes, and the glTF loaders. Those are the areas AF's goldens and
+fog conversion pin, so moving to 0.1.0 is a pixel-reviewed port like beta.3's. No public changelog was read (`github.com`
+was not tried; only the tarballs).
+
+## 2. The editors
+
+**What exists and who can reach it:**
+
+| Editor | Built in | Published or hosted | A stranger opens it by |
+|---|---|---|---|
+| Levels (2D) and the Tuner | `packages/editor` (suite-2d page) | packed into `@automata/tools` (`dist/editors/suite`, 1.6 MB); hosted on the site at `/editor/app` | `pnpm exec automata editor` in a 2D game: works (consumer smoke step "editor"; the 2D stranger's journey) |
+| Levels 3D, Characters (the full suite) | `packages/editor-3d` (suite-full page) | not published, not hosted | `automata editor` in a 3D game, from published tools, prints **"Error: The 3D editors are not in this release yet."** (`packages/tools/src/features/editor/editor-command.ts:94`) |
+| Feel, Audio, Writer, Sequence, Schematic | `extensions/editors` (`@automata/editors`, private, no README) | not published, not hosted (the site's `/editor/app` is the 2D suite) | no way |
+
+**Packing the 3D suite into `-tools` breaks a budget.** The 2D suite is 1.6 MB on disk (387 kB of gzipped JS); the 3D suite
+is 2.5 MB (687 kB of gzipped JS). `-tools` packs to 2,513 kB today against `TOOLS_PACK_BUDGET_MB = 3`
+(`tooling/consumer-smoke/src/run.ts:119`). Adding the 3D suite will very likely pass 3 MB. Choose: raise the budget, or
+ship the editors as their own package (for example an `@<scope>/editors` that `automata editor` resolves), or serve the 3D
+suite from the site.
+
+**Their suites:** the 2D editor journeys (Part 1, M5: 23 passed, 15 failed in Chromium; the fix is on
+`claude/editor-journeys-green`, not on `origin` at this writing). On `d401ec4d`, `3D - journeys` passed in CI:
+`pnpm test:journeys:3d` 1 min 4 s, base-3d e2e, examples-3d e2e, 3d-story e2e (run 43310471285, job 131507059200). The
+3D editor's unit suite runs in `pnpm check` (exit 0 here). Three 3D journeys inside the 2D editor package failed here on
+SwiftShader (`levels-3d-edit-reaches-the-game` twice, `dark-levels-3d` once).
+
+**Home's lines, against the full scope** (M11):
+- "Every editor, for 2D and 3D games": true only once the 3D and content editors are hosted or published (E1 to E3 below).
+- "Sign in with GitHub to keep your games in sync": **no code on `main`.** The code was PR #544 ("a game can be kept on
+  GitHub (sign-in build, phases 0-5)", 13,143 additions, 146 files, a Cloudflare Pages Function for the GitHub sign-in). It
+  was **closed unmerged** on 2026-11-12 at 21:01 with `mergeable_state: dirty`, and its head `f380d358` is not fetchable
+  here. Its own body says nothing ran against real GitHub or Cloudflare. Either revive it (L, conflicts with today's
+  `main`) or remove the line.
+
+## 3. Desktop apps: two readings
+
+| | (a) Games as desktop apps | (b) The Automata app (the editors on the desktop) |
+|---|---|---|
+| What the repository holds | The `tauri` target: the adapter (`packages/automata/src/features/targets/tauri/`), `create-game --targets tauri`, `automata ship prepare --target tauri` (writes `.automata/tauri/`, runs `tauri build`), `publish --target itch --from tauri`; the guide `docs/guides/publish-to-desktop.md` | The paid app on `/app` ("$19.99" phone, "$39.99" desktop). `docs/refactor/progress.md`, "The paid apps": spec, plan and plan audit done 2026-11-08; **build "Not started (0 of 30 tasks)"**, with GitHub sync (closed #544) as one of its phases |
+| Builds here? | No. `cargo` 1.97.0 is installed, but there is no Tauri CLI (`cargo tauri`: "no such command") and no WebKitGTK 4.1 (`pkg-config webkit2gtk-4.1`: not found; `apt-get` lists are stale here). The unit tests of the adapter and `prepare-tauri` pass inside `pnpm check` | Nothing to build |
+| What CI builds | Nothing: no workflow names `tauri` (`grep -rl tauri .github/workflows`: none). The guide says the release workflow `create-game` writes does not build bundles | Nothing |
+| Signing and release | Unsigned today. macOS signing and notarisation need an Apple Developer account (money) and six secrets (`APPLE_CERTIFICATE`, `…_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`; the guide). Windows needs a code-signing certificate (money); nothing in the repository mentions one. No updater. Icons: `ship` draws one when none is given | All of (a) for the app itself, plus store accounts (Apple, Google) for the phone apps, a payment provider, an updater endpoint, licence checks and the 30 build tasks |
+| Cost to launch | M for a session (a Linux, macOS and Windows bundle each built once on the Owner's machines, a journey that opens one, a CI job per OS), plus the Owner's certificates | L to XL: several weeks of sessions, plus accounts and money |
+
+**For the Owner to say:** does "Desktop Apps" mean (a), (b) or both? The ship list below takes (a) as MUST and (b) as a
+decision (D1), because (b) has not been started and would set the launch date by itself.
+
+## 4. The ship list for the full scope
+
+Part 1's items keep their meaning and get new numbers. **P** marks work that can run as its own session, on its own
+branch, beside the others. The files named are the ones it would own.
+
+### MUST, in order
+
+| # | What (Part 1 id) | Done looks like | Size | Who | Depends on | P: owns |
+|---|---|---|---|---|---|---|
+| 1 | npm organisation and the name (M1) | org created; then the rename merged | Owner S, session M | Owner, then session | — | the rename touches everything: run it **alone**, before the package work below |
+| 2 | Register the domain and its mailbox (M2) | domain plus MX | S | Owner | — | — |
+| 3 | Decide "Desktop Apps" (a), (b) or both (D1 below); rule on the painter's licence (A5) | two answers | S | Owner | — | — |
+| 4 | Release workflow `publish` job fits its time (M3) | the job's check drops unit tests or gets a fitting limit | S | session | — | P: `.github/workflows/release-packages.yml` |
+| 5 | `check:launch` runs under Node (M4) | `.ts` import, a test that runs the script | S | session | — | P: `site/src/features/home/home-content.ts`, `site/scripts/check-launch.ts`, its tests |
+| 6 | The 2D journeys gate: harness and time budget (M5) | editor suite green; job split or limit raised; website and stranger steps run in CI | S to M | session (`claude/editor-journeys-green` has the harness) | — | P: `packages/editor/tests/e2e/harness/`, `.github/workflows/ci.yml` (the journeys job) |
+| 7 | `@pixi/3d` from npm, deploy rule lifted (A2, A4) | `claude/pixi-3d-beta-3`, then `claude/pixi-3d-public`, merged with their proofs | M | sessions in work | — | the two branches as they are |
+| 8 | `@automata/3d` a built, publishable package (A1) | built `dist`, exports, README, API report and index, fixed group, the six guards changed; the 3D stranger's journey green with no gate | L | session | 1, 7 | `packages/3d/package.json`, `tsdown.config.ts`, its README; `tooling/release`; `three-d-gate.ts`; `tooling/consumer-smoke` |
+| 9 | The 3D kits a 3D game or editor needs, built and published: at least `world-kit`, `lcd-panel`, `retro-crisp`, `sectors`, `places`, `nav`, `interact`, `cutscenes`, `narrative`, `systems`, `hud`; `character-kit` only if 3 allows the painter | each built, documented, in the fixed group, API-reported | L | one or two sessions | 3, 8 | `extensions/<each>/` (split the set between sessions by folder) |
+| 10 | The 3D editors and the content editors reach a stranger | `automata editor` opens Levels 3D, Characters, Feel, Audio, Writer, Sequence and Schematic from published packages; the pack budget decided (raise it, or ship an editors package); a 3D and a content journey from packs | L | session | 8, 9 | `packages/tools/scripts/copy-editor.ts`, `packages/tools/src/features/editor/`, `packages/editor-3d`, `extensions/editors` |
+| 11 | `@pixi/3d` 0.1.0, or a decision to ship on beta.3 (A3) | port with pixel review, `pixi.js` 8.23 in core and the templates; or the Owner says beta.3 | M | session, then Owner | 7 | `packages/3d/src/shared/render`, `world-kit` looks, the goldens |
+| 12 | Games as desktop apps, proved (reading (a)) | a bundle built once on Linux, macOS and Windows from a new game; one journey opens it; a CI job per OS; signed on macOS and Windows | M | session, Owner for certificates | 3 | P: `packages/tools/src/shared/ship/targets/tauri/`, a new workflow, `docs/guides/publish-to-desktop.md` |
+| 13 | CI green on one commit (M6), now including 3D and desktop | ci, 3d, release checks, the 2D journeys | S to M | session, the Owner's runners | 4 to 12 | — |
+| 14 | Open the repository (M7) | public; `REPOSITORY_PUBLIC` true | S | Owner, session | 1 | — |
+| 15 | Home and `/app` say only what is true (M11, widened) | each line true at launch: sign-in and sync removed, or #544 revived (L); "every editor, 2D and 3D" true after 10; the app's prices only if (b) is in | S (or L with #544) | session, Owner approves words | 3, 10 | P: `site/src/features/home/home-content.ts`, `site/src/features/app/`, `docs/refactor/copy.md` |
+| 16 | `NPM_TOKEN`, runner online (M8) | secret set | S | Owner | 1 | — |
+| 17 | First release (M9): the fixed group widened to every package that now publishes | version PR merged, publish approved, `verify-published.ts` and the registry smoke green | S | Owner, session | 8 to 13, 16 | — |
+| 18 | Site deployed (M10) | live, `check:deployed` green, looked at on phone and iPad | S | Owner, session | 2, 5, 14, 15, 17 | — |
+
+**Parallel lanes**, once 1 has merged: lane A is 4, 5 and 6 (CI and site, small files). Lane B is 7, then 8, then 9 and 10,
+then 11 (3D, one after another, because each builds on the last). Lane C is 12 (desktop, `targets/tauri` and a new
+workflow). Lane D is 15 (copy). The 3D lane is the long pole.
+
+### SHOULD
+
+Part 1's S1 to S7 stand: the "Play is off" message, `--template 3d` in help, 2D parity in WebKit and Firefox (the 3D parity
+passed in all three on `d401ec4d`), `docs/status.md`, the frame-budget skip, the agent package's public home, and the stale
+PRs.
+
+### Decisions for the Owner
+
+- **D1. Desktop Apps.** (a) games as desktop apps (M, plus certificates); (b) the paid Automata app (not started, 30 tasks,
+  plus accounts, payments and signing); or both. A launch with (b) inside is weeks later than one without.
+- **D2. The painter.** May `@automata/figures` (from the private FigureBuilder repository) be published? If not,
+  `character-kit` ships without painted figures, or not at all.
+- **D3. `@pixi/3d` version.** Ship on beta.3 (the `beta` tag; done once 7 merges) or wait for the 0.1.0 port (11).
+- **D4. Editors packaging.** Raise `-tools`' 3 MB budget, or ship the editors as their own package.
+- **D5. GitHub sign-in and sync.** Revive #544 (closed today, 146 files) for launch, or take the line off Home.
+
+## Part 2: the Owner's checklist (full scope)
+
+Part 1's checklist stands (npm org, domain, `NPM_TOKEN`, runners, frame budget, open the repository, approve the release,
+Cloudflare, look at the site, `SKILLS_TOKEN`, close stale PRs, the app page's prices). Add:
+
+1. **Answer D1 to D5** above.
+2. **For desktop (a):** buy an Apple Developer membership and create the six `APPLE_*` secrets; buy a Windows
+   code-signing certificate; keep a Mac, a Windows PC and a Linux machine available to build each bundle once.
+3. **For desktop (b), if chosen:** the store accounts (Apple App Store, Google Play), a payment provider and the price
+   approval for "$19.99" and "$39.99".
+4. **Run the 3D cross-engine check** the beta.3 branch asks for (its audit's parity commands) on the Mac.
+
+## Part 2: not verified here
+
+- The Tauri build on any OS (no Tauri CLI, no WebKitGTK here), signing, and installers.
+- The 3D stranger's steps after "check it" (the journey stops at the first failure).
+- `claude/editor-journeys-green` (not on `origin` at this writing).
+- `@pixi/3d` 0.1.0's public changelog; only the tarballs were compared.
+- Whether the content editors (`extensions/editors`) pass their own suites today (not run here).
