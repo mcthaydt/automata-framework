@@ -6200,14 +6200,23 @@
     "ward-wainscot": {
       "accent": "groutLight",
       "ramp": "sand",
+      "reads": {
+        "at": 64
+      },
       "step": 5,
       "texture": {
-        "cluster": 2,
-        "contrast": 0.035,
+        "cluster": 5,
+        "contrast": 0.04,
         "facet": 0,
-        "flatten": 0.5,
-        "photo": "wallTiles",
-        "seed": 73
+        "flatten": 1,
+        "photo": "floorTiles",
+        "range": [
+          -4,
+          1
+        ],
+        "scale": 0.5,
+        "seed": 73,
+        "wear": 0
       }
     }
   }

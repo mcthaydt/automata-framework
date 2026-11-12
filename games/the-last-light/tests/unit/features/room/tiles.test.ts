@@ -47,4 +47,41 @@ describe('the ward’s tiles', () => {
     const metres = (floor?.width ?? 0) / (floor?.texels[0] ?? 1)
     expect(metres / 6).toBeCloseTo(0.3, 1)
   })
+
+  it('draw the wainscot as cream glazed tile on a dark joint: a grid of 15 cm tiles, from the floor-tile photograph (Floor Tiles 08)', () => {
+    const wainscot = PAINT.tiles('ward-wainscot')
+    const { rgba, width, height } = wainscot as NonNullable<typeof wainscot>
+    // The photograph holds five tiles a side (30 cm each at its size of 1.5 m), so 15 cm tiles are a photograph 0.75 m across.
+    const tilesAcross = 5
+    expect(width / (wainscot?.texels[0] ?? 1) / tilesAcross).toBeCloseTo(0.15, 2)
+    expect(LIBRARY.swatches['ward-wainscot']).toMatchObject({ texture: { photo: 'floorTiles' } })
+    // The grid reads when each column's mean light, shifted by one tile, still lines up with itself (joints under joints),
+    // which a tile with no joint (flat glaze, or specks) does not do. Measured 0.4 or more on both axes; the flat tile before
+    // read under 0.1.
+    const lumas = new Float64Array(width * height)
+    for (let i = 0; i < width * height; i++) lumas[i] = luma(rgba, i * 4)
+    const lag = Math.round(width / tilesAcross)
+    const alike = (profile: number[]): number => {
+      const mean = profile.reduce((sum, value) => sum + value, 0) / profile.length
+      const centred = profile.map((value) => value - mean)
+      const self = centred.reduce((sum, value) => sum + value * value, 0)
+      const shifted = centred.reduce(
+        (sum, value, i) => sum + value * (centred[(i + lag) % centred.length] as number),
+        0,
+      )
+      return self === 0 ? 0 : shifted / self
+    }
+    const columns = Array.from({ length: width }, (_, x) => {
+      let sum = 0
+      for (let y = 0; y < height; y++) sum += lumas[y * width + x] as number
+      return sum / height
+    })
+    const rows = Array.from({ length: height }, (_, y) => {
+      let sum = 0
+      for (let x = 0; x < width; x++) sum += lumas[y * width + x] as number
+      return sum / width
+    })
+    expect(alike(columns)).toBeGreaterThan(0.4)
+    expect(alike(rows)).toBeGreaterThan(0.4)
+  })
 })
