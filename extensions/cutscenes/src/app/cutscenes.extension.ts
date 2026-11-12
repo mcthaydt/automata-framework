@@ -21,6 +21,11 @@ export interface CutscenesExtensionOptions extends CutscenesOptions {
   readonly scripts?: Readonly<Record<string, CutsceneScript>>
   /** The sim's ticks a second. Default 60. */
   readonly tickHz?: number
+  /**
+   * How much of a caption to show `seconds` into it (narrative's `typedFor`): a line with a delivery is typed out by the
+   * cutscene's own clock. Cutscenes imports no narrative, so the game hands it in; without it every line shows at once.
+   */
+  readonly typed?: Parameters<typeof captionSlot>[4]
 }
 
 export function cutscenesExtension(options: CutscenesExtensionOptions = {}): CutscenesExtension {
@@ -42,6 +47,7 @@ export function cutscenesExtension(options: CutscenesExtensionOptions = {}): Cut
                   options.lines ?? (() => undefined),
                   scripts,
                   options.tickHz,
+                  options.typed,
                 ),
               },
             },
