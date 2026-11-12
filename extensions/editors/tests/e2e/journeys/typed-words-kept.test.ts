@@ -1,8 +1,9 @@
-import { mkdtempSync, rmSync } from 'node:fs'
+import { appendFileSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { chromium, type Page } from '@playwright/test'
 import { expect, openEditor, pressInList, savedInto, test } from '../harness/fixtures.ts'
+import { runEditor } from '../harness/run-editor.ts'
 import { serveSuitePage } from '../harness/static-page.ts'
 
 // P14: words typed into a field were written only when the field was left, so a tab closed or a page reloaded with the
@@ -93,15 +94,35 @@ test('served: a number typed in Feel and never left is on disk and back after a 
 
 test('served: a control named in the Tuner and never left is on disk and back after a reload', async ({
   page,
-  editor,
   story,
 }) => {
-  await openEditor(page, editor, 'Tuner')
-  await typeInto(page, 'Name', 'Hop left')
-  await savedInto(story, 'content/controls.toml', 'Hop left')
-  await page.reload()
-  await openEditor(page, editor, 'Tuner')
-  await expect(page.getByRole('textbox', { name: 'Name' }).first()).toHaveValue('Hop left')
+  // The story has no Tuner row, so its copy is given one before the editor server starts (the server reads the editor
+  // list once): a controls file and a tuning file, listed for the Tuner as a new game's are.
+  const content = join(story.dir, 'content')
+  writeFileSync(
+    join(content, 'controls.toml'),
+    'command = "move"\n\n[[action]]\nid = "left"\nlabel = "Left"\nsend = { x = -1 }\nkeys = ["ArrowLeft"]\npad = [14]\ntouch = true\n',
+  )
+  writeFileSync(
+    join(content, 'tuning.toml'),
+    'WALK_SPEED = { value = 4, min = 2, max = 8, step = 0.1, label = "Walking speed", feel = "How fast it walks.", unit = "m/s" }\n',
+  )
+  for (const glob of ['content/controls.toml', 'content/tuning.toml'])
+    appendFileSync(
+      join(content, 'editors.toml'),
+      `\n[[file]]\nglob = "${glob}"\neditor = "tuner"\nmodes = ["edit"]\ngates = []\nchecks = ["content"]\n`,
+    )
+  const editor = await runEditor(story.dir)
+  try {
+    await openEditor(page, editor, 'Tuner')
+    await typeInto(page, 'Name', 'Hop left')
+    await savedInto(story, 'content/controls.toml', 'Hop left')
+    await page.reload()
+    await openEditor(page, editor, 'Tuner')
+    await expect(page.getByRole('textbox', { name: 'Name' }).first()).toHaveValue('Hop left')
+  } finally {
+    await editor.stop()
+  }
 })
 
 test('on the web, with no editor server: words typed in Writer survive a reload and a closed browser', async () => {

@@ -20,15 +20,6 @@ export async function openFromRail(page: Page, name: string): Promise<void> {
   await page.getByRole('menuitem', { name }).click()
 }
 
-/** Makes a new web game and lands in it. */
-export async function newGame(page: Page, siteUrl: string, name: string): Promise<void> {
-  await page.goto(siteUrl)
-  await page.getByRole('button', { name: 'New game' }).click()
-  await page.getByLabel('What’s your game called?').fill(name)
-  await page.getByRole('button', { name: 'Make my game' }).click()
-  await expect(page.getByRole('link', { name: `${name}: all your games` })).toBeVisible()
-}
-
 /** On a phone the inspector sits behind Details. */
 export async function shown(page: Page, field: Locator): Promise<void> {
   await page.waitForTimeout(800)

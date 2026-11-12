@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type BrowserContext, chromium, expect, type Page, test } from '@playwright/test'
 import { serveSuitePage } from '../harness/static-page.ts'
-import { newGame, openFromRail, readField, shown, typeKeep } from '../harness/web-editing.ts'
+import { openFromRail, readField, shown, typeKeep } from '../harness/web-editing.ts'
 
 // The first journeys for typed words only ever typed into the first field of a kind, so a draft kept under the field's
 // label went unnoticed: many fields share a label, and a tab closed mid-typing put the words in another one (Schematic's
@@ -21,7 +21,8 @@ test('a tab closed mid-typing keeps the words in the line they were typed in, an
   try {
     const context = await open()
     let page: Page = await context.newPage()
-    await newGame(page, site.url, 'Lines Game')
+    // The sample game the page keeps in this browser: its Writer has lines, its Schematic a door and a window.
+    await page.goto(site.url)
     await openFromRail(page, 'Writer')
     const before = [
       await readField(page, 'textbox', 'What it says', 0),
@@ -57,7 +58,7 @@ test('a tab closed mid-typing in the window keeps the 7 with the window, not the
   try {
     const context = await open()
     let page: Page = await context.newPage()
-    await newGame(page, site.url, 'Waits Game')
+    await page.goto(site.url)
     await openFromRail(page, 'Schematic')
     const door = await readField(page, 'spinbutton', 'Waits', 0)
     const windowWaits0 = await readField(page, 'spinbutton', 'Waits', 2)
