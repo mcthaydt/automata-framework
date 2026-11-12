@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { gunzipSync } from 'node:zlib'
@@ -8,10 +8,10 @@ import { lightFigure } from '#src/shared/lighting/light.ts'
 import { cellOf } from '#src/shared/stage/cell.ts'
 import { project } from '#src/shared/stage/pose.ts'
 import { compose, STAGE_VERSION } from '#src/shared/stage/stage.ts'
+import { GOLDEN_DENSITIES } from '../../fixtures/frames/base'
+import { LIT_SETUPS, standingFigure } from '../../fixtures/frames/lit'
+import { md5, ortho } from '../../fixtures/stage'
 import { sheetFigures } from '../../fixtures/view-sheets.ts'
-import { GOLDEN_DENSITIES } from '../golden/base'
-import { LIT_SETUPS, standingFigure } from '../golden/lit'
-import { md5, ortho } from './fixtures'
 
 /**
  * The contract loses nothing: every golden sheet frame, redrawn through `cellOf` and `compose` as one centred sprite at

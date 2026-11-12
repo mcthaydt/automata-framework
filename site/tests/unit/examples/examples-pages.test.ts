@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import IndexPage from '#src/features/examples/ExamplesIndex.svelte'
 import { compileExample } from '#src/features/playground/compile.ts'
 import type { HighlightedLine } from '#src/features/playground/highlight.ts'
@@ -49,6 +49,13 @@ class FakeObserver {
 const intersectAll = () => {
   for (const observer of FakeObserver.instances) observer.intersect()
 }
+
+// The playground loads its orchestrator with the first run (`import()`), so on a busy machine the first transform of
+// that module can take longer than `waitFor`'s second. Load it here, where the hook timeout applies; the page's own
+// `import()` then resolves from the module cache.
+beforeAll(async () => {
+  await import('#src/features/playground/orchestrator.ts')
+})
 
 let fetches: string[]
 let reducedMotion: boolean

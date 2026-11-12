@@ -138,9 +138,8 @@ that draws a base figure with it and without it:
 
 The framework compiles under `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`, and under `isolatedDeclarations`.
 The painter arrived written without them, and this package's `tsconfig.json` switches the three off, so the painter's source
-is exactly what it was. Turning them on is done folder by folder in a later workstream (tasks 21 to 27 of the builders-fold
-plan); until then a non-null assertion is allowed in the files that have a `biome-ignore-all` line naming that task, and
-`tsconfig.types.json` writes the declarations the kit's typecheck reads. Both go when the flags are on.
+is exactly what it was. Turning them on is done folder by folder in a later workstream; until then a non-null assertion is allowed in the
+files that have a `biome-ignore-all` line for it, and `tsconfig.types.json` writes the declarations the kit's typecheck reads. Both go when the flags are on.
 
 ## Names this package shares with `@automata/3d`
 

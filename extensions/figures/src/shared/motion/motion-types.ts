@@ -1,4 +1,3 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 24 of the builders-fold plan (the strict flags) replaces each with a check
 import type { Pose, Side } from '../body/rig'
 import type { M, V3 } from '../math/math'
 /**

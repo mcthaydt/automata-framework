@@ -24,15 +24,20 @@ const FORBID_REPORT: ForbidReport = {
   message: (specifier, packageRoot) => `imports "${specifier}", which ${packageRoot} may not use.`,
 }
 
-/** The files checked and the findings for one package folder and the packages it may not import. */
+/**
+ * The files checked and the findings for one package folder and the packages it may not import. `exempt` names files
+ * that may import them all the same (`--confine`'s door).
+ */
 export function forbidFindings(
   packageRoot: string,
   forbidden: readonly string[],
   report: ForbidReport = FORBID_REPORT,
+  exempt: (file: string) => boolean = () => false,
 ): { files: string[]; findings: Finding[] } {
   const files = collectPlatformSources(packageRoot)
   const findings: Finding[] = []
   for (const file of files) {
+    if (exempt(file)) continue
     const { imports, errors } = readImports(file, readFileSync(file, 'utf8'))
     findings.push(...errors)
     for (const { specifier, line, col } of imports) {

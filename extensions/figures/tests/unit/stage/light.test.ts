@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { describe, expect, it } from 'vitest'
 import {
   type FigureLight,
@@ -12,8 +12,8 @@ import {
 } from '#src/entries/index.ts'
 import { lookAt, viewOf } from '#src/shared/stage/pose.ts'
 import { stageFrame } from '#src/shared/stage/stage.ts'
-import { registerFixtures } from '../paint/fabric-fixtures'
-import { DENIM_DEF, md5, ortho } from './fixtures'
+import { registerFixtures } from '../../fixtures/fabrics'
+import { DENIM_DEF, md5, ortho } from '../../fixtures/stage'
 
 /** Light through the stage: world lamps, the light hook and a fabric (src/shared/stage/stage.ts). */
 const deg = Math.PI / 180

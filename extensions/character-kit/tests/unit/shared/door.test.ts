@@ -27,6 +27,17 @@ describe('the door', () => {
     expect(importers).toEqual(['src/shared/figures/door-view.ts', 'src/shared/figures/door.ts'])
   })
 
+  it('has one `declare module` of the painter outside the door: the fashion kinds widening `GarmentKinds`', () => {
+    // A module augmentation is not an import, so the check above cannot see it. The kinds' types live in
+    // features/fashion/garments.ts, and `shared/` (where the door is) may not import `features/`, so the augmentation
+    // stays beside the types; any other file naming the painter this way is a break.
+    const AUGMENTS = /\bdeclare\s+module\s+['"]@automata\/figures/
+    const files = [...walk(join(ROOT, 'src')), ...walk(join(ROOT, 'tests'))]
+      .filter((file) => AUGMENTS.test(readFileSync(file, 'utf8')))
+      .map((file) => relative(ROOT, file))
+    expect(files).toEqual(['src/features/fashion/garments.ts'])
+  })
+
   it('takes the painter’s Pixi-free entries and nothing deeper', () => {
     expect([...new Set(specifiersOf('src/shared/figures/door.ts'))]).toEqual([
       '@automata/figures',

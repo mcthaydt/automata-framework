@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 26 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 
 import { DEFAULT_HEAD } from '../body/genes'
 import { boneGroups, type Decal, GROUP, type Material, type Part } from '../body/parts'
@@ -18,7 +18,7 @@ import { type ClothFrame, clothFrame, clothSlots } from './cloth'
  * kept in a cache. Drawn by the review frames (frames.ts) and by the scriptable actors (actor.ts), whose made
  * poses it draws through `update({ pose })`.
  */
-/** An outside light for the figure (EnvironmentBuilder's scene light): RGB (1 is full, may exceed it) at a vertex's
+/** An outside light for the figure (a scene's light): RGB (1 is full, may exceed it) at a vertex's
  * place and normal in the figure's own frame (metres, origin on the root, x right, y up, z toward the camera, before
  * the pitch). With one set, the painter drops its key bands and lights each texel by the light interpolated there. */
 export type FigureLight = (place: V3, normal: V3) => V3

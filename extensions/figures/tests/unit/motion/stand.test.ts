@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 24 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import { DEFAULT_SLIDERS, measure, type Sliders } from '#src/shared/body/genes.ts'
@@ -11,7 +11,7 @@ import { POSES } from '#src/shared/motion/presets.ts'
 
 /**
  * The natural stand, measured on the posed skeleton in the figure's own frame (yaw 0, no camera tip: what a profile
- * view shows) against the published references the design cites (docs/superpowers/specs/2026-11-06-natural-stand-design.md):
+ * view shows) against the published references the stand's design cites:
  * the ear over the shoulder's tip, the weight knee over its ankle, the hips and shoulders level to a trace, the free foot
  * flat, the arms hanging as close as clears the figure. The walk is not the stand: it takes none of it.
  */

@@ -4,9 +4,9 @@ import { view } from '#src/shared/figure/frames.ts'
 import { TIMES } from '#src/shared/lighting/lamps.ts'
 import { lightFigure } from '#src/shared/lighting/light.ts'
 import { cellOf } from '#src/shared/stage/cell.ts'
-import { standingFigure } from '../golden/lit'
-import { registerFixtures } from '../paint/fabric-fixtures'
-import { DENIM_DEF } from './fixtures'
+import { registerFixtures } from '../../fixtures/fabrics'
+import { standingFigure } from '../../fixtures/frames/lit'
+import { DENIM_DEF } from '../../fixtures/stage'
 
 /** The cell: a painted figure as a scene draws it (src/shared/stage/cell.ts). It copies nothing. */
 describe('cellOf', () => {

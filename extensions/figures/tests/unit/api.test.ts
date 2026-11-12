@@ -65,7 +65,7 @@ import { headForm, onHead, skull } from '#src/entries/kit.ts'
 import { measure } from '#src/shared/body/genes.ts'
 import { skeleton } from '#src/shared/body/rig.ts'
 
-/** Every runtime name src/index.ts exports. A removal or rename is a breaking change (docs/contract.md): it raises
+/** Every runtime name src/entries/index.ts exports. A removal or rename is a breaking change (docs/contract.md): it raises
  * STAGE_VERSION and the package version, and is written in the changelog; so it is made on purpose, here too. */
 const INDEX_NAMES = [
   'ACTIONS',
@@ -128,7 +128,7 @@ const INDEX_NAMES = [
   'zoomOf',
 ]
 
-/** The public surface (src/index.ts) on its own: the base pair drawn as sheets, lit, and played by an actor, imported
+/** The public surface (src/entries/index.ts) on its own: the base pair drawn as sheets, lit, and played by an actor, imported
  * from the entry point only, as a fork's code would. */
 describe('the public surface', () => {
   const def = BASE[0].def
