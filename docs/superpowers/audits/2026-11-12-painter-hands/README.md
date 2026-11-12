@@ -109,3 +109,80 @@ or a figure with bare hands; no behaviour test fails:
   the fit check's slider extremes, against the showcase's recorded cells). The runway golden does not move.
 
 These are the cells the re-record writes on the Owner's yes. Not run: the browser suites (WebGL, WebGPU), WebKit, Firefox.
+
+## Round 2 (the coordinator's eye on round 1)
+
+The coordinator, on round 1: at x4 before and after were nearly the same hand, a 3 to 4 texel sliver seen on its edge
+ending in black-inked teeth; the hand was too small and edge-on to carry a shape, and one-texel ink slits ate it. Round 2,
+same rules (generator only, behind `HAND_FORM`, nothing recorded):
+
+- **Size.** The stamp now carries the hand's full breadth (`HandStamp.breadth`). The parted hand shows 70% of the way
+  from its edge to that breadth, as a relaxed hand hangs with its back turned out, and is 1.15 times larger
+  (`PARTED_HAND = { size: 1.15, turn: 0.7 }`, one factor for every body). Measured at density 2: the man's hand
+  is 7 to 8 texels across the knuckles in every view and the woman's 5 (in front and back they were 4 and 3), 8 to 9
+  long; the thumb adds one or two columns more.
+- **Thumb.** A bump two texels across off the palm's side, its top corner rounded, creased from the palm along its last
+  two rows, its tip clear of the palm by one texel of background.
+- **No ink inside the hand.** Thumb and palm, index and mitten are parted by a crease one step under the hand's own tone,
+  never by a gap. The outline stays on the outside.
+- **Silhouette.** The index (two columns on a broad hand) runs to the last row; the mitten stops one row short with its
+  little finger's corner rounded, so the index steps out. No teeth.
+- **Density 1.** A plain mitten with a thumb bump. It is larger too (one factor for every density), and reads chunkier,
+  more like a glove than before: say if density 1 should keep its old size.
+
+Tests: the round-1 tests that pinned ink slits (the thumb's slit beside the palm, the index's gap to the mitten, the
+index a row short, the views' rows parted by background, the deep step over skin) are rewritten to pin the 2-texel
+thumb bump with its crease and clear tip, the index's crease and its one-row step past the mitten, the mitten as one
+block of 3 or more columns, a hand 4 or more texels broad in all 8 views, and no row parted by background but beside the
+thumb's tip. The density 1 tests are kept as they were. 25 tests.
+
+### Round 2's sheet (suffix `-round2`; before is `main`, after is round 2)
+
+| Picture | What it shows |
+|---|---|
+| [`round1-vs-round2-x4.png`](round1-vs-round2-x4.png) | **Round 1 above, round 2 below**, x4: front, 3/4 and back of each figure |
+| [`figure-x4-base-m-round2.png`](figure-x4-base-m-round2.png), [`figure-x4-base-f-round2.png`](figure-x4-base-f-round2.png) | The whole figure x4: front, 3/4, side, back |
+| [`hands-x10-turn0-round2.png`](hands-x10-turn0-round2.png), [`-turn1-`](hands-x10-turn1-round2.png), [`-turn2-`](hands-x10-turn2-round2.png), [`-turn4-`](hands-x10-turn4-round2.png) | Hands x10: front, 3/4, side, back |
+| [`walk-x4-round2.png`](walk-x4-round2.png), [`hands-x10-walk-round2.png`](hands-x10-walk-round2.png) | The walk |
+| [`held-torch-x4-round2.png`](held-torch-x4-round2.png), [`hands-x10-torch-round2.png`](hands-x10-torch-round2.png) | Holding the torch |
+| [`hero-x4-round2.png`](hero-x4-round2.png) | The hero stands |
+| [`density1-x8-round2.png`](density1-x8-round2.png) | Density 1 |
+| [`moved-texels-d2-round2.png`](moved-texels-d2-round2.png) | Moved texels: cyan in the hands, magenta outside |
+
+### Round 2's verdict (x4 first)
+
+| View | At x4 |
+|---|---|
+| Front | A hand: a mitten block with a thumb bump, clearly not the sliver it was |
+| Three-quarter | The best: the thumb stands out from the palm and the index steps past the mitten |
+| Back | A mitten block; the thumb hidden, as it should be |
+| Side | Still weak: the hand hangs over the bare thigh in the same skin, so only its outline and the thumb's bump read |
+| Walk | The swinging hands read as hands with thumbs |
+| Torch | The grip is larger and the torch still sits in it |
+| Density 1 | Whole, with no stray texel, but chunkier |
+
+### Round 2: what moves outside the hands (a finding)
+
+Over 40 frames per density: 4,286 texels in the hands and 794 outside at density 2, and 1,095 in and 126 outside at
+density 1. None changes the silhouette. Most of the outside moves are one ramp step on the arm and the thigh, as in round
+1, and there are more of them because the hand is larger and covers more. **The base man's torch frames move about 150
+texels each on his hair and the neck's line.** The cause is the painter's figure-wide colour budget (`paint-budget.ts`
+`budget`): the larger hand covers more of the torch, the figure's colour count changes, and the merge of its closest
+colour pair lands elsewhere. It is not the crease: drawn with no crease at all, the same texels move. Leaving it as it is
+needs no painter change; making it zero means changing the budget, which is the Owner's call, not part of this work.
+
+### Round 2: the goldens that will move on the Owner's yes (they replace round 1's list above)
+
+Measured with `HAND_FORM = 'parted'` against the recorded data, then restored (nothing written):
+
+| Golden | Moves |
+|---|---|
+| base | every sheet: D1 turn 197 / 123 texels (man / woman), walk 371 / 332, hero 27 / 25; D2 turn 799 / 630, walk 1,525 / 1,099, hero 48 / 71 |
+| lit | 50 of 50 frames |
+| actors | 293 of 294 frames |
+| sprites | 4 of 4 |
+| sprite | 64 of 64 |
+
+The red tests are the same files as round 1: the painter's 51 of 755 (`golden/base` 2, `golden/lit` 1, `golden/sprite` 1,
+`golden/actors` 2, `actors/actors` 4, `stage/sheets` 3, `paint/identity` 35, `hair/front` 1, `outfit/shoe-form` 1,
+`paint/sheer` 1) and the kit's 16 of 233 (`fashion/showcase-cells.test.ts`). No behaviour test fails.
