@@ -1419,6 +1419,12 @@
 - `TitleAction` (interface): An extra button on the title screen beside Play, such as Settings or Credits.
 - `TitleScreen` (const): The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's ScreenFrame and ActionBar.
 
+### `import { … } from '@automata/ui-screens/content'`
+
+- `creditsContent` (const): The `credits` content kind: `content/credits/credits.toml` is the game's credits.
+- `creditsSchema` (const): The Zod schema of a credits file.
+- `creditsSchemaWith` (const): The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable text in the content kind.
+
 ### `import { … } from '@automata/ui-screens/credits'`
 
 - `CreditName` (interface): One person or group in a credits section.

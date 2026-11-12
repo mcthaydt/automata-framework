@@ -30,12 +30,12 @@ describe('the package entries', () => {
     for (const [, name] of SCREENS) expect(module[name], name).toBeDefined()
   })
 
-  it('exports one path per screen and the words, and nothing else', () => {
+  it('exports one path per screen, the credits kind without its panel, and the words, and nothing else', () => {
     const manifest = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
       exports: Record<string, unknown>
     }
     expect(Object.keys(manifest.exports).sort()).toEqual(
-      ['.', ...SCREENS.map(([entry]) => `./${entry}`), './words/*.json'].sort(),
+      ['.', './content', ...SCREENS.map(([entry]) => `./${entry}`), './words/*.json'].sort(),
     )
   })
 })

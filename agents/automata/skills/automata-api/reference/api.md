@@ -16611,6 +16611,34 @@ const TitleScreen: import("svelte").Component<Props, {}, "">;
 type TitleScreen = ReturnType<typeof TitleScreen>;
 ```
 
+### `import { … } from '@automata/ui-screens/content'`
+
+#### `creditsContent` (const)
+
+The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
+`role` are translatable; a `name` and a `url` are not.
+
+```ts
+const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
+```
+
+#### `creditsSchema` (const)
+
+The Zod schema of a credits file. At least one section, and one name in each.
+
+```ts
+const creditsSchema: z.ZodType<Credits>;
+```
+
+#### `creditsSchemaWith` (const)
+
+The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
+text in the content kind. Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+
+```ts
+const creditsSchemaWith: (text: z.ZodType<string, string>) => z.ZodType<Credits>;
+```
+
 ### `import { … } from '@automata/ui-screens/credits'`
 
 #### `CreditName` (interface)

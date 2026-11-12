@@ -20,6 +20,7 @@
       "svelte": "./src/entries/index.ts",
       "default": "./src/entries/index.ts"
     },
+    "./content": "./src/entries/content.ts",
     "./credits": {
       "svelte": "./src/entries/credits.ts",
       "default": "./src/entries/credits.ts"
@@ -54,6 +55,10 @@
         "types": "./dist/entries/index.d.ts",
         "svelte": "./dist/entries/index.js",
         "import": "./dist/entries/index.js"
+      },
+      "./content": {
+        "types": "./dist/entries/content.d.ts",
+        "import": "./dist/entries/content.js"
       },
       "./credits": {
         "types": "./dist/entries/credits.d.ts",
