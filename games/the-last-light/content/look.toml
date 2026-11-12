@@ -15,6 +15,10 @@ grid = 0.12
 subpixels = 0.1
 scanlines = 0.12
 aberration = 0
+# The panel's gain gives back the light its mesh absorbs; the old 1.55 was for the full-strength mesh, and over the mesh held to a third it
+# lifted every dark and washed the skin pale pink (the ada session's veil crops). 1.28 is measured: a face averages what it does with the
+# panel off ((129, 94, 80) at 1024 by 768); 1 leaves it 12% darker, 1.55 10% lighter.
+brightness = 1.28
 
 # The old game multiplied a texel's linear colour by its light and showed the product as it was; the framework's `srgb` light multiplies the
 # sRGB colour, so the old game's lamp numbers draw about twice as bright (a mid grey is 0.5 in sRGB and 0.21 in linear light). `lamps` is a gain on

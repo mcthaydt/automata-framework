@@ -25,13 +25,21 @@ describe('the profiles', () => {
     expect(() => lookProfilesSchema.parse({ light: { contact: 1.5 } })).toThrow(/contact/)
   })
 
-  it('are in the committed file: the old game’s but for the LCD cell (one field pixel), the LCD mesh and stripes held down so they do not cut a face’s texels (session 16), and the lamps (a gain on the old game’s light)', async () => {
+  it('are in the committed file: the old game’s but for the LCD cell (one field pixel), the LCD mesh and stripes held down so they do not cut a face’s texels (session 16) with the light they absorb given back and no more, and the lamps (a gain on the old game’s light)', async () => {
     const toml = await import('smol-toml').then((m) => m.parse)
     const { readFileSync } = await import('node:fs')
     const file = toml(readFileSync(new URL('../../../content/look.toml', import.meta.url), 'utf8'))
     expect(lookProfilesSchema.parse(file)).toEqual({
       ...lookProfilesSchema.parse({}),
-      lcd: { ...LCD_CLINIC, cell: 1, grid: 0.12, subpixels: 0.1, scanlines: 0.12, aberration: 0 },
+      lcd: {
+        ...LCD_CLINIC,
+        cell: 1,
+        grid: 0.12,
+        subpixels: 0.1,
+        scanlines: 0.12,
+        aberration: 0,
+        brightness: 1.28,
+      },
       light: { lamps: 0.7, contact: 1 },
       moonlight: MOONLIGHT,
     })

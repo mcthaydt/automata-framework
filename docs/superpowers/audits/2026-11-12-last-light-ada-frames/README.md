@@ -55,3 +55,18 @@ cuts every texel. A clean face needs one of two generic, opt-in changes in `exte
 pixels after the field is scaled (a 4-pixel mesh, the old game's, whose period is one texel and whose phase follows the field's whole scale), or
 read a figure mask (the figures' pixels written to a target the pass samples) and leave those pixels out of the mesh, stripes and scanlines. Then
 the room's panel can go back to full strength. Not started in this session.
+
+## Item 3(b): the veil on her colours (`item3b-veil-panel-gain-heads-x2.5.png`)
+
+Her head from four play frames, x2.5 nearest: the panel's gain at 1.55 (as it was), 1, 1.28 (kept), and the panel off. The veil is the panel's
+`brightness`, the gain that gives back the light its mesh absorbs: 1.55 was set for the full-strength mesh, and over session 16's mesh held to a third
+it lifts every dark and washes the skin pale pink. Measured (her face's mean, 1024 by 768): panel off (129, 94, 80); the softened mesh at gain 1
+(114, 85, 72), so it absorbs about 12%; at 1.55 (144, 106, 91), 10% over. 1.28 gives back exactly what the mesh takes: (129, 96, 82). Set in this
+game's `look.toml`; the panel's default is unchanged. The halation (`glow`) costs her face under 1% and stays. What is left: the skin is her painted
+`skinWarm` under the room's light, paler and pinker than the reference's tan (a data choice of her skin, not a stage), and the mesh's haze (3a).
+
+## Item 5, round 3 (`item5-round3-gameplay-frame-1024x768.png`, `item5-round3-head-from-that-frame-x2.5.png`)
+
+Six heads, the panel's gain 1.28. Against the reference: brows bold (read); the woman's lid over whites each side of the iris (read); the nose a
+faint column; the lips a dark band with a lighter row, still low in contrast; the hair's dark tones a little deeper than round 2 and the skin a
+little less pink, but still paler and pinker than the reference; the mesh's haze over every texel. Better than round 2, not yet the reference.
