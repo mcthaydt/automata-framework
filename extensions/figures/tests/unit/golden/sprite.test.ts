@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { spriteLitFrames } from '../../fixtures/frames/sprite'
 import golden from '../../fixtures/golden/sprite.json'
-import { spriteLitFrames } from './sprite'
 
 /** The base pair lit as a sprite must stay pixel-identical to its golden: every frame's md5. A failure names each frame
  * that differs. */

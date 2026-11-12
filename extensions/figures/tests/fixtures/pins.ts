@@ -124,7 +124,7 @@ export const PIN_NAMES: string[] = [
   'fallPlain',
   ...EXPRESSIONS.flatMap((e) => [`face/${e}@D1`, `face/${e}@D2`]),
 ]
-/** The pinned md5s, recorded before c9's first change (`npm run pins`). */
+/** The pinned md5s, recorded before c9's first change (`scripts/c9-pins.ts` prints them). */
 export const PINS: Record<string, string> = {
   mixPlain: 'd46d740e895018a72b0f103009d74f09',
   shodPlain: 'a2f66829d9b3d522e5d75d131631a74e',

@@ -18,6 +18,8 @@
 // under the package root imports those packages (`packages/editor:@pixi/3d`).
 // `--no-extension-imports <root>...` runs only the extension check: nothing under the roots (tests included)
 // imports a package that lives under `extensions/`, so core never depends on an extension.
+// `--confine <package>:<folder> <root>...` runs only the confined-import check: nothing under the roots (tests
+// included) but the folder, a package's one door, imports that package (`@automata/figures`).
 // `--browser <package-root>[:<entry>,<entry>]...` runs only the browser-only check: nothing a
 // browser entry reaches imports Effect, a Node built-in or a Node-only library. The entries after `:` name files in
 // src/entries/ (`packages/content:locale,assets`); with none, every file there is a browser entry.
@@ -25,6 +27,7 @@ import { readFileSync, statSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import { browserOnlyFindings } from './browser-only.ts'
 import { checkSource, type Finding } from './check.ts'
+import { confineFindings } from './confine.ts'
 import { extensionImportFindings, extensionPackageNames } from './extensions.ts'
 import { featureFindings } from './features.ts'
 import { collectGameSimSet, collectSources, GAME_SIM_ROLES } from './files.ts'
@@ -84,6 +87,17 @@ if (process.argv[2] === '--forbid') {
     results.flatMap((result) => result.files),
     results.flatMap((result) => result.findings),
   )
+}
+
+if (process.argv[2] === '--confine') {
+  const [spec = '', ...roots] = process.argv.slice(3)
+  const [name = '', door = ''] = spec.split(':')
+  if (name === '' || door === '' || roots.length === 0) {
+    console.error('usage: check-boundaries --confine <package>:<folder> <root>...')
+    process.exit(2)
+  }
+  const result = confineFindings(roots, name, door)
+  finish(result.files, result.findings)
 }
 
 if (process.argv[2] === '--features' || process.argv[2] === '--browser') {

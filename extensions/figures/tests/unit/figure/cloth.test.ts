@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 26 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 // biome-ignore-all lint/complexity/useLiteralKeys: bracket access is how a test reads a private member (dot access does not compile)
 import { beforeAll, describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
@@ -13,9 +13,9 @@ import { profiles } from '#src/shared/outfit/fit.ts'
 import { dress, type Garment } from '#src/shared/outfit/garments.ts'
 import { labelAt } from '#src/shared/paint/fabric.ts'
 import { VERT } from '#src/shared/paint/raster.ts'
+import { BODY, endsOf } from '../../fixtures/body-ends'
 import { dressed } from '../../fixtures/draw'
-import { BODY, endsOf } from '../body/ends'
-import { FIXTURES, registerFixtures } from '../paint/fabric-fixtures'
+import { FIXTURES, registerFixtures } from '../../fixtures/fabrics'
 
 beforeAll(registerFixtures)
 

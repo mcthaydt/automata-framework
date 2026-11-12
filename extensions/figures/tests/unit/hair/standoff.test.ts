@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 25 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import { measure, type Sliders } from '#src/shared/body/genes.ts'
@@ -23,7 +23,7 @@ import { FALL_PLAIN } from '../../fixtures/pins'
  * (the case that looped: the hair bones roll against the tilt and trail in a walk), standing and over a walk.
  */
 const FALL = { front: 0.5, length: 1.6 }
-const NURSE: Partial<Sliders> = { headTilt: 15, posture: 0.52 }
+const TILTED: Partial<Sliders> = { headTilt: 15, posture: 0.52 }
 const SPRING = { stiff: 14, damp: 2.6, trail: 0.55, bounce: 0.02 }
 const wear = (
   i: number,
@@ -227,7 +227,7 @@ describe('long hair that rests on the trunk', () => {
   })
   for (const i of [0, 1]) {
     it(`${BASE[i].def.id}: a tilted head, a drooping posture and a loose spring, standing, never lets trunk hair into the body or off it`, () => {
-      const def = wear(i, 'trunk', NURSE, SPRING)
+      const def = wear(i, 'trunk', TILTED, SPRING)
       const s0 = stray(pose(def, { frames: 90 }), def)
       expect(s0.into, 'standing: into').toBeLessThanOrEqual(0.001)
       expect(s0.away, 'standing: away').toBeLessThanOrEqual(2 * TEXEL)
@@ -236,7 +236,7 @@ describe('long hair that rests on the trunk', () => {
     // walk from its start, which is cheap, and measures only its own thirty frames.
     for (let from = 0; from < 150; from += 30)
       it(`${BASE[i].def.id}: a tilted head, a drooping posture and a loose spring, over walk frames ${from} to ${from + 29}, never lets trunk hair into the body or off it`, () => {
-        const def = wear(i, 'trunk', NURSE, SPRING)
+        const def = wear(i, 'trunk', TILTED, SPRING)
         const walker = pose(def, { walk: true, frames: 1 })
         for (let n = 0; n < from + 30; n++) {
           walker.update(1 / 60, { facing: 0, moving: true, view: view() })
@@ -249,8 +249,8 @@ describe('long hair that rests on the trunk', () => {
   }
   it('is drawn in 8 views, and twice to the same texels', () => {
     for (let d = 0; d < 8; d++) {
-      const a = new Figure(member(wear(1, 'trunk', NURSE, SPRING), 2)),
-        b = new Figure(member(wear(1, 'trunk', NURSE, SPRING), 2))
+      const a = new Figure(member(wear(1, 'trunk', TILTED, SPRING), 2)),
+        b = new Figure(member(wear(1, 'trunk', TILTED, SPRING), 2))
       for (let n = 0; n < 5; n++) {
         a.update(1 / 60, { facing: (d * Math.PI) / 4, moving: false, view: view(SPRITE_PITCH) })
         b.update(1 / 60, { facing: (d * Math.PI) / 4, moving: false, view: view(SPRITE_PITCH) })

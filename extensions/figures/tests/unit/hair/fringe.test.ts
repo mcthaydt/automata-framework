@@ -8,8 +8,8 @@ import { Figure } from '#src/shared/figure/figure.ts'
 import { member, view } from '#src/shared/figure/frames.ts'
 import { HAIR_STYLES, type HairStyle, type Piece, registerHairPiece } from '#src/shared/hair/hair.ts'
 import { dress, type Garment, SWATCHES } from '#src/shared/outfit/garments.ts'
+import { BODY, endsOf } from '../../fixtures/body-ends'
 import { differs, dressed } from '../../fixtures/draw'
-import { BODY, endsOf } from '../body/ends'
 
 /**
  * The fringe piece (hair.ts `Fringe`) and the styles built on it (library/hair.json: `bob`, `bobFringe`, `longFront`): clumps

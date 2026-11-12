@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { litFrames } from '../../fixtures/frames/lit'
 import golden from '../../fixtures/golden/lit.json'
-import { litFrames } from './lit'
 
 /** The base pair lit must stay pixel-identical to its golden (recorded through the scene's composite before the cut):
  * every frame's md5. A failure names each frame that differs. */

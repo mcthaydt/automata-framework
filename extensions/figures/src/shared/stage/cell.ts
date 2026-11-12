@@ -3,8 +3,8 @@ import type { Weave } from '../paint/fabric'
 
 /**
  * The cell: a painted figure as a scene draws it. The first piece of the stage's contract (docs/contract.md): plain
- * data over a `Figure`'s own buffers, with no Pixi and no DOM, so any host (the Pixi 3D view here, EnvironmentBuilder's
- * scene, automata-framework's billboard) draws the same painted texels.
+ * data over a `Figure`'s own buffers, with no Pixi and no DOM, so any host (the Pixi 3D view here, a scene
+ * renderer, the framework's billboard) draws the same painted texels.
  */
 
 /** A painted figure as a scene draws it. Every buffer is the figure's own, valid until its next draw. */
