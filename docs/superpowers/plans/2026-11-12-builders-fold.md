@@ -25,7 +25,7 @@ argues from their measurements. **Tracker:** [`../progress.md`](../progress.md),
 
 ## Tracking
 
-**4 of 28 tasks done (14%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
+**5 of 28 tasks done (18%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
 ([plan audit](../audits/2026-11-12-builders-fold-plan-audit.md)): its fixes are in the steps below. Numbers 4b to 4d were
 added and 14 was moved to 4b after the Owner's answers of 2026-11-12, so the numbering has letters and a gap. Tick a
 task only when its checks passed in the session that did it; say what did not run.
@@ -36,7 +36,7 @@ task only when its checks passed in the session that did it; say what did not ru
 | 2 | The painter's source arrives with its history; its own suite passes as it is | `claude/builders-fold-figures` | done | `e22caf219` (merge), `b192bad57` (the pin, step 3b made early), `ef3cd569e` (the package): filter 111 commits on main, 126 in all, 1.03 MiB, 0 SNEKPRTY blobs, 0 cut paths; manifest 134 files, 0 differ; the builder's suite 47 files, 563 tests (560 of 561 before the pin); typecheck 0 errors; view-check exit 0; `pnpm check` exit 0 (4m40s, cached) |
 | 3 | The character kit's door points at the package | `claude/builders-fold-figures` | done | `refactor(character-kit): the door imports the painter as a workspace package`: door test 5 of 5 (three specifier cases watched failing first), boundaries 0 findings, closed-beta guard passes, stale-types and missing-types checks green; kit unit 28 files, 229 tests (228 and the new case); kit browser (Chromium) 58 pass, 3 files skipped, as the baseline; no recorded file rewritten; `pnpm check` exit 0 (2m23s) |
 | 4 | The submodule and its wrapper go | `claude/builders-fold-figures` | done | `93f7e6ba3`: `git submodule status` prints nothing; a fresh clone (plain `git clone`, `pnpm install --frozen-lockfile`) passes `pnpm check` (66 tasks, 14m53s, nothing else typed); `pnpm check` in the tree 15m54s uncached; kit Chromium 58 pass without the root's Pixi; the hygiene invariants pass; `git diff --stat origin/main -- .github` empty |
-| 4b | The workflows lose the submodule step (the Owner's word given) | `claude/builders-fold-figures` | todo | |
+| 4b | The workflows lose the submodule step (the Owner's word given) | `claude/builders-fold-figures` | done | `323a971d9`: the Owner's words quoted in the commit body ("remove the submodule checkout and SUBMODULES_TOKEN from the workflows"); the new invariant test failed first (the 73 lines), passes; hygiene unit 157 tests; `pnpm check` exit 0 (66 tasks); no `SUBMODULES_TOKEN` or `checkout-submodules` left under `.github`, `tooling` or the runbook; actionlint not run (no Docker daemon here) |
 | 4c | The c5-finish fixes come across | `claude/builders-fold-figures` | todo | |
 | 4d | A turned face keeps both eyes: the fix, the sheet, the Owner's eye, the re-record | `claude/builders-fold-figures` | todo | |
 | 5 | The wardrobe branch arrives as its own commits | `claude/builders-fold-figures` | todo | |
@@ -706,7 +706,7 @@ in the commit body and in the pull request's text. Its own commit, after task 4'
   46-47, the checks at 87-90, 102-104 and 117-138), `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`
   (the four cases at 81, 95, 118, 141), `docs/runbook.md:63`
 
-- [ ] **Step 1: The failing test.** In `workflow-invariants.test.ts`, replace the four submodule cases with one
+- [x] **Step 1: The failing test.** In `workflow-invariants.test.ts`, replace the four submodule cases with one
   (`WORKFLOWS` is the folder constant the file already has):
 
 ```ts
@@ -720,13 +720,13 @@ it('names no submodule step and no submodule token: the repository has no submod
 ```
 
   Run `pnpm --filter @automata/repo-hygiene test:unit`. Expected: FAIL, 73 lines match.
-- [ ] **Step 2:** Remove the listed lines from the eight files (`3d.yml`'s two path filters go because
+- [x] **Step 2:** Remove the listed lines from the eight files (`3d.yml`'s two path filters go because
   `extensions/**` already covers the painter); delete the script and its test; take rule 6, `SUBMODULES_TOKEN` in
   `READ_ONLY_SECRETS`, `SUBMODULE_SCRIPT` and the checks that use them out of `workflow-invariants.ts`; remove the
   runbook's row.
-- [ ] **Step 3:** The test passes; every other invariant still holds (the case "hold for every workflow in the
+- [x] **Step 3:** The test passes; every other invariant still holds (the case "hold for every workflow in the
   repository" passes); `pnpm check`; `pnpm lint:actions` if Docker is there (say so if not).
-- [ ] **Step 4:** Commit `ci: the workflows no longer check out a submodule`, with the Owner's words in the body.
+- [x] **Step 4:** Commit `ci: the workflows no longer check out a submodule`, with the Owner's words in the body.
   Tell the coordinator the `SUBMODULES_TOKEN` secret can be deleted by the Owner once no open branch predates the fold:
   a branch that has not merged `main` past this commit still runs the old step on its pushes, which then warns and
   empties the submodule, and its install fails.
@@ -1524,3 +1524,4 @@ pin.
 | 2026-11-12 | Task 2 (same session) | Filtered and merged as the plan says (111/7/6/2 commits, main `c85b961`, root `36a135e`, 126 commits and 1.03 MiB fetched empty, 0 and 0 on the content check, grafts `13407db8` and `6b6819cb` only). Manifest `134 files, 0 differ`. **Deviation:** the builder's suite at the pin on Node 24.21 was 560 of 561: `face-d2.test.ts` (the head's profile pin, 1 ulp) is in the builder's `main`, not only in the wardrobe branch, and passes on Node 22.23.4. Task 5 step 3b was done here, in its own commit before the package's (`b192bad57`): the ±1-ulp case (both base figures, densities 1 and 2, eight views, the head form and the ear a last bit up and down: every md5 equal; a control moving the form by 5% does move a cell), then the pin within 2 ulps (measured 1; 0 fails). Node 22.23.4 and 24.21.0 both pass both files. **Also:** the extension manifest rule needs `imports: {"#src/*": "./src/*"}` and `docs/versions.md` needs a row for `@napi-rs/canvas` (found by `pnpm check`), both added in the package commit. `@napi-rs/canvas` installed here (no refusal) and `view-check` ran: exit 0. Typecheck has no error in tests, scripts or viewer. The filtered clone is `/home/user/figurebuilder-filtered`, the remote `painter-history`. Not run: WebKit, Firefox, arm64 |
 | 2026-11-12 | Task 3 | The door's three specifiers, the kit's dependency, the 13 `--forbid` entries and the closed-beta guard point at `@automata/figures`; one new case (the package has three exports and no wildcard). The "Pixi-free entries" case passed vacuously in the plan's form (no specifier matched), so it now asserts the exact specifier set and fails first. **Two things the plan did not name:** `src/features/fashion/garments.ts` augments `declare module 'figure-builder'` (now `'@automata/figures'`), and `turbo.json`'s `@automata/figures#typecheck` needs `"outputs": ["types/**"]`, else a turbo cache hit does not restore `types/` and a consumer type-checks the painter's source under the strict flags (seen: `examples-3d` and the kit failed with `TS2532` with `types/` removed and the cached typecheck). With the outputs, `rm -rf extensions/figures/types && pnpm typecheck` passes on a miss and on a hit. Not run: WebKit, Firefox, arm64 |
 | 2026-11-12 | Task 4 | Submodule, gitlink, wrapper, `.gitmodules`, workspace entry, Biome and knip and `.gitignore` entries gone. The root's `@pixi/3d` and `pixi.js` are out and stay out (`pnpm check` exit 0 and the kit's Chromium suite pass without them). The submodule script exits 0 with and without a token. A fresh clone with the declarations built by `prepare` passes `pnpm check`. `scripts/record-runway-cells.ts` named `vendor/FigureBuilder` in code: it now points at `extensions/figures` (a hand-run recorder; its comments are for task 12). What still names the submodule: the kit's comments (task 12), `gate.ts`'s error text (task 12) and the workflows and their invariants (task 4b). Not run: WebKit, Firefox, arm64 |
+| 2026-11-12 | Task 4b | Eight workflow files, the script and its test, rule 6 and 7 of the invariants and the runbook row. The new case ("name no submodule step and no submodule token") was watched failing for the right reason first. Every file parses as YAML; `pnpm lint:actions` could not run (Docker's daemon is not available here), so actionlint is **not run**. For the pull request's text: the Owner, 2026-11-12, "remove the submodule checkout and SUBMODULES_TOKEN from the workflows". The `SUBMODULES_TOKEN` secret is the Owner's to delete once no open branch predates this commit (a branch that has not merged `main` past it still runs the old step, which warns and empties the submodule, and its install fails) |
