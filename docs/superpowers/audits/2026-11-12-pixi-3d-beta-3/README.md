@@ -343,6 +343,16 @@ Branch continued from `4036dbef`. Item 1 (setup, `origin/main` merged as `c9cf16
 65 of 65 unit tasks, 10 m 18 s, 78 changesets, 0 problems; nothing to fix.** Unit files: `@automata/3d` 145, `@automata/character-kit` 28, `@automata/world-kit` 22,
 `@automata/framework` 218, `@automata/tools` 95, `@automata/editor-3d` 160, `@af-games/base-3d` 20, `@af-games/emberwick` 17, lcd-panel 4, retro-crisp 7.
 
+### Resume list for the next session (the coordinator's messages of 07:35 and 08:13, read at the 90-minute mark; none of it is done)
+
+1. **The crates, reduced.** The cause is shown at the level of the room (they are past `FOG.far`, see the stop under item 6) but not at the level of the shader. Reduce it: one ramp-lit crate and the floor inside the fog, beta.2 (`c1c9b7c2` worktree) against beta.3, a pixel each. Read `ramp-light-material.ts`'s `postLighting` (it sets `finalColor = albedo * stepped + emissive`) against beta.3's fog placement and colour helpers
+   (`decodeColor`, `inputTint`, display-space against linear paths). If it is ours, fix test first (a browser case: a ramp-lit object inside fog keeps a stated contrast against the floor, WebGL and WebGPU). Re-shoot `base-3d` at the journeys' camera with Wick and an ember inside the fog's near plane, beta.2 against beta.3.
+2. **The fog decision as a conversion, not a choice.** Write down both formulas (what beta.2 did with the fog colour on lit and unlit surfaces: it showed the fog colour's linear value, `0x8b9bb4` as `0x425474`, and did not mix an unlit surface up to the fog colour; what beta.3 does: the fog colour as authored, every surface reaches it at `far`), derive a conversion of the fog content (colour, near, far) that gives
+   beta.2's picture under `'authored'`, apply it to the night room and `base-3d`, and shoot beta.2 | beta.3 authored + converted fog | diff x4 with luma. If it lands within dither noise like the baked-room fix, there is no fog decision left, and the games' fog content is converted once with a note for games in the release notes. The lit figures' colour is its own conversion (keep beta.2's picture by the correct beta.3 input); keep a switch only if a conversion cannot be exact, and say which.
+   Also say which colour of the night room's plant (tan or green) and lamp shade (black or yellow) is the **authored** one, so the Owner knows which picture is correct.
+3. The whole `pnpm check --force` on the final tree, and Emberwick's six language projects.
+4. Record 4d (leave `'gpu'`, measure on the Owner's real GPU) and 4e (accept) as already recommended under item 7. Push after each, and confirm the last pushed commit in the message.
+
 ### Item 2: the picture frames (`frames/`)
 
 All shot on Chromium, software GL (`--use-angle=swiftshader --enable-unsafe-swiftshader`), one browser at a time. "Before" is a worktree of `c1c9b7c2` (the last beta.2 commit);
