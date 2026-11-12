@@ -99,9 +99,10 @@ The opening's camera keys in `content/cutscenes/opening.toml` are the old script
   proposal** (a billboard cap for close cutscene cameras in `@automata/character-kit`'s painted view).
 - **The bars.** The old cutscene is letterboxed, about 84 px top and bottom at 1024 by 768; ours draws full frame, with the pause button on top. The framework's
   bars are fixed for the game (`barFraction`) and cannot open per cutscene: already a proposal, not built.
-- **Ada's facing in the opening's first shots looks reversed against the old** (the old shows her back from the south-west camera and her front from the
-  north camera; ours shows front then back). Not resolved in this item: the stage hands a cutscene's `facing` to the figure as a heading, as play does, and play's is right;
-  it needs the kit's yaw read against the first shot's frames. Left as the first thing to look at.
+- **Ada's facing in the opening was not established.** At 12 s the old shows her face (turned to the left, from the north camera); ours at the same
+  moment (`ours-opening-ada-after-1024x768.png`) is face-on at a density where no features read, so the frames do not say whether it is the
+  same way round. The stage hands a cutscene's `facing` to the figure as a heading, as play does, and play's is right (session 7). Left open; the figure's density in
+  the opening's close shots is the character kit's (`claude/last-light-figures-look`).
 
 ### (iii) The film: NOT ported. What is missing
 
