@@ -504,7 +504,7 @@ Branch continued from `b3160de1`. Goal: beta.3 draws what beta.2 drew wherever a
 |---|---|---|
 | 1 | Setup, `origin/main` merged (already), `pnpm check --force` | done: exit 0, 78 changesets, 0 problems, no cache |
 | 2 | The two fog formulas, written down | done, below |
-| 3 | The conversion derived; a browser case per surface kind, expected colours from beta.2 | not started |
+| 3 | The conversion derived; a browser case per surface kind, expected colours from beta.2 | done: derived above; the case written and watched failing (6 of 12), committed with its fix in item 4 |
 | 4 | Applied to the default look and every game and example that sets fog; the game note; `the-last-light`'s note | not started |
 | 5 | Frames: night room with haze, base-3d at the play camera | not started |
 | 6 | Lit moving figures' colour | not started |
@@ -545,6 +545,29 @@ they were mixed in different spaces. That is the picture the games were tuned on
 | lit, ramp | 170,203,238 / 158,185,216 / 144,164,191 / 138,154,179 | 172,205,239 / 159,186,217 / 146,166,193 / 139,155,180 |
 
 The unlit rows are the formulas above to the digit (beta.2: `(1-s)*dec_pw(B) + s*dec_pw(C)`; beta.3: `enc((1-s)*dec(B) + s*dec(C))`, computed by hand). The lit rows agree to 1 or 2 of 255.
+
+### Item 3: the conversion, derived
+
+Given a fog as a game states it (colour `C`, `near`, `far`; no exposure, no tone curve in the framework), find what beta.3 needs to show beta.2's colour on each surface kind.
+
+- **Lit surfaces (Phong, `RampMaterial`): the engine's fog is already beta.2's, if it is handed beta.2's `uFogColor`.** Both betas run the same fog line in linear light before the same encode, so what differs is
+  only `uFogColor`: `dec_pw(C)` on beta.2, `dec(C)` on beta.3. Hand beta.3 the colour `F = enc(dec_pw(C))` (a float triple, which `Fog.color` takes as a `ColorSource`) and its `uFogColor = dec(F) = dec_pw(C)`: the same number. The two shown colours then
+  differ only by the albedo's decode curve (`dec_pw(B)` against `dec(B)`, the "2% more linear light" of §2), which is the lit figures' colour, item 6. Measured with `F = C` (no conversion): 1 to 2 of 255 for a light fog, 3 for the night room's dark fog
+  (`C` is 49, `F` should be 52): that 3 is what `F = enc(dec_pw(C))` removes.
+- **Unlit surfaces: no `(colour, near, far)` of the engine's fog can give beta.2's picture, so one definition cannot serve both kinds, exactly.** Beta.2 mixed display values straight: `(1-s) * P + s * D`, `D = dec_pw(C)`. Beta.3's unlit
+  fog is `enc((1-s) * dec(P) + s * dec(F))`, a power mean with exponent 2.2. Choose `F` so the end points agree (`dec(F) = D`) and the middle still does not: with `P = 160` and `D = 66` of 255, at `s = 0.5` beta.2 shows 113 and beta.3 shows 149.5; at `s = 0.25`
+  136.5 and 154.8; and the same `s` with a darker `P = 40` shows 53.0 and 103.6. The gap depends on the surface's own colour, so no remap of `near`, `far` (or of `s`) closes it for every surface: a change to the fog's numbers is out.
+  What does close it is the mix itself, in display values, as beta.2 ran it.
+- **The smallest correct thing: one shader bit of ours on our unlit material.** `UnlitMaterial` (a `FlatMaterial`, same options, in `@automata/3d`) switches the engine's fog off for itself (`fog: false`) and adds a bit that, at the end slot before the engine's encode, mixes
+  the *display* value toward the fog colour: `shown = enc(finalColor); shown = mix(shown, uFogColor, smoothstep(near, far, viewDepth)); finalColor = dec(shown)`. `uFogColor` is `dec(F)` = `D`, the colour beta.2 mixed toward, so the bit
+  reads the engine's own uniform and the game states **one fog**. The engine's encode then returns `shown`. It runs in linear space (the material is `colorSpace: 'linear'`, so the engine decodes the base colour and encodes the result whether or not
+  the mesh has vertex colours; at no fog the round trip `enc(dec(x))` is the identity, within float error). It needs `uFogParams.y > uFogParams.x` to switch itself off on a view with no fog (the uniform is zero until a fog is set).
+- **The sky**: unchanged by the conversion; it was `D` on beta.2 and stays `D = dec_pw(C)` (the 2D fill meets the unlit fully fogged colour with no edge, as it did). So **the content states one fog colour `C`; lit things reach `C`, unlit things and the sky reach the darker `D`**, as on beta.2.
+- **What is left for games:** nothing in their fog numbers. A game draws unlit meshes with `UnlitMaterial` instead of `FlatMaterial` (the framework's own meshes do; a game's own `FlatMaterial` keeps beta.3's linear-mix fog, brighter in the middle of the range, until it is changed).
+
+**The test, first:** `packages/3d/tests/browser/parity/shared/parity/fog-surfaces.test.ts`: four surface kinds (unlit, baked room, lit, stepped-lit) x no fog, a light fog (`0x8b9bb4`) and a dark one (`0x31222a`, the night room's), planes at 6, 8, 10 and 14 m under `near 4`, `far 12`,
+expected colours **recorded from beta.2** (`/home/user/b2tree`, `c1c9b7c2`, pixi.js 8.23.0; no post effect in the frame, so the 8.23 render-target change does not touch it; the unlit input pre-decoded the way beta.2's framework gave it). Watched failing on beta.3 as the formulas say it must:
+unlit light and dark fog (157 against 145 at 6 m), baked light and dark (104 against 91), lit and stepped-lit dark fog at 14 m (49 against 52); the three no-fog rows and the two light-fog lit rows pass (within 2 of 255).
 
 ## Handoff at 90 minutes
 
