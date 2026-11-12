@@ -9,8 +9,9 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **round 2 of 3 done** (about 70 %). Round 0 look before touching, round 1 data, round 2 painted garments as generators,
-and the list for the painter, kept as it goes. Round 3 (the nurse's garments, hair as data if the Owner allows it, the in-game frame) next.
+Progress: **round 3 of 3 sheeted** (about 85 %). Round 0 look before touching, round 1 data, round 2 painted garments as generators,
+round 3 the nurse's cut (choices open), and the list for the painter, kept as it goes. Left: the Owner's picks, hair as data if the
+Owner allows it, the in-game frame.
 
 ## Round 0: as they are now
 
@@ -97,7 +98,7 @@ Merged `origin/claude/last-light-prologue` first (already up to date). One famil
 | [`round1-ada-variants-detail.png`](round1-ada-variants-detail.png) | The same four at density 2. |
 | [`round1-ada-play.png`](round1-ada-play.png), [`-detail.png`](round1-ada-detail.png), [`-numbers.txt`](round1-ada-numbers.txt) | The adopted Ada alone, 8 views and the walk, and the numbers. |
 | [`round1-nurse-variants-play.png`](round1-nurse-variants-play.png), [`-detail`](round1-nurse-variants-detail.png), [`round1-nurse-play.png`](round1-nurse-play.png), [`-detail`](round1-nurse-detail.png), [`-numbers.txt`](round1-nurse-numbers.txt) | The same for the night nurse. |
-| [`round1-variants.ts`](round1-variants.ts) | The variants as data over the cast file, for `pnpm --filter @automata/character-kit variants`. |
+| [`figure-looks.ts`](../../../../extensions/character-kit/scripts/figure-looks.ts) | Every round's variants as data over the cast file (`round1-ada`, `round1-nurse`, `round2-ada`, `round2-vest`, `round3-nurse`), for `pnpm --filter @automata/character-kit variants <out-dir> <name> <ada\|nurse> <look> --old <old-game>`. |
 
 **Ada, four versions** (front view, texels):
 
@@ -153,13 +154,19 @@ either end). No new per-character code: Ada's data sets the options.
 | --- | --- |
 | [`round2-ada-variants-play.png`](round2-ada-variants-play.png), [`-detail.png`](round2-ada-variants-detail.png) | Ada: BEFORE (round 1's cut), A (waistcoat fitted and cropped at the waist, jeans tapered 0.7), **B (adopted: A and an armhole)**, D (B and a brown belt), C (B with the vest to the hip). |
 | [`round2-ada-play.png`](round2-ada-play.png), [`-detail.png`](round2-ada-detail.png), [`-numbers.txt`](round2-ada-numbers.txt) | The adopted Ada alone, 8 views and the walk, and the numbers. |
-| [`round2-default-vest-detail.png`](round2-default-vest-detail.png), [`-play.png`](round2-default-vest-play.png), [`-diff.txt`](round2-default-vest-diff.txt) | The waistcoat's default moved: the base pair, legacy cut against the new default. |
+| [`round2-vest-options-detail.png`](round2-vest-options-detail.png), [`-play.png`](round2-vest-options-play.png), [`-diff.txt`](round2-vest-options-diff.txt) | The options on another kit outfit: the figure builder's base pair in a tee, a waistcoat and jeans, the legacy cut against `fit` 1, `length` .05, `armhole` 1. |
 
-What moved: the waistcoat's **default** (`fit` 0.6, `armhole` 0.5; the legacy cut is `fit` 0, `armhole` 0). No golden holds a waistcoat
-(the runway's nine kinds do not include it; it was added on the game branch in `00087de63`), so no golden file moved: the kit's
-unit tests all pass and the runway and core goldens are untouched. The cells that moved are the base pair's in a waistcoat: 758 texels
-of base-m's eight views at density 2 and 523 of base-f's (`round2-default-vest-diff.txt`, the sheet beside it). The trousers' and jeans'
-default is `taper` 0, the same pipe as before: nothing moved there.
+What moved: **nothing that already draws.** A generator gains options and does not change what existing data draws, so the waistcoat's
+defaults are the legacy cut (`fit` 0, `armhole` 0, the hem a hand over the belt) and Ada's data sets her own options. The test
+[`waistcoat-default.test.ts`](../../../extensions/character-kit/tests/unit/fashion/waistcoat-default.test.ts) pins it: the base pair in a
+tee, a waistcoat and jeans, eight views at density 2 each, cell by cell (a SHA-1 of every cell recorded from the commit before the
+options, `a76c7863`); it was watched failing with an earlier default (`fit` 0.6, `armhole` 0.5) and passes with the legacy one, which
+needed the hem and the clearance written exactly (a `lerp` of 1.6 and 1.6 is not always 1.6). No golden file moved: the kit's runway and
+core goldens and all the unit tests pass. The trousers' and jeans' `taper` defaults to 0, the same pipe as before.
+
+The options' effect on a figure that is not Ada: the base pair's cells with the options set, against the legacy cut, differ by 1741
+texels (base-m) and 1474 (base-f) over eight views at density 2 (`round2-vest-options-diff.txt`, the sheet beside it): the vest closes in
+at the waist and ends there, and the shirt shows at the shoulder, on any body.
 
 **Ada, front view, play size** (texels):
 
@@ -174,6 +181,24 @@ default is `taper` 0, the same pipe as before: nothing moved there.
   here and there), which is what a garment can do on this body: the cloth cannot be narrower than the body under it.
 - **D, a belt**: it draws a waist the body has not got. It is an outfit choice (the old street outfit has none), so **the Owner's call**.
 - What the generator cannot do: the torso under the vest is the painter's body, and the face, hair and stand are still the painter's.
+
+## Round 3: the night nurse's cut (choices open, nothing adopted)
+
+Data only, over round 1's nurse: her skirt's options (`length`, `flare`, both the kit's) and her belt. Taste decides, so the cast file is
+**unchanged** and the Owner picks. [`round3-nurse-variants-detail.png`](round3-nurse-variants-detail.png),
+[`-play.png`](round3-nurse-variants-play.png), the variants are `round3-nurse` in [`figure-looks.ts`](../../../../extensions/character-kit/scripts/figure-looks.ts).
+
+| | what differs | waist width at play size |
+| --- | --- | --- |
+| BEFORE | flare .3, length .42, the belt (the old outfit) | 20 |
+| A | no belt: the top falls straight into the skirt | 20 |
+| B | a straighter skirt (flare .1), a hand longer (length .5), the belt | 18 |
+| C | B and no belt: one long, plain line | 18 |
+
+- The belt reads as a grey ring (it stands three clearances off the cloth); without it she reads as one worn dress. It is a piece of the old outfit, so keeping or dropping it is the Owner's call.
+- B and C make her skirt a column, not a bell: the waist narrows by two texels and the hem no longer flares over her legs.
+- Her cap, her face and her hair are the painter's (the cap is a bowl, the face a blank, the hair a fall down her back): see the table
+  below.
 
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
@@ -192,9 +217,9 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 ## Log
 
 - Round 2: waistcoat `fit`, `length` and `armhole` and legs' `taper` in the kit's garments (`accessories.ts`, `shells.ts`, `garments.ts`),
-  `cut.test.ts` written first; Ada's waistcoat and jeans set the options; `figure-variants.ts` can count the texels two variants differ by.
+  `cut.test.ts` written first, `waistcoat-default.test.ts` pinning the legacy default; Ada's waistcoat and jeans set the options; `figure-variants.ts` can count the texels two variants differ by.
 - Round 1: the old `brisk` and `uncanny` gaits whole as overrides (`old-gaits.ts`), Ada's six retuned sliders and `jeans`, the cast test
-  widened first, `figure-variants.ts` and `round1-variants.ts`; sheets and numbers above. Merge of `origin/claude/last-light-prologue`:
+  widened first, `figure-variants.ts` and its looks (`figure-looks.ts`); sheets and numbers above. Merge of `origin/claude/last-light-prologue`:
   already up to date.
 - Round 0: kit testing helpers `paintedStand`, `paintedWalk`, `rowWidths`, `silhouette` and a PNG/raster kit (`raster.ts`) with their
   unit tests (watched failing first); the sheet script; the round 0 sheets.

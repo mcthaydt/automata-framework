@@ -32,11 +32,11 @@ import { frontAt, grown, heights, opening, piece, SHOULDER_RINGS, shell, skins }
  */
 export interface Waistcoat {
   waistcoat: string
-  /** 0 a loose vest, 1 a fitted one: the cloth clears the body by the same at the chest, and by less and less toward the waist. Default 0.6. */
+  /** 0 a loose vest, 1 a fitted one: the cloth clears the body by the same at the chest, and by less and less toward the waist. Default 0 (loose, as it was drawn before the options). */
   fit?: number
-  /** Where it ends, 0 at the waist (a short, cropped vest) to 1 at the hip (a long one). Default 0.35, a hand over the belt. */
+  /** Where it ends, 0 at the waist (a short, cropped vest) to 1 at the hip (a long one). Left out, a hand over the belt, as it was drawn before this option. */
   length?: number
-  /** 0 … 1: the vest narrows across the shoulder, so the shirt shows at the arm and it hangs from straps, not from the arm's cap. Default 0.5. */
+  /** 0 … 1: the vest narrows across the shoulder, so the shirt shows at the arm and it hangs from straps, not from the arm's cap. Default 0. */
   armhole?: number
 }
 /** Stockings, in one colour. */
@@ -97,19 +97,19 @@ function waistcoat(c: Wearing, i: Waistcoat): Fit {
   const h = heights(c)
   const cl = c.body.clear
   const torso = c.body.profiles.torso
-  const fit = i.fit ?? 0.6
-  const hem = lerp(h.waist, h.hipY, i.length ?? 0.35)
-  const armhole = (i.armhole ?? 0.5) * VEST_ARMHOLE
+  const fit = i.fit ?? 0
+  const hem = i.length === undefined ? h.belt + 0.01 * h.k : lerp(h.waist, h.hipY, i.length)
+  const armhole = (i.armhole ?? 0) * VEST_ARMHOLE
   // The torso's own waist and hip rings (builder's fit profile): the vest is closest at the first and as roomy as the chest at the second.
   const waistY = h.waist + 0.02 * h.k
   const hipRingY = h.hipY + 0.08 * h.k
   const chestRingY = c.s.chestY - 0.07 * h.k
-  const unit = (v: number) => Math.min(1, Math.max(0, v))
   const waistEase = lerp(VEST_CHEST, VEST_WAIST, fit)
   const ease = (r: Ring, at: number): number => {
     if (at < SHOULDER_RINGS) return VEST_CHEST * cl
     const away = r.y >= waistY ? (r.y - waistY) / (chestRingY - waistY) : (waistY - r.y) / (waistY - hipRingY)
-    return lerp(waistEase, VEST_CHEST, smooth(unit(away))) * cl
+    // The chest's clearance less what the waist gives up: exactly the chest's where the waist gives up nothing (fit 0).
+    return (VEST_CHEST - (VEST_CHEST - waistEase) * (1 - smooth(away))) * cl
   }
   // Rings 1 to 3 carry the shoulder's slope and the arm's root: they narrow most at the shoulder's own ring (2).
   const armholeAt = (at: number) => armhole * (at === 2 ? 1 : at === 1 || at === 3 ? 0.5 : 0)

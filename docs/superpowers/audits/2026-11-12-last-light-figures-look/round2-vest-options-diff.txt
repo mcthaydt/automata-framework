@@ -1,0 +1,2 @@
+base-m OPTIONS against base-m BEFORE: texels that differ in the eight views at density 2: 237, 243, 154, 243, 273, 215, 148, 228 (1741 in all)
+base-f OPTIONS against base-f BEFORE: texels that differ in the eight views at density 2: 239, 188, 135, 193, 204, 176, 129, 210 (1474 in all)

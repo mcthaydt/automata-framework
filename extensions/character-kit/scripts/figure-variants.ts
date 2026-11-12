@@ -1,22 +1,13 @@
 // A round's variants of one character, side by side: the same character in two or three versions (A, B, C) of its data, drawn at
 // the size it is played at (density 1, each texel 4 pixels) in four standing views and four walk poses, under the old game's own
-// figure, and again at density 2 for the front, three-quarter and back views. `--module` names a file exporting a list of
-// `{ label, note, def }` (`--export` names the list, `variants` by default); each round's file lives with its sheets.
+// figure, and again at density 2 for the front, three-quarter and back views. The lists are `figure-looks.ts`'s (`LOOKS`).
 //
-//   pnpm --filter @automata/character-kit variants <out-dir> <name> <id: ada|nurse> --module <file> [--export <name>] [--old <old-game-checkout>]
+//   pnpm --filter @automata/character-kit variants <out-dir> <name> <id: ada|nurse> <look> [--old <old-game-checkout>]
 import { readFileSync, writeFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
-import type { CharacterDef } from '../src/entries/index.ts'
+import { join } from 'node:path'
 import { decodePng, encodePng, paintedStand, paintedWalk, silhouette } from '../src/entries/testing.ts'
+import { LOOKS } from './figure-looks.ts'
 import { asRaster, at, measure, NAMES, oldCell, panel, row, SUBJECTS, stack } from './figure-sheet.ts'
-
-export interface Variant {
-  readonly label: string
-  readonly note: string
-  readonly def: CharacterDef
-  /** The label of the variant this one is counted against: a diff file says how many texels differ, over the eight views at density 2. */
-  readonly against?: string
-}
 
 const STAND = [0, 1, 2, 4] as const
 /** Four poses spread over a walk of any length (a gait may have 6 or 8). */
@@ -28,17 +19,16 @@ async function main(): Promise<void> {
     const at = args.indexOf(name)
     return at < 0 ? undefined : args[at + 1]
   }
-  const [out, name, id] = args
-  const file = flag('--module')
+  const [out, name, id, look] = args
   const oldRoot = flag('--old')
-  if (out === undefined || name === undefined || id === undefined || file === undefined)
-    throw new Error('usage: figure-variants <out-dir> <name> <ada|nurse> --module <file> [--old <dir>]')
+  if (out === undefined || name === undefined || id === undefined || look === undefined)
+    throw new Error(
+      `usage: figure-variants <out-dir> <name> <ada|nurse> <look: ${Object.keys(LOOKS).join(' | ')}> [--old <dir>]`,
+    )
   const subject = SUBJECTS.find((s) => s.id === id)
   if (subject === undefined) throw new Error(`no subject ${id}`)
-  const variants = ((await import(resolve(file))) as Record<string, Variant[]>)[
-    flag('--export') ?? 'variants'
-  ]
-  if (variants === undefined) throw new Error(`${file} exports no ${flag('--export') ?? 'variants'}`)
+  const variants = LOOKS[look]
+  if (variants === undefined) throw new Error(`no look ${look}: ${Object.keys(LOOKS).join(', ')}`)
 
   const rows = []
   for (const v of variants) {
