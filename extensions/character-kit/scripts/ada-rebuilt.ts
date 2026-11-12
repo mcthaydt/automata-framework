@@ -118,7 +118,7 @@ export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
       def: adaOf(ADA_PROPORTIONS),
     },
     {
-      label: 'B (ADOPTED)',
+      label: 'B',
       note: "A with the turnaround's face (a small oval, big almond eyes, thin brows, a dark lash line), rolled sleeves and a V-fronted waistcoat (an open strip, wide at the neck, narrowing to a point)",
       def: adaOf(ADA_PROPORTIONS, { face: REF_FACE, more: dressed }),
     },
@@ -126,6 +126,29 @@ export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
       label: 'C',
       note: 'B with a smaller head (head slider .3: more of her is body, 7.4 heads)',
       def: adaOf({ ...ADA_PROPORTIONS, head: 0.3 }, { face: REF_FACE, more: dressed }),
+    },
+    {
+      label: 'D (ADOPTED)',
+      note: "B after the coordinator's read: lighter faded denim (DUEL steps #828b98, #626871 over the old #626871, #48474d), the tail-less bob (`bobFringeBlunt`), no lip mark, the arms closer (`armOut` and `standOut` .03)",
+      def: adaOf(ADA_PROPORTIONS, {
+        face: REF_FACE,
+        gait: { armOut: 0.03, standOut: 0.03 },
+        more: {
+          swatches: {
+            ...REF_SWATCHES,
+            washedDenim: { ramp: 7, base: 1, paint: ['#828b98', '#626871', '#434549', '#2e3d47'] },
+          },
+          outfits: {
+            street: REF_OUTFIT.map((item) =>
+              'hair' in item
+                ? { hair: 'auburn', style: 'bobFringeBlunt' }
+                : 'eyes' in item
+                  ? { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'auburn' }
+                  : item,
+            ) as never,
+          },
+        },
+      }),
     },
   ],
 }

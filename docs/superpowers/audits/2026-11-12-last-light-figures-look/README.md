@@ -599,6 +599,15 @@ reference's face, **density 1 (x4) beside density 2 (x2), the same size on scree
 - **What a smaller figure costs (the cost row of the sheet):** at density 1 her head is 9 rows and the face is two dots and a mouth texel; the drawing of
   the face, the cuffs, the V of the waistcoat and the boots' heel exist only from density 2.
 
+#### B, round 2: the coordinator's read of round 1 (variant D, adopted)
+
+[`round8-b2-sheet.png`](round8-b2-sheet.png), [`round8-b2-numbers.txt`](round8-b2-numbers.txt). Changed, data only, in `ada-rebuilt.ts`: (1) the jeans are lighter, DUEL `#828b98`,
+`#626871`, `#434549`, `#2e3d47` (round 1's mid was `#48474d`): a faded grey-blue clearly lighter than the oxblood vest, as in the turnaround; (2) the hair is `bobFringeBlunt`, the
+widest tail-less style the pieces allow (no knot at the nape; the painter's change is the first on the list below); (3) no lip mark (her `lips` swatch is gone), eyes and brows only;
+(4) the arms nearer the body (`armOut` and `standOut` .03). Not done, and why: the waistcoat's V is a tall strip because the kit's `open` strip runs the whole torso (a short V with a
+shirt collar and two rows of buttons needs a kit option for the V's length and a collar: on the list); the boots' shaft is the kit's (19 % of her against 15.5 %: the shaft's length is not an option yet);
+the skin's tone and the hair are the painter's. The tests still pass (`ada-rebuilt.test.ts` reads D's proportions and eyes). Proportions unchanged (the numbers file is identical to round 1's).
+
 ### C and D. The framing study
 
 In-game frames at 1024 x 768, Ada standing in the hall's middle facing the camera, in the ward's merge (`origin/claude/last-light-prologue` at `baa73132e`
@@ -654,6 +663,7 @@ painter task after the fold merges). Each needs painter code, which this branch 
 
 | # | Change, file and function | What it buys |
 | --- | --- | --- |
+| **0** | `src/features/hair/hair.ts` (the scalp shell's thickness over the skull and the fall's rope placement and spread): a close hair that adds 1 to 2 rows over the skull at density 2 (today 6 to 8 whatever `lift`, `edge`, `crown`, `rope.r`), a fall whose widest row can reach 1.2 heads (today 28 to 32 rows at density 2 whatever `volume`), a hem as wide as the ears and **no tail**; this decides the silhouette more than anything else (the head reads large, a bob of 1.2 heads wide, and the face small under a cap) | the bob: the one thing the Owner's reference shows first |
 | 1 | (done in the kit as `eyeMarks`, Ada wears it) `src/features/outfit/garments.ts`, `face()`: the neutral eye decal (`when: ['neutral', 'sad', 'angry', 'talk']`) is size 1x1 at `x * hw * 0.42`, `h * 0.45`; give it `size: [1, 2]` (the `fear`/`surprised` decal already is) and widen the x to about `hw * 0.6` | every figure's decal eyes would be the old size without the kit's garment; Ada's are now 2 tall and 4 apart |
 | 2 | `src/features/paint/paint.ts`, `PAINT.model` (the face's tone budget `[0.06, 0.1, 0.02, 0.08]`: the least and most shares of skin in the light tone and in shadow) and `PAINT.face` (`[0.78, 0.22, -0.4]`, the key's thresholds on a face's planes): at density 1 raise the least light share to about .5 (the old face is mostly the lightest step) and lighten the chin's shadow; `PAINT.shadow` 2 draws the fringe's shadow over the brow | a lit, readable face (a bright mass with two dark eyes) in place of a dusty-pink one with a dark chin |
 | 3 | `src/features/figure/figure.ts` / `motion.ts`, `standing`: the stand draws the weight foot in 25 % (`under: 0.25`) and the free foot at `Math.max(gait.track, 0.75)` of the hip joints' half-width (motion.ts around lines 217 and 518); make the stand's `under` and its feet's track a gait number (`standTrack`) | legs that stand apart on a narrow pelvis (Ada's `hips` slider is at 1 only to open the floor between her legs) |
@@ -665,12 +675,12 @@ painter task after the fold merges). Each needs painter code, which this branch 
 | 9 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings: the torn, hanging hem |
 | 10 | A cap as the old one exactly | the kit's `nurseBrow` is a flat band low on the brow (adopted); the old cap is a hand-tuned piece |
 | 11 | A brisk, leaning stand and pose for Ada standing | her first-night posture (the stand is the builder's relaxed one) |
-| 13 | `src/features/hair/hair.ts` (the scalp shell's thickness and the fall's rope placement): a thin close hair that adds 1 to 2 rows over the skull at density 2, and a fall that can reach 1.2 heads across | the bob's silhouette (ranked first for B: the head reads 5 rows too big and the face too small under it) |
 | 14 | `FRINGE` and the eye's height (hair.ts / the face's eye row): an eye raised by `eyeSize` above .7 goes under the fringe | big eyes (a third of the face) under a fringe |
 | 12 | The drawn face's eyes at density 1 | a face with a mouth and a nose at play size, not two dots (eyes from density 2 now) |
 
 ## Log
 
+- Round 8 (B, round 2): variant D, the lighter jeans, the tail-less bob, no lip mark, the arms closer; the painter's hair change first on the list.
 - Round 8 (C, D): five framings and three with the rebuilt Ada shot in the game under a study patch, the contact sheets, the recommendation.
 - Round 8 (B, first round): `ada-rebuilt.ts` (the base woman to the spec), `figure-rebuild.ts` and its sheet, the test of her proportions and eyes (`ada-rebuilt.test.ts`).
 - Round 8 (A): the reference board of the generated images, the look spec and the turnaround's numbers (`figure-reference.ts`, its test first).
