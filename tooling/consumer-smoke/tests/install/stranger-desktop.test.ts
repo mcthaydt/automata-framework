@@ -12,8 +12,9 @@ import { overridesYaml, packOverrides, strangerFolder } from '#src/stranger.ts'
 // the first run through the real webview. The packs stand in for the registry, as in the web journey. It needs the
 // Linux toolchain and a real build (minutes), so it runs by hand and in the desktop job, never in `pnpm check`:
 //   pnpm --filter @automata/consumer-smoke test:desktop
-// What it proves about the host: the app is Tauri's (not a browser), its saves go to the store file in the app's data
-// folder when the player closes the window, never to the page's storage, and a second start reads them back.
+// What it proves about the host: the app is Tauri's (not a browser); a save goes to the store file in the app's data
+// folder, never to the page's storage, and reaches the disk on its own, so the app killed right after still has it;
+// a second start reads it back; closing the window quits the app.
 
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const GAME = 'my-game'
@@ -72,17 +73,24 @@ async function waitFor(
   }
 }
 
-/** Whether a process named after the game runs (Linux's process table; the app is started by tauri-driver). */
-const appRunning = (): boolean =>
+/** The ids of the processes named after the game (Linux's process table; the app is started by tauri-driver). */
+const appPids = (): number[] =>
   readdirSync('/proc')
     .filter((entry) => /^\d+$/.test(entry))
-    .some((pid) => {
+    .filter((pid) => {
       try {
         return readFileSync(`/proc/${pid}/comm`, 'utf8').trim() === GAME
       } catch {
         return false // it exited while being read
       }
     })
+    .map(Number)
+
+const appRunning = (): boolean => appPids().length > 0
+
+/** The store file's contents, or null while it has not been written. */
+const readSaves = (file: string): unknown =>
+  existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : null
 
 /** A timed step: its seconds go to the log, which is the run's record. */
 async function step<A>(name: string, run: () => A | Promise<A>): Promise<A> {
@@ -168,7 +176,7 @@ it('a stranger makes a desktop game, builds the app, and on Linux it opens, save
     const ready = 'return document.documentElement.dataset.state === "ready"'
     const onTitle = 'return document.querySelector("[data-testid=title-screen]") !== null'
 
-    // First start: the first-run language screen; the player picks Japanese, then closes the window.
+    // First start: the first-run language screen; the player picks Japanese, and the app is then killed.
     const first = await step('open the app', open)
     await first.until(ready, 30_000)
     // Tauri's bridge is in the page: this is the desktop app, not a browser showing the build.
@@ -179,24 +187,35 @@ it('a stranger makes a desktop game, builds the app, and on Linux it opens, save
     const pageStorage = (await first.execute('return Object.keys(localStorage)')) as string[]
     expect(pageStorage.filter((key) => key.includes('locale') || key.startsWith('ruken:'))).toEqual([])
 
-    // The player closes the window as a window manager does; the adapter holds the close, flushes, then quits.
-    await step('close the window', async () => {
-      expect(appRunning(), 'the app is running before its window is closed').toBe(true)
-      sh(folder, 'wmctrl', ['-c', 'My Game'], { DISPLAY })
-      await waitFor('the app to quit', () => !appRunning())
-    })
+    // The save reaches the disk on its own, shortly after the change, with no Quit and no close: a crash, a kill or a
+    // power cut after that moment loses nothing. The app is then killed, which runs none of its exit handlers.
+    await step('the save reaches the disk without a close', () =>
+      waitFor(
+        'the save on disk',
+        () => JSON.stringify(readSaves(savesFile)) === '{"automata.locale":"ja"}',
+        5_000,
+      ),
+    )
+    expect(appRunning(), 'the app is running before it is killed').toBe(true)
+    for (const pid of appPids()) process.kill(pid, 'SIGKILL')
+    await waitFor('the killed app to be gone', () => !appRunning())
     await first.end().catch(() => undefined)
-    expect(JSON.parse(readFileSync(savesFile, 'utf8'))).toEqual({ 'automata.locale': 'ja' })
+    expect(readSaves(savesFile)).toEqual({ 'automata.locale': 'ja' })
 
     // Second start: the save is read back from the store; the game opens in Japanese without asking again.
     const second = await step('open the app again', open)
     await second.until(ready, 30_000)
     await second.until(onTitle, 10_000)
     expect(await second.execute('return document.documentElement.lang')).toBe('ja')
-    expect(appRunning(), 'the app is running before its window is closed').toBe(true)
-    sh(folder, 'wmctrl', ['-c', 'My Game'], { DISPLAY })
-    await waitFor('the app to quit again', () => !appRunning())
+
+    // The player closes the window as a window manager does; the adapter holds the close, flushes, then quits.
+    await step('close the window', async () => {
+      expect(appRunning(), 'the app is running before its window is closed').toBe(true)
+      sh(folder, 'wmctrl', ['-c', 'My Game'], { DISPLAY })
+      await waitFor('the app to quit', () => !appRunning())
+    })
     await second.end().catch(() => undefined)
+    expect(readSaves(savesFile)).toEqual({ 'automata.locale': 'ja' })
     finished = true
   } finally {
     await stopBackground()

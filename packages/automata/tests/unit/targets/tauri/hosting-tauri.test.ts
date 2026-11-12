@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createTauriHosting,
   type DesktopPort,
+  SAVE_WRITE_DELAY_MS,
   type StoreLike,
 } from '#src/features/targets/tauri/hosting-tauri.ts'
 import type { HostResult } from '#src/shared/host/errors.ts'
@@ -188,6 +189,40 @@ describe('the tauri adapter: intended differences (DIST spec §4.3)', () => {
       expect(unwrap(await hosting.saves.flush())).toEqual({ persisted: 'device' })
     }, built)
     expect(built.desktop.calls).toEqual(['set progress', 'save'])
+  })
+
+  it('writes a change to disk once the game stops changing saves for a moment, so a crash loses at most that moment', async () => {
+    const built = tauriHosting()
+    await onDesktop(async (hosting) => {
+      unwrap(await hosting.saves.set('progress', '1'))
+      built.clock.advance(SAVE_WRITE_DELAY_MS - 1)
+      unwrap(await hosting.saves.set('progress', '2'))
+      unwrap(await hosting.saves.remove('old'))
+      built.clock.advance(SAVE_WRITE_DELAY_MS - 1)
+      expect(built.desktop.calls).toEqual(['set progress', 'set progress', 'delete old'])
+      built.clock.advance(1)
+      await settled()
+      // One write for the burst, not one per change.
+      expect(built.desktop.calls).toEqual(['set progress', 'set progress', 'delete old', 'save'])
+      built.clock.advance(SAVE_WRITE_DELAY_MS * 10)
+      await settled()
+      expect(built.desktop.calls.filter((call) => call === 'save')).toHaveLength(1)
+    }, built)
+  })
+
+  it('writes nothing after dispose, and a refused write leaves nothing waiting', async () => {
+    const built = tauriHosting()
+    const hosting = await built.create()
+    unwrap(await hosting.saves.set('progress', '1'))
+    hosting.dispose()
+    built.clock.advance(SAVE_WRITE_DELAY_MS)
+    await settled()
+    expect(built.desktop.calls).toEqual(['set progress'])
+    const failing = tauriHosting(fakeDesktop({ failWrites: true }))
+    await onDesktop(async (hosting) => {
+      await hosting.saves.set('progress', '1')
+      expect(failing.clock.pending()).toBe(0)
+    }, failing)
   })
 
   it('a store that will not load: saves are not granted, every call is refused DENIED, and nothing is written (DIST-d)', async () => {

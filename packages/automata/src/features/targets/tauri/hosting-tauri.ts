@@ -2,7 +2,7 @@ import { type HostResult, refuse } from '../../../shared/host/errors'
 import type { HostingOptions } from '../../../shared/host/hosting'
 import { HOST_EXIT_CAP_MS, type Hosting, type HostingSaves } from '../../../shared/host/hosting'
 import { isOpenableLink } from '../../../shared/host/link'
-import { type Clock, systemClock } from '../../../shared/lib/clock'
+import { type Clock, systemClock, type TimeoutHandle } from '../../../shared/lib/clock'
 import { ok, refused } from '../../../shared/lib/result'
 import { makeExitHandlers } from '../exit-handlers'
 import { createWebHosting, type WebPage } from '../web/hosting-web'
@@ -10,10 +10,17 @@ import { createWebHosting, type WebPage } from '../web/hosting-web'
 /*
  * The `tauri` adapter: `Hosting` for a desktop build. The game runs in Tauri's webview, so the
  * web adapter observes lifecycle, input, display, audio and fullscreen from the page as it does in a browser. What
- * the desktop adds: saves in one store file in the app's data folder (never `localStorage`, never memory), Quit,
- * and the window's close request, both of which run the game's exiting handlers and the save flush before the app
- * quits. The Tauri packages are reached only through `DesktopPort` (`desktop-tauri.ts`), so tests use a fake.
+ * the desktop adds: saves in one store file in the app's data folder (never `localStorage`, never memory), written
+ * to disk shortly after each change; Quit, and the window's close request, both of which run the game's exiting
+ * handlers and the save flush before the app quits. The Tauri packages are reached only through `DesktopPort` (`desktop-tauri.ts`), so tests use a fake.
  */
+
+/**
+ * How long after the game's last change to saves the store is written to disk, in milliseconds. A burst of changes
+ * (a settings screen, a level's end) is one write; a crash or a kill loses at most this much. Quit and the window's
+ * close write at once.
+ */
+export const SAVE_WRITE_DELAY_MS = 500
 
 /** The parts of `@tauri-apps/plugin-store`'s `Store` the adapter uses. Values are the game's save strings. */
 export interface StoreLike {
@@ -70,15 +77,33 @@ export async function createTauriHosting(
     }
   }
 
+  // A change is written to disk SAVE_WRITE_DELAY_MS after the last one; a flush in between takes its place.
+  let pendingWrite: TimeoutHandle | undefined
+  const cancelWrite = (): void => {
+    if (pendingWrite !== undefined) clock.clearTimeout(pendingWrite)
+    pendingWrite = undefined
+  }
+  const writeSoon = <A>(result: HostResult<A>): HostResult<A> => {
+    if (!result.ok) return result
+    cancelWrite()
+    pendingWrite = clock.setTimeout(() => {
+      pendingWrite = undefined
+      void saves.flush()
+    }, SAVE_WRITE_DELAY_MS)
+    return result
+  }
+
   const saves: HostingSaves = {
     get: (key) => onStore('saves.get', async (s) => (await s.get(key)) ?? null),
-    set: (key, value) => onStore('saves.set', (s) => s.set(key, value)),
-    remove: (key) => onStore('saves.remove', async (s) => void (await s.delete(key))),
-    flush: () =>
-      onStore('saves.flush', async (s) => {
+    set: async (key, value) => writeSoon(await onStore('saves.set', (s) => s.set(key, value))),
+    remove: async (key) => writeSoon(await onStore('saves.remove', async (s) => void (await s.delete(key)))),
+    flush: () => {
+      cancelWrite()
+      return onStore('saves.flush', async (s) => {
         await s.save()
         return { persisted: 'device' as const }
-      }),
+      })
+    },
     // Code-unit order, as every adapter sorts.
     keys: () => onStore('saves.keys', async (s) => [...(await s.keys())].sort()),
     // One app, one writer: nothing else changes the store while the game runs.
@@ -131,6 +156,7 @@ export async function createTauriHosting(
     onExiting: exits.register,
     dispose: () => {
       open = false
+      cancelWrite()
       stopListening()
       web.dispose()
     },
