@@ -1,7 +1,8 @@
 import { registeredLookPasses } from '@automata/3d'
-import { LCD_CLINIC } from '@automata/lcd-panel'
+import { derivePitch, LCD_CLINIC } from '@automata/lcd-panel'
 import { CRISP_CLINIC, RETRO_CLINIC } from '@automata/retro-crisp'
 import { describe, expect, it } from 'vitest'
+import { wholeScaleFor } from '#src/app/field.ts'
 import { lookPassesOf, RENDERER_SCALE } from '#src/app/look-passes.ts'
 import { lookProfilesSchema } from '#src/app/look-profiles.content.ts'
 
@@ -21,11 +22,43 @@ describe('the profiles', () => {
     expect(() => lookProfilesSchema.parse({ retro: { vignette: 3 } })).toThrow(/vignette/)
   })
 
-  it('are in the committed file, which is the old game’s', async () => {
+  it('are in the committed file: the old game’s but for the LCD cell, which is one field pixel', async () => {
     const toml = await import('smol-toml').then((m) => m.parse)
     const { readFileSync } = await import('node:fs')
     const file = toml(readFileSync(new URL('../../../content/look.toml', import.meta.url), 'utf8'))
-    expect(lookProfilesSchema.parse(file)).toEqual(lookProfilesSchema.parse({}))
+    expect(lookProfilesSchema.parse(file)).toEqual({
+      ...lookProfilesSchema.parse({}),
+      lcd: { ...LCD_CLINIC, cell: 1 },
+    })
+  })
+})
+
+// The old game drew its LCD panel on the screen's own pixels: a cell of 2 screen pixels and a mesh period of 4 (`LCD_CELL` and `derivePitch`
+// in `src/render/lcd-panel.ts`, measured on its real play at 1024 by 768 as a 4.0 pixel period on both axes). Ours draws the pass on the
+// field, which the window shows at a whole scale, so a field pixel is `scale` screen pixels: the same cell on the screen is a smaller one
+// in the field. A 4-pixel mesh would be 2 field pixels, the Nyquist limit, where the pass fades the mesh out altogether, so the finest
+// mesh the field can show is 3 (6 screen pixels).
+describe('the LCD panel on the screen', () => {
+  const scale = wholeScaleFor({ width: 1024, height: 768 })
+  /** The profile the committed `content/look.toml` gives the game. */
+  const committed = async () => {
+    const toml = await import('smol-toml').then((m) => m.parse)
+    const { readFileSync } = await import('node:fs')
+    return lookProfilesSchema.parse(
+      toml(readFileSync(new URL('../../../content/look.toml', import.meta.url), 'utf8')),
+    ).lcd
+  }
+
+  it('has the old game’s cell, 2 screen pixels, at 1024 by 768', async () => {
+    expect(scale).toBe(2)
+    expect((await committed()).cell * scale).toBe(2)
+  })
+
+  it('has the finest mesh the field can show, drawn and not faded out', async () => {
+    const lcd = await committed()
+    const { cells, fade } = derivePitch(lcd.cell, lcd.minPitch)
+    expect(cells * lcd.cell * scale).toBe(6)
+    expect(fade).toBe(1)
   })
 })
 
