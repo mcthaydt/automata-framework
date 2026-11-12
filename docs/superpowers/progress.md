@@ -383,8 +383,10 @@ tone mapping, tone mapping's default, unlit colour, samplers), and every effect 
   `claude/c5-finish-fixes` and `claude/turned-face-both-eyes` come in as framework changes after the fold, with the
   wardrobe branch; content branches stay behind. (3) "commit in the note, give gh command to archive both": the
   retirement note is on `claude/optimistic-newton-yszrte` in each builder (FigureBuilder `3caa9ad`, EnvironmentBuilder
-  `6983342`); the Owner merges and archives. Still open: EnvironmentBuilder's CPU scene renderer, left behind (the
-  default) or brought as a reference tool.
+  `6983342`); the Owner merges and archives. (4) EnvironmentBuilder's CPU scene renderer, answered 2026-11-12: "A".
+  Option A: the renderer and its `base` and `scenes` goldens stay in the archived repository; the tiles cross-check, the
+  photo document and the provenance table at `f7c5356` come, with the bedroom's `reads`. The plan's task 20 (option B)
+  does not run.
 - 2026-11-12, the coordinator's calls made without waiting, each open to the Owner's correction:
   - **The turned-face fix is in the fold branch** (`18d0cec`, re-record `0eb1a76` on
     `claude/builders-fold-figures`): the patch applies only before the conform commits. It moves 18 actor md5s, one
