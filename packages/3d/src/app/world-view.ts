@@ -189,7 +189,9 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
         scene.light.bake(mesh, { albedo: colour, shadeSteps: 1 - piece.light, ignore })
       } else {
         mesh.material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: textureOf(tile, true) })
-        scene.light.bake(mesh, { textured: true, shadeSteps: 1 - piece.light, ignore })
+        // A texture's colours are not known here, so the swatch's own colour stands for them in `SceneLight.groundLuma` (the bake
+        // writes the light alone, as the texture multiplies it).
+        scene.light.bake(mesh, { textured: true, albedo: colour, shadeSteps: 1 - piece.light, ignore })
       }
     }
     if (scene.occluders === undefined) continue

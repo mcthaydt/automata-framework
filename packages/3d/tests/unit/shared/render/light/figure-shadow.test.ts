@@ -102,4 +102,13 @@ describe('a figure under a sun that casts: the silhouette thrown along the sun',
     const mark = castShadow(cast({ sun: [-1, 1, 0] }), [upstairs])
     expect(marked(mark)).toHaveLength(0)
   })
+
+  it('falls on the pavement a figure stands on, not on one a kerb’s height above its feet (the street: a 0.12 m pavement)', () => {
+    // The street's pavement lies 0.12 m over its road. A figure on it casts (its feet are at the pavement's height); one whose feet
+    // are at the road's level, 0.12 m under that plane, is not on it, as the builder's `onFloor` (within 0.12 m, exclusive) has it.
+    const pavement = { x: 0, y: 0.12, z: 0, normal: [0, 1, 0] as const, width: 16, height: 3 }
+    const sun = [-0.5, 0.78, 0.38] as const
+    expect(marked(castShadow(cast({ at: [0, 0.12, 0], sun }), [pavement])).length).toBeGreaterThan(0)
+    expect(marked(castShadow(cast({ at: [0, 0, 0], sun }), [pavement]))).toHaveLength(0)
+  })
 })

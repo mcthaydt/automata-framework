@@ -22,6 +22,8 @@ export const ROOM_LIGHT = {
   lift: 0,
   /** Under this a lean is no direction: no lamp, no form, no rim. */
   floor: 0.05,
+  /** The builder's window: a figure is hot when its luma is over this many times its ring's (the floor's shown colour). */
+  hotLuma: 1.1,
 } as const
 
 /** What `SceneLight.tint` is: the room's light at a point, facing `normal` when given. */
@@ -31,6 +33,19 @@ export type Tint = (
   z: number,
   normal?: readonly [number, number, number],
 ) => readonly [number, number, number]
+
+/** The floor's luma at (x, z) with the feet's height `y` (`SceneLight.groundLuma`), `undefined` where no baked floor lies under it. */
+export type Ground = (x: number, z: number, y: number) => number | undefined
+
+/**
+ * What exposes a figure toward its floor: how the room shows the floor round its feet, and how bright the figure itself is. The
+ * figure's luma is the mean of its painted (unlit) cell's opaque texels, 0 to 1; with both, the figure is held not hotter than
+ * its ring in the builder's own window (`hotLuma`) by whole steps down, as the builder's `exposureSteps` does with a trial.
+ */
+export interface Exposure {
+  readonly ground: Ground
+  readonly figure: number
+}
 
 /** The sun as `SceneLighting.sun` holds it: the direction toward it in the world, its colour (0xRRGGBB) and its level. */
 export interface Sun {
@@ -91,10 +106,19 @@ function lamp(
  *   `dir.y`). It is not occluded (the occluder test is not public), so a figure in shade by day still takes the sun; the fill has
  *   no direction and is left out.
  * - The ring is `tint` facing up at four points round the feet; the figure's steps are held within `hot` of it.
+ * - With an `exposure` and a floor round the feet that the room has baked, the ring's light is the floor as it is shown (its
+ *   albedo times the light, the sun and its shadows included) and the figure's own luma is held under `hotLuma` times it, by
+ *   whole steps down; without, the ring above holds it within `hot` steps.
  * - The flat steps are then held at or under `lift` (0): a figure is never lit above its painted colours, which are the daylight
  *   look. By day that is 0 steps; a darker room takes the figure down; a lamp adds form and a rim, never flat light.
  */
-export function roomLight(tint: Tint, sun: Sun | undefined, at: V3, azimuth: number): RoomLight {
+export function roomLight(
+  tint: Tint,
+  sun: Sun | undefined,
+  at: V3,
+  azimuth: number,
+  exposure?: Exposure | undefined,
+): RoomLight {
   const [x, y, z] = at
   const chest = y + ROOM_LIGHT.chest
   // The sun's light as a colour in light units (the level times its colour), 0 when there is none.
@@ -140,10 +164,32 @@ export function roomLight(tint: Tint, sun: Sun | undefined, at: V3, azimuth: num
     (c) => around.reduce((sum, v) => sum + (v[c] ?? 0), 0) / around.length + sunLight[c as 0 | 1 | 2] * pull,
   ) as V3
   const steps = flatSteps(flat)
-  const exposure = Math.max(0, steps - flatSteps(ring) - ROOM_LIGHT.hot)
-  // The light the sprite is lit with is rebuilt from the quantised values only (steps taken off already, colour in sixteenths),
-  // so the key decides the bytes. A figure is never lifted over its painted cell (`lift`).
-  const held = Math.min(ROOM_LIGHT.lift, steps - exposure)
+  // The floor as the room shows it, round the feet: the mean of the points that have a baked floor under them.
+  const floors: number[] = []
+  if (exposure !== undefined)
+    for (const [dx, dz] of [
+      [r, 0],
+      [-r, 0],
+      [0, r],
+      [0, -r],
+    ] as const) {
+      const luma = exposure.ground(x + dx, z + dz, y)
+      if (luma !== undefined) floors.push(luma)
+    }
+  let held: number
+  if (exposure !== undefined && floors.length > 0 && exposure.figure > 0) {
+    const ringLuma = floors.reduce((a, b) => a + b, 0) / floors.length
+    // The figure lit by the room is its painted luma times `STEP` to the flat steps (never over its painted cell, `lift`); each
+    // whole step down takes it a `STEP` ratio further, until it is within the window of the floor it stands on.
+    const flatHeld = Math.min(ROOM_LIGHT.lift, steps)
+    const shown = exposure.figure * STEP ** flatHeld
+    const over = ringLuma > 0 ? Math.log(shown / (ROOM_LIGHT.hotLuma * ringLuma)) / Math.log(STEP) : 0
+    held = flatHeld - Math.max(0, Math.ceil(over - 1e-9))
+  } else {
+    // The light the sprite is lit with is rebuilt from the quantised values only (steps taken off already, colour in sixteenths),
+    // so the key decides the bytes. A figure is never lifted over its painted cell (`lift`).
+    held = Math.min(ROOM_LIGHT.lift, steps - Math.max(0, steps - flatSteps(ring) - ROOM_LIGHT.hot))
+  }
   const top = peak(flat)
   const colour: V3 = top > 0 ? [flat[0] / top, flat[1] / top, flat[2] / top] : [1, 1, 1]
   const q = colour.map(sixteenths) as V3

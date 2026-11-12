@@ -241,3 +241,53 @@ describe('roomLight in the base exterior, by day', () => {
     expect(checked).toBeGreaterThan(1000)
   })
 })
+
+describe('roomLight exposed toward the floor it stands on (SceneLight.groundLuma)', () => {
+  const sixThen = (luma: number) => ({ ground: () => luma, figure: 0.5 })
+
+  it('holds a figure under 1.1 times its floor’s shown luma by whole steps down: a 0.5 figure on a 0.2 floor loses six steps', () => {
+    // 0.5 / (1.1 × 0.2) = 2.27 and the light's step is a ratio of 1.17: ln 2.27 / ln 1.17 = 5.2, so six whole steps.
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, sixThen(0.2)).key)).toBe(-6)
+  })
+
+  it('leaves a figure that is not hot as it was: a 0.5 figure on a 0.5 floor keeps its painted cell', () => {
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, sixThen(0.5)).key)).toBe(0)
+  })
+
+  it('goes down to the window and no further: the figure just under 1.1 times the floor is not taken a step more', () => {
+    // 0.5 / 0.4545 = 1.1 exactly is not hot; a hair under the floor that makes it so takes one step.
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, sixThen(0.5 / 1.1)).key)).toBe(0)
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, sixThen(0.5 / 1.1 - 0.001)).key)).toBe(-1)
+  })
+
+  it('reads the floor round the feet, at the feet’s own height, in four places', () => {
+    const asked: [number, number, number][] = []
+    roomLight(grey(1), undefined, [2, 0.12, 3], 0, {
+      figure: 0.5,
+      ground: (x, z, y) => {
+        asked.push([x, z, y])
+        return 0.5
+      },
+    })
+    expect(asked).toHaveLength(4)
+    expect(asked.every(([, , y]) => y === 0.12)).toBe(true)
+    expect(new Set(asked.map(([x, z]) => `${x},${z}`))).toEqual(
+      new Set([
+        `${2 + ROOM_LIGHT.ring},3`,
+        `${2 - ROOM_LIGHT.ring},3`,
+        `2,${3 + ROOM_LIGHT.ring}`,
+        `2,${3 - ROOM_LIGHT.ring}`,
+      ]),
+    )
+  })
+
+  it('falls back to the ring of the tint where the room has baked no floor under the feet', () => {
+    const pool: Tint = (_x, y) => (y > 0.5 ? [1.6, 1.6, 1.6] : [0.5, 0.5, 0.5])
+    const none = { ground: () => undefined, figure: 0.5 }
+    expect(roomLight(pool, undefined, FEET, 0, none).key).toBe(roomLight(pool, undefined, FEET, 0).key)
+  })
+
+  it('is the same key without an exposure, as before', () => {
+    expect(roomLight(grey(0.7), undefined, FEET, 0).key.startsWith('-2|-|-')).toBe(true)
+  })
+})

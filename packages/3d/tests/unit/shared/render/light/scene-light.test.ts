@@ -214,3 +214,67 @@ describe('createSceneLight tint', () => {
     expect(colours(toned)[0]).toBeCloseTo((0x80 / 255) * 0.4, 5)
   })
 })
+
+describe('createSceneLight groundLuma', () => {
+  const lit = sceneLightingSchema.parse({
+    ambient: 0.3,
+    colorSpace: 'srgb',
+    lamps: [{ id: 'lamp', x: 0, y: 2, z: 0, color: 0xffffff, strength: 1.5, range: 6 }],
+  })
+  /** The luma of the baked colour at vertex `i` of `mesh`, as the screen shows it (the sRGB channels as written). */
+  const lumaOfVertex = (mesh: Mesh3D, i: number): number => {
+    const c = colours(mesh)
+    return 0.2126 * (c[i * 4] ?? 0) + 0.7152 * (c[i * 4 + 1] ?? 0) + 0.0722 * (c[i * 4 + 2] ?? 0)
+  }
+
+  it('is the floor’s shown colour at the point: what a vertex of the baked floor shows there (light times its albedo)', () => {
+    const light = createSceneLight(lit)
+    const floor = floorAt(0, 0)
+    light.bake(floor, { albedo: 0x808080 })
+    // The 2 × 2 plane has a vertex at its centre, under the lamp: the vertex colour is the floor's shown colour there.
+    const centre = Array.from({ length: floor.geometry.vertexCount }, (_, i) => i).find((i) => {
+      const p = floor.geometry.attributes.aPosition?.buffer.data
+      return p !== undefined && p[i * 3] === 0 && p[i * 3 + 1] === 0
+    }) as number
+    const shown = lumaOfVertex(floor, centre)
+    expect(shown).toBeGreaterThan(0.2)
+    expect(light.groundLuma(0, 0)).toBeCloseTo(shown, 5)
+  })
+
+  it('takes the floor’s own albedo: the same light on a darker floor reads darker', () => {
+    const light = createSceneLight(lit)
+    light.bake(floorAt(0, 0), { albedo: 0xffffff })
+    const bright = light.groundLuma(0, 0) as number
+    const dark = createSceneLight(lit)
+    dark.bake(floorAt(0, 0), { albedo: 0x404040 })
+    expect(dark.groundLuma(0, 0) as number).toBeCloseTo(bright * (0x40 / 0xff), 3)
+  })
+
+  it('follows the lamps’ levels as the floor does', () => {
+    const light = createSceneLight(lit)
+    light.bake(floorAt(0, 0), { albedo: 0xffffff })
+    const on = light.groundLuma(0, 0) as number
+    light.setLevels({ lamp: 0 })
+    expect(light.groundLuma(0, 0) as number).toBeLessThan(on)
+    expect(light.groundLuma(0, 0)).toBeCloseTo(0.3, 5)
+  })
+
+  it('is undefined where no baked floor lies under the point', () => {
+    const light = createSceneLight(lit)
+    expect(light.groundLuma(0, 0)).toBeUndefined()
+    light.bake(floorAt(0, 0), { albedo: 0xffffff })
+    expect(light.groundLuma(0, 0)).toBeDefined()
+    expect(light.groundLuma(5, 5)).toBeUndefined()
+  })
+
+  it('takes the floor the point stands on: the higher of two, at or under the height asked for', () => {
+    const light = createSceneLight(lit)
+    const upstairs = floorAt(0, 0)
+    upstairs.position.y = 3
+    light.bake(floorAt(0, 0), { albedo: 0xffffff })
+    light.bake(upstairs, { albedo: 0x000000 })
+    // With no height the highest floor counts; asked for a point at 0.5 m, the one underfoot.
+    expect(light.groundLuma(0, 0)).toBeCloseTo(0, 5)
+    expect(light.groundLuma(0, 0, 0.5) as number).toBeGreaterThan(0.2)
+  })
+})

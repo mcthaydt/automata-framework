@@ -4,7 +4,7 @@
 // painter only draws them.
 import { placeView3d, type SceneLight, type View3dFactory } from '@automata/3d'
 import { Container3D } from '@pixi/3d'
-import type { CharacterDef, V3 } from '../../shared/figure-builder/door.ts'
+import type { Cell, CharacterDef, V3 } from '../../shared/figure-builder/door.ts'
 import { type PaintedStage, type StageMember, stageFor } from './painted-stage.ts'
 import { Painter } from './painter.ts'
 import { DEFAULT_DENSITY } from './place.ts'
@@ -39,9 +39,38 @@ export interface PaintedFigureOptions {
 const STANDING: PaintedState = { moving: false }
 
 /** The renderer's light on the figure at `at`, seen from `azimuth`; none when the renderer has no `lighting`. */
-function roomOf(light: SceneLight | undefined, at: V3, azimuth: number): RoomLight | undefined {
+function roomOf(
+  light: SceneLight | undefined,
+  at: V3,
+  azimuth: number,
+  figure: number | undefined,
+): RoomLight | undefined {
   if (light === undefined) return undefined
-  return roomLight((x, y, z, normal) => light.tint(x, y, z, normal), light.lighting.sun, at, azimuth)
+  // With the figure's own luma the room exposes it toward the floor as the room shows it (`SceneLight.groundLuma`).
+  const exposure =
+    figure === undefined
+      ? undefined
+      : { ground: (x: number, z: number, y: number) => light.groundLuma(x, z, y), figure }
+  return roomLight(
+    (x, y, z, normal) => light.tint(x, y, z, normal),
+    light.lighting.sun,
+    at,
+    azimuth,
+    exposure,
+  )
+}
+
+/** The mean luma (0 to 1) of a painted cell's opaque texels: how bright the figure is before the room lights it. */
+export function paintedLuma(cell: Pick<Cell, 'painted'>): number | undefined {
+  const { painted } = cell
+  let sum = 0
+  let count = 0
+  for (let k = 0; k < painted.length; k += 4) {
+    if ((painted[k + 3] ?? 0) < 128) continue
+    sum += 0.2126 * (painted[k] ?? 0) + 0.7152 * (painted[k + 1] ?? 0) + 0.0722 * (painted[k + 2] ?? 0)
+    count += 1
+  }
+  return count === 0 ? undefined : sum / count / 255
 }
 
 /**
@@ -62,6 +91,8 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
     let facing = Math.PI
     let state = STANDING
     let last = now()
+    // The last frame's painted luma: the figure's own brightness, which exposure holds against the floor (none in the first frame).
+    let luma: number | undefined
     let onStage: { remove(): void } | undefined
     // The room's cast shadow for this figure, when the renderer has lighting and the look's `shadow` switch is on.
     const shadow = light?.shadows?.add(node)
@@ -73,8 +104,9 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
         const t = now()
         const at: V3 = [node.position.x, node.position.y, node.position.z]
         const seen = view(at)
-        const room = options.lit === false ? undefined : roomOf(light, at, seen.azimuth)
+        const room = options.lit === false ? undefined : roomOf(light, at, seen.azimuth, luma)
         const cell = painter.paint({ t, dt: Math.max(0, t - last), facing, state, view: seen, light: room })
+        if (room !== undefined) luma = paintedLuma(cell)
         last = t
         return { cell, at, name: def.id }
       },
