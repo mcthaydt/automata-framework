@@ -7,6 +7,7 @@ import {
   K2,
   OUTLINE,
   RISE,
+  SHEEN,
   SHEEN_MAX,
   SHEEN_MIN,
   sheenScale,
@@ -206,3 +207,103 @@ export function toneTexels(ctx: AfterQuiltedBands) {
 
 /** The context once `toneTexels` has run. */
 export type AfterToneTexels = AfterQuiltedBands & ReturnType<typeof toneTexels>
+
+/**
+ * The tones as a pixel artist cleans them: a dark gloss's sheen drops a speck, the hair's sheen band rings the
+ * crown where its surface turns from the top to the side, and a face texel that stands out of its plane takes its
+ * neighbours' tone.
+ */
+export function polishTones(ctx: AfterToneTexels) {
+  const {
+    D,
+    band,
+    faceLight,
+    grains,
+    h,
+    hairy,
+    hard,
+    isFace,
+    material,
+    materials,
+    n,
+    part,
+    sm,
+    surfaceOf,
+    tone,
+    w,
+  } = ctx
+  // A dark gloss's sheen keeps no speck: a patch that a shadow or the surface's edge cut down to a few texels is dropped (the
+  // surface reads in its mid tone there), as a sprite artist would not leave an orphan highlight. A quilted chamber's crest
+  // (`band`) is a line, not a patch: it stays whatever its length.
+  if (hard.some(Boolean)) {
+    const seen = new Uint8Array(n),
+      least = Math.ceil((SHEEN_MIN * D * D * sheenScale(D)) / 4)
+    for (let k = 0; k < n; k++) {
+      if (tone[k] !== -1 || seen[k] || !hard[material[k]] || band[k] > -9) continue
+      const area = [k]
+      seen[k] = 1
+      for (let i = 0; i < area.length; i++)
+        for (const q of [area[i] - 1, area[i] + 1, area[i] - w, area[i] + w]) {
+          if (
+            q >= 0 &&
+            q < n &&
+            !seen[q] &&
+            tone[q] === -1 &&
+            band[q] === -9 &&
+            surfaceOf(q) === surfaceOf(k)
+          ) {
+            seen[q] = 1
+            area.push(q)
+          }
+        }
+      if (area.length < least) for (const q of area) tone[q] = 1
+    }
+  }
+  // The hair's sheen band, as a sprite artist paints glossy hair: a ring of the hair's shine round the crown where its
+  // surface turns from the top to the side (its normal's rise in a narrow window), broken where the strands part it, on
+  // the key's side brighter (its shine) and on the far side its light; never on locks hanging down (a tail, a fringe's
+  // fall), which do not rise. Glossy hair alone (a straight or sleek finish, or strands): coils, braids and locs are matte.
+  for (let k = 0; k < n; k++) {
+    const mi = material[k]
+    if (
+      mi < 0 ||
+      !hairy(part[k]) ||
+      !(materials[mi].sheen || materials[mi].strands) ||
+      tone[k] < 0 ||
+      tone[k] > 2
+    )
+      continue
+    const nx = sm[k * 3],
+      ny = sm[k * 3 + 1],
+      nz = sm[k * 3 + 2]
+    if (nz < 0.05 || ny < SHEEN[0]) continue
+    // Over the band the crown sits a tone down, in the mid, so the ring reads as a ring and not as the top lit whole.
+    if (ny > SHEEN[1]) {
+      tone[k] = Math.max(tone[k], 1)
+      continue
+    }
+    if (grains[k] < -0.18) continue
+    tone[k] = nx * K2[0] >= -0.2 ? -1 : 0
+  }
+  // The face's tones as a pixel artist cleans them: a texel standing out of its plane (five of its eight neighbours one
+  // other tone: a spur, a fleck, a notch in an edge) takes that tone, so its planes meet in clean edges and its shapes
+  // keep their size (the drawn face puts its own marks on after). A front plane's light (LIGHT) is a shape drawn on
+  // purpose, the bridge's a line: it stays.
+  for (let pass = 0; pass < 2; pass++) {
+    const was = tone.slice()
+    for (let y = 1; y < h - 1; y++)
+      for (let x = 1; x < w - 1; x++) {
+        const k = y * w + x
+        if (!isFace(k) || was[k] < 0 || was[k] > 3 || (was[k] === 0 && faceLight[k])) continue
+        const count = [0, 0, 0, 0]
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) {
+            const q = k + dy * w + dx
+            if ((dx || dy) && isFace(q) && was[q] >= 0 && was[q] <= 3) count[was[q]]++
+          }
+        let best = was[k]
+        for (let i = 0; i < 4; i++) if (count[i] > count[best]) best = i
+        if (best !== was[k] && count[best] >= 5 && count[was[k]] <= 2) tone[k] = best
+      }
+  }
+}
