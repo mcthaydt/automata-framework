@@ -902,7 +902,9 @@ is re-checked against `main` at that point (at the plan audit they all exist bot
   Levels 3D, move one prop (or change the room's light, whichever the editor's own journey
   `levels-3d-edit-reaches-the-game` drives), press Play, and assert the game shows the change by the same readiness
   attribute and assertion that journey uses. Run it before C2 is in place on a scratch checkout to see it fail on the
-  refusal text; on the branch it passes.
+  refusal text; on the branch it passes. The game's own page is landscape by design: where the journey plays it at
+  phone size, it turns the page as A6 step 2b does. It runs on SwiftShader in the session first; only what does not
+  draw there is left for a GPU runner, and the log says which step.
 - [ ] **Step 2: The content journey.** A 2D game from packs plus `pnpm add -D` the packed `@automata/editors`: open
   Writer, change one word, press Play, and the game shows the new word (assert on the DOM text).
 - [ ] **Step 3:** Both wait on readiness, never a sleep. Report `2 passed`, or which step was reached and that the rest
