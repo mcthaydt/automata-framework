@@ -149,3 +149,12 @@ with a test (`play-fit.test.ts`, the fixed point). `content.hash` moves.
 In play at the adopted numbers (`s2-c-sheet-tilt-25-adopted-in-play.png`, looked at): mid-hall from two headings, the hall's north end from the
 south (the peek held to 0.27 m: her feet in the frame), mid-corridor side-on, the closet: she is whole, her feet planted on the floor with
 her contact shade under them, and mid-hall shows more floor and furniture than at 30.
+
+## Session 2, handoff at 90 minutes
+
+Done: (a) `0403874`, (b) `189c028`, (c) `a83c54c`. Not done: (d) the cutscene lenses' texel scale (nothing changed in the cutscenes);
+(e) the gates beyond the unit suites: the game's whole journeys were started at the end (9 of 18 passed at the stop, none failed, the rest
+unreported), the whole uncached `pnpm check` (knip, changeset status, check-changesets), `pnpm build`, `pnpm api-report --update` and
+`pnpm api-index --write` did not run. Run this session, all passing: `@automata/3d`'s unit suite (1619 at item a; its camera, occluder and
+world-view tests again at items b and c), base-3d's unit suite, The Last Light's unit suite (461), typecheck of both, and every pre-commit
+hook (the affected unit tests). No changeset: `@automata/3d` and the game are private. Chromium on software GL only.
