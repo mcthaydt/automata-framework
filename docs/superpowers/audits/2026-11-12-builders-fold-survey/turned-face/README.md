@@ -1,6 +1,6 @@
 # A turned face keeps both eyes: the before-and-after sheet
 
-Task 4d of [the builders fold](../../plans/2026-11-12-builders-fold.md). **Nothing is re-recorded until the Owner has
+Task 4d of [the builders fold](../../../plans/2026-11-12-builders-fold.md). **Nothing is re-recorded until the Owner has
 looked at these four pictures and said yes.** Each shows a cell the fix changes: the cell before, the cell after, and the
 changed texels in red on the after, cropped about them and drawn at 8 times, nearest neighbour.
 
