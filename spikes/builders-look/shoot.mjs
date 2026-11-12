@@ -107,10 +107,11 @@ const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--ena
 const facts = []
 
 /** One page past its title screen, drawn for 30 frames, as a PNG of its game canvas. */
-async function shoot(url, [width, height]) {
+async function shoot(url, [width, height], { zoom = 2, reducedMotion = 'no-preference' } = {}) {
   const page = await browser.newPage({
-    viewport: { width: width * 2, height: height * 2 },
+    viewport: { width: width * zoom, height: height * zoom },
     deviceScaleFactor: 1,
+    reducedMotion,
   })
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e).slice(0, 300)))
@@ -305,6 +306,28 @@ if (process.env.SIZES_ONLY === '1') {
       }
       await write(`${scene}-${label}-${tag}.png`, panels, field, 1, { scene, view: label })
     }
+  await browser.close()
+  stop()
+  process.exit(0)
+}
+
+// LOOK_ONLY=1 shoots the dressed interior's room view at the old game's picture (640 x 480, density 1, true size, `rig=1`) in three panels,
+// each at the canvas's own size (the window is the picture, one pixel a pixel, so the LCD's mesh is not resampled): every effect off, the
+// LCD panel on (`lcd=1`), and the LCD panel with the retro grade (`lcd=1&retro=1`); both with the clinic's profiles (the old game's numbers).
+// The window asks for reduced motion, so the retro film holds still and the frame is the same each time. It writes `look-640x480.png` and
+// `look-640x480.json` (each panel's mean brightness, 0 to 255, and its count of colours).
+if (process.env.LOOK_ONLY === '1') {
+  const field = [640, 480]
+  const base = `${local()}/?scene=base-interior-dressed&view=zone&pref=webgl&density=1&crisp=0&field=640x480&still=1&rig=1&figures=painted&fx=0&bloom=0`
+  const panels = []
+  for (const [extra, title] of [
+    ['', 'effects off'],
+    ['&lcd=1', 'LCD panel'],
+    ['&lcd=1&retro=1', 'LCD panel + retro grade'],
+  ])
+    panels.push({ title: `${title} (640 x 480, density 1, true size)`, ...(await shoot(`${base}${extra}${QUERY}`, field, { zoom: 1, reducedMotion: 'reduce' })) })
+  await write('look-640x480.png', panels, field, 1, { scene: 'base-interior-dressed', view: 'zone', field: '640x480' })
+  writeFileSync(join(out, 'look-640x480.json'), `${JSON.stringify(facts, null, 2)}\n`)
   await browser.close()
   stop()
   process.exit(0)

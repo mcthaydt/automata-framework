@@ -39,6 +39,13 @@ export interface LetterboxOptions {
   readonly barFraction?: number | undefined
   readonly barColor?: number | undefined
   readonly fieldColor?: number | undefined
+  /**
+   * How the field is scaled to the view's width. `fit` (the default) is the one fractional scale, `viewWidth /
+   * logicalWidth`. `whole` is a whole number of device pixels a field pixel (`layout`'s `devicePixelRatio` says how many
+   * device pixels a CSS pixel is), so no pixel is drawn wider than another; the field is centred in the view and clipped to
+   * its own rectangle. A field wider than the view still takes the fit, since a scale under one pixel is no scale.
+   */
+  readonly scale?: 'fit' | 'whole' | undefined
 }
 
 /**
@@ -75,6 +82,7 @@ export class LetterboxFrame {
   private readonly barFraction: number
   private readonly barColor: number
   private readonly fieldColor: number
+  private readonly scaleMode: 'fit' | 'whole'
 
   constructor(options: LetterboxOptions) {
     this.logicalWidth = options.logicalWidth
@@ -82,6 +90,7 @@ export class LetterboxFrame {
     this.barFraction = options.barFraction ?? DEFAULT_BAR_FRACTION
     this.barColor = options.barColor ?? DEFAULT_BAR_COLOR
     this.fieldColor = options.fieldColor ?? DEFAULT_FIELD_COLOR
+    this.scaleMode = options.scale ?? 'fit'
 
     this.backdrop.label = 'backdrop'
     this.root.label = 'letterbox'
@@ -102,7 +111,8 @@ export class LetterboxFrame {
     this.root.mask = this.mask
   }
 
-  layout(viewWidth: number, viewHeight: number): LetterboxGeometry {
+  /** `devicePixelRatio` (device pixels a CSS pixel, default 1) matters only to `scale: 'whole'`. */
+  layout(viewWidth: number, viewHeight: number, devicePixelRatio = 1): LetterboxGeometry {
     if (viewWidth <= 0 || viewHeight <= 0) {
       this.mask.clear()
       this.field.clear()
@@ -121,8 +131,11 @@ export class LetterboxFrame {
       }
     }
 
-    const scale = viewWidth / this.logicalWidth
-    const width = viewWidth
+    const ratio = devicePixelRatio > 0 ? devicePixelRatio : 1
+    const wholeDevice = Math.floor((viewWidth * ratio) / this.logicalWidth)
+    const whole = this.scaleMode === 'whole' && wholeDevice >= 1
+    const scale = whole ? wholeDevice / ratio : viewWidth / this.logicalWidth
+    const width = whole ? this.logicalWidth * scale : viewWidth
     const formFactor = classifyFormFactor(viewWidth, viewHeight)
     const portrait = viewHeight > viewWidth
 
@@ -133,8 +146,10 @@ export class LetterboxFrame {
         : this.logicalHeight
 
     const height = fieldHeight * scale
-    const x = 0
-    const centred = Math.round((viewHeight - height) / 2)
+    // In whole mode every edge is on a device pixel; in fit mode the field is as wide as the view and rounds in CSS pixels.
+    const toDevice = (value: number): number => Math.round(value * ratio) / ratio
+    const x = whole ? toDevice((viewWidth - width) / 2) : 0
+    const centred = whole ? toDevice((viewHeight - height) / 2) : Math.round((viewHeight - height) / 2)
     const y = portrait ? Math.min(PORTRAIT_FIELD_TOP, centred) : centred
 
     this.root.scale.set(scale)
@@ -146,7 +161,7 @@ export class LetterboxFrame {
     const clipBottom = Math.min(viewHeight, y + height)
     this.mask
       .clear()
-      .rect(0, clipTop, viewWidth, Math.max(0, clipBottom - clipTop))
+      .rect(x, clipTop, width, Math.max(0, clipBottom - clipTop))
       .fill(0xffffff)
 
     this.field
@@ -174,9 +189,9 @@ export class LetterboxFrame {
     const gameplayTop = barsVisible ? Math.max(clipTop, y + cropped) : clipTop
     const gameplayBottom = barsVisible ? Math.min(clipBottom, y + height - cropped) : clipBottom
     const gameplay = {
-      x: 0,
+      x,
       y: gameplayTop,
-      width: viewWidth,
+      width,
       height: Math.max(0, gameplayBottom - gameplayTop),
     }
 

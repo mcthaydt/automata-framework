@@ -4,7 +4,8 @@
   },
   "steps": 5,
   "outline": {
-    "edge": 0.35
+    "gap": 0.06,
+    "perMetre": 0.03
   },
   "dither": {
     "strength": 0.04
