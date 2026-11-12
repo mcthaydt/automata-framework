@@ -38,8 +38,11 @@ const depotWithCamera = (): string => {
 const statusWords = (): string =>
   document.querySelector('[data-widget="status-line"] [role="status"]')?.textContent?.trim() ?? ''
 
-/** Taps across the plan with a finger until a room or a wall is selected. */
-async function tapARoom(): Promise<void> {
+/**
+ * Taps across the plan with a finger until a room or a wall is selected (`only` narrows it: the camera's rooms are on a
+ * room's card, and a tap near a wall selects the wall, which depends on how wide the shell leaves the plan).
+ */
+async function tapARoom(only: RegExp = /(Room|Wall) .+ selected/): Promise<void> {
   const plan = byTestId('plan-canvas')
   const { left, top, width, height } = plan.getBoundingClientRect()
   for (const fy of [0.45, 0.35, 0.55])
@@ -58,7 +61,7 @@ async function tapARoom(): Promise<void> {
           }),
         )
       await arrived()
-      if (/(Room|Wall) .+ selected/.test(statusWords())) return
+      if (only.test(statusWords())) return
     }
   throw new Error(`no room under the taps: ${statusWords()}`)
 }
@@ -110,7 +113,7 @@ describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
   (size) => {
     test('each room to tick is a whole touch target on screen, scrolled to', async () => {
       const { conditions } = await openDepot(size, depotWithCamera())
-      await tapARoom()
+      await tapARoom(/Room .+ selected/)
       // As above: a wide window under 1100 px has no inspector column.
       if (size.mode === 'wide' && size.width < 1100) return
       const group = byTestId('inspector').querySelector<HTMLElement>('[aria-label="Rooms this camera draws"]')
