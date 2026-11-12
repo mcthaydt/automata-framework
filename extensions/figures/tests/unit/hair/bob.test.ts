@@ -176,3 +176,26 @@ describe('the library’s full bob', () => {
         expect(rows(stand(wear(st()), d, D)).length, `D${D} view ${d}`).toBeGreaterThan(5)
   })
 })
+
+describe('the library’s round bob', () => {
+  const st = () => HAIR_STYLES.bobRound
+  it('is in the library, described plainly', () => {
+    expect(st()).toBeDefined()
+    expect(st()?.about.length).toBeGreaterThan(30)
+    expect(st()?.about).not.toMatch(/Ada|Nurse|Voss/)
+  })
+  it('stands higher over the skull than the full bob, and is narrower at the hem, from the front', () => {
+    expect(rowsOver(st(), 0)).toBeGreaterThan(rowsOver(HAIR_STYLES.bobFull, 0))
+    expect(widest(st(), 0)).toBeLessThan(widest(HAIR_STYLES.bobFull, 0) - 0.05)
+  })
+  it('has more strand rows than the full bob, so it is not two flat tones', () => {
+    const p = (n: string) =>
+      (HAIR_STYLES[n].pieces[0] as { scalp: { ridges: [number, number] } }).scalp.ridges
+    expect(p('bobRound')[0]).toBeGreaterThan(p('bobFull')[0])
+  })
+  it('builds and paints on the base woman at every density, in all 8 views', () => {
+    for (const D of [1, 2, 4])
+      for (let d = 0; d < 8; d++)
+        expect(rows(stand(wear(st() as HairStyle), d, D)).length, `D${D} view ${d}`).toBeGreaterThan(5)
+  })
+})
