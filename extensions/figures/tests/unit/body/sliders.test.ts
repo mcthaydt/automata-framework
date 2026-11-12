@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
-import { DEFAULT_HEAD, type HeadShape, type Sliders } from '#src/shared/body/genes.ts'
+import { DEFAULT_HEAD, type HeadShape } from '#src/shared/body/genes.ts'
 import type { CharacterDef } from '#src/shared/figure/cast.ts'
 import { member, standing, walking } from '#src/shared/figure/frames.ts'
 import { BODY, ENDS, FACE_ENDS } from './ends'

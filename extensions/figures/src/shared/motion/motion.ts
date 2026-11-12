@@ -30,7 +30,6 @@ import {
   mmul,
   normalize,
   position,
-  type Q,
   qmat,
   qmul,
   scale,

@@ -10,7 +10,6 @@ import {
   type Part,
   placed,
   profileAt,
-  type Ring,
   type Superquadric,
   superquadric,
   weights,
@@ -21,7 +20,7 @@ import { hexOf } from '../math/colour'
 import { apply, axisAngle, compose, lerp, smooth, sub, type V3 } from '../math/math'
 import type { Anchor } from '../motion/motion'
 import { FACE_SEAM, tonesOf } from '../paint/paint'
-import { type Body, bodyOf, girth, type Profiles, profiles } from './fit'
+import { type Body, bodyOf, type Profiles } from './fit'
 import swatchLibrary from './library/swatches.json'
 import { type ShoeForm, shodSeam, shoeExtras, sole, upperMesh } from './shoe'
 /**

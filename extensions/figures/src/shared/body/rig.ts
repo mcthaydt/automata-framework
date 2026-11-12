@@ -1,7 +1,6 @@
 import {
   add,
   apply,
-  applyDir,
   axisAngle,
   basis,
   clamp,
@@ -14,7 +13,6 @@ import {
   matq,
   mmul,
   normalize,
-  position,
   type Q,
   scale,
   sub,

@@ -12,7 +12,7 @@ import { onHead, skull } from '#src/shared/hair/hair.ts'
 import { dress, type Garment, SWATCHES } from '#src/shared/outfit/garments.ts'
 import { differs, dressed } from '../../fixtures/draw'
 import { FALL_PLAIN, fallPlain, pinned } from '../../fixtures/pins'
-import { BODY, endsOf } from '../body/ends'
+import { endsOf } from '../body/ends'
 
 /**
  * A fall that hangs in front of the shoulders (hair.ts, `Fall.front`), reaches the waist (`length` to 2) and turns its ends
