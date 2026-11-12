@@ -1,6 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "splash_label": "オープニング",
+  "splash_label": "Emberwick、起動中",
   "splash_hint": "何かキーを押すか、タップしてください",
   "menu_title": "Emberwick",
   "menu_hint": "ランタンを掲げて、残り火まで登ろう。",

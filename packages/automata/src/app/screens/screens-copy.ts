@@ -187,7 +187,7 @@ export const DEFAULT_SCREENS_COPY: ScreensCopy = {
         shaking: 'a shaking screen',
         patterns: 'high-contrast patterns',
       },
-      choose: 'Turn down',
+      choose: 'Make it gentler',
       later: 'You can change these later in Settings.',
       continue: 'Continue',
       close: 'Close',

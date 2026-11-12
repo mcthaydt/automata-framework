@@ -115,7 +115,7 @@ hosts are not run; no paid API call. **Progress: 15 of 18 findings (83%)** (B1, 
 | T2 | The four playground cases watched failing | | |
 | T3 | Interface sounds nothing plays | done (a Modal asks for `open` and `close`, the error panel for `error`) | `07aeda0d` |
 | T4 | Credit names in the font build's glyph gate | | |
-| T5 | Copy that fails the grandma test | | |
+| T5 | Copy that fails the grandma test: "Make it gentler" heads the warning's switches; Emberwick's splash is "Emberwick, starting" to a screen reader; six languages each, by hand; fonts rebuilt | done (the catalog-parity unit test watched failing on the English change alone; fonts, words sources and example pages rebuilt) | see the closing record |
 | T6 | The Languages guide names the import | done with S4 | `77e57029` |
 | T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | done with S3 | _with S3_ |
 | T8 | The SDK on the Node-only list | done (`pnpm boundaries`: 0 findings; unit cases for the package and a subpath) | `26cb32d4` |

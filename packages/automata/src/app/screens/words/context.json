@@ -465,7 +465,7 @@
     "note": "One effect a game can have: stripes, checks or other patterns with strong light and dark. A noun phrase with no capital letter and no full stop."
   },
   "first_run_warning_choose": {
-    "note": "Heading over switches that make the lights and shaking weaker."
+    "note": "Heading over switches that make the lights and shaking weaker. Says what the switches do, in plain words a person unsure what to press would understand; it names no effect, since a game may offer only some."
   },
   "first_run_warning_later": {
     "note": "One line saying the switches can be changed later on the Settings screen."

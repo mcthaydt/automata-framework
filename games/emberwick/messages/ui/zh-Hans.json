@@ -1,6 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "splash_label": "开场画面",
+  "splash_label": "Emberwick，启动中",
   "splash_hint": "按任意键或点按屏幕",
   "menu_title": "Emberwick",
   "menu_hint": "提着灯笼，一路爬到余烬处。",
