@@ -11,8 +11,8 @@ const packageJson = JSON.parse(readFileSync(resolve('package.json'), 'utf8')) as
 const steps = packageJson.scripts.build.split('&&').map((step) => step.trim())
 
 describe('the build script', () => {
-  it('ends with the closed-beta scan, because Pixi 3D’s terms allow no public deployment', () => {
-    expect(steps.at(-1)).toBe('node scripts/scan-closed-beta.ts build')
+  it('ends with the Pixi 3D extras scan, because the site’s CSP refuses eval', () => {
+    expect(steps.at(-1)).toBe('node scripts/scan-pixi3d-extras.ts build')
   })
 
   it('moves the missing-address page to 404.html before the sitemap is written, so the sitemap cannot list it', () => {
