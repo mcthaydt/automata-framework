@@ -42,6 +42,23 @@ describe('roomLight', () => {
     expect(roomLight(grey(0.7), undefined, FEET, 0).key.startsWith('-2|-|-')).toBe(true)
   })
 
+  it('keeps a figure no more than `dimmest` steps under its painted cell, in a room that would take it further (opt-in: unset, it dims as before)', () => {
+    const dark = grey(0.3)
+    // The builder counts the room's whole steps under the painted cell (`flatSteps`); a figure takes them all unless `dimmest` says less.
+    expect(stepsOf(roomLight(dark, undefined, FEET, 0).key)).toBe(flatSteps([0.3, 0.3, 0.3]))
+    expect(flatSteps([0.3, 0.3, 0.3])).toBeLessThan(-2)
+    expect(stepsOf(roomLight(dark, undefined, FEET, 0, undefined, 2).key)).toBe(-2)
+    // A room that is not darker than the floor changes nothing.
+    expect(stepsOf(roomLight(grey(0.7), undefined, FEET, 0, undefined, 2).key)).toBe(-2)
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, undefined, 2).key)).toBe(0)
+  })
+
+  it('also holds the floor against the exposure trial: a figure on a dark floor is not dimmed under it', () => {
+    const exposure = { ground: () => 0.02, shownAt: () => 0.5 }
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, exposure).key)).toBeLessThan(-3)
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, exposure, 3).key)).toBe(-3)
+  })
+
   it('a lamp to the east leans the resultant east, turned into the figure’s frame', () => {
     const east = leaning(0, 0.5)
     const at0 = roomLight(east, undefined, FEET, 0).lighting.lamps[0]

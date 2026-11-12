@@ -51,6 +51,12 @@ export interface PaintedFigureOptions {
    * character's skin swatch's paint (`skinColours`). It costs a second lit sprite on each new lit cell, when the room's light has a colour.
    */
   readonly holdSkinHue?: boolean | undefined
+  /**
+   * The most whole steps (a step is 1.17 times) the room may take the figure under its painted colours: unset, a dark room takes a face
+   * down until its brows, whites and mouth are lost in the dark (a dim ward at density 2 dims her skin to a few steps over black). Set, the
+   * face stays within that many steps of the painter's own, and the lamps' side and rim still come on top. See `roomLight`.
+   */
+  readonly dimmest?: number | undefined
 }
 
 const STANDING: PaintedState = { moving: false }
@@ -64,12 +70,20 @@ function roomOf(
   at: V3,
   azimuth: number,
   shownAt: Exposure['shownAt'],
+  dimmest?: number | undefined,
 ): RoomLight | undefined {
   if (light === undefined) return undefined
-  return roomLight((x, y, z, normal) => light.tint(x, y, z, normal), light.lighting.sun, at, azimuth, {
-    ground: (x, z, y) => light.groundLuma(x, z, y),
-    shownAt,
-  })
+  return roomLight(
+    (x, y, z, normal) => light.tint(x, y, z, normal),
+    light.lighting.sun,
+    at,
+    azimuth,
+    {
+      ground: (x, z, y) => light.groundLuma(x, z, y),
+      shownAt,
+    },
+    dimmest,
+  )
 }
 
 /**
@@ -112,7 +126,10 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
             facing,
             state,
             view: seen,
-            light: options.lit === false ? undefined : (shownAt) => roomOf(light, at, seen.azimuth, shownAt),
+            light:
+              options.lit === false
+                ? undefined
+                : (shownAt) => roomOf(light, at, seen.azimuth, shownAt, options.dimmest),
           },
           zoom,
         )
