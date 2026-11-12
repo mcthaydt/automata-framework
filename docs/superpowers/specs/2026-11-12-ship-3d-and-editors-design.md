@@ -139,3 +139,39 @@ Owner's review. Each in its own session and branch; no subagents; handoff throug
 
 The npm organisation, the domain, the publish job, the site's copy, CI's health, opening the repository, the token, the
 release and the deploy (ship list 1 to 6 and 13 to 18); games as desktop apps (12); the paid app.
+
+## Amendment, 2026-11-12: the measured figures, the three private kits, and what the plan audit found
+
+From the survey ([`audits/2026-11-12-ship-3d-survey.md`](../audits/2026-11-12-ship-3d-survey.md)) and the plan audit
+([`audits/2026-11-12-ship-3d-plan-audit.md`](../audits/2026-11-12-ship-3d-plan-audit.md)). Where this spec and those
+measurements differ, the measurements stand; the text above is left as written.
+
+- **Part B publishes 12 kits, not 15.** `interact`, `hud` and `pipelines` stay private: no template, example, editor or
+  site source imports them. A test fails if a published package imports any private one
+  (`tooling/release/tests/unit/published-imports.test.ts`, plan task A5), and `release-list.test.ts` names the three.
+  "Sixteen packages" in "Why" reads: 13 must publish (`@automata/3d` and the twelve), 3 stay private, and the editors'
+  pages ship as one built page in `@automata/editors`.
+- **Sizes:** `@automata/tools` packs to 2,577,117 bytes (not 2,513 kB). The 3D suite is 2,600 kB on disk, 902,933 bytes
+  gzipped, and it is the full suite (2D and 3D). The twelve kits pack to 533,977 bytes together; `@automata/3d` to
+  307,640 bytes before its testing fixtures ship.
+- **`pixi.js`:** core already pins 8.23.0 after the beta.3 port; Part D checks the templates and `docs/versions.md`.
+  Published packages take caret ranges of their outside peers (`^8.23.0`), as the release test requires.
+- **"Like `@automata/framework`'s"** also means written export types in five packages (213: the painter 174,
+  world-kit 17, character-kit 16, retro-crisp 4, lcd-panel 2) and `vitest` as an optional peer of `@automata/3d`. The
+  two kits with Svelte files build as `@automata/debug` does (`svelte-package`), not with tsdown.
+- **"API-reported" (Part B):** the kits join the API index, with every export documented. The API report covers
+  `packages/*` only, by design, as for the extensions already published; `@automata/3d` is already in it.
+- **"No entry is dropped"** holds for `@automata/3d` (all 13 publish; `./testing` is fixed to work from a pack). For
+  the kits, the workspace keeps every entry, and eleven test or tool entries do not publish, as `@automata/puzzle`'s
+  `./testing/*` entries do not: their files are read by path or are wildcard fixture folders (plan task A5 lists them).
+- **Rule 1's proof** is a check against the branch's merge base on `main`, over 108 recorded files (goldens, replays,
+  the games' generated content and its hashes), run at the end of every task of Parts A to C.
+- **Part C:** the page with every editor is built once, by the editors v2 landing (the Owner: "yes v2 is the look");
+  Part C packages it and starts after that plan's tasks 2 to 4 and 6. The site's hosted editor serves it after that
+  plan's task 7.
+- **The painter's declarations step** (`types/`, `tsconfig.types.json`) stays until the strict flags are on
+  (`claude/builders-fold-strict`): without it, the character kit's typecheck fails with 1,440 errors.
+- **DUEL:** the palette's author and terms gate the first release of `@automata/content` (which already ships its
+  colours), `@automata/3d` and the painter alike; recorded once, in `docs/art/palettes/duel.md`.
+- **The 3D stranger's journey** passes without a GPU (SwiftShader, 35 s) once the package lists its built side-effect
+  files and the journey turns the phone to the template's landscape; it is a gate every session can run.
