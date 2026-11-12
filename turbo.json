@@ -17,6 +17,10 @@
     "test:unit": {
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
+    "@automata/figures#test:unit": {
+      "env": ["AF_UNIT_FULL"],
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
+    },
     "test:browser": {
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]

@@ -12,11 +12,11 @@
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createCanvas, loadImage } from '@napi-rs/canvas'
-import { BASE, Figure, type Lighting, lightFigure, member, TIMES, view } from '../src'
-import type { Material } from '../src/features/body/parts'
-import type { CharacterDef } from '../src/features/figure/cast'
-import type { Garment } from '../src/features/outfit/garments'
-import { FIXTURES, registerFixtures } from '../tests/features/paint/fabric-fixtures'
+import { BASE, Figure, type Lighting, lightFigure, member, TIMES, view } from '../src/entries'
+import type { Material } from '../src/shared/body/parts'
+import type { CharacterDef } from '../src/shared/figure/cast'
+import type { Garment } from '../src/shared/outfit/garments'
+import { FIXTURES, registerFixtures } from '../tests/unit/paint/fabric-fixtures'
 
 registerFixtures()
 const args = process.argv.slice(2),

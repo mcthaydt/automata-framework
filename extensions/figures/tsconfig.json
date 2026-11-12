@@ -1,15 +1,14 @@
 {
+  // The painter predates the base's two strictest flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) and
+  // `isolatedDeclarations`: their findings are counted in the builders-fold plan's ledger, tasks 21 to 27 turn them on
+  // folder by folder, and the declarations step (`tsconfig.types.json`) exists only until then.
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM"],
-    "strict": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "esModuleInterop": true,
+    "types": ["vite/client", "node"],
     "resolveJsonModule": true,
-    "types": ["vite/client", "node"]
+    "isolatedDeclarations": false,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false
   },
-  "include": ["src", "base", "scripts", "tests", "viewer"]
+  "include": ["src", "scripts", "tests", "viewer"]
 }

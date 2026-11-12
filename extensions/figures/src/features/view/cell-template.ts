@@ -8,7 +8,7 @@ import type { ShaderBitTemplate } from '@pixi/3d'
  * to change. This is a copy of that template with four edits, and no others: the fragment entry returns `CellFragment`
  * (a colour and a window depth), declares `var cellDepth` (1, the far plane, until `cellDepthBit` sets it), returns it with the
  * colour, and snaps the texture coordinate to its texel's centre (`@pixi/3d`'s batch sampler is linear, so a texture's own
- * `nearest` is ignored under WebGPU). `tests/features/view/template.test.ts` reads the installed `@pixi/3d` and fails, in words, when its template
+ * `nearest` is ignored under WebGPU). `tests/unit/view/template.test.ts` reads the installed `@pixi/3d` and fails, in words, when its template
  * moves on, before a frame is wrong.
  *
  * Used only beside `cellDepthBit`, and only under WebGPU: it has no GLSL stage. A shader's cache key includes the template's id,

@@ -17,7 +17,7 @@ import {
   stageFrame,
   TIMES,
   type V3,
-} from '../src'
+} from '../src/entries'
 import { type SheetKind, sheetFigures } from './sheets'
 
 /**

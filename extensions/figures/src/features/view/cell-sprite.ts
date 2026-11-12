@@ -1,6 +1,6 @@
 import { FlatMaterial, type ShaderBit, type ShaderDescriptor, Sprite3D, type View3D } from '@pixi/3d'
 import { BufferImageSource, Texture } from 'pixi.js'
-import type { Cell } from '../stage/cell'
+import type { Cell } from '../../shared/stage/cell'
 import { CELL_TEMPLATE } from './cell-template'
 
 /**

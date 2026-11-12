@@ -1,8 +1,8 @@
 import { Matrix4, View3D } from '@pixi/3d'
 import { RendererType } from 'pixi.js'
-import type { V3 } from '../../lib/math'
-import { checkPose } from '../stage/pose'
-import { type StageFrame, TIE_BIAS, texelDepths } from '../stage/stage'
+import type { V3 } from '../../shared/math/math'
+import { checkPose } from '../../shared/stage/pose'
+import { type StageFrame, TIE_BIAS, texelDepths } from '../../shared/stage/stage'
 import { checkCentred, perTexelDepthWarning, poseQuaternion } from './camera'
 import { CellSprite } from './cell-sprite'
 

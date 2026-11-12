@@ -9,22 +9,22 @@
   },
   "exports": {
     ".": {
-      "types": "./types/src/index.d.ts",
-      "default": "./src/index.ts"
+      "types": "./types/src/entries/index.d.ts",
+      "default": "./src/entries/index.ts"
     },
     "./kit": {
-      "types": "./types/src/kit.d.ts",
-      "default": "./src/kit.ts"
+      "types": "./types/src/entries/kit.d.ts",
+      "default": "./src/entries/kit.ts"
     },
     "./view": {
-      "types": "./types/src/view.d.ts",
-      "default": "./src/view.ts"
+      "types": "./types/src/entries/view.d.ts",
+      "default": "./src/entries/view.ts"
     }
   },
   "scripts": {
     "prepare": "tsc -p tsconfig.types.json",
-    "typecheck": "tsc -p tsconfig.types.json && tsc --noEmit",
-    "test:unit": "vitest run",
+    "typecheck": "tsc -p tsconfig.types.json && tsc -p .",
+    "test:unit": "vitest run --project goldens ${AF_UNIT_FULL:+--project unit}",
     "render": "tsx scripts/render.ts",
     "golden": "tsx scripts/golden.ts",
     "lit": "tsx scripts/lit.ts",
@@ -41,6 +41,7 @@
     "pixi.js": "8.22.0"
   },
   "devDependencies": {
+    "@automata/vitest-preset": "workspace:*",
     "@napi-rs/canvas": "1.0.10",
     "@types/node": "24.19.1",
     "pixi.js": "8.22.0",

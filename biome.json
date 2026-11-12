@@ -17,7 +17,7 @@
       "!site/build",
       "!site/static/demos",
       "!site/static/playground",
-      "!extensions/figures/tests/golden/*.json"
+      "!extensions/figures/tests/fixtures/golden/*.json"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },

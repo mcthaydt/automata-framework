@@ -23,16 +23,16 @@ import {
   SPRITE_PITCH,
   view,
   walking,
-} from '../src'
-import { measure } from '../src/features/body/genes'
-import { GROUP } from '../src/features/body/parts'
-import { J, skeleton } from '../src/features/body/rig'
-import { bodyOf } from '../src/features/outfit/fit'
-import type { Garment } from '../src/features/outfit/garments'
-import '../tests/support/pins' // registers the `fxPaint` kind: a row repaints body regions with it
-import { HAIR_STYLES, type HairStyle } from '../src/features/hair/hair'
-import { shod, useFixtures } from '../tests/features/outfit/wardrobe-fixtures'
-import { FALL_PLAIN, sheerTest } from '../tests/support/pins'
+} from '../src/entries'
+import { measure } from '../src/shared/body/genes'
+import { GROUP } from '../src/shared/body/parts'
+import { J, skeleton } from '../src/shared/body/rig'
+import { bodyOf } from '../src/shared/outfit/fit'
+import type { Garment } from '../src/shared/outfit/garments'
+import '../tests/fixtures/pins' // registers the `fxPaint` kind: a row repaints body regions with it
+import { HAIR_STYLES, type HairStyle } from '../src/shared/hair/hair'
+import { FALL_PLAIN, sheerTest } from '../tests/fixtures/pins'
+import { shod, useFixtures } from '../tests/unit/outfit/wardrobe-fixtures'
 
 useFixtures()
 
@@ -77,7 +77,7 @@ export const hairOf = (def: CharacterDef, style: HairStyle | string, tie?: strin
     ),
   },
 })
-/** The plain fall (tests/support/pins.ts) with fields of its own over it. */
+/** The plain fall (tests/fixtures/pins.ts) with fields of its own over it. */
 export const fallWith = (extra: Record<string, unknown>): HairStyle =>
   ({
     ...FALL_PLAIN,
@@ -108,7 +108,7 @@ export const slight = (def: CharacterDef): CharacterDef => ({
 })
 /** The sheets, in the order the plan makes them. */
 export const SHEETS: Sheet[] = [
-  // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/features/outfit/wardrobe-fixtures.ts).
+  // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/unit/outfit/wardrobe-fixtures.ts).
   {
     name: 'shoes',
     rows: pair((def, who) =>

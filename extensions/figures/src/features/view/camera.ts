@@ -1,7 +1,7 @@
-import type { V3 } from '../../lib/math'
-import type { CastMember } from '../figure/cast'
-import type { View } from '../figure/figure'
-import type { CameraPose } from '../stage/pose'
+import type { CastMember } from '../../shared/figure/cast'
+import type { View } from '../../shared/figure/figure'
+import type { V3 } from '../../shared/math/math'
+import type { CameraPose } from '../../shared/stage/pose'
 
 /**
  * The camera of a 3D scene as a painted figure sees it, and how its cell's quad stands in the scene: the geometry the

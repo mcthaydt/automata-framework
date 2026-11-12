@@ -2,7 +2,7 @@
  * The figure viewer: the base pair in a Pixi 3D scene, each the painter's own cell on a quad (src/view.ts). Not part of
  * the base's public surface; `npm run viewer` serves it.
  *
- *   /               The Last Light's gameplay camera (src/features/stage/pose.ts `gameplay`: perspective, 30° down, 16 m),
+ *   /               The Last Light's gameplay camera (src/shared/stage/pose.ts `gameplay`: perspective, 30° down, 16 m),
  *                   a 640×480 frame shown at the largest whole multiple the window holds, the base pair drawn through
  *                   `stageFrame` and `StageView` at density 2, painted at the renders' 18°. Q and R step the orbit by 45°, W walks, C toggles crisp
  *                   figures (on by default, the owner's call at the c6 visual gate: whole pixels a texel, on the pixel
@@ -21,8 +21,8 @@
 import '@pixi/3d'
 import { CubeGeometry, FlatMaterial, Mesh3D, PlaneGeometry, View3D } from '@pixi/3d'
 import { Application, BufferImageSource, Texture } from 'pixi.js'
-import { type ActorScript, BASE, gameplay, member, ScriptedActor, stageFrame, type V3 } from '../src'
-import { FigureSprite, StageView } from '../src/view'
+import { type ActorScript, BASE, gameplay, member, ScriptedActor, stageFrame, type V3 } from '../src/entries'
+import { FigureSprite, StageView } from '../src/entries/view'
 import { CASES } from './cases'
 
 const params = new URLSearchParams(location.search)

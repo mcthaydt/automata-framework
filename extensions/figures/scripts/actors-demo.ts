@@ -17,7 +17,7 @@ import {
   lengthOf,
   view as sheetView,
   Troupe,
-} from '../src'
+} from '../src/entries'
 
 const out = resolve(process.argv[2] ?? 'out/actors')
 mkdirSync(out, { recursive: true })

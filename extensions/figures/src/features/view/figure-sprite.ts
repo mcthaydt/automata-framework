@@ -1,8 +1,8 @@
 import type { Sprite3D } from '@pixi/3d'
-import type { V3 } from '../../lib/math'
-import type { CastMember } from '../figure/cast'
-import { Figure, type FigureInput } from '../figure/figure'
-import { cellOf } from '../stage/cell'
+import type { CastMember } from '../../shared/figure/cast'
+import { Figure, type FigureInput } from '../../shared/figure/figure'
+import type { V3 } from '../../shared/math/math'
+import { cellOf } from '../../shared/stage/cell'
 import { facing, texelOf, viewFrom } from './camera'
 import { CellSprite } from './cell-sprite'
 
