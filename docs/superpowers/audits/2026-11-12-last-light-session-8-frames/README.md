@@ -113,3 +113,20 @@ anywhere**: no `<video>` layer or film step in `@automata/cutscenes` (its keys a
 host overlay that plays and skips a clip, no `before` / `after` hook on a cutscene, and no asset path for a `.webm` (the build's checks name video files only to refuse them in an itch bundle).
 What a port needs is therefore: (a) the three files (copyable, 0.8 MB, provenance to record), (b) a **film beat** in the cutscene script (`before` the opening, `after` lights out and the rest) and a skippable host
 layer that plays a muted clip at a whole scale on a black field, (c) `.webm` accepted as a game asset. None is built; no player was written.
+
+## Item 5: the HUD, with the pieces the game has today
+
+`hud-old-before-after-play.png` (old, ours before, ours after). The old HUD is a pixel-font line at the top left with a marker before it (no box), a minimap
+top right, nothing at the bottom while nothing is carried, and no pause button. Ours was the framework's pieces: a rounded boxed line, the pause button,
+a bordered "Nothing carried." box.
+
+**Matched, in the game's `style.css` (test first: `tests/e2e/hud.test.ts`, watched failing on the boxed line's `rgb(24, 31, 47)` background):**
+- the objective is a plain line of cream text (`#eadbc9`, 14 px) with a `✦` marker before it (`#ffb866`, the lamp's colour), no box, with a 1 px black shadow so it still reads over a bright wall;
+- an empty inventory draws nothing (the box is hidden while it holds only its "Nothing carried." line; nothing to press is hidden, since there is nothing in it).
+
+**Not matched, and why (against the open proposals already in the tracker; nothing built):**
+- **The pixel font.** The framework gives a game no pixel face for its HUD or its cards (the old text is `src/ui/pixel-font`); the line and the act card use the page's own type.
+- **The minimap** (the journal map's model drawn north-up in the top-right corner, with the current room and the marker): editor-gaps row 15; no HUD piece draws a map.
+- **The marker in the world** (the ✦ over the objective's target, such as the noticeboard): the objective's `target` is in the file, but no piece draws a marker at a hotspot.
+- **The pause button** stays: it is the framework's (touch and the keyboard's only visible way to the pause menu); the old had none because it pauses on Esc alone. A touch
+  target of 44 px is not removed to make a frame match.
