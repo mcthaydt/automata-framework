@@ -1,0 +1,36 @@
+[
+  {
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "field": "640x480",
+    "crisp": true,
+    "figures": [
+      {
+        "x": [284, 352],
+        "rows": 201
+      },
+      {
+        "x": [405, 467],
+        "rows": 198
+      }
+    ],
+    "trueRows": 197.8
+  },
+  {
+    "scene": "base-interior-dressed",
+    "view": "zone",
+    "field": "640x480",
+    "crisp": false,
+    "figures": [
+      {
+        "x": [283, 348],
+        "rows": 191
+      },
+      {
+        "x": [403, 466],
+        "rows": 192
+      }
+    ],
+    "trueRows": 197.8
+  }
+]

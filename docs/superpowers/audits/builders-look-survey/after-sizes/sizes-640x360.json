@@ -32,5 +32,107 @@
       }
     ],
     "trueRows": 83.4
+  },
+  {
+    "scene": "base-interior",
+    "view": "zone",
+    "field": "640x360",
+    "crisp": true,
+    "figures": [
+      {
+        "x": [296, 341],
+        "rows": 134
+      },
+      {
+        "x": [386, 427],
+        "rows": 132
+      }
+    ],
+    "trueRows": 148.3
+  },
+  {
+    "scene": "base-interior",
+    "view": "zone",
+    "field": "640x360",
+    "crisp": false,
+    "figures": [
+      {
+        "x": [295, 343],
+        "rows": 144
+      },
+      {
+        "x": [385, 432],
+        "rows": 144
+      }
+    ],
+    "trueRows": 148.3
+  },
+  {
+    "scene": "base-exterior",
+    "view": "gameplay",
+    "field": "640x360",
+    "crisp": true,
+    "figures": [
+      {
+        "x": [308, 329],
+        "rows": 67
+      },
+      {
+        "x": [378, 397],
+        "rows": 66
+      }
+    ],
+    "trueRows": 83.4
+  },
+  {
+    "scene": "base-exterior",
+    "view": "gameplay",
+    "field": "640x360",
+    "crisp": false,
+    "figures": [
+      {
+        "x": [305, 331],
+        "rows": 83
+      },
+      {
+        "x": [375, 400],
+        "rows": 82
+      }
+    ],
+    "trueRows": 83.4
+  },
+  {
+    "scene": "base-exterior",
+    "view": "zone",
+    "field": "640x360",
+    "crisp": true,
+    "figures": [
+      {
+        "x": [296, 341],
+        "rows": 134
+      },
+      {
+        "x": [405, 446],
+        "rows": 132
+      }
+    ],
+    "trueRows": 130.9
+  },
+  {
+    "scene": "base-exterior",
+    "view": "zone",
+    "field": "640x360",
+    "crisp": false,
+    "figures": [
+      {
+        "x": [297, 340],
+        "rows": 128
+      },
+      {
+        "x": [406, 445],
+        "rows": 128
+      }
+    ],
+    "trueRows": 130.9
   }
 ]

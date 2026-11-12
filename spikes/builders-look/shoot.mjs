@@ -245,6 +245,71 @@ async function write(name, panels, [w, h], scale, record) {
   console.log(name, JSON.stringify(measures))
 }
 
+// SIZES_ONLY=1 (with `figures=painted`) shoots the gameplay and room views at the old game's picture size (FIELD=640x360 or 640x480)
+// with the painted pair at density 1, once in whole pixels a texel and once at true size (`crisp=0`), side by side in one sheet
+// per scene and view (`<scene>-<view>-<field>.png`), and writes `sizes.json`: the man's height in picture pixels in each (the
+// pixels the frame with the pair differs from the frame without, shadow off in both, in the left cluster of columns) against
+// the true one (1.78 m at the 50 mm lens: the field's lines over 0.48 times the camera's distance, a metre).
+if (process.env.SIZES_ONLY === '1') {
+  const field = (process.env.FIELD ?? '640x360').split('x').map(Number)
+  const tag = field.join('x')
+  const man = 1.78
+  const sizes = []
+  /** The rows the pair covers where the two frames differ, as the clusters of columns (a gap of 6 columns parts two figures). */
+  const clusters = async (withCast, without) => {
+    const [a, b] = await Promise.all([pixelsOf(withCast, ...field), pixelsOf(without, ...field)])
+    const [w, h] = field
+    const top = new Array(w).fill(h)
+    const bottom = new Array(w).fill(-1)
+    for (let k = 0; k < w * h; k++) {
+      if (a[k * 4] === b[k * 4] && a[k * 4 + 1] === b[k * 4 + 1] && a[k * 4 + 2] === b[k * 4 + 2]) continue
+      top[k % w] = Math.min(top[k % w], Math.floor(k / w))
+      bottom[k % w] = Math.max(bottom[k % w], Math.floor(k / w))
+    }
+    const found = []
+    let gap = 99
+    for (let x = 0; x < w; x++) {
+      if (bottom[x] < 0) {
+        gap++
+        continue
+      }
+      if (gap > 6) found.push({ from: x, to: x, top: top[x], bottom: bottom[x] })
+      const c = found[found.length - 1]
+      c.to = x
+      c.top = Math.min(c.top, top[x])
+      c.bottom = Math.max(c.bottom, bottom[x])
+      gap = 0
+    }
+    return found.filter((c) => c.to - c.from >= 8).map((c) => ({ x: [c.from, c.to], rows: c.bottom - c.top + 1 }))
+  }
+  for (const scene of SCENES)
+    for (const [view, label, distance] of [
+      ['af', 'gameplay', 16],
+      // The room views name their distances: 9 m (the interior's room), 10.2 m (the street's pavement).
+      ['zone', 'zone', scene.startsWith('base-interior') ? 9 : 10.2],
+    ].filter(([view]) => process.env.VIEWS === undefined || process.env.VIEWS.split(',').includes(view))) {
+      const panels = []
+      for (const [crisp, title] of [
+        [1, 'density 1, whole pixels a texel'],
+        [0, 'density 1, true size (crisp=0)'],
+      ]) {
+        const url = `${local()}/?scene=${scene}&view=${view}&pref=webgl&density=1&crisp=${crisp}&field=${tag}`
+        panels.push({ title: `${title}, ${tag}`, ...(await shoot(`${url}${QUERY}`, field)) })
+        // The heights come from the bare scenes only: a dressed scene has the same camera (the props differ, not the lens).
+        // (HEIGHTS=1 measures a dressed scene too: a sheet that stands alone, such as the 640 x 480 one, carries its own.)
+        if (scene.endsWith('-dressed') && process.env.HEIGHTS !== '1') continue
+        const [withPair, without] = [await shoot(`${url}&shadow=0${QUERY}`, field), await shoot(`${url}&shadow=0&cast=0${QUERY}`, field)]
+        const found = await clusters(withPair.b64, without.b64)
+        sizes.push({ scene, view: label, field: tag, crisp: crisp === 1, figures: found, trueRows: Math.round(((man * field[1]) / (0.48 * distance)) * 10) / 10 })
+        writeFileSync(join(out, `sizes-${tag}.json`), `${JSON.stringify(sizes, null, 2)}\n`)
+      }
+      await write(`${scene}-${label}-${tag}.png`, panels, field, 1, { scene, view: label })
+    }
+  await browser.close()
+  stop()
+  process.exit(0)
+}
+
 // READS_ONLY=1 shoots only what reads.json needs (the baked-light panel of each scene and view, with and without the cast),
 // not the sheets.
 if (process.env.READS_ONLY === '1') {

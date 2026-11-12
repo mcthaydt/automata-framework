@@ -76,11 +76,19 @@ const GAMEPLAY = {
   af: { lensMm: 50, tiltDeg: 30, distance: 16, focus: 1 },
   zone: { lensMm: 50, tiltDeg: 30, distance: Number(zoneDistance ?? 16), focus: 1 },
 } as const
+// ?field=640x360 is the picture's size in the gameplay and room views (the old game's: a picture capped at 640 x 480, 640 x 360 in a
+// 16:9 window); ?density=1 and ?crisp=0 are the painted pair's texel density and its true-size placement (a texel zoom / density
+// pixels wide, of uneven width), the old game's own settings. Left out, the sheets are the kit's defaults (density 2, whole pixels).
+const fieldQuery = /^(\d+)x(\d+)$/.exec(q.get('field') ?? '')
+const paintedOptions = {
+  ...(q.get('density') === '1' ? { density: 1 as const } : {}),
+  ...(q.get('crisp') === '0' ? { crisp: false } : {}),
+}
 const size =
   viewName === 'fp'
     ? { width: 320, height: 200 }
     : viewName === 'af' || viewName === 'zone'
-      ? { width: 320, height: 180 }
+      ? { width: Number(fieldQuery?.[1] ?? 320), height: Number(fieldQuery?.[2] ?? 180) }
       : { width: Number(views.diorama?.w ?? 512), height: Number(views.diorama?.h ?? 320) }
 
 // The base pair stand still. AF's base pair names the `loose` and `bounce` gaits and two stands, which only compiled
@@ -137,7 +145,7 @@ const paintedView: View3dFactory = (row, id, models, light, camera) => {
   const member = cast[Math.round(Number(row.components[Cast.id]?.i ?? 0))]
   if (member === undefined) return undefined
   const def = PAINTED_BASE[member.who === 'woman' ? 1 : 0]?.def
-  return def === undefined ? undefined : paintedFigure(def)(row, id, models, light, camera)
+  return def === undefined ? undefined : paintedFigure(def, paintedOptions)(row, id, models, light, camera)
 }
 const yawOf = (angle: number | undefined) => ((90 - (angle ?? 90)) * Math.PI) / 180
 
@@ -185,7 +193,9 @@ const game = defineGame({
           camera.lookAt({ x: at[0], y: at[1], z: at[2] })
         } else if (viewName === 'af' || viewName === 'zone') {
           const g = GAMEPLAY[viewName]
-          const who = cast[0]?.at ?? [0, 0]
+          // The camera and haze focus on the level's first cast member whether or not ?cast=0 draws it: a frame without the figures is the
+          // same frame, which the figures' own measures (reads, heights) rely on.
+          const who = (level.cast ?? [])[0]?.at ?? [0, 0]
           const focus = { x: who[0], y: g.focus, z: who[1] }
           const tilt = (g.tiltDeg * Math.PI) / 180
           camera.fov = (2 * Math.atan(12 / g.lensMm) * 180) / Math.PI
