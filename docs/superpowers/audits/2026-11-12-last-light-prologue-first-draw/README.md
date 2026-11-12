@@ -172,3 +172,93 @@ Also not drawn: the lamp in Ada's hand (the painted figure's state has no held i
 are not stands of the builder, so the figure stands or walks); and a cutscene key's close-up density (the prologue's cutscenes name none, so
 every figure is at density 1). Props do not block Ada: the level's props carry no footprints (the old game's colliders were blockout boxes the
 converter did not carry into the sector map), so nothing from the dressing can be read as a collision.
+
+
+## Meshes against blockouts: every prop of the prologue (stage 4 session 5, 2026-11-12)
+
+The Owner's word of 2026-11-12: a generated prop is the blockout (place, turn, footprint, height, collider); a mesh replaces it on
+screen, fitted to it. The old game ships a `.glb` and a `.pack` for each of its 62 model props (`src/render/models/`), and all 57
+furniture entries of the clinic's prop table (`src/scenes/clinic/props.ts`) name one. **Every prop of the prologue has an old mesh.** Ours
+draws none of them today: 55 are in the level (28 as a library preset, 4 as a kit kind (`screen`, `table`, two `lamp`s) and 23 as plain boxes, as the third column says), and two (the fallen
+chair and the privacy screen) were left out of the level because no kit prop is a chair on its side or a folding screen.
+
+How the old game fitted a model (`fitProp`, `src/render/props.ts`): the table's `size` is a world box centred on `(x, z)`, standing at
+`y` (default the floor); `uniform` scales the model to the box's height and keeps its proportions, otherwise its bounds stretch to the
+box; `yaw` turns it about the up axis (a quarter turn swaps its width and depth). So the box the converter already carries IS the
+brief a mesh is fitted to. Columns: *old box* is that box worked from the table and the model's own bounds (measured here by reading the
+`.glb`, uniform unless the row says otherwise: the trolley, the drawers and the strip light stretch to `size`); *blockout* is the width
+x height x depth of what the level draws today, its centre on the plan and its lowest point, measured from the built pieces.
+
+| Prop | Old model | Ours today | Should draw | Old placement and size | Old fitted box | Blockout today | Fits? |
+|---|---|---|---|---|---|---|---|
+| `bed` | `bed` | bed.single | the mesh `bed`, fitted; blockout stays as collider | 1.05×0.95×2.05 (0.00 rad) @ -4.10,0.40 y0.00 | 1.10×0.95×2.13 | 1.10×0.95×2.16 @ -4.10,0.40 y0.00 | fits |
+| `wheelchair` | `wheelchair` | wheelchair | the mesh `wheelchair`, fitted; blockout stays as collider | 0.95×0.95×0.65 (1.57 rad) @ -4.20,1.90 y0.00 | 0.99×0.95×0.68 | 1.06×0.96×0.68 @ -4.20,1.90 y0.00 | fits |
+| `fallen-chair` | `fallen-chair` | NOT IN LEVEL | the mesh `fallen-chair`; no blockout yet: add one (a box of its size) | 0.66×0.42×0.47 (1.57 rad) @ -1.20,0.35 y0.00 | 0.68×0.42×0.48 | — | no blockout in the level (left out) |
+| `bench` | `bench` | bench | the mesh `bench`, fitted; blockout stays as collider | 1.66×0.90×0.52 (0.00 rad) @ -2.85,3.35 y0.00 | 1.66×0.90×0.50 | 1.59×0.89×0.46 @ -2.85,3.28 y0.00 | fits |
+| `sink` | `sink` | sink | the mesh `sink`, fitted; blockout stays as collider | 0.45×0.80×0.51 (1.57 rad) @ -4.98,3.00 y0.20 | 0.46×0.80×0.51 | 0.45×1.10×0.60 @ -4.99,3.00 y0.20 | blockout 1.10 tall, old 0.80 |
+| `trolley` | `trolley` | trolley | the mesh `trolley`, fitted; blockout stays as collider | 0.50×0.95×0.75 (1.57 rad) @ 2.30,2.40 y0.00 | 0.50×0.95×0.75 | 0.45×0.95×0.75 @ 2.30,2.40 y0.00 | fits |
+| `filing-1` | `filing` | cabinet.filing | the mesh `filing`, fitted; blockout stays as collider | 0.52×1.34×0.63 (0.00 rad) @ -4.32,-3.47 y0.00 | 0.52×1.34×0.63 | 0.47×1.32×0.64 @ -4.32,-3.46 y0.00 | fits |
+| `filing-2` | `filing` | cabinet.filing | the mesh `filing`, fitted; blockout stays as collider | 0.52×1.34×0.63 (0.00 rad) @ -3.76,-3.47 y0.00 | 0.52×1.34×0.63 | 0.47×1.32×0.64 @ -3.76,-3.46 y0.00 | fits |
+| `drawers` | `drawers` | dresser | the mesh `drawers`, fitted; blockout stays as collider | 0.75×0.88×0.45 (0.00 rad) @ 2.40,-0.62 y0.00 | 0.75×0.88×0.45 | 0.75×0.88×0.48 @ 2.40,-0.60 y0.00 | fits |
+| `clock` | `clock` | wallClock | the mesh `clock`, fitted; blockout stays as collider | 0.56×0.56×0.06 (0.00 rad) @ 4.45,-0.84 y2.57 | 0.56×0.56×0.05 | 0.32×0.32×0.06 @ 4.45,-0.82 y4.61 | blockout 0.32 tall, old 0.56; blockout floats at y4.61, old y2.57 |
+| `nightstand` | `nightstand` | nightstand | the mesh `nightstand`, fitted; blockout stays as collider | 0.42×0.70×0.49 (0.00 rad) @ -3.12,-0.30 y0.00 | 0.49×0.70×0.42 | 0.42×0.70×0.52 @ -3.12,-0.28 y0.00 | fits |
+| `monitor-cart` | `monitor-cart` | monitorCart | the mesh `monitor-cart`, fitted; blockout stays as collider | 0.71×1.10×0.54 (0.00 rad) @ -2.40,-3.35 y0.00 | 0.71×1.10×0.54 | 0.48×1.45×0.51 @ -2.40,-3.33 y0.00 | blockout 1.45 tall, old 1.10 |
+| `iv-stand` | `iv-stand` | dripStand | the mesh `iv-stand`, fitted; blockout stays as collider | 0.84×1.80×0.86 (0.00 rad) @ -2.60,1.15 y0.00 | 0.83×1.80×0.86 | 0.60×1.90×0.61 @ -2.60,1.18 y0.00 | fits |
+| `office-chair` | `office-chair` | chair.wood | the mesh `office-chair`, fitted; blockout stays as collider | 0.66×0.95×0.71 (0.00 rad) @ 3.90,-0.40 y0.00 | 0.66×0.95×0.71 | 0.44×0.92×0.42 @ 3.90,-0.40 y0.00 | fits |
+| `wall-tv` | `wall-tv` | kind screen | the mesh `wall-tv`, fitted; blockout stays as collider | 0.69×0.55×0.45 (1.57 rad) @ -4.53,-1.70 y1.80 | 0.69×0.55×0.45 | 0.06×0.55×0.69 @ -4.52,-1.70 y1.80 | fits |
+| `mop-bucket` | `mop-bucket` | mop.bucket | the mesh `mop-bucket`, fitted; blockout stays as collider | 0.44×1.25×0.59 (1.57 rad) @ 1.10,-5.30 y0.00 | 0.44×1.25×0.59 | 0.36×0.99×0.47 @ 1.10,-5.35 y0.00 | blockout 0.99 tall, old 1.25 |
+| `desk-lamp` | `desk-lamp` | kind lamp | the mesh `desk-lamp`, fitted; blockout stays as collider | 0.35×0.42×0.21 (0.00 rad) @ 3.05,1.10 y1.08 | 0.35×0.42×0.21 | 0.24×0.50×0.24 @ 3.05,1.10 y1.08 | fits |
+| `waste-bin-1` | `waste-bin` | bin | the mesh `waste-bin`, fitted; blockout stays as collider | 0.41×0.50×0.41 (0.00 rad) @ 4.55,2.95 y0.00 | 0.41×0.50×0.41 | 0.55×0.89×0.55 @ 4.55,2.95 y0.00 | blockout 0.89 tall, old 0.50 |
+| `waste-bin-2` | `waste-bin` | bin | the mesh `waste-bin`, fitted; blockout stays as collider | 0.37×0.45×0.37 (0.00 rad) @ 4.50,5.62 y0.00 | 0.37×0.45×0.37 | 0.55×0.89×0.55 @ 4.50,5.62 y0.00 | blockout 0.89 tall, old 0.45 |
+| `coat-hook` | `coat-hook` | kind box | the mesh `coat-hook`, fitted; blockout stays as collider | 0.51×1.15×0.24 (0.00 rad) @ 2.35,-0.74 y0.92 | 0.51×1.15×0.24 | 0.51×1.15×0.24 @ 2.35,-0.74 y0.92 | fits |
+| `wall-sconce` | `wall-sconce` | kind box | the mesh `wall-sconce`, fitted; blockout stays as collider | 0.22×0.30×0.28 (0.00 rad) @ 2.30,-0.72 y2.56 | 0.22×0.30×0.28 | 0.22×0.30×0.28 @ 2.30,-0.72 y2.56 | fits |
+| `junction-box` | `junction-box` | box.utility | the mesh `junction-box`, fitted; blockout stays as collider | 0.43×0.90×0.28 (0.00 rad) @ 3.90,-0.72 y2.60 | 0.43×0.90×0.28 | 0.47×0.90×0.32 @ 3.90,-0.72 y2.60 | fits |
+| `key-cabinet` | `key-cabinet` | keyCabinet | the mesh `key-cabinet`, fitted; blockout stays as collider | 0.31×0.75×0.60 (-1.57 rad) @ 4.71,3.60 y1.12 | 0.31×0.75×0.60 | 0.12×0.50×0.40 @ 4.65,3.60 y2.52 | blockout 0.50 tall, old 0.75; blockout floats at y2.52, old y1.12 |
+| `floor-plant-1` | `floor-plant` | plant.pot | the mesh `floor-plant`, fitted; blockout stays as collider | 0.86×1.30×0.81 (0.00 rad) @ -4.40,6.30 y0.00 | 0.85×1.30×0.81 | 0.95×1.35×1.12 @ -4.54,6.34 y0.00 | centre off |
+| `floor-plant-2` | `floor-plant` | plant.pot | the mesh `floor-plant`, fitted; blockout stays as collider | 0.75×1.15×0.79 (1.57 rad) @ 4.40,6.35 y0.00 | 0.72×1.15×0.75 | 0.99×1.22×0.84 @ 4.44,6.48 y0.00 | centre off |
+| `desk-plant` | `desk-plant` | plant.pot | the mesh `desk-plant`, fitted; blockout stays as collider | 0.36×0.40×0.33 (0.00 rad) @ 4.30,0.45 y1.10 | 0.36×0.40×0.33 | 0.32×0.48×0.32 @ 4.30,0.45 y1.10 | fits |
+| `book-stack-1` | `book-stack` | books.stack | the mesh `book-stack`, fitted; blockout stays as collider | 0.26×0.20×0.19 (0.00 rad) @ 3.90,0.45 y1.10 | 0.26×0.20×0.19 | 0.21×0.10×0.16 @ 3.90,0.45 y1.10 | fits |
+| `book-stack-2` | `book-stack` | books.stack | the mesh `book-stack`, fitted; blockout stays as collider | 0.19×0.17×0.22 (1.57 rad) @ 2.95,2.95 y1.10 | 0.16×0.17×0.22 | 0.16×0.10×0.21 @ 2.95,2.95 y1.10 | fits |
+| `ledger` | `ledger` | paper | the mesh `ledger`, fitted; blockout stays as collider | 0.45×0.06×0.42 (0.00 rad) @ 2.95,1.50 y1.10 | 0.47×0.06×0.44 | 0.23×0.00×0.31 @ 2.95,1.50 y1.10 | fits |
+| `overbed-table` | `overbed-table` | kind table | the mesh `overbed-table`, fitted; blockout stays as collider | 0.45×0.90×0.80 (-1.57 rad) @ -3.30,0.90 y0.00 | 0.45×0.90×0.77 | 0.80×0.90×0.45 @ -3.30,0.90 y0.00 | fits |
+| `privacy-screen` | `privacy-screen` | NOT IN LEVEL | the mesh `privacy-screen`; no blockout yet: add one (a box of its size) | 1.25×1.60×0.45 (0.40 rad) @ -2.75,-2.55 y0.00 | 1.21×1.60×0.70 | — | no blockout in the level (left out) |
+| `radiator-1` | `radiator` | radiator | the mesh `radiator`, fitted; blockout stays as collider | 0.20×0.62×0.90 (1.57 rad) @ -4.75,4.20 y0.00 | 0.13×0.62×0.62 | 0.08×0.60×0.98 @ -4.75,4.20 y0.00 | fits |
+| `radiator-2` | `radiator` | radiator | the mesh `radiator`, fitted; blockout stays as collider | 0.20×0.62×0.90 (-1.57 rad) @ 1.35,-2.35 y0.00 | 0.13×0.62×0.62 | 0.08×0.60×0.99 @ 1.35,-2.35 y0.00 | fits |
+| `extinguisher-cabinet` | `extinguisher-cabinet` | kind box | the mesh `extinguisher-cabinet`, fitted; blockout stays as collider | 0.17×0.75×0.42 (1.57 rad) @ -1.39,-3.30 y0.95 | 0.17×0.75×0.40 | 0.42×0.75×0.17 @ -1.39,-3.30 y0.95 | fits |
+| `gurney` | `gurney` | gurney | the mesh `gurney`, fitted; blockout stays as collider | 0.62×0.90×1.80 (1.57 rad) @ -1.10,-5.75 y0.00 | 0.61×0.90×1.63 | 0.67×1.00×1.90 @ -1.10,-5.75 y0.00 | fits |
+| `water-cooler` | `water-cooler` | cooler.water | the mesh `water-cooler`, fitted; blockout stays as collider | 0.34×1.20×0.36 (-1.57 rad) @ 4.62,4.40 y0.00 | 0.36×1.20×0.31 | 0.30×1.30×0.30 @ 4.62,4.40 y0.00 | blockout 1.30 tall, old 1.20 |
+| `pendant-lamp` | `pendant-lamp` | kind lamp | the mesh `pendant-lamp`, fitted; blockout stays as collider | 0.50×0.75×0.50 (0.00 rad) @ -4.10,0.40 y2.75 | 0.57×0.75×0.57 | 0.45×0.57×0.45 @ -4.10,0.40 y2.93 | blockout 0.57 tall, old 0.75; blockout floats at y2.93, old y2.75 |
+| `strip-light-1` | `strip-light` | kind box | the mesh `strip-light`, fitted; blockout stays as collider | 0.30×0.10×1.25 (1.57 rad) @ 0.00,-2.50 y3.08 | 0.30×0.10×1.25 | 1.25×0.10×0.30 @ 0.00,-2.50 y3.08 | fits |
+| `strip-light-2` | `strip-light` | kind box | the mesh `strip-light`, fitted; blockout stays as collider | 0.30×0.10×1.25 (1.57 rad) @ 0.00,-4.60 y3.08 | 0.30×0.10×1.25 | 1.25×0.10×0.30 @ 0.00,-4.60 y3.08 | fits |
+| `stock-boxes-1` | `stock-boxes` | kind box | the mesh `stock-boxes`, fitted; blockout stays as collider | 0.30×0.40×0.30 (0.00 rad) @ 3.72,-6.17 y0.16 | 0.33×0.40×0.27 | 0.30×0.40×0.30 @ 3.72,-6.17 y0.16 | fits |
+| `stock-archive-1` | `stock-archive` | kind box | the mesh `stock-archive`, fitted; blockout stays as collider | 0.30×0.36×0.30 (0.00 rad) @ 3.72,-6.17 y0.64 | 0.30×0.36×0.30 | 0.30×0.36×0.30 @ 3.72,-6.17 y0.64 | fits |
+| `stock-linen-1` | `stock-linen` | kind box | the mesh `stock-linen`, fitted; blockout stays as collider | 0.30×0.30×0.30 (0.00 rad) @ 3.72,-6.17 y1.14 | 0.35×0.30×0.31 | 0.30×0.30×0.30 @ 3.72,-6.17 y1.14 | fits |
+| `stock-bottles-1` | `stock-bottles` | kind box | the mesh `stock-bottles`, fitted; blockout stays as collider | 0.30×0.20×0.30 (0.00 rad) @ 3.72,-6.17 y1.66 | 0.39×0.20×0.21 | 0.30×0.20×0.30 @ 3.72,-6.17 y1.66 | fits |
+| `stock-canisters-1` | `stock-canisters` | kind box | the mesh `stock-canisters`, fitted; blockout stays as collider | 0.30×0.36×0.30 (0.00 rad) @ 4.20,-6.17 y0.16 | 0.35×0.36×0.31 | 0.30×0.36×0.30 @ 4.20,-6.17 y0.16 | fits |
+| `stock-toolbox-1` | `stock-toolbox` | kind box | the mesh `stock-toolbox`, fitted; blockout stays as collider | 0.30×0.24×0.30 (0.00 rad) @ 4.20,-6.17 y0.64 | 0.33×0.24×0.18 | 0.30×0.24×0.30 @ 4.20,-6.17 y0.64 | fits |
+| `stock-rolls-1` | `stock-rolls` | kind box | the mesh `stock-rolls`, fitted; blockout stays as collider | 0.30×0.34×0.30 (0.00 rad) @ 4.20,-6.17 y1.14 | 0.41×0.34×0.25 | 0.30×0.34×0.30 @ 4.20,-6.17 y1.14 | fits |
+| `stock-bandages-1` | `stock-bandages` | kind box | the mesh `stock-bandages`, fitted; blockout stays as collider | 0.30×0.22×0.30 (0.00 rad) @ 4.20,-6.17 y1.66 | 0.31×0.22×0.20 | 0.30×0.22×0.30 @ 4.20,-6.17 y1.66 | fits |
+| `stock-archive-2` | `stock-archive` | kind box | the mesh `stock-archive`, fitted; blockout stays as collider | 0.30×0.40×0.30 (1.57 rad) @ 1.93,-5.95 y0.16 | 0.34×0.40×0.33 | 0.30×0.40×0.30 @ 1.93,-5.95 y0.16 | fits |
+| `stock-bandages-2` | `stock-bandages` | kind box | the mesh `stock-bandages`, fitted; blockout stays as collider | 0.30×0.26×0.30 (1.57 rad) @ 1.93,-5.95 y0.64 | 0.24×0.26×0.37 | 0.30×0.26×0.30 @ 1.93,-5.95 y0.64 | fits |
+| `stock-bottles-2` | `stock-bottles` | kind box | the mesh `stock-bottles`, fitted; blockout stays as collider | 0.30×0.20×0.30 (1.57 rad) @ 1.93,-5.95 y1.14 | 0.21×0.20×0.39 | 0.30×0.20×0.30 @ 1.93,-5.95 y1.14 | fits |
+| `stock-boxes-2` | `stock-boxes` | kind box | the mesh `stock-boxes`, fitted; blockout stays as collider | 0.30×0.40×0.30 (1.57 rad) @ 1.93,-5.20 y0.16 | 0.27×0.40×0.33 | 0.30×0.40×0.30 @ 1.93,-5.20 y0.16 | fits |
+| `stock-linen-2` | `stock-linen` | kind box | the mesh `stock-linen`, fitted; blockout stays as collider | 0.30×0.30×0.30 (1.57 rad) @ 1.93,-5.20 y0.64 | 0.31×0.30×0.35 | 0.30×0.30×0.30 @ 1.93,-5.20 y0.64 | fits |
+| `stock-rolls-2` | `stock-rolls` | kind box | the mesh `stock-rolls`, fitted; blockout stays as collider | 0.30×0.30×0.30 (1.57 rad) @ 1.93,-5.20 y1.14 | 0.22×0.30×0.36 | 0.30×0.30×0.30 @ 1.93,-5.20 y1.14 | fits |
+| `stock-canisters-2` | `stock-canisters` | kind box | the mesh `stock-canisters`, fitted; blockout stays as collider | 0.30×0.36×0.30 (-1.57 rad) @ 4.25,-3.95 y0.49 | 0.31×0.36×0.35 | 0.30×0.36×0.30 @ 4.25,-3.95 y0.49 | fits |
+| `stock-linen-3` | `stock-linen` | kind box | the mesh `stock-linen`, fitted; blockout stays as collider | 0.30×0.28×0.30 (-1.57 rad) @ 4.25,-3.95 y0.99 | 0.29×0.28×0.32 | 0.30×0.28×0.30 @ 4.25,-3.95 y0.99 | fits |
+| `stock-boxes-3` | `stock-boxes` | kind box | the mesh `stock-boxes`, fitted; blockout stays as collider | 0.30×0.40×0.30 (-1.57 rad) @ 4.25,-4.95 y0.49 | 0.27×0.40×0.33 | 0.30×0.40×0.30 @ 4.25,-4.95 y0.49 | fits |
+| `stock-toolbox-2` | `stock-toolbox` | kind box | the mesh `stock-toolbox`, fitted; blockout stays as collider | 0.30×0.24×0.30 (-1.57 rad) @ 4.25,-4.95 y0.99 | 0.18×0.24×0.33 | 0.30×0.24×0.30 @ 4.25,-4.95 y0.99 | fits |
+
+Reading the table:
+
+- **44 of the 57 rows fit** (the blockout's centre within 0.1 m of the old box and its height and floor within 0.1 and 0.05 m): the
+  mesh can be fitted to the blockout as it is. Where the blockout is thinner or narrower than the old box (a wall clock, a radiator, the
+  TV) the mesh is fitted by height and centred on the blockout, as the old game did.
+- **Blockout faults to fix before a mesh is fitted to them (a mesh fitted to a wrong blockout lands wrong): `clock` and `key-cabinet`
+  float at 4.61 and 2.52 m** (the preset's own mount `height`, 2.2 and 1.4, is added to the `[x, z, height]` the converter wrote, so
+  the clock hangs over the ceiling at 3.08); `sink`, `monitor-cart`, `mop-bucket`, both bins and the water cooler are 0.1 to 0.4 m
+  the wrong height; `pendant-lamp` is 0.18 m short; the two floor plants are off-centre by their pot's own origin.
+- **Two have no blockout**: the fallen chair and the privacy screen; each needs one (a box of the old size), because the mesh needs a
+  place, a footprint and a collider to follow.
+- The framework cannot name a model for a prop today (`PropPlace` has no `model`; `drawWorld` draws pieces only), so no row can say "replaced
+  by this mesh" yet. See the plan's log.
