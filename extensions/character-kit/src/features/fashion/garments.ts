@@ -63,12 +63,16 @@ export interface Dress {
   sleeves?: 'none' | 'short' | 'long'
   flare?: number
 }
+/** Jeans: close-cut legs. `taper` (0 a straight pipe from the knee, 1 the leg's own narrowing to the ankle) is the hem's cut. */
 export interface Jeans {
   jeans: string
+  taper?: number
 }
+/** Trousers: roomier legs, `wide` the width they hold from the knee down and `taper` as for jeans. */
 export interface Trousers {
   trousers: string
   wide?: number
+  taper?: number
 }
 /** Shoes: the body's own shoe on its sole, painted. */
 export interface Shoes {
@@ -233,11 +237,11 @@ export function registerGarments(): void {
   )
   registerGarment(
     'jeans',
-    kind<Jeans>((c, i) => legsOf(c, i.jeans, 1, 0.92)),
+    kind<Jeans>((c, i) => legsOf(c, i.jeans, 1, 0.92, i.taper)),
   )
   registerGarment(
     'trousers',
-    kind<Trousers>((c, i) => legsOf(c, i.trousers, 1.5, i.wide ?? 1.05)),
+    kind<Trousers>((c, i) => legsOf(c, i.trousers, 1.5, i.wide ?? 1.05, i.taper)),
   )
   registerGarment('shoes', {
     build: (_c, i: Shoes) => ({ parts: [], paint: { shoe: i.shoes, sole: i.sole ?? 'soleBlack' } }),

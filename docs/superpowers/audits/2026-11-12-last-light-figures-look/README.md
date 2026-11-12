@@ -9,8 +9,8 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **round 1 of 3 done** (about 40 %). Round 0 look before touching, round 1 data, round 2 painted garments as generators
-(next), and the list for the painter, kept as it goes.
+Progress: **round 2 of 3 done** (about 70 %). Round 0 look before touching, round 1 data, round 2 painted garments as generators,
+and the list for the painter, kept as it goes. Round 3 (the nurse's garments, hair as data if the Owner allows it, the in-game frame) next.
 
 ## Round 0: as they are now
 
@@ -140,6 +140,41 @@ The test (`tests/unit/features/figures/cast.test.ts`) was widened first and watc
 the six retunes named, her gait is the old `brisk` whole, her outfit is the old one with `jeans` for `trousers`, the nurse's gait is
 the old `uncanny` whole, and `HELD` names her stoop where it named her gait.
 
+## Round 2: the kit's painted garments as generators
+
+Merged `origin/claude/last-light-prologue` first (already up to date). The kit's garments now have options a character's data sets, and
+every character's clothes take them: a **waistcoat** cut from the torso (`fit` 0 loose to 1 closed in at the waist, `length` 0 at the
+waist to 1 at the hip, `armhole` 0 to 1 narrower across the shoulder so the shirt shows), and **legs** that taper (`taper` 0 a pipe
+from the knee, 1 the leg's own narrowing to the ankle, on `jeans` and on `trousers`). The tests came first, each watched failing for the
+right reason (`extensions/character-kit/tests/unit/fashion/cut.test.ts`: the cloth's own rows, from the picture, with the option at
+either end). No new per-character code: Ada's data sets the options.
+
+| Sheet | What it shows |
+| --- | --- |
+| [`round2-ada-variants-play.png`](round2-ada-variants-play.png), [`-detail.png`](round2-ada-variants-detail.png) | Ada: BEFORE (round 1's cut), A (waistcoat fitted and cropped at the waist, jeans tapered 0.7), **B (adopted: A and an armhole)**, D (B and a brown belt), C (B with the vest to the hip). |
+| [`round2-ada-play.png`](round2-ada-play.png), [`-detail.png`](round2-ada-detail.png), [`-numbers.txt`](round2-ada-numbers.txt) | The adopted Ada alone, 8 views and the walk, and the numbers. |
+| [`round2-default-vest-detail.png`](round2-default-vest-detail.png), [`-play.png`](round2-default-vest-play.png), [`-diff.txt`](round2-default-vest-diff.txt) | The waistcoat's default moved: the base pair, legacy cut against the new default. |
+
+What moved: the waistcoat's **default** (`fit` 0.6, `armhole` 0.5; the legacy cut is `fit` 0, `armhole` 0). No golden holds a waistcoat
+(the runway's nine kinds do not include it; it was added on the game branch in `00087de63`), so no golden file moved: the kit's
+unit tests all pass and the runway and core goldens are untouched. The cells that moved are the base pair's in a waistcoat: 758 texels
+of base-m's eight views at density 2 and 523 of base-f's (`round2-default-vest-diff.txt`, the sheet beside it). The trousers' and jeans'
+default is `taper` 0, the same pipe as before: nothing moved there.
+
+**Ada, front view, play size** (texels):
+
+| | waistcoat texels | widest | rows (share of her height) |
+| --- | --- | --- | --- |
+| old procedural | 100 | 10 | 0.25-0.46 |
+| round 1 | 166 | 14 | 0.20-0.44 |
+| **round 2 (B)** | **144** | **12** | **0.20-0.42** |
+
+- The vest ends at her waist and the jeans' own waist shows under it, where round 1's vest ran to the belt as a tube; the jeans end in
+  a slimmer hem (0.7 of the leg's own narrowing); the shirt's sleeve shows at the shoulder. The change at play size is small (a texel
+  here and there), which is what a garment can do on this body: the cloth cannot be narrower than the body under it.
+- **D, a belt**: it draws a waist the body has not got. It is an outfit choice (the old street outfit has none), so **the Owner's call**.
+- What the generator cannot do: the torso under the vest is the painter's body, and the face, hair and stand are still the painter's.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
 Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the painter, which this branch does not patch.
@@ -152,9 +187,12 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings | the torn, hanging hem |
 | A cap that sits as the old one: a flat band over the brow | the headwear table's cap is a bowl | the nurse's head |
 | A brisk, leaning stand and pose for Ada standing | the stand is the builder's relaxed one: feet together, arms at the sides | her first-night posture |
+| Eyes at density 1 | the front view at play size draws no eyes (a lid line at most), where the old painter's figure showed two dark dots | Ada's face at the size she is played |
 
 ## Log
 
+- Round 2: waistcoat `fit`, `length` and `armhole` and legs' `taper` in the kit's garments (`accessories.ts`, `shells.ts`, `garments.ts`),
+  `cut.test.ts` written first; Ada's waistcoat and jeans set the options; `figure-variants.ts` can count the texels two variants differ by.
 - Round 1: the old `brisk` and `uncanny` gaits whole as overrides (`old-gaits.ts`), Ada's six retuned sliders and `jeans`, the cast test
   widened first, `figure-variants.ts` and `round1-variants.ts`; sheets and numbers above. Merge of `origin/claude/last-light-prologue`:
   already up to date.

@@ -61,9 +61,10 @@ export const ADA: CharacterDef = {
   outfits: {
     street: [
       { top: 'cream', sleeves: 'short' },
-      { waistcoat: 'maroon' },
-      // The kit's closer cut: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it (round 2 fits it).
-      { jeans: 'denim' },
+      // The kit's waistcoat follows the torso: fitted at the waist and ending there, narrow across the shoulder so her cream sleeves show.
+      { waistcoat: 'maroon', fit: 1, length: 0.05, armhole: 1 },
+      // The kit's closer cut, tapered to the ankle: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it.
+      { jeans: 'denim', taper: 0.7 },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true },
       { hair: 'auburn', style: 'smoothBob' },
       { eyes: 'eyeDark' },

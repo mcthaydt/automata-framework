@@ -14,6 +14,8 @@ export interface Variant {
   readonly label: string
   readonly note: string
   readonly def: CharacterDef
+  /** The label of the variant this one is counted against: a diff file says how many texels differ, over the eight views at density 2. */
+  readonly against?: string
 }
 
 const STAND = [0, 1, 2, 4] as const
@@ -82,6 +84,23 @@ async function main(): Promise<void> {
     )
   })
   writeFileSync(join(out, `${name}-detail.png`), encodePng(stack(detail)))
+  const diffs = variants.flatMap((v) => {
+    const other = variants.find((o) => o.label === v.against)
+    if (other === undefined) return []
+    const [a, b] = [paintedStand(v.def, 2), paintedStand(other.def, 2)]
+    const differing = a.map((cell, view) => {
+      let count = 0
+      const painted = at(b, view).painted
+      for (let i = 0; i < cell.painted.length; i += 4)
+        if (cell.painted.slice(i, i + 4).join() !== painted.slice(i, i + 4).join()) count++
+      return count
+    })
+    const total = differing.reduce((x, y) => x + y, 0)
+    return [
+      `${v.label} against ${other.label}: texels that differ in the eight views at density 2: ${differing.join(', ')} (${total} in all)`,
+    ]
+  })
+  if (diffs.length > 0) writeFileSync(join(out, `${name}-diff.txt`), `${diffs.join('\n')}\n`)
   console.log(
     variants.map((v) => `${v.label}: ${measure(silhouette(at(paintedStand(v.def, 1), 0)))}`).join('\n'),
   )

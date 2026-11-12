@@ -135,8 +135,10 @@ const asDrawn = (old: readonly Record<string, unknown>[]) =>
     if (item.style === 'bob') return { ...item, style: 'smoothBob' }
     if (item.style === 'curtain') return { ...item, style: 'fallLong' }
     // The kit's `trousers` is a cloth shell grown over the whole leg; the old trousers were paint on the body's own leg. `jeans` is the kit's
-    // closer cut (one clearance, a straighter knee) until the trouser generator is fitted (round 2).
-    if ('trousers' in item) return { jeans: item.trousers }
+    // closer cut (one clearance, a straighter knee), tapered to the ankle, as a slim leg is.
+    if ('trousers' in item) return { jeans: item.trousers, taper: 0.7 }
+    // The old waistcoat was a cropped box on the chest; the kit's follows the torso: fitted at the waist, ending at it, hung from straps.
+    if ('waistcoat' in item) return { ...item, fit: 1, length: 0.05, armhole: 1 }
     if ('folds' in item) {
       const { folds: _folds, ...rest } = item
       return rest

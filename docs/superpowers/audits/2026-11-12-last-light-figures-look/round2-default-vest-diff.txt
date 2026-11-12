@@ -1,0 +1,2 @@
+base-m NOW against base-m BEFORE: texels that differ in the eight views at density 2: 99, 117, 70, 106, 102, 99, 67, 98 (758 in all)
+base-f NOW against base-f BEFORE: texels that differ in the eight views at density 2: 107, 88, 40, 67, 61, 56, 30, 74 (523 in all)

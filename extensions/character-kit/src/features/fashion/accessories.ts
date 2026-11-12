@@ -15,17 +15,29 @@ import {
   type GarmentKind,
   GROUP,
   J,
+  lerp,
   type Part,
+  type Ring,
   registerGarment,
+  smooth,
   superquadric,
   type Wearing,
 } from '../../shared/figure-builder/door.ts'
 import { HEADWEAR } from './headwear.ts'
-import { frontAt, grown, heights, opening, piece, shell, skins, top } from './shells.ts'
+import { frontAt, grown, heights, opening, piece, SHOULDER_RINGS, shell, skins } from './shells.ts'
 
-/** A vest: it covers the chest and waist; its front is open on the shirt under it. */
+/**
+ * A vest: it covers the chest and waist, its front open on the shirt under it. It is cut from the torso (the body's own rings grown by
+ * a little cloth) and each of its options is a way the cut follows the body:
+ */
 export interface Waistcoat {
   waistcoat: string
+  /** 0 a loose vest, 1 a fitted one: the cloth clears the body by the same at the chest, and by less and less toward the waist. Default 0.6. */
+  fit?: number
+  /** Where it ends, 0 at the waist (a short, cropped vest) to 1 at the hip (a long one). Default 0.35, a hand over the belt. */
+  length?: number
+  /** 0 … 1: the vest narrows across the shoulder, so the shirt shows at the arm and it hangs from straps, not from the arm's cap. Default 0.5. */
+  armhole?: number
 }
 /** Stockings, in one colour. */
 export interface Stockings {
@@ -69,13 +81,52 @@ const kind = <T>(build: GarmentKind<T>['build'], more: Partial<GarmentKind<T>> =
 /** How far a belt stands off the body: past the roomiest cloth an outfit puts at the waist (a coat is 2.5 clearances). */
 const BELT_EASE = 3
 
+/** The clearance (in texels of cloth) a vest stands off the chest, and the least it keeps off the waist: a shirt under it is 0.8, so a fitted waist is just over it. */
+const VEST_CHEST = 1.6
+const VEST_WAIST = 0.9
+/** How much of its half-width the vest gives up at the shoulder when it is all armhole, at the ring where the arm leaves the trunk. */
+const VEST_ARMHOLE = 0.3
+
+/**
+ * A waistcoat: the torso's rings from the neck to a hem the character sets, grown a vest's clearance. The clearance is the chest's
+ * down to the chest's underside, eases to the waist's at the waist, and is the chest's again at the hip, so a fitted vest follows the
+ * body in at the waist and out over the hip instead of hanging as a tube; the rings at the shoulder narrow by `armhole` so the
+ * shirt's sleeve shows at the arm.
+ */
 function waistcoat(c: Wearing, i: Waistcoat): Fit {
   const h = heights(c)
-  const ease = 1.6
-  const f = top(c, i.waistcoat, { sleeves: 'none', ease, sleeveEase: ease, hem: h.belt + 0.01 * h.k })
+  const cl = c.body.clear
+  const torso = c.body.profiles.torso
+  const fit = i.fit ?? 0.6
+  const hem = lerp(h.waist, h.hipY, i.length ?? 0.35)
+  const armhole = (i.armhole ?? 0.5) * VEST_ARMHOLE
+  // The torso's own waist and hip rings (builder's fit profile): the vest is closest at the first and as roomy as the chest at the second.
+  const waistY = h.waist + 0.02 * h.k
+  const hipRingY = h.hipY + 0.08 * h.k
+  const chestRingY = c.s.chestY - 0.07 * h.k
+  const unit = (v: number) => Math.min(1, Math.max(0, v))
+  const waistEase = lerp(VEST_CHEST, VEST_WAIST, fit)
+  const ease = (r: Ring, at: number): number => {
+    if (at < SHOULDER_RINGS) return VEST_CHEST * cl
+    const away = r.y >= waistY ? (r.y - waistY) / (chestRingY - waistY) : (waistY - r.y) / (waistY - hipRingY)
+    return lerp(waistEase, VEST_CHEST, smooth(unit(away))) * cl
+  }
+  // Rings 1 to 3 carry the shoulder's slope and the arm's root: they narrow most at the shoulder's own ring (2).
+  const armholeAt = (at: number) => armhole * (at === 2 ? 1 : at === 1 || at === 3 ? 0.5 : 0)
+  const cut = {
+    ...torso,
+    rings: torso.rings.map((r, at) => ({
+      ...r,
+      rx: r.rx * (1 - armholeAt(at)) + ease(r, at),
+      rz: r.rz + ease(r, at),
+    })),
+  }
+  const parts: Part[] = [
+    shell(cut, Infinity, hem, i.waistcoat, GROUP.torso, skins(c).trunk, [torso.caps?.[0] ?? 0, 0]),
+  ]
   const shirt = shirtOf(c)
-  if (shirt !== undefined) f.parts.push(opening(c, shirt, ease * c.body.clear))
-  return f
+  if (shirt !== undefined) parts.push(opening(c, shirt, VEST_CHEST * cl))
+  return { parts, paint: { chest: i.waistcoat, waist: i.waistcoat } }
 }
 
 function belt(c: Wearing, i: Belt): Fit {

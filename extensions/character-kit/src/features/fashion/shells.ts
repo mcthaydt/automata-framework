@@ -152,7 +152,7 @@ interface Top {
   sleeveEase?: number
 }
 /** The torso's rings at and above the shoulder line (the builder's fit profiles: the trapezius, the shoulder, the deltoid's top). */
-const SHOULDER_RINGS = 4
+export const SHOULDER_RINGS = 4
 
 /**
  * A top's shell: the torso from the shoulders to `hem` (m above the floor), grown `ease` clearances below the shoulders and only
@@ -419,9 +419,10 @@ function collarBand(c: Wearing, material: string, off: number): Part[] {
 
 /**
  * Trouser legs: each leg grown `ease` clearances, straight from the knee down (`wide` widens them there), from the hip (or from
- * under a long tail) to the ankle; the seat and fly a shell of the torso from the belt down.
+ * under a long tail) to the ankle; the seat and fly a shell of the torso from the belt down. `taper` (0 a straight pipe, 1 the leg's
+ * own narrowing) draws the cloth in from the knee to the ankle, so a slim cut ends at a slim hem and not at the knee's width.
  */
-function legsOf(c: Wearing, material: string, ease: number, wide: number): Fit {
+function legsOf(c: Wearing, material: string, ease: number, wide: number, taper = 0): Fit {
   const h = heights(c)
   const P = c.body.profiles
   const cl = c.body.clear
@@ -438,10 +439,16 @@ function legsOf(c: Wearing, material: string, ease: number, wide: number): Fit {
   for (const [side] of SIDES) {
     const L = P.leg[side]
     const kneeR = c.body.at('leg', side, h.knee + 0.1 * h.k)
-    const straight = (r: Ring): Partial<Ring> =>
-      r.y < h.knee + 0.1 * h.k
-        ? { rx: Math.max(r.rx, kneeR.rx * wide) + off, rz: Math.max(r.rz, kneeR.rz * wide) + off }
-        : {}
+    // How far down the shin a ring is, 0 at the knee and 1 at the ankle: the taper's own measure.
+    const down = (r: Ring) => Math.min(1, Math.max(0, (h.knee - r.y) / (h.knee - h.ankle)))
+    const straight = (r: Ring): Partial<Ring> => {
+      if (r.y >= h.knee + 0.1 * h.k) return {}
+      const draw = taper * down(r)
+      return {
+        rx: lerp(Math.max(r.rx, kneeR.rx * wide), r.rx, draw) + off,
+        rz: lerp(Math.max(r.rz, kneeR.rz * wide), r.rz, draw) + off,
+      }
+    }
     parts.push(
       shell(
         grown(L, off, straight),
