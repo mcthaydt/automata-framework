@@ -513,14 +513,17 @@ sheets: [`round7-ada-play.png`](round7-ada-play.png), [`-detail`](round7-ada-det
 ### Round 7 in the game
 
 Chromium on this container's software GL, `AF_SHOOT=<folder> pnpm exec playwright test tests/e2e/frames.test.ts --grep "frames at"`, desktop
-context, 1024 by 768. Old game left, ours before (round 4's own frames, `round4-ingame-ours-*`), ours after:
+context, 1024 by 768, shot after the eyes (the final data). Old game left, ours before (round 4's own frames, `round4-ingame-ours-*`), ours after:
 [`round7-ingame-cutscene.png`](round7-ingame-cutscene.png) and [`round7-ingame-play.png`](round7-ingame-play.png); the singles are
-`round7-ingame-ours-*-1024x768.png`. **Read them for Ada's size and shape only**: the "before" frames are round 4's, shot when the room's look was an
-earlier one (and the cutscene frames are different moments of the opening: the "after" frame caught the title card and the room's fade, the nurse not
-yet in the door), so the lighting does not compare. In play she is now about a fifth shorter on screen than before (the old Ada's size is between the
-two); the trim body, the head and the legs read nearer the old figure's. **Her face is still two dots, and from this camera, from behind, none shows**: the
-face is painter work (list below, items 1 and 2). The outline is still black where the old game's is teal (item 4). The shoot's own check failed once on a
-Vite hot reload (an edit of `cast.ts` comments while it ran; `RegistryClash` for the retro pass), after both frames were taken; not a game fault.
+`round7-ingame-ours-*-1024x768.png`; [`round7-ingame-ada-crop.png`](round7-ingame-ada-crop.png) is Ada in the opening, before and after, cropped and x3.
+**The lighting does not compare**: the "before" frames are round 4's, shot when the room's look was an earlier one, and the opening's frames are
+different moments of the cutscene (the "after" caught the title card, the nurse not yet in the door). Read them for Ada.
+- In play she is about a fifth shorter on screen (the old Ada's height is between the two), slimmer, with the old figure's head and legs; from behind no
+  face shows.
+- In the opening's close shot her eyes now read: two dark texels, two tall, set wide, where there were two dots (crop). The face around them is still the
+  painter's tone (dusty, darker than the old figure's lit face: list item 2), and in the room's dark it is dim.
+- Her outline is black where the old game's is the DUEL teal (list item 4); the room's dark takes her well otherwise (her jeans and vest are the old
+  swatches). Her size against the props: she now stands about the height of the desk's front edge; the old Ada stood a little lower still.
 
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
