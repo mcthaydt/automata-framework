@@ -43,16 +43,16 @@ const FRINGE = {
       [0.7, 0.45],
       [1.1, 0.3],
     ],
-    width: 0.75,
+    width: 0.8,
     length: 1,
-    count: 9,
-    rope: { r: 0.15 },
+    count: 13,
+    rope: { r: 0.12 },
   },
 }
 const HAIR: HairStyle = {
-  about: 'bobFull with a fringe',
+  about: 'bobRound with a fringe',
   finish: 'smooth',
-  pieces: [...(HAIR_STYLES.bobFull?.pieces ?? []), FRINGE as never],
+  pieces: [...(HAIR_STYLES.bobRound?.pieces ?? []), FRINGE as never],
 }
 /** The study figure: the builder's base woman set to the look spec (7 heads, a slim adult, a small oval face with large almond eyes). */
 const WOMAN = BASE[1]?.def as CharacterDef
@@ -60,7 +60,7 @@ const heroine = (full: boolean, body: Record<string, number> = {}): CharacterDef
   ...WOMAN,
   id: 'heroine',
   name: 'HEROINE',
-  skin: 'skinFair',
+  skin: 'skinPeach',
   sliders: {
     ...WOMAN.sliders,
     height: 162,
@@ -99,7 +99,7 @@ const heroine = (full: boolean, body: Record<string, number> = {}): CharacterDef
   gaitOverrides: { armOut: 0.03, standOut: 0.03, standTrack: 1 } as NonNullable<
     CharacterDef['gaitOverrides']
   >,
-  swatches: { ...WOMAN.swatches, ...CLOTH, skinFair: SWATCHES.skinFair as Material },
+  swatches: { ...WOMAN.swatches, ...CLOTH, skinPeach: SWATCHES.skinPeach as Material },
   // A cream shirt (a collar, long sleeves with cuffs), an oxblood waistcoat over it (a sleeveless knit shell standing a texel off), slim jeans, ankle boots.
   outfits: {
     street: [

@@ -95,18 +95,18 @@ const FRINGE: Piece = {
       [0.7, 0.45],
       [1.1, 0.3],
     ],
-    width: 0.75,
+    width: 0.8,
     length: 1,
-    count: 9,
-    rope: { r: 0.15 },
+    count: 13,
+    rope: { r: 0.12 },
   },
 } as Piece
 const shell = (name: string): Piece => HAIR_STYLES[name].pieces[0]
 /** `bobFull` with a brow-length fringe: the library's shell and the painter's own fringe piece. */
 const BOB_FULL_FRINGE: HairStyle = {
-  about: 'bobFull with a fringe',
+  about: 'bobRound with a fringe',
   finish: 'smooth',
-  pieces: [shell('bobFull'), FRINGE],
+  pieces: [shell('bobRound'), FRINGE],
 }
 
 /** The skin: a swatch (and the least share of the face in its lightest step, `Material.face.light`, if one is given). */
@@ -147,15 +147,15 @@ const gaited =
   (over: object): Look['patch'] =>
   (def) => ({ ...def, gaitOverrides: { ...def.gaitOverrides, ...over } as CharacterDef['gaitOverrides'] })
 
-/** Every look option on at once: the full bob and its fringe, the fair skin and its lit face, the eyes kept, a wider stand, dark ink. */
+/** Every option the showcase uses at once: the round bob and its fringe, the peach skin, the eyes kept and full, a wider stand, dark ink. */
 export const FULL: Look = {
   label: 'the study figure, every option on',
-  note: 'bobFull + fringe, skinFair + face.light .6, eyes keep, standTrack 1, ink #002219',
+  note: 'bobRound + fringe, skinPeach, eyes keep + full, standTrack 1, ink #002219 (face.light off: it makes a mask at density 4 and up)',
   style: BOB_FULL_FRINGE,
   paint: { ink: '#002219' },
   patch: (def) =>
     gaited({ standTrack: 1 })?.(
-      eyed({ keep: true, full: true })?.(skinned('skinFair', 0.6)?.(def) ?? def) ?? def,
+      eyed({ keep: true, full: true })?.(skinned('skinPeach')?.(def) ?? def) ?? def,
     ) ?? def,
 }
 
