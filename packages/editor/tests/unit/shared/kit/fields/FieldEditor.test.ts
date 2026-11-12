@@ -93,6 +93,21 @@ describe('FieldEditor', () => {
     }
   })
 
+  // P14: a page that is hidden inside the half second (a closed tab, a phone put to sleep) still gets the words saved.
+  it('saves typed words when the page is hidden before the wait is over', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const { oncommit } = mount({ id: 'music', type: 'text', label: 'Music' }, 'Keeper')
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      await user.click(screen.getByRole('textbox', { name: 'Music' }))
+      await user.keyboard('s')
+      window.dispatchEvent(new Event('pagehide'))
+      expect(oncommit).toHaveBeenLastCalledWith('Keepers')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('does not rebuild a field under the typist for a refused pause, and says why on leaving', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: false })
     try {
