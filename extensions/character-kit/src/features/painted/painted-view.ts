@@ -28,6 +28,8 @@ export interface PaintedFigureOptions {
    * 4.5 MB. A game whose close shots are close enough to use 8 (a texel a pixel at zoom 8) lifts it.
    */
   readonly maxDensity?: Density | undefined
+  /** The character each density paints, when a figure is dressed differently where its texels can hold more (`AutoPainterOptions.defFor`); `def` by default. */
+  readonly defFor?: ((density: Density) => CharacterDef) | undefined
   /**
    * Whether a texel is a whole number of pixels (the default) or the figure stands at its true height, a texel `zoom / density`
    * pixels wide with uneven widths on screen (the way The Last Light draws its figures). With density 1 this is the old game's
@@ -77,7 +79,11 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
     if (camera === undefined) return undefined
     const stage: PaintedStage = stageFor(camera)
     const node = new Container3D()
-    const painter = new AutoPainter(def, { density: options.density, maxDensity: options.maxDensity })
+    const painter = new AutoPainter(def, {
+      density: options.density,
+      maxDensity: options.maxDensity,
+      defFor: options.defFor,
+    })
     let facing = Math.PI
     let state = STANDING
     let last = now()

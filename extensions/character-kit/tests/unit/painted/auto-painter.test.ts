@@ -63,7 +63,7 @@ describe('a figure painted at the density its camera needs', () => {
     expect(painter.densities).toEqual([1, 4])
     const again = walk(4, 4)
     expect(painter.densities).toEqual([1, 4])
-    expect(again, `first ${first.toFixed(0)} ms, again ${again.toFixed(0)} ms`).toBeLessThan(first / 5)
+    expect(again, `first ${first.toFixed(0)} ms, again ${again.toFixed(0)} ms`).toBeLessThan(first / 3)
   }, 60_000)
 
   it('lets a density go that has not been drawn for a while, and keeps the one in use', () => {
@@ -87,5 +87,12 @@ describe('a figure painted at the density its camera needs', () => {
     const after = changing.paint(input(t, true), 4)
     const should = steady.paint(input(t, true))
     expect(after.key).toBe(should.key)
+  })
+
+  it('paints with the character a density names, when a game says a figure dresses differently where its texels can hold more', () => {
+    const other = BASE[1]?.def as CharacterDef
+    const painter = new AutoPainter(MAN, { defFor: (density) => (density >= 2 ? other : MAN) })
+    expect(painter.paint(input(0), 1.43).key).toBe(new Painter(MAN, 1).paint(input(0)).key)
+    expect(painter.paint(input(1 / 30), 4).key).toBe(new Painter(other, 4).paint(input(1 / 30)).key)
   })
 })

@@ -16,6 +16,16 @@ import { ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.ts'
 export const PLAY_FIGURE = { crisp: false } as const
 
 /**
+ * The character a density paints. A figure whose face is a decal (`face.drawn: false`: two dots, which is what the old figure showed at the
+ * size it is played, where the builder's drawn face is a lid line the fringe covers) has its drawn face from density 2, where the painter's
+ * lids, brows, nose and mouth fit in the texels. Any other figure is its own at every density.
+ */
+export const defAtDensity =
+  (def: CharacterDef) =>
+  (density: 1 | 2 | 4 | 8): CharacterDef =>
+    density < 2 || def.face?.drawn !== false ? def : { ...def, face: { ...def.face, drawn: true } }
+
+/**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
  * `scenes.prologue = street`): a cream top with short sleeves under a maroon waistcoat, denim trousers tucked into brown boots, her
  * auburn bob, dark eyes. The bob is the kit's `bobFringeFull`: the builder has no `bob` style of the old kind, and the kit's plain `smoothBob` is

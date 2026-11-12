@@ -11,6 +11,11 @@ export interface AutoPainterOptions {
   readonly density?: Density | 'auto' | undefined
   /** The highest density `'auto'` may pick (4 by default: a new cell at 8 costs about four times one at 4); a game may lift it to 8. */
   readonly maxDensity?: Density | undefined
+  /**
+   * The character a density paints, for a figure that is dressed differently where its texels can hold more: one whose face is a pair
+   * of dots at density 1, where a drawn face is a lid line under the fringe, and a drawn face from density 2. The character's own by default.
+   */
+  readonly defFor?: ((density: Density) => CharacterDef) | undefined
 }
 
 /** How long a density may go undrawn before its painter is let go: a shot is over, and the figure is in the room again. */
@@ -35,7 +40,7 @@ export class AutoPainter {
 
   constructor(
     private readonly def: CharacterDef,
-    options: AutoPainterOptions = {},
+    private readonly options: AutoPainterOptions = {},
   ) {
     this.pinned = options.density === undefined || options.density === 'auto' ? undefined : options.density
     this.chooser = densityChooser(options.maxDensity ?? 4)
@@ -57,7 +62,11 @@ export class AutoPainter {
     let entry = this.painters.get(density)
     // A painter new to the figure starts where the figure's walk is, not at the start of a step.
     if (entry === undefined) {
-      entry = { painter: new Painter(this.def, density), owed: before, drawnAt: input.t }
+      entry = {
+        painter: new Painter(this.options.defFor?.(density) ?? this.def, density),
+        owed: before,
+        drawnAt: input.t,
+      }
       this.painters.set(density, entry)
     }
     const dt = input.dt + entry.owed

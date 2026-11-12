@@ -7,7 +7,7 @@ import {
   texelsOfSwatch,
 } from '@automata/character-kit/testing'
 import { describe, expect, it } from 'vitest'
-import { ADA, HELD, NIGHT_NURSE, PLAY_FIGURE } from '#src/features/figures/cast.ts'
+import { ADA, defAtDensity, HELD, NIGHT_NURSE, PLAY_FIGURE } from '#src/features/figures/cast.ts'
 
 // The two painted figures of the night, as the old game's character files (`src/render/figure/characters/ada.json` and
 // `nurse.json` at 92e6704) dress them, piece for piece. The old outfits are copied below as the old files have them; the only
@@ -399,5 +399,19 @@ describe('how a figure is painted in play', () => {
   it('is at true size and leaves the density to the camera: play’s 52 lines a metre are a zoom of 1.4, which the kit paints at 1 (about 37 texels a metre, the old game’s), and a close shot gets more', () => {
     expect(PLAY_FIGURE).toEqual({ crisp: false })
     expect('density' in PLAY_FIGURE).toBe(false)
+  })
+})
+
+describe('a figure’s face by the density it is painted at', () => {
+  it('is Ada’s two eye dots at density 1, where a drawn face is a lid line under her fringe, and her drawn face from density 2', () => {
+    expect(ADA.face?.drawn).toBe(false)
+    expect(defAtDensity(ADA)(1).face?.drawn).toBe(false)
+    for (const density of [2, 4, 8] as const) expect(defAtDensity(ADA)(density).face?.drawn).toBe(true)
+    // Nothing else of her changes.
+    expect({ ...defAtDensity(ADA)(4), face: ADA.face }).toEqual(ADA)
+  })
+
+  it('leaves a figure that has no decal face as it is, at every density', () => {
+    for (const density of [1, 2, 4, 8] as const) expect(defAtDensity(NIGHT_NURSE)(density)).toBe(NIGHT_NURSE)
   })
 })
