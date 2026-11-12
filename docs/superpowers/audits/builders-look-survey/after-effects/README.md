@@ -1,7 +1,7 @@
 # The effects branch's sheets (`claude/builders-look-effects`)
 
 Shot on the branch's state after #590 and #588 were merged (and task 10a), Chromium on software WebGL (`--use-angle=swiftshader`),
-the builders' own frames from [`../builders/`](../builders/) (EnvironmentBuilder `f7c5356`). **Group 3 is not finished: see "Not done" below.**
+the builders' own frames from [`../builders/`](../builders/) (EnvironmentBuilder `f7c5356`). **Group 3 is closed (2026-11-12); "Not shot" and "What the beta.3 port must redo" at the end say what is left.**
 
 ## 1. The slabs (task 10a)
 
@@ -113,11 +113,34 @@ when the wiring is cut (seen).
 10. **The green veil off the room**: unchanged, the sky pass's lowest band ([`../after-room/README.md`](../after-room/README.md), difference 10).
 - **The interiors' man still reads hot in some views** and **a lamp-lit room casts no silhouette from its key lamp** (group 2's, [`../after-exposure/README.md`](../after-exposure/README.md)).
 
-## Not done (where the next session resumes)
+## What is proven, and where
 
-1. A sheet for each effect beside the builder's own (the dressed street at night with painted figures; reflections and particles need a wet ground and an emitter in
-   the spike, which has neither; the LCD panel and the retro grade at 640 x 360 and 640 x 480 from `examples/3d/lcdpanel` and `retrocrisp` with `spikes/tll-extensions/shoot.mjs`).
-2. The day panes' streaks (above), if the coordinator wants them built.
-3. The close: `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, `pnpm exec changeset status` (every changed package is private; the
-   letterbox's changeset came with #588), `origin/main` merged, the whole `pnpm check`, the Chromium suites for 3D, world-kit, character-kit, lcd-panel, retro-crisp and
-   the 3D journeys.
+- **Every pass sits behind its switch.** Core's four (`look-pass-list.test.ts`, 4 cases added) and the world kit's six (`switches.test.ts`, 9 cases) passed on the
+  code as it was, so each was shown failing by cutting the behaviour and restored (a loop of 12 cuts, each one reverted with `git checkout`): the grade, haze and outline
+  switches ignored (4, 4 and 6 cases fail); the early passes placed after the snap (2); a present pass not made for an early pass alone (1); extension passes before the outline (2);
+  stars, glow, rain and shafts on by default (3, 3, 7, 5); a reflect or particles pass given `false` still added (1 each); the order of the kit's passes swapped (1). In Chromium,
+  the grade effect forced on with a neutral lightness of 0.8 fails both browser cases (the pass is on with no mood; the default look is not the grade-off frame, pixel for pixel).
+- **Day sheets do not move with the effects off**: section 2 (39 of 40 within 1.6; the one at -3.5 is group 2's exposure; no golden moved).
+- **The effects at night** (section 3) and **the LCD panel and the retro grade at the old picture** (section 4: the sheet, the numbers, the tests in real Chromium pixels).
+- **Reduced motion** for the retro film and the kit's moving passes (unit cases and a browser case seen failing).
+- **The lamp kit** covers the old game's lamps (plan task A): every old archetype is accepted at its old numbers and every lamp accepted before draws the same
+  (`lamp-kit-archetypes.test.ts`, 16 cases failed first).
+- **Gates**: `pnpm build`, `pnpm api-report --update` and `pnpm api-index --write` (nothing to commit: no export changed), `pnpm exec changeset status` (the changed packages
+  are private: `@automata/3d`, `lcd-panel`, `retro-crisp`, `world-kit`, `character-kit`, `editor-3d`; the letterbox's changeset came with #588), `origin/main` merged twice, and the
+  whole `pnpm check` (exit 0, 65 of 65 tasks, 68 changesets, 0 problems) on the tree at `6d4df9f6`. Chromium on software GL (`--use-angle=swiftshader`), one suite at a time:
+  `@automata/3d` 48 pass (2 skip), world-kit 19, character-kit 55 pass (2 skip), lcd-panel 9, retro-crisp 10, the 3D editor's journeys 16 (Chromium). No golden, recorded image or
+  hash moved on this branch since `4a8846cd`.
+
+## Not shot
+
+- The dressed street at night with painted figures; reflections and particles (the spike has no wet ground and no emitter): after the beta.3 port, so they show the effects as they ship.
+- The old game's own frame of the dressed interior (there is none): section 4 compares the passes' darkening, not the rooms.
+- WebKit, Firefox, a real GPU and WebGPU on a real GPU: not run.
+
+## What the beta.3 port must redo
+
+`@pixi/3d` 0.1.0-beta.3 stages a post effect before or after tone mapping and defaults tone mapping to none, so each effect decides its stage again: the retro grade (before the snap) and
+the LCD panel (after it) keep their order in the list but must be checked against the tone-mapping stage; the world kit's passes (stars, glow, shafts, particles, rain, reflections)
+the same. Unlit colours are drawn as authored and samplers are per texture: the photo tiles, the sky and the LCD's mesh (which depends on nearest sampling) are re-read. Re-shoot
+`look-640x480.png` (`LOOK_ONLY=1 node spikes/builders-look/shoot.mjs`), the night sheets and the day sheets with effects off, and take no golden as moved without the coordinator's answer.
+The drifting mist is built there (it is a pass); the day panes' streaks (a world-kit albedo tile for the `glass` pattern) are not a pass and wait for no port.
