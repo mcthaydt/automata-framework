@@ -20,8 +20,7 @@ pair. Our frames are on the tree at the commit that adds this folder. The old ga
 | The room, without Ada (old: the frame less the minimap and the objective line; ours: the 640 by 480 picture) | 29.4 | 46.1 |
 | Ada (shirt and trousers) over the floor at her feet | 0.60 | 0.46 |
 
-Ada's boxes are the ones in the notes of this commit's message: the shirt and the trousers inside her figure, the floor on either side
-of her over the same rows. They are not the first session's boxes (its old figure read 0.74 by its own), so the ratio compares only
+Ada's boxes, in full-frame pixels (x0-x1, y0-y1): old shirt 565-590 by 516-545, trousers 565-590 by 555-610, floor 520-545 and 610-640 by 470-620; ours shirt 543-563 by 458-480, trousers 543-563 by 488-528, floor 505-525 and 585-605 by 430-545. They are not the first session's boxes (its old figure read 0.74 by its own), so the ratio compares only
 old and ours by the same boxes: ours is now darker than the floor under her, as the old is (it was 1.11 on the first session's boxes), at
 0.77 of the old ratio. The room is 1.6 times the old room (it was 2.1: mean 63 against 33 before the LCD panel and the grade).
 
