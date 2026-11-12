@@ -82,6 +82,8 @@ credit), and `library/tiles/` holds the small DUEL tile each swatch is drawn wit
 `photoToTile`: flatten, facet, scale down, index to the palette, wear, clean. It is deterministic, so the committed
 tile is checked, not trusted: it carries its photo's sha-256, and a missing, stray or stale tile is an error.
 
+[How a photo becomes a tile, and the record each photo needs](docs/photos.md).
+
 ```sh
 pnpm exec automata-world-textures --check   # do the committed tiles match their photos?
 pnpm exec automata-world-textures --out out/tiles   # draw them again
