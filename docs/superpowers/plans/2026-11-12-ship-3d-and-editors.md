@@ -206,7 +206,7 @@ diff first (`git log -p --follow` on each) and keep its wording where this plan 
 **Files:**
 - Create: `packages/3d/src/testing/fixture-root.ts`, `packages/3d/tests/unit/testing/fixture-root.test.ts`
 - Modify: `packages/3d/src/testing/compile-fixture.ts:15`, `packages/3d/src/testing/motion-goldens.ts:46`,
-  `packages/3d/tsdown.config.ts` (`copy`), `tooling/release` `test:dist` (the file `test-dist-script.test.ts` names)
+  `packages/3d/tsdown.config.ts` (`copy`), `tooling/release/tests/unit/private-build.test.ts` (one of the two files `test:dist` runs with `AF_CHECK_DIST=1`)
 
 **Interfaces:**
 - Produces: `fixtureRoot(here: string): string`: given `import.meta.dirname`, returns `<package>/tests/fixtures` from
@@ -216,7 +216,7 @@ diff first (`git log -p --follow` on each) and keep its wording where this plan 
   `fixtureRoot('/p/dist')` is `/p/dist/fixtures`. FAIL: no module.
 - [ ] **Step 2:** Implement; use it in the two files; copy `tests/fixtures` (only the folders those two files read) to
   `dist/fixtures` with `publishedBuild`'s `copy`.
-- [ ] **Step 3: From the pack.** Add to `test:dist` a case that imports the packed `@automata/3d/testing` in Node and
+- [ ] **Step 3: From the pack.** Add to `private-build.test.ts`, under its `AF_CHECK_DIST` switch, a case that imports the packed `@automata/3d/testing` in Node and
   reads `FIXTURE_ROOT`: it exists on disk. Run `pnpm build && pnpm --filter @automata/release test:dist`. Expected: PASS.
 - [ ] **Step 4:** Manifest check, gates, commit `fix(3d): the testing entry finds its fixtures from a built package`.
 
@@ -439,7 +439,7 @@ Runs alone, after B-looks, B-figures and B-story have merged.
 - [ ] **Step 5:** API index and report take the twelve; `pnpm build`, `pnpm api-report --update`,
   `pnpm api-index --write`. `pnpm api-index` exits 0 with the baseline file unchanged.
 - [ ] **Step 6: From packs.** `pnpm --filter @automata/release test:dist` and the consumer smoke
-  (`pnpm --filter @automata/consumer-smoke start` or the script its `package.json` names): every pack installs outside
+  (`pnpm --filter @automata/consumer-smoke smoke`): every pack installs outside
   the workspace with no `workspace:` range left.
 - [ ] **Step 7:** Manifest check, gates, commit `feat: the 3D and story kits are public packages`. Draft pull request.
 
@@ -476,7 +476,7 @@ today.
   `<outDir>/pages/suite-full`, and throws "There is no 3D editor build to copy. Build it first: pnpm --filter
   @automata/editor-3d build" when `index.html` is missing; it refuses a build that carries `@pixi/3d/extras` (the
   no-eval rule; reuse `findPixi3d`'s `extras` list by importing nothing from `-tools`' private paths: the function is
-  exported from `@automata/tools`' `internal` entry). FAIL: no module.
+  exported from `@automata/tools/internal`, a devDependency of this build script). FAIL: no module.
 - [ ] **Step 2:** Implement. The package's `build` becomes: its own page into `dist/pages/content`, then the copy, then
   tsdown for `pages.ts`. In `turbo.json` its `build` depends on `@automata/editor-3d#build`.
 - [ ] **Step 3:** `package.json`: no runtime dependencies (pages are bundled; move every `@automata/*` it lists to
@@ -490,7 +490,7 @@ today.
 
 **Files:**
 - Modify: `packages/tools/src/features/editor/editor-command.ts` (the block at line 92 to 96), its dependencies
-  object, `packages/tools/tests/unit/features/editor/editor-command.test.ts`, the editor list that picks the page
+  object, `packages/tools/tests/unit/editor/editor-command.test.ts`, the editor list that picks the page
 
 **Interfaces:**
 - Consumes: `pagePath` from C1, resolved **from the game's folder** (`createRequire(join(root, 'package.json'))`), so
