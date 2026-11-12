@@ -1577,6 +1577,9 @@ importers:
       '@automata/audio-synth':
         specifier: workspace:*
         version: link:../../extensions/audio-synth
+      '@automata/character-kit':
+        specifier: workspace:*
+        version: link:../../extensions/character-kit
       '@automata/cutscenes':
         specifier: workspace:*
         version: link:../../extensions/cutscenes

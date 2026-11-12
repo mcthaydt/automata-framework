@@ -150,3 +150,25 @@ Before this session ours also had 5% bars top and bottom, which did crop the fra
 The plan has no minimap: the survey's run-time rows list the objective line, the prompt, the inventory, the examine box and the keypad (the
 hud extension's five pieces) and none for the map. The old game's minimap (`src/ui/minimap.ts`) is the journal map's model drawn small. It is
 row 15 of the editor gaps ledger and, once built, belongs with the UI editor's screens (row 1), not in the prologue's task list.
+
+
+## The painted figures (task 13, session 4)
+
+`ours-painted-play-1024x768.png`, `ours-painted-cutscene-1024x768.png` and the two `side-by-side-painted-*.png` (old left, ours right; Chromium on
+SwiftShader, 1024 by 768, field 640 by 480; shot by `tests/e2e/frames.test.ts`, `AF_SHOOT=<folder> pnpm test:e2e --grep frames`). Ada and the night
+nurse are the character kit's painted figures: density 1, `crisp: false` (true size), lit by the room's lamps with the sprite light and casting
+their shadow on the floor. Measured on the play frame (hair's top to the soles, in the 480-line field): Ada is **112 lines** tall at the spawn,
+where the old game's sprite measured about 109 at the same spot (the camera's 52 lines a metre, 1.17 times that by perspective at the spawn).
+
+What each wears, and what the old game's wore that the kit's library cannot say today (held until the wardrobe lands; `MISSING` in
+`src/features/figures/cast.ts`, pinned by `tests/unit/features/figures/cast.test.ts`):
+
+| | Wears now (the kit) | Old game, missing |
+|---|---|---|
+| Ada (street clothes, the prologue's outfit) | a cream rib `tee` with short sleeves, `jeans` in denim, brown leather `shoes` on a black sole, `smoothBob` hair in auburn, brown eyes | the maroon waistcoat (the painted wardrobe has none); boots with a shaft |
+| The night nurse (the creature) | a white `tee` with short sleeves, a white `skirt` (length 0.42, flare 0.3), heavy shoes (the old swatch), long black `fallLong` hair, brown eyes | stockings, the belt, the nurse cap with its cross, the curtain of hair over the face, the skirt's hem stain and folds, the `uncanny` gait (she walks `loose`) |
+
+Also not drawn: the lamp in Ada's hand (the painted figure's state has no held item); a cutscene's poses (`read`, `flinch`, `sit`, `sleep`, `pulse`
+are not stands of the builder, so the figure stands or walks); and a cutscene key's close-up density (the prologue's cutscenes name none, so
+every figure is at density 1). Props do not block Ada: the level's props carry no footprints (the old game's colliders were blockout boxes the
+converter did not carry into the sector map), so nothing from the dressing can be read as a collision.

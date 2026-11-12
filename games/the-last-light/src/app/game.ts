@@ -9,8 +9,16 @@ import { InSector } from '@automata/sectors/sim'
 import { SystemsAgent } from '@automata/systems/sim'
 import { spawnAda } from '../features/ada/ada.plugin.ts'
 import { Move } from '../features/ada/move.command.ts'
+import { ADA, NIGHT_NURSE } from '../features/figures/cast.ts'
+import {
+  type Actors,
+  adaMoving,
+  adaYaw,
+  figureView,
+  stepped,
+  walkedYaw,
+} from '../features/figures/figure-view.ts'
 import { LIGHTING, TIME } from '../features/room/room.ts'
-import { type Actors, ADA, adaYaw, FIGURE, standIn, walkedYaw } from '../features/stand-in/stand-in.ts'
 import { Ada } from '../shared/ada.component.ts'
 import { TICK_HZ } from '../shared/constants.ts'
 import { audio, SOUND_FILES } from './audio.ts'
@@ -99,13 +107,16 @@ export const game = defineGame({
       look: LOOK,
       time: TIME,
       lighting: LIGHTING,
-      // Plain figures until the painted ones are dressed (workstream 4): a box each, from where the sim says they stand.
+      // The painted figures, as the old game draws them: the sim says where each stands and which way it faces.
       views: {
-        [Ada.id]: standIn(ADA, () => 'player', adaYaw, actors),
-        [SystemsAgent.id]: standIn(
-          FIGURE,
-          (components) => PLAY.systems.agents?.[Number(components['systems.agent']?.index ?? -1)]?.id,
-          walkedYaw,
+        [Ada.id]: figureView({ def: ADA, who: () => 'player', yawOf: adaYaw, movingOf: adaMoving }, actors),
+        [SystemsAgent.id]: figureView(
+          {
+            def: NIGHT_NURSE,
+            who: (components) => PLAY.systems.agents?.[Number(components['systems.agent']?.index ?? -1)]?.id,
+            yawOf: walkedYaw,
+            movingOf: stepped,
+          },
           actors,
         ),
       },
