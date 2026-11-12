@@ -34,6 +34,9 @@ export const EXTENSION_MODULES: readonly string[] = [
   'cutscenes',
   'characterkit',
   'worldkit',
+  'lcdpanel',
+  'retrocrisp',
+  'roomvisibility',
 ]
 
 /** Code lines an example may have, not counting its header, blank lines or comment-only lines. */
@@ -96,11 +99,15 @@ const EXTENSION_PACKAGES: ReadonlySet<string> = new Set([
   '@automata/cutscenes',
   '@automata/character-kit',
   '@automata/world-kit',
+  '@automata/lcd-panel',
+  '@automata/retro-crisp',
+  '@automata/room-visibility',
 ])
 /**
  * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is built on the
- * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes`, `@automata/character-kit` and
- * `@automata/world-kit` build on `@automata/3d`, so they wait for it. The website's playground leaves
+ * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes`, `@automata/character-kit`,
+ * `@automata/world-kit`, `@automata/lcd-panel`, `@automata/retro-crisp` and `@automata/room-visibility` build on
+ * `@automata/3d`, so they wait for it. The website's playground leaves
  * its examples out (`playgroundCatalog`), because it is public.
  */
 const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set([
@@ -108,6 +115,9 @@ const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set([
   '@automata/cutscenes',
   '@automata/character-kit',
   '@automata/world-kit',
+  '@automata/lcd-panel',
+  '@automata/retro-crisp',
+  '@automata/room-visibility',
 ])
 
 /** Whether an import names an unpublished extension's entry. */
