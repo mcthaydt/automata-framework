@@ -412,7 +412,7 @@ const round5nurse = (() => {
     {
       label: 'A (ADOPTED)',
       note: 'her hair over her face to the mouth (fallCurtain), her cap flat and low on the brow (nurseBrow)',
-      def: NIGHT_NURSE,
+      def: nurse(hidden),
     },
     {
       label: 'B',
@@ -438,9 +438,64 @@ const round5nurse = (() => {
   return { nurse: variants }
 })()
 
+/** Round 6: the night nurse's hair, one change at a time over round 5's adopted data (her cut, the skirt and belt, is the Owner's and stays). */
+const round6nurse = (() => {
+  registerFashion()
+  type Item = Record<string, unknown>
+  /** The nurse with each outfit item of a kind merged with `patch[kind]`, and her gait overrides patched. */
+  const nurse = (patch: Record<string, Item> = {}, gait: Record<string, number> = {}): CharacterDef => ({
+    ...NIGHT_NURSE,
+    gaitOverrides: { ...NIGHT_NURSE.gaitOverrides, ...gait },
+    outfits: {
+      uniform: (NIGHT_NURSE.outfits.uniform ?? []).map((garment) => {
+        const item = garment as unknown as Item
+        const kind = Object.keys(item)[0] as string
+        return (patch[kind] === undefined ? item : { ...item, ...patch[kind] }) as never
+      }),
+    },
+  })
+  /** The nurse as round 5 left her: the curtain over her face and the long fall behind it, a tied tail from the back. */
+  const before = nurse({ hair: { style: 'fallCurtain' } })
+  const loose = (spread: [number, number], count: number, r: number): string => {
+    const name = `curtainLoose@${spread}@${count}@${r}`
+    const source = FASHION_HAIR.curtainLoose
+    if (source === undefined) throw new Error('no curtainLoose')
+    HAIR_STYLES[name] ??= {
+      ...source,
+      pieces: source.pieces.map((piece) => {
+        const tail = (piece as { tail?: object }).tail
+        return tail === undefined
+          ? piece
+          : ({ tail: { ...tail, spread, count, rope: { r, flat: 0.4 } } } as typeof piece)
+      }),
+    }
+    return name
+  }
+  const variants: Variant[] = [
+    { label: 'BEFORE', note: 'round 5: hair over her face, a tied tail down her back', def: before },
+    {
+      label: 'A (ADOPTED)',
+      note: 'hair over her face, the rest loose and fanned wide down her back (curtainLoose): over the neck and upper back, beside the neck from the front',
+      def: NIGHT_NURSE,
+    },
+    {
+      label: 'B',
+      note: 'A with the fan wider still (spread 1.5 to 2.4)',
+      def: nurse({ hair: { style: loose([1.5, 2.4], 24, 0.35) } }),
+    },
+    {
+      label: 'C',
+      note: 'A and a skirt close at the waist (ease .5): the waist is 18 and the hip 20 (old procedural 18 / 22, atlas 23 / 26)',
+      def: nurse({ skirt: { ease: 0.5 } }),
+    },
+  ]
+  return { nurse: variants }
+})()
+
 export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
   'round4-ada': round4ada.ada,
   'round5-nurse': round5nurse.nurse,
+  'round6-nurse': round6nurse.nurse,
   'round1-ada': round1.ada,
   'round1-nurse': round1.nurse,
   'round2-ada': round2.ada,

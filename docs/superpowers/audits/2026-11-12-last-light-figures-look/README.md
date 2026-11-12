@@ -9,7 +9,7 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **rounds 4 and 5 done** (about 90 %): Ada's fringe, open waistcoat, legs and the back of her bob worked as generators and data, with the in-game pair;
+Progress: **rounds 4, 5 and 6 done** (about 95 %): Ada's fringe, open waistcoat, legs and the back of her bob worked as generators and data, with the in-game pair;
 the night nurse's face, cap and (as an option) waist. Left: the Owner's picks and the painter's list. Round 3: Ada's face, stand and hair adopted, the nurse's cut open. Round 0 look before touching, round 1 data, round 2 painted garments as generators,
 round 3 the nurse's cut (choices open), and the list for the painter, kept as it goes. Left: the Owner's picks, hair as data if the
 Owner allows it, the in-game frame.
@@ -395,6 +395,38 @@ smooth bell with a clean hem, and her top is a box.
 clean. No golden moved: `skirt-default.test.ts` pins the base pair's two skirts (flared, and long and plain), eight views each, recorded from the
 commit before `ease`, and the runway's and core's goldens pass.
 
+## Round 6: the night nurse's loose hair, and her first sighting in the game
+
+Sheets: [`round6-nurse-variants-play.png`](round6-nurse-variants-play.png) (the two old rows, then BEFORE (round 5's hair), A (adopted), B, C; four stands
+and four walk poses each, ×4), [`-detail`](round6-nurse-variants-detail.png), [`-numbers.txt`](round6-nurse-variants-numbers.txt); the adopted nurse alone:
+[`round6-nurse-play.png`](round6-nurse-play.png), [`-detail`](round6-nurse-detail.png), [`-numbers.txt`](round6-nurse-numbers.txt) (the old figures' `inkBlack`
+texels there are not comparable: their hair is not that swatch's colours). The variants are `round6-nurse` in `figure-looks.ts`.
+
+| | BEFORE (round 5) | **A (adopted)** | old |
+| --- | --- | --- | --- |
+| hair from behind, widest row below the head, play size | 3 (a tied tail) | **16** (loose, to the waist) | loose black hair to below the shoulders |
+| hair beside the face and neck, from the front | 11 wide at the head | **17** wide, past the shoulders | falls past the shoulders on both sides |
+| `inkBlack` texels, the whole figure | 62 | 144 | (not comparable) |
+| shoulder / waist / hip | 18 / 20 / 22 | 19 / 20 / 22 | 18 / 18 / 22 procedural, 20 / 23 / 26 atlas |
+
+**Why the hair was a tail, and what hangs wide.** The builder's `fall` draws each rope straight down below the jaw and, by design, narrows it toward the
+spine (`x * (1 - 0.3 w)`, "never out"), and ropes of any radius I tried (0.14 to 0.6, 16 to 50 of them, any volume, any hairline) end as a bundle behind
+the neck: a bell-shaped head and a thin tail. A `tail` piece with `hang: 'down'` and a wide `spread` (the ropes "fanning below the shoulders") is
+the builder's one way to hang hair wide, so `curtainLoose` (kit hair table, builder's pieces only) is the scalp shell over the face of `fallCurtain`
+and a tail of 22 fat ropes spread 1.2 to 2.0 of the half-width, no tie. From behind it covers the neck and the upper back to the waist; from the front
+it shows beside the neck over the shoulders. Tests first (`hair-bob.test.ts`, failing on the missing style; `cast.test.ts`, failing at a 3-texel tail):
+the widest hair row below the head from behind is twice the curtain's tail and at least 18 at density 2, from the front there is hair below the head,
+and the face is still hidden (at most 10 skin texels in her head's rows at play size, the loose hair leaving her chin and neck a texel more than round 5's).
+
+**C's skirt `ease` (.5), by the numbers: not adopted.** Against the old procedural (18 / 18 / 22): A is off by 1, 2, 0 (3 in all), C by 1, 0, 2 (3);
+against the atlas (20 / 23 / 26): A is off by 1, 3, 4 (8), C by 1, 5, 6 (12). It ties the procedural and is further from the atlas, so it stays the
+Owner's pick (variant C).
+
+**B, a wider fan (spread 1.5 to 2.4):** the shoulder row goes to 21 (old 18 / 20), so it is wider than either old figure; not adopted.
+
+**Still the painter's:** the curtain *in front*: the old hair hangs over her chest, a panel over the face and down the front; ours is a shell on the face
+and loose hair behind and beside her, nothing hangs in front of the chest.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
 Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the painter, which this branch does not patch.
@@ -402,7 +434,7 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 | Needs the painter | Why | What it would improve |
 | --- | --- | --- |
 | The old `bob`'s turned-under hem and parting | `bobFringeFull` and `bobFringeBlunt` (kit styles of the builder's pieces) have the fringe and the mass at the ear; from behind the hair still narrows to the nape (28 wide to 10), where the old bob's hem is as wide as the ears, and no piece turns it under or parts it | the last of Ada's hair: the old bob's shape |
-| The nurse's `curtain` | no piece hangs a panel in front of the face free of it, and the builder's falls hang behind the figure whatever their hairline (tried four) | the uncanny: hair over her chest and down to the skirt, not a shell on the head that ends at the chin (`fallCurtain`, adopted) |
+| The nurse's `curtain` in front | no piece hangs a panel in front of the face and chest free of the head (a fall narrows toward the spine below the jaw; a tail piece fans behind and beside, not in front); `curtainLoose` (adopted) is a shell on the face and loose hair behind and beside | the uncanny: hair over her chest and down to the skirt |
 | A stooping stand | the stand holds a figure upright whatever the sliders (round 1, variant B) | her old shape: 71 rows for 210 cm, leaning down |
 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings | the torn, hanging hem |
 | A cap that is as the old one exactly | the kit's `nurseBrow` is a flat band low on the brow (adopted); the old cap's exact shape (read from its sheet: a small flat white band with the cross, set at the front) is a hand-tuned piece; ours is a superquadric band | the last of her head |
@@ -413,6 +445,7 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 
 ## Log
 
+- Round 6: `curtainLoose` in the kit's hair table (a scalp shell over the face and a wide-spread tail), the nurse wears it (`hair-bob.test.ts` and `cast.test.ts` first); C's `ease` weighed by the numbers and left to the Owner; her first sighting in the game against the old game's.
 - Round 5: `fallCurtain` hair and `nurseBrow` cap in the kit's tables, a skirt `ease` option, the nurse wears the first two (`cast.test.ts` first: her face at most 8 skin texels in her head's rows); `round5-nurse` looks and sheets.
 - Round 4: the fringe's height as one number (0.3), the waistcoat's `open`, `chest`, `hem` and `neckline`, `gap` on the jeans and trousers, `bobFringeBlunt`, `rowGaps`; Ada's eye test widened, her waistcoat, jeans and hips slider set; `legs-default.test.ts`; the variants script writes its own numbers.
 - Round 3: the kit's `bobFringe`, `bobFringeFull` and `bobFringeShort` hair styles (`hair-bob.test.ts` first), Ada wears `bobFringeFull`; Ada's `face.drawn: false` (eyes at play size), her stance and arm from the old brisk gait, the eyes test, the nurse's cut sheeted.

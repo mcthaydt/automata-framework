@@ -207,6 +207,28 @@ export const FASHION_HAIR: Readonly<Record<string, HairStyle>> = {
       { fall: { from: hang, part: 0, count: 20, length: 1, curl: 0, volume: 0.1, rope: { r: 0.14 } } },
     ],
   },
+  // The curtain over the face, and the rest of the hair loose: a wide fan of fat ropes from the nape that spreads below the shoulders (a fall
+  // narrows toward the spine below the jaw by design, so it can only be a tail; a tail piece with a wide spread is the builder's one way to hang
+  // hair wide). From the back it covers the neck and the upper back; from the front it shows beside the neck, over the shoulders.
+  curtainLoose: {
+    about:
+      'Long loose hair over the face to the mouth, fanned wide down the back below the shoulders and showing beside the neck.',
+    finish: 'silk',
+    pieces: [
+      { scalp: { ...crown.scalp, from: curtainLine, lift: 0.14 } },
+      {
+        tail: {
+          at: [0, 0.1, -0.95],
+          hang: 'down',
+          count: 22,
+          rope: { r: 0.35, flat: 0.4 },
+          rise: 0,
+          length: 1.3,
+          spread: [1.2, 2.0],
+        },
+      },
+    ],
+  },
   fallWavy: {
     about: 'Wavy loose hair to the chest.',
     finish: 'curl',

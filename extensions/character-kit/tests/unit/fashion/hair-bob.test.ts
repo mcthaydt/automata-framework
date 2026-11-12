@@ -159,3 +159,30 @@ describe('hair that hangs over the face', () => {
     expect(hair(bob('fallCurtain'))).toBeGreaterThan(hair(bob('fallLong')))
   })
 })
+
+describe('hair that hangs loose down the back', () => {
+  /** The hair's width at its widest in the rows below the head (a head is about 28 rows at density 2 from the figure's top), from `view`. */
+  function below(style: string, view: number): number {
+    const def = bob(style)
+    const cell = paintedCell(def, view, 2)
+    const first = rowWidths(cell).findIndex((width) => width > 0)
+    return Math.max(...rowWidths(cell, { def, swatch: 'auburn' }).slice(first + 30, first + 46))
+  }
+
+  it('is a style of the painted wardrobe', () => {
+    expect(HAIR_STYLES.curtainLoose).toBeDefined()
+  })
+
+  it('covers the back below the head, not a tied tail: its widest row there is twice the curtain’s tail', () => {
+    expect(below('curtainLoose', 4)).toBeGreaterThanOrEqual(Math.max(18, below('fallCurtain', 4) * 2))
+  })
+
+  it('shows beside the neck from the front: there is hair below the head where the curtain’s tail was behind', () => {
+    expect(below('curtainLoose', 0)).toBeGreaterThanOrEqual(Math.max(12, below('fallCurtain', 0) * 2))
+  })
+
+  it('still hides the face', () => {
+    const face = (def: CharacterDef): number => texelsOfSwatch(def, headOf(def, 0, 1), 'fair')
+    expect(face(bob('curtainLoose'))).toBeLessThanOrEqual(face(bob('fallLong')) * 0.6)
+  })
+})

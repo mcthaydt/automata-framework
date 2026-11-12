@@ -1,4 +1,4 @@
-import { paintedCell, rowGaps, silhouette, texelsOfSwatch } from '@automata/character-kit/testing'
+import { paintedCell, rowGaps, rowWidths, silhouette, texelsOfSwatch } from '@automata/character-kit/testing'
 import { describe, expect, it } from 'vitest'
 import { ADA, HELD, NIGHT_NURSE, PLAY_FIGURE } from '#src/features/figures/cast.ts'
 
@@ -133,8 +133,8 @@ const OLD_UNCANNY = {
 const asDrawn = (old: readonly Record<string, unknown>[]) =>
   old.map((item) => {
     if (item.style === 'bob') return { ...item, style: 'bobFringeFull' }
-    // The old curtain hung over her face: the kit's `fallCurtain` brings the hairline down to the mouth. Her cap sits flat on the brow.
-    if (item.style === 'curtain') return { ...item, style: 'fallCurtain' }
+    // The old curtain hung over her face and loose down her back: the kit's `curtainLoose` brings the hairline down to the mouth and fans the rest wide. Her cap sits flat on the brow.
+    if (item.style === 'curtain') return { ...item, style: 'curtainLoose' }
     if (item.style === 'nurse') return { ...item, style: 'nurseBrow' }
     // The kit's `trousers` is a cloth shell grown over the whole leg; the old trousers were paint on the body's own leg. `jeans` is the kit's
     // closer cut (one clearance), cut to the leg's own narrowing at the ankle with the inside of each leg bare of clearance, so two legs
@@ -296,12 +296,25 @@ describe('the painted frame shows what they wear', () => {
     expect(between).toBeGreaterThanOrEqual(30)
   })
 
-  it('hides the night nurse’s face under her hair at the size she is played: a few texels of skin in the rows of her head, not a mask', () => {
+  it('hides the night nurse’s face under her hair at the size she is played: a few texels of skin (the loose hair leaves her chin and neck) in the rows of her head, not a mask', () => {
     const cell = paintedCell(NIGHT_NURSE, 0, 1)
     const { top, height } = silhouette(cell)
     const head = { ...cell, painted: cell.painted.slice() }
     head.painted.fill(0, (top + Math.round(height * 0.16)) * cell.size[0] * 4)
-    expect(texelsOfSwatch(NIGHT_NURSE, head, 'pale')).toBeLessThanOrEqual(8)
+    expect(texelsOfSwatch(NIGHT_NURSE, head, 'pale')).toBeLessThanOrEqual(10)
+  })
+
+  it('hangs the night nurse’s hair loose and wide down her back, not in a tied tail, and shows it beside her neck from the front', () => {
+    const widest = (view: number, from: number, to: number) => {
+      const cell = paintedCell(NIGHT_NURSE, view, 1)
+      const { top } = silhouette(cell)
+      const hair = rowWidths(cell, { def: NIGHT_NURSE, swatch: 'inkBlack' })
+      return Math.max(...hair.slice(top + from, top + to))
+    }
+    // From behind, below the head: a tied tail is 3 texels wide there, the loose hair 16. From the front, down the sides of her face and neck:
+    // the long fall alone is 11 wide (her head), the loose hair 17.
+    expect(widest(4, 16, 26)).toBeGreaterThanOrEqual(12)
+    expect(widest(0, 9, 20)).toBeGreaterThanOrEqual(15)
   })
 
   it('shows Ada in a maroon waistcoat over her cream top, in brown boots', () => {
