@@ -244,7 +244,10 @@ const game = defineGame({
         if (on('world')) {
           const moves = (p: (typeof world.pieces)[number]) => p.door !== undefined || p.prop !== undefined || p.sway !== undefined
           const which = q.get('pieces')
-          const pieces = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
+          const kept = which === 'static' ? world.pieces.filter((p) => !moves(p)) : which === 'moving' ? world.pieces.filter(moves) : world.pieces
+          // ?only=<regex> keeps the pieces whose id matches (a bisect: which piece draws a flat slab).
+          const only = q.get('only')
+          const pieces = only === null ? kept : kept.filter((p) => new RegExp(only).test(p.id))
           drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('glow') ? { glow: (swatch: string) => swatchGlow(library, swatch) } : {}), ...(on('tiles') ? { tiles } : {}) }, pieces)
         }
         // The bloom rings what the room's glowing swatches show, after the snap (?bloom=0 leaves it out).
