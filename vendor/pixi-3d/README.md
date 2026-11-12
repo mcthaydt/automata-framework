@@ -31,6 +31,10 @@ command and handed over byte for byte:
 5eb4c18eaf3fdb0f9b66603e34a9d232b96e039d508ce721647adb32015720ad  pixi-3d-0.1.0-beta.3.tgz
 ```
 
+`release-notes-0.1.0-beta.3.txt` is that release's notes as `gh release view` prints them, saved by the Owner: the
+behaviour changes the upgrade has to answer (tone mapping defaults to `none`, unlit colours drawn as authored, GPU
+culling by default, the camera's zoom, per-texture samplers on WebGPU and more). Private, like the tarball.
+
 Keep this tarball, the source that uses it and every build that contains it private. `ship prepare` refuses a
 public bundle that contains `@pixi/3d` while D-1 stands (M3 spec §4.1). When Pixi 3D is public, replace the
 `file:` specifier with the npm release, delete this folder and lift D-1 (the AF 1.0 launch task).
