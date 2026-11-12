@@ -15,20 +15,23 @@ describe('the profiles', () => {
     const profiles = lookProfilesSchema.parse({})
     expect(profiles.lcd).toEqual(LCD_CLINIC)
     expect(profiles.retro).toEqual(RETRO_CLINIC)
+    expect(profiles.light).toEqual({ lamps: 1 })
   })
 
   it('refuse a setting out of range, naming it', () => {
     expect(() => lookProfilesSchema.parse({ lcd: { grid: 2 } })).toThrow(/grid/)
     expect(() => lookProfilesSchema.parse({ retro: { vignette: 3 } })).toThrow(/vignette/)
+    expect(() => lookProfilesSchema.parse({ light: { lamps: 0 } })).toThrow(/lamps/)
   })
 
-  it('are in the committed file: the old game’s but for the LCD cell, which is one field pixel', async () => {
+  it('are in the committed file: the old game’s but for the LCD cell (one field pixel) and the lamps (a gain on the old game’s light)', async () => {
     const toml = await import('smol-toml').then((m) => m.parse)
     const { readFileSync } = await import('node:fs')
     const file = toml(readFileSync(new URL('../../../content/look.toml', import.meta.url), 'utf8'))
     expect(lookProfilesSchema.parse(file)).toEqual({
       ...lookProfilesSchema.parse({}),
       lcd: { ...LCD_CLINIC, cell: 1 },
+      light: { lamps: 0.7 },
     })
   })
 })

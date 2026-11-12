@@ -1,5 +1,6 @@
+import { timeOfDay, worldLighting } from '@automata/3d'
 import { describe, expect, it } from 'vitest'
-import { LEVEL, LIBRARY, PAINT, WORLD } from '#src/features/room/room.ts'
+import { LEVEL, LIBRARY, LIGHTING, PAINT, WORLD } from '#src/features/room/room.ts'
 
 // The ward as the screen builds it from the level. The builder reports what it could not use as sentences and draws the rest,
 // so a lamp it refuses is not a failure anywhere: the room is simply darker, or lit from the wrong place. These tests are where
@@ -111,15 +112,21 @@ describe('the ward\u2019s walls', () => {
       expect({ room: room.id, walls: room.wallTexture }).toEqual({ room: room.id, walls: 'ward-plaster' })
   })
 
-  it('are within a few steps of the old plaster\u2019s colour, no brighter and no greener', () => {
+  // The old game multiplied the plaster's linear colour (0x858667 decodes to about 0.24, 0.24, 0.14) by the room's light; the `srgb` light
+  // multiplies the sRGB colour. The step that draws as the old plaster did under the old lamps is the palette's darkest sand, #625d54
+  // (measured against the old game's real play: the east wall's mean luma 54 against the old 42, and 68 for step 1), not the step nearest
+  // the old file's sRGB colour.
+  it('is the palette step that draws as the old plaster did: sand step 0, darker than the old file\u2019s colour and no greener', () => {
     const colour = PAINT.colourOf('ward-plaster')
     expect(colour, 'the game has no swatch "ward-plaster"').toBeDefined()
+    expect(LIBRARY.swatches['ward-plaster']).toMatchObject({ ramp: 'sand', step: 0 })
     const rgb = [(colour ?? 0) >> 16, ((colour ?? 0) >> 8) & 0xff, (colour ?? 0) & 0xff]
-    const distance = Math.hypot(...rgb.map((channel, i) => channel - (OLD_PLASTER[i] ?? 0)))
-    expect(distance).toBeLessThan(20)
-    // The kit's plasterPaint is #8ac196: a luma of 170 against the old plaster's 131.
     const luma = 0.2126 * (rgb[0] ?? 0) + 0.7152 * (rgb[1] ?? 0) + 0.0722 * (rgb[2] ?? 0)
-    expect(luma).toBeLessThan(145)
+    const old =
+      0.2126 * (OLD_PLASTER[0] ?? 0) + 0.7152 * (OLD_PLASTER[1] ?? 0) + 0.0722 * (OLD_PLASTER[2] ?? 0)
+    // The kit's plasterPaint is #8ac196: a luma of 170 against the old plaster's 131.
+    expect(luma).toBeLessThan(old)
+    expect((rgb[1] ?? 0) - (rgb[0] ?? 0)).toBeLessThanOrEqual((OLD_PLASTER[1] ?? 0) - (OLD_PLASTER[0] ?? 0))
   })
 })
 
@@ -233,6 +240,21 @@ describe('the ward\u2019s props face as the old game turned them', () => {
   })
 })
 
+// The old floor is a dark glazed tile painted from two DUEL steps: `#625d54` (sand step 0, three tiles in four) and `#5b5c69` under the
+// cooler lamps (`src/render/assets.ts` at 92e6704). The kit's `tileFloor` is slate step 5, `#abaebe`: nearly four times the light, so a
+// room lit by the old game's own lamps drew twice as bright (mean luma 88 against 44 on the floor at the spawn) and washed to a grey.
+describe('the ward\u2019s floor', () => {
+  it('is the old tile\u2019s own colour: DUEL sand step 0, #625d54', () => {
+    expect(LIBRARY.swatches['ward-floor']).toMatchObject({ ramp: 'sand', step: 0 })
+  })
+
+  it('is what every tiled room stands on, and the counter keeps its laminate', () => {
+    const floors = LEVEL.sectors.map((room) => [room.id, room.floorTexture])
+    expect(floors.filter(([, floor]) => floor === 'tileFloor')).toEqual([])
+    expect(floors.filter(([, floor]) => floor === 'ward-floor').length).toBe(6)
+  })
+})
+
 // The old walls are two bands: cream glazed tile to 1.14 m (`DEFAULT_TRIM.wainscot`, `src/game/sector-format.ts` at 92e6704, painted
 // from `#ccc3b1`, which is a DUEL step: sand 5) under plaster above. A room with the old default trim carries the tile as a wall `dado`;
 // the rooms that name their own trim (the counter, the doorways) and the walls with a door, a window or an opening do not.
@@ -252,5 +274,17 @@ describe('the ward’s walls', () => {
 
   it('leave the counter and the doorways bare, as the old trim does', () => {
     for (const piece of dadoPieces) expect(['counter', 'doorway']).not.toContain(piece.sector)
+  })
+})
+
+// The old game multiplied a texel's linear colour by its light and showed the product as it was; the framework's `srgb` light multiplies
+// the sRGB colour, which for the same numbers is a good deal brighter (a mid grey is 0.5 in sRGB and 0.21 in linear light). So the lamps
+// are the old game's strengths times the gain `content/look.toml` says, measured against the old game's real play (the audit folder).
+describe('the ward\u2019s lamps', () => {
+  it('are the old game\u2019s strengths times the look file\u2019s gain', () => {
+    const old = worldLighting(WORLD, timeOfDay('lampLit'), { night: true }).lamps
+    expect(LIGHTING.lamps.length).toBe(old.length)
+    for (const [i, lamp] of LIGHTING.lamps.entries())
+      expect(lamp.strength).toBeCloseTo((old[i]?.strength ?? 0) * 0.7, 6)
   })
 })

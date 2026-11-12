@@ -8,3 +8,9 @@
 # pixels, the Nyquist limit, where the pass fades the mesh out; 3 field pixels (6 on the screen) is the finest it can draw.
 [lcd]
 cell = 1
+
+# The old game multiplied a texel's linear colour by its light and showed the product as it was; the framework's `srgb` light multiplies the
+# sRGB colour, so the old game's lamp numbers draw about twice as bright (a mid grey is 0.5 in sRGB and 0.21 in linear light). `lamps` is a gain on
+# every lamp's strength; the ambient and fill are the old game's. Measured on the real play at 1024 by 768 (the session 8 audit folder).
+[light]
+lamps = 0.7

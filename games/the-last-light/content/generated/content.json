@@ -3884,6 +3884,9 @@
       "subpixels": 0.3,
       "vignette": true
     },
+    "light": {
+      "lamps": 0.7
+    },
     "retro": {
       "cell": 1,
       "fade": {
@@ -6106,10 +6109,23 @@
     "WALK_SPEED": 3
   },
   "world-swatch": {
+    "ward-floor": {
+      "accent": "groutDark",
+      "ramp": "sand",
+      "step": 0,
+      "texture": {
+        "cluster": 2,
+        "contrast": 0.035,
+        "facet": 0,
+        "flatten": 0.5,
+        "photo": "floorTiles",
+        "seed": 70
+      }
+    },
     "ward-plaster": {
       "accent": "stainBrown",
       "ramp": "sand",
-      "step": 1,
+      "step": 0,
       "texture": {
         "cluster": 10,
         "contrast": 0.005,

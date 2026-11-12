@@ -32,11 +32,18 @@ export const LIBRARY: WorldLibrary = {
 /** The level built into pieces and lamps; a problem is a sentence, never a crash (the rest still draws). */
 export const WORLD: World = buildWorld(LEVEL, LIBRARY)
 
+/** The gain on the old game's lamp numbers, from `content/look.toml` (`[light]`): the framework's light is brighter than the old game's for them. */
+const LAMP_GAIN = content.look?.light.lamps ?? 1
+
 /** The ward is a night room lit by its lamps. */
 export const TIME = timeOfDay('lampLit')
 
 /** The room's light: its lamps, and the night's ambient, under the look's profile. */
-export const LIGHTING = worldLighting(WORLD, TIME, { night: true })
+const OLD_LIGHTING = worldLighting(WORLD, TIME, { night: true })
+export const LIGHTING = {
+  ...OLD_LIGHTING,
+  lamps: OLD_LIGHTING.lamps.map((lamp) => ({ ...lamp, strength: lamp.strength * LAMP_GAIN })),
+}
 
 /** What the world builder needs to colour and light a piece: the kit's swatches, their glow and their photo tiles. */
 export const PAINT = {

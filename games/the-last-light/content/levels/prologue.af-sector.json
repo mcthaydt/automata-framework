@@ -329,7 +329,7 @@
           ]
         ]
       ],
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster",
       "ceilingTexture": "ceilingTile"
     },
@@ -450,7 +450,7 @@
       ],
       "zone": "hall",
       "view": "hall",
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster",
       "ceilingTexture": "ceilingTile"
     },
@@ -503,7 +503,7 @@
       ],
       "zone": "corridor",
       "view": "corridor",
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster",
       "ceilingTexture": "ceilingTile"
     },
@@ -584,7 +584,7 @@
       ],
       "zone": "corridor",
       "view": "corridor",
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster"
     },
     {
@@ -630,7 +630,7 @@
       ],
       "zone": "corridor",
       "view": "corridor",
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "wallTexture": "ward-plaster",
       "ceilingTexture": "ceilingTile"
     },
@@ -640,7 +640,7 @@
       "ceiling": 4.9,
       "light": 1,
       "open": true,
-      "floorTexture": "tileFloor",
+      "floorTexture": "ward-floor",
       "corners": [
         [
           1.725,
