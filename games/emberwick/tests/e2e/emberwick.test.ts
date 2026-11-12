@@ -331,6 +331,11 @@ test('completes the Ruken handshake inside a fake host frame on another origin',
   const errors = await collectErrors(page)
   await page.goto(`${hostOrigin}/`)
   const frame = page.frameLocator('iframe')
+  // Ruken skips the language screen but not the flashing-lights warning, which Emberwick declares: a player presses
+  // Continue inside the frame, as the journeys that run standalone do.
+  const gameFrame = await (await page.locator('iframe').elementHandle())?.contentFrame()
+  if (gameFrame == null) throw new Error('the host page has no game frame')
+  await passFirstRun(gameFrame)
   await expect(frame.locator('#game')).toHaveAttribute('data-screen', /splash|menu/)
   expect(page.frames().map((f) => f.url())).toContain(gameUrl)
   const trace = await page.evaluate(() => (window as unknown as { hostTrace: () => string[] }).hostTrace())
