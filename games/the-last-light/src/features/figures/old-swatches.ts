@@ -49,8 +49,9 @@ export const ADA_LOOK_SWATCHES: Swatches = {
   denimTurn: { ramp: 0, base: 4, paint: ['#a6aeba', '#828b98', '#626871', '#434549'] },
   denimBand: { ramp: 0, base: 2, paint: ['#626871', '#434549', '#2e3d47', '#1d2c43'] },
   // The painter's `lipsWarm` has its upper lip (#a76057) a step from the warm skin, so at density 2 on a lit face the mouth is one pale smudge.
-  // The upper lip is the painter's deeper brown-red (#7c4b47) over its own lit lower lip (#d28d7a): two rows, two tones, as the reference's mouth.
-  lipsAda: { ramp: 16, base: 3, flat: true, paint: ['#7c4b47', '#d28d7a', '#904647', '#904647'] },
+  // The upper lip is the painter's deeper brown-red (#7c4b47) over a lit lower lip: two rows, two tones, as the reference's mouth. The lower
+  // lip is a rose a step deeper than the painter's #d28d7a, which sat .033 from her skin in OKLab and read as skin in play.
+  lipsAda: { ramp: 16, base: 3, flat: true, paint: ['#7c4b47', '#c17e7a', '#904647', '#904647'] },
   // A toe cap a step lighter than the boot, never the skin's own peach: #bf7e63 read as bare toes under the jeans at density 2 on a lit face.
   bootToe: { ramp: 24, base: 4, paint: ['#945d4f', '#784c49', '#583126', '#372423'] },
 }

@@ -379,6 +379,32 @@ describe('the painted frame shows what they wear', () => {
     expect(rows, 'an upper lip row with a lit lower lip row under it').toBeDefined()
   })
 
+  // The lower lip was #d28d7a on her #ce9770 skin, .033 apart in OKLab (under two just-noticeable steps), and in play #c58c77 on #b5816a: the
+  // mouth read as one dark band. Three such steps apart reads at a glance; it stays a lit lip, well lighter than the upper (two tones).
+  it('gives the lower lip a tone of its own: three noticeable steps from her skin, and clearly lighter than the upper lip', () => {
+    const lin = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+    const oklab = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((k) => lin(Number.parseInt(hex.slice(k, k + 2), 16) / 255)) as [
+        number,
+        number,
+        number,
+      ]
+      const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+      const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+      const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+      return [
+        0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+        1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+        0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+      ]
+    }
+    const apart = (x: string, y: string) => Math.hypot(...oklab(x).map((v, k) => v - (oklab(y)[k] as number)))
+    const [upper = '', lower = ''] = (ADA.swatches?.lipsAda?.paint ?? []) as readonly string[]
+    const skin = (ADA.swatches?.[ADA.skin]?.paint ?? SWATCHES[ADA.skin]?.paint ?? [])[1] ?? ''
+    expect(apart(lower, skin)).toBeGreaterThanOrEqual(0.06)
+    expect((oklab(lower)[0] as number) - (oklab(upper)[0] as number)).toBeGreaterThanOrEqual(0.15)
+  })
+
   it('puts no pale texel under the lower lip: the chin’s catch-light is never the texel right under the mouth (it read as a tongue)', () => {
     const { cell, is, all } = faceAt2(ADA)
     const [w] = cell.size
