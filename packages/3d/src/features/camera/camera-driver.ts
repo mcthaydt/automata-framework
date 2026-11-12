@@ -29,6 +29,11 @@ export interface Pixi3dCameraOptions {
   /** Metres from the followed position (the feet) to the head, for the occluder rule's lines. Default 1.62. */
   readonly height?: number | undefined
   /**
+   * Half the followed figure's width as drawn, metres, for the occluder rule's lines to either side of it (default 0: its middle
+   * only). A game whose figure is a wide whole-pixel sprite gives it, so nothing stands over the sprite's sides.
+   */
+  readonly width?: number | undefined
+  /**
    * The camera that is drawing, while something else writes the `Camera3D` (a cutscene's shot): the occluder rule follows it,
    * its look point standing for the player, so a wall a shot looks at from inside the room stays whole. Read every frame.
    */

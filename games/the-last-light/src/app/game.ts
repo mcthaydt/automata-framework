@@ -1,5 +1,5 @@
 import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, render3dExtension } from '@automata/3d'
+import { createPixi3dRenderer, PLAYER_HEIGHT, render3dExtension } from '@automata/3d'
 import { cameraYawPlugin, STICK_MAX } from '@automata/3d/sim'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
 import { prefersReducedMotion, typedFor } from '@automata/narrative'
@@ -130,6 +130,9 @@ export const game = defineGame({
         views: PLAY.views,
         initial: PLAY.views[0]?.id ?? 'hall',
         follow: InSector.id,
+        // Her sprite is 24 texels either side of her middle in a cell whose 124 rows are her height: whatever stands over its
+        // sides is taken away as well as what stands over her middle.
+        width: (PLAYER_HEIGHT * 24) / 124,
         // While a cutscene draws its own shot the walls are cut for that shot, not for the play camera's.
         drawing: cutsceneShot,
         // Ada's feet: where the sectors say she stands, on the floor.

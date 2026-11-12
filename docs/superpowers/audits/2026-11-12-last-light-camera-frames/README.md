@@ -62,3 +62,38 @@ It is the same black slab that covered her in session 16's defect frame (the "he
 upper face (the bulkhead) when it crosses the eye-to-head line, test first, from all sides. `item2-hall-key-cabinet-NOT-the-closet.png` is named
 for what it is: the walk to the closet went wrong after the camera turns (the keys walk relative to the camera), so **the closet was not shot**,
 nor the hall's south, east and west walls at several yaws.
+
+## Session 2, item (a): she vanished behind the bulkhead (fixed)
+
+Shots are placed in room coordinates now: `play-shots.test.ts` takes `name:walk:x,z` (the probe's nav walk, as a tap's) and `name:face:deg`
+(the probe sends `camera-yaw` until the sim's heading is there; 0 looks toward +z, so 0 frames her from the north, 180 from the south). The
+old "yaw 0" frames were taken after drags; the defect is at heading 180 (looking north), reproduced here by coordinates.
+
+**Cause, measured in Node on the real pieces** (a line from the eye to her head, triangle by triangle): the bulkhead `mouth:upper:0.0.0` was
+built with no `line`, so `drawWorld` never gave it to the occluder rule. Not only it: the builder gave no line to any face built off a wall
+but the wall itself (bulkheads `upper`, steps `lower`, a doorway's frame, dados, skirtings, rails, cornices), hung nothing in a window (panes,
+bars) or a wall's decor on its wall, and `drawWorld` registered no prop that was not hung on a wall (121 prop parts here, the corridor's
+ceiling-hung strip lights among them: one stood across her waist from the north).
+
+**Fix, generic (`@automata/3d`):** every face built off a wall or a portal gets that line and the wall's `occlude`; panes, bars and decor
+hang `onWall`; a wall span has a `base` (a bulkhead 3.2 to 4.9 m is cut when the line crosses it, kept when the line passes under it through
+the opening); `drawWorld` registers every free prop (and a free model, by its blockout's bounds); the pass draws its lines to five heights up
+the figure (feet, knee, waist, chest, head) and, given the sprite's half width (`camera.width`, opt-in; The Last Light gives 24 of 124 rows of
+her height, 0.31 m), to both sides of it; a prop whose top reaches above 1 m fades by default (it was "taller than 1.5 m": the ward's filing
+cabinet, 1.32 m, covered her chest from above, and a strip light 0.1 m tall hanging at 3.1 m never faded). Tests first:
+`packages/3d/tests/unit/world/build.test.ts` (the occluder rule's lines), `.../occluders/occluder-rule.test.ts` (a face that does not stand on
+the floor; a prop that hangs), `.../occluder-pass.test.ts` (the figure as the frame shows it), `.../app/world-view.test.ts` (every face and prop
+between the eye and the figure); and the game's sweep `tests/unit/app/room-sight.test.ts`: every room, places 0.75 m apart over its walkable
+floor, 24 headings, the real `drawWorld` and rule settled, then a line from the eye to her head and to her chest crosses no triangle still drawn
+whole. It failed on the bulkhead and the strip lights, then on the cabinet, the IV bag, the extinguisher cabinet and the closet's bottles;
+it passes now. Her **waist** is still behind low furniture she stands just behind (a bed's head, a gurney's rails, the counter top), as in
+any cut-away; the sweep pins head and chest, not the waist.
+
+Frames (Chromium, software GL, 1024 by 768):
+- `s2-a-before-corridor-end-from-south-bulkhead.png`: the defect reproduced, the bulkhead filling the frame.
+- `s2-a-after-corridor-end-from-south.png`: the same place and heading: the bulkhead cut, she stands whole in front of the exit door.
+- `s2-a-before-hall-north-from-north-strip-light.png` and `s2-a-after-hall-north-from-north-strip-light-faded.png`: the strip light across
+  her waist, then at 25%: she reads through it (a fade, by the rule, not a cut).
+- `s2-a-after-corridor-end-from-north.png`: clear.
+- `s2-a-after-hall-north-from-south-FEET-OFF-FRAME.png`: **a new defect for item (b)**: at the hall's north end looking north, after walking
+  north, her feet run off the bottom of the frame: the look is held ahead of her by the walk, at the edge of the derived reach.

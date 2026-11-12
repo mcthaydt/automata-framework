@@ -38,7 +38,7 @@ export interface WallOptions {
 export interface PropOptions {
   /** The prop's world bounds in metres. */
   readonly bounds: Box3
-  /** Default: `fade` when taller than 1.5 m, else `never`. */
+  /** Default: `fade` when its top is above 1 m (`TALL_PROP_METRES`), else `never`. */
   readonly occlude?: Occlude | undefined
 }
 
@@ -209,6 +209,11 @@ export interface DrawingCamera {
 export interface OccluderHookOptions {
   /** Metres from the player's feet to its head: a positive, finite number. */
   readonly height: number
+  /**
+   * Half the player's width as the frame draws it, in metres (default 0: the rule's lines run down the figure's middle). With it,
+   * whatever stands on the line to either side of the figure is taken away too, so all of a wide sprite stays in sight.
+   */
+  readonly width?: number | undefined
   /** Default: the player's `prefers-reduced-motion`, read every frame. */
   readonly reducedMotion?: (() => boolean) | undefined
   /**
@@ -235,7 +240,10 @@ export function occluderHooks(
     throw new Error(`occluders: the player's height must be a positive number of metres, not ${height}`)
   const isReduced = options.reducedMotion ?? (() => prefersReducedMotion())
   const head = { x: 0, y: 0, z: 0 }
-  const frame = { eye: head, look: head, feet: head, head, seconds: 0, reduced: false }
+  const width = options.width ?? 0
+  if (!(Number.isFinite(width) && width >= 0))
+    throw new Error(`occluders: the player's width must be 0 or a positive number of metres, not ${width}`)
+  const frame = { eye: head, look: head, feet: head, head, width, seconds: 0, reduced: false }
   const subject = { x: 0, y: 0, z: 0 }
   let wasDrawing = false
   return {

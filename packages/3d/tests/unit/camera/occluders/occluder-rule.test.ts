@@ -107,9 +107,11 @@ describe('segmentHitsBox', () => {
 })
 
 describe('propOcclude', () => {
-  it('is what the prop says, else fade above 1.5 m and never at or below it (§4.2)', () => {
-    expect(propOcclude({ min: [0, 0, 0], max: [1, 1.6, 1] }, undefined)).toBe('fade')
-    expect(propOcclude({ min: [0, 0, 0], max: [1, 1.5, 1] }, undefined)).toBe('never')
+  // §4.2 said 1.5 m; a prop reaching a figure's chest hides it from the camera above (The Last Light's filing cabinet, 1.32 m), so a
+  // top above 1 m fades now, and a hung prop with it.
+  it('is what the prop says, else fade when its top is above 1 m and never at or below it', () => {
+    expect(propOcclude({ min: [0, 0, 0], max: [1, 1.32, 1] }, undefined)).toBe('fade')
+    expect(propOcclude({ min: [0, 0, 0], max: [1, 1, 1] }, undefined)).toBe('never')
     expect(propOcclude({ min: [0, 0, 0], max: [1, 0.8, 1] }, 'cut')).toBe('cut')
   })
 })
@@ -137,5 +139,30 @@ describe('the cut-away cases', () => {
   it('still cuts the wall the player stands behind', () => {
     expect(lineCrossesWall(northEast, HALL_CAMERA, at(3.2, 0, -2.2))).toBe(true)
     expect(lineCrossesWall(northEast, HALL_CAMERA, at(1.7, 0, -2.2))).toBe(true)
+  })
+})
+
+describe('a face that does not stand on the floor (a bulkhead over a portal, a lintel)', () => {
+  // The corridor mouth of The Last Light: the hall's ceiling 4.9 m, the corridor's 3.2 m, so a 1.7 m face over the opening, the
+  // mouth (z > -1.4) on its left. The eye stands 5.2 m up over the mouth, looking north down the corridor at the figure.
+  const BULKHEAD: WallSpan = { a: { x: -1.475, z: -1.4 }, b: { x: 1.475, z: -1.4 }, base: 3.2, height: 4.9 }
+  const EYE = { x: 0, y: 5.225, z: 0.84 }
+
+  it('is crossed by a line through it', () => {
+    expect(lineCrossesWall(BULKHEAD, EYE, { x: 0, y: 1.6, z: -6.3 })).toBe(true)
+  })
+  it('is not crossed by a line that passes under it, through the opening', () => {
+    expect(lineCrossesWall(BULKHEAD, EYE, { x: 0, y: 1.6, z: -2.2 })).toBe(false)
+  })
+  it('is not crossed by a line that passes over it', () => {
+    expect(lineCrossesWall(BULKHEAD, { x: 0, y: 9, z: 0.84 }, { x: 0, y: 6, z: -6.3 })).toBe(false)
+  })
+})
+
+describe('a prop that hangs', () => {
+  it('fades by default when it hangs above head height, however short (a strip light, a sign, a lamp)', () => {
+    expect(propOcclude({ min: [0, 2.9, 0], max: [1, 3.1, 0.2] }, undefined)).toBe('fade')
+    expect(propOcclude({ min: [0, 0, 0], max: [1, 1, 0.2] }, undefined)).toBe('never')
+    expect(propOcclude({ min: [0, 2.9, 0], max: [1, 3.1, 0.2] }, 'never')).toBe('never')
   })
 })
